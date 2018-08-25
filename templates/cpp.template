@@ -1,0 +1,22 @@
+/****************************************************************
+* {{FILEE}}
+*
+* Project: Revolution Now
+*
+* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+*
+* Description: {{CURSOR}}
+*
+*****************************************************************/
+
+#include "{{FILE}}.hpp"
+
+namespace rn {
+
+namespace {
+
+
+  
+} // namespace
+
+} // namespace rn

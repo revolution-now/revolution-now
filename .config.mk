@@ -11,7 +11,7 @@ main_is := MAIN
 $(call enter,src)
 
 build-art:
-	@cd $(root)/art && make
+	@cd $(root)/art && $(MAKE)
 
 all: build-art
 

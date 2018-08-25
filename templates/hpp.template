@@ -1,0 +1,18 @@
+/****************************************************************
+* {{FILEE}}
+*
+* Project: Revolution Now
+*
+* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+*
+* Description: {{CURSOR}}
+*
+*****************************************************************/
+
+#pragma once
+
+namespace rn {
+
+
+
+} // namespace rn
