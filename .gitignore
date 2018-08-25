@@ -41,3 +41,9 @@ bin-osx*
 # vim-related
 *~
 *.swp
+
+# Something mac-related, not sure what it is
+.DS_Store
+
+# Game specific
+art/*.tm

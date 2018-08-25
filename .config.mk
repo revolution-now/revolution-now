@@ -9,3 +9,10 @@ LDFLAGS += $(sdl_ldflags) -lSDL2_image
 main_is := MAIN
 
 $(call enter,src)
+
+build-art:
+	@cd $(root)/art && make
+
+all: build-art
+
+.PHONY: build-art
