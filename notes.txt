@@ -202,3 +202,123 @@ imac with 1920*2 x 1080*2 specified (output visible)
     GetDisplayDPI:
       x-dpi: 173
       y-dpi: 172
+
+Dell:
+
+	GetCurrentDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetDesktopDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetWindowDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	SDL_GL_GetDrawableSize:
+	  w: 3840
+	  h: 2160
+
+	SDL_GetRendererOutputSize:
+	  w: 3840
+	  h: 2160
+
+	GetDisplayBounds:
+	  x: 0
+	  y: 0
+	  w: 3840
+	  h: 2160
+
+	GetDisplayDPI:
+	  x-dpi: 163.651
+	  y-dpi: 163.773
+
+Dell with 1920 x 1080 specified (nothing visible)
+
+	GetCurrentDisplayMode:
+	  w...........: 1920
+	  h...........: 1080
+	  refresh_rate:60
+
+	GetDesktopDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetWindowDisplayMode:
+	  w...........: 1920
+	  h...........: 1080
+	  refresh_rate:60
+
+	SDL_GL_GetDrawableSize:
+	  w: 1920
+	  h: 1080
+
+	SDL_GetRendererOutputSize:
+	  w: 1920
+	  h: 1080
+
+	GetDisplayBounds:
+	  x: 0
+	  y: 0
+	  w: 1920
+	  h: 1080
+
+	GetDisplayDPI:
+	  x-dpi: 163.651
+	  y-dpi: 163.773
+
+Dell with 1920*2 x 1080*2 specified (output visible)
+
+	GetCurrentDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetDesktopDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	GetWindowDisplayMode:
+	  w...........: 3840
+	  h...........: 2160
+	  refresh_rate:30
+
+	SDL_GL_GetDrawableSize:
+	  w: 3840
+	  h: 2160
+
+	SDL_GetRendererOutputSize:
+	  w: 3840
+	  h: 2160
+
+	GetDisplayBounds:
+	  x: 0
+	  y: 0
+	  w: 3840
+	  h: 2160
+
+	GetDisplayDPI:
+	  x-dpi: 163.651
+	  y-dpi: 163.773
