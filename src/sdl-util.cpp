@@ -61,6 +61,9 @@ void create_window() {
   int width = g_tile_width*g_viewport_width_tiles;
   int height = g_tile_height*g_viewport_height_tiles;
 
+  cout << "computed width.: " << width << "\n";
+  cout << "computed height: " << height << "\n";
+
   width *= g_display_scaled ? 2 : 1;
   height *= g_display_scaled ? 2 : 1;
 
@@ -68,6 +71,7 @@ void create_window() {
 
   //flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
+  //width = 1920; height = 1080;
   g_window = SDL_CreateWindow( "Revolution Now",
     0, 0, width, height, flags );
 

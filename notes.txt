@@ -1,35 +1,119 @@
-imac:
+lenovo:
 
-    # SDL_WINDOW_ALLOW_HIGHDPI performs scaling but does not
-    # affect the numbers below.
+    GetCurrentDisplayMode:
+      w...........: 1600
+      h...........: 1024
+      refresh_rate:60
+
+    GetDesktopDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    GetDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    GetWindowDisplayMode:
+      w...........: 1600
+      h...........: 1024
+      refresh_rate:60
+
+    SDL_GL_GetDrawableSize:
+      w: 1600
+      h: 1024
+
+    SDL_GetRendererOutputSize:
+      w: 1600
+      h: 1024
+
+    GetDisplayBounds:
+      x: 0
+      y: 0
+      w: 1600
+      h: 1024
+
+    GetDisplayDPI:
+      x-dpi: 157.825
+      y-dpi: 158.566
+
+lenovo with 1920x1080 specified:
+
+    GetCurrentDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    GetDesktopDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    GetDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    GetWindowDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    SDL_GL_GetDrawableSize:
+      w: 1920
+      h: 1080
+
+    SDL_GetRendererOutputSize:
+      w: 1920
+      h: 1080
+
+    GetDisplayBounds:
+      x: 0
+      y: 0
+      w: 1920
+      h: 1080
+
+    GetDisplayDPI:
+      x-dpi: 157.825
+      y-dpi: 158.566
+
+imac:
 
     GetCurrentDisplayMode:
       w...........: 3200
       h...........: 1800
       refresh_rate:60
+
     GetDesktopDisplayMode:
       w...........: 2560
       h...........: 1440
       refresh_rate:60
+
     GetDisplayMode:
       w...........: 5120
       h...........: 2880
       refresh_rate:60
+
     GetWindowDisplayMode:
       w...........: 3200
       h...........: 1800
       refresh_rate:60
+
     SDL_GL_GetDrawableSize:
       w: 6400
       h: 3600
+
     SDL_GetRendererOutputSize:
       w: 6400
       h: 3600
+
     GetDisplayBounds:
       x: 0
       y: 0
       w: 3200
       h: 1800
+
     GetDisplayDPI:
       x-dpi: 135
       y-dpi: 134
