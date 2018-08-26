@@ -16,6 +16,7 @@
 #include "global-constants.hpp"
 #include "macros.hpp"
 
+#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -25,7 +26,7 @@ namespace rn {
 namespace {
 
 vector<SDL_Texture*> loaded_textures;
-  
+
 int g_screen_w;
 int g_screen_h;
 
@@ -56,19 +57,72 @@ void init_sdl() {
 // SDL_WINDOW_MINIMIZED,     SDL_WINDOW_INPUT_GRABBED,
 // SDL_WINDOW_ALLOW_HIGHDPI, SDL_WINDOW_VULKAN.
 void create_window() {
-  
+
   int width = g_tile_width*g_viewport_width_tiles;
   int height = g_tile_height*g_viewport_height_tiles;
 
   width *= g_display_scaled ? 2 : 1;
   height *= g_display_scaled ? 2 : 1;
 
+  auto flags = SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
+
+  //flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+
   g_window = SDL_CreateWindow( "Revolution Now",
-    0, 0, width, height,
-    SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN );
+    0, 0, width, height, flags );
 
   if( !g_window )
     DIE( "failed to create window" );
+}
+
+void print_display_mode( SDL_DisplayMode const& dm ) {
+  cout << "  w...........: " << dm.w << "\n";
+  cout << "  h...........: " << dm.h << "\n";
+  cout << "  refresh_rate:" << dm.refresh_rate << "\n";
+}
+
+void print_rect( SDL_Rect const& r ) {
+  cout << "  x: " << r.x << "\n";
+  cout << "  y: " << r.y << "\n";
+  cout << "  w: " << r.w << "\n";
+  cout << "  h: " << r.h << "\n";
+}
+
+void print_video_stats() {
+
+  SDL_DisplayMode dm;
+
+  cout << "GetCurrentDisplayMode:\n";
+  SDL_GetCurrentDisplayMode(0, &dm);
+  print_display_mode( dm );
+
+  cout << "GetDesktopDisplayMode:\n";
+  SDL_GetDesktopDisplayMode( 0, &dm );
+  print_display_mode( dm );
+
+  cout << "GetDisplayMode:\n";
+  SDL_GetDisplayMode( 0, 0, &dm );
+  print_display_mode( dm );
+
+  cout << "GetWindowDisplayMode:\n";
+  SDL_GetWindowDisplayMode( g_window, &dm );
+  print_display_mode( dm );
+
+  SDL_Rect r;
+  cout << "GetDisplayBounds:\n";
+  SDL_GetDisplayBounds( 0, &r );
+  print_rect( r );
+
+  float hdpi, vdpi;
+  cout << "GetDisplayDPI:\n";
+  SDL_GetDisplayDPI( 0, NULL, &hdpi, &vdpi );
+  cout << "  x-dpi: " << hdpi << "\n";
+  cout << "  y-dpi: " << vdpi << "\n";
+
+  cout << "\n";
+  cout << "g_display_scaled...........: " << g_display_scaled << "\n";
+  cout << "g_screen_offset_x..........: " << g_screen_offset_x << "\n";
+  cout << "g_screen_offset_y..........: " << g_screen_offset_y << "\n";
 }
 
 void create_renderer() {

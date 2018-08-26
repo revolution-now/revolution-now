@@ -13,6 +13,7 @@ int main( int, char** ) {
   rn::init_sdl();
 
   rn::create_window();
+  rn::print_video_stats();
   rn::create_renderer();
   rn::load_sprites();
   rn::load_tile_maps();

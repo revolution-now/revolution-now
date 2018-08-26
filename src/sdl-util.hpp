@@ -20,6 +20,8 @@ void init_sdl();
 
 void create_window();
 
+void print_video_stats();
+
 void create_renderer();
 
 void cleanup();
