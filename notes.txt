@@ -1,3 +1,8 @@
+Defaults:
+
+    computed width.: 1536
+    computed height: 832
+
 lenovo:
 
     GetCurrentDisplayMode:
@@ -117,3 +122,83 @@ imac:
     GetDisplayDPI:
       x-dpi: 135
       y-dpi: 134
+
+imac with 1920 x 1080 specified (no output):
+
+    GetCurrentDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    GetDesktopDisplayMode:
+      w...........: 2560
+      h...........: 1440
+      refresh_rate:60
+
+    GetDisplayMode:
+      w...........: 5120
+      h...........: 2880
+      refresh_rate:60
+
+    GetWindowDisplayMode:
+      w...........: 1920
+      h...........: 1080
+      refresh_rate:60
+
+    SDL_GL_GetDrawableSize:
+      w: 3840
+      h: 2160
+
+    SDL_GetRendererOutputSize:
+      w: 3840
+      h: 2160
+
+    GetDisplayBounds:
+      x: 0
+      y: 0
+      w: 1920
+      h: 1080
+
+    GetDisplayDPI:
+      x-dpi: 81
+      y-dpi: 81
+
+imac with 1920*2 x 1080*2 specified (output visible)
+
+    GetCurrentDisplayMode:
+      w...........: 4096
+      h...........: 2304
+      refresh_rate:60
+
+    GetDesktopDisplayMode:
+      w...........: 2560
+      h...........: 1440
+      refresh_rate:60
+
+    GetDisplayMode:
+      w...........: 5120
+      h...........: 2880
+      refresh_rate:60
+
+    GetWindowDisplayMode:
+      w...........: 4096
+      h...........: 2304
+      refresh_rate:60
+
+    SDL_GL_GetDrawableSize:
+      w: 8192
+      h: 4608
+
+    SDL_GetRendererOutputSize:
+      w: 8192
+      h: 4608
+
+    GetDisplayBounds:
+      x: 0
+      y: 0
+      w: 4096
+      h: 2304
+
+    GetDisplayDPI:
+      x-dpi: 173
+      y-dpi: 172
