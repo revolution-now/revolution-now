@@ -108,6 +108,17 @@ void print_video_stats() {
   SDL_GetWindowDisplayMode( g_window, &dm );
   print_display_mode( dm );
 
+  int w, h;
+  cout << "SDL_GL_GetDrawableSize:\n";
+  SDL_GL_GetDrawableSize( g_window, &w, &h );
+  cout << "  w: " << w << "\n";
+  cout << "  h: " << h << "\n";
+
+  cout << "SDL_GetRendererOutputSize:\n";
+  SDL_GetRendererOutputSize( g_renderer, &w, &h );
+  cout << "  w: " << w << "\n";
+  cout << "  h: " << h << "\n";
+
   SDL_Rect r;
   cout << "GetDisplayBounds:\n";
   SDL_GetDisplayBounds( 0, &r );

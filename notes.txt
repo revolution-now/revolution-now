@@ -7,28 +7,29 @@ imac:
       w...........: 3200
       h...........: 1800
       refresh_rate:60
-
     GetDesktopDisplayMode:
       w...........: 2560
       h...........: 1440
       refresh_rate:60
-
     GetDisplayMode:
       w...........: 5120
       h...........: 2880
       refresh_rate:60
-
     GetWindowDisplayMode:
       w...........: 3200
       h...........: 1800
       refresh_rate:60
-
+    SDL_GL_GetDrawableSize:
+      w: 6400
+      h: 3600
+    SDL_GetRendererOutputSize:
+      w: 6400
+      h: 3600
     GetDisplayBounds:
       x: 0
       y: 0
       w: 3200
       h: 1800
-
     GetDisplayDPI:
       x-dpi: 135
       y-dpi: 134
