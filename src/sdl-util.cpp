@@ -27,9 +27,6 @@ namespace {
 
 vector<SDL_Texture*> loaded_textures;
 
-int g_screen_w;
-int g_screen_h;
-
 ostream& operator<<( ostream& out, SDL_DisplayMode const& dm ) {
   return (out << dm.w << "x" << dm.h << "[" << dm.refresh_rate << "Hz]");
 }
@@ -53,18 +50,18 @@ void init_sdl() {
 SDL_DisplayMode find_fullscreen_mode() {
   SDL_DisplayMode dm;
 
-	cout << "Available display modes:\n";
+  cout << "Available display modes:\n";
   auto num_display_modes = SDL_GetNumDisplayModes( 0 );
-	for( int i = 0; i < num_display_modes; ++i ) {
-		SDL_GetDisplayMode( 0, i, &dm );
-		if( dm.w % 32 == 0 && dm.h % 32 == 0 ) {
-			cout << dm.w << "x" << dm.h << "\n";
-			if( dm.w >= 1920 && dm.h >= 1080 )
-				return dm;
-		}
-	}
+  for( int i = 0; i < num_display_modes; ++i ) {
+    SDL_GetDisplayMode( 0, i, &dm );
+    if( dm.w % 32 == 0 && dm.h % 32 == 0 ) {
+      cout << dm.w << "x" << dm.h << "\n";
+      if( dm.w >= 1920 && dm.h >= 1080 )
+        return dm;
+    }
+  }
   dm.w = dm.h = 0; // means we can't find one.
-	return dm;
+  return dm;
 }
 
 // SDL_WINDOW_FULLSCREEN,    SDL_WINDOW_OPENGL,
@@ -82,9 +79,9 @@ void create_window() {
 
   auto flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
 
-	auto fullscreen_mode = find_fullscreen_mode();
-	if( !fullscreen_mode.w )
-		DIE( "cannot find appropriate fullscreen mode" );
+  auto fullscreen_mode = find_fullscreen_mode();
+  if( !fullscreen_mode.w )
+    DIE( "cannot find appropriate fullscreen mode" );
 
   //flags |= SDL_WINDOW_ALLOW_HIGHDPI;
   flags |= ::SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -102,7 +99,7 @@ void create_window() {
   //SDL_GetDesktopDisplayMode(0, &dm);
 
   //cout << "desktop display mode: " << dm_desktop << "\n";
-	//SDL_SetWindowDisplayMode( g_window, &dm_desktop );
+  //SDL_SetWindowDisplayMode( g_window, &dm_desktop );
 }
 
 void print_display_mode( SDL_DisplayMode const& dm ) {
@@ -121,31 +118,31 @@ void print_rect( SDL_Rect const& r ) {
 void print_video_stats() {
   SDL_DisplayMode dm;
 
-	cout << "GetCurrentDisplayMode:\n";
-	SDL_GetCurrentDisplayMode(0, &dm);
-	print_display_mode( dm );
+  cout << "GetCurrentDisplayMode:\n";
+  SDL_GetCurrentDisplayMode(0, &dm);
+  print_display_mode( dm );
 
-	cout << "GetDesktopDisplayMode:\n";
-	SDL_GetDesktopDisplayMode( 0, &dm );
-	print_display_mode( dm );
+  cout << "GetDesktopDisplayMode:\n";
+  SDL_GetDesktopDisplayMode( 0, &dm );
+  print_display_mode( dm );
 
-	cout << "GetDisplayMode:\n";
-	SDL_GetDisplayMode( 0, 0, &dm );
-	print_display_mode( dm );
+  cout << "GetDisplayMode:\n";
+  SDL_GetDisplayMode( 0, 0, &dm );
+  print_display_mode( dm );
 
-	SDL_Rect r;
-	cout << "GetDisplayBounds:\n";
-	SDL_GetDisplayBounds( 0, &r );
-	print_rect( r );
+  SDL_Rect r;
+  cout << "GetDisplayBounds:\n";
+  SDL_GetDisplayBounds( 0, &r );
+  print_rect( r );
 
-	float hdpi, vdpi;
-	cout << "GetDisplayDPI:\n";
-	SDL_GetDisplayDPI( 0, NULL, &hdpi, &vdpi );
-	cout << "  x-dpi: " << hdpi << "\n";
-	cout << "  y-dpi: " << vdpi << "\n";
+  float hdpi, vdpi;
+  cout << "GetDisplayDPI:\n";
+  SDL_GetDisplayDPI( 0, NULL, &hdpi, &vdpi );
+  cout << "  x-dpi: " << hdpi << "\n";
+  cout << "  y-dpi: " << vdpi << "\n";
 
-	cout << "\n";
-	cout << "g_display_scaled...........: " << g_display_scaled << "\n";
+  cout << "\n";
+  cout << "g_display_scaled...........: " << g_display_scaled << "\n";
 }
 
 void create_renderer() {
@@ -199,7 +196,7 @@ void render_texture( SDL_Texture* texture, SDL_Rect source, SDL_Rect dest, doubl
 
 SDL_DisplayMode get_current_display_mode() {
   SDL_DisplayMode dm;
-	SDL_GetCurrentDisplayMode(0, &dm);
+  SDL_GetCurrentDisplayMode(0, &dm);
   return dm;
 }
 
