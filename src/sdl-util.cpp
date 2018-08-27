@@ -47,7 +47,7 @@ SDL_DisplayMode get_current_display_mode() {
 void init_game() {
   rn::init_sdl();
   rn::create_window();
-  rn::print_video_stats();
+  //rn::print_video_stats();
   rn::create_renderer();
 }
 
