@@ -88,7 +88,6 @@ void print_video_stats() {
 }
 
 void create_renderer() {
-
   g_renderer = SDL_CreateRenderer( g_window, -1,
       SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 
@@ -101,6 +100,11 @@ void create_renderer() {
   cout << "logical renderer height: " << height << "\n";
 
   ::SDL_RenderSetLogicalSize( g_renderer, width, height );
+
+  width = g_tile_width*g_world_width_tiles;
+  height = g_tile_height*g_world_height_tiles;
+  g_texture_world = ::SDL_CreateTexture( g_renderer,
+      SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height );
 }
 
 SDL_Texture* load_texture( const char* file ) {

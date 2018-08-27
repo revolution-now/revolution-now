@@ -9,10 +9,8 @@
 #include <SDL_image.h>
 
 void render() {
-  // This function expects Red, Green, Blue and Alpha as color
-  // values
+  ::SDL_SetRenderTarget( rn::g_renderer, rn::g_texture_world );
   SDL_SetRenderDrawColor( rn::g_renderer, 0, 0, 0, 255 );
-  // Clear the window to the current drawing color.
   SDL_RenderClear( rn::g_renderer );
 
   for( int i = 0; i < rn::g_viewport_width_tiles; ++i ) {
@@ -24,9 +22,20 @@ void render() {
     }
   }
 
+  ::SDL_Rect src; src.x = src.y = 0; src.w = src.h = 100;
+  ::SDL_SetRenderDrawColor( rn::g_renderer, 60, 60, 60, 255 );
+  ::SDL_RenderFillRect( rn::g_renderer, &src );
+  src.x = src.y = 100;
+  ::SDL_RenderFillRect( rn::g_renderer, &src );
+
+  ::SDL_SetRenderTarget( rn::g_renderer, NULL );
+  SDL_SetRenderDrawColor( rn::g_renderer, 0, 0, 0, 255 );
+  SDL_RenderClear( rn::g_renderer );
+
+  ::SDL_RenderCopy( rn::g_renderer, rn::g_texture_world, NULL, NULL );
+
   rn::render_tile_map( "panel" );
 
-  // Update the screen with rendering performed.
   SDL_RenderPresent( rn::g_renderer );
 }
 

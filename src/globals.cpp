@@ -19,8 +19,9 @@ namespace {
   
 } // namespace
 
-SDL_Window* g_window = nullptr;
-SDL_Renderer* g_renderer = nullptr;
+::SDL_Window* g_window = nullptr;
+::SDL_Renderer* g_renderer = nullptr;
+::SDL_Texture* g_texture_world = nullptr;
 
 } // namespace rn
 
