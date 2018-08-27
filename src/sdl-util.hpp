@@ -31,4 +31,8 @@ SDL_Texture* load_texture( const char* file );
 void render_texture( SDL_Texture* texture, SDL_Rect source, SDL_Rect dest,
                      double angle, SDL_RendererFlip flip );
 
+bool is_window_fullscreen();
+void set_fullscreen( bool fullscreen );
+void toggle_fullscreen();
+
 } // namespace rn
