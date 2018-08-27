@@ -101,8 +101,11 @@ void create_renderer() {
 
   ::SDL_RenderSetLogicalSize( g_renderer, width, height );
 
-  width = g_tile_width*g_world_width_tiles;
-  height = g_tile_height*g_world_height_tiles;
+  // +1 tile because we may need to draw a bit in excess of the
+  // viewport window in order to facilitate smooth scrolling,
+  // though we shouldn't need more than 1 extra tile.
+  width = g_tile_width*(g_world_viewport_width_tiles + 1);
+  height = g_tile_height*(g_world_viewport_height_tiles + 1);
   g_texture_world = ::SDL_CreateTexture( g_renderer,
       SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height );
 }

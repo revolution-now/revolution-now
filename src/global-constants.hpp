@@ -21,10 +21,10 @@ constexpr int g_tile_height = 32;
 constexpr int g_viewport_width_tiles = 48;
 constexpr int g_viewport_height_tiles = 26;
 
-constexpr int g_world_width_tiles = 42;
-constexpr int g_world_height_tiles = 25;
+constexpr int g_world_viewport_width_tiles = 40;
+constexpr int g_world_viewport_height_tiles = 25;
 
-inline constexpr std::string_view g_window_title = "Revolution|Now";
+inline constexpr std::string_view g_window_title = "Revolution | Now";
 
 } // namespace rn
 

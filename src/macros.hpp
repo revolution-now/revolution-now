@@ -26,6 +26,9 @@
 
 #define DIE( msg ) { rn::die( __FILE__, __LINE__, msg ); }
 
+#define ASSERT( a ) \
+  { if( !(a) ) DIE( TO_STRING( a ) " is false but should not be" ) }
+
 #define ASSERT_( a ) ASSERT( a, "" )
 #define ERROR( a ) ASSERT( false, a )
 
