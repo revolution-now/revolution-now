@@ -22,7 +22,5 @@ namespace {
 SDL_Window* g_window = nullptr;
 SDL_Renderer* g_renderer = nullptr;
 
-bool g_display_scaled = false;
-
 } // namespace rn
 

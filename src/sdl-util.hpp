@@ -16,6 +16,8 @@
 
 namespace rn {
 
+void init_game();
+
 void init_sdl();
 
 void create_window();

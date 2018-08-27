@@ -19,7 +19,5 @@ namespace rn {
 extern SDL_Window* g_window;
 extern SDL_Renderer* g_renderer;
 
-extern bool g_display_scaled;
-
 } // namespace rn
 

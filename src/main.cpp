@@ -15,28 +15,23 @@ void render() {
   // Clear the window to the current drawing color.
   SDL_RenderClear( rn::g_renderer );
 
-  for( int i = 0; i < 48; ++i ) {
-    for( int j = 0; j < 26; ++j ) {
-      if( (i+j) % 2 == 0 )
+  for( int i = 0; i < rn::g_viewport_width_tiles; ++i ) {
+    for( int j = 0; j < rn::g_viewport_height_tiles; ++j ) {
+      if( (i+j) % 4 == 0 )
         rn::render_sprite_grid( rn::g_tile::water, j, i, 0, 0 );
       else
         rn::render_sprite_grid( rn::g_tile::land, j, i, 0, 0 );
     }
   }
 
-  //rn::render_tile_map( "panel" );
+  rn::render_tile_map( "panel" );
 
   // Update the screen with rendering performed.
   SDL_RenderPresent( rn::g_renderer );
 }
 
 int main( int, char** ) {
-  // initialize SDL
-  rn::init_sdl();
-
-  rn::create_window();
-  rn::print_video_stats();
-  rn::create_renderer();
+  rn::init_game();
   rn::load_sprites();
   rn::load_tile_maps();
 
@@ -48,7 +43,7 @@ int main( int, char** ) {
   bool running = true;
 
   while( running ) {
-    if(SDL_Event event; SDL_PollEvent(&event)) {
+    if( ::SDL_Event event; SDL_PollEvent( &event ) ) {
       switch (event.type) {
         case SDL_QUIT:
           running = false;

@@ -1,4 +1,4 @@
-CXXFLAGS += -std=c++1z
+override CXXFLAGS += -std=c++1z -Wno-c++17-extensions
 
 sdl_cflags  := $(shell sdl2-config --cflags)
 sdl_ldflags := $(shell sdl2-config --libs)

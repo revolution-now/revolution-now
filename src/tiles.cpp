@@ -83,13 +83,11 @@ void render_sprite( g_tile tile, int pixel_row, int pixel_col, int rot, int flip
     DIE( "failed to find sprite "s + std::to_string( static_cast<int>( tile ) ) );
   sprite const& sp = where->second;
 
-  int scale = g_display_scaled ? 2 : 1;
-
   SDL_Rect destination;
-  destination.x = pixel_col*scale;
-  destination.y = pixel_row*scale;
-  destination.w = sp.w*scale;
-  destination.h = sp.h*scale;
+  destination.x = pixel_col;
+  destination.y = pixel_row;
+  destination.w = sp.w;
+  destination.h = sp.h;
 
   double angle = rot*90.0;
 
