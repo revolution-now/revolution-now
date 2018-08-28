@@ -20,20 +20,21 @@ namespace rn {
 
 namespace {
 
-double viewport_center_x = 0;
-double viewport_center_y = 0;
 double viewport_zoom = 1.0;
-  
-double world_viewport_width()      { return g_world_viewport_width_tiles*32/viewport_zoom; }
-double world_viewport_height()     { return g_world_viewport_height_tiles*32/viewport_zoom; }
+
+double world_viewport_width()      { return g_world_viewport_width_tiles*g_tile_width/viewport_zoom; }
+double world_viewport_height()     { return g_world_viewport_height_tiles*g_tile_height/viewport_zoom; }
+
+double viewport_center_x = world_viewport_width()/2.0;
+double viewport_center_y = world_viewport_height()/2.0;
 
 double world_viewport_start_x() { return viewport_center_x - world_viewport_width()/2.0; }
 double world_viewport_start_y() { return viewport_center_y - world_viewport_height()/2.0; }
 double world_viewport_end_x()   { return viewport_center_x + world_viewport_width()/2.0; }
 double world_viewport_end_y()   { return viewport_center_y + world_viewport_height()/2.0; }
 
-int world_viewport_start_tile_x() { return int( world_viewport_start_x() )/32; }
-int world_viewport_start_tile_y() { return int( world_viewport_start_y() )/32; }
+int world_viewport_start_tile_x() { return int( world_viewport_start_x() )/g_tile_width; }
+int world_viewport_start_tile_y() { return int( world_viewport_start_y() )/g_tile_height; }
 
 } // namespace
 
@@ -71,8 +72,6 @@ void world_viewport_apply_bounds() {
   if( world_viewport_end_y() > size_y )
       viewport_center_y = size_y-world_viewport_height()/2.0;
 }
-
-STARTUP() { world_viewport_apply_bounds(); }
 
 Rect viewport_covered_tiles() {
   int start_tile_x = world_viewport_start_tile_x();
