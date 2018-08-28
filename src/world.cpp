@@ -14,6 +14,7 @@
 #include "world.hpp"
 
 #include "base-util.hpp"
+#include "global-constants.hpp"
 #include "macros.hpp"
 
 using namespace std;
@@ -63,6 +64,18 @@ vector<vector<Square>> world_map{
 std::tuple<int/*y*/,int/*x*/> world_size_tiles() {
   return {world_map.size(), world_map[0].size()};
 }
+
+std::tuple<int/*y*/,int/*x*/> world_size_pixels() {
+  return {
+    std::get<0>( world_size_tiles() )*g_tile_height,
+    std::get<1>( world_size_tiles() )*g_tile_width
+  };
+}
+
+int world_size_tiles_x() { return std::get<1>( world_size_tiles() ); }
+int world_size_tiles_y() { return std::get<0>( world_size_tiles() ); }
+int world_size_pixels_x() { return std::get<1>( world_size_tiles() ); }
+int world_size_pixels_y() { return std::get<0>( world_size_tiles() ); }
 
 bool square_exists( int y, int x ) {
   if( y < 0 || x < 0 )

@@ -6,6 +6,7 @@ let s:first = 'main.cpp'
 
 let s:stems = [
   \ 'sdl-util',
+  \ 'viewport',
   \ 'world',
   \ 'tiles',
   \ 'globals',

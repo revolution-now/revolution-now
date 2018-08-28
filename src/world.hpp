@@ -34,6 +34,12 @@ struct SquareSurround {
 };
 
 std::tuple<int/*y*/,int/*x*/> world_size_tiles();
+std::tuple<int/*y*/,int/*x*/> world_size_pixels();
+
+int world_size_tiles_x();
+int world_size_tiles_y();
+int world_size_pixels_x();
+int world_size_pixels_y();
 
 bool square_exists( int y, int x );
 
