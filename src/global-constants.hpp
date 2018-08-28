@@ -21,6 +21,7 @@ constexpr int g_tile_height = 32;
 constexpr int g_viewport_width_tiles = 48;
 constexpr int g_viewport_height_tiles = 26;
 
+// At standard zoom, when tile size is (g_tile_width, g_tile_height);
 constexpr int g_world_viewport_width_tiles = 40;
 constexpr int g_world_viewport_height_tiles = 25;
 

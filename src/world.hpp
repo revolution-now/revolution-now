@@ -33,7 +33,7 @@ struct SquareSurround {
   OptSquareCRef west;
 };
 
-std::tuple<int/*y*/,int/*x*/> world_size();
+std::tuple<int/*y*/,int/*x*/> world_size_tiles();
 
 bool square_exists( int y, int x );
 

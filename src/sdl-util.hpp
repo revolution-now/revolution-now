@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <ostream>
+
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -38,3 +40,5 @@ void set_fullscreen( bool fullscreen );
 void toggle_fullscreen();
 
 } // namespace rn
+
+std::ostream& operator<<( std::ostream& out, ::SDL_Rect const& r );

@@ -10,7 +10,6 @@
 *****************************************************************/
 
 #include <iostream>
-#include <ostream>
 #include <vector>
 
 #include "sdl-util.hpp"
@@ -22,6 +21,10 @@
 
 using namespace std;
 
+ostream& operator<<( ostream& out, ::SDL_Rect const& r ) {
+  return (out << "(" << r.x << "," << r.y << "," << r.w << "," << r.h << ")");
+}
+
 namespace rn {
 
 namespace {
@@ -30,10 +33,6 @@ vector<::SDL_Texture*> loaded_textures;
 
 ostream& operator<<( ostream& out, ::SDL_DisplayMode const& dm ) {
   return (out << dm.w << "x" << dm.h << "[" << dm.refresh_rate << "Hz]");
-}
-
-ostream& operator<<( ostream& out, ::SDL_Rect const& r ) {
-  return (out << "(" << r.x << "," << r.y << "," << r.w << "," << r.h << ")");
 }
 
 SDL_DisplayMode get_current_display_mode() {
@@ -57,7 +56,8 @@ void init_sdl() {
 }
 
 void create_window() {
-  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE;
+  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
+               ::SDL_WINDOW_FULLSCREEN_DESKTOP;
   auto dm = get_current_display_mode();
 
   g_window = ::SDL_CreateWindow( string( g_window_title ).c_str(),
@@ -104,8 +104,8 @@ void create_renderer() {
   // +1 tile because we may need to draw a bit in excess of the
   // viewport window in order to facilitate smooth scrolling,
   // though we shouldn't need more than 1 extra tile.
-  width = g_tile_width*(g_world_viewport_width_tiles + 1);
-  height = g_tile_height*(g_world_viewport_height_tiles + 1);
+  width = g_tile_width*2*(g_world_viewport_width_tiles + 1);
+  height = g_tile_height*2*(g_world_viewport_height_tiles + 1);
   g_texture_world = ::SDL_CreateTexture( g_renderer,
       SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height );
 }

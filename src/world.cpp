@@ -60,13 +60,16 @@ vector<vector<Square>> world_map{
 
 } // namespace
 
-std::tuple<int/*y*/,int/*x*/> world_size() {
+std::tuple<int/*y*/,int/*x*/> world_size_tiles() {
   return {world_map.size(), world_map[0].size()};
 }
 
 bool square_exists( int y, int x ) {
-  return int( world_map.size() ) > y &&
-         int( world_map[y].size() ) > x;
+  if( y < 0 || x < 0 )
+    return false;
+  if( auto [sy, sx] = world_size_tiles(); sy > y && sx > x )
+    return true;
+  return false;
 }
 
 OptSquareCRef square_at_safe( int y, int x ) {
