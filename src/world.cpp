@@ -84,7 +84,7 @@ Square const& square_at( int y, int x ) {
 
 // N-S-E-W
 SquareSurround surrounding( int y, int x ) {
-  return {
+  return SquareSurround{
     square_at_safe( y-1, x ),
     square_at_safe( y+1, x ),
     square_at_safe( y, x+1 ),
