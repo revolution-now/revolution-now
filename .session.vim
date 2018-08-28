@@ -13,7 +13,7 @@ let s:stems = [
 \]
 
 let s:pairs = [
-  \ ['src/macros.hpp', 'src/global-constants.hpp']
+  \ ['macros.hpp', 'global-constants.hpp']
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
