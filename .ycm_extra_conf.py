@@ -1,10 +1,21 @@
 from os import uname
 from os.path import relpath, dirname, splitext, basename, join
 import subprocess as sp
+import sys
+
+CLANG_INCLUDES = '/opt/local/libexec/llvm-6.0/include/c++/v1'
+
+def isLinux():
+    return 'Linux' in uname()
+
+def isMac():
+    return 'Darwin' in uname()
+
+assert isLinux() or isMac()
 
 DEBUG    = False
 LOG_FILE = "/tmp/ycm-extra-conf-log.txt"
-LIB_DIR  = '.lib-linux64' if 'Linux' in uname() else '.lib-osx'
+LIB_DIR  = '.lib-linux64' if isLinux() else '.lib-osx'
 
 def _run_cmd( cmd ):
     p = sp.Popen( cmd, stdout=sp.PIPE, stderr=sp.PIPE )
@@ -29,6 +40,14 @@ def _make( path ):
     # V= : tells nr-make to not suppress command echoing
     cmd = ['/usr/bin/make', 'CLANG=', '-nB', 'V=', target]
 
+    # For some reason the clang that YCM is using on Mac
+    # does not seem to have all of the C++17 libraries
+    # available, despite supporting c++17 mode.  So we will
+    # inject the include paths from macports clang 6.0 which
+    # seems to have them and hope that it will work out.
+    if isMac():
+        cmd.append( 'CFLAGS+=-I%s' % CLANG_INCLUDES )
+
     stdout = _run_cmd( cmd )
 
     (line,) = [l for l in stdout.split( '\n' ) if target in l]
@@ -45,3 +64,6 @@ def FlagsForFile( filename, **kwargs ):
             f.write( "cmd:      %s\n" % flags )
 
     return { 'flags': flags.split() }
+
+if __name__ == '__main__':
+    print ' '.join( FlagsForFile( sys.argv[1] )['flags'] )

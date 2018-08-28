@@ -25,10 +25,13 @@ using SquareRef = std::reference_wrapper<Square>;
 using SquareCRef = std::reference_wrapper<Square const>;
 using OptSquareRef = std::optional<SquareRef>;
 using OptSquareCRef = std::optional<SquareCRef>;
-using SquareSurround = std::tuple<OptSquareCRef,  // North
-                                  OptSquareCRef,  // South
-                                  OptSquareCRef,  // East
-                                  OptSquareCRef>; // West
+
+struct SquareSurround {
+  OptSquareCRef north;
+  OptSquareCRef south;
+  OptSquareCRef east;
+  OptSquareCRef west;
+};
 
 std::tuple<int/*y*/,int/*x*/> world_size();
 
