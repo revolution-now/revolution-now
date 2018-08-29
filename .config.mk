@@ -8,7 +8,7 @@ sdl_cflags  := $(shell sdl2-config --cflags)
 sdl_ldflags := $(shell sdl2-config --libs)
 
 override CFLAGS  += $(sdl_cflags)
-override LDFLAGS += $(sdl_ldflags) -lSDL2_image
+override LDFLAGS += $(sdl_ldflags) -lSDL2_image -lSDL2_mixer
 
 main_is := MAIN
 
