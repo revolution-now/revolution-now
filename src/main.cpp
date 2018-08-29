@@ -3,6 +3,7 @@
 #include "globals.hpp"
 #include "macros.hpp"
 #include "sdl-util.hpp"
+#include "sound.hpp"
 #include "tiles.hpp"
 #include "unit.hpp"
 #include "viewport.hpp"
@@ -58,47 +59,6 @@ void render() {
 
 int main( int, char** ) {
 
-  if (SDL_Init(SDL_INIT_AUDIO) != 0) {
-    std::cerr << "SDL_Init ERROR: " << SDL_GetError() << std::endl;
-    return -1;
-  }
-
-  // Open Audio device
-  if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 2048) != 0) {
-    std::cerr << "Mix_OpenAudio ERROR: " << Mix_GetError() << std::endl;
-    return -1;
-  }
-
-  // Set Volume
-  Mix_VolumeMusic(100);
-
-  // Open Audio File
-  Mix_Music* music = Mix_LoadMUS("../music/bonny-morn.m4a");
-
-  if (music) {
-    // Start Playback
-    if (Mix_PlayMusic(music, 1) == 0) {
-       unsigned int startTime = SDL_GetTicks();
-
-       // Wait
-       while (Mix_PlayingMusic()) {
-         SDL_Delay(1000);
-         std::cout << "Time: " << (SDL_GetTicks() - startTime) / 1000 << std::endl;
-       }
-    }
-    else {
-      std::cerr << "Mix_PlayMusic ERROR: " << Mix_GetError() << std::endl;
-    }
-
-    // Free File
-    Mix_FreeMusic(music);
-    music = 0;
-  }
-  else {
-    std::cerr << "Mix_LoadMuS ERROR: " << Mix_GetError() << std::endl;
-  }
-  return 0;
-
   init_game();
   load_sprites();
   load_tile_maps();
@@ -107,6 +67,8 @@ int main( int, char** ) {
   create_unit_on_map( g_unit_type::caravel, Y(2), X(2) );
 
   render();
+
+  play_music_file( "../music/bonny-morn.mp3" );
 
   // Set a delay before quitting
   //SDL_Delay( 2000 );

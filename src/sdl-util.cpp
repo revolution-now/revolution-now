@@ -12,11 +12,14 @@
 #include <vector>
 
 #include "sdl-util.hpp"
+#include "sound.hpp"
 
 #include "base-util.hpp"
 #include "globals.hpp"
 #include "global-constants.hpp"
 #include "macros.hpp"
+
+#include <SDL_mixer.h>
 
 using namespace std;
 
@@ -61,6 +64,14 @@ void init_game() {
 void init_sdl() {
   if( ::SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     DIE( "sdl could not initialize" );
+
+  // Open Audio device
+  if( Mix_OpenAudio( 44100, AUDIO_S16SYS, 2, 2048 ) != 0 ) {
+    cerr << "Mix_OpenAudio ERROR: " << ::Mix_GetError() << endl;
+    DIE( "could not open audio" );
+  }
+  // Set Volume
+  ::Mix_VolumeMusic( 100 );
 }
 
 void create_window() {
@@ -139,6 +150,7 @@ void unload_textures() {
 }
 
 void cleanup() {
+  cleanup_sound();
   unload_textures();
   SDL_DestroyRenderer( g_renderer );
   SDL_DestroyWindow( g_window );
