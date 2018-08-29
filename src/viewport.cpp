@@ -22,8 +22,9 @@ namespace {
 
 double viewport_zoom = 1.0;
 
-double world_viewport_width()      { return g_world_viewport_width_tiles*g_tile_width/viewport_zoom; }
-double world_viewport_height()     { return g_world_viewport_height_tiles*g_tile_height/viewport_zoom; }
+// Do these need to be doubles?
+double world_viewport_width()      { return double( g_world_viewport_width_tiles*g_tile_width._ )/viewport_zoom; }
+double world_viewport_height()     { return double( g_world_viewport_height_tiles*g_tile_height._ )/viewport_zoom; }
 
 double viewport_center_x = world_viewport_width()/2.0;
 double viewport_center_y = world_viewport_height()/2.0;
@@ -33,8 +34,8 @@ double world_viewport_start_y() { return viewport_center_y - world_viewport_heig
 double world_viewport_end_x()   { return viewport_center_x + world_viewport_width()/2.0; }
 double world_viewport_end_y()   { return viewport_center_y + world_viewport_height()/2.0; }
 
-int world_viewport_start_tile_x() { return int( world_viewport_start_x() )/g_tile_width; }
-int world_viewport_start_tile_y() { return int( world_viewport_start_y() )/g_tile_height; }
+X world_viewport_start_tile_x() { return X(W(int( world_viewport_start_x() ))/g_tile_width); }
+Y world_viewport_start_tile_y() { return Y(H(int( world_viewport_start_y() ))/g_tile_height); }
 
 } // namespace
 
@@ -61,67 +62,68 @@ double world_viewport_height_tiles() {
 void world_viewport_apply_bounds() {
   if( viewport_zoom < .5 ) viewport_zoom = .5;
   auto [size_y, size_x] = world_size_tiles();
-  size_y *= g_tile_height;
-  size_x *= g_tile_width;
+  size_y *= g_tile_height._;
+  size_x *= g_tile_width._;
   if( world_viewport_start_x() < 0 )
       viewport_center_x = world_viewport_width()/2.0;
   if( world_viewport_start_y() < 0 )
       viewport_center_y = world_viewport_height()/2.0;
   if( world_viewport_end_x() > size_x )
-      viewport_center_x = size_x-world_viewport_width()/2.0;
+      viewport_center_x = double( size_x )-double( world_viewport_width() )/2.0;
   if( world_viewport_end_y() > size_y )
-      viewport_center_y = size_y-world_viewport_height()/2.0;
+      viewport_center_y = double( size_y )-double( world_viewport_height() )/2.0;
 }
 
 Rect viewport_covered_tiles() {
-  int start_tile_x = world_viewport_start_tile_x();
+  X start_tile_x = world_viewport_start_tile_x();
   if( start_tile_x < 0 ) start_tile_x = 0;
-  int start_tile_y = world_viewport_start_tile_y();
+  Y start_tile_y = world_viewport_start_tile_y();
   if( start_tile_y < 0 ) start_tile_y = 0;
 
   auto [size_y, size_x] = world_size_tiles();
-  int end_tile_x = world_viewport_start_tile_x() + world_viewport_width_tiles();
-  if( end_tile_x > size_x ) end_tile_x = size_x;
-  int end_tile_y = world_viewport_start_tile_y() + world_viewport_height_tiles();
-  if( end_tile_y > size_y ) end_tile_y = size_y;
-  return {start_tile_x, start_tile_y,
-    end_tile_x-start_tile_x, end_tile_y-start_tile_y};
+  X end_tile_x = world_viewport_start_tile_x() + world_viewport_width_tiles();
+  if( end_tile_x > X(0) + size_x ) end_tile_x = X(0) + size_x;
+  Y end_tile_y = world_viewport_start_tile_y() + world_viewport_height_tiles();
+  if( end_tile_y > Y(0) + size_y ) end_tile_y = Y(0) + size_y;
+  return {X(start_tile_x), Y(start_tile_y),
+    W(end_tile_x-start_tile_x), H(end_tile_y-start_tile_y)};
 }
 
 Rect get_viewport() {
   return {
-    int( world_viewport_start_x() ),
-    int( world_viewport_start_y() ),
-    int( world_viewport_width() ),
-    int( world_viewport_height() )
+    X(int( world_viewport_start_x() )),
+    Y(int( world_viewport_start_y() )),
+    W(int( world_viewport_width() )),
+    H(int( world_viewport_height() ))
   };
 }
 
-::SDL_Rect viewport_get_render_src_rect() {
+Rect viewport_get_render_src_rect() {
   Rect viewport = get_viewport();
   auto [max_src_height, max_src_width] = world_size_pixels();
-  ::SDL_Rect src;
-  src.x = viewport.x < 0 ? 0 : viewport.x % g_tile_width;
-  src.y = viewport.y < 0 ? 0 : viewport.y % g_tile_height;
+  Rect src;
+  src.x = viewport.x < X(0) ? X(0) : X(0) + viewport.x % g_tile_width;
+  src.y = viewport.y < Y(0) ? Y(0) : Y(0) + viewport.y % g_tile_height;
   src.w = viewport.w > max_src_width ? max_src_width : viewport.w;
   src.h = viewport.h > max_src_height ? max_src_height : viewport.h;
   return src;
 }
 
-::SDL_Rect viewport_get_render_dest_rect() {
-  ::SDL_Rect dest;
-  dest.x = dest.y = 0;
-  dest.w = g_tile_width*g_world_viewport_width_tiles;
-  dest.h = g_tile_height*g_world_viewport_height_tiles;
+Rect viewport_get_render_dest_rect() {
+  Rect dest;
+  dest.x = 0;
+  dest.y = 0;
+  dest.w = g_tile_width._*g_world_viewport_width_tiles;
+  dest.h = g_tile_height._*g_world_viewport_height_tiles;
   Rect viewport = get_viewport();
   auto [max_src_height, max_src_width] = world_size_pixels();
   if( viewport.w > max_src_width ) {
-    double delta = ((double( viewport.w ) - max_src_width )/viewport.w)*g_tile_width*g_world_viewport_width_tiles/2.0;
+    double delta = (double( viewport.w - max_src_width )/double( viewport.w ))*g_tile_width._*double( int( g_world_viewport_width_tiles ) )/2.0;
     dest.x += int( delta );
     dest.w -= int( delta*2 );
   }
   if( viewport.h > max_src_height ) {
-    double delta = ((double( viewport.h ) - max_src_height )/viewport.h)*g_tile_height*g_world_viewport_height_tiles/2.0;
+    double delta = (double( viewport.h - max_src_height )/double( viewport.h ))*g_tile_height._*double( int( g_world_viewport_height_tiles ) )/2.0;
     dest.y += int( delta );
     dest.h -= int( delta*2 );
   }

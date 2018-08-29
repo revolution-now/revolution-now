@@ -11,10 +11,12 @@
 
 #pragma once
 
-#include <ostream>
+#include "base-util.hpp"
 
 #include <SDL.h>
 #include <SDL_image.h>
+
+#include <ostream>
 
 namespace rn {
 
@@ -38,6 +40,8 @@ void render_texture( SDL_Texture* texture, SDL_Rect source, SDL_Rect dest,
 bool is_window_fullscreen();
 void set_fullscreen( bool fullscreen );
 void toggle_fullscreen();
+
+::SDL_Rect to_SDL( Rect const& rect );
 
 } // namespace rn
 

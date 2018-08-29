@@ -43,6 +43,15 @@ SDL_DisplayMode get_current_display_mode() {
 
 } // namespace
 
+::SDL_Rect to_SDL( Rect const& rect ) {
+  ::SDL_Rect res;
+  res.x = rect.x._;
+  res.y = rect.y._;
+  res.w = rect.w._;
+  res.h = rect.h._;
+  return res;
+}
+
 void init_game() {
   rn::init_sdl();
   rn::create_window();
@@ -94,22 +103,22 @@ void create_renderer() {
   if( !g_renderer )
     DIE( "failed to create renderer" );
 
-  int width = g_tile_width*g_viewport_width_tiles;
-  int height = g_tile_height*g_viewport_height_tiles;
+  W width = g_tile_width._*g_viewport_width_tiles;
+  H height = g_tile_height._*g_viewport_height_tiles;
   cout << "logical renderer width : " << width << "\n";
   cout << "logical renderer height: " << height << "\n";
 
-  ::SDL_RenderSetLogicalSize( g_renderer, width, height );
+  ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
 
   // +1 tile because we may need to draw a bit in excess of the
   // viewport window in order to facilitate smooth scrolling,
   // though we shouldn't need more than 1 extra tile for that
   // purpose.  The *2 is so that we can accomodate the maximum
   // zoomed-out level which is .5.
-  width = g_tile_width*2*(g_world_viewport_width_tiles + 1);
-  height = g_tile_height*2*(g_world_viewport_height_tiles + 1);
+  width = g_tile_width._*2*(g_world_viewport_width_tiles + 1);
+  height = g_tile_height._*2*(g_world_viewport_height_tiles + 1);
   g_texture_world = ::SDL_CreateTexture( g_renderer,
-      SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height );
+      SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width._, height._ );
 }
 
 SDL_Texture* load_texture( const char* file ) {

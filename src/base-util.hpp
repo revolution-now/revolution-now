@@ -11,12 +11,16 @@
 
 #pragma once
 
+#include "typed-int.hpp"
+
+#include <istream>
+#include <ostream>
 #include <string_view>
 
 namespace rn {
 
 struct Rect {
-  int x, y, w, h;
+  X x; Y y; W w; H h;
 };
 
 std::ostream& operator<<( std::ostream& out, Rect const& r );

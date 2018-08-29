@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "base-util.hpp"
+
 #include <SDL.h>
 
 #include <string_view>
@@ -38,7 +40,10 @@ enum class g_tile {
   panel_edge_left,
   panel_slate,
   panel_slate_1_side,
-  panel_slate_2_sides
+  panel_slate_2_sides,
+
+  free_colonist = 5*g_tile_set_width,
+  caravel
 };
 
 struct sprite {
@@ -52,8 +57,8 @@ void load_sprites();
 
 sprite lookup_sprite( std::string_view name );
 
-void render_sprite( g_tile tile, int pixel_row, int pixel_col, int rot, int flip_x );
-void render_sprite_grid( g_tile tile, int tile_row, int tile_col, int rot, int flip_x );
+void render_sprite( g_tile tile, Y pixel_row, X pixel_col, int rot, int flip_x );
+void render_sprite_grid( g_tile tile, Y tile_row, X tile_col, int rot, int flip_x );
 
 void load_tile_maps();
 void render_tile_map( std::string_view name );

@@ -1,0 +1,4 @@
+UI:
+  Smooth panning with acceleration
+
+Visuals:

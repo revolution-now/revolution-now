@@ -11,19 +11,24 @@
 
 #pragma once
 
+#include "typed-int.hpp"
+
 #include <string_view>
 
 namespace rn {
 
-constexpr int g_tile_width = 32;
-constexpr int g_tile_height = 32;
+constexpr W g_tile_width{32};
+constexpr H g_tile_height{32};
 
-constexpr int g_viewport_width_tiles = 48;
-constexpr int g_viewport_height_tiles = 26;
+constexpr W g_viewport_width_tiles{48};
+constexpr H g_viewport_height_tiles{26};
 
 // At standard zoom, when tile size is (g_tile_width, g_tile_height);
-constexpr int g_world_viewport_width_tiles = 40;
-constexpr int g_world_viewport_height_tiles = 25;
+constexpr W g_world_viewport_width_tiles{40};
+constexpr H g_world_viewport_height_tiles{25};
+
+constexpr W g_world_max_width{1000};
+constexpr H g_world_max_height{1000};
 
 inline constexpr std::string_view g_window_title = "Revolution | Now";
 

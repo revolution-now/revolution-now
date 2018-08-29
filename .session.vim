@@ -5,16 +5,18 @@
 let s:first = 'main.cpp'
 
 let s:stems = [
-  \ 'sdl-util',
-  \ 'viewport',
-  \ 'world',
-  \ 'tiles',
-  \ 'globals',
-  \ 'base-util'
+  \ 'src/sdl-util',
+  \ 'src/unit',
+  \ 'src/viewport',
+  \ 'src/world',
+  \ 'src/tiles',
+  \ 'src/globals',
+  \ 'src/base-util'
 \]
 
 let s:pairs = [
-  \ ['macros.hpp', 'global-constants.hpp']
+  \ ['src/macros.hpp', 'src/global-constants.hpp'],
+  \ ['notes/priorities.txt', 'src/ideas.txt']
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,12 +34,12 @@ function OpenFirst( name )
 endfunction
 
 function OpenInTab( name )
-    execute ':tabnew src/' . a:name
+    execute ':tabnew ' . a:name
     call OpenSidePanels()
 endfunction
 
 function OpenVSplit( name )
-    execute ':vsplit src/' . a:name
+    execute ':vsplit ' . a:name
 endfunction
 
 function OpenPair( hpp, cpp )

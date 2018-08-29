@@ -24,14 +24,13 @@ void render() {
 
   auto covered = viewport_covered_tiles();
 
-  for( int i = covered.y; i < covered.y+covered.h; ++i ) {
-    for( int j = covered.x; j < covered.x+covered.w; ++j ) {
+  for( Y i = covered.y; i < covered.y+covered.h; ++i ) {
+    for( X j = covered.x; j < covered.x+covered.w; ++j ) {
       auto s_ = square_at_safe( i, j);
-      //if( !s_.has_value() ) continue; //ASSERT( s_ );
       ASSERT( s_ );
       Square const& s = *s_;
       g_tile t = s.land ? g_tile::land : g_tile::water;
-      render_sprite_grid( t, i-covered.y, j-covered.x, 0, 0 );
+      render_sprite_grid( t, Y(0)+(i-covered.y), X(0)+(j-covered.x), 0, 0 );
     }
   }
 
@@ -39,8 +38,8 @@ void render() {
   SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   SDL_RenderClear( g_renderer );
 
-  ::SDL_Rect src = viewport_get_render_src_rect();
-  ::SDL_Rect dest = viewport_get_render_dest_rect();
+  ::SDL_Rect src = to_SDL( viewport_get_render_src_rect() );
+  ::SDL_Rect dest = to_SDL( viewport_get_render_dest_rect() );
   ::SDL_RenderCopy( g_renderer, g_texture_world, &src, &dest );
 
   render_tile_map( "panel" );
@@ -85,19 +84,19 @@ int main( int, char** ) {
               toggle_fullscreen();
               break;
             case ::SDLK_LEFT:
-              viewport_pan( 0, -movement_speed, true );
+              viewport_pan( 0, -movement_speed, false );
               render();
               break;
             case ::SDLK_RIGHT:
-              viewport_pan( 0, movement_speed, true );
+              viewport_pan( 0, movement_speed, false );
               render();
               break;
             case ::SDLK_DOWN:
-              viewport_pan( movement_speed, 0, true );
+              viewport_pan( movement_speed, 0, false );
               render();
               break;
             case ::SDLK_UP:
-              viewport_pan( -movement_speed, 0, true );
+              viewport_pan( -movement_speed, 0, false );
               render();
               break;
           }

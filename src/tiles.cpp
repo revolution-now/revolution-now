@@ -31,7 +31,12 @@ namespace rn {
 namespace {
 
 struct tile_map {
-  struct one_tile { int index, x, y, tile, rot, flip_x; };
+  struct one_tile {
+    int index;
+    X x;
+    Y y;
+    int tile, rot, flip_x;
+  };
   vector<one_tile> tiles;
 };
 
@@ -40,34 +45,36 @@ unordered_map<std::string, tile_map> tile_maps;
 
 } // namespace
 
-sprite create_sprite_32( SDL_Texture* texture, int row, int col ) {
-  SDL_Rect rect{ col*g_tile_width, row*g_tile_height,
-                     g_tile_width, g_tile_height };
-  return { texture, rect, 32, 32 };
+sprite create_sprite_32( SDL_Texture* texture, Y row, X col ) {
+  Rect rect{ col*g_tile_width._, row*g_tile_height._, g_tile_width, g_tile_height };
+  return { texture, to_SDL( rect ), 32, 32 };
 }
 
 void load_sprites() {
-  auto land_tiles = load_texture( "../art/land-tiles.png" );
+  auto tile_set = load_texture( "../art/tiles-all.png" );
 
-  sprites[g_tile::water]        = create_sprite_32( land_tiles, 0, 0 );
-  sprites[g_tile::land]         = create_sprite_32( land_tiles, 0, 1 );
-  sprites[g_tile::land_1_side]  = create_sprite_32( land_tiles, 0, 2 );
-  sprites[g_tile::land_2_sides] = create_sprite_32( land_tiles, 0, 3 );
-  sprites[g_tile::land_3_sides] = create_sprite_32( land_tiles, 0, 4 );
-  sprites[g_tile::land_4_sides] = create_sprite_32( land_tiles, 0, 5 );
-  sprites[g_tile::land_corner]  = create_sprite_32( land_tiles, 0, 6 );
+  sprites[g_tile::water]        = create_sprite_32( tile_set, Y(0), X(0) );
+  sprites[g_tile::land]         = create_sprite_32( tile_set, Y(0), X(1) );
+  sprites[g_tile::land_1_side]  = create_sprite_32( tile_set, Y(0), X(2) );
+  sprites[g_tile::land_2_sides] = create_sprite_32( tile_set, Y(0), X(3) );
+  sprites[g_tile::land_3_sides] = create_sprite_32( tile_set, Y(0), X(4) );
+  sprites[g_tile::land_4_sides] = create_sprite_32( tile_set, Y(0), X(5) );
+  sprites[g_tile::land_corner]  = create_sprite_32( tile_set, Y(0), X(6) );
 
-  sprites[g_tile::fog]        = create_sprite_32( land_tiles, 1, 0 );
-  sprites[g_tile::fog_1_side] = create_sprite_32( land_tiles, 1, 1 );
-  sprites[g_tile::fog_corner] = create_sprite_32( land_tiles, 1, 2 );
+  sprites[g_tile::fog]        = create_sprite_32( tile_set, Y(1), X(0) );
+  sprites[g_tile::fog_1_side] = create_sprite_32( tile_set, Y(1), X(1) );
+  sprites[g_tile::fog_corner] = create_sprite_32( tile_set, Y(1), X(2) );
 
-  sprites[g_tile::terrain_grass] = create_sprite_32( land_tiles, 2, 0 );
+  sprites[g_tile::terrain_grass] = create_sprite_32( tile_set, Y(2), X(0) );
 
-  sprites[g_tile::panel]               = create_sprite_32( land_tiles, 3, 0 );
-  sprites[g_tile::panel_edge_left]     = create_sprite_32( land_tiles, 3, 1 );
-  sprites[g_tile::panel_slate]         = create_sprite_32( land_tiles, 3, 2 );
-  sprites[g_tile::panel_slate_1_side]  = create_sprite_32( land_tiles, 3, 3 );
-  sprites[g_tile::panel_slate_2_sides] = create_sprite_32( land_tiles, 3, 4 );
+  sprites[g_tile::panel]               = create_sprite_32( tile_set, Y(3), X(0) );
+  sprites[g_tile::panel_edge_left]     = create_sprite_32( tile_set, Y(3), X(1) );
+  sprites[g_tile::panel_slate]         = create_sprite_32( tile_set, Y(3), X(2) );
+  sprites[g_tile::panel_slate_1_side]  = create_sprite_32( tile_set, Y(3), X(3) );
+  sprites[g_tile::panel_slate_2_sides] = create_sprite_32( tile_set, Y(3), X(4) );
+
+  sprites[g_tile::free_colonist] = create_sprite_32( tile_set, Y(5), X(0) );
+  sprites[g_tile::caravel]       = create_sprite_32( tile_set, Y(5), X(1) );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {
@@ -77,27 +84,28 @@ sprite const& lookup_sprite( g_tile tile ) {
   return where->second;
 }
 
-void render_sprite( g_tile tile, int pixel_row, int pixel_col, int rot, int flip_x  ) {
+void render_sprite( g_tile tile, Y pixel_row, X pixel_col, int rot, int flip_x  ) {
   auto where = sprites.find( tile );
   if( where == sprites.end() )
     DIE( "failed to find sprite "s + std::to_string( static_cast<int>( tile ) ) );
   sprite const& sp = where->second;
 
-  SDL_Rect destination;
+  Rect destination;
   destination.x = pixel_col;
   destination.y = pixel_row;
   destination.w = sp.w;
   destination.h = sp.h;
+  auto destination_sdl = to_SDL( destination );
 
   double angle = rot*90.0;
 
   SDL_RendererFlip flip = flip_x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
-  render_texture( sp.texture, sp.source, destination, angle, flip );
+  render_texture( sp.texture, sp.source, destination_sdl, angle, flip );
 }
 
-void render_sprite_grid( g_tile tile, int tile_row, int tile_col, int rot, int flip_x  ) {
-  render_sprite( tile, tile_row*g_tile_height, tile_col*g_tile_width,
+void render_sprite_grid( g_tile tile, Y tile_row, X tile_col, int rot, int flip_x  ) {
+  render_sprite( tile, tile_row*g_tile_height._, tile_col*g_tile_width._,
                  rot, flip_x );
 }
 
@@ -126,7 +134,8 @@ tile_map load_tile_map( char const* path ) {
   getline( in, comments );
 
   while( true ) {
-    int index, tile, x, y, rot, flip_x;
+    int index, tile, rot, flip_x;
+    X x; Y y;
     in >> index >> x >> y >> tile >> rot >> flip_x;
     if( in.eof() || !in.good() )
       break;
@@ -142,4 +151,3 @@ void load_tile_maps() {
 }
 
 } // namespace rn
-

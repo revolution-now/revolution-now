@@ -1,0 +1,9 @@
+Priority List:
+
+* Add unit to game
+* Make skeleton of turn processing loop
+* Allow units to travel around
+
+Done:
+
+* Draw colonist and boat
