@@ -8,7 +8,6 @@
 * Description: Data structure for units.
 *
 *****************************************************************/
-
 #pragma once
 
 #include "base-util.hpp"
@@ -20,10 +19,16 @@
 
 namespace rn {
 
+enum class g_unit_type {
+  free_colonist,
+  caravel
+};
+
 // Static information describing classes of units.  There will be
 // one of these for each type of unit.
 struct UnitDescriptor {
   char const* name;
+  g_unit_type type;
 
   // Rendering
   g_tile tile;
@@ -45,39 +50,45 @@ struct UnitDescriptor {
 
 using UnitId = int;
 
-struct CargoSlot {
+struct Cargo {
   bool is_unit; // determines which of the following are relevant.
   UnitId unit_id;
+  /* more to come */
+};
+
+enum class g_unit_orders {
+  none,
+  sentry,
+  fortified,
+  enroute
+};
+
+enum class g_nation {
+  dutch
 };
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
+// We don't allow copying (since their should never be two unit
+// objects alive with the same ID) but moving is fine.
 struct Unit {
-  UnitId const id; // universal, unique, non-repeating, non-changing ID
-
+  // universal, unique, non-repeating, non-changing ID
+  UnitId id;
   // A unit can change type, but we cannot change the type
   // information of a unit descriptor itself.
-  UnitDescriptor const* type;
-
-  enum class orders {
-    none,
-    sentry,
-    fortified,
-    enroute
-  };
-  orders orders;
-
-  std::vector<CargoSlot> cargo_slots;
+  UnitDescriptor const* desc;
+  g_unit_orders orders;
+  std::vector<std::optional<Cargo>> cargo_slots;
+  g_nation nation;
 };
 
-using UnitRef = std::reference_wrapper<Unit>;
-using UnitCRef = std::reference_wrapper<Unit const>;
-using OptUnitRef = std::optional<UnitRef>;
-using OptUnitCRef = std::optional<UnitCRef>;
 using UnitIdVec = std::vector<UnitId>;
+
+// Not safe, probably temporary.
+UnitId create_unit_on_map( g_unit_type type, Y y, X x );
 
 Unit& unit_from_id( UnitId id );
 UnitIdVec units_from_coord( Y y, X x );
-UnitIdVec units_int_rect( Rect rect );
+UnitIdVec units_int_rect( Rect const& rect );
 
 } // namespace rn

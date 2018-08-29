@@ -9,7 +9,6 @@
 *              coordinates and distances.
 *
 *****************************************************************/
-
 #pragma once
 
 #include <iostream>
@@ -27,6 +26,7 @@
       _ = n;                                                            \
       return *this;                                                     \
     }                                                                   \
+    bool operator==( a other ) const { return _ == other._; }           \
     void operator++( int ) { ++_; }                                     \
     a operator++() { return a( _++ ); }                                 \
     void operator--( int ) { --_; }                                     \

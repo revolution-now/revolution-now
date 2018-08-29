@@ -8,7 +8,6 @@
 * Description: Representation of the physical world.
 *
 *****************************************************************/
-
 #pragma once
 
 #include "base-util.hpp"
@@ -22,6 +21,9 @@ namespace rn {
 
 struct Coord {
   Y y; X x;
+  bool operator==( Coord const& other ) const {
+    return (y == other.y) && (x == other.x);
+  }
 };
 
 struct Square {

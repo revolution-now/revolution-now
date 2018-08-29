@@ -8,7 +8,6 @@
 * Description: Interface for calling SDL functions
 *
 *****************************************************************/
-
 #include <iostream>
 #include <vector>
 

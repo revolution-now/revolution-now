@@ -16,7 +16,8 @@ let s:stems = [
 
 let s:pairs = [
   \ ['src/macros.hpp', 'src/global-constants.hpp'],
-  \ ['notes/priorities.txt', 'src/ideas.txt']
+  \ ['src/aliases.hpp', 'src/typed-int.hpp'],
+  \ ['notes/priorities.txt', 'notes/ideas.txt']
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

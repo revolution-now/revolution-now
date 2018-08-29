@@ -8,7 +8,6 @@
 * Description: Preprocessor macros.
 *
 *****************************************************************/
-
 #pragma once
 
 #include <cstdlib>

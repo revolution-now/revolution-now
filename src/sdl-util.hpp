@@ -8,7 +8,6 @@
 * Description: Interface for calling SDL functions
 *
 *****************************************************************/
-
 #pragma once
 
 #include "base-util.hpp"

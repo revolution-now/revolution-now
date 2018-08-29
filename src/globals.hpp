@@ -8,7 +8,6 @@
 * Description: Globals needed by the game.
 *
 *****************************************************************/
-
 #pragma once
 
 #include <SDL.h>

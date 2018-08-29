@@ -8,7 +8,6 @@
 * Description: Handles loading and retrieving tiles
 *
 *****************************************************************/
-
 #pragma once
 
 #include "base-util.hpp"

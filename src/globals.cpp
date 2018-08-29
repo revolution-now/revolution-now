@@ -8,7 +8,6 @@
 * Description: 
 *
 *****************************************************************/
-
 #include "globals.hpp"
 
 namespace rn {

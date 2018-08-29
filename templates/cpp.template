@@ -8,7 +8,6 @@
 * Description: {{CURSOR}}
 *
 *****************************************************************/
-
 #include "{{FILE}}.hpp"
 
 namespace rn {

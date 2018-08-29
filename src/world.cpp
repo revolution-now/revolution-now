@@ -8,7 +8,6 @@
 * Description: Representation of the physical world.
 *
 *****************************************************************/
-
 #include <vector>
 
 #include "world.hpp"

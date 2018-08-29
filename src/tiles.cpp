@@ -8,7 +8,6 @@
 * Description: Handles loading and retrieving tiles
 *
 *****************************************************************/
-
 #include "tiles.hpp"
 
 #include "base-util.hpp"

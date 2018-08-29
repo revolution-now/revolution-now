@@ -9,7 +9,6 @@
 *              viewport.
 *
 *****************************************************************/
-
 #include "viewport.hpp"
 
 #include "global-constants.hpp"

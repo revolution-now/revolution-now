@@ -4,6 +4,7 @@
 #include "macros.hpp"
 #include "sdl-util.hpp"
 #include "tiles.hpp"
+#include "unit.hpp"
 #include "viewport.hpp"
 #include "world.hpp"
 
@@ -15,7 +16,7 @@
 
 using namespace rn;
 
-double movement_speed = 8.0;
+double movement_speed = 32.0;
 
 void render() {
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
@@ -30,7 +31,13 @@ void render() {
       ASSERT( s_ );
       Square const& s = *s_;
       g_tile t = s.land ? g_tile::land : g_tile::water;
-      render_sprite_grid( t, Y(0)+(i-covered.y), X(0)+(j-covered.x), 0, 0 );
+      auto sy = Y(0)+(i-covered.y);
+      auto sx = X(0)+(j-covered.x);
+      render_sprite_grid( t, sy, sx, 0, 0 );
+      for( auto id : units_from_coord( i, j ) ) {
+        auto const& unit = unit_from_id( id );
+        render_sprite_grid( unit.desc->tile, sy, sx, 0, 0 );
+      }
     }
   }
 
@@ -42,7 +49,7 @@ void render() {
   ::SDL_Rect dest = to_SDL( viewport_get_render_dest_rect() );
   ::SDL_RenderCopy( g_renderer, g_texture_world, &src, &dest );
 
-  render_tile_map( "panel" );
+  //render_tile_map( "panel" );
 
   SDL_RenderPresent( g_renderer );
 }
@@ -51,6 +58,9 @@ int main( int, char** ) {
   init_game();
   load_sprites();
   load_tile_maps();
+
+  create_unit_on_map( g_unit_type::free_colonist, Y(2), X(3) );
+  create_unit_on_map( g_unit_type::caravel, Y(2), X(2) );
 
   render();
 
