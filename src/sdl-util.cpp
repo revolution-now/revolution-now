@@ -71,7 +71,7 @@ void init_sdl() {
     DIE( "could not open audio" );
   }
   // Set Volume
-  ::Mix_VolumeMusic( 100 );
+  ::Mix_VolumeMusic( 10 );
 }
 
 void create_window() {

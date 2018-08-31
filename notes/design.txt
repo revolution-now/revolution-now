@@ -1,0 +1,95 @@
+Game loops:
+
+  start of turn:
+
+    Iterate through the colonies, for each:
+
+      * advance state of the colony
+
+      * display messages to user any/or show animations where necessary
+
+      * allow them to enter colony when events happens; in that case
+        go to the colony screen game loop.  When the user exits the
+        colony screen then this colony iteration immediately proceeds;
+        i.e., user cannot enter any other colonies.  This prevents the
+        user from making last-minute changes to colonies that have not
+        yet been advanced in this turn (otherwise that might allow
+        cheating in some way).
+
+      * during this time, the user is not free to scroll
+        map (menus?) or make any changes to units.  They are also
+        not allowed to enter colonies apart from the one that has
+        just been processed.
+
+    Advance the state of the old world, possibly displaying messages
+    to the user where necessary.
+
+    Iterate through all units, for each:
+
+      * if it is it in `goto` mode focus on it and advance it
+      * if it is a ship on the high seas then advance it
+          if it has arrived in the old world then jump to the old world
+          screen (maybe ask user whether they want to ignore),
+          which has its own game loop (see old-world loop).
+      * if it is in the old world then ignore it, or possibly remind
+        the user it is there.
+      * if it is performing an action, such as building a road,
+        advance the state.  If it finishes then mark it as active
+        so that it will wait for orders in the next step.
+      * if it is in an indian village then advance it, and mark
+        it active if it is finished.
+
+      * if unit is waiting for orders then focus on it, and enter
+        a realtime game loop where the user can interact with the
+        map and GUI in general.  See `unit orders` game loop.
+
+      * Make AI moves
+          Make European moves
+          Make Native moves
+          Make expeditionary force moves
+
+      * if no player units needed orders then show a message somewhere
+        that says "end of turn" and let the user interact with the
+        map and GUI.
+
+  Unit orders game loop:
+
+    while state != unit accepted orders:
+
+      render:
+        render the the world without any units on it.  Color cycling
+        animations here will use SDL_GetTicks to decide animation state.
+
+        render all the colonies
+
+        render all the units, with the focus animation using SDL_GetTicks
+        to decide animation state.
+
+      if state == unit awaiting orders && if input received:
+        check if input valid
+        if so then iniate movement animation, setting state to animation.
+        ? need to figure this out more, but initially skip animations ?
+
+      if state == animation:
+        advance animation; if animation finished the mark state as
+        `unit accepted orders`
+
+      delay to maintain frame rate
+
+  End of turn game loop:
+
+  Colony screen game loop:
+
+  Old World game loop:
+
+  Message-window-over-world game loop:
+
+    * This needs needs to be able to show a message and let the
+      user interact with it while possibly still showing animations
+      on the map in the background, but not letting the user interact
+      with the map.
+
+  Unit animation game loop: (needed?)
+
+    * This includes sliding units and animations resulting from
+      e.g. city upgrades.

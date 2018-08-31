@@ -68,14 +68,21 @@ int main( int, char** ) {
 
   render();
 
-  play_music_file( "../music/bonny-morn.mp3" );
+  //play_music_file( "../music/bonny-morn.mp3" );
 
   // Set a delay before quitting
   //SDL_Delay( 2000 );
 
   bool running = true;
 
+  int frame_rate = 0;
+  double frame_length_millis = 1000.0/frame_rate;
+
+  // we can also use the SDL_GetKeyboardState to get an
+  // array that tells us if a key is down or not instead
+  // of keeping track of it ourselves.
   while( running ) {
+    auto ticks_start = ::SDL_GetTicks();
     if( ::SDL_Event event; SDL_PollEvent( &event ) ) {
       switch (event.type) {
         case SDL_QUIT:
@@ -128,6 +135,10 @@ int main( int, char** ) {
           break;
       }
     }
+    auto ticks_end = ::SDL_GetTicks();
+    auto delta = ticks_end-ticks_start;
+    if( delta < frame_length_millis )
+      ::SDL_Delay( frame_length_millis - delta );
   }
 
   cleanup();
