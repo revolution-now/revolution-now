@@ -68,3 +68,5 @@ for p in s:pairs | call OpenPair( p[0], p[1] ) | endfor
 call feedkeys( ']' )
 " Move cursor from NERDTree into main pane.
 call feedkeys( "\<C-L>" )
+" Open a terminal in a vsplit.
+call feedkeys( ":vert term\<CR>\<C-W>h" )
