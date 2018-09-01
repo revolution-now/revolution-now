@@ -67,6 +67,44 @@ enum class g_nation {
   dutch
 };
 
+// Game is designed so that only one of these can be true
+// for a given unit moving to a given square.  Also, these
+// are independent of where the unit is coming from, i.e.,
+// they are only a function of the target square of the
+// move.
+enum class k_unit_mv_desc {
+  none,
+  land_forbidden,
+  water_forbidden,
+  insufficient_movement_points,
+/*land_fall,
+  board_ship,
+  board_ship_full
+  high_seas,
+  dock,
+  attack_nation,
+  attack_tribe,
+  attack_privateer,
+  enter_village_live,
+  enter_village_scout,
+  trade_with_nation,
+  trade_with_village,
+  enter_ruins
+ */
+};
+
+// Describes what would happen if a unit were to move to a
+// given square.
+struct UnitMoveDesc {
+  // The target square of move being described.
+  Coord coords;
+  // Is it flat out impossible
+  bool can_move;
+  // Description of what would happen if the move were carried
+  // out.  This will also be set even if can_move == false.
+  k_unit_mv_desc desc;
+};
+
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
@@ -88,11 +126,15 @@ using UnitIdVec = std::vector<UnitId>;
 UnitId create_unit_on_map( g_unit_type type, Y y, X x );
 
 Unit const& unit_from_id( UnitId id );
+
 UnitIdVec units_from_coord( Y y, X x );
 UnitIdVec units_int_rect( Rect const& rect );
+OptCoord coords_for_unit( UnitId id );
 
 std::vector<UnitId> units_all( g_nation nation );
 
 g_nation player_nationality();
+
+UnitMoveDesc move_consequences( UnitId id, Y y_target, X x_target );
 
 } // namespace rn

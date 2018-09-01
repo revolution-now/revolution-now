@@ -19,13 +19,6 @@
 
 namespace rn {
 
-struct Coord {
-  Y y; X x;
-  bool operator==( Coord const& other ) const {
-    return (y == other.y) && (x == other.x);
-  }
-};
-
 struct Square {
   bool land;
 };

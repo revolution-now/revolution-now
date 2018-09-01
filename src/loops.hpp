@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "unit.hpp"
+
 namespace rn {
 
 enum k_loop_result {
@@ -18,5 +20,7 @@ enum k_loop_result {
 };
 
 k_loop_result loop_eot();
+
+k_loop_result loop_orders( UnitId id );
 
 } // namespace rn

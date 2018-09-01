@@ -14,4 +14,9 @@ AI:
 
 Game mechanics:
 
+  * When the player first makes land fall their ship
+    sinks; they must gain wealth initially by traiding with
+    the indians, then they can build ships to take them back
+    to the old world.
+
   * Free units require food and they carry it with them.

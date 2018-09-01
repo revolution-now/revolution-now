@@ -14,10 +14,26 @@
 #include "typed-int.hpp"
 
 #include <istream>
+#include <optional>
 #include <ostream>
 #include <string_view>
 
 namespace rn {
+
+struct Coord {
+  Y y; X x;
+  bool operator==( Coord const& other ) const {
+    return (y == other.y) && (x == other.x);
+  }
+};
+using OptCoord = std::optional<Coord>;
+
+struct Delta {
+  W w; H h;
+  bool operator==( Delta const& other ) const {
+    return (h == other.h) && (w == other.w);
+  }
+};
 
 struct Rect {
   X x; Y y; W w; H h;

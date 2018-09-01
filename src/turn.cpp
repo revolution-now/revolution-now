@@ -73,10 +73,10 @@ k_turn_result turn() {
     //    * if unit is waiting for orders then focus on it, and enter
     //      a realtime game loop where the user can interact with the
     //      map and GUI in general.  See `unit orders` game loop.
-    //if( u.orders == g_unit_orders::none ) {
-    //  gave_orders = true;
-    //  loop_orders( unit_id );
-    //}
+    if( u.orders == g_unit_orders::none ) {
+      gave_orders = true;
+      loop_orders( unit_id );
+    }
 
     //    * Make AI moves
     //        Make European moves
