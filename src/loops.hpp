@@ -1,17 +1,22 @@
 /****************************************************************
-* {{FILEE}}
+* loops.hpp
 *
 * Project: Revolution Now
 *
-* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+* Created by dsicilia on 2018-08-31.
 *
-* Description: {{CURSOR}}
+* Description: 
 *
 *****************************************************************/
 #pragma once
 
 namespace rn {
 
+enum k_loop_result {
+  none,
+  quit
+};
 
+k_loop_result loop_eot();
 
 } // namespace rn

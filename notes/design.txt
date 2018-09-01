@@ -48,6 +48,8 @@ Game loops:
           Make Native moves
           Make expeditionary force moves
 
+          Might want to do this in the Processing loop
+
       * if no player units needed orders then show a message somewhere
         that says "end of turn" and let the user interact with the
         map and GUI.
@@ -93,3 +95,9 @@ Game loops:
 
     * This includes sliding units and animations resulting from
       e.g. city upgrades.
+
+  Processing game loop:
+
+    * Any intensive processing task should probably be done in
+      a separate thread with a loop running so that things remain
+      responsive.

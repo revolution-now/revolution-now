@@ -60,6 +60,18 @@ unordered_map<g_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
 
 } // namespace
 
+g_nation player_nationality() {
+  return g_nation::dutch;
+}
+
+vector<UnitId> units_all( g_nation nation ) {
+  vector<UnitId> res; res.reserve( units.size() );
+  for( auto const& p : units )
+    if( p.second.nation == nation )
+      res.push_back( p.first );
+  return res;
+}
+
 namespace explicit_types {
 
   // These are to make the auto-completer happy since it doesn't
@@ -98,7 +110,7 @@ UnitId create_unit_on_map( g_unit_type type, Y y, X x ) {
   return next_id++;
 }
 
-Unit& unit_from_id( UnitId id ) {
+Unit const& unit_from_id( UnitId id ) {
   auto res = explicit_types::get_val_safe( units, id );
   ASSERT( res );
   return *res;

@@ -5,19 +5,25 @@
 let s:first = 'main.cpp'
 
 let s:stems = [
-  \ 'src/sdl-util',
-  \ 'src/unit',
-  \ 'src/viewport',
-  \ 'src/world',
-  \ 'src/tiles',
   \ 'src/globals',
-  \ 'src/base-util'
+  \ 'src/base-util',
+  \ 'src/sdl-util',
+  \ 'src/tiles',
+  \ 'src/world',
+  \ 'src/viewport',
+  \ 'src/unit',
+  \ 'src/turn',
+  \ 'src/render',
+  \ 'src/loops',
 \]
 
 let s:pairs = [
-  \ ['src/macros.hpp', 'src/global-constants.hpp'],
-  \ ['src/aliases.hpp', 'src/typed-int.hpp'],
-  \ ['notes/priorities.txt', 'notes/ideas.txt']
+  \ ['src/global-constants.hpp', 'src/macros.hpp'],
+\]
+
+let s:quads = [
+  \ ['notes/design.txt', 'notes/priorities.txt',
+  \  '.session.vim',     'notes/ideas.txt']
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,6 +54,14 @@ function OpenPair( hpp, cpp )
     call OpenVSplit( a:hpp )
 endfunction
 
+function OpenQuad( f1, f2, f3, f4 )
+    call OpenPair( a:f1, a:f2 )
+    call feedkeys( ":split " . a:f3 . "\<CR>" )
+    call feedkeys( "\<C-W>l" )
+    call feedkeys( ":split " . a:f4 . "\<CR>" )
+    call feedkeys( "\<C-W>k\<C-W>h" )
+endfunction
+
 function OpenCppPair( stem )
     call OpenPair( a:stem . '.hpp', a:stem . '.cpp' )
 endfunction
@@ -57,8 +71,9 @@ endfunction
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 call OpenFirst( 'src/' . s:first )
-for s in s:stems | call OpenCppPair( s )       | endfor
-for p in s:pairs | call OpenPair( p[0], p[1] ) | endfor
+for s in s:stems | call OpenCppPair( s )                   | endfor
+for p in s:pairs | call OpenPair( p[0], p[1] )             | endfor
+for q in s:quads | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Finish up.
@@ -69,4 +84,4 @@ call feedkeys( ']' )
 " Move cursor from NERDTree into main pane.
 call feedkeys( "\<C-L>" )
 " Open a terminal in a vsplit.
-call feedkeys( ":vert term\<CR>\<C-W>h" )
+"call feedkeys( ":vert term\<CR>\<C-W>h" )

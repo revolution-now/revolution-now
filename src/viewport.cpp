@@ -36,6 +36,15 @@ double world_viewport_end_y()   { return viewport_center_y + world_viewport_heig
 X world_viewport_start_tile_x() { return X(W(int( world_viewport_start_x() ))/g_tile_width); }
 Y world_viewport_start_tile_y() { return Y(H(int( world_viewport_start_y() ))/g_tile_height); }
 
+Rect get_viewport() {
+  return {
+    X(int( world_viewport_start_x() )),
+    Y(int( world_viewport_start_y() )),
+    W(int( world_viewport_width() )),
+    H(int( world_viewport_height() ))
+  };
+}
+
 } // namespace
 
 // Number of tiles needed to be drawn in order to subsume the
@@ -86,15 +95,6 @@ Rect viewport_covered_tiles() {
   if( end_tile_y > Y(0) + size_y ) end_tile_y = Y(0) + size_y;
   return {X(start_tile_x), Y(start_tile_y),
     W(end_tile_x-start_tile_x), H(end_tile_y-start_tile_y)};
-}
-
-Rect get_viewport() {
-  return {
-    X(int( world_viewport_start_x() )),
-    Y(int( world_viewport_start_y() )),
-    W(int( world_viewport_width() )),
-    H(int( world_viewport_height() ))
-  };
 }
 
 Rect viewport_get_render_src_rect() {

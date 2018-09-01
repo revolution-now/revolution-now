@@ -1,3 +1,7 @@
+========================================================
+Ideas
+========================================================
+
 UI:
   * Smooth panning with acceleration
   * Auto panning and zooming on unit waiting for orders

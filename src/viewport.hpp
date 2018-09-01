@@ -17,8 +17,6 @@
 
 namespace rn {
 
-Rect get_viewport();
-
 Rect viewport_covered_tiles();
 
 Rect viewport_get_render_src_rect();

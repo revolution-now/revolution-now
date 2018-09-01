@@ -87,8 +87,12 @@ using UnitIdVec = std::vector<UnitId>;
 // Not safe, probably temporary.
 UnitId create_unit_on_map( g_unit_type type, Y y, X x );
 
-Unit& unit_from_id( UnitId id );
+Unit const& unit_from_id( UnitId id );
 UnitIdVec units_from_coord( Y y, X x );
 UnitIdVec units_int_rect( Rect const& rect );
+
+std::vector<UnitId> units_all( g_nation nation );
+
+g_nation player_nationality();
 
 } // namespace rn
