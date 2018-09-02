@@ -52,57 +52,61 @@ k_turn_result turn() {
 
   auto gave_orders{false};
 
-  //  Iterate through all units, for each:
-  for( auto unit_id : units_all( player_nationality() ) ) {
-    auto const& u = unit_from_id( unit_id );
-    //    * if it is it in `goto` mode focus on it and advance it
-    //      TODO
-    //    * if it is a ship on the high seas then advance it
-    //        if it has arrived in the old world then jump to the old world
-    //        screen (maybe ask user whether they want to ignore),
-    //        which has its own game loop (see old-world loop).
-    //      TODO
-    //    * if it is in the old world then ignore it, or possibly remind
-    //      the user it is there.
-    //      TODO
-    //    * if it is performing an action, such as building a road,
-    //      advance the state.  If it finishes then mark it as active
-    //      so that it will wait for orders in the next step.
-    //      TODO
-    //    * if it is in an indian village then advance it, and mark
-    //      it active if it is finished.
-    //      TODO
+  while( !all_units_moved( player_nationality() ) ) {
+    //  Iterate through all units, for each:
+    for( auto unit_id : units_all( player_nationality() ) ) {
+      auto const& u = unit_from_id( unit_id );
+      if( u.moved_this_turn )
+        continue;
+      //    * if it is it in `goto` mode focus on it and advance it
+      //      TODO
+      //    * if it is a ship on the high seas then advance it
+      //        if it has arrived in the old world then jump to the old world
+      //        screen (maybe ask user whether they want to ignore),
+      //        which has its own game loop (see old-world loop).
+      //      TODO
+      //    * if it is in the old world then ignore it, or possibly remind
+      //      the user it is there.
+      //      TODO
+      //    * if it is performing an action, such as building a road,
+      //      advance the state.  If it finishes then mark it as active
+      //      so that it will wait for orders in the next step.
+      //      TODO
+      //    * if it is in an indian village then advance it, and mark
+      //      it active if it is finished.
+      //      TODO
 
-    //    * if unit is waiting for orders then focus on it, and enter
-    //      a realtime game loop where the user can interact with the
-    //      map and GUI in general.  See `unit orders` game loop.
-    if( u.orders == g_unit_orders::none ) {
-      gave_orders = true;
-      switch( loop_orders( unit_id ) ) {
-        case k_loop_result::quit:
-          return k_turn_result::quit;
-        case k_loop_result::none:
+      //    * if unit is waiting for orders then focus on it, and enter
+      //      a realtime game loop where the user can interact with the
+      //      map and GUI in general.  See `unit orders` game loop.
+      while( u.orders == g_unit_orders::none &&
+             u.movement_points > 0 ) {
+        gave_orders = true;
+        k_orders_loop_result res = loop_orders( unit_id );
+        if( res == k_orders_loop_result::wait )
           break;
-      };
+        if( res == k_orders_loop_result::quit )
+            return k_turn_result::quit;
+      }
     }
+  }
 
-    //    * Make AI moves
-    //        Make European moves
-    //        Make Native moves
-    //        Make expeditionary force moves
-    //      TODO
+  //    * Make AI moves
+  //        Make European moves
+  //        Make Native moves
+  //        Make expeditionary force moves
+  //      TODO
 
-    //    * if no player units needed orders then show a message somewhere
-    //      that says "end of turn" and let the user interact with the
-    //      map and GUI.
-    if( !gave_orders ) {
-      switch( loop_eot() ) {
-        case k_loop_result::quit:
-          return k_turn_result::quit;
-        case k_loop_result::none:
-          break;
-      };
-    }
+  //    * if no player units needed orders then show a message somewhere
+  //      that says "end of turn" and let the user interact with the
+  //      map and GUI.
+  if( !gave_orders ) {
+    switch( loop_eot() ) {
+      case k_eot_loop_result::quit:
+        return k_turn_result::quit;
+      case k_eot_loop_result::none:
+        break;
+    };
   }
   return k_turn_result::cont;
 }

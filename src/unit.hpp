@@ -11,6 +11,7 @@
 #pragma once
 
 #include "base-util.hpp"
+#include "mv-points.hpp"
 #include "tiles.hpp"
 
 #include <functional>
@@ -36,7 +37,7 @@ struct UnitDescriptor {
   // Movement
   bool boat;
   int visibility;
-  int movement_points;
+  MovementPoints movement_points;
 
   // Combat
   bool can_attack;
@@ -58,9 +59,9 @@ struct Cargo {
 
 enum class g_unit_orders {
   none,
-  sentry,
+  sentry, // includes units on ships
   fortified,
-  enroute
+  enroute,
 };
 
 enum class g_nation {
@@ -104,6 +105,9 @@ struct UnitMoveDesc {
   // Description of what would happen if the move were carried
   // out.  This will also be set even if can_move == false.
   k_unit_mv_desc desc;
+  // Cost in movement points that would be incurred; this is
+  // a positive number.
+  MovementPoints movement_cost;
 };
 
 // Mutable.  This holds information about a specific instance
@@ -120,6 +124,8 @@ struct Unit {
   bool moved_this_turn;
   std::vector<std::optional<Cargo>> cargo_slots;
   g_nation nation;
+  // Movement points left this turn.
+  MovementPoints movement_points;
 };
 
 using UnitIdVec = std::vector<UnitId>;
@@ -137,8 +143,10 @@ Coord coords_for_unit( UnitId id );
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves();
-// Mark unit as having moved.
-void set_unit_moved( UnitId id );
+// Gives up all movement points this turn and marks unit
+// as having moved.
+void forfeight_mv_points( UnitId id );
+bool all_units_moved( g_nation nation );
 
 std::vector<UnitId> units_all( g_nation nation );
 

@@ -14,13 +14,19 @@
 
 namespace rn {
 
-enum k_loop_result {
+enum class k_eot_loop_result {
   none,
   quit
 };
 
-k_loop_result loop_eot();
+k_eot_loop_result loop_eot();
 
-k_loop_result loop_orders( UnitId id );
+enum class k_orders_loop_result {
+  wait,
+  quit,
+  moved
+};
+
+k_orders_loop_result loop_orders( UnitId id );
 
 } // namespace rn

@@ -120,6 +120,7 @@ UnitId create_unit_on_map( g_unit_type type, Y y, X x ) {
     false,
     {},
     g_nation::dutch,
+    desc.movement_points,
   };
   units.at( next_id ).cargo_slots.resize( desc.unit_cargo_slots );
   units_from_coords[Coord{y,x}].insert( next_id );
@@ -167,10 +168,11 @@ Coord coords_for_unit( UnitId id ) {
 UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   Y y = coords.y;
   X x = coords.x;
+  MovementPoints cost( 1 );
   if( y-Y(0) >= world_size_tiles_y() ||
       x-X(0) >= world_size_tiles_x() ||
       y < 0 || x < 0 )
-    return {{y, x}, false, k_unit_mv_desc::map_edge};
+    return {{y, x}, false, k_unit_mv_desc::map_edge, cost};
   auto& unit = unit_from_id( id );
   // This function doesn't necessarily have to be responsible for
   // checking this, but it may end up catching some problems.
@@ -178,40 +180,40 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   auto& square = square_at( y, x );
 
   if( unit.desc->boat && square.land ) {
-    return {{y, x}, false, k_unit_mv_desc::land_forbidden};
+    return {{y, x}, false, k_unit_mv_desc::land_forbidden, cost};
   }
   if( !unit.desc->boat && !square.land ) {
-    return {{y, x}, false, k_unit_mv_desc::water_forbidden};
+    return {{y, x}, false, k_unit_mv_desc::water_forbidden, cost};
   }
-  return {{y, x}, true, k_unit_mv_desc::none};
+  return {{y, x}, true, k_unit_mv_desc::none, cost};
 }
 
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves() {
-  for( auto & [id, unit] : units )
+  for( auto & [id, unit] : units ) {
     unit.moved_this_turn = false;
+    unit.movement_points = unit.desc->movement_points;
+  }
 }
 
 // Mark unit as having moved.
-void set_unit_moved( UnitId id ) {
+void forfeight_mv_points( UnitId id ) {
   auto& unit = unit_from_id_mutable( id );
   // This function doesn't necessarily have to be responsible for
   // checking this, but it may end up catching some problems.
   ASSERT( !unit.moved_this_turn );
   unit.moved_this_turn = true;
+  unit.movement_points = 0;
 }
 
 void move_unit_to( UnitId id, Coord target ) {
-  UnitMoveDesc desc = move_consequences( id, target );
+  UnitMoveDesc move_desc = move_consequences( id, target );
   // Caller should have checked this.
-  ASSERT( desc.can_move );
+  ASSERT( move_desc.can_move );
 
   auto& unit = unit_from_id_mutable( id );
   ASSERT( !unit.moved_this_turn );
-
-  // Mark unit as having moved
-  unit.moved_this_turn = true;
 
   // Remove unit from current square.
   auto opt_current_coords = coords_for_unit_safe( id );
@@ -230,6 +232,19 @@ void move_unit_to( UnitId id, Coord target ) {
 
   // Set unit coords to new value.
   coords_from_unit[id] = {target.y,target.x};
+
+  unit.movement_points -= move_desc.movement_cost;
+  ASSERT( unit.movement_points >= 0 );
+  if( unit.movement_points == 0 )
+    unit.moved_this_turn = true;
+}
+
+bool all_units_moved( g_nation nation ) {
+  for( auto const& [id, unit] : units )
+    if( unit.nation == nation )
+      if( !unit.moved_this_turn )
+        return false;
+  return true;
 }
 
 } // namespace rn

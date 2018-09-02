@@ -22,12 +22,12 @@ double movement_speed = 32.0;
   
 } // namespace
 
-k_loop_result loop_orders( UnitId id ) {
+k_orders_loop_result loop_orders( UnitId id ) {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
   bool running = true;
-  k_loop_result result = k_loop_result::none;
+  k_orders_loop_result result;
 
   auto coords = coords_for_unit( id );
 
@@ -37,7 +37,7 @@ k_loop_result loop_orders( UnitId id ) {
     pass,
     move
   };
-  k_unit_mv_result mv_result{none};
+  k_unit_mv_result mv_result = k_unit_mv_result::none;
 
   // This will only be relevant if mv_result == move;
   UnitMoveDesc move_desc;
@@ -55,7 +55,7 @@ k_loop_result loop_orders( UnitId id ) {
       switch (event.type) {
         case SDL_QUIT:
           running = false;
-          result = k_loop_result::quit;
+          result = k_orders_loop_result::quit;
           break;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event) {
@@ -69,7 +69,7 @@ k_loop_result loop_orders( UnitId id ) {
           switch( event.key.keysym.sym ) {
             case ::SDLK_q:
               running = false;
-              result = k_loop_result::quit;
+              result = k_orders_loop_result::quit;
               break;
             case ::SDLK_F11:
               toggle_fullscreen();
@@ -77,9 +77,11 @@ k_loop_result loop_orders( UnitId id ) {
             case ::SDLK_w:
               running = false;
               mv_result = k_unit_mv_result::wait;
+              result = k_orders_loop_result::wait;
               break;
             case ::SDLK_SPACE:
               running = false;
+              forfeight_mv_points( id );
               mv_result = k_unit_mv_result::pass;
               break;
             case ::SDLK_LEFT:
@@ -145,16 +147,17 @@ k_loop_result loop_orders( UnitId id ) {
   }
   if( mv_result == k_unit_mv_result::move ) {
     move_unit_to( id, move_desc.coords );
+    result = k_orders_loop_result::moved;
   }
   return result;
 }
 
-k_loop_result loop_eot() {
+k_eot_loop_result loop_eot() {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
   bool running = true;
-  k_loop_result result = k_loop_result::none;
+  k_eot_loop_result result = k_eot_loop_result::none;
 
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
@@ -167,7 +170,7 @@ k_loop_result loop_eot() {
       switch (event.type) {
         case SDL_QUIT:
           running = false;
-          result = k_loop_result::quit;
+          result = k_eot_loop_result::quit;
           break;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event) {
@@ -181,7 +184,7 @@ k_loop_result loop_eot() {
           switch( event.key.keysym.sym ) {
             case ::SDLK_q:
               running = false;
-              result = k_loop_result::quit;
+              result = k_eot_loop_result::quit;
               break;
             case ::SDLK_F11:
               toggle_fullscreen();
