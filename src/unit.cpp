@@ -193,6 +193,15 @@ void reset_moves() {
     unit.moved_this_turn = false;
 }
 
+// Mark unit as having moved.
+void set_unit_moved( UnitId id ) {
+  auto& unit = unit_from_id_mutable( id );
+  // This function doesn't necessarily have to be responsible for
+  // checking this, but it may end up catching some problems.
+  ASSERT( !unit.moved_this_turn );
+  unit.moved_this_turn = true;
+}
+
 void move_unit_to( UnitId id, Coord target ) {
   UnitMoveDesc desc = move_consequences( id, target );
   // Caller should have checked this.

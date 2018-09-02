@@ -79,6 +79,13 @@ H world_size_tiles_y() { return std::get<0>( world_size_tiles() ); }
 W world_size_pixels_x() { return std::get<1>( world_size_tiles() ); }
 H world_size_pixels_y() { return std::get<0>( world_size_tiles() ); }
 
+Rect world_rect() {
+  return {
+    X(0), Y(0),
+    world_size_tiles_x(), world_size_tiles_y()
+  };
+}
+
 bool square_exists( Y y, X x ) {
   if( y < 0 || x < 0 )
     return false;

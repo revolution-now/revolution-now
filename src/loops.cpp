@@ -26,11 +26,23 @@ k_loop_result loop_orders( UnitId id ) {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
-  bool running = true, moved = false;
+  bool running = true;
   k_loop_result result = k_loop_result::none;
-  UnitMoveDesc move_desc;
 
   auto coords = coords_for_unit( id );
+
+  enum class k_unit_mv_result {
+    none,
+    wait,
+    pass,
+    move
+  };
+  k_unit_mv_result mv_result{none};
+
+  // This will only be relevant if mv_result == move;
+  UnitMoveDesc move_desc;
+
+  viewport::ensure_tile_surroundings_visible( coords );
 
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
@@ -62,8 +74,13 @@ k_loop_result loop_orders( UnitId id ) {
             case ::SDLK_F11:
               toggle_fullscreen();
               break;
+            case ::SDLK_w:
+              running = false;
+              mv_result = k_unit_mv_result::wait;
+              break;
             case ::SDLK_SPACE:
               running = false;
+              mv_result = k_unit_mv_result::pass;
               break;
             case ::SDLK_LEFT:
               move_desc = move_consequences(
@@ -72,7 +89,7 @@ k_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                moved = true;
+                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -83,7 +100,7 @@ k_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                moved = true;
+                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -94,7 +111,7 @@ k_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                moved = true;
+                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -105,7 +122,7 @@ k_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                moved = true;
+                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -113,9 +130,9 @@ k_loop_result loop_orders( UnitId id ) {
           break;
         case ::SDL_MOUSEWHEEL:
           if( event.wheel.y < 0 )
-            viewport_scale_zoom( 0.98 );
+            viewport::scale_zoom( 0.98 );
           if( event.wheel.y > 0 )
-            viewport_scale_zoom( 1.02 );
+            viewport::scale_zoom( 1.02 );
           break;
         default:
           break;
@@ -126,7 +143,7 @@ k_loop_result loop_orders( UnitId id ) {
     if( delta < frame_length_millis )
       ::SDL_Delay( frame_length_millis - delta );
   }
-  if( moved ) {
+  if( mv_result == k_unit_mv_result::move ) {
     move_unit_to( id, move_desc.coords );
   }
   return result;
@@ -170,24 +187,24 @@ k_loop_result loop_eot() {
               toggle_fullscreen();
               break;
             case ::SDLK_LEFT:
-              viewport_pan( 0, -movement_speed, false );
+              viewport::pan( 0, -movement_speed, false );
               break;
             case ::SDLK_RIGHT:
-              viewport_pan( 0, movement_speed, false );
+              viewport::pan( 0, movement_speed, false );
               break;
             case ::SDLK_DOWN:
-              viewport_pan( movement_speed, 0, false );
+              viewport::pan( movement_speed, 0, false );
               break;
             case ::SDLK_UP:
-              viewport_pan( -movement_speed, 0, false );
+              viewport::pan( -movement_speed, 0, false );
               break;
           }
           break;
         case ::SDL_MOUSEWHEEL:
           if( event.wheel.y < 0 )
-            viewport_scale_zoom( 0.98 );
+            viewport::scale_zoom( 0.98 );
           if( event.wheel.y > 0 )
-            viewport_scale_zoom( 1.02 );
+            viewport::scale_zoom( 1.02 );
           break;
         default:
           break;

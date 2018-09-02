@@ -43,6 +43,8 @@ H world_size_tiles_y();
 W world_size_pixels_x();
 H world_size_pixels_y();
 
+Rect world_rect();
+
 bool square_exists( Y y, X x );
 
 Square const& square_at( Y y, X x );

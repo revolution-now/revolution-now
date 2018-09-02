@@ -20,6 +20,37 @@
 
 namespace rn {
 
+struct Rect {
+  X x; Y y; W w; H h;
+
+  // Useful for generic code; allows referencing a coordinate
+  // from the type.
+  template<typename Dimension>
+  Dimension& coordinate();
+
+  // Useful for generic code; allows referencing a width/height
+  // from the of the associated dimension, i.e., with Dimension=X
+  // it will return the width of type (W).
+  template<typename Dimension>
+  LengthType<Dimension>& length();
+
+  // New coord equal to this one unit of edge trimmed off
+  // on all sides.  That is, we will have:
+  //
+  //   (width,height) ==> (width-2,height-2)
+  //
+  // unless one of the dimensions is initially 1 or 0 in
+  // which case that dimension will be 0 in the result.
+  //
+  // For the (x,y) coordinates we will always have:
+  //
+  //   (x,y) ==> (x+1,y+1)
+  //
+  // unless one of the dimensions has width 0 in which case
+  // that dimension will remain as-is.
+  Rect edges_removed();
+};
+
 enum class direction {
   nw, n, ne,
   w,  c, e,
@@ -28,23 +59,22 @@ enum class direction {
 
 struct Coord {
   Y y; X x;
+
+  // Useful for generic code; allows referencing a coordinate
+  // from the type.
+  template<typename Dimension>
+  Dimension& coordinate();
+
   bool operator==( Coord const& other ) const {
     return (y == other.y) && (x == other.x);
   }
 
-  Coord moved( direction d ) {
-    switch( d ) {
-      case direction::nw: return {y-1,x-1}; break;
-      case direction::n:  return {y-1,x  }; break;
-      case direction::ne: return {y-1,x+1}; break;
-      case direction::w:  return {y,  x-1}; break;
-      case direction::c:  return {y,  x  }; break;
-      case direction::e:  return {y,  x+1}; break;
-      case direction::sw: return {y+1,x-1}; break;
-      case direction::s:  return {y+1,x  }; break;
-      case direction::se: return {y+1,x+1}; break;
-    };
+  bool operator!=( Coord const& other ) const {
+    return !(*this == other);
   }
+
+  Coord moved( direction d );
+  bool is_inside( Rect const& rect );
 };
 
 using OptCoord = std::optional<Coord>;
@@ -54,10 +84,6 @@ struct Delta {
   bool operator==( Delta const& other ) const {
     return (h == other.h) && (w == other.w);
   }
-};
-
-struct Rect {
-  X x; Y y; W w; H h;
 };
 
 std::ostream& operator<<( std::ostream& out, Rect const& r );

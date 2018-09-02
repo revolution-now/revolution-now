@@ -95,6 +95,16 @@ TYPED_INT( Y ) // y coordinate
 TYPED_INT( W ) // width
 TYPED_INT( H ) // height
 
+// These templates allow us to map a dimension
+template<typename Coordinate>
+struct LengthTypeFor;
+
+template<> struct LengthTypeFor<X> { using length_t = W; };
+template<> struct LengthTypeFor<Y> { using length_t = H; };
+
+template<typename Coordinate>
+using LengthType = typename LengthTypeFor<Coordinate>::length_t;
+
 // These express that when we add a delta to a coordinate that we
 // get another coordinate. They are specific to the semantics of
 // cartesian coordinates so we don't include them in the TYPE-

@@ -14,4 +14,9 @@ set tabstop=2
 "    endif
 "endfunction
 
+"function CloseTerminal()
+"  call feedkeys( ":tabn 1\<CR>\<C-W>\<C-T>\<C-W>l\<C-W>l\<C-D>\<C-W>\<C-T>" )
+"  call feedkeys( ":qa\<CR>" )
+"endfunction
+
 "nnoremap Q :call CloseTerminal()<CR>

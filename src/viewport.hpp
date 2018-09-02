@@ -17,13 +17,23 @@
 
 namespace rn {
 
-Rect viewport_covered_tiles();
+namespace viewport {
 
-Rect viewport_get_render_src_rect();
-Rect viewport_get_render_dest_rect();
+// Tiles touched by the viewport (tiles at the edge may only be
+// partially visible).
+Rect covered_tiles();
 
-void viewport_scale_zoom( double factor );
-void viewport_pan( double down_up, double left_right, bool scale = false );
+Rect get_render_src_rect();
+Rect get_render_dest_rect();
+
+void scale_zoom( double factor );
+void pan( double down_up, double left_right, bool scale = false );
+
+void center_on_tile( Coord coord );
+bool is_tile_fully_visible( Coord coord );
+void ensure_tile_surroundings_visible( Coord coord );
+
+} // namespace viewport
 
 } // namespace rn
 

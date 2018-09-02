@@ -137,6 +137,8 @@ Coord coords_for_unit( UnitId id );
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves();
+// Mark unit as having moved.
+void set_unit_moved( UnitId id );
 
 std::vector<UnitId> units_all( g_nation nation );
 

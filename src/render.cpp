@@ -31,7 +31,7 @@ void render_world_viewport( UnitId blink ) {
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 
-  auto covered = viewport_covered_tiles();
+  auto covered = viewport::covered_tiles();
 
   for( Y i = covered.y; i < covered.y+covered.h; ++i ) {
     for( X j = covered.x; j < covered.x+covered.w; ++j ) {
@@ -59,8 +59,8 @@ void render_world_viewport( UnitId blink ) {
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 
-  ::SDL_Rect src = to_SDL( viewport_get_render_src_rect() );
-  ::SDL_Rect dest = to_SDL( viewport_get_render_dest_rect() );
+  ::SDL_Rect src = to_SDL( viewport::get_render_src_rect() );
+  ::SDL_Rect dest = to_SDL( viewport::get_render_dest_rect() );
   ::SDL_RenderCopy( g_renderer, g_texture_world, &src, &dest );
 
   //render_tile_map( "panel" );
