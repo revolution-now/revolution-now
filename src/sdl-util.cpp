@@ -115,8 +115,8 @@ void create_renderer() {
 
   W width = g_tile_width._*g_viewport_width_tiles;
   H height = g_tile_height._*g_viewport_height_tiles;
-  cout << "logical renderer width : " << width << "\n";
-  cout << "logical renderer height: " << height << "\n";
+  //cout << "logical renderer width : " << width << "\n";
+  //cout << "logical renderer height: " << height << "\n";
 
   ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
 
@@ -149,11 +149,18 @@ void unload_textures() {
     SDL_DestroyTexture( texture );
 }
 
+// All the functions in this method should not cause problems
+// even if their corresponding initialization routines were
+// not successfully run.
 void cleanup() {
   cleanup_sound();
   unload_textures();
-  SDL_DestroyRenderer( g_renderer );
-  SDL_DestroyWindow( g_window );
+  if( g_renderer )
+    SDL_DestroyRenderer( g_renderer );
+  if( g_window )
+    SDL_DestroyWindow( g_window );
+  // Not clear if this actually quits the program; but it does
+  // deinitialize everything.
   SDL_Quit();
 }
 

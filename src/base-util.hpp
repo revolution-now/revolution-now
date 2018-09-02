@@ -20,12 +20,33 @@
 
 namespace rn {
 
+enum class direction {
+  nw, n, ne,
+  w,  c, e,
+  sw, s, se
+};
+
 struct Coord {
   Y y; X x;
   bool operator==( Coord const& other ) const {
     return (y == other.y) && (x == other.x);
   }
+
+  Coord moved( direction d ) {
+    switch( d ) {
+      case direction::nw: return {y-1,x-1}; break;
+      case direction::n:  return {y-1,x  }; break;
+      case direction::ne: return {y-1,x+1}; break;
+      case direction::w:  return {y,  x-1}; break;
+      case direction::c:  return {y,  x  }; break;
+      case direction::e:  return {y,  x+1}; break;
+      case direction::sw: return {y+1,x-1}; break;
+      case direction::s:  return {y+1,x  }; break;
+      case direction::se: return {y+1,x+1}; break;
+    };
+  }
 };
+
 using OptCoord = std::optional<Coord>;
 
 struct Delta {
@@ -88,6 +109,12 @@ OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
     if( found == m.end() )
         return std::nullopt;
     return found->second;
+}
+
+// Does the set contain the given key.
+template<typename ContainerT, typename KeyT>
+bool has_key( ContainerT const& s, KeyT const& k ) {
+    return s.find( k ) != s.end();
 }
 
 } // namespace rn

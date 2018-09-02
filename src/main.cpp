@@ -20,19 +20,23 @@
 using namespace rn;
 using namespace std;
 
-int main( int, char** ) {
-
+int main( int, char** ) try {
   init_game();
   load_sprites();
   load_tile_maps();
 
+  //play_music_file( "../music/bonny-morn.mp3" );
+
   create_unit_on_map( g_unit_type::free_colonist, Y(2), X(3) );
   create_unit_on_map( g_unit_type::caravel, Y(2), X(2) );
-
-  //play_music_file( "../music/bonny-morn.mp3" );
 
   while( turn() != k_turn_result::quit ) {}
 
   cleanup();
   return 0;
+
+} catch( exception const& e ) {
+  cerr << e.what() << endl;
+  cleanup();
+  return 1;
 }

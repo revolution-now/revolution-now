@@ -10,8 +10,12 @@
 *****************************************************************/
 #include "base-util.hpp"
 
+#include <exception>
+#include <stdexcept>
 #include <iostream>
 #include <utility>
+
+using namespace std;
 
 namespace rn {
 
@@ -27,7 +31,8 @@ std::ostream& operator<<( std::ostream& out, Rect const& r ) {
 
 void die( char const* file, int line, std::string_view msg ) {
   std::cerr << "error:" << file << ":" << line << ": " << msg << "\n";
-  std::terminate();
+  //std::terminate();
+  throw logic_error( "terminating program. see log for error" );
 }
 
 int round_up_to_nearest_int_multiple( double d, int m ) {

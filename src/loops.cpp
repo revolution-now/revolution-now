@@ -30,7 +30,7 @@ k_loop_result loop_orders( UnitId id ) {
   k_loop_result result = k_loop_result::none;
   UnitMoveDesc move_desc;
 
-  Unit const& unit = unit_from_id( id );
+  auto coords = coords_for_unit( id );
 
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
@@ -66,20 +66,48 @@ k_loop_result loop_orders( UnitId id ) {
               running = false;
               break;
             case ::SDLK_LEFT:
-              running = false;
-              moved = true;
+              move_desc = move_consequences(
+                  id, coords.moved( direction::w ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                moved = true;
+                running = false;
+              }
               break;
             case ::SDLK_RIGHT:
-              running = false;
-              moved = true;
+              move_desc = move_consequences(
+                  id, coords.moved( direction::e ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                moved = true;
+                running = false;
+              }
               break;
             case ::SDLK_DOWN:
-              running = false;
-              moved = true;
+              move_desc = move_consequences(
+                  id, coords.moved( direction::s ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                moved = true;
+                running = false;
+              }
               break;
             case ::SDLK_UP:
-              running = false;
-              moved = true;
+              move_desc = move_consequences(
+                  id, coords.moved( direction::n ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                moved = true;
+                running = false;
+              }
               break;
           }
           break;
@@ -99,7 +127,7 @@ k_loop_result loop_orders( UnitId id ) {
       ::SDL_Delay( frame_length_millis - delta );
   }
   if( moved ) {
-
+    move_unit_to( id, move_desc.coords );
   }
   return result;
 }

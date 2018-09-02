@@ -30,7 +30,7 @@ unordered_map<UnitId, Unit> units;
 // For units that are on (owned by) the map.
 unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
 unordered_map<UnitId, Coord> coords_from_unit;
-  
+
 #if 1
 namespace explicit_types {
   // These are to make the auto-completer happy since it doesn't
@@ -117,6 +117,7 @@ UnitId create_unit_on_map( g_unit_type type, Y y, X x ) {
     next_id,
     &desc,
     g_unit_orders::none,
+    false,
     {},
     g_nation::dutch,
   };
@@ -149,25 +150,77 @@ UnitIdVec units_int_rect( Rect const& rect ) {
   return res;
 }
 
-OptCoord coords_for_unit( UnitId id ) {
+OptCoord coords_for_unit_safe( UnitId id ) {
   return explicit_types::get_val_safe( coords_from_unit, id );
+}
+
+Coord coords_for_unit( UnitId id ) {
+  auto opt_coord = coords_for_unit_safe( id );
+  ASSERT( opt_coord );
+  return *opt_coord;
 }
 
 // This function will allow the move by default, and so it is
 // the burden of the logic in this function to find every possible
 // way that the move is *not* allowed and to flag it if that is
 // the case.
-UnitMoveDesc move_consequences( UnitId id, Y y_target, X x_target ) {
+UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
+  Y y = coords.y;
+  X x = coords.x;
+  if( y-Y(0) >= world_size_tiles_y() ||
+      x-X(0) >= world_size_tiles_x() ||
+      y < 0 || x < 0 )
+    return {{y, x}, false, k_unit_mv_desc::map_edge};
   auto& unit = unit_from_id( id );
-  auto& square = square_at( y_target, x_target );
+  // This function doesn't necessarily have to be responsible for
+  // checking this, but it may end up catching some problems.
+  ASSERT( !unit.moved_this_turn );
+  auto& square = square_at( y, x );
 
   if( unit.desc->boat && square.land ) {
-    return {{y_target, x_target}, false, k_unit_mv_desc::land_forbidden};
+    return {{y, x}, false, k_unit_mv_desc::land_forbidden};
   }
   if( !unit.desc->boat && !square.land ) {
-    return {{y_target, x_target}, false, k_unit_mv_desc::water_forbidden};
+    return {{y, x}, false, k_unit_mv_desc::water_forbidden};
   }
-  return {{y_target, x_target}, true, k_unit_mv_desc::none};
+  return {{y, x}, true, k_unit_mv_desc::none};
+}
+
+// Called at the beginning of each turn; marks all units
+// as not yet having moved.
+void reset_moves() {
+  for( auto & [id, unit] : units )
+    unit.moved_this_turn = false;
+}
+
+void move_unit_to( UnitId id, Coord target ) {
+  UnitMoveDesc desc = move_consequences( id, target );
+  // Caller should have checked this.
+  ASSERT( desc.can_move );
+
+  auto& unit = unit_from_id_mutable( id );
+  ASSERT( !unit.moved_this_turn );
+
+  // Mark unit as having moved
+  unit.moved_this_turn = true;
+
+  // Remove unit from current square.
+  auto opt_current_coords = coords_for_unit_safe( id );
+  // Will trigger if the unit trying to be moved is not
+  // on the map.  Will eventually have to remove this.
+  ASSERT( opt_current_coords );
+  auto [curr_y, curr_x] = *opt_current_coords;
+  auto& unit_set = units_from_coords[{curr_y,curr_x}];
+  auto iter = unit_set.find( id );
+  // Will trigger if an internal invariant is broken.
+  ASSERT( iter != unit_set.end() );
+  unit_set.erase( iter );
+
+  // Add unit to new square.
+  units_from_coords[{target.y,target.x}].insert( id );
+
+  // Set unit coords to new value.
+  coords_from_unit[id] = {target.y,target.x};
 }
 
 } // namespace rn

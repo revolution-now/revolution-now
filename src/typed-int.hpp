@@ -73,6 +73,14 @@
   inline bool operator>( int left, a right ) { return left>right._; }   \
   inline bool operator>( a left, a right ) { return left._>right._; }   \
                                                                         \
+  inline bool operator<=( a left, int right ) { return left._<=right; }   \
+  inline bool operator<=( int left, a right ) { return left<=right._; }   \
+  inline bool operator<=( a left, a right ) { return left._<=right._; }   \
+                                                                        \
+  inline bool operator>=( a left, int right ) { return left._>=right; }   \
+  inline bool operator>=( int left, a right ) { return left>=right._; }   \
+  inline bool operator>=( a left, a right ) { return left._>=right._; }   \
+                                                                        \
   inline std::ostream& operator<<( std::ostream& out, a what ) {        \
     return (out << what._);                                             \
   }                                                                     \

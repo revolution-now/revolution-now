@@ -24,6 +24,9 @@ namespace {
 k_turn_result turn() {
   //start of turn:
 
+  // Mark all units as not having moved.
+  reset_moves();
+
   //  Iterate through the colonies, for each:
   //  TODO
 
@@ -75,7 +78,12 @@ k_turn_result turn() {
     //      map and GUI in general.  See `unit orders` game loop.
     if( u.orders == g_unit_orders::none ) {
       gave_orders = true;
-      loop_orders( unit_id );
+      switch( loop_orders( unit_id ) ) {
+        case k_loop_result::quit:
+          return k_turn_result::quit;
+        case k_loop_result::none:
+          break;
+      };
     }
 
     //    * Make AI moves
@@ -91,7 +99,6 @@ k_turn_result turn() {
       switch( loop_eot() ) {
         case k_loop_result::quit:
           return k_turn_result::quit;
-          break;
         case k_loop_result::none:
           break;
       };

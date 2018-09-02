@@ -74,6 +74,7 @@ enum class g_nation {
 // move.
 enum class k_unit_mv_desc {
   none,
+  map_edge,
   land_forbidden,
   water_forbidden,
   insufficient_movement_points,
@@ -116,6 +117,7 @@ struct Unit {
   // information of a unit descriptor itself.
   UnitDescriptor const* desc;
   g_unit_orders orders;
+  bool moved_this_turn;
   std::vector<std::optional<Cargo>> cargo_slots;
   g_nation nation;
 };
@@ -129,12 +131,18 @@ Unit const& unit_from_id( UnitId id );
 
 UnitIdVec units_from_coord( Y y, X x );
 UnitIdVec units_int_rect( Rect const& rect );
-OptCoord coords_for_unit( UnitId id );
+OptCoord coords_for_unit_safe( UnitId id );
+Coord coords_for_unit( UnitId id );
+
+// Called at the beginning of each turn; marks all units
+// as not yet having moved.
+void reset_moves();
 
 std::vector<UnitId> units_all( g_nation nation );
 
 g_nation player_nationality();
 
-UnitMoveDesc move_consequences( UnitId id, Y y_target, X x_target );
+UnitMoveDesc move_consequences( UnitId id, Coord coords );
+void move_unit_to( UnitId, Coord target );
 
 } // namespace rn
