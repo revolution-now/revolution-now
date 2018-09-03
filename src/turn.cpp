@@ -50,14 +50,19 @@ k_turn_result turn() {
   //  Advance the state of the old world, possibly displaying messages
   //  to the user where necessary.
 
-  auto gave_orders{false};
+  auto need_eot_loop{true};
 
-  while( !all_units_moved( player_nationality() ) ) {
+  // We keep looping until all units that need moving have moved.  We
+  // don't know this list a priori because some units may decide to
+  // require orders during the course of this process, and this could
+  // happen for various reasons.
+  while( true ) {
+    auto units = units_to_move( player_nationality() );
+    if( units.empty() ) break;
     //  Iterate through all units, for each:
-    for( auto unit_id : units_all( player_nationality() ) ) {
-      auto const& u = unit_from_id( unit_id );
-      if( u.moved_this_turn )
-        continue;
+    for( auto unit_id : units ) {
+      auto const& unit = unit_from_id( unit_id );
+
       //    * if it is it in `goto` mode focus on it and advance it
       //      TODO
       //    * if it is a ship on the high seas then advance it
@@ -79,14 +84,14 @@ k_turn_result turn() {
       //    * if unit is waiting for orders then focus on it, and enter
       //      a realtime game loop where the user can interact with the
       //      map and GUI in general.  See `unit orders` game loop.
-      while( u.orders == g_unit_orders::none &&
-             u.movement_points > 0 ) {
-        gave_orders = true;
+      while( unit_orders_mean_input_required( unit_id ) &&
+             !unit.moved_this_turn() ) {
+        need_eot_loop = false;
         k_orders_loop_result res = loop_orders( unit_id );
         if( res == k_orders_loop_result::wait )
           break;
         if( res == k_orders_loop_result::quit )
-            return k_turn_result::quit;
+          return k_turn_result::quit;
       }
     }
   }
@@ -100,7 +105,7 @@ k_turn_result turn() {
   //    * if no player units needed orders then show a message somewhere
   //      that says "end of turn" and let the user interact with the
   //      map and GUI.
-  if( !gave_orders ) {
+  if( need_eot_loop ) {
     switch( loop_eot() ) {
       case k_eot_loop_result::quit:
         return k_turn_result::quit;

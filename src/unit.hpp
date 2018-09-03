@@ -121,7 +121,7 @@ struct Unit {
   // information of a unit descriptor itself.
   UnitDescriptor const* desc;
   g_unit_orders orders;
-  bool moved_this_turn;
+  bool moved_this_turn() const { return movement_points == 0; }
   std::vector<std::optional<Cargo>> cargo_slots;
   g_nation nation;
   // Movement points left this turn.
@@ -143,10 +143,22 @@ Coord coords_for_unit( UnitId id );
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves();
-// Gives up all movement points this turn and marks unit
-// as having moved.
+// Gives up all movement points this turn and marks unit as
+// having moved. This can be called when the player directly is-
+// sues the "pass" command, or if e.g. a unit waiting for orders
+// is added to a colony, or if a unit waiting for orders boards a
+// ship.
 void forfeight_mv_points( UnitId id );
-bool all_units_moved( g_nation nation );
+// Returns true if the unit's orders are among the set
+// of possible orders that require the unit to make a
+// move assuming it has movement points.
+bool unit_orders_mean_move_needed( UnitId id );
+// Returns true if the unit's orders are among the set
+// of possible orders that require the player to give
+// input to move the unit, assuming that it has some
+// movement points.
+bool unit_orders_mean_input_required( UnitId id );
+std::vector<UnitId> units_to_move( g_nation nation );
 
 std::vector<UnitId> units_all( g_nation nation );
 

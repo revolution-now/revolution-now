@@ -90,6 +90,10 @@ unordered_map<g_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
   }},
 };
 
+void check_unit_invariants( Unit const& ) {
+  // pass
+}
+
 Unit& unit_from_id_mutable( UnitId id ) {
   auto res = explicit_types::get_val_safe( units, id );
   ASSERT( res );
@@ -117,7 +121,6 @@ UnitId create_unit_on_map( g_unit_type type, Y y, X x ) {
     next_id,
     &desc,
     g_unit_orders::none,
-    false,
     {},
     g_nation::dutch,
     desc.movement_points,
@@ -173,11 +176,11 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
       x-X(0) >= world_size_tiles_x() ||
       y < 0 || x < 0 )
     return {{y, x}, false, k_unit_mv_desc::map_edge, cost};
+
   auto& unit = unit_from_id( id );
-  // This function doesn't necessarily have to be responsible for
-  // checking this, but it may end up catching some problems.
-  ASSERT( !unit.moved_this_turn );
   auto& square = square_at( y, x );
+
+  ASSERT( !unit.moved_this_turn() );
 
   if( unit.desc->boat && square.land ) {
     return {{y, x}, false, k_unit_mv_desc::land_forbidden, cost};
@@ -185,6 +188,9 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   if( !unit.desc->boat && !square.land ) {
     return {{y, x}, false, k_unit_mv_desc::water_forbidden, cost};
   }
+  if( unit.movement_points < cost )
+    return {{y, x}, false,
+      k_unit_mv_desc::insufficient_movement_points, cost};
   return {{y, x}, true, k_unit_mv_desc::none, cost};
 }
 
@@ -192,8 +198,8 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
 // as not yet having moved.
 void reset_moves() {
   for( auto & [id, unit] : units ) {
-    unit.moved_this_turn = false;
     unit.movement_points = unit.desc->movement_points;
+    check_unit_invariants( unit );
   }
 }
 
@@ -202,9 +208,10 @@ void forfeight_mv_points( UnitId id ) {
   auto& unit = unit_from_id_mutable( id );
   // This function doesn't necessarily have to be responsible for
   // checking this, but it may end up catching some problems.
-  ASSERT( !unit.moved_this_turn );
-  unit.moved_this_turn = true;
+  ASSERT( !unit.moved_this_turn() );
   unit.movement_points = 0;
+
+  check_unit_invariants( unit );
 }
 
 void move_unit_to( UnitId id, Coord target ) {
@@ -213,7 +220,7 @@ void move_unit_to( UnitId id, Coord target ) {
   ASSERT( move_desc.can_move );
 
   auto& unit = unit_from_id_mutable( id );
-  ASSERT( !unit.moved_this_turn );
+  ASSERT( !unit.moved_this_turn() );
 
   // Remove unit from current square.
   auto opt_current_coords = coords_for_unit_safe( id );
@@ -235,16 +242,38 @@ void move_unit_to( UnitId id, Coord target ) {
 
   unit.movement_points -= move_desc.movement_cost;
   ASSERT( unit.movement_points >= 0 );
-  if( unit.movement_points == 0 )
-    unit.moved_this_turn = true;
+
+  check_unit_invariants( unit );
 }
 
-bool all_units_moved( g_nation nation ) {
+// Returns true if the unit's orders are among the set
+// of possible orders that require the unit to make a
+// move assuming it has movement points.
+bool unit_orders_mean_move_needed( UnitId id ) {
+  auto const& unit = unit_from_id( id );
+  check_unit_invariants( unit );
+  return unit.orders == g_unit_orders::none ||
+         unit.orders == g_unit_orders::enroute;
+}
+
+// Returns true if the unit's orders are among the set
+// of possible orders that require the player to give
+// input to move the unit, assuming that it has some
+// movement points.
+bool unit_orders_mean_input_required( UnitId id ) {
+  auto const& unit = unit_from_id( id );
+  check_unit_invariants( unit );
+  return unit.orders == g_unit_orders::none;
+}
+
+vector<UnitId> units_to_move( g_nation nation ) {
+  vector<UnitId> res;
   for( auto const& [id, unit] : units )
     if( unit.nation == nation )
-      if( !unit.moved_this_turn )
-        return false;
-  return true;
+      if( !unit.moved_this_turn() )
+        if( unit_orders_mean_move_needed( id ) )
+          res.push_back( id );
+  return res;
 }
 
 } // namespace rn
