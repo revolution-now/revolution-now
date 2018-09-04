@@ -22,6 +22,7 @@
 namespace rn {
 
 using UnitId = int;
+using OptUnitId = std::optional<UnitId>;
 using UnitIdVec = std::vector<UnitId>;
 
 enum class e_unit_type {

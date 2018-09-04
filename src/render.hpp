@@ -12,8 +12,10 @@
 
 #include "unit.hpp"
 
+#include <optional>
+
 namespace rn {
 
-void render_world_viewport( UnitId blink = -1 );
+void render_world_viewport( OptUnitId blink = std::nullopt );
 
 } // namespace rn

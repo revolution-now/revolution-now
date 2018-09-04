@@ -27,14 +27,16 @@ namespace {
   
 } // namespace
 
-void render_world_viewport( UnitId blink_id ) {
+void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 
   auto covered = viewport::covered_tiles();
 
-  auto coords = coords_for_unit( blink_id );
+  Coord coords;
+  if( blink_id )
+    coords_for_unit( *blink_id );
 
   for( Y i = covered.y; i < covered.y+covered.h; ++i ) {
     for( X j = covered.x; j < covered.x+covered.w; ++j ) {
@@ -46,12 +48,12 @@ void render_world_viewport( UnitId blink_id ) {
       auto sx = X(0)+(j-covered.x);
       render_sprite_grid( t, sy, sx, 0, 0 );
       for( auto id : units_from_coord( i, j ) ) {
-        if( Coord{i,j} == coords && id != blink_id )
+        if( blink_id && Coord{i,j} == coords && id != *blink_id )
           // Don't render other units in the same square as
           // the one blinking.  Will have to revisit this once
           // units board ships.
           continue;
-        if( id == blink_id ) {
+        if( blink_id && id == *blink_id ) {
           // Animate blinking
           auto ticks = ::SDL_GetTicks();
           if( ticks % 1000 < 500 )
