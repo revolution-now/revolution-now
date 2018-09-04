@@ -24,7 +24,7 @@ namespace {
 
 } // namespace
 
-k_turn_result turn() {
+e_turn_result turn() {
   //start of turn:
 
   // Mark all units as not having moved.
@@ -103,13 +103,13 @@ k_turn_result turn() {
       while( unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
         need_eot_loop = false;
-        k_orders_loop_result res = loop_orders( unit_id );
-        if( res == k_orders_loop_result::wait ) {
+        e_orders_loop_result res = loop_orders( unit_id );
+        if( res == e_orders_loop_result::wait ) {
           will_finish_turn = false;
           break;
         }
-        if( res == k_orders_loop_result::quit )
-          return k_turn_result::quit;
+        if( res == e_orders_loop_result::quit )
+          return e_turn_result::quit;
       }
       if( will_finish_turn )
         unit.finish_turn();
@@ -127,13 +127,13 @@ k_turn_result turn() {
   //      map and GUI.
   if( need_eot_loop ) {
     switch( loop_eot() ) {
-      case k_eot_loop_result::quit:
-        return k_turn_result::quit;
-      case k_eot_loop_result::none:
+      case e_eot_loop_result::quit:
+        return e_turn_result::quit;
+      case e_eot_loop_result::none:
         break;
     };
   }
-  return k_turn_result::cont;
+  return e_turn_result::cont;
 }
 
 } // namespace rn

@@ -23,25 +23,15 @@ double movement_speed = 32.0;
   
 } // namespace
 
-k_orders_loop_result loop_orders( UnitId id ) {
+e_orders_loop_result loop_orders( UnitId id ) {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
   bool running = true;
-  k_orders_loop_result result;
 
   auto& unit = unit_from_id( id );
   auto coords = coords_for_unit( id );
 
-  enum class k_unit_mv_result {
-    none,
-    wait,
-    pass,
-    move
-  };
-  k_unit_mv_result mv_result = k_unit_mv_result::none;
-
-  // This will only be relevant if mv_result == move;
   UnitMoveDesc move_desc;
 
   viewport::ensure_tile_surroundings_visible( coords );
@@ -57,8 +47,7 @@ k_orders_loop_result loop_orders( UnitId id ) {
       switch (event.type) {
         case SDL_QUIT:
           running = false;
-          result = k_orders_loop_result::quit;
-          break;
+          return e_orders_loop_result::quit;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event) {
             case ::SDL_WINDOWEVENT_RESIZED:
@@ -71,21 +60,17 @@ k_orders_loop_result loop_orders( UnitId id ) {
           switch( event.key.keysym.sym ) {
             case ::SDLK_q:
               running = false;
-              result = k_orders_loop_result::quit;
-              break;
+              return e_orders_loop_result::quit;
             case ::SDLK_F11:
               toggle_fullscreen();
               break;
             case ::SDLK_w:
               running = false;
-              mv_result = k_unit_mv_result::wait;
-              result = k_orders_loop_result::wait;
-              break;
+              return e_orders_loop_result::wait;
             case ::SDLK_SPACE:
               running = false;
               unit.forfeight_mv_points();
-              mv_result = k_unit_mv_result::pass;
-              break;
+              return e_orders_loop_result::moved;
             case ::SDLK_LEFT:
               move_desc = move_consequences(
                   id, coords.moved( direction::w ) );
@@ -93,7 +78,6 @@ k_orders_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -104,7 +88,6 @@ k_orders_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -115,7 +98,6 @@ k_orders_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -126,7 +108,6 @@ k_orders_loop_result loop_orders( UnitId id ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
                 // the move, then:
-                mv_result = k_unit_mv_result::move;
                 running = false;
               }
               break;
@@ -147,19 +128,17 @@ k_orders_loop_result loop_orders( UnitId id ) {
     if( delta < frame_length_millis )
       ::SDL_Delay( frame_length_millis - delta );
   }
-  if( mv_result == k_unit_mv_result::move ) {
-    move_unit_to( id, move_desc.coords );
-    result = k_orders_loop_result::moved;
-  }
-  return result;
+  // If we're here then the unit needs to be physically moved.
+  move_unit_to( id, move_desc.coords );
+  return e_orders_loop_result::moved;
 }
 
-k_eot_loop_result loop_eot() {
+e_eot_loop_result loop_eot() {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
   bool running = true;
-  k_eot_loop_result result = k_eot_loop_result::none;
+  e_eot_loop_result result = e_eot_loop_result::none;
 
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
@@ -172,7 +151,7 @@ k_eot_loop_result loop_eot() {
       switch (event.type) {
         case SDL_QUIT:
           running = false;
-          result = k_eot_loop_result::quit;
+          result = e_eot_loop_result::quit;
           break;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event) {
@@ -186,7 +165,7 @@ k_eot_loop_result loop_eot() {
           switch( event.key.keysym.sym ) {
             case ::SDLK_q:
               running = false;
-              result = k_eot_loop_result::quit;
+              result = e_eot_loop_result::quit;
               break;
             case ::SDLK_F11:
               toggle_fullscreen();

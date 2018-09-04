@@ -10,6 +10,8 @@
 *****************************************************************/
 #include "base-util.hpp"
 
+#include "macros.hpp"
+
 #include <exception>
 #include <stdexcept>
 #include <iostream>
@@ -61,6 +63,8 @@ Coord Coord::moved( direction d ) {
     case direction::s:  return {y+1,x  }; break;
     case direction::se: return {y+1,x+1}; break;
   };
+  DIE( "should not get here." );
+  return {y,x}; // to silence warning; will not get here.
 }
 
 bool Coord::is_inside( Rect const& rect ) {

@@ -12,13 +12,13 @@
 
 namespace rn {
 
-enum class k_turn_result {
+enum class e_turn_result {
   cont,
   quit
 };
 
 // Do a turn, start to finish.
-k_turn_result turn();
+e_turn_result turn();
 
 } // namespace rn
 
