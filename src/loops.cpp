@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "loops.hpp"
 
+#include "movement.hpp"
 #include "render.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
@@ -29,6 +30,7 @@ k_orders_loop_result loop_orders( UnitId id ) {
   bool running = true;
   k_orders_loop_result result;
 
+  auto& unit = unit_from_id( id );
   auto coords = coords_for_unit( id );
 
   enum class k_unit_mv_result {
@@ -81,7 +83,7 @@ k_orders_loop_result loop_orders( UnitId id ) {
               break;
             case ::SDLK_SPACE:
               running = false;
-              forfeight_mv_points( id );
+              unit.forfeight_mv_points();
               mv_result = k_unit_mv_result::pass;
               break;
             case ::SDLK_LEFT:

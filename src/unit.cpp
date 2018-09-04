@@ -8,11 +8,10 @@
 * Description: Data structure for units.
 *
 *****************************************************************/
+#include "unit.hpp"
+
 #include "base-util.hpp"
 #include "macros.hpp"
-#include "tiles.hpp"
-#include "unit.hpp"
-#include "world.hpp"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -23,35 +22,13 @@ namespace rn {
 
 namespace {
 
-UnitId next_id = 0;
-
+UnitId next_unit_id = 0;
 unordered_map<UnitId, Unit> units;
-
-// For units that are on (owned by) the map.
-unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
-unordered_map<UnitId, Coord> coords_from_unit;
 
 #if 1
 namespace explicit_types {
   // These are to make the auto-completer happy since it doesn't
   // want to recognize the fully generic templated one.
-  OptCRef<unordered_set<UnitId>> get_val_safe(
-        unordered_map<Coord,unordered_set<UnitId>> const& m,
-        Coord const& k ) {
-      auto found = m.find( k );
-      if( found == m.end() )
-          return std::nullopt;
-      return found->second;
-  }
-
-  OptCoord get_val_safe(
-        unordered_map<UnitId, Coord> const& m, UnitId k ) {
-      auto found = m.find( k );
-      if( found == m.end() )
-          return std::nullopt;
-      return found->second;
-  }
-
   OptRef<Unit> get_val_safe( unordered_map<UnitId,Unit>& m, UnitId k ) {
       auto found = m.find( k );
       if( found == m.end() )
@@ -61,10 +38,10 @@ namespace explicit_types {
 }
 #endif
 
-unordered_map<g_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
-  {g_unit_type::free_colonist, UnitDescriptor{
+unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
+  {e_unit_type::free_colonist, UnitDescriptor{
     /*name=*/"free colonist",
-    /*type=*/g_unit_type::free_colonist,
+    /*type=*/e_unit_type::free_colonist,
     /*tile=*/g_tile::free_colonist,
     /*boat=*/false,
     /*visibility=*/1,
@@ -75,9 +52,9 @@ unordered_map<g_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
     /*unit_cargo_slots=*/0,
     /*cargo_slots_occupied=*/1
   }},
-  {g_unit_type::caravel, UnitDescriptor{
+  {e_unit_type::caravel, UnitDescriptor{
     /*name=*/"caravel",
-    /*type=*/g_unit_type::caravel,
+    /*type=*/e_unit_type::caravel,
     /*tile=*/g_tile::caravel,
     /*boat=*/true,
     /*visibility=*/1,
@@ -90,190 +67,99 @@ unordered_map<g_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
   }},
 };
 
-void check_unit_invariants( Unit const& ) {
-  // pass
+} // namespace
+
+Unit& Unit::create( e_nation nation, e_unit_type type ) {
+  Unit unit( nation, type );
+  auto id = unit.id_;
+  // To avoid requirement of operator[] that we have a default
+  // constructor on Unit.
+  units.emplace( id, move( unit ) );
+  return units.find( id )->second;
 }
 
-Unit& unit_from_id_mutable( UnitId id ) {
+Unit::Unit( e_nation nation, e_unit_type type ) {
+  id_ = next_unit_id++;
+  desc_ = &unit_desc[type];
+  orders_ = e_unit_orders::none;
+  cargo_slots_.resize( desc_->unit_cargo_slots );
+  nation_ = nation;
+  movement_points_ = desc_->movement_points;
+  finished_turn_ = false;
+}
+
+// Ideally this should be empty... try to do this with types.
+void Unit::check_invariants() const { }
+
+// Mark unit as having moved.
+void Unit::forfeight_mv_points() {
+  // This function doesn't necessarily have to be responsible for
+  // checking this, but it may end up catching some problems.
+  ASSERT( !moved_this_turn() );
+  movement_points_ = 0;
+  check_invariants();
+}
+
+// Marks unit as not having moved this turn.
+void Unit::new_turn() {
+  movement_points_ = desc_->movement_points;
+  finished_turn_ = false;
+  check_invariants();
+}
+
+// Marks unit as having finished processing this turn.
+void Unit::finish_turn() {
+  ASSERT( !finished_turn_ );
+  finished_turn_ = true;
+  check_invariants();
+}
+
+// Returns true if the unit's orders are such that the unit may
+// physically move this turn, either by way of player input or
+// automatically, assuming it has movement points.
+bool Unit::orders_mean_move_needed() const {
+  return orders_ == e_unit_orders::none ||
+         orders_ == e_unit_orders::enroute;
+}
+
+// Returns true if the unit's orders are such that the unit re-
+// quires player input this turn, assuming that it has some move-
+// ment points.
+bool Unit::orders_mean_input_required() const {
+  return orders_ == e_unit_orders::none;
+}
+
+// Called to consume movement points as a result of a move.
+void Unit::consume_mv_points( MovementPoints points ) {
+  movement_points_ -= points;
+  ASSERT( movement_points_ >= 0 );
+  check_invariants();
+}
+
+UnitIdVec units_all( optional<e_nation> nation ) {
+  vector<UnitId> res; res.reserve( units.size() );
+  if( nation ) {
+    for( auto const& p : units )
+      if( *nation == p.second.nation() )
+        res.push_back( p.first );
+  } else {
+    for( auto const& p : units )
+      res.push_back( p.first );
+  }
+  return res;
+}
+
+Unit& unit_from_id( UnitId id ) {
   auto res = explicit_types::get_val_safe( units, id );
   ASSERT( res );
   return *res;
 }
 
-} // namespace
-
-g_nation player_nationality() {
-  return g_nation::dutch;
-}
-
-vector<UnitId> units_all( g_nation nation ) {
-  vector<UnitId> res; res.reserve( units.size() );
-  for( auto const& p : units )
-    if( p.second.nation == nation )
-      res.push_back( p.first );
-  return res;
-}
-
-// need to think about what this API should be.
-UnitId create_unit_on_map( g_unit_type type, Y y, X x ) {
-  auto const& desc = unit_desc[type];
-  units[next_id] = Unit{
-    next_id,
-    &desc,
-    g_unit_orders::none,
-    {},
-    g_nation::dutch,
-    desc.movement_points,
-  };
-  units.at( next_id ).cargo_slots.resize( desc.unit_cargo_slots );
-  units_from_coords[Coord{y,x}].insert( next_id );
-  coords_from_unit[next_id] = Coord{y,x};
-  return next_id++;
-}
-
-Unit const& unit_from_id( UnitId id ) {
-  return unit_from_id_mutable( id );
-}
-
-UnitIdVec units_from_coord( Y y, X x ) {
-  auto opt_set = explicit_types::get_val_safe( units_from_coords, Coord{y,x} );
-  if( !opt_set ) return {};
-  unordered_set<UnitId> const& set = (*opt_set);
-  UnitIdVec res; res.reserve( set.size() );
-  for( auto id : set )
-    res.push_back( id );
-  return res;
-}
-
-UnitIdVec units_int_rect( Rect const& rect ) {
-  UnitIdVec res;
-  for( Y i = rect.y; i < rect.y+rect.h; ++i )
-    for( X j = rect.x; j < rect.x+rect.w; ++j )
-      for( auto id : units_from_coord( i, j ) )
-        res.push_back( id );
-  return res;
-}
-
-OptCoord coords_for_unit_safe( UnitId id ) {
-  return explicit_types::get_val_safe( coords_from_unit, id );
-}
-
-Coord coords_for_unit( UnitId id ) {
-  auto opt_coord = coords_for_unit_safe( id );
-  ASSERT( opt_coord );
-  return *opt_coord;
-}
-
-// This function will allow the move by default, and so it is
-// the burden of the logic in this function to find every possible
-// way that the move is *not* allowed and to flag it if that is
-// the case.
-UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
-  Y y = coords.y;
-  X x = coords.x;
-  MovementPoints cost( 1 );
-  if( y-Y(0) >= world_size_tiles_y() ||
-      x-X(0) >= world_size_tiles_x() ||
-      y < 0 || x < 0 )
-    return {{y, x}, false, k_unit_mv_desc::map_edge, cost};
-
-  auto& unit = unit_from_id( id );
-  auto& square = square_at( y, x );
-
-  ASSERT( !unit.moved_this_turn() );
-
-  if( unit.desc->boat && square.land ) {
-    return {{y, x}, false, k_unit_mv_desc::land_forbidden, cost};
-  }
-  if( !unit.desc->boat && !square.land ) {
-    return {{y, x}, false, k_unit_mv_desc::water_forbidden, cost};
-  }
-  if( unit.movement_points < cost )
-    return {{y, x}, false,
-      k_unit_mv_desc::insufficient_movement_points, cost};
-  return {{y, x}, true, k_unit_mv_desc::none, cost};
-}
-
-// Called at the beginning of each turn; marks all units
-// as not yet having moved.
-void reset_moves() {
-  for( auto & [id, unit] : units ) {
-    unit.movement_points = unit.desc->movement_points;
-    check_unit_invariants( unit );
-  }
-}
-
-// Mark unit as having moved.
-void forfeight_mv_points( UnitId id ) {
-  auto& unit = unit_from_id_mutable( id );
-  // This function doesn't necessarily have to be responsible for
-  // checking this, but it may end up catching some problems.
-  ASSERT( !unit.moved_this_turn() );
-  unit.movement_points = 0;
-
-  check_unit_invariants( unit );
-}
-
-void move_unit_to( UnitId id, Coord target ) {
-  UnitMoveDesc move_desc = move_consequences( id, target );
-  // Caller should have checked this.
-  ASSERT( move_desc.can_move );
-
-  auto& unit = unit_from_id_mutable( id );
-  ASSERT( !unit.moved_this_turn() );
-
-  // Remove unit from current square.
-  auto opt_current_coords = coords_for_unit_safe( id );
-  // Will trigger if the unit trying to be moved is not
-  // on the map.  Will eventually have to remove this.
-  ASSERT( opt_current_coords );
-  auto [curr_y, curr_x] = *opt_current_coords;
-  auto& unit_set = units_from_coords[{curr_y,curr_x}];
-  auto iter = unit_set.find( id );
-  // Will trigger if an internal invariant is broken.
-  ASSERT( iter != unit_set.end() );
-  unit_set.erase( iter );
-
-  // Add unit to new square.
-  units_from_coords[{target.y,target.x}].insert( id );
-
-  // Set unit coords to new value.
-  coords_from_unit[id] = {target.y,target.x};
-
-  unit.movement_points -= move_desc.movement_cost;
-  ASSERT( unit.movement_points >= 0 );
-
-  check_unit_invariants( unit );
-}
-
-// Returns true if the unit's orders are among the set
-// of possible orders that require the unit to make a
-// move assuming it has movement points.
-bool unit_orders_mean_move_needed( UnitId id ) {
-  auto const& unit = unit_from_id( id );
-  check_unit_invariants( unit );
-  return unit.orders == g_unit_orders::none ||
-         unit.orders == g_unit_orders::enroute;
-}
-
-// Returns true if the unit's orders are among the set
-// of possible orders that require the player to give
-// input to move the unit, assuming that it has some
-// movement points.
-bool unit_orders_mean_input_required( UnitId id ) {
-  auto const& unit = unit_from_id( id );
-  check_unit_invariants( unit );
-  return unit.orders == g_unit_orders::none;
-}
-
-vector<UnitId> units_to_move( g_nation nation ) {
-  vector<UnitId> res;
-  for( auto const& [id, unit] : units )
-    if( unit.nation == nation )
-      if( !unit.moved_this_turn() )
-        if( unit_orders_mean_move_needed( id ) )
-          res.push_back( id );
-  return res;
+// Apply a function to all units. The function may mutate the
+// units.
+void map_units( function<void( Unit& )> func ) {
+  for( auto& p : units )
+    func( p.second );
 }
 
 } // namespace rn

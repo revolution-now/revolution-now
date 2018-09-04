@@ -2,6 +2,7 @@
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
+#include "movement.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"
@@ -27,8 +28,8 @@ int main( int, char** ) try {
 
   //play_music_file( "../music/bonny-morn.mp3" );
 
-  create_unit_on_map( g_unit_type::free_colonist, Y(2), X(3) );
-  create_unit_on_map( g_unit_type::caravel, Y(2), X(2) );
+  create_unit_on_map( e_unit_type::free_colonist, Y(2), X(3) );
+  create_unit_on_map( e_unit_type::caravel, Y(2), X(2) );
 
   while( turn() != k_turn_result::quit ) {}
 

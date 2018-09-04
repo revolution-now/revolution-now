@@ -12,6 +12,7 @@
 
 #include "globals.hpp"
 #include "macros.hpp"
+#include "movement.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
 #include "world.hpp"
@@ -57,7 +58,8 @@ void render_world_viewport( UnitId blink_id ) {
             continue;
         }
         auto const& unit = unit_from_id( id );
-        render_sprite_grid( unit.desc->tile, sy, sx, 0, 0 );
+        render_sprite_grid(
+            unit.descriptor().tile, sy, sx, 0, 0 );
       }
     }
   }

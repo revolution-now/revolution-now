@@ -12,6 +12,7 @@
 
 #include "base-util.hpp"
 #include "mv-points.hpp"
+#include "nation.hpp"
 #include "tiles.hpp"
 
 #include <functional>
@@ -20,7 +21,10 @@
 
 namespace rn {
 
-enum class g_unit_type {
+using UnitId = int;
+using UnitIdVec = std::vector<UnitId>;
+
+enum class e_unit_type {
   free_colonist,
   caravel
 };
@@ -29,7 +33,7 @@ enum class g_unit_type {
 // one of these for each type of unit.
 struct UnitDescriptor {
   char const* name;
-  g_unit_type type;
+  e_unit_type type;
 
   // Rendering
   g_tile tile;
@@ -49,122 +53,94 @@ struct UnitDescriptor {
   int cargo_slots_occupied;
 };
 
-using UnitId = int;
-
+// should be variant?
 struct Cargo {
   bool is_unit; // determines which of the following are relevant.
   UnitId unit_id;
   /* more to come */
 };
 
-enum class g_unit_orders {
+enum class e_unit_orders {
   none,
   sentry, // includes units on ships
   fortified,
   enroute,
 };
 
-enum class g_nation {
-  dutch
-};
-
-// Game is designed so that only one of these can be true
-// for a given unit moving to a given square.  Also, these
-// are independent of where the unit is coming from, i.e.,
-// they are only a function of the target square of the
-// move.
-enum class k_unit_mv_desc {
-  none,
-  map_edge,
-  land_forbidden,
-  water_forbidden,
-  insufficient_movement_points,
-/*land_fall,
-  board_ship,
-  board_ship_full
-  high_seas,
-  dock,
-  attack_nation,
-  attack_tribe,
-  attack_privateer,
-  enter_village_live,
-  enter_village_scout,
-  trade_with_nation,
-  trade_with_village,
-  enter_ruins
- */
-};
-
-// Describes what would happen if a unit were to move to a
-// given square.
-struct UnitMoveDesc {
-  // The target square of move being described.
-  Coord coords;
-  // Is it flat out impossible
-  bool can_move;
-  // Description of what would happen if the move were carried
-  // out.  This will also be set even if can_move == false.
-  k_unit_mv_desc desc;
-  // Cost in movement points that would be incurred; this is
-  // a positive number.
-  MovementPoints movement_cost;
-};
-
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
-struct Unit {
+class Unit {
+
+public:
+  static Unit& create( e_nation nation, e_unit_type type );
+
+  Unit( Unit&& ) = default;
+  Unit& operator=( Unit&& ) = default;
+
+  UnitId id() const { return id_; }
+  UnitDescriptor const& descriptor() const { return *desc_; }
+  e_nation nation() const { return nation_; }
+  MovementPoints movement_points() const
+    { return movement_points_; }
+
+  // Has the unit been fully processed this turn.
+  bool finished_turn() const { return finished_turn_; }
+  // If the unit has physically moved this turn. This concept is
+  // dinstict from whether the unit has been evolved this turn,
+  // since not all units need to physically move or take orders
+  // each turn (i.e., pioneer building).
+  bool moved_this_turn() const { return movement_points_ == 0; }
+  // Returns true if the unit's orders are such that the unit may
+  // physically move this turn, either by way of player input or
+  // automatically, assuming it has movement points.
+  bool orders_mean_move_needed() const;
+  // Returns true if the unit's orders are such that the unit re-
+  // quires player input this turn, assuming that it has some
+  // movement points.
+  bool orders_mean_input_required() const;
+  // Gives up all movement points this turn and marks unit as
+  // having moved. This can be called when the player directly
+  // issues the "pass" command, or if e.g. a unit waiting for or-
+  // ders is added to a colony, or if a unit waiting for orders
+  // boards a ship.
+  void forfeight_mv_points();
+  // Marks unit as not having moved this turn.
+  void new_turn();
+  // Marks unit as having finished processing this turn.
+  void finish_turn();
+  // Called to consume movement points as a result of a move.
+  void consume_mv_points( MovementPoints points );
+
+private:
+  Unit( e_nation nation, e_unit_type type );
+
+  Unit() = delete;
+  Unit( Unit const& ) = delete;
+  Unit& operator=( Unit const& ) = delete;
+
+  void check_invariants() const;
+
   // universal, unique, non-repeating, non-changing ID
-  UnitId id;
+  UnitId id_;
   // A unit can change type, but we cannot change the type
   // information of a unit descriptor itself.
-  UnitDescriptor const* desc;
-  g_unit_orders orders;
-  bool moved_this_turn() const { return movement_points == 0; }
-  std::vector<std::optional<Cargo>> cargo_slots;
-  g_nation nation;
+  UnitDescriptor const* desc_;
+  e_unit_orders orders_;
+  std::vector<std::optional<Cargo>> cargo_slots_;
+  e_nation nation_;
   // Movement points left this turn.
-  MovementPoints movement_points;
+  MovementPoints movement_points_;
+  bool finished_turn_;
 };
 
-using UnitIdVec = std::vector<UnitId>;
+Unit& unit_from_id( UnitId id );
 
-// Not safe, probably temporary.
-UnitId create_unit_on_map( g_unit_type type, Y y, X x );
+UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
 
-Unit const& unit_from_id( UnitId id );
-
-UnitIdVec units_from_coord( Y y, X x );
-UnitIdVec units_int_rect( Rect const& rect );
-OptCoord coords_for_unit_safe( UnitId id );
-Coord coords_for_unit( UnitId id );
-
-// Called at the beginning of each turn; marks all units
-// as not yet having moved.
-void reset_moves();
-// Gives up all movement points this turn and marks unit as
-// having moved. This can be called when the player directly is-
-// sues the "pass" command, or if e.g. a unit waiting for orders
-// is added to a colony, or if a unit waiting for orders boards a
-// ship.
-void forfeight_mv_points( UnitId id );
-// Returns true if the unit's orders are among the set
-// of possible orders that require the unit to make a
-// move assuming it has movement points.
-bool unit_orders_mean_move_needed( UnitId id );
-// Returns true if the unit's orders are among the set
-// of possible orders that require the player to give
-// input to move the unit, assuming that it has some
-// movement points.
-bool unit_orders_mean_input_required( UnitId id );
-std::vector<UnitId> units_to_move( g_nation nation );
-
-std::vector<UnitId> units_all( g_nation nation );
-
-g_nation player_nationality();
-
-UnitMoveDesc move_consequences( UnitId id, Coord coords );
-void move_unit_to( UnitId, Coord target );
+// Apply a function to all units. The function may mutate the
+// units.
+void map_units( std::function<void( Unit& )> func );
 
 } // namespace rn

@@ -11,7 +11,10 @@
 #include "turn.hpp"
 
 #include "loops.hpp"
+#include "movement.hpp"
 #include "unit.hpp"
+
+#include <algorithm>
 
 namespace rn {
 
@@ -57,11 +60,24 @@ k_turn_result turn() {
   // require orders during the course of this process, and this could
   // happen for various reasons.
   while( true ) {
-    auto units = units_to_move( player_nationality() );
-    if( units.empty() ) break;
+    auto units = units_all( player_nationality() );
+    auto finished = []( UnitId id ){
+      return unit_from_id( id ).finished_turn();
+    };
+    if( all_of( units.begin(), units.end(), finished ) )
+      break;
+
     //  Iterate through all units, for each:
     for( auto unit_id : units ) {
-      auto const& unit = unit_from_id( unit_id );
+      auto& unit = unit_from_id( unit_id );
+      if( unit.finished_turn() )
+        continue;
+      // By default, we assume that the processing for the unit
+      // this turn will be completed in this loop iteration. In
+      // certain cases this will not happen, such as e.g. a unit
+      // given a 'wait' command. In that case this variable will
+      // be set to false.
+      bool will_finish_turn = true;
 
       //    * if it is it in `goto` mode focus on it and advance it
       //      TODO
@@ -84,15 +100,19 @@ k_turn_result turn() {
       //    * if unit is waiting for orders then focus on it, and enter
       //      a realtime game loop where the user can interact with the
       //      map and GUI in general.  See `unit orders` game loop.
-      while( unit_orders_mean_input_required( unit_id ) &&
+      while( unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
         need_eot_loop = false;
         k_orders_loop_result res = loop_orders( unit_id );
-        if( res == k_orders_loop_result::wait )
+        if( res == k_orders_loop_result::wait ) {
+          will_finish_turn = false;
           break;
+        }
         if( res == k_orders_loop_result::quit )
           return k_turn_result::quit;
       }
+      if( will_finish_turn )
+        unit.finish_turn();
     }
   }
 
