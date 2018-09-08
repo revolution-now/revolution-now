@@ -85,3 +85,12 @@ call feedkeys( ']' )
 call feedkeys( "\<C-L>" )
 " Open a terminal in a vsplit.
 "call feedkeys( ":vert term\<CR>\<C-W>h" )
+
+" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+" Some user functions for later
+" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+function s:OpenSourcePair( name )
+  call OpenCppPair( 'src/' . a:name )
+endfunction
+
+command! -nargs=1 PairOpen call s:OpenSourcePair( <f-args> )

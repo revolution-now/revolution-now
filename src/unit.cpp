@@ -22,7 +22,6 @@ namespace rn {
 
 namespace {
 
-int next_unit_id{ 0 };
 unordered_map<UnitId, Unit> units;
 
 #if 1
@@ -49,8 +48,8 @@ unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
     /*can_attack=*/false,
     /*attack_points=*/0,
     /*defense_points=*/1,
-    /*unit_cargo_slots=*/0,
-    /*cargo_slots_occupied=*/1
+    /*cargo_slots=*/0,
+    /*cargo_slots_occupies=*/1
   }},
   {e_unit_type::caravel, UnitDescriptor{
     /*name=*/"caravel",
@@ -62,8 +61,8 @@ unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
     /*can_attack=*/false,
     /*attack_points=*/0,
     /*defense_points=*/2,
-    /*unit_cargo_slots=*/4,
-    /*cargo_slots_occupied=*/-1
+    /*cargo_slots=*/4,
+    /*cargo_slots_occupies=*/-1
   }},
 };
 
@@ -78,15 +77,15 @@ Unit& Unit::create( e_nation nation, e_unit_type type ) {
   return units.find( id )->second;
 }
 
-Unit::Unit( e_nation nation, e_unit_type type ) {
-  id_ = next_unit_id++;
-  desc_ = &unit_desc[type];
-  orders_ = e_unit_orders::none;
-  cargo_slots_.resize( desc_->unit_cargo_slots );
-  nation_ = nation;
-  movement_points_ = desc_->movement_points;
-  finished_turn_ = false;
-}
+Unit::Unit( e_nation nation, e_unit_type type ) :
+  id_( next_unit_id() ),
+  desc_( &unit_desc[type] ),
+  orders_( e_unit_orders::none ),
+  cargo_( desc_->cargo_slots ),
+  nation_( nation ),
+  movement_points_( desc_->movement_points ),
+  finished_turn_( false )
+{}
 
 // Ideally this should be empty... try to do this with types.
 void Unit::check_invariants() const { }

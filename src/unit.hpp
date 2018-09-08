@@ -11,20 +11,17 @@
 #pragma once
 
 #include "base-util.hpp"
+#include "cargo.hpp"
+#include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tiles.hpp"
-#include "typed-int.hpp"
 
 #include <functional>
 #include <optional>
 #include <vector>
 
 namespace rn {
-
-TYPED_ID( UnitId )
-using OptUnitId = std::optional<UnitId>;
-using UnitIdVec = std::vector<UnitId>;
 
 enum class e_unit_type {
   free_colonist,
@@ -51,15 +48,8 @@ struct UnitDescriptor {
   int defense_points;
 
   // Cargo
-  int unit_cargo_slots;
-  int cargo_slots_occupied;
-};
-
-// should be variant?
-struct Cargo {
-  bool is_unit; // determines which of the following are relevant.
-  UnitId unit_id;
-  /* more to come */
+  int cargo_slots;
+  int cargo_slots_occupies; // slots occupied by this unit.
 };
 
 enum class e_unit_orders {
@@ -130,7 +120,7 @@ private:
   // information of a unit descriptor itself.
   UnitDescriptor const* desc_;
   e_unit_orders orders_;
-  std::vector<std::optional<Cargo>> cargo_slots_;
+  CargoHold cargo_;
   e_nation nation_;
   // Movement points left this turn.
   MovementPoints movement_points_;
@@ -146,7 +136,3 @@ UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
 void map_units( std::function<void( Unit& )> func );
 
 } // namespace rn
-
-namespace std {
-  DEFINE_HASH_FOR_TYPED_INT( ::rn::UnitId )
-}

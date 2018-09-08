@@ -12,6 +12,8 @@
 #pragma once
 
 #include <iostream>
+#include <optional>
+#include <vector>
 
 // This is a minimal wrapper around an int. It allows nothing ex-
 // cept for (explicit) construction from int, copying/assignment,
@@ -197,7 +199,9 @@ inline std::istream& operator>>( std::istream& in, TypedInt<Tag>& what ) {
       _ = n;                                    \
       return *this;                             \
     }                                           \
-  };
+  };                                            \
+  using Opt ## a = std::optional<a>;            \
+  using a ## Vec = std::vector<a>;
 
 // Typed ints that are to represent coordinates should use this
 // macro. It will ensure that they have types that allow the nec-
