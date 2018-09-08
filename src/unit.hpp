@@ -14,6 +14,7 @@
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tiles.hpp"
+#include "typed-int.hpp"
 
 #include <functional>
 #include <optional>
@@ -21,7 +22,7 @@
 
 namespace rn {
 
-using UnitId = int;
+TYPED_ID( UnitId )
 using OptUnitId = std::optional<UnitId>;
 using UnitIdVec = std::vector<UnitId>;
 
@@ -145,3 +146,7 @@ UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
 void map_units( std::function<void( Unit& )> func );
 
 } // namespace rn
+
+namespace std {
+  DEFINE_HASH_FOR_TYPED_INT( ::rn::UnitId )
+}

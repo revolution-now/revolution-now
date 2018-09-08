@@ -22,7 +22,7 @@ namespace rn {
 
 namespace {
 
-UnitId next_unit_id = 0;
+int next_unit_id{ 0 };
 unordered_map<UnitId, Unit> units;
 
 #if 1

@@ -13,87 +13,211 @@
 
 #include <iostream>
 
-#define TYPED_INT( a )                                                  \
-  struct a {                                                            \
-    constexpr a() : _( 0 ) {}                                           \
-    constexpr explicit a( int n_ ) : _( n_ ) {}                         \
-    constexpr a( a const& other ) : _( other._ ) {}                     \
-    a const& operator=( a const& other ) {                              \
-      _ = other._;                                                      \
-      return *this;                                                     \
-    }                                                                   \
-    a const& operator=( int n ) {                                       \
-      _ = n;                                                            \
-      return *this;                                                     \
-    }                                                                   \
-    bool operator==( a other ) const { return _ == other._; }           \
-    void operator++( int ) { ++_; }                                     \
-    a operator++() { return a( _++ ); }                                 \
-    void operator--( int ) { --_; }                                     \
-    a operator--() { return a( _-- ); }                                 \
-    void operator*=( int n ) { _ *= n; }                                \
-    void operator%=( int n ) { _ %= n; }                                \
-    void operator/=( int n ) { _ /= n; }                                \
-    void operator+=( int n ) { _ += n; }                                \
-    void operator-=( int n ) { _ -= n; }                                \
-    void operator*=( a other ) { _ *= other._; }                        \
-    void operator%=( a other ) { _ %= other._; }                        \
-    void operator/=( a other ) { _ /= other._; }                        \
-    void operator+=( a other) { _ += other._; }                         \
-    /* operator- left out, should yield delta */                        \
-    explicit operator int() const { return _; }                         \
-    explicit operator double() const { return double( _ ); }            \
-    int _;                                                              \
-  };                                                                    \
-                                                                        \
-  inline a operator*( a left, int right ) { return a( left._*right ); } \
-  inline a operator*( int left, a right ) { return a( right._*left ); } \
-  /* don't define operator*( a left, a right ) */                       \
-                                                                        \
-  inline a operator/( a left, int right ) { return a( left._/right ); } \
-  /* dividing like types yields a dimensionless ratio. */               \
-  inline int operator/( a a1, a a2 ) { return a1._/a2._; }              \
-  /* don't define operator/( int left, a right ) */                     \
-                                                                        \
-  inline a operator%( a left, int right ) { return a( left._%right ); } \
-  /* mod'ing like types not allowed in general. */                      \
-                                                                        \
-  inline a operator+( a left, int right ) { return a( left._+right ); } \
-  inline a operator+( int left, a right ) { return a( right._+left ); } \
-  inline a operator+( a left, a right ) { return a( left._+right._ ); } \
-                                                                        \
-  inline a operator-( a left, int right ) { return a( left._-right ); } \
-  inline a operator-( int left, a right ) { return a( left-right._ ); } \
-                                                                        \
-  inline bool operator<( a left, int right ) { return left._<right; }   \
-  inline bool operator<( int left, a right ) { return left<right._; }   \
-  inline bool operator<( a left, a right ) { return left._<right._; }   \
-                                                                        \
-  inline bool operator>( a left, int right ) { return left._>right; }   \
-  inline bool operator>( int left, a right ) { return left>right._; }   \
-  inline bool operator>( a left, a right ) { return left._>right._; }   \
-                                                                        \
-  inline bool operator<=( a left, int right ) { return left._<=right; }   \
-  inline bool operator<=( int left, a right ) { return left<=right._; }   \
-  inline bool operator<=( a left, a right ) { return left._<=right._; }   \
-                                                                        \
-  inline bool operator>=( a left, int right ) { return left._>=right; }   \
-  inline bool operator>=( int left, a right ) { return left>=right._; }   \
-  inline bool operator>=( a left, a right ) { return left._>=right._; }   \
-                                                                        \
-  inline std::ostream& operator<<( std::ostream& out, a what ) {        \
-    return (out << what._);                                             \
-  }                                                                     \
-  inline std::istream& operator>>( std::istream& in, a& what ) {        \
-    return (in >> what._);                                              \
+// This is a minimal wrapper around an int. It allows nothing ex-
+// cept for (explicit) construction from int, copying/assignment,
+// equality, and (explicit) conversion back to int.
+//
+// One use case for this is to wrap an int which will not ever be
+// subject to any arithmetic operations, such as IDs.
+template<typename Tag>
+struct TypedIntMinimal {
+  constexpr TypedIntMinimal() : _( 0 ) {}
+  constexpr explicit TypedIntMinimal( int n_ ) : _( n_ ) {}
+  constexpr TypedIntMinimal( TypedIntMinimal<Tag> const& other )
+    : _( other._ ) {}
+  TypedIntMinimal<Tag> const& operator=( TypedIntMinimal<Tag> const& other )
+    { _ = other._; return *this; }
+  TypedIntMinimal<Tag> const& operator=( int n )
+    { _ = n; return *this; }
+  bool operator==( TypedIntMinimal<Tag> other ) const
+    { return _ == other._; }
+  bool operator!=( TypedIntMinimal<Tag> other ) const
+    { return _ != other._; }
+  explicit operator int() const { return _; }
+
+  int _;
+};
+
+// This one is as above but adds arithmetic operations.
+template<typename Tag>
+struct TypedInt : public TypedIntMinimal<Tag> {
+  using P = TypedIntMinimal<Tag>; // parent
+  constexpr TypedInt() : P( 0 ) {}
+  constexpr explicit TypedInt( int n_ ) : P( n_ ) {}
+  constexpr TypedInt( TypedInt<Tag> const& other )
+    : P( other._ ) {}
+  TypedInt<Tag> const& operator=( TypedInt<Tag> const& other ) {
+    P::_ = other._;
+    return *this;
   }
+  TypedInt<Tag> const& operator=( int n ) {
+    P::_ = n;
+    return *this;
+  }
+  bool operator==( TypedInt<Tag> other ) const
+    { return P::_ == other._; }
+  bool operator!=( TypedInt<Tag> other ) const
+    { return P::_ != other._; }
+  void operator++( int ) { ++P::_; }
+  TypedInt<Tag> operator++() { return TypedInt<Tag>( P::_++ ); }
+  void operator--( int ) { --P::_; }
+  TypedInt<Tag> operator--() { return TypedInt<Tag>( P::_-- ); }
+  void operator*=( int n ) { P::_ *= n; }
+  void operator%=( int n ) { P::_ %= n; }
+  void operator/=( int n ) { P::_ /= n; }
+  void operator+=( int n ) { P::_ += n; }
+  void operator-=( int n ) { P::_ -= n; }
+  void operator*=( TypedInt<Tag> other ) { P::_ *= other._; }
+  void operator%=( TypedInt<Tag> other ) { P::_ %= other._; }
+  void operator/=( TypedInt<Tag> other ) { P::_ /= other._; }
+  void operator+=( TypedInt<Tag> other) { P::_ += other._; }
+  /* operator- left out, should yield delta */
+  explicit operator int() const { return P::_; }
+  explicit operator double() const { return double( P::_ ); }
+};
+
+template<typename Tag>
+inline TypedInt<Tag> operator*( TypedInt<Tag> left, int right )
+  { return TypedInt<Tag>( left._*right ); }
+template<typename Tag>
+inline TypedInt<Tag> operator*( int left, TypedInt<Tag> right )
+  { return TypedInt<Tag>( right._*left ); }
+/* no operator*( TypedInt<Tag> left, TypedInt<Tag> right ) */
+
+template<typename Tag>
+inline TypedInt<Tag> operator/( TypedInt<Tag> left, int right )
+  { return TypedInt<Tag>( left._/right ); }
+/* dividing like types yields TypedInt<Tag> dimensionless ratio. */
+template<typename Tag>
+inline int operator/( TypedInt<Tag> a1, TypedInt<Tag> a2 )
+  { return a1._/a2._; }
+/* don't define operator/( int left, TypedInt<Tag> right ) */
+
+template<typename Tag>
+inline TypedInt<Tag> operator%( TypedInt<Tag> left, int right )
+  { return TypedInt<Tag>( left._%right ); }
+/* mod'ing like types not allowed in general. */
+
+template<typename Tag>
+inline TypedInt<Tag> operator+( TypedInt<Tag> left, int right )
+  { return TypedInt<Tag>( left._+right ); }
+template<typename Tag>
+inline TypedInt<Tag> operator+( int left, TypedInt<Tag> right )
+  { return TypedInt<Tag>( right._+left ); }
+template<typename Tag>
+inline TypedInt<Tag> operator+( TypedInt<Tag> left, TypedInt<Tag> right )
+  { return TypedInt<Tag>( left._+right._ ); }
+
+template<typename Tag>
+inline TypedInt<Tag> operator-( TypedInt<Tag> left, int right )
+  { return TypedInt<Tag>( left._-right ); }
+template<typename Tag>
+inline TypedInt<Tag> operator-( int left, TypedInt<Tag> right )
+  { return TypedInt<Tag>( left-right._ ); }
+
+template<typename Tag>
+inline bool operator<( TypedInt<Tag> left, int right )
+  { return left._<right; }
+template<typename Tag>
+inline bool operator<( int left, TypedInt<Tag> right )
+  { return left<right._; }
+template<typename Tag>
+inline bool operator<( TypedInt<Tag> left, TypedInt<Tag> right )
+  { return left._<right._; }
+
+template<typename Tag>
+inline bool operator>( TypedInt<Tag> left, int right )
+  { return left._>right; }
+template<typename Tag>
+inline bool operator>( int left, TypedInt<Tag> right )
+  { return left>right._; }
+template<typename Tag>
+inline bool operator>( TypedInt<Tag> left, TypedInt<Tag> right )
+  { return left._>right._; }
+
+template<typename Tag>
+inline bool operator<=( TypedInt<Tag> left, int right )
+  { return left._<=right; }
+template<typename Tag>
+inline bool operator<=( int left, TypedInt<Tag> right )
+  { return left<=right._; }
+template<typename Tag>
+inline bool operator<=( TypedInt<Tag> left, TypedInt<Tag> right )
+  { return left._<=right._; }
+
+template<typename Tag>
+inline bool operator>=( TypedInt<Tag> left, int right )
+  { return left._>=right; }
+template<typename Tag>
+inline bool operator>=( int left, TypedInt<Tag> right )
+  { return left>=right._; }
+template<typename Tag>
+inline bool operator>=( TypedInt<Tag> left, TypedInt<Tag> right )
+  { return left._>=right._; }
+
+template<typename Tag>
+inline std::ostream& operator<<( std::ostream& out, TypedInt<Tag> what ) {
+  return (out << what._);
+}
+template<typename Tag>
+inline std::istream& operator>>( std::istream& in, TypedInt<Tag>& what ) {
+  return (in >> what._);
+}
+
+// This is intended to be used inside the std namespace, but
+// should be issued outside of the ::rn namespace.
+#define DEFINE_HASH_FOR_TYPED_INT( a )             \
+  template<> struct hash<a> {                      \
+    auto operator()( a const& c ) const noexcept { \
+      /* Just delegate to the int hash. */         \
+      return ::std::hash<int>{}( c._ );            \
+    }                                              \
+  };                                               \
+
+// Here we use the Curiously Recurring Template patter so that we
+// can a) inherit from a base class and inherit all of its func-
+// tions, but at the same time b) maintain that each distinct
+// typed in type will be unrelated type-wise to any other. If the
+// base classes were not templated then different typed in types
+// would have a common base class which would cause trouble for
+// the inherited member functions that refer to that base class;
+// e.g., it would allow two distinct typed int's to be added to-
+// gether.
+#define DERIVE_TYPED_INT( a, b )                \
+  struct a : public b<a> {                      \
+    using P = b<a>; /* parent */                \
+    constexpr a() : P( 0 ) {}                   \
+    constexpr explicit a( int n_ ) : P( n_ ) {} \
+    constexpr a( P ti ) : P( ti ) {}            \
+    a const& operator=( a const& other ) {      \
+      _ = other._;                              \
+      return *this;                             \
+    }                                           \
+    a const& operator=( int n ) {               \
+      _ = n;                                    \
+      return *this;                             \
+    }                                           \
+  };
+
+// Typed ints that are to represent coordinates should use this
+// macro. It will ensure that they have types that allow the nec-
+// essary operations and no more.
+#define TYPED_COORD( a ) \
+  DERIVE_TYPED_INT( a, TypedInt )
+
+// Typed ints that are to represent IDs should use this macro. It
+// will create a type which is int-like except that one cannot
+// perform any arithmetic operations on it, since those would not
+// make sense for an ID.
+#define TYPED_ID( a ) \
+  DERIVE_TYPED_INT( a, TypedIntMinimal )
 
 namespace rn {
 
-TYPED_INT( X ) // x coordinate
-TYPED_INT( Y ) // y coordinate
-TYPED_INT( W ) // width
-TYPED_INT( H ) // height
+TYPED_COORD( X ) // x coordinate
+TYPED_COORD( Y ) // y coordinate
+TYPED_COORD( W ) // width
+TYPED_COORD( H ) // height
 
 // These templates allow us to map a dimension
 template<typename Coordinate>
