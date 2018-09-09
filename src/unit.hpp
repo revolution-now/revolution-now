@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 #include "base-util.hpp"
 #include "cargo.hpp"
 #include "id.hpp"

@@ -1,22 +1,17 @@
 /****************************************************************
-* sound.hpp
+* core-config.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-29.
+* Created by dsicilia on 2018-09-09.
 *
-* Description: All things sound.
+* Description: Core declarations/macros/config for all code files.
 *
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+#define RN [[nodiscard]]
 
 namespace rn {
 
-bool play_music_file( char const* file );
-
-void cleanup_sound();
-
 } // namespace rn
-

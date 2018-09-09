@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 #include <SDL.h>
 #include <SDL_image.h>
 

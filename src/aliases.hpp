@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 #include <functional>
 #include <optional>
 #include <string>

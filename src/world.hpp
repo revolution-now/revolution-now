@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 #include "base-util.hpp"
 #include "global-constants.hpp"
 

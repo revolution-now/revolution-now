@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 #include <iostream>
 #include <optional>
 #include <vector>

@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 #include "aliases.hpp"
 #include "typed-int.hpp"
 

@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 namespace rn {
 
 // This is a base class used  for  classes  that  should  not  be

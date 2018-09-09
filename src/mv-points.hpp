@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "core-config.hpp"
+
 namespace rn {
 
 // Cannot convert to int.
