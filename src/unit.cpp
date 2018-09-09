@@ -13,29 +13,11 @@
 #include "base-util.hpp"
 #include "macros.hpp"
 
-#include <unordered_map>
-#include <unordered_set>
-
 using namespace std;
 
 namespace rn {
 
 namespace {
-
-unordered_map<UnitId, Unit> units;
-
-#if 1
-namespace explicit_types {
-  // These are to make the auto-completer happy since it doesn't
-  // want to recognize the fully generic templated one.
-  OptRef<Unit> get_val_safe( unordered_map<UnitId,Unit>& m, UnitId k ) {
-      auto found = m.find( k );
-      if( found == m.end() )
-          return std::nullopt;
-      return found->second;
-  }
-}
-#endif
 
 unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
   {e_unit_type::free_colonist, UnitDescriptor{
@@ -67,15 +49,6 @@ unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
 };
 
 } // namespace
-
-Unit& Unit::create( e_nation nation, e_unit_type type ) {
-  Unit unit( nation, type );
-  auto id = unit.id_;
-  // To avoid requirement of operator[] that we have a default
-  // constructor on Unit.
-  units.emplace( id, move( unit ) );
-  return units.find( id )->second;
-}
 
 Unit::Unit( e_nation nation, e_unit_type type ) :
   id_( next_unit_id() ),
@@ -133,32 +106,6 @@ void Unit::consume_mv_points( MovementPoints points ) {
   movement_points_ -= points;
   ASSERT( movement_points_ >= 0 );
   check_invariants();
-}
-
-UnitIdVec units_all( optional<e_nation> nation ) {
-  vector<UnitId> res; res.reserve( units.size() );
-  if( nation ) {
-    for( auto const& p : units )
-      if( *nation == p.second.nation() )
-        res.push_back( p.first );
-  } else {
-    for( auto const& p : units )
-      res.push_back( p.first );
-  }
-  return res;
-}
-
-Unit& unit_from_id( UnitId id ) {
-  auto res = explicit_types::get_val_safe( units, id );
-  ASSERT( res );
-  return *res;
-}
-
-// Apply a function to all units. The function may mutate the
-// units.
-void map_units( function<void( Unit& )> func ) {
-  for( auto& p : units )
-    func( p.second );
 }
 
 } // namespace rn

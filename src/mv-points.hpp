@@ -6,7 +6,7 @@
 * Created by dsicilia on 2018-09-02.
 *
 * Description: A type for representing movement points that will
-*              ensure correct handling of atomsal points.
+*              ensure correct handling of fractional points.
 *
 *****************************************************************/
 #pragma once

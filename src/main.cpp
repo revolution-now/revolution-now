@@ -2,7 +2,7 @@
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
-#include "movement.hpp"
+#include "ownership.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"

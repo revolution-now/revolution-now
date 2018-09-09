@@ -10,11 +10,11 @@
 *****************************************************************/
 #include "movement.hpp"
 
+#include "base-util.hpp"
+#include "id.hpp"
 #include "macros.hpp"
+#include "ownership.hpp"
 #include "world.hpp"
-
-#include <unordered_map>
-#include <unordered_set>
 
 using namespace std;
 
@@ -22,71 +22,7 @@ namespace rn {
 
 namespace {
 
-// For units that are on (owned by) the map.
-unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
-unordered_map<UnitId, Coord> coords_from_unit;
-  
-#if 1
-namespace explicit_types {
-  // These are to make the auto-completer happy since it doesn't
-  // want to recognize the fully generic templated one.
-  OptCRef<unordered_set<UnitId>> get_val_safe(
-        unordered_map<Coord,unordered_set<UnitId>> const& m,
-        Coord const& k ) {
-      auto found = m.find( k );
-      if( found == m.end() )
-          return std::nullopt;
-      return found->second;
-  }
-
-  OptCoord get_val_safe(
-        unordered_map<UnitId, Coord> const& m, UnitId k ) {
-      auto found = m.find( k );
-      if( found == m.end() )
-          return std::nullopt;
-      return found->second;
-  }
-}
-#endif
-
 } // namespace
-
-// need to think about what this API should be.
-UnitId create_unit_on_map( e_unit_type type, Y y, X x ) {
-  Unit& unit = Unit::create( e_nation::dutch, type );
-  units_from_coords[Coord{y,x}].insert( unit.id() );
-  coords_from_unit[unit.id()] = Coord{y,x};
-  return unit.id();
-}
-
-UnitIdVec units_from_coord( Y y, X x ) {
-  auto opt_set = explicit_types::get_val_safe( units_from_coords, Coord{y,x} );
-  if( !opt_set ) return {};
-  unordered_set<UnitId> const& set = (*opt_set);
-  UnitIdVec res; res.reserve( set.size() );
-  for( auto id : set )
-    res.push_back( id );
-  return res;
-}
-
-UnitIdVec units_int_rect( Rect const& rect ) {
-  UnitIdVec res;
-  for( Y i = rect.y; i < rect.y+rect.h; ++i )
-    for( X j = rect.x; j < rect.x+rect.w; ++j )
-      for( auto id : units_from_coord( i, j ) )
-        res.push_back( id );
-  return res;
-}
-
-OptCoord coords_for_unit_safe( UnitId id ) {
-  return explicit_types::get_val_safe( coords_from_unit, id );
-}
-
-Coord coords_for_unit( UnitId id ) {
-  auto opt_coord = coords_for_unit_safe( id );
-  ASSERT( opt_coord );
-  return *opt_coord;
-}
 
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
@@ -134,23 +70,8 @@ void move_unit_to( UnitId id, Coord target ) {
   auto& unit = unit_from_id( id );
   ASSERT( !unit.moved_this_turn() );
 
-  // Remove unit from current square.
-  auto opt_current_coords = coords_for_unit_safe( id );
-  // Will trigger if the unit trying to be moved is not
-  // on the map.  Will eventually have to remove this.
-  ASSERT( opt_current_coords );
-  auto [curr_y, curr_x] = *opt_current_coords;
-  auto& unit_set = units_from_coords[{curr_y,curr_x}];
-  auto iter = unit_set.find( id );
-  // Will trigger if an internal invariant is broken.
-  ASSERT( iter != unit_set.end() );
-  unit_set.erase( iter );
-
-  // Add unit to new square.
-  units_from_coords[{target.y,target.x}].insert( id );
-
-  // Set unit coords to new value.
-  coords_from_unit[id] = {target.y,target.x};
+  // It is safe to move, so physically move.
+  ownership_change_to_map( id, target );
 
   unit.consume_mv_points( move_desc.movement_cost );
 }

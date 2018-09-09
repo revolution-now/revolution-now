@@ -11,6 +11,7 @@
 #include "loops.hpp"
 
 #include "movement.hpp"
+#include "ownership.hpp"
 #include "render.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"

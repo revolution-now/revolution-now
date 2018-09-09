@@ -56,15 +56,6 @@ struct UnitMoveDesc {
   MovementPoints movement_cost;
 };
 
-// Not safe, probably temporary.
-UnitId create_unit_on_map( e_unit_type type, Y y, X x );
-
-// Functions for mapping between units and coordinates on the
-// map.
-UnitIdVec units_from_coord( Y y, X x );
-UnitIdVec units_int_rect( Rect const& rect );
-Coord coords_for_unit( UnitId id );
-
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves();

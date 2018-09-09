@@ -15,6 +15,7 @@
 #include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
+#include "non-copyable.hpp"
 #include "tiles.hpp"
 
 #include <functional>
@@ -63,11 +64,9 @@ enum class e_unit_orders {
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
-class Unit {
+class Unit : public movable_only {
 
 public:
-  static Unit& create( e_nation nation, e_unit_type type );
-
   Unit( Unit&& ) = default;
   Unit& operator=( Unit&& ) = default;
 
@@ -106,11 +105,8 @@ public:
   void consume_mv_points( MovementPoints points );
 
 private:
+  friend Unit& create_unit( e_nation nation, e_unit_type type );
   Unit( e_nation nation, e_unit_type type );
-
-  Unit() = delete;
-  Unit( Unit const& ) = delete;
-  Unit& operator=( Unit const& ) = delete;
 
   void check_invariants() const;
 
@@ -126,13 +122,5 @@ private:
   MovementPoints movement_points_;
   bool finished_turn_;
 };
-
-Unit& unit_from_id( UnitId id );
-
-UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
-
-// Apply a function to all units. The function may mutate the
-// units.
-void map_units( std::function<void( Unit& )> func );
 
 } // namespace rn

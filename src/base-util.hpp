@@ -109,38 +109,59 @@ int round_down_to_nearest_int_multiple( double d, int m );
 // wrapper returned here should only allow const references to be
 // extracted.
 template<
-    typename KeyT,
-    typename ValT,
-    template<typename KeyT_, typename ValT_>
-    typename MapT
+  typename KeyT,
+  typename ValT,
+  // typename... to allow for maps that may have additional
+  // template parameters (but which we don't care about here).
+  template<typename KeyT_, typename ValT_, typename...>
+  typename MapT
 >
 OptCRef<ValT> get_val_safe( MapT<KeyT,ValT> const& m,
                             KeyT            const& k ) {
-    auto found = m.find( k );
-    if( found == m.end() )
-        return std::nullopt;
-    return found->second;
+  auto found = m.find( k );
+  if( found == m.end() )
+    return std::nullopt;
+  return found->second;
 }
 
 // Non-const version.
 template<
-    typename KeyT,
-    typename ValT,
-    template<typename KeyT_, typename ValT_>
-    typename MapT
+  typename KeyT,
+  typename ValT,
+  // typename... to allow for maps that may have additional
+  // template parameters (but which we don't care about here).
+  template<typename KeyT_, typename ValT_, typename...>
+  typename MapT
 >
 OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
                            KeyT      const& k ) {
-    auto found = m.find( k );
-    if( found == m.end() )
-        return std::nullopt;
-    return found->second;
+  auto found = m.find( k );
+  if( found == m.end() )
+    return std::nullopt;
+  return found->second;
 }
 
-// Does the set contain the given key.
+// Does the set contain the given key. If not, returns nullopt.
+// If so, returns the iterator to the location.
 template<typename ContainerT, typename KeyT>
-bool has_key( ContainerT const& s, KeyT const& k ) {
-    return s.find( k ) != s.end();
+auto has_key( ContainerT const& s, KeyT const& k )
+  -> std::optional<decltype( s.find( k ) )>
+{
+  auto it = s.find( k );
+  if( it == s.end() )
+    return std::nullopt;
+  return it;
+}
+
+// Non-const version.
+template<typename ContainerT, typename KeyT>
+auto has_key( ContainerT& s, KeyT const& k )
+  -> std::optional<decltype( s.find( k ) )>
+{
+  auto it = s.find( k );
+  if( it == s.end() )
+    return std::nullopt;
+  return it;
 }
 
 } // namespace rn

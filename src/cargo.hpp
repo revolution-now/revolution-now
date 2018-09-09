@@ -11,6 +11,7 @@
 #pragma once
 
 #include "id.hpp"
+#include "non-copyable.hpp"
 
 #include <variant>
 #include <vector>
@@ -20,32 +21,31 @@ namespace rn {
 // temporary dummy
 struct Commodity {};
 
+// This Cargo element represents something that may occupy one or
+// more cargo slots. E.g., it may represent a unit that takes six
+// cargo slots.
 using Cargo = std::variant<
   UnitId,
   Commodity
 >;
 
-class CargoHold {
+class CargoHold : public movable_only {
 
 public:
-  CargoHold() : slots_{}, points_( 0 ) {}
   CargoHold( int points ) : points_( points ) {}
 
   CargoHold( CargoHold&& ) = default;
-  CargoHold& operator=( CargoHold&& ) = default;
+  CargoHold& operator=( CargoHold&& ) = delete;
 
 private:
-  CargoHold( CargoHold const& ) = delete;
-  CargoHold& operator=( CargoHold const& ) = delete;
-
   // This vector will be of variable length, even for a given
-  // unit where the number of cargo slots is known.  That is
-  // because this vector holds one item for each thin in the
-  // cargo, and the max size depends on how many slots each
-  // individual item takes up.  However, the bounds on the size
-  // will be [0, desc->cargo-slots] inclusive.
+  // unit where the number of cargo slots is known. That is be-
+  // cause this vector holds one item for each thin in the cargo,
+  // and the max size depends on how many slots each individual
+  // item takes up. However, the bounds on the size will be:
+  // [0, desc->cargo-slots] inclusive.
   std::vector<Cargo> slots_;
-  int points_;
+  int const points_;
 };
 
 } // namespace rn

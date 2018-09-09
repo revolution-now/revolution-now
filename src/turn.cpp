@@ -12,6 +12,7 @@
 
 #include "loops.hpp"
 #include "movement.hpp"
+#include "ownership.hpp"
 #include "unit.hpp"
 
 #include <algorithm>
