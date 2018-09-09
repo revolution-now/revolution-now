@@ -16,7 +16,7 @@
 namespace rn {
 
 // Cannot convert to int.
-class MovementPoints {
+class ND MovementPoints {
 
 public:
   MovementPoints() : points_atoms( 0 ) {}

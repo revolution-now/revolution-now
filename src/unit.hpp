@@ -26,14 +26,14 @@
 
 namespace rn {
 
-enum class e_unit_type {
+enum class ND e_unit_type {
   free_colonist,
   caravel
 };
 
 // Static information describing classes of units.  There will be
 // one of these for each type of unit.
-struct UnitDescriptor {
+struct ND UnitDescriptor {
   char const* name;
   e_unit_type type;
 
@@ -55,7 +55,7 @@ struct UnitDescriptor {
   int cargo_slots_occupies; // slots occupied by this unit.
 };
 
-enum class e_unit_orders {
+enum class ND e_unit_orders {
   none,
   sentry, // includes units on ships
   fortified,
@@ -65,7 +65,7 @@ enum class e_unit_orders {
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
-class Unit : public movable_only {
+class ND Unit : public movable_only {
 
 public:
   Unit( Unit&& ) = default;

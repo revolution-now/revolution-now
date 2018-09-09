@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-#define RN [[nodiscard]]
+#define ND [[nodiscard]]
 
 namespace rn {
 

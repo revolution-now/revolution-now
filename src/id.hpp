@@ -18,7 +18,7 @@ namespace rn {
 
 TYPED_ID( UnitId )
 
-UnitId next_unit_id();
+ND UnitId next_unit_id();
 
 } // namespace rn
 

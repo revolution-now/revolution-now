@@ -23,7 +23,7 @@
 
 namespace rn {
 
-struct Rect {
+struct ND Rect {
   X x; Y y; W w; H h;
 
   // Useful for generic code; allows referencing a coordinate
@@ -54,13 +54,13 @@ struct Rect {
   Rect edges_removed();
 };
 
-enum class direction {
+enum class ND direction {
   nw, n, ne,
   w,  c, e,
   sw, s, se
 };
 
-struct Coord {
+struct ND Coord {
   Y y; X x;
 
   // Useful for generic code; allows referencing a coordinate
@@ -82,7 +82,7 @@ struct Coord {
 
 using OptCoord = std::optional<Coord>;
 
-struct Delta {
+struct ND Delta {
   W w; H h;
   bool operator==( Delta const& other ) const {
     return (h == other.h) && (w == other.w);
@@ -100,8 +100,8 @@ struct EnumClassHash {
   }
 };
 
-int round_up_to_nearest_int_multiple( double d, int m );
-int round_down_to_nearest_int_multiple( double d, int m );
+ND int round_up_to_nearest_int_multiple( double d, int m );
+ND int round_down_to_nearest_int_multiple( double d, int m );
 
 // Get a reference to a value in a map. Since the key may not ex-
 // ist, we return an optional. But since we want a reference to
@@ -117,7 +117,7 @@ template<
   template<typename KeyT_, typename ValT_, typename...>
   typename MapT
 >
-OptCRef<ValT> get_val_safe( MapT<KeyT,ValT> const& m,
+ND OptCRef<ValT> get_val_safe( MapT<KeyT,ValT> const& m,
                             KeyT            const& k ) {
   auto found = m.find( k );
   if( found == m.end() )
@@ -134,7 +134,7 @@ template<
   template<typename KeyT_, typename ValT_, typename...>
   typename MapT
 >
-OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
+ND OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
                            KeyT      const& k ) {
   auto found = m.find( k );
   if( found == m.end() )
@@ -145,7 +145,7 @@ OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
 // Does the set contain the given key. If not, returns nullopt.
 // If so, returns the iterator to the location.
 template<typename ContainerT, typename KeyT>
-auto has_key( ContainerT const& s, KeyT const& k )
+ND auto has_key( ContainerT const& s, KeyT const& k )
   -> std::optional<decltype( s.find( k ) )>
 {
   auto it = s.find( k );
@@ -156,7 +156,7 @@ auto has_key( ContainerT const& s, KeyT const& k )
 
 // Non-const version.
 template<typename ContainerT, typename KeyT>
-auto has_key( ContainerT& s, KeyT const& k )
+ND auto has_key( ContainerT& s, KeyT const& k )
   -> std::optional<decltype( s.find( k ) )>
 {
   auto it = s.find( k );
@@ -166,7 +166,7 @@ auto has_key( ContainerT& s, KeyT const& k )
 }
 
 template<typename ContainerT, typename ElemT>
-int count( ContainerT& c, ElemT const& e ) {
+ND int count( ContainerT& c, ElemT const& e ) {
   return std::count( c.begin(), c.end(), e );
 }
 

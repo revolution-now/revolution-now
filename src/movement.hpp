@@ -23,7 +23,7 @@ namespace rn {
 // dent of where the unit is coming from, i.e., they are only a
 // function of the target square of the move.
 
-enum class e_unit_mv_good {
+enum class ND e_unit_mv_good {
   map_to_map,
   board_ship
 /*land_fall,
@@ -39,7 +39,7 @@ enum class e_unit_mv_good {
   enter_ruins*/
 };
 
-enum class e_unit_mv_error {
+enum class ND e_unit_mv_error {
   map_edge,
   land_forbidden,
   water_forbidden,
@@ -54,7 +54,7 @@ using v_unit_mv_desc = std::variant<
 
 // Describes what would happen if a unit were to move to a
 // given square.
-struct UnitMoveDesc {
+struct ND UnitMoveDesc {
   // The target square of move being described.
   Coord coords;
   // Is it flat out impossible
@@ -75,7 +75,7 @@ struct UnitMoveDesc {
 // as not yet having moved.
 void reset_moves();
 
-UnitMoveDesc move_consequences( UnitId id, Coord coords );
+ND UnitMoveDesc move_consequences( UnitId id, Coord coords );
 void move_unit_to( UnitId, Coord target );
 
 } // namespace rn

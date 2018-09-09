@@ -14,13 +14,13 @@
 
 namespace rn {
 
-enum class e_nation {
+enum class ND e_nation {
   dutch,
   french,
   english,
   spanish
 };
 
-e_nation player_nationality();
+ND e_nation player_nationality();
 
 } // namespace rn

@@ -14,7 +14,7 @@
 
 namespace rn {
 
-bool play_music_file( char const* file );
+ND bool play_music_file( char const* file );
 
 void cleanup_sound();
 

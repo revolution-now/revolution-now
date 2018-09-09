@@ -22,7 +22,7 @@ namespace rn {
 
 constexpr int g_tile_set_width = 8;
 
-enum class g_tile {
+enum class ND g_tile {
   water = 0*g_tile_set_width,
   land,
   land_1_side,
@@ -47,7 +47,7 @@ enum class g_tile {
   caravel
 };
 
-struct sprite {
+struct ND sprite {
   // try making these const
   SDL_Texture* texture;
   SDL_Rect source;
@@ -56,7 +56,7 @@ struct sprite {
 
 void load_sprites();
 
-sprite lookup_sprite( std::string_view name );
+ND sprite lookup_sprite( std::string_view name );
 
 void render_sprite( g_tile tile, Y pixel_row, X pixel_col, int rot, int flip_x );
 void render_sprite_grid( g_tile tile, Y tile_row, X tile_col, int rot, int flip_x );

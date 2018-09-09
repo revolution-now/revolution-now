@@ -21,7 +21,7 @@
 namespace rn {
 
 // temporary dummy
-struct Commodity {
+struct ND Commodity {
   bool operator==( Commodity const& ) const { return true; }
 };
 
@@ -33,7 +33,7 @@ using Cargo = std::variant<
   Commodity
 >;
 
-class CargoHold : public movable_only {
+class ND CargoHold : public movable_only {
 
 public:
   CargoHold( int slots ) : items_{}, slots_( slots ) {}

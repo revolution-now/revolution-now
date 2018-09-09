@@ -21,7 +21,7 @@
 
 namespace rn {
 
-struct Square {
+struct ND Square {
   bool land;
 };
 
@@ -30,29 +30,29 @@ using SquareCRef = std::reference_wrapper<Square const>;
 using OptSquareRef = std::optional<SquareRef>;
 using OptSquareCRef = std::optional<SquareCRef>;
 
-struct SquareSurround {
+struct ND SquareSurround {
   OptSquareCRef north;
   OptSquareCRef south;
   OptSquareCRef east;
   OptSquareCRef west;
 };
 
-std::tuple<H, W> world_size_tiles();
-std::tuple<H, W> world_size_pixels();
+ND std::tuple<H, W> world_size_tiles();
+ND std::tuple<H, W> world_size_pixels();
 
-W world_size_tiles_x();
-H world_size_tiles_y();
-W world_size_pixels_x();
-H world_size_pixels_y();
+ND W world_size_tiles_x();
+ND H world_size_tiles_y();
+ND W world_size_pixels_x();
+ND H world_size_pixels_y();
 
-Rect world_rect();
+ND Rect world_rect();
 
-bool square_exists( Y y, X x );
+ND bool square_exists( Y y, X x );
 
-Square const& square_at( Y y, X x );
-OptSquareCRef square_at_safe( Y y, X x );
+ND Square const& square_at( Y y, X x );
+ND OptSquareCRef square_at_safe( Y y, X x );
 
-SquareSurround surrounding( Y y, X x );
+ND SquareSurround surrounding( Y y, X x );
 
 } // namespace rn
 

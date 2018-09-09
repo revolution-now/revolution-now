@@ -33,16 +33,16 @@ void create_renderer();
 
 void cleanup();
 
-SDL_Texture* load_texture( const char* file );
+ND SDL_Texture* load_texture( const char* file );
 
 void render_texture( SDL_Texture* texture, SDL_Rect source, SDL_Rect dest,
                      double angle, SDL_RendererFlip flip );
 
-bool is_window_fullscreen();
+ND bool is_window_fullscreen();
 void set_fullscreen( bool fullscreen );
 void toggle_fullscreen();
 
-::SDL_Rect to_SDL( Rect const& rect );
+ND ::SDL_Rect to_SDL( Rect const& rect );
 
 } // namespace rn
 

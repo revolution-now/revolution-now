@@ -23,16 +23,16 @@ namespace viewport {
 
 // Tiles touched by the viewport (tiles at the edge may only be
 // partially visible).
-Rect covered_tiles();
+ND Rect covered_tiles();
 
-Rect get_render_src_rect();
-Rect get_render_dest_rect();
+ND Rect get_render_src_rect();
+ND Rect get_render_dest_rect();
 
 void scale_zoom( double factor );
 void pan( double down_up, double left_right, bool scale = false );
 
 void center_on_tile( Coord coord );
-bool is_tile_fully_visible( Coord coord );
+ND bool is_tile_fully_visible( Coord coord );
 void ensure_tile_surroundings_visible( Coord coord );
 
 } // namespace viewport

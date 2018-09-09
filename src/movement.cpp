@@ -41,7 +41,6 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   X x = coords.x;
 
   auto& unit = unit_from_id( id );
-  auto& square = square_at( y, x );
   ASSERT( !unit.moved_this_turn() );
 
   MovementPoints cost( 1 );
@@ -59,6 +58,7 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
     result.desc = e_unit_mv_error::map_edge;
     return result;
   }
+  auto& square = square_at( y, x );
 
   if( unit.desc().boat && square.land ) {
     result.desc = e_unit_mv_error::land_forbidden;
