@@ -38,7 +38,7 @@ def _make( path ):
     # -n : don't run the target, just print commands,
     # -B : act as if the target were out of date
     # V= : tells nr-make to not suppress command echoing
-    cmd = ['/usr/bin/make', 'CLANG=', '-nB', 'V=', target]
+    cmd = ['/usr/bin/make', '-nB', 'V=', target]
 
     # For some reason the clang that YCM is using on Mac
     # does not seem to have all of the C++17 libraries

@@ -1,4 +1,4 @@
-CXXFLAGS += -std=c++1z
+CXXFLAGS += -std=c++17
 
 ifneq ($(origin CLANG),undefined)
     CXXFLAGS += -Wno-c++17-extensions

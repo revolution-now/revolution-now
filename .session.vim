@@ -12,6 +12,8 @@ let s:stems = [
   \ 'src/viewport',
   \ 'src/unit',
   \ 'src/movement',
+  \ 'src/cargo',
+  \ 'src/ownership',
   \ 'src/turn',
   \ 'src/render',
   \ 'src/loops',
