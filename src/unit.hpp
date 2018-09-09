@@ -70,11 +70,19 @@ public:
   Unit( Unit&& ) = default;
   Unit& operator=( Unit&& ) = default;
 
+  /************************* Getters ***************************/
+
   UnitId id() const { return id_; }
-  UnitDescriptor const& descriptor() const { return *desc_; }
+  UnitDescriptor const& desc() const { return *desc_; }
+  // Allow non-const access to cargo since the CargoHold class
+  // itself should enforce all invariants and interacting with it
+  // doesn't really depend on any private Unit data.
+  CargoHold& cargo() { return cargo_; }
   e_nation nation() const { return nation_; }
   MovementPoints movement_points() const
     { return movement_points_; }
+
+  /************************ Functions **************************/
 
   // Has the unit been fully processed this turn.
   bool finished_turn() const { return finished_turn_; }

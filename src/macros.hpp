@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <iostream>
 
 #define TO_STR1NG(x) #x
 #define TO_STRING(x) TO_STR1NG(x)
@@ -19,6 +20,15 @@
 #define STRING_JOIN(arg1, arg2) STRING_JO1N(arg1, arg2)
 
 #define DIE( msg ) { rn::die( __FILE__, __LINE__, msg ); }
+
+// Use like this:
+//
+//   WARNING() << "some warning message " << xyz;
+//
+// It will append a newline for you.
+#define WARNING()                                         \
+  std::cerr <<  "WARNING:" << __FILE__ << ":" << __LINE__ \
+            << ": "
 
 #define ASSERT( a ) \
   { if( !(a) ) DIE( TO_STRING( a ) " is false but should not be" ) }

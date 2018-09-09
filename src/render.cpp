@@ -62,7 +62,7 @@ void render_world_viewport( OptUnitId blink_id ) {
         }
         auto const& unit = unit_from_id( id );
         render_sprite_grid(
-            unit.descriptor().tile, sy, sx, 0, 0 );
+            unit.desc().tile, sy, sx, 0, 0 );
       }
     }
   }

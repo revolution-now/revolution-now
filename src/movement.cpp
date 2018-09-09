@@ -50,10 +50,10 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
 
   ASSERT( !unit.moved_this_turn() );
 
-  if( unit.descriptor().boat && square.land ) {
+  if( unit.desc().boat && square.land ) {
     return {{y, x}, false, e_unit_mv_desc::land_forbidden, cost};
   }
-  if( !unit.descriptor().boat && !square.land ) {
+  if( !unit.desc().boat && !square.land ) {
     return {{y, x}, false, e_unit_mv_desc::water_forbidden, cost};
   }
   if( unit.movement_points() < cost )
