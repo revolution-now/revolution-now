@@ -74,15 +74,38 @@ void init_sdl() {
   ::Mix_VolumeMusic( 10 );
 }
 
+SDL_DisplayMode find_fullscreen_mode() {
+  ::SDL_DisplayMode dm;
+  cout << "Available display modes:\n";
+  auto num_display_modes = ::SDL_GetNumDisplayModes( 0 );
+  for( int i = 0; i < num_display_modes; ++i ) {
+    ::SDL_GetDisplayMode( 0, i, &dm );
+    if( dm.w % 32 == 0 && dm.h % 32 == 0 ) {
+      cout << dm.w << "x" << dm.h << "\n";
+      if( dm.w >= 1920 && dm.h >= 1080 )
+        return dm;
+    }
+  }
+  dm.w = dm.h = 0; // means we can't find one.
+  return dm;
+}
+
 void create_window() {
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
                ::SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+  //auto fullscreen_mode = find_fullscreen_mode();
+  //if( !fullscreen_mode.w )
+  //  DIE( "cannot find appropriate fullscreen mode" );
+
   auto dm = get_current_display_mode();
 
   g_window = ::SDL_CreateWindow( string( g_window_title ).c_str(),
     0, 0, dm.w/3*2, dm.h/3*2, flags );
   if( !g_window )
     DIE( "failed to create window" );
+
+  //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );
 }
 
 void print_video_stats() {
