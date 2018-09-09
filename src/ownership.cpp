@@ -24,28 +24,56 @@ namespace rn {
 
 namespace {
 
+// All units that exist anywhere.
 unordered_map<UnitId, Unit> units;
 
-enum class e_unit_ownership {
-  map
-};
-unordered_map<UnitId, e_unit_ownership> unit_ownership;
-
-// For units that are on (owned by) the map.
+// For units that are on (owned by) the world (map).
 unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
 unordered_map<UnitId, Coord> coords_from_unit;
 
+// For units that are held as cargo.
+unordered_map</*held*/UnitId, /*holder*/UnitId> holder_from_held;
+
+enum class e_unit_ownership {
+  // Unit is on the map.  This includes units that are stationed
+  // in colonies.  It does not include units in indian villages
+  // or in boats.
+  world,
+  // This includes units in boats or wagons.
+  cargo
+};
+
+unordered_map<UnitId, e_unit_ownership> unit_ownership;
+
+// The purpose of this function is *only* to manipulate the above
+// global maps. It does not follow any of the associated proce-
+// dures that need to be followed when a unit is added, removed,
+// or moved from one map to another.
+//
+// Specifically, it will erase any ownership that is had over the
+// given unit and mark it as unowned.
 void disown_unit( UnitId id ) {
   ASSIGN_ASSERT_OPT( it, has_key( unit_ownership, id ) );
   switch( it->second ) {
-    case e_unit_ownership::map:
+    // For some strange reason we need braces around this case
+    // statement otherwise we get errors... something to do with
+    // local variables declared inside of it.
+    case e_unit_ownership::world: {
       // First remove from coords_from_unit
-      ASSIGN_ASSERT_OPT( coords_it, has_key( coords_from_unit, id ) );
-      auto coords = coords_it->second;
-      coords_from_unit.erase( coords_it );
+      ASSIGN_ASSERT_OPT( pair_it, has_key( coords_from_unit, id ) );
+      auto coords = pair_it->second;
+      coords_from_unit.erase( pair_it );
       // Now remove from units_from_coords
       ASSIGN_ASSERT_OPT( set_it, has_key( units_from_coords, coords ) );
-      units_from_coords.erase( set_it );
+      auto& units_set = set_it->second;
+      units_set.erase( id );
+      if( units_set.empty() )
+        units_from_coords.erase( set_it );
+      break;
+    }
+    case e_unit_ownership::cargo:
+      ASSIGN_ASSERT_OPT( pair_it, has_key( holder_from_held, id ) );
+      holder_from_held.erase( pair_it );
       break;
   };
   // Probably need to do this last so iterators don't get
@@ -94,18 +122,14 @@ UnitId create_unit_on_map( e_unit_type type, Y y, X x ) {
   Unit& unit = create_unit( e_nation::dutch, type );
   units_from_coords[Coord{y,x}].insert( unit.id() );
   coords_from_unit[unit.id()] = Coord{y,x};
-  unit_ownership[unit.id()] = e_unit_ownership::map;
+  unit_ownership[unit.id()] = e_unit_ownership::world;
   return unit.id();
 }
 
-UnitIdVec units_from_coord( Y y, X x ) {
+unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
+  static unordered_set<UnitId> empty = {};
   auto opt_set = get_val_safe( units_from_coords, Coord{y,x} );
-  if( !opt_set ) return {};
-  unordered_set<UnitId> const& set = (*opt_set);
-  UnitIdVec res; res.reserve( set.size() );
-  for( auto id : set )
-    res.push_back( id );
-  return res;
+  return opt_set.value_or( empty );
 }
 
 UnitIdVec units_int_rect( Rect const& rect ) {
@@ -133,7 +157,20 @@ void ownership_change_to_map( UnitId id, Coord target ) {
   units_from_coords[{target.y,target.x}].insert( id );
   // Set unit coords to new value.
   coords_from_unit[id] = {target.y,target.x};
-  unit_ownership[id] = e_unit_ownership::map;
+  unit_ownership[id] = e_unit_ownership::world;
+}
+
+void ownership_change_to_cargo( UnitId new_holder, UnitId held ) {
+  // Make sure that we're not adding the unit to its own cargo.
+  // Should never happen theoretically, but...
+  ASSERT( new_holder != held );
+  auto& cargo_hold = unit_from_id( new_holder ).cargo();
+  // We're clear (at least on our end).
+  disown_unit( held );
+  cargo_hold.add( held );
+  // Set new ownership
+  unit_ownership[held] = e_unit_ownership::cargo;
+  holder_from_held[held] = new_holder;
 }
 
 } // namespace rn

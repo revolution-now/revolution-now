@@ -39,41 +39,83 @@ void reset_moves() {
 UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   Y y = coords.y;
   X x = coords.x;
-  MovementPoints cost( 1 );
-  if( y-Y(0) >= world_size_tiles_y() ||
-      x-X(0) >= world_size_tiles_x() ||
-      y < 0 || x < 0 )
-    return {{y, x}, false, e_unit_mv_desc::map_edge, cost};
 
   auto& unit = unit_from_id( id );
   auto& square = square_at( y, x );
-
   ASSERT( !unit.moved_this_turn() );
 
+  MovementPoints cost( 1 );
+
+  UnitMoveDesc result{
+    coords, false, e_unit_mv_good::map_to_map, cost, UnitId{0}
+  };
+
+  if( unit.movement_points() < cost ) {
+    result.desc = e_unit_mv_error::insufficient_movement_points;
+    return result;
+  }
+
+  if( !coords.is_inside( world_rect() ) ) {
+    result.desc = e_unit_mv_error::map_edge;
+    return result;
+  }
+
   if( unit.desc().boat && square.land ) {
-    return {{y, x}, false, e_unit_mv_desc::land_forbidden, cost};
+    result.desc = e_unit_mv_error::land_forbidden;
+    return result;
   }
+
   if( !unit.desc().boat && !square.land ) {
-    return {{y, x}, false, e_unit_mv_desc::water_forbidden, cost};
+    auto const& ships = units_from_coord( y, x );
+    if( ships.empty() ) {
+      result.desc = e_unit_mv_error::water_forbidden;
+      return result;
+    }
+    // We have at least on ship, so iterate through and find the
+    // first one (if any) that the unit can board.
+    for( auto ship_id : ships ) {
+      auto const& ship_unit = unit_from_id( ship_id );
+      ASSERT( ship_unit.desc().boat );
+      auto& cargo = ship_unit.cargo();
+      if( cargo.fits( id ) ) {
+        result.desc = e_unit_mv_good::board_ship;
+        result.can_move = true;
+        result.target_unit = ship_id;
+        return result;
+      }
+    }
+    result.desc = e_unit_mv_error::board_ship_full;
+    return result;
   }
-  if( unit.movement_points() < cost )
-    return {{y, x}, false,
-      e_unit_mv_desc::insufficient_movement_points, cost};
-  return {{y, x}, true, e_unit_mv_desc::none, cost};
+  result.desc = e_unit_mv_good::map_to_map;
+  result.can_move = true;
+  return result;
 }
 
 void move_unit_to( UnitId id, Coord target ) {
-  UnitMoveDesc move_desc = move_consequences( id, target );
-  // Caller should have checked this.
-  ASSERT( move_desc.can_move );
-
   auto& unit = unit_from_id( id );
   ASSERT( !unit.moved_this_turn() );
 
-  // It is safe to move, so physically move.
-  ownership_change_to_map( id, target );
+  ASSERT( unit.orders() == e_unit_orders::none );
 
-  unit.consume_mv_points( move_desc.movement_cost );
+  UnitMoveDesc move_desc = move_consequences( id, target );
+  // Caller should have checked this.
+  ASSERT( move_desc.can_move );
+  ASSERT( holds_alternative<e_unit_mv_good>( move_desc.desc ) );
+
+  e_unit_mv_good outcome = get<e_unit_mv_good>( move_desc.desc );
+
+  switch( outcome ) {
+    case e_unit_mv_good::map_to_map:
+      ownership_change_to_map( id, target );
+      unit.consume_mv_points( move_desc.movement_cost );
+      break;
+    case e_unit_mv_good::board_ship:
+      ownership_change_to_cargo( move_desc.target_unit, id );
+      unit.forfeight_mv_points();
+      unit.sentry();
+      break;
+  }
 }
 
 } // namespace rn

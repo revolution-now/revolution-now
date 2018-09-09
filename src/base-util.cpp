@@ -74,10 +74,6 @@ bool Coord::is_inside( Rect const& rect ) {
          (y <  rect.y+rect.h);
 }
 
-std::ostream& operator<<( std::ostream& out, Rect const& r ) {
-  return (out << "(" << r.x << "," << r.y << "," << r.w << "," << r.h << ")");
-}
-
 void die( char const* file, int line, std::string_view msg ) {
   std::cerr << "error:" << file << ":" << line << ": " << msg << "\n";
   //std::terminate();
@@ -97,4 +93,12 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
 }
 
 } // namespace rn
+
+std::ostream& operator<<( std::ostream& out, rn::Rect const& r ) {
+  return (out << "(" << r.x << "," << r.y << "," << r.w << "," << r.h << ")");
+}
+
+std::ostream& operator<<( std::ostream& out, rn::Coord const& coord ) {
+  return (out << "(" << coord.x << "," << coord.y << ")");
+}
 

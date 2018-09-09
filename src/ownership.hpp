@@ -15,6 +15,7 @@
 
 #include <functional>
 #include <optional>
+#include <unordered_set>
 
 namespace rn {
 
@@ -28,7 +29,7 @@ void map_units( std::function<void( Unit& )> func );
 UnitId create_unit_on_map( e_unit_type type, Y y, X x );
 // Functions for mapping between units and coordinates on the
 // map.
-UnitIdVec units_from_coord( Y y, X x );
+std::unordered_set<UnitId> const& units_from_coord( Y y, X x );
 UnitIdVec units_int_rect( Rect const& rect );
 Coord coords_for_unit( UnitId id );
 OptCoord coords_for_unit_safe( UnitId id );
@@ -41,5 +42,7 @@ OptCoord coords_for_unit_safe( UnitId id );
 // not be called directly. E.g., this function will happily move
 // a land unit into water.
 void ownership_change_to_map( UnitId id, Coord target );
+
+void ownership_change_to_cargo( UnitId new_holder, UnitId held );
 
 } // namespace rn

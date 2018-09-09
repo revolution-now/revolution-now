@@ -57,7 +57,6 @@ enum class e_unit_orders {
   none,
   sentry, // includes units on ships
   fortified,
-  enroute,
 };
 
 // Mutable.  This holds information about a specific instance
@@ -74,6 +73,8 @@ public:
 
   UnitId id() const { return id_; }
   UnitDescriptor const& desc() const { return *desc_; }
+  e_unit_orders orders() const { return orders_; }
+  CargoHold const& cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
@@ -111,6 +112,8 @@ public:
   void finish_turn();
   // Called to consume movement points as a result of a move.
   void consume_mv_points( MovementPoints points );
+  // Mark a unit as sentry.
+  void sentry() { orders_ = e_unit_orders::sentry; }
 
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );

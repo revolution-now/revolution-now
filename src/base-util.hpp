@@ -13,6 +13,7 @@
 #include "aliases.hpp"
 #include "typed-int.hpp"
 
+#include <algorithm>
 #include <istream>
 #include <optional>
 #include <ostream>
@@ -85,8 +86,6 @@ struct Delta {
     return (h == other.h) && (w == other.w);
   }
 };
-
-std::ostream& operator<<( std::ostream& out, Rect const& r );
 
 void die( char const* file, int line, std::string_view msg );
 
@@ -164,4 +163,12 @@ auto has_key( ContainerT& s, KeyT const& k )
   return it;
 }
 
+template<typename ContainerT, typename ElemT>
+int count( ContainerT& c, ElemT const& e ) {
+  return std::count( c.begin(), c.end(), e );
+}
+
 } // namespace rn
+
+std::ostream& operator<<( std::ostream& out, rn::Rect const& r );
+std::ostream& operator<<( std::ostream& out, rn::Coord const& coord );

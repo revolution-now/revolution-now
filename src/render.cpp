@@ -37,7 +37,7 @@ void render_world_viewport( OptUnitId blink_id ) {
 
   Coord coords;
   if( blink_id )
-    coords_for_unit( *blink_id );
+    coords = coords_for_unit( *blink_id );
 
   for( Y i = covered.y; i < covered.y+covered.h; ++i ) {
     for( X j = covered.x; j < covered.x+covered.w; ++j ) {

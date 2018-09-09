@@ -90,8 +90,7 @@ void Unit::finish_turn() {
 // physically move this turn, either by way of player input or
 // automatically, assuming it has movement points.
 bool Unit::orders_mean_move_needed() const {
-  return orders_ == e_unit_orders::none ||
-         orders_ == e_unit_orders::enroute;
+  return orders_ == e_unit_orders::none;
 }
 
 // Returns true if the unit's orders are such that the unit re-

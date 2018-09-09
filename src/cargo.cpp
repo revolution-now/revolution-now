@@ -56,21 +56,23 @@ int CargoHold::slots_total() const {
   return slots_;
 }
 
-bool CargoHold::can_add( Cargo cargo ) const {
+bool CargoHold::fits( Cargo cargo ) const {
   ASSERT( holds_alternative<UnitId>( cargo ) );
   UnitId id = get<UnitId>( cargo );
   auto occupied = unit_from_id( id ).desc().cargo_slots_occupies;
   return slots_remaining() >= occupied;
 }
 
-bool CargoHold::has_cargo( Cargo cargo ) const {
-  auto it = find( items_.begin(), items_.end(), cargo );
-  return (it != items_.end());
-}
-
 void CargoHold::add( Cargo cargo ) {
-  ASSERT( can_add( cargo ) );
-  items_.push_back( cargo );
+  if( holds_alternative<UnitId>( cargo ) ) {
+    UnitId id = get<UnitId>( cargo );
+    // Make sure that the unit is not already in this cargo.
+    ASSERT( rn::count( items_, Cargo{id} ) == 0 );
+    ASSERT( fits( id ) );
+    items_.push_back( id );
+  } else {
+    DIE( "should not be here" );
+  }
 }
 
 void CargoHold::remove( Cargo cargo ) {
