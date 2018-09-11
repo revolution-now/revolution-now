@@ -22,23 +22,37 @@ namespace {
   
 } // namespace
 
-DissipativeVelocity::DissipativeVelocity( double min_velocity,
-                                          double max_velocity,
-                                          double initial_velocity,
-                                          double acceleration,
-                                          double drag_acceleration )
-  : min_velocity_( min_velocity ),
-    max_velocity_( max_velocity ),
-    velocity_( initial_velocity ),
-    accel_( acceleration ),
-    drag_accel_( drag_acceleration )
-{
-  ASSERT( velocity_ >= min_velocity );
-  ASSERT( velocity_ <= max_velocity );
+void DissipativeVelocity::set_bounds(
+    double min_velocity, double max_velocity ) {
+  ASSERT( min_velocity < max_velocity );
+  min_velocity_ = min_velocity;
+  max_velocity_ = max_velocity;
+  if( velocity_ < min_velocity )
+    velocity_ = min_velocity;
+  if( velocity_ > max_velocity )
+    velocity_ = max_velocity;
+}
 
+void DissipativeVelocity::set_accelerations(
+    double accel, double drag_accel ) {
+  accel_ = accel;
+  drag_accel_ = drag_accel;
   // We must have 0 <= drag_accel_ < accel_
   ASSERT( drag_accel_ >= 0 );
   ASSERT( accel_ > drag_accel_ );
+}
+
+DissipativeVelocity::DissipativeVelocity(
+    double min_velocity, double max_velocity,
+    double initial_velocity, double acceleration,
+    double drag_acceleration )
+  : min_velocity_( min_velocity ), max_velocity_( max_velocity ),
+    velocity_( initial_velocity ), accel_( acceleration ),
+    drag_accel_( drag_acceleration )
+{
+  // These functions will do some assertions.
+  set_bounds( min_velocity, max_velocity );
+  set_accelerations( acceleration, drag_acceleration );
 }
 
 double DissipativeVelocity::advance( e_push_direction direction ) {

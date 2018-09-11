@@ -12,6 +12,7 @@
 
 #include "movement.hpp"
 #include "ownership.hpp"
+#include "physics.hpp"
 #include "render.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
@@ -20,8 +21,8 @@ namespace rn {
 
 namespace {
 
-double movement_speed = 8.0;
-double zoom_delta = .08;
+constexpr double movement_speed = 8.0;
+constexpr double zoom_speed = .08;
   
 } // namespace
 
@@ -163,13 +164,29 @@ e_eot_loop_result loop_eot() {
 
   long ticks_render = 0;
 
-  double mv_accel_x      = 0.1;
-  double mv_accel_y      = 0.1;
-  double zoom_accel      = 0.2;
-  double zoom_accel_drag = 0.05;
-  double mv_vel_x        = 0.0;
-  double mv_vel_y        = 0.0;
-  double zoom_vel        = 0.0;
+  double zoom_accel      = 0.2*zoom_speed;
+  double zoom_accel_drag = 0.05*zoom_speed;
+  double pan_accel       = 0.2*movement_speed;
+  double pan_accel_drag  = 0.1*movement_speed;
+
+  DissipativeVelocity mv_vel_x(
+      /*min_velocity=*/-movement_speed,
+      /*max_velocity=*/movement_speed,
+      /*initial_vel=*/0,
+      /*mag_acceleration=*/pan_accel,
+      /*mag_drag_acceleration=*/pan_accel_drag );
+  DissipativeVelocity mv_vel_y(
+      /*min_velocity=*/-movement_speed,
+      /*max_velocity=*/movement_speed,
+      /*initial_vel=*/0,
+      /*mag_acceleration=*/pan_accel,
+      /*mag_drag_acceleration=*/pan_accel_drag );
+  DissipativeVelocity zoom_vel(
+      /*min_velocity=*/-zoom_speed,
+      /*max_velocity=*/zoom_speed,
+      /*initial_vel=*/0,
+      /*mag_acceleration=*/zoom_accel,
+      /*mag_drag_acceleration=*/zoom_accel_drag );
 
   enum class e_zoom_event {
     none, in, out
@@ -179,6 +196,19 @@ e_eot_loop_result loop_eot() {
   // array that tells us if a key is down or not instead
   // of keeping track of it ourselves.
   while( running ) {
+    double zoom_factor07 = pow( viewport::get_scale_zoom(), 0.7 );
+    double zoom_factor15 = pow( viewport::get_scale_zoom(), 1.5 );
+    pan_accel       = 0.2*movement_speed;
+    pan_accel_drag  = 0.1*movement_speed;
+    pan_accel_drag = pan_accel_drag / pow( viewport::get_scale_zoom(), .75 );
+    pan_accel = pan_accel_drag + (pan_accel-pan_accel_drag)/zoom_factor15;
+    mv_vel_x.set_accelerations( pan_accel, pan_accel_drag );
+    mv_vel_y.set_accelerations( pan_accel, pan_accel_drag );
+    mv_vel_x.set_bounds( -movement_speed/zoom_factor07,
+                          movement_speed/zoom_factor07 );
+    mv_vel_y.set_bounds( -movement_speed/zoom_factor07,
+                          movement_speed/zoom_factor07 );
+
     auto ticks_start = ::SDL_GetTicks();
 
     total_frames++;
@@ -188,7 +218,7 @@ e_eot_loop_result loop_eot() {
     auto ticks_render_end = ::SDL_GetTicks();
     ticks_render += (ticks_render_end-ticks_render_start);
 
-    e_zoom_event zoom_event = e_zoom_event::none;
+    e_push_direction zoom_direction = e_push_direction::none;
 
     ::SDL_Event event;
     while( SDL_PollEvent( &event ) ) {
@@ -222,65 +252,32 @@ e_eot_loop_result loop_eot() {
           break;
         case ::SDL_MOUSEWHEEL:
           if( event.wheel.y < 0 )
-            zoom_event = e_zoom_event::out;
+            zoom_direction = e_push_direction::negative;
           if( event.wheel.y > 0 )
-            zoom_event = e_zoom_event::in;
+            zoom_direction = e_push_direction::positive;
           break;
         default:
           break;
       }
     }
+
     auto const* state = ::SDL_GetKeyboardState( NULL );
-    if( state[::SDL_SCANCODE_LEFT])
-      mv_vel_x = (mv_vel_x <= -1.0) ? -1.0 : (mv_vel_x-mv_accel_x);
-    if( state[::SDL_SCANCODE_RIGHT])
-      mv_vel_x = (mv_vel_x >=  1.0) ?  1.0 : (mv_vel_x+mv_accel_x);
-    if( state[::SDL_SCANCODE_UP])
-      mv_vel_y = (mv_vel_y <= -1.0) ? -1.0 : (mv_vel_y-mv_accel_y);
-    if( state[::SDL_SCANCODE_DOWN])
-      mv_vel_y = (mv_vel_y >=  1.0) ?  1.0 : (mv_vel_y+mv_accel_y);
 
-    if( !state[::SDL_SCANCODE_LEFT] && !state[::SDL_SCANCODE_RIGHT] ) {
-      if( mv_vel_x > 0 ) {
-        mv_vel_x -= mv_accel_x;
-        if( mv_vel_x < 0 ) mv_vel_x = 0;
-      } else if( mv_vel_x < 0 ) {
-        mv_vel_x += mv_accel_x;
-        if( mv_vel_x > 0 ) mv_vel_x = 0;
-      }
-    }
-    if( !state[::SDL_SCANCODE_UP] && !state[::SDL_SCANCODE_DOWN] ) {
-      if( mv_vel_y > 0 ) {
-        mv_vel_y -= mv_accel_y;
-        if( mv_vel_y < 0 ) mv_vel_y = 0;
-      } else if( mv_vel_y < 0 ) {
-        mv_vel_y += mv_accel_y;
-        if( mv_vel_y > 0 ) mv_vel_y = 0;
-      }
-    }
+    mv_vel_x.advance(
+        state[::SDL_SCANCODE_LEFT]  ? e_push_direction::negative
+      : state[::SDL_SCANCODE_RIGHT] ? e_push_direction::positive
+      : e_push_direction::none );
 
-    viewport::pan( 0, movement_speed*mv_vel_x, false );
-    viewport::pan( movement_speed*mv_vel_y, 0, false );
+    mv_vel_y.advance(
+        state[::SDL_SCANCODE_UP]   ? e_push_direction::negative
+      : state[::SDL_SCANCODE_DOWN] ? e_push_direction::positive
+      : e_push_direction::none );
 
-    switch( zoom_event ) {
-      case e_zoom_event::out:
-        zoom_vel = (zoom_vel <= -1.0) ? -1.0 : (zoom_vel-zoom_accel);
-        break;
-      case e_zoom_event::in:
-        zoom_vel = (zoom_vel >=  1.0) ?  1.0 : (zoom_vel+zoom_accel);
-        break;
-      case e_zoom_event::none:
-        if( zoom_vel > 0 ) {
-          zoom_vel -= zoom_accel_drag;
-          if( zoom_vel < 0 ) zoom_vel = 0;
-        } else if( zoom_vel < 0 ) {
-          zoom_vel += zoom_accel_drag;
-          if( zoom_vel > 0 ) zoom_vel = 0;
-        }
-        break;
-    };
+    zoom_vel.advance( zoom_direction );
 
-    viewport::scale_zoom( 1.0+zoom_delta*zoom_vel );
+    viewport::pan( 0, mv_vel_x, false );
+    viewport::pan( mv_vel_y, 0, false );
+    viewport::scale_zoom( 1.0+zoom_vel );
 
     auto ticks_end = ::SDL_GetTicks();
     auto delta = ticks_end-ticks_start;

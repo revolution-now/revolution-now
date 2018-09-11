@@ -140,6 +140,10 @@ void scale_zoom( double factor ) {
   enforce_invariants();
 }
 
+double get_scale_zoom() {
+  return zoom;
+}
+
 void pan( double down_up, double left_right, bool scale ) {
   double factor = scale ? zoom : 1.0;
   center_x += left_right/factor;

@@ -16,40 +16,45 @@
 namespace rn {
 
 enum class ND e_push_direction {
-  negative,
-  none,
-  positive
+  negative = -1,
+  none     =  0,
+  positive =  1
 };
 
 // This is a class that represents a velocity under a force and a
 // dissipative acceleration. It can be implicitly converted to a
 // double, and that double is the velocity. When the object is
 // "advanced" the acceleration is applied to the velocity de-
-// pending on the direction of the acceleration. If the accelera-
-// tion is positive or negative then the net acceleration will be
-// the sum of the forced acceleration plus the drag acceleration.
-// When there is no forced acceleration only the drag accelera-
-// tion will apply.
+// pending on the direction of the acceleration. The acceleration
+// is computed by reducing the magnitude of the specified force
+// acceleration by the drag acceleration. When there is no forced
+// acceleration (== 0.0) only the drag acceleration will apply
+// (in the direction opposite the velocity).
 class ND DissipativeVelocity {
 
 public:
   DissipativeVelocity( double min_velocity,
                        double max_velocity,
                        double initial_velocity,
-                       double acceleration,
-                       double drag_acceleration );
+                       // accerlerations are magnitudes
+                       double mag_acceleration,
+                       double mag_drag_acceleration );
 
   operator double() const { return velocity_; }
 
+  // Advances velocity by applying accelerations and then returns
+  // the advanced value.
   double advance( e_push_direction direction );
 
+  void set_bounds( double min_velocity, double max_velocity );
+  void set_accelerations( double accel, double drag_accel );
+
 private:
-  double const min_velocity_;
-  double const max_velocity_;
+  double min_velocity_;
+  double max_velocity_;
   double velocity_;
-  double const accel_;
-  double const drag_accel_;
+  double accel_;
+  double drag_accel_;
 };
 
 } // namespace rn
-

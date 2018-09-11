@@ -29,6 +29,7 @@ ND Rect get_render_src_rect();
 ND Rect get_render_dest_rect();
 
 void scale_zoom( double factor );
+double get_scale_zoom();
 void pan( double down_up, double left_right, bool scale = false );
 
 void center_on_tile( Coord coord );
