@@ -29,8 +29,8 @@ int main( int, char** ) try {
   //play_music_file( "../music/bonny-morn.mp3" );
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, Y(2), X(3) );
-  //(void)create_unit_on_map( e_unit_type::free_colonist, Y(2), X(4) );
-  //(void)create_unit_on_map( e_unit_type::caravel, Y(2), X(2) );
+  (void)create_unit_on_map( e_unit_type::free_colonist, Y(2), X(4) );
+  (void)create_unit_on_map( e_unit_type::caravel, Y(2), X(2) );
 
   while( turn() != e_turn_result::quit ) {}
 

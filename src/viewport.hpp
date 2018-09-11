@@ -14,29 +14,69 @@
 #include "core-config.hpp"
 
 #include "base-util.hpp"
+#include "physics.hpp"
 
 #include <SDL.h>
 
 namespace rn {
 
-namespace viewport {
+class SmoothViewport {
 
-// Tiles touched by the viewport (tiles at the edge may only be
-// partially visible).
-ND Rect covered_tiles();
+public:
+  SmoothViewport();
 
-ND Rect get_render_src_rect();
-ND Rect get_render_dest_rect();
+  void advance( e_push_direction x_push,
+                e_push_direction y_push,
+                e_push_direction zoom_push );
 
-void scale_zoom( double factor );
-double get_scale_zoom();
-void pan( double down_up, double left_right, bool scale = false );
+  // Tiles touched by the viewport (tiles at the edge may only be
+  // partially visible).
+  Rect covered_tiles() const;
 
-void center_on_tile( Coord coord );
-ND bool is_tile_fully_visible( Coord coord );
-void ensure_tile_surroundings_visible( Coord coord );
+  void ensure_tile_surroundings_visible( Coord coord );
 
-} // namespace viewport
+  Rect get_render_src_rect() const;
+  Rect get_render_dest_rect() const;
+
+private:
+  void enforce_invariants();
+
+  double width_pixels() const;
+  double height_pixels() const;
+
+  double start_x() const;
+  double start_y() const;
+  double end_x() const;
+  double end_y() const;
+
+  X start_tile_x() const;
+  Y start_tile_y() const;
+
+  Rect get_bounds() const;
+
+  double width_tiles() const;
+  double height_tiles() const;
+
+  double get_scale_zoom() const;
+
+  void scale_zoom( double factor );
+  void pan( double down_up, double left_right, bool scale );
+  void center_on_tile_x( Coord coords );
+  void center_on_tile_y( Coord coords );
+  void center_on_tile( Coord coords );
+
+  bool is_tile_fully_visible( Coord coords ) const;
+
+  DissipativeVelocity x_vel_;
+  DissipativeVelocity y_vel_;
+  DissipativeVelocity zoom_vel_;
+
+  double zoom_;
+  double center_x_;
+  double center_y_;
+};
+
+extern SmoothViewport viewport;
 
 } // namespace rn
 

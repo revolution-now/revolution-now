@@ -21,9 +21,6 @@ namespace rn {
 
 namespace {
 
-constexpr double movement_speed = 8.0;
-constexpr double zoom_speed = .08;
-  
 } // namespace
 
 e_orders_loop_result loop_orders( UnitId id ) {
@@ -37,7 +34,7 @@ e_orders_loop_result loop_orders( UnitId id ) {
 
   UnitMoveDesc move_desc;
 
-  viewport::ensure_tile_surroundings_visible( coords );
+  viewport.ensure_tile_surroundings_visible( coords );
 
   long total_frames = 0;
   auto ticks_start_loop = ::SDL_GetTicks();
@@ -56,7 +53,10 @@ e_orders_loop_result loop_orders( UnitId id ) {
     ticks_render += (ticks_render_end-ticks_render_start);
     total_frames++;
 
-    if( ::SDL_Event event; SDL_PollEvent( &event ) ) {
+    e_push_direction zoom_direction = e_push_direction::none;
+
+    ::SDL_Event event;
+    while( SDL_PollEvent( &event ) ) {
       switch (event.type) {
         case SDL_QUIT:
           running = false;
@@ -81,7 +81,7 @@ e_orders_loop_result loop_orders( UnitId id ) {
             case ::SDLK_F11:
               toggle_fullscreen();
               break;
-            case ::SDLK_w:
+            case ::SDLK_t:
               running = false;
               return e_orders_loop_result::wait;
             case ::SDLK_SPACE:
@@ -131,17 +131,30 @@ e_orders_loop_result loop_orders( UnitId id ) {
           }
           break;
         case ::SDL_MOUSEWHEEL:
-          if( event.wheel.y < 0 ) {
-            viewport::scale_zoom( 0.98 );
-          }
-          if( event.wheel.y > 0 ) {
-            viewport::scale_zoom( 1.02 );
-          }
+          if( event.wheel.y < 0 )
+            zoom_direction = e_push_direction::negative;
+          if( event.wheel.y > 0 )
+            zoom_direction = e_push_direction::positive;
           break;
         default:
           break;
       }
     }
+
+    auto const* state = ::SDL_GetKeyboardState( NULL );
+
+    viewport.advance(
+      // x motion
+        state[::SDL_SCANCODE_A] ? e_push_direction::negative
+      : state[::SDL_SCANCODE_D] ? e_push_direction::positive
+      : e_push_direction::none,
+      // y motion
+        state[::SDL_SCANCODE_W] ? e_push_direction::negative
+      : state[::SDL_SCANCODE_S] ? e_push_direction::positive
+      : e_push_direction::none,
+      // zoom motion
+        zoom_direction );
+
     auto ticks_end = ::SDL_GetTicks();
     auto delta = ticks_end-ticks_start;
     if( delta < frame_length_millis )
@@ -164,51 +177,10 @@ e_eot_loop_result loop_eot() {
 
   long ticks_render = 0;
 
-  double zoom_accel      = 0.2*zoom_speed;
-  double zoom_accel_drag = 0.05*zoom_speed;
-  double pan_accel       = 0.2*movement_speed;
-  double pan_accel_drag  = 0.1*movement_speed;
-
-  DissipativeVelocity mv_vel_x(
-      /*min_velocity=*/-movement_speed,
-      /*max_velocity=*/movement_speed,
-      /*initial_vel=*/0,
-      /*mag_acceleration=*/pan_accel,
-      /*mag_drag_acceleration=*/pan_accel_drag );
-  DissipativeVelocity mv_vel_y(
-      /*min_velocity=*/-movement_speed,
-      /*max_velocity=*/movement_speed,
-      /*initial_vel=*/0,
-      /*mag_acceleration=*/pan_accel,
-      /*mag_drag_acceleration=*/pan_accel_drag );
-  DissipativeVelocity zoom_vel(
-      /*min_velocity=*/-zoom_speed,
-      /*max_velocity=*/zoom_speed,
-      /*initial_vel=*/0,
-      /*mag_acceleration=*/zoom_accel,
-      /*mag_drag_acceleration=*/zoom_accel_drag );
-
-  enum class e_zoom_event {
-    none, in, out
-  };
-
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
   // of keeping track of it ourselves.
   while( running ) {
-    double zoom_factor07 = pow( viewport::get_scale_zoom(), 0.7 );
-    double zoom_factor15 = pow( viewport::get_scale_zoom(), 1.5 );
-    pan_accel       = 0.2*movement_speed;
-    pan_accel_drag  = 0.1*movement_speed;
-    pan_accel_drag = pan_accel_drag / pow( viewport::get_scale_zoom(), .75 );
-    pan_accel = pan_accel_drag + (pan_accel-pan_accel_drag)/zoom_factor15;
-    mv_vel_x.set_accelerations( pan_accel, pan_accel_drag );
-    mv_vel_y.set_accelerations( pan_accel, pan_accel_drag );
-    mv_vel_x.set_bounds( -movement_speed/zoom_factor07,
-                          movement_speed/zoom_factor07 );
-    mv_vel_y.set_bounds( -movement_speed/zoom_factor07,
-                          movement_speed/zoom_factor07 );
-
     auto ticks_start = ::SDL_GetTicks();
 
     total_frames++;
@@ -263,21 +235,17 @@ e_eot_loop_result loop_eot() {
 
     auto const* state = ::SDL_GetKeyboardState( NULL );
 
-    mv_vel_x.advance(
-        state[::SDL_SCANCODE_LEFT]  ? e_push_direction::negative
-      : state[::SDL_SCANCODE_RIGHT] ? e_push_direction::positive
-      : e_push_direction::none );
-
-    mv_vel_y.advance(
-        state[::SDL_SCANCODE_UP]   ? e_push_direction::negative
-      : state[::SDL_SCANCODE_DOWN] ? e_push_direction::positive
-      : e_push_direction::none );
-
-    zoom_vel.advance( zoom_direction );
-
-    viewport::pan( 0, mv_vel_x, false );
-    viewport::pan( mv_vel_y, 0, false );
-    viewport::scale_zoom( 1.0+zoom_vel );
+    viewport.advance(
+      // x motion
+        state[::SDL_SCANCODE_A] ? e_push_direction::negative
+      : state[::SDL_SCANCODE_D] ? e_push_direction::positive
+      : e_push_direction::none,
+      // y motion
+        state[::SDL_SCANCODE_W] ? e_push_direction::negative
+      : state[::SDL_SCANCODE_S] ? e_push_direction::positive
+      : e_push_direction::none,
+      // zoom motion
+        zoom_direction );
 
     auto ticks_end = ::SDL_GetTicks();
     auto delta = ticks_end-ticks_start;
