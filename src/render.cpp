@@ -28,6 +28,21 @@ namespace {
   
 } // namespace
 
+void render_panel() {
+  // bottom edge
+  for( X i( 0 ); i < 22; ++i )
+    render_sprite_grid( g_tile::panel_edge_left, Y( 14 ), i, 1, 0 );
+  // left edge
+  for( Y i( 0 ); i < 14; ++i )
+    render_sprite_grid( g_tile::panel_edge_left, i, X( 22 ), 0, 0 );
+  // bottom left corner of main panel
+  render_sprite_grid( g_tile::panel, Y( 14 ), X( 22 ), 0, 0 );
+
+  for( Y i( 0 ); i < 15; ++i )
+    for( X j( 23 ); j < 28; ++j )
+      render_sprite_grid( g_tile::panel, i, j, 0, 0 );
+}
+
 void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
@@ -76,6 +91,7 @@ void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_RenderCopy( g_renderer, g_texture_world, &src, &dest );
 
   //render_tile_map( "panel" );
+  render_panel();
 
   ::SDL_RenderPresent( g_renderer );
 }
