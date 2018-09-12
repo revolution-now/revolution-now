@@ -29,7 +29,10 @@ namespace {
 
 } // namespace
 
-SmoothViewport viewport;
+SmoothViewport& viewport() {
+  static SmoothViewport viewport;
+  return viewport;
+}
 
 SmoothViewport::SmoothViewport() :
   x_vel_(

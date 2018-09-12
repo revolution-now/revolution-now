@@ -34,7 +34,7 @@ e_orders_loop_result loop_orders( UnitId id ) {
 
   UnitMoveDesc move_desc;
 
-  viewport.ensure_tile_surroundings_visible( coords );
+  viewport().ensure_tile_surroundings_visible( coords );
 
   long total_frames = 0;
   auto ticks_start_loop = ::SDL_GetTicks();
@@ -143,7 +143,7 @@ e_orders_loop_result loop_orders( UnitId id ) {
 
     auto const* state = ::SDL_GetKeyboardState( NULL );
 
-    viewport.advance(
+    viewport().advance(
       // x motion
         state[::SDL_SCANCODE_A] ? e_push_direction::negative
       : state[::SDL_SCANCODE_D] ? e_push_direction::positive
@@ -235,7 +235,7 @@ e_eot_loop_result loop_eot() {
 
     auto const* state = ::SDL_GetKeyboardState( NULL );
 
-    viewport.advance(
+    viewport().advance(
       // x motion
         state[::SDL_SCANCODE_A] ? e_push_direction::negative
       : state[::SDL_SCANCODE_D] ? e_push_direction::positive

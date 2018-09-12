@@ -76,7 +76,7 @@ private:
   double center_y_;
 };
 
-extern SmoothViewport viewport;
+SmoothViewport& viewport();
 
 } // namespace rn
 
