@@ -255,4 +255,52 @@ e_eot_loop_result loop_eot() {
   return result;
 }
 
+void loop_mv_unit( UnitId, Coord ) {
+  int frame_rate = 120;
+  double frame_length_millis = 1000.0/frame_rate;
+
+  int max_frames = 60;
+
+  for( int frames = 0; frames < max_frames; frames++ ) {
+    auto ticks_start = ::SDL_GetTicks();
+
+    render_world_viewport();
+
+    e_push_direction zoom_direction = e_push_direction::none;
+
+    ::SDL_Event event;
+    while( SDL_PollEvent( &event ) ) {
+      switch (event.type) {
+        case ::SDL_MOUSEWHEEL:
+          if( event.wheel.y < 0 )
+            zoom_direction = e_push_direction::negative;
+          if( event.wheel.y > 0 )
+            zoom_direction = e_push_direction::positive;
+          break;
+        default:
+          break;
+      }
+    }
+
+    auto const* state = ::SDL_GetKeyboardState( NULL );
+
+    viewport().advance(
+      // x motion
+        state[::SDL_SCANCODE_A] ? e_push_direction::negative
+      : state[::SDL_SCANCODE_D] ? e_push_direction::positive
+      : e_push_direction::none,
+      // y motion
+        state[::SDL_SCANCODE_W] ? e_push_direction::negative
+      : state[::SDL_SCANCODE_S] ? e_push_direction::positive
+      : e_push_direction::none,
+      // zoom motion
+        zoom_direction );
+
+    auto ticks_end = ::SDL_GetTicks();
+    auto delta = ticks_end-ticks_start;
+    if( delta < frame_length_millis )
+      ::SDL_Delay( frame_length_millis - delta );
+  }
+}
+
 } // namespace rn

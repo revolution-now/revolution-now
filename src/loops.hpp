@@ -31,4 +31,6 @@ enum class ND e_orders_loop_result {
 
 ND e_orders_loop_result loop_orders( UnitId id );
 
+void loop_mv_unit( UnitId id, Coord target );
+
 } // namespace rn
