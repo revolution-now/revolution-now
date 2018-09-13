@@ -24,7 +24,7 @@ namespace {
 } // namespace
 
 e_orders_loop_result loop_orders( UnitId id ) {
-  int frame_rate = 120;
+  int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
   bool running = true;
@@ -161,12 +161,13 @@ e_orders_loop_result loop_orders( UnitId id ) {
       ::SDL_Delay( frame_length_millis - delta );
   }
   // If we're here then the unit needs to be physically moved.
+  loop_mv_unit( id, move_desc.coords );
   move_unit_to( id, move_desc.coords );
   return e_orders_loop_result::moved;
 }
 
 e_eot_loop_result loop_eot() {
-  int frame_rate = 120;
+  int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
   bool running = true;
@@ -255,46 +256,30 @@ e_eot_loop_result loop_eot() {
   return result;
 }
 
-void loop_mv_unit( UnitId, Coord ) {
-  int frame_rate = 120;
+void loop_mv_unit( UnitId id, Coord target ) {
+  int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
-  int max_frames = 60;
+  DissipativeVelocity percent_vel(
+    /*min_velocity=*/0,
+    /*max_velocity=*/.1,
+    /*initial_velocity=*/.1,
+    /*mag_acceleration=*/1, // not relevant
+    /*mag_drag_acceleration=*/.004
+  );
 
-  for( int frames = 0; frames < max_frames; frames++ ) {
+  double percent = 0;
+  bool running = true;
+
+  while( running ) {
     auto ticks_start = ::SDL_GetTicks();
 
-    render_world_viewport();
+    render_world_viewport_mv_unit( id, target, percent );
 
-    e_push_direction zoom_direction = e_push_direction::none;
-
-    ::SDL_Event event;
-    while( SDL_PollEvent( &event ) ) {
-      switch (event.type) {
-        case ::SDL_MOUSEWHEEL:
-          if( event.wheel.y < 0 )
-            zoom_direction = e_push_direction::negative;
-          if( event.wheel.y > 0 )
-            zoom_direction = e_push_direction::positive;
-          break;
-        default:
-          break;
-      }
-    }
-
-    auto const* state = ::SDL_GetKeyboardState( NULL );
-
-    viewport().advance(
-      // x motion
-        state[::SDL_SCANCODE_A] ? e_push_direction::negative
-      : state[::SDL_SCANCODE_D] ? e_push_direction::positive
-      : e_push_direction::none,
-      // y motion
-        state[::SDL_SCANCODE_W] ? e_push_direction::negative
-      : state[::SDL_SCANCODE_S] ? e_push_direction::positive
-      : e_push_direction::none,
-      // zoom motion
-        zoom_direction );
+    percent_vel.advance( e_push_direction::none );
+    percent += percent_vel;
+    if( percent > 1.0 )
+      running = false;
 
     auto ticks_end = ::SDL_GetTicks();
     auto delta = ticks_end-ticks_start;

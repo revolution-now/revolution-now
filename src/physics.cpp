@@ -39,7 +39,7 @@ void DissipativeVelocity::set_accelerations(
   drag_accel_ = drag_accel;
   // We must have 0 <= drag_accel_ < accel_
   ASSERT( drag_accel_ >= 0 );
-  ASSERT( accel_ > drag_accel_ );
+  ASSERT( accel_ >= drag_accel_ );
 }
 
 DissipativeVelocity::DissipativeVelocity(

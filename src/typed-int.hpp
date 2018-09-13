@@ -86,7 +86,9 @@ inline TypedInt<Tag> operator*( TypedInt<Tag> left, int right )
 template<typename Tag>
 inline TypedInt<Tag> operator*( int left, TypedInt<Tag> right )
   { return TypedInt<Tag>( right._*left ); }
-/* no operator*( TypedInt<Tag> left, TypedInt<Tag> right ) */
+template<typename Tag>
+inline TypedInt<Tag> operator*( TypedInt<Tag> left, TypedInt<Tag> right )
+  { return TypedInt<Tag>( left._*right._ ); }
 
 template<typename Tag>
 inline TypedInt<Tag> operator/( TypedInt<Tag> left, int right )
