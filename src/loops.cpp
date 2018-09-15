@@ -23,7 +23,8 @@ namespace {
 
 } // namespace
 
-e_orders_loop_result loop_orders( UnitId id ) {
+e_orders_loop_result loop_orders(
+    UnitId id, std::function<void(UnitId)> ) {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 

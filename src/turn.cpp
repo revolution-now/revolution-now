@@ -16,6 +16,7 @@
 #include "unit.hpp"
 
 #include <algorithm>
+#include <queue>
 
 namespace rn {
 
@@ -56,10 +57,11 @@ e_turn_result turn() {
 
   auto need_eot_loop{true};
 
-  // We keep looping until all units that need moving have moved.  We
-  // don't know this list a priori because some units may decide to
-  // require orders during the course of this process, and this could
-  // happen for various reasons.
+  // We keep looping until all units that need moving have moved.
+  // We don't know this list a priori because some units may de-
+  // cide to require orders during the course of this process,
+  // and this could happen for various reasons. Perhaps even
+  // units could be created during this process (?).
   while( true ) {
     auto units = units_all( player_nationality() );
     auto finished = []( UnitId id ){
@@ -68,11 +70,17 @@ e_turn_result turn() {
     if( all_of( units.begin(), units.end(), finished ) )
       break;
 
+    std::queue<UnitId> q;
+    for( auto id : units )
+      q.push( id );
+
     //  Iterate through all units, for each:
-    for( auto unit_id : units ) {
-      auto& unit = unit_from_id( unit_id );
-      if( unit.finished_turn() )
+    while( !q.empty() ) {
+      auto& unit = unit_from_id( q.front() );
+      if( unit.finished_turn() ) {
+        q.pop();
         continue;
+      }
       // By default, we assume that the processing for the unit
       // this turn will be completed in this loop iteration. In
       // certain cases this will not happen, such as e.g. a unit
@@ -104,9 +112,20 @@ e_turn_result turn() {
       while( unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
         need_eot_loop = false;
-        e_orders_loop_result res = loop_orders( unit_id );
+        // `prioritize` is a function that should be called if it
+        // is decided (in the loop_orders function) that a unit
+        // needs to be bumped to the front of the queue for ac-
+        // cepting orders. Note that it should hurt if the unit
+        // is already in the queue, since this turn code will
+        // never move a unit after it has already completed its
+        // turn, no matter how many times it appears in the
+        // queue.
+        auto prioritize = [&q]( UnitId id ) { q.push( id ); };
+        e_orders_loop_result res = loop_orders( unit.id(), prioritize );
         if( res == e_orders_loop_result::wait ) {
           will_finish_turn = false;
+          q.push( q.front() );
+          q.pop();
           break;
         }
         if( res == e_orders_loop_result::quit )
