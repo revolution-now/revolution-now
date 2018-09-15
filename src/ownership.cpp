@@ -45,6 +45,8 @@ enum class e_unit_ownership {
 
 unordered_map<UnitId, e_unit_ownership> unit_ownership;
 
+} // namespace
+
 // The purpose of this function is *only* to manipulate the above
 // global maps. It does not follow any of the associated proce-
 // dures that need to be followed when a unit is added, removed,
@@ -52,7 +54,7 @@ unordered_map<UnitId, e_unit_ownership> unit_ownership;
 //
 // Specifically, it will erase any ownership that is had over the
 // given unit and mark it as unowned.
-void disown_unit( UnitId id ) {
+void ownership_disown_unit( UnitId id ) {
   ASSIGN_ASSERT_OPT( it, has_key( unit_ownership, id ) );
   switch( it->second ) {
     // For some strange reason we need braces around this case
@@ -73,6 +75,8 @@ void disown_unit( UnitId id ) {
     }
     case e_unit_ownership::cargo:
       ASSIGN_ASSERT_OPT( pair_it, has_key( holder_from_held, id ) );
+      auto& holder_unit = unit_from_id( pair_it->second );
+      holder_unit.cargo().remove( id );
       holder_from_held.erase( pair_it );
       break;
   };
@@ -80,8 +84,6 @@ void disown_unit( UnitId id ) {
   // invalidated.
   unit_ownership.erase( it );
 }
-
-} // namespace
 
 UnitIdVec units_all( optional<e_nation> nation ) {
   vector<UnitId> res; res.reserve( units.size() );
@@ -146,13 +148,24 @@ OptCoord coords_for_unit_safe( UnitId id ) {
 }
 
 Coord coords_for_unit( UnitId id ) {
-  auto opt_coord = coords_for_unit_safe( id );
-  ASSERT( opt_coord );
-  return *opt_coord;
+  ASSIGN_ASSERT_OPT( it, has_key( unit_ownership, id ) );
+  switch( it->second ) {
+    case e_unit_ownership::world: {
+      auto opt_coord = coords_for_unit_safe( id );
+      ASSERT( opt_coord );
+      return *opt_coord;
+    }
+    case e_unit_ownership::cargo:
+      ASSIGN_ASSERT_OPT( pair_it, has_key( holder_from_held, id ) );
+      // Coordinates of unit are coordinates of holder.
+      return coords_for_unit( pair_it->second );
+  };
+  DIE( "should not be here." );
+  return {};
 }
 
 void ownership_change_to_map( UnitId id, Coord target ) {
-  disown_unit( id );
+  ownership_disown_unit( id );
   // Add unit to new square.
   units_from_coords[{target.y,target.x}].insert( id );
   // Set unit coords to new value.
@@ -166,11 +179,18 @@ void ownership_change_to_cargo( UnitId new_holder, UnitId held ) {
   ASSERT( new_holder != held );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // We're clear (at least on our end).
-  disown_unit( held );
+  ownership_disown_unit( held );
   cargo_hold.add( held );
   // Set new ownership
   unit_ownership[held] = e_unit_ownership::cargo;
   holder_from_held[held] = new_holder;
+}
+
+// If the unit is being held as cargo then it will return the id
+// of the unit that is holding it; nullopt otherwise.
+OptUnitId is_unit_onboard( UnitId id ) {
+  auto opt_iter = has_key( holder_from_held, id );
+  return opt_iter ? optional( (**opt_iter).second ) : nullopt;
 }
 
 } // namespace rn

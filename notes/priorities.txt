@@ -2,9 +2,6 @@
 Priority List:
 ========================================================
 
-* Make skeleton of turn processing loop
-* Allow units to travel around
-
 * Game saves -- might need this early to facilitate
   testing.
 
@@ -14,3 +11,5 @@ Done
 
 * Draw colonist and boat
 * Add unit to game
+* Make skeleton of turn processing loop
+* Allow units to travel around

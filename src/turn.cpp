@@ -16,7 +16,7 @@
 #include "unit.hpp"
 
 #include <algorithm>
-#include <queue>
+#include <deque>
 
 namespace rn {
 
@@ -70,15 +70,15 @@ e_turn_result turn() {
     if( all_of( units.begin(), units.end(), finished ) )
       break;
 
-    std::queue<UnitId> q;
+    std::deque<UnitId> q;
     for( auto id : units )
-      q.push( id );
+      q.push_back( id );
 
     //  Iterate through all units, for each:
     while( !q.empty() ) {
       auto& unit = unit_from_id( q.front() );
       if( unit.finished_turn() ) {
-        q.pop();
+        q.pop_front();
         continue;
       }
       // By default, we assume that the processing for the unit
@@ -120,12 +120,19 @@ e_turn_result turn() {
         // never move a unit after it has already completed its
         // turn, no matter how many times it appears in the
         // queue.
-        auto prioritize = [&q]( UnitId id ) { q.push( id ); };
+        auto prioritize = [&q]( UnitId id ) { q.push_front( id ); };
         e_orders_loop_result res = loop_orders( unit.id(), prioritize );
         if( res == e_orders_loop_result::wait ) {
           will_finish_turn = false;
-          q.push( q.front() );
-          q.pop();
+          q.push_back( q.front() );
+          q.pop_front();
+          break;
+        }
+        if( res == e_orders_loop_result::offboard ) {
+          will_finish_turn = false;
+          // Don't change position in queue so that way the ship will
+          // ask for orders again as soon as the units that offload have
+          // done so.
           break;
         }
         if( res == e_orders_loop_result::quit )

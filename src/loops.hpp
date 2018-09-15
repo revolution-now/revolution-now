@@ -27,6 +27,7 @@ ND e_eot_loop_result loop_eot();
 
 enum class ND e_orders_loop_result {
   wait,
+  offboard,
   quit,
   moved
 };

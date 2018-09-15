@@ -116,6 +116,8 @@ public:
   void consume_mv_points( MovementPoints points );
   // Mark a unit as sentry.
   void sentry() { orders_ = e_unit_orders::sentry; }
+  // Clear a unit's orders (they will then wait for orders).
+  void clear_orders() { orders_ = e_unit_orders::none; }
 
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );

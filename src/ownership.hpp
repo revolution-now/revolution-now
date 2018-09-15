@@ -36,6 +36,10 @@ ND UnitIdVec units_int_rect( Rect const& rect );
 ND Coord coords_for_unit( UnitId id );
 ND OptCoord coords_for_unit_safe( UnitId id );
 
+// If the unit is being held as cargo then it will return the id
+// of the unit that is holding it; nullopt otherwise.
+OptUnitId is_unit_onboard( UnitId id );
+
 // Do not call directly. Changes a unit's ownership from whatever
 // it is (map or otherwise) to the map at the given coordinate.
 // It will always move the unit to the target square without
@@ -46,5 +50,9 @@ ND OptCoord coords_for_unit_safe( UnitId id );
 void ownership_change_to_map( UnitId id, Coord target );
 
 void ownership_change_to_cargo( UnitId new_holder, UnitId held );
+
+// Do not call directly. Removes unit from any ownership. Used
+// when transitioning ownership.
+void ownership_disown_unit( UnitId id );
 
 } // namespace rn
