@@ -86,6 +86,11 @@ void Unit::finish_turn() {
   check_invariants();
 }
 
+void Unit::unfinish_turn() {
+  ASSERT( !moved_this_turn() );
+  finished_turn_ = false;
+}
+
 // Returns true if the unit's orders are such that the unit may
 // physically move this turn, either by way of player input or
 // automatically, assuming it has movement points.

@@ -23,4 +23,3 @@ enum class ND e_turn_result {
 ND e_turn_result turn();
 
 } // namespace rn
-

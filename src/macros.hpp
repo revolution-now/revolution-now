@@ -32,6 +32,10 @@
   std::cerr <<  "WARNING:" << __FILE__ << ":" << __LINE__ \
             << ": "
 
+#define LOG( a ) \
+  std::cerr << "LOG:" << __FILE__ << ":" << __LINE__ \
+            << ": " << a << "\n"
+
 #define ASSERT( a ) \
   { if( !(a) ) DIE( TO_STRING( a ) " is false but should not be" ) }
 

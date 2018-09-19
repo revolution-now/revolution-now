@@ -112,6 +112,9 @@ public:
   void new_turn();
   // Marks unit as having finished processing this turn.
   void finish_turn();
+  // For units that have movement points left, one can call this
+  // to put them back into consideration for movement.
+  void unfinish_turn();
   // Called to consume movement points as a result of a move.
   void consume_mv_points( MovementPoints points );
   // Mark a unit as sentry.

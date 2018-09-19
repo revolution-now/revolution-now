@@ -163,8 +163,19 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
       // points are not consumed.
       for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
         auto& cargo_unit = unit_from_id( cargo_id );
-        if( !cargo_unit.moved_this_turn() )
+        if( !cargo_unit.moved_this_turn() ) {
           cargo_unit.clear_orders();
+          // In case the unit has already been processed in the
+          // turn loop and was passed over due to sentry status
+          // onboard (and therefore marked as having finished its
+          // turn) while still having movement points left. Since
+          // the unit is now being re-prioritized to the begin-
+          // ning of the turn loop, we need to mark it's turn as
+          // unfinished again this turn so that it will take or-
+          // ders otherwise it will just be passed over again
+          // this turn.
+          cargo_unit.unfinish_turn();
+        }
       }
       break;
   }
