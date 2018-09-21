@@ -23,7 +23,8 @@ namespace {
 
 } // namespace
 
-e_orders_loop_result loop_orders( UnitId id ) {
+e_orders_loop_result loop_orders(
+    UnitId id, std::function<void(UnitId)> prioritize ) {
   int frame_rate = 60;
   double frame_length_millis = 1000.0/frame_rate;
 
@@ -160,9 +161,17 @@ e_orders_loop_result loop_orders( UnitId id ) {
     if( delta < frame_length_millis )
       ::SDL_Delay( frame_length_millis - delta );
   }
-  // If we're here then the unit needs to be physically moved.
-  loop_mv_unit( id, move_desc.coords );
-  move_unit_to( id, move_desc.coords );
+  // Check if the unit is physicall moving; usually at this point
+  // it will be unless it is e.g. a ship offloading units.
+  if( coords_for_unit( id ) != move_desc.coords )
+    loop_mv_unit( id, move_desc.coords );
+  move_unit( id, move_desc );
+  for( auto id : move_desc.to_prioritize )
+    prioritize( id );
+  if( std::holds_alternative<e_unit_mv_good>( move_desc.desc ) )
+    if( std::get<e_unit_mv_good>( move_desc.desc ) ==
+        e_unit_mv_good::land_fall )
+      return e_orders_loop_result::offboard;
   return e_orders_loop_result::moved;
 }
 

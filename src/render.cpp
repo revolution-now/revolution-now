@@ -64,21 +64,24 @@ void render_world_viewport( OptUnitId blink_id ) {
       auto sy = Y(0)+(i-covered.y);
       auto sx = X(0)+(j-covered.x);
       render_sprite_grid( t, sy, sx, 0, 0 );
-      for( auto id : units_from_coord( i, j ) ) {
-        if( blink_id && Coord{i,j} == coords && id != *blink_id )
-          // Don't render other units in the same square as
-          // the one blinking.  Will have to revisit this once
-          // units board ships.
-          continue;
-        if( blink_id && id == *blink_id ) {
-          // Animate blinking
-          auto ticks = ::SDL_GetTicks();
-          if( ticks % 1000 < 500 )
-            continue;
+      // Don't render any units on the square of the blinkingone,
+      // including the blinking one itself.
+      if( !blink_id || Coord{i,j} != coords ) {
+        for( auto id : units_from_coord( i, j ) ) {
+          auto const& unit = unit_from_id( id );
+          render_sprite_grid(
+              unit.desc().tile, sy, sx, 0, 0 );
         }
-        auto const& unit = unit_from_id( id );
-        render_sprite_grid(
-            unit.desc().tile, sy, sx, 0, 0 );
+      }
+      // Render blinker last.
+      if( blink_id && Coord{i,j} == coords ) {
+        // Animate blinking
+        auto ticks = ::SDL_GetTicks();
+        if( ticks % 1000 > 500 ) {
+          auto const& unit = unit_from_id( *blink_id );
+          render_sprite_grid(
+              unit.desc().tile, sy, sx, 0, 0 );
+        }
       }
     }
   }

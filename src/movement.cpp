@@ -46,7 +46,7 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   MovementPoints cost( 1 );
 
   UnitMoveDesc result{
-    coords, false, e_unit_mv_good::map_to_map, cost, UnitId{0}
+    coords, false, e_unit_mv_good::map_to_map, cost, UnitId{0}, {}
   };
 
   if( unit.movement_points() < cost ) {
@@ -61,6 +61,25 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   auto& square = square_at( y, x );
 
   if( unit.desc().boat && square.land ) {
+    std::vector<UnitId> to_offload;
+    for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
+      auto const& cargo_unit = unit_from_id( cargo_id );
+      if( !cargo_unit.moved_this_turn() )
+        to_offload.push_back( cargo_id );
+    }
+    if( !to_offload.empty() ) {
+      // We have at least one unit in the cargo that is able to
+      // make landfall. So we will indicate that the unit is
+      // allowed to make this move, but we change the target
+      // square to where the unit currently is since it will
+      // not physically move.
+      result.desc = e_unit_mv_good::land_fall;
+      result.can_move = true;
+      result.coords = coords_for_unit( unit.id() );
+      result.movement_cost = 0;
+      result.to_prioritize = to_offload;
+      return result;
+    }
     result.desc = e_unit_mv_error::land_forbidden;
     return result;
   }
@@ -81,24 +100,35 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
         result.desc = e_unit_mv_good::board_ship;
         result.can_move = true;
         result.target_unit = ship_id;
+        result.to_prioritize = {ship_id};
         return result;
       }
     }
     result.desc = e_unit_mv_error::board_ship_full;
     return result;
   }
+
+  // `holder` will be a valid value if the unit is cargo of an-
+  // other unit; the holder's id in that case will be *holder.
+  auto holder = is_unit_onboard( unit.id() );
+  if( !unit.desc().boat && square.land && holder ) {
+    // We have a unit onboard a ship moving onto land.
+    result.desc = e_unit_mv_good::offboard_ship;
+    result.can_move = true;
+    return result;
+  }
+
   result.desc = e_unit_mv_good::map_to_map;
   result.can_move = true;
   return result;
 }
 
-void move_unit_to( UnitId id, Coord target ) {
+void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
   auto& unit = unit_from_id( id );
   ASSERT( !unit.moved_this_turn() );
 
   ASSERT( unit.orders() == e_unit_orders::none );
 
-  UnitMoveDesc move_desc = move_consequences( id, target );
   // Caller should have checked this.
   ASSERT( move_desc.can_move );
   ASSERT( holds_alternative<e_unit_mv_good>( move_desc.desc ) );
@@ -107,13 +137,46 @@ void move_unit_to( UnitId id, Coord target ) {
 
   switch( outcome ) {
     case e_unit_mv_good::map_to_map:
-      ownership_change_to_map( id, target );
+      // If it's a ship then sentry all its units before it moves.
+      if( unit.desc().boat ) {
+        for( UnitId id : unit.cargo().items_of_type<UnitId>() ) {
+          auto& cargo_unit = unit_from_id( id );
+          cargo_unit.sentry();
+        }
+      }
+      ownership_change_to_map( id, move_desc.coords );
       unit.consume_mv_points( move_desc.movement_cost );
       break;
     case e_unit_mv_good::board_ship:
       ownership_change_to_cargo( move_desc.target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
+      break;
+    case e_unit_mv_good::offboard_ship:
+      ownership_change_to_map( id, move_desc.coords );
+      unit.forfeight_mv_points();
+      ASSERT( unit.orders() == e_unit_orders::none );
+      break;
+    case e_unit_mv_good::land_fall:
+      // Just activate all the units on the ship that have not
+      // completed their turns. Note that the ship's movement
+      // points are not consumed.
+      for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
+        auto& cargo_unit = unit_from_id( cargo_id );
+        if( !cargo_unit.moved_this_turn() ) {
+          cargo_unit.clear_orders();
+          // In case the unit has already been processed in the
+          // turn loop and was passed over due to sentry status
+          // onboard (and therefore marked as having finished its
+          // turn) while still having movement points left. Since
+          // the unit is now being re-prioritized to the begin-
+          // ning of the turn loop, we need to mark it's turn as
+          // unfinished again this turn so that it will take or-
+          // ders otherwise it will just be passed over again
+          // this turn.
+          cargo_unit.unfinish_turn();
+        }
+      }
       break;
   }
 }

@@ -1,9 +1,9 @@
 Units on ships:
 
-  * Each time a ship moves, all the units it contains will have
+  ✓ Each time a ship moves, all the units it contains will have
     their orders changed to `sentry`, in case the player activated
     a unit but never moved it onto land.
-  * If a unit is activated on a ship and the ship is waiting for
+  ✓ If a unit is activated on a ship and the ship is waiting for
     orders and the player either hits `wait` or `pass` then this
     will not change the status of the unit in any way.
   * If a player clicks on a ship and actives units then their orders
@@ -11,36 +11,36 @@ Units on ships:
     they will ask for orders at some point before the end of the
     turn.  If this happens at the end of turn then the units will
     ask for orders next turn.
-  * If a unit is activated on a ship and is waiting for orders and
+  ✓ If a unit is activated on a ship and is waiting for orders and
     the user presses `wait` then the game will come back to the
     unit, assuming that the ship did not move in the mean time
     (which would have changed the unit back to `sentry`).
-  * If a unit is waiting for orders on a ship and the player hits
+  ✓ If a unit is waiting for orders on a ship and the player hits
     `pass` then the unit's orders will not change.
-  * If a unit is waiting for orders on a ship then the only valid
+  ✓ If a unit is waiting for orders on a ship then the only valid
     commands are: movement onto land, movement onto ship, wait,
     pass, sentry.
   * A unit waiting for orders on a ship cannot attack direcly from
     the ship (maybe a special unit could do this).
-  * A unit waiting for orders on a ship can move onto an adjacent
+  ✓ A unit waiting for orders on a ship can move onto an adjacent
     ship of the same nationality, which consumes all their movement
     points.
-  * When a unit boards a ship it consumes all their movement pts.
-  * When a unit offboards a ship it consumes all their movement pts.
+  ✓ When a unit boards a ship it consumes all their movement pts.
+  ✓ When a unit offboards a ship it consumes all their movement pts.
   * When a ship carrying units attempts to move onto land:
-     * The ships movement points are NOT consumed.
-     * If there are no units with movement points then nothing happens.
+     ✓ The ships movement points are NOT consumed.
+     ✓ If there are no units with movement points then nothing happens.
      * If there are units with movement points then:
         * A window pops up asking if we want to make landfall.
         * If yes, the following happens:
-            * All the units with movement points on the ship have
+            ✓ All the units with movement points on the ship have
               their orders cleared.
             * The first unit in the ship with movement
               points moves onto the land automatically.
-            * All the other units on the ship with movement points
+            ✓ All the other units on the ship with movement points
               are put on the priority list to take orders next.
-            * The ship itself is given a `wait` order automatically.
-            * As a consequence of the above, the next unit on board
+            ✓ The ship itself is given a `wait` order automatically.
+            ✓ As a consequence of the above, the next unit on board
               with movements points starts to blink.
 
 ================================================================

@@ -45,17 +45,22 @@ public:
 
   // May not need non-const iterators here.
 
-  //using iterator = std::vector<Cargo>::iterator;
+  using iterator = std::vector<Cargo>::iterator;
   using const_iterator = std::vector<Cargo>::const_iterator;
 
-  //iterator begin() { return items_.begin(); }
+  iterator begin() { return items_.begin(); }
   const_iterator cbegin() const { return items_.cbegin(); }
-  //iterator end() { return items_.end(); }
+  iterator end() { return items_.end(); }
   const_iterator cend() const { return items_.cend(); }
 
   int slots_occupied() const;
   int slots_remaining() const;
   int slots_total() const;
+
+  // For convenience. Iterates over all cargo items of a certain
+  // type.
+  template<typename T>
+  std::vector<T> items_of_type() const;
 
   //Cargo const& operator[]( int idx ) const;
 
@@ -66,6 +71,7 @@ private:
   // thing to the cargo.
   friend void ownership_change_to_cargo(
       UnitId new_holder, UnitId held );
+  friend void ownership_disown_unit( UnitId id );
 
   // Caller is expected to first check if these operations will
   // succeed; if they don't succed then an error will be thrown.
@@ -83,5 +89,18 @@ private:
   std::vector<Cargo> items_;
   int const slots_;
 };
+
+// For convenience. Iterates over all cargo items of a certain
+// type.
+template<typename T>
+std::vector<T> CargoHold::items_of_type() const {
+  std::vector<T> res;
+  for( auto const& item : items_ ) {
+    if( std::holds_alternative<T>( item ) ) {
+      res.push_back( std::get<T>( item ) );
+    }
+  }
+  return res;
+}
 
 } // namespace rn

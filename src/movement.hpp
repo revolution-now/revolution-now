@@ -16,18 +16,17 @@
 
 namespace rn {
 
-// The following two enums describe the possible outcomes of a
+// The following two enums describe the possible categories of a
 // hypothetical move of a unit from one square to another. The
 // game is designed so that only one of these can be true for a
-// given unit moving to a given square. Also, these are indepen-
-// dent of where the unit is coming from, i.e., they are only a
-// function of the target square of the move.
+// given unit moving to a given square.
 
 enum class ND e_unit_mv_good {
   map_to_map,
-  board_ship
-/*land_fall,
-  high_seas,
+  board_ship,
+  offboard_ship,
+  land_fall
+/*high_seas,
   dock,
   attack_nation,
   attack_tribe,
@@ -69,6 +68,10 @@ struct ND UnitMoveDesc {
   // be attacked, ship to be boarded, etc.  Not relevant
   // in all contexts.
   UnitId target_unit;
+  // Units that will be waiting for orders and which should be
+  // prioritized in the "orders" loop after this move is made.
+  // This field is only relevant for certain (valid) moves.
+  std::vector<UnitId> to_prioritize;
 };
 
 // Called at the beginning of each turn; marks all units
@@ -76,6 +79,6 @@ struct ND UnitMoveDesc {
 void reset_moves();
 
 ND UnitMoveDesc move_consequences( UnitId id, Coord coords );
-void move_unit_to( UnitId, Coord target );
+void move_unit( UnitId, UnitMoveDesc const& move_desc );
 
 } // namespace rn

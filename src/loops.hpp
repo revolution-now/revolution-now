@@ -14,6 +14,8 @@
 
 #include "unit.hpp"
 
+#include <functional>
+
 namespace rn {
 
 enum class ND e_eot_loop_result {
@@ -25,11 +27,16 @@ ND e_eot_loop_result loop_eot();
 
 enum class ND e_orders_loop_result {
   wait,
+  offboard,
   quit,
   moved
 };
 
-ND e_orders_loop_result loop_orders( UnitId id );
+// `prioritize` is a function that should be called if it is de-
+// cided (in the loop_orders function) that a unit needs to be
+// bumped to the front of the queue for accepting orders.
+ND e_orders_loop_result loop_orders(
+    UnitId id, std::function<void(UnitId)> prioritize );
 
 void loop_mv_unit( UnitId id, Coord target );
 
