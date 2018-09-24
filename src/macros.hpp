@@ -53,6 +53,16 @@
     DIE( TO_STRING( b ) " is false but should not be" ) \
   auto& a = *STRING_JOIN( __x, __LINE__ )
 
+// This takes care to only evaluate (b) once, since it may be
+// e.g. a function call. This function will evaluate (b) which is
+// expected to result in a value that can be tested for true'-
+// ness, and where a "true" value is interpreted as success. Oth-
+// erwise an error is thrown.
+#define ASSIGN_ASSERT( a, b ) \
+  auto a = b;                 \
+  if( !(a) )                  \
+    { DIE( TO_STRING( b ) " is false but should not be" ) }
+
 #define ASSERT_( a ) ASSERT( a, "" )
 #define ERROR( a ) ASSERT( false, a )
 
