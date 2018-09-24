@@ -30,17 +30,19 @@ namespace {
 } // namespace
 
 void render_panel() {
+  auto bottom_bar = Y( 0 ) + g_screen_height_tiles-1;
+  auto left_side = X( 0 ) + g_screen_width_tiles-6;
   // bottom edge
-  for( X i( 0 ); i < 22; ++i )
-    render_sprite_grid( g_tile::panel_edge_left, Y( 14 ), i, 1, 0 );
+  for( X i( 0 ); i-X( 0 ) < g_screen_width_tiles-6; ++i )
+    render_sprite_grid( g_tile::panel_edge_left, bottom_bar, i, 1, 0 );
   // left edge
-  for( Y i( 0 ); i < 14; ++i )
-    render_sprite_grid( g_tile::panel_edge_left, i, X( 22 ), 0, 0 );
+  for( Y i( 0 ); i-Y( 0 ) < g_screen_height_tiles-1; ++i )
+    render_sprite_grid( g_tile::panel_edge_left, i, left_side, 0, 0 );
   // bottom left corner of main panel
-  render_sprite_grid( g_tile::panel, Y( 14 ), X( 22 ), 0, 0 );
+  render_sprite_grid( g_tile::panel, bottom_bar, left_side, 0, 0 );
 
-  for( Y i( 0 ); i < 15; ++i )
-    for( X j( 23 ); j < 28; ++j )
+  for( Y i( 0 ); i-Y( 0 ) < g_screen_height_tiles; ++i )
+    for( X j( left_side+1 ); j-X( 0 ) < g_screen_width_tiles; ++j )
       render_sprite_grid( g_tile::panel, i, j, 0, 0 );
 }
 
