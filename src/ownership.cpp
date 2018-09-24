@@ -190,7 +190,8 @@ void ownership_change_to_cargo( UnitId new_holder, UnitId held ) {
 // of the unit that is holding it; nullopt otherwise.
 OptUnitId is_unit_onboard( UnitId id ) {
   auto opt_iter = has_key( holder_from_held, id );
-  return opt_iter ? optional( (**opt_iter).second ) : nullopt;
+  return opt_iter ? optional<UnitId>( (**opt_iter).second )
+                  : nullopt;
 }
 
 } // namespace rn

@@ -13,6 +13,8 @@
 #include "base-util.hpp"
 #include "macros.hpp"
 
+#include <unordered_map>
+
 using namespace std;
 
 namespace rn {
@@ -56,7 +58,7 @@ Unit::Unit( e_nation nation, e_unit_type type ) :
   orders_( e_unit_orders::none ),
   cargo_( desc_->cargo_slots ),
   nation_( nation ),
-  movement_points_( desc_->movement_points ),
+  movement_points_( unit_desc[type].movement_points ),
   finished_turn_( false )
 {}
 
