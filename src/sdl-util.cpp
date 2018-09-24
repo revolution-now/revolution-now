@@ -101,7 +101,7 @@ void create_window() {
   auto dm = get_current_display_mode();
 
   g_window = ::SDL_CreateWindow( string( g_window_title ).c_str(),
-    0, 0, dm.w/3*2, dm.h/3*2, flags );
+    0, 0, dm.w, dm.h, flags );
   if( !g_window )
     DIE( "failed to create window" );
 
@@ -142,6 +142,7 @@ void create_renderer() {
   //cout << "logical renderer height: " << height << "\n";
 
   ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
+  ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
 
   // +1 tile because we may need to draw a bit in excess of the
   // viewport window in order to facilitate smooth scrolling,
