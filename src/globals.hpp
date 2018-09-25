@@ -11,6 +11,7 @@
 #pragma once
 
 #include "core-config.hpp"
+#include "typed-int.hpp"
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -21,5 +22,13 @@ extern ::SDL_Window* g_window;
 extern ::SDL_Renderer* g_renderer;
 extern ::SDL_Texture* g_texture_world;
 
-} // namespace rn
+W screen_width_tiles();
+H screen_height_tiles();
+void set_screen_width_tiles( W w );
+void set_screen_height_tiles( H h );
 
+// At standard zoom, when tile size is (g_tile_width, g_tile_height);
+W viewport_width_tiles();
+H viewport_height_tiles();
+
+} // namespace rn

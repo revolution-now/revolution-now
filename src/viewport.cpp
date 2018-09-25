@@ -11,7 +11,7 @@
 *****************************************************************/
 #include "viewport.hpp"
 
-#include "global-constants.hpp"
+#include "globals.hpp"
 #include "macros.hpp"
 #include "world.hpp"
 
@@ -89,9 +89,9 @@ void SmoothViewport::advance( e_push_direction x_push,
 }
 
 double SmoothViewport::width_pixels() const {
-  return double( g_viewport_width_tiles*g_tile_width._ )/zoom_; }
+  return double( viewport_width_tiles()*g_tile_width._ )/zoom_; }
 double SmoothViewport::height_pixels() const {
-  return double( g_viewport_height_tiles*g_tile_height._ )/zoom_; }
+  return double( viewport_height_tiles()*g_tile_height._ )/zoom_; }
 double SmoothViewport::start_x() const {
   return center_x_ - width_pixels()/2.0; }
 double SmoothViewport::start_y() const {
@@ -183,15 +183,15 @@ Rect SmoothViewport::get_render_dest_rect() const {
   Rect dest;
   dest.x = 0;
   dest.y = 0;
-  dest.w = g_tile_width._*g_viewport_width_tiles;
-  dest.h = g_tile_height._*g_viewport_height_tiles;
+  dest.w = g_tile_width._*viewport_width_tiles();
+  dest.h = g_tile_height._*viewport_height_tiles();
   Rect viewport = get_bounds();
   auto [max_src_height, max_src_width] = world_size_pixels();
   if( viewport.w > max_src_width ) {
     double delta =
       (double( viewport.w - max_src_width )/
        double( viewport.w ))
-      *g_tile_width._*double( int( g_viewport_width_tiles ) )/2.0;
+      *g_tile_width._*double( int( viewport_width_tiles() ) )/2.0;
     dest.x += int( delta );
     dest.w -= int( delta*2 );
   }
@@ -199,7 +199,7 @@ Rect SmoothViewport::get_render_dest_rect() const {
     double delta =
       (double( viewport.h - max_src_height )/
        double( viewport.h ))
-      *g_tile_height._*double( int( g_viewport_height_tiles ) )/2.0;
+      *g_tile_height._*double( int( viewport_height_tiles() ) )/2.0;
     dest.y += int( delta );
     dest.h -= int( delta*2 );
   }

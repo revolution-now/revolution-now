@@ -34,9 +34,9 @@ int main( int, char** ) try {
   //(void)create_unit_on_map( e_unit_type::caravel, Y(2), X(2) );
 
   //while( turn() != e_turn_result::quit ) {}
-  turn();
+  (void)turn();
 
-  font_test();
+  //font_test();
 
   cleanup();
   return 0;

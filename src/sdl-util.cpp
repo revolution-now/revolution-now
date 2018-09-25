@@ -136,8 +136,8 @@ void create_renderer() {
   if( !g_renderer )
     DIE( "failed to create renderer" );
 
-  W width = g_tile_width._*g_screen_width_tiles;
-  H height = g_tile_height._*g_screen_height_tiles;
+  W width = g_tile_width._*screen_width_tiles();
+  H height = g_tile_height._*screen_height_tiles();
   //cout << "logical renderer width : " << width << "\n";
   //cout << "logical renderer height: " << height << "\n";
 
@@ -149,8 +149,8 @@ void create_renderer() {
   // though we shouldn't need more than 1 extra tile for that
   // purpose.  The *2 is so that we can accomodate the maximum
   // zoomed-out level which is .5.
-  width = g_tile_width._*2*(g_viewport_width_tiles + 1);
-  height = g_tile_height._*2*(g_viewport_height_tiles + 1);
+  width = g_tile_width._*2*(viewport_width_tiles() + 1);
+  height = g_tile_height._*2*(viewport_height_tiles() + 1);
   g_texture_world = ::SDL_CreateTexture( g_renderer,
       SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width._, height._ );
 }
