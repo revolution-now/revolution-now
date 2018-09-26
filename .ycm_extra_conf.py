@@ -11,27 +11,30 @@ def isMac():
 
 assert isLinux() or isMac()
 
-DEBUG    = False
 LOG_FILE = "/tmp/ycm-extra-conf-log.txt"
 LIB_DIR  = '.lib-linux64' if isLinux() else '.lib-osx'
-ISYSTEMS = []
 
-if isMac():
-    # To find these, do: echo | /path/to/clang++ -v -E -x c++ -
-    # Then take list of include paths for <...>.
-    ISYSTEMS = [
-        '/opt/local/libexec/llvm-6.0/include/c++/v1',
-        '/opt/local/libexec/llvm-6.0/lib/clang/6.0.1/include',
-        '/usr/include',
-        '/System/Library/Frameworks',
-        '/Library/Frameworks'
-        ]
-
+# cmd is a string with a shell command.
 def _run_cmd( cmd ):
-    p = sp.Popen( cmd, stdout=sp.PIPE, stderr=sp.PIPE )
+    p = sp.Popen( cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True )
     (stdout, stderr) = p.communicate()
     assert p.returncode == 0, 'error:\n%s' % stderr
     return stdout
+
+def find_system_include_paths( compiler_binary ):
+  cmd = 'echo | %s -v -E -x c++ - 2>&1' % compiler_binary
+  output = _run_cmd( cmd )
+  is_header = False
+  search_paths = []
+  # Print lines between the two marker patterns.
+  for line in output.split( '\n' ):
+    if 'End of search' in line:
+      is_header = False
+    if is_header:
+      search_paths.append( line.strip() )
+    if 'include <..' in line:
+      is_header = True
+  return search_paths
 
 def _make( path ):
 
@@ -48,28 +51,22 @@ def _make( path ):
     # -n : don't run the target, just print commands,
     # -B : act as if the target were out of date
     # V= : tells nr-make to not suppress command echoing
-    cmd = ['/usr/bin/make', '-nB', 'V=', target]
+    cmd = ['/usr/bin/make', 'USE_CLANG=', '-nB', 'V=', target]
 
-    stdout = _run_cmd( cmd )
+    stdout = _run_cmd( ' '.join( cmd ) )
 
     (line,) = [l for l in stdout.split( '\n' ) if target in l]
     words = line.split()
 
-    if ISYSTEMS:
-        words.extend( ['-isystem %s' % f for f in ISYSTEMS] )
+    # words[0] is assumed to contain the compiler binary.
+    isystems = find_system_include_paths( words[0] )
+    if isystems:
+        words.extend( ['-isystem %s' % f for f in isystems] )
 
     return ' '.join( words )
 
 def FlagsForFile( filename, **kwargs ):
-
-    flags = _make( filename )
-
-    if DEBUG:
-        with file( LOG_FILE, 'a' ) as f:
-            f.write( "-\nfilename: %s\n" % filename )
-            f.write( "cmd:      %s\n" % flags )
-
-    return { 'flags': flags.split() }
+    return { 'flags': _make( filename ).split() }
 
 if __name__ == '__main__':
     print ' '.join( FlagsForFile( sys.argv[1] )['flags'] )
