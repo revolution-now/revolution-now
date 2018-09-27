@@ -72,7 +72,9 @@ def _make( path ):
     # words[0] is assumed to contain the compiler binary.
     isystems = find_system_include_paths( words[0] )
     if isystems:
-        words.extend( ['-isystem %s' % f for f in isystems] )
+        # There MUST NOT be a space between -isystem and the
+        # path, otherwise it will be silently ignored!
+        words.extend( ['-isystem%s' % f for f in isystems] )
 
     return words
 
