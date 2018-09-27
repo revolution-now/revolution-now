@@ -173,7 +173,7 @@ pair<H,W> find_max_tile_sizes() {
   // non-integer values, and so that represents a key constraint
   // here. Hence we won't generally achieve the ideal tile size,
   // but should come close to it.
-  double ideal_tile_size_at_1ft = .25; // inches
+  double ideal_tile_size_at_1ft = .27; // inches
   ////////////////////////////////////////////////
 
   cout << "Finding optimal tile sizes:\n";
