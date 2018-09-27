@@ -117,9 +117,16 @@ double monitor_diagonal_length( float ddpi, ::SDL_DisplayMode dm ) {
   return double(int(length*2.0+.5))/2.0;
 }
 
-double monitor_inches() {
+// Get diagonal DPI of monitor. These seems to basically be the
+// same as the horizontal and vertical DPIs.
+double monitor_ddpi() {
   float ddpi;
   ASSERT( !::SDL_GetDisplayDPI( 0, &ddpi, NULL, NULL ) );
+  return ddpi;
+}
+
+double monitor_inches() {
+  float ddpi = monitor_ddpi();
   SDL_DisplayMode dm;
   SDL_GetCurrentDisplayMode(0, &dm);
   return monitor_diagonal_length( ddpi, dm );
@@ -156,49 +163,72 @@ void print_video_stats() {
 }
 
 pair<H,W> find_max_tile_sizes() {
-  bool monitor_size_small = monitor_inches() < 18;
-  // This is a magic number chosen that seems to lead to good
-  // behavior on monitors of varying sizes and aspect ratios.
-  double ideal_mean_small = 19;
+  // We want ideally to have a tile whose side is this length in
+  // inches. The algorithm that follows will try to find an
+  // integer scaling factor (and associated maximal screen width
+  // and height in tiles) such that a) tiles are square, tiles
+  // side lengths are as close as possible to this length in
+  // inches, and c) as much of the screen is covered as possible.
+  // Note that we have opted to avoid scaling the tile grid by
+  // non-integer values, and so that represents a key constraint
+  // here. Hence we won't generally achieve the ideal tile size,
+  // but should come close to it.
+  double ideal_tile_size_at_1ft = .25; // inches
   ////////////////////////////////////////////////
-  cout << "Finding max tile sizes:\n";
+
+  cout << "Finding optimal tile sizes:\n";
   auto dm = get_current_display_mode();
   optional<pair<H,W>> res;
-  double min_weight = -1000000;
-  int col = 16;
-  cout << setw( 3 ) << "#" << setw( col ) << "Possibility" << setw( col )
-       << "Eff. Resolution" << setw( col ) << "Total Tiles"
-       << setw( col ) << "Geo Mean" << setw( col ) << "Weight"
-       << "\n";
-  int possibility = 1;
-  int chosen = -1;
-  double ideal_mean = monitor_size_small
-                    ? ideal_mean_small
-                    : ideal_mean_small*2;
-  for( int scale = 10; scale >= 1; --scale ) {
-    cout << setw( 3 ) << possibility;
+  double min_score = -1.0/0.0; // make -infinity
+  int col = 18;
+  double monitor_size = monitor_inches();
+  double ddpi = monitor_ddpi();
+  cout << "\n  " << setw( 3 ) << "#" << setw( col ) << "Possibility"
+       << setw( col ) << "Resolution" << setw( col )
+       << "Tile-Size-Screen" << setw( col ) << "Tile-Size-@1ft"
+       << setw( col ) << "Score" << "\n";
+  int chosen_scale = -1;
+  for( int scale = 1; scale <= 10; ++scale ) {
+    cout << "  " << setw( 3 ) << scale;
     W max_width{dm.w/scale - ((dm.w/scale) % 32 )};
     H max_height{dm.h/scale - ((dm.h/scale) % 32 )};
-    double geo_mean = ::sqrt( (max_height/32)._*(max_width/32)._ );
     ostringstream ss;
     ss << max_width/32 << "x" << max_height/32;
     cout << setw( col ) << ss.str();
     ss.str( "" );
     ss << max_width << "x" << max_height;
     cout << setw( col ) << ss.str();
-    cout << setw( col ) << geo_mean << setw( col ) << geo_mean;
-    double weight = (-::pow( geo_mean-ideal_mean, 2.0 ))/100.0*100;
-    cout << setw( col ) << int( weight );
+
+    // Tile size in inches if it were measured on the surface of
+    // the screen.
+    double tile_size_actual = scale*g_tile_width._/ddpi;
+    cout << setw( col ) << tile_size_actual;
+    // Assume viewer's distance from screen is approximately the
+    // diagonal length of the screen.
+    double viewer_distance = monitor_size;
+    double one_foot = 12.0;
+    // This is the apparent size in inches of a tile when it is
+    // measure by a ruler that is placed one foot in front of the
+    // viewer's eye.
+    double perceived_size_1ft =
+      tile_size_actual/viewer_distance*one_foot;
+    cout << setw( col ) << perceived_size_1ft;
+
+    // Parabola, concave-downward, centered on ideal value.
+    // Essentially this gives less weight the further we move
+    // away from the ideal.
+    double score = -::pow(
+        perceived_size_1ft-ideal_tile_size_at_1ft, 2.0 );
+    cout << setw( col ) << score;
     cout << "\n";
-    if( weight >= min_weight ) {
+    if( score >= min_score ) {
       res = {max_height/32,max_width/32};
-      min_weight = weight;
-      chosen = possibility;
+      min_score = score;
+      chosen_scale = scale;
     }
-    ++possibility;
   }
   ASSERT( res );
-  cout << "chose " << chosen << "\n";
+  cout << "\n  Optimal: #" << chosen_scale << "\n";
   return *res;
 }
 
