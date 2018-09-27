@@ -36,7 +36,7 @@ int main( int, char** ) try {
   //while( turn() != e_turn_result::quit ) {}
   (void)turn();
 
-  //font_test();
+  font_test();
 
   cleanup();
   return 0;

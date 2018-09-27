@@ -141,7 +141,7 @@ pair<H,W> find_max_tile_sizes() {
   optional<pair<H,W>> res;
   double min_weight = -1000000;
   int col = 16;
-  cout << "#." << setw( col ) << "Possibility" << setw( col )
+  cout << setw( 3 ) << "#" << setw( col ) << "Possibility" << setw( col )
        << "Eff. Resolution" << setw( col ) << "Geometric Mean"
        << setw( col ) << "Sqrt Geo Mean" << setw( col ) << "Weight"
        << setw( col ) << "Weight-sqrt" << "\n";
@@ -152,7 +152,7 @@ pair<H,W> find_max_tile_sizes() {
                  : ideal_mean_small*2;
   int ideal_square = ideal_mean*ideal_mean;
   for( int scale = 10; scale >= 1; --scale ) {
-    cout << possibility << ".";
+    cout << setw( 3 ) << possibility;
     W max_width{dm.w/scale - ((dm.w/scale) % 32 )};
     H max_height{dm.h/scale - ((dm.h/scale) % 32 )};
     double geo_mean = (max_height/32)._*(max_width/32)._;
