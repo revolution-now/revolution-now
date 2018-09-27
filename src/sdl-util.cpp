@@ -112,9 +112,9 @@ void create_window() {
 }
 
 double monitor_diagonal_length( float ddpi, ::SDL_DisplayMode dm ) {
-  double length = ::sqrt( ::pow( dm.w, 2.0 ) + ::pow( dm.h, 2.0 ) )/ddpi;
+  double length = sqrt( pow( dm.w, 2.0 ) + pow( dm.h, 2.0 ) )/ddpi;
   // Round to hearest 1/2 inch.
-  return double(int(int(length*2.0)+1.0))/2.0;
+  return double(int(length*2.0+.5))/2.0;
 }
 
 double monitor_inches() {
@@ -138,27 +138,21 @@ void print_video_stats() {
   cout << "GetCurrentDisplayMode:\n";
   SDL_GetCurrentDisplayMode(0, &dm);
   cout << "  " << dm << "\n";
-  cout << "  " << "Diag. Monitor len. from ddpi: "
-       << monitor_diagonal_length( ddpi, dm ) << "\n";
 
   cout << "GetDesktopDisplayMode:\n";
   SDL_GetDesktopDisplayMode( 0, &dm );
   cout << "  " << dm << "\n";
-  cout << "  " << "Diag. Monitor len. from ddpi: "
-       << monitor_diagonal_length( ddpi, dm ) << "\n";
 
   cout << "GetDisplayMode:\n";
   SDL_GetDisplayMode( 0, 0, &dm );
   cout << "  " << dm << "\n";
-  cout << "  " << "Diag. Monitor len. from ddpi: "
-       << monitor_diagonal_length( ddpi, dm ) << "\n";
 
   SDL_Rect r;
   cout << "GetDisplayBounds:\n";
   SDL_GetDisplayBounds( 0, &r );
   cout << "  " << r << "\n";
-  cout << "  " << "Diag. Monitor len. from ddpi: "
-       << monitor_diagonal_length( ddpi, dm ) << "\n";
+
+  cout << "Monitor Diagonal Length: " << monitor_inches() << "in." << "\n";
 }
 
 pair<H,W> find_max_tile_sizes() {
