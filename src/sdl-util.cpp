@@ -157,10 +157,9 @@ void print_video_stats() {
 
 pair<H,W> find_max_tile_sizes() {
   bool monitor_size_small = monitor_inches() < 18;
-  // This number is computed by taking the geometric mean of the
-  // tile width and tile height of the full screen on the
-  // original game.
-  double ideal_mean_small = 15;
+  // This is a magic number chosen that seems to lead to good
+  // behavior on monitors of varying sizes and aspect ratios.
+  double ideal_mean_small = 17;
   ////////////////////////////////////////////////
   cout << "Finding max tile sizes:\n";
   auto dm = get_current_display_mode();
