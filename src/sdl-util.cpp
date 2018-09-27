@@ -159,7 +159,7 @@ pair<H,W> find_max_tile_sizes() {
   bool monitor_size_small = monitor_inches() < 18;
   // This is a magic number chosen that seems to lead to good
   // behavior on monitors of varying sizes and aspect ratios.
-  double ideal_mean_small = 17;
+  double ideal_mean_small = 19;
   ////////////////////////////////////////////////
   cout << "Finding max tile sizes:\n";
   auto dm = get_current_display_mode();
