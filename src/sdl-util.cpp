@@ -111,30 +111,62 @@ void create_window() {
   //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );
 }
 
+double monitor_diagonal_length( float ddpi, ::SDL_DisplayMode dm ) {
+  double length = ::sqrt( ::pow( dm.w, 2.0 ) + ::pow( dm.h, 2.0 ) )/ddpi;
+  // Round to hearest 1/2 inch.
+  return double(int(int(length*2.0)+1.0))/2.0;
+}
+
+double monitor_inches() {
+  float ddpi;
+  ASSERT( !::SDL_GetDisplayDPI( 0, &ddpi, NULL, NULL ) );
+  SDL_DisplayMode dm;
+  SDL_GetCurrentDisplayMode(0, &dm);
+  return monitor_diagonal_length( ddpi, dm );
+}
+
 void print_video_stats() {
+  float ddpi, hdpi, vdpi;
+  ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
+  cout << "GetDisplayDPI:\n";
+  cout << "  ddpi: " << ddpi << "\n";
+  cout << "  hdpi: " << hdpi << "\n";
+  cout << "  vdpi: " << vdpi << "\n";
+
   SDL_DisplayMode dm;
 
   cout << "GetCurrentDisplayMode:\n";
   SDL_GetCurrentDisplayMode(0, &dm);
   cout << "  " << dm << "\n";
+  cout << "  " << "Diag. Monitor len. from ddpi: "
+       << monitor_diagonal_length( ddpi, dm ) << "\n";
 
   cout << "GetDesktopDisplayMode:\n";
   SDL_GetDesktopDisplayMode( 0, &dm );
   cout << "  " << dm << "\n";
+  cout << "  " << "Diag. Monitor len. from ddpi: "
+       << monitor_diagonal_length( ddpi, dm ) << "\n";
 
   cout << "GetDisplayMode:\n";
   SDL_GetDisplayMode( 0, 0, &dm );
   cout << "  " << dm << "\n";
+  cout << "  " << "Diag. Monitor len. from ddpi: "
+       << monitor_diagonal_length( ddpi, dm ) << "\n";
 
   SDL_Rect r;
   cout << "GetDisplayBounds:\n";
   SDL_GetDisplayBounds( 0, &r );
   cout << "  " << r << "\n";
+  cout << "  " << "Diag. Monitor len. from ddpi: "
+       << monitor_diagonal_length( ddpi, dm ) << "\n";
 }
 
 pair<H,W> find_max_tile_sizes() {
-  bool monitor_size_small = true;
-  int ideal_mean_small = 20;
+  bool monitor_size_small = monitor_inches() < 18;
+  // This number is computed by taking the geometric mean of the
+  // tile width and tile height of the full screen on the
+  // original game.
+  double ideal_mean_small = 15;
   ////////////////////////////////////////////////
   cout << "Finding max tile sizes:\n";
   auto dm = get_current_display_mode();
@@ -142,32 +174,28 @@ pair<H,W> find_max_tile_sizes() {
   double min_weight = -1000000;
   int col = 16;
   cout << setw( 3 ) << "#" << setw( col ) << "Possibility" << setw( col )
-       << "Eff. Resolution" << setw( col ) << "Geometric Mean"
-       << setw( col ) << "Sqrt Geo Mean" << setw( col ) << "Weight"
-       << setw( col ) << "Weight-sqrt" << "\n";
+       << "Eff. Resolution" << setw( col ) << "Total Tiles"
+       << setw( col ) << "Geo Mean" << setw( col ) << "Weight"
+       << "\n";
   int possibility = 1;
   int chosen = -1;
-  int ideal_mean = monitor_size_small
-                 ? ideal_mean_small
-                 : ideal_mean_small*2;
-  int ideal_square = ideal_mean*ideal_mean;
+  double ideal_mean = monitor_size_small
+                    ? ideal_mean_small
+                    : ideal_mean_small*2;
   for( int scale = 10; scale >= 1; --scale ) {
     cout << setw( 3 ) << possibility;
     W max_width{dm.w/scale - ((dm.w/scale) % 32 )};
     H max_height{dm.h/scale - ((dm.h/scale) % 32 )};
-    double geo_mean = (max_height/32)._*(max_width/32)._;
-    double sqrt_geo_mean = ::sqrt( geo_mean );
+    double geo_mean = ::sqrt( (max_height/32)._*(max_width/32)._ );
     ostringstream ss;
     ss << max_width/32 << "x" << max_height/32;
     cout << setw( col ) << ss.str();
     ss.str( "" );
     ss << max_width << "x" << max_height;
     cout << setw( col ) << ss.str();
-    cout << setw( col ) << geo_mean << setw( col ) << sqrt_geo_mean;
-    double weight = (-::pow(geo_mean-ideal_square, 2.0))/10000.0*100;
-    double weight_sqrt = (-::pow(sqrt_geo_mean-ideal_mean, 2.0))/100.0*100;
+    cout << setw( col ) << geo_mean << setw( col ) << geo_mean;
+    double weight = (-::pow( geo_mean-ideal_mean, 2.0 ))/100.0*100;
     cout << setw( col ) << int( weight );
-    cout << setw( col ) << int( weight_sqrt );
     cout << "\n";
     if( weight >= min_weight ) {
       res = {max_height/32,max_width/32};
