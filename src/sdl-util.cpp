@@ -173,7 +173,18 @@ pair<H,W> find_max_tile_sizes() {
   // non-integer values, and so that represents a key constraint
   // here. Hence we won't generally achieve the ideal tile size,
   // but should come close to it.
-  double ideal_tile_size_at_1ft = .27; // inches
+  double ideal_tile_size_at_1ft = .25; // inches
+  auto compute_viewer_distance = []( double monitor_size ){
+    // Determined empirically; viewer distance from screen seems
+    // to scale linearly with screen size, down to a certain
+    // minimum distance.
+    return max( 1.25*monitor_size, 18.0 );
+  };
+  // Seems sensible for the tiles to be within these bounds.  The
+  // scoring function used would otherwise select these in some
+  // cases
+  double minimum_perceived_tile_width = 0.2; // inches
+  double maximum_perceived_tile_width = 2.0; // inches
   ////////////////////////////////////////////////
 
   cout << "Finding optimal tile sizes:\n";
@@ -182,6 +193,8 @@ pair<H,W> find_max_tile_sizes() {
   double min_score = -1.0/0.0; // make -infinity
   int col = 18;
   double monitor_size = monitor_inches();
+  cout << "Computed Viewer Distance from Screen: "
+       << compute_viewer_distance( monitor_size ) << "in.\n";
   double ddpi = monitor_ddpi();
   cout << "\n  " << setw( 3 ) << "#" << setw( col ) << "Possibility"
        << setw( col ) << "Resolution" << setw( col )
@@ -203,9 +216,10 @@ pair<H,W> find_max_tile_sizes() {
     // the screen.
     double tile_size_actual = scale*g_tile_width._/ddpi;
     cout << setw( col ) << tile_size_actual;
-    // Assume viewer's distance from screen is approximately the
-    // diagonal length of the screen.
-    double viewer_distance = monitor_size;
+    // Estimate the viewer's distance from the screen based on
+    // its size and some other assumptions.
+    double viewer_distance =
+      compute_viewer_distance( monitor_size );
     double one_foot = 12.0;
     // This is the apparent size in inches of a tile when it is
     // measure by a ruler that is placed one foot in front of the
@@ -217,8 +231,14 @@ pair<H,W> find_max_tile_sizes() {
     // Parabola, concave-downward, centered on ideal value.
     // Essentially this gives less weight the further we move
     // away from the ideal.
-    double score = -::pow(
-        perceived_size_1ft-ideal_tile_size_at_1ft, 2.0 );
+    double score = -::abs(
+        perceived_size_1ft-ideal_tile_size_at_1ft );//, 2.0 );
+    // If the tile size is smaller than a minimum cutoff then
+    // we will avoid selecting it by giving it a score smaller
+    // than any other.
+    if( perceived_size_1ft < minimum_perceived_tile_width ||
+        perceived_size_1ft > maximum_perceived_tile_width )
+      score = -1.0/0.0;
     cout << setw( col ) << score;
     cout << "\n";
     if( score >= min_score ) {
