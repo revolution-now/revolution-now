@@ -21,6 +21,9 @@
 
 #include <SDL_mixer.h>
 
+#include <iomanip>
+#include <sstream>
+
 using namespace std;
 
 ostream& operator<<( ostream& out, ::SDL_Rect const& r ) {
@@ -130,27 +133,52 @@ void print_video_stats() {
 }
 
 pair<H,W> find_max_tile_sizes() {
+  bool monitor_size_small = true;
+  int ideal_mean_small = 20;
+  ////////////////////////////////////////////////
   cout << "Finding max tile sizes:\n";
   auto dm = get_current_display_mode();
-  int scale = 3;
-  W max_width{dm.w/scale - ((dm.w/scale) % 32 )};
-  H max_height{dm.h/scale - ((dm.h/scale) % 32 )};
-  cout << "setting screen sizes: " << max_width/32 << "x" << max_height/32 << "\n";
-  return {max_height/32,max_width/32};
-
-  //for( int i = 1; i < 10; ++i ) {
-  //  cout << "  trying scale == " << i << "\n";
-  //  W max_width{dm.w/2 - ((dm.w/2) % 32 )};
-  //  H max_height{dm.h/2 - ((dm.h/2) % 32 )};
-  //  cout << "  max width/height: " << max_width << "x" << max_height << "\n";
-  //  if( max_width._ % (32*i) == 0 && max_height._ % (32*i) == 0 ) {
-  //    W tile_width{max_width/(32*i)};
-  //    H tile_height{max_height/(32*i)};
-  //    cout << "    scale: " << i << ", " << tile_width << "x" << tile_height << "\n";
-  //    cout << "      effective res: " << tile_width*32 << "x" << tile_height*32 << "\n";
-  //  }
-  //}
-  //return {};
+  optional<pair<H,W>> res;
+  double min_weight = -1000000;
+  int col = 16;
+  cout << "#." << setw( col ) << "Possibility" << setw( col )
+       << "Eff. Resolution" << setw( col ) << "Geometric Mean"
+       << setw( col ) << "Sqrt Geo Mean" << setw( col ) << "Weight"
+       << setw( col ) << "Weight-sqrt" << "\n";
+  int possibility = 1;
+  int chosen = -1;
+  int ideal_mean = monitor_size_small
+                 ? ideal_mean_small
+                 : ideal_mean_small*2;
+  int ideal_square = ideal_mean*ideal_mean;
+  for( int scale = 10; scale >= 1; --scale ) {
+    cout << possibility << ".";
+    W max_width{dm.w/scale - ((dm.w/scale) % 32 )};
+    H max_height{dm.h/scale - ((dm.h/scale) % 32 )};
+    double geo_mean = (max_height/32)._*(max_width/32)._;
+    double sqrt_geo_mean = ::sqrt( geo_mean );
+    ostringstream ss;
+    ss << max_width/32 << "x" << max_height/32;
+    cout << setw( col ) << ss.str();
+    ss.str( "" );
+    ss << max_width << "x" << max_height;
+    cout << setw( col ) << ss.str();
+    cout << setw( col ) << geo_mean << setw( col ) << sqrt_geo_mean;
+    double weight = (-::pow(geo_mean-ideal_square, 2.0))/10000.0*100;
+    double weight_sqrt = (-::pow(sqrt_geo_mean-ideal_mean, 2.0))/100.0*100;
+    cout << setw( col ) << int( weight );
+    cout << setw( col ) << int( weight_sqrt );
+    cout << "\n";
+    if( weight >= min_weight ) {
+      res = {max_height/32,max_width/32};
+      min_weight = weight;
+      chosen = possibility;
+    }
+    ++possibility;
+  }
+  ASSERT( res );
+  cout << "chose " << chosen << "\n";
+  return *res;
 }
 
 void create_renderer() {
