@@ -21,6 +21,17 @@ def _run_cmd( cmd ):
     assert p.returncode == 0, 'error:\n%s' % stderr
     return stdout
 
+# Normally when calling a compiler it has a set of built-in
+# header search paths where it looks for its standard headers
+# that will be used automatically without having to explicitly
+# specify them with -I on the compile commandline. However, when
+# calling libclang.so it will not autmatically use those. This is
+# bad because YCM will try to deduce what they are and then ap-
+# pend them (with -isystem ...) to the commandline which can mess
+# things up when it gets it wrong. So in this function we invoke
+# the compiler binary and get it to tell us what the search paths
+# are so we can later append them manually to the commandline
+# with -isystem.
 def find_system_include_paths( compiler_binary ):
   cmd = 'echo | %s -v -E -x c++ - 2>&1' % compiler_binary
   output = _run_cmd( cmd )
@@ -63,10 +74,13 @@ def _make( path ):
     if isystems:
         words.extend( ['-isystem %s' % f for f in isystems] )
 
-    return ' '.join( words )
+    return words
 
 def FlagsForFile( filename, **kwargs ):
-    return { 'flags': _make( filename ).split() }
+    return { 'flags': _make( filename ) }
 
 if __name__ == '__main__':
-    print ' '.join( FlagsForFile( sys.argv[1] )['flags'] )
+    flags = FlagsForFile( sys.argv[1] )['flags']
+    print flags[0]
+    for flag in flags[1:]:
+        print ' ', flag
