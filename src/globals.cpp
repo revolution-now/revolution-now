@@ -17,8 +17,8 @@ namespace rn {
 
 namespace {
 
-W g_screen_width_tiles{28}; //{48};
-H g_screen_height_tiles{15}; //{26};
+W g_screen_width_tiles{11};
+H g_screen_height_tiles{6};
 
 W g_panel_width_tiles{6};
 

@@ -12,12 +12,12 @@
 #include <vector>
 
 #include "sdl-util.hpp"
-#include "sound.hpp"
 
 #include "base-util.hpp"
-#include "globals.hpp"
 #include "global-constants.hpp"
+#include "globals.hpp"
 #include "macros.hpp"
+#include "sound.hpp"
 
 #include <SDL_mixer.h>
 
@@ -57,7 +57,7 @@ SDL_DisplayMode get_current_display_mode() {
 void init_game() {
   rn::init_sdl();
   rn::create_window();
-  //rn::print_video_stats();
+  rn::print_video_stats();
   rn::create_renderer();
 }
 
@@ -129,12 +129,40 @@ void print_video_stats() {
   cout << "  " << r << "\n";
 }
 
+pair<H,W> find_max_tile_sizes() {
+  cout << "Finding max tile sizes:\n";
+  auto dm = get_current_display_mode();
+  int scale = 3;
+  W max_width{dm.w/scale - ((dm.w/scale) % 32 )};
+  H max_height{dm.h/scale - ((dm.h/scale) % 32 )};
+  cout << "setting screen sizes: " << max_width/32 << "x" << max_height/32 << "\n";
+  return {max_height/32,max_width/32};
+
+  //for( int i = 1; i < 10; ++i ) {
+  //  cout << "  trying scale == " << i << "\n";
+  //  W max_width{dm.w/2 - ((dm.w/2) % 32 )};
+  //  H max_height{dm.h/2 - ((dm.h/2) % 32 )};
+  //  cout << "  max width/height: " << max_width << "x" << max_height << "\n";
+  //  if( max_width._ % (32*i) == 0 && max_height._ % (32*i) == 0 ) {
+  //    W tile_width{max_width/(32*i)};
+  //    H tile_height{max_height/(32*i)};
+  //    cout << "    scale: " << i << ", " << tile_width << "x" << tile_height << "\n";
+  //    cout << "      effective res: " << tile_width*32 << "x" << tile_height*32 << "\n";
+  //  }
+  //}
+  //return {};
+}
+
 void create_renderer() {
   g_renderer = SDL_CreateRenderer( g_window, -1,
       SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 
   if( !g_renderer )
     DIE( "failed to create renderer" );
+
+  auto screen_sizes = find_max_tile_sizes();
+  set_screen_width_tiles( screen_sizes.second );
+  set_screen_height_tiles( screen_sizes.first );
 
   W width = g_tile_width._*screen_width_tiles();
   H height = g_tile_height._*screen_height_tiles();

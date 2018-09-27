@@ -152,7 +152,6 @@ void SmoothViewport::enforce_invariants() {
 // Tiles touched by the viewport (tiles at the edge may only be
 // partially visible).
 Rect SmoothViewport::covered_tiles() const {
-  // Probably can remove eventually
   ASSERT( start_tile_x() >= 0 );
   ASSERT( start_tile_y() >= 0 );
 
