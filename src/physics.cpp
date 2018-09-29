@@ -24,7 +24,7 @@ namespace {
 
 void DissipativeVelocity::set_bounds(
     double min_velocity, double max_velocity ) {
-  ASSERT( min_velocity < max_velocity );
+  CHECK( min_velocity < max_velocity );
   min_velocity_ = min_velocity;
   max_velocity_ = max_velocity;
   if( velocity_ < min_velocity )
@@ -38,8 +38,8 @@ void DissipativeVelocity::set_accelerations(
   accel_ = accel;
   drag_accel_ = drag_accel;
   // We must have 0 <= drag_accel_ < accel_
-  ASSERT( drag_accel_ >= 0 );
-  ASSERT( accel_ >= drag_accel_ );
+  CHECK( drag_accel_ >= 0 );
+  CHECK( accel_ >= drag_accel_ );
 }
 
 DissipativeVelocity::DissipativeVelocity(

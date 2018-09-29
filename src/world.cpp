@@ -132,7 +132,7 @@ OptSquareCRef square_at_safe( Y y, X x ) {
 
 Square const& square_at( Y y, X x ) {
   auto res = square_at_safe( y, x );
-  ASSERT( res );
+  CHECK( res );
   return *res;
 }
 

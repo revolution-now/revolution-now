@@ -28,7 +28,7 @@ namespace {
 
 void stop_music_if_playing() {
   if( ::Mix_PlayingMusic() ) {
-    ASSERT( current_music );
+    CHECK( current_music );
     ::Mix_HaltMusic();
     ::Mix_FreeMusic( current_music );
     current_music = nullptr;

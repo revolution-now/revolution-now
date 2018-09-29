@@ -41,7 +41,7 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   X x = coords.x;
 
   auto& unit = unit_from_id( id );
-  ASSERT( !unit.moved_this_turn() );
+  CHECK( !unit.moved_this_turn() );
 
   MovementPoints cost( 1 );
 
@@ -94,7 +94,7 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
     // first one (if any) that the unit can board.
     for( auto ship_id : ships ) {
       auto const& ship_unit = unit_from_id( ship_id );
-      ASSERT( ship_unit.desc().boat );
+      CHECK( ship_unit.desc().boat );
       auto& cargo = ship_unit.cargo();
       if( cargo.fits( id ) ) {
         result.desc = e_unit_mv_good::board_ship;
@@ -125,13 +125,13 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
 
 void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
   auto& unit = unit_from_id( id );
-  ASSERT( !unit.moved_this_turn() );
+  CHECK( !unit.moved_this_turn() );
 
-  ASSERT( unit.orders() == e_unit_orders::none );
+  CHECK( unit.orders() == e_unit_orders::none );
 
   // Caller should have checked this.
-  ASSERT( move_desc.can_move );
-  ASSERT( holds_alternative<e_unit_mv_good>( move_desc.desc ) );
+  CHECK( move_desc.can_move );
+  CHECK( holds_alternative<e_unit_mv_good>( move_desc.desc ) );
 
   e_unit_mv_good outcome = get<e_unit_mv_good>( move_desc.desc );
 
@@ -155,7 +155,7 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
     case e_unit_mv_good::offboard_ship:
       ownership_change_to_map( id, move_desc.coords );
       unit.forfeight_mv_points();
-      ASSERT( unit.orders() == e_unit_orders::none );
+      CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_unit_mv_good::land_fall:
       // Just activate all the units on the ship that have not

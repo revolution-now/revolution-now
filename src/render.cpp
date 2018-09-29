@@ -60,7 +60,7 @@ void render_world_viewport( OptUnitId blink_id ) {
   for( Y i = covered.y; i < covered.y+covered.h; ++i ) {
     for( X j = covered.x; j < covered.x+covered.w; ++j ) {
       auto s_ = square_at_safe( i, j);
-      ASSERT( s_ );
+      CHECK( s_ );
       Square const& s = *s_;
       g_tile t = s.land ? g_tile::land : g_tile::water;
       auto sy = Y(0)+(i-covered.y);
@@ -112,7 +112,7 @@ void render_world_viewport_mv_unit( UnitId mv_id, Coord target, double percent )
   for( Y i = covered.y; i < covered.y+covered.h; ++i ) {
     for( X j = covered.x; j < covered.x+covered.w; ++j ) {
       auto s_ = square_at_safe( i, j );
-      ASSERT( s_ );
+      CHECK( s_ );
       Square const& s = *s_;
       g_tile t = s.land ? g_tile::land : g_tile::water;
       auto sy = Y(0)+(i-covered.y);
@@ -131,8 +131,8 @@ void render_world_viewport_mv_unit( UnitId mv_id, Coord target, double percent )
   Coord coords = coords_for_unit( mv_id );
   W delta_x = target.x-coords.x;
   H delta_y = target.y-coords.y;
-  ASSERT( -1 <= delta_x && delta_x <= 1 );
-  ASSERT( -1 <= delta_y && delta_y <= 1 );
+  CHECK( -1 <= delta_x && delta_x <= 1 );
+  CHECK( -1 <= delta_y && delta_y <= 1 );
   W pixel_delta_x = W( (delta_x*g_tile_width)._*percent );
   H pixel_delta_y = H( (delta_y*g_tile_height)._*percent );
 

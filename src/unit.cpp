@@ -69,7 +69,7 @@ void Unit::check_invariants() const { }
 void Unit::forfeight_mv_points() {
   // This function doesn't necessarily have to be responsible for
   // checking this, but it may end up catching some problems.
-  ASSERT( !moved_this_turn() );
+  CHECK( !moved_this_turn() );
   movement_points_ = 0;
   check_invariants();
 }
@@ -83,13 +83,13 @@ void Unit::new_turn() {
 
 // Marks unit as having finished processing this turn.
 void Unit::finish_turn() {
-  ASSERT( !finished_turn_ );
+  CHECK( !finished_turn_ );
   finished_turn_ = true;
   check_invariants();
 }
 
 void Unit::unfinish_turn() {
-  ASSERT( !moved_this_turn() );
+  CHECK( !moved_this_turn() );
   finished_turn_ = false;
 }
 
@@ -110,7 +110,7 @@ bool Unit::orders_mean_input_required() const {
 // Called to consume movement points as a result of a move.
 void Unit::consume_mv_points( MovementPoints points ) {
   movement_points_ -= points;
-  ASSERT( movement_points_ >= 0 );
+  CHECK( movement_points_ >= 0 );
   check_invariants();
 }
 

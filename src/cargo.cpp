@@ -57,7 +57,7 @@ int CargoHold::slots_total() const {
 }
 
 bool CargoHold::fits( Cargo cargo ) const {
-  ASSERT( holds_alternative<UnitId>( cargo ) );
+  CHECK( holds_alternative<UnitId>( cargo ) );
   UnitId id = get<UnitId>( cargo );
   auto occupied = unit_from_id( id ).desc().cargo_slots_occupies;
   return slots_remaining() >= occupied;
@@ -67,8 +67,8 @@ void CargoHold::add( Cargo cargo ) {
   if( holds_alternative<UnitId>( cargo ) ) {
     UnitId id = get<UnitId>( cargo );
     // Make sure that the unit is not already in this cargo.
-    ASSERT( rn::count( items_, Cargo{id} ) == 0 );
-    ASSERT( fits( id ) );
+    CHECK( rn::count( items_, Cargo{id} ) == 0 );
+    CHECK( fits( id ) );
     items_.push_back( id );
   } else {
     DIE( "should not be here" );
@@ -77,7 +77,7 @@ void CargoHold::add( Cargo cargo ) {
 
 void CargoHold::remove( Cargo cargo ) {
   auto it = find( items_.begin(), items_.end(), cargo );
-  ASSERT( it != items_.end() );
+  CHECK( it != items_.end() );
   items_.erase( it );
 }
 

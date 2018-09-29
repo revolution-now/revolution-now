@@ -37,12 +37,12 @@ H screen_height_tiles() { //{15}; //{26};
 }
 
 void set_screen_width_tiles( W w ) {
-  ASSERT( w > g_panel_width_tiles );
+  CHECK( w > g_panel_width_tiles );
   g_screen_width_tiles = w;
 }
 
 void set_screen_height_tiles( H h ) {
-  ASSERT( h > 1 );
+  CHECK( h > 1 );
   g_screen_height_tiles = h;
 }
 

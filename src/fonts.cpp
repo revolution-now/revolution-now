@@ -28,7 +28,7 @@ namespace {
 } // namespace
 
 int draw_msg( char const* msg, char const* font_file, int y, int ptsize, bool blended ) {
-  ASSIGN_ASSERT( font, ::TTF_OpenFont( font_file, ptsize ) );
+  ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
   int w, h;
   ::TTF_SizeText( font, msg, &w, &h );
 
@@ -40,8 +40,8 @@ int draw_msg( char const* msg, char const* font_file, int y, int ptsize, bool bl
 
   {
     ::SDL_Color fg{ 0, 0, 0, 255 };
-    ASSIGN_ASSERT( surface, fn( font, num_msg.c_str(), fg ) );
-    ASSIGN_ASSERT( texture, ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
+    ASSIGN_CHECK( surface, fn( font, num_msg.c_str(), fg ) );
+    ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
     ::SDL_FreeSurface( surface );
     ::SDL_Rect rect{ 1, y+1, w, h };
     ::SDL_RenderCopy( g_renderer, texture, NULL, &rect );
@@ -50,8 +50,8 @@ int draw_msg( char const* msg, char const* font_file, int y, int ptsize, bool bl
 
   {
     ::SDL_Color fg{ 255, 255, 255, 255 };
-    ASSIGN_ASSERT( surface, fn( font, num_msg.c_str(), fg ) );
-    ASSIGN_ASSERT( texture, ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
+    ASSIGN_CHECK( surface, fn( font, num_msg.c_str(), fg ) );
+    ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
     ::SDL_FreeSurface( surface );
     ::SDL_Rect rect{ 0, y, w, h };
     ::SDL_RenderCopy( g_renderer, texture, NULL, &rect );
@@ -65,9 +65,9 @@ int draw_msg( char const* msg, char const* font_file, int y, int ptsize, bool bl
 }
 
 void font_test() {
-  ASSERT( !TTF_Init() );
+  CHECK( !TTF_Init() );
   char const* font_file = "../fonts/7-12-serif/712_serif.ttf";
-  //ASSIGN_ASSERT( franklin, ::TTF_OpenFont( "../fonts/advanced_pixel-7.ttf", ptsize ) );
+  //ASSIGN_CHECK( franklin, ::TTF_OpenFont( "../fonts/advanced_pixel-7.ttf", ptsize ) );
   // Check style first before setting this.
   //::TTF_SetFontStyle( franklin, TTF_STYLE_NORMAL );
   //LOG( "font outline size: " << ::TTF_GetFontOutline( franklin ) );

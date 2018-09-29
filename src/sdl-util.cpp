@@ -121,7 +121,7 @@ double monitor_diagonal_length( float ddpi, ::SDL_DisplayMode dm ) {
 // same as the horizontal and vertical DPIs.
 double monitor_ddpi() {
   float ddpi;
-  ASSERT( !::SDL_GetDisplayDPI( 0, &ddpi, NULL, NULL ) );
+  CHECK( !::SDL_GetDisplayDPI( 0, &ddpi, NULL, NULL ) );
   return ddpi;
 }
 
@@ -246,7 +246,7 @@ pair<H,W> find_max_tile_sizes() {
       chosen_scale = scale;
     }
   }
-  ASSERT( res );
+  CHECK( res );
   cout << "\n  Optimal: #" << chosen_scale << "\n";
   return *res;
 }

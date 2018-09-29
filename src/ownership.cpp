@@ -55,18 +55,18 @@ unordered_map<UnitId, e_unit_ownership> unit_ownership;
 // Specifically, it will erase any ownership that is had over the
 // given unit and mark it as unowned.
 void ownership_disown_unit( UnitId id ) {
-  ASSIGN_ASSERT_OPT( it, has_key( unit_ownership, id ) );
+  ASSIGN_CHECK_OPT( it, has_key( unit_ownership, id ) );
   switch( it->second ) {
     // For some strange reason we need braces around this case
     // statement otherwise we get errors... something to do with
     // local variables declared inside of it.
     case e_unit_ownership::world: {
       // First remove from coords_from_unit
-      ASSIGN_ASSERT_OPT( pair_it, has_key( coords_from_unit, id ) );
+      ASSIGN_CHECK_OPT( pair_it, has_key( coords_from_unit, id ) );
       auto coords = pair_it->second;
       coords_from_unit.erase( pair_it );
       // Now remove from units_from_coords
-      ASSIGN_ASSERT_OPT( set_it, has_key( units_from_coords, coords ) );
+      ASSIGN_CHECK_OPT( set_it, has_key( units_from_coords, coords ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() )
@@ -74,7 +74,7 @@ void ownership_disown_unit( UnitId id ) {
       break;
     }
     case e_unit_ownership::cargo:
-      ASSIGN_ASSERT_OPT( pair_it, has_key( holder_from_held, id ) );
+      ASSIGN_CHECK_OPT( pair_it, has_key( holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
       holder_unit.cargo().remove( id );
       holder_from_held.erase( pair_it );
@@ -99,7 +99,7 @@ UnitIdVec units_all( optional<e_nation> nation ) {
 }
 
 Unit& unit_from_id( UnitId id ) {
-  ASSIGN_ASSERT_OPT( res, has_key( units, id ) );
+  ASSIGN_CHECK_OPT( res, has_key( units, id ) );
   return res->second;
 }
 
@@ -148,15 +148,15 @@ OptCoord coords_for_unit_safe( UnitId id ) {
 }
 
 Coord coords_for_unit( UnitId id ) {
-  ASSIGN_ASSERT_OPT( it, has_key( unit_ownership, id ) );
+  ASSIGN_CHECK_OPT( it, has_key( unit_ownership, id ) );
   switch( it->second ) {
     case e_unit_ownership::world: {
       auto opt_coord = coords_for_unit_safe( id );
-      ASSERT( opt_coord );
+      CHECK( opt_coord );
       return *opt_coord;
     }
     case e_unit_ownership::cargo:
-      ASSIGN_ASSERT_OPT( pair_it, has_key( holder_from_held, id ) );
+      ASSIGN_CHECK_OPT( pair_it, has_key( holder_from_held, id ) );
       // Coordinates of unit are coordinates of holder.
       return coords_for_unit( pair_it->second );
   };
@@ -176,7 +176,7 @@ void ownership_change_to_map( UnitId id, Coord target ) {
 void ownership_change_to_cargo( UnitId new_holder, UnitId held ) {
   // Make sure that we're not adding the unit to its own cargo.
   // Should never happen theoretically, but...
-  ASSERT( new_holder != held );
+  CHECK( new_holder != held );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // We're clear (at least on our end).
   ownership_disown_unit( held );
