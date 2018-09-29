@@ -314,6 +314,35 @@ void cleanup() {
   SDL_Quit();
 }
 
+Rect texture_rect( ::SDL_Texture* texture ) {
+  int w, h;
+  ::SDL_QueryTexture( texture, NULL, NULL, &w, &h );
+  return {X(0),Y(0),W(w),H(h)};
+}
+
+// Copies one texture to another without scaling at the
+// destination point. Destination texture can be NULL for default
+// rendering target.
+//
+// Returns true on success, false otherwise.
+bool copy_texture( ::SDL_Texture* from, ::SDL_Texture* to, Y y, X x ) {
+  if( ::SDL_SetRenderTarget( g_renderer, to ) )
+    return false;
+  Rect dest = texture_rect( from );
+  dest.x += x;
+  dest.y += y;
+  auto sdl_rect = to_SDL( dest );
+  if( ::SDL_RenderCopy( g_renderer, from, NULL, &sdl_rect ) )
+    return false;
+  return true;
+}
+
+::SDL_Texture* create_texture( W w, H h ) {
+  return ::SDL_CreateTexture( g_renderer,
+      SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
+      w._, h._ );
+}
+
 void render_texture( SDL_Texture* texture, SDL_Rect source, SDL_Rect dest,
                      double angle, SDL_RendererFlip flip ) {
   SDL_Rect dest_shifted = dest;

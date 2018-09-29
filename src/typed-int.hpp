@@ -249,6 +249,8 @@ inline X operator-( X x, W w ) { return X( x._ - w._ ); }
 inline Y operator-( Y y, H h ) { return Y( y._ - h._ ); }
 inline X operator-( W w, X x ) { return X( x._ - w._ ); }
 inline Y operator-( H h, Y y ) { return Y( y._ - h._ ); }
+inline void operator+=( X& x, W w ) { x._ += w._; }
+inline void operator+=( Y& y, H h ) { y._ += h._; }
 // These express that when we subtract two coordinates or
 // two deltas then we get a delta (not a coordinate).
 inline W operator-( X x1, X x2 ) { return W( x1._ - x2._ ); }

@@ -8,9 +8,11 @@ sdl_cflags  := $(shell sdl2-config --cflags)
 sdl_ldflags := $(shell sdl2-config --libs)
 
 CFLAGS  += $(sdl_cflags)
-LDFLAGS += $(sdl_ldflags) -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+LDFLAGS += -lstdc++fs $(sdl_ldflags) -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 
 main_is := MAIN
+
+MAIN.deps = util
 
 $(call enter,src)
 

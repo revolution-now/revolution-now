@@ -44,6 +44,14 @@ void toggle_fullscreen();
 
 ND ::SDL_Rect to_SDL( Rect const& rect );
 
+// Retrive the width and height of a texture in a Rect. The
+// Rect's x and y will be zero.
+Rect texture_rect( ::SDL_Texture* texture );
+
+bool copy_texture( ::SDL_Texture* from, ::SDL_Texture* to, Y y, X x );
+
+::SDL_Texture* create_texture( W w, H h );
+
 } // namespace rn
 
 std::ostream& operator<<( std::ostream& out, ::SDL_Rect const& r );
