@@ -337,9 +337,13 @@ bool copy_texture(
 }
 
 Texture create_texture( W w, H h ) {
-  return from_SDL( ::SDL_CreateTexture( g_renderer,
+  auto tx = from_SDL( ::SDL_CreateTexture( g_renderer,
       SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
       w._, h._ ) );
+  ::SDL_SetRenderTarget( g_renderer, tx );
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 0 );
+  ::SDL_RenderClear( g_renderer );
+  return tx;
 }
 
 void render_texture(
