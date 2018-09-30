@@ -58,6 +58,14 @@ e_orders_loop_result loop_orders(
 
     ::SDL_Event event;
     while( SDL_PollEvent( &event ) ) {
+      if( !running )
+        // This check is needed so that if the user hits two
+        // keys at once and the first one to be processed in
+        // the switch statement leads to a valid move but the
+        // second one does not then we lose the move_desc for
+        // the valid move, so we need to break as soon as one
+        // event (with a successful move) tells us to.
+        break;
       switch (event.type) {
         case SDL_QUIT:
           running = false;
