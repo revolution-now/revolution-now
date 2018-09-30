@@ -11,6 +11,7 @@
 #pragma once
 
 #include "core-config.hpp"
+#include "sdl-util.hpp"
 #include "typed-int.hpp"
 
 #include <SDL.h>
@@ -20,7 +21,7 @@ namespace rn {
 
 extern ::SDL_Window* g_window;
 extern ::SDL_Renderer* g_renderer;
-extern ::SDL_Texture* g_texture_world;
+extern Texture g_texture_world;
 
 W screen_width_tiles();
 H screen_height_tiles();

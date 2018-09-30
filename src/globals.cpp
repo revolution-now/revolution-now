@@ -26,7 +26,7 @@ W g_panel_width_tiles{6};
 
 ::SDL_Window* g_window = nullptr;
 ::SDL_Renderer* g_renderer = nullptr;
-::SDL_Texture* g_texture_world = nullptr;
+Texture g_texture_world;
 
 W screen_width_tiles() { //{28}; //{48};
   return g_screen_width_tiles;

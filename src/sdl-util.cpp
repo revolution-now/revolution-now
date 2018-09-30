@@ -34,7 +34,7 @@ namespace rn {
 
 namespace {
 
-vector<::SDL_Texture*> loaded_textures;
+vector<Texture> loaded_textures;
 
 ostream& operator<<( ostream& out, ::SDL_DisplayMode const& dm ) {
   return (out << dm.w << "x" << dm.h << "[" << dm.refresh_rate << "Hz]");
@@ -277,26 +277,24 @@ void create_renderer() {
   // zoomed-out level which is .5.
   width = g_tile_width._*2*(viewport_width_tiles() + 1);
   height = g_tile_height._*2*(viewport_height_tiles() + 1);
-  g_texture_world = ::SDL_CreateTexture( g_renderer,
-      SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width._, height._ );
+  g_texture_world = create_texture( width, height );
 }
 
-SDL_Texture* load_texture( const char* file ) {
+Texture from_SDL( ::SDL_Texture* tx ) {
+  return Texture( tx );
+}
+
+Texture& load_texture( const char* file ) {
   SDL_Surface* pTempSurface = IMG_Load( file );
   if( !pTempSurface )
     DIE( "failed to load image" );
-  SDL_Texture* texture =
+  ::SDL_Texture* texture =
     SDL_CreateTextureFromSurface( rn::g_renderer, pTempSurface );
   if( !texture )
     DIE( "failed to create texture" );
   SDL_FreeSurface( pTempSurface );
-  loaded_textures.push_back( texture );
-  return texture;
-}
-
-void unload_textures() {
-  for( auto texture : loaded_textures )
-    SDL_DestroyTexture( texture );
+  loaded_textures.emplace_back( from_SDL( texture ) );
+  return loaded_textures.back();
 }
 
 // All the functions in this method should not cause problems
@@ -304,7 +302,6 @@ void unload_textures() {
 // not successfully run.
 void cleanup() {
   cleanup_sound();
-  unload_textures();
   if( g_renderer )
     SDL_DestroyRenderer( g_renderer );
   if( g_window )
@@ -314,19 +311,18 @@ void cleanup() {
   SDL_Quit();
 }
 
-Rect texture_rect( ::SDL_Texture* texture ) {
+Rect texture_rect( Texture const& texture ) {
   int w, h;
+  // const_cast because we are passing texture to a C function
+  // which we know will not modify it.
   ::SDL_QueryTexture( texture, NULL, NULL, &w, &h );
   return {X(0),Y(0),W(w),H(h)};
 }
 
-// Copies one texture to another without scaling at the
-// destination point. Destination texture can be NULL for default
-// rendering target.
-//
-// Returns true on success, false otherwise.
-bool copy_texture( ::SDL_Texture* from, ::SDL_Texture* to, Y y, X x ) {
-  if( ::SDL_SetRenderTarget( g_renderer, to ) )
+bool copy_texture(
+    Texture const& from, OptCRef<Texture> to, Y y, X x ) {
+  ::SDL_Texture* target = to ? (*to).get() : NULL;
+  if( ::SDL_SetRenderTarget( g_renderer, target ) )
     return false;
   Rect dest = texture_rect( from );
   dest.x += x;
@@ -337,14 +333,15 @@ bool copy_texture( ::SDL_Texture* from, ::SDL_Texture* to, Y y, X x ) {
   return true;
 }
 
-::SDL_Texture* create_texture( W w, H h ) {
-  return ::SDL_CreateTexture( g_renderer,
+Texture create_texture( W w, H h ) {
+  return from_SDL( ::SDL_CreateTexture( g_renderer,
       SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET,
-      w._, h._ );
+      w._, h._ ) );
 }
 
-void render_texture( SDL_Texture* texture, SDL_Rect source, SDL_Rect dest,
-                     double angle, SDL_RendererFlip flip ) {
+void render_texture(
+    Texture const& texture, SDL_Rect source, SDL_Rect dest,
+    double angle, SDL_RendererFlip flip ) {
   SDL_Rect dest_shifted = dest;
   if( SDL_RenderCopyEx( g_renderer, texture, &source, &dest_shifted,
                         angle, NULL, flip ) )
@@ -372,6 +369,33 @@ void set_fullscreen( bool fullscreen ) {
 
 void toggle_fullscreen() {
   set_fullscreen( !is_window_fullscreen() );
+}
+
+Texture::Texture( ::SDL_Texture* tx ) : tx_( tx ) {
+  CHECK( tx_ );
+}
+
+Texture::Texture( Texture&& tx ) : tx_( tx.tx_ ) {
+  tx.tx_ = nullptr;
+}
+
+Texture& Texture::operator=( Texture&& rhs ) {
+  if( tx_ )
+    ::SDL_DestroyTexture( tx_ );
+  tx_ = rhs.tx_;
+  rhs.tx_ = nullptr;
+  return *this;
+}
+
+Texture::~Texture() {
+  if( tx_ )
+    ::SDL_DestroyTexture( tx_ );
+}
+
+Texture Texture::from_surface( ::SDL_Surface* surface ) {
+  ASSIGN_CHECK( texture,
+      ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
+  return from_SDL( texture );
 }
 
 } // namespace rn

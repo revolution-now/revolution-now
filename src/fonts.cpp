@@ -34,20 +34,20 @@ namespace {
 
 } // namespace
 
-::SDL_Texture* render_line_standard(
+Texture render_line_standard(
     ::TTF_Font* font, ::SDL_Color fg, string const& line ) {
   ASSIGN_CHECK( surface, ::TTF_RenderText_Solid( font, line.c_str(), fg ) );
-  ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
+  auto texture = Texture::from_surface( surface );
   ::SDL_FreeSurface( surface );
   return texture;
 }
 
-::SDL_Texture* render_line_shadow(
+Texture render_line_shadow(
     ::TTF_Font* font, string const& line ) {
   ::SDL_Color fg{ 255, 255, 255, 255 };
   ::SDL_Color bg{ 128, 128, 128, 255 };
-  auto* texture_fg = render_line_standard( font, fg, line.c_str() );
-  auto* texture_bg = render_line_standard( font, bg, line.c_str() );
+  auto texture_fg = render_line_standard( font, fg, line.c_str() );
+  auto texture_bg = render_line_standard( font, bg, line.c_str() );
   auto rect = texture_rect( texture_fg );
   auto result_texture = create_texture( rect.w+1, rect.h+1 );
   CHECK( copy_texture( texture_bg, result_texture, Y(1), X(1) ) );
@@ -57,9 +57,9 @@ namespace {
   return result_texture;
 }
 
-using RenderLineFn = std::function<::SDL_Texture*( string const& )>;
+using RenderLineFn = std::function<Texture( string const& )>;
 
-::SDL_Texture* render_lines(
+Texture render_lines(
     H min_skip, vector<string> const& lines, RenderLineFn render_line ) {
   auto textures = util::map( render_line, lines );
   auto rects = util::map( texture_rect, textures );
@@ -82,7 +82,7 @@ using RenderLineFn = std::function<::SDL_Texture*( string const& )>;
   return result_texture;
 }
 
-::SDL_Texture* render_wrapped_text( H min_skip,
+Texture render_wrapped_text( H min_skip,
                                     string_view text,
                                     RenderLineFn render_line,
                                     util::IsStrOkFunc width_checker ) {
@@ -90,7 +90,7 @@ using RenderLineFn = std::function<::SDL_Texture*( string const& )>;
   return render_lines( min_skip, wrapped, render_line );
 }
 
-::SDL_Texture* render_wrapped_text_by_pixels(
+Texture render_wrapped_text_by_pixels(
     ::TTF_Font* font,
     int max_pixel_width,
     H min_skip,
@@ -112,8 +112,8 @@ void font_size_spectrum( char const* msg, char const* font_file ) {
     ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
     std::string num_msg = std::to_string( ptsize ) + ": " + msg;
     ::SDL_Color fg{ 255, 255, 255, 255 };
-    auto* texture = render_line_standard( font, fg, num_msg );
-    CHECK( copy_texture( texture, NULL, Y(y), X(0) ) );
+    auto texture = render_line_standard( font, fg, num_msg );
+    CHECK( copy_texture( texture, nullopt, Y(y), X(0) ) );
     ::SDL_DestroyTexture( texture );
     TTF_CloseFont( font );
 
@@ -144,10 +144,10 @@ void font_test() {
   auto render_line = [font]( string const& text ) {
       return render_line_shadow( font, text );
   };
-  auto* texture = render_wrapped_text_by_pixels(
+  auto texture = render_wrapped_text_by_pixels(
       font, 200, skip, msg, render_line );
 
-  CHECK( copy_texture( texture, NULL, Y(100), X(100) ) );
+  CHECK( copy_texture( texture, nullopt, Y(100), X(100) ) );
 
   ::SDL_RenderPresent( g_renderer );
   ::TTF_CloseFont( font );

@@ -44,13 +44,13 @@ unordered_map<std::string, tile_map> tile_maps;
 
 } // namespace
 
-sprite create_sprite_32( SDL_Texture* texture, Y row, X col ) {
+sprite create_sprite_32( Texture const& texture, Y row, X col ) {
   Rect rect{ col*g_tile_width._, row*g_tile_height._, g_tile_width, g_tile_height };
-  return { texture, to_SDL( rect ), 32, 32 };
+  return { &texture, to_SDL( rect ), 32, 32 };
 }
 
 void load_sprites() {
-  auto tile_set = load_texture( "../art/tiles-all.png" );
+  auto& tile_set = load_texture( "../art/tiles-all.png" );
 
   sprites[g_tile::water]        = create_sprite_32( tile_set, Y(0), X(0) );
   sprites[g_tile::land]         = create_sprite_32( tile_set, Y(0), X(1) );
@@ -100,7 +100,7 @@ void render_sprite( g_tile tile, Y pixel_row, X pixel_col, int rot, int flip_x  
 
   SDL_RendererFlip flip = flip_x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
-  render_texture( sp.texture, sp.source, destination_sdl, angle, flip );
+  render_texture( *sp.texture, sp.source, destination_sdl, angle, flip );
 }
 
 void render_sprite_grid( g_tile tile, Y tile_row, X tile_col, int rot, int flip_x  ) {

@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 #include "base-util.hpp"
+#include "sdl-util.hpp"
 
 #include <SDL.h>
 
@@ -49,7 +50,7 @@ enum class ND g_tile {
 
 struct ND sprite {
   // try making these const
-  SDL_Texture* texture;
+  Texture const* texture;
   SDL_Rect source;
   int w, h;
 };
