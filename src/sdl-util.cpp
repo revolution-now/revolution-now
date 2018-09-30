@@ -269,6 +269,7 @@ void create_renderer() {
 
   ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
   ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
+  ::SDL_SetRenderDrawBlendMode( g_renderer, ::SDL_BLENDMODE_BLEND );
 
   // +1 tile because we may need to draw a bit in excess of the
   // viewport window in order to facilitate smooth scrolling,
@@ -322,6 +323,8 @@ Rect texture_rect( Texture const& texture ) {
 bool copy_texture(
     Texture const& from, OptCRef<Texture> to, Y y, X x ) {
   ::SDL_Texture* target = to ? (*to).get().get() : nullptr;
+  ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
+  ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
   if( ::SDL_SetRenderTarget( g_renderer, target ) )
     return false;
   Rect dest = texture_rect( from );

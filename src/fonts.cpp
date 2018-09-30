@@ -17,6 +17,7 @@
 
 #include "util/algo.hpp"
 #include "util/string-util.hpp"
+#include "util/util.hpp"
 
 #include <SDL_ttf.h>
 
@@ -36,24 +37,24 @@ namespace {
 
 Texture render_line_standard(
     ::TTF_Font* font, ::SDL_Color fg, string const& line ) {
-  ASSIGN_CHECK( surface, ::TTF_RenderText_Solid( font, line.c_str(), fg ) );
+  ASSIGN_CHECK( surface, ::TTF_RenderText_Blended( font, line.c_str(), fg ) );
   auto texture = Texture::from_surface( surface );
   ::SDL_FreeSurface( surface );
+  // Not sure why this doesn't happen automatically.
+  ::SDL_SetTextureAlphaMod( texture, fg.a );
   return texture;
 }
 
 Texture render_line_shadow(
     ::TTF_Font* font, string const& line ) {
-  ::SDL_Color fg{ 255, 255, 255, 255 };
-  ::SDL_Color bg{ 128, 128, 128, 255 };
+  ::SDL_Color fg{ 255, 255, 255, 243 };
+  ::SDL_Color bg{ 0, 0, 0, 100 };
   auto texture_fg = render_line_standard( font, fg, line.c_str() );
   auto texture_bg = render_line_standard( font, bg, line.c_str() );
   auto rect = texture_rect( texture_fg );
   auto result_texture = create_texture( rect.w+1, rect.h+1 );
   CHECK( copy_texture( texture_bg, result_texture, Y(1), X(1) ) );
   CHECK( copy_texture( texture_fg, result_texture, Y(0), X(0) ) );
-  ::SDL_DestroyTexture( texture_bg );
-  ::SDL_DestroyTexture( texture_fg );
   return result_texture;
 }
 
@@ -77,25 +78,19 @@ Texture render_lines(
     CHECK( copy_texture( textures[i], result_texture, Y(y), X(0) ) );
     y += max( min_skip, rects[i].h );
   }
-
-  util::map_( ::SDL_DestroyTexture, textures );
   return result_texture;
 }
 
-Texture render_wrapped_text( H min_skip,
-                                    string_view text,
-                                    RenderLineFn render_line,
-                                    util::IsStrOkFunc width_checker ) {
+Texture render_wrapped_text(
+    H min_skip, string_view text, RenderLineFn render_line,
+    util::IsStrOkFunc width_checker ) {
   auto wrapped = util::wrap_text_fn( text, width_checker );
   return render_lines( min_skip, wrapped, render_line );
 }
 
 Texture render_wrapped_text_by_pixels(
-    ::TTF_Font* font,
-    int max_pixel_width,
-    H min_skip,
-    string_view text,
-    RenderLineFn render_line ) {
+    ::TTF_Font* font, int max_pixel_width, H min_skip,
+    string_view text, RenderLineFn render_line ) {
   auto width_checker = [font, max_pixel_width]( string_view text ) {
     int w, h;
     ::TTF_SizeText( font, string( text ).c_str(), &w, &h );
@@ -114,12 +109,9 @@ void font_size_spectrum( char const* msg, char const* font_file ) {
     ::SDL_Color fg{ 255, 255, 255, 255 };
     auto texture = render_line_standard( font, fg, num_msg );
     CHECK( copy_texture( texture, nullopt, Y(y), X(0) ) );
-    ::SDL_DestroyTexture( texture );
-    TTF_CloseFont( font );
-
     y += ::TTF_FontLineSkip( font );
+    TTF_CloseFont( font );
   }
-  ::SDL_RenderPresent( g_renderer );
 }
 
 void font_test() {
@@ -134,20 +126,17 @@ void font_test() {
 
   H skip(::TTF_FontLineSkip( font ));
 
-  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
-  ::SDL_RenderClear( g_renderer );
-  ::SDL_RenderPresent( g_renderer );
-
   char const* msg = "Ask not what your country can do for you, "
                     "but instead ask what you can do for your country!";
 
   auto render_line = [font]( string const& text ) {
       return render_line_shadow( font, text );
   };
-  auto texture = render_wrapped_text_by_pixels(
-      font, 200, skip, msg, render_line );
+  auto texture = render_wrapped_text(
+      skip, msg, render_line, L( _.size() <= 20 ) );
 
   CHECK( copy_texture( texture, nullopt, Y(100), X(100) ) );
+  //font_size_spectrum( msg, font_file );
 
   ::SDL_RenderPresent( g_renderer );
   ::TTF_CloseFont( font );
