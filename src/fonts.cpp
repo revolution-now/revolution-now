@@ -47,8 +47,8 @@ Texture render_line_standard(
 
 Texture render_line_shadow(
     ::TTF_Font* font, string const& line ) {
-  ::SDL_Color fg{ 255, 255, 255, 243 };
-  ::SDL_Color bg{ 0, 0, 0, 100 };
+  ::SDL_Color fg{244, 179, 66, 255};
+  ::SDL_Color bg{0, 0, 0, 128};
   auto texture_fg = render_line_standard( font, fg, line.c_str() );
   auto texture_bg = render_line_standard( font, bg, line.c_str() );
   auto rect = texture_rect( texture_fg );
@@ -72,6 +72,10 @@ Texture render_lines(
   }
 
   auto result_texture = create_texture( res_width, res_height );
+
+  //::SDL_SetRenderTarget( g_renderer, result_texture );
+  //::SDL_SetRenderDrawColor( g_renderer, 104, 78, 32, 200 );
+  //::SDL_RenderClear( g_renderer );
 
   Y y( 0 );
   for( size_t i = 0; i < textures.size(); ++i ) {
