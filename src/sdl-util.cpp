@@ -321,7 +321,7 @@ Rect texture_rect( Texture const& texture ) {
 
 bool copy_texture(
     Texture const& from, OptCRef<Texture> to, Y y, X x ) {
-  ::SDL_Texture* target = to ? (*to).get() : NULL;
+  ::SDL_Texture* target = to ? (*to).get().get() : nullptr;
   if( ::SDL_SetRenderTarget( g_renderer, target ) )
     return false;
   Rect dest = texture_rect( from );

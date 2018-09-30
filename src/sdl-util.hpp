@@ -33,6 +33,7 @@ public:
   Texture& operator=( Texture&& rhs );
   ~Texture();
   operator ::SDL_Texture*() const { return tx_; }
+  ::SDL_Texture* get() const { return tx_; }
   static Texture from_surface( ::SDL_Surface* surface );
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
