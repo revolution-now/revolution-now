@@ -9,6 +9,7 @@ let s:stems = [
   \ 'src/base-util',
   \ 'src/sdl-util',
   \ 'src/fonts',
+  \ 'src/window',
   \ 'src/world',
   \ 'src/viewport',
   \ 'src/unit',

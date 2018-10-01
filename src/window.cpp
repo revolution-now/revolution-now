@@ -13,14 +13,21 @@
 using namespace std;
 
 namespace rn {
+namespace gui {
 
 namespace {
+
+class View : public Object {
+public:
+  virtual ~View() {}
+};
+
+} // namespace
 
 void message_box( string_view msg, RenderFunc render_bg ) {
   (void)msg;
   (void)render_bg;
 }
   
-} // namespace
-
+} // namespace gui
 } // namespace rn
