@@ -63,43 +63,59 @@ Delta CompositeView::size() const {
   return {res.w, res.h};
 }
 
-TitleBarView::TitleBarView( string title, W size ) {
-  title_ = std::move( title );
-  auto text_size = font_rendered_width( fonts::standard, title_ );
-  background_ = SolidRectView( Color::white(), Delta{max( size, W(text_size.w+4) ), text_size.h+4} );
-  tx = render_line_shadow( fonts::standard, title_ );
+OneLineStringView::OneLineStringView( string msg, W size ) {
+  msg_ = std::move( msg );
+  auto text_size = font_rendered_width( fonts::standard, msg_ );
+  background_ = SolidRectView( Color::white(),
+      Delta{max( size, W(text_size.w+4) ), text_size.h+4} );
+  tx = render_line_shadow( fonts::standard, msg_ );
 }
 
-bool TitleBarView::needs_redraw() const { return true; }
+bool OneLineStringView::needs_redraw() const { return true; }
 
-void TitleBarView::draw( Texture const& tx, Coord coord ) const {
+void OneLineStringView::draw( Texture const& tx, Coord coord ) const {
   background_.draw( tx, coord );
   CHECK( copy_texture( this->tx, tx, coord+Delta{W(2),H(2)} ) );
 }
 
-Delta TitleBarView::size() const {
+Delta OneLineStringView::size() const {
   return background_.size();
 }
 
 bool Window::needs_redraw() const {
-  return title_bar_.needs_redraw() || view_->needs_redraw();
+  return view_->needs_redraw();
 }
 
 void Window::draw( Texture const& tx, Coord coord ) const {
-  auto inside_border = coord+Delta{W(1),H(1)};
-  render_fill_rect( tx, Color::black(), {coord.x,coord.y,size().w,size().h} );
-  title_bar_.draw( tx, inside_border );
-  view_->draw( tx, inside_border+title_bar_.size().h );
-  render_rect( tx, Color::black(), {coord.x,coord.y,size().w,size().h} );
+  view_->draw( tx, coord );
 }
 
 Delta Window::size() const {
+  return view_->size();
+}
+
+WindowManager::WindowManager( WinPtr window, Coord position )
+  : window_( std::move( window ) ),
+    title_bar_( window_->title(), window_->size().w ),
+    position_( position ) {}
+
+Delta WindowManager::window_size() const {
   Delta res;
-  res.w = max( title_bar_.size().w, view_->size().w );
-  res.h += title_bar_.size().h + view_->size().h;
+  res.w = max( title_bar_.size().w, window_->size().w );
+  res.h += title_bar_.size().h + window_->size().h;
   res.w += 2;
   res.h += 2;
   return res;
+}
+
+void WindowManager::draw_layout( Texture const& tx ) const {
+  auto inside_border = position_+Delta{W(1),H(1)};
+  render_fill_rect( tx, Color::black(),
+      {position_.x,position_.y,window_size().w,window_size().h} );
+  title_bar_.draw( tx, inside_border );
+  window_->draw( tx, inside_border+title_bar_.size().h );
+  render_rect( tx, Color::black(),
+      {position_.x,position_.y,window_size().w,window_size().h} );
 }
 
 void test_window() {
@@ -113,8 +129,12 @@ void test_window() {
     "First Window",
     make_unique<CompositeView>( move( squares ) )
   );
+  WindowManager wm( move( window ), {Y(200),X(200)} );
+  wm.run( []{} );
+}
 
-  window->draw( Texture(), {Y(200),X(200)} );
+void WindowManager::run( RenderFunc ) {
+  draw_layout( Texture() );
   ::SDL_RenderPresent( g_renderer );
 
   ::SDL_Event event;
