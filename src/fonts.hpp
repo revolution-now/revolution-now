@@ -17,4 +17,3 @@ namespace rn {
 void font_test();
 
 } // namespace rn
-

@@ -46,6 +46,8 @@ SDL_DisplayMode get_current_display_mode() {
   return dm;
 }
 
+vector<Rect> clip_stack;
+
 } // namespace
 
 ::SDL_Rect to_SDL( Rect const& rect ) {
@@ -54,6 +56,15 @@ SDL_DisplayMode get_current_display_mode() {
   res.y = rect.y._;
   res.w = rect.w._;
   res.h = rect.h._;
+  return res;
+}
+
+ND Rect from_SDL( ::SDL_Rect const& rect ) {
+  Rect res;
+  res.x = rect.x;
+  res.y = rect.y;
+  res.w = rect.w;
+  res.h = rect.h;
   return res;
 }
 
@@ -320,6 +331,26 @@ Rect texture_rect( Texture const& texture ) {
   return {X(0),Y(0),W(w),H(h)};
 }
 
+void set_render_target( Texture const& tx ) {
+  CHECK( !::SDL_SetRenderTarget( g_renderer, tx ) );
+}
+
+void push_clip_rect( Rect const& rect ) {
+  ::SDL_Rect sdl_rect;
+  ::SDL_RenderGetClipRect( g_renderer, &sdl_rect );
+  clip_stack.emplace_back( from_SDL( sdl_rect ) );
+  sdl_rect = to_SDL( rect );
+  ::SDL_RenderSetClipRect( g_renderer, &sdl_rect );
+}
+
+void pop_clip_rect() {
+  CHECK( !clip_stack.empty() );
+  auto rect = clip_stack.back();
+  clip_stack.pop_back();
+  ::SDL_Rect sdl_rect = to_SDL( rect );
+  ::SDL_RenderSetClipRect( g_renderer, &sdl_rect );
+}
+
 bool copy_texture(
     Texture const& from, OptCRef<Texture> to, Y y, X x ) {
   ::SDL_Texture* target = to ? (*to).get().get() : nullptr;
@@ -403,6 +434,11 @@ Texture Texture::from_surface( ::SDL_Surface* surface ) {
   ASSIGN_CHECK( texture,
       ::SDL_CreateTextureFromSurface( g_renderer, surface ) );
   return from_SDL( texture );
+}
+
+void set_render_draw_color( Color const& color ) {
+  CHECK( !::SDL_SetRenderDrawColor(
+      g_renderer, color.r, color.g, color.b, color.a ) );
 }
 
 } // namespace rn

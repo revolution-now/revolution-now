@@ -41,6 +41,8 @@ private:
   ::SDL_Texture* tx_;
 };
 
+using Color = ::SDL_Color;
+
 using TextureRef = std::reference_wrapper<Texture>;
 
 void init_game();
@@ -54,6 +56,12 @@ void print_video_stats();
 void create_renderer();
 
 void cleanup();
+
+void set_render_target( Texture const& tx );
+
+// Make an RAII version of this
+void push_clip_rect( Rect const& rect );
+void pop_clip_rect();
 
 ND Texture& load_texture( const char* file );
 
@@ -78,6 +86,8 @@ ND bool copy_texture(
     Texture const& from, OptCRef<Texture> to, Y y, X x );
 
 ND Texture create_texture( W w, H h );
+
+void set_render_draw_color( Color const& color );
 
 } // namespace rn
 

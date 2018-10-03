@@ -23,8 +23,14 @@
 
 namespace rn {
 
+struct Coord;
+struct Delta;
+
 struct ND Rect {
-  X x; Y y; W w; H h;
+  X x = X(0); Y y = Y(0); W w = W(0); H h = H(0);
+
+  static Rect from( Coord const& lhs, Coord const& rhs );
+  static Rect from( Coord const& coord, Delta const& delta );
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -52,6 +58,10 @@ struct ND Rect {
   // unless one of the dimensions has width 0 in which case
   // that dimension will remain as-is.
   Rect edges_removed();
+
+  // Result will be the smallest rect that encompasses both
+  // this one and the parameter.
+  Rect uni0n( Rect const& rhs ) const;
 };
 
 enum class ND direction {
@@ -61,7 +71,7 @@ enum class ND direction {
 };
 
 struct ND Coord {
-  Y y; X x;
+  Y y = Y(0); X x = X(0);
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -83,11 +93,18 @@ struct ND Coord {
 using OptCoord = std::optional<Coord>;
 
 struct ND Delta {
-  W w; H h;
+  W w = W(0); H h = H(0);
   bool operator==( Delta const& other ) const {
     return (h == other.h) && (w == other.w);
   }
+  // Result will be the smallest delta that encompasses both
+  // this one and the parameter.
+  Delta uni0n( Delta const& rhs ) const;
 };
+
+ND Coord operator+( Coord const& coord, Delta const& delta );
+ND Coord operator+( Delta const& coord, Coord const& delta );
+ND Delta operator-( Coord const& lhs, Coord const& rhs );
 
 void die( char const* file, int line, std::string_view msg );
 

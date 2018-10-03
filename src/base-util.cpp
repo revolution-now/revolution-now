@@ -27,6 +27,19 @@ namespace {
   
 } // namespace
 
+Rect Rect::from( Coord const& _1, Coord const& _2 ) {
+  Rect res;
+  res.x = min( _1.x, _2.x );
+  res.y = min( _1.y, _2.y );
+  res.w = max( _1.x, _2.x ) - min( _1.x, _2.x );
+  res.h = max( _1.y, _2.y ) - min( _1.y, _2.y );
+  return res;
+}
+
+Rect from( Coord const& coord, Delta const& delta ) {
+  return {coord.x,coord.y,delta.w,delta.h};
+}
+
 // New coord equal to this one unit of edge trimmed off
 // on all sides.  (width,height) ==> (width-2,height-2)
 Rect Rect::edges_removed() {
@@ -41,6 +54,14 @@ Rect Rect::edges_removed() {
   if( rect.h < 0 ) rect.h = 0;
 
   return rect;
+}
+
+Rect Rect::uni0n( Rect const& rhs ) const {
+  auto new_x1 = min( x, rhs.x );
+  auto new_y1 = min( y, rhs.y );
+  auto new_x2 = max( x+w, rhs.x+rhs.w );
+  auto new_y2 = max( y+h, rhs.y+rhs.h );
+  return {new_x1, new_y1, (new_x2-new_x1), (new_y2-new_y1)};
 }
 
 template<> X& Rect::coordinate<X>() { return x; }
@@ -72,6 +93,22 @@ bool Coord::is_inside( Rect const& rect ) {
          (y >= rect.y)        &&
          (x <  rect.x+rect.w) &&
          (y <  rect.y+rect.h);
+}
+
+Delta Delta::uni0n( Delta const& rhs ) const {
+  return {max( w, rhs.w ), max( h, rhs.h ) };
+}
+
+Coord operator+( Coord const& coord, Delta const& delta ) {
+  return {coord.y+delta.h, coord.x+delta.w};
+}
+
+Coord operator+( Delta const& delta, Coord const& coord ) {
+  return {coord.y+delta.h, coord.x+delta.w};
+}
+
+Delta operator-( Coord const& lhs, Coord const& rhs ) {
+  return {lhs.x-rhs.x, lhs.y-rhs.y};
 }
 
 void die( char const* file, int line, std::string_view msg ) {
