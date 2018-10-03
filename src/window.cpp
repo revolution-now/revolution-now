@@ -10,7 +10,10 @@
 *****************************************************************/
 #include "window.hpp"
 
+#include "fonts.hpp"
 #include "globals.hpp"
+#include "macros.hpp"
+#include "typed-int.hpp"
 
 #include "util/util.hpp"
 
@@ -26,15 +29,11 @@ namespace {
 
 } // namespace
 
-bool SolidRectView::needs_redraw() const {
-  return true;
-}
+bool SolidRectView::needs_redraw() const { return true; }
 
 void SolidRectView::draw( Texture const& tx, Coord coord ) const {
-  set_render_target( tx );
-  set_render_draw_color( color_ );
-  auto rect = to_SDL( Rect{coord.x,coord.y,delta_.w,delta_.h} );
-  ::SDL_RenderFillRect( g_renderer, &rect );
+  auto rect = Rect{coord.x,coord.y,delta_.w,delta_.h};
+  render_fill_rect( tx, color_, rect );
 }
 
 Delta SolidRectView::size() const {
@@ -62,6 +61,69 @@ Delta CompositeView::size() const {
   auto res = accumulate(
       views_.begin(), views_.end(), views_[0].bounds(), uni0n );
   return {res.w, res.h};
+}
+
+TitleBarView::TitleBarView( string title, W size ) {
+  title_ = std::move( title );
+  auto text_size = font_rendered_width( fonts::standard, title_ );
+  background_ = SolidRectView( Color::white(), Delta{max( size, W(text_size.w+4) ), text_size.h+4} );
+  tx = render_line_shadow( fonts::standard, title_ );
+}
+
+bool TitleBarView::needs_redraw() const { return true; }
+
+void TitleBarView::draw( Texture const& tx, Coord coord ) const {
+  background_.draw( tx, coord );
+  CHECK( copy_texture( this->tx, tx, coord+Delta{W(2),H(2)} ) );
+}
+
+Delta TitleBarView::size() const {
+  return background_.size();
+}
+
+bool Window::needs_redraw() const {
+  return title_bar_.needs_redraw() || view_->needs_redraw();
+}
+
+void Window::draw( Texture const& tx, Coord coord ) const {
+  auto inside_border = coord+Delta{W(1),H(1)};
+  render_fill_rect( tx, Color::black(), {coord.x,coord.y,size().w,size().h} );
+  title_bar_.draw( tx, inside_border );
+  view_->draw( tx, inside_border+title_bar_.size().h );
+  render_rect( tx, Color::black(), {coord.x,coord.y,size().w,size().h} );
+}
+
+Delta Window::size() const {
+  Delta res;
+  res.w = max( title_bar_.size().w, view_->size().w );
+  res.h += title_bar_.size().h + view_->size().h;
+  res.w += 2;
+  res.h += 2;
+  return res;
+}
+
+void test_window() {
+  auto square = Delta{W(32), H(32)};
+  vector<ViewDesc> squares;
+  squares.emplace_back( ViewDesc{Coord{Y(0),X(0)},make_unique<SolidRectView>( Color::red(), square )} );
+  squares.emplace_back( ViewDesc{Coord{Y(16),X(16)},make_unique<SolidRectView>( Color::blue(), square )} );
+  squares.emplace_back( ViewDesc{Coord{Y(0),X(32)},make_unique<SolidRectView>( Color::green(), square )} );
+  squares.emplace_back( ViewDesc{Coord{Y(20),X(0)},make_unique<SolidRectView>( Color::white(), square )} );
+  auto window = make_unique<Window>(
+    "First Window",
+    make_unique<CompositeView>( move( squares ) )
+  );
+
+  window->draw( Texture(), {Y(200),X(200)} );
+  ::SDL_RenderPresent( g_renderer );
+
+  ::SDL_Event event;
+  while( true ) {
+    ::SDL_PollEvent( &event );
+    if( event.type == SDL_KEYDOWN )
+      break;
+    ::SDL_Delay( 10 );
+  }
 }
 
 void message_box( string_view msg, RenderFunc render_bg ) {

@@ -14,6 +14,7 @@
 #include "sdl-util.hpp"
 
 #include "base-util.hpp"
+#include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
@@ -70,6 +71,7 @@ ND Rect from_SDL( ::SDL_Rect const& rect ) {
 
 void init_game() {
   rn::init_sdl();
+  rn::init_fonts();
   rn::create_window();
   rn::print_video_stats();
   rn::create_renderer();
@@ -313,6 +315,7 @@ Texture& load_texture( const char* file ) {
 // even if their corresponding initialization routines were
 // not successfully run.
 void cleanup() {
+  unload_fonts();
   cleanup_sound();
   if( g_renderer )
     SDL_DestroyRenderer( g_renderer );
@@ -331,8 +334,9 @@ Rect texture_rect( Texture const& texture ) {
   return {X(0),Y(0),W(w),H(h)};
 }
 
-void set_render_target( Texture const& tx ) {
-  CHECK( !::SDL_SetRenderTarget( g_renderer, tx ) );
+void set_render_target( OptCRef<Texture> tx ) {
+  ::SDL_Texture* target = tx ? (*tx).get().get() : nullptr;
+  CHECK( !::SDL_SetRenderTarget( g_renderer, target ) );
 }
 
 void push_clip_rect( Rect const& rect ) {
@@ -365,6 +369,11 @@ bool copy_texture(
   if( ::SDL_RenderCopy( g_renderer, from, NULL, &sdl_rect ) )
     return false;
   return true;
+}
+
+bool copy_texture(
+    Texture const& from, OptCRef<Texture> to, Coord coord ) {
+  return copy_texture( from, to, coord.y, coord.x );
 }
 
 Texture create_texture( W w, H h ) {
@@ -439,6 +448,22 @@ Texture Texture::from_surface( ::SDL_Surface* surface ) {
 void set_render_draw_color( Color const& color ) {
   CHECK( !::SDL_SetRenderDrawColor(
       g_renderer, color.r, color.g, color.b, color.a ) );
+}
+
+void render_fill_rect(
+    OptCRef<Texture> tx, Color const& color, Rect const& rect ) {
+  set_render_target( tx );
+  set_render_draw_color( color );
+  auto sdl_rect = to_SDL( rect );
+  ::SDL_RenderFillRect( g_renderer, &sdl_rect );
+}
+
+void render_rect(
+    OptCRef<Texture> tx, Color const& color, Rect const& rect ) {
+  set_render_target( tx );
+  set_render_draw_color( color );
+  auto sdl_rect = to_SDL( rect );
+  ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
 }
 
 } // namespace rn

@@ -95,17 +95,20 @@ bool Coord::is_inside( Rect const& rect ) {
          (y <  rect.y+rect.h);
 }
 
-Delta Delta::uni0n( Delta const& rhs ) const {
-  return {max( w, rhs.w ), max( h, rhs.h ) };
-}
+Delta Delta::uni0n( Delta const& rhs ) const
+  { return {max( w, rhs.w ), max( h, rhs.h ) }; }
 
-Coord operator+( Coord const& coord, Delta const& delta ) {
-  return {coord.y+delta.h, coord.x+delta.w};
-}
+Coord operator+( Coord const& coord, Delta const& delta )
+  { return {coord.y+delta.h, coord.x+delta.w}; }
 
-Coord operator+( Delta const& delta, Coord const& coord ) {
-  return {coord.y+delta.h, coord.x+delta.w};
-}
+Coord operator+( Delta const& delta, Coord const& coord )
+  { return {coord.y+delta.h, coord.x+delta.w}; }
+
+ND Coord operator+( Coord const& coord, W w )
+  { return {coord.y, coord.x+w}; }
+
+ND Coord operator+( Coord const& coord, H h )
+  { return {coord.y+h, coord.x}; }
 
 Delta operator-( Coord const& lhs, Coord const& rhs ) {
   return {lhs.x-rhs.x, lhs.y-rhs.y};

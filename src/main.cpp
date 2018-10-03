@@ -10,6 +10,7 @@
 #include "turn.hpp"
 #include "unit.hpp"
 #include "viewport.hpp"
+#include "window.hpp"
 #include "world.hpp"
 
 #include <SDL.h>
@@ -37,7 +38,8 @@ int main( int, char** ) try {
   while( turn() != e_turn_result::quit ) {}
   //(void)turn();
 
-  font_test();
+  //font_test();
+  gui::test_window();
 
   cleanup();
   return 0;

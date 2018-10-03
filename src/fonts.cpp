@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 
 using namespace std;
 
@@ -31,11 +32,17 @@ namespace rn {
 
 namespace {
 
+struct FontDesc {
+  char const* file_name;
+  int pt_size;
+  ::TTF_Font* ttf_font;
+};
 
+unordered_map<e_font, FontDesc> loaded_fonts{
+  {e_font::_7_12_serif_16pt, {"../fonts/7-12-serif/712_serif.ttf", 16, nullptr}}
+};
 
-} // namespace
-
-Texture render_line_standard(
+Texture render_line_standard_impl(
     ::TTF_Font* font, ::SDL_Color fg, string const& line ) {
   ASSIGN_CHECK( surface, ::TTF_RenderText_Blended( font, line.c_str(), fg ) );
   auto texture = Texture::from_surface( surface );
@@ -45,10 +52,17 @@ Texture render_line_standard(
   return texture;
 }
 
-Texture render_line_shadow(
-    ::TTF_Font* font, string const& line ) {
-  ::SDL_Color fg{244, 179, 66, 255};
-  ::SDL_Color bg{0, 0, 0, 128};
+} // namespace
+
+Texture render_line_standard(
+    e_font font, Color fg, string const& line ) {
+  auto* ttf_font = loaded_fonts[font].ttf_font;
+  return render_line_standard_impl( ttf_font, fg, line );
+}
+
+Texture render_line_shadow( e_font font, string const& line ) {
+  Color fg{244, 179, 66, 255};
+  Color bg{0, 0, 0, 128};
   auto texture_fg = render_line_standard( font, fg, line.c_str() );
   auto texture_bg = render_line_standard( font, bg, line.c_str() );
   auto rect = texture_rect( texture_fg );
@@ -111,24 +125,43 @@ void font_size_spectrum( char const* msg, char const* font_file ) {
     ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
     std::string num_msg = std::to_string( ptsize ) + ": " + msg;
     ::SDL_Color fg{ 255, 255, 255, 255 };
-    auto texture = render_line_standard( font, fg, num_msg );
+    auto texture = render_line_standard_impl( font, fg, num_msg );
     CHECK( copy_texture( texture, nullopt, Y(y), X(0) ) );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
   }
 }
 
-void font_test() {
-  CHECK( !TTF_Init() );
-  constexpr int ptsize = 16;
-  char const* font_file = "../fonts/7-12-serif/712_serif.ttf";
-  ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
-  // Check style first before setting this.
-  ::TTF_SetFontStyle( font, TTF_STYLE_NORMAL );
-  int outline = 0;
-  ::TTF_SetFontOutline( font, outline );
+Delta font_rendered_width( e_font font, std::string const& text ) {
+  int w, h;
+  ::TTF_SizeText( loaded_fonts[font].ttf_font, text.c_str(), &w, &h );
+  return {W(w), H(h)};
+}
 
-  H skip(::TTF_FontLineSkip( font ));
+void init_fonts() {
+  CHECK( !TTF_Init() );
+  for( auto& [font, font_desc] : loaded_fonts ) {
+    int pt_size = font_desc.pt_size;
+    char const* font_file = font_desc.file_name;
+    ASSIGN_CHECK( ttf_font, ::TTF_OpenFont( font_file, pt_size ) );
+    // Check style first before setting this.
+    ::TTF_SetFontStyle( ttf_font, TTF_STYLE_NORMAL );
+    int outline = 0;
+    ::TTF_SetFontOutline( ttf_font, outline );
+    font_desc.ttf_font = ttf_font;
+  }
+}
+
+void unload_fonts() {
+  for( auto& [font, font_desc] : loaded_fonts )
+    ::TTF_CloseFont( font_desc.ttf_font );
+  TTF_Quit();
+}
+
+void font_test() {
+  auto font = e_font::_7_12_serif_16pt;
+
+  H skip( ::TTF_FontLineSkip( loaded_fonts[font].ttf_font ) );
 
   char const* msg = "Ask not what your country can do for you, "
                     "but instead ask what you can do for your country!";
@@ -143,7 +176,6 @@ void font_test() {
   //font_size_spectrum( msg, font_file );
 
   ::SDL_RenderPresent( g_renderer );
-  ::TTF_CloseFont( font );
 
   ::SDL_Event event;
   while( true ) {
@@ -152,8 +184,6 @@ void font_test() {
       break;
     ::SDL_Delay( 10 );
   }
-
-  TTF_Quit();
 }
 
 } // namespace rn

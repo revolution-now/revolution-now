@@ -22,11 +22,6 @@
 namespace rn {
 namespace gui {
 
-enum class e_window_state {
-  running,
-  closed
-};
-
 class Object {
 public:
   virtual ~Object() {}
@@ -36,15 +31,6 @@ public:
   ND virtual bool accept_input( SDL_Event ) { return false; }
 };
 
-class Window : public Object {
-public:
-  Window();
-  virtual ~Window() {}
-  e_window_state state() const { return window_state; }
-protected:
-  e_window_state window_state;
-};
-
 class View : public Object {
 public:
   virtual ~View() {}
@@ -52,6 +38,7 @@ public:
 
 class SolidRectView : public View {
 public:
+  SolidRectView() = default;
   SolidRectView( Color const& color, Delta delta )
     : color_( color ), delta_( delta ) {}
 
@@ -68,12 +55,12 @@ protected:
 };
 
 struct ViewDesc {
+  ViewDesc( ViewDesc&& ) = default;
   Rect bounds() const {
     return Rect::from( coord, coord+view->size() );
   };
-
-  std::unique_ptr<View> view;
   Coord coord;
+  std::unique_ptr<View> view;
 };
 
 class CompositeView : public View {
@@ -92,6 +79,53 @@ public:
 protected:
   std::vector<ViewDesc> views_;
 };
+
+class TitleBarView : public View {
+public:
+  TitleBarView( std::string title, W size );
+
+  // Implement Object
+  virtual bool needs_redraw() const override;
+  // Implement Object
+  virtual void draw( Texture const& tx, Coord coord ) const override;
+  // Implement Object
+  virtual Delta size() const override;
+
+protected:
+  std::string title_;
+  SolidRectView background_;
+  Texture tx;
+};
+
+enum class e_window_state {
+  running,
+  closed
+};
+
+class Window : public Object {
+public:
+  Window( std::string const& title, std::unique_ptr<View> view )
+    : window_state_( e_window_state::running ),
+      title_bar_( title, view->size().w ),
+      view_( std::move( view ) ) {}
+
+  virtual ~Window() {}
+  e_window_state state() const { return window_state_; }
+
+  // Implement Object
+  virtual bool needs_redraw() const override;
+  // Implement Object
+  virtual void draw( Texture const& tx, Coord coord ) const override;
+  // Implement Object
+  virtual Delta size() const override;
+
+protected:
+  e_window_state window_state_;
+  TitleBarView title_bar_;
+  std::unique_ptr<View> view_;
+};
+
+void test_window();
 
 using RenderFunc = std::function<void(void)>;
 

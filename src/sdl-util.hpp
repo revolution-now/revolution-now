@@ -41,7 +41,16 @@ private:
   ::SDL_Texture* tx_;
 };
 
-using Color = ::SDL_Color;
+struct Color : public ::SDL_Color {
+  Color() : ::SDL_Color{ 0, 0, 0, 255 } {}
+  Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a )
+    : ::SDL_Color{ r, g, b, a } {}
+  static Color red() { return {255, 0, 0, 255}; }
+  static Color green() { return {0, 255, 0, 255}; }
+  static Color blue() { return {0, 0, 255, 255}; }
+  static Color white() { return {255, 255, 255, 255}; }
+  static Color black() { return {0, 0, 0, 255}; }
+};
 
 using TextureRef = std::reference_wrapper<Texture>;
 
@@ -57,7 +66,7 @@ void create_renderer();
 
 void cleanup();
 
-void set_render_target( Texture const& tx );
+void set_render_target( OptCRef<Texture> tx );
 
 // Make an RAII version of this
 void push_clip_rect( Rect const& rect );
@@ -84,10 +93,16 @@ ND Rect texture_rect( Texture const& texture );
 // rendering target. Returns true on success, false otherwise.
 ND bool copy_texture(
     Texture const& from, OptCRef<Texture> to, Y y, X x );
+ND bool copy_texture(
+    Texture const& from, OptCRef<Texture> to, Coord coord );
 
 ND Texture create_texture( W w, H h );
 
 void set_render_draw_color( Color const& color );
+void render_rect(
+    OptCRef<Texture> tx, Color const& color, Rect const& rect );
+void render_fill_rect(
+    OptCRef<Texture> tx, Color const& color, Rect const& rect );
 
 } // namespace rn
 
