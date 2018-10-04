@@ -82,6 +82,7 @@ def FlagsForFile( filename, **kwargs ):
     return { 'flags': _make( filename ) }
 
 if __name__ == '__main__':
+    print _run_cmd( '/usr/bin/make diag' )
     flags = FlagsForFile( sys.argv[1] )['flags']
     print flags[0]
     for flag in flags[1:]:
