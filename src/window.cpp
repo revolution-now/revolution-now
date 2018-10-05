@@ -118,13 +118,15 @@ void WindowManager::draw_layout( Texture const& tx ) const {
       {position_.x,position_.y,window_size().w,window_size().h} );
 }
 
-bool accept_input( SDL_Event event ) {
+bool WindowManager::accept_input( SDL_Event event ) {
   switch (event.type) {
     case ::SDL_MOUSEBUTTONDOWN:
       switch( event.button.button ) {
         case SDL_BUTTON_LEFT:
+          //LOG( "SDL_BUTTON_LEFT" );
           break;
         case SDL_BUTTON_RIGHT:
+          //LOG( "SDL_BUTTON_RIGHT" );
           break;
       }
     default:
@@ -149,14 +151,16 @@ void test_window() {
 }
 
 void WindowManager::run( RenderFunc ) {
-  draw_layout( Texture() );
-  ::SDL_RenderPresent( g_renderer );
-
   ::SDL_Event event;
   while( true ) {
-    ::SDL_PollEvent( &event );
-    if( event.type == SDL_KEYDOWN )
-      break;
+    draw_layout( Texture() );
+    ::SDL_RenderPresent( g_renderer );
+    if( ::SDL_PollEvent( &event ) ) {
+      if( event.type == SDL_KEYDOWN &&
+          event.key.keysym.sym == ::SDLK_q )
+        break;
+      (void)accept_input( event );
+    }
     ::SDL_Delay( 10 );
   }
 }
