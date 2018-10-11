@@ -38,6 +38,9 @@ bin-osx*
 .lib-linux*
 .lib-osx*
 
+# clang tools
+compile_flags.txt
+
 # vim-related
 *~
 *.swp
