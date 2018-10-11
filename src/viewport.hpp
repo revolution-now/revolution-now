@@ -21,12 +21,10 @@
 namespace rn {
 
 class SmoothViewport {
-
 public:
   SmoothViewport();
 
-  void advance( e_push_direction x_push,
-                e_push_direction y_push,
+  void advance( e_push_direction x_push, e_push_direction y_push,
                 e_push_direction zoom_push );
 
   // Tiles touched by the viewport (tiles at the edge may only be
@@ -79,4 +77,3 @@ private:
 SmoothViewport& viewport();
 
 } // namespace rn
-

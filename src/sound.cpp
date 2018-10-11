@@ -37,9 +37,7 @@ void stop_music_if_playing() {
 
 } // namespace
 
-void cleanup_sound() {
-  stop_music_if_playing();
-}
+void cleanup_sound() { stop_music_if_playing(); }
 
 bool play_music_file( char const* file ) {
   stop_music_if_playing();
@@ -49,8 +47,7 @@ bool play_music_file( char const* file ) {
     return false;
   }
   // Start Playback
-  if( ::Mix_PlayMusic( current_music, 1) == 0 )
-    return true;
+  if( ::Mix_PlayMusic( current_music, 1 ) == 0 ) return true;
 
   cerr << "Mix_PlayMusic error: " << ::SDL_GetError() << "\n";
   ::Mix_FreeMusic( current_music );
@@ -59,4 +56,3 @@ bool play_music_file( char const* file ) {
 }
 
 } // namespace rn
-

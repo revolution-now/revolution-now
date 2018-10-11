@@ -93,42 +93,44 @@ vector<vector<Square>> world_map{
 } // namespace
 
 std::tuple<H, W> world_size_tiles() {
-  return {H(world_map.size()), W(world_map[0].size())};
+  return {H( world_map.size() ), W( world_map[0].size() )};
 }
 
 std::tuple<H, W> world_size_pixels() {
   auto p = world_size_tiles();
-  W w = std::get<1>( p );
-  H h = std::get<0>( p );
-  return {
-    h*g_tile_height._,
-    w*g_tile_width._
-  };
+  W    w = std::get<1>( p );
+  H    h = std::get<0>( p );
+  return {h * g_tile_height._, w * g_tile_width._};
 }
 
-W world_size_tiles_x() { return std::get<1>( world_size_tiles() ); }
-H world_size_tiles_y() { return std::get<0>( world_size_tiles() ); }
-W world_size_pixels_x() { return std::get<1>( world_size_tiles() ); }
-H world_size_pixels_y() { return std::get<0>( world_size_tiles() ); }
+W world_size_tiles_x() {
+  return std::get<1>( world_size_tiles() );
+}
+H world_size_tiles_y() {
+  return std::get<0>( world_size_tiles() );
+}
+W world_size_pixels_x() {
+  return std::get<1>( world_size_tiles() );
+}
+H world_size_pixels_y() {
+  return std::get<0>( world_size_tiles() );
+}
 
 Rect world_rect() {
-  return {
-    X(0), Y(0),
-    world_size_tiles_x(), world_size_tiles_y()
-  };
+  return {X( 0 ), Y( 0 ), world_size_tiles_x(),
+          world_size_tiles_y()};
 }
 
 bool square_exists( Y y, X x ) {
-  if( y < 0 || x < 0 )
-    return false;
-  if( auto [sy, sx] = world_size_tiles(); Y(0) + sy > y && X(0) + sx > x )
+  if( y < 0 || x < 0 ) return false;
+  if( auto [sy, sx] = world_size_tiles();
+      Y( 0 ) + sy > y && X( 0 ) + sx > x )
     return true;
   return false;
 }
 
 OptSquareCRef square_at_safe( Y y, X x ) {
-  if( !square_exists( y, x ) )
-      return nullopt;
+  if( !square_exists( y, x ) ) return nullopt;
   return world_map[y._][x._];
 }
 
@@ -141,11 +143,8 @@ Square const& square_at( Y y, X x ) {
 // N-S-E-W
 SquareSurround surrounding( Y y, X x ) {
   return SquareSurround{
-    square_at_safe( y-1, x ),
-    square_at_safe( y+1, x ),
-    square_at_safe( y, x+1 ),
-    square_at_safe( y, x-1 )
-  };
+      square_at_safe( y - 1, x ), square_at_safe( y + 1, x ),
+      square_at_safe( y, x + 1 ), square_at_safe( y, x - 1 )};
 }
-  
+
 } // namespace rn

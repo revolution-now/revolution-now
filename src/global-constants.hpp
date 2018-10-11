@@ -24,7 +24,7 @@ constexpr H g_tile_height{32};
 constexpr W g_world_max_width{1000};
 constexpr H g_world_max_height{1000};
 
-inline constexpr std::string_view g_window_title = "Revolution | Now";
+inline constexpr std::string_view g_window_title =
+    "Revolution | Now";
 
 } // namespace rn
-

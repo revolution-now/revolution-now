@@ -25,9 +25,9 @@ namespace gui {
 class Object {
 public:
   virtual ~Object() {}
-  ND virtual bool needs_redraw() const = 0;
-  virtual void draw( Texture const& tx, Coord coord ) const = 0;
-  virtual Delta size() const = 0;
+  ND virtual bool needs_redraw() const                       = 0;
+  virtual void  draw( Texture const& tx, Coord coord ) const = 0;
+  virtual Delta size() const                                 = 0;
   ND virtual bool accept_input( SDL_Event ) { return false; }
 };
 
@@ -45,7 +45,8 @@ public:
   // Implement Object
   virtual bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx, Coord coord ) const override;
+  virtual void draw( Texture const& tx,
+                     Coord          coord ) const override;
   // Implement Object
   virtual Delta size() const override;
 
@@ -57,9 +58,9 @@ protected:
 struct ViewDesc {
   ViewDesc( ViewDesc&& ) = default;
   Rect bounds() const {
-    return Rect::from( coord, coord+view->size() );
+    return Rect::from( coord, coord + view->size() );
   };
-  Coord coord;
+  Coord                 coord;
   std::unique_ptr<View> view;
 };
 
@@ -72,7 +73,8 @@ public:
   // Implement Object
   virtual bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx, Coord coord ) const override;
+  virtual void draw( Texture const& tx,
+                     Coord          coord ) const override;
   // Implement Object
   virtual Delta size() const override;
 
@@ -87,20 +89,18 @@ public:
   // Implement Object
   virtual bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx, Coord coord ) const override;
+  virtual void draw( Texture const& tx,
+                     Coord          coord ) const override;
   // Implement Object
   virtual Delta size() const override;
 
 protected:
-  std::string msg_;
+  std::string   msg_;
   SolidRectView background_;
-  Texture tx;
+  Texture       tx;
 };
 
-enum class e_window_state {
-  running,
-  closed
-};
+enum class e_window_state { running, closed };
 
 using ViewPtr = std::unique_ptr<View>;
 
@@ -117,20 +117,21 @@ public:
   // Implement Object
   virtual bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx, Coord coord ) const override;
+  virtual void draw( Texture const& tx,
+                     Coord          coord ) const override;
   // Implement Object
   virtual Delta size() const override;
 
   std::string const& title() const { return title_; }
 
 protected:
-  e_window_state window_state_;
-  std::string title_;
+  e_window_state        window_state_;
+  std::string           title_;
   std::unique_ptr<View> view_;
 };
 
-using RenderFunc = std::function<void(void)>;
-using WinPtr = std::unique_ptr<Window>;
+using RenderFunc = std::function<void( void )>;
+using WinPtr     = std::unique_ptr<Window>;
 
 class WindowManager {
 public:
@@ -147,8 +148,8 @@ private:
 
   // Currently the WM can only have one window.
   std::unique_ptr<Window> window_;
-  OneLineStringView title_bar_;
-  Coord position_;
+  OneLineStringView       title_bar_;
+  Coord                   position_;
 };
 
 void test_window();

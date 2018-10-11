@@ -20,16 +20,12 @@ using namespace std;
 
 namespace rn {
 
-namespace {
-
-} // namespace
+namespace {} // namespace
 
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves() {
-  map_units( []( Unit& unit ) {
-    unit.new_turn();
-  });
+  map_units( []( Unit& unit ) { unit.new_turn(); } );
 }
 
 // This function will allow the move by default, and so it is the
@@ -46,8 +42,8 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   MovementPoints cost( 1 );
 
   UnitMoveDesc result{
-    coords, false, e_unit_mv_good::map_to_map, cost, UnitId{0}, {}
-  };
+      coords, false,     e_unit_mv_good::map_to_map,
+      cost,   UnitId{0}, {}};
 
   if( unit.movement_points() < cost ) {
     result.desc = e_unit_mv_error::insufficient_movement_points;
@@ -73,9 +69,9 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
       // allowed to make this move, but we change the target
       // square to where the unit currently is since it will
       // not physically move.
-      result.desc = e_unit_mv_good::land_fall;
-      result.can_move = true;
-      result.coords = coords_for_unit( unit.id() );
+      result.desc          = e_unit_mv_good::land_fall;
+      result.can_move      = true;
+      result.coords        = coords_for_unit( unit.id() );
       result.movement_cost = 0;
       result.to_prioritize = to_offload;
       return result;
@@ -97,9 +93,9 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
       CHECK( ship_unit.desc().boat );
       auto& cargo = ship_unit.cargo();
       if( cargo.fits( id ) ) {
-        result.desc = e_unit_mv_good::board_ship;
-        result.can_move = true;
-        result.target_unit = ship_id;
+        result.desc          = e_unit_mv_good::board_ship;
+        result.can_move      = true;
+        result.target_unit   = ship_id;
         result.to_prioritize = {ship_id};
         return result;
       }
@@ -113,12 +109,12 @@ UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
   auto holder = is_unit_onboard( unit.id() );
   if( !unit.desc().boat && square.land && holder ) {
     // We have a unit onboard a ship moving onto land.
-    result.desc = e_unit_mv_good::offboard_ship;
+    result.desc     = e_unit_mv_good::offboard_ship;
     result.can_move = true;
     return result;
   }
 
-  result.desc = e_unit_mv_good::map_to_map;
+  result.desc     = e_unit_mv_good::map_to_map;
   result.can_move = true;
   return result;
 }
@@ -137,7 +133,8 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
 
   switch( outcome ) {
     case e_unit_mv_good::map_to_map:
-      // If it's a ship then sentry all its units before it moves.
+      // If it's a ship then sentry all its units before it
+      // moves.
       if( unit.desc().boat ) {
         for( UnitId id : unit.cargo().items_of_type<UnitId>() ) {
           auto& cargo_unit = unit_from_id( id );
@@ -161,7 +158,8 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
       // Just activate all the units on the ship that have not
       // completed their turns. Note that the ship's movement
       // points are not consumed.
-      for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
+      for( auto cargo_id :
+           unit.cargo().items_of_type<UnitId>() ) {
         auto& cargo_unit = unit_from_id( cargo_id );
         if( !cargo_unit.moved_this_turn() ) {
           cargo_unit.clear_orders();

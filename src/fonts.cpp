@@ -10,9 +10,9 @@
 *****************************************************************/
 #include "fonts.hpp"
 
+#include "base-util.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
-#include "base-util.hpp"
 #include "sdl-util.hpp"
 
 #include "util/algo.hpp"
@@ -34,17 +34,19 @@ namespace {
 
 struct FontDesc {
   char const* file_name;
-  int pt_size;
+  int         pt_size;
   ::TTF_Font* ttf_font;
 };
 
 unordered_map<e_font, FontDesc> loaded_fonts{
-  {e_font::_7_12_serif_16pt, {"../fonts/7-12-serif/712_serif.ttf", 16, nullptr}}
-};
+    {e_font::_7_12_serif_16pt,
+     {"../fonts/7-12-serif/712_serif.ttf", 16, nullptr}}};
 
-Texture render_line_standard_impl(
-    ::TTF_Font* font, ::SDL_Color fg, string const& line ) {
-  ASSIGN_CHECK( surface, ::TTF_RenderText_Blended( font, line.c_str(), fg ) );
+Texture render_line_standard_impl( ::TTF_Font*   font,
+                                   ::SDL_Color   fg,
+                                   string const& line ) {
+  ASSIGN_CHECK( surface, ::TTF_RenderText_Blended(
+                             font, line.c_str(), fg ) );
   auto texture = Texture::from_surface( surface );
   ::SDL_FreeSurface( surface );
   // Not sure why this doesn't happen automatically.
@@ -54,8 +56,8 @@ Texture render_line_standard_impl(
 
 } // namespace
 
-Texture render_line_standard(
-    e_font font, Color fg, string const& line ) {
+Texture render_line_standard( e_font font, Color fg,
+                              string const& line ) {
   auto* ttf_font = loaded_fonts[font].ttf_font;
   return render_line_standard_impl( ttf_font, fg, line );
 }
@@ -63,23 +65,27 @@ Texture render_line_standard(
 Texture render_line_shadow( e_font font, string const& line ) {
   Color fg{244, 179, 66, 255};
   Color bg{0, 0, 0, 128};
-  auto texture_fg = render_line_standard( font, fg, line.c_str() );
-  auto texture_bg = render_line_standard( font, bg, line.c_str() );
-  auto rect = texture_rect( texture_fg );
-  auto result_texture = create_texture( rect.w+1, rect.h+1 );
-  CHECK( copy_texture( texture_bg, result_texture, Y(1), X(1) ) );
-  CHECK( copy_texture( texture_fg, result_texture, Y(0), X(0) ) );
+  auto  texture_fg =
+      render_line_standard( font, fg, line.c_str() );
+  auto texture_bg =
+      render_line_standard( font, bg, line.c_str() );
+  auto rect           = texture_rect( texture_fg );
+  auto result_texture = create_texture( rect.w + 1, rect.h + 1 );
+  CHECK( copy_texture( texture_bg, result_texture, Y( 1 ),
+                       X( 1 ) ) );
+  CHECK( copy_texture( texture_fg, result_texture, Y( 0 ),
+                       X( 0 ) ) );
   return result_texture;
 }
 
 using RenderLineFn = std::function<Texture( string const& )>;
 
-Texture render_lines(
-    H min_skip, vector<string> const& lines, RenderLineFn render_line ) {
+Texture render_lines( H min_skip, vector<string> const& lines,
+                      RenderLineFn render_line ) {
   auto textures = util::map( render_line, lines );
-  auto rects = util::map( texture_rect, textures );
-  H res_height( 0 );
-  W res_width( 0 );
+  auto rects    = util::map( texture_rect, textures );
+  H    res_height( 0 );
+  W    res_width( 0 );
   for( auto rect : rects ) {
     res_height += max( min_skip, rect.h );
     res_width = max( res_width, rect.w );
@@ -93,15 +99,16 @@ Texture render_lines(
 
   Y y( 0 );
   for( size_t i = 0; i < textures.size(); ++i ) {
-    CHECK( copy_texture( textures[i], result_texture, Y(y), X(0) ) );
+    CHECK( copy_texture( textures[i], result_texture, Y( y ),
+                         X( 0 ) ) );
     y += max( min_skip, rects[i].h );
   }
   return result_texture;
 }
 
-Texture render_wrapped_text(
-    H min_skip, string_view text, RenderLineFn render_line,
-    util::IsStrOkFunc width_checker ) {
+Texture render_wrapped_text( H min_skip, string_view text,
+                             RenderLineFn      render_line,
+                             util::IsStrOkFunc width_checker ) {
   auto wrapped = util::wrap_text_fn( text, width_checker );
   return render_lines( min_skip, wrapped, render_line );
 }
@@ -109,7 +116,8 @@ Texture render_wrapped_text(
 Texture render_wrapped_text_by_pixels(
     ::TTF_Font* font, int max_pixel_width, H min_skip,
     string_view text, RenderLineFn render_line ) {
-  auto width_checker = [font, max_pixel_width]( string_view text ) {
+  auto width_checker = [font,
+                        max_pixel_width]( string_view text ) {
     int w, h;
     ::TTF_SizeText( font, string( text ).c_str(), &w, &h );
     return w <= max_pixel_width;
@@ -118,32 +126,38 @@ Texture render_wrapped_text_by_pixels(
   return render_lines( min_skip, wrapped, render_line );
 }
 
-void font_size_spectrum( char const* msg, char const* font_file ) {
-  int y = 30;
-  auto sizes = {3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
+void font_size_spectrum( char const* msg,
+                         char const* font_file ) {
+  int  y     = 30;
+  auto sizes = {3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
   for( auto ptsize : sizes ) {
     ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
     std::string num_msg = std::to_string( ptsize ) + ": " + msg;
-    ::SDL_Color fg{ 255, 255, 255, 255 };
-    auto texture = render_line_standard_impl( font, fg, num_msg );
-    CHECK( copy_texture( texture, nullopt, Y(y), X(0) ) );
+    ::SDL_Color fg{255, 255, 255, 255};
+    auto        texture =
+        render_line_standard_impl( font, fg, num_msg );
+    CHECK( copy_texture( texture, nullopt, Y( y ), X( 0 ) ) );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
   }
 }
 
-Delta font_rendered_width( e_font font, std::string const& text ) {
+Delta font_rendered_width( e_font             font,
+                           std::string const& text ) {
   int w, h;
-  ::TTF_SizeText( loaded_fonts[font].ttf_font, text.c_str(), &w, &h );
-  return {W(w), H(h)};
+  ::TTF_SizeText( loaded_fonts[font].ttf_font, text.c_str(), &w,
+                  &h );
+  return {W( w ), H( h )};
 }
 
 void init_fonts() {
   CHECK( !TTF_Init() );
   for( auto& [font, font_desc] : loaded_fonts ) {
-    int pt_size = font_desc.pt_size;
+    int         pt_size   = font_desc.pt_size;
     char const* font_file = font_desc.file_name;
-    ASSIGN_CHECK( ttf_font, ::TTF_OpenFont( font_file, pt_size ) );
+    ASSIGN_CHECK( ttf_font,
+                  ::TTF_OpenFont( font_file, pt_size ) );
     // Check style first before setting this.
     ::TTF_SetFontStyle( ttf_font, TTF_STYLE_NORMAL );
     int outline = 0;
@@ -163,25 +177,25 @@ void font_test() {
 
   H skip( ::TTF_FontLineSkip( loaded_fonts[font].ttf_font ) );
 
-  char const* msg = "Ask not what your country can do for you, "
-                    "but instead ask what you can do for your country!";
+  char const* msg =
+      "Ask not what your country can do for you, "
+      "but instead ask what you can do for your country!";
 
   auto render_line = [font]( string const& text ) {
-      return render_line_shadow( font, text );
+    return render_line_shadow( font, text );
   };
-  auto texture = render_wrapped_text(
-      skip, msg, render_line, L( _.size() <= 20 ) );
+  auto texture = render_wrapped_text( skip, msg, render_line,
+                                      L( _.size() <= 20 ) );
 
-  CHECK( copy_texture( texture, nullopt, Y(100), X(100) ) );
-  //font_size_spectrum( msg, font_file );
+  CHECK( copy_texture( texture, nullopt, Y( 100 ), X( 100 ) ) );
+  // font_size_spectrum( msg, font_file );
 
   ::SDL_RenderPresent( g_renderer );
 
   ::SDL_Event event;
   while( true ) {
     ::SDL_PollEvent( &event );
-    if( event.type == SDL_KEYDOWN )
-      break;
+    if( event.type == SDL_KEYDOWN ) break;
     ::SDL_Delay( 10 );
   }
 }

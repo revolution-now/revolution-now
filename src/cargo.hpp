@@ -28,13 +28,9 @@ struct ND Commodity {
 // This Cargo element represents something that may occupy one or
 // more cargo slots. E.g., it may represent a unit that takes six
 // cargo slots.
-using Cargo = std::variant<
-  UnitId,
-  Commodity
->;
+using Cargo = std::variant<UnitId, Commodity>;
 
 class ND CargoHold : public movable_only {
-
 public:
   CargoHold( int slots ) : items_{}, slots_( slots ) {}
 
@@ -45,12 +41,12 @@ public:
 
   // May not need non-const iterators here.
 
-  using iterator = std::vector<Cargo>::iterator;
+  using iterator       = std::vector<Cargo>::iterator;
   using const_iterator = std::vector<Cargo>::const_iterator;
 
-  iterator begin() { return items_.begin(); }
+  iterator       begin() { return items_.begin(); }
   const_iterator cbegin() const { return items_.cbegin(); }
-  iterator end() { return items_.end(); }
+  iterator       end() { return items_.end(); }
   const_iterator cend() const { return items_.cend(); }
 
   int slots_occupied() const;
@@ -62,15 +58,15 @@ public:
   template<typename T>
   std::vector<T> items_of_type() const;
 
-  //Cargo const& operator[]( int idx ) const;
+  // Cargo const& operator[]( int idx ) const;
 
   bool fits( Cargo cargo ) const;
 
 private:
   // This is the only function that should be called to add some-
   // thing to the cargo.
-  friend void ownership_change_to_cargo(
-      UnitId new_holder, UnitId held );
+  friend void ownership_change_to_cargo( UnitId new_holder,
+                                         UnitId held );
   friend void ownership_disown_unit( UnitId id );
 
   // Caller is expected to first check if these operations will
@@ -87,7 +83,7 @@ private:
   // item takes up. However, the bounds on the size will be:
   // [0, desc->cargo-slots] inclusive.
   std::vector<Cargo> items_;
-  int const slots_;
+  int const          slots_;
 };
 
 // For convenience. Iterates over all cargo items of a certain

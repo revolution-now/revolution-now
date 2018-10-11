@@ -12,14 +12,8 @@
 
 namespace rn {
 
-namespace {
+namespace {} // namespace
 
-
-  
-} // namespace
-
-e_nation player_nationality() {
-  return e_nation::dutch;
-}
+e_nation player_nationality() { return e_nation::dutch; }
 
 } // namespace rn

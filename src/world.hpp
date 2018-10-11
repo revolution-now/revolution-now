@@ -25,9 +25,9 @@ struct ND Square {
   bool land;
 };
 
-using SquareRef = std::reference_wrapper<Square>;
-using SquareCRef = std::reference_wrapper<Square const>;
-using OptSquareRef = std::optional<SquareRef>;
+using SquareRef     = std::reference_wrapper<Square>;
+using SquareCRef    = std::reference_wrapper<Square const>;
+using OptSquareRef  = std::optional<SquareRef>;
 using OptSquareCRef = std::optional<SquareCRef>;
 
 struct ND SquareSurround {
@@ -56,20 +56,21 @@ ND SquareSurround surrounding( Y y, X x );
 
 } // namespace rn
 
-// Here  we  open up the std namespace to add a hash function spe-
-// cialization for a Coord.
+// Here  we  open up the std namespace to add a hash function
+// spe- cialization for a Coord.
 namespace std {
-  template<> struct hash<::rn::Coord> {
-    auto operator()( ::rn::Coord const& c ) const noexcept {
-      // This formula will yield a unique integer for each pos-
-      // sible square coordinate in the world, assuming that the
-      // world is of a maximum size.
-      //
-      // Here we access the ._ member and break semantics safety
-      // because this is an operation that normally wouldn't make
-      // sense by the semantics of cartesian coordinates, but we
-      // do it for the purpose of hashing.
-      return c.y._*::rn::g_world_max_width._ + c.x._;
-    }
-  };
+template<>
+struct hash<::rn::Coord> {
+  auto operator()( ::rn::Coord const& c ) const noexcept {
+    // This formula will yield a unique integer for each pos-
+    // sible square coordinate in the world, assuming that the
+    // world is of a maximum size.
+    //
+    // Here we access the ._ member and break semantics safety
+    // because this is an operation that normally wouldn't make
+    // sense by the semantics of cartesian coordinates, but we
+    // do it for the purpose of hashing.
+    return c.y._ * ::rn::g_world_max_width._ + c.x._;
+  }
+};
 } // namespace std

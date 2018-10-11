@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2018-08-31.
 *
-* Description: 
+* Description:
 *
 *****************************************************************/
 #pragma once
@@ -18,10 +18,7 @@
 
 namespace rn {
 
-enum class ND e_eot_loop_result {
-  none,
-  quit
-};
+enum class ND e_eot_loop_result { none, quit };
 
 ND e_eot_loop_result loop_eot();
 
@@ -36,7 +33,7 @@ enum class ND e_orders_loop_result {
 // cided (in the loop_orders function) that a unit needs to be
 // bumped to the front of the queue for accepting orders.
 ND e_orders_loop_result loop_orders(
-    UnitId id, std::function<void(UnitId)> prioritize );
+    UnitId id, std::function<void( UnitId )> prioritize );
 
 void loop_mv_unit( UnitId id, Coord target );
 

@@ -32,9 +32,10 @@ public:
   Texture( Texture&& tx );
   Texture& operator=( Texture&& rhs );
   ~Texture();
-  operator ::SDL_Texture*() const { return tx_; }
+                 operator ::SDL_Texture*() const { return tx_; }
   ::SDL_Texture* get() const { return tx_; }
   static Texture from_surface( ::SDL_Surface* surface );
+
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
   explicit Texture( ::SDL_Texture* tx );
@@ -42,9 +43,9 @@ private:
 };
 
 struct Color : public ::SDL_Color {
-  Color() : ::SDL_Color{ 0, 0, 0, 255 } {}
+  Color() : ::SDL_Color{0, 0, 0, 255} {}
   Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a )
-    : ::SDL_Color{ r, g, b, a } {}
+    : ::SDL_Color{r, g, b, a} {}
   static Color red() { return {255, 0, 0, 255}; }
   static Color green() { return {0, 255, 0, 255}; }
   static Color blue() { return {0, 0, 255, 255}; }
@@ -74,13 +75,13 @@ void pop_clip_rect();
 
 ND Texture& load_texture( const char* file );
 
-void render_texture(
-    Texture const& texture, SDL_Rect source, SDL_Rect dest,
-    double angle, SDL_RendererFlip flip );
+void render_texture( Texture const& texture, SDL_Rect source,
+                     SDL_Rect dest, double angle,
+                     SDL_RendererFlip flip );
 
 ND bool is_window_fullscreen();
-void set_fullscreen( bool fullscreen );
-void toggle_fullscreen();
+void    set_fullscreen( bool fullscreen );
+void    toggle_fullscreen();
 
 ND ::SDL_Rect to_SDL( Rect const& rect );
 
@@ -91,19 +92,20 @@ ND Rect texture_rect( Texture const& texture );
 // Copies one texture to another at the destination point without
 // scaling. Destination texture can be nullopt for default
 // rendering target. Returns true on success, false otherwise.
-ND bool copy_texture(
-    Texture const& from, OptCRef<Texture> to, Y y, X x );
-ND bool copy_texture(
-    Texture const& from, OptCRef<Texture> to, Coord coord );
+ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
+                      Y y, X x );
+ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
+                      Coord coord );
 
 ND Texture create_texture( W w, H h );
 
 void set_render_draw_color( Color const& color );
-void render_rect(
-    OptCRef<Texture> tx, Color const& color, Rect const& rect );
-void render_fill_rect(
-    OptCRef<Texture> tx, Color const& color, Rect const& rect );
+void render_rect( OptCRef<Texture> tx, Color const& color,
+                  Rect const& rect );
+void render_fill_rect( OptCRef<Texture> tx, Color const& color,
+                       Rect const& rect );
 
 } // namespace rn
 
-std::ostream& operator<<( std::ostream& out, ::SDL_Rect const& r );
+std::ostream& operator<<( std::ostream&     out,
+                          ::SDL_Rect const& r );

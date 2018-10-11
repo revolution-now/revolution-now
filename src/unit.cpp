@@ -21,49 +21,47 @@ namespace rn {
 
 namespace {
 
-unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> unit_desc{
-  {e_unit_type::free_colonist, UnitDescriptor{
-    /*name=*/"free colonist",
-    /*type=*/e_unit_type::free_colonist,
-    /*tile=*/g_tile::free_colonist,
-    /*boat=*/false,
-    /*visibility=*/1,
-    /*movement_points=*/1,
-    /*can_attack=*/false,
-    /*attack_points=*/0,
-    /*defense_points=*/1,
-    /*cargo_slots=*/0,
-    /*cargo_slots_occupies=*/1
-  }},
-  {e_unit_type::caravel, UnitDescriptor{
-    /*name=*/"caravel",
-    /*type=*/e_unit_type::caravel,
-    /*tile=*/g_tile::caravel,
-    /*boat=*/true,
-    /*visibility=*/1,
-    /*movement_points=*/4,
-    /*can_attack=*/false,
-    /*attack_points=*/0,
-    /*defense_points=*/2,
-    /*cargo_slots=*/4,
-    /*cargo_slots_occupies=*/-1
-  }},
-};
+unordered_map<e_unit_type, UnitDescriptor, EnumClassHash>
+    unit_desc{
+        {e_unit_type::free_colonist,
+         UnitDescriptor{/*name=*/"free colonist",
+                        /*type=*/e_unit_type::free_colonist,
+                        /*tile=*/g_tile::free_colonist,
+                        /*boat=*/false,
+                        /*visibility=*/1,
+                        /*movement_points=*/1,
+                        /*can_attack=*/false,
+                        /*attack_points=*/0,
+                        /*defense_points=*/1,
+                        /*cargo_slots=*/0,
+                        /*cargo_slots_occupies=*/1}},
+        {e_unit_type::caravel,
+         UnitDescriptor{/*name=*/"caravel",
+                        /*type=*/e_unit_type::caravel,
+                        /*tile=*/g_tile::caravel,
+                        /*boat=*/true,
+                        /*visibility=*/1,
+                        /*movement_points=*/4,
+                        /*can_attack=*/false,
+                        /*attack_points=*/0,
+                        /*defense_points=*/2,
+                        /*cargo_slots=*/4,
+                        /*cargo_slots_occupies=*/-1}},
+    };
 
 } // namespace
 
-Unit::Unit( e_nation nation, e_unit_type type ) :
-  id_( next_unit_id() ),
-  desc_( &unit_desc[type] ),
-  orders_( e_unit_orders::none ),
-  cargo_( desc_->cargo_slots ),
-  nation_( nation ),
-  movement_points_( unit_desc[type].movement_points ),
-  finished_turn_( false )
-{}
+Unit::Unit( e_nation nation, e_unit_type type )
+  : id_( next_unit_id() ),
+    desc_( &unit_desc[type] ),
+    orders_( e_unit_orders::none ),
+    cargo_( desc_->cargo_slots ),
+    nation_( nation ),
+    movement_points_( unit_desc[type].movement_points ),
+    finished_turn_( false ) {}
 
 // Ideally this should be empty... try to do this with types.
-void Unit::check_invariants() const { }
+void Unit::check_invariants() const {}
 
 // Mark unit as having moved.
 void Unit::forfeight_mv_points() {
@@ -77,7 +75,7 @@ void Unit::forfeight_mv_points() {
 // Marks unit as not having moved this turn.
 void Unit::new_turn() {
   movement_points_ = desc_->movement_points;
-  finished_turn_ = false;
+  finished_turn_   = false;
   check_invariants();
 }
 

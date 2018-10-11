@@ -5,8 +5,8 @@
 *
 * Created by dsicilia on 2018-09-09.
 *
-* Description: Handles anything in the game that relies on physics
-*              or physics-like actions.
+* Description: Handles anything in the game that relies on
+*physics or physics-like actions.
 *
 *****************************************************************/
 #pragma once
@@ -17,8 +17,8 @@ namespace rn {
 
 enum class ND e_push_direction {
   negative = -1,
-  none     =  0,
-  positive =  1
+  none     = 0,
+  positive = 1
 };
 
 // This is a class that represents a velocity under a force and a
@@ -31,10 +31,8 @@ enum class ND e_push_direction {
 // acceleration (== 0.0) only the drag acceleration will apply
 // (in the direction opposite the velocity).
 class ND DissipativeVelocity {
-
 public:
-  DissipativeVelocity( double min_velocity,
-                       double max_velocity,
+  DissipativeVelocity( double min_velocity, double max_velocity,
                        double initial_velocity,
                        // accerlerations are magnitudes
                        double mag_acceleration,

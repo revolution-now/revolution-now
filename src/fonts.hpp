@@ -18,19 +18,17 @@
 
 namespace rn {
 
-enum class e_font {
-  _7_12_serif_16pt
-};
+enum class e_font { _7_12_serif_16pt };
 
 namespace fonts {
-  constexpr e_font standard = e_font::_7_12_serif_16pt;
+constexpr e_font standard = e_font::_7_12_serif_16pt;
 }
 
-Texture render_line_standard(
-    e_font font, Color fg, std::string const& line );
+Texture render_line_standard( e_font font, Color fg,
+                              std::string const& line );
 
-Texture render_line_shadow(
-    e_font font, std::string const& line );
+Texture render_line_shadow( e_font             font,
+                            std::string const& line );
 
 void font_test();
 
@@ -38,6 +36,7 @@ void init_fonts();
 
 void unload_fonts();
 
-Delta font_rendered_width( e_font font, std::string const& text );
+Delta font_rendered_width( e_font             font,
+                           std::string const& text );
 
 } // namespace rn

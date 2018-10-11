@@ -14,12 +14,7 @@
 
 namespace rn {
 
-enum class ND e_nation {
-  dutch,
-  french,
-  english,
-  spanish
-};
+enum class ND e_nation { dutch, french, english, spanish };
 
 ND e_nation player_nationality();
 

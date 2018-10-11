@@ -17,64 +17,83 @@ namespace rn {
 
 // Cannot convert to int.
 class ND MovementPoints {
-
 public:
   MovementPoints() : points_atoms( 0 ) {}
-  MovementPoints( int p ) : points_atoms( p*factor ) {}
+  MovementPoints( int p ) : points_atoms( p * factor ) {}
 
-  static MovementPoints _1_3() { return MovementPoints( 0, 1 ); };
+  static MovementPoints _1_3() {
+    return MovementPoints( 0, 1 );
+  };
 
-  static MovementPoints _2_3() { return MovementPoints( 0, 2 ); };
+  static MovementPoints _2_3() {
+    return MovementPoints( 0, 2 );
+  };
 
   bool operator==( MovementPoints const& rhs ) const {
-    return points_atoms == rhs.points_atoms; }
+    return points_atoms == rhs.points_atoms;
+  }
   bool operator==( int rhs ) const {
-    return points_atoms == rhs*factor; }
+    return points_atoms == rhs * factor;
+  }
 
   bool operator!=( MovementPoints const& rhs ) const {
-    return points_atoms != rhs.points_atoms; }
+    return points_atoms != rhs.points_atoms;
+  }
   bool operator!=( int rhs ) const {
-    return points_atoms != rhs*factor; }
+    return points_atoms != rhs * factor;
+  }
 
   bool operator>( MovementPoints const& rhs ) const {
-    return points_atoms > rhs.points_atoms; }
+    return points_atoms > rhs.points_atoms;
+  }
   bool operator>( int rhs ) const {
-    return points_atoms > rhs*factor; }
+    return points_atoms > rhs * factor;
+  }
 
   bool operator<( MovementPoints const& rhs ) const {
-    return points_atoms < rhs.points_atoms; }
+    return points_atoms < rhs.points_atoms;
+  }
   bool operator<( int rhs ) const {
-    return points_atoms < rhs*factor; }
+    return points_atoms < rhs * factor;
+  }
 
   bool operator>=( MovementPoints const& rhs ) const {
-    return points_atoms >= rhs.points_atoms; }
+    return points_atoms >= rhs.points_atoms;
+  }
   bool operator>=( int rhs ) const {
-    return points_atoms >= rhs*factor; }
+    return points_atoms >= rhs * factor;
+  }
 
   bool operator<=( MovementPoints const& rhs ) const {
-    return points_atoms <= rhs.points_atoms; }
+    return points_atoms <= rhs.points_atoms;
+  }
   bool operator<=( int rhs ) const {
-    return points_atoms <= rhs*factor; }
+    return points_atoms <= rhs * factor;
+  }
 
   MovementPoints operator+( MovementPoints const& rhs ) const {
-    return MovementPoints( 0, points_atoms+rhs.points_atoms ); }
+    return MovementPoints( 0, points_atoms + rhs.points_atoms );
+  }
   MovementPoints operator+( int rhs ) const {
-    return MovementPoints( 0, points_atoms+(rhs*factor) ); }
+    return MovementPoints( 0, points_atoms + ( rhs * factor ) );
+  }
 
   MovementPoints operator-( MovementPoints const& rhs ) const {
-    return MovementPoints( 0, points_atoms-rhs.points_atoms ); }
+    return MovementPoints( 0, points_atoms - rhs.points_atoms );
+  }
   MovementPoints operator-( int rhs ) const {
-    return MovementPoints( 0, points_atoms-(rhs*factor) ); }
+    return MovementPoints( 0, points_atoms - ( rhs * factor ) );
+  }
 
   void operator+=( MovementPoints const& rhs ) {
-    points_atoms += rhs.points_atoms; }
-  void operator+=( int rhs ) {
-    points_atoms += rhs*factor; }
+    points_atoms += rhs.points_atoms;
+  }
+  void operator+=( int rhs ) { points_atoms += rhs * factor; }
 
   void operator-=( MovementPoints const& rhs ) {
-    points_atoms -= rhs.points_atoms; }
-  void operator-=( int rhs ) {
-    points_atoms -= rhs*factor; }
+    points_atoms -= rhs.points_atoms;
+  }
+  void operator-=( int rhs ) { points_atoms -= rhs * factor; }
 
 private:
   // atoms can be > 2
@@ -84,4 +103,3 @@ private:
 };
 
 } // namespace rn
-

@@ -26,10 +26,7 @@
 
 namespace rn {
 
-enum class ND e_unit_type {
-  free_colonist,
-  caravel
-};
+enum class ND e_unit_type { free_colonist, caravel };
 
 // Static information describing classes of units.  There will be
 // one of these for each type of unit.
@@ -41,14 +38,14 @@ struct ND UnitDescriptor {
   g_tile tile;
 
   // Movement
-  bool boat;
-  int visibility;
+  bool           boat;
+  int            visibility;
   MovementPoints movement_points;
 
   // Combat
   bool can_attack;
-  int attack_points;
-  int defense_points;
+  int  attack_points;
+  int  defense_points;
 
   // Cargo
   int cargo_slots;
@@ -66,24 +63,24 @@ enum class ND e_unit_orders {
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
 class ND Unit : public movable_only {
-
 public:
   Unit( Unit&& ) = default;
   Unit& operator=( Unit&& ) = default;
 
   /************************* Getters ***************************/
 
-  UnitId id() const { return id_; }
+  UnitId                id() const { return id_; }
   UnitDescriptor const& desc() const { return *desc_; }
-  e_unit_orders orders() const { return orders_; }
-  CargoHold const& cargo() const { return cargo_; }
+  e_unit_orders         orders() const { return orders_; }
+  CargoHold const&      cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
-  CargoHold& cargo() { return cargo_; }
-  e_nation nation() const { return nation_; }
-  MovementPoints movement_points() const
-    { return movement_points_; }
+  CargoHold&     cargo() { return cargo_; }
+  e_nation       nation() const { return nation_; }
+  MovementPoints movement_points() const {
+    return movement_points_;
+  }
 
   /************************ Functions **************************/
 
@@ -133,12 +130,12 @@ private:
   // A unit can change type, but we cannot change the type
   // information of a unit descriptor itself.
   UnitDescriptor const* desc_;
-  e_unit_orders orders_;
-  CargoHold cargo_;
-  e_nation nation_;
+  e_unit_orders         orders_;
+  CargoHold             cargo_;
+  e_nation              nation_;
   // Movement points left this turn.
   MovementPoints movement_points_;
-  bool finished_turn_;
+  bool           finished_turn_;
 };
 
 } // namespace rn

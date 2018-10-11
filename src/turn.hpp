@@ -14,10 +14,7 @@
 
 namespace rn {
 
-enum class ND e_turn_result {
-  cont,
-  quit
-};
+enum class ND e_turn_result { cont, quit };
 
 // Do a turn, start to finish.
 ND e_turn_result turn();

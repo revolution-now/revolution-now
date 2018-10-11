@@ -27,7 +27,10 @@ struct Coord;
 struct Delta;
 
 struct ND Rect {
-  X x = X(0); Y y = Y(0); W w = W(0); H h = H(0);
+  X x = X( 0 );
+  Y y = Y( 0 );
+  W w = W( 0 );
+  H h = H( 0 );
 
   static Rect from( Coord const& lhs, Coord const& rhs );
   static Rect from( Coord const& coord, Delta const& delta );
@@ -65,13 +68,16 @@ struct ND Rect {
 };
 
 enum class ND direction {
+  // clang-format off
   nw, n, ne,
-  w,  c, e,
+   w, c,  e,
   sw, s, se
+  // clang-format on
 };
 
 struct ND Coord {
-  Y y = Y(0); X x = X(0);
+  Y y = Y( 0 );
+  X x = X( 0 );
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -79,23 +85,24 @@ struct ND Coord {
   Dimension& coordinate();
 
   bool operator==( Coord const& other ) const {
-    return (y == other.y) && (x == other.x);
+    return ( y == other.y ) && ( x == other.x );
   }
 
   bool operator!=( Coord const& other ) const {
-    return !(*this == other);
+    return !( *this == other );
   }
 
   Coord moved( direction d );
-  bool is_inside( Rect const& rect );
+  bool  is_inside( Rect const& rect );
 };
 
 using OptCoord = std::optional<Coord>;
 
 struct ND Delta {
-  W w = W(0); H h = H(0);
+  W    w = W( 0 );
+  H    h = H( 0 );
   bool operator==( Delta const& other ) const {
-    return (h == other.h) && (w == other.w);
+    return ( h == other.h ) && ( w == other.w );
   }
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
@@ -129,36 +136,30 @@ ND int round_down_to_nearest_int_multiple( double d, int m );
 // since containers can't hold references. I think the reference
 // wrapper returned here should only allow const references to be
 // extracted.
-template<
-  typename KeyT,
-  typename ValT,
-  // typename... to allow for maps that may have additional
-  // template parameters (but which we don't care about here).
-  template<typename KeyT_, typename ValT_, typename...>
-  typename MapT
->
-ND OptCRef<ValT> get_val_safe( MapT<KeyT,ValT> const& m,
-                            KeyT            const& k ) {
+template<typename KeyT, typename ValT,
+         // typename... to allow for maps that may have
+         // additional template parameters (but which we don't
+         // care about here).
+         template<typename KeyT_, typename ValT_, typename...>
+         typename MapT>
+ND OptCRef<ValT> get_val_safe( MapT<KeyT, ValT> const& m,
+                               KeyT const&             k ) {
   auto found = m.find( k );
-  if( found == m.end() )
-    return std::nullopt;
+  if( found == m.end() ) return std::nullopt;
   return found->second;
 }
 
 // Non-const version.
-template<
-  typename KeyT,
-  typename ValT,
-  // typename... to allow for maps that may have additional
-  // template parameters (but which we don't care about here).
-  template<typename KeyT_, typename ValT_, typename...>
-  typename MapT
->
-ND OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
-                           KeyT      const& k ) {
+template<typename KeyT, typename ValT,
+         // typename... to allow for maps that may have
+         // additional template parameters (but which we don't
+         // care about here).
+         template<typename KeyT_, typename ValT_, typename...>
+         typename MapT>
+ND OptRef<ValT> get_val_safe( MapT<KeyT, ValT>& m,
+                              KeyT const&       k ) {
   auto found = m.find( k );
-  if( found == m.end() )
-    return std::nullopt;
+  if( found == m.end() ) return std::nullopt;
   return found->second;
 }
 
@@ -166,22 +167,18 @@ ND OptRef<ValT> get_val_safe( MapT<KeyT,ValT>& m,
 // If so, returns the iterator to the location.
 template<typename ContainerT, typename KeyT>
 ND auto has_key( ContainerT const& s, KeyT const& k )
-  -> std::optional<decltype( s.find( k ) )>
-{
+    -> std::optional<decltype( s.find( k ) )> {
   auto it = s.find( k );
-  if( it == s.end() )
-    return std::nullopt;
+  if( it == s.end() ) return std::nullopt;
   return it;
 }
 
 // Non-const version.
 template<typename ContainerT, typename KeyT>
 ND auto has_key( ContainerT& s, KeyT const& k )
-  -> std::optional<decltype( s.find( k ) )>
-{
+    -> std::optional<decltype( s.find( k ) )> {
   auto it = s.find( k );
-  if( it == s.end() )
-    return std::nullopt;
+  if( it == s.end() ) return std::nullopt;
   return it;
 }
 
@@ -193,4 +190,5 @@ ND int count( ContainerT& c, ElemT const& e ) {
 } // namespace rn
 
 std::ostream& operator<<( std::ostream& out, rn::Rect const& r );
-std::ostream& operator<<( std::ostream& out, rn::Coord const& coord );
+std::ostream& operator<<( std::ostream&    out,
+                          rn::Coord const& coord );

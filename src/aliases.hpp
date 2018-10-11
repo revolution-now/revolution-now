@@ -32,7 +32,7 @@ template<typename T>
 using CRef = std::reference_wrapper<T const>;
 
 template<typename T>
-using OptRef  = std::optional<std::reference_wrapper<T>>;
+using OptRef = std::optional<std::reference_wrapper<T>>;
 
 template<typename T>
 using OptCRef = std::optional<std::reference_wrapper<T const>>;
@@ -40,6 +40,4 @@ using OptCRef = std::optional<std::reference_wrapper<T const>>;
 template<typename U, typename V>
 using PairVec = std::vector<std::pair<U, V>>;
 
-namespace rn {
-
-} // namespace rn
+namespace rn {} // namespace rn

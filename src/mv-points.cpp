@@ -16,16 +16,11 @@
 
 namespace rn {
 
-namespace {
-
-
-  
-} // namespace
+namespace {} // namespace
 
 MovementPoints::MovementPoints( int integral, int atoms ) {
-  points_atoms = ((integral + (atoms/factor))*factor) +
-                  (atoms % factor);
+  points_atoms = ( ( integral + ( atoms / factor ) ) * factor ) +
+                 ( atoms % factor );
 }
 
 } // namespace rn
-

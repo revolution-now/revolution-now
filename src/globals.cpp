@@ -24,9 +24,9 @@ W g_panel_width_tiles{6};
 
 } // namespace
 
-::SDL_Window* g_window = nullptr;
+::SDL_Window*   g_window   = nullptr;
 ::SDL_Renderer* g_renderer = nullptr;
-Texture g_texture_world;
+Texture         g_texture_world;
 
 W screen_width_tiles() { //{28}; //{48};
   return g_screen_width_tiles;
@@ -47,11 +47,9 @@ void set_screen_height_tiles( H h ) {
 }
 
 W viewport_width_tiles() {
-  return g_screen_width_tiles-g_panel_width_tiles;
+  return g_screen_width_tiles - g_panel_width_tiles;
 }
 
-H viewport_height_tiles() {
-  return g_screen_height_tiles-1;
-}
+H viewport_height_tiles() { return g_screen_height_tiles - 1; }
 
 } // namespace rn

@@ -20,6 +20,7 @@ namespace rn {
 
 void render_world_viewport( OptUnitId blink = std::nullopt );
 
-void render_world_viewport_mv_unit( UnitId mv_id, Coord target, double percent );
+void render_world_viewport_mv_unit( UnitId mv_id, Coord target,
+                                    double percent );
 
 } // namespace rn

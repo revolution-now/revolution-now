@@ -14,12 +14,10 @@ namespace rn {
 
 namespace {
 
-int g_next_unit_id{ 0 };
-  
+int g_next_unit_id{0};
+
 } // namespace
 
-UnitId next_unit_id() {
-  return UnitId( g_next_unit_id++ );
-}
+UnitId next_unit_id() { return UnitId( g_next_unit_id++ ); }
 
 } // namespace rn

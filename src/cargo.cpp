@@ -19,11 +19,7 @@ using namespace std;
 
 namespace rn {
 
-namespace {
-
-
-  
-} // namespace
+namespace {} // namespace
 
 CargoHold::~CargoHold() {
   if( !items_.empty() )
@@ -38,7 +34,7 @@ int CargoHold::slots_occupied() const {
     // TODO: better visitation mechanism needed here.
     if( holds_alternative<UnitId>( cargo ) ) {
       UnitId id = get<UnitId>( cargo );
-      occupied = unit_from_id( id ).desc().cargo_slots_occupies;
+      occupied  = unit_from_id( id ).desc().cargo_slots_occupies;
     } else {
       occupied = 1;
       DIE( "should not be here" );
@@ -52,13 +48,11 @@ int CargoHold::slots_remaining() const {
   return slots_total() - slots_occupied();
 }
 
-int CargoHold::slots_total() const {
-  return slots_;
-}
+int CargoHold::slots_total() const { return slots_; }
 
 bool CargoHold::fits( Cargo cargo ) const {
   CHECK( holds_alternative<UnitId>( cargo ) );
-  UnitId id = get<UnitId>( cargo );
+  UnitId id     = get<UnitId>( cargo );
   auto occupied = unit_from_id( id ).desc().cargo_slots_occupies;
   return slots_remaining() >= occupied;
 }

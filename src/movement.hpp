@@ -26,7 +26,8 @@ enum class ND e_unit_mv_good {
   board_ship,
   offboard_ship,
   land_fall
-/*high_seas,
+  /*clang-format off
+  high_seas,
   dock,
   attack_nation,
   attack_tribe,
@@ -35,7 +36,8 @@ enum class ND e_unit_mv_good {
   enter_village_scout,
   trade_with_nation,
   trade_with_village,
-  enter_ruins*/
+  enter_ruins
+  clang-format on*/
 };
 
 enum class ND e_unit_mv_error {
@@ -46,10 +48,8 @@ enum class ND e_unit_mv_error {
   board_ship_full
 };
 
-using v_unit_mv_desc = std::variant<
-  e_unit_mv_good,
-  e_unit_mv_error
->;
+using v_unit_mv_desc =
+    std::variant<e_unit_mv_good, e_unit_mv_error>;
 
 // Describes what would happen if a unit were to move to a
 // given square.

@@ -21,8 +21,8 @@
 
 namespace rn {
 
-ND Unit& unit_from_id( UnitId id );
-ND UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
+ND Unit&  unit_from_id( UnitId id );
+UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
 // Apply a function to all units. The function may mutate the
 // units.
 void map_units( std::function<void( Unit& )> func );
@@ -31,7 +31,8 @@ void map_units( std::function<void( Unit& )> func );
 ND UnitId create_unit_on_map( e_unit_type type, Y y, X x );
 // Functions for mapping between units and coordinates on the
 // map.
-ND std::unordered_set<UnitId> const& units_from_coord( Y y, X x );
+ND std::unordered_set<UnitId> const& units_from_coord( Y y,
+                                                       X x );
 ND UnitIdVec units_int_rect( Rect const& rect );
 ND Coord coords_for_unit( UnitId id );
 ND OptCoord coords_for_unit_safe( UnitId id );
