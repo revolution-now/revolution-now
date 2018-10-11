@@ -1,5 +1,5 @@
 /****************************************************************
-* viewport.hpp
+**viewport.hpp
 *
 * Project: Revolution Now
 *

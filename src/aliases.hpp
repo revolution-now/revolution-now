@@ -1,5 +1,5 @@
 /****************************************************************
-* aliases.hpp
+**aliases.hpp
 *
 * Project: Revolution Now
 *

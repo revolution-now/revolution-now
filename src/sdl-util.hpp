@@ -1,5 +1,5 @@
 /****************************************************************
-* sdl-util.hpp
+**sdl-util.hpp
 *
 * Project: Revolution Now
 *

@@ -1,5 +1,5 @@
 /****************************************************************
-* global-constants.hpp
+**global-constants.hpp
 *
 * Project: Revolution Now
 *

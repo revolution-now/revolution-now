@@ -1,5 +1,5 @@
 /****************************************************************
-* typed-int.hpp
+**typed-int.hpp
 *
 * Project: Revolution Now
 *

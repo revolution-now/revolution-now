@@ -1,5 +1,5 @@
 /****************************************************************
-* ownership.cpp
+**ownership.cpp
 *
 * Project: Revolution Now
 *

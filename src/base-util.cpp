@@ -1,5 +1,5 @@
 /****************************************************************
-* base-util.cpp
+**base-util.cpp
 *
 * Project: Revolution Now
 *
@@ -74,6 +74,7 @@ template<> Y& Coord::coordinate<Y>() { return y; }
 
 Coord Coord::moved( direction d ) {
   switch( d ) {
+    // clang-format off
     case direction::nw: return {y-1,x-1}; break;
     case direction::n:  return {y-1,x  }; break;
     case direction::ne: return {y-1,x+1}; break;
@@ -83,6 +84,7 @@ Coord Coord::moved( direction d ) {
     case direction::sw: return {y+1,x-1}; break;
     case direction::s:  return {y+1,x  }; break;
     case direction::se: return {y+1,x+1}; break;
+    // clang-format on
   };
   DIE( "should not get here." );
   return {y,x}; // to silence warning; will not get here.
@@ -141,4 +143,3 @@ std::ostream& operator<<( std::ostream& out, rn::Rect const& r ) {
 std::ostream& operator<<( std::ostream& out, rn::Coord const& coord ) {
   return (out << "(" << coord.x << "," << coord.y << ")");
 }
-

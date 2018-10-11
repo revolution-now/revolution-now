@@ -1,5 +1,5 @@
 /****************************************************************
-* core-config.hpp
+**core-config.hpp
 *
 * Project: Revolution Now
 *

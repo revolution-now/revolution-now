@@ -1,5 +1,5 @@
 /****************************************************************
-* globals.cpp
+**globals.cpp
 *
 * Project: Revolution Now
 *

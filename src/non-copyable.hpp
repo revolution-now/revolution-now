@@ -1,5 +1,5 @@
 /****************************************************************
-* non-copyable.hpp
+**non-copyable.hpp
 *
 * Project: Revolution Now
 *
