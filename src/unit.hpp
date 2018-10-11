@@ -17,8 +17,9 @@
 #include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
-#include "non-copyable.hpp"
 #include "tiles.hpp"
+
+#include "util/non-copyable.hpp"
 
 #include <functional>
 #include <optional>
@@ -62,7 +63,7 @@ enum class ND e_unit_orders {
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
-class ND Unit : public movable_only {
+class ND Unit : public util::movable_only {
 public:
   Unit( Unit&& ) = default;
   Unit& operator=( Unit&& ) = default;

@@ -13,7 +13,8 @@
 #include "core-config.hpp"
 
 #include "id.hpp"
-#include "non-copyable.hpp"
+
+#include "util/non-copyable.hpp"
 
 #include <variant>
 #include <vector>
@@ -30,7 +31,7 @@ struct ND Commodity {
 // cargo slots.
 using Cargo = std::variant<UnitId, Commodity>;
 
-class ND CargoHold : public movable_only {
+class ND CargoHold : public util::movable_only {
 public:
   CargoHold( int slots ) : items_{}, slots_( slots ) {}
 

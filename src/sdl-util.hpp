@@ -25,8 +25,7 @@
 namespace rn {
 
 // RAII wrapper for SDL_Texture.
-class Texture : public util::non_copyable,
-                public util::non_movable {
+class Texture : public util::non_copy_non_move {
 public:
   Texture() : tx_( nullptr ) {}
   Texture( Texture&& tx );
