@@ -82,7 +82,7 @@ struct TypedInt : public TypedIntMinimal<Tag> {
   void          operator-=( int n ) { P::_ -= n; }
   void operator*=( TypedInt<Tag> other ) { P::_ *= other._; }
   void operator%=( TypedInt<Tag> other ) { P::_ %= other._; }
-  void operator/=( TypedInt<Tag> other ) { P::_ /= other._; }
+  /* operator/= left out, should yield dimensionless ratio */
   void operator+=( TypedInt<Tag> other ) { P::_ += other._; }
   /* operator- left out, should yield delta */
   explicit operator int() const { return P::_; }
