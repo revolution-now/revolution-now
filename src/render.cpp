@@ -85,7 +85,7 @@ void render_world_viewport( OptUnitId blink_id ) {
     }
   }
 
-  ::SDL_SetRenderTarget( g_renderer, NULL );
+  ::SDL_SetRenderTarget( g_renderer, nullptr );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 
@@ -129,8 +129,10 @@ void render_world_viewport_mv_unit( UnitId mv_id, Coord target,
   H     delta_y = target.y - coords.y;
   CHECK( -1 <= delta_x && delta_x <= 1 );
   CHECK( -1 <= delta_y && delta_y <= 1 );
-  W pixel_delta_x = W( ( delta_x * g_tile_width )._ * percent );
-  H pixel_delta_y = H( ( delta_y * g_tile_height )._ * percent );
+  W pixel_delta_x =
+      W( int( ( delta_x * g_tile_width )._ * percent ) );
+  H pixel_delta_y =
+      H( int( ( delta_y * g_tile_height )._ * percent ) );
 
   auto        sy      = Y( 0 ) + ( coords.y - covered.y );
   auto        sx      = X( 0 ) + ( coords.x - covered.x );
@@ -139,7 +141,7 @@ void render_world_viewport_mv_unit( UnitId mv_id, Coord target,
   Y           pixel_y = sy * g_tile_height._ + pixel_delta_y;
   render_sprite( unit.desc().tile, pixel_y, pixel_x, 0, 0 );
 
-  ::SDL_SetRenderTarget( g_renderer, NULL );
+  ::SDL_SetRenderTarget( g_renderer, nullptr );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 

@@ -65,9 +65,7 @@ e_orders_loop_result loop_orders(
         // event (with a successful move) tells us to.
         break;
       switch( event.type ) {
-        case SDL_QUIT:
-          running = false;
-          return e_orders_loop_result::quit;
+        case SDL_QUIT: return e_orders_loop_result::quit;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event ) {
             case ::SDL_WINDOWEVENT_RESIZED:
@@ -78,7 +76,6 @@ e_orders_loop_result loop_orders(
         case SDL_KEYDOWN:
           switch( event.key.keysym.sym ) {
             case ::SDLK_q: {
-              running             = false;
               auto ticks_end_loop = ::SDL_GetTicks();
               std::cerr
                   << "average framerate: "
@@ -96,11 +93,8 @@ e_orders_loop_result loop_orders(
               return e_orders_loop_result::quit;
             }
             case ::SDLK_F11: toggle_fullscreen(); break;
-            case ::SDLK_t:
-              running = false;
-              return e_orders_loop_result::wait;
+            case ::SDLK_t: return e_orders_loop_result::wait;
             case ::SDLK_SPACE:
-              running = false;
               unit.forfeight_mv_points();
               return e_orders_loop_result::moved;
             case ::SDLK_LEFT:

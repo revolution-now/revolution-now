@@ -27,7 +27,7 @@ namespace {
 ::Mix_Music* current_music = nullptr;
 
 void stop_music_if_playing() {
-  if( ::Mix_PlayingMusic() ) {
+  if( ::Mix_PlayingMusic() != 0 ) {
     CHECK( current_music );
     ::Mix_HaltMusic();
     ::Mix_FreeMusic( current_music );
@@ -42,7 +42,7 @@ void cleanup_sound() { stop_music_if_playing(); }
 bool play_music_file( char const* file ) {
   stop_music_if_playing();
   current_music = ::Mix_LoadMUS( file );
-  if( !current_music ) {
+  if( current_music == nullptr ) {
     cerr << "Mix_LoadMUS error: " << ::SDL_GetError() << "\n";
     return false;
   }

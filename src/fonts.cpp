@@ -65,11 +65,9 @@ Texture render_line_standard( e_font font, Color fg,
 Texture render_line_shadow( e_font font, string const& line ) {
   Color fg{244, 179, 66, 255};
   Color bg{0, 0, 0, 128};
-  auto  texture_fg =
-      render_line_standard( font, fg, line.c_str() );
-  auto texture_bg =
-      render_line_standard( font, bg, line.c_str() );
-  auto rect           = texture_rect( texture_fg );
+  auto  texture_fg    = render_line_standard( font, fg, line );
+  auto  texture_bg    = render_line_standard( font, bg, line );
+  auto  rect          = texture_rect( texture_fg );
   auto result_texture = create_texture( rect.w + 1, rect.h + 1 );
   CHECK( copy_texture( texture_bg, result_texture, Y( 1 ),
                        X( 1 ) ) );
