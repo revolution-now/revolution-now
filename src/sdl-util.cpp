@@ -364,12 +364,10 @@ bool copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
   if( ::SDL_SetRenderTarget( g_renderer, target ) ) return false;
   Rect dest = texture_rect( from );
-  dest.x += x;
-  dest.y += y;
-  auto sdl_rect = to_SDL( dest );
-  if( ::SDL_RenderCopy( g_renderer, from, NULL, &sdl_rect ) )
-    return false;
-  return true;
+  dest.x    = x;
+  dest.y    = y;
+  auto sdl  = to_SDL( dest );
+  return ::SDL_RenderCopy( g_renderer, from, NULL, &sdl ) == 0;
 }
 
 bool copy_texture( Texture const& from, OptCRef<Texture> to,
@@ -381,10 +379,14 @@ Texture create_texture( W w, H h ) {
   auto tx = from_SDL( ::SDL_CreateTexture(
       g_renderer, SDL_PIXELFORMAT_RGBA8888,
       SDL_TEXTUREACCESS_TARGET, w._, h._ ) );
+  clear_texture_black( tx );
+  return tx;
+}
+
+void clear_texture_black( Texture const& tx ) {
   ::SDL_SetRenderTarget( g_renderer, tx );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 0 );
   ::SDL_RenderClear( g_renderer );
-  return tx;
 }
 
 void render_texture( Texture const& texture, SDL_Rect source,

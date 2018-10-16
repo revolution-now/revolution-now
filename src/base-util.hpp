@@ -187,8 +187,8 @@ ND int count( ContainerT& c, ElemT const& e ) {
   return std::count( c.begin(), c.end(), e );
 }
 
-} // namespace rn
-
 std::ostream& operator<<( std::ostream& out, rn::Rect const& r );
 std::ostream& operator<<( std::ostream&    out,
                           rn::Coord const& coord );
+
+} // namespace rn

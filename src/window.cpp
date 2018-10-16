@@ -158,13 +158,16 @@ void test_window() {
 
 void WindowManager::run( RenderFunc ) {
   ::SDL_Event event;
-  while( true ) {
+  bool        running = true;
+  draw_layout( Texture() );
+  while( running ) {
+    clear_texture_black( Texture() );
     draw_layout( Texture() );
     ::SDL_RenderPresent( g_renderer );
-    if( ::SDL_PollEvent( &event ) ) {
+    while( ::SDL_PollEvent( &event ) ) {
       if( event.type == SDL_KEYDOWN &&
           event.key.keysym.sym == ::SDLK_q )
-        break;
+        running = false;
       (void)accept_input( event );
     }
     ::SDL_Delay( 10 );

@@ -98,6 +98,8 @@ ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
 
 ND Texture create_texture( W w, H h );
 
+void clear_texture_black( Texture const& tx );
+
 void set_render_draw_color( Color const& color );
 void render_rect( OptCRef<Texture> tx, Color const& color,
                   Rect const& rect );

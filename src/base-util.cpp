@@ -153,8 +153,6 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
   return floor / m;
 }
 
-} // namespace rn
-
 std::ostream& operator<<( std::ostream&   out,
                           rn::Rect const& r ) {
   return ( out << "(" << r.x << "," << r.y << "," << r.w << ","
@@ -165,3 +163,5 @@ std::ostream& operator<<( std::ostream&    out,
                           rn::Coord const& coord ) {
   return ( out << "(" << coord.x << "," << coord.y << ")" );
 }
+
+} // namespace rn
