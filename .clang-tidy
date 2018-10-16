@@ -1,2 +1,5 @@
-Checks: '-*,abseil-*,boost-*,bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,hicpp-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-hicpp-braces-around-statements,-readability-braces-around-statements'
+Checks: '-*,abseil-*,boost-*,bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,hicpp-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-hicpp-braces-around-statements,-readability-braces-around-statements,-cert-err58-cpp'
 WarningsAsErrors: '*'
+CheckOptions:
+  - key:             performance-unnecessary-value-param.AllowedTypes
+    value:           '::rn::X;::rn::Y;::rn::W;::rn::H'
