@@ -1,2 +1,2 @@
-Checks: '-*,abseil-*,boost-*,bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,hicpp-*,misc-*,modernize-*,performance-*,portability-*,readability-*'
+Checks: '-*,abseil-*,boost-*,bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,hicpp-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-hicpp-braces-around-statements,-readability-braces-around-statements'
 WarningsAsErrors: '*'

@@ -64,3 +64,6 @@ function! MyTabLabel( n )
 endfunction
 
 set tabline=%!MyTabLine()
+
+" Automatically format the C++ source files just before saving.
+autocmd BufWritePre *.hpp,*.cpp call ClangFormatAll()
