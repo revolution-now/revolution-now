@@ -17,9 +17,12 @@ namespace rn {
 
 namespace {
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 W g_screen_width_tiles{11};
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 H g_screen_height_tiles{6};
 
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 W g_panel_width_tiles{6};
 
 } // namespace

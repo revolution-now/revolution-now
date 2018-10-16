@@ -31,7 +31,7 @@ public:
   // partially visible).
   Rect covered_tiles() const;
 
-  void ensure_tile_surroundings_visible( Coord coord );
+  void ensure_tile_surroundings_visible( Coord const& coord );
 
   Rect get_render_src_rect() const;
   Rect get_render_dest_rect() const;
@@ -59,11 +59,11 @@ private:
 
   void scale_zoom( double factor );
   void pan( double down_up, double left_right, bool scale );
-  void center_on_tile_x( Coord coords );
-  void center_on_tile_y( Coord coords );
-  void center_on_tile( Coord coords );
+  void center_on_tile_x( Coord const& coords );
+  void center_on_tile_y( Coord const& coords );
+  void center_on_tile( Coord const& coords );
 
-  bool is_tile_fully_visible( Coord coords ) const;
+  bool is_tile_fully_visible( Coord const& coords ) const;
 
   DissipativeVelocity x_vel_;
   DissipativeVelocity y_vel_;

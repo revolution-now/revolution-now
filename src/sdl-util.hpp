@@ -27,29 +27,47 @@ namespace rn {
 // RAII wrapper for SDL_Texture.
 class Texture : public util::non_copy_non_move {
 public:
-  Texture() : tx_( nullptr ) {}
-  Texture( Texture&& tx );
-  Texture& operator=( Texture&& rhs );
+  Texture()                 = default;
+  Texture( Texture const& ) = delete;
+  Texture( Texture&& tx ) noexcept;
+  Texture& operator=( Texture const& rhs ) = delete;
+  Texture& operator=( Texture&& rhs ) noexcept;
   ~Texture();
-                 operator ::SDL_Texture*() const { return tx_; }
+
+  // NOLINTNEXTLINE(hicpp-explicit-conversions)
+  operator ::SDL_Texture*() const { return tx_; }
+
   ::SDL_Texture* get() const { return tx_; }
   static Texture from_surface( ::SDL_Surface* surface );
 
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
   explicit Texture( ::SDL_Texture* tx );
-  ::SDL_Texture* tx_;
+  ::SDL_Texture* tx_{nullptr};
 };
 
+constexpr uint8_t alpha_opaque{255};
+constexpr uint8_t max_saturation{255};
+
 struct Color : public ::SDL_Color {
-  Color() : ::SDL_Color{0, 0, 0, 255} {}
+  Color() : ::SDL_Color{0, 0, 0, alpha_opaque} {}
   Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a )
     : ::SDL_Color{r, g, b, a} {}
-  static Color red() { return {255, 0, 0, 255}; }
-  static Color green() { return {0, 255, 0, 255}; }
-  static Color blue() { return {0, 0, 255, 255}; }
-  static Color white() { return {255, 255, 255, 255}; }
-  static Color black() { return {0, 0, 0, 255}; }
+
+  static Color red() {
+    return {max_saturation, 0, 0, alpha_opaque};
+  }
+  static Color green() {
+    return {0, max_saturation, 0, alpha_opaque};
+  }
+  static Color blue() {
+    return {0, 0, max_saturation, alpha_opaque};
+  }
+  static Color white() {
+    return {max_saturation, max_saturation, max_saturation,
+            alpha_opaque};
+  }
+  static Color black() { return {0, 0, 0, alpha_opaque}; }
 };
 
 using TextureRef = std::reference_wrapper<Texture>;
@@ -94,7 +112,7 @@ ND Rect texture_rect( Texture const& texture );
 ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
                       Y y, X x );
 ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
-                      Coord coord );
+                      Coord const& coord );
 
 ND Texture create_texture( W w, H h );
 

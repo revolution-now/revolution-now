@@ -38,9 +38,12 @@ struct FontDesc {
   ::TTF_Font* ttf_font;
 };
 
+constexpr int _7_12_font_pt_size = 16;
+
 unordered_map<e_font, FontDesc> loaded_fonts{
     {e_font::_7_12_serif_16pt,
-     {"../fonts/7-12-serif/712_serif.ttf", 16, nullptr}}};
+     {"../fonts/7-12-serif/712_serif.ttf", _7_12_font_pt_size,
+      nullptr}}};
 
 Texture render_line_standard_impl( ::TTF_Font*   font,
                                    ::SDL_Color   fg,
@@ -63,7 +66,9 @@ Texture render_line_standard( e_font font, Color fg,
 }
 
 Texture render_line_shadow( e_font font, string const& line ) {
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   Color fg{244, 179, 66, 255};
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   Color bg{0, 0, 0, 128};
   auto  texture_fg    = render_line_standard( font, fg, line );
   auto  texture_bg    = render_line_standard( font, bg, line );
@@ -79,12 +84,12 @@ Texture render_line_shadow( e_font font, string const& line ) {
 using RenderLineFn = std::function<Texture( string const& )>;
 
 Texture render_lines( H min_skip, vector<string> const& lines,
-                      RenderLineFn render_line ) {
+                      RenderLineFn const& render_line ) {
   auto textures = util::map( render_line, lines );
   auto rects    = util::map( texture_rect, textures );
   H    res_height( 0 );
   W    res_width( 0 );
-  for( auto rect : rects ) {
+  for( auto const& rect : rects ) {
     res_height += max( min_skip, rect.h );
     res_width = max( res_width, rect.w );
   }
@@ -104,16 +109,17 @@ Texture render_lines( H min_skip, vector<string> const& lines,
   return result_texture;
 }
 
-Texture render_wrapped_text( H min_skip, string_view text,
-                             RenderLineFn      render_line,
-                             util::IsStrOkFunc width_checker ) {
+Texture render_wrapped_text(
+    H min_skip, string_view text,
+    RenderLineFn const&      render_line,
+    util::IsStrOkFunc const& width_checker ) {
   auto wrapped = util::wrap_text_fn( text, width_checker );
   return render_lines( min_skip, wrapped, render_line );
 }
 
 Texture render_wrapped_text_by_pixels(
     ::TTF_Font* font, int max_pixel_width, H min_skip,
-    string_view text, RenderLineFn render_line ) {
+    string_view text, RenderLineFn const& render_line ) {
   auto width_checker = [font,
                         max_pixel_width]( string_view text ) {
     int w, h;
@@ -126,12 +132,17 @@ Texture render_wrapped_text_by_pixels(
 
 void font_size_spectrum( char const* msg,
                          char const* font_file ) {
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   int  y     = 30;
-  auto sizes = {3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
-                14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
+  auto sizes = {
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+      3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+      14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
   for( auto ptsize : sizes ) {
     ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
     std::string num_msg = std::to_string( ptsize ) + ": " + msg;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     ::SDL_Color fg{255, 255, 255, 255};
     auto        texture =
         render_line_standard_impl( font, fg, num_msg );
@@ -194,6 +205,7 @@ void font_test() {
   while( true ) {
     ::SDL_PollEvent( &event );
     if( event.type == SDL_KEYDOWN ) break;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     ::SDL_Delay( 10 );
   }
 }

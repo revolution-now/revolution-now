@@ -108,7 +108,7 @@ Unit& unit_from_id( UnitId id ) {
 
 // Apply a function to all units. The function may mutate the
 // units.
-void map_units( function<void( Unit& )> func ) {
+void map_units( function<void( Unit& )> const& func ) {
   for( auto& p : units ) func( p.second );
 }
 
@@ -167,7 +167,7 @@ Coord coords_for_unit( UnitId id ) {
   return {};
 }
 
-void ownership_change_to_map( UnitId id, Coord target ) {
+void ownership_change_to_map( UnitId id, Coord const& target ) {
   ownership_disown_unit( id );
   // Add unit to new square.
   units_from_coords[{target.y, target.x}].insert( id );

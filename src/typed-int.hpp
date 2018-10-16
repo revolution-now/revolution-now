@@ -25,16 +25,25 @@
 // subject to any arithmetic operations, such as IDs.
 template<typename Tag>
 struct TypedIntMinimal {
-  constexpr TypedIntMinimal() : _( 0 ) {}
+  constexpr TypedIntMinimal() = default;
+  ~TypedIntMinimal()          = default;
   constexpr explicit TypedIntMinimal( int n_ ) : _( n_ ) {}
   constexpr TypedIntMinimal( TypedIntMinimal<Tag> const& other )
     : _( other._ ) {}
-  TypedIntMinimal<Tag> const& operator=(
+  constexpr TypedIntMinimal(
+      TypedIntMinimal<Tag>&& other ) noexcept
+    : _( other._ ) {}
+  TypedIntMinimal<Tag>& operator=(
       TypedIntMinimal<Tag> const& other ) {
     _ = other._;
     return *this;
   }
-  TypedIntMinimal<Tag> const& operator=( int n ) {
+  TypedIntMinimal<Tag>& operator=(
+      TypedIntMinimal<Tag>&& other ) noexcept {
+    _ = other._;
+    return *this;
+  }
+  TypedIntMinimal<Tag>& operator=( int n ) {
     _ = n;
     return *this;
   }
@@ -46,7 +55,7 @@ struct TypedIntMinimal {
   }
   explicit operator int() const { return _; }
 
-  int _;
+  int _{0};
 };
 
 // This one is as above but adds arithmetic operations.
@@ -54,14 +63,21 @@ template<typename Tag>
 struct TypedInt : public TypedIntMinimal<Tag> {
   using P = TypedIntMinimal<Tag>; // parent
   constexpr TypedInt() : P( 0 ) {}
+  ~TypedInt() = default;
   constexpr explicit TypedInt( int n_ ) : P( n_ ) {}
   constexpr TypedInt( TypedInt<Tag> const& other )
     : P( other._ ) {}
-  TypedInt<Tag> const& operator=( TypedInt<Tag> const& other ) {
+  constexpr TypedInt( TypedInt<Tag>&& other ) noexcept
+    : P( other._ ) {}
+  TypedInt<Tag>& operator=( TypedInt<Tag> const& other ) {
     P::_ = other._;
     return *this;
   }
-  TypedInt<Tag> const& operator=( int n ) {
+  TypedInt<Tag>& operator=( TypedInt<Tag>&& other ) noexcept {
+    P::_ = other._;
+    return *this;
+  }
+  TypedInt<Tag>& operator=( int n ) {
     P::_ = n;
     return *this;
   }
@@ -231,22 +247,34 @@ inline std::istream& operator>>( std::istream&  in,
 // the inherited member functions that refer to that base class;
 // e.g., it would allow two distinct typed int's to be added to-
 // gether.
-#define DERIVE_TYPED_INT( a, b )                \
-  struct a : public b<a> {                      \
-    using P = b<a>; /* parent */                \
-    constexpr a() : P( 0 ) {}                   \
-    constexpr explicit a( int n_ ) : P( n_ ) {} \
-    constexpr a( P ti ) : P( ti ) {}            \
-    a const& operator=( a const& other ) {      \
-      _ = other._;                              \
-      return *this;                             \
-    }                                           \
-    a const& operator=( int n ) {               \
-      _ = n;                                    \
-      return *this;                             \
-    }                                           \
-  };                                            \
-  using Opt##a = std::optional<a>;              \
+#define DERIVE_TYPED_INT( a, b )                     \
+  struct a : public b<a> {                           \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    using P = b<a>; /* parent */                     \
+    constexpr a() : P( 0 ) {}                        \
+    constexpr a( a const& rhs ) = default;           \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    constexpr a( a&& rhs ) = default;                \
+    ~a()                   = default;                \
+    explicit constexpr a( int n_ ) : P( n_ ) {}      \
+    constexpr a( P const& ti ) : P( ti ) {}          \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    a& operator=( a const& other ) {                 \
+      _ = other._;                                   \
+      return *this;                                  \
+    }                                                \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    a& operator=( a&& other ) noexcept {             \
+      _ = other._;                                   \
+      return *this;                                  \
+    }                                                \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    a& operator=( int n ) {                          \
+      _ = n;                                         \
+      return *this;                                  \
+    }                                                \
+  };                                                 \
+  using Opt##a = std::optional<a>;                   \
   using a##Vec = std::vector<a>;
 
 // Typed ints that are to represent coordinates should use this
@@ -262,10 +290,10 @@ inline std::istream& operator>>( std::istream&  in,
 
 namespace rn {
 
-TYPED_COORD( X ) // x coordinate
-TYPED_COORD( Y ) // y coordinate
-TYPED_COORD( W ) // width
-TYPED_COORD( H ) // height
+TYPED_COORD( X ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_COORD( Y ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_COORD( W ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_COORD( H ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 
 // These templates allow us to map a dimension
 template<typename Coordinate>

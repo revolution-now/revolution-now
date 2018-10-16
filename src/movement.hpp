@@ -78,7 +78,8 @@ struct ND UnitMoveDesc {
 // as not yet having moved.
 void reset_moves();
 
-ND UnitMoveDesc move_consequences( UnitId id, Coord coords );
+ND UnitMoveDesc move_consequences( UnitId       id,
+                                   Coord const& coords );
 void move_unit( UnitId, UnitMoveDesc const& move_desc );
 
 } // namespace rn

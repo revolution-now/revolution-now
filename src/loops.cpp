@@ -19,12 +19,16 @@
 
 namespace rn {
 
+constexpr int frame_rate{60};
+
 namespace {} // namespace
 
 e_orders_loop_result loop_orders(
-    UnitId id, std::function<void( UnitId )> prioritize ) {
-  int    frame_rate          = 60;
-  double frame_length_millis = 1000.0 / frame_rate;
+    UnitId                               id,
+    std::function<void( UnitId )> const& prioritize ) {
+  constexpr int millis_per_second{1000};
+  unsigned int  frame_length_millis =
+      millis_per_second / frame_rate;
 
   bool running = true;
 
@@ -55,7 +59,7 @@ e_orders_loop_result loop_orders(
     e_push_direction zoom_direction = e_push_direction::none;
 
     ::SDL_Event event;
-    while( SDL_PollEvent( &event ) ) {
+    while( SDL_PollEvent( &event ) != 0 ) {
       if( !running )
         // This check is needed so that if the user hits two
         // keys at once and the first one to be processed in
@@ -79,7 +83,8 @@ e_orders_loop_result loop_orders(
               auto ticks_end_loop = ::SDL_GetTicks();
               std::cerr
                   << "average framerate: "
-                  << 1000.0 * double( total_frames ) /
+                  << double( millis_per_second ) *
+                         double( total_frames ) /
                          ( ticks_end_loop - ticks_start_loop )
                   << "\n";
               std::cerr << "average ticks/render: "
@@ -149,19 +154,25 @@ e_orders_loop_result loop_orders(
       }
     }
 
-    auto const* state = ::SDL_GetKeyboardState( NULL );
+    auto const* __state = ::SDL_GetKeyboardState( nullptr );
+
+    // Returns true if key is pressed.
+    auto state = [__state]( ::SDL_Scancode code ) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+      return __state[code] != 0;
+    };
 
     viewport().advance(
         // x motion
-        state[::SDL_SCANCODE_A]
+        state( ::SDL_SCANCODE_A )
             ? e_push_direction::negative
-            : state[::SDL_SCANCODE_D]
+            : state( ::SDL_SCANCODE_D )
                   ? e_push_direction::positive
                   : e_push_direction::none,
         // y motion
-        state[::SDL_SCANCODE_W]
+        state( ::SDL_SCANCODE_W )
             ? e_push_direction::negative
-            : state[::SDL_SCANCODE_S]
+            : state( ::SDL_SCANCODE_S )
                   ? e_push_direction::positive
                   : e_push_direction::none,
         // zoom motion
@@ -186,8 +197,9 @@ e_orders_loop_result loop_orders(
 }
 
 e_eot_loop_result loop_eot() {
-  int    frame_rate          = 60;
-  double frame_length_millis = 1000.0 / frame_rate;
+  constexpr int millis_per_second{1000};
+  unsigned int  frame_length_millis =
+      millis_per_second / frame_rate;
 
   bool              running = true;
   e_eot_loop_result result  = e_eot_loop_result::none;
@@ -213,7 +225,7 @@ e_eot_loop_result loop_eot() {
     e_push_direction zoom_direction = e_push_direction::none;
 
     ::SDL_Event event;
-    while( SDL_PollEvent( &event ) ) {
+    while( SDL_PollEvent( &event ) != 0 ) {
       switch( event.type ) {
         case SDL_QUIT:
           running = false;
@@ -234,7 +246,8 @@ e_eot_loop_result loop_eot() {
               auto ticks_end_loop = ::SDL_GetTicks();
               std::cerr
                   << "average framerate: "
-                  << 1000.0 * double( total_frames ) /
+                  << double( millis_per_second ) *
+                         double( total_frames ) /
                          ( ticks_end_loop - ticks_start_loop )
                   << "\n";
               std::cerr << "average ticks/render: "
@@ -260,19 +273,25 @@ e_eot_loop_result loop_eot() {
       }
     }
 
-    auto const* state = ::SDL_GetKeyboardState( NULL );
+    auto const* __state = ::SDL_GetKeyboardState( nullptr );
+
+    // Returns true if key is pressed.
+    auto state = [__state]( ::SDL_Scancode code ) {
+      // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+      return __state[code] != 0;
+    };
 
     viewport().advance(
         // x motion
-        state[::SDL_SCANCODE_A]
+        state( ::SDL_SCANCODE_A )
             ? e_push_direction::negative
-            : state[::SDL_SCANCODE_D]
+            : state( ::SDL_SCANCODE_D )
                   ? e_push_direction::positive
                   : e_push_direction::none,
         // y motion
-        state[::SDL_SCANCODE_W]
+        state( ::SDL_SCANCODE_W )
             ? e_push_direction::negative
-            : state[::SDL_SCANCODE_S]
+            : state( ::SDL_SCANCODE_S )
                   ? e_push_direction::positive
                   : e_push_direction::none,
         // zoom motion
@@ -286,16 +305,23 @@ e_eot_loop_result loop_eot() {
   return result;
 }
 
-void loop_mv_unit( UnitId id, Coord target ) {
-  int    frame_rate          = 60;
-  double frame_length_millis = 1000.0 / frame_rate;
+void loop_mv_unit( UnitId id, Coord const& target ) {
+  constexpr int millis_per_second{1000};
+  unsigned int  frame_length_millis =
+      millis_per_second / frame_rate;
+
+  constexpr auto min_velocity          = 0;
+  constexpr auto max_velocity          = .1;
+  constexpr auto initial_velocity      = .1;
+  constexpr auto mag_acceleration      = 1;
+  constexpr auto mag_drag_acceleration = .004;
 
   DissipativeVelocity percent_vel(
-      /*min_velocity=*/0,
-      /*max_velocity=*/.1,
-      /*initial_velocity=*/.1,
-      /*mag_acceleration=*/1, // not relevant
-      /*mag_drag_acceleration=*/.004 );
+      /*min_velocity=*/min_velocity,
+      /*max_velocity=*/max_velocity,
+      /*initial_velocity=*/initial_velocity,
+      /*mag_acceleration=*/mag_acceleration, // not relevant
+      /*mag_drag_acceleration=*/mag_drag_acceleration );
 
   double percent = 0;
   bool   running = true;
@@ -306,7 +332,7 @@ void loop_mv_unit( UnitId id, Coord target ) {
     render_world_viewport_mv_unit( id, target, percent );
 
     percent_vel.advance( e_push_direction::none );
-    percent += percent_vel;
+    percent += percent_vel.to_double();
     if( percent > 1.0 ) running = false;
 
     auto ticks_end = ::SDL_GetTicks();

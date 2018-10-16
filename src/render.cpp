@@ -26,10 +26,12 @@ namespace rn {
 namespace {} // namespace
 
 void render_panel() {
-  auto bottom_bar = Y( 0 ) + screen_height_tiles() - 1;
-  auto left_side  = X( 0 ) + screen_width_tiles() - 6;
+  constexpr int panel_width{6};
+  auto          bottom_bar = Y( 0 ) + screen_height_tiles() - 1;
+  auto left_side = X( 0 ) + screen_width_tiles() - panel_width;
   // bottom edge
-  for( X i( 0 ); i - X( 0 ) < screen_width_tiles() - 6; ++i )
+  for( X i( 0 ); i - X( 0 ) < screen_width_tiles() - panel_width;
+       ++i )
     render_sprite_grid( g_tile::panel_edge_left, bottom_bar, i,
                         1, 0 );
   // left edge
@@ -48,7 +50,8 @@ void render_panel() {
 
 void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
-  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
+  constexpr uint8_t opaque{255};
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
   ::SDL_RenderClear( g_renderer );
 
   auto covered = viewport().covered_tiles();
@@ -77,7 +80,10 @@ void render_world_viewport( OptUnitId blink_id ) {
       if( blink_id && Coord{i, j} == coords ) {
         // Animate blinking
         auto ticks = ::SDL_GetTicks();
-        if( ticks % 1000 > 500 ) {
+        // TODO: use chrono here.
+        constexpr unsigned int one_second{1000};
+        constexpr unsigned int half_second{500};
+        if( ticks % one_second > half_second ) {
           auto const& unit = unit_from_id( *blink_id );
           render_sprite_grid( unit.desc().tile, sy, sx, 0, 0 );
         }
@@ -86,7 +92,7 @@ void render_world_viewport( OptUnitId blink_id ) {
   }
 
   ::SDL_SetRenderTarget( g_renderer, nullptr );
-  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
   ::SDL_RenderClear( g_renderer );
 
   ::SDL_Rect src  = to_SDL( viewport().get_render_src_rect() );
@@ -99,10 +105,12 @@ void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_RenderPresent( g_renderer );
 }
 
-void render_world_viewport_mv_unit( UnitId mv_id, Coord target,
-                                    double percent ) {
+void render_world_viewport_mv_unit( UnitId       mv_id,
+                                    Coord const& target,
+                                    double       percent ) {
+  constexpr uint8_t opaque{255};
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
-  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
   ::SDL_RenderClear( g_renderer );
 
   auto covered = viewport().covered_tiles();
@@ -142,7 +150,7 @@ void render_world_viewport_mv_unit( UnitId mv_id, Coord target,
   render_sprite( unit.desc().tile, pixel_y, pixel_x, 0, 0 );
 
   ::SDL_SetRenderTarget( g_renderer, nullptr );
-  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
   ::SDL_RenderClear( g_renderer );
 
   ::SDL_Rect src  = to_SDL( viewport().get_render_src_rect() );

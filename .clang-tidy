@@ -1,5 +1,27 @@
-Checks: '-*,abseil-*,boost-*,bugprone-*,cert-*,cppcoreguidelines-*,clang-analyzer-*,hicpp-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-hicpp-braces-around-statements,-readability-braces-around-statements,-cert-err58-cpp'
+Checks: '
+    -*,
+     abseil-*,
+     boost-*,
+     bugprone-*,
+     cert-*,
+     cppcoreguidelines-*,
+     clang-analyzer-*,
+     hicpp-*,
+     misc-*,
+     modernize-*,
+     performance-*,
+     portability-*,
+     readability-*,
+    -hicpp-braces-around-statements,
+    -readability-braces-around-statements,
+    -cert-err58-cpp
+'
 WarningsAsErrors: '*'
+FormatStyle: 'file'
 CheckOptions:
   - key:             performance-unnecessary-value-param.AllowedTypes
-    value:           '::rn::X;::rn::Y;::rn::W;::rn::H'
+    value:           'X;Y;W;H;UnitId'
+  - key:             performance-for-range-copy.AllowedTypes
+    value:           'X;Y;W;H;UnitId'
+  - key:             performance-unnecessary-copy-initialization.AllowedTypes
+    value:           'X;Y;W;H;UnitId'

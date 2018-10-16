@@ -32,7 +32,7 @@ Rect Rect::from( Coord const& _1, Coord const& _2 ) {
   return res;
 }
 
-Rect from( Coord const& coord, Delta const& delta ) {
+Rect Rect::from( Coord const& coord, Delta const& delta ) {
   return {coord.x, coord.y, delta.w, delta.h};
 }
 
@@ -54,37 +54,40 @@ Rect Rect::edges_removed() {
 }
 
 Rect Rect::uni0n( Rect const& rhs ) const {
-  auto new_x1 = min( x, rhs.x );
-  auto new_y1 = min( y, rhs.y );
-  auto new_x2 = max( x + w, rhs.x + rhs.w );
-  auto new_y2 = max( y + h, rhs.y + rhs.h );
+  // NOTE: be careful here with returning references; we should
+  // only be using auto const& when the function will not return
+  // a reference to a temporary.
+  auto const& new_x1 = min( x, rhs.x );
+  auto const& new_y1 = min( y, rhs.y );
+  auto /*!!*/ new_x2 = max( x + w, rhs.x + rhs.w );
+  auto /*!!*/ new_y2 = max( y + h, rhs.y + rhs.h );
   return {new_x1, new_y1, ( new_x2 - new_x1 ),
           ( new_y2 - new_y1 )};
 }
 
 template<>
-X& Rect::coordinate<X>() {
+X const& Rect::coordinate<X>() const {
   return x;
 }
 template<>
-Y& Rect::coordinate<Y>() {
+Y const& Rect::coordinate<Y>() const {
   return y;
 }
 template<>
-W& Rect::length<X>() {
+W const& Rect::length<X>() const {
   return w;
 }
 template<>
-H& Rect::length<Y>() {
+H const& Rect::length<Y>() const {
   return h;
 }
 
 template<>
-X& Coord::coordinate<X>() {
+X const& Coord::coordinate<X>() const {
   return x;
 }
 template<>
-Y& Coord::coordinate<Y>() {
+Y const& Coord::coordinate<Y>() const {
   return y;
 }
 
@@ -106,7 +109,7 @@ Coord Coord::moved( direction d ) {
   return {y, x}; // to silence warning; will not get here.
 }
 
-bool Coord::is_inside( Rect const& rect ) {
+bool Coord::is_inside( Rect const& rect ) const {
   return ( x >= rect.x ) && ( y >= rect.y ) &&
          ( x < rect.x + rect.w ) && ( y < rect.y + rect.h );
 }

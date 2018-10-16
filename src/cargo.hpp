@@ -23,7 +23,9 @@ namespace rn {
 
 // temporary dummy
 struct ND Commodity {
-  bool operator==( Commodity const& ) const { return true; }
+  bool operator==( Commodity const& /*unused*/ ) const {
+    return true;
+  }
 };
 
 // This Cargo element represents something that may occupy one or
@@ -33,9 +35,12 @@ using Cargo = std::variant<UnitId, Commodity>;
 
 class ND CargoHold : public util::movable_only {
 public:
-  CargoHold( int slots ) : items_{}, slots_( slots ) {}
+  explicit CargoHold( int slots ) : slots_( slots ) {}
 
   ~CargoHold();
+
+  CargoHold( CargoHold const& ) = delete;
+  CargoHold& operator=( CargoHold const& ) = delete;
 
   CargoHold( CargoHold&& ) = default;
   CargoHold& operator=( CargoHold&& ) = delete;
@@ -61,7 +66,7 @@ public:
 
   // Cargo const& operator[]( int idx ) const;
 
-  bool fits( Cargo cargo ) const;
+  bool fits( Cargo const& cargo ) const;
 
 private:
   // This is the only function that should be called to add some-
@@ -74,8 +79,8 @@ private:
   // succeed; if they don't succed then an error will be thrown.
   // These functions are only supposed to be called by the
   // friends in the ownership module.
-  void add( Cargo cargo );
-  void remove( Cargo cargo );
+  void add( Cargo const& cargo );
+  void remove( Cargo const& cargo );
 
   // This vector will be of variable length, even for a given
   // unit where the number of cargo slots is known. That is be-

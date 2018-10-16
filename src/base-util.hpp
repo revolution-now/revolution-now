@@ -32,19 +32,19 @@ struct ND Rect {
   W w = W( 0 );
   H h = H( 0 );
 
-  static Rect from( Coord const& lhs, Coord const& rhs );
+  static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
-  Dimension& coordinate();
+  Dimension const& coordinate() const;
 
   // Useful for generic code; allows referencing a width/height
   // from the of the associated dimension, i.e., with Dimension=X
   // it will return the width of type (W).
   template<typename Dimension>
-  LengthType<Dimension>& length();
+  LengthType<Dimension> const& length() const;
 
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
@@ -82,7 +82,7 @@ struct ND Coord {
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
-  Dimension& coordinate();
+  Dimension const& coordinate() const;
 
   bool operator==( Coord const& other ) const {
     return ( y == other.y ) && ( x == other.x );
@@ -93,7 +93,7 @@ struct ND Coord {
   }
 
   Coord moved( direction d );
-  bool  is_inside( Rect const& rect );
+  bool  is_inside( Rect const& rect ) const;
 };
 
 using OptCoord = std::optional<Coord>;
@@ -110,7 +110,7 @@ struct ND Delta {
 };
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
-ND Coord operator+( Delta const& coord, Coord const& delta );
+ND Coord operator+( Delta const& delta, Coord const& coord );
 ND Delta operator-( Coord const& lhs, Coord const& rhs );
 
 ND Coord operator+( Coord const& coord, W w );

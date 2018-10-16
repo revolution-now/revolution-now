@@ -32,7 +32,8 @@ void reset_moves() {
 // burden of the logic in this function to find every possible
 // way that the move is *not* allowed and to flag it if that is
 // the case.
-UnitMoveDesc move_consequences( UnitId id, Coord coords ) {
+UnitMoveDesc move_consequences( UnitId       id,
+                                Coord const& coords ) {
   Y y = coords.y;
   X x = coords.x;
 

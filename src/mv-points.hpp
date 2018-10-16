@@ -18,8 +18,14 @@ namespace rn {
 // Cannot convert to int.
 class ND MovementPoints {
 public:
-  MovementPoints() : points_atoms( 0 ) {}
-  MovementPoints( int p ) : points_atoms( p * factor ) {}
+  MovementPoints() = default;
+  explicit MovementPoints( int p )
+    : points_atoms( p * factor ) {}
+
+  MovementPoints& operator=( int p ) {
+    points_atoms = p * factor;
+    return *this;
+  }
 
   static MovementPoints _1_3() {
     return MovementPoints( 0, 1 );
@@ -99,7 +105,8 @@ private:
   // atoms can be > 2
   MovementPoints( int integral, int atoms );
   static constexpr int factor = 3;
-  int points_atoms; // 2 points would be represented by 2*factor.
+  // 2 points would be represented by 2*factor.
+  int points_atoms{0};
 };
 
 } // namespace rn

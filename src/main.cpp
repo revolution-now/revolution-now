@@ -23,7 +23,7 @@
 using namespace rn;
 using namespace std;
 
-int main( int, char** ) try {
+int main( int /*unused*/, char** /*unused*/ ) try {
   init_game();
   load_sprites();
   load_tile_maps();

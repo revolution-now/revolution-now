@@ -22,6 +22,7 @@
 
 #include <SDL_mixer.h>
 
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 
@@ -84,24 +85,33 @@ void init_sdl() {
   if( ::SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     DIE( "sdl could not initialize" );
 
+  constexpr int frequency{44100};
+  constexpr int chunksize{2048};
+
   // Open Audio device
-  if( Mix_OpenAudio( 44100, AUDIO_S16SYS, 2, 2048 ) != 0 ) {
+  if( Mix_OpenAudio( frequency, AUDIO_S16SYS, 2, chunksize ) !=
+      0 ) {
     cerr << "Mix_OpenAudio ERROR: " << ::Mix_GetError() << endl;
     DIE( "could not open audio" );
   }
   // Set Volume
-  ::Mix_VolumeMusic( 10 );
+  constexpr int default_volume{10};
+
+  ::Mix_VolumeMusic( default_volume );
 }
 
 SDL_DisplayMode find_fullscreen_mode() {
   ::SDL_DisplayMode dm;
   cout << "Available display modes:\n";
   auto num_display_modes = ::SDL_GetNumDisplayModes( 0 );
+  constexpr int min_x_res{1920};
+  constexpr int min_y_res{1080};
   for( int i = 0; i < num_display_modes; ++i ) {
     ::SDL_GetDisplayMode( 0, i, &dm );
-    if( dm.w % 32 == 0 && dm.h % 32 == 0 ) {
+    if( dm.w % g_tile_width._ == 0 &&
+        dm.h % g_tile_height._ == 0 ) {
       cout << dm.w << "x" << dm.h << "\n";
-      if( dm.w >= 1920 && dm.h >= 1080 ) return dm;
+      if( dm.w >= min_x_res && dm.h >= min_y_res ) return dm;
     }
   }
   dm.w = dm.h = 0; // means we can't find one.
@@ -109,6 +119,7 @@ SDL_DisplayMode find_fullscreen_mode() {
 }
 
 void create_window() {
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
                ::SDL_WINDOW_FULLSCREEN_DESKTOP;
 
@@ -121,7 +132,7 @@ void create_window() {
   g_window =
       ::SDL_CreateWindow( string( g_window_title ).c_str(), 0, 0,
                           dm.w, dm.h, flags );
-  if( !g_window ) DIE( "failed to create window" );
+  if( g_window == nullptr ) DIE( "failed to create window" );
 
   //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );
 }
@@ -129,16 +140,18 @@ void create_window() {
 double monitor_diagonal_length( float             ddpi,
                                 ::SDL_DisplayMode dm ) {
   double length =
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       sqrt( pow( dm.w, 2.0 ) + pow( dm.h, 2.0 ) ) / ddpi;
   // Round to hearest 1/2 inch.
-  return double( int( length * 2.0 + .5 ) ) / 2.0;
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  return double( lround( length * 2.0 ) ) / 2.0;
 }
 
 // Get diagonal DPI of monitor. These seems to basically be the
 // same as the horizontal and vertical DPIs.
 double monitor_ddpi() {
   float ddpi;
-  CHECK( !::SDL_GetDisplayDPI( 0, &ddpi, NULL, NULL ) );
+  CHECK( !::SDL_GetDisplayDPI( 0, &ddpi, nullptr, nullptr ) );
   return ddpi;
 }
 
@@ -192,25 +205,28 @@ pair<H, W> find_max_tile_sizes() {
   // non-integer values, and so that represents a key constraint
   // here. Hence we won't generally achieve the ideal tile size,
   // but should come close to it.
-  double ideal_tile_size_at_1ft  = .25; // inches
-  auto   compute_viewer_distance = []( double monitor_size ) {
+  constexpr double ideal_tile_size_at_1ft{.25}; // inches
+  auto compute_viewer_distance = []( double monitor_size ) {
     // Determined empirically; viewer distance from screen seems
     // to scale linearly with screen size, down to a certain
     // minimum distance.
-    return max( 1.25 * monitor_size, 18.0 );
+    constexpr double viewer_distance_multiplier{1.25};
+    constexpr double viewer_distance_minimum{18}; // inches
+    return max( viewer_distance_multiplier * monitor_size,
+                viewer_distance_minimum );
   };
   // Seems sensible for the tiles to be within these bounds.  The
   // scoring function used would otherwise select these in some
   // cases
-  double minimum_perceived_tile_width = 0.2; // inches
-  double maximum_perceived_tile_width = 1.0; // inches
+  constexpr double minimum_perceived_tile_width{0.2}; // inches
+  constexpr double maximum_perceived_tile_width{1.0}; // inches
   ////////////////////////////////////////////////
 
   cout << "Finding optimal tile sizes:\n";
   auto                 dm = get_current_display_mode();
   optional<pair<H, W>> res;
   double               min_score = -1.0 / 0.0; // make -infinity
-  int                  col       = 18;
+  constexpr int        col{18};
   double               monitor_size = monitor_inches();
   cout << "Computed Viewer Distance from Screen: "
        << compute_viewer_distance( monitor_size ) << "in.\n";
@@ -221,12 +237,19 @@ pair<H, W> find_max_tile_sizes() {
        << "Tile-Size-@1ft" << setw( col ) << "Score"
        << "\n";
   int chosen_scale = -1;
-  for( int scale = 1; scale <= 10; ++scale ) {
+
+  constexpr int max_scale{10}; // somewhat arbitrary
+  for( int scale = 1; scale <= max_scale; ++scale ) {
     cout << "  " << setw( 3 ) << scale;
-    W max_width{dm.w / scale - ( ( dm.w / scale ) % 32 )};
-    H max_height{dm.h / scale - ( ( dm.h / scale ) % 32 )};
+
+    W max_width{dm.w / scale -
+                ( ( dm.w / scale ) % g_tile_width._ )};
+    H max_height{dm.h / scale -
+                 ( ( dm.h / scale ) % g_tile_height._ )};
+
     ostringstream ss;
-    ss << max_width / 32 << "x" << max_height / 32;
+    ss << max_width / g_tile_width << "x"
+       << max_height / g_tile_height;
     cout << setw( col ) << ss.str();
     ss.str( "" );
     ss << max_width << "x" << max_height;
@@ -240,7 +263,7 @@ pair<H, W> find_max_tile_sizes() {
     // its size and some other assumptions.
     double viewer_distance =
         compute_viewer_distance( monitor_size );
-    double one_foot = 12.0;
+    constexpr double one_foot{12.0};
     // This is the apparent size in inches of a tile when it is
     // measure by a ruler that is placed one foot in front of the
     // viewer's eye.
@@ -261,7 +284,9 @@ pair<H, W> find_max_tile_sizes() {
     cout << setw( col ) << score;
     cout << "\n";
     if( score >= min_score ) {
-      res          = {max_height / 32, max_width / 32};
+      res = {H( max_height / g_tile_height ),
+             W( max_width / g_tile_width )};
+
       min_score    = score;
       chosen_scale = scale;
     }
@@ -276,7 +301,7 @@ void create_renderer() {
       g_window, -1,
       SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 
-  if( !g_renderer ) DIE( "failed to create renderer" );
+  if( g_renderer == nullptr ) DIE( "failed to create renderer" );
 
   auto screen_sizes = find_max_tile_sizes();
   set_screen_width_tiles( screen_sizes.second );
@@ -306,10 +331,10 @@ Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
 Texture& load_texture( const char* file ) {
   SDL_Surface* pTempSurface = IMG_Load( file );
-  if( !pTempSurface ) DIE( "failed to load image" );
+  if( pTempSurface == nullptr ) DIE( "failed to load image" );
   ::SDL_Texture* texture = SDL_CreateTextureFromSurface(
       rn::g_renderer, pTempSurface );
-  if( !texture ) DIE( "failed to create texture" );
+  if( texture == nullptr ) DIE( "failed to create texture" );
   SDL_FreeSurface( pTempSurface );
   loaded_textures.emplace_back( from_SDL( texture ) );
   return loaded_textures.back();
@@ -321,8 +346,8 @@ Texture& load_texture( const char* file ) {
 void cleanup() {
   unload_fonts();
   cleanup_sound();
-  if( g_renderer ) SDL_DestroyRenderer( g_renderer );
-  if( g_window ) SDL_DestroyWindow( g_window );
+  if( g_renderer != nullptr ) SDL_DestroyRenderer( g_renderer );
+  if( g_window != nullptr ) SDL_DestroyWindow( g_window );
   // Not clear if this actually quits the program; but it does
   // deinitialize everything.
   SDL_Quit();
@@ -332,7 +357,7 @@ Rect texture_rect( Texture const& texture ) {
   int w, h;
   // const_cast because we are passing texture to a C function
   // which we know will not modify it.
-  ::SDL_QueryTexture( texture, NULL, NULL, &w, &h );
+  ::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h );
   return {X( 0 ), Y( 0 ), W( w ), H( h )};
 }
 
@@ -362,16 +387,18 @@ bool copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
   ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
-  if( ::SDL_SetRenderTarget( g_renderer, target ) ) return false;
-  Rect dest = texture_rect( from );
-  dest.x    = x;
-  dest.y    = y;
-  auto sdl  = to_SDL( dest );
-  return ::SDL_RenderCopy( g_renderer, from, NULL, &sdl ) == 0;
+  if( ::SDL_SetRenderTarget( g_renderer, target ) != 0 )
+    return false;
+  Rect dest     = texture_rect( from );
+  dest.x        = x;
+  dest.y        = y;
+  auto sdl_rect = to_SDL( dest );
+  return ::SDL_RenderCopy( g_renderer, from, nullptr,
+                           &sdl_rect ) == 0;
 }
 
 bool copy_texture( Texture const& from, OptCRef<Texture> to,
-                   Coord coord ) {
+                   Coord const& coord ) {
   return copy_texture( from, to, coord.y, coord.x );
 }
 
@@ -394,7 +421,8 @@ void render_texture( Texture const& texture, SDL_Rect source,
                      SDL_RendererFlip flip ) {
   SDL_Rect dest_shifted = dest;
   if( SDL_RenderCopyEx( g_renderer, texture, &source,
-                        &dest_shifted, angle, NULL, flip ) )
+                        &dest_shifted, angle, nullptr,
+                        flip ) > 0 )
     DIE( "failed to render texture" );
 }
 
@@ -404,12 +432,12 @@ bool is_window_fullscreen() {
   // This bit should always be set even if we're in the "desktop"
   // fullscreen mode.
   return ( ::SDL_GetWindowFlags( g_window ) &
-           ::SDL_WINDOW_FULLSCREEN );
+           ::SDL_WINDOW_FULLSCREEN ) != 0;
 }
 
 void set_fullscreen( bool fullscreen ) {
   bool already = is_window_fullscreen();
-  if( !( fullscreen ^ already ) ) return;
+  if( ( fullscreen ^ already ) == 0 ) return;
 
   // Must only contain one of the following values.
   ::Uint32 flags =
@@ -425,19 +453,19 @@ Texture::Texture( ::SDL_Texture* tx ) : tx_( tx ) {
   CHECK( tx_ );
 }
 
-Texture::Texture( Texture&& tx ) : tx_( tx.tx_ ) {
+Texture::Texture( Texture&& tx ) noexcept : tx_( tx.tx_ ) {
   tx.tx_ = nullptr;
 }
 
-Texture& Texture::operator=( Texture&& rhs ) {
-  if( tx_ ) ::SDL_DestroyTexture( tx_ );
+Texture& Texture::operator=( Texture&& rhs ) noexcept {
+  if( tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
   tx_     = rhs.tx_;
   rhs.tx_ = nullptr;
   return *this;
 }
 
 Texture::~Texture() {
-  if( tx_ ) ::SDL_DestroyTexture( tx_ );
+  if( tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
 }
 
 Texture Texture::from_surface( ::SDL_Surface* surface ) {

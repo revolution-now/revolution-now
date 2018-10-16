@@ -31,6 +31,7 @@ enum class ND e_unit_type { free_colonist, caravel };
 
 // Static information describing classes of units.  There will be
 // one of these for each type of unit.
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
 struct ND UnitDescriptor {
   char const* name;
   e_unit_type type;
@@ -65,8 +66,12 @@ enum class ND e_unit_orders {
 // objects alive with the same ID) but moving is fine.
 class ND Unit : public util::movable_only {
 public:
-  Unit( Unit&& ) = default;
-  Unit& operator=( Unit&& ) = default;
+  ~Unit()             = default;
+  Unit( Unit const& ) = delete;
+  Unit( Unit&& )      = default;
+
+  Unit& operator=( Unit const& ) = delete;
+  Unit& operator=( Unit&& ) = delete;
 
   /************************* Getters ***************************/
 

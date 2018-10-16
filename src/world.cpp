@@ -123,10 +123,8 @@ Rect world_rect() {
 
 bool square_exists( Y y, X x ) {
   if( y < 0 || x < 0 ) return false;
-  if( auto [sy, sx] = world_size_tiles();
-      Y( 0 ) + sy > y && X( 0 ) + sx > x )
-    return true;
-  return false;
+  auto [sy, sx] = world_size_tiles();
+  return Y( 0 ) + sy > y && X( 0 ) + sx > x;
 }
 
 OptSquareCRef square_at_safe( Y y, X x ) {

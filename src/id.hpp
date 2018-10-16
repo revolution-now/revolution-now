@@ -16,7 +16,7 @@
 
 namespace rn {
 
-TYPED_ID( UnitId )
+TYPED_ID( UnitId ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 
 ND UnitId next_unit_id();
 

@@ -33,8 +33,8 @@ enum class ND e_orders_loop_result {
 // cided (in the loop_orders function) that a unit needs to be
 // bumped to the front of the queue for accepting orders.
 ND e_orders_loop_result loop_orders(
-    UnitId id, std::function<void( UnitId )> prioritize );
+    UnitId id, std::function<void( UnitId )> const& prioritize );
 
-void loop_mv_unit( UnitId id, Coord target );
+void loop_mv_unit( UnitId id, Coord const& target );
 
 } // namespace rn

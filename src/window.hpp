@@ -19,36 +19,41 @@
 #include <string_view>
 #include <vector>
 
-namespace rn {
-namespace gui {
+namespace rn::gui {
 
 class Object {
 public:
-  virtual ~Object() {}
+  Object()          = default;
+  virtual ~Object() = default;
+
+  Object( Object const& ) = default;
+  Object( Object&& )      = default;
+
+  Object& operator=( Object const& ) = default;
+  Object& operator=( Object&& ) = default;
+
   ND virtual bool needs_redraw() const                       = 0;
   virtual void  draw( Texture const& tx, Coord coord ) const = 0;
   virtual Delta size() const                                 = 0;
-  ND virtual bool accept_input( SDL_Event ) { return false; }
+  ND virtual bool accept_input( SDL_Event /*unused*/ ) {
+    return false;
+  }
 };
 
-class View : public Object {
-public:
-  virtual ~View() {}
-};
+class View : public Object {};
 
 class SolidRectView : public View {
 public:
   SolidRectView() = default;
-  SolidRectView( Color const& color, Delta delta )
-    : color_( color ), delta_( delta ) {}
+  SolidRectView( Color color, Delta delta )
+    : color_( color ), delta_( std::move( delta ) ) {}
 
   // Implement Object
-  virtual bool needs_redraw() const override;
+  bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx,
-                     Coord          coord ) const override;
+  void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  virtual Delta size() const override;
+  Delta size() const override;
 
 protected:
   Color color_;
@@ -56,7 +61,6 @@ protected:
 };
 
 struct ViewDesc {
-  ViewDesc( ViewDesc&& ) = default;
   Rect bounds() const {
     return Rect::from( coord, coord + view->size() );
   };
@@ -67,16 +71,15 @@ struct ViewDesc {
 class CompositeView : public View {
 public:
   // Pass views by value.
-  CompositeView( std::vector<ViewDesc> views )
+  explicit CompositeView( std::vector<ViewDesc> views )
     : views_( std::move( views ) ) {}
 
   // Implement Object
-  virtual bool needs_redraw() const override;
+  bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx,
-                     Coord          coord ) const override;
+  void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  virtual Delta size() const override;
+  Delta size() const override;
 
 protected:
   std::vector<ViewDesc> views_;
@@ -84,15 +87,14 @@ protected:
 
 class OneLineStringView : public View {
 public:
-  OneLineStringView( std::string title, W size );
+  OneLineStringView( std::string msg, W size );
 
   // Implement Object
-  virtual bool needs_redraw() const override;
+  bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx,
-                     Coord          coord ) const override;
+  void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  virtual Delta size() const override;
+  Delta size() const override;
 
 protected:
   std::string   msg_;
@@ -106,21 +108,19 @@ using ViewPtr = std::unique_ptr<View>;
 
 class Window : public Object {
 public:
-  Window( std::string const& title, ViewPtr view )
+  Window( std::string title, ViewPtr view )
     : window_state_( e_window_state::running ),
-      title_( title ),
+      title_( std::move( title ) ),
       view_( std::move( view ) ) {}
 
-  virtual ~Window() {}
   e_window_state state() const { return window_state_; }
 
   // Implement Object
-  virtual bool needs_redraw() const override;
+  bool needs_redraw() const override;
   // Implement Object
-  virtual void draw( Texture const& tx,
-                     Coord          coord ) const override;
+  void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  virtual Delta size() const override;
+  Delta size() const override;
 
   std::string const& title() const { return title_; }
 
@@ -139,7 +139,7 @@ public:
 
   void draw_layout( Texture const& tx ) const;
 
-  void run( RenderFunc render_fn );
+  void run( RenderFunc const& render_fn );
 
   ND bool accept_input( SDL_Event );
 
@@ -154,7 +154,7 @@ private:
 
 void test_window();
 
-void message_box( std::string_view msg, RenderFunc render_bg );
+void message_box( std::string_view  msg,
+                  RenderFunc const& render_bg );
 
-} // namespace gui
-} // namespace rn
+} // namespace rn::gui

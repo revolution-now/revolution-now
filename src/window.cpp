@@ -11,6 +11,7 @@
 #include "window.hpp"
 
 #include "fonts.hpp"
+#include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
 #include "typed-int.hpp"
@@ -22,8 +23,7 @@
 
 using namespace std;
 
-namespace rn {
-namespace gui {
+namespace rn::gui {
 
 namespace {} // namespace
 
@@ -95,7 +95,7 @@ Delta Window::size() const { return view_->size(); }
 WindowManager::WindowManager( WinPtr window, Coord position )
   : window_( std::move( window ) ),
     title_bar_( window_->title(), window_->size().w ),
-    position_( position ) {}
+    position_( std::move( position ) ) {}
 
 Delta WindowManager::window_size() const {
   Delta res;
@@ -135,28 +135,32 @@ bool WindowManager::accept_input( SDL_Event event ) {
 }
 
 void test_window() {
-  auto             square = Delta{W( 32 ), H( 32 )};
+  auto             square = Delta{g_tile_width, g_tile_height};
   vector<ViewDesc> squares;
   squares.emplace_back( ViewDesc{
       Coord{Y( 0 ), X( 0 )},
       make_unique<SolidRectView>( Color::red(), square )} );
   squares.emplace_back( ViewDesc{
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       Coord{Y( 16 ), X( 16 )},
       make_unique<SolidRectView>( Color::blue(), square )} );
   squares.emplace_back( ViewDesc{
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       Coord{Y( 0 ), X( 32 )},
       make_unique<SolidRectView>( Color::green(), square )} );
   squares.emplace_back( ViewDesc{
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       Coord{Y( 20 ), X( 0 )},
       make_unique<SolidRectView>( Color::white(), square )} );
   auto window = make_unique<Window>(
       "First Window",
       make_unique<CompositeView>( move( squares ) ) );
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   WindowManager wm( move( window ), {Y( 200 ), X( 200 )} );
   wm.run( [] {} );
 }
 
-void WindowManager::run( RenderFunc ) {
+void WindowManager::run( RenderFunc const& /*unused*/ ) {
   ::SDL_Event event;
   bool        running = true;
   draw_layout( Texture() );
@@ -164,20 +168,21 @@ void WindowManager::run( RenderFunc ) {
     clear_texture_black( Texture() );
     draw_layout( Texture() );
     ::SDL_RenderPresent( g_renderer );
-    while( ::SDL_PollEvent( &event ) ) {
+    while( ::SDL_PollEvent( &event ) != 0 ) {
       if( event.type == SDL_KEYDOWN &&
           event.key.keysym.sym == ::SDLK_q )
         running = false;
       (void)accept_input( event );
     }
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     ::SDL_Delay( 10 );
   }
 }
 
-void message_box( string_view msg, RenderFunc render_bg ) {
+void message_box( string_view       msg,
+                  RenderFunc const& render_bg ) {
   (void)msg;
   (void)render_bg;
 }
 
-} // namespace gui
-} // namespace rn
+} // namespace rn::gui

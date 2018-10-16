@@ -30,7 +30,8 @@
 
 #define LOG( a )                                             \
   std::cerr << "LOG:" << __FILE__ << ":" << __LINE__ << ": " \
-            << a << "\n"
+            << a /* NOLINT(bugprone-macro-parentheses) */    \
+            << "\n"
 
 #define CHECK( a )                                        \
   {                                                       \
@@ -50,7 +51,7 @@
   auto STRING_JOIN( __x, __LINE__ ) = b;                \
   if( !( STRING_JOIN( __x, __LINE__ ) ) )               \
     DIE( TO_STRING( b ) " is false but should not be" ) \
-  auto& a = *STRING_JOIN( __x, __LINE__ )
+  auto&( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is
@@ -58,7 +59,7 @@
 // ness, and where a "true" value is interpreted as success. Oth-
 // erwise an error is thrown.
 #define ASSIGN_CHECK( a, b )                            \
-  auto a = b;                                           \
+  auto( a ) = b;                                        \
   if( !( a ) ) {                                        \
     DIE( TO_STRING( b ) " is false but should not be" ) \
   }

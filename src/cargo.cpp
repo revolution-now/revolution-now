@@ -50,26 +50,26 @@ int CargoHold::slots_remaining() const {
 
 int CargoHold::slots_total() const { return slots_; }
 
-bool CargoHold::fits( Cargo cargo ) const {
+bool CargoHold::fits( Cargo const& cargo ) const {
   CHECK( holds_alternative<UnitId>( cargo ) );
   UnitId id     = get<UnitId>( cargo );
   auto occupied = unit_from_id( id ).desc().cargo_slots_occupies;
   return slots_remaining() >= occupied;
 }
 
-void CargoHold::add( Cargo cargo ) {
+void CargoHold::add( Cargo const& cargo ) {
   if( holds_alternative<UnitId>( cargo ) ) {
     UnitId id = get<UnitId>( cargo );
     // Make sure that the unit is not already in this cargo.
     CHECK( rn::count( items_, Cargo{id} ) == 0 );
     CHECK( fits( id ) );
-    items_.push_back( id );
+    items_.emplace_back( id );
   } else {
     DIE( "should not be here" );
   }
 }
 
-void CargoHold::remove( Cargo cargo ) {
+void CargoHold::remove( Cargo const& cargo ) {
   auto it = find( items_.begin(), items_.end(), cargo );
   CHECK( it != items_.end() );
   items_.erase( it );

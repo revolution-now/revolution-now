@@ -52,7 +52,8 @@ struct ND sprite {
   // try making these const
   Texture const* texture;
   SDL_Rect       source;
-  int            w, h;
+  W              w;
+  H              h;
 };
 
 void load_sprites();

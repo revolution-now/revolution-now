@@ -25,7 +25,7 @@ ND Unit&  unit_from_id( UnitId id );
 UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
 // Apply a function to all units. The function may mutate the
 // units.
-void map_units( std::function<void( Unit& )> func );
+void map_units( std::function<void( Unit& )> const& func );
 
 // Not safe, probably temporary.
 ND UnitId create_unit_on_map( e_unit_type type, Y y, X x );
@@ -48,7 +48,7 @@ OptUnitId is_unit_onboard( UnitId id );
 // low-level function; it does not do any checking, and should
 // not be called directly. E.g., this function will happily move
 // a land unit into water.
-void ownership_change_to_map( UnitId id, Coord target );
+void ownership_change_to_map( UnitId id, Coord const& target );
 
 void ownership_change_to_cargo( UnitId new_holder, UnitId held );
 

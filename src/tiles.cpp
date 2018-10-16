@@ -47,7 +47,7 @@ unordered_map<std::string, tile_map>         tile_maps;
 sprite create_sprite_32( Texture const& texture, Y row, X col ) {
   Rect rect{col * g_tile_width._, row * g_tile_height._,
             g_tile_width, g_tile_height};
-  return {&texture, to_SDL( rect ), 32, 32};
+  return {&texture, to_SDL( rect ), g_tile_width, g_tile_height};
 }
 
 void load_sprites() {
@@ -64,8 +64,10 @@ void load_sprites() {
   sprites[g_tile::land_3_sides] =
       create_sprite_32( tile_set, Y( 0 ), X( 4 ) );
   sprites[g_tile::land_4_sides] =
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       create_sprite_32( tile_set, Y( 0 ), X( 5 ) );
   sprites[g_tile::land_corner] =
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       create_sprite_32( tile_set, Y( 0 ), X( 6 ) );
 
   sprites[g_tile::fog] =
@@ -90,8 +92,10 @@ void load_sprites() {
       create_sprite_32( tile_set, Y( 3 ), X( 4 ) );
 
   sprites[g_tile::free_colonist] =
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       create_sprite_32( tile_set, Y( 5 ), X( 0 ) );
   sprites[g_tile::caravel] =
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       create_sprite_32( tile_set, Y( 5 ), X( 1 ) );
 }
 
@@ -118,10 +122,12 @@ void render_sprite( g_tile tile, Y pixel_row, X pixel_col,
   destination.h        = sp.h;
   auto destination_sdl = to_SDL( destination );
 
-  double angle = rot * 90.0;
+  constexpr double right_angle = 90.0; // degrees
+
+  double angle = rot * right_angle;
 
   SDL_RendererFlip flip =
-      flip_x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+      ( flip_x != 0 ) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
   render_texture( *sp.texture, sp.source, destination_sdl, angle,
                   flip );

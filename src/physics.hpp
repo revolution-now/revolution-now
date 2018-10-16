@@ -38,7 +38,7 @@ public:
                        double mag_acceleration,
                        double mag_drag_acceleration );
 
-  operator double() const { return velocity_; }
+  double to_double() const { return velocity_; }
 
   // Advances velocity by applying accelerations and then returns
   // the advanced value.
