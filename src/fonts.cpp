@@ -162,7 +162,8 @@ Delta font_rendered_width( e_font             font,
 
 void init_fonts() {
   CHECK( !TTF_Init() );
-  for( auto& [font, font_desc] : loaded_fonts ) {
+  for( auto& font : loaded_fonts ) {
+    auto&       font_desc = font.second;
     int         pt_size   = font_desc.pt_size;
     char const* font_file = font_desc.file_name;
     ASSIGN_CHECK( ttf_font,
@@ -176,8 +177,10 @@ void init_fonts() {
 }
 
 void unload_fonts() {
-  for( auto& [font, font_desc] : loaded_fonts )
+  for( auto& font : loaded_fonts ) {
+    auto& font_desc = font.second;
     ::TTF_CloseFont( font_desc.ttf_font );
+  }
   TTF_Quit();
 }
 
