@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "tiles.hpp"
 
-#include "base-util.hpp"
+#include "util.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"

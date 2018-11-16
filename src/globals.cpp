@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "globals.hpp"
 
-#include "base-util.hpp"
+#include "util.hpp"
 #include "macros.hpp"
 
 namespace rn {

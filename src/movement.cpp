@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "movement.hpp"
 
-#include "base-util.hpp"
+#include "util.hpp"
 #include "id.hpp"
 #include "macros.hpp"
 #include "ownership.hpp"

@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "fonts.hpp"
 
-#include "base-util.hpp"
+#include "util.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
 #include "sdl-util.hpp"

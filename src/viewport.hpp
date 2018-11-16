@@ -13,7 +13,7 @@
 
 #include "core-config.hpp"
 
-#include "base-util.hpp"
+#include "util.hpp"
 #include "physics.hpp"
 
 #include <SDL.h>

@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "unit.hpp"
 
-#include "base-util.hpp"
+#include "util.hpp"
 #include "macros.hpp"
 
 #include <unordered_map>
