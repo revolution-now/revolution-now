@@ -43,3 +43,4 @@ target_include_directories( rn PRIVATE
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${SDL2_MIXER_INCLUDE_DIR}
 )
+tidy( rn )

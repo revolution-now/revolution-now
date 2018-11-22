@@ -42,9 +42,14 @@ if( USE_CLANG_TIDY )
         message( FATAL_ERROR "clang-tidy not found." )
     endif()
     set( DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-quiet" )
-    set_target_properties( base-util PROPERTIES
-        CXX_CLANG_TIDY "${DO_CLANG_TIDY}" )
 endif()
+
+function( tidy target )
+    if( USE_CLANG_TIDY )
+        set_target_properties( ${target} PROPERTIES
+            CXX_CLANG_TIDY "${DO_CLANG_TIDY}" )
+    endif()
+endfunction()
 
 # This is used not only for clang-tidy but also for YCM.
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )

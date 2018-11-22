@@ -13,12 +13,12 @@
 
 #include "sdl-util.hpp"
 
-#include "util.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
 #include "sound.hpp"
+#include "util.hpp"
 
 #include <SDL_mixer.h>
 
@@ -399,7 +399,7 @@ bool copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
 
 bool copy_texture( Texture const& from, OptCRef<Texture> to,
                    Coord const& coord ) {
-  return copy_texture( from, to, coord.y, coord.x );
+  return copy_texture( from, move( to ), coord.y, coord.x );
 }
 
 Texture create_texture( W w, H h ) {
@@ -481,7 +481,7 @@ void set_render_draw_color( Color const& color ) {
 
 void render_fill_rect( OptCRef<Texture> tx, Color const& color,
                        Rect const& rect ) {
-  set_render_target( tx );
+  set_render_target( move( tx ) );
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
@@ -489,7 +489,7 @@ void render_fill_rect( OptCRef<Texture> tx, Color const& color,
 
 void render_rect( OptCRef<Texture> tx, Color const& color,
                   Rect const& rect ) {
-  set_render_target( tx );
+  set_render_target( move( tx ) );
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
