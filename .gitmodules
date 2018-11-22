@@ -1,0 +1,3 @@
+[submodule "extern/base-util"]
+	path = extern/base-util
+	url = ../../dpacbach/base-util.git
