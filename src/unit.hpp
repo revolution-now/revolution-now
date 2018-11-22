@@ -19,7 +19,7 @@
 #include "nation.hpp"
 #include "tiles.hpp"
 
-#include "util/non-copyable.hpp"
+#include "base-util/non-copyable.hpp"
 
 #include <functional>
 #include <optional>

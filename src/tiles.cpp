@@ -10,11 +10,11 @@
 *****************************************************************/
 #include "tiles.hpp"
 
-#include "util.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
 #include "sdl-util.hpp"
+#include "util.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -51,7 +51,7 @@ sprite create_sprite_32( Texture const& texture, Y row, X col ) {
 }
 
 void load_sprites() {
-  auto& tile_set = load_texture( "../art/tiles-all.png" );
+  auto& tile_set = load_texture( "assets/art/tiles-all.png" );
 
   sprites[g_tile::water] =
       create_sprite_32( tile_set, Y( 0 ), X( 0 ) );
@@ -176,7 +176,7 @@ tile_map load_tile_map( char const* path ) {
 }
 
 void load_tile_maps() {
-  tile_maps["panel"] = load_tile_map( "../art/panel.tm" );
+  tile_maps["panel"] = load_tile_map( "assets/art/panel.tm" );
 }
 
 } // namespace rn

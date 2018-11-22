@@ -16,7 +16,7 @@
 #include "macros.hpp"
 #include "typed-int.hpp"
 
-#include "util/util.hpp"
+#include "base-util/misc.hpp"
 
 #include <algorithm>
 #include <numeric>

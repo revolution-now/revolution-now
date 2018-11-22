@@ -14,7 +14,7 @@
 
 #include "id.hpp"
 
-#include "util/non-copyable.hpp"
+#include "base-util/non-copyable.hpp"
 
 #include <variant>
 #include <vector>

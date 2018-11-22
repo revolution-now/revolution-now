@@ -14,7 +14,7 @@
 
 #include "util.hpp"
 
-#include "util/non-copyable.hpp"
+#include "base-util/non-copyable.hpp"
 
 #include <SDL.h>
 #include <SDL_image.h>

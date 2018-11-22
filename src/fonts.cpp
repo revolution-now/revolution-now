@@ -10,14 +10,14 @@
 *****************************************************************/
 #include "fonts.hpp"
 
-#include "util.hpp"
 #include "globals.hpp"
 #include "macros.hpp"
 #include "sdl-util.hpp"
+#include "util.hpp"
 
-#include "util/algo.hpp"
-#include "util/string-util.hpp"
-#include "util/util.hpp"
+#include "base-util/algo.hpp"
+#include "base-util/misc.hpp"
+#include "base-util/string.hpp"
 
 #include <SDL_ttf.h>
 
@@ -42,8 +42,8 @@ constexpr int _7_12_font_pt_size = 16;
 
 unordered_map<e_font, FontDesc> loaded_fonts{
     {e_font::_7_12_serif_16pt,
-     {"../fonts/7-12-serif/712_serif.ttf", _7_12_font_pt_size,
-      nullptr}}};
+     {"assets/fonts/7-12-serif/712_serif.ttf",
+      _7_12_font_pt_size, nullptr}}};
 
 Texture render_line_standard_impl( ::TTF_Font*   font,
                                    ::SDL_Color   fg,

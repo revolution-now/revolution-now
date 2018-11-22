@@ -31,16 +31,6 @@
 *.out
 *.app
 
-# nr-make
-.location
-bin-linux*
-bin-osx*
-.lib-linux*
-.lib-osx*
-
-# clang tools
-compile_flags.txt
-
 # vim-related
 *~
 *.swp
@@ -49,4 +39,7 @@ compile_flags.txt
 .DS_Store
 
 # Game specific
-art/*.tm
+assets/art/*.tm
+
+# cmake
+/build

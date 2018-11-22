@@ -1,4 +1,3 @@
-#include "util.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
@@ -9,6 +8,7 @@
 #include "tiles.hpp"
 #include "turn.hpp"
 #include "unit.hpp"
+#include "util.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
 #include "world.hpp"
@@ -28,7 +28,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   load_sprites();
   load_tile_maps();
 
-  // play_music_file( "../music/bonny-morn.mp3" );
+  // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, Y(2),
   // X(3) );
