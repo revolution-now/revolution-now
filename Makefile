@@ -17,4 +17,4 @@ distclean:
 .PHONY: all run clean distclean
 
 $(build-current):
-	@./configure
+	@./scripts/configure
