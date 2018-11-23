@@ -26,8 +26,8 @@ let s:pairs = [
 \]
 
 let s:quads = [
-  \ ['notes/design.txt', 'notes/priorities.txt',
-  \  '.session.vim',     'notes/ideas.txt']
+  \ ['notes/design.txt',    'notes/priorities.txt',
+  \  'scripts/session.vim', 'notes/ideas.txt']
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
