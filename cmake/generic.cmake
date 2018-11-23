@@ -44,7 +44,7 @@ if( USE_CLANG_TIDY )
     set( DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-quiet" )
 endif()
 
-function( tidy target )
+function( clang_tidy target )
     if( USE_CLANG_TIDY )
         set_target_properties( ${target} PROPERTIES
             CXX_CLANG_TIDY "${DO_CLANG_TIDY}" )
