@@ -73,11 +73,24 @@ if __name__ == '__main__':
     log_title( "Initialization" )
 
     # root_dir = os.path.abspath( os.path.join( os.path.dirname( __file__ ), '..' ) )
-    root_dir = os.path.dirname( __file__ )
+    root_dir = os.path.abspath( os.path.dirname( __file__ ) )
     log( 'Changing to root directory: ' + root_dir )
     os.chdir( root_dir )
 
-    build_dir = 'build'
+    if not os.path.isdir( '.builds' ):
+        log( 'Creating .builds directory' )
+        os.mkdir( '.builds' )
+    log( 'Changing to .builds directory' )
+    os.chdir( '.builds' )
+
+    build_dir = '%s-%s%s' % (
+                    'clang' if args.clang else 'gcc',
+                    args.build_type,
+                    '-tidy' if args.tidy else ''
+                )
+
+    if os.path.exists( 'current' ):
+        os.remove( 'current' )
 
     if not os.path.isdir( build_dir ):
         log( 'Creating "%s" directory' % build_dir )
@@ -102,7 +115,7 @@ if __name__ == '__main__':
         cmake_args.append( '-DCMAKE_CXX_COMPILER=%s/dev/tools/llvm-current/bin/clang++' % os.environ['HOME'] )
 
     exe = 'ccmake' if args.gui else 'cmake'
-    cmd = [exe, '..'] + cmake_args
+    cmd = [exe, '../..'] + cmake_args
 
     log_title( "CMake Command" )
     log( ' '.join( cmd[:2] ) )
@@ -112,6 +125,12 @@ if __name__ == '__main__':
     log_title( 'CMake Output' )
     p = sp.Popen( cmd )
     p.communicate()
+
+    os.chdir( root_dir )
+    if p.returncode == 0:
+        if os.path.exists( '.builds/current' ):
+            os.remove( '.builds/current' )
+        os.symlink( build_dir, '.builds/current', target_is_directory=True )
 
     log_title( 'Finished' )
 
