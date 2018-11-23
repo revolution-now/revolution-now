@@ -1,2 +1,2 @@
 #!/bin/sh
-vim -S .session.vim
+vim -S scripts/.session.vim

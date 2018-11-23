@@ -6,7 +6,7 @@ let s:first = 'main.cpp'
 
 let s:stems = [
   \ 'src/globals',
-  \ 'src/base-util',
+  \ 'src/util',
   \ 'src/sdl-util',
   \ 'src/fonts',
   \ 'src/window',
