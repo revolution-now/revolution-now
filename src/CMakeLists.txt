@@ -3,29 +3,8 @@ find_sdl2_lib( SDL2_ttf   )
 find_sdl2_lib( SDL2_image )
 find_sdl2_lib( SDL2_mixer )
 
-add_executable( rn
-    cargo.cpp
-    fonts.cpp
-    globals.cpp
-    id.cpp
-    loops.cpp
-    main.cpp
-    movement.cpp
-    mv-points.cpp
-    nation.cpp
-    ownership.cpp
-    physics.cpp
-    render.cpp
-    sdl-util.cpp
-    sound.cpp
-    tiles.cpp
-    turn.cpp
-    unit.cpp
-    util.cpp
-    viewport.cpp
-    window.cpp
-    world.cpp
-)
+file( GLOB sources "[a-zA-Z]*.cpp" )
+add_executable( rn ${sources} )
 
 target_compile_features( rn PUBLIC cxx_std_17 )
 set_target_properties( rn PROPERTIES CXX_EXTENSIONS OFF )
