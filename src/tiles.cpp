@@ -153,30 +153,30 @@ void render_tile_map( std::string_view name ) {
                         tile.x, tile.rot, tile.flip_x );
 }
 
-tile_map load_tile_map( char const* path ) {
-  ifstream in( path );
-  if( !in.good() )
-    DIE( "failed to open file "s + string( path ) );
-
-  tile_map tm;
-
-  string comments;
-  getline( in, comments );
-
-  while( true ) {
-    int index, tile, rot, flip_x;
-    X   x;
-    Y   y;
-    in >> index >> x >> y >> tile >> rot >> flip_x;
-    if( in.eof() || !in.good() ) break;
-    if( tile < 0 ) continue;
-    tm.tiles.push_back( {index, x, y, tile, rot, flip_x} );
-  }
-  return tm;
-}
+// tile_map load_tile_map( char const* path ) {
+//  ifstream in( path );
+//  if( !in.good() )
+//    DIE( "failed to open file "s + string( path ) );
+//
+//  tile_map tm;
+//
+//  string comments;
+//  getline( in, comments );
+//
+//  while( true ) {
+//    int index, tile, rot, flip_x;
+//    X   x;
+//    Y   y;
+//    in >> index >> x >> y >> tile >> rot >> flip_x;
+//    if( in.eof() || !in.good() ) break;
+//    if( tile < 0 ) continue;
+//    tm.tiles.push_back( {index, x, y, tile, rot, flip_x} );
+//  }
+//  return tm;
+//}
 
 void load_tile_maps() {
-  tile_maps["panel"] = load_tile_map( "assets/art/panel.tm" );
+  // tile_maps["panel"] = load_tile_map( "assets/art/panel.tm" );
 }
 
 } // namespace rn
