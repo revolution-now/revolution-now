@@ -1,3 +1,6 @@
 [submodule "extern/base-util"]
 	path = extern/base-util
 	url = ../../dpacbach/base-util.git
+[submodule "extern/abseil-cpp"]
+	path = extern/abseil-cpp
+	url = https://github.com/abseil/abseil-cpp.git
