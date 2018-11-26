@@ -17,11 +17,26 @@
 #include "sdl-util.hpp"
 #include "viewport.hpp"
 
+#include "base-util/misc.hpp"
+
+#include "absl/container/flat_hash_map.h"
+
 namespace rn {
 
 constexpr int frame_rate{60};
 
-namespace {} // namespace
+namespace {
+
+absl::flat_hash_map<::SDL_Keycode, direction> nav_keys{
+    {::SDLK_LEFT, direction::w},  {::SDLK_RIGHT, direction::e},
+    {::SDLK_DOWN, direction::s},  {::SDLK_UP, direction::n},
+    {::SDLK_KP_4, direction::w},  {::SDLK_KP_6, direction::e},
+    {::SDLK_KP_2, direction::s},  {::SDLK_KP_8, direction::n},
+    {::SDLK_KP_7, direction::nw}, {::SDLK_KP_9, direction::ne},
+    {::SDLK_KP_1, direction::sw}, {::SDLK_KP_3, direction::se},
+};
+
+} // namespace
 
 e_orders_loop_result loop_orders(
     UnitId                               id,
@@ -103,90 +118,19 @@ e_orders_loop_result loop_orders(
             case ::SDLK_KP_5:
               unit.forfeight_mv_points();
               return e_orders_loop_result::moved;
-            case ::SDLK_LEFT:
-            case ::SDLK_KP_4:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::w ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
+            default:
+              auto maybe_direction = util::get_val_safe(
+                  nav_keys, event.key.keysym.sym );
+              if( maybe_direction ) {
+                move_desc = move_consequences(
+                    id, coords.moved( *maybe_direction ) );
+                if( move_desc.can_move ) {
+                  // may need to ask user a question here.
+                  // Assuming that they want to proceed with
+                  // the move, then:
+                  running = false;
+                }
               }
-              break;
-            case ::SDLK_RIGHT:
-            case ::SDLK_KP_6:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::e ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
-            case ::SDLK_DOWN:
-            case ::SDLK_KP_2:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::s ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
-            case ::SDLK_UP:
-            case ::SDLK_KP_8:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::n ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
-            case ::SDLK_KP_7:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::nw ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
-            case ::SDLK_KP_9:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::ne ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
-            case ::SDLK_KP_1:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::sw ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
-            case ::SDLK_KP_3:
-              move_desc = move_consequences(
-                  id, coords.moved( direction::se ) );
-              if( move_desc.can_move ) {
-                // may need to ask user a question here.
-                // Assuming that they want to proceed with
-                // the move, then:
-                running = false;
-              }
-              break;
           }
           break;
         case ::SDL_MOUSEWHEEL:

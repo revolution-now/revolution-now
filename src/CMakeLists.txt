@@ -12,6 +12,8 @@ target_link_libraries(
     rn
     PRIVATE
     base-util
+    absl::container
+    absl::hash
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
