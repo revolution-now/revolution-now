@@ -100,9 +100,11 @@ e_orders_loop_result loop_orders(
             case ::SDLK_F11: toggle_fullscreen(); break;
             case ::SDLK_t: return e_orders_loop_result::wait;
             case ::SDLK_SPACE:
+            case ::SDLK_KP_5:
               unit.forfeight_mv_points();
               return e_orders_loop_result::moved;
             case ::SDLK_LEFT:
+            case ::SDLK_KP_4:
               move_desc = move_consequences(
                   id, coords.moved( direction::w ) );
               if( move_desc.can_move ) {
@@ -113,6 +115,7 @@ e_orders_loop_result loop_orders(
               }
               break;
             case ::SDLK_RIGHT:
+            case ::SDLK_KP_6:
               move_desc = move_consequences(
                   id, coords.moved( direction::e ) );
               if( move_desc.can_move ) {
@@ -123,6 +126,7 @@ e_orders_loop_result loop_orders(
               }
               break;
             case ::SDLK_DOWN:
+            case ::SDLK_KP_2:
               move_desc = move_consequences(
                   id, coords.moved( direction::s ) );
               if( move_desc.can_move ) {
@@ -133,8 +137,49 @@ e_orders_loop_result loop_orders(
               }
               break;
             case ::SDLK_UP:
+            case ::SDLK_KP_8:
               move_desc = move_consequences(
                   id, coords.moved( direction::n ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                running = false;
+              }
+              break;
+            case ::SDLK_KP_7:
+              move_desc = move_consequences(
+                  id, coords.moved( direction::nw ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                running = false;
+              }
+              break;
+            case ::SDLK_KP_9:
+              move_desc = move_consequences(
+                  id, coords.moved( direction::ne ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                running = false;
+              }
+              break;
+            case ::SDLK_KP_1:
+              move_desc = move_consequences(
+                  id, coords.moved( direction::sw ) );
+              if( move_desc.can_move ) {
+                // may need to ask user a question here.
+                // Assuming that they want to proceed with
+                // the move, then:
+                running = false;
+              }
+              break;
+            case ::SDLK_KP_3:
+              move_desc = move_consequences(
+                  id, coords.moved( direction::se ) );
               if( move_desc.can_move ) {
                 // may need to ask user a question here.
                 // Assuming that they want to proceed with
