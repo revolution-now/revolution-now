@@ -22,8 +22,12 @@ include( cmake/sdl2-helper.cmake )
 # === subdirectories ==============================================
 
 add_subdirectory( src )
-add_subdirectory( extern/base-util/src )
-add_subdirectory( extern/abseil-cpp EXCLUDE_FROM_ALL )
+
+# === external dependencies =======================================
+
+add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
+add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
+add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 
 # === custom targets ==============================================
 

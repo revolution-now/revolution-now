@@ -13,6 +13,8 @@
 #include "window.hpp"
 #include "world.hpp"
 
+#include "fmt/format.h"
+
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
@@ -24,6 +26,10 @@ using namespace rn;
 using namespace std;
 
 int main( int /*unused*/, char** /*unused*/ ) try {
+  // fmt::print( "Hello, {}!\n", "world" );
+  // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
+  // fmt::print( s );
+
   init_game();
   load_sprites();
   load_tile_maps();

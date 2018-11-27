@@ -14,6 +14,7 @@ target_link_libraries(
     base-util
     absl::container
     absl::hash
+    fmt::fmt
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
