@@ -55,23 +55,23 @@ using v_unit_mv_desc =
 // given square.
 struct ND UnitMoveDesc {
   // The target square of move being described.
-  Coord coords;
+  Coord coords{};
   // Is it flat out impossible
-  bool can_move;
+  bool can_move{};
   // Description of what would happen if the move were carried
   // out.  This will also be set even if can_move == false.
-  v_unit_mv_desc desc;
+  v_unit_mv_desc desc{};
   // Cost in movement points that would be incurred; this is
   // a positive number.
-  MovementPoints movement_cost;
+  MovementPoints movement_cost{};
   // Unit that is the target of an action, e.g., unit to
   // be attacked, ship to be boarded, etc.  Not relevant
   // in all contexts.
-  UnitId target_unit;
+  UnitId target_unit{};
   // Units that will be waiting for orders and which should be
   // prioritized in the "orders" loop after this move is made.
   // This field is only relevant for certain (valid) moves.
-  std::vector<UnitId> to_prioritize;
+  std::vector<UnitId> to_prioritize{};
 };
 
 // Called at the beginning of each turn; marks all units
@@ -80,6 +80,6 @@ void reset_moves();
 
 ND UnitMoveDesc move_consequences( UnitId       id,
                                    Coord const& coords );
-void move_unit( UnitId, UnitMoveDesc const& move_desc );
+void move_unit( UnitId id, UnitMoveDesc const& move_desc );
 
 } // namespace rn

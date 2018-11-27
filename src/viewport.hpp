@@ -13,8 +13,8 @@
 
 #include "core-config.hpp"
 
-#include "util.hpp"
 #include "physics.hpp"
+#include "util.hpp"
 
 #include <SDL.h>
 
@@ -69,9 +69,9 @@ private:
   DissipativeVelocity y_vel_;
   DissipativeVelocity zoom_vel_;
 
-  double zoom_;
-  double center_x_;
-  double center_y_;
+  double zoom_{};
+  double center_x_{};
+  double center_y_{};
 };
 
 SmoothViewport& viewport();

@@ -141,7 +141,7 @@ public:
 
   void run( RenderFunc const& render_fn );
 
-  ND bool accept_input( SDL_Event );
+  ND bool accept_input( SDL_Event event );
 
 private:
   Delta window_size() const;
