@@ -15,6 +15,7 @@ target_link_libraries(
     absl::container
     absl::hash
     fmt::fmt
+    spdlog::spdlog
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}

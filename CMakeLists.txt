@@ -27,7 +27,15 @@ add_subdirectory( src )
 
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
+add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
+
+# === global settings =============================================
+
+# This tells fmt headers to include an external version of fmt
+# instead of one that comes bundled inside of it.  In particular,
+# the external version used will be the one in our extern folder.
+target_compile_definitions( fmt INTERFACE SPDLOG_FMT_EXTERNAL )
 
 # === custom targets ==============================================
 

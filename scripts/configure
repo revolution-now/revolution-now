@@ -108,6 +108,9 @@ if __name__ == '__main__':
     cmake_args.append( '-DUSE_CLANG_TIDY=%s' % cmake_bool( args.tidy ) )
     cmake_args.append( '-DCMAKE_TARGET_MESSAGES=OFF' )
     cmake_args.append( '-DCMAKE_INSTALL_PREFIX=%s' % args.prefix )
+    # This is temporary until a cmake file bug is fixed in spdlog.
+    # https://github.com/gabime/spdlog/issues/927
+    cmake_args.append( '-DBUILD_TESTING=OFF' )
 
     if args.clang:
         cmake_args.append( '-DCMAKE_CXX_COMPILER=%s/dev/tools/llvm-current/bin/clang++' % os.environ['HOME'] )
