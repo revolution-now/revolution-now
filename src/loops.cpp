@@ -172,10 +172,13 @@ e_orders_loop_result loop_orders(
     if( delta < frame_length_millis )
       ::SDL_Delay( frame_length_millis - delta );
   }
-  // Check if the unit is physicall moving; usually at this point
-  // it will be unless it is e.g. a ship offloading units.
-  if( coords_for_unit( id ) != move_desc.coords )
+  // Check if the unit is physically moving; usually at this
+  // point it will be unless it is e.g. a ship offloading units.
+  if( coords_for_unit( id ) != move_desc.coords ) {
+    viewport().ensure_tile_surroundings_visible(
+        move_desc.coords );
     loop_mv_unit( id, move_desc.coords );
+  }
   move_unit( id, move_desc );
   for( auto id : move_desc.to_prioritize ) prioritize( id );
   if( std::holds_alternative<e_unit_mv_good>( move_desc.desc ) )
