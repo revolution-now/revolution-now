@@ -1,0 +1,9 @@
+hello = world
+
+one.two.three = 4
+
+fruit {
+  apples = 1
+  oranges = 3
+  description = "a fruit basket"
+}

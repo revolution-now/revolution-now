@@ -29,6 +29,7 @@ add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
+add_subdirectory( extern/libucl        EXCLUDE_FROM_ALL )
 
 # === global settings =============================================
 

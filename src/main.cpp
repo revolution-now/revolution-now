@@ -15,6 +15,8 @@
 
 #include "fmt/format.h"
 
+#include "ucl++.h"
+
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_mixer.h>
@@ -30,13 +32,14 @@ using namespace std;
 #include "spdlog/sinks/stdout_color_sinks.h"
 // clang-format on
 
+auto err_logger = spdlog::stderr_color_mt( "stderr" );
+auto console    = spdlog::stdout_color_mt( "console" );
+
 void stdout_example() {
   // create color multi threaded logger
-  auto console = spdlog::stdout_color_mt( "console" );
   console->info( "Welcome to spdlog!" );
   console->error( "Some error message with arg: {}", 1 );
 
-  auto err_logger = spdlog::stderr_color_mt( "stderr" );
   err_logger->error( "Some error message" );
 
   // Formatting examples
@@ -81,33 +84,50 @@ void stdout_example() {
 }
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  fmt::print( "Hello, {}!\n", "world" );
-  auto s = fmt::format( "this {} a {}.\n", "is", "test" );
-  fmt::print( s );
+  // fmt::print( "Hello, {}!\n", "world" );
+  // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
+  // fmt::print( s );
 
-  stdout_example();
+  // stdout_example();
 
-  init_game();
-  load_sprites();
-  load_tile_maps();
+  string errors;
+  auto   obj =
+      ucl::Ucl::parse_from_file( "config/rn.ucl", errors );
+  if( obj ) {
+    console->info( "obj.fruit.oranges: {}",
+                   obj["fruit"]["oranges"].int_value() );
+    console->info( "obj.fruit.description: {}",
+                   obj["fruit"]["description"].string_value() );
+    console->info( "obj.one.two.three: {}",
+                   obj["one.two.three"].int_value() );
+    console->info( "hellox: {}",
+                   obj["hellox"].string_value( "None" ) );
+  } else {
+    err_logger->error( "parsing error: {}", errors );
+  }
+  return 0;
+
+  // init_game();
+  // load_sprites();
+  // load_tile_maps();
 
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, Y(2),
   // X(3) );
-  (void)create_unit_on_map( e_unit_type::free_colonist, Y( 2 ),
-                            X( 4 ) );
-  (void)create_unit_on_map( e_unit_type::caravel, Y( 2 ),
-                            X( 2 ) );
+  //(void)create_unit_on_map( e_unit_type::free_colonist, Y( 2 ),
+  //                          X( 4 ) );
+  //(void)create_unit_on_map( e_unit_type::caravel, Y( 2 ),
+  //                          X( 2 ) );
   //(void)create_unit_on_map( e_unit_type::caravel, Y(2), X(1) );
 
   // while( turn() != e_turn_result::quit ) {}
   //(void)turn();
 
   // font_test();
-  gui::test_window();
+  // gui::test_window();
 
-  cleanup();
+  // cleanup();
   return 0;
 
 } catch( exception const& e ) {
