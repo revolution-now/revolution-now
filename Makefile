@@ -8,6 +8,6 @@ distclean:
 	@rm -rf .builds
 
 $(build-current):
-	@scripts/configure
+	@cmc
 
 .PHONY: all run clean test distclean
