@@ -59,9 +59,26 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 function( enable_address_sanitizer_if_requested )
   if( ENABLE_ADDRESS_SANITIZER )
     message( STATUS "Enabling AddressSanitizer" )
-    set( CMAKE_CXX_FLAGS_DEBUG
-      "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address" PARENT_SCOPE )
-    set( CMAKE_EXE_LINKER_FLAGS_DEBUG
-      "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address" PARENT_SCOPE )
+    set( CMAKE_CXX_FLAGS
+      "${CMAKE_CXX_FLAGS} -fsanitize=address" PARENT_SCOPE )
+    set( CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address" PARENT_SCOPE )
   endif()
+endfunction()
+
+# === colors ======================================================
+
+function( force_compiler_color_diagnostics )
+	if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+		# using Clang (either linux or apple)
+    set( flag "-fcolor-diagnostics" )
+	elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
+		# using GCC
+    set( flag "-fdiagnostics-color=always" )
+	elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" )
+		# using Intel C++
+	elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
+		# using Visual Studio C++
+	endif()
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE )
 endfunction()

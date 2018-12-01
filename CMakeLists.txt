@@ -22,6 +22,11 @@ include( cmake/sdl2-helper.cmake )
 # If ENABLE_ADDRESS_SANITIZER is on then this function will do so.
 enable_address_sanitizer_if_requested()
 
+# Just in case we are using Ninja (which will buffer the output of
+# compilers causing them to suppress color output) let's tell the
+# compilers to force color output.
+force_compiler_color_diagnostics()
+
 # === subdirectories ==============================================
 
 add_subdirectory( src )
