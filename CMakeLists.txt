@@ -19,6 +19,9 @@ set( CMAKE_MODULE_PATH
 include( cmake/generic.cmake )
 include( cmake/sdl2-helper.cmake )
 
+# If ENABLE_ADDRESS_SANITIZER is on then this function will do so.
+enable_address_sanitizer_if_requested()
+
 # === subdirectories ==============================================
 
 add_subdirectory( src )

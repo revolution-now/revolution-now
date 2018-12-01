@@ -53,3 +53,15 @@ endfunction()
 
 # This is used not only for clang-tidy but also for YCM.
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
+# === address sanitizer ===========================================
+
+function( enable_address_sanitizer_if_requested )
+  if( ENABLE_ADDRESS_SANITIZER )
+    message( STATUS "Enabling AddressSanitizer" )
+    set( CMAKE_CXX_FLAGS_DEBUG
+      "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address" PARENT_SCOPE )
+    set( CMAKE_EXE_LINKER_FLAGS_DEBUG
+      "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address" PARENT_SCOPE )
+  endif()
+endfunction()
