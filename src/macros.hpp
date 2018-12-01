@@ -17,6 +17,11 @@
 #include <cstdlib>
 #include <iostream>
 
+// This is obviously a no-op but is an attempt to suppress some
+// compiler warnings about parenthesis around macro parameters
+// in inconsistent ways by different compilers.
+#define EMPTY( a ) ( a )
+
 #define DIE( msg ) \
   { rn::die( __FILE__, __LINE__, msg ); }
 
@@ -51,7 +56,7 @@
   auto STRING_JOIN( __x, __LINE__ ) = b;                \
   if( !( STRING_JOIN( __x, __LINE__ ) ) )               \
     DIE( TO_STRING( b ) " is false but should not be" ) \
-  auto& a = *STRING_JOIN( __x, __LINE__ )
+  auto& EMPTY( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is
@@ -59,7 +64,7 @@
 // ness, and where a "true" value is interpreted as success. Oth-
 // erwise an error is thrown.
 #define ASSIGN_CHECK( a, b )                            \
-  auto a = b;                                           \
+  auto EMPTY( a ) = b;                                  \
   if( !( a ) ) {                                        \
     DIE( TO_STRING( b ) " is false but should not be" ) \
   }
