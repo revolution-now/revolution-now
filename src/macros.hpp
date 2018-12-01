@@ -20,7 +20,7 @@
 // This is obviously a no-op but is an attempt to suppress some
 // compiler warnings about parenthesis around macro parameters
 // in inconsistent ways by different compilers.
-#define EMPTY( a ) ( a )
+#define EMPTY( a ) a
 
 #define DIE( msg ) \
   { rn::die( __FILE__, __LINE__, msg ); }
