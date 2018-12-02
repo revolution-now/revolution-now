@@ -33,6 +33,10 @@ add_subdirectory( src )
 
 # === external dependencies =======================================
 
+# This should not be necessary, but some subdirectories' cmake
+# files are not playing nicely and just setting this to 11.
+set( CMAKE_CXX_STANDARD 17 )
+
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
