@@ -13,6 +13,9 @@
 #include "window.hpp"
 #include "world.hpp"
 
+#include "base-util/string.hpp"
+
+#include "absl/strings/str_split.h"
 #include "fmt/format.h"
 
 #include "ucl++.h"
@@ -83,28 +86,38 @@ void stdout_example() {
                 1, 3.23 );
 }
 
+ucl::Ucl configuration;
+
+template<typename T>
+T config( char const* path );
+
+template<>
+inline int config( char const* path ) {
+  ucl::Ucl obj = configuration;
+
+  vector<string> components =
+      absl::StrSplit( path, absl::ByChar( '.' ) );
+  for( auto const& s : components ) {
+    obj = obj[s];
+    ASSERT( obj, "key " << path << " not found in config" );
+  }
+  ASSERT( obj.type() == ::UCL_INT,
+          "key " << path << " expected to be of type int" );
+  return obj.int_value();
+}
+
 int main( int /*unused*/, char** /*unused*/ ) try {
   // fmt::print( "Hello, {}!\n", "world" );
   // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
   // fmt::print( s );
 
   // stdout_example();
-
   string errors;
-  auto   obj =
+  configuration =
       ucl::Ucl::parse_from_file( "config/rn.ucl", errors );
-  if( obj ) {
-    console->info( "obj.fruit.oranges: {}",
-                   obj["fruit"]["oranges"].int_value() );
-    console->info( "obj.fruit.description: {}",
-                   obj["fruit"]["description"].string_value() );
-    console->info( "obj.one.two.three: {}",
-                   obj["one.two.three"].int_value() );
-    console->info( "hellox: {}",
-                   obj["hellox"].string_value( "None" ) );
-  } else {
-    err_logger->error( "parsing error: {}", errors );
-  }
+  CHECK( configuration );
+  console->info( "fruit.oranges: {}",
+                 config<int>( "fruit.oranges" ) );
   return 0;
 
   // init_game();

@@ -14,6 +14,7 @@ target_link_libraries(
     base-util
     absl::container
     absl::hash
+    absl::strings
     fmt::fmt
     spdlog::spdlog
     ucl

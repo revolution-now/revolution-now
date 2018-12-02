@@ -1,6 +1,7 @@
-hello = world
+hello = 6 #world
 
-one.two.three = 4
+one = 3
+two = 4
 
 fruit {
   apples = 1
