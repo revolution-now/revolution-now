@@ -43,3 +43,4 @@ assets/art/*.tm
 
 # cmake
 /.builds
+/build
