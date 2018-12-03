@@ -4,7 +4,7 @@ one = 3
 two = 4
 
 fruit {
-  apples = 1
+  apples = 7
   oranges = 3
   description = "a fruit basket"
 }
