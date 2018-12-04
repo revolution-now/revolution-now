@@ -1,3 +1,4 @@
+#include "config-vars.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
@@ -17,8 +18,6 @@
 
 #include "absl/strings/str_split.h"
 #include "fmt/format.h"
-
-#include "ucl++.h"
 
 #include <SDL.h>
 #include <SDL_image.h>
@@ -88,250 +87,6 @@ void stdout_example() {
                 1, 3.23 );
 }
 
-struct cnull_t {};
-template<typename T>
-inline cnull_t& operator<<( cnull_t& cnull, T const& ) {
-  return cnull;
-}
-cnull_t cnull;
-
-#if 0
-#define CONFIG_LOG_STREAM std::cout
-#else
-#define CONFIG_LOG_STREAM cnull
-#endif
-
-#define CONFIG_FIELD( __name, __type )                         \
-  static this_type* __name##_parent_ptr() {                    \
-    return this_ptr();                                         \
-  }                                                            \
-  static ConfigPath __name##_parent_path() {                   \
-    return this_path();                                        \
-  }                                                            \
-  static int __name##_level() { return this_level() + 1; }     \
-                                                               \
-  __type __name{};                                             \
-                                                               \
-  static void __populate_##__name() {                          \
-    auto path = __name##_parent_path();                        \
-    path.push_back( TO_STRING( __name ) );                     \
-    auto obj = ucl_from_path( this_config(), path );           \
-    ASSERT( obj.type() != ::UCL_NULL,                          \
-            "UCL Config field `" << util::join( path, "." )    \
-                                 << "` was not found in file " \
-                                 << this_file() << "." );      \
-    ASSERT( obj.type() == ucl_type_of<__type>,                 \
-            "expected `"                                       \
-                << this_name() << "."                          \
-                << util::join( path, "." )                     \
-                << "` to be of type " TO_STRING( __type ) );   \
-    __name##_parent_ptr()->__name =                            \
-        (obj.*ucl_getter_for_type<__type>)( __type{} );        \
-    CONFIG_LOG_STREAM << __name##_level()                      \
-                      << " populate: " << this_name() << "."   \
-                      << util::join( path, "." ) << " = "      \
-                      << util::to_string(                      \
-                             __name##_parent_ptr()->__name )   \
-                      << "\n";                                 \
-  }                                                            \
-  static inline bool const __register_##__name = [] {          \
-    CONFIG_LOG_STREAM << "register: " << this_name()           \
-                      << "." TO_STRING( __name ) "\n";         \
-    config_registration_functions.push_back(                   \
-        {__name##_level(), __populate_##__name} );             \
-    return true;                                               \
-  }();
-
-#define CONFIG_OBJECT( __name, __body )                         \
-  static this_type* __name##_parent_ptr() {                     \
-    return this_ptr();                                          \
-  }                                                             \
-  static ConfigPath __name##_parent_path() {                    \
-    return this_path();                                         \
-  }                                                             \
-  static int __name##_parent_level() { return this_level(); }   \
-                                                                \
-  struct __name##_object;                                       \
-  __name##_object* __##__name;                                  \
-                                                                \
-  struct __name##_object {                                      \
-    using this_type = __name##_object;                          \
-    static __name##_object* this_ptr() {                        \
-      return __name##_parent_ptr()->__##__name;                 \
-    }                                                           \
-    static ConfigPath this_path() {                             \
-      auto path = __name##_parent_path();                       \
-      path.push_back( TO_STRING( __name ) );                    \
-      return path;                                              \
-    }                                                           \
-    static int this_level() {                                   \
-      return __name##_parent_level() + 1;                       \
-    }                                                           \
-                                                                \
-    __body                                                      \
-  };                                                            \
-  __name##_object __name;                                       \
-                                                                \
-  static void __populate_##__name() {                           \
-    CONFIG_LOG_STREAM << __name##_object::this_level()          \
-                      << " populate: " << this_name() << "."    \
-                      << TO_STRING( __name ) << "\n";           \
-    auto* parent       = __name##_parent_ptr();                 \
-    parent->__##__name = &parent->__name;                       \
-  }                                                             \
-  static inline int const __register_##__name = [] {            \
-    CONFIG_LOG_STREAM << "register: " << this_name()            \
-                      << TO_STRING( __name ) "\n";              \
-    config_registration_functions.push_back(                    \
-        {__name##_object::this_level(), __populate_##__name} ); \
-    return 0;                                                   \
-  }();
-
-#define CONFIG_FILE( __name, __body )                          \
-  inline ucl::Ucl ucl_config_##__name;                         \
-  struct config_##__name##_object;                             \
-  inline config_##__name##_object* __config_##__name{nullptr}; \
-                                                               \
-  struct config_##__name##_object {                            \
-    using this_type = config_##__name##_object;                \
-    static config_##__name##_object* this_ptr() {              \
-      return __config_##__name;                                \
-    }                                                          \
-    static ConfigPath  this_path() { return {}; }              \
-    static int         this_level() { return 0; }              \
-    static std::string this_name() {                           \
-      return TO_STRING( __name );                              \
-    }                                                          \
-    static ucl::Ucl& this_config() {                           \
-      return ucl_config_##__name;                              \
-    }                                                          \
-    static std::string this_file() {                           \
-      return "config/" + this_name() + ".ucl";                 \
-    }                                                          \
-                                                               \
-    __body                                                     \
-  };                                                           \
-                                                               \
-  inline config_##__name##_object config_##__name;             \
-  STARTUP() {                                                  \
-    __config_##__name = &config_##__name;                      \
-    config_files.push_back(                                    \
-        {ucl_config_##__name,                                  \
-         config_##__name##_object::this_file()} );             \
-  }
-
-// For convenience
-#define F_( a, b ) CONFIG_FIELD( a, b )
-#define C_( a, p, b ) CONFIG_FILE( a, b )
-#define O_( a, p, b ) CONFIG_OBJECT( a, b )
-
-using RankedFunction = std::pair<int, function<void( void )>>;
-vector<RankedFunction> config_registration_functions;
-
-using ConfigPath = std::vector<std::string>;
-
-ucl::Ucl ucl_from_path( ucl::Ucl const&   ucl_config,
-                        ConfigPath const& components ) {
-  ucl::Ucl obj = ucl_config;
-  for( auto const& s : components ) {
-    obj = obj[s];
-    if( !obj ) break;
-  }
-  return obj; // return it whether true or false
-}
-
-using UclType = decltype( ::UCL_INT );
-
-template<typename T>
-struct ucl_getter_for_type_t;
-
-template<typename T>
-struct ucl_type_of_t;
-
-template<typename T>
-auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
-
-template<typename T>
-UclType ucl_type_of = ucl_type_of_t<T>::value;
-
-#define UCL_TYPE( input, ucl_enum, ucl_name )                 \
-  template<>                                                  \
-  struct ucl_type_of_t<input> {                               \
-    static constexpr UclType value = ucl_enum;                \
-  };                                                          \
-  template<>                                                  \
-  struct ucl_getter_for_type_t<input> {                       \
-    using getter_t = decltype( &ucl::Ucl::ucl_name##_value ); \
-    static constexpr getter_t getter =                        \
-        &ucl::Ucl::ucl_name##_value;                          \
-  }
-
-vector<pair<std::reference_wrapper<ucl::Ucl>, string>>
-    config_files;
-
-// clang-format off
-
-/***********************************************************
-* Mapping From C++ Types to UCL Types
-*
-*         C++ type       UCL Enum for Type   Ucl::???_value()
-*         -------------------------------------------------*/
-UCL_TYPE( int,           UCL_INT,            int           );
-UCL_TYPE( bool,          UCL_BOOLEAN,        bool          );
-UCL_TYPE( double,        UCL_FLOAT,          number        );
-UCL_TYPE( std::string,   UCL_STRING,         string        );
-
-/***********************************************************
-* Main config file
-*
-*    Field Name                    Type
-*    ------------------------------------------------------*/
-C_(  rn                          , object                  ,
-F_(    one                       , int                     )
-F_(    two                       , std::string             )
-F_(    hello                     , int                     )
-O_(    fruit                     , object                  ,
-F_(      apples                  , int                     )
-F_(      oranges                 , int                     )
-F_(      description             , std::string             )
-O_(      hello                   , object                  ,
-F_(        world                 , int                     )
-)))
-
-/***********************************************************
-* GUI Config File
-*
-*    Field Name                    Type
-*    ------------------------------------------------------*/
-C_(  window                      , object                  ,
-F_(    game_title                , std::string             )
-F_(    game_version              , double                  )
-O_(    window_error              , object                  ,
-F_(      title                   , std::string             )
-F_(      show                    , bool                    )
-F_(      x_size                  , int                     )
-))
-
-/***********************************************************/
-// clang-format on
-
-void load_configs() {
-  for( auto [ucl_obj, file] : config_files ) {
-    string errors;
-    ucl_obj.get() = ucl::Ucl::parse_from_file( file, errors );
-    ASSERT( ucl_config_rn,
-            "failed to load " << file << ": " << errors );
-  }
-  sort( config_registration_functions.begin(),
-        config_registration_functions.end(),
-        []( RankedFunction const& left,
-            RankedFunction const& right ) {
-          return left.first < right.first;
-        } );
-  for( auto const& p : config_registration_functions )
-    p.second();
-}
-
 void game() {
   init_game();
   load_sprites();
@@ -355,9 +110,9 @@ void game() {
   cleanup();
 }
 
-#define LOG_CONFIG( path )                 \
-  console->info( TO_STRING( path ) ": {}", \
-                 util::to_string( path ) )
+#define LOG_CONFIG( path )                     \
+  console->info( TO_STRING( rn::path ) ": {}", \
+                 util::to_string( rn::path ) )
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   load_configs();
