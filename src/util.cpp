@@ -11,7 +11,6 @@
 #include "util.hpp"
 
 #include "errors.hpp"
-#include "macros.hpp"
 
 #include <exception>
 #include <iostream>

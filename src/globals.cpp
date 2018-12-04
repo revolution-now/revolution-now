@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "globals.hpp"
 
+#include "errors.hpp"
 #include "util.hpp"
-#include "macros.hpp"
 
 namespace rn {
 

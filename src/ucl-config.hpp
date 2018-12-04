@@ -12,6 +12,10 @@
 
 #include "core-config.hpp"
 
+#include "errors.hpp"
+#include "util.hpp"
+
+#include "base-util/macros.hpp"
 #include "base-util/string.hpp"
 
 #include "ucl++.h"
@@ -52,11 +56,11 @@ inline cnull_t cnull;
     auto path = __name##_parent_path();                        \
     path.push_back( TO_STRING( __name ) );                     \
     auto obj = ucl_from_path( this_config(), path );           \
-    ASSERT( obj.type() != ::UCL_NULL,                          \
+    CHECK_( obj.type() != ::UCL_NULL,                          \
             "UCL Config field `" << util::join( path, "." )    \
                                  << "` was not found in file " \
                                  << this_file() << "." );      \
-    ASSERT( obj.type() == ucl_type_of<__type>,                 \
+    CHECK_( obj.type() == ucl_type_of<__type>,                 \
             "expected `"                                       \
                 << this_name() << "."                          \
                 << util::join( path, "." )                     \

@@ -12,9 +12,9 @@
 
 #include "world.hpp"
 
-#include "util.hpp"
+#include "errors.hpp"
 #include "global-constants.hpp"
-#include "macros.hpp"
+#include "util.hpp"
 
 using namespace std;
 

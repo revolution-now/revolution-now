@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "sound.hpp"
 
+#include "errors.hpp"
 #include "util.hpp"
-#include "macros.hpp"
 
 #include <SDL.h>
 #include <SDL_mixer.h>

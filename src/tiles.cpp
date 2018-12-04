@@ -10,9 +10,9 @@
 *****************************************************************/
 #include "tiles.hpp"
 
+#include "errors.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 

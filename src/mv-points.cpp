@@ -11,9 +11,6 @@
 *****************************************************************/
 #include "mv-points.hpp"
 
-#include "util.hpp"
-#include "macros.hpp"
-
 namespace rn {
 
 namespace {} // namespace

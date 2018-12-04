@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "unit.hpp"
 
+#include "errors.hpp"
 #include "util.hpp"
-#include "macros.hpp"
 
 #include <unordered_map>
 

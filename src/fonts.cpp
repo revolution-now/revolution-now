@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "fonts.hpp"
 
+#include "errors.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 

@@ -3,7 +3,6 @@
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "ownership.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"

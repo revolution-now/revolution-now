@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "ucl-config.hpp"
 
-#include "macros.hpp"
+#include "errors.hpp"
 
 #include <string>
 
@@ -43,7 +43,7 @@ void load_configs() {
     std::string errors;
     ucl_obj.get() = ucl::Ucl::parse_from_file( file, errors );
     ucl::Ucl& o   = ucl_obj.get();
-    ASSERT( o, "failed to load " << file << ": " << errors );
+    CHECK_( o, "failed to load " << file << ": " << errors );
   }
   sort( config_registration_functions().begin(),
         config_registration_functions().end(),

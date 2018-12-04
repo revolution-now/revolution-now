@@ -11,8 +11,8 @@
 *****************************************************************/
 #include "ownership.hpp"
 #include "aliases.hpp"
+#include "errors.hpp"
 #include "util.hpp"
-#include "macros.hpp"
 #include "world.hpp"
 
 #include <unordered_map>

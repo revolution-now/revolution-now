@@ -13,10 +13,10 @@
 
 #include "sdl-util.hpp"
 
+#include "errors.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "sound.hpp"
 #include "util.hpp"
 

@@ -10,10 +10,10 @@
 *****************************************************************/
 #include "movement.hpp"
 
-#include "util.hpp"
+#include "errors.hpp"
 #include "id.hpp"
-#include "macros.hpp"
 #include "ownership.hpp"
+#include "util.hpp"
 #include "world.hpp"
 
 using namespace std;

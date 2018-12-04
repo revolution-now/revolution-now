@@ -10,10 +10,10 @@
 *****************************************************************/
 #include "window.hpp"
 
+#include "errors.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "typed-int.hpp"
 
 #include "base-util/misc.hpp"

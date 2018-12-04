@@ -10,9 +10,9 @@
 *****************************************************************/
 #include "render.hpp"
 
+#include "errors.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
 #include "sdl-util.hpp"

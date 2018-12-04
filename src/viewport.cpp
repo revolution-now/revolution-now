@@ -11,8 +11,8 @@
 *****************************************************************/
 #include "viewport.hpp"
 
+#include "errors.hpp"
 #include "globals.hpp"
-#include "macros.hpp"
 #include "world.hpp"
 
 namespace rn {
