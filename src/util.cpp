@@ -149,7 +149,7 @@ void die( char const* file, int line, std::string_view msg ) {
   string result = oss.str();
 #endif
   auto st = stack_trace_here();
-  throw exception_with_bt( result, st );
+  throw exception_with_bt( result, std::move( st ) );
 }
 
 int round_up_to_nearest_int_multiple( double d, int m ) {

@@ -21,11 +21,26 @@ namespace rn {
 
 namespace {} // namespace
 
+/****************************************************************
+**Stack Trace Reporting
+*****************************************************************/
+
+StackTrace::StackTrace() {}
+
+StackTrace::~StackTrace() {}
+
+StackTrace::StackTrace(
+    std::unique_ptr<backward::StackTrace>&& st_ )
+  : st( std::move( st_ ) ) {}
+
+StackTrace::StackTrace( StackTrace&& st_ )
+  : st( std::move( st_.st ) ) {}
+
 ND StackTrace stack_trace_here() {
 #ifdef STACK_TRACE_ON
-  auto* st = new backward::StackTrace();
+  auto st = std::make_unique<backward::StackTrace>();
   st->load_here( 32 );
-  return StackTrace{st};
+  return StackTrace( std::move( st ) );
 #else
   return StackTrace{};
 #endif

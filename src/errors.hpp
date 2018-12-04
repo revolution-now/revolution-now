@@ -16,6 +16,7 @@
 
 #include "base-util/macros.hpp"
 
+#include <memory>
 #include <stdexcept>
 
 /****************************************************************
@@ -108,7 +109,8 @@
 #endif
 
 // Forward declare this so that we can expose a pointer to it but
-// hide implementation so that we can backward.hpp.
+// hide implementation so that we can avoid including back-
+// ward.hpp.
 #ifdef STACK_TRACE_ON
 namespace backward {
 class StackTrace;
@@ -119,11 +121,20 @@ namespace rn {
 
 #ifdef STACK_TRACE_ON
 struct StackTrace {
+  // We must define all of these StackTrace standard functions in
+  // the cpp file since defining them here in the header would
+  // require knowledge (in the header) of the unique_ptr's de-
+  // structor (which is actually needed in the StackTrace con-
+  // structor in case it throws an exception) which cannot be
+  // generated in the header because we leave it as an incomplete
+  // type here.
+  StackTrace();
+  ~StackTrace();
+  StackTrace( std::unique_ptr<backward::StackTrace>&& st_ );
+  StackTrace( StackTrace&& st );
+
   // Pointer so that we can avoid including backward.hpp here.
-  // We don't use unique_ptr here because then it requires us to
-  // have a complete type. So this memory will be leaked, but
-  // that's ok because we only use this on an error anyway.
-  backward::StackTrace* st;
+  std::unique_ptr<backward::StackTrace> st;
 };
 #else
 struct StackTrace {};
@@ -131,7 +142,7 @@ struct StackTrace {};
 
 struct exception_with_bt : public std::runtime_error {
   exception_with_bt( std::string msg, StackTrace st_ )
-    : std::runtime_error( msg ), st{st_} {}
+    : std::runtime_error( msg ), st( std::move( st_ ) ) {}
   StackTrace st; // will be empty in non-debug builds.
 };
 
