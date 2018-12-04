@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+// TODO: get UCL out of the header interface
+// TODO: make config vars const
 // TODO: move this out of this file
 struct cnull_t {};
 template<typename T>
@@ -35,7 +37,7 @@ inline cnull_t cnull;
 #define CONFIG_LOG_STREAM cnull
 #endif
 
-#define CONFIG_FIELD( __name, __type )                         \
+#define CONFIG_FIELD( __type, __name )                         \
   static this_type* __name##_parent_ptr() {                    \
     return this_ptr();                                         \
   }                                                            \
@@ -177,8 +179,8 @@ inline cnull_t cnull;
 
 // For convenience
 #define F_( a, b ) CONFIG_FIELD( a, b )
-#define C_( a, p, b ) CONFIG_FILE( a, b )
-#define O_( a, p, b ) CONFIG_OBJECT( a, b )
+#define C_( p, a, b ) CONFIG_FILE( a, b )
+#define O_( p, a, b ) CONFIG_OBJECT( a, b )
 #define T_( a, b, c ) UCL_TYPE( a, b, c )
 
 namespace rn {

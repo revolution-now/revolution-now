@@ -1,14 +1,14 @@
-hello = 6 #world
+hello: 6 #world
 
-one = 3
-two = "four"
+one: 3
+two: "four"
 
 fruit {
-  apples = 7
-  oranges = 3
-  description = "a fruit basket"
+  apples: 7
+  oranges: 3
+  description: "a fruit basket"
 
   hello {
-    world = 6
+    world: 6
   }
 }

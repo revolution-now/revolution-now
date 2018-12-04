@@ -1,8 +1,8 @@
-game_title = "Revolution | Now"
-game_version = 2.1
+game_title:  "Revolution | Now"
+game_version: 2.1
 
 window_error {
-    title = "An Error has Occurred"
-    x_size = 3
-    show = off
+    title: "An Error has Occurred"
+    x_size: 3
+    show:   off
 }
