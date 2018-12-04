@@ -225,18 +225,6 @@ cnull_t cnull;
 #define C_( a, p, b ) CONFIG_FILE( a, b )
 #define O_( a, p, b ) CONFIG_OBJECT( a, b )
 
-#define UCL_TYPE( input, ucl_enum, ucl_name )                 \
-  template<>                                                  \
-  struct ucl_type_of_t<input> {                               \
-    static constexpr UclType value = ucl_enum;                \
-  };                                                          \
-  template<>                                                  \
-  struct ucl_getter_for_type_t<input> {                       \
-    using getter_t = decltype( &ucl::Ucl::ucl_name##_value ); \
-    static constexpr getter_t getter =                        \
-        &ucl::Ucl::ucl_name##_value;                          \
-  }
-
 using RankedFunction = std::pair<int, function<void( void )>>;
 vector<RankedFunction> config_registration_functions;
 
@@ -266,50 +254,68 @@ auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
 template<typename T>
 UclType ucl_type_of = ucl_type_of_t<T>::value;
 
+#define UCL_TYPE( input, ucl_enum, ucl_name )                 \
+  template<>                                                  \
+  struct ucl_type_of_t<input> {                               \
+    static constexpr UclType value = ucl_enum;                \
+  };                                                          \
+  template<>                                                  \
+  struct ucl_getter_for_type_t<input> {                       \
+    using getter_t = decltype( &ucl::Ucl::ucl_name##_value ); \
+    static constexpr getter_t getter =                        \
+        &ucl::Ucl::ucl_name##_value;                          \
+  }
+
 vector<pair<std::reference_wrapper<ucl::Ucl>, string>>
     config_files;
 
 // clang-format off
-// =========================================================
 
-UCL_TYPE( int,         UCL_INT,       int    );
-UCL_TYPE( bool,        UCL_BOOLEAN,   bool   );
-UCL_TYPE( double,      UCL_FLOAT,     number );
-UCL_TYPE( std::string, UCL_STRING,    string );
+/***********************************************************
+* Mapping From C++ Types to UCL Types
+*
+*         C++ type       UCL Enum for Type   Ucl::???_value()
+*         -------------------------------------------------*/
+UCL_TYPE( int,           UCL_INT,            int           );
+UCL_TYPE( bool,          UCL_BOOLEAN,        bool          );
+UCL_TYPE( double,        UCL_FLOAT,          number        );
+UCL_TYPE( std::string,   UCL_STRING,         string        );
 
 /***********************************************************
 * Main config file
 *
 *    Field Name                    Type
 *    ------------------------------------------------------*/
-C_(  rn                          ,                         |,
+C_(  rn                          , object                  ,
 F_(    one                       , int                     )
 F_(    two                       , std::string             )
 F_(    hello                     , int                     )
-O_(    fruit                     ,                         |,
+O_(    fruit                     , object                  ,
 F_(      apples                  , int                     )
 F_(      oranges                 , int                     )
 F_(      description             , std::string             )
-O_(      hello                   ,                         |,
-F_(        world                 , int                     ))))
+O_(      hello                   , object                  ,
+F_(        world                 , int                     )
+)))
 
 /***********************************************************
 * GUI Config File
 *
 *    Field Name                    Type
 *    ------------------------------------------------------*/
-C_(  window                      ,                         |,
+C_(  window                      , object                  ,
 F_(    game_title                , std::string             )
 F_(    game_version              , double                  )
-O_(    window_error              ,                         |,
+O_(    window_error              , object                  ,
 F_(      title                   , std::string             )
 F_(      show                    , bool                    )
-F_(      x_size                  , int                     )))
+F_(      x_size                  , int                     )
+))
 
-// =========================================================
+/***********************************************************/
 // clang-format on
 
-void initialize_config() {
+void load_configs() {
   for( auto [ucl_obj, file] : config_files ) {
     string errors;
     ucl_obj.get() = ucl::Ucl::parse_from_file( file, errors );
@@ -354,7 +360,7 @@ void game() {
                  util::to_string( path ) )
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  initialize_config();
+  load_configs();
 
   LOG_CONFIG( config_rn.fruit.apples );
   LOG_CONFIG( config_rn.fruit.oranges );
