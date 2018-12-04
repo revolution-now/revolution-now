@@ -30,4 +30,17 @@ target_include_directories(
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${SDL2_MIXER_INCLUDE_DIR} )
 
+# If this is a debug build then link with the backward-cpp
+# library which provides stack traces.
+if( CMAKE_BUILD_TYPE STREQUAL Debug )
+  find_library( DW dw )
+  if( DW STREQUAL "DW-NOTFOUND" )
+    message( WARNING "libdw not found; not linking to backward-cpp library" )
+  else()
+    target_link_libraries( rn PRIVATE dw )
+    target_compile_definitions( rn PRIVATE BACKWARD_HAS_DW=1 )
+  endif()
+  target_link_libraries( rn PRIVATE backward backward_object )
+endif()
+
 clang_tidy( rn )
