@@ -1,4 +1,5 @@
 #include "config-vars.hpp"
+#include "errors.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
@@ -141,9 +142,18 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   // game();
   return 0;
 
+} catch( exception_with_bt const& e ) {
+  console->error( e.what() );
+  string sdl_error = SDL_GetError();
+  if( !sdl_error.empty() )
+    console->error( "SDL error: {}", sdl_error );
+  print_stack_trace( e.st, 4 );
+  cleanup();
 } catch( exception const& e ) {
-  cerr << e.what() << endl;
-  cerr << "SDL_GetError: " << SDL_GetError() << endl;
+  console->error( e.what() );
+  string sdl_error = SDL_GetError();
+  if( !sdl_error.empty() )
+    console->error( "SDL error: {}", sdl_error );
   cleanup();
   return 1;
 }

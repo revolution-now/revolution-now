@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "util.hpp"
 
+#include "errors.hpp"
 #include "macros.hpp"
 
 #include <exception>
@@ -139,10 +140,17 @@ Delta operator-( Coord const& lhs, Coord const& rhs ) {
 }
 
 void die( char const* file, int line, std::string_view msg ) {
-  std::cerr << "error:" << file << ":" << line << ": " << msg
-            << "\n";
-  // std::terminate();
-  throw logic_error( "terminating program. see log for error" );
+#ifdef STACK_TRACE_ON
+  (void)file;
+  (void)line;
+  string result( msg );
+#else
+  ostringstream oss;
+  oss << "\n" << file << ":" << line << ":\n" << msg;
+  string result = oss.str();
+#endif
+  auto st = stack_trace_here();
+  throw exception_with_bt( result, st );
 }
 
 int round_up_to_nearest_int_multiple( double d, int m ) {
