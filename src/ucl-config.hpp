@@ -177,11 +177,10 @@ inline cnull_t cnull;
         &ucl::Ucl::ucl_name##_value;                          \
   }
 
-// For convenience
-#define F_( a, b ) CONFIG_FIELD( a, b )
-#define C_( p, a, b ) CONFIG_FILE( a, b )
-#define O_( p, a, b ) CONFIG_OBJECT( a, b )
-#define T_( a, b, c ) UCL_TYPE( a, b, c )
+// For compactness
+#define FLD( a, b ) CONFIG_FIELD( a, b )
+#define CFG( a, b ) CONFIG_FILE( a, b )
+#define OBJ( a, b ) CONFIG_OBJECT( a, b )
 
 namespace rn {
 
@@ -208,6 +207,17 @@ auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
 
 template<typename T>
 UclType ucl_type_of = ucl_type_of_t<T>::value;
+
+/****************************************************************
+ * Mapping From C++ Types to UCL Types
+ *
+ *         C++ type         UCL Enum              Ucl::???_value
+ *         ------------------------------------------------------*/
+UCL_TYPE( int, UCL_INT, int );
+UCL_TYPE( bool, UCL_BOOLEAN, bool );
+UCL_TYPE( double, UCL_FLOAT, number );
+UCL_TYPE( std::string, UCL_STRING, string );
+/****************************************************************/
 
 using ConfigLoadPairs = std::vector<
     std::pair<std::reference_wrapper<ucl::Ucl>, std::string>>;
