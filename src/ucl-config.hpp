@@ -16,6 +16,7 @@
 #include "util.hpp"
 
 #include "base-util/macros.hpp"
+#include "base-util/misc.hpp"
 #include "base-util/string.hpp"
 
 #include "ucl++.h"
@@ -26,19 +27,14 @@
 #include <vector>
 
 // TODO: get UCL out of the header interface
-// TODO: make config vars const
-// TODO: move this out of this file
-struct cnull_t {};
-template<typename T>
-inline cnull_t& operator<<( cnull_t& cnull, T const& ) {
-  return cnull;
-}
-inline cnull_t cnull;
 
+// This is just for debugging the registration of the the config
+// data structure members.  Normally should not be enabled even
+// for debug builds.
 #if 0
 #define CONFIG_LOG_STREAM std::cout
 #else
-#define CONFIG_LOG_STREAM cnull
+#define CONFIG_LOG_STREAM util::cnull
 #endif
 
 #define CONFIG_FIELD( __type, __name )                         \
