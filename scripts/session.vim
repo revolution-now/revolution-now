@@ -24,6 +24,7 @@ let s:stems = [
 
 let s:pairs = [
   \ ['src/global-constants.hpp', 'src/macros.hpp'],
+  \ ['src/config-vars.hpp',      'config/window.ucl'],
 \]
 
 let s:quads = [
