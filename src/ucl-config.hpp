@@ -51,7 +51,7 @@
   static void __populate_##__name() {                          \
     auto path = __name##_parent_path();                        \
     path.push_back( TO_STRING( __name ) );                     \
-    auto obj = ucl_from_path( this_config(), path );           \
+    auto obj = ucl_from_path( this_name(), path );             \
     CHECK_( obj.type() != ::UCL_NULL,                          \
             "UCL Config field `" << util::join( path, "." )    \
                                  << "` was not found in file " \
@@ -126,7 +126,6 @@
   }();
 
 #define CONFIG_FILE( __name, __body )                          \
-  inline ucl::Ucl ucl_config_##__name;                         \
   struct config_##__name##_object;                             \
   inline config_##__name##_object* __config_##__name{nullptr}; \
                                                                \
@@ -139,9 +138,6 @@
     static int         this_level() { return 0; }              \
     static std::string this_name() {                           \
       return TO_STRING( __name );                              \
-    }                                                          \
-    static ucl::Ucl& this_config() {                           \
-      return ucl_config_##__name;                              \
     }                                                          \
     static std::string this_file() {                           \
       return "config/" + this_name() + ".ucl";                 \
@@ -157,7 +153,7 @@
           const_cast<config_##__name##_object*>(               \
               &config_##__name );                              \
       config_files().push_back(                                \
-          {ucl_config_##__name,                                \
+          {config_##__name##_object::this_name(),              \
            config_##__name##_object::this_file()} );           \
     }                                                          \
     static inline int const __register_##__name = [] {         \
@@ -225,13 +221,14 @@ UCL_TYPE( std::string,     UCL_STRING,           string         );
 /****************************************************************/
 // clang-format on
 
-using ConfigLoadPairs = std::vector<
-    std::pair<std::reference_wrapper<ucl::Ucl>, std::string>>;
+// TODO: use fs::path here
+using ConfigLoadPairs =
+    std::vector<std::pair<std::string, std::string>>;
 
 ConfigLoadPairs& config_files();
 
-ucl::Ucl ucl_from_path( ucl::Ucl const&   ucl_config,
-                        ConfigPath const& components );
+ucl::Ucl ucl_from_path( std::string const& name,
+                        ConfigPath const&  components );
 
 void load_configs();
 

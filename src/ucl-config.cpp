@@ -13,10 +13,15 @@
 #include "errors.hpp"
 
 #include <string>
+#include <unordered_map>
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+std::unordered_map<std::string, ucl::Ucl> ucl_configs;
+
+} // namespace
 
 ConfigLoadPairs& config_files() {
   static ConfigLoadPairs pairs;
@@ -38,12 +43,13 @@ load_registration_functions() {
 
 void load_configs() {
   for( auto const& f : load_registration_functions() ) f();
-  for( auto [ucl_obj, file] : config_files() ) {
+  for( auto [ucl_name, file] : config_files() ) {
     // std::cout << "Loading file " << file << "\n";
+    auto&       ucl_obj = ucl_configs[ucl_name];
     std::string errors;
-    ucl_obj.get() = ucl::Ucl::parse_from_file( file, errors );
-    ucl::Ucl& o   = ucl_obj.get();
-    CHECK_( o, "failed to load " << file << ": " << errors );
+    ucl_obj = ucl::Ucl::parse_from_file( file, errors );
+    CHECK_( ucl_obj,
+            "failed to load " << file << ": " << errors );
   }
   sort( config_registration_functions().begin(),
         config_registration_functions().end(),
@@ -55,9 +61,10 @@ void load_configs() {
     p.second();
 }
 
-ucl::Ucl ucl_from_path( ucl::Ucl const&   ucl_config,
-                        ConfigPath const& components ) {
-  ucl::Ucl obj = ucl_config;
+ucl::Ucl ucl_from_path( std::string const& name,
+                        ConfigPath const&  components ) {
+  // This must be by value since we reassign it.
+  ucl::Ucl obj = ucl_configs[name];
   for( auto const& s : components ) {
     obj = obj[s];
     if( !obj ) break;
