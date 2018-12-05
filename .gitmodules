@@ -19,3 +19,6 @@
 [submodule "extern/type_safe"]
 	path = extern/type_safe
 	url = https://github.com/foonathan/type_safe.git
+[submodule "extern/debug_assert"]
+	path = extern/debug_assert
+	url = https://github.com/foonathan/debug_assert.git
