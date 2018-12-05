@@ -212,16 +212,18 @@ auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
 template<typename T>
 UclType ucl_type_of = ucl_type_of_t<T>::value;
 
+// clang-format off
 /****************************************************************
- * Mapping From C++ Types to UCL Types
- *
- *         C++ type         UCL Enum              Ucl::???_value
- *         ------------------------------------------------------*/
-UCL_TYPE( int, UCL_INT, int );
-UCL_TYPE( bool, UCL_BOOLEAN, bool );
-UCL_TYPE( double, UCL_FLOAT, number );
-UCL_TYPE( std::string, UCL_STRING, string );
+* Mapping From C++ Types to UCL Types
+*
+*         C++ type         UCL Enum              Ucl::???_value
+*         ------------------------------------------------------*/
+UCL_TYPE( int,             UCL_INT,              int            );
+UCL_TYPE( bool,            UCL_BOOLEAN,          bool           );
+UCL_TYPE( double,          UCL_FLOAT,            number         );
+UCL_TYPE( std::string,     UCL_STRING,           string         );
 /****************************************************************/
+// clang-format on
 
 using ConfigLoadPairs = std::vector<
     std::pair<std::reference_wrapper<ucl::Ucl>, std::string>>;
