@@ -46,7 +46,7 @@
   }                                                            \
   static int __name##_level() { return this_level() + 1; }     \
                                                                \
-  __type __name{};                                             \
+  __type const __name{};                                       \
                                                                \
   static void __populate_##__name() {                          \
     auto path = __name##_parent_path();                        \
@@ -61,7 +61,8 @@
                 << this_name() << "."                          \
                 << util::join( path, "." )                     \
                 << "` to be of type " TO_STRING( __type ) );   \
-    __name##_parent_ptr()->__name =                            \
+    *const_cast<__type*>(                                      \
+        &( __name##_parent_ptr()->__name ) ) =                 \
         (obj.*ucl_getter_for_type<__type>)( __type{} );        \
     CONFIG_LOG_STREAM << __name##_level()                      \
                       << " populate: " << this_name() << "."   \
@@ -106,14 +107,15 @@
                                                                 \
     __body                                                      \
   };                                                            \
-  __name##_object __name;                                       \
+  __name##_object const __name{};                               \
                                                                 \
   static void __populate_##__name() {                           \
     CONFIG_LOG_STREAM << __name##_object::this_level()          \
                       << " populate: " << this_name() << "."    \
                       << TO_STRING( __name ) << "\n";           \
-    auto* parent       = __name##_parent_ptr();                 \
-    parent->__##__name = &parent->__name;                       \
+    auto* parent = __name##_parent_ptr();                       \
+    parent->__##__name =                                        \
+        const_cast<__name##_object*>( &parent->__name );        \
   }                                                             \
   static inline int const __register_##__name = [] {            \
     CONFIG_LOG_STREAM << "register: " << this_name() << "."     \
@@ -148,10 +150,12 @@
     __body                                                     \
   };                                                           \
                                                                \
-  inline config_##__name##_object config_##__name;             \
+  inline config_##__name##_object const config_##__name{};     \
   struct startup_##__name {                                    \
     static void __load_##__name() {                            \
-      __config_##__name = &config_##__name;                    \
+      __config_##__name =                                      \
+          const_cast<config_##__name##_object*>(               \
+              &config_##__name );                              \
       config_files().push_back(                                \
           {ucl_config_##__name,                                \
            config_##__name##_object::this_file()} );           \
