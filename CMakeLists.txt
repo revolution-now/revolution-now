@@ -43,6 +43,7 @@ add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/libucl        EXCLUDE_FROM_ALL )
+add_subdirectory( extern/type_safe     EXCLUDE_FROM_ALL )
 
 # === global settings =============================================
 
