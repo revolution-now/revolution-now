@@ -25,6 +25,7 @@ namespace {} // namespace
 **Stack Trace Reporting
 *****************************************************************/
 
+#ifdef STACK_TRACE_ON
 StackTrace::StackTrace() {}
 
 StackTrace::~StackTrace() {}
@@ -35,6 +36,7 @@ StackTrace::StackTrace(
 
 StackTrace::StackTrace( StackTrace&& st_ )
   : st( std::move( st_.st ) ) {}
+#endif
 
 ND StackTrace stack_trace_here() {
 #ifdef STACK_TRACE_ON
