@@ -1,5 +1,5 @@
 /****************************************************************
-**ucl-config.cpp
+**config-files.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Handles config file data.
 *
 *****************************************************************/
-#include "ucl-config.hpp"
+#include "config-files.hpp"
 
 #include "errors.hpp"
 

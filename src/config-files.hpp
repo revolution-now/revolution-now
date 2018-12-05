@@ -1,5 +1,5 @@
 /****************************************************************
-**ucl-config.hpp
+**config-files.hpp
 *
 * Project: Revolution Now
 *
@@ -23,6 +23,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+// TODO: get the bulk of the macros stuff out of the header.
 
 // This is just for debugging the registration of the the config
 // data structure members.  Normally should not be enabled even
