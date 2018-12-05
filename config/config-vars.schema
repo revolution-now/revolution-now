@@ -1,25 +1,4 @@
 /****************************************************************
-**config-vars.hpp
-*
-* Project: Revolution Now
-*
-* Created by dsicilia on 2018-12-03.
-*
-* Description: Describes the names and types of the fields that
-*              are expected to be loaded from the config files.
-*
-*****************************************************************/
-#pragma once
-
-#include "core-config.hpp"
-
-#include "config-files.hpp"
-
-namespace rn {
-
-// clang-format off
-
-/****************************************************************
 * Main config file
 *****************************************************************/
 CFG( rn,
@@ -49,6 +28,3 @@ CFG( window,
   )
 )
 /****************************************************************/
-// clang-format on
-
-} // namespace rn

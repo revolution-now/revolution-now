@@ -1,4 +1,4 @@
-#include "config-vars.hpp"
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
