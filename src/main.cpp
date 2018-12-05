@@ -96,32 +96,51 @@ void game() {
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, Y(2),
   // X(3) );
-  //(void)create_unit_on_map( e_unit_type::free_colonist, Y( 2 ),
-  //                          X( 4 ) );
-  //(void)create_unit_on_map( e_unit_type::caravel, Y( 2 ),
-  //                          X( 2 ) );
+  (void)create_unit_on_map( e_unit_type::free_colonist, Y( 2 ),
+                            X( 4 ) );
+  (void)create_unit_on_map( e_unit_type::caravel, Y( 2 ),
+                            X( 2 ) );
   //(void)create_unit_on_map( e_unit_type::caravel, Y(2), X(1) );
 
-  // while( turn() != e_turn_result::quit ) {}
+  while( turn() != e_turn_result::quit ) {}
 
-  // font_test();
+  font_test();
   gui::test_window();
 
   cleanup();
 }
 
+#define LOG_CONFIG( path )                     \
+  console->info( TO_STRING( rn::path ) ": {}", \
+                 util::to_string( rn::path ) )
+
 int main( int /*unused*/, char** /*unused*/ ) try {
   load_configs();
 
-  fmt::print( "Hello, {}!\n", "world" );
-  auto s = fmt::format( "this {} a {}.\n", "is", "test" );
-  fmt::print( s );
+  LOG_CONFIG( config_rn.fruit.apples );
+  LOG_CONFIG( config_rn.fruit.oranges );
+  LOG_CONFIG( config_rn.fruit.description );
+  LOG_CONFIG( config_rn.fruit.hello.world );
+  LOG_CONFIG( config_rn.hello );
+  LOG_CONFIG( config_rn.one );
+  LOG_CONFIG( config_rn.two );
+  LOG_CONFIG( config_window.game_version );
+  LOG_CONFIG( config_window.game_title );
+  LOG_CONFIG( config_window.window_error.title );
+  LOG_CONFIG( config_window.window_error.x_size );
+  LOG_CONFIG( config_window.window_error.show );
 
-  stdout_example();
-  console->info( "config_rn.fruit.oranges: {}",
-                 config_rn.fruit.oranges );
+  // cout << config_rn.fruit.hello.world << endl;
 
-  game();
+  // fmt::print( "Hello, {}!\n", "world" );
+  // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
+  // fmt::print( s );
+
+  // stdout_example();
+  // console->info( "fruit.oranges: {}",
+  //               config<int>( "fruit.oranges" ) );
+
+  // game();
   return 0;
 
 } catch( exception_with_bt const& e ) {
