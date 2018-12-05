@@ -19,14 +19,10 @@
 #include "base-util/misc.hpp"
 #include "base-util/string.hpp"
 
-#include "ucl++.h"
-
 #include <functional>
 #include <string>
 #include <utility>
 #include <vector>
-
-// TODO: get UCL out of the header interface
 
 // This is just for debugging the registration of the the config
 // data structure members.  Normally should not be enabled even
@@ -37,46 +33,30 @@
 #define CONFIG_LOG_STREAM util::cnull
 #endif
 
-#define CONFIG_FIELD( __type, __name )                         \
-  static this_type* __name##_parent_ptr() {                    \
-    return this_ptr();                                         \
-  }                                                            \
-  static ConfigPath __name##_parent_path() {                   \
-    return this_path();                                        \
-  }                                                            \
-  static int __name##_level() { return this_level() + 1; }     \
-                                                               \
-  __type const __name{};                                       \
-                                                               \
-  static void __populate_##__name() {                          \
-    auto path = __name##_parent_path();                        \
-    path.push_back( TO_STRING( __name ) );                     \
-    auto obj = ucl_from_path( this_name(), path );             \
-    CHECK_( obj.type() != ::UCL_NULL,                          \
-            "UCL Config field `" << util::join( path, "." )    \
-                                 << "` was not found in file " \
-                                 << this_file() << "." );      \
-    CHECK_( obj.type() == ucl_type_of<__type>,                 \
-            "expected `"                                       \
-                << this_name() << "."                          \
-                << util::join( path, "." )                     \
-                << "` to be of type " TO_STRING( __type ) );   \
-    *const_cast<__type*>(                                      \
-        &( __name##_parent_ptr()->__name ) ) =                 \
-        (obj.*ucl_getter_for_type<__type>)( __type{} );        \
-    CONFIG_LOG_STREAM << __name##_level()                      \
-                      << " populate: " << this_name() << "."   \
-                      << util::join( path, "." ) << " = "      \
-                      << util::to_string(                      \
-                             __name##_parent_ptr()->__name )   \
-                      << "\n";                                 \
-  }                                                            \
-  static inline bool const __register_##__name = [] {          \
-    CONFIG_LOG_STREAM << "register: " << this_name()           \
-                      << "." TO_STRING( __name ) "\n";         \
-    config_registration_functions().push_back(                 \
-        {__name##_level(), __populate_##__name} );             \
-    return true;                                               \
+#define CONFIG_FIELD( __type, __name )                      \
+  static this_type* __name##_parent_ptr() {                 \
+    return this_ptr();                                      \
+  }                                                         \
+  static ConfigPath __name##_parent_path() {                \
+    return this_path();                                     \
+  }                                                         \
+  static int __name##_level() { return this_level() + 1; }  \
+                                                            \
+  __type const __name{};                                    \
+                                                            \
+  static void __populate_##__name() {                       \
+    auto* dest = const_cast<__type*>(                       \
+        &( __name##_parent_ptr()->__name ) );               \
+    populate_config_field(                                  \
+        dest, TO_STRING( __name ), __name##_level(),        \
+        this_name(), __name##_parent_path(), this_file() ); \
+  }                                                         \
+  static inline bool const __register_##__name = [] {       \
+    CONFIG_LOG_STREAM << "register: " << this_name()        \
+                      << "." TO_STRING( __name ) "\n";      \
+    config_registration_functions().push_back(              \
+        {__name##_level(), __populate_##__name} );          \
+    return true;                                            \
   }();
 
 #define CONFIG_OBJECT( __name, __body )                         \
@@ -140,7 +120,7 @@
       return TO_STRING( __name );                              \
     }                                                          \
     static std::string this_file() {                           \
-      return "config/" + this_name() + ".ucl";                 \
+      return config_file_for_name( this_name() );              \
     }                                                          \
                                                                \
     __body                                                     \
@@ -165,18 +145,6 @@
     }();                                                       \
   };
 
-#define UCL_TYPE( input, ucl_enum, ucl_name )                 \
-  template<>                                                  \
-  struct ucl_type_of_t<input> {                               \
-    static constexpr UclType value = ucl_enum;                \
-  };                                                          \
-  template<>                                                  \
-  struct ucl_getter_for_type_t<input> {                       \
-    using getter_t = decltype( &ucl::Ucl::ucl_name##_value ); \
-    static constexpr getter_t getter =                        \
-        &ucl::Ucl::ucl_name##_value;                          \
-  }
-
 // For compactness
 #define FLD( a, b ) CONFIG_FIELD( a, b )
 #define CFG( a, b ) CONFIG_FILE( a, b )
@@ -194,32 +162,16 @@ load_registration_functions();
 
 using ConfigPath = std::vector<std::string>;
 
-using UclType = decltype( ::UCL_INT );
+#define POPULATE_FIELD_DECL( __type )                   \
+  void populate_config_field(                           \
+      __type* dest, std::string const& name, int level, \
+      std::string const& config_name,                   \
+      ConfigPath const& parent_path, std::string const& file );
 
-template<typename T>
-struct ucl_getter_for_type_t;
-
-template<typename T>
-struct ucl_type_of_t;
-
-template<typename T>
-auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
-
-template<typename T>
-UclType ucl_type_of = ucl_type_of_t<T>::value;
-
-// clang-format off
-/****************************************************************
-* Mapping From C++ Types to UCL Types
-*
-*         C++ type         UCL Enum              Ucl::???_value
-*         ------------------------------------------------------*/
-UCL_TYPE( int,             UCL_INT,              int            );
-UCL_TYPE( bool,            UCL_BOOLEAN,          bool           );
-UCL_TYPE( double,          UCL_FLOAT,            number         );
-UCL_TYPE( std::string,     UCL_STRING,           string         );
-/****************************************************************/
-// clang-format on
+POPULATE_FIELD_DECL( bool )
+POPULATE_FIELD_DECL( int )
+POPULATE_FIELD_DECL( double )
+POPULATE_FIELD_DECL( std::string )
 
 // TODO: use fs::path here
 using ConfigLoadPairs =
@@ -227,8 +179,7 @@ using ConfigLoadPairs =
 
 ConfigLoadPairs& config_files();
 
-ucl::Ucl ucl_from_path( std::string const& name,
-                        ConfigPath const&  components );
+std::string config_file_for_name( std::string const& name );
 
 void load_configs();
 
