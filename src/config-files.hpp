@@ -12,33 +12,22 @@
 
 #include "core-config.hpp"
 
-#include "errors.hpp"
-#include "util.hpp"
-
-#include "base-util/macros.hpp"
-#include "base-util/misc.hpp"
-#include "base-util/string.hpp"
-
-#include <functional>
 #include <string>
-#include <utility>
-#include <vector>
 
-// TODO: add const back in
+#define STRUCT( name, body ) \
+  struct name {              \
+    body                     \
+  };
 
-#define CFG( __name, __body )       \
-  struct config_##__name##_object { \
-    __body                          \
-  };                                \
-  extern config_##__name##_object config_##__name;
+#define CFG( name, body )                \
+  STRUCT( config_##name##_object, body ) \
+  extern config_##name##_object const config_##name;
 
-#define OBJ( __name, __body ) \
-  struct __name##_object {    \
-    __body                    \
-  };                          \
-  __name##_object __name;
+#define OBJ( name, body )       \
+  STRUCT( name##_object, body ) \
+  name##_object name;
 
-#define FLD( __type, __name ) __type __name;
+#define FLD( type, name ) type name;
 
 namespace rn {
 

@@ -10,7 +10,9 @@
 *****************************************************************/
 #include "config-files.hpp"
 
+#include "base-util/string.hpp"
 #include "errors.hpp"
+#include "util.hpp"
 
 // Only include this in this cpp module.
 #include "ucl++.h"
@@ -74,12 +76,13 @@
   };
 
 #define CFG( __name, __body )                               \
-  config_##__name##_object config_##__name;                 \
+  config_##__name##_object const config_##__name{};         \
                                                             \
   struct shadow_config_##__name##_object {                  \
     using this_type = config_##__name##_object;             \
     static config_##__name##_object* dest_ptr() {           \
-      return &( config_##__name );                          \
+      return const_cast<config_##__name##_object*>(         \
+          &( config_##__name ) );                           \
     }                                                       \
     static ConfigPath  this_path() { return {}; }           \
     static int         this_level() { return 0; }           \
