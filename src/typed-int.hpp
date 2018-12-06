@@ -307,6 +307,20 @@ TYPED_COORD( Y, y ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 TYPED_COORD( W, w ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 TYPED_COORD( H, h ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 
+// User-defined literals.  These allow us to do e.g.:
+//   auto x = 55_x; /* `x` is of type X
+#define UD_LITERAL( a, b )                                  \
+  namespace rn {                                            \
+  constexpr a operator"" _##b( unsigned long long int n ) { \
+    return a( static_cast<decltype( a::_ )>( n ) );         \
+  }                                                         \
+  }
+
+UD_LITERAL( X, x )
+UD_LITERAL( Y, y )
+UD_LITERAL( W, w )
+UD_LITERAL( H, h )
+
 namespace rn {
 
 // These templates allow us to map a dimension

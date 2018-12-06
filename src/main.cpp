@@ -131,6 +131,9 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   LOG_CONFIG( config_window.window_error.show );
   LOG_CONFIG( config_window.widths );
 
+  auto x = 55_x;
+  (void)x;
+
   // fmt::print( "Hello, {}!\n", "world" );
   // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
   // fmt::print( s );
