@@ -94,13 +94,12 @@ void game() {
 
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
-  //(void)create_unit_on_map( e_unit_type::free_colonist, Y(2),
-  // X(3) );
-  (void)create_unit_on_map( e_unit_type::free_colonist, Y( 2 ),
-                            X( 4 ) );
-  (void)create_unit_on_map( e_unit_type::caravel, Y( 2 ),
-                            X( 2 ) );
-  //(void)create_unit_on_map( e_unit_type::caravel, Y(2), X(1) );
+  //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
+  // 3_x );
+  (void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
+                            4_x );
+  (void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
+  //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 1_x );
 
   while( turn() != e_turn_result::quit ) {}
 

@@ -163,13 +163,11 @@ Rect SmoothViewport::covered_tiles() const {
 
   auto [size_y, size_x] = world_size_tiles();
   X end_tile_x = start_tile_x() + lround( width_tiles() );
-  // if( end_tile_x > X(0) + size_x ) end_tile_x = X(0) + size_x;
-  CHECK( end_tile_x <=
-         X( 0 ) + size_x ); // can remove eventually
+  // if( end_tile_x > 0_x + size_x ) end_tile_x = 0_x + size_x;
+  CHECK( end_tile_x <= 0_x + size_x ); // can remove eventually
   Y end_tile_y = start_tile_y() + lround( height_tiles() );
-  // if( end_tile_y > Y(0) + size_y ) end_tile_y = Y(0) + size_y;
-  CHECK( end_tile_y <=
-         Y( 0 ) + size_y ); // can remove eventually
+  // if( end_tile_y > 0_y + size_y ) end_tile_y = 0_y + size_y;
+  CHECK( end_tile_y <= 0_y + size_y ); // can remove eventually
 
   return {X( start_tile_x() ), Y( start_tile_y() ),
           W( end_tile_x - start_tile_x() ),
