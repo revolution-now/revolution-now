@@ -193,7 +193,52 @@ std::string config_file_for_name( std::string const& name ) {
                       << "." << util::join( path, "." )         \
                       << " = " << util::to_string( *dest )      \
                       << "\n";                                  \
-  }
+  }                                                             \
+                                                                \
+  void populate_config_field(                                   \
+      std::vector<__type>* dest, std::string const& name,       \
+      int level, std::string const& config_name,                \
+      ConfigPath const&  parent_path,                           \
+      std::string const& file ) {                               \
+    auto path = parent_path;                                    \
+    path.push_back( name );                                     \
+    CONFIG_LOG_STREAM << level << " populate: " << config_name  \
+                      << "." << util::join( path, "." )         \
+                      << " = " << util::to_string( *dest )      \
+                      << "\n";                                  \
+    auto obj = ucl_from_path( config_name, path );              \
+    CHECK_( obj.type() != ::UCL_NULL,                           \
+            "UCL Config field `" << util::join( path, "." )     \
+                                 << "` was not found in file "  \
+                                 << file << "." );              \
+    CHECK_( obj.type() == ::UCL_ARRAY,                          \
+            "expected `" << config_name << "."                  \
+                         << util::join( path, "." )             \
+                         << "` to be of type std::vector<T>" ); \
+    CHECK( dest->empty() );                                     \
+    dest->reserve( obj.size() ); /* array size */               \
+    for( auto elem : obj ) {                                    \
+      CHECK_(                                                   \
+          elem.type() == __ucl_type,                            \
+          "expected elements in array `"                        \
+              << config_name << "." << util::join( path, "." )  \
+              << "` to be of type " TO_STRING( __ucl_type ) );  \
+      dest->push_back( elem.__ucl_getter() );                   \
+    }                                                           \
+    CHECK( dest->size() == obj.size() );                        \
+  }                                                             \
+  /* Dummy lambda that `uses' the above functions to avoid */   \
+  /* warnings about unused functions if the user supplies */    \
+  /* a config that doesn't use all the types.*/                 \
+  auto dummy_##__type = [] {                                    \
+    __type*              ptr     = nullptr;                     \
+    std::vector<__type>* vec_ptr = nullptr;                     \
+    populate_config_field( ptr, "", 0, "", {}, "" );            \
+    populate_config_field( vec_ptr, "", 0, "", {}, "" );        \
+  };
+
+using std::string; // to avoid issues with joining std::string
+                   // into a variable name in a macro.
 
 // clang-format off
 /****************************************************************
@@ -204,7 +249,7 @@ std::string config_file_for_name( std::string const& name ) {
 POPULATE_FIELD_IMPL( int,          UCL_INT,      int_value      )
 POPULATE_FIELD_IMPL( bool,         UCL_BOOLEAN,  bool_value     )
 POPULATE_FIELD_IMPL( double,       UCL_FLOAT,    number_value   )
-POPULATE_FIELD_IMPL( std::string,  UCL_STRING,   string_value   )
+POPULATE_FIELD_IMPL( string,       UCL_STRING,   string_value   )
 /****************************************************************/
 // clang-format on
 

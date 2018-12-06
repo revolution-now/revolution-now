@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 #include <string>
+#include <vector>
 
 #define STRUCT( name, body ) \
   struct name {              \

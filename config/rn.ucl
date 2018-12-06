@@ -5,7 +5,11 @@ two: "four"
 
 fruit {
   apples: 7
-  oranges: 3
+  oranges: [
+    "9",
+    "8",
+    "7"
+  ]
   description: "a fruit basket"
 
   hello {

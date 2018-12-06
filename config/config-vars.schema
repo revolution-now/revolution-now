@@ -7,7 +7,7 @@ CFG( rn,
   FLD( int, hello )
   OBJ( fruit,
     FLD( int, apples )
-    FLD( int, oranges )
+    FLD( std::vector<std::string>, oranges )
     FLD( std::string, description )
     OBJ( hello,
       FLD( int, world )
