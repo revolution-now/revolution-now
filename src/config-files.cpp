@@ -133,7 +133,6 @@
     *dest = obj.__ucl_getter();                                 \
     CONFIG_LOG_STREAM << level << " populate: " << config_name  \
                       << "." << util::join( path, "." )         \
-                      << " = " << util::to_string( *dest )      \
                       << "\n";                                  \
   }                                                             \
                                                                 \
@@ -146,7 +145,7 @@
     path.push_back( name );                                     \
     CONFIG_LOG_STREAM << level << " populate: " << config_name  \
                       << "." << util::join( path, "." )         \
-                      << " = " << util::to_string( *dest )      \
+                      << " = "                                  \
                       << "\n";                                  \
     auto obj = ucl_from_path( config_name, path );              \
     CHECK_( obj.type() != ::UCL_NULL,                           \
@@ -154,9 +153,11 @@
                                  << "` was not found in file "  \
                                  << file << "." );              \
     CHECK_( obj.type() == ::UCL_ARRAY,                          \
-            "expected `" << config_name << "."                  \
-                         << util::join( path, "." )             \
-                         << "` to be of type std::vector<T>" ); \
+            "expected `"                                        \
+                << config_name << "."                           \
+                << util::join( path, "." )                      \
+                << "` to be of type std::vector<" TO_STRING(    \
+                       __type ) ">" );                          \
     CHECK( dest->empty() );                                     \
     dest->reserve( obj.size() ); /* array size */               \
     for( auto elem : obj ) {                                    \
@@ -165,7 +166,8 @@
           "expected elements in array `"                        \
               << config_name << "." << util::join( path, "." )  \
               << "` to be of type " TO_STRING( __ucl_type ) );  \
-      dest->push_back( elem.__ucl_getter() );                   \
+      dest->push_back(                                          \
+          static_cast<__type>( elem.__ucl_getter() ) );         \
     }                                                           \
     CHECK( dest->size() == obj.size() );                        \
   }                                                             \
@@ -232,22 +234,30 @@ std::string config_file_for_name( std::string const& name ) {
 
 } // namespace
 
-// This is so that we can refer to std::string as just `string`
-// in a macro argument, since it needs to be an identifier that
-// can be joined onto another variable name, like var_##type
-// where `type` is e.g. string, int.
+// These are so that we can refer to e.g. std::string as just
+// `string` in a macro argument, since it needs to be an
+// identifier that can be joined onto another variable name, like
+// var_##type where `type` is e.g. string, int, X.
+using rn::X, rn::Y, rn::W, rn::H;
 using std::string;
 
 // clang-format off
 /****************************************************************
 * Mapping From C++ Types to UCL Types
+* Requirements:
+*   the `C++ type` must be constructable and static_cast'able
+*   from the type returned by `Ucl Getter`
 *
-*               C++ type        UCL Enum        Ucl::???
+*               C++ type        UCL Enum        Ucl Getter
 *               ------------------------------------------------*/
 POPULATE_FIELD( int,            UCL_INT,        int_value      )
 POPULATE_FIELD( bool,           UCL_BOOLEAN,    bool_value     )
 POPULATE_FIELD( double,         UCL_FLOAT,      number_value   )
 POPULATE_FIELD( string,         UCL_STRING,     string_value   )
+POPULATE_FIELD( X,              UCL_INT,        int_value      )
+POPULATE_FIELD( Y,              UCL_INT,        int_value      )
+POPULATE_FIELD( W,              UCL_INT,        int_value      )
+POPULATE_FIELD( H,              UCL_INT,        int_value      )
 /****************************************************************/
 // clang-format on
 

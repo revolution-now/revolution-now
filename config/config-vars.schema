@@ -24,7 +24,8 @@ CFG( window,
   OBJ( window_error,
     FLD( std::string, title )
     FLD( bool, show )
-    FLD( int, x_size )
+    FLD( rn::X, x_size )
   )
+  FLD( std::vector<rn::W>, widths )
 )
 /****************************************************************/

@@ -13,6 +13,8 @@
 
 #include "core-config.hpp"
 
+#include "base-util/string.hpp"
+
 #include <iostream>
 #include <optional>
 #include <vector>
@@ -247,53 +249,65 @@ inline std::istream& operator>>( std::istream&  in,
 // the inherited member functions that refer to that base class;
 // e.g., it would allow two distinct typed int's to be added to-
 // gether.
-#define DERIVE_TYPED_INT( a, b )                     \
-  struct a : public b<a> {                           \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    using P = b<a>; /* parent */                     \
-    constexpr a() : P( 0 ) {}                        \
-    constexpr a( a const& rhs ) = default;           \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    constexpr a( a&& rhs ) = default;                \
-    ~a()                   = default;                \
-    explicit constexpr a( int n_ ) : P( n_ ) {}      \
-    constexpr a( P const& ti ) : P( ti ) {}          \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( a const& other ) {                 \
-      _ = other._;                                   \
-      return *this;                                  \
-    }                                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( a&& other ) noexcept {             \
-      _ = other._;                                   \
-      return *this;                                  \
-    }                                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( int n ) {                          \
-      _ = n;                                         \
-      return *this;                                  \
-    }                                                \
-  };                                                 \
-  using Opt##a = std::optional<a>;                   \
-  using a##Vec = std::vector<a>;
+#define DERIVE_TYPED_INT( a, b, suffix )                  \
+  namespace rn {                                          \
+  struct a : public b<a> {                                \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
+    using P = b<a>; /* parent */                          \
+    constexpr a() : P( 0 ) {}                             \
+    constexpr a( a const& rhs ) = default;                \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
+    constexpr a( a&& rhs ) = default;                     \
+    ~a()                   = default;                     \
+    explicit constexpr a( int n_ ) : P( n_ ) {}           \
+    constexpr a( P const& ti ) : P( ti ) {}               \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
+    a& operator=( a const& other ) {                      \
+      _ = other._;                                        \
+      return *this;                                       \
+    }                                                     \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
+    a& operator=( a&& other ) noexcept {                  \
+      _ = other._;                                        \
+      return *this;                                       \
+    }                                                     \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
+    a& operator=( int n ) {                               \
+      _ = n;                                              \
+      return *this;                                       \
+    }                                                     \
+  };                                                      \
+  using Opt##a = std::optional<a>;                        \
+  using a##Vec = std::vector<a>;                          \
+  }                                                       \
+  namespace util {                                        \
+  template<>                                              \
+  inline std::string to_string<rn::a>( rn::a const& n ) { \
+    return util::to_string( n._ ) + "_" #suffix;          \
+  }                                                       \
+  }                                                       \
+  inline std::ostream& operator<<( std::ostream& out,     \
+                                   rn::a const&  n ) {     \
+    return ( out << n._ << "_" #suffix );                 \
+  }
 
 // Typed ints that are to represent coordinates should use this
 // macro. It will ensure that they have types that allow the nec-
 // essary operations and no more.
-#define TYPED_COORD( a ) DERIVE_TYPED_INT( a, TypedInt )
+#define TYPED_COORD( a, s ) DERIVE_TYPED_INT( a, TypedInt, s )
 
 // Typed ints that are to represent IDs should use this macro. It
 // will create a type which is int-like except that one cannot
 // perform any arithmetic operations on it, since those would not
 // make sense for an ID.
-#define TYPED_ID( a ) DERIVE_TYPED_INT( a, TypedIntMinimal )
+#define TYPED_ID( a ) DERIVE_TYPED_INT( a, TypedIntMinimal, id )
+
+TYPED_COORD( X, x ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_COORD( Y, y ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_COORD( W, w ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_COORD( H, h ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 
 namespace rn {
-
-TYPED_COORD( X ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
-TYPED_COORD( Y ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
-TYPED_COORD( W ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
-TYPED_COORD( H ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 
 // These templates allow us to map a dimension
 template<typename Coordinate>

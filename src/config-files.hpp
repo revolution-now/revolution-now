@@ -12,6 +12,8 @@
 
 #include "core-config.hpp"
 
+#include "typed-int.hpp"
+
 #include <string>
 #include <vector>
 

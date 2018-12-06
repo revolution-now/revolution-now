@@ -14,9 +14,9 @@
 
 #include "typed-int.hpp"
 
-namespace rn {
-
 TYPED_ID( UnitId ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+
+namespace rn {
 
 ND UnitId next_unit_id();
 

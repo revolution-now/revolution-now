@@ -129,8 +129,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   LOG_CONFIG( config_window.window_error.title );
   LOG_CONFIG( config_window.window_error.x_size );
   LOG_CONFIG( config_window.window_error.show );
-
-  // cout << config_rn.fruit.hello.world << endl;
+  LOG_CONFIG( config_window.widths );
 
   // fmt::print( "Hello, {}!\n", "world" );
   // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
