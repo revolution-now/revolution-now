@@ -141,7 +141,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   // console->info( "fruit.oranges: {}",
   //               config<int>( "fruit.oranges" ) );
 
-  // game();
+  game();
   return 0;
 
 } catch( exception_with_bt const& e ) {

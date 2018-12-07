@@ -358,7 +358,7 @@ Rect texture_rect( Texture const& texture ) {
   // const_cast because we are passing texture to a C function
   // which we know will not modify it.
   ::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h );
-  return {X( 0 ), Y( 0 ), W( w ), H( h )};
+  return {0_x, 0_y, W( w ), H( h )};
 }
 
 void set_render_target( OptCRef<Texture> tx ) {

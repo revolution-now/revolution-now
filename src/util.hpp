@@ -27,10 +27,10 @@ struct Coord;
 struct Delta;
 
 struct ND Rect {
-  X x = X( 0 );
-  Y y = Y( 0 );
-  W w = W( 0 );
-  H h = H( 0 );
+  X x = 0_x;
+  Y y = 0_y;
+  W w = 0_w;
+  H h = 0_h;
 
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
@@ -76,8 +76,8 @@ enum class ND direction {
 };
 
 struct ND Coord {
-  Y y = Y( 0 );
-  X x = X( 0 );
+  Y y = 0_y;
+  X x = 0_x;
 
   // Useful for generic code; allows referencing a coordinate
   // from the type.
@@ -99,8 +99,8 @@ struct ND Coord {
 using OptCoord = std::optional<Coord>;
 
 struct ND Delta {
-  W    w = W( 0 );
-  H    h = H( 0 );
+  W    w = 0_w;
+  H    h = 0_h;
   bool operator==( Delta const& other ) const {
     return ( h == other.h ) && ( w == other.w );
   }

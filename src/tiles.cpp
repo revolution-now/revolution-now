@@ -54,49 +54,47 @@ void load_sprites() {
   auto& tile_set = load_texture( "assets/art/tiles-all.png" );
 
   sprites[g_tile::water] =
-      create_sprite_32( tile_set, Y( 0 ), X( 0 ) );
-  sprites[g_tile::land] =
-      create_sprite_32( tile_set, Y( 0 ), X( 1 ) );
+      create_sprite_32( tile_set, 0_y, 0_x );
+  sprites[g_tile::land] = create_sprite_32( tile_set, 0_y, 1_x );
   sprites[g_tile::land_1_side] =
-      create_sprite_32( tile_set, Y( 0 ), X( 2 ) );
+      create_sprite_32( tile_set, 0_y, 2_x );
   sprites[g_tile::land_2_sides] =
-      create_sprite_32( tile_set, Y( 0 ), X( 3 ) );
+      create_sprite_32( tile_set, 0_y, 3_x );
   sprites[g_tile::land_3_sides] =
-      create_sprite_32( tile_set, Y( 0 ), X( 4 ) );
+      create_sprite_32( tile_set, 0_y, 4_x );
   sprites[g_tile::land_4_sides] =
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, Y( 0 ), X( 5 ) );
+      create_sprite_32( tile_set, 0_y, 5_x );
   sprites[g_tile::land_corner] =
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, Y( 0 ), X( 6 ) );
+      create_sprite_32( tile_set, 0_y, 6_x );
 
-  sprites[g_tile::fog] =
-      create_sprite_32( tile_set, Y( 1 ), X( 0 ) );
+  sprites[g_tile::fog] = create_sprite_32( tile_set, 1_y, 0_x );
   sprites[g_tile::fog_1_side] =
-      create_sprite_32( tile_set, Y( 1 ), X( 1 ) );
+      create_sprite_32( tile_set, 1_y, 1_x );
   sprites[g_tile::fog_corner] =
-      create_sprite_32( tile_set, Y( 1 ), X( 2 ) );
+      create_sprite_32( tile_set, 1_y, 2_x );
 
   sprites[g_tile::terrain_grass] =
-      create_sprite_32( tile_set, Y( 2 ), X( 0 ) );
+      create_sprite_32( tile_set, 2_y, 0_x );
 
   sprites[g_tile::panel] =
-      create_sprite_32( tile_set, Y( 3 ), X( 0 ) );
+      create_sprite_32( tile_set, 3_y, 0_x );
   sprites[g_tile::panel_edge_left] =
-      create_sprite_32( tile_set, Y( 3 ), X( 1 ) );
+      create_sprite_32( tile_set, 3_y, 1_x );
   sprites[g_tile::panel_slate] =
-      create_sprite_32( tile_set, Y( 3 ), X( 2 ) );
+      create_sprite_32( tile_set, 3_y, 2_x );
   sprites[g_tile::panel_slate_1_side] =
-      create_sprite_32( tile_set, Y( 3 ), X( 3 ) );
+      create_sprite_32( tile_set, 3_y, 3_x );
   sprites[g_tile::panel_slate_2_sides] =
-      create_sprite_32( tile_set, Y( 3 ), X( 4 ) );
+      create_sprite_32( tile_set, 3_y, 4_x );
 
   sprites[g_tile::free_colonist] =
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, Y( 5 ), X( 0 ) );
+      create_sprite_32( tile_set, 5_y, 0_x );
   sprites[g_tile::caravel] =
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, Y( 5 ), X( 1 ) );
+      create_sprite_32( tile_set, 5_y, 1_x );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {

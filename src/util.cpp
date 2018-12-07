@@ -42,8 +42,8 @@ Rect Rect::edges_removed() {
   Rect rect( *this );
 
   // We always advance location unless length is zero.
-  if( w >= W( 1 ) ) ++rect.x;
-  if( h >= H( 1 ) ) ++rect.y;
+  if( w >= 1_w ) ++rect.x;
+  if( h >= 1_h ) ++rect.y;
 
   rect.w -= 2;
   rect.h -= 2;

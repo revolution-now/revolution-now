@@ -117,14 +117,13 @@ H world_size_pixels_y() {
 }
 
 Rect world_rect() {
-  return {X( 0 ), Y( 0 ), world_size_tiles_x(),
-          world_size_tiles_y()};
+  return {0_x, 0_y, world_size_tiles_x(), world_size_tiles_y()};
 }
 
 bool square_exists( Y y, X x ) {
   if( y < 0 || x < 0 ) return false;
   auto [sy, sx] = world_size_tiles();
-  return Y( 0 ) + sy > y && X( 0 ) + sx > x;
+  return 0_y + sy > y && 0_x + sx > x;
 }
 
 OptSquareCRef square_at_safe( Y y, X x ) {

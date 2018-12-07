@@ -74,8 +74,7 @@ bool OneLineStringView::needs_redraw() const { return true; }
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
   background_.draw( tx, coord );
-  CHECK( copy_texture( this->tx, tx,
-                       coord + Delta{W( 2 ), H( 2 )} ) );
+  CHECK( copy_texture( this->tx, tx, coord + Delta{2_w, 2_h} ) );
 }
 
 Delta OneLineStringView::size() const {
@@ -107,7 +106,7 @@ Delta WindowManager::window_size() const {
 }
 
 void WindowManager::draw_layout( Texture const& tx ) const {
-  auto inside_border = position_ + Delta{W( 1 ), H( 1 )};
+  auto inside_border = position_ + Delta{1_w, 1_h};
   render_fill_rect( tx, Color::black(),
                     {position_.x, position_.y, window_size().w,
                      window_size().h} );
@@ -138,25 +137,25 @@ void test_window() {
   auto             square = Delta{g_tile_width, g_tile_height};
   vector<ViewDesc> squares;
   squares.emplace_back( ViewDesc{
-      Coord{Y( 0 ), X( 0 )},
+      Coord{0_y, 0_x},
       make_unique<SolidRectView>( Color::red(), square )} );
   squares.emplace_back( ViewDesc{
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      Coord{Y( 16 ), X( 16 )},
+      Coord{16_y, 16_x},
       make_unique<SolidRectView>( Color::blue(), square )} );
   squares.emplace_back( ViewDesc{
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      Coord{Y( 0 ), X( 32 )},
+      Coord{0_y, 32_x},
       make_unique<SolidRectView>( Color::green(), square )} );
   squares.emplace_back( ViewDesc{
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      Coord{Y( 20 ), X( 0 )},
+      Coord{20_y, 0_x},
       make_unique<SolidRectView>( Color::white(), square )} );
   auto window = make_unique<Window>(
       "First Window",
       make_unique<CompositeView>( move( squares ) ) );
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  WindowManager wm( move( window ), {Y( 200 ), X( 200 )} );
+  WindowManager wm( move( window ), {200_y, 200_x} );
   wm.run( [] {} );
 }
 

@@ -178,12 +178,10 @@ Rect SmoothViewport::get_render_src_rect() const {
   Rect viewport                        = get_bounds();
   auto [max_src_height, max_src_width] = world_size_pixels();
   Rect src;
-  src.x = viewport.x < X( 0 )
-              ? X( 0 )
-              : X( 0 ) + viewport.x % g_tile_width;
-  src.y = viewport.y < Y( 0 )
-              ? Y( 0 )
-              : Y( 0 ) + viewport.y % g_tile_height;
+  src.x =
+      viewport.x < 0_x ? 0_x : 0_x + viewport.x % g_tile_width;
+  src.y =
+      viewport.y < 0_y ? 0_y : 0_y + viewport.y % g_tile_height;
   src.w =
       viewport.w > max_src_width ? max_src_width : viewport.w;
   src.h =

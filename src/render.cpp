@@ -27,23 +27,23 @@ namespace {} // namespace
 
 void render_panel() {
   constexpr int panel_width{6};
-  auto          bottom_bar = Y( 0 ) + screen_height_tiles() - 1;
-  auto left_side = X( 0 ) + screen_width_tiles() - panel_width;
+  auto          bottom_bar = 0_y + screen_height_tiles() - 1;
+  auto left_side = 0_x + screen_width_tiles() - panel_width;
   // bottom edge
-  for( X i( 0 ); i - X( 0 ) < screen_width_tiles() - panel_width;
+  for( X i( 0 ); i - 0_x < screen_width_tiles() - panel_width;
        ++i )
     render_sprite_grid( g_tile::panel_edge_left, bottom_bar, i,
                         1, 0 );
   // left edge
-  for( Y i( 0 ); i - Y( 0 ) < screen_height_tiles() - 1; ++i )
+  for( Y i( 0 ); i - 0_y < screen_height_tiles() - 1; ++i )
     render_sprite_grid( g_tile::panel_edge_left, i, left_side, 0,
                         0 );
   // bottom left corner of main panel
   render_sprite_grid( g_tile::panel, bottom_bar, left_side, 0,
                       0 );
 
-  for( Y i( 0 ); i - Y( 0 ) < screen_height_tiles(); ++i )
-    for( X j( left_side + 1 ); j - X( 0 ) < screen_width_tiles();
+  for( Y i( 0 ); i - 0_y < screen_height_tiles(); ++i )
+    for( X j( left_side + 1 ); j - 0_x < screen_width_tiles();
          ++j )
       render_sprite_grid( g_tile::panel, i, j, 0, 0 );
 }
@@ -65,8 +65,8 @@ void render_world_viewport( OptUnitId blink_id ) {
       CHECK( s_ );
       Square const& s  = *s_;
       g_tile        t  = s.land ? g_tile::land : g_tile::water;
-      auto          sy = Y( 0 ) + ( i - covered.y );
-      auto          sx = X( 0 ) + ( j - covered.x );
+      auto          sy = 0_y + ( i - covered.y );
+      auto          sx = 0_x + ( j - covered.x );
       render_sprite_grid( t, sy, sx, 0, 0 );
       // Don't render any units on the square of the blinkingone,
       // including the blinking one itself.
@@ -121,8 +121,8 @@ void render_world_viewport_mv_unit( UnitId       mv_id,
       CHECK( s_ );
       Square const& s  = *s_;
       g_tile        t  = s.land ? g_tile::land : g_tile::water;
-      auto          sy = Y( 0 ) + ( i - covered.y );
-      auto          sx = X( 0 ) + ( j - covered.x );
+      auto          sy = 0_y + ( i - covered.y );
+      auto          sx = 0_x + ( j - covered.x );
       render_sprite_grid( t, sy, sx, 0, 0 );
       for( auto id : units_from_coord( i, j ) ) {
         if( id == mv_id ) continue;
@@ -142,8 +142,8 @@ void render_world_viewport_mv_unit( UnitId       mv_id,
   H pixel_delta_y =
       H( int( ( delta_y * g_tile_height )._ * percent ) );
 
-  auto        sy      = Y( 0 ) + ( coords.y - covered.y );
-  auto        sx      = X( 0 ) + ( coords.x - covered.x );
+  auto        sy      = 0_y + ( coords.y - covered.y );
+  auto        sx      = 0_x + ( coords.x - covered.x );
   auto const& unit    = unit_from_id( mv_id );
   X           pixel_x = sx * g_tile_width._ + pixel_delta_x;
   Y           pixel_y = sy * g_tile_height._ + pixel_delta_y;
