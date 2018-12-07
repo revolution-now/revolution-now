@@ -307,7 +307,7 @@ void load_configs() {
     for( auto const& f : fields ) {
       auto full_name = file + "." + f;
       if( !util::has_key( used_field_paths, full_name ) )
-        console->warn( "config field `{}' unused", full_name );
+        logger->warn( "config field `{}' unused", full_name );
     }
   }
 }

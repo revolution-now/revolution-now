@@ -54,9 +54,9 @@ void game() {
   cleanup();
 }
 
-#define LOG_CONFIG( path )                     \
-  console->info( TO_STRING( rn::path ) ": {}", \
-                 util::to_string( rn::path ) )
+#define LOG_CONFIG( path )                    \
+  logger->info( TO_STRING( rn::path ) ": {}", \
+                util::to_string( rn::path ) )
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   init_logging( nullopt );
@@ -81,8 +81,8 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   auto x = 55_x;
   (void)x;
 
-  console->critical( "hello" );
-  console->info( "hello" );
+  logger->critical( "hello" );
+  logger->info( "hello" );
   LOG_DEBUG( "this is some debug logging" );
   LOG_TRACE( "this is some trace logging" );
 
@@ -94,17 +94,17 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   return 0;
 
 } catch( exception_with_bt const& e ) {
-  console->error( e.what() );
+  logger->error( e.what() );
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
-    console->error( "SDL error: {}", sdl_error );
+    logger->error( "SDL error: {}", sdl_error );
   print_stack_trace( e.st, 4 );
   cleanup();
 } catch( exception const& e ) {
-  console->error( e.what() );
+  logger->error( e.what() );
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
-    console->error( "SDL error: {}", sdl_error );
+    logger->error( "SDL error: {}", sdl_error );
   cleanup();
   return 1;
 }

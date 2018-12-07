@@ -24,10 +24,10 @@
 //
 //   Level               Command
 //   ------------------------------------------------------------
-//   CRITICAL            console->critical(...)
-//   ERROR               console->error(...)
-//   WARN                console->warn(...)
-//   INFO                console->info(...)
+//   CRITICAL            logger->critical(...)
+//   ERROR               logger->error(...)
+//   WARN                logger->warn(...)
+//   INFO                logger->info(...)
 //   DEBUG               LOG_DEBUG( ... )
 //   TRACE               LOG_TRACE( ... )
 //
@@ -92,7 +92,7 @@ namespace {
 // name of the logger will be the stem of the filename of the
 // cpp file.  Using __FILE__ would yield the name of this header
 // file which would not be useful.
-auto console = spdlog::stdout_color_mt(
+auto logger = spdlog::stdout_color_mt(
     fs::path( __BASE_FILE__ ).filename().stem() );
 
 } // namespace
