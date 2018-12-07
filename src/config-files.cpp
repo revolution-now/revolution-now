@@ -42,8 +42,7 @@ using namespace std;
                            this_path(), this_file() );       \
   }                                                          \
   static inline bool const __register_##__name = [] {        \
-    populate_functions().push_back(                          \
-        {this_level() + 1, __populate_##__name} );           \
+    populate_functions().push_back( __populate_##__name );   \
     return true;                                             \
   }();
 
@@ -52,8 +51,6 @@ using namespace std;
   static ConfigPath __name##_parent_path() {                     \
     return this_path();                                          \
   }                                                              \
-  static int __name##_parent_level() { return this_level(); }    \
-                                                                 \
   struct __name##_object;                                        \
   __name##_object* __##__name;                                   \
                                                                  \
@@ -65,9 +62,6 @@ using namespace std;
       auto path = __name##_parent_path();                        \
       path.push_back( TO_STRING( __name ) );                     \
       return path;                                               \
-    }                                                            \
-    static int this_level() {                                    \
-      return __name##_parent_level() + 1;                        \
     }                                                            \
                                                                  \
     __body                                                       \
@@ -82,7 +76,6 @@ using namespace std;
           &( config_##__name ) );                                 \
     }                                                             \
     static ConfigPath this_path() { return {}; }                  \
-    static int        this_level() { return 0; }                  \
     static string     this_name() { return TO_STRING( __name ); } \
     static string     this_file() {                               \
       return config_file_for_name( this_name() );             \
@@ -225,10 +218,10 @@ vector<pair<string, string>>& config_files() {
   return pairs;
 }
 
-using RankedFunction = pair<int, function<void( void )>>;
+using PopulateFunction = function<void( void )>;
 
-vector<RankedFunction>& populate_functions() {
-  static vector<RankedFunction> populate_functions;
+vector<PopulateFunction>& populate_functions() {
+  static vector<PopulateFunction> populate_functions;
   return populate_functions;
 }
 
@@ -304,13 +297,7 @@ void load_configs() {
     CHECK_( ucl_obj,
             "failed to load " << file << ": " << errors );
   }
-  sort( populate_functions().begin(), populate_functions().end(),
-        []( RankedFunction const& left,
-            RankedFunction const& right ) {
-          return left.first < right.first;
-        } );
-  for( auto const& populate : populate_functions() )
-    populate.second();
+  for( auto const& populate : populate_functions() ) populate();
   // This loop tests that there are no fields in the config
   // files that are not in the schema.  The program can still
   // run in this case, but we emit a warning since it could
