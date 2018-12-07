@@ -59,6 +59,9 @@ void game() {
                  util::to_string( rn::path ) )
 
 int main( int /*unused*/, char** /*unused*/ ) try {
+  init_logging( nullopt );
+  // init_logging( spdlog::level::trace );
+
   load_configs();
 
   LOG_CONFIG( config_rn.fruit.apples );
@@ -77,6 +80,11 @@ int main( int /*unused*/, char** /*unused*/ ) try {
 
   auto x = 55_x;
   (void)x;
+
+  console->critical( "hello" );
+  console->info( "hello" );
+  LOG_DEBUG( "this is some debug logging" );
+  LOG_TRACE( "this is some trace logging" );
 
   // fmt::print( "Hello, {}!\n", "world" );
   // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
