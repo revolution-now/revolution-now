@@ -13,6 +13,6 @@ fruit {
   description: "a fruit basket"
 
   hello {
-    world: 6
+    world: null
   }
 }

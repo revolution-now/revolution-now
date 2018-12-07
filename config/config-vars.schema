@@ -10,7 +10,7 @@ CFG( rn,
     FLD( std::vector<std::string>, oranges )
     FLD( std::string, description )
     OBJ( hello,
-      FLD( int, world )
+      FLD( std::optional<int>, world )
     )
   )
 )

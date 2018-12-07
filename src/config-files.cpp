@@ -117,6 +117,28 @@ using namespace std;
   }                                                             \
                                                                 \
   inline void populate_config_field(                            \
+      optional<__type>* dest, string const& name,               \
+      string const& config_name, ConfigPath const& parent_path, \
+      string const& file ) {                                    \
+    auto path = parent_path;                                    \
+    path.push_back( name );                                     \
+    auto obj = ucl_from_path( config_name, path );              \
+    (void)file;                                                 \
+    /* This could happen either if the field is absent or if */ \
+    /* it is set to `null` without quotes. */                   \
+    if( obj.type() == ::UCL_NULL ) {                            \
+      *dest = nullopt;                                          \
+      return;                                                   \
+    }                                                           \
+    CHECK_( obj.type() == __ucl_type,                           \
+            "expected non-null `"                               \
+                << config_name << "."                           \
+                << util::join( path, "." )                      \
+                << "` to be of type " TO_STRING( __type ) );    \
+    *dest = obj.__ucl_getter();                                 \
+  }                                                             \
+                                                                \
+  inline void populate_config_field(                            \
       vector<__type>* dest, string const& name,                 \
       string const& config_name, ConfigPath const& parent_path, \
       string const& file ) {                                    \

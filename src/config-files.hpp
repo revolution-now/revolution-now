@@ -14,6 +14,7 @@
 
 #include "typed-int.hpp"
 
+#include <optional>
 #include <string>
 #include <vector>
 
