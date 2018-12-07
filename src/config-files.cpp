@@ -10,15 +10,24 @@
 *****************************************************************/
 #include "config-files.hpp"
 
-#include "base-util/string.hpp"
+// Revolution Now
 #include "errors.hpp"
+#include "logging.hpp"
 #include "util.hpp"
 
-// Only include this in this cpp module.
+// base-util
+#include "base-util/misc.hpp"
+#include "base-util/string.hpp"
+
+// libucl: only include this in this cpp module.
 #include "ucl++.h"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
+// c++ standard library
 #include <string>
-#include <unordered_map>
 
 using namespace std;
 
@@ -33,7 +42,7 @@ using namespace std;
                            this_path(), this_file() );       \
   }                                                          \
   static inline bool const __register_##__name = [] {        \
-    config_registration_functions().push_back(               \
+    populate_functions().push_back(                          \
         {this_level() + 1, __populate_##__name} );           \
     return true;                                             \
   }();
@@ -89,8 +98,7 @@ using namespace std;
            shadow_config_##__name##_object::this_file()} );       \
     }                                                             \
     static inline int const __register_##__name = [] {            \
-      load_registration_functions().push_back(                    \
-          __load_##__name );                                      \
+      load_functions().push_back( __load_##__name );              \
       return 0;                                                   \
     }();                                                          \
   };
@@ -114,6 +122,8 @@ using namespace std;
                 << util::join( path, "." )                      \
                 << "` to be of type " TO_STRING( __type ) );    \
     *dest = obj.__ucl_getter();                                 \
+    used_field_paths.insert( file + "." +                       \
+                             util::join( path, "." ) );         \
   }                                                             \
                                                                 \
   inline void populate_config_field(                            \
@@ -124,18 +134,20 @@ using namespace std;
     path.push_back( name );                                     \
     auto obj = ucl_from_path( config_name, path );              \
     (void)file;                                                 \
-    /* This could happen either if the field is absent or if */ \
-    /* it is set to `null` without quotes. */                   \
-    if( obj.type() == ::UCL_NULL ) {                            \
+    if( obj.type() != ::UCL_NULL ) {                            \
+      CHECK_( obj.type() == __ucl_type,                         \
+              "expected non-null `"                             \
+                  << config_name << "."                         \
+                  << util::join( path, "." )                    \
+                  << "` to be of type " TO_STRING( __type ) );  \
+      *dest = obj.__ucl_getter();                               \
+    } else {                                                    \
+      /* This could happen either if the field is absent */     \
+      /* or if it is set to `null` without quotes. */           \
       *dest = nullopt;                                          \
-      return;                                                   \
     }                                                           \
-    CHECK_( obj.type() == __ucl_type,                           \
-            "expected non-null `"                               \
-                << config_name << "."                           \
-                << util::join( path, "." )                      \
-                << "` to be of type " TO_STRING( __type ) );    \
-    *dest = obj.__ucl_getter();                                 \
+    used_field_paths.insert( file + "." +                       \
+                             util::join( path, "." ) );         \
   }                                                             \
                                                                 \
   inline void populate_config_field(                            \
@@ -167,6 +179,8 @@ using namespace std;
           static_cast<__type>( elem.__ucl_getter() ) );         \
     }                                                           \
     CHECK( dest->size() == obj.size() );                        \
+    used_field_paths.insert( file + "." +                       \
+                             util::join( path, "." ) );         \
   }                                                             \
   } /* namespace */                                             \
   /* This is just to suppress `unused function` warnings. */    \
@@ -176,6 +190,8 @@ using namespace std;
       populate_config_field( ( __type* ){}, {}, {}, {}, {} );   \
       populate_config_field( ( vector<__type>* ){}, {}, {}, {}, \
                              {} );                              \
+      populate_config_field( ( optional<__type>* ){}, {}, {},   \
+                             {}, {} );                          \
     }                                                           \
     return true;                                                \
   }( false );
@@ -184,7 +200,12 @@ namespace rn {
 
 namespace {
 
-unordered_map<string, ucl::Ucl> ucl_configs;
+// List of field paths from the config that were found in the
+// schema. This is used to warn the user of config variables
+// on the config file but not in the schema.
+absl::flat_hash_set<string> used_field_paths;
+
+absl::flat_hash_map<string, ucl::Ucl> ucl_configs;
 
 using ConfigPath = vector<string>;
 
@@ -206,19 +227,47 @@ vector<pair<string, string>>& config_files() {
 
 using RankedFunction = pair<int, function<void( void )>>;
 
-vector<RankedFunction>& config_registration_functions() {
-  static vector<RankedFunction> config_registration_functions;
-  return config_registration_functions;
+vector<RankedFunction>& populate_functions() {
+  static vector<RankedFunction> populate_functions;
+  return populate_functions;
 }
 
-vector<function<void( void )>>& load_registration_functions() {
-  static vector<function<void( void )>>
-      load_registration_functions;
-  return load_registration_functions;
+vector<function<void( void )>>& load_functions() {
+  static vector<function<void( void )>> load_functions;
+  return load_functions;
 }
 
 string config_file_for_name( string const& name ) {
   return "config/" + name + ".ucl";
+}
+
+// This will traverse the object recursively and return a list
+// of fully-qualified paths to all fields, e.g.:
+//
+//   object1.field1
+//   object1.field2
+//   object1.object2.field1
+//   object1.object2.field2
+//   ...
+//
+// Objects with no fields are ignored.
+//
+// NOTE: at the time of this writing, this won't work properly
+// when there are null fields in an object because libucl has
+// a bug where iteration of fields stops upon encountering a
+// field with a null value.
+vector<string> get_all_fields( ucl::Ucl const& obj ) {
+  vector<string> res;
+  for( auto f : obj ) {
+    if( f.type() == ::UCL_OBJECT ) {
+      auto children = get_all_fields( f );
+      for( auto const& s : children )
+        res.push_back( f.key() + "." + s );
+    } else {
+      res.push_back( f.key() );
+    }
+  }
+  return res;
 }
 
 } // namespace
@@ -246,7 +295,7 @@ POPULATE_FIELD( H,              UCL_INT,        int_value      )
 #include "../config/config-vars.schema"
 
 void load_configs() {
-  for( auto const& f : load_registration_functions() ) f();
+  for( auto const& f : load_functions() ) f();
   for( auto [ucl_name, file] : config_files() ) {
     // cout << "Loading file " << file << "\n";
     auto&  ucl_obj = ucl_configs[ucl_name];
@@ -255,14 +304,25 @@ void load_configs() {
     CHECK_( ucl_obj,
             "failed to load " << file << ": " << errors );
   }
-  sort( config_registration_functions().begin(),
-        config_registration_functions().end(),
+  sort( populate_functions().begin(), populate_functions().end(),
         []( RankedFunction const& left,
             RankedFunction const& right ) {
           return left.first < right.first;
         } );
-  for( auto const& p : config_registration_functions() )
-    p.second();
+  for( auto const& populate : populate_functions() )
+    populate.second();
+  // This loop tests that there are no fields in the config
+  // files that are not in the schema.  The program can still
+  // run in this case, but we emit a warning since it could
+  // be a sign of a problem.
+  for( auto const& [ucl_name, file] : config_files() ) {
+    auto fields = get_all_fields( ucl_configs[ucl_name] );
+    for( auto const& f : fields ) {
+      auto full_name = file + "." + f;
+      if( !util::has_key( used_field_paths, full_name ) )
+        console->warn( "config field `{}' unused", full_name );
+    }
+  }
 }
 
 } // namespace rn
