@@ -116,8 +116,6 @@ ND Delta operator-( Coord const& lhs, Coord const& rhs );
 ND Coord operator+( Coord const& coord, W w );
 ND Coord operator+( Coord const& coord, H h );
 
-void die( char const* file, int line, std::string_view msg );
-
 // Pass as the third template argument to hash map so that we can
 // use enum classes as the keys in maps.
 struct EnumClassHash {

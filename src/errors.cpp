@@ -14,8 +14,11 @@
 #include "backward.hpp"
 #endif
 
-#include <stdio.h>
 #include <iostream>
+#include <sstream>
+#include <string>
+
+#include <stdio.h>
 
 namespace rn {
 
@@ -61,6 +64,20 @@ void print_stack_trace( StackTrace const& st_, int skip ) {
   std::cerr << "(stack trace unavailable: binary built without "
                "support for it)\n";
 #endif
+}
+
+void die( char const* file, int line, std::string_view msg ) {
+#ifdef STACK_TRACE_ON
+  (void)file;
+  (void)line;
+  std::string result( msg );
+#else
+  std::ostringstream oss;
+  oss << "\n" << file << ":" << line << ":\n" << msg;
+  std::string result = oss.str();
+#endif
+  auto st = stack_trace_here();
+  throw exception_with_bt( result, std::move( st ) );
 }
 
 } // namespace rn

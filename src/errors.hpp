@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string_view>
 
 /****************************************************************
 **Error Checking Macros
@@ -157,5 +158,7 @@ ND StackTrace stack_trace_here();
 // the latest `skip` number of frames.  That is, if stack
 // traces have been enabled in the build.
 void print_stack_trace( StackTrace const& st, int skip = 0 );
+
+void die( char const* file, int line, std::string_view msg );
 
 } // namespace rn

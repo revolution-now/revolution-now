@@ -138,20 +138,6 @@ Delta operator-( Coord const& lhs, Coord const& rhs ) {
   return {lhs.x - rhs.x, lhs.y - rhs.y};
 }
 
-void die( char const* file, int line, std::string_view msg ) {
-#ifdef STACK_TRACE_ON
-  (void)file;
-  (void)line;
-  string result( msg );
-#else
-  ostringstream oss;
-  oss << "\n" << file << ":" << line << ":\n" << msg;
-  string result = oss.str();
-#endif
-  auto st = stack_trace_here();
-  throw exception_with_bt( result, std::move( st ) );
-}
-
 int round_up_to_nearest_int_multiple( double d, int m ) {
   int floor = int( d );
   if( floor % m != 0 ) floor += m;
