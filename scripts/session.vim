@@ -7,6 +7,7 @@ let s:first = 'main.cpp'
 let s:stems = [
   \ 'src/globals',
   \ 'src/util',
+  \ 'src/config-files',
   \ 'src/sdl-util',
   \ 'src/fonts',
   \ 'src/window',
@@ -24,7 +25,7 @@ let s:stems = [
 
 let s:pairs = [
   \ ['src/global-constants.hpp', 'src/macros.hpp'],
-  \ ['src/config-vars.hpp',      'config/window.ucl'],
+  \ ['config/rn.ucl',            'config/window.ucl'],
 \]
 
 let s:quads = [

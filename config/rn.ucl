@@ -13,15 +13,6 @@ fruit {
   description: "a fruit basket"
 
   hello {
-    list: [
-      { x: 1, y: 2 },
-      { x: 2, y: 3 },
-      { x: 3, y: 4 },
-      { x: 4, y: 5 },
-      { x: 5, y: 6 },
-    ]
     world: null
   }
 }
-
-am_i_used = 4

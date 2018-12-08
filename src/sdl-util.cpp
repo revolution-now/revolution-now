@@ -8,23 +8,30 @@
 * Description: Interface for calling SDL functions
 *
 *****************************************************************/
-#include <iostream>
-#include <vector>
-
 #include "sdl-util.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
+#include "logging.hpp"
 #include "sound.hpp"
 #include "util.hpp"
 
+// {fmt} library
+#include "fmt/format.h"
+#include "fmt/ostream.h"
+
+// SDL
 #include <SDL_mixer.h>
 
+// c++ standard library
 #include <cmath>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -38,12 +45,6 @@ namespace rn {
 namespace {
 
 vector<Texture> loaded_textures;
-
-ostream& operator<<( ostream&                 out,
-                     ::SDL_DisplayMode const& dm ) {
-  return ( out << dm.w << "x" << dm.h << "[" << dm.refresh_rate
-               << "Hz]" );
-}
 
 SDL_DisplayMode get_current_display_mode() {
   SDL_DisplayMode dm;
@@ -91,8 +92,9 @@ void init_sdl() {
   // Open Audio device
   if( Mix_OpenAudio( frequency, AUDIO_S16SYS, 2, chunksize ) !=
       0 ) {
-    cerr << "Mix_OpenAudio ERROR: " << ::Mix_GetError() << endl;
-    DIE( "could not open audio" );
+    DIE( fmt::format(
+        "could not open audio: Mix_OpenAudio ERROR: {}",
+        ::Mix_GetError() ) );
   }
   // Set Volume
   constexpr int default_volume{10};
@@ -102,7 +104,7 @@ void init_sdl() {
 
 SDL_DisplayMode find_fullscreen_mode() {
   ::SDL_DisplayMode dm;
-  cout << "Available display modes:\n";
+  LOG_DEBUG( "Available display modes:" );
   auto num_display_modes = ::SDL_GetNumDisplayModes( 0 );
   constexpr int min_x_res{1920};
   constexpr int min_y_res{1080};
@@ -110,7 +112,7 @@ SDL_DisplayMode find_fullscreen_mode() {
     ::SDL_GetDisplayMode( 0, i, &dm );
     if( dm.w % g_tile_width._ == 0 &&
         dm.h % g_tile_height._ == 0 ) {
-      cout << dm.w << "x" << dm.h << "\n";
+      LOG_DEBUG( "{}x{}", dm.w, dm.h );
       if( dm.w >= min_x_res && dm.h >= min_y_res ) return dm;
     }
   }
@@ -165,33 +167,38 @@ double monitor_inches() {
 void print_video_stats() {
   float ddpi, hdpi, vdpi;
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  cout << "GetDisplayDPI:\n";
-  cout << "  ddpi: " << ddpi << "\n";
-  cout << "  hdpi: " << hdpi << "\n";
-  cout << "  vdpi: " << vdpi << "\n";
+  LOG_DEBUG( "GetDisplayDPI:" );
+  LOG_DEBUG( "  ddpi: {}", ddpi );
+  LOG_DEBUG( "  hdpi: {}", hdpi );
+  LOG_DEBUG( "  vdpi: {}", vdpi );
 
   SDL_DisplayMode dm;
 
-  cout << "GetCurrentDisplayMode:\n";
+  auto dm_to_str = [&dm] {
+    return fmt::format( "{}x{}[{}Hz]", dm.w, dm.h,
+                        dm.refresh_rate );
+  };
+  (void)dm_to_str;
+
+  LOG_DEBUG( "GetCurrentDisplayMode: " );
   SDL_GetCurrentDisplayMode( 0, &dm );
-  cout << "  " << dm << "\n";
+  LOG_DEBUG( "  {}", dm_to_str() );
 
-  cout << "GetDesktopDisplayMode:\n";
+  LOG_DEBUG( "GetDesktopDisplayMode: " );
   SDL_GetDesktopDisplayMode( 0, &dm );
-  cout << "  " << dm << "\n";
+  LOG_DEBUG( "  {}", dm_to_str() );
 
-  cout << "GetDisplayMode:\n";
+  LOG_DEBUG( "GetDisplayMode: " );
   SDL_GetDisplayMode( 0, 0, &dm );
-  cout << "  " << dm << "\n";
+  LOG_DEBUG( "  {}", dm_to_str() );
 
   SDL_Rect r;
-  cout << "GetDisplayBounds:\n";
+  LOG_DEBUG( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  cout << "  " << r << "\n";
+  LOG_DEBUG( "  {}", r );
 
-  cout << "Monitor Diagonal Length: " << monitor_inches()
-       << "in."
-       << "\n";
+  LOG_DEBUG( "Monitor Diagonal Length: {}in.",
+             monitor_inches() );
 }
 
 pair<H, W> find_max_tile_sizes() {
@@ -222,25 +229,25 @@ pair<H, W> find_max_tile_sizes() {
   constexpr double maximum_perceived_tile_width{1.0}; // inches
   ////////////////////////////////////////////////
 
-  cout << "Finding optimal tile sizes:\n";
+  // cout << "Finding optimal tile sizes:\n";
   auto                 dm = get_current_display_mode();
   optional<pair<H, W>> res;
   double               min_score = -1.0 / 0.0; // make -infinity
-  constexpr int        col{18};
-  double               monitor_size = monitor_inches();
-  cout << "Computed Viewer Distance from Screen: "
-       << compute_viewer_distance( monitor_size ) << "in.\n";
+  // constexpr int        col{18};
+  double monitor_size = monitor_inches();
+  // cout << "Computed Viewer Distance from Screen: "
+  //     << compute_viewer_distance( monitor_size ) << "in.\n";
   double ddpi = monitor_ddpi();
-  cout << "\n  " << setw( 3 ) << "#" << setw( col )
-       << "Possibility" << setw( col ) << "Resolution"
-       << setw( col ) << "Tile-Size-Screen" << setw( col )
-       << "Tile-Size-@1ft" << setw( col ) << "Score"
-       << "\n";
+  // cout << "\n  " << setw( 3 ) << "#" << setw( col )
+  //     << "Possibility" << setw( col ) << "Resolution"
+  //     << setw( col ) << "Tile-Size-Screen" << setw( col )
+  //     << "Tile-Size-@1ft" << setw( col ) << "Score"
+  //     << "\n";
   int chosen_scale = -1;
 
   constexpr int max_scale{10}; // somewhat arbitrary
   for( int scale = 1; scale <= max_scale; ++scale ) {
-    cout << "  " << setw( 3 ) << scale;
+    // cout << "  " << setw( 3 ) << scale;
 
     W max_width{dm.w / scale -
                 ( ( dm.w / scale ) % g_tile_width._ )};
@@ -250,15 +257,15 @@ pair<H, W> find_max_tile_sizes() {
     ostringstream ss;
     ss << max_width / g_tile_width << "x"
        << max_height / g_tile_height;
-    cout << setw( col ) << ss.str();
+    // cout << setw( col ) << ss.str();
     ss.str( "" );
     ss << max_width << "x" << max_height;
-    cout << setw( col ) << ss.str();
+    // cout << setw( col ) << ss.str();
 
     // Tile size in inches if it were measured on the surface of
     // the screen.
     double tile_size_actual = scale * g_tile_width._ / ddpi;
-    cout << setw( col ) << tile_size_actual;
+    // cout << setw( col ) << tile_size_actual;
     // Estimate the viewer's distance from the screen based on
     // its size and some other assumptions.
     double viewer_distance =
@@ -269,7 +276,7 @@ pair<H, W> find_max_tile_sizes() {
     // viewer's eye.
     double perceived_size_1ft =
         tile_size_actual / viewer_distance * one_foot;
-    cout << setw( col ) << perceived_size_1ft;
+    // cout << setw( col ) << perceived_size_1ft;
 
     // Essentially this gives less weight the further we move
     // away from the ideal.
@@ -281,8 +288,8 @@ pair<H, W> find_max_tile_sizes() {
     if( perceived_size_1ft < minimum_perceived_tile_width ||
         perceived_size_1ft > maximum_perceived_tile_width )
       score = -1.0 / 0.0;
-    cout << setw( col ) << score;
-    cout << "\n";
+    // cout << setw( col ) << score;
+    // cout << "\n";
     if( score >= min_score ) {
       res = {H( max_height / g_tile_height ),
              W( max_width / g_tile_width )};
@@ -292,7 +299,8 @@ pair<H, W> find_max_tile_sizes() {
     }
   }
   CHECK( res );
-  cout << "\n  Optimal: #" << chosen_scale << "\n";
+  LOG_DEBUG( "Optimal: #{}", chosen_scale );
+  (void)chosen_scale; // only used in macro which can be disabled
   return *res;
 }
 
@@ -309,8 +317,6 @@ void create_renderer() {
 
   W width  = g_tile_width._ * screen_width_tiles();
   H height = g_tile_height._ * screen_height_tiles();
-  // cout << "logical renderer width : " << width << "\n";
-  // cout << "logical renderer height: " << height << "\n";
 
   ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
   ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );

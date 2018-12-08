@@ -41,58 +41,23 @@ void game() {
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
   // 3_x );
-  (void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
-                            4_x );
-  (void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
+  //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
+  //                          4_x );
+  //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
   //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 1_x );
 
-  while( turn() != e_turn_result::quit ) {}
+  // while( turn() != e_turn_result::quit ) {}
 
-  font_test();
+  // font_test();
   gui::test_window();
 
   cleanup();
 }
 
-#define LOG_CONFIG( path ) \
-  logger->info( #path ": {}", util::to_string( rn::path ) )
-
 int main( int /*unused*/, char** /*unused*/ ) try {
-  init_logging( nullopt );
-  // init_logging( spdlog::level::trace );
-
+  init_logging( spdlog::level::info );
   load_configs();
-
-  LOG_CONFIG( config_rn.fruit.apples );
-  LOG_CONFIG( config_rn.fruit.oranges );
-  LOG_CONFIG( config_rn.fruit.description );
-  LOG_CONFIG( config_rn.fruit.hello.world );
-  LOG_CONFIG( config_rn.hello );
-  LOG_CONFIG( config_rn.one );
-  LOG_CONFIG( config_rn.two );
-  LOG_CONFIG( config_window.game_version );
-  LOG_CONFIG( config_window.game_title );
-  LOG_CONFIG( config_window.window_error.title );
-  LOG_CONFIG( config_window.window_error.x_size );
-  LOG_CONFIG( config_window.window_error.show );
-  LOG_CONFIG( config_window.widths );
-
-  (void)config_rn.fruit.hello.world;
-  (void)config_window.widths;
-
-  auto x = 55_x;
-  (void)x;
-
-  logger->critical( "hello" );
-  logger->info( "hello" );
-  LOG_DEBUG( "this is some debug logging" );
-  LOG_TRACE( "this is some trace logging" );
-
-  // fmt::print( "Hello, {}!\n", "world" );
-  // auto s = fmt::format( "this {} a {}.\n", "is", "test" );
-  // fmt::print( s );
-
-  // game();
+  game();
   return 0;
 
 } catch( exception_with_bt const& e ) {

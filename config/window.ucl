@@ -5,10 +5,6 @@ window_error {
     title: "An Error has Occurred"
     x_size: 3
     show:   off
-
-    another_object {
-      unused_field = 4
-    }
 }
 
 widths = [5, 6, 7, 8]
