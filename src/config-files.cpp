@@ -107,19 +107,27 @@ using namespace std;
       __type* dest, string const& name,                         \
       string const& config_name, ConfigPath const& parent_path, \
       string const& file ) {                                    \
+    LOG_TRACE( "populate_config_field for " #__type );          \
     auto path = parent_path;                                    \
+    LOG_TRACE( "push_back( {} )", name );                       \
     path.push_back( name );                                     \
+    LOG_TRACE( "path: {}", util::to_string( path ) );           \
     auto obj = ucl_from_path( config_name, path );              \
     CHECK_( obj.type() != ::UCL_NULL,                           \
             "UCL Config field `" << util::join( path, "." )     \
                                  << "` was not found in file "  \
                                  << file << "." );              \
+    LOG_TRACE( "obj is non-null" );                             \
     CHECK_( obj.type() == __ucl_type,                           \
             "expected `"                                        \
                 << config_name << "."                           \
                 << util::join( path, "." )                      \
                 << "` to be of type " TO_STRING( __type ) );    \
+    LOG_TRACE( "obj is of expected type " #__ucl_type );        \
+    LOG_TRACE( "object getter is " #__ucl_getter );             \
+    LOG_TRACE( "dest: {}", uint64_t( dest ) );                  \
     *dest = obj.__ucl_getter();                                 \
+    LOG_TRACE( "*dest: {}", obj.__ucl_getter() );               \
     used_field_paths.insert( file + "." +                       \
                              util::join( path, "." ) );         \
   }                                                             \

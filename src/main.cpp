@@ -55,7 +55,7 @@ void game() {
 }
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  init_logging( spdlog::level::info );
+  init_logging( nullopt );
   load_configs();
   game();
   return 0;

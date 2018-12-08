@@ -20,7 +20,11 @@ namespace {} // namespace
 
 void init_logging( optional<level::level_enum> level ) {
   if( !level.has_value() ) {
+#ifdef RN_TRACE
+    level = level::trace;
+#else
     level = DEBUG_RELEASE( level::debug, level::warn );
+#endif
   }
   spdlog::set_level( *level );
 }

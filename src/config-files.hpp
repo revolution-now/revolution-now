@@ -23,8 +23,19 @@
     body                     \
   };
 
-#define CFG( name, body )           \
-  STRUCT( config_##name##_t, body ) \
+// It is found that when a config object contains only fields
+// and subobjects which can be constructed at compile time
+// (constexpr constructable?) then the compiler may opt to put
+// the structure into read-only memory since it is declared
+// const.  However this then prevents us from populating it
+// initially (leads to a segfault). We want it const, but we want
+// to be able to const_cast it during initialization to give
+// values to it.  So for thatreason we inject a std::string
+// variable into the struct to prevent this.
+#define CFG( name, body )                 \
+  struct config_##name##_t {              \
+    body std::string __prevent_read_only; \
+  };                                      \
   extern config_##name##_t const config_##name;
 
 #define OBJ( name, body )  \
