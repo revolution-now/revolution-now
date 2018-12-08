@@ -36,75 +36,87 @@ using namespace std;
 #undef FLD
 #undef FLD_OPT
 #undef LIST
+#undef LIST_OPT
 
-#define FLD( __type, __name )                                \
-  static void __populate_##__name() {                        \
-    populate_config_field( &( dest_ptr()->__name ),          \
-                           TO_STRING( __name ), this_name(), \
-                           this_path(), this_file() );       \
-  }                                                          \
-  static inline bool const __register_##__name = [] {        \
-    populate_functions().push_back( __populate_##__name );   \
-    return true;                                             \
+#define FLD( __type, __name )                                 \
+  static void __populate_##__name() {                         \
+    auto path = this_path();                                  \
+    path.push_back( #__name );                                \
+    auto dotted = util::join( path, "." );                    \
+    auto obj    = ucl_from_path( cfg_name(), dotted );        \
+    used_field_paths.insert( this_file() + "." + dotted );    \
+    populate_config_field(                                    \
+        obj, const_cast<__type&>( dest_ptr()->__name ), path, \
+        cfg_name(), this_file() );                            \
+  }                                                           \
+  static inline bool const __register_##__name = [] {         \
+    populate_functions().push_back( __populate_##__name );    \
+    return true;                                              \
   }();
 
 #define FLD_OPT( type, name ) FLD( std::optional<type>, name )
 #define LIST( type, name ) FLD( std::vector<type>, name )
+#define LIST_OPT( type, name ) \
+  FLD( std::optional<std::vector<type>>, name )
 
-#define OBJ( __name, __body )                                    \
-  static auto*      __name##_parent_ptr() { return dest_ptr(); } \
-  static ConfigPath __name##_parent_path() {                     \
-    return this_path();                                          \
-  }                                                              \
-  struct __name##_t;                                             \
-  __name##_t* __##__name;                                        \
-                                                                 \
-  struct __name##_t {                                            \
-    static auto* dest_ptr() {                                    \
-      return &( __name##_parent_ptr()->__name );                 \
-    }                                                            \
-    static ConfigPath this_path() {                              \
-      auto path = __name##_parent_path();                        \
-      path.push_back( TO_STRING( __name ) );                     \
-      return path;                                               \
-    }                                                            \
-                                                                 \
-    __body                                                       \
+#define OBJ( __name, __body )                               \
+  static auto* __name##_parent_ptr() { return dest_ptr(); } \
+  static vector<string> __name##_parent_path() {            \
+    return this_path();                                     \
+  }                                                         \
+  struct __name##_t;                                        \
+  __name##_t* __##__name;                                   \
+                                                            \
+  struct __name##_t {                                       \
+    static auto* dest_ptr() {                               \
+      return &( __name##_parent_ptr()->__name );            \
+    }                                                       \
+    static vector<string> this_path() {                     \
+      auto path = __name##_parent_path();                   \
+      path.push_back( TO_STRING( __name ) );                \
+      return path;                                          \
+    }                                                       \
+                                                            \
+    __body                                                  \
   };
 
-#define CFG( __name, __body )                                     \
-  config_##__name##_t const config_##__name{};                    \
-                                                                  \
-  struct shadow_config_##__name##_t {                             \
-    static config_##__name##_t* dest_ptr() {                      \
-      return const_cast<config_##__name##_t*>(                    \
-          &( config_##__name ) );                                 \
-    }                                                             \
-    static ConfigPath this_path() { return {}; }                  \
-    static string     this_name() { return TO_STRING( __name ); } \
-    static string     this_file() {                               \
-      return config_file_for_name( this_name() );             \
-    }                                                             \
-                                                                  \
-    __body                                                        \
-  };                                                              \
-                                                                  \
-  struct __startup_##__name {                                     \
-    static void __load_##__name() {                               \
-      config_files().push_back(                                   \
-          {shadow_config_##__name##_t::this_name(),               \
-           shadow_config_##__name##_t::this_file()} );            \
-    }                                                             \
-    static inline int const __register_##__name = [] {            \
-      load_functions().push_back( __load_##__name );              \
-      return 0;                                                   \
-    }();                                                          \
+#define CFG( __name, __body )                                \
+  config_##__name##_t const config_##__name{};               \
+                                                             \
+  struct shadow_config_##__name##_t {                        \
+    static config_##__name##_t* dest_ptr() {                 \
+      return const_cast<config_##__name##_t*>(               \
+          &( config_##__name ) );                            \
+    }                                                        \
+    static vector<string> this_path() { return {}; }         \
+    static string cfg_name() { return TO_STRING( __name ); } \
+    static string this_file() {                              \
+      return config_file_for_name( cfg_name() );             \
+    }                                                        \
+                                                             \
+    __body                                                   \
+  };                                                         \
+                                                             \
+  struct __startup_##__name {                                \
+    static void __load_##__name() {                          \
+      config_files().push_back(                              \
+          {shadow_config_##__name##_t::cfg_name(),           \
+           shadow_config_##__name##_t::this_file()} );       \
+    }                                                        \
+    static inline int const __register_##__name = [] {       \
+      load_functions().push_back( __load_##__name );         \
+      return 0;                                              \
+    }();                                                     \
   };
 
 #define UCL_TYPE( input, ucl_enum, ucl_getter )               \
   template<>                                                  \
   struct ucl_type_of_t<input> {                               \
     static constexpr UclType_t value = ucl_enum;              \
+  };                                                          \
+  template<>                                                  \
+  struct ucl_type_name_of_t<input> {                          \
+    static constexpr char const* value = #ucl_enum;           \
   };                                                          \
   template<>                                                  \
   struct ucl_getter_for_type_t<input> {                       \
@@ -123,17 +135,15 @@ absl::flat_hash_set<string> used_field_paths;
 
 absl::flat_hash_map<string, ucl::Ucl> ucl_configs;
 
-using ConfigPath = vector<string>;
-
-ucl::Ucl ucl_from_path( string const&     name,
-                        ConfigPath const& components ) {
+ucl::Ucl ucl_from_path( string const& name,
+                        string const& dotted ) {
   // This must be by value since we reassign it.
   ucl::Ucl obj = ucl_configs[name];
-  for( auto const& s : components ) {
-    obj = obj[s];
+  for( auto const& s : util::split( dotted, '.' ) ) {
+    obj = obj[string( s )];
     if( !obj ) break;
   }
-  return obj; // return it whether true or false
+  return obj; // return it whether valid or not
 }
 
 vector<pair<string, string>>& config_files() {
@@ -167,104 +177,96 @@ template<typename T>
 struct ucl_type_of_t;
 
 template<typename T>
+struct ucl_type_name_of_t;
+
+template<typename T>
 auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
 
 template<typename T>
 UclType_t ucl_type_of_v = ucl_type_of_t<T>::value;
 
 template<typename T>
-void populate_config_field( T* dest, string const& name,
-                            string const&     config_name,
-                            ConfigPath const& parent_path,
-                            string const&     file );
+char const* ucl_type_name_of_v = ucl_type_name_of_t<T>::value;
 
+void check_field_exists( ucl::Ucl obj, string const& dotted,
+                         string const& file ) {
+  CHECK_( obj.type() != ::UCL_NULL,
+          "UCL Config field `"
+              << dotted << "` was not found in file " << file
+              << "." );
+}
+
+void check_field_type( ucl::Ucl obj, UclType_t type,
+                       string const& dotted,
+                       string const& config_name,
+                       string const& desc ) {
+  CHECK_( obj.type() == type, "expected `"
+                                  << config_name << "." << dotted
+                                  << "` to contain " << desc );
+}
+
+#define DECLARE_POPULATE( type )                            \
+  template<typename T>                                      \
+  void populate_config_field(                               \
+      ucl::Ucl obj, type& dest, vector<string> const& path, \
+      string const& config_name, string const& file );
+
+// Forward declare so that e.g. vector and optional variants
+// can access each other if we have a nested type and are not
+// always able to declare the containing type after the
+// contained type.
+DECLARE_POPULATE( vector<T> )
+DECLARE_POPULATE( optional<T> )
+
+// T (catch-all)
 template<typename T>
-void populate_config_field( optional<T>*      dest,
-                            string const&     name,
-                            string const&     config_name,
-                            ConfigPath const& parent_path,
-                            string const&     file ) {
-  auto path = parent_path;
-  path.push_back( name );
-  auto obj = ucl_from_path( config_name, path );
-  (void)file;
+void populate_config_field( ucl::Ucl obj, T& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type(
+      obj, ucl_type_of_v<T>, dotted, config_name,
+      string( "item(s) of type " ) + ucl_type_name_of_v<T> );
+  dest = static_cast<T>( (obj.*ucl_getter_for_type<T>)( {} ) );
+}
+
+// optional<T>
+template<typename T>
+void populate_config_field( ucl::Ucl obj, optional<T>& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
   if( obj.type() != ::UCL_NULL ) {
-    CHECK_( obj.type() == ucl_type_of_v<T>,
-            "expected non-null `"
-                << config_name << "." << util::join( path, "." )
-                << "` to be of type " TO_STRING( __type ) );
-    *dest = (obj.*ucl_getter_for_type<T>)( {} );
+    dest = T{}; // must do this before calling .value()
+    populate_config_field( obj, dest.value(), path, config_name,
+                           file );
   } else {
-    // This could happen either if the field is absent or if it
-    // is set to `null` without quotes.
-    *dest = nullopt;
+    dest = nullopt;
   }
-  used_field_paths.insert( file + "." +
-                           util::join( path, "." ) );
 }
 
+// vector<T>
 template<typename T>
-void populate_config_field( vector<T>* dest, string const& name,
-                            string const&     config_name,
-                            ConfigPath const& parent_path,
-                            string const&     file ) {
-  auto path = parent_path;
-  path.push_back( name );
-  auto obj = ucl_from_path( config_name, path );
-  CHECK_( obj.type() != ::UCL_NULL,
-          "UCL Config field `" << util::join( path, "." )
-                               << "` was not found in file "
-                               << file << "." );
-  CHECK_( obj.type() == ::UCL_ARRAY,
-          "expected `" << config_name << "."
-                       << util::join( path, "." )
-                       << "` to be of type vector<" TO_STRING(
-                              __type ) ">" );
-  CHECK( dest->empty() );
-  dest->reserve( obj.size() ); /* array size */
-  for( auto elem : obj ) {
-    CHECK_( elem.type() == ucl_type_of_v<T>,
-            "expected elements in array `"
-                << config_name << "." << util::join( path, "." )
-                << "` to be of type " TO_STRING( __ucl_type ) );
-    dest->push_back(
-        static_cast<T>( (elem.*ucl_getter_for_type<T>)( {} ) ) );
-  }
-  CHECK( dest->size() == obj.size() );
-  used_field_paths.insert( file + "." +
-                           util::join( path, "." ) );
-}
-
-template<typename T>
-void populate_config_field( T* dest, string const& name,
-                            string const&     config_name,
-                            ConfigPath const& parent_path,
-                            string const&     file ) {
-  LOG_TRACE( "populate_config_field for " #__type );
-  auto path = parent_path;
-  LOG_TRACE( "push_back( {} )", name );
-  path.push_back( name );
-  LOG_TRACE( "path: {}", util::to_string( path ) );
-  auto obj = ucl_from_path( config_name, path );
-  CHECK_( obj.type() != ::UCL_NULL,
-          "UCL Config field `" << util::join( path, "." )
-                               << "` was not found in file "
-                               << file << "." );
-  LOG_TRACE( "obj is non-null" );
-  CHECK_( obj.type() == ucl_type_of_v<T>,
-          "expected `"
-              << config_name << "." << util::join( path, "." )
-              << "` to be of type " TO_STRING( __type ) );
-  LOG_TRACE( "obj is of expected type " #__ucl_type );
-  LOG_TRACE( "object getter is " #__ucl_getter );
-  LOG_TRACE( "dest: {}", uint64_t( dest ) );
-  *dest = static_cast<T>( (obj.*ucl_getter_for_type<T>)( {} ) );
-  LOG_TRACE( "*dest: {}", obj.__ucl_getter() );
-  used_field_paths.insert( file + "." +
-                           util::join( path, "." ) );
+void populate_config_field( ucl::Ucl obj, vector<T>& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_ARRAY, dotted, config_name,
+                    "an array" );
+  dest.resize( obj.size() );
+  size_t idx = 0;
+  for( auto elem : obj )
+    populate_config_field( elem, dest[idx++], path, config_name,
+                           file );
+  CHECK( dest.size() == obj.size() );
 }
 
 // clang-format off
+// ============================================================
 //
 //        C++ type    UCL type       Getter
 //        -----------------------------------------
@@ -276,7 +278,6 @@ UCL_TYPE( X,          UCL_INT,       int_value     )
 UCL_TYPE( W,          UCL_INT,       int_value     )
 //UCL_TYPE( Y,          UCL_INT,       int_value     )
 //UCL_TYPE( H,          UCL_INT,       int_value     )
-
 // clang-format on
 
 // This will traverse the object recursively and return a list

@@ -10,6 +10,8 @@ fruit {
     "8",
     "7"
   ]
+  grapes: [1,2,3,4]
+  grapefruit = "no"
   description: "a fruit basket"
 
   hello {

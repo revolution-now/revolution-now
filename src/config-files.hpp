@@ -48,6 +48,9 @@
 
 #define LIST( type, name ) std::vector<type> name;
 
+#define LIST_OPT( type, name ) \
+  std::optional<std::vector<type>> name;
+
 namespace rn {
 
 #include "../config/config-vars.schema"

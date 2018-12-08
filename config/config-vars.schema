@@ -8,6 +8,7 @@ CFG( rn,
   OBJ( fruit,
     FLD( int, apples )
     LIST( std::string, oranges )
+    LIST_OPT( X, grapes )
     FLD( std::string, description )
     OBJ( hello,
       FLD_OPT( int, world )
