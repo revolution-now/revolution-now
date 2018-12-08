@@ -22,10 +22,12 @@ CFG( rn,
 CFG( window,
   FLD( std::string, game_title )
   FLD( double, game_version )
+  FLD( Coord, coordinates )
   OBJ( window_error,
     FLD( std::string, title )
     FLD( bool, show )
     FLD( rn::X, x_size )
+    LIST( Coord, positions )
   )
   LIST( rn::W, widths )
 )

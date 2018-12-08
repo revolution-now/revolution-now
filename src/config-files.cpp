@@ -232,6 +232,26 @@ void populate_config_field( ucl::Ucl obj, T& dest,
   dest = static_cast<T>( (obj.*ucl_getter_for_type<T>)( {} ) );
 }
 
+// Coord
+template<>
+void populate_config_field( ucl::Ucl obj, Coord& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_OBJECT, dotted, config_name,
+                    "a coordinate pair object" );
+  check_field_type(
+      obj["x"], UCL_INT, dotted, config_name,
+      "a coordinate pair with UCL_INT fields `x` and `y`" );
+  check_field_type(
+      obj["y"], UCL_INT, dotted, config_name,
+      "a coordinate pair with UCL_INT fields `x` and `y`" );
+  dest.x = obj["x"].int_value();
+  dest.y = obj["y"].int_value();
+}
+
 // optional<T>
 template<typename T>
 void populate_config_field( ucl::Ucl obj, optional<T>& dest,
@@ -270,12 +290,13 @@ void populate_config_field( ucl::Ucl obj, vector<T>& dest,
 //
 //        C++ type    UCL type       Getter
 //        -----------------------------------------
-UCL_TYPE( int,        UCL_INT,       int_value     )
-UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value    )
-UCL_TYPE( double,     UCL_FLOAT,     number_value  )
-UCL_TYPE( string,     UCL_STRING,    string_value  )
-UCL_TYPE( X,          UCL_INT,       int_value     )
-UCL_TYPE( W,          UCL_INT,       int_value     )
+UCL_TYPE( int,        UCL_INT,       int_value      )
+UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value     )
+UCL_TYPE( double,     UCL_FLOAT,     number_value   )
+UCL_TYPE( string,     UCL_STRING,    string_value   )
+UCL_TYPE( Coord,      UCL_OBJECT,    type /*dummy*/ )
+UCL_TYPE( X,          UCL_INT,       int_value      )
+UCL_TYPE( W,          UCL_INT,       int_value      )
 //UCL_TYPE( Y,          UCL_INT,       int_value     )
 //UCL_TYPE( H,          UCL_INT,       int_value     )
 // clang-format on

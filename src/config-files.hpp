@@ -12,6 +12,7 @@
 
 #include "core-config.hpp"
 
+#include "geo-types.hpp"
 #include "typed-int.hpp"
 
 #include <optional>
