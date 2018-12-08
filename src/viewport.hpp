@@ -13,9 +13,11 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "geo-types.hpp"
 #include "physics.hpp"
-#include "util.hpp"
 
+// SDL
 #include <SDL.h>
 
 namespace rn {

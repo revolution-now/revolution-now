@@ -13,6 +13,7 @@
 
 #include "errors.hpp"
 #include "globals.hpp"
+#include "util.hpp"
 #include "world.hpp"
 
 namespace rn {

@@ -12,13 +12,17 @@
 
 #include "core-config.hpp"
 
-#include "util.hpp"
+// Revolution Now
+#include "geo-types.hpp"
 
+// base-util
 #include "base-util/non-copyable.hpp"
 
+// SDL
 #include <SDL.h>
 #include <SDL_image.h>
 
+// c++ standard library
 #include <optional>
 #include <ostream>
 
