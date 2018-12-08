@@ -101,106 +101,16 @@ using namespace std;
     }();                                                          \
   };
 
-#define POPULATE_FIELD( __type, __ucl_type, __ucl_getter )      \
-  namespace {                                                   \
-  inline void populate_config_field(                            \
-      __type* dest, string const& name,                         \
-      string const& config_name, ConfigPath const& parent_path, \
-      string const& file ) {                                    \
-    LOG_TRACE( "populate_config_field for " #__type );          \
-    auto path = parent_path;                                    \
-    LOG_TRACE( "push_back( {} )", name );                       \
-    path.push_back( name );                                     \
-    LOG_TRACE( "path: {}", util::to_string( path ) );           \
-    auto obj = ucl_from_path( config_name, path );              \
-    CHECK_( obj.type() != ::UCL_NULL,                           \
-            "UCL Config field `" << util::join( path, "." )     \
-                                 << "` was not found in file "  \
-                                 << file << "." );              \
-    LOG_TRACE( "obj is non-null" );                             \
-    CHECK_( obj.type() == __ucl_type,                           \
-            "expected `"                                        \
-                << config_name << "."                           \
-                << util::join( path, "." )                      \
-                << "` to be of type " TO_STRING( __type ) );    \
-    LOG_TRACE( "obj is of expected type " #__ucl_type );        \
-    LOG_TRACE( "object getter is " #__ucl_getter );             \
-    LOG_TRACE( "dest: {}", uint64_t( dest ) );                  \
-    *dest = obj.__ucl_getter();                                 \
-    LOG_TRACE( "*dest: {}", obj.__ucl_getter() );               \
-    used_field_paths.insert( file + "." +                       \
-                             util::join( path, "." ) );         \
-  }                                                             \
-                                                                \
-  inline void populate_config_field(                            \
-      optional<__type>* dest, string const& name,               \
-      string const& config_name, ConfigPath const& parent_path, \
-      string const& file ) {                                    \
-    auto path = parent_path;                                    \
-    path.push_back( name );                                     \
-    auto obj = ucl_from_path( config_name, path );              \
-    (void)file;                                                 \
-    if( obj.type() != ::UCL_NULL ) {                            \
-      CHECK_( obj.type() == __ucl_type,                         \
-              "expected non-null `"                             \
-                  << config_name << "."                         \
-                  << util::join( path, "." )                    \
-                  << "` to be of type " TO_STRING( __type ) );  \
-      *dest = obj.__ucl_getter();                               \
-    } else {                                                    \
-      /* This could happen either if the field is absent */     \
-      /* or if it is set to `null` without quotes. */           \
-      *dest = nullopt;                                          \
-    }                                                           \
-    used_field_paths.insert( file + "." +                       \
-                             util::join( path, "." ) );         \
-  }                                                             \
-                                                                \
-  inline void populate_config_field(                            \
-      vector<__type>* dest, string const& name,                 \
-      string const& config_name, ConfigPath const& parent_path, \
-      string const& file ) {                                    \
-    auto path = parent_path;                                    \
-    path.push_back( name );                                     \
-    auto obj = ucl_from_path( config_name, path );              \
-    CHECK_( obj.type() != ::UCL_NULL,                           \
-            "UCL Config field `" << util::join( path, "." )     \
-                                 << "` was not found in file "  \
-                                 << file << "." );              \
-    CHECK_( obj.type() == ::UCL_ARRAY,                          \
-            "expected `"                                        \
-                << config_name << "."                           \
-                << util::join( path, "." )                      \
-                << "` to be of type vector<" TO_STRING(         \
-                       __type ) ">" );                          \
-    CHECK( dest->empty() );                                     \
-    dest->reserve( obj.size() ); /* array size */               \
-    for( auto elem : obj ) {                                    \
-      CHECK_(                                                   \
-          elem.type() == __ucl_type,                            \
-          "expected elements in array `"                        \
-              << config_name << "." << util::join( path, "." )  \
-              << "` to be of type " TO_STRING( __ucl_type ) );  \
-      dest->push_back(                                          \
-          static_cast<__type>( elem.__ucl_getter() ) );         \
-    }                                                           \
-    CHECK( dest->size() == obj.size() );                        \
-    used_field_paths.insert( file + "." +                       \
-                             util::join( path, "." ) );         \
-  }                                                             \
-  } /* namespace */                                             \
-  /* This is just to suppress `unused function` warnings. */    \
-  /* Note that it must be outside of the anonymouse namespace*/ \
-  bool dummy_##__type = []( bool b ) {                          \
-    if( b ) {                                                   \
-      populate_config_field( ( __type* ){}, {}, {}, {}, {} );   \
-      populate_config_field( ( vector<__type>* ){}, {}, {}, {}, \
-                             {} );                              \
-      populate_config_field( ( optional<__type>* ){}, {}, {},   \
-                             {}, {} );                          \
-    }                                                           \
-    return true;                                                \
-  }( false );
+#define UCL_TYPE( input, ucl_enum, ucl_getter )               \
+  template<>                                                  \
+  struct ucl_type_of_t<input> {                               \
+    static constexpr UclType_t value = ucl_enum;              \
+  };                                                          \
+  template<>                                                  \
+  struct ucl_getter_for_type_t<input> {                       \
+    using getter_t = decltype( &ucl::Ucl::ucl_getter );       \
+    static constexpr getter_t getter = &ucl::Ucl::ucl_getter; \
+  };
 
 namespace rn {
 
@@ -247,6 +157,128 @@ string config_file_for_name( string const& name ) {
   return "config/" + name + ".ucl";
 }
 
+// The type of UCL's enum representing types.
+using UclType_t = decltype( ::UCL_INT );
+
+template<typename T>
+struct ucl_getter_for_type_t;
+
+template<typename T>
+struct ucl_type_of_t;
+
+template<typename T>
+auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
+
+template<typename T>
+UclType_t ucl_type_of_v = ucl_type_of_t<T>::value;
+
+template<typename T>
+void populate_config_field( T* dest, string const& name,
+                            string const&     config_name,
+                            ConfigPath const& parent_path,
+                            string const&     file );
+
+template<typename T>
+void populate_config_field( optional<T>*      dest,
+                            string const&     name,
+                            string const&     config_name,
+                            ConfigPath const& parent_path,
+                            string const&     file ) {
+  auto path = parent_path;
+  path.push_back( name );
+  auto obj = ucl_from_path( config_name, path );
+  (void)file;
+  if( obj.type() != ::UCL_NULL ) {
+    CHECK_( obj.type() == ucl_type_of_v<T>,
+            "expected non-null `"
+                << config_name << "." << util::join( path, "." )
+                << "` to be of type " TO_STRING( __type ) );
+    *dest = (obj.*ucl_getter_for_type<T>)( {} );
+  } else {
+    // This could happen either if the field is absent or if it
+    // is set to `null` without quotes.
+    *dest = nullopt;
+  }
+  used_field_paths.insert( file + "." +
+                           util::join( path, "." ) );
+}
+
+template<typename T>
+void populate_config_field( vector<T>* dest, string const& name,
+                            string const&     config_name,
+                            ConfigPath const& parent_path,
+                            string const&     file ) {
+  auto path = parent_path;
+  path.push_back( name );
+  auto obj = ucl_from_path( config_name, path );
+  CHECK_( obj.type() != ::UCL_NULL,
+          "UCL Config field `" << util::join( path, "." )
+                               << "` was not found in file "
+                               << file << "." );
+  CHECK_( obj.type() == ::UCL_ARRAY,
+          "expected `" << config_name << "."
+                       << util::join( path, "." )
+                       << "` to be of type vector<" TO_STRING(
+                              __type ) ">" );
+  CHECK( dest->empty() );
+  dest->reserve( obj.size() ); /* array size */
+  for( auto elem : obj ) {
+    CHECK_( elem.type() == ucl_type_of_v<T>,
+            "expected elements in array `"
+                << config_name << "." << util::join( path, "." )
+                << "` to be of type " TO_STRING( __ucl_type ) );
+    dest->push_back(
+        static_cast<T>( (elem.*ucl_getter_for_type<T>)( {} ) ) );
+  }
+  CHECK( dest->size() == obj.size() );
+  used_field_paths.insert( file + "." +
+                           util::join( path, "." ) );
+}
+
+template<typename T>
+void populate_config_field( T* dest, string const& name,
+                            string const&     config_name,
+                            ConfigPath const& parent_path,
+                            string const&     file ) {
+  LOG_TRACE( "populate_config_field for " #__type );
+  auto path = parent_path;
+  LOG_TRACE( "push_back( {} )", name );
+  path.push_back( name );
+  LOG_TRACE( "path: {}", util::to_string( path ) );
+  auto obj = ucl_from_path( config_name, path );
+  CHECK_( obj.type() != ::UCL_NULL,
+          "UCL Config field `" << util::join( path, "." )
+                               << "` was not found in file "
+                               << file << "." );
+  LOG_TRACE( "obj is non-null" );
+  CHECK_( obj.type() == ucl_type_of_v<T>,
+          "expected `"
+              << config_name << "." << util::join( path, "." )
+              << "` to be of type " TO_STRING( __type ) );
+  LOG_TRACE( "obj is of expected type " #__ucl_type );
+  LOG_TRACE( "object getter is " #__ucl_getter );
+  LOG_TRACE( "dest: {}", uint64_t( dest ) );
+  *dest = static_cast<T>( (obj.*ucl_getter_for_type<T>)( {} ) );
+  LOG_TRACE( "*dest: {}", obj.__ucl_getter() );
+  used_field_paths.insert( file + "." +
+                           util::join( path, "." ) );
+}
+
+// clang-format off
+//
+//        C++ type    UCL type       Getter
+//        -----------------------------------------
+UCL_TYPE( int,        UCL_INT,       int_value     )
+UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value    )
+UCL_TYPE( double,     UCL_FLOAT,     number_value  )
+UCL_TYPE( string,     UCL_STRING,    string_value  )
+UCL_TYPE( X,          UCL_INT,       int_value     )
+UCL_TYPE( W,          UCL_INT,       int_value     )
+//UCL_TYPE( Y,          UCL_INT,       int_value     )
+//UCL_TYPE( H,          UCL_INT,       int_value     )
+
+// clang-format on
+
 // This will traverse the object recursively and return a list
 // of fully-qualified paths to all fields, e.g.:
 //
@@ -257,11 +289,6 @@ string config_file_for_name( string const& name ) {
 //   ...
 //
 // Objects with no fields are ignored.
-//
-// NOTE: at the time of this writing, this won't work properly
-// when there are null fields in an object because libucl has
-// a bug where iteration of fields stops upon encountering a
-// field with a null value.
 vector<string> get_all_fields( ucl::Ucl const& obj ) {
   vector<string> res;
   for( auto f : obj ) {
@@ -277,26 +304,6 @@ vector<string> get_all_fields( ucl::Ucl const& obj ) {
 }
 
 } // namespace
-
-// clang-format off
-/****************************************************************
-* Mapping From C++ Types to UCL Types
-* Requirements:
-*   the `C++ type` must be constructable and static_cast'able
-*   from the type returned by `Ucl Getter`
-*
-*               C++ type        UCL Enum        Ucl Getter
-*               ------------------------------------------------*/
-POPULATE_FIELD( int,            UCL_INT,        int_value      )
-POPULATE_FIELD( bool,           UCL_BOOLEAN,    bool_value     )
-POPULATE_FIELD( double,         UCL_FLOAT,      number_value   )
-POPULATE_FIELD( string,         UCL_STRING,     string_value   )
-POPULATE_FIELD( X,              UCL_INT,        int_value      )
-POPULATE_FIELD( Y,              UCL_INT,        int_value      )
-POPULATE_FIELD( W,              UCL_INT,        int_value      )
-POPULATE_FIELD( H,              UCL_INT,        int_value      )
-/****************************************************************/
-// clang-format on
 
 #include "../config/config-vars.schema"
 
