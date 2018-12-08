@@ -54,9 +54,8 @@ void game() {
   cleanup();
 }
 
-#define LOG_CONFIG( path )                    \
-  logger->info( TO_STRING( rn::path ) ": {}", \
-                util::to_string( rn::path ) )
+#define LOG_CONFIG( path ) \
+  logger->info( #path ": {}", util::to_string( rn::path ) )
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   init_logging( nullopt );
@@ -77,6 +76,9 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   LOG_CONFIG( config_window.window_error.x_size );
   LOG_CONFIG( config_window.window_error.show );
   LOG_CONFIG( config_window.widths );
+
+  (void)config_rn.fruit.hello.world;
+  (void)config_window.widths;
 
   auto x = 55_x;
   (void)x;

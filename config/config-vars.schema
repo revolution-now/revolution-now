@@ -7,10 +7,10 @@ CFG( rn,
   FLD( int, hello )
   OBJ( fruit,
     FLD( int, apples )
-    FLD( std::vector<std::string>, oranges )
+    LIST( std::string, oranges )
     FLD( std::string, description )
     OBJ( hello,
-      FLD( std::optional<int>, world )
+      FLD_OPT( int, world )
     )
   )
 )
@@ -26,6 +26,6 @@ CFG( window,
     FLD( bool, show )
     FLD( rn::X, x_size )
   )
-  FLD( std::vector<rn::W>, widths )
+  LIST( rn::W, widths )
 )
 /****************************************************************/

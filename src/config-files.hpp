@@ -23,15 +23,19 @@
     body                     \
   };
 
-#define CFG( name, body )                \
-  STRUCT( config_##name##_object, body ) \
-  extern config_##name##_object const config_##name;
+#define CFG( name, body )           \
+  STRUCT( config_##name##_t, body ) \
+  extern config_##name##_t const config_##name;
 
-#define OBJ( name, body )       \
-  STRUCT( name##_object, body ) \
-  name##_object name;
+#define OBJ( name, body )  \
+  STRUCT( name##_t, body ) \
+  name##_t name;
 
 #define FLD( type, name ) type name;
+
+#define FLD_OPT( type, name ) std::optional<type> name;
+
+#define LIST( type, name ) std::vector<type> name;
 
 namespace rn {
 

@@ -34,6 +34,8 @@ using namespace std;
 #undef CFG
 #undef OBJ
 #undef FLD
+#undef FLD_OPT
+#undef LIST
 
 #define FLD( __type, __name )                                \
   static void __populate_##__name() {                        \
@@ -46,15 +48,18 @@ using namespace std;
     return true;                                             \
   }();
 
+#define FLD_OPT( type, name ) FLD( std::optional<type>, name )
+#define LIST( type, name ) FLD( std::vector<type>, name )
+
 #define OBJ( __name, __body )                                    \
   static auto*      __name##_parent_ptr() { return dest_ptr(); } \
   static ConfigPath __name##_parent_path() {                     \
     return this_path();                                          \
   }                                                              \
-  struct __name##_object;                                        \
-  __name##_object* __##__name;                                   \
+  struct __name##_t;                                             \
+  __name##_t* __##__name;                                        \
                                                                  \
-  struct __name##_object {                                       \
+  struct __name##_t {                                            \
     static auto* dest_ptr() {                                    \
       return &( __name##_parent_ptr()->__name );                 \
     }                                                            \
@@ -68,11 +73,11 @@ using namespace std;
   };
 
 #define CFG( __name, __body )                                     \
-  config_##__name##_object const config_##__name{};               \
+  config_##__name##_t const config_##__name{};                    \
                                                                   \
-  struct shadow_config_##__name##_object {                        \
-    static config_##__name##_object* dest_ptr() {                 \
-      return const_cast<config_##__name##_object*>(               \
+  struct shadow_config_##__name##_t {                             \
+    static config_##__name##_t* dest_ptr() {                      \
+      return const_cast<config_##__name##_t*>(                    \
           &( config_##__name ) );                                 \
     }                                                             \
     static ConfigPath this_path() { return {}; }                  \
@@ -87,8 +92,8 @@ using namespace std;
   struct __startup_##__name {                                     \
     static void __load_##__name() {                               \
       config_files().push_back(                                   \
-          {shadow_config_##__name##_object::this_name(),          \
-           shadow_config_##__name##_object::this_file()} );       \
+          {shadow_config_##__name##_t::this_name(),               \
+           shadow_config_##__name##_t::this_file()} );            \
     }                                                             \
     static inline int const __register_##__name = [] {            \
       load_functions().push_back( __load_##__name );              \
