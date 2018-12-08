@@ -83,8 +83,10 @@
 namespace fs = std::experimental::filesystem;
 
 // Enabled if the log level is high enough
-#define LOG_DEBUG( ... ) SPDLOG_DEBUG( __VA_ARGS__ )
-#define LOG_TRACE( ... ) SPDLOG_TRACE( __VA_ARGS__ )
+#define LOG_DEBUG( ... ) \
+  SPDLOG_LOGGER_DEBUG( logger, __VA_ARGS__ )
+#define LOG_TRACE( ... ) \
+  SPDLOG_LOGGER_TRACE( logger, __VA_ARGS__ )
 
 namespace {
 

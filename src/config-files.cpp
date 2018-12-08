@@ -319,8 +319,11 @@ void load_configs() {
     auto fields = get_all_fields( ucl_configs[ucl_name] );
     for( auto const& f : fields ) {
       auto full_name = file + "." + f;
-      if( !util::has_key( used_field_paths, full_name ) )
+      if( !util::has_key( used_field_paths, full_name ) ) {
         logger->warn( "config field `{}' unused", full_name );
+      } else {
+        LOG_DEBUG( "field loaded: {}", full_name );
+      }
     }
   }
 }
