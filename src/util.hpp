@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 #include "aliases.hpp"
+#include "errors.hpp"
 #include "typed-int.hpp"
 
 #include <algorithm>
@@ -51,6 +52,26 @@ ND OptCRef<ValT> get_val_safe( MapT<KeyT, ValT> const& m,
                                KeyT const&             k ) {
   auto found = m.find( k );
   if( found == m.end() ) return std::nullopt;
+  return found->second;
+}
+
+// Gave up trying to make variadic templates work inside a
+// templatized template parameter, so just use auto for the
+// return value.
+template<typename MapT, typename KeyT>
+ND auto& get_val_or_die( MapT& m, KeyT const& k ) {
+  auto found = m.find( k );
+  CHECK( found != m.end() );
+  return found->second;
+}
+
+// Gave up trying to make variadic templates work inside a
+// templatized template parameter, so just use auto for the
+// return value.
+template<typename MapT, typename KeyT>
+ND auto const& get_val_or_die( MapT const& m, KeyT const& k ) {
+  auto found = m.find( k );
+  CHECK( found != m.end() );
   return found->second;
 }
 

@@ -109,4 +109,6 @@ private:
   int points_atoms{0};
 };
 
+using MvPoints = MovementPoints;
+
 } // namespace rn

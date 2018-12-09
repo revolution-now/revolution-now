@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "unit.hpp"
 
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "util.hpp"
 
@@ -17,47 +18,44 @@
 
 using namespace std;
 
+#define LOAD_UNIT_DESC( __name )                               \
+  {                                                            \
+    e_unit_type::__name, UnitDescriptor {                      \
+      units.__name.name, e_unit_type::__name, g_tile::__name,  \
+          units.__name.boat, units.__name.visibility,          \
+          units.__name.movement_points,                        \
+          units.__name.can_attack, units.__name.attack_points, \
+          units.__name.defense_points,                         \
+          units.__name.cargo_slots,                            \
+          units.__name.cargo_slots_occupies                    \
+    }                                                          \
+  }
+
 namespace rn {
 
 namespace {
 
-unordered_map<e_unit_type, UnitDescriptor, EnumClassHash>
-    unit_desc{
-        {e_unit_type::free_colonist,
-         UnitDescriptor{/*name=*/"free colonist",
-                        /*type=*/e_unit_type::free_colonist,
-                        /*tile=*/g_tile::free_colonist,
-                        /*boat=*/false,
-                        /*visibility=*/1,
-                        /*movement_points=*/MovementPoints( 1 ),
-                        /*can_attack=*/false,
-                        /*attack_points=*/0,
-                        /*defense_points=*/1,
-                        /*cargo_slots=*/0,
-                        /*cargo_slots_occupies=*/1}},
-        {e_unit_type::caravel,
-         UnitDescriptor{/*name=*/"caravel",
-                        /*type=*/e_unit_type::caravel,
-                        /*tile=*/g_tile::caravel,
-                        /*boat=*/true,
-                        /*visibility=*/1,
-                        /*movement_points=*/MovementPoints( 4 ),
-                        /*can_attack=*/false,
-                        /*attack_points=*/0,
-                        /*defense_points=*/2,
-                        /*cargo_slots=*/4,
-                        /*cargo_slots_occupies=*/-1}},
-    };
+unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> const&
+unit_desc() {
+  auto const& units = config_units;
+
+  static unordered_map<e_unit_type, UnitDescriptor,
+                       EnumClassHash> const desc{
+      LOAD_UNIT_DESC( free_colonist ),
+      LOAD_UNIT_DESC( caravel ),
+  };
+  return desc;
+}
 
 } // namespace
 
 Unit::Unit( e_nation nation, e_unit_type type )
   : id_( next_unit_id() ),
-    desc_( &unit_desc[type] ),
+    desc_( &get_val_or_die( unit_desc(), type ) ),
     orders_( e_unit_orders::none ),
     cargo_( desc_->cargo_slots ),
     nation_( nation ),
-    movement_points_( unit_desc[type].movement_points ),
+    movement_points_( desc_->movement_points ),
     finished_turn_( false ) {}
 
 // Ideally this should be empty... try to do this with types.

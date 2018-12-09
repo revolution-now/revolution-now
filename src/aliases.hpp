@@ -13,6 +13,7 @@
 
 #include "core-config.hpp"
 
+// c++ standard library
 #include <functional>
 #include <optional>
 #include <string>
@@ -21,9 +22,16 @@
 #include <utility>
 #include <vector>
 
-using OptStr = std::optional<std::string>;
+// Deprecated; remove, since the name ordering is not consistent.
 using StrVec = std::vector<std::string>;
 using SVVec  = std::vector<std::string_view>;
+
+template<typename U, typename V>
+using PairVec = std::vector<std::pair<U, V>>;
+
+// Use these from here down
+
+using Str = std::string;
 
 template<typename T>
 using Ref = std::reference_wrapper<T>;
@@ -32,12 +40,23 @@ template<typename T>
 using CRef = std::reference_wrapper<T const>;
 
 template<typename T>
-using OptRef = std::optional<std::reference_wrapper<T>>;
+using Vec = std::vector<T>;
 
 template<typename T>
-using OptCRef = std::optional<std::reference_wrapper<T const>>;
+using Opt = std::optional<T>;
+
+template<typename T>
+using OptRef = Opt<std::reference_wrapper<T>>;
+
+template<typename T>
+using OptCRef = OptRef<T const>;
+
+template<typename T>
+using OptVec = Opt<Vec<T>>;
+
+using OptStr = Opt<std::string>;
 
 template<typename U, typename V>
-using PairVec = std::vector<std::pair<U, V>>;
+using VecPair = Vec<std::pair<U, V>>;
 
 namespace rn {} // namespace rn

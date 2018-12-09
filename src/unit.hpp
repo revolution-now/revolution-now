@@ -12,12 +12,13 @@
 
 #include "core-config.hpp"
 
-#include "util.hpp"
+#include "aliases.hpp"
 #include "cargo.hpp"
 #include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tiles.hpp"
+#include "util.hpp"
 
 #include "base-util/non-copyable.hpp"
 
@@ -33,16 +34,16 @@ enum class ND e_unit_type { free_colonist, caravel };
 // one of these for each type of unit.
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
 struct ND UnitDescriptor {
-  char const* name;
+  std::string name;
   e_unit_type type;
 
   // Rendering
   g_tile tile;
 
   // Movement
-  bool           boat;
-  int            visibility;
-  MovementPoints movement_points;
+  bool     boat;
+  int      visibility;
+  MvPoints movement_points;
 
   // Combat
   bool can_attack;
@@ -50,8 +51,8 @@ struct ND UnitDescriptor {
   int  defense_points;
 
   // Cargo
-  int cargo_slots;
-  int cargo_slots_occupies; // slots occupied by this unit.
+  int      cargo_slots;
+  Opt<int> cargo_slots_occupies; // slots occupied by this unit.
 };
 
 enum class ND e_unit_orders {

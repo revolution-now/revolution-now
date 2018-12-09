@@ -41,16 +41,16 @@ void game() {
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
-  // 3_x );
-  //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
-  //                          4_x );
-  //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
+  //                          3_x );
+  (void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
+                            4_x );
+  (void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
   //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 1_x );
 
-  // while( turn() != e_turn_result::quit ) {}
+  while( turn() != e_turn_result::quit ) {}
 
   // font_test();
-  gui::test_window();
+  // gui::test_window();
 
   cleanup();
 }
@@ -89,7 +89,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   logger->info( "config/window.ucl.window_error.positions: {}", config_window.window_error.positions );
   logger->info( "config/window.ucl.widths:                 {}", util::to_string( config_window.widths              ) );
   // clang-format on
-  // game();
+  game();
   return 0;
 
 } catch( exception_with_bt const& e ) {

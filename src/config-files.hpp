@@ -12,7 +12,9 @@
 
 #include "core-config.hpp"
 
+#include "aliases.hpp"
 #include "geo-types.hpp"
+#include "mv-points.hpp"
 #include "typed-int.hpp"
 
 #include <optional>
@@ -44,13 +46,6 @@
   name##_t name;
 
 #define FLD( type, name ) type name;
-
-#define FLD_OPT( type, name ) std::optional<type> name;
-
-#define LIST( type, name ) std::vector<type> name;
-
-#define LIST_OPT( type, name ) \
-  std::optional<std::vector<type>> name;
 
 namespace rn {
 

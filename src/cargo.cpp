@@ -34,7 +34,10 @@ int CargoHold::slots_occupied() const {
     // TODO: better visitation mechanism needed here.
     if( holds_alternative<UnitId>( cargo ) ) {
       UnitId id = get<UnitId>( cargo );
-      occupied  = unit_from_id( id ).desc().cargo_slots_occupies;
+      auto   occupied_ =
+          unit_from_id( id ).desc().cargo_slots_occupies;
+      CHECK( occupied_.has_value() );
+      occupied = *occupied_;
     } else {
       occupied = 1;
       DIE( "should not be here" );

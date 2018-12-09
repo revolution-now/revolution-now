@@ -1,0 +1,23 @@
+free_colonist {
+  name:                 "Free Colonist",
+  boat:                  no,
+  visibility:            1,
+  movement_points:       1,
+  can_attack:            no,
+  attack_points:         0,
+  defense_points:        1,
+  cargo_slots:           0,
+  cargo_slots_occupies:  1,
+}
+
+caravel {
+  name:                 "Caravel",
+  boat:                  yes,
+  visibility:            1,
+  movement_points:       4,
+  can_attack:            no,
+  attack_points:         0,
+  defense_points:        2,
+  cargo_slots:           4,
+  cargo_slots_occupies:  null,
+}
