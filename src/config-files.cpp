@@ -58,19 +58,25 @@ void assign_link( T const* const& from, T const& to ) {
   strip_const       = &to;
 }
 
-#define LNK( __from, __to )                                \
-  static void __populate_##__from() {                      \
-    auto path = this_path();                               \
-    path.push_back( #__from );                             \
-    auto dotted = util::join( path, "." );                 \
-    assign_link( dest_ptr()->__from, config_##__to );      \
-    LOG_DEBUG( "link assigned: {} -> {}",                  \
-               "config_" + cfg_name() + "." + dotted,      \
-               TO_STRING( config_##__to ) );               \
-  }                                                        \
-  static inline bool const __register_##__from = [] {      \
-    populate_functions().push_back( __populate_##__from ); \
-    return true;                                           \
+#define LNK( __from, __to )                                 \
+  static void __populate_##__from() {                       \
+    /* for this to be allowed we'd have to guarantee */     \
+    /* the ordering of initialization so that we ensure */  \
+    /* that a link gets populated before any other links */ \
+    /* that need to traverse it.  Until then, forbid it. */ \
+    CHECK_( !util::contains( #__to, "->" ),                 \
+            "Link path should not traverse another link" ); \
+    auto path = this_path();                                \
+    path.push_back( #__from );                              \
+    auto dotted = util::join( path, "." );                  \
+    assign_link( dest_ptr()->__from, config_##__to );       \
+    LOG_DEBUG( "link assigned: {} -> {}",                   \
+               "config_" + cfg_name() + "." + dotted,       \
+               TO_STRING( config_##__to ) );                \
+  }                                                         \
+  static inline bool const __register_##__from = [] {       \
+    populate_functions().push_back( __populate_##__from );  \
+    return true;                                            \
   }();
 
 #define OBJ( __name, __body )                               \
