@@ -1,6 +1,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
+#include "geo-types.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
@@ -32,6 +33,8 @@
 
 using namespace rn;
 using namespace std;
+
+namespace rn {
 
 void game() {
   init_game();
@@ -67,6 +70,8 @@ ostream& operator<<( ostream& out, std::vector<T> v ) {
   out << "]";
   return out;
 }
+
+} // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   init_logging( spdlog::level::debug );
