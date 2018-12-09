@@ -179,8 +179,25 @@ struct ucl_type_of_t;
 template<typename T>
 struct ucl_type_name_of_t;
 
+// clang-format off
+// ============================================================
+//
+//        C++ type    UCL type       Getter
+//        -----------------------------------------
+UCL_TYPE( int,        UCL_INT,       int_value      )
+UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value     )
+UCL_TYPE( double,     UCL_FLOAT,     number_value   )
+UCL_TYPE( string,     UCL_STRING,    string_value   )
+UCL_TYPE( Coord,      UCL_OBJECT,    type /*dummy*/ )
+UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
+UCL_TYPE( X,          UCL_INT,       int_value      )
+UCL_TYPE( W,          UCL_INT,       int_value      )
+//UCL_TYPE( Y,          UCL_INT,       int_value     )
+//UCL_TYPE( H,          UCL_INT,       int_value     )
+// clang-format on
+
 template<typename T>
-auto ucl_getter_for_type = ucl_getter_for_type_t<T>::getter;
+auto ucl_getter_for_type_v = ucl_getter_for_type_t<T>::getter;
 
 template<typename T>
 UclType_t ucl_type_of_v = ucl_type_of_t<T>::value;
@@ -229,7 +246,7 @@ void populate_config_field( ucl::Ucl obj, T& dest,
   check_field_type(
       obj, ucl_type_of_v<T>, dotted, config_name,
       string( "item(s) of type " ) + ucl_type_name_of_v<T> );
-  dest = static_cast<T>( (obj.*ucl_getter_for_type<T>)( {} ) );
+  dest = static_cast<T>( (obj.*ucl_getter_for_type_v<T>)( {} ) );
 }
 
 // Coord
@@ -238,6 +255,10 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
                             vector<string> const& path,
                             string const&         config_name,
                             string const&         file ) {
+  // Silence unused-variable warnings.
+  (void)ucl_type_of_v<Coord>;
+  (void)ucl_type_name_of_v<Coord>;
+  (void)ucl_getter_for_type_v<Coord>;
   auto dotted = util::join( path, "." );
   check_field_exists( obj, dotted, file );
   check_field_type( obj, UCL_OBJECT, dotted, config_name,
@@ -284,23 +305,6 @@ void populate_config_field( ucl::Ucl obj, vector<T>& dest,
                            file );
   CHECK( dest.size() == obj.size() );
 }
-
-// clang-format off
-// ============================================================
-//
-//        C++ type    UCL type       Getter
-//        -----------------------------------------
-UCL_TYPE( int,        UCL_INT,       int_value      )
-UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value     )
-UCL_TYPE( double,     UCL_FLOAT,     number_value   )
-UCL_TYPE( string,     UCL_STRING,    string_value   )
-UCL_TYPE( Coord,      UCL_OBJECT,    type /*dummy*/ )
-UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
-UCL_TYPE( X,          UCL_INT,       int_value      )
-UCL_TYPE( W,          UCL_INT,       int_value      )
-//UCL_TYPE( Y,          UCL_INT,       int_value     )
-//UCL_TYPE( H,          UCL_INT,       int_value     )
-// clang-format on
 
 // This will traverse the object recursively and return a list
 // of fully-qualified paths to all fields, e.g.:
