@@ -88,11 +88,15 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   logger->info( "config/window.ucl.game_title:             {}", util::to_string( config_window.game_title          ) );
   logger->info( "config/window.ucl.game_version:           {}", util::to_string( config_window.game_version        ) );
   logger->info( "config/window.ucl.coordinates:            {}", config_window.coordinates );
+  logger->info( "config/window.ucl.grapes:                 {}", util::to_string( *config_window.grapes             ) );
   logger->info( "config/window.ucl.window_error.title:     {}", util::to_string( config_window.window_error.title  ) );
   logger->info( "config/window.ucl.window_error.x_size:    {}", util::to_string( config_window.window_error.x_size ) );
   logger->info( "config/window.ucl.window_error.show:      {}", util::to_string( config_window.window_error.show   ) );
   logger->info( "config/window.ucl.window_error.positions: {}", config_window.window_error.positions );
+  logger->info( "config/window.ucl.window_error.world:     {}", util::to_string( *config_window.window_error.world ) );
   logger->info( "config/window.ucl.widths:                 {}", util::to_string( config_window.widths              ) );
+  logger->info( "config/window.ucl.fruit->oranges:         {}", util::to_string( config_window.fruit->oranges      ) );
+
   // clang-format on
   game();
   return 0;

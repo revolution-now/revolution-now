@@ -34,9 +34,7 @@ using namespace std;
 #undef CFG
 #undef OBJ
 #undef FLD
-#undef FLD_OPT
-#undef LIST
-#undef LIST_OPT
+#undef LNK
 
 #define FLD( __type, __name )                                 \
   static void __populate_##__name() {                         \
@@ -54,10 +52,26 @@ using namespace std;
     return true;                                              \
   }();
 
-#define FLD_OPT( type, name ) FLD( std::optional<type>, name )
-#define LIST( type, name ) FLD( std::vector<type>, name )
-#define LIST_OPT( type, name ) \
-  FLD( std::optional<std::vector<type>>, name )
+template<typename T>
+void assign_link( T const* const& from, T const& to ) {
+  auto& strip_const = const_cast<T const*&>( from );
+  strip_const       = &to;
+}
+
+#define LNK( __from, __to )                                \
+  static void __populate_##__from() {                      \
+    auto path = this_path();                               \
+    path.push_back( #__from );                             \
+    auto dotted = util::join( path, "." );                 \
+    assign_link( dest_ptr()->__from, config_##__to );      \
+    LOG_DEBUG( "link assigned: {} -> {}",                  \
+               "config_" + cfg_name() + "." + dotted,      \
+               TO_STRING( config_##__to ) );               \
+  }                                                        \
+  static inline bool const __register_##__from = [] {      \
+    populate_functions().push_back( __populate_##__from ); \
+    return true;                                           \
+  }();
 
 #define OBJ( __name, __body )                               \
   static auto* __name##_parent_ptr() { return dest_ptr(); } \

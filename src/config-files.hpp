@@ -47,6 +47,9 @@
 
 #define FLD( type, name ) type name;
 
+#define LNK( from, to ) \
+  decltype( ::rn::config_##to ) const* from;
+
 namespace rn {
 
 #include "../config/config-vars.schema"

@@ -22,14 +22,17 @@ CFG( rn,
 CFG( window,
   FLD( Str,    game_title )
   FLD( double, game_version )
+  LNK( grapes, rn.fruit.grapes )
   FLD( Coord,  coordinates )
   OBJ( window_error,
     FLD( Str,        title )
     FLD( bool,       show )
     FLD( rn::X,      x_size )
     FLD( Vec<Coord>, positions )
+    LNK( world,      rn.fruit.hello.world )
   )
   FLD( Vec<rn::W>, widths )
+  LNK( fruit,      rn.fruit )
 )
 
 /****************************************************************
