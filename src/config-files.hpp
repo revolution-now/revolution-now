@@ -52,7 +52,7 @@
 
 namespace rn {
 
-#include "../config/config-vars.schema"
+#include "../config/config-vars.inl"
 
 void load_configs();
 

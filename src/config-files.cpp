@@ -352,7 +352,7 @@ vector<string> get_all_fields( ucl::Ucl const& obj ) {
 
 } // namespace
 
-#include "../config/config-vars.schema"
+#include "../config/config-vars.inl"
 
 void load_configs() {
   for( auto const& f : load_functions() ) f();
