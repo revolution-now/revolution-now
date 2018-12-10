@@ -291,6 +291,8 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
       "a coordinate pair with UCL_INT fields `x` and `y`" );
   dest.x = obj["x"].int_value();
   dest.y = obj["y"].int_value();
+  used_field_paths.insert( file + "." + dotted + ".x" );
+  used_field_paths.insert( file + "." + dotted + ".y" );
 }
 
 // optional<T>
