@@ -67,12 +67,8 @@ struct hash<::rn::Coord> {
     // This formula will yield a unique integer for each pos-
     // sible square coordinate in the world, assuming that the
     // world is of a maximum size.
-    //
-    // Here we access the ._ member and break semantics safety
-    // because this is an operation that normally wouldn't make
-    // sense by the semantics of cartesian coordinates, but we
-    // do it for the purpose of hashing.
-    return c.y._ * ::rn::g_world_max_width._ + c.x._;
+    return hash<decltype( c.x._ )>{}(
+        c.y._ * ::rn::g_world_max_width._ + c.x._ );
   }
 };
 } // namespace std
