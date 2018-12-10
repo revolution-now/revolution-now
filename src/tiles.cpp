@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "tiles.hpp"
 
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "global-constants.hpp"
 #include "globals.hpp"
@@ -44,57 +45,41 @@ unordered_map<std::string, tile_map>         tile_maps;
 
 } // namespace
 
-sprite create_sprite_32( Texture const& texture, Y row, X col ) {
-  Rect rect{col * g_tile_width._, row * g_tile_height._,
+sprite create_sprite_32( Texture const& texture, Coord coord ) {
+  Rect rect{coord.x * g_tile_width._, coord.y * g_tile_height._,
             g_tile_width, g_tile_height};
   return {&texture, to_SDL( rect ), g_tile_width, g_tile_height};
 }
 
+#define SET_SPRITE( name ) \
+  sprites[g_tile::name] =  \
+      create_sprite_32( tile_set, config_art.tiles.name )
+
 void load_sprites() {
-  auto& tile_set = load_texture( "assets/art/tiles-all.png" );
+  auto& tile_set = load_texture( config_art.tiles_png.c_str() );
 
-  sprites[g_tile::water] =
-      create_sprite_32( tile_set, 0_y, 0_x );
-  sprites[g_tile::land] = create_sprite_32( tile_set, 0_y, 1_x );
-  sprites[g_tile::land_1_side] =
-      create_sprite_32( tile_set, 0_y, 2_x );
-  sprites[g_tile::land_2_sides] =
-      create_sprite_32( tile_set, 0_y, 3_x );
-  sprites[g_tile::land_3_sides] =
-      create_sprite_32( tile_set, 0_y, 4_x );
-  sprites[g_tile::land_4_sides] =
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, 0_y, 5_x );
-  sprites[g_tile::land_corner] =
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, 0_y, 6_x );
+  SET_SPRITE( water );
+  SET_SPRITE( land );
+  SET_SPRITE( land_1_side );
+  SET_SPRITE( land_2_sides );
+  SET_SPRITE( land_3_sides );
+  SET_SPRITE( land_4_sides );
+  SET_SPRITE( land_corner );
 
-  sprites[g_tile::fog] = create_sprite_32( tile_set, 1_y, 0_x );
-  sprites[g_tile::fog_1_side] =
-      create_sprite_32( tile_set, 1_y, 1_x );
-  sprites[g_tile::fog_corner] =
-      create_sprite_32( tile_set, 1_y, 2_x );
+  SET_SPRITE( fog );
+  SET_SPRITE( fog_1_side );
+  SET_SPRITE( fog_corner );
 
-  sprites[g_tile::terrain_grass] =
-      create_sprite_32( tile_set, 2_y, 0_x );
+  SET_SPRITE( terrain_grass );
 
-  sprites[g_tile::panel] =
-      create_sprite_32( tile_set, 3_y, 0_x );
-  sprites[g_tile::panel_edge_left] =
-      create_sprite_32( tile_set, 3_y, 1_x );
-  sprites[g_tile::panel_slate] =
-      create_sprite_32( tile_set, 3_y, 2_x );
-  sprites[g_tile::panel_slate_1_side] =
-      create_sprite_32( tile_set, 3_y, 3_x );
-  sprites[g_tile::panel_slate_2_sides] =
-      create_sprite_32( tile_set, 3_y, 4_x );
+  SET_SPRITE( panel );
+  SET_SPRITE( panel_edge_left );
+  SET_SPRITE( panel_slate );
+  SET_SPRITE( panel_slate_1_side );
+  SET_SPRITE( panel_slate_2_sides );
 
-  sprites[g_tile::free_colonist] =
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, 5_y, 0_x );
-  sprites[g_tile::caravel] =
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      create_sprite_32( tile_set, 5_y, 1_x );
+  SET_SPRITE( free_colonist );
+  SET_SPRITE( caravel );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {

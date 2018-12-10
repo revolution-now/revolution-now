@@ -36,6 +36,38 @@ CFG( window,
 )
 
 /****************************************************************
+* Art Config File
+*****************************************************************/
+CFG( art,
+  FLD( Str, tiles_png )
+
+  OBJ( tiles,
+    FLD( Coord, water )
+    FLD( Coord, land )
+    FLD( Coord, land_1_side )
+    FLD( Coord, land_2_sides )
+    FLD( Coord, land_3_sides )
+    FLD( Coord, land_4_sides )
+    FLD( Coord, land_corner )
+
+    FLD( Coord, fog )
+    FLD( Coord, fog_1_side )
+    FLD( Coord, fog_corner )
+
+    FLD( Coord, terrain_grass )
+
+    FLD( Coord, panel )
+    FLD( Coord, panel_edge_left )
+    FLD( Coord, panel_slate )
+    FLD( Coord, panel_slate_1_side )
+    FLD( Coord, panel_slate_2_sides )
+
+    FLD( Coord, free_colonist )
+    FLD( Coord, caravel )
+  )
+)
+
+/****************************************************************
 * Units Config File
 *****************************************************************/
 #define UNIT_SCHEMA( __unit )             \

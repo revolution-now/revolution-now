@@ -1,0 +1,26 @@
+tiles_png: "assets/art/tiles-all.png"
+
+tiles {
+  water:               { y: 0, x: 0 }
+  land:                { y: 0, x: 1 }
+  land_1_side:         { y: 0, x: 2 }
+  land_2_sides:        { y: 0, x: 3 }
+  land_3_sides:        { y: 0, x: 4 }
+  land_4_sides:        { y: 0, x: 5 }
+  land_corner:         { y: 0, x: 6 }
+
+  fog:                 { y: 1, x: 0 }
+  fog_1_side:          { y: 1, x: 1 }
+  fog_corner:          { y: 1, x: 2 }
+
+  terrain_grass:       { y: 2, x: 0 }
+
+  panel:               { y: 3, x: 0 }
+  panel_edge_left:     { y: 3, x: 1 }
+  panel_slate:         { y: 3, x: 2 }
+  panel_slate_1_side:  { y: 3, x: 3 }
+  panel_slate_2_sides: { y: 3, x: 4 }
+
+  free_colonist:       { y: 5, x: 0 }
+  caravel:             { y: 5, x: 1 }
+}
