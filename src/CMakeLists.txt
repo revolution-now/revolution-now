@@ -17,7 +17,6 @@ target_link_libraries(
     absl::strings
     fmt::fmt
     spdlog::spdlog
-    type_safe
     ucl
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
