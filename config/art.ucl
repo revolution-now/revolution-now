@@ -1,4 +1,4 @@
-tiles_png: "assets/art/tiles-all.png"
+tiles_png: assets/art/tiles-all.png
 
 tiles {
   water:               { y: 0, x: 0 }
