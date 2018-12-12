@@ -23,7 +23,7 @@
 
 using namespace std;
 
-namespace rn::gui {
+namespace rn::ui {
 
 namespace {} // namespace
 
@@ -31,11 +31,11 @@ bool SolidRectView::needs_redraw() const { return true; }
 
 void SolidRectView::draw( Texture const& tx,
                           Coord          coord ) const {
-  auto rect = Rect{coord.x, coord.y, delta_.w, delta_.h};
+  auto rect = Rect{coord.x, coord.y, size_.w, size_.h};
   render_fill_rect( tx, color_, rect );
 }
 
-Delta SolidRectView::size() const { return delta_; }
+Delta SolidRectView::size() const { return size_; }
 
 bool CompositeView::needs_redraw() const {
   return any_of( views_.begin(), views_.end(),
@@ -63,7 +63,7 @@ Delta CompositeView::size() const {
 OneLineStringView::OneLineStringView( string msg, W size ) {
   msg_           = std::move( msg );
   auto text_size = font_rendered_width( fonts::standard, msg_ );
-  background_    = SolidRectView(
+  background_    = std::make_unique<SolidRectView>(
       Color::white(), Delta{max( size, W( text_size.w + 4 ) ),
                             text_size.h + 4} );
   tx = render_line_shadow( fonts::standard, msg_ );
@@ -73,12 +73,12 @@ bool OneLineStringView::needs_redraw() const { return true; }
 
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
-  background_.draw( tx, coord );
+  background_->draw( tx, coord );
   CHECK( copy_texture( this->tx, tx, coord + Delta{2_w, 2_h} ) );
 }
 
 Delta OneLineStringView::size() const {
-  return background_.size();
+  return background_->size();
 }
 
 bool Window::needs_redraw() const {
@@ -130,20 +130,20 @@ bool WindowManager::accept_input( SDL_Event event ) {
 }
 
 void test_window() {
-  auto             square = Delta{g_tile_width, g_tile_height};
-  vector<ViewDesc> squares;
-  squares.emplace_back( ViewDesc{
+  auto               square = Delta{g_tile_width, g_tile_height};
+  vector<FramedView> squares;
+  squares.emplace_back( FramedView{
       Coord{0_y, 0_x},
       make_unique<SolidRectView>( Color::red(), square )} );
-  squares.emplace_back( ViewDesc{
+  squares.emplace_back( FramedView{
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       Coord{16_y, 16_x},
       make_unique<SolidRectView>( Color::blue(), square )} );
-  squares.emplace_back( ViewDesc{
+  squares.emplace_back( FramedView{
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       Coord{0_y, 32_x},
       make_unique<SolidRectView>( Color::green(), square )} );
-  squares.emplace_back( ViewDesc{
+  squares.emplace_back( FramedView{
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       Coord{20_y, 0_x},
       make_unique<SolidRectView>( Color::white(), square )} );
@@ -180,4 +180,4 @@ void message_box( string_view       msg,
   (void)render_bg;
 }
 
-} // namespace rn::gui
+} // namespace rn::ui

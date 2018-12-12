@@ -19,48 +19,30 @@
 #include <string_view>
 #include <vector>
 
-namespace rn::gui {
+namespace rn::ui {
 
 class Object {
 public:
   Object()          = default;
   virtual ~Object() = default;
 
-  Object( Object const& ) = default;
-  Object( Object&& )      = default;
+  Object( Object const& ) = delete;
+  Object( Object&& )      = delete;
 
-  Object& operator=( Object const& ) = default;
-  Object& operator=( Object&& ) = default;
+  Object& operator=( Object const& ) = delete;
+  Object& operator=( Object&& ) = delete;
 
-  ND virtual bool needs_redraw() const                       = 0;
-  virtual void  draw( Texture const& tx, Coord coord ) const = 0;
-  virtual Delta size() const                                 = 0;
-  ND virtual bool accept_input( SDL_Event /*unused*/ ) {
+  ND virtual bool needs_redraw() const                      = 0;
+  virtual void draw( Texture const& tx, Coord coord ) const = 0;
+  ND virtual Delta size() const                             = 0;
+  ND virtual bool  accept_input( SDL_Event /*unused*/ ) {
     return false;
   }
 };
 
 class View : public Object {};
 
-class SolidRectView : public View {
-public:
-  SolidRectView() = default;
-  SolidRectView( Color color, Delta delta )
-    : color_( color ), delta_( std::move( delta ) ) {}
-
-  // Implement Object
-  bool needs_redraw() const override;
-  // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
-  // Implement Object
-  Delta size() const override;
-
-protected:
-  Color color_;
-  Delta delta_;
-};
-
-struct ViewDesc {
+struct FramedView {
   Rect bounds() const {
     return Rect::from( coord, coord + view->size() );
   };
@@ -71,7 +53,7 @@ struct ViewDesc {
 class CompositeView : public View {
 public:
   // Pass views by value.
-  explicit CompositeView( std::vector<ViewDesc> views )
+  explicit CompositeView( std::vector<FramedView> views )
     : views_( std::move( views ) ) {}
 
   // Implement Object
@@ -82,7 +64,24 @@ public:
   Delta size() const override;
 
 protected:
-  std::vector<ViewDesc> views_;
+  std::vector<FramedView> views_;
+};
+
+class SolidRectView : public View {
+public:
+  SolidRectView( Color color, Delta size )
+    : color_( color ), size_( std::move( size ) ) {}
+
+  // Implement Object
+  bool needs_redraw() const override;
+  // Implement Object
+  void draw( Texture const& tx, Coord coord ) const override;
+  // Implement Object
+  Delta size() const override;
+
+protected:
+  Color color_;
+  Delta size_;
 };
 
 class OneLineStringView : public View {
@@ -97,9 +96,10 @@ public:
   Delta size() const override;
 
 protected:
-  std::string   msg_;
-  SolidRectView background_;
-  Texture       tx;
+  std::string msg_;
+  // TODO: Should this have a background?
+  std::unique_ptr<SolidRectView> background_;
+  Texture                        tx;
 };
 
 enum class e_window_state { running, closed };
@@ -124,7 +124,7 @@ public:
 
   std::string const& title() const { return title_; }
 
-protected:
+private:
   e_window_state        window_state_;
   std::string           title_;
   std::unique_ptr<View> view_;
@@ -148,8 +148,10 @@ private:
 
   // Currently the WM can only have one window.
   std::unique_ptr<Window> window_;
-  OneLineStringView       title_bar_;
-  Coord                   position_;
+  // TODO: title bar should be in window
+  OneLineStringView title_bar_;
+  // TODO: vector of (window, position) pairs
+  Coord position_;
 };
 
 void test_window();
@@ -157,4 +159,4 @@ void test_window();
 void message_box( std::string_view  msg,
                   RenderFunc const& render_bg );
 
-} // namespace rn::gui
+} // namespace rn::ui

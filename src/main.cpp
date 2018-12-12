@@ -52,7 +52,7 @@ void game() {
   // while( turn() != e_turn_result::quit ) {}
 
   // font_test();
-  gui::test_window();
+  ui::test_window();
 
   cleanup();
 }
