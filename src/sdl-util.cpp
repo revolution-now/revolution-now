@@ -11,12 +11,13 @@
 #include "sdl-util.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
-#include "global-constants.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
 #include "sound.hpp"
+#include "tiles.hpp"
 #include "util.hpp"
 
 // {fmt} library
@@ -132,8 +133,8 @@ void create_window() {
   auto dm = get_current_display_mode();
 
   g_window =
-      ::SDL_CreateWindow( string( g_window_title ).c_str(), 0, 0,
-                          dm.w, dm.h, flags );
+      ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
+                          0, dm.w, dm.h, flags );
   if( g_window == nullptr ) DIE( "failed to create window" );
 
   //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );

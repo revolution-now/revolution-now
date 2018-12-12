@@ -13,6 +13,7 @@
 
 #include "errors.hpp"
 #include "globals.hpp"
+#include "tiles.hpp"
 #include "util.hpp"
 #include "world.hpp"
 

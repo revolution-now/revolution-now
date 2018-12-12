@@ -2,17 +2,8 @@
 * Main config file
 *****************************************************************/
 CFG( rn,
-  FLD( int, one )
-  FLD( Str, two )
-  FLD( int, hello )
-  OBJ( fruit,
-    FLD( int,         apples )
-    FLD( Vec<Str>,    oranges )
-    FLD( Opt<Vec<X>>, grapes )
-    FLD( Str,         description )
-    OBJ( hello,
-      FLD( Opt<int>, world )
-    )
+  OBJ( main_window,
+    FLD( Str, title )
   )
 )
 
@@ -22,17 +13,14 @@ CFG( rn,
 CFG( window,
   FLD( Str,    game_title )
   FLD( double, game_version )
-  LNK( grapes, rn.fruit.grapes )
   FLD( Coord,  coordinates )
   OBJ( window_error,
     FLD( Str,        title )
     FLD( bool,       show )
     FLD( rn::X,      x_size )
     FLD( Vec<Coord>, positions )
-    LNK( world,      rn.fruit.hello.world )
   )
   FLD( Vec<rn::W>, widths )
-  LNK( fruit,      rn.fruit )
 )
 
 /****************************************************************

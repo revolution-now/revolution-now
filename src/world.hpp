@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "geo-types.hpp"
-#include "global-constants.hpp"
 
 // c++ standard library
 #include <functional>
@@ -64,11 +63,18 @@ namespace std {
 template<>
 struct hash<::rn::Coord> {
   auto operator()( ::rn::Coord const& c ) const noexcept {
+    using integral_t = decltype( c.x._ );
+    // This should be a number that is larger than the width of
+    // the world (in tiles) would ever be, that way our mul/add
+    // expression below maps each unique map tile onto a unique
+    // integer for better hashing. In addition, this is a prime
+    // number, since that just seems like a good idea for some
+    // reason... not sure why, just a feeling.
+    constexpr integral_t prime = 13007;
     // This formula will yield a unique integer for each pos-
     // sible square coordinate in the world, assuming that the
     // world is of a maximum size.
-    return hash<decltype( c.x._ )>{}(
-        c.y._ * ::rn::g_world_max_width._ + c.x._ );
+    return hash<integral_t>{}( c.y._ * prime + c.x._ );
   }
 };
 } // namespace std

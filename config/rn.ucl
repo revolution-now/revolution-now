@@ -1,20 +1,3 @@
-hello: 6 #world
-
-one: 3
-two: "four"
-
-fruit {
-  apples: 7
-  oranges: [
-    "9",
-    "8",
-    "7"
-  ]
-  grapes: [1,2,3,4]
-  grapefruit = "no"
-  description: "a fruit basket"
-
-  hello {
-    world: null
-  }
+main_window {
+  title: "Revolution | Now"
 }

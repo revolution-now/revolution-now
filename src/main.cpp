@@ -2,7 +2,6 @@
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "geo-types.hpp"
-#include "global-constants.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"

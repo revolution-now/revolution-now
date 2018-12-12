@@ -12,7 +12,6 @@
 
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "global-constants.hpp"
 #include "globals.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"

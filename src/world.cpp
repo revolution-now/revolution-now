@@ -13,7 +13,7 @@
 #include "world.hpp"
 
 #include "errors.hpp"
-#include "global-constants.hpp"
+#include "tiles.hpp"
 #include "util.hpp"
 
 using namespace std;

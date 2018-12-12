@@ -21,6 +21,9 @@
 
 namespace rn {
 
+constexpr inline W g_tile_width{32};
+constexpr inline H g_tile_height{32};
+
 constexpr int g_tile_set_width = 8;
 
 enum class ND g_tile {

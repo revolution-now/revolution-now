@@ -22,15 +22,15 @@ let s:stems = [
   \ 'src/loops',
 \]
 
-let s:pairs = [
-  \ ['src/global-constants.hpp', 'src/macros.hpp']
-\]
+"let s:pairs = [
+"  \ ['x/y/z.ext', 'a/c/d.xyz']
+"\]
 
 let s:quads = [
-  \ ['doc/design.txt',         'doc/priorities.txt',
-  \  'scripts/session.vim',    'doc/ideas.txt'],
   \ ['config/config-vars.inl', 'config/rn.ucl',
   \  'config/window.ucl',      'config/units.ucl'],
+  \ ['doc/design.txt',         'doc/priorities.txt',
+  \  'scripts/session.vim',    'doc/ideas.txt'],
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,7 +80,7 @@ endfunction
 
 call OpenFirst( 'src/' . s:first )
 for s in s:stems | call OpenCppPair( s )                   | endfor
-for p in s:pairs | call OpenPair( p[0], p[1] )             | endfor
+"for p in s:pairs | call OpenPair( p[0], p[1] )             | endfor
 for q in s:quads | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

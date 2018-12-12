@@ -12,8 +12,8 @@
 
 #include "errors.hpp"
 #include "fonts.hpp"
-#include "global-constants.hpp"
 #include "globals.hpp"
+#include "tiles.hpp"
 #include "typed-int.hpp"
 
 #include "base-util/misc.hpp"

@@ -11,7 +11,6 @@
 #include "render.hpp"
 
 #include "errors.hpp"
-#include "global-constants.hpp"
 #include "globals.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
