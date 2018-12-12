@@ -10,7 +10,7 @@ CFG( rn,
 /****************************************************************
 * GUI Config File
 *****************************************************************/
-CFG( window,
+CFG( ui,
   FLD( Str,    game_title )
   FLD( double, game_version )
   FLD( Coord,  coordinates )
