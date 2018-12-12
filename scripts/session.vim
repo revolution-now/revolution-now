@@ -7,7 +7,6 @@ let s:first = 'main.cpp'
 let s:stems = [
   \ 'src/globals',
   \ 'src/util',
-  \ 'src/config-files',
   \ 'src/sdl-util',
   \ 'src/fonts',
   \ 'src/window',
@@ -24,13 +23,14 @@ let s:stems = [
 \]
 
 let s:pairs = [
-  \ ['src/global-constants.hpp', 'src/macros.hpp'],
-  \ ['config/rn.ucl',            'config/window.ucl'],
+  \ ['src/global-constants.hpp', 'src/macros.hpp']
 \]
 
 let s:quads = [
-  \ ['doc/design.txt',      'doc/priorities.txt',
-  \  'scripts/session.vim', 'doc/ideas.txt']
+  \ ['doc/design.txt',         'doc/priorities.txt',
+  \  'scripts/session.vim',    'doc/ideas.txt'],
+  \ ['config/config-vars.inl', 'config/rn.ucl',
+  \  'config/window.ucl',      'config/units.ucl'],
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -63,10 +63,11 @@ endfunction
 
 function OpenQuad( f1, f2, f3, f4 )
     call OpenPair( a:f1, a:f2 )
-    call feedkeys( ":split " . a:f3 . "\<CR>" )
-    call feedkeys( "\<C-W>l" )
-    call feedkeys( ":split " . a:f4 . "\<CR>" )
-    call feedkeys( "\<C-W>k\<C-W>h" )
+    execute ':split ' . a:f3
+    :wincmd l
+    execute ':split ' . a:f4
+    :wincmd k
+    :wincmd h
 endfunction
 
 function OpenCppPair( stem )

@@ -58,6 +58,9 @@ function! MyTabLabel( n )
     if ext == 'cpp' || ext == 'hpp'
       return fnamemodify( path, ':t:r' )
     endif
+    if ext == 'ucl'
+      return fnamemodify( 'ucl', ':t:r' )
+    endif
   endfor
   let winnr = tabpagewinnr( a:n )
   return bufname( buflist[winnr - 1] )
