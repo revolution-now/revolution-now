@@ -11,6 +11,7 @@
 #include "cargo.hpp"
 
 #include "errors.hpp"
+#include "logging.hpp"
 #include "ownership.hpp"
 
 #include <iostream>
@@ -23,8 +24,8 @@ namespace {} // namespace
 
 CargoHold::~CargoHold() {
   if( !items_.empty() )
-    WARNING() << "CargoHold destroyed with " << items_.size()
-              << " remaining items!";
+    logger->warn( "CargoHold destroyed with {} remaining items.",
+                  items_.size() );
 }
 
 int CargoHold::slots_occupied() const {

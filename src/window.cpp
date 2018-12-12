@@ -121,12 +121,8 @@ bool WindowManager::accept_input( SDL_Event event ) {
   switch( event.type ) {
     case ::SDL_MOUSEBUTTONDOWN:
       switch( event.button.button ) {
-        case SDL_BUTTON_LEFT:
-          // LOG( "SDL_BUTTON_LEFT" );
-          break;
-        case SDL_BUTTON_RIGHT:
-          // LOG( "SDL_BUTTON_RIGHT" );
-          break;
+        case SDL_BUTTON_LEFT: break;
+        case SDL_BUTTON_RIGHT: break;
       }
     default: break;
   }

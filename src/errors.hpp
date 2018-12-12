@@ -12,13 +12,18 @@
 
 #include "core-config.hpp"
 
-#include "macros.hpp"
-
+// base-util
 #include "base-util/macros.hpp"
 
+// c++ standard library
 #include <memory>
 #include <stdexcept>
 #include <string_view>
+
+// This is obviously a no-op but is an attempt to suppress some
+// compiler warnings about parenthesis around macro parameters
+// in inconsistent ways by different compilers.
+#define ID_( a ) a
 
 /****************************************************************
 **Error Checking Macros
@@ -106,7 +111,7 @@
 *****************************************************************/
 // This decides when to enable stack traces in the build.
 #ifndef NDEBUG
-#define STACK_TRACE_ON
+#  define STACK_TRACE_ON
 #endif
 
 // Forward declare this so that we can expose a pointer to it but
