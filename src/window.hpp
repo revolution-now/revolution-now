@@ -43,18 +43,18 @@ public:
 
 class View : public Object {};
 
-struct FramedView {
+struct PositionedView {
   Rect bounds() const {
     return Rect::from( coord, coord + view->size() );
   };
-  Coord                 coord;
   std::unique_ptr<View> view;
+  Coord                 coord;
 };
 
 class CompositeView : public View {
 public:
   // Pass views by value.
-  explicit CompositeView( std::vector<FramedView> views )
+  explicit CompositeView( std::vector<PositionedView> views )
     : views_( std::move( views ) ) {}
 
   // Implement Object
@@ -65,7 +65,7 @@ public:
   Delta size() const override;
 
 protected:
-  std::vector<FramedView> views_;
+  std::vector<PositionedView> views_;
 };
 
 class SolidRectView : public View {

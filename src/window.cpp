@@ -134,27 +134,23 @@ bool WindowManager::accept_input( SDL_Event event ) {
 }
 
 void test_window() {
-  auto               square = Delta{g_tile_width, g_tile_height};
-  vector<FramedView> squares;
-  squares.emplace_back( FramedView{
-      Coord{0_y, 0_x},
-      make_unique<SolidRectView>( Color::red(), square )} );
-  squares.emplace_back( FramedView{
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      Coord{16_y, 16_x},
-      make_unique<SolidRectView>( Color::blue(), square )} );
-  squares.emplace_back( FramedView{
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      Coord{0_y, 32_x},
-      make_unique<SolidRectView>( Color::green(), square )} );
-  squares.emplace_back( FramedView{
-      // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      Coord{20_y, 0_x},
-      make_unique<SolidRectView>( Color::white(), square )} );
+  auto square = Delta{g_tile_width, g_tile_height};
+  vector<PositionedView> squares;
+  squares.emplace_back( PositionedView{
+      make_unique<SolidRectView>( Color::red(), square ),
+      Coord{0_y, 0_x}} );
+  squares.emplace_back( PositionedView{
+      make_unique<SolidRectView>( Color::blue(), square ),
+      Coord{16_y, 16_x}} );
+  squares.emplace_back( PositionedView{
+      make_unique<SolidRectView>( Color::green(), square ),
+      Coord{0_y, 32_x}} );
+  squares.emplace_back( PositionedView{
+      make_unique<SolidRectView>( Color::white(), square ),
+      Coord{20_y, 0_x}} );
   auto window = make_unique<Window>(
       "First Window",
       make_unique<CompositeView>( move( squares ) ) );
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   WindowManager wm;
   wm.add_window( move( window ), {200_y, 200_x} );
   wm.run( [] {} );
