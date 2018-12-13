@@ -88,8 +88,8 @@ Texture render_lines( H min_skip, vector<string> const& lines,
   H    res_height( 0 );
   W    res_width( 0 );
   for( auto const& rect : rects ) {
-    res_height += max( min_skip, rect.h );
-    res_width = max( res_width, rect.w );
+    res_height += std::max( min_skip, rect.h );
+    res_width = std::max( res_width, rect.w );
   }
 
   auto result_texture = create_texture( res_width, res_height );
@@ -102,7 +102,7 @@ Texture render_lines( H min_skip, vector<string> const& lines,
   for( size_t i = 0; i < textures.size(); ++i ) {
     CHECK( copy_texture( textures[i], result_texture, Y( y ),
                          0_x ) );
-    y += max( min_skip, rects[i].h );
+    y += std::max( min_skip, rects[i].h );
   }
   return result_texture;
 }

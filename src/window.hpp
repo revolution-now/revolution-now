@@ -34,7 +34,8 @@ public:
 
   ND virtual bool needs_redraw() const                      = 0;
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
-  ND virtual Delta size() const                             = 0;
+  // TODO: need to examine size() API
+  ND virtual Delta size() const = 0;
   ND virtual bool  accept_input( SDL_Event /*unused*/ ) {
     return false;
   }
@@ -111,7 +112,12 @@ public:
   Window( std::string title, ViewPtr view )
     : window_state_( e_window_state::running ),
       title_( std::move( title ) ),
-      view_( std::move( view ) ) {}
+      view_( std::move( view ) ),
+      // TODO: need to examine size() API
+      title_bar_() {
+    title_bar_ = std::make_unique<OneLineStringView>(
+        title_, view_->size().w );
+  }
 
   e_window_state state() const { return window_state_; }
 
@@ -125,9 +131,10 @@ public:
   std::string const& title() const { return title_; }
 
 private:
-  e_window_state        window_state_;
-  std::string           title_;
-  std::unique_ptr<View> view_;
+  e_window_state                     window_state_;
+  std::string                        title_;
+  std::unique_ptr<View>              view_;
+  std::unique_ptr<OneLineStringView> title_bar_;
 };
 
 using RenderFunc = std::function<void( void )>;
@@ -135,23 +142,24 @@ using WinPtr     = std::unique_ptr<Window>;
 
 class WindowManager {
 public:
-  WindowManager( WinPtr window, Coord position );
-
   void draw_layout( Texture const& tx ) const;
 
   void run( RenderFunc const& render_fn );
 
   ND bool accept_input( SDL_Event event );
 
+  void add_window( WinPtr window, Coord position );
+
 private:
   Delta window_size() const;
 
-  // Currently the WM can only have one window.
-  std::unique_ptr<Window> window_;
-  // TODO: title bar should be in window
-  OneLineStringView title_bar_;
-  // TODO: vector of (window, position) pairs
-  Coord position_;
+  struct PositionedWindow {
+    std::unique_ptr<Window> window;
+    // TODO: vector of (window, position) pairs
+    Coord position;
+  };
+
+  std::vector<PositionedWindow> windows_;
 };
 
 void test_window();

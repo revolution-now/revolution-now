@@ -102,6 +102,9 @@ struct ND Delta {
   Delta uni0n( Delta const& rhs ) const;
 };
 
+// Same as Delta::uni0n
+ND Delta max( Delta const& lhs, Delta const& rhs );
+
 ND Coord operator+( Coord const& coord, Delta const& delta );
 ND Coord operator+( Delta const& delta, Coord const& coord );
 ND Delta operator-( Coord const& lhs, Coord const& rhs );

@@ -64,8 +64,9 @@ OneLineStringView::OneLineStringView( string msg, W size ) {
   msg_           = std::move( msg );
   auto text_size = font_rendered_width( fonts::standard, msg_ );
   background_    = std::make_unique<SolidRectView>(
-      Color::white(), Delta{max( size, W( text_size.w + 4 ) ),
-                            text_size.h + 4} );
+      Color::white(),
+      Delta{std::max( size, W( text_size.w + 4 ) ),
+            text_size.h + 4} );
   tx = render_line_shadow( fonts::standard, msg_ );
 }
 
@@ -82,39 +83,42 @@ Delta OneLineStringView::size() const {
 }
 
 bool Window::needs_redraw() const {
-  return view_->needs_redraw();
+  return view_->needs_redraw() || title_bar_->needs_redraw();
 }
 
 void Window::draw( Texture const& tx, Coord coord ) const {
-  view_->draw( tx, coord );
+  auto inside_border = coord + Delta{1_w, 1_h};
+  render_fill_rect( tx, Color::black(),
+                    {coord.x, coord.y, size().w, size().h} );
+  title_bar_->draw( tx, inside_border );
+  view_->draw( tx, inside_border + title_bar_->size().h );
+  render_rect( tx, Color::black(),
+               {coord.x, coord.y, size().w, size().h} );
 }
 
-Delta Window::size() const { return view_->size(); }
-
-WindowManager::WindowManager( WinPtr window, Coord position )
-  : window_( std::move( window ) ),
-    title_bar_( window_->title(), window_->size().w ),
-    position_( std::move( position ) ) {}
-
-Delta WindowManager::window_size() const {
+Delta Window::size() const {
   Delta res;
-  res.w = max( title_bar_.size().w, window_->size().w );
-  res.h += title_bar_.size().h + window_->size().h;
+  res.w = std::max( title_bar_->size().w, view_->size().w );
+  res.h += title_bar_->size().h + view_->size().h;
   res.w += 2;
   res.h += 2;
   return res;
 }
 
+Delta WindowManager::window_size() const {
+  Delta res{};
+  for( auto const& positioned_window : windows_ )
+    res = rn::max( res, positioned_window.window->size() );
+  return res;
+}
+
 void WindowManager::draw_layout( Texture const& tx ) const {
-  auto inside_border = position_ + Delta{1_w, 1_h};
-  render_fill_rect( tx, Color::black(),
-                    {position_.x, position_.y, window_size().w,
-                     window_size().h} );
-  title_bar_.draw( tx, inside_border );
-  window_->draw( tx, inside_border + title_bar_.size().h );
-  render_rect( tx, Color::black(),
-               {position_.x, position_.y, window_size().w,
-                window_size().h} );
+  for( auto const& [window, position] : windows_ )
+    window->draw( tx, position );
+}
+
+void WindowManager::add_window( WinPtr window, Coord position ) {
+  windows_.push_back( {std::move( window ), position} );
 }
 
 bool WindowManager::accept_input( SDL_Event event ) {
@@ -151,7 +155,8 @@ void test_window() {
       "First Window",
       make_unique<CompositeView>( move( squares ) ) );
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  WindowManager wm( move( window ), {200_y, 200_x} );
+  WindowManager wm;
+  wm.add_window( move( window ), {200_y, 200_x} );
   wm.run( [] {} );
 }
 

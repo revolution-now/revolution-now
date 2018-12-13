@@ -14,6 +14,7 @@
 #include "errors.hpp"
 
 // c++ standard library
+#include <algorithm>
 #include <iostream>
 #include <utility>
 
@@ -25,10 +26,10 @@ namespace {} // namespace
 
 Rect Rect::from( Coord const& _1, Coord const& _2 ) {
   Rect res;
-  res.x = min( _1.x, _2.x );
-  res.y = min( _1.y, _2.y );
-  res.w = max( _1.x, _2.x ) - min( _1.x, _2.x );
-  res.h = max( _1.y, _2.y ) - min( _1.y, _2.y );
+  res.x = std::min( _1.x, _2.x );
+  res.y = std::min( _1.y, _2.y );
+  res.w = std::max( _1.x, _2.x ) - std::min( _1.x, _2.x );
+  res.h = std::max( _1.y, _2.y ) - std::min( _1.y, _2.y );
   return res;
 }
 
@@ -57,10 +58,10 @@ Rect Rect::uni0n( Rect const& rhs ) const {
   // NOTE: be careful here with returning references; we should
   // only be using auto const& when the function will not return
   // a reference to a temporary.
-  auto const& new_x1 = min( x, rhs.x );
-  auto const& new_y1 = min( y, rhs.y );
-  auto /*!!*/ new_x2 = max( x + w, rhs.x + rhs.w );
-  auto /*!!*/ new_y2 = max( y + h, rhs.y + rhs.h );
+  auto const& new_x1 = std::min( x, rhs.x );
+  auto const& new_y1 = std::min( y, rhs.y );
+  auto /*!!*/ new_x2 = std::max( x + w, rhs.x + rhs.w );
+  auto /*!!*/ new_y2 = std::max( y + h, rhs.y + rhs.h );
   return {new_x1, new_y1, ( new_x2 - new_x1 ),
           ( new_y2 - new_y1 )};
 }
@@ -115,7 +116,11 @@ bool Coord::is_inside( Rect const& rect ) const {
 }
 
 Delta Delta::uni0n( Delta const& rhs ) const {
-  return {max( w, rhs.w ), max( h, rhs.h )};
+  return {std::max( w, rhs.w ), std::max( h, rhs.h )};
+}
+
+Delta max( Delta const& lhs, Delta const& rhs ) {
+  return {std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h )};
 }
 
 Coord operator+( Coord const& coord, Delta const& delta ) {

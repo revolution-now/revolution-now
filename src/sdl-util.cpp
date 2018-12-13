@@ -220,8 +220,8 @@ pair<H, W> find_max_tile_sizes() {
     // minimum distance.
     constexpr double viewer_distance_multiplier{1.25};
     constexpr double viewer_distance_minimum{18}; // inches
-    return max( viewer_distance_multiplier * monitor_size,
-                viewer_distance_minimum );
+    return std::max( viewer_distance_multiplier * monitor_size,
+                     viewer_distance_minimum );
   };
   // Seems sensible for the tiles to be within these bounds.  The
   // scoring function used would otherwise select these in some
