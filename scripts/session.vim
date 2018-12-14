@@ -11,6 +11,7 @@ let s:stems = [
   \ 'src/fonts',
   \ 'src/window',
   \ 'src/world',
+  \ 'src/geo-types',
   \ 'src/viewport',
   \ 'src/unit',
   \ 'src/movement',
@@ -27,10 +28,10 @@ let s:stems = [
 "\]
 
 let s:quads = [
-  \ ['config/config-vars.inl', 'config/rn.ucl',
-  \  'config/window.ucl',      'config/units.ucl'],
-  \ ['doc/design.txt',         'doc/priorities.txt',
-  \  'scripts/session.vim',    'doc/ideas.txt'],
+  \ ['config/art.ucl',         'config/rn.ucl',
+  \  'config/ui.ucl',          'config/units.ucl'],
+  \ ['config/config-vars.inl', 'doc/priorities.txt',
+  \  'doc/design.txt',         'doc/ideas.txt'],
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

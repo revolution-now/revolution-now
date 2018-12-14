@@ -362,8 +362,6 @@ void cleanup() {
 
 Rect texture_rect( Texture const& texture ) {
   int w, h;
-  // const_cast because we are passing texture to a C function
-  // which we know will not modify it.
   ::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h );
   return {0_x, 0_y, W( w ), H( h )};
 }
@@ -479,6 +477,12 @@ Texture Texture::from_surface( ::SDL_Surface* surface ) {
   ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface(
                              g_renderer, surface ) );
   return from_SDL( texture );
+}
+
+Delta Texture::size() const {
+  int w, h;
+  ::SDL_QueryTexture( this->get(), nullptr, nullptr, &w, &h );
+  return {W( w ), H( h )};
 }
 
 void set_render_draw_color( Color const& color ) {

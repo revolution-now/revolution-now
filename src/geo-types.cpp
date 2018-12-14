@@ -123,8 +123,16 @@ Delta max( Delta const& lhs, Delta const& rhs ) {
   return {std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h )};
 }
 
+ND Delta operator*( int scale, Delta const& delta ) {
+  return {delta.w * scale, delta.h * scale};
+}
+
 Coord operator+( Coord const& coord, Delta const& delta ) {
   return {coord.y + delta.h, coord.x + delta.w};
+}
+
+Delta operator-( Delta const& lhs, Delta const& rhs ) {
+  return {lhs.w - rhs.w, lhs.h - rhs.h};
 }
 
 Coord operator+( Delta const& delta, Coord const& coord ) {

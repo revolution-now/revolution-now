@@ -11,6 +11,10 @@ CFG( rn,
 * GUI Config File
 *****************************************************************/
 CFG( ui,
+  OBJ( window,
+    FLD( int, border_width )
+  )
+
   FLD( Str,    game_title )
   FLD( double, game_version )
   FLD( Coord,  coordinates )

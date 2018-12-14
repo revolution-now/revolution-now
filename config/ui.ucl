@@ -1,3 +1,7 @@
+window {
+  border_width: 4
+}
+
 game_title:  "Revolution | Now"
 game_version: 2.1
 

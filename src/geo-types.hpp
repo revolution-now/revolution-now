@@ -97,6 +97,13 @@ struct ND Delta {
   bool operator==( Delta const& other ) const {
     return ( h == other.h ) && ( w == other.w );
   }
+
+  Delta operator-() { return {-w, -h}; }
+
+  void operator+=( Delta const& other ) {
+    w += other.w;
+    h += other.h;
+  }
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
   Delta uni0n( Delta const& rhs ) const;
@@ -104,6 +111,9 @@ struct ND Delta {
 
 // Same as Delta::uni0n
 ND Delta max( Delta const& lhs, Delta const& rhs );
+
+ND Delta operator*( int scale, Delta const& delta );
+ND Delta operator-( Delta const& lhs, Delta const& rhs );
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
 ND Coord operator+( Delta const& delta, Coord const& coord );

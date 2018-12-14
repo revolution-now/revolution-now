@@ -44,6 +44,9 @@ public:
   ::SDL_Texture* get() const { return tx_; }
   static Texture from_surface( ::SDL_Surface* surface );
 
+  // For convenience.
+  Delta size() const;
+
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
   explicit Texture( ::SDL_Texture* tx );

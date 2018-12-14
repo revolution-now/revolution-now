@@ -41,6 +41,9 @@ public:
   }
 };
 
+/****************************************************************
+** Views
+*****************************************************************/
 class View : public Object {};
 
 struct PositionedView {
@@ -97,19 +100,17 @@ public:
   Delta size() const override;
 
 protected:
-  std::string msg_;
-  // TODO: Should this have a background?
-  std::unique_ptr<SolidRectView> background_;
-  Texture                        tx;
+  Texture tx;
 };
 
+/****************************************************************
+** Window
+*****************************************************************/
 enum class e_window_state { running, closed };
-
-using ViewPtr = std::unique_ptr<View>;
 
 class Window : public Object {
 public:
-  Window( std::string title, ViewPtr view )
+  Window( std::string title, std::unique_ptr<View> view )
     : window_state_( e_window_state::running ),
       title_( std::move( title ) ),
       view_( std::move( view ) ),
@@ -137,6 +138,9 @@ private:
   std::unique_ptr<OneLineStringView> title_bar_;
 };
 
+/****************************************************************
+** WindowManager
+*****************************************************************/
 using RenderFunc = std::function<void( void )>;
 using WinPtr     = std::unique_ptr<Window>;
 
@@ -151,8 +155,6 @@ public:
   void add_window( WinPtr window, Coord position );
 
 private:
-  Delta window_size() const;
-
   struct PositionedWindow {
     std::unique_ptr<Window> window;
     // TODO: vector of (window, position) pairs

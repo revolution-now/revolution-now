@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "window.hpp"
 
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "globals.hpp"
@@ -25,7 +26,19 @@ using namespace std;
 
 namespace rn::ui {
 
-namespace {} // namespace
+namespace {
+
+// This returns the width in pixels of the window border ( same
+// for left/right sides as for top/bottom sides). Don't forget
+// that this Delta must be multiplied by two to get the total
+// change in width/height of a window with such a border.
+Delta const& window_border() {
+  static Delta const delta{W( config_ui.window.border_width ),
+                           H( config_ui.window.border_width )};
+  return delta;
+}
+
+} // namespace
 
 bool SolidRectView::needs_redraw() const { return true; }
 
@@ -60,55 +73,42 @@ Delta CompositeView::size() const {
   return {res.w, res.h};
 }
 
-OneLineStringView::OneLineStringView( string msg, W size ) {
-  msg_           = std::move( msg );
-  auto text_size = font_rendered_width( fonts::standard, msg_ );
-  background_    = std::make_unique<SolidRectView>(
-      Color::white(),
-      Delta{std::max( size, W( text_size.w + 4 ) ),
-            text_size.h + 4} );
-  tx = render_line_shadow( fonts::standard, msg_ );
+OneLineStringView::OneLineStringView( string msg, W ) {
+  tx = render_line_shadow( fonts::standard, msg );
 }
 
 bool OneLineStringView::needs_redraw() const { return true; }
 
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
-  background_->draw( tx, coord );
-  CHECK( copy_texture( this->tx, tx, coord + Delta{2_w, 2_h} ) );
+  CHECK( copy_texture( this->tx, tx, coord ) );
 }
 
-Delta OneLineStringView::size() const {
-  return background_->size();
-}
+Delta OneLineStringView::size() const { return tx.size(); }
 
 bool Window::needs_redraw() const {
   return view_->needs_redraw() || title_bar_->needs_redraw();
 }
 
 void Window::draw( Texture const& tx, Coord coord ) const {
-  auto inside_border = coord + Delta{1_w, 1_h};
-  render_fill_rect( tx, Color::black(),
-                    {coord.x, coord.y, size().w, size().h} );
+  auto win_size = size();
+  render_fill_rect( tx, Color::red(),
+                    {coord.x, coord.y, win_size.w, win_size.h} );
+  auto inside_border = coord + window_border();
+  auto inner_size    = win_size - 2 * window_border();
+  render_fill_rect( tx, Color::white(),
+                    Rect::from( inside_border, inner_size ) );
   title_bar_->draw( tx, inside_border );
   view_->draw( tx, inside_border + title_bar_->size().h );
-  render_rect( tx, Color::black(),
-               {coord.x, coord.y, size().w, size().h} );
 }
 
+// Includes border
 Delta Window::size() const {
   Delta res;
   res.w = std::max( title_bar_->size().w, view_->size().w );
   res.h += title_bar_->size().h + view_->size().h;
-  res.w += 2;
-  res.h += 2;
-  return res;
-}
-
-Delta WindowManager::window_size() const {
-  Delta res{};
-  for( auto const& positioned_window : windows_ )
-    res = rn::max( res, positioned_window.window->size() );
+  // multiply by two since there is top/bottom or left/right.
+  res += 2 * window_border();
   return res;
 }
 
@@ -140,14 +140,14 @@ void test_window() {
       make_unique<SolidRectView>( Color::red(), square ),
       Coord{0_y, 0_x}} );
   squares.emplace_back( PositionedView{
-      make_unique<SolidRectView>( Color::blue(), square ),
-      Coord{16_y, 16_x}} );
-  squares.emplace_back( PositionedView{
       make_unique<SolidRectView>( Color::green(), square ),
       Coord{0_y, 32_x}} );
   squares.emplace_back( PositionedView{
-      make_unique<SolidRectView>( Color::white(), square ),
+      make_unique<SolidRectView>( Color::black(), square ),
       Coord{20_y, 0_x}} );
+  squares.emplace_back( PositionedView{
+      make_unique<SolidRectView>( Color::blue(), square ),
+      Coord{16_y, 16_x}} );
   auto window = make_unique<Window>(
       "First Window",
       make_unique<CompositeView>( move( squares ) ) );
