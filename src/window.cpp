@@ -40,8 +40,6 @@ Delta const& window_border() {
 
 } // namespace
 
-bool SolidRectView::needs_redraw() const { return true; }
-
 void SolidRectView::draw( Texture const& tx,
                           Coord          coord ) const {
   auto rect = Rect{coord.x, coord.y, size_.w, size_.h};
@@ -49,11 +47,6 @@ void SolidRectView::draw( Texture const& tx,
 }
 
 Delta SolidRectView::size() const { return size_; }
-
-bool CompositeView::needs_redraw() const {
-  return any_of( views_.begin(), views_.end(),
-                 L( _.view->needs_redraw(); ) );
-}
 
 void CompositeView::draw( Texture const& tx,
                           Coord          coord ) const {
@@ -77,8 +70,6 @@ OneLineStringView::OneLineStringView( string msg, W ) {
   tx = render_line_shadow( fonts::standard, msg );
 }
 
-bool OneLineStringView::needs_redraw() const { return true; }
-
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
   CHECK( copy_texture( this->tx, tx, coord ) );
@@ -86,39 +77,38 @@ void OneLineStringView::draw( Texture const& tx,
 
 Delta OneLineStringView::size() const { return tx.size(); }
 
-bool Window::needs_redraw() const {
-  return view_->needs_redraw() || title_bar_->needs_redraw();
-}
-
-void Window::draw( Texture const& tx, Coord coord ) const {
+void WindowManager::window::draw( Texture const& tx ) const {
   auto win_size = size();
-  render_fill_rect( tx, Color::red(),
-                    {coord.x, coord.y, win_size.w, win_size.h} );
-  auto inside_border = coord + window_border();
+  render_fill_rect(
+      tx, Color::red(),
+      {position.x, position.y, win_size.w, win_size.h} );
+  auto inside_border = position + window_border();
   auto inner_size    = win_size - 2 * window_border();
   render_fill_rect( tx, Color::white(),
                     Rect::from( inside_border, inner_size ) );
-  title_bar_->draw( tx, inside_border );
-  view_->draw( tx, inside_border + title_bar_->size().h );
+  title_bar->draw( tx, inside_border );
+  view->draw( tx, inside_border + title_bar->size().h );
 }
 
 // Includes border
-Delta Window::size() const {
+Delta WindowManager::window::size() const {
   Delta res;
-  res.w = std::max( title_bar_->size().w, view_->size().w );
-  res.h += title_bar_->size().h + view_->size().h;
+  res.w = std::max( title_bar->size().w, view->size().w );
+  res.h += title_bar->size().h + view->size().h;
   // multiply by two since there is top/bottom or left/right.
   res += 2 * window_border();
   return res;
 }
 
 void WindowManager::draw_layout( Texture const& tx ) const {
-  for( auto const& [window, position] : windows_ )
-    window->draw( tx, position );
+  for( auto const& window : windows_ ) window.draw( tx );
 }
 
-void WindowManager::add_window( WinPtr window, Coord position ) {
-  windows_.push_back( {std::move( window ), position} );
+void WindowManager::add_window( std::string           title_,
+                                std::unique_ptr<View> view_,
+                                Coord position ) {
+  windows_.emplace_back( std::move( title_ ), std::move( view_ ),
+                         position );
 }
 
 bool WindowManager::accept_input( SDL_Event event ) {
@@ -148,20 +138,19 @@ void test_window() {
   squares.emplace_back( PositionedView{
       make_unique<SolidRectView>( Color::blue(), square ),
       Coord{16_y, 16_x}} );
-  auto window = make_unique<Window>(
-      "First Window",
-      make_unique<CompositeView>( move( squares ) ) );
+  auto view = make_unique<CompositeView>( move( squares ) );
   WindowManager wm;
-  wm.add_window( move( window ), {200_y, 200_x} );
+  wm.add_window( "First Window", move( view ), {200_y, 200_x} );
   wm.run( [] {} );
 }
 
-void WindowManager::run( RenderFunc const& /*unused*/ ) {
+void WindowManager::run( RenderFunc const& render ) {
   ::SDL_Event event;
   bool        running = true;
   draw_layout( Texture() );
   while( running ) {
     clear_texture_black( Texture() );
+    render();
     draw_layout( Texture() );
     ::SDL_RenderPresent( g_renderer );
     while( ::SDL_PollEvent( &event ) != 0 ) {

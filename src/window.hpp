@@ -32,10 +32,8 @@ public:
   Object& operator=( Object const& ) = delete;
   Object& operator=( Object&& ) = delete;
 
-  ND virtual bool needs_redraw() const                      = 0;
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
-  // TODO: need to examine size() API
-  ND virtual Delta size() const = 0;
+  ND virtual Delta size() const                             = 0;
   ND virtual bool  accept_input( SDL_Event /*unused*/ ) {
     return false;
   }
@@ -61,8 +59,6 @@ public:
     : views_( std::move( views ) ) {}
 
   // Implement Object
-  bool needs_redraw() const override;
-  // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
   Delta size() const override;
@@ -77,8 +73,6 @@ public:
     : color_( color ), size_( std::move( size ) ) {}
 
   // Implement Object
-  bool needs_redraw() const override;
-  // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
   Delta size() const override;
@@ -92,8 +86,6 @@ class OneLineStringView : public View {
 public:
   OneLineStringView( std::string msg, W size );
 
-  // Implement Object
-  bool needs_redraw() const override;
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
@@ -110,32 +102,7 @@ enum class e_window_state { running, closed };
 
 class Window : public Object {
 public:
-  Window( std::string title, std::unique_ptr<View> view )
-    : window_state_( e_window_state::running ),
-      title_( std::move( title ) ),
-      view_( std::move( view ) ),
-      // TODO: need to examine size() API
-      title_bar_() {
-    title_bar_ = std::make_unique<OneLineStringView>(
-        title_, view_->size().w );
-  }
-
-  e_window_state state() const { return window_state_; }
-
-  // Implement Object
-  bool needs_redraw() const override;
-  // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
-  // Implement Object
-  Delta size() const override;
-
-  std::string const& title() const { return title_; }
-
 private:
-  e_window_state                     window_state_;
-  std::string                        title_;
-  std::unique_ptr<View>              view_;
-  std::unique_ptr<OneLineStringView> title_bar_;
 };
 
 /****************************************************************
@@ -152,16 +119,33 @@ public:
 
   ND bool accept_input( SDL_Event event );
 
-  void add_window( WinPtr window, Coord position );
+  void add_window( std::string title, std::unique_ptr<View> view,
+                   Coord position );
 
 private:
-  struct PositionedWindow {
-    std::unique_ptr<Window> window;
-    // TODO: vector of (window, position) pairs
-    Coord position;
+  struct window {
+    window( std::string title_, std::unique_ptr<View> view_,
+            Coord position_ )
+      : window_state( e_window_state::running ),
+        title( std::move( title_ ) ),
+        view( std::move( view_ ) ),
+        title_bar(),
+        position( position_ ) {
+      title_bar = std::make_unique<OneLineStringView>(
+          title, view->size().w );
+    }
+
+    void  draw( Texture const& tx ) const;
+    Delta size() const;
+
+    e_window_state                     window_state;
+    std::string                        title;
+    std::unique_ptr<View>              view;
+    std::unique_ptr<OneLineStringView> title_bar;
+    Coord                              position;
   };
 
-  std::vector<PositionedWindow> windows_;
+  std::vector<window> windows_;
 };
 
 void test_window();
