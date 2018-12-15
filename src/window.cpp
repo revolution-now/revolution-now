@@ -44,33 +44,35 @@ Delta const& window_border() {
 
 } // namespace
 
-void SolidRectView::draw( Texture const& tx,
-                          Coord          coord ) const {
-  auto rect = Rect{coord.x, coord.y, delta_.w, delta_.h};
-  render_fill_rect( tx, color_, rect );
-}
-
-Delta SolidRectView::delta() const { return delta_; }
-
+/****************************************************************
+** Views
+*****************************************************************/
 void CompositeView::draw( Texture const& tx,
                           Coord          coord ) const {
   // Draw each of the sub views, by augmenting its origin (which
   // is relative to the origin of the parent by the origin that
   // we have been given.
-  for( auto [view, view_coord] : ( *this ) )
+  for( auto [view, view_coord] : *this )
     view->draw( tx, coord + ( view_coord - Coord() ) );
 }
 
 Delta CompositeView::delta() const {
-  if( count() == 0 ) return {};
   auto uni0n = L2( _1.uni0n( _2.view->rect( _2.coord ) ) );
-  auto res   = accumulate( begin(), end(), Rect{}, uni0n );
-  return {res.w, res.h};
+  auto rect  = accumulate( begin(), end(), Rect{}, uni0n );
+  return {rect.w, rect.h};
 }
 
 PositionedView const& ViewVector::at( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
   return views_[idx];
+}
+
+/****************************************************************
+** Primitive Views
+*****************************************************************/
+void SolidRectView::draw( Texture const& tx,
+                          Coord          coord ) const {
+  render_fill_rect( tx, color_, rect( coord ) );
 }
 
 OneLineStringView::OneLineStringView( string msg ) {
@@ -82,8 +84,9 @@ void OneLineStringView::draw( Texture const& tx,
   CHECK( copy_texture( this->tx, tx, coord ) );
 }
 
-Delta OneLineStringView::delta() const { return tx.size(); }
-
+/****************************************************************
+** WindowManager
+*****************************************************************/
 void WindowManager::window::draw( Texture const& tx ) const {
   auto win_size = delta();
   render_fill_rect(
@@ -193,6 +196,9 @@ void WindowManager::run( RenderFunc const& render ) {
   }
 }
 
+/****************************************************************
+** High-level Methods
+*****************************************************************/
 void test_window() {
   auto square = Delta{g_tile_width, g_tile_height};
   vector<OwningPositionedView> squares;

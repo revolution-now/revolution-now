@@ -13,11 +13,9 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "input.hpp"
 #include "sdl-util.hpp"
-
-// obesrver-ptr
-#include "observer-ptr/observer-ptr.hpp"
 
 // c++ standard library
 #include <functional>
@@ -33,9 +31,8 @@ namespace rn::ui {
 
 class Object {
 public:
-  Object()          = default;
-  virtual ~Object() = default;
-
+  Object()                = default;
+  virtual ~Object()       = default;
   Object( Object const& ) = delete;
   Object( Object&& )      = delete;
 
@@ -43,7 +40,8 @@ public:
   Object& operator=( Object&& ) = delete;
 
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
-  ND virtual Delta delta() const                            = 0;
+  // This is the physical size of the object in pixels.
+  ND virtual Delta delta() const = 0;
   // Given a position, returns a bounding rect.  We need to be
   // given a position here because Objects don't know their
   // position, only their size.
@@ -61,19 +59,31 @@ public:
 *****************************************************************/
 class View : public Object {};
 
+// This is a View coupled with a coordinate representing the po-
+// sition of the upper-left corner of the view. Note that the co-
+// ordinate is in the coordinate system of the parent view or
+// window (whose position in turn will not be know by this
+// struct).
 struct PositionedView {
-  PositionedView( View* view_, Coord const& coord_ )
+  PositionedView( ObserverPtr<View> view_, Coord const& coord_ )
     : view( view_ ), coord( coord_ ) {}
-  nonstd::observer_ptr<View> view;
-  Coord                      coord;
+  ObserverCPtr<View> const view;
+  Coord const              coord;
 };
 
-struct OwningPositionedView : public PositionedView {
-  OwningPositionedView( std::unique_ptr<View> view_,
+// Same as above, but owns the view.  The
+class OwningPositionedView : public PositionedView {
+public:
+  OwningPositionedView( std::unique_ptr<View> view,
                         Coord const&          coord )
-    : PositionedView( view_.get(), coord ),
-      view( std::move( view_ ) ) {}
-  std::unique_ptr<View> view;
+    : PositionedView( ObserverPtr<View>( view.get() ), coord ),
+      view_( std::move( view ) ) {}
+
+  View const* get() const { return view_.get(); }
+  View*       get() { return view_.get(); }
+
+private:
+  std::unique_ptr<View> view_;
 };
 
 class CompositeView : public View {
@@ -86,28 +96,23 @@ public:
   virtual int                   count() const       = 0;
   virtual PositionedView const& at( int idx ) const = 0;
 
-  struct const_iterator {
-    CompositeView const* cview;
-    int                  idx;
-    bool operator==( const_iterator const& rhs ) {
-      return rhs.idx == idx;
-    }
-    bool operator!=( const_iterator const& rhs ) {
+  template<typename T, typename Child>
+  struct IterT {
+    T*    cview;
+    int   idx;
+    auto& operator*() { return cview->at( idx ); }
+    void  operator++() { ++idx; }
+    bool  operator!=( Child const& rhs ) {
       return rhs.idx != idx;
     }
-    auto const& operator*() const { return cview->at( idx ); }
-    auto const* operator-> () const {
-      return &( cview->at( idx ) );
-    }
-    void operator++() { ++idx; }
   };
+  struct iter : public IterT<CompositeView, iter> {};
+  struct citer : public IterT<CompositeView const, citer> {};
 
-  const_iterator begin() const {
-    return const_iterator{this, 0};
-  }
-  const_iterator end() const {
-    return const_iterator{this, count()};
-  }
+  iter  begin() { return iter{{this, 0}}; }
+  iter  end() { return iter{{this, count()}}; }
+  citer begin() const { return citer{{this, 0}}; }
+  citer end() const { return citer{{this, count()}}; }
 };
 
 class ViewVector : public CompositeView {
@@ -124,6 +129,9 @@ private:
   std::vector<OwningPositionedView> views_;
 };
 
+/****************************************************************
+** Primitive Views
+*****************************************************************/
 class SolidRectView : public View {
 public:
   SolidRectView( Color color, Delta delta )
@@ -132,7 +140,7 @@ public:
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  Delta delta() const override;
+  Delta delta() const override { return delta_; }
 
 protected:
   Color color_;
@@ -146,28 +154,18 @@ public:
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  Delta delta() const override;
+  Delta delta() const override { return tx.size(); }
 
 protected:
   Texture tx;
 };
 
 /****************************************************************
-** Window
-*****************************************************************/
-enum class e_window_state { running, closed };
-
-class Window : public Object {
-public:
-private:
-};
-
-/****************************************************************
 ** WindowManager
 *****************************************************************/
 using RenderFunc = std::function<void( void )>;
-using WinPtr     = std::unique_ptr<Window>;
 
+enum class e_window_state { running, closed };
 enum class e_wm_input_result { unhandled, handled, quit };
 
 class WindowManager {
@@ -211,6 +209,9 @@ private:
   std::vector<window> windows_;
 };
 
+/****************************************************************
+** High-level Methods
+*****************************************************************/
 void test_window();
 
 void message_box( std::string_view  msg,

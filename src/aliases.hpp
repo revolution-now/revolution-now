@@ -13,6 +13,9 @@
 
 #include "core-config.hpp"
 
+// obesrver-ptr
+#include "observer-ptr/observer-ptr.hpp"
+
 // c++ standard library
 #include <functional>
 #include <optional>
@@ -58,5 +61,11 @@ using OptStr = Opt<std::string>;
 
 template<typename U, typename V>
 using VecPair = Vec<std::pair<U, V>>;
+
+template<typename T>
+using ObserverPtr = ::nonstd::observer_ptr<T>;
+
+template<typename T>
+using ObserverCPtr = ObserverPtr<T const>;
 
 namespace rn {} // namespace rn
