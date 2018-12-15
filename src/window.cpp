@@ -46,31 +46,34 @@ Delta const& window_border() {
 
 void SolidRectView::draw( Texture const& tx,
                           Coord          coord ) const {
-  auto rect = Rect{coord.x, coord.y, size_.w, size_.h};
+  auto rect = Rect{coord.x, coord.y, delta_.w, delta_.h};
   render_fill_rect( tx, color_, rect );
 }
 
-Delta SolidRectView::size() const { return size_; }
+Delta SolidRectView::delta() const { return delta_; }
 
 void CompositeView::draw( Texture const& tx,
                           Coord          coord ) const {
-  // Draw each of the sub views, by augment its origin (which is
-  // relative to the origin of the parent by the origin that we
-  // have been given.
-  for( auto const& view_desc : views_ )
-    view_desc.view->draw(
-        tx, coord + ( view_desc.coord - Coord() ) );
+  // Draw each of the sub views, by augmenting its origin (which
+  // is relative to the origin of the parent by the origin that
+  // we have been given.
+  for( auto [view, view_coord] : ( *this ) )
+    view->draw( tx, coord + ( view_coord - Coord() ) );
 }
 
-Delta CompositeView::size() const {
-  if( views_.empty() ) return {};
-  auto uni0n = L2( _1.uni0n( _2.bounds() ) );
-  auto res   = accumulate( views_.begin(), views_.end(),
-                         views_[0].bounds(), uni0n );
+Delta CompositeView::delta() const {
+  if( count() == 0 ) return {};
+  auto uni0n = L2( _1.uni0n( _2.view->rect( _2.coord ) ) );
+  auto res   = accumulate( begin(), end(), Rect{}, uni0n );
   return {res.w, res.h};
 }
 
-OneLineStringView::OneLineStringView( string msg, W ) {
+PositionedView const& ViewVector::at( int idx ) const {
+  CHECK( idx >= 0 && idx < int( views_.size() ) );
+  return views_[idx];
+}
+
+OneLineStringView::OneLineStringView( string msg ) {
   tx = render_line_shadow( fonts::standard, msg );
 }
 
@@ -79,10 +82,10 @@ void OneLineStringView::draw( Texture const& tx,
   CHECK( copy_texture( this->tx, tx, coord ) );
 }
 
-Delta OneLineStringView::size() const { return tx.size(); }
+Delta OneLineStringView::delta() const { return tx.size(); }
 
 void WindowManager::window::draw( Texture const& tx ) const {
-  auto win_size = size();
+  auto win_size = delta();
   render_fill_rect(
       tx, Color::red(),
       {position.x, position.y, win_size.w, win_size.h} );
@@ -91,21 +94,21 @@ void WindowManager::window::draw( Texture const& tx ) const {
   render_fill_rect( tx, Color::white(),
                     Rect::from( inside_border, inner_size ) );
   title_bar->draw( tx, inside_border );
-  view->draw( tx, inside_border + title_bar->size().h );
+  view->draw( tx, inside_border + title_bar->delta().h );
 }
 
 // Includes border
-Delta WindowManager::window::size() const {
+Delta WindowManager::window::delta() const {
   Delta res;
-  res.w = std::max( title_bar->size().w, view->size().w );
-  res.h += title_bar->size().h + view->size().h;
+  res.w = std::max( title_bar->delta().w, view->delta().w );
+  res.h += title_bar->delta().h + view->delta().h;
   // multiply by two since there is top/bottom or left/right.
   res += 2 * window_border();
   return res;
 }
 
 Rect WindowManager::window::rect() const {
-  return Rect::from( position, size() );
+  return Rect::from( position, delta() );
 }
 
 Coord WindowManager::window::inside_border() const {
@@ -192,20 +195,20 @@ void WindowManager::run( RenderFunc const& render ) {
 
 void test_window() {
   auto square = Delta{g_tile_width, g_tile_height};
-  vector<PositionedView> squares;
-  squares.emplace_back( PositionedView{
+  vector<OwningPositionedView> squares;
+  squares.emplace_back( OwningPositionedView{
       make_unique<SolidRectView>( Color::red(), square ),
       Coord{0_y, 0_x}} );
-  squares.emplace_back( PositionedView{
+  squares.emplace_back( OwningPositionedView{
       make_unique<SolidRectView>( Color::green(), square ),
       Coord{0_y, 32_x}} );
-  squares.emplace_back( PositionedView{
+  squares.emplace_back( OwningPositionedView{
       make_unique<SolidRectView>( Color::black(), square ),
       Coord{20_y, 0_x}} );
-  squares.emplace_back( PositionedView{
+  squares.emplace_back( OwningPositionedView{
       make_unique<SolidRectView>( Color::blue(), square ),
       Coord{16_y, 16_x}} );
-  auto view = make_unique<CompositeView>( move( squares ) );
+  auto view = make_unique<ViewVector>( move( squares ) );
   WindowManager wm;
   wm.add_window( "First Window", move( view ), {200_y, 200_x} );
   wm.run( [] {} );

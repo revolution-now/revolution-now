@@ -40,12 +40,12 @@ public:
   Object& operator=( Object&& ) = delete;
 
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
-  ND virtual Delta size() const                             = 0;
+  ND virtual Delta delta() const                            = 0;
   // Given a position, returns a bounding rect.  We need to be
   // given a position here because Objects don't know their
   // position, only their size.
   ND virtual Rect rect( Coord position ) const {
-    return Rect::from( position, size() );
+    return Rect::from( position, delta() );
   }
   ND virtual bool accept_input(
       input::event_t const& /*unused*/ ) {
@@ -59,51 +59,91 @@ public:
 class View : public Object {};
 
 struct PositionedView {
-  Rect bounds() const {
-    return Rect::from( coord, coord + view->size() );
-  };
+  PositionedView( View* view_, Coord const& coord_ )
+    : view( view_ ), coord( coord_ ) {}
+  View* view;
+  Coord coord;
+};
+
+struct OwningPositionedView : public PositionedView {
+  OwningPositionedView( std::unique_ptr<View> view_,
+                        Coord const&          coord )
+    : PositionedView( view_.get(), coord ),
+      view( std::move( view_ ) ) {}
   std::unique_ptr<View> view;
-  Coord                 coord;
 };
 
 class CompositeView : public View {
 public:
-  // Pass views by value.
-  explicit CompositeView( std::vector<PositionedView> views )
-    : views_( std::move( views ) ) {}
-
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  Delta size() const override;
+  Delta delta() const override;
 
-protected:
-  std::vector<PositionedView> views_;
+  virtual int                   count() const       = 0;
+  virtual PositionedView const& at( int idx ) const = 0;
+
+  struct const_iterator {
+    CompositeView const* cview;
+    int                  idx;
+    bool operator==( const_iterator const& rhs ) {
+      return rhs.idx == idx;
+    }
+    bool operator!=( const_iterator const& rhs ) {
+      return rhs.idx != idx;
+    }
+    auto const& operator*() const { return cview->at( idx ); }
+    auto const* operator-> () const {
+      return &( cview->at( idx ) );
+    }
+    void operator++() { ++idx; }
+  };
+
+  const_iterator begin() const {
+    return const_iterator{this, 0};
+  }
+  const_iterator end() const {
+    return const_iterator{this, count()};
+  }
+};
+
+class ViewVector : public CompositeView {
+public:
+  ViewVector( std::vector<OwningPositionedView> views )
+    : views_( std::move( views ) ) {}
+
+  // Implement CompositeView
+  PositionedView const& at( int idx ) const override;
+  // Implement CompositeView
+  int count() const override { return int( views_.size() ); }
+
+private:
+  std::vector<OwningPositionedView> views_;
 };
 
 class SolidRectView : public View {
 public:
-  SolidRectView( Color color, Delta size )
-    : color_( color ), size_( std::move( size ) ) {}
+  SolidRectView( Color color, Delta delta )
+    : color_( color ), delta_( delta ) {}
 
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  Delta size() const override;
+  Delta delta() const override;
 
 protected:
   Color color_;
-  Delta size_;
+  Delta delta_;
 };
 
 class OneLineStringView : public View {
 public:
-  OneLineStringView( std::string msg, W size );
+  OneLineStringView( std::string msg );
 
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  Delta size() const override;
+  Delta delta() const override;
 
 protected:
   Texture tx;
@@ -147,12 +187,11 @@ private:
         view( std::move( view_ ) ),
         title_bar(),
         position( position_ ) {
-      title_bar = std::make_unique<OneLineStringView>(
-          title, view->size().w );
+      title_bar = std::make_unique<OneLineStringView>( title );
     }
 
     void  draw( Texture const& tx ) const;
-    Delta size() const;
+    Delta delta() const;
     Rect  rect() const;
     Coord inside_border() const;
 
