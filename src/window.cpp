@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "window.hpp"
 
+// Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
@@ -18,8 +19,10 @@
 #include "tiles.hpp"
 #include "typed-int.hpp"
 
+// base-util
 #include "base-util/misc.hpp"
 
+// c++ standard library
 #include <algorithm>
 #include <numeric>
 
@@ -105,6 +108,10 @@ Rect WindowManager::window::rect() const {
   return Rect::from( position, size() );
 }
 
+Coord WindowManager::window::inside_border() const {
+  return position + window_border();
+}
+
 void WindowManager::draw_layout( Texture const& tx ) const {
   for( auto const& window : windows_ ) window.draw( tx );
 }
@@ -121,6 +128,32 @@ e_wm_input_result WindowManager::accept_input(
   bool handled = false;
 
   auto event = input::from_SDL( sdl_event );
+
+  Rect title_bar =
+      focused().title_bar->rect( focused().inside_border() );
+  // auto mouse_pos = event.mouse_state.pos;
+  // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
+  //               title_bar.x, title_bar.y, title_bar.w,
+  //               title_bar.h, mouse_pos.x, mouse_pos.y );
+  if( std::holds_alternative<input::mouse_event_t>(
+          event.event ) ) {
+    auto const& mouse_event =
+        std::get<input::mouse_event_t>( event.event );
+    logger->trace( "Mouse event" );
+    if( event.mouse_state.pos.is_inside( title_bar ) ||
+        mouse_event.prev.is_inside( title_bar ) ) {
+      logger->trace( "  and inside title bar" );
+      if( event.mouse_state.left ) {
+        logger->trace( "  and left mouse down" );
+        logger->trace( "  and delta x: {}",
+                       mouse_event.delta.w );
+        logger->trace( "  and delta y: {}",
+                       mouse_event.delta.h );
+        // We're dragging on the title bar.
+        focused().position += mouse_event.delta;
+      }
+    }
+  }
 
   handled = focused().view->accept_input( event );
 

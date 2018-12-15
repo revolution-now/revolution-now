@@ -202,7 +202,7 @@ void print_video_stats() {
              monitor_inches() );
 }
 
-pair<H, W> find_max_tile_sizes() {
+void find_max_tile_sizes() {
   // We want ideally to have a tile whose side is this length in
   // inches. The algorithm that follows will try to find an
   // integer scaling factor (and associated maximal screen width
@@ -231,9 +231,9 @@ pair<H, W> find_max_tile_sizes() {
   ////////////////////////////////////////////////
 
   // cout << "Finding optimal tile sizes:\n";
-  auto                 dm = get_current_display_mode();
-  optional<pair<H, W>> res;
-  double               min_score = -1.0 / 0.0; // make -infinity
+  auto            dm = get_current_display_mode();
+  optional<Delta> result;
+  double          min_score = -1.0 / 0.0; // make -infinity
   // constexpr int        col{18};
   double monitor_size = monitor_inches();
   // cout << "Computed Viewer Distance from Screen: "
@@ -292,17 +292,29 @@ pair<H, W> find_max_tile_sizes() {
     // cout << setw( col ) << score;
     // cout << "\n";
     if( score >= min_score ) {
-      res = {H( max_height / g_tile_height ),
-             W( max_width / g_tile_width )};
+      result = {W( max_width / g_tile_width ),
+                H( max_height / g_tile_height )};
 
       min_score    = score;
       chosen_scale = scale;
     }
   }
-  CHECK( res );
-  LOG_DEBUG( "Optimal: #{}", chosen_scale );
-  (void)chosen_scale; // only used in macro which can be disabled
-  return *res;
+  CHECK_( result, "Could not find a suitable scaling" );
+  auto const& delta = *result;
+  logger->debug( "Optimal: #{}", chosen_scale );
+  set_screen_width_tiles( delta.w );
+  set_screen_height_tiles( delta.h );
+  g_resolution_scale_factor = chosen_scale;
+  g_drawing_origin.w =
+      ( dm.w - ( chosen_scale * delta.w * g_tile_width ) ) / 2;
+  g_drawing_origin.h =
+      ( dm.h - ( chosen_scale * delta.h * g_tile_height ) ) / 2;
+  g_drawing_region.x = 0_x + g_drawing_origin.w;
+  g_drawing_region.y = 0_y + g_drawing_origin.h;
+  g_drawing_region.w = dm.w - g_drawing_origin.w * 2;
+  g_drawing_region.h = dm.h - g_drawing_origin.h * 2;
+  logger->debug( "w drawing origin: {}", g_drawing_origin.w );
+  logger->debug( "h drawing origin: {}", g_drawing_origin.h );
 }
 
 void create_renderer() {
@@ -312,9 +324,7 @@ void create_renderer() {
 
   if( g_renderer == nullptr ) DIE( "failed to create renderer" );
 
-  auto screen_sizes = find_max_tile_sizes();
-  set_screen_width_tiles( screen_sizes.second );
-  set_screen_height_tiles( screen_sizes.first );
+  find_max_tile_sizes();
 
   W width  = g_tile_width._ * screen_width_tiles();
   H height = g_tile_height._ * screen_height_tiles();

@@ -92,6 +92,13 @@ Y const& Coord::coordinate<Y>() const {
   return y;
 }
 
+void Coord::clip( Rect const& rect ) {
+  if( y < rect.y ) y = rect.y;
+  if( y > rect.y + rect.h ) y = rect.y + rect.h;
+  if( x < rect.x ) x = rect.x;
+  if( x > rect.x + rect.w ) x = rect.x + rect.w;
+}
+
 Coord Coord::moved( direction d ) {
   // clang-format off
   switch( d ) {

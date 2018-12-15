@@ -154,6 +154,7 @@ private:
     void  draw( Texture const& tx ) const;
     Delta size() const;
     Rect  rect() const;
+    Coord inside_border() const;
 
     e_window_state                     window_state;
     std::string                        title;

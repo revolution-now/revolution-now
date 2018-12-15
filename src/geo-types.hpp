@@ -12,7 +12,11 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
 #include "typed-int.hpp"
+
+// c++ standard library
+#include <cmath>
 
 namespace rn {
 
@@ -68,6 +72,35 @@ enum class ND direction {
   // clang-format on
 };
 
+struct ND Delta {
+  W w = 0_w;
+  H h = 0_h;
+
+  bool operator==( Delta const& other ) const {
+    return ( h == other.h ) && ( w == other.w );
+  }
+
+  bool operator!=( Delta const& other ) const {
+    return ( h != other.h ) || ( w != other.w );
+  }
+
+  Delta operator-() { return {-w, -h}; }
+
+  void operator+=( Delta const& other ) {
+    w += other.w;
+    h += other.h;
+  }
+
+  static Delta const& zero() {
+    static Delta const zero{};
+    return zero;
+  }
+
+  // Result will be the smallest delta that encompasses both
+  // this one and the parameter.
+  Delta uni0n( Delta const& rhs ) const;
+};
+
 struct ND Coord {
   Y y = 0_y;
   X x = 0_x;
@@ -85,29 +118,21 @@ struct ND Coord {
     return !( *this == other );
   }
 
+  void operator+=( Delta const& delta ) {
+    x += delta.w;
+    y += delta.h;
+  }
+
+  // If this coord is outside the rect then it will be brought
+  // into the rect by traveling in precisely one straight line
+  // in each direction (or possibly only one direction).
+  void clip( Rect const& rect );
+
   Coord moved( direction d );
   bool  is_inside( Rect const& rect ) const;
 };
 
 using OptCoord = std::optional<Coord>;
-
-struct ND Delta {
-  W    w = 0_w;
-  H    h = 0_h;
-  bool operator==( Delta const& other ) const {
-    return ( h == other.h ) && ( w == other.w );
-  }
-
-  Delta operator-() { return {-w, -h}; }
-
-  void operator+=( Delta const& other ) {
-    w += other.w;
-    h += other.h;
-  }
-  // Result will be the smallest delta that encompasses both
-  // this one and the parameter.
-  Delta uni0n( Delta const& rhs ) const;
-};
 
 // Same as Delta::uni0n
 ND Delta max( Delta const& lhs, Delta const& rhs );

@@ -27,7 +27,7 @@ struct mouse_state_t {
   bool  left   = false;
   bool  middle = false;
   bool  right  = false;
-  Coord pos{};
+  Coord pos{}; // current mouse position
 };
 
 enum class e_mouse_button {
@@ -40,7 +40,9 @@ enum class e_mouse_button {
 
 struct mouse_event_t {
   e_mouse_button buttons = e_mouse_button::none;
-  Delta          delta{};
+  // It should always be the case that prev + delta = pos.
+  Coord prev{}; // previous mouse position
+  Delta delta{};
 };
 
 enum class e_key_change { up, down };

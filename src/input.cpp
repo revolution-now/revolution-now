@@ -10,22 +10,39 @@
 *****************************************************************/
 #include "input.hpp"
 
+// Revolution Now
+#include "globals.hpp"
+
 namespace rn::input {
 
-namespace {} // namespace
+namespace {
+
+// This is used to hold the last "measured" mouse position, where
+// "measured" means the last time there was a mouse motion event
+// that we processed in this module.  Clients cannot see this
+// directly, but will get it in the mouse motion event along with
+// the current mouse position whenever it changes.
+Coord g_mouse{};
+
+} // namespace
 
 // Takes an SDL event and converts it to our own event descriptor
 // struct which is easier to deal with.
 event_t from_SDL( ::SDL_Event sdl_event ) {
   event_t event;
 
-  int  mouse_x, mouse_y;
-  auto buttons = ::SDL_GetMouseState( &mouse_x, &mouse_y );
+  Coord mouse;
+  auto  buttons = ::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
+
+  mouse = mouse + ( -g_drawing_origin );
+  mouse.clip( g_drawing_region );
+  mouse.x /= g_resolution_scale_factor;
+  mouse.y /= g_resolution_scale_factor;
+
   event.mouse_state =
       mouse_state_t{bool( buttons & SDL_BUTTON_LMASK ),
                     bool( buttons & SDL_BUTTON_MMASK ),
-                    bool( buttons & SDL_BUTTON_RMASK ),
-                    {Y( mouse_y ), X( mouse_x )}};
+                    bool( buttons & SDL_BUTTON_RMASK ), mouse};
   mouse_event_t mouse_event;
 
   key_event_t key_event;
@@ -45,9 +62,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       event.event        = key_event;
       break;
     case ::SDL_MOUSEMOTION:
-      mouse_event.delta.w = W( sdl_event.motion.xrel );
-      mouse_event.delta.h = H( sdl_event.motion.xrel );
-      event.event         = mouse_event;
+      mouse_event.prev  = g_mouse;
+      mouse_event.delta = mouse - g_mouse;
+      // g_mouse_* needs to hold the previous mouse position.
+      g_mouse     = mouse;
+      event.event = mouse_event;
       break;
     case ::SDL_MOUSEBUTTONDOWN:
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {

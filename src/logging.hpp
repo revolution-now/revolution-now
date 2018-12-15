@@ -77,6 +77,11 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 // clang-format on
 
+// This is needed so that we can log types using the formatter
+// when there are operator<< overloads for them (spdlog uses
+// the fmt library internally).
+#include "fmt/ostream.h"
+
 // c++ standard library
 #include <experimental/filesystem>
 
