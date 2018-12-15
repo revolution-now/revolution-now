@@ -65,7 +65,7 @@ class View : public Object {};
 // window (whose position in turn will not be know by this
 // struct).
 struct PositionedView {
-  PositionedView( ObserverPtr<View> view_, Coord const& coord_ )
+  PositionedView( ObserverCPtr<View> view_, Coord const& coord_ )
     : view( view_ ), coord( coord_ ) {}
   ObserverCPtr<View> const view;
   Coord const              coord;
@@ -93,16 +93,16 @@ public:
   // Implement Object
   Delta delta() const override;
 
-  virtual int                   count() const       = 0;
-  virtual PositionedView const& at( int idx ) const = 0;
+  virtual int            count() const       = 0;
+  virtual PositionedView at( int idx ) const = 0;
 
   template<typename T, typename Child>
   struct IterT {
-    T*    cview;
-    int   idx;
-    auto& operator*() { return cview->at( idx ); }
-    void  operator++() { ++idx; }
-    bool  operator!=( Child const& rhs ) {
+    T*   cview;
+    int  idx;
+    auto operator*() { return cview->at( idx ); }
+    void operator++() { ++idx; }
+    bool operator!=( Child const& rhs ) {
       return rhs.idx != idx;
     }
   };
@@ -117,13 +117,19 @@ public:
 
 class ViewVector : public CompositeView {
 public:
+  ViewVector() {}
+
   ViewVector( std::vector<OwningPositionedView> views )
     : views_( std::move( views ) ) {}
 
   // Implement CompositeView
-  PositionedView const& at( int idx ) const override;
+  PositionedView at( int idx ) const override;
   // Implement CompositeView
   int count() const override { return int( views_.size() ); }
+
+  void push_back( OwningPositionedView view ) {
+    views_.push_back( std::move( view ) );
+  }
 
 private:
   std::vector<OwningPositionedView> views_;
@@ -134,6 +140,8 @@ private:
 *****************************************************************/
 class SolidRectView : public View {
 public:
+  SolidRectView( Color color ) : color_( color ), delta_{} {}
+
   SolidRectView( Color color, Delta delta )
     : color_( color ), delta_( delta ) {}
 
@@ -141,6 +149,8 @@ public:
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override { return delta_; }
+
+  void set_delta( Delta const& delta ) { delta_ = delta; }
 
 protected:
   Color color_;
@@ -158,6 +168,48 @@ public:
 
 protected:
   Texture tx;
+};
+
+/****************************************************************
+** Derived Views
+*****************************************************************/
+enum class e_option_active { inactive, active };
+
+class OptionSelectItemView : public CompositeView {
+public:
+  OptionSelectItemView( std::string msg )
+    : active_{e_option_active::inactive},
+      background_active_{Color::red()},
+      background_inactive_{Color::black()},
+      line_( msg ) {
+    background_active_.set_delta( line_.delta() );
+    background_inactive_.set_delta( line_.delta() );
+  }
+
+  // Implement CompositeView
+  PositionedView at( int idx ) const override;
+  // Implement CompositeView
+  int count() const override { return 2; }
+
+  void set_active( e_option_active active ) { active_ = active; }
+
+private:
+  e_option_active   active_;
+  SolidRectView     background_active_;
+  SolidRectView     background_inactive_;
+  OneLineStringView line_;
+};
+
+class OptionSelectView : public ViewVector {
+public:
+  OptionSelectView( StrVec const& options,
+                    int           initial_selection );
+
+private:
+  ObserverPtr<OptionSelectItemView> get_view( int item );
+  void                              set_selected( int item );
+
+  int selected_;
 };
 
 /****************************************************************

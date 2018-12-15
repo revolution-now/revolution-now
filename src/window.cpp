@@ -62,9 +62,9 @@ Delta CompositeView::delta() const {
   return {rect.w, rect.h};
 }
 
-PositionedView const& ViewVector::at( int idx ) const {
+PositionedView ViewVector::at( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
-  return views_[idx];
+  return views_[idx]; // Slicing, but that's ok.
 }
 
 /****************************************************************
@@ -82,6 +82,64 @@ OneLineStringView::OneLineStringView( string msg ) {
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
   CHECK( copy_texture( this->tx, tx, coord ) );
+}
+
+/****************************************************************
+** Derived Views
+*****************************************************************/
+PositionedView OptionSelectItemView::at( int idx ) const {
+  CHECK( idx == 0 || idx == 1 );
+  Coord       coord{};
+  View const* view{};
+  switch( idx ) {
+    case 0:
+      switch( active_ ) {
+        case e_option_active::active:
+          view = &background_active_;
+          break;
+        case e_option_active::inactive:
+          view = &background_inactive_;
+          break;
+      }
+      break;
+    case 1: view = &line_; break;
+  }
+  return {ObserverCPtr<View>{view}, coord};
+}
+
+OptionSelectView::OptionSelectView( StrVec const& options,
+                                    int initial_selection )
+  : selected_{initial_selection} {
+  CHECK( options.size() > 0 );
+  CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
+
+  Coord so_far{};
+  for( auto const& option : options ) {
+    auto view   = make_unique<OptionSelectItemView>( option );
+    auto height = view->delta().h;
+    push_back( OwningPositionedView( move( view ), so_far ) );
+    // `view` is no longer available here (moved from).
+    so_far.y += height;
+  }
+
+  // Now that we have the individual options populated we can
+  // officially set a selected one.
+  set_selected( selected_ );
+}
+
+ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
+    int item ) {
+  CHECK_( item >= 0 && item < count(),
+          "item '" << item << "' is out of bounds" );
+  auto* view    = const_cast<View*>( at( item ).view.get() );
+  auto* o_s_i_v = dynamic_cast<OptionSelectItemView*>( view );
+  return ObserverPtr<OptionSelectItemView>{o_s_i_v};
+}
+
+void OptionSelectView::set_selected( int item ) {
+  get_view( selected_ )->set_active( e_option_active::inactive );
+  get_view( item )->set_active( e_option_active::active );
+  selected_ = item;
 }
 
 /****************************************************************
@@ -122,10 +180,10 @@ void WindowManager::draw_layout( Texture const& tx ) const {
   for( auto const& window : windows_ ) window.draw( tx );
 }
 
-void WindowManager::add_window( std::string           title_,
-                                std::unique_ptr<View> view_,
-                                Coord position ) {
-  windows_.emplace_back( std::move( title_ ), std::move( view_ ),
+void WindowManager::add_window( string           title_,
+                                unique_ptr<View> view_,
+                                Coord            position ) {
+  windows_.emplace_back( move( title_ ), move( view_ ),
                          position );
 }
 
@@ -141,10 +199,9 @@ e_wm_input_result WindowManager::accept_input(
   // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
   //               title_bar.x, title_bar.y, title_bar.w,
   //               title_bar.h, mouse_pos.x, mouse_pos.y );
-  if( std::holds_alternative<input::mouse_event_t>(
-          event.event ) ) {
+  if( holds_alternative<input::mouse_event_t>( event.event ) ) {
     auto const& mouse_event =
-        std::get<input::mouse_event_t>( event.event );
+        get<input::mouse_event_t>( event.event );
     logger->trace( "Mouse event" );
     if( event.mouse_state.pos.is_inside( title_bar ) ||
         mouse_event.prev.is_inside( title_bar ) ) {
@@ -214,6 +271,13 @@ void test_window() {
   squares.emplace_back( OwningPositionedView{
       make_unique<SolidRectView>( Color::blue(), square ),
       Coord{16_y, 16_x}} );
+  StrVec options{"This is the first option.",
+                 "This is the second option.",
+                 "This is the third option.", "Short.",
+                 "A very long long long long long long option"};
+  squares.emplace_back( OwningPositionedView{
+      make_unique<OptionSelectView>( options, 2 ),
+      Coord{100_y, 0_x}} );
   auto view = make_unique<ViewVector>( move( squares ) );
   WindowManager wm;
   wm.add_window( "First Window", move( view ), {200_y, 200_x} );
