@@ -16,6 +16,9 @@
 #include "input.hpp"
 #include "sdl-util.hpp"
 
+// obesrver-ptr
+#include "observer-ptr/observer-ptr.hpp"
+
 // c++ standard library
 #include <functional>
 #include <memory>
@@ -61,8 +64,8 @@ class View : public Object {};
 struct PositionedView {
   PositionedView( View* view_, Coord const& coord_ )
     : view( view_ ), coord( coord_ ) {}
-  View* view;
-  Coord coord;
+  nonstd::observer_ptr<View> view;
+  Coord                      coord;
 };
 
 struct OwningPositionedView : public PositionedView {

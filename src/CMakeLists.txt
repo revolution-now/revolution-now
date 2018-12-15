@@ -16,6 +16,7 @@ target_link_libraries(
     absl::hash
     absl::strings
     fmt::fmt
+    observer-ptr::observer-ptr
     spdlog::spdlog
     ucl
     ${SDL2_LIBRARY}
