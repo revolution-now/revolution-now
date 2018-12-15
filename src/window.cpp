@@ -14,6 +14,7 @@
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "globals.hpp"
+#include "logging.hpp"
 #include "tiles.hpp"
 #include "typed-int.hpp"
 
@@ -100,6 +101,10 @@ Delta WindowManager::window::size() const {
   return res;
 }
 
+Rect WindowManager::window::rect() const {
+  return Rect::from( position, size() );
+}
+
 void WindowManager::draw_layout( Texture const& tx ) const {
   for( auto const& window : windows_ ) window.draw( tx );
 }
@@ -111,16 +116,45 @@ void WindowManager::add_window( std::string           title_,
                          position );
 }
 
-bool WindowManager::accept_input( SDL_Event event ) {
-  switch( event.type ) {
-    case ::SDL_MOUSEBUTTONDOWN:
-      switch( event.button.button ) {
-        case SDL_BUTTON_LEFT: break;
-        case SDL_BUTTON_RIGHT: break;
+e_wm_input_result WindowManager::accept_input(
+    SDL_Event const& sdl_event ) {
+  bool handled = false;
+
+  auto event = input::from_SDL( sdl_event );
+
+  handled = focused().view->accept_input( event );
+
+  return handled ? e_wm_input_result::handled
+                 : e_wm_input_result::unhandled;
+}
+
+WindowManager::window& WindowManager::focused() {
+  CHECK( !windows_.empty() );
+  return windows_[0];
+}
+
+void WindowManager::run( RenderFunc const& render ) {
+  logger->debug( "Running window manager" );
+  ::SDL_Event event;
+  bool        running = true;
+  draw_layout( Texture() );
+  while( running ) {
+    clear_texture_black( Texture() );
+    render();
+    draw_layout( Texture() );
+    ::SDL_RenderPresent( g_renderer );
+    while( ::SDL_PollEvent( &event ) != 0 ) {
+      if( event.type == SDL_KEYDOWN &&
+          event.key.keysym.sym == ::SDLK_q ) {
+        running = false;
+        logger->debug( "received quit signal SDLK_q" );
+      } else {
+        running &=
+            ( accept_input( event ) != e_wm_input_result::quit );
       }
-    default: break;
+    }
+    ::SDL_Delay( 10 );
   }
-  return false;
 }
 
 void test_window() {
@@ -142,26 +176,6 @@ void test_window() {
   WindowManager wm;
   wm.add_window( "First Window", move( view ), {200_y, 200_x} );
   wm.run( [] {} );
-}
-
-void WindowManager::run( RenderFunc const& render ) {
-  ::SDL_Event event;
-  bool        running = true;
-  draw_layout( Texture() );
-  while( running ) {
-    clear_texture_black( Texture() );
-    render();
-    draw_layout( Texture() );
-    ::SDL_RenderPresent( g_renderer );
-    while( ::SDL_PollEvent( &event ) != 0 ) {
-      if( event.type == SDL_KEYDOWN &&
-          event.key.keysym.sym == ::SDLK_q )
-        running = false;
-      (void)accept_input( event );
-    }
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    ::SDL_Delay( 10 );
-  }
 }
 
 void message_box( string_view       msg,

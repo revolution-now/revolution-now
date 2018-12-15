@@ -12,12 +12,19 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "input.hpp"
 #include "sdl-util.hpp"
 
+// c++ standard library
 #include <functional>
 #include <memory>
 #include <string_view>
 #include <vector>
+
+namespace rn::input {
+struct event_t;
+}
 
 namespace rn::ui {
 
@@ -34,7 +41,14 @@ public:
 
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
   ND virtual Delta size() const                             = 0;
-  ND virtual bool  accept_input( SDL_Event /*unused*/ ) {
+  // Given a position, returns a bounding rect.  We need to be
+  // given a position here because Objects don't know their
+  // position, only their size.
+  ND virtual Rect rect( Coord position ) const {
+    return Rect::from( position, size() );
+  }
+  ND virtual bool accept_input(
+      input::event_t const& /*unused*/ ) {
     return false;
   }
 };
@@ -111,13 +125,15 @@ private:
 using RenderFunc = std::function<void( void )>;
 using WinPtr     = std::unique_ptr<Window>;
 
+enum class e_wm_input_result { unhandled, handled, quit };
+
 class WindowManager {
 public:
   void draw_layout( Texture const& tx ) const;
 
   void run( RenderFunc const& render_fn );
 
-  ND bool accept_input( SDL_Event event );
+  ND e_wm_input_result accept_input( SDL_Event const& event );
 
   void add_window( std::string title, std::unique_ptr<View> view,
                    Coord position );
@@ -137,6 +153,7 @@ private:
 
     void  draw( Texture const& tx ) const;
     Delta size() const;
+    Rect  rect() const;
 
     e_window_state                     window_state;
     std::string                        title;
@@ -144,6 +161,9 @@ private:
     std::unique_ptr<OneLineStringView> title_bar;
     Coord                              position;
   };
+
+  // Gets the window with focus, throws if no windows.
+  window& focused();
 
   std::vector<window> windows_;
 };

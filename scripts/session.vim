@@ -10,6 +10,7 @@ let s:stems = [
   \ 'src/sdl-util',
   \ 'src/fonts',
   \ 'src/window',
+  \ 'src/input',
   \ 'src/world',
   \ 'src/geo-types',
   \ 'src/viewport',
