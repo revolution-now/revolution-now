@@ -68,13 +68,14 @@ bool CompositeView::accept_input( input::event_t const& event ) {
   return false;
 }
 
-PositionedView ViewVector::at( int idx ) {
-  CHECK( idx >= 0 && idx < int( views_.size() ) );
-  auto& view = views_[idx];
-  return {view.view(), view.coord()};
+PositionedView CompositeView::at( int idx ) {
+  auto p_view =
+      static_cast<CompositeView const*>( this )->at_const( idx );
+  ObserverPtr<View> view{const_cast<View*>( p_view.view.get() )};
+  return {view, p_view.coord};
 }
 
-PositionedViewConst ViewVector::at( int idx ) const {
+PositionedViewConst ViewVector::at_const( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
   auto& view = views_[idx];
   return {view.view(), view.coord()};
@@ -100,7 +101,8 @@ void OneLineStringView::draw( Texture const& tx,
 /****************************************************************
 ** Derived Views
 *****************************************************************/
-PositionedViewConst OptionSelectItemView::at( int idx ) const {
+PositionedViewConst OptionSelectItemView::at_const(
+    int idx ) const {
   CHECK( idx == 0 || idx == 1 );
   Coord       coord{};
   View const* view{};
@@ -118,15 +120,6 @@ PositionedViewConst OptionSelectItemView::at( int idx ) const {
     case 1: view = &line_; break;
   }
   return {ObserverCPtr<View>{view}, coord};
-}
-// TODO: need to find a better way to implement both a const and
-// non-const version of the same function.
-PositionedView OptionSelectItemView::at( int idx ) {
-  auto p_view =
-      static_cast<OptionSelectItemView const*>( this )->at(
-          idx );
-  ObserverPtr<View> view{const_cast<View*>( p_view.view.get() )};
-  return {view, p_view.coord};
 }
 
 OptionSelectView::OptionSelectView( StrVec const& options,

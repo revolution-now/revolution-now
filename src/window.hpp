@@ -105,26 +105,30 @@ public:
 
   virtual int count() const = 0;
 
-  virtual PositionedView      at( int idx )       = 0;
-  virtual PositionedViewConst at( int idx ) const = 0;
+  virtual PositionedViewConst at_const( int idx ) const = 0;
+  virtual PositionedView      at( int idx );
 
-  template<typename T, typename Child>
-  struct IterT {
-    T*   cview;
-    int  idx;
-    auto operator*() { return cview->at( idx ); }
+  struct iter {
+    CompositeView* cview;
+    int            idx;
+    auto           operator*() { return cview->at( idx ); }
+    void           operator++() { ++idx; }
+    bool operator!=( iter const& rhs ) { return rhs.idx != idx; }
+  };
+  struct citer {
+    CompositeView const* cview;
+    int                  idx;
+    auto operator*() { return cview->at_const( idx ); }
     void operator++() { ++idx; }
-    bool operator!=( Child const& rhs ) {
+    bool operator!=( citer const& rhs ) {
       return rhs.idx != idx;
     }
   };
-  struct iter : public IterT<CompositeView, iter> {};
-  struct citer : public IterT<CompositeView const, citer> {};
 
-  iter  begin() { return iter{{this, 0}}; }
-  iter  end() { return iter{{this, count()}}; }
-  citer begin() const { return citer{{this, 0}}; }
-  citer end() const { return citer{{this, count()}}; }
+  iter  begin() { return iter{this, 0}; }
+  iter  end() { return iter{this, count()}; }
+  citer begin() const { return citer{this, 0}; }
+  citer end() const { return citer{this, count()}; }
 };
 
 class ViewVector : public CompositeView {
@@ -135,8 +139,7 @@ public:
     : views_( std::move( views ) ) {}
 
   // Implement CompositeView
-  PositionedView      at( int idx ) override;
-  PositionedViewConst at( int idx ) const override;
+  PositionedViewConst at_const( int idx ) const override;
   // Implement CompositeView
   int count() const override { return int( views_.size() ); }
 
@@ -200,8 +203,7 @@ public:
   }
 
   // Implement CompositeView
-  PositionedView      at( int idx ) override;
-  PositionedViewConst at( int idx ) const override;
+  PositionedViewConst at_const( int idx ) const override;
   // Implement CompositeView
   int count() const override { return 2; }
 
