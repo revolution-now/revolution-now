@@ -62,9 +62,22 @@ Delta CompositeView::delta() const {
   return {rect.w, rect.h};
 }
 
-PositionedView ViewVector::at( int idx ) const {
+bool CompositeView::accept_input( input::event_t const& event ) {
+  for( auto p_view : *this )
+    if( p_view.view->accept_input( event ) ) return true;
+  return false;
+}
+
+PositionedView ViewVector::at( int idx ) {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
-  return views_[idx]; // Slicing, but that's ok.
+  auto& view = views_[idx];
+  return {view.view(), view.coord()};
+}
+
+PositionedViewConst ViewVector::at( int idx ) const {
+  CHECK( idx >= 0 && idx < int( views_.size() ) );
+  auto& view = views_[idx];
+  return {view.view(), view.coord()};
 }
 
 /****************************************************************
@@ -87,7 +100,7 @@ void OneLineStringView::draw( Texture const& tx,
 /****************************************************************
 ** Derived Views
 *****************************************************************/
-PositionedView OptionSelectItemView::at( int idx ) const {
+PositionedViewConst OptionSelectItemView::at( int idx ) const {
   CHECK( idx == 0 || idx == 1 );
   Coord       coord{};
   View const* view{};
@@ -105,6 +118,15 @@ PositionedView OptionSelectItemView::at( int idx ) const {
     case 1: view = &line_; break;
   }
   return {ObserverCPtr<View>{view}, coord};
+}
+// TODO: need to find a better way to implement both a const and
+// non-const version of the same function.
+PositionedView OptionSelectItemView::at( int idx ) {
+  auto p_view =
+      static_cast<OptionSelectItemView const*>( this )->at(
+          idx );
+  ObserverPtr<View> view{const_cast<View*>( p_view.view.get() )};
+  return {view, p_view.coord};
 }
 
 OptionSelectView::OptionSelectView( StrVec const& options,
@@ -131,7 +153,7 @@ ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
     int item ) {
   CHECK_( item >= 0 && item < count(),
           "item '" << item << "' is out of bounds" );
-  auto* view    = const_cast<View*>( at( item ).view.get() );
+  auto* view    = at( item ).view.get();
   auto* o_s_i_v = dynamic_cast<OptionSelectItemView*>( view );
   return ObserverPtr<OptionSelectItemView>{o_s_i_v};
 }
@@ -140,6 +162,27 @@ void OptionSelectView::set_selected( int item ) {
   get_view( selected_ )->set_active( e_option_active::inactive );
   get_view( item )->set_active( e_option_active::active );
   selected_ = item;
+}
+
+bool OptionSelectView::accept_input(
+    input::event_t const& event ) {
+  if( !holds_alternative<input::key_event_t>( event.event ) )
+    return false;
+  // It's a keyboard event.
+  auto key_event = get<input::key_event_t>( event.event );
+  if( key_event.change != input::e_key_change::down )
+    return false;
+  // It's a key down.
+  switch( key_event.scancode ) {
+    case ::SDL_SCANCODE_UP:
+      if( selected_ > 0 ) set_selected( selected_ - 1 );
+      return true;
+    case ::SDL_SCANCODE_DOWN:
+      if( selected_ < count() - 1 )
+        set_selected( selected_ + 1 );
+      return true;
+    default: return false;
+  };
 }
 
 /****************************************************************
@@ -257,30 +300,19 @@ void WindowManager::run( RenderFunc const& render ) {
 ** High-level Methods
 *****************************************************************/
 void test_window() {
-  auto square = Delta{g_tile_width, g_tile_height};
-  vector<OwningPositionedView> squares;
-  squares.emplace_back( OwningPositionedView{
-      make_unique<SolidRectView>( Color::red(), square ),
-      Coord{0_y, 0_x}} );
-  squares.emplace_back( OwningPositionedView{
-      make_unique<SolidRectView>( Color::green(), square ),
-      Coord{0_y, 32_x}} );
-  squares.emplace_back( OwningPositionedView{
-      make_unique<SolidRectView>( Color::black(), square ),
-      Coord{20_y, 0_x}} );
-  squares.emplace_back( OwningPositionedView{
-      make_unique<SolidRectView>( Color::blue(), square ),
-      Coord{16_y, 16_x}} );
+  std::vector<OwningPositionedView> views;
   StrVec options{"This is the first option.",
                  "This is the second option.",
                  "This is the third option.", "Short.",
                  "A very long long long long long long option"};
-  squares.emplace_back( OwningPositionedView{
+  views.emplace_back( OwningPositionedView{
       make_unique<OptionSelectView>( options, 2 ),
-      Coord{100_y, 0_x}} );
-  auto view = make_unique<ViewVector>( move( squares ) );
+      Coord{0_y, 0_x}} );
+  auto view = make_unique<ViewVector>( move( views ) );
+
   WindowManager wm;
-  wm.add_window( "First Window", move( view ), {200_y, 200_x} );
+  wm.add_window( "Would you like to make landfall?",
+                 move( view ), {200_y, 200_x} );
   wm.run( [] {} );
 }
 

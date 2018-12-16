@@ -65,25 +65,33 @@ class View : public Object {};
 // window (whose position in turn will not be know by this
 // struct).
 struct PositionedView {
-  PositionedView( ObserverCPtr<View> view_, Coord const& coord_ )
-    : view( view_ ), coord( coord_ ) {}
+  ObserverPtr<View> const view;
+  Coord const             coord;
+};
+struct PositionedViewConst {
   ObserverCPtr<View> const view;
   Coord const              coord;
 };
 
 // Same as above, but owns the view.  The
-class OwningPositionedView : public PositionedView {
+class OwningPositionedView {
 public:
   OwningPositionedView( std::unique_ptr<View> view,
                         Coord const&          coord )
-    : PositionedView( ObserverPtr<View>( view.get() ), coord ),
-      view_( std::move( view ) ) {}
+    : view_( std::move( view ) ), coord_( coord ) {}
 
-  View const* get() const { return view_.get(); }
-  View*       get() { return view_.get(); }
+  ObserverCPtr<View> view() const {
+    return ObserverCPtr<View>( view_.get() );
+  }
+  ObserverPtr<View> view() {
+    return ObserverPtr<View>( view_.get() );
+  }
+  Coord const& coord() const { return coord_; }
+  Coord&       coord() { return coord_; }
 
 private:
   std::unique_ptr<View> view_;
+  Coord                 coord_;
 };
 
 class CompositeView : public View {
@@ -93,8 +101,12 @@ public:
   // Implement Object
   Delta delta() const override;
 
-  virtual int            count() const       = 0;
-  virtual PositionedView at( int idx ) const = 0;
+  bool accept_input( input::event_t const& event ) override;
+
+  virtual int count() const = 0;
+
+  virtual PositionedView      at( int idx )       = 0;
+  virtual PositionedViewConst at( int idx ) const = 0;
 
   template<typename T, typename Child>
   struct IterT {
@@ -123,7 +135,8 @@ public:
     : views_( std::move( views ) ) {}
 
   // Implement CompositeView
-  PositionedView at( int idx ) const override;
+  PositionedView      at( int idx ) override;
+  PositionedViewConst at( int idx ) const override;
   // Implement CompositeView
   int count() const override { return int( views_.size() ); }
 
@@ -187,7 +200,8 @@ public:
   }
 
   // Implement CompositeView
-  PositionedView at( int idx ) const override;
+  PositionedView      at( int idx ) override;
+  PositionedViewConst at( int idx ) const override;
   // Implement CompositeView
   int count() const override { return 2; }
 
@@ -204,6 +218,8 @@ class OptionSelectView : public ViewVector {
 public:
   OptionSelectView( StrVec const& options,
                     int           initial_selection );
+
+  bool accept_input( input::event_t const& event ) override;
 
 private:
   ObserverPtr<OptionSelectItemView> get_view( int item );
