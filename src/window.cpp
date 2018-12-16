@@ -89,13 +89,14 @@ void SolidRectView::draw( Texture const& tx,
   render_fill_rect( tx, color_, rect( coord ) );
 }
 
-OneLineStringView::OneLineStringView( string msg ) {
-  tx = render_line_shadow( fonts::standard, msg );
+OneLineStringView::OneLineStringView( string msg )
+  : msg_( move( msg ) ) {
+  tx_ = render_line_shadow( fonts::standard, msg_ );
 }
 
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
-  CHECK( copy_texture( this->tx, tx, coord ) );
+  CHECK( copy_texture( this->tx_, tx, coord ) );
 }
 
 /****************************************************************
@@ -123,14 +124,16 @@ PositionedViewConst OptionSelectItemView::at_const(
 }
 
 OptionSelectView::OptionSelectView( StrVec const& options,
+                                    W             width,
                                     int initial_selection )
-  : selected_{initial_selection} {
+  : selected_{initial_selection}, has_confirmed{false} {
   CHECK( options.size() > 0 );
   CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
 
   Coord so_far{};
   for( auto const& option : options ) {
-    auto view   = make_unique<OptionSelectItemView>( option );
+    auto view =
+        make_unique<OptionSelectItemView>( option, width );
     auto height = view->delta().h;
     push_back( OwningPositionedView( move( view ), so_far ) );
     // `view` is no longer available here (moved from).
@@ -149,6 +152,17 @@ ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
   auto* view    = at( item ).view.get();
   auto* o_s_i_v = dynamic_cast<OptionSelectItemView*>( view );
   return ObserverPtr<OptionSelectItemView>{o_s_i_v};
+}
+
+// TODO: duplication
+ObserverCPtr<OptionSelectItemView> OptionSelectView::get_view(
+    int item ) const {
+  CHECK_( item >= 0 && item < count(),
+          "item '" << item << "' is out of bounds" );
+  auto* view = at_const( item ).view.get();
+  auto* o_s_i_v =
+      dynamic_cast<OptionSelectItemView const*>( view );
+  return ObserverCPtr<OptionSelectItemView>{o_s_i_v};
 }
 
 void OptionSelectView::set_selected( int item ) {
@@ -174,8 +188,15 @@ bool OptionSelectView::accept_input(
       if( selected_ < count() - 1 )
         set_selected( selected_ + 1 );
       return true;
+    case ::SDL_SCANCODE_RETURN:
+      has_confirmed = true;
+      return true;
     default: return false;
   };
+}
+
+string const& OptionSelectView::get_selected() const {
+  return get_view( selected_ )->line();
 }
 
 /****************************************************************
@@ -184,7 +205,7 @@ bool OptionSelectView::accept_input(
 void WindowManager::window::draw( Texture const& tx ) const {
   auto win_size = delta();
   render_fill_rect(
-      tx, Color::red(),
+      tx, Color::blue(),
       {position.x, position.y, win_size.w, win_size.h} );
   auto inside_border = position + window_border();
   auto inner_size    = win_size - 2 * window_border();
@@ -265,12 +286,13 @@ WindowManager::window& WindowManager::focused() {
   return windows_[0];
 }
 
-void WindowManager::run( RenderFunc const& render ) {
+void WindowManager::run( RenderFunc const&   render,
+                         FinishedFunc const& finished ) {
   logger->debug( "Running window manager" );
   ::SDL_Event event;
   bool        running = true;
   draw_layout( Texture() );
-  while( running ) {
+  while( running && !finished() ) {
     clear_texture_black( Texture() );
     render();
     draw_layout( Texture() );
@@ -292,21 +314,36 @@ void WindowManager::run( RenderFunc const& render ) {
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-void test_window() {
+string select_box( RenderFunc const& render_bg,
+                   string const& title, StrVec options ) {
   std::vector<OwningPositionedView> views;
-  StrVec options{"This is the first option.",
-                 "This is the second option.",
-                 "This is the third option.", "Short.",
-                 "A very long long long long long long option"};
-  views.emplace_back( OwningPositionedView{
-      make_unique<OptionSelectView>( options, 2 ),
-      Coord{0_y, 0_x}} );
+
+  auto selector =
+      make_unique<OptionSelectView>( options, 450_w, 0 );
+  auto* selector_ptr = selector.get();
+  auto  finished     = [selector_ptr] {
+    return selector_ptr->confirmed();
+  };
+  views.emplace_back(
+      OwningPositionedView{move( selector ), Coord{0_y, 0_x}} );
   auto view = make_unique<ViewVector>( move( views ) );
 
   WindowManager wm;
-  wm.add_window( "Would you like to make landfall?",
-                 move( view ), {200_y, 200_x} );
-  wm.run( [] {} );
+  wm.add_window( title, move( view ), {200_y, 200_x} );
+  wm.run( render_bg, finished );
+  logger->info( "Selected: {}", selector_ptr->get_selected() );
+  return selector_ptr->get_selected();
+}
+
+e_confirm yes_no( RenderFunc const& render_bg,
+                  string const&     title ) {
+  vector<pair<e_confirm, string>> dict{
+      {e_confirm::yes, "Yes"},
+      {e_confirm::no, "No"},
+  };
+  auto res = select_box_enum( render_bg, title, dict );
+  logger->info( "Selected: {}", int( res ) );
+  return res;
 }
 
 void message_box( string_view       msg,

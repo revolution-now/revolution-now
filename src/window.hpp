@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "errors.hpp"
 #include "input.hpp"
 #include "sdl-util.hpp"
 
@@ -180,10 +181,13 @@ public:
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
   // Implement Object
-  Delta delta() const override { return tx.size(); }
+  Delta delta() const override { return tx_.size(); }
+
+  std::string const& msg() const { return msg_; }
 
 protected:
-  Texture tx;
+  std::string msg_;
+  Texture     tx_;
 };
 
 /****************************************************************
@@ -193,13 +197,15 @@ enum class e_option_active { inactive, active };
 
 class OptionSelectItemView : public CompositeView {
 public:
-  OptionSelectItemView( std::string msg )
+  OptionSelectItemView( std::string msg, W width )
     : active_{e_option_active::inactive},
       background_active_{Color::red()},
       background_inactive_{Color::black()},
       line_( msg ) {
-    background_active_.set_delta( line_.delta() );
-    background_inactive_.set_delta( line_.delta() );
+    auto delta = line_.delta();
+    delta.w    = width;
+    background_active_.set_delta( delta );
+    background_inactive_.set_delta( delta );
   }
 
   // Implement CompositeView
@@ -208,6 +214,8 @@ public:
   int count() const override { return 2; }
 
   void set_active( e_option_active active ) { active_ = active; }
+
+  std::string const& line() const { return line_.msg(); }
 
 private:
   e_option_active   active_;
@@ -218,22 +226,28 @@ private:
 
 class OptionSelectView : public ViewVector {
 public:
-  OptionSelectView( StrVec const& options,
-                    int           initial_selection );
+  OptionSelectView( StrVec const& options, W width,
+                    int initial_selection );
 
   bool accept_input( input::event_t const& event ) override;
 
-private:
-  ObserverPtr<OptionSelectItemView> get_view( int item );
-  void                              set_selected( int item );
+  std::string const& get_selected() const;
+  bool               confirmed() const { return has_confirmed; }
 
-  int selected_;
+private:
+  ObserverPtr<OptionSelectItemView>  get_view( int item );
+  ObserverCPtr<OptionSelectItemView> get_view( int item ) const;
+  void                               set_selected( int item );
+
+  int  selected_;
+  bool has_confirmed;
 };
 
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-using RenderFunc = std::function<void( void )>;
+using RenderFunc   = std::function<void( void )>;
+using FinishedFunc = std::function<bool( void )>;
 
 enum class e_window_state { running, closed };
 enum class e_wm_input_result { unhandled, handled, quit };
@@ -242,7 +256,8 @@ class WindowManager {
 public:
   void draw_layout( Texture const& tx ) const;
 
-  void run( RenderFunc const& render_fn );
+  void run( RenderFunc const&   render_fn,
+            FinishedFunc const& finished_fn );
 
   ND e_wm_input_result accept_input( SDL_Event const& event );
 
@@ -282,7 +297,30 @@ private:
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-void test_window();
+std::string select_box( RenderFunc const&  render_bg,
+                        std::string const& title,
+                        StrVec             options );
+
+// TODO: create bimap and reference through type traits.
+template<typename Enum>
+Enum select_box_enum(
+    RenderFunc const& render_bg, std::string const& title,
+    std::vector<std::pair<Enum, std::string>> options ) {
+  // map over member function?
+  std::vector<std::string> words;
+  for( auto const& option : options )
+    words.push_back( option.second );
+  auto result = select_box( render_bg, title, words );
+  for( auto const& option : options )
+    if( result == option.second ) return option.first;
+  CHECK( false ); // should not be here
+  return {};
+}
+
+enum class e_confirm { no, yes };
+
+e_confirm yes_no( RenderFunc const&  render_bg,
+                  std::string const& title );
 
 void message_box( std::string_view  msg,
                   RenderFunc const& render_bg );

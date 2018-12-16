@@ -52,7 +52,10 @@ void game() {
   // while( turn() != e_turn_result::quit ) {}
 
   // font_test();
-  ui::test_window();
+  auto res =
+      ui::yes_no( [] {}, "Would you like to make landfall?" );
+
+  logger->info( "Selected: {}", int( res ) );
 
   cleanup();
 }
