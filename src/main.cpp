@@ -17,6 +17,7 @@
 
 // base-util
 #include "base-util/algo.hpp"
+#include "base-util/io.hpp"
 #include "base-util/string.hpp"
 
 #include "absl/container/flat_hash_set.h"
@@ -70,40 +71,61 @@ Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
 
 void extract_palette() {
   /* Extracting color components from a 32-bit color value */
-  SDL_Surface* surface =
-      load_surface( "assets/art/palette.png" );
-  Uint32 pixel;
-
-  SDL_PixelFormat* fmt = surface->format;
-  fmt::print( "Rmask: {:024b}\n", fmt->Rmask );
-  fmt::print( "Gmask: {:024b}\n", fmt->Gmask );
-  fmt::print( "Bmask: {:024b}\n", fmt->Bmask );
-
-  SDL_LockSurface( surface );
+  auto files =
+      util::wildcard( "assets/art/palette-load/*.png", false );
 
   absl::flat_hash_set<Color> colors;
 
-  fmt::print( "Scanning {} pixels...\n",
-              surface->h * surface->w );
+  for( auto f : files ) {
+    logger->info( "Loading {}", f );
+    SDL_Surface* surface = load_surface( f.string().c_str() );
 
-  for( int i = 0; i < surface->h; ++i ) {
-    for( int j = 0; j < surface->w; ++j ) {
-      pixel = ( (Uint32*)surface->pixels )[i * surface->w + j];
+    int              added = 0;
+    SDL_PixelFormat* fmt   = surface->format;
 
-      auto color = color_from( fmt, pixel );
-      if( colors.contains( color ) ) continue;
-      colors.insert( color );
+    logger->info( "  scanning {} pixels",
+                  surface->h * surface->w );
 
-      fmt::print( "color #{:03d}: #{:02x}{:02x}{:02x}\n",
-                  colors.size(), color.r, color.g, color.b );
+    auto bpp = fmt->BitsPerPixel;
+    logger->info( "  bits per pixel: {}", fmt->BitsPerPixel );
+    CHECK( bpp == 8 || bpp == 32 || bpp == 24 );
 
-      if( color.a != 255 )
-        fmt::print( "  *** alpha: {:x}\n", color.a );
+    SDL_LockSurface( surface );
+
+    for( int i = 0; i < surface->h; ++i ) {
+      for( int j = 0; j < surface->w; ++j ) {
+        Color color;
+        if( bpp == 8 ) {
+          Uint8 index =
+              ( (Uint8*)surface->pixels )[i * surface->w + j];
+          color = from_SDL( fmt->palette->colors[index] );
+
+        } else if( bpp == 24 ) {
+          Uint8* addr = ( (Uint8*)surface->pixels ) +
+                        3 * ( i * surface->w + j );
+          Uint32 pixel = *( (Uint32*)addr );
+          color        = color_from( fmt, pixel );
+        } else if( bpp == 32 ) {
+          Uint32 pixel =
+              ( (Uint32*)surface->pixels )[i * surface->w + j];
+          color = color_from( fmt, pixel );
+        }
+        color.a = 255;
+        if( colors.contains( color ) ) continue;
+        colors.insert( color );
+        ++added;
+        // fmt::print(
+        //    "  adding color #{:03d}: #{:02x}{:02x}{:02x}\n",
+        //    colors.size(), color.r, color.g, color.b );
+      }
     }
-  }
 
-  SDL_UnlockSurface( surface );
-  SDL_FreeSurface( surface );
+    CHECK_( added <= 5024, "file added too many colors" );
+    logger->info( "  ==> added {} colors", added );
+
+    SDL_UnlockSurface( surface );
+    SDL_FreeSurface( surface );
+  }
 
   clear_texture_black( Texture() );
   int  idx  = 0;
@@ -114,17 +136,18 @@ void extract_palette() {
       []( ColorHlVS const& hlvs ) { return to_RGB( hlvs ); },
       hlvs );
   for( auto color : rgb_sorted_by_hlv ) {
-    X x{( idx % 16 ) * 10};
-    Y y{( idx / 16 ) * 10};
-    W w{10};
-    H h{10};
+    X x{( idx % 96 ) * 5};
+    Y y{( idx / 96 ) * 5 + 40};
+    W w{5};
+    H h{5};
     render_fill_rect( nullopt, color, {x, y, w, h} );
     ++idx;
+    // if( idx > 512 ) break;
   }
   ::SDL_RenderPresent( g_renderer );
 
   wait_for_q();
-}
+} // namespace rn
 
 void game() {
   init_game();
