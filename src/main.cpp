@@ -106,12 +106,14 @@ void extract_palette() {
   SDL_FreeSurface( surface );
 
   clear_texture_black( Texture() );
-  int  idx = 0;
-  auto rgb = vector<Color>( colors.begin(), colors.end() );
-  auto hsl = util::map( to_HSL, rgb );
-  util::sort( hsl );
-  auto rgb_sorted_by_hsl = util::map( to_RGB, hsl );
-  for( auto color : rgb_sorted_by_hsl ) {
+  int  idx  = 0;
+  auto rgb  = vector<Color>( colors.begin(), colors.end() );
+  auto hlvs = util::map( to_HlVS, rgb );
+  std::sort( hlvs.begin(), hlvs.end(), hlvs_bucketed_cmp );
+  auto rgb_sorted_by_hlv = util::map(
+      []( ColorHlVS const& hlvs ) { return to_RGB( hlvs ); },
+      hlvs );
+  for( auto color : rgb_sorted_by_hlv ) {
     X x{( idx % 16 ) * 10};
     Y y{( idx / 16 ) * 10};
     W w{10};

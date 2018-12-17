@@ -60,23 +60,16 @@ constexpr uint8_t alpha_opaque{255};
 constexpr uint8_t max_saturation{255};
 
 struct ColorHSL;
+struct ColorHSV;
+struct ColorHlVS;
 struct ColorRGB;
 
-ColorHSL to_HSL( ColorRGB const& rgb );
-ColorRGB to_RGB( ColorHSL const& hsl );
-
-struct ColorHSL {
-  double h; // hue [0..360]
-  double s; // saturation [0, 1]
-  double l; // lightness [0, 1]
-  double a; // alpha
-
-  auto to_tuple() const { return std::tuple( h, s, l, a ); }
-
-  bool operator<( ColorHSL const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
+ColorHSL  to_HSL( ColorRGB const& rgb );
+ColorHSV  to_HSV( ColorRGB const& rgb );
+ColorRGB  to_RGB( ColorHSL const& hsl );
+ColorRGB  to_RGB( ColorHSV const& hsv );
+ColorRGB  to_RGB( ColorHlVS const& hlvs );
+ColorHlVS to_HlVS( ColorRGB const& rgb );
 
 struct ColorRGB : public ::SDL_Color {
   ColorRGB() : ::SDL_Color{0, 0, 0, alpha_opaque} {}
@@ -113,6 +106,52 @@ struct ColorRGB : public ::SDL_Color {
             alpha_opaque};
   }
   static ColorRGB black() { return {0, 0, 0, alpha_opaque}; }
+};
+
+struct ColorHSL {
+  double h; // hue [0..360]
+  double s; // saturation [0, 1]
+  double l; // lightness [0, 1]
+  int    a; // alpha
+
+  auto to_tuple() const { return std::tuple( h, s, l, a ); }
+
+  bool operator<( ColorHSL const& rhs ) const {
+    return to_tuple() < rhs.to_tuple();
+  }
+};
+
+struct ColorHSV {
+  double h; // hue [0..360]
+  double s; // saturation [0, 1]
+  double v; // value [0, 1]
+  int    a; // alpha
+
+  auto to_tuple() const { return std::tuple( h, s, v, a ); }
+
+  bool operator<( ColorHSV const& rhs ) const {
+    return to_tuple() < rhs.to_tuple();
+  }
+};
+
+// This function is used for sorting color palettes.  It
+// will return (lhs < rhs) but where the various components,
+// such as hue, are bucketed before comparison.
+bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
+                        ColorHlVS const& rhs );
+
+struct ColorHlVS {
+  double h; // hue [0..360]
+  double l; // luminosity [0, 1]
+  double v; // value [0, 1]
+  double s; // saturation [0, 1]
+  int    a; // alpha
+
+  auto to_tuple() const { return std::tuple( h, l, v, s, a ); }
+
+  bool operator<( ColorHlVS const& rhs ) const {
+    return to_tuple() < rhs.to_tuple();
+  }
 };
 
 using Color = ColorRGB;
