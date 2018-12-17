@@ -15,6 +15,9 @@
 // Revolution Now
 #include "geo-types.hpp"
 
+// Abseil
+#include "absl/hash/hash.h"
+
 // base-util
 #include "base-util/non-copyable.hpp"
 
@@ -56,26 +59,63 @@ private:
 constexpr uint8_t alpha_opaque{255};
 constexpr uint8_t max_saturation{255};
 
-struct Color : public ::SDL_Color {
-  Color() : ::SDL_Color{0, 0, 0, alpha_opaque} {}
-  Color( Uint8 r, Uint8 g, Uint8 b, Uint8 a )
+struct ColorHSL;
+struct ColorRGB;
+
+ColorHSL to_HSL( ColorRGB const& rgb );
+ColorRGB to_RGB( ColorHSL const& hsl );
+
+struct ColorHSL {
+  double h; // hue [0..360]
+  double s; // saturation [0, 1]
+  double l; // lightness [0, 1]
+  double a; // alpha
+
+  auto to_tuple() const { return std::tuple( h, s, l, a ); }
+
+  bool operator<( ColorHSL const& rhs ) const {
+    return to_tuple() < rhs.to_tuple();
+  }
+};
+
+struct ColorRGB : public ::SDL_Color {
+  ColorRGB() : ::SDL_Color{0, 0, 0, alpha_opaque} {}
+  ColorRGB( Uint8 r, Uint8 g, Uint8 b )
+    : ::SDL_Color{r, g, b, 255} {}
+  ColorRGB( Uint8 r, Uint8 g, Uint8 b, Uint8 a )
     : ::SDL_Color{r, g, b, a} {}
 
-  static Color red() {
+  auto to_tuple() const { return std::tuple( r, g, b, a ); }
+
+  template<typename H>
+  friend H AbslHashValue( H h, ColorRGB const& c ) {
+    return H::combine( std::move( h ), c.to_tuple() );
+  }
+
+  bool operator<( ColorRGB const& rhs ) const {
+    return to_tuple() < rhs.to_tuple();
+  }
+  bool operator==( ColorRGB const& rhs ) const {
+    return to_tuple() == rhs.to_tuple();
+  }
+
+  static ColorRGB red() {
     return {max_saturation, 0, 0, alpha_opaque};
   }
-  static Color green() {
+  static ColorRGB green() {
     return {0, max_saturation, 0, alpha_opaque};
   }
-  static Color blue() {
+  static ColorRGB blue() {
     return {0, 0, max_saturation, alpha_opaque};
   }
-  static Color white() {
+  static ColorRGB white() {
     return {max_saturation, max_saturation, max_saturation,
             alpha_opaque};
   }
-  static Color black() { return {0, 0, 0, alpha_opaque}; }
+  static ColorRGB black() { return {0, 0, 0, alpha_opaque}; }
 };
+
+using Color = ColorRGB;
 
 using TextureRef = std::reference_wrapper<Texture>;
 
@@ -97,6 +137,7 @@ void set_render_target( OptCRef<Texture> tx );
 void push_clip_rect( Rect const& rect );
 void pop_clip_rect();
 
+::SDL_Surface* load_surface( const char* file );
 ND Texture& load_texture( const char* file );
 
 void render_texture( Texture const& texture, SDL_Rect source,
@@ -130,6 +171,9 @@ void render_rect( OptCRef<Texture> tx, Color const& color,
                   Rect const& rect );
 void render_fill_rect( OptCRef<Texture> tx, Color const& color,
                        Rect const& rect );
+
+// Mainly for testing.  Just waits for the user to press 'q'.
+void wait_for_q();
 
 } // namespace rn
 

@@ -29,8 +29,10 @@
 **Error Checking Macros
 *****************************************************************/
 
-#define DIE( msg ) \
-  { rn::die( __FILE__, __LINE__, msg ); }
+#define DIE( msg ) rn::die( __FILE__, __LINE__, msg )
+
+#define SHOULD_NOT_BE_HERE \
+  DIE( "programmer error: should not be here" )
 
 // This is the CHECK macro which should be used most of the time,
 // especially in performance-sensitive code because it does not
@@ -71,7 +73,7 @@
     out << "CHECK( " << #a << " ) failed: ";         \
     /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
     out << b;                                        \
-    DIE( out.str() )                                 \
+    DIE( out.str() );                                \
   }
 
 // This takes care to only evaluate (b) once, since it may be
@@ -91,7 +93,7 @@
 #define ASSIGN_CHECK_OPT( a, b )          \
   auto STRING_JOIN( __x, __LINE__ ) = b;  \
   if( !( STRING_JOIN( __x, __LINE__ ) ) ) \
-    DIE( TO_STRING( b ) " is false." )    \
+    DIE( TO_STRING( b ) " is false." );   \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // This takes care to only evaluate (b) once, since it may be
@@ -104,7 +106,7 @@
 // macro parameters.
 #define ASSIGN_CHECK( a, b ) \
   auto ID_( a ) = b;         \
-  if( !( a ) ) { DIE( TO_STRING( b ) " is false." ) }
+  if( !( a ) ) { DIE( TO_STRING( b ) " is false." ); }
 
 /****************************************************************
 **Stack Trace Reporting

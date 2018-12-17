@@ -75,6 +75,62 @@ ND Rect from_SDL( ::SDL_Rect const& rect ) {
   return res;
 }
 
+ColorHSL to_HSL( ColorRGB const& rgb ) {
+  ColorHSL hsl;
+  hsl.a = rgb.a;
+  // www.rapidtables.com/convert/color/rgb-to-hsl.html
+  double rp    = rgb.r / 255.0;
+  double gp    = rgb.g / 255.0;
+  double bp    = rgb.b / 255.0;
+  auto   c_max = std::max( rp, std::max( gp, bp ) );
+  auto   c_min = std::min( rp, std::min( gp, bp ) );
+  auto   delta = c_max - c_min;
+  // Calculate hue
+  if( delta == 0.0 ) {
+    hsl.h = 0;
+  } else {
+    if( c_max == rp ) {
+      hsl.h = 60.0 * std::fmod( ( gp - bp ) / delta, 6.0 );
+    } else if( c_max == gp ) {
+      hsl.h = 60.0 * ( ( bp - rp ) / delta + 2.0 );
+    } else if( c_max == bp ) {
+      hsl.h = 60.0 * ( ( rp - gp ) / delta + 4.0 );
+    } else {
+      SHOULD_NOT_BE_HERE;
+    }
+  }
+  // Calculate lightness.
+  hsl.l = ( c_max + c_min ) / 2.0;
+  // Calculate saturation.
+  hsl.s = ( delta == 0.0 )
+              ? 0
+              : delta / ( 1.0 - fabs( 2 * hsl.l - 1 ) );
+  return hsl;
+}
+
+ColorRGB to_RGB( ColorHSL const& hsl ) {
+  // www.rapidtables.com/convert/color/hsl-to-rgb.html
+  ColorRGB rgb;
+  auto     C = ( 1 - std::fabs( 2 * hsl.l - 1 ) ) * hsl.s;
+  auto     X =
+      C * ( 1 - std::fabs( std::fmod( ( hsl.h / 60.0 ), 2.0 ) -
+                           1 ) );
+  auto   m = hsl.l - C / 2;
+  double R, G, B;
+  // clang-format off
+  if( 0   <= hsl.h && hsl.h <  60 ) { R = C; G = X; B = 0; };
+  if( 60  <= hsl.h && hsl.h < 120 ) { R = X; G = C; B = 0; };
+  if( 120 <= hsl.h && hsl.h < 180 ) { R = 0; G = C; B = X; };
+  if( 180 <= hsl.h && hsl.h < 240 ) { R = 0; G = X; B = C; };
+  if( 240 <= hsl.h && hsl.h < 300 ) { R = X; G = 0; B = C; };
+  if( 300 <= hsl.h && hsl.h < 360 ) { R = C; G = 0; B = X; };
+  // clang-format on
+  rgb.r = ( R + m ) * 255;
+  rgb.g = ( G + m ) * 255;
+  rgb.b = ( B + m ) * 255;
+  return rgb;
+}
+
 void init_game() {
   rn::init_sdl();
   rn::init_fonts();
@@ -346,6 +402,12 @@ void create_renderer() {
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
+::SDL_Surface* load_surface( const char* file ) {
+  SDL_Surface* surface = IMG_Load( file );
+  CHECK_( surface, "failed to load image: " << file );
+  return surface;
+}
+
 Texture& load_texture( const char* file ) {
   SDL_Surface* pTempSurface = IMG_Load( file );
   if( pTempSurface == nullptr ) DIE( "failed to load image" );
@@ -514,6 +576,20 @@ void render_rect( OptCRef<Texture> tx, Color const& color,
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
+}
+
+// Mainly for testing.  Just waits for the user to press 'q'.
+void wait_for_q() {
+  bool        running = true;
+  ::SDL_Event event;
+  while( running ) {
+    while( ::SDL_PollEvent( &event ) != 0 ) {
+      if( event.type == SDL_KEYDOWN &&
+          event.key.keysym.sym == ::SDLK_q )
+        running = false;
+    }
+    ::SDL_Delay( 50 );
+  }
 }
 
 } // namespace rn

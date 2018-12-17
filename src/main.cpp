@@ -15,8 +15,11 @@
 #include "window.hpp"
 #include "world.hpp"
 
+// base-util
+#include "base-util/algo.hpp"
 #include "base-util/string.hpp"
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_split.h"
 #include "fmt/format.h"
 #include "fmt/ostream.h"
@@ -35,6 +38,92 @@ using namespace std;
 
 namespace rn {
 
+Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
+  Color color{};
+
+  /* Get Red component */
+  auto temp = pixel & fmt->Rmask;  /* Isolate red component */
+  temp      = temp >> fmt->Rshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Rloss; /* Expand to a full 8-bit number */
+  color.r = (Uint8)temp;
+
+  /* Get Green component */
+  temp = pixel & fmt->Gmask;  /* Isolate green component */
+  temp = temp >> fmt->Gshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Gloss;  /* Expand to a full 8-bit number */
+  color.g = (Uint8)temp;
+
+  /* Get Blue component */
+  temp = pixel & fmt->Bmask;  /* Isolate blue component */
+  temp = temp >> fmt->Bshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Bloss;  /* Expand to a full 8-bit number */
+  color.b = (Uint8)temp;
+
+  /* Get Alpha component */
+  temp = pixel & fmt->Amask;  /* Isolate alpha component */
+  temp = temp >> fmt->Ashift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Aloss;  /* Expand to a full 8-bit number */
+  color.a = (Uint8)temp;
+
+  return color;
+}
+
+void extract_palette() {
+  /* Extracting color components from a 32-bit color value */
+  SDL_Surface* surface =
+      load_surface( "assets/art/palette.png" );
+  Uint32 pixel;
+
+  SDL_PixelFormat* fmt = surface->format;
+  fmt::print( "Rmask: {:024b}\n", fmt->Rmask );
+  fmt::print( "Gmask: {:024b}\n", fmt->Gmask );
+  fmt::print( "Bmask: {:024b}\n", fmt->Bmask );
+
+  SDL_LockSurface( surface );
+
+  absl::flat_hash_set<Color> colors;
+
+  fmt::print( "Scanning {} pixels...\n",
+              surface->h * surface->w );
+
+  for( int i = 0; i < surface->h; ++i ) {
+    for( int j = 0; j < surface->w; ++j ) {
+      pixel = ( (Uint32*)surface->pixels )[i * surface->w + j];
+
+      auto color = color_from( fmt, pixel );
+      if( colors.contains( color ) ) continue;
+      colors.insert( color );
+
+      fmt::print( "color #{:03d}: #{:02x}{:02x}{:02x}\n",
+                  colors.size(), color.r, color.g, color.b );
+
+      if( color.a != 255 )
+        fmt::print( "  *** alpha: {:x}\n", color.a );
+    }
+  }
+
+  SDL_UnlockSurface( surface );
+  SDL_FreeSurface( surface );
+
+  clear_texture_black( Texture() );
+  int  idx = 0;
+  auto rgb = vector<Color>( colors.begin(), colors.end() );
+  auto hsl = util::map( to_HSL, rgb );
+  util::sort( hsl );
+  auto rgb_sorted_by_hsl = util::map( to_RGB, hsl );
+  for( auto color : rgb_sorted_by_hsl ) {
+    X x{( idx % 16 ) * 10};
+    Y y{( idx / 16 ) * 10};
+    W w{10};
+    H h{10};
+    render_fill_rect( nullopt, color, {x, y, w, h} );
+    ++idx;
+  }
+  ::SDL_RenderPresent( g_renderer );
+
+  wait_for_q();
+}
+
 void game() {
   init_game();
   load_sprites();
@@ -52,10 +141,11 @@ void game() {
   // while( turn() != e_turn_result::quit ) {}
 
   // font_test();
-  auto res =
-      ui::yes_no( [] {}, "Would you like to make landfall?" );
+  // auto res =
+  //    ui::yes_no( [] {}, "Would you like to make landfall?" );
 
-  logger->info( "Selected: {}", int( res ) );
+  // logger->info( "Selected: {}", int( res ) );
+  extract_palette();
 
   cleanup();
 }
