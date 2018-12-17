@@ -12,6 +12,8 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "color.hpp"
 #include "sdl-util.hpp"
 
 #include <string>

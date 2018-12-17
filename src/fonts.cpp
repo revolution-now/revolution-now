@@ -62,7 +62,8 @@ Texture render_line_standard_impl( ::TTF_Font*   font,
 Texture render_line_standard( e_font font, Color fg,
                               string const& line ) {
   auto* ttf_font = loaded_fonts[font].ttf_font;
-  return render_line_standard_impl( ttf_font, fg, line );
+  return render_line_standard_impl( ttf_font, to_SDL( fg ),
+                                    line );
 }
 
 Texture render_line_shadow( e_font font, string const& line ) {

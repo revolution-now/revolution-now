@@ -13,10 +13,8 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "color.hpp"
 #include "geo-types.hpp"
-
-// Abseil
-#include "absl/hash/hash.h"
 
 // base-util
 #include "base-util/non-copyable.hpp"
@@ -55,106 +53,6 @@ private:
   explicit Texture( ::SDL_Texture* tx );
   ::SDL_Texture* tx_{nullptr};
 };
-
-constexpr uint8_t alpha_opaque{255};
-constexpr uint8_t max_saturation{255};
-
-struct ColorHSL;
-struct ColorHSV;
-struct ColorHlVS;
-struct ColorRGB;
-
-ColorHSL  to_HSL( ColorRGB const& rgb );
-ColorHSV  to_HSV( ColorRGB const& rgb );
-ColorRGB  to_RGB( ColorHSL const& hsl );
-ColorRGB  to_RGB( ColorHSV const& hsv );
-ColorRGB  to_RGB( ColorHlVS const& hlvs );
-ColorHlVS to_HlVS( ColorRGB const& rgb );
-
-struct ColorRGB : public ::SDL_Color {
-  ColorRGB() : ::SDL_Color{0, 0, 0, alpha_opaque} {}
-  ColorRGB( Uint8 r, Uint8 g, Uint8 b )
-    : ::SDL_Color{r, g, b, 255} {}
-  ColorRGB( Uint8 r, Uint8 g, Uint8 b, Uint8 a )
-    : ::SDL_Color{r, g, b, a} {}
-
-  auto to_tuple() const { return std::tuple( r, g, b, a ); }
-
-  template<typename H>
-  friend H AbslHashValue( H h, ColorRGB const& c ) {
-    return H::combine( std::move( h ), c.to_tuple() );
-  }
-
-  bool operator<( ColorRGB const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-  bool operator==( ColorRGB const& rhs ) const {
-    return to_tuple() == rhs.to_tuple();
-  }
-
-  static ColorRGB red() {
-    return {max_saturation, 0, 0, alpha_opaque};
-  }
-  static ColorRGB green() {
-    return {0, max_saturation, 0, alpha_opaque};
-  }
-  static ColorRGB blue() {
-    return {0, 0, max_saturation, alpha_opaque};
-  }
-  static ColorRGB white() {
-    return {max_saturation, max_saturation, max_saturation,
-            alpha_opaque};
-  }
-  static ColorRGB black() { return {0, 0, 0, alpha_opaque}; }
-};
-
-struct ColorHSL {
-  double h; // hue [0..360]
-  double s; // saturation [0, 1]
-  double l; // lightness [0, 1]
-  int    a; // alpha
-
-  auto to_tuple() const { return std::tuple( h, s, l, a ); }
-
-  bool operator<( ColorHSL const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
-struct ColorHSV {
-  double h; // hue [0..360]
-  double s; // saturation [0, 1]
-  double v; // value [0, 1]
-  int    a; // alpha
-
-  auto to_tuple() const { return std::tuple( h, s, v, a ); }
-
-  bool operator<( ColorHSV const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
-// This function is used for sorting color palettes.  It
-// will return (lhs < rhs) but where the various components,
-// such as hue, are bucketed before comparison.
-bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
-                        ColorHlVS const& rhs );
-
-struct ColorHlVS {
-  double h; // hue [0..360]
-  double l; // luminosity [0, 1]
-  double v; // value [0, 1]
-  double s; // saturation [0, 1]
-  int    a; // alpha
-
-  auto to_tuple() const { return std::tuple( h, l, v, s, a ); }
-
-  bool operator<( ColorHlVS const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
-using Color = ColorRGB;
 
 using TextureRef = std::reference_wrapper<Texture>;
 
@@ -205,10 +103,13 @@ ND Texture create_texture( W w, H h );
 
 void clear_texture_black( Texture const& tx );
 
-void set_render_draw_color( Color const& color );
-void render_rect( OptCRef<Texture> tx, Color const& color,
+::SDL_Color to_SDL( Color color );
+Color       from_SDL( ::SDL_Color color );
+
+void set_render_draw_color( Color color );
+void render_rect( OptCRef<Texture> tx, Color color,
                   Rect const& rect );
-void render_fill_rect( OptCRef<Texture> tx, Color const& color,
+void render_fill_rect( OptCRef<Texture> tx, Color color,
                        Rect const& rect );
 
 // Mainly for testing.  Just waits for the user to press 'q'.
