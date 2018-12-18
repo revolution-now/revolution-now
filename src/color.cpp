@@ -12,6 +12,19 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "globals.hpp"
+#include "logging.hpp"
+#include "sdl-util.hpp"
+
+// base-util
+#include "base-util/algo.hpp"
+#include "base-util/io.hpp"
+
+// Abseil
+#include "absl/container/flat_hash_set.h"
+
+// SDL
+#include <SDL.h>
 
 // c++ standard library
 #include <cmath>
@@ -153,6 +166,109 @@ bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
                   floor( c.l * buckets ), c.v );
   };
   return to_bucket( lhs ) < to_bucket( rhs );
+}
+
+Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
+  Color color{};
+
+  /* Get Red component */
+  auto temp = pixel & fmt->Rmask;  /* Isolate red component */
+  temp      = temp >> fmt->Rshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Rloss; /* Expand to a full 8-bit number */
+  color.r = (Uint8)temp;
+
+  /* Get Green component */
+  temp = pixel & fmt->Gmask;  /* Isolate green component */
+  temp = temp >> fmt->Gshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Gloss;  /* Expand to a full 8-bit number */
+  color.g = (Uint8)temp;
+
+  /* Get Blue component */
+  temp = pixel & fmt->Bmask;  /* Isolate blue component */
+  temp = temp >> fmt->Bshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Bloss;  /* Expand to a full 8-bit number */
+  color.b = (Uint8)temp;
+
+  /* Get Alpha component */
+  temp = pixel & fmt->Amask;  /* Isolate alpha component */
+  temp = temp >> fmt->Ashift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Aloss;  /* Expand to a full 8-bit number */
+  color.a = (Uint8)temp;
+
+  return color;
+}
+
+vector<Color> extract_palette( string const& file ) {
+  /* Extracting color components from a 32-bit color value */
+  auto files = util::wildcard( file, false );
+
+  absl::flat_hash_set<Color> colors;
+
+  logger->info( "Loading palette from {}", file );
+  SDL_Surface* surface = load_surface( file.c_str() );
+
+  SDL_PixelFormat* fmt = surface->format;
+
+  logger->info( "Scanning {} pixels", surface->h * surface->w );
+
+  auto bpp = fmt->BitsPerPixel;
+  logger->info( "Bits per pixel: {}", fmt->BitsPerPixel );
+  CHECK( bpp == 8 || bpp == 32 || bpp == 24 );
+
+  SDL_LockSurface( surface );
+
+  for( int i = 0; i < surface->h; ++i ) {
+    for( int j = 0; j < surface->w; ++j ) {
+      Color color;
+      if( bpp == 8 ) {
+        Uint8 index =
+            ( (Uint8*)surface->pixels )[i * surface->w + j];
+        color = from_SDL( fmt->palette->colors[index] );
+
+      } else if( bpp == 24 ) {
+        Uint8* addr = ( (Uint8*)surface->pixels ) +
+                      3 * ( i * surface->w + j );
+        Uint32 pixel = *( (Uint32*)addr );
+        color        = color_from( fmt, pixel );
+      } else if( bpp == 32 ) {
+        Uint32 pixel =
+            ( (Uint32*)surface->pixels )[i * surface->w + j];
+        color = color_from( fmt, pixel );
+      }
+      color.a = 255;
+      colors.insert( color );
+    }
+  }
+
+  logger->info( "Found {} colors", colors.size() );
+
+  SDL_UnlockSurface( surface );
+  SDL_FreeSurface( surface );
+
+  auto rgb  = vector<Color>( colors.begin(), colors.end() );
+  auto hlvs = util::map( to_HlVS, rgb );
+  std::sort( hlvs.begin(), hlvs.end(), hlvs_bucketed_cmp );
+  auto rgb_sorted_by_hlv = util::map(
+      []( ColorHlVS const& hlvs ) { return to_RGB( hlvs ); },
+      hlvs );
+  return rgb_sorted_by_hlv;
+}
+
+void show_palette( vector<Color> const& colors ) {
+  clear_texture_black( Texture() );
+  int idx                  = 0;
+  int constexpr block_size = 10;
+  int constexpr row_size   = 16;
+  int constexpr offset     = 40;
+  for( auto color : colors ) {
+    X x{( idx % row_size ) * block_size + offset};
+    Y y{( idx / row_size ) * block_size + offset};
+    W w{block_size};
+    H h{block_size};
+    render_fill_rect( nullopt, color, {x, y, w, h} );
+    ++idx;
+  }
+  ::SDL_RenderPresent( g_renderer );
 }
 
 } // namespace rn

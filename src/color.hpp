@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdint>
 #include <tuple>
+#include <vector>
 
 namespace rn {
 
@@ -126,5 +127,9 @@ struct ColorHlVS {
     return to_tuple() < rhs.to_tuple();
   }
 };
+
+std::vector<Color> extract_palette( std::string const& file );
+
+void show_palette( std::vector<Color> const& colors );
 
 } // namespace rn
