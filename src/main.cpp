@@ -20,6 +20,8 @@
 #include "base-util/string.hpp"
 
 #include "absl/strings/str_split.h"
+
+// {fmt}
 #include "fmt/format.h"
 #include "fmt/ostream.h"
 
@@ -58,10 +60,17 @@ void game() {
   //    ui::yes_no( [] {}, "Would you like to make landfall?" );
 
   // logger->info( "Selected: {}", int( res ) );
-  auto colors =
-      extract_palette( "assets/art/palette-sorted.png" );
-  show_palette( colors );
-  wait_for_q();
+
+  // auto colors =
+  //    extract_palette( "assets/art/palette-sorted.png" );
+  // show_palette( colors );
+  // wait_for_q();
+
+  logger->info( "config_ui.window.border_color: {}",
+                config_ui.window.border_color.to_string() );
+  logger->info(
+      "config_ui.window.border_color: {}",
+      config_ui.window.border_color.to_string( true ) );
 
   cleanup();
 }

@@ -13,6 +13,7 @@ CFG( rn,
 CFG( ui,
   OBJ( window,
     FLD( int, border_width )
+    FLD( Color, border_color )
   )
 
   FLD( Str,    game_title )

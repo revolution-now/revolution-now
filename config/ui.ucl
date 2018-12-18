@@ -1,5 +1,6 @@
 window {
   border_width: 4
+  border_color: "#0CA0BD"
 }
 
 game_title:  "Revolution | Now"

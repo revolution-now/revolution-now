@@ -12,9 +12,12 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "aliases.hpp"
+
 // c++ standard library
-#include <cmath>
 #include <cstdint>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -34,6 +37,15 @@ struct Color {
     : r( r_ ), g( g_ ), b( b_ ), a( a_ ) {}
 
   auto to_tuple() const { return std::tuple( r, g, b, a ); }
+
+  // #NNNNNN with N in [0-9A-F] and optionally #NNNNNNNN
+  // if with_alpha = true;
+  std::string to_string( bool with_alpha = false ) const;
+
+  // Parses a string of the form 'NNNNNN[NN]' where N is:
+  // [0-9a-fA-F]. The optional two digits at the end represent
+  // alpha. If these are omitted then alpha will be set to 255.
+  static Opt<Color> parse_from_hex( std::string_view hex );
 
   // Abseil hashing API.
   template<typename H>

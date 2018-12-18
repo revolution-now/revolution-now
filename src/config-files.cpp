@@ -209,6 +209,7 @@ UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value     )
 UCL_TYPE( double,     UCL_FLOAT,     number_value   )
 UCL_TYPE( string,     UCL_STRING,    string_value   )
 UCL_TYPE( Coord,      UCL_OBJECT,    type /*dummy*/ )
+UCL_TYPE( Color,      UCL_STRING,    string_value   )
 UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
 UCL_TYPE( X,          UCL_INT,       int_value      )
 UCL_TYPE( W,          UCL_INT,       int_value      )
@@ -293,6 +294,33 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
   dest.y = obj["y"].int_value();
   used_field_paths.insert( file + "." + dotted + ".x" );
   used_field_paths.insert( file + "." + dotted + ".y" );
+}
+
+// Color
+template<>
+void populate_config_field( ucl::Ucl obj, Color& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  // Silence unused-variable warnings.
+  (void)ucl_type_of_v<Coord>;
+  (void)ucl_type_name_of_v<Coord>;
+  (void)ucl_getter_for_type_v<Coord>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_STRING, dotted, config_name,
+                    "a color in RGB hex form: #NNNNNN[NN]" );
+  string hex = obj.string_value();
+  CHECK_(
+      hex.size() == 7 || hex.size() == 9,
+      "Colors must be of the form `#NNNNNN[NN]` with N in 0-f" );
+  CHECK_( hex[0] == '#', "Colors must start with #" );
+  string_view digits( &hex[1], hex.length() - 1 );
+
+  auto parsed = Color::parse_from_hex( digits );
+  CHECK_( parsed.has_value(),
+          "failed to parse color: " << digits );
+  dest = *parsed;
 }
 
 // optional<T>

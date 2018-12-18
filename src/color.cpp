@@ -20,6 +20,9 @@
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
 
+// {fmt}
+#include "fmt/format.h"
+
 // Abseil
 #include "absl/container/flat_hash_set.h"
 
@@ -216,6 +219,51 @@ Color to_RGB( ColorHSV const& hsv ) {
   rgb.g = ( G + m ) * 255;
   rgb.b = ( B + m ) * 255;
   return rgb;
+}
+
+string Color::to_string( bool with_alpha ) const {
+  if( with_alpha )
+    return fmt::format( "#{:02X}{:02X}{:02X}{:02X}", r, g, b,
+                        a );
+  else
+    return fmt::format( "#{:02X}{:02X}{:02X}", r, g, b );
+}
+
+// Parses a string of the form 'NNNNNN[NN]' where N is:
+// [0-9a-fA-F]. The optional two digits at the end represent al-
+// pha. If these are omitted then alpha will be set to 255.
+Opt<Color> Color::parse_from_hex( string_view hex ) {
+  if( hex.size() != 6 && hex.size() != 8 ) return nullopt;
+  auto is_valid = []( char c ) {
+    return ( c >= '0' && c <= '9' ) ||
+           ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' );
+  };
+  if( !all_of( hex.begin(), hex.end(), is_valid ) )
+    return nullopt;
+  auto to_num = []( char c ) {
+    // c must already have been validated as a hex digit!
+    if( c >= '0' && c <= '9' )
+      return c - '0';
+    else if( c >= 'a' && c <= 'f' )
+      return ( c - 'a' ) + 10;
+    else
+      return ( c - 'A' ) + 10;
+  };
+  auto vec  = vector<char>( hex.begin(), hex.end() );
+  auto ns   = util::map( to_num, vec );
+  auto byte = []( auto upper, auto lower ) {
+    return uint8_t( upper * 16 + lower );
+  };
+  Color color;
+  CHECK( ns.size() == 6 || ns.size() == 8 );
+  color.r = byte( ns[0], ns[1] );
+  color.g = byte( ns[2], ns[3] );
+  color.b = byte( ns[4], ns[5] );
+  if( ns.size() == 8 )
+    color.a = byte( ns[6], ns[7] );
+  else
+    color.a = 255;
+  return color;
 }
 
 vector<Color> extract_palette( string const& image ) {

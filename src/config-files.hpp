@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 #include "aliases.hpp"
+#include "color.hpp"
 #include "geo-types.hpp"
 #include "mv-points.hpp"
 #include "typed-int.hpp"
