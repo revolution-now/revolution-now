@@ -33,7 +33,80 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+// Contains some redundency; mainly only useful for sorting.
+struct ColorHlVS {
+  double  h = 0; // hue [0..360]
+  double  l = 0; // luminosity [0, 1]
+  double  v = 0; // value [0, 1]
+  double  s = 0; // saturation [0, 1]
+  uint8_t a = 0; // alpha
+
+  auto to_tuple() const { return std::tuple( h, l, v, s, a ); }
+
+  bool operator<( ColorHlVS const& rhs ) const {
+    return to_tuple() < rhs.to_tuple();
+  }
+};
+
+Color to_RGB( ColorHlVS const& hlvs ) {
+  ColorHSV hsv{hlvs.h, hlvs.s, hlvs.v, hlvs.a};
+  return to_RGB( hsv );
+}
+
+ColorHlVS to_HlVS( Color const& rgb ) {
+  auto hsv = to_HSV( rgb );
+  auto lum =
+      std::sqrt( .241 * rgb.r / 255.0 + .691 * rgb.g / 255.0 +
+                 .068 * rgb.b / 255.0 );
+  return {hsv.h, lum, hsv.v, hsv.s, rgb.a};
+}
+
+// This function is used for sorting color palettes.  It
+// will return (lhs < rhs) but where the various components,
+// such as hue, are bucketed before comparison.
+bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
+                        ColorHlVS const& rhs ) {
+  auto to_bucket = []( ColorHlVS const& c ) {
+    int constexpr buckets = 8;
+    return tuple( floor( c.h / 360.0 * buckets ),
+                  floor( c.l * buckets ), c.v );
+  };
+  return to_bucket( lhs ) < to_bucket( rhs );
+}
+
+Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
+  Color color{};
+
+  /* Get Red component */
+  auto temp = pixel & fmt->Rmask;  /* Isolate red component */
+  temp      = temp >> fmt->Rshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Rloss; /* Expand to a full 8-bit number */
+  color.r = (Uint8)temp;
+
+  /* Get Green component */
+  temp = pixel & fmt->Gmask;  /* Isolate green component */
+  temp = temp >> fmt->Gshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Gloss;  /* Expand to a full 8-bit number */
+  color.g = (Uint8)temp;
+
+  /* Get Blue component */
+  temp = pixel & fmt->Bmask;  /* Isolate blue component */
+  temp = temp >> fmt->Bshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Bloss;  /* Expand to a full 8-bit number */
+  color.b = (Uint8)temp;
+
+  /* Get Alpha component */
+  temp = pixel & fmt->Amask;  /* Isolate alpha component */
+  temp = temp >> fmt->Ashift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Aloss;  /* Expand to a full 8-bit number */
+  color.a = (Uint8)temp;
+
+  return color;
+}
+
+} // namespace
 
 ColorHSL to_HSL( Color const& rgb ) {
   ColorHSL hsl;
@@ -145,67 +218,14 @@ Color to_RGB( ColorHSV const& hsv ) {
   return rgb;
 }
 
-ColorHlVS to_HlVS( Color const& rgb ) {
-  auto hsv = to_HSV( rgb );
-  auto lum =
-      std::sqrt( .241 * rgb.r / 255.0 + .691 * rgb.g / 255.0 +
-                 .068 * rgb.b / 255.0 );
-  return {hsv.h, lum, hsv.v, hsv.s, rgb.a};
-}
-
-Color to_RGB( ColorHlVS const& hlvs ) {
-  ColorHSV hsv{hlvs.h, hlvs.s, hlvs.v, hlvs.a};
-  return to_RGB( hsv );
-}
-
-bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
-                        ColorHlVS const& rhs ) {
-  auto to_bucket = []( ColorHlVS const& c ) {
-    int constexpr buckets = 8;
-    return tuple( floor( c.h / 360.0 * buckets ),
-                  floor( c.l * buckets ), c.v );
-  };
-  return to_bucket( lhs ) < to_bucket( rhs );
-}
-
-Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
-  Color color{};
-
-  /* Get Red component */
-  auto temp = pixel & fmt->Rmask;  /* Isolate red component */
-  temp      = temp >> fmt->Rshift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Rloss; /* Expand to a full 8-bit number */
-  color.r = (Uint8)temp;
-
-  /* Get Green component */
-  temp = pixel & fmt->Gmask;  /* Isolate green component */
-  temp = temp >> fmt->Gshift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Gloss;  /* Expand to a full 8-bit number */
-  color.g = (Uint8)temp;
-
-  /* Get Blue component */
-  temp = pixel & fmt->Bmask;  /* Isolate blue component */
-  temp = temp >> fmt->Bshift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Bloss;  /* Expand to a full 8-bit number */
-  color.b = (Uint8)temp;
-
-  /* Get Alpha component */
-  temp = pixel & fmt->Amask;  /* Isolate alpha component */
-  temp = temp >> fmt->Ashift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Aloss;  /* Expand to a full 8-bit number */
-  color.a = (Uint8)temp;
-
-  return color;
-}
-
-vector<Color> extract_palette( string const& file ) {
+vector<Color> extract_palette( string const& image ) {
   /* Extracting color components from a 32-bit color value */
-  auto files = util::wildcard( file, false );
+  auto files = util::wildcard( image, false );
 
   absl::flat_hash_set<Color> colors;
 
-  logger->info( "Loading palette from {}", file );
-  SDL_Surface* surface = load_surface( file.c_str() );
+  logger->info( "Loading palette from {}", image );
+  SDL_Surface* surface = load_surface( image.c_str() );
 
   SDL_PixelFormat* fmt = surface->format;
 

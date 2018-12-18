@@ -20,22 +20,7 @@
 
 namespace rn {
 
-constexpr uint8_t alpha_opaque{255};
-constexpr uint8_t max_saturation{255};
-
-struct ColorHSL;
-struct ColorHSV;
-struct ColorHlVS;
-struct Color;
-
-ColorHSL  to_HSL( Color const& rgb );
-ColorHSV  to_HSV( Color const& rgb );
-Color     to_RGB( ColorHSL const& hsl );
-Color     to_RGB( ColorHSV const& hsv );
-Color     to_RGB( ColorHlVS const& hlvs );
-ColorHlVS to_HlVS( Color const& rgb );
-
-// Standard RGB form.  Can be freely passed by value.
+// Standard RGBA form.  Can be freely passed by value.
 struct Color {
   uint8_t r = 0;
   uint8_t g = 0;
@@ -63,30 +48,21 @@ struct Color {
     return to_tuple() == rhs.to_tuple();
   }
 
-  static Color red() {
-    return {max_saturation, 0, 0, alpha_opaque};
-  }
-  static Color green() {
-    return {0, max_saturation, 0, alpha_opaque};
-  }
-  static Color blue() {
-    return {0, 0, max_saturation, alpha_opaque};
-  }
-  static Color white() {
-    return {max_saturation, max_saturation, max_saturation,
-            alpha_opaque};
-  }
-  static Color black() { return {0, 0, 0, alpha_opaque}; }
+  static Color red() { return {255, 0, 0, 255}; }
+  static Color green() { return {0, 255, 0, 255}; }
+  static Color blue() { return {0, 0, 255, 255}; }
+  static Color white() { return {255, 255, 255, 255}; }
+  static Color black() { return {0, 0, 0, 255}; }
 };
 
 // So that we can pass it by value.
 static_assert( sizeof( Color ) == 4 );
 
 struct ColorHSL {
-  double  h; // hue [0..360]
-  double  s; // saturation [0, 1]
-  double  l; // lightness [0, 1]
-  uint8_t a; // alpha
+  double  h = 0; // hue [0..360]
+  double  s = 0; // saturation [0, 1]
+  double  l = 0; // lightness [0, 1]
+  uint8_t a = 0; // alpha
 
   auto to_tuple() const { return std::tuple( h, s, l, a ); }
 
@@ -96,10 +72,10 @@ struct ColorHSL {
 };
 
 struct ColorHSV {
-  double  h; // hue [0..360]
-  double  s; // saturation [0, 1]
-  double  v; // value [0, 1]
-  uint8_t a; // alpha
+  double  h = 0; // hue [0..360]
+  double  s = 0; // saturation [0, 1]
+  double  v = 0; // value [0, 1]
+  uint8_t a = 0; // alpha
 
   auto to_tuple() const { return std::tuple( h, s, v, a ); }
 
@@ -108,28 +84,18 @@ struct ColorHSV {
   }
 };
 
-// This function is used for sorting color palettes.  It
-// will return (lhs < rhs) but where the various components,
-// such as hue, are bucketed before comparison.
-bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
-                        ColorHlVS const& rhs );
+ColorHSL to_HSL( Color const& rgb );
+ColorHSV to_HSV( Color const& rgb );
+Color    to_RGB( ColorHSL const& hsl );
+Color    to_RGB( ColorHSV const& hsv );
 
-struct ColorHlVS {
-  double  h; // hue [0..360]
-  double  l; // luminosity [0, 1]
-  double  v; // value [0, 1]
-  double  s; // saturation [0, 1]
-  uint8_t a; // alpha
+// Load the image file and scan every pixel and compile a list of
+// unique colors in RGB form. Then convert each color to HSlV
+// form, sort them with bucketing, then convert back to RGB form
+// and return the sorted list.
+std::vector<Color> extract_palette( std::string const& image );
 
-  auto to_tuple() const { return std::tuple( h, l, v, s, a ); }
-
-  bool operator<( ColorHlVS const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
-std::vector<Color> extract_palette( std::string const& file );
-
+// Show each color in a small square in a grid on screen.
 void show_palette( std::vector<Color> const& colors );
 
 } // namespace rn
