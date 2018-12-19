@@ -303,9 +303,9 @@ void populate_config_field( ucl::Ucl obj, Color& dest,
                             string const&         config_name,
                             string const&         file ) {
   // Silence unused-variable warnings.
-  (void)ucl_type_of_v<Coord>;
-  (void)ucl_type_name_of_v<Coord>;
-  (void)ucl_getter_for_type_v<Coord>;
+  (void)ucl_type_of_v<Color>;
+  (void)ucl_type_name_of_v<Color>;
+  (void)ucl_getter_for_type_v<Color>;
   auto dotted = util::join( path, "." );
   check_field_exists( obj, dotted, file );
   check_field_type( obj, UCL_STRING, dotted, config_name,
