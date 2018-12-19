@@ -89,26 +89,11 @@ struct ColorHSL {
   }
 };
 
-struct ColorHSV {
-  double  h = 0; // hue [0..360]
-  double  s = 0; // saturation [0, 1]
-  double  v = 0; // value [0, 1]
-  uint8_t a = 0; // alpha
-
-  auto to_tuple() const { return std::tuple( h, s, v, a ); }
-
-  bool operator<( ColorHSV const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
 ColorHSL to_HSL( Color const& rgb );
-ColorHSV to_HSV( Color const& rgb );
 Color    to_RGB( ColorHSL const& hsl );
-Color    to_RGB( ColorHSV const& hsv );
 
 // Sorts colors in a quasi-human way.
-Vec<Color> hlsv_bucketed_sort( Vec<Color> const& colors );
+void hsl_bucketed_sort( Vec<Color>& colors );
 
 // Load the image file and scan every pixel and compile a list
 // of unique colors in RGB form.  The order of colors returned

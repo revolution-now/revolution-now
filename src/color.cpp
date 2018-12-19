@@ -44,49 +44,85 @@ namespace {
 // Used when we sort or partition colors.  Turns out that
 // colors can't be nicely sorted without partitioning, so
 // the two are related.
-int constexpr hue_buckets = 8;
+int constexpr hue_buckets        = 8;
+int constexpr saturation_buckets = 3;
+
 // Must be a multiple of 360 which is the maximum hue value.
 static_assert( 360 % hue_buckets == 0 );
 
 // Only relevant for testing/displaying palettes.
 Coord const palette_render_origin{10_y, 10_x};
 
-// Contains some redundency; mainly only useful for sorting.
-struct ColorHlVS {
-  double  h = 0; // hue [0..360]
-  double  l = 0; // luminosity [0, 1]
-  double  v = 0; // value [0, 1]
-  double  s = 0; // saturation [0, 1]
-  uint8_t a = 0; // alpha
-
-  auto to_tuple() const { return std::tuple( h, l, v, s, a ); }
-
-  bool operator<( ColorHlVS const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
-Color to_RGB( ColorHlVS const& hlvs ) {
-  ColorHSV hsv{hlvs.h, hlvs.s, hlvs.v, hlvs.a};
-  return to_RGB( hsv );
+// Takes a hue in [0,360) and returns a bucket index from
+// [0,hue_buckets-1).  Our strategy here is that the firt
+// bucket straddles the zero mark since that seems to
+// produce more pleasing results..
+int to_hue_bucket( double hue ) {
+  // Sometimes hue can be ever-to-slightly more than max.
+  CHECK( hue >= 0.0 && hue < 361.0 );
+  if( hue >= 360.0 ) return hue_buckets - 1;
+  // Now hue < 360.0
+  double bucket = 360.0 / hue_buckets;
+  // First do the shifting so that the first bucket straddles
+  // zero.
+  hue += bucket / 2.0;
+  if( hue > 360.0 ) hue -= 360;
+  // Now do the bucketing.
+  hue /= 360.0;
+  hue *= hue_buckets;
+  // Now floor and round so that we end up with an integer
+  // in the range 0, 1, 2...hue_buckets-1.
+  auto floored = floor( hue );
+  auto rounded = lround( floored );
+  auto result  = static_cast<int>( rounded );
+  CHECK( floored >= 0.0 && floored < double( hue_buckets ) );
+  CHECK( rounded >= 0 && rounded < hue_buckets );
+  CHECK( result >= 0 && result < hue_buckets );
+  return result;
 }
 
-ColorHlVS to_HlVS( Color const& rgb ) {
-  auto hsv = to_HSV( rgb );
-  auto lum = rgb.luminance();
-  return {hsv.h, lum, hsv.v, hsv.s, rgb.a};
+// Takes a value in the range [0,1] and buckets it, returning
+// an integer in the range [0,buckets-1).  If 1.0 is given then
+// it will be placed into the last bucket (buckets-1).
+int to_bucket( double v, int buckets ) {
+  // Sometimes v can be equal or ever-to-slightly more than one.
+  if( v >= 1.0 ) return buckets - 1;
+  // At this point v must be in [0,1).
+  CHECK( v >= 0.0 && v < 1.0 );
+  v *= buckets;
+  // Now floor and round so that we end up with an integer
+  // in the range 0, 1, 2...hue_buckets-1.
+  auto floored = floor( v );
+  auto rounded = lround( floored );
+  auto result  = static_cast<int>( rounded );
+  CHECK( floored >= 0.0 && floored < double( buckets ) );
+  CHECK( rounded >= 0 && rounded < buckets );
+  CHECK( result >= 0 && result < buckets );
+  return result;
 }
 
-// This function is used for sorting color palettes.  It
-// will return (lhs < rhs) but where the various components,
-// such as hue, are bucketed before comparison.
-bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
-                        ColorHlVS const& rhs ) {
-  auto to_bucket = []( ColorHlVS const& c ) {
-    return tuple( floor( c.h / 360.0 * hue_buckets ),
-                  floor( c.l * hue_buckets ), c.v );
-  };
-  return to_bucket( lhs ) < to_bucket( rhs );
+// This function is used for sorting color palettes. It will re-
+// turn (l < r) but where the various components, such as hue,
+// are bucketed before comparison in various ways.
+bool hsl_bucketed_cmp( Color const& l, Color const& r ) {
+  auto l_hsl = to_HSL( l );
+  auto r_hsl = to_HSL( r );
+
+  int l_hue_bucket = to_hue_bucket( l_hsl.h );
+  int r_hue_bucket = to_hue_bucket( r_hsl.h );
+  // First compare hues.
+  if( l_hue_bucket != r_hue_bucket )
+    return l_hue_bucket < r_hue_bucket;
+
+  // If hues are in the same bucket then move on to saturation
+  // and luminance.
+  auto l_sat_bucket = to_bucket( l_hsl.s, saturation_buckets );
+  auto r_sat_bucket = to_bucket( r_hsl.s, saturation_buckets );
+  if( l_sat_bucket != r_sat_bucket )
+    return l_sat_bucket < r_sat_bucket;
+
+  // If saturations are not too far apart then compare luminance.
+  return l.luminance() < r.luminance();
 }
 
 Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
@@ -211,37 +247,6 @@ ColorHSL to_HSL( Color const& rgb ) {
   return hsl;
 }
 
-ColorHSV to_HSV( Color const& rgb ) {
-  ColorHSV hsv;
-  hsv.a = rgb.a;
-  // www.rapidtables.com/convert/color/rgb-to-hsv.html
-  double rp    = rgb.r / 255.0;
-  double gp    = rgb.g / 255.0;
-  double bp    = rgb.b / 255.0;
-  auto   c_max = std::max( rp, std::max( gp, bp ) );
-  auto   c_min = std::min( rp, std::min( gp, bp ) );
-  auto   delta = c_max - c_min;
-  // Calculate hue
-  if( delta == 0.0 ) {
-    hsv.h = 0;
-  } else {
-    if( c_max == rp ) {
-      hsv.h = 60.0 * std::fmod( ( gp - bp ) / delta, 6.0 );
-    } else if( c_max == gp ) {
-      hsv.h = 60.0 * ( ( bp - rp ) / delta + 2.0 );
-    } else if( c_max == bp ) {
-      hsv.h = 60.0 * ( ( rp - gp ) / delta + 4.0 );
-    } else {
-      SHOULD_NOT_BE_HERE;
-    }
-  }
-  // Calculate Value.
-  hsv.v = c_max;
-  // Calculate saturation.
-  hsv.s = ( delta == 0.0 ) ? 0 : delta / c_max;
-  return hsv;
-}
-
 Color to_RGB( ColorHSL const& hsl ) {
   // www.rapidtables.com/convert/color/hsl-to-rgb.html
   Color rgb;
@@ -266,28 +271,6 @@ Color to_RGB( ColorHSL const& hsl ) {
   return rgb;
 }
 
-Color to_RGB( ColorHSV const& hsv ) {
-  // www.rapidtables.com/convert/color/hsv-to-rgb.html
-  Color rgb;
-  rgb.a  = hsv.a;
-  auto C = hsv.v * hsv.s;
-  auto X = C * ( 1 - fabs( fmod( ( hsv.h / 60.0 ), 2.0 ) - 1 ) );
-  auto m = hsv.v - C;
-  double R, G, B;
-  // clang-format off
-  if( 0   <= hsv.h && hsv.h <  60 ) { R = C; G = X; B = 0; };
-  if( 60  <= hsv.h && hsv.h < 120 ) { R = X; G = C; B = 0; };
-  if( 120 <= hsv.h && hsv.h < 180 ) { R = 0; G = C; B = X; };
-  if( 180 <= hsv.h && hsv.h < 240 ) { R = 0; G = X; B = C; };
-  if( 240 <= hsv.h && hsv.h < 300 ) { R = X; G = 0; B = C; };
-  if( 300 <= hsv.h && hsv.h < 360 ) { R = C; G = 0; B = X; };
-  // clang-format on
-  rgb.r = ( R + m ) * 255;
-  rgb.g = ( G + m ) * 255;
-  rgb.b = ( B + m ) * 255;
-  return rgb;
-}
-
 string Color::to_string( bool with_alpha ) const {
   if( with_alpha )
     return fmt::format( "#{:02X}{:02X}{:02X}{:02X}", r, g, b,
@@ -297,8 +280,9 @@ string Color::to_string( bool with_alpha ) const {
 }
 
 double Color::luminance() const {
-  return std::sqrt( .241 * r / 255.0 + .691 * g / 255.0 +
-                    .068 * b / 255.0 );
+  return std::sqrt( .241 * pow( r / 255.0, 2.0 ) +
+                    .691 * pow( g / 255.0, 2.0 ) +
+                    .068 * pow( b / 255.0, 2.0 ) );
 }
 
 // Parses a string of the form 'NNNNNN[NN]' where N is:
@@ -353,13 +337,8 @@ Color Color::random() {
           uniform_dist( e ), 255};
 }
 
-Vec<Color> hlsv_bucketed_sort( Vec<Color> const& colors ) {
-  auto hlvs = util::map( to_HlVS, colors );
-  std::sort( hlvs.begin(), hlvs.end(), hlvs_bucketed_cmp );
-  auto rgb_sorted_by_hlv = util::map(
-      []( ColorHlVS const& hlvs ) { return to_RGB( hlvs ); },
-      hlvs );
-  return rgb_sorted_by_hlv;
+void hsl_bucketed_sort( Vec<Color>& colors ) {
+  std::sort( colors.begin(), colors.end(), hsl_bucketed_cmp );
 }
 
 vector<Color> extract_palette( string const& image ) {

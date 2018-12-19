@@ -67,24 +67,13 @@ void game() {
   // Vec<Color> colors;
   // for( int i = 0; i < 1024; ++i )
   //  colors.push_back( Color::random() );
-  auto groups = partition_by_hue( colors );
-  groups      = coursen( groups, 55 );
-  auto cmp    = []( Color const& lhs, Color const& rhs ) {
-    auto hsv1 = to_HSV( lhs );
-    auto hsv2 = to_HSV( rhs );
-    if( hsv1.s - hsv2.s > .30 ) return false;
-    if( hsv2.s - hsv1.s > .30 ) return true;
-    // if( hsv1.v <= .5 && hsv2.v > .5 ) return true;
-    // if( hsv2.v <= .5 && hsv1.v > .5 ) return false;
-    return lhs.luminance() < rhs.luminance();
-  };
-  auto sort_method = [&cmp]( Vec<Color> const& colors ) {
-    auto res = colors;
-    std::sort( res.begin(), res.end(), cmp );
-    return res;
-  };
-  groups = util::map( sort_method, groups );
-  show_palette( groups );
+  // auto groups = partition_by_hue( colors );
+  // groups      = coursen( groups, 55 );
+  // groups = util::map( hsl_bucketed_sort, groups );
+  // show_palette( groups );
+
+  hsl_bucketed_sort( colors );
+  show_palette( colors );
   wait_for_q();
 
   // logger->info( "config_ui.window.border_color: {}",
