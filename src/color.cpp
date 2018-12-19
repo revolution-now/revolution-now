@@ -427,12 +427,17 @@ Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors ) {
   for( int segment = 0; segment < 360;
        segment += segment_size ) {
     res.emplace_back();
-    auto&  back    = res.back();
-    double hue_min = segment, hue_max = segment + segment_size;
+    auto& back = res.back();
+    // Straddle zero since empirically this seems better.
+    double hue_min = segment - segment_size / 2,
+           hue_max = segment + segment_size / 2;
     vector<Color> filtered;
-    for( auto color : hsl )
-      if( color.h >= hue_min && color.h < hue_max )
+    for( auto color : hsl ) {
+      double hue = double( color.h );
+      if( hue > 360.0 - segment_size / 2.0 ) hue -= 360.0;
+      if( hue >= hue_min && hue < hue_max )
         back.push_back( to_RGB( color ) );
+    }
   }
   return res;
 }
@@ -467,7 +472,6 @@ void show_palette( Vec<Vec<Color>> const& colors ) {
   Coord origin( palette_render_origin );
   H     offset{30};
   for( auto const& partition : colors ) {
-    if( partition.empty() ) continue;
     origin.y += offset;
     render_palette_segment( partition, origin );
   }
