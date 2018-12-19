@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "geo-types.hpp"
 
 // c++ standard library
 #include <cstdint>
@@ -36,6 +37,8 @@ struct Color {
   Color( uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_ )
     : r( r_ ), g( g_ ), b( b_ ), a( a_ ) {}
 
+  double luminance() const;
+
   auto to_tuple() const { return std::tuple( r, g, b, a ); }
 
   // #NNNNNN with N in [0-9A-F] and optionally #NNNNNNNN
@@ -46,6 +49,9 @@ struct Color {
   // [0-9a-fA-F]. The optional two digits at the end represent
   // alpha. If these are omitted then alpha will be set to 255.
   static Opt<Color> parse_from_hex( std::string_view hex );
+
+  // A random color.
+  static Color random();
 
   // Abseil hashing API.
   template<typename H>
@@ -101,13 +107,28 @@ ColorHSV to_HSV( Color const& rgb );
 Color    to_RGB( ColorHSL const& hsl );
 Color    to_RGB( ColorHSV const& hsv );
 
-// Load the image file and scan every pixel and compile a list of
-// unique colors in RGB form. Then convert each color to HSlV
-// form, sort them with bucketing, then convert back to RGB form
-// and return the sorted list.
+// Sorts colors in a quasi-human way.
+Vec<Color> hlsv_bucketed_sort( Vec<Color> const& colors );
+
+// Load the image file and scan every pixel and compile a list
+// of unique colors in RGB form.  The order of colors returned
+// is unspecified.
 std::vector<Color> extract_palette( std::string const& image );
 
-// Show each color in a small square in a grid on screen.
-void show_palette( std::vector<Color> const& colors );
+// Partition colors by taking the full range of hue (0-360) and
+// partitioning it into segments of size `hue_segment_size` and
+// then gathering all colors in each segment.  Result will be
+// independent of the ordering of the input colors.
+Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors );
+
+Vec<Color> coursen( Vec<Color> const& colors, int min_count );
+
+Vec<Vec<Color>> coursen( Vec<Vec<Color>> const& colors,
+                         int                    min_count );
+
+// Just for testing. Show each color in a small square in a grid
+// on screen.
+void show_palette( Vec<Color> const& colors );
+void show_palette( Vec<Vec<Color>> const& colors );
 
 } // namespace rn

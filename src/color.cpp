@@ -19,6 +19,7 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
+#include "base-util/misc.hpp"
 
 // {fmt}
 #include "fmt/format.h"
@@ -30,13 +31,25 @@
 #include <SDL.h>
 
 // c++ standard library
+#include <algorithm>
 #include <cmath>
+#include <random>
 
 using namespace std;
 
 namespace rn {
 
 namespace {
+
+// Used when we sort or partition colors.  Turns out that
+// colors can't be nicely sorted without partitioning, so
+// the two are related.
+int constexpr hue_buckets = 8;
+// Must be a multiple of 360 which is the maximum hue value.
+static_assert( 360 % hue_buckets == 0 );
+
+// Only relevant for testing/displaying palettes.
+Coord const palette_render_origin{10_y, 10_x};
 
 // Contains some redundency; mainly only useful for sorting.
 struct ColorHlVS {
@@ -60,9 +73,7 @@ Color to_RGB( ColorHlVS const& hlvs ) {
 
 ColorHlVS to_HlVS( Color const& rgb ) {
   auto hsv = to_HSV( rgb );
-  auto lum =
-      std::sqrt( .241 * rgb.r / 255.0 + .691 * rgb.g / 255.0 +
-                 .068 * rgb.b / 255.0 );
+  auto lum = rgb.luminance();
   return {hsv.h, lum, hsv.v, hsv.s, rgb.a};
 }
 
@@ -72,9 +83,8 @@ ColorHlVS to_HlVS( Color const& rgb ) {
 bool hlvs_bucketed_cmp( ColorHlVS const& lhs,
                         ColorHlVS const& rhs ) {
   auto to_bucket = []( ColorHlVS const& c ) {
-    int constexpr buckets = 8;
-    return tuple( floor( c.h / 360.0 * buckets ),
-                  floor( c.l * buckets ), c.v );
+    return tuple( floor( c.h / 360.0 * hue_buckets ),
+                  floor( c.l * hue_buckets ), c.v );
   };
   return to_bucket( lhs ) < to_bucket( rhs );
 }
@@ -109,6 +119,59 @@ Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
   return color;
 }
 
+void render_palette_segment( vector<Color> const& colors,
+                             Coord                origin ) {
+  int idx                  = 0;
+  int constexpr block_size = 10;
+  int constexpr row_size   = 62;
+  for( auto color : colors ) {
+    X x = origin.x;
+    Y y = origin.y;
+    x += X{( idx % row_size ) * block_size};
+    y += Y{( idx / row_size ) * block_size};
+    W w{block_size};
+    H h{block_size};
+    render_fill_rect( nullopt, color, {x, y, w, h} );
+    ++idx;
+  }
+}
+
+// This will reduce the number of colors by eliminitating
+// approximate redundancy.  A color is considered redundant if we
+// already have a color whose r/g/b components are all within the
+// same chunk.
+Vec<Color> coursen_impl( Vec<Color> const& colors,
+                         uint8_t           chunk ) {
+  // Do this in a dedicated function so that we don't have any
+  // issues with the fact that a) we're using unsigned numbers
+  // and b) their are only 8 bit.  This may not be necessary, but
+  // just to be safe...
+  auto abs_diff = []( uint8_t l, uint8_t r ) {
+    if( l >= r )
+      return l - r;
+    else
+      return r - l;
+  };
+  auto matches = [&abs_diff, chunk]( Color c1, Color c2 ) {
+    return ( abs_diff( c1.r, c2.r ) < chunk ) &&
+           ( abs_diff( c1.g, c2.g ) < chunk ) &&
+           ( abs_diff( c1.b, c2.b ) < chunk );
+  };
+  vector<Color> result;
+  for( auto c : colors ) {
+    bool found_match = false;
+    for( auto cp : result ) {
+      if( matches( c, cp ) ) {
+        found_match = true;
+        break;
+      }
+    }
+    if( found_match ) continue;
+    result.push_back( c );
+  }
+  return result;
+}
+
 } // namespace
 
 ColorHSL to_HSL( Color const& rgb ) {
@@ -126,15 +189,19 @@ ColorHSL to_HSL( Color const& rgb ) {
     hsl.h = 0;
   } else {
     if( c_max == rp ) {
-      hsl.h = 60.0 * std::fmod( ( gp - bp ) / delta, 6.0 );
+      hsl.h = ( gp - bp ) / delta;
     } else if( c_max == gp ) {
-      hsl.h = 60.0 * ( ( bp - rp ) / delta + 2.0 );
+      hsl.h = ( ( bp - rp ) / delta + 2.0 );
     } else if( c_max == bp ) {
-      hsl.h = 60.0 * ( ( rp - gp ) / delta + 4.0 );
+      hsl.h = ( ( rp - gp ) / delta + 4.0 );
     } else {
       SHOULD_NOT_BE_HERE;
     }
   }
+  hsl.h *= 60;
+  if( hsl.h > 360 ) hsl.h -= 360;
+  if( hsl.h < 0 ) hsl.h += 360;
+
   // Calculate lightness.
   hsl.l = ( c_max + c_min ) / 2.0;
   // Calculate saturation.
@@ -229,6 +296,11 @@ string Color::to_string( bool with_alpha ) const {
     return fmt::format( "#{:02X}{:02X}{:02X}", r, g, b );
 }
 
+double Color::luminance() const {
+  return std::sqrt( .241 * r / 255.0 + .691 * g / 255.0 +
+                    .068 * b / 255.0 );
+}
+
 // Parses a string of the form 'NNNNNN[NN]' where N is:
 // [0-9a-fA-F]. The optional two digits at the end represent al-
 // pha. If these are omitted then alpha will be set to 255.
@@ -264,6 +336,30 @@ Opt<Color> Color::parse_from_hex( string_view hex ) {
   else
     color.a = 255;
   return color;
+}
+
+// A random color.
+Color Color::random() {
+  DIE( "this function needs to be more properly implemented "
+       "before usage." );
+  // Seed with a real random value, if available
+  random_device r;
+
+  default_random_engine e( r() );
+  // Choose a random mean between 0 and 255
+  uniform_int_distribution<uint8_t> uniform_dist( 0, 255 );
+
+  return {uniform_dist( e ), uniform_dist( e ),
+          uniform_dist( e ), 255};
+}
+
+Vec<Color> hlsv_bucketed_sort( Vec<Color> const& colors ) {
+  auto hlvs = util::map( to_HlVS, colors );
+  std::sort( hlvs.begin(), hlvs.end(), hlvs_bucketed_cmp );
+  auto rgb_sorted_by_hlv = util::map(
+      []( ColorHlVS const& hlvs ) { return to_RGB( hlvs ); },
+      hlvs );
+  return rgb_sorted_by_hlv;
 }
 
 vector<Color> extract_palette( string const& image ) {
@@ -313,28 +409,67 @@ vector<Color> extract_palette( string const& image ) {
   SDL_UnlockSurface( surface );
   SDL_FreeSurface( surface );
 
-  auto rgb  = vector<Color>( colors.begin(), colors.end() );
-  auto hlvs = util::map( to_HlVS, rgb );
-  std::sort( hlvs.begin(), hlvs.end(), hlvs_bucketed_cmp );
-  auto rgb_sorted_by_hlv = util::map(
-      []( ColorHlVS const& hlvs ) { return to_RGB( hlvs ); },
-      hlvs );
-  return rgb_sorted_by_hlv;
+  return {colors.begin(), colors.end()};
 }
 
-void show_palette( vector<Color> const& colors ) {
+Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors ) {
+  // Any representation that has hue should yield the same
+  // results in this function, i.e., sorting behavior with regard
+  // to other attributes won't change the result of this
+  // function.
+  auto hsl = util::map( to_HSL, colors );
+  // NOTE: we don't want the bucketed compare here.
+  util::sort( hsl );
+
+  auto segment_size = 360 / hue_buckets;
+
+  Vec<Vec<Color>> res;
+  for( int segment = 0; segment < 360;
+       segment += segment_size ) {
+    res.emplace_back();
+    auto&  back    = res.back();
+    double hue_min = segment, hue_max = segment + segment_size;
+    vector<Color> filtered;
+    for( auto color : hsl )
+      if( color.h >= hue_min && color.h < hue_max )
+        back.push_back( to_RGB( color ) );
+  }
+  return res;
+}
+
+Vec<Color> coursen( Vec<Color> const& colors, int min_count ) {
+  uint8_t chunk = 64;
+  while( chunk > 1 ) {
+    chunk--;
+    Vec<Color> res = coursen_impl( colors, chunk );
+    if( int( res.size() ) >= min_count ) return res;
+  }
+  return colors;
+}
+
+Vec<Vec<Color>> coursen( Vec<Vec<Color>> const& partitions,
+                         int                    min_count ) {
+  Vec<Vec<Color>> res;
+  res.reserve( partitions.size() );
+  for( auto const& colors : partitions )
+    res.push_back( coursen( colors, min_count ) );
+  return res;
+}
+
+void show_palette( Vec<Color> const& colors ) {
   clear_texture_black( Texture() );
-  int idx                  = 0;
-  int constexpr block_size = 10;
-  int constexpr row_size   = 16;
-  int constexpr offset     = 40;
-  for( auto color : colors ) {
-    X x{( idx % row_size ) * block_size + offset};
-    Y y{( idx / row_size ) * block_size + offset};
-    W w{block_size};
-    H h{block_size};
-    render_fill_rect( nullopt, color, {x, y, w, h} );
-    ++idx;
+  render_palette_segment( colors, palette_render_origin );
+  ::SDL_RenderPresent( g_renderer );
+}
+
+void show_palette( Vec<Vec<Color>> const& colors ) {
+  clear_texture_black( Texture() );
+  Coord origin( palette_render_origin );
+  H     offset{30};
+  for( auto const& partition : colors ) {
+    if( partition.empty() ) continue;
+    origin.y += offset;
+    render_palette_segment( partition, origin );
   }
   ::SDL_RenderPresent( g_renderer );
 }

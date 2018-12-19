@@ -8,6 +8,7 @@ let s:stems = [
   \ 'src/globals',
   \ 'src/util',
   \ 'src/sdl-util',
+  \ 'src/color',
   \ 'src/fonts',
   \ 'src/window',
   \ 'src/input',

@@ -16,6 +16,7 @@
 #include "world.hpp"
 
 // base-util
+#include "base-util/algo.hpp"
 #include "base-util/io.hpp"
 #include "base-util/string.hpp"
 
@@ -61,16 +62,27 @@ void game() {
 
   // logger->info( "Selected: {}", int( res ) );
 
-  // auto colors =
-  //    extract_palette( "assets/art/palette-sorted.png" );
-  // show_palette( colors );
-  // wait_for_q();
+  auto colors =
+      extract_palette( "assets/art/palette-sorted.png" );
+  auto groups = partition_by_hue( colors );
+  groups      = coursen( groups, 15 );
+  auto cmp    = []( Color const& lhs, Color const& rhs ) {
+    return lhs.luminance() < rhs.luminance();
+  };
+  auto sort_method = [&cmp]( Vec<Color> const& colors ) {
+    auto res = colors;
+    std::sort( res.begin(), res.end(), cmp );
+    return res;
+  };
+  groups = util::map( sort_method, groups );
+  show_palette( groups );
+  wait_for_q();
 
-  logger->info( "config_ui.window.border_color: {}",
-                config_ui.window.border_color.to_string() );
-  logger->info(
-      "config_ui.window.border_color: {}",
-      config_ui.window.border_color.to_string( true ) );
+  // logger->info( "config_ui.window.border_color: {}",
+  //              config_ui.window.border_color.to_string() );
+  // logger->info(
+  //    "config_ui.window.border_color: {}",
+  //    config_ui.window.border_color.to_string( true ) );
 
   cleanup();
 }
