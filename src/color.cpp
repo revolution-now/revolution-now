@@ -69,6 +69,15 @@ static_assert( 256 % grey_scale_colors == 0 );
 // be part of the grey scale.
 double constexpr greyscale_max_saturation = 0.08;
 
+// This is intended to be looked up by index, where the index is
+// the "hue bucket".
+array<char const*, hue_buckets> constexpr hue_names{
+    "red",   "orange",       "yellow",  "chartreuse_green",
+    "green", "spring_green", "cyan",    "azure",
+    "blue",  "violet",       "magenta", "rose",
+};
+static_assert( hue_names.size() == hue_buckets );
+
 // Only relevant for testing/displaying palettes.
 Coord const palette_render_origin{10_y, 10_x};
 
@@ -486,15 +495,8 @@ void dump_palette( ColorBuckets const& bucketed,
   CHECK( ucl_out.good() );
   ofstream inl_out( schema.string() );
   CHECK( inl_out.good() );
-  auto hue_names = array<string, hue_buckets>{
-      "red",   "orange",       "yellow",  "chartreuse_green",
-      "green", "spring_green", "cyan",    "azure",
-      "blue",  "violet",       "magenta", "rose",
-  };
-  static_assert( hue_names.size() == hue_buckets );
   inl_out << "// Auto-Generated: DO NOT EDIT\n\n";
   ucl_out << "# Auto-Generated: DO NOT EDIT\n\n";
-
   inl_out << "CFG( palette,\n";
   for( int hue = 0; hue < hue_buckets; ++hue ) {
     if( hue != 0 ) {
@@ -633,6 +635,16 @@ void update_palette( fs::path const& where ) {
 void show_config_palette() {
   auto colors = g_palette();
   show_palette( Texture(), hsl_bucket( colors ) );
+}
+
+string bucket_path( Color c ) {
+  auto hsl        = to_HSL( c );
+  auto hue_bucket = to_hue_bucket( hsl.h );
+  auto sat_bucket = to_bucket( hsl.s, saturation_buckets );
+  auto lum_bucket =
+      to_bucket( c.luminosity(), luminosity_buckets );
+  return format( "{}.sat{}.lum{}", hue_names[hue_bucket],
+                 sat_bucket, lum_bucket );
 }
 
 } // namespace rn

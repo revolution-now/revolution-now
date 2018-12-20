@@ -82,6 +82,12 @@ static_assert( sizeof( Color ) == 4 );
 * These functions are not run during the game; they are only run
 * in a once-off manner to generate/update the game palettes.
 *****************************************************************/
+// Given an arbitrary color it will return the hierarchical
+// location of that color in the bucketing scheme that we use in
+// this game. E.g., calling it with #FF0000 might return
+// something along the lines of "red.sat2.lum12".
+std::string bucket_path( Color c );
+
 // Sorts colors in a quasi-human way.
 void hsl_bucketed_sort( Vec<Color>& colors );
 
