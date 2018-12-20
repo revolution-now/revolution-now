@@ -68,8 +68,9 @@ void game() {
   remove_greys( colors );
   hsl_bucketed_sort( colors );
   // show_palette( hsl_partition( colors ) );
-  show_palette( colors );
-  wait_for_q();
+  // show_palette( colors );
+  dump_palette( colors, "config/palette.ucl" );
+  // wait_for_q();
 
   // logger->info( "config_ui.window.border_color: {}",
   //              config_ui.window.border_color.to_string() );

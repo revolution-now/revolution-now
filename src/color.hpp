@@ -104,9 +104,11 @@ Vec<Color> coursen( Vec<Color> const& colors, int min_count );
 // best to achieve this number, but typically the set of returned
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
-std::vector<Color> extract_palette(
+Vec<Color> extract_palette(
     std::string const& glob,
     Opt<int>           target_num_colors = std::nullopt );
+
+void dump_palette( Vec<Color> const& colors, fs::path file );
 
 // Just for testing. Show each color in a small square in a grid
 // on screen.

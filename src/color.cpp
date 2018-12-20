@@ -32,7 +32,9 @@
 
 // c++ standard library
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <fstream>
 #include <random>
 
 using namespace std;
@@ -44,7 +46,7 @@ namespace {
 // Used when we sort or partition colors. Turns out that colors
 // can't be nicely sorted without partitioning, so the two are
 // related.
-int constexpr hue_buckets        = 8;
+int constexpr hue_buckets        = 12;
 int constexpr saturation_buckets = 3;
 
 // Must be a multiple of 360 which is the maximum hue value.
@@ -107,6 +109,8 @@ ColorHSL to_HSL( Color const& rgb ) {
   return hsl;
 }
 
+/* Currently unused, but don't want to delete because it took
+ * too long to write.
 Color to_RGB( ColorHSL const& hsl ) {
   // www.rapidtables.com/convert/color/hsl-to-rgb.html
   Color rgb;
@@ -130,6 +134,7 @@ Color to_RGB( ColorHSL const& hsl ) {
   rgb.b = ( B + m ) * 255;
   return rgb;
 }
+*/
 
 // Takes a hue in [0,360) and returns a bucket index from
 // [0,hue_buckets-1). Our strategy here is that the firt bucket
@@ -424,6 +429,37 @@ vector<Color> extract_palette( string const& glob,
   }
 
   return res;
+}
+
+void dump_palette( Vec<Color> const& colors, fs::path file ) {
+  auto sorted = colors;
+  hsl_bucketed_sort( sorted );
+  ofstream out( file.string() );
+  CHECK( out.good() );
+  auto hue_names = array<string, hue_buckets>{
+      "red",   "orange",       "yellow",  "chartreuse_green",
+      "green", "spring_green", "cyan",    "azure",
+      "blue",  "violet",       "magenta", "rose",
+  };
+  static_assert( hue_names.size() == hue_buckets );
+  for( int hue = 0; hue < hue_buckets; ++hue ) {
+    if( hue != 0 ) out << "\n";
+    out << hue_names[hue] << " {\n";
+    for( int sat = 0; sat < saturation_buckets; ++sat ) {
+      out << "  sat" << sat << " {\n";
+      int light = 0;
+      for( Color c : colors ) {
+        auto hsl = to_HSL( c );
+        if( to_hue_bucket( hsl.h ) == hue &&
+            to_bucket( hsl.s, saturation_buckets ) == sat ) {
+          out << "    light" << light++ << ": \""
+              << c.to_string( false ) << "\"\n";
+        }
+      }
+      out << "  }\n";
+    }
+    out << "}\n";
+  }
 }
 
 Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors ) {
