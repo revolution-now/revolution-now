@@ -57,20 +57,11 @@ void game() {
   // while( turn() != e_turn_result::quit ) {}
 
   // font_test();
-  // auto res =
-  //    ui::yes_no( [] {}, "Would you like to make landfall?" );
+  auto res =
+      ui::yes_no( [] {}, "Would you like to make landfall?" );
 
-  // logger->info( "Selected: {}", int( res ) );
-
-  // auto colors =
-  //    extract_palette( "assets/art/col-palettes/*.*", 256 );
-  auto colors = extract_palette( "assets/art/palette.png", 256 );
-  remove_greys( colors );
-  hsl_bucketed_sort( colors );
-  // show_palette( hsl_partition( colors ) );
-  // show_palette( colors );
-  dump_palette( colors, "config/palette.ucl" );
-  // wait_for_q();
+  logger->info( "selected: {}", bool( res ) );
+  // grab_screen( "screen-shot-2.png" );
 
   // logger->info( "config_ui.window.border_color: {}",
   //              config_ui.window.border_color.to_string() );
