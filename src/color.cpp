@@ -11,6 +11,7 @@
 #include "color.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
@@ -20,6 +21,7 @@
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
 #include "base-util/misc.hpp"
+#include "base-util/optional.hpp"
 
 // {fmt}
 #include "fmt/format.h"
@@ -39,6 +41,8 @@
 
 using namespace std;
 
+using fmt::format;
+
 namespace rn {
 
 namespace {
@@ -48,9 +52,18 @@ namespace {
 // related.
 int constexpr hue_buckets        = 12;
 int constexpr saturation_buckets = 3;
+// Note that this luminosity is distinct from the `lightness`
+// component in HSL. The luminosity is what is actually used to
+// sort the colors after hue and saturation.
+int constexpr luminosity_buckets = 15;
+// When generating grey-scale palettes this is the number of
+// tones between black and white.
+int constexpr grey_scale_colors = 64;
 
 // Must be a multiple of 360 which is the maximum hue value.
 static_assert( 360 % hue_buckets == 0 );
+// Must be a multiple of the max values of RGB.
+static_assert( 256 % grey_scale_colors == 0 );
 
 // Colors with saturation below this value will be considered to
 // be part of the grey scale.
@@ -229,7 +242,8 @@ Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
   return color;
 }
 
-void render_palette_segment( vector<Color> const& colors,
+void render_palette_segment( Texture const&       tx,
+                             vector<Color> const& colors,
                              Coord origin, int row_size = 64 ) {
   int idx                  = 0;
   int constexpr block_size = 10;
@@ -240,7 +254,7 @@ void render_palette_segment( vector<Color> const& colors,
     y += Y{( idx / row_size ) * block_size};
     W w{block_size};
     H h{block_size};
-    render_fill_rect( nullopt, color, {x, y, w, h} );
+    render_fill_rect( tx, color, {x, y, w, h} );
     ++idx;
   }
 }
@@ -285,13 +299,12 @@ Vec<Color> coursen_impl( Vec<Color> const& colors,
 
 string Color::to_string( bool with_alpha ) const {
   if( with_alpha )
-    return fmt::format( "#{:02X}{:02X}{:02X}{:02X}", r, g, b,
-                        a );
+    return format( "#{:02X}{:02X}{:02X}{:02X}", r, g, b, a );
   else
-    return fmt::format( "#{:02X}{:02X}{:02X}", r, g, b );
+    return format( "#{:02X}{:02X}{:02X}", r, g, b );
 }
 
-double Color::luminance() const {
+double Color::luminosity() const {
   return std::sqrt( .241 * pow( r / 255.0, 2.0 ) +
                     .691 * pow( g / 255.0, 2.0 ) +
                     .068 * pow( b / 255.0, 2.0 ) );
@@ -350,15 +363,16 @@ Color Color::random() {
 }
 
 void hsl_bucketed_sort( Vec<Color>& colors ) {
-  util::sort_by_key( colors, L( _.luminance() ) );
+  util::sort_by_key( colors, L( _.luminosity() ) );
   util::stable_sort_by_key( colors, sat_bucket_key );
   util::stable_sort_by_key( colors, hue_bucket_key );
 }
 
-vector<Color> extract_palette( string const& glob,
-                               Opt<int> target_num_colors ) {
+vector<Color> extract_palette( fs::path const& glob,
+                               Opt<int>        target ) {
   /* Extracting color components from a 32-bit color value */
   auto files = util::wildcard( glob, false );
+  CHECK_( !files.empty(), "need at least one file" );
 
   absl::flat_hash_set<Color> colors;
 
@@ -411,6 +425,7 @@ vector<Color> extract_palette( string const& glob,
     SDL_UnlockSurface( surface );
     SDL_FreeSurface( surface );
   }
+  CHECK_( !colors.empty(), "found no colors" );
 
   auto res = vector<Color>( colors.begin(), colors.end() );
   // Do a default RGB sort of these colors. This is not very
@@ -423,43 +438,106 @@ vector<Color> extract_palette( string const& glob,
 
   logger->info( "found {} colors", res.size() );
 
-  if( target_num_colors.has_value() ) {
-    res = coursen( res, target_num_colors.value() );
+  if( target.has_value() ) {
+    res = coursen( res, target.value() );
     logger->info( "coursened to {} colors", res.size() );
   }
 
+  CHECK_( !colors.empty(), "no colors remaining" );
   return res;
 }
 
-void dump_palette( Vec<Color> const& colors, fs::path file ) {
+ColorBuckets hsl_bucket( Vec<Color> const& colors ) {
   auto sorted = colors;
   hsl_bucketed_sort( sorted );
-  ofstream out( file.string() );
-  CHECK( out.good() );
+  vector<vector<vector<Opt<Color>>>> bucketed;
+
+  // First build out the full structure with nullopt's
+  // everywhere.
+  for( int hue = 0; hue < hue_buckets; ++hue ) {
+    bucketed.emplace_back();
+    auto& sat_vec = bucketed.back();
+    for( int sat = 0; sat < saturation_buckets; ++sat ) {
+      sat_vec.emplace_back();
+      auto& lum_vec = sat_vec.back();
+      for( int lum = 0; lum < luminosity_buckets; ++lum ) {
+        lum_vec.emplace_back(); // nullopt
+      }
+    }
+  }
+
+  // Now insert the colors.
+  for( Color c : colors ) {
+    auto hsl        = to_HSL( c );
+    auto hue_bucket = to_hue_bucket( hsl.h );
+    auto sat_bucket = to_bucket( hsl.s, saturation_buckets );
+    auto lum        = c.luminosity();
+    auto lum_bucket = to_bucket( lum, luminosity_buckets );
+    // Overwrite whatever is there.
+    bucketed[hue_bucket][sat_bucket][lum_bucket] = c;
+  }
+  return bucketed;
+}
+
+void dump_palette( ColorBuckets const& bucketed,
+                   fs::path const&     schema,
+                   fs::path const&     ucl ) {
+  ofstream ucl_out( ucl.string() );
+  CHECK( ucl_out.good() );
+  ofstream inl_out( schema.string() );
+  CHECK( inl_out.good() );
   auto hue_names = array<string, hue_buckets>{
       "red",   "orange",       "yellow",  "chartreuse_green",
       "green", "spring_green", "cyan",    "azure",
       "blue",  "violet",       "magenta", "rose",
   };
   static_assert( hue_names.size() == hue_buckets );
+  inl_out << "// Auto-Generated: DO NOT EDIT\n\n";
+  ucl_out << "# Auto-Generated: DO NOT EDIT\n\n";
+
+  inl_out << "CFG( palette,\n";
   for( int hue = 0; hue < hue_buckets; ++hue ) {
-    if( hue != 0 ) out << "\n";
-    out << hue_names[hue] << " {\n";
+    if( hue != 0 ) {
+      ucl_out << "\n";
+      inl_out << "\n";
+    }
+    ucl_out << hue_names[hue] << " {\n";
+    inl_out << "  OBJ( " << hue_names[hue] << ",\n";
     for( int sat = 0; sat < saturation_buckets; ++sat ) {
-      out << "  sat" << sat << " {\n";
-      int light = 0;
-      for( Color c : colors ) {
-        auto hsl = to_HSL( c );
-        if( to_hue_bucket( hsl.h ) == hue &&
-            to_bucket( hsl.s, saturation_buckets ) == sat ) {
-          out << "    light" << light++ << ": \""
-              << c.to_string( false ) << "\"\n";
+      ucl_out << "  sat" << sat << " {\n";
+      inl_out << "    OBJ( sat" << sat << ",\n";
+      for( int lum = 0; lum < luminosity_buckets; ++lum ) {
+        if( auto c = bucketed[hue][sat][lum]; c.has_value() ) {
+          auto line = format( "    lum{}: \"{}\"\n", lum,
+                              c.value().to_string( false ) );
+          ucl_out << line;
+          inl_out << "      FLD( Color, lum" << lum << " )\n";
         }
       }
-      out << "  }\n";
+      ucl_out << "  }\n";
+      inl_out << "    )\n";
     }
-    out << "}\n";
+    ucl_out << "}\n";
+    inl_out << "  )\n";
   }
+  // Now do the greys.
+  ucl_out << "\n";
+  ucl_out << "grey {\n";
+  inl_out << "  OBJ( grey,\n";
+  uint8_t jump = 256 / grey_scale_colors;
+  for( uint8_t n = 0; n < grey_scale_colors; ++n ) {
+    auto v = n * jump;
+    auto line =
+        format( "  n{:02X}: \"{}\"\n", v,
+                Color( v, v, v, 255 ).to_string( false ) );
+    ucl_out << line;
+    auto fld = format( "    FLD( Color, n{:02X} )\n", v );
+    inl_out << fld;
+  }
+  ucl_out << "}\n";
+  inl_out << "  )\n";
+
+  inl_out << ")\n";
 }
 
 Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors ) {
@@ -470,11 +548,6 @@ Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors ) {
 Vec<Vec<Color>> partition_by_sat( Vec<Color> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, sat_bucket_key ) );
-}
-
-Vec<Vec<Vec<Color>>> hsl_partition( Vec<Color> const& colors ) {
-  return util::map( partition_by_sat,
-                    partition_by_hue( colors ) );
 }
 
 void remove_greys( Vec<Color>& colors ) {
@@ -498,36 +571,68 @@ Vec<Color> coursen( Vec<Color> const& colors, int min_count ) {
   return colors;
 }
 
-void show_palette( Vec<Color> const& colors ) {
-  clear_texture_black( Texture() );
-  render_palette_segment( colors, palette_render_origin, 16 );
+void show_palette( Texture const&    tx,
+                   Vec<Color> const& colors ) {
+  clear_texture_black( tx );
+  render_palette_segment( tx, colors, palette_render_origin,
+                          16 );
   ::SDL_RenderPresent( g_renderer );
 }
 
-void show_palette( Vec<Vec<Color>> const& colors ) {
-  clear_texture_black( Texture() );
+void show_palette( Texture const&      tx,
+                   ColorBuckets const& colors ) {
+  clear_texture_black( tx );
   Coord origin( palette_render_origin );
-  H     offset{30};
-  for( auto const& partition : colors ) {
-    origin.y += offset;
-    render_palette_segment( partition, origin );
-  }
-  ::SDL_RenderPresent( g_renderer );
-}
-
-void show_palette( Vec<Vec<Vec<Color>>> const& colors ) {
-  clear_texture_black( Texture() );
-  Coord origin( palette_render_origin );
-  H     group_offset{30};
+  H     group_offset{10};
   H     offset{10};
-  for( auto const& group : colors ) {
-    for( auto const& partition : group ) {
+  for( auto const& hue : colors ) {
+    for( auto const& sat : hue ) {
+      auto no_null = util::cat_opts( sat );
+      render_palette_segment( tx, no_null, origin );
       origin.y += offset;
-      render_palette_segment( partition, origin );
     }
     origin.y += group_offset;
   }
   ::SDL_RenderPresent( g_renderer );
+}
+
+void write_palette_png( fs::path const& png_file ) {
+  auto tx     = create_texture( W{500}, H{480} );
+  auto colors = g_palette();
+  show_palette( tx, hsl_bucket( colors ) );
+  save_texture_png( tx, png_file );
+}
+
+void update_palette( fs::path const& where ) {
+  // int constexpr coursen_to = 4096;
+  fs::path glob{where / "*.*"};
+  logger->info( "updating palettes from {}", glob );
+
+  auto colors = extract_palette( glob, nullopt );
+  remove_greys( colors ); // we will add greys back in later
+  auto bucketed = hsl_bucket( colors );
+
+  size_t size = 0;
+  for( auto const& hue : bucketed ) {
+    for( auto const& sat : hue ) {
+      auto no_null = util::cat_opts( sat );
+      size += no_null.size();
+    }
+  }
+  logger->info( "total bucketed colors: {}", size );
+
+  fs::path const inl_file{"config/palette.inl"};
+  fs::path const ucl_file{"config/palette.ucl"};
+  fs::path const pal_file{"assets/art/palette.png"};
+  logger->info( "writing to {} and {}", inl_file, ucl_file );
+  dump_palette( bucketed, inl_file, ucl_file );
+  logger->info( "writing palette png image to {}", pal_file );
+  write_palette_png( pal_file );
+}
+
+void show_config_palette() {
+  auto colors = g_palette();
+  show_palette( Texture(), hsl_bucket( colors ) );
 }
 
 } // namespace rn

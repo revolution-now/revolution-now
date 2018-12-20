@@ -57,4 +57,13 @@ namespace rn {
 
 void load_configs();
 
+// The main global palette sorted using bucketed hue-sat-lum.
+// Colors should normally be accessed using the config_palette
+// global config structure, e.g. config_palette.red.sat0.lum1.
+// This function should only be used during development e.g. to
+// aid in color selection or troubleshooting and/or if one needs
+// to iterate over all the colors in the palette. NOTE: this
+// will skip over the grey scale colors.
+Vec<Color> const& g_palette();
+
 } // namespace rn

@@ -87,9 +87,8 @@ void    toggle_fullscreen();
 
 ND ::SDL_Rect to_SDL( Rect const& rect );
 
-// Retrive the width and height of a texture in a Rect. The
-// Rect's x and y will be zero.
-ND Rect texture_rect( Texture const& texture );
+// Retrive the width and height of a texture in a Rect.
+ND Delta texture_delta( Texture const& tx );
 
 // Copies one texture to another at the destination point without
 // scaling. Destination texture can be nullopt for default
@@ -100,6 +99,14 @@ ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
                       Coord const& coord );
 
 ND Texture create_texture( W w, H h );
+
+::SDL_Surface* create_surface( Delta delta );
+
+// Get screen size in pixels.
+Delta screen_size();
+
+void save_texture_png( Texture const& tx, fs::path const& file );
+void grab_screen( fs::path const& file );
 
 void clear_texture_black( Texture const& tx );
 

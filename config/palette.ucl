@@ -1,0 +1,444 @@
+# Auto-Generated: DO NOT EDIT
+
+red {
+  sat0 {
+    lum0: "#0C0808"
+    lum1: "#241D1B"
+    lum2: "#422D27"
+    lum3: "#593C38"
+    lum4: "#734650"
+    lum5: "#7D5151"
+    lum6: "#A26155"
+    lum7: "#B27171"
+    lum8: "#AE827D"
+    lum9: "#BC9292"
+    lum10: "#C8A4A4"
+    lum14: "#FDFCFC"
+  }
+  sat1 {
+    lum0: "#0F0806"
+    lum1: "#3C1010"
+    lum2: "#591414"
+    lum3: "#791C1C"
+    lum4: "#9E2424"
+    lum5: "#B62C2C"
+    lum6: "#D73838"
+    lum7: "#D74141"
+    lum8: "#C77171"
+    lum9: "#DB856A"
+    lum10: "#E1A4A4"
+    lum11: "#E0BFBF"
+  }
+  sat2 {
+    lum0: "#180000"
+    lum1: "#3F0000"
+    lum2: "#670303"
+    lum3: "#890000"
+    lum4: "#AD0303"
+    lum5: "#C70B22"
+    lum6: "#E30000"
+    lum7: "#FF0000"
+    lum12: "#FCBFBF"
+  }
+}
+
+orange {
+  sat0 {
+    lum0: "#14100C"
+    lum1: "#2A1E18"
+    lum2: "#422D22"
+    lum3: "#583C30"
+    lum4: "#6D493C"
+    lum5: "#7D5141"
+    lum6: "#9E6951"
+    lum7: "#AC765D"
+    lum8: "#B68E71"
+    lum9: "#BCA77F"
+    lum10: "#C7B799"
+    lum11: "#D3CBB5"
+    lum12: "#DBD5CB"
+    lum13: "#EDE7DE"
+  }
+  sat1 {
+    lum0: "#170E08"
+    lum1: "#301C14"
+    lum2: "#512414"
+    lum3: "#693420"
+    lum4: "#7A441D"
+    lum5: "#8E571F"
+    lum6: "#A7634C"
+    lum7: "#BF7027"
+    lum8: "#C98964"
+    lum9: "#DF9773"
+    lum10: "#E39A75"
+    lum11: "#E4C890"
+    lum12: "#EAD29B"
+    lum13: "#F4E9DC"
+    lum14: "#F6F3EA"
+  }
+  sat2 {
+    lum1: "#381000"
+    lum2: "#492008"
+    lum3: "#65280C"
+    lum4: "#7F3F00"
+    lum5: "#A84800"
+    lum6: "#AA5500"
+    lum7: "#C37027"
+    lum8: "#B38A1F"
+    lum9: "#FF7100"
+  }
+}
+
+yellow {
+  sat0 {
+    lum0: "#0E0E0B"
+    lum1: "#202216"
+    lum2: "#34301C"
+    lum3: "#444023"
+    lum4: "#5A502F"
+    lum5: "#6D6737"
+    lum6: "#82754B"
+    lum7: "#93834D"
+    lum8: "#A69562"
+    lum9: "#B5A46E"
+    lum10: "#C6BA8F"
+    lum11: "#CFC9B3"
+    lum12: "#DFDBCB"
+    lum13: "#ECE9DD"
+    lum14: "#F3F0E7"
+  }
+  sat1 {
+    lum1: "#24210C"
+    lum2: "#3A3111"
+    lum3: "#4C4322"
+    lum4: "#614F19"
+    lum5: "#77611C"
+    lum6: "#806A22"
+    lum7: "#918737"
+    lum8: "#B29129"
+    lum9: "#BCA430"
+    lum10: "#D5B62F"
+    lum11: "#DBC95A"
+    lum12: "#EBDBA2"
+    lum13: "#F3EAC5"
+    lum14: "#FCFBF6"
+  }
+  sat2 {
+    lum1: "#151200"
+    lum2: "#3A3200"
+    lum3: "#494100"
+    lum4: "#5F5304"
+    lum5: "#736604"
+    lum6: "#867504"
+    lum7: "#9B8707"
+    lum8: "#AC9808"
+    lum9: "#C7A220"
+    lum10: "#D5B92D"
+    lum11: "#E3C328"
+    lum12: "#F1DE4D"
+    lum13: "#FFEA36"
+    lum14: "#FFFFDB"
+  }
+}
+
+chartreuse_green {
+  sat0 {
+    lum1: "#141911"
+    lum2: "#2C3129"
+    lum3: "#3C4230"
+    lum4: "#4E5442"
+    lum5: "#5C6551"
+    lum6: "#6C7862"
+    lum7: "#818D5D"
+    lum8: "#8D9A83"
+    lum9: "#9EB17A"
+    lum10: "#B1BF8F"
+    lum11: "#BDCAA0"
+    lum13: "#DCE8D2"
+  }
+  sat1 {
+    lum0: "#0A1206"
+    lum1: "#1B250A"
+    lum2: "#2C360F"
+    lum3: "#3A4918"
+    lum4: "#495928"
+    lum5: "#596930"
+    lum6: "#6C7E3D"
+    lum7: "#788B40"
+    lum8: "#7EA44A"
+    lum9: "#94B667"
+    lum10: "#AABE73"
+    lum11: "#BED48F"
+    lum12: "#CEDEA1"
+  }
+  sat2 {
+    lum0: "#0A1003"
+    lum1: "#142404"
+    lum2: "#283800"
+    lum3: "#34490C"
+    lum4: "#3D510C"
+    lum5: "#546E0C"
+  }
+}
+
+green {
+  sat0 {
+    lum2: "#22361F"
+    lum3: "#344831"
+    lum4: "#43573E"
+    lum5: "#556A52"
+    lum6: "#657B65"
+    lum7: "#778B72"
+    lum8: "#869A83"
+    lum9: "#8CA087"
+    lum10: "#ABBEA6"
+    lum12: "#CCDFC7"
+  }
+  sat1 {
+    lum1: "#10240D"
+    lum2: "#1C2F17"
+    lum3: "#2A4821"
+    lum4: "#276118"
+    lum5: "#39732A"
+    lum6: "#498640"
+    lum7: "#59944A"
+    lum8: "#55B03C"
+    lum9: "#3FBF3F"
+    lum10: "#58D758"
+  }
+  sat2 {
+    lum0: "#051401"
+    lum1: "#092703"
+    lum2: "#103804"
+    lum3: "#174E06"
+    lum4: "#1C6108"
+    lum5: "#296D13"
+    lum6: "#188518"
+    lum8: "#00AA00"
+    lum10: "#46DA43"
+    lum11: "#5DE853"
+    lum12: "#75F86A"
+  }
+}
+
+spring_green {
+  sat0 {
+    lum3: "#243D31"
+    lum11: "#BBCEC6"
+  }
+  sat1 {
+    lum2: "#123122"
+    lum3: "#123D22"
+    lum4: "#216332"
+    lum5: "#226433"
+  }
+  sat2 {
+    lum2: "#082F22"
+    lum4: "#10582A"
+  }
+}
+
+cyan {
+  sat0 {
+    lum1: "#152525"
+    lum3: "#2C3C3C"
+    lum4: "#34494D"
+    lum5: "#556569"
+    lum6: "#597575"
+    lum7: "#4F8B97"
+    lum9: "#7FA5AE"
+    lum11: "#ABC6CA"
+  }
+  sat1 {
+    lum2: "#143034"
+    lum3: "#1C4955"
+    lum4: "#14555D"
+    lum6: "#347F7F"
+  }
+  sat2 {
+    lum1: "#002024"
+    lum2: "#003841"
+    lum3: "#004955"
+    lum4: "#005561"
+    lum5: "#006571"
+    lum6: "#007F7F"
+    lum8: "#00AAAA"
+  }
+}
+
+azure {
+  sat0 {
+    lum1: "#1A2230"
+    lum2: "#232B39"
+    lum4: "#474F5D"
+    lum5: "#5D6573"
+    lum6: "#6F7785"
+    lum7: "#818899"
+    lum8: "#878E9F"
+    lum9: "#99A2B0"
+    lum10: "#B2B9C4"
+    lum11: "#B8C0CF"
+    lum12: "#CAD2E1"
+  }
+  sat1 {
+    lum1: "#171E2E"
+    lum2: "#193061"
+    lum3: "#274176"
+    lum4: "#415384"
+    lum5: "#4B63A9"
+    lum6: "#5974B7"
+    lum7: "#6A82BF"
+    lum8: "#7A93BD"
+    lum9: "#8EAAD7"
+    lum10: "#A3BEE4"
+    lum11: "#B2CBEB"
+    lum12: "#C3DBF3"
+    lum13: "#D9E1F0"
+  }
+  sat2 {
+    lum2: "#12255D"
+    lum13: "#DBEFFF"
+  }
+}
+
+blue {
+  sat0 {
+    lum0: "#0A0A11"
+    lum1: "#202035"
+    lum2: "#303051"
+    lum3: "#3D386F"
+    lum4: "#474A62"
+    lum5: "#5760A7"
+    lum6: "#706792"
+    lum7: "#7D8396"
+    lum8: "#8C91A7"
+    lum9: "#959BAE"
+    lum10: "#ABB1C3"
+    lum11: "#C7CAE1"
+    lum12: "#C9CDE3"
+  }
+  sat1 {
+    lum0: "#0A0E24"
+    lum1: "#191D33"
+    lum2: "#352B5E"
+    lum3: "#3C3C88"
+    lum4: "#424B9A"
+    lum5: "#5060A0"
+    lum6: "#5169B2"
+  }
+  sat2 {
+    lum0: "#06071F"
+    lum1: "#12155D"
+    lum2: "#1A2382"
+    lum6: "#5555FF"
+  }
+}
+
+violet {
+  sat0 {
+    lum2: "#342C39"
+    lum3: "#453C49"
+    lum4: "#573D67"
+    lum5: "#624B82"
+  }
+  sat1 {
+    lum2: "#402167"
+  }
+  sat2 {
+  }
+}
+
+magenta {
+  sat0 {
+    lum1: "#2B1C2C"
+    lum2: "#3A2F3C"
+    lum3: "#3A3138"
+  }
+  sat1 {
+    lum1: "#29112E"
+    lum3: "#572167"
+  }
+  sat2 {
+  }
+}
+
+rose {
+  sat0 {
+    lum1: "#201418"
+    lum2: "#3A2D36"
+    lum3: "#5A3A46"
+    lum4: "#6F4753"
+    lum5: "#714A55"
+  }
+  sat1 {
+  }
+  sat2 {
+  }
+}
+
+grey {
+  n00: "#000000"
+  n04: "#040404"
+  n08: "#080808"
+  n0C: "#0C0C0C"
+  n10: "#101010"
+  n14: "#141414"
+  n18: "#181818"
+  n1C: "#1C1C1C"
+  n20: "#202020"
+  n24: "#242424"
+  n28: "#282828"
+  n2C: "#2C2C2C"
+  n30: "#303030"
+  n34: "#343434"
+  n38: "#383838"
+  n3C: "#3C3C3C"
+  n40: "#404040"
+  n44: "#444444"
+  n48: "#484848"
+  n4C: "#4C4C4C"
+  n50: "#505050"
+  n54: "#545454"
+  n58: "#585858"
+  n5C: "#5C5C5C"
+  n60: "#606060"
+  n64: "#646464"
+  n68: "#686868"
+  n6C: "#6C6C6C"
+  n70: "#707070"
+  n74: "#747474"
+  n78: "#787878"
+  n7C: "#7C7C7C"
+  n80: "#808080"
+  n84: "#848484"
+  n88: "#888888"
+  n8C: "#8C8C8C"
+  n90: "#909090"
+  n94: "#949494"
+  n98: "#989898"
+  n9C: "#9C9C9C"
+  nA0: "#A0A0A0"
+  nA4: "#A4A4A4"
+  nA8: "#A8A8A8"
+  nAC: "#ACACAC"
+  nB0: "#B0B0B0"
+  nB4: "#B4B4B4"
+  nB8: "#B8B8B8"
+  nBC: "#BCBCBC"
+  nC0: "#C0C0C0"
+  nC4: "#C4C4C4"
+  nC8: "#C8C8C8"
+  nCC: "#CCCCCC"
+  nD0: "#D0D0D0"
+  nD4: "#D4D4D4"
+  nD8: "#D8D8D8"
+  nDC: "#DCDCDC"
+  nE0: "#E0E0E0"
+  nE4: "#E4E4E4"
+  nE8: "#E8E8E8"
+  nEC: "#ECECEC"
+  nF0: "#F0F0F0"
+  nF4: "#F4F4F4"
+  nF8: "#F8F8F8"
+  nFC: "#FCFCFC"
+}

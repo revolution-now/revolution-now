@@ -1,41 +1,7 @@
 /****************************************************************
 * Colors
 *****************************************************************/
-#define SATURATION( n )    \
-    OBJ( sat ## n,         \
-      FLD( Color, light0 ) \
-      FLD( Color, light1 ) \
-      FLD( Color, light2 ) \
-      FLD( Color, light3 ) \
-      FLD( Color, light4 ) \
-      FLD( Color, light5 ) \
-      FLD( Color, light6 ) \
-      FLD( Color, light7 ) \
-      FLD( Color, light8 ) \
-      FLD( Color, light9 ) \
-    )
-
-#define HUE( name )   \
-    OBJ( name,        \
-      SATURATION( 0 ) \
-      SATURATION( 1 ) \
-      SATURATION( 2 ) \
-    )
-
-//CFG( palette,
-//  HUE( red )
-//  HUE( orange )
-//  HUE( yellow )
-//  HUE( chartreuse_green )
-//  HUE( green )
-//  HUE( spring_green )
-//  HUE( cyan )
-//  HUE( azure )
-//  HUE( blue )
-//  HUE( violet )
-//  HUE( magenta )
-//  HUE( rose )
-//)
+#include "../config/palette.inl"
 
 /****************************************************************
 * Main config file

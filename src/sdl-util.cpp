@@ -376,10 +376,11 @@ void cleanup() {
   SDL_Quit();
 }
 
-Rect texture_rect( Texture const& texture ) {
+Delta texture_delta( Texture const& texture ) {
   int w, h;
-  ::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h );
-  return {0_x, 0_y, W( w ), H( h )};
+  CHECK(
+      !::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h ) );
+  return {W{w}, H{h}};
 }
 
 void set_render_target( OptCRef<Texture> tx ) {
@@ -410,10 +411,9 @@ bool copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
   if( ::SDL_SetRenderTarget( g_renderer, target ) != 0 )
     return false;
-  Rect dest     = texture_rect( from );
-  dest.x        = x;
-  dest.y        = y;
-  auto sdl_rect = to_SDL( dest );
+  Delta delta = texture_delta( from );
+  Rect  rect{x, y, delta.w, delta.h};
+  auto  sdl_rect = to_SDL( rect );
   return ::SDL_RenderCopy( g_renderer, from, nullptr,
                            &sdl_rect ) == 0;
 }
@@ -429,6 +429,50 @@ Texture create_texture( W w, H h ) {
       SDL_TEXTUREACCESS_TARGET, w._, h._ ) );
   clear_texture_black( tx );
   return tx;
+}
+
+::SDL_Surface* create_surface( Delta delta ) {
+  SDL_Surface* surface = SDL_CreateRGBSurface(
+      0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
+  CHECK_( surface != nullptr, "SDL_CreateRGBSurface() failed" );
+  return surface;
+}
+
+void save_texture_png( Texture const&  tx,
+                       fs::path const& file ) {
+  logger->info( "writing png file {}", file );
+  ::SDL_Texture* old = ::SDL_GetRenderTarget( g_renderer );
+  ::SDL_SetRenderTarget( g_renderer, tx );
+  auto           delta   = texture_delta( tx );
+  ::SDL_Surface* surface = SDL_CreateRGBSurface(
+      0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
+  ::SDL_RenderReadPixels( g_renderer, NULL,
+                          surface->format->format,
+                          surface->pixels, surface->pitch );
+  CHECK_( !::IMG_SavePNG( surface, file.string().c_str() ),
+          "failed to save png file " << file );
+  ::SDL_FreeSurface( surface );
+  ::SDL_SetRenderTarget( g_renderer, old );
+}
+
+Delta screen_size() {
+  Delta screen;
+  ::SDL_GetRendererOutputSize( g_renderer, &screen.w._,
+                               &screen.h._ );
+  logger->info( "screen size: {}x{}", screen.w, screen.h );
+  return screen;
+}
+
+void grab_screen( fs::path const& file ) {
+  logger->info( "grabbing screen and saving to {}", file );
+  ::SDL_Surface* surface = create_surface( screen_size() );
+  set_render_target( nullopt );
+  ::SDL_RenderReadPixels( g_renderer, NULL,
+                          surface->format->format,
+                          surface->pixels, surface->pitch );
+  CHECK_( !::IMG_SavePNG( surface, file.string().c_str() ),
+          "failed to save png file " << file );
+  ::SDL_FreeSurface( surface );
 }
 
 void clear_texture_black( Texture const& tx ) {

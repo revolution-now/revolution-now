@@ -71,10 +71,11 @@ Texture render_line_shadow( e_font font, string const& line ) {
   Color fg{244, 179, 66, 255};
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   Color bg{0, 0, 0, 128};
-  auto  texture_fg    = render_line_standard( font, fg, line );
-  auto  texture_bg    = render_line_standard( font, bg, line );
-  auto  rect          = texture_rect( texture_fg );
-  auto result_texture = create_texture( rect.w + 1, rect.h + 1 );
+  auto  texture_fg = render_line_standard( font, fg, line );
+  auto  texture_bg = render_line_standard( font, bg, line );
+  auto  delta      = texture_delta( texture_fg );
+  auto  result_texture =
+      create_texture( delta.w + 1, delta.h + 1 );
   CHECK( copy_texture( texture_bg, result_texture, 1_y, 1_x ) );
   CHECK( copy_texture( texture_fg, result_texture, 0_y, 0_x ) );
   return result_texture;
@@ -85,12 +86,12 @@ using RenderLineFn = std::function<Texture( string const& )>;
 Texture render_lines( H min_skip, vector<string> const& lines,
                       RenderLineFn const& render_line ) {
   auto textures = util::map( render_line, lines );
-  auto rects    = util::map( texture_rect, textures );
+  auto deltas   = util::map( texture_delta, textures );
   H    res_height( 0 );
   W    res_width( 0 );
-  for( auto const& rect : rects ) {
-    res_height += std::max( min_skip, rect.h );
-    res_width = std::max( res_width, rect.w );
+  for( auto const& delta : deltas ) {
+    res_height += std::max( min_skip, delta.h );
+    res_width = std::max( res_width, delta.w );
   }
 
   auto result_texture = create_texture( res_width, res_height );
@@ -103,7 +104,7 @@ Texture render_lines( H min_skip, vector<string> const& lines,
   for( size_t i = 0; i < textures.size(); ++i ) {
     CHECK( copy_texture( textures[i], result_texture, Y( y ),
                          0_x ) );
-    y += std::max( min_skip, rects[i].h );
+    y += std::max( min_skip, deltas[i].h );
   }
   return result_texture;
 }

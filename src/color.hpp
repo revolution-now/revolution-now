@@ -37,7 +37,7 @@ struct Color {
   Color( uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_ )
     : r( r_ ), g( g_ ), b( b_ ), a( a_ ) {}
 
-  double luminance() const;
+  double luminosity() const;
 
   auto to_tuple() const { return std::tuple( r, g, b, a ); }
 
@@ -76,26 +76,31 @@ struct Color {
 // So that we can pass it by value.
 static_assert( sizeof( Color ) == 4 );
 
+/****************************************************************
+**Non-Game Utilities: Palette Generation/Display
+*
+* These functions are not run during the game; they are only run
+* in a once-off manner to generate/update the game palettes.
+*****************************************************************/
 // Sorts colors in a quasi-human way.
 void hsl_bucketed_sort( Vec<Color>& colors );
 
 // Removes colors with a saturation below a threshold.
 void remove_greys( Vec<Color>& colors );
 
-// Bucket colors first by hue, then by saturation. Note that the
-// colors will not be sorted in any way by this function; it will
-// only partition them as they are ordered. NOTE: Although
-// sorting is not a precondition for this function, the caller
-// will likely want to first sort the colors using the
-// hsl_bucketed_sort before calling this function in order to get
-// meaningful results.
-Vec<Vec<Vec<Color>>> hsl_partition( Vec<Color> const& colors );
+// For holding a list of colors that are bucketed first by hue,
+// then by saturation, then by luminosity.
+using ColorBuckets = Vec<Vec<Vec<Opt<Color>>>>;
 
-// Will remove colors that are redundant or approximately
-// redunant in order to meet the target count. It will always
-// return a number of colors that is >= min_count so long as
-// there are at least that many to begin with.
-Vec<Color> coursen( Vec<Color> const& colors, int min_count );
+// This will iterate through the colors and place each one into a
+// bucket depending on its values of hue, saturation, and
+// luminosity (each of which are bucketed). There are only a
+// finite number of buckets in each category, so in general the
+// resulting colors will be fewer than the input if the input
+// contains multiple colors that all fall into the same bucket.
+// If there are no colors for a bucket then that bucket will be
+// nullopt.
+ColorBuckets hsl_bucket( Vec<Color> const& colors );
 
 // Load the image file(s) and scan every pixel and compile a list
 // of unique colors. Then, if a target number of colors is
@@ -104,16 +109,40 @@ Vec<Color> coursen( Vec<Color> const& colors, int min_count );
 // best to achieve this number, but typically the set of returned
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
-Vec<Color> extract_palette(
-    std::string const& glob,
-    Opt<int>           target_num_colors = std::nullopt );
+Vec<Color> extract_palette( fs::path const& glob,
+                            Opt<int> target = std::nullopt );
 
-void dump_palette( Vec<Color> const& colors, fs::path file );
+// Will remove colors that are redundant or approximately
+// redunant in order to meet the target count. It will always
+// return a number of colors that is >= min_count so long as
+// there are at least that many to begin with.
+Vec<Color> coursen( Vec<Color> const& colors, int min_count );
 
-// Just for testing. Show each color in a small square in a grid
-// on screen.
-void show_palette( Vec<Color> const& colors );
-void show_palette( Vec<Vec<Color>> const& colors );
-void show_palette( Vec<Vec<Vec<Color>>> const& colors );
+// Will look in the `where` folder and will load all files
+// (assuming they are image files) and will load/scan each one of
+// them for their colors and will generate a ~256 color palette
+// and will update the schema and ucl palette definition file.
+// Note that running this could in general break your build
+// because the game might be using colors (e.g.
+// config_palette.red.sat0.lum1) that no longer appear after the
+// update.
+void update_palette( fs::path const& where );
+
+// Will load/parse the ucl config palette file and will
+// sort/bucket the colors and display them on the screen. NOTE:
+// SDL graphics must have been initialized before calling this
+// function.
+void show_config_palette();
+
+// Will load the ucl config palette and render it to a png
+// file divided into hue/saturation buckets.
+void write_palette_png( fs::path const& png_file );
+
+// Generate the config schema and ucl data file with all the
+// colors so that the game can reference them with e.g.
+// config_palette.red.sat0.lum1. Note that this updates the
+// schema file and hence requires recompilation to take effect.
+void dump_palette( ColorBuckets const& colors,
+                   fs::path const& schema, fs::path const& ucl );
 
 } // namespace rn

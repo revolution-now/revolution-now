@@ -412,4 +412,37 @@ void load_configs() {
   }
 }
 
+Vec<Color> const& g_palette() {
+  static Vec<Color> const& colors = [] {
+    Vec<Color>* res  = new Vec<Color>;
+    string      file = "config/palette.ucl";
+
+    string errors;
+    auto   ucl_obj = ucl::Ucl::parse_from_file( file, errors );
+    CHECK_( ucl_obj,
+            "failed to load " << file << ": " << errors );
+
+    for( auto hue : ucl_obj ) {
+      if( hue.key() == "grey" ) continue;
+      for( auto sat : hue ) {
+        for( auto lum : sat ) {
+          CHECK( lum.type() == ::UCL_STRING );
+          auto lum_str = lum.string_value();
+          CHECK( lum_str.size() == 7 );
+          string_view digits( &lum_str[1],
+                              lum_str.length() - 1 );
+
+          auto parsed = Color::parse_from_hex( digits );
+          CHECK_( parsed,
+                  "failed to parse " << lum.string_value() );
+          res->push_back( *parsed );
+        }
+      }
+    }
+    hsl_bucketed_sort( *res );
+    return *res;
+  }();
+  return colors;
+}
+
 } // namespace rn
