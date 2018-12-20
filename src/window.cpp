@@ -89,9 +89,13 @@ void SolidRectView::draw( Texture const& tx,
   render_fill_rect( tx, color_, rect( coord ) );
 }
 
-OneLineStringView::OneLineStringView( string msg )
+OneLineStringView::OneLineStringView( string msg, Color color,
+                                      bool shadow )
   : msg_( move( msg ) ) {
-  tx_ = render_line_shadow( fonts::standard, msg_ );
+  if( shadow )
+    tx_ = render_line_shadow( fonts::standard, color, msg_ );
+  else
+    tx_ = render_line_standard( fonts::standard, color, msg_ );
 }
 
 void OneLineStringView::draw( Texture const& tx,
@@ -102,6 +106,22 @@ void OneLineStringView::draw( Texture const& tx,
 /****************************************************************
 ** Derived Views
 *****************************************************************/
+OptionSelectItemView::OptionSelectItemView( string msg, W width )
+  : active_{e_option_active::inactive},
+    background_active_{config_palette.yellow.sat1.lum11},
+    background_inactive_{config_palette.orange.sat0.lum3},
+    foreground_active_( msg, config_palette.orange.sat0.lum2,
+                        /*shadow=*/true ),
+    foreground_inactive_( msg, config_palette.orange.sat1.lum11,
+                          /*shadow=*/true ) {
+  auto delta_active   = foreground_active_.delta();
+  auto delta_inactive = foreground_inactive_.delta();
+  delta_active.w      = width;
+  delta_inactive.w    = width;
+  background_active_.set_delta( delta_active );
+  background_inactive_.set_delta( delta_inactive );
+}
+
 PositionedViewConst OptionSelectItemView::at_const(
     int idx ) const {
   CHECK( idx == 0 || idx == 1 );
@@ -118,7 +138,15 @@ PositionedViewConst OptionSelectItemView::at_const(
           break;
       }
       break;
-    case 1: view = &line_; break;
+    case 1:
+      switch( active_ ) {
+        case e_option_active::active:
+          view = &foreground_active_;
+          break;
+        case e_option_active::inactive:
+          view = &foreground_inactive_;
+          break;
+      }
   }
   return {ObserverCPtr<View>{view}, coord};
 }
@@ -202,14 +230,27 @@ string const& OptionSelectView::get_selected() const {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
+
+WindowManager::window::window( string           title_,
+                               unique_ptr<View> view_,
+                               Coord            position_ )
+  : window_state( e_window_state::running ),
+    title( move( title_ ) ),
+    view( move( view_ ) ),
+    title_bar(),
+    position( position_ ) {
+  title_bar = make_unique<OneLineStringView>(
+      title, config_palette.orange.sat1.lum11, /*shadow=*/true );
+}
+
 void WindowManager::window::draw( Texture const& tx ) const {
   auto win_size = delta();
   render_fill_rect(
-      tx, Color::blue(),
+      tx, config_palette.orange.sat0.lum1,
       {position.x, position.y, win_size.w, win_size.h} );
   auto inside_border = position + window_border();
   auto inner_size    = win_size - 2 * window_border();
-  render_fill_rect( tx, Color::white(),
+  render_fill_rect( tx, config_palette.orange.sat1.lum4,
                     Rect::from( inside_border, inner_size ) );
   title_bar->draw( tx, inside_border );
   view->draw( tx, inside_border + title_bar->delta().h );

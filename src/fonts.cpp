@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "fonts.hpp"
 
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "globals.hpp"
 #include "sdl-util.hpp"
@@ -66,15 +67,14 @@ Texture render_line_standard( e_font font, Color fg,
                                     line );
 }
 
-Texture render_line_shadow( e_font font, string const& line ) {
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  Color fg{244, 179, 66, 255};
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  Color bg{0, 0, 0, 128};
-  auto  texture_fg = render_line_standard( font, fg, line );
-  auto  texture_bg = render_line_standard( font, bg, line );
-  auto  delta      = texture_delta( texture_fg );
-  auto  result_texture =
+Texture render_line_shadow( e_font font, Color fg,
+                            string const& line ) {
+  Color bg        = Color::black();
+  bg.a            = 80;
+  auto texture_fg = render_line_standard( font, fg, line );
+  auto texture_bg = render_line_standard( font, bg, line );
+  auto delta      = texture_delta( texture_fg );
+  auto result_texture =
       create_texture( delta.w + 1, delta.h + 1 );
   CHECK( copy_texture( texture_bg, result_texture, 1_y, 1_x ) );
   CHECK( copy_texture( texture_fg, result_texture, 0_y, 0_x ) );
@@ -194,7 +194,8 @@ void font_test() {
       "but instead ask what you can do for your country!";
 
   auto render_line = [font]( string const& text ) {
-    return render_line_shadow( font, text );
+    Color fg = config_palette.orange.sat1.lum11;
+    return render_line_shadow( font, fg, text );
   };
   auto texture = render_wrapped_text( skip, msg, render_line,
                                       L( _.size() <= 20 ) );

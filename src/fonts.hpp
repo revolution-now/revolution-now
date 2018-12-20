@@ -29,7 +29,7 @@ constexpr e_font standard = e_font::_7_12_serif_16pt;
 Texture render_line_standard( e_font font, Color fg,
                               std::string const& line );
 
-Texture render_line_shadow( e_font             font,
+Texture render_line_shadow( e_font font, Color fg,
                             std::string const& line );
 
 void font_test();

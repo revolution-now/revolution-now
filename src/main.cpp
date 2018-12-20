@@ -61,6 +61,8 @@ void game() {
       ui::yes_no( [] {}, "Would you like to make landfall?" );
 
   logger->info( "selected: {}", bool( res ) );
+  logger->info( "bucket path: {}",
+                bucket_path( Color{244, 179, 66, 255} ) );
   // grab_screen( "screen-shot-2.png" );
 
   // logger->info( "config_ui.window.border_color: {}",

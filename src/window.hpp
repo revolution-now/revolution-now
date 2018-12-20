@@ -176,7 +176,7 @@ protected:
 
 class OneLineStringView : public View {
 public:
-  OneLineStringView( std::string msg );
+  OneLineStringView( std::string msg, Color color, bool shadow );
 
   // Implement Object
   void draw( Texture const& tx, Coord coord ) const override;
@@ -197,16 +197,7 @@ enum class e_option_active { inactive, active };
 
 class OptionSelectItemView : public CompositeView {
 public:
-  OptionSelectItemView( std::string msg, W width )
-    : active_{e_option_active::inactive},
-      background_active_{Color::red()},
-      background_inactive_{Color::black()},
-      line_( msg ) {
-    auto delta = line_.delta();
-    delta.w    = width;
-    background_active_.set_delta( delta );
-    background_inactive_.set_delta( delta );
-  }
+  OptionSelectItemView( std::string msg, W width );
 
   // Implement CompositeView
   PositionedViewConst at_const( int idx ) const override;
@@ -215,13 +206,16 @@ public:
 
   void set_active( e_option_active active ) { active_ = active; }
 
-  std::string const& line() const { return line_.msg(); }
+  std::string const& line() const {
+    return foreground_active_.msg();
+  }
 
 private:
   e_option_active   active_;
   SolidRectView     background_active_;
   SolidRectView     background_inactive_;
-  OneLineStringView line_;
+  OneLineStringView foreground_active_;
+  OneLineStringView foreground_inactive_;
 };
 
 class OptionSelectView : public ViewVector {
@@ -267,14 +261,7 @@ public:
 private:
   struct window {
     window( std::string title_, std::unique_ptr<View> view_,
-            Coord position_ )
-      : window_state( e_window_state::running ),
-        title( std::move( title_ ) ),
-        view( std::move( view_ ) ),
-        title_bar(),
-        position( position_ ) {
-      title_bar = std::make_unique<OneLineStringView>( title );
-    }
+            Coord position_ );
 
     void  draw( Texture const& tx ) const;
     Delta delta() const;
