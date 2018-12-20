@@ -76,44 +76,42 @@ struct Color {
 // So that we can pass it by value.
 static_assert( sizeof( Color ) == 4 );
 
-struct ColorHSL {
-  double  h = 0; // hue [0..360]
-  double  s = 0; // saturation [0, 1]
-  double  l = 0; // lightness [0, 1]
-  uint8_t a = 0; // alpha
-
-  auto to_tuple() const { return std::tuple( h, s, l, a ); }
-
-  bool operator<( ColorHSL const& rhs ) const {
-    return to_tuple() < rhs.to_tuple();
-  }
-};
-
-ColorHSL to_HSL( Color const& rgb );
-Color    to_RGB( ColorHSL const& hsl );
-
 // Sorts colors in a quasi-human way.
 void hsl_bucketed_sort( Vec<Color>& colors );
 
-// Load the image file and scan every pixel and compile a list
-// of unique colors in RGB form.  The order of colors returned
-// is unspecified.
-std::vector<Color> extract_palette( std::string const& image );
+// Removes colors with a saturation below a threshold.
+void remove_greys( Vec<Color>& colors );
 
-// Partition colors by taking the full range of hue (0-360) and
-// partitioning it into segments of size `hue_segment_size` and
-// then gathering all colors in each segment.  Result will be
-// independent of the ordering of the input colors.
-Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors );
+// Bucket colors first by hue, then by saturation. Note that the
+// colors will not be sorted in any way by this function; it will
+// only partition them as they are ordered. NOTE: Although
+// sorting is not a precondition for this function, the caller
+// will likely want to first sort the colors using the
+// hsl_bucketed_sort before calling this function in order to get
+// meaningful results.
+Vec<Vec<Vec<Color>>> hsl_partition( Vec<Color> const& colors );
 
+// Will remove colors that are redundant or approximately
+// redunant in order to meet the target count. It will always
+// return a number of colors that is >= min_count so long as
+// there are at least that many to begin with.
 Vec<Color> coursen( Vec<Color> const& colors, int min_count );
 
-Vec<Vec<Color>> coursen( Vec<Vec<Color>> const& colors,
-                         int                    min_count );
+// Load the image file(s) and scan every pixel and compile a list
+// of unique colors. Then, if a target number of colors is
+// specified, try to reduce the number of colors to achieve
+// approximately the target number. The algorithm will try its
+// best to achieve this number, but typically the set of returned
+// colors may have a bit more or less. Also, the order of colors
+// returned is unspecified.
+std::vector<Color> extract_palette(
+    std::string const& glob,
+    Opt<int>           target_num_colors = std::nullopt );
 
 // Just for testing. Show each color in a small square in a grid
 // on screen.
 void show_palette( Vec<Color> const& colors );
 void show_palette( Vec<Vec<Color>> const& colors );
+void show_palette( Vec<Vec<Vec<Color>>> const& colors );
 
 } // namespace rn

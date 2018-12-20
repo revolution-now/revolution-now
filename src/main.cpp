@@ -62,17 +62,12 @@ void game() {
 
   // logger->info( "Selected: {}", int( res ) );
 
-  auto colors =
-      extract_palette( "assets/art/palette-sorted.png" );
-  // Vec<Color> colors;
-  // for( int i = 0; i < 1024; ++i )
-  //  colors.push_back( Color::random() );
-  // auto groups = partition_by_hue( colors );
-  // groups      = coursen( groups, 55 );
-  // groups = util::map( hsl_bucketed_sort, groups );
-  // show_palette( groups );
-
+  // auto colors =
+  //    extract_palette( "assets/art/col-palettes/*.*", 256 );
+  auto colors = extract_palette( "assets/art/palette.png", 256 );
+  remove_greys( colors );
   hsl_bucketed_sort( colors );
+  // show_palette( hsl_partition( colors ) );
   show_palette( colors );
   wait_for_q();
 
