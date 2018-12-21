@@ -30,7 +30,7 @@
 #include "absl/container/flat_hash_set.h"
 
 // SDL
-#include <SDL.h>
+#include "SDL.h"
 
 // c++ standard library
 #include <algorithm>

@@ -25,7 +25,7 @@
 #include "fmt/ostream.h"
 
 // SDL
-#include <SDL_mixer.h>
+#include "SDL_mixer.h"
 
 // c++ standard library
 #include <cmath>

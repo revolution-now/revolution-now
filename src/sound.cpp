@@ -13,8 +13,8 @@
 #include "errors.hpp"
 #include "util.hpp"
 
-#include <SDL.h>
-#include <SDL_mixer.h>
+#include "SDL.h"
+#include "SDL_mixer.h"
 
 #include <iostream>
 

@@ -18,7 +18,7 @@
 #include "viewport.hpp"
 #include "world.hpp"
 
-#include <SDL.h>
+#include "SDL.h"
 
 namespace rn {
 

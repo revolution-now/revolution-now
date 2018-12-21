@@ -17,8 +17,8 @@
 #include "typed-int.hpp"
 
 // SDL
-#include <SDL.h>
-#include <SDL_image.h>
+#include "SDL.h"
+#include "SDL_image.h"
 
 namespace rn {
 

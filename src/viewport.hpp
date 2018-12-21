@@ -18,7 +18,7 @@
 #include "physics.hpp"
 
 // SDL
-#include <SDL.h>
+#include "SDL.h"
 
 namespace rn {
 

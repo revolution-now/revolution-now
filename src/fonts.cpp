@@ -20,7 +20,7 @@
 #include "base-util/misc.hpp"
 #include "base-util/string.hpp"
 
-#include <SDL_ttf.h>
+#include "SDL_ttf.h"
 
 #include <algorithm>
 #include <string>

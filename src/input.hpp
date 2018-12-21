@@ -16,7 +16,7 @@
 #include "geo-types.hpp"
 
 // SDL
-#include <SDL.h>
+#include "SDL.h"
 
 // c++ standard library
 #include <variant>

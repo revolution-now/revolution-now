@@ -20,8 +20,8 @@
 #include "base-util/non-copyable.hpp"
 
 // SDL
-#include <SDL.h>
-#include <SDL_image.h>
+#include "SDL.h"
+#include "SDL_image.h"
 
 // c++ standard library
 #include <optional>

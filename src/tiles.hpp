@@ -15,7 +15,7 @@
 #include "sdl-util.hpp"
 #include "util.hpp"
 
-#include <SDL.h>
+#include "SDL.h"
 
 #include <string_view>
 
