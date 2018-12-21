@@ -31,7 +31,7 @@ CargoHold::~CargoHold() {
 int CargoHold::slots_occupied() const {
   int total = 0;
   for( auto const& cargo : items_ ) {
-    int occupied;
+    int occupied{0};
     // TODO: better visitation mechanism needed here.
     if( holds_alternative<UnitId>( cargo ) ) {
       UnitId id = get<UnitId>( cargo );
