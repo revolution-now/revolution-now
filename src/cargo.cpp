@@ -13,6 +13,7 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"
+#include "util.hpp"
 
 #include <iostream>
 
@@ -33,7 +34,7 @@ int CargoHold::slots_occupied() const {
   for( auto const& cargo : items_ ) {
     int occupied{0};
     // TODO: better visitation mechanism needed here.
-    if( holds_alternative<UnitId>( cargo ) ) {
+    if( holds<UnitId>( cargo ) ) {
       UnitId id = get<UnitId>( cargo );
       auto   occupied_ =
           unit_from_id( id ).desc().cargo_slots_occupies;
@@ -55,14 +56,14 @@ int CargoHold::slots_remaining() const {
 int CargoHold::slots_total() const { return slots_; }
 
 bool CargoHold::fits( Cargo const& cargo ) const {
-  CHECK( holds_alternative<UnitId>( cargo ) );
+  CHECK( holds<UnitId>( cargo ) );
   UnitId id     = get<UnitId>( cargo );
   auto occupied = unit_from_id( id ).desc().cargo_slots_occupies;
   return slots_remaining() >= occupied;
 }
 
 void CargoHold::add( Cargo const& cargo ) {
-  if( holds_alternative<UnitId>( cargo ) ) {
+  if( holds<UnitId>( cargo ) ) {
     UnitId id = get<UnitId>( cargo );
     // Make sure that the unit is not already in this cargo.
     CHECK( rn::count( items_, Cargo{id} ) == 0 );

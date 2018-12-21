@@ -128,7 +128,7 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
 
   // Caller should have checked this.
   CHECK( move_desc.can_move );
-  CHECK( holds_alternative<e_unit_mv_good>( move_desc.desc ) );
+  CHECK( holds<e_unit_mv_good>( move_desc.desc ) );
 
   e_unit_mv_good outcome = get<e_unit_mv_good>( move_desc.desc );
 

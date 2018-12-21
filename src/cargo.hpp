@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 #include "id.hpp"
+#include "util.hpp"
 
 #include "base-util/non-copyable.hpp"
 
@@ -98,7 +99,7 @@ template<typename T>
 std::vector<T> CargoHold::items_of_type() const {
   std::vector<T> res;
   for( auto const& item : items_ ) {
-    if( std::holds_alternative<T>( item ) ) {
+    if( holds<T>( item ) ) {
       res.push_back( std::get<T>( item ) );
     }
   }

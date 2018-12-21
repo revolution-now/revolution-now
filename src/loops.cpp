@@ -181,7 +181,7 @@ e_orders_loop_result loop_orders(
   }
   move_unit( id, move_desc );
   for( auto id : move_desc.to_prioritize ) prioritize( id );
-  if( std::holds_alternative<e_unit_mv_good>( move_desc.desc ) )
+  if( holds<e_unit_mv_good>( move_desc.desc ) )
     if( std::get<e_unit_mv_good>( move_desc.desc ) ==
         e_unit_mv_good::land_fall )
       return e_orders_loop_result::offboard;

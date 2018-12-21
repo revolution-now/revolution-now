@@ -24,6 +24,11 @@
 
 namespace rn {
 
+template<typename T, typename... Vs>
+auto holds( std::variant<Vs...> const& v ) {
+  return std::holds_alternative<T>( v );
+}
+
 // Pass as the third template argument to hash map so that we can
 // use enum classes as the keys in maps.
 struct EnumClassHash {

@@ -18,6 +18,7 @@
 #include "logging.hpp"
 #include "tiles.hpp"
 #include "typed-int.hpp"
+#include "util.hpp"
 
 // base-util
 #include "base-util/misc.hpp"
@@ -201,8 +202,7 @@ void OptionSelectView::set_selected( int item ) {
 
 bool OptionSelectView::accept_input(
     input::event_t const& event ) {
-  if( !holds_alternative<input::key_event_t>( event.event ) )
-    return false;
+  if( !holds<input::key_event_t>( event.event ) ) return false;
   // It's a keyboard event.
   auto key_event = get<input::key_event_t>( event.event );
   if( key_event.change != input::e_key_change::down )
@@ -297,7 +297,7 @@ e_wm_input_result WindowManager::accept_input(
   // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
   //               title_bar.x, title_bar.y, title_bar.w,
   //               title_bar.h, mouse_pos.x, mouse_pos.y );
-  if( holds_alternative<input::mouse_event_t>( event.event ) ) {
+  if( holds<input::mouse_event_t>( event.event ) ) {
     auto const& mouse_event =
         get<input::mouse_event_t>( event.event );
     logger->trace( "Mouse event" );
