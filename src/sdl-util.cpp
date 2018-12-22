@@ -459,7 +459,6 @@ Delta screen_size() {
   Delta screen;
   ::SDL_GetRendererOutputSize( g_renderer, &screen.w._,
                                &screen.h._ );
-  logger->info( "screen size: {}x{}", screen.w, screen.h );
   return screen;
 }
 
@@ -468,8 +467,11 @@ Rect screen_rect() {
 }
 
 void grab_screen( fs::path const& file ) {
-  logger->info( "grabbing screen and saving to {}", file );
-  ::SDL_Surface* surface = create_surface( screen_size() );
+  auto screen = screen_size();
+  logger->info(
+      "grabbing screen with size [{} x {}] and saving to {}",
+      screen.w, screen.h, file );
+  ::SDL_Surface* surface = create_surface( screen );
   set_render_target( nullopt );
   ::SDL_RenderReadPixels( g_renderer, NULL,
                           surface->format->format,
