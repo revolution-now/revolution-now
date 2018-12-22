@@ -338,13 +338,18 @@ WindowManager::window& WindowManager::focused() {
 
 void WindowManager::run( FinishedFunc const& finished ) {
   logger->debug( "Running window manager" );
-  ::SDL_Event   event;
-  bool          running = true;
+  bool running = true;
+
+  auto fader =
+      render_fade_to_dark( chrono::milliseconds( 1500 ),
+                           chrono::milliseconds( 3000 ), 100 );
+  RenderStacker push_fader( fader );
   RenderStacker push_renderer(
       [this] { this->draw_layout( Texture() ); } );
   render_all();
   while( running && !finished() ) {
     render_all();
+    ::SDL_Event event;
     while( ::SDL_PollEvent( &event ) != 0 ) {
       running &=
           ( accept_input( event ) != e_wm_input_result::quit );

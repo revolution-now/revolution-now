@@ -104,6 +104,8 @@ ND Texture create_texture( W w, H h );
 
 // Get screen size in pixels.
 Delta screen_size();
+// Same but with origin at 0,0
+Rect screen_rect();
 
 void save_texture_png( Texture const& tx, fs::path const& file );
 void grab_screen( fs::path const& file );

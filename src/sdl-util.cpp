@@ -463,6 +463,10 @@ Delta screen_size() {
   return screen;
 }
 
+Rect screen_rect() {
+  return Rect::from( {0_y, 0_x}, screen_size() );
+}
+
 void grab_screen( fs::path const& file ) {
   logger->info( "grabbing screen and saving to {}", file );
   ::SDL_Surface* surface = create_surface( screen_size() );

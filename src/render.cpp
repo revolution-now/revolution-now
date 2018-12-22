@@ -90,6 +90,33 @@ RenderStacker::~RenderStacker() {
   g_render_stack.pop_back();
 }
 
+RenderFunc render_fade_to_dark( chrono::milliseconds wait,
+                                chrono::milliseconds fade,
+                                uint8_t target_alpha ) {
+  auto now        = chrono::system_clock::now();
+  auto start_time = now + wait;
+  auto end_time   = start_time + fade;
+  CHECK( now < start_time && start_time < end_time );
+  return [start_time, end_time, target_alpha] {
+    using namespace chrono;
+    auto now = system_clock::now();
+    if( now < start_time ) return;
+    uint8_t alpha = target_alpha;
+    if( now < end_time ) {
+      milliseconds delta =
+          duration_cast<milliseconds>( end_time - now );
+      milliseconds total =
+          duration_cast<milliseconds>( end_time - start_time );
+      double ratio = double( delta.count() ) / total.count();
+      CHECK( ratio >= 0.0 && ratio <= 1.0 );
+      alpha =
+          uint8_t( double( target_alpha ) * ( 1.0 - ratio ) );
+    }
+    render_fill_rect( nullopt, Color( 0, 0, 0, alpha ),
+                      screen_rect() );
+  };
+}
+
 void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
   constexpr uint8_t opaque{255};

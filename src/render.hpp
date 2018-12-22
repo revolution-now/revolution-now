@@ -14,16 +14,11 @@
 
 #include "unit.hpp"
 
+#include <chrono>
 #include <functional>
 #include <optional>
 
 namespace rn {
-
-void render_world_viewport( OptUnitId blink = std::nullopt );
-
-void render_world_viewport_mv_unit( UnitId       mv_id,
-                                    Coord const& target,
-                                    double       percent );
 
 // A rendering function must satisfy a few requirements:
 //
@@ -34,6 +29,16 @@ void render_world_viewport_mv_unit( UnitId       mv_id,
 //   3) They should not mutate themselves upon execution.
 //
 using RenderFunc = std::function<void()>;
+
+void render_world_viewport( OptUnitId blink = std::nullopt );
+
+void render_world_viewport_mv_unit( UnitId       mv_id,
+                                    Coord const& target,
+                                    double       percent );
+
+ND RenderFunc render_fade_to_dark(
+    std::chrono::milliseconds wait,
+    std::chrono::milliseconds fade, uint8_t target_alpha );
 
 // Run through all the renderers and run them in order.
 void render_all();
