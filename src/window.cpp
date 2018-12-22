@@ -23,6 +23,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/variant.hpp"
 
 // c++ standard library
 #include <algorithm>
@@ -203,7 +204,8 @@ void OptionSelectView::set_selected( int item ) {
 
 bool OptionSelectView::accept_input(
     input::event_t const& event ) {
-  if( !holds<input::key_event_t>( event.event ) ) return false;
+  if( !util::holds<input::key_event_t>( event.event ) )
+    return false;
   // It's a keyboard event.
   auto key_event = get<input::key_event_t>( event.event );
   if( key_event.change != input::e_key_change::down )
@@ -298,21 +300,19 @@ e_wm_input_result WindowManager::accept_input(
   // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
   //               title_bar.x, title_bar.y, title_bar.w,
   //               title_bar.h, mouse_pos.x, mouse_pos.y );
-  if( holds<input::mouse_event_t>( event.event ) ) {
-    auto const& mouse_event =
-        get<input::mouse_event_t>( event.event );
+  GET_IF( event.event, input::mouse_event_t, mouse_event ) {
     logger->trace( "Mouse event" );
     if( event.mouse_state.pos.is_inside( title_bar ) ||
-        mouse_event.prev.is_inside( title_bar ) ) {
+        mouse_event->prev.is_inside( title_bar ) ) {
       logger->trace( "  and inside title bar" );
       if( event.mouse_state.left ) {
         logger->trace( "  and left mouse down" );
         logger->trace( "  and delta x: {}",
-                       mouse_event.delta.w );
+                       mouse_event->delta.w );
         logger->trace( "  and delta y: {}",
-                       mouse_event.delta.h );
+                       mouse_event->delta.h );
         // We're dragging on the title bar.
-        focused().position += mouse_event.delta;
+        focused().position += mouse_event->delta;
       }
     }
   }

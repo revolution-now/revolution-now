@@ -10,11 +10,15 @@
 *****************************************************************/
 #include "movement.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 #include "id.hpp"
 #include "ownership.hpp"
 #include "util.hpp"
 #include "world.hpp"
+
+// base-util
+#include "base-util/variant.hpp"
 
 using namespace std;
 
@@ -128,7 +132,7 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
 
   // Caller should have checked this.
   CHECK( move_desc.can_move );
-  CHECK( holds<e_unit_mv_good>( move_desc.desc ) );
+  CHECK( util::holds<e_unit_mv_good>( move_desc.desc ) );
 
   e_unit_mv_good outcome = get<e_unit_mv_good>( move_desc.desc );
 

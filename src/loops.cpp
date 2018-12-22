@@ -10,6 +10,7 @@
 *****************************************************************/
 #include "loops.hpp"
 
+// Revolution Now
 #include "movement.hpp"
 #include "ownership.hpp"
 #include "physics.hpp"
@@ -18,9 +19,14 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// base-util
 #include "base-util/misc.hpp"
+#include "base-util/variant.hpp"
 
+// Abseil
 #include "absl/container/flat_hash_map.h"
+
+using namespace std;
 
 namespace rn {
 
@@ -40,8 +46,7 @@ absl::flat_hash_map<::SDL_Keycode, direction> nav_keys{
 } // namespace
 
 e_orders_loop_result loop_orders(
-    UnitId                               id,
-    std::function<void( UnitId )> const& prioritize ) {
+    UnitId id, function<void( UnitId )> const& prioritize ) {
   constexpr int millis_per_second{1000};
   unsigned int  frame_length_millis =
       millis_per_second / frame_rate;
@@ -100,20 +105,18 @@ e_orders_loop_result loop_orders(
           switch( event.key.keysym.sym ) {
             case ::SDLK_q: {
               auto ticks_end_loop = ::SDL_GetTicks();
-              std::cerr
-                  << "average framerate: "
-                  << double( millis_per_second ) *
-                         double( total_frames ) /
-                         ( ticks_end_loop - ticks_start_loop )
-                  << "\n";
-              std::cerr << "average ticks/render: "
-                        << double( ticks_render ) / total_frames
-                        << "\n";
-              std::cerr
-                  << "render % of frame: "
-                  << 100.0 * double( ticks_render ) /
-                         ( ticks_end_loop - ticks_start_loop )
-                  << "\n";
+              cerr << "average framerate: "
+                   << double( millis_per_second ) *
+                          double( total_frames ) /
+                          ( ticks_end_loop - ticks_start_loop )
+                   << "\n";
+              cerr << "average ticks/render: "
+                   << double( ticks_render ) / total_frames
+                   << "\n";
+              cerr << "render % of frame: "
+                   << 100.0 * double( ticks_render ) /
+                          ( ticks_end_loop - ticks_start_loop )
+                   << "\n";
               return e_orders_loop_result::quit;
             }
             case ::SDLK_F11: toggle_fullscreen(); break;
@@ -129,22 +132,19 @@ e_orders_loop_result loop_orders(
                 move_desc = move_consequences(
                     id, coords.moved( *maybe_direction ) );
                 if( move_desc.can_move ) {
-                  // TODO: clean this up
-                  if( holds<e_unit_mv_good>( move_desc.desc ) ) {
-                    if( std::get<e_unit_mv_good>(
-                            move_desc.desc ) ==
-                        e_unit_mv_good::land_fall ) {
-                      auto answer = ui::yes_no(
-                          "Would you like to make landfall?" );
-                      if( answer == ui::e_confirm::yes ) {
-                        // may need to ask user a question here.
-                        // Assuming that they want to proceed
-                        // with the move, then:
-                        running = false;
-                      }
-                    } else {
+                  if( util::holds(
+                          move_desc.desc,
+                          e_unit_mv_good::land_fall ) ) {
+                    auto answer = ui::yes_no(
+                        "Would you like to make landfall?" );
+                    if( answer == ui::e_confirm::yes ) {
+                      // may need to ask user a question here.
+                      // Assuming that they want to proceed
+                      // with the move, then:
                       running = false;
                     }
+                  } else {
+                    running = false;
                   }
                 }
               }
@@ -198,12 +198,10 @@ e_orders_loop_result loop_orders(
   }
   move_unit( id, move_desc );
   for( auto id : move_desc.to_prioritize ) prioritize( id );
-  if( holds<e_unit_mv_good>( move_desc.desc ) )
-    if( std::get<e_unit_mv_good>( move_desc.desc ) ==
-        e_unit_mv_good::land_fall )
-      return e_orders_loop_result::offboard;
+  if( util::holds( move_desc.desc, e_unit_mv_good::land_fall ) )
+    return e_orders_loop_result::offboard;
   return e_orders_loop_result::moved;
-}
+} // namespace rn
 
 e_eot_loop_result loop_eot() {
   constexpr int millis_per_second{1000};
@@ -255,20 +253,18 @@ e_eot_loop_result loop_eot() {
               running             = false;
               result              = e_eot_loop_result::quit;
               auto ticks_end_loop = ::SDL_GetTicks();
-              std::cerr
-                  << "average framerate: "
-                  << double( millis_per_second ) *
-                         double( total_frames ) /
-                         ( ticks_end_loop - ticks_start_loop )
-                  << "\n";
-              std::cerr << "average ticks/render: "
-                        << double( ticks_render ) / total_frames
-                        << "\n";
-              std::cerr
-                  << "render % of frame: "
-                  << 100.0 * double( ticks_render ) /
-                         ( ticks_end_loop - ticks_start_loop )
-                  << "\n";
+              cerr << "average framerate: "
+                   << double( millis_per_second ) *
+                          double( total_frames ) /
+                          ( ticks_end_loop - ticks_start_loop )
+                   << "\n";
+              cerr << "average ticks/render: "
+                   << double( ticks_render ) / total_frames
+                   << "\n";
+              cerr << "render % of frame: "
+                   << 100.0 * double( ticks_render ) /
+                          ( ticks_end_loop - ticks_start_loop )
+                   << "\n";
               break;
             }
             case ::SDLK_F11: toggle_fullscreen(); break;

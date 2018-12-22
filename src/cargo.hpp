@@ -12,11 +12,15 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
 #include "id.hpp"
 #include "util.hpp"
 
+// base-util
 #include "base-util/non-copyable.hpp"
+#include "base-util/variant.hpp"
 
+// C++ standard library
 #include <variant>
 #include <vector>
 
@@ -99,7 +103,7 @@ template<typename T>
 std::vector<T> CargoHold::items_of_type() const {
   std::vector<T> res;
   for( auto const& item : items_ ) {
-    if( holds<T>( item ) ) {
+    if( util::holds<T>( item ) ) {
       res.push_back( std::get<T>( item ) );
     }
   }
