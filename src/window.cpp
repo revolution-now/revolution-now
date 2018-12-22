@@ -16,6 +16,7 @@
 #include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
+#include "render.hpp"
 #include "tiles.hpp"
 #include "typed-int.hpp"
 #include "util.hpp"
@@ -327,17 +328,16 @@ WindowManager::window& WindowManager::focused() {
   return windows_[0];
 }
 
-void WindowManager::run( RenderFunc const&   render,
-                         FinishedFunc const& finished ) {
+void WindowManager::run( FinishedFunc const& finished ) {
   logger->debug( "Running window manager" );
-  ::SDL_Event event;
-  bool        running = true;
-  draw_layout( Texture() );
+  ::SDL_Event   event;
+  bool          running = true;
+  RenderStacker push_renderer(
+      [this] { this->draw_layout( Texture() ); } );
+  render_all();
   while( running && !finished() ) {
-    clear_texture_black( Texture() );
-    render();
-    draw_layout( Texture() );
-    ::SDL_RenderPresent( g_renderer );
+    // clear_texture_black( Texture() );
+    render_all();
     while( ::SDL_PollEvent( &event ) != 0 ) {
       if( event.type == SDL_KEYDOWN &&
           event.key.keysym.sym == ::SDLK_q ) {
@@ -355,8 +355,7 @@ void WindowManager::run( RenderFunc const&   render,
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-string select_box( RenderFunc const& render_bg,
-                   string const& title, StrVec options ) {
+string select_box( string const& title, StrVec options ) {
   std::vector<OwningPositionedView> views;
 
   auto selector =
@@ -371,26 +370,21 @@ string select_box( RenderFunc const& render_bg,
 
   WindowManager wm;
   wm.add_window( title, move( view ), {200_y, 200_x} );
-  wm.run( render_bg, finished );
+  wm.run( finished );
   logger->info( "Selected: {}", selector_ptr->get_selected() );
   return selector_ptr->get_selected();
 }
 
-e_confirm yes_no( RenderFunc const& render_bg,
-                  string const&     title ) {
+e_confirm yes_no( string const& title ) {
   vector<pair<e_confirm, string>> dict{
       {e_confirm::yes, "Yes"},
       {e_confirm::no, "No"},
   };
-  auto res = select_box_enum( render_bg, title, dict );
+  auto res = select_box_enum( title, dict );
   logger->info( "Selected: {}", int( res ) );
   return res;
 }
 
-void message_box( string_view       msg,
-                  RenderFunc const& render_bg ) {
-  (void)msg;
-  (void)render_bg;
-}
+void message_box( string_view msg ) { (void)msg; }
 
 } // namespace rn::ui

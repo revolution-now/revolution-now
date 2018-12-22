@@ -49,28 +49,14 @@ void game() {
 
   //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
   //                          3_x );
-  //(void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
-  //                          4_x );
-  //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
+  (void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
+                            4_x );
+  (void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
   //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 1_x );
 
-  // while( turn() != e_turn_result::quit ) {}
+  while( turn() != e_turn_result::quit ) {}
 
   // font_test();
-  auto res =
-      ui::yes_no( [] {}, "Would you like to make landfall?" );
-
-  logger->info( "selected: {}", bool( res ) );
-  logger->info( "bucket path: {}",
-                bucket_path( Color{244, 179, 66, 255} ) );
-  // grab_screen( "screen-shot-2.png" );
-
-  // logger->info( "config_ui.window.border_color: {}",
-  //              config_ui.window.border_color.to_string() );
-  // logger->info(
-  //    "config_ui.window.border_color: {}",
-  //    config_ui.window.border_color.to_string( true ) );
-
   cleanup();
 }
 

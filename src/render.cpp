@@ -10,19 +10,32 @@
 *****************************************************************/
 #include "render.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 #include "globals.hpp"
+#include "logging.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
 #include "world.hpp"
 
+// SDL
 #include "SDL.h"
+
+// C++ standard library
+#include <vector>
+
+using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+// This is conceptually a stack in how elements are added and re-
+// moved, but we need to be able to iterate through all elements
+// for rendering, hence vector.
+vector<RenderFunc> g_render_stack;
 
 void render_panel() {
   constexpr int panel_width{6};
@@ -47,9 +60,40 @@ void render_panel() {
       render_sprite_grid( g_tile::panel, i, j, 0, 0 );
 }
 
+} // namespace
+
+void render_all() {
+  ::SDL_SetRenderTarget( g_renderer, nullptr );
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
+  ::SDL_RenderClear( g_renderer );
+
+  for( auto const& renderer : g_render_stack ) {
+    ::SDL_SetRenderTarget( g_renderer, nullptr );
+    renderer();
+  }
+
+  ::SDL_RenderPresent( g_renderer );
+}
+
+RenderStacker::RenderStacker( RenderFunc const& func ) {
+  g_render_stack.push_back( func );
+}
+
+RenderStacker::~RenderStacker() {
+  // Check for empty stack but don't throw because this is a de-
+  // structor.
+  if( g_render_stack.empty() ) {
+    logger->critical(
+        "Attempting to pop from empty render stack!" );
+    return;
+  }
+  g_render_stack.pop_back();
+}
+
 void render_world_viewport( OptUnitId blink_id ) {
   ::SDL_SetRenderTarget( g_renderer, g_texture_world );
   constexpr uint8_t opaque{255};
+  // TODO: are these needed?
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
   ::SDL_RenderClear( g_renderer );
 
@@ -92,7 +136,6 @@ void render_world_viewport( OptUnitId blink_id ) {
 
   ::SDL_SetRenderTarget( g_renderer, nullptr );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
-  ::SDL_RenderClear( g_renderer );
 
   ::SDL_Rect src  = to_SDL( viewport().get_render_src_rect() );
   ::SDL_Rect dest = to_SDL( viewport().get_render_dest_rect() );
@@ -100,8 +143,6 @@ void render_world_viewport( OptUnitId blink_id ) {
 
   // render_tile_map( "panel" );
   render_panel();
-
-  ::SDL_RenderPresent( g_renderer );
 }
 
 void render_world_viewport_mv_unit( UnitId       mv_id,
@@ -150,7 +191,6 @@ void render_world_viewport_mv_unit( UnitId       mv_id,
 
   ::SDL_SetRenderTarget( g_renderer, nullptr );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, opaque );
-  ::SDL_RenderClear( g_renderer );
 
   ::SDL_Rect src  = to_SDL( viewport().get_render_src_rect() );
   ::SDL_Rect dest = to_SDL( viewport().get_render_dest_rect() );
@@ -158,7 +198,6 @@ void render_world_viewport_mv_unit( UnitId       mv_id,
 
   // render_tile_map( "panel" );
   render_panel();
-
-  ::SDL_RenderPresent( g_renderer );
 }
+
 } // namespace rn

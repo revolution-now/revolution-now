@@ -59,6 +59,9 @@ e_orders_loop_result loop_orders(
 
   long ticks_render = 0;
 
+  RenderStacker push_renderer(
+      [id] { render_world_viewport( id ); } );
+
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
   // of keeping track of it ourselves.
@@ -66,7 +69,7 @@ e_orders_loop_result loop_orders(
     auto ticks_start = ::SDL_GetTicks();
 
     auto ticks_render_start = ::SDL_GetTicks();
-    render_world_viewport( id );
+    render_all();
     auto ticks_render_end = ::SDL_GetTicks();
     ticks_render += ( ticks_render_end - ticks_render_start );
     total_frames++;
@@ -201,6 +204,8 @@ e_eot_loop_result loop_eot() {
 
   long ticks_render = 0;
 
+  RenderStacker push_renderer( [] { render_world_viewport(); } );
+
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
   // of keeping track of it ourselves.
@@ -210,7 +215,7 @@ e_eot_loop_result loop_eot() {
     total_frames++;
 
     auto ticks_render_start = ::SDL_GetTicks();
-    render_world_viewport();
+    render_all();
     auto ticks_render_end = ::SDL_GetTicks();
     ticks_render += ( ticks_render_end - ticks_render_start );
 
@@ -318,10 +323,16 @@ void loop_mv_unit( UnitId id, Coord const& target ) {
   double percent = 0;
   bool   running = true;
 
+  // Need to take percent by reference because it will be chang-
+  // ing.
+  RenderStacker push_renderer( [id, &target, &percent] {
+    render_world_viewport_mv_unit( id, target, percent );
+  } );
+
   while( running ) {
     auto ticks_start = ::SDL_GetTicks();
 
-    render_world_viewport_mv_unit( id, target, percent );
+    render_all();
 
     percent_vel.advance( e_push_direction::none );
     percent += percent_vel.to_double();

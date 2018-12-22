@@ -240,7 +240,6 @@ private:
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-using RenderFunc   = std::function<void( void )>;
 using FinishedFunc = std::function<bool( void )>;
 
 enum class e_window_state { running, closed };
@@ -250,8 +249,7 @@ class WindowManager {
 public:
   void draw_layout( Texture const& tx ) const;
 
-  void run( RenderFunc const&   render_fn,
-            FinishedFunc const& finished_fn );
+  void run( FinishedFunc const& finished_fn );
 
   ND e_wm_input_result accept_input( SDL_Event const& event );
 
@@ -284,20 +282,19 @@ private:
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-std::string select_box( RenderFunc const&  render_bg,
-                        std::string const& title,
+std::string select_box( std::string const& title,
                         StrVec             options );
 
 // TODO: create bimap and reference through type traits.
 template<typename Enum>
 Enum select_box_enum(
-    RenderFunc const& render_bg, std::string const& title,
+    std::string const&                        title,
     std::vector<std::pair<Enum, std::string>> options ) {
   // map over member function?
   std::vector<std::string> words;
   for( auto const& option : options )
     words.push_back( option.second );
-  auto result = select_box( render_bg, title, words );
+  auto result = select_box( title, words );
   for( auto const& option : options )
     if( result == option.second ) return option.first;
   CHECK( false ); // should not be here
@@ -306,10 +303,8 @@ Enum select_box_enum(
 
 enum class e_confirm { no, yes };
 
-e_confirm yes_no( RenderFunc const&  render_bg,
-                  std::string const& title );
+e_confirm yes_no( std::string const& title );
 
-void message_box( std::string_view  msg,
-                  RenderFunc const& render_bg );
+void message_box( std::string_view msg );
 
 } // namespace rn::ui
