@@ -134,6 +134,11 @@ struct ND Coord {
 
 using OptCoord = std::optional<Coord>;
 
+// Will take the delta and center it with respect to the rect and
+// return the coordinate of the upper-left corner of the centered
+// rect.  Note that the coord returned may be negative.
+Coord centered( Delta const& delta, Rect const& rect );
+
 // Same as Delta::uni0n
 ND Delta max( Delta const& lhs, Delta const& rhs );
 
@@ -147,7 +152,10 @@ ND Delta operator-( Coord const& lhs, Coord const& rhs );
 ND Coord operator+( Coord const& coord, W w );
 ND Coord operator+( Coord const& coord, H h );
 
-std::ostream& operator<<( std::ostream& out, rn::Rect const& r );
+std::ostream& operator<<( std::ostream&    out,
+                          rn::Delta const& delta );
+std::ostream& operator<<( std::ostream&   out,
+                          rn::Rect const& rect );
 std::ostream& operator<<( std::ostream&    out,
                           rn::Coord const& coord );
 

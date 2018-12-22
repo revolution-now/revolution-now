@@ -211,17 +211,18 @@ bool OptionSelectView::accept_input(
   if( key_event.change != input::e_key_change::down )
     return false;
   // It's a key down.
-  switch( key_event.scancode ) {
-    case ::SDL_SCANCODE_UP:
+  switch( key_event.key ) {
+    case ::SDLK_UP:
+    case ::SDLK_KP_8:
       if( selected_ > 0 ) set_selected( selected_ - 1 );
       return true;
-    case ::SDL_SCANCODE_DOWN:
+    case ::SDLK_DOWN:
+    case ::SDLK_KP_2:
       if( selected_ < count() - 1 )
         set_selected( selected_ + 1 );
       return true;
-    case ::SDL_SCANCODE_RETURN:
-      has_confirmed = true;
-      return true;
+    case ::SDLK_RETURN:
+    case ::SDLK_KP_ENTER: has_confirmed = true; return true;
     default: return false;
   };
 }
@@ -290,6 +291,15 @@ void WindowManager::draw_layout( Texture const& tx ) const {
 }
 
 void WindowManager::add_window( string           title_,
+                                unique_ptr<View> view_ ) {
+  windows_.emplace_back( move( title_ ), move( view_ ),
+                         Coord{} );
+  auto& new_window = windows_.back();
+  new_window.position =
+      centered( new_window.delta(), screen_logical_rect() );
+}
+
+void WindowManager::add_window( string           title_,
                                 unique_ptr<View> view_,
                                 Coord            position ) {
   windows_.emplace_back( move( title_ ), move( view_ ),
@@ -342,7 +352,7 @@ void WindowManager::run( FinishedFunc const& finished ) {
 
   auto fader =
       render_fade_to_dark( chrono::milliseconds( 1500 ),
-                           chrono::milliseconds( 3000 ), 100 );
+                           chrono::milliseconds( 3000 ), 65 );
   RenderStacker push_fader( fader );
   RenderStacker push_renderer(
       [this] { this->draw_layout( Texture() ); } );
@@ -375,7 +385,7 @@ string select_box( string const& title, StrVec options ) {
   auto view = make_unique<ViewVector>( move( views ) );
 
   WindowManager wm;
-  wm.add_window( title, move( view ), {200_y, 200_x} );
+  wm.add_window( title, move( view ) );
   wm.run( finished );
   logger->info( "Selected: {}", selector_ptr->get_selected() );
   return selector_ptr->get_selected();

@@ -455,19 +455,20 @@ void save_texture_png( Texture const&  tx,
   ::SDL_SetRenderTarget( g_renderer, old );
 }
 
-Delta screen_size() {
+Delta screen_logical_size() {
+  ::SDL_SetRenderTarget( g_renderer, nullptr );
   Delta screen;
-  ::SDL_GetRendererOutputSize( g_renderer, &screen.w._,
-                               &screen.h._ );
+  ::SDL_RenderGetLogicalSize( g_renderer, &screen.w._,
+                              &screen.h._ );
   return screen;
 }
 
-Rect screen_rect() {
-  return Rect::from( {0_y, 0_x}, screen_size() );
+Rect screen_logical_rect() {
+  return Rect::from( {0_y, 0_x}, screen_logical_size() );
 }
 
 void grab_screen( fs::path const& file ) {
-  auto screen = screen_size();
+  auto screen = screen_logical_size();
   logger->info(
       "grabbing screen with size [{} x {}] and saving to {}",
       screen.w, screen.h, file );

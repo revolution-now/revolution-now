@@ -126,6 +126,11 @@ Delta Delta::uni0n( Delta const& rhs ) const {
   return {std::max( w, rhs.w ), std::max( h, rhs.h )};
 }
 
+Coord centered( Delta const& delta, Rect const& rect ) {
+  return {rect.y + rect.h / 2 - delta.h / 2,
+          rect.x + rect.w / 2 - delta.w / 2};
+}
+
 Delta max( Delta const& lhs, Delta const& rhs ) {
   return {std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h )};
 }
@@ -158,10 +163,15 @@ Delta operator-( Coord const& lhs, Coord const& rhs ) {
   return {lhs.x - rhs.x, lhs.y - rhs.y};
 }
 
+std::ostream& operator<<( std::ostream&    out,
+                          rn::Delta const& delta ) {
+  return ( out << "(" << delta.w << "," << delta.h << ")" );
+}
+
 std::ostream& operator<<( std::ostream&   out,
-                          rn::Rect const& r ) {
-  return ( out << "(" << r.x << "," << r.y << "," << r.w << ","
-               << r.h << ")" );
+                          rn::Rect const& rect ) {
+  return ( out << "(" << rect.x << "," << rect.y << "," << rect.w
+               << "," << rect.h << ")" );
 }
 
 std::ostream& operator<<( std::ostream&    out,

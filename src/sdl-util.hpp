@@ -102,10 +102,9 @@ ND Texture create_texture( W w, H h );
 
 ::SDL_Surface* create_surface( Delta delta );
 
-// Get screen size in pixels.
-Delta screen_size();
+Delta screen_logical_size();
 // Same but with origin at 0,0
-Rect screen_rect();
+Rect screen_logical_rect();
 
 void save_texture_png( Texture const& tx, fs::path const& file );
 void grab_screen( fs::path const& file );

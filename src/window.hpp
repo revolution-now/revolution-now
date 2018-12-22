@@ -253,6 +253,9 @@ public:
 
   ND e_wm_input_result accept_input( SDL_Event const& event );
 
+  void add_window( std::string           title,
+                   std::unique_ptr<View> view );
+
   void add_window( std::string title, std::unique_ptr<View> view,
                    Coord position );
 

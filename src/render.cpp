@@ -113,7 +113,7 @@ RenderFunc render_fade_to_dark( chrono::milliseconds wait,
           uint8_t( double( target_alpha ) * ( 1.0 - ratio ) );
     }
     render_fill_rect( nullopt, Color( 0, 0, 0, alpha ),
-                      screen_rect() );
+                      screen_logical_rect() );
   };
 }
 
