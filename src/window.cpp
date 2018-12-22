@@ -248,6 +248,9 @@ WindowManager::window::window( string           title_,
 void WindowManager::window::draw( Texture const& tx ) const {
   auto win_size = delta();
   render_fill_rect(
+      tx, Color( 0, 0, 0, 64 ),
+      Rect::from( position + Delta{5_w, 5_h}, win_size ) );
+  render_fill_rect(
       tx, config_palette.orange.sat0.lum1,
       {position.x, position.y, win_size.w, win_size.h} );
   auto inside_border = position + window_border();
@@ -317,6 +320,7 @@ e_wm_input_result WindowManager::accept_input(
                        mouse_event->delta.h );
         // We're dragging on the title bar.
         focused().position += mouse_event->delta;
+        return e_wm_input_result::handled;
       }
     }
   }
@@ -340,17 +344,10 @@ void WindowManager::run( FinishedFunc const& finished ) {
       [this] { this->draw_layout( Texture() ); } );
   render_all();
   while( running && !finished() ) {
-    // clear_texture_black( Texture() );
     render_all();
     while( ::SDL_PollEvent( &event ) != 0 ) {
-      if( event.type == SDL_KEYDOWN &&
-          event.key.keysym.sym == ::SDLK_q ) {
-        running = false;
-        logger->debug( "received quit signal SDLK_q" );
-      } else {
-        running &=
-            ( accept_input( event ) != e_wm_input_result::quit );
-      }
+      running &=
+          ( accept_input( event ) != e_wm_input_result::quit );
     }
     ::SDL_Delay( 10 );
   }
