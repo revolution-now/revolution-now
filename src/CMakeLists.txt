@@ -6,7 +6,7 @@ find_sdl2_lib( SDL2_mixer )
 file( GLOB sources "[a-zA-Z]*.cpp" )
 add_executable( rn ${sources} )
 target_compile_features( rn PUBLIC cxx_std_17 )
-set_target_properties( rn PROPERTIES CXX_EXTENSIONS OFF )
+#set_target_properties( rn PROPERTIES CXX_EXTENSIONS OFF )
 set_warning_options( rn )
 target_link_libraries(
     rn
@@ -41,7 +41,11 @@ if( CMAKE_BUILD_TYPE STREQUAL Debug )
     else()
       message( STATUS "RN Found libdw." )
       target_link_libraries( rn PRIVATE dw )
-      target_compile_definitions( rn PRIVATE BACKWARD_HAS_DW=1 )
+      target_compile_definitions(
+        rn
+        PRIVATE
+        BACKWARD_HAS_DW=1
+        FMT_STRING_ALIAS=1 )
     endif()
   endif()
   target_link_libraries( rn PRIVATE backward backward_object )

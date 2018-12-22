@@ -178,8 +178,8 @@ OptionSelectView::OptionSelectView( StrVec const& options,
 
 ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
     int item ) {
-  CHECK_( item >= 0 && item < count(),
-          "item '" << item << "' is out of bounds" );
+  CHECK( item >= 0 && item < count(),
+         "item '{}' is out of bounds", item );
   auto* view    = at( item ).view.get();
   auto* o_s_i_v = dynamic_cast<OptionSelectItemView*>( view );
   return ObserverPtr<OptionSelectItemView>{o_s_i_v};
@@ -188,8 +188,8 @@ ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
 // TODO: duplication
 ObserverCPtr<OptionSelectItemView> OptionSelectView::get_view(
     int item ) const {
-  CHECK_( item >= 0 && item < count(),
-          "item '" << item << "' is out of bounds" );
+  CHECK( item >= 0 && item < count(),
+         "item '{}' is out of bounds", item );
   auto* view = at_const( item ).view.get();
   auto* o_s_i_v =
       dynamic_cast<OptionSelectItemView const*>( view );

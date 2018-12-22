@@ -381,7 +381,7 @@ vector<Color> extract_palette( fs::path const& glob,
                                Opt<int>        target ) {
   /* Extracting color components from a 32-bit color value */
   auto files = util::wildcard( glob, false );
-  CHECK_( !files.empty(), "need at least one file" );
+  CHECK( !files.empty(), "need at least one file" );
 
   absl::flat_hash_set<Color> colors;
 
@@ -434,7 +434,7 @@ vector<Color> extract_palette( fs::path const& glob,
     SDL_UnlockSurface( surface );
     SDL_FreeSurface( surface );
   }
-  CHECK_( !colors.empty(), "found no colors" );
+  CHECK( !colors.empty(), "found no colors" );
 
   auto res = vector<Color>( colors.begin(), colors.end() );
   // Do a default RGB sort of these colors. This is not very
@@ -452,7 +452,7 @@ vector<Color> extract_palette( fs::path const& glob,
     logger->info( "coursened to {} colors", res.size() );
   }
 
-  CHECK_( !colors.empty(), "no colors remaining" );
+  CHECK( !colors.empty(), "no colors remaining" );
   return res;
 }
 

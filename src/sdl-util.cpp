@@ -299,7 +299,7 @@ void find_max_tile_sizes() {
       chosen_scale = scale;
     }
   }
-  CHECK_( result, "Could not find a suitable scaling" );
+  CHECK( result, "Could not find a suitable scaling" );
   auto const& delta = *result;
   logger->debug( "Optimal: #{}", chosen_scale );
   set_screen_width_tiles( delta.w );
@@ -322,7 +322,7 @@ void create_renderer() {
       g_window, -1,
       SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 
-  if( g_renderer == nullptr ) DIE( "failed to create renderer" );
+  CHECK( g_renderer, "failed to create renderer" );
 
   find_max_tile_sizes();
 
@@ -348,7 +348,7 @@ Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
 ::SDL_Surface* load_surface( const char* file ) {
   SDL_Surface* surface = IMG_Load( file );
-  CHECK_( surface, "failed to load image: " << file );
+  CHECK( surface, "failed to load image: {}", file );
   return surface;
 }
 
@@ -434,7 +434,7 @@ Texture create_texture( W w, H h ) {
 ::SDL_Surface* create_surface( Delta delta ) {
   SDL_Surface* surface = SDL_CreateRGBSurface(
       0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
-  CHECK_( surface != nullptr, "SDL_CreateRGBSurface() failed" );
+  CHECK( surface != nullptr, "SDL_CreateRGBSurface() failed" );
   return surface;
 }
 
@@ -449,8 +449,8 @@ void save_texture_png( Texture const&  tx,
   ::SDL_RenderReadPixels( g_renderer, NULL,
                           surface->format->format,
                           surface->pixels, surface->pitch );
-  CHECK_( !::IMG_SavePNG( surface, file.string().c_str() ),
-          "failed to save png file " << file );
+  CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
+         "failed to save png file {}", file );
   ::SDL_FreeSurface( surface );
   ::SDL_SetRenderTarget( g_renderer, old );
 }
@@ -476,8 +476,8 @@ void grab_screen( fs::path const& file ) {
   ::SDL_RenderReadPixels( g_renderer, NULL,
                           surface->format->format,
                           surface->pixels, surface->pitch );
-  CHECK_( !::IMG_SavePNG( surface, file.string().c_str() ),
-          "failed to save png file " << file );
+  CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
+         "failed to save png file {}", file );
   ::SDL_FreeSurface( surface );
 }
 

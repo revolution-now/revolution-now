@@ -64,8 +64,8 @@ void assign_link( T const* const& from, T const& to ) {
     /* the ordering of initialization so that we ensure */  \
     /* that a link gets populated before any other links */ \
     /* that need to traverse it.  Until then, forbid it. */ \
-    CHECK_( !util::contains( #__to, "->" ),                 \
-            "Link path should not traverse another link" ); \
+    CHECK( !util::contains( #__to, "->" ),                  \
+           "Link path should not traverse another link" );  \
     auto path = this_path();                                \
     path.push_back( #__from );                              \
     auto dotted = util::join( path, "." );                  \
@@ -228,19 +228,17 @@ char const* ucl_type_name_of_v = ucl_type_name_of_t<T>::value;
 
 void check_field_exists( ucl::Ucl obj, string const& dotted,
                          string const& file ) {
-  CHECK_( obj.type() != ::UCL_NULL,
-          "UCL Config field `"
-              << dotted << "` was not found in file " << file
-              << "." );
+  CHECK( obj.type() != ::UCL_NULL,
+         "UCL Config field `{}` was not found in file {}.",
+         dotted, file );
 }
 
 void check_field_type( ucl::Ucl obj, UclType_t type,
                        string const& dotted,
                        string const& config_name,
                        string const& desc ) {
-  CHECK_( obj.type() == type, "expected `"
-                                  << config_name << "." << dotted
-                                  << "` to contain " << desc );
+  CHECK( obj.type() == type, "expected `{}.{}` to contain {}",
+         config_name, dotted, desc );
 }
 
 #define DECLARE_POPULATE( type )                            \
@@ -311,15 +309,15 @@ void populate_config_field( ucl::Ucl obj, Color& dest,
   check_field_type( obj, UCL_STRING, dotted, config_name,
                     "a color in RGB hex form: #NNNNNN[NN]" );
   string hex = obj.string_value();
-  CHECK_(
+  CHECK(
       hex.size() == 7 || hex.size() == 9,
       "Colors must be of the form `#NNNNNN[NN]` with N in 0-f" );
-  CHECK_( hex[0] == '#', "Colors must start with #" );
+  CHECK( hex[0] == '#', "Colors must start with #" );
   string_view digits( &hex[1], hex.length() - 1 );
 
   auto parsed = Color::parse_from_hex( digits );
-  CHECK_( parsed.has_value(),
-          "failed to parse color: " << digits );
+  CHECK( parsed.has_value(), "failed to parse color: `{}`",
+         digits );
   dest = *parsed;
 }
 
@@ -391,8 +389,7 @@ void load_configs() {
     auto&  ucl_obj = ucl_configs[ucl_name];
     string errors;
     ucl_obj = ucl::Ucl::parse_from_file( file, errors );
-    CHECK_( ucl_obj,
-            "failed to load " << file << ": " << errors );
+    CHECK( ucl_obj, "failed to load {}: {}", file, errors );
   }
   for( auto const& populate : populate_functions() ) populate();
   // This loop tests that there are no fields in the config
@@ -419,8 +416,7 @@ Vec<Color> const& g_palette() {
 
     string errors;
     auto   ucl_obj = ucl::Ucl::parse_from_file( file, errors );
-    CHECK_( ucl_obj,
-            "failed to load " << file << ": " << errors );
+    CHECK( ucl_obj, "failed to load {}: {}", file, errors );
 
     for( auto hue : ucl_obj ) {
       if( hue.key() == "grey" ) continue;
@@ -433,8 +429,8 @@ Vec<Color> const& g_palette() {
                               lum_str.length() - 1 );
 
           auto parsed = Color::parse_from_hex( digits );
-          CHECK_( parsed,
-                  "failed to parse " << lum.string_value() );
+          CHECK( parsed, "failed to parse {}",
+                 lum.string_value() );
           res->push_back( *parsed );
         }
       }

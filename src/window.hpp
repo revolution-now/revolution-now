@@ -298,7 +298,7 @@ Enum select_box_enum(
   auto result = select_box( title, words );
   for( auto const& option : options )
     if( result == option.second ) return option.first;
-  CHECK( false ); // should not be here
+  SHOULD_NOT_BE_HERE;
   return {};
 }
 
