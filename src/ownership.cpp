@@ -132,7 +132,7 @@ UnitId create_unit_on_map( e_unit_type type, Y y, X x ) {
 
 unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
   static unordered_set<UnitId> empty = {};
-  auto opt_set = get_val_safe( units_from_coords, Coord{y, x} );
+  auto opt_set = val_safe( units_from_coords, Coord{y, x} );
   return opt_set.value_or( empty );
 }
 
@@ -146,7 +146,7 @@ UnitIdVec units_int_rect( Rect const& rect ) {
 }
 
 OptCoord coords_for_unit_safe( UnitId id ) {
-  return get_val_safe( coords_from_unit, id );
+  return val_safe( coords_from_unit, id );
 }
 
 Coord coords_for_unit( UnitId id ) {

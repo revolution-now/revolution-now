@@ -39,7 +39,7 @@ Rect Rect::from( Coord const& coord, Delta const& delta ) {
 
 // New coord equal to this one unit of edge trimmed off
 // on all sides.  (width,height) ==> (width-2,height-2)
-Rect Rect::edges_removed() {
+Rect Rect::edges_removed() const {
   Rect rect( *this );
 
   // We always advance location unless length is zero.
@@ -99,7 +99,7 @@ void Coord::clip( Rect const& rect ) {
   if( x > rect.x + rect.w ) x = rect.x + rect.w;
 }
 
-Coord Coord::moved( direction d ) {
+Coord Coord::moved( direction d ) const {
   // clang-format off
   switch( d ) {
     case direction::nw: return {y-1,x-1}; break;
@@ -113,7 +113,7 @@ Coord Coord::moved( direction d ) {
     case direction::se: return {y+1,x+1}; break;
   };
   // clang-format on
-  DIE( "should not get here." );
+  SHOULD_NOT_BE_HERE;
   return {y, x}; // to silence warning; will not get here.
 }
 

@@ -51,7 +51,7 @@ unit_desc() {
 
 Unit::Unit( e_nation nation, e_unit_type type )
   : id_( next_unit_id() ),
-    desc_( &get_val_or_die( unit_desc(), type ) ),
+    desc_( &val_or_die( unit_desc(), type ) ),
     orders_( e_unit_orders::none ),
     cargo_( desc_->cargo_slots ),
     nation_( nation ),

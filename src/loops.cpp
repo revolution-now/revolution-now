@@ -16,11 +16,10 @@
 #include "physics.hpp"
 #include "render.hpp"
 #include "sdl-util.hpp"
+#include "util.hpp"
 #include "viewport.hpp"
-#include "window.hpp"
 
 // base-util
-#include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
 
 // Abseil
@@ -53,8 +52,8 @@ e_orders_loop_result loop_orders(
 
   bool running = true;
 
-  auto& unit   = unit_from_id( id );
-  auto  coords = coords_for_unit( id );
+  auto&      unit   = unit_from_id( id );
+  auto const coords = coords_for_unit( id );
 
   UnitMoveDesc move_desc;
 
@@ -85,7 +84,7 @@ e_orders_loop_result loop_orders(
     ::SDL_Event event;
     while( SDL_PollEvent( &event ) != 0 ) {
       if( !running )
-        // This check is needed so that if the user hits two
+        // This check is needed so that if the player hits two
         // keys at once and the first one to be processed in
         // the switch statement leads to a valid move but the
         // second one does not then we lose the move_desc for
@@ -126,27 +125,24 @@ e_orders_loop_result loop_orders(
               unit.forfeight_mv_points();
               return e_orders_loop_result::moved;
             default:
-              auto maybe_direction = util::get_val_safe(
-                  nav_keys, event.key.keysym.sym );
+              auto maybe_direction =
+                  val_safe( nav_keys, event.key.keysym.sym );
               if( maybe_direction ) {
+                // In case the player has scrolled away from the
+                // unit in question.
+                viewport().ensure_tile_surroundings_visible(
+                    coords );
                 move_desc = move_consequences(
                     id, coords.moved( *maybe_direction ) );
-                if( move_desc.can_move ) {
-                  if( util::holds(
-                          move_desc.desc,
-                          e_unit_mv_good::land_fall ) ) {
-                    auto answer = ui::yes_no(
-                        "Would you like to make landfall?" );
-                    if( answer == ui::e_confirm::yes ) {
-                      // may need to ask user a question here.
-                      // Assuming that they want to proceed
-                      // with the move, then:
-                      running = false;
-                    }
-                  } else {
-                    running = false;
-                  }
-                }
+                // Any confirmation or messages that the player
+                // needs to get prior to this move (or in re-
+                // sponse to an illegal move) are done in this
+                // function, which then returns true if the move
+                // can proceed. In order for the move to proceed
+                // we must have both move_desc.can_move() == true
+                // and any queries to the player result in the
+                // player confirming the move, if applicable.
+                running = !confirm_move( move_desc );
               }
           }
           break;

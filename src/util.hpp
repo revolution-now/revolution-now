@@ -21,6 +21,7 @@
 #include <optional>
 #include <ostream>
 #include <string_view>
+#include <variant>
 
 namespace rn {
 
@@ -42,14 +43,9 @@ ND int round_down_to_nearest_int_multiple( double d, int m );
 // since containers can't hold references. I think the reference
 // wrapper returned here should only allow const references to be
 // extracted.
-template<typename KeyT, typename ValT,
-         // typename... to allow for maps that may have
-         // additional template parameters (but which we don't
-         // care about here).
-         template<typename KeyT_, typename ValT_, typename...>
-         typename MapT>
-ND OptCRef<ValT> get_val_safe( MapT<KeyT, ValT> const& m,
-                               KeyT const&             k ) {
+template<typename MapT, typename KeyT>
+ND auto val_safe( MapT const& m, KeyT const& k )
+    -> OptCRef<std::remove_reference_t<decltype( m[k] )>> {
   auto found = m.find( k );
   if( found == m.end() ) return std::nullopt;
   return found->second;
@@ -59,7 +55,7 @@ ND OptCRef<ValT> get_val_safe( MapT<KeyT, ValT> const& m,
 // templatized template parameter, so just use auto for the
 // return value.
 template<typename MapT, typename KeyT>
-ND auto& get_val_or_die( MapT& m, KeyT const& k ) {
+ND auto& val_or_die( MapT& m, KeyT const& k ) {
   auto found = m.find( k );
   CHECK( found != m.end() );
   return found->second;
@@ -69,24 +65,42 @@ ND auto& get_val_or_die( MapT& m, KeyT const& k ) {
 // templatized template parameter, so just use auto for the
 // return value.
 template<typename MapT, typename KeyT>
-ND auto const& get_val_or_die( MapT const& m, KeyT const& k ) {
+ND auto const& val_or_die( MapT const& m, KeyT const& k ) {
   auto found = m.find( k );
   CHECK( found != m.end() );
   return found->second;
 }
 
-// Non-const version.
-template<typename KeyT, typename ValT,
-         // typename... to allow for maps that may have
-         // additional template parameters (but which we don't
-         // care about here).
-         template<typename KeyT_, typename ValT_, typename...>
-         typename MapT>
-ND OptRef<ValT> get_val_safe( MapT<KeyT, ValT>& m,
-                              KeyT const&       k ) {
+template<typename MapT, typename KeyT>
+ND auto val_safe( MapT& m, KeyT const& k )
+    -> OptRef<std::remove_reference_t<decltype( m[k] )>> {
   auto found = m.find( k );
   if( found == m.end() ) return std::nullopt;
   return found->second;
+}
+
+template<typename T, typename... Vs>
+auto const& val_or_die( std::variant<Vs...> const& v ) {
+  CHECK( std::holds_alternative<T>( v ) );
+  return std::get<T>( v );
+}
+
+template<typename T, typename... Vs>
+auto& val_or_die( std::variant<Vs...>& v ) {
+  CHECK( std::holds_alternative<T>( v ) );
+  return std::get<T>( v );
+}
+
+template<typename T>
+auto const& val_or_die( std::optional<T> const& o ) {
+  CHECK( o.has_value() );
+  return o.value();
+}
+
+template<typename T>
+auto& val_or_die( std::optional<T>& o ) {
+  CHECK( o.has_value() );
+  return o.value();
 }
 
 // Does the set contain the given key. If not, returns nullopt.

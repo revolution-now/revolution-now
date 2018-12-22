@@ -15,6 +15,7 @@
 #include "id.hpp"
 #include "ownership.hpp"
 #include "util.hpp"
+#include "window.hpp"
 #include "world.hpp"
 
 // base-util
@@ -25,6 +26,10 @@ using namespace std;
 namespace rn {
 
 namespace {} // namespace
+
+bool UnitMoveDesc::can_move() const {
+  return util::holds<e_unit_mv_good>( desc );
+}
 
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
@@ -47,8 +52,7 @@ UnitMoveDesc move_consequences( UnitId       id,
   MovementPoints cost( 1 );
 
   UnitMoveDesc result{
-      coords, false,     e_unit_mv_good::map_to_map,
-      cost,   UnitId{0}, {}};
+      coords, e_unit_mv_good::map_to_map, cost, UnitId{0}, {}};
 
   if( unit.movement_points() < cost ) {
     result.desc = e_unit_mv_error::insufficient_movement_points;
@@ -75,7 +79,6 @@ UnitMoveDesc move_consequences( UnitId       id,
       // square to where the unit currently is since it will
       // not physically move.
       result.desc          = e_unit_mv_good::land_fall;
-      result.can_move      = true;
       result.coords        = coords_for_unit( unit.id() );
       result.movement_cost = 0;
       result.to_prioritize = to_offload;
@@ -99,7 +102,6 @@ UnitMoveDesc move_consequences( UnitId       id,
       auto& cargo = ship_unit.cargo();
       if( cargo.fits( id ) ) {
         result.desc          = e_unit_mv_good::board_ship;
-        result.can_move      = true;
         result.target_unit   = ship_id;
         result.to_prioritize = {ship_id};
         return result;
@@ -114,13 +116,11 @@ UnitMoveDesc move_consequences( UnitId       id,
   auto holder = is_unit_onboard( unit.id() );
   if( !unit.desc().boat && square.land && holder ) {
     // We have a unit onboard a ship moving onto land.
-    result.desc     = e_unit_mv_good::offboard_ship;
-    result.can_move = true;
+    result.desc = e_unit_mv_good::offboard_ship;
     return result;
   }
 
-  result.desc     = e_unit_mv_good::map_to_map;
-  result.can_move = true;
+  result.desc = e_unit_mv_good::map_to_map;
   return result;
 }
 
@@ -131,8 +131,7 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
   CHECK( unit.orders() == e_unit_orders::none );
 
   // Caller should have checked this.
-  CHECK( move_desc.can_move );
-  CHECK( util::holds<e_unit_mv_good>( move_desc.desc ) );
+  CHECK( move_desc.can_move() );
 
   e_unit_mv_good outcome = get<e_unit_mv_good>( move_desc.desc );
 
@@ -182,6 +181,27 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
       }
       break;
   }
+}
+
+bool confirm_move( UnitMoveDesc const& move_desc ) {
+  if( !move_desc.can_move() ) return false;
+  // The above should have checked that the variant holds the
+  // e_unit_mv_good type for us.
+  auto& kind = val_or_die<e_unit_mv_good>( move_desc.desc );
+
+  switch( kind ) {
+    case e_unit_mv_good::land_fall: {
+      auto answer =
+          ui::yes_no( "Would you like to make landfall?" );
+      return ( answer == ui::e_confirm::yes );
+    }
+    case e_unit_mv_good::map_to_map:
+    case e_unit_mv_good::board_ship:
+    case e_unit_mv_good::offboard_ship:
+      // Nothing to ask here, just allow the move.
+      return true;
+  }
+  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace rn

@@ -57,7 +57,7 @@ struct ND Rect {
   //
   // unless one of the dimensions has width 0 in which case
   // that dimension will remain as-is.
-  Rect edges_removed();
+  Rect edges_removed() const;
 
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
@@ -128,7 +128,7 @@ struct ND Coord {
   // in each direction (or possibly only one direction).
   void clip( Rect const& rect );
 
-  Coord moved( direction d );
+  Coord moved( direction d ) const;
   bool  is_inside( Rect const& rect ) const;
 };
 

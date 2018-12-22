@@ -56,10 +56,10 @@ using v_unit_mv_desc =
 struct ND UnitMoveDesc {
   // The target square of move being described.
   Coord coords{};
-  // Is it flat out impossible
-  bool can_move{};
   // Description of what would happen if the move were carried
-  // out.  This will also be set even if can_move == false.
+  // out. This can also serve as a binary indicator of whether
+  // the move is possible by checking the type held, as the can_-
+  // move() function does as a convenience.
   v_unit_mv_desc desc{};
   // Cost in movement points that would be incurred; this is
   // a positive number.
@@ -72,6 +72,10 @@ struct ND UnitMoveDesc {
   // prioritized in the "orders" loop after this move is made.
   // This field is only relevant for certain (valid) moves.
   std::vector<UnitId> to_prioritize{};
+
+  // Is it possible to move at all.  This just checks that
+  // the the `desc` holds the right type.
+  bool can_move() const;
 };
 
 // Called at the beginning of each turn; marks all units
@@ -81,5 +85,12 @@ void reset_moves();
 ND UnitMoveDesc move_consequences( UnitId       id,
                                    Coord const& coords );
 void move_unit( UnitId id, UnitMoveDesc const& move_desc );
+
+// Checks that the move is possible (if not, returns false) and,
+// if so, will check the type of move and determine whether the
+// player needs to be asked for any kind of confirmation. In ad-
+// dition, if the move is not allowed, the player may be given an
+// explantation as to why.
+bool confirm_move( UnitMoveDesc const& move_desc );
 
 } // namespace rn
