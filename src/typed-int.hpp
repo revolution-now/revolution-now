@@ -354,6 +354,13 @@ inline X    operator-( W w, X x ) { return X( x._ - w._ ); }
 inline Y    operator-( H h, Y y ) { return Y( y._ - h._ ); }
 inline void operator+=( X& x, W w ) { x._ += w._; }
 inline void operator+=( Y& y, H h ) { y._ += h._; }
+// We can allow deltas to subtract from eachother in a mutating
+// way. We don't just put these in the above generic classes
+// because we don't want to allow e.g. x1 -= x2; this is because
+// subtracting a coordinate from another one should only yield a
+// width, and so that statement would not make sense.
+inline void operator-=( W& w1, W w2 ) { w1._ -= w2._; }
+inline void operator-=( H& h1, H h2 ) { h1._ -= h2._; }
 // These express that when we subtract two coordinates or
 // two deltas then we get a delta (not a coordinate).
 inline W operator-( X x1, X x2 ) { return W( x1._ - x2._ ); }

@@ -109,7 +109,7 @@ void OneLineStringView::draw( Texture const& tx,
 /****************************************************************
 ** Derived Views
 *****************************************************************/
-OptionSelectItemView::OptionSelectItemView( string msg, W width )
+OptionSelectItemView::OptionSelectItemView( string msg )
   : active_{e_option_active::inactive},
     background_active_{config_palette.yellow.sat1.lum11},
     background_inactive_{config_palette.orange.sat0.lum3},
@@ -119,8 +119,6 @@ OptionSelectItemView::OptionSelectItemView( string msg, W width )
                           /*shadow=*/true ) {
   auto delta_active   = foreground_active_.delta();
   auto delta_inactive = foreground_inactive_.delta();
-  delta_active.w      = width;
-  delta_inactive.w    = width;
   background_active_.set_delta( delta_active );
   background_inactive_.set_delta( delta_inactive );
 }
@@ -154,22 +152,36 @@ PositionedViewConst OptionSelectItemView::at_const(
   return {ObserverCPtr<View>{view}, coord};
 }
 
+void OptionSelectItemView::grow_to( W w ) {
+  auto new_delta = foreground_active_.delta();
+  if( new_delta.w > w )
+    // we only grow here, not shrink.
+    return;
+  new_delta.w = w;
+  background_active_.set_delta( new_delta );
+  background_inactive_.set_delta( new_delta );
+}
+
 OptionSelectView::OptionSelectView( StrVec const& options,
-                                    W             width,
                                     int initial_selection )
   : selected_{initial_selection}, has_confirmed{false} {
   CHECK( options.size() > 0 );
   CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
 
   Coord so_far{};
+  W     min_width{0};
   for( auto const& option : options ) {
-    auto view =
-        make_unique<OptionSelectItemView>( option, width );
+    auto view   = make_unique<OptionSelectItemView>( option );
+    auto width  = view->delta().w;
     auto height = view->delta().h;
-    push_back( OwningPositionedView( move( view ), so_far ) );
+    this->push_back(
+        OwningPositionedView( move( view ), so_far ) );
     // `view` is no longer available here (moved from).
     so_far.y += height;
+    min_width = std::max( min_width, width );
   }
+
+  grow_to( min_width );
 
   // Now that we have the individual options populated we can
   // officially set a selected one.
@@ -181,7 +193,7 @@ ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
   CHECK( item >= 0 && item < count(),
          "item '{}' is out of bounds", item );
   auto* view    = at( item ).view.get();
-  auto* o_s_i_v = dynamic_cast<OptionSelectItemView*>( view );
+  auto* o_s_i_v = view->cast<OptionSelectItemView>();
   return ObserverPtr<OptionSelectItemView>{o_s_i_v};
 }
 
@@ -190,9 +202,8 @@ ObserverCPtr<OptionSelectItemView> OptionSelectView::get_view(
     int item ) const {
   CHECK( item >= 0 && item < count(),
          "item '{}' is out of bounds", item );
-  auto* view = at_const( item ).view.get();
-  auto* o_s_i_v =
-      dynamic_cast<OptionSelectItemView const*>( view );
+  auto* view    = at_const( item ).view.get();
+  auto* o_s_i_v = view->cast<OptionSelectItemView>();
   return ObserverCPtr<OptionSelectItemView>{o_s_i_v};
 }
 
@@ -200,6 +211,14 @@ void OptionSelectView::set_selected( int item ) {
   get_view( selected_ )->set_active( e_option_active::inactive );
   get_view( item )->set_active( e_option_active::active );
   selected_ = item;
+}
+
+void OptionSelectView::grow_to( W w ) {
+  for( auto p_view : *this ) {
+    auto* view    = p_view.view.get();
+    auto* o_s_i_v = view->cast<OptionSelectItemView>();
+    o_s_i_v->grow_to( w );
+  }
 }
 
 bool OptionSelectView::accept_input(
@@ -280,9 +299,19 @@ Coord WindowManager::window::inside_border() const {
   return position + window_border();
 }
 
+Rect WindowManager::window::inside_border_rect() const {
+  auto res = rect();
+  res.x += window_border().w;
+  res.y += window_border().h;
+  res.w -= window_border().w * 2;
+  res.h -= window_border().h * 2;
+  return res;
+}
+
 Rect WindowManager::window::title_bar() const {
   auto title_bar_rect = title_view->rect( inside_border() );
-  title_bar_rect.w    = view->delta().w;
+  title_bar_rect.w =
+      std::max( title_bar_rect.w, view->delta().w );
   return title_bar_rect;
 }
 
@@ -290,20 +319,21 @@ void WindowManager::draw_layout( Texture const& tx ) const {
   for( auto const& window : windows_ ) window.draw( tx );
 }
 
-void WindowManager::add_window( string           title_,
-                                unique_ptr<View> view_ ) {
+WindowManager::window* WindowManager::add_window(
+    string title_, unique_ptr<View> view_ ) {
   windows_.emplace_back( move( title_ ), move( view_ ),
                          Coord{} );
   auto& new_window = windows_.back();
   new_window.position =
       centered( new_window.delta(), screen_logical_rect() );
+  return &new_window;
 }
 
-void WindowManager::add_window( string           title_,
-                                unique_ptr<View> view_,
-                                Coord            position ) {
+WindowManager::window* WindowManager::add_window(
+    string title_, unique_ptr<View> view_, Coord position ) {
   windows_.emplace_back( move( title_ ), move( view_ ),
                          position );
+  return &windows_.back();
 }
 
 e_wm_input_result WindowManager::accept_input(
@@ -374,8 +404,8 @@ void WindowManager::run( FinishedFunc const& finished ) {
 string select_box( string const& title, StrVec options ) {
   std::vector<OwningPositionedView> views;
 
-  auto selector =
-      make_unique<OptionSelectView>( options, 450_w, 0 );
+  auto selector = make_unique<OptionSelectView>(
+      options, /*initial_selection=*/0 );
   auto* selector_ptr = selector.get();
   auto  finished     = [selector_ptr] {
     return selector_ptr->confirmed();
@@ -385,7 +415,8 @@ string select_box( string const& title, StrVec options ) {
   auto view = make_unique<ViewVector>( move( views ) );
 
   WindowManager wm;
-  wm.add_window( title, move( view ) );
+  auto*         win = wm.add_window( title, move( view ) );
+  selector_ptr->grow_to( win->inside_border_rect().w );
   wm.run( finished );
   logger->info( "Selected: {}", selector_ptr->get_selected() );
   return selector_ptr->get_selected();

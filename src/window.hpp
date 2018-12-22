@@ -40,6 +40,20 @@ public:
   Object& operator=( Object const& ) = delete;
   Object& operator=( Object&& ) = delete;
 
+  template<typename T>
+  T* cast() {
+    auto* casted = dynamic_cast<T*>( this );
+    CHECK( casted != nullptr );
+    return casted;
+  }
+
+  template<typename T>
+  T const* cast() const {
+    auto* casted = dynamic_cast<T const*>( this );
+    CHECK( casted != nullptr );
+    return casted;
+  }
+
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
   // This is the physical size of the object in pixels.
   ND virtual Delta delta() const = 0;
@@ -197,7 +211,7 @@ enum class e_option_active { inactive, active };
 
 class OptionSelectItemView : public CompositeView {
 public:
-  OptionSelectItemView( std::string msg, W width );
+  OptionSelectItemView( std::string msg );
 
   // Implement CompositeView
   PositionedViewConst at_const( int idx ) const override;
@@ -210,6 +224,8 @@ public:
     return foreground_active_.msg();
   }
 
+  void grow_to( W w );
+
 private:
   e_option_active   active_;
   SolidRectView     background_active_;
@@ -220,13 +236,15 @@ private:
 
 class OptionSelectView : public ViewVector {
 public:
-  OptionSelectView( StrVec const& options, W width,
-                    int initial_selection );
+  OptionSelectView( StrVec const& options,
+                    int           initial_selection );
 
   bool accept_input( input::event_t const& event ) override;
 
   std::string const& get_selected() const;
   bool               confirmed() const { return has_confirmed; }
+
+  void grow_to( W w );
 
 private:
   ObserverPtr<OptionSelectItemView>  get_view( int item );
@@ -253,12 +271,6 @@ public:
 
   ND e_wm_input_result accept_input( SDL_Event const& event );
 
-  void add_window( std::string           title,
-                   std::unique_ptr<View> view );
-
-  void add_window( std::string title, std::unique_ptr<View> view,
-                   Coord position );
-
 private:
   struct window {
     window( std::string title_, std::unique_ptr<View> view_,
@@ -268,6 +280,7 @@ private:
     Delta delta() const;
     Rect  rect() const;
     Coord inside_border() const;
+    Rect  inside_border_rect() const;
     Rect  title_bar() const;
 
     e_window_state                     window_state;
@@ -277,6 +290,15 @@ private:
     Coord                              position;
   };
 
+public:
+  window* add_window( std::string           title,
+                      std::unique_ptr<View> view );
+
+  window* add_window( std::string           title,
+                      std::unique_ptr<View> view,
+                      Coord                 position );
+
+private:
   // Gets the window with focus, throws if no windows.
   window& focused();
 
