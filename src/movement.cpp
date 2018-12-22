@@ -202,6 +202,7 @@ bool confirm_move( UnitMoveDesc const& move_desc ) {
       return true;
   }
   SHOULD_NOT_BE_HERE;
+  return false;
 }
 
 } // namespace rn
