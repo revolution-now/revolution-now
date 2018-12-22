@@ -233,16 +233,15 @@ string const& OptionSelectView::get_selected() const {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-
 WindowManager::window::window( string           title_,
                                unique_ptr<View> view_,
                                Coord            position_ )
   : window_state( e_window_state::running ),
     title( move( title_ ) ),
     view( move( view_ ) ),
-    title_bar(),
+    title_view(),
     position( position_ ) {
-  title_bar = make_unique<OneLineStringView>(
+  title_view = make_unique<OneLineStringView>(
       title, config_palette.orange.sat1.lum11, /*shadow=*/true );
 }
 
@@ -255,15 +254,15 @@ void WindowManager::window::draw( Texture const& tx ) const {
   auto inner_size    = win_size - 2 * window_border();
   render_fill_rect( tx, config_palette.orange.sat1.lum4,
                     Rect::from( inside_border, inner_size ) );
-  title_bar->draw( tx, inside_border );
-  view->draw( tx, inside_border + title_bar->delta().h );
+  title_view->draw( tx, inside_border );
+  view->draw( tx, inside_border + title_view->delta().h );
 }
 
 // Includes border
 Delta WindowManager::window::delta() const {
   Delta res;
-  res.w = std::max( title_bar->delta().w, view->delta().w );
-  res.h += title_bar->delta().h + view->delta().h;
+  res.w = std::max( title_view->delta().w, view->delta().w );
+  res.h += title_view->delta().h + view->delta().h;
   // multiply by two since there is top/bottom or left/right.
   res += 2 * window_border();
   return res;
@@ -275,6 +274,12 @@ Rect WindowManager::window::rect() const {
 
 Coord WindowManager::window::inside_border() const {
   return position + window_border();
+}
+
+Rect WindowManager::window::title_bar() const {
+  auto title_bar_rect = title_view->rect( inside_border() );
+  title_bar_rect.w    = view->delta().w;
+  return title_bar_rect;
 }
 
 void WindowManager::draw_layout( Texture const& tx ) const {
@@ -294,8 +299,7 @@ e_wm_input_result WindowManager::accept_input(
 
   auto event = input::from_SDL( sdl_event );
 
-  Rect title_bar =
-      focused().title_bar->rect( focused().inside_border() );
+  Rect title_bar = focused().title_bar();
   // auto mouse_pos = event.mouse_state.pos;
   // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
   //               title_bar.x, title_bar.y, title_bar.w,

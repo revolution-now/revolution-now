@@ -265,11 +265,12 @@ private:
     Delta delta() const;
     Rect  rect() const;
     Coord inside_border() const;
+    Rect  title_bar() const;
 
     e_window_state                     window_state;
     std::string                        title;
     std::unique_ptr<View>              view;
-    std::unique_ptr<OneLineStringView> title_bar;
+    std::unique_ptr<OneLineStringView> title_view;
     Coord                              position;
   };
 
