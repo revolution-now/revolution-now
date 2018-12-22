@@ -16,6 +16,7 @@
 #include "render.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
+#include "window.hpp"
 
 #include "base-util/misc.hpp"
 
@@ -128,10 +129,23 @@ e_orders_loop_result loop_orders(
                 move_desc = move_consequences(
                     id, coords.moved( *maybe_direction ) );
                 if( move_desc.can_move ) {
-                  // may need to ask user a question here.
-                  // Assuming that they want to proceed with
-                  // the move, then:
-                  running = false;
+                  // TODO: clean this up
+                  if( holds<e_unit_mv_good>( move_desc.desc ) ) {
+                    if( std::get<e_unit_mv_good>(
+                            move_desc.desc ) ==
+                        e_unit_mv_good::land_fall ) {
+                      auto answer = ui::yes_no(
+                          "Would you like to make landfall?" );
+                      if( answer == ui::e_confirm::yes ) {
+                        // may need to ask user a question here.
+                        // Assuming that they want to proceed
+                        // with the move, then:
+                        running = false;
+                      }
+                    } else {
+                      running = false;
+                    }
+                  }
                 }
               }
           }
