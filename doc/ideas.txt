@@ -3,10 +3,7 @@ Ideas
 ========================================================
 
 UI:
-  * Smooth panning with acceleration
   * Auto panning and zooming on unit waiting for orders
-
-Visuals:
 
 AI:
 
@@ -20,3 +17,10 @@ Game mechanics:
     to the old world.
 
   * Free units require food and they carry it with them.
+
+========================================================
+Done
+========================================================
+
+UI:
+  * Smooth panning with acceleration

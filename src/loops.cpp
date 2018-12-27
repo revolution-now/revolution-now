@@ -11,6 +11,7 @@
 #include "loops.hpp"
 
 // Revolution Now
+#include "logging.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
 #include "physics.hpp"
@@ -46,6 +47,7 @@ absl::flat_hash_map<::SDL_Keycode, direction> nav_keys{
 
 e_orders_loop_result loop_orders(
     UnitId id, function<void( UnitId )> const& prioritize ) {
+  logger->debug( "taking orders from {}", debug_string( id ) );
   constexpr int millis_per_second{1000};
   unsigned int  frame_length_millis =
       millis_per_second / frame_rate;
@@ -64,8 +66,14 @@ e_orders_loop_result loop_orders(
 
   long ticks_render = 0;
 
-  RenderStacker push_renderer(
-      [id] { render_world_viewport( id ); } );
+  ViewportRenderOptions render_options;
+  render_options.unit_to_blink = id;
+
+  RenderStacker push_renderer( [&render_options] {
+    render_world_viewport( render_options );
+    render_copy_viewport_texture();
+    render_panel();
+  } );
 
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
@@ -185,13 +193,22 @@ e_orders_loop_result loop_orders(
     if( delta < frame_length_millis )
       ::SDL_Delay( frame_length_millis - delta );
   }
+
+  // TODO: need to pull this out of the loop module.
+
   // Check if the unit is physically moving; usually at this
   // point it will be unless it is e.g. a ship offloading units.
   if( coords_for_unit( id ) != move_desc.coords ) {
+    // TODO: animation, this should not be called from here.
     viewport().ensure_tile_surroundings_visible(
         move_desc.coords );
     loop_mv_unit( id, move_desc.coords );
   }
+  // TODO: this logic (interpreting the move_desc structure)
+  //       should be done in the `movement` module.  And the
+  //       enums should be reworked so that information about
+  //       e.g. offboard vs. moved should be decided in the
+  //       movement module.
   move_unit( id, move_desc );
   for( auto id : move_desc.to_prioritize ) prioritize( id );
   if( util::holds( move_desc.desc, e_unit_mv_good::land_fall ) )
@@ -212,7 +229,11 @@ e_eot_loop_result loop_eot() {
 
   long ticks_render = 0;
 
-  RenderStacker push_renderer( [] { render_world_viewport(); } );
+  RenderStacker push_renderer( [] {
+    render_world_viewport();
+    render_copy_viewport_texture();
+    render_panel();
+  } );
 
   // we can also use the SDL_GetKeyboardState to get an
   // array that tells us if a key is down or not instead
@@ -332,7 +353,9 @@ void loop_mv_unit( UnitId id, Coord const& target ) {
   // Need to take percent by reference because it will be chang-
   // ing.
   RenderStacker push_renderer( [id, &target, &percent] {
-    render_world_viewport_mv_unit( id, target, percent );
+    render_mv_unit( id, target, percent );
+    render_copy_viewport_texture();
+    render_panel();
   } );
 
   while( running ) {

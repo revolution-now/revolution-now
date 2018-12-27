@@ -103,7 +103,7 @@ OneLineStringView::OneLineStringView( string msg, Color color,
 
 void OneLineStringView::draw( Texture const& tx,
                               Coord          coord ) const {
-  CHECK( copy_texture( this->tx_, tx, coord ) );
+  copy_texture( this->tx_, tx, coord );
 }
 
 /****************************************************************

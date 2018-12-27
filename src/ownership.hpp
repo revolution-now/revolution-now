@@ -33,7 +33,14 @@ ND UnitId create_unit_on_map( e_unit_type type, Y y, X x );
 // map.
 ND std::unordered_set<UnitId> const& units_from_coord( Y y,
                                                        X x );
-ND UnitIdVec units_int_rect( Rect const& rect );
+ND std::unordered_set<UnitId> const& units_from_coord( Coord c );
+
+ND UnitIdVec units_in_rect( Rect const& rect );
+
+// These will return the coordinates for a unit if it is owned by
+// the map or the coordinates of its owner if it is ultimately
+// owned by something that is on the map. This would fail to re-
+// turn a value if e.g. the unit is not yet in the new world.
 ND Coord coords_for_unit( UnitId id );
 ND OptCoord coords_for_unit_safe( UnitId id );
 
@@ -41,19 +48,23 @@ ND OptCoord coords_for_unit_safe( UnitId id );
 // of the unit that is holding it; nullopt otherwise.
 OptUnitId is_unit_onboard( UnitId id );
 
-// Do not call directly. Changes a unit's ownership from whatever
-// it is (map or otherwise) to the map at the given coordinate.
-// It will always move the unit to the target square without
-// question (checking only that the unit exists). NOTE: this is a
-// low-level function; it does not do any checking, and should
-// not be called directly. E.g., this function will happily move
-// a land unit into water.
+std::string debug_string( UnitId id );
+
+/****************************************************************
+** Do not call directly
+*****************************************************************/
+// Changes a unit's ownership from whatever it is (map or other-
+// wise) to the map at the given coordinate. It will always move
+// the unit to the target square without question (checking only
+// that the unit exists). NOTE: this is a low-level function; it
+// does not do any checking, and should not be called directly.
+// E.g., this function will happily move a land unit into water.
 void ownership_change_to_map( UnitId id, Coord const& target );
 
 void ownership_change_to_cargo( UnitId new_holder, UnitId held );
 
-// Do not call directly. Removes unit from any ownership. Used
-// when transitioning ownership.
+// Removes unit from any ownership. Used when transitioning own-
+// ership.
 void ownership_disown_unit( UnitId id );
 
 } // namespace rn

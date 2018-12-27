@@ -90,6 +90,15 @@ auto check_msg( char const* expr, Args... args ) {
     DIE( TO_STRING( b ) " is false." );   \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
+// Same as above but returns on failure instead of throwing. As
+// can be seen, this macro should be used inside functions that
+// return a default-initialized value to mean failure, such as
+// bool or optional.
+#define ASSIGN_OR_RETURN( a, b )                     \
+  auto STRING_JOIN( __x, __LINE__ ) = b;             \
+  if( !( STRING_JOIN( __x, __LINE__ ) ) ) return {}; \
+  auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
+
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is
 // expected to result in a value that can be tested for true'-

@@ -136,7 +136,11 @@ unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
   return opt_set.value_or( empty );
 }
 
-UnitIdVec units_int_rect( Rect const& rect ) {
+unordered_set<UnitId> const& units_from_coord( Coord c ) {
+  return units_from_coord( c.y, c.x );
+}
+
+UnitIdVec units_in_rect( Rect const& rect ) {
   UnitIdVec res;
   for( Y i = rect.y; i < rect.y + rect.h; ++i )
     for( X j = rect.x; j < rect.x + rect.w; ++j )
@@ -145,25 +149,25 @@ UnitIdVec units_int_rect( Rect const& rect ) {
   return res;
 }
 
-OptCoord coords_for_unit_safe( UnitId id ) {
-  return val_safe( coords_from_unit, id );
+Coord coords_for_unit( UnitId id ) {
+  ASSIGN_CHECK_OPT( res, coords_for_unit_safe( id ) );
+  return res;
 }
 
-Coord coords_for_unit( UnitId id ) {
-  ASSIGN_CHECK_OPT( it, has_key( unit_ownership, id ) );
-  switch( it->second ) {
-    case e_unit_ownership::world: {
-      auto opt_coord = coords_for_unit_safe( id );
-      CHECK( opt_coord );
-      return *opt_coord;
-    }
+// If this function makes recursive calls it should always call
+// the _safe variant since this function should not throw.
+OptCoord coords_for_unit_safe( UnitId id ) {
+  ASSIGN_OR_RETURN( ownership, val_safe( unit_ownership, id ) );
+  switch( ownership ) {
+    case e_unit_ownership::world:
+      return val_safe( coords_from_unit, id );
     case e_unit_ownership::cargo:
-      ASSIGN_CHECK_OPT( pair_it,
-                        has_key( holder_from_held, id ) );
+      ASSIGN_OR_RETURN( holder,
+                        val_safe( holder_from_held, id ) );
       // Coordinates of unit are coordinates of holder.
-      return coords_for_unit( pair_it->second );
+      return coords_for_unit_safe( holder );
   };
-  DIE( "should not be here." );
+  SHOULD_NOT_BE_HERE;
   return {};
 }
 
@@ -196,6 +200,10 @@ OptUnitId is_unit_onboard( UnitId id ) {
   auto opt_iter = has_key( holder_from_held, id );
   return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
                   : nullopt;
+}
+
+string debug_string( UnitId id ) {
+  return debug_string( unit_from_id( id ) );
 }
 
 } // namespace rn

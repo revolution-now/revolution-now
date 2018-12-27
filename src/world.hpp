@@ -51,6 +51,7 @@ ND Rect world_rect();
 ND bool square_exists( Y y, X x );
 
 ND Square const& square_at( Y y, X x );
+ND Square const& square_at( Coord coord );
 ND OptSquareCRef square_at_safe( Y y, X x );
 
 ND SquareSurround surrounding( Y y, X x );

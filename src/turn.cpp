@@ -56,6 +56,14 @@ e_turn_result turn() {
   //  messages to the user where necessary.
   //  clang-format on
 
+  // If no units need to take orders this turn then we need to
+  // pause at the end of the turn to allow the user to take
+  // control or make changes.  In that case, the flag will remain
+  // true.  On the other hand, if at least one unit takes orders
+  // then that means that the user will at least have that
+  // opportunity to have control and so then we don't need to
+  // pause at the end of the turn.  This flag controls that.
+  // TODO: consider using a flag type from type_safe
   auto need_eot_loop{true};
 
   // We keep looping until all units that need moving have moved.
@@ -85,6 +93,7 @@ e_turn_result turn() {
       // certain cases this will not happen, such as e.g. a unit
       // given a 'wait' command. In that case this variable will
       // be set to false.
+      // TODO: consider using a flag type from type_safe
       bool will_finish_turn = true;
 
       //    clang-format off

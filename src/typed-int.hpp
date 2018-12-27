@@ -57,6 +57,12 @@ struct TypedIntMinimal {
   }
   explicit operator int() const { return _; }
 
+  // Abseil hashing API.
+  template<typename H>
+  friend H AbslHashValue( H h, TypedIntMinimal<Tag> const& c ) {
+    return H::combine( std::move( h ), c._ );
+  }
+
   int _{0};
 };
 

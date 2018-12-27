@@ -145,4 +145,6 @@ private:
   bool           finished_turn_;
 };
 
+std::string debug_string( Unit const& unit );
+
 } // namespace rn

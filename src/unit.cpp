@@ -14,6 +14,10 @@
 #include "errors.hpp"
 #include "util.hpp"
 
+// {fmt}
+#include "fmt/format.h"
+
+// C++ standard library
 #include <unordered_map>
 
 using namespace std;
@@ -108,6 +112,12 @@ void Unit::consume_mv_points( MovementPoints points ) {
   movement_points_ -= points;
   CHECK( movement_points_ >= 0 );
   check_invariants();
+}
+
+string debug_string( Unit const& unit ) {
+  return fmt::format( "unit[ id: {}, points: {}, type: {} ]",
+                      unit.id(), unit.movement_points(),
+                      unit.desc().name );
 }
 
 } // namespace rn

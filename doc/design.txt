@@ -31,7 +31,7 @@ Units on ships:
      ✓ The ships movement points are NOT consumed.
      ✓ If there are no units with movement points then nothing happens.
      * If there are units with movement points then:
-        * A window pops up asking if we want to make landfall.
+        ✓ A window pops up asking if we want to make landfall.
         * If yes, the following happens:
             ✓ All the units with movement points on the ship have
               their orders cleared.

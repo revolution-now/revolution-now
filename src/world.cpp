@@ -133,8 +133,12 @@ OptSquareCRef square_at_safe( Y y, X x ) {
 
 Square const& square_at( Y y, X x ) {
   auto res = square_at_safe( y, x );
-  CHECK( res );
+  CHECK( res, "square ({},{}) does not exist!", y, x );
   return *res;
+}
+
+Square const& square_at( Coord coord ) {
+  return square_at( coord.y, coord.x );
 }
 
 // N-S-E-W

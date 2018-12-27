@@ -5,6 +5,9 @@ Priority List:
 * Game saves -- might need this early to facilitate
   testing.
 
+    * Will need to gather up all global state into a
+      central location and then serialize using UCL.
+
 ========================================================
 Done
 ========================================================

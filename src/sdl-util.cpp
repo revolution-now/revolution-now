@@ -341,7 +341,7 @@ void create_renderer() {
   // zoomed-out level which is .5.
   width  = g_tile_width._ * 2 * ( viewport_width_tiles() + 1 );
   height = g_tile_height._ * 2 * ( viewport_height_tiles() + 1 );
-  g_texture_world = create_texture( width, height );
+  g_texture_viewport = create_texture( width, height );
 }
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
@@ -404,23 +404,34 @@ void pop_clip_rect() {
   ::SDL_RenderSetClipRect( g_renderer, &sdl_rect );
 }
 
-bool copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
+void copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
                    X x ) {
   ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
-  if( ::SDL_SetRenderTarget( g_renderer, target ) != 0 )
-    return false;
+  set_render_target( to );
   Delta delta = texture_delta( from );
   Rect  rect{x, y, delta.w, delta.h};
   auto  sdl_rect = to_SDL( rect );
-  return ::SDL_RenderCopy( g_renderer, from, nullptr,
-                           &sdl_rect ) == 0;
+  CHECK( !::SDL_RenderCopy( g_renderer, from, nullptr,
+                            &sdl_rect ) );
 }
 
-bool copy_texture( Texture const& from, OptCRef<Texture> to,
+void copy_texture( Texture const& from, OptCRef<Texture> to,
                    Coord const& coord ) {
-  return copy_texture( from, move( to ), coord.y, coord.x );
+  copy_texture( from, move( to ), coord.y, coord.x );
+}
+
+void copy_texture( Texture const& from, OptCRef<Texture> to,
+                   Rect const& src, Rect const& dest ) {
+  ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
+  ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
+  ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
+  set_render_target( to );
+  ::SDL_Rect sdl_src  = to_SDL( src );
+  ::SDL_Rect sdl_dest = to_SDL( dest );
+  CHECK( !::SDL_RenderCopy( g_renderer, from, &sdl_src,
+                            &sdl_dest ) );
 }
 
 Texture create_texture( W w, H h ) {

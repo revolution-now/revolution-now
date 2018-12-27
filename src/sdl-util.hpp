@@ -92,11 +92,15 @@ ND Delta texture_delta( Texture const& tx );
 
 // Copies one texture to another at the destination point without
 // scaling. Destination texture can be nullopt for default
-// rendering target. Returns true on success, false otherwise.
-ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
-                      Y y, X x );
-ND bool copy_texture( Texture const& from, OptCRef<Texture> to,
-                      Coord const& coord );
+// rendering target.
+void copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
+                   X x );
+void copy_texture( Texture const& from, OptCRef<Texture> to,
+                   Coord const& coord );
+// Copies the texture with scaling (which is implicit in the ra-
+// tios of the sizes of the rects).
+void copy_texture( Texture const& from, OptCRef<Texture> to,
+                   Rect const& src, Rect const& dest );
 
 ND Texture create_texture( W w, H h );
 

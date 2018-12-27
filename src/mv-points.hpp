@@ -13,6 +13,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "fmt-helper.hpp"
+
 namespace rn {
 
 // Cannot convert to int.
@@ -101,6 +104,8 @@ public:
   }
   void operator-=( int rhs ) { points_atoms -= rhs * factor; }
 
+  std::string to_string() const;
+
 private:
   // atoms can be > 2
   MovementPoints( int integral, int atoms );
@@ -112,3 +117,5 @@ private:
 using MvPoints = MovementPoints;
 
 } // namespace rn
+
+DEFINE_FORMAT( rn::MvPoints, "{}", o.to_string() )
