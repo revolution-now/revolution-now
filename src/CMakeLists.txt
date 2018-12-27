@@ -44,8 +44,7 @@ if( CMAKE_BUILD_TYPE STREQUAL Debug )
       target_compile_definitions(
         rn
         PRIVATE
-        BACKWARD_HAS_DW=1
-        FMT_STRING_ALIAS=1 )
+        BACKWARD_HAS_DW=1 )
     endif()
   endif()
   target_link_libraries( rn PRIVATE backward backward_object )
@@ -55,5 +54,7 @@ if( DEBUG_TRACE )
   message( STATUS "Enabling trace-level logging" )
   target_compile_definitions( rn PRIVATE RN_TRACE=1 )
 endif()
+
+target_compile_definitions( rn PRIVATE FMT_STRING_ALIAS=1 )
 
 clang_tidy( rn )
