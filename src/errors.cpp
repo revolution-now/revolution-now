@@ -11,7 +11,7 @@
 #include "errors.hpp"
 
 #ifdef STACK_TRACE_ON
-#include "backward.hpp"
+#  include "backward.hpp"
 #endif
 
 #include <iostream>
@@ -79,5 +79,15 @@ void die( char const* file, int line, std::string_view msg ) {
   auto st = stack_trace_here();
   throw exception_with_bt( result, std::move( st ) );
 }
+
+namespace detail {
+
+std::string check_msg( char const*        expr,
+                       std::string const& msg ) {
+  std::string suffix = msg.empty() ? "." : ( ": " + msg );
+  return fmt::format( "CHECK( {} ) failed{}", expr, suffix );
+}
+
+} // namespace detail
 
 } // namespace rn

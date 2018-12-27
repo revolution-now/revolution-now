@@ -47,16 +47,12 @@
 #define FMT_SAFE( fmt_str, ... ) \
   fmt::format( fmt( fmt_str ), ##__VA_ARGS__ )
 
-namespace detail {
+namespace rn::detail {
 
-template<typename... Args>
-auto check_msg( char const* expr, Args... args ) {
-  std::string msg    = fmt::format( args... );
-  std::string suffix = msg.empty() ? "." : ( ": " + msg );
-  return fmt::format( "CHECK( {} ) failed{}", expr, suffix );
-}
+std::string check_msg( char const*        expr,
+                       std::string const& msg );
 
-} // namespace detail
+} // namespace rn::detail
 
 // This CHECK macro should be used most of the time to do
 // assertions.
