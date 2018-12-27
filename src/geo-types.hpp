@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "errors.hpp" // TODO: remove eventually
+#include "fmt-helper.hpp"
 #include "typed-int.hpp"
 
 // c++ standard library
@@ -24,6 +25,23 @@ namespace rn {
 struct Coord;
 struct Delta;
 struct Rect;
+
+using ScaleX = SX;
+using ScaleY = SY;
+
+struct ND Scale {
+  SX sx = 1_sx;
+  SY sy = 1_sy;
+
+  constexpr Scale( SX sx_, SY sy_ ) : sx( sx_ ), sy( sy_ ) {}
+
+  explicit constexpr Scale( int scale ) {
+    sx._ = scale;
+    sy._ = scale;
+  }
+
+  constexpr Scale() : Scale( 1 ) {}
+};
 
 enum class ND direction {
   // clang-format off
@@ -57,6 +75,16 @@ struct ND Delta {
     return zero;
   }
 
+  void operator*=( Scale const& scale ) {
+    w *= scale.sx;
+    h *= scale.sy;
+  }
+
+  void operator/=( Scale const& scale ) {
+    w /= scale.sx;
+    h /= scale.sy;
+  }
+
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
   Delta uni0n( Delta const& rhs ) const;
@@ -82,6 +110,16 @@ struct ND Coord {
   void operator+=( Delta const& delta ) {
     x += delta.w;
     y += delta.h;
+  }
+
+  void operator*=( Scale const& scale ) {
+    x *= scale.sx;
+    y *= scale.sy;
+  }
+
+  void operator/=( Scale const& scale ) {
+    x /= scale.sx;
+    y /= scale.sy;
   }
 
   // If this coord is outside the rect then it will be brought
@@ -201,7 +239,6 @@ Coord centered( Delta const& delta, Rect const& rect );
 // Same as Delta::uni0n
 ND Delta max( Delta const& lhs, Delta const& rhs );
 
-ND Delta operator*( int scale, Delta const& delta );
 ND Delta operator-( Delta const& lhs, Delta const& rhs );
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
@@ -211,6 +248,11 @@ ND Delta operator-( Coord const& lhs, Coord const& rhs );
 ND Coord operator+( Coord const& coord, W w );
 ND Coord operator+( Coord const& coord, H h );
 
+ND Coord operator*( Coord const& coord, Scale const& scale );
+ND Delta operator*( Delta const& delta, Scale const& scale );
+ND Coord operator*( Scale const& scale, Coord const& coord );
+ND Delta operator*( Scale const& scale, Delta const& delta );
+
 std::ostream& operator<<( std::ostream&    out,
                           rn::Delta const& delta );
 std::ostream& operator<<( std::ostream&   out,
@@ -219,3 +261,5 @@ std::ostream& operator<<( std::ostream&    out,
                           rn::Coord const& coord );
 
 } // namespace rn
+
+DEFINE_FORMAT( ::rn::Scale, "({},{})", o.sx, o.sy );

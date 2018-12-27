@@ -45,9 +45,10 @@ unordered_map<std::string, tile_map>         tile_maps;
 } // namespace
 
 sprite create_sprite_32( Texture const& texture, Coord coord ) {
-  Rect rect{coord.x * g_tile_width._, coord.y * g_tile_height._,
-            g_tile_width, g_tile_height};
-  return {&texture, to_SDL( rect ), g_tile_width, g_tile_height};
+  Rect rect{coord.x * g_tile_width, coord.y * g_tile_height,
+            W{1} * g_tile_width, H{1} * g_tile_height};
+  return {&texture, to_SDL( rect ), W{1} * g_tile_width,
+          H{1} * g_tile_height};
 }
 
 #define SET_SPRITE( name ) \
@@ -115,10 +116,16 @@ void render_sprite( g_tile tile, Y pixel_row, X pixel_col,
                   flip );
 }
 
+void render_sprite( g_tile tile, Coord pixel_coord, int rot,
+                    int flip_x ) {
+  render_sprite( tile, pixel_coord.y, pixel_coord.x, rot,
+                 flip_x );
+}
+
 void render_sprite_grid( g_tile tile, Y tile_row, X tile_col,
                          int rot, int flip_x ) {
-  render_sprite( tile, tile_row * g_tile_height._,
-                 tile_col * g_tile_width._, rot, flip_x );
+  render_sprite( tile, tile_row * g_tile_height,
+                 tile_col * g_tile_width, rot, flip_x );
 }
 
 g_tile index_to_tile( int index ) {

@@ -100,7 +100,7 @@ std::tuple<H, W> world_size_pixels() {
   auto p = world_size_tiles();
   W    w = std::get<1>( p );
   H    h = std::get<0>( p );
-  return {h * g_tile_height._, w * g_tile_width._};
+  return {h * g_tile_height, w * g_tile_width};
 }
 
 W world_size_tiles_x() {

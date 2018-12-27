@@ -12,17 +12,26 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "geo-types.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 
+// SDL
 #include "SDL.h"
 
+// C++ standard library
 #include <string_view>
 
 namespace rn {
 
-constexpr inline W g_tile_width{32};
-constexpr inline H g_tile_height{32};
+namespace detail {
+constexpr int tile_pixel_size{32};
+}
+
+constexpr inline SX    g_tile_width{detail::tile_pixel_size};
+constexpr inline SY    g_tile_height{detail::tile_pixel_size};
+constexpr inline Scale g_tile_scale{detail::tile_pixel_size};
 
 constexpr int g_tile_set_width = 8;
 
@@ -65,6 +74,8 @@ ND sprite lookup_sprite( std::string_view name );
 
 void render_sprite( g_tile tile, Y pixel_row, X pixel_col,
                     int rot, int flip_x );
+void render_sprite( g_tile tile, Coord pixel_coord, int rot,
+                    int flip_x );
 void render_sprite_grid( g_tile tile, Y tile_row, X tile_col,
                          int rot, int flip_x );
 

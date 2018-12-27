@@ -304,15 +304,19 @@ void find_max_tile_sizes() {
   logger->debug( "Optimal: #{}", chosen_scale );
   set_screen_width_tiles( delta.w );
   set_screen_height_tiles( delta.h );
-  g_resolution_scale_factor = chosen_scale;
+  g_resolution_scale_factor = Scale( chosen_scale );
   g_drawing_origin.w =
-      ( dm.w - ( chosen_scale * delta.w * g_tile_width ) ) / 2;
+      ( dm.w -
+        ( chosen_scale * ( delta.w * g_tile_width )._ ) ) /
+      2;
   g_drawing_origin.h =
-      ( dm.h - ( chosen_scale * delta.h * g_tile_height ) ) / 2;
+      ( dm.h -
+        ( chosen_scale * ( delta.h * g_tile_height )._ ) ) /
+      2;
   g_drawing_region.x = 0_x + g_drawing_origin.w;
   g_drawing_region.y = 0_y + g_drawing_origin.h;
-  g_drawing_region.w = dm.w - g_drawing_origin.w * 2;
-  g_drawing_region.h = dm.h - g_drawing_origin.h * 2;
+  g_drawing_region.w = dm.w - g_drawing_origin.w * 2_sx;
+  g_drawing_region.h = dm.h - g_drawing_origin.h * 2_sy;
   logger->debug( "w drawing origin: {}", g_drawing_origin.w );
   logger->debug( "h drawing origin: {}", g_drawing_origin.h );
 }
@@ -326,8 +330,8 @@ void create_renderer() {
 
   find_max_tile_sizes();
 
-  W width  = g_tile_width._ * screen_width_tiles();
-  H height = g_tile_height._ * screen_height_tiles();
+  W width  = screen_width_tiles() * g_tile_width;
+  H height = screen_height_tiles() * g_tile_height;
 
   ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
   ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
@@ -339,8 +343,9 @@ void create_renderer() {
   // though we shouldn't need more than 1 extra tile for that
   // purpose.  The *2 is so that we can accomodate the maximum
   // zoomed-out level which is .5.
-  width  = g_tile_width._ * 2 * ( viewport_width_tiles() + 1 );
-  height = g_tile_height._ * 2 * ( viewport_height_tiles() + 1 );
+  width = ( viewport_width_tiles() + 1 ) * 2_sx * g_tile_width;
+  height =
+      ( viewport_height_tiles() + 1 ) * 2_sy * g_tile_height;
   g_texture_viewport = create_texture( width, height );
 }
 

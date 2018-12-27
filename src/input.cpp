@@ -36,8 +36,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
   mouse = mouse + ( -g_drawing_origin );
   mouse.clip( g_drawing_region );
-  mouse.x /= g_resolution_scale_factor;
-  mouse.y /= g_resolution_scale_factor;
+  mouse.x /= g_resolution_scale_factor.sx;
+  mouse.y /= g_resolution_scale_factor.sy;
 
   event.mouse_state =
       mouse_state_t{bool( buttons & SDL_BUTTON_LMASK ),

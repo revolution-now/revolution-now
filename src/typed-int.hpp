@@ -100,11 +100,11 @@ struct TypedInt : public TypedIntMinimal<Tag> {
   TypedInt<Tag> operator++() { return TypedInt<Tag>( P::_++ ); }
   void          operator--( int ) { --P::_; }
   TypedInt<Tag> operator--() { return TypedInt<Tag>( P::_-- ); }
-  void          operator*=( int n ) { P::_ *= n; }
-  void          operator%=( int n ) { P::_ %= n; }
-  void          operator/=( int n ) { P::_ /= n; }
-  void          operator+=( int n ) { P::_ += n; }
-  void          operator-=( int n ) { P::_ -= n; }
+  /*operator*=( int n ) left out */
+  void operator%=( int n ) { P::_ %= n; }
+  /*operator/=( int n ) left out */
+  void operator+=( int n ) { P::_ += n; }
+  void operator-=( int n ) { P::_ -= n; }
   void operator*=( TypedInt<Tag> other ) { P::_ *= other._; }
   void operator%=( TypedInt<Tag> other ) { P::_ %= other._; }
   /* operator/= left out, should yield dimensionless ratio */
@@ -114,14 +114,16 @@ struct TypedInt : public TypedIntMinimal<Tag> {
   explicit operator double() const { return double( P::_ ); }
 };
 
-template<typename Tag>
-inline TypedInt<Tag> operator*( TypedInt<Tag> left, int right ) {
-  return TypedInt<Tag>( left._ * right );
-}
-template<typename Tag>
-inline TypedInt<Tag> operator*( int left, TypedInt<Tag> right ) {
-  return TypedInt<Tag>( right._ * left );
-}
+// template<typename Tag>
+// inline TypedInt<Tag> operator*( TypedInt<Tag> left, int right
+// ) {
+//  return TypedInt<Tag>( left._ * right );
+//}
+// template<typename Tag>
+// inline TypedInt<Tag> operator*( int left, TypedInt<Tag> right
+// ) {
+//  return TypedInt<Tag>( right._ * left );
+//}
 template<typename Tag>
 inline TypedInt<Tag> operator*( TypedInt<Tag> left,
                                 TypedInt<Tag> right ) {
@@ -140,10 +142,11 @@ inline int operator/( TypedInt<Tag> a1, TypedInt<Tag> a2 ) {
 }
 /* don't define operator/( int left, TypedInt<Tag> right ) */
 
-template<typename Tag>
-inline TypedInt<Tag> operator%( TypedInt<Tag> left, int right ) {
-  return TypedInt<Tag>( left._ % right );
-}
+// template<typename Tag>
+// inline TypedInt<Tag> operator%( TypedInt<Tag> left, int right
+// ) {
+//  return TypedInt<Tag>( left._ % right );
+//}
 /* mod'ing like types not allowed in general. */
 
 template<typename Tag>
@@ -309,13 +312,23 @@ inline std::istream& operator>>( std::istream&  in,
 // make sense for an ID.
 #define TYPED_ID( a ) DERIVE_TYPED_INT( a, TypedIntMinimal, id )
 
-TYPED_COORD( X, x ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
-TYPED_COORD( Y, y ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
-TYPED_COORD( W, w ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
-TYPED_COORD( H, h ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+// Scales are numbers that can only be multiplied by themselves
+// or by the corresponding coordinate/length type.
+#define TYPED_SCALE( a, s ) \
+  DERIVE_TYPED_INT( a, TypedIntMinimal, s )
+
+TYPED_COORD( X, x ) // NOLINT(hicpp-explicit-conversions)
+TYPED_COORD( Y, y ) // NOLINT(hicpp-explicit-conversions)
+TYPED_COORD( W, w ) // NOLINT(hicpp-explicit-conversions)
+TYPED_COORD( H, h ) // NOLINT(hicpp-explicit-conversions)
+
+// These are "scales"; they are numbers that can be used to scale
+// X/Y/W/H.
+TYPED_SCALE( SX, sx ) // NOLINT(hicpp-explicit-conversions)
+TYPED_SCALE( SY, sy ) // NOLINT(hicpp-explicit-conversions)
 
 // User-defined literals.  These allow us to do e.g.:
-//   auto x = 55_x; /* `x` is of type X
+//   auto x = 55_x; // `x` is of type X
 #define UD_LITERAL( a, b )                                  \
   namespace rn {                                            \
   constexpr a operator"" _##b( unsigned long long int n ) { \
@@ -327,12 +340,16 @@ UD_LITERAL( X, x )
 UD_LITERAL( Y, y )
 UD_LITERAL( W, w )
 UD_LITERAL( H, h )
+UD_LITERAL( SX, sx )
+UD_LITERAL( SY, sy )
 
 namespace rn {
 
 // These templates allow us to map a dimension
 template<typename Coordinate>
 struct LengthTypeFor;
+template<typename Coordinate>
+struct ScaleTypeFor;
 
 template<>
 struct LengthTypeFor<X> {
@@ -341,6 +358,15 @@ struct LengthTypeFor<X> {
 template<>
 struct LengthTypeFor<Y> {
   using length_t = H;
+};
+
+template<>
+struct ScaleTypeFor<X> {
+  using scale_t = SX;
+};
+template<>
+struct ScaleTypeFor<Y> {
+  using scale_t = SY;
 };
 
 template<typename Coordinate>
@@ -384,5 +410,27 @@ inline W operator%( X x, W w ) { return W( x._ % w._ ); }
 inline H operator%( Y y, H h ) { return H( y._ % h._ ); }
 inline W operator%( W w1, W w2 ) { return W( w1._ % w2._ ); }
 inline H operator%( H h1, H h2 ) { return H( h1._ % h2._ ); }
+inline W operator%( X x, SX sx ) { return W( x._ % sx._ ); }
+inline H operator%( Y y, SY sy ) { return H( y._ % sy._ ); }
+inline W operator%( W w, SX sx ) { return W( w._ % sx._ ); }
+inline H operator%( H h, SY sy ) { return H( h._ % sy._ ); }
+// These express that one can only multiply or divide a typed int
+// by the appropriate scaling type.
+inline X    operator*( X x, SX sx ) { return X( x._ * sx._ ); }
+inline Y    operator*( Y y, SY sy ) { return Y( y._ * sy._ ); }
+inline X    operator/( X x, SX sx ) { return X( x._ / sx._ ); }
+inline Y    operator/( Y y, SY sy ) { return Y( y._ / sy._ ); }
+inline W    operator*( W w, SX sx ) { return W( w._ * sx._ ); }
+inline H    operator*( H h, SY sy ) { return H( h._ * sy._ ); }
+inline W    operator/( W w, SX sx ) { return W( w._ / sx._ ); }
+inline H    operator/( H h, SY sy ) { return H( h._ / sy._ ); }
+inline void operator*=( X& x, SX sx ) { x._ *= sx._; }
+inline void operator*=( Y& y, SY sy ) { y._ *= sy._; }
+inline void operator/=( X& x, SX sx ) { x._ /= sx._; }
+inline void operator/=( Y& y, SY sy ) { y._ /= sy._; }
+inline void operator*=( W& w, SX sx ) { w._ *= sx._; }
+inline void operator*=( H& h, SY sy ) { h._ *= sy._; }
+inline void operator/=( W& w, SX sx ) { w._ /= sx._; }
+inline void operator/=( H& h, SY sy ) { h._ /= sy._; }
 
 } // namespace rn

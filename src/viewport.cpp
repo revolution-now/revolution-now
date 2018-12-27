@@ -91,11 +91,10 @@ void SmoothViewport::advance( e_push_direction x_push,
 }
 
 double SmoothViewport::width_pixels() const {
-  return double( viewport_width_tiles() * g_tile_width._ ) /
-         zoom_;
+  return double( viewport_width_tiles() * g_tile_width ) / zoom_;
 }
 double SmoothViewport::height_pixels() const {
-  return double( viewport_height_tiles() * g_tile_height._ ) /
+  return double( viewport_height_tiles() * g_tile_height ) /
          zoom_;
 }
 
@@ -112,10 +111,10 @@ double SmoothViewport::end_y() const {
   return center_y_ + height_pixels() / 2;
 }
 X SmoothViewport::start_tile_x() const {
-  return X( W( int( start_x() ) ) / g_tile_width );
+  return X( int( start_x() ) ) / g_tile_width;
 }
 Y SmoothViewport::start_tile_y() const {
-  return Y( H( int( start_y() ) ) / g_tile_height );
+  return Y( int( start_y() ) ) / g_tile_height;
 }
 
 Rect SmoothViewport::get_bounds() const {
@@ -147,8 +146,8 @@ double SmoothViewport::height_tiles() const {
 void SmoothViewport::enforce_invariants() {
   if( zoom_ < zoom_min ) zoom_ = zoom_min;
   auto [size_y, size_x] = world_size_tiles();
-  size_y *= g_tile_height._;
-  size_x *= g_tile_width._;
+  size_y *= g_tile_height;
+  size_x *= g_tile_width;
   if( start_x() < 0 ) center_x_ = width_pixels() / 2;
   if( start_y() < 0 ) center_y_ = height_pixels() / 2;
   if( end_x() > double( size_x ) )
@@ -195,8 +194,8 @@ Rect SmoothViewport::get_render_dest_rect() const {
   Rect dest;
   dest.x        = 0;
   dest.y        = 0;
-  dest.w        = g_tile_width._ * viewport_width_tiles();
-  dest.h        = g_tile_height._ * viewport_height_tiles();
+  dest.w        = viewport_width_tiles() * g_tile_width;
+  dest.h        = viewport_height_tiles() * g_tile_height;
   Rect viewport = get_bounds();
   auto [max_src_height, max_src_width] = world_size_pixels();
   if( viewport.w > max_src_width ) {
@@ -235,13 +234,13 @@ void SmoothViewport::pan( double down_up, double left_right,
 
 void SmoothViewport::center_on_tile_x( Coord const& coords ) {
   center_x_ =
-      double( coords.x * g_tile_width._ + g_tile_width / 2 );
+      double( coords.x * g_tile_width + g_tile_width._ / 2 );
   enforce_invariants();
 }
 
 void SmoothViewport::center_on_tile_y( Coord const& coords ) {
   center_y_ =
-      double( coords.y * g_tile_height._ + g_tile_height / 2 );
+      double( coords.y * g_tile_height + g_tile_height._ / 2 );
   enforce_invariants();
 }
 

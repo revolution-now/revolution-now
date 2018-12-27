@@ -274,7 +274,7 @@ void WindowManager::window::draw( Texture const& tx ) const {
       tx, config_palette.orange.sat0.lum1,
       {position.x, position.y, win_size.w, win_size.h} );
   auto inside_border = position + window_border();
-  auto inner_size    = win_size - 2 * window_border();
+  auto inner_size    = win_size - Scale( 2 ) * window_border();
   render_fill_rect( tx, config_palette.orange.sat1.lum4,
                     Rect::from( inside_border, inner_size ) );
   title_view->draw( tx, inside_border );
@@ -287,7 +287,7 @@ Delta WindowManager::window::delta() const {
   res.w = std::max( title_view->delta().w, view->delta().w );
   res.h += title_view->delta().h + view->delta().h;
   // multiply by two since there is top/bottom or left/right.
-  res += 2 * window_border();
+  res += Scale( 2 ) * window_border();
   return res;
 }
 
@@ -303,8 +303,8 @@ Rect WindowManager::window::inside_border_rect() const {
   auto res = rect();
   res.x += window_border().w;
   res.y += window_border().h;
-  res.w -= window_border().w * 2;
-  res.h -= window_border().h * 2;
+  res.w -= window_border().w * 2_sx;
+  res.h -= window_border().h * 2_sy;
   return res;
 }
 

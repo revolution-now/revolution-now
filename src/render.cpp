@@ -39,6 +39,9 @@ vector<RenderFunc> g_render_stack;
 
 } // namespace
 
+/****************************************************************
+** Rendering Stack
+*****************************************************************/
 void render_all() {
   ::SDL_SetRenderTarget( g_renderer, nullptr );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
@@ -67,6 +70,122 @@ RenderStacker::~RenderStacker() {
   g_render_stack.pop_back();
 }
 
+/****************************************************************
+** Rendering Building Blocks
+*****************************************************************/
+// Expects the rendering target to already be set.
+void render_landscape( Coord world_square, Coord pixel_coord ) {
+  auto   s    = square_at( world_square );
+  g_tile tile = s.land ? g_tile::land : g_tile::water;
+  render_sprite( tile, pixel_coord, 0, 0 );
+}
+
+// Expects the rendering target to already be set.
+void render_unit( UnitId id, Coord pixel_coord ) {
+  auto const& unit = unit_from_id( id );
+  render_sprite( unit.desc().tile, pixel_coord, 0, 0 );
+}
+
+/****************************************************************
+** Viewport Rendering: these render to the viewport texture.
+*****************************************************************/
+void ViewportRenderOptions::assert_invariants() const {
+  // If we're blinking a unit, then...
+  if( unit_to_blink ) {
+    auto id = *unit_to_blink;
+    // make sure that we're not also skipping that unit.
+    CHECK( !units_to_skip.contains( id ) );
+    auto maybe_coord = coords_for_unit_safe( id );
+    // make sure that the unit is on the map.
+    CHECK( maybe_coord );
+    // make sure the unit's square is not being skipped.
+    CHECK( !squares_with_no_units.contains( *maybe_coord ) );
+  }
+}
+
+void render_world_viewport(
+    ViewportRenderOptions const& options ) {
+  set_render_target( g_texture_viewport );
+
+  options.assert_invariants();
+
+  auto covered = viewport().covered_tiles();
+
+  Opt<Coord> blink_coords;
+  if( options.unit_to_blink.has_value() )
+    blink_coords = coords_for_unit( *options.unit_to_blink );
+
+  for( auto coord : covered ) {
+    Coord pixel_coord =
+        Coord{} + ( coord - covered.upper_left() );
+    pixel_coord *= g_tile_scale;
+
+    // First the land.
+    render_landscape( coord, pixel_coord );
+
+    bool no_units =
+        options.squares_with_no_units.contains( coord );
+    bool is_blink_square = ( coord == blink_coords );
+
+    // Next the units.
+
+    // If this square has been requested to be blank OR if there
+    // is a blinking unit on it then skip rendering units on it.
+    if( !no_units && !is_blink_square ) {
+      // Render all units on this square as usual.
+      for( auto id : units_from_coord( coord ) )
+        if( !options.units_to_skip.contains( id ) )
+          render_unit( id, pixel_coord );
+    }
+
+    // Now do a blinking unit, if any.
+    if( is_blink_square ) {
+      using namespace std::chrono;
+      using namespace std::literals::chrono_literals;
+      auto time        = system_clock::now().time_since_epoch();
+      auto one_second  = 1000ms;
+      auto half_second = 500ms;
+      if( time % one_second > half_second )
+        render_unit( *options.unit_to_blink, pixel_coord );
+    }
+  }
+}
+
+void render_mv_unit( UnitId mv_id, Coord const& target,
+                     double percent ) {
+  set_render_target( g_texture_viewport );
+
+  ViewportRenderOptions render_options;
+  render_options.units_to_skip.insert( mv_id );
+
+  render_world_viewport( render_options );
+
+  Coord coords = coords_for_unit( mv_id );
+  Delta delta  = target - coords;
+  CHECK( -1 <= delta.w && delta.w <= 1 );
+  CHECK( -1 <= delta.h && delta.h <= 1 );
+  delta *= g_tile_scale;
+  Delta pixel_delta{W( int( delta.w._ * percent ) ),
+                    H( int( delta.h._ * percent ) )};
+
+  auto  covered = viewport().covered_tiles();
+  Coord pixel_coord =
+      Coord{} + ( coords - covered.upper_left() );
+  pixel_coord *= g_tile_scale;
+  pixel_coord += pixel_delta;
+  auto const& unit = unit_from_id( mv_id );
+  render_sprite( unit.desc().tile, pixel_coord, 0, 0 );
+}
+
+void render_copy_viewport_texture() {
+  copy_texture( g_texture_viewport, nullopt,
+                viewport().get_render_src_rect(),
+                viewport().get_render_dest_rect() );
+}
+
+/****************************************************************
+** Miscellaneous Rendering
+*****************************************************************/
 void render_panel() {
   constexpr int panel_width{6};
   auto          bottom_bar = 0_y + screen_height_tiles() - 1;
@@ -116,118 +235,6 @@ RenderFunc render_fade_to_dark( chrono::milliseconds wait,
     render_fill_rect( nullopt, Color( 0, 0, 0, alpha ),
                       screen_logical_rect() );
   };
-}
-
-// Expects the rendering target to already be set.
-void render_landscape( Coord world_square,
-                       Coord texture_square ) {
-  auto   s    = square_at( world_square );
-  g_tile tile = s.land ? g_tile::land : g_tile::water;
-  render_sprite_grid( tile, texture_square.y, texture_square.x,
-                      0, 0 );
-}
-
-// Expects the rendering target to already be set.
-void render_unit( UnitId id, Coord texture_square ) {
-  auto const& unit = unit_from_id( id );
-  render_sprite_grid( unit.desc().tile, texture_square.y,
-                      texture_square.x, 0, 0 );
-}
-
-void ViewportRenderOptions::validate() const {
-  // If we're blinking a unit, then...
-  if( unit_to_blink ) {
-    auto id = *unit_to_blink;
-    // make sure that we're not also skipping that unit.
-    CHECK( !units_to_skip.contains( id ) );
-    auto maybe_coord = coords_for_unit_safe( id );
-    // make sure that the unit is on the map.
-    CHECK( maybe_coord );
-    // make sure the unit's square is not being skipped.
-    CHECK( !squares_with_no_units.contains( *maybe_coord ) );
-  }
-}
-
-void render_world_viewport(
-    ViewportRenderOptions const& options ) {
-  set_render_target( g_texture_viewport );
-
-  options.validate();
-
-  auto covered = viewport().covered_tiles();
-
-  Opt<Coord> blink_coords;
-  if( options.unit_to_blink.has_value() )
-    blink_coords = coords_for_unit( *options.unit_to_blink );
-
-  for( auto coord : covered ) {
-    // First the land.
-    render_landscape(
-        coord, Coord{} + ( coord - covered.upper_left() ) );
-
-    bool no_units =
-        options.squares_with_no_units.contains( coord );
-    bool is_blink_square = ( coord == blink_coords );
-
-    // Next the units.
-
-    // If this square has been requested to be blank OR if there
-    // is a blinking unit on it then skip rendering units on it.
-    if( !no_units && !is_blink_square ) {
-      // Render all units on this square as usual.
-      for( auto id : units_from_coord( coord ) )
-        if( !options.units_to_skip.contains( id ) )
-          render_unit(
-              id, Coord{} + ( coord - covered.upper_left() ) );
-    }
-
-    // Now do a blinking unit, if any.
-    if( is_blink_square ) {
-      using namespace std::chrono;
-      using namespace std::literals::chrono_literals;
-      auto time        = system_clock::now().time_since_epoch();
-      auto one_second  = 1000ms;
-      auto half_second = 500ms;
-      if( time % one_second > half_second )
-        render_unit(
-            *options.unit_to_blink,
-            Coord{} + ( coord - covered.upper_left() ) );
-    }
-  }
-}
-
-void render_mv_unit( UnitId mv_id, Coord const& target,
-                     double percent ) {
-  set_render_target( g_texture_viewport );
-
-  ViewportRenderOptions render_options;
-  render_options.units_to_skip.insert( mv_id );
-
-  render_world_viewport( render_options );
-
-  Coord coords  = coords_for_unit( mv_id );
-  W     delta_x = target.x - coords.x;
-  H     delta_y = target.y - coords.y;
-  CHECK( -1 <= delta_x && delta_x <= 1 );
-  CHECK( -1 <= delta_y && delta_y <= 1 );
-  W pixel_delta_x =
-      W( int( ( delta_x * g_tile_width )._ * percent ) );
-  H pixel_delta_y =
-      H( int( ( delta_y * g_tile_height )._ * percent ) );
-
-  auto        covered = viewport().covered_tiles();
-  auto        sy      = 0_y + ( coords.y - covered.y );
-  auto        sx      = 0_x + ( coords.x - covered.x );
-  auto const& unit    = unit_from_id( mv_id );
-  X           pixel_x = sx * g_tile_width._ + pixel_delta_x;
-  Y           pixel_y = sy * g_tile_height._ + pixel_delta_y;
-  render_sprite( unit.desc().tile, pixel_y, pixel_x, 0, 0 );
-}
-
-void render_copy_viewport_texture() {
-  copy_texture( g_texture_viewport, nullopt,
-                viewport().get_render_src_rect(),
-                viewport().get_render_dest_rect() );
 }
 
 } // namespace rn

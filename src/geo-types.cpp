@@ -135,10 +135,6 @@ Delta max( Delta const& lhs, Delta const& rhs ) {
   return {std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h )};
 }
 
-ND Delta operator*( int scale, Delta const& delta ) {
-  return {delta.w * scale, delta.h * scale};
-}
-
 Coord operator+( Coord const& coord, Delta const& delta ) {
   return {coord.y + delta.h, coord.x + delta.w};
 }
@@ -161,6 +157,30 @@ ND Coord operator+( Coord const& coord, H h ) {
 
 Delta operator-( Coord const& lhs, Coord const& rhs ) {
   return {lhs.x - rhs.x, lhs.y - rhs.y};
+}
+
+ND Coord operator*( Coord const& coord, Scale const& scale ) {
+  Coord res = coord;
+  res *= scale;
+  return res;
+}
+
+ND Delta operator*( Delta const& delta, Scale const& scale ) {
+  Delta res = delta;
+  res *= scale;
+  return res;
+}
+
+ND Coord operator*( Scale const& scale, Coord const& coord ) {
+  Coord res = coord;
+  res *= scale;
+  return res;
+}
+
+ND Delta operator*( Scale const& scale, Delta const& delta ) {
+  Delta res = delta;
+  res *= scale;
+  return res;
 }
 
 std::ostream& operator<<( std::ostream&    out,

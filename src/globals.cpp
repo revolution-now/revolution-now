@@ -30,7 +30,7 @@ W g_panel_width_tiles{6};
 ::SDL_Window*   g_window   = nullptr;
 ::SDL_Renderer* g_renderer = nullptr;
 Texture         g_texture_viewport;
-int             g_resolution_scale_factor{};
+Scale           g_resolution_scale_factor{};
 Delta           g_drawing_origin{};
 Rect            g_drawing_region{};
 

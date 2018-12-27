@@ -25,7 +25,7 @@ namespace rn {
 extern ::SDL_Window*   g_window;
 extern ::SDL_Renderer* g_renderer;
 extern Texture         g_texture_viewport;
-extern int             g_resolution_scale_factor;
+extern Scale           g_resolution_scale_factor;
 // This origin will be a small distance away from the screen's
 // origin and will skip a few pixels that are needed to make the
 // integral scalling factor.
