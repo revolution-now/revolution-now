@@ -99,8 +99,9 @@ namespace {
 // name of the logger will be the stem of the filename of the
 // cpp file.  Using __FILE__ would yield the name of this header
 // file which would not be useful.
-auto logger = spdlog::stdout_color_mt(
-    fs::path( __BASE_FILE__ ).filename().stem() );
+auto logger = spdlog::stdout_color_mt( fmt::format(
+    "{: ^16}",
+    fs::path( __BASE_FILE__ ).filename().stem().string() ) );
 
 } // namespace
 
