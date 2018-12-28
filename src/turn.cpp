@@ -10,11 +10,17 @@
 *****************************************************************/
 #include "turn.hpp"
 
+// Revolution Now
+#include "logging.hpp"
 #include "loops.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
 #include "unit.hpp"
 
+// base-util
+#include "base-util/variant.hpp"
+
+// C++ standard library
 #include <algorithm>
 #include <deque>
 
@@ -88,78 +94,82 @@ e_turn_result turn() {
         q.pop_front();
         continue;
       }
-      // By default, we assume that the processing for the unit
-      // this turn will be completed in this loop iteration. In
-      // certain cases this will not happen, such as e.g. a unit
-      // given a 'wait' command. In that case this variable will
-      // be set to false.
-      // TODO: consider using a flag type from type_safe
-      bool will_finish_turn = true;
-
+      auto id = unit.id();
+      logger->debug( "processing turn for unit {}",
+                     debug_string( id ) );
       //    clang-format off
+      //
       //    * if it is it in `goto` mode focus on it and advance
-      //    it
-      //      TODO
+      //      it
+      //
       //    * if it is a ship on the high seas then advance it
       //        if it has arrived in the old world then jump to
       //        the old world screen (maybe ask user whether they
       //        want to ignore), which has its own game loop (see
       //        old-world loop).
-      //      TODO
+      //
       //    * if it is in the old world then ignore it, or
-      //    possibly remind
-      //      the user it is there.
-      //      TODO
+      //      possibly remind the user it is there.
+      //
       //    * if it is performing an action, such as building a
-      //    road,
-      //      advance the state.  If it finishes then mark it as
-      //      active so that it will wait for orders in the next
-      //      step.
-      //      TODO
+      //      road, advance the state.  If it finishes then mark
+      //      it as active so that it will wait for orders in the
+      //      next step.
+      //
       //    * if it is in an indian village then advance it, and
-      //    mark
-      //      it active if it is finished.
-      //      TODO
+      //      mark it active if it is finished.
 
       //    * if unit is waiting for orders then focus on it, and
-      //    enter
-      //      a realtime game loop where the user can interact
-      //      with the map and GUI in general.  See `unit orders`
-      //      game loop.
+      //      enter a realtime game loop where the user can
+      //      interact with the map and GUI in general.  See
+      //      `unit orders` game loop.
+      //
       //    clang-format on
-      while( unit.orders_mean_input_required() &&
+      while( q.front() == id &&
+             unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
         need_eot_loop = false;
-        // `prioritize` is a function that should be called if it
-        // is decided (in the loop_orders function) that a unit
-        // needs to be bumped to the front of the queue for ac-
-        // cepting orders. Note that it should hurt if the unit
-        // is already in the queue, since this turn code will
-        // never move a unit after it has already completed its
-        // turn, no matter how many times it appears in the
-        // queue.
-        auto prioritize = [&q]( UnitId id ) {
-          q.push_front( id );
-        };
-        e_orders_loop_result res =
-            loop_orders( unit.id(), prioritize );
-        if( res == e_orders_loop_result::wait ) {
-          will_finish_turn = false;
+        auto res      = loop_orders( id );
+        switch( res.type ) {
+          case orders_loop_result::e_type::none:
+            SHOULD_NOT_BE_HERE;
+            break;
+          case orders_loop_result::e_type::quit_game:
+            return e_turn_result::quit;
+          case orders_loop_result::e_type::orders_received:
+            // Handle this below.
+            break;
+        }
+        if( util::holds<orders::wait_t>( res.orders ) ) {
           q.push_back( q.front() );
           q.pop_front();
           break;
         }
-        if( res == e_orders_loop_result::offboard ) {
-          will_finish_turn = false;
-          // Don't change position in queue so that way the ship
-          // will ask for orders again as soon as the units that
-          // offload have done so.
-          break;
+        auto analysis =
+            analyze_proposed_orders( id, res.orders );
+        if( confirm_explain_orders( analysis ) ) {
+          // Check if the unit is physically moving; usually at
+          // this point it will be unless it is e.g. a ship
+          // offloading units.
+          GET_IF( analysis.result, ProposedMoveAnalysisResult,
+                  mv_res ) {
+            loop_mv_unit( id, mv_res->coords );
+          }
+          apply_orders( id, analysis );
+          // Note that it shouldn't hurt if the unit is already
+          // in the queue, since this turn code will never move a
+          // unit after it has already completed its turn, no
+          // matter how many times it appears in the queue.
+          for( auto prioritize : analysis.units_to_prioritize() )
+            q.push_front( prioritize );
         }
-        if( res == e_orders_loop_result::quit )
-          return e_turn_result::quit;
       }
-      if( will_finish_turn ) unit.finish_turn();
+
+      // Now we must decide if the unit has finished its turn.
+      // TODO: try to put thsi in the unit class.
+      if( unit.moved_this_turn() ||
+          !unit.orders_mean_input_required() )
+        unit.finish_turn();
     }
   }
 
@@ -177,11 +187,12 @@ e_turn_result turn() {
   //    clang-format on
   if( need_eot_loop ) {
     switch( loop_eot() ) {
-      case e_eot_loop_result::quit: return e_turn_result::quit;
+      case e_eot_loop_result::quit_game:
+        return e_turn_result::quit;
       case e_eot_loop_result::none: break;
     };
   }
   return e_turn_result::cont;
-}
+} // namespace rn
 
 } // namespace rn

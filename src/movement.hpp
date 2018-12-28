@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2018-09-03.
 *
-* Description: Ownership, evolution and movement of units.
+* Description: Physical movement of units.
 *
 *****************************************************************/
 #pragma once
@@ -51,9 +51,9 @@ enum class ND e_unit_mv_error {
 using v_unit_mv_desc =
     std::variant<e_unit_mv_good, e_unit_mv_error>;
 
-// Describes what would happen if a unit were to move to a
-// given square.
-struct ND UnitMoveDesc {
+// Describes what would happen if a unit were to move to a given
+// square.
+struct ND ProposedMoveAnalysisResult {
   // The target square of move being described.
   Coord coords{};
   // Description of what would happen if the move were carried
@@ -75,22 +75,25 @@ struct ND UnitMoveDesc {
 
   // Is it possible to move at all.  This just checks that
   // the the `desc` holds the right type.
-  bool can_move() const;
+  bool allowed() const;
 };
 
 // Called at the beginning of each turn; marks all units
 // as not yet having moved.
 void reset_moves();
 
-ND UnitMoveDesc move_consequences( UnitId       id,
-                                   Coord const& coords );
-void move_unit( UnitId id, UnitMoveDesc const& move_desc );
+ND ProposedMoveAnalysisResult
+   analyze_proposed_move( UnitId id, direction d );
+
+void move_unit( UnitId                            id,
+                ProposedMoveAnalysisResult const& analysis );
 
 // Checks that the move is possible (if not, returns false) and,
 // if so, will check the type of move and determine whether the
 // player needs to be asked for any kind of confirmation. In ad-
 // dition, if the move is not allowed, the player may be given an
 // explantation as to why.
-bool confirm_move( UnitMoveDesc const& move_desc );
+bool confirm_explain_move(
+    ProposedMoveAnalysisResult const& analysis );
 
 } // namespace rn

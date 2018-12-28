@@ -30,6 +30,13 @@ public:
     return *this;
   }
 
+  MovementPoints( MovementPoints const& other ) = default;
+  MovementPoints( MovementPoints&& other )      = default;
+
+  MovementPoints& operator=( MovementPoints const& other ) =
+      default;
+  MovementPoints& operator=( MovementPoints&& other ) = default;
+
   static MovementPoints _1_3() {
     return MovementPoints( 0, 1 );
   };

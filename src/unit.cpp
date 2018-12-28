@@ -56,7 +56,7 @@ unit_desc() {
 Unit::Unit( e_nation nation, e_unit_type type )
   : id_( next_unit_id() ),
     desc_( &val_or_die( unit_desc(), type ) ),
-    orders_( e_unit_orders::none ),
+    orders_( e_orders::none ),
     cargo_( desc_->cargo_slots ),
     nation_( nation ),
     movement_points_( desc_->movement_points ),
@@ -97,14 +97,14 @@ void Unit::unfinish_turn() {
 // physically move this turn, either by way of player input or
 // automatically, assuming it has movement points.
 bool Unit::orders_mean_move_needed() const {
-  return orders_ == e_unit_orders::none;
+  return orders_ == e_orders::none;
 }
 
 // Returns true if the unit's orders are such that the unit re-
 // quires player input this turn, assuming that it has some move-
 // ment points.
 bool Unit::orders_mean_input_required() const {
-  return orders_ == e_unit_orders::none;
+  return orders_ == e_orders::none;
 }
 
 // Called to consume movement points as a result of a move.
@@ -115,9 +115,9 @@ void Unit::consume_mv_points( MovementPoints points ) {
 }
 
 string debug_string( Unit const& unit ) {
-  return fmt::format( "unit[ id: {}, points: {}, type: {} ]",
-                      unit.id(), unit.movement_points(),
-                      unit.desc().name );
+  return fmt::format( "unit{}id: {}, points: {}, type: {}{}",
+                      "{", unit.id(), unit.movement_points(),
+                      unit.desc().name, "}" );
 }
 
 } // namespace rn

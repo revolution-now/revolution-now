@@ -7,6 +7,7 @@
 * Main config file
 *****************************************************************/
 CFG( rn,
+  FLD( int, target_frame_rate )
   OBJ( main_window,
     FLD( Str, title )
   )

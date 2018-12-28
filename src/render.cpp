@@ -44,8 +44,6 @@ vector<RenderFunc> g_render_stack;
 *****************************************************************/
 void render_all() {
   ::SDL_SetRenderTarget( g_renderer, nullptr );
-  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
-  ::SDL_RenderClear( g_renderer );
 
   for( auto const& renderer : g_render_stack ) {
     ::SDL_SetRenderTarget( g_renderer, nullptr );
@@ -154,11 +152,6 @@ void render_world_viewport(
 void render_mv_unit( UnitId mv_id, Coord const& target,
                      double percent ) {
   set_render_target( g_texture_viewport );
-
-  ViewportRenderOptions render_options;
-  render_options.units_to_skip.insert( mv_id );
-
-  render_world_viewport( render_options );
 
   Coord coords = coords_for_unit( mv_id );
   Delta delta  = target - coords;

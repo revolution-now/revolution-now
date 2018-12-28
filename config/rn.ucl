@@ -1,3 +1,5 @@
+target_frame_rate: 60
+
 main_window {
   title: "Revolution | Now"
 }

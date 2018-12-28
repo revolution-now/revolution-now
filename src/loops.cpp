@@ -11,6 +11,7 @@
 #include "loops.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "logging.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
@@ -19,6 +20,7 @@
 #include "sdl-util.hpp"
 #include "util.hpp"
 #include "viewport.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/variant.hpp"
@@ -29,8 +31,6 @@
 using namespace std;
 
 namespace rn {
-
-constexpr int frame_rate{60};
 
 namespace {
 
@@ -45,26 +45,15 @@ absl::flat_hash_map<::SDL_Keycode, direction> nav_keys{
 
 } // namespace
 
-e_orders_loop_result loop_orders(
-    UnitId id, function<void( UnitId )> const& prioritize ) {
+orders_loop_result loop_orders( UnitId id ) {
   logger->debug( "taking orders from {}", debug_string( id ) );
+  // TODO: use chrono here
   constexpr int millis_per_second{1000};
   unsigned int  frame_length_millis =
-      millis_per_second / frame_rate;
+      millis_per_second / config_rn.target_frame_rate;
 
-  bool running = true;
-
-  auto&      unit   = unit_from_id( id );
-  auto const coords = coords_for_unit( id );
-
-  UnitMoveDesc move_desc;
-
+  auto coords = coords_for_unit( id );
   viewport().ensure_tile_surroundings_visible( coords );
-
-  long total_frames     = 0;
-  auto ticks_start_loop = ::SDL_GetTicks();
-
-  long ticks_render = 0;
 
   ViewportRenderOptions render_options;
   render_options.unit_to_blink = id;
@@ -75,32 +64,22 @@ e_orders_loop_result loop_orders(
     render_panel();
   } );
 
-  // we can also use the SDL_GetKeyboardState to get an
-  // array that tells us if a key is down or not instead
-  // of keeping track of it ourselves.
-  while( running ) {
-    auto ticks_start = ::SDL_GetTicks();
+  orders_loop_result result{};
+  result.type = orders_loop_result::e_type::none;
 
-    auto ticks_render_start = ::SDL_GetTicks();
+  while( result.type == orders_loop_result::e_type::none ) {
+    auto ticks_start = ::SDL_GetTicks();
     render_all();
-    auto ticks_render_end = ::SDL_GetTicks();
-    ticks_render += ( ticks_render_end - ticks_render_start );
-    total_frames++;
 
     e_push_direction zoom_direction = e_push_direction::none;
 
     ::SDL_Event event;
+    // TODO: use the API in input.hpp
     while( SDL_PollEvent( &event ) != 0 ) {
-      if( !running )
-        // This check is needed so that if the player hits two
-        // keys at once and the first one to be processed in
-        // the switch statement leads to a valid move but the
-        // second one does not then we lose the move_desc for
-        // the valid move, so we need to break as soon as one
-        // event (with a successful move) tells us to.
-        break;
       switch( event.type ) {
-        case SDL_QUIT: return e_orders_loop_result::quit;
+        case SDL_QUIT:
+          result.type = orders_loop_result::e_type::quit_game;
+          break;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event ) {
             case ::SDL_WINDOWEVENT_RESIZED:
@@ -110,47 +89,30 @@ e_orders_loop_result loop_orders(
           break;
         case SDL_KEYDOWN:
           switch( event.key.keysym.sym ) {
-            case ::SDLK_q: {
-              auto ticks_end_loop = ::SDL_GetTicks();
-              cerr << "average framerate: "
-                   << double( millis_per_second ) *
-                          double( total_frames ) /
-                          ( ticks_end_loop - ticks_start_loop )
-                   << "\n";
-              cerr << "average ticks/render: "
-                   << double( ticks_render ) / total_frames
-                   << "\n";
-              cerr << "render % of frame: "
-                   << 100.0 * double( ticks_render ) /
-                          ( ticks_end_loop - ticks_start_loop )
-                   << "\n";
-              return e_orders_loop_result::quit;
-            }
+            case ::SDLK_q:
+              result.type =
+                  orders_loop_result::e_type::quit_game;
+              break;
             case ::SDLK_F11: toggle_fullscreen(); break;
-            case ::SDLK_t: return e_orders_loop_result::wait;
+            case ::SDLK_t:
+              result.type =
+                  orders_loop_result::e_type::orders_received;
+              result.orders = orders::wait;
+              break;
             case ::SDLK_SPACE:
             case ::SDLK_KP_5:
-              unit.forfeight_mv_points();
-              return e_orders_loop_result::moved;
+              result.type =
+                  orders_loop_result::e_type::orders_received;
+              result.orders = orders::forfeight;
+              break;
             default:
               auto maybe_direction =
                   val_safe( nav_keys, event.key.keysym.sym );
               if( maybe_direction ) {
-                // In case the player has scrolled away from the
-                // unit in question.
-                viewport().ensure_tile_surroundings_visible(
-                    coords );
-                move_desc = move_consequences(
-                    id, coords.moved( *maybe_direction ) );
-                // Any confirmation or messages that the player
-                // needs to get prior to this move (or in re-
-                // sponse to an illegal move) are done in this
-                // function, which then returns true if the move
-                // can proceed. In order for the move to proceed
-                // we must have both move_desc.can_move() == true
-                // and any queries to the player result in the
-                // player confirming the move, if applicable.
-                running = !confirm_move( move_desc );
+                result.type =
+                    orders_loop_result::e_type::orders_received;
+                result.orders = orders::move{*maybe_direction};
+                break;
               }
           }
           break;
@@ -162,6 +124,9 @@ e_orders_loop_result loop_orders(
           break;
         default: break;
       }
+      if( result.type != orders_loop_result::e_type::none )
+        // Break as soon as we have some orders.
+        break;
     }
 
     auto const* __state = ::SDL_GetKeyboardState( nullptr );
@@ -188,38 +153,17 @@ e_orders_loop_result loop_orders(
         // zoom motion
         zoom_direction );
 
-    auto ticks_end = ::SDL_GetTicks();
-    auto delta     = ticks_end - ticks_start;
+    auto delta = ::SDL_GetTicks() - ticks_start;
     if( delta < frame_length_millis )
       ::SDL_Delay( frame_length_millis - delta );
   }
-
-  // TODO: need to pull this out of the loop module.
-
-  // Check if the unit is physically moving; usually at this
-  // point it will be unless it is e.g. a ship offloading units.
-  if( coords_for_unit( id ) != move_desc.coords ) {
-    // TODO: animation, this should not be called from here.
-    viewport().ensure_tile_surroundings_visible(
-        move_desc.coords );
-    loop_mv_unit( id, move_desc.coords );
-  }
-  // TODO: this logic (interpreting the move_desc structure)
-  //       should be done in the `movement` module.  And the
-  //       enums should be reworked so that information about
-  //       e.g. offboard vs. moved should be decided in the
-  //       movement module.
-  move_unit( id, move_desc );
-  for( auto id : move_desc.to_prioritize ) prioritize( id );
-  if( util::holds( move_desc.desc, e_unit_mv_good::land_fall ) )
-    return e_orders_loop_result::offboard;
-  return e_orders_loop_result::moved;
-} // namespace rn
+  return result;
+}
 
 e_eot_loop_result loop_eot() {
   constexpr int millis_per_second{1000};
   unsigned int  frame_length_millis =
-      millis_per_second / frame_rate;
+      millis_per_second / config_rn.target_frame_rate;
 
   bool              running = true;
   e_eot_loop_result result  = e_eot_loop_result::none;
@@ -255,7 +199,7 @@ e_eot_loop_result loop_eot() {
       switch( event.type ) {
         case SDL_QUIT:
           running = false;
-          result  = e_eot_loop_result::quit;
+          result  = e_eot_loop_result::quit_game;
           break;
         case ::SDL_WINDOWEVENT:
           switch( event.window.event ) {
@@ -268,7 +212,7 @@ e_eot_loop_result loop_eot() {
           switch( event.key.keysym.sym ) {
             case ::SDLK_q: {
               running             = false;
-              result              = e_eot_loop_result::quit;
+              result              = e_eot_loop_result::quit_game;
               auto ticks_end_loop = ::SDL_GetTicks();
               cerr << "average framerate: "
                    << double( millis_per_second ) *
@@ -332,7 +276,7 @@ e_eot_loop_result loop_eot() {
 void loop_mv_unit( UnitId id, Coord const& target ) {
   constexpr int millis_per_second{1000};
   unsigned int  frame_length_millis =
-      millis_per_second / frame_rate;
+      millis_per_second / config_rn.target_frame_rate;
 
   constexpr auto min_velocity          = 0;
   constexpr auto max_velocity          = .1;
@@ -350,13 +294,21 @@ void loop_mv_unit( UnitId id, Coord const& target ) {
   double percent = 0;
   bool   running = true;
 
+  ViewportRenderOptions render_options;
+  render_options.units_to_skip.insert( id );
+
   // Need to take percent by reference because it will be chang-
   // ing.
-  RenderStacker push_renderer( [id, &target, &percent] {
-    render_mv_unit( id, target, percent );
-    render_copy_viewport_texture();
-    render_panel();
-  } );
+  RenderStacker push_renderer(
+      [id, &render_options, &target, &percent] {
+        render_world_viewport( render_options );
+        render_mv_unit( id, target, percent );
+        render_copy_viewport_texture();
+        render_panel();
+      } );
+
+  viewport().ensure_tile_surroundings_visible(
+      coords_for_unit( id ) );
 
   while( running ) {
     auto ticks_start = ::SDL_GetTicks();

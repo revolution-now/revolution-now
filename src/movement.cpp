@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2018-09-03.
 *
-* Description: Ownership, evolution and movement of units.
+* Description: Physical movement of units.
 *
 *****************************************************************/
 #include "movement.hpp"
@@ -27,7 +27,7 @@ namespace rn {
 
 namespace {} // namespace
 
-bool UnitMoveDesc::can_move() const {
+bool ProposedMoveAnalysisResult::allowed() const {
   return util::holds<e_unit_mv_good>( desc );
 }
 
@@ -41,8 +41,10 @@ void reset_moves() {
 // burden of the logic in this function to find every possible
 // way that the move is *not* allowed and to flag it if that is
 // the case.
-UnitMoveDesc move_consequences( UnitId       id,
-                                Coord const& coords ) {
+ProposedMoveAnalysisResult analyze_proposed_move( UnitId    id,
+                                                  direction d ) {
+  auto coords = coords_for_unit( id ).moved( d );
+
   Y y = coords.y;
   X x = coords.x;
 
@@ -51,7 +53,7 @@ UnitMoveDesc move_consequences( UnitId       id,
 
   MovementPoints cost( 1 );
 
-  UnitMoveDesc result{
+  ProposedMoveAnalysisResult result{
       coords, e_unit_mv_good::map_to_map, cost, UnitId{0}, {}};
 
   if( unit.movement_points() < cost ) {
@@ -124,16 +126,17 @@ UnitMoveDesc move_consequences( UnitId       id,
   return result;
 }
 
-void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
+void move_unit( UnitId                            id,
+                ProposedMoveAnalysisResult const& analysis ) {
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
-  CHECK( unit.orders() == e_unit_orders::none );
+  CHECK( unit.orders() == Unit::e_orders::none );
 
   // Caller should have checked this.
-  CHECK( move_desc.can_move() );
+  CHECK( analysis.allowed() );
 
-  e_unit_mv_good outcome = get<e_unit_mv_good>( move_desc.desc );
+  e_unit_mv_good outcome = get<e_unit_mv_good>( analysis.desc );
 
   switch( outcome ) {
     case e_unit_mv_good::map_to_map:
@@ -145,18 +148,18 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
           cargo_unit.sentry();
         }
       }
-      ownership_change_to_map( id, move_desc.coords );
-      unit.consume_mv_points( move_desc.movement_cost );
+      ownership_change_to_map( id, analysis.coords );
+      unit.consume_mv_points( analysis.movement_cost );
       break;
     case e_unit_mv_good::board_ship:
-      ownership_change_to_cargo( move_desc.target_unit, id );
+      ownership_change_to_cargo( analysis.target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       break;
     case e_unit_mv_good::offboard_ship:
-      ownership_change_to_map( id, move_desc.coords );
+      ownership_change_to_map( id, analysis.coords );
       unit.forfeight_mv_points();
-      CHECK( unit.orders() == e_unit_orders::none );
+      CHECK( unit.orders() == Unit::e_orders::none );
       break;
     case e_unit_mv_good::land_fall:
       // Just activate all the units on the ship that have not
@@ -183,11 +186,12 @@ void move_unit( UnitId id, UnitMoveDesc const& move_desc ) {
   }
 }
 
-bool confirm_move( UnitMoveDesc const& move_desc ) {
-  if( !move_desc.can_move() ) return false;
+bool confirm_explain_move(
+    ProposedMoveAnalysisResult const& analysis ) {
+  if( !analysis.allowed() ) return false;
   // The above should have checked that the variant holds the
   // e_unit_mv_good type for us.
-  auto& kind = val_or_die<e_unit_mv_good>( move_desc.desc );
+  auto& kind = val_or_die<e_unit_mv_good>( analysis.desc );
 
   switch( kind ) {
     case e_unit_mv_good::land_fall: {

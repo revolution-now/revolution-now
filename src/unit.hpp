@@ -55,12 +55,6 @@ struct ND UnitDescriptor {
   Opt<int> cargo_slots_occupies; // slots occupied by this unit.
 };
 
-enum class ND e_unit_orders {
-  none,
-  sentry, // includes units on ships
-  fortified,
-};
-
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
@@ -74,11 +68,19 @@ public:
   Unit& operator=( Unit const& ) = delete;
   Unit& operator=( Unit&& ) = delete;
 
+  /************************** Enums ****************************/
+
+  enum class ND e_orders {
+    none,
+    sentry, // includes units on ships
+    fortified,
+  };
+
   /************************* Getters ***************************/
 
   UnitId                id() const { return id_; }
   UnitDescriptor const& desc() const { return *desc_; }
-  e_unit_orders         orders() const { return orders_; }
+  e_orders              orders() const { return orders_; }
   CargoHold const&      cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
@@ -91,7 +93,14 @@ public:
 
   /************************ Functions **************************/
 
-  // Has the unit been fully processed this turn.
+  // Has the unit been fully processed this turn. This concept is
+  // distinct from that of having used all movement points. For
+  // example, a unit that is sentry'd on a ship will be marked as
+  // having finished its turn when it comes up in the queue, but
+  // its movement points will not be exhausted. This is because
+  // the player might want to wake the unit up by making
+  // landfall, and it should not have to wait til the next turn
+  // to respond, since it technically hasn't yet moved this turn.
   bool finished_turn() const { return finished_turn_; }
   // If the unit has physically moved this turn. This concept is
   // dinstict from whether the unit has been evolved this turn,
@@ -122,9 +131,9 @@ public:
   // Called to consume movement points as a result of a move.
   void consume_mv_points( MovementPoints points );
   // Mark a unit as sentry.
-  void sentry() { orders_ = e_unit_orders::sentry; }
+  void sentry() { orders_ = e_orders::sentry; }
   // Clear a unit's orders (they will then wait for orders).
-  void clear_orders() { orders_ = e_unit_orders::none; }
+  void clear_orders() { orders_ = e_orders::none; }
 
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );
@@ -137,7 +146,7 @@ private:
   // A unit can change type, but we cannot change the type
   // information of a unit descriptor itself.
   UnitDescriptor const* desc_;
-  e_unit_orders         orders_;
+  e_orders              orders_;
   CargoHold             cargo_;
   e_nation              nation_;
   // Movement points left this turn.
