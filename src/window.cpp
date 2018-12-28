@@ -418,7 +418,7 @@ string select_box( string const& title, StrVec options ) {
   auto*         win = wm.add_window( title, move( view ) );
   selector_ptr->grow_to( win->inside_border_rect().w );
   wm.run( finished );
-  logger->info( "Selected: {}", selector_ptr->get_selected() );
+  logger->info( "selected: {}", selector_ptr->get_selected() );
   return selector_ptr->get_selected();
 }
 
@@ -428,7 +428,6 @@ e_confirm yes_no( string const& title ) {
       {e_confirm::no, "No"},
   };
   auto res = select_box_enum( title, dict );
-  logger->info( "Selected: {}", int( res ) );
   return res;
 }
 
