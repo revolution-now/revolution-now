@@ -49,7 +49,7 @@ struct RenderStacker {
 };
 
 // Run through all the renderers and run them in order.
-void render_all();
+void render_frame();
 
 /****************************************************************
 ** Rendering Building Blocks
@@ -75,11 +75,15 @@ void render_copy_viewport_texture();
 // tialized.
 struct ViewportRenderOptions {
   ViewportRenderOptions() = default;
+
   absl::flat_hash_set<Coord>  squares_with_no_units{};
   absl::flat_hash_set<UnitId> units_to_skip{};
   Opt<UnitId>                 unit_to_blink{std::nullopt};
 
   void assert_invariants() const;
+
+  // Reset to defaults.
+  void reset();
 };
 
 // This function renders the complete static viewport view to the

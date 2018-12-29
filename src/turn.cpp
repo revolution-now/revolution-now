@@ -15,7 +15,9 @@
 #include "loops.hpp"
 #include "movement.hpp"
 #include "ownership.hpp"
+#include "render.hpp"
 #include "unit.hpp"
+#include "viewport.hpp"
 
 // base-util
 #include "base-util/variant.hpp"
@@ -72,6 +74,13 @@ e_turn_result turn() {
   // TODO: consider using a flag type from type_safe
   auto need_eot_loop{true};
 
+  ViewportRenderOptions viewport_options;
+
+  RenderStacker push_renderer( [&viewport_options] {
+    render_world_viewport( viewport_options );
+    render_copy_viewport_texture();
+  } );
+
   // We keep looping until all units that need moving have moved.
   // We don't know this list a priori because some units may de-
   // cide to require orders during the course of this process,
@@ -97,6 +106,9 @@ e_turn_result turn() {
       auto id = unit.id();
       logger->debug( "processing turn for unit {}",
                      debug_string( id ) );
+      auto coords = coords_for_unit( id );
+      viewport().ensure_tile_surroundings_visible( coords );
+
       //    clang-format off
       //
       //    * if it is it in `goto` mode focus on it and advance
@@ -129,7 +141,19 @@ e_turn_result turn() {
              unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
         need_eot_loop = false;
-        auto res      = loop_orders( id );
+
+        orders_loop_result res;
+
+        /***************************************************/
+        viewport_options.reset();
+        viewport_options.unit_to_blink = id;
+        frame_throttler( [&res] {
+          res = loop_orders();
+          return ( res.type !=
+                   orders_loop_result::e_type::none );
+        } );
+        /***************************************************/
+
         switch( res.type ) {
           case orders_loop_result::e_type::none:
             SHOULD_NOT_BE_HERE;
@@ -153,7 +177,36 @@ e_turn_result turn() {
           // offloading units.
           GET_IF( analysis.result, ProposedMoveAnalysisResult,
                   mv_res ) {
-            loop_mv_unit( id, mv_res->coords );
+            /***************************************************/
+            viewport().ensure_tile_surroundings_visible(
+                coords );
+            viewport_options.reset();
+            viewport_options.units_to_skip.insert( id );
+            double         percent               = 0;
+            constexpr auto min_velocity          = 0;
+            constexpr auto max_velocity          = .1;
+            constexpr auto initial_velocity      = .1;
+            constexpr auto mag_acceleration      = 1;
+            constexpr auto mag_drag_acceleration = .004;
+
+            DissipativeVelocity percent_vel(
+                /*min_velocity=*/min_velocity,
+                /*max_velocity=*/max_velocity,
+                /*initial_velocity=*/initial_velocity,
+                /*mag_acceleration=*/
+                mag_acceleration, // not relevant
+                                  /*mag_drag_acceleration=*/
+                mag_drag_acceleration );
+
+            RenderStacker push_renderer(
+                [id, &mv_res, &percent] {
+                  render_mv_unit( id, mv_res->coords, percent );
+                  render_copy_viewport_texture();
+                } );
+            frame_throttler( [&percent, &percent_vel] {
+              return loop_mv_unit( percent, percent_vel );
+            } );
+            /***************************************************/
           }
           apply_orders( id, analysis );
           // Note that it shouldn't hurt if the unit is already
@@ -186,7 +239,15 @@ e_turn_result turn() {
   //      the map and GUI.
   //    clang-format on
   if( need_eot_loop ) {
-    switch( loop_eot() ) {
+    e_eot_loop_result res;
+    /***************************************************/
+    viewport_options.reset();
+    frame_throttler( [&res] {
+      res = loop_eot();
+      return ( res != e_eot_loop_result::none );
+    } );
+    /***************************************************/
+    switch( res ) {
       case e_eot_loop_result::quit_game:
         return e_turn_result::quit;
       case e_eot_loop_result::none: break;

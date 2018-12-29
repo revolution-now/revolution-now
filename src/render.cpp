@@ -42,7 +42,7 @@ vector<RenderFunc> g_render_stack;
 /****************************************************************
 ** Rendering Stack
 *****************************************************************/
-void render_all() {
+void render_frame() {
   ::SDL_SetRenderTarget( g_renderer, nullptr );
 
   for( auto const& renderer : g_render_stack ) {
@@ -50,6 +50,7 @@ void render_all() {
     renderer();
   }
 
+  render_panel();
   ::SDL_RenderPresent( g_renderer );
 }
 
@@ -99,6 +100,12 @@ void ViewportRenderOptions::assert_invariants() const {
     // make sure the unit's square is not being skipped.
     CHECK( !squares_with_no_units.contains( *maybe_coord ) );
   }
+}
+
+void ViewportRenderOptions::reset() {
+  *this = ViewportRenderOptions{};
+  // why not...
+  assert_invariants();
 }
 
 void render_world_viewport(

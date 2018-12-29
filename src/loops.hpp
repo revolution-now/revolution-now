@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "orders.hpp"
+#include "physics.hpp"
 #include "unit.hpp"
 
 // C++ standard library
@@ -32,8 +33,11 @@ struct orders_loop_result {
   PlayerUnitOrders orders;
 };
 
-ND orders_loop_result loop_orders( UnitId id );
+ND orders_loop_result loop_orders();
 
-void loop_mv_unit( UnitId id, Coord const& target );
+bool loop_mv_unit( double&              percent,
+                   DissipativeVelocity& percent_vel );
+
+void frame_throttler( std::function<bool()> frame );
 
 } // namespace rn

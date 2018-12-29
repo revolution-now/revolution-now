@@ -386,9 +386,9 @@ void WindowManager::run( FinishedFunc const& finished ) {
   RenderStacker push_fader( fader );
   RenderStacker push_renderer(
       [this] { this->draw_layout( Texture() ); } );
-  render_all();
+  render_frame();
   while( running && !finished() ) {
-    render_all();
+    render_frame();
     ::SDL_Event event;
     while( ::SDL_PollEvent( &event ) != 0 ) {
       running &=
