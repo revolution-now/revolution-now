@@ -21,12 +21,48 @@ set tabstop=2
 
 "nnoremap Q :call CloseTerminal()<CR>
 
+let g:focused_tab = 1
+
+function! s:TagProposedPrevious()
+  let g:focused_tab = g:focused_tab - 1
+  if g:focused_tab < 1
+    let g:focused_tab = 1
+    return
+  endif
+  set tabline=%!MyTabLine()
+endfunction
+
+function! s:TagProposedNext()
+  let g:focused_tab = g:focused_tab + 1
+  if g:focused_tab > tabpagenr( '$' )
+    let g:focused_tab = tabpagenr( '$' )
+    return
+  endif
+  set tabline=%!MyTabLine()
+endfunction
+
+function! s:TagProposedSelect()
+  exec ':tabn ' . g:focused_tab
+  set tabline=%!MyTabLine()
+endfunction
+
+function! s:CRWrapper()
+  :echo g:focused_tab . ', ' . tabpagenr()
+  if g:focused_tab != tabpagenr()
+    call s:TagProposedSelect()
+    return
+  endif
+  :noh
+endfunction
+
 function! MyTabLine()
   let s = ''
   for i in range(tabpagenr('$'))
     " select the highlighting
     if i + 1 == tabpagenr()
       let s .= '%#TabLineSel#'
+    elseif i + 1 == g:focused_tab
+      let s .= '%#Keyword#'
     else
       let s .= '%#TabLine#'
     endif
@@ -83,3 +119,18 @@ let g:ycm_global_ycm_extra_conf = s:path . '/scripts/ycm_extra_conf.py'
 
 " Tell the vim-templates function where to find the templates.
 let g:tmpl_search_paths = [s:path . '/scripts/templates']
+
+command! TagProposedPrevious call s:TagProposedPrevious()
+command! TagProposedNext     call s:TagProposedNext()
+command! TagProposedSelect   call s:TagProposedSelect()
+
+unmap [
+unmap ]
+
+nnoremap [ :TagProposedPrevious<CR>
+nnoremap ] :TagProposedNext<CR>
+
+command! CRWrapper call s:CRWrapper()
+
+unmap <CR>
+nnoremap <silent> <CR> :CRWrapper<CR>
