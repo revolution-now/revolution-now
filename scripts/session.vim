@@ -91,7 +91,7 @@ for q in s:quads | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 " Move back to first tab
-call feedkeys( ']' )
+:tabn 1
 " Move cursor from NERDTree into main pane.
 call feedkeys( "\<C-L>" )
 " Open a terminal in a vsplit.
