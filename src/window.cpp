@@ -16,6 +16,7 @@
 #include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
+#include "plane.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 #include "typed-int.hpp"
@@ -31,10 +32,38 @@
 
 using namespace std;
 
+namespace rn {
+
+namespace {
+
+/****************************************************************
+** The Window Plane
+*****************************************************************/
+struct WindowPlane : public Plane {
+  WindowPlane() = default;
+  bool enabled() const override { return wm.num_windows() > 0; }
+  bool covers_screen() const override { return false; }
+  void draw( Texture const& tx ) const override {
+    wm.draw_layout( tx );
+  }
+  ui::WindowManager wm;
+};
+
+WindowPlane win_plane;
+
+} // namespace
+
+Plane* window_plane() { return &win_plane; }
+
+} // namespace rn
+
 namespace rn::ui {
 
 namespace {
 
+/****************************************************************
+** Misc. Helpers
+*****************************************************************/
 // This returns the width in pixels of the window border ( same
 // for left/right sides as for top/bottom sides). Don't forget
 // that this Delta must be multiplied by two to get the total

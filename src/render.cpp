@@ -178,9 +178,9 @@ void render_mv_unit( UnitId mv_id, Coord const& target,
 }
 
 void render_copy_viewport_texture() {
-  copy_texture( g_texture_viewport, nullopt,
-                viewport().get_render_src_rect(),
-                viewport().get_render_dest_rect() );
+  copy_texture_stretch( g_texture_viewport, nullopt,
+                        viewport().get_render_src_rect(),
+                        viewport().get_render_dest_rect() );
 }
 
 /****************************************************************

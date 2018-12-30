@@ -35,6 +35,10 @@ extern Delta g_drawing_origin;
 // edge of the screen, for similiar reasons).
 extern Rect g_drawing_region;
 
+// This will be the drawing region with each axis scaled down by
+// the resolution scale factor.
+Delta logical_screen_pixel_dimensions();
+
 W    screen_width_tiles();
 H    screen_height_tiles();
 void set_screen_width_tiles( W w );

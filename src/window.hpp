@@ -28,6 +28,13 @@ namespace rn::input {
 struct event_t;
 }
 
+namespace rn {
+
+struct Plane;
+Plane* window_plane();
+
+} // namespace rn
+
 namespace rn::ui {
 
 class Object {
@@ -270,6 +277,8 @@ public:
   void run( FinishedFunc const& finished_fn );
 
   ND e_wm_input_result accept_input( SDL_Event const& event );
+
+  auto num_windows() const { return windows_.size(); }
 
 private:
   struct window {

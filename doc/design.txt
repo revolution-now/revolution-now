@@ -12,7 +12,10 @@ will be gathered by the plane module and held in a central loca-
 tion, keyed off of the enum.
 
 For each plane there will be a texture the size of the screen. To
-render the screen the planes are drawn in order.
+render the screen the planes are drawn in order. We do not reuse
+the same texture just in case a plane decides that it does not
+need to render on every frame (e.g., a plane that just displays
+an image would only need to do so once).
 
 A plane has the following methods/attributes:
 
@@ -109,9 +112,10 @@ Game loops:
 
       * display messages to user any/or show animations where necessary
 
-      * allow them to enter colony when events happens; in that case
-        go to the colony screen game loop.  When the user exits the
-        colony screen then this colony iteration immediately proceeds;
+      * allow them to enter colony when events happens;
+in that case go to the colony screen game loop.When the user
+    exits the colony screen then this colony iteration
+        immediately proceeds;
         i.e., user cannot enter any other colonies.  This prevents the
         user from making last-minute changes to colonies that have not
         yet been advanced in this turn (otherwise that might allow
@@ -174,7 +178,8 @@ Game loops:
         ? need to figure this out more, but initially skip animations ?
 
       if state == animation:
-        advance animation; if animation finished the mark state as
+        advance animation;
+        if animation finished the mark state as
         `unit accepted orders`
 
       delay to maintain frame rate

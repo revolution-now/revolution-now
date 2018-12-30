@@ -34,6 +34,11 @@ Scale           g_resolution_scale_factor{};
 Delta           g_drawing_origin{};
 Rect            g_drawing_region{};
 
+Delta logical_screen_pixel_dimensions() {
+  return {g_drawing_region.w / g_resolution_scale_factor.sx,
+          g_drawing_region.h / g_resolution_scale_factor.sy};
+}
+
 W screen_width_tiles() { //{28}; //{48};
   return g_screen_width_tiles;
 }

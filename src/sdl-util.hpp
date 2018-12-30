@@ -93,16 +93,25 @@ ND Delta texture_delta( Texture const& tx );
 // Copies one texture to another at the destination point without
 // scaling. Destination texture can be nullopt for default
 // rendering target.
-void copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
-                   X x );
 void copy_texture( Texture const& from, OptCRef<Texture> to,
-                   Coord const& coord );
-// Copies the texture with scaling (which is implicit in the ra-
-// tios of the sizes of the rects).
-void copy_texture( Texture const& from, OptCRef<Texture> to,
-                   Rect const& src, Rect const& dest );
+                   Coord const& dst_coord );
+// Same as above but destination coord is (0,0). Note this should
+// not be used for rendering to the main texture since we don't
+// start at (0,0) there; see `copy_texture_to_screen` below.
+void copy_texture( Texture const& from, Texture const& to );
+// This one is used to copy a (logical-screen-sized) texture to
+// the main texture for display. The destination origin will be
+// the drawing origin and there will be no stretching.
+void copy_texture_to_main( Texture const& from );
+// Copies the texture potentially with stretching (which is
+// implicit in the ratios of the sizes of the rects).
+void copy_texture_stretch( Texture const&   from,
+                           OptCRef<Texture> to, Rect const& src,
+                           Rect const& dest );
 
 ND Texture create_texture( W w, H h );
+ND Texture create_texture( Delta delta );
+ND Texture create_screen_sized_texture();
 
 ::SDL_Surface* create_surface( Delta delta );
 
@@ -114,6 +123,7 @@ void save_texture_png( Texture const& tx, fs::path const& file );
 void grab_screen( fs::path const& file );
 
 void clear_texture_black( Texture const& tx );
+void clear_texture_transparent( Texture const& tx );
 
 ::SDL_Color to_SDL( Color color );
 Color       from_SDL( ::SDL_Color color );

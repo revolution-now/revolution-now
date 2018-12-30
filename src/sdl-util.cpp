@@ -16,6 +16,7 @@
 #include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
+#include "plane.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
@@ -76,11 +77,17 @@ ND Rect from_SDL( ::SDL_Rect const& rect ) {
 }
 
 void init_game() {
-  rn::init_sdl();
-  rn::init_fonts();
-  rn::create_window();
-  rn::print_video_stats();
-  rn::create_renderer();
+  logger->info( "Initializing SDL" );
+  init_sdl();
+  logger->info( "Initializing fonts" );
+  init_fonts();
+  logger->info( "Initializing SDL window" );
+  create_window();
+  print_video_stats();
+  logger->info( "Initializing global renderer" );
+  create_renderer();
+  logger->info( "Initializing planes" );
+  initialize_planes();
 }
 
 void init_sdl() {
@@ -301,9 +308,10 @@ void find_max_tile_sizes() {
   }
   CHECK( result, "Could not find a suitable scaling" );
   auto const& delta = *result;
-  logger->debug( "Optimal: #{}", chosen_scale );
+  logger->debug( "Optimal scale factor: #{}", chosen_scale );
   set_screen_width_tiles( delta.w );
   set_screen_height_tiles( delta.h );
+  logger->debug( "tiles: {} x {}", delta.w, delta.h );
   g_resolution_scale_factor = Scale( chosen_scale );
   g_drawing_origin.w =
       ( dm.w -
@@ -317,8 +325,9 @@ void find_max_tile_sizes() {
   g_drawing_region.y = 0_y + g_drawing_origin.h;
   g_drawing_region.w = dm.w - g_drawing_origin.w * 2_sx;
   g_drawing_region.h = dm.h - g_drawing_origin.h * 2_sy;
-  logger->debug( "w drawing origin: {}", g_drawing_origin.w );
-  logger->debug( "h drawing origin: {}", g_drawing_origin.h );
+  logger->debug( "w drawing region: {}", g_drawing_region );
+  logger->debug( "logical screen pixel dimensions: {}",
+                 logical_screen_pixel_dimensions() );
 }
 
 void create_renderer() {
@@ -334,9 +343,13 @@ void create_renderer() {
   H height = screen_height_tiles() * g_tile_height;
 
   ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
-  ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
+  // Don't need this since we impose the integer scaling manually
+  //::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
   ::SDL_SetRenderDrawBlendMode( g_renderer,
                                 ::SDL_BLENDMODE_BLEND );
+
+  logger->debug( "screen_logical_size(): {}",
+                 screen_logical_size() );
 
   // +1 tile because we may need to draw a bit in excess of the
   // viewport window in order to facilitate smooth scrolling,
@@ -360,8 +373,8 @@ Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 Texture& load_texture( const char* file ) {
   SDL_Surface* pTempSurface = IMG_Load( file );
   if( pTempSurface == nullptr ) DIE( "failed to load image" );
-  ::SDL_Texture* texture = SDL_CreateTextureFromSurface(
-      rn::g_renderer, pTempSurface );
+  ::SDL_Texture* texture =
+      SDL_CreateTextureFromSurface( g_renderer, pTempSurface );
   if( texture == nullptr ) DIE( "failed to create texture" );
   SDL_FreeSurface( pTempSurface );
   loaded_textures.emplace_back( from_SDL( texture ) );
@@ -372,6 +385,7 @@ Texture& load_texture( const char* file ) {
 // even if their corresponding initialization routines were
 // not successfully run.
 void cleanup() {
+  destroy_planes();
   unload_fonts();
   cleanup_sound();
   if( g_renderer != nullptr ) SDL_DestroyRenderer( g_renderer );
@@ -409,26 +423,29 @@ void pop_clip_rect() {
   ::SDL_RenderSetClipRect( g_renderer, &sdl_rect );
 }
 
-void copy_texture( Texture const& from, OptCRef<Texture> to, Y y,
-                   X x ) {
+void copy_texture( Texture const& from, OptCRef<Texture> to,
+                   Coord const& dst_coord ) {
   ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
   set_render_target( to );
-  Delta delta = texture_delta( from );
-  Rect  rect{x, y, delta.w, delta.h};
-  auto  sdl_rect = to_SDL( rect );
+  auto rect     = Rect::from( dst_coord, texture_delta( from ) );
+  auto sdl_rect = to_SDL( rect );
   CHECK( !::SDL_RenderCopy( g_renderer, from, nullptr,
                             &sdl_rect ) );
 }
 
-void copy_texture( Texture const& from, OptCRef<Texture> to,
-                   Coord const& coord ) {
-  copy_texture( from, move( to ), coord.y, coord.x );
+void copy_texture_to_main( Texture const& from ) {
+  copy_texture( from, nullopt, Coord{} + g_drawing_origin );
 }
 
-void copy_texture( Texture const& from, OptCRef<Texture> to,
-                   Rect const& src, Rect const& dest ) {
+void copy_texture( Texture const& from, Texture const& to ) {
+  copy_texture( from, to, Coord{} );
+}
+
+void copy_texture_stretch( Texture const&   from,
+                           OptCRef<Texture> to, Rect const& src,
+                           Rect const& dest ) {
   ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
@@ -445,6 +462,14 @@ Texture create_texture( W w, H h ) {
       SDL_TEXTUREACCESS_TARGET, w._, h._ ) );
   clear_texture_black( tx );
   return tx;
+}
+
+ND Texture create_texture( Delta delta ) {
+  return create_texture( delta.w, delta.h );
+}
+
+ND Texture create_screen_sized_texture() {
+  return create_texture( screen_logical_size() );
 }
 
 ::SDL_Surface* create_surface( Delta delta ) {
@@ -472,11 +497,12 @@ void save_texture_png( Texture const&  tx,
 }
 
 Delta screen_logical_size() {
-  ::SDL_SetRenderTarget( g_renderer, nullptr );
-  Delta screen;
-  ::SDL_RenderGetLogicalSize( g_renderer, &screen.w._,
-                              &screen.h._ );
-  return screen;
+  //::SDL_SetRenderTarget( g_renderer, nullptr );
+  // Delta screen;
+  //::SDL_RenderGetLogicalSize( g_renderer, &screen.w._,
+  //                            &screen.h._ );
+  // return screen;
+  return logical_screen_pixel_dimensions();
 }
 
 Rect screen_logical_rect() {
@@ -499,6 +525,12 @@ void grab_screen( fs::path const& file ) {
 }
 
 void clear_texture_black( Texture const& tx ) {
+  ::SDL_SetRenderTarget( g_renderer, tx );
+  ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
+  ::SDL_RenderClear( g_renderer );
+}
+
+void clear_texture_transparent( Texture const& tx ) {
   ::SDL_SetRenderTarget( g_renderer, tx );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 0 );
   ::SDL_RenderClear( g_renderer );

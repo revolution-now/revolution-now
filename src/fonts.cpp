@@ -76,8 +76,8 @@ Texture render_line_shadow( e_font font, Color fg,
   auto delta      = texture_delta( texture_fg );
   auto result_texture =
       create_texture( delta.w + 1, delta.h + 1 );
-  copy_texture( texture_bg, result_texture, 1_y, 1_x );
-  copy_texture( texture_fg, result_texture, 0_y, 0_x );
+  copy_texture( texture_bg, result_texture, {1_y, 1_x} );
+  copy_texture( texture_fg, result_texture, {0_y, 0_x} );
   return result_texture;
 }
 
@@ -102,7 +102,7 @@ Texture render_lines( H min_skip, vector<string> const& lines,
 
   Y y( 0 );
   for( size_t i = 0; i < textures.size(); ++i ) {
-    copy_texture( textures[i], result_texture, Y( y ), 0_x );
+    copy_texture( textures[i], result_texture, {y, 0_x} );
     y += std::max( min_skip, deltas[i].h );
   }
   return result_texture;
@@ -145,7 +145,7 @@ void font_size_spectrum( char const* msg,
     ::SDL_Color fg{255, 255, 255, 255};
     auto        texture =
         render_line_standard_impl( font, fg, num_msg );
-    copy_texture( texture, nullopt, Y( y ), 0_x );
+    copy_texture( texture, nullopt, {Y( y ), 0_x} );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
   }
@@ -199,7 +199,7 @@ void font_test() {
   auto texture = render_wrapped_text( skip, msg, render_line,
                                       L( _.size() <= 20 ) );
 
-  copy_texture( texture, nullopt, 100_y, 100_x );
+  copy_texture( texture, nullopt, {100_y, 100_x} );
   // font_size_spectrum( msg, font_file );
 
   ::SDL_RenderPresent( g_renderer );
