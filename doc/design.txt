@@ -1,4 +1,58 @@
+Planes
+======
+
+There will be a fixed, ordered list of planes. There will be a
+global enum with values for each plane, and this enum will reside
+in the plane module.
+
+The plane objects themselves will reside in the module that han-
+dles rendering to it, and will in general refer to methods in
+that module for input handling and rendering. The plane objects
+will be gathered by the plane module and held in a central loca-
+tion, keyed off of the enum.
+
+For each plane there will be a texture the size of the screen. To
+render the screen the planes are drawn in order.
+
+A plane has the following methods/attributes:
+
+  - enabled
+  - draw.  This method will be given the texture.  (which the
+    plane module manages and which will be automatically set
+    as the rendering target).  The texture will be initialized
+    with zero alpha everywhere. The draw method will be given, as
+    a parameter, a value indicating the phase of animations,
+    one for periodic and another monotonically increasing.
+  - accept input, returning true/false depending on whether
+    the input was handled or not.
+  - covers_screen. In that case, and if the plane is enabled,
+    planes under it are not rendered since they would not be
+    visible (for efficiency).
+
+The plane module will handle executing the drawing routines to
+assemble the composite of the planes and their layers.
+
+Input handling: user input in general will be passed through the
+planes starting with the outer most one until a plane decides to
+handle that input, at which point no further planes will be given
+the opportunity to handle it. A plane must know how to accept
+input and change its state accordingly.
+
+Planes:
+  0) Land/Units
+  1) Panel
+  2) Colony View
+  3) Europe View
+  4) Menus
+  5) Images
+  6) Windows
+  7) Console
+
+The compositor will produce a final texture that can then be
+rendered to the main one.
+
 Units on ships:
+===============
 
   ✓ Each time a ship moves, all the units it contains will have
     their orders changed to `sentry`, in case the player activated
