@@ -200,6 +200,9 @@ struct ViewportPlane : public Plane {
           if( val.wheel_delta > 0 )
             viewport().set_zoom_push(
                 e_push_direction::positive );
+          // A user zoom request halts any auto zooming that
+          // may currently be happening.
+          viewport().stop_normalize_zoom();
           handled = true;
         }
       }

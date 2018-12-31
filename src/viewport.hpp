@@ -41,6 +41,9 @@ public:
   static void set_y_push( e_push_direction );
   static void set_zoom_push( e_push_direction );
 
+  void normalize_zoom() { normalize_zoom_ = true; }
+  void stop_normalize_zoom() { normalize_zoom_ = false; }
+
 private:
   void enforce_invariants();
 
@@ -80,6 +83,9 @@ private:
   double zoom_{};
   double center_x_{};
   double center_y_{};
+
+  // Should the zoom be pushed back to 1.0.
+  bool normalize_zoom_{};
 };
 
 SmoothViewport& viewport();

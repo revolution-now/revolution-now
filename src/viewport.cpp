@@ -25,6 +25,7 @@ constexpr double zoom_min            = 0.5;
 constexpr double zoom_speed          = .08;
 constexpr double zoom_accel          = 0.2 * zoom_speed;
 constexpr double zoom_accel_drag     = 0.05 * zoom_speed;
+constexpr double zoom_norm_rate      = 0.95;
 constexpr double pan_accel_init      = 0.2 * movement_speed;
 constexpr double pan_accel_drag_init = 0.1 * movement_speed;
 
@@ -63,7 +64,8 @@ SmoothViewport::SmoothViewport()
     zoom_( 1.0 ),
     // zoom_ must be initialized before center_x_/y_
     center_x_( width_pixels() / 2 ),
-    center_y_( height_pixels() / 2 ) {
+    center_y_( height_pixels() / 2 ),
+    normalize_zoom_{false} {
   enforce_invariants();
 }
 
@@ -94,6 +96,18 @@ void SmoothViewport::advance( e_push_direction x_push,
   pan( 0, x_vel_.to_double(), false );
   pan( y_vel_.to_double(), 0, false );
   scale_zoom( 1.0 + zoom_vel_.to_double() );
+
+  if( normalize_zoom_ ) {
+    double zoom_norm_window = .0025;
+    if( zoom_ > 1.0 + zoom_norm_window )
+      zoom_ = 1.0 + ( zoom_ - 1.0 ) * zoom_norm_rate;
+    else if( zoom_ < 1.0 - zoom_norm_window )
+      zoom_ = 1.0 - ( 1.0 - zoom_ ) * zoom_norm_rate;
+    else {
+      zoom_           = 1.0;
+      normalize_zoom_ = false;
+    }
+  }
 }
 
 void SmoothViewport::advance() {
