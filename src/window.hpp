@@ -70,8 +70,8 @@ public:
   ND virtual Rect rect( Coord position ) const {
     return Rect::from( position, delta() );
   }
-  ND virtual bool accept_input(
-      input::event_t const& /*unused*/ ) {
+  // Returns true is the input was handled.
+  ND virtual bool input( input::event_t const& /*unused*/ ) {
     return false;
   }
 };
@@ -123,7 +123,7 @@ public:
   // Implement Object
   Delta delta() const override;
 
-  bool accept_input( input::event_t const& event ) override;
+  bool input( input::event_t const& event ) override;
 
   virtual int count() const = 0;
 
@@ -246,7 +246,7 @@ public:
   OptionSelectView( StrVec const& options,
                     int           initial_selection );
 
-  bool accept_input( input::event_t const& event ) override;
+  bool input( input::event_t const& event ) override;
 
   std::string const& get_selected() const;
   bool               confirmed() const { return has_confirmed; }
@@ -268,15 +268,12 @@ private:
 using FinishedFunc = std::function<bool( void )>;
 
 enum class e_window_state { running, closed };
-enum class e_wm_input_result { unhandled, handled, quit };
 
 class WindowManager {
 public:
   void draw_layout( Texture const& tx ) const;
 
-  void run( FinishedFunc const& finished_fn );
-
-  ND e_wm_input_result accept_input( SDL_Event const& event );
+  ND bool input( input::event_t const& event );
 
   auto num_windows() const { return windows_.size(); }
 
@@ -306,6 +303,8 @@ public:
   window* add_window( std::string           title,
                       std::unique_ptr<View> view,
                       Coord                 position );
+
+  void clear_windows();
 
 private:
   // Gets the window with focus, throws if no windows.

@@ -45,6 +45,7 @@ ProposedOrdersAnalysis analyze_proposed_orders(
   analysis.orders = orders;
 
   switch_v( orders ) {
+    case_v( orders::quit_t ) {}
     case_v( orders::wait_t ) {
       analysis.result = ProposedMetaOrderAnalysisResult{false};
     }

@@ -423,6 +423,16 @@ void pop_clip_rect() {
   ::SDL_RenderSetClipRect( g_renderer, &sdl_rect );
 }
 
+void copy_texture( Texture const& from, Texture const& to,
+                   Rect const& src, Rect const& dst,
+                   double angle, SDL_RendererFlip flip ) {
+  set_render_target( to );
+  auto sdl_src = to_SDL( src );
+  auto sdl_dst = to_SDL( dst );
+  CHECK( !::SDL_RenderCopyEx( g_renderer, from, &sdl_src,
+                              &sdl_dst, angle, nullptr, flip ) );
+}
+
 void copy_texture( Texture const& from, OptCRef<Texture> to,
                    Coord const& dst_coord ) {
   ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
@@ -532,18 +542,13 @@ void clear_texture_black( Texture const& tx ) {
 
 void clear_texture_transparent( Texture const& tx ) {
   ::SDL_SetRenderTarget( g_renderer, tx );
+  ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_NONE );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 0 );
   ::SDL_RenderClear( g_renderer );
-}
-
-void render_texture( Texture const& texture, SDL_Rect source,
-                     SDL_Rect dest, double angle,
-                     SDL_RendererFlip flip ) {
-  SDL_Rect dest_shifted = dest;
-  if( SDL_RenderCopyEx( g_renderer, texture, &source,
-                        &dest_shifted, angle, nullptr,
-                        flip ) > 0 )
-    DIE( "failed to render texture" );
+  // TODO: this shouldn't be necessary since anyone who is
+  // relying on blend mode should be setting it prior to
+  // doing any operations.
+  ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_BLEND );
 }
 
 // TODO: mac-os, does not seem to be able to detect when the user

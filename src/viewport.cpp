@@ -28,7 +28,13 @@ constexpr double zoom_accel_drag     = 0.05 * zoom_speed;
 constexpr double pan_accel_init      = 0.2 * movement_speed;
 constexpr double pan_accel_drag_init = 0.1 * movement_speed;
 
-namespace {} // namespace
+namespace {
+
+e_push_direction x_push{e_push_direction::none};
+e_push_direction y_push{e_push_direction::none};
+e_push_direction zoom_push{e_push_direction::none};
+
+} // namespace
 
 SmoothViewport& viewport() {
   static SmoothViewport viewport;
@@ -88,6 +94,25 @@ void SmoothViewport::advance( e_push_direction x_push,
   pan( 0, x_vel_.to_double(), false );
   pan( y_vel_.to_double(), 0, false );
   scale_zoom( 1.0 + zoom_vel_.to_double() );
+}
+
+void SmoothViewport::advance() {
+  advance( x_push, y_push, zoom_push );
+  x_push    = e_push_direction::none;
+  y_push    = e_push_direction::none;
+  zoom_push = e_push_direction::none;
+}
+
+void SmoothViewport::set_x_push( e_push_direction push ) {
+  x_push = push;
+}
+
+void SmoothViewport::set_y_push( e_push_direction push ) {
+  y_push = push;
+}
+
+void SmoothViewport::set_zoom_push( e_push_direction push ) {
+  zoom_push = push;
 }
 
 double SmoothViewport::width_pixels() const {

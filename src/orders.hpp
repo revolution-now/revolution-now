@@ -74,6 +74,7 @@ namespace rn {
 
 namespace orders {
 
+ORDER_SINGLETON( quit ); // temporary until we can quit properly
 ORDER_SINGLETON( wait );
 ORDER_SINGLETON( forfeight );
 
@@ -99,6 +100,8 @@ struct ProposedMetaOrderAnalysisResult {
 // without regard to the consequences of those orders. NOTE:
 // should not have any duplicate types.
 using PlayerUnitOrders = std::variant<
+    // TODO: this is temporary until we can quit properly
+    orders::quit_t,
     // defer to later in same turn
     orders::wait_t,
     // forfeight remainder of turn

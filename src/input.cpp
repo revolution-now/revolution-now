@@ -12,6 +12,12 @@
 
 // Revolution Now
 #include "globals.hpp"
+#include "util.hpp"
+
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
+using namespace std;
 
 namespace rn::input {
 
@@ -23,6 +29,15 @@ namespace {
 // directly, but will get it in the mouse motion event along with
 // the current mouse position whenever it changes.
 Coord g_mouse{};
+
+absl::flat_hash_map<::SDL_Keycode, direction> nav_keys{
+    {::SDLK_LEFT, direction::w},  {::SDLK_RIGHT, direction::e},
+    {::SDLK_DOWN, direction::s},  {::SDLK_UP, direction::n},
+    {::SDLK_KP_4, direction::w},  {::SDLK_KP_6, direction::e},
+    {::SDLK_KP_2, direction::s},  {::SDLK_KP_8, direction::n},
+    {::SDLK_KP_7, direction::nw}, {::SDLK_KP_9, direction::ne},
+    {::SDLK_KP_1, direction::sw}, {::SDLK_KP_3, direction::se},
+};
 
 } // namespace
 
@@ -51,17 +66,22 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     case ::SDL_QUIT: event.event = quit_event_t{}; break;
     case ::SDL_KEYDOWN:
       key_event.change   = e_key_change::down;
-      key_event.key      = sdl_event.key.keysym.sym;
+      key_event.keycode  = sdl_event.key.keysym.sym;
       key_event.scancode = sdl_event.key.keysym.scancode;
-      event.event        = key_event;
+      key_event.direction =
+          val_safe( nav_keys, sdl_event.key.keysym.sym );
+      event.event = key_event;
       break;
     case ::SDL_KEYUP:
       key_event.change   = e_key_change::up;
-      key_event.key      = sdl_event.key.keysym.sym;
+      key_event.keycode  = sdl_event.key.keysym.sym;
       key_event.scancode = sdl_event.key.keysym.scancode;
-      event.event        = key_event;
+      key_event.direction =
+          val_safe( nav_keys, sdl_event.key.keysym.sym );
+      event.event = key_event;
       break;
     case ::SDL_MOUSEMOTION:
+      mouse_event.kind  = e_mouse_event_kind::move;
       mouse_event.prev  = g_mouse;
       mouse_event.delta = mouse - g_mouse;
       // g_mouse_* needs to hold the previous mouse position.
@@ -70,11 +90,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       break;
     case ::SDL_MOUSEBUTTONDOWN:
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
+        mouse_event.kind    = e_mouse_event_kind::button;
         mouse_event.buttons = e_mouse_button::left_down;
         event.event         = mouse_event;
         break;
       }
       if( sdl_event.button.button == SDL_BUTTON_RIGHT ) {
+        mouse_event.kind    = e_mouse_event_kind::button;
         mouse_event.buttons = e_mouse_button::right_down;
         event.event         = mouse_event;
         break;
@@ -82,19 +104,39 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       break;
     case ::SDL_MOUSEBUTTONUP:
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
+        mouse_event.kind    = e_mouse_event_kind::button;
         mouse_event.buttons = e_mouse_button::left_up;
         event.event         = mouse_event;
         break;
       }
       if( sdl_event.button.button == SDL_BUTTON_RIGHT ) {
+        mouse_event.kind    = e_mouse_event_kind::button;
         mouse_event.buttons = e_mouse_button::right_up;
         event.event         = mouse_event;
         break;
       }
       break;
+    case ::SDL_MOUSEWHEEL:
+      mouse_event.kind = e_mouse_event_kind::wheel;
+      mouse_event.wheel_delta =
+          static_cast<int>( sdl_event.wheel.y );
+      event.event = mouse_event;
+      break;
     default: event.event = unknown_event_t{};
   }
   return event;
+}
+
+Opt<event_t> poll_event() {
+  ::SDL_Event event;
+  if( ::SDL_PollEvent( &event ) != 0 ) {
+    return from_SDL( event );
+  }
+  return nullopt;
+}
+
+void eat_all_events() {
+  while( poll_event() ) {}
 }
 
 } // namespace rn::input

@@ -76,6 +76,7 @@ Texture render_line_shadow( e_font font, Color fg,
   auto delta      = texture_delta( texture_fg );
   auto result_texture =
       create_texture( delta.w + 1, delta.h + 1 );
+  clear_texture_transparent( result_texture );
   copy_texture( texture_bg, result_texture, {1_y, 1_x} );
   copy_texture( texture_fg, result_texture, {0_y, 0_x} );
   return result_texture;

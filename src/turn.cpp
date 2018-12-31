@@ -74,12 +74,7 @@ e_turn_result turn() {
   // TODO: consider using a flag type from type_safe
   auto need_eot_loop{true};
 
-  ViewportRenderOptions viewport_options;
-
-  RenderStacker push_renderer( [&viewport_options] {
-    render_world_viewport( viewport_options );
-    render_copy_viewport_texture();
-  } );
+  auto& vp_state = viewport_rendering_state();
 
   // We keep looping until all units that need moving have moved.
   // We don't know this list a priori because some units may de-
@@ -140,37 +135,32 @@ e_turn_result turn() {
       while( q.front() == id &&
              unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
+        logger->debug( "asking orders for: {}",
+                       debug_string( id ) );
         need_eot_loop = false;
 
-        orders_loop_result res;
-
         /***************************************************/
-        viewport_options.reset();
-        viewport_options.unit_to_blink = id;
-        frame_throttler( [&res] {
-          res = loop_orders();
-          return ( res.type !=
-                   orders_loop_result::e_type::none );
+        vp_state = viewport_state::blink_unit{};
+        auto& blink_unit =
+            std::get<viewport_state::blink_unit>( vp_state );
+        blink_unit.id = id;
+        frame_throttler( true, [&blink_unit] {
+          return blink_unit.orders.has_value();
         } );
         /***************************************************/
+        CHECK( blink_unit.orders.has_value() );
+        auto const& orders = *blink_unit.orders;
+        logger->debug( "received orders: {}", orders.index() );
 
-        switch( res.type ) {
-          case orders_loop_result::e_type::none:
-            SHOULD_NOT_BE_HERE;
-            break;
-          case orders_loop_result::e_type::quit_game:
-            return e_turn_result::quit;
-          case orders_loop_result::e_type::orders_received:
-            // Handle this below.
-            break;
-        }
-        if( util::holds<orders::wait_t>( res.orders ) ) {
+        if( util::holds<orders::quit_t>( orders ) )
+          return e_turn_result::quit;
+
+        if( util::holds<orders::wait_t>( orders ) ) {
           q.push_back( q.front() );
           q.pop_front();
           break;
         }
-        auto analysis =
-            analyze_proposed_orders( id, res.orders );
+        auto analysis = analyze_proposed_orders( id, orders );
         if( confirm_explain_orders( analysis ) ) {
           // Check if the unit is physically moving; usually at
           // this point it will be unless it is e.g. a ship
@@ -180,31 +170,12 @@ e_turn_result turn() {
             /***************************************************/
             viewport().ensure_tile_surroundings_visible(
                 coords );
-            viewport_options.reset();
-            viewport_options.units_to_skip.insert( id );
-            double         percent               = 0;
-            constexpr auto min_velocity          = 0;
-            constexpr auto max_velocity          = .1;
-            constexpr auto initial_velocity      = .1;
-            constexpr auto mag_acceleration      = 1;
-            constexpr auto mag_drag_acceleration = .004;
-
-            DissipativeVelocity percent_vel(
-                /*min_velocity=*/min_velocity,
-                /*max_velocity=*/max_velocity,
-                /*initial_velocity=*/initial_velocity,
-                /*mag_acceleration=*/
-                mag_acceleration, // not relevant
-                                  /*mag_drag_acceleration=*/
-                mag_drag_acceleration );
-
-            RenderStacker push_renderer(
-                [id, &mv_res, &percent] {
-                  render_mv_unit( id, mv_res->coords, percent );
-                  render_copy_viewport_texture();
-                } );
-            frame_throttler( [&percent, &percent_vel] {
-              return loop_mv_unit( percent, percent_vel );
+            vp_state =
+                viewport_state::slide_unit( id, mv_res->coords );
+            auto& slide_unit =
+                std::get<viewport_state::slide_unit>( vp_state );
+            frame_throttler( false, [&slide_unit] {
+              return slide_unit.percent >= 1.0;
             } );
             /***************************************************/
           }
@@ -239,19 +210,15 @@ e_turn_result turn() {
   //      the map and GUI.
   //    clang-format on
   if( need_eot_loop ) {
-    e_eot_loop_result res;
     /***************************************************/
-    viewport_options.reset();
-    frame_throttler( [&res] {
-      res = loop_eot();
-      return ( res != e_eot_loop_result::none );
-    } );
+    vp_state = viewport_state::none{};
+    frame_throttler( true, [] { return false; } );
     /***************************************************/
-    switch( res ) {
-      case e_eot_loop_result::quit_game:
-        return e_turn_result::quit;
-      case e_eot_loop_result::none: break;
-    };
+    // switch( res ) {
+    //  case e_eot_loop_result::quit_game:
+    //    return e_turn_result::quit;
+    //  case e_eot_loop_result::none: break;
+    //};
   }
   return e_turn_result::cont;
 } // namespace rn

@@ -47,7 +47,7 @@ unordered_map<std::string, tile_map>         tile_maps;
 sprite create_sprite_32( Texture const& texture, Coord coord ) {
   Rect rect{coord.x * g_tile_width, coord.y * g_tile_height,
             W{1} * g_tile_width, H{1} * g_tile_height};
-  return {&texture, to_SDL( rect ), W{1} * g_tile_width,
+  return {&texture, rect, W{1} * g_tile_width,
           H{1} * g_tile_height};
 }
 
@@ -84,26 +84,23 @@ void load_sprites() {
 
 sprite const& lookup_sprite( g_tile tile ) {
   auto where = sprites.find( tile );
-  if( where == sprites.end() )
-    DIE( "failed to find sprite "s +
+  CHECK( where != sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
   return where->second;
 }
 
-void render_sprite( g_tile tile, Y pixel_row, X pixel_col,
-                    int rot, int flip_x ) {
+void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
+                    X pixel_col, int rot, int flip_x ) {
   auto where = sprites.find( tile );
-  if( where == sprites.end() )
-    DIE( "failed to find sprite "s +
+  CHECK( where != sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
   sprite const& sp = where->second;
 
-  Rect destination;
-  destination.x        = pixel_col;
-  destination.y        = pixel_row;
-  destination.w        = sp.w;
-  destination.h        = sp.h;
-  auto destination_sdl = to_SDL( destination );
+  Rect dst;
+  dst.x = pixel_col;
+  dst.y = pixel_row;
+  dst.w = sp.w;
+  dst.h = sp.h;
 
   constexpr double right_angle = 90.0; // degrees
 
@@ -112,19 +109,19 @@ void render_sprite( g_tile tile, Y pixel_row, X pixel_col,
   SDL_RendererFlip flip =
       ( flip_x != 0 ) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
-  render_texture( *sp.texture, sp.source, destination_sdl, angle,
-                  flip );
+  copy_texture( *sp.texture, tx, sp.source, dst, angle, flip );
 }
 
-void render_sprite( g_tile tile, Coord pixel_coord, int rot,
-                    int flip_x ) {
-  render_sprite( tile, pixel_coord.y, pixel_coord.x, rot,
+void render_sprite( Texture const& tx, g_tile tile,
+                    Coord pixel_coord, int rot, int flip_x ) {
+  render_sprite( tx, tile, pixel_coord.y, pixel_coord.x, rot,
                  flip_x );
 }
 
-void render_sprite_grid( g_tile tile, Y tile_row, X tile_col,
-                         int rot, int flip_x ) {
-  render_sprite( tile, tile_row * g_tile_height,
+void render_sprite_grid( Texture const& tx, g_tile tile,
+                         Y tile_row, X tile_col, int rot,
+                         int flip_x ) {
+  render_sprite( tx, tile, tile_row * g_tile_height,
                  tile_col * g_tile_width, rot, flip_x );
 }
 
@@ -132,15 +129,15 @@ g_tile index_to_tile( int index ) {
   return static_cast<g_tile>( index );
 }
 
-void render_tile_map( std::string_view name ) {
-  auto where = tile_maps.find( string( name ) );
-  if( where == tile_maps.end() )
-    DIE( "failed to find tile_map "s + string( name ) );
-  auto tm = where->second;
-  for( auto const& tile : tm.tiles )
-    render_sprite_grid( index_to_tile( tile.tile ), tile.y,
-                        tile.x, tile.rot, tile.flip_x );
-}
+// void render_tile_map( std::string_view name ) {
+//  auto where = tile_maps.find( string( name ) );
+//  if( where == tile_maps.end() )
+//    DIE( "failed to find tile_map "s + string( name ) );
+//  auto tm = where->second;
+//  for( auto const& tile : tm.tiles )
+//    render_sprite_grid( index_to_tile( tile.tile ), tile.y,
+//                        tile.x, tile.rot, tile.flip_x );
+//}
 
 // tile_map load_tile_map( char const* path ) {
 //  ifstream in( path );

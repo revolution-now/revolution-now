@@ -77,10 +77,6 @@ void pop_clip_rect();
 ::SDL_Surface* load_surface( const char* file );
 ND Texture& load_texture( const char* file );
 
-void render_texture( Texture const& texture, SDL_Rect source,
-                     SDL_Rect dest, double angle,
-                     SDL_RendererFlip flip );
-
 ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );
 void    toggle_fullscreen();
@@ -89,6 +85,12 @@ ND ::SDL_Rect to_SDL( Rect const& rect );
 
 // Retrive the width and height of a texture in a Rect.
 ND Delta texture_delta( Texture const& tx );
+
+// This one is used for individual sprites that may need to be
+// flipped or rotated.
+void copy_texture( Texture const& from, Texture const& to,
+                   Rect const& src, Rect const& dst,
+                   double angle, SDL_RendererFlip flip );
 
 // Copies one texture to another at the destination point without
 // scaling. Destination texture can be nullopt for default

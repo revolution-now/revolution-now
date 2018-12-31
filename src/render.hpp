@@ -13,6 +13,9 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
+#include "orders.hpp"
+#include "physics.hpp"
 #include "unit.hpp"
 
 // Abseil
@@ -25,85 +28,85 @@
 
 namespace rn {
 
-/****************************************************************
-** Rendering Stack
-*****************************************************************/
-// A rendering function must satisfy a few requirements:
-//
-//   1) Should not clear the texture since it may be drawing
-//      on top of something.
-//   2) Should not call SDL_RenderPresent since there may
-//      be more things that need drawing.
-//   3) They should not mutate themselves upon execution.
-//
-using RenderFunc = std::function<void()>;
-
-// RAII helper for pushing rendering functions onto the stack.
-// It will automatically pop them on scope exit.
-// TODO: we need to be able to push a `wall` item into the
-// rendering stack that signifies that no renderers previous
-// to it should be called.
-struct RenderStacker {
-  RenderStacker( RenderFunc const& func );
-  ~RenderStacker();
-};
-
-// Run through all the renderers and run them in order.
-void render_frame();
+struct Plane;
 
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
-// Expects the rendering target to already be set. This will
-// fully render a lang square with no units or colonies on it.
-void render_landscape( Coord world_square,
+// This will fully render a lang square with no units or colonies
+// on it.
+void render_landscape( Texture const& tx, Coord world_square,
                        Coord texture_square );
 
-// Expects the rendering target to already be set.
-void render_unit( UnitId id, Coord texture_square );
-
-// Copies the viewport texture onto the main texture. All view-
-// port rendering should be first done to the viewport texture,
-// then this function called at the end so that the right posi-
-// tion/scaling can be applied to account for e.g. zoom.
-void render_copy_viewport_texture();
+void render_unit( Texture const& tx, UnitId id,
+                  Coord texture_square );
 
 /****************************************************************
-** Viewport Rendering: these render to the viewport texture.
+** Viewport Rendering
 *****************************************************************/
-// Options for rendering the viewport. All fields must be ini-
-// tialized.
-struct ViewportRenderOptions {
-  ViewportRenderOptions() = default;
 
-  absl::flat_hash_set<Coord>  squares_with_no_units{};
-  absl::flat_hash_set<UnitId> units_to_skip{};
-  Opt<UnitId>                 unit_to_blink{std::nullopt};
+// The viewport rendering states are not really states of the
+// world, they are mainly just animation or rendering states.
+// Each state is represented by a struct which may contain data
+// members.  The data members of the struct's will be mutated in
+// in order to change/advance the state of animation, although
+// the rendering functions themselves will never mutate them.
+namespace viewport_state {
 
-  void assert_invariants() const;
+struct none {};
 
-  // Reset to defaults.
-  void reset();
+struct blink_unit {
+  UnitId                id;
+  Opt<PlayerUnitOrders> orders{};
 };
 
-// This function renders the complete static viewport view to the
-// viewport texture. This includes land, units, colonies, etc,
-// barring anything omitted from the options.
-void render_world_viewport(
-    ViewportRenderOptions const& options = {} );
+struct slide_unit {
+  slide_unit( UnitId id_, Coord target_ )
+    : id( id_ ), target( target_ ) {}
 
-// This function renders the unit-sliding animation (only) to the
-// viewport texture.
-void render_mv_unit( UnitId mv_id, Coord const& target,
-                     double percent );
+  static constexpr auto min_velocity          = 0;
+  static constexpr auto max_velocity          = .1;
+  static constexpr auto initial_velocity      = .1;
+  static constexpr auto mag_acceleration      = 1;
+  static constexpr auto mag_drag_acceleration = .004;
+
+  UnitId id;
+  Coord  target;
+  double percent{0.0};
+  // Note that mag_acceleration is not relevant here.
+  DissipativeVelocity percent_vel{
+      /*min_velocity=*/min_velocity,
+      /*max_velocity=*/max_velocity,
+      /*initial_velocity=*/initial_velocity,
+      /*mag_acceleration=*/mag_acceleration,
+      /*mag_drag_acceleration=*/mag_drag_acceleration};
+};
+
+} // namespace viewport_state
+
+using ViewportState = std::variant<
+    viewport_state::none,       // for end-of-turn
+    viewport_state::blink_unit, // waiting for orders
+    viewport_state::slide_unit  // unit moving on the map
+    >;
+
+ViewportState& viewport_rendering_state();
+
+Plane* viewport_plane();
+
+/****************************************************************
+** Panel Rendering
+*****************************************************************/
+Plane* panel_plane();
 
 /****************************************************************
 ** Miscellaneous Rendering
 *****************************************************************/
-void render_panel();
+Plane* effects_plane();
+void   effects_plane_enable( bool enable );
 
-ND RenderFunc render_fade_to_dark(
-    std::chrono::milliseconds wait,
-    std::chrono::milliseconds fade, uint8_t target_alpha );
+void reset_fade_to_dark( std::chrono::milliseconds wait,
+                         std::chrono::milliseconds fade,
+                         uint8_t target_alpha );
 
 } // namespace rn

@@ -23,14 +23,15 @@ namespace rn {
 
 struct Plane : public util::non_copy_non_move {
   enum class id {
-    world = 0, // land, units, colonies, etc.
-    panel,     // the info panel on the right
-    colony,    // colony view
-    europe,    // the old world
-    menu,      // the menus at the top of screen
-    image,     // any of the fullscreen pics displayed
-    window,    // the windows
-    console,   // the developer console
+    viewport = 0, // land, units, colonies, etc.
+    panel,        // the info panel on the right
+    colony,       // colony view
+    europe,       // the old world
+    menu,         // the menus at the top of screen
+    image,        // any of the fullscreen pics displayed
+    effects,      // such as e.g. fading
+    window,       // the windows
+    console,      // the developer console
     /**/
     count // must always be last
   };
@@ -66,6 +67,8 @@ void destroy_planes();
 
 void draw_all_planes( Texture const& tx = Texture() );
 
+// Returns true if one of the planes handled the input, false
+// otherwise. At most one plane will handle the input.
 bool send_input_to_planes( input::event_t const& event );
 
 } // namespace rn

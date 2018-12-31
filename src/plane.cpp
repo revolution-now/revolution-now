@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "render.hpp"
 #include "window.hpp"
 
 // base-util
@@ -63,14 +64,15 @@ void initialize_planes() {
   // object below.
   planes.fill( ObserverPtr<Plane>( &dummy ) );
 
-  // plane( Plane::id::world ).reset( world_plane() );
-  // plane( Plane::id::panel, ).reset( panel_plane() );
-  // plane( Plane::id::colony, ).reset( colony_plane() );
-  // plane( Plane::id::europe, ).reset( europe_plane() );
-  // plane( Plane::id::menu, ).reset( menu_plane() );
-  // plane( Plane::id::image, ).reset( image_plane() );
+  plane( Plane::id::viewport ).reset( viewport_plane() );
+  plane( Plane::id::panel ).reset( panel_plane() );
+  // plane( Plane::id::colony ).reset( colony_plane() );
+  // plane( Plane::id::europe ).reset( europe_plane() );
+  // plane( Plane::id::menu ).reset( menu_plane() );
+  // plane( Plane::id::image ).reset( image_plane() );
+  plane( Plane::id::effects ).reset( effects_plane() );
   plane( Plane::id::window ).reset( window_plane() );
-  // plane( Plane::id::console, ).reset( console_plane() );
+  // plane( Plane::id::console ).reset( console_plane() );
 
   // No plane must be null, they must all point to a valid Plane
   // object even if it is the dummy above.

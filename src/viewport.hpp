@@ -26,8 +26,7 @@ class SmoothViewport {
 public:
   SmoothViewport();
 
-  void advance( e_push_direction x_push, e_push_direction y_push,
-                e_push_direction zoom_push );
+  void advance();
 
   // Tiles touched by the viewport (tiles at the edge may only be
   // partially visible).
@@ -38,8 +37,15 @@ public:
   Rect get_render_src_rect() const;
   Rect get_render_dest_rect() const;
 
+  static void set_x_push( e_push_direction );
+  static void set_y_push( e_push_direction );
+  static void set_zoom_push( e_push_direction );
+
 private:
   void enforce_invariants();
+
+  void advance( e_push_direction x_push, e_push_direction y_push,
+                e_push_direction zoom_push );
 
   double width_pixels() const;
   double height_pixels() const;

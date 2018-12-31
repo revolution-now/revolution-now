@@ -17,6 +17,7 @@
 #include "observer-ptr/observer-ptr.hpp"
 
 // c++ standard library
+#include <chrono>
 #include <functional>
 #include <optional>
 #include <string>
@@ -25,6 +26,8 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+using TimeType = decltype( std::chrono::system_clock::now() );
 
 // Deprecated; remove, since the name ordering is not consistent.
 using StrVec = std::vector<std::string>;

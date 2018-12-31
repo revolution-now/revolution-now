@@ -63,7 +63,7 @@ enum class ND g_tile {
 struct ND sprite {
   // try making these const
   Texture const* texture{};
-  SDL_Rect       source{};
+  Rect           source{};
   W              w{};
   H              h{};
 };
@@ -72,14 +72,15 @@ void load_sprites();
 
 ND sprite lookup_sprite( std::string_view name );
 
-void render_sprite( g_tile tile, Y pixel_row, X pixel_col,
-                    int rot, int flip_x );
-void render_sprite( g_tile tile, Coord pixel_coord, int rot,
-                    int flip_x );
-void render_sprite_grid( g_tile tile, Y tile_row, X tile_col,
-                         int rot, int flip_x );
+void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
+                    X pixel_col, int rot, int flip_x );
+void render_sprite( Texture const& tx, g_tile tile,
+                    Coord pixel_coord, int rot, int flip_x );
+void render_sprite_grid( Texture const& tx, g_tile tile,
+                         Y tile_row, X tile_col, int rot,
+                         int flip_x );
 
 void load_tile_maps();
-void render_tile_map( std::string_view name );
+// void render_tile_map( std::string_view name );
 
 } // namespace rn

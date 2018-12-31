@@ -16,6 +16,7 @@
 #include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
+#include "loops.hpp"
 #include "plane.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
@@ -44,16 +45,20 @@ struct WindowPlane : public Plane {
   bool enabled() const override { return wm.num_windows() > 0; }
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
+    clear_texture_transparent( tx );
     wm.draw_layout( tx );
+  }
+  bool input( input::event_t const& event ) override {
+    return wm.input( event );
   }
   ui::WindowManager wm;
 };
 
-WindowPlane win_plane;
+WindowPlane g_window_plane;
 
 } // namespace
 
-Plane* window_plane() { return &win_plane; }
+Plane* window_plane() { return &g_window_plane; }
 
 } // namespace rn
 
@@ -94,9 +99,9 @@ Delta CompositeView::delta() const {
   return {rect.w, rect.h};
 }
 
-bool CompositeView::accept_input( input::event_t const& event ) {
+bool CompositeView::input( input::event_t const& event ) {
   for( auto p_view : *this )
-    if( p_view.view->accept_input( event ) ) return true;
+    if( p_view.view->input( event ) ) return true;
   return false;
 }
 
@@ -250,8 +255,7 @@ void OptionSelectView::grow_to( W w ) {
   }
 }
 
-bool OptionSelectView::accept_input(
-    input::event_t const& event ) {
+bool OptionSelectView::input( input::event_t const& event ) {
   if( !util::holds<input::key_event_t>( event.event ) )
     return false;
   // It's a keyboard event.
@@ -259,7 +263,7 @@ bool OptionSelectView::accept_input(
   if( key_event.change != input::e_key_change::down )
     return false;
   // It's a key down.
-  switch( key_event.key ) {
+  switch( key_event.keycode ) {
     case ::SDLK_UP:
     case ::SDLK_KP_8:
       if( selected_ > 0 ) set_selected( selected_ - 1 );
@@ -365,12 +369,10 @@ WindowManager::window* WindowManager::add_window(
   return &windows_.back();
 }
 
-e_wm_input_result WindowManager::accept_input(
-    SDL_Event const& sdl_event ) {
-  bool handled = false;
+void WindowManager::clear_windows() { windows_.clear(); }
 
-  auto event = input::from_SDL( sdl_event );
-
+bool WindowManager::input( input::event_t const& event ) {
+  if( num_windows() == 0 ) return false;
   Rect title_bar = focused().title_bar();
   // auto mouse_pos = event.mouse_state.pos;
   // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
@@ -378,8 +380,9 @@ e_wm_input_result WindowManager::accept_input(
   //               title_bar.h, mouse_pos.x, mouse_pos.y );
   GET_IF( event.event, input::mouse_event_t, mouse_event ) {
     logger->trace( "Mouse event" );
-    if( event.mouse_state.pos.is_inside( title_bar ) ||
-        mouse_event->prev.is_inside( title_bar ) ) {
+    if( mouse_event->kind == input::e_mouse_event_kind::move &&
+        ( event.mouse_state.pos.is_inside( title_bar ) ||
+          mouse_event->prev.is_inside( title_bar ) ) ) {
       logger->trace( "  and inside title bar" );
       if( event.mouse_state.left ) {
         logger->trace( "  and left mouse down" );
@@ -389,42 +392,16 @@ e_wm_input_result WindowManager::accept_input(
                        mouse_event->delta.h );
         // We're dragging on the title bar.
         focused().position += mouse_event->delta;
-        return e_wm_input_result::handled;
+        return true;
       }
     }
   }
-
-  handled = focused().view->accept_input( event );
-
-  return handled ? e_wm_input_result::handled
-                 : e_wm_input_result::unhandled;
+  return focused().view->input( event );
 }
 
 WindowManager::window& WindowManager::focused() {
   CHECK( !windows_.empty() );
   return windows_[0];
-}
-
-void WindowManager::run( FinishedFunc const& finished ) {
-  logger->debug( "Running window manager" );
-  bool running = true;
-
-  auto fader =
-      render_fade_to_dark( chrono::milliseconds( 1500 ),
-                           chrono::milliseconds( 3000 ), 65 );
-  RenderStacker push_fader( fader );
-  RenderStacker push_renderer(
-      [this] { this->draw_layout( Texture() ); } );
-  render_frame();
-  while( running && !finished() ) {
-    render_frame();
-    ::SDL_Event event;
-    while( ::SDL_PollEvent( &event ) != 0 ) {
-      running &=
-          ( accept_input( event ) != e_wm_input_result::quit );
-    }
-    ::SDL_Delay( 10 );
-  }
 }
 
 /****************************************************************
@@ -443,12 +420,18 @@ string select_box( string const& title, StrVec options ) {
       OwningPositionedView{move( selector ), Coord{0_y, 0_x}} );
   auto view = make_unique<ViewVector>( move( views ) );
 
-  WindowManager wm;
-  auto*         win = wm.add_window( title, move( view ) );
+  auto* win =
+      g_window_plane.wm.add_window( title, move( view ) );
   selector_ptr->grow_to( win->inside_border_rect().w );
-  wm.run( finished );
+  reset_fade_to_dark( chrono::milliseconds( 1500 ),
+                      chrono::milliseconds( 3000 ), 65 );
+  effects_plane_enable( true );
+  frame_throttler( true, finished );
+  effects_plane_enable( false );
   logger->info( "selected: {}", selector_ptr->get_selected() );
-  return selector_ptr->get_selected();
+  auto result = selector_ptr->get_selected();
+  g_window_plane.wm.clear_windows();
+  return result;
 }
 
 e_confirm yes_no( string const& title ) {
