@@ -28,7 +28,7 @@
 
 namespace rn {
 
-enum class ND e_unit_type { free_colonist, caravel };
+enum class ND e_unit_type { free_colonist, soldier, caravel };
 
 // Static information describing classes of units.  There will be
 // one of these for each type of unit.

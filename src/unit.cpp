@@ -46,6 +46,7 @@ unit_desc() {
   static unordered_map<e_unit_type, UnitDescriptor,
                        EnumClassHash> const desc{
       LOAD_UNIT_DESC( free_colonist ),
+      LOAD_UNIT_DESC( soldier ),
       LOAD_UNIT_DESC( caravel ),
   };
   return desc;

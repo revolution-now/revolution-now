@@ -57,7 +57,8 @@ enum class ND g_tile {
   panel_slate_2_sides,
 
   free_colonist = 5 * g_tile_set_width,
-  caravel
+  caravel,
+  soldier
 };
 
 struct ND sprite {

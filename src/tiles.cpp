@@ -80,6 +80,7 @@ void load_sprites() {
 
   SET_SPRITE( free_colonist );
   SET_SPRITE( caravel );
+  SET_SPRITE( soldier );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {

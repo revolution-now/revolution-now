@@ -63,6 +63,7 @@ CFG( art,
 
     FLD( Coord, free_colonist )
     FLD( Coord, caravel )
+    FLD( Coord, soldier )
   )
 )
 
@@ -85,4 +86,5 @@ CFG( art,
 CFG( units,
   UNIT_SCHEMA( free_colonist )
   UNIT_SCHEMA( caravel       )
+  UNIT_SCHEMA( soldier       )
 )

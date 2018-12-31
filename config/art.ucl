@@ -23,4 +23,5 @@ tiles {
 
   free_colonist:       { y: 5, x: 0 }
   caravel:             { y: 5, x: 1 }
+  soldier:             { y: 5, x: 2 }
 }

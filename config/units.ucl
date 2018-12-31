@@ -10,6 +10,18 @@ free_colonist {
   cargo_slots_occupies:  1
 }
 
+soldier {
+  name:                  Soldier
+  boat:                  no
+  visibility:            1
+  movement_points:       1
+  can_attack:            yes
+  attack_points:         1
+  defense_points:        1
+  cargo_slots:           0
+  cargo_slots_occupies:  1
+}
+
 caravel {
   name:                  Caravel
   boat:                  yes
