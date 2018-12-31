@@ -30,13 +30,19 @@ namespace {
 // the current mouse position whenever it changes.
 Coord g_mouse{};
 
-absl::flat_hash_map<::SDL_Keycode, direction> nav_keys{
-    {::SDLK_LEFT, direction::w},  {::SDLK_RIGHT, direction::e},
-    {::SDLK_DOWN, direction::s},  {::SDLK_UP, direction::n},
-    {::SDLK_KP_4, direction::w},  {::SDLK_KP_6, direction::e},
-    {::SDLK_KP_2, direction::s},  {::SDLK_KP_8, direction::n},
-    {::SDLK_KP_7, direction::nw}, {::SDLK_KP_9, direction::ne},
-    {::SDLK_KP_1, direction::sw}, {::SDLK_KP_3, direction::se},
+absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
+    {::SDLK_LEFT, e_direction::w},
+    {::SDLK_RIGHT, e_direction::e},
+    {::SDLK_DOWN, e_direction::s},
+    {::SDLK_UP, e_direction::n},
+    {::SDLK_KP_4, e_direction::w},
+    {::SDLK_KP_6, e_direction::e},
+    {::SDLK_KP_2, e_direction::s},
+    {::SDLK_KP_8, e_direction::n},
+    {::SDLK_KP_7, e_direction::nw},
+    {::SDLK_KP_9, e_direction::ne},
+    {::SDLK_KP_1, e_direction::sw},
+    {::SDLK_KP_3, e_direction::se},
 };
 
 } // namespace

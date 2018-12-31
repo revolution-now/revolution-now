@@ -41,8 +41,8 @@ void reset_moves() {
 // burden of the logic in this function to find every possible
 // way that the move is *not* allowed and to flag it if that is
 // the case.
-ProposedMoveAnalysisResult analyze_proposed_move( UnitId    id,
-                                                  direction d ) {
+ProposedMoveAnalysisResult analyze_proposed_move(
+    UnitId id, e_direction d ) {
   auto coords = coords_for_unit( id ).moved( d );
 
   Y y = coords.y;

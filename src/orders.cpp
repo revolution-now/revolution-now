@@ -52,8 +52,8 @@ ProposedOrdersAnalysis analyze_proposed_orders(
     case_v( orders::forfeight_t ) {
       analysis.result = ProposedMetaOrderAnalysisResult{true};
     }
-    case_v_( orders::move, direction ) {
-      analysis.result = analyze_proposed_move( id, direction );
+    case_v_( orders::move, e_direction ) {
+      analysis.result = analyze_proposed_move( id, e_direction );
     }
     default_v;
   }

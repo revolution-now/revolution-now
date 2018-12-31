@@ -83,7 +83,7 @@ struct ND ProposedMoveAnalysisResult {
 void reset_moves();
 
 ND ProposedMoveAnalysisResult
-   analyze_proposed_move( UnitId id, direction d );
+   analyze_proposed_move( UnitId id, e_direction d );
 
 void move_unit( UnitId                            id,
                 ProposedMoveAnalysisResult const& analysis );

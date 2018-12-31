@@ -79,7 +79,7 @@ ORDER_SINGLETON( wait );
 ORDER_SINGLETON( forfeight );
 
 struct move {
-  direction d;
+  e_direction d;
 };
 
 } // namespace orders

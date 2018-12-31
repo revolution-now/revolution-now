@@ -62,7 +62,7 @@ struct key_event_t {
   // directional motion then this will be populated. It will be
   // populated both for key-up and key-down. It may not be useful
   // in many cases.
-  Opt<direction> direction{};
+  Opt<e_direction> direction{};
 };
 
 struct unknown_event_t {};

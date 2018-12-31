@@ -43,7 +43,7 @@ struct ND Scale {
   constexpr Scale() : Scale( 1 ) {}
 };
 
-enum class ND direction {
+enum class ND e_direction {
   // clang-format off
   nw, n, ne,
    w, c,  e,
@@ -127,7 +127,7 @@ struct ND Coord {
   // in each direction (or possibly only one direction).
   void clip( Rect const& rect );
 
-  Coord moved( direction d ) const;
+  Coord moved( e_direction d ) const;
   bool  is_inside( Rect const& rect ) const;
 
   auto to_tuple() const { return std::tuple( y, x ); }
