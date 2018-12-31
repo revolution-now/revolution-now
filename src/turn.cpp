@@ -166,8 +166,8 @@ e_turn_result turn() {
           // Check if the unit is physically moving; usually at
           // this point it will be unless it is e.g. a ship
           // offloading units.
-          GET_IF( analysis.result, ProposedMoveAnalysisResult,
-                  mv_res ) {
+          if_v( analysis.result, ProposedMoveAnalysisResult,
+                mv_res ) {
             /***************************************************/
             viewport().ensure_tile_surroundings_visible(
                 coords );
@@ -175,6 +175,10 @@ e_turn_result turn() {
                 viewport_state::slide_unit( id, mv_res->coords );
             auto& slide_unit =
                 std::get<viewport_state::slide_unit>( vp_state );
+            // In this call we specify that it should not collect
+            // any user input (keyboard, mouse) to avoid movement
+            // commands (issued during animation) from getting
+            // swallowed.
             frame_throttler( false, [&slide_unit] {
               return slide_unit.percent >= 1.0;
             } );
@@ -191,7 +195,7 @@ e_turn_result turn() {
       }
 
       // Now we must decide if the unit has finished its turn.
-      // TODO: try to put thsi in the unit class.
+      // TODO: try to put this in the unit class.
       if( unit.moved_this_turn() ||
           !unit.orders_mean_input_required() )
         unit.finish_turn();
