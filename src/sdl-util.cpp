@@ -626,6 +626,18 @@ void render_fill_rect( OptCRef<Texture> tx, Color color,
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
 }
 
+void render_line( Texture const& tx, Color color, Coord start,
+                  Delta delta ) {
+  // The SDL rendering method used below includes end points, so
+  // we must avoid calling it if the line will have zero length.
+  if( delta == Delta::zero() ) return;
+  set_render_target( tx );
+  set_render_draw_color( color );
+  Coord end = start + delta.trimmed_by_one();
+  ::SDL_RenderDrawLine( g_renderer, start.x._, start.y._,
+                        end.x._, end.y._ );
+}
+
 void render_rect( OptCRef<Texture> tx, Color color,
                   Rect const& rect ) {
   set_render_target( move( tx ) );

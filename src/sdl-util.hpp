@@ -131,6 +131,13 @@ void clear_texture_transparent( Texture const& tx );
 Color       from_SDL( ::SDL_Color color );
 
 void set_render_draw_color( Color color );
+// This takes a delta so that it is obvious how long the line
+// will be. The SDL api method used includes end points, so if we
+// took a Coord as the end point then we'd have to subtract one
+// from each length in order to allow for zero-length lines with
+// that approach.
+void render_line( Texture const& tx, Color color, Coord start,
+                  Delta delta );
 void render_rect( OptCRef<Texture> tx, Color color,
                   Rect const& rect );
 void render_fill_rect( OptCRef<Texture> tx, Color color,

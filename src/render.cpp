@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "config-files.hpp"
 #include "errors.hpp"
+#include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
 #include "movement.hpp"
@@ -41,6 +43,47 @@ namespace {} // namespace
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
+void render_nationality_icon( Texture const& tx, e_nation nation,
+                              char c, Coord pixel_coord ) {
+  Delta       delta    = {13_h, 13_w};
+  Rect        rect     = Rect::from( pixel_coord, delta );
+  auto const& nation_o = nation_obj( nation );
+  render_fill_rect( tx, nation_o.flag_color, rect );
+  auto border_color = config_palette.grey.n30;
+  render_rect( tx, border_color, rect );
+
+  render_line( tx, config_palette.grey.nDC, pixel_coord + 0_w,
+               {0_h, delta.w} );
+  render_line( tx, config_palette.grey.nDC,
+               pixel_coord + ( delta.w - 1_w ), {delta.h, 0_w} );
+  render_line( tx, config_palette.grey.n10,
+               pixel_coord + ( delta.h / 2 ),
+               {delta.h / 2, 0_w} );
+  render_line( tx, config_palette.grey.n10,
+               pixel_coord + ( delta.h - 1_h ),
+               {0_h, delta.w / 2} );
+  auto char_tx = render_line_standard(
+      fonts::standard, border_color, string( 1, c ) );
+
+  auto char_tx_size = texture_delta( char_tx );
+  copy_texture(
+      char_tx, tx,
+      centered( char_tx_size, rect ) + Delta{1_w, 0_h} );
+}
+
+void render_nationality_icon( Texture const& tx, UnitId id,
+                              Coord pixel_coord ) {
+  auto const& unit = unit_from_id( id );
+  char        c;
+  switch( unit.orders() ) {
+    case Unit::e_orders::none: c = 'X'; break;
+    case Unit::e_orders::sentry: c = 'S'; break;
+    case Unit::e_orders::fortified: c = 'F'; break;
+  };
+  // auto pixel_coord = tile_coord * g_tile_scale;
+  render_nationality_icon( tx, unit.nation(), c, pixel_coord );
+}
+
 void render_landscape( Texture const& tx, Coord world_square,
                        Coord pixel_coord ) {
   auto   s    = square_at( world_square );
@@ -51,6 +94,7 @@ void render_landscape( Texture const& tx, Coord world_square,
 void render_unit( Texture const& tx, UnitId id,
                   Coord pixel_coord ) {
   auto const& unit = unit_from_id( id );
+  render_nationality_icon( tx, id, pixel_coord );
   render_sprite( tx, unit.desc().tile, pixel_coord, 0, 0 );
 }
 
@@ -131,9 +175,7 @@ void render_world_viewport( ViewportState& state ) {
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
     pixel_coord += pixel_delta;
-    auto const& unit = unit_from_id( slide->id );
-    render_sprite( g_texture_viewport, unit.desc().tile,
-                   pixel_coord, 0, 0 );
+    render_unit( g_texture_viewport, slide->id, pixel_coord );
   }
 }
 

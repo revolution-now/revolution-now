@@ -122,6 +122,19 @@ bool Coord::is_inside( Rect const& rect ) const {
          ( x < rect.x + rect.w ) && ( y < rect.y + rect.h );
 }
 
+Delta Delta::trimmed_by_one() const {
+  auto res = *this;
+  if( res.w > 0 )
+    res.w -= 1_w;
+  else if( res.w < 0 )
+    res.w += 1_w;
+  if( res.h > 0 )
+    res.h -= 1_h;
+  else if( res.h < 0 )
+    res.h += 1_h;
+  return res;
+}
+
 Delta Delta::uni0n( Delta const& rhs ) const {
   return {std::max( w, rhs.w ), std::max( h, rhs.h )};
 }
@@ -147,12 +160,24 @@ Coord operator+( Delta const& delta, Coord const& coord ) {
   return {coord.y + delta.h, coord.x + delta.w};
 }
 
+Coord operator-( Coord const& coord, Delta const& delta ) {
+  return {coord.y - delta.h, coord.x - delta.w};
+}
+
 ND Coord operator+( Coord const& coord, W w ) {
   return {coord.y, coord.x + w};
 }
 
 ND Coord operator+( Coord const& coord, H h ) {
   return {coord.y + h, coord.x};
+}
+
+ND Coord operator-( Coord const& coord, W w ) {
+  return {coord.y, coord.x - w};
+}
+
+ND Coord operator-( Coord const& coord, H h ) {
+  return {coord.y - h, coord.x};
 }
 
 Delta operator-( Coord const& lhs, Coord const& rhs ) {

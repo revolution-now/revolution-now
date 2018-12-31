@@ -55,6 +55,10 @@ struct ND Delta {
   W w = 0_w;
   H h = 0_h;
 
+  Delta() = default;
+  Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
+  Delta( H h_, W w_ ) : w( w_ ), h( h_ ) {}
+
   bool operator==( Delta const& other ) const {
     return ( h == other.h ) && ( w == other.w );
   }
@@ -74,6 +78,12 @@ struct ND Delta {
     static Delta const zero{};
     return zero;
   }
+
+  // This will reduce the magnitude of each component by one.
+  // E.g., if the h component is -5, it will become -4, if the w
+  // component is 10, it will become 9. If a component is zero it
+  // will remain zero.
+  Delta trimmed_by_one() const;
 
   void operator*=( Scale const& scale ) {
     w *= scale.sx;
@@ -243,10 +253,13 @@ ND Delta operator-( Delta const& lhs, Delta const& rhs );
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
 ND Coord operator+( Delta const& delta, Coord const& coord );
+ND Coord operator-( Coord const& coord, Delta const& delta );
 ND Delta operator-( Coord const& lhs, Coord const& rhs );
 
 ND Coord operator+( Coord const& coord, W w );
 ND Coord operator+( Coord const& coord, H h );
+ND Coord operator-( Coord const& coord, W w );
+ND Coord operator-( Coord const& coord, H h );
 
 ND Coord operator*( Coord const& coord, Scale const& scale );
 ND Delta operator*( Delta const& delta, Scale const& scale );
