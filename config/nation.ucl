@@ -1,0 +1,15 @@
+dutch {
+  country_name: "The Netherlands"
+}
+
+french {
+  country_name: "France"
+}
+
+english {
+  country_name: "England"
+}
+
+spanish {
+  country_name: "Spain"
+}

@@ -16,6 +16,7 @@
 #include "color.hpp"
 #include "geo-types.hpp"
 #include "mv-points.hpp"
+#include "nation.hpp"
 #include "typed-int.hpp"
 
 #include <optional>

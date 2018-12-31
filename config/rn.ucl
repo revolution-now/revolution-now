@@ -1,3 +1,5 @@
+player_nation: english
+
 target_frame_rate: 60
 
 main_window {

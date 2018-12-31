@@ -7,6 +7,7 @@
 * Main config file
 *****************************************************************/
 CFG( rn,
+  FLD( e_nation, player_nation )
   FLD( int, target_frame_rate )
   OBJ( main_window,
     FLD( Str, title )
@@ -87,4 +88,26 @@ CFG( units,
   UNIT_SCHEMA( free_colonist )
   UNIT_SCHEMA( caravel       )
   UNIT_SCHEMA( soldier       )
+)
+
+/****************************************************************
+* Nation Config File
+*****************************************************************/
+CFG( nation,
+  OBJ( dutch,
+    FLD( Str, country_name )
+    LNK( flag_color, palette.orange.sat2.lum9 )
+  )
+  OBJ( french,
+    FLD( Str, country_name )
+    LNK( flag_color, palette.blue.sat2.lum6 )
+  )
+  OBJ( english,
+    FLD( Str, country_name )
+    LNK( flag_color, palette.red.sat2.lum7 )
+  )
+  OBJ( spanish,
+    FLD( Str, country_name )
+    LNK( flag_color, palette.yellow.sat2.lum13 )
+  )
 )

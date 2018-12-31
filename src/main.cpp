@@ -45,13 +45,19 @@ void game() {
   load_sprites();
   load_tile_maps();
 
+  auto const& nation = nation_obj( player_nation() );
+  logger->info( "player is {}, of the nation {}",
+                nation.name_proper(), nation.country_name );
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
-  (void)create_unit_on_map( e_unit_type::soldier, 2_y, 3_x );
-  (void)create_unit_on_map( e_unit_type::free_colonist, 2_y,
-                            4_x );
-  (void)create_unit_on_map( e_unit_type::caravel, 2_y, 2_x );
-  //(void)create_unit_on_map( e_unit_type::caravel, 2_y, 1_x );
+  (void)create_unit_on_map( player_nation(),
+                            e_unit_type::soldier, 2_y, 3_x );
+  (void)create_unit_on_map(
+      player_nation(), e_unit_type::free_colonist, 2_y, 4_x );
+  (void)create_unit_on_map( player_nation(),
+                            e_unit_type::caravel, 2_y, 2_x );
+  //(void)create_unit_on_map( player_nation(),
+  // e_unit_type::caravel, 2_y, 1_x );
 
   while( turn() != e_turn_result::quit ) {}
 
@@ -62,7 +68,7 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  init_logging( spdlog::level::debug );
+  init_logging( spdlog::level::info );
   load_configs();
   game();
   return 0;

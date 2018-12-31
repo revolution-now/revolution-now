@@ -122,8 +122,9 @@ Unit& create_unit( e_nation nation, e_unit_type type ) {
 }
 
 // need to think about what this API should be.
-UnitId create_unit_on_map( e_unit_type type, Y y, X x ) {
-  Unit& unit = create_unit( e_nation::dutch, type );
+UnitId create_unit_on_map( e_nation nation, e_unit_type type,
+                           Y y, X x ) {
+  Unit& unit = create_unit( nation, type );
   units_from_coords[Coord{y, x}].insert( unit.id() );
   coords_from_unit[unit.id()] = Coord{y, x};
   unit_ownership[unit.id()]   = e_unit_ownership::world;

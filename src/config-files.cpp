@@ -11,6 +11,7 @@
 #include "config-files.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
 #include "util.hpp"
@@ -213,6 +214,7 @@ UCL_TYPE( Color,      UCL_STRING,    string_value   )
 UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
 UCL_TYPE( X,          UCL_INT,       int_value      )
 UCL_TYPE( W,          UCL_INT,       int_value      )
+UCL_TYPE( e_nation,   UCL_STRING,    string_value   )
 //UCL_TYPE( Y,          UCL_INT,       int_value     )
 //UCL_TYPE( H,          UCL_INT,       int_value     )
 // clang-format on
@@ -266,6 +268,54 @@ void populate_config_field( ucl::Ucl obj, T& dest,
       obj, ucl_type_of_v<T>, dotted, config_name,
       string( "item(s) of type " ) + ucl_type_name_of_v<T> );
   dest = static_cast<T>( (obj.*ucl_getter_for_type_v<T>)( {} ) );
+}
+
+// e_nation
+// TODO: make this generic with reflected enums (need those).
+// NOTE: this only works with enums that START AT ZERO and
+// that have a __count__ value as the last value.
+template<>
+void populate_config_field( ucl::Ucl obj, e_nation& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  (void)ucl_getter_for_type_v<e_nation>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, ucl_type_of_v<e_nation>, dotted,
+                    config_name,
+                    string( "item(s) of type " ) +
+                        ucl_type_name_of_v<e_nation> );
+  auto          str_val = obj.string_value();
+  int           max = static_cast<int>( e_nation::__count__ );
+  Opt<e_nation> result{};
+  for( int i = 0; i < max; ++i ) {
+    auto enum_val = static_cast<e_nation>( i );
+    // We are doing it this way with this switch statement so
+    // that, until we have enum reflection, we will get a compile
+    // error here if we add a new enum value but forget to add it
+    // here.
+    switch( enum_val ) {
+      case e_nation::dutch:
+        if( str_val == "dutch" ) result = enum_val;
+        break;
+      case e_nation::french:
+        if( str_val == "french" ) result = enum_val;
+        break;
+      case e_nation::english:
+        if( str_val == "english" ) result = enum_val;
+        break;
+      case e_nation::spanish:
+        if( str_val == "spanish" ) result = enum_val;
+        break;
+      case e_nation::__count__: break;
+    }
+  }
+  CHECK( result.has_value(),
+         "enum value `{}` is not a known value of the enum "
+         "e_nation",
+         str_val );
+  dest = *result;
 }
 
 // Coord

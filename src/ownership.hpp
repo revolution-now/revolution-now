@@ -28,7 +28,8 @@ UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
 void map_units( std::function<void( Unit& )> const& func );
 
 // Not safe, probably temporary.
-ND UnitId create_unit_on_map( e_unit_type type, Y y, X x );
+ND UnitId create_unit_on_map( e_nation nation, e_unit_type type,
+                              Y y, X x );
 // Functions for mapping between units and coordinates on the
 // map.
 ND std::unordered_set<UnitId> const& units_from_coord( Y y,

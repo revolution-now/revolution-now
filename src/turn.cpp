@@ -82,7 +82,7 @@ e_turn_result turn() {
   // and this could happen for various reasons. Perhaps even
   // units could be created during this process (?).
   while( true ) {
-    auto units    = units_all( player_nationality() );
+    auto units    = units_all( player_nation() );
     auto finished = []( UnitId id ) {
       return unit_from_id( id ).finished_turn();
     };
