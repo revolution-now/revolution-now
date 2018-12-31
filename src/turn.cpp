@@ -101,8 +101,6 @@ e_turn_result turn() {
       auto id = unit.id();
       logger->debug( "processing turn for unit {}",
                      debug_string( id ) );
-      auto coords = coords_for_unit( id );
-      viewport().ensure_tile_surroundings_visible( coords );
 
       //    clang-format off
       //
@@ -138,6 +136,9 @@ e_turn_result turn() {
         logger->debug( "asking orders for: {}",
                        debug_string( id ) );
         need_eot_loop = false;
+
+        auto coords = coords_for_unit( id );
+        viewport().ensure_tile_surroundings_visible( coords );
 
         /***************************************************/
         vp_state = viewport_state::blink_unit{};
