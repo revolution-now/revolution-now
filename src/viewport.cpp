@@ -107,6 +107,7 @@ void SmoothViewport::advance( e_push_direction x_push,
       zoom_           = 1.0;
       normalize_zoom_ = false;
     }
+    enforce_invariants();
   }
 }
 
