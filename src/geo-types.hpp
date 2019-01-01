@@ -55,9 +55,9 @@ struct ND Delta {
   W w = 0_w;
   H h = 0_h;
 
-  Delta() = default;
-  Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
-  Delta( H h_, W w_ ) : w( w_ ), h( h_ ) {}
+  constexpr Delta() = default;
+  constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
+  constexpr Delta( H h_, W w_ ) : w( w_ ), h( h_ ) {}
 
   bool operator==( Delta const& other ) const {
     return ( h == other.h ) && ( w == other.w );
@@ -260,6 +260,10 @@ ND Coord operator+( Coord const& coord, W w );
 ND Coord operator+( Coord const& coord, H h );
 ND Coord operator-( Coord const& coord, W w );
 ND Coord operator-( Coord const& coord, H h );
+void     operator+=( Coord& coord, W w );
+void     operator+=( Coord& coord, H h );
+void     operator-=( Coord& coord, W w );
+void     operator-=( Coord& coord, H h );
 
 ND Coord operator*( Coord const& coord, Scale const& scale );
 ND Delta operator*( Delta const& delta, Scale const& scale );

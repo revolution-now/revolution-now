@@ -38,7 +38,9 @@ struct ND UnitDescriptor {
   e_unit_type type;
 
   // Rendering
-  g_tile tile;
+  g_tile      tile;
+  bool        nat_icon_front;
+  e_direction nat_icon_position;
 
   // Movement
   bool     boat;

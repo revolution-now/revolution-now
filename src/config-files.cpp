@@ -215,6 +215,7 @@ UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
 UCL_TYPE( X,          UCL_INT,       int_value      )
 UCL_TYPE( W,          UCL_INT,       int_value      )
 UCL_TYPE( e_nation,   UCL_STRING,    string_value   )
+UCL_TYPE( e_direction,UCL_STRING,    string_value   )
 //UCL_TYPE( Y,          UCL_INT,       int_value     )
 //UCL_TYPE( H,          UCL_INT,       int_value     )
 // clang-format on
@@ -316,6 +317,58 @@ void populate_config_field( ucl::Ucl obj, e_nation& dest,
          "e_nation",
          str_val );
   dest = *result;
+}
+
+// e_direction
+// TODO: make this generic with reflected enums (need those).
+template<>
+void populate_config_field( ucl::Ucl obj, e_direction& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  (void)ucl_getter_for_type_v<e_direction>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, ucl_type_of_v<e_direction>, dotted,
+                    config_name,
+                    string( "item(s) of type " ) +
+                        ucl_type_name_of_v<e_direction> );
+  auto str_val = obj.string_value();
+  // There are 9 directions (including center).
+  int              max = 9;
+  Opt<e_direction> res{};
+  for( int i = 0; i < max; ++i ) {
+    auto enum_val = static_cast<e_direction>( i );
+    // We are doing it this way with this switch statement so
+    // that, until we have enum reflection, we will get a compile
+    // error here if we add a new enum value but forget to add it
+    // here.
+    switch( enum_val ) {
+      case e_direction::nw:
+        if( str_val == "nw" ) res = enum_val;
+      case e_direction::n:
+        if( str_val == "n" ) res = enum_val;
+      case e_direction::ne:
+        if( str_val == "ne" ) res = enum_val;
+      case e_direction::w:
+        if( str_val == "w" ) res = enum_val;
+      case e_direction::c:
+        if( str_val == "c" ) res = enum_val;
+      case e_direction::e:
+        if( str_val == "e" ) res = enum_val;
+      case e_direction::sw:
+        if( str_val == "sw" ) res = enum_val;
+      case e_direction::s:
+        if( str_val == "s" ) res = enum_val;
+      case e_direction::se:
+        if( str_val == "se" ) res = enum_val;
+    }
+  }
+  CHECK( res.has_value(),
+         "enum value `{}` is not a known value of the enum "
+         "e_direction",
+         str_val );
+  dest = *res;
 }
 
 // Coord

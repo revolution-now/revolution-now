@@ -386,6 +386,8 @@ inline X    operator-( W w, X x ) { return X( x._ - w._ ); }
 inline Y    operator-( H h, Y y ) { return Y( y._ - h._ ); }
 inline void operator+=( X& x, W w ) { x._ += w._; }
 inline void operator+=( Y& y, H h ) { y._ += h._; }
+inline void operator-=( X& x, W w ) { x._ -= w._; }
+inline void operator-=( Y& y, H h ) { y._ -= h._; }
 // We can allow deltas to subtract from eachother in a mutating
 // way. We don't just put these in the above generic classes
 // because we don't want to allow e.g. x1 -= x2; this is because

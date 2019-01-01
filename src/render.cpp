@@ -38,14 +38,18 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+constexpr Delta nationality_icon_size( 13_h, 13_w );
+
+} // namespace
 
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
 void render_nationality_icon( Texture const& tx, e_nation nation,
                               char c, Coord pixel_coord ) {
-  Delta       delta    = {13_h, 13_w};
+  Delta       delta    = nationality_icon_size;
   Rect        rect     = Rect::from( pixel_coord, delta );
   auto const& nation_o = nation_obj( nation );
 
@@ -99,13 +103,33 @@ void render_nationality_icon( Texture const& tx, e_nation nation,
 void render_nationality_icon( Texture const& tx, UnitId id,
                               Coord pixel_coord ) {
   auto const& unit = unit_from_id( id );
-  char        c;
+  // Now we will advance the pixel_coord to put the icon at the
+  // location specified in the unit descriptor.
+  auto position = unit.desc().nat_icon_position;
+  switch( position ) {
+    case e_direction::nw: break;
+    case e_direction::ne:
+      pixel_coord +=
+          ( ( 1_w * g_tile_width ) - nationality_icon_size.w );
+      break;
+    case e_direction::se:
+      pixel_coord += ( ( Delta{1_w, 1_h} * g_tile_scale ) -
+                       nationality_icon_size );
+      break;
+    case e_direction::sw:
+      pixel_coord +=
+          ( ( 1_h * g_tile_height ) - nationality_icon_size.h );
+      break;
+      // By default we keep it in the northwest corner.
+    default: break;
+  };
+
+  char c;
   switch( unit.orders() ) {
-    case Unit::e_orders::none: c = 'X'; break;
+    case Unit::e_orders::none: c = '-'; break;
     case Unit::e_orders::sentry: c = 'S'; break;
     case Unit::e_orders::fortified: c = 'F'; break;
   };
-  // auto pixel_coord = tile_coord * g_tile_scale;
   render_nationality_icon( tx, unit.nation(), c, pixel_coord );
 }
 
@@ -119,8 +143,15 @@ void render_landscape( Texture const& tx, Coord world_square,
 void render_unit( Texture const& tx, UnitId id,
                   Coord pixel_coord ) {
   auto const& unit = unit_from_id( id );
-  render_nationality_icon( tx, id, pixel_coord );
-  render_sprite( tx, unit.desc().tile, pixel_coord, 0, 0 );
+  // Should the icon be in front of the unit or in back.
+  auto front = unit.desc().nat_icon_front;
+  if( !front ) {
+    render_nationality_icon( tx, id, pixel_coord );
+    render_sprite( tx, unit.desc().tile, pixel_coord, 0, 0 );
+  } else {
+    render_sprite( tx, unit.desc().tile, pixel_coord, 0, 0 );
+    render_nationality_icon( tx, id, pixel_coord );
+  }
 }
 
 /****************************************************************

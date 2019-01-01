@@ -44,13 +44,22 @@ Nation const& nation_obj( e_nation nation ) {
   return nations[nation];
 }
 
-e_nation player_nation() { return config_rn.player_nation; }
+// disabled until there is an AI.
+// e_nation player_nation() { return config_rn.player_nation; }
 
 string Nation::name_proper() const {
   string res = name_lowercase;
   if( res.empty() ) return res;
   res[0] = std::toupper( res[0] );
   return res;
+}
+
+array<e_nation, g_num_nations> const& all_nations() {
+  static constexpr array<e_nation, g_num_nations> nations{
+      e_nation::dutch, e_nation::french, e_nation::english,
+      e_nation::spanish};
+  static_assert( nations.size() == g_num_nations );
+  return nations;
 }
 
 } // namespace rn

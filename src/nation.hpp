@@ -40,8 +40,11 @@ struct Nation {
   std::string name_proper() const;
 };
 
-ND e_nation player_nation();
+// disabled until there is an AI.
+// ND e_nation player_nation();
 
 Nation const& nation_obj( e_nation nation );
+
+std::array<e_nation, g_num_nations> const& all_nations();
 
 } // namespace rn

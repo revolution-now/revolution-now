@@ -12,11 +12,17 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "nation.hpp"
+
 namespace rn {
 
 enum class ND e_turn_result { cont, quit };
 
-// Do a turn, start to finish.
+// Do a turn, start to finish, one nations.
+ND e_turn_result turn( e_nation nation );
+
+// Do a turn, start to finish, all nations.
 ND e_turn_result turn();
 
 } // namespace rn

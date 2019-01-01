@@ -26,7 +26,9 @@ using namespace std;
   {                                                            \
     e_unit_type::__name, UnitDescriptor {                      \
       units.__name.name, e_unit_type::__name, g_tile::__name,  \
-          units.__name.boat, units.__name.visibility,          \
+          units.__name.nat_icon_front,                         \
+          units.__name.nat_icon_position, units.__name.boat,   \
+          units.__name.visibility,                             \
           units.__name.movement_points,                        \
           units.__name.can_attack, units.__name.attack_points, \
           units.__name.defense_points,                         \

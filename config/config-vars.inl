@@ -73,15 +73,17 @@ CFG( art,
 *****************************************************************/
 #define UNIT_SCHEMA( __unit )             \
   OBJ( __unit,                            \
-    FLD( Str,      name                 ) \
-    FLD( bool,     boat                 ) \
-    FLD( int,      visibility           ) \
-    FLD( MvPoints, movement_points      ) \
-    FLD( bool,     can_attack           ) \
-    FLD( int,      attack_points        ) \
-    FLD( int,      defense_points       ) \
-    FLD( int,      cargo_slots          ) \
-    FLD( Opt<int>, cargo_slots_occupies ) \
+    FLD( Str,         name                 ) \
+    FLD( bool,        boat                 ) \
+    FLD( bool,        nat_icon_front       ) \
+    FLD( e_direction, nat_icon_position    ) \
+    FLD( int,         visibility           ) \
+    FLD( MvPoints,    movement_points      ) \
+    FLD( bool,        can_attack           ) \
+    FLD( int,         attack_points        ) \
+    FLD( int,         defense_points       ) \
+    FLD( int,         cargo_slots          ) \
+    FLD( Opt<int>,    cargo_slots_occupies ) \
   )
 
 CFG( units,

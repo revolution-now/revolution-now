@@ -45,32 +45,30 @@ void game() {
   load_sprites();
   load_tile_maps();
 
-  auto const& nation = nation_obj( player_nation() );
-  logger->info( "player is {}, of the nation {}",
-                nation.name_proper(), nation.country_name );
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
+
+  (void)create_unit_on_map(
+      e_nation::english, e_unit_type::free_colonist, 2_y, 4_x );
+  (void)create_unit_on_map( e_nation::english,
+                            e_unit_type::soldier, 2_y, 3_x );
+  (void)create_unit_on_map( e_nation::english,
+                            e_unit_type::caravel, 2_y, 2_x );
 
   (void)create_unit_on_map(
       e_nation::french, e_unit_type::free_colonist, 3_y, 4_x );
   (void)create_unit_on_map( e_nation::french,
                             e_unit_type::soldier, 3_y, 5_x );
-  (void)create_unit_on_map(
-      e_nation::spanish, e_unit_type::free_colonist, 4_y, 4_x );
-  (void)create_unit_on_map( e_nation::spanish,
-                            e_unit_type::soldier, 4_y, 5_x );
-  (void)create_unit_on_map(
-      e_nation::dutch, e_unit_type::free_colonist, 5_y, 4_x );
-  (void)create_unit_on_map( e_nation::dutch,
-                            e_unit_type::soldier, 5_y, 5_x );
 
-  (void)create_unit_on_map(
-      player_nation(), e_unit_type::free_colonist, 2_y, 4_x );
-  (void)create_unit_on_map( player_nation(),
-                            e_unit_type::soldier, 2_y, 3_x );
-  (void)create_unit_on_map( player_nation(),
-                            e_unit_type::caravel, 2_y, 2_x );
-  //(void)create_unit_on_map( player_nation(),
-  // e_unit_type::caravel, 2_y, 1_x );
+  //(void)create_unit_on_map(
+  //    e_nation::spanish, e_unit_type::free_colonist, 4_y, 4_x
+  //    );
+  //(void)create_unit_on_map( e_nation::spanish,
+  //                          e_unit_type::soldier, 4_y, 5_x );
+
+  //(void)create_unit_on_map(
+  //    e_nation::dutch, e_unit_type::free_colonist, 5_y, 4_x );
+  //(void)create_unit_on_map( e_nation::dutch,
+  //                          e_unit_type::soldier, 5_y, 5_x );
 
   while( turn() != e_turn_result::quit ) {}
 

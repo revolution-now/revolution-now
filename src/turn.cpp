@@ -31,6 +31,14 @@ namespace rn {
 namespace {} // namespace
 
 e_turn_result turn() {
+  for( auto nation : all_nations() ) {
+    auto res = turn( nation );
+    if( res == e_turn_result::quit ) return e_turn_result::quit;
+  }
+  return e_turn_result::cont;
+}
+
+e_turn_result turn( e_nation nation ) {
   // start of turn:
 
   // Mark all units as not having moved.
@@ -82,7 +90,7 @@ e_turn_result turn() {
   // and this could happen for various reasons. Perhaps even
   // units could be created during this process (?).
   while( true ) {
-    auto units    = units_all( player_nation() );
+    auto units    = units_all( nation );
     auto finished = []( UnitId id ) {
       return unit_from_id( id ).finished_turn();
     };
@@ -216,8 +224,9 @@ e_turn_result turn() {
   //    clang-format on
   if( need_eot_loop ) {
     /***************************************************/
-    vp_state = viewport_state::none{};
-    frame_throttler( true, [] { return false; } );
+    // disable EOT for now
+    // vp_state = viewport_state::none{};
+    // frame_throttler( true, [] { return false; } );
     /***************************************************/
     // switch( res ) {
     //  case e_eot_loop_result::quit_game:

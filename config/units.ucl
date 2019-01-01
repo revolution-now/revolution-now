@@ -1,6 +1,8 @@
 free_colonist {
   name:                  Free Colonist
   boat:                  no
+  nat_icon_front:        false
+  nat_icon_position:     sw
   visibility:            1
   movement_points:       1
   can_attack:            no
@@ -13,6 +15,8 @@ free_colonist {
 soldier {
   name:                  Soldier
   boat:                  no
+  nat_icon_front:        false
+  nat_icon_position:     sw
   visibility:            1
   movement_points:       1
   can_attack:            yes
@@ -25,6 +29,8 @@ soldier {
 caravel {
   name:                  Caravel
   boat:                  yes
+  nat_icon_front:        false
+  nat_icon_position:     nw
   visibility:            1
   movement_points:       4
   can_attack:            no

@@ -180,6 +180,11 @@ ND Coord operator-( Coord const& coord, H h ) {
   return {coord.y - h, coord.x};
 }
 
+void operator+=( Coord& coord, W w ) { coord.x += w; }
+void operator+=( Coord& coord, H h ) { coord.y += h; }
+void operator-=( Coord& coord, W w ) { coord.x -= w; }
+void operator-=( Coord& coord, H h ) { coord.y -= h; }
+
 Delta operator-( Coord const& lhs, Coord const& rhs ) {
   return {lhs.x - rhs.x, lhs.y - rhs.y};
 }
