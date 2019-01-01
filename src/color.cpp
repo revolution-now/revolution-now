@@ -131,8 +131,6 @@ ColorHSL to_HSL( Color const& rgb ) {
   return hsl;
 }
 
-/* Currently unused, but don't want to delete because it took
- * too long to write.
 Color to_RGB( ColorHSL const& hsl ) {
   // www.rapidtables.com/convert/color/hsl-to-rgb.html
   Color rgb;
@@ -156,7 +154,6 @@ Color to_RGB( ColorHSL const& hsl ) {
   rgb.b = ( B + m ) * 255;
   return rgb;
 }
-*/
 
 // Takes a hue in [0,360) and returns a bucket index from
 // [0,hue_buckets-1). Our strategy here is that the firt bucket
@@ -304,6 +301,89 @@ Vec<Color> coursen_impl( Vec<Color> const& colors,
   return result;
 }
 
+// If highlight == true then we highlight, otherwise we shade.
+Color shift_color( Color input, bool highlight ) {
+  // These constants were chosen through experimentation so that
+  // 1-10 applications of this algorithm to a color will yield a
+  // nice spectrum for both dark and light colors.
+  double constexpr hue_shift     = 4.0;
+  double constexpr sat_shift_max = .04;
+  double constexpr lit_shift_max = .04;
+  double constexpr sat_mult      = .90;
+  double constexpr lit_mult      = .90;
+  static_assert( sat_shift_max > 0 && sat_shift_max < .3 );
+  static_assert( lit_shift_max > 0 && lit_shift_max < .3 );
+  static_assert( sat_mult > .7 && sat_mult < 1.0 );
+  static_assert( lit_mult > .7 && lit_mult < 1.0 );
+  // upper bound of 60 is arbitrary but seems reasonable.
+  static_assert( hue_shift > 0 && hue_shift < 60.0 );
+
+  auto hsl = to_HSL( input );
+  // The idea here is that when we highlight we want to shift the
+  // hue closer to yellow and when we shade we want to make it
+  // closer to blue. So so that end we want to shift the hue
+  // spectrum so that yellow is 0 and blue is +/180, that way it
+  // is easier to move a hue in the right direction to get to
+  // where it needs to go. Note that when we e.g. shift toward
+  // yellow, we need to shift in the direction with the closest
+  // distance of the color to yellow.
+  auto& h = hsl.h;
+  h -= 60;
+  if( h > 180 ) h -= 360;
+  CHECK( h >= -180 && h <= 180 );
+  if( highlight ) {
+    if( h > hue_shift )
+      h -= hue_shift;
+    else if( h < -hue_shift )
+      h += hue_shift;
+    else
+      h = 0;
+  } else {
+    if( h > 0 && h < ( 180 - hue_shift ) )
+      h += hue_shift;
+    else if( h < 0 && h > -( 180 - hue_shift ) )
+      h -= hue_shift;
+    else if( h >= ( 180 - hue_shift ) ||
+             h <= -( 180 - hue_shift ) )
+      h = 180;
+  }
+  // Now shift it back
+  h += 60;
+  if( h < 0 ) h += 360;
+  CHECK( h >= -0.01 && h <= 360.01 );
+  h = std::clamp( h, 0.0, 360.0 );
+
+  // Now for shading we want to lessen the saturation for shading
+  // and do the opposite for highlighting.
+  auto& s = hsl.s;
+  if( highlight ) {
+    auto delta = ( 1.0 - s ) * ( 1.0 - sat_mult );
+    if( delta > sat_shift_max ) delta = sat_shift_max;
+    s += delta;
+  } else {
+    auto delta = s * ( 1.0 - sat_mult );
+    if( delta > sat_shift_max ) delta = sat_shift_max;
+    s -= delta;
+  }
+  s = std::clamp( s, 0.0, 1.0 );
+
+  // Now for lightness we want to lessen the lightness for
+  // shading and do the opposite for highlighting.
+  auto& l = hsl.l;
+  if( highlight ) {
+    auto delta = ( 1.0 - l ) * ( 1.0 - lit_mult );
+    if( delta > lit_shift_max ) delta = lit_shift_max;
+    l += delta;
+  } else {
+    auto delta = l * ( 1.0 - lit_mult );
+    if( delta > lit_shift_max ) delta = lit_shift_max;
+    l -= delta;
+  }
+  l = std::clamp( l, 0.0, 1.0 );
+
+  return to_RGB( hsl );
+}
+
 } // namespace
 
 string Color::to_string( bool with_alpha ) const {
@@ -369,6 +449,17 @@ Color Color::random() {
 
   return {uniform_dist( e ), uniform_dist( e ),
           uniform_dist( e ), 255};
+}
+
+Color Color::highlighted( int iterations ) const {
+  if( iterations == 0 ) return *this;
+  return shift_color( *this, true )
+      .highlighted( iterations - 1 );
+}
+
+Color Color::shaded( int iterations ) const {
+  if( iterations == 0 ) return *this;
+  return shift_color( *this, false ).shaded( iterations - 1 );
 }
 
 void hsl_bucketed_sort( Vec<Color>& colors ) {
@@ -577,8 +668,12 @@ void show_palette( Texture const&    tx,
                    Vec<Color> const& colors ) {
   clear_texture_black( tx );
   render_palette_segment( tx, colors, palette_render_origin,
-                          16 );
+                          64 );
   ::SDL_RenderPresent( g_renderer );
+}
+
+void show_palette( Vec<Color> const& colors ) {
+  show_palette( Texture(), colors );
 }
 
 void show_palette( Texture const&      tx,
@@ -596,6 +691,15 @@ void show_palette( Texture const&      tx,
     origin.y += group_offset;
   }
   ::SDL_RenderPresent( g_renderer );
+}
+
+void show_color_adjustment( Color center ) {
+  Vec<Color> colors;
+  for( int i = 10; i >= 0; --i )
+    colors.push_back( center.shaded( i ) );
+  for( int i = 0; i <= 10; ++i )
+    colors.push_back( center.highlighted( i ) );
+  show_palette( colors );
 }
 
 void write_palette_png( fs::path const& png_file ) {

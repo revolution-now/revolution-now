@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "fmt-helper.hpp"
 #include "geo-types.hpp"
 
 // c++ standard library
@@ -52,6 +53,20 @@ struct Color {
 
   // A random color.
   static Color random();
+
+  // Will generate colors that can act as a "subtle" highlight
+  // and shadow of this color. Shadow, from what knowledgable
+  // people seem to say, means dark and less saturated, while
+  // highlight means the opposite. One "iteration" will yield a
+  // color with only a subtle difference. If more of a difference
+  // is desired then a larger iteration number can be specified.
+  // The iterations are such that, for example:
+  //
+  //   color.shaded( 3 ) == color.shaded().shaded().shaded()
+  //
+  // Calling with iterations == 0 returns *this.
+  Color highlighted( int iterations = 1 ) const;
+  Color shaded( int iterations = 1 ) const;
 
   // Abseil hashing API.
   template<typename H>
@@ -151,4 +166,13 @@ void write_palette_png( fs::path const& png_file );
 void dump_palette( ColorBuckets const& colors,
                    fs::path const& schema, fs::path const& ucl );
 
+// Display an array of colors.
+void show_palette( Vec<Color> const& colors );
+
+// Preview color shading and highlighting.  This will render
+// a color gradient to the screen.
+void show_color_adjustment( Color center );
+
 } // namespace rn
+
+DEFINE_FORMAT( ::rn::Color, "{}", o.to_string() );

@@ -48,22 +48,47 @@ void render_nationality_icon( Texture const& tx, e_nation nation,
   Delta       delta    = {13_h, 13_w};
   Rect        rect     = Rect::from( pixel_coord, delta );
   auto const& nation_o = nation_obj( nation );
-  render_fill_rect( tx, nation_o.flag_color, rect );
-  auto border_color = config_palette.grey.n30;
-  render_rect( tx, border_color, rect );
 
-  render_line( tx, config_palette.grey.nDC, pixel_coord + 0_w,
-               {0_h, delta.w} );
-  render_line( tx, config_palette.grey.nDC,
-               pixel_coord + ( delta.w - 1_w ), {delta.h, 0_w} );
-  render_line( tx, config_palette.grey.n10,
-               pixel_coord + ( delta.h / 2 ),
-               {delta.h / 2, 0_w} );
-  render_line( tx, config_palette.grey.n10,
-               pixel_coord + ( delta.h - 1_h ),
-               {0_h, delta.w / 2} );
+  auto color  = nation_o.flag_color;
+  auto dark1  = color.shaded( 2 );
+  auto dark2  = dark1.shaded( 2 );
+  auto dark3  = dark2.shaded( 2 );
+  auto light1 = color.highlighted( 1 );
+  auto light2 = light1.highlighted( 1 );
+  auto light3 = light2.highlighted( 1 );
+
+  auto text_color = color.shaded( 7 );
+
+  render_fill_rect( tx, color, rect );
+
+  render_line( tx, light1, pixel_coord + 1_w,
+               {0_h, delta.w - 1_w} );
+  render_line( tx, light1, pixel_coord + ( delta.w - 1_w ),
+               {delta.h - 1_h, 0_w} );
+  render_line( tx, light2, pixel_coord + 4_w,
+               {0_h, delta.w - 4_w} );
+  render_line( tx, light2, pixel_coord + ( delta.w - 1_w ),
+               {delta.h - 4_h, 0_w} );
+  render_line( tx, light3, pixel_coord + 7_w,
+               {0_h, delta.w - 7_w} );
+  render_line( tx, light3, pixel_coord + ( delta.w - 1_w ),
+               {delta.h - 7_h, 0_w} );
+
+  render_line( tx, dark1, pixel_coord + 1_h,
+               {delta.h - 1_h, 0_w} );
+  render_line( tx, dark1, pixel_coord + ( delta.h - 1_h ),
+               {0_h, delta.w - 1_w} );
+  render_line( tx, dark2, pixel_coord + 4_h,
+               {delta.h - 4_h, 0_w} );
+  render_line( tx, dark2, pixel_coord + ( delta.h - 1_h ),
+               {0_h, delta.w - 4_w} );
+  render_line( tx, dark3, pixel_coord + 7_h,
+               {delta.h - 7_h, 0_w} );
+  render_line( tx, dark3, pixel_coord + ( delta.h - 1_h ),
+               {0_h, delta.w - 7_w} );
+
   auto char_tx = render_line_standard(
-      fonts::standard, border_color, string( 1, c ) );
+      fonts::standard, text_color, string( 1, c ) );
 
   auto char_tx_size = texture_delta( char_tx );
   copy_texture(
