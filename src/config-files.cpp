@@ -346,22 +346,31 @@ void populate_config_field( ucl::Ucl obj, e_direction& dest,
     switch( enum_val ) {
       case e_direction::nw:
         if( str_val == "nw" ) res = enum_val;
+        break;
       case e_direction::n:
         if( str_val == "n" ) res = enum_val;
+        break;
       case e_direction::ne:
         if( str_val == "ne" ) res = enum_val;
+        break;
       case e_direction::w:
         if( str_val == "w" ) res = enum_val;
+        break;
       case e_direction::c:
         if( str_val == "c" ) res = enum_val;
+        break;
       case e_direction::e:
         if( str_val == "e" ) res = enum_val;
+        break;
       case e_direction::sw:
         if( str_val == "sw" ) res = enum_val;
+        break;
       case e_direction::s:
         if( str_val == "s" ) res = enum_val;
+        break;
       case e_direction::se:
         if( str_val == "se" ) res = enum_val;
+        break;
     }
   }
   CHECK( res.has_value(),
