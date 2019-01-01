@@ -65,6 +65,8 @@ struct Color {
   //   color.shaded( 3 ) == color.shaded().shaded().shaded()
   //
   // Calling with iterations == 0 returns *this.
+  //
+  // TODO: these need to cache results.
   Color highlighted( int iterations = 1 ) const;
   Color shaded( int iterations = 1 ) const;
 

@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "geo-types.hpp"
 #include "physics.hpp"
 
@@ -32,17 +33,44 @@ public:
   // partially visible).
   Rect covered_tiles() const;
 
-  void ensure_tile_surroundings_visible( Coord const& coord );
+  // This function will shift the viewport to make the tile
+  // coordinate visible, but will avoid shifting if it is already
+  // visible. If smooth == true then it will animate the motion
+  // as opposed to a sudden shift.
+  void ensure_tile_surroundings_visible( Coord const& coord,
+                                         bool         smooth );
 
-  Rect get_render_src_rect() const;
-  Rect get_render_dest_rect() const;
+  // This function will compute the rectangle in the source
+  // viewport texture that should be rendered to the screen.
+  // NOTE: this function assumes that only the covered_tiles()
+  // will have been rendered to the texture. So mainly this
+  // function deals with slightly shifting the rect within the
+  // width of a single tile, along with some edge cases.
+  Rect rendering_src_rect() const;
+  // This function computes the rectangle on the screen to which
+  // the viewport should be rendered. This would be trivial but
+  // it also deals with the situation where the world is smaller
+  // than the viewport, in which case it will center the rect in
+  // the available area.
+  Rect rendering_dest_rect() const;
+
+  // Given a screen pixel coordinate this will return the world
+  // coordinate.
+  Opt<Coord> screen_pixel_to_world_pixel(
+      Coord pixel_coord ) const;
+
+  // Given a screen pixel coordinate this will determine whether
+  // it is in the viewport.
+  bool screen_coord_in_viewport( Coord pixel_coord ) const;
 
   static void set_x_push( e_push_direction );
   static void set_y_push( e_push_direction );
   static void set_zoom_push( e_push_direction );
 
-  void normalize_zoom() { normalize_zoom_ = true; }
-  void stop_normalize_zoom() { normalize_zoom_ = false; }
+  void smooth_zoom_target( double target );
+  void smooth_center_target( Coord screen_coord );
+  void stop_auto_zoom();
+  void stop_auto_panning();
 
 private:
   void enforce_invariants();
@@ -84,8 +112,11 @@ private:
   double center_x_{};
   double center_y_{};
 
-  // Should the zoom be pushed back to 1.0.
-  bool normalize_zoom_{};
+  // If these have values then the viewport will attempt to move
+  // the values to them smoothly.
+  Opt<double> smooth_zoom_target_{};
+  Opt<XD>     smooth_center_x_target_{};
+  Opt<YD>     smooth_center_y_target_{};
 };
 
 SmoothViewport& viewport();

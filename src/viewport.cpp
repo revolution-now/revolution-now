@@ -17,6 +17,8 @@
 #include "util.hpp"
 #include "world.hpp"
 
+using namespace std;
+
 namespace rn {
 
 // Config
@@ -25,9 +27,9 @@ constexpr double zoom_min            = 0.5;
 constexpr double zoom_speed          = .08;
 constexpr double zoom_accel          = 0.2 * zoom_speed;
 constexpr double zoom_accel_drag     = 0.05 * zoom_speed;
-constexpr double zoom_norm_rate      = 0.95;
 constexpr double pan_accel_init      = 0.2 * movement_speed;
 constexpr double pan_accel_drag_init = 0.1 * movement_speed;
+constexpr double seek_percent_while_zooming = 1.0 / 7.0;
 
 namespace {
 
@@ -65,7 +67,9 @@ SmoothViewport::SmoothViewport()
     // zoom_ must be initialized before center_x_/y_
     center_x_( width_pixels() / 2 ),
     center_y_( height_pixels() / 2 ),
-    normalize_zoom_{false} {
+    smooth_zoom_target_{},
+    smooth_center_x_target_{},
+    smooth_center_y_target_{} {
   enforce_invariants();
 }
 
@@ -96,26 +100,81 @@ void SmoothViewport::advance( e_push_direction x_push,
   pan( 0, x_vel_.to_double(), false );
   pan( y_vel_.to_double(), 0, false );
   scale_zoom( 1.0 + zoom_vel_.to_double() );
+}
 
-  if( normalize_zoom_ ) {
-    double zoom_norm_window = .0025;
-    if( zoom_ > 1.0 + zoom_norm_window )
-      zoom_ = 1.0 + ( zoom_ - 1.0 ) * zoom_norm_rate;
-    else if( zoom_ < 1.0 - zoom_norm_window )
-      zoom_ = 1.0 - ( 1.0 - zoom_ ) * zoom_norm_rate;
-    else {
-      zoom_           = 1.0;
-      normalize_zoom_ = false;
-    }
-    enforce_invariants();
+template<typename T>
+bool sign( T t ) {
+  return t >= T();
+}
+
+struct TargetingRates {
+  double rate;
+  double shift;
+  double linear_window;
+};
+
+// These numbers were chosen through iterative trials to yield
+// the nicest looking result, which is to say that the transition
+// will quickly start approaching its target (faster the farther
+// away it is) and then slow down as it nears the target, then
+// when it is within a critical distance it will start moving at
+// a linear rate so that it doesn't take too long to get there.
+constexpr TargetingRates translation_seeking_parameters{
+    /*rate=*/.90,
+    /*shift=*/1.0,
+    /*linear_window=*/8.0};
+constexpr TargetingRates zoom_seeking_parameters{
+    /*rate=*/.95,
+    /*shift=*/.001,
+    /*linear_window=*/.015};
+
+// This function will take a numerical value that is being
+// gradually moved to a target value (in a somewhat asymptotic
+// manner in that the movement slows as the target nears) and
+// will advance it by one "frame". When it has reached the target
+// this function will signal (through the output parameters) that
+// the movement can stop.
+template<typename T>
+void advance_target_seeking( Opt<T>& maybe_target, double& val,
+                             DissipativeVelocity&  vel,
+                             TargetingRates const& params ) {
+  if( !maybe_target.has_value() ) return;
+  double target = double( *maybe_target );
+  if( val == target ) return;
+  auto old_val = val;
+
+  if( fabs( val - target ) < params.linear_window )
+    val += ( val < target ) ? params.shift : -params.shift;
+  else
+    val = target + ( val - target ) * params.rate;
+
+  if( sign( val - target ) != sign( old_val - target ) ) {
+    // The center has crossed the target mark; so since we are
+    // trying to normalize it to the target, we take this
+    // opporunity to make it precisely equal and to stop the
+    // normalizing process. This avoid oscillations.
+    val = target;
+    vel.hit_wall();
+    maybe_target = nullopt;
   }
 }
 
 void SmoothViewport::advance() {
   advance( x_push, y_push, zoom_push );
+
+  advance_target_seeking( smooth_center_x_target_, center_x_,
+                          x_vel_,
+                          translation_seeking_parameters );
+  advance_target_seeking( smooth_center_y_target_, center_y_,
+                          y_vel_,
+                          translation_seeking_parameters );
+  advance_target_seeking( smooth_zoom_target_, zoom_, zoom_vel_,
+                          zoom_seeking_parameters );
+
   x_push    = e_push_direction::none;
   y_push    = e_push_direction::none;
   zoom_push = e_push_direction::none;
+  enforce_invariants();
 }
 
 void SmoothViewport::set_x_push( e_push_direction push ) {
@@ -128,6 +187,18 @@ void SmoothViewport::set_y_push( e_push_direction push ) {
 
 void SmoothViewport::set_zoom_push( e_push_direction push ) {
   zoom_push = push;
+}
+
+void SmoothViewport::smooth_zoom_target( double target ) {
+  smooth_zoom_target_ = target;
+}
+void SmoothViewport::stop_auto_zoom() {
+  smooth_zoom_target_ = std::nullopt;
+}
+
+void SmoothViewport::stop_auto_panning() {
+  smooth_center_x_target_ = std::nullopt;
+  smooth_center_y_target_ = std::nullopt;
 }
 
 double SmoothViewport::width_pixels() const {
@@ -215,10 +286,12 @@ Rect SmoothViewport::covered_tiles() const {
           H( end_tile_y - start_tile_y() )};
 }
 
-Rect SmoothViewport::get_render_src_rect() const {
+Rect SmoothViewport::rendering_src_rect() const {
   Rect viewport                        = get_bounds();
   auto [max_src_height, max_src_width] = world_size_pixels();
   Rect src;
+  CHECK( !( viewport.x < 0_x ) );
+  CHECK( !( viewport.y < 0_y ) );
   src.x =
       viewport.x < 0_x ? 0_x : 0_x + viewport.x % g_tile_width;
   src.y =
@@ -230,7 +303,7 @@ Rect SmoothViewport::get_render_src_rect() const {
   return src;
 }
 
-Rect SmoothViewport::get_render_dest_rect() const {
+Rect SmoothViewport::rendering_dest_rect() const {
   Rect dest;
   dest.x        = 0;
   dest.y        = 0;
@@ -255,6 +328,38 @@ Rect SmoothViewport::get_render_dest_rect() const {
     dest.h -= int( delta * 2 );
   }
   return dest;
+}
+
+Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
+    Coord pixel_coord ) const {
+  Rect visible_on_screen = rendering_dest_rect();
+  auto from_visible_start =
+      pixel_coord - visible_on_screen.upper_left();
+  if( from_visible_start.w < 0_w ||
+      from_visible_start.h < 0_h ) {
+    return nullopt;
+  }
+  if( from_visible_start.w > visible_on_screen.w ||
+      from_visible_start.h > visible_on_screen.h ) {
+    return nullopt;
+  }
+
+  double percent_x =
+      double( from_visible_start.w._ ) / visible_on_screen.w._;
+  double percent_y =
+      double( from_visible_start.h._ ) / visible_on_screen.h._;
+
+  Rect viewport = get_bounds();
+
+  auto res =
+      Coord{X{int( viewport.x._ + percent_x * viewport.w._ )},
+            Y{int( viewport.y._ + percent_y * viewport.h._ )}};
+  return res;
+}
+
+bool SmoothViewport::screen_coord_in_viewport(
+    Coord pixel_coord ) const {
+  return screen_pixel_to_world_pixel( pixel_coord ).has_value();
 }
 
 void SmoothViewport::scale_zoom( double factor ) {
@@ -316,11 +421,57 @@ bool is_tile_surroundings_fully_visible(
 }
 
 void SmoothViewport::ensure_tile_surroundings_visible(
-    Coord const& coord ) {
-  if( !is_tile_surroundings_fully_visible<X>( *this, coord ) )
-    center_on_tile_x( coord );
-  if( !is_tile_surroundings_fully_visible<Y>( *this, coord ) )
-    center_on_tile_y( coord );
+    Coord const& coord, bool smooth ) {
+  if( !is_tile_surroundings_fully_visible<X>( *this, coord ) ) {
+    if( smooth )
+      smooth_center_x_target_ =
+          XD{double( ( coord.x * g_tile_width )._ )};
+    else
+      center_on_tile_x( coord );
+  }
+  if( !is_tile_surroundings_fully_visible<Y>( *this, coord ) ) {
+    if( smooth )
+      smooth_center_y_target_ =
+          YD{double( ( coord.y * g_tile_height )._ )};
+    else
+      center_on_tile_y( coord );
+  }
+}
+
+// This function takes a new target (screen_cord) and then it
+// will update the existing target (if there is one) with a new
+// target that is a fraction of the way between the current
+// target and the new target. If there is no current target then
+// we just use the current viewport center as the current target.
+//
+// The idea is that is we call this function a few times in rapid
+// succession (such as in response to mouse wheel movements) it
+// will make the target coordinate approach the mouse position on
+// the screen, which is probably what the user wants when zooming
+// in towards the mouse position. However, if we only get one
+// mouse wheel movement (and hence one of these function calls)
+// then the target will only be a fraction of the way from the
+// current screen center to the mouse position so to avoid the
+// viewport jumping only on a slight mouse wheel movement.
+//
+// This is kind of strange, but couldn't find a better way.
+void SmoothViewport::smooth_center_target( Coord screen_coord ) {
+  auto world_coord =
+      viewport().screen_pixel_to_world_pixel( screen_coord );
+
+  double start_x =
+      smooth_center_x_target_.value_or( XD{center_x_} )._;
+  double start_y =
+      smooth_center_y_target_.value_or( YD{center_y_} )._;
+
+  auto delta_x = double( world_coord.value().x._ ) - start_x;
+  auto delta_y = double( world_coord.value().y._ ) - start_y;
+
+  delta_x *= seek_percent_while_zooming;
+  delta_y *= seek_percent_while_zooming;
+
+  smooth_center_x_target_ = XD{start_x + delta_x};
+  smooth_center_y_target_ = YD{start_y + delta_y};
 }
 
 } // namespace rn

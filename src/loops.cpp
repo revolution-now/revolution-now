@@ -57,7 +57,9 @@ void advance_viewport_translation() {
                                    ? e_push_direction::positive
                                    : e_push_direction::none );
 
-  if( state( ::SDL_SCANCODE_Z ) ) viewport().normalize_zoom();
+  if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
+      state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
+    viewport().stop_auto_panning();
 }
 
 void take_input() {

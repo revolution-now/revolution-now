@@ -79,4 +79,6 @@ double DissipativeVelocity::advance(
   return velocity_;
 }
 
+void DissipativeVelocity::hit_wall() { velocity_ = 0; }
+
 } // namespace rn

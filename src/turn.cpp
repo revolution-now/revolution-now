@@ -109,6 +109,8 @@ e_turn_result turn( e_nation nation ) {
       auto id = unit.id();
       logger->debug( "processing turn for unit {}",
                      debug_string( id ) );
+      // This will trigger until we start distinguishing nations.
+      CHECK( unit.nation() == nation );
 
       //    clang-format off
       //
@@ -146,7 +148,8 @@ e_turn_result turn( e_nation nation ) {
         need_eot_loop = false;
 
         auto coords = coords_for_unit( id );
-        viewport().ensure_tile_surroundings_visible( coords );
+        viewport().ensure_tile_surroundings_visible(
+            coords, /*smooth=*/true );
 
         /***************************************************/
         vp_state = viewport_state::blink_unit{};
@@ -178,7 +181,7 @@ e_turn_result turn( e_nation nation ) {
                 mv_res ) {
             /***************************************************/
             viewport().ensure_tile_surroundings_visible(
-                coords );
+                coords, /*smooth=*/true );
             vp_state =
                 viewport_state::slide_unit( id, mv_res->coords );
             auto& slide_unit =

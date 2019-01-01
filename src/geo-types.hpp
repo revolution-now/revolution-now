@@ -104,6 +104,10 @@ struct ND Coord {
   Y y = 0_y;
   X x = 0_x;
 
+  Coord() = default;
+  Coord( X x_, Y y_ ) : y( y_ ), x( x_ ) {}
+  Coord( Y y_, X x_ ) : y( y_ ), x( x_ ) {}
+
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>

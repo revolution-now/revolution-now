@@ -47,6 +47,7 @@ constexpr Delta nationality_icon_size( 13_h, 13_w );
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
+// TODO: rendered texture needs to be cached.
 void render_nationality_icon( Texture const& tx, e_nation nation,
                               char c, Coord pixel_coord ) {
   Delta       delta    = nationality_icon_size;
@@ -91,7 +92,7 @@ void render_nationality_icon( Texture const& tx, e_nation nation,
   render_line( tx, dark3, pixel_coord + ( delta.h - 1_h ),
                {0_h, delta.w - 7_w} );
 
-  auto char_tx = render_line_standard(
+  auto char_tx = render_text_line_standard(
       fonts::standard, text_color, string( 1, c ) );
 
   auto char_tx_size = texture_delta( char_tx );
@@ -194,6 +195,8 @@ void render_world_viewport( ViewportState& state ) {
     // is a blinking unit on it then skip rendering units on it.
     if( !is_blink_square ) {
       // Render all units on this square as usual.
+      // TODO: need to figure out what to render when there are
+      //       multiple units on a square.
       for( auto id : units_from_coord( coord ) )
         if( slide_id != id )
           render_unit( g_texture_viewport, id, pixel_coord );
@@ -246,8 +249,8 @@ struct ViewportPlane : public Plane {
   void draw( Texture const& tx ) const override {
     render_world_viewport( g_viewport_state );
     copy_texture_stretch( g_texture_viewport, tx,
-                          viewport().get_render_src_rect(),
-                          viewport().get_render_dest_rect() );
+                          viewport().rendering_src_rect(),
+                          viewport().rendering_dest_rect() );
   }
   bool input( input::event_t const& event ) override {
     bool handled = false;
@@ -264,6 +267,11 @@ struct ViewportPlane : public Plane {
           case_v( viewport_state::blink_unit ) {
             auto& blink_unit = val;
             switch( key_event.keycode ) {
+              case ::SDLK_z:
+                if( viewport().screen_coord_in_viewport(
+                        event.mouse_state.pos ) )
+                  viewport().smooth_zoom_target( 1.0 );
+                break;
               case ::SDLK_q:
                 // TODO: temporary
                 blink_unit.orders = orders::quit;
@@ -291,16 +299,24 @@ struct ViewportPlane : public Plane {
         }
       }
       case_v( input::mouse_event_t ) {
-        if( val.kind == input::e_mouse_event_kind::wheel ) {
+        auto mouse_pos = event.mouse_state.pos;
+        // If the mouse is in the viewport and its a wheel event
+        // then we are in business.
+        if( viewport().screen_coord_in_viewport( mouse_pos ) &&
+            val.kind == input::e_mouse_event_kind::wheel ) {
           if( val.wheel_delta < 0 )
             viewport().set_zoom_push(
                 e_push_direction::negative );
           if( val.wheel_delta > 0 )
             viewport().set_zoom_push(
                 e_push_direction::positive );
-          // A user zoom request halts any auto zooming that
-          // may currently be happening.
-          viewport().stop_normalize_zoom();
+          // A user zoom request halts any auto zooming that may
+          // currently be happening.
+          viewport().stop_auto_zoom();
+          // If we're zooming in then zoom towards the tile under
+          // cursor.
+          if( val.wheel_delta > 0 )
+            viewport().smooth_center_target( mouse_pos );
           handled = true;
         }
       }

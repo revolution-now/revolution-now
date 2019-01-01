@@ -71,8 +71,8 @@ CFG( art,
 /****************************************************************
 * Units Config File
 *****************************************************************/
-#define UNIT_SCHEMA( __unit )             \
-  OBJ( __unit,                            \
+#define UNIT_SCHEMA( __unit )                \
+  OBJ( __unit,                               \
     FLD( Str,         name                 ) \
     FLD( bool,        boat                 ) \
     FLD( bool,        nat_icon_front       ) \
@@ -106,7 +106,7 @@ CFG( nation,
   )
   OBJ( english,
     FLD( Str, country_name )
-    LNK( flag_color, palette.red.sat2.lum7 )
+    LNK( flag_color, palette.red.sat1.lum7 )
   )
   OBJ( spanish,
     FLD( Str, country_name )

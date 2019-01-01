@@ -29,7 +29,7 @@ struct mouse_state_t {
   bool  left   = false;
   bool  middle = false;
   bool  right  = false;
-  Coord pos{}; // current mouse position
+  Coord pos{}; // current mouse position in logical coords
 };
 
 enum class e_mouse_button {

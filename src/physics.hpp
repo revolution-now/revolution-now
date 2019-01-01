@@ -44,6 +44,10 @@ public:
   // the advanced value.
   double advance( e_push_direction direction );
 
+  // The particle will hit a wall, e.g., velocity immediately
+  // goes to zero.
+  void hit_wall();
+
   void set_bounds( double min_velocity, double max_velocity );
   void set_accelerations( double accel, double drag_accel );
 

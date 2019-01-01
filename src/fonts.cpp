@@ -60,19 +60,19 @@ Texture render_line_standard_impl( ::TTF_Font*   font,
 
 } // namespace
 
-Texture render_line_standard( e_font font, Color fg,
-                              string const& line ) {
+Texture render_text_line_standard( e_font font, Color fg,
+                                   string const& line ) {
   auto* ttf_font = loaded_fonts[font].ttf_font;
   return render_line_standard_impl( ttf_font, to_SDL( fg ),
                                     line );
 }
 
-Texture render_line_shadow( e_font font, Color fg,
-                            string const& line ) {
+Texture render_text_line_shadow( e_font font, Color fg,
+                                 string const& line ) {
   Color bg        = Color::black();
   bg.a            = 80;
-  auto texture_fg = render_line_standard( font, fg, line );
-  auto texture_bg = render_line_standard( font, bg, line );
+  auto texture_fg = render_text_line_standard( font, fg, line );
+  auto texture_bg = render_text_line_standard( font, bg, line );
   auto delta      = texture_delta( texture_fg );
   auto result_texture =
       create_texture( delta.w + 1, delta.h + 1 );
@@ -195,7 +195,7 @@ void font_test() {
 
   auto render_line = [font]( string const& text ) {
     Color fg = config_palette.orange.sat1.lum11;
-    return render_line_shadow( font, fg, text );
+    return render_text_line_shadow( font, fg, text );
   };
   auto texture = render_wrapped_text( skip, msg, render_line,
                                       L( _.size() <= 20 ) );
