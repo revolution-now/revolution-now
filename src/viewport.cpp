@@ -408,7 +408,7 @@ template<typename C>
 bool is_tile_surroundings_fully_visible(
     SmoothViewport const& vp, Coord const& coords ) {
   auto covered       = vp.covered_tiles();
-  auto covered_inner = covered.edges_removed();
+  auto covered_inner = covered.edges_removed().edges_removed();
   // auto covered_inner_inner = covered_inner.edges_removed();
 
   auto& box = covered_inner;
