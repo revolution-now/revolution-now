@@ -420,26 +420,21 @@ bool is_tile_surroundings_fully_visible(
          ( coords.coordinate<C>() < box_end );
 }
 
-void SmoothViewport::ensure_tile_surroundings_visible(
-    Coord const& center, bool smooth ) {
-  for( auto direction : directions_all ) {
-    auto coord = center.moved( direction );
-    if( !is_tile_surroundings_fully_visible<X>( *this,
-                                                coord ) ) {
-      if( smooth )
-        smooth_center_x_target_ =
-            XD{double( ( coord.x * g_tile_width )._ )};
-      else
-        center_on_tile_x( coord );
-    }
-    if( !is_tile_surroundings_fully_visible<Y>( *this,
-                                                coord ) ) {
-      if( smooth )
-        smooth_center_y_target_ =
-            YD{double( ( coord.y * g_tile_height )._ )};
-      else
-        center_on_tile_y( coord );
-    }
+void SmoothViewport::ensure_tile_visible( Coord const& coord,
+                                          bool         smooth ) {
+  if( !is_tile_surroundings_fully_visible<X>( *this, coord ) ) {
+    if( smooth )
+      smooth_center_x_target_ =
+          XD{double( ( coord.x * g_tile_width )._ )};
+    else
+      center_on_tile_x( coord );
+  }
+  if( !is_tile_surroundings_fully_visible<Y>( *this, coord ) ) {
+    if( smooth )
+      smooth_center_y_target_ =
+          YD{double( ( coord.y * g_tile_height )._ )};
+    else
+      center_on_tile_y( coord );
   }
 }
 

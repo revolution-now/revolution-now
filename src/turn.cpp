@@ -148,8 +148,8 @@ e_turn_result turn( e_nation nation ) {
         need_eot_loop = false;
 
         auto coords = coords_for_unit( id );
-        viewport().ensure_tile_surroundings_visible(
-            coords, /*smooth=*/true );
+        viewport().ensure_tile_visible( coords,
+                                        /*smooth=*/true );
 
         /***************************************************/
         vp_state = viewport_state::blink_unit{};
@@ -181,8 +181,8 @@ e_turn_result turn( e_nation nation ) {
                 mv_res ) {
             /***************************************************/
             if( mv_res->coords != coords ) {
-              viewport().ensure_tile_surroundings_visible(
-                  coords, /*smooth=*/true );
+              viewport().ensure_tile_visible( mv_res->coords,
+                                              /*smooth=*/true );
               vp_state = viewport_state::slide_unit(
                   id, mv_res->coords );
               auto& slide_unit =

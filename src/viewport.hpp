@@ -37,8 +37,7 @@ public:
   // coordinate visible, but will avoid shifting if it is already
   // visible. If smooth == true then it will animate the motion
   // as opposed to a sudden shift.
-  void ensure_tile_surroundings_visible( Coord const& coord,
-                                         bool         smooth );
+  void ensure_tile_visible( Coord const& coord, bool smooth );
 
   // This function will compute the rectangle in the source
   // viewport texture that should be rendered to the screen.

@@ -47,17 +47,17 @@ void game() {
 
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
+  (void)create_unit_on_map( e_nation::dutch,
+                            e_unit_type::caravel, 1_y, 3_x );
   (void)create_unit_on_map(
-      e_nation::english, e_unit_type::free_colonist, 2_y, 4_x );
-  (void)create_unit_on_map( e_nation::english,
+      e_nation::dutch, e_unit_type::free_colonist, 2_y, 4_x );
+  (void)create_unit_on_map( e_nation::dutch,
                             e_unit_type::soldier, 2_y, 3_x );
-  (void)create_unit_on_map( e_nation::english,
-                            e_unit_type::caravel, 2_y, 2_x );
 
-  (void)create_unit_on_map(
-      e_nation::french, e_unit_type::free_colonist, 3_y, 4_x );
-  (void)create_unit_on_map( e_nation::french,
-                            e_unit_type::soldier, 3_y, 5_x );
+  //(void)create_unit_on_map(
+  //    e_nation::french, e_unit_type::free_colonist, 3_y, 4_x );
+  //(void)create_unit_on_map( e_nation::french,
+  //                          e_unit_type::soldier, 3_y, 5_x );
 
   //(void)create_unit_on_map(
   //    e_nation::spanish, e_unit_type::free_colonist, 4_y, 4_x
