@@ -180,19 +180,22 @@ e_turn_result turn( e_nation nation ) {
           if_v( analysis.result, ProposedMoveAnalysisResult,
                 mv_res ) {
             /***************************************************/
-            viewport().ensure_tile_surroundings_visible(
-                coords, /*smooth=*/true );
-            vp_state =
-                viewport_state::slide_unit( id, mv_res->coords );
-            auto& slide_unit =
-                std::get<viewport_state::slide_unit>( vp_state );
-            // In this call we specify that it should not collect
-            // any user input (keyboard, mouse) to avoid movement
-            // commands (issued during animation) from getting
-            // swallowed.
-            frame_throttler( false, [&slide_unit] {
-              return slide_unit.percent >= 1.0;
-            } );
+            if( mv_res->coords != coords ) {
+              viewport().ensure_tile_surroundings_visible(
+                  coords, /*smooth=*/true );
+              vp_state = viewport_state::slide_unit(
+                  id, mv_res->coords );
+              auto& slide_unit =
+                  std::get<viewport_state::slide_unit>(
+                      vp_state );
+              // In this call we specify that it should not
+              // collect any user input (keyboard, mouse) to
+              // avoid movement commands (issued during
+              // animation) from getting swallowed.
+              frame_throttler( false, [&slide_unit] {
+                return slide_unit.percent >= 1.0;
+              } );
+            }
             /***************************************************/
           }
           apply_orders( id, analysis );

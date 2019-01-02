@@ -51,6 +51,12 @@ enum class ND e_direction {
   // clang-format on
 };
 
+// No center here
+inline constexpr auto directions_all = {
+    e_direction::nw, e_direction::n, e_direction::ne,
+    e_direction::w,  e_direction::e, e_direction::sw,
+    e_direction::s,  e_direction::se};
+
 struct ND Delta {
   W w = 0_w;
   H h = 0_h;
