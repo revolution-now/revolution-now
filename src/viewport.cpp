@@ -213,7 +213,6 @@ void SmoothViewport::smooth_zoom_target( double target ) {
 }
 void SmoothViewport::stop_auto_zoom() {
   smooth_zoom_target_ = std::nullopt;
-  zoom_point_seek_    = nullopt;
 }
 
 void SmoothViewport::stop_auto_panning() {

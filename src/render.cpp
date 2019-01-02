@@ -304,12 +304,10 @@ struct ViewportPlane : public Plane {
         // then we are in business.
         if( viewport().screen_coord_in_viewport( mouse_pos ) &&
             val.kind == input::e_mouse_event_kind::wheel ) {
-          if( val.wheel_delta < 0 )
-            viewport().set_zoom_push( e_push_direction::negative,
-                                      nullopt );
           if( val.wheel_delta > 0 )
-            // If we're zooming in then zoom towards the tile
-            // under cursor.
+            viewport().set_zoom_push( e_push_direction::negative,
+                                      mouse_pos );
+          if( val.wheel_delta < 0 )
             viewport().set_zoom_push( e_push_direction::positive,
                                       mouse_pos );
           // A user zoom request halts any auto zooming that may
