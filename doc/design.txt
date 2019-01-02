@@ -1,3 +1,37 @@
+Auto-commands
+=============
+
+It will be useful for various purposes:
+
+  * Unit movement that happens as a result of some different
+    command, such as:
+      * land-fall automatically unloading a unit
+      * combat capturing a unit
+      * other things
+  * Cut scenes (animated sequences)
+  * Testing
+
+for units to be able to take orders automatically instead of
+polling the user.  To this end, we do the following:
+
+  For units there will be a global orders queue that will hold
+  player orders.  When a unit needs orders this queue will be
+  checked first, and then the order will be taken a processed
+  as if the user had entered it manually, including any popup
+  windows that might be needed.
+
+  If a unit needs orders and there are none in the queue then
+  (and only then) will the user be polled.
+
+Applications:
+
+  * When a ship is making landfall then the first unit onboard
+    with available movement points will be given an auto command
+    to move onto land.  It will also be push to the front of the
+    orders queue, and the ship will "wait".  The unit will then
+    immediately execute the order.  All units on the ship with
+    movement points will be given the order.
+
 Planes
 ======
 
@@ -103,6 +137,7 @@ Units on ships:
 ================================================================
 
 Game loops:
+==========
 
   start of turn:
 
@@ -113,8 +148,8 @@ Game loops:
       * display messages to user any/or show animations where necessary
 
       * allow them to enter colony when events happens;
-in that case go to the colony screen game loop.When the user
-    exits the colony screen then this colony iteration
+        in that case go to the colony screen game loop.When the user
+        exits the colony screen then this colony iteration
         immediately proceeds;
         i.e., user cannot enter any other colonies.  This prevents the
         user from making last-minute changes to colonies that have not
