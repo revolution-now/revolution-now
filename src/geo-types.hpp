@@ -187,6 +187,8 @@ struct ND Rect {
   Coord lower_left() const { return Coord{y + h, x}; }
   // Upper right corner; NOTE, this is one-past-the-end.
   Coord upper_right() const { return Coord{y, x + w}; }
+  // Center
+  Coord center() const { return Coord{y + h / 2, x + w / 2}; }
 
   // Right edge; NOTE: this is one-past-the-end.
   X right_edge() const { return {x + w}; }

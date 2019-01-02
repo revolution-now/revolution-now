@@ -69,7 +69,8 @@ SmoothViewport::SmoothViewport()
     center_y_( height_pixels() / 2 ),
     smooth_zoom_target_{},
     smooth_center_x_target_{},
-    smooth_center_y_target_{} {
+    smooth_center_y_target_{},
+    zoom_point_seek_{} {
   enforce_invariants();
 }
 
@@ -100,6 +101,12 @@ void SmoothViewport::advance( e_push_direction x_push,
   pan( 0, x_vel_.to_double(), false );
   pan( y_vel_.to_double(), 0, false );
   scale_zoom( 1.0 + zoom_vel_.to_double() );
+
+  if( zoom_point_seek_ ) {
+    center_x_ += zoom_point_seek_->w._ * zoom_vel_.to_double();
+    center_y_ += zoom_point_seek_->h._ * zoom_vel_.to_double();
+    enforce_invariants();
+  }
 }
 
 template<typename T>
@@ -185,8 +192,20 @@ void SmoothViewport::set_y_push( e_push_direction push ) {
   y_push = push;
 }
 
-void SmoothViewport::set_zoom_push( e_push_direction push ) {
+void SmoothViewport::set_zoom_push(
+    e_push_direction push, Opt<Coord> maybe_seek_screen_coord ) {
   zoom_push = push;
+
+  zoom_point_seek_ = nullopt;
+  // If the caller has specified a coordinate and if that
+  // coordinate is in the viewport then record it so that the
+  // viewport center can tend to that point as the zoom happens.
+  if( maybe_seek_screen_coord ) {
+    auto world_coord_seek =
+        screen_pixel_to_world_pixel( *maybe_seek_screen_coord );
+    if( world_coord_seek )
+      zoom_point_seek_ = *world_coord_seek - center_rounded();
+  }
 }
 
 void SmoothViewport::smooth_zoom_target( double target ) {
@@ -194,6 +213,7 @@ void SmoothViewport::smooth_zoom_target( double target ) {
 }
 void SmoothViewport::stop_auto_zoom() {
   smooth_zoom_target_ = std::nullopt;
+  zoom_point_seek_    = nullopt;
 }
 
 void SmoothViewport::stop_auto_panning() {
@@ -232,6 +252,11 @@ Rect SmoothViewport::get_bounds() const {
   return {X( int( start_x() ) ), Y( int( start_y() ) ),
           W( int( width_pixels() ) ),
           H( int( height_pixels() ) )};
+}
+
+Coord SmoothViewport::center_rounded() const {
+  return Coord{X{int( lround( center_x_ ) )},
+               Y{int( lround( center_y_ ) )}};
 }
 
 // Number of tiles needed to be drawn in order to subsume the
@@ -436,42 +461,6 @@ void SmoothViewport::ensure_tile_visible( Coord const& coord,
     else
       center_on_tile_y( coord );
   }
-}
-
-// This function takes a new target (screen_cord) and then it
-// will update the existing target (if there is one) with a new
-// target that is a fraction of the way between the current
-// target and the new target. If there is no current target then
-// we just use the current viewport center as the current target.
-//
-// The idea is that is we call this function a few times in rapid
-// succession (such as in response to mouse wheel movements) it
-// will make the target coordinate approach the mouse position on
-// the screen, which is probably what the user wants when zooming
-// in towards the mouse position. However, if we only get one
-// mouse wheel movement (and hence one of these function calls)
-// then the target will only be a fraction of the way from the
-// current screen center to the mouse position so to avoid the
-// viewport jumping only on a slight mouse wheel movement.
-//
-// This is kind of strange, but couldn't find a better way.
-void SmoothViewport::smooth_center_target( Coord screen_coord ) {
-  auto world_coord =
-      viewport().screen_pixel_to_world_pixel( screen_coord );
-
-  double start_x =
-      smooth_center_x_target_.value_or( XD{center_x_} )._;
-  double start_y =
-      smooth_center_y_target_.value_or( YD{center_y_} )._;
-
-  auto delta_x = double( world_coord.value().x._ ) - start_x;
-  auto delta_y = double( world_coord.value().y._ ) - start_y;
-
-  delta_x *= seek_percent_while_zooming;
-  delta_y *= seek_percent_while_zooming;
-
-  smooth_center_x_target_ = XD{start_x + delta_x};
-  smooth_center_y_target_ = YD{start_y + delta_y};
 }
 
 } // namespace rn

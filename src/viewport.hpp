@@ -64,10 +64,15 @@ public:
 
   static void set_x_push( e_push_direction );
   static void set_y_push( e_push_direction );
-  static void set_zoom_push( e_push_direction );
+  // If provided, the maybe_seek_screen_coord represents a point
+  // on the screen (typically, mouse cursor position) to which
+  // the viewport center to should tend as the zoom is done. This
+  // allows the user to zoom into a particular point by zooming
+  // while the mouse cursor is over that point.
+  void set_zoom_push( e_push_direction,
+                      Opt<Coord> maybe_seek_screen_coord );
 
   void smooth_zoom_target( double target );
-  void smooth_center_target( Coord screen_coord );
   void stop_auto_zoom();
   void stop_auto_panning();
 
@@ -89,6 +94,10 @@ private:
   Y start_tile_y() const;
 
   Rect get_bounds() const;
+
+  // Returns world coordinates of center in pixels, rounded
+  // to the nearest pixel.
+  Coord center_rounded() const;
 
   double width_tiles() const;
   double height_tiles() const;
@@ -116,6 +125,10 @@ private:
   Opt<double> smooth_zoom_target_{};
   Opt<XD>     smooth_center_x_target_{};
   Opt<YD>     smooth_center_y_target_{};
+
+  // Delta in world pixel coordinates indicating the direction in
+  // which the viewport center should tend as we zoom in.
+  Opt<Delta> zoom_point_seek_{};
 };
 
 SmoothViewport& viewport();
