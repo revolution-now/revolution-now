@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "fmt-helper.hpp"
 #include "geo-types.hpp"
 #include "job.hpp"
 #include "movement.hpp"
@@ -66,23 +67,32 @@
  *         automatic orders for movement.
  */
 
-#define ORDER_SINGLETON( o ) \
-  struct o##_t {};           \
-  inline constexpr o##_t o {}
+#define ORDER_MONOSTATE( __o )    \
+  namespace rn::orders {          \
+  struct __o##_t {};              \
+  inline constexpr __o##_t __o{}; \
+  }                               \
+  DEFINE_FORMAT_( rn::orders::__o##_t, "{}", TO_STRING( __o ) );
 
-namespace rn {
+// Define monostate orders with a single macro statement.
 
-namespace orders {
+ORDER_MONOSTATE( quit ); // temporary until we can quit properly
+ORDER_MONOSTATE( wait );
+ORDER_MONOSTATE( forfeight );
 
-ORDER_SINGLETON( quit ); // temporary until we can quit properly
-ORDER_SINGLETON( wait );
-ORDER_SINGLETON( forfeight );
+// Define multi-state orders with the struct and formatting spec.
+
+namespace rn::orders {
 
 struct move {
   e_direction d;
 };
 
-} // namespace orders
+} // namespace rn::orders
+
+DEFINE_FORMAT( rn::orders::move, "move{}{}{}", '{', o.d, '}' );
+
+namespace rn {
 
 // These are always allowed.
 struct ProposedMetaOrderAnalysisResult {

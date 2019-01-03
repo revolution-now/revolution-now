@@ -189,7 +189,7 @@ e_turn_result turn( e_nation nation ) {
 
         CHECK( maybe_orders.has_value() );
         auto& orders = *maybe_orders;
-        logger->debug( "received orders: {}", orders.index() );
+        logger->debug( "received orders: {}", orders );
 
         if( util::holds<orders::quit_t>( orders ) )
           return e_turn_result::quit;
