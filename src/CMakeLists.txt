@@ -11,10 +11,11 @@ set_warning_options( rn )
 target_link_libraries(
     rn
     PRIVATE
-    base-util
     absl::container
     absl::hash
     absl::strings
+    base-util
+    better-enums::better-enums
     fmt::fmt
     observer-ptr::observer-ptr
     spdlog::spdlog

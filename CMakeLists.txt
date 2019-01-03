@@ -45,6 +45,7 @@ add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/libucl        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/debug_assert  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/observer-ptr  EXCLUDE_FROM_ALL )
+add_subdirectory( extern/better-enums  EXCLUDE_FROM_ALL )
 
 # === global settings =============================================
 

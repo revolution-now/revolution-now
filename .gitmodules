@@ -22,3 +22,6 @@
 [submodule "extern/debug_assert"]
 	path = extern/debug_assert
 	url = https://github.com/foonathan/debug_assert.git
+[submodule "extern/better-enums/better-enums"]
+	path = extern/better-enums/better-enums
+	url = https://github.com/aantron/better-enums.git
