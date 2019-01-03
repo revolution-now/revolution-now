@@ -14,23 +14,16 @@
 
 // Revolution Now
 #include "color.hpp"
+#include "enum.hpp"
 
 // C++ standard library
 #include <string>
 
 namespace rn {
 
-enum class ND e_nation {
-  dutch,
-  french,
-  english,
-  spanish,
-  /**/
-  __count__ // must be last
-};
-
-inline constexpr int g_num_nations =
-    static_cast<int>( e_nation::__count__ );
+enum class ND e_( nation, //
+                  /*values*/
+                  dutch, french, english, spanish );
 
 struct Nation {
   std::string name_lowercase;
@@ -45,6 +38,6 @@ struct Nation {
 
 Nation const& nation_obj( e_nation nation );
 
-std::array<e_nation, g_num_nations> const& all_nations();
+std::array<e_nation, e_nation::_size()> const& all_nations();
 
 } // namespace rn

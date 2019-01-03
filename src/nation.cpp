@@ -38,7 +38,7 @@ Nation const& nation_obj( e_nation nation ) {
     MAKE_NATION( french );
     MAKE_NATION( english );
     MAKE_NATION( spanish );
-    CHECK( m.size() == g_num_nations );
+    CHECK( m.size() == e_nation::_size() );
     return m;
   }();
   return nations[nation];
@@ -54,11 +54,11 @@ string Nation::name_proper() const {
   return res;
 }
 
-array<e_nation, g_num_nations> const& all_nations() {
-  static constexpr array<e_nation, g_num_nations> nations{
+array<e_nation, e_nation::_size()> const& all_nations() {
+  static constexpr array<e_nation, e_nation::_size()> nations{
       e_nation::dutch, e_nation::french, e_nation::english,
       e_nation::spanish};
-  static_assert( nations.size() == g_num_nations );
+  static_assert( nations.size() == e_nation::_size() );
   return nations;
 }
 

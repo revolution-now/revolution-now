@@ -12,7 +12,19 @@
 
 #include "core-config.hpp"
 
-// better-enums
+// Hopefully make things lighter by removing exception throwing
+// from the reflected enums. This will remove any functions from
+// the API that throw.
+#define BETTER_ENUMS_NO_EXCEPTIONS 1
+
+// In order to tell better-enums that we want a default
+// constructor we need to actually write it in this macro.
+#define BETTER_ENUMS_DEFAULT_CONSTRUCTOR( Enum ) \
+public:                                          \
+  Enum() : _value( 0 ) {}
+
+// better-enums.  NOTE: this should be the only place in the
+// code base that we include this header.
 #include "better-enums/enum.h"
 
 // This creates a reflected enum class.  Use it like this:
@@ -38,7 +50,7 @@
   __e_##n;                                \
   BETTER_ENUM( e_##n, int, __VA_ARGS__ ); \
   template<>                              \
-  auto values_impl<e_##n>() {             \
+  inline auto values_impl<e_##n>() {      \
     return e_##n::_values();              \
   }
 

@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "enum.hpp"
 #include "errors.hpp" // TODO: remove eventually
 #include "fmt-helper.hpp"
 #include "typed-int.hpp"
@@ -44,18 +45,13 @@ struct ND Scale {
   constexpr Scale() : Scale( 1 ) {}
 };
 
-enum class ND e_direction {
-  // clang-format off
+// clang-format off
+enum class ND e_(direction,
   nw, n, ne,
    w, c,  e,
   sw, s, se
-  // clang-format on
-};
-
-inline constexpr auto directions_all = {
-    e_direction::nw, e_direction::n, e_direction::ne,
-    e_direction::w,  e_direction::c, e_direction::e,
-    e_direction::sw, e_direction::s, e_direction::se};
+);
+// clang-format on
 
 struct ND Delta {
   W w = 0_w;

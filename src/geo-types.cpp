@@ -118,7 +118,7 @@ Coord Coord::moved( e_direction d ) const {
 }
 
 Opt<e_direction> Coord::direction_to( Coord dest ) const {
-  for( auto d : directions_all )
+  for( auto d : values<e_direction> )
     if( moved( d ) == dest ) return d;
   return {};
 }
@@ -126,7 +126,7 @@ Opt<e_direction> Coord::direction_to( Coord dest ) const {
 bool Coord::is_adjacent_to( Coord other ) const {
   auto direction = direction_to( other );
   if( direction.has_value() &&
-      direction.value() != e_direction::c )
+      direction.value() != +e_direction::c )
     return true;
   return false;
 }
