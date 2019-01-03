@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "errors.hpp" // TODO: remove eventually
 #include "fmt-helper.hpp"
 #include "typed-int.hpp"
@@ -51,11 +52,10 @@ enum class ND e_direction {
   // clang-format on
 };
 
-// No center here
 inline constexpr auto directions_all = {
     e_direction::nw, e_direction::n, e_direction::ne,
-    e_direction::w,  e_direction::e, e_direction::sw,
-    e_direction::s,  e_direction::se};
+    e_direction::w,  e_direction::c, e_direction::e,
+    e_direction::sw, e_direction::s, e_direction::se};
 
 struct ND Delta {
   W w = 0_w;
@@ -148,7 +148,14 @@ struct ND Coord {
   void clip( Rect const& rect );
 
   Coord moved( e_direction d ) const;
-  bool  is_inside( Rect const& rect ) const;
+  // Find the direction from this coord to `dest`. If dest is not
+  // equal or adjacent to this coord then nullopt will be re-
+  // turned.
+  Opt<e_direction> direction_to( Coord dest ) const;
+
+  bool is_adjacent_to( Coord other ) const;
+
+  bool is_inside( Rect const& rect ) const;
 
   auto to_tuple() const { return std::tuple( y, x ); }
 

@@ -117,6 +117,20 @@ Coord Coord::moved( e_direction d ) const {
   return {y, x}; // to silence warning; will not get here.
 }
 
+Opt<e_direction> Coord::direction_to( Coord dest ) const {
+  for( auto d : directions_all )
+    if( moved( d ) == dest ) return d;
+  return {};
+}
+
+bool Coord::is_adjacent_to( Coord other ) const {
+  auto direction = direction_to( other );
+  if( direction.has_value() &&
+      direction.value() != e_direction::c )
+    return true;
+  return false;
+}
+
 bool Coord::is_inside( Rect const& rect ) const {
   return ( x >= rect.x ) && ( y >= rect.y ) &&
          ( x < rect.x + rect.w ) && ( y < rect.y + rect.h );

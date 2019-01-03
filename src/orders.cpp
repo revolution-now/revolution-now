@@ -17,11 +17,39 @@
 // base-util
 #include "base-util/variant.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
+// C++ standard library
+#include <queue>
+
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+absl::flat_hash_map<UnitId, queue<PlayerUnitOrders>>
+    g_orders_queue;
+
+} // namespace
+
+void push_unit_orders( UnitId                  id,
+                       PlayerUnitOrders const& orders ) {
+  g_orders_queue[id].push( orders );
+}
+
+Opt<PlayerUnitOrders> pop_unit_orders( UnitId id ) {
+  Opt<PlayerUnitOrders> res{};
+  if( has_key( g_orders_queue, id ) ) {
+    auto& q = g_orders_queue[id];
+    if( !q.empty() ) {
+      res = q.front();
+      q.pop();
+    }
+  }
+  return res;
+}
 
 vector<UnitId> ProposedOrdersAnalysis::units_to_prioritize()
     const {

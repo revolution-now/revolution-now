@@ -79,7 +79,7 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  init_logging( spdlog::level::info );
+  init_logging( spdlog::level::debug );
   load_configs();
   game();
   return 0;

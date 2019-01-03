@@ -109,6 +109,11 @@ using PlayerUnitOrders = std::variant<
     // moving on the map
     orders::move>;
 
+void push_unit_orders( UnitId                  id,
+                       PlayerUnitOrders const& orders );
+
+Opt<PlayerUnitOrders> pop_unit_orders( UnitId id );
+
 using ProposedOrdersAnalysisResult = std::variant<
     // Orders about orders
     ProposedMetaOrderAnalysisResult,

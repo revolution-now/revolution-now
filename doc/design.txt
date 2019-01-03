@@ -118,15 +118,15 @@ Units on ships:
     points.
   ✓ When a unit boards a ship it consumes all their movement pts.
   ✓ When a unit offboards a ship it consumes all their movement pts.
-  * When a ship carrying units attempts to move onto land:
+  ✓ When a ship carrying units attempts to move onto land:
      ✓ The ships movement points are NOT consumed.
      ✓ If there are no units with movement points then nothing happens.
-     * If there are units with movement points then:
+     ✓ If there are units with movement points then:
         ✓ A window pops up asking if we want to make landfall.
-        * If yes, the following happens:
+        ✓ If yes, the following happens:
             ✓ All the units with movement points on the ship have
               their orders cleared.
-            * The first unit in the ship with movement
+            ✓ The units in the ship with movement
               points moves onto the land automatically.
             ✓ All the other units on the ship with movement points
               are put on the priority list to take orders next.

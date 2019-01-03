@@ -13,6 +13,7 @@
 // Revolution Now
 #include "errors.hpp"
 #include "id.hpp"
+#include "orders.hpp"
 #include "ownership.hpp"
 #include "util.hpp"
 #include "window.hpp"
@@ -41,9 +42,10 @@ void reset_moves() {
 // burden of the logic in this function to find every possible
 // way that the move is *not* allowed and to flag it if that is
 // the case.
-ProposedMoveAnalysisResult analyze_proposed_move(
+ProposedMoveAnalysisResult analyze_proposed_move_impl(
     UnitId id, e_direction d ) {
-  auto coords = coords_for_unit( id ).moved( d );
+  auto src_coord = coords_for_unit( id );
+  auto coords    = src_coord.moved( d );
 
   Y y = coords.y;
   X x = coords.x;
@@ -54,7 +56,13 @@ ProposedMoveAnalysisResult analyze_proposed_move(
   MovementPoints cost( 1 );
 
   ProposedMoveAnalysisResult result{
-      coords, e_unit_mv_good::map_to_map, cost, UnitId{0}, {}};
+      /*unit_would_move=*/true,
+      /*move_src=*/src_coord,
+      /*move_target=*/coords,
+      /*desc=*/e_unit_mv_good::map_to_map,
+      /*movement_cost=*/cost,
+      /*target_unit=*/{},
+      /*to_prioritize=*/{}};
 
   if( unit.movement_points() < cost ) {
     result.desc = e_unit_mv_error::insufficient_movement_points;
@@ -80,10 +88,11 @@ ProposedMoveAnalysisResult analyze_proposed_move(
       // allowed to make this move, but we change the target
       // square to where the unit currently is since it will
       // not physically move.
-      result.desc          = e_unit_mv_good::land_fall;
-      result.coords        = coords_for_unit( unit.id() );
-      result.movement_cost = 0;
-      result.to_prioritize = to_offload;
+      result.desc            = e_unit_mv_good::land_fall;
+      result.unit_would_move = false;
+      result.move_target     = coords;
+      result.movement_cost   = 0;
+      result.to_prioritize   = to_offload;
       return result;
     }
     result.desc = e_unit_mv_error::land_forbidden;
@@ -126,6 +135,22 @@ ProposedMoveAnalysisResult analyze_proposed_move(
   return result;
 }
 
+// This is the entry point; calls the implementation then checks
+// invariants.
+ProposedMoveAnalysisResult analyze_proposed_move(
+    UnitId id, e_direction d ) {
+  auto res = analyze_proposed_move_impl( id, d );
+  // Now check invariants.
+  CHECK( res.move_src != res.move_target );
+  CHECK( find( res.to_prioritize.begin(),
+               res.to_prioritize.end(),
+               id ) == res.to_prioritize.end() );
+  CHECK( res.move_src == coords_for_unit( id ) );
+  CHECK( res.move_src.is_adjacent_to( res.move_target ) );
+  CHECK( res.target_unit != id );
+  return res;
+}
+
 void move_unit( UnitId                            id,
                 ProposedMoveAnalysisResult const& analysis ) {
   auto& unit = unit_from_id( id );
@@ -138,6 +163,10 @@ void move_unit( UnitId                            id,
 
   e_unit_mv_good outcome = get<e_unit_mv_good>( analysis.desc );
 
+  // This will throw if the unit has no coords, but I think it
+  // should always at this point if we're moving it.
+  auto old_coord = coords_for_unit( id );
+
   switch( outcome ) {
     case e_unit_mv_good::map_to_map:
       // If it's a ship then sentry all its units before it
@@ -148,16 +177,17 @@ void move_unit( UnitId                            id,
           cargo_unit.sentry();
         }
       }
-      ownership_change_to_map( id, analysis.coords );
+      ownership_change_to_map( id, analysis.move_target );
       unit.consume_mv_points( analysis.movement_cost );
       break;
     case e_unit_mv_good::board_ship:
-      ownership_change_to_cargo( analysis.target_unit, id );
+      CHECK( analysis.target_unit.has_value() );
+      ownership_change_to_cargo( *analysis.target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       break;
     case e_unit_mv_good::offboard_ship:
-      ownership_change_to_map( id, analysis.coords );
+      ownership_change_to_map( id, analysis.move_target );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == Unit::e_orders::none );
       break;
@@ -180,10 +210,20 @@ void move_unit( UnitId                            id,
           // ders otherwise it will just be passed over again
           // this turn.
           cargo_unit.unfinish_turn();
+          auto direction =
+              old_coord.direction_to( analysis.move_target );
+          CHECK( direction.has_value() );
+          PlayerUnitOrders orders = orders::move{*direction};
+          push_unit_orders( cargo_id, orders );
         }
       }
       break;
   }
+
+  // Now do a sanity check.
+  auto new_coord = coords_for_unit( id );
+  CHECK( analysis.unit_would_move ==
+         ( new_coord == analysis.move_target ) );
 }
 
 bool confirm_explain_move(

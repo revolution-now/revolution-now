@@ -306,7 +306,7 @@ struct ViewportPlane : public Plane {
             val.kind == input::e_mouse_event_kind::wheel ) {
           if( val.wheel_delta < 0 )
             viewport().set_zoom_push( e_push_direction::negative,
-                                      mouse_pos );
+                                      nullopt );
           if( val.wheel_delta > 0 )
             viewport().set_zoom_push( e_push_direction::positive,
                                       mouse_pos );

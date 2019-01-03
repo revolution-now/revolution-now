@@ -54,8 +54,20 @@ using v_unit_mv_desc =
 // Describes what would happen if a unit were to move to a given
 // square.
 struct ND ProposedMoveAnalysisResult {
-  // The target square of move being described.
-  Coord coords{};
+  // If this move is allowed and executed, will the unit actually
+  // move to the target square as a result? Normally the answer
+  // is yes, however there are cases when the answer is no, such
+  // as when a ship makes landfall.
+  bool unit_would_move{};
+  // The square on which the unit resides.
+  Coord move_src{};
+  // The square toward which the move is aimed; note that if/when
+  // this move is executed the unit will not necessarily move to
+  // this square (it depends on the kind of move being made).
+  // That said, this field will always contain a valid and mean-
+  // ingful value since there must always be a move order in
+  // order for this data structure to even be populated.
+  Coord move_target{};
   // Description of what would happen if the move were carried
   // out. This can also serve as a binary indicator of whether
   // the move is possible by checking the type held, as the can_-
@@ -67,10 +79,12 @@ struct ND ProposedMoveAnalysisResult {
   // Unit that is the target of an action, e.g., unit to
   // be attacked, ship to be boarded, etc.  Not relevant
   // in all contexts.
-  UnitId target_unit{};
+  Opt<UnitId> target_unit{};
   // Units that will be waiting for orders and which should be
   // prioritized in the "orders" loop after this move is made.
-  // This field is only relevant for certain (valid) moves.
+  // This field is only relevant for certain (valid) moves. NOTE:
+  // units will be prioritized in reverse order of this vector,
+  // i.e., the last unit will be up first.
   std::vector<UnitId> to_prioritize{};
 
   // Is it possible to move at all.  This just checks that

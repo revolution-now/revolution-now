@@ -14,6 +14,7 @@
 #include "logging.hpp"
 #include "loops.hpp"
 #include "movement.hpp"
+#include "orders.hpp"
 #include "ownership.hpp"
 #include "render.hpp"
 #include "unit.hpp"
@@ -26,9 +27,26 @@
 #include <algorithm>
 #include <deque>
 
+using namespace std;
+
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+bool animate_move( ProposedMoveAnalysisResult const& analysis ) {
+  CHECK( util::holds<e_unit_mv_good>( analysis.desc ) );
+  auto type = get<e_unit_mv_good>( analysis.desc );
+  switch( type ) {
+    case e_unit_mv_good::map_to_map: return true;
+    case e_unit_mv_good::board_ship: return true;
+    case e_unit_mv_good::offboard_ship: return true;
+    case e_unit_mv_good::land_fall: return false;
+  };
+  SHOULD_NOT_BE_HERE;
+  return false;
+}
+
+} // namespace
 
 e_turn_result turn() {
   for( auto nation : all_nations() ) {
@@ -96,7 +114,7 @@ e_turn_result turn( e_nation nation ) {
     };
     if( all_of( units.begin(), units.end(), finished ) ) break;
 
-    std::deque<UnitId> q;
+    deque<UnitId> q;
     for( auto id : units ) q.push_back( id );
 
     //  Iterate through all units, for each:
@@ -107,7 +125,7 @@ e_turn_result turn( e_nation nation ) {
         continue;
       }
       auto id = unit.id();
-      logger->debug( "processing turn for unit {}",
+      logger->debug( "processing turn for {}",
                      debug_string( id ) );
       // This will trigger until we start distinguishing nations.
       CHECK( unit.nation() == nation );
@@ -151,17 +169,26 @@ e_turn_result turn( e_nation nation ) {
         viewport().ensure_tile_visible( coords,
                                         /*smooth=*/true );
 
+        auto maybe_orders = pop_unit_orders( id );
+
         /***************************************************/
-        vp_state = viewport_state::blink_unit{};
-        auto& blink_unit =
-            std::get<viewport_state::blink_unit>( vp_state );
-        blink_unit.id = id;
-        frame_throttler( true, [&blink_unit] {
-          return blink_unit.orders.has_value();
-        } );
+        if( !maybe_orders.has_value() ) {
+          vp_state = viewport_state::blink_unit{};
+          auto& blink_unit =
+              get<viewport_state::blink_unit>( vp_state );
+          blink_unit.id = id;
+          frame_throttler( true, [&blink_unit] {
+            return blink_unit.orders.has_value();
+          } );
+          CHECK( blink_unit.orders.has_value() );
+          maybe_orders = blink_unit.orders;
+        } else {
+          logger->debug( "found queued orders." );
+        }
         /***************************************************/
-        CHECK( blink_unit.orders.has_value() );
-        auto const& orders = *blink_unit.orders;
+
+        CHECK( maybe_orders.has_value() );
+        auto& orders = *maybe_orders;
         logger->debug( "received orders: {}", orders.index() );
 
         if( util::holds<orders::quit_t>( orders ) )
@@ -180,14 +207,14 @@ e_turn_result turn( e_nation nation ) {
           if_v( analysis.result, ProposedMoveAnalysisResult,
                 mv_res ) {
             /***************************************************/
-            if( mv_res->coords != coords ) {
-              viewport().ensure_tile_visible( mv_res->coords,
-                                              /*smooth=*/true );
+            if( animate_move( *mv_res ) ) {
+              viewport().ensure_tile_visible(
+                  mv_res->move_target,
+                  /*smooth=*/true );
               vp_state = viewport_state::slide_unit(
-                  id, mv_res->coords );
+                  id, mv_res->move_target );
               auto& slide_unit =
-                  std::get<viewport_state::slide_unit>(
-                      vp_state );
+                  get<viewport_state::slide_unit>( vp_state );
               // In this call we specify that it should not
               // collect any user input (keyboard, mouse) to
               // avoid movement commands (issued during
