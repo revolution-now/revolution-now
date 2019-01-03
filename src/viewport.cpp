@@ -29,7 +29,6 @@ constexpr double zoom_accel          = 0.2 * zoom_speed;
 constexpr double zoom_accel_drag     = 0.05 * zoom_speed;
 constexpr double pan_accel_init      = 0.2 * movement_speed;
 constexpr double pan_accel_drag_init = 0.1 * movement_speed;
-constexpr double seek_percent_while_zooming = 1.0 / 7.0;
 
 namespace {
 

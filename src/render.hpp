@@ -65,10 +65,10 @@ struct slide_unit {
     : id( id_ ), target( target_ ) {}
 
   static constexpr auto min_velocity          = 0;
-  static constexpr auto max_velocity          = .1;
+  static constexpr auto max_velocity          = .07;
   static constexpr auto initial_velocity      = .1;
   static constexpr auto mag_acceleration      = 1;
-  static constexpr auto mag_drag_acceleration = .004;
+  static constexpr auto mag_drag_acceleration = .002;
 
   UnitId id;
   Coord  target;
