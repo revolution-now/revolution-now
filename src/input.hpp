@@ -25,11 +25,42 @@
 
 namespace rn::input {
 
+// When dragging starts, the `start` will be set with the coord
+// and will remain constant throughout the dragging. When the
+// drag is released then the `finished` will be set to true. In
+// that case both the `start` and `finished` will be set, but
+// will only remain so for one event; they will be reset to
+// nullopt and false on the very next event. When dragging is in
+// progress or just finished one should get the current mouse
+// position or drag-lift-off position from the usual mouse state
+// variables, i.e., there is not a special dragging "end"
+// coordinate variable. The way to use it is:
+//
+// auto dragging = ...dragging_state_t object...;
+//
+// if( dragging.in_progress ) {
+//   /* starting coord = *dragging.in_progress */
+//   if( !dragging.finished ) {
+//     /* get mouse pos and do animation */
+//   } else {
+//     /* If the necessary state changes have already been */
+//     /* made in the !dragging.finished branch, then we do */
+//     /* not need to do anything here. Otherwise... get mouse */
+//     /* pos to find ending value and make state changes. */
+//   }
+// }
+struct dragging_state_t {
+  Opt<Coord> in_progress{};
+  bool       finished{};
+};
+
 struct mouse_state_t {
   bool  left   = false;
   bool  middle = false;
   bool  right  = false;
   Coord pos{}; // current mouse position in logical coords
+  dragging_state_t left_drag{};
+  dragging_state_t right_drag{};
 };
 
 enum class e_mouse_button {

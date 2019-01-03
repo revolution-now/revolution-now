@@ -30,6 +30,21 @@ namespace {
 // the current mouse position whenever it changes.
 Coord g_mouse{};
 
+// When dragging starts, the `start` will be set with the coord
+// and will remain constant throughout the dragging. When the
+// drag is released then the `finished` will be set to true. In
+// that case both the `start` and `finished` will be set, but
+// will only remain so for one event; they will be reset to
+// nullopt and false on the very next event. When dragging is in
+// progress or just finished one should get the current mouse
+// position or drag-lift-off position from the usual mouse state
+// variables, i.e., there is not a special dragging "end"
+// coordinate variable.
+Opt<Coord> left_dragging_start{};
+bool       left_dragging_finished{false};
+Opt<Coord> right_dragging_start{};
+bool       right_dragging_finished{false};
+
 absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
     {::SDLK_LEFT, e_direction::w},
     {::SDLK_RIGHT, e_direction::e},
@@ -68,6 +83,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
   key_event_t key_event;
 
+  if( left_dragging_finished ) left_dragging_start = nullopt;
+  if( right_dragging_finished ) right_dragging_start = nullopt;
+  left_dragging_finished  = false;
+  right_dragging_finished = false;
+
   switch( sdl_event.type ) {
     case ::SDL_QUIT: event.event = quit_event_t{}; break;
     case ::SDL_KEYDOWN:
@@ -93,6 +113,21 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       // g_mouse_* needs to hold the previous mouse position.
       g_mouse     = mouse;
       event.event = mouse_event;
+
+      // Update mouse dragging state.
+      if( event.mouse_state.left && !left_dragging_start ) {
+        left_dragging_start    = mouse;
+        left_dragging_finished = false;
+      }
+      if( !event.mouse_state.left && left_dragging_start )
+        left_dragging_finished = true;
+      if( event.mouse_state.right && !right_dragging_start ) {
+        right_dragging_start    = mouse;
+        right_dragging_finished = false;
+      }
+      if( !event.mouse_state.right && right_dragging_start )
+        right_dragging_finished = true;
+
       break;
     case ::SDL_MOUSEBUTTONDOWN:
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
@@ -113,12 +148,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
         mouse_event.kind    = e_mouse_event_kind::button;
         mouse_event.buttons = e_mouse_button::left_up;
         event.event         = mouse_event;
+        if( left_dragging_start ) left_dragging_finished = true;
         break;
       }
       if( sdl_event.button.button == SDL_BUTTON_RIGHT ) {
         mouse_event.kind    = e_mouse_event_kind::button;
         mouse_event.buttons = e_mouse_button::right_up;
         event.event         = mouse_event;
+        if( right_dragging_start )
+          right_dragging_finished = true;
         break;
       }
       break;
@@ -130,6 +168,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       break;
     default: event.event = unknown_event_t{};
   }
+
+  // Update mouse dragging state.
+  event.mouse_state.left_drag.in_progress = left_dragging_start;
+  event.mouse_state.right_drag.in_progress =
+      right_dragging_start;
+  event.mouse_state.left_drag.finished = left_dragging_finished;
+  event.mouse_state.right_drag.finished =
+      right_dragging_finished;
+
   return event;
 }
 

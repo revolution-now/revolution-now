@@ -17,6 +17,7 @@
 #include "fmt/ostream.h"
 
 // C++ standard library
+#include <optional>
 #include <variant>
 
 // Macro to easily extend {fmt} to user-defined types.  This
@@ -87,6 +88,22 @@ struct formatter<std::variant<Ts...>> {
                FormatContext &            ctx ) {
     return format_to( ctx.begin(),
                       ::rn::variant_to_string( o ) );
+  }
+};
+
+// {fmt} formatter for formatting optionals whose contained
+// type is formattable.
+template<typename T>
+struct formatter<std::optional<T>> {
+  template<typename ParseContext>
+  constexpr auto parse( ParseContext &ctx ) {
+    return ctx.begin();
+  }
+  template<typename FormatContext>
+  auto format( std::optional<T> const &o, FormatContext &ctx ) {
+    return format_to( ctx.begin(), o.has_value()
+                                       ? fmt::format( "{}", *o )
+                                       : "nullopt" );
   }
 };
 
