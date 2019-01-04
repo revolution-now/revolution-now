@@ -90,7 +90,7 @@ struct move {
 
 } // namespace rn::orders
 
-DEFINE_FORMAT( rn::orders::move, "move{}{}{}", '{', o.d, '}' );
+DEFINE_FORMAT( rn::orders::move, "move{{{{{}}}}}", o.d );
 
 namespace rn {
 
