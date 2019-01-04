@@ -1,3 +1,40 @@
+Mouse Dragging
+==============
+
+The mouse dragging framework will span a few different frameworks:
+
+  1) The `input` module that translates the raw SDL event.
+
+      The `input` module will supply two pieces of information
+      with each event: whether a drag is in progress (and, if so,
+      the point from which the dragging started) and a signal as
+      to when it finishes. The former will generally span many
+      events while the latter will correspond to just a single
+      event.
+
+      This module will communicate to the next stage the fol-
+      lowing information: if the `engaged` field of the mouse
+      state is set then that means that the drag is either in
+      progress or just finished. If the `done` flag is set then
+      the drag is just finished; the receiver of this event must
+      be sure to react to this `done` event because the drag
+      state will be reset on the very next event.
+
+  2) The Plane module
+
+      The `plane` module will intercept the dragging events and
+      propagate them to the planes in a different way. When it
+      detects a dragging event it will send it to the planes not
+      through the usual input way but through some dedicated
+      methods that distinguish dragging start/middle/end. Fur-
+      thermore, when a new dragging event starts and a plane ac-
+      cepts it then that same plane will continue to receive the
+      dragging events for that dragging move until it ends. This
+      way a user cannot start dragging on one plane and drag onto
+      another.
+
+  3) (where relevant) the window module
+
 Auto-commands
 =============
 

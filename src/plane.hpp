@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "enum.hpp"
 #include "input.hpp"
 #include "sdl-util.hpp"
 
@@ -21,22 +22,21 @@
 
 namespace rn {
 
-struct Plane : public util::non_copy_non_move {
-  enum class id {
-    viewport = 0, // land, units, colonies, etc.
-    panel,        // the info panel on the right
-    colony,       // colony view
-    europe,       // the old world
-    menu,         // the menus at the top of screen
-    image,        // any of the fullscreen pics displayed
-    effects,      // such as e.g. fading
-    window,       // the windows
-    console,      // the developer console
-    /**/
-    count // must always be last
-  };
+enum class e_( plane,
+               /* values */
+               viewport, // land, units, colonies, etc.
+               panel,    // the info panel on the right
+               colony,   // colony view
+               europe,   // the old world
+               menu,     // the menus at the top of screen
+               image,    // any of the fullscreen pics displayed
+               effects,  // such as e.g. fading
+               window,   // the windows
+               console   // the developer console
+);
 
-  static Plane& get( id id_ );
+struct Plane : public util::non_copy_non_move {
+  static Plane& get( e_plane plane );
 
   // Is this plane enabled.  If not, it won't be rendered.
   bool virtual enabled() const = 0;
@@ -60,6 +60,13 @@ struct Plane : public util::non_copy_non_move {
   // input was handled or not.  If it was handled (true) then
   // this input will not be given to any further planes.
   ND bool virtual input( input::event_t const& event );
+
+  ND bool virtual on_l_drag_start( Coord origin );
+
+  void virtual on_l_drag( Coord origin, Coord prev,
+                          Coord current );
+
+  void virtual on_l_drag_finished( Coord origin, Coord end );
 };
 
 void initialize_planes();

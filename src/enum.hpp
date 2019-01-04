@@ -46,21 +46,14 @@ public:                                          \
 //   for( auto val : values<e_color> )
 //     logger->debug( "val: {}", val );
 //
-#define e_( n, ... )                      \
-  __e_##n;                                \
-  BETTER_ENUM( e_##n, int, __VA_ARGS__ ); \
-  template<>                              \
-  inline auto values_impl<e_##n>() {      \
-    return e_##n::_values();              \
-  }
+#define e_( n, ... ) \
+  __e_##n;           \
+  BETTER_ENUM( e_##n, int, __VA_ARGS__ );
 
 namespace rn {
 
 template<typename Enum>
-auto values_impl();
-
-template<typename Enum>
-auto values = values_impl<Enum>();
+auto values = Enum::_values();
 
 // Verify that the footprint of the enums is just that of an int.
 enum class e_( size_test, _ );

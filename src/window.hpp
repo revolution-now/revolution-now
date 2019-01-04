@@ -24,10 +24,6 @@
 #include <string_view>
 #include <vector>
 
-namespace rn::input {
-struct event_t;
-}
-
 namespace rn {
 
 struct Plane;

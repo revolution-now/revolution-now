@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "enum.hpp"
 #include "geo-types.hpp"
 
 // SDL
@@ -25,64 +26,69 @@
 
 namespace rn::input {
 
-// When dragging starts, the `start` will be set with the coord
-// and will remain constant throughout the dragging. When the
-// drag is released then the `finished` will be set to true. In
-// that case both the `start` and `finished` will be set, but
-// will only remain so for one event; they will be reset to
-// nullopt and false on the very next event. When dragging is in
-// progress or just finished one should get the current mouse
-// position or drag-lift-off position from the usual mouse state
-// variables, i.e., there is not a special dragging "end"
-// coordinate variable. The way to use it is:
-//
-// auto dragging = ...dragging_state_t object...;
-//
-// if( dragging.in_progress ) {
-//   /* starting coord = *dragging.in_progress */
-//   if( !dragging.finished ) {
-//     /* get mouse pos and do animation */
-//   } else {
-//     /* If the necessary state changes have already been */
-//     /* made in the !dragging.finished branch, then we do */
-//     /* not need to do anything here. Otherwise... get mouse */
-//     /* pos to find ending value and make state changes. */
-//   }
-// }
-struct dragging_state_t {
-  Opt<Coord> in_progress{};
-  bool       finished{};
-};
+/****************************************************************
+** Misc. Event Types
+*****************************************************************/
+struct unknown_event_t {};
+struct quit_event_t {};
 
-struct mouse_state_t {
-  bool  left   = false;
-  bool  middle = false;
-  bool  right  = false;
-  Coord pos{}; // current mouse position in logical coords
-  dragging_state_t left_drag{};
-  dragging_state_t right_drag{};
-};
+/****************************************************************
+** Mouse
+*****************************************************************/
+enum class e_mouse_button { l, r };
 
-enum class e_mouse_button {
-  none,
+enum class e_mouse_button_event {
   left_down,
   left_up,
   right_down,
   right_up,
 };
 
-enum class e_mouse_event_kind { button, move, wheel };
+class mouse_event_base_t {
+public:
+  Coord pos;
 
-struct mouse_event_t {
-  e_mouse_event_kind kind{};
-  e_mouse_button     buttons = e_mouse_button::none;
-  // It should always be the case that prev + delta = pos.
-  Coord prev{}; // previous mouse position
-  Delta delta{};
-  // Mouse wheel: positive/negative
+protected:
+  mouse_event_base_t() = default;
+};
+
+struct mouse_button_event_t : public mouse_event_base_t {
+  e_mouse_button_event buttons{};
+};
+
+struct mouse_wheel_event_t : public mouse_event_base_t {
   int wheel_delta{};
 };
 
+struct mouse_move_event_t : public mouse_event_base_t {
+  Coord prev{}; // previous mouse position
+  auto  delta() const { return pos - prev; }
+};
+
+/****************************************************************
+** Mouse Dragging
+*****************************************************************/
+enum class e_( drag_phase,
+               /* values */
+               begin,       // marks the start of a drag
+               in_progress, // middle of a drag
+               end          // this event marks the end of a drag
+);
+
+struct drag_state_t {
+  Coord        origin{};
+  e_drag_phase phase{};
+};
+
+// NOTE: this derives from the move event and not the base event.
+struct mouse_drag_event_t : public mouse_move_event_t {
+  e_mouse_button button{};
+  drag_state_t   state{};
+};
+
+/****************************************************************
+** Keyboard
+*****************************************************************/
 enum class e_key_change { up, down };
 
 struct key_event_t {
@@ -96,18 +102,20 @@ struct key_event_t {
   Opt<e_direction> direction{};
 };
 
-struct unknown_event_t {};
-struct quit_event_t {};
-
-using EventTypes = std::variant<unknown_event_t, quit_event_t,
-                                key_event_t, mouse_event_t>;
-
-struct event_t {
-  mouse_state_t mouse_state;
-  EventTypes    event;
-};
-
-event_t from_SDL( ::SDL_Event sdl_event );
+/****************************************************************
+** Input Events
+*****************************************************************/
+// clang-format off
+using event_t = std::variant<
+  unknown_event_t, // non-relevant events
+  quit_event_t,    // signal from OS to quit, e.g. x-out window
+  key_event_t,
+  mouse_move_event_t,
+  mouse_button_event_t,
+  mouse_wheel_event_t,
+  mouse_drag_event_t
+>;
+// clang-format on
 
 Opt<event_t> poll_event();
 

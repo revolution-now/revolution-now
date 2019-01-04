@@ -258,27 +258,36 @@ void OptionSelectView::grow_to( W w ) {
 }
 
 bool OptionSelectView::input( input::event_t const& event ) {
-  if( !util::holds<input::key_event_t>( event.event ) )
-    return false;
-  // It's a keyboard event.
-  auto key_event = get<input::key_event_t>( event.event );
-  if( key_event.change != input::e_key_change::down )
-    return false;
-  // It's a key down.
-  switch( key_event.keycode ) {
-    case ::SDLK_UP:
-    case ::SDLK_KP_8:
-      if( selected_ > 0 ) set_selected( selected_ - 1 );
-      return true;
-    case ::SDLK_DOWN:
-    case ::SDLK_KP_2:
-      if( selected_ < count() - 1 )
-        set_selected( selected_ + 1 );
-      return true;
-    case ::SDLK_RETURN:
-    case ::SDLK_KP_ENTER: has_confirmed = true; return true;
-    default: return false;
+  bool handled = false;
+  switch_v( event ) {
+    case_v( input::key_event_t ) {
+      auto const& key_event = val;
+      if( key_event.change != input::e_key_change::down )
+        break_v;
+      // It's a key down.
+      switch( key_event.keycode ) {
+        case ::SDLK_UP:
+        case ::SDLK_KP_8:
+          if( selected_ > 0 ) set_selected( selected_ - 1 );
+          handled = true;
+          break;
+        case ::SDLK_DOWN:
+        case ::SDLK_KP_2:
+          if( selected_ < count() - 1 )
+            set_selected( selected_ + 1 );
+          handled = true;
+          break;
+        case ::SDLK_RETURN:
+        case ::SDLK_KP_ENTER:
+          has_confirmed = true;
+          handled       = true;
+          break;
+        default: break;
+      }
+    }
+    default_v_no_check;
   };
+  return handled;
 }
 
 string const& OptionSelectView::get_selected() const {
@@ -375,29 +384,18 @@ void WindowManager::clear_windows() { windows_.clear(); }
 
 bool WindowManager::input( input::event_t const& event ) {
   if( num_windows() == 0 ) return false;
-  Rect title_bar = focused().title_bar();
-  // auto mouse_pos = event.mouse_state.pos;
-  // logger->trace( "title_bar: ({},{},{},{}), pos: ({},{})",
-  //               title_bar.x, title_bar.y, title_bar.w,
-  //               title_bar.h, mouse_pos.x, mouse_pos.y );
-  GET_IF( event.event, input::mouse_event_t, mouse_event ) {
-    logger->trace( "Mouse event" );
-    if( mouse_event->kind == input::e_mouse_event_kind::move &&
-        ( event.mouse_state.pos.is_inside( title_bar ) ||
-          mouse_event->prev.is_inside( title_bar ) ) ) {
-      logger->trace( "  and inside title bar" );
-      if( event.mouse_state.left ) {
-        logger->trace( "  and left mouse down" );
-        logger->trace( "  and delta x: {}",
-                       mouse_event->delta.w );
-        logger->trace( "  and delta y: {}",
-                       mouse_event->delta.h );
-        // We're dragging on the title bar.
-        focused().position += mouse_event->delta;
-        return true;
-      }
-    }
-  }
+  // Rect title_bar = focused().title_bar();
+  // if_v( event.event, input::mouse_move_event_t, move_event ) {
+  //  logger->trace( "Mouse move event" );
+  //  if( move_event->pos.is_inside( title_bar ) ||
+  //        move_event->prev.is_inside( title_bar ) ) {
+  //    if( event.mouse_state.left ) {
+  //      // We're dragging on the title bar.
+  //      focused().position += mouse_event->delta;
+  //      return true;
+  //    }
+  //  }
+  //}
   return focused().view->input( event );
 }
 

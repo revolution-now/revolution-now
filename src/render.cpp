@@ -254,7 +254,7 @@ struct ViewportPlane : public Plane {
   }
   bool input( input::event_t const& event ) override {
     bool handled = false;
-    switch_v( event.event ) {
+    switch_v( event ) {
       case_v( input::unknown_event_t ) {}
       case_v( input::quit_event_t ) {}
       case_v( input::key_event_t ) {
@@ -268,9 +268,7 @@ struct ViewportPlane : public Plane {
             auto& blink_unit = val;
             switch( key_event.keycode ) {
               case ::SDLK_z:
-                if( viewport().screen_coord_in_viewport(
-                        event.mouse_state.pos ) )
-                  viewport().smooth_zoom_target( 1.0 );
+                viewport().smooth_zoom_target( 1.0 );
                 break;
               case ::SDLK_q:
                 // TODO: temporary
@@ -298,18 +296,16 @@ struct ViewportPlane : public Plane {
           default_v;
         }
       }
-      case_v( input::mouse_event_t ) {
-        auto mouse_pos = event.mouse_state.pos;
+      case_v( input::mouse_wheel_event_t ) {
         // If the mouse is in the viewport and its a wheel event
         // then we are in business.
-        if( viewport().screen_coord_in_viewport( mouse_pos ) &&
-            val.kind == input::e_mouse_event_kind::wheel ) {
+        if( viewport().screen_coord_in_viewport( val.pos ) ) {
           if( val.wheel_delta < 0 )
             viewport().set_zoom_push( e_push_direction::negative,
                                       nullopt );
           if( val.wheel_delta > 0 )
             viewport().set_zoom_push( e_push_direction::positive,
-                                      mouse_pos );
+                                      val.pos );
           // A user zoom request halts any auto zooming that may
           // currently be happening.
           viewport().stop_auto_zoom();
@@ -317,7 +313,7 @@ struct ViewportPlane : public Plane {
           handled = true;
         }
       }
-      default_v;
+      default_v_no_check;
     }
     return handled;
   }

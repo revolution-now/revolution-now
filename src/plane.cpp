@@ -18,6 +18,7 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/misc.hpp"
+#include "base-util/variant.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -30,14 +31,14 @@ namespace rn {
 namespace {
 
 constexpr auto num_planes =
-    static_cast<size_t>( Plane::id::count );
+    static_cast<size_t>( e_plane::_size() );
 
 // Planes are rendered from 0 --> count.
 array<ObserverPtr<Plane>, num_planes> planes;
 array<Texture, num_planes>            textures;
 
-ObserverPtr<Plane>& plane( Plane::id id_ ) {
-  auto idx = static_cast<size_t>( id_ );
+ObserverPtr<Plane>& plane( e_plane plane ) {
+  auto idx = static_cast<size_t>( plane._value );
   CHECK( idx < planes.size() );
   return planes[idx];
 }
@@ -51,27 +52,40 @@ struct InactivePlane : public Plane {
 
 InactivePlane dummy;
 
+// This is the plan that is currently receiving mouse dragging
+// events. Its value is only meaningful while a mouse drag is ac-
+// tually happening.
+e_plane drag_plane;
+
 } // namespace
 
-Plane& Plane::get( id id_ ) { return *plane( id_ ); }
+Plane& Plane::get( e_plane p ) { return *plane( p ); }
 
 bool Plane::input( input::event_t const& /*unused*/ ) {
   return false;
 }
+
+bool Plane::on_l_drag_start( Coord /*unused*/ ) { return false; }
+
+void Plane::on_l_drag( Coord /*unused*/, Coord /*unused*/,
+                       Coord /*unused*/ ) {}
+
+void Plane::on_l_drag_finished( Coord /*unused*/,
+                                Coord /*unused*/ ) {}
 
 void initialize_planes() {
   // By default, all planes are dummies, unless we provide an
   // object below.
   planes.fill( ObserverPtr<Plane>( &dummy ) );
 
-  plane( Plane::id::viewport ).reset( viewport_plane() );
-  plane( Plane::id::panel ).reset( panel_plane() );
+  plane( e_plane::viewport ).reset( viewport_plane() );
+  plane( e_plane::panel ).reset( panel_plane() );
   // plane( Plane::id::colony ).reset( colony_plane() );
   // plane( Plane::id::europe ).reset( europe_plane() );
   // plane( Plane::id::menu ).reset( menu_plane() );
   // plane( Plane::id::image ).reset( image_plane() );
-  plane( Plane::id::effects ).reset( effects_plane() );
-  plane( Plane::id::window ).reset( window_plane() );
+  plane( e_plane::effects ).reset( effects_plane() );
+  plane( e_plane::window ).reset( window_plane() );
   // plane( Plane::id::console ).reset( console_plane() );
 
   // No plane must be null, they must all point to a valid Plane

@@ -66,10 +66,7 @@ void take_input() {
   while( auto event = input::poll_event() ) {
     if( send_input_to_planes( *event ) ) continue;
     // Was not handled by anyone.
-    switch_v( event.value().event ) {
-      case_v( input::unknown_event_t ) {}
-      case_v( input::quit_event_t ) {}
-      case_v( input::mouse_event_t ) {}
+    switch_v( event.value() ) {
       case_v( input::key_event_t ) {
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
@@ -79,7 +76,7 @@ void take_input() {
           default: break;
         }
       }
-      default_v;
+      default_v_no_check;
     }
   }
 }
