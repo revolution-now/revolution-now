@@ -51,6 +51,23 @@ struct WindowPlane : public Plane {
   bool input( input::event_t const& event ) override {
     return wm.input( event );
   }
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
+    CHECK( wm.num_windows() != 0 );
+    switch( wm.can_drag( button, origin ) ) {
+      case ui::WindowManager::e_window_drag::yes:
+        return Plane::e_accept_drag::yes;
+      case ui::WindowManager::e_window_drag::no:
+        return Plane::e_accept_drag::no;
+      case ui::WindowManager::e_window_drag::swallow:
+        return Plane::e_accept_drag::swallow;
+    };
+  }
+  void on_drag( input::e_mouse_button button, Coord origin,
+                Coord prev, Coord current ) override {
+    CHECK( wm.num_windows() != 0 );
+    wm.on_drag( button, origin, prev, current );
+  }
   ui::WindowManager wm;
 };
 
@@ -383,20 +400,28 @@ WindowManager::window* WindowManager::add_window(
 void WindowManager::clear_windows() { windows_.clear(); }
 
 bool WindowManager::input( input::event_t const& event ) {
-  if( num_windows() == 0 ) return false;
-  // Rect title_bar = focused().title_bar();
-  // if_v( event.event, input::mouse_move_event_t, move_event ) {
-  //  logger->trace( "Mouse move event" );
-  //  if( move_event->pos.is_inside( title_bar ) ||
-  //        move_event->prev.is_inside( title_bar ) ) {
-  //    if( event.mouse_state.left ) {
-  //      // We're dragging on the title bar.
-  //      focused().position += mouse_event->delta;
-  //      return true;
-  //    }
-  //  }
-  //}
   return focused().view->input( event );
+}
+
+WindowManager::e_window_drag WindowManager::can_drag(
+    input::e_mouse_button /*unused*/, Coord origin ) {
+  // If we're in the title bar then we'll drag; if we not, but
+  // still in the window somewhere, we will "swallow" which means
+  // that no other planes should get this drag even (because the
+  // cursor is rightly in the window) but we don't want to handle
+  // it ourselves because we only drag from the title bar.
+  if( origin.is_inside( focused().title_bar() ) )
+    return e_window_drag::yes;
+  if( origin.is_inside( focused().rect() ) )
+    return e_window_drag::swallow;
+  return e_window_drag::no;
+}
+
+void WindowManager::on_drag( input::e_mouse_button button,
+                             Coord /*unused*/, Coord prev,
+                             Coord current ) {
+  if( button == input::e_mouse_button::l )
+    focused().position += ( current - prev );
 }
 
 WindowManager::window& WindowManager::focused() {

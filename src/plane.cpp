@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "logging.hpp"
 #include "render.hpp"
 #include "window.hpp"
 
@@ -53,9 +54,8 @@ struct InactivePlane : public Plane {
 InactivePlane dummy;
 
 // This is the plan that is currently receiving mouse dragging
-// events. Its value is only meaningful while a mouse drag is ac-
-// tually happening.
-e_plane drag_plane;
+// events (nullopt if there is not dragging event happening).
+Opt<e_plane> g_drag_plane{};
 
 } // namespace
 
@@ -65,13 +65,18 @@ bool Plane::input( input::event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Plane::on_l_drag_start( Coord /*unused*/ ) { return false; }
+Plane::e_accept_drag Plane::can_drag(
+    input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
+  return e_accept_drag::no;
+}
 
-void Plane::on_l_drag( Coord /*unused*/, Coord /*unused*/,
-                       Coord /*unused*/ ) {}
+void Plane::on_drag( input::e_mouse_button /*unused*/,
+                     Coord /*unused*/, Coord /*unused*/,
+                     Coord /*unused*/ ) {}
 
-void Plane::on_l_drag_finished( Coord /*unused*/,
-                                Coord /*unused*/ ) {}
+void Plane::on_drag_finished( input::e_mouse_button /*unused*/,
+                              Coord /*unused*/,
+                              Coord /*unused*/ ) {}
 
 void initialize_planes() {
   // By default, all planes are dummies, unless we provide an
@@ -131,8 +136,78 @@ void draw_all_planes( Texture const& tx ) {
 }
 
 bool send_input_to_planes( input::event_t const& event ) {
+  using namespace input;
+  if_v( event, input::mouse_drag_event_t, drag_event ) {
+    if( g_drag_plane ) {
+      auto& plane = Plane::get( *g_drag_plane );
+      CHECK( plane.enabled() );
+      // Drag should already be in progress.
+      CHECK( drag_event->state.phase != +e_drag_phase::begin );
+      // There is already a drag in progress, so send this one to
+      // the same plane that accepted the initial drag event.
+      plane.on_drag( drag_event->button,
+                     drag_event->state.origin, drag_event->prev,
+                     drag_event->pos );
+      // If the drag is finished then sound out that event.
+      if( drag_event->state.phase == +e_drag_phase::end ) {
+        logger->debug( "finished `{}` drag event",
+                       *g_drag_plane );
+        plane.on_drag_finished( drag_event->button,
+                                drag_event->state.origin,
+                                drag_event->pos );
+        g_drag_plane = nullopt;
+      }
+      // Here it is assumed/required that the plane handle it
+      // because the plane has already accepted this drag.
+      return true;
+    }
+    // No drag plane registered to accept the event, so lets
+    // send out the event but only if it's a `begin` event.
+    if( drag_event->state.phase == +e_drag_phase::begin ) {
+      for( size_t idx = planes.size(); idx > 0; --idx ) {
+        auto& plane = *( planes[idx - 1] );
+        if( plane.enabled() ) {
+          auto drag_result = plane.can_drag( drag_event->button,
+                                             drag_event->pos );
+          switch( drag_result ) {
+            // If the plane doesn't want to handle it then move
+            // on to ask the next one.
+            case Plane::e_accept_drag::no: continue;
+            // In this case the plane says that it doesn't want
+            // to handle it AND it doesn't want anyone else to
+            // handle it.
+            case Plane::e_accept_drag::swallow:
+              return true;
+              // Wants to handle it.
+            case Plane::e_accept_drag::yes:
+
+              ASSIGN_CHECK_OPT(
+                  new_plane,
+                  e_plane::_from_index_nothrow( idx - 1 ) );
+              g_drag_plane = new_plane;
+              logger->debug( "plane `{}` can drag", new_plane );
+              // Now we must send it an on_drag because this
+              // mouse event that we're dealing with serves both
+              // to tell us about a new drag even but also may
+              // have a mouse delta in it that needs to be
+              // processed.
+              plane.on_drag( drag_event->button,
+                             drag_event->state.origin,
+                             drag_event->prev, drag_event->pos );
+              return true;
+          }
+        }
+      }
+    }
+    // If no one handled it then that's it.
+    return false;
+  }
+
+  // Just a normal event, so send it out using the usual
+  // protocol.
   for( size_t idx = planes.size(); idx > 0; --idx )
-    if( planes[idx - 1]->input( event ) ) return true;
+    if( planes[idx - 1]->enabled() )
+      if( planes[idx - 1]->input( event ) ) return true;
   return false;
 }
 

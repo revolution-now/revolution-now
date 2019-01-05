@@ -271,6 +271,15 @@ public:
 
   ND bool input( input::event_t const& event );
 
+  // We don't use the corresponding enum from plane.hpp so that
+  // we don't have to include that header here.
+  enum class e_window_drag { yes, no, swallow };
+
+  e_window_drag can_drag( input::e_mouse_button button,
+                          Coord                 origin );
+  void on_drag( input::e_mouse_button button, Coord origin,
+                Coord prev, Coord current );
+
   auto num_windows() const { return windows_.size(); }
 
 private:

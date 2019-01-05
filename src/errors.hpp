@@ -80,10 +80,10 @@ std::string check_msg( char const*        expr,
 //
 // The ID_ is to suppress warnings about parenthesis around
 // macro parameters.
-#define ASSIGN_CHECK_OPT( a, b )          \
-  auto STRING_JOIN( __x, __LINE__ ) = b;  \
-  if( !( STRING_JOIN( __x, __LINE__ ) ) ) \
-    DIE( TO_STRING( b ) " is false." );   \
+#define ASSIGN_CHECK_OPT( a, b )            \
+  auto STRING_JOIN( __x, __LINE__ ) = b;    \
+  if( !( STRING_JOIN( __x, __LINE__ ) ) )   \
+    DIE( TO_STRING( b ) " has no value." ); \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // Same as above but returns on failure instead of throwing. As

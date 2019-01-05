@@ -400,6 +400,10 @@ void SmoothViewport::pan( double down_up, double left_right,
   enforce_invariants();
 }
 
+void SmoothViewport::pan_by_screen_coords( Delta delta ) {
+  pan( double( delta.h ), double( delta.w ), /*scale=*/true );
+}
+
 void SmoothViewport::center_on_tile_x( Coord const& coords ) {
   center_x_ =
       double( coords.x * g_tile_width + g_tile_width._ / 2 );

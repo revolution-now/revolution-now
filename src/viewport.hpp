@@ -76,6 +76,14 @@ public:
   void stop_auto_zoom();
   void stop_auto_panning();
 
+  // Move the center of the viewport by the given change in
+  // screen coordinates. This means that the delta will be scaled
+  // to world coordinates (using the zoom) before applying the
+  // shift. Note that they don't have to yield a valid end result
+  // since this function will e.g. stop panning when the left
+  // edge of the viewport hids x=0.
+  void pan_by_screen_coords( Delta delta );
+
 private:
   void enforce_invariants();
 

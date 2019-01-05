@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "globals.hpp"
-#include "logging.hpp"
 #include "util.hpp"
 
 // Abseil
@@ -226,9 +225,6 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     }
     default: event = unknown_event_t{};
   }
-
-  if( l_drag ) logger->debug( "l_drag: {}", l_drag->origin );
-  if( r_drag ) logger->debug( "r_drag: {}", r_drag->origin );
 
   return event;
 }

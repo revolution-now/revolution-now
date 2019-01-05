@@ -317,6 +317,21 @@ struct ViewportPlane : public Plane {
     }
     return handled;
   }
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
+    if( button == input::e_mouse_button::r &&
+        viewport().screen_coord_in_viewport( origin ) )
+      return Plane::e_accept_drag::yes;
+    return Plane::e_accept_drag::no;
+  }
+  void on_drag( input::e_mouse_button /*unused*/,
+                Coord /*unused*/, Coord prev,
+                Coord current ) override {
+    viewport().stop_auto_panning();
+    // When the mouse drags up, we need to move the viewport
+    // center down.
+    viewport().pan_by_screen_coords( prev - current );
+  }
 };
 
 ViewportPlane g_viewport_plane;

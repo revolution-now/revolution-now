@@ -61,12 +61,32 @@ struct Plane : public util::non_copy_non_move {
   // this input will not be given to any further planes.
   ND bool virtual input( input::event_t const& event );
 
-  ND bool virtual on_l_drag_start( Coord origin );
+  // This encodes the result of asking a plane if it can handle a
+  // drag event. If the answer is yes then it will be given all
+  // the events for that drag; if no then the drag will be
+  // offered to another plane; if `swallow` then it will cause
+  // the drag not to be sent to any planes at all. This is useful
+  // if a plane doesn't want to handle a drag but it would not be
+  // appropriate for the drag to be given to other planes.
+  enum class e_accept_drag { yes, no, swallow };
 
-  void virtual on_l_drag( Coord origin, Coord prev,
-                          Coord current );
+  // This is to determine if a plane is willing to accept a drag
+  // event (and also serves as a notification that a drag event
+  // has started). If it returns `true` then it will immediately
+  // receive the initial on_drag() event and then continue to
+  // receive all the drag events until the current drag ends.
+  ND e_accept_drag virtual can_drag(
+      input::e_mouse_button button, Coord origin );
 
-  void virtual on_l_drag_finished( Coord origin, Coord end );
+  // For drag events from [first, last). This will only be called
+  // if the can_drag returned true at the start of the drag
+  // action.
+  void virtual on_drag( input::e_mouse_button button,
+                        Coord origin, Coord prev,
+                        Coord current );
+
+  void virtual on_drag_finished( input::e_mouse_button button,
+                                 Coord origin, Coord end );
 };
 
 void initialize_planes();
