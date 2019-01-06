@@ -5,6 +5,7 @@
 #include "globals.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"
+#include "rand.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"
@@ -44,6 +45,7 @@ void game() {
   init_game();
   load_sprites();
   load_tile_maps();
+  rng::init();
 
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
