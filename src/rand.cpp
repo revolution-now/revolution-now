@@ -63,8 +63,10 @@ bool flip_coin( double p ) {
 int between( int lower, int upper, e_interval type ) {
   auto real_upper = upper;
   switch( type ) {
-    case e_interval::closed: CHECK( lower <= upper ); break;
-    case e_interval::half_open:
+    case e_interval::closed: //
+      CHECK( lower <= upper );
+      break;
+    case e_interval::half_open: //
       CHECK( lower < upper );
       real_upper--;
       break;

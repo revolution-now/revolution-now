@@ -133,12 +133,22 @@ UnitId create_unit_on_map( e_nation nation, e_unit_type type,
 
 unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
   static unordered_set<UnitId> empty = {};
+  CHECK( square_exists( y, x ) );
   auto opt_set = val_safe( units_from_coords, Coord{y, x} );
   return opt_set.value_or( empty );
 }
 
 unordered_set<UnitId> const& units_from_coord( Coord c ) {
   return units_from_coord( c.y, c.x );
+}
+
+Opt<e_nation> nation_from_coord( Coord coord ) {
+  auto const& units = units_from_coord( coord );
+  if( units.empty() ) return nullopt;
+  e_nation first = unit_from_id( *units.begin() ).nation();
+  for( auto const& id : units )
+    CHECK( first == unit_from_id( id ).nation() );
+  return first;
 }
 
 UnitIdVec units_in_rect( Rect const& rect ) {

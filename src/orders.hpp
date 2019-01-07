@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "combat.hpp"
 #include "fmt-helper.hpp"
 #include "geo-types.hpp"
 #include "job.hpp"
@@ -129,10 +130,13 @@ using ProposedOrdersAnalysisResult = std::variant<
     ProposedMetaOrderAnalysisResult,
     // If unit is to move on the map
     ProposedMoveAnalysisResult,
+    // If the move is toward a foreign unit
+    ProposedCombatAnalysisResult,
     // actions in current tile
     ProposedJobAnalysisResult>;
 
 struct ProposedOrdersAnalysis {
+  UnitId                       id;
   PlayerUnitOrders             orders;
   ProposedOrdersAnalysisResult result;
 
@@ -153,7 +157,6 @@ ProposedOrdersAnalysis analyze_proposed_orders(
 bool confirm_explain_orders(
     ProposedOrdersAnalysis const& analysis );
 
-void apply_orders( UnitId                        id,
-                   ProposedOrdersAnalysis const& analysis );
+void apply_orders( ProposedOrdersAnalysis const& analysis );
 
 } // namespace rn

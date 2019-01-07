@@ -40,7 +40,8 @@ void reset_moves() {
 
 // This function will allow the move by default, and so it is the
 // burden of the logic in this function to find every possible
-// way that the move is *not* allowed and to flag it if that is
+// way that the move is *not* allowed (among the situations that
+// this function is concerned about) and to flag it if that is
 // the case.
 ProposedMoveAnalysisResult analyze_proposed_move_impl(
     UnitId id, e_direction d ) {
@@ -56,6 +57,7 @@ ProposedMoveAnalysisResult analyze_proposed_move_impl(
   MovementPoints cost( 1 );
 
   ProposedMoveAnalysisResult result{
+      /*id=*/id,
       /*unit_would_move=*/true,
       /*move_src=*/src_coord,
       /*move_target=*/coords,
@@ -63,11 +65,6 @@ ProposedMoveAnalysisResult analyze_proposed_move_impl(
       /*movement_cost=*/cost,
       /*target_unit=*/{},
       /*to_prioritize=*/{}};
-
-  if( unit.movement_points() < cost ) {
-    result.desc = e_unit_mv_error::insufficient_movement_points;
-    return result;
-  }
 
   if( !coords.is_inside( world_rect() ) ) {
     result.desc = e_unit_mv_error::map_edge;
@@ -141,6 +138,7 @@ ProposedMoveAnalysisResult analyze_proposed_move(
     UnitId id, e_direction d ) {
   auto res = analyze_proposed_move_impl( id, d );
   // Now check invariants.
+  CHECK( res.id == id );
   CHECK( res.move_src != res.move_target );
   CHECK( find( res.to_prioritize.begin(),
                res.to_prioritize.end(),
@@ -151,8 +149,8 @@ ProposedMoveAnalysisResult analyze_proposed_move(
   return res;
 }
 
-void move_unit( UnitId                            id,
-                ProposedMoveAnalysisResult const& analysis ) {
+void move_unit( ProposedMoveAnalysisResult const& analysis ) {
+  auto  id   = analysis.id;
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
@@ -229,6 +227,12 @@ void move_unit( UnitId                            id,
 bool confirm_explain_move(
     ProposedMoveAnalysisResult const& analysis ) {
   if( !analysis.allowed() ) return false;
+  // If we're here then that means that the move is physically
+  // allowed assuming there are enough movement points.  Check
+  // for that now.
+  auto& unit = unit_from_id( analysis.id );
+  if( unit.movement_points() < analysis.movement_cost )
+    return false;
   // The above should have checked that the variant holds the
   // e_unit_mv_good type for us.
   auto& kind = val_or_die<e_unit_mv_good>( analysis.desc );

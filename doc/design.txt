@@ -1,3 +1,35 @@
+Combat
+======
+
+From a high level: when a unit with non-zero attack attempts to
+enter a square with a unit form another nation then:
+
+  a) If the two nations are at peace then a yes/no box pops up
+     asking for confirmation.
+  b) If not at peace then the attack just proceeds.
+
+When the move is first is attempted the combat stats and outcome
+will be computed during the analysis phase, even before any
+confirmation boxes are presented to the player. If the player
+proceeds then the previously-computed outcome is animated and
+carried out. However, even though the outcome of the combat is
+known before the confirmation is presented, the player will
+obviously not be presented with the outcome until deciding to
+proceed and seeing the animation.
+
+If a unit attempts to attack with less than a full movement point
+then they will take a penalty for that.
+
+If there are multiple units in the target square then the one with
+the best defense will be picked.
+
+Each attack will consume only one movement point, so some units
+may be able to attack multiple times per turn.  If a unit gets
+demoted after an attack the resulting number of movement points
+will be min( X, Y ) where X is the max movement points for the
+demoted unit and Y is the number of movement points that the
+non-demoted unit would have had had the attack been successful.
+
 Mouse Dragging
 ==============
 

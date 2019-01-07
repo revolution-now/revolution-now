@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "id.hpp"
+
 // C++ standard library
 #include <variant>
 
@@ -25,6 +28,8 @@ using v_unit_job_desc =
     std::variant<e_unit_job_good, e_unit_job_error>;
 
 struct ProposedJobAnalysisResult {
+  UnitId id;
+
   // Is this order possible at all.
   bool allowed() const;
 

@@ -2,13 +2,6 @@
 Ideas
 ========================================================
 
-UI:
-  * Auto panning and zooming on unit waiting for orders
-
-AI:
-
-  * Dedicated thread for A* searches
-
 Game mechanics:
 
   * When the player first makes land fall their ship

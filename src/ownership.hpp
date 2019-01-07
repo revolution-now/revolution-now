@@ -13,8 +13,11 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "aliases.hpp"
 #include "unit.hpp"
 
+// C++ standard library
 #include <functional>
 #include <optional>
 #include <unordered_set>
@@ -35,6 +38,8 @@ ND UnitId create_unit_on_map( e_nation nation, e_unit_type type,
 ND std::unordered_set<UnitId> const& units_from_coord( Y y,
                                                        X x );
 ND std::unordered_set<UnitId> const& units_from_coord( Coord c );
+
+ND Opt<e_nation> nation_from_coord( Coord coord );
 
 ND UnitIdVec units_in_rect( Rect const& rect );
 

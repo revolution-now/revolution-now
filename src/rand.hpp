@@ -48,6 +48,7 @@ int between( int lower, int upper, e_interval type );
 template<typename ReflectedEnum>
 ReflectedEnum pick_one() {
   constexpr auto count = ReflectedEnum::_size();
+  static_assert( count > 0 );
   auto idx = between( 0, count, e_interval::half_open );
   return ReflectedEnum::_values()[idx];
 }

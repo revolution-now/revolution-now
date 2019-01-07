@@ -17,6 +17,7 @@ let s:stems = [
   \ 'src/nation',
   \ 'src/unit',
   \ 'src/movement',
+  \ 'src/combat',
   \ 'src/job',
   \ 'src/orders',
   \ 'src/ownership',

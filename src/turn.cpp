@@ -225,7 +225,7 @@ e_turn_result turn( e_nation nation ) {
             }
             /***************************************************/
           }
-          apply_orders( id, analysis );
+          apply_orders( analysis );
           // Note that it shouldn't hurt if the unit is already
           // in the queue, since this turn code will never move a
           // unit after it has already completed its turn, no
