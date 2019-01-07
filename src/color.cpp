@@ -486,14 +486,14 @@ vector<Color> extract_palette( fs::path const& glob,
     logger->info(
         "loading palette from {} containing {} pixels and {} "
         "bits-per-pixel.",
-        file, surface->h * surface->w, bpp );
+        file.string(), surface->h * surface->w, bpp );
 
     if( bpp == 24 ) {
       logger->warn(
           "loading palettes from images with 24 bits-per-pixel "
           "not supported until implementation is fixed (doesn't "
           "currently work right).  Skipping image {}.",
-          file );
+          file.string() );
       continue;
     }
 
@@ -712,7 +712,7 @@ void write_palette_png( fs::path const& png_file ) {
 void update_palette( fs::path const& where ) {
   // int constexpr coursen_to = 4096;
   fs::path glob{where / "*.*"};
-  logger->info( "updating palettes from {}", glob );
+  logger->info( "updating palettes from {}", glob.string() );
 
   auto colors = extract_palette( glob, nullopt );
   remove_greys( colors ); // we will add greys back in later
@@ -730,9 +730,11 @@ void update_palette( fs::path const& where ) {
   fs::path const inl_file{"config/palette.inl"};
   fs::path const ucl_file{"config/palette.ucl"};
   fs::path const pal_file{"assets/art/palette.png"};
-  logger->info( "writing to {} and {}", inl_file, ucl_file );
+  logger->info( "writing to {} and {}", inl_file.string(),
+                ucl_file.string() );
   dump_palette( bucketed, inl_file, ucl_file );
-  logger->info( "writing palette png image to {}", pal_file );
+  logger->info( "writing palette png image to {}",
+                pal_file.string() );
   write_palette_png( pal_file );
 }
 

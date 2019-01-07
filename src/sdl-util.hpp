@@ -25,7 +25,6 @@
 
 // c++ standard library
 #include <optional>
-#include <ostream>
 
 namespace rn {
 
@@ -147,6 +146,3 @@ void render_fill_rect( OptCRef<Texture> tx, Color color,
 void wait_for_q();
 
 } // namespace rn
-
-std::ostream& operator<<( std::ostream&     out,
-                          ::SDL_Rect const& r );

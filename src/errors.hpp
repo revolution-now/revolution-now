@@ -12,12 +12,11 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "fmt-helper.hpp"
+
 // base-util
 #include "base-util/macros.hpp"
-
-// {fmt}
-#include "fmt/format.h"
-#include "fmt/ostream.h"
 
 // c++ standard library
 #include <memory>

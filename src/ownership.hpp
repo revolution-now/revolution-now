@@ -24,8 +24,9 @@
 
 namespace rn {
 
-ND Unit&  unit_from_id( UnitId id );
-UnitIdVec units_all( std::optional<e_nation> n = std::nullopt );
+ND Unit&    unit_from_id( UnitId id );
+Vec<UnitId> units_all(
+    std::optional<e_nation> n = std::nullopt );
 // Apply a function to all units. The function may mutate the
 // units.
 void map_units( std::function<void( Unit& )> const& func );
@@ -41,7 +42,7 @@ ND std::unordered_set<UnitId> const& units_from_coord( Coord c );
 
 ND Opt<e_nation> nation_from_coord( Coord coord );
 
-ND UnitIdVec units_in_rect( Rect const& rect );
+ND Vec<UnitId> units_in_rect( Rect const& rect );
 
 // These will return the coordinates for a unit if it is owned by
 // the map or the coordinates of its owner if it is ultimately
@@ -52,7 +53,7 @@ ND OptCoord coords_for_unit_safe( UnitId id );
 
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nullopt otherwise.
-OptUnitId is_unit_onboard( UnitId id );
+Opt<UnitId> is_unit_onboard( UnitId id );
 
 std::string debug_string( UnitId id );
 

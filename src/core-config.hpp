@@ -21,4 +21,8 @@
 #  define DEBUG_RELEASE( a, b ) ( a )
 #endif
 
+namespace std::experimental::filesystem {}
+
+namespace fs = std::experimental::filesystem;
+
 namespace rn {} // namespace rn

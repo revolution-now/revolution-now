@@ -10,14 +10,18 @@
 *****************************************************************/
 #include "errors.hpp"
 
+// Revolution Now
+#include "fmt-helper.hpp"
+
+// backward
 #ifdef STACK_TRACE_ON
 #  include "backward.hpp"
 #endif
 
-#include <iostream>
-#include <sstream>
+// C++ standard library
 #include <string>
 
+// C standard library
 #include <stdio.h>
 
 namespace rn {
@@ -72,9 +76,8 @@ void die( char const* file, int line, std::string_view msg ) {
   (void)line;
   std::string result( msg );
 #else
-  std::ostringstream oss;
-  oss << "\n" << file << ":" << line << ":\n" << msg;
-  std::string result = oss.str();
+  std::string result =
+      fmt::format( "\n{}:{}:\n{}", file, line, msg );
 #endif
   auto st = stack_trace_here();
   throw exception_with_bt( result, std::move( st ) );

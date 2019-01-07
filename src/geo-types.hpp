@@ -285,13 +285,9 @@ ND Delta operator*( Delta const& delta, Scale const& scale );
 ND Coord operator*( Scale const& scale, Coord const& coord );
 ND Delta operator*( Scale const& scale, Delta const& delta );
 
-std::ostream& operator<<( std::ostream&    out,
-                          rn::Delta const& delta );
-std::ostream& operator<<( std::ostream&   out,
-                          rn::Rect const& rect );
-std::ostream& operator<<( std::ostream&    out,
-                          rn::Coord const& coord );
-
 } // namespace rn
 
 DEFINE_FORMAT( ::rn::Scale, "({},{})", o.sx, o.sy );
+DEFINE_FORMAT( ::rn::Delta, "({},{})", o.w, o.h );
+DEFINE_FORMAT( ::rn::Coord, "({},{})", o.x, o.y );
+DEFINE_FORMAT( ::rn::Rect, "({},{},{},{})", o.x, o.y, o.w, o.h );

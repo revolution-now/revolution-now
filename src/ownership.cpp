@@ -88,7 +88,7 @@ void ownership_disown_unit( UnitId id ) {
   unit_ownership.erase( it );
 }
 
-UnitIdVec units_all( optional<e_nation> nation ) {
+Vec<UnitId> units_all( optional<e_nation> nation ) {
   vector<UnitId> res;
   res.reserve( units.size() );
   if( nation ) {
@@ -151,8 +151,8 @@ Opt<e_nation> nation_from_coord( Coord coord ) {
   return first;
 }
 
-UnitIdVec units_in_rect( Rect const& rect ) {
-  UnitIdVec res;
+Vec<UnitId> units_in_rect( Rect const& rect ) {
+  Vec<UnitId> res;
   for( Y i = rect.y; i < rect.y + rect.h; ++i )
     for( X j = rect.x; j < rect.x + rect.w; ++j )
       for( auto id : units_from_coord( i, j ) )
@@ -207,7 +207,7 @@ void ownership_change_to_cargo( UnitId new_holder,
 
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nullopt otherwise.
-OptUnitId is_unit_onboard( UnitId id ) {
+Opt<UnitId> is_unit_onboard( UnitId id ) {
   auto opt_iter = has_key( holder_from_held, id );
   return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
                   : nullopt;

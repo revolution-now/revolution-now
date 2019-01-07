@@ -17,9 +17,7 @@
 #include "typed-int.hpp"
 
 #include <algorithm>
-#include <istream>
 #include <optional>
-#include <ostream>
 #include <string_view>
 #include <variant>
 

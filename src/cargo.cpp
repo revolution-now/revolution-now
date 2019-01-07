@@ -19,9 +19,6 @@
 // base-util
 #include "base-util/variant.hpp"
 
-// C++ standard library
-#include <iostream>
-
 using namespace std;
 
 namespace rn {

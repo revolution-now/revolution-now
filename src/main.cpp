@@ -1,5 +1,6 @@
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "fmt-helper.hpp"
 #include "fonts.hpp"
 #include "geo-types.hpp"
 #include "globals.hpp"
@@ -19,13 +20,8 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
-#include "base-util/string.hpp"
 
 #include "absl/strings/str_split.h"
-
-// {fmt}
-#include "fmt/format.h"
-#include "fmt/ostream.h"
 
 #include "SDL.h"
 #include "SDL_image.h"
@@ -33,7 +29,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <iostream>
 #include <vector>
 
 using namespace rn;

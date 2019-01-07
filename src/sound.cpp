@@ -10,13 +10,13 @@
 *****************************************************************/
 #include "sound.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 #include "util.hpp"
 
+// SDL
 #include "SDL.h"
 #include "SDL_mixer.h"
-
-#include <iostream>
 
 using namespace std;
 

@@ -14,7 +14,6 @@
 
 // {fmt}
 #include "fmt/format.h"
-#include "fmt/ostream.h"
 
 // C++ standard library
 #include <optional>

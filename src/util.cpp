@@ -13,7 +13,6 @@
 #include "errors.hpp"
 
 #include <exception>
-#include <iostream>
 #include <stdexcept>
 #include <utility>
 

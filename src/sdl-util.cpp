@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "fmt-helper.hpp"
 #include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
@@ -21,26 +22,15 @@
 #include "tiles.hpp"
 #include "util.hpp"
 
-// {fmt} library
-#include "fmt/format.h"
-#include "fmt/ostream.h"
-
 // SDL
 #include "SDL_mixer.h"
 
 // c++ standard library
 #include <cmath>
 #include <iomanip>
-#include <iostream>
-#include <sstream>
 #include <vector>
 
 using namespace std;
-
-ostream& operator<<( ostream& out, ::SDL_Rect const& r ) {
-  return ( out << "(" << r.x << "," << r.y << "," << r.w << ","
-               << r.h << ")" );
-}
 
 namespace rn {
 
@@ -203,7 +193,7 @@ void print_video_stats() {
   SDL_Rect r;
   LOG_DEBUG( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  LOG_DEBUG( "  {}", r );
+  LOG_DEBUG( "  {}", from_SDL( r ) );
 
   LOG_DEBUG( "Monitor Diagonal Length: {}in.",
              monitor_inches() );
@@ -262,12 +252,12 @@ void find_max_tile_sizes() {
     H max_height{dm.h / scale -
                  ( ( dm.h / scale ) % g_tile_height._ )};
 
-    ostringstream ss;
-    ss << max_width / g_tile_width << "x"
-       << max_height / g_tile_height;
+    // ostringstream ss;
+    // ss << max_width / g_tile_width << "x"
+    //   << max_height / g_tile_height;
     // cout << setw( col ) << ss.str();
-    ss.str( "" );
-    ss << max_width << "x" << max_height;
+    // ss.str( "" );
+    // ss << max_width << "x" << max_height;
     // cout << setw( col ) << ss.str();
 
     // Tile size in inches if it were measured on the surface of
@@ -491,7 +481,7 @@ ND Texture create_screen_sized_texture() {
 
 void save_texture_png( Texture const&  tx,
                        fs::path const& file ) {
-  logger->info( "writing png file {}", file );
+  logger->info( "writing png file {}", file.string() );
   ::SDL_Texture* old = ::SDL_GetRenderTarget( g_renderer );
   ::SDL_SetRenderTarget( g_renderer, tx );
   auto           delta   = texture_delta( tx );
@@ -501,7 +491,7 @@ void save_texture_png( Texture const&  tx,
                           surface->format->format,
                           surface->pixels, surface->pitch );
   CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
-         "failed to save png file {}", file );
+         "failed to save png file {}", file.string() );
   ::SDL_FreeSurface( surface );
   ::SDL_SetRenderTarget( g_renderer, old );
 }
@@ -523,14 +513,14 @@ void grab_screen( fs::path const& file ) {
   auto screen = screen_logical_size();
   logger->info(
       "grabbing screen with size [{} x {}] and saving to {}",
-      screen.w, screen.h, file );
+      screen.w, screen.h, file.string() );
   ::SDL_Surface* surface = create_surface( screen );
   set_render_target( nullopt );
   ::SDL_RenderReadPixels( g_renderer, NULL,
                           surface->format->format,
                           surface->pixels, surface->pitch );
   CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
-         "failed to save png file {}", file );
+         "failed to save png file {}", file.string() );
   ::SDL_FreeSurface( surface );
 }
 

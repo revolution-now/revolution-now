@@ -13,11 +13,8 @@
 
 #include "core-config.hpp"
 
-#include "base-util/string.hpp"
-
-#include <iostream>
-#include <optional>
-#include <vector>
+// Revolution Now
+#include "fmt-helper.hpp"
 
 // This is a minimal wrapper around an T. It allows nothing ex-
 // cept for (explicit) construction from T, copying/assignment,
@@ -283,18 +280,6 @@ inline bool operator>=( TypedDouble<Tag> left,
   return left._ >= right._;
 }
 
-template<typename Tag>
-inline std::ostream& operator<<( std::ostream&    out,
-                                 TypedDouble<Tag> what ) {
-  return ( out << what._ );
-}
-
-template<typename Tag>
-inline std::istream& operator>>( std::istream&     in,
-                                 TypedDouble<Tag>& what ) {
-  return ( in >> what._ );
-}
-
 /** TypedInt ***************************************************/
 template<typename Tag>
 inline TypedInt<Tag> operator*( TypedInt<Tag> left,
@@ -403,18 +388,6 @@ inline bool operator>=( TypedInt<Tag> left,
   return left._ >= right._;
 }
 
-template<typename Tag>
-inline std::ostream& operator<<( std::ostream& out,
-                                 TypedInt<Tag> what ) {
-  return ( out << what._ );
-}
-
-template<typename Tag>
-inline std::istream& operator>>( std::istream&  in,
-                                 TypedInt<Tag>& what ) {
-  return ( in >> what._ );
-}
-
 // This is intended to be used inside the std namespace, but
 // should be issued outside of the ::rn namespace.
 #define DEFINE_HASH_FOR_TYPED_NUM( t, a )          \
@@ -440,47 +413,36 @@ inline std::istream& operator>>( std::istream&  in,
 // the inherited member functions that refer to that base class;
 // e.g., it would allow two distinct typed num's to be added to-
 // gether.
-#define DERIVE_TYPED_NUM( t, a, b, suffix )               \
-  namespace rn {                                          \
-  struct a : public b<a> {                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
-    using P = b<a>; /* parent */                          \
-    constexpr a() : P( 0 ) {}                             \
-    constexpr a( a const& rhs ) = default;                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
-    constexpr a( a&& rhs ) = default;                     \
-    ~a()                   = default;                     \
-    explicit constexpr a( t n_ ) : P( n_ ) {}             \
-    constexpr a( P const& ti ) : P( ti ) {}               \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
-    a& operator=( a const& other ) {                      \
-      _ = other._;                                        \
-      return *this;                                       \
-    }                                                     \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
-    a& operator=( a&& other ) noexcept {                  \
-      _ = other._;                                        \
-      return *this;                                       \
-    }                                                     \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */      \
-    a& operator=( t n ) {                                 \
-      _ = n;                                              \
-      return *this;                                       \
-    }                                                     \
-  };                                                      \
-  using Opt##a = std::optional<a>;                        \
-  using a##Vec = std::vector<a>;                          \
-  }                                                       \
-  namespace util {                                        \
-  template<>                                              \
-  inline std::string to_string<rn::a>( rn::a const& n ) { \
-    return util::to_string( n._ ) + "_" #suffix;          \
-  }                                                       \
-  }                                                       \
-  inline std::ostream& operator<<( std::ostream& out,     \
-                                   rn::a const&  n ) {     \
-    return ( out << n._ << "_" #suffix );                 \
-  }
+#define DERIVE_TYPED_NUM( t, a, b, suffix )          \
+  namespace rn {                                     \
+  struct a : public b<a> {                           \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    using P = b<a>; /* parent */                     \
+    constexpr a() : P( 0 ) {}                        \
+    constexpr a( a const& rhs ) = default;           \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    constexpr a( a&& rhs ) = default;                \
+    ~a()                   = default;                \
+    explicit constexpr a( t n_ ) : P( n_ ) {}        \
+    constexpr a( P const& ti ) : P( ti ) {}          \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    a& operator=( a const& other ) {                 \
+      _ = other._;                                   \
+      return *this;                                  \
+    }                                                \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    a& operator=( a&& other ) noexcept {             \
+      _ = other._;                                   \
+      return *this;                                  \
+    }                                                \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
+    a& operator=( t n ) {                            \
+      _ = n;                                         \
+      return *this;                                  \
+    }                                                \
+  };                                                 \
+  }                                                  \
+  DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );
 
 // Typed nums that are to represent coordinates should use this
 // macro. It will ensure that they have types that allow the nec-

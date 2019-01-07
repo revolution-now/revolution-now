@@ -12,10 +12,10 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "fmt-helper.hpp"
 
 // c++ standard library
 #include <algorithm>
-#include <iostream>
 #include <utility>
 
 using namespace std;
@@ -225,22 +225,6 @@ ND Delta operator*( Scale const& scale, Delta const& delta ) {
   Delta res = delta;
   res *= scale;
   return res;
-}
-
-std::ostream& operator<<( std::ostream&    out,
-                          rn::Delta const& delta ) {
-  return ( out << "(" << delta.w << "," << delta.h << ")" );
-}
-
-std::ostream& operator<<( std::ostream&   out,
-                          rn::Rect const& rect ) {
-  return ( out << "(" << rect.x << "," << rect.y << "," << rect.w
-               << "," << rect.h << ")" );
-}
-
-std::ostream& operator<<( std::ostream&    out,
-                          rn::Coord const& coord ) {
-  return ( out << "(" << coord.x << "," << coord.y << ")" );
 }
 
 } // namespace rn
