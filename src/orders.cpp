@@ -57,9 +57,7 @@ vector<UnitId> ProposedOrdersAnalysis::units_to_prioritize()
 
   switch_v( result ) {
     case_v( ProposedMetaOrderAnalysisResult ) {}
-    case_v( ProposedMoveAnalysisResult ) {
-      res = val.to_prioritize;
-    }
+    case_v( TravelAnalysis ) { res = val.to_prioritize; }
     case_v( ProposedCombatAnalysisResult ) {
       res = val.to_prioritize;
     }
@@ -113,7 +111,7 @@ bool confirm_explain_orders(
     // Orders about orders
     case_v( ProposedMetaOrderAnalysisResult ) { res = true; }
     // If unit is to move on the map
-    case_v( ProposedMoveAnalysisResult ) {
+    case_v( TravelAnalysis ) {
       res = confirm_explain_move( val );
     }
     // If this is combat.
@@ -136,7 +134,7 @@ void apply_orders( ProposedOrdersAnalysis const& analysis ) {
       /* Always allowed */
       if( val.mv_points_forfeighted ) unit.forfeight_mv_points();
     }
-    case_v( ProposedMoveAnalysisResult ) {
+    case_v( TravelAnalysis ) {
       CHECK( val.allowed() );
       move_unit( val );
     }

@@ -18,7 +18,7 @@
 #include "fmt-helper.hpp"
 #include "geo-types.hpp"
 #include "job.hpp"
-#include "movement.hpp"
+#include "travel.hpp"
 #include "unit.hpp"
 
 // C++ standard library
@@ -44,7 +44,7 @@
  * Order Types
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
- * Move:   This is an order wherein the player instructs a unit
+ * Travel: This is an order wherein the player instructs a unit
  *         to move to an adjacent square (whether or not it
  *         would be allowed and whatever the consequences). For
  *         example, a unit being told to move on land is a Move
@@ -129,7 +129,7 @@ using ProposedOrdersAnalysisResult = std::variant<
     // Orders about orders
     ProposedMetaOrderAnalysisResult,
     // If unit is to move on the map
-    ProposedMoveAnalysisResult,
+    TravelAnalysis,
     // If the move is toward a foreign unit
     ProposedCombatAnalysisResult,
     // actions in current tile

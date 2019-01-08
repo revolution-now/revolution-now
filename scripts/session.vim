@@ -16,7 +16,7 @@ let s:stems = [
   \ 'src/geo-types',
   \ 'src/nation',
   \ 'src/unit',
-  \ 'src/movement',
+  \ 'src/travel',
   \ 'src/combat',
   \ 'src/job',
   \ 'src/orders',

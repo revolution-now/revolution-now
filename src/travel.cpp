@@ -1,14 +1,15 @@
 /****************************************************************
-**movement.cpp
+**travel.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2018-09-03.
 *
-* Description: Physical movement of units.
+* Description: Physical movement of units from one square to
+*              another.
 *
 *****************************************************************/
-#include "movement.hpp"
+#include "travel.hpp"
 
 // Revolution Now
 #include "errors.hpp"
@@ -28,14 +29,8 @@ namespace rn {
 
 namespace {} // namespace
 
-bool ProposedMoveAnalysisResult::allowed() const {
-  return util::holds<e_unit_mv_good>( desc );
-}
-
-// Called at the beginning of each turn; marks all units
-// as not yet having moved.
-void reset_moves() {
-  map_units( []( Unit& unit ) { unit.new_turn(); } );
+bool TravelAnalysis::allowed() const {
+  return util::holds<e_unit_travel_good>( desc );
 }
 
 // This function will allow the move by default, and so it is the
@@ -43,8 +38,8 @@ void reset_moves() {
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-ProposedMoveAnalysisResult analyze_proposed_move_impl(
-    UnitId id, e_direction d ) {
+TravelAnalysis analyze_proposed_move_impl( UnitId      id,
+                                           e_direction d ) {
   auto src_coord = coords_for_unit( id );
   auto coords    = src_coord.moved( d );
 
@@ -56,18 +51,17 @@ ProposedMoveAnalysisResult analyze_proposed_move_impl(
 
   MovementPoints cost( 1 );
 
-  ProposedMoveAnalysisResult result{
-      /*id=*/id,
-      /*unit_would_move=*/true,
-      /*move_src=*/src_coord,
-      /*move_target=*/coords,
-      /*desc=*/e_unit_mv_good::map_to_map,
-      /*movement_cost=*/cost,
-      /*target_unit=*/{},
-      /*to_prioritize=*/{}};
+  TravelAnalysis result{/*id=*/id,
+                        /*unit_would_move=*/true,
+                        /*move_src=*/src_coord,
+                        /*move_target=*/coords,
+                        /*desc=*/e_unit_travel_good::map_to_map,
+                        /*movement_cost=*/cost,
+                        /*target_unit=*/{},
+                        /*to_prioritize=*/{}};
 
   if( !coords.is_inside( world_rect() ) ) {
-    result.desc = e_unit_mv_error::map_edge;
+    result.desc = e_unit_travel_error::map_edge;
     return result;
   }
   auto& square = square_at( y, x );
@@ -85,21 +79,21 @@ ProposedMoveAnalysisResult analyze_proposed_move_impl(
       // allowed to make this move, but we change the target
       // square to where the unit currently is since it will
       // not physically move.
-      result.desc            = e_unit_mv_good::land_fall;
+      result.desc            = e_unit_travel_good::land_fall;
       result.unit_would_move = false;
       result.move_target     = coords;
       result.movement_cost   = 0;
       result.to_prioritize   = to_offload;
       return result;
     }
-    result.desc = e_unit_mv_error::land_forbidden;
+    result.desc = e_unit_travel_error::land_forbidden;
     return result;
   }
 
   if( !unit.desc().boat && !square.land ) {
     auto const& ships = units_from_coord( y, x );
     if( ships.empty() ) {
-      result.desc = e_unit_mv_error::water_forbidden;
+      result.desc = e_unit_travel_error::water_forbidden;
       return result;
     }
     // We have at least on ship, so iterate through and find the
@@ -109,13 +103,13 @@ ProposedMoveAnalysisResult analyze_proposed_move_impl(
       CHECK( ship_unit.desc().boat );
       auto& cargo = ship_unit.cargo();
       if( cargo.fits( id ) ) {
-        result.desc          = e_unit_mv_good::board_ship;
+        result.desc          = e_unit_travel_good::board_ship;
         result.target_unit   = ship_id;
         result.to_prioritize = {ship_id};
         return result;
       }
     }
-    result.desc = e_unit_mv_error::board_ship_full;
+    result.desc = e_unit_travel_error::board_ship_full;
     return result;
   }
 
@@ -124,18 +118,18 @@ ProposedMoveAnalysisResult analyze_proposed_move_impl(
   auto holder = is_unit_onboard( unit.id() );
   if( !unit.desc().boat && square.land && holder ) {
     // We have a unit onboard a ship moving onto land.
-    result.desc = e_unit_mv_good::offboard_ship;
+    result.desc = e_unit_travel_good::offboard_ship;
     return result;
   }
 
-  result.desc = e_unit_mv_good::map_to_map;
+  result.desc = e_unit_travel_good::map_to_map;
   return result;
 }
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-ProposedMoveAnalysisResult analyze_proposed_move(
-    UnitId id, e_direction d ) {
+TravelAnalysis analyze_proposed_move( UnitId      id,
+                                      e_direction d ) {
   auto res = analyze_proposed_move_impl( id, d );
   // Now check invariants.
   CHECK( res.id == id );
@@ -149,7 +143,7 @@ ProposedMoveAnalysisResult analyze_proposed_move(
   return res;
 }
 
-void move_unit( ProposedMoveAnalysisResult const& analysis ) {
+void move_unit( TravelAnalysis const& analysis ) {
   auto  id   = analysis.id;
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
@@ -159,14 +153,15 @@ void move_unit( ProposedMoveAnalysisResult const& analysis ) {
   // Caller should have checked this.
   CHECK( analysis.allowed() );
 
-  e_unit_mv_good outcome = get<e_unit_mv_good>( analysis.desc );
+  e_unit_travel_good outcome =
+      get<e_unit_travel_good>( analysis.desc );
 
   // This will throw if the unit has no coords, but I think it
   // should always at this point if we're moving it.
   auto old_coord = coords_for_unit( id );
 
   switch( outcome ) {
-    case e_unit_mv_good::map_to_map:
+    case e_unit_travel_good::map_to_map:
       // If it's a ship then sentry all its units before it
       // moves.
       if( unit.desc().boat ) {
@@ -178,18 +173,18 @@ void move_unit( ProposedMoveAnalysisResult const& analysis ) {
       ownership_change_to_map( id, analysis.move_target );
       unit.consume_mv_points( analysis.movement_cost );
       break;
-    case e_unit_mv_good::board_ship:
+    case e_unit_travel_good::board_ship:
       CHECK( analysis.target_unit.has_value() );
       ownership_change_to_cargo( *analysis.target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       break;
-    case e_unit_mv_good::offboard_ship:
+    case e_unit_travel_good::offboard_ship:
       ownership_change_to_map( id, analysis.move_target );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == Unit::e_orders::none );
       break;
-    case e_unit_mv_good::land_fall:
+    case e_unit_travel_good::land_fall:
       // Just activate all the units on the ship that have not
       // completed their turns. Note that the ship's movement
       // points are not consumed.
@@ -224,8 +219,7 @@ void move_unit( ProposedMoveAnalysisResult const& analysis ) {
          ( new_coord == analysis.move_target ) );
 }
 
-bool confirm_explain_move(
-    ProposedMoveAnalysisResult const& analysis ) {
+bool confirm_explain_move( TravelAnalysis const& analysis ) {
   if( !analysis.allowed() ) return false;
   // If we're here then that means that the move is physically
   // allowed assuming there are enough movement points.  Check
@@ -234,18 +228,18 @@ bool confirm_explain_move(
   if( unit.movement_points() < analysis.movement_cost )
     return false;
   // The above should have checked that the variant holds the
-  // e_unit_mv_good type for us.
-  auto& kind = val_or_die<e_unit_mv_good>( analysis.desc );
+  // e_unit_travel_good type for us.
+  auto& kind = val_or_die<e_unit_travel_good>( analysis.desc );
 
   switch( kind ) {
-    case e_unit_mv_good::land_fall: {
+    case e_unit_travel_good::land_fall: {
       auto answer =
           ui::yes_no( "Would you like to make landfall?" );
       return ( answer == ui::e_confirm::yes );
     }
-    case e_unit_mv_good::map_to_map:
-    case e_unit_mv_good::board_ship:
-    case e_unit_mv_good::offboard_ship:
+    case e_unit_travel_good::map_to_map:
+    case e_unit_travel_good::board_ship:
+    case e_unit_travel_good::offboard_ship:
       // Nothing to ask here, just allow the move.
       return true;
   }

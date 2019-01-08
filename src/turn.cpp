@@ -13,10 +13,10 @@
 // Revolution Now
 #include "logging.hpp"
 #include "loops.hpp"
-#include "movement.hpp"
 #include "orders.hpp"
 #include "ownership.hpp"
 #include "render.hpp"
+#include "travel.hpp"
 #include "unit.hpp"
 #include "viewport.hpp"
 
@@ -33,14 +33,14 @@ namespace rn {
 
 namespace {
 
-bool animate_move( ProposedMoveAnalysisResult const& analysis ) {
-  CHECK( util::holds<e_unit_mv_good>( analysis.desc ) );
-  auto type = get<e_unit_mv_good>( analysis.desc );
+bool animate_move( TravelAnalysis const& analysis ) {
+  CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
+  auto type = get<e_unit_travel_good>( analysis.desc );
   switch( type ) {
-    case e_unit_mv_good::map_to_map: return true;
-    case e_unit_mv_good::board_ship: return true;
-    case e_unit_mv_good::offboard_ship: return true;
-    case e_unit_mv_good::land_fall: return false;
+    case e_unit_travel_good::map_to_map: return true;
+    case e_unit_travel_good::board_ship: return true;
+    case e_unit_travel_good::offboard_ship: return true;
+    case e_unit_travel_good::land_fall: return false;
   };
   SHOULD_NOT_BE_HERE;
   return false;
@@ -60,7 +60,7 @@ e_turn_result turn( e_nation nation ) {
   // start of turn:
 
   // Mark all units as not having moved.
-  reset_moves();
+  map_units( []( Unit& unit ) { unit.new_turn(); } );
 
   //  clang-format off
   //  Iterate through the colonies, for each:
@@ -204,8 +204,7 @@ e_turn_result turn( e_nation nation ) {
           // Check if the unit is physically moving; usually at
           // this point it will be unless it is e.g. a ship
           // offloading units.
-          if_v( analysis.result, ProposedMoveAnalysisResult,
-                mv_res ) {
+          if_v( analysis.result, TravelAnalysis, mv_res ) {
             /***************************************************/
             if( animate_move( *mv_res ) ) {
               viewport().ensure_tile_visible(

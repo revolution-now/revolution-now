@@ -17,11 +17,11 @@
 #include "fonts.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
-#include "movement.hpp"
 #include "orders.hpp"
 #include "ownership.hpp"
 #include "plane.hpp"
 #include "sdl-util.hpp"
+#include "travel.hpp"
 #include "viewport.hpp"
 #include "world.hpp"
 
