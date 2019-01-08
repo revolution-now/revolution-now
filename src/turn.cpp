@@ -11,12 +11,11 @@
 #include "turn.hpp"
 
 // Revolution Now
+#include "dispatch.hpp"
 #include "logging.hpp"
 #include "loops.hpp"
-#include "orders.hpp"
 #include "ownership.hpp"
 #include "render.hpp"
-#include "travel.hpp"
 #include "unit.hpp"
 #include "viewport.hpp"
 
@@ -199,12 +198,16 @@ e_turn_result turn( e_nation nation ) {
           q.pop_front();
           break;
         }
-        auto analysis = analyze_proposed_orders( id, orders );
-        if( confirm_explain_orders( analysis ) ) {
+        auto maybe_analysis = dispatch_orders( id, orders );
+        CHECK( maybe_analysis.has_value(),
+               "no handler for orders {}", orders );
+        auto const& analysis = maybe_analysis.value();
+
+        if( confirm_explain( analysis ) ) {
           // Check if the unit is physically moving; usually at
           // this point it will be unless it is e.g. a ship
           // offloading units.
-          if_v( analysis.result, TravelAnalysis, mv_res ) {
+          if_v( analysis, TravelAnalysis, mv_res ) {
             /***************************************************/
             if( animate_move( *mv_res ) ) {
               viewport().ensure_tile_visible(
@@ -224,13 +227,13 @@ e_turn_result turn( e_nation nation ) {
             }
             /***************************************************/
           }
-          apply_orders( analysis );
+          affect_orders( analysis );
           // Note that it shouldn't hurt if the unit is already
           // in the queue, since this turn code will never move a
           // unit after it has already completed its turn, no
           // matter how many times it appears in the queue.
-          for( auto prioritize : analysis.units_to_prioritize() )
-            q.push_front( prioritize );
+          for( auto unit_id : units_to_prioritize( analysis ) )
+            q.push_front( unit_id );
         }
       }
 

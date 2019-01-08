@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "analysis.hpp"
 #include "unit.hpp"
 
 namespace rn {
@@ -72,18 +73,21 @@ enum class ND e_unit_travel_error {
 using unit_travel_verdict =
     std::variant<e_unit_travel_good, e_unit_travel_error>;
 
-// Describes what would happen if a unit were to move to a given
-// square.
-struct ND TravelAnalysis {
-  // The unit proposed to be moved.
-  UnitId id;
+struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
+  TravelAnalysis( UnitId id_, Orders orders_ )
+    : parent_t( id_, orders_ ) {}
+
+  // ------------------------ Data -----------------------------
+
   // If this move is allowed and executed, will the unit actually
   // move to the target square as a result? Normally the answer
   // is yes, however there are cases when the answer is no, such
   // as when a ship makes landfall.
   bool unit_would_move{};
+
   // The square on which the unit resides.
   Coord move_src{};
+
   // The square toward which the move is aimed; note that if/when
   // this move is executed the unit will not necessarily move to
   // this square (it depends on the kind of move being made).
@@ -91,41 +95,28 @@ struct ND TravelAnalysis {
   // ingful value since there must always be a move order in
   // order for this data structure to even be populated.
   Coord move_target{};
+
   // Description of what would happen if the move were carried
   // out. This can also serve as a binary indicator of whether
   // the move is possible by checking the type held, as the can_-
   // move() function does as a convenience.
   unit_travel_verdict desc{};
+
   // Cost in movement points that would be incurred; this is
   // a positive number.
   MovementPoints movement_cost{};
+
   // Unit that is the target of an action, e.g., ship to be
   // boarded, etc. Not relevant in all contexts.
   Opt<UnitId> target_unit{};
-  // Units that will be waiting for orders and which should be
-  // prioritized in the "orders" loop after this move is made.
-  // This field is only relevant for certain (valid) moves. NOTE:
-  // units will be prioritized in reverse order of this vector,
-  // i.e., the last unit will be up first.
-  std::vector<UnitId> to_prioritize{};
-  // Is it possible to move at all. This just checks that the the
-  // `desc` holds the right type. Note that this does not take
-  // into account movement points. Hence 'allowed' here means
-  // whether the move could ever be allowed in theory assuming
-  // movement points were not a concern.
+
+  // ---------------- "Virtual" Methods ------------------------
+
   bool allowed() const;
+  bool confirm_explain() const;
+  void affect_orders() const;
+
+  static Opt<TravelAnalysis> analyze( UnitId id, Orders orders );
 };
-
-ND TravelAnalysis analyze_proposed_move( UnitId      id,
-                                         e_direction d );
-
-void move_unit( TravelAnalysis const& analysis );
-
-// Checks that the move is possible (if not, returns false) and,
-// if so, will check the type of move and determine whether the
-// player needs to be asked for any kind of confirmation. In ad-
-// dition, if the move is not allowed, the player may be given an
-// explantation as to why.
-bool confirm_explain_move( TravelAnalysis const& analysis );
 
 } // namespace rn

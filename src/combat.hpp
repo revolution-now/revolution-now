@@ -48,7 +48,7 @@ struct ProposedCombatAnalysisResult {
   // This field is only relevant for certain (valid) moves. NOTE:
   // units will be prioritized in reverse order of this vector,
   // i.e., the last unit will be up first.
-  std::vector<UnitId> to_prioritize{};
+  std::vector<UnitId> units_to_prioritize{};
   bool                allowed() const;
 };
 

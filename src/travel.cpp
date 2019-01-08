@@ -38,10 +38,11 @@ bool TravelAnalysis::allowed() const {
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-TravelAnalysis analyze_proposed_move_impl( UnitId      id,
-                                           e_direction d ) {
-  auto src_coord = coords_for_unit( id );
-  auto coords    = src_coord.moved( d );
+Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
+  if( !util::holds<orders::move>( orders ) ) return nullopt;
+  auto [direction] = get<orders::move>( orders );
+  auto src_coord   = coords_for_unit( id );
+  auto coords      = src_coord.moved( direction );
 
   Y y = coords.y;
   X x = coords.x;
@@ -51,14 +52,13 @@ TravelAnalysis analyze_proposed_move_impl( UnitId      id,
 
   MovementPoints cost( 1 );
 
-  TravelAnalysis result{/*id=*/id,
-                        /*unit_would_move=*/true,
-                        /*move_src=*/src_coord,
-                        /*move_target=*/coords,
-                        /*desc=*/e_unit_travel_good::map_to_map,
-                        /*movement_cost=*/cost,
-                        /*target_unit=*/{},
-                        /*to_prioritize=*/{}};
+  TravelAnalysis result( id, orders );
+  result.unit_would_move = true;
+  result.move_src        = src_coord;
+  result.move_target     = coords;
+  result.desc            = e_unit_travel_good::map_to_map;
+  result.movement_cost   = cost;
+  result.target_unit     = {};
 
   if( !coords.is_inside( world_rect() ) ) {
     result.desc = e_unit_travel_error::map_edge;
@@ -79,11 +79,11 @@ TravelAnalysis analyze_proposed_move_impl( UnitId      id,
       // allowed to make this move, but we change the target
       // square to where the unit currently is since it will
       // not physically move.
-      result.desc            = e_unit_travel_good::land_fall;
-      result.unit_would_move = false;
-      result.move_target     = coords;
-      result.movement_cost   = 0;
-      result.to_prioritize   = to_offload;
+      result.desc                = e_unit_travel_good::land_fall;
+      result.unit_would_move     = false;
+      result.move_target         = coords;
+      result.movement_cost       = 0;
+      result.units_to_prioritize = to_offload;
       return result;
     }
     result.desc = e_unit_travel_error::land_forbidden;
@@ -103,9 +103,9 @@ TravelAnalysis analyze_proposed_move_impl( UnitId      id,
       CHECK( ship_unit.desc().boat );
       auto& cargo = ship_unit.cargo();
       if( cargo.fits( id ) ) {
-        result.desc          = e_unit_travel_good::board_ship;
-        result.target_unit   = ship_id;
-        result.to_prioritize = {ship_id};
+        result.desc        = e_unit_travel_good::board_ship;
+        result.target_unit = ship_id;
+        result.units_to_prioritize = {ship_id};
         return result;
       }
     }
@@ -128,33 +128,33 @@ TravelAnalysis analyze_proposed_move_impl( UnitId      id,
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-TravelAnalysis analyze_proposed_move( UnitId      id,
-                                      e_direction d ) {
-  auto res = analyze_proposed_move_impl( id, d );
+Opt<TravelAnalysis> TravelAnalysis::analyze( UnitId id,
+                                             Orders orders ) {
+  auto maybe_res = analyze_impl( id, orders );
+  if( !maybe_res.has_value() ) return maybe_res;
+  auto const& res = *maybe_res;
   // Now check invariants.
   CHECK( res.id == id );
   CHECK( res.move_src != res.move_target );
-  CHECK( find( res.to_prioritize.begin(),
-               res.to_prioritize.end(),
-               id ) == res.to_prioritize.end() );
+  CHECK( find( res.units_to_prioritize.begin(),
+               res.units_to_prioritize.end(),
+               id ) == res.units_to_prioritize.end() );
   CHECK( res.move_src == coords_for_unit( id ) );
   CHECK( res.move_src.is_adjacent_to( res.move_target ) );
   CHECK( res.target_unit != id );
-  return res;
+  return maybe_res;
 }
 
-void move_unit( TravelAnalysis const& analysis ) {
-  auto  id   = analysis.id;
+void TravelAnalysis::affect_orders() const {
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
   CHECK( unit.orders() == Unit::e_orders::none );
 
   // Caller should have checked this.
-  CHECK( analysis.allowed() );
+  CHECK( allowed() );
 
-  e_unit_travel_good outcome =
-      get<e_unit_travel_good>( analysis.desc );
+  e_unit_travel_good outcome = get<e_unit_travel_good>( desc );
 
   // This will throw if the unit has no coords, but I think it
   // should always at this point if we're moving it.
@@ -170,17 +170,17 @@ void move_unit( TravelAnalysis const& analysis ) {
           cargo_unit.sentry();
         }
       }
-      ownership_change_to_map( id, analysis.move_target );
-      unit.consume_mv_points( analysis.movement_cost );
+      ownership_change_to_map( id, move_target );
+      unit.consume_mv_points( movement_cost );
       break;
     case e_unit_travel_good::board_ship:
-      CHECK( analysis.target_unit.has_value() );
-      ownership_change_to_cargo( *analysis.target_unit, id );
+      CHECK( target_unit.has_value() );
+      ownership_change_to_cargo( *target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       break;
     case e_unit_travel_good::offboard_ship:
-      ownership_change_to_map( id, analysis.move_target );
+      ownership_change_to_map( id, move_target );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == Unit::e_orders::none );
       break;
@@ -203,10 +203,9 @@ void move_unit( TravelAnalysis const& analysis ) {
           // ders otherwise it will just be passed over again
           // this turn.
           cargo_unit.unfinish_turn();
-          auto direction =
-              old_coord.direction_to( analysis.move_target );
+          auto direction = old_coord.direction_to( move_target );
           CHECK( direction.has_value() );
-          PlayerUnitOrders orders = orders::move{*direction};
+          Orders orders = orders::move{*direction};
           push_unit_orders( cargo_id, orders );
         }
       }
@@ -215,21 +214,19 @@ void move_unit( TravelAnalysis const& analysis ) {
 
   // Now do a sanity check.
   auto new_coord = coords_for_unit( id );
-  CHECK( analysis.unit_would_move ==
-         ( new_coord == analysis.move_target ) );
+  CHECK( unit_would_move == ( new_coord == move_target ) );
 }
 
-bool confirm_explain_move( TravelAnalysis const& analysis ) {
-  if( !analysis.allowed() ) return false;
+bool TravelAnalysis::confirm_explain() const {
+  if( !allowed() ) return false;
   // If we're here then that means that the move is physically
   // allowed assuming there are enough movement points.  Check
   // for that now.
-  auto& unit = unit_from_id( analysis.id );
-  if( unit.movement_points() < analysis.movement_cost )
-    return false;
+  auto& unit = unit_from_id( id );
+  if( unit.movement_points() < movement_cost ) return false;
   // The above should have checked that the variant holds the
   // e_unit_travel_good type for us.
-  auto& kind = val_or_die<e_unit_travel_good>( analysis.desc );
+  auto& kind = val_or_die<e_unit_travel_good>( desc );
 
   switch( kind ) {
     case e_unit_travel_good::land_fall: {

@@ -56,8 +56,8 @@ namespace viewport_state {
 struct none {};
 
 struct blink_unit {
-  UnitId                id;
-  Opt<PlayerUnitOrders> orders{};
+  UnitId      id;
+  Opt<Orders> orders{};
 };
 
 struct slide_unit {
