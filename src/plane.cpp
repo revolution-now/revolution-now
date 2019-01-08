@@ -180,7 +180,6 @@ bool send_input_to_planes( input::event_t const& event ) {
               return true;
               // Wants to handle it.
             case Plane::e_accept_drag::yes:
-
               ASSIGN_CHECK_OPT(
                   new_plane,
                   e_plane::_from_index_nothrow( idx - 1 ) );

@@ -64,23 +64,6 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   mouse.x /= g_resolution_scale_factor.sx;
   mouse.y /= g_resolution_scale_factor.sy;
 
-  /*
-   *  struct mouse_state_t {
-   *    bool  left   = false;
-   *    bool  middle = false;
-   *    bool  right  = false;
-   *    Coord pos{};
-   *  };
-   *
-   *  event.mouse_state =
-   *      mouse_state_t{bool( buttons & SDL_BUTTON_LMASK ),
-   *                    bool( buttons & SDL_BUTTON_MMASK ),
-   *                    bool( buttons & SDL_BUTTON_RMASK ),
-   *                    mouse,
-   *                    {},
-   *                    {}};
-   */
-
   if( l_drag && l_drag->phase == +e_drag_phase::begin )
     l_drag->phase = e_drag_phase::in_progress;
   if( r_drag && r_drag->phase == +e_drag_phase::begin )
@@ -231,9 +214,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
 Opt<event_t> poll_event() {
   ::SDL_Event event;
-  if( ::SDL_PollEvent( &event ) != 0 ) {
-    return from_SDL( event );
-  }
+  if( ::SDL_PollEvent( &event ) != 0 ) return from_SDL( event );
   return nullopt;
 }
 

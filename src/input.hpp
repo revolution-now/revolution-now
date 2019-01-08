@@ -18,6 +18,7 @@
 #include "geo-types.hpp"
 
 // SDL
+// TODO: get rid of this
 #include "SDL.h"
 
 // c++ standard library

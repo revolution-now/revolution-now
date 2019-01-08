@@ -141,6 +141,7 @@ struct ND Coord {
   // If this coord is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line
   // in each direction (or possibly only one direction).
+  // TODO: change to clamp
   void clip( Rect const& rect );
 
   Coord moved( e_direction d ) const;
