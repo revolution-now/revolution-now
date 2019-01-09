@@ -62,6 +62,7 @@ struct WindowPlane : public Plane {
       case ui::WindowManager::e_window_drag::swallow:
         return Plane::e_accept_drag::swallow;
     };
+    return {}; // for gcc (?!)
   }
   void on_drag( input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current ) override {

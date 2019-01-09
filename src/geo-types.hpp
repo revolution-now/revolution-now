@@ -292,5 +292,3 @@ DEFINE_FORMAT( ::rn::Scale, "({},{})", o.sx, o.sy );
 DEFINE_FORMAT( ::rn::Delta, "({},{})", o.w, o.h );
 DEFINE_FORMAT( ::rn::Coord, "({},{})", o.x, o.y );
 DEFINE_FORMAT( ::rn::Rect, "({},{},{},{})", o.x, o.y, o.w, o.h );
-
-DEFINE_FORMAT_ENUM( ::rn::e_direction );

@@ -100,5 +100,3 @@ void draw_all_planes( Texture const& tx = Texture() );
 bool send_input_to_planes( input::event_t const& event );
 
 } // namespace rn
-
-DEFINE_FORMAT_ENUM( ::rn::e_plane );

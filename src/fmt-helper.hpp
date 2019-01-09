@@ -17,6 +17,7 @@
 
 // C++ standard library
 #include <optional>
+#include <type_traits>
 #include <variant>
 
 // Macro to easily extend {fmt} to user-defined types.  This
@@ -44,10 +45,6 @@
 // value (i.e., only dependent on type); e.g., std::monostate.
 #define DEFINE_FORMAT_( type, ... ) \
   DEFINE_FORMAT_IMPL( (void)o;, type, __VA_ARGS__ )
-
-// For better-enums
-#define DEFINE_FORMAT_ENUM( type ) \
-  DEFINE_FORMAT( type, "{}", o._to_string() )
 
 namespace rn {
 
@@ -107,6 +104,64 @@ struct formatter<std::optional<T>> {
     return format_to( ctx.begin(), o.has_value()
                                        ? fmt::format( "{}", *o )
                                        : "nullopt" );
+  }
+};
+
+// This is a specialization (via SFINAE) for enums, though it
+// will actually only work for the smart enums that can be
+// converted to strings (and, in particular, the ones that come
+// from the better-enums library and have the ::_enumerated and
+// ::_to_string() members).
+//
+// The {fmt} library should find this automatically.
+//
+// The SFINAE is done just by requiring that the type have an
+// _enumerated member, which in practice means that it is a
+// better-enum type. However, it could also have been done like
+// so, for example:
+//
+//   template<typename T>
+//   struct formatter<
+//     T,
+//     char,
+//     std::enable_if_t<
+//       std::is_enum_v<
+//         typename T::_enumerated
+//       >
+//     >
+//   > {
+//
+// though that is probably overkill. In any case, note that the
+// last type in the argument list must be the SFINAE and must
+// have the type void (as it is if we use void_t or enable_if)
+// because:
+//
+//   1) The third template parameter in the base template
+//      declaration of formatter (in fmt/core.h) has a default
+//      value of void, and
+//   2) https://stackoverflow.com/questions/18700558/
+//            default-template-parameter-partial-specialization
+//
+// For some strange reason, at least on clang, if we leave out
+// the `typename` before T::_enumerated then it will cause a
+// substitution failure even for the correct types but without
+// any kind of compiler error or warning (?!).
+//
+// Unfortunately, the fact that the below compiles and gets
+// selected (or not selected) at the desired times may depend on
+// implementation details of the fmt library, such as the precise
+// template arguments in the base template declaration of
+// formatter. So this could break at some point.
+//
+template<typename T>
+struct formatter<T, char, std::void_t<typename T::_enumerated>> {
+  template<typename ParseContext>
+  constexpr auto parse( ParseContext &ctx ) {
+    return ctx.begin();
+  }
+  template<typename FormatContext>
+  auto format( T const &o, FormatContext &ctx ) {
+    return format_to( ctx.begin(), "{}", o._to_string() );
   }
 };
 
