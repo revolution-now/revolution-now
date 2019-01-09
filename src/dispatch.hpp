@@ -36,7 +36,9 @@ Opt<OrdersAnalysisDispatch> dispatch_orders(
     UnitId id, Orders const& orders );
 
 bool confirm_explain( OrdersAnalysisDispatch const& analysis );
+
 void affect_orders( OrdersAnalysisDispatch const& analysis );
+
 std::vector<UnitId> units_to_prioritize(
     OrdersAnalysisDispatch const& analysis );
 

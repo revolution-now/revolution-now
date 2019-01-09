@@ -34,23 +34,34 @@ struct OrdersAnalysis {
   // into account movement points. Hence 'allowed' here means
   // whether the move could ever be allowed in theory assuming
   // movement points were not a concern.
-  bool allowed() const;
+  bool allowed() const {
+    return static_cast<Child const*>( this )->allowed_impl();
+  }
 
   // Checks that the order is possible (if not, returns false)
   // and, if possible, will determine whether the player needs to
   // be asked for any kind of confirmation. In addition, if the
   // order is not allowed, the player may be given an
   // explantation as to why.
-  bool confirm_explain() const;
+  bool confirm_explain() const {
+    return static_cast<Child const*>( this )
+        ->confirm_explain_impl();
+  }
 
   // This will apply the orders described by the structure, i.e.,
   // it will change the state of the world!
-  void affect_orders() const;
+  void affect_orders() const {
+    CHECK( allowed() );
+    static_cast<Child const*>( this )
+        ->Child::affect_orders_impl();
+  }
 
   // Analyzes the move and returns nullopt if it is
   // non-applicable or returns this data structure (populated) if
   // it is applicable (though may still be disallowed).
-  static Opt<Child> analyze( UnitId id, Orders orders );
+  static Opt<Child> analyze( UnitId id, Orders orders ) {
+    return Child::analyze_impl( id, orders );
+  }
 
   // ------------------------ Data -----------------------------
 
@@ -85,11 +96,12 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool allowed() const { return true; }
-  bool confirm_explain() const { return true; }
-  void affect_orders() const;
+  bool allowed_impl() const { return true; }
+  bool confirm_explain_impl() const { return true; }
+  void affect_orders_impl() const;
 
-  static Opt<MetaAnalysis> analyze( UnitId id, Orders orders );
+  static Opt<MetaAnalysis> analyze_impl( UnitId id,
+                                         Orders orders );
 };
 
 } // namespace rn

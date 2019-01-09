@@ -17,6 +17,10 @@
 #include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
 
+// C++ standard library
+#include <functional>
+#include <vector>
+
 using namespace std;
 
 namespace rn {
@@ -24,26 +28,31 @@ namespace rn {
 namespace {
 
 template<typename T>
-auto try_dispatch( UnitId id, Orders const& orders ) {
+Opt<OrdersAnalysisDispatch> try_dispatch(
+    UnitId id, Orders const& orders ) {
   return T::analyze( id, orders );
 }
+
+vector<function<Opt<OrdersAnalysisDispatch>( UnitId,
+                                             Orders const& )>>
+    dispatches{
+        // Will be tried in this order.
+        try_dispatch<MetaAnalysis>,  //
+        try_dispatch<TravelAnalysis> //
+    };
 
 } // namespace
 
 Opt<OrdersAnalysisDispatch> dispatch_orders(
     UnitId id, Orders const& orders ) {
-  Opt<OrdersAnalysisDispatch> maybe_analysis;
+  Opt<OrdersAnalysisDispatch> maybe_res;
 
   auto const& unit = unit_from_id( id );
   CHECK( unit.movement_points() > 0 );
 
-  if( ( maybe_analysis =
-            try_dispatch<MetaAnalysis>( id, orders ) ) )
-    return maybe_analysis;
-
-  if( ( maybe_analysis =
-            try_dispatch<TravelAnalysis>( id, orders ) ) )
-    return maybe_analysis;
+  for( auto f : dispatches )
+    if( maybe_res = f( id, orders ); maybe_res.has_value() )
+      return maybe_res;
 
   // case_v_( orders::move, direction ) {
   //  auto mv_res     = analyze_proposed_move( id, direction );
@@ -59,7 +68,7 @@ Opt<OrdersAnalysisDispatch> dispatch_orders(
   //  }
   //}
 
-  return nullopt;
+  return maybe_res;
 }
 
 bool confirm_explain( OrdersAnalysisDispatch const& analysis ) {

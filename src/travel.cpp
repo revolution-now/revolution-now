@@ -29,7 +29,7 @@ namespace rn {
 
 namespace {} // namespace
 
-bool TravelAnalysis::allowed() const {
+bool TravelAnalysis::allowed_impl() const {
   return util::holds<e_unit_travel_good>( desc );
 }
 
@@ -38,7 +38,7 @@ bool TravelAnalysis::allowed() const {
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
+Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
   if( !util::holds<orders::move>( orders ) ) return nullopt;
   auto [direction] = get<orders::move>( orders );
   auto src_coord   = coords_for_unit( id );
@@ -128,9 +128,9 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-Opt<TravelAnalysis> TravelAnalysis::analyze( UnitId id,
-                                             Orders orders ) {
-  auto maybe_res = analyze_impl( id, orders );
+Opt<TravelAnalysis> TravelAnalysis::analyze_impl(
+    UnitId id, Orders orders ) {
+  auto maybe_res = do_analyze( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;
   // Now check invariants.
@@ -145,7 +145,7 @@ Opt<TravelAnalysis> TravelAnalysis::analyze( UnitId id,
   return maybe_res;
 }
 
-void TravelAnalysis::affect_orders() const {
+void TravelAnalysis::affect_orders_impl() const {
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
@@ -217,7 +217,7 @@ void TravelAnalysis::affect_orders() const {
   CHECK( unit_would_move == ( new_coord == move_target ) );
 }
 
-bool TravelAnalysis::confirm_explain() const {
+bool TravelAnalysis::confirm_explain_impl() const {
   if( !allowed() ) return false;
   // If we're here then that means that the move is physically
   // allowed assuming there are enough movement points.  Check
