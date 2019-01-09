@@ -26,6 +26,10 @@ struct OrdersAnalysis {
     : id( id_ ), orders( orders_ ) {}
 
   using parent_t = OrdersAnalysis<Child>;
+  Child const* child() const {
+    return static_cast<Child const*>( this );
+  }
+  Child* child() { return static_cast<Child*>( this ); }
 
   // ---------------------- Methods ----------------------------
 
@@ -34,9 +38,7 @@ struct OrdersAnalysis {
   // into account movement points. Hence 'allowed' here means
   // whether the move could ever be allowed in theory assuming
   // movement points were not a concern.
-  bool allowed() const {
-    return static_cast<Child const*>( this )->allowed_impl();
-  }
+  bool allowed() const { return child()->allowed_(); }
 
   // Checks that the order is possible (if not, returns false)
   // and, if possible, will determine whether the player needs to
@@ -44,23 +46,21 @@ struct OrdersAnalysis {
   // order is not allowed, the player may be given an
   // explantation as to why.
   bool confirm_explain() const {
-    return static_cast<Child const*>( this )
-        ->confirm_explain_impl();
+    return child()->confirm_explain_();
   }
 
   // This will apply the orders described by the structure, i.e.,
   // it will change the state of the world!
   void affect_orders() const {
     CHECK( allowed() );
-    static_cast<Child const*>( this )
-        ->Child::affect_orders_impl();
+    child()->affect_orders_();
   }
 
   // Analyzes the move and returns nullopt if it is
   // non-applicable or returns this data structure (populated) if
   // it is applicable (though may still be disallowed).
   static Opt<Child> analyze( UnitId id, Orders orders ) {
-    return Child::analyze_impl( id, orders );
+    return Child::analyze_( id, orders );
   }
 
   // ------------------------ Data -----------------------------
@@ -96,12 +96,11 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool allowed_impl() const { return true; }
-  bool confirm_explain_impl() const { return true; }
-  void affect_orders_impl() const;
+  bool allowed_() const { return true; }
+  bool confirm_explain_() const { return true; }
+  void affect_orders_() const;
 
-  static Opt<MetaAnalysis> analyze_impl( UnitId id,
-                                         Orders orders );
+  static Opt<MetaAnalysis> analyze_( UnitId id, Orders orders );
 };
 
 } // namespace rn

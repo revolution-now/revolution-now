@@ -88,12 +88,12 @@ struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool allowed_impl() const;
-  bool confirm_explain_impl() const;
-  void affect_orders_impl() const;
+  bool allowed_() const;
+  bool confirm_explain_() const;
+  void affect_orders_() const;
 
-  static Opt<TravelAnalysis> analyze_impl( UnitId id,
-                                           Orders orders );
+  static Opt<TravelAnalysis> analyze_( UnitId id,
+                                       Orders orders );
 };
 
 } // namespace rn

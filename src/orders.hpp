@@ -48,6 +48,8 @@
 ORDER_MONOSTATE( quit ); // temporary until we can quit properly
 ORDER_MONOSTATE( wait );
 ORDER_MONOSTATE( forfeight );
+ORDER_MONOSTATE( fortify );
+ORDER_MONOSTATE( sentry );
 
 // Define multi-state orders with the struct and formatting spec.
 
@@ -69,6 +71,10 @@ using Orders = std::variant<orders::quit_t,
                             orders::wait_t,
                             // forfeight remainder of turn
                             orders::forfeight_t,
+                            // fortify unit
+                            orders::fortify_t,
+                            // sentry unit
+                            orders::sentry_t,
                             // moving on the map
                             orders::direction>;
 

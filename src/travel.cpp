@@ -29,7 +29,7 @@ namespace rn {
 
 namespace {} // namespace
 
-bool TravelAnalysis::allowed_impl() const {
+bool TravelAnalysis::allowed_() const {
   return util::holds<e_unit_travel_good>( desc );
 }
 
@@ -122,8 +122,8 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-Opt<TravelAnalysis> TravelAnalysis::analyze_impl(
-    UnitId id, Orders orders ) {
+Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId id,
+                                              Orders orders ) {
   auto maybe_res = do_analyze( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;
@@ -139,7 +139,7 @@ Opt<TravelAnalysis> TravelAnalysis::analyze_impl(
   return maybe_res;
 }
 
-void TravelAnalysis::affect_orders_impl() const {
+void TravelAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
@@ -167,12 +167,26 @@ void TravelAnalysis::affect_orders_impl() const {
       ownership_change_to_map( id, move_target );
       unit.consume_mv_points( MvPoints( 1 ) );
       break;
-    case e_unit_travel_good::board_ship:
+    case e_unit_travel_good::board_ship: {
       CHECK( target_unit.has_value() );
       ownership_change_to_cargo( *target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
+      // If the ship is sentried then clear it's orders because
+      // the player will likely want to start moving it now that
+      // a unit has boarded.
+      auto& ship_unit = unit_from_id( *target_unit );
+      ship_unit.clear_orders();
+      // The ship may have been marked as having finished its
+      // turn while still having movement points left if e.g. it
+      // used its turn to sentry while still having points left.
+      // In that case let's unfinish its turn so that it will be
+      // asked for orders again. There should be no harm in
+      // calling this even if the ship has in fact already used
+      // its movement points this turn.
+      ship_unit.unfinish_turn();
       break;
+    }
     case e_unit_travel_good::offboard_ship:
       ownership_change_to_map( id, move_target );
       unit.forfeight_mv_points();
@@ -211,7 +225,7 @@ void TravelAnalysis::affect_orders_impl() const {
   CHECK( unit_would_move == ( new_coord == move_target ) );
 }
 
-bool TravelAnalysis::confirm_explain_impl() const {
+bool TravelAnalysis::confirm_explain_() const {
   if( !allowed() ) return false;
   // The above should have checked that the variant holds the
   // e_unit_travel_good type for us.

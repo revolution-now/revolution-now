@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "analysis.hpp"
+#include "job.hpp"
 #include "travel.hpp"
 
 // C++ standard library
@@ -24,6 +25,9 @@ namespace rn {
 using PlayerIntent = std::variant<
     // Orders about orders
     MetaAnalysis,
+    // Jobs performed without moving, such as fortify, sentry,
+    // plow field, build colony, etc.
+    JobAnalysis,
     // If unit is to physical move to another square.
     TravelAnalysis
     // If the move is toward a foreign unit

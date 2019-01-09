@@ -48,7 +48,8 @@ bool animate_move( TravelAnalysis const& analysis ) {
 } // namespace
 
 e_turn_result turn() {
-  for( auto nation : all_nations() ) {
+  // for( auto nation : all_nations() ) {
+  for( auto nation : {e_nation::dutch} ) {
     auto res = turn( nation );
     if( res == e_turn_result::quit ) return e_turn_result::quit;
   }
@@ -57,6 +58,8 @@ e_turn_result turn() {
 
 e_turn_result turn( e_nation nation ) {
   // start of turn:
+
+  logger->debug( "------ starting turn ({}) -------", nation );
 
   // Mark all units as not having moved.
   map_units( []( Unit& unit ) { unit.new_turn(); } );
@@ -259,8 +262,8 @@ e_turn_result turn( e_nation nation ) {
   if( need_eot_loop ) {
     /***************************************************/
     // disable EOT for now
-    // vp_state = viewport_state::none{};
-    // frame_throttler( true, [] { return false; } );
+    vp_state = viewport_state::none{};
+    frame_throttler( true, [] { return false; } );
     /***************************************************/
     // switch( res ) {
     //  case e_eot_loop_result::quit_game:

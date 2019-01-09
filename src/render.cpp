@@ -279,6 +279,14 @@ struct ViewportPlane : public Plane {
                 blink_unit.orders = orders::wait;
                 handled           = true;
                 break;
+              case ::SDLK_c:
+                blink_unit.orders = orders::sentry;
+                handled           = true;
+                break;
+              case ::SDLK_f:
+                blink_unit.orders = orders::fortify;
+                handled           = true;
+                break;
               case ::SDLK_SPACE:
               case ::SDLK_KP_5:
                 blink_unit.orders = orders::forfeight;

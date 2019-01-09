@@ -134,6 +134,8 @@ public:
   void consume_mv_points( MovementPoints points );
   // Mark a unit as sentry.
   void sentry() { orders_ = e_orders::sentry; }
+  // Mark a unit as fortified (non-ships only).
+  void fortify();
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { orders_ = e_orders::none; }
 

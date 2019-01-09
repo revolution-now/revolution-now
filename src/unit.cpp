@@ -117,6 +117,11 @@ void Unit::consume_mv_points( MovementPoints points ) {
   check_invariants();
 }
 
+void Unit::fortify() {
+  CHECK( !desc().boat );
+  orders_ = e_orders::fortified;
+}
+
 string debug_string( Unit const& unit ) {
   return fmt::format( "unit{}id: {}, points: {}, type: {}{}",
                       "{", unit.id(), unit.movement_points(),
