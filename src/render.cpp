@@ -287,7 +287,7 @@ struct ViewportPlane : public Plane {
               default:
                 if( key_event.direction ) {
                   blink_unit.orders =
-                      orders::move{*key_event.direction};
+                      orders::direction{*key_event.direction};
                   handled = true;
                 }
                 break;

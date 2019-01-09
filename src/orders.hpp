@@ -53,13 +53,14 @@ ORDER_MONOSTATE( forfeight );
 
 namespace rn::orders {
 
-struct move {
+struct direction {
   e_direction d;
 };
 
 } // namespace rn::orders
 
-DEFINE_FORMAT( rn::orders::move, "move{{{{{}}}}}", o.d );
+DEFINE_FORMAT( rn::orders::direction, "direction{{{{{}}}}}",
+               o.d );
 
 namespace rn {
 
@@ -69,7 +70,7 @@ using Orders = std::variant<orders::quit_t,
                             // forfeight remainder of turn
                             orders::forfeight_t,
                             // moving on the map
-                            orders::move>;
+                            orders::direction>;
 
 void        push_unit_orders( UnitId id, Orders const& orders );
 Opt<Orders> pop_unit_orders( UnitId id );

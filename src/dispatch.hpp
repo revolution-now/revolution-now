@@ -21,7 +21,7 @@
 
 namespace rn {
 
-using OrdersAnalysisDispatch = std::variant<
+using PlayerIntent = std::variant<
     // Orders about orders
     MetaAnalysis,
     // If unit is to physical move to another square.
@@ -32,14 +32,14 @@ using OrdersAnalysisDispatch = std::variant<
     // ProposedJobAnalysisResult>;
     >;
 
-Opt<OrdersAnalysisDispatch> dispatch_orders(
-    UnitId id, Orders const& orders );
+Opt<PlayerIntent> player_intent( UnitId        id,
+                                 Orders const& orders );
 
-bool confirm_explain( OrdersAnalysisDispatch const& analysis );
+bool confirm_explain( PlayerIntent const& analysis );
 
-void affect_orders( OrdersAnalysisDispatch const& analysis );
+void affect_orders( PlayerIntent const& analysis );
 
 std::vector<UnitId> units_to_prioritize(
-    OrdersAnalysisDispatch const& analysis );
+    PlayerIntent const& analysis );
 
 } // namespace rn

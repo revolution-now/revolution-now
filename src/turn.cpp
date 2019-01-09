@@ -198,43 +198,42 @@ e_turn_result turn( e_nation nation ) {
           q.pop_front();
           break;
         }
-        auto maybe_analysis = dispatch_orders( id, orders );
-        CHECK( maybe_analysis.has_value(),
+        auto maybe_intent = player_intent( id, orders );
+        CHECK( maybe_intent.has_value(),
                "no handler for orders {}", orders );
-        auto const& analysis = maybe_analysis.value();
+        auto const& analysis = maybe_intent.value();
 
-        if( confirm_explain( analysis ) ) {
-          // Check if the unit is physically moving; usually at
-          // this point it will be unless it is e.g. a ship
-          // offloading units.
-          if_v( analysis, TravelAnalysis, mv_res ) {
-            /***************************************************/
-            if( animate_move( *mv_res ) ) {
-              viewport().ensure_tile_visible(
-                  mv_res->move_target,
-                  /*smooth=*/true );
-              vp_state = viewport_state::slide_unit(
-                  id, mv_res->move_target );
-              auto& slide_unit =
-                  get<viewport_state::slide_unit>( vp_state );
-              // In this call we specify that it should not
-              // collect any user input (keyboard, mouse) to
-              // avoid movement commands (issued during
-              // animation) from getting swallowed.
-              frame_throttler( false, [&slide_unit] {
-                return slide_unit.percent >= 1.0;
-              } );
-            }
-            /***************************************************/
+        if( !confirm_explain( analysis ) ) continue;
+
+        // Check if the unit is physically moving; usually at
+        // this point it will be unless it is e.g. a ship of-
+        // floading units.
+        if_v( analysis, TravelAnalysis, mv_res ) {
+          /***************************************************/
+          if( animate_move( *mv_res ) ) {
+            viewport().ensure_tile_visible( mv_res->move_target,
+                                            /*smooth=*/true );
+            vp_state = viewport_state::slide_unit(
+                id, mv_res->move_target );
+            auto& slide_unit =
+                get<viewport_state::slide_unit>( vp_state );
+            // In this call we specify that it should not collect
+            // any user input (keyboard, mouse) to avoid movement
+            // commands (issued during animation) from getting
+            // swallowed.
+            frame_throttler( false, [&slide_unit] {
+              return slide_unit.percent >= 1.0;
+            } );
           }
-          affect_orders( analysis );
-          // Note that it shouldn't hurt if the unit is already
-          // in the queue, since this turn code will never move a
-          // unit after it has already completed its turn, no
-          // matter how many times it appears in the queue.
-          for( auto unit_id : units_to_prioritize( analysis ) )
-            q.push_front( unit_id );
+          /***************************************************/
         }
+        affect_orders( analysis );
+        // Note that it shouldn't hurt if the unit is already in
+        // the queue, since this turn code will never move a unit
+        // after it has already completed its turn, no matter how
+        // many times it appears in the queue.
+        for( auto unit_id : units_to_prioritize( analysis ) )
+          q.push_front( unit_id );
       }
 
       // Now we must decide if the unit has finished its turn.

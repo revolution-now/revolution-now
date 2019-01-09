@@ -21,35 +21,15 @@ namespace rn {
 // The following two enums describe the possible categories of a
 // hypothetical move of a unit from one square to another in a
 // world where there are no foreign units and where movement
-// points are infinite. The game is designed so that only one of
+// points are ignored. The game is designed so that only one of
 // these can be true for a given unit moving to a given square.
 //
 // If the result of a move is one of the e_unit_travel_error then
-// that means the move is not possible regardless of what
-// occupies the target square. If, on the other hand, the result
-// of the move is one of e_unit_travel_good, then that means
-// that:
-//
-//   a) If there are no foreign entities in the target square
-//      then the move is possible provided that the unit has
-//      enough movement points (which has to be checked
-//      separately).
-//
-//   b) If there are foreign entities in the square then this
-//      move may be possible, but must be processed elsewhere.
-//
-// This module is only concerned with checking if a move is phys-
-// ically possible without regard to what entities occupy the
-// target square and without regard to movement points. The
-// reason that we don't care about movement points here is that
-// the question as to whether the move is allowed on the basis of
-// movement points depends on what units occupy the target
-// square. E.g., if a unit only has 1/3 movement points and wants
-// to move to a square that requires 1 movement point then they
-// cannot do so if there are no foreign units in the target
-// square, but they can do so if they are a military unit and
-// there are foreign units in the square (in which case they will
-// take an attack penalty).
+// that means the move is not possible regardless of what occu-
+// pies the target square. If the result of the move is one of
+// e_unit_travel_good then that means that the move would be pos-
+// sible assuming enough movement points (and, again, assuming no
+// foreign entities in the target square).
 
 enum class ND e_unit_travel_good {
   map_to_map,
@@ -101,10 +81,6 @@ struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
   // the move is possible by checking the type held, as the can_-
   // move() function does as a convenience.
   unit_travel_verdict desc{};
-
-  // Cost in movement points that would be incurred; this is
-  // a positive number.
-  MovementPoints movement_cost{};
 
   // Unit that is the target of an action, e.g., ship to be
   // boarded, etc. Not relevant in all contexts.

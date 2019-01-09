@@ -39,8 +39,8 @@ bool TravelAnalysis::allowed_impl() const {
 // this function is concerned about) and to flag it if that is
 // the case.
 Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
-  if( !util::holds<orders::move>( orders ) ) return nullopt;
-  auto [direction] = get<orders::move>( orders );
+  if( !util::holds<orders::direction>( orders ) ) return nullopt;
+  auto [direction] = get<orders::direction>( orders );
   auto src_coord   = coords_for_unit( id );
   auto coords      = src_coord.moved( direction );
 
@@ -50,14 +50,11 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
-  MovementPoints cost( 1 );
-
   TravelAnalysis result( id, orders );
   result.unit_would_move = true;
   result.move_src        = src_coord;
   result.move_target     = coords;
   result.desc            = e_unit_travel_good::map_to_map;
-  result.movement_cost   = cost;
   result.target_unit     = {};
 
   if( !coords.is_inside( world_rect() ) ) {
@@ -75,14 +72,11 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
     }
     if( !to_offload.empty() ) {
       // We have at least one unit in the cargo that is able to
-      // make landfall. So we will indicate that the unit is
-      // allowed to make this move, but we change the target
-      // square to where the unit currently is since it will
-      // not physically move.
+      // make landfall. So we will indicate that the unit is al-
+      // lowed to make this move.
       result.desc                = e_unit_travel_good::land_fall;
       result.unit_would_move     = false;
       result.move_target         = coords;
-      result.movement_cost       = 0;
       result.units_to_prioritize = to_offload;
       return result;
     }
@@ -171,7 +165,7 @@ void TravelAnalysis::affect_orders_impl() const {
         }
       }
       ownership_change_to_map( id, move_target );
-      unit.consume_mv_points( movement_cost );
+      unit.consume_mv_points( MvPoints( 1 ) );
       break;
     case e_unit_travel_good::board_ship:
       CHECK( target_unit.has_value() );
@@ -205,7 +199,7 @@ void TravelAnalysis::affect_orders_impl() const {
           cargo_unit.unfinish_turn();
           auto direction = old_coord.direction_to( move_target );
           CHECK( direction.has_value() );
-          Orders orders = orders::move{*direction};
+          Orders orders = orders::direction{*direction};
           push_unit_orders( cargo_id, orders );
         }
       }
@@ -219,11 +213,6 @@ void TravelAnalysis::affect_orders_impl() const {
 
 bool TravelAnalysis::confirm_explain_impl() const {
   if( !allowed() ) return false;
-  // If we're here then that means that the move is physically
-  // allowed assuming there are enough movement points.  Check
-  // for that now.
-  auto& unit = unit_from_id( id );
-  if( unit.movement_points() < movement_cost ) return false;
   // The above should have checked that the variant holds the
   // e_unit_travel_good type for us.
   auto& kind = val_or_die<e_unit_travel_good>( desc );
