@@ -108,16 +108,16 @@ void render_nationality_icon( Texture const& tx, UnitId id,
   // location specified in the unit descriptor.
   auto position = unit.desc().nat_icon_position;
   switch( position ) {
-    case e_direction::nw: break;
-    case e_direction::ne:
+    case +e_direction::nw: break;
+    case +e_direction::ne:
       pixel_coord +=
           ( ( 1_w * g_tile_width ) - nationality_icon_size.w );
       break;
-    case e_direction::se:
+    case +e_direction::se:
       pixel_coord += ( ( Delta{1_w, 1_h} * g_tile_scale ) -
                        nationality_icon_size );
       break;
-    case e_direction::sw:
+    case +e_direction::sw:
       pixel_coord +=
           ( ( 1_h * g_tile_height ) - nationality_icon_size.h );
       break;

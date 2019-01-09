@@ -56,6 +56,11 @@ if( DEBUG_TRACE )
   target_compile_definitions( rn PRIVATE RN_TRACE=1 )
 endif()
 
-target_compile_definitions( rn PRIVATE FMT_STRING_ALIAS=1 )
+target_compile_definitions(
+  rn
+  PRIVATE
+  FMT_STRING_ALIAS=1
+  BETTER_ENUMS_STRICT_CONVERSION=1
+  )
 
 clang_tidy( rn )

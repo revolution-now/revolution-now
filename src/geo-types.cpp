@@ -102,15 +102,15 @@ void Coord::clip( Rect const& rect ) {
 Coord Coord::moved( e_direction d ) const {
   // clang-format off
   switch( d ) {
-    case e_direction::nw: return {y-1,x-1}; break;
-    case e_direction::n:  return {y-1,x  }; break;
-    case e_direction::ne: return {y-1,x+1}; break;
-    case e_direction::w:  return {y,  x-1}; break;
-    case e_direction::c:  return {y,  x  }; break;
-    case e_direction::e:  return {y,  x+1}; break;
-    case e_direction::sw: return {y+1,x-1}; break;
-    case e_direction::s:  return {y+1,x  }; break;
-    case e_direction::se: return {y+1,x+1}; break;
+    case +e_direction::nw: return {y-1,x-1}; break;
+    case +e_direction::n:  return {y-1,x  }; break;
+    case +e_direction::ne: return {y-1,x+1}; break;
+    case +e_direction::w:  return {y,  x-1}; break;
+    case +e_direction::c:  return {y,  x  }; break;
+    case +e_direction::e:  return {y,  x+1}; break;
+    case +e_direction::sw: return {y+1,x-1}; break;
+    case +e_direction::s:  return {y+1,x  }; break;
+    case +e_direction::se: return {y+1,x+1}; break;
   };
   // clang-format on
   SHOULD_NOT_BE_HERE;

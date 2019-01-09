@@ -15,6 +15,7 @@
 // Revolution Now
 #include "color.hpp"
 #include "enum.hpp"
+#include "fmt-helper.hpp"
 
 // C++ standard library
 #include <string>
@@ -41,3 +42,5 @@ Nation const& nation_obj( e_nation nation );
 std::array<e_nation, e_nation::_size()> const& all_nations();
 
 } // namespace rn
+
+DEFINE_FORMAT_ENUM( ::rn::e_nation );

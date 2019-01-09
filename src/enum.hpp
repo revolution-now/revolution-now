@@ -46,9 +46,13 @@ public:                                          \
 //   for( auto val : values<e_color> )
 //     logger->debug( "val: {}", val );
 //
-#define e_( n, ... ) \
-  __e_##n;           \
-  BETTER_ENUM( e_##n, int, __VA_ARGS__ );
+#define e_( n, ... )                                   \
+  __e_##n;                                             \
+  BETTER_ENUM( e_##n, int, __VA_ARGS__ );              \
+  template<typename H>                                 \
+  H AbslHashValue( H state, e_##n const& o ) {         \
+    return H::combine( std::move( state ), o._value ); \
+  }
 
 namespace rn {
 

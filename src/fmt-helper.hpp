@@ -45,6 +45,10 @@
 #define DEFINE_FORMAT_( type, ... ) \
   DEFINE_FORMAT_IMPL( (void)o;, type, __VA_ARGS__ )
 
+// For better-enums
+#define DEFINE_FORMAT_ENUM( type ) \
+  DEFINE_FORMAT( type, "{}", o._to_string() )
+
 namespace rn {
 
 // This function exists for the purpose of  having  the  compiler
