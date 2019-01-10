@@ -142,11 +142,6 @@ struct formatter<std::optional<T>> {
 //   2) https://stackoverflow.com/questions/18700558/
 //            default-template-parameter-partial-specialization
 //
-// For some strange reason, at least on clang, if we leave out
-// the `typename` before T::_enumerated then it will cause a
-// substitution failure even for the correct types but without
-// any kind of compiler error or warning (?!).
-//
 // Unfortunately, the fact that the below compiles and gets
 // selected (or not selected) at the desired times may depend on
 // implementation details of the fmt library, such as the precise
