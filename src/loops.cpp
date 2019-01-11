@@ -45,21 +45,23 @@ void advance_viewport_translation() {
     return __state[code] != 0;
   };
 
-  viewport().set_x_push( state( ::SDL_SCANCODE_A )
-                             ? e_push_direction::negative
-                             : state( ::SDL_SCANCODE_D )
-                                   ? e_push_direction::positive
-                                   : e_push_direction::none );
-  // y motion
-  viewport().set_y_push( state( ::SDL_SCANCODE_W )
-                             ? e_push_direction::negative
-                             : state( ::SDL_SCANCODE_S )
-                                   ? e_push_direction::positive
-                                   : e_push_direction::none );
+  if( state( ::SDL_SCANCODE_LSHIFT ) ) {
+    viewport().set_x_push( state( ::SDL_SCANCODE_A )
+                               ? e_push_direction::negative
+                               : state( ::SDL_SCANCODE_D )
+                                     ? e_push_direction::positive
+                                     : e_push_direction::none );
+    // y motion
+    viewport().set_y_push( state( ::SDL_SCANCODE_W )
+                               ? e_push_direction::negative
+                               : state( ::SDL_SCANCODE_S )
+                                     ? e_push_direction::positive
+                                     : e_push_direction::none );
 
-  if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
-      state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
-    viewport().stop_auto_panning();
+    if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
+        state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
+      viewport().stop_auto_panning();
+  }
 }
 
 void take_input() {

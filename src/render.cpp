@@ -258,6 +258,18 @@ struct ViewportPlane : public Plane {
       case_v( input::unknown_event_t ) {}
       case_v( input::quit_event_t ) {}
       case_v( input::key_event_t ) {
+        // TODO: Need to put this in the input module.
+        auto const* __state = ::SDL_GetKeyboardState( nullptr );
+        auto        state   = [__state]( ::SDL_Scancode code ) {
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+          return __state[code] != 0;
+        };
+        // This is because we need to distinguish uppercase from
+        // lowercase.
+        if( state( ::SDL_SCANCODE_LSHIFT ) ||
+            state( ::SDL_SCANCODE_RSHIFT ) )
+          break_v;
+
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
           break_v;
@@ -275,11 +287,11 @@ struct ViewportPlane : public Plane {
                 blink_unit.orders = orders::quit;
                 handled           = true;
                 break;
-              case ::SDLK_t:
+              case ::SDLK_w:
                 blink_unit.orders = orders::wait;
                 handled           = true;
                 break;
-              case ::SDLK_c:
+              case ::SDLK_s:
                 blink_unit.orders = orders::sentry;
                 handled           = true;
                 break;
