@@ -127,8 +127,12 @@ public:
   void new_turn();
   // Marks unit as having finished processing this turn.
   void finish_turn();
-  // For units that have movement points left, one can call this
-  // to put them back into consideration for movement.
+  // One can call this to put units back into consideration for
+  // movement. There is no harm on calling this on a unit that
+  // has already fully moved (and has no movement points
+  // remaining) since it will then just be passed over again in
+  // the orders loop and its turn will again be marked as
+  // finished.
   void unfinish_turn();
   // Called to consume movement points as a result of a move.
   void consume_mv_points( MovementPoints points );

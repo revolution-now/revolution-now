@@ -61,8 +61,7 @@ struct direction {
 
 } // namespace rn::orders
 
-DEFINE_FORMAT( rn::orders::direction, "direction{{{{{}}}}}",
-               o.d );
+DEFINE_FORMAT( rn::orders::direction, "direction{{{}}}", o.d );
 
 namespace rn {
 
