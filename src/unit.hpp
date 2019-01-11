@@ -12,16 +12,20 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
 #include "aliases.hpp"
 #include "cargo.hpp"
+#include "enum.hpp"
 #include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
 
+// base-util
 #include "base-util/non-copyable.hpp"
 
+// C++ standard library
 #include <functional>
 #include <optional>
 #include <vector>
@@ -29,6 +33,60 @@
 namespace rn {
 
 enum class ND e_unit_type { free_colonist, soldier, caravel };
+
+// clang-format off
+
+// This one is only relevant when there is a foreign unit on the
+// target square.
+enum class e_(terrain_bombardment_foreign_unit,
+  nothing,
+  attack,
+  bombard
+);
+
+// This one is only relevant when there is a foreign colony on
+// the target square.
+enum class e_(terrain_bombardment_foreign_colony,
+  unused
+);
+
+// This one is only relevant when there is a foreign indian vil-
+// lage on the target square.
+enum class e_(terrain_bombardment_village,
+  unused
+);
+
+// This one is for when there there are no units on the target
+// square.
+enum class e_(terrain_traversal_no_units,
+  never_move,
+  always_move,
+  move_off_ship
+);
+
+// This one is for when there is a friendly unit in the target
+// square.
+enum class e_(terrain_traversal_friendly_unit,
+  always_move,
+  move_onto_ship,
+  move_off_ship,
+  move_into_dock
+);
+
+// This one is for when there is a friendly colony in the target
+// square.
+enum class e_(terrain_traversal_friendly_colony,
+  always_move,
+  move_off_ship,
+  move_into_dock
+);
+
+// clang-format on
+
+struct ND UnitTerrainAnalysis {
+  // e_terrain_bombardment bombardment;
+  // e_terrain_traversal   traversal;
+};
 
 // Static information describing classes of units.  There will be
 // one of these for each type of unit.
