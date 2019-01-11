@@ -17,6 +17,7 @@ let s:stems = [
   \ 'src/geo-types',
   \ 'src/nation',
   \ 'src/unit',
+  \ 'src/utype',
   \ 'src/orders',
   \ 'src/analysis',
   \ 'src/travel',
