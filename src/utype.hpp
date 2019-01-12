@@ -85,6 +85,9 @@ enum class e_( entity_category, empty, unit, colony, village );
 
 TEMPLATE_BEHAVIOR
 struct to_behaviors {
+  // This must be void, it is used as a fallback in code that
+  // wants to verify that a combination of parameters is NOT
+  // implemented.
   using type = void;
 };
 
@@ -99,8 +102,8 @@ to_behaviors_t<target, relationship, entity> behavior(
 // BEHAVIOR( land, foreign, unit, nothing, attack, bombard );
 // BEHAVIOR( land, foreign, colony, unused );
 // BEHAVIOR( land, foreign, village, unused );
-BEHAVIOR( land, neutral, empty, never, always );
-BEHAVIOR( land, friendly, unit, always, never );
+BEHAVIOR( land, neutral, empty, never, always, unload );
+BEHAVIOR( land, friendly, unit, always, never, unload );
 // BEHAVIOR( land, friendly, colony, always, move_into_dock );
 // BEHAVIOR( water, foreign, unit, nothing, attack, bombard );
 BEHAVIOR( water, neutral, empty, never, always );

@@ -54,8 +54,18 @@ using unit_travel_verdict =
     std::variant<e_unit_travel_good, e_unit_travel_error>;
 
 struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
-  TravelAnalysis( UnitId id_, Orders orders_ )
-    : parent_t( id_, orders_ ) {}
+  TravelAnalysis( UnitId id_, Orders orders_,
+                  Vec<UnitId> units_to_prioritize_,
+                  bool unit_would_move_, Coord move_src_,
+                  Coord move_target_, unit_travel_verdict desc_,
+                  Opt<UnitId> target_unit_ )
+    : parent_t( id_, orders_,
+                std::move( units_to_prioritize_ ) ),
+      unit_would_move( unit_would_move_ ),
+      move_src( move_src_ ),
+      move_target( move_target_ ),
+      desc( desc_ ),
+      target_unit( target_unit_ ) {}
 
   // ------------------------ Data -----------------------------
 

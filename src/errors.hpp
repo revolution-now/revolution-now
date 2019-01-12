@@ -37,6 +37,9 @@
 #define SHOULD_NOT_BE_HERE \
   DIE( "programmer error: should not be here" )
 
+#define NOT_IMPLEMENTED \
+  DIE( "programmer error: need to implement this" )
+
 // This is used to wrap calls to fmt::format that want
 // compile-time format string checking. It assumes that the first
 // argument is some kind of constexpr expression (maybe has to

@@ -22,8 +22,11 @@ namespace rn {
 *****************************************************************/
 template<typename Child>
 struct OrdersAnalysis {
-  OrdersAnalysis( UnitId id_, Orders orders_ )
-    : id( id_ ), orders( orders_ ) {}
+  OrdersAnalysis( UnitId id_, Orders orders_,
+                  std::vector<UnitId> units_to_prioritize_ )
+    : id( id_ ),
+      orders( orders_ ),
+      units_to_prioritize( std::move( units_to_prioritize_ ) ) {}
 
   using parent_t = OrdersAnalysis<Child>;
   Child const* child() const {
@@ -84,7 +87,7 @@ struct OrdersAnalysis {
 struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
   MetaAnalysis( UnitId id_, Orders orders_,
                 bool mv_points_forfeighted_ )
-    : parent_t( id_, orders_ ),
+    : parent_t( id_, orders_, /*units_to_prioritize_=*/{} ),
       mv_points_forfeighted( mv_points_forfeighted_ ) {}
 
   // ------------------------ Data -----------------------------

@@ -65,7 +65,7 @@ UnitDescriptor const& unit_desc( e_unit_type type ) {
   to_behaviors_t<BEHAVIOR_VALUES( c, r, e )> \
   behavior<BEHAVIOR_VALUES( c, r, e )>(      \
       UnitDescriptor const& desc ) {         \
-    BEHAVIOR_NS( c, r, e )::e_vals res;
+    using res_t = BEHAVIOR_NS( c, r, e )::e_vals;
 
 #define BEHAVIOR_IMPL_END() }
 
@@ -91,16 +91,14 @@ UnitDescriptor const& unit_desc( e_unit_type type ) {
 // BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( land, neutral, empty ) {
-  // Possible results: never, always
-  (void)desc;
-  return res;
+  // Possible results: never, always, unload
+  return desc.boat ? res_t::unload : res_t::always;
 }
 BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( land, friendly, unit ) {
-  // Possible results: always, never
-  (void)desc;
-  return res;
+  // Possible results: always, never, unload
+  return desc.boat ? res_t::unload : res_t::always;
 }
 BEHAVIOR_IMPL_END()
 
@@ -120,15 +118,16 @@ BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, neutral, empty ) {
   // Possible results: never, always
-  (void)desc;
-  return res;
+  return desc.boat ? res_t::always : res_t::never;
 }
 BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, friendly, unit ) {
   // Possible results: always, never, move_onto_ship
-  (void)desc;
-  return res;
+  if( desc.boat ) return res_t::always;
+  return desc.cargo_slots_occupies.has_value()
+             ? res_t::move_onto_ship
+             : res_t::never;
 }
 BEHAVIOR_IMPL_END()
 

@@ -17,6 +17,7 @@
 #include "orders.hpp"
 #include "ownership.hpp"
 #include "util.hpp"
+#include "utype.hpp"
 #include "window.hpp"
 #include "world.hpp"
 
@@ -33,6 +34,33 @@ bool TravelAnalysis::allowed_() const {
   return util::holds<e_unit_travel_good>( desc );
 }
 
+#define CALL_BEHAVIOR( crust, relationship, entity )          \
+  behavior<e_crust::crust, e_unit_relationship::relationship, \
+           e_entity_category::entity>( unit.desc() )
+
+#define STATIC_ASSERT_NO_BEHAVIOR( c, r, e ) \
+  static_assert(                             \
+      is_same_v<void, decltype( CALL_BEHAVIOR( c, r, e ) )> )
+
+void analyze_unload( Unit const&     unit,
+                     TravelAnalysis& analysis ) {
+  std::vector<UnitId> to_offload;
+  for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
+    auto const& cargo_unit = unit_from_id( cargo_id );
+    if( !cargo_unit.moved_this_turn() )
+      to_offload.push_back( cargo_id );
+  }
+  if( !to_offload.empty() ) {
+    // We have at least one unit in the cargo that is able
+    // to make landfall. So we will indicate that the unit
+    // is al- lowed to make this move.
+    analysis.desc                = e_unit_travel_good::land_fall;
+    analysis.units_to_prioritize = to_offload;
+  } else {
+    analysis.desc = e_unit_travel_error::land_forbidden;
+  }
+}
+
 // This function will allow the move by default, and so it is the
 // burden of the logic in this function to find every possible
 // way that the move is *not* allowed (among the situations that
@@ -42,83 +70,409 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
   if( !util::holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
   auto src_coord   = coords_for_unit( id );
-  auto coords      = src_coord.moved( direction );
+  auto dst_coord   = src_coord.moved( direction );
 
-  Y y = coords.y;
-  X x = coords.x;
+  Y y = dst_coord.y;
+  X x = dst_coord.x;
 
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
-  TravelAnalysis result( id, orders );
-  result.unit_would_move = true;
-  result.move_src        = src_coord;
-  result.move_target     = coords;
-  result.desc            = e_unit_travel_good::map_to_map;
-  result.target_unit     = {};
-
-  if( !coords.is_inside( world_rect() ) ) {
-    result.desc = e_unit_travel_error::map_edge;
-    return result;
+  if( !dst_coord.is_inside( world_rect() ) ) {
+    return TravelAnalysis{
+        /*id_=*/id,
+        /*orders_=*/orders,
+        /*units_to_prioritize_=*/{},
+        /*unit_would_move_=*/{},
+        /*move_src_=*/src_coord,
+        /*move_target_=*/dst_coord,
+        /*desc_=*/e_unit_travel_error::map_edge,
+        /*target_unit=*/{}};
   }
   auto& square = square_at( y, x );
 
-  if( unit.desc().boat && square.crust == +e_crust::land ) {
-    std::vector<UnitId> to_offload;
-    for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
-      auto const& cargo_unit = unit_from_id( cargo_id );
-      if( !cargo_unit.moved_this_turn() )
-        to_offload.push_back( cargo_id );
-    }
-    if( !to_offload.empty() ) {
-      // We have at least one unit in the cargo that is able to
-      // make landfall. So we will indicate that the unit is al-
-      // lowed to make this move.
-      result.desc                = e_unit_travel_good::land_fall;
-      result.unit_would_move     = false;
-      result.move_target         = coords;
-      result.units_to_prioritize = to_offload;
-      return result;
-    }
-    result.desc = e_unit_travel_error::land_forbidden;
-    return result;
+  e_unit_relationship relationship =
+      e_unit_relationship::neutral;
+  if( auto dst_nation = nation_from_coord( dst_coord );
+      dst_nation.has_value() ) {
+    if( *dst_nation == unit.nation() )
+      relationship = e_unit_relationship::friendly;
+    else
+      SHOULD_NOT_BE_HERE;
   }
 
-  if( !unit.desc().boat && square.crust == +e_crust::water ) {
-    auto const& ships = units_from_coord( y, x );
-    if( ships.empty() ) {
-      result.desc = e_unit_travel_error::water_forbidden;
-      return result;
-    }
-    // We have at least on ship, so iterate through and find the
-    // first one (if any) that the unit can board.
-    for( auto ship_id : ships ) {
-      auto const& ship_unit = unit_from_id( ship_id );
-      CHECK( ship_unit.desc().boat );
-      auto& cargo = ship_unit.cargo();
-      if( cargo.fits( id ) ) {
-        result.desc        = e_unit_travel_good::board_ship;
-        result.target_unit = ship_id;
-        result.units_to_prioritize = {ship_id};
-        return result;
+  auto units_at_dst = units_from_coord( dst_coord );
+
+  e_entity_category category = e_entity_category::empty;
+  if( !units_at_dst.empty() ) category = e_entity_category::unit;
+
+  switch( square.crust ) {
+    case +e_crust::land: {
+      switch( relationship ) {
+        case +e_unit_relationship::neutral: {
+          switch( category ) {
+            case +e_entity_category::empty: {
+              auto bh = CALL_BEHAVIOR( land, neutral, empty );
+              switch( bh ) {
+                using bh_t = decltype( bh );
+                case +bh_t::never: {
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/{},
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/
+                      e_unit_travel_error::land_forbidden,
+                      /*target_unit=*/{}};
+                }
+                case +bh_t::always: {
+                  // `holder` will be a valid value if the unit
+                  // is cargo of an- other unit; the holder's id
+                  // in that case will be *holder.
+                  if( auto holder = is_unit_onboard( unit.id() );
+                      holder ) {
+                    // We have a unit onboard a ship moving onto
+                    // land.
+                    return TravelAnalysis{
+                        /*id_=*/id,
+                        /*orders_=*/orders,
+                        /*units_to_prioritize_=*/{},
+                        /*unit_would_move_=*/true,
+                        /*move_src_=*/src_coord,
+                        /*move_target_=*/dst_coord,
+                        /*desc_=*/
+                        e_unit_travel_good::offboard_ship,
+                        /*target_unit=*/{}};
+                  } else {
+                    return TravelAnalysis{
+                        /*id_=*/id,
+                        /*orders_=*/orders,
+                        /*units_to_prioritize_=*/{},
+                        /*unit_would_move_=*/true,
+                        /*move_src_=*/src_coord,
+                        /*move_target_=*/dst_coord,
+                        /*desc_=*/e_unit_travel_good::map_to_map,
+                        /*target_unit=*/{}};
+                  }
+                }
+                case +bh_t::unload: {
+                  auto res =
+                      TravelAnalysis{/*id_=*/id,
+                                     /*orders_=*/orders,
+                                     /*units_to_prioritize_=*/{},
+                                     /*unit_would_move_=*/false,
+                                     /*move_src_=*/src_coord,
+                                     /*move_target_=*/dst_coord,
+                                     /*desc_=*/{},
+                                     /*target_unit=*/{}};
+                  analyze_unload( unit, res );
+                  return res;
+                }
+              }
+              break;
+            }
+            case +e_entity_category::colony: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, neutral, colony );
+              break;
+            }
+            case +e_entity_category::unit: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, neutral, unit );
+              break;
+            }
+            case +e_entity_category::village: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, neutral,
+                                         village );
+              break;
+            }
+          }
+          break;
+        }
+        case +e_unit_relationship::friendly: {
+          switch( category ) {
+            case +e_entity_category::empty: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, friendly, empty );
+              break;
+            }
+            case +e_entity_category::colony: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, friendly,
+                                         colony );
+              break;
+            }
+            case +e_entity_category::unit: {
+              auto bh = CALL_BEHAVIOR( land, friendly, unit );
+              switch( bh ) {
+                using bh_t = decltype( bh );
+                case +bh_t::never: {
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/{},
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/
+                      e_unit_travel_error::land_forbidden,
+                      /*target_unit=*/{}};
+                }
+                case +bh_t::always: {
+                  // `holder` will be a valid value if the unit
+                  // is cargo of an- other unit; the holder's id
+                  // in that case will be *holder.
+                  if( auto holder = is_unit_onboard( unit.id() );
+                      holder ) {
+                    // We have a unit onboard a ship moving onto
+                    // land.
+                    return TravelAnalysis{
+                        /*id_=*/id,
+                        /*orders_=*/orders,
+                        /*units_to_prioritize_=*/{},
+                        /*unit_would_move_=*/true,
+                        /*move_src_=*/src_coord,
+                        /*move_target_=*/dst_coord,
+                        /*desc_=*/
+                        e_unit_travel_good::offboard_ship,
+                        /*target_unit=*/{}};
+                  } else {
+                    return TravelAnalysis{
+                        /*id_=*/id,
+                        /*orders_=*/orders,
+                        /*units_to_prioritize_=*/{},
+                        /*unit_would_move_=*/true,
+                        /*move_src_=*/src_coord,
+                        /*move_target_=*/dst_coord,
+                        /*desc_=*/e_unit_travel_good::map_to_map,
+                        /*target_unit=*/{}};
+                  }
+                }
+                case +bh_t::unload: {
+                  auto res =
+                      TravelAnalysis{/*id_=*/id,
+                                     /*orders_=*/orders,
+                                     /*units_to_prioritize_=*/{},
+                                     /*unit_would_move_=*/false,
+                                     /*move_src_=*/src_coord,
+                                     /*move_target_=*/dst_coord,
+                                     /*desc_=*/{},
+                                     /*target_unit=*/{}};
+                  analyze_unload( unit, res );
+                  return res;
+                }
+              }
+              break;
+            }
+            case +e_entity_category::village: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, friendly,
+                                         village );
+              break;
+            }
+          }
+          break;
+        }
+        case +e_unit_relationship::foreign: {
+          switch( category ) {
+            case +e_entity_category::empty: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, foreign, empty );
+              break;
+            }
+            case +e_entity_category::colony: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, foreign, colony );
+              break;
+            }
+            case +e_entity_category::unit: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, foreign, unit );
+              break;
+            }
+            case +e_entity_category::village: {
+              STATIC_ASSERT_NO_BEHAVIOR( land, foreign,
+                                         village );
+              break;
+            }
+          }
+          SHOULD_NOT_BE_HERE;
+          break;
+        }
       }
+      break;
     }
-    result.desc = e_unit_travel_error::board_ship_full;
-    return result;
+    case +e_crust::water: {
+      switch( relationship ) {
+        case +e_unit_relationship::neutral: {
+          switch( category ) {
+            case +e_entity_category::empty: {
+              auto bh = CALL_BEHAVIOR( water, neutral, empty );
+              switch( bh ) {
+                using bh_t = decltype( bh );
+                case +bh_t::never: {
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/{},
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/
+                      e_unit_travel_error::water_forbidden,
+                      /*target_unit=*/{}};
+                }
+                case +bh_t::always: {
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/true,
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/e_unit_travel_good::map_to_map,
+                      /*target_unit=*/{}};
+                }
+              }
+              break;
+            }
+            case +e_entity_category::colony: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, neutral,
+                                         colony );
+              break;
+            }
+            case +e_entity_category::unit: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, neutral, unit );
+              break;
+            }
+            case +e_entity_category::village: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, neutral,
+                                         village );
+              break;
+            }
+          }
+          break;
+        }
+        case +e_unit_relationship::friendly: {
+          switch( category ) {
+            case +e_entity_category::empty: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, friendly,
+                                         empty );
+              break;
+            }
+            case +e_entity_category::colony: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, friendly,
+                                         colony );
+              break;
+            }
+            case +e_entity_category::unit: {
+              auto bh = CALL_BEHAVIOR( water, friendly, unit );
+              switch( bh ) {
+                using bh_t = decltype( bh );
+                case +bh_t::never: {
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/{},
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/
+                      e_unit_travel_error::water_forbidden,
+                      /*target_unit=*/{}};
+                }
+                case +bh_t::always: {
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/true,
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/e_unit_travel_good::map_to_map,
+                      /*target_unit=*/{}};
+                }
+                case +bh_t::move_onto_ship: {
+                  auto const& ships = units_at_dst;
+                  if( ships.empty() ) {
+                    return TravelAnalysis{
+                        /*id_=*/id,
+                        /*orders_=*/orders,
+                        /*units_to_prioritize_=*/{},
+                        /*unit_would_move_=*/{},
+                        /*move_src_=*/src_coord,
+                        /*move_target_=*/dst_coord,
+                        /*desc_=*/
+                        e_unit_travel_error::water_forbidden,
+                        /*target_unit=*/{}};
+                  }
+                  // We have at least on ship, so iterate through
+                  // and find the first one (if any) that the
+                  // unit can board.
+                  for( auto ship_id : ships ) {
+                    auto const& ship_unit =
+                        unit_from_id( ship_id );
+                    CHECK( ship_unit.desc().boat );
+                    if( auto const& cargo = ship_unit.cargo();
+                        cargo.fits( id ) ) {
+                      return TravelAnalysis{
+                          /*id_=*/id,
+                          /*orders_=*/orders,
+                          /*units_to_prioritize_=*/{ship_id},
+                          /*unit_would_move_=*/true,
+                          /*move_src_=*/src_coord,
+                          /*move_target_=*/dst_coord,
+                          /*desc_=*/
+                          e_unit_travel_good::board_ship,
+                          /*target_unit=*/ship_id};
+                    }
+                  }
+                  return TravelAnalysis{
+                      /*id_=*/id,
+                      /*orders_=*/orders,
+                      /*units_to_prioritize_=*/{},
+                      /*unit_would_move_=*/{},
+                      /*move_src_=*/src_coord,
+                      /*move_target_=*/dst_coord,
+                      /*desc_=*/
+                      e_unit_travel_error::board_ship_full,
+                      /*target_unit=*/{}};
+                }
+              }
+              break;
+            }
+            case +e_entity_category::village: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, friendly,
+                                         village );
+              break;
+            }
+          }
+          break;
+        }
+        case +e_unit_relationship::foreign: {
+          switch( category ) {
+            case +e_entity_category::empty: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, foreign, empty );
+              break;
+            }
+            case +e_entity_category::colony: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, foreign,
+                                         colony );
+              break;
+            }
+            case +e_entity_category::unit: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, foreign, unit );
+              break;
+            }
+            case +e_entity_category::village: {
+              STATIC_ASSERT_NO_BEHAVIOR( water, foreign,
+                                         village );
+              break;
+            }
+          }
+          SHOULD_NOT_BE_HERE;
+          break;
+        }
+      }
+      break;
+    }
   }
-
-  // `holder` will be a valid value if the unit is cargo of an-
-  // other unit; the holder's id in that case will be *holder.
-  auto holder = is_unit_onboard( unit.id() );
-  if( !unit.desc().boat && square.crust == +e_crust::land &&
-      holder ) {
-    // We have a unit onboard a ship moving onto land.
-    result.desc = e_unit_travel_good::offboard_ship;
-    return result;
-  }
-
-  result.desc = e_unit_travel_good::map_to_map;
-  return result;
+  SHOULD_NOT_BE_HERE;
+  return {};
 }
 
 // This is the entry point; calls the implementation then checks

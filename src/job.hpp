@@ -29,7 +29,7 @@ using v_unit_job_desc =
 
 struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
   JobAnalysis( UnitId id_, Orders orders_ )
-    : parent_t( id_, orders_ ) {}
+    : parent_t( id_, orders_, /*units_to_prioritize_=*/{} ) {}
 
   // ------------------------ Data -----------------------------
 
