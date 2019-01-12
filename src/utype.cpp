@@ -57,4 +57,79 @@ UnitDescriptor const& unit_desc( e_unit_type type ) {
   return val_or_die( unit_desc(), type );
 }
 
+/****************************************************************
+**Unit Movement Behaviors / Capabilities
+*****************************************************************/
+#define BEHAVIOR_IMPL_START( c, r, e )       \
+  template<>                                 \
+  to_behaviors_t<BEHAVIOR_VALUES( c, r, e )> \
+  behavior<BEHAVIOR_VALUES( c, r, e )>(      \
+      UnitDescriptor const& desc ) {         \
+    BEHAVIOR_NS( c, r, e )::e_vals res;
+
+#define BEHAVIOR_IMPL_END() }
+
+// BEHAVIOR_IMPL_START( land, foreign, unit ) {
+//  // Possible results: nothing, attack, bombard
+//  (void)desc;
+//  return res;
+//}
+// BEHAVIOR_IMPL_END()
+
+// BEHAVIOR_IMPL_START( land, foreign, colony ) {
+//  // Possible results: unused
+//  (void)desc;
+//  return res;
+//}
+// BEHAVIOR_IMPL_END()
+
+// BEHAVIOR_IMPL_START( land, foreign, village ) {
+//  // Possible results: unused
+//  (void)desc;
+//  return res;
+//}
+// BEHAVIOR_IMPL_END()
+
+BEHAVIOR_IMPL_START( land, neutral, empty ) {
+  // Possible results: never, always
+  (void)desc;
+  return res;
+}
+BEHAVIOR_IMPL_END()
+
+BEHAVIOR_IMPL_START( land, friendly, unit ) {
+  // Possible results: always, never
+  (void)desc;
+  return res;
+}
+BEHAVIOR_IMPL_END()
+
+// BEHAVIOR_IMPL_START( land, friendly, colony ) {
+//  // Possible results: always, move_into_dock
+//  (void)desc;
+//  return res;
+//}
+// BEHAVIOR_IMPL_END()
+
+// BEHAVIOR_IMPL_START( water, foreign, unit ) {
+//  // Possible results: nothing, attack, bombard
+//  (void)desc;
+//  return res;
+//}
+// BEHAVIOR_IMPL_END()
+
+BEHAVIOR_IMPL_START( water, neutral, empty ) {
+  // Possible results: never, always
+  (void)desc;
+  return res;
+}
+BEHAVIOR_IMPL_END()
+
+BEHAVIOR_IMPL_START( water, friendly, unit ) {
+  // Possible results: always, never, move_onto_ship
+  (void)desc;
+  return res;
+}
+BEHAVIOR_IMPL_END()
+
 } // namespace rn

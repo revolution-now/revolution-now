@@ -136,8 +136,9 @@ void render_nationality_icon( Texture const& tx, UnitId id,
 
 void render_landscape( Texture const& tx, Coord world_square,
                        Coord pixel_coord ) {
-  auto   s    = square_at( world_square );
-  g_tile tile = s.land ? g_tile::land : g_tile::water;
+  auto   s = square_at( world_square );
+  g_tile tile =
+      s.crust == +e_crust::land ? g_tile::land : g_tile::water;
   render_sprite( tx, tile, pixel_coord, 0, 0 );
 }
 

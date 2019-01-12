@@ -63,7 +63,7 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
   }
   auto& square = square_at( y, x );
 
-  if( unit.desc().boat && square.land ) {
+  if( unit.desc().boat && square.crust == +e_crust::land ) {
     std::vector<UnitId> to_offload;
     for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
       auto const& cargo_unit = unit_from_id( cargo_id );
@@ -84,7 +84,7 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
     return result;
   }
 
-  if( !unit.desc().boat && !square.land ) {
+  if( !unit.desc().boat && square.crust == +e_crust::water ) {
     auto const& ships = units_from_coord( y, x );
     if( ships.empty() ) {
       result.desc = e_unit_travel_error::water_forbidden;
@@ -110,7 +110,8 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
   // `holder` will be a valid value if the unit is cargo of an-
   // other unit; the holder's id in that case will be *holder.
   auto holder = is_unit_onboard( unit.id() );
-  if( !unit.desc().boat && square.land && holder ) {
+  if( !unit.desc().boat && square.crust == +e_crust::land &&
+      holder ) {
     // We have a unit onboard a ship moving onto land.
     result.desc = e_unit_travel_good::offboard_ship;
     return result;

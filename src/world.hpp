@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "enum.hpp"
 #include "geo-types.hpp"
 
 // c++ standard library
@@ -22,8 +23,10 @@
 
 namespace rn {
 
+enum class e_( crust, land, water );
+
 struct ND Square {
-  bool land;
+  e_crust crust;
 };
 
 using SquareRef     = std::reference_wrapper<Square>;

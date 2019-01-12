@@ -22,8 +22,8 @@ namespace rn {
 
 namespace {
 
-Square const L = Square{true};
-Square const O = Square{false};
+Square const L = Square{e_crust::land};
+Square const O = Square{e_crust::water};
 
 // clang-format off
 vector<vector<Square>> world_map{
