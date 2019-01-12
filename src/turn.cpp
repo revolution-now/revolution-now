@@ -35,6 +35,12 @@ namespace {
 bool animate_move( TravelAnalysis const& analysis ) {
   CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
   auto type = get<e_unit_travel_good>( analysis.desc );
+  // TODO: in the case of board_ship we need to make sure that
+  // the ship being borded gets rendered on top because there may
+  // be a stack of ships in the square, otherwise it will be de-
+  // ceiving to the player. This is because when a land unit en-
+  // ters a water square it will just automatically pick a ship
+  // and board it.
   switch( type ) {
     case e_unit_travel_good::map_to_map: return true;
     case e_unit_travel_good::board_ship: return true;

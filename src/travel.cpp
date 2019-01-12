@@ -66,17 +66,12 @@ void analyze_unload( Unit const&     unit,
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
+Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
   if( !util::holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
-  auto src_coord   = coords_for_unit( id );
-  auto dst_coord   = src_coord.moved( direction );
 
-  Y y = dst_coord.y;
-  X x = dst_coord.x;
-
-  auto& unit = unit_from_id( id );
-  CHECK( !unit.moved_this_turn() );
+  auto src_coord = coords_for_unit( id );
+  auto dst_coord = src_coord.moved( direction );
 
   if( !dst_coord.is_inside( world_rect() ) ) {
     return TravelAnalysis{
@@ -89,7 +84,10 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
         /*desc_=*/e_unit_travel_error::map_edge,
         /*target_unit=*/{}};
   }
-  auto& square = square_at( y, x );
+  auto& square = square_at( dst_coord );
+
+  auto& unit = unit_from_id( id );
+  CHECK( !unit.moved_this_turn() );
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
@@ -400,9 +398,9 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
                         e_unit_travel_error::water_forbidden,
                         /*target_unit=*/{}};
                   }
-                  // We have at least on ship, so iterate through
-                  // and find the first one (if any) that the
-                  // unit can board.
+                  // We have at least one ship, so iterate
+                  // through and find the first one (if any) that
+                  // the unit can board.
                   for( auto ship_id : ships ) {
                     auto const& ship_unit =
                         unit_from_id( ship_id );
@@ -479,7 +477,7 @@ Opt<TravelAnalysis> do_analyze( UnitId id, Orders orders ) {
 // invariants.
 Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId id,
                                               Orders orders ) {
-  auto maybe_res = do_analyze( id, orders );
+  auto maybe_res = analyze_impl( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;
   // Now check invariants.
@@ -496,11 +494,9 @@ Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId id,
 
 void TravelAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
+
   CHECK( !unit.moved_this_turn() );
-
   CHECK( unit.orders() == Unit::e_orders::none );
-
-  // Caller should have checked this.
   CHECK( allowed() );
 
   e_unit_travel_good outcome = get<e_unit_travel_good>( desc );
