@@ -79,7 +79,6 @@ CFG( art,
     FLD( e_direction, nat_icon_position    ) \
     FLD( int,         visibility           ) \
     FLD( MvPoints,    movement_points      ) \
-    FLD( bool,        can_attack           ) \
     FLD( int,         attack_points        ) \
     FLD( int,         defense_points       ) \
     FLD( int,         cargo_slots          ) \

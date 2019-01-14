@@ -19,19 +19,19 @@
 
 using namespace std;
 
-#define LOAD_UNIT_DESC( __name )                               \
-  {                                                            \
-    e_unit_type::__name, UnitDescriptor {                      \
-      units.__name.name, e_unit_type::__name, g_tile::__name,  \
-          units.__name.nat_icon_front,                         \
-          units.__name.nat_icon_position, units.__name.boat,   \
-          units.__name.visibility,                             \
-          units.__name.movement_points,                        \
-          units.__name.can_attack, units.__name.attack_points, \
-          units.__name.defense_points,                         \
-          units.__name.cargo_slots,                            \
-          units.__name.cargo_slots_occupies                    \
-    }                                                          \
+#define LOAD_UNIT_DESC( __name )                              \
+  {                                                           \
+    e_unit_type::__name, UnitDescriptor {                     \
+      units.__name.name, e_unit_type::__name, g_tile::__name, \
+          units.__name.nat_icon_front,                        \
+          units.__name.nat_icon_position, units.__name.boat,  \
+          units.__name.visibility,                            \
+          units.__name.movement_points,                       \
+          units.__name.attack_points,                         \
+          units.__name.defense_points,                        \
+          units.__name.cargo_slots,                           \
+          units.__name.cargo_slots_occupies                   \
+    }                                                         \
   }
 
 namespace rn {
@@ -69,24 +69,22 @@ UnitDescriptor const& unit_desc( e_unit_type type ) {
 
 #define BEHAVIOR_IMPL_END() }
 
-// BEHAVIOR_IMPL_START( land, foreign, unit ) {
-//  // Possible results: nothing, attack, bombard
-//  (void)desc;
-//  return res;
-//}
-// BEHAVIOR_IMPL_END()
+BEHAVIOR_IMPL_START( land, foreign, unit ) {
+  // Possible results: nothing, attack, bombard
+  if( desc.boat ) return res_t::no_bombard;
+  return desc.can_attack() ? res_t::attack : res_t::no_attack;
+}
+BEHAVIOR_IMPL_END()
 
 // BEHAVIOR_IMPL_START( land, foreign, colony ) {
 //  // Possible results: unused
 //  (void)desc;
-//  return res;
 //}
 // BEHAVIOR_IMPL_END()
 
 // BEHAVIOR_IMPL_START( land, foreign, village ) {
 //  // Possible results: unused
 //  (void)desc;
-//  return res;
 //}
 // BEHAVIOR_IMPL_END()
 
@@ -105,16 +103,15 @@ BEHAVIOR_IMPL_END()
 // BEHAVIOR_IMPL_START( land, friendly, colony ) {
 //  // Possible results: always, move_into_dock
 //  (void)desc;
-//  return res;
 //}
 // BEHAVIOR_IMPL_END()
 
-// BEHAVIOR_IMPL_START( water, foreign, unit ) {
-//  // Possible results: nothing, attack, bombard
-//  (void)desc;
-//  return res;
-//}
-// BEHAVIOR_IMPL_END()
+BEHAVIOR_IMPL_START( water, foreign, unit ) {
+  // Possible results: nothing, attack, bombard
+  if( !desc.boat ) return res_t::no_bombard;
+  return desc.can_attack() ? res_t::attack : res_t::no_attack;
+}
+BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, neutral, empty ) {
   // Possible results: never, always

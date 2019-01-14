@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "analysis.hpp"
 #include "unit.hpp"
 
 // C++ standard library
@@ -22,13 +23,13 @@
 namespace rn {
 
 enum class ND e_attack_good {
-  eu_unit,
-  native_unit,
+  eu_land_unit,
+  ship
+  /*native_unit,
   colony,
   village,
-  ship,
   on_privateer,
-  with_privateer
+  with_privateer*/
 };
 
 enum class ND e_attack_error {
@@ -37,32 +38,48 @@ enum class ND e_attack_error {
   ship_attack_land_unit
 };
 
-using v_unit_attack_desc =
+using unit_combat_verdict =
     std::variant<e_attack_good, e_attack_error>;
 
-struct ProposedCombatAnalysisResult {
-  v_unit_attack_desc desc;
-  bool               attacker_wins;
-  // Units that will be waiting for orders and which should be
-  // prioritized in the "orders" loop after this move is made.
-  // This field is only relevant for certain (valid) moves. NOTE:
-  // units will be prioritized in reverse order of this vector,
-  // i.e., the last unit will be up first.
-  std::vector<UnitId> units_to_prioritize{};
-  bool                allowed() const;
+struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
+  CombatAnalysis( UnitId id_, Orders orders_,
+                  Vec<UnitId> units_to_prioritize_,
+                  Coord attack_src_, Coord attack_target_,
+                  unit_combat_verdict desc_,
+                  Opt<UnitId>         target_unit_ )
+    : parent_t( id_, orders_,
+                std::move( units_to_prioritize_ ) ),
+      attack_src( attack_src_ ),
+      attack_target( attack_target_ ),
+      desc( desc_ ),
+      target_unit( target_unit_ ) {}
+
+  // ------------------------ Data -----------------------------
+
+  // The square on which the unit resides.
+  Coord attack_src{};
+
+  // The square toward which the attack is aimed; this is the
+  // same as the square of the unit being attacked.
+  Coord attack_target{};
+
+  // Description of what would happen if the move were carried
+  // out. This can also serve as a binary indicator of whether
+  // the move is possible by checking the type held, as the can_-
+  // move() function does as a convenience.
+  unit_combat_verdict desc{};
+
+  // Unit being attacked.
+  Opt<UnitId> target_unit{};
+
+  // ---------------- "Virtual" Methods ------------------------
+
+  bool allowed_() const;
+  bool confirm_explain_() const;
+  void affect_orders_() const;
+
+  static Opt<CombatAnalysis> analyze_( UnitId id,
+                                       Orders orders );
 };
-
-ND ProposedCombatAnalysisResult
-   analyze_proposed_attack( UnitId id, e_direction d );
-
-// Checks that the orders are possible (if not, returns false)
-// and, if so, will check the type of orders and determine
-// whether the player needs to be asked for any kind of
-// confirmation. In addition, if the orders are not allowed, the
-// player may be given an explantation as to why.
-bool confirm_explain_attack(
-    ProposedCombatAnalysisResult const& analysis );
-
-void run_combat( ProposedCombatAnalysisResult const& analysis );
 
 } // namespace rn

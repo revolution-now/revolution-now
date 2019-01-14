@@ -22,14 +22,13 @@ namespace rn {
 // hypothetical move of a unit from one square to another in a
 // world where there are no foreign units and where movement
 // points are ignored. The game is designed so that only one of
-// these can be true for a given unit moving to a given square.
+// these can be true for a given unit attempting to move to a
+// given square.
 //
-// If the result of a move is one of the e_unit_travel_error then
-// that means the move is not possible regardless of what occu-
-// pies the target square. If the result of the move is one of
-// e_unit_travel_good then that means that the move would be pos-
-// sible assuming enough movement points (and, again, assuming no
-// foreign entities in the target square).
+// If the result of the move is one of e_unit_travel_good then
+// that means that the move could be possible assuming enough
+// movement points (and, again, assuming no foreign entities in
+// the target square).
 
 enum class ND e_unit_travel_good {
   map_to_map,

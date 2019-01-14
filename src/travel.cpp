@@ -90,7 +90,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
     if( *dst_nation == unit.nation() )
       relationship = e_unit_relationship::friendly;
     else
-      SHOULD_NOT_BE_HERE;
+      return nullopt;
   }
 
   auto units_at_dst = units_from_coord( dst_coord );

@@ -41,9 +41,9 @@ struct ND UnitDescriptor {
   MvPoints movement_points{};
 
   // Combat
-  bool can_attack{};
   int  attack_points{};
   int  defense_points{};
+  bool can_attack() const { return attack_points > 0; }
 
   // Cargo
   int      cargo_slots{};
@@ -100,13 +100,15 @@ to_behaviors_t<target, relationship, entity> behavior(
     UnitDescriptor const& desc );
 
 /****************************************************************/
-// BEHAVIOR( land, foreign, unit, nothing, attack, bombard );
+BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,
+          bombard );
 // BEHAVIOR( land, foreign, colony, unused );
 // BEHAVIOR( land, foreign, village, unused );
 BEHAVIOR( land, neutral, empty, never, always, unload );
 BEHAVIOR( land, friendly, unit, always, never, unload );
 // BEHAVIOR( land, friendly, colony, always, move_into_dock );
-// BEHAVIOR( water, foreign, unit, nothing, attack, bombard );
+BEHAVIOR( water, foreign, unit, no_attack, attack, no_bombard,
+          bombard );
 BEHAVIOR( water, neutral, empty, never, always );
 BEHAVIOR( water, friendly, unit, always, never, move_onto_ship );
 /****************************************************************/
