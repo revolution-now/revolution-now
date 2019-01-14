@@ -40,8 +40,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
-  if( auto dst_nation = nation_from_coord( dst_coord );
-      dst_nation.has_value() && *dst_nation == unit.nation() )
+  auto dst_nation = nation_from_coord( dst_coord );
+  if( !dst_nation.has_value() || *dst_nation == unit.nation() )
     return nullopt;
 
   if( !dst_coord.is_inside( world_rect() ) ) return nullopt;
