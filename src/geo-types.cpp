@@ -114,7 +114,6 @@ Coord Coord::moved( e_direction d ) const {
   };
   // clang-format on
   SHOULD_NOT_BE_HERE;
-  return {y, x}; // to silence warning; will not get here.
 }
 
 Opt<e_direction> Coord::direction_to( Coord dest ) const {

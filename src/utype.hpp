@@ -99,6 +99,7 @@ TEMPLATE_BEHAVIOR
 to_behaviors_t<target, relationship, entity> behavior(
     UnitDescriptor const& desc );
 
+/****************************************************************/
 // BEHAVIOR( land, foreign, unit, nothing, attack, bombard );
 // BEHAVIOR( land, foreign, colony, unused );
 // BEHAVIOR( land, foreign, village, unused );
@@ -108,5 +109,34 @@ BEHAVIOR( land, friendly, unit, always, never, unload );
 // BEHAVIOR( water, foreign, unit, nothing, attack, bombard );
 BEHAVIOR( water, neutral, empty, never, always );
 BEHAVIOR( water, friendly, unit, always, never, move_onto_ship );
+/****************************************************************/
+
+// The macros below are for users of the above functions.
+
+#define CALL_BEHAVIOR( crust_, relationship_, entity_ )         \
+  behavior<e_crust::crust_, e_unit_relationship::relationship_, \
+           e_entity_category::entity_>( unit.desc() )
+
+// This is a bit of an abuse of the init-statement if the if
+// statement. Here we are using it just to automate the calling
+// of the behavior function, not to test the result of the
+// behavior function.
+#define IF_BEHAVIOR( crust_, relationship_, entity_ )        \
+  if( auto bh =                                              \
+          CALL_BEHAVIOR( crust_, relationship_, entity_ );   \
+      crust == +e_crust::crust_ &&                           \
+      relationship == +e_unit_relationship::relationship_ && \
+      category == +e_entity_category::entity_ )
+
+// This one is used to assert that there is no specialization for
+// the given combination of parameters. These can be used for all
+// combinations of parameters that are not specialized so that,
+// eventually, when they are specialized, the compiler can notify
+// us of where we need to insert logic to handle that situation.
+#define STATIC_ASSERT_NO_BEHAVIOR( crust, relationship, \
+                                   entity )             \
+  static_assert(                                        \
+      is_same_v<void, decltype( CALL_BEHAVIOR(          \
+                          crust, relationship, entity ) )> )
 
 } // namespace rn

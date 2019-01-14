@@ -179,7 +179,6 @@ OptCoord coords_for_unit_safe( UnitId id ) {
       return coords_for_unit_safe( holder );
   };
   SHOULD_NOT_BE_HERE;
-  return {};
 }
 
 void ownership_change_to_map( UnitId id, Coord const& target ) {

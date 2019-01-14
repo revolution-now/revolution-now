@@ -337,7 +337,6 @@ Enum select_box_enum(
   for( auto const& option : options )
     if( result == option.second ) return option.first;
   SHOULD_NOT_BE_HERE;
-  return {};
 }
 
 enum class e_confirm { no, yes };

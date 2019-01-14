@@ -48,7 +48,6 @@ bool animate_move( TravelAnalysis const& analysis ) {
     case e_unit_travel_good::land_fall: return false;
   };
   SHOULD_NOT_BE_HERE;
-  return false;
 }
 
 } // namespace
