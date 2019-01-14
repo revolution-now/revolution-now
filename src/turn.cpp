@@ -54,7 +54,8 @@ bool animate_move( TravelAnalysis const& analysis ) {
 
 e_turn_result turn() {
   // for( auto nation : all_nations() ) {
-  for( auto nation : {e_nation::dutch} ) {
+  // for( auto nation : {e_nation::dutch} ) {
+  for( auto nation : {e_nation::dutch, e_nation::french} ) {
     auto res = turn( nation );
     if( res == e_turn_result::quit ) return e_turn_result::quit;
   }
@@ -126,16 +127,18 @@ e_turn_result turn( e_nation nation ) {
 
     //  Iterate through all units, for each:
     while( !q.empty() ) {
-      auto& unit = unit_from_id( q.front() );
+      auto id = q.front();
+      // I think this will trigger; if it does then we need to to
+      // remove it from the queue if it no longer exists.
+      CHECK( unit_exists( id ) );
+      auto& unit = unit_from_id( id );
+      CHECK( unit.nation() == nation );
       if( unit.finished_turn() ) {
         q.pop_front();
         continue;
       }
-      auto id = unit.id();
       logger->debug( "processing turn for {}",
                      debug_string( id ) );
-      // This will trigger until we start distinguishing nations.
-      CHECK( unit.nation() == nation );
 
       //    clang-format off
       //
@@ -235,14 +238,25 @@ e_turn_result turn( e_nation nation ) {
           }
           /***************************************************/
         }
+
         affect_orders( analysis );
+
+        // Must immediately check if this unit has been killed in
+        // combat. If so then all the unit references to it are
+        // invalid.
+        if( !unit_exists( id ) ) break;
+
         // Note that it shouldn't hurt if the unit is already in
         // the queue, since this turn code will never move a unit
         // after it has already completed its turn, no matter how
         // many times it appears in the queue.
-        for( auto unit_id : units_to_prioritize( analysis ) )
+        for( auto unit_id : units_to_prioritize( analysis ) ) {
+          CHECK( unit_id != id );
           q.push_front( unit_id );
+        }
       }
+
+      if( !unit_exists( id ) ) break;
 
       // Now we must decide if the unit has finished its turn.
       // TODO: try to put this in the unit class.
@@ -266,7 +280,6 @@ e_turn_result turn( e_nation nation ) {
   //    clang-format on
   if( need_eot_loop ) {
     /***************************************************/
-    // disable EOT for now
     vp_state = viewport_state::none{};
     frame_throttler( true, [] { return false; } );
     /***************************************************/

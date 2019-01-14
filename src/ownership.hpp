@@ -24,6 +24,7 @@
 
 namespace rn {
 
+ND bool unit_exists( UnitId id );
 ND Unit&    unit_from_id( UnitId id );
 Vec<UnitId> units_all(
     std::optional<e_nation> n = std::nullopt );

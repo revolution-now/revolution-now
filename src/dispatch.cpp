@@ -36,9 +36,10 @@ Opt<PlayerIntent> try_dispatch( UnitId        id,
 vector<function<Opt<PlayerIntent>( UnitId, Orders const& )>>
     dispatches{
         // Will be tried in this order.
-        try_dispatch<MetaAnalysis>,  //
-        try_dispatch<JobAnalysis>,   //
-        try_dispatch<TravelAnalysis> //
+        try_dispatch<MetaAnalysis>,   //
+        try_dispatch<JobAnalysis>,    //
+        try_dispatch<TravelAnalysis>, //
+        try_dispatch<CombatAnalysis>  //
     };
 
 } // namespace

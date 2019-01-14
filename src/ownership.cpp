@@ -101,6 +101,10 @@ Vec<UnitId> units_all( optional<e_nation> nation ) {
   return res;
 }
 
+bool unit_exists( UnitId id ) {
+  return has_key( units, id ).has_value();
+}
+
 Unit& unit_from_id( UnitId id ) {
   ASSIGN_CHECK_OPT( res, has_key( units, id ) );
   return res->second;

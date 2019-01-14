@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "analysis.hpp"
+#include "combat.hpp"
 #include "job.hpp"
 #include "travel.hpp"
 
@@ -29,9 +30,9 @@ using PlayerIntent = std::variant<
     // plow field, build colony, etc.
     JobAnalysis,
     // If unit is to physical move to another square.
-    TravelAnalysis
+    TravelAnalysis,
     // If the move is toward a foreign unit
-    // ProposedCombatAnalysisResult,
+    CombatAnalysis
     //// actions in current tile
     // ProposedJobAnalysisResult>;
     >;

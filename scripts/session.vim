@@ -23,6 +23,7 @@ let s:stems = [
   \ 'src/travel',
   \ 'src/job',
   \ 'src/combat',
+  \ 'src/fight',
   \ 'src/dispatch',
   \ 'src/ownership',
   \ 'src/turn',

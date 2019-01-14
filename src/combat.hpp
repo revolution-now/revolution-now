@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "analysis.hpp"
+#include "fight.hpp"
 #include "unit.hpp"
 
 // C++ standard library
