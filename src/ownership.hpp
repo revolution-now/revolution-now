@@ -32,6 +32,9 @@ Vec<UnitId> units_all(
 // units.
 void map_units( std::function<void( Unit& )> const& func );
 
+// Should not be holding any references to the unit after this.
+void destroy_unit( UnitId id );
+
 // Not safe, probably temporary.
 ND UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                               Y y, X x );

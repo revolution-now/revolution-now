@@ -20,6 +20,8 @@
 #include "viewport.hpp"
 
 // base-util
+#include "base-util/algo.hpp"
+#include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
 
 // C++ standard library
@@ -116,7 +118,11 @@ e_turn_result turn( e_nation nation ) {
   // and this could happen for various reasons. Perhaps even
   // units could be created during this process (?).
   while( true ) {
-    auto units    = units_all( nation );
+    auto units = units_all( nation );
+    // Optional, but makes for good consistency for units to ask
+    // for orders in the order that they were created.
+    // TODO: in the future, try to sort by geographic location.
+    util::sort_by_key( units, []( auto id ) { return id._; } );
     auto finished = []( UnitId id ) {
       return unit_from_id( id ).finished_turn();
     };

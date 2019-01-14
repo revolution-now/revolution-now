@@ -36,7 +36,8 @@ enum class ND e_attack_good {
 enum class ND e_attack_error {
   unit_cannot_attack,
   land_unit_attack_ship,
-  ship_attack_land_unit
+  ship_attack_land_unit,
+  attack_from_ship
 };
 
 using unit_combat_verdict =

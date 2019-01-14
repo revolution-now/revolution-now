@@ -116,6 +116,15 @@ void map_units( function<void( Unit& )> const& func ) {
   for( auto& p : units ) func( p.second );
 }
 
+// Should not be holding any references to the unit after this.
+void destroy_unit( UnitId id ) {
+  CHECK( unit_exists( id ) );
+  ownership_disown_unit( id );
+  auto it = units.find( id );
+  CHECK( it != units.end() );
+  units.erase( it->first );
+}
+
 Unit& create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;

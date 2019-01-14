@@ -38,6 +38,16 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
   auto& unit = unit_from_id( id );
   CHECK( !unit.moved_this_turn() );
 
+  if( is_unit_onboard( id ) )
+    return CombatAnalysis{
+        /*id_=*/id,
+        /*orders_=*/orders,
+        /*units_to_prioritize_=*/{},
+        /*attack_src_=*/src_coord,
+        /*attack_target_=*/dst_coord,
+        /*desc_=*/e_attack_error::attack_from_ship,
+        /*target_unit=*/{}};
+
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
   auto dst_nation = nation_from_coord( dst_coord );
@@ -187,6 +197,7 @@ void CombatAnalysis::affect_orders_() const {
     case e_attack_good::eu_land_unit:
     case e_attack_good::ship:;
   }
+  SHOULD_NOT_BE_HERE;
 }
 
 bool CombatAnalysis::confirm_explain_() const {
