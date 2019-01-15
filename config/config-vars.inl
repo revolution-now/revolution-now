@@ -9,6 +9,7 @@
 CFG( rn,
   FLD( e_nation, player_nation )
   FLD( int, target_frame_rate )
+  FLD( int, depixelate_pixels_per_frame )
   OBJ( main_window,
     FLD( Str, title )
   )

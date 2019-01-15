@@ -18,12 +18,16 @@
 #include "errors.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <array>
+#include <random>
 #include <vector>
 
 namespace rn {
 
 namespace rng {
+
+std::default_random_engine& engine();
 
 // If a seed is not provided then it will use one from std::ran-
 // dom_device.
@@ -71,6 +75,11 @@ constexpr T const& pick_one( std::array<T, N> const& arr ) {
 template<typename T>
 T const& pick_one( std::vector<T> const& v ) {
   return v[between( 0, v.size(), e_interval::half_open )];
+}
+
+template<typename T>
+void shuffle( std::vector<T>& v ) {
+  std::shuffle( v.begin(), v.end(), engine() );
 }
 
 } // namespace rng

@@ -57,6 +57,13 @@ vector<Rect> clip_stack;
   return res;
 }
 
+ND ::SDL_Point to_SDL( Coord const& coord ) {
+  ::SDL_Point p;
+  p.x = coord.x._;
+  p.y = coord.y._;
+  return p;
+}
+
 ND Rect from_SDL( ::SDL_Rect const& rect ) {
   Rect res;
   res.x = rect.x;

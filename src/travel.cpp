@@ -356,6 +356,27 @@ Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId id,
   return maybe_res;
 }
 
+bool TravelAnalysis::confirm_explain_() const {
+  if( !allowed() ) return false;
+  // The above should have checked that the variant holds the
+  // e_unit_travel_good type for us.
+  auto& kind = val_or_die<e_unit_travel_good>( desc );
+
+  switch( kind ) {
+    case e_unit_travel_good::land_fall: {
+      auto answer =
+          ui::yes_no( "Would you like to make landfall?" );
+      return ( answer == ui::e_confirm::yes );
+    }
+    case e_unit_travel_good::map_to_map:
+    case e_unit_travel_good::board_ship:
+    case e_unit_travel_good::offboard_ship:
+      // Nothing to ask here, just allow the move.
+      return true;
+  }
+  SHOULD_NOT_BE_HERE;
+}
+
 void TravelAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
 
@@ -438,27 +459,6 @@ void TravelAnalysis::affect_orders_() const {
   // Now do a sanity check.
   auto new_coord = coords_for_unit( id );
   CHECK( unit_would_move == ( new_coord == move_target ) );
-}
-
-bool TravelAnalysis::confirm_explain_() const {
-  if( !allowed() ) return false;
-  // The above should have checked that the variant holds the
-  // e_unit_travel_good type for us.
-  auto& kind = val_or_die<e_unit_travel_good>( desc );
-
-  switch( kind ) {
-    case e_unit_travel_good::land_fall: {
-      auto answer =
-          ui::yes_no( "Would you like to make landfall?" );
-      return ( answer == ui::e_confirm::yes );
-    }
-    case e_unit_travel_good::map_to_map:
-    case e_unit_travel_good::board_ship:
-    case e_unit_travel_good::offboard_ship:
-      // Nothing to ask here, just allow the move.
-      return true;
-  }
-  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace rn

@@ -20,12 +20,14 @@
 #include "orders.hpp"
 #include "ownership.hpp"
 #include "plane.hpp"
+#include "rand.hpp"
 #include "sdl-util.hpp"
 #include "travel.hpp"
 #include "viewport.hpp"
 #include "world.hpp"
 
 // base-util
+#include "base-util/algo.hpp"
 #include "base-util/variant.hpp"
 
 // SDL
@@ -157,6 +159,24 @@ void render_unit( Texture const& tx, UnitId id,
 }
 
 /****************************************************************
+** Viewport State
+*****************************************************************/
+namespace viewport_state {
+
+depixelate_unit::depixelate_unit( UnitId id_ ) : id( id_ ) {
+  for( X x{0}; x < X{1} * g_tile_width; x++ )
+    for( Y y{0}; y < Y{1} * g_tile_height; y++ )
+      all_pixels.push_back( {x, y} );
+  rng::shuffle( all_pixels );
+  tx = create_texture( W{1} * g_tile_width,
+                       H{1} * g_tile_height );
+  clear_texture_transparent( tx );
+  render_unit( tx, id, Coord{} );
+}
+
+} // namespace viewport_state
+
+/****************************************************************
 ** Viewport Rendering
 *****************************************************************/
 // TODO: the state should eventually be const when animations are
@@ -175,9 +195,13 @@ void render_world_viewport( ViewportState& state ) {
   }
 
   Opt<UnitId> slide_id;
-  // if( util::holds( state, viewport_state::blink_unit
   if_v( state, viewport_state::slide_unit, slide ) {
     slide_id = slide->id;
+  }
+
+  Opt<UnitId> depixelate_id;
+  if_v( state, viewport_state::depixelate_unit, dying ) {
+    depixelate_id = dying->id;
   }
 
   for( auto coord : covered ) {
@@ -199,7 +223,7 @@ void render_world_viewport( ViewportState& state ) {
       // TODO: need to figure out what to render when there are
       //       multiple units on a square.
       for( auto id : units_from_coord( coord ) )
-        if( slide_id != id )
+        if( slide_id != id && depixelate_id != id )
           render_unit( g_texture_viewport, id, pixel_coord );
     }
 
@@ -236,6 +260,41 @@ void render_world_viewport( ViewportState& state ) {
     pixel_coord *= g_tile_scale;
     pixel_coord += pixel_delta;
     render_unit( g_texture_viewport, slide->id, pixel_coord );
+  }
+
+  // Now do depixelation, if any.
+  if_v( state, viewport_state::depixelate_unit, dying ) {
+    if( dying->all_pixels.empty() )
+      dying->finished = true;
+    else {
+      int to_depixelate =
+          std::min( config_rn.depixelate_pixels_per_frame,
+                    int( dying->all_pixels.size() ) );
+      vector<Coord> new_non_pixels;
+      for( int i = 0; i < to_depixelate; ++i ) {
+        auto next_coord = dying->all_pixels.back();
+        dying->all_pixels.pop_back();
+        new_non_pixels.push_back( next_coord );
+      }
+      vector<::SDL_Point> points = util::map(
+          []( Coord const& c ) { return to_SDL( c ); },
+          new_non_pixels );
+      set_render_draw_color( {0, 0, 0, 0} );
+      set_render_target( dying->tx );
+      ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                    ::SDL_BLENDMODE_NONE );
+      if( !points.empty() )
+        ::SDL_RenderDrawPoints( g_renderer, &points[0],
+                                points.size() );
+      ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                    ::SDL_BLENDMODE_BLEND );
+      auto  covered = viewport().covered_tiles();
+      Coord coords  = coords_for_unit( dying->id );
+      Coord pixel_coord =
+          Coord{} + ( coords - covered.upper_left() );
+      pixel_coord *= g_tile_scale;
+      copy_texture( dying->tx, g_texture_viewport, pixel_coord );
+    }
   }
 }
 
@@ -277,6 +336,7 @@ struct ViewportPlane : public Plane {
         switch_v( g_viewport_state ) {
           case_v( viewport_state::none ) {}
           case_v( viewport_state::slide_unit ) {}
+          case_v( viewport_state::depixelate_unit ) {}
           case_v( viewport_state::blink_unit ) {
             auto& blink_unit = val;
             switch( key_event.keycode ) {

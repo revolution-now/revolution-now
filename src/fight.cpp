@@ -10,8 +10,18 @@
 *****************************************************************/
 #include "fight.hpp"
 
+// Revolution Now
+#include "rand.hpp"
+
 namespace rn {
 
 namespace {} // namespace
+
+FightStatistics fight_statistics( UnitId attacker,
+                                  UnitId defender ) {
+  (void)attacker;
+  (void)defender;
+  return {rng::flip_coin()};
+}
 
 } // namespace rn

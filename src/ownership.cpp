@@ -119,6 +119,10 @@ void map_units( function<void( Unit& )> const& func ) {
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
+  auto& unit = unit_from_id( id );
+  // FIXME: Do this check until we figure out how to deal with
+  // this situation.
+  CHECK( unit.cargo().items_of_type<UnitId>().size() == 0 );
   ownership_disown_unit( id );
   auto it = units.find( id );
   CHECK( it != units.end() );

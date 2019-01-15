@@ -35,7 +35,9 @@ auto& maybe_engine() {
   return engine;
 }
 
-auto& engine() {
+} // namespace
+
+default_random_engine& engine() {
   auto& e = maybe_engine();
   // Check that the engine has been seeded.
   CHECK( e.has_value(),
@@ -43,8 +45,6 @@ auto& engine() {
          " first with init(...)" );
   return *e;
 }
-
-} // namespace
 
 void init( Opt<uint32_t> maybe_seed ) {
   auto seed =

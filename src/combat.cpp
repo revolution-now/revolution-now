@@ -11,7 +11,11 @@
 #include "combat.hpp"
 
 // Revolution Now
+#include "logging.hpp"
 #include "ownership.hpp"
+
+// base-util
+#include "base-util/algo.hpp"
 
 using namespace std;
 
@@ -46,7 +50,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
         /*attack_src_=*/src_coord,
         /*attack_target_=*/dst_coord,
         /*desc_=*/e_attack_error::attack_from_ship,
-        /*target_unit=*/{}};
+        /*target_unit_=*/{},
+        /*fight_stats_=*/{}};
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
@@ -64,6 +69,23 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
 
   auto units_at_dst = units_from_coord( dst_coord );
   CHECK( !units_at_dst.empty() );
+  // Now let's find the unit with the highest defense points
+  // among the units in the target square.
+  vector<UnitId> sorted_by_defense( units_at_dst.begin(),
+                                    units_at_dst.end() );
+  util::sort_by_key(
+      sorted_by_defense,
+      L( unit_from_id( _ ).desc().defense_points ) );
+  CHECK( !sorted_by_defense.empty() );
+  UnitId highest_defense_unit = sorted_by_defense.back();
+  logger->info( "unit in target square with highest defense: {}",
+                debug_string( highest_defense_unit ) );
+
+  // Deferred evaluation until we know that the attack makes
+  // sense.
+  auto run_stats = [id, highest_defense_unit] {
+    return fight_statistics( id, highest_defense_unit );
+  };
 
   // We are entering a land square containing a foreign unit.
   IF_BEHAVIOR( land, foreign, unit ) {
@@ -77,7 +99,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
             /*attack_src_=*/src_coord,
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::unit_cannot_attack,
-            /*target_unit=*/{}};
+            /*target_unit_=*/{},
+            /*fight_stats_=*/{}};
       case +bh_t::attack:
         return CombatAnalysis{
             /*id_=*/id,
@@ -86,7 +109,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
             /*attack_src_=*/src_coord,
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_good::eu_land_unit,
-            /*target_unit=*/{}};
+            /*target_unit_=*/highest_defense_unit,
+            /*fight_stats_=*/run_stats()};
       case +bh_t::no_bombard:
         return CombatAnalysis{
             /*id_=*/id,
@@ -95,7 +119,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
             /*attack_src_=*/src_coord,
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::ship_attack_land_unit,
-            /*target_unit=*/{}};
+            /*target_unit_=*/{},
+            /*fight_stats_=*/{}};
       case +bh_t::bombard:
         return CombatAnalysis{
             /*id_=*/id,
@@ -104,7 +129,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
             /*attack_src_=*/src_coord,
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_good::eu_land_unit,
-            /*target_unit=*/{}};
+            /*target_unit_=*/highest_defense_unit,
+            /*fight_stats_=*/run_stats()};
     }
   }
   // We are entering a water square containing a foreign unit.
@@ -119,15 +145,18 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
             /*attack_src_=*/src_coord,
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::unit_cannot_attack,
-            /*target_unit=*/{}};
+            /*target_unit_=*/{},
+            /*fight_stats_=*/{}};
       case +bh_t::attack:
-        return CombatAnalysis{/*id_=*/id,
-                              /*orders_=*/orders,
-                              /*units_to_prioritize_=*/{},
-                              /*attack_src_=*/src_coord,
-                              /*attack_target_=*/dst_coord,
-                              /*desc_=*/e_attack_good::ship,
-                              /*target_unit=*/{}};
+        return CombatAnalysis{
+            /*id_=*/id,
+            /*orders_=*/orders,
+            /*units_to_prioritize_=*/{},
+            /*attack_src_=*/src_coord,
+            /*attack_target_=*/dst_coord,
+            /*desc_=*/e_attack_good::ship,
+            /*target_unit_=*/highest_defense_unit,
+            /*fight_stats_=*/run_stats()};
       case +bh_t::no_bombard:;
         return CombatAnalysis{
             /*id_=*/id,
@@ -136,15 +165,18 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
             /*attack_src_=*/src_coord,
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::land_unit_attack_ship,
-            /*target_unit=*/{}};
+            /*target_unit_=*/{},
+            /*fight_stats_=*/{}};
       case +bh_t::bombard:;
-        return CombatAnalysis{/*id_=*/id,
-                              /*orders_=*/orders,
-                              /*units_to_prioritize_=*/{},
-                              /*attack_src_=*/src_coord,
-                              /*attack_target_=*/dst_coord,
-                              /*desc_=*/e_attack_good::ship,
-                              /*target_unit=*/{}};
+        return CombatAnalysis{
+            /*id_=*/id,
+            /*orders_=*/orders,
+            /*units_to_prioritize_=*/{},
+            /*attack_src_=*/src_coord,
+            /*attack_target_=*/dst_coord,
+            /*desc_=*/e_attack_good::ship,
+            /*target_unit_=*/highest_defense_unit,
+            /*fight_stats_=*/run_stats()};
     }
   }
 
@@ -162,7 +194,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
 }
 
 // This is the entry point; calls the implementation then checks
-// invariants.
+// invariants. Finally computes the combat statistics if the at-
+// tack is allowed.
 Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId id,
                                               Orders orders ) {
   auto maybe_res = combat_impl( id, orders );
@@ -177,7 +210,27 @@ Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId id,
   CHECK( res.attack_src == coords_for_unit( id ) );
   CHECK( res.attack_src.is_adjacent_to( res.attack_target ) );
   CHECK( res.target_unit != id );
+
+  if( res.allowed() ) {
+    CHECK( res.target_unit.has_value() );
+    CHECK( res.fight_stats.has_value() );
+  }
+
   return maybe_res;
+}
+
+bool CombatAnalysis::confirm_explain_() const {
+  if( !allowed() ) return false;
+  // The above should have checked that the variant holds the
+  // e_attack_good type for us.
+  // auto& kind = val_or_die<e_attack_good>( desc );
+
+  // switch( kind ) {
+  //  case e_attack_good::eu_land_unit:
+  //  case e_attack_good::ship:;
+  //}
+  // SHOULD_NOT_BE_HERE;
+  return true;
 }
 
 void CombatAnalysis::affect_orders_() const {
@@ -186,31 +239,26 @@ void CombatAnalysis::affect_orders_() const {
   CHECK( !unit.moved_this_turn() );
   CHECK( unit.orders() == Unit::e_orders::none );
   CHECK( allowed() );
+  CHECK( target_unit.has_value() );
+  CHECK( fight_stats.has_value() );
 
-  auto outcome = get<e_attack_good>( desc );
+  auto allowed_reason = get<e_attack_good>( desc );
 
   // This will throw if the unit has no coords, but I think it
   // should always at this point if we're attacking with it.
   // auto old_coord = coords_for_unit( id );
 
-  switch( outcome ) {
+  switch( allowed_reason ) {
     case e_attack_good::eu_land_unit:
     case e_attack_good::ship:;
   }
-  SHOULD_NOT_BE_HERE;
-}
 
-bool CombatAnalysis::confirm_explain_() const {
-  if( !allowed() ) return false;
-  // The above should have checked that the variant holds the
-  // e_attack_good type for us.
-  auto& kind = val_or_die<e_attack_good>( desc );
-
-  switch( kind ) {
-    case e_attack_good::eu_land_unit:
-    case e_attack_good::ship:;
+  if( fight_stats->attacker_wins ) {
+    destroy_unit( *target_unit );
+    unit.consume_mv_points( MvPoints( 1 ) );
+  } else {
+    destroy_unit( id );
   }
-  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace rn

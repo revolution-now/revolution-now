@@ -82,12 +82,21 @@ struct slide_unit {
       /*mag_drag_acceleration=*/mag_drag_acceleration};
 };
 
+struct depixelate_unit {
+  depixelate_unit( UnitId id_ );
+  UnitId             id{};
+  std::vector<Coord> all_pixels{};
+  bool               finished{false};
+  Texture            tx;
+};
+
 } // namespace viewport_state
 
 using ViewportState = std::variant<
-    viewport_state::none,       // for end-of-turn
-    viewport_state::blink_unit, // waiting for orders
-    viewport_state::slide_unit  // unit moving on the map
+    viewport_state::none,           // for end-of-turn
+    viewport_state::blink_unit,     // waiting for orders
+    viewport_state::slide_unit,     // unit moving on the map
+    viewport_state::depixelate_unit // unit moving on the map
     >;
 
 ViewportState& viewport_rendering_state();

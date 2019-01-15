@@ -244,6 +244,34 @@ e_turn_result turn( e_nation nation ) {
           }
           /***************************************************/
         }
+        if_v( analysis, CombatAnalysis, combat_res ) {
+          /***************************************************/
+          viewport().ensure_tile_visible(
+              combat_res->attack_target,
+              /*smooth=*/true );
+          vp_state = viewport_state::slide_unit(
+              id, combat_res->attack_target );
+          auto& slide_unit =
+              get<viewport_state::slide_unit>( vp_state );
+          frame_throttler( /*poll_input=*/true, [&slide_unit] {
+            return slide_unit.percent >= 1.0;
+          } );
+          CHECK( combat_res->target_unit );
+          CHECK( combat_res->fight_stats );
+          auto dying_unit =
+              combat_res->fight_stats->attacker_wins
+                  ? *combat_res->target_unit
+                  : id;
+          vp_state =
+              viewport_state::depixelate_unit( dying_unit );
+          auto& depixelate_unit =
+              get<viewport_state::depixelate_unit>( vp_state );
+          frame_throttler( /*poll_input=*/true,
+                           [&depixelate_unit] {
+                             return depixelate_unit.finished;
+                           } );
+          /***************************************************/
+        }
 
         affect_orders( analysis );
 

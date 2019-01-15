@@ -12,4 +12,16 @@
 
 #include "core-config.hpp"
 
-namespace rn {} // namespace rn
+// Revolution Now
+#include "id.hpp"
+
+namespace rn {
+
+struct FightStatistics {
+  bool attacker_wins{};
+};
+
+FightStatistics fight_statistics( UnitId attacker,
+                                  UnitId defender );
+
+} // namespace rn

@@ -82,6 +82,8 @@ void    toggle_fullscreen();
 
 ND ::SDL_Rect to_SDL( Rect const& rect );
 
+ND ::SDL_Point to_SDL( Coord const& coord );
+
 // Retrive the width and height of a texture in a Rect.
 ND Delta texture_delta( Texture const& tx );
 
