@@ -25,3 +25,6 @@
 [submodule "extern/better-enums/better-enums"]
 	path = extern/better-enums/better-enums
 	url = https://github.com/aantron/better-enums.git
+[submodule "extern/rn-art"]
+	path = extern/rn-art
+	url = ../../dpacbach/rn-art.git
