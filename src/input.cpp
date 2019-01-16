@@ -17,6 +17,9 @@
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
+// C++ standard library
+#include <algorithm>
+
 using namespace std;
 
 namespace rn::input {
@@ -220,6 +223,31 @@ Opt<event_t> poll_event() {
 
 void eat_all_events() {
   while( poll_event() ) {}
+}
+
+/****************************************************************
+** For Testing
+*****************************************************************/
+void wait_for_q() {
+  bool        running = true;
+  ::SDL_Event event;
+  while( running ) {
+    while( ::SDL_PollEvent( &event ) != 0 ) {
+      if( event.type == SDL_KEYDOWN &&
+          event.key.keysym.sym == ::SDLK_q )
+        running = false;
+    }
+    ::SDL_Delay( 50 );
+  }
+}
+
+bool is_any_key_down() {
+  // must poll events in order for key state to be populated,
+  // although we don't care about the event here.
+  poll_event();
+  int         count = 0;
+  auto const* state = SDL_GetKeyboardState( &count );
+  return any_of( state, state + count, L( _ != 0 ) );
 }
 
 } // namespace rn::input

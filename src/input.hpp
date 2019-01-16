@@ -124,4 +124,10 @@ Opt<event_t> poll_event();
 // events.
 void eat_all_events();
 
+/****************************************************************
+** For Testing
+*****************************************************************/
+void wait_for_q();
+bool is_any_key_down();
+
 } // namespace rn::input

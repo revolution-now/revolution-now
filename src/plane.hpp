@@ -27,12 +27,12 @@ enum class e_( plane,
                /* values */
                viewport, // land, units, colonies, etc.
                panel,    // the info panel on the right
+               image,    // any of the fullscreen pics displayed
                colony,   // colony view
                europe,   // the old world
-               menu,     // the menus at the top of screen
-               image,    // any of the fullscreen pics displayed
                effects,  // such as e.g. fading
                window,   // the windows
+               menu,     // the menus at the top of screen
                console   // the developer console
 );
 

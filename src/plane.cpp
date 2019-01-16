@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "image.hpp"
 #include "logging.hpp"
 #include "render.hpp"
 #include "window.hpp"
@@ -85,13 +86,13 @@ void initialize_planes() {
 
   plane( e_plane::viewport ).reset( viewport_plane() );
   plane( e_plane::panel ).reset( panel_plane() );
-  // plane( Plane::id::colony ).reset( colony_plane() );
-  // plane( Plane::id::europe ).reset( europe_plane() );
-  // plane( Plane::id::menu ).reset( menu_plane() );
-  // plane( Plane::id::image ).reset( image_plane() );
+  plane( e_plane::image ).reset( image_plane() );
+  // plane( e_plane::colony ).reset( colony_plane() );
+  // plane( e_plane::europe ).reset( europe_plane() );
   plane( e_plane::effects ).reset( effects_plane() );
   plane( e_plane::window ).reset( window_plane() );
-  // plane( Plane::id::console ).reset( console_plane() );
+  // plane( e_plane::menu ).reset( menu_plane() );
+  // plane( e_plane::console ).reset( console_plane() );
 
   // No plane must be null, they must all point to a valid Plane
   // object even if it is the dummy above.

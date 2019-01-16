@@ -214,6 +214,7 @@ UCL_TYPE( Color,      UCL_STRING,    string_value   )
 UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
 UCL_TYPE( X,          UCL_INT,       int_value      )
 UCL_TYPE( W,          UCL_INT,       int_value      )
+UCL_TYPE( fs::path,   UCL_STRING,    string_value   )
 //UCL_TYPE( Y,          UCL_INT,       int_value     )
 //UCL_TYPE( H,          UCL_INT,       int_value     )
 // clang-format on
@@ -267,6 +268,24 @@ void populate_config_field( ucl::Ucl obj, T& dest,
       obj, ucl_type_of_v<T>, dotted, config_name,
       string( "item(s) of type " ) + ucl_type_name_of_v<T> );
   dest = static_cast<T>( (obj.*ucl_getter_for_type_v<T>)( {} ) );
+}
+
+// fs::path
+template<>
+void populate_config_field( ucl::Ucl obj, fs::path& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  (void)ucl_type_name_of_v<fs::path>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, ucl_type_of_v<fs::path>, dotted,
+                    config_name, "a file system path" );
+  fs::path file_path(
+      (obj.*ucl_getter_for_type_v<fs::path>)( {} ) );
+  CHECK( fs::exists( file_path ), "file path {} does not exist",
+         file_path.string() );
+  dest = move( file_path );
 }
 
 // This is for reflected enums.

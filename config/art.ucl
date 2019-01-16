@@ -25,3 +25,7 @@ tiles {
   caravel:             { y: 5, x: 1 }
   soldier:             { y: 5, x: 2 }
 }
+
+images {
+  old_world: "extern/rn-art/old-world/old-world.png"
+}

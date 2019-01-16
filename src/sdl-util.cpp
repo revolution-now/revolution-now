@@ -16,6 +16,7 @@
 #include "fmt-helper.hpp"
 #include "fonts.hpp"
 #include "globals.hpp"
+#include "image.hpp"
 #include "logging.hpp"
 #include "plane.hpp"
 #include "sound.hpp"
@@ -28,6 +29,7 @@
 // c++ standard library
 #include <cmath>
 #include <iomanip>
+#include <unordered_map>
 #include <vector>
 
 using namespace std;
@@ -36,7 +38,9 @@ namespace rn {
 
 namespace {
 
-vector<Texture> loaded_textures;
+// Must be unordered_map since we need pointer stability; other
+// modules will hold references to these.
+unordered_map<string, Texture> loaded_textures;
 
 SDL_DisplayMode get_current_display_mode() {
   SDL_DisplayMode dm;
@@ -85,6 +89,10 @@ void init_game() {
   create_renderer();
   logger->info( "Initializing planes" );
   initialize_planes();
+  logger->info( "Loading sound effects" );
+  load_all_sfx();
+  logger->info( "Loading images" );
+  load_all_images();
 }
 
 void init_sdl() {
@@ -372,10 +380,14 @@ Texture& load_texture( const char* file ) {
   if( pTempSurface == nullptr ) DIE( "failed to load image" );
   ::SDL_Texture* texture =
       SDL_CreateTextureFromSurface( g_renderer, pTempSurface );
-  if( texture == nullptr ) DIE( "failed to create texture" );
+  CHECK( texture != nullptr, "failed to create texture" );
   SDL_FreeSurface( pTempSurface );
-  loaded_textures.emplace_back( from_SDL( texture ) );
-  return loaded_textures.back();
+  loaded_textures[string( file )] = from_SDL( texture );
+  return loaded_textures[string( file )];
+}
+
+Texture& load_texture( fs::path const& path ) {
+  return load_texture( path.string().c_str() );
 }
 
 // All the functions in this method should not cause problems
@@ -385,6 +397,7 @@ void cleanup() {
   destroy_planes();
   unload_fonts();
   cleanup_sound();
+  for( auto& p : loaded_textures ) p.second.free();
   if( g_renderer != nullptr ) SDL_DestroyRenderer( g_renderer );
   if( g_window != nullptr ) SDL_DestroyWindow( g_window );
   // Not clear if this actually quits the program; but it does
@@ -586,9 +599,12 @@ Texture& Texture::operator=( Texture&& rhs ) noexcept {
   return *this;
 }
 
-Texture::~Texture() {
+void Texture::free() {
   if( tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
+  tx_ = nullptr;
 }
+
+Texture::~Texture() { free(); }
 
 Texture Texture::from_surface( ::SDL_Surface* surface ) {
   ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface(
@@ -641,20 +657,6 @@ void render_rect( OptCRef<Texture> tx, Color color,
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
-}
-
-// Mainly for testing.  Just waits for the user to press 'q'.
-void wait_for_q() {
-  bool        running = true;
-  ::SDL_Event event;
-  while( running ) {
-    while( ::SDL_PollEvent( &event ) != 0 ) {
-      if( event.type == SDL_KEYDOWN &&
-          event.key.keysym.sym == ::SDLK_q )
-        running = false;
-    }
-    ::SDL_Delay( 50 );
-  }
 }
 
 } // namespace rn

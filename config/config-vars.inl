@@ -67,6 +67,10 @@ CFG( art,
     FLD( Coord, caravel )
     FLD( Coord, soldier )
   )
+
+  OBJ( images,
+    FLD( fs::path, old_world )
+  )
 )
 
 /****************************************************************

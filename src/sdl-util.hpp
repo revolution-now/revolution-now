@@ -47,6 +47,8 @@ public:
   // For convenience.
   Delta size() const;
 
+  void free();
+
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
   explicit Texture( ::SDL_Texture* tx );
@@ -75,6 +77,7 @@ void pop_clip_rect();
 
 ::SDL_Surface* load_surface( const char* file );
 ND Texture& load_texture( const char* file );
+ND Texture& load_texture( fs::path const& path );
 
 ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );
@@ -143,8 +146,5 @@ void render_rect( OptCRef<Texture> tx, Color color,
                   Rect const& rect );
 void render_fill_rect( OptCRef<Texture> tx, Color color,
                        Rect const& rect );
-
-// Mainly for testing.  Just waits for the user to press 'q'.
-void wait_for_q();
 
 } // namespace rn
