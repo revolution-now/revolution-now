@@ -49,15 +49,18 @@ Nation const& nation_obj( e_nation nation ) {
 
 string Nation::name_proper() const {
   string res = name_lowercase;
-  if( res.empty() ) return res;
+  CHECK( !res.empty() );
   res[0] = std::toupper( res[0] );
   return res;
 }
 
-array<e_nation, e_nation::_size()> const& all_nations() {
-  static constexpr array<e_nation, e_nation::_size()> nations{
-      e_nation::dutch, e_nation::french, e_nation::english,
-      e_nation::spanish};
+constexpr array<e_nation, e_nation::_size()> all_nations() {
+  constexpr array<e_nation, e_nation::_size()> nations = [] {
+    array<e_nation, e_nation::_size()> res{};
+    size_t                             idx = 0;
+    for( auto nation : values<e_nation> ) res[idx++] = nation;
+    return res;
+  }();
   static_assert( nations.size() == e_nation::_size() );
   return nations;
 }

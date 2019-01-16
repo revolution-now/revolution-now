@@ -21,7 +21,7 @@
 // constructor we need to actually write it in this macro.
 #define BETTER_ENUMS_DEFAULT_CONSTRUCTOR( Enum ) \
 public:                                          \
-  Enum() : _value( 0 ) {}
+  constexpr Enum() : _value( 0 ) {}
 
 // better-enums.  NOTE: this should be the only place in the
 // code base that we include this header.
@@ -57,7 +57,7 @@ public:                                          \
 namespace rn {
 
 template<typename Enum>
-auto values = Enum::_values();
+constexpr auto values = Enum::_values();
 
 // Verify that the footprint of the enums is just that of an int.
 enum class e_( size_test, _ );

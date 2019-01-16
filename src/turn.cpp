@@ -19,6 +19,7 @@
 #include "sound.hpp"
 #include "unit.hpp"
 #include "viewport.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -321,7 +322,11 @@ e_turn_result turn( e_nation nation ) {
   if( need_eot_loop ) {
     /***************************************************/
     vp_state = viewport_state::none{};
-    frame_throttler( true, [] { return false; } );
+    // frame_throttler( true, [] { return false; } );
+    // TODO: use enums here
+    auto res =
+        ui::select_box( "End of turn.", {"Continue", "Quit"} );
+    if( res == "Quit" ) return e_turn_result::quit;
     /***************************************************/
     // switch( res ) {
     //  case e_eot_loop_result::quit_game:

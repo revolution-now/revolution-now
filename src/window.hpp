@@ -324,7 +324,8 @@ private:
 std::string select_box( std::string const& title,
                         StrVec             options );
 
-// TODO: create bimap and reference through type traits.
+// TODO: Use better-enum here. Make enums title case and convert
+// underscores to spaces in display names.
 template<typename Enum>
 Enum select_box_enum(
     std::string const&                        title,

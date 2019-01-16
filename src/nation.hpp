@@ -39,6 +39,6 @@ struct Nation {
 
 Nation const& nation_obj( e_nation nation );
 
-std::array<e_nation, e_nation::_size()> const& all_nations();
+constexpr std::array<e_nation, e_nation::_size()> all_nations();
 
 } // namespace rn
