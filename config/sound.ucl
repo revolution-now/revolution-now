@@ -1,0 +1,11 @@
+sfx {
+  move:            "assets/sfx/whoosh-1.mp3"
+  attacker_lost:   "assets/sfx/explosion-1.mp3"
+  attacker_won:    "assets/sfx/explosion-2.mp3"
+
+  volume {
+    move:           75
+    attacker_lost:  100
+    attacker_won:   64
+  }
+}

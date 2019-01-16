@@ -16,6 +16,7 @@
 #include "loops.hpp"
 #include "ownership.hpp"
 #include "render.hpp"
+#include "sound.hpp"
 #include "unit.hpp"
 #include "viewport.hpp"
 
@@ -228,6 +229,7 @@ e_turn_result turn( e_nation nation ) {
         if_v( analysis, TravelAnalysis, mv_res ) {
           /***************************************************/
           if( animate_move( *mv_res ) ) {
+            play_sound_effect( e_sfx::move );
             viewport().ensure_tile_visible( mv_res->move_target,
                                             /*smooth=*/true );
             vp_state = viewport_state::slide_unit(
@@ -266,6 +268,10 @@ e_turn_result turn( e_nation nation ) {
               viewport_state::depixelate_unit( dying_unit );
           auto& depixelate_unit =
               get<viewport_state::depixelate_unit>( vp_state );
+          play_sound_effect(
+              combat_res->fight_stats->attacker_wins
+                  ? e_sfx::attacker_won
+                  : e_sfx::attacker_lost );
           frame_throttler( /*poll_input=*/true,
                            [&depixelate_unit] {
                              return depixelate_unit.finished;

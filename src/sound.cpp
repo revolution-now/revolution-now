@@ -11,8 +11,12 @@
 #include "sound.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "util.hpp"
+
+// abseil
+#include "absl/container/flat_hash_map.h"
 
 // SDL
 #include "SDL.h"
@@ -35,9 +39,49 @@ void stop_music_if_playing() {
   }
 }
 
+struct SfxDesc {
+  string file;
+  int    volume;
+};
+
+#define SFX_FILE( sound )                                   \
+  case +e_sfx::sound:                                       \
+    return {                                                \
+      config_sound.sfx.sound, config_sound.sfx.volume.sound \
+    }
+
+SfxDesc sfx_file_for( e_sfx sound ) {
+  switch( sound ) {
+    SFX_FILE( move );
+    SFX_FILE( attacker_lost );
+    SFX_FILE( attacker_won );
+  }
+  SHOULD_NOT_BE_HERE;
+}
+
+absl::flat_hash_map<e_sfx, ::Mix_Chunk*> loaded_sfx;
+
+auto* load_sfx( e_sfx sound ) {
+  if( !loaded_sfx.contains( sound ) ) {
+    auto [file, vol] = sfx_file_for( sound );
+    auto* chunk      = ::Mix_LoadWAV( file.c_str() );
+    CHECK( chunk, "failed to load sound effect file {}", file );
+    loaded_sfx[sound] = chunk;
+    ::Mix_VolumeChunk( chunk, vol );
+  }
+  return loaded_sfx[sound];
+}
+
 } // namespace
 
-void cleanup_sound() { stop_music_if_playing(); }
+void load_all_sfx() {
+  for( auto sound : values<e_sfx> ) load_sfx( sound );
+}
+
+void cleanup_sound() {
+  stop_music_if_playing();
+  for( auto& p : loaded_sfx ) ::Mix_FreeChunk( p.second );
+}
 
 bool play_music_file( char const* file ) {
   stop_music_if_playing();
@@ -53,6 +97,11 @@ bool play_music_file( char const* file ) {
   ::Mix_FreeMusic( current_music );
   current_music = nullptr;
   return false;
+}
+
+void play_sound_effect( e_sfx sound ) {
+  auto* chunk = load_sfx( sound );
+  CHECK( ::Mix_PlayChannel( -1, chunk, 0 ) != -1 );
 }
 
 } // namespace rn

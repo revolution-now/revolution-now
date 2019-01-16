@@ -113,3 +113,20 @@ CFG( nation,
     LNK( flag_color, palette.yellow.sat2.lum13 )
   )
 )
+
+/****************************************************************
+* Sound
+*****************************************************************/
+CFG( sound,
+  OBJ( sfx,
+    FLD( Str, move )
+    FLD( Str, attacker_lost )
+    FLD( Str, attacker_won )
+
+    OBJ( volume,
+      FLD( int, move )
+      FLD( int, attacker_lost )
+      FLD( int, attacker_won )
+    )
+  )
+)

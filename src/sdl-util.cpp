@@ -92,15 +92,15 @@ void init_sdl() {
     DIE( "sdl could not initialize" );
 
   constexpr int frequency{44100};
-  constexpr int chunksize{2048};
+  constexpr int chunksize{4096};
+  constexpr int channels{2};
 
   // Open Audio device
-  if( Mix_OpenAudio( frequency, AUDIO_S16SYS, 2, chunksize ) !=
-      0 ) {
-    DIE( fmt::format(
-        "could not open audio: Mix_OpenAudio ERROR: {}",
-        ::Mix_GetError() ) );
-  }
+  CHECK( !Mix_OpenAudio( frequency, AUDIO_S16SYS, channels,
+                         chunksize ),
+         "could not open audio: Mix_OpenAudio ERROR: {}",
+         ::Mix_GetError() );
+
   // Set Volume
   constexpr int default_volume{10};
 
