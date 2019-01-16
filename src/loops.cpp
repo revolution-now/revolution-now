@@ -69,8 +69,8 @@ void take_input() {
     send_input_to_planes( *event );
 }
 
-uint64_t             g_frames = 0;
-chrono::microseconds g_frame_time{0};
+uint64_t            g_frames = 0;
+chrono::nanoseconds g_frame_time{0};
 
 double avg_frame_rate() {
   using namespace std::literals::chrono_literals;
@@ -78,8 +78,7 @@ double avg_frame_rate() {
   return average_fps;
 }
 
-void frame_throttler( bool             poll_input,
-                      function<bool()> finished ) {
+void frame_loop( bool poll_input, function<bool()> finished ) {
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
 

@@ -452,7 +452,7 @@ string select_box( string const& title, StrVec options ) {
   reset_fade_to_dark( chrono::milliseconds( 1500 ),
                       chrono::milliseconds( 3000 ), 65 );
   effects_plane_enable( true );
-  frame_throttler( true, finished );
+  frame_loop( true, finished );
   effects_plane_enable( false );
   logger->info( "selected: {}", selector_ptr->get_selected() );
   auto result = selector_ptr->get_selected();

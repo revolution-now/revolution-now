@@ -195,7 +195,7 @@ e_turn_result turn( e_nation nation ) {
           auto& blink_unit =
               get<viewport_state::blink_unit>( vp_state );
           blink_unit.id = id;
-          frame_throttler( true, [&blink_unit] {
+          frame_loop( true, [&blink_unit] {
             return blink_unit.orders.has_value();
           } );
           CHECK( blink_unit.orders.has_value() );
@@ -241,7 +241,7 @@ e_turn_result turn( e_nation nation ) {
             // any user input (keyboard, mouse) to avoid movement
             // commands (issued during animation) from getting
             // swallowed.
-            frame_throttler( false, [&slide_unit] {
+            frame_loop( false, [&slide_unit] {
               return slide_unit.percent >= 1.0;
             } );
           }
@@ -256,7 +256,7 @@ e_turn_result turn( e_nation nation ) {
               id, combat_res->attack_target );
           auto& slide_unit =
               get<viewport_state::slide_unit>( vp_state );
-          frame_throttler( /*poll_input=*/true, [&slide_unit] {
+          frame_loop( /*poll_input=*/true, [&slide_unit] {
             return slide_unit.percent >= 1.0;
           } );
           CHECK( combat_res->target_unit );
@@ -273,10 +273,9 @@ e_turn_result turn( e_nation nation ) {
               combat_res->fight_stats->attacker_wins
                   ? e_sfx::attacker_won
                   : e_sfx::attacker_lost );
-          frame_throttler( /*poll_input=*/true,
-                           [&depixelate_unit] {
-                             return depixelate_unit.finished;
-                           } );
+          frame_loop( /*poll_input=*/true, [&depixelate_unit] {
+            return depixelate_unit.finished;
+          } );
           /***************************************************/
         }
 
@@ -322,7 +321,7 @@ e_turn_result turn( e_nation nation ) {
   if( need_eot_loop ) {
     /***************************************************/
     vp_state = viewport_state::none{};
-    // frame_throttler( true, [] { return false; } );
+    // frame_loop( true, [] { return false; } );
     // TODO: use enums here
     auto res =
         ui::select_box( "End of turn.", {"Continue", "Quit"} );
