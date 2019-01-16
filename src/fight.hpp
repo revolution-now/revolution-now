@@ -21,7 +21,7 @@ struct FightStatistics {
   bool attacker_wins{};
 };
 
-FightStatistics fight_statistics( UnitId attacker,
-                                  UnitId defender );
+FightStatistics fight_statistics( UnitId attacker_id,
+                                  UnitId defender_id );
 
 } // namespace rn
