@@ -69,19 +69,26 @@ void take_input() {
     send_input_to_planes( *event );
 }
 
+uint64_t             g_frames = 0;
+chrono::microseconds g_frame_time{0};
+
+double avg_frame_rate() {
+  using namespace std::literals::chrono_literals;
+  auto average_fps = 1s / ( g_frame_time / g_frames );
+  return average_fps;
+}
+
 void frame_throttler( bool             poll_input,
                       function<bool()> finished ) {
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
 
   auto frame_length = 1000ms / config_rn.target_frame_rate;
-  // logger->debug( "frame length: {}ms", frame_length.count() );
 
-  uint64_t frames = 0;
-  // auto     initial = system_clock::now();
+  auto initial = system_clock::now();
 
   while( true ) {
-    ++frames;
+    ++g_frames;
     auto start = system_clock::now();
 
     draw_all_planes();
@@ -96,15 +103,14 @@ void frame_throttler( bool             poll_input,
     if( finished() ) break;
 
     auto delta = system_clock::now() - start;
-    if( delta < frame_length )
+    if( delta < frame_length ) {
+      // TODO: are these casts necessary?
       ::SDL_Delay(
           duration_cast<milliseconds>( frame_length - delta )
               .count() );
+    }
   }
-
-  // auto final       = system_clock::now();
-  // auto average_fps = 1s / ( ( final - initial ) / frames );
-  // logger->debug( "fps achieved: {}/s", average_fps );
+  g_frame_time += system_clock::now() - initial;
 }
 
 } // namespace rn

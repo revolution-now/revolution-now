@@ -5,6 +5,7 @@
 #include "geo-types.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
+#include "loops.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"
 #include "sdl-util.hpp"
@@ -67,6 +68,8 @@ void game() {
   //                          e_unit_type::soldier, 5_y, 5_x );
 
   while( turn() != e_turn_result::quit ) {}
+
+  logger->info( "avg frame rate: {}", avg_frame_rate() );
 
   // font_test();
   cleanup();

@@ -477,6 +477,7 @@ struct EffectsPlane : public Plane {
     if( now < start_time ) return;
     uint8_t alpha = target_alpha;
     if( now < end_time ) {
+      // TODO: are these casts necessary?
       milliseconds delta =
           duration_cast<milliseconds>( end_time - now );
       milliseconds total =

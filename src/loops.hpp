@@ -25,4 +25,6 @@ namespace rn {
 void frame_throttler( bool                  poll_input,
                       std::function<bool()> finished );
 
+double avg_frame_rate();
+
 } // namespace rn
