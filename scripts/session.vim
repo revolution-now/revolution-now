@@ -8,15 +8,18 @@ let s:stems = [
   \ 'src/globals',
   \ 'src/sdl-util',
   \ 'src/plane',
-  \ 'src/image',
-  \ 'src/fonts',
   \ 'src/window',
-  \ 'src/world',
   \ 'src/geo-types',
   \ 'src/nation',
   \ 'src/unit',
-  \ 'src/orders',
   \ 'src/ownership',
+  \ 'src/orders',
+  \ 'src/analysis',
+  \ 'src/travel',
+  \ 'src/job',
+  \ 'src/combat',
+  \ 'src/fight',
+  \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/render',
   \ 'src/loops',
@@ -27,10 +30,8 @@ let s:stems = [
 "\]
 
 let s:quads = [
-  \ ['config/art.ucl',         'config/rn.ucl',
-  \  'config/ui.ucl',          'config/units.ucl'],
-  \ ['config/config-vars.inl', 'doc/priorities.txt',
-  \  'doc/design.txt',         'doc/ideas.txt'],
+  \ ['doc/priorities.txt', 'scripts/session.vim',
+  \  'doc/design.txt',     'doc/ideas.txt'],
 \]
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

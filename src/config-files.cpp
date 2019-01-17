@@ -71,7 +71,7 @@ void assign_link( T const* const& from, T const& to ) {
     path.push_back( #__from );                              \
     auto dotted = util::join( path, "." );                  \
     assign_link( dest_ptr()->__from, config_##__to );       \
-    LOG_DEBUG( "link assigned: {} -> {}",                   \
+    LOG_TRACE( "link assigned: {} -> {}",                   \
                "config_" + cfg_name() + "." + dotted,       \
                TO_STRING( config_##__to ) );                \
   }                                                         \
@@ -455,7 +455,7 @@ void load_configs() {
       if( !util::has_key( used_field_paths, full_name ) ) {
         logger->warn( "config field `{}' unused", full_name );
       } else {
-        LOG_DEBUG( "field loaded: {}", full_name );
+        LOG_TRACE( "field loaded: {}", full_name );
       }
     }
   }

@@ -58,20 +58,6 @@ Opt<PlayerIntent> player_intent( UnitId        id,
     if( maybe_res = f( id, orders ); maybe_res.has_value() )
       return maybe_res;
 
-  // case_v_( orders::direction, direction ) {
-  //  auto mv_res     = analyze_proposed_move( id, direction );
-  //  analysis.result = mv_res;
-  //  if( mv_res.allowed() ) {
-  //    // move is physically possible, so check attack.
-  //    auto maybe_nation =
-  //        nation_from_coord( mv_res.move_target );
-  //    if( maybe_nation && *maybe_nation != unit.nation() ) {
-  //      analysis.result =
-  //          analyze_proposed_attack( id, direction );
-  //    }
-  //  }
-  //}
-
   return maybe_res;
 }
 
