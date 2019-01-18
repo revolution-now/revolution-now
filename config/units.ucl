@@ -7,6 +7,8 @@ free_colonist {
   movement_points:       1
   attack_points:         0
   defense_points:        1
+  on_death:              capture
+  demoted:               null
   cargo_slots:           0
   cargo_slots_occupies:  1
 }
@@ -20,6 +22,8 @@ soldier {
   movement_points:       1
   attack_points:         2
   defense_points:        2
+  on_death:              demote
+  demoted:               free_colonist
   cargo_slots:           0
   cargo_slots_occupies:  1
 }
@@ -33,6 +37,8 @@ caravel {
   movement_points:       4
   attack_points:         0
   defense_points:        2
+  on_death:              naval
+  demoted:               null
   cargo_slots:           4
   cargo_slots_occupies:  null
 }

@@ -18,6 +18,7 @@
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "typed-int.hpp"
+#include "utype.hpp"
 
 #include <optional>
 #include <string>

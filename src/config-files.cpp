@@ -15,6 +15,7 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "util.hpp"
+#include "utype.hpp"
 
 // base-util
 #include "base-util/misc.hpp"
@@ -319,6 +320,8 @@ void populate_config_field_enum( ucl::Ucl obj, Enum& dest,
 
 SUPPORT_ENUM( e_nation )
 SUPPORT_ENUM( e_direction )
+SUPPORT_ENUM( e_unit_type )
+SUPPORT_ENUM( e_unit_death )
 
 // Coord
 template<>

@@ -22,7 +22,10 @@
 
 namespace rn {
 
-enum class ND e_unit_type { free_colonist, soldier, caravel };
+enum class ND e_( unit_type, free_colonist, soldier, caravel );
+
+enum class ND e_( unit_death, destroy, naval, capture, demote,
+                  maybe_demote, demote_and_capture );
 
 // Static information describing classes of units. There will be
 // one of these for each type of unit.
@@ -45,9 +48,20 @@ struct ND UnitDescriptor {
   int  defense_points{};
   bool can_attack() const { return attack_points > 0; }
 
+  // FIXME: ideally these should be represented as an algebraic
+  // data type in the config (and it should support loading
+  // those). That way we would not have to do a runtime check
+  // that `demoted` is set only if `on_death` has certain values.
+  // When the unit loses a battle, what should happen?
+  e_unit_death on_death{};
+  // If the unit is to be demoted, what unit should it become?
+  Opt<e_unit_type> demoted;
+
   // Cargo
   int      cargo_slots{};
   Opt<int> cargo_slots_occupies{}; // slots occupied by this unit
+
+  void check_invariants() const;
 };
 
 UnitDescriptor const& unit_desc( e_unit_type type );

@@ -14,8 +14,8 @@
 #include "config-files.hpp"
 #include "util.hpp"
 
-// C++ standard library
-#include <unordered_map>
+// Abseil
+#include "absl/container/flat_hash_map.h"
 
 using namespace std;
 
@@ -28,8 +28,8 @@ using namespace std;
           units.__name.visibility,                            \
           units.__name.movement_points,                       \
           units.__name.attack_points,                         \
-          units.__name.defense_points,                        \
-          units.__name.cargo_slots,                           \
+          units.__name.defense_points, units.__name.on_death, \
+          units.__name.demoted, units.__name.cargo_slots,     \
           units.__name.cargo_slots_occupies                   \
     }                                                         \
   }
@@ -38,16 +38,19 @@ namespace rn {
 
 namespace {
 
-unordered_map<e_unit_type, UnitDescriptor, EnumClassHash> const&
+absl::flat_hash_map<e_unit_type, UnitDescriptor> const&
 unit_desc() {
   auto const& units = config_units;
 
-  static unordered_map<e_unit_type, UnitDescriptor,
-                       EnumClassHash> const desc{
-      LOAD_UNIT_DESC( free_colonist ),
-      LOAD_UNIT_DESC( soldier ),
-      LOAD_UNIT_DESC( caravel ),
-  };
+  static auto const desc = [] {
+    absl::flat_hash_map<e_unit_type, UnitDescriptor> desc_{
+        LOAD_UNIT_DESC( free_colonist ),
+        LOAD_UNIT_DESC( soldier ),
+        LOAD_UNIT_DESC( caravel ),
+    };
+    for( auto const& p : desc_ ) p.second.check_invariants();
+    return desc_;
+  }();
   return desc;
 }
 
@@ -55,6 +58,34 @@ unit_desc() {
 
 UnitDescriptor const& unit_desc( e_unit_type type ) {
   return val_or_die( unit_desc(), type );
+}
+
+void UnitDescriptor::check_invariants() const {
+  // Check that the `demoted` field should have a value if and
+  // only if the unit is to be demoted after losing a battle.
+  // FIXME: this check would not be necessary if we could repre-
+  // sent the on_death/demoted fields in a single abstract data
+  // type.
+  switch( on_death ) {
+    case +e_unit_death::destroy:
+    case +e_unit_death::naval:
+    case +e_unit_death::capture:
+      CHECK(
+          !demoted.has_value(),
+          "units of type `{}` are not marked for demotion upon "
+          "losing a battle and so should have demoted=null",
+          type );
+      break;
+    case +e_unit_death::demote:
+    case +e_unit_death::maybe_demote:
+    case +e_unit_death::demote_and_capture:
+      CHECK( demoted.has_value(),
+             "units of type `{}` are marked for demotion upon "
+             "losing a battle and so must have a valid demoted "
+             "field",
+             type );
+      break;
+  }
 }
 
 /****************************************************************
