@@ -13,6 +13,7 @@
 #include "sdl-util.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"
+#include "time.hpp"
 #include "turn.hpp"
 #include "unit.hpp"
 #include "util.hpp"
@@ -71,10 +72,13 @@ void game() {
 
   while( turn() != e_turn_result::quit ) {}
 
-  // image_plane_set( e_image::old_world );
-  // image_plane_enable( [>enable=<]true );
-  // frame_loop( false, [] { return input::is_any_key_down(); }
-  // );
+  using namespace std::literals::chrono_literals;
+  while( input::is_any_key_down() ) {}
+  // sleep( 1s );
+
+  image_plane_set( e_image::old_world );
+  image_plane_enable( true );
+  frame_loop( false, [] { return input::is_any_key_down(); } );
 
   logger->info( "avg frame rate: {}", avg_frame_rate() );
 
