@@ -5,20 +5,13 @@
 *
 * Created by dsicilia on 2019-01-18.
 *
-* Description:
+* Description: Abstract Data Types.
 *
 *****************************************************************/
 //#include "adt.hpp"
 
 namespace rn {
 
-namespace {
-
-// void f() {
-//  case_c    c;
-//  MyAdtType adt;
-//}
-
-} // namespace
+namespace {} // namespace
 
 } // namespace rn
