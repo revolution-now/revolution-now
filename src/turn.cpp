@@ -249,6 +249,7 @@ e_turn_result turn( e_nation nation ) {
         }
         if_v( analysis, CombatAnalysis, combat_res ) {
           /***************************************************/
+          play_sound_effect( e_sfx::move );
           viewport().ensure_tile_visible(
               combat_res->attack_target,
               /*smooth=*/true );
