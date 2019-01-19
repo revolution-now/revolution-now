@@ -1,3 +1,33 @@
+caravel {
+  name:                  Caravel
+  boat:                  yes
+  nat_icon_front:        false
+  nat_icon_position:     nw
+  visibility:            1
+  movement_points:       4
+  attack_points:         0
+  defense_points:        2
+  on_death:              naval
+  demoted:               null
+  cargo_slots:           4
+  cargo_slots_occupies:  null
+}
+
+privateer {
+  name:                  Privateer
+  boat:                  yes
+  nat_icon_front:        false
+  nat_icon_position:     nw
+  visibility:            1
+  movement_points:       8
+  attack_points:         8
+  defense_points:        3
+  on_death:              naval
+  demoted:               null
+  cargo_slots:           2
+  cargo_slots_occupies:  null
+}
+
 free_colonist {
   name:                  Free Colonist
   boat:                  no
@@ -26,19 +56,4 @@ soldier {
   demoted:               free_colonist
   cargo_slots:           0
   cargo_slots_occupies:  1
-}
-
-caravel {
-  name:                  Caravel
-  boat:                  yes
-  nat_icon_front:        false
-  nat_icon_position:     nw
-  visibility:            1
-  movement_points:       4
-  attack_points:         0
-  defense_points:        2
-  on_death:              naval
-  demoted:               null
-  cargo_slots:           4
-  cargo_slots_occupies:  null
 }

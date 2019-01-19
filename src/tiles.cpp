@@ -84,6 +84,7 @@ void load_sprites() {
   SET_SPRITE_WORLD( panel_slate_2_sides );
 
   SET_SPRITE_UNIT( free_colonist );
+  SET_SPRITE_UNIT( privateer );
   SET_SPRITE_UNIT( caravel );
   SET_SPRITE_UNIT( soldier );
 }

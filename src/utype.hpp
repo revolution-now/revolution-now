@@ -22,7 +22,8 @@
 
 namespace rn {
 
-enum class ND e_( unit_type, free_colonist, soldier, caravel );
+enum class ND e_( unit_type, free_colonist, soldier, caravel,
+                  privateer );
 
 enum class ND e_( unit_death, destroy, naval, capture, demote,
                   maybe_demote, demote_and_capture );

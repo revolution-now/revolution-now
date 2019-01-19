@@ -74,6 +74,7 @@ CFG( art,
       FLD( fs::path, img )
       OBJ( coords,
         FLD( Coord, caravel )
+        FLD( Coord, privateer )
         FLD( Coord, free_colonist )
         FLD( Coord, soldier )
       )
@@ -102,8 +103,9 @@ CFG( art,
                                                   )
 
 CFG( units,
-  UNIT_SCHEMA( free_colonist )
   UNIT_SCHEMA( caravel       )
+  UNIT_SCHEMA( privateer     )
+  UNIT_SCHEMA( free_colonist )
   UNIT_SCHEMA( soldier       )
 )
 

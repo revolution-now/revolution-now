@@ -54,9 +54,13 @@ void game() {
     if( y._ % 2 == 0 ) {
       (void)create_unit_on_map( e_nation::dutch,
                                 e_unit_type::caravel, y, 7_x );
+      (void)create_unit_on_map( e_nation::french,
+                                e_unit_type::privateer, y, 8_x );
     } else {
       (void)create_unit_on_map( e_nation::french,
                                 e_unit_type::caravel, y, 8_x );
+      (void)create_unit_on_map( e_nation::dutch,
+                                e_unit_type::privateer, y, 7_x );
     }
     if( y._ % 2 == 0 )
       (void)create_unit_on_map( e_nation::french,
