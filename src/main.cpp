@@ -51,6 +51,13 @@ void game() {
   for( Y y{2}; y < 2_y + 9_y; ++y ) {
     (void)create_unit_on_map( e_nation::dutch,
                               e_unit_type::soldier, y, 3_x );
+    if( y._ % 2 == 0 ) {
+      (void)create_unit_on_map( e_nation::dutch,
+                                e_unit_type::caravel, y, 7_x );
+    } else {
+      (void)create_unit_on_map( e_nation::french,
+                                e_unit_type::caravel, y, 8_x );
+    }
     if( y._ % 2 == 0 )
       (void)create_unit_on_map( e_nation::french,
                                 e_unit_type::soldier, y, 4_x );

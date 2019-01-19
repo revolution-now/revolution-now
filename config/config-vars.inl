@@ -40,36 +40,45 @@ CFG( ui,
 * Art Config File
 *****************************************************************/
 CFG( art,
-  FLD( Str, tiles_png )
-
-  OBJ( tiles,
-    FLD( Coord, water )
-    FLD( Coord, land )
-    FLD( Coord, land_1_side )
-    FLD( Coord, land_2_sides )
-    FLD( Coord, land_3_sides )
-    FLD( Coord, land_4_sides )
-    FLD( Coord, land_corner )
-
-    FLD( Coord, fog )
-    FLD( Coord, fog_1_side )
-    FLD( Coord, fog_corner )
-
-    FLD( Coord, terrain_grass )
-
-    FLD( Coord, panel )
-    FLD( Coord, panel_edge_left )
-    FLD( Coord, panel_slate )
-    FLD( Coord, panel_slate_1_side )
-    FLD( Coord, panel_slate_2_sides )
-
-    FLD( Coord, free_colonist )
-    FLD( Coord, caravel )
-    FLD( Coord, soldier )
-  )
-
   OBJ( images,
     FLD( fs::path, old_world )
+  )
+  OBJ( tiles,
+
+    OBJ( world,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, water )
+        FLD( Coord, land )
+        FLD( Coord, land_1_side )
+        FLD( Coord, land_2_sides )
+        FLD( Coord, land_3_sides )
+        FLD( Coord, land_4_sides )
+        FLD( Coord, land_corner )
+
+        FLD( Coord, fog )
+        FLD( Coord, fog_1_side )
+        FLD( Coord, fog_corner )
+
+        FLD( Coord, terrain_grass )
+
+        FLD( Coord, panel )
+        FLD( Coord, panel_edge_left )
+        FLD( Coord, panel_slate )
+        FLD( Coord, panel_slate_1_side )
+        FLD( Coord, panel_slate_2_sides )
+      )
+    )
+
+    OBJ( units,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, caravel )
+        FLD( Coord, free_colonist )
+        FLD( Coord, soldier )
+      )
+    )
+
   )
 )
 

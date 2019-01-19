@@ -49,36 +49,43 @@ sprite create_sprite_32( Texture const& texture, Coord coord ) {
           H{1} * g_tile_height};
 }
 
-#define SET_SPRITE( name ) \
-  sprites[g_tile::name] =  \
-      create_sprite_32( tile_set, config_art.tiles.name )
+#define SET_SPRITE_WORLD( name )            \
+  sprites[g_tile::name] = create_sprite_32( \
+      tile_set_world, config_art.tiles.world.coords.name )
+
+#define SET_SPRITE_UNIT( name )             \
+  sprites[g_tile::name] = create_sprite_32( \
+      tile_set_units, config_art.tiles.units.coords.name )
 
 void load_sprites() {
-  auto& tile_set = load_texture( config_art.tiles_png.c_str() );
+  auto& tile_set_world =
+      load_texture( config_art.tiles.world.img );
+  auto& tile_set_units =
+      load_texture( config_art.tiles.units.img );
 
-  SET_SPRITE( water );
-  SET_SPRITE( land );
-  SET_SPRITE( land_1_side );
-  SET_SPRITE( land_2_sides );
-  SET_SPRITE( land_3_sides );
-  SET_SPRITE( land_4_sides );
-  SET_SPRITE( land_corner );
+  SET_SPRITE_WORLD( water );
+  SET_SPRITE_WORLD( land );
+  SET_SPRITE_WORLD( land_1_side );
+  SET_SPRITE_WORLD( land_2_sides );
+  SET_SPRITE_WORLD( land_3_sides );
+  SET_SPRITE_WORLD( land_4_sides );
+  SET_SPRITE_WORLD( land_corner );
 
-  SET_SPRITE( fog );
-  SET_SPRITE( fog_1_side );
-  SET_SPRITE( fog_corner );
+  SET_SPRITE_WORLD( fog );
+  SET_SPRITE_WORLD( fog_1_side );
+  SET_SPRITE_WORLD( fog_corner );
 
-  SET_SPRITE( terrain_grass );
+  SET_SPRITE_WORLD( terrain_grass );
 
-  SET_SPRITE( panel );
-  SET_SPRITE( panel_edge_left );
-  SET_SPRITE( panel_slate );
-  SET_SPRITE( panel_slate_1_side );
-  SET_SPRITE( panel_slate_2_sides );
+  SET_SPRITE_WORLD( panel );
+  SET_SPRITE_WORLD( panel_edge_left );
+  SET_SPRITE_WORLD( panel_slate );
+  SET_SPRITE_WORLD( panel_slate_1_side );
+  SET_SPRITE_WORLD( panel_slate_2_sides );
 
-  SET_SPRITE( free_colonist );
-  SET_SPRITE( caravel );
-  SET_SPRITE( soldier );
+  SET_SPRITE_UNIT( free_colonist );
+  SET_SPRITE_UNIT( caravel );
+  SET_SPRITE_UNIT( soldier );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {
