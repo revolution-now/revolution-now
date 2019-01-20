@@ -92,29 +92,19 @@ vector<vector<Square>> world_map{
 
 } // namespace
 
-std::tuple<H, W> world_size_tiles() {
+Delta world_size_tiles() {
   return {H( world_map.size() ), W( world_map[0].size() )};
 }
 
-std::tuple<H, W> world_size_pixels() {
-  auto p = world_size_tiles();
-  W    w = std::get<1>( p );
-  H    h = std::get<0>( p );
-  return {h * g_tile_height, w * g_tile_width};
+Delta world_size_pixels() {
+  auto delta = world_size_tiles();
+  return {delta.h * g_tile_height, delta.w * g_tile_width};
 }
 
-W world_size_tiles_x() {
-  return std::get<1>( world_size_tiles() );
-}
-H world_size_tiles_y() {
-  return std::get<0>( world_size_tiles() );
-}
-W world_size_pixels_x() {
-  return std::get<1>( world_size_tiles() );
-}
-H world_size_pixels_y() {
-  return std::get<0>( world_size_tiles() );
-}
+W world_size_tiles_x() { return world_size_tiles().w; }
+H world_size_tiles_y() { return world_size_tiles().h; }
+W world_size_pixels_x() { return world_size_pixels().w; }
+H world_size_pixels_y() { return world_size_tiles().h; }
 
 Rect world_rect() {
   return {0_x, 0_y, world_size_tiles_x(), world_size_tiles_y()};
@@ -122,8 +112,8 @@ Rect world_rect() {
 
 bool square_exists( Y y, X x ) {
   if( y < 0 || x < 0 ) return false;
-  auto [sy, sx] = world_size_tiles();
-  return 0_y + sy > y && 0_x + sx > x;
+  auto [w, h] = world_size_tiles();
+  return 0_y + h > y && 0_x + w > x;
 }
 
 OptSquareCRef square_at_safe( Y y, X x ) {

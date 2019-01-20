@@ -279,7 +279,7 @@ double SmoothViewport::height_tiles() const {
 
 void SmoothViewport::enforce_invariants() {
   if( zoom_ < zoom_min ) zoom_ = zoom_min;
-  auto [size_y, size_x] = world_size_tiles();
+  auto [size_x, size_y] = world_size_tiles();
   size_y *= g_tile_height;
   size_x *= g_tile_width;
   if( start_x() < 0 ) center_x_ = width_pixels() / 2;
@@ -296,7 +296,7 @@ Rect SmoothViewport::covered_tiles() const {
   CHECK( start_tile_x() >= 0 );
   CHECK( start_tile_y() >= 0 );
 
-  auto [size_y, size_x] = world_size_tiles();
+  auto [size_x, size_y] = world_size_tiles();
   X end_tile_x = start_tile_x() + lround( width_tiles() );
   // if( end_tile_x > 0_x + size_x ) end_tile_x = 0_x + size_x;
   CHECK( end_tile_x <= 0_x + size_x ); // can remove eventually
@@ -311,7 +311,7 @@ Rect SmoothViewport::covered_tiles() const {
 
 Rect SmoothViewport::rendering_src_rect() const {
   Rect viewport                        = get_bounds();
-  auto [max_src_height, max_src_width] = world_size_pixels();
+  auto [max_src_width, max_src_height] = world_size_pixels();
   Rect src;
   CHECK( !( viewport.x < 0_x ) );
   CHECK( !( viewport.y < 0_y ) );
@@ -333,7 +333,7 @@ Rect SmoothViewport::rendering_dest_rect() const {
   dest.w        = viewport_width_tiles() * g_tile_width;
   dest.h        = viewport_height_tiles() * g_tile_height;
   Rect viewport = get_bounds();
-  auto [max_src_height, max_src_width] = world_size_pixels();
+  auto [max_src_width, max_src_height] = world_size_pixels();
   if( viewport.w > max_src_width ) {
     double delta = ( double( viewport.w - max_src_width ) /
                      double( viewport.w ) ) *
@@ -432,25 +432,58 @@ bool SmoothViewport::is_tile_fully_visible(
 // non-trivial because we have to apply less stringent rules
 // as the coordinate gets closer to the edges of the world.
 template<typename C>
-bool is_tile_surroundings_fully_visible(
+bool are_tile_surroundings_as_fully_visible_as_can_be(
     SmoothViewport const& vp, Coord const& coords ) {
-  auto covered       = vp.covered_tiles();
-  auto covered_inner = covered.edges_removed().edges_removed();
-  // auto covered_inner_inner = covered_inner.edges_removed();
+  auto is_in = [&coords]( Rect const& rect ) {
+    auto start = rect.coordinate<C>();
+    auto end   = rect.coordinate<C>() + rect.length<C>();
+    return coords.coordinate<C>() >= start &&
+           coords.coordinate<C>() < end;
+  };
 
-  auto& box = covered_inner;
+  bool visible_in_viewport       = is_in( vp.covered_tiles() );
+  bool visible_in_inner_viewport = is_in(
+      vp.covered_tiles().edges_removed().edges_removed() );
+  bool in_inner_world =
+      is_in( world_rect().edges_removed().edges_removed() );
 
-  auto box_start = box.coordinate<C>();
-  auto box_end   = box.coordinate<C>() + box.length<C>();
+  // If the unit is not at all visible to the player then
+  // obviously we must return true.
+  if( !visible_in_viewport ) return false;
 
-  return ( coords.coordinate<C>() >= box_start ) &&
-         ( coords.coordinate<C>() < box_end );
+  // The unit is visible somewhere on screen, but is it inside
+  // the trimmed viewport (i.e., are its surrounding visible on
+  // screen as well)? If so, then return true since that means
+  // the tile and surroundings are visible.
+  if( visible_in_inner_viewport ) return true;
+
+  // At this point the tile surroundings may not be fully visible
+  // (as "visible" is defined here, meaning that it is inside a
+  // trimmed viewport) but if we are on the world's edge then we
+  // can't do any better at this point so just return true.
+  if( !in_inner_world ) return true;
+
+  // Here we have the case where the coord is somewhere in the
+  // innards of the world (i.e., not at the edges), it is visible
+  // on screen, but its surrounding squares are not visible on
+  // screen. So by definition we return false.
+  return false;
 }
 
 void SmoothViewport::ensure_tile_visible( Coord const& coord,
                                           bool         smooth ) {
-  if( !is_tile_surroundings_fully_visible<X>( *this, coord ) ||
-      !is_tile_surroundings_fully_visible<Y>( *this, coord ) ) {
+  // Our approach here is to say the following: if the location
+  // of the coord in a given dimension (either X or Y) is such
+  // that its position (plus two surrounding squares) could be
+  // better brought into view by panning the viewport then we
+  // will pan the viewport in _both_ coordinates to center on the
+  // unit. Panning both coordinates together makes for more
+  // natural panning behavior when a unit is close to the corner
+  // of the viewport.
+  if( !are_tile_surroundings_as_fully_visible_as_can_be<X>(
+          *this, coord ) ||
+      !are_tile_surroundings_as_fully_visible_as_can_be<Y>(
+          *this, coord ) ) {
     if( smooth ) {
       smooth_center_x_target_ =
           XD{double( ( coord.x * g_tile_width )._ )};

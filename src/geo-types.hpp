@@ -21,6 +21,7 @@
 
 // c++ standard library
 #include <cmath>
+#include <type_traits>
 
 namespace rn {
 
@@ -67,6 +68,14 @@ struct ND Delta {
 
   bool operator!=( Delta const& other ) const {
     return ( h != other.h ) || ( w != other.w );
+  }
+
+  template<typename Dimension>
+  auto get() const {
+    if constexpr( std::is_same_v<Dimension, X> ) return w;
+    if constexpr( std::is_same_v<Dimension, Y> ) return h;
+    if constexpr( std::is_same_v<Dimension, W> ) return w;
+    if constexpr( std::is_same_v<Dimension, H> ) return h;
   }
 
   Delta operator-() { return {-w, -h}; }

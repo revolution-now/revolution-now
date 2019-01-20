@@ -41,8 +41,8 @@ struct ND SquareSurround {
   OptSquareCRef west;
 };
 
-ND std::tuple<H, W> world_size_tiles();
-ND std::tuple<H, W> world_size_pixels();
+ND Delta world_size_tiles();
+ND Delta world_size_pixels();
 
 ND W world_size_tiles_x();
 ND H world_size_tiles_y();
