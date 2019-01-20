@@ -449,19 +449,17 @@ bool is_tile_surroundings_fully_visible(
 
 void SmoothViewport::ensure_tile_visible( Coord const& coord,
                                           bool         smooth ) {
-  if( !is_tile_surroundings_fully_visible<X>( *this, coord ) ) {
-    if( smooth )
+  if( !is_tile_surroundings_fully_visible<X>( *this, coord ) ||
+      !is_tile_surroundings_fully_visible<Y>( *this, coord ) ) {
+    if( smooth ) {
       smooth_center_x_target_ =
           XD{double( ( coord.x * g_tile_width )._ )};
-    else
-      center_on_tile_x( coord );
-  }
-  if( !is_tile_surroundings_fully_visible<Y>( *this, coord ) ) {
-    if( smooth )
       smooth_center_y_target_ =
           YD{double( ( coord.y * g_tile_height )._ )};
-    else
+    } else {
+      center_on_tile_x( coord );
       center_on_tile_y( coord );
+    }
   }
 }
 

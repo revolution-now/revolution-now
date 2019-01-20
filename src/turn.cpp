@@ -57,13 +57,34 @@ bool animate_move( TravelAnalysis const& analysis ) {
 } // namespace
 
 e_turn_result turn() {
+  // If no units need to take orders this turn then we need to
+  // pause at the end of the turn to allow the user to take
+  // control or make changes. In that case, the flag will remain
+  // true. On the other hand, if at least one unit takes orders
+  // then that means that the user will at least have that
+  // opportunity to have control and so then we don't need to
+  // pause at the end of the turn. This flag controls that.
+  bool need_eot = true;
   // for( auto nation : all_nations() ) {
   // for( auto nation : {e_nation::dutch} ) {
   for( auto nation : {e_nation::dutch, e_nation::french} ) {
     auto res = turn( nation );
     if( res == e_turn_result::quit ) return e_turn_result::quit;
+    if( res == e_turn_result::orders_taken ) need_eot = false;
   }
-  return e_turn_result::cont;
+
+  if( need_eot ) {
+    /***************************************************/
+    auto& vp_state = viewport_rendering_state();
+    vp_state       = viewport_state::none{};
+    // frame_loop( true, [] { return false; } );
+    // TODO: use enums here
+    auto res =
+        ui::select_box( "End of turn.", {"Continue", "Quit"} );
+    if( res == "Quit" ) return e_turn_result::quit;
+    return e_turn_result::no_orders_taken;
+  }
+  return e_turn_result::orders_taken;
 }
 
 e_turn_result turn( e_nation nation ) {
@@ -102,15 +123,7 @@ e_turn_result turn( e_nation nation ) {
   //  messages to the user where necessary.
   //  clang-format on
 
-  // If no units need to take orders this turn then we need to
-  // pause at the end of the turn to allow the user to take
-  // control or make changes.  In that case, the flag will remain
-  // true.  On the other hand, if at least one unit takes orders
-  // then that means that the user will at least have that
-  // opportunity to have control and so then we don't need to
-  // pause at the end of the turn.  This flag controls that.
-  // TODO: consider using a flag type from type_safe
-  auto need_eot_loop{true};
+  bool orders_taken = false;
 
   auto& vp_state = viewport_rendering_state();
 
@@ -181,7 +194,7 @@ e_turn_result turn( e_nation nation ) {
              !unit.moved_this_turn() ) {
         logger->debug( "asking orders for: {}",
                        debug_string( id ) );
-        need_eot_loop = false;
+        orders_taken = true;
 
         auto coords = coords_for_unit( id );
         viewport().ensure_tile_visible( coords,
@@ -312,29 +325,10 @@ e_turn_result turn( e_nation nation ) {
   //        Make European moves
   //        Make Native moves
   //        Make expeditionary force moves
-  //      TODO
-
-  //    * if no player units needed orders then show a message
-  //    somewhere
-  //      that says "end of turn" and let the user interact with
-  //      the map and GUI.
   //    clang-format on
-  if( need_eot_loop ) {
-    /***************************************************/
-    vp_state = viewport_state::none{};
-    // frame_loop( true, [] { return false; } );
-    // TODO: use enums here
-    auto res =
-        ui::select_box( "End of turn.", {"Continue", "Quit"} );
-    if( res == "Quit" ) return e_turn_result::quit;
-    /***************************************************/
-    // switch( res ) {
-    //  case e_eot_loop_result::quit_game:
-    //    return e_turn_result::quit;
-    //  case e_eot_loop_result::none: break;
-    //};
-  }
-  return e_turn_result::cont;
+
+  return orders_taken ? e_turn_result::orders_taken
+                      : e_turn_result::no_orders_taken;
 } // namespace rn
 
 } // namespace rn
