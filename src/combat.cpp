@@ -244,20 +244,61 @@ void CombatAnalysis::affect_orders_() const {
 
   auto allowed_reason = get<e_attack_good>( desc );
 
-  // This will throw if the unit has no coords, but I think it
-  // should always at this point if we're attacking with it.
-  // auto old_coord = coords_for_unit( id );
+  auto& attacker = unit;
+  auto& defender = unit_from_id( *target_unit );
+  auto& winner =
+      fight_stats->attacker_wins ? attacker : defender;
+  auto& loser = fight_stats->attacker_wins ? defender : attacker;
+
+  attacker.consume_mv_points( MvPoints( 1 ) );
 
   switch( allowed_reason ) {
     case e_attack_good::eu_land_unit:
     case e_attack_good::ship:;
   }
 
-  if( fight_stats->attacker_wins ) {
-    destroy_unit( *target_unit );
-    unit.consume_mv_points( MvPoints( 1 ) );
-  } else {
-    destroy_unit( id );
+  switch( loser.desc().on_death ) {
+    case +e_unit_death::destroy: //
+      destroy_unit( loser.id() );
+      break;
+    case +e_unit_death::naval: //
+      destroy_unit( loser.id() );
+      break;
+    case +e_unit_death::capture:
+      // Capture only happens to defenders.
+      if( loser.id() == defender.id() ) {
+        loser.change_nation( winner.nation() );
+        move_unit_from_map_to_map(
+            loser.id(), coords_for_unit( winner.id() ) );
+        if( !loser.moved_this_turn() )
+          loser.forfeight_mv_points();
+        loser.finish_turn();
+        loser.clear_orders();
+      }
+      break;
+    case +e_unit_death::demote:
+      CHECK( loser.desc().demoted.has_value() );
+      loser.change_type( loser.desc().demoted.value() );
+      break;
+    case +e_unit_death::maybe_demote:
+      // This would be for units that only demote probabilisti-
+      // cally.
+      NOT_IMPLEMENTED;
+      break;
+    case +e_unit_death::demote_and_capture:
+      CHECK( loser.desc().demoted.has_value() );
+      loser.change_type( loser.desc().demoted.value() );
+      // Capture only happens to defenders.
+      if( loser.id() == defender.id() ) {
+        loser.change_nation( winner.nation() );
+        move_unit_from_map_to_map(
+            loser.id(), coords_for_unit( winner.id() ) );
+        if( !loser.moved_this_turn() )
+          loser.forfeight_mv_points();
+        loser.finish_turn();
+        loser.clear_orders();
+      }
+      break;
   }
 }
 

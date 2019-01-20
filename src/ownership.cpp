@@ -168,6 +168,11 @@ Opt<e_nation> nation_from_coord( Coord coord ) {
   return first;
 }
 
+void move_unit_from_map_to_map( UnitId id, Coord dest ) {
+  CHECK( unit_ownership[id] == e_unit_ownership::world );
+  ownership_change_to_map( id, dest );
+}
+
 Vec<UnitId> units_in_rect( Rect const& rect ) {
   Vec<UnitId> res;
   for( Y i = rect.y; i < rect.y + rect.h; ++i )

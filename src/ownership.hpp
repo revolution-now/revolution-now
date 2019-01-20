@@ -46,6 +46,11 @@ ND std::unordered_set<UnitId> const& units_from_coord( Coord c );
 
 ND Opt<e_nation> nation_from_coord( Coord coord );
 
+// This is in the rare cases that we need to change a unit's po-
+// sition manually, such as when e.g. a colonist is captured in
+// combat.  Unit must be owned by the map for this!
+void move_unit_from_map_to_map( UnitId id, Coord dest );
+
 ND Vec<UnitId> units_in_rect( Rect const& rect );
 
 // These will return the coordinates for a unit if it is owned by

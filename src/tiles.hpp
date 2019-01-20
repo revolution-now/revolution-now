@@ -33,6 +33,12 @@ constexpr inline SX    g_tile_width{detail::tile_pixel_size};
 constexpr inline SY    g_tile_height{detail::tile_pixel_size};
 constexpr inline Scale g_tile_scale{detail::tile_pixel_size};
 
+inline Rect g_tile_rect = Rect::from(
+    Coord{}, Delta{W{1} * g_tile_width, H{1} * g_tile_height} );
+
+inline Delta g_tile_delta =
+    Delta{W{1} * g_tile_width, H{1} * g_tile_height};
+
 constexpr int g_tile_set_width = 8;
 
 enum class ND g_tile {
@@ -72,7 +78,7 @@ struct ND sprite {
 
 void load_sprites();
 
-ND sprite lookup_sprite( std::string_view name );
+ND sprite const& lookup_sprite( std::string_view name );
 
 void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x );

@@ -83,11 +83,15 @@ struct slide_unit {
 };
 
 struct depixelate_unit {
-  depixelate_unit( UnitId id_ );
+  depixelate_unit( UnitId id_, Opt<e_unit_type> demote_to_ );
   UnitId             id{};
   std::vector<Coord> all_pixels{};
   bool               finished{false};
-  Texture            tx;
+  Texture            tx_from;
+  // If the unit is being depixelated to a different tile then
+  // this will contain the unit that should be pixelated in.
+  Opt<e_unit_type>   demote_to{};
+  Opt<Matrix<Color>> demote_pixels{};
 };
 
 } // namespace viewport_state

@@ -178,4 +178,5 @@ void show_color_adjustment( Color center );
 
 } // namespace rn
 
-DEFINE_FORMAT( ::rn::Color, "{}", o.to_string() );
+DEFINE_FORMAT( ::rn::Color, "{}",
+               o.to_string( /*with_alpha=*/true ) );

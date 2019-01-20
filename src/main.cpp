@@ -48,7 +48,7 @@ void game() {
 
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
-  for( Y y{2}; y < 2_y + 2_y; ++y ) {
+  for( Y y{2}; y < 2_y + 9_y; ++y ) {
     (void)create_unit_on_map( e_nation::dutch,
                               e_unit_type::soldier, y, 3_x );
     if( y._ % 2 == 0 ) {

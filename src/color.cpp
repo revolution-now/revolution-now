@@ -218,36 +218,6 @@ HueBucketKey sat_bucket_key( Color c ) {
   return to_bucket( to_HSL( c ).s, saturation_buckets );
 }
 
-Color color_from( SDL_PixelFormat* fmt, Uint32 pixel ) {
-  Color color{};
-
-  /* Get Red component */
-  auto temp = pixel & fmt->Rmask;  /* Isolate red component */
-  temp      = temp >> fmt->Rshift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Rloss; /* Expand to a full 8-bit number */
-  color.r = (Uint8)temp;
-
-  /* Get Green component */
-  temp = pixel & fmt->Gmask;  /* Isolate green component */
-  temp = temp >> fmt->Gshift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Gloss;  /* Expand to a full 8-bit number */
-  color.g = (Uint8)temp;
-
-  /* Get Blue component */
-  temp = pixel & fmt->Bmask;  /* Isolate blue component */
-  temp = temp >> fmt->Bshift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Bloss;  /* Expand to a full 8-bit number */
-  color.b = (Uint8)temp;
-
-  /* Get Alpha component */
-  temp = pixel & fmt->Amask;  /* Isolate alpha component */
-  temp = temp >> fmt->Ashift; /* Shift it down to 8-bit */
-  temp = temp << fmt->Aloss;  /* Expand to a full 8-bit number */
-  color.a = (Uint8)temp;
-
-  return color;
-}
-
 void render_palette_segment( Texture const&       tx,
                              vector<Color> const& colors,
                              Coord origin, int row_size = 64 ) {
@@ -511,11 +481,11 @@ vector<Color> extract_palette( fs::path const& glob,
           Uint8* addr = ( (Uint8*)surface->pixels ) +
                         4 * ( i * surface->w + j );
           Uint32 pixel = *( (Uint32*)addr );
-          color        = color_from( fmt, pixel );
+          color = from_SDL( color_from_pixel( fmt, pixel ) );
         } else if( bpp == 32 ) {
           Uint32 pixel =
               ( (Uint32*)surface->pixels )[i * surface->w + j];
-          color = color_from( fmt, pixel );
+          color = from_SDL( color_from_pixel( fmt, pixel ) );
         }
         color.a = 255;
         colors.insert( color );

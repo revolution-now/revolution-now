@@ -279,8 +279,16 @@ e_turn_result turn( e_nation nation ) {
               combat_res->fight_stats->attacker_wins
                   ? *combat_res->target_unit
                   : id;
-          vp_state =
-              viewport_state::depixelate_unit( dying_unit );
+          auto const& dying_unit_desc =
+              unit_from_id( dying_unit ).desc();
+          Opt<e_unit_type> demote_to;
+          if( dying_unit_desc.demoted.has_value() ) {
+            logger->debug( "animating unit demotion to {}",
+                           dying_unit_desc.demoted.value() );
+            demote_to = dying_unit_desc.demoted.value();
+          }
+          vp_state = viewport_state::depixelate_unit(
+              dying_unit, demote_to );
           auto& depixelate_unit =
               get<viewport_state::depixelate_unit>( vp_state );
           play_sound_effect(

@@ -86,6 +86,26 @@ void Unit::fortify() {
   orders_ = e_orders::fortified;
 }
 
+void Unit::change_nation( e_nation nation ) {
+  // This may be allowed in the future, but for now it is not in-
+  // tended to happen, so check for it.
+  CHECK(
+      cargo_.items_of_type<UnitId>().size() == 0,
+      "attempt to change nation of a unit ({}) which contains "
+      "other units in its cargo.",
+      debug_string( *this ) );
+
+  nation_ = nation;
+}
+
+void Unit::change_type( e_unit_type type ) {
+  CHECK( cargo_.slots_total() == 0,
+         "what does it mean to change "
+         "the type of a unit with cargo slots?" );
+
+  desc_ = &unit_desc( type );
+}
+
 string debug_string( Unit const& unit ) {
   return fmt::format( "unit{}id: {}, points: {}, type: {}{}",
                       "{", unit.id(), unit.movement_points(),

@@ -66,6 +66,11 @@ Rect Rect::uni0n( Rect const& rhs ) const {
           ( new_y2 - new_y1 )};
 }
 
+Opt<int> Rect::rasterize( Coord coord ) {
+  if( !coord.is_inside( *this ) ) return nullopt;
+  return ( coord.y - y )._ * w._ + ( coord.x - x )._;
+}
+
 template<>
 X const& Rect::coordinate<X>() const {
   return x;

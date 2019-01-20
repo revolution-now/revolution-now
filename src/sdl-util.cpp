@@ -38,6 +38,8 @@ namespace rn {
 
 namespace {
 
+auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
+
 // Must be unordered_map since we need pointer stability; other
 // modules will hold references to these.
 unordered_map<string, Texture> loaded_textures;
@@ -478,8 +480,8 @@ void copy_texture_stretch( Texture const&   from,
 
 Texture create_texture( W w, H h ) {
   auto tx = from_SDL( ::SDL_CreateTexture(
-      g_renderer, SDL_PIXELFORMAT_RGBA8888,
-      SDL_TEXTUREACCESS_TARGET, w._, h._ ) );
+      g_renderer, g_pixel_format, SDL_TEXTUREACCESS_TARGET, w._,
+      h._ ) );
   clear_texture_black( tx );
   return tx;
 }
@@ -495,8 +497,41 @@ ND Texture create_screen_sized_texture() {
 ::SDL_Surface* create_surface( Delta delta ) {
   SDL_Surface* surface = SDL_CreateRGBSurface(
       0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
-  CHECK( surface != nullptr, "SDL_CreateRGBSurface() failed" );
+  CHECK( surface != nullptr, "SDL_CreateRGBSurface failed" );
   return surface;
+}
+
+Matrix<Color> texture_pixels( Texture const& tx ) {
+  auto  delta   = texture_delta( tx );
+  auto* surface = create_surface( delta );
+
+  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
+
+  set_render_target( tx );
+  ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
+                          surface->pixels, surface->pitch );
+
+  // This is the only one we use in the game for rendering.
+  CHECK( fmt->BitsPerPixel == 32 );
+
+  logger->debug( "reading texture pixel data of size {}",
+                 delta );
+
+  Matrix<Color> res( delta );
+  SDL_LockSurface( surface );
+
+  auto rect = Rect::from( Coord{}, delta );
+  for( auto coord : rect ) {
+    ASSIGN_CHECK_OPT( idx, rect.rasterize( coord ) );
+    Uint32 pixel = ( (Uint32*)surface->pixels )[idx];
+    res[coord]   = from_SDL( color_from_pixel( fmt, pixel ) );
+  }
+
+  ::SDL_UnlockSurface( surface );
+  ::SDL_FreeFormat( fmt );
+  ::SDL_FreeSurface( surface );
+
+  return res;
 }
 
 void save_texture_png( Texture const&  tx,
@@ -507,8 +542,7 @@ void save_texture_png( Texture const&  tx,
   auto           delta   = texture_delta( tx );
   ::SDL_Surface* surface = SDL_CreateRGBSurface(
       0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
-  ::SDL_RenderReadPixels( g_renderer, NULL,
-                          surface->format->format,
+  ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
                           surface->pixels, surface->pitch );
   CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
          "failed to save png file {}", file.string() );
@@ -536,8 +570,7 @@ void grab_screen( fs::path const& file ) {
       screen.w, screen.h, file.string() );
   ::SDL_Surface* surface = create_surface( screen );
   set_render_target( nullopt );
-  ::SDL_RenderReadPixels( g_renderer, NULL,
-                          surface->format->format,
+  ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
                           surface->pixels, surface->pitch );
   CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
          "failed to save png file {}", file.string() );
@@ -616,6 +649,37 @@ Delta Texture::size() const {
   int w, h;
   ::SDL_QueryTexture( this->get(), nullptr, nullptr, &w, &h );
   return {W( w ), H( h )};
+}
+
+::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
+                              Uint32           pixel ) {
+  ::SDL_Color color{};
+
+  /* Get Red component */
+  auto temp = pixel & fmt->Rmask;  /* Isolate red component */
+  temp      = temp >> fmt->Rshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Rloss; /* Expand to a full 8-bit number */
+  color.r = (Uint8)temp;
+
+  /* Get Green component */
+  temp = pixel & fmt->Gmask;  /* Isolate green component */
+  temp = temp >> fmt->Gshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Gloss;  /* Expand to a full 8-bit number */
+  color.g = (Uint8)temp;
+
+  /* Get Blue component */
+  temp = pixel & fmt->Bmask;  /* Isolate blue component */
+  temp = temp >> fmt->Bshift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Bloss;  /* Expand to a full 8-bit number */
+  color.b = (Uint8)temp;
+
+  /* Get Alpha component */
+  temp = pixel & fmt->Amask;  /* Isolate alpha component */
+  temp = temp >> fmt->Ashift; /* Shift it down to 8-bit */
+  temp = temp << fmt->Aloss;  /* Expand to a full 8-bit number */
+  color.a = (Uint8)temp;
+
+  return color;
 }
 
 ::SDL_Color to_SDL( Color color ) {

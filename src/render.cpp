@@ -144,16 +144,22 @@ void render_landscape( Texture const& tx, Coord world_square,
   render_sprite( tx, tile, pixel_coord, 0, 0 );
 }
 
-void render_unit( Texture const& tx, UnitId id,
+// Unit only, no nationality icon.
+void render_unit( Texture const& tx, e_unit_type unit_type,
                   Coord pixel_coord ) {
+  auto const& desc = unit_desc( unit_type );
+  render_sprite( tx, desc.tile, pixel_coord, 0, 0 );
+}
+
+void render_unit_with_icon( Texture const& tx, UnitId id,
+                            Coord pixel_coord ) {
   auto const& unit = unit_from_id( id );
   // Should the icon be in front of the unit or in back.
-  auto front = unit.desc().nat_icon_front;
-  if( !front ) {
+  if( !unit.desc().nat_icon_front ) {
     render_nationality_icon( tx, id, pixel_coord );
-    render_sprite( tx, unit.desc().tile, pixel_coord, 0, 0 );
+    render_unit( tx, unit.desc().type, pixel_coord );
   } else {
-    render_sprite( tx, unit.desc().tile, pixel_coord, 0, 0 );
+    render_unit( tx, unit.desc().type, pixel_coord );
     render_nationality_icon( tx, id, pixel_coord );
   }
 }
@@ -163,15 +169,33 @@ void render_unit( Texture const& tx, UnitId id,
 *****************************************************************/
 namespace viewport_state {
 
-depixelate_unit::depixelate_unit( UnitId id_ ) : id( id_ ) {
-  for( X x{0}; x < X{1} * g_tile_width; x++ )
-    for( Y y{0}; y < Y{1} * g_tile_height; y++ )
-      all_pixels.push_back( {x, y} );
+depixelate_unit::depixelate_unit( UnitId           id_,
+                                  Opt<e_unit_type> demote_to_ )
+  : id( id_ ), demote_to( demote_to_ ) {
+  all_pixels.assign( g_tile_rect.begin(), g_tile_rect.end() );
   rng::shuffle( all_pixels );
-  tx = create_texture( W{1} * g_tile_width,
-                       H{1} * g_tile_height );
-  clear_texture_transparent( tx );
-  render_unit( tx, id, Coord{} );
+  tx_from = create_texture( g_tile_delta );
+  clear_texture_transparent( tx_from );
+  render_unit_with_icon( tx_from, id, Coord{} );
+
+  // Now, if we are depixelating to another unit then we will set
+  // that process up.
+  if( demote_to.has_value() ) {
+    auto tx = create_texture( g_tile_delta );
+    clear_texture_transparent( tx );
+    auto& unit = unit_from_id( id );
+    // Render the target unit with no nationality icon, then
+    // render the nationality icon of the unit being depixelated
+    // so that it doesn't appear to change during the animation.
+    if( !unit.desc().nat_icon_front ) {
+      render_unit( tx, *demote_to, Coord{} );
+      render_nationality_icon( tx, id, Coord{} );
+    } else {
+      render_nationality_icon( tx, id, Coord{} );
+      render_unit( tx, *demote_to, Coord{} );
+    }
+    demote_pixels = texture_pixels( tx );
+  }
 }
 
 } // namespace viewport_state
@@ -224,7 +248,8 @@ void render_world_viewport( ViewportState& state ) {
       //       multiple units on a square.
       for( auto id : units_from_coord( coord ) )
         if( slide_id != id && depixelate_id != id )
-          render_unit( g_texture_viewport, id, pixel_coord );
+          render_unit_with_icon( g_texture_viewport, id,
+                                 pixel_coord );
     }
 
     // Now do a blinking unit, if any.
@@ -235,8 +260,8 @@ void render_world_viewport( ViewportState& state ) {
       auto one_second  = 1000ms;
       auto half_second = 500ms;
       if( time % one_second > half_second )
-        render_unit( g_texture_viewport, *blink_id,
-                     pixel_coord );
+        render_unit_with_icon( g_texture_viewport, *blink_id,
+                               pixel_coord );
     }
   }
 
@@ -259,7 +284,8 @@ void render_world_viewport( ViewportState& state ) {
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
     pixel_coord += pixel_delta;
-    render_unit( g_texture_viewport, slide->id, pixel_coord );
+    render_unit_with_icon( g_texture_viewport, slide->id,
+                           pixel_coord );
   }
 
   // Now do depixelation, if any.
@@ -276,16 +302,17 @@ void render_world_viewport( ViewportState& state ) {
         dying->all_pixels.pop_back();
         new_non_pixels.push_back( next_coord );
       }
-      vector<::SDL_Point> points = util::map(
-          []( Coord const& c ) { return to_SDL( c ); },
-          new_non_pixels );
-      set_render_draw_color( {0, 0, 0, 0} );
-      set_render_target( dying->tx );
       ::SDL_SetRenderDrawBlendMode( g_renderer,
                                     ::SDL_BLENDMODE_NONE );
-      if( !points.empty() )
-        ::SDL_RenderDrawPoints( g_renderer, &points[0],
-                                points.size() );
+      for( auto point : new_non_pixels ) {
+        auto color = dying->demote_pixels.has_value()
+                         ? ( *dying->demote_pixels )[point]
+                         : Color( 0, 0, 0, 0 );
+        set_render_draw_color( color );
+        set_render_target( dying->tx_from );
+        ::SDL_RenderDrawPoint( g_renderer, point.x._,
+                               point.y._ );
+      }
       ::SDL_SetRenderDrawBlendMode( g_renderer,
                                     ::SDL_BLENDMODE_BLEND );
       auto  covered = viewport().covered_tiles();
@@ -293,7 +320,8 @@ void render_world_viewport( ViewportState& state ) {
       Coord pixel_coord =
           Coord{} + ( coords - covered.upper_left() );
       pixel_coord *= g_tile_scale;
-      copy_texture( dying->tx, g_texture_viewport, pixel_coord );
+      copy_texture( dying->tx_from, g_texture_viewport,
+                    pixel_coord );
     }
   }
 }

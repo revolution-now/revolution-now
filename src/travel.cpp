@@ -400,7 +400,7 @@ void TravelAnalysis::affect_orders_() const {
           cargo_unit.sentry();
         }
       }
-      ownership_change_to_map( id, move_target );
+      move_unit_from_map_to_map( id, move_target );
       unit.consume_mv_points( MvPoints( 1 ) );
       break;
     case e_unit_travel_good::board_ship: {

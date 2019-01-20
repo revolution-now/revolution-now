@@ -15,6 +15,7 @@
 // Revolution Now
 #include "color.hpp"
 #include "geo-types.hpp"
+#include "util.hpp"
 
 // base-util
 #include "base-util/non-copyable.hpp"
@@ -121,6 +122,10 @@ ND Texture create_screen_sized_texture();
 
 ::SDL_Surface* create_surface( Delta delta );
 
+// WARNING: Very slow function, should not be done in real time.
+// This is because it reads data from a texture.
+Matrix<Color> texture_pixels( Texture const& tx );
+
 Delta screen_logical_size();
 // Same but with origin at 0,0
 Rect screen_logical_rect();
@@ -131,6 +136,8 @@ void grab_screen( fs::path const& file );
 void clear_texture_black( Texture const& tx );
 void clear_texture_transparent( Texture const& tx );
 
+::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
+                              Uint32           pixel );
 ::SDL_Color to_SDL( Color color );
 Color       from_SDL( ::SDL_Color color );
 

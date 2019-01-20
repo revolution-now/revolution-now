@@ -21,6 +21,7 @@
 
 // c++ standard library
 #include <cmath>
+#include <iterator>
 #include <type_traits>
 
 namespace rn {
@@ -232,7 +233,16 @@ struct ND Rect {
   // this one and the parameter.
   Rect uni0n( Rect const& rhs ) const;
 
+  // Will return y*w + x if the coord is in the rect.
+  Opt<int> rasterize( Coord coord );
+
   struct const_iterator {
+    using iterator_category = std::input_iterator_tag;
+    using difference_type   = int;
+    using value_type        = Coord;
+    using pointer           = Coord const*;
+    using reference         = Coord const&;
+
     Coord       it;
     Rect const& rect;
     auto        operator*() {
@@ -251,6 +261,9 @@ struct ND Rect {
     }
     bool operator!=( const_iterator const& rhs ) {
       return it != rhs.it;
+    }
+    bool operator==( const_iterator const& rhs ) {
+      return it == rhs.it;
     }
   };
 

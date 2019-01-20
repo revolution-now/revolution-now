@@ -61,6 +61,15 @@ public:
     return movement_points_;
   }
 
+  /************************* Setters ***************************/
+  // This would be used when e.g. a colonist is captured and
+  // changes nations.
+  void change_nation( e_nation nation );
+
+  // This would be used when e.g. a unit gets demoted in combat
+  // or promoted.
+  void change_type( e_unit_type type );
+
   /************************ Functions **************************/
 
   // Has the unit been fully processed this turn. This concept is
