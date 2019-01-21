@@ -1,3 +1,117 @@
+Menus
+=====
+
+  User Experience
+  ---------------
+
+  There will be a menu bar at the top of the screen. The user,
+  when the game is open for input, will be able to open a menu
+  and select an item. Alternatively they can use Alt-<Key> and
+  the arrow keys to open a menus.
+
+  At some points in the game, such as when AI nations are making
+  their moves, the menus will be off, in which case the menu bar
+  will be empty.
+
+  When the user clicks a top-level menu it will open and remain
+  open even after releasing the mouse button. Hovering the mouse
+  over the menu items will highlight each item, unless it happens
+  to be disabled. Clicking on a menu item will animate a brief
+  flash. While the menu is open, the top-level menu name will be
+  highlighted, and dragging the mouse over other top-level menu
+  items will open that particular menu.
+
+    * Selecting menu items may cause windows to open.
+    * Some items might be disabled depending on general game state
+    * If all items in a top-level menu are disabled then that
+      menu will be hidden.
+    * If a user clicks outside of an open menu then menu will
+      close and the click will have a click-through behavior
+      where it will be resent through the planes.
+
+  Implementation
+  --------------
+
+  Menus will occupy their own plane.
+
+  When a menu is opened it will decide then which menu items are
+  enabled and which are disabled by calling a callback for each
+  item. If all items in a top-level menu are disabled then the
+  menu will be hidden.
+
+  Every unique menu item (across all menus) will correspond to a
+  unique enum value; the enum value name must follow a particular
+  syntax:
+
+    <menu-name>__<menu-item>__<menu-item>...
+
+  where <menu-item> and <menu-name> must:
+
+    * be a valid identifier
+    * must have spaces replaced by _
+    * must not have two consecutive spaces (underscores)
+
+  Furthermore, the menu-name/item will be converted to title case
+  unless there is at least one capital letter in them in which
+  case they will be kept as-is; therefore, most of them should be
+  all lowercase for automatical title-casing. When displayed, the
+  order of the top-level menu names will follow the order that
+  they are first encountered in the list of enums.
+
+  Example:
+
+    enum class e_menu_item {
+      game__save,
+      game__save_as,
+      game__load,
+      game__revolution,
+      game__exit,
+
+      edit__copy,
+      edit__paste,
+      edit__ABC_DEF
+    };
+
+    +---------------------------------------------------------+
+    | >Game<  Edit                                            |
+    +---------------------------------------------------------+
+    | Save          |
+    | Save As       |
+    | Load          |
+    | Revolution    |
+    | Exit          |
+    +---------------+
+
+  In order to avoid all menu handler code going into the menu
+  module, it will be possible for modules to register handlers
+  for menu items. This will consist of a void(void) function to
+  handle a click on the menu item and a bool(void) function to
+  return if the menu item should be enabled or disabled.
+
+    MENU_HANDLER( game__save, is_enabled_func, handler_func )
+
+  will roughly expand to:
+
+      STARTUP() {
+        register_handler(
+          e_menu_item::game__save,
+          handler_func,
+          is_enabled_func
+        );
+      }
+
+  The menu plane must hold state, which can be any of the follow-
+  ing:
+
+    menu_state = menus_off
+               | menus_closed
+               | animating_menu_open
+               | menu_open
+               | animating_menu_click
+
+  There will be a global function that can turn on/off all menus;
+  when this happens they will disappear.
+
 Combat
 ======
 
