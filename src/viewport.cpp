@@ -309,6 +309,18 @@ Rect SmoothViewport::covered_tiles() const {
           H( end_tile_y - start_tile_y() )};
 }
 
+Rect SmoothViewport::covered_pixels() const {
+  CHECK( start_x() >= 0 );
+  CHECK( start_y() >= 0 );
+
+  X x_start{static_cast<int>( lround( start_x() ) )};
+  Y y_start{static_cast<int>( lround( start_y() ) )};
+  X x_end{static_cast<int>( lround( end_x() ) )};
+  Y y_end{static_cast<int>( lround( end_y() ) )};
+
+  return {x_start, y_start, x_end - x_start, y_end - y_start};
+}
+
 Rect SmoothViewport::rendering_src_rect() const {
   Rect viewport                        = get_bounds();
   auto [max_src_width, max_src_height] = world_size_pixels();
@@ -427,6 +439,17 @@ bool SmoothViewport::is_tile_fully_visible(
   return coords.is_inside( covered_tiles().edges_removed() );
 }
 
+// Determines if the square is fully visible in the viewport with
+// respect to the coordinate in the C-dimension.
+template<typename C>
+bool is_tile_fully_visible( SmoothViewport const& vp,
+                            Coord const&          coords ) {
+  auto tile_rect       = Rect::from( coords, {1_w, 1_h} );
+  auto tile_pixel_rect = tile_rect * g_tile_scale;
+  auto covered         = vp.covered_pixels();
+  return tile_pixel_rect.is_inside( covered );
+}
+
 // Determines if the surroundings of the coordinate in the
 // C-dimension are fully visible in the viewport.  This is
 // non-trivial because we have to apply less stringent rules
@@ -457,11 +480,16 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
   // the tile and surroundings are visible.
   if( visible_in_inner_viewport ) return true;
 
-  // At this point the tile surroundings may not be fully visible
-  // (as "visible" is defined here, meaning that it is inside a
-  // trimmed viewport) but if we are on the world's edge then we
-  // can't do any better at this point so just return true.
-  if( !in_inner_world ) return true;
+  if( !in_inner_world ) {
+    // At this point the tile surroundings may not be fully vis-
+    // ible (as "visible" is defined here, meaning that it is in-
+    // side a trimmed viewport) but if we are on the world's edge
+    // then we can't do any better unless part of the tile itself
+    // is not visible, in which case we can at least reveal that.
+    // So there we return true if the tile is is not fully visi-
+    // ble, false otherwise.
+    return is_tile_fully_visible<C>( vp, coords );
+  }
 
   // Here we have the case where the coord is somewhere in the
   // innards of the world (i.e., not at the edges), it is visible

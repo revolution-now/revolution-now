@@ -204,6 +204,8 @@ struct ND Rect {
   // Center
   Coord center() const { return Coord{y + h / 2, x + w / 2}; }
 
+  Delta delta() const { return {w, h}; }
+
   // Right edge; NOTE: this is one-past-the-end.
   X right_edge() const { return {x + w}; }
   // Left edge
@@ -212,6 +214,10 @@ struct ND Rect {
   Y bottom_edge() const { return {y + h}; }
   // Left edge
   Y top_edge() const { return y; }
+
+  // Is the rect inside another rect. "inside" means that it can
+  // be fully inside, or its borders may be overlapping.
+  bool is_inside( Rect const& rect ) const;
 
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
@@ -294,6 +300,11 @@ ND Coord operator+( Delta const& delta, Coord const& coord );
 ND Coord operator-( Coord const& coord, Delta const& delta );
 ND Delta operator-( Coord const& lhs, Coord const& rhs );
 
+// Adding a Delta to a Rect will shift the position of the Rect.
+ND Rect operator+( Rect const& rect, Delta const& delta );
+ND Rect operator+( Delta const& delta, Rect const& rect );
+ND Rect operator-( Rect const& rect, Delta const& delta );
+
 ND Coord operator+( Coord const& coord, W w );
 ND Coord operator+( Coord const& coord, H h );
 ND Coord operator-( Coord const& coord, W w );
@@ -307,6 +318,8 @@ ND Coord operator*( Coord const& coord, Scale const& scale );
 ND Delta operator*( Delta const& delta, Scale const& scale );
 ND Coord operator*( Scale const& scale, Coord const& coord );
 ND Delta operator*( Scale const& scale, Delta const& delta );
+ND Rect operator*( Rect const& rect, Scale const& scale );
+ND Rect operator*( Scale const& scale, Rect const& rect );
 
 } // namespace rn
 

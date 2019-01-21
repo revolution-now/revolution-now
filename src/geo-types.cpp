@@ -66,6 +66,14 @@ Rect Rect::uni0n( Rect const& rhs ) const {
           ( new_y2 - new_y1 )};
 }
 
+bool Rect::is_inside( Rect const& rect ) const {
+  // lower_right() is one-past-the-end, so we need to bump it
+  // back by one.
+  return this->upper_left().is_inside( rect ) &&
+         ( this->lower_right() - Delta{1_w, 1_h} )
+             .is_inside( rect );
+}
+
 Opt<int> Rect::rasterize( Coord coord ) {
   if( !coord.is_inside( *this ) ) return nullopt;
   return ( coord.y - y )._ * w._ + ( coord.x - x )._;
@@ -182,6 +190,18 @@ Coord operator-( Coord const& coord, Delta const& delta ) {
   return {coord.y - delta.h, coord.x - delta.w};
 }
 
+Rect operator+( Rect const& rect, Delta const& delta ) {
+  return {rect.x + delta.w, rect.y + delta.h, rect.w, rect.h};
+}
+
+Rect operator+( Delta const& delta, Rect const& rect ) {
+  return {rect.x + delta.w, rect.y + delta.h, rect.w, rect.h};
+}
+
+Rect operator-( Rect const& rect, Delta const& delta ) {
+  return {rect.x - delta.w, rect.y - delta.h, rect.w, rect.h};
+}
+
 ND Coord operator+( Coord const& coord, W w ) {
   return {coord.y, coord.x + w};
 }
@@ -229,6 +249,16 @@ ND Delta operator*( Scale const& scale, Delta const& delta ) {
   Delta res = delta;
   res *= scale;
   return res;
+}
+
+Rect operator*( Rect const& rect, Scale const& scale ) {
+  return Rect::from( rect.upper_left() * scale,
+                     rect.delta() * scale );
+}
+
+Rect operator*( Scale const& scale, Rect const& rect ) {
+  return Rect::from( rect.upper_left() * scale,
+                     rect.delta() * scale );
 }
 
 } // namespace rn

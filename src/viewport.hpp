@@ -33,6 +33,9 @@ public:
   // partially visible).
   Rect covered_tiles() const;
 
+  // Will give us a rect of world pixels covered by the viewport.
+  Rect covered_pixels() const;
+
   // This function will shift the viewport to make the tile
   // coordinate visible, but will avoid shifting if it is already
   // visible. If smooth == true then it will animate the motion
