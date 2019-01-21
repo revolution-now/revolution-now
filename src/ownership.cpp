@@ -10,11 +10,19 @@
 *
 *****************************************************************/
 #include "ownership.hpp"
+
+// Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "logging.hpp"
 #include "util.hpp"
 #include "world.hpp"
 
+// base-util
+#include "base-util/algo.hpp"
+#include "base-util/variant.hpp"
+
+// C++ standard library
 #include <unordered_map>
 #include <unordered_set>
 
@@ -120,9 +128,22 @@ void map_units( function<void( Unit& )> const& func ) {
 void destroy_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
   auto& unit = unit_from_id( id );
-  // FIXME: Do this check until we figure out how to deal with
-  // this situation.
-  CHECK( unit.cargo().items_of_type<UnitId>().size() == 0 );
+  // Recursively destroy any units in the cargo. We must get the
+  // list of units to destroy first because we don't want to
+  // destroy a cargo unit while iterating over the cargo.
+  vector<UnitId> cargo_units_to_destroy;
+  for( auto const& item : unit.cargo() ) {
+    // Check this until we know how to deal with other types of
+    // cargo.
+    GET_CHECK_VARIANT( cargo_id, item, UnitId const );
+    logger->info(
+        "{} being destroyed as a consequence of {} being "
+        "destroyed",
+        debug_string( unit_from_id( cargo_id ) ),
+        debug_string( unit_from_id( id ) ) );
+    cargo_units_to_destroy.push_back( cargo_id );
+  }
+  util::map_( destroy_unit, cargo_units_to_destroy );
   ownership_disown_unit( id );
   auto it = units.find( id );
   CHECK( it != units.end() );

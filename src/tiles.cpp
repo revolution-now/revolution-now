@@ -138,8 +138,8 @@ g_tile index_to_tile( int index ) {
 
 // void render_tile_map( std::string_view name ) {
 //  auto where = tile_maps.find( string( name ) );
-//  if( where == tile_maps.end() )
-//    DIE( "failed to find tile_map "s + string( name ) );
+//  CHECK( where != tile_maps.end(),
+//    "failed to find tile_map "s + string( name ) );
 //  auto tm = where->second;
 //  for( auto const& tile : tm.tiles )
 //    render_sprite_grid( index_to_tile( tile.tile ), tile.y,
@@ -148,8 +148,8 @@ g_tile index_to_tile( int index ) {
 
 // tile_map load_tile_map( char const* path ) {
 //  ifstream in( path );
-//  if( !in.good() )
-//    DIE( "failed to open file "s + string( path ) );
+//  CHECK( in.good(),
+//    "failed to open file "s + string( path ) );
 //
 //  tile_map tm;
 //

@@ -44,7 +44,7 @@ int CargoHold::slots_occupied() const {
     }
     else {
       occupied = 1;
-      DIE( "should not be here" );
+      SHOULD_NOT_BE_HERE;
     }
     total += occupied;
   }
@@ -72,7 +72,7 @@ void CargoHold::add( Cargo const& cargo ) {
     items_.emplace_back( *id );
   }
   else {
-    DIE( "should not be here" );
+    SHOULD_NOT_BE_HERE;
   }
 }
 

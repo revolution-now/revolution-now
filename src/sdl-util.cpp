@@ -98,8 +98,8 @@ void init_game() {
 }
 
 void init_sdl() {
-  if( ::SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
-    DIE( "sdl could not initialize" );
+  CHECK( ::SDL_Init( SDL_INIT_EVERYTHING ) >= 0,
+         "sdl could not initialize" );
 
   constexpr int frequency{44100};
   constexpr int chunksize{4096};
@@ -141,15 +141,15 @@ void create_window() {
                ::SDL_WINDOW_FULLSCREEN_DESKTOP;
 
   // auto fullscreen_mode = find_fullscreen_mode();
-  // if( !fullscreen_mode.w )
-  //  DIE( "cannot find appropriate fullscreen mode" );
+  // CHECK( fullscreen_mode.w,
+  //  "cannot find appropriate fullscreen mode" );
 
   auto dm = get_current_display_mode();
 
   g_window =
       ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
                           0, dm.w, dm.h, flags );
-  if( g_window == nullptr ) DIE( "failed to create window" );
+  CHECK( g_window != nullptr, "failed to create window" );
 
   //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );
 }
@@ -379,7 +379,7 @@ Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
 Texture& load_texture( const char* file ) {
   SDL_Surface* pTempSurface = IMG_Load( file );
-  if( pTempSurface == nullptr ) DIE( "failed to load image" );
+  CHECK( pTempSurface != nullptr, "failed to load image" );
   ::SDL_Texture* texture =
       SDL_CreateTextureFromSurface( g_renderer, pTempSurface );
   CHECK( texture != nullptr, "failed to create texture" );

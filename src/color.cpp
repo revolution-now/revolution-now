@@ -408,8 +408,7 @@ Opt<Color> Color::parse_from_hex( string_view hex ) {
 
 // A random color.
 Color Color::random() {
-  DIE( "this function needs to be more properly implemented "
-       "before usage." );
+  MUST_IMPROVE_IMPLEMENTATION_BEFORE_USE;
   // Seed with a real random value, if available
   random_device r;
 

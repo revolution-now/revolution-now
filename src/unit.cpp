@@ -107,9 +107,9 @@ void Unit::change_type( e_unit_type type ) {
 }
 
 string debug_string( Unit const& unit ) {
-  return fmt::format( "unit{}id: {}, points: {}, type: {}{}",
-                      "{", unit.id(), unit.movement_points(),
-                      unit.desc().name, "}" );
+  return fmt::format( "unit{{id: {}, nation: {}, type: \"{}\"}}",
+                      unit.id(), unit.nation(),
+                      unit.desc().name );
 }
 
 } // namespace rn

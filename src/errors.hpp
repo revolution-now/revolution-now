@@ -17,6 +17,7 @@
 
 // base-util
 #include "base-util/macros.hpp"
+#include "base-util/variant.hpp"
 
 // c++ standard library
 #include <memory>
@@ -29,16 +30,21 @@
 #define ID_( a ) a
 
 /****************************************************************
-**Error Checking Macros
+**Error Formatting Macros
 *****************************************************************/
 
-#define DIE( msg ) rn::die( __FILE__, __LINE__, msg )
+#define FATAL( msg ) rn::die( __FILE__, __LINE__, msg )
 
 #define SHOULD_NOT_BE_HERE \
-  DIE( "programmer error: should not be here" )
+  FATAL( "programmer error: should not be here" )
 
 #define NOT_IMPLEMENTED \
-  DIE( "programmer error: need to implement this" )
+  FATAL( "programmer error: need to implement this" )
+
+#define MUST_IMPROVE_IMPLEMENTATION_BEFORE_USE                \
+  FATAL(                                                      \
+      "the implementation of this function must be improved " \
+      "before use" )
 
 // This is used to wrap calls to fmt::format that want
 // compile-time format string checking. It assumes that the first
@@ -56,6 +62,10 @@ std::string check_msg( char const*        expr,
 
 } // namespace rn::detail
 
+/****************************************************************
+**Error Checking Macros
+*****************************************************************/
+
 // This CHECK macro should be used most of the time to do
 // assertions.
 //
@@ -63,9 +73,10 @@ std::string check_msg( char const*        expr,
 // once in case evaluating it either has side effects or is
 // expensive. Hopefully the implementation below conforms to
 // this.
-#define CHECK( a, ... )                                         \
-  if( !( a ) ) {                                                \
-    DIE( detail::check_msg( #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
+#define CHECK( a, ... )                                        \
+  if( !( a ) ) {                                               \
+    FATAL(                                                     \
+        detail::check_msg( #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
 
 // This takes care to only evaluate (b) once, since it may be
@@ -82,10 +93,10 @@ std::string check_msg( char const*        expr,
 //
 // The ID_ is to suppress warnings about parenthesis around
 // macro parameters.
-#define ASSIGN_CHECK_OPT( a, b )            \
-  auto STRING_JOIN( __x, __LINE__ ) = b;    \
-  if( !( STRING_JOIN( __x, __LINE__ ) ) )   \
-    DIE( TO_STRING( b ) " has no value." ); \
+#define ASSIGN_CHECK_OPT( a, b )              \
+  auto STRING_JOIN( __x, __LINE__ ) = b;      \
+  if( !( STRING_JOIN( __x, __LINE__ ) ) )     \
+    FATAL( TO_STRING( b ) " has no value." ); \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // Same as above but returns on failure instead of throwing. As
@@ -107,7 +118,25 @@ std::string check_msg( char const*        expr,
 // macro parameters.
 #define ASSIGN_CHECK( a, b ) \
   auto ID_( a ) = b;         \
-  if( !( a ) ) { DIE( TO_STRING( b ) " is false." ); }
+  if( !( a ) ) { FATAL( TO_STRING( b ) " is false." ); }
+
+// Here `expression` will be evaluated only once, so it can be an
+// expensive operation that yields a variant; if it yields a
+// temporary then that temporary will be kept alive for the
+// duration of the scope in which this macro is called. The
+// `type` can have a `const` on it if needed; in fact this will
+// be required if the `expression` yields a const value. If the
+// variant does not have the expected type then there will be a
+// check failure.
+#define GET_CHECK_VARIANT( dest, expression, type )            \
+  auto& STRING_JOIN( __x, __LINE__ ) = expression;             \
+  CHECK( ::util::holds<std::remove_cv_t<type>>(                \
+             STRING_JOIN( __x, __LINE__ ) ),                   \
+         "variant expected to be holding type `{}` but it is " \
+         "holding index {}",                                   \
+         #type, STRING_JOIN( __x, __LINE__ ).index() )         \
+  type& ID_( dest ) = std::get<std::remove_cv_t<type>>(        \
+      STRING_JOIN( __x, __LINE__ ) )
 
 /****************************************************************
 **Stack Trace Reporting
