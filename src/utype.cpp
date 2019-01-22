@@ -22,15 +22,18 @@ using namespace std;
 #define LOAD_UNIT_DESC( __name )                              \
   {                                                           \
     e_unit_type::__name, UnitDescriptor {                     \
-      units.__name.name, e_unit_type::__name, g_tile::__name, \
-          units.__name.nat_icon_front,                        \
-          units.__name.nat_icon_position, units.__name.boat,  \
-          units.__name.visibility,                            \
-          units.__name.movement_points,                       \
-          units.__name.attack_points,                         \
-          units.__name.defense_points, units.__name.on_death, \
-          units.__name.demoted, units.__name.cargo_slots,     \
-          units.__name.cargo_slots_occupies                   \
+      config_units.__name.name, e_unit_type::__name,          \
+          g_tile::__name, config_units.__name.nat_icon_front, \
+          config_units.__name.nat_icon_position,              \
+          config_units.__name.boat,                           \
+          config_units.__name.visibility,                     \
+          config_units.__name.movement_points,                \
+          config_units.__name.attack_points,                  \
+          config_units.__name.defense_points,                 \
+          config_units.__name.on_death,                       \
+          config_units.__name.demoted,                        \
+          config_units.__name.cargo_slots,                    \
+          config_units.__name.cargo_slots_occupies            \
     }                                                         \
   }
 
@@ -40,8 +43,6 @@ namespace {
 
 absl::flat_hash_map<e_unit_type, UnitDescriptor> const&
 unit_desc() {
-  auto const& units = config_units;
-
   static auto const desc = [] {
     absl::flat_hash_map<e_unit_type, UnitDescriptor> desc_{
         LOAD_UNIT_DESC( caravel ),       //

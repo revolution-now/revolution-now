@@ -28,12 +28,10 @@ struct TypedNumMinimal {
   ~TypedNumMinimal()          = default;
   constexpr explicit TypedNumMinimal( T n_ ) : _( n_ ) {}
   constexpr TypedNumMinimal(
-      TypedNumMinimal<T, Tag> const& other )
-    : _( other._ ) {}
+      TypedNumMinimal<T, Tag> const& other ) = default;
   constexpr TypedNumMinimal(
-      TypedNumMinimal<T, Tag>&& other ) noexcept
-    : _( other._ ) {}
-  TypedNumMinimal<T, Tag>& operator=(
+      TypedNumMinimal<T, Tag>&& other ) noexcept = default;
+  TypedNumMinimal<T, Tag>& operator              =(
       TypedNumMinimal<T, Tag> const& other ) {
     _ = other._;
     return *this;
