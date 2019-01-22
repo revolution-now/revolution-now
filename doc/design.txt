@@ -7,11 +7,18 @@ Menus
   There will be a menu bar at the top of the screen. The user,
   when the game is open for input, will be able to open a menu
   and select an item. Alternatively they can use Alt-<Key> and
-  the arrow keys to open a menus.
+  the arrow keys to open menus.
+
+  The menus that appear will generally depend on the state of the
+  game. For example, when the user enters the europe view an ad-
+  ditional menu might appear that allows the user to perform ac-
+  tions relevant there. This might supplement some buttons that
+  are already in that view.
 
   At some points in the game, such as when AI nations are making
   their moves, the menus will be off, in which case the menu bar
-  will be empty.
+  will be empty (perhaps with the exception of save/quit/pause;
+  this is yet to be decided).
 
   When the user clicks a top-level menu it will open and remain
   open even after releasing the mouse button. Hovering the mouse
@@ -19,37 +26,61 @@ Menus
   to be disabled. Clicking on a menu item will animate a brief
   flash. While the menu is open, the top-level menu name will be
   highlighted, and dragging the mouse over other top-level menu
-  items will open that particular menu.
+  items will open that particular menu without necessitating more
+  clicks.
 
-    * Selecting menu items may cause windows to open.
+    * Selecting menu items may cause windows to open, but the
+      consequences of this might have to be dealt with separately.
     * Some items might be disabled depending on general game state
     * If all items in a top-level menu are disabled then that
       menu will be hidden.
-    * If a user clicks outside of an open menu then menu will
-      close and the click will have a click-through behavior
-      where it will be resent through the planes.
+    * If a menu is open and the user clicks outside of all menu
+      UI items then then menu will close and the click will have
+      a click-through behavior where it will be resent through the
+      planes (still to be decided).
+    * There can be dividers between groupings of menu items.
+
+  There will be one "special" menu that is:
+
+    * Called "Revolopedia"
+    * Always visible
+    * Right justified
+    * Contains all the in-game documentation for the user to
+      browse.
 
   Implementation
   --------------
 
   Menus will occupy their own plane.
 
-  When a menu is opened it will decide then which menu items are
-  enabled and which are disabled by calling a callback for each
-  item. If all items in a top-level menu are disabled then the
-  menu will be hidden.
+  Each frame, the menu rendering code will call a callback for
+  each menu item to determine if it is enabled. If all items in a
+  top-level menu are disabled then the menu will be hidden.
+  Therefore, these callbacks should be very light weight, because
+  they will all be called on each frame.
 
   Every unique menu item (across all menus) will correspond to a
   unique enum value; the enum value name must follow a particular
   syntax:
 
-    <menu-name>__<menu-item>__<menu-item>...
+    <menu-name>__<menu-item>__<menu-item>... = G*10 + N
 
   where <menu-item> and <menu-name> must:
 
     * be a valid identifier
     * must have spaces replaced by _
     * must not have two consecutive spaces (underscores)
+
+  and where:
+
+    * G is a zero-based group id number
+    * N is in [0, 9]
+
+  When rendering the menu the items will grouped according to
+  their G number and groups will be visually separated by di-
+  viders. Hence there can be at most 10 items in a group. The N
+  numbers are there to ensure that each enum value has a unique
+  numerical value.
 
   Furthermore, the menu-name/item will be converted to title case
   unless there is at least one capital letter in them in which
@@ -58,18 +89,38 @@ Menus
   order of the top-level menu names will follow the order that
   they are first encountered in the list of enums.
 
+  At some future point there could be a mapping from enum value
+  to display string in the config files to e.g. localize or cus-
+  tomize the names, but initially the display names will be de-
+  rived from the enum names for simplicity.
+
   Example:
 
-    enum class e_menu_item {
-      game__save,
-      game__save_as,
-      game__load,
-      game__revolution,
-      game__exit,
+  constexpr int menu_item( int g, int n ) {
+    static_assert( n >=0 && n < 10 );
+    static_assert( g >= 0 );
+    return g*10 + n;
+  }
 
-      edit__copy,
-      edit__paste,
-      edit__ABC_DEF
+    enum class e_menu_item {
+      /********************************************************
+      **Game menu
+      *********************************************************/
+        game__save        = menu_item( /*g=*/0, /*n=*/0 ),
+        game__save_as     = menu_item( /*g=*/0, /*n=*/1 ),
+        game__load        = menu_item( /*g=*/0, /*n=*/2 ),
+        /*-----------*/
+        game__revolution  = menu_item( /*g=*/1, /*n=*/0 ),
+        /*-----------*/
+        game__retire      = menu_item( /*g=*/2, /*n=*/0 ),
+        game__exit        = menu_item( /*g=*/2, /*n=*/1 ),
+
+      /********************************************************
+      **Edit menu
+      *********************************************************/
+        edit__copy        = menu_item( /*g=*/0, /*n=*/0 ),
+        edit__paste,      = menu_item( /*g=*/0, /*n=*/1 ),
+        edit__ABC_DEF     = menu_item( /*g=*/0, /*n=*/2 )
     };
 
     +---------------------------------------------------------+
@@ -78,7 +129,10 @@ Menus
     | Save          |
     | Save As       |
     | Load          |
+    | ------------- |
     | Revolution    |
+    | ------------- |
+    | Retire        |
     | Exit          |
     +---------------+
 
@@ -110,7 +164,14 @@ Menus
                | animating_menu_click
 
   There will be a global function that can turn on/off all menus;
-  when this happens they will disappear.
+  when this happens the menus will disappear.
+
+  Rendering
+  ---------
+
+  There will be a shadow under open menus.
+
+  Hot-key letter of menu will be highlighted.
 
 Combat
 ======
