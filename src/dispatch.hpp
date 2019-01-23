@@ -32,10 +32,7 @@ using PlayerIntent = std::variant<
     // If unit is to physical move to another square.
     TravelAnalysis,
     // If the move is toward a foreign unit
-    CombatAnalysis
-    //// actions in current tile
-    // ProposedJobAnalysisResult>;
-    >;
+    CombatAnalysis>;
 
 Opt<PlayerIntent> player_intent( UnitId        id,
                                  Orders const& orders );

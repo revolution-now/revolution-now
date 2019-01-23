@@ -27,24 +27,6 @@ struct TypedNumMinimal {
   constexpr TypedNumMinimal() = default;
   ~TypedNumMinimal()          = default;
   constexpr explicit TypedNumMinimal( T n_ ) : _( n_ ) {}
-  constexpr TypedNumMinimal(
-      TypedNumMinimal<T, Tag> const& other ) = default;
-  constexpr TypedNumMinimal(
-      TypedNumMinimal<T, Tag>&& other ) noexcept = default;
-  TypedNumMinimal<T, Tag>& operator              =(
-      TypedNumMinimal<T, Tag> const& other ) {
-    _ = other._;
-    return *this;
-  }
-  TypedNumMinimal<T, Tag>& operator=(
-      TypedNumMinimal<T, Tag>&& other ) noexcept {
-    _ = other._;
-    return *this;
-  }
-  TypedNumMinimal<T, Tag>& operator=( T n ) {
-    _ = n;
-    return *this;
-  }
   bool operator==( TypedNumMinimal<T, Tag> other ) const {
     return _ == other._;
   }
