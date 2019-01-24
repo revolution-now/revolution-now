@@ -227,7 +227,7 @@ void find_max_tile_sizes() {
   // non-integer values, and so that represents a key constraint
   // here. Hence we won't generally achieve the ideal tile size,
   // but should come close to it.
-  constexpr double ideal_tile_size_at_1ft{.25}; // inches
+  constexpr double ideal_tile_size_at_1ft{.30}; // inches
   auto compute_viewer_distance = []( double monitor_size ) {
     // Determined empirically; viewer distance from screen seems
     // to scale linearly with screen size, down to a certain
