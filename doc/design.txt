@@ -40,13 +40,8 @@ Menus
       planes (still to be decided).
     * There can be dividers between groupings of menu items.
 
-  There will be one "special" menu that is:
-
-    * Called "Revolopedia"
-    * Always visible
-    * Right justified
-    * Contains all the in-game documentation for the user to
-      browse.
+  Most menus will be on the left side of the screen, but some may
+  be right justified, such as the Revolopedia menu.
 
   Implementation
   --------------
@@ -56,16 +51,16 @@ Menus
   Each frame, the menu rendering code will call a callback for
   each menu item to determine if it is enabled. If all items in a
   top-level menu are disabled then the menu will be hidden.
-  Therefore, these callbacks should be very light weight, because
+  Therefore, these callbacks should be very light-weight, because
   they will all be called on each frame.
 
   Every unique menu item (across all menus) will correspond to a
   unique enum value; the enum value name must follow a particular
   syntax:
 
-    <menu-name>__<menu-item>__<menu-item>... = G*10 + N
+    <menu-item>... = M*100 + G*10 + N
 
-  where <menu-item> and <menu-name> must:
+  where <menu-item> must:
 
     * be a valid identifier
     * must have spaces replaced by _
@@ -73,21 +68,26 @@ Menus
 
   and where:
 
-    * G is a zero-based group id number
+    * M is a zero-based menu id number and is equal to the value
+      of the corresoponding e_menu value
+    * G is a zero-based group id number.  A group defines a
+      collection of adjacent menu items between dividers.
     * N is in [0, 9]
 
   When rendering the menu the items will grouped according to
   their G number and groups will be visually separated by di-
   viders. Hence there can be at most 10 items in a group. The N
   numbers are there to ensure that each enum value has a unique
-  numerical value.
+  numerical value. The M number will determine in which top-level
+  menu the item appears.
 
   Furthermore, the menu-name/item will be converted to title case
   unless there is at least one capital letter in them in which
   case they will be kept as-is; therefore, most of them should be
-  all lowercase for automatical title-casing. When displayed, the
-  order of the top-level menu names will follow the order that
-  they are first encountered in the list of enums.
+  all lowercase for automatical title-casing.
+
+  When displayed, the order of the top-level menu names will
+  follow the order that they appear in the e_menu enum.
 
   At some future point there could be a mapping from enum value
   to display string in the config files to e.g. localize or cus-
@@ -96,35 +96,43 @@ Menus
 
   Example:
 
-  constexpr int menu_item( int g, int n ) {
-    static_assert( n >=0 && n < 10 );
-    static_assert( g >= 0 );
-    return g*10 + n;
-  }
+    enum class e_menu {
+        game = 0,
+        edit = 1
+    };
+
+    constexpr int menu_item( e_menu menu, int g, int n ) {
+      static_assert( n >=0 && n < 10 );
+      static_assert( g >= 0 );
+      return menu._value*100 + g*10 + n;
+    }
+
+    #define MENU_ITEM( menu, item, group, idx ) \
+      menu##__##item = menu_item( e_menu::menu, group, idx )
 
     enum class e_menu_item {
       /********************************************************
       **Game menu
       *********************************************************/
-        game__save        = menu_item( /*g=*/0, /*n=*/0 ),
-        game__save_as     = menu_item( /*g=*/0, /*n=*/1 ),
-        game__load        = menu_item( /*g=*/0, /*n=*/2 ),
+        MENU_ITEM( game, save,    /*g=*/0, /*n=*/0 ),
+        MENU_ITEM( game, save_as, /*g=*/0, /*n=*/1 ),
+        MENU_ITEM( game, load,    /*g=*/0, /*n=*/2 ),
         /*-----------*/
-        game__revolution  = menu_item( /*g=*/1, /*n=*/0 ),
+        MENU_ITEM( game, revolution, /*g=/1, /*n=*/0 ),
         /*-----------*/
-        game__retire      = menu_item( /*g=*/2, /*n=*/0 ),
-        game__exit        = menu_item( /*g=*/2, /*n=*/1 ),
+        MENU_ITEM( game, retire, /*g=*/2, /*n=*/0 ),
+        MENU_ITEM( game, exit,   /*g=*/2, /*n=*/1 ),
 
       /********************************************************
       **Edit menu
       *********************************************************/
-        edit__copy        = menu_item( /*g=*/0, /*n=*/0 ),
-        edit__paste,      = menu_item( /*g=*/0, /*n=*/1 ),
-        edit__ABC_DEF     = menu_item( /*g=*/0, /*n=*/2 )
+        MENU_ITEM( edit, copy,    /*g=*/0, /*n=*/0 ),
+        MENU_ITEM( edit, paste,   /*g=*/0, /*n=*/1 ),
+        MENU_ITEM( edit, ABC_DEF, /*g=*/0, /*n=*/2 )
     };
 
     +---------------------------------------------------------+
-    | >Game<  Edit                                            |
+    | >Game<  Edit                                Revolopedia |
     +---------------------------------------------------------+
     | Save          |
     | Save As       |
@@ -136,23 +144,37 @@ Menus
     | Exit          |
     +---------------+
 
+    // By default a menu will be left justified, unless it is in
+    // here in which case it is right justified.
+    some_set<e_menu> right_justified;
+
   In order to avoid all menu handler code going into the menu
   module, it will be possible for modules to register handlers
   for menu items. This will consist of a void(void) function to
   handle a click on the menu item and a bool(void) function to
   return if the menu item should be enabled or disabled.
 
-    MENU_HANDLER( game__save, is_enabled_func, handler_func )
+    MENU_ITEM_HANDLER( game, save, is_enabled_func, handler_func );
 
   will roughly expand to:
 
-      STARTUP() {
-        register_handler(
-          e_menu_item::game__save,
-          handler_func,
-          is_enabled_func
-        );
-      }
+    STARTUP() {
+      register_menu_item_handler(
+        e_menu_item::game__save,
+        handler_func,
+        is_enabled_func
+      );
+    }
+
+  One can also register a handler for a menu that specifies a
+  bool(void) callback that returns whether the menu is visible
+  (or enabled; same thing here):
+
+    MENU_HANDLERS( game, is_enabled_func );
+
+  If a menu has no handler then it will assume default values,
+  such as e.g. always visible (unless overridden by the corresop-
+  nding global setting).
 
   The menu plane must hold state, which can be any of the follow-
   ing:
@@ -165,6 +187,18 @@ Menus
 
   There will be a global function that can turn on/off all menus;
   when this happens the menus will disappear.
+
+  Initialization
+  --------------
+
+  There will be an initialization function call init_menus which
+  must be done after SDL is initialized.  will do the following:
+
+    * Will check that all e_menu_item values have a handler
+      registered.
+    * Will render each menu items in (enabled|disabled|selected)
+      states.
+    * Will render each menu name in (enabled|selected) states.
 
   Rendering
   ---------
