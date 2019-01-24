@@ -21,7 +21,7 @@ privateer {
   visibility:            1
   movement_points:       8
   attack_points:         8
-  defense_points:        3
+  defense_points:        8
   on_death:              naval
   demoted:               null
   cargo_slots:           2
