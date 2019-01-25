@@ -102,6 +102,7 @@ Menus
     };
 
     constexpr int menu_item( e_menu menu, int g, int n ) {
+      static_assert( menu._value >= 0 );
       static_assert( n >=0 && n < 10 );
       static_assert( g >= 0 );
       return menu._value*100 + g*10 + n;
@@ -181,9 +182,18 @@ Menus
 
     menu_state = menus_off
                | menus_closed
-               | animating_menu_open
                | menu_open
-               | animating_menu_click
+
+  If the state is menu_open then the animation state could be:
+
+    menu_animation_state = none
+                         | opening
+                         | switching
+                         | clicking
+                         | closing
+
+  Each of the above will be structs that may hold info specific
+  to that state.
 
   There will be a global function that can turn on/off all menus;
   when this happens the menus will disappear.
@@ -206,6 +216,12 @@ Menus
   There will be a shadow under open menus.
 
   Hot-key letter of menu will be highlighted.
+
+  Determining Menu State
+  ----------------------
+
+  The callback functions for each menu item will determine the
+  menu state. That mechanism will work as follows:
 
 Combat
 ======
