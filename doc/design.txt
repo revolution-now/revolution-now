@@ -29,6 +29,12 @@ Menus
   items will open that particular menu without necessitating more
   clicks.
 
+  Dragging: the user can also interact with the menus in the
+  "dragging style". In this way, the user selects a top-level
+  menu and keeps the mouse button held down, then moves to a menu
+  item and releases the button. Upon release of the button the
+  menu item will be selected.
+
     * Selecting menu items may cause windows to open, but the
       consequences of this might have to be dealt with separately.
     * Some items might be disabled depending on general game state
@@ -55,81 +61,92 @@ Menus
   they will all be called on each frame.
 
   Every unique menu item (across all menus) will correspond to a
-  unique enum value; the enum value name must follow a particular
-  syntax:
+  unique enum value and MenuItem value:
 
-    <menu-item>... = M*100 + G*10 + N
+  enum class e_menu {
+    ...
+  };
 
-  where <menu-item> must:
+  struct Menu {
+    std::string name;
+    bool right_side;
+    char hot_key;
+  };
 
-    * be a valid identifier
-    * must have spaces replaced by _
-    * must not have two consecutive spaces (underscores)
+  absl::flat_hash_map<e_menu, Menu> g_menus{
+    { ... }
+  };
 
-  and where:
+  // menu.hpp
+  enum class e_menu_item {
+    ...
+  };
 
-    * M is a zero-based menu id number and is equal to the value
-      of the corresoponding e_menu value
-    * G is a zero-based group id number.  A group defines a
-      collection of adjacent menu items between dividers.
-    * N is in [0, 9]
+  struct MenuDivider {};
 
-  When rendering the menu the items will grouped according to
-  their G number and groups will be visually separated by di-
-  viders. Hence there can be at most 10 items in a group. The N
-  numbers are there to ensure that each enum value has a unique
-  numerical value. The M number will determine in which top-level
-  menu the item appears.
+  // menu.cpp
+  struct MenuClickable {
+    e_menu_item item;
+    std::string display_name;
+    std::function<void(void)> on_click;
+    std::function<bool(void)> enabled;
+  };
 
-  Furthermore, the menu-name/item will be converted to title case
-  unless there is at least one capital letter in them in which
-  case they will be kept as-is; therefore, most of them should be
-  all lowercase for automatical title-casing.
+  using Item = std::variant<MenuDivider, MenuClickable>;
 
-  When displayed, the order of the top-level menu names will
-  follow the order that they appear in the e_menu enum.
+  absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_items{
+    { ... }
+  };
 
-  At some future point there could be a mapping from enum value
-  to display string in the config files to e.g. localize or cus-
-  tomize the names, but initially the display names will be de-
-  rived from the enum names for simplicity.
+  absl::flat_hash_map<e_menu_item, Ref<MenuClickable>> g_menu_items{
+    { ... }
+  };
+
+  When rendering the menu the items they will be separated into
+  groups visually, separated by dividers whenever a MenuDivider
+  is encountered. When displayed, the order of the top-level menu
+  names will follow the order that they appear in the e_menu
+  enum.
 
   Example:
 
     enum class e_menu {
-        game = 0,
-        edit = 1
+      game = 0,
+      edit = 1
     };
 
-    constexpr int menu_item( e_menu menu, int g, int n ) {
-      static_assert( menu._value >= 0 );
-      static_assert( n >=0 && n < 10 );
-      static_assert( g >= 0 );
-      return menu._value*100 + g*10 + n;
-    }
-
-    #define MENU_ITEM( menu, item, group, idx ) \
-      menu##__##item = menu_item( e_menu::menu, group, idx )
+    absl::flat_hash_map<e_menu, Menu> g_menus{
+      { e_menu::game,  { "Game",        false, 'G' }},
+      { e_menu::edit,  { "Edit",        false, 'E' }},
+      { e_menu::pedia, { "Revolopedia", true,  'R' }}
+    };
 
     enum class e_menu_item {
-      /********************************************************
-      **Game menu
-      *********************************************************/
-        MENU_ITEM( game, save,    /*g=*/0, /*n=*/0 ),
-        MENU_ITEM( game, save_as, /*g=*/0, /*n=*/1 ),
-        MENU_ITEM( game, load,    /*g=*/0, /*n=*/2 ),
-        /*-----------*/
-        MENU_ITEM( game, revolution, /*g=/1, /*n=*/0 ),
-        /*-----------*/
-        MENU_ITEM( game, retire, /*g=*/2, /*n=*/0 ),
-        MENU_ITEM( game, exit,   /*g=*/2, /*n=*/1 ),
+      save_game,
+      save_as_game,
+      load_game,
+      revolution,
+      retire,
+      exit,
+      copy,
+      paste
+    };
 
-      /********************************************************
-      **Edit menu
-      *********************************************************/
-        MENU_ITEM( edit, copy,    /*g=*/0, /*n=*/0 ),
-        MENU_ITEM( edit, paste,   /*g=*/0, /*n=*/1 ),
-        MENU_ITEM( edit, ABC_DEF, /*g=*/0, /*n=*/2 )
+    absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_items{
+      {e_menu::game,{
+        MenuClickable{ e_menu_item::save_game,    "Save"       },
+        MenuClickable{ e_menu_item::save_as_game, "Save As"    },
+        MenuClickable{ e_menu_item::load_game,    "Load"       },
+        MenuDivider,
+        MenuClickable{ e_menu_item::revolution,   "Revolution" },
+        MenuClickable{ e_menu_item::retire,       "Retire"     },
+        MenuDivider,
+        MenuClickable{ e_menu_item::exit,         "Exit"       }
+      }},
+      {e_menu::edit,{
+        MenuClickable{ e_menu_item::copy,         "Copy"       },
+        MenuClickable{ e_menu_item::paste,        "Paste"      }
+      }}
     };
 
     +---------------------------------------------------------+
@@ -144,10 +161,6 @@ Menus
     | Retire        |
     | Exit          |
     +---------------+
-
-    // By default a menu will be left justified, unless it is in
-    // here in which case it is right justified.
-    some_set<e_menu> right_justified;
 
   In order to avoid all menu handler code going into the menu
   module, it will be possible for modules to register handlers
