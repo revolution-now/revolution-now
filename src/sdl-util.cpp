@@ -18,6 +18,7 @@
 #include "globals.hpp"
 #include "image.hpp"
 #include "logging.hpp"
+#include "menu.hpp"
 #include "plane.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"
@@ -95,6 +96,8 @@ void init_game() {
   load_all_sfx();
   logger->info( "Loading images" );
   load_all_images();
+  logger->info( "Initializing menus" );
+  initialize_menus();
 }
 
 void init_sdl() {
@@ -396,6 +399,7 @@ Texture& load_texture( fs::path const& path ) {
 // even if their corresponding initialization routines were
 // not successfully run.
 void cleanup() {
+  cleanup_menus();
   destroy_planes();
   unload_fonts();
   cleanup_sound();
@@ -701,6 +705,11 @@ void render_fill_rect( OptCRef<Texture> tx, Color color,
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
+}
+
+void render_fill_rect( Texture const& tx, Color color ) {
+  render_fill_rect( tx, color,
+                    Rect::from( Coord{}, texture_delta( tx ) ) );
 }
 
 void render_line( Texture const& tx, Color color, Coord start,

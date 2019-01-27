@@ -153,5 +153,6 @@ void render_rect( OptCRef<Texture> tx, Color color,
                   Rect const& rect );
 void render_fill_rect( OptCRef<Texture> tx, Color color,
                        Rect const& rect );
+void render_fill_rect( Texture const& tx, Color color );
 
 } // namespace rn

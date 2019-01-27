@@ -12,7 +12,13 @@
 
 #include "core-config.hpp"
 
+// base-util
+#include "base-util/variant.hpp"
+
 // Scelta
 #include <scelta.hpp>
+
+// C++ standard library
+#include <variant>
 
 namespace rn {} // namespace rn
