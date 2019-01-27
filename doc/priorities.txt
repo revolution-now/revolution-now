@@ -4,10 +4,13 @@ Plan
 
 1) Add menus
 2) Add disband command
-2) Fix handling of multiple units on a square with
+3) Fix handling of multiple units on a square with
    rendering and combat.
-3) Finish ship combat
-3) Implement mouse selection of units to e.g. activate.
+4) Finish ship combat
+5) Implement mouse selection of units to e.g. activate.
+6) Add a `scale` module to handle all quantities that
+   depend on the rendering scale, and allow dynamic
+   changes to it.  Also try to fix non-fullscreen mode.
 
 ========================================================
 Long Term Plan
