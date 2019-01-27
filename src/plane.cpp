@@ -14,6 +14,7 @@
 #include "aliases.hpp"
 #include "image.hpp"
 #include "logging.hpp"
+#include "menu.hpp"
 #include "render.hpp"
 #include "window.hpp"
 
@@ -91,7 +92,7 @@ void initialize_planes() {
   // plane( e_plane::europe ).reset( europe_plane() );
   plane( e_plane::effects ).reset( effects_plane() );
   plane( e_plane::window ).reset( window_plane() );
-  // plane( e_plane::menu ).reset( menu_plane() );
+  plane( e_plane::menu ).reset( menu_plane() );
   // plane( e_plane::console ).reset( console_plane() );
 
   // No plane must be null, they must all point to a valid Plane

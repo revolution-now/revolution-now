@@ -16,6 +16,8 @@
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "globals.hpp"
+#include "logging.hpp"
+#include "plane.hpp"
 #include "sdl-util.hpp"
 #include "variant.hpp"
 
@@ -137,11 +139,21 @@ Texture menu_bar_tx;
 // the same size though.
 absl::flat_hash_map<e_menu, Texture> g_dividers;
 
-auto background_active   = config_palette.yellow.sat1.lum11;
-auto background_inactive = config_palette.orange.sat0.lum3;
-auto foreground_active   = config_palette.orange.sat0.lum2;
-auto foreground_inactive = config_palette.orange.sat1.lum11;
-auto foreground_disabled = config_palette.grey.n44;
+auto background_active = [] {
+  return config_palette.yellow.sat1.lum11;
+};
+auto background_inactive = [] {
+  return config_palette.orange.sat0.lum3;
+};
+auto foreground_active = [] {
+  return config_palette.orange.sat0.lum2;
+};
+auto foreground_inactive = [] {
+  return config_palette.orange.sat1.lum11;
+};
+auto foreground_disabled = [] {
+  return config_palette.grey.n44;
+};
 
 Delta compute_menus_delta() {
   Delta res;
@@ -163,17 +175,18 @@ Texture create_menu_bar_texture() {
 
 ItemTextures render_menu_element( string const&  s,
                                   optional<char> hot_key ) {
+  logger->info( "rendering `{}`", s );
   ItemTextures res;
   // TODO
   (void)hot_key;
-  res.normal = render_text_line_shadow( fonts::standard,
-                                        foreground_inactive, s );
+  res.normal = render_text_line_shadow(
+      fonts::standard, foreground_inactive(), s );
 
   res.highlighted = render_text_line_shadow(
-      fonts::standard, foreground_active, s );
+      fonts::standard, foreground_active(), s );
 
   res.disabled = render_text_line_shadow(
-      fonts::standard, foreground_disabled, s );
+      fonts::standard, foreground_disabled(), s );
 
   return res;
 }
@@ -198,7 +211,7 @@ Texture render_divider( e_menu menu ) {
   Texture res   = create_texture( delta );
   clear_texture_transparent( res );
   // A divider is never highlighted.
-  Color color = foreground_inactive;
+  Color color = foreground_inactive();
   render_line( res, color, Coord{} + delta.h / 2 + 2_w,
                {delta.w - 4_w, 0_h} );
   return res;
@@ -208,7 +221,7 @@ Texture render_item_background( e_menu menu, bool highlight ) {
   auto    delta = compute_menu_items_delta( menu );
   Texture res   = create_texture( delta );
   auto    color =
-      highlight ? background_active : background_inactive;
+      highlight ? background_active() : background_inactive();
   fill_texture( res, color );
   return res;
 }
@@ -216,10 +229,11 @@ Texture render_item_background( e_menu menu, bool highlight ) {
 Texture render_menu_name_background( e_menu menu,
                                      bool   highlight ) {
   CHECK( g_menu_rendered.contains( menu ) );
+  CHECK( g_menu_rendered[menu].name.normal );
   auto    delta = g_menu_rendered[menu].name.normal.size();
   Texture res   = create_texture( delta );
   auto    color =
-      highlight ? background_active : background_inactive;
+      highlight ? background_active() : background_inactive();
   fill_texture( res, color );
   return res;
 }
@@ -232,10 +246,10 @@ Texture create_whole_menu_background( e_menu menu ) {
   return create_texture( delta );
 }
 
-Opt<e_menu> open_menu() { return e_menu::game; }
+Opt<e_menu> open_menu() { return e_menu::view; }
 
 Opt<e_menu_item> selected_item() {
-  auto res = e_menu_item::exit;
+  auto res = e_menu_item::zoom_out;
   CHECK( g_item_to_menu[res] == open_menu() );
   return res;
 }
@@ -280,7 +294,7 @@ Texture const& render_open_menu( e_menu menu ) {
 
 void render_menu_bar() {
   CHECK( menu_bar_tx );
-  fill_texture( menu_bar_tx, background_inactive );
+  fill_texture( menu_bar_tx, background_inactive() );
   Coord pos{};
   pos += 2_w;
   for( auto menu : values<e_menu> ) {
@@ -297,7 +311,7 @@ void render_menu_bar() {
             : &textures.menu_background_normal;
     copy_texture( *background, menu_bar_tx, pos );
     copy_texture( *from, menu_bar_tx, pos );
-    pos += from->size().w + 4_w;
+    pos += from->size().w + 10_w;
   }
 }
 
@@ -324,7 +338,7 @@ void render_menus( Texture const& tx ) {
     }
     auto const& textures = g_menu_rendered[menu];
     pos += textures.menu_background_normal.size().w;
-    pos += 4_w;
+    pos += 10_w;
   }
 }
 
@@ -397,16 +411,17 @@ void initialize_menus() {
         g_menu_items[menu_item]->name, nullopt );
 
   for( auto menu : values<e_menu> ) {
-    g_menu_rendered[menu] = {
-        render_divider( menu ),
-        render_item_background( menu, /*highlight=*/false ),
-        render_item_background( menu, /*highlight=*/true ),
-        render_menu_element( g_menus[menu].name,
-                             g_menus[menu].hot_key ),
-        create_whole_menu_background( menu ),
-        {},
-        {}};
-    g_menu_rendered[menu].menu_background_highlight =
+    g_menu_rendered[menu]         = {};
+    g_menu_rendered[menu].divider = render_divider( menu );
+    g_menu_rendered[menu].item_background_normal =
+        render_item_background( menu, /*hightlight=*/false );
+    g_menu_rendered[menu].item_background_highlight =
+        render_item_background( menu, /*hightlight=*/true );
+    g_menu_rendered[menu].name = render_menu_element(
+        g_menus[menu].name, g_menus[menu].hot_key );
+    g_menu_rendered[menu].whole_menu_background =
+        create_whole_menu_background( menu );
+    g_menu_rendered[menu].menu_background_normal =
         render_menu_name_background( menu, /*highlight=*/false );
     g_menu_rendered[menu].menu_background_highlight =
         render_menu_name_background( menu, /*highlight=*/true );
@@ -433,5 +448,25 @@ MENU_ITEM_HANDLER( restore_zoom, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( sentry, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( fortify, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( units_help, empty_handler, enabled_true );
+
+/****************************************************************
+** The Menu Plane
+*****************************************************************/
+struct MenuPlane : public Plane {
+  MenuPlane() = default;
+  bool enabled() const override { return true; }
+  bool covers_screen() const override { return false; }
+  void draw( Texture const& tx ) const override {
+    clear_texture_transparent( tx );
+    render_menus( tx );
+  }
+  // bool input( input::event_t const& event ) override {
+  //  return wm.input( event );
+  //}
+};
+
+MenuPlane g_menu_plane;
+
+Plane* menu_plane() { return &g_menu_plane; }
 
 } // namespace rn

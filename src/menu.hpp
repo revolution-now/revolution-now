@@ -70,4 +70,7 @@ void register_menu_item_handler(
 void initialize_menus();
 void cleanup_menus();
 
+struct Plane;
+Plane* menu_plane();
+
 } // namespace rn
