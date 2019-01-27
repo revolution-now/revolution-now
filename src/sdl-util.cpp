@@ -707,7 +707,7 @@ void render_fill_rect( OptCRef<Texture> tx, Color color,
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
 }
 
-void render_fill_rect( Texture const& tx, Color color ) {
+void fill_texture( Texture const& tx, Color color ) {
   render_fill_rect( tx, color,
                     Rect::from( Coord{}, texture_delta( tx ) ) );
 }

@@ -136,6 +136,8 @@ void grab_screen( fs::path const& file );
 void clear_texture_black( Texture const& tx );
 void clear_texture_transparent( Texture const& tx );
 
+void fill_texture( Texture const& tx, Color color );
+
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
                               Uint32           pixel );
 ::SDL_Color to_SDL( Color color );
@@ -153,6 +155,5 @@ void render_rect( OptCRef<Texture> tx, Color color,
                   Rect const& rect );
 void render_fill_rect( OptCRef<Texture> tx, Color color,
                        Rect const& rect );
-void render_fill_rect( Texture const& tx, Color color );
 
 } // namespace rn

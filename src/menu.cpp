@@ -15,6 +15,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
+#include "globals.hpp"
 #include "sdl-util.hpp"
 #include "variant.hpp"
 
@@ -122,9 +123,13 @@ struct MenuTextures {
   Texture      item_background_highlight;
   ItemTextures name;
   Texture      whole_menu_background;
+  Texture      menu_background_normal;
+  Texture      menu_background_highlight;
 };
 
 absl::flat_hash_map<e_menu, MenuTextures> g_menu_rendered;
+
+Texture menu_bar_tx;
 
 // Each menu may have a different width depending on the sizes of
 // the elements inside of it, so we will render different sized
@@ -137,6 +142,24 @@ auto background_inactive = config_palette.orange.sat0.lum3;
 auto foreground_active   = config_palette.orange.sat0.lum2;
 auto foreground_inactive = config_palette.orange.sat1.lum11;
 auto foreground_disabled = config_palette.grey.n44;
+
+Delta compute_menus_delta() {
+  Delta res;
+  for( auto menu : values<e_menu> ) {
+    CHECK( g_menu_rendered.contains( menu ) );
+    auto const& textures = g_menu_rendered[menu];
+    CHECK( textures.name.normal );
+    res = res.uni0n( textures.name.normal.size() );
+  }
+  return res;
+}
+
+Texture create_menu_bar_texture() {
+  auto  delta_screen = logical_screen_pixel_dimensions();
+  auto  delta_menus  = compute_menus_delta();
+  Delta res{delta_screen.w, delta_menus.h};
+  return create_texture( res );
+}
 
 ItemTextures render_menu_element( string const&  s,
                                   optional<char> hot_key ) {
@@ -186,7 +209,18 @@ Texture render_item_background( e_menu menu, bool highlight ) {
   Texture res   = create_texture( delta );
   auto    color =
       highlight ? background_active : background_inactive;
-  render_fill_rect( res, color );
+  fill_texture( res, color );
+  return res;
+}
+
+Texture render_menu_name_background( e_menu menu,
+                                     bool   highlight ) {
+  CHECK( g_menu_rendered.contains( menu ) );
+  auto    delta = g_menu_rendered[menu].name.normal.size();
+  Texture res   = create_texture( delta );
+  auto    color =
+      highlight ? background_active : background_inactive;
+  fill_texture( res, color );
   return res;
 }
 
@@ -198,7 +232,101 @@ Texture create_whole_menu_background( e_menu menu ) {
   return create_texture( delta );
 }
 
+Opt<e_menu> open_menu() { return e_menu::game; }
+
+Opt<e_menu_item> selected_item() {
+  auto res = e_menu_item::exit;
+  CHECK( g_item_to_menu[res] == open_menu() );
+  return res;
+}
+
+Texture const& render_open_menu( e_menu menu ) {
+  CHECK( g_menu_rendered.contains( menu ) );
+  auto const& textures = g_menu_rendered[menu];
+  auto&       dst      = textures.whole_menu_background;
+  Coord       pos{};
+  H           height = textures.item_background_normal.size().h;
+  for( auto const& item_desc : g_menu_def[menu] ) {
+    auto matcher = scelta::match(
+        [&]( MenuDivider ) {
+          copy_texture( textures.item_background_normal, dst,
+                        pos );
+          copy_texture( textures.divider, dst, pos );
+        },
+        [&]( MenuClickable const& clickable ) {
+          auto const& desc = g_menu_items[clickable.item];
+          auto const& rendered =
+              g_menu_item_rendered[clickable.item];
+          Texture const* from =
+              !desc->callbacks.enabled()
+                  ? &rendered.disabled
+                  : ( clickable.item == selected_item() )
+                        ? &rendered.highlighted
+                        : &rendered.normal;
+          Texture const* background =
+              ( clickable.item == selected_item() )
+                  ? &textures.item_background_highlight
+                  : &textures.item_background_normal;
+          copy_texture( *background, dst, pos );
+          copy_texture( *from, dst, pos );
+        } );
+
+    matcher( item_desc );
+    pos += height;
+  }
+
+  return dst;
+}
+
+void render_menu_bar() {
+  CHECK( menu_bar_tx );
+  fill_texture( menu_bar_tx, background_inactive );
+  Coord pos{};
+  pos += 2_w;
+  for( auto menu : values<e_menu> ) {
+    // TODO: is menu visible
+    CHECK( g_menu_rendered.contains( menu ) );
+    auto const& textures = g_menu_rendered[menu];
+
+    Texture const* from = ( menu == open_menu() )
+                              ? &textures.name.highlighted
+                              : &textures.name.normal;
+    Texture const* background =
+        ( menu == open_menu() )
+            ? &textures.menu_background_highlight
+            : &textures.menu_background_normal;
+    copy_texture( *background, menu_bar_tx, pos );
+    copy_texture( *from, menu_bar_tx, pos );
+    pos += from->size().w + 4_w;
+  }
+}
+
+void display_menu_bar_tx( Texture const& tx ) {
+  render_menu_bar();
+  CHECK( tx.size().w == menu_bar_tx.size().w );
+  copy_texture( menu_bar_tx, tx, Coord{} );
+}
+
 } // namespace
+
+void render_menus( Texture const& tx ) {
+  display_menu_bar_tx( tx );
+  if( !open_menu().has_value() ) return;
+  Coord pos = Coord{} + menu_bar_tx.size().h;
+  pos += 2_w;
+  for( auto menu : values<e_menu> ) {
+    // TODO: is menu visible
+    CHECK( g_menu_rendered.contains( menu ) );
+    if( menu == open_menu() ) {
+      auto const& open = render_open_menu( menu );
+      copy_texture( open, tx, pos );
+      break;
+    }
+    auto const& textures = g_menu_rendered[menu];
+    pos += textures.menu_background_normal.size().w;
+    pos += 4_w;
+  }
+}
 
 void register_menu_item_handler(
     e_menu_item                        item,
@@ -275,10 +403,16 @@ void initialize_menus() {
         render_item_background( menu, /*highlight=*/true ),
         render_menu_element( g_menus[menu].name,
                              g_menus[menu].hot_key ),
-        create_whole_menu_background( menu )};
+        create_whole_menu_background( menu ),
+        {},
+        {}};
+    g_menu_rendered[menu].menu_background_highlight =
+        render_menu_name_background( menu, /*highlight=*/false );
+    g_menu_rendered[menu].menu_background_highlight =
+        render_menu_name_background( menu, /*highlight=*/true );
   }
 
-  // Render dividers
+  menu_bar_tx = create_menu_bar_texture();
 }
 
 void cleanup_menus() {

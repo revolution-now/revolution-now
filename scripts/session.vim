@@ -8,6 +8,7 @@ let s:stems = [
   \ 'src/globals',
   \ 'src/sdl-util',
   \ 'src/plane',
+  \ 'src/menu',
   \ 'src/window',
   \ 'src/geo-types',
   \ 'src/nation',
