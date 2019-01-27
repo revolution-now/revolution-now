@@ -31,3 +31,9 @@
 [submodule "assets/art"]
 	path = assets/art
 	url = ../../dpacbach/rn-art.git
+[submodule "extern/scelta"]
+	path = extern/scelta
+	url = ../../dpacbach/scelta.git
+[submodule "extern/vrm_cmake"]
+	path = extern/vrm_cmake
+	url = ../../dpacbach/vrm_cmake.git

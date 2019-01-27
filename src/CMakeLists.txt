@@ -18,6 +18,7 @@ target_link_libraries(
     better-enums::better-enums
     fmt::fmt
     observer-ptr::observer-ptr
+    scelta::headers
     spdlog::spdlog
     ucl
     ${SDL2_LIBRARY}

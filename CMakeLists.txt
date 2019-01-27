@@ -13,8 +13,9 @@ project(
     LANGUAGES CXX
 )
 
-set( CMAKE_MODULE_PATH
-   ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/" )
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+    "${CMAKE_SOURCE_DIR}/cmake/"
+    "${CMAKE_SOURCE_DIR}/extern/vrm_cmake/cmake" )
 
 include( cmake/generic.cmake )
 include( cmake/sdl2-helper.cmake )
@@ -46,6 +47,7 @@ add_subdirectory( extern/libucl        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/debug_assert  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/observer-ptr  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/better-enums  EXCLUDE_FROM_ALL )
+add_subdirectory( extern/scelta        EXCLUDE_FROM_ALL )
 
 # === global settings =============================================
 
