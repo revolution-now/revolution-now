@@ -18,7 +18,8 @@ Menus
   At some points in the game, such as when AI nations are making
   their moves, the menus will be off, in which case the menu bar
   will be empty (perhaps with the exception of save/quit/pause;
-  this is yet to be decided).
+  this is yet to be decided). If all menus are off then the menu
+  bar will disappear, possibly with a sliding animation.
 
   When the user clicks a top-level menu it will open and remain
   open even after releasing the mouse button. Hovering the mouse
@@ -60,8 +61,7 @@ Menus
   Therefore, these callbacks should be very light-weight, because
   they will all be called on each frame.
 
-  Every unique menu item (across all menus) will correspond to a
-  unique enum value and MenuItem value:
+  Each top-level menu will correspond to an (e_menu, Menu) pair:
 
   enum class e_menu {
     ...
@@ -73,9 +73,13 @@ Menus
     char hot_key;
   };
 
+  // maybe a vector would suffice here
   absl::flat_hash_map<e_menu, Menu> g_menus{
     { ... }
   };
+
+  Every unique menu item (across all menus) will correspond to a
+  unique enum value and MenuItem value:
 
   // menu.hpp
   enum class e_menu_item {
@@ -92,8 +96,9 @@ Menus
     std::function<bool(void)> enabled;
   };
 
-  using Item = std::variant<MenuDivider, MenuClickable>;
+  using MenuItem = std::variant<MenuDivider, MenuClickable>;
 
+  // Owns MenuItem's
   absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_items{
     { ... }
   };
@@ -111,8 +116,8 @@ Menus
   Example:
 
     enum class e_menu {
-      game = 0,
-      edit = 1
+      game,
+      edit
     };
 
     absl::flat_hash_map<e_menu, Menu> g_menus{
@@ -174,7 +179,7 @@ Menus
 
     STARTUP() {
       register_menu_item_handler(
-        e_menu_item::game__save,
+        e_menu_item::save_game,
         handler_func,
         is_enabled_func
       );
@@ -219,9 +224,13 @@ Menus
 
     * Will check that all e_menu_item values have a handler
       registered.
+    * Will check that all menu items are contained in some e_menu
+    * Will check that there are not multiple registrations for
+      the same menu item.
     * Will render each menu items in (enabled|disabled|selected)
       states.
     * Will render each menu name in (enabled|selected) states.
+    * Will render the divider
 
   Rendering
   ---------
@@ -233,8 +242,7 @@ Menus
   Determining Menu State
   ----------------------
 
-  The callback functions for each menu item will determine the
-  menu state. That mechanism will work as follows:
+  This will go in a separate design section.
 
 Combat
 ======
