@@ -669,6 +669,37 @@ struct MenuPlane : public Plane {
   MenuPlane() = default;
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
+    if( button == input::e_mouse_button::l ) {
+      if( click_target( origin ).has_value() )
+        return Plane::e_accept_drag::yes;
+    }
+    return Plane::e_accept_drag::no;
+  }
+  // We handle dragging but do not really treat it as a drag; in-
+  // stead  we  just receive the dragging events and convert them
+  // to the appropriate mouse motion/button event and  feed  that
+  // event back through the input() method in order  to  get  the
+  // behavior that we want but avoid code duplication.
+  void on_drag( input::e_mouse_button /*unused*/,
+                Coord /*unused*/, Coord prev,
+                Coord current ) override {
+    // TODO: get the input module to do this.
+    // Convert to mouse motion event.
+    input::mouse_move_event_t event{{current}, prev};
+    this->input( event );
+  }
+  void on_drag_finished( input::e_mouse_button button,
+                         Coord /*unused*/, Coord end ) override {
+    if( button == input::e_mouse_button::l ) {
+      // TODO: get the input module to do this.
+      // Convert to mouse button event.
+      auto buttons = input::e_mouse_button_event::left_down;
+      input::mouse_button_event_t event{{end}, buttons};
+      this->input( event );
+    }
+  }
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
     render_menus( tx );
@@ -745,7 +776,13 @@ struct MenuPlane : public Plane {
           }
           return false;
         },
-        []( input::mouse_drag_event_t ) { return false; } );
+        []( input::mouse_drag_event_t ) {
+          // The framework does not send us mouse drag events
+          // directly; instead it uses the api methods on the
+          // Plane class.
+          SHOULD_NOT_BE_HERE;
+          return false;
+        } );
     return matcher( event );
   }
 };
