@@ -50,122 +50,17 @@ Menus
   Most menus will be on the left side of the screen, but some may
   be right justified, such as the Revolopedia menu.
 
-  Implementation
-  --------------
+  There will be a global function that can turn on/off all menus;
+  when this happens the menus will disappear (maybe).
 
-  Menus will occupy their own plane.
+  Rendering
+  ---------
 
-  Each frame, the menu rendering code will call a callback for
-  each menu item to determine if it is enabled. If all items in a
-  top-level menu are disabled then the menu will be hidden.
-  Therefore, these callbacks should be very light-weight, because
-  they will all be called on each frame.
+    * There will be a shadow under open menus.
+    * Hot-key letter of menu will be highlighted.
 
-  Each top-level menu will correspond to an (e_menu, Menu) pair:
-
-  enum class e_menu {
-    ...
-  };
-
-  struct Menu {
-    std::string name;
-    bool right_side;
-    char hot_key;
-  };
-
-  // maybe a vector would suffice here
-  absl::flat_hash_map<e_menu, Menu> g_menus{
-    { ... }
-  };
-
-  Every unique menu item (across all menus) will correspond to a
-  unique enum value and MenuItem value:
-
-  // menu.hpp
-  enum class e_menu_item {
-    ...
-  };
-
-  struct MenuDivider {};
-
-  // menu.cpp
-  struct MenuClickable {
-    e_menu_item item;
-    std::string display_name;
-    std::function<void(void)> on_click;
-    std::function<bool(void)> enabled;
-  };
-
-  using MenuItem = std::variant<MenuDivider, MenuClickable>;
-
-  // Owns MenuItem's
-  absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_items{
-    { ... }
-  };
-
-  absl::flat_hash_map<e_menu_item, Ref<MenuClickable>> g_menu_items{
-    { ... }
-  };
-
-  When rendering the menu the items they will be separated into
-  groups visually, separated by dividers whenever a MenuDivider
-  is encountered. When displayed, the order of the top-level menu
-  names will follow the order that they appear in the e_menu
-  enum.
-
-  Example:
-
-    enum class e_menu {
-      game,
-      edit
-    };
-
-    absl::flat_hash_map<e_menu, Menu> g_menus{
-      { e_menu::game,  { "Game",        false, 'G' }},
-      { e_menu::edit,  { "Edit",        false, 'E' }},
-      { e_menu::pedia, { "Revolopedia", true,  'R' }}
-    };
-
-    enum class e_menu_item {
-      save_game,
-      save_as_game,
-      load_game,
-      revolution,
-      retire,
-      exit,
-      copy,
-      paste
-    };
-
-    absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_items{
-      {e_menu::game,{
-        MenuClickable{ e_menu_item::save_game,    "Save"       },
-        MenuClickable{ e_menu_item::save_as_game, "Save As"    },
-        MenuClickable{ e_menu_item::load_game,    "Load"       },
-        MenuDivider,
-        MenuClickable{ e_menu_item::revolution,   "Revolution" },
-        MenuClickable{ e_menu_item::retire,       "Retire"     },
-        MenuDivider,
-        MenuClickable{ e_menu_item::exit,         "Exit"       }
-      }},
-      {e_menu::edit,{
-        MenuClickable{ e_menu_item::copy,         "Copy"       },
-        MenuClickable{ e_menu_item::paste,        "Paste"      }
-      }}
-    };
-
-    +---------------------------------------------------------+
-    | >Game<  Edit                                Revolopedia |
-    +---------------------------------------------------------+
-    | Save          |
-    | Save As       |
-    | Load          |
-    | ------------- |
-    | Revolution    |
-    | ------------- |
-    | Retire        |
-    | Exit          |
-    +---------------+
+  Handling Menu Item Clicks
+  -------------------------
 
   In order to avoid all menu handler code going into the menu
   module, it will be possible for modules to register handlers
@@ -194,55 +89,6 @@ Menus
   If a menu has no handler then it will assume default values,
   such as e.g. always visible (unless overridden by the corresop-
   nding global setting).
-
-  The menu plane must hold state, which can be any of the follow-
-  ing:
-
-    menu_state = menus_off
-               | menus_closed
-               | menu_open
-
-  If the state is menu_open then the animation state could be:
-
-    menu_animation_state = none
-                         | opening
-                         | switching
-                         | clicking
-                         | closing
-
-  Each of the above will be structs that may hold info specific
-  to that state.
-
-  There will be a global function that can turn on/off all menus;
-  when this happens the menus will disappear.
-
-  Initialization
-  --------------
-
-  There will be an initialization function call init_menus which
-  must be done after SDL is initialized.  will do the following:
-
-    * Will check that all e_menu_item values have a handler
-      registered.
-    * Will check that all menu items are contained in some e_menu
-    * Will check that there are not multiple registrations for
-      the same menu item.
-    * Will render each menu items in (enabled|disabled|selected)
-      states.
-    * Will render each menu name in (enabled|selected) states.
-    * Will render the divider
-
-  Rendering
-  ---------
-
-  There will be a shadow under open menus.
-
-  Hot-key letter of menu will be highlighted.
-
-  Determining Menu State
-  ----------------------
-
-  This will go in a separate design section.
 
 Combat
 ======
