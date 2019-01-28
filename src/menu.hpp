@@ -33,6 +33,8 @@ enum class e_( menu,
 
 enum class e_( menu_item,
                about,        //
+               revolution,   //
+               retire,       //
                exit,         //
                zoom_in,      //
                zoom_out,     //
@@ -51,16 +53,6 @@ enum class e_( menu_item,
 
 #define MENU_HANDLERS( menu, is_enabled_func ) \
   STARTUP() {}
-
-// menu_state = menus_off
-//           | menus_closed
-//           | menu_open
-
-// menu_animation_state = none
-//                     | opening
-//                     | switching
-//                     | clicking
-//                     | closing
 
 void register_menu_item_handler(
     e_menu_item                        item,

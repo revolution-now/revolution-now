@@ -313,6 +313,14 @@ void     operator+=( Coord& coord, W w );
 void     operator+=( Coord& coord, H h );
 void     operator-=( Coord& coord, W w );
 void     operator-=( Coord& coord, H h );
+ND Delta operator+( Delta const& delta, W w );
+ND Delta operator+( Delta const& delta, H h );
+ND Delta operator-( Delta const& delta, W w );
+ND Delta operator-( Delta const& delta, H h );
+void     operator+=( Delta& delta, W w );
+void     operator+=( Delta& delta, H h );
+void     operator-=( Delta& delta, W w );
+void     operator-=( Delta& delta, H h );
 
 ND Coord operator*( Coord const& coord, Scale const& scale );
 ND Delta operator*( Delta const& delta, Scale const& scale );

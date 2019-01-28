@@ -30,6 +30,9 @@ namespace rn {
 
 namespace {
 
+/****************************************************************
+** Main Data Structures
+*****************************************************************/
 struct Menu {
   string name;
   bool   right_side;
@@ -70,9 +73,12 @@ using MenuItem = variant<MenuDivider, MenuClickable>;
 absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
     {e_menu::game,
      {
-         ITEM( about, "About" ), //
-         DIVIDER,                //
-         ITEM( exit, "Exit" )    //
+         ITEM( about, "About this Game" ),  //
+         DIVIDER,                           //
+         ITEM( revolution, "REVOLUTION!" ), //
+         DIVIDER,                           //
+         ITEM( retire, "Retire" ),          //
+         ITEM( exit, "Exit to \"DOS\"" )    //
      }},
     {e_menu::view,
      {
@@ -96,20 +102,55 @@ absl::flat_hash_map<e_menu_item, e_menu> g_item_to_menu;
 
 absl::flat_hash_map<e_menu, Vec<e_menu_item>> g_items_from_menu;
 
-auto& on_click_handlers() {
-  static absl::flat_hash_map<e_menu_item,
-                             std::function<void( void )>>
-      m;
-  return m;
-}
+/****************************************************************
+** Menu State
+*****************************************************************/
+// clang-format off
+struct none {};
+struct hover { e_menu_item item; };
+// clang-format on
 
-auto& is_enabled_handlers() {
-  static absl::flat_hash_map<e_menu_item,
-                             std::function<bool( void )>>
-      m;
-  return m;
-}
+using item_hover = variant<none, hover>;
 
+// clang-format off
+struct open      { e_menu      menu;
+                   item_hover  hover; };
+struct opening   { e_menu      menu;
+                   double      percent; };
+struct clicking  { e_menu_item item;
+                   int         flicker; };
+struct closing   { e_menu      menu;
+                   double      percent; };
+struct switching { e_menu      from;
+                   e_menu      to;
+                   double      percent; };
+// clang-format on
+
+using menu_state =
+    variant<open, opening, switching, clicking, closing>;
+
+// clang-format off
+struct menus_off    {};
+struct menus_closed {};
+struct menu_open    { menu_state state; };
+// clang-format on
+
+using menus_state = variant<menus_off, menus_closed, menu_open>;
+
+menus_state g_menu_state{menu_open{
+    open{e_menu::game, hover{e_menu_item::revolution}}}};
+
+// Opt<e_menu> open_menu() { return e_menu::view; }
+
+// Opt<e_menu_item> selected_item() {
+//  auto res = e_menu_item::zoom_out;
+//  CHECK( g_item_to_menu[res] == open_menu() );
+//  return res;
+//}
+
+/****************************************************************
+** Rendering Implmementation
+*****************************************************************/
 struct ItemTextures {
   Texture normal;
   Texture highlighted;
@@ -145,6 +186,10 @@ auto background_active = [] {
 auto background_inactive = [] {
   return config_palette.orange.sat0.lum3;
 };
+auto const& background_menu_inactive = [] {
+  static auto val = background_inactive().shaded().shaded();
+  return val;
+};
 auto foreground_active = [] {
   return config_palette.orange.sat0.lum2;
 };
@@ -164,6 +209,24 @@ Delta compute_menus_delta() {
     res = res.uni0n( textures.name.normal.size() );
   }
   return res;
+}
+
+constexpr W first_menu_start{2};
+constexpr W menu_padding{2};
+constexpr W menu_spacing{8};
+
+X menu_display_x_pos( e_menu target ) {
+  X pos{0};
+  pos += first_menu_start;
+  for( auto menu : values<e_menu> ) {
+    // TODO: is menu visible
+    CHECK( g_menu_rendered.contains( menu ) );
+    auto const& textures = g_menu_rendered[menu];
+    if( menu == target ) return pos;
+    pos += textures.menu_background_normal.size().w;
+    pos += menu_spacing;
+  }
+  SHOULD_NOT_BE_HERE;
 }
 
 Texture create_menu_bar_texture() {
@@ -199,9 +262,12 @@ Delta compute_menu_items_delta( e_menu menu ) {
 
     // These are probably all the same size, but just in case
     // they aren't...
-    res = res.uni0n( textures.normal.size() );
-    res = res.uni0n( textures.highlighted.size() );
-    res = res.uni0n( textures.disabled.size() );
+    res = res.uni0n( textures.normal.size() +
+                     menu_padding * 2_sx );
+    res = res.uni0n( textures.highlighted.size() +
+                     menu_padding * 2_sx );
+    res = res.uni0n( textures.disabled.size() +
+                     menu_padding * 2_sx );
   }
   return res;
 }
@@ -230,10 +296,11 @@ Texture render_menu_name_background( e_menu menu,
                                      bool   highlight ) {
   CHECK( g_menu_rendered.contains( menu ) );
   CHECK( g_menu_rendered[menu].name.normal );
-  auto    delta = g_menu_rendered[menu].name.normal.size();
+  auto delta = g_menu_rendered[menu].name.normal.size();
+  delta += menu_padding * 2_sx;
   Texture res   = create_texture( delta );
-  auto    color =
-      highlight ? background_active() : background_inactive();
+  auto    color = highlight ? background_active()
+                         : background_menu_inactive();
   fill_texture( res, color );
   return res;
 }
@@ -246,16 +313,12 @@ Texture create_whole_menu_background( e_menu menu ) {
   return create_texture( delta );
 }
 
-Opt<e_menu> open_menu() { return e_menu::view; }
-
-Opt<e_menu_item> selected_item() {
-  auto res = e_menu_item::zoom_out;
-  CHECK( g_item_to_menu[res] == open_menu() );
-  return res;
-}
-
-Texture const& render_open_menu( e_menu menu ) {
+Texture const& render_open_menu( e_menu           menu,
+                                 Opt<e_menu_item> highlighted ) {
   CHECK( g_menu_rendered.contains( menu ) );
+  if( highlighted.has_value() ) {
+    CHECK( g_item_to_menu[*highlighted] == menu );
+  }
   auto const& textures = g_menu_rendered[menu];
   auto&       dst      = textures.whole_menu_background;
   Coord       pos{};
@@ -274,15 +337,15 @@ Texture const& render_open_menu( e_menu menu ) {
           Texture const* from =
               !desc->callbacks.enabled()
                   ? &rendered.disabled
-                  : ( clickable.item == selected_item() )
+                  : ( clickable.item == highlighted )
                         ? &rendered.highlighted
                         : &rendered.normal;
           Texture const* background =
-              ( clickable.item == selected_item() )
+              ( clickable.item == highlighted )
                   ? &textures.item_background_highlight
                   : &textures.item_background_normal;
           copy_texture( *background, dst, pos );
-          copy_texture( *from, dst, pos );
+          copy_texture( *from, dst, pos + menu_padding );
         } );
 
     matcher( item_desc );
@@ -294,24 +357,45 @@ Texture const& render_open_menu( e_menu menu ) {
 
 void render_menu_bar() {
   CHECK( menu_bar_tx );
-  fill_texture( menu_bar_tx, background_inactive() );
-  Coord pos{};
-  pos += 2_w;
+  fill_texture( menu_bar_tx, background_menu_inactive() );
   for( auto menu : values<e_menu> ) {
-    // TODO: is menu visible
     CHECK( g_menu_rendered.contains( menu ) );
     auto const& textures = g_menu_rendered[menu];
+    using Txs            = pair<Texture const*, Texture const*>;
+    // Given `menu`, this matcher visits the global menu state
+    // and returns a foreground/background texture pair for that
+    // menu.
+    auto matcher = scelta::match(
+        []( menus_off ) { return Txs{}; },
+        [&]( menus_closed ) {
+          return pair{&textures.name.normal,
+                      &textures.menu_background_normal};
+        },
+        [&]( menu_open const& mo ) {
+          auto matcher = scelta::match(
+              [&]( open const& o ) {
+                if( o.menu == menu )
+                  return pair{
+                      &textures.name.highlighted,
+                      &textures.menu_background_highlight};
 
-    Texture const* from = ( menu == open_menu() )
-                              ? &textures.name.highlighted
-                              : &textures.name.normal;
-    Texture const* background =
-        ( menu == open_menu() )
-            ? &textures.menu_background_highlight
-            : &textures.menu_background_normal;
-    copy_texture( *background, menu_bar_tx, pos );
-    copy_texture( *from, menu_bar_tx, pos );
-    pos += from->size().w + 10_w;
+                else
+                  return pair{&textures.name.normal,
+                              &textures.menu_background_normal};
+              },
+              []( opening ) { return Txs{}; },
+              []( switching ) { return Txs{}; },
+              []( clicking ) { return Txs{}; },
+              []( closing ) { return Txs{}; } );
+          return matcher( mo.state );
+        } );
+    auto [text, back] = matcher( g_menu_state );
+    if( text && back ) {
+      auto pos = menu_display_x_pos( menu );
+      copy_texture( *back, menu_bar_tx, {0_y, pos} );
+      copy_texture( *text, menu_bar_tx,
+                    {0_y, pos + menu_padding} );
+    }
   }
 }
 
@@ -323,23 +407,54 @@ void display_menu_bar_tx( Texture const& tx ) {
 
 } // namespace
 
+/****************************************************************
+** Top-level Render Method
+*****************************************************************/
 void render_menus( Texture const& tx ) {
   display_menu_bar_tx( tx );
-  if( !open_menu().has_value() ) return;
-  Coord pos = Coord{} + menu_bar_tx.size().h;
-  pos += 2_w;
-  for( auto menu : values<e_menu> ) {
-    // TODO: is menu visible
-    CHECK( g_menu_rendered.contains( menu ) );
-    if( menu == open_menu() ) {
-      auto const& open = render_open_menu( menu );
-      copy_texture( open, tx, pos );
-      break;
-    }
-    auto const& textures = g_menu_rendered[menu];
-    pos += textures.menu_background_normal.size().w;
-    pos += 10_w;
-  }
+  auto maybe_render_open_menu = scelta::match(
+      []( menus_off ) {},     //
+      [&]( menus_closed ) {}, //
+      [&]( menu_open const& mo ) {
+        auto matcher = scelta::match(
+            [&]( open const& o ) {
+              Coord pos = {0_y + menu_bar_tx.size().h,
+                           menu_display_x_pos( o.menu )};
+
+              Opt<e_menu_item> highlighted;
+              if_v( o.hover, hover, val ) {
+                highlighted = val->item;
+              }
+              auto const& open_tx =
+                  render_open_menu( o.menu, highlighted );
+              copy_texture( open_tx, tx, pos );
+            },
+            []( opening ) {},   //
+            []( switching ) {}, //
+            []( clicking ) {},  //
+            []( closing ) {}    //
+        );
+        return matcher( mo.state );
+      } //
+  );
+  maybe_render_open_menu( g_menu_state );
+}
+
+/****************************************************************
+** Registration
+*****************************************************************/
+auto& on_click_handlers() {
+  static absl::flat_hash_map<e_menu_item,
+                             std::function<void( void )>>
+      m;
+  return m;
+}
+
+auto& is_enabled_handlers() {
+  static absl::flat_hash_map<e_menu_item,
+                             std::function<bool( void )>>
+      m;
+  return m;
 }
 
 void register_menu_item_handler(
@@ -356,6 +471,9 @@ void register_menu_item_handler(
   is_enableds[item] = is_enabled;
 }
 
+/****************************************************************
+** Initialization
+*****************************************************************/
 void initialize_menus() {
   // Check that all menus have descriptors.
   for( auto menu : values<e_menu> ) {
@@ -437,10 +555,15 @@ void cleanup_menus() {
   g_menu_item_rendered.clear();
 }
 
+/****************************************************************
+** Handlers (temporary)
+*****************************************************************/
 function<void( void )> empty_handler = [] {};
 function<bool( void )> enabled_true  = [] { return true; };
 
 MENU_ITEM_HANDLER( about, empty_handler, enabled_true );
+MENU_ITEM_HANDLER( revolution, empty_handler, enabled_true );
+MENU_ITEM_HANDLER( retire, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( exit, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( zoom_in, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( zoom_out, empty_handler, enabled_true );
@@ -460,9 +583,28 @@ struct MenuPlane : public Plane {
     clear_texture_transparent( tx );
     render_menus( tx );
   }
-  // bool input( input::event_t const& event ) override {
-  //  return wm.input( event );
-  //}
+  bool input( input::event_t const& event ) override {
+    auto matcher = scelta::match(
+        []( input::unknown_event_t ) { return false; },
+        []( input::quit_event_t ) { return false; },
+        []( input::key_event_t const& key_event ) {
+          if( key_event.change == input::e_key_change::down ) {
+            switch( key_event.keycode ) {
+              case ::SDLK_LEFT: return true;
+              case ::SDLK_RIGHT: return true;
+              case ::SDLK_UP: return true;
+              case ::SDLK_DOWN: return true;
+              default: return false;
+            }
+          }
+          return false;
+        },
+        []( input::mouse_wheel_event_t ) { return false; },
+        []( input::mouse_move_event_t ) { return false; },
+        []( input::mouse_button_event_t ) { return false; },
+        []( input::mouse_drag_event_t ) { return false; } );
+    return matcher( event );
+  }
 };
 
 MenuPlane g_menu_plane;
