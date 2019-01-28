@@ -137,16 +137,26 @@ struct menu_open    { menu_state state; };
 
 using menus_state = variant<menus_off, menus_closed, menu_open>;
 
-menus_state g_menu_state{menu_open{
-    open{e_menu::game, hover{e_menu_item::revolution}}}};
+menus_state g_menu_state{menus_closed{}};
 
-// Opt<e_menu> open_menu() { return e_menu::view; }
-
-// Opt<e_menu_item> selected_item() {
-//  auto res = e_menu_item::zoom_out;
-//  CHECK( g_item_to_menu[res] == open_menu() );
-//  return res;
-//}
+/****************************************************************
+** Querying State
+*****************************************************************/
+bool is_menu_open( e_menu menu ) {
+  auto matcher = scelta::match(
+      []( menus_off ) { return false; },
+      []( menus_closed ) { return false; },
+      [&]( menu_open mo ) {
+        auto matcher = scelta::match(
+            [&]( open o ) { return o.menu == menu; },
+            []( opening ) { return false; },
+            []( clicking ) { return false; },
+            []( closing ) { return false; },
+            []( switching ) { return false; } );
+        return matcher( mo.state );
+      } );
+  return matcher( g_menu_state );
+}
 
 /****************************************************************
 ** Rendering Implmementation
@@ -229,6 +239,20 @@ X menu_display_x_pos( e_menu target ) {
   SHOULD_NOT_BE_HERE;
 }
 
+Rect menu_header_rect( e_menu menu ) {
+  Coord pos{0_y, menu_display_x_pos( menu )};
+  auto  delta = menu_bar_tx.size();
+  CHECK( g_menu_rendered.contains( menu ) );
+  delta.w =
+      g_menu_rendered[menu].menu_background_normal.size().w;
+  return Rect::from( pos, delta );
+}
+
+Rect menu_bar_rect() {
+  CHECK( menu_bar_tx );
+  return Rect::from( Coord{}, menu_bar_tx.size() );
+}
+
 Texture create_menu_bar_texture() {
   auto  delta_screen = logical_screen_pixel_dimensions();
   auto  delta_menus  = compute_menus_delta();
@@ -238,7 +262,6 @@ Texture create_menu_bar_texture() {
 
 ItemTextures render_menu_element( string const&  s,
                                   optional<char> hot_key ) {
-  logger->info( "rendering `{}`", s );
   ItemTextures res;
   // TODO
   (void)hot_key;
@@ -311,6 +334,15 @@ Texture create_whole_menu_background( e_menu menu ) {
   auto delta     = compute_menu_items_delta( menu );
   delta.h *= SY{num_elems};
   return create_texture( delta );
+}
+
+Rect open_menu_rect( e_menu menu ) {
+  Coord pos{Y{0} + menu_bar_tx.size().h,
+            menu_display_x_pos( menu )};
+  CHECK( g_menu_rendered.contains( menu ) );
+  auto const& textures = g_menu_rendered[menu];
+  return Rect::from( pos,
+                     textures.whole_menu_background.size() );
 }
 
 Texture const& render_open_menu( e_menu           menu,
@@ -403,6 +435,64 @@ void display_menu_bar_tx( Texture const& tx ) {
   render_menu_bar();
   CHECK( tx.size().w == menu_bar_tx.size().w );
   copy_texture( menu_bar_tx, tx, Coord{} );
+}
+
+/****************************************************************
+** Input Implementation
+*****************************************************************/
+struct mouse_over_menu_bar {};
+
+using MouseOverMenu =
+    Opt<variant<e_menu, e_menu_item, mouse_over_menu_bar>>;
+
+MouseOverMenu click_target( Coord screen_coord ) {
+  auto matcher = scelta::match(
+      []( menus_off ) { return MouseOverMenu{}; },
+      [&]( menus_closed ) {
+        for( auto menu : values<e_menu> ) {
+          if( screen_coord.is_inside(
+                  menu_header_rect( menu ) ) )
+            return MouseOverMenu{menu};
+        }
+        if( screen_coord.is_inside( menu_bar_rect() ) )
+          return MouseOverMenu{mouse_over_menu_bar{}};
+        return MouseOverMenu{};
+      },
+      [&]( menu_open const& mo ) {
+        for( auto menu : values<e_menu> )
+          if( screen_coord.is_inside(
+                  menu_header_rect( menu ) ) )
+            return MouseOverMenu{menu};
+        if( screen_coord.is_inside( menu_bar_rect() ) )
+          return MouseOverMenu{mouse_over_menu_bar{}};
+        auto matcher = scelta::match(
+            [&]( open const& o ) {
+              auto rect = open_menu_rect( o.menu );
+              if( !screen_coord.is_inside( rect ) )
+                return MouseOverMenu{};
+              // we have clicked somewhere in the open menu.
+              auto const& textures = g_menu_rendered[o.menu];
+
+              int sel =
+                  ( screen_coord.y - menu_bar_tx.size().h ) /
+                  textures.menu_background_normal.size().h;
+              CHECK( sel >= 0 );
+              auto const& items = g_menu_def[o.menu];
+              CHECK( sel < int( items.size() ) );
+              if( util::holds<MenuDivider>( items[sel] ) )
+                return MouseOverMenu{};
+              CHECK( util::holds<MenuClickable>( items[sel] ) );
+              return MouseOverMenu{
+                  get<MenuClickable>( items[sel] ).item};
+            },
+            []( opening ) { return MouseOverMenu{}; },
+            []( switching ) { return MouseOverMenu{}; },
+            []( clicking ) { return MouseOverMenu{}; },
+            []( closing ) { return MouseOverMenu{}; } //
+        );
+        return matcher( mo.state );
+      } );
+  return matcher( g_menu_state );
 }
 
 } // namespace
@@ -590,18 +680,71 @@ struct MenuPlane : public Plane {
         []( input::key_event_t const& key_event ) {
           if( key_event.change == input::e_key_change::down ) {
             switch( key_event.keycode ) {
-              case ::SDLK_LEFT: return true;
-              case ::SDLK_RIGHT: return true;
-              case ::SDLK_UP: return true;
-              case ::SDLK_DOWN: return true;
+              case ::SDLK_LEFT: return false;
+              case ::SDLK_RIGHT: return false;
+              case ::SDLK_UP: return false;
+              case ::SDLK_DOWN: return false;
               default: return false;
             }
           }
           return false;
         },
         []( input::mouse_wheel_event_t ) { return false; },
-        []( input::mouse_move_event_t ) { return false; },
-        []( input::mouse_button_event_t ) { return false; },
+        []( input::mouse_move_event_t mv_event ) {
+          auto over_what = click_target( mv_event.pos );
+          if( !over_what.has_value() ) return false;
+          auto matcher = scelta::match(
+              []( mouse_over_menu_bar ) { return true; },
+              []( e_menu menu ) {
+                if( util::holds<menu_open>( g_menu_state ) )
+                  g_menu_state = menu_open{open{menu, none{}}};
+                return true;
+              },
+              []( e_menu_item item ) {
+                CHECK( util::holds<menu_open>( g_menu_state ) );
+                auto& mo = std::get<menu_open>( g_menu_state );
+                CHECK( util::holds<open>( mo.state ) );
+                auto& mo_state = std::get<open>( mo.state );
+                CHECK( mo_state.menu == g_item_to_menu[item] );
+                mo_state.hover = hover{item};
+                return true;
+              } );
+          return matcher( *over_what );
+        },
+        []( input::mouse_button_event_t b_event ) {
+          if( b_event.buttons ==
+              input::e_mouse_button_event::left_down ) {
+            auto over_what = click_target( b_event.pos );
+            if( !over_what.has_value() ) {
+              if( util::holds<menu_open>( g_menu_state ) ) {
+                g_menu_state = menus_closed{};
+                return true;
+              }
+              return false;
+            }
+            auto matcher = scelta::match(
+                []( mouse_over_menu_bar ) {
+                  g_menu_state = menus_closed{};
+                  return true;
+                },
+                []( e_menu menu ) {
+                  if( is_menu_open( menu ) )
+                    g_menu_state = menus_closed{};
+                  else
+                    g_menu_state = menu_open{open{menu, none{}}};
+                  return true;
+                },
+                []( e_menu_item item ) {
+                  g_menu_state = menus_closed{};
+                  logger->info( "selected menu item `{}`",
+                                item );
+                  g_menu_items[item]->callbacks.on_click();
+                  return true;
+                } );
+            return matcher( *over_what );
+          }
+          return false;
+        },
         []( input::mouse_drag_event_t ) { return false; } );
     return matcher( event );
   }
