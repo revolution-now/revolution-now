@@ -52,7 +52,7 @@ def CompileSearchPathList():
     for cmd in commands:
         paths = find_system_include_paths( cmd )
         for p in paths:
-            # Some of these end of as:
+            # On OSX some of these have been observed to end with:
             #
             #   "ABC (framework directory)"
             #
