@@ -31,6 +31,13 @@ namespace rn {
 namespace {
 
 /****************************************************************
+** Menu Constants
+*****************************************************************/
+constexpr W first_menu_start{0};
+constexpr W menu_padding{6};
+constexpr W menu_spacing{0};
+
+/****************************************************************
 ** Main Data Structures
 *****************************************************************/
 struct Menu {
@@ -62,6 +69,12 @@ struct MenuClickable {
 
 using MenuItem = variant<MenuDivider, MenuClickable>;
 
+absl::flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
+
+absl::flat_hash_map<e_menu_item, e_menu> g_item_to_menu;
+
+absl::flat_hash_map<e_menu, Vec<e_menu_item>> g_items_from_menu;
+
 #define ITEM( item, name )      \
   MenuClickable {               \
     e_menu_item::item, name, {} \
@@ -70,6 +83,9 @@ using MenuItem = variant<MenuDivider, MenuClickable>;
 #define DIVIDER \
   MenuDivider {}
 
+/****************************************************************
+** The Menus
+*****************************************************************/
 absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
     {e_menu::game,
      {
@@ -96,12 +112,6 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
          ITEM( units_help, "Units" ) //
      }}};
 
-absl::flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
-
-absl::flat_hash_map<e_menu_item, e_menu> g_item_to_menu;
-
-absl::flat_hash_map<e_menu, Vec<e_menu_item>> g_items_from_menu;
-
 /****************************************************************
 ** Menu State
 *****************************************************************/
@@ -113,29 +123,14 @@ struct hover { e_menu_item item; };
 using item_hover = variant<none, hover>;
 
 // clang-format off
-struct open      { e_menu      menu;
-                   item_hover  hover; };
-struct opening   { e_menu      menu;
-                   double      percent; };
-struct clicking  { e_menu_item item;
-                   int         flicker; };
-struct closing   { e_menu      menu;
-                   double      percent; };
-struct switching { e_menu      from;
-                   e_menu      to;
-                   double      percent; };
-// clang-format on
-
-using menu_state =
-    variant<open, opening, switching, clicking, closing>;
-
-// clang-format off
-struct menus_off    {};
+struct menus_hidden {};
 struct menus_closed {};
-struct menu_open    { menu_state state; };
+struct menu_open    { e_menu      menu;
+                      item_hover  hover; };
 // clang-format on
 
-using menus_state = variant<menus_off, menus_closed, menu_open>;
+using menus_state =
+    variant<menus_hidden, menus_closed, menu_open>;
 
 menus_state g_menu_state{menus_closed{}};
 
@@ -144,52 +139,15 @@ menus_state g_menu_state{menus_closed{}};
 *****************************************************************/
 bool is_menu_open( e_menu menu ) {
   auto matcher = scelta::match(
-      []( menus_off ) { return false; },
+      []( menus_hidden ) { return false; },
       []( menus_closed ) { return false; },
-      [&]( menu_open mo ) {
-        auto matcher = scelta::match(
-            [&]( open o ) { return o.menu == menu; },
-            []( opening ) { return false; },
-            []( clicking ) { return false; },
-            []( closing ) { return false; },
-            []( switching ) { return false; } );
-        return matcher( mo.state );
-      } );
+      [&]( menu_open o ) { return o.menu == menu; } );
   return matcher( g_menu_state );
 }
 
 /****************************************************************
-** Rendering Implmementation
+** Colors (FIXME)
 *****************************************************************/
-struct ItemTextures {
-  Texture normal;
-  Texture highlighted;
-  Texture disabled;
-};
-
-absl::flat_hash_map<e_menu_item, ItemTextures>
-    g_menu_item_rendered;
-
-struct MenuTextures {
-  Texture      divider;
-  Texture      item_background_normal;
-  Texture      item_background_highlight;
-  ItemTextures name;
-  Texture      whole_menu_background;
-  Texture      menu_background_normal;
-  Texture      menu_background_highlight;
-};
-
-absl::flat_hash_map<e_menu, MenuTextures> g_menu_rendered;
-
-Texture menu_bar_tx;
-
-// Each menu may have a different width depending on the sizes of
-// the elements inside of it, so we will render different sized
-// dividers for each menu. All dividers in a given menu will be
-// the same size though.
-absl::flat_hash_map<e_menu, Texture> g_dividers;
-
 auto background_active = [] {
   return config_palette.yellow.sat1.lum11;
 };
@@ -210,7 +168,37 @@ auto foreground_disabled = [] {
   return config_palette.grey.n44;
 };
 
-Delta compute_menus_delta() {
+/****************************************************************
+** Rendering Implmementation
+*****************************************************************/
+struct ItemTextures {
+  Texture normal;
+  Texture highlighted;
+  Texture disabled;
+};
+
+absl::flat_hash_map<e_menu_item, ItemTextures>
+    g_menu_item_rendered;
+
+struct MenuTextures {
+  // Each menu may have a different width depending on the sizes
+  // of the elements inside of it, so we will render different
+  // sized dividers for each menu. All dividers in a given menu
+  // will be the same size though.
+  Texture      divider;
+  Texture      item_background_normal;
+  Texture      item_background_highlight;
+  ItemTextures name;
+  Texture      whole_menu_background;
+  Texture      menu_background_normal;
+  Texture      menu_background_highlight;
+};
+
+absl::flat_hash_map<e_menu, MenuTextures> g_menu_rendered;
+
+Texture menu_bar_tx;
+
+H compute_menu_bar_height() {
   Delta res;
   for( auto menu : values<e_menu> ) {
     CHECK( g_menu_rendered.contains( menu ) );
@@ -218,14 +206,10 @@ Delta compute_menus_delta() {
     CHECK( textures.name.normal );
     res = res.uni0n( textures.name.normal.size() );
   }
-  return res;
+  return res.h;
 }
 
-constexpr W first_menu_start{2};
-constexpr W menu_padding{2};
-constexpr W menu_spacing{8};
-
-X menu_display_x_pos( e_menu target ) {
+X menu_header_x_pos( e_menu target ) {
   X pos{0};
   pos += first_menu_start;
   for( auto menu : values<e_menu> ) {
@@ -240,8 +224,10 @@ X menu_display_x_pos( e_menu target ) {
 }
 
 Rect menu_header_rect( e_menu menu ) {
-  Coord pos{0_y, menu_display_x_pos( menu )};
-  auto  delta = menu_bar_tx.size();
+  Coord pos{0_y, menu_header_x_pos( menu )};
+  auto  height = compute_menu_bar_height();
+  Delta delta;
+  delta.h = height;
   CHECK( g_menu_rendered.contains( menu ) );
   delta.w =
       g_menu_rendered[menu].menu_background_normal.size().w;
@@ -249,32 +235,25 @@ Rect menu_header_rect( e_menu menu ) {
 }
 
 Rect menu_bar_rect() {
-  CHECK( menu_bar_tx );
-  return Rect::from( Coord{}, menu_bar_tx.size() );
-}
-
-Texture create_menu_bar_texture() {
   auto  delta_screen = logical_screen_pixel_dimensions();
-  auto  delta_menus  = compute_menus_delta();
-  Delta res{delta_screen.w, delta_menus.h};
-  return create_texture( res );
+  auto  height       = compute_menu_bar_height();
+  Delta res{delta_screen.w, height};
+  return Rect::from( Coord{}, res );
 }
 
+// For either a menu header or item.
 ItemTextures render_menu_element( string const&  s,
                                   optional<char> hot_key ) {
   ItemTextures res;
   // TODO
   (void)hot_key;
-  res.normal = render_text_line_shadow(
-      fonts::standard, foreground_inactive(), s );
-
-  res.highlighted = render_text_line_shadow(
-      fonts::standard, foreground_active(), s );
-
-  res.disabled = render_text_line_shadow(
-      fonts::standard, foreground_disabled(), s );
-
-  return res;
+  return ItemTextures{
+      render_text_line_shadow( fonts::standard,
+                               foreground_inactive(), s ),
+      render_text_line_shadow( fonts::standard,
+                               foreground_active(), s ),
+      render_text_line_shadow( fonts::standard,
+                               foreground_disabled(), s )};
 }
 
 Delta compute_menu_items_delta( e_menu menu ) {
@@ -284,7 +263,8 @@ Delta compute_menu_items_delta( e_menu menu ) {
     auto const& textures = g_menu_item_rendered[item];
 
     // These are probably all the same size, but just in case
-    // they aren't...
+    // they aren't. The 2_sx is because we have padding on each
+    // side of the item.
     res = res.uni0n( textures.normal.size() +
                      menu_padding * 2_sx );
     res = res.uni0n( textures.highlighted.size() +
@@ -300,9 +280,13 @@ Texture render_divider( e_menu menu ) {
   Texture res   = create_texture( delta );
   clear_texture_transparent( res );
   // A divider is never highlighted.
-  Color color = foreground_inactive();
-  render_line( res, color, Coord{} + delta.h / 2 + 2_w,
-               {delta.w - 4_w, 0_h} );
+  Color color_fore = foreground_inactive();
+  Color color_back = color_fore.shaded().shaded();
+  render_line( res, color_fore, Coord{} + delta.h / 2 + 2_w,
+               {delta.w - 5_w, 0_h} );
+  render_line( res, color_back,
+               Coord{} + delta.h / 2 + 2_w + 1_w + 1_h,
+               {delta.w - 5_w, 0_h} );
   return res;
 }
 
@@ -337,8 +321,8 @@ Texture create_whole_menu_background( e_menu menu ) {
 }
 
 Rect open_menu_rect( e_menu menu ) {
-  Coord pos{Y{0} + menu_bar_tx.size().h,
-            menu_display_x_pos( menu )};
+  Coord pos{Y{0} + compute_menu_bar_height(),
+            menu_header_x_pos( menu )};
   CHECK( g_menu_rendered.contains( menu ) );
   auto const& textures = g_menu_rendered[menu];
   return Rect::from( pos,
@@ -379,11 +363,9 @@ Texture const& render_open_menu( e_menu           menu,
           copy_texture( *background, dst, pos );
           copy_texture( *from, dst, pos + menu_padding );
         } );
-
     matcher( item_desc );
     pos += height;
   }
-
   return dst;
 }
 
@@ -398,35 +380,28 @@ void render_menu_bar() {
     // and returns a foreground/background texture pair for that
     // menu.
     auto matcher = scelta::match(
-        []( menus_off ) { return Txs{}; },
+        []( menus_hidden ) { return Txs{}; },
         [&]( menus_closed ) {
           return pair{&textures.name.normal,
                       &textures.menu_background_normal};
         },
-        [&]( menu_open const& mo ) {
-          auto matcher = scelta::match(
-              [&]( open const& o ) {
-                if( o.menu == menu )
-                  return pair{
-                      &textures.name.highlighted,
-                      &textures.menu_background_highlight};
+        [&]( menu_open const& o ) {
+          if( o.menu == menu )
+            return pair{&textures.name.highlighted,
+                        &textures.menu_background_highlight};
 
-                else
-                  return pair{&textures.name.normal,
-                              &textures.menu_background_normal};
-              },
-              []( opening ) { return Txs{}; },
-              []( switching ) { return Txs{}; },
-              []( clicking ) { return Txs{}; },
-              []( closing ) { return Txs{}; } );
-          return matcher( mo.state );
+          else
+            return pair{&textures.name.normal,
+                        &textures.menu_background_normal};
         } );
     auto [text, back] = matcher( g_menu_state );
     if( text && back ) {
-      auto pos = menu_display_x_pos( menu );
+      auto pos = menu_header_x_pos( menu );
       copy_texture( *back, menu_bar_tx, {0_y, pos} );
       copy_texture( *text, menu_bar_tx,
                     {0_y, pos + menu_padding} );
+    } else {
+      CHECK( !text && !back );
     }
   }
 }
@@ -447,50 +422,42 @@ using MouseOverMenu =
 
 MouseOverMenu click_target( Coord screen_coord ) {
   auto matcher = scelta::match(
-      []( menus_off ) { return MouseOverMenu{}; },
+      []( menus_hidden ) { return MouseOverMenu{}; },
       [&]( menus_closed ) {
-        for( auto menu : values<e_menu> ) {
-          if( screen_coord.is_inside(
-                  menu_header_rect( menu ) ) )
-            return MouseOverMenu{menu};
-        }
-        if( screen_coord.is_inside( menu_bar_rect() ) )
-          return MouseOverMenu{mouse_over_menu_bar{}};
-        return MouseOverMenu{};
-      },
-      [&]( menu_open const& mo ) {
         for( auto menu : values<e_menu> )
           if( screen_coord.is_inside(
                   menu_header_rect( menu ) ) )
             return MouseOverMenu{menu};
         if( screen_coord.is_inside( menu_bar_rect() ) )
           return MouseOverMenu{mouse_over_menu_bar{}};
-        auto matcher = scelta::match(
-            [&]( open const& o ) {
-              auto rect = open_menu_rect( o.menu );
-              if( !screen_coord.is_inside( rect ) )
-                return MouseOverMenu{};
-              // we have clicked somewhere in the open menu.
-              auto const& textures = g_menu_rendered[o.menu];
+        return MouseOverMenu{};
+      },
+      [&]( menu_open const& o ) {
+        // TODO: try using recursive matchers here to avoid re-
+        // dundancy.
+        for( auto menu : values<e_menu> )
+          if( screen_coord.is_inside(
+                  menu_header_rect( menu ) ) )
+            return MouseOverMenu{menu};
+        if( screen_coord.is_inside( menu_bar_rect() ) )
+          return MouseOverMenu{mouse_over_menu_bar{}};
 
-              int sel =
-                  ( screen_coord.y - menu_bar_tx.size().h ) /
+        auto rect = open_menu_rect( o.menu );
+        if( !screen_coord.is_inside( rect ) )
+          return MouseOverMenu{};
+        // we have clicked somewhere in the open menu.
+        auto const& textures = g_menu_rendered[o.menu];
+
+        int sel = ( screen_coord.y - menu_bar_tx.size().h ) /
                   textures.menu_background_normal.size().h;
-              CHECK( sel >= 0 );
-              auto const& items = g_menu_def[o.menu];
-              CHECK( sel < int( items.size() ) );
-              if( util::holds<MenuDivider>( items[sel] ) )
-                return MouseOverMenu{};
-              CHECK( util::holds<MenuClickable>( items[sel] ) );
-              return MouseOverMenu{
-                  get<MenuClickable>( items[sel] ).item};
-            },
-            []( opening ) { return MouseOverMenu{}; },
-            []( switching ) { return MouseOverMenu{}; },
-            []( clicking ) { return MouseOverMenu{}; },
-            []( closing ) { return MouseOverMenu{}; } //
-        );
-        return matcher( mo.state );
+        CHECK( sel >= 0 );
+        auto const& items = g_menu_def[o.menu];
+        CHECK( sel < int( items.size() ) );
+        if( util::holds<MenuDivider>( items[sel] ) )
+          return MouseOverMenu{};
+        CHECK( util::holds<MenuClickable>( items[sel] ) );
+        return MouseOverMenu{
+            get<MenuClickable>( items[sel] ).item};
       } );
   return matcher( g_menu_state );
 }
@@ -502,31 +469,21 @@ MouseOverMenu click_target( Coord screen_coord ) {
 *****************************************************************/
 void render_menus( Texture const& tx ) {
   display_menu_bar_tx( tx );
-  auto maybe_render_open_menu = scelta::match(
-      []( menus_off ) {},     //
-      [&]( menus_closed ) {}, //
-      [&]( menu_open const& mo ) {
-        auto matcher = scelta::match(
-            [&]( open const& o ) {
-              Coord pos = {0_y + menu_bar_tx.size().h,
-                           menu_display_x_pos( o.menu )};
+  auto maybe_render_open_menu =
+      scelta::match( []( menus_hidden ) {},  //
+                     [&]( menus_closed ) {}, //
+                     [&]( menu_open const& o ) {
+                       Coord pos = {0_y + menu_bar_tx.size().h,
+                                    menu_header_x_pos( o.menu )};
 
-              Opt<e_menu_item> highlighted;
-              if_v( o.hover, hover, val ) {
-                highlighted = val->item;
-              }
-              auto const& open_tx =
-                  render_open_menu( o.menu, highlighted );
-              copy_texture( open_tx, tx, pos );
-            },
-            []( opening ) {},   //
-            []( switching ) {}, //
-            []( clicking ) {},  //
-            []( closing ) {}    //
-        );
-        return matcher( mo.state );
-      } //
-  );
+                       Opt<e_menu_item> highlighted;
+                       if_v( o.hover, hover, val ) {
+                         highlighted = val->item;
+                       }
+                       auto const& open_tx = render_open_menu(
+                           o.menu, highlighted );
+                       copy_texture( open_tx, tx, pos );
+                     } );
   maybe_render_open_menu( g_menu_state );
 }
 
@@ -635,7 +592,7 @@ void initialize_menus() {
         render_menu_name_background( menu, /*highlight=*/true );
   }
 
-  menu_bar_tx = create_menu_bar_texture();
+  menu_bar_tx = create_texture( menu_bar_rect().delta() );
 }
 
 void cleanup_menus() {
@@ -728,16 +685,15 @@ struct MenuPlane : public Plane {
               []( mouse_over_menu_bar ) { return true; },
               []( e_menu menu ) {
                 if( util::holds<menu_open>( g_menu_state ) )
-                  g_menu_state = menu_open{open{menu, none{}}};
+                  g_menu_state =
+                      menu_open{menu_open{menu, none{}}};
                 return true;
               },
               []( e_menu_item item ) {
                 CHECK( util::holds<menu_open>( g_menu_state ) );
-                auto& mo = std::get<menu_open>( g_menu_state );
-                CHECK( util::holds<open>( mo.state ) );
-                auto& mo_state = std::get<open>( mo.state );
-                CHECK( mo_state.menu == g_item_to_menu[item] );
-                mo_state.hover = hover{item};
+                auto& o = std::get<menu_open>( g_menu_state );
+                CHECK( o.menu == g_item_to_menu[item] );
+                o.hover = hover{item};
                 return true;
               } );
           return matcher( *over_what );
@@ -762,7 +718,8 @@ struct MenuPlane : public Plane {
                   if( is_menu_open( menu ) )
                     g_menu_state = menus_closed{};
                   else
-                    g_menu_state = menu_open{open{menu, none{}}};
+                    g_menu_state =
+                        menu_open{menu_open{menu, none{}}};
                   return true;
                 },
                 []( e_menu_item item ) {
