@@ -27,6 +27,9 @@
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
+// C++ standard library
+#include <chrono>
+
 using namespace std;
 
 using absl::flat_hash_map;
@@ -111,14 +114,21 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
 /****************************************************************
 ** Menu State
 *****************************************************************/
+auto click_anim_duration = chrono::milliseconds{240 + 5};
+auto click_anim_period   = 120ms;
+auto click_anim_half     = click_anim_period / 2;
+
 // clang-format off
 struct menus_hidden {};
 struct menus_closed { Opt<e_menu>      hover; };
 struct menu_open    { e_menu           menu;
                       Opt<e_menu_item> hover; };
+struct item_click   { e_menu_item      item;
+                      TimeType         start;  };
 // clang-format on
 
-using MenuState = variant<menus_hidden, menus_closed, menu_open>;
+using MenuState =
+    variant<menus_hidden, menus_closed, menu_open, item_click>;
 
 MenuState g_menu_state{menus_closed{}};
 
@@ -129,6 +139,10 @@ bool is_menu_open( e_menu menu ) {
   auto matcher = scelta::match(
       []( menus_hidden ) { return false; },
       []( menus_closed ) { return false; },
+      [&]( item_click click ) {
+        CHECK( g_item_to_menu.contains( click.item ) );
+        return g_item_to_menu[click.item] == menu;
+      },
       [&]( menu_open o ) { return o.menu == menu; } );
   return matcher( g_menu_state );
 }
@@ -413,10 +427,11 @@ Texture create_menu_body_texture( e_menu menu ) {
 }
 
 Texture const& render_open_menu( e_menu           menu,
-                                 Opt<e_menu_item> highlighted ) {
+                                 Opt<e_menu_item> subject,
+                                 bool             clicking ) {
   CHECK( g_menu_rendered.contains( menu ) );
-  if( highlighted.has_value() ) {
-    CHECK( g_item_to_menu[*highlighted] == menu );
+  if( subject.has_value() ) {
+    CHECK( g_item_to_menu[*subject] == menu );
   }
   auto const& textures = g_menu_rendered[menu];
   auto&       dst      = textures.menu_body;
@@ -433,16 +448,36 @@ Texture const& render_open_menu( e_menu           menu,
         auto const& desc = g_menu_items[clickable.item];
         auto const& rendered =
             g_menu_item_rendered[clickable.item];
-        Texture const* from =
-            !desc->callbacks.enabled()
-                ? &rendered.disabled
-                : ( clickable.item == highlighted )
-                      ? &rendered.highlighted
-                      : &rendered.normal;
-        Texture const* background =
-            ( clickable.item == highlighted )
-                ? &textures.item_background_highlight
-                : &textures.item_background_normal;
+        Texture const* from{nullptr};
+        Texture const* background{nullptr};
+        if( clicking && clickable.item == subject ) {
+          using namespace std::chrono;
+          using namespace std::literals::chrono_literals;
+          auto time = system_clock::now().time_since_epoch();
+          CHECK( util::holds<item_click>( g_menu_state ) );
+          auto start =
+              std::get<item_click>( g_menu_state ).start;
+          bool phase =
+              !( start.time_since_epoch() % click_anim_period >
+                 click_anim_half );
+          if( ( time % click_anim_period > click_anim_half ) ^
+              phase ) {
+            from       = &rendered.highlighted;
+            background = &textures.item_background_highlight;
+          } else {
+            from       = &rendered.normal;
+            background = &textures.item_background_normal;
+          }
+        } else {
+          from = !desc->callbacks.enabled()
+                     ? &rendered.disabled
+                     : ( clickable.item == subject )
+                           ? &rendered.highlighted
+                           : &rendered.normal;
+          background = ( clickable.item == subject )
+                           ? &textures.item_background_highlight
+                           : &textures.item_background_normal;
+        }
         copy_texture( *background, dst, pos );
         copy_texture( *from, dst,
                       pos + config_ui.menus.padding );
@@ -472,6 +507,12 @@ void render_menu_bar() {
           return Txs{pair{&textures.name.normal,
                           &textures.menu_background_normal}};
         } )( //
+        [&]( auto self, item_click const& ic ) {
+          // Just forward this to the menu_open.
+          CHECK( g_item_to_menu.contains( ic.item ) );
+          return self( MenuState{menu_open{
+              g_item_to_menu[ic.item], /*hover=*/{}}} );
+        },
         [&]( auto self, menu_open const& o ) {
           if( o.menu == menu ) {
             return Txs{
@@ -530,6 +571,12 @@ MouseOverMenu click_target( Coord screen_coord ) {
           return MouseOverMenu{mouse_over_menu_bar{}};
         return MouseOverMenu{};
       } )( //
+      [&]( auto self, item_click const& ic ) {
+        // Just forward this to the menu_open.
+        CHECK( g_item_to_menu.contains( ic.item ) );
+        return self( MenuState{
+            menu_open{g_item_to_menu[ic.item], /*hover=*/{}}} );
+      },
       [&]( auto self, menu_open const& o ) {
         auto closed = self( MenuState{menus_closed{}} );
         if( closed ) return closed;
@@ -555,9 +602,18 @@ void render_menus( Texture const& tx ) {
   auto maybe_render_open_menu = scelta::match(
       []( menus_hidden ) {},  //
       [&]( menus_closed ) {}, //
-      [&]( menu_open const& o ) {
+      [&]( item_click const& ic ) {
+        // Just forward this to the menu_open.
+        CHECK( g_item_to_menu.contains( ic.item ) );
+        auto        menu = g_item_to_menu[ic.item];
         auto const& open_tx =
-            render_open_menu( o.menu, o.hover );
+            render_open_menu( menu, ic.item, /*clicking=*/true );
+        Coord pos = menu_body_rect( menu ).upper_left();
+        copy_texture( open_tx, tx, pos );
+      },
+      [&]( menu_open const& o ) {
+        auto const& open_tx = render_open_menu(
+            o.menu, o.hover, /*clicking=*/false );
         Coord pos = menu_body_rect( o.menu ).upper_left();
         copy_texture( open_tx, tx, pos );
       } );
@@ -770,6 +826,16 @@ struct MenuPlane : public Plane {
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
     render_menus( tx );
+    // TODO: put this code in a dedicated plane callback.
+    if_v( g_menu_state, item_click, val ) {
+      auto item  = val->item;
+      auto start = val->start;
+      if( chrono::system_clock::now() - start >
+          click_anim_duration ) {
+        g_menu_items[item]->callbacks.on_click();
+        g_menu_state = menus_closed{/*hover=*/{}};
+      }
+    }
   }
   bool input( input::event_t const& event ) override {
     auto matcher = scelta::match(
@@ -897,7 +963,8 @@ struct MenuPlane : public Plane {
                   g_menu_state = menus_closed{{}};
                   logger->info( "selected menu item `{}`",
                                 item );
-                  g_menu_items[item]->callbacks.on_click();
+                  g_menu_state = item_click{
+                      item, chrono::system_clock::now()};
                   return true;
                 } );
             return matcher( *over_what );
