@@ -91,6 +91,9 @@ struct Color {
   static Color black() { return {0, 0, 0, 255}; }
 };
 
+// Takes the average of each component.
+Color mix( Color first, Color second );
+
 // So that we can pass it by value.
 static_assert( sizeof( Color ) == 4 );
 

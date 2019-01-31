@@ -133,6 +133,11 @@ bool is_menu_open( e_menu menu ) {
   return matcher( g_menu_state );
 }
 
+Opt<e_menu> opened_menu() {
+  if_v( g_menu_state, menu_open, val ) { return val->menu; }
+  return {};
+}
+
 /****************************************************************
 ** Colors
 *****************************************************************/
@@ -145,12 +150,15 @@ auto const& inactive = config_palette.orange.sat0.lum3;
 namespace foreground {
 auto const& active   = config_palette.orange.sat0.lum2;
 auto const& inactive = config_palette.orange.sat1.lum11;
-auto const& disabled = config_palette.grey.n44;
+auto const& disabled = config_palette.grey.n68;
 } // namespace foreground
 } // namespace item
 namespace menu {
 namespace background {
-auto const& active   = color::item::background::active;
+auto const& active = color::item::background::active;
+auto        hover() {
+  return color::item::background::inactive.highlighted( 2 );
+}
 auto const& inactive = color::item::background::inactive;
 } // namespace background
 namespace foreground {
@@ -185,6 +193,7 @@ struct MenuTextures {
   Texture      menu_body;
   Texture      menu_background_normal;
   Texture      menu_background_highlight;
+  Texture      menu_background_hover;
   W            header_width{0};
 };
 
@@ -390,12 +399,13 @@ Texture render_item_background( e_menu menu, bool active ) {
              : color::item::background::inactive );
 }
 
-Texture render_menu_header_background( e_menu menu,
-                                       bool   active ) {
+Texture render_menu_header_background( e_menu menu, bool active,
+                                       bool hover ) {
   return create_texture(
       menu_header_delta( menu ),
-      active ? color::menu::background::active
-             : color::menu::background::inactive );
+      !active ? color::menu::background::inactive
+              : hover ? color::menu::background::hover()
+                      : color::menu::background::active );
 }
 
 Texture create_menu_body_texture( e_menu menu ) {
@@ -457,9 +467,8 @@ void render_menu_bar() {
         []( menus_hidden ) { return Txs{}; },
         [&]( menus_closed closed ) {
           if( menu == closed.hover )
-            return Txs{
-                pair{&textures.name.highlighted,
-                     &textures.menu_background_highlight}};
+            return Txs{pair{&textures.name.normal,
+                            &textures.menu_background_hover}};
           return Txs{pair{&textures.name.normal,
                           &textures.menu_background_normal}};
         } )( //
@@ -610,6 +619,11 @@ void initialize_menus() {
     }
   }
 
+  // Check that all menus have at least one item.
+  for( auto menu : values<e_menu> ) {
+    CHECK( g_items_from_menu[menu].size() > 0 );
+  }
+
   // Check that all e_menu_items are in a menu.
   for( auto item : values<e_menu_item> ) {
     CHECK( g_menu_items.contains( item ) );
@@ -665,10 +679,16 @@ void initialize_menus() {
         create_menu_body_texture( menu );
     g_menu_rendered[menu].menu_background_normal =
         render_menu_header_background( menu,
-                                       /*highlight=*/false );
+                                       /*highlight=*/false,
+                                       /*hover=*/false );
     g_menu_rendered[menu].menu_background_highlight =
         render_menu_header_background( menu,
-                                       /*highlight=*/true );
+                                       /*highlight=*/true,
+                                       /*hover=*/false );
+    g_menu_rendered[menu].menu_background_hover =
+        render_menu_header_background( menu,
+                                       /*highlight=*/true,
+                                       /*hover=*/true );
 
     g_menu_rendered[menu].divider = render_divider( menu );
   }
@@ -710,11 +730,11 @@ struct MenuPlane : public Plane {
   bool covers_screen() const override { return false; }
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
-    if( button == input::e_mouse_button::l ) {
-      if( click_target( origin ).has_value() )
-        return Plane::e_accept_drag::yes;
-    }
-    return Plane::e_accept_drag::no;
+    if( !click_target( origin ).has_value() )
+      return Plane::e_accept_drag::no;
+    return ( button == input::e_mouse_button::l )
+               ? Plane::e_accept_drag::yes
+               : Plane::e_accept_drag::swallow;
   }
   // We handle dragging but do not really treat it as a drag; in-
   // stead  we  just receive the dragging events and convert them
@@ -755,17 +775,49 @@ struct MenuPlane : public Plane {
         []( input::unknown_event_t ) { return false; },
         []( input::quit_event_t ) { return false; },
         []( input::key_event_t const& key_event ) {
+          auto menu = opened_menu();
+          if( !menu ) return false;
           if( key_event.change == input::e_key_change::down ) {
-            // TODO
             switch( key_event.keycode ) {
-              case ::SDLK_LEFT: return false;
-              case ::SDLK_RIGHT: return false;
-              case ::SDLK_UP: return false;
-              case ::SDLK_DOWN: return false;
-              default: return false;
+              case ::SDLK_ESCAPE:
+                g_menu_state = menus_closed{{}};
+                return true;
+              case ::SDLK_LEFT: {
+                menu = util::find_previous_and_cycle(
+                    values<e_menu>, *menu );
+                CHECK( menu );
+                g_menu_state = menu_open{*menu, /*hover=*/{}};
+                return true;
+              }
+              case ::SDLK_RIGHT: {
+                menu = util::find_subsequent_and_cycle(
+                    values<e_menu>, *menu );
+                CHECK( menu );
+                g_menu_state = menu_open{*menu, /*hover=*/{}};
+                return true;
+              }
+              case ::SDLK_DOWN: {
+                auto state = std::get<menu_open>( g_menu_state );
+                if( !state.hover )
+                  state.hover = g_items_from_menu[*menu].back();
+                state.hover = util::find_subsequent_and_cycle(
+                    g_items_from_menu[*menu], *state.hover );
+                g_menu_state = state;
+                return true;
+              }
+              case ::SDLK_UP: {
+                auto state = std::get<menu_open>( g_menu_state );
+                if( !state.hover )
+                  state.hover = g_items_from_menu[*menu].front();
+                state.hover = util::find_previous_and_cycle(
+                    g_items_from_menu[*menu], *state.hover );
+                g_menu_state = state;
+                return true;
+              }
+              default: break;
             }
           }
-          return false;
+          return true;
         },
         []( input::mouse_wheel_event_t ) { return false; },
         []( input::mouse_move_event_t mv_event ) {
@@ -795,7 +847,9 @@ struct MenuPlane : public Plane {
                 CHECK( util::holds<menu_open>( g_menu_state ) );
                 auto& o = std::get<menu_open>( g_menu_state );
                 CHECK( o.menu == g_item_to_menu[item] );
-                o.hover = item;
+                o.hover = {};
+                if( g_menu_items[item]->callbacks.enabled() )
+                  o.hover = item;
                 return true;
               } );
           return matcher( *over_what );
@@ -826,8 +880,9 @@ struct MenuPlane : public Plane {
                 },
                 []( e_menu_item ) { return true; } );
             return matcher( *over_what );
-          } else if( b_event.buttons ==
-                     input::e_mouse_button_event::left_up ) {
+          }
+          if( b_event.buttons ==
+              input::e_mouse_button_event::left_up ) {
             auto matcher = scelta::match(
                 []( mouse_over_menu_bar ) {
                   g_menu_state = menus_closed{{}};
@@ -836,6 +891,8 @@ struct MenuPlane : public Plane {
                 []( mouse_over_divider ) { return true; },
                 []( e_menu ) { return true; },
                 []( e_menu_item item ) {
+                  if( !g_menu_items[item]->callbacks.enabled() )
+                    return true;
                   g_menu_state = menus_closed{{}};
                   logger->info( "selected menu item `{}`",
                                 item );
@@ -844,7 +901,10 @@ struct MenuPlane : public Plane {
                 } );
             return matcher( *over_what );
           }
-          return false;
+          // `true` here because the mouse is over some menu ui
+          // element (and that in turn is because
+          // over_what.has_value() == true).
+          return true;
         },
         []( input::mouse_drag_event_t ) {
           // The framework does not send us mouse drag events

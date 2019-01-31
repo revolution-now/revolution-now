@@ -431,6 +431,18 @@ Color Color::shaded( int iterations ) const {
   return shift_color( *this, false ).shaded( iterations - 1 );
 }
 
+// Takes the average of each component.
+Color mix( Color first, Color second ) {
+  return {
+      // clang-format off
+    uint8_t((uint32_t(first.r)+uint32_t(second.r))/2),
+    uint8_t((uint32_t(first.g)+uint32_t(second.g))/2),
+    uint8_t((uint32_t(first.b)+uint32_t(second.b))/2),
+    uint8_t((uint32_t(first.a)+uint32_t(second.a))/2)
+      // clang-format on
+  };
+}
+
 void hsl_bucketed_sort( Vec<Color>& colors ) {
   util::sort_by_key( colors, L( _.luminosity() ) );
   util::stable_sort_by_key( colors, sat_bucket_key );
