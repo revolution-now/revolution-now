@@ -494,6 +494,18 @@ ND Texture create_texture( Delta delta ) {
   return create_texture( delta.w, delta.h );
 }
 
+ND Texture create_texture( Delta delta, Color const& color ) {
+  auto tx = create_texture( delta.w, delta.h );
+  fill_texture( tx, color );
+  return tx;
+}
+
+ND Texture create_texture_transparent( Delta delta ) {
+  auto tx = create_texture( delta.w, delta.h );
+  clear_texture_transparent( tx );
+  return tx;
+}
+
 ND Texture create_screen_sized_texture() {
   return create_texture( screen_logical_size() );
 }

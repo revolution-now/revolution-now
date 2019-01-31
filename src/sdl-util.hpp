@@ -118,6 +118,8 @@ void copy_texture_stretch( Texture const&   from,
 
 ND Texture create_texture( W w, H h );
 ND Texture create_texture( Delta delta );
+ND Texture create_texture( Delta delta, Color const& color );
+ND Texture create_texture_transparent( Delta delta );
 ND Texture create_screen_sized_texture();
 
 ::SDL_Surface* create_surface( Delta delta );

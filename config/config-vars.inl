@@ -34,6 +34,13 @@ CFG( ui,
     FLD( Vec<Coord>, positions )
   )
   FLD( Vec<rn::W>, widths )
+
+  OBJ( menus,
+    FLD( rn::W, first_menu_start )
+    FLD( rn::W, padding )
+    FLD( rn::W, spacing )
+    FLD( rn::W, body_min_width )
+  )
 )
 
 /****************************************************************
