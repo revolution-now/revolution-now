@@ -7,3 +7,13 @@ depixelate_pixels_per_frame: 10
 main_window {
   title: "Revolution | Now"
 }
+
+viewport {
+  pan_speed: 12.0
+  zoom_min: 0.5
+  zoom_speed: 0.08
+  zoom_accel_coeff: 0.2
+  zoom_accel_drag_coeff: 0.05
+  pan_accel_init_coeff: 0.2
+  pan_accel_drag_init_coeff: 0.1
+}

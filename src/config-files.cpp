@@ -240,8 +240,10 @@ void check_field_type( ucl::Ucl obj, UclType_t type,
                        string const& dotted,
                        string const& config_name,
                        string const& desc ) {
-  CHECK( obj.type() == type, "expected `{}.{}` to contain {}",
-         config_name, dotted, desc );
+  CHECK( obj.type() == type,
+         "expected `{}.{}` to contain {}; instead contains type "
+         "`{}`.",
+         config_name, dotted, desc, obj.type() );
 }
 
 #define DECLARE_POPULATE( type )                            \

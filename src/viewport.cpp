@@ -11,6 +11,7 @@
 *****************************************************************/
 #include "viewport.hpp"
 
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "globals.hpp"
 #include "tiles.hpp"
@@ -21,20 +22,21 @@ using namespace std;
 
 namespace rn {
 
-// Config
-constexpr double movement_speed      = 8.0;
-constexpr double zoom_min            = 0.5;
-constexpr double zoom_speed          = .08;
-constexpr double zoom_accel          = 0.2 * zoom_speed;
-constexpr double zoom_accel_drag     = 0.05 * zoom_speed;
-constexpr double pan_accel_init      = 0.2 * movement_speed;
-constexpr double pan_accel_drag_init = 0.1 * movement_speed;
-
 namespace {
 
 e_push_direction x_push{e_push_direction::none};
 e_push_direction y_push{e_push_direction::none};
 e_push_direction zoom_push{e_push_direction::none};
+
+double pan_accel_init() {
+  return config_rn.viewport.pan_accel_init_coeff *
+         config_rn.viewport.pan_speed;
+}
+
+double pan_accel_drag_init() {
+  return config_rn.viewport.pan_accel_drag_init_coeff *
+         config_rn.viewport.pan_speed;
+}
 
 } // namespace
 
@@ -45,23 +47,27 @@ SmoothViewport& viewport() {
 
 SmoothViewport::SmoothViewport()
   : x_vel_(
-        /*min_velocity=*/-movement_speed,
-        /*max_velocity=*/movement_speed,
+        /*min_velocity=*/-config_rn.viewport.pan_speed,
+        /*max_velocity=*/config_rn.viewport.pan_speed,
         /*initial_velocity=*/0,
-        /*mag_acceleration=*/pan_accel_init,
-        /*mag_drag_acceleration=*/pan_accel_drag_init ),
+        /*mag_acceleration=*/pan_accel_init(),
+        /*mag_drag_acceleration=*/pan_accel_drag_init() ),
     y_vel_(
-        /*min_velocity=*/-movement_speed,
-        /*max_velocity=*/movement_speed,
+        /*min_velocity=*/-config_rn.viewport.pan_speed,
+        /*max_velocity=*/config_rn.viewport.pan_speed,
         /*initial_velocity=*/0,
-        /*mag_acceleration=*/pan_accel_init,
-        /*mag_drag_acceleration=*/pan_accel_drag_init ),
+        /*mag_acceleration=*/pan_accel_init(),
+        /*mag_drag_acceleration=*/pan_accel_drag_init() ),
     zoom_vel_(
-        /*min_velocity=*/-zoom_speed,
-        /*max_velocity=*/zoom_speed,
+        /*min_velocity=*/-config_rn.viewport.zoom_speed,
+        /*max_velocity=*/config_rn.viewport.zoom_speed,
         /*initial_velocity=*/0,
-        /*mag_acceleration=*/zoom_accel,
-        /*mag_drag_acceleration=*/zoom_accel_drag ),
+        /*mag_acceleration=*/
+        config_rn.viewport.zoom_accel_coeff *
+            config_rn.viewport.zoom_speed,
+        /*mag_drag_acceleration=*/
+        config_rn.viewport.zoom_accel_drag_coeff *
+            config_rn.viewport.zoom_speed ),
     zoom_( 1.0 ),
     // zoom_ must be initialized before center_x_/y_
     center_x_( width_pixels() / 2 ),
@@ -80,18 +86,20 @@ void SmoothViewport::advance( e_push_direction x_push,
   double zoom_factor07 = pow( get_scale_zoom(), 0.7 );
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   double zoom_factor15  = pow( get_scale_zoom(), 1.5 );
-  double pan_accel      = pan_accel_init;
-  double pan_accel_drag = pan_accel_drag_init;
+  double pan_accel      = pan_accel_init();
+  double pan_accel_drag = pan_accel_drag_init();
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   pan_accel_drag = pan_accel_drag / pow( get_scale_zoom(), .75 );
   pan_accel      = pan_accel_drag +
               ( pan_accel - pan_accel_drag ) / zoom_factor15;
   x_vel_.set_accelerations( pan_accel, pan_accel_drag );
   y_vel_.set_accelerations( pan_accel, pan_accel_drag );
-  x_vel_.set_bounds( -movement_speed / zoom_factor07,
-                     movement_speed / zoom_factor07 );
-  y_vel_.set_bounds( -movement_speed / zoom_factor07,
-                     movement_speed / zoom_factor07 );
+  x_vel_.set_bounds(
+      -config_rn.viewport.pan_speed / zoom_factor07,
+      config_rn.viewport.pan_speed / zoom_factor07 );
+  y_vel_.set_bounds(
+      -config_rn.viewport.pan_speed / zoom_factor07,
+      config_rn.viewport.pan_speed / zoom_factor07 );
 
   x_vel_.advance( x_push );
   y_vel_.advance( y_push );
@@ -278,7 +286,8 @@ double SmoothViewport::height_tiles() const {
 }
 
 void SmoothViewport::enforce_invariants() {
-  if( zoom_ < zoom_min ) zoom_ = zoom_min;
+  if( zoom_ < config_rn.viewport.zoom_min )
+    zoom_ = config_rn.viewport.zoom_min;
   auto [size_x, size_y] = world_size_tiles();
   size_y *= g_tile_height;
   size_x *= g_tile_width;

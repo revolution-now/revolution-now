@@ -13,6 +13,15 @@ CFG( rn,
   OBJ( main_window,
     FLD( Str, title )
   )
+  OBJ( viewport,
+    FLD( double, pan_speed )
+    FLD( double, zoom_min )
+    FLD( double, zoom_speed )
+    FLD( double, zoom_accel_coeff )
+    FLD( double, zoom_accel_drag_coeff )
+    FLD( double, pan_accel_init_coeff )
+    FLD( double, pan_accel_drag_init_coeff )
+  )
 )
 
 /****************************************************************
