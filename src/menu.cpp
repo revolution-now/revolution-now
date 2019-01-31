@@ -701,6 +701,7 @@ void cleanup_menus() {
   // items.
   g_menu_rendered.clear();
   g_menu_item_rendered.clear();
+  menu_bar_tx.free();
 }
 
 /****************************************************************
