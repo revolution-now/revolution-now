@@ -27,19 +27,33 @@ namespace rn {
 //     ( case_d, double f; )     //
 //)
 
-#define ADT_MAKE_STRUCT( name, ... )        \
-  struct name {                             \
-    __VA_OPT__( JOIN_SEMIS( __VA_ARGS__ ) ) \
+#define PAIR_TO_DECL( type, var ) type var
+#define PAIR_TO_DECL_TUPLE( a ) PAIR_TO_DECL a
+
+#define PAIR_TO_CMP( type, var ) ( l.var == r.var )
+#define PAIR_TO_CMP_TUPLE( a ) PAIR_TO_CMP a
+
+// We need the DEFER here because this will be called recursively
+// from another PP_MAP_SEMI below.
+#define ADT_MAKE_STRUCT( name, ... )                      \
+  struct name {                                           \
+    __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE, \
+                                      __VA_ARGS__ ) )     \
+  };                                                      \
+  bool operator==( name const& l, name const& r ) {       \
+    (void)l;                                              \
+    (void)r;                                              \
+    return true __VA_OPT__(                               \
+        &&PP_MAP_AMP( PAIR_TO_CMP_TUPLE, __VA_ARGS__ ) ); \
   }
 
-#define ADT_MAKE_STRUCT_TUPLE( a ) ADT_MAKE_STRUCT a;
-#define HEAD_TUPLE( a ) HEAD a
+#define ADT_MAKE_STRUCT_TUPLE( a ) ADT_MAKE_STRUCT a
 
-#define ADT_NON_EVAL( name, ... )                   \
+#define ADT_IMPL( name, ... )                       \
   PP_MAP_SEMI( ADT_MAKE_STRUCT_TUPLE, __VA_ARGS__ ) \
   using name =                                      \
       std::variant<PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ )>;
 
-#define ADT( ... ) EVAL( ADT_NON_EVAL( __VA_ARGS__ ) )
+#define ADT( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
 
 } // namespace rn
