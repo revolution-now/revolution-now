@@ -184,6 +184,10 @@ struct exception_with_bt : public std::runtime_error {
   StackTrace st; // will be empty in non-debug builds.
 };
 
+// An exception to throw when you just want to exit. Mainly just
+// for use during development.
+struct exception_exit : public std::exception {};
+
 // All code in RN should use these functions to interact with
 // stack traces.
 

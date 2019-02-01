@@ -105,6 +105,9 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   game();
   return 0;
 
+} catch( exception_exit const& ) {
+  logger->info( "exiting due to exception_exit." );
+  cleanup();
 } catch( exception_with_bt const& e ) {
   logger->error( e.what() );
   string sdl_error = SDL_GetError();

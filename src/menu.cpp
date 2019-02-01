@@ -114,9 +114,12 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
 /****************************************************************
 ** Menu State
 *****************************************************************/
-auto click_anim_duration = chrono::milliseconds{240 + 5};
-auto click_anim_period   = 120ms;
-auto click_anim_half     = click_anim_period / 2;
+// TODO: this formula seems to be just right; figure out why. How
+// will it interact with frame rate?
+auto click_anim_period = 130ms;
+auto click_anim_half   = click_anim_period / 2;
+auto click_anim_duration =
+    click_anim_period * 2 + click_anim_half + 5ms;
 
 // clang-format off
 struct menus_hidden {};
@@ -766,11 +769,15 @@ void cleanup_menus() {
 function<void( void )> empty_handler = [] {};
 function<bool( void )> enabled_true  = [] { return true; };
 function<bool( void )> enabled_false = [] { return false; };
+function<bool( void )> quit_handler  = [] {
+  throw exception_exit{};
+  return false;
+};
 
 MENU_ITEM_HANDLER( about, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( revolution, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( retire, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( exit, empty_handler, enabled_true );
+MENU_ITEM_HANDLER( exit, quit_handler, enabled_true );
 MENU_ITEM_HANDLER( zoom_in, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( zoom_out, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( restore_zoom, empty_handler, enabled_true );
@@ -814,7 +821,11 @@ struct MenuPlane : public Plane {
     // attempts to click on a menu header but accidentally per-
     // forms a tiny drag and then the menu quickly opens and
     // closes, when it should actually have just stayed open.
-    if( click_target( start ) == click_target( end ) ) return;
+    auto click_start = click_target( start );
+    if( click_target( start ) == click_target( end ) &&
+        click_start.has_value() &&
+        util::holds<e_menu>( *click_start ) )
+      return;
     if( button == input::e_mouse_button::l ) {
       // TODO: get the input module to do this.
       // Convert to mouse button event.
@@ -898,9 +909,12 @@ struct MenuPlane : public Plane {
           auto matcher = scelta::match(
               []( mouse_over_menu_bar ) { return true; },
               []( mouse_over_divider desc ) {
-                CHECK( util::holds<menu_open>( g_menu_state ) );
-                g_menu_state =
-                    menu_open{desc.menu, /*hover=*/{}};
+                CHECK( util::holds<menu_open>( g_menu_state ) ||
+                       util::holds<item_click>( g_menu_state ) );
+                if( util::holds<menu_open>( g_menu_state ) ) {
+                  g_menu_state =
+                      menu_open{desc.menu, /*hover=*/{}};
+                }
                 return true;
               },
               []( e_menu menu ) {
@@ -911,12 +925,15 @@ struct MenuPlane : public Plane {
                 return true;
               },
               []( e_menu_item item ) {
-                CHECK( util::holds<menu_open>( g_menu_state ) );
-                auto& o = std::get<menu_open>( g_menu_state );
-                CHECK( o.menu == g_item_to_menu[item] );
-                o.hover = {};
-                if( g_menu_items[item]->callbacks.enabled() )
-                  o.hover = item;
+                CHECK( util::holds<menu_open>( g_menu_state ) ||
+                       util::holds<item_click>( g_menu_state ) );
+                if( util::holds<menu_open>( g_menu_state ) ) {
+                  auto& o = std::get<menu_open>( g_menu_state );
+                  CHECK( o.menu == g_item_to_menu[item] );
+                  o.hover = {};
+                  if( g_menu_items[item]->callbacks.enabled() )
+                    o.hover = item;
+                }
                 return true;
               } );
           return matcher( *over_what );
