@@ -11,15 +11,16 @@
 //#include "adt.hpp"
 
 // Revolution Now
+#include "fmt-helper.hpp"
 #include "variant.hpp"
 
 struct __marker_start {};
-
-// ADT( Test,
-//     ( case_a ),                         //
-//     ( case_b ),                         //
-//     ( case_c, ( int, x ), ( int, y ) ), //
-//     ( case_d, ( double, f ) )           //
+// ADT( state,
+//     ( steady ),                                            //
+//     ( stopped ),                                           //
+//     ( paused, ( double, percent ), ( std::string, msg ) ), //
+//     ( starting, ( int, x ), ( int, y ) ),                  //
+//     ( ending, ( double, f ) )                              //
 //)
 
 struct __marker_end {};
@@ -29,20 +30,32 @@ namespace rn {
 namespace {} // namespace
 
 void harness() {
-  // Test_t o;
-  // Test_t o2;
+  // state_t o;
+  // state_t o2;
 
   // if( o == o2 ) {}
 
-  // auto matcher =
-  //    scelta::match( []( Test::case_a ) {}, //
-  //                   []( Test::case_b ) {}, //
-  //                   []( Test::case_c c ) {
-  //                     (void)c.x;
-  //                     (void)c.y;
-  //                   },
-  //                   []( Test::case_d d ) { (void)d.f; } );
+  // auto matcher = scelta::match( []( state::steady ) {},  //
+  //                              []( state::stopped ) {}, //
+  //                              []( state::paused p ) {  //
+  //                                (void)p.percent;
+  //                                (void)p.msg;
+  //                              },
+  //                              []( state::starting s ) { //
+  //                                (void)s.x;
+  //                                (void)s.y;
+  //                              },
+  //                              []( state::ending e ) { //
+  //                                (void)e.f;
+  //                              } );
   // matcher( o );
+
+  // o = state::steady{};
+  // fmt::print( "o: {}\n", o );
+  // o = state::paused{5.5, "hello"};
+  // fmt::print( "o: {}\n", o );
+  // o = state::ending{2.0};
+  // fmt::print( "o: {}\n", o );
 }
 
 } // namespace rn
