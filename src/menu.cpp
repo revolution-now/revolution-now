@@ -114,12 +114,31 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
 /****************************************************************
 ** Menu State
 *****************************************************************/
-// TODO: this formula seems to be just right; figure out why. How
-// will it interact with frame rate?
-auto click_anim_period = 130ms;
-auto click_anim_half   = click_anim_period / 2;
-auto click_anim_duration =
-    click_anim_period * 2 + click_anim_half + 5ms;
+using Frames = chrono::duration<int, std::ratio<1, 60>>;
+namespace click_anim {
+auto constexpr half_period     = Frames{4};
+auto constexpr post_off_time   = Frames{5};
+int constexpr num_half_periods = 4;
+bool constexpr start_on        = false;
+
+// The click should be like this:
+//
+//   click_anim_start_on = true
+//   ---------------------------------------------------------
+//   |  on  |  off |  on  |  off |  on  |  ... |   off-time  |
+//   ---------------------------------------------------------
+//
+//   click_anim_start_on = off
+//   ---------------------------------------------------------
+//   |  off |  on  |  off |  on  |  off |  ... |   off-time  |
+//   ---------------------------------------------------------
+//
+// where each box is a "half period."
+
+auto period = half_period * 2;
+auto total_duration =
+    half_period * num_half_periods + post_off_time;
+} // namespace click_anim
 
 // clang-format off
 struct menus_hidden {};
@@ -456,15 +475,18 @@ Texture const& render_open_menu( e_menu           menu,
         if( clicking && clickable.item == subject ) {
           using namespace std::chrono;
           using namespace std::literals::chrono_literals;
-          auto time = system_clock::now().time_since_epoch();
+          auto now = system_clock::now();
           CHECK( util::holds<item_click>( g_menu_state ) );
           auto start =
               std::get<item_click>( g_menu_state ).start;
-          bool phase =
-              !( start.time_since_epoch() % click_anim_period >
-                 click_anim_half );
-          if( ( time % click_anim_period > click_anim_half ) ^
-              phase ) {
+          auto elapsed = now - start;
+          using namespace click_anim;
+          if( elapsed > total_duration - post_off_time ) {
+            from       = &rendered.normal;
+            background = &textures.item_background_normal;
+
+          } else if( ( elapsed % period > half_period ) ^
+                     start_on ) {
             from       = &rendered.highlighted;
             background = &textures.item_background_highlight;
           } else {
@@ -842,7 +864,7 @@ struct MenuPlane : public Plane {
       auto item  = val->item;
       auto start = val->start;
       if( chrono::system_clock::now() - start >
-          click_anim_duration ) {
+          click_anim::total_duration ) {
         g_menu_items[item]->callbacks.on_click();
         g_menu_state = menus_closed{/*hover=*/{}};
       }
