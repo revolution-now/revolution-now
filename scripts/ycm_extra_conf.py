@@ -13,6 +13,9 @@ for f in files:
     directories[name] = str( f['directory'] )
     commands |= set( [flags[name][0]] )
 
+def is_mac():
+    return 'Darwin' in os.uname()[0]
+
 # cmd is a string with a shell command.
 def run_cmd( cmd ):
     p = sp.Popen( cmd, stdout=sp.PIPE, stderr=sp.PIPE, shell=True )
@@ -90,11 +93,12 @@ def FlagsForFile( filename, **kwargs ):
             return i
         result = map( fix, result )
 
-    isystems = CompileSearchPathList()
-    if isystems:
-        # There MUST NOT be a space between -isystem and the
-        # path, otherwise it will be silently ignored!
-        result.extend( ['-isystem%s' % f for f in isystems] )
+    if is_mac():
+        isystems = CompileSearchPathList()
+        if isystems:
+            # There MUST NOT be a space between -isystem and the
+            # path, otherwise it will be silently ignored!
+            result.extend( ['-isystem%s' % f for f in isystems] )
 
     return { 'flags': result }
 
