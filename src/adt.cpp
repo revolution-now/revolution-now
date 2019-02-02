@@ -15,11 +15,15 @@
 #include "logging.hpp"
 #include "variant.hpp"
 
+// base-util
+#include "base-util/string.hpp"
+
 namespace rn {
 
 std::string_view remove_rn_ns( std::string_view sv ) {
   constexpr std::string_view rn_ = "rn::";
-  if( sv.starts_with( rn_ ) ) sv.remove_prefix( rn_.size() );
+  if( util::starts_with( sv, rn_ ) )
+    sv.remove_prefix( rn_.size() );
   return sv;
 }
 
