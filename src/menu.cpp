@@ -161,8 +161,6 @@ auto total_duration =
     half_period * num_half_periods + post_off_time + fade_time;
 } // namespace click_anim
 
-// clang-format off
-
 MenuState_t g_menu_state{MenuState::menus_closed{}};
 
 void log_menu_state() {
@@ -185,7 +183,9 @@ bool is_menu_open( e_menu menu ) {
 }
 
 Opt<e_menu> opened_menu() {
-  if_v( g_menu_state, MenuState::menu_open, val ) { return val->menu; }
+  if_v( g_menu_state, MenuState::menu_open, val ) {
+    return val->menu;
+  }
   return {};
 }
 
@@ -494,9 +494,11 @@ Texture const& render_open_menu( e_menu           menu,
           using namespace std::chrono;
           using namespace std::literals::chrono_literals;
           auto now = system_clock::now();
-          CHECK( util::holds<MenuState::item_click>( g_menu_state ) );
+          CHECK( util::holds<MenuState::item_click>(
+              g_menu_state ) );
           auto start =
-              std::get<MenuState::item_click>( g_menu_state ).start;
+              std::get<MenuState::item_click>( g_menu_state )
+                  .start;
           auto elapsed = now - start;
           using namespace click_anim;
           if( elapsed >= total_duration - fade_time ) {
@@ -575,7 +577,8 @@ void render_menu_bar() {
                 pair{&textures.name.highlighted,
                      &textures.menu_background_highlight}};
           } else
-            return self( MenuState_t{MenuState::menus_closed{}} );
+            return self(
+                MenuState_t{MenuState::menus_closed{}} );
         } );
     if( auto p = matcher( g_menu_state ); p.has_value() ) {
       auto pos = menu_header_x_pos( menu );
@@ -630,11 +633,12 @@ MouseOverMenu click_target( Coord screen_coord ) {
       [&]( auto self, MenuState::item_click const& ic ) {
         // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        return self( MenuState_t{
-            MenuState::menu_open{g_item_to_menu[ic.item], /*hover=*/{}}} );
+        return self( MenuState_t{MenuState::menu_open{
+            g_item_to_menu[ic.item], /*hover=*/{}}} );
       },
       [&]( auto self, MenuState::menu_open const& o ) {
-        auto closed = self( MenuState_t{MenuState::menus_closed{}} );
+        auto closed =
+            self( MenuState_t{MenuState::menus_closed{}} );
         if( closed ) return closed;
         if( !screen_coord.is_inside( menu_body_rect( o.menu ) ) )
           return MouseOverMenu{};
@@ -933,33 +937,48 @@ struct MenuPlane : public Plane {
     auto matcher = scelta::match(
         []( input::unknown_event_t ) { return false; },
         []( input::quit_event_t ) { return false; },
-        []( input::key_event_t const& key_event ) {
+        [&]( input::key_event_t const& key_event ) {
           auto menu = opened_menu();
           if( !menu ) return false;
           if( key_event.change == input::e_key_change::down ) {
             switch( key_event.keycode ) {
+              case ::SDLK_RETURN:
+              case ::SDLK_KP_ENTER:
+                if_v( g_menu_state, MenuState::menu_open, val ) {
+                  if( val->hover.has_value() ) {
+                    click_menu_item( val->hover.value() );
+                    log_menu_state();
+                  }
+                }
+                return true;
               case ::SDLK_ESCAPE:
                 g_menu_state = MenuState::menus_closed{{}};
                 log_menu_state();
                 return true;
+              case ::SDLK_KP_4:
               case ::SDLK_LEFT: {
                 menu = util::find_previous_and_cycle(
                     values<e_menu>, *menu );
                 CHECK( menu );
-                g_menu_state = MenuState::menu_open{*menu, /*hover=*/{}};
+                g_menu_state =
+                    MenuState::menu_open{*menu, /*hover=*/{}};
                 log_menu_state();
                 return true;
               }
+              case ::SDLK_KP_6:
               case ::SDLK_RIGHT: {
                 menu = util::find_subsequent_and_cycle(
                     values<e_menu>, *menu );
                 CHECK( menu );
-                g_menu_state = MenuState::menu_open{*menu, /*hover=*/{}};
+                g_menu_state =
+                    MenuState::menu_open{*menu, /*hover=*/{}};
                 log_menu_state();
                 return true;
               }
+              case ::SDLK_KP_2:
               case ::SDLK_DOWN: {
-                auto state = std::get<MenuState::menu_open>( g_menu_state );
+                auto state = std::get<MenuState::menu_open>(
+                    g_menu_state );
                 if( !state.hover )
                   state.hover = g_items_from_menu[*menu].back();
                 state.hover = util::find_subsequent_and_cycle(
@@ -968,8 +987,10 @@ struct MenuPlane : public Plane {
                 log_menu_state();
                 return true;
               }
+              case ::SDLK_KP_8:
               case ::SDLK_UP: {
-                auto state = std::get<MenuState::menu_open>( g_menu_state );
+                auto state = std::get<MenuState::menu_open>(
+                    g_menu_state );
                 if( !state.hover )
                   state.hover = g_items_from_menu[*menu].front();
                 state.hover = util::find_previous_and_cycle(
@@ -988,33 +1009,45 @@ struct MenuPlane : public Plane {
           // Remove menu-hover by default and enable it again
           // below if the mouse if over a menu and menus are
           // closed.
-          if( util::holds<MenuState::menus_closed>( g_menu_state ) )
+          if( util::holds<MenuState::menus_closed>(
+                  g_menu_state ) )
             g_menu_state = MenuState::menus_closed{};
           auto over_what = click_target( mv_event.pos );
           if( !over_what.has_value() ) return false;
           auto matcher = scelta::match(
               []( mouse_over_menu_bar ) { return true; },
               []( mouse_over_divider desc ) {
-                CHECK( util::holds<MenuState::menu_open>( g_menu_state ) ||
-                       util::holds<MenuState::item_click>( g_menu_state ) );
-                if( util::holds<MenuState::menu_open>( g_menu_state ) ) {
-                  g_menu_state =
-                      MenuState::menu_open{desc.menu, /*hover=*/{}};
+                CHECK( util::holds<MenuState::menu_open>(
+                           g_menu_state ) ||
+                       util::holds<MenuState::item_click>(
+                           g_menu_state ) );
+                if( util::holds<MenuState::menu_open>(
+                        g_menu_state ) ) {
+                  g_menu_state = MenuState::menu_open{
+                      desc.menu, /*hover=*/{}};
                 }
                 return true;
               },
               []( e_menu menu ) {
-                if( util::holds<MenuState::menu_open>( g_menu_state ) )
-                  g_menu_state = MenuState::menu_open{menu, /*hover=*/{}};
-                if( util::holds<MenuState::menus_closed>( g_menu_state ) )
-                  g_menu_state = MenuState::menus_closed{/*hover=*/menu};
+                if( util::holds<MenuState::menu_open>(
+                        g_menu_state ) )
+                  g_menu_state =
+                      MenuState::menu_open{menu, /*hover=*/{}};
+                if( util::holds<MenuState::menus_closed>(
+                        g_menu_state ) )
+                  g_menu_state =
+                      MenuState::menus_closed{/*hover=*/menu};
                 return true;
               },
               []( e_menu_item item ) {
-                CHECK( util::holds<MenuState::menu_open>( g_menu_state ) ||
-                       util::holds<MenuState::item_click>( g_menu_state ) );
-                if( util::holds<MenuState::menu_open>( g_menu_state ) ) {
-                  auto& o = std::get<MenuState::menu_open>( g_menu_state );
+                CHECK( util::holds<MenuState::menu_open>(
+                           g_menu_state ) ||
+                       util::holds<MenuState::item_click>(
+                           g_menu_state ) );
+                if( util::holds<MenuState::menu_open>(
+                        g_menu_state ) ) {
+                  auto& o = std::get<MenuState::menu_open>(
+                      g_menu_state );
                   CHECK( o.menu == g_item_to_menu[item] );
                   o.hover = {};
                   if( g_menu_items[item]->callbacks.enabled() )
@@ -1024,10 +1057,11 @@ struct MenuPlane : public Plane {
               } );
           return matcher( *over_what );
         },
-        []( input::mouse_button_event_t b_event ) {
+        [&]( input::mouse_button_event_t b_event ) {
           auto over_what = click_target( b_event.pos );
           if( !over_what.has_value() ) {
-            if( util::holds<MenuState::menu_open>( g_menu_state ) ) {
+            if( util::holds<MenuState::menu_open>(
+                    g_menu_state ) ) {
               g_menu_state = MenuState::menus_closed{{}};
               log_menu_state();
               return true; // no click through
@@ -1045,9 +1079,11 @@ struct MenuPlane : public Plane {
                 []( mouse_over_divider ) { return true; },
                 []( e_menu menu ) {
                   if( !is_menu_open( menu ) )
-                    g_menu_state = MenuState::menu_open{menu, /*hover=*/{}};
+                    g_menu_state =
+                        MenuState::menu_open{menu, /*hover=*/{}};
                   else
-                    g_menu_state = MenuState::menus_closed{/*hover=*/menu};
+                    g_menu_state =
+                        MenuState::menus_closed{/*hover=*/menu};
                   log_menu_state();
                   return true;
                 },
@@ -1064,14 +1100,8 @@ struct MenuPlane : public Plane {
                 },
                 []( mouse_over_divider ) { return true; },
                 []( e_menu ) { return true; },
-                []( e_menu_item item ) {
-                  if( !g_menu_items[item]->callbacks.enabled() )
-                    return true;
-                  logger->info( "selected menu item `{}`",
-                                item );
-                  g_menu_state = MenuState::item_click{
-                      item, chrono::system_clock::now()};
-                  log_menu_state();
+                [&]( e_menu_item item ) {
+                  click_menu_item( item );
                   return true;
                 } );
             return matcher( *over_what );
@@ -1089,6 +1119,16 @@ struct MenuPlane : public Plane {
           return false;
         } );
     return matcher( event );
+  }
+
+private:
+  void click_menu_item( e_menu_item item ) {
+    CHECK( util::holds<MenuState::menu_open>( g_menu_state ) );
+    if( !g_menu_items[item]->callbacks.enabled() ) return;
+    logger->info( "selected menu item `{}`", item );
+    g_menu_state =
+        MenuState::item_click{item, chrono::system_clock::now()};
+    log_menu_state();
   }
 };
 
