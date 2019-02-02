@@ -1,4 +1,3 @@
-#include "adt.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
@@ -104,7 +103,6 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   init_logging( spdlog::level::debug );
   load_configs();
   game();
-  adt_test();
   return 0;
 
 } catch( exception_exit const& ) {

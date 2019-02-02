@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2019-01-18.
 *
-* Description: Abstract Data Types.
+* Description: Algebraic Data Types.
 *
 *****************************************************************/
 #pragma once
@@ -19,15 +19,62 @@
 #include <string_view>
 #include <variant>
 
+/****************************************************************
+** Algebraic Data Types
+*****************************************************************
+*  This module defines a macro ADT(...) which is used to declare
+*  an Algebraic Data Type.  This is essentially a variant where
+*  each alternative is a struct, possibly with members.  Example
+*  usage would be:
+*
+*    ADT( rn::input, state,
+*        ( steady ),             //
+*        ( stopped ),            //
+*        ( paused,               //
+*          ( double, percent ),  //
+*          ( std::string, msg ), //
+*          ( int, y ) ),         //
+*        ( starting,             //
+*          ( int, x ),           //
+*          ( int, y ) ),         //
+*        ( ending,               //
+*          ( double, f )         //
+*          )                     //
+*    )
+*
+*    input::state_t my_state; // my_state is a std::variant
+*    my_state = input::state::starting{5, 6};
+*
+*    input::state_t my_state2 = my_state;
+*    assert( my_state == my_state2 );
+*
+*    std::get<input::state::starting>( my_state ).x = 3;
+*
+*    std::visit( ..., my_state );
+*
+*    fmt::format( "my_state: {}", my_state );
+*
+*  In addition to declaring the variant and its alternatives, it
+*  will also define equality operators for each alternative
+*  (which just do a member-wise comparison) and will declare
+*  {fmt} formatting overloads for each alternative, allowing one
+*  to format an ADT type given an {fmt} overload for general
+*  variants and given that all member variables are formattable.
+*/
+
+// (int, x) --> int x
 #define PAIR_TO_DECL( type, var ) type var
 #define PAIR_TO_DECL_TUPLE( a ) PAIR_TO_DECL a
 
+// (int, x) --> (l.x == r.x)
 #define PAIR_TO_CMP( type, var ) ( l.var == r.var )
 #define PAIR_TO_CMP_TUPLE( a ) PAIR_TO_CMP a
 
+// (int, x) --> "x={}"
 #define PAIR_TO_FMT( type, var ) #var "={}"
 #define PAIR_TO_FMT_TUPLE( a ) PAIR_TO_FMT a
 
+// (int, x) --> o.x
 #define PAIR_TO_FMT_O( type, var ) o.var
 #define PAIR_TO_FMT_O_TUPLE( a ) PAIR_TO_FMT_O a
 
@@ -80,8 +127,6 @@
 #define ADT( ns, ... ) EVAL( ADT_IMPL( ns, __VA_ARGS__ ) )
 
 namespace rn {
-
-void adt_test();
 
 std::string_view remove_rn_ns( std::string_view sv );
 
