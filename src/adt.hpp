@@ -76,4 +76,8 @@
 
 #define ADT( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
 
-namespace rn {} // namespace rn
+namespace rn {
+
+void adt_test();
+
+} // namespace rn
