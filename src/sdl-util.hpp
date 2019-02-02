@@ -102,6 +102,12 @@ void copy_texture( Texture const& from, Texture const& to,
 // rendering target.
 void copy_texture( Texture const& from, OptCRef<Texture> to,
                    Coord const& dst_coord );
+// With alpha.  Note, that this does not seem to behave the same
+// as a "regular" copy_texture call when setting alpha == 255,
+// so we should only use this when we need to specify the alpha.
+void copy_texture_alpha( Texture const&   from,
+                         OptCRef<Texture> to,
+                         Coord const& dst_coord, uint8_t alpha );
 // Same as above but destination coord is (0,0). Note this should
 // not be used for rendering to the main texture since we don't
 // start at (0,0) there; see `copy_texture_to_screen` below.

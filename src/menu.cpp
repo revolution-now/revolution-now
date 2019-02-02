@@ -116,28 +116,32 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
 *****************************************************************/
 using Frames = chrono::duration<int, std::ratio<1, 60>>;
 namespace click_anim {
-auto constexpr half_period     = Frames{4};
-auto constexpr post_off_time   = Frames{5};
-int constexpr num_half_periods = 4;
-bool constexpr start_on        = false;
 
-// The click should be like this:
+// For sustained blinking
+// auto constexpr half_period     = Frames{4};
+// auto constexpr post_off_time   = Frames{5};
+// int constexpr num_half_periods = 4;
+// bool constexpr start_on        = false;
+
+// For the MacOS single-blink-and-fade style.
+auto constexpr half_period      = Frames{6};
+auto constexpr post_off_time    = Frames{0};
+auto constexpr num_half_periods = int( 2 );
+bool constexpr start_on         = false;
+auto constexpr fade_time        = Frames{22};
+
+// For example, the click could be like this:
 //
-//   click_anim_start_on = true
-//   ---------------------------------------------------------
-//   |  on  |  off |  on  |  off |  on  |  ... |   off-time  |
-//   ---------------------------------------------------------
-//
-//   click_anim_start_on = off
-//   ---------------------------------------------------------
-//   |  off |  on  |  off |  on  |  off |  ... |   off-time  |
-//   ---------------------------------------------------------
+//   click_anim_start_on=true, num_half_periods=4
+//   ----------------------------------------------------
+//   |  on  |  off |  on  |  off | off-time | fade-time |
+//   ----------------------------------------------------
 //
 // where each box is a "half period."
 
 auto period = half_period * 2;
 auto total_duration =
-    half_period * num_half_periods + post_off_time;
+    half_period * num_half_periods + post_off_time + fade_time;
 } // namespace click_anim
 
 // clang-format off
@@ -473,6 +477,9 @@ Texture const& render_open_menu( e_menu           menu,
         Texture const* from{nullptr};
         Texture const* background{nullptr};
         if( clicking && clickable.item == subject ) {
+          /**********************************************
+          ** Click Animation
+          ***********************************************/
           using namespace std::chrono;
           using namespace std::literals::chrono_literals;
           auto now = system_clock::now();
@@ -481,15 +488,28 @@ Texture const& render_open_menu( e_menu           menu,
               std::get<item_click>( g_menu_state ).start;
           auto elapsed = now - start;
           using namespace click_anim;
-          if( elapsed > total_duration - post_off_time ) {
+          if( elapsed >= total_duration - fade_time ) {
+            // We're in the fade, in which case we should be
+            // highlighted, because it seems to make a better
+            // UX when the selected item is highlighted as
+            // the fading happens.
+            from       = &rendered.highlighted;
+            background = &textures.item_background_highlight;
+          } else if( elapsed >= total_duration - fade_time -
+                                    post_off_time ) {
+            // We're in a period between the blinking and
+            // fading when the highlight is off, although
+            // this period may have zero length.
             from       = &rendered.normal;
             background = &textures.item_background_normal;
 
           } else if( ( elapsed % period > half_period ) ^
                      start_on ) {
+            // Blink on
             from       = &rendered.highlighted;
             background = &textures.item_background_highlight;
           } else {
+            // Blink off
             from       = &rendered.normal;
             background = &textures.item_background_normal;
           }
@@ -633,8 +653,36 @@ void render_menus( Texture const& tx ) {
         auto        menu = g_item_to_menu[ic.item];
         auto const& open_tx =
             render_open_menu( menu, ic.item, /*clicking=*/true );
-        Coord pos = menu_body_rect( menu ).upper_left();
-        copy_texture( open_tx, tx, pos );
+        Coord   pos   = menu_body_rect( menu ).upper_left();
+        uint8_t alpha = 255;
+        auto    now   = chrono::system_clock::now();
+        auto    start_fade =
+            ic.start + ( click_anim::total_duration -
+                         click_anim::fade_time );
+        auto end = ic.start + click_anim::total_duration;
+        if( now >= start_fade ) {
+          if( now < end ) {
+            double percent_completion =
+                double( chrono::duration_cast<
+                            std::chrono::milliseconds>(
+                            now - start_fade )
+                            .count() ) /
+                double( chrono::duration_cast<
+                            std::chrono::milliseconds>(
+                            click_anim::fade_time )
+                            .count() );
+            CHECK( percent_completion >= 0.0 &&
+                       percent_completion <= 1.0,
+                   "percent_completion: {}",
+                   percent_completion );
+            alpha = 255 - uint8_t( 255.0 * percent_completion );
+            copy_texture_alpha( open_tx, tx, pos, alpha );
+          } else if( now >= end ) {
+            alpha = 0;
+            copy_texture_alpha( open_tx, tx, pos, alpha );
+          }
+        } else
+          copy_texture( open_tx, tx, pos );
       },
       [&]( menu_open const& o ) {
         auto const& open_tx = render_open_menu(
@@ -863,7 +911,7 @@ struct MenuPlane : public Plane {
     if_v( g_menu_state, item_click, val ) {
       auto item  = val->item;
       auto start = val->start;
-      if( chrono::system_clock::now() - start >
+      if( chrono::system_clock::now() - start >=
           click_anim::total_duration ) {
         g_menu_items[item]->callbacks.on_click();
         g_menu_state = menus_closed{/*hover=*/{}};

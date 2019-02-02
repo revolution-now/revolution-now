@@ -449,9 +449,32 @@ void copy_texture( Texture const& from, Texture const& to,
                               &sdl_dst, angle, nullptr, flip ) );
 }
 
+// With alpha. TODO: figure out why this doesn't behave like a
+// standard copy_texture when alpha == 255.
+void copy_texture_alpha( Texture const&   from,
+                         OptCRef<Texture> to,
+                         Coord const&     dst_coord,
+                         uint8_t          alpha ) {
+  ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
+  CHECK( from );
+  ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
+  ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
+  CHECK( !::SDL_SetTextureAlphaMod( from.get(), alpha ) );
+  set_render_target( to );
+  auto rect     = Rect::from( dst_coord, texture_delta( from ) );
+  auto sdl_rect = to_SDL( rect );
+  CHECK( !::SDL_RenderCopy( g_renderer, from, nullptr,
+                            &sdl_rect ) );
+  // Restore texture's alpha because that is what most actions
+  // will need it to be, and we don't set it before every texture
+  // copying action in this module.
+  ::SDL_SetTextureAlphaMod( from.get(), 255 );
+}
+
 void copy_texture( Texture const& from, OptCRef<Texture> to,
                    Coord const& dst_coord ) {
   ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
+  CHECK( from );
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
   set_render_target( to );
