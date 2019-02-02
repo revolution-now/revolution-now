@@ -16,6 +16,7 @@
 #include "base-util/pp.hpp"
 
 // C++ standard library
+#include <string_view>
 #include <variant>
 
 #define PAIR_TO_DECL( type, var ) type var
@@ -39,7 +40,7 @@
 // We need the DEFER here because this will be called recursively
 // from another PP_MAP_SEMI below.
 #define ADT_MAKE_STRUCT( ns, name, ... )                       \
-  namespace rn::ns {                                           \
+  namespace ns {                                               \
   struct name {                                                \
     __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE,      \
                                       __VA_ARGS__ ) )          \
@@ -55,29 +56,33 @@
   }                                                            \
   SWITCH_EMPTY(                                                \
       _DEFINE_FORMAT(                                          \
-          rn::ns::name,                                        \
+          ns::name,                                            \
           "{}::{}{{" JOIN_WITH(                                \
               ", ", PP_MAP_COMMAS( PAIR_TO_FMT_TUPLE,          \
                                    __VA_ARGS__ ) ) "}}",       \
-          #ns, #name,                                          \
+          ::rn::remove_rn_ns( #ns ), #name,                    \
           PP_MAP_COMMAS( PAIR_TO_FMT_O_TUPLE, __VA_ARGS__ ) ); \
-      , _DEFINE_FORMAT_( rn::ns::name, "{}::{}", #ns, #name ); \
+      , _DEFINE_FORMAT_( ns::name, "{}::{}",                   \
+                         ::rn::remove_rn_ns( #ns ), #name );   \
       , __VA_ARGS__ )
 
 #define ADT_MAKE_STRUCT_TUPLE( a ) ADT_MAKE_STRUCT a
 
-#define ADT_IMPL( name, ... )                                  \
-  DEFER( PP_MAP )                                              \
-  ( ADT_MAKE_STRUCT_TUPLE,                                     \
-    PP_MAP_PREPEND_TUPLE( name, __VA_ARGS__ ) ) namespace rn { \
-    using name##_t = std::variant<PP_MAP_PREPEND_NS(           \
-        name, PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) )>;     \
+#define ADT_IMPL( ns, name, ... )                          \
+  DEFER( PP_MAP )                                          \
+  ( ADT_MAKE_STRUCT_TUPLE,                                 \
+    PP_MAP_PREPEND_TUPLE( ns::name,                        \
+                          __VA_ARGS__ ) ) namespace ns {   \
+    using name##_t = std::variant<PP_MAP_PREPEND_NS(       \
+        name, PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) )>; \
   }
 
-#define ADT( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
+#define ADT( ns, ... ) EVAL( ADT_IMPL( ns, __VA_ARGS__ ) )
 
 namespace rn {
 
 void adt_test();
+
+std::string_view remove_rn_ns( std::string_view sv );
 
 } // namespace rn

@@ -117,11 +117,15 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
 using Frames = chrono::duration<int, std::ratio<1, 60>>;
 namespace click_anim {
 
+// TODO: make an animation framework that can manage the states
+// of an animation along with durations in Frames.
+
 // For sustained blinking
 // auto constexpr half_period     = Frames{4};
 // auto constexpr post_off_time   = Frames{5};
 // int constexpr num_half_periods = 4;
 // bool constexpr start_on        = false;
+// auto constexpr fade_time        = Frames{22};
 
 // For the MacOS single-blink-and-fade style.
 auto constexpr half_period      = Frames{6};
