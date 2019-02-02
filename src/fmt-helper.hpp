@@ -17,8 +17,10 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/string.hpp"
 
 // C++ standard library
+#include <chrono>
 #include <optional>
 #include <type_traits>
 #include <variant>
@@ -50,6 +52,20 @@
   DEFINE_FORMAT_IMPL( (void)o;, type, __VA_ARGS__ )
 
 namespace fmt {
+
+template<typename... Ts>
+struct formatter<std::chrono::time_point<Ts...>> {
+  template<typename ParseContext>
+  constexpr auto parse( ParseContext &ctx ) {
+    return ctx.begin();
+  }
+  template<typename FormatContext>
+  auto format( std::chrono::time_point<Ts...> const &o,
+               FormatContext &                       ctx ) {
+    auto str = "\"" + util::to_string( o ) + "\"";
+    return format_to( ctx.begin(), str );
+  }
+};
 
 // {fmt} formatter for formatting variants whose constituent
 // types are all so formattable.

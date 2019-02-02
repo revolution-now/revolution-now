@@ -11,6 +11,7 @@
 #include "menu.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "aliases.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
@@ -33,6 +34,18 @@
 using namespace std;
 
 using absl::flat_hash_map;
+
+ADT( rn, MenuState,                   //
+     ( menus_hidden ),                //
+     ( menus_closed,                  //
+       ( Opt<e_menu>, hover ) ),      //
+     ( menu_open,                     //
+       ( e_menu, menu ),              //
+       ( Opt<e_menu_item>, hover ) ), //
+     ( item_click,                    //
+       ( e_menu_item, item ),         //
+       ( TimeType, start ) )          //
+);
 
 namespace rn {
 
@@ -149,36 +162,30 @@ auto total_duration =
 } // namespace click_anim
 
 // clang-format off
-struct menus_hidden {};
-struct menus_closed { Opt<e_menu>      hover; };
-struct menu_open    { e_menu           menu;
-                      Opt<e_menu_item> hover; };
-struct item_click   { e_menu_item      item;
-                      TimeType         start;  };
-// clang-format on
 
-using MenuState =
-    variant<menus_hidden, menus_closed, menu_open, item_click>;
+MenuState_t g_menu_state{MenuState::menus_closed{}};
 
-MenuState g_menu_state{menus_closed{}};
+void log_menu_state() {
+  logger->debug( "g_menu_state: {}", g_menu_state );
+}
 
 /****************************************************************
 ** Querying State
 *****************************************************************/
 bool is_menu_open( e_menu menu ) {
   auto matcher = scelta::match(
-      []( menus_hidden ) { return false; },
-      []( menus_closed ) { return false; },
-      [&]( item_click click ) {
+      []( MenuState::menus_hidden ) { return false; },
+      []( MenuState::menus_closed ) { return false; },
+      [&]( MenuState::item_click click ) {
         CHECK( g_item_to_menu.contains( click.item ) );
         return g_item_to_menu[click.item] == menu;
       },
-      [&]( menu_open o ) { return o.menu == menu; } );
+      [&]( MenuState::menu_open o ) { return o.menu == menu; } );
   return matcher( g_menu_state );
 }
 
 Opt<e_menu> opened_menu() {
-  if_v( g_menu_state, menu_open, val ) { return val->menu; }
+  if_v( g_menu_state, MenuState::menu_open, val ) { return val->menu; }
   return {};
 }
 
@@ -487,9 +494,9 @@ Texture const& render_open_menu( e_menu           menu,
           using namespace std::chrono;
           using namespace std::literals::chrono_literals;
           auto now = system_clock::now();
-          CHECK( util::holds<item_click>( g_menu_state ) );
+          CHECK( util::holds<MenuState::item_click>( g_menu_state ) );
           auto start =
-              std::get<item_click>( g_menu_state ).start;
+              std::get<MenuState::item_click>( g_menu_state ).start;
           auto elapsed = now - start;
           using namespace click_anim;
           if( elapsed >= total_duration - fade_time ) {
@@ -548,27 +555,27 @@ void render_menu_bar() {
     // and returns a foreground/background texture pair for that
     // menu.
     auto matcher = scelta::match<Txs>(
-        []( menus_hidden ) { return Txs{}; },
-        [&]( menus_closed closed ) {
+        []( MenuState::menus_hidden ) { return Txs{}; },
+        [&]( MenuState::menus_closed closed ) {
           if( menu == closed.hover )
             return Txs{pair{&textures.name.normal,
                             &textures.menu_background_hover}};
           return Txs{pair{&textures.name.normal,
                           &textures.menu_background_normal}};
         } )( //
-        [&]( auto self, item_click const& ic ) {
-          // Just forward this to the menu_open.
+        [&]( auto self, MenuState::item_click const& ic ) {
+          // Just forward this to the MenuState::menu_open.
           CHECK( g_item_to_menu.contains( ic.item ) );
-          return self( MenuState{menu_open{
+          return self( MenuState_t{MenuState::menu_open{
               g_item_to_menu[ic.item], /*hover=*/{}}} );
         },
-        [&]( auto self, menu_open const& o ) {
+        [&]( auto self, MenuState::menu_open const& o ) {
           if( o.menu == menu ) {
             return Txs{
                 pair{&textures.name.highlighted,
                      &textures.menu_background_highlight}};
           } else
-            return self( MenuState{menus_closed{}} );
+            return self( MenuState_t{MenuState::menus_closed{}} );
         } );
     if( auto p = matcher( g_menu_state ); p.has_value() ) {
       auto pos = menu_header_x_pos( menu );
@@ -610,8 +617,8 @@ using MouseOverMenu =
 
 MouseOverMenu click_target( Coord screen_coord ) {
   auto matcher = scelta::match<MouseOverMenu>(
-      []( menus_hidden ) { return MouseOverMenu{}; },
-      [&]( menus_closed ) {
+      []( MenuState::menus_hidden ) { return MouseOverMenu{}; },
+      [&]( MenuState::menus_closed ) {
         for( auto menu : values<e_menu> )
           if( screen_coord.is_inside(
                   menu_header_rect( menu ) ) )
@@ -620,14 +627,14 @@ MouseOverMenu click_target( Coord screen_coord ) {
           return MouseOverMenu{mouse_over_menu_bar{}};
         return MouseOverMenu{};
       } )( //
-      [&]( auto self, item_click const& ic ) {
-        // Just forward this to the menu_open.
+      [&]( auto self, MenuState::item_click const& ic ) {
+        // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        return self( MenuState{
-            menu_open{g_item_to_menu[ic.item], /*hover=*/{}}} );
+        return self( MenuState_t{
+            MenuState::menu_open{g_item_to_menu[ic.item], /*hover=*/{}}} );
       },
-      [&]( auto self, menu_open const& o ) {
-        auto closed = self( MenuState{menus_closed{}} );
+      [&]( auto self, MenuState::menu_open const& o ) {
+        auto closed = self( MenuState_t{MenuState::menus_closed{}} );
         if( closed ) return closed;
         if( !screen_coord.is_inside( menu_body_rect( o.menu ) ) )
           return MouseOverMenu{};
@@ -649,10 +656,10 @@ MouseOverMenu click_target( Coord screen_coord ) {
 void render_menus( Texture const& tx ) {
   display_menu_bar_tx( tx );
   auto maybe_render_open_menu = scelta::match(
-      []( menus_hidden ) {},  //
-      [&]( menus_closed ) {}, //
-      [&]( item_click const& ic ) {
-        // Just forward this to the menu_open.
+      []( MenuState::menus_hidden ) {},  //
+      [&]( MenuState::menus_closed ) {}, //
+      [&]( MenuState::item_click const& ic ) {
+        // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
         auto        menu = g_item_to_menu[ic.item];
         auto const& open_tx =
@@ -688,7 +695,7 @@ void render_menus( Texture const& tx ) {
         } else
           copy_texture( open_tx, tx, pos );
       },
-      [&]( menu_open const& o ) {
+      [&]( MenuState::menu_open const& o ) {
         auto const& open_tx = render_open_menu(
             o.menu, o.hover, /*clicking=*/false );
         Coord pos = menu_body_rect( o.menu ).upper_left();
@@ -912,13 +919,13 @@ struct MenuPlane : public Plane {
     clear_texture_transparent( tx );
     render_menus( tx );
     // TODO: put this code in a dedicated plane callback.
-    if_v( g_menu_state, item_click, val ) {
+    if_v( g_menu_state, MenuState::item_click, val ) {
       auto item  = val->item;
       auto start = val->start;
       if( chrono::system_clock::now() - start >=
           click_anim::total_duration ) {
         g_menu_items[item]->callbacks.on_click();
-        g_menu_state = menus_closed{/*hover=*/{}};
+        g_menu_state = MenuState::menus_closed{/*hover=*/{}};
       }
     }
   }
@@ -932,38 +939,43 @@ struct MenuPlane : public Plane {
           if( key_event.change == input::e_key_change::down ) {
             switch( key_event.keycode ) {
               case ::SDLK_ESCAPE:
-                g_menu_state = menus_closed{{}};
+                g_menu_state = MenuState::menus_closed{{}};
+                log_menu_state();
                 return true;
               case ::SDLK_LEFT: {
                 menu = util::find_previous_and_cycle(
                     values<e_menu>, *menu );
                 CHECK( menu );
-                g_menu_state = menu_open{*menu, /*hover=*/{}};
+                g_menu_state = MenuState::menu_open{*menu, /*hover=*/{}};
+                log_menu_state();
                 return true;
               }
               case ::SDLK_RIGHT: {
                 menu = util::find_subsequent_and_cycle(
                     values<e_menu>, *menu );
                 CHECK( menu );
-                g_menu_state = menu_open{*menu, /*hover=*/{}};
+                g_menu_state = MenuState::menu_open{*menu, /*hover=*/{}};
+                log_menu_state();
                 return true;
               }
               case ::SDLK_DOWN: {
-                auto state = std::get<menu_open>( g_menu_state );
+                auto state = std::get<MenuState::menu_open>( g_menu_state );
                 if( !state.hover )
                   state.hover = g_items_from_menu[*menu].back();
                 state.hover = util::find_subsequent_and_cycle(
                     g_items_from_menu[*menu], *state.hover );
                 g_menu_state = state;
+                log_menu_state();
                 return true;
               }
               case ::SDLK_UP: {
-                auto state = std::get<menu_open>( g_menu_state );
+                auto state = std::get<MenuState::menu_open>( g_menu_state );
                 if( !state.hover )
                   state.hover = g_items_from_menu[*menu].front();
                 state.hover = util::find_previous_and_cycle(
                     g_items_from_menu[*menu], *state.hover );
                 g_menu_state = state;
+                log_menu_state();
                 return true;
               }
               default: break;
@@ -976,33 +988,33 @@ struct MenuPlane : public Plane {
           // Remove menu-hover by default and enable it again
           // below if the mouse if over a menu and menus are
           // closed.
-          if( util::holds<menus_closed>( g_menu_state ) )
-            g_menu_state = menus_closed{};
+          if( util::holds<MenuState::menus_closed>( g_menu_state ) )
+            g_menu_state = MenuState::menus_closed{};
           auto over_what = click_target( mv_event.pos );
           if( !over_what.has_value() ) return false;
           auto matcher = scelta::match(
               []( mouse_over_menu_bar ) { return true; },
               []( mouse_over_divider desc ) {
-                CHECK( util::holds<menu_open>( g_menu_state ) ||
-                       util::holds<item_click>( g_menu_state ) );
-                if( util::holds<menu_open>( g_menu_state ) ) {
+                CHECK( util::holds<MenuState::menu_open>( g_menu_state ) ||
+                       util::holds<MenuState::item_click>( g_menu_state ) );
+                if( util::holds<MenuState::menu_open>( g_menu_state ) ) {
                   g_menu_state =
-                      menu_open{desc.menu, /*hover=*/{}};
+                      MenuState::menu_open{desc.menu, /*hover=*/{}};
                 }
                 return true;
               },
               []( e_menu menu ) {
-                if( util::holds<menu_open>( g_menu_state ) )
-                  g_menu_state = menu_open{menu, /*hover=*/{}};
-                if( util::holds<menus_closed>( g_menu_state ) )
-                  g_menu_state = menus_closed{/*hover=*/menu};
+                if( util::holds<MenuState::menu_open>( g_menu_state ) )
+                  g_menu_state = MenuState::menu_open{menu, /*hover=*/{}};
+                if( util::holds<MenuState::menus_closed>( g_menu_state ) )
+                  g_menu_state = MenuState::menus_closed{/*hover=*/menu};
                 return true;
               },
               []( e_menu_item item ) {
-                CHECK( util::holds<menu_open>( g_menu_state ) ||
-                       util::holds<item_click>( g_menu_state ) );
-                if( util::holds<menu_open>( g_menu_state ) ) {
-                  auto& o = std::get<menu_open>( g_menu_state );
+                CHECK( util::holds<MenuState::menu_open>( g_menu_state ) ||
+                       util::holds<MenuState::item_click>( g_menu_state ) );
+                if( util::holds<MenuState::menu_open>( g_menu_state ) ) {
+                  auto& o = std::get<MenuState::menu_open>( g_menu_state );
                   CHECK( o.menu == g_item_to_menu[item] );
                   o.hover = {};
                   if( g_menu_items[item]->callbacks.enabled() )
@@ -1015,8 +1027,9 @@ struct MenuPlane : public Plane {
         []( input::mouse_button_event_t b_event ) {
           auto over_what = click_target( b_event.pos );
           if( !over_what.has_value() ) {
-            if( util::holds<menu_open>( g_menu_state ) ) {
-              g_menu_state = menus_closed{{}};
+            if( util::holds<MenuState::menu_open>( g_menu_state ) ) {
+              g_menu_state = MenuState::menus_closed{{}};
+              log_menu_state();
               return true; // no click through
             }
             return false;
@@ -1025,15 +1038,17 @@ struct MenuPlane : public Plane {
               input::e_mouse_button_event::left_down ) {
             auto matcher = scelta::match(
                 []( mouse_over_menu_bar ) {
-                  g_menu_state = menus_closed{{}};
+                  g_menu_state = MenuState::menus_closed{{}};
+                  log_menu_state();
                   return true;
                 },
                 []( mouse_over_divider ) { return true; },
                 []( e_menu menu ) {
                   if( !is_menu_open( menu ) )
-                    g_menu_state = menu_open{menu, /*hover=*/{}};
+                    g_menu_state = MenuState::menu_open{menu, /*hover=*/{}};
                   else
-                    g_menu_state = menus_closed{/*hover=*/menu};
+                    g_menu_state = MenuState::menus_closed{/*hover=*/menu};
+                  log_menu_state();
                   return true;
                 },
                 []( e_menu_item ) { return true; } );
@@ -1043,7 +1058,8 @@ struct MenuPlane : public Plane {
               input::e_mouse_button_event::left_up ) {
             auto matcher = scelta::match(
                 []( mouse_over_menu_bar ) {
-                  g_menu_state = menus_closed{{}};
+                  g_menu_state = MenuState::menus_closed{{}};
+                  log_menu_state();
                   return true;
                 },
                 []( mouse_over_divider ) { return true; },
@@ -1051,11 +1067,11 @@ struct MenuPlane : public Plane {
                 []( e_menu_item item ) {
                   if( !g_menu_items[item]->callbacks.enabled() )
                     return true;
-                  g_menu_state = menus_closed{{}};
                   logger->info( "selected menu item `{}`",
                                 item );
-                  g_menu_state = item_click{
+                  g_menu_state = MenuState::item_click{
                       item, chrono::system_clock::now()};
+                  log_menu_state();
                   return true;
                 } );
             return matcher( *over_what );
