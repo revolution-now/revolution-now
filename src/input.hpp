@@ -47,6 +47,7 @@ enum class e_mouse_button_event {
 
 class mouse_event_base_t {
 public:
+  mouse_event_base_t( Coord pos_ ) : pos( pos_ ) {}
   Coord pos;
 
 protected:
