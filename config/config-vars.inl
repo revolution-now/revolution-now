@@ -96,6 +96,24 @@ CFG( art,
       )
     )
 
+    OBJ( menu,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, menu_top_left )
+        FLD( Coord, menu_body )
+        FLD( Coord, menu_top )
+        FLD( Coord, menu_left )
+        FLD( Coord, menu_bottom )
+        FLD( Coord, menu_bottom_left )
+        FLD( Coord, menu_right )
+        FLD( Coord, menu_top_right )
+        FLD( Coord, menu_bottom_right )
+        FLD( Coord, menu_bar )
+        FLD( Coord, menu_sel_body )
+        FLD( Coord, menu_sel_left )
+        FLD( Coord, menu_sel_right )
+      )
+    )
   )
 )
 

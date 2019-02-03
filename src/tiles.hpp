@@ -39,10 +39,8 @@ inline Rect g_tile_rect = Rect::from(
 inline Delta g_tile_delta =
     Delta{W{1} * g_tile_width, H{1} * g_tile_height};
 
-constexpr int g_tile_set_width = 8;
-
 enum class ND g_tile {
-  water = 0 * g_tile_set_width,
+  water,
   land,
   land_1_side,
   land_2_sides,
@@ -50,30 +48,44 @@ enum class ND g_tile {
   land_4_sides,
   land_corner,
 
-  fog = 1 * g_tile_set_width,
+  fog,
   fog_1_side,
   fog_corner,
 
-  terrain_grass = 2 * g_tile_set_width,
+  terrain_grass,
 
-  panel = 3 * g_tile_set_width,
+  panel,
   panel_edge_left,
   panel_slate,
   panel_slate_1_side,
   panel_slate_2_sides,
 
-  free_colonist = 5 * g_tile_set_width,
+  free_colonist,
   privateer,
   caravel,
-  soldier
+  soldier,
+
+  menu_top_left,
+  menu_body,
+  menu_top,
+  menu_left,
+  menu_bottom,
+  menu_bottom_left,
+  menu_right,
+  menu_top_right,
+  menu_bottom_right,
+  menu_sel_body,
+  menu_sel_left,
+  menu_sel_right,
+  menu_bar
 };
 
 struct ND sprite {
   // try making these const
   Texture const* texture{};
   Rect           source{};
-  W              w{};
-  H              h{};
+  SX             sx{};
+  SY             sy{};
 };
 
 void load_sprites();

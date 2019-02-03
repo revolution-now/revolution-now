@@ -43,10 +43,13 @@ unordered_map<std::string, tile_map>         tile_maps;
 } // namespace
 
 sprite create_sprite_32( Texture const& texture, Coord coord ) {
-  Rect rect{coord.x * g_tile_width, coord.y * g_tile_height,
-            W{1} * g_tile_width, H{1} * g_tile_height};
-  return {&texture, rect, W{1} * g_tile_width,
-          H{1} * g_tile_height};
+  Rect rect{coord.x * 32_sx, coord.y * 32_sy, 32_w, 32_h};
+  return {&texture, rect, 32_sx, 32_sy};
+}
+
+sprite create_sprite_8( Texture const& texture, Coord coord ) {
+  Rect rect{coord.x * 8_sx, coord.y * 8_sy, 8_w, 8_h};
+  return {&texture, rect, 8_sx, 8_sy};
 }
 
 #define SET_SPRITE_WORLD( name )            \
@@ -57,11 +60,17 @@ sprite create_sprite_32( Texture const& texture, Coord coord ) {
   sprites[g_tile::name] = create_sprite_32( \
       tile_set_units, config_art.tiles.units.coords.name )
 
+#define SET_SPRITE_MENU( name )            \
+  sprites[g_tile::name] = create_sprite_8( \
+      tile_set_menu, config_art.tiles.menu.coords.name )
+
 void load_sprites() {
   auto& tile_set_world =
       load_texture( config_art.tiles.world.img );
   auto& tile_set_units =
       load_texture( config_art.tiles.units.img );
+  auto& tile_set_menu =
+      load_texture( config_art.tiles.menu.img );
 
   SET_SPRITE_WORLD( water );
   SET_SPRITE_WORLD( land );
@@ -87,6 +96,20 @@ void load_sprites() {
   SET_SPRITE_UNIT( privateer );
   SET_SPRITE_UNIT( caravel );
   SET_SPRITE_UNIT( soldier );
+
+  SET_SPRITE_MENU( menu_top_left );
+  SET_SPRITE_MENU( menu_body );
+  SET_SPRITE_MENU( menu_top );
+  SET_SPRITE_MENU( menu_left );
+  SET_SPRITE_MENU( menu_bottom );
+  SET_SPRITE_MENU( menu_bottom_left );
+  SET_SPRITE_MENU( menu_right );
+  SET_SPRITE_MENU( menu_top_right );
+  SET_SPRITE_MENU( menu_bottom_right );
+  SET_SPRITE_MENU( menu_sel_body );
+  SET_SPRITE_MENU( menu_sel_left );
+  SET_SPRITE_MENU( menu_sel_right );
+  SET_SPRITE_MENU( menu_bar );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {
@@ -106,8 +129,8 @@ void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
   Rect dst;
   dst.x = pixel_col;
   dst.y = pixel_row;
-  dst.w = sp.w;
-  dst.h = sp.h;
+  dst.w = W{1} * sp.sx;
+  dst.h = H{1} * sp.sy;
 
   constexpr double right_angle = 90.0; // degrees
 
@@ -128,8 +151,9 @@ void render_sprite( Texture const& tx, g_tile tile,
 void render_sprite_grid( Texture const& tx, g_tile tile,
                          Y tile_row, X tile_col, int rot,
                          int flip_x ) {
-  render_sprite( tx, tile, tile_row * g_tile_height,
-                 tile_col * g_tile_width, rot, flip_x );
+  auto const& sprite = lookup_sprite( tile );
+  render_sprite( tx, tile, tile_row * sprite.sy,
+                 tile_col * sprite.sx, rot, flip_x );
 }
 
 g_tile index_to_tile( int index ) {
