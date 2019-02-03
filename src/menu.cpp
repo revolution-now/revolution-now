@@ -1123,12 +1123,23 @@ struct MenuPlane : public Plane {
 
 private:
   void click_menu_item( e_menu_item item ) {
-    CHECK( util::holds<MenuState::menu_open>( g_menu_state ) );
-    if( !g_menu_items[item]->callbacks.enabled() ) return;
-    logger->info( "selected menu item `{}`", item );
-    g_menu_state =
-        MenuState::item_click{item, chrono::system_clock::now()};
-    log_menu_state();
+    switch_v( g_menu_state ) {
+      case_v( MenuState::item_click ) {
+        // Already clicking, so do nothing. This can happen if a
+        // menu item is clicked after it is already in the click
+        // animation.
+      }
+      case_v( MenuState::menus_closed ) { SHOULD_NOT_BE_HERE; }
+      case_v( MenuState::menus_hidden ) { SHOULD_NOT_BE_HERE; }
+      case_v( MenuState::menu_open ) {
+        if( !g_menu_items[item]->callbacks.enabled() ) return;
+        logger->info( "selected menu item `{}`", item );
+        g_menu_state = MenuState::item_click{
+            item, chrono::system_clock::now()};
+        log_menu_state();
+      }
+      default_v;
+    };
   }
 };
 

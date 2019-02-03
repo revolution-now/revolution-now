@@ -21,12 +21,4 @@
 // C++ standard library
 #include <variant>
 
-namespace rn {
-
-template<typename Variant, typename... Funcs>
-auto Switch( Variant const& v, Funcs... funcs ) {
-  auto matcher = scelta::match( funcs... );
-  return matcher( v );
-}
-
-} // namespace rn
+namespace rn {} // namespace rn
