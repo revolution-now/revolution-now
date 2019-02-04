@@ -109,7 +109,9 @@ void load_sprites() {
   SET_SPRITE_MENU( menu_sel_body );
   SET_SPRITE_MENU( menu_sel_left );
   SET_SPRITE_MENU( menu_sel_right );
-  SET_SPRITE_MENU( menu_bar );
+
+  SET_SPRITE_MENU( menu_bar_bottom );
+  SET_SPRITE_MENU( menu_bar_top );
 }
 
 sprite const& lookup_sprite( g_tile tile ) {
