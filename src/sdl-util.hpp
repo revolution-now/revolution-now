@@ -122,6 +122,9 @@ void copy_texture_stretch( Texture const&   from,
                            OptCRef<Texture> to, Rect const& src,
                            Rect const& dest );
 
+// Clones size and content, including alpha.
+Texture clone_texture( Texture const& tx );
+
 ND Texture create_texture( W w, H h );
 ND Texture create_texture( Delta delta );
 ND Texture create_texture( Delta delta, Color const& color );
@@ -133,6 +136,13 @@ ND Texture create_screen_sized_texture();
 // WARNING: Very slow function, should not be done in real time.
 // This is because it reads data from a texture.
 Matrix<Color> texture_pixels( Texture const& tx );
+
+// This will create a new texture that is the same size as the
+// given one, except that all of the pixels in the source texture
+// will be converted to black (RGB={0,0,0}), but with the same
+// alpha value as the source. Hence it creates a "shadow" of the
+// source texture's opaque (or semi-opaque) parts.
+Texture create_shadow_texture( Texture const& tx );
 
 Delta screen_logical_size();
 // Same but with origin at 0,0

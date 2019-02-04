@@ -505,6 +505,12 @@ void copy_texture_stretch( Texture const&   from,
                             &sdl_dest ) );
 }
 
+Texture clone_texture( Texture const& tx ) {
+  auto res = create_texture_transparent( tx.size() );
+  copy_texture( tx, res );
+  return res;
+}
+
 Texture create_texture( W w, H h ) {
   auto tx = from_SDL( ::SDL_CreateTexture(
       g_renderer, g_pixel_format, SDL_TEXTUREACCESS_TARGET, w._,
@@ -571,6 +577,43 @@ Matrix<Color> texture_pixels( Texture const& tx ) {
   ::SDL_FreeSurface( surface );
 
   return res;
+}
+
+Texture create_shadow_texture( Texture const& tx ) {
+  auto cloned = clone_texture( tx );
+  auto white =
+      create_texture( tx.size(), Color{255, 255, 255, 255} );
+  // black.a should not be relevant here.
+  auto black = create_texture( tx.size(), Color{0, 0, 0, 255} );
+
+  // The process will be done in two stages; note that each stage
+  // respects alpha gradations when performing its action, so
+  // that the resulting texture will maintain the same alpha
+  // pattern as the input texture.
+  set_render_target( cloned );
+
+  // Stage one: turn the cloned texture all white in its opaque
+  // parts.
+  //   dstRGB = (srcRGB * srcA) + dstRGB
+  //   dstA = dstA
+  ::SDL_SetTextureBlendMode( cloned, ::SDL_BLENDMODE_ADD );
+  ::SDL_SetTextureBlendMode( white, ::SDL_BLENDMODE_ADD );
+  CHECK(
+      !::SDL_RenderCopy( g_renderer, white, nullptr, nullptr ) );
+
+  // Stage two: turn the white parts of the cloned texture to
+  // black.
+  //   dstRGB = srcRGB * dstRGB
+  //   dstA = dstA
+  ::SDL_SetTextureBlendMode( cloned, ::SDL_BLENDMODE_MOD );
+  ::SDL_SetTextureBlendMode( black, ::SDL_BLENDMODE_MOD );
+  CHECK(
+      !::SDL_RenderCopy( g_renderer, black, nullptr, nullptr ) );
+
+  // Return blend mode to a standard value just for good measure.
+  ::SDL_SetTextureBlendMode( cloned, ::SDL_BLENDMODE_BLEND );
+
+  return cloned;
 }
 
 void save_texture_png( Texture const&  tx,

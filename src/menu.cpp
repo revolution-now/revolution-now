@@ -257,6 +257,7 @@ struct MenuTextures {
   Texture      item_background_highlight;
   ItemTextures name;
   Texture      menu_body;
+  Texture      menu_body_shadow;
   Texture      menu_background_highlight;
   Texture      menu_background_hover;
   W            header_width{0};
@@ -775,9 +776,12 @@ void render_menus( Texture const& tx ) {
       []( MenuState::menus_hidden ) {},  //
       [&]( MenuState::menus_closed ) {}, //
       [&]( MenuState::item_click const& ic ) {
+        auto        menu = g_item_to_menu[ic.item];
+        auto const& shadow =
+            g_menu_rendered[menu].menu_body_shadow;
+        CHECK( shadow );
         // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        auto        menu = g_item_to_menu[ic.item];
         auto const& open_tx =
             render_open_menu( menu, ic.item, /*clicking=*/true );
         Coord   pos   = menu_body_rect( menu ).upper_left();
@@ -802,19 +806,34 @@ void render_menus( Texture const& tx ) {
                        percent_completion <= 1.0,
                    "percent_completion: {}",
                    percent_completion );
+            uint8_t alpha_shadow =
+                64 - uint8_t( 64.0 * percent_completion );
+            copy_texture_alpha( shadow, tx,
+                                pos + Delta{5_w, 5_h},
+                                alpha_shadow );
             alpha = 255 - uint8_t( 255.0 * percent_completion );
             copy_texture_alpha( open_tx, tx, pos, alpha );
           } else if( now >= end ) {
             alpha = 0;
             copy_texture_alpha( open_tx, tx, pos, alpha );
           }
-        } else
+        } else {
+          copy_texture_alpha( shadow, tx, pos + Delta{5_w, 5_h},
+                              64 );
           copy_texture( open_tx, tx, pos );
+        }
       },
       [&]( MenuState::menu_open const& o ) {
+        Coord pos = menu_body_rect( o.menu ).upper_left();
+
+        auto const& shadow =
+            g_menu_rendered[o.menu].menu_body_shadow;
+        CHECK( shadow );
+        copy_texture_alpha( shadow, tx, pos + Delta{5_w, 5_h},
+                            64 );
         auto const& open_tx = render_open_menu(
             o.menu, o.hover, /*clicking=*/false );
-        Coord pos = menu_body_rect( o.menu ).upper_left();
+        pos = menu_body_rect( o.menu ).upper_left();
         copy_texture( open_tx, tx, pos );
       } );
   maybe_render_open_menu( g_menu_state );
@@ -941,6 +960,18 @@ void initialize_menus() {
                                        /*hover=*/true );
 
     g_menu_rendered[menu].divider = render_divider( menu );
+
+    // This will render to the g_menu_rendered[menu].menu_body
+    // texture an open menu with nothing selected. This is
+    // necessary so that we can then convert it to a shadow. We
+    // only need to render the shadow once, because all that
+    // matters about it is the shape, which will not change even
+    // as the open menu body changes (i.e., items are
+    // highlighted).
+    auto const& to_be_shadowed =
+        render_open_menu( menu, nullopt, false );
+    g_menu_rendered[menu].menu_body_shadow =
+        create_shadow_texture( to_be_shadowed );
   }
 
   menu_bar_tx = create_texture( menu_bar_rect().delta() );
