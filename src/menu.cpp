@@ -48,6 +48,16 @@ ADT( rn, MenuState,                   //
        ( TimeType, start ) )          //
 );
 
+ADT( rn, MouseOver,
+     ( header,                  //
+       ( e_menu, menu ) ),      //
+     ( item,                    //
+       ( e_menu_item, item ) ), //
+     ( divider,                 //
+       ( e_menu, menu ) ),      //
+     ( bar )                    //
+);
+
 namespace rn {
 
 namespace {
@@ -693,37 +703,18 @@ void display_menu_bar_tx( Texture const& tx ) {
 /****************************************************************
 ** Input Implementation
 *****************************************************************/
-// TODO: ADT
-struct mouse_over_menu_bar {};
-bool operator==( mouse_over_menu_bar const&,
-                 mouse_over_menu_bar const& ) {
-  return true;
-}
-
-struct mouse_over_divider {
-  e_menu menu;
-};
-bool operator==( mouse_over_divider const& l,
-                 mouse_over_divider const& r ) {
-  return l.menu == r.menu;
-}
-
-// Must be equality comparable.
-using MouseOverMenu =
-    Opt<variant<e_menu, e_menu_item, mouse_over_divider,
-                mouse_over_menu_bar>>;
-
-MouseOverMenu click_target( Coord screen_coord ) {
-  auto matcher = scelta::match<MouseOverMenu>(
-      []( MenuState::menus_hidden ) { return MouseOverMenu{}; },
+Opt<MouseOver_t> click_target( Coord screen_coord ) {
+  using res_t  = Opt<MouseOver_t>;
+  auto matcher = scelta::match<res_t>(
+      []( MenuState::menus_hidden ) { return res_t{}; },
       [&]( MenuState::menus_closed ) {
         for( auto menu : values<e_menu> )
           if( screen_coord.is_inside(
                   menu_header_rect( menu ) ) )
-            return MouseOverMenu{menu};
+            return res_t{MouseOver::header{menu}};
         if( screen_coord.is_inside( menu_bar_rect() ) )
-          return MouseOverMenu{mouse_over_menu_bar{}};
-        return MouseOverMenu{};
+          return res_t{MouseOver::bar{}};
+        return res_t{};
       } )( //
       [&]( auto self, MenuState::item_click const& ic ) {
         // Just forward this to the MenuState::menu_open.
@@ -734,20 +725,20 @@ MouseOverMenu click_target( Coord screen_coord ) {
       [&]( auto self, MenuState::menu_open const& o ) {
         auto closed =
             self( MenuState_t{MenuState::menus_closed{}} );
-        if( closed ) return closed;
+        if( closed ) return res_t{closed};
         if( !screen_coord.is_inside( menu_body_rect( o.menu ) ) )
-          return MouseOverMenu{};
+          return res_t{};
         if( screen_coord.is_inside(
                 menu_body_rect_inner( o.menu ) ) ) {
           // We over somewhere in the inner menu body.
           auto maybe_item =
               cursor_to_item( o.menu, screen_coord );
           if( maybe_item.has_value() )
-            return MouseOverMenu{*maybe_item};
+            return res_t{MouseOver::item{*maybe_item}};
         }
         // We are not over an item, so must be either a divider
         // or a border.  TODO
-        return MouseOverMenu{mouse_over_divider{o.menu}};
+        return res_t{MouseOver::divider{o.menu}};
       } );
   return matcher( g_menu_state );
 }
@@ -1003,7 +994,7 @@ struct MenuPlane : public Plane {
     auto click_start = click_target( start );
     if( click_target( start ) == click_target( end ) &&
         click_start.has_value() &&
-        util::holds<e_menu>( *click_start ) )
+        util::holds<MouseOver::header>( *click_start ) )
       return;
     if( button == input::e_mouse_button::l ) {
       // TODO: get the input module to do this.
@@ -1109,8 +1100,8 @@ struct MenuPlane : public Plane {
           auto over_what = click_target( mv_event.pos );
           if( !over_what.has_value() ) return false;
           auto matcher = scelta::match(
-              []( mouse_over_menu_bar ) { return true; },
-              []( mouse_over_divider desc ) {
+              []( MouseOver::bar ) { return true; },
+              []( MouseOver::divider desc ) {
                 CHECK( util::holds<MenuState::menu_open>(
                            g_menu_state ) ||
                        util::holds<MenuState::item_click>(
@@ -1122,18 +1113,18 @@ struct MenuPlane : public Plane {
                 }
                 return true;
               },
-              []( e_menu menu ) {
+              []( MouseOver::header header ) {
                 if( util::holds<MenuState::menu_open>(
                         g_menu_state ) )
-                  g_menu_state =
-                      MenuState::menu_open{menu, /*hover=*/{}};
+                  g_menu_state = MenuState::menu_open{
+                      header.menu, /*hover=*/{}};
                 if( util::holds<MenuState::menus_closed>(
                         g_menu_state ) )
-                  g_menu_state =
-                      MenuState::menus_closed{/*hover=*/menu};
+                  g_menu_state = MenuState::menus_closed{
+                      /*hover=*/header.menu};
                 return true;
               },
-              []( e_menu_item item ) {
+              []( MouseOver::item item ) {
                 CHECK( util::holds<MenuState::menu_open>(
                            g_menu_state ) ||
                        util::holds<MenuState::item_click>(
@@ -1142,10 +1133,11 @@ struct MenuPlane : public Plane {
                         g_menu_state ) ) {
                   auto& o = std::get<MenuState::menu_open>(
                       g_menu_state );
-                  CHECK( o.menu == g_item_to_menu[item] );
+                  CHECK( o.menu == g_item_to_menu[item.item] );
                   o.hover = {};
-                  if( g_menu_items[item]->callbacks.enabled() )
-                    o.hover = item;
+                  if( g_menu_items[item.item]
+                          ->callbacks.enabled() )
+                    o.hover = item.item;
                 }
                 return true;
               } );
@@ -1165,37 +1157,37 @@ struct MenuPlane : public Plane {
           if( b_event.buttons ==
               input::e_mouse_button_event::left_down ) {
             auto matcher = scelta::match(
-                []( mouse_over_menu_bar ) {
+                []( MouseOver::bar ) {
                   g_menu_state = MenuState::menus_closed{{}};
                   log_menu_state();
                   return true;
                 },
-                []( mouse_over_divider ) { return true; },
-                []( e_menu menu ) {
-                  if( !is_menu_open( menu ) )
-                    g_menu_state =
-                        MenuState::menu_open{menu, /*hover=*/{}};
+                []( MouseOver::divider ) { return true; },
+                []( MouseOver::header header ) {
+                  if( !is_menu_open( header.menu ) )
+                    g_menu_state = MenuState::menu_open{
+                        header.menu, /*hover=*/{}};
                   else
-                    g_menu_state =
-                        MenuState::menus_closed{/*hover=*/menu};
+                    g_menu_state = MenuState::menus_closed{
+                        /*hover=*/header.menu};
                   log_menu_state();
                   return true;
                 },
-                []( e_menu_item ) { return true; } );
+                []( MouseOver::item ) { return true; } );
             return matcher( *over_what );
           }
           if( b_event.buttons ==
               input::e_mouse_button_event::left_up ) {
             auto matcher = scelta::match(
-                []( mouse_over_menu_bar ) {
+                []( MouseOver::bar ) {
                   g_menu_state = MenuState::menus_closed{{}};
                   log_menu_state();
                   return true;
                 },
-                []( mouse_over_divider ) { return true; },
-                []( e_menu ) { return true; },
-                [&]( e_menu_item item ) {
-                  click_menu_item( item );
+                []( MouseOver::divider ) { return true; },
+                []( MouseOver::header ) { return true; },
+                [&]( MouseOver::item item ) {
+                  click_menu_item( item.item );
                   return true;
                 } );
             return matcher( *over_what );
