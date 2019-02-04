@@ -55,6 +55,8 @@ ADT( rn, MouseOver,
        ( e_menu_item, item ) ), //
      ( divider,                 //
        ( e_menu, menu ) ),      //
+     ( border,                  //
+       ( e_menu, menu ) ),      //
      ( bar )                    //
 );
 
@@ -91,7 +93,6 @@ struct MenuClickable {
   MenuCallbacks callbacks;
 };
 
-// TODO: ADT
 using MenuItem = variant<MenuDivider, MenuClickable>;
 
 flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
@@ -327,7 +328,6 @@ Delta menu_header_delta( e_menu menu ) {
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
   CHECK( g_menu_rendered.contains( menu ) );
-  // TODO
   return Rect::from( Coord{0_y, menu_header_x_pos( menu )},
                      menu_header_delta( menu ) );
 }
@@ -389,6 +389,15 @@ Delta menu_body_delta( e_menu menu ) {
          menu_body_delta_inner( menu );
 }
 
+Delta menu_body_delta_click( e_menu menu ) {
+  // Divide by two because the menu border spreads roughly occupy
+  // half of a (8x8) tile, except for the top which covers a full
+  // 8x8.
+  return Delta{8_w / 2_sx, 8_h} /*left,top*/ +
+         Delta{8_w / 2_sx, 8_h / 2_sy} /*bottom,right*/ +
+         menu_body_delta_inner( menu );
+}
+
 Delta menu_item_delta( e_menu menu ) {
   return Delta{menu_body_width_inner( menu ), max_text_height()};
 }
@@ -407,6 +416,15 @@ Rect menu_body_rect( e_menu menu ) {
   Coord pos{Y{0} + menu_bar_height(),
             menu_header_x_pos( menu ) - 8_w};
   return Rect::from( pos, menu_body_delta( menu ) );
+}
+
+// This includes (roughly) the space overwhich an open menu
+// occupies pixels (i.e., is not transparent). This is used to
+// decide if the user has clicked on or off of an open menu.
+Rect menu_body_click( e_menu menu ) {
+  Coord pos{Y{0} + menu_bar_height(),
+            menu_header_x_pos( menu ) - 8_w / 2_sx};
+  return Rect::from( pos, menu_body_delta_click( menu ) );
 }
 
 // `h` is the vertical position from the top of the menu body.
@@ -444,14 +462,17 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
 ** Rendering Implmementation
 *****************************************************************/
 // For either a menu header or item.
-ItemTextures render_menu_element( string const& s,
-                                  optional<char> /*unused*/ ) {
+ItemTextures render_menu_element( string const& text,
+                                  optional<char> /*unused*/,
+                                  Color inactive_color,
+                                  Color active_color,
+                                  Color disabled_color ) {
   auto inactive = render_text_line_shadow(
-      fonts::standard, color::item::foreground::inactive, s );
-  auto active = render_text_line_shadow(
-      fonts::standard, color::item::foreground::active, s );
+      fonts::standard, inactive_color, text );
+  auto active   = render_text_line_shadow( fonts::standard,
+                                         active_color, text );
   auto disabled = render_text_line_shadow(
-      fonts::standard, color::item::foreground::disabled, s );
+      fonts::standard, disabled_color, text );
   // Need to do this first before moving.
   auto width = std::max(
       {inactive.size().w, active.size().w, disabled.size().w} );
@@ -465,25 +486,23 @@ ItemTextures render_menu_element( string const& s,
 }
 
 // For either a menu header or item.
-// TODO: remove code duplication with above.
+ItemTextures render_menu_item_element(
+    string const& text, optional<char> /*unused*/ ) {
+  return render_menu_element(
+      text, nullopt, //
+      color::item::foreground::inactive,
+      color::item::foreground::active,
+      color::item::foreground::disabled );
+}
+
+// For either a menu header or item.
 ItemTextures render_menu_header_element(
-    string const& s, optional<char> /*unused*/ ) {
-  auto inactive = render_text_line_shadow(
-      fonts::standard, color::menu::foreground::inactive, s );
-  auto active = render_text_line_shadow(
-      fonts::standard, color::menu::foreground::active, s );
-  auto disabled = render_text_line_shadow(
-      fonts::standard, color::menu::foreground::disabled, s );
-  // Need to do this first before moving.
-  auto width = std::max(
-      {inactive.size().w, active.size().w, disabled.size().w} );
-  auto res =
-      ItemTextures{std::move( inactive ), std::move( active ),
-                   std::move( disabled ), width};
-  // Sanity check
-  CHECK( res.width > 0 &&
-         res.width < logical_screen_pixel_dimensions().w );
-  return res;
+    string const& text, optional<char> /*unused*/ ) {
+  return render_menu_element(
+      text, nullopt, //
+      color::menu::foreground::inactive,
+      color::menu::foreground::active,
+      color::menu::foreground::disabled );
 }
 
 Texture render_divider( e_menu menu ) {
@@ -726,19 +745,21 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
         auto closed =
             self( MenuState_t{MenuState::menus_closed{}} );
         if( closed ) return res_t{closed};
-        if( !screen_coord.is_inside( menu_body_rect( o.menu ) ) )
+        if( !screen_coord.is_inside(
+                menu_body_click( o.menu ) ) )
           return res_t{};
-        if( screen_coord.is_inside(
-                menu_body_rect_inner( o.menu ) ) ) {
-          // We over somewhere in the inner menu body.
-          auto maybe_item =
-              cursor_to_item( o.menu, screen_coord );
-          if( maybe_item.has_value() )
-            return res_t{MouseOver::item{*maybe_item}};
-        }
-        // We are not over an item, so must be either a divider
-        // or a border.  TODO
-        return res_t{MouseOver::divider{o.menu}};
+        // The cursor is over a non-transparent part of the open
+        // menu.
+        if( !screen_coord.is_inside(
+                menu_body_rect_inner( o.menu ) ) )
+          return res_t{MouseOver::border{o.menu}};
+        // The cursor is over the inner menu body, so at this
+        // point its either over an item or a divider.
+        auto maybe_item = cursor_to_item( o.menu, screen_coord );
+        if( !maybe_item.has_value() )
+          return res_t{MouseOver::divider{o.menu}};
+        // Finally, we are over an item.
+        return res_t{MouseOver::item{*maybe_item}};
       } );
   return matcher( g_menu_state );
 }
@@ -891,7 +912,7 @@ void initialize_menus() {
   // because other things need to be calculated from the sizes of
   // the rendered text.
   for( auto menu_item : values<e_menu_item> )
-    g_menu_item_rendered[menu_item] = render_menu_element(
+    g_menu_item_rendered[menu_item] = render_menu_item_element(
         g_menu_items[menu_item]->name, nullopt );
   for( auto menu : values<e_menu> ) {
     g_menu_rendered[menu]      = {};
@@ -978,7 +999,6 @@ struct MenuPlane : public Plane {
   void on_drag( input::e_mouse_button /*unused*/,
                 Coord /*unused*/, Coord prev,
                 Coord current ) override {
-    // TODO: get the input module to do this.
     // Convert to mouse motion event.
     input::mouse_move_event_t event{{current}, prev};
     this->input( event );
@@ -997,7 +1017,6 @@ struct MenuPlane : public Plane {
         util::holds<MouseOver::header>( *click_start ) )
       return;
     if( button == input::e_mouse_button::l ) {
-      // TODO: get the input module to do this.
       // Convert to mouse button event.
       auto buttons = input::e_mouse_button_event::left_up;
       input::mouse_button_event_t event{{end}, buttons};
@@ -1007,7 +1026,7 @@ struct MenuPlane : public Plane {
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
     render_menus( tx );
-    // TODO: put this code in a dedicated plane callback.
+    // TODO: put this code in a dedicated plane `tick` callback.
     if_v( g_menu_state, MenuState::item_click, val ) {
       auto item  = val->item;
       auto start = val->start;
@@ -1099,7 +1118,7 @@ struct MenuPlane : public Plane {
             g_menu_state = MenuState::menus_closed{};
           auto over_what = click_target( mv_event.pos );
           if( !over_what.has_value() ) return false;
-          auto matcher = scelta::match(
+          auto matcher = scelta::match<bool>(
               []( MouseOver::bar ) { return true; },
               []( MouseOver::divider desc ) {
                 CHECK( util::holds<MenuState::menu_open>(
@@ -1140,6 +1159,11 @@ struct MenuPlane : public Plane {
                     o.hover = item.item;
                 }
                 return true;
+              } )( //
+              []( auto self, MouseOver::border border ) {
+                // Delegate to the divider handler for now.
+                return self( MouseOver_t{
+                    MouseOver::divider{border.menu}} );
               } );
           return matcher( *over_what );
         },
@@ -1162,6 +1186,7 @@ struct MenuPlane : public Plane {
                   log_menu_state();
                   return true;
                 },
+                []( MouseOver::border ) { return true; },
                 []( MouseOver::divider ) { return true; },
                 []( MouseOver::header header ) {
                   if( !is_menu_open( header.menu ) )
@@ -1184,6 +1209,7 @@ struct MenuPlane : public Plane {
                   log_menu_state();
                   return true;
                 },
+                []( MouseOver::border ) { return true; },
                 []( MouseOver::divider ) { return true; },
                 []( MouseOver::header ) { return true; },
                 [&]( MouseOver::item item ) {
