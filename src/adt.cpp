@@ -10,11 +10,6 @@
 *****************************************************************/
 #include "adt.hpp"
 
-// Revolution Now
-#include "fmt-helper.hpp"
-#include "logging.hpp"
-#include "variant.hpp"
-
 // base-util
 #include "base-util/string.hpp"
 

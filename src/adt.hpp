@@ -38,8 +38,7 @@
 *          ( int, x ),           //
 *          ( int, y ) ),         //
 *        ( ending,               //
-*          ( double, f )         //
-*          )                     //
+*          ( double, f ) )       //
 *    )
 *
 *    input::state_t my_state; // my_state is a std::variant
