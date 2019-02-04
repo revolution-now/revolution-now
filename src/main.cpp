@@ -42,8 +42,6 @@ namespace rn {
 
 void game() {
   init_game();
-  load_sprites();
-  load_tile_maps();
   rng::init();
 
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );

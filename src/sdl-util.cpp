@@ -90,6 +90,8 @@ void init_game() {
   print_video_stats();
   logger->info( "Initializing global renderer" );
   create_renderer();
+  logger->info( "Loading sprites" );
+  load_sprites();
   logger->info( "Initializing planes" );
   initialize_planes();
   logger->info( "Loading sound effects" );
