@@ -26,7 +26,7 @@ window_error {
 widths = [5, 6, 7, 8]
 
 menus {
-  first_menu_start: 0
+  first_menu_start: 8
   padding: 6
   spacing: 0
   body_min_width: 120 # must be a multiple of 8

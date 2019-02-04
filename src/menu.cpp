@@ -81,6 +81,7 @@ struct MenuClickable {
   MenuCallbacks callbacks;
 };
 
+// TODO: ADT
 using MenuItem = variant<MenuDivider, MenuClickable>;
 
 flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
@@ -193,31 +194,34 @@ Opt<e_menu> opened_menu() {
 /****************************************************************
 ** Colors
 *****************************************************************/
-namespace color {
-namespace item {
-namespace background {
-auto const& active   = config_palette.yellow.sat1.lum11;
-auto const& inactive = config_palette.orange.sat0.lum3;
-} // namespace background
-namespace foreground {
+namespace color::item::background {
+auto active() {
+  auto color = config_palette.yellow.sat1.lum11;
+  return color;
+}
+} // namespace color::item::background
+namespace color::item::foreground {
+auto const& active   = config_palette.orange.sat0.lum2;
+auto const& inactive = config_palette.orange.sat1.lum6;
+auto const& disabled = config_palette.grey.n68;
+} // namespace color::item::foreground
+
+namespace color::menu::background {
+auto active() {
+  auto color = color::item::background::active();
+  return color;
+}
+auto hover() {
+  auto color = config_palette.orange.sat0.lum3;
+  color      = color.highlighted( 2 );
+  return color;
+}
+} // namespace color::menu::background
+namespace color::menu::foreground {
 auto const& active   = config_palette.orange.sat0.lum2;
 auto const& inactive = config_palette.orange.sat1.lum11;
 auto const& disabled = config_palette.grey.n68;
-} // namespace foreground
-} // namespace item
-namespace menu {
-namespace background {
-auto const& active = color::item::background::active;
-auto        hover() {
-  return color::item::background::inactive.highlighted( 2 );
-}
-// auto const& inactive = color::item::background::inactive;
-} // namespace background
-namespace foreground {
-// auto const& active = color::item::foreground::active;
-}
-} // namespace menu
-} // namespace color
+} // namespace color::menu::foreground
 
 /****************************************************************
 ** Cached Textures
@@ -371,7 +375,8 @@ Delta menu_body_delta_inner( e_menu menu ) {
 }
 
 Delta menu_body_delta( e_menu menu ) {
-  return Delta{16_w, 16_h} + menu_body_delta_inner( menu );
+  return Delta{8_w, 8_h} + Delta{8_w, 8_h} +
+         menu_body_delta_inner( menu );
 }
 
 Delta menu_item_delta( e_menu menu ) {
@@ -383,7 +388,8 @@ Delta divider_delta( e_menu menu ) {
 }
 
 Rect menu_body_rect_inner( e_menu menu ) {
-  Coord pos{Y{0} + menu_bar_height(), menu_header_x_pos( menu )};
+  Coord pos{Y{0} + menu_bar_height() + 8_h,
+            menu_header_x_pos( menu )};
   return Rect::from( pos, menu_body_delta_inner( menu ) );
 }
 
@@ -448,10 +454,31 @@ ItemTextures render_menu_element( string const& s,
   return res;
 }
 
+// For either a menu header or item.
+// TODO: remove code duplication with above.
+ItemTextures render_menu_header_element(
+    string const& s, optional<char> /*unused*/ ) {
+  auto inactive = render_text_line_shadow(
+      fonts::standard, color::menu::foreground::inactive, s );
+  auto active = render_text_line_shadow(
+      fonts::standard, color::menu::foreground::active, s );
+  auto disabled = render_text_line_shadow(
+      fonts::standard, color::menu::foreground::disabled, s );
+  // Need to do this first before moving.
+  auto width = std::max(
+      {inactive.size().w, active.size().w, disabled.size().w} );
+  auto res =
+      ItemTextures{std::move( inactive ), std::move( active ),
+                   std::move( disabled ), width};
+  // Sanity check
+  CHECK( res.width > 0 &&
+         res.width < logical_screen_pixel_dimensions().w );
+  return res;
+}
+
 Texture render_divider( e_menu menu ) {
   Delta   delta = divider_delta( menu );
-  Texture res   = create_texture( delta );
-  clear_texture_transparent( res );
+  Texture res   = create_texture_transparent( delta );
   // A divider is never highlighted.
   Color color_fore = color::item::foreground::disabled;
   Color color_back = color_fore.shaded( 4 );
@@ -465,15 +492,13 @@ Texture render_divider( e_menu menu ) {
 }
 
 Texture create_menu_body_texture( e_menu menu ) {
-  return create_texture( menu_body_delta( menu ) );
+  return create_texture_transparent( menu_body_delta( menu ) );
 }
 
 Texture render_item_background( e_menu menu, bool active ) {
   CHECK( active );
-  return create_texture(
-      menu_item_delta( menu ),
-      active ? color::item::background::active
-             : color::item::background::inactive );
+  return create_texture( menu_item_delta( menu ),
+                         color::item::background::active() );
 }
 
 Texture render_menu_header_background( e_menu menu, bool active,
@@ -481,7 +506,7 @@ Texture render_menu_header_background( e_menu menu, bool active,
   CHECK( active || hover );
   // FIXME
   CHECK( !( active && hover ) );
-  auto color = active ? color::menu::background::active
+  auto color = active ? color::menu::background::active()
                       : color::menu::background::hover();
   return create_texture( menu_header_delta( menu ), color );
 }
@@ -495,25 +520,30 @@ Texture const& render_open_menu( e_menu           menu,
   }
   auto const& textures = g_menu_rendered[menu];
   auto&       dst      = textures.menu_body;
-  Coord       pos{};
+  Coord       pos{8_x, 8_y};
 
+  clear_texture_transparent( dst );
   Rect dst_tile_rect =
       Rect::from( Coord{}, dst.size() ).to_tiles( 8 );
-  for( auto coord : dst_tile_rect )
+  for( auto coord : dst_tile_rect.edges_removed() )
     render_sprite_grid( dst, g_tile::menu_body, coord, 0, 0 );
-  for( W w{1}; w < dst_tile_rect.w - 1_w; ++w )
-    render_sprite_grid( dst, g_tile::menu_top, 0_y, 0_x + w, 0,
-                        0 );
-  for( W w{1}; w < dst_tile_rect.w - 1_w; ++w )
-    render_sprite_grid( dst, g_tile::menu_bottom,
-                        dst_tile_rect.bottom_edge() - 1_h,
-                        0_x + w, 0, 0 );
-  for( H h{1}; h < dst_tile_rect.h - 1_h; ++h )
-    render_sprite_grid( dst, g_tile::menu_left, 0_y + h, 0_x, 0,
-                        0 );
-  for( H h{1}; h < dst_tile_rect.h - 1_h; ++h )
+  // TODO: make a function that renders the borders of a
+  // rectangle given the tiles.
+  for( X x = dst_tile_rect.x + 1_w;
+       x < dst_tile_rect.right_edge() - 1_w; ++x )
+    render_sprite_grid( dst, g_tile::menu_top, 0_y, x, 0, 0 );
+  for( X x = dst_tile_rect.x + 1_w;
+       x < dst_tile_rect.right_edge() - 1_w; ++x )
     render_sprite_grid(
-        dst, g_tile::menu_right, 0_y + h,
+        dst, g_tile::menu_bottom,
+        0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x, 0, 0 );
+  for( Y y = dst_tile_rect.y + 1_h;
+       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
+    render_sprite_grid( dst, g_tile::menu_left, y, 0_x, 0, 0 );
+  for( Y y = dst_tile_rect.y + 1_h;
+       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
+    render_sprite_grid(
+        dst, g_tile::menu_right, y,
         0_x + ( dst_tile_rect.right_edge() - 1_w ), 0, 0 );
   render_sprite_grid( dst, g_tile::menu_top_left, 0_y, 0_x, 0,
                       0 );
@@ -537,7 +567,7 @@ Texture const& render_open_menu( e_menu           menu,
         auto const& desc = g_menu_items[clickable.item];
         auto const& rendered =
             g_menu_item_rendered[clickable.item];
-        Texture const* from{nullptr};
+        Texture const* foreground{nullptr};
         Texture const* background{nullptr};
         if( clicking && clickable.item == subject ) {
           /**********************************************
@@ -558,36 +588,37 @@ Texture const& render_open_menu( e_menu           menu,
             // highlighted, because it seems to make a better
             // UX when the selected item is highlighted as
             // the fading happens.
-            from       = &rendered.highlighted;
+            foreground = &rendered.highlighted;
             background = &textures.item_background_highlight;
           } else if( elapsed >= total_duration - fade_time -
                                     post_off_time ) {
             // We're in a period between the blinking and
             // fading when the highlight is off, although
             // this period may have zero length.
-            from = &rendered.normal;
+            foreground = &rendered.normal;
 
           } else if( ( elapsed % period > half_period ) ^
                      start_on ) {
             // Blink on
-            from       = &rendered.highlighted;
+            foreground = &rendered.highlighted;
             background = &textures.item_background_highlight;
           } else {
             // Blink off
-            from = &rendered.normal;
+            foreground = &rendered.normal;
           }
         } else {
-          from = !desc->callbacks.enabled()
-                     ? &rendered.disabled
-                     : ( clickable.item == subject )
-                           ? &rendered.highlighted
-                           : &rendered.normal;
+          foreground = !desc->callbacks.enabled()
+                           ? &rendered.disabled
+                           : ( clickable.item == subject )
+                                 ? &rendered.highlighted
+                                 : &rendered.normal;
           if( clickable.item == subject )
             background = &textures.item_background_highlight;
         }
-        if( background ) copy_texture( *background, dst, pos );
-        CHECK( from );
-        copy_texture( *from, dst,
+        if( background )
+          copy_texture_alpha( *background, dst, pos, 128 );
+        CHECK( foreground );
+        copy_texture( *foreground, dst,
                       pos + config_ui.menus.padding );
         pos += max_text_height();
       } );
@@ -608,6 +639,9 @@ void render_menu_bar() {
       render_sprite_grid( menu_bar_tx, g_tile::menu_bar_bottom,
                           coord, 0, 0 );
   }
+  // Center the text vertically in the menu bar.
+  auto offset = 0_y + ( ( 16_h - max_text_height() ) / 2_sy );
+
   for( auto menu : values<e_menu> ) {
     CHECK( g_menu_rendered.contains( menu ) );
     auto const& textures = g_menu_rendered[menu];
@@ -640,12 +674,12 @@ void render_menu_bar() {
         } );
     if( auto p = matcher( g_menu_state ); p.has_value() ) {
       auto pos = menu_header_x_pos( menu );
-      CHECK( ( *p ).first );
-      copy_texture( *( ( *p ).first ), menu_bar_tx,
-                    {0_y, pos + config_ui.menus.padding} );
       if( ( *p ).second )
         copy_texture( *( ( *p ).second ), menu_bar_tx,
-                      {0_y, pos} );
+                      {offset, pos} );
+      CHECK( ( *p ).first );
+      copy_texture( *( ( *p ).first ), menu_bar_tx,
+                    {offset, pos + config_ui.menus.padding} );
     }
   }
 }
@@ -712,7 +746,7 @@ MouseOverMenu click_target( Coord screen_coord ) {
             return MouseOverMenu{*maybe_item};
         }
         // We are not over an item, so must be either a divider
-        // or a border.
+        // or a border.  TODO
         return MouseOverMenu{mouse_over_divider{o.menu}};
       } );
   return matcher( g_menu_state );
@@ -870,7 +904,7 @@ void initialize_menus() {
         g_menu_items[menu_item]->name, nullopt );
   for( auto menu : values<e_menu> ) {
     g_menu_rendered[menu]      = {};
-    g_menu_rendered[menu].name = render_menu_element(
+    g_menu_rendered[menu].name = render_menu_header_element(
         g_menus[menu].name, g_menus[menu].shortcut );
   }
 

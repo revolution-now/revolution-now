@@ -332,7 +332,7 @@ ViewportState g_viewport_state{viewport_state::none{}};
 
 struct ViewportPlane : public Plane {
   ViewportPlane() = default;
-  bool enabled() const override { return true; }
+  bool enabled() const override { return false; }
   bool covers_screen() const override { return true; }
   void draw( Texture const& tx ) const override {
     render_world_viewport( g_viewport_state );
@@ -460,7 +460,7 @@ namespace {
 
 struct PanelPlane : public Plane {
   PanelPlane() = default;
-  bool enabled() const override { return true; }
+  bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     constexpr int panel_width{6};
@@ -496,7 +496,7 @@ namespace {
 
 struct EffectsPlane : public Plane {
   EffectsPlane() = default;
-  bool enabled() const override { return enabled_; }
+  bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     using namespace chrono;

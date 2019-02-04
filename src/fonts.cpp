@@ -69,7 +69,7 @@ Texture render_text_line_standard( e_font font, Color fg,
 
 Texture render_text_line_shadow( e_font font, Color fg,
                                  string const& line ) {
-  Color bg        = Color::black();
+  Color bg        = fg.shaded( 6 );
   bg.a            = 80;
   auto texture_fg = render_text_line_standard( font, fg, line );
   auto texture_bg = render_text_line_standard( font, bg, line );
