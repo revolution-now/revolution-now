@@ -158,6 +158,11 @@ void render_sprite_grid( Texture const& tx, g_tile tile,
                  tile_col * sprite.sx, rot, flip_x );
 }
 
+void render_sprite_grid( Texture const& tx, g_tile tile,
+                         Coord coord, int rot, int flip_x ) {
+  render_sprite_grid( tx, tile, coord.y, coord.x, rot, flip_x );
+}
+
 g_tile index_to_tile( int index ) {
   return static_cast<g_tile>( index );
 }

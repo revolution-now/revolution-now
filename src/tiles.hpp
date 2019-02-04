@@ -101,6 +101,8 @@ void render_sprite( Texture const& tx, g_tile tile,
 void render_sprite_grid( Texture const& tx, g_tile tile,
                          Y tile_row, X tile_col, int rot,
                          int flip_x );
+void render_sprite_grid( Texture const& tx, g_tile tile,
+                         Coord coord, int rot, int flip_x );
 
 void load_tile_maps();
 // void render_tile_map( std::string_view name );

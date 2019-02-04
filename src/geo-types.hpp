@@ -219,6 +219,11 @@ struct ND Rect {
   // be fully inside, or its borders may be overlapping.
   bool is_inside( Rect const& rect ) const;
 
+  // Will convert this rect to units of tiles of the given dimen-
+  // sion. This rect must fall on the borders of those tile sizes
+  // otherwise this function will check fail.
+  Rect to_tiles( int tile_size ) const;
+
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
   //
@@ -294,6 +299,7 @@ Coord centered( Delta const& delta, Rect const& rect );
 ND Delta max( Delta const& lhs, Delta const& rhs );
 
 ND Delta operator-( Delta const& lhs, Delta const& rhs );
+ND Delta operator+( Delta const& lhs, Delta const& rhs );
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
 ND Coord operator+( Delta const& delta, Coord const& coord );

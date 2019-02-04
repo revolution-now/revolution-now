@@ -29,5 +29,5 @@ menus {
   first_menu_start: 0
   padding: 6
   spacing: 0
-  body_min_width: 120
+  body_min_width: 120 # must be a multiple of 8
 }

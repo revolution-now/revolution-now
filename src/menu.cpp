@@ -20,6 +20,7 @@
 #include "logging.hpp"
 #include "plane.hpp"
 #include "sdl-util.hpp"
+#include "tiles.hpp"
 #include "variant.hpp"
 
 // base-util
@@ -210,7 +211,7 @@ auto const& active = color::item::background::active;
 auto        hover() {
   return color::item::background::inactive.highlighted( 2 );
 }
-auto const& inactive = color::item::background::inactive;
+// auto const& inactive = color::item::background::inactive;
 } // namespace background
 namespace foreground {
 // auto const& active = color::item::foreground::active;
@@ -238,11 +239,9 @@ struct MenuTextures {
   // sized dividers for each menu. All dividers in a given menu
   // will be the same size though.
   Texture      divider;
-  Texture      item_background_normal;
   Texture      item_background_highlight;
   ItemTextures name;
   Texture      menu_body;
-  Texture      menu_background_normal;
   Texture      menu_background_highlight;
   Texture      menu_background_hover;
   W            header_width{0};
@@ -289,7 +288,7 @@ H const& max_text_height() {
 /****************************************************************
 ** Geometry
 *****************************************************************/
-H menu_bar_height() { return max_text_height(); }
+H menu_bar_height() { return 16_h; }
 
 // These cannot be precalculated because menus might be hidden.
 X menu_header_x_pos( e_menu target ) {
@@ -314,6 +313,7 @@ Delta menu_header_delta( e_menu menu ) {
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
   CHECK( g_menu_rendered.contains( menu ) );
+  // TODO
   return Rect::from( Coord{0_y, menu_header_x_pos( menu )},
                      menu_header_delta( menu ) );
 }
@@ -328,7 +328,9 @@ Rect menu_bar_rect() {
   return Rect::from( Coord{}, Delta{delta_screen.w, height} );
 }
 
-W menu_body_width( e_menu menu ) {
+// This is the width of the menu body not including the borders,
+// which themselves occupy part of a tile.
+W menu_body_width_inner( e_menu menu ) {
   W res{0};
   for( auto const& item : g_items_from_menu[menu] ) {
     CHECK( g_menu_item_rendered.contains( item ) );
@@ -338,6 +340,9 @@ W menu_body_width( e_menu menu ) {
   // text texture in this menu.  Now add padding on each side:
   res += config_ui.menus.padding * 2_sx;
   res = clamp( res, config_ui.menus.body_min_width, 1000000_w );
+  // round up to nearest multiple of 8, since that is the menu
+  // tile width.
+  if( res % 8_sx != 0_w ) res += ( 8_w - ( res % 8_sx ) );
   // Sanity check
   CHECK( res > 0 && res < 2000 );
   return res;
@@ -345,30 +350,46 @@ W menu_body_width( e_menu menu ) {
 
 H divider_height() { return max_text_height() / 2; }
 
-H menu_body_height( e_menu menu ) {
+// This is the width of the menu body not including the borders,
+// which themselves occupy part of a tile.
+H menu_body_height_inner( e_menu menu ) {
   H    h{0};
   auto add_height = scelta::match(
       [&]( MenuDivider ) { h += divider_height(); },
       [&]( MenuClickable ) { h += max_text_height(); } );
   CHECK( g_menu_def.contains( menu ) );
   for( auto const& item : g_menu_def[menu] ) add_height( item );
+  // round up to nearest multiple of 8, since that is the menu
+  // tile width.
+  if( h % 8_sy != 0_h ) h += ( 8_h - ( h % 8_sy ) );
   return h;
 }
 
+Delta menu_body_delta_inner( e_menu menu ) {
+  return {menu_body_width_inner( menu ),
+          menu_body_height_inner( menu )};
+}
+
 Delta menu_body_delta( e_menu menu ) {
-  return {menu_body_width( menu ), menu_body_height( menu )};
+  return Delta{16_w, 16_h} + menu_body_delta_inner( menu );
 }
 
 Delta menu_item_delta( e_menu menu ) {
-  return Delta{menu_body_width( menu ), max_text_height()};
+  return Delta{menu_body_width_inner( menu ), max_text_height()};
 }
 
 Delta divider_delta( e_menu menu ) {
-  return Delta{divider_height(), menu_body_width( menu )};
+  return Delta{divider_height(), menu_body_width_inner( menu )};
+}
+
+Rect menu_body_rect_inner( e_menu menu ) {
+  Coord pos{Y{0} + menu_bar_height(), menu_header_x_pos( menu )};
+  return Rect::from( pos, menu_body_delta_inner( menu ) );
 }
 
 Rect menu_body_rect( e_menu menu ) {
-  Coord pos{Y{0} + menu_bar_height(), menu_header_x_pos( menu )};
+  Coord pos{Y{0} + menu_bar_height(),
+            menu_header_x_pos( menu ) - 8_w};
   return Rect::from( pos, menu_body_delta( menu ) );
 }
 
@@ -397,18 +418,18 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
 
 // `cursor` is the screen position of the mouse cursor.
 Opt<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
-  if( !cursor.is_inside( menu_body_rect( menu ) ) ) return {};
+  if( !cursor.is_inside( menu_body_rect_inner( menu ) ) )
+    return {};
   return cursor_to_item(
-      menu, cursor.y - menu_body_rect( menu ).top_edge() );
+      menu, cursor.y - menu_body_rect_inner( menu ).top_edge() );
 }
 
 /****************************************************************
 ** Rendering Implmementation
 *****************************************************************/
 // For either a menu header or item.
-ItemTextures render_menu_element( string const&  s,
-                                  optional<char> shortcut ) {
-  (void)shortcut; /* TODO */
+ItemTextures render_menu_element( string const& s,
+                                  optional<char> /*unused*/ ) {
   auto inactive = render_text_line_shadow(
       fonts::standard, color::item::foreground::inactive, s );
   auto active = render_text_line_shadow(
@@ -443,7 +464,12 @@ Texture render_divider( e_menu menu ) {
   return res;
 }
 
+Texture create_menu_body_texture( e_menu menu ) {
+  return create_texture( menu_body_delta( menu ) );
+}
+
 Texture render_item_background( e_menu menu, bool active ) {
+  CHECK( active );
   return create_texture(
       menu_item_delta( menu ),
       active ? color::item::background::active
@@ -452,15 +478,12 @@ Texture render_item_background( e_menu menu, bool active ) {
 
 Texture render_menu_header_background( e_menu menu, bool active,
                                        bool hover ) {
-  return create_texture(
-      menu_header_delta( menu ),
-      !active ? color::menu::background::inactive
-              : hover ? color::menu::background::hover()
-                      : color::menu::background::active );
-}
-
-Texture create_menu_body_texture( e_menu menu ) {
-  return create_texture( menu_body_delta( menu ) );
+  CHECK( active || hover );
+  // FIXME
+  CHECK( !( active && hover ) );
+  auto color = active ? color::menu::background::active
+                      : color::menu::background::hover();
+  return create_texture( menu_header_delta( menu ), color );
 }
 
 Texture const& render_open_menu( e_menu           menu,
@@ -474,10 +497,39 @@ Texture const& render_open_menu( e_menu           menu,
   auto&       dst      = textures.menu_body;
   Coord       pos{};
 
+  Rect dst_tile_rect =
+      Rect::from( Coord{}, dst.size() ).to_tiles( 8 );
+  for( auto coord : dst_tile_rect )
+    render_sprite_grid( dst, g_tile::menu_body, coord, 0, 0 );
+  for( W w{1}; w < dst_tile_rect.w - 1_w; ++w )
+    render_sprite_grid( dst, g_tile::menu_top, 0_y, 0_x + w, 0,
+                        0 );
+  for( W w{1}; w < dst_tile_rect.w - 1_w; ++w )
+    render_sprite_grid( dst, g_tile::menu_bottom,
+                        dst_tile_rect.bottom_edge() - 1_h,
+                        0_x + w, 0, 0 );
+  for( H h{1}; h < dst_tile_rect.h - 1_h; ++h )
+    render_sprite_grid( dst, g_tile::menu_left, 0_y + h, 0_x, 0,
+                        0 );
+  for( H h{1}; h < dst_tile_rect.h - 1_h; ++h )
+    render_sprite_grid(
+        dst, g_tile::menu_right, 0_y + h,
+        0_x + ( dst_tile_rect.right_edge() - 1_w ), 0, 0 );
+  render_sprite_grid( dst, g_tile::menu_top_left, 0_y, 0_x, 0,
+                      0 );
+  render_sprite_grid( dst, g_tile::menu_top_right, 0_y,
+                      0_x + ( dst_tile_rect.right_edge() - 1_w ),
+                      0, 0 );
+  render_sprite_grid(
+      dst, g_tile::menu_bottom_left,
+      0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x, 0, 0 );
+  render_sprite_grid(
+      dst, g_tile::menu_bottom_right,
+      0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
+      0_x + ( dst_tile_rect.right_edge() - 1_w ), 0, 0 );
+
   auto render = scelta::match(
       [&]( MenuDivider ) {
-        copy_texture( textures.item_background_normal, dst,
-                      pos );
         copy_texture( textures.divider, dst, pos );
         pos += divider_height();
       },
@@ -513,8 +565,7 @@ Texture const& render_open_menu( e_menu           menu,
             // We're in a period between the blinking and
             // fading when the highlight is off, although
             // this period may have zero length.
-            from       = &rendered.normal;
-            background = &textures.item_background_normal;
+            from = &rendered.normal;
 
           } else if( ( elapsed % period > half_period ) ^
                      start_on ) {
@@ -523,8 +574,7 @@ Texture const& render_open_menu( e_menu           menu,
             background = &textures.item_background_highlight;
           } else {
             // Blink off
-            from       = &rendered.normal;
-            background = &textures.item_background_normal;
+            from = &rendered.normal;
           }
         } else {
           from = !desc->callbacks.enabled()
@@ -532,11 +582,11 @@ Texture const& render_open_menu( e_menu           menu,
                      : ( clickable.item == subject )
                            ? &rendered.highlighted
                            : &rendered.normal;
-          background = ( clickable.item == subject )
-                           ? &textures.item_background_highlight
-                           : &textures.item_background_normal;
+          if( clickable.item == subject )
+            background = &textures.item_background_highlight;
         }
-        copy_texture( *background, dst, pos );
+        if( background ) copy_texture( *background, dst, pos );
+        CHECK( from );
         copy_texture( *from, dst,
                       pos + config_ui.menus.padding );
         pos += max_text_height();
@@ -548,7 +598,16 @@ Texture const& render_open_menu( e_menu           menu,
 
 void render_menu_bar() {
   CHECK( menu_bar_tx );
-  fill_texture( menu_bar_tx, color::menu::background::inactive );
+  auto tiles_rect =
+      Rect::from( Coord{}, menu_bar_tx.size() ).to_tiles( 8 );
+  for( auto coord : tiles_rect ) {
+    if( coord.y == 0_y )
+      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_top,
+                          coord, 0, 0 );
+    else
+      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_bottom,
+                          coord, 0, 0 );
+  }
   for( auto menu : values<e_menu> ) {
     CHECK( g_menu_rendered.contains( menu ) );
     auto const& textures = g_menu_rendered[menu];
@@ -562,8 +621,7 @@ void render_menu_bar() {
           if( menu == closed.hover )
             return Txs{pair{&textures.name.normal,
                             &textures.menu_background_hover}};
-          return Txs{pair{&textures.name.normal,
-                          &textures.menu_background_normal}};
+          return Txs{pair{&textures.name.normal, nullptr}};
         } )( //
         [&]( auto self, MenuState::item_click const& ic ) {
           // Just forward this to the MenuState::menu_open.
@@ -582,9 +640,12 @@ void render_menu_bar() {
         } );
     if( auto p = matcher( g_menu_state ); p.has_value() ) {
       auto pos = menu_header_x_pos( menu );
-      copy_texture( *p->second, menu_bar_tx, {0_y, pos} );
-      copy_texture( *p->first, menu_bar_tx,
+      CHECK( ( *p ).first );
+      copy_texture( *( ( *p ).first ), menu_bar_tx,
                     {0_y, pos + config_ui.menus.padding} );
+      if( ( *p ).second )
+        copy_texture( *( ( *p ).second ), menu_bar_tx,
+                      {0_y, pos} );
     }
   }
 }
@@ -642,11 +703,16 @@ MouseOverMenu click_target( Coord screen_coord ) {
         if( closed ) return closed;
         if( !screen_coord.is_inside( menu_body_rect( o.menu ) ) )
           return MouseOverMenu{};
-        // We over somewhere in the menu body.
-        auto maybe_item = cursor_to_item( o.menu, screen_coord );
-        if( maybe_item.has_value() )
-          return MouseOverMenu{*maybe_item};
-        // We are not over an item, so must be a divider.
+        if( screen_coord.is_inside(
+                menu_body_rect_inner( o.menu ) ) ) {
+          // We over somewhere in the inner menu body.
+          auto maybe_item =
+              cursor_to_item( o.menu, screen_coord );
+          if( maybe_item.has_value() )
+            return MouseOverMenu{*maybe_item};
+        }
+        // We are not over an item, so must be either a divider
+        // or a border.
         return MouseOverMenu{mouse_over_divider{o.menu}};
       } );
   return matcher( g_menu_state );
@@ -815,23 +881,17 @@ void initialize_menus() {
     g_menu_rendered[menu].header_width =
         g_menu_rendered[menu].name.normal.size().w +
         config_ui.menus.padding * 2_sx;
-    g_menu_rendered[menu].item_background_normal =
-        render_item_background( menu, /*hightlight=*/false );
     g_menu_rendered[menu].item_background_highlight =
         render_item_background( menu, /*hightlight=*/true );
     g_menu_rendered[menu].menu_body =
         create_menu_body_texture( menu );
-    g_menu_rendered[menu].menu_background_normal =
-        render_menu_header_background( menu,
-                                       /*highlight=*/false,
-                                       /*hover=*/false );
     g_menu_rendered[menu].menu_background_highlight =
         render_menu_header_background( menu,
                                        /*highlight=*/true,
                                        /*hover=*/false );
     g_menu_rendered[menu].menu_background_hover =
         render_menu_header_background( menu,
-                                       /*highlight=*/true,
+                                       /*highlight=*/false,
                                        /*hover=*/true );
 
     g_menu_rendered[menu].divider = render_divider( menu );
