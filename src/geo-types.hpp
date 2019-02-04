@@ -45,6 +45,10 @@ struct ND Scale {
   }
 
   constexpr Scale() : Scale( 1 ) {}
+
+  constexpr bool operator==( Scale const& rhs ) const {
+    return ( sx == rhs.sx ) && ( sy == rhs.sy );
+  }
 };
 
 // clang-format off
@@ -334,6 +338,9 @@ ND Coord operator*( Scale const& scale, Coord const& coord );
 ND Delta operator*( Scale const& scale, Delta const& delta );
 ND Rect operator*( Rect const& rect, Scale const& scale );
 ND Rect operator*( Scale const& scale, Rect const& rect );
+ND Rect operator/( Rect const& rect, Scale const& scale );
+ND Coord operator/( Coord const& coord, Scale const& scale );
+ND Delta operator/( Delta const& delta, Scale const& scale );
 
 } // namespace rn
 

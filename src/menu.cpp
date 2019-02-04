@@ -212,7 +212,7 @@ auto active() {
 }
 } // namespace color::item::background
 namespace color::item::foreground {
-auto const& active   = config_palette.orange.sat0.lum2;
+auto const& active   = config_palette.orange.sat0.lum4;
 auto const& inactive = config_palette.orange.sat1.lum6;
 auto const& disabled = config_palette.grey.n68;
 } // namespace color::item::foreground
@@ -548,45 +548,26 @@ Texture const& render_open_menu( e_menu           menu,
   if( subject.has_value() ) {
     CHECK( g_item_to_menu[*subject] == menu );
   }
-  auto const& textures = g_menu_rendered[menu];
-  auto&       dst      = textures.menu_body;
-  Coord       pos{8_x, 8_y};
+  auto& textures = g_menu_rendered[menu];
+  auto& dst      = textures.menu_body;
+  Coord pos{8_x, 8_y};
 
   clear_texture_transparent( dst );
-  Rect dst_tile_rect =
-      Rect::from( Coord{}, dst.size() ).to_tiles( 8 );
-  for( auto coord : dst_tile_rect.edges_removed() )
-    render_sprite_grid( dst, g_tile::menu_body, coord, 0, 0 );
-  // TODO: make a function that renders the borders of a
-  // rectangle given the tiles.
-  for( X x = dst_tile_rect.x + 1_w;
-       x < dst_tile_rect.right_edge() - 1_w; ++x )
-    render_sprite_grid( dst, g_tile::menu_top, 0_y, x, 0, 0 );
-  for( X x = dst_tile_rect.x + 1_w;
-       x < dst_tile_rect.right_edge() - 1_w; ++x )
-    render_sprite_grid(
-        dst, g_tile::menu_bottom,
-        0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x, 0, 0 );
-  for( Y y = dst_tile_rect.y + 1_h;
-       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
-    render_sprite_grid( dst, g_tile::menu_left, y, 0_x, 0, 0 );
-  for( Y y = dst_tile_rect.y + 1_h;
-       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
-    render_sprite_grid(
-        dst, g_tile::menu_right, y,
-        0_x + ( dst_tile_rect.right_edge() - 1_w ), 0, 0 );
-  render_sprite_grid( dst, g_tile::menu_top_left, 0_y, 0_x, 0,
-                      0 );
-  render_sprite_grid( dst, g_tile::menu_top_right, 0_y,
-                      0_x + ( dst_tile_rect.right_edge() - 1_w ),
-                      0, 0 );
-  render_sprite_grid(
-      dst, g_tile::menu_bottom_left,
-      0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x, 0, 0 );
-  render_sprite_grid(
-      dst, g_tile::menu_bottom_right,
-      0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
-      0_x + ( dst_tile_rect.right_edge() - 1_w ), 0, 0 );
+
+  render_rect_of_sprites_with_border(
+      dst,                            //
+      Coord{},                        //
+      dst.size() / Scale{8_sx, 8_sy}, //
+      g_tile::menu_body,              //
+      g_tile::menu_top,               //
+      g_tile::menu_bottom,            //
+      g_tile::menu_left,              //
+      g_tile::menu_right,             //
+      g_tile::menu_top_left,          //
+      g_tile::menu_top_right,         //
+      g_tile::menu_bottom_left,       //
+      g_tile::menu_bottom_right       //
+  );
 
   auto render = scelta::match(
       [&]( MenuDivider ) {

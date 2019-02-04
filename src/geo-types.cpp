@@ -295,4 +295,18 @@ Rect operator*( Scale const& scale, Rect const& rect ) {
                      rect.delta() * scale );
 }
 
+Coord operator/( Coord const& coord, Scale const& scale ) {
+  return Coord{coord.x / scale.sx, coord.y / scale.sy};
+}
+
+Delta operator/( Delta const& delta, Scale const& scale ) {
+  return Delta{delta.w / scale.sx, delta.h / scale.sy};
+}
+
+Rect operator/( Rect const& rect, Scale const& scale ) {
+  auto coord = rect.upper_left();
+  auto delta = Delta{rect.w, rect.h};
+  return Rect::from( coord / scale, delta / scale );
+}
+
 } // namespace rn

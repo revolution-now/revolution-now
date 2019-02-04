@@ -393,35 +393,38 @@ inline bool operator>=( TypedInt<Tag> left,
 // the inherited member functions that refer to that base class;
 // e.g., it would allow two distinct typed num's to be added to-
 // gether.
-#define DERIVE_TYPED_NUM( t, a, b, suffix )          \
-  namespace rn {                                     \
-  struct a : public b<a> {                           \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    using P = b<a>; /* parent */                     \
-    constexpr a() : P( 0 ) {}                        \
-    constexpr a( a const& rhs ) = default;           \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    constexpr a( a&& rhs ) = default;                \
-    ~a()                   = default;                \
-    explicit constexpr a( t n_ ) : P( n_ ) {}        \
-    constexpr a( P const& ti ) : P( ti ) {}          \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( a const& other ) {                 \
-      _ = other._;                                   \
-      return *this;                                  \
-    }                                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( a&& other ) noexcept {             \
-      _ = other._;                                   \
-      return *this;                                  \
-    }                                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( t n ) {                            \
-      _ = n;                                         \
-      return *this;                                  \
-    }                                                \
-  };                                                 \
-  }                                                  \
+#define DERIVE_TYPED_NUM( t, a, b, suffix )           \
+  namespace rn {                                      \
+  struct a : public b<a> {                            \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    using P = b<a>; /* parent */                      \
+    constexpr a() : P( 0 ) {}                         \
+    constexpr a( a const& rhs ) = default;            \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    constexpr a( a&& rhs ) = default;                 \
+    ~a()                   = default;                 \
+    explicit constexpr a( t n_ ) : P( n_ ) {}         \
+    constexpr a( P const& ti ) : P( ti ) {}           \
+    constexpr bool operator==( a const& rhs ) const { \
+      return _ == rhs._;                              \
+    }                                                 \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    a& operator=( a const& other ) {                  \
+      _ = other._;                                    \
+      return *this;                                   \
+    }                                                 \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    a& operator=( a&& other ) noexcept {              \
+      _ = other._;                                    \
+      return *this;                                   \
+    }                                                 \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    a& operator=( t n ) {                             \
+      _ = n;                                          \
+      return *this;                                   \
+    }                                                 \
+  };                                                  \
+  }                                                   \
   DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );
 
 // Typed nums that are to represent coordinates should use this

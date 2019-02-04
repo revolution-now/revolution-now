@@ -86,8 +86,7 @@ struct ND sprite {
   // try making these const
   Texture const* texture{};
   Rect           source{};
-  SX             sx{};
-  SY             sy{};
+  Scale          scale{};
 };
 
 void load_sprites();
@@ -103,6 +102,24 @@ void render_sprite_grid( Texture const& tx, g_tile tile,
                          int flip_x );
 void render_sprite_grid( Texture const& tx, g_tile tile,
                          Coord coord, int rot, int flip_x );
+
+// This function will render a rectangle with border, but
+// where the rectangle and border are comprised of tiles,
+// not pixels.  All given tiles must have the same dimensions.
+void render_rect_of_sprites_with_border(
+    Texture& dest,        // where to draw it
+    Coord    dest_origin, // pixel coord of upper left
+    Delta    size_tiles,  // tile coords, including border
+    g_tile   middle,      //
+    g_tile   top,         //
+    g_tile   bottom,      //
+    g_tile   left,        //
+    g_tile   right,       //
+    g_tile   top_left,    //
+    g_tile   top_right,   //
+    g_tile   bottom_left, //
+    g_tile   bottom_right //
+);
 
 void load_tile_maps();
 // void render_tile_map( std::string_view name );

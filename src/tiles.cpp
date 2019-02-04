@@ -44,12 +44,12 @@ unordered_map<std::string, tile_map>         tile_maps;
 
 sprite create_sprite_32( Texture const& texture, Coord coord ) {
   Rect rect{coord.x * 32_sx, coord.y * 32_sy, 32_w, 32_h};
-  return {&texture, rect, 32_sx, 32_sy};
+  return {&texture, rect, {32_sx, 32_sy}};
 }
 
 sprite create_sprite_8( Texture const& texture, Coord coord ) {
   Rect rect{coord.x * 8_sx, coord.y * 8_sy, 8_w, 8_h};
-  return {&texture, rect, 8_sx, 8_sy};
+  return {&texture, rect, {8_sx, 8_sy}};
 }
 
 #define SET_SPRITE_WORLD( name )            \
@@ -131,8 +131,8 @@ void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
   Rect dst;
   dst.x = pixel_col;
   dst.y = pixel_row;
-  dst.w = W{1} * sp.sx;
-  dst.h = H{1} * sp.sy;
+  dst.w = W{1} * sp.scale.sx;
+  dst.h = H{1} * sp.scale.sy;
 
   constexpr double right_angle = 90.0; // degrees
 
@@ -154,8 +154,8 @@ void render_sprite_grid( Texture const& tx, g_tile tile,
                          Y tile_row, X tile_col, int rot,
                          int flip_x ) {
   auto const& sprite = lookup_sprite( tile );
-  render_sprite( tx, tile, tile_row * sprite.sy,
-                 tile_col * sprite.sx, rot, flip_x );
+  render_sprite( tx, tile, tile_row * sprite.scale.sy,
+                 tile_col * sprite.scale.sx, rot, flip_x );
 }
 
 void render_sprite_grid( Texture const& tx, g_tile tile,
@@ -165,6 +165,83 @@ void render_sprite_grid( Texture const& tx, g_tile tile,
 
 g_tile index_to_tile( int index ) {
   return static_cast<g_tile>( index );
+}
+
+void render_rect_of_sprites_with_border(
+    Texture& dst,         // where to draw it
+    Coord    dest_origin, // pixel coord of upper left
+    Delta    size_tiles,  // tile coords, including border
+    g_tile   middle,      //
+    g_tile   top,         //
+    g_tile   bottom,      //
+    g_tile   left,        //
+    g_tile   right,       //
+    g_tile   top_left,    //
+    g_tile   top_right,   //
+    g_tile   bottom_left, //
+    g_tile   bottom_right //
+) {
+  auto const& sprite_middle = lookup_sprite( middle );
+  CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );
+  for( auto tile : {middle, top, bottom, left, right, top_left,
+                    top_right, bottom_left, bottom_right} ) {
+    CHECK( lookup_sprite( tile ).scale == sprite_middle.scale );
+  }
+
+  auto scale = sprite_middle.scale;
+
+  auto to_pixels = [&]( Coord coord ) {
+    coord = scale * coord;
+    // coord is now in pixels.
+    auto delta = coord - Coord{};
+    return dest_origin + delta;
+  };
+
+  Rect dst_tile_rect = Rect::from( Coord{}, size_tiles );
+  for( auto coord : dst_tile_rect.edges_removed() )
+    render_sprite( dst, g_tile::menu_body, to_pixels( coord ), 0,
+                   0 );
+
+  for( X x = dst_tile_rect.x + 1_w;
+       x < dst_tile_rect.right_edge() - 1_w; ++x )
+    render_sprite( dst, g_tile::menu_top, to_pixels( {0_y, x} ),
+                   0, 0 );
+  for( X x = dst_tile_rect.x + 1_w;
+       x < dst_tile_rect.right_edge() - 1_w; ++x )
+    render_sprite(
+        dst, g_tile::menu_bottom,
+        to_pixels(
+            {0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x} ),
+        0, 0 );
+  for( Y y = dst_tile_rect.y + 1_h;
+       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
+    render_sprite( dst, g_tile::menu_left, to_pixels( {y, 0_x} ),
+                   0, 0 );
+  for( Y y = dst_tile_rect.y + 1_h;
+       y < dst_tile_rect.bottom_edge() - 1_h; ++y )
+    render_sprite(
+        dst, g_tile::menu_right,
+        to_pixels(
+            {y, 0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
+        0, 0 );
+
+  render_sprite( dst, g_tile::menu_top_left,
+                 to_pixels( {0_y, 0_x} ), 0, 0 );
+  render_sprite(
+      dst, g_tile::menu_top_right,
+      to_pixels(
+          {0_y, 0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
+      0, 0 );
+  render_sprite(
+      dst, g_tile::menu_bottom_left,
+      to_pixels(
+          {0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x} ),
+      0, 0 );
+  render_sprite(
+      dst, g_tile::menu_bottom_right,
+      to_pixels( {0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
+                  0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
+      0, 0 );
 }
 
 // void render_tile_map( std::string_view name ) {
