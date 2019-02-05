@@ -1,3 +1,68 @@
+Menu Item Click Handling
+========================
+
+  Menu Module
+  -----------
+
+  In order to avoid all menu handler code going into the menu
+  module, it will be possible for modules to register handlers
+  for menu items. This will consist of a void( e_menu_item )
+  function to handle a click on the menu item and a
+  bool(e_menu_item) function to return if the menu item should be
+  enabled or disabled. The functions take arguments so that a
+  registerer can use the same function for multiple items and use
+  branching within the function to distinguish menu items.
+
+    MENU_ITEM_HANDLER( game, save, is_enabled_func, handler_func );
+
+  will roughly expand to:
+
+    STARTUP() {
+      register_menu_item_handler(
+        e_menu_item::save_game,
+        handler_func,
+        is_enabled_func
+      );
+    }
+
+  All menu items must have precisely one handler registered, and
+  this is enforced during initialization.
+
+  The menu module will the is_enabled_func for each menu item
+  each frame (so they should be light-weight). If a menu item is
+  not enabled then it will be shown as disabled. If all menu
+  items in a menu are disabled then that menu will not be shown.
+
+  When a menu item is clicked (and it is enabled) then the
+  handler_func will be called.
+
+  Plane Module
+  ------------
+
+  Although some menu items might have handlers registered
+  throughout the code base, most menu items will have handlers
+  registered in the `plane` module.
+
+  The plane module's implementation of the two callback methods
+  will call a new virtual method on each of the Plane objects
+  that asks the Plane for a handler function for a particular
+  menu item. Specifically, the Plane will return:
+
+    OptRef<function<void( e_menu_item )>>
+
+  The plane module will cycle through the planes (from outer to
+  inner) to find the first plane that can handle the menu item
+  (i.e., returns non-nullopt).
+
+  If at least one Plane returns a result that is not nullopt then
+  that is taken as an indication that the menu item is enabled
+  (otherwise it is disabled), and the function object contained
+  therein (from the top-most (enabled) Plane that returned one)
+  will be called to handle it if it is clicked.
+
+  This new virtual method on Plane will have a default implemen-
+  tation that just returns nullopt.
+
 Menus
 =====
 
@@ -58,37 +123,6 @@ Menus
 
     * There will be a shadow under open menus.
     * Hot-key letter of menu will be highlighted.
-
-  Handling Menu Item Clicks
-  -------------------------
-
-  In order to avoid all menu handler code going into the menu
-  module, it will be possible for modules to register handlers
-  for menu items. This will consist of a void(void) function to
-  handle a click on the menu item and a bool(void) function to
-  return if the menu item should be enabled or disabled.
-
-    MENU_ITEM_HANDLER( game, save, is_enabled_func, handler_func );
-
-  will roughly expand to:
-
-    STARTUP() {
-      register_menu_item_handler(
-        e_menu_item::save_game,
-        handler_func,
-        is_enabled_func
-      );
-    }
-
-  One can also register a handler for a menu that specifies a
-  bool(void) callback that returns whether the menu is visible
-  (or enabled; same thing here):
-
-    MENU_HANDLERS( game, is_enabled_func );
-
-  If a menu has no handler then it will assume default values,
-  such as e.g. always visible (unless overridden by the corresop-
-  nding global setting).
 
 Combat
 ======
