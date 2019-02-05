@@ -25,23 +25,29 @@
 namespace rn {
 
 enum class e_( menu,
-               game,   //
-               view,   //
-               orders, //
-               pedia   //
+               game,     //
+               view,     //
+               orders,   //
+               advisors, //
+               pedia     //
 );
 
 enum class e_( menu_item,
-               about,        //
-               revolution,   //
-               retire,       //
-               exit,         //
-               zoom_in,      //
-               zoom_out,     //
-               restore_zoom, //
-               sentry,       //
-               fortify,      //
-               units_help    //
+               about,               //
+               revolution,          //
+               retire,              //
+               exit,                //
+               zoom_in,             //
+               zoom_out,            //
+               restore_zoom,        //
+               sentry,              //
+               fortify,             //
+               military_advisor,    //
+               economics_advisor,   //
+               european_advisor,    //
+               units_help,          //
+               terrain_help,        //
+               founding_father_help //
 );
 
 #define MENU_ITEM_HANDLER( item, handler_func,              \

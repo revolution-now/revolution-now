@@ -77,6 +77,7 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     {e_menu::game, {"Game", false, 'G'}},
     {e_menu::view, {"View", false, 'V'}},
     {e_menu::orders, {"Orders", false, 'O'}},
+    {e_menu::advisors, {"Advisors", false, 'A'}},
     {e_menu::pedia, {"Revolopedia", true, 'R'}}};
 
 struct MenuDivider {};
@@ -132,9 +133,17 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
          ITEM( sentry, "Sentry" ),  //
          ITEM( fortify, "Fortify" ) //
      }},
+    {e_menu::advisors,
+     {
+         ITEM( military_advisor, "Military Advisor" ),   //
+         ITEM( economics_advisor, "Economics Advisor" ), //
+         ITEM( european_advisor, "Europian Advisor" )    //
+     }},
     {e_menu::pedia,
      {
-         ITEM( units_help, "Units" ) //
+         ITEM( units_help, "Units" ),                     //
+         ITEM( terrain_help, "Terrain" ),                 //
+         ITEM( founding_father_help, "Founding Fathers" ) //
      }}};
 
 /****************************************************************
@@ -306,24 +315,42 @@ H const& max_text_height() {
 *****************************************************************/
 H menu_bar_height() { return 16_h; }
 
-// These cannot be precalculated because menus might be hidden.
-X menu_header_x_pos( e_menu target ) {
-  X pos{0};
-  pos += config_ui.menus.first_menu_start;
-  for( auto menu : values<e_menu> ) {
-    if( menu == target ) return pos;
-    // TODO: is menu visible
-    CHECK( g_menu_rendered.contains( menu ) );
-    pos += g_menu_rendered[menu].header_width +
-           config_ui.menus.spacing;
-  }
-  SHOULD_NOT_BE_HERE;
-}
-
 Delta menu_header_delta( e_menu menu ) {
   CHECK( g_menu_rendered.contains( menu ) );
   return Delta{g_menu_rendered[menu].header_width,
                max_text_height()};
+}
+
+// These cannot be precalculated because menus might be hidden.
+X menu_header_x_pos( e_menu target ) {
+  CHECK( g_menus.contains( target ) );
+  auto const& desc = g_menus[target];
+  if( desc.right_side ) {
+    X pos = 0_x + logical_screen_pixel_dimensions().w;
+    pos -= config_ui.menus.first_menu_start;
+    vector<e_menu> reversed( values<e_menu>.begin(),
+                             values<e_menu>.end() );
+    reverse( reversed.begin(), reversed.end() );
+    for( auto menu : reversed ) {
+      if( !g_menus[menu].right_side ) continue;
+      pos -= menu_header_delta( menu ).w;
+      if( menu == target ) return pos;
+      // TODO: is menu visible
+      pos -= config_ui.menus.spacing;
+    }
+    SHOULD_NOT_BE_HERE;
+  } else {
+    X pos{0};
+    pos += config_ui.menus.first_menu_start;
+    for( auto menu : values<e_menu> ) {
+      if( menu == target ) return pos;
+      // TODO: is menu visible
+      CHECK( g_menu_rendered.contains( menu ) );
+      pos += g_menu_rendered[menu].header_width +
+             config_ui.menus.spacing;
+    }
+    SHOULD_NOT_BE_HERE;
+  }
 }
 
 // Rectangle around a menu header.
@@ -390,15 +417,6 @@ Delta menu_body_delta( e_menu menu ) {
          menu_body_delta_inner( menu );
 }
 
-Delta menu_body_delta_click( e_menu menu ) {
-  // Divide by two because the menu border spreads roughly occupy
-  // half of a (8x8) tile, except for the top which covers a full
-  // 8x8.
-  return Delta{8_w / 2_sx, 8_h} /*left,top*/ +
-         Delta{8_w / 2_sx, 8_h / 2_sy} /*bottom,right*/ +
-         menu_body_delta_inner( menu );
-}
-
 Delta menu_item_delta( e_menu menu ) {
   return Delta{menu_body_width_inner( menu ), max_text_height()};
 }
@@ -408,24 +426,44 @@ Delta divider_delta( e_menu menu ) {
 }
 
 Rect menu_body_rect_inner( e_menu menu ) {
-  Coord pos{Y{0} + menu_bar_height() + 8_h,
-            menu_header_x_pos( menu )};
-  return Rect::from( pos, menu_body_delta_inner( menu ) );
+  CHECK( g_menus.contains( menu ) );
+  if( g_menus[menu].right_side ) {
+    Coord pos{Y{0} + menu_bar_height() + 8_h,
+              menu_header_x_pos( menu ) +
+                  menu_header_delta( menu ).w -
+                  menu_body_delta_inner( menu ).w};
+    return Rect::from( pos, menu_body_delta_inner( menu ) );
+  } else {
+    Coord pos{Y{0} + menu_bar_height() + 8_h,
+              menu_header_x_pos( menu )};
+    return Rect::from( pos, menu_body_delta_inner( menu ) );
+  }
 }
 
 Rect menu_body_rect( e_menu menu ) {
-  Coord pos{Y{0} + menu_bar_height(),
-            menu_header_x_pos( menu ) - 8_w};
-  return Rect::from( pos, menu_body_delta( menu ) );
+  CHECK( g_menus.contains( menu ) );
+  if( g_menus[menu].right_side ) {
+    Coord pos{Y{0} + menu_bar_height(),
+              menu_header_x_pos( menu ) +
+                  menu_header_delta( menu ).w + 8_w -
+                  menu_body_delta( menu ).w};
+    return Rect::from( pos, menu_body_delta( menu ) );
+  } else {
+    Coord pos{Y{0} + menu_bar_height(),
+              menu_header_x_pos( menu ) - 8_w};
+    return Rect::from( pos, menu_body_delta( menu ) );
+  }
 }
 
 // This includes (roughly) the space overwhich an open menu
 // occupies pixels (i.e., is not transparent). This is used to
 // decide if the user has clicked on or off of an open menu.
 Rect menu_body_click( e_menu menu ) {
-  Coord pos{Y{0} + menu_bar_height(),
-            menu_header_x_pos( menu ) - 8_w / 2_sx};
-  return Rect::from( pos, menu_body_delta_click( menu ) );
+  auto res = menu_body_rect( menu );
+  res.x += 8_w / 2_sx;
+  res.w -= 8_w / 2_sx * 2_sx;
+  res.h -= 8_h / 2_sy;
+  return res;
 }
 
 // `h` is the vertical position from the top of the menu body.
@@ -986,7 +1024,16 @@ MENU_ITEM_HANDLER( zoom_out, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( restore_zoom, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( sentry, empty_handler, enabled_false );
 MENU_ITEM_HANDLER( fortify, empty_handler, enabled_true );
+MENU_ITEM_HANDLER( military_advisor, empty_handler,
+                   enabled_true );
+MENU_ITEM_HANDLER( economics_advisor, empty_handler,
+                   enabled_true );
+MENU_ITEM_HANDLER( european_advisor, empty_handler,
+                   enabled_true );
 MENU_ITEM_HANDLER( units_help, empty_handler, enabled_true );
+MENU_ITEM_HANDLER( terrain_help, empty_handler, enabled_true );
+MENU_ITEM_HANDLER( founding_father_help, empty_handler,
+                   enabled_true );
 
 /****************************************************************
 ** The Menu Plane
