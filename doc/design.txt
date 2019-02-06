@@ -28,10 +28,11 @@ Menu Item Click Handling
   All menu items must have precisely one handler registered, and
   this is enforced during initialization.
 
-  The menu module will the is_enabled_func for each menu item
-  each frame (so they should be light-weight). If a menu item is
-  not enabled then it will be shown as disabled. If all menu
-  items in a menu are disabled then that menu will not be shown.
+  The menu module will call the is_enabled_func for each menu
+  item each frame (so they should be light-weight). If a menu
+  item is not enabled then it will be shown as disabled. If all
+  menu items in a menu are disabled then that menu will not be
+  shown.
 
   When a menu item is clicked (and it is enabled) then the
   handler_func will be called.
@@ -48,7 +49,23 @@ Menu Item Click Handling
   that asks the Plane for a handler function for a particular
   menu item. Specifically, the Plane will return:
 
-    OptRef<function<void( e_menu_item )>>
+    using MenuHandler = function<void()>;
+
+    OptRef<MenuHandler> f( e_menu_item item ) {
+      if( item == e_menu_item::restore_zoom ) {
+        static MenuHandler handler = [this] {
+
+        };
+        return handler;
+      }
+      if( item == e_menu_item::sentry ) {
+        static MenuHandler handler = [this] {
+
+        };
+        return handler;
+      }
+      return nullopt;
+    }
 
   The plane module will cycle through the planes (from outer to
   inner) to find the first plane that can handle the menu item
