@@ -340,6 +340,46 @@ struct ViewportPlane : public Plane {
                           viewport().rendering_src_rect(),
                           viewport().rendering_dest_rect() );
   }
+  OptRef<Plane::MenuClickHandler> menu_click_handler(
+      e_menu_item item ) const override {
+    // These are factors by which the zoom will be scaled when
+    // zooming in/out with the menus.
+    double constexpr zoom_in_factor  = 2.0;
+    double constexpr zoom_out_factor = 1.0 / zoom_in_factor;
+    // This is so that a zoom-in followed by a zoom-out will re-
+    // store to previous state.
+    static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
+    if( item == e_menu_item::zoom_in ) {
+      static Plane::MenuClickHandler handler = [] {
+        // A user zoom request halts any auto zooming that may
+        // currently be happening.
+        viewport().stop_auto_zoom();
+        viewport().stop_auto_panning();
+        viewport().smooth_zoom_target( viewport().get_zoom() *
+                                       zoom_in_factor );
+      };
+      return handler;
+    }
+    if( item == e_menu_item::zoom_out ) {
+      static Plane::MenuClickHandler handler = [] {
+        // A user zoom request halts any auto zooming that may
+        // currently be happening.
+        viewport().stop_auto_zoom();
+        viewport().stop_auto_panning();
+        viewport().smooth_zoom_target( viewport().get_zoom() *
+                                       zoom_out_factor );
+      };
+      return handler;
+    }
+    if( item == e_menu_item::restore_zoom ) {
+      if( viewport().get_zoom() == 1.0 ) return nullopt;
+      static Plane::MenuClickHandler handler = [] {
+        viewport().smooth_zoom_target( 1.0 );
+      };
+      return handler;
+    }
+    return nullopt;
+  }
   bool input( input::event_t const& event ) override {
     bool handled = false;
     switch_v( event ) {

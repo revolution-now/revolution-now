@@ -83,13 +83,13 @@ void SmoothViewport::advance( e_push_direction x_push,
                               e_push_direction y_push,
                               e_push_direction zoom_push ) {
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  double zoom_factor07 = pow( get_scale_zoom(), 0.7 );
+  double zoom_factor07 = pow( get_zoom(), 0.7 );
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  double zoom_factor15  = pow( get_scale_zoom(), 1.5 );
+  double zoom_factor15  = pow( get_zoom(), 1.5 );
   double pan_accel      = pan_accel_init();
   double pan_accel_drag = pan_accel_drag_init();
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  pan_accel_drag = pan_accel_drag / pow( get_scale_zoom(), .75 );
+  pan_accel_drag = pan_accel_drag / pow( get_zoom(), .75 );
   pan_accel      = pan_accel_drag +
               ( pan_accel - pan_accel_drag ) / zoom_factor15;
   x_vel_.set_accelerations( pan_accel, pan_accel_drag );
@@ -411,7 +411,7 @@ void SmoothViewport::scale_zoom( double factor ) {
   enforce_invariants();
 }
 
-double SmoothViewport::get_scale_zoom() const { return zoom_; }
+double SmoothViewport::get_zoom() const { return zoom_; }
 
 void SmoothViewport::pan( double down_up, double left_right,
                           bool scale ) {

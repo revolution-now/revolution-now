@@ -1015,25 +1015,7 @@ function<bool( void )> quit_handler  = [] {
   return false;
 };
 
-MENU_ITEM_HANDLER( about, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( revolution, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( retire, empty_handler, enabled_true );
 MENU_ITEM_HANDLER( exit, quit_handler, enabled_true );
-MENU_ITEM_HANDLER( zoom_in, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( zoom_out, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( restore_zoom, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( sentry, empty_handler, enabled_false );
-MENU_ITEM_HANDLER( fortify, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( military_advisor, empty_handler,
-                   enabled_true );
-MENU_ITEM_HANDLER( economics_advisor, empty_handler,
-                   enabled_true );
-MENU_ITEM_HANDLER( european_advisor, empty_handler,
-                   enabled_true );
-MENU_ITEM_HANDLER( units_help, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( terrain_help, empty_handler, enabled_true );
-MENU_ITEM_HANDLER( founding_father_help, empty_handler,
-                   enabled_true );
 
 /****************************************************************
 ** The Menu Plane

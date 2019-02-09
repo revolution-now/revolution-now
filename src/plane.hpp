@@ -16,6 +16,7 @@
 #include "enum.hpp"
 #include "fmt-helper.hpp"
 #include "input.hpp"
+#include "menu.hpp"
 #include "sdl-util.hpp"
 
 // base-util
@@ -88,6 +89,24 @@ struct Plane : public util::non_copy_non_move {
 
   void virtual on_drag_finished( input::e_mouse_button button,
                                  Coord origin, Coord end );
+
+  // This handler function does not take the e_menu_item as a pa-
+  // rameter to force the planes to supply a unique handler func-
+  // tion for each item that it implements. Otherwise a plane
+  // might be tempted to supply a "catch-all" handler; that would
+  // be error-prone in that it may end up receiving a request to
+  // handle an item that it does not actually handle, which would
+  // then require a check failure, which we want to avoid.
+  using MenuClickHandler = std::function<void()>;
+
+  // Asks the plane if it can handler a particular menu item. If
+  // it returns nullopt that means "no." Otherwise it means
+  // "yes," and it must return reference to a handler function
+  // which will be called when them item is clicked assuming that
+  // the menu item is enabled and if there are no higher planes
+  // that also handle it. Default implementation returns nullopt.
+  virtual OptRef<MenuClickHandler> menu_click_handler(
+      e_menu_item item ) const;
 };
 
 void initialize_planes();

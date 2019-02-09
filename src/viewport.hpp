@@ -79,6 +79,9 @@ public:
   void stop_auto_zoom();
   void stop_auto_panning();
 
+  // Return current zoom.
+  double get_zoom() const;
+
   // Move the center of the viewport by the given change in
   // screen coordinates. This means that the delta will be scaled
   // to world coordinates (using the zoom) before applying the
@@ -112,8 +115,6 @@ private:
 
   double width_tiles() const;
   double height_tiles() const;
-
-  double get_scale_zoom() const;
 
   void scale_zoom( double factor );
   void pan( double down_up, double left_right, bool scale );

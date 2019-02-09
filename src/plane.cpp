@@ -80,6 +80,11 @@ void Plane::on_drag_finished( input::e_mouse_button /*unused*/,
                               Coord /*unused*/,
                               Coord /*unused*/ ) {}
 
+OptRef<Plane::MenuClickHandler> Plane::menu_click_handler(
+    e_menu_item /*unused*/ ) const {
+  return nullopt;
+}
+
 void initialize_planes() {
   // By default, all planes are dummies, unless we provide an
   // object below.
@@ -211,5 +216,66 @@ bool send_input_to_planes( input::event_t const& event ) {
       if( planes[idx - 1]->input( event ) ) return true;
   return false;
 }
+
+namespace {
+
+bool is_menu_item_enabled( e_menu_item item ) {
+  // TODO use ranges here
+  for( size_t idx = num_planes - 1; idx >= 0; --idx ) {
+    auto ptr = planes[idx];
+    if( ptr->enabled() ) {
+      if( ptr->menu_click_handler( item ).has_value() )
+        return true;
+      if( ptr->covers_screen() ) break;
+    }
+  }
+  return false;
+}
+
+void on_menu_item_clicked( e_menu_item item ) {
+  // TODO use ranges here
+  for( size_t idx = num_planes - 1; idx >= 0; --idx ) {
+    auto ptr = planes[idx];
+    if( ptr->enabled() ) {
+      if( auto maybe_handler = ptr->menu_click_handler( item );
+          maybe_handler.has_value() ) {
+        maybe_handler.value().get()();
+        return;
+      }
+      // If this plane is enabled and covers the screen but
+      // cannot handler this menu click then that means that it
+      // will go unhandled. In that case it should have been dis-
+      // abled and there should not have been a click on it in
+      // the first place, so we check-fail in this situation.
+      CHECK( !ptr->covers_screen() );
+    }
+  }
+  SHOULD_NOT_BE_HERE;
+}
+
+#define MENU_ITEM_HANDLER_PLANE( item )                   \
+  MENU_ITEM_HANDLER(                                      \
+      e_menu_item::item,                                  \
+      [] { on_menu_item_clicked( e_menu_item::item ); },  \
+      [] {                                                \
+        return is_menu_item_enabled( e_menu_item::item ); \
+      } )
+
+MENU_ITEM_HANDLER_PLANE( about );
+MENU_ITEM_HANDLER_PLANE( economics_advisor );
+MENU_ITEM_HANDLER_PLANE( european_advisor );
+MENU_ITEM_HANDLER_PLANE( fortify );
+MENU_ITEM_HANDLER_PLANE( founding_father_help );
+MENU_ITEM_HANDLER_PLANE( military_advisor );
+MENU_ITEM_HANDLER_PLANE( restore_zoom );
+MENU_ITEM_HANDLER_PLANE( retire );
+MENU_ITEM_HANDLER_PLANE( revolution );
+MENU_ITEM_HANDLER_PLANE( sentry );
+MENU_ITEM_HANDLER_PLANE( terrain_help );
+MENU_ITEM_HANDLER_PLANE( units_help );
+MENU_ITEM_HANDLER_PLANE( zoom_in );
+MENU_ITEM_HANDLER_PLANE( zoom_out );
+
+} // namespace
 
 } // namespace rn
