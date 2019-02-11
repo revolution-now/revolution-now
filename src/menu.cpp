@@ -1285,6 +1285,13 @@ private:
       case_v( MenuState::menus_closed ) { SHOULD_NOT_BE_HERE; }
       case_v( MenuState::menus_hidden ) { SHOULD_NOT_BE_HERE; }
       case_v( MenuState::menu_open ) {
+        // This check is important even if the code in this
+        // module is structured in such a way that this function
+        // is only called when the menu item has responded as
+        // enabled. This is because it is possible that a menu
+        // item might be disabled in the small amount of time
+        // (within a frame) that the item is checked for
+        // enablement and when this click is called.
         if( !g_menu_items[item]->callbacks.enabled() ) return;
         logger->info( "selected menu item `{}`", item );
         g_menu_state = MenuState::item_click{

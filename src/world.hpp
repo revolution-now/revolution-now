@@ -50,6 +50,7 @@ ND W world_size_pixels_x();
 ND H world_size_pixels_y();
 
 ND Rect world_rect();
+ND Rect world_rect_pixels();
 
 ND bool square_exists( Y y, X x );
 

@@ -23,12 +23,16 @@ namespace rn {
 namespace {} // namespace
 
 int round_up_to_nearest_int_multiple( double d, int m ) {
+  if( d < 0.0 )
+    return -round_down_to_nearest_int_multiple( -d, m );
   int floor = int( d );
   if( floor % m != 0 ) floor += m;
   return floor / m;
 }
 
 int round_down_to_nearest_int_multiple( double d, int m ) {
+  if( d < 0.0 )
+    return -round_up_to_nearest_int_multiple( -d, m );
   int floor = int( d );
   return floor / m;
 }

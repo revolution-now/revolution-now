@@ -11,8 +11,12 @@
 *****************************************************************/
 #include "physics.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 #include "util.hpp"
+
+// C++ standard library
+#include <algorithm>
 
 namespace rn {
 
@@ -33,7 +37,9 @@ void DissipativeVelocity::set_accelerations(
   drag_accel_ = drag_accel;
   // We must have 0 <= drag_accel_ < accel_
   CHECK( drag_accel_ >= 0 );
-  CHECK( accel_ >= drag_accel_ );
+  drag_accel_ = std::clamp( drag_accel_, 0.0, accel_ );
+  CHECK( accel_ >= drag_accel_, "accel_: {}, drag_accel_: {}",
+         accel_, drag_accel_ );
 }
 
 DissipativeVelocity::DissipativeVelocity(

@@ -221,7 +221,7 @@ namespace {
 
 bool is_menu_item_enabled( e_menu_item item ) {
   // TODO use ranges here
-  for( size_t idx = num_planes - 1; idx >= 0; --idx ) {
+  for( int idx = num_planes - 1; idx >= 0; --idx ) {
     auto ptr = planes[idx];
     if( ptr->enabled() ) {
       if( ptr->menu_click_handler( item ).has_value() )
@@ -234,7 +234,7 @@ bool is_menu_item_enabled( e_menu_item item ) {
 
 void on_menu_item_clicked( e_menu_item item ) {
   // TODO use ranges here
-  for( size_t idx = num_planes - 1; idx >= 0; --idx ) {
+  for( int idx = num_planes - 1; idx >= 0; --idx ) {
     auto ptr = planes[idx];
     if( ptr->enabled() ) {
       if( auto maybe_handler = ptr->menu_click_handler( item );

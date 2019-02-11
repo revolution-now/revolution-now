@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// C++ standard library
+#include <type_traits>
+
 #ifdef SPDLOG_ACTIVE_LEVEL
 #  error "SPDLOG_ACTIVE_LEVEL should not be defined!"
 #endif
@@ -85,6 +88,29 @@
   SPDLOG_LOGGER_DEBUG( logger, __VA_ARGS__ )
 #define LOG_TRACE( ... ) \
   SPDLOG_LOGGER_TRACE( logger, __VA_ARGS__ )
+
+// Will log a variable whenever it changes. This involves
+// copying, so should probably only be used while debugging.
+#define LOG_WHEN_CHANGE( level, var )                    \
+  {                                                      \
+    static std::remove_cv_t<decltype( var )> __to_log{}; \
+    if( __to_log != var ) {                              \
+      logger->level( "{} changed: {}", #var, var );      \
+      __to_log = var;                                    \
+    }                                                    \
+  }
+
+// Will call a callable each time the variable changes. This
+// involves copying, so should probably only be used while
+// debugging.
+#define WHEN_CHANGE_DO( var, func )                      \
+  {                                                      \
+    static std::remove_cv_t<decltype( var )> __cached{}; \
+    if( __cached != var ) {                              \
+      func();                                            \
+      __cached = var;                                    \
+    }                                                    \
+  }
 
 namespace {
 

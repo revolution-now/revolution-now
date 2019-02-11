@@ -336,6 +336,7 @@ struct ViewportPlane : public Plane {
   bool covers_screen() const override { return true; }
   void draw( Texture const& tx ) const override {
     render_world_viewport( g_viewport_state );
+    clear_texture_black( tx );
     copy_texture_stretch( g_texture_viewport, tx,
                           viewport().rendering_src_rect(),
                           viewport().rendering_dest_rect() );

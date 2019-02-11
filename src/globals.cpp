@@ -11,6 +11,7 @@
 #include "globals.hpp"
 
 #include "errors.hpp"
+#include "tiles.hpp"
 #include "util.hpp"
 
 namespace rn {
@@ -62,5 +63,14 @@ W viewport_width_tiles() {
 }
 
 H viewport_height_tiles() { return g_screen_height_tiles - 1; }
+
+Delta viewport_size_tiles() {
+  return {viewport_width_tiles(), viewport_height_tiles()};
+}
+
+Delta viewport_size_pixels() {
+  return Delta{viewport_width_tiles(), viewport_height_tiles()} *
+         g_tile_scale;
+}
 
 } // namespace rn

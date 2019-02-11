@@ -109,6 +109,7 @@ struct EnumClassHash {
   }
 };
 
+// Here "up" means "toward +inf" and "down" means "toward -inf".
 ND int round_up_to_nearest_int_multiple( double d, int m );
 ND int round_down_to_nearest_int_multiple( double d, int m );
 

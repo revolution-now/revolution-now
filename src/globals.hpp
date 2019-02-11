@@ -46,8 +46,11 @@ void set_screen_width_tiles( W w );
 void set_screen_height_tiles( H h );
 
 // At standard zoom, when tile size is (g_tile_width,
-// g_tile_height);
-W viewport_width_tiles();
-H viewport_height_tiles();
+// g_tile_height), i.e., these are fixed and do not depend on any
+// viewport state.
+W     viewport_width_tiles();
+H     viewport_height_tiles();
+Delta viewport_size_tiles();
+Delta viewport_size_pixels();
 
 } // namespace rn

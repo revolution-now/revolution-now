@@ -363,15 +363,33 @@ void create_renderer() {
   logger->debug( "screen_logical_size(): {}",
                  screen_logical_size() );
 
-  // +1 tile because we may need to draw a bit in excess of the
-  // viewport window in order to facilitate smooth scrolling,
+  // Now we calculate the necessary size of the viewport texture.
+  // This needs to be large enough to accomodate a zoomed-out
+  // view in which there are many more tiles rendered than at a
+  // standard zoom.
+  //
+  // Add +1 tile because we may need to draw a bit in excess of
+  // the viewport window in order to facilitate smooth scrolling,
   // though we shouldn't need more than 1 extra tile for that
-  // purpose.  The *2 is so that we can accomodate the maximum
-  // zoomed-out level which is .5.
-  width = ( viewport_width_tiles() + 1 ) * 2_sx * g_tile_width;
-  height =
-      ( viewport_height_tiles() + 1 ) * 2_sy * g_tile_height;
-  g_texture_viewport = create_texture( width, height );
+  // purpose. The zoom_multiplier is so that we can accomodate
+  // the maximum zoomed-out level which requires a large texture.
+  Scale zoom_multiplier{int( std::lround(
+      std::ceil( 1.0 / config_rn.viewport.zoom_min ) ) )};
+  logger->debug( "zoom_multiplier: {}", zoom_multiplier );
+  auto delta = ( viewport_size_tiles() + Delta{1_w, 1_h} ) *
+               zoom_multiplier * g_tile_scale;
+  // Need be no bigger than world.
+  delta = delta.clamp( world_size_pixels() );
+  // Must be at least as big as viewport.
+  delta = delta.uni0n( viewport_size_tiles() );
+  logger->debug( "g_texture_viewport proposed size: {}", delta );
+  // Not certain how to know memory usage of a texture, and it
+  // may be device dependent. Found a formula online that adds a
+  // 1.33 factor in there.  Note: 4 bytes per pixel.
+  logger->debug(
+      "g_texture_viewport memory usage estimate: {}MB",
+      delta.w._ * delta.h._ * 4 * 1.33 / ( 1024 * 1024 ) );
+  g_texture_viewport = create_texture( delta );
 }
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }

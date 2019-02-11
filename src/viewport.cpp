@@ -90,8 +90,9 @@ void SmoothViewport::advance( e_push_direction x_push,
   double pan_accel_drag = pan_accel_drag_init();
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   pan_accel_drag = pan_accel_drag / pow( get_zoom(), .75 );
-  pan_accel      = pan_accel_drag +
-              ( pan_accel - pan_accel_drag ) / zoom_factor15;
+  pan_accel =
+      pan_accel_drag +
+      ( pan_accel - pan_accel_drag_init() ) / zoom_factor15;
   x_vel_.set_accelerations( pan_accel, pan_accel_drag );
   y_vel_.set_accelerations( pan_accel, pan_accel_drag );
   x_vel_.set_bounds(
@@ -291,60 +292,57 @@ void SmoothViewport::enforce_invariants() {
   auto [size_x, size_y] = world_size_tiles();
   size_y *= g_tile_height;
   size_x *= g_tile_width;
-  if( start_x() < 0 ) center_x_ = width_pixels() / 2;
-  if( start_y() < 0 ) center_y_ = height_pixels() / 2;
-  if( end_x() > double( size_x ) )
-    center_x_ = double( size_x ) - double( width_pixels() ) / 2;
-  if( end_y() > double( size_y ) )
-    center_y_ = double( size_y ) - double( height_pixels() ) / 2;
+  // For each dimension we say the following: if we are zoomed in
+  // sufficiently such that the entire world is not fully visible
+  // (in the given dimension) then we enforce the invariants that
+  // the viewport window must be fully inside the world.
+  //
+  // If on the other hand we are zoomed out far enough that the
+  // entire world is visible (in the given dimension) then we
+  // allow the edges of the viewport to go off of the world.
+  if( width_pixels() <= size_x ) {
+    if( start_x() < 0 ) center_x_ = width_pixels() / 2;
+    if( end_x() > double( size_x ) )
+      center_x_ =
+          double( size_x ) - double( width_pixels() ) / 2;
+  } else {
+    center_x_ = double( 0_x + world_size_pixels().w / 2_sx );
+  }
+  if( height_pixels() <= size_y ) {
+    if( start_y() < 0 ) center_y_ = height_pixels() / 2;
+    if( end_y() > double( size_y ) )
+      center_y_ =
+          double( size_y ) - double( height_pixels() ) / 2;
+  } else {
+    center_y_ = double( 0_y + world_size_pixels().h / 2_sy );
+  }
 }
 
 // Tiles touched by the viewport (tiles at the edge may only be
 // partially visible).
 Rect SmoothViewport::covered_tiles() const {
-  CHECK( start_tile_x() >= 0 );
-  CHECK( start_tile_y() >= 0 );
-
-  auto [size_x, size_y] = world_size_tiles();
-  X end_tile_x = start_tile_x() + lround( width_tiles() );
-  // if( end_tile_x > 0_x + size_x ) end_tile_x = 0_x + size_x;
-  CHECK( end_tile_x <= 0_x + size_x ); // can remove eventually
-  Y end_tile_y = start_tile_y() + lround( height_tiles() );
-  // if( end_tile_y > 0_y + size_y ) end_tile_y = 0_y + size_y;
-  CHECK( end_tile_y <= 0_y + size_y ); // can remove eventually
-
-  return {X( start_tile_x() ), Y( start_tile_y() ),
-          W( end_tile_x - start_tile_x() ),
-          H( end_tile_y - start_tile_y() )};
+  return Rect{X( start_tile_x() ), Y( start_tile_y() ),
+              W{static_cast<int>( lround( width_tiles() ) )},
+              H{static_cast<int>( lround( height_tiles() ) )}}
+      .clamp( world_rect() );
 }
 
 Rect SmoothViewport::covered_pixels() const {
-  CHECK( start_x() >= 0 );
-  CHECK( start_y() >= 0 );
-
   X x_start{static_cast<int>( lround( start_x() ) )};
   Y y_start{static_cast<int>( lround( start_y() ) )};
   X x_end{static_cast<int>( lround( end_x() ) )};
   Y y_end{static_cast<int>( lround( end_y() ) )};
 
-  return {x_start, y_start, x_end - x_start, y_end - y_start};
+  return Rect{x_start, y_start, x_end - x_start, y_end - y_start}
+      .clamp( world_rect_pixels() );
 }
 
 Rect SmoothViewport::rendering_src_rect() const {
-  Rect viewport                        = get_bounds();
-  auto [max_src_width, max_src_height] = world_size_pixels();
-  Rect src;
-  CHECK( !( viewport.x < 0_x ) );
-  CHECK( !( viewport.y < 0_y ) );
-  src.x =
-      viewport.x < 0_x ? 0_x : 0_x + viewport.x % g_tile_width;
-  src.y =
-      viewport.y < 0_y ? 0_y : 0_y + viewport.y % g_tile_height;
-  src.w =
-      viewport.w > max_src_width ? max_src_width : viewport.w;
-  src.h =
-      viewport.h > max_src_height ? max_src_height : viewport.h;
-  return src;
+  Rect viewport = get_bounds();
+  return Rect::from(
+             Coord{} + viewport.upper_left() % g_tile_scale,
+             viewport.delta() )
+      .clamp( world_rect_pixels() );
 }
 
 Rect SmoothViewport::rendering_dest_rect() const {

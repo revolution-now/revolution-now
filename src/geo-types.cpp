@@ -74,6 +74,31 @@ bool Rect::is_inside( Rect const& rect ) const {
              .is_inside( rect );
 }
 
+Rect Rect::clamp( Rect const& rect ) const {
+  Rect res = *this;
+  if( rect.w == 0_w ) {
+    res.x = rect.x;
+    res.w = 0;
+  } else {
+    if( res.x < rect.x ) res.x = rect.x;
+    if( res.x >= rect.right_edge() )
+      res.x = rect.right_edge() - 1_w;
+    if( res.x + res.w > rect.right_edge() )
+      res.w = rect.right_edge() - res.x;
+  }
+  if( rect.h == 0_h ) {
+    res.y = rect.y;
+    res.h = 0;
+  } else {
+    if( res.y < rect.y ) res.y = rect.y;
+    if( res.y >= rect.bottom_edge() )
+      res.y = rect.bottom_edge() - 1_h;
+    if( res.y + res.h > rect.bottom_edge() )
+      res.h = rect.bottom_edge() - res.y;
+  }
+  return res;
+}
+
 Opt<int> Rect::rasterize( Coord coord ) {
   if( !coord.is_inside( *this ) ) return nullopt;
   return ( coord.y - y )._ * w._ + ( coord.x - x )._;
@@ -172,6 +197,10 @@ Delta Delta::trimmed_by_one() const {
 
 Delta Delta::uni0n( Delta const& rhs ) const {
   return {std::max( w, rhs.w ), std::max( h, rhs.h )};
+}
+
+Delta Delta::clamp( Delta const& delta ) const {
+  return {std::min( w, delta.w ), std::min( h, delta.h )};
 }
 
 Coord centered( Delta const& delta, Rect const& rect ) {
@@ -307,6 +336,10 @@ Rect operator/( Rect const& rect, Scale const& scale ) {
   auto coord = rect.upper_left();
   auto delta = Delta{rect.w, rect.h};
   return Rect::from( coord / scale, delta / scale );
+}
+
+Delta operator%( Coord const& coord, Scale const& scale ) {
+  return {coord.x % scale.sx, coord.y % scale.sy};
 }
 
 } // namespace rn

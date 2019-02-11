@@ -114,6 +114,10 @@ struct ND Delta {
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
   Delta uni0n( Delta const& rhs ) const;
+
+  // Will clamp each dimension individually to be within the
+  // bounds of the given delta.
+  Delta clamp( Delta const& delta ) const;
 };
 
 struct ND Coord {
@@ -186,6 +190,15 @@ struct ND Rect {
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
 
+  bool operator==( Rect const& rhs ) const {
+    return ( x == rhs.x ) && ( y == rhs.y ) && ( w == rhs.w ) &&
+           ( h == rhs.h );
+  }
+
+  bool operator!=( Rect const& rhs ) const {
+    return !( *this == rhs );
+  }
+
   // Useful for generic code; allows referencing a coordinate
   // from the type.
   template<typename Dimension>
@@ -222,6 +235,10 @@ struct ND Rect {
   // Is the rect inside another rect. "inside" means that it can
   // be fully inside, or its borders may be overlapping.
   bool is_inside( Rect const& rect ) const;
+
+  // Returns a rect that is adjusted (without respecting
+  // proportions) so that it fits inside the given rect.
+  Rect clamp( Rect const& rect ) const;
 
   // Will convert this rect to units of tiles of the given dimen-
   // sion. This rect must fall on the borders of those tile sizes
@@ -341,6 +358,7 @@ ND Rect operator*( Scale const& scale, Rect const& rect );
 ND Rect operator/( Rect const& rect, Scale const& scale );
 ND Coord operator/( Coord const& coord, Scale const& scale );
 ND Delta operator/( Delta const& delta, Scale const& scale );
+ND Delta operator%( Coord const& coord, Scale const& scale );
 
 } // namespace rn
 

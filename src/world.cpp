@@ -110,6 +110,10 @@ Rect world_rect() {
   return {0_x, 0_y, world_size_tiles_x(), world_size_tiles_y()};
 }
 
+Rect world_rect_pixels() {
+  return Rect::from( Coord{}, world_size_pixels() );
+}
+
 bool square_exists( Y y, X x ) {
   if( y < 0 || x < 0 ) return false;
   auto [w, h] = world_size_tiles();
