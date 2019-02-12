@@ -15,6 +15,7 @@
 #include "image.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
+#include "ranges.hpp"
 #include "render.hpp"
 #include "window.hpp"
 
@@ -46,6 +47,12 @@ ObserverPtr<Plane>& plane( e_plane plane ) {
   return planes[idx];
 }
 
+Texture& plane_tx( e_plane plane ) {
+  auto idx = static_cast<size_t>( plane._value );
+  CHECK( idx < planes.size() );
+  return textures[idx];
+}
+
 struct InactivePlane : public Plane {
   InactivePlane() {}
   bool enabled() const override { return false; }
@@ -58,6 +65,23 @@ InactivePlane dummy;
 // This is the plan that is currently receiving mouse dragging
 // events (nullopt if there is not dragging event happening).
 Opt<e_plane> g_drag_plane{};
+
+auto enabled_planes() {
+  return rv::zip( values<e_plane>, planes )       //
+         | rv::filter( L( _.second->enabled() ) ) //
+         | rv::reverse;
+}
+
+auto relevant_planes() {
+  auto not_covers_screen = L( !_.second->covers_screen() );
+  auto enabled           = L( _.second->enabled() );
+  return rv::zip( values<e_plane>, planes ) //
+         | rv::filter( enabled )            //
+         | rv::reverse                      //
+         | take_while_inclusive( not_covers_screen );
+}
+
+auto planes_to_draw() { return relevant_planes() | rv::reverse; }
 
 } // namespace
 
@@ -121,24 +145,17 @@ void destroy_planes() {
 }
 
 void draw_all_planes( Texture const& tx ) {
-  // First find the last plane that will render (opaquely) over
-  // every pixel. If one is found then we will not render any
-  // planes before it. This is technically not necessary, but
-  // saves rendering work by avoiding to render things that would
-  // go unseen anyway.
-  auto   blocking = L( _->enabled() && _->covers_screen() );
-  size_t start    = 0;
-  if( auto coverer = util::find_last_if( planes, blocking ) )
-    start = coverer.value();
-
   clear_texture_black( tx );
 
-  CHECK( start < num_planes );
-  for( size_t idx = start; idx < num_planes; ++idx ) {
-    if( !planes[idx]->enabled() ) continue;
-    set_render_target( textures[idx] );
-    planes[idx]->draw( textures[idx] );
-    copy_texture( textures[idx], tx );
+  // This will find the last plane that will render (opaquely)
+  // over every pixel. If one is found then we will not render
+  // any planes before it. This is technically not necessary, but
+  // saves rendering work by avoiding to render things that would
+  // go unseen anyway.
+  for( auto [e, ptr] : planes_to_draw() ) {
+    set_render_target( plane_tx( e ) );
+    ptr->draw( plane_tx( e ) );
+    copy_texture( plane_tx( e ), tx );
   }
 }
 
@@ -171,37 +188,31 @@ bool send_input_to_planes( input::event_t const& event ) {
     // No drag plane registered to accept the event, so lets
     // send out the event but only if it's a `begin` event.
     if( drag_event->state.phase == +e_drag_phase::begin ) {
-      for( size_t idx = planes.size(); idx > 0; --idx ) {
-        auto& plane = *( planes[idx - 1] );
-        if( plane.enabled() ) {
-          auto drag_result = plane.can_drag( drag_event->button,
-                                             drag_event->pos );
-          switch( drag_result ) {
-            // If the plane doesn't want to handle it then move
-            // on to ask the next one.
-            case Plane::e_accept_drag::no: continue;
-            // In this case the plane says that it doesn't want
-            // to handle it AND it doesn't want anyone else to
-            // handle it.
-            case Plane::e_accept_drag::swallow:
-              return true;
-              // Wants to handle it.
-            case Plane::e_accept_drag::yes:
-              ASSIGN_CHECK_OPT(
-                  new_plane,
-                  e_plane::_from_index_nothrow( idx - 1 ) );
-              g_drag_plane = new_plane;
-              logger->debug( "plane `{}` can drag", new_plane );
-              // Now we must send it an on_drag because this
-              // mouse event that we're dealing with serves both
-              // to tell us about a new drag even but also may
-              // have a mouse delta in it that needs to be
-              // processed.
-              plane.on_drag( drag_event->button,
-                             drag_event->state.origin,
-                             drag_event->prev, drag_event->pos );
-              return true;
-          }
+      for( auto [e, plane] : relevant_planes() ) {
+        auto drag_result = plane->can_drag( drag_event->button,
+                                            drag_event->pos );
+        switch( drag_result ) {
+          // If the plane doesn't want to handle it then move
+          // on to ask the next one.
+          case Plane::e_accept_drag::no: continue;
+          // In this case the plane says that it doesn't want
+          // to handle it AND it doesn't want anyone else to
+          // handle it.
+          case Plane::e_accept_drag::swallow:
+            return true;
+            // Wants to handle it.
+          case Plane::e_accept_drag::yes:
+            g_drag_plane = e;
+            logger->debug( "plane `{}` can drag", e );
+            // Now we must send it an on_drag because this
+            // mouse event that we're dealing with serves both
+            // to tell us about a new drag even but also may
+            // have a mouse delta in it that needs to be
+            // processed.
+            plane->on_drag( drag_event->button,
+                            drag_event->state.origin,
+                            drag_event->prev, drag_event->pos );
+            return true;
         }
       }
     }
@@ -209,45 +220,30 @@ bool send_input_to_planes( input::event_t const& event ) {
     return false;
   }
 
-  // Just a normal event, so send it out using the usual
-  // protocol.
-  for( size_t idx = planes.size(); idx > 0; --idx )
-    if( planes[idx - 1]->enabled() )
-      if( planes[idx - 1]->input( event ) ) return true;
+  // Just a normal event, so send it out using the usual proto-
+  // col.
+  for( auto p : enabled_planes() )
+    if( p.second->input( event ) ) return true;
+
   return false;
 }
 
 namespace {
 
 bool is_menu_item_enabled( e_menu_item item ) {
-  // TODO use ranges here
-  for( int idx = num_planes - 1; idx >= 0; --idx ) {
-    auto ptr = planes[idx];
-    if( ptr->enabled() ) {
-      if( ptr->menu_click_handler( item ).has_value() )
-        return true;
-      if( ptr->covers_screen() ) break;
-    }
-  }
+  for( auto p : relevant_planes() )
+    if( p.second->menu_click_handler( item ).has_value() )
+      return true;
   return false;
 }
 
 void on_menu_item_clicked( e_menu_item item ) {
-  // TODO use ranges here
-  for( int idx = num_planes - 1; idx >= 0; --idx ) {
-    auto ptr = planes[idx];
-    if( ptr->enabled() ) {
-      if( auto maybe_handler = ptr->menu_click_handler( item );
-          maybe_handler.has_value() ) {
-        maybe_handler.value().get()();
-        return;
-      }
-      // If this plane is enabled and covers the screen but
-      // cannot handler this menu click then that means that it
-      // will go unhandled. In that case it should have been dis-
-      // abled and there should not have been a click on it in
-      // the first place, so we check-fail in this situation.
-      CHECK( !ptr->covers_screen() );
+  for( auto p : relevant_planes() ) {
+    if( auto maybe_handler =
+            p.second->menu_click_handler( item );
+        maybe_handler.has_value() ) {
+      maybe_handler.value().get()();
+      return;
     }
   }
   SHOULD_NOT_BE_HERE;

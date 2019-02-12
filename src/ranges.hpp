@@ -22,17 +22,27 @@ namespace rv = ::ranges::view;
 
 namespace rn {
 
-template<typename Range, typename Func>
-auto take_while_inclusive( Range const& r, Func f ) {
-  return rv::concat( r | rv::take_while( f ),
-                     r | rv::drop_while( f ) | rv::take( 1 ) );
+// This behaves just like the take_while function except that it
+// will also include the element that stops the "taking," if
+// there is one.
+template<typename Func>
+auto take_while_inclusive( Func f ) {
+  return ranges::make_pipeable( [=]( auto&& r ) {
+    using Rng = decltype( r );
+    return rv::concat( std::forward<Rng>( r ) //
+                           | rv::take_while( f ),
+                       std::forward<Rng>( r )    //
+                           | rv::drop_while( f ) //
+                           | rv::take( 1 ) );
+  } );
 }
 
 template<typename Rng>
-std::string rng_to_string( Rng rng ) {
+std::string rng_to_string( Rng&& rng ) {
   return ranges::accumulate(
-      rng | rv::transform( L( fmt::format( "{}", _ ) ) ) //
-          | rv::intersperse( std::string( ", " ) ),
+      std::forward<Rng>( rng )                           //
+          | rv::transform( L( fmt::format( "{}", _ ) ) ) //
+          | rv::intersperse( std::string( "," ) ),
       std::string{} );
 }
 

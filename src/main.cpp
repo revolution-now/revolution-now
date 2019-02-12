@@ -10,6 +10,7 @@
 #include "loops.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"
+#include "ranges.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"
 #include "tiles.hpp"
