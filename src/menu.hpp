@@ -29,25 +29,27 @@ enum class e_( menu,
                view,     //
                orders,   //
                advisors, //
+               debug,    //
                pedia     //
 );
 
 enum class e_( menu_item,
-               about,               //
-               revolution,          //
-               retire,              //
-               exit,                //
-               zoom_in,             //
-               zoom_out,            //
-               restore_zoom,        //
-               sentry,              //
-               fortify,             //
-               military_advisor,    //
-               economics_advisor,   //
-               european_advisor,    //
-               units_help,          //
-               terrain_help,        //
-               founding_father_help //
+               about,                //
+               revolution,           //
+               retire,               //
+               exit,                 //
+               zoom_in,              //
+               zoom_out,             //
+               restore_zoom,         //
+               sentry,               //
+               fortify,              //
+               military_advisor,     //
+               economics_advisor,    //
+               european_advisor,     //
+               units_help,           //
+               terrain_help,         //
+               founding_father_help, //
+               toggle_console        //
 );
 
 #define MENU_ITEM_HANDLER( item, handler_func,              \

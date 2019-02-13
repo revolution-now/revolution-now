@@ -7,6 +7,7 @@ let s:first = 'main.cpp'
 let s:stems = [
   \ 'src/globals',
   \ 'src/sdl-util',
+  \ 'src/frame',
   \ 'src/plane',
   \ 'src/menu',
   \ 'src/tiles',
@@ -25,7 +26,6 @@ let s:stems = [
   \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/render',
-  \ 'src/loops',
 \]
 
 "let s:pairs = [

@@ -1,40 +1,36 @@
 /****************************************************************
-**loops.cpp
+**frame.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-31.
+* Created by dsicilia on 2019-02-13.
 *
-* Description:
+* Description: Frames and frame rate.
 *
 *****************************************************************/
-#include "loops.hpp"
+#include "frame.hpp"
 
 // Revolution Now
 #include "config-files.hpp"
 #include "globals.hpp"
-#include "logging.hpp"
-#include "ownership.hpp"
-#include "physics.hpp"
+#include "input.hpp"
 #include "plane.hpp"
-#include "render.hpp"
 #include "sdl-util.hpp"
-#include "travel.hpp"
-#include "util.hpp"
 #include "viewport.hpp"
-#include "window.hpp"
-
-// base-util
-#include "base-util/variant.hpp"
-
-// Abseil
-#include "absl/container/flat_hash_map.h"
 
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+uint64_t            g_frames = 0;
+chrono::nanoseconds g_frame_time{0};
+
+void take_input() {
+  while( auto event = input::poll_event() )
+    send_input_to_planes( *event );
+}
 
 void advance_viewport_translation() {
   auto const* __state = ::SDL_GetKeyboardState( nullptr );
@@ -64,23 +60,17 @@ void advance_viewport_translation() {
   }
 }
 
-void take_input() {
-  while( auto event = input::poll_event() )
-    send_input_to_planes( *event );
-}
-
-uint64_t            g_frames = 0;
-chrono::nanoseconds g_frame_time{0};
+} // namespace
 
 double avg_frame_rate() {
-  using namespace std::literals::chrono_literals;
+  using namespace literals::chrono_literals;
   auto average_fps = 1s / ( g_frame_time / g_frames );
   return average_fps;
 }
 
 void frame_loop( bool poll_input, function<bool()> finished ) {
-  using namespace std::chrono;
-  using namespace std::literals::chrono_literals;
+  using namespace chrono;
+  using namespace literals::chrono_literals;
 
   auto frame_length = 1000ms / config_rn.target_frame_rate;
 

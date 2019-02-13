@@ -12,4 +12,9 @@
 
 #include "core-config.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+struct Plane;
+Plane* console_plane();
+
+} // namespace rn

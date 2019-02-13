@@ -16,6 +16,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
+#include "frame.hpp"
 #include "globals.hpp"
 #include "logging.hpp"
 #include "plane.hpp"
@@ -78,6 +79,7 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     {e_menu::view, {"View", false, 'V'}},
     {e_menu::orders, {"Orders", false, 'O'}},
     {e_menu::advisors, {"Advisors", false, 'A'}},
+    {e_menu::debug, {"Debug", true, 'D'}},
     {e_menu::pedia, {"Revolopedia", true, 'R'}}};
 
 struct MenuDivider {};
@@ -139,6 +141,10 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
          ITEM( economics_advisor, "Economics Advisor" ), //
          ITEM( european_advisor, "Europian Advisor" )    //
      }},
+    {e_menu::debug,
+     {
+         ITEM( toggle_console, "Toggle Console" ) //
+     }},
     {e_menu::pedia,
      {
          ITEM( units_help, "Units" ),                     //
@@ -149,7 +155,6 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
 /****************************************************************
 ** Menu State
 *****************************************************************/
-using Frames = chrono::duration<int, std::ratio<1, 60>>;
 namespace click_anim {
 
 // TODO: make an animation framework that can manage the states

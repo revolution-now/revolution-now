@@ -1,26 +1,24 @@
 /****************************************************************
-**loops.hpp
+**frame.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-31.
+* Created by dsicilia on 2019-02-13.
 *
-* Description:
+* Description: Frames and frame rate.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "orders.hpp"
-#include "physics.hpp"
-#include "unit.hpp"
-
 // C++ standard library
+#include <chrono>
 #include <functional>
 
 namespace rn {
+
+using Frames = std::chrono::duration<int, std::ratio<1, 60>>;
 
 void frame_loop( bool                  poll_input,
                  std::function<bool()> finished );
