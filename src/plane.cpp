@@ -66,12 +66,6 @@ InactivePlane dummy;
 // events (nullopt if there is not dragging event happening).
 Opt<e_plane> g_drag_plane{};
 
-auto enabled_planes() {
-  return rv::zip( values<e_plane>, planes )       //
-         | rv::filter( L( _.second->enabled() ) ) //
-         | rv::reverse;
-}
-
 auto relevant_planes() {
   auto not_covers_screen = L( !_.second->covers_screen() );
   auto enabled           = L( _.second->enabled() );
@@ -222,7 +216,7 @@ bool send_input_to_planes( input::event_t const& event ) {
 
   // Just a normal event, so send it out using the usual proto-
   // col.
-  for( auto p : enabled_planes() )
+  for( auto p : relevant_planes() )
     if( p.second->input( event ) ) return true;
 
   return false;

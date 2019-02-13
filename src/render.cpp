@@ -537,7 +537,7 @@ namespace {
 
 struct EffectsPlane : public Plane {
   EffectsPlane() = default;
-  bool enabled() const override { return true; }
+  bool enabled() const override { return enabled_; }
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     using namespace chrono;
