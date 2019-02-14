@@ -15,17 +15,54 @@
 #include "globals.hpp"
 #include "input.hpp"
 #include "plane.hpp"
+#include "ranges.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
 
 using namespace std;
+using namespace literals::chrono_literals;
 
 namespace rn {
 
 namespace {
 
-uint64_t            g_frames = 0;
-chrono::nanoseconds g_frame_time{0};
+constexpr auto window_length  = 3s;
+constexpr auto window_spacing = 100ms;
+constexpr auto num_active_windows =
+    window_length / window_spacing;
+
+static_assert( window_length > window_spacing );
+static_assert( window_length % window_spacing == 0s );
+static_assert( num_active_windows > 1 );
+
+vector<uint64_t> g_frame_count_windows( num_active_windows, 0 );
+uint64_t         g_frames_in_last_window{0};
+chrono::nanoseconds g_slide_time_accum{0};
+
+auto sliding_window = g_frame_count_windows //
+                      | rv::cycle           //
+                      | rv::sliding( num_active_windows );
+
+auto curr_slide = sliding_window.begin();
+
+void bump_slide() {
+  g_frames_in_last_window = *( ( *curr_slide ).begin() );
+  ++curr_slide;
+  auto& last =
+      *( ( *curr_slide ) | rv::reverse | rv::take( 1 ) ).begin();
+  last = 0;
+}
+
+void add_frame_tick() {
+  for( auto& window : *curr_slide ) ++window;
+}
+
+void add_frame_time( chrono::nanoseconds ns ) {
+  g_slide_time_accum += ns;
+  auto bumps         = g_slide_time_accum / window_spacing;
+  g_slide_time_accum = g_slide_time_accum % window_spacing;
+  for( ; bumps > 0; --bumps ) bump_slide();
+}
 
 void take_input() {
   while( auto event = input::poll_event() )
@@ -63,21 +100,21 @@ void advance_viewport_translation() {
 } // namespace
 
 double avg_frame_rate() {
-  using namespace literals::chrono_literals;
-  auto average_fps = 1s / ( g_frame_time / g_frames );
+  auto average_fps =
+      g_frames_in_last_window /
+      double(
+          chrono::duration_cast<chrono::seconds>( window_length )
+              .count() );
   return average_fps;
 }
 
 void frame_loop( bool poll_input, function<bool()> finished ) {
   using namespace chrono;
-  using namespace literals::chrono_literals;
 
   auto frame_length = 1000ms / config_rn.target_frame_rate;
 
-  auto initial = system_clock::now();
-
   while( true ) {
-    ++g_frames;
+    add_frame_tick();
     auto start = system_clock::now();
 
     draw_all_planes();
@@ -93,13 +130,13 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
 
     auto delta = system_clock::now() - start;
     if( delta < frame_length ) {
-      // TODO: are these casts necessary?
       ::SDL_Delay(
           duration_cast<milliseconds>( frame_length - delta )
               .count() );
     }
+    auto finish = system_clock::now() - start;
+    add_frame_time( finish );
   }
-  g_frame_time += system_clock::now() - initial;
 }
 
 } // namespace rn
