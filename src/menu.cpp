@@ -143,7 +143,11 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
      }},
     {e_menu::debug,
      {
-         ITEM( toggle_console, "Toggle Console" ) //
+         ITEM( toggle_console, "Toggle Console" ), //
+         ITEM( toggle_text_cache,
+               "Toggle Text Renderng Cache" ), //
+         ITEM( toggle_nat_icon_cache,
+               "Toggle Nationality Icon Renderng Cache" ) //
      }},
     {e_menu::pedia,
      {

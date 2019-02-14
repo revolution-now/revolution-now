@@ -719,27 +719,38 @@ void toggle_fullscreen() {
   set_fullscreen( !is_window_fullscreen() );
 }
 
-Texture::Texture( ::SDL_Texture* tx ) : tx_( tx ) {
+Texture::Texture( ::SDL_Texture* tx ) : own_{true}, tx_( tx ) {
   CHECK( tx_ );
 }
 
-Texture::Texture( Texture&& tx ) noexcept : tx_( tx.tx_ ) {
+Texture::Texture( Texture&& tx ) noexcept
+  : own_{false}, tx_( tx.tx_ ) {
   tx.tx_ = nullptr;
 }
 
 Texture& Texture::operator=( Texture&& rhs ) noexcept {
-  if( tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
-  tx_     = rhs.tx_;
-  rhs.tx_ = nullptr;
+  if( own_ && tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
+  tx_      = rhs.tx_;
+  own_     = rhs.own_;
+  rhs.tx_  = nullptr;
+  rhs.own_ = false;
   return *this;
 }
 
 void Texture::free() {
-  if( tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
-  tx_ = nullptr;
+  if( own_ && tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
+  own_ = false;
+  tx_  = nullptr;
 }
 
 Texture::~Texture() { free(); }
+
+Texture Texture::weak_ref() const {
+  Texture res;
+  res.own_ = false;
+  res.tx_  = tx_;
+  return res;
+}
 
 Texture Texture::from_surface( ::SDL_Surface* surface ) {
   ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface(

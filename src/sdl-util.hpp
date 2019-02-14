@@ -42,6 +42,10 @@ public:
   // NOLINTNEXTLINE(hicpp-explicit-conversions)
   operator ::SDL_Texture*() const { return tx_; }
 
+  // Returns a Texture object that refers to the same underlying
+  // texture but does not own it.
+  Texture weak_ref() const;
+
   ::SDL_Texture* get() const { return tx_; }
   static Texture from_surface( ::SDL_Surface* surface );
 
@@ -53,6 +57,10 @@ public:
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
   explicit Texture( ::SDL_Texture* tx );
+  // Whether we are responsible for releasing the texture. If the
+  // texture pointer is null then it is not relevant what the
+  // value of this is.
+  bool           own_{false};
   ::SDL_Texture* tx_{nullptr};
 };
 

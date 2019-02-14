@@ -33,6 +33,9 @@
 // SDL
 #include "SDL.h"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
 // C++ standard library
 #include <vector>
 
@@ -49,12 +52,13 @@ constexpr Delta nationality_icon_size( 13_h, 13_w );
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
-// TODO: rendered texture needs to be cached.
-void render_nationality_icon( Texture const& tx, e_nation nation,
-                              char c, Coord pixel_coord ) {
-  Delta       delta    = nationality_icon_size;
-  Rect        rect     = Rect::from( pixel_coord, delta );
+Texture render_nationality_icon_impl( e_nation nation, char c ) {
+  Delta       delta = nationality_icon_size;
+  Rect        rect  = Rect::from( Coord{}, delta );
+  Coord       origin{};
   auto const& nation_o = nation_obj( nation );
+
+  auto tx = create_texture( delta );
 
   auto color  = nation_o.flag_color;
   auto dark1  = color.shaded( 2 );
@@ -68,30 +72,24 @@ void render_nationality_icon( Texture const& tx, e_nation nation,
 
   render_fill_rect( tx, color, rect );
 
-  render_line( tx, light1, pixel_coord + 1_w,
-               {0_h, delta.w - 1_w} );
-  render_line( tx, light1, pixel_coord + ( delta.w - 1_w ),
+  render_line( tx, light1, origin + 1_w, {0_h, delta.w - 1_w} );
+  render_line( tx, light1, origin + ( delta.w - 1_w ),
                {delta.h - 1_h, 0_w} );
-  render_line( tx, light2, pixel_coord + 4_w,
-               {0_h, delta.w - 4_w} );
-  render_line( tx, light2, pixel_coord + ( delta.w - 1_w ),
+  render_line( tx, light2, origin + 4_w, {0_h, delta.w - 4_w} );
+  render_line( tx, light2, origin + ( delta.w - 1_w ),
                {delta.h - 4_h, 0_w} );
-  render_line( tx, light3, pixel_coord + 7_w,
-               {0_h, delta.w - 7_w} );
-  render_line( tx, light3, pixel_coord + ( delta.w - 1_w ),
+  render_line( tx, light3, origin + 7_w, {0_h, delta.w - 7_w} );
+  render_line( tx, light3, origin + ( delta.w - 1_w ),
                {delta.h - 7_h, 0_w} );
 
-  render_line( tx, dark1, pixel_coord + 1_h,
-               {delta.h - 1_h, 0_w} );
-  render_line( tx, dark1, pixel_coord + ( delta.h - 1_h ),
+  render_line( tx, dark1, origin + 1_h, {delta.h - 1_h, 0_w} );
+  render_line( tx, dark1, origin + ( delta.h - 1_h ),
                {0_h, delta.w - 1_w} );
-  render_line( tx, dark2, pixel_coord + 4_h,
-               {delta.h - 4_h, 0_w} );
-  render_line( tx, dark2, pixel_coord + ( delta.h - 1_h ),
+  render_line( tx, dark2, origin + 4_h, {delta.h - 4_h, 0_w} );
+  render_line( tx, dark2, origin + ( delta.h - 1_h ),
                {0_h, delta.w - 4_w} );
-  render_line( tx, dark3, pixel_coord + 7_h,
-               {delta.h - 7_h, 0_w} );
-  render_line( tx, dark3, pixel_coord + ( delta.h - 1_h ),
+  render_line( tx, dark3, origin + 7_h, {delta.h - 7_h, 0_w} );
+  render_line( tx, dark3, origin + ( delta.h - 1_h ),
                {0_h, delta.w - 7_w} );
 
   auto char_tx = render_text_line_standard(
@@ -101,9 +99,62 @@ void render_nationality_icon( Texture const& tx, e_nation nation,
   copy_texture(
       char_tx, tx,
       centered( char_tx_size, rect ) + Delta{1_w, 0_h} );
+
+  return tx;
 }
 
-void render_nationality_icon( Texture const& tx, UnitId id,
+bool g_use_nat_icon_rendering_cache{false};
+
+void on_toggle_nat_icon_rendering_cache() {
+  g_use_nat_icon_rendering_cache =
+      !g_use_nat_icon_rendering_cache;
+  auto status = g_use_nat_icon_rendering_cache ? "ON" : "OFF";
+  logger->info( "turning {} nat icon rendering cache.", status );
+}
+
+MENU_ITEM_HANDLER( toggle_nat_icon_cache,
+                   on_toggle_nat_icon_rendering_cache,
+                   L0( true ) );
+
+struct NatIconRenderDesc {
+  e_nation nation;
+  char     c;
+
+  auto to_tuple() const { return tuple{nation, c}; }
+
+  // Abseil hashing API.
+  template<typename H>
+  friend H AbslHashValue( H h, NatIconRenderDesc const& c ) {
+    return H::combine( std::move( h ), c.to_tuple() );
+  }
+
+  friend bool operator==( NatIconRenderDesc const& lhs,
+                          NatIconRenderDesc const& rhs ) {
+    return lhs.to_tuple() == rhs.to_tuple();
+  }
+};
+
+absl::flat_hash_map<NatIconRenderDesc, Texture> nat_icon_cache;
+
+Texture render_nationality_icon( e_nation nation, char c ) {
+  auto do_render = [&] {
+    return render_nationality_icon_impl( nation, c );
+  };
+
+  if( !g_use_nat_icon_rendering_cache ) return do_render();
+
+  NatIconRenderDesc desc{nation, c};
+
+  if( auto maybe_cached =
+          util::get_val_safe( nat_icon_cache, desc );
+      maybe_cached.has_value() )
+    return maybe_cached.value().get().weak_ref();
+
+  nat_icon_cache.emplace( desc, do_render() );
+  return nat_icon_cache[desc].weak_ref();
+}
+
+void render_nationality_icon( Texture const& dest, UnitId id,
                               Coord pixel_coord ) {
   auto const& unit = unit_from_id( id );
   // Now we will advance the pixel_coord to put the icon at the
@@ -133,7 +184,8 @@ void render_nationality_icon( Texture const& tx, UnitId id,
     case Unit::e_orders::sentry: c = 'S'; break;
     case Unit::e_orders::fortified: c = 'F'; break;
   };
-  render_nationality_icon( tx, unit.nation(), c, pixel_coord );
+  auto nat_icon = render_nationality_icon( unit.nation(), c );
+  copy_texture( nat_icon, dest, pixel_coord );
 }
 
 void render_landscape( Texture const& tx, Coord world_square,

@@ -97,8 +97,6 @@ void game() {
   image_plane_enable( true );
   frame_loop( true, [] { return input::is_any_key_down(); } );
 
-  logger->info( "avg frame rate: {}", avg_frame_rate() );
-
   // font_test();
   cleanup();
 }

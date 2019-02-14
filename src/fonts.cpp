@@ -10,18 +10,27 @@
 *****************************************************************/
 #include "fonts.hpp"
 
+// Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "globals.hpp"
+#include "logging.hpp"
+#include "menu.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 
+// base-util
 #include "base-util/algo.hpp"
 #include "base-util/misc.hpp"
 #include "base-util/string.hpp"
 
+// SDL
 #include "SDL_ttf.h"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
+// C++ standard library
 #include <algorithm>
 #include <string>
 #include <string_view>
@@ -58,13 +67,60 @@ Texture render_line_standard_impl( ::TTF_Font*   font,
   return texture;
 }
 
+bool g_use_text_rendering_cache{false};
+
+void on_toggle_text_rendering_cache() {
+  g_use_text_rendering_cache = !g_use_text_rendering_cache;
+  auto status = g_use_text_rendering_cache ? "ON" : "OFF";
+  logger->info( "turning {} text rendering cache.", status );
+}
+
+MENU_ITEM_HANDLER( toggle_text_cache,
+                   on_toggle_text_rendering_cache, L0( true ) );
+
+struct TextRenderDesc {
+  e_font font;
+  Color  color;
+  string line;
+
+  auto to_tuple() const { return tuple{font, color, line}; }
+
+  // Abseil hashing API.
+  template<typename H>
+  friend H AbslHashValue( H h, TextRenderDesc const& c ) {
+    return H::combine( std::move( h ), c.to_tuple() );
+  }
+
+  friend bool operator==( TextRenderDesc const& lhs,
+                          TextRenderDesc const& rhs ) {
+    return lhs.to_tuple() == rhs.to_tuple();
+  }
+};
+
+absl::flat_hash_map<TextRenderDesc, Texture> text_cache;
+
 } // namespace
 
+// All text rendering should ultimately go through this function
+// because it does the cache handling.
 Texture render_text_line_standard( e_font font, Color fg,
                                    string const& line ) {
-  auto* ttf_font = loaded_fonts[font].ttf_font;
-  return render_line_standard_impl( ttf_font, to_SDL( fg ),
-                                    line );
+  auto do_render = [&] {
+    auto* ttf_font = loaded_fonts[font].ttf_font;
+    return render_line_standard_impl( ttf_font, to_SDL( fg ),
+                                      line );
+  };
+
+  if( !g_use_text_rendering_cache ) return do_render();
+
+  TextRenderDesc desc{font, fg, line};
+
+  if( auto maybe_cached = util::get_val_safe( text_cache, desc );
+      maybe_cached.has_value() )
+    return maybe_cached.value().get().weak_ref();
+
+  text_cache.emplace( desc, do_render() );
+  return text_cache[desc].weak_ref();
 }
 
 Texture render_text_line_shadow( e_font font, Color fg,
@@ -181,6 +237,7 @@ void unload_fonts() {
     auto& font_desc = font.second;
     ::TTF_CloseFont( font_desc.ttf_font );
   }
+  for( auto& p : text_cache ) p.second.free();
   TTF_Quit();
 }
 

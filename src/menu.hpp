@@ -49,7 +49,9 @@ enum class e_( menu_item,
                units_help,           //
                terrain_help,         //
                founding_father_help, //
-               toggle_console        //
+               toggle_console,       //
+               toggle_text_cache,    //
+               toggle_nat_icon_cache //
 );
 
 #define MENU_ITEM_HANDLER( item, handler_func,              \
