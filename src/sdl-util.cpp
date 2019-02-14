@@ -345,7 +345,8 @@ void find_max_tile_sizes() {
 void create_renderer() {
   g_renderer = SDL_CreateRenderer(
       g_window, -1,
-      SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+      SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE |
+          SDL_RENDERER_PRESENTVSYNC );
 
   CHECK( g_renderer, "failed to create renderer" );
 
