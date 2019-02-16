@@ -53,9 +53,8 @@ SDL_DisplayMode get_current_display_mode() {
 
 vector<Rect> clip_stack;
 
-bool g_use_render_target_cache{true};
-int  g_current_render_target{-1};
-int  g_next_texture_id{1};
+int g_current_render_target{-1};
+int g_next_texture_id{1};
 
 uint64_t g_total_set_render_target{0};
 
@@ -157,7 +156,7 @@ void create_window() {
 
   // auto fullscreen_mode = find_fullscreen_mode();
   // CHECK( fullscreen_mode.w,
-  //  "cannot find appropriate fullscreen mode" );
+  //       "cannot find appropriate fullscreen mode" );
 
   auto dm = get_current_display_mode();
 
@@ -415,6 +414,17 @@ void create_renderer() {
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
+::SDL_Surface* optimize_surface( ::SDL_Surface* in,
+                                 bool           release_input ) {
+  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
+  CHECK( fmt != nullptr );
+  auto* optimized = ::SDL_ConvertSurface( in, fmt, 0 );
+  CHECK( optimized != nullptr );
+  ::SDL_FreeFormat( fmt );
+  if( release_input ) ::SDL_FreeSurface( in );
+  return optimized;
+}
+
 ::SDL_Surface* load_surface( const char* file ) {
   SDL_Surface* surface = IMG_Load( file );
   CHECK( surface, "failed to load image: {}", file );
@@ -422,22 +432,10 @@ Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 }
 
 Texture& load_texture( const char* file ) {
-  SDL_Surface* pTempSurface = IMG_Load( file );
-  CHECK( pTempSurface != nullptr, "failed to load image" );
-
-  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
-  CHECK( fmt != nullptr );
-  auto* optimized = ::SDL_ConvertSurface( pTempSurface, fmt, 0 );
-  CHECK( optimized != nullptr );
-
-  ::SDL_FreeFormat( fmt );
-  ::SDL_FreeSurface( pTempSurface );
-
-  ::SDL_Texture* texture =
-      SDL_CreateTextureFromSurface( g_renderer, optimized );
-  CHECK( texture != nullptr, "failed to create texture" );
-  ::SDL_FreeSurface( optimized );
-  loaded_textures[string( file )] = from_SDL( texture );
+  SDL_Surface* image = IMG_Load( file );
+  CHECK( image != nullptr, "failed to load image {}", file );
+  loaded_textures[string( file )] =
+      Texture::from_surface( image );
   return loaded_textures[string( file )];
 }
 
@@ -469,22 +467,11 @@ Delta texture_delta( Texture const& texture ) {
 }
 
 void set_render_target( Texture const& tx ) {
-  if( g_use_render_target_cache &&
-      g_current_render_target == tx.id() )
-    return;
+  if( g_current_render_target == tx.id() ) return;
   CHECK( !::SDL_SetRenderTarget( g_renderer, tx.get() ) );
   g_current_render_target = tx.id();
   g_total_set_render_target++;
 }
-
-void on_toggle_render_target_cache() {
-  g_use_render_target_cache = !g_use_render_target_cache;
-  auto status = g_use_render_target_cache ? "ON" : "OFF";
-  logger->info( "turning {} render target cache.", status );
-}
-
-MENU_ITEM_HANDLER( toggle_render_target_cache,
-                   on_toggle_render_target_cache, L0( true ) );
 
 void push_clip_rect( Rect const& rect ) {
   ::SDL_Rect sdl_rect;
@@ -602,10 +589,15 @@ ND Texture create_screen_sized_texture() {
 }
 
 ::SDL_Surface* create_surface( Delta delta ) {
+  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
+
   SDL_Surface* surface = SDL_CreateRGBSurface(
-      0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
+      0, delta.w._, delta.h._, fmt->BitsPerPixel, 0, 0, 0, 0 );
+
+  ::SDL_FreeFormat( fmt );
   CHECK( surface != nullptr, "SDL_CreateRGBSurface failed" );
-  return surface;
+  return optimize_surface( surface, /*release_input=*/true );
+  ;
 }
 
 Matrix<Color> texture_pixels( Texture const& tx ) {
@@ -795,8 +787,11 @@ Texture Texture::weak_ref() const {
 }
 
 Texture Texture::from_surface( ::SDL_Surface* surface ) {
+  auto* optimized =
+      optimize_surface( surface, /*release_input=*/false );
   ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface(
-                             g_renderer, surface ) );
+                             g_renderer, optimized ) );
+  ::SDL_FreeSurface( optimized );
   return from_SDL( texture );
 }
 
@@ -808,6 +803,8 @@ Delta Texture::size() const {
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
                               Uint32           pixel ) {
+  CHECK( fmt->BitsPerPixel == 32, "bits per pixel: {}",
+         fmt->BitsPerPixel );
   ::SDL_Color color{};
 
   /* Get Red component */

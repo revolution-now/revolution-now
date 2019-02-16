@@ -103,19 +103,6 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
   return tx;
 }
 
-bool g_use_nat_icon_rendering_cache{true};
-
-void on_toggle_nat_icon_rendering_cache() {
-  g_use_nat_icon_rendering_cache =
-      !g_use_nat_icon_rendering_cache;
-  auto status = g_use_nat_icon_rendering_cache ? "ON" : "OFF";
-  logger->info( "turning {} nat icon rendering cache.", status );
-}
-
-MENU_ITEM_HANDLER( toggle_nat_icon_cache,
-                   on_toggle_nat_icon_rendering_cache,
-                   L0( true ) );
-
 struct NatIconRenderDesc {
   e_nation nation;
   char     c;
@@ -140,8 +127,6 @@ Texture render_nationality_icon( e_nation nation, char c ) {
   auto do_render = [&] {
     return render_nationality_icon_impl( nation, c );
   };
-
-  if( !g_use_nat_icon_rendering_cache ) return do_render();
 
   NatIconRenderDesc desc{nation, c};
 

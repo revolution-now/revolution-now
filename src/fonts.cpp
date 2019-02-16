@@ -67,17 +67,6 @@ Texture render_line_standard_impl( ::TTF_Font*   font,
   return texture;
 }
 
-bool g_use_text_rendering_cache{true};
-
-void on_toggle_text_rendering_cache() {
-  g_use_text_rendering_cache = !g_use_text_rendering_cache;
-  auto status = g_use_text_rendering_cache ? "ON" : "OFF";
-  logger->info( "turning {} text rendering cache.", status );
-}
-
-MENU_ITEM_HANDLER( toggle_text_cache,
-                   on_toggle_text_rendering_cache, L0( true ) );
-
 struct TextRenderDesc {
   e_font font;
   Color  color;
@@ -110,8 +99,6 @@ Texture render_text_line_standard( e_font font, Color fg,
     return render_line_standard_impl( ttf_font, to_SDL( fg ),
                                       line );
   };
-
-  if( !g_use_text_rendering_cache ) return do_render();
 
   TextRenderDesc desc{font, fg, line};
 

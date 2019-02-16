@@ -53,13 +53,6 @@ struct ConsolePlane : public Plane {
     copy_texture( srt_rate_tx, tx,
                   info_start - srt_rate_tx.size() );
     info_start -= srt_rate_tx.size().h;
-
-    auto srt =
-        fmt::format( "srt: {}", total_set_render_target() );
-    auto srt_tx = render_text_line_shadow( fonts::standard,
-                                           Color::white(), srt );
-    copy_texture( srt_tx, tx, info_start - srt_tx.size() );
-    info_start -= srt_tx.size().h;
   }
 
   bool enabled_{false};

@@ -88,6 +88,11 @@ void set_render_target( Texture const& tx );
 void push_clip_rect( Rect const& rect );
 void pop_clip_rect();
 
+// This will convert a surface to the game's display. NOTE: it
+// will free the input surface if release_input is true.
+::SDL_Surface* optimize_surface( ::SDL_Surface* in,
+                                 bool           release_input );
+
 ::SDL_Surface* load_surface( const char* file );
 ND Texture& load_texture( const char* file );
 ND Texture& load_texture( fs::path const& path );
