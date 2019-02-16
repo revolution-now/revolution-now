@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "logging.hpp"
 #include "util.hpp"
 
 // abseil
@@ -101,7 +102,8 @@ bool play_music_file( char const* file ) {
 
 void play_sound_effect( e_sfx sound ) {
   auto* chunk = load_sfx( sound );
-  CHECK( ::Mix_PlayChannel( -1, chunk, 0 ) != -1 );
+  if( ::Mix_PlayChannel( -1, chunk, 0 ) == -1 )
+    logger->warn( "Unable to play sound effect {}", sound );
 }
 
 } // namespace rn
