@@ -53,11 +53,17 @@ SDL_DisplayMode get_current_display_mode() {
 
 vector<Rect> clip_stack;
 
-bool g_use_render_target_cache{false};
+bool g_use_render_target_cache{true};
 int  g_current_render_target{-1};
 int  g_next_texture_id{1};
 
+uint64_t g_total_set_render_target{0};
+
 } // namespace
+
+uint64_t total_set_render_target() {
+  return g_total_set_render_target;
+}
 
 ::SDL_Rect to_SDL( Rect const& rect ) {
   ::SDL_Rect res;
@@ -91,7 +97,7 @@ void init_game() {
   init_fonts();
   logger->info( "Initializing SDL window" );
   create_window();
-  print_video_stats();
+  query_video_stats();
   logger->info( "Initializing global renderer" );
   create_renderer();
   logger->info( "Loading sprites" );
@@ -188,41 +194,51 @@ double monitor_inches() {
   return monitor_diagonal_length( ddpi, dm );
 }
 
-void print_video_stats() {
+void query_video_stats() {
   float ddpi, hdpi, vdpi;
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  LOG_DEBUG( "GetDisplayDPI:" );
-  LOG_DEBUG( "  ddpi: {}", ddpi );
-  LOG_DEBUG( "  hdpi: {}", hdpi );
-  LOG_DEBUG( "  vdpi: {}", vdpi );
+  logger->debug( "GetDisplayDPI:" );
+  logger->debug( "  ddpi: {}", ddpi );
+  logger->debug( "  hdpi: {}", hdpi );
+  logger->debug( "  vdpi: {}", vdpi );
 
   SDL_DisplayMode dm;
 
   auto dm_to_str = [&dm] {
-    return fmt::format( "{}x{}[{}Hz]", dm.w, dm.h,
-                        dm.refresh_rate );
+    return fmt::format( "{}x{}@{}Hz, pf={}", dm.w, dm.h,
+                        dm.refresh_rate,
+                        ::SDL_GetPixelFormatName( dm.format ) );
   };
   (void)dm_to_str;
 
-  LOG_DEBUG( "GetCurrentDisplayMode: " );
+  logger->debug( "Default game pixel format: {}",
+                 ::SDL_GetPixelFormatName( g_pixel_format ) );
+
+  logger->debug( "GetCurrentDisplayMode: " );
   SDL_GetCurrentDisplayMode( 0, &dm );
-  LOG_DEBUG( "  {}", dm_to_str() );
+  logger->debug( "  {}", dm_to_str() );
+  if( g_pixel_format != dm.format ) {
+    // g_pixel_format =
+    //    static_cast<decltype( g_pixel_format )>( dm.format );
+    // logger->debug( "Correcting game pixel format to {}",
+    //               ::SDL_GetPixelFormatName( dm.format ) );
+  }
 
-  LOG_DEBUG( "GetDesktopDisplayMode: " );
+  logger->debug( "GetDesktopDisplayMode: " );
   SDL_GetDesktopDisplayMode( 0, &dm );
-  LOG_DEBUG( "  {}", dm_to_str() );
+  logger->debug( "  {}", dm_to_str() );
 
-  LOG_DEBUG( "GetDisplayMode: " );
+  logger->debug( "GetDisplayMode: " );
   SDL_GetDisplayMode( 0, 0, &dm );
-  LOG_DEBUG( "  {}", dm_to_str() );
+  logger->debug( "  {}", dm_to_str() );
 
   SDL_Rect r;
-  LOG_DEBUG( "GetDisplayBounds:" );
+  logger->debug( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  LOG_DEBUG( "  {}", from_SDL( r ) );
+  logger->debug( "  {}", from_SDL( r ) );
 
-  LOG_DEBUG( "Monitor Diagonal Length: {}in.",
-             monitor_inches() );
+  logger->debug( "Monitor Diagonal Length: {}in.",
+                 monitor_inches() );
 }
 
 void find_max_tile_sizes() {
@@ -408,10 +424,19 @@ Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 Texture& load_texture( const char* file ) {
   SDL_Surface* pTempSurface = IMG_Load( file );
   CHECK( pTempSurface != nullptr, "failed to load image" );
+
+  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
+  CHECK( fmt != nullptr );
+  auto* optimized = ::SDL_ConvertSurface( pTempSurface, fmt, 0 );
+  CHECK( optimized != nullptr );
+
+  ::SDL_FreeFormat( fmt );
+  ::SDL_FreeSurface( pTempSurface );
+
   ::SDL_Texture* texture =
-      SDL_CreateTextureFromSurface( g_renderer, pTempSurface );
+      SDL_CreateTextureFromSurface( g_renderer, optimized );
   CHECK( texture != nullptr, "failed to create texture" );
-  SDL_FreeSurface( pTempSurface );
+  ::SDL_FreeSurface( optimized );
   loaded_textures[string( file )] = from_SDL( texture );
   return loaded_textures[string( file )];
 }
@@ -449,6 +474,7 @@ void set_render_target( Texture const& tx ) {
     return;
   CHECK( !::SDL_SetRenderTarget( g_renderer, tx.get() ) );
   g_current_render_target = tx.id();
+  g_total_set_render_target++;
 }
 
 void on_toggle_render_target_cache() {

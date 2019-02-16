@@ -67,7 +67,7 @@ Texture render_line_standard_impl( ::TTF_Font*   font,
   return texture;
 }
 
-bool g_use_text_rendering_cache{false};
+bool g_use_text_rendering_cache{true};
 
 void on_toggle_text_rendering_cache() {
   g_use_text_rendering_cache = !g_use_text_rendering_cache;

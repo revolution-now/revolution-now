@@ -25,4 +25,6 @@ void frame_loop( bool                  poll_input,
 
 double avg_frame_rate();
 
+uint64_t total_frame_count();
+
 } // namespace rn

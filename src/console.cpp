@@ -34,12 +34,32 @@ struct ConsolePlane : public Plane {
     rect.y += rect.h / 3_sy * 2_sy;
     rect.h /= 3_sy;
     render_fill_rect( tx, Color{0, 0, 255, 64}, rect );
+
+    auto info_start = rect.lower_right();
+
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
     auto frame_rate_tx = render_text_line_shadow(
         fonts::standard, Color::white(), frame_rate );
     copy_texture( frame_rate_tx, tx,
-                  rect.lower_right() - frame_rate_tx.size() );
+                  info_start - frame_rate_tx.size() );
+    info_start -= frame_rate_tx.size().h;
+
+    auto srt_rate = fmt::format(
+        "srt/f: {:.1f}", double( total_set_render_target() ) /
+                             total_frame_count() );
+    auto srt_rate_tx = render_text_line_shadow(
+        fonts::standard, Color::white(), srt_rate );
+    copy_texture( srt_rate_tx, tx,
+                  info_start - srt_rate_tx.size() );
+    info_start -= srt_rate_tx.size().h;
+
+    auto srt =
+        fmt::format( "srt: {}", total_set_render_target() );
+    auto srt_tx = render_text_line_shadow( fonts::standard,
+                                           Color::white(), srt );
+    copy_texture( srt_tx, tx, info_start - srt_tx.size() );
+    info_start -= srt_tx.size().h;
   }
 
   bool enabled_{false};
@@ -51,11 +71,9 @@ ConsolePlane g_console_plane;
 
 Plane* console_plane() { return &g_console_plane; }
 
-MENU_ITEM_HANDLER( e_menu_item::toggle_console,
-                   [] {
-                     g_console_plane.enabled_ =
-                         !g_console_plane.enabled_;
-                   },
-                   [] { return true; } )
+MENU_ITEM_HANDLER(
+    e_menu_item::toggle_console,
+    [] { g_console_plane.enabled_ = !g_console_plane.enabled_; },
+    [] { return true; } )
 
 } // namespace rn

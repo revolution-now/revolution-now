@@ -103,7 +103,7 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
   return tx;
 }
 
-bool g_use_nat_icon_rendering_cache{false};
+bool g_use_nat_icon_rendering_cache{true};
 
 void on_toggle_nat_icon_rendering_cache() {
   g_use_nat_icon_rendering_cache =

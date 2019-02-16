@@ -76,7 +76,7 @@ void init_sdl();
 
 void create_window();
 
-void print_video_stats();
+void query_video_stats();
 
 void create_renderer();
 
@@ -184,5 +184,7 @@ void render_rect( Texture const& tx, Color color,
                   Rect const& rect );
 void render_fill_rect( Texture const& tx, Color color,
                        Rect const& rect );
+
+uint64_t total_set_render_target();
 
 } // namespace rn

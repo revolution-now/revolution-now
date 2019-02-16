@@ -35,6 +35,7 @@ static_assert( window_length > window_spacing );
 static_assert( window_length % window_spacing == 0s );
 static_assert( num_active_windows > 1 );
 
+uint64_t         g_total_frames{0};
 vector<uint64_t> g_frame_count_windows( num_active_windows, 0 );
 uint64_t         g_frames_in_last_window{0};
 chrono::nanoseconds g_slide_time_accum{0};
@@ -55,6 +56,7 @@ void bump_slide() {
 
 void add_frame_tick() {
   for( auto& window : *curr_slide ) ++window;
+  g_total_frames++;
 }
 
 void add_frame_time( chrono::nanoseconds ns ) {
@@ -98,6 +100,8 @@ void advance_viewport_translation() {
 }
 
 } // namespace
+
+uint64_t total_frame_count() { return g_total_frames; }
 
 double avg_frame_rate() {
   auto average_fps =
