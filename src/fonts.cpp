@@ -153,10 +153,6 @@ Texture render_lines( H min_skip, vector<string> const& lines,
 
   auto result_texture = create_texture( res_width, res_height );
 
-  //::SDL_SetRenderTarget( g_renderer, result_texture );
-  //::SDL_SetRenderDrawColor( g_renderer, 104, 78, 32, 200 );
-  //::SDL_RenderClear( g_renderer );
-
   Y y( 0 );
   for( size_t i = 0; i < textures.size(); ++i ) {
     copy_texture( textures[i], result_texture, {y, 0_x} );
@@ -202,7 +198,7 @@ void font_size_spectrum( char const* msg,
     ::SDL_Color fg{255, 255, 255, 255};
     auto        texture =
         render_line_standard_impl( font, fg, num_msg );
-    copy_texture( texture, nullopt, {Y( y ), 0_x} );
+    copy_texture( texture, Texture{}, {Y( y ), 0_x} );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
   }
@@ -257,7 +253,7 @@ void font_test() {
   auto texture = render_wrapped_text( skip, msg, render_line,
                                       L( _.size() <= 20 ) );
 
-  copy_texture( texture, nullopt, {100_y, 100_x} );
+  copy_texture( texture, Texture{}, {100_y, 100_x} );
   // font_size_spectrum( msg, font_file );
 
   ::SDL_RenderPresent( g_renderer );

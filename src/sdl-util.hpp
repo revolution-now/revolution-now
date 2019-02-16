@@ -52,6 +52,8 @@ public:
   // For convenience.
   Delta size() const;
 
+  int id() const { return id_; }
+
   void free();
 
 private:
@@ -62,6 +64,8 @@ private:
   // value of this is.
   bool           own_{false};
   ::SDL_Texture* tx_{nullptr};
+  // globally unique id.  0 is for default texture.
+  int id_{0};
 };
 
 using TextureRef = std::reference_wrapper<Texture>;
@@ -78,7 +82,7 @@ void create_renderer();
 
 void cleanup();
 
-void set_render_target( OptCRef<Texture> tx );
+void set_render_target( Texture const& tx );
 
 // Make an RAII version of this
 void push_clip_rect( Rect const& rect );
@@ -108,13 +112,12 @@ void copy_texture( Texture const& from, Texture const& to,
 // Copies one texture to another at the destination point without
 // scaling. Destination texture can be nullopt for default
 // rendering target.
-void copy_texture( Texture const& from, OptCRef<Texture> to,
+void copy_texture( Texture const& from, Texture const& to,
                    Coord const& dst_coord );
 // With alpha.  Note, that this does not seem to behave the same
 // as a "regular" copy_texture call when setting alpha == 255,
 // so we should only use this when we need to specify the alpha.
-void copy_texture_alpha( Texture const&   from,
-                         OptCRef<Texture> to,
+void copy_texture_alpha( Texture const& from, Texture const& to,
                          Coord const& dst_coord, uint8_t alpha );
 // Same as above but destination coord is (0,0). Note this should
 // not be used for rendering to the main texture since we don't
@@ -126,8 +129,8 @@ void copy_texture( Texture const& from, Texture const& to );
 void copy_texture_to_main( Texture const& from );
 // Copies the texture potentially with stretching (which is
 // implicit in the ratios of the sizes of the rects).
-void copy_texture_stretch( Texture const&   from,
-                           OptCRef<Texture> to, Rect const& src,
+void copy_texture_stretch( Texture const& from,
+                           Texture const& to, Rect const& src,
                            Rect const& dest );
 
 // Clones size and content, including alpha.
@@ -177,9 +180,9 @@ void set_render_draw_color( Color color );
 // that approach.
 void render_line( Texture const& tx, Color color, Coord start,
                   Delta delta );
-void render_rect( OptCRef<Texture> tx, Color color,
+void render_rect( Texture const& tx, Color color,
                   Rect const& rect );
-void render_fill_rect( OptCRef<Texture> tx, Color color,
+void render_fill_rect( Texture const& tx, Color color,
                        Rect const& rect );
 
 } // namespace rn

@@ -147,7 +147,9 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
          ITEM( toggle_text_cache,
                "Toggle Text Renderng Cache" ), //
          ITEM( toggle_nat_icon_cache,
-               "Toggle Nationality Icon Renderng Cache" ) //
+               "Toggle Nationality Icon Rendering Cache" ), //
+         ITEM( toggle_render_target_cache,
+               "Toggle Rendering Target Cache" ) //
      }},
     {e_menu::pedia,
      {

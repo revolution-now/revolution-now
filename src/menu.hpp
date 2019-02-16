@@ -34,24 +34,25 @@ enum class e_( menu,
 );
 
 enum class e_( menu_item,
-               about,                //
-               revolution,           //
-               retire,               //
-               exit,                 //
-               zoom_in,              //
-               zoom_out,             //
-               restore_zoom,         //
-               sentry,               //
-               fortify,              //
-               military_advisor,     //
-               economics_advisor,    //
-               european_advisor,     //
-               units_help,           //
-               terrain_help,         //
-               founding_father_help, //
-               toggle_console,       //
-               toggle_text_cache,    //
-               toggle_nat_icon_cache //
+               about,                     //
+               revolution,                //
+               retire,                    //
+               exit,                      //
+               zoom_in,                   //
+               zoom_out,                  //
+               restore_zoom,              //
+               sentry,                    //
+               fortify,                   //
+               military_advisor,          //
+               economics_advisor,         //
+               european_advisor,          //
+               units_help,                //
+               terrain_help,              //
+               founding_father_help,      //
+               toggle_console,            //
+               toggle_text_cache,         //
+               toggle_nat_icon_cache,     //
+               toggle_render_target_cache //
 );
 
 #define MENU_ITEM_HANDLER( item, handler_func,              \

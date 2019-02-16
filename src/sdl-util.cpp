@@ -53,6 +53,10 @@ SDL_DisplayMode get_current_display_mode() {
 
 vector<Rect> clip_stack;
 
+bool g_use_render_target_cache{false};
+int  g_current_render_target{-1};
+int  g_next_texture_id{1};
+
 } // namespace
 
 ::SDL_Rect to_SDL( Rect const& rect ) {
@@ -439,10 +443,22 @@ Delta texture_delta( Texture const& texture ) {
   return {W{w}, H{h}};
 }
 
-void set_render_target( OptCRef<Texture> tx ) {
-  ::SDL_Texture* target = tx ? ( *tx ).get().get() : nullptr;
-  CHECK( !::SDL_SetRenderTarget( g_renderer, target ) );
+void set_render_target( Texture const& tx ) {
+  if( g_use_render_target_cache &&
+      g_current_render_target == tx.id() )
+    return;
+  CHECK( !::SDL_SetRenderTarget( g_renderer, tx.get() ) );
+  g_current_render_target = tx.id();
 }
+
+void on_toggle_render_target_cache() {
+  g_use_render_target_cache = !g_use_render_target_cache;
+  auto status = g_use_render_target_cache ? "ON" : "OFF";
+  logger->info( "turning {} render target cache.", status );
+}
+
+MENU_ITEM_HANDLER( toggle_render_target_cache,
+                   on_toggle_render_target_cache, L0( true ) );
 
 void push_clip_rect( Rect const& rect ) {
   ::SDL_Rect sdl_rect;
@@ -472,11 +488,10 @@ void copy_texture( Texture const& from, Texture const& to,
 
 // With alpha. TODO: figure out why this doesn't behave like a
 // standard copy_texture when alpha == 255.
-void copy_texture_alpha( Texture const&   from,
-                         OptCRef<Texture> to,
-                         Coord const&     dst_coord,
-                         uint8_t          alpha ) {
-  ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
+void copy_texture_alpha( Texture const& from, Texture const& to,
+                         Coord const& dst_coord,
+                         uint8_t      alpha ) {
+  ::SDL_Texture* target = to.get();
   CHECK( from );
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
@@ -492,9 +507,9 @@ void copy_texture_alpha( Texture const&   from,
   ::SDL_SetTextureAlphaMod( from.get(), 255 );
 }
 
-void copy_texture( Texture const& from, OptCRef<Texture> to,
+void copy_texture( Texture const& from, Texture const& to,
                    Coord const& dst_coord ) {
-  ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
+  ::SDL_Texture* target = to.get();
   CHECK( from );
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
@@ -506,17 +521,17 @@ void copy_texture( Texture const& from, OptCRef<Texture> to,
 }
 
 void copy_texture_to_main( Texture const& from ) {
-  copy_texture( from, nullopt, Coord{} + g_drawing_origin );
+  copy_texture( from, Texture{}, Coord{} + g_drawing_origin );
 }
 
 void copy_texture( Texture const& from, Texture const& to ) {
   copy_texture( from, to, Coord{} );
 }
 
-void copy_texture_stretch( Texture const&   from,
-                           OptCRef<Texture> to, Rect const& src,
+void copy_texture_stretch( Texture const& from,
+                           Texture const& to, Rect const& src,
                            Rect const& dest ) {
-  ::SDL_Texture* target = to ? ( *to ).get().get() : nullptr;
+  ::SDL_Texture* target = to.get();
   ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
   ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
   set_render_target( to );
@@ -640,8 +655,7 @@ Texture create_shadow_texture( Texture const& tx ) {
 void save_texture_png( Texture const&  tx,
                        fs::path const& file ) {
   logger->info( "writing png file {}", file.string() );
-  ::SDL_Texture* old = ::SDL_GetRenderTarget( g_renderer );
-  ::SDL_SetRenderTarget( g_renderer, tx );
+  set_render_target( tx );
   auto           delta   = texture_delta( tx );
   ::SDL_Surface* surface = SDL_CreateRGBSurface(
       0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
@@ -650,15 +664,9 @@ void save_texture_png( Texture const&  tx,
   CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
          "failed to save png file {}", file.string() );
   ::SDL_FreeSurface( surface );
-  ::SDL_SetRenderTarget( g_renderer, old );
 }
 
 Delta screen_logical_size() {
-  //::SDL_SetRenderTarget( g_renderer, nullptr );
-  // Delta screen;
-  //::SDL_RenderGetLogicalSize( g_renderer, &screen.w._,
-  //                            &screen.h._ );
-  // return screen;
   return logical_screen_pixel_dimensions();
 }
 
@@ -672,7 +680,7 @@ void grab_screen( fs::path const& file ) {
       "grabbing screen with size [{} x {}] and saving to {}",
       screen.w, screen.h, file.string() );
   ::SDL_Surface* surface = create_surface( screen );
-  set_render_target( nullopt );
+  set_render_target( Texture{} );
   ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
                           surface->pixels, surface->pitch );
   CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
@@ -681,13 +689,13 @@ void grab_screen( fs::path const& file ) {
 }
 
 void clear_texture_black( Texture const& tx ) {
-  ::SDL_SetRenderTarget( g_renderer, tx );
+  set_render_target( tx );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 }
 
 void clear_texture_transparent( Texture const& tx ) {
-  ::SDL_SetRenderTarget( g_renderer, tx );
+  set_render_target( tx );
   ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_NONE );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 0 );
   ::SDL_RenderClear( g_renderer );
@@ -720,21 +728,26 @@ void toggle_fullscreen() {
   set_fullscreen( !is_window_fullscreen() );
 }
 
-Texture::Texture( ::SDL_Texture* tx ) : own_{true}, tx_( tx ) {
+Texture::Texture( ::SDL_Texture* tx )
+  : own_{true}, tx_( tx ), id_{g_next_texture_id++} {
   CHECK( tx_ );
 }
 
 Texture::Texture( Texture&& tx ) noexcept
-  : own_{false}, tx_( tx.tx_ ) {
-  tx.tx_ = nullptr;
+  : own_{false}, tx_( tx.tx_ ), id_( tx.id_ ) {
+  tx.own_ = false;
+  tx.tx_  = nullptr;
+  tx.id_  = 0;
 }
 
 Texture& Texture::operator=( Texture&& rhs ) noexcept {
   if( own_ && tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
   tx_      = rhs.tx_;
   own_     = rhs.own_;
+  id_      = rhs.id_;
   rhs.tx_  = nullptr;
   rhs.own_ = false;
+  rhs.id_  = 0;
   return *this;
 }
 
@@ -742,6 +755,7 @@ void Texture::free() {
   if( own_ && tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
   own_ = false;
   tx_  = nullptr;
+  id_  = 0;
 }
 
 Texture::~Texture() { free(); }
@@ -750,6 +764,7 @@ Texture Texture::weak_ref() const {
   Texture res;
   res.own_ = false;
   res.tx_  = tx_;
+  res.id_  = id_;
   return res;
 }
 
@@ -809,7 +824,7 @@ void set_render_draw_color( Color color ) {
                                     color.b, color.a ) );
 }
 
-void render_fill_rect( OptCRef<Texture> tx, Color color,
+void render_fill_rect( Texture const& tx, Color color,
                        Rect const& rect ) {
   set_render_target( move( tx ) );
   set_render_draw_color( color );
@@ -834,7 +849,7 @@ void render_line( Texture const& tx, Color color, Coord start,
                         end.x._, end.y._ );
 }
 
-void render_rect( OptCRef<Texture> tx, Color color,
+void render_rect( Texture const& tx, Color color,
                   Rect const& rect ) {
   set_render_target( move( tx ) );
   set_render_draw_color( color );
