@@ -13,6 +13,7 @@
 #include "ranges.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"
+#include "terrain.hpp"
 #include "tiles.hpp"
 #include "time.hpp"
 #include "turn.hpp"
@@ -20,7 +21,6 @@
 #include "util.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
-#include "world.hpp"
 
 // base-util
 #include "base-util/algo.hpp"

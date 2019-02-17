@@ -1,5 +1,5 @@
 /****************************************************************
-**world.hpp
+**terrain.hpp
 *
 * Project: Revolution Now
 *
@@ -61,25 +61,3 @@ ND OptSquareCRef square_at_safe( Y y, X x );
 ND SquareSurround surrounding( Y y, X x );
 
 } // namespace rn
-
-// Here  we  open up the std namespace to add a hash function
-// spe- cialization for a Coord.
-namespace std {
-template<>
-struct hash<::rn::Coord> {
-  auto operator()( ::rn::Coord const& c ) const noexcept {
-    using integral_t = decltype( c.x._ );
-    // This should be a number that is larger than the width of
-    // the world (in tiles) would ever be, that way our mul/add
-    // expression below maps each unique map tile onto a unique
-    // integer for better hashing. In addition, this is a prime
-    // number, since that just seems like a good idea for some
-    // reason... not sure why, just a feeling.
-    constexpr integral_t prime = 13007;
-    // This formula will yield a unique integer for each pos-
-    // sible square coordinate in the world, assuming that the
-    // world is of a maximum size.
-    return hash<integral_t>{}( c.y._ * prime + c.x._ );
-  }
-};
-} // namespace std

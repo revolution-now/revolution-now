@@ -14,9 +14,9 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "globals.hpp"
+#include "terrain.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
-#include "world.hpp"
 
 using namespace std;
 

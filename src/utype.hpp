@@ -17,8 +17,8 @@
 #include "enum.hpp"
 #include "geo-types.hpp"
 #include "mv-points.hpp"
+#include "terrain.hpp"
 #include "tiles.hpp"
-#include "world.hpp"
 
 namespace rn {
 

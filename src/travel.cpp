@@ -16,10 +16,10 @@
 #include "id.hpp"
 #include "orders.hpp"
 #include "ownership.hpp"
+#include "terrain.hpp"
 #include "util.hpp"
 #include "utype.hpp"
 #include "window.hpp"
-#include "world.hpp"
 
 // base-util
 #include "base-util/variant.hpp"

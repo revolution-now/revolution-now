@@ -14,6 +14,7 @@ let s:stems = [
   \ 'src/console',
   \ 'src/window',
   \ 'src/geo-types',
+  \ 'src/terrain',
   \ 'src/nation',
   \ 'src/unit',
   \ 'src/ownership',

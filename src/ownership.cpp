@@ -15,8 +15,8 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
+#include "terrain.hpp"
 #include "util.hpp"
-#include "world.hpp"
 
 // base-util
 #include "base-util/algo.hpp"

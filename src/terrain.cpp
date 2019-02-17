@@ -1,5 +1,5 @@
 /****************************************************************
-**world.cpp
+**terrain.cpp
 *
 * Project: Revolution Now
 *
@@ -10,7 +10,7 @@
 *****************************************************************/
 #include <vector>
 
-#include "world.hpp"
+#include "terrain.hpp"
 
 #include "errors.hpp"
 #include "tiles.hpp"

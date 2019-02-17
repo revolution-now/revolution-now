@@ -22,9 +22,9 @@
 #include "plane.hpp"
 #include "rand.hpp"
 #include "sdl-util.hpp"
+#include "terrain.hpp"
 #include "travel.hpp"
 #include "viewport.hpp"
-#include "world.hpp"
 
 // base-util
 #include "base-util/algo.hpp"

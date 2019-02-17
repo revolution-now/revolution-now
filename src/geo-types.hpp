@@ -366,3 +366,20 @@ DEFINE_FORMAT( ::rn::Scale, "({},{})", o.sx, o.sy );
 DEFINE_FORMAT( ::rn::Delta, "({},{})", o.w, o.h );
 DEFINE_FORMAT( ::rn::Coord, "({},{})", o.x, o.y );
 DEFINE_FORMAT( ::rn::Rect, "({},{},{},{})", o.x, o.y, o.w, o.h );
+
+// Here  we  open up the std namespace to add a hash function
+// spe- cialization for a Coord.
+namespace std {
+template<>
+struct hash<::rn::Coord> {
+  auto operator()( ::rn::Coord const& c ) const noexcept {
+    // This assumes that the coordinate's components will be less
+    // than 2^32. If that is violated, then this is not a good
+    // hash function.
+    uint64_t flat =
+        ( uint64_t( c.y._ ) << 32 ) + uint64_t( c.x._ );
+    return hash<uint64_t>{}( flat );
+  }
+};
+
+} // namespace std
