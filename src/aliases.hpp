@@ -27,44 +27,29 @@
 #include <variant>
 #include <vector>
 
-using TimeType = decltype( std::chrono::system_clock::now() );
+using TimeType  = decltype( ::std::chrono::system_clock::now() );
+using DurationT = ::std::chrono::nanoseconds;
+namespace chrono_literals = ::std::literals::chrono_literals;
 
-// Deprecated; remove, since the name ordering is not consistent.
-using StrVec = std::vector<std::string>;
-using SVVec  = std::vector<std::string_view>;
-
-template<typename U, typename V>
-using PairVec = std::vector<std::pair<U, V>>;
-
-// Use these from here down
-
-using Str = std::string;
+using Str = ::std::string;
 
 template<typename T>
-using Ref = std::reference_wrapper<T>;
+using Ref = ::std::reference_wrapper<T>;
 
 template<typename T>
-using CRef = std::reference_wrapper<T const>;
+using CRef = ::std::reference_wrapper<T const>;
 
 template<typename T>
-using Vec = std::vector<T>;
+using Vec = ::std::vector<T>;
 
 template<typename T>
-using Opt = std::optional<T>;
+using Opt = ::std::optional<T>;
 
 template<typename T>
-using OptRef = Opt<std::reference_wrapper<T>>;
+using OptRef = Opt<::std::reference_wrapper<T>>;
 
 template<typename T>
 using OptCRef = OptRef<T const>;
-
-template<typename T>
-using OptVec = Opt<Vec<T>>;
-
-using OptStr = Opt<std::string>;
-
-template<typename U, typename V>
-using VecPair = Vec<std::pair<U, V>>;
 
 template<typename T>
 using ObserverPtr = ::nonstd::observer_ptr<T>;

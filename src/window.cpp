@@ -216,7 +216,7 @@ void OptionSelectItemView::grow_to( W w ) {
   background_inactive_.set_delta( new_delta );
 }
 
-OptionSelectView::OptionSelectView( StrVec const& options,
+OptionSelectView::OptionSelectView( Vec<Str> const& options,
                                     int initial_selection )
   : selected_{initial_selection}, has_confirmed{false} {
   CHECK( options.size() > 0 );
@@ -433,7 +433,7 @@ WindowManager::window& WindowManager::focused() {
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-string select_box( string const& title, StrVec options ) {
+string select_box( string const& title, Vec<Str> options ) {
   std::vector<OwningPositionedView> views;
 
   auto selector = make_unique<OptionSelectView>(

@@ -239,8 +239,8 @@ private:
 
 class OptionSelectView : public ViewVector {
 public:
-  OptionSelectView( StrVec const& options,
-                    int           initial_selection );
+  OptionSelectView( Vec<Str> const& options,
+                    int             initial_selection );
 
   bool input( input::event_t const& event ) override;
 
@@ -322,7 +322,7 @@ private:
 ** High-level Methods
 *****************************************************************/
 std::string select_box( std::string const& title,
-                        StrVec             options );
+                        Vec<Str>           options );
 
 // TODO: Use better-enum here. Make enums title case and convert
 // underscores to spaces in display names.
