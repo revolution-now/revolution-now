@@ -2,14 +2,26 @@
 Plan
 ========================================================
 
-1) Add menus
+1) Factor out sliding window code
+2) Add terrain module with block rendering cache and
+   get framerate up.
+3) Factor out resolution/scaling code into new screen
+   module.
+     * Leave space for menu and status bar at top and
+       bottom, viewport in the middle.
+4) Finish menus:
+     * Hidden menus
+     * Colors/appearance
+     * hot keys
+     * names with highlighted hotkey
+     * Fix click rect around headers
 2) Add disband command
 3) Fix handling of multiple units on a square with
    rendering and combat.
 4) Finish ship combat
 5) Implement mouse selection of units to e.g. activate.
-6) Add a `scale` module to handle all quantities that
-   depend on the rendering scale, and allow dynamic
+6) Modify the `screen` module to handle all quantities
+   that depend on the rendering scale, and allow dynamic
    changes to it.  Also try to fix non-fullscreen mode.
 
 ========================================================
