@@ -65,7 +65,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
   auto src_coord = coords_for_unit( id );
   auto dst_coord = src_coord.moved( direction );
 
-  if( !dst_coord.is_inside( world_rect() ) ) {
+  if( !dst_coord.is_inside( world_rect_tiles() ) ) {
     return TravelAnalysis{
         /*id_=*/id,
         /*orders_=*/orders,

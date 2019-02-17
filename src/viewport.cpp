@@ -324,7 +324,7 @@ Rect SmoothViewport::covered_tiles() const {
   return Rect{X( start_tile_x() ), Y( start_tile_y() ),
               W{static_cast<int>( lround( width_tiles() ) )},
               H{static_cast<int>( lround( height_tiles() ) )}}
-      .clamp( world_rect() );
+      .clamp( world_rect_tiles() );
 }
 
 Rect SmoothViewport::covered_pixels() const {
@@ -474,8 +474,8 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
   bool visible_in_viewport       = is_in( vp.covered_tiles() );
   bool visible_in_inner_viewport = is_in(
       vp.covered_tiles().edges_removed().edges_removed() );
-  bool in_inner_world =
-      is_in( world_rect().edges_removed().edges_removed() );
+  bool in_inner_world = is_in(
+      world_rect_tiles().edges_removed().edges_removed() );
 
   // If the unit is not at all visible to the player then
   // obviously we must return true.

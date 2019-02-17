@@ -59,7 +59,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
   if( !dst_nation.has_value() || *dst_nation == unit.nation() )
     return nullopt;
 
-  if( !dst_coord.is_inside( world_rect() ) ) return nullopt;
+  if( !dst_coord.is_inside( world_rect_tiles() ) )
+    return nullopt;
 
   auto& square = square_at( dst_coord );
 

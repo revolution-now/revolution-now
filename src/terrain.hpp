@@ -29,35 +29,14 @@ struct ND Square {
   e_crust crust;
 };
 
-using SquareRef     = std::reference_wrapper<Square>;
-using SquareCRef    = std::reference_wrapper<Square const>;
-using OptSquareRef  = std::optional<SquareRef>;
-using OptSquareCRef = std::optional<SquareCRef>;
+Delta world_size_tiles();
+Delta world_size_pixels();
+Rect  world_rect_tiles();
+Rect  world_rect_pixels();
 
-struct ND SquareSurround {
-  OptSquareCRef north;
-  OptSquareCRef south;
-  OptSquareCRef east;
-  OptSquareCRef west;
-};
+bool square_exists( Y y, X x );
 
-ND Delta world_size_tiles();
-ND Delta world_size_pixels();
-
-ND W world_size_tiles_x();
-ND H world_size_tiles_y();
-ND W world_size_pixels_x();
-ND H world_size_pixels_y();
-
-ND Rect world_rect();
-ND Rect world_rect_pixels();
-
-ND bool square_exists( Y y, X x );
-
-ND Square const& square_at( Y y, X x );
-ND Square const& square_at( Coord coord );
-ND OptSquareCRef square_at_safe( Y y, X x );
-
-ND SquareSurround surrounding( Y y, X x );
+Square const&          square_at( Coord coord );
+Opt<Ref<Square const>> maybe_square_at( Coord coord );
 
 } // namespace rn
