@@ -8,13 +8,14 @@
 * Description: Representation of the physical world.
 *
 *****************************************************************/
-#include <vector>
-
 #include "terrain.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 #include "tiles.hpp"
-#include "util.hpp"
+
+// C++ standard library
+#include <vector>
 
 using namespace std;
 

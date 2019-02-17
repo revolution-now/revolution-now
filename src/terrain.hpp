@@ -13,13 +13,9 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "enum.hpp"
 #include "geo-types.hpp"
-
-// c++ standard library
-#include <functional>
-#include <optional>
-#include <tuple>
 
 namespace rn {
 
