@@ -19,6 +19,9 @@
 #include "sdl-util.hpp"
 #include "viewport.hpp"
 
+// C++ standard library
+#include <thread>
+
 using namespace std;
 
 namespace rn {
@@ -71,8 +74,8 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
   auto frame_length = 1000000us / config_rn.target_frame_rate;
 
   while( true ) {
-    frame_rate.tick();
     auto start = system_clock::now();
+    frame_rate.tick();
 
     draw_all_planes();
     ::SDL_RenderPresent( g_renderer );
@@ -86,11 +89,8 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
     if( finished() ) break;
 
     auto delta = system_clock::now() - start;
-    if( delta < frame_length ) {
-      ::SDL_Delay(
-          duration_cast<milliseconds>( frame_length - delta )
-              .count() );
-    }
+    if( delta < frame_length )
+      this_thread::sleep_for( frame_length - delta );
   }
 }
 
