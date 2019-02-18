@@ -67,11 +67,11 @@ struct ND Delta {
   constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
   constexpr Delta( H h_, W w_ ) : w( w_ ), h( h_ ) {}
 
-  bool operator==( Delta const& other ) const {
+  constexpr bool operator==( Delta const& other ) const {
     return ( h == other.h ) && ( w == other.w );
   }
 
-  bool operator!=( Delta const& other ) const {
+  constexpr bool operator!=( Delta const& other ) const {
     return ( h != other.h ) || ( w != other.w );
   }
 
@@ -161,6 +161,9 @@ struct ND Coord {
   // in each direction (or possibly only one direction).
   // TODO: change to clamp
   void clip( Rect const& rect );
+
+  Coord rounded_up_to_multiple( Scale multiple ) const;
+  Coord rounded_up_to_multiple( Delta multiple ) const;
 
   Coord moved( e_direction d ) const;
   // Find the direction from this coord to `dest`. If dest is not
@@ -359,6 +362,11 @@ ND Rect operator/( Rect const& rect, Scale const& scale );
 ND Coord operator/( Coord const& coord, Scale const& scale );
 ND Delta operator/( Delta const& delta, Scale const& scale );
 ND Delta operator%( Coord const& coord, Scale const& scale );
+ND Delta operator%( Coord const& coord, Delta const& delta );
+ND constexpr Delta operator%( Delta const& lhs,
+                              Scale const& rhs ) {
+  return Delta{lhs.w % rhs.sx, lhs.h % rhs.sy};
+}
 
 } // namespace rn
 

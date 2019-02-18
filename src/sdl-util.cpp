@@ -21,6 +21,7 @@
 #include "menu.hpp"
 #include "plane.hpp"
 #include "sound.hpp"
+#include "terrain.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
 
@@ -109,6 +110,8 @@ void init_game() {
   load_all_images();
   logger->info( "Initializing menus" );
   initialize_menus();
+  logger->info( "Initializing terrain" );
+  initialize_terrain();
 }
 
 void init_sdl() {
@@ -447,6 +450,7 @@ Texture& load_texture( fs::path const& path ) {
 // even if their corresponding initialization routines were
 // not successfully run.
 void cleanup() {
+  cleanup_terrain();
   cleanup_menus();
   destroy_planes();
   unload_fonts();

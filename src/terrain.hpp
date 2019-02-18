@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "enum.hpp"
 #include "geo-types.hpp"
+#include "sdl-util.hpp"
 
 namespace rn {
 
@@ -34,5 +35,22 @@ bool square_exists( Y y, X x );
 
 Square const&          square_at( Coord coord );
 Opt<Ref<Square const>> maybe_square_at( Coord coord );
+
+// This will fully render a lang square with no units or colonies
+// on it.
+void render_terrain_square( Texture const& tx,
+                            Coord          world_square,
+                            Coord          texture_square );
+
+// This function will render the terrain in large blocks and so
+// it will in general overshoot the edges of the destination rec-
+// tangle on the target texture instead of just rendering the
+// minimal set of tiles (in `src_tiles`). This is to simplify the
+// implementation.
+void render_terrain( Rect src_tiles, Texture& dest,
+                     Coord dest_pixel_coord );
+
+void initialize_terrain();
+void cleanup_terrain();
 
 } // namespace rn

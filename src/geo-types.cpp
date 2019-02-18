@@ -137,6 +137,19 @@ void Coord::clip( Rect const& rect ) {
   if( x > rect.x + rect.w ) x = rect.x + rect.w;
 }
 
+Coord Coord::rounded_up_to_multiple( Delta multiple ) const {
+  auto res = *this;
+  auto mod = res % multiple;
+  // These must be done separately.
+  if( mod.w != 0_w ) res.x += ( multiple - mod ).w;
+  if( mod.h != 0_h ) res.y += ( multiple - mod ).h;
+  return res;
+}
+
+Coord Coord::rounded_up_to_multiple( Scale multiple ) const {
+  return rounded_up_to_multiple( Delta{1_w, 1_h} * multiple );
+}
+
 Coord Coord::moved( e_direction d ) const {
   // clang-format off
   switch( d ) {
@@ -340,6 +353,10 @@ Rect operator/( Rect const& rect, Scale const& scale ) {
 
 Delta operator%( Coord const& coord, Scale const& scale ) {
   return {coord.x % scale.sx, coord.y % scale.sy};
+}
+
+Delta operator%( Coord const& coord, Delta const& delta ) {
+  return {coord.x % delta.w, coord.y % delta.h};
 }
 
 } // namespace rn

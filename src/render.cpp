@@ -173,14 +173,6 @@ void render_nationality_icon( Texture const& dest, UnitId id,
   copy_texture( nat_icon, dest, pixel_coord );
 }
 
-void render_landscape( Texture const& tx, Coord world_square,
-                       Coord pixel_coord ) {
-  auto   s = square_at( world_square );
-  g_tile tile =
-      s.crust == +e_crust::land ? g_tile::land : g_tile::water;
-  render_sprite( tx, tile, pixel_coord, 0, 0 );
-}
-
 // Unit only, no nationality icon.
 void render_unit( Texture const& tx, e_unit_type unit_type,
                   Coord pixel_coord ) {
@@ -247,6 +239,8 @@ void render_world_viewport( ViewportState& state ) {
 
   auto covered = viewport().covered_tiles();
 
+  render_terrain( covered, g_texture_viewport, Coord{} );
+
   Opt<Coord>  blink_coords;
   Opt<UnitId> blink_id;
   // if( util::holds( state, viewport_state::blink_unit
@@ -269,9 +263,6 @@ void render_world_viewport( ViewportState& state ) {
     Coord pixel_coord =
         Coord{} + ( coord - covered.upper_left() );
     pixel_coord *= g_tile_scale;
-
-    // First the land.
-    render_landscape( g_texture_viewport, coord, pixel_coord );
 
     bool is_blink_square = ( coord == blink_coords );
 

@@ -33,11 +33,6 @@ struct Plane;
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
-// This will fully render a lang square with no units or colonies
-// on it.
-void render_landscape( Texture const& tx, Coord world_square,
-                       Coord texture_square );
-
 void render_unit( Texture const& tx, UnitId id,
                   Coord texture_square );
 

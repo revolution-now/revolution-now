@@ -62,32 +62,48 @@ public:
 template<typename T>
 class Matrix : public util::movable_only {
   W      w_ = 0_w;
-  Vec<T> data{};
+  Vec<T> data_{};
 
 public:
-  Matrix( W w, H h, Opt<T> init = std::nullopt ) : w_( w ) {
+  Matrix( W w, H h ) : w_( w ) {
     CHECK( w >= 0_w );
     CHECK( h >= 0_h );
     size_t size = h._ * w._;
-    if( init.has_value() )
-      data.assign( size, *init );
-    else
-      data.resize( size );
-    CHECK( data.size() == size );
+    data_.resize( size );
+    CHECK( data_.size() == size );
   }
 
-  Matrix( H h, W w, Opt<T> init = std::nullopt )
-    : Matrix( w, h, init ) {}
-  Matrix( Delta delta, Opt<T> init = std::nullopt )
+  Matrix( W w, H h, T init ) : w_( w ) {
+    CHECK( w >= 0_w );
+    CHECK( h >= 0_h );
+    size_t size = h._ * w._;
+    data_.assign( size, init );
+    CHECK( data_.size() == size );
+  }
+
+  Matrix( H h, W w, T init ) : Matrix( w, h, init ) {}
+  Matrix( H h, W w ) : Matrix( w, h ) {}
+  Matrix( Delta delta ) : Matrix( delta.w, delta.h ) {}
+  Matrix( Delta delta, T init )
     : Matrix( delta.w, delta.h, init ) {}
+  Matrix() : Matrix( Delta{} ) {}
+
+  Delta size() const {
+    using coord_underlying_t = decltype( w_._ );
+    if( data_.size() == 0 ) return {};
+    return Delta{w_,
+                 H{coord_underlying_t( data_.size() / w_._ )}};
+  }
+
+  Rect rect() const { return Rect::from( Coord{}, size() ); }
 
   typed_span<T const, X> operator[]( Y y ) const {
-    CHECK( y >= Y{0} && size_t( y._ ) < data.size() );
-    return {&data[y._ * w_._], w_._};
+    CHECK( y >= Y{0} && size_t( y._ ) < data_.size() );
+    return {&data_[y._ * w_._], w_._};
   }
   typed_span<T, X> operator[]( Y y ) {
-    CHECK( y >= Y{0} && size_t( y._ ) < data.size() );
-    return {&data[y._ * w_._], w_};
+    CHECK( y >= Y{0} && size_t( y._ ) < data_.size() );
+    return {&data_[y._ * w_._], w_};
   }
 
   T const& operator[]( Coord coord ) const {
@@ -98,6 +114,11 @@ public:
     // These subscript operators should do the range checking.
     return ( *this )[coord.y][coord.x];
   };
+
+  void clear() {
+    data_.clear();
+    w_ = 0_w;
+  }
 };
 
 // Pass as the third template argument to hash map so that we can

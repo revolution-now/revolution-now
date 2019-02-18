@@ -539,125 +539,127 @@ using LengthType = typename LengthTypeFor<Coordinate>::length_t;
 // get another coordinate. They are specific to the semantics of
 // cartesian coordinates so we don't include them in the TYPE-
 // D_INT macro.
-inline X    operator+( X x, W w ) { return X( x._ + w._ ); }
-inline Y    operator+( Y y, H h ) { return Y( y._ + h._ ); }
-inline X    operator+( W w, X x ) { return X( x._ + w._ ); }
-inline Y    operator+( H h, Y y ) { return Y( y._ + h._ ); }
-inline X    operator-( X x, W w ) { return X( x._ - w._ ); }
-inline Y    operator-( Y y, H h ) { return Y( y._ - h._ ); }
-inline X    operator-( W w, X x ) { return X( x._ - w._ ); }
-inline Y    operator-( H h, Y y ) { return Y( y._ - h._ ); }
-inline void operator+=( X& x, W w ) { x._ += w._; }
-inline void operator+=( Y& y, H h ) { y._ += h._; }
-inline void operator-=( X& x, W w ) { x._ -= w._; }
-inline void operator-=( Y& y, H h ) { y._ -= h._; }
+// clang-format off
+inline constexpr X    operator+( X x, W w ) { return X( x._ + w._ ); }
+inline constexpr Y    operator+( Y y, H h ) { return Y( y._ + h._ ); }
+inline constexpr X    operator+( W w, X x ) { return X( x._ + w._ ); }
+inline constexpr Y    operator+( H h, Y y ) { return Y( y._ + h._ ); }
+inline constexpr X    operator-( X x, W w ) { return X( x._ - w._ ); }
+inline constexpr Y    operator-( Y y, H h ) { return Y( y._ - h._ ); }
+inline constexpr X    operator-( W w, X x ) { return X( x._ - w._ ); }
+inline constexpr Y    operator-( H h, Y y ) { return Y( y._ - h._ ); }
+inline constexpr void operator+=( X& x, W w ) { x._ += w._; }
+inline constexpr void operator+=( Y& y, H h ) { y._ += h._; }
+inline constexpr void operator-=( X& x, W w ) { x._ -= w._; }
+inline constexpr void operator-=( Y& y, H h ) { y._ -= h._; }
 // We can allow deltas to subtract from eachother in a mutating
 // way. We don't just put these in the above generic classes
 // because we don't want to allow e.g. x1 -= x2; this is because
 // subtracting a coordinate from another one should only yield a
 // width, and so that statement would not make sense.
-inline void operator-=( W& w1, W w2 ) { w1._ -= w2._; }
-inline void operator-=( H& h1, H h2 ) { h1._ -= h2._; }
+inline constexpr void operator-=( W& w1, W w2 ) { w1._ -= w2._; }
+inline constexpr void operator-=( H& h1, H h2 ) { h1._ -= h2._; }
 // These express that when we subtract two coordinates or
 // two deltas then we get a delta (not a coordinate).
-inline W operator-( X x1, X x2 ) { return W( x1._ - x2._ ); }
-inline H operator-( Y y1, Y y2 ) { return H( y1._ - y2._ ); }
-inline W operator-( W x1, W x2 ) { return W( x1._ - x2._ ); }
-inline H operator-( H y1, H y2 ) { return H( y1._ - y2._ ); }
+inline constexpr W operator-( X x1, X x2 ) { return W( x1._ - x2._ ); }
+inline constexpr H operator-( Y y1, Y y2 ) { return H( y1._ - y2._ ); }
+inline constexpr W operator-( W x1, W x2 ) { return W( x1._ - x2._ ); }
+inline constexpr H operator-( H y1, H y2 ) { return H( y1._ - y2._ ); }
 // These express that an absolute position divided by a distance
 // yields a dimensionless ratio.
-inline int operator/( X x, W w ) { return x._ / w._; }
-inline int operator/( Y y, H h ) { return y._ / h._; }
+inline constexpr int operator/( X x, W w ) { return x._ / w._; }
+inline constexpr int operator/( Y y, H h ) { return y._ / h._; }
 // These express that mod'ing an absolute position by a distance
 // or mod'ing two distances yields another distance (i.e., not an
 // absolute position).
-inline W operator%( X x, W w ) { return W( x._ % w._ ); }
-inline H operator%( Y y, H h ) { return H( y._ % h._ ); }
-inline W operator%( W w1, W w2 ) { return W( w1._ % w2._ ); }
-inline H operator%( H h1, H h2 ) { return H( h1._ % h2._ ); }
-inline W operator%( X x, SX sx ) { return W( x._ % sx._ ); }
-inline H operator%( Y y, SY sy ) { return H( y._ % sy._ ); }
-inline W operator%( W w, SX sx ) { return W( w._ % sx._ ); }
-inline H operator%( H h, SY sy ) { return H( h._ % sy._ ); }
+inline constexpr W operator%( X x, W w ) { return W( x._ % w._ ); }
+inline constexpr H operator%( Y y, H h ) { return H( y._ % h._ ); }
+inline constexpr W operator%( W w1, W w2 ) { return W( w1._ % w2._ ); }
+inline constexpr H operator%( H h1, H h2 ) { return H( h1._ % h2._ ); }
+inline constexpr W operator%( X x, SX sx ) { return W( x._ % sx._ ); }
+inline constexpr H operator%( Y y, SY sy ) { return H( y._ % sy._ ); }
+inline constexpr W operator%( W w, SX sx ) { return W( w._ % sx._ ); }
+inline constexpr H operator%( H h, SY sy ) { return H( h._ % sy._ ); }
 // These express that one can only multiply or divide a typed int
 // by the appropriate scaling type.
-inline X    operator*( X x, SX sx ) { return X( x._ * sx._ ); }
-inline Y    operator*( Y y, SY sy ) { return Y( y._ * sy._ ); }
-inline X    operator/( X x, SX sx ) { return X( x._ / sx._ ); }
-inline Y    operator/( Y y, SY sy ) { return Y( y._ / sy._ ); }
-inline W    operator*( W w, SX sx ) { return W( w._ * sx._ ); }
-inline H    operator*( H h, SY sy ) { return H( h._ * sy._ ); }
-inline W    operator/( W w, SX sx ) { return W( w._ / sx._ ); }
-inline H    operator/( H h, SY sy ) { return H( h._ / sy._ ); }
-inline void operator*=( X& x, SX sx ) { x._ *= sx._; }
-inline void operator*=( Y& y, SY sy ) { y._ *= sy._; }
-inline void operator/=( X& x, SX sx ) { x._ /= sx._; }
-inline void operator/=( Y& y, SY sy ) { y._ /= sy._; }
-inline void operator*=( W& w, SX sx ) { w._ *= sx._; }
-inline void operator*=( H& h, SY sy ) { h._ *= sy._; }
-inline void operator/=( W& w, SX sx ) { w._ /= sx._; }
-inline void operator/=( H& h, SY sy ) { h._ /= sy._; }
+inline constexpr X    operator*( X x, SX sx ) { return X( x._ * sx._ ); }
+inline constexpr Y    operator*( Y y, SY sy ) { return Y( y._ * sy._ ); }
+inline constexpr X    operator/( X x, SX sx ) { return X( x._ / sx._ ); }
+inline constexpr Y    operator/( Y y, SY sy ) { return Y( y._ / sy._ ); }
+inline constexpr W    operator*( W w, SX sx ) { return W( w._ * sx._ ); }
+inline constexpr H    operator*( H h, SY sy ) { return H( h._ * sy._ ); }
+inline constexpr W    operator/( W w, SX sx ) { return W( w._ / sx._ ); }
+inline constexpr H    operator/( H h, SY sy ) { return H( h._ / sy._ ); }
+inline constexpr void operator*=( X& x, SX sx ) { x._ *= sx._; }
+inline constexpr void operator*=( Y& y, SY sy ) { y._ *= sy._; }
+inline constexpr void operator/=( X& x, SX sx ) { x._ /= sx._; }
+inline constexpr void operator/=( Y& y, SY sy ) { y._ /= sy._; }
+inline constexpr void operator*=( W& w, SX sx ) { w._ *= sx._; }
+inline constexpr void operator*=( H& h, SY sy ) { h._ *= sy._; }
+inline constexpr void operator/=( W& w, SX sx ) { w._ /= sx._; }
+inline constexpr void operator/=( H& h, SY sy ) { h._ /= sy._; }
 
 // These express that when we add a delta to a coordinate that we
 // get another coordinate. They are specific to the semantics of
 // cartesian coordinates so we don't include them in the TYDPE-
 // D_INT macro.
-inline XD   operator+( XD x, WD w ) { return XD( x._ + w._ ); }
-inline YD   operator+( YD y, HD h ) { return YD( y._ + h._ ); }
-inline XD   operator+( WD w, XD x ) { return XD( x._ + w._ ); }
-inline YD   operator+( HD h, YD y ) { return YD( y._ + h._ ); }
-inline XD   operator-( XD x, WD w ) { return XD( x._ - w._ ); }
-inline YD   operator-( YD y, HD h ) { return YD( y._ - h._ ); }
-inline XD   operator-( WD w, XD x ) { return XD( x._ - w._ ); }
-inline YD   operator-( HD h, YD y ) { return YD( y._ - h._ ); }
-inline void operator+=( XD& x, WD w ) { x._ += w._; }
-inline void operator+=( YD& y, HD h ) { y._ += h._; }
-inline void operator-=( XD& x, WD w ) { x._ -= w._; }
-inline void operator-=( YD& y, HD h ) { y._ -= h._; }
+inline constexpr XD   operator+( XD x, WD w ) { return XD( x._ + w._ ); }
+inline constexpr YD   operator+( YD y, HD h ) { return YD( y._ + h._ ); }
+inline constexpr XD   operator+( WD w, XD x ) { return XD( x._ + w._ ); }
+inline constexpr YD   operator+( HD h, YD y ) { return YD( y._ + h._ ); }
+inline constexpr XD   operator-( XD x, WD w ) { return XD( x._ - w._ ); }
+inline constexpr YD   operator-( YD y, HD h ) { return YD( y._ - h._ ); }
+inline constexpr XD   operator-( WD w, XD x ) { return XD( x._ - w._ ); }
+inline constexpr YD   operator-( HD h, YD y ) { return YD( y._ - h._ ); }
+inline constexpr void operator+=( XD& x, WD w ) { x._ += w._; }
+inline constexpr void operator+=( YD& y, HD h ) { y._ += h._; }
+inline constexpr void operator-=( XD& x, WD w ) { x._ -= w._; }
+inline constexpr void operator-=( YD& y, HD h ) { y._ -= h._; }
 // WDe can allow deltas to subtract from eachother in a mutating
 // way. WDe don't just put these in the above generic classes
 // because we don't want to allow e.g. x1 -= x2; this is because
 // subtracting a coordinate from another one should only yield a
 // width, and so that statement would not make sense.
-inline void operator-=( WD& w1, WD w2 ) { w1._ -= w2._; }
-inline void operator-=( HD& h1, HD h2 ) { h1._ -= h2._; }
+inline constexpr void operator-=( WD& w1, WD w2 ) { w1._ -= w2._; }
+inline constexpr void operator-=( HD& h1, HD h2 ) { h1._ -= h2._; }
 // These express that when we subtract two coordinates or
 // two deltas then we get a delta (not a coordinate).
-inline WD operator-( XD x1, XD x2 ) { return WD( x1._ - x2._ ); }
-inline HD operator-( YD y1, YD y2 ) { return HD( y1._ - y2._ ); }
-inline WD operator-( WD x1, WD x2 ) { return WD( x1._ - x2._ ); }
-inline HD operator-( HD y1, HD y2 ) { return HD( y1._ - y2._ ); }
+inline constexpr WD operator-( XD x1, XD x2 ) { return WD( x1._ - x2._ ); }
+inline constexpr HD operator-( YD y1, YD y2 ) { return HD( y1._ - y2._ ); }
+inline constexpr WD operator-( WD x1, WD x2 ) { return WD( x1._ - x2._ ); }
+inline constexpr HD operator-( HD y1, HD y2 ) { return HD( y1._ - y2._ ); }
 // These express that an absolute position divided by a distance
 // yields a dimensionless ratio.
-inline int operator/( XD x, WD w ) { return x._ / w._; }
-inline int operator/( YD y, HD h ) { return y._ / h._; }
+inline constexpr int operator/( XD x, WD w ) { return x._ / w._; }
+inline constexpr int operator/( YD y, HD h ) { return y._ / h._; }
 // These express that mod'ing an absolute position by a distance
 // or mod'ing two distances yields another distance (i.e., not an
 // absolute position).
-inline WD operator%( XD x, WD w ) { return WD( x._ % w._ ); }
-inline HD operator%( YD y, HD h ) { return HD( y._ % h._ ); }
-inline WD operator%( WD w1, WD w2 ) { return WD( w1._ % w2._ ); }
-inline HD operator%( HD h1, HD h2 ) { return HD( h1._ % h2._ ); }
-inline WD operator%( XD x, SXD sx ) { return WD( x._ % sx._ ); }
-inline HD operator%( YD y, SYD sy ) { return HD( y._ % sy._ ); }
-inline WD operator%( WD w, SXD sx ) { return WD( w._ % sx._ ); }
-inline HD operator%( HD h, SYD sy ) { return HD( h._ % sy._ ); }
+inline constexpr WD operator%( XD x, WD w ) { return WD( x._ % w._ ); }
+inline constexpr HD operator%( YD y, HD h ) { return HD( y._ % h._ ); }
+inline constexpr WD operator%( WD w1, WD w2 ) { return WD( w1._ % w2._ ); }
+inline constexpr HD operator%( HD h1, HD h2 ) { return HD( h1._ % h2._ ); }
+inline constexpr WD operator%( XD x, SXD sx ) { return WD( x._ % sx._ ); }
+inline constexpr HD operator%( YD y, SYD sy ) { return HD( y._ % sy._ ); }
+inline constexpr WD operator%( WD w, SXD sx ) { return WD( w._ % sx._ ); }
+inline constexpr HD operator%( HD h, SYD sy ) { return HD( h._ % sy._ ); }
 // These express that one can only multiply or divide a typed int
 // by the appropriate scaling type.
-inline XD operator*( XD x, SXD sx ) { return XD( x._ * sx._ ); }
-inline YD operator*( YD y, SYD sy ) { return YD( y._ * sy._ ); }
-inline XD operator/( XD x, SXD sx ) { return XD( x._ / sx._ ); }
-inline YD operator/( YD y, SYD sy ) { return YD( y._ / sy._ ); }
-inline WD operator*( WD w, SXD sx ) { return WD( w._ * sx._ ); }
-inline HD operator*( HD h, SYD sy ) { return HD( h._ * sy._ ); }
-inline WD operator/( WD w, SXD sx ) { return WD( w._ / sx._ ); }
-inline HD operator/( HD h, SYD sy ) { return HD( h._ / sy._ ); }
-inline void operator*=( XD& x, SXD sx ) { x._ *= sx._; }
-inline void operator*=( YD& y, SYD sy ) { y._ *= sy._; }
-inline void operator/=( XD& x, SXD sx ) { x._ /= sx._; }
-inline void operator/=( YD& y, SYD sy ) { y._ /= sy._; }
-inline void operator*=( WD& w, SXD sx ) { w._ *= sx._; }
-inline void operator*=( HD& h, SYD sy ) { h._ *= sy._; }
-inline void operator/=( WD& w, SXD sx ) { w._ /= sx._; }
-inline void operator/=( HD& h, SYD sy ) { h._ /= sy._; }
+inline constexpr XD operator*( XD x, SXD sx ) { return XD( x._ * sx._ ); }
+inline constexpr YD operator*( YD y, SYD sy ) { return YD( y._ * sy._ ); }
+inline constexpr XD operator/( XD x, SXD sx ) { return XD( x._ / sx._ ); }
+inline constexpr YD operator/( YD y, SYD sy ) { return YD( y._ / sy._ ); }
+inline constexpr WD operator*( WD w, SXD sx ) { return WD( w._ * sx._ ); }
+inline constexpr HD operator*( HD h, SYD sy ) { return HD( h._ * sy._ ); }
+inline constexpr WD operator/( WD w, SXD sx ) { return WD( w._ / sx._ ); }
+inline constexpr HD operator/( HD h, SYD sy ) { return HD( h._ / sy._ ); }
+inline constexpr void operator*=( XD& x, SXD sx ) { x._ *= sx._; }
+inline constexpr void operator*=( YD& y, SYD sy ) { y._ *= sy._; }
+inline constexpr void operator/=( XD& x, SXD sx ) { x._ /= sx._; }
+inline constexpr void operator/=( YD& y, SYD sy ) { y._ /= sy._; }
+inline constexpr void operator*=( WD& w, SXD sx ) { w._ *= sx._; }
+inline constexpr void operator*=( HD& h, SYD sy ) { h._ *= sy._; }
+inline constexpr void operator/=( WD& w, SXD sx ) { w._ /= sx._; }
+inline constexpr void operator/=( HD& h, SYD sy ) { h._ /= sy._; }
+// clang-format on
 } // namespace rn
