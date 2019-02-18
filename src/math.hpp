@@ -78,10 +78,12 @@ private:
   // new bucket into the window and will remove one bucket off of
   // the end.
   void bump_slide() {
-    auto window                = *curr_window;
-    auto ticks_in_last_bucket_ = *window.begin();
+    auto ticks_in_last_bucket_ = *( *curr_window ).begin();
     ++curr_window;
-    auto& last = *( window | rv::reverse ).begin();
+    // This  is the last bucket of the new window, a.k.a. the one
+    // we need to initialize to zero since it (conceptually) does
+    // not yet have any ticks.
+    auto& last = *( ( *curr_window ) | rv::reverse ).begin();
     last       = 0;
     average_ =
         ticks_in_last_bucket_ / double( bucket_length.count() );

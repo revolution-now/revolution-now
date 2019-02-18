@@ -68,7 +68,7 @@ double   avg_frame_rate() { return frame_rate.average(); }
 void frame_loop( bool poll_input, function<bool()> finished ) {
   using namespace chrono;
 
-  auto frame_length = 1000ms / config_rn.target_frame_rate;
+  auto frame_length = 1000000us / config_rn.target_frame_rate;
 
   while( true ) {
     frame_rate.tick();
