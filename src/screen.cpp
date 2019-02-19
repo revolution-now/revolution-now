@@ -171,14 +171,9 @@ void find_pixel_scale_factor() {
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
                        auto score ) {
-    // Not sure why {fmt} is not willing to accept user defined
-    // types directly with "{: ^18}" formatting strings, so we
-    // pre-convert them to strings.
-    auto f = L( fmt::format( "{}", _ ) );
     logger->debug( "{: ^18}{: ^18}{: ^18}{: ^18}{: ^18}",
-                   f( possibility ), f( resolution ),
-                   f( tile_size_screen ), f( tile_size_1ft ),
-                   f( score ) );
+                   possibility, resolution, tile_size_screen,
+                   tile_size_1ft, score );
   };
 
   auto            dm = get_current_display_mode();

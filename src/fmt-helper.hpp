@@ -22,25 +22,26 @@
 // C++ standard library
 #include <chrono>
 #include <optional>
+#include <string>
 #include <type_traits>
 #include <variant>
 
-// Macro to easily extend {fmt} to user-defined types.  This
-// macro should be issued in the global namespace.
-#define DEFINE_FORMAT_IMPL( use_param, type, ... )            \
-  namespace fmt {                                             \
-  template<>                                                  \
-  struct formatter<type> {                                    \
-    template<typename ParseContext>                           \
-    constexpr auto parse( ParseContext &ctx ) {               \
-      return ctx.begin();                                     \
-    }                                                         \
-    template<typename FormatContext>                          \
-    auto format( const type &o, FormatContext &ctx ) {        \
-      use_param return format_to( ctx.begin(), __VA_ARGS__ ); \
-    }                                                         \
-  };                                                          \
-  }
+// The reason that we inherit from std::string is so that we can
+// inherit its parser. Without the parser then we would not be
+// able format custom types with non-trivial format strings.
+using formatter_base = ::fmt::formatter<::std::string>;
+
+// Macro to easily extend {fmt} to user-defined types. This macro
+// should be issued in the global namespace.
+#define DEFINE_FORMAT_IMPL( use_param, type, ... )     \
+  template<>                                           \
+  struct fmt::formatter<type> : formatter_base {       \
+    template<typename FormatContext>                   \
+    auto format( const type &o, FormatContext &ctx ) { \
+      use_param return formatter_base::format(         \
+          fmt::format( __VA_ARGS__ ), ctx );           \
+    }                                                  \
+  };
 
 // This is the one to use when the formatting output depends on
 // the value of the object (most cases).
@@ -54,16 +55,13 @@
 namespace fmt {
 
 template<typename... Ts>
-struct formatter<std::chrono::time_point<Ts...>> {
-  template<typename ParseContext>
-  constexpr auto parse( ParseContext &ctx ) {
-    return ctx.begin();
-  }
+struct formatter<std::chrono::time_point<Ts...>>
+  : formatter_base {
   template<typename FormatContext>
   auto format( std::chrono::time_point<Ts...> const &o,
                FormatContext &                       ctx ) {
     auto str = "\"" + util::to_string( o ) + "\"";
-    return format_to( ctx.begin(), str );
+    return formatter_base::format( str, ctx );
   }
 };
 
@@ -82,16 +80,13 @@ struct formatter<std::variant<Ts...>> : dynamic_formatter<> {
 // {fmt} formatter for formatting optionals whose contained
 // type is formattable.
 template<typename T>
-struct formatter<std::optional<T>> {
-  template<typename ParseContext>
-  constexpr auto parse( ParseContext &ctx ) {
-    return ctx.begin();
-  }
+struct formatter<std::optional<T>> : formatter_base {
   template<typename FormatContext>
   auto format( std::optional<T> const &o, FormatContext &ctx ) {
-    return format_to( ctx.begin(), o.has_value()
-                                       ? fmt::format( "{}", *o )
-                                       : "nullopt" );
+    return formatter_base::format(
+        fmt::format( o.has_value() ? fmt::format( "{}", *o )
+                                   : "nullopt" ),
+        ctx );
   }
 };
 
@@ -137,14 +132,12 @@ struct formatter<std::optional<T>> {
 // formatter. So this could break at some point.
 //
 template<typename T>
-struct formatter<T, char, std::void_t<typename T::_enumerated>> {
-  template<typename ParseContext>
-  constexpr auto parse( ParseContext &ctx ) {
-    return ctx.begin();
-  }
+struct formatter<T, char, std::void_t<typename T::_enumerated>>
+  : formatter_base {
   template<typename FormatContext>
   auto format( T const &o, FormatContext &ctx ) {
-    return format_to( ctx.begin(), "{}", o._to_string() );
+    return formatter_base::format(
+        fmt::format( "{}", o._to_string() ), ctx );
   }
 };
 
