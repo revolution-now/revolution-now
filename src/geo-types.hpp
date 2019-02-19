@@ -368,6 +368,9 @@ ND constexpr Delta operator%( Delta const& lhs,
   return Delta{lhs.w % rhs.sx, lhs.h % rhs.sy};
 }
 
+Scale operator*( Scale const& lhs, Scale const& rhs );
+Scale operator/( Scale const& lhs, Scale const& rhs );
+
 } // namespace rn
 
 DEFINE_FORMAT( ::rn::Scale, "({},{})", o.sx, o.sy );

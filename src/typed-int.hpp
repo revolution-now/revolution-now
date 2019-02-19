@@ -584,8 +584,12 @@ inline constexpr H operator%( H h, SY sy ) { return H( h._ % sy._ ); }
 // by the appropriate scaling type.
 inline constexpr X    operator*( X x, SX sx ) { return X( x._ * sx._ ); }
 inline constexpr Y    operator*( Y y, SY sy ) { return Y( y._ * sy._ ); }
+inline constexpr SX   operator*( SX s1, SX s2 ) { return SX( s1._ * s2._ ); }
+inline constexpr SY   operator*( SY s1, SY s2 ) { return SY( s1._ * s2._ ); }
 inline constexpr X    operator/( X x, SX sx ) { return X( x._ / sx._ ); }
 inline constexpr Y    operator/( Y y, SY sy ) { return Y( y._ / sy._ ); }
+inline constexpr SX   operator/( SX s1, SX s2 ) { return SX( s1._ / s2._ ); }
+inline constexpr SY   operator/( SY s1, SY s2 ) { return SY( s1._ / s2._ ); }
 inline constexpr W    operator*( W w, SX sx ) { return W( w._ * sx._ ); }
 inline constexpr H    operator*( H h, SY sy ) { return H( h._ * sy._ ); }
 inline constexpr W    operator/( W w, SX sx ) { return W( w._ / sx._ ); }
@@ -647,12 +651,16 @@ inline constexpr HD operator%( HD h, SYD sy ) { return HD( h._ % sy._ ); }
 // by the appropriate scaling type.
 inline constexpr XD operator*( XD x, SXD sx ) { return XD( x._ * sx._ ); }
 inline constexpr YD operator*( YD y, SYD sy ) { return YD( y._ * sy._ ); }
+inline constexpr SXD operator*( SXD s1, SXD s2 ) { return SXD( s1._ * s2._ ); }
+inline constexpr SYD operator*( SYD s1, SYD s2 ) { return SYD( s1._ * s2._ ); }
 inline constexpr XD operator/( XD x, SXD sx ) { return XD( x._ / sx._ ); }
 inline constexpr YD operator/( YD y, SYD sy ) { return YD( y._ / sy._ ); }
 inline constexpr WD operator*( WD w, SXD sx ) { return WD( w._ * sx._ ); }
 inline constexpr HD operator*( HD h, SYD sy ) { return HD( h._ * sy._ ); }
 inline constexpr WD operator/( WD w, SXD sx ) { return WD( w._ / sx._ ); }
 inline constexpr HD operator/( HD h, SYD sy ) { return HD( h._ / sy._ ); }
+inline constexpr SXD operator/( SXD s1, SXD s2 ) { return SXD( s1._ / s2._ ); }
+inline constexpr SYD operator/( SYD s1, SYD s2 ) { return SYD( s1._ / s2._ ); }
 inline constexpr void operator*=( XD& x, SXD sx ) { x._ *= sx._; }
 inline constexpr void operator*=( YD& y, SYD sy ) { y._ *= sy._; }
 inline constexpr void operator/=( XD& x, SXD sx ) { x._ /= sx._; }

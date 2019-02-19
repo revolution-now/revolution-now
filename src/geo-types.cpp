@@ -359,4 +359,12 @@ Delta operator%( Coord const& coord, Delta const& delta ) {
   return {coord.x % delta.w, coord.y % delta.h};
 }
 
+Scale operator*( Scale const& lhs, Scale const& rhs ) {
+  return {lhs.sx * rhs.sx, lhs.sy * rhs.sy};
+}
+
+Scale operator/( Scale const& lhs, Scale const& rhs ) {
+  return {lhs.sx / rhs.sx, lhs.sy / rhs.sy};
+}
+
 } // namespace rn
