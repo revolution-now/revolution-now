@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "init.hpp"
 
 // C++ standard library
 #include <random>
@@ -35,6 +36,14 @@ auto& maybe_engine() {
   return engine;
 }
 
+// If a seed is not provided then it will use one from std::ran-
+// dom_device.
+void init_rng( Opt<uint32_t> maybe_seed = nullopt ) {
+  auto seed =
+      maybe_seed.value_or( uint32_t( random_device{}() ) );
+  maybe_engine() = default_random_engine( seed );
+}
+
 } // namespace
 
 default_random_engine& engine() {
@@ -44,12 +53,6 @@ default_random_engine& engine() {
          "the random number engine must be seeded"
          " first with init(...)" );
   return *e;
-}
-
-void init( Opt<uint32_t> maybe_seed ) {
-  auto seed =
-      maybe_seed.value_or( uint32_t( random_device{}() ) );
-  maybe_engine() = default_random_engine( seed );
 }
 
 bool flip_coin() { return coin( engine() ); }
@@ -77,5 +80,8 @@ int between( int lower, int upper, e_interval type ) {
 }
 
 } // namespace rng
+
+REGISTER_INIT_ROUTINE(
+    rng, [] { rng::init_rng(); }, [] {} );
 
 } // namespace rn

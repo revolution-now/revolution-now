@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
@@ -54,7 +55,38 @@ struct TerrainBlockCache {
 Matrix<TerrainBlockCache> block_cache( world_size /
                                        terrain_block_size );
 
+void init_terrain() {
+  auto make_squares = [&]( Coord origin ) {
+    for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
+      for( X x = origin.x; x < origin.x + 4_w; ++x )
+        world_map[y][x] = L;
+      for( X x = origin.x + 6_w; x < origin.x + 10_w; ++x )
+        world_map[y][x] = L;
+    }
+  };
+
+  make_squares( {1_x, 1_y} );
+  make_squares( {20_x, 10_y} );
+  make_squares( {10_x, 30_y} );
+  make_squares( {70_x, 30_y} );
+  make_squares( {60_x, 10_y} );
+  make_squares( {40_x, 40_y} );
+  make_squares( {100_x, 25_y} );
+
+  for( auto coord : block_cache.rect() ) {
+    TerrainBlockCache cache{
+        /*needs_redraw=*/true, coord,
+        create_texture( Delta{1_w, 1_h} * terrain_block_size *
+                        g_tile_scale )};
+    block_cache[coord] = std::move( cache );
+  }
+}
+
+void cleanup_terrain() { block_cache.clear(); }
+
 } // namespace
+
+REGISTER_INIT_ROUTINE( terrain, init_terrain, cleanup_terrain );
 
 void render_terrain_square( Texture const& tx,
                             Coord          world_square,
@@ -85,35 +117,6 @@ void render_terrain( Rect src_tiles, Texture& dest,
     copy_texture( cache.tx, dest, dest_coord );
   }
 }
-
-void initialize_terrain() {
-  auto make_squares = [&]( Coord origin ) {
-    for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
-      for( X x = origin.x; x < origin.x + 4_w; ++x )
-        world_map[y][x] = L;
-      for( X x = origin.x + 6_w; x < origin.x + 10_w; ++x )
-        world_map[y][x] = L;
-    }
-  };
-
-  make_squares( {1_x, 1_y} );
-  make_squares( {20_x, 10_y} );
-  make_squares( {10_x, 30_y} );
-  make_squares( {70_x, 30_y} );
-  make_squares( {60_x, 10_y} );
-  make_squares( {40_x, 40_y} );
-  make_squares( {100_x, 25_y} );
-
-  for( auto coord : block_cache.rect() ) {
-    TerrainBlockCache cache{
-        /*needs_redraw=*/true, coord,
-        create_texture( Delta{1_w, 1_h} * terrain_block_size *
-                        g_tile_scale )};
-    block_cache[coord] = std::move( cache );
-  }
-}
-
-void cleanup_terrain() { block_cache.clear(); }
 
 Delta world_size_tiles() { return world_map.size(); }
 

@@ -18,13 +18,6 @@ Plan
    rendering and combat.
 6) Finish ship combat
 7) Implement mouse selection of units to e.g. activate.
-8) Make an init module which handles game initializing
-   and cleanup.  Each initialization step has an enum
-   value, and each module registers its initialization
-   step and declares the other steps that it depends on,
-   then the init manager will perform them in the right
-   order.  This will also obviate the need for sdl-util
-   to include all the other headers.
 9) Modify the `screen` module to handle all quantities
    that depend on the rendering scale, and allow dynamic
    changes to it.  Also try to fix non-fullscreen mode.

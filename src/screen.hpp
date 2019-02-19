@@ -51,7 +51,4 @@ Rect screen_logical_rect();
 // viewport state.
 Delta viewport_size_pixels();
 
-void initialize_screen();
-void cleanup_screen();
-
 } // namespace rn

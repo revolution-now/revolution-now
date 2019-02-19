@@ -109,9 +109,6 @@ struct Plane : public util::non_copy_non_move {
       e_menu_item item ) const;
 };
 
-void initialize_planes();
-void destroy_planes();
-
 void draw_all_planes( Texture const& tx = Texture() );
 
 // Returns true if one of the planes handled the input, false

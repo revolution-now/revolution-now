@@ -50,7 +50,4 @@ void render_terrain_square( Texture const& tx,
 void render_terrain( Rect src_tiles, Texture& dest,
                      Coord dest_pixel_coord );
 
-void initialize_terrain();
-void cleanup_terrain();
-
 } // namespace rn

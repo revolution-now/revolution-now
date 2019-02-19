@@ -14,16 +14,9 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
-#include "fonts.hpp"
-#include "image.hpp"
+#include "init.hpp"
 #include "logging.hpp"
-#include "menu.hpp"
-#include "plane.hpp"
 #include "screen.hpp"
-#include "sound.hpp"
-#include "terrain.hpp"
-#include "tiles.hpp"
-#include "util.hpp"
 
 // SDL
 #include "SDL_mixer.h"
@@ -82,30 +75,6 @@ ND Rect from_SDL( ::SDL_Rect const& rect ) {
   return res;
 }
 
-void init_game() {
-  logger->info( "Initializing SDL" );
-  init_sdl();
-  logger->info( "Initializing fonts" );
-  init_fonts();
-  logger->info( "Initializing SDL window" );
-  create_window();
-  initialize_screen();
-  logger->info( "Initializing global renderer" );
-  create_renderer();
-  logger->info( "Loading sprites" );
-  load_sprites();
-  logger->info( "Initializing planes" );
-  initialize_planes();
-  logger->info( "Loading sound effects" );
-  load_all_sfx();
-  logger->info( "Loading images" );
-  load_all_images();
-  logger->info( "Initializing menus" );
-  initialize_menus();
-  logger->info( "Initializing terrain" );
-  initialize_terrain();
-}
-
 void init_sdl() {
   CHECK( ::SDL_Init( SDL_INIT_EVERYTHING ) >= 0,
          "sdl could not initialize" );
@@ -126,7 +95,17 @@ void init_sdl() {
   ::Mix_VolumeMusic( default_volume );
 }
 
-void create_window() {
+// All the functions in this method should not cause problems
+// even if their corresponding initialization routines were
+// not successfully run.
+void cleanup_sdl() {
+  for( auto& p : loaded_textures ) p.second.free();
+  ::SDL_Quit();
+}
+
+REGISTER_INIT_ROUTINE( sdl, init_sdl, cleanup_sdl );
+
+void init_app_window() {
   // NOLINTNEXTLINE(hicpp-signed-bitwise)
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
                ::SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -145,15 +124,20 @@ void create_window() {
   //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );
 }
 
-void create_renderer() {
+void cleanup_app_window() {
+  if( g_window != nullptr ) SDL_DestroyWindow( g_window );
+}
+
+REGISTER_INIT_ROUTINE( app_window, init_app_window,
+                       cleanup_app_window );
+
+void init_renderer() {
   g_renderer = SDL_CreateRenderer(
       g_window, -1,
       SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE |
           SDL_RENDERER_PRESENTVSYNC );
 
   CHECK( g_renderer, "failed to create renderer" );
-
-  find_pixel_scale_factor();
 
   W width  = screen_size_tiles().w * g_tile_width;
   H height = screen_size_tiles().h * g_tile_height;
@@ -197,6 +181,14 @@ void create_renderer() {
   g_texture_viewport = create_texture( delta );
 }
 
+void cleanup_renderer() {
+  if( g_renderer != nullptr )
+    ::SDL_DestroyRenderer( g_renderer );
+}
+
+REGISTER_INIT_ROUTINE( renderer, init_renderer,
+                       cleanup_renderer );
+
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
 ::SDL_Surface* optimize_surface( ::SDL_Surface* in,
@@ -226,24 +218,6 @@ Texture& load_texture( const char* file ) {
 
 Texture& load_texture( fs::path const& path ) {
   return load_texture( path.string().c_str() );
-}
-
-// All the functions in this method should not cause problems
-// even if their corresponding initialization routines were
-// not successfully run.
-void cleanup() {
-  cleanup_terrain();
-  cleanup_menus();
-  destroy_planes();
-  unload_fonts();
-  cleanup_sound();
-  cleanup_screen();
-  for( auto& p : loaded_textures ) p.second.free();
-  if( g_renderer != nullptr ) SDL_DestroyRenderer( g_renderer );
-  if( g_window != nullptr ) SDL_DestroyWindow( g_window );
-  // Not clear if this actually quits the program; but it does
-  // deinitialize everything.
-  SDL_Quit();
 }
 
 Delta texture_delta( Texture const& texture ) {

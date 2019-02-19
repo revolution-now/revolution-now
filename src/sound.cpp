@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "util.hpp"
 
@@ -73,9 +74,7 @@ auto* load_sfx( e_sfx sound ) {
   return loaded_sfx[sound];
 }
 
-} // namespace
-
-void load_all_sfx() {
+void init_sound() {
   for( auto sound : values<e_sfx> ) load_sfx( sound );
 }
 
@@ -83,6 +82,10 @@ void cleanup_sound() {
   stop_music_if_playing();
   for( auto& p : loaded_sfx ) ::Mix_FreeChunk( p.second );
 }
+
+} // namespace
+
+REGISTER_INIT_ROUTINE( sound, init_sound, cleanup_sound );
 
 bool play_music_file( char const* file ) {
   stop_music_if_playing();

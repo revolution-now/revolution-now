@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "util.hpp"
 #include "utype.hpp"
@@ -435,11 +436,7 @@ vector<string> get_all_fields( ucl::Ucl const& obj ) {
   return res;
 }
 
-} // namespace
-
-#include "../config/config-vars.inl"
-
-void load_configs() {
+void init_configs() {
   for( auto const& f : load_functions() ) f();
   for( auto [ucl_name, file] : config_files() ) {
     // cout << "Loading file " << file << "\n";
@@ -465,6 +462,12 @@ void load_configs() {
     }
   }
 }
+
+} // namespace
+
+#include "../config/config-vars.inl"
+
+REGISTER_INIT_ROUTINE( configs, init_configs, [] {} );
 
 Vec<Color> const& g_palette() {
   static Vec<Color> const& colors = [] {

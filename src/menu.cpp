@@ -17,6 +17,7 @@
 #include "errors.hpp"
 #include "fonts.hpp"
 #include "frame.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -897,7 +898,7 @@ void register_menu_item_handler(
 /****************************************************************
 ** Initialization
 *****************************************************************/
-void initialize_menus() {
+void init_menus() {
   // Check that all menus have descriptors.
   for( auto menu : values<e_menu> ) {
     CHECK( g_menus.contains( menu ) );
@@ -1008,6 +1009,8 @@ void cleanup_menus() {
   g_menu_item_rendered.clear();
   menu_bar_tx.free();
 }
+
+REGISTER_INIT_ROUTINE( menus, init_menus, cleanup_menus );
 
 /****************************************************************
 ** Handlers (temporary)

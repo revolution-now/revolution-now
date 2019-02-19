@@ -34,10 +34,6 @@ Texture render_text_line_shadow( e_font font, Color fg,
 
 void font_test();
 
-void init_fonts();
-
-void unload_fonts();
-
 Delta font_rendered_width( e_font             font,
                            std::string const& text );
 

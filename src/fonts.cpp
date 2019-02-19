@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
 #include "screen.hpp"
@@ -87,6 +88,33 @@ struct TextRenderDesc {
 };
 
 absl::flat_hash_map<TextRenderDesc, Texture> text_cache;
+
+void init_fonts() {
+  CHECK( !TTF_Init() );
+  for( auto& font : loaded_fonts ) {
+    auto&       font_desc = font.second;
+    int         pt_size   = font_desc.pt_size;
+    char const* font_file = font_desc.file_name;
+    ASSIGN_CHECK( ttf_font,
+                  ::TTF_OpenFont( font_file, pt_size ) );
+    // Check style first before setting this.
+    ::TTF_SetFontStyle( ttf_font, TTF_STYLE_NORMAL );
+    int outline = 0;
+    ::TTF_SetFontOutline( ttf_font, outline );
+    font_desc.ttf_font = ttf_font;
+  }
+}
+
+void cleanup_fonts() {
+  for( auto& font : loaded_fonts ) {
+    auto& font_desc = font.second;
+    ::TTF_CloseFont( font_desc.ttf_font );
+  }
+  for( auto& p : text_cache ) p.second.free();
+  TTF_Quit();
+}
+
+REGISTER_INIT_ROUTINE( fonts, init_fonts, cleanup_fonts );
 
 } // namespace
 
@@ -197,31 +225,6 @@ Delta font_rendered_width( e_font             font,
   ::TTF_SizeText( loaded_fonts[font].ttf_font, text.c_str(), &w,
                   &h );
   return {W( w ), H( h )};
-}
-
-void init_fonts() {
-  CHECK( !TTF_Init() );
-  for( auto& font : loaded_fonts ) {
-    auto&       font_desc = font.second;
-    int         pt_size   = font_desc.pt_size;
-    char const* font_file = font_desc.file_name;
-    ASSIGN_CHECK( ttf_font,
-                  ::TTF_OpenFont( font_file, pt_size ) );
-    // Check style first before setting this.
-    ::TTF_SetFontStyle( ttf_font, TTF_STYLE_NORMAL );
-    int outline = 0;
-    ::TTF_SetFontOutline( ttf_font, outline );
-    font_desc.ttf_font = ttf_font;
-  }
-}
-
-void unload_fonts() {
-  for( auto& font : loaded_fonts ) {
-    auto& font_desc = font.second;
-    ::TTF_CloseFont( font_desc.ttf_font );
-  }
-  for( auto& p : text_cache ) p.second.free();
-  TTF_Quit();
 }
 
 void font_test() {

@@ -11,6 +11,7 @@
 #include "screen.hpp"
 
 // Revolution Now
+#include "init.hpp"
 #include "logging.hpp"
 #include "sdl-util.hpp"
 #include "tiles.hpp"
@@ -138,7 +139,14 @@ void query_video_stats() {
                  monitor_inches() );
 }
 
+void init_screen() {
+  query_video_stats();
+  find_pixel_scale_factor();
+}
+
 } // namespace
+
+REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
 
 void find_pixel_scale_factor() {
   // We want ideally to have a tile whose side is this length in
@@ -282,9 +290,5 @@ Delta viewport_size_pixels() {
             g_screen_height_tiles - 1};
   return size_tiles * g_tile_scale;
 }
-
-void initialize_screen() { query_video_stats(); }
-
-void cleanup_screen() {}
 
 } // namespace rn

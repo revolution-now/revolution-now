@@ -72,16 +72,6 @@ private:
 
 using TextureRef = std::reference_wrapper<Texture>;
 
-void init_game();
-
-void init_sdl();
-
-void create_window();
-
-void create_renderer();
-
-void cleanup();
-
 void set_render_target( Texture const& tx );
 
 // Make an RAII version of this

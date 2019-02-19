@@ -15,6 +15,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "geo-types.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
@@ -67,7 +68,10 @@ ImagePlane g_image_plane;
 
 } // namespace
 
-void load_all_images() {
+// This will cause all images to be loaded into memory but the
+// resulting textures will not be owned by this module, so there
+// is no need for a corresponding `release` function.
+void init_images() {
   for( auto image : values<e_image> ) {
     g_images.insert(
         {image, load_texture( image_file_path( image ) )} );
@@ -76,6 +80,8 @@ void load_all_images() {
   // pointers are non-null.
   for( auto const& p : g_images ) CHECK( p.second.get().get() );
 }
+
+REGISTER_INIT_ROUTINE( images, init_images, [] {} );
 
 Plane* image_plane() { return &g_image_plane; }
 

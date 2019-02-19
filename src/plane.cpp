@@ -14,6 +14,7 @@
 #include "aliases.hpp"
 #include "console.hpp"
 #include "image.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
 #include "ranges.hpp"
@@ -78,33 +79,7 @@ auto relevant_planes() {
 
 auto planes_to_draw() { return relevant_planes() | rv::reverse; }
 
-} // namespace
-
-Plane& Plane::get( e_plane p ) { return *plane( p ); }
-
-bool Plane::input( input::event_t const& /*unused*/ ) {
-  return false;
-}
-
-Plane::e_accept_drag Plane::can_drag(
-    input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
-  return e_accept_drag::no;
-}
-
-void Plane::on_drag( input::e_mouse_button /*unused*/,
-                     Coord /*unused*/, Coord /*unused*/,
-                     Coord /*unused*/ ) {}
-
-void Plane::on_drag_finished( input::e_mouse_button /*unused*/,
-                              Coord /*unused*/,
-                              Coord /*unused*/ ) {}
-
-OptRef<Plane::MenuClickHandler> Plane::menu_click_handler(
-    e_menu_item /*unused*/ ) const {
-  return nullopt;
-}
-
-void initialize_planes() {
+void init_planes() {
   // By default, all planes are dummies, unless we provide an
   // object below.
   planes.fill( ObserverPtr<Plane>( &dummy ) );
@@ -133,10 +108,38 @@ void initialize_planes() {
   }
 }
 
-void destroy_planes() {
+void cleanup_planes() {
   // This actually just destroys the textures, since the planes
   // will be held by value as global variables elsewhere.
   for( auto& tx : textures ) tx = {};
+}
+
+REGISTER_INIT_ROUTINE( planes, init_planes, cleanup_planes );
+
+} // namespace
+
+Plane& Plane::get( e_plane p ) { return *plane( p ); }
+
+bool Plane::input( input::event_t const& /*unused*/ ) {
+  return false;
+}
+
+Plane::e_accept_drag Plane::can_drag(
+    input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
+  return e_accept_drag::no;
+}
+
+void Plane::on_drag( input::e_mouse_button /*unused*/,
+                     Coord /*unused*/, Coord /*unused*/,
+                     Coord /*unused*/ ) {}
+
+void Plane::on_drag_finished( input::e_mouse_button /*unused*/,
+                              Coord /*unused*/,
+                              Coord /*unused*/ ) {}
+
+OptRef<Plane::MenuClickHandler> Plane::menu_click_handler(
+    e_menu_item /*unused*/ ) const {
+  return nullopt;
 }
 
 void draw_all_planes( Texture const& tx ) {

@@ -12,6 +12,7 @@
 
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "init.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 
@@ -39,8 +40,6 @@ struct tile_map {
 unordered_map<g_tile, sprite, EnumClassHash> sprites;
 unordered_map<std::string, tile_map>         tile_maps;
 
-} // namespace
-
 sprite create_sprite_32( Texture const& texture, Coord coord ) {
   Rect rect{coord.x * 32_sx, coord.y * 32_sy, 32_w, 32_h};
   return {&texture, rect, {32_sx, 32_sy}};
@@ -63,7 +62,7 @@ sprite create_sprite_8( Texture const& texture, Coord coord ) {
   sprites[g_tile::name] = create_sprite_8( \
       tile_set_menu, config_art.tiles.menu.coords.name )
 
-void load_sprites() {
+void init_sprites() {
   auto& tile_set_world =
       load_texture( config_art.tiles.world.img );
   auto& tile_set_units =
@@ -112,6 +111,10 @@ void load_sprites() {
   SET_SPRITE_MENU( menu_bar_bottom );
   SET_SPRITE_MENU( menu_bar_top );
 }
+
+} // namespace
+
+REGISTER_INIT_ROUTINE( sprites, init_sprites, [] {} );
 
 sprite const& lookup_sprite( g_tile tile ) {
   auto where = sprites.find( tile );

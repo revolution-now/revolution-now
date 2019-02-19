@@ -20,11 +20,6 @@ namespace rn {
 
 enum class e_( image, old_world );
 
-// This will cause all images to be loaded into memory but the
-// resulting textures will not be owned by this module, so there
-// is no need for a corresponding `release` function.
-void load_all_images();
-
 Plane* image_plane();
 void   image_plane_enable( bool enable );
 void   image_plane_set( e_image image );

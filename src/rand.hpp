@@ -29,10 +29,6 @@ namespace rng {
 
 std::default_random_engine& engine();
 
-// If a seed is not provided then it will use one from std::ran-
-// dom_device.
-void init( Opt<uint32_t> maybe_seed = std::nullopt );
-
 // Flip a fair coin.
 bool flip_coin();
 

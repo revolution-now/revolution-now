@@ -57,8 +57,6 @@ namespace rn {
 
 #include "../config/config-vars.inl"
 
-void load_configs();
-
 // The main global palette sorted using bucketed hue-sat-lum.
 // Colors should normally be accessed using the config_palette
 // global config structure, e.g. config_palette.red.sat0.lum1.

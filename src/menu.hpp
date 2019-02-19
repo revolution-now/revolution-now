@@ -67,9 +67,6 @@ void register_menu_item_handler(
     std::function<void( void )> const& on_click,
     std::function<bool( void )> const& is_enabled );
 
-void initialize_menus();
-void cleanup_menus();
-
 struct Plane;
 Plane* menu_plane();
 
