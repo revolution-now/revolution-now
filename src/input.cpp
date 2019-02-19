@@ -11,7 +11,7 @@
 #include "input.hpp"
 
 // Revolution Now
-#include "globals.hpp"
+#include "screen.hpp"
 #include "util.hpp"
 
 // Abseil

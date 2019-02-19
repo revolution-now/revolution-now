@@ -12,10 +12,10 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "globals.hpp"
 #include "input.hpp"
 #include "math.hpp"
 #include "plane.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 #include "viewport.hpp"
 

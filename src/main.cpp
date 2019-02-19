@@ -4,7 +4,6 @@
 #include "fonts.hpp"
 #include "frame.hpp"
 #include "geo-types.hpp"
-#include "globals.hpp"
 #include "image.hpp"
 #include "input.hpp"
 #include "logging.hpp"

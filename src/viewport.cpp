@@ -13,7 +13,7 @@
 
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "globals.hpp"
+#include "screen.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
@@ -229,11 +229,10 @@ void SmoothViewport::stop_auto_panning() {
 }
 
 double SmoothViewport::width_pixels() const {
-  return double( viewport_width_tiles() * g_tile_width ) / zoom_;
+  return double( viewport_size_pixels().w ) / zoom_;
 }
 double SmoothViewport::height_pixels() const {
-  return double( viewport_height_tiles() * g_tile_height ) /
-         zoom_;
+  return double( viewport_size_pixels().h ) / zoom_;
 }
 
 double SmoothViewport::start_x() const {
@@ -349,23 +348,21 @@ Rect SmoothViewport::rendering_dest_rect() const {
   Rect dest;
   dest.x        = 0;
   dest.y        = 0;
-  dest.w        = viewport_width_tiles() * g_tile_width;
-  dest.h        = viewport_height_tiles() * g_tile_height;
+  dest.w        = viewport_size_pixels().w;
+  dest.h        = viewport_size_pixels().h;
   Rect viewport = get_bounds();
   auto [max_src_width, max_src_height] = world_size_pixels();
   if( viewport.w > max_src_width ) {
     double delta = ( double( viewport.w - max_src_width ) /
                      double( viewport.w ) ) *
-                   g_tile_width._ *
-                   double( int( viewport_width_tiles() ) ) / 2;
+                   double( viewport_size_pixels().w._ ) / 2;
     dest.x += int( delta );
     dest.w -= int( delta * 2 );
   }
   if( viewport.h > max_src_height ) {
     double delta = ( double( viewport.h - max_src_height ) /
                      double( viewport.h ) ) *
-                   g_tile_height._ *
-                   double( int( viewport_height_tiles() ) ) / 2;
+                   double( viewport_size_pixels().h._ ) / 2;
     dest.y += int( delta );
     dest.h -= int( delta * 2 );
   }

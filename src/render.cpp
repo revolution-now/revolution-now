@@ -15,12 +15,12 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
-#include "globals.hpp"
 #include "logging.hpp"
 #include "orders.hpp"
 #include "ownership.hpp"
 #include "plane.hpp"
 #include "rand.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 #include "terrain.hpp"
 #include "travel.hpp"
@@ -533,23 +533,23 @@ struct PanelPlane : public Plane {
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     constexpr int panel_width{6};
-    auto          bottom_bar = 0_y + screen_height_tiles() - 1;
-    auto left_side = 0_x + screen_width_tiles() - panel_width;
+    auto          bottom_bar = 0_y + screen_size_tiles().h - 1;
+    auto left_side = 0_x + screen_size_tiles().w - panel_width;
     // bottom edge
-    for( X i( 0 ); i - 0_x < screen_width_tiles() - panel_width;
+    for( X i( 0 ); i - 0_x < screen_size_tiles().w - panel_width;
          ++i )
       render_sprite_grid( tx, g_tile::panel_edge_left,
                           bottom_bar, i, 1, 0 );
     // left edge
-    for( Y i( 0 ); i - 0_y < screen_height_tiles() - 1; ++i )
+    for( Y i( 0 ); i - 0_y < screen_size_tiles().h - 1; ++i )
       render_sprite_grid( tx, g_tile::panel_edge_left, i,
                           left_side, 0, 0 );
     // bottom left corner of main panel
     render_sprite_grid( tx, g_tile::panel, bottom_bar, left_side,
                         0, 0 );
 
-    for( Y i( 0 ); i - 0_y < screen_height_tiles(); ++i )
-      for( X j( left_side + 1 ); j - 0_x < screen_width_tiles();
+    for( Y i( 0 ); i - 0_y < screen_size_tiles().h; ++i )
+      for( X j( left_side + 1 ); j - 0_x < screen_size_tiles().w;
            ++j )
         render_sprite_grid( tx, g_tile::panel, i, j, 0, 0 );
   }

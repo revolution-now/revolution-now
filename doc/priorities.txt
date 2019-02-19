@@ -12,19 +12,20 @@ Plan
      * hot keys
      * names with highlighted hotkey
      * Fix click rect around headers
-3) Add disband command
-4) Fix handling of multiple units on a square with
+3) Add logging into console
+4) Add disband command
+5) Fix handling of multiple units on a square with
    rendering and combat.
-5) Finish ship combat
-6) Implement mouse selection of units to e.g. activate.
-7) Make an init module which handles game initializing
+6) Finish ship combat
+7) Implement mouse selection of units to e.g. activate.
+8) Make an init module which handles game initializing
    and cleanup.  Each initialization step has an enum
    value, and each module registers its initialization
    step and declares the other steps that it depends on,
    then the init manager will perform them in the right
    order.  This will also obviate the need for sdl-util
    to include all the other headers.
-8) Modify the `screen` module to handle all quantities
+9) Modify the `screen` module to handle all quantities
    that depend on the rendering scale, and allow dynamic
    changes to it.  Also try to fix non-fullscreen mode.
 

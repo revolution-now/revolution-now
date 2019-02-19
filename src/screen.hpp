@@ -1,32 +1,28 @@
 /****************************************************************
-**globals.hpp
+**screen.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-25.
+* Created by dsicilia on 2019-02-18.
 *
-* Description: Globals needed by the game.
+* Description: Handles screen resolution and scaling.
 *
 *****************************************************************/
 #pragma once
 
-// Revolution Now
 #include "core-config.hpp"
-#include "geo-types.hpp"
-#include "sdl-util.hpp"
-#include "typed-int.hpp"
 
-// SDL
-#include "SDL.h"
-#include "SDL_image.h"
+// Revolution Now
+#include "geo-types.hpp"
+#include "sdl-util.hpp" // TODO: get rid of this here
 
 namespace rn {
 
 extern ::SDL_Window*   g_window;
 extern ::SDL_Renderer* g_renderer;
-// TODO: move this
-extern Texture g_texture_viewport;
-extern Scale   g_resolution_scale_factor;
+extern Texture         g_texture_viewport;
+
+extern Scale g_resolution_scale_factor;
 // This origin will be a small distance away from the screen's
 // origin and will skip a few pixels that are needed to make the
 // integral scalling factor.
@@ -40,17 +36,22 @@ extern Rect g_drawing_region;
 // the resolution scale factor.
 Delta logical_screen_pixel_dimensions();
 
-W    screen_width_tiles();
-H    screen_height_tiles();
-void set_screen_width_tiles( W w );
-void set_screen_height_tiles( H h );
+Delta screen_size_tiles();
+
+Delta main_window_size();
+
+void find_pixel_scale_factor();
+
+Delta screen_logical_size();
+// Same but with origin at 0,0
+Rect screen_logical_rect();
 
 // At standard zoom, when tile size is (g_tile_width,
 // g_tile_height), i.e., these are fixed and do not depend on any
 // viewport state.
-W     viewport_width_tiles();
-H     viewport_height_tiles();
-Delta viewport_size_tiles();
 Delta viewport_size_pixels();
+
+void initialize_screen();
+void cleanup_screen();
 
 } // namespace rn

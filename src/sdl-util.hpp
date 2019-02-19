@@ -29,6 +29,8 @@
 
 namespace rn {
 
+inline auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
+
 // RAII wrapper for SDL_Texture.
 class Texture : public util::non_copy_non_move {
 public:
@@ -76,8 +78,6 @@ void init_sdl();
 
 void create_window();
 
-void query_video_stats();
-
 void create_renderer();
 
 void cleanup();
@@ -101,7 +101,8 @@ ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );
 void    toggle_fullscreen();
 
-ND ::SDL_Rect to_SDL( Rect const& rect );
+::SDL_Rect to_SDL( Rect const& rect );
+Rect       from_SDL( ::SDL_Rect const& rect );
 
 ND ::SDL_Point to_SDL( Coord const& coord );
 
@@ -159,10 +160,6 @@ Matrix<Color> texture_pixels( Texture const& tx );
 // alpha value as the source. Hence it creates a "shadow" of the
 // source texture's opaque (or semi-opaque) parts.
 Texture create_shadow_texture( Texture const& tx );
-
-Delta screen_logical_size();
-// Same but with origin at 0,0
-Rect screen_logical_rect();
 
 void save_texture_png( Texture const& tx, fs::path const& file );
 void grab_screen( fs::path const& file );

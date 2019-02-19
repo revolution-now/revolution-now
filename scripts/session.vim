@@ -5,17 +5,15 @@
 let s:first = 'main.cpp'
 
 let s:stems = [
-  \ 'src/globals',
   \ 'src/sdl-util',
+  \ 'src/screen',
   \ 'src/frame',
   \ 'src/plane',
   \ 'src/menu',
   \ 'src/tiles',
   \ 'src/console',
-  \ 'src/window',
   \ 'src/geo-types',
   \ 'src/terrain',
-  \ 'src/nation',
   \ 'src/unit',
   \ 'src/ownership',
   \ 'src/orders',

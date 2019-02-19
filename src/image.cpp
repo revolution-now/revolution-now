@@ -15,7 +15,6 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "geo-types.hpp"
-#include "globals.hpp"
 #include "logging.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"

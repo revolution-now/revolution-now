@@ -13,8 +13,8 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "globals.hpp"
 #include "logging.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 
 // base-util
