@@ -17,6 +17,7 @@
 #include "tiles.hpp"
 
 // C++ standard library
+#include <cmath>
 #include <optional>
 
 using namespace std;
@@ -159,7 +160,8 @@ void find_pixel_scale_factor() {
   // non-integer values, and so that represents a key constraint
   // here. Hence we won't generally achieve the ideal tile size,
   // but should come close to it.
-  constexpr double ideal_tile_size_at_1ft{.30}; // inches
+  constexpr double ideal_tile_angular_size{.025}; // radians
+
   auto compute_viewer_distance = []( double monitor_size ) {
     // Determined empirically; viewer distance from screen seems
     // to scale linearly with screen size, down to a certain
@@ -169,12 +171,6 @@ void find_pixel_scale_factor() {
     return std::max( viewer_distance_multiplier * monitor_size,
                      viewer_distance_minimum );
   };
-  // Seems sensible for the tiles to be within these bounds.  The
-  // scoring function used would otherwise select these in some
-  // cases
-  constexpr double minimum_perceived_tile_width{0.2}; // inches
-  constexpr double maximum_perceived_tile_width{1.0}; // inches
-  ////////////////////////////////////////////////
 
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
@@ -186,15 +182,20 @@ void find_pixel_scale_factor() {
 
   auto            dm = get_current_display_mode();
   optional<Delta> result;
-  double          min_score    = -1.0 / 0.0; // make -infinity
+  double          min_score    = +1.0 / 0.0; // make +infinity
   double          monitor_size = monitor_inches();
 
+  // Estimate the viewer's distance from the screen based on its
+  // size and some other assumptions.
+  double viewer_distance =
+      compute_viewer_distance( monitor_size );
+
   logger->debug( "Computed Viewer Distance from Screen: {}in.",
-                 compute_viewer_distance( monitor_size ) );
+                 viewer_distance );
 
   double ddpi = monitor_ddpi();
   table_row( "Scale", "Resolution", "Tile-Size-Screen",
-             "Tile-Size-@1ft", "Score" );
+             "Tile-Angular-Size", "Score" );
   auto bar = "------------------";
   table_row( bar, bar, bar, bar, bar );
   Opt<Scale> chosen_scale;
@@ -212,33 +213,18 @@ void find_pixel_scale_factor() {
     double tile_size_actual =
         ( scale * g_tile_scale ).sx._ / ddpi;
 
-    // Estimate the viewer's distance from the screen based on
-    // its size and some other assumptions.
-    double viewer_distance =
-        compute_viewer_distance( monitor_size );
-    constexpr double one_foot{12.0};
-    // This is the apparent size in inches of a tile when it is
-    // measure by a ruler that is placed one foot in front of the
-    // viewer's eye.
-    double perceived_size_1ft =
-        tile_size_actual / viewer_distance * one_foot;
+    // Compute the angular size (this is what actually determines
+    // how big it looks to the viewer).
+    auto theta = 2.0 * std::atan( ( tile_size_actual / 2.0 ) /
+                                  viewer_distance );
 
-    // Essentially this gives less weight the further we move
-    // away from the ideal.
-    double score =
-        -::abs( perceived_size_1ft - ideal_tile_size_at_1ft );
-    // If the tile size is smaller than a minimum cutoff then
-    // we will avoid selecting it by giving it a score smaller
-    // than any other.
-    if( perceived_size_1ft < minimum_perceived_tile_width ||
-        perceived_size_1ft > maximum_perceived_tile_width )
-      score = -1.0 / 0.0;
+    // Lower score is better.
+    double score = ::abs( theta - ideal_tile_angular_size );
 
-    table_row( factor, max_size, max_size / g_tile_scale,
-               tile_size_actual, score );
-    if( score >= min_score ) {
-      result = max_size / g_tile_scale;
-
+    table_row( factor, max_size, max_size / g_tile_scale, theta,
+               score );
+    if( score <= min_score ) {
+      result       = max_size / g_tile_scale;
       min_score    = score;
       chosen_scale = scale;
     }
