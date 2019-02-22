@@ -11,8 +11,10 @@
 #include "screen.hpp"
 
 // Revolution Now
+#include "errors.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "ranges.hpp"
 #include "sdl-util.hpp"
 #include "tiles.hpp"
 
@@ -29,7 +31,6 @@ namespace rn {
 Texture         g_texture_viewport;
 
 Scale g_resolution_scale_factor{};
-Delta g_drawing_origin{};
 Rect  g_drawing_region{};
 
 namespace {
@@ -93,6 +94,23 @@ double monitor_inches() {
                                   get_current_display_mode() );
 }
 
+double const& viewer_distance_from_monitor() {
+  static double distance = [] {
+    // Determined empirically; viewer distance from screen seems
+    // to scale linearly with screen size, down to a certain
+    // minimum distance.
+    constexpr double viewer_distance_multiplier{1.25};
+    constexpr double viewer_distance_minimum{18}; // inches
+    auto             res =
+        std::max( viewer_distance_multiplier * monitor_inches(),
+                  viewer_distance_minimum );
+    logger->debug( "Computed Viewer Distance from Screen: {}in.",
+                   res );
+    return res;
+  }();
+  return distance;
+};
+
 void query_video_stats() {
   float ddpi, hdpi, vdpi;
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
@@ -145,106 +163,82 @@ void init_screen() {
   find_pixel_scale_factor();
 }
 
+struct ScaleInfo {
+  int    scale;
+  double tile_size_on_screen_surface_inches;
+  Delta  resolution;
+  double tile_angular_size;
+};
+
+ScaleInfo scale_info( int scale_ ) {
+  Scale scale{scale_};
+  Delta resolution = get_current_display_mode().size / scale;
+
+  // Tile size in inches if it were measured on the surface of
+  // the screen.
+  double tile_size_screen_surface =
+      ( scale * g_tile_scale ).sx._ / monitor_ddpi();
+
+  // Compute the angular size (this is what actually determines
+  // how big it looks to the viewer).
+  auto theta =
+      2.0 * std::atan( ( tile_size_screen_surface / 2.0 ) /
+                       viewer_distance_from_monitor() );
+
+  return ScaleInfo{scale_, tile_size_screen_surface, resolution,
+                   theta};
+}
+
+// Lower score is better.
+double scale_score( ScaleInfo const& info ) {
+  constexpr double ideal_tile_angular_size{.025}; // radians
+  return ::abs( info.tile_angular_size -
+                ideal_tile_angular_size );
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
 
+// This function attempts to find an integer scale factor with
+// which to scale the pixel size of the display so that a single
+// tile has approximately a given size. The scale factor is an
+// integer because we scale both dimensions by the same amount,
+// and the scale factor is not a floating point number because we
+// don't want any distortion of individual pixels which would
+// arise in that situation.
 void find_pixel_scale_factor() {
-  // We want ideally to have a tile whose side is this length in
-  // inches. The algorithm that follows will try to find an
-  // integer scaling factor (and associated maximal screen width
-  // and height in tiles) such that a) tiles are square, tiles
-  // side lengths are as close as possible to this length in
-  // inches, and c) as much of the screen is covered as possible.
-  // Note that we have opted to avoid scaling the tile grid by
-  // non-integer values, and so that represents a key constraint
-  // here. Hence we won't generally achieve the ideal tile size,
-  // but should come close to it.
-  constexpr double ideal_tile_angular_size{.025}; // radians
+  auto scale_scores = rv::iota( 1, 11 ) //
+                      | rv::transform( scale_info );
 
-  auto compute_viewer_distance = []( double monitor_size ) {
-    // Determined empirically; viewer distance from screen seems
-    // to scale linearly with screen size, down to a certain
-    // minimum distance.
-    constexpr double viewer_distance_multiplier{1.25};
-    constexpr double viewer_distance_minimum{18}; // inches
-    return std::max( viewer_distance_multiplier * monitor_size,
-                     viewer_distance_minimum );
-  };
+  ASSIGN_CHECK_OPT( optimal,
+                    scale_scores | min_by_key( scale_score ) );
 
+  ///////////////////////////////////////////////////////////////
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
                        auto score ) {
-    logger->debug( "{: ^18}{: ^18}{: ^18}{: ^18}{: ^18}",
+    logger->debug( "{: ^10}{: ^19}{: ^18}{: ^18}{: ^10}",
                    possibility, resolution, tile_size_screen,
                    tile_size_1ft, score );
   };
 
-  auto            dm = get_current_display_mode();
-  optional<Delta> result;
-  double          min_score    = +1.0 / 0.0; // make +infinity
-  double          monitor_size = monitor_inches();
-
-  // Estimate the viewer's distance from the screen based on its
-  // size and some other assumptions.
-  double viewer_distance =
-      compute_viewer_distance( monitor_size );
-
-  logger->debug( "Computed Viewer Distance from Screen: {}in.",
-                 viewer_distance );
-
-  double ddpi = monitor_ddpi();
   table_row( "Scale", "Resolution", "Tile-Size-Screen",
              "Tile-Angular-Size", "Score" );
-  auto bar = "------------------";
-  table_row( bar, bar, bar, bar, bar );
-  Opt<Scale> chosen_scale;
-
-  constexpr Scale max_scale{10}; // somewhat arbitrary
-  for( int factor = 1;; ++factor ) {
-    Scale scale{factor};
-    if( scale == max_scale ) break;
-
-    Delta max_size =
-        dm.size / scale - ( ( dm.size / scale ) % g_tile_scale );
-
-    // Tile size in inches if it were measured on the surface of
-    // the screen.
-    double tile_size_actual =
-        ( scale * g_tile_scale ).sx._ / ddpi;
-
-    // Compute the angular size (this is what actually determines
-    // how big it looks to the viewer).
-    auto theta = 2.0 * std::atan( ( tile_size_actual / 2.0 ) /
-                                  viewer_distance );
-
-    // Lower score is better.
-    double score = ::abs( theta - ideal_tile_angular_size );
-
-    table_row( factor, max_size, max_size / g_tile_scale, theta,
-               score );
-    if( score <= min_score ) {
-      result       = max_size / g_tile_scale;
-      min_score    = score;
-      chosen_scale = scale;
-    }
+  auto bar = string( 86, '-' );
+  logger->debug( bar );
+  for( auto const& info : scale_scores ) {
+    string chosen =
+        ( info.scale == optimal.scale ) ? "=> " : "   ";
+    table_row( chosen + to_string( info.scale ), info.resolution,
+               info.tile_size_on_screen_surface_inches,
+               info.tile_angular_size, scale_score( info ) );
   }
-  table_row( bar, bar, bar, bar, bar );
-  CHECK( result, "Could not find a suitable scaling" );
-  CHECK( chosen_scale.has_value() );
-  auto const& delta = *result;
-  logger->debug( "Optimal scale factor: {}", *chosen_scale );
-  g_screen_width_tiles  = delta.w;
-  g_screen_height_tiles = delta.h;
-  logger->debug( "tiles: {}", delta );
-  g_resolution_scale_factor = *chosen_scale;
-  g_drawing_origin =
-      ( dm.size - ( delta * *chosen_scale * g_tile_scale ) ) /
-      Scale{2};
-  g_drawing_region =
-      Rect::from( Coord{} + g_drawing_origin,
-                  dm.size - g_drawing_origin * Scale{2} );
-  logger->debug( "drawing region: {}", g_drawing_region );
+  logger->debug( bar );
+  ///////////////////////////////////////////////////////////////
+
+  g_resolution_scale_factor = Scale{optimal.scale};
+  g_drawing_region = Rect::from( Coord{}, optimal.resolution );
   logger->debug( "logical screen pixel dimensions: {}",
                  logical_screen_pixel_dimensions() );
 }

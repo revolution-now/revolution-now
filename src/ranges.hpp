@@ -46,4 +46,38 @@ std::string rng_to_string( Rng&& rng ) {
       std::string{} );
 }
 
+// Given a function f and a range [1,2,3...] this will return a
+// range of: [(1,f(1)), (2,f(2)), (3,f(3)), ...]
+template<typename Func>
+auto transform_pair( Func f ) {
+  return ranges::make_pipeable( [=]( auto&& r ) {
+    using Rng = decltype( r );
+    return rv::zip(
+        std::forward<Rng>( r ),
+        std::forward<Rng>( r ) | rv::transform( f ) );
+  } );
+}
+
+// This function applies `f` to each element in the range to
+// derive keys, then finds the minimum key, and returns the range
+// value corresponding to that key.
+template<typename Func>
+auto min_by_key( Func f ) {
+  return ranges::make_pipeable( [=]( auto&& r ) {
+    using ResType = decltype( *r.begin() );
+    using KeyType = decltype( f( *r.begin() ) );
+    using Rng     = decltype( r );
+    std::optional<ResType> res{};
+    std::optional<KeyType> min_key{};
+    for( auto const& [elem, key] :
+         std::forward<Rng>( r ) | transform_pair( f ) ) {
+      if( !min_key.has_value() || key < *min_key ) {
+        min_key = key;
+        res     = elem;
+      }
+    }
+    return res;
+  } );
+}
+
 } // namespace rn

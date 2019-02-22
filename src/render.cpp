@@ -365,9 +365,9 @@ struct ViewportPlane : public Plane {
   void draw( Texture const& tx ) const override {
     render_world_viewport( g_viewport_state );
     clear_texture_black( tx );
-    copy_texture_stretch( g_texture_viewport, tx,
-                          viewport().rendering_src_rect(),
-                          viewport().rendering_dest_rect() );
+    copy_texture_stretch(
+        g_texture_viewport, tx, viewport().rendering_src_rect(),
+        viewport().rendering_dest_rect() + Delta{0_w, 12_h} );
   }
   OptRef<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {

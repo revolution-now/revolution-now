@@ -295,7 +295,7 @@ void copy_texture( Texture const& from, Texture const& to,
 }
 
 void copy_texture_to_main( Texture const& from ) {
-  copy_texture( from, Texture{}, Coord{} + g_drawing_origin );
+  copy_texture( from, Texture{}, Coord{} );
 }
 
 void copy_texture( Texture const& from, Texture const& to ) {
