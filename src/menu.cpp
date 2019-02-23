@@ -683,8 +683,11 @@ Texture const& render_open_menu( e_menu           menu,
 
 void render_menu_bar() {
   CHECK( menu_bar_tx );
+  auto bar_tx_size = menu_bar_tx.size();
+  auto lower_right = ( Coord{} + bar_tx_size )
+                         .rounded_up_to_multiple( Scale{8} );
   auto tiles_rect =
-      Rect::from( Coord{}, menu_bar_tx.size() ).to_tiles( 8 );
+      Rect::from( Coord{}, lower_right ) / Scale{8};
   for( auto coord : tiles_rect ) {
     if( coord.y == 0_y )
       render_sprite_grid( menu_bar_tx, g_tile::menu_bar_top,

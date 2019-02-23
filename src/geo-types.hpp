@@ -243,11 +243,6 @@ struct ND Rect {
   // proportions) so that it fits inside the given rect.
   Rect clamp( Rect const& rect ) const;
 
-  // Will convert this rect to units of tiles of the given dimen-
-  // sion. This rect must fall on the borders of those tile sizes
-  // otherwise this function will check fail.
-  Rect to_tiles( int tile_size ) const;
-
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
   //

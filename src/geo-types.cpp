@@ -186,15 +186,6 @@ bool Coord::is_inside( Rect const& rect ) const {
          ( x < rect.x + rect.w ) && ( y < rect.y + rect.h );
 }
 
-Rect Rect::to_tiles( int tile_size ) const {
-  CHECK( x._ % tile_size == 0 );
-  CHECK( y._ % tile_size == 0 );
-  CHECK( w._ % tile_size == 0 );
-  CHECK( h._ % tile_size == 0 );
-  return Rect{X{0} + x / SX{tile_size}, Y{0} + y / SY{tile_size},
-              w / SX{tile_size}, h / SY{tile_size}};
-}
-
 Delta Delta::trimmed_by_one() const {
   auto res = *this;
   if( res.w > 0 )
