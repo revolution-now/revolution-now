@@ -3,7 +3,6 @@ Plan
 ========================================================
 
 1) Finish menus:
-     * Hidden menus
      * Colors/appearance
      * hot keys
      * names with highlighted hotkey

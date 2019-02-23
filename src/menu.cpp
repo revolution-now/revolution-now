@@ -20,6 +20,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "plane.hpp"
+#include "ranges.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
 #include "tiles.hpp"
@@ -161,13 +162,6 @@ namespace click_anim {
 // TODO: make an animation framework that can manage the states
 // of an animation along with durations in Frames.
 
-// For sustained blinking
-// auto constexpr half_period     = Frames{4};
-// auto constexpr post_off_time   = Frames{5};
-// int constexpr num_half_periods = 4;
-// bool constexpr start_on        = false;
-// auto constexpr fade_time        = Frames{22};
-
 // For the MacOS single-blink-and-fade style.
 auto constexpr half_period      = Frames{6};
 auto constexpr post_off_time    = Frames{0};
@@ -215,6 +209,26 @@ Opt<e_menu> opened_menu() {
     return val->menu;
   }
   return {};
+}
+
+bool is_menu_item_enabled( e_menu_item item ) {
+  CHECK( g_menu_items.contains( item ) );
+  return g_menu_items[item]->callbacks.enabled();
+}
+
+bool is_menu_visible( e_menu menu ) {
+  auto enabled_items = g_items_from_menu[menu] |
+                       rv::filter( is_menu_item_enabled );
+  return enabled_items.begin() != enabled_items.end();
+}
+
+auto visible_menus() {
+  return values<e_menu> | rv::filter( is_menu_visible );
+}
+
+bool have_some_visible_menus() {
+  auto rng = visible_menus();
+  return std::distance( rng.begin(), rng.end() ) > 0;
 }
 
 /****************************************************************
@@ -330,33 +344,32 @@ Delta menu_header_delta( e_menu menu ) {
 // These cannot be precalculated because menus might be hidden.
 X menu_header_x_pos( e_menu target ) {
   CHECK( g_menus.contains( target ) );
+  CHECK( is_menu_visible( target ) );
   auto const& desc = g_menus[target];
+  W           width_delta{0};
   if( desc.right_side ) {
-    X pos = 0_x + screen_logical_size().w;
-    pos -= config_ui.menus.first_menu_start;
-    vector<e_menu> reversed( values<e_menu>.begin(),
-                             values<e_menu>.end() );
-    reverse( reversed.begin(), reversed.end() );
-    for( auto menu : reversed ) {
-      if( !g_menus[menu].right_side ) continue;
-      pos -= menu_header_delta( menu ).w;
-      if( menu == target ) return pos;
-      // TODO: is menu visible
-      pos -= config_ui.menus.spacing;
-    }
-    SHOULD_NOT_BE_HERE;
+    width_delta = ranges::accumulate(
+        visible_menus()                                      //
+            | rv::reverse                                    //
+            | rv::remove_if( L( !g_menus[_].right_side ) )   //
+            | take_while_inclusive( LC( _ != target ) )      //
+            | rv::transform( L( menu_header_delta( _ ).w ) ) //
+            | rv::intersperse( config_ui.menus.spacing ),
+        0_w );
   } else {
-    X pos{0};
-    pos += config_ui.menus.first_menu_start;
-    for( auto menu : values<e_menu> ) {
-      if( menu == target ) return pos;
-      // TODO: is menu visible
-      CHECK( g_menu_rendered.contains( menu ) );
-      pos += g_menu_rendered[menu].header_width +
-             config_ui.menus.spacing;
-    }
-    SHOULD_NOT_BE_HERE;
+    width_delta = ranges::accumulate(
+        visible_menus()                                   //
+            | rv::remove_if( L( g_menus[_].right_side ) ) //
+            | rv::take_while( LC( _ != target ) )         //
+            | rv::transform( L( menu_header_delta( _ ).w +
+                                config_ui.menus.spacing ) ),
+        0_w );
   }
+  width_delta += config_ui.menus.first_menu_start;
+  CHECK( width_delta != 0_w );
+  return 0_x + ( !desc.right_side
+                     ? width_delta
+                     : screen_logical_size().w - width_delta );
 }
 
 // Rectangle around a menu header.
@@ -464,7 +477,7 @@ Rect menu_body_rect( e_menu menu ) {
 // This includes (roughly) the space overwhich an open menu
 // occupies pixels (i.e., is not transparent). This is used to
 // decide if the user has clicked on or off of an open menu.
-Rect menu_body_click( e_menu menu ) {
+Rect menu_body_clickable_area( e_menu menu ) {
   auto res = menu_body_rect( menu );
   res.x += 8_w / 2_sx;
   res.w -= 8_w / 2_sx * 2_sx;
@@ -699,7 +712,7 @@ void render_menu_bar() {
   // Center the text vertically in the menu bar.
   auto offset = 0_y + ( ( 16_h - max_text_height() ) / 2_sy );
 
-  for( auto menu : values<e_menu> ) {
+  for( auto menu : visible_menus() ) {
     CHECK( g_menu_rendered.contains( menu ) );
     auto const& textures = g_menu_rendered[menu];
     using Txs = Opt<pair<Texture const*, Texture const*>>;
@@ -755,7 +768,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
   auto matcher = scelta::match<res_t>(
       []( MenuState::menus_hidden ) { return res_t{}; },
       [&]( MenuState::menus_closed ) {
-        for( auto menu : values<e_menu> )
+        for( auto menu : visible_menus() )
           if( screen_coord.is_inside(
                   menu_header_rect( menu ) ) )
             return res_t{MouseOver::header{menu}};
@@ -774,7 +787,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
             self( MenuState_t{MenuState::menus_closed{}} );
         if( closed ) return res_t{closed};
         if( !screen_coord.is_inside(
-                menu_body_click( o.menu ) ) )
+                menu_body_clickable_area( o.menu ) ) )
           return res_t{};
         // The cursor is over a non-transparent part of the open
         // menu.
@@ -1112,8 +1125,11 @@ struct MenuPlane : public Plane {
                 return true;
               case ::SDLK_KP_4:
               case ::SDLK_LEFT: {
-                menu = util::find_previous_and_cycle(
-                    values<e_menu>, *menu );
+                CHECK( have_some_visible_menus() );
+                do {
+                  menu = util::find_previous_and_cycle(
+                      values<e_menu>, *menu );
+                } while( !is_menu_visible( *menu ) );
                 CHECK( menu );
                 g_menu_state =
                     MenuState::menu_open{*menu, /*hover=*/{}};
@@ -1122,8 +1138,11 @@ struct MenuPlane : public Plane {
               }
               case ::SDLK_KP_6:
               case ::SDLK_RIGHT: {
-                menu = util::find_subsequent_and_cycle(
-                    values<e_menu>, *menu );
+                CHECK( have_some_visible_menus() );
+                do {
+                  menu = util::find_subsequent_and_cycle(
+                      values<e_menu>, *menu );
+                } while( !is_menu_visible( *menu ) );
                 CHECK( menu );
                 g_menu_state =
                     MenuState::menu_open{*menu, /*hover=*/{}};
