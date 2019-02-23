@@ -367,7 +367,7 @@ struct ViewportPlane : public Plane {
     clear_texture_black( tx );
     copy_texture_stretch(
         g_texture_viewport, tx, viewport().rendering_src_rect(),
-        viewport().rendering_dest_rect() + Delta{0_w, 12_h} );
+        viewport().rendering_dest_rect() + Delta{0_w, 16_h} );
   }
   OptRef<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {
@@ -532,26 +532,20 @@ struct PanelPlane : public Plane {
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
-    constexpr int panel_width{6};
-    auto          bottom_bar = 0_y + screen_size_tiles().h - 1;
-    auto left_side = 0_x + screen_size_tiles().w - panel_width;
-    // bottom edge
-    for( X i( 0 ); i - 0_x < screen_size_tiles().w - panel_width;
-         ++i )
-      render_sprite_grid( tx, g_tile::panel_edge_left,
-                          bottom_bar, i, 1, 0 );
-    // left edge
-    for( Y i( 0 ); i - 0_y < screen_size_tiles().h - 1; ++i )
-      render_sprite_grid( tx, g_tile::panel_edge_left, i,
-                          left_side, 0, 0 );
-    // bottom left corner of main panel
-    render_sprite_grid( tx, g_tile::panel, bottom_bar, left_side,
-                        0, 0 );
+    constexpr W panel_width{6 * 32};
+    auto left_side = 0_x + screen_logical_size().w - panel_width;
 
-    for( Y i( 0 ); i - 0_y < screen_size_tiles().h; ++i )
-      for( X j( left_side + 1 ); j - 0_x < screen_size_tiles().w;
-           ++j )
-        render_sprite_grid( tx, g_tile::panel, i, j, 0, 0 );
+    for( Y i( 0 ); i - 0_y < screen_logical_size().h; i += 32_h )
+      for( X j( left_side + 1 );
+           j - 0_x < screen_logical_size().w; j += 32_w )
+        render_sprite( tx, g_tile::panel, i, j, 0, 0 );
+
+    // left edge
+    for( Y i( 0 ); i - 0_y < screen_logical_size().h -
+                                 1_h * g_tile_scale.sy;
+         i += 32_h )
+      render_sprite( tx, g_tile::panel_edge_left, i, left_side,
+                     0, 0 );
   }
 };
 

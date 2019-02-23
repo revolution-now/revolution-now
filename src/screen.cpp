@@ -31,13 +31,9 @@ namespace rn {
 Texture         g_texture_viewport;
 
 Scale g_resolution_scale_factor{};
-Rect  g_drawing_region{};
+Delta g_screen_physical_size{};
 
 namespace {
-
-W g_screen_width_tiles{11};
-H g_screen_height_tiles{6};
-W g_panel_width_tiles{6};
 
 struct DisplayMode {
   Delta  size;
@@ -158,11 +154,6 @@ void query_video_stats() {
                  monitor_inches() );
 }
 
-void init_screen() {
-  query_video_stats();
-  find_pixel_scale_factor();
-}
-
 struct ScaleInfo {
   int    scale;
   double tile_size_on_screen_surface_inches;
@@ -195,10 +186,6 @@ double scale_score( ScaleInfo const& info ) {
   return ::abs( info.tile_angular_size -
                 ideal_tile_angular_size );
 }
-
-} // namespace
-
-REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
 
 // This function attempts to find an integer scale factor with
 // which to scale the pixel size of the display so that a single
@@ -238,37 +225,55 @@ void find_pixel_scale_factor() {
   ///////////////////////////////////////////////////////////////
 
   g_resolution_scale_factor = Scale{optimal.scale};
-  g_drawing_region = Rect::from( Coord{}, optimal.resolution );
-  logger->debug( "logical screen pixel dimensions: {}",
-                 logical_screen_pixel_dimensions() );
+  g_screen_physical_size =
+      optimal.resolution * g_resolution_scale_factor;
+  logger->debug( "screen physical size: {}",
+                 g_screen_physical_size );
+  logger->debug( "screen logical size: {}",
+                 screen_logical_size() );
+
+  // If this is violated then we have non-integer scaling.
+  CHECK( g_screen_physical_size % Scale{optimal.scale} ==
+         Delta{} );
+
+  // For informational purposes
+  if( get_current_display_mode().size % Scale{optimal.scale} !=
+      Delta{} )
+    logger->warn(
+        "Desktop display resolution not commensurate with scale "
+        "factor." );
 }
 
-Delta logical_screen_pixel_dimensions() {
-  return {g_drawing_region.w / g_resolution_scale_factor.sx,
-          g_drawing_region.h / g_resolution_scale_factor.sy};
+void init_screen() {
+  query_video_stats();
+  find_pixel_scale_factor();
 }
+
+} // namespace
+
+REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
 
 Delta main_window_size() {
   return get_current_display_mode().size;
 }
 
 Delta screen_logical_size() {
-  return logical_screen_pixel_dimensions();
+  return g_screen_physical_size / g_resolution_scale_factor;
 }
 
 Rect screen_logical_rect() {
   return Rect::from( {0_y, 0_x}, screen_logical_size() );
 }
 
-Delta screen_size_tiles() {
-  return {g_screen_width_tiles, g_screen_height_tiles};
+Delta screen_physical_size() { return g_screen_physical_size; }
+
+Rect screen_physical_rect() {
+  return Rect::from( {0_y, 0_x}, screen_physical_size() );
 }
 
 Delta viewport_size_pixels() {
-  auto size_tiles =
-      Delta{g_screen_width_tiles - g_panel_width_tiles,
-            g_screen_height_tiles - 1};
-  return size_tiles * g_tile_scale;
+  // Subtract height of menu and width of panel.
+  return screen_logical_size() - 16_h - 6_w * 32_sx;
 }
 
 } // namespace rn

@@ -16,4 +16,4 @@ Done
 ========================================================
 
 UI:
-  * Smooth panning with acceleration
+  * Panel can be opened/closed with a sliding animation.

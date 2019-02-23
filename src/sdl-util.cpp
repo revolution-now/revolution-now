@@ -139,17 +139,17 @@ void init_renderer() {
 
   CHECK( g_renderer, "failed to create renderer" );
 
-  W width  = screen_size_tiles().w * g_tile_width;
-  H height = screen_size_tiles().h * g_tile_height;
+  auto logical_size = screen_logical_size();
 
-  ::SDL_RenderSetLogicalSize( g_renderer, width._, height._ );
-  // Don't need this since we impose the integer scaling manually
-  //::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
+  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
+                              logical_size.h._ );
+  // I think in theory we should not need this because we should
+  // have already computed a logical_size that allowed for
+  // integer scaling, but just in case we do the calculations
+  // wrong this might help to flag that.
+  ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
   ::SDL_SetRenderDrawBlendMode( g_renderer,
                                 ::SDL_BLENDMODE_BLEND );
-
-  logger->debug( "screen_logical_size(): {}",
-                 screen_logical_size() );
 
   // Now we calculate the necessary size of the viewport texture.
   // This needs to be large enough to accomodate a zoomed-out

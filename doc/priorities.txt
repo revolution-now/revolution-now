@@ -2,23 +2,19 @@
 Plan
 ========================================================
 
-1) Factor out resolution/scaling code into new screen
-   module.
-     * Leave space for menu and status bar at top and
-       bottom, viewport in the middle.
-2) Finish menus:
+1) Finish menus:
      * Hidden menus
      * Colors/appearance
      * hot keys
      * names with highlighted hotkey
      * Fix click rect around headers
-3) Add logging into console
-4) Add disband command
-5) Fix handling of multiple units on a square with
+2) Add logging into console
+3) Add disband command
+4) Fix handling of multiple units on a square with
    rendering and combat.
-6) Finish ship combat
-7) Implement mouse selection of units to e.g. activate.
-9) Modify the `screen` module to handle all quantities
+5) Finish ship combat
+6) Implement mouse selection of units to e.g. activate.
+7) Modify the `screen` module to handle all quantities
    that depend on the rendering scale, and allow dynamic
    changes to it.  Also try to fix non-fullscreen mode.
 

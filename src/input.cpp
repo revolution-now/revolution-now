@@ -62,7 +62,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   Coord mouse;
   auto  buttons = ::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
 
-  mouse.clip( g_drawing_region );
+  // mouse.clip( ... );
   mouse.x /= g_resolution_scale_factor.sx;
   mouse.y /= g_resolution_scale_factor.sy;
 

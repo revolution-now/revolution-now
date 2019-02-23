@@ -332,7 +332,7 @@ X menu_header_x_pos( e_menu target ) {
   CHECK( g_menus.contains( target ) );
   auto const& desc = g_menus[target];
   if( desc.right_side ) {
-    X pos = 0_x + logical_screen_pixel_dimensions().w;
+    X pos = 0_x + screen_logical_size().w;
     pos -= config_ui.menus.first_menu_start;
     vector<e_menu> reversed( values<e_menu>.begin(),
                              values<e_menu>.end() );
@@ -371,7 +371,7 @@ Rect menu_header_rect( e_menu menu ) {
 // the menu headers. but does not include the space that would be
 // occupied by open menu bodies.
 Rect menu_bar_rect() {
-  auto delta_screen = logical_screen_pixel_dimensions();
+  auto delta_screen = screen_logical_size();
   auto height       = menu_bar_height();
   return Rect::from( Coord{}, Delta{delta_screen.w, height} );
 }
@@ -525,8 +525,7 @@ ItemTextures render_menu_element( string const& text,
       ItemTextures{std::move( inactive ), std::move( active ),
                    std::move( disabled ), width};
   // Sanity check
-  CHECK( res.width > 0 &&
-         res.width < logical_screen_pixel_dimensions().w );
+  CHECK( res.width > 0 && res.width < screen_logical_size().w );
   return res;
 }
 
