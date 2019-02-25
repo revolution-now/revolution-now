@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "console.hpp"
+#include "frame.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -229,9 +230,11 @@ bool send_input_to_planes( input::event_t const& event ) {
 namespace {
 
 bool is_menu_item_enabled( e_menu_item item ) {
-  for( auto p : relevant_planes() )
+  for( auto p : relevant_planes() ) {
+    event_counts()["imie inner"].tick();
     if( p.second->menu_click_handler( item ).has_value() )
       return true;
+  }
   return false;
 }
 

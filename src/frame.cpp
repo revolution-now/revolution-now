@@ -30,6 +30,8 @@ namespace {
 
 MovingAverage<3 /*seconds*/> frame_rate;
 
+EventCountMap g_event_counts;
+
 void take_input() {
   while( auto event = input::poll_event() )
     send_input_to_planes( *event );
@@ -65,6 +67,8 @@ void advance_viewport_translation() {
 
 } // namespace
 
+EventCountMap& event_counts() { return g_event_counts; }
+
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
@@ -76,6 +80,7 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
   while( true ) {
     auto start = system_clock::now();
     frame_rate.tick();
+    for( auto& p : g_event_counts ) p.second.tick();
 
     draw_all_planes();
     ::SDL_RenderPresent( g_renderer );

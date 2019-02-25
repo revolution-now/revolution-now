@@ -1180,6 +1180,7 @@ struct MenuPlane : public Plane {
         },
         []( input::mouse_wheel_event_t ) { return false; },
         []( input::mouse_move_event_t mv_event ) {
+          event_counts()["menu mouse move"].tick();
           // Remove menu-hover by default and enable it again
           // below if the mouse if over a menu and menus are
           // closed.

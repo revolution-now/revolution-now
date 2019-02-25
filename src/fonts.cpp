@@ -56,6 +56,17 @@ unordered_map<e_font, FontDesc> loaded_fonts{
      {"assets/fonts/7-12-serif/712_serif.ttf",
       _7_12_font_pt_size, nullptr}}};
 
+Texture render_line_fast_impl( ::TTF_Font* font, ::SDL_Color fg,
+                               string const& line ) {
+  ASSIGN_CHECK( surface, ::TTF_RenderText_Solid(
+                             font, line.c_str(), fg ) );
+  auto texture = Texture::from_surface( surface );
+  ::SDL_FreeSurface( surface );
+  // Not sure why this doesn't happen automatically.
+  ::SDL_SetTextureAlphaMod( texture, fg.a );
+  return texture;
+}
+
 Texture render_line_standard_impl( ::TTF_Font*   font,
                                    ::SDL_Color   fg,
                                    string const& line ) {
@@ -87,7 +98,8 @@ struct TextRenderDesc {
   }
 };
 
-absl::flat_hash_map<TextRenderDesc, Texture> text_cache;
+absl::flat_hash_map<TextRenderDesc, Texture> text_cache_solid;
+absl::flat_hash_map<TextRenderDesc, Texture> text_cache_blended;
 
 void init_fonts() {
   CHECK( !TTF_Init() );
@@ -110,13 +122,32 @@ void cleanup_fonts() {
     auto& font_desc = font.second;
     ::TTF_CloseFont( font_desc.ttf_font );
   }
-  for( auto& p : text_cache ) p.second.free();
+  for( auto& p : text_cache_solid ) p.second.free();
+  for( auto& p : text_cache_blended ) p.second.free();
   TTF_Quit();
 }
 
 REGISTER_INIT_ROUTINE( fonts, init_fonts, cleanup_fonts );
 
 } // namespace
+
+Texture render_text_line_fast( e_font font, Color fg,
+                               string const& line ) {
+  auto do_render = [&] {
+    auto* ttf_font = loaded_fonts[font].ttf_font;
+    return render_line_fast_impl( ttf_font, to_SDL( fg ), line );
+  };
+
+  TextRenderDesc desc{font, fg, line};
+
+  if( auto maybe_cached =
+          util::get_val_safe( text_cache_solid, desc );
+      maybe_cached.has_value() )
+    return maybe_cached.value().get().weak_ref();
+
+  text_cache_solid.emplace( desc, do_render() );
+  return text_cache_solid[desc].weak_ref();
+}
 
 // All text rendering should ultimately go through this function
 // because it does the cache handling.
@@ -130,12 +161,13 @@ Texture render_text_line_standard( e_font font, Color fg,
 
   TextRenderDesc desc{font, fg, line};
 
-  if( auto maybe_cached = util::get_val_safe( text_cache, desc );
+  if( auto maybe_cached =
+          util::get_val_safe( text_cache_blended, desc );
       maybe_cached.has_value() )
     return maybe_cached.value().get().weak_ref();
 
-  text_cache.emplace( desc, do_render() );
-  return text_cache[desc].weak_ref();
+  text_cache_blended.emplace( desc, do_render() );
+  return text_cache_blended[desc].weak_ref();
 }
 
 Texture render_text_line_shadow( e_font font, Color fg,
