@@ -212,11 +212,13 @@ Opt<e_menu> opened_menu() {
 }
 
 bool is_menu_item_enabled( e_menu_item item ) {
+  event_counts()["menu.cpp imie"].tick();
   CHECK( g_menu_items.contains( item ) );
   return g_menu_items[item]->callbacks.enabled();
 }
 
 bool is_menu_visible( e_menu menu ) {
+  event_counts()["menu.cpp imv"].tick();
   auto enabled_items = g_items_from_menu[menu] |
                        rv::filter( is_menu_item_enabled );
   return enabled_items.begin() != enabled_items.end();
@@ -764,6 +766,7 @@ void display_menu_bar_tx( Texture const& tx ) {
 ** Input Implementation
 *****************************************************************/
 Opt<MouseOver_t> click_target( Coord screen_coord ) {
+  event_counts()["click target()"].tick();
   using res_t  = Opt<MouseOver_t>;
   auto matcher = scelta::match<res_t>(
       []( MenuState::menus_hidden ) { return res_t{}; },
