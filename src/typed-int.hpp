@@ -27,13 +27,15 @@ struct TypedNumMinimal {
   constexpr TypedNumMinimal() = default;
   ~TypedNumMinimal()          = default;
   constexpr explicit TypedNumMinimal( T n_ ) : _( n_ ) {}
-  bool operator==( TypedNumMinimal<T, Tag> other ) const {
+  constexpr bool operator==(
+      TypedNumMinimal<T, Tag> other ) const {
     return _ == other._;
   }
-  bool operator!=( TypedNumMinimal<T, Tag> other ) const {
+  constexpr bool operator!=(
+      TypedNumMinimal<T, Tag> other ) const {
     return _ != other._;
   }
-  explicit operator T() const { return _; }
+  constexpr explicit operator T() const { return _; }
 
   // Abseil hashing API.
   template<typename H>
@@ -73,10 +75,10 @@ struct TypedInt : public TypedIntMinimal<Tag> {
     P::_ = n;
     return *this;
   }
-  bool operator==( TypedInt<Tag> other ) const {
+  constexpr bool operator==( TypedInt<Tag> other ) const {
     return P::_ == other._;
   }
-  bool operator!=( TypedInt<Tag> other ) const {
+  constexpr bool operator!=( TypedInt<Tag> other ) const {
     return P::_ != other._;
   }
   TypedInt<Tag> operator-() { return TypedInt<Tag>( -P::_ ); }
@@ -122,10 +124,10 @@ struct TypedDouble : public TypedDoubleMinimal<Tag> {
     P::_ = n;
     return *this;
   }
-  bool operator==( TypedDouble<Tag> other ) const {
+  constexpr bool operator==( TypedDouble<Tag> other ) const {
     return P::_ == other._;
   }
-  bool operator!=( TypedDouble<Tag> other ) const {
+  constexpr bool operator!=( TypedDouble<Tag> other ) const {
     return P::_ != other._;
   }
   TypedDouble<Tag> operator-() {
@@ -407,6 +409,9 @@ inline bool operator>=( TypedInt<Tag> left,
     constexpr a( P const& ti ) : P( ti ) {}           \
     constexpr bool operator==( a const& rhs ) const { \
       return _ == rhs._;                              \
+    }                                                 \
+    constexpr bool operator!=( a const& rhs ) const { \
+      return _ != rhs._;                              \
     }                                                 \
     /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
     a& operator=( a const& other ) {                  \
