@@ -72,6 +72,8 @@ Opt<e_plane> g_drag_plane{};
 auto relevant_planes() {
   auto not_covers_screen = L( !_.second->covers_screen() );
   auto enabled           = L( _.second->enabled() );
+  // TODO: rv::filter here may be invoking the `enabled`
+  //       callback twice for each item.
   return rv::zip( values<e_plane>, planes ) //
          | rv::filter( enabled )            //
          | rv::reverse                      //

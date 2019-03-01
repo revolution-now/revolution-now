@@ -219,18 +219,24 @@ bool is_menu_item_enabled( e_menu_item item ) {
 
 bool is_menu_visible( e_menu menu ) {
   event_counts()["menu.cpp imv"].tick();
-  auto enabled_items = g_items_from_menu[menu] |
-                       rv::filter( is_menu_item_enabled );
-  return enabled_items.begin() != enabled_items.end();
+  return rg::any_of( g_items_from_menu[menu],
+                     is_menu_item_enabled );
 }
 
 auto visible_menus() {
-  return values<e_menu> | rv::filter( is_menu_visible );
+  event_counts()["menu.cpp visible_menus"].tick();
+  // rv::filter seems to invoke the callback twice, so we just
+  // implement it manually until this is fixed.
+  // return e_menu_values | rv::filter( is_menu_visible );
+  vector<e_menu> res;
+  res.reserve( values<e_menu>.size() );
+  for( auto menu : values<e_menu> )
+    if( is_menu_visible( menu ) ) res.push_back( menu );
+  return res;
 }
 
 bool have_some_visible_menus() {
-  auto rng = visible_menus();
-  return std::distance( rng.begin(), rng.end() ) > 0;
+  return rg::any_of( values<e_menu>, is_menu_visible );
 }
 
 /****************************************************************
@@ -345,13 +351,15 @@ Delta menu_header_delta( e_menu menu ) {
 
 // These cannot be precalculated because menus might be hidden.
 X menu_header_x_pos( e_menu target ) {
+  event_counts()["menu_header_x_pos"].tick();
   CHECK( g_menus.contains( target ) );
   CHECK( is_menu_visible( target ) );
   auto const& desc = g_menus[target];
   W           width_delta{0};
+  auto        vm = visible_menus();
   if( desc.right_side ) {
     width_delta = ranges::accumulate(
-        visible_menus()                                      //
+        vm                                                   //
             | rv::reverse                                    //
             | rv::remove_if( L( !g_menus[_].right_side ) )   //
             | take_while_inclusive( LC( _ != target ) )      //
@@ -360,7 +368,7 @@ X menu_header_x_pos( e_menu target ) {
         0_w );
   } else {
     width_delta = ranges::accumulate(
-        visible_menus()                                   //
+        vm                                                //
             | rv::remove_if( L( g_menus[_].right_side ) ) //
             | rv::take_while( LC( _ != target ) )         //
             | rv::transform( L( menu_header_delta( _ ).w +

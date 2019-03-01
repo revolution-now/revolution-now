@@ -19,6 +19,7 @@
 #include "range/v3/all.hpp"
 
 namespace rv = ::ranges::view;
+namespace rg = ::ranges;
 
 namespace rn {
 
