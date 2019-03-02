@@ -10,6 +10,7 @@ let s:stems = [
   \ 'src/frame',
   \ 'src/plane',
   \ 'src/menu',
+  \ 'src/cache',
   \ 'src/tiles',
   \ 'src/console',
   \ 'src/geo-types',
