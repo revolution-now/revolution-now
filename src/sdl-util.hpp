@@ -29,8 +29,6 @@
 
 namespace rn {
 
-inline auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
-
 // RAII wrapper for SDL_Texture.
 class Texture : public util::non_copy_non_move {
 public:
@@ -176,7 +174,5 @@ void render_rect( Texture const& tx, Color color,
                   Rect const& rect );
 void render_fill_rect( Texture const& tx, Color color,
                        Rect const& rect );
-
-uint64_t total_set_render_target();
 
 } // namespace rn

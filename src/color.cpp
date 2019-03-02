@@ -140,7 +140,7 @@ Color to_RGB( ColorHSL const& hsl ) {
       C * ( 1 - std::fabs( std::fmod( ( hsl.h / 60.0 ), 2.0 ) -
                            1 ) );
   auto   m = hsl.l - C / 2;
-  double R, G, B;
+  double R = 0, G = 0, B = 0; // initailize to make gcc happy
   // clang-format off
   if( 0   <= hsl.h && hsl.h <  60 ) { R = C; G = X; B = 0; };
   if( 60  <= hsl.h && hsl.h < 120 ) { R = X; G = C; B = 0; };

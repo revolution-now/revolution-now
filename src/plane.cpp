@@ -72,8 +72,6 @@ Opt<e_plane> g_drag_plane{};
 auto relevant_planes() {
   auto not_covers_screen = L( !_.second->covers_screen() );
   auto enabled           = L( _.second->enabled() );
-  // TODO: rv::filter here may be invoking the `enabled`
-  //       callback twice for each item.
   return rv::zip( values<e_plane>, planes ) //
          | rv::filter( enabled )            //
          | rv::reverse                      //
@@ -232,9 +230,7 @@ bool send_input_to_planes( input::event_t const& event ) {
 namespace {
 
 bool is_menu_item_enabled_( e_menu_item item ) {
-  event_counts()["imie outter"].tick();
   for( auto p : relevant_planes() ) {
-    event_counts()["imie inner"].tick();
     if( p.second->menu_click_handler( item ).has_value() )
       return true;
   }

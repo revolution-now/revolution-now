@@ -45,15 +45,6 @@ struct ConsolePlane : public Plane {
                   info_start - frame_rate_tx.size() );
     info_start -= frame_rate_tx.size().h;
 
-    auto srt_rate = fmt::format(
-        "srt/f: {:.1f}", double( total_set_render_target() ) /
-                             total_frame_count() );
-    auto srt_rate_tx = render_text_line_fast(
-        fonts::standard, Color::white(), srt_rate );
-    copy_texture( srt_rate_tx, tx,
-                  info_start - srt_rate_tx.size() );
-    info_start -= srt_rate_tx.size().h;
-
     auto dashes    = fmt::format( "--------------------" );
     auto dashes_tx = render_text_line_fast(
         fonts::standard, Color::white(), dashes );
@@ -71,7 +62,7 @@ struct ConsolePlane : public Plane {
     }
   }
 
-  bool enabled_{true};
+  bool enabled_{false};
 };
 
 ConsolePlane g_console_plane;

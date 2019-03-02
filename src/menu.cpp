@@ -211,33 +211,46 @@ Opt<e_menu> opened_menu() {
   return {};
 }
 
-bool is_menu_item_enabled( e_menu_item item ) {
-  event_counts()["menu.cpp imie"].tick();
+bool is_menu_item_enabled_( e_menu_item item ) {
   CHECK( g_menu_items.contains( item ) );
   return g_menu_items[item]->callbacks.enabled();
 }
 
+auto is_menu_item_enabled =
+    per_frame_memoize( is_menu_item_enabled_ );
+
 bool is_menu_visible_( e_menu menu ) {
-  event_counts()["menu.cpp imv"].tick();
   return rg::any_of( g_items_from_menu[menu],
-                     is_menu_item_enabled );
+                     L( is_menu_item_enabled( _ ) ) );
 }
 
 auto is_menu_visible = per_frame_memoize( is_menu_visible_ );
 
 auto visible_menus_() {
-  event_counts()["menu.cpp visible_menus"].tick();
   // Note: `is_menu_visible` will be called twice for each ele-
   // ment due to the way the vector range constructor works.
+  //
+  // Also, we need to wrap the is_menu_visible in a lambda
+  // because range-v3 requires that the predicate satisfy the
+  // IndirectPredicate concept which requires copyability.
+  // However, our memoized functions are not always copyable,
+  // since they hold some state (e.g. in the invalidator) that
+  // would not behave properly if copied.
   vector<e_menu> res =
-      values<e_menu> | rv::filter( is_menu_visible );
+      values<e_menu> | rv::filter( L( is_menu_visible( _ ) ) );
   return res;
 }
 
 auto visible_menus = per_frame_memoize( visible_menus_ );
 
 bool have_some_visible_menus() {
-  return rg::any_of( values<e_menu>, is_menu_visible );
+  // We need to wrap the is_menu_visible in a lambda because
+  // range-v3 requires that the predicate satisfy the
+  // IndirectPredicate concept which requires copyability.
+  // However, our memoized functions are not always copyable,
+  // since they hold some state (e.g. in the invalidator) that
+  // would not behave properly if copied.
+  return rg::any_of( values<e_menu>, L( is_menu_visible( _ ) ) );
 }
 
 /****************************************************************
@@ -352,12 +365,11 @@ Delta menu_header_delta( e_menu menu ) {
 
 // These cannot be precalculated because menus might be hidden.
 X menu_header_x_pos_( e_menu target ) {
-  event_counts()["menu_header_x_pos"].tick();
   CHECK( g_menus.contains( target ) );
   CHECK( is_menu_visible( target ) );
   auto const& desc = g_menus[target];
   W           width_delta{0};
-  auto        vm = visible_menus();
+  auto const& vm = visible_menus();
   if( desc.right_side ) {
     width_delta = ranges::accumulate(
         vm                                                   //
@@ -644,7 +656,6 @@ Texture const& render_open_menu( e_menu           menu,
         pos += divider_height();
       },
       [&]( MenuClickable const& clickable ) {
-        auto const& desc = g_menu_items[clickable.item];
         auto const& rendered =
             g_menu_item_rendered[clickable.item];
         Texture const* foreground{nullptr};
@@ -687,7 +698,7 @@ Texture const& render_open_menu( e_menu           menu,
             foreground = &rendered.normal;
           }
         } else {
-          foreground = !desc->callbacks.enabled()
+          foreground = !is_menu_item_enabled( clickable.item )
                            ? &rendered.disabled
                            : ( clickable.item == subject )
                                  ? &rendered.highlighted
@@ -779,7 +790,6 @@ void display_menu_bar_tx( Texture const& tx ) {
 ** Input Implementation
 *****************************************************************/
 Opt<MouseOver_t> click_target( Coord screen_coord ) {
-  event_counts()["click target()"].tick();
   using res_t  = Opt<MouseOver_t>;
   auto matcher = scelta::match<res_t>(
       []( MenuState::menus_hidden ) { return res_t{}; },
@@ -790,7 +800,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
             return res_t{MouseOver::header{menu}};
         if( screen_coord.is_inside( menu_bar_rect() ) )
           return res_t{MouseOver::bar{}};
-        return res_t{};
+        return res_t( nullopt );
       } )( //
       [&]( auto self, MenuState::item_click const& ic ) {
         // Just forward this to the MenuState::menu_open.
@@ -804,7 +814,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
         if( closed ) return res_t{closed};
         if( !screen_coord.is_inside(
                 menu_body_clickable_area( o.menu ) ) )
-          return res_t{};
+          return res_t( nullopt );
         // The cursor is over a non-transparent part of the open
         // menu.
         if( !screen_coord.is_inside(
@@ -1196,7 +1206,6 @@ struct MenuPlane : public Plane {
         },
         []( input::mouse_wheel_event_t ) { return false; },
         []( input::mouse_move_event_t mv_event ) {
-          event_counts()["menu mouse move"].tick();
           // Remove menu-hover by default and enable it again
           // below if the mouse if over a menu and menus are
           // closed.
@@ -1241,8 +1250,7 @@ struct MenuPlane : public Plane {
                       g_menu_state );
                   CHECK( o.menu == g_item_to_menu[item.item] );
                   o.hover = {};
-                  if( g_menu_items[item.item]
-                          ->callbacks.enabled() )
+                  if( is_menu_item_enabled( item.item ) )
                     o.hover = item.item;
                 }
                 return true;
@@ -1337,7 +1345,8 @@ private:
         // enabled. This is because it is possible that a menu
         // item might be disabled in the small amount of time
         // (within a frame) that the item is checked for
-        // enablement and when this click is called.
+        // enablement and when this click is called. That's also
+        // why we don't call the (memoized) is_menu_item_enabled.
         if( !g_menu_items[item]->callbacks.enabled() ) return;
         logger->info( "selected menu item `{}`", item );
         g_menu_state = MenuState::item_click{

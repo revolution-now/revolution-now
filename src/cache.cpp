@@ -49,7 +49,8 @@ void test_memoizer() {
     return false;
   };
 
-  auto memoized_calc0 = memoizer( calc0, invalidator );
+  auto memoized_calc0 =
+      memoizer( calc0, std::move( invalidator ) );
 
   logger->debug( "memoized_calc(): {}", memoized_calc0() );
   logger->debug( "memoized_calc(): {}", memoized_calc0() );

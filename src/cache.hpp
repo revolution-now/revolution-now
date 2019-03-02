@@ -17,7 +17,7 @@
 #include "base-util/non-copyable.hpp"
 
 // Abseil
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/node_hash_map.h"
 
 // C++ standard library
 #include <optional>
@@ -64,6 +64,13 @@ inline constexpr bool memoization_enabled = true;
 //
 //   auto res1 = memoized_calc();
 //   auto res2 = memoized_calc();
+//
+// WARNING: these memoizers, when returning cached values, will
+//          return references to them, and these references
+//          could be invalidated while the reference is still
+//          being used (when the cache is emptied and value
+//          recomputed), so one should never hold references
+//          to the returned values for too long.
 template<typename... Args>
 class memoizer_t;
 
@@ -97,15 +104,19 @@ public:
 template<typename Invalidator, typename Return, typename Arg>
 class memoizer_1_arg_base_t {
 public:
-  using Func      = Return ( * )( Arg );
-  using CacheType = absl::flat_hash_map<Arg, Return>;
+  using Func = Return ( * )( Arg );
+  // Use node_hash_map because we want pointer stability because
+  // our operator() function returns references. WARNING: this
+  // still does not guarantee pointer stability after the cache
+  // is invalidated.
+  using CacheType = absl::node_hash_map<Arg, Return>;
 
   Func        generator_;
   Invalidator invalidator_;
   CacheType   cache_;
 
-  memoizer_1_arg_base_t( Func        generator,
-                         Invalidator invalidator )
+  memoizer_1_arg_base_t( Func          generator,
+                         Invalidator&& invalidator )
     : generator_( generator ),
       invalidator_( std::move( invalidator ) ) {}
 
@@ -127,7 +138,7 @@ class memoizer_t<Invalidator, Return ( * )( Arg )>
       memoizer_1_arg_base_t<Invalidator, Return, Arg>;
 
 public:
-  memoizer_t( Func generator, Invalidator invalidator )
+  memoizer_t( Func generator, Invalidator&& invalidator )
     : parent_t( generator, std::move( invalidator ) ) {}
 };
 
@@ -142,9 +153,11 @@ class memoizer_t<Invalidator, Return ( * )( Arg const& )>
       memoizer_1_arg_base_t<Invalidator, Return, Arg const&>;
 
 public:
-  memoizer_t( Func generator, Invalidator invalidator )
+  memoizer_t( Func generator, Invalidator&& invalidator )
     : parent_t( generator, std::move( invalidator ) ) {}
 };
+
+inline bool always_invalidator() { return true; }
 
 } // namespace impl
 
@@ -154,24 +167,20 @@ auto memoizer( Func func ) {
   if constexpr( impl::memoization_enabled ) {
     auto invalidator = [] { return false; };
     return impl::memoizer_t<decltype( invalidator ), Func>(
-        func, invalidator );
+        func, std::move( invalidator ) );
   } else {
-    static auto dummy_invalidator = [] { return true; };
-    return impl::memoizer_t<decltype( dummy_invalidator ), Func>(
-        func, dummy_invalidator );
+    return func;
   }
 }
 
 template<typename Invalidator, typename Func>
-auto memoizer( Func func, Invalidator invalidator ) {
+auto memoizer( Func func, Invalidator&& invalidator ) {
   if constexpr( impl::memoization_enabled ) {
     return impl::memoizer_t<Invalidator, Func>(
         func, std::move( invalidator ) );
   } else {
     (void)invalidator;
-    static auto dummy_invalidator = [] { return false; };
-    return impl::memoizer_t<decltype( dummy_invalidator ), Func>(
-        func, dummy_invalidator );
+    return func;
   }
 }
 

@@ -80,7 +80,11 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
   while( true ) {
     auto start = system_clock::now();
     frame_rate.tick();
-    for( auto& p : g_event_counts ) p.second.tick();
+    // Keep the state of the moving averages up to date even when
+    // there are no ticks happening on them. Specifically, if
+    // there are no ticks happening, then this will slowly cause
+    // the average to drop.
+    for( auto& p : g_event_counts ) p.second.update();
 
     draw_all_planes();
     ::SDL_RenderPresent( g_renderer );

@@ -14,6 +14,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
+#include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
@@ -33,6 +34,8 @@ namespace rn {
 
 namespace {
 
+auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
+
 // Must be unordered_map since we need pointer stability; other
 // modules will hold references to these.
 unordered_map<string, Texture> loaded_textures;
@@ -42,13 +45,7 @@ vector<Rect> clip_stack;
 int g_current_render_target{-1};
 int g_next_texture_id{1};
 
-uint64_t g_total_set_render_target{0};
-
 } // namespace
-
-uint64_t total_set_render_target() {
-  return g_total_set_render_target;
-}
 
 ::SDL_Rect to_SDL( Rect const& rect ) {
   ::SDL_Rect res;
@@ -231,7 +228,7 @@ void set_render_target( Texture const& tx ) {
   if( g_current_render_target == tx.id() ) return;
   CHECK( !::SDL_SetRenderTarget( g_renderer, tx.get() ) );
   g_current_render_target = tx.id();
-  g_total_set_render_target++;
+  event_counts()["set-render-target"].tick();
 }
 
 void push_clip_rect( Rect const& rect ) {

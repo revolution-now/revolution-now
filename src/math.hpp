@@ -16,6 +16,9 @@
 #include "aliases.hpp"
 #include "ranges.hpp"
 
+// base-util
+#include "base-util/non-copyable.hpp"
+
 // C++ standard library
 #include <array>
 #include <chrono>
@@ -38,8 +41,13 @@ namespace rn {
 //
 // Ideally we'd be able to use nanoseconds here as the template
 // parameter.
+//
+// Note: these are non-copyable and non-movable to simplify
+// implementation. If we were to move or copy them then we'd have
+// to also reinitailize the range view members since they'd be
+// referring to data members of the copied-from object.
 template<int BucketLengthSeconds>
-class MovingAverage {
+class MovingAverage : public util::non_copy_non_move {
   using nanoseconds = std::chrono::nanoseconds;
   using seconds     = std::chrono::seconds;
 
@@ -65,6 +73,16 @@ public:
     last_tick_ = now;
     for( auto& bucket : *curr_window ) ++bucket;
     ticks_++;
+  }
+
+  // This is used to update the state to account for the passage
+  // of time even when no ticks are happening. This should not
+  // interfere with any other calls to tick().
+  void update() {
+    auto now = std::chrono::system_clock::now();
+    if( last_tick_ != TimeType{} )
+      advance_clock( now - last_tick_ );
+    last_tick_ = now;
   }
 
   // Return the current average; this will be the average as com-

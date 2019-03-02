@@ -15,8 +15,11 @@
 #include "core-config.hpp"
 #include "math.hpp"
 
+// base-util
+#include "base-util/non-copyable.hpp"
+
 // Abseil
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/node_hash_map.h"
 
 // C++ standard library
 #include <chrono>
@@ -33,16 +36,21 @@ double avg_frame_rate();
 
 uint64_t total_frame_count();
 
+// Use node_hash_map because MovingAverage objects are
+// non-copyable and non-movable.
 using EventCountMap =
-    absl::flat_hash_map<std::string_view,
+    absl::node_hash_map<std::string_view,
                         MovingAverage<3 /*seconds*/>>;
 
 EventCountMap& event_counts();
 
 // This invalidator will report an invalidation the first time it
 // is called on each new frame, and not for the rest of the
-// frame.
-struct PerFrameInvalidator {
+// frame. It must not be copyable otherwise some frameworks (such
+// as range-v3) will copy it and call it multiple times within a
+// frame and hence it may end up return `true` more than once per
+// frame, thus causing unnecessary calls to the wrapped function.
+struct PerFrameInvalidator : public util::movable_only {
   uint64_t curr_frame{0};
   bool     operator()() {
     auto real_frame = total_frame_count();

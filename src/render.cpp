@@ -163,7 +163,7 @@ void render_nationality_icon( Texture const& dest, UnitId id,
     default: break;
   };
 
-  char c;
+  char c{'-'}; // gcc seems to want us to initialize this
   switch( unit.orders() ) {
     case Unit::e_orders::none: c = '-'; break;
     case Unit::e_orders::sentry: c = 'S'; break;

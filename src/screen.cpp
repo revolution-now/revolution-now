@@ -35,6 +35,8 @@ Delta g_screen_physical_size{};
 
 namespace {
 
+auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
+
 struct DisplayMode {
   Delta  size;
   Uint32 format;
@@ -198,8 +200,23 @@ void find_pixel_scale_factor() {
   auto scale_scores = rv::iota( 1, 11 ) //
                       | rv::transform( scale_info );
 
-  ASSIGN_CHECK_OPT( optimal,
-                    scale_scores | min_by_key( scale_score ) );
+  // What we would like to do is use the following macro, but
+  // this currently causes a compiler crash for GCC inside the
+  // ranges library. Try again at a later time to use it.
+  // ----
+  // ASSIGN_CHECK_OPT( optimal,
+  //                  scale_scores | min_by_key( scale_score ) );
+  // ----
+  // and delete this:
+  optional<ScaleInfo> maybe_optimal;
+  for( auto info : scale_scores ) {
+    if( !maybe_optimal.has_value() ) maybe_optimal = info;
+    if( scale_score( info ) < scale_score( *maybe_optimal ) )
+      maybe_optimal = info;
+  }
+  CHECK( maybe_optimal.has_value() );
+  auto optimal = *maybe_optimal;
+  // ----
 
   ///////////////////////////////////////////////////////////////
   auto table_row = []( auto possibility, auto resolution,
