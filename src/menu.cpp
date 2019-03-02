@@ -217,23 +217,24 @@ bool is_menu_item_enabled( e_menu_item item ) {
   return g_menu_items[item]->callbacks.enabled();
 }
 
-bool is_menu_visible( e_menu menu ) {
+bool is_menu_visible_( e_menu menu ) {
   event_counts()["menu.cpp imv"].tick();
   return rg::any_of( g_items_from_menu[menu],
                      is_menu_item_enabled );
 }
 
-auto visible_menus() {
+auto is_menu_visible = per_frame_memoize( is_menu_visible_ );
+
+auto visible_menus_() {
   event_counts()["menu.cpp visible_menus"].tick();
-  // rv::filter seems to invoke the callback twice, so we just
-  // implement it manually until this is fixed.
-  // return e_menu_values | rv::filter( is_menu_visible );
-  vector<e_menu> res;
-  res.reserve( values<e_menu>.size() );
-  for( auto menu : values<e_menu> )
-    if( is_menu_visible( menu ) ) res.push_back( menu );
+  // Note: `is_menu_visible` will be called twice for each ele-
+  // ment due to the way the vector range constructor works.
+  vector<e_menu> res =
+      values<e_menu> | rv::filter( is_menu_visible );
   return res;
 }
+
+auto visible_menus = per_frame_memoize( visible_menus_ );
 
 bool have_some_visible_menus() {
   return rg::any_of( values<e_menu>, is_menu_visible );
@@ -350,7 +351,7 @@ Delta menu_header_delta( e_menu menu ) {
 }
 
 // These cannot be precalculated because menus might be hidden.
-X menu_header_x_pos( e_menu target ) {
+X menu_header_x_pos_( e_menu target ) {
   event_counts()["menu_header_x_pos"].tick();
   CHECK( g_menus.contains( target ) );
   CHECK( is_menu_visible( target ) );
@@ -381,6 +382,8 @@ X menu_header_x_pos( e_menu target ) {
                      ? width_delta
                      : screen_logical_size().w - width_delta );
 }
+
+auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
 
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
@@ -723,7 +726,9 @@ void render_menu_bar() {
   auto offset = 0_y + ( ( 16_h - max_text_height() ) / 2_sy );
 
   for( auto menu : visible_menus() ) {
-    CHECK( g_menu_rendered.contains( menu ) );
+    CHECK( g_menu_rendered.contains( menu ),
+           "g_menu_rendered.size(): {}",
+           g_menu_rendered.size() );
     auto const& textures = g_menu_rendered[menu];
     using Txs = Opt<pair<Texture const*, Texture const*>>;
     // Given `menu`, this matcher visits the global menu state

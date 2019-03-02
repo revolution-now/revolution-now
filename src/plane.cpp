@@ -231,7 +231,7 @@ bool send_input_to_planes( input::event_t const& event ) {
 
 namespace {
 
-bool is_menu_item_enabled( e_menu_item item ) {
+bool is_menu_item_enabled_( e_menu_item item ) {
   event_counts()["imie outter"].tick();
   for( auto p : relevant_planes() ) {
     event_counts()["imie inner"].tick();
@@ -240,6 +240,9 @@ bool is_menu_item_enabled( e_menu_item item ) {
   }
   return false;
 }
+
+auto is_menu_item_enabled =
+    per_frame_memoize( is_menu_item_enabled_ );
 
 void on_menu_item_clicked( e_menu_item item ) {
   for( auto p : relevant_planes() ) {

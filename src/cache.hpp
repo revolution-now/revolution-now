@@ -25,24 +25,33 @@
 
 namespace rn {
 
+namespace impl {
+
+// Use this to turn off memoization. In order for this to be re-
+// spected you must create your memoizers using one of the stan-
+// dard memoizer helper functions, which you should always be
+// doing anyway.
+inline constexpr bool memoization_enabled = true;
+
 // The memoizer_t classes are classes that wrap two things:
 //
 //   1) A function pointer (taking either 0 or 1 parameters)
 //   2) An "invalidator"
 //
-// The memoizer_t class is callable and will, when called,
-// compute a value by calling the stored function pointer and
-// store the result. If the result is already stored the it will
-// avoid recomputing it.
+// The memoizer_t class is callable and will, when called, com-
+// pute a value by calling the stored function pointer and store
+// the result. If the result is already stored the it will avoid
+// recomputing it.
 //
 // However, the "invalidator" object is queried on each call to
 // determine whether the cached value should be recomputed. The
 // invalidator is a callable and will be called each time the
 // value is requested. If the invalidator returns `false` then
-// the cached value will be used (assuming there is a cached
-// value), and if it returns `true` then the value will be
-// recomputed. Therefore, the invalidator will generally hold its
-// own state and also check some external state.
+// the cached value will be used (assuming there is a cached val-
+// ue), and if it returns `true` then ALL cached values will be
+// cleared and the values will be recomputed as needed. There-
+// fore, the invalidator will generally hold its own state and
+// also check some external state.
 //
 // Example:
 //
@@ -60,16 +69,13 @@ class memoizer_t;
 
 // Version for generator functions that take no parameters.
 template<typename Invalidator, typename Return>
-class memoizer_t<Invalidator, Return ( * )()>
-  : public util::non_copy_non_move {
+class memoizer_t<Invalidator, Return ( * )()> {
   using Func      = Return ( * )();
   using CacheType = std::optional<Return>;
 
   Func        generator_;
   Invalidator invalidator_;
   CacheType   cache_;
-
-  bool invalid() { return invalidator_(); }
 
 public:
   memoizer_t( Func generator, Invalidator invalidator )
@@ -78,15 +84,19 @@ public:
       cache_{} {}
 
   Return const& operator()() {
-    if( invalid() || !cache_.has_value() ) cache_ = generator_();
+    if( invalidator_() || !cache_.has_value() )
+      cache_ = generator_();
     return *cache_;
   }
 };
 
-// Version for generator functions that take one parameter.
+// Base version of memoizer for function of one parameter. This
+// is used to avoid duplication below. Note that this class and
+// its children must be copyable in order to satisfy range-v3's
+// IndirectPredicate concept.
 template<typename Invalidator, typename Return, typename Arg>
-class memoizer_t<Invalidator, Return ( * )( Arg )>
-  : public util::non_copy_non_move {
+class memoizer_1_arg_base_t {
+public:
   using Func      = Return ( * )( Arg );
   using CacheType = absl::flat_hash_map<Arg, Return>;
 
@@ -94,25 +104,75 @@ class memoizer_t<Invalidator, Return ( * )( Arg )>
   Invalidator invalidator_;
   CacheType   cache_;
 
-  bool invalid() { return invalidator_(); }
-
-public:
-  memoizer_t( Func generator, Invalidator invalidator )
+  memoizer_1_arg_base_t( Func        generator,
+                         Invalidator invalidator )
     : generator_( generator ),
       invalidator_( std::move( invalidator ) ) {}
 
-  Return const& operator()( Arg&& arg ) {
+  Return const& operator()( Arg const& arg ) {
+    if( invalidator_() ) cache_.clear();
     auto it = cache_.find( arg );
-    if( invalid() || it == cache_.end() )
+    if( it == cache_.end() )
       it = cache_.emplace( arg, generator_( arg ) ).first;
     return it->second;
   }
 };
 
+// Version for generator functions that take one parameter.
+template<typename Invalidator, typename Return, typename Arg>
+class memoizer_t<Invalidator, Return ( * )( Arg )>
+  : public memoizer_1_arg_base_t<Invalidator, Return, Arg> {
+  using Func = Return ( * )( Arg );
+  using parent_t =
+      memoizer_1_arg_base_t<Invalidator, Return, Arg>;
+
+public:
+  memoizer_t( Func generator, Invalidator invalidator )
+    : parent_t( generator, std::move( invalidator ) ) {}
+};
+
+// Version for generator functions that take one parameter as a
+// const ref.
+template<typename Invalidator, typename Return, typename Arg>
+class memoizer_t<Invalidator, Return ( * )( Arg const& )>
+  : public memoizer_1_arg_base_t<Invalidator, Return,
+                                 Arg const&> {
+  using Func = Return ( * )( Arg const& );
+  using parent_t =
+      memoizer_1_arg_base_t<Invalidator, Return, Arg const&>;
+
+public:
+  memoizer_t( Func generator, Invalidator invalidator )
+    : parent_t( generator, std::move( invalidator ) ) {}
+};
+
+} // namespace impl
+
+// Use this for memoizers that should never invalidate.
+template<typename Func>
+auto memoizer( Func func ) {
+  if constexpr( impl::memoization_enabled ) {
+    auto invalidator = [] { return false; };
+    return impl::memoizer_t<decltype( invalidator ), Func>(
+        func, invalidator );
+  } else {
+    static auto dummy_invalidator = [] { return true; };
+    return impl::memoizer_t<decltype( dummy_invalidator ), Func>(
+        func, dummy_invalidator );
+  }
+}
+
 template<typename Invalidator, typename Func>
 auto memoizer( Func func, Invalidator invalidator ) {
-  return memoizer_t<Invalidator, Func>(
-      func, std::move( invalidator ) );
+  if constexpr( impl::memoization_enabled ) {
+    return impl::memoizer_t<Invalidator, Func>(
+        func, std::move( invalidator ) );
+  } else {
+    (void)invalidator;
+    static auto dummy_invalidator = [] { return false; };
+    return impl::memoizer_t<decltype( dummy_invalidator ), Func>(
+        func, dummy_invalidator );
+  }
 }
 
 // Just for testing.
