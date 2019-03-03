@@ -7,13 +7,12 @@ Plan
      * hot keys
      * names with highlighted hotkey
      * Fix click rect around headers
-2) Add logging into console
-3) Add disband command
-4) Fix handling of multiple units on a square with
+2) Add disband command
+3) Fix handling of multiple units on a square with
    rendering and combat.
-5) Finish ship combat
-6) Implement mouse selection of units to e.g. activate.
-7) Modify the `screen` module to handle all quantities
+4) Finish ship combat
+5) Implement mouse selection of units to e.g. activate.
+6) Modify the `screen` module to handle all quantities
    that depend on the rendering scale, and allow dynamic
    changes to it.  Also try to fix non-fullscreen mode.
 

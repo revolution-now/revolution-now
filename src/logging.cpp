@@ -10,6 +10,10 @@
 *****************************************************************/
 #include "logging.hpp"
 
+// Revolution Now
+#include "console.hpp"
+#include "fmt-helper.hpp"
+
 using namespace std;
 
 using namespace spdlog;
@@ -27,6 +31,14 @@ void init_logging( optional<level::level_enum> level ) {
 #endif
   }
   spdlog::set_level( *level );
+}
+
+void debug_console_sink_log_impl( std::string const& msg ) {
+  log_to_debug_console( msg );
+}
+
+void debug_console_sink_log_impl( std::string&& msg ) {
+  log_to_debug_console( msg );
 }
 
 } // namespace rn
