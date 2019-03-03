@@ -50,6 +50,11 @@ sprite create_sprite_8( Texture const& texture, Coord coord ) {
   return {&texture, rect, {8_sx, 8_sy}};
 }
 
+sprite create_sprite_16( Texture const& texture, Coord coord ) {
+  Rect rect{coord.x * 16_sx, coord.y * 16_sy, 16_w, 16_h};
+  return {&texture, rect, {16_sx, 16_sy}};
+}
+
 #define SET_SPRITE_WORLD( name )            \
   sprites[g_tile::name] = create_sprite_32( \
       tile_set_world, config_art.tiles.world.coords.name )
@@ -62,6 +67,10 @@ sprite create_sprite_8( Texture const& texture, Coord coord ) {
   sprites[g_tile::name] = create_sprite_8( \
       tile_set_menu, config_art.tiles.menu.coords.name )
 
+#define SET_SPRITE_MENU16( name )           \
+  sprites[g_tile::name] = create_sprite_16( \
+      tile_set_menu16, config_art.tiles.menu16.coords.name )
+
 void init_sprites() {
   auto& tile_set_world =
       load_texture( config_art.tiles.world.img );
@@ -69,6 +78,8 @@ void init_sprites() {
       load_texture( config_art.tiles.units.img );
   auto& tile_set_menu =
       load_texture( config_art.tiles.menu.img );
+  auto& tile_set_menu16 =
+      load_texture( config_art.tiles.menu16.img );
 
   SET_SPRITE_WORLD( water );
   SET_SPRITE_WORLD( land );
@@ -108,12 +119,14 @@ void init_sprites() {
   SET_SPRITE_MENU( menu_sel_left );
   SET_SPRITE_MENU( menu_sel_right );
 
-  SET_SPRITE_MENU( menu_bar_bottom );
-  SET_SPRITE_MENU( menu_bar_top );
+  SET_SPRITE_MENU16( menu_bar_0 );
+  SET_SPRITE_MENU16( menu_bar_1 );
+  SET_SPRITE_MENU16( menu_bar_2 );
 }
 
 } // namespace
 
+//
 REGISTER_INIT_ROUTINE( sprites, init_sprites, [] {} );
 
 sprite const& lookup_sprite( g_tile tile ) {

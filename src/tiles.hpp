@@ -78,8 +78,9 @@ enum class ND g_tile {
   menu_sel_left,
   menu_sel_right,
 
-  menu_bar_bottom,
-  menu_bar_top
+  menu_bar_0,
+  menu_bar_1,
+  menu_bar_2
 };
 
 struct ND sprite {

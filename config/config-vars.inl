@@ -108,11 +108,18 @@ CFG( art,
         FLD( Coord, menu_right )
         FLD( Coord, menu_top_right )
         FLD( Coord, menu_bottom_right )
-        FLD( Coord, menu_bar_bottom )
         FLD( Coord, menu_sel_body )
         FLD( Coord, menu_sel_left )
         FLD( Coord, menu_sel_right )
-        FLD( Coord, menu_bar_top )
+      )
+    )
+
+    OBJ( menu16,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, menu_bar_0 )
+        FLD( Coord, menu_bar_1 )
+        FLD( Coord, menu_bar_2 )
       )
     )
   )

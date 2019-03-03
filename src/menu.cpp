@@ -263,24 +263,29 @@ auto active() {
 }
 } // namespace color::item::background
 namespace color::item::foreground {
-auto const& active   = config_palette.orange.sat0.lum4;
+auto const& active   = config_palette.orange.sat1.lum4;
 auto const& inactive = config_palette.orange.sat1.lum6;
-auto const& disabled = config_palette.grey.n68;
+auto        disabled() {
+  auto color = config_palette.grey.n88;
+  color.a    = 200;
+  return color;
+}
 } // namespace color::item::foreground
 
 namespace color::menu::background {
 auto active() {
-  auto color = color::item::background::active();
+  auto color = config_palette.orange.sat1.lum9;
+  color.a    = 200;
   return color;
 }
 auto hover() {
-  auto color = config_palette.orange.sat0.lum3;
-  color      = color.highlighted( 2 );
+  auto color = config_palette.orange.sat1.lum9;
+  color.a    = 150;
   return color;
 }
 } // namespace color::menu::background
 namespace color::menu::foreground {
-auto const& active   = config_palette.orange.sat0.lum2;
+auto const& active   = config_palette.orange.sat1.lum11;
 auto const& inactive = config_palette.orange.sat1.lum11;
 auto const& disabled = config_palette.grey.n68;
 } // namespace color::menu::foreground
@@ -574,7 +579,7 @@ ItemTextures render_menu_item_element(
       text, nullopt, //
       color::item::foreground::inactive,
       color::item::foreground::active,
-      color::item::foreground::disabled );
+      color::item::foreground::disabled() );
 }
 
 // For either a menu header or item.
@@ -591,7 +596,7 @@ Texture render_divider( e_menu menu ) {
   Delta   delta = divider_delta( menu );
   Texture res   = create_texture_transparent( delta );
   // A divider is never highlighted.
-  Color color_fore = color::item::foreground::disabled;
+  Color color_fore = color::item::foreground::disabled();
   Color color_back = color_fore.shaded( 4 );
   render_line( res, color_fore,
                Coord{} + delta.h / 2 - 1_h + 2_w,
@@ -619,7 +624,10 @@ Texture render_menu_header_background( e_menu menu, bool active,
   CHECK( !( active && hover ) );
   auto color = active ? color::menu::background::active()
                       : color::menu::background::hover();
-  return create_texture( menu_header_delta( menu ), color );
+  auto res = create_texture( menu_header_delta( menu ) );
+  clear_texture_transparent( res );
+  fill_texture( res, color );
+  return res;
 }
 
 Texture const& render_open_menu( e_menu           menu,
@@ -724,15 +732,20 @@ void render_menu_bar() {
   auto lower_right = ( Coord{} + bar_tx_size )
                          .rounded_up_to_multiple( Scale{8} );
   auto tiles_rect =
-      Rect::from( Coord{}, lower_right ) / Scale{8};
+      Rect::from( Coord{}, lower_right ) / Scale{16};
+  tiles_rect.w += 1_w; // just in case we fall short 1/2 square
   for( auto coord : tiles_rect ) {
-    if( coord.y == 0_y )
-      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_top,
-                          coord, 0, 0 );
-    else
-      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_bottom,
-                          coord, 0, 0 );
+    if( coord.x % 3_w == 0_w )
+      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_0, coord,
+                          0, 0 );
+    if( coord.x % 3_w == 1_w )
+      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_1, coord,
+                          0, 0 );
+    if( coord.x % 3_w == 2_w )
+      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_2, coord,
+                          0, 0 );
   }
+
   // Center the text vertically in the menu bar.
   auto offset = 0_y + ( ( 16_h - max_text_height() ) / 2_sy );
 

@@ -51,11 +51,18 @@ tiles {
       menu_right:          { y: 0, x: 6 }
       menu_top_right:      { y: 0, x: 7 }
       menu_bottom_right:   { y: 1, x: 0 }
-      menu_bar_bottom:     { y: 1, x: 1 }
       menu_sel_body:       { y: 1, x: 2 }
       menu_sel_left:       { y: 1, x: 3 }
       menu_sel_right:      { y: 1, x: 4 }
-      menu_bar_top:        { y: 1, x: 5 }
+    }
+  }
+
+  menu16 {
+    img: assets/art/tiles/menu16.png
+    coords {
+      menu_bar_0: { y: 0, x: 0 }
+      menu_bar_1: { y: 0, x: 1 }
+      menu_bar_2: { y: 0, x: 2 }
     }
   }
 
