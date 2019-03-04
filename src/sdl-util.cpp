@@ -221,6 +221,7 @@ Texture& load_texture( fs::path const& path ) {
 }
 
 Delta texture_delta( Texture const& texture ) {
+  if( !texture ) return screen_logical_size();
   int w, h;
   CHECK(
       !::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h ) );

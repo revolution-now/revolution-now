@@ -14,6 +14,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "init.hpp"
+#include "input.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
 #include "screen.hpp"
@@ -280,13 +281,7 @@ void font_test() {
 
   ::SDL_RenderPresent( g_renderer );
 
-  ::SDL_Event event;
-  while( true ) {
-    ::SDL_PollEvent( &event );
-    if( event.type == SDL_KEYDOWN ) break;
-    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    ::SDL_Delay( 10 );
-  }
+  input::wait_for_q();
 }
 
 } // namespace rn

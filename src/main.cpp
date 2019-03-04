@@ -93,8 +93,6 @@ void game() {
   image_plane_set( e_image::old_world );
   image_plane_enable( true );
   frame_loop( true, [] { return input::is_any_key_down(); } );
-
-  // font_test();
 }
 
 } // namespace rn

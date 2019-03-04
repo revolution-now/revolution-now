@@ -13,9 +13,16 @@ Plan
    rendering and combat.
 4) Finish ship combat
 5) Implement mouse selection of units to e.g. activate.
-6) Modify the `screen` module to handle all quantities
+6) Add a cache to the cache module that invalidates
+   when the scaling is changed.  This will facilitate
+   the next item.
+7) Modify the `screen` module to handle all quantities
    that depend on the rendering scale, and allow dynamic
    changes to it.  Also try to fix non-fullscreen mode.
+8) Remove color palette from config, generate a new
+   palette data structure with a uniform distribution
+   of hues/sats/lums.  Kind of rediculous to have the
+   palette in a ucl file.
 
 ========================================================
 Long Term Plan
