@@ -256,19 +256,14 @@ bool have_some_visible_menus() {
 /****************************************************************
 ** Colors
 *****************************************************************/
-namespace color::item::background {
-auto active() {
-  // auto color = config_palette.yellow.sat1.lum11;
-  // auto color = config_palette.orange.sat2.lum5;
-  auto color = config_palette.orange.sat2.lum7;
-  color.a    = 185;
-  return color;
-}
-} // namespace color::item::background
+auto        banana  = Color::parse_from_hex( "E4C890" ).value();
+auto const& pumpkin = config_palette.orange.sat2.lum5;
+
+auto const& menu_theme_color1 = banana;
+auto const& menu_theme_color2 = pumpkin;
+
 namespace color::item::foreground {
-auto const& active   = config_palette.yellow.sat2.lum14;
-auto const& inactive = config_palette.orange.sat2.lum5;
-auto        disabled() {
+auto disabled() {
   auto color = config_palette.grey.n88;
   color.a    = 200;
   return color;
@@ -276,20 +271,14 @@ auto        disabled() {
 } // namespace color::item::foreground
 
 namespace color::menu::background {
-auto active() {
-  auto color = config_palette.orange.sat1.lum9;
-  color.a    = 200;
-  return color;
-}
 auto hover() {
   auto color = config_palette.orange.sat1.lum9;
-  color.a    = 150;
+  color.a    = 125;
   return color;
 }
 } // namespace color::menu::background
+
 namespace color::menu::foreground {
-auto const& active   = config_palette.orange.sat1.lum14;
-auto const& inactive = config_palette.orange.sat1.lum11;
 auto const& disabled = config_palette.grey.n68;
 } // namespace color::menu::foreground
 
@@ -580,8 +569,7 @@ ItemTextures render_menu_item_element(
     string const& text, optional<char> /*unused*/ ) {
   return render_menu_element(
       text, nullopt, //
-      color::item::foreground::inactive,
-      color::item::foreground::active,
+      menu_theme_color2, menu_theme_color2,
       color::item::foreground::disabled() );
 }
 
@@ -590,8 +578,7 @@ ItemTextures render_menu_header_element(
     string const& text, optional<char> /*unused*/ ) {
   return render_menu_element(
       text, nullopt, //
-      color::menu::foreground::inactive,
-      color::menu::foreground::active,
+      menu_theme_color1, menu_theme_color2,
       color::menu::foreground::disabled );
 }
 
@@ -618,9 +605,8 @@ Texture render_item_background( e_menu menu, bool active ) {
   CHECK( active );
   auto res = create_texture( menu_item_delta( menu ) );
   clear_texture_transparent( res );
-  render_fill_rect_rounded(
-      res, color::item::background::active(), res.rect(),
-      rounded_corner_type::radius_3 );
+  render_fill_rect_rounded( res, menu_theme_color1, res.rect(),
+                            rounded_corner_type::radius_3 );
   return res;
 }
 
@@ -629,12 +615,11 @@ Texture render_menu_header_background( e_menu menu, bool active,
   CHECK( active || hover );
   // FIXME
   CHECK( !( active && hover ) );
-  auto color = active ? color::menu::background::active()
+  auto color = active ? menu_theme_color1
                       : color::menu::background::hover();
   auto res = create_texture( menu_header_delta( menu ) );
   clear_texture_transparent( res );
-  render_fill_rect_rounded( res, color, res.rect(),
-                            rounded_corner_type::radius_2 );
+  render_fill_rect( res, color, res.rect() );
   return res;
 }
 

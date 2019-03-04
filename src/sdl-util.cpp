@@ -620,8 +620,8 @@ auto rounded_corner_template( rounded_corner_type type,
        *  OOOOOOOO
        */
       auto faded = color;
-      faded.a /= 6;
-      faded.a *= 5;
+      faded.a /= 4;
+      faded.a *= 3;
       return vector<Pixel>{
           {{2_x, 1_y}, color}, {{3_x, 1_y}, color},
           {{1_x, 2_y}, color}, {{2_x, 2_y}, color},
@@ -640,10 +640,11 @@ auto rounded_corner_template( rounded_corner_type type,
        *  OOOOOOOO
        */
       auto faded = color;
-      faded.a /= 3;
-      faded.a *= 2;
+      faded.a /= 4;
+      faded.a *= 3;
       auto faded2 = color;
-      faded2.a /= 3;
+      faded2.a /= 4;
+      faded2.a /= 2;
       return vector<Pixel>{
           {{2_x, 1_y}, color}, {{3_x, 1_y}, color},
           {{1_x, 2_y}, color}, {{2_x, 2_y}, color},
@@ -678,6 +679,8 @@ void render_fill_rect_rounded( Texture const& tx, Color color,
                                Rect const&         rect,
                                rounded_corner_type type ) {
   SHOULD_BE_HERE_ONLY_DURING_INITIALIZATION;
+  ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                ::SDL_BLENDMODE_NONE );
   auto template_points = rounded_corner_template( type, color );
   vector<Pixel> points;
   for( auto pixel : template_points ) {
@@ -736,6 +739,9 @@ void render_fill_rect_rounded( Texture const& tx, Color color,
   middle.y += 4_h;
   middle.x += 4_w;
   render_fill_rect( tx, color, middle );
+
+  ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                ::SDL_BLENDMODE_BLEND );
 }
 
 void fill_texture( Texture const& tx, Color color ) {
@@ -763,16 +769,15 @@ void render_rect( Texture const& tx, Color color,
   ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
 }
 
+// Caller must set blend mode!
 void render_points( Texture const& tx, Color color,
                     vector<Coord> const& points ) {
   auto to_sdl = []( Coord const& coord ) {
     return to_SDL( coord );
   };
   auto sdl_points = util::map( to_sdl, points );
-  ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                ::SDL_BLENDMODE_BLEND );
-  set_render_draw_color( color );
   set_render_target( tx );
+  set_render_draw_color( color );
   CHECK( !::SDL_RenderDrawPoints( g_renderer, &sdl_points[0],
                                   sdl_points.size() ) );
 }

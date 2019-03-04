@@ -189,6 +189,9 @@ void render_fill_rect_rounded( Texture const& tx, Color color,
                                Rect const&         rect,
                                rounded_corner_type type );
 
+// NOTE: This function does not set the blend mode, so the caller
+// must set it!
+//
 // WARNING: this is probably slow.
 void render_points( Texture const& tx, Color color,
                     std::vector<Coord> const& points );
