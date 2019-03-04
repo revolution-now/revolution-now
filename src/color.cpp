@@ -420,6 +420,12 @@ Color Color::random() {
           uniform_dist( e ), 255};
 }
 
+Color Color::with_alpha( uint8_t a_new ) const {
+  auto res = *this;
+  res.a    = a_new;
+  return res;
+}
+
 Color Color::highlighted( int iterations ) const {
   if( iterations == 0 ) return *this;
   return shift_color( *this, true )

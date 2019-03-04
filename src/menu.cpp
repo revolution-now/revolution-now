@@ -262,6 +262,12 @@ auto const& pumpkin = config_palette.orange.sat2.lum5;
 auto const& menu_theme_color1 = banana;
 auto const& menu_theme_color2 = pumpkin;
 
+// Color menu_theme_color3 = Color{0, 0, 0, 120};
+auto menu_theme_color3 =
+    config_palette.yellow.sat0.lum2.with_alpha( 120 );
+Color       menu_theme_color4 = Color{80, 80, 80, 255};
+auto const& menu_theme_color5 = config_palette.yellow.sat2.lum14;
+
 namespace color::item::foreground {
 auto disabled() {
   auto color = config_palette.grey.n88;
@@ -569,7 +575,7 @@ ItemTextures render_menu_item_element(
     string const& text, optional<char> /*unused*/ ) {
   return render_menu_element(
       text, nullopt, //
-      menu_theme_color2, menu_theme_color2,
+      menu_theme_color4, menu_theme_color5,
       color::item::foreground::disabled() );
 }
 
@@ -605,8 +611,8 @@ Texture render_item_background( e_menu menu, bool active ) {
   CHECK( active );
   auto res = create_texture( menu_item_delta( menu ) );
   clear_texture_transparent( res );
-  render_fill_rect_rounded( res, menu_theme_color1, res.rect(),
-                            rounded_corner_type::radius_3 );
+  render_fill_rect_rounded( res, menu_theme_color3, res.rect(),
+                            rounded_corner_type::radius_2 );
   return res;
 }
 
@@ -619,7 +625,8 @@ Texture render_menu_header_background( e_menu menu, bool active,
                       : color::menu::background::hover();
   auto res = create_texture( menu_header_delta( menu ) );
   clear_texture_transparent( res );
-  render_fill_rect( res, color, res.rect() );
+  render_fill_rect_rounded( res, color, res.rect(),
+                            rounded_corner_type::radius_2 );
   return res;
 }
 

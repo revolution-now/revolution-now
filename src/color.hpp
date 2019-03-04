@@ -55,6 +55,9 @@ struct Color {
   // A random color.
   static Color random();
 
+  // Returns this color but with changed alpha.
+  Color with_alpha( uint8_t a_new ) const;
+
   // Will generate colors that can act as a "subtle" highlight
   // and shadow of this color. Shadow, from what knowledgable
   // people seem to say, means dark and less saturated, while
