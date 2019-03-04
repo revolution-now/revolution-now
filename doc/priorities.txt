@@ -3,10 +3,8 @@ Plan
 ========================================================
 
 1) Finish menus:
-     * Colors/appearance
      * hot keys
      * names with highlighted hotkey
-     * Fix click rect around headers
 2) Add disband command
 3) Fix handling of multiple units on a square with
    rendering and combat.

@@ -27,6 +27,8 @@ namespace rn {
 
 namespace {
 
+bool g_init_finished{false};
+
 auto& init_functions() {
   static absl::flat_hash_map<e_init_routine, InitFunction>
       s_init_functions;
@@ -146,6 +148,8 @@ void run_all_init_routines() {
          "there is a cycle in the dependency graph of "
          "initialization routine dependencies" );
 
+  CHECK( !g_init_finished );
+
   // Now that we know there are no cycles, let's create a DAG.
   // This would actually throw an error if there is a cycle, but
   // we'd rather catch it here above.
@@ -159,6 +163,8 @@ void run_all_init_routines() {
     init_functions()[routine]();
     init_routine_run_map()[routine] = true;
   }
+
+  g_init_finished = true;
 }
 
 void run_all_cleanup_routines() {
@@ -178,5 +184,7 @@ void run_all_cleanup_routines() {
     }
   }
 }
+
+bool has_init_finished() { return g_init_finished; }
 
 } // namespace rn

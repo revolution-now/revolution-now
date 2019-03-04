@@ -29,6 +29,11 @@
 
 namespace rn {
 
+struct Pixel {
+  Coord coord;
+  Color color;
+};
+
 // RAII wrapper for SDL_Texture.
 class Texture : public util::non_copy_non_move {
 public:
@@ -51,6 +56,8 @@ public:
 
   // For convenience.
   Delta size() const;
+
+  Rect rect() const { return Rect::from( Coord{}, size() ); }
 
   int id() const { return id_; }
 
@@ -174,5 +181,16 @@ void render_rect( Texture const& tx, Color color,
                   Rect const& rect );
 void render_fill_rect( Texture const& tx, Color color,
                        Rect const& rect );
+
+enum class rounded_corner_type { radius_2, radius_3, radius_4 };
+
+// WARNING: this is slow, only use in pre-rendered textures.
+void render_fill_rect_rounded( Texture const& tx, Color color,
+                               Rect const&         rect,
+                               rounded_corner_type type );
+
+// WARNING: this is probably slow.
+void render_points( Texture const& tx, Color color,
+                    std::vector<Coord> const& points );
 
 } // namespace rn

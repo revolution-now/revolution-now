@@ -19,6 +19,9 @@
 #include "logging.hpp"
 #include "screen.hpp"
 
+// base-util
+#include "base-util/algo.hpp"
+
 // SDL
 #include "SDL_mixer.h"
 
@@ -605,6 +608,136 @@ void render_fill_rect( Texture const& tx, Color color,
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
 }
 
+auto rounded_corner_template( rounded_corner_type type,
+                              Color               color ) {
+  switch( type ) {
+    case rounded_corner_type::radius_2: {
+      /*
+       *  XXYOOOOO
+       *  XOOOOOOO
+       *  YOOOOOOO
+       *  OOOOOOOO
+       *  OOOOOOOO
+       */
+      auto faded = color;
+      faded.a /= 6;
+      faded.a *= 5;
+      return vector<Pixel>{
+          {{2_x, 1_y}, color}, {{3_x, 1_y}, color},
+          {{1_x, 2_y}, color}, {{2_x, 2_y}, color},
+          {{3_x, 2_y}, color}, {{1_x, 3_y}, color},
+          {{2_x, 3_y}, color}, {{3_x, 3_y}, color},
+          {{3_x, 0_y}, color}, {{0_x, 3_y}, color},
+          {{1_x, 1_y}, color}, {{2_x, 0_y}, faded},
+          {{0_x, 2_y}, faded}};
+    }
+    case rounded_corner_type::radius_3: {
+      /*
+       *  XXZYOOOO
+       *  XYOOOOOO
+       *  ZOOOOOOO
+       *  YOOOOOOO
+       *  OOOOOOOO
+       */
+      auto faded = color;
+      faded.a /= 3;
+      faded.a *= 2;
+      auto faded2 = color;
+      faded2.a /= 3;
+      return vector<Pixel>{
+          {{2_x, 1_y}, color}, {{3_x, 1_y}, color},
+          {{1_x, 2_y}, color}, {{2_x, 2_y}, color},
+          {{3_x, 2_y}, color}, {{1_x, 3_y}, color},
+          {{2_x, 3_y}, color}, {{3_x, 3_y}, color},
+          {{3_x, 0_y}, faded}, {{0_x, 3_y}, faded},
+          {{1_x, 1_y}, faded}, {{2_x, 0_y}, faded2},
+          {{0_x, 2_y}, faded2}};
+    }
+    case rounded_corner_type::radius_4: {
+      /*
+       *  XXXXOOOO
+       *  XXOOOOOO
+       *  XOOOOOOO
+       *  XOOOOOOO
+       *  OOOOOOOO
+       */
+      auto faded = color;
+      faded.a /= 3;
+      faded.a *= 2;
+      return vector<Pixel>{
+          {{2_x, 1_y}, color}, {{3_x, 1_y}, color},
+          {{1_x, 2_y}, color}, {{2_x, 2_y}, color},
+          {{3_x, 2_y}, color}, {{1_x, 3_y}, color},
+          {{2_x, 3_y}, color}, {{3_x, 3_y}, color}};
+    }
+  }
+}
+
+// WARNING: this is slow, only use in pre-rendered textures.
+void render_fill_rect_rounded( Texture const& tx, Color color,
+                               Rect const&         rect,
+                               rounded_corner_type type ) {
+  SHOULD_BE_HERE_ONLY_DURING_INITIALIZATION;
+  auto template_points = rounded_corner_template( type, color );
+  vector<Pixel> points;
+  for( auto pixel : template_points ) {
+    auto delta    = pixel.coord - Coord{};
+    auto delta_ll = delta;
+    delta_ll.h    = -delta_ll.h - 1_h;
+    auto delta_ur = delta;
+    delta_ur.w    = -delta_ur.w - 1_w;
+    points.push_back( {rect.upper_left() + delta, pixel.color} );
+    points.push_back(
+        {rect.lower_right() - delta - Delta{1_w, 1_h},
+         pixel.color} );
+    points.push_back(
+        {rect.lower_left() + delta_ll, pixel.color} );
+    points.push_back(
+        {rect.upper_right() + delta_ur, pixel.color} );
+  }
+  util::sort_by_key( points, L( _.color ) );
+  for( auto rng :
+       points | rv::group_by( L2( _1.color == _2.color ) ) ) {
+    vector<Coord> coords = rng | rv::transform( L( _.coord ) );
+    CHECK( coords.size() > 0 );
+    Color c = rng.begin()->color;
+    render_points( tx, c, coords );
+  }
+
+  auto left_middle = rect;
+  left_middle.w    = 4_w;
+  left_middle.h -= 8_h;
+  left_middle.y += 4_h;
+  render_fill_rect( tx, color, left_middle );
+
+  auto top_middle = rect;
+  top_middle.w -= 8_w;
+  top_middle.h = 4_h;
+  top_middle.x += 4_w;
+  render_fill_rect( tx, color, top_middle );
+
+  auto right_middle = rect;
+  right_middle.w    = 4_w;
+  right_middle.h -= 8_h;
+  right_middle.y += 4_h;
+  right_middle.x += ( rect.w - 4_w );
+  render_fill_rect( tx, color, right_middle );
+
+  auto bottom_middle = rect;
+  bottom_middle.w -= 8_w;
+  bottom_middle.h = 4_h;
+  bottom_middle.y += ( rect.h - 4_h );
+  bottom_middle.x += 4_w;
+  render_fill_rect( tx, color, bottom_middle );
+
+  auto middle = rect;
+  middle.w -= 8_w;
+  middle.h -= 8_h;
+  middle.y += 4_h;
+  middle.x += 4_w;
+  render_fill_rect( tx, color, middle );
+}
+
 void fill_texture( Texture const& tx, Color color ) {
   render_fill_rect( tx, color,
                     Rect::from( Coord{}, texture_delta( tx ) ) );
@@ -628,6 +761,20 @@ void render_rect( Texture const& tx, Color color,
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
+}
+
+void render_points( Texture const& tx, Color color,
+                    vector<Coord> const& points ) {
+  auto to_sdl = []( Coord const& coord ) {
+    return to_SDL( coord );
+  };
+  auto sdl_points = util::map( to_sdl, points );
+  ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                ::SDL_BLENDMODE_BLEND );
+  set_render_draw_color( color );
+  set_render_target( tx );
+  CHECK( !::SDL_RenderDrawPoints( g_renderer, &sdl_points[0],
+                                  sdl_points.size() ) );
 }
 
 } // namespace rn

@@ -60,4 +60,12 @@ void run_all_init_routines();
 // so in the opposite order.
 void run_all_cleanup_routines();
 
+// Returns false during initialization.
+bool has_init_finished();
+
+#define SHOULD_BE_HERE_ONLY_DURING_INITIALIZATION      \
+  CHECK( !has_init_finished(),                         \
+         "This code path should only be taken during " \
+         "initialization" )
+
 } // namespace rn

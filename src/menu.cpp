@@ -258,13 +258,16 @@ bool have_some_visible_menus() {
 *****************************************************************/
 namespace color::item::background {
 auto active() {
-  auto color = config_palette.yellow.sat1.lum11;
+  // auto color = config_palette.yellow.sat1.lum11;
+  // auto color = config_palette.orange.sat2.lum5;
+  auto color = config_palette.orange.sat2.lum7;
+  color.a    = 185;
   return color;
 }
 } // namespace color::item::background
 namespace color::item::foreground {
-auto const& active   = config_palette.orange.sat1.lum4;
-auto const& inactive = config_palette.orange.sat1.lum6;
+auto const& active   = config_palette.yellow.sat2.lum14;
+auto const& inactive = config_palette.orange.sat2.lum5;
 auto        disabled() {
   auto color = config_palette.grey.n88;
   color.a    = 200;
@@ -285,7 +288,7 @@ auto hover() {
 }
 } // namespace color::menu::background
 namespace color::menu::foreground {
-auto const& active   = config_palette.orange.sat1.lum11;
+auto const& active   = config_palette.orange.sat1.lum14;
 auto const& inactive = config_palette.orange.sat1.lum11;
 auto const& disabled = config_palette.grey.n68;
 } // namespace color::menu::foreground
@@ -597,7 +600,7 @@ Texture render_divider( e_menu menu ) {
   Texture res   = create_texture_transparent( delta );
   // A divider is never highlighted.
   Color color_fore = color::item::foreground::disabled();
-  Color color_back = color_fore.shaded( 4 );
+  Color color_back = color_fore.highlighted( 4 );
   render_line( res, color_fore,
                Coord{} + delta.h / 2 - 1_h + 2_w,
                {delta.w - 5_w, 0_h} );
@@ -613,8 +616,12 @@ Texture create_menu_body_texture( e_menu menu ) {
 
 Texture render_item_background( e_menu menu, bool active ) {
   CHECK( active );
-  return create_texture( menu_item_delta( menu ),
-                         color::item::background::active() );
+  auto res = create_texture( menu_item_delta( menu ) );
+  clear_texture_transparent( res );
+  render_fill_rect_rounded(
+      res, color::item::background::active(), res.rect(),
+      rounded_corner_type::radius_3 );
+  return res;
 }
 
 Texture render_menu_header_background( e_menu menu, bool active,
@@ -626,7 +633,8 @@ Texture render_menu_header_background( e_menu menu, bool active,
                       : color::menu::background::hover();
   auto res = create_texture( menu_header_delta( menu ) );
   clear_texture_transparent( res );
-  fill_texture( res, color );
+  render_fill_rect_rounded( res, color, res.rect(),
+                            rounded_corner_type::radius_2 );
   return res;
 }
 
@@ -714,8 +722,7 @@ Texture const& render_open_menu( e_menu           menu,
           if( clickable.item == subject )
             background = &textures.item_background_highlight;
         }
-        if( background )
-          copy_texture_alpha( *background, dst, pos, 128 );
+        if( background ) copy_texture( *background, dst, pos );
         CHECK( foreground );
         copy_texture( *foreground, dst,
                       pos + config_ui.menus.padding );
@@ -1194,8 +1201,17 @@ struct MenuPlane : public Plane {
                     g_menu_state );
                 if( !state.hover )
                   state.hover = g_items_from_menu[*menu].back();
-                state.hover = util::find_subsequent_and_cycle(
-                    g_items_from_menu[*menu], *state.hover );
+                auto start = state.hover;
+                do {
+                  state.hover = util::find_subsequent_and_cycle(
+                      g_items_from_menu[*menu], *state.hover );
+                  if( state.hover == start )
+                    // This is just a safe guard in case somehow
+                    // there are no menu items enabled at this
+                    // point, even though that should never
+                    // happen (it would cause an infinite loop).
+                    break;
+                } while( !is_menu_item_enabled( *state.hover ) );
                 g_menu_state = state;
                 log_menu_state();
                 return true;
@@ -1206,8 +1222,17 @@ struct MenuPlane : public Plane {
                     g_menu_state );
                 if( !state.hover )
                   state.hover = g_items_from_menu[*menu].front();
-                state.hover = util::find_previous_and_cycle(
-                    g_items_from_menu[*menu], *state.hover );
+                auto start = state.hover;
+                do {
+                  state.hover = util::find_previous_and_cycle(
+                      g_items_from_menu[*menu], *state.hover );
+                  if( state.hover == start )
+                    // This is just a safe guard in case somehow
+                    // there are no menu items enabled at this
+                    // point, even though that should never
+                    // happen (it would cause an infinite loop).
+                    break;
+                } while( !is_menu_item_enabled( *state.hover ) );
                 g_menu_state = state;
                 log_menu_state();
                 return true;
