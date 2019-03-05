@@ -71,7 +71,7 @@ Texture render_line_fast_impl( ::TTF_Font* font, ::SDL_Color fg,
 Texture render_line_standard_impl( ::TTF_Font*   font,
                                    ::SDL_Color   fg,
                                    string const& line ) {
-  ASSIGN_CHECK( surface, ::TTF_RenderText_Blended(
+  ASSIGN_CHECK( surface, ::TTF_RenderText_Solid(
                              font, line.c_str(), fg ) );
   auto texture = Texture::from_surface( surface );
   ::SDL_FreeSurface( surface );
@@ -100,7 +100,6 @@ struct TextRenderDesc {
 };
 
 absl::flat_hash_map<TextRenderDesc, Texture> text_cache_solid;
-absl::flat_hash_map<TextRenderDesc, Texture> text_cache_blended;
 
 void init_fonts() {
   CHECK( !TTF_Init() );
@@ -124,7 +123,6 @@ void cleanup_fonts() {
     ::TTF_CloseFont( font_desc.ttf_font );
   }
   for( auto& p : text_cache_solid ) p.second.free();
-  for( auto& p : text_cache_blended ) p.second.free();
   TTF_Quit();
 }
 
@@ -132,11 +130,14 @@ REGISTER_INIT_ROUTINE( fonts, init_fonts, cleanup_fonts );
 
 } // namespace
 
-Texture render_text_line_fast( e_font font, Color fg,
-                               string const& line ) {
+// All text rendering should ultimately go through this function
+// because it does the cache handling.
+Texture render_text_line_solid( e_font font, Color fg,
+                                string const& line ) {
   auto do_render = [&] {
     auto* ttf_font = loaded_fonts[font].ttf_font;
-    return render_line_fast_impl( ttf_font, to_SDL( fg ), line );
+    return render_line_standard_impl( ttf_font, to_SDL( fg ),
+                                      line );
   };
 
   TextRenderDesc desc{font, fg, line};
@@ -150,33 +151,12 @@ Texture render_text_line_fast( e_font font, Color fg,
   return text_cache_solid[desc].weak_ref();
 }
 
-// All text rendering should ultimately go through this function
-// because it does the cache handling.
-Texture render_text_line_standard( e_font font, Color fg,
-                                   string const& line ) {
-  auto do_render = [&] {
-    auto* ttf_font = loaded_fonts[font].ttf_font;
-    return render_line_standard_impl( ttf_font, to_SDL( fg ),
-                                      line );
-  };
-
-  TextRenderDesc desc{font, fg, line};
-
-  if( auto maybe_cached =
-          util::get_val_safe( text_cache_blended, desc );
-      maybe_cached.has_value() )
-    return maybe_cached.value().get().weak_ref();
-
-  text_cache_blended.emplace( desc, do_render() );
-  return text_cache_blended[desc].weak_ref();
-}
-
 Texture render_text_line_shadow( e_font font, Color fg,
                                  string const& line ) {
   Color bg        = fg.shaded( 6 );
   bg.a            = 80;
-  auto texture_fg = render_text_line_standard( font, fg, line );
-  auto texture_bg = render_text_line_standard( font, bg, line );
+  auto texture_fg = render_text_line_solid( font, fg, line );
+  auto texture_bg = render_text_line_solid( font, bg, line );
   auto delta      = texture_delta( texture_fg );
   auto result_texture =
       create_texture( delta.w + 1, delta.h + 1 );

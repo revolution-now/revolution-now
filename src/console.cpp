@@ -47,7 +47,7 @@ struct ConsolePlane : public Plane {
 
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
-    auto frame_rate_tx = render_text_line_fast(
+    auto frame_rate_tx = render_text_line_solid(
         fonts::standard, text_color, frame_rate );
     copy_texture( frame_rate_tx, tx,
                   info_start - frame_rate_tx.size() );
@@ -57,8 +57,8 @@ struct ConsolePlane : public Plane {
     auto text_height = frame_rate_tx.size().h;
 
     auto dashes    = fmt::format( "--------------------" );
-    auto dashes_tx = render_text_line_fast( fonts::standard,
-                                            text_color, dashes );
+    auto dashes_tx = render_text_line_solid(
+        fonts::standard, text_color, dashes );
     copy_texture( dashes_tx, tx, info_start - dashes_tx.size() );
     info_start -= dashes_tx.size().h;
 
@@ -66,7 +66,7 @@ struct ConsolePlane : public Plane {
       auto formatted = fmt::format(
           "{}/f: {}", name,
           std::lround( mv_avg.average() / avg_frame_rate() ) );
-      auto src_tx = render_text_line_fast(
+      auto src_tx = render_text_line_solid(
           fonts::standard, text_color, formatted );
       copy_texture( src_tx, tx, info_start - src_tx.size() );
       info_start -= src_tx.size().h;
@@ -80,7 +80,7 @@ struct ConsolePlane : public Plane {
     auto log_px_start = rect.upper_left();
     for( auto i = log_start; i < dbg_log.size(); ++i ) {
       CHECK( i < dbg_log.size() );
-      auto src_tx = render_text_line_fast(
+      auto src_tx = render_text_line_solid(
           fonts::standard, text_color, dbg_log[i] );
       copy_texture( src_tx, tx, log_px_start );
       log_px_start += src_tx.size().h;

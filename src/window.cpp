@@ -148,11 +148,9 @@ OneLineStringView::OneLineStringView( string msg, Color color,
                                       bool shadow )
   : msg_( move( msg ) ) {
   if( shadow )
-    tx_ =
-        render_text_line_shadow( fonts::standard, color, msg_ );
+    tx_ = render_text_line_solid( fonts::standard, color, msg_ );
   else
-    tx_ = render_text_line_standard( fonts::standard, color,
-                                     msg_ );
+    tx_ = render_text_line_solid( fonts::standard, color, msg_ );
 }
 
 void OneLineStringView::draw( Texture const& tx,
