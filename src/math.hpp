@@ -80,7 +80,7 @@ public:
   // interfere with any other calls to tick().
   void update() {
     auto now = std::chrono::system_clock::now();
-    if( last_tick_ != TimeType{} )
+    if( last_tick_ != Time_t{} )
       advance_clock( now - last_tick_ );
     last_tick_ = now;
   }
@@ -125,7 +125,7 @@ private:
 
   Buckets     buckets_;
   uint64_t    ticks_{0};
-  TimeType    last_tick_{};
+  Time_t      last_tick_{};
   nanoseconds clock_{0};
   double      average_{0.0};
 

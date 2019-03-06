@@ -582,10 +582,10 @@ struct EffectsPlane : public Plane {
     render_fill_rect( tx, Color( 0, 0, 0, alpha ),
                       screen_logical_rect() );
   }
-  TimeType start_time;
-  TimeType end_time;
-  uint8_t  target_alpha;
-  bool     enabled_{false};
+  Time_t  start_time;
+  Time_t  end_time;
+  uint8_t target_alpha;
+  bool    enabled_{false};
 };
 
 EffectsPlane g_effects_plane;

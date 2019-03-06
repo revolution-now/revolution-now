@@ -32,9 +32,17 @@ MovingAverage<3 /*seconds*/> frame_rate;
 
 EventCountMap g_event_counts;
 
-void take_input() {
-  while( auto event = input::poll_event() )
+// Returns true if there is any pending user input, regardless of
+// whether it is actually handled or not. FIXME: we only need to
+// return this bool because SDL's SDL_HasEvent function does not
+// seem to work.
+ND bool take_input() {
+  bool received_input = false;
+  while( auto event = input::poll_event() ) {
     send_input_to_planes( *event );
+    received_input = true;
+  }
+  return received_input;
 }
 
 void advance_viewport_translation() {
@@ -75,9 +83,21 @@ double   avg_frame_rate() { return frame_rate.average(); }
 void frame_loop( bool poll_input, function<bool()> finished ) {
   using namespace chrono;
 
-  auto frame_length = 1000000us / config_rn.target_frame_rate;
+  auto normal_frame_length =
+      1000000us / config_rn.target_frame_rate;
+  auto slow_frame_length = 1000000us / 5;
+
+  static auto time_of_last_input = Clock_t::now();
 
   while( true ) {
+    // First calculate the frame rate that we are currently tar-
+    // getting. If we go more than 10s without any user input
+    // then slow down the frame rate to save battery.
+    auto frame_length =
+        ( Clock_t::now() - time_of_last_input > 10s )
+            ? slow_frame_length
+            : normal_frame_length;
+
     auto start = system_clock::now();
     frame_rate.tick();
     // Keep the state of the moving averages up to date even when
@@ -89,7 +109,9 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
     draw_all_planes();
     ::SDL_RenderPresent( g_renderer );
 
-    if( poll_input ) take_input();
+    if( poll_input )
+      if( take_input() ) //
+        time_of_last_input = Clock_t::now();
 
     // TODO: put this in a method of Plane
     advance_viewport_translation();

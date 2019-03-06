@@ -11,6 +11,7 @@
 #include "input.hpp"
 
 // Revolution Now
+#include "logging.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 
@@ -19,12 +20,31 @@
 
 // C++ standard library
 #include <algorithm>
+#include <array>
 
 using namespace std;
 
 namespace rn::input {
 
 namespace {
+
+// This function returns the list of events that we care about
+// from SDL in this game.
+auto const& relevant_sdl_events() {
+  static auto constexpr events =
+      array<::SDL_EventType, 11>{::SDL_QUIT,
+                                 ::SDL_APP_TERMINATING,
+                                 ::SDL_WINDOWEVENT,
+                                 ::SDL_KEYDOWN,
+                                 ::SDL_KEYUP,
+                                 ::SDL_TEXTEDITING,
+                                 ::SDL_TEXTINPUT,
+                                 ::SDL_MOUSEMOTION,
+                                 ::SDL_MOUSEBUTTONDOWN,
+                                 ::SDL_MOUSEBUTTONUP,
+                                 ::SDL_MOUSEWHEEL};
+  return events;
+}
 
 // This is used to hold the last "measured" mouse position, where
 // "measured" means the last time there was a mouse motion event
@@ -212,6 +232,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   }
 
   return event;
+}
+
+// FIXME: ::SDL_HasEvent does not seem to work...
+bool has_event() {
+  for( auto event_type : relevant_sdl_events() )
+    if( ::SDL_HasEvent( event_type ) ) return true;
+  return false;
 }
 
 Opt<event_t> poll_event() {

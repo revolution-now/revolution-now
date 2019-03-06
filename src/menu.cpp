@@ -48,7 +48,7 @@ ADT( rn, MenuState,                   //
        ( Opt<e_menu_item>, hover ) ), //
      ( item_click,                    //
        ( e_menu_item, item ),         //
-       ( TimeType, start ) )          //
+       ( Time_t, start ) )            //
 );
 
 ADT( rn, MouseOver,

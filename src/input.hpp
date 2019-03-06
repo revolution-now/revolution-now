@@ -121,6 +121,11 @@ using event_t = std::variant<
 
 Opt<event_t> poll_event();
 
+// Returns true if there is an event waiting in the queue that is
+// relevant to RN.
+// FIXME: this function does not seem to work...
+ND bool has_event();
+
 // This will consume (without processing) all queued input
 // events.
 void eat_all_events();
