@@ -48,7 +48,7 @@ struct ConsolePlane : public Plane {
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
     auto frame_rate_tx = render_text_line_solid(
-        fonts::standard, text_color, frame_rate );
+        fonts::standard, Color::white(), frame_rate );
     copy_texture( frame_rate_tx, tx,
                   info_start - frame_rate_tx.size() );
     info_start -= frame_rate_tx.size().h;
