@@ -1,3 +1,39 @@
+Text Rendering with Markup
+==========================
+
+RN will have a mechanism for rendering text with markup to modu-
+late the style. The user interface for this will be that the user
+will be able to pass in some text with special markup syntax
+among the text and this will be interpreted and rendered with the
+appropriate style.
+
+The workflow of this implementation (and its interaction with a
+word wrap) will be as follows:
+
+  1) The user provides some text which may contain some markup
+     tags.
+  2) The text is flattened onto a single line if it is multiline
+  3) The text is then wrapped (if requested) in such a way that
+     markup characters are ignored (but still remain intact)
+     in the wrapping.
+  4) Each resulting line is parsed for markup characters and
+     translated into a vector of markup descriptor objects, with
+     each object containing a segment of text.
+  5) When parsing a given line, the start of the line will be
+     given the markup state from the end of the last line.
+  6) At this point we have a vector of self-contained lines
+     each of which is a vector of markup descriptor objects.
+     Each of these lines will be sent to a rendering function
+     that will render them with caching at the line level.
+     This rendering will be done one character at a time.
+  7) Then the lines will be rejoined into a paragraph.
+
+Initially, this will just focus on a single markup feature: high-
+light or no highlight.  The syntax will be as follows:
+
+  "This is a @Htest@N.  In@Hs@Nide letters can be highlighted."
+  "This is an email@@address.com with escaping."
+
 Menu Item Click Handling
 ========================
 
