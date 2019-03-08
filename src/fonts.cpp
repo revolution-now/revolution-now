@@ -57,17 +57,6 @@ unordered_map<e_font, FontDesc> loaded_fonts{
      {"assets/fonts/7-12-serif/712_serif.ttf",
       _7_12_font_pt_size, nullptr}}};
 
-Texture render_line_fast_impl( ::TTF_Font* font, ::SDL_Color fg,
-                               string const& line ) {
-  ASSIGN_CHECK( surface, ::TTF_RenderText_Solid(
-                             font, line.c_str(), fg ) );
-  auto texture = Texture::from_surface( surface );
-  ::SDL_FreeSurface( surface );
-  // Not sure why this doesn't happen automatically.
-  ::SDL_SetTextureAlphaMod( texture, fg.a );
-  return texture;
-}
-
 Texture render_line_standard_impl( ::TTF_Font*   font,
                                    ::SDL_Color   fg,
                                    string const& line ) {
