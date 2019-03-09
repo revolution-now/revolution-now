@@ -67,7 +67,7 @@ e_turn_result turn() {
   bool need_eot = true;
   // for( auto nation : all_nations() ) {
   // for( auto nation : {e_nation::dutch} ) {
-  for( auto nation : {e_nation::dutch, e_nation::french} ) {
+  for( auto nation : {e_nation::english, e_nation::spanish} ) {
     auto res = turn( nation );
     if( res == e_turn_result::quit ) return e_turn_result::quit;
     if( res == e_turn_result::orders_taken ) need_eot = false;

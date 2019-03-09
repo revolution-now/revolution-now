@@ -173,7 +173,7 @@ CFG( nation,
   )
   OBJ( english,
     FLD( Str, country_name )
-    LNK( flag_color, palette.red.sat1.lum7 )
+    LNK( flag_color, palette.red.sat2.lum7 )
   )
   OBJ( spanish,
     FLD( Str, country_name )
