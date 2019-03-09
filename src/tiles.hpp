@@ -60,6 +60,9 @@ enum class ND g_tile {
   panel_slate_1_side,
   panel_slate_2_sides,
 
+  wood_middle,
+  wood_left_edge,
+
   free_colonist,
   privateer,
   caravel,

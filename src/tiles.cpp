@@ -55,6 +55,12 @@ sprite create_sprite_16( Texture const& texture, Coord coord ) {
   return {&texture, rect, {16_sx, 16_sy}};
 }
 
+sprite create_sprite_128_64( Texture const& texture,
+                             Coord          coord ) {
+  Rect rect{coord.x * 128_sx, coord.y * 64_sy, 128_w, 64_h};
+  return {&texture, rect, {128_sx, 64_sy}};
+}
+
 #define SET_SPRITE_WORLD( name )            \
   sprites[g_tile::name] = create_sprite_32( \
       tile_set_world, config_art.tiles.world.coords.name )
@@ -71,6 +77,10 @@ sprite create_sprite_16( Texture const& texture, Coord coord ) {
   sprites[g_tile::name] = create_sprite_16( \
       tile_set_menu16, config_art.tiles.menu16.coords.name )
 
+#define SET_SPRITE_WOOD( name )                 \
+  sprites[g_tile::name] = create_sprite_128_64( \
+      tile_set_wood_128_64, config_art.tiles.wood.coords.name )
+
 void init_sprites() {
   auto& tile_set_world =
       load_texture( config_art.tiles.world.img );
@@ -80,6 +90,8 @@ void init_sprites() {
       load_texture( config_art.tiles.menu.img );
   auto& tile_set_menu16 =
       load_texture( config_art.tiles.menu16.img );
+  auto& tile_set_wood_128_64 =
+      load_texture( config_art.tiles.wood.img );
 
   SET_SPRITE_WORLD( water );
   SET_SPRITE_WORLD( land );
@@ -100,6 +112,9 @@ void init_sprites() {
   SET_SPRITE_WORLD( panel_slate );
   SET_SPRITE_WORLD( panel_slate_1_side );
   SET_SPRITE_WORLD( panel_slate_2_sides );
+
+  SET_SPRITE_WOOD( wood_middle );
+  SET_SPRITE_WOOD( wood_left_edge );
 
   SET_SPRITE_UNIT( free_colonist );
   SET_SPRITE_UNIT( privateer );

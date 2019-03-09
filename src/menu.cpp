@@ -727,23 +727,19 @@ Texture const& render_open_menu( e_menu           menu,
 
 void render_menu_bar() {
   CHECK( menu_bar_tx );
-  auto bar_tx_size = menu_bar_tx.size();
-  auto lower_right = ( Coord{} + bar_tx_size )
-                         .rounded_up_to_multiple( Scale{8} );
-  auto tiles_rect =
-      Rect::from( Coord{}, lower_right ) / Scale{16};
-  tiles_rect.w += 1_w; // just in case we fall short 1/2 square
-  for( auto coord : tiles_rect ) {
-    if( coord.x % 3_w == 0_w )
-      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_0, coord,
-                          0, 0 );
-    if( coord.x % 3_w == 1_w )
-      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_1, coord,
-                          0, 0 );
-    if( coord.x % 3_w == 2_w )
-      render_sprite_grid( menu_bar_tx, g_tile::menu_bar_2, coord,
-                          0, 0 );
-  }
+
+  // Render the "wood" panel. Start from the left edge of the
+  // panel so that we get a continuous wood texture between the
+  // two. Also, put the y position such that the menu bar gets
+  // the bottom portion of the texture, again so that it will be
+  // continuous with that panel.
+  Coord start = Coord{} + screen_logical_size().w -
+                ( 6_w * 32_sx ) - ( 64_h - 16_h );
+  for( Coord c = start; c.x >= 0_x - 128_w; c -= 128_w )
+    render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
+  for( Coord c = start; c.x < 0_x + screen_logical_size().w;
+       c += 128_w )
+    render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
 
   // Center the text vertically in the menu bar.
   auto offset = 0_y + ( ( 16_h - max_text_height() ) / 2_sy );

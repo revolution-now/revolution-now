@@ -29,6 +29,14 @@ tiles {
     }
   }
 
+  wood {
+    img: assets/art/tiles/wood-128x64.png
+    coords {
+      wood_middle          { y: 0, x: 0 }
+      wood_left_edge       { y: 1, x: 0 }
+    }
+  }
+
   units {
     img: assets/art/tiles/units.png
     coords {

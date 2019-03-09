@@ -86,6 +86,14 @@ CFG( art,
       )
     )
 
+    OBJ( wood,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, wood_middle )
+        FLD( Coord, wood_left_edge )
+      )
+    )
+
     OBJ( units,
       FLD( fs::path, img )
       OBJ( coords,

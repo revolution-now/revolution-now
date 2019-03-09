@@ -535,17 +535,14 @@ struct PanelPlane : public Plane {
     constexpr W panel_width{6 * 32};
     auto left_side = 0_x + screen_logical_size().w - panel_width;
 
-    for( Y i( 0 ); i - 0_y < screen_logical_size().h; i += 32_h )
-      for( X j( left_side + 1 );
-           j - 0_x < screen_logical_size().w; j += 32_w )
-        render_sprite( tx, g_tile::panel, i, j, 0, 0 );
-
-    // left edge
-    for( Y i( 0 ); i - 0_y < screen_logical_size().h -
-                                 1_h * g_tile_scale.sy;
-         i += 32_h )
-      render_sprite( tx, g_tile::panel_edge_left, i, left_side,
-                     0, 0 );
+    for( Y i( 16 ); i - 0_y < screen_logical_size().h;
+         i += 64_h )
+      render_sprite( tx, g_tile::wood_middle, i,
+                     left_side + 128_w, 0, 0 );
+    for( Y i( 16 ); i - 0_y < screen_logical_size().h;
+         i += 64_h )
+      render_sprite( tx, g_tile::wood_left_edge, i, left_side, 0,
+                     0 );
   }
 };
 
