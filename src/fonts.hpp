@@ -27,14 +27,13 @@ constexpr e_font standard = e_font::_7_12_serif_16pt;
 }
 
 Texture render_text_line_solid( e_font font, Color fg,
-                                std::string const& line );
+                                std::string_view line );
 
 Texture render_text_line_shadow( e_font font, Color fg,
-                                 std::string const& line );
+                                 std::string_view line );
 
 void font_test();
 
-Delta font_rendered_width( e_font             font,
-                           std::string const& text );
+Delta font_rendered_width( e_font font, std::string_view text );
 
 } // namespace rn

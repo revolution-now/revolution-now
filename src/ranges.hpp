@@ -81,4 +81,16 @@ auto min_by_key( Func f ) {
   } );
 }
 
+// Returns the maximum of a range, by value, if one exists.
+inline auto maximum() {
+  return ranges::make_pipeable( [=]( auto&& r ) {
+    using ResType = decltype( *r.begin() );
+    using Rng     = decltype( r );
+    std::optional<ResType> res{};
+    for( auto const& elem : std::forward<Rng>( r ) )
+      if( !res.has_value() || *res < elem ) res = elem;
+    return res;
+  } );
+}
+
 } // namespace rn

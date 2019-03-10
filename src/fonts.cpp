@@ -57,11 +57,12 @@ unordered_map<e_font, FontDesc> loaded_fonts{
      {"assets/fonts/7-12-serif/712_serif.ttf",
       _7_12_font_pt_size, nullptr}}};
 
-Texture render_line_standard_impl( ::TTF_Font*   font,
-                                   ::SDL_Color   fg,
-                                   string const& line ) {
-  ASSIGN_CHECK( surface, ::TTF_RenderText_Solid(
-                             font, line.c_str(), fg ) );
+Texture render_line_standard_impl( ::TTF_Font* font,
+                                   ::SDL_Color fg,
+                                   string_view line ) {
+  ASSIGN_CHECK( surface,
+                ::TTF_RenderText_Solid(
+                    font, string( line ).c_str(), fg ) );
   auto texture = Texture::from_surface( surface );
   ::SDL_FreeSurface( surface );
   // Not sure why this doesn't happen automatically.
@@ -122,14 +123,14 @@ REGISTER_INIT_ROUTINE( fonts, init_fonts, cleanup_fonts );
 // All text rendering should ultimately go through this function
 // because it does the cache handling.
 Texture render_text_line_solid( e_font font, Color fg,
-                                string const& line ) {
+                                string_view line ) {
   auto do_render = [&] {
     auto* ttf_font = loaded_fonts[font].ttf_font;
     return render_line_standard_impl( ttf_font, to_SDL( fg ),
                                       line );
   };
 
-  TextRenderDesc desc{font, fg, line};
+  TextRenderDesc desc{font, fg, string( line )};
 
   if( auto maybe_cached =
           util::get_val_safe( text_cache_solid, desc );
@@ -141,7 +142,7 @@ Texture render_text_line_solid( e_font font, Color fg,
 }
 
 Texture render_text_line_shadow( e_font font, Color fg,
-                                 string const& line ) {
+                                 string_view line ) {
   Color bg        = fg.shaded( 6 );
   bg.a            = 80;
   auto texture_fg = render_text_line_solid( font, fg, line );
@@ -221,11 +222,10 @@ void font_size_spectrum( char const* msg,
   }
 }
 
-Delta font_rendered_width( e_font             font,
-                           std::string const& text ) {
+Delta font_rendered_width( e_font font, string_view text ) {
   int w, h;
-  ::TTF_SizeText( loaded_fonts[font].ttf_font, text.c_str(), &w,
-                  &h );
+  ::TTF_SizeText( loaded_fonts[font].ttf_font,
+                  string( text ).c_str(), &w, &h );
   return {W( w ), H( h )};
 }
 

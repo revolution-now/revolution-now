@@ -33,16 +33,17 @@
 **Error Formatting Macros
 *****************************************************************/
 
-#define FATAL( msg ) rn::die( __FILE__, __LINE__, msg )
+// Should not use this one directly, use FATAL()
+#define FATAL_( msg ) rn::die( __FILE__, __LINE__, msg )
 
 #define SHOULD_NOT_BE_HERE \
-  FATAL( "programmer error: should not be here" )
+  FATAL_( "programmer error: should not be here" )
 
 #define NOT_IMPLEMENTED \
-  FATAL( "programmer error: need to implement this" )
+  FATAL_( "programmer error: need to implement this" )
 
 #define MUST_IMPROVE_IMPLEMENTATION_BEFORE_USE                \
-  FATAL(                                                      \
+  FATAL_(                                                     \
       "the implementation of this function must be improved " \
       "before use" )
 
@@ -66,6 +67,12 @@ std::string check_msg( char const*        expr,
 **Error Checking Macros
 *****************************************************************/
 
+// This is used when you want to just fail but with formatting in
+// the error message.
+#define FATAL( ... )                        \
+  FATAL_( detail::check_msg( "fatal error", \
+                             FMT_SAFE( "" __VA_ARGS__ ) ) );
+
 // This CHECK macro should be used most of the time to do
 // assertions.
 //
@@ -75,7 +82,7 @@ std::string check_msg( char const*        expr,
 // this.
 #define CHECK( a, ... )                                        \
   if( !( a ) ) {                                               \
-    FATAL(                                                     \
+    FATAL_(                                                    \
         detail::check_msg( #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
 
@@ -93,10 +100,10 @@ std::string check_msg( char const*        expr,
 //
 // The ID_ is to suppress warnings about parenthesis around
 // macro parameters.
-#define ASSIGN_CHECK_OPT( a, b )              \
-  auto STRING_JOIN( __x, __LINE__ ) = b;      \
-  if( !( STRING_JOIN( __x, __LINE__ ) ) )     \
-    FATAL( TO_STRING( b ) " has no value." ); \
+#define ASSIGN_CHECK_OPT( a, b )               \
+  auto STRING_JOIN( __x, __LINE__ ) = b;       \
+  if( !( STRING_JOIN( __x, __LINE__ ) ) )      \
+    FATAL_( TO_STRING( b ) " has no value." ); \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // Same as above but returns on failure instead of throwing. As
@@ -118,7 +125,7 @@ std::string check_msg( char const*        expr,
 // macro parameters.
 #define ASSIGN_CHECK( a, b ) \
   auto ID_( a ) = b;         \
-  if( !( a ) ) { FATAL( TO_STRING( b ) " is false." ); }
+  if( !( a ) ) { FATAL_( TO_STRING( b ) " is false." ); }
 
 // Here `expression` will be evaluated only once, so it can be an
 // expensive operation that yields a variant; if it yields a

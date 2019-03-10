@@ -10,6 +10,8 @@ let s:stems = [
   \ 'src/frame',
   \ 'src/plane',
   \ 'src/menu',
+  \ 'src/fonts',
+  \ 'src/text',
   \ 'src/cache',
   \ 'src/tiles',
   \ 'src/console',
