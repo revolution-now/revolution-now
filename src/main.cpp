@@ -45,22 +45,14 @@ void game() {
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
   for( Y y{1}; y < 1_y + 10_y; ++y ) {
-    (void)create_unit_on_map( e_nation::english,
-                              e_unit_type::soldier, y, 1_x );
     (void)create_unit_on_map( e_nation::spanish,
                               e_unit_type::soldier, y, 2_x );
     (void)create_unit_on_map( e_nation::english,
                               e_unit_type::soldier, y, 3_x );
     (void)create_unit_on_map( e_nation::spanish,
-                              e_unit_type::soldier, y, 4_x );
-    (void)create_unit_on_map( e_nation::english,
-                              e_unit_type::soldier, y, 7_x );
-    (void)create_unit_on_map( e_nation::spanish,
                               e_unit_type::soldier, y, 8_x );
     (void)create_unit_on_map( e_nation::english,
                               e_unit_type::soldier, y, 9_x );
-    (void)create_unit_on_map( e_nation::spanish,
-                              e_unit_type::soldier, y, 10_x );
     if( y._ % 2 == 0 ) {
       (void)create_unit_on_map( e_nation::english,
                                 e_unit_type::caravel, y, 5_x );

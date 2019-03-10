@@ -23,6 +23,10 @@ Plan
    palette data structure with a uniform distribution
    of hues/sats/lums.  Kind of rediculous to have the
    palette in a ucl file.
+9) Animate water by sliding the pixels within each water
+   sprite in a given direction (and wrapping around).
+   This is essentially rotating the pixels, but rotating
+   about an axis that is within the plane of the screen.
 
 ========================================================
 Long Term Plan
