@@ -92,9 +92,8 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines();
-  // game();
+  game();
   // font_test();
-  text_render_test();
   run_all_cleanup_routines();
   return 0;
 
