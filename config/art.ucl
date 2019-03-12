@@ -74,4 +74,12 @@ tiles {
     }
   }
 
+  menu_sel {
+    img: assets/art/tiles/menu-sel.png
+    coords {
+      menu_item_sel_back: { y: 0, x: 0 }
+      menu_hdr_sel_back:  { y: 1, x: 0 }
+    }
+  }
+
 }

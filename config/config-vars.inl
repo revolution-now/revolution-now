@@ -130,6 +130,14 @@ CFG( art,
         FLD( Coord, menu_bar_2 )
       )
     )
+
+    OBJ( menu_sel,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, menu_item_sel_back )
+        FLD( Coord, menu_hdr_sel_back )
+      )
+    )
   )
 )
 

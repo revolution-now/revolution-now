@@ -258,15 +258,11 @@ bool have_some_visible_menus() {
 *****************************************************************/
 auto        banana  = Color::parse_from_hex( "E4C890" ).value();
 auto const& pumpkin = config_palette.orange.sat2.lum5;
+auto        wood    = Color::parse_from_hex( "703F24" ).value();
 
 auto const& menu_theme_color1 = banana;
 auto const& menu_theme_color2 = pumpkin;
-
-// Color menu_theme_color3 = Color{0, 0, 0, 120};
-auto menu_theme_color3 =
-    config_palette.yellow.sat0.lum2.with_alpha( 120 );
-Color       menu_theme_color4 = Color{80, 80, 80, 255};
-auto const& menu_theme_color5 = config_palette.yellow.sat2.lum14;
+auto const& menu_theme_color3 = wood;
 
 namespace color::item::foreground {
 auto disabled() {
@@ -275,14 +271,6 @@ auto disabled() {
   return color;
 }
 } // namespace color::item::foreground
-
-namespace color::menu::background {
-auto hover() {
-  auto color = config_palette.orange.sat1.lum9;
-  color.a    = 125;
-  return color;
-}
-} // namespace color::menu::background
 
 namespace color::menu::foreground {
 auto const& disabled = config_palette.grey.n68;
@@ -557,8 +545,8 @@ ItemTextures render_menu_element( string const& text,
       fonts::standard, inactive_color, text );
   auto active   = render_text_line_shadow( fonts::standard,
                                          active_color, text );
-  auto disabled = render_text_line_shadow(
-      fonts::standard, disabled_color, text );
+  auto disabled = render_text_line_solid( fonts::standard,
+                                          disabled_color, text );
   // Need to do this first before moving.
   auto width = std::max(
       {inactive.size().w, active.size().w, disabled.size().w} );
@@ -575,7 +563,7 @@ ItemTextures render_menu_item_element(
     string const& text, optional<char> /*unused*/ ) {
   return render_menu_element(
       text, nullopt, //
-      menu_theme_color4, menu_theme_color5,
+      menu_theme_color3, menu_theme_color3,
       color::item::foreground::disabled() );
 }
 
@@ -589,16 +577,10 @@ ItemTextures render_menu_header_element(
 }
 
 Texture render_divider( e_menu menu ) {
-  Delta   delta = divider_delta( menu );
-  Texture res   = create_texture_transparent( delta );
-  // A divider is never highlighted.
-  Color color_fore = color::item::foreground::disabled();
-  Color color_back = color_fore.highlighted( 4 );
-  render_line( res, color_fore,
-               Coord{} + delta.h / 2 - 1_h + 2_w,
-               {delta.w - 5_w, 0_h} );
-  render_line( res, color_back,
-               Coord{} + delta.h / 2 + 2_w + 1_w - 0_h,
+  Delta   delta      = divider_delta( menu );
+  Texture res        = create_texture_transparent( delta );
+  Color   color_fore = color::item::foreground::disabled();
+  render_line( res, color_fore, Coord{} + delta.h / 2 + 2_w,
                {delta.w - 5_w, 0_h} );
   return res;
 }
@@ -611,8 +593,10 @@ Texture render_item_background( e_menu menu, bool active ) {
   CHECK( active );
   auto res = create_texture( menu_item_delta( menu ) );
   clear_texture_transparent( res );
-  render_fill_rect_rounded( res, menu_theme_color3, res.rect(),
-                            rounded_corner_type::radius_2 );
+  render_sprite( res, g_tile::menu_item_sel_back, Coord{}, 0,
+                 0 );
+  render_sprite( res, g_tile::menu_item_sel_back,
+                 Coord{} + 128_w, 0, 0 );
   return res;
 }
 
@@ -621,12 +605,14 @@ Texture render_menu_header_background( e_menu menu, bool active,
   CHECK( active || hover );
   // FIXME
   CHECK( !( active && hover ) );
-  auto color = active ? menu_theme_color1
-                      : color::menu::background::hover();
   auto res = create_texture( menu_header_delta( menu ) );
   clear_texture_transparent( res );
-  render_fill_rect_rounded( res, color, res.rect(),
-                            rounded_corner_type::radius_2 );
+  if( active )
+    render_sprite( res, g_tile::menu_item_sel_back, Coord{}, 0,
+                   0 );
+  else
+    render_sprite( res, g_tile::menu_hdr_sel_back, Coord{}, 0,
+                   0 );
   return res;
 }
 

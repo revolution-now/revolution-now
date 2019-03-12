@@ -61,6 +61,12 @@ sprite create_sprite_128_64( Texture const& texture,
   return {&texture, rect, {128_sx, 64_sy}};
 }
 
+sprite create_sprite_128_16( Texture const& texture,
+                             Coord          coord ) {
+  Rect rect{coord.x * 128_sx, coord.y * 16_sy, 128_w, 16_h};
+  return {&texture, rect, {128_sx, 16_sy}};
+}
+
 #define SET_SPRITE_WORLD( name )            \
   sprites[g_tile::name] = create_sprite_32( \
       tile_set_world, config_art.tiles.world.coords.name )
@@ -81,6 +87,11 @@ sprite create_sprite_128_64( Texture const& texture,
   sprites[g_tile::name] = create_sprite_128_64( \
       tile_set_wood_128_64, config_art.tiles.wood.coords.name )
 
+#define SET_SPRITE_MENU_SEL( name )             \
+  sprites[g_tile::name] = create_sprite_128_16( \
+      tile_set_menu_sel,                        \
+      config_art.tiles.menu_sel.coords.name )
+
 void init_sprites() {
   auto& tile_set_world =
       load_texture( config_art.tiles.world.img );
@@ -92,6 +103,8 @@ void init_sprites() {
       load_texture( config_art.tiles.menu16.img );
   auto& tile_set_wood_128_64 =
       load_texture( config_art.tiles.wood.img );
+  auto& tile_set_menu_sel =
+      load_texture( config_art.tiles.menu_sel.img );
 
   SET_SPRITE_WORLD( water );
   SET_SPRITE_WORLD( land );
@@ -130,13 +143,13 @@ void init_sprites() {
   SET_SPRITE_MENU( menu_right );
   SET_SPRITE_MENU( menu_top_right );
   SET_SPRITE_MENU( menu_bottom_right );
-  SET_SPRITE_MENU( menu_sel_body );
-  SET_SPRITE_MENU( menu_sel_left );
-  SET_SPRITE_MENU( menu_sel_right );
 
   SET_SPRITE_MENU16( menu_bar_0 );
   SET_SPRITE_MENU16( menu_bar_1 );
   SET_SPRITE_MENU16( menu_bar_2 );
+
+  SET_SPRITE_MENU_SEL( menu_item_sel_back );
+  SET_SPRITE_MENU_SEL( menu_hdr_sel_back );
 }
 
 } // namespace

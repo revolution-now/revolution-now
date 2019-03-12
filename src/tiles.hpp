@@ -77,9 +77,9 @@ enum class ND g_tile {
   menu_right,
   menu_top_right,
   menu_bottom_right,
-  menu_sel_body,
-  menu_sel_left,
-  menu_sel_right,
+
+  menu_item_sel_back,
+  menu_hdr_sel_back,
 
   menu_bar_0,
   menu_bar_1,
