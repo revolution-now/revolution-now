@@ -256,13 +256,11 @@ bool have_some_visible_menus() {
 /****************************************************************
 ** Colors
 *****************************************************************/
-auto        banana  = Color::parse_from_hex( "E4C890" ).value();
-auto const& pumpkin = config_palette.orange.sat2.lum5;
-auto        wood    = Color::parse_from_hex( "703F24" ).value();
+auto banana = Color::parse_from_hex( "E4C890" ).value();
+auto wood   = Color::parse_from_hex( "703F24" ).value();
 
 auto const& menu_theme_color1 = banana;
-auto const& menu_theme_color2 = pumpkin;
-auto const& menu_theme_color3 = wood;
+auto const& menu_theme_color2 = wood;
 
 namespace color::item::foreground {
 auto disabled() {
@@ -563,7 +561,7 @@ ItemTextures render_menu_item_element(
     string const& text, optional<char> /*unused*/ ) {
   return render_menu_element(
       text, nullopt, //
-      menu_theme_color3, menu_theme_color3,
+      menu_theme_color2, menu_theme_color2,
       color::item::foreground::disabled() );
 }
 
