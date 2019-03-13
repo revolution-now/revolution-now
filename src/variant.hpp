@@ -38,12 +38,27 @@ namespace rn {
 // is not in a valueless-by-exception state.
 template<typename Base, typename... Args>
 Base* variant_base_ptr( std::variant<Args...>& v ) {
-  Base* res = nullptr;
-  ( ( res = std::holds_alternative<Args>( v )
-                ? static_cast<Base*>( std::get_if<Args>( &v ) )
-                : res ),
-    ... );
-  return res;
+  return util::visit( v, []( auto& e ) {
+    using from_t = std::decay_t<decltype( e )>*;
+    using to_t   = Base*;
+    static_assert(
+        std::is_convertible_v<from_t, to_t>,
+        "all types in the variant must inherit from Base" );
+    return static_cast<to_t>( &e ); //
+  } );
+}
+
+// And one for const.
+template<typename Base, typename... Args>
+Base const* variant_base_ptr( std::variant<Args...> const& v ) {
+  return util::visit( v, []( auto const& e ) {
+    using from_t = std::decay_t<decltype( e )> const*;
+    using to_t   = Base const*;
+    static_assert(
+        std::is_convertible_v<from_t, to_t>,
+        "all types in the variant must inherit from Base" );
+    return static_cast<to_t>( &e ); //
+  } );
 }
 
 } // namespace rn
