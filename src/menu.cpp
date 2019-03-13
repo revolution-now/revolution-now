@@ -1180,12 +1180,17 @@ struct MenuPlane : public Plane {
         []( input::quit_event_t ) { return false; },
         [&]( input::key_event_t const& key_event ) {
           auto menu = opened_menu();
+          // `is_alt` decides whether the pressed key is an alt,
+          // not whether it is being held down while another key
+          // is pressed ( the latter would be keyevent.alt_down).
+          bool is_alt = ( key_event.keycode == ::SDLK_LALT ||
+                          key_event.keycode == ::SDLK_RALT );
           if( !menu.has_value() &&
               key_event.change == input::e_key_change::down &&
-              key_event.keycode == ::SDLK_LALT ) {
-            // Menus are closed and the user has pressed the left
-            // alt key, so add highlighting to the first menu
-            // header that is visible (if any).
+              is_alt ) {
+            // Menus are closed and the user has pressed an alt
+            // key, so add highlighting to the first menu header
+            // that is visible (if any).
             auto maybe_first_menu = first_visible_menu();
             if( maybe_first_menu.has_value() ) {
               g_menu_state = MenuState::menus_closed{
@@ -1195,24 +1200,24 @@ struct MenuPlane : public Plane {
           }
           if( !menu.has_value() &&
               key_event.change == input::e_key_change::up &&
-              key_event.keycode == ::SDLK_LALT ) {
-            // Menus are closed and the user is releasing the
-            // alt key, so remove any highlighting from the
-            // menu headers.
+              is_alt ) {
+            // Menus are closed and the user is releasing an alt
+            // key, so remove any highlighting from the menu
+            // headers.
             g_menu_state = MenuState::menus_closed{/*hover=*/{}};
             return true;
           }
           if( menu.has_value() &&
               key_event.change == input::e_key_change::down &&
-              key_event.keycode == ::SDLK_LALT ) {
-            // Menus are open and the user is pressing the
-            // alt key, so close menus.
+              is_alt ) {
+            // Menus are open and the user is pressing an alt
+            // key, so close menus.
             g_menu_state = MenuState::menus_closed{/*hover=*/{}};
             return true;
           }
           // Check for an alt-shortcut key to open a menu.
           if( key_event.change == input::e_key_change::down &&
-              key_event.l_alt_down ) {
+              key_event.alt_down ) {
             for( auto menu : visible_menus() ) {
               auto const& menu_desc = g_menus[menu];
               if( key_event.keycode ==

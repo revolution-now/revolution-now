@@ -246,6 +246,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
   base->l_alt_down = ( keymods & ::KMOD_LALT );
   base->r_alt_down = ( keymods & ::KMOD_RALT );
+  base->alt_down   = base->l_alt_down || base->r_alt_down;
 
   return event;
 }
