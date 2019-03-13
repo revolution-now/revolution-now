@@ -2,9 +2,6 @@
 Plan
 ========================================================
 
-0) Finish menus:
-     * hot keys
-     * names with highlighted hotkey
 1) Looks like we are creating textures with
    SDL_TEXTUREACCESS_TARGET; see if removing this from
    the sprites speeds up copying.

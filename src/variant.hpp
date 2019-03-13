@@ -21,4 +21,18 @@
 // C++ standard library
 #include <variant>
 
-namespace rn {} // namespace rn
+namespace rn {
+
+// Use this when all alternatives inherit from a common base
+// class and you need a base-class pointer to the active member.
+template<typename Base, typename... Args>
+Base* variant_base_ptr( std::variant<Args...>& v ) {
+  Base* res = nullptr;
+  ( ( res = std::holds_alternative<Args>( v )
+                ? (Base*)( std::get_if<Args>( &v ) )
+                : res ),
+    ... );
+  return res;
+}
+
+} // namespace rn

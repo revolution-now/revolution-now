@@ -28,10 +28,19 @@
 namespace rn::input {
 
 /****************************************************************
+** Event Base
+*****************************************************************/
+// Info common to all events.
+struct event_base_t {
+  bool l_alt_down;
+  bool r_alt_down;
+};
+
+/****************************************************************
 ** Misc. Event Types
 *****************************************************************/
-struct unknown_event_t {};
-struct quit_event_t {};
+struct unknown_event_t : event_base_t {};
+struct quit_event_t : event_base_t {};
 
 /****************************************************************
 ** Mouse
@@ -45,7 +54,7 @@ enum class e_mouse_button_event {
   right_up,
 };
 
-class mouse_event_base_t {
+class mouse_event_base_t : event_base_t {
 public:
   mouse_event_base_t( Coord pos_ ) : pos( pos_ ) {}
   Coord pos;
@@ -93,7 +102,7 @@ struct mouse_drag_event_t : public mouse_move_event_t {
 *****************************************************************/
 enum class e_key_change { up, down };
 
-struct key_event_t {
+struct key_event_t : event_base_t {
   e_key_change   change;
   ::SDL_Keycode  keycode  = ::SDLK_UNKNOWN;
   ::SDL_Scancode scancode = ::SDL_SCANCODE_UNKNOWN;

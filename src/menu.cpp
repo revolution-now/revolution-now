@@ -255,6 +255,10 @@ bool have_some_visible_menus() {
   return rg::any_of( values<e_menu>, L( is_menu_visible( _ ) ) );
 }
 
+Opt<e_menu> first_visible_menu() {
+  return rng_head( visible_menus() );
+}
+
 /****************************************************************
 ** Colors
 *****************************************************************/
@@ -1176,6 +1180,45 @@ struct MenuPlane : public Plane {
         []( input::quit_event_t ) { return false; },
         [&]( input::key_event_t const& key_event ) {
           auto menu = opened_menu();
+          if( !menu.has_value() &&
+              key_event.change == input::e_key_change::down &&
+              key_event.keycode == ::SDLK_LALT ) {
+            // Menus are closed and the user has pressed the left
+            // alt key, so add highlighting to the first menu
+            // header that is visible (if any).
+            auto maybe_first_menu = first_visible_menu();
+            if( maybe_first_menu.has_value() ) {
+              g_menu_state = MenuState::menus_closed{
+                  /*hover=*/*maybe_first_menu};
+              return true;
+            }
+          }
+          if( !menu.has_value() &&
+              key_event.change == input::e_key_change::up &&
+              key_event.keycode == ::SDLK_LALT ) {
+            // Menus are closed and the user is releasing the
+            // alt key, so remove any highlighting from the
+            // menu headers.
+            g_menu_state = MenuState::menus_closed{/*hover=*/{}};
+            return true;
+          }
+          // Check for an alt-shortcut key to open a menu.
+          if( key_event.change == input::e_key_change::down &&
+              key_event.l_alt_down ) {
+            for( auto const& [menu, menu_desc] : g_menus ) {
+              if( key_event.keycode ==
+                  tolower( menu_desc.shortcut ) ) {
+                if( !is_menu_open( menu ) )
+                  g_menu_state =
+                      MenuState::menu_open{menu, /*hover=*/{}};
+                else
+                  g_menu_state =
+                      MenuState::menus_closed{/*hover=*/menu};
+                log_menu_state();
+                return true;
+              }
+            }
+          }
           if( !menu ) return false;
           if( key_event.change == input::e_key_change::down ) {
             switch( key_event.keycode ) {

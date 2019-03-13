@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "fmt-helper.hpp"
 
 // range-v3
@@ -91,6 +92,20 @@ inline auto maximum() {
       if( !res.has_value() || *res < elem ) res = elem;
     return res;
   } );
+}
+
+// Returns the head value by value if there is one. This may not
+// be efficient in some cases due to the copy, but returning a
+// reference would seem kind of hard to reason about in terms of
+// lifetimes, so this should at least be safe.
+//
+// Rng must be taken by reference in case it is e.g. a vector, we
+// don't want to copy the vector.
+template<typename Rng>
+auto rng_head( Rng const& r )
+    -> Opt<std::decay_t<decltype( *r.begin() )>> {
+  for( auto const& e : r ) return e;
+  return std::nullopt;
 }
 
 } // namespace rn

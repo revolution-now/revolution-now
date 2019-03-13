@@ -14,6 +14,7 @@
 #include "logging.hpp"
 #include "screen.hpp"
 #include "util.hpp"
+#include "variant.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
@@ -75,7 +76,11 @@ absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
 } // namespace
 
 // Takes an SDL event and converts it to our own event descriptor
-// struct which is easier to deal with.
+// struct which is easier to deal with. This function's output
+// actually depends on when it is run (not just on the SDL_Event
+// that it is given as input) because it does things like get the
+// current mouse position, so the function signature might be a
+// bit decieving.
 event_t from_SDL( ::SDL_Event sdl_event ) {
   event_t event;
 
@@ -230,6 +235,17 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     }
     default: event = unknown_event_t{};
   }
+
+  // Populate the keymod state common to all events. We must do
+  // this at the end because `event` is a variant and we don't
+  // know at the start of this function which alternative will be
+  // chosen.
+  auto* base = variant_base_ptr<event_base_t>( event );
+  CHECK( base );
+  auto keymods = ::SDL_GetModState();
+
+  base->l_alt_down = ( keymods & ::KMOD_LALT );
+  base->r_alt_down = ( keymods & ::KMOD_RALT );
 
   return event;
 }
