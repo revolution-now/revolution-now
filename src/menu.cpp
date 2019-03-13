@@ -1202,10 +1202,19 @@ struct MenuPlane : public Plane {
             g_menu_state = MenuState::menus_closed{/*hover=*/{}};
             return true;
           }
+          if( menu.has_value() &&
+              key_event.change == input::e_key_change::down &&
+              key_event.keycode == ::SDLK_LALT ) {
+            // Menus are open and the user is pressing the
+            // alt key, so close menus.
+            g_menu_state = MenuState::menus_closed{/*hover=*/{}};
+            return true;
+          }
           // Check for an alt-shortcut key to open a menu.
           if( key_event.change == input::e_key_change::down &&
               key_event.l_alt_down ) {
-            for( auto const& [menu, menu_desc] : g_menus ) {
+            for( auto menu : visible_menus() ) {
+              auto const& menu_desc = g_menus[menu];
               if( key_event.keycode ==
                   tolower( menu_desc.shortcut ) ) {
                 if( !is_menu_open( menu ) )
