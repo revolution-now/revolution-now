@@ -123,9 +123,8 @@ Texture render_line_markup( vector<MarkedUpText> const& mks,
   return res;
 }
 
-void render_lines( Vec<Vec<MarkedUpText>> const& mk_text,
-                   Texture const& dest, Coord coord,
-                   TextMarkupInfo const& info ) {
+Texture render_lines( Vec<Vec<MarkedUpText>> const& mk_text,
+                      TextMarkupInfo const&         info ) {
   auto renderer = [&]( auto const& mks ) {
     return render_line_markup( mks, info );
   };
@@ -141,15 +140,15 @@ void render_lines( Vec<Vec<MarkedUpText>> const& mk_text,
     copy_texture( tx, res, where );
     where += tx.size().h;
   }
-  copy_texture( res, dest, coord );
+  return res;
 }
 
 } // namespace
 
-void render_text_markup( std::string_view text,
-                         Texture const& dest, Coord coord,
-                         TextMarkupInfo const& info ) {
-  render_lines( parse_text( text ), dest, coord, info );
+Texture render_text_markup( e_font /*unused*/,
+                            TextMarkupInfo const& info,
+                            std::string_view      text ) {
+  return render_lines( parse_text( text ), info );
 }
 
 // Will flatten the text onto one line, then wrap it to within
@@ -175,10 +174,10 @@ void render_text_markup( std::string_view text,
 //        in a Vec<Vec<MarkedUpText>>.
 //     7) Render marked up lines.
 
-void render_text_markup_reflow( std::string_view text,
-                                Texture const& dest, Coord coord,
-                                TextMarkupInfo const& info,
-                                int max_cols ) {
+Texture render_text_markup_reflow( e_font /*unused*/,
+                                   TextMarkupInfo const& info,
+                                   std::string_view      text,
+                                   int max_cols ) {
   // (1)
   auto words = util::split_strip_any( text, " \t\r\n" );
 
@@ -261,7 +260,7 @@ void render_text_markup_reflow( std::string_view text,
   CHECK( reflowed.size() == wrapped.size() );
 
   // (7)
-  render_lines( reflowed, dest, coord, info );
+  return render_lines( reflowed, info );
 }
 
 void text_render_test() {
@@ -284,10 +283,12 @@ void text_render_test() {
 
   TextMarkupInfo info{Color::white(), Color::red()};
 
-  render_text_markup( msg, Texture{}, {50_y, 100_x}, info );
+  auto tx1 = render_text_markup( fonts::standard, info, msg );
+  copy_texture( tx1, Texture{}, {50_y, 100_x} );
 
-  render_text_markup_reflow( msg2, Texture{}, {200_y, 100_x},
-                             info, 50 );
+  auto tx2 = render_text_markup_reflow( fonts::standard, info,
+                                        msg2, 50 );
+  copy_texture( tx2, Texture{}, {200_y, 100_x} );
 
   ::SDL_RenderPresent( g_renderer );
 

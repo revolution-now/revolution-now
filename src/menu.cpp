@@ -23,6 +23,7 @@
 #include "ranges.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
 
@@ -31,6 +32,7 @@
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 
 // C++ standard library
 #include <chrono>
@@ -534,15 +536,44 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
 ** Rendering Implmementation
 *****************************************************************/
 // For either a menu header or item.
-ItemTextures render_menu_element( string const& text,
-                                  optional<char> /*unused*/,
+ItemTextures render_menu_element( string_view const text,
+                                  optional<char>    shortcut,
                                   Color inactive_color,
                                   Color active_color,
                                   Color disabled_color ) {
-  auto inactive = render_text_line_shadow(
-      fonts::standard, inactive_color, text );
-  auto active   = render_text_line_shadow( fonts::standard,
-                                         active_color, text );
+  Texture inactive, active;
+  if( shortcut.has_value() ) {
+    logger->debug( "start shortcut: {}", shortcut );
+    auto shortcut_pos =
+        text.find_first_of( tolower( *shortcut ) );
+    if( shortcut_pos == string_view::npos )
+      shortcut_pos = text.find_first_of( toupper( *shortcut ) );
+    CHECK( shortcut_pos != string_view::npos );
+    string_view first_part( text.begin(), shortcut_pos );
+    char        middle_part = text[shortcut_pos];
+    string_view last_part( text.begin() + shortcut_pos + 1,
+                           text.size() - shortcut_pos - 1 );
+    auto mk_text = string( first_part ) + "@[H]" + middle_part +
+                   "@[]" + string( last_part );
+    logger->debug( "finished shortcut: {}", shortcut );
+
+    TextMarkupInfo inactive_info{
+        /*normal=*/inactive_color,
+        /*highlight=*/inactive_color.highlighted( 4 )};
+    TextMarkupInfo active_info{
+        /*normal=*/active_color,
+        /*highlight=*/active_color.highlighted( 3 )};
+
+    inactive = render_text_markup( fonts::standard,
+                                   inactive_info, mk_text );
+    active   = render_text_markup( fonts::standard, active_info,
+                                 mk_text );
+  } else {
+    inactive = render_text_line_shadow( fonts::standard,
+                                        inactive_color, text );
+    active   = render_text_line_shadow( fonts::standard,
+                                      active_color, text );
+  }
   auto disabled = render_text_line_solid( fonts::standard,
                                           disabled_color, text );
   // Need to do this first before moving.
@@ -567,10 +598,9 @@ ItemTextures render_menu_item_element(
 
 // For either a menu header or item.
 ItemTextures render_menu_header_element(
-    string const& text, optional<char> /*unused*/ ) {
+    string const& text, optional<char> shortcut ) {
   return render_menu_element(
-      text, nullopt, //
-      menu_theme_color1, menu_theme_color2,
+      text, shortcut, menu_theme_color1, menu_theme_color2,
       color::menu::foreground::disabled );
 }
 
@@ -952,9 +982,30 @@ void init_menus() {
     }
   }
 
+  // Check that g_items_from_menu is populated.
+  for( auto menu : values<e_menu> ) {
+    CHECK( g_items_from_menu.contains( menu ) );
+  }
+
   // Check that all menus have at least one item.
   for( auto menu : values<e_menu> ) {
     CHECK( g_items_from_menu[menu].size() > 0 );
+  }
+
+  // Check that all menus have unique shortcut keys and that the
+  // menu header name contains the shortcut key (in either
+  // uppercase or lowercase.
+  absl::flat_hash_set<char> keys;
+  for( auto menu : values<e_menu> ) {
+    char key = tolower( g_menus[menu].shortcut );
+    CHECK( !keys.contains( key ),
+           "multiple menus have `{}` as a shortcut key", key );
+    keys.insert( key );
+    string_view name = g_menus[menu].name;
+    CHECK( name.find( tolower( key ) ) != string_view::npos ||
+               name.find( toupper( key ) ) != string_view::npos,
+           "menu `{}` does not contain shortcut key `{}`", name,
+           key );
   }
 
   // Check that all e_menu_items are in a menu.

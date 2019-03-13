@@ -15,6 +15,7 @@
 
 // Revolution Now
 #include "color.hpp"
+#include "fonts.hpp"
 #include "geo-types.hpp"
 #include "sdl-util.hpp"
 
@@ -27,17 +28,17 @@ struct TextMarkupInfo {
 
 // Will not in any way reformat or re-flow or wrap the text; will
 // just render it with spacing/newlines as-is.
-void render_text_markup( std::string_view text,
-                         Texture const& dest, Coord coord,
-                         TextMarkupInfo const& info );
+Texture render_text_markup( e_font                font,
+                            TextMarkupInfo const& info,
+                            std::string_view      text );
 
 // This will totally re-flow the text with regard to all spacing,
 // including newlines, tabs, and inter-word spaces. It will also
 // wrap the text to fix in `max_cols`.
-void render_text_markup_reflow( std::string_view text,
-                                Texture const& dest, Coord coord,
-                                TextMarkupInfo const& info,
-                                int                   max_cols );
+Texture render_text_markup_reflow( e_font                font,
+                                   TextMarkupInfo const& info,
+                                   std::string_view      text,
+                                   int max_cols );
 
 // For testing
 void text_render_test();

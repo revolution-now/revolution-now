@@ -16,6 +16,7 @@
 #include "color.hpp"
 #include "sdl-util.hpp"
 
+// C++ standard library
 #include <string>
 
 namespace rn {
