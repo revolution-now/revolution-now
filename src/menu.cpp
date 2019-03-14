@@ -547,7 +547,6 @@ ItemTextures render_menu_element( string_view const text,
                                   Color disabled_color ) {
   Texture inactive, active;
   if( shortcut.has_value() ) {
-    logger->debug( "start shortcut: {}", shortcut );
     auto shortcut_pos =
         text.find_first_of( tolower( *shortcut ) );
     if( shortcut_pos == string_view::npos )
@@ -559,7 +558,6 @@ ItemTextures render_menu_element( string_view const text,
                            text.size() - shortcut_pos - 1 );
     auto mk_text = string( first_part ) + "@[H]" + middle_part +
                    "@[]" + string( last_part );
-    logger->debug( "finished shortcut: {}", shortcut );
 
     TextMarkupInfo inactive_info{
         /*normal=*/inactive_color,
