@@ -1179,6 +1179,11 @@ struct MenuPlane : public Plane {
         []( input::unknown_event_t ) { return false; },
         []( input::quit_event_t ) { return false; },
         [&]( input::key_event_t const& key_event ) {
+          if( util::holds<MenuState::item_click>(
+                  g_menu_state ) )
+            // If we are in the middle of a click process then
+            // let it finish before handling anymore keys.
+            return false;
           auto menu = opened_menu();
           // `is_alt` decides whether the pressed key is an alt,
           // not whether it is being held down while another key
