@@ -1,0 +1,59 @@
+=================================================================
+UI
+=================================================================
+
+  - Implement mouse selection of units to e.g. activate.
+
+=================================================================
+Rendering
+=================================================================
+
+  - Fix handling of multiple units on a square with rendering.
+  - Animate water by sliding the pixels within each water sprite
+    in a given direction (and wrapping around). This is essen-
+    tially rotating the pixels, but rotating about an axis that
+    is within the plane of the screen. Either this, or find an-
+    other way to animate it.
+
+=================================================================
+Basic Game Mechanics
+=================================================================
+
+  - Add disband command
+  - Fix handling of multiple units on a square with combat.
+  - Finish ship combat
+
+=================================================================
+Old World View
+=================================================================
+
+  - Determine layout of europe background image
+
+=================================================================
+Graphics Engine
+=================================================================
+
+  - Looks like we are creating textures with
+    SDL_TEXTUREACCESS_TARGET; see if removing this from the
+    sprites speeds up copying.
+  - Add a cache to the cache module that invalidates when the
+    scaling is changed. This will facilitate the next item.
+  - Modify the `screen` module to handle all quantities that de-
+    pend on the rendering scale, and allow dynamic changes to it.
+    Also try to fix non-fullscreen mode.
+  - Remove color palette from config, generate a new palette data
+    structure with a uniform distribution of hues/sats/lums. Kind
+    of rediculous to have the palette in a ucl file.
+
+=================================================================
+Build System
+=================================================================
+
+  - Add Windows support.
+
+=================================================================
+Testing
+=================================================================
+
+  - Add catch2 and start adding unit tests
+  - Add a fuzz tester and fuzz test the markup parser
