@@ -22,7 +22,7 @@ namespace rn {
 *****************************************************************/
 template<typename Child>
 struct OrdersAnalysis {
-  OrdersAnalysis( UnitId id_, Orders orders_,
+  OrdersAnalysis( UnitId id_, orders_t orders_,
                   std::vector<UnitId> units_to_prioritize_ )
     : id( id_ ),
       orders( orders_ ),
@@ -62,7 +62,7 @@ struct OrdersAnalysis {
   // Analyzes the move and returns nullopt if it is
   // non-applicable or returns this data structure (populated) if
   // it is applicable (though may still be disallowed).
-  static Opt<Child> analyze( UnitId id, Orders orders ) {
+  static Opt<Child> analyze( UnitId id, orders_t orders ) {
     return Child::analyze_( id, orders );
   }
 
@@ -72,7 +72,7 @@ struct OrdersAnalysis {
   UnitId id;
 
   // The orders that gave rise to this.
-  Orders orders;
+  orders_t orders;
 
   // Units that will be waiting for orders and which should be
   // prioritized in the "orders" loop after this move is made.
@@ -85,7 +85,7 @@ struct OrdersAnalysis {
 // These are always allowed; a meta order is an order that
 // concerns the units orders, such as `wait`, `forfeight`, etc.
 struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
-  MetaAnalysis( UnitId id_, Orders orders_,
+  MetaAnalysis( UnitId id_, orders_t orders_,
                 bool mv_points_forfeighted_ )
     : parent_t( id_, orders_, /*units_to_prioritize_=*/{} ),
       mv_points_forfeighted( mv_points_forfeighted_ ) {}
@@ -103,7 +103,8 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
   bool confirm_explain_() const { return true; }
   void affect_orders_() const;
 
-  static Opt<MetaAnalysis> analyze_( UnitId id, Orders orders );
+  static Opt<MetaAnalysis> analyze_( UnitId   id,
+                                     orders_t orders );
 };
 
 } // namespace rn

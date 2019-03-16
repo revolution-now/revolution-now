@@ -26,16 +26,16 @@ namespace rn {
 
 namespace {
 
-absl::flat_hash_map<UnitId, queue<Orders>> g_orders_queue;
+absl::flat_hash_map<UnitId, queue<orders_t>> g_orders_queue;
 
 } // namespace
 
-void push_unit_orders( UnitId id, Orders const& orders ) {
+void push_unit_orders( UnitId id, orders_t const& orders ) {
   g_orders_queue[id].push( orders );
 }
 
-Opt<Orders> pop_unit_orders( UnitId id ) {
-  Opt<Orders> res{};
+Opt<orders_t> pop_unit_orders( UnitId id ) {
+  Opt<orders_t> res{};
   if( has_key( g_orders_queue, id ) ) {
     auto& q = g_orders_queue[id];
     if( !q.empty() ) {

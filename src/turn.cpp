@@ -222,10 +222,10 @@ e_turn_result turn( e_nation nation ) {
         auto& orders = *maybe_orders;
         logger->debug( "received orders: {}", orders );
 
-        if( util::holds<orders::quit_t>( orders ) )
+        if( util::holds<orders::quit>( orders ) )
           return e_turn_result::quit;
 
-        if( util::holds<orders::wait_t>( orders ) ) {
+        if( util::holds<orders::wait>( orders ) ) {
           q.push_back( q.front() );
           q.pop_front();
           break;

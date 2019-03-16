@@ -28,12 +28,12 @@ namespace rn {
 namespace {
 
 template<typename T>
-Opt<PlayerIntent> try_dispatch( UnitId        id,
-                                Orders const& orders ) {
+Opt<PlayerIntent> try_dispatch( UnitId          id,
+                                orders_t const& orders ) {
   return T::analyze( id, orders );
 }
 
-vector<function<Opt<PlayerIntent>( UnitId, Orders const& )>>
+vector<function<Opt<PlayerIntent>( UnitId, orders_t const& )>>
     dispatches{
         // Will be tried in this order.
         try_dispatch<MetaAnalysis>,   //
@@ -44,8 +44,8 @@ vector<function<Opt<PlayerIntent>( UnitId, Orders const& )>>
 
 } // namespace
 
-Opt<PlayerIntent> player_intent( UnitId        id,
-                                 Orders const& orders ) {
+Opt<PlayerIntent> player_intent( UnitId          id,
+                                 orders_t const& orders ) {
   Opt<PlayerIntent> maybe_res;
 
   auto const& unit = unit_from_id( id );

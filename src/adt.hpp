@@ -92,10 +92,10 @@
                                       __VA_ARGS__ ) )          \
   };                                                           \
   SWITCH_EMPTY(                                                \
-      bool operator==( name const& l, name const& r ) {        \
+      inline bool operator==( name const& l, name const& r ) { \
         return PP_MAP_AMP( PAIR_TO_CMP_TUPLE, __VA_ARGS__ );   \
       },                                                       \
-      bool operator==( name const&, name const& ) {            \
+      inline bool operator==( name const&, name const& ) {     \
         return true;                                           \
       },                                                       \
       __VA_ARGS__ )                                            \

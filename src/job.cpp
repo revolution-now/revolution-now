@@ -44,19 +44,19 @@ void JobAnalysis::affect_orders_() const {
   }
 }
 
-Opt<JobAnalysis> JobAnalysis::analyze_( UnitId id,
-                                        Orders orders ) {
+Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
+                                        orders_t orders ) {
   Opt<JobAnalysis> res{};
 
   auto& unit = unit_from_id( id );
 
-  if( holds<orders::fortify_t>( orders ) ) {
+  if( holds<orders::fortify>( orders ) ) {
     res = JobAnalysis( id, orders );
     if( unit.desc().boat )
       res->desc = e_unit_job_error::ship_cannot_fortify;
     else
       res->desc = e_unit_job_good::fortify;
-  } else if( holds<orders::sentry_t>( orders ) ) {
+  } else if( holds<orders::sentry>( orders ) ) {
     res       = JobAnalysis( id, orders );
     res->desc = e_unit_job_good::sentry;
   }

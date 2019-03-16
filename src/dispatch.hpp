@@ -34,8 +34,8 @@ using PlayerIntent = std::variant<
     // If the move is toward a foreign unit
     CombatAnalysis>;
 
-Opt<PlayerIntent> player_intent( UnitId        id,
-                                 Orders const& orders );
+Opt<PlayerIntent> player_intent( UnitId          id,
+                                 orders_t const& orders );
 
 bool confirm_explain( PlayerIntent const& analysis );
 

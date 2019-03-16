@@ -53,7 +53,7 @@ using unit_travel_verdict =
     std::variant<e_unit_travel_good, e_unit_travel_error>;
 
 struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
-  TravelAnalysis( UnitId id_, Orders orders_,
+  TravelAnalysis( UnitId id_, orders_t orders_,
                   Vec<UnitId> units_to_prioritize_,
                   bool unit_would_move_, Coord move_src_,
                   Coord move_target_, unit_travel_verdict desc_,
@@ -101,8 +101,8 @@ struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
   bool confirm_explain_() const;
   void affect_orders_() const;
 
-  static Opt<TravelAnalysis> analyze_( UnitId id,
-                                       Orders orders );
+  static Opt<TravelAnalysis> analyze_( UnitId   id,
+                                       orders_t orders );
 };
 
 } // namespace rn

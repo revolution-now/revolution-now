@@ -23,12 +23,12 @@ namespace rn {
 
 namespace {} // namespace
 
-Opt<MetaAnalysis> MetaAnalysis::analyze_( UnitId id,
-                                          Orders orders ) {
-  if( util::holds<orders::wait_t>( orders ) )
+Opt<MetaAnalysis> MetaAnalysis::analyze_( UnitId   id,
+                                          orders_t orders ) {
+  if( util::holds<orders::wait>( orders ) )
     return MetaAnalysis( id, orders,
                          /*mv_points_forfeighted=*/false );
-  if( util::holds<orders::forfeight_t>( orders ) )
+  if( util::holds<orders::forfeight>( orders ) )
     return MetaAnalysis( id, orders,
                          /*mv_points_forfeighted=*/true );
   return nullopt;

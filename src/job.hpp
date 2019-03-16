@@ -28,7 +28,7 @@ using v_unit_job_desc =
     std::variant<e_unit_job_good, e_unit_job_error>;
 
 struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
-  JobAnalysis( UnitId id_, Orders orders_ )
+  JobAnalysis( UnitId id_, orders_t orders_ )
     : parent_t( id_, orders_, /*units_to_prioritize_=*/{} ) {}
 
   // ------------------------ Data -----------------------------
@@ -41,7 +41,7 @@ struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
   bool confirm_explain_() const;
   void affect_orders_() const;
 
-  static Opt<JobAnalysis> analyze_( UnitId id, Orders orders );
+  static Opt<JobAnalysis> analyze_( UnitId id, orders_t orders );
 };
 
 } // namespace rn

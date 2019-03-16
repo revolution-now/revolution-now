@@ -58,7 +58,7 @@ void analyze_unload( Unit const&     unit,
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
+Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   if( !util::holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
 
@@ -339,8 +339,8 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, Orders orders ) {
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId id,
-                                              Orders orders ) {
+Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId   id,
+                                              orders_t orders ) {
   auto maybe_res = analyze_impl( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;
@@ -449,7 +449,7 @@ void TravelAnalysis::affect_orders_() const {
           cargo_unit.unfinish_turn();
           auto direction = old_coord.direction_to( move_target );
           CHECK( direction.has_value() );
-          Orders orders = orders::direction{*direction};
+          orders_t orders = orders::direction{*direction};
           push_unit_orders( cargo_id, orders );
         }
       }

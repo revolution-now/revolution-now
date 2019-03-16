@@ -44,7 +44,7 @@ using unit_combat_verdict =
     std::variant<e_attack_good, e_attack_error>;
 
 struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
-  CombatAnalysis( UnitId id_, Orders orders_,
+  CombatAnalysis( UnitId id_, orders_t orders_,
                   Vec<UnitId> units_to_prioritize_,
                   Coord attack_src_, Coord attack_target_,
                   unit_combat_verdict  desc_,
@@ -87,8 +87,8 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   bool confirm_explain_() const;
   void affect_orders_() const;
 
-  static Opt<CombatAnalysis> analyze_( UnitId id,
-                                       Orders orders );
+  static Opt<CombatAnalysis> analyze_( UnitId   id,
+                                       orders_t orders );
 };
 
 } // namespace rn

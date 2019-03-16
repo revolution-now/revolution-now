@@ -32,7 +32,7 @@ bool CombatAnalysis::allowed_() const {
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
+Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   if( !util::holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
 
@@ -197,8 +197,8 @@ Opt<CombatAnalysis> combat_impl( UnitId id, Orders orders ) {
 // This is the entry point; calls the implementation then checks
 // invariants. Finally computes the combat statistics if the at-
 // tack is allowed.
-Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId id,
-                                              Orders orders ) {
+Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId   id,
+                                              orders_t orders ) {
   auto maybe_res = combat_impl( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;

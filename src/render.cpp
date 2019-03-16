@@ -442,24 +442,24 @@ struct ViewportPlane : public Plane {
                 break;
               case ::SDLK_q:
                 // TODO: temporary
-                blink_unit.orders = orders::quit;
+                blink_unit.orders = orders::quit{};
                 handled           = true;
                 break;
               case ::SDLK_w:
-                blink_unit.orders = orders::wait;
+                blink_unit.orders = orders::wait{};
                 handled           = true;
                 break;
               case ::SDLK_s:
-                blink_unit.orders = orders::sentry;
+                blink_unit.orders = orders::sentry{};
                 handled           = true;
                 break;
               case ::SDLK_f:
-                blink_unit.orders = orders::fortify;
+                blink_unit.orders = orders::fortify{};
                 handled           = true;
                 break;
               case ::SDLK_SPACE:
               case ::SDLK_KP_5:
-                blink_unit.orders = orders::forfeight;
+                blink_unit.orders = orders::forfeight{};
                 handled           = true;
                 break;
               default:
