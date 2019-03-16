@@ -9,6 +9,12 @@ Rendering
 =================================================================
 
   - Fix handling of multiple units on a square with rendering.
+
+  - Draw the popup window background consisting of a wood texture
+    and a cloth sign hanging from the top with the title (this
+    will be common to all windows), and then have a view that
+    does the word-wrapped/markup text in the middle.
+
   - Animate water by sliding the pixels within each water sprite
     in a given direction (and wrapping around). This is essen-
     tially rotating the pixels, but rotating about an axis that
@@ -35,11 +41,14 @@ Graphics Engine
   - Looks like we are creating textures with
     SDL_TEXTUREACCESS_TARGET; see if removing this from the
     sprites speeds up copying.
+
   - Add a cache to the cache module that invalidates when the
     scaling is changed. This will facilitate the next item.
+
   - Modify the `screen` module to handle all quantities that de-
     pend on the rendering scale, and allow dynamic changes to it.
     Also try to fix non-fullscreen mode.
+
   - Remove color palette from config, generate a new palette data
     structure with a uniform distribution of hues/sats/lums. Kind
     of rediculous to have the palette in a ucl file.
