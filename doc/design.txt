@@ -1,3 +1,40 @@
+Mouse Selection of Units
+========================
+
+Problem: currently, when units are given Fortify or Sentry orders
+there is not simple way to clear those orders.
+
+In the viewport either at an end-of-turn or when units are
+blinking one will be able to click on a square with units and a
+window will pop up listing the units in the square with their or-
+ders shown in the nationality icon. The player will then be able
+to clear orders by clicking on a button next to the unit. When
+finished the user can press OK to accept the changes, or Cancel
+to cancel.
+
+After a unit has its orders cleared it will be eligible to move
+in that same turn if it didn't already move in that turn. So
+e.g., if a unit is Fortified in one turn they can be reactivated
+in the same turn, but they won't be able to move again until the
+next turn.
+
+Graphical Layout: the units in the window will be listed verti-
+cally with the unit+natonality icon rendered in the left column
+and a button (one per unit) in the right column. The button will
+have a '-' character on it to communicate to the player that
+clicking on it will clear the unit's orders. After clicking on a
+button the button will return to the same state, but the unit
+icon's nationality icon will be redrawn to have its orders
+cleared.
+
+Note that even units in the square that already have their orders
+cleared will still show up in the window to avoid confusing the
+player.
+
+It could happen that there are too many units in the square to
+fit on the screen... but that will be dealt with another time. It
+may require implementing scrolling views.
+
 Text Rendering with Markup
 ==========================
 

@@ -48,7 +48,10 @@ void JobAnalysis::affect_orders_() const {
   CHECK( holds<e_unit_job_good>( desc ) );
   switch( get<e_unit_job_good>( desc ) ) {
     case e_unit_job_good::sentry: unit.sentry(); return;
-    case e_unit_job_good::fortify: unit.fortify(); return;
+    case e_unit_job_good::fortify:
+      unit.forfeight_mv_points();
+      unit.fortify();
+      return;
     case e_unit_job_good::disband:
       destroy_unit( unit.id() );
       return;

@@ -45,7 +45,7 @@ namespace rn {
 void game() {
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
-  for( Y y{1}; y < 1_y + 10_y; ++y ) {
+  for( Y y{1}; y < 1_y + 1_y; ++y ) {
     (void)create_unit_on_map( e_nation::spanish,
                               e_unit_type::soldier, y, 2_x );
     (void)create_unit_on_map( e_nation::english,
