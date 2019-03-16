@@ -61,6 +61,8 @@ namespace rn::detail {
 std::string check_msg( char const*        expr,
                        std::string const& msg );
 
+bool check_inline( bool b, char const* msg );
+
 } // namespace rn::detail
 
 /****************************************************************
@@ -85,6 +87,10 @@ std::string check_msg( char const*        expr,
     FATAL_(                                                    \
         detail::check_msg( #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
+
+// Use this when the check is on a boolean and the check itself
+// must be an expression and return a boolean.
+#define CHECK_INL( b ) detail::check_inline( b, #b )
 
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is

@@ -91,6 +91,11 @@ std::string check_msg( char const*        expr,
   return fmt::format( "CHECK( {} ) failed{}", expr, suffix );
 }
 
+bool check_inline( bool b, char const* msg ) {
+  if( !b ) { FATAL_( detail::check_msg( msg, "" ) ); }
+  return true;
+}
+
 } // namespace detail
 
 } // namespace rn

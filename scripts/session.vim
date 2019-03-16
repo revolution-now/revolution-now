@@ -35,7 +35,7 @@ let s:stems = [
 "\]
 
 let s:quads = [
-  \ ['doc/priorities.txt', 'scripts/session.vim',
+  \ ['doc/todo.txt', 'scripts/session.vim',
   \  'doc/design.txt',     'doc/ideas.txt'],
 \]
 

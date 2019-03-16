@@ -43,6 +43,7 @@ ADT( rn, orders,            //
      ( forfeight ),         //
      ( fortify ),           //
      ( sentry ),            //
+     ( disband ),           //
      ( direction,           //
        ( e_direction, d ) ) //
 );

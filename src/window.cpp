@@ -432,6 +432,7 @@ WindowManager::window& WindowManager::focused() {
 ** High-level Methods
 *****************************************************************/
 string select_box( string const& title, Vec<Str> options ) {
+  logger->info( "question: \"{}\"", title );
   std::vector<OwningPositionedView> views;
 
   auto selector = make_unique<OptionSelectView>(

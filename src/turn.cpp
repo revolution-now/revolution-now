@@ -149,9 +149,13 @@ e_turn_result turn( e_nation nation ) {
     //  Iterate through all units, for each:
     while( !q.empty() ) {
       auto id = q.front();
-      // I think this will trigger; if it does then we need to to
-      // remove it from the queue if it no longer exists.
-      CHECK( unit_exists( id ) );
+      if( !unit_exists( id ) ) {
+        // This will happen if the unit is disbanded or it is
+        // cargo of something that was disbanded.
+        logger->debug( "unit {} no longer exists.", id );
+        q.pop_front();
+        continue;
+      }
       auto& unit = unit_from_id( id );
       CHECK( unit.nation() == nation );
       if( unit.finished_turn() ) {
@@ -189,7 +193,7 @@ e_turn_result turn( e_nation nation ) {
       //      `unit orders` game loop.
       //
       //    clang-format on
-      while( q.front() == id &&
+      while( CHECK_INL( !q.empty() ) && q.front() == id &&
              unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
         logger->debug( "asking orders for: {}",
@@ -304,8 +308,8 @@ e_turn_result turn( e_nation nation ) {
         affect_orders( analysis );
 
         // Must immediately check if this unit has been killed in
-        // combat. If so then all the unit references to it are
-        // invalid.
+        // combat or disbanded. If so then all the unit refer-
+        // ences to it are invalid.
         if( !unit_exists( id ) ) break;
 
         // Note that it shouldn't hurt if the unit is already in
@@ -318,7 +322,10 @@ e_turn_result turn( e_nation nation ) {
         }
       }
 
-      if( !unit_exists( id ) ) break;
+      // Must check if this unit has been killed in combat or
+      // disbanded. If so then all the unit references to it are
+      // invalid.
+      if( !unit_exists( id ) ) continue;
 
       // Now we must decide if the unit has finished its turn.
       // TODO: try to put this in the unit class.

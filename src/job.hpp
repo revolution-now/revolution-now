@@ -20,7 +20,7 @@
 
 namespace rn {
 
-enum class ND e_unit_job_good { fortify, sentry };
+enum class ND e_unit_job_good { fortify, sentry, disband };
 
 enum class ND e_unit_job_error { ship_cannot_fortify };
 

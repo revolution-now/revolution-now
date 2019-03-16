@@ -19,7 +19,6 @@ Rendering
 Basic Game Mechanics
 =================================================================
 
-  - Add disband command
   - Fix handling of multiple units on a square with combat.
   - Finish ship combat
 
