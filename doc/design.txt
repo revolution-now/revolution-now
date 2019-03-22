@@ -1,3 +1,17 @@
+Button Views
+============
+
+// Handles rendering the button in pressed, non-pressed, or dis-
+// abled state, keeps track of state, renders text. Does not
+// handle input, and has no callbacks.
+class ButtonViewBase;
+
+// Represents a button that springs back up when clicked.
+class ButtonSpring;
+
+// Represents a button that clicks on and clicks off.
+class ButtonSticky;
+
 Mouse Selection of Units
 ========================
 
@@ -8,9 +22,8 @@ In the viewport either at an end-of-turn or when units are
 blinking one will be able to click on a square with units and a
 window will pop up listing the units in the square with their or-
 ders shown in the nationality icon. The player will then be able
-to clear orders by clicking on a button next to the unit. When
-finished the user can press OK to accept the changes, or Cancel
-to cancel.
+to clear orders by clicking on the unit. When finished the user
+can press OK to accept the changes, or Cancel to cancel.
 
 After a unit has its orders cleared it will be eligible to move
 in that same turn if it didn't already move in that turn. So
@@ -18,22 +31,22 @@ e.g., if a unit is Fortified in one turn they can be reactivated
 in the same turn, but they won't be able to move again until the
 next turn.
 
-Graphical Layout: the units in the window will be listed verti-
-cally with the unit+natonality icon rendered in the left column
-and a button (one per unit) in the right column. The button will
-have a '-' character on it to communicate to the player that
-clicking on it will clear the unit's orders. After clicking on a
-button the button will return to the same state, but the unit
-icon's nationality icon will be redrawn to have its orders
-cleared.
+Graphical Layout: the units will be arranged in a vertical line.
 
 Note that even units in the square that already have their orders
 cleared will still show up in the window to avoid confusing the
 player.
 
-It could happen that there are too many units in the square to
-fit on the screen... but that will be dealt with another time. It
-may require implementing scrolling views.
+Overall, the UX could be made much more polished (and robust, to
+handle edge cases like large number of units), but here we are
+concerned only with getting something functional.
+
+Implementation.  There will be the following new views:
+
+  - ButtonView: a button (see separate design doc).
+  - UnitView: displays a unit and nat. icon.
+  - UnitClearOrdersView: ties everything up into one large view
+    which is then embedded in the window.
 
 Text Rendering with Markup
 ==========================
