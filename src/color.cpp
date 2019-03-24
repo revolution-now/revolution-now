@@ -437,6 +437,13 @@ Color Color::shaded( int iterations ) const {
   return shift_color( *this, false ).shaded( iterations - 1 );
 }
 
+Color Color::banana() {
+  return Color::parse_from_hex( "E4C890" ).value();
+}
+Color Color::wood() {
+  return Color::parse_from_hex( "703F24" ).value();
+}
+
 // Takes the average of each component.
 Color mix( Color first, Color second ) {
   return {

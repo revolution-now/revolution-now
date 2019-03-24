@@ -92,6 +92,8 @@ struct Color {
   static Color blue() { return {0, 0, 255, 255}; }
   static Color white() { return {255, 255, 255, 255}; }
   static Color black() { return {0, 0, 0, 255}; }
+  static Color banana();
+  static Color wood();
 };
 
 // Takes the average of each component.

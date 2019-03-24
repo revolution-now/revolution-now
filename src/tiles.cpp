@@ -92,6 +92,10 @@ sprite create_sprite_128_16( Texture const& texture,
       tile_set_menu_sel,                        \
       config_art.tiles.menu_sel.coords.name )
 
+#define SET_SPRITE_BUTTON( name )          \
+  sprites[g_tile::name] = create_sprite_8( \
+      tile_set_button, config_art.tiles.button.coords.name )
+
 void init_sprites() {
   auto& tile_set_world =
       load_texture( config_art.tiles.world.img );
@@ -105,6 +109,8 @@ void init_sprites() {
       load_texture( config_art.tiles.wood.img );
   auto& tile_set_menu_sel =
       load_texture( config_art.tiles.menu_sel.img );
+  auto& tile_set_button =
+      load_texture( config_art.tiles.button.img );
 
   SET_SPRITE_WORLD( water );
   SET_SPRITE_WORLD( land );
@@ -150,6 +156,25 @@ void init_sprites() {
 
   SET_SPRITE_MENU_SEL( menu_item_sel_back );
   SET_SPRITE_MENU_SEL( menu_hdr_sel_back );
+
+  SET_SPRITE_BUTTON( button_up_ul );
+  SET_SPRITE_BUTTON( button_up_um );
+  SET_SPRITE_BUTTON( button_up_ur );
+  SET_SPRITE_BUTTON( button_up_ml );
+  SET_SPRITE_BUTTON( button_up_mm );
+  SET_SPRITE_BUTTON( button_up_mr );
+  SET_SPRITE_BUTTON( button_up_ll );
+  SET_SPRITE_BUTTON( button_up_lm );
+  SET_SPRITE_BUTTON( button_up_lr );
+  SET_SPRITE_BUTTON( button_down_ul );
+  SET_SPRITE_BUTTON( button_down_um );
+  SET_SPRITE_BUTTON( button_down_ur );
+  SET_SPRITE_BUTTON( button_down_ml );
+  SET_SPRITE_BUTTON( button_down_mm );
+  SET_SPRITE_BUTTON( button_down_mr );
+  SET_SPRITE_BUTTON( button_down_ll );
+  SET_SPRITE_BUTTON( button_down_lm );
+  SET_SPRITE_BUTTON( button_down_lr );
 }
 
 } // namespace
@@ -242,46 +267,42 @@ void render_rect_of_sprites_with_border(
 
   Rect dst_tile_rect = Rect::from( Coord{}, size_tiles );
   for( auto coord : dst_tile_rect.edges_removed() )
-    render_sprite( dst, g_tile::menu_body, to_pixels( coord ), 0,
-                   0 );
+    render_sprite( dst, middle, to_pixels( coord ), 0, 0 );
 
   for( X x = dst_tile_rect.x + 1_w;
        x < dst_tile_rect.right_edge() - 1_w; ++x )
-    render_sprite( dst, g_tile::menu_top, to_pixels( {0_y, x} ),
-                   0, 0 );
+    render_sprite( dst, top, to_pixels( {0_y, x} ), 0, 0 );
   for( X x = dst_tile_rect.x + 1_w;
        x < dst_tile_rect.right_edge() - 1_w; ++x )
     render_sprite(
-        dst, g_tile::menu_bottom,
+        dst, bottom,
         to_pixels(
             {0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x} ),
         0, 0 );
   for( Y y = dst_tile_rect.y + 1_h;
        y < dst_tile_rect.bottom_edge() - 1_h; ++y )
-    render_sprite( dst, g_tile::menu_left, to_pixels( {y, 0_x} ),
-                   0, 0 );
+    render_sprite( dst, left, to_pixels( {y, 0_x} ), 0, 0 );
   for( Y y = dst_tile_rect.y + 1_h;
        y < dst_tile_rect.bottom_edge() - 1_h; ++y )
     render_sprite(
-        dst, g_tile::menu_right,
+        dst, right,
         to_pixels(
             {y, 0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
         0, 0 );
 
-  render_sprite( dst, g_tile::menu_top_left,
-                 to_pixels( {0_y, 0_x} ), 0, 0 );
+  render_sprite( dst, top_left, to_pixels( {0_y, 0_x} ), 0, 0 );
   render_sprite(
-      dst, g_tile::menu_top_right,
+      dst, top_right,
       to_pixels(
           {0_y, 0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
       0, 0 );
   render_sprite(
-      dst, g_tile::menu_bottom_left,
+      dst, bottom_left,
       to_pixels(
           {0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x} ),
       0, 0 );
   render_sprite(
-      dst, g_tile::menu_bottom_right,
+      dst, bottom_right,
       to_pixels( {0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
                   0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
       0, 0 );

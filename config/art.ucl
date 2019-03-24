@@ -82,4 +82,27 @@ tiles {
     }
   }
 
+  button {
+    img: assets/art/tiles/button.png
+    coords {
+      button_up_ul:   { y: 0, x: 0 }
+      button_up_um:   { y: 0, x: 1 }
+      button_up_ur:   { y: 0, x: 2 }
+      button_up_ml:   { y: 1, x: 0 }
+      button_up_mm:   { y: 1, x: 1 }
+      button_up_mr:   { y: 1, x: 2 }
+      button_up_ll:   { y: 2, x: 0 }
+      button_up_lm:   { y: 2, x: 1 }
+      button_up_lr:   { y: 2, x: 2 }
+      button_down_ul: { y: 0, x: 3 }
+      button_down_um: { y: 0, x: 4 }
+      button_down_ur: { y: 0, x: 5 }
+      button_down_ml: { y: 1, x: 3 }
+      button_down_mm: { y: 1, x: 4 }
+      button_down_mr: { y: 1, x: 5 }
+      button_down_ll: { y: 2, x: 3 }
+      button_down_lm: { y: 2, x: 4 }
+      button_down_lr: { y: 2, x: 5 }
+    }
+  }
 }

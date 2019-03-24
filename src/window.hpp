@@ -41,4 +41,9 @@ enum class e_confirm { yes, no };
 
 e_confirm yes_no( std::string_view title );
 
+/****************************************************************
+** Testing Only
+*****************************************************************/
+void window_test();
+
 } // namespace rn::ui

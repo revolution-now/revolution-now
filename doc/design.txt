@@ -6,11 +6,9 @@ Button Views
 // handle input, and has no callbacks.
 class ButtonViewBase;
 
-// Represents a button that springs back up when clicked.
-class ButtonSpring;
-
-// Represents a button that clicks on and clicks off.
-class ButtonSticky;
+// Represents a button that springs back up when clicked. Handles
+// input, and has a callback that gets called on each click.
+class ButtonSpringView;
 
 Mouse Selection of Units
 ========================

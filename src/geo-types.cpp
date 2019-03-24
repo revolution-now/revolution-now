@@ -186,6 +186,12 @@ bool Coord::is_inside( Rect const& rect ) const {
          ( x < rect.x + rect.w ) && ( y < rect.y + rect.h );
 }
 
+Delta Delta::round_up( Scale grid_size ) const {
+  Coord bottom_right = Coord{} + *this;
+  return bottom_right.rounded_up_to_multiple( grid_size )
+      .distance_from_origin();
+}
+
 Delta Delta::trimmed_by_one() const {
   auto res = *this;
   if( res.w > 0 )

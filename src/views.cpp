@@ -87,6 +87,99 @@ void OneLineStringView::draw( Texture const& tx,
   copy_texture( this->tx_, tx, coord );
 }
 
+ButtonBaseView::ButtonBaseView( string label ) {
+  auto info = TextMarkupInfo{}; // Should be irrelevant
+  auto size = render_text_markup( fonts::standard, info, label )
+                  .size()
+                  .round_up( Scale{8} );
+  auto size_in_blocks = size / Scale{8};
+  size_in_blocks.w += 2_w;
+  render( label, size_in_blocks );
+}
+
+ButtonBaseView::ButtonBaseView( string label,
+                                Delta  size_in_blocks ) {
+  render( label, size_in_blocks );
+}
+
+void ButtonBaseView::draw( Texture const& tx,
+                           Coord          coord ) const {
+  auto do_copy = [&]( auto const& src ) {
+    copy_texture( src, tx, coord );
+  };
+  switch( state_ ) {
+    case button_state::disabled: do_copy( disabled_ ); return;
+    case button_state::down: do_copy( pressed_ ); return;
+    case button_state::up: do_copy( unpressed_ ); return;
+    case button_state::hover: do_copy( hover_ ); return;
+  }
+  SHOULD_NOT_BE_HERE;
+}
+
+void ButtonBaseView::render( string const& label,
+                             Delta         size_in_blocks ) {
+  auto pixel_size = size_in_blocks * Scale{8};
+  pressed_        = create_texture_transparent( pixel_size );
+  hover_          = create_texture_transparent( pixel_size );
+  unpressed_      = create_texture_transparent( pixel_size );
+  disabled_       = create_texture_transparent( pixel_size );
+
+  render_rect_of_sprites_with_border(
+      unpressed_, Coord{}, size_in_blocks, //
+      g_tile::button_up_mm, g_tile::button_up_um,
+      g_tile::button_up_lm, g_tile::button_up_ml,
+      g_tile::button_up_mr, g_tile::button_up_ul,
+      g_tile::button_up_ur, g_tile::button_up_ll,
+      g_tile::button_up_lr );
+
+  render_rect_of_sprites_with_border(
+      hover_, Coord{}, size_in_blocks, //
+      g_tile::button_up_mm, g_tile::button_up_um,
+      g_tile::button_up_lm, g_tile::button_up_ml,
+      g_tile::button_up_mr, g_tile::button_up_ul,
+      g_tile::button_up_ur, g_tile::button_up_ll,
+      g_tile::button_up_lr );
+
+  render_rect_of_sprites_with_border(
+      disabled_, Coord{}, size_in_blocks, //
+      g_tile::button_up_mm, g_tile::button_up_um,
+      g_tile::button_up_lm, g_tile::button_up_ml,
+      g_tile::button_up_mr, g_tile::button_up_ul,
+      g_tile::button_up_ur, g_tile::button_up_ll,
+      g_tile::button_up_lr );
+
+  render_rect_of_sprites_with_border(
+      pressed_, Coord{}, size_in_blocks, //
+      g_tile::button_down_mm, g_tile::button_down_um,
+      g_tile::button_down_lm, g_tile::button_down_ml,
+      g_tile::button_down_mr, g_tile::button_down_ul,
+      g_tile::button_down_ur, g_tile::button_down_ll,
+      g_tile::button_down_lr );
+
+  auto info_normal = TextMarkupInfo{Color::wood().shaded( 3 ),
+                                    /*highlight=*/{}};
+  auto info_hover =
+      TextMarkupInfo{Color::banana(), /*highlight=*/{}};
+  auto info_disabled = TextMarkupInfo{config_palette.grey.n50,
+                                      /*highlight=*/{}};
+
+  auto tx_normal =
+      render_text_markup( fonts::standard, info_normal, label );
+  auto tx_hover =
+      render_text_markup( fonts::standard, info_hover, label );
+  auto tx_disabled = render_text_markup( fonts::standard,
+                                         info_disabled, label );
+
+  auto unpressed_coord =
+      centered( tx_normal.size(), unpressed_.rect() );
+  auto pressed_coord = unpressed_coord + Delta{-1_w, 1_h};
+
+  copy_texture( tx_normal, unpressed_, unpressed_coord );
+  copy_texture( tx_hover, hover_, unpressed_coord );
+  copy_texture( tx_normal, pressed_, pressed_coord );
+  copy_texture( tx_disabled, disabled_, unpressed_coord );
+}
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/

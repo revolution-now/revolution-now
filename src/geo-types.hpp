@@ -95,6 +95,10 @@ struct ND Delta {
     return zero;
   }
 
+  // Given a grid size this will round each dimension up to the
+  // nearest multiple of that size.
+  Delta round_up( Scale grid_size ) const;
+
   // This will reduce the magnitude of each component by one.
   // E.g., if the h component is -5, it will become -4, if the w
   // component is 10, it will become 9. If a component is zero it
@@ -164,6 +168,10 @@ struct ND Coord {
 
   Coord rounded_up_to_multiple( Scale multiple ) const;
   Coord rounded_up_to_multiple( Delta multiple ) const;
+
+  Delta distance_from_origin() const {
+    return {y - 0_y, x - 0_x};
+  }
 
   Coord moved( e_direction d ) const;
   // Find the direction from this coord to `dest`. If dest is not

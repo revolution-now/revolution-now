@@ -157,6 +157,33 @@ protected:
   Texture     tx_;
 };
 
+class ButtonBaseView : public View {
+public:
+  ButtonBaseView( std::string label );
+  ButtonBaseView( std::string label, Delta size_in_blocks );
+
+  // Implement Object
+  void draw( Texture const& tx,
+             Coord          coord ) const override final;
+  // Implement Object
+  Delta delta() const override final { return pressed_.size(); }
+
+protected:
+  enum class button_state { down, up, hover, disabled };
+
+  void set_state( button_state state ) { state_ = state; }
+
+private:
+  void render( std::string const& label, Delta size_in_blocks );
+
+  button_state state_{button_state::up};
+
+  Texture pressed_{};
+  Texture hover_{};
+  Texture unpressed_{};
+  Texture disabled_{};
+};
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/

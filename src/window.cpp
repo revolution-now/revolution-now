@@ -351,4 +351,21 @@ e_confirm yes_no( string_view title ) {
   return res;
 }
 
+/****************************************************************
+** Testing Only
+*****************************************************************/
+void window_test() {
+  auto finished = [] { return input::is_any_key_down(); };
+
+  auto view = make_unique<ButtonBaseView>(
+      "This is a test of button text." ); //, Delta{2_h, 9_w} );
+  // view->set_enabled( false );
+  // view->set_pressed( true );
+
+  g_window_plane.wm.add_window( string( "Test Window" ),
+                                move( view ) );
+  frame_loop( true, finished );
+  g_window_plane.wm.clear_windows();
+}
+
 } // namespace rn::ui

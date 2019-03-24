@@ -262,11 +262,8 @@ Opt<e_menu> first_visible_menu() {
 /****************************************************************
 ** Colors
 *****************************************************************/
-auto banana = Color::parse_from_hex( "E4C890" ).value();
-auto wood   = Color::parse_from_hex( "703F24" ).value();
-
-auto const& menu_theme_color1 = banana;
-auto const& menu_theme_color2 = wood;
+auto const& menu_theme_color1 = Color::banana();
+auto const& menu_theme_color2 = Color::wood();
 
 namespace color::item::foreground {
 auto disabled() {

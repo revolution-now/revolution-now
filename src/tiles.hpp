@@ -83,7 +83,26 @@ enum class ND g_tile {
 
   menu_bar_0,
   menu_bar_1,
-  menu_bar_2
+  menu_bar_2,
+
+  button_up_ul,
+  button_up_um,
+  button_up_ur,
+  button_up_ml,
+  button_up_mm,
+  button_up_mr,
+  button_up_ll,
+  button_up_lm,
+  button_up_lr,
+  button_down_ul,
+  button_down_um,
+  button_down_ur,
+  button_down_ml,
+  button_down_mm,
+  button_down_mr,
+  button_down_ll,
+  button_down_lm,
+  button_down_lr
 };
 
 struct ND sprite {
