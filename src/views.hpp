@@ -73,7 +73,13 @@ public:
   // Implement Object
   Delta delta() const override;
 
-  bool input( input::event_t const& event ) override;
+  bool on_key( input::key_event_t const& event ) override;
+  bool on_wheel(
+      input::mouse_wheel_event_t const& event ) override;
+  bool on_mouse_move(
+      input::mouse_move_event_t const& event ) override;
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
 
   virtual int count() const = 0;
 
@@ -101,6 +107,9 @@ public:
   iter  end() { return iter{this, count()}; }
   citer begin() const { return citer{this, 0}; }
   citer end() const { return citer{this, count()}; }
+
+private:
+  bool dispatch_mouse_event( input::event_t const& event );
 };
 
 class ViewVector : public CompositeView {
@@ -236,7 +245,7 @@ public:
   OptionSelectView( Vec<Str> const& options,
                     int             initial_selection );
 
-  bool input( input::event_t const& event ) override;
+  bool on_key( input::key_event_t const& event ) override;
 
   std::string const& get_selected() const;
   bool               confirmed() const { return has_confirmed; }

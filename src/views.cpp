@@ -48,28 +48,40 @@ Delta CompositeView::delta() const {
   return {rect.w, rect.h};
 }
 
-bool CompositeView::input( input::event_t const& event ) {
-  if( input::is_mouse_event( event ) ) {
-    auto maybe_pos = input::mouse_position( event );
-    CHECK( maybe_pos.has_value() );
-    // Only send the event if the mouse position is within the
-    // view. And, when we send it, we make the mouse position
-    // relative to the upper left corner of the view.
-    for( auto p_view : *this ) {
-      if( maybe_pos.value().get().is_inside( p_view.rect() ) ) {
-        auto new_event = move_mouse_origin_by(
-            event, p_view.coord - Coord{} );
-        if( p_view.view->input( new_event ) ) //
-          return true;
-      }
+bool CompositeView::dispatch_mouse_event(
+    input::event_t const& event ) {
+  auto maybe_pos = input::mouse_position( event );
+  CHECK( maybe_pos.has_value() );
+  for( auto p_view : *this ) {
+    if( maybe_pos.value().get().is_inside( p_view.rect() ) ) {
+      auto new_event =
+          move_mouse_origin_by( event, p_view.coord - Coord{} );
+      if( p_view.view->input( new_event ) ) //
+        return true;
     }
-  } else {
-    // It's a non-mouse event, so just send it and return if it
-    // was handled.
-    for( auto p_view : *this )
-      if( p_view.view->input( event ) ) return true;
   }
   return false;
+}
+
+bool CompositeView::on_key( input::key_event_t const& event ) {
+  for( auto p_view : *this )
+    if( p_view.view->input( event ) ) return true;
+  return false;
+}
+
+bool CompositeView::on_wheel(
+    input::mouse_wheel_event_t const& event ) {
+  return dispatch_mouse_event( event );
+}
+
+bool CompositeView::on_mouse_move(
+    input::mouse_move_event_t const& event ) {
+  return dispatch_mouse_event( event );
+}
+
+bool CompositeView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  return dispatch_mouse_event( event );
 }
 
 PositionedView CompositeView::at( int idx ) {
@@ -356,37 +368,30 @@ void OptionSelectView::grow_to( W w ) {
   }
 }
 
-bool OptionSelectView::input( input::event_t const& event ) {
-  bool handled = false;
-  switch_v( event ) {
-    case_v( input::key_event_t ) {
-      auto const& key_event = val;
-      if( key_event.change != input::e_key_change::down )
-        break_v;
-      // It's a key down.
-      switch( key_event.keycode ) {
-        case ::SDLK_UP:
-        case ::SDLK_KP_8:
-          if( selected_ > 0 ) set_selected( selected_ - 1 );
-          handled = true;
-          break;
-        case ::SDLK_DOWN:
-        case ::SDLK_KP_2:
-          if( selected_ < count() - 1 )
-            set_selected( selected_ + 1 );
-          handled = true;
-          break;
-        case ::SDLK_RETURN:
-        case ::SDLK_KP_ENTER:
-          has_confirmed = true;
-          handled       = true;
-          break;
-        default: break;
-      }
-    }
-    default_v_no_check;
-  };
-  return handled;
+bool OptionSelectView::on_key(
+    input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down ) return false;
+  // It's a key down.
+  switch( event.keycode ) {
+    case ::SDLK_UP:
+    case ::SDLK_KP_8:
+      if( selected_ > 0 ) set_selected( selected_ - 1 );
+      return true;
+      break;
+    case ::SDLK_DOWN:
+    case ::SDLK_KP_2:
+      if( selected_ < count() - 1 )
+        set_selected( selected_ + 1 );
+      return true;
+      break;
+    case ::SDLK_RETURN:
+    case ::SDLK_KP_ENTER:
+      has_confirmed = true;
+      return true;
+      break;
+    default: break;
+  }
+  return false;
 }
 
 string const& OptionSelectView::get_selected() const {

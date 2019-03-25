@@ -392,6 +392,8 @@ void window_test() {
                                 move( view ) );
   frame_loop( true, finished );
   g_window_plane.wm.clear_windows();
+
+  yes_no( "this is a test" );
 }
 
 } // namespace rn::ui
