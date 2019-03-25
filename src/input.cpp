@@ -258,6 +258,61 @@ bool has_event() {
   return false;
 }
 
+event_t move_mouse_origin_by( event_t const& event,
+                              Delta          delta ) {
+  input::event_t new_event = event;
+  // This serves two purposes: 1) to tell us whether this is a
+  // mouse event or not, and 2) to give us the mouse position.
+  auto matcher = scelta::match(
+      []( input::unknown_event_t ) { return (Coord*)nullptr; },
+      []( input::quit_event_t ) { return (Coord*)nullptr; },
+      []( input::key_event_t ) { return (Coord*)nullptr; },
+      []( input::mouse_wheel_event_t& e ) { return &e.pos; },
+      []( input::mouse_move_event_t& e ) { return &e.pos; },
+      []( input::mouse_button_event_t& e ) { return &e.pos; },
+      []( input::mouse_drag_event_t& e ) { return &e.pos; } );
+  if( auto mouse_pos_ptr = matcher( new_event ); mouse_pos_ptr )
+    ( *mouse_pos_ptr ) -= delta;
+  return new_event;
+}
+
+bool is_mouse_event( event_t const& event ) {
+  auto matcher = scelta::match(
+      []( input::unknown_event_t ) { return false; },
+      []( input::quit_event_t ) { return false; },
+      []( input::key_event_t const& ) { return false; },
+      []( input::mouse_wheel_event_t const& ) { return true; },
+      []( input::mouse_move_event_t const& ) { return true; },
+      []( input::mouse_button_event_t const& ) { return true; },
+      []( input::mouse_drag_event_t const& ) { return true; } );
+  return matcher( event );
+}
+
+Opt<CRef<Coord>> mouse_position( event_t const& event ) {
+  auto matcher = scelta::match(
+      []( input::unknown_event_t ) {
+        return (Coord const*)nullptr;
+      },
+      []( input::quit_event_t ) {
+        return (Coord const*)nullptr;
+      },
+      []( input::key_event_t ) { return (Coord const*)nullptr; },
+      []( input::mouse_wheel_event_t const& e ) {
+        return &e.pos;
+      },
+      []( input::mouse_move_event_t const& e ) {
+        return &e.pos;
+      },
+      []( input::mouse_button_event_t const& e ) {
+        return &e.pos;
+      },
+      []( input::mouse_drag_event_t const& e ) {
+        return &e.pos;
+      } );
+  auto const* res = matcher( event );
+  return res ? Opt<CRef<Coord>>{*res} : nullopt;
+}
+
 Opt<event_t> poll_event() {
   ::SDL_Event event;
   if( ::SDL_PollEvent( &event ) != 0 ) return from_SDL( event );

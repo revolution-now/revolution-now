@@ -81,6 +81,8 @@ private:
     Coord inside_border() const;
     Rect  inside_border_rect() const;
     Rect  title_bar() const;
+    // abs coord of upper-left corner of view.
+    Coord view_pos() const;
 
     e_window_state                     window_state;
     std::string                        title;
@@ -244,6 +246,10 @@ Rect WindowManager::window::title_bar() const {
   return title_bar_rect;
 }
 
+Coord WindowManager::window::view_pos() const {
+  return inside_border() + title_view->delta().h;
+}
+
 void WindowManager::draw_layout( Texture const& tx ) const {
   for( auto const& window : windows_ ) window.draw( tx );
 }
@@ -268,7 +274,27 @@ WindowManager::window* WindowManager::add_window(
 void WindowManager::clear_windows() { windows_.clear(); }
 
 bool WindowManager::input( input::event_t const& event ) {
-  return focused().view->input( event );
+  auto& win = focused();
+  auto  view_rect =
+      Rect::from( win.view_pos(), win.view->delta() );
+
+  if( input::is_mouse_event( event ) ) {
+    auto maybe_pos = input::mouse_position( event );
+    CHECK( maybe_pos.has_value() );
+    // Only send the event if the mouse position is within the
+    // view. And, when we send it, we make the mouse position
+    // relative to the upper left corner of the view.
+    if( maybe_pos.value().get().is_inside( view_rect ) ) {
+      auto new_event = input::move_mouse_origin_by(
+          event, win.view_pos() - Coord{} );
+      return win.view->input( new_event );
+    }
+  } else {
+    // It's a non-mouse event, so just send it and return if it
+    // was handled.
+    return win.view->input( event );
+  }
+  return false;
 }
 
 WindowManager::e_window_drag WindowManager::can_drag(
@@ -357,8 +383,8 @@ e_confirm yes_no( string_view title ) {
 void window_test() {
   auto finished = [] { return input::is_any_key_down(); };
 
-  auto view = make_unique<ButtonBaseView>(
-      "This is a test of button text." ); //, Delta{2_h, 9_w} );
+  auto view =
+      make_unique<ButtonView>( "Cancel" ); //, Delta{2_h, 9_w} );
   // view->set_enabled( false );
   // view->set_pressed( true );
 

@@ -35,10 +35,14 @@ class View : public Object {};
 struct PositionedView {
   ObserverPtr<View> const view;
   Coord const             coord;
+
+  Rect rect() const { return view->rect( coord ); }
 };
 struct PositionedViewConst {
   ObserverCPtr<View> const view;
   Coord const              coord;
+
+  Rect rect() const { return view->rect( coord ); }
 };
 
 // Same as above, but owns the view.  The
@@ -172,6 +176,7 @@ protected:
   enum class button_state { down, up, hover, disabled };
 
   void set_state( button_state state ) { state_ = state; }
+  button_state state() const { return state_; }
 
 private:
   void render( std::string const& label, Delta size_in_blocks );
@@ -182,6 +187,18 @@ private:
   Texture hover_{};
   Texture unpressed_{};
   Texture disabled_{};
+};
+
+class ButtonView : public ButtonBaseView {
+public:
+  ButtonView( std::string label );
+  ButtonView( std::string label, Delta size_in_blocks );
+
+  bool on_mouse_move(
+      input::mouse_move_event_t const& event ) override;
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+  void on_mouse_leave() override;
 };
 
 /****************************************************************

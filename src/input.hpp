@@ -137,6 +137,15 @@ Opt<event_t> poll_event();
 // FIXME: this function does not seem to work...
 ND bool has_event();
 
+// Make the mouse position contained in `event` (if there is one)
+// relative to an origin that is shifted by `delta` from the cur-
+// rent origin.
+event_t move_mouse_origin_by( event_t const& event,
+                              Delta          delta );
+
+bool             is_mouse_event( event_t const& event );
+Opt<CRef<Coord>> mouse_position( event_t const& event );
+
 // This will consume (without processing) all queued input
 // events.
 void eat_all_events();

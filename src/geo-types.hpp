@@ -346,6 +346,7 @@ void     operator+=( Coord& coord, W w );
 void     operator+=( Coord& coord, H h );
 void     operator-=( Coord& coord, W w );
 void     operator-=( Coord& coord, H h );
+void     operator-=( Coord& coord, Delta delta );
 ND Delta operator+( Delta const& delta, W w );
 ND Delta operator+( Delta const& delta, H h );
 ND Delta operator-( Delta const& delta, W w );

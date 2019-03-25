@@ -274,6 +274,10 @@ void operator+=( Coord& coord, W w ) { coord.x += w; }
 void operator+=( Coord& coord, H h ) { coord.y += h; }
 void operator-=( Coord& coord, W w ) { coord.x -= w; }
 void operator-=( Coord& coord, H h ) { coord.y -= h; }
+void operator-=( Coord& coord, Delta delta ) {
+  coord -= delta.w;
+  coord -= delta.h;
+}
 
 ND Delta operator+( Delta const& delta, W w ) {
   return {delta.h, delta.w + w};

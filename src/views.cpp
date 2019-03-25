@@ -14,7 +14,9 @@
 #include "config-files.hpp"
 #include "fonts.hpp"
 #include "geo-types.hpp"
+#include "logging.hpp"
 #include "text.hpp"
+#include "variant.hpp"
 
 // base-util
 #include "base-util/misc.hpp"
@@ -47,8 +49,26 @@ Delta CompositeView::delta() const {
 }
 
 bool CompositeView::input( input::event_t const& event ) {
-  for( auto p_view : *this )
-    if( p_view.view->input( event ) ) return true;
+  if( input::is_mouse_event( event ) ) {
+    auto maybe_pos = input::mouse_position( event );
+    CHECK( maybe_pos.has_value() );
+    // Only send the event if the mouse position is within the
+    // view. And, when we send it, we make the mouse position
+    // relative to the upper left corner of the view.
+    for( auto p_view : *this ) {
+      if( maybe_pos.value().get().is_inside( p_view.rect() ) ) {
+        auto new_event = move_mouse_origin_by(
+            event, p_view.coord - Coord{} );
+        if( p_view.view->input( new_event ) ) //
+          return true;
+      }
+    }
+  } else {
+    // It's a non-mouse event, so just send it and return if it
+    // was handled.
+    for( auto p_view : *this )
+      if( p_view.view->input( event ) ) return true;
+  }
   return false;
 }
 
@@ -178,6 +198,47 @@ void ButtonBaseView::render( string const& label,
   copy_texture( tx_hover, hover_, unpressed_coord );
   copy_texture( tx_normal, pressed_, pressed_coord );
   copy_texture( tx_disabled, disabled_, unpressed_coord );
+}
+
+ButtonView::ButtonView( string label )
+  : ButtonBaseView( std::move( label ) ) {
+  set_state( button_state::up );
+}
+
+ButtonView::ButtonView( string label, Delta size_in_blocks )
+  : ButtonBaseView( std::move( label ), size_in_blocks ) {
+  set_state( button_state::up );
+}
+
+bool ButtonView::on_mouse_move(
+    input::mouse_move_event_t const& /*unused*/ ) {
+  switch( state() ) {
+    case button_state::down: break;
+    case button_state::up:
+      set_state( button_state::hover );
+      break;
+    case button_state::disabled: break;
+    case button_state::hover: break;
+  }
+  return true;
+}
+
+bool ButtonView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  switch( event.buttons ) {
+    case input::e_mouse_button_event::left_down:
+      set_state( button_state::down );
+      break;
+    case input::e_mouse_button_event::left_up:
+      set_state( button_state::up );
+      break;
+    default: break;
+  }
+  return false;
+}
+
+void ButtonView::on_mouse_leave() {
+  set_state( button_state::up );
 }
 
 /****************************************************************

@@ -54,10 +54,23 @@ public:
   ND virtual Rect rect( Coord position ) const {
     return Rect::from( position, delta() );
   }
-  // Returns true is the input was handled.
-  ND virtual bool input( input::event_t const& /*unused*/ ) {
-    return false;
-  }
+  // Returns true is the input was handled. Mouse coordinates
+  // will be adjusted to be relative to upper-left corner of the
+  // view. Mouse events where the cursor is outside the bounds of
+  // the view will not be sent to this function.
+  ND virtual bool input( input::event_t const& e );
+
+  /**************************************************************
+  ** Input handlers
+  ***************************************************************/
+  ND virtual bool on_key( input::key_event_t const& event );
+  ND virtual bool on_wheel(
+      input::mouse_wheel_event_t const& event );
+  ND virtual bool on_mouse_move(
+      input::mouse_move_event_t const& event );
+  ND virtual bool on_mouse_button(
+      input::mouse_button_event_t const& event );
+  virtual void on_mouse_leave();
 };
 
 } // namespace rn::ui
