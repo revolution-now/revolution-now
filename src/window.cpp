@@ -59,12 +59,8 @@ public:
 
   ND bool input( input::event_t const& event );
 
-  // We don't use the corresponding enum from plane.hpp so that
-  // we don't have to include that header here.
-  enum class e_window_drag { yes, no, swallow };
-
-  e_window_drag can_drag( input::e_mouse_button button,
-                          Coord                 origin );
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord                 origin );
   void on_drag( input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current );
 
@@ -132,15 +128,7 @@ struct WindowPlane : public Plane {
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
     CHECK( wm.num_windows() != 0 );
-    switch( wm.can_drag( button, origin ) ) {
-      case ui::WindowManager::e_window_drag::yes:
-        return Plane::e_accept_drag::yes;
-      case ui::WindowManager::e_window_drag::no:
-        return Plane::e_accept_drag::no;
-      case ui::WindowManager::e_window_drag::swallow:
-        return Plane::e_accept_drag::swallow;
-    };
-    return {}; // for gcc (?!)
+    return wm.can_drag( button, origin );
   }
   void on_drag( input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current ) override {
@@ -304,12 +292,10 @@ bool WindowManager::input( input::event_t const& event ) {
     // that.
     for( auto* obj : views_under_new_cursor ) {
       if( views_under_old_cursor.contains( obj ) ) continue;
-      logger->info( "entering" );
       obj->on_mouse_enter();
     }
     for( auto* obj : views_under_old_cursor ) {
       if( views_under_new_cursor.contains( obj ) ) continue;
-      logger->info( "leaving" );
       obj->on_mouse_leave();
     }
   }
@@ -333,7 +319,7 @@ bool WindowManager::input( input::event_t const& event ) {
   return false;
 }
 
-WindowManager::e_window_drag WindowManager::can_drag(
+Plane::e_accept_drag WindowManager::can_drag(
     input::e_mouse_button /*unused*/, Coord origin ) {
   // If we're in the title bar then we'll drag; if we not, but
   // still in the window somewhere, we will "swallow" which means
@@ -341,10 +327,11 @@ WindowManager::e_window_drag WindowManager::can_drag(
   // cursor is rightly in the window) but we don't want to handle
   // it ourselves because we only drag from the title bar.
   if( origin.is_inside( focused().title_bar() ) )
-    return e_window_drag::yes;
+    return Plane::e_accept_drag::yes;
   if( origin.is_inside( focused().rect() ) )
-    return e_window_drag::swallow;
-  return e_window_drag::no;
+    // Receive drag events as normal mouse events.
+    return Plane::e_accept_drag::motion;
+  return Plane::e_accept_drag::no;
 }
 
 void WindowManager::on_drag( input::e_mouse_button button,
@@ -419,8 +406,9 @@ e_confirm yes_no( string_view title ) {
 void window_test() {
   auto finished = [] { return input::is_any_key_down(); };
 
-  auto view =
-      make_unique<ButtonView>( "Cancel" ); //, Delta{2_h, 9_w} );
+  auto view = make_unique<ButtonView>( "Cancel", []() {
+    logger->debug( "Cancel clicked." );
+  } ); //, Delta{2_h, 9_w} );
   // view->set_enabled( false );
   // view->set_pressed( true );
 
@@ -428,8 +416,6 @@ void window_test() {
                                 move( view ) );
   frame_loop( true, finished );
   g_window_plane.wm.clear_windows();
-
-  yes_no( "this is a test" );
 }
 
 } // namespace rn::ui

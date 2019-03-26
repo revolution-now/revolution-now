@@ -213,14 +213,19 @@ private:
 
 class ButtonView : public ButtonBaseView {
 public:
-  ButtonView( std::string label );
-  ButtonView( std::string label, Delta size_in_blocks );
+  using OnClickFunc = std::function<void( void )>;
+  ButtonView( std::string label, OnClickFunc on_click );
+  ButtonView( std::string label, Delta size_in_blocks,
+              OnClickFunc on_click );
 
   bool on_mouse_move(
       input::mouse_move_event_t const& event ) override;
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
   void on_mouse_leave() override;
+
+private:
+  OnClickFunc on_click_;
 };
 
 /****************************************************************

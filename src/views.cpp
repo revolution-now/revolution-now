@@ -228,13 +228,16 @@ void ButtonBaseView::render( string const& label,
   copy_texture( tx_disabled, disabled_, unpressed_coord );
 }
 
-ButtonView::ButtonView( string label )
-  : ButtonBaseView( std::move( label ) ) {
+ButtonView::ButtonView( string label, OnClickFunc on_click )
+  : ButtonBaseView( std::move( label ) ),
+    on_click_( std::move( on_click ) ) {
   set_state( button_state::up );
 }
 
-ButtonView::ButtonView( string label, Delta size_in_blocks )
-  : ButtonBaseView( std::move( label ), size_in_blocks ) {
+ButtonView::ButtonView( string label, Delta size_in_blocks,
+                        OnClickFunc on_click )
+  : ButtonBaseView( std::move( label ), size_in_blocks ),
+    on_click_( std::move( on_click ) ) {
   set_state( button_state::up );
 }
 
@@ -258,6 +261,7 @@ bool ButtonView::on_mouse_button(
       set_state( button_state::down );
       break;
     case input::e_mouse_button_event::left_up:
+      if( state() == button_state::down ) on_click_();
       set_state( button_state::hover );
       break;
     default: break;

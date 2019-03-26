@@ -64,13 +64,21 @@ struct Plane : public util::non_copy_non_move {
   ND bool virtual input( input::event_t const& event );
 
   // This encodes the result of asking a plane if it can handle a
-  // drag event. If the answer is yes then it will be given all
-  // the events for that drag; if no then the drag will be
-  // offered to another plane; if `swallow` then it will cause
-  // the drag not to be sent to any planes at all. This is useful
-  // if a plane doesn't want to handle a drag but it would not be
-  // appropriate for the drag to be given to other planes.
-  enum class e_accept_drag { yes, no, swallow };
+  // drag event:
+  //
+  // yes: The plane it will be given all the events for that
+  // drag.
+  //
+  // no: The drag will be offered to another plane.
+  //
+  // swallow: This will cause the drag not to be sent to any
+  // planes at all. This is useful if a plane doesn't want to
+  // handle a drag but it would not be appropriate for the drag
+  // to be given to other planes.
+  //
+  // motion: The drag event will be sent to the plane but as
+  // monormal use motion events and/or mouse button events.
+  enum class e_accept_drag { yes, no, motion, swallow };
 
   // This is to determine if a plane is willing to accept a drag
   // event (and also serves as a notification that a drag event

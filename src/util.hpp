@@ -224,4 +224,10 @@ ND int count( ContainerT& c, ElemT const& e ) {
   return std::count( c.begin(), c.end(), e );
 }
 
+template<typename Base, typename From, typename To>
+void copy_common_base_object( From const& from, To& to ) {
+  *( static_cast<Base*>( &to ) ) =
+      *( static_cast<Base const*>( &from ) );
+}
+
 } // namespace rn

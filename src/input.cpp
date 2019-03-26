@@ -313,6 +313,37 @@ Opt<CRef<Coord>> mouse_position( event_t const& event ) {
   return res ? Opt<CRef<Coord>>{*res} : nullopt;
 }
 
+Opt<mouse_button_event_t> drag_event_to_mouse_button_event(
+    mouse_drag_event_t const& event ) {
+  // This works because an e_drag_phase::begin event will always
+  // have been preceded with a normal mouse-down event, so the
+  // only mouse button event there is to extract from a drag
+  // event is the mouse-up that happens when the drag finishes.
+  if( event.state.phase != e_drag_phase::end ) return nullopt;
+  mouse_button_event_t res;
+  // Copy the base object.
+  copy_common_base_object<mouse_event_base_t>( /*from=*/event,
+                                               /*to=*/res );
+  switch( event.button ) {
+    case e_mouse_button::l:
+      res.buttons = e_mouse_button_event::left_up;
+      break;
+    case e_mouse_button::r:
+      res.buttons = e_mouse_button_event::right_up;
+      break;
+  }
+  return res;
+}
+
+mouse_move_event_t drag_event_to_mouse_motion_event(
+    mouse_drag_event_t const& event ) {
+  mouse_move_event_t res;
+  // Copy the base object.
+  copy_common_base_object<mouse_move_event_t>( /*from=*/event,
+                                               /*to=*/res );
+  return res;
+}
+
 Opt<event_t> poll_event() {
   ::SDL_Event event;
   if( ::SDL_PollEvent( &event ) != 0 ) return from_SDL( event );
