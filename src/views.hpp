@@ -228,6 +228,25 @@ private:
   OnClickFunc on_click_;
 };
 
+enum class e_( ok_cancel, ok, cancel, none );
+
+class OkCancelView : public CompositeView {
+public:
+  OkCancelView();
+
+  // Implement CompositeView
+  PositionedViewConst at_const( int idx ) const override;
+  // Implement CompositeView
+  int count() const override { return 2; }
+
+  e_ok_cancel state() const { return state_; }
+
+private:
+  e_ok_cancel state_{e_ok_cancel::none};
+  ButtonView  ok_;
+  ButtonView  cancel_;
+};
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/

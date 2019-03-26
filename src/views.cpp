@@ -219,7 +219,7 @@ void ButtonBaseView::render( string const& label,
                                          info_disabled, label );
 
   auto unpressed_coord =
-      centered( tx_normal.size(), unpressed_.rect() );
+      centered( tx_normal.size(), unpressed_.rect() ) + 1_w;
   auto pressed_coord = unpressed_coord + Delta{-1_w, 1_h};
 
   copy_texture( tx_normal, unpressed_, unpressed_coord );
@@ -271,6 +271,29 @@ bool ButtonView::on_mouse_button(
 
 void ButtonView::on_mouse_leave() {
   set_state( button_state::up );
+}
+
+constexpr Delta ok_cancel_button_size_blocks{2_h, 8_w};
+
+OkCancelView::OkCancelView()
+  : ok_( "OK", ok_cancel_button_size_blocks,
+         [this] { this->state_ = e_ok_cancel::ok; } ),
+    cancel_( "Cancel", ok_cancel_button_size_blocks,
+             [this] { this->state_ = e_ok_cancel::cancel; } ) {}
+
+PositionedViewConst OkCancelView::at_const( int idx ) const {
+  if( idx == 0 ) {
+    auto coord_blocks = Coord{};
+    return {ObserverCPtr<View>( &ok_ ), coord_blocks * Scale{8}};
+  }
+  if( idx == 1 ) {
+    auto coord_blocks = Coord{};
+    coord_blocks += ok_cancel_button_size_blocks.w;
+    coord_blocks += 1_w;
+    return {ObserverCPtr<View>( &cancel_ ),
+            coord_blocks * Scale{8}};
+  }
+  SHOULD_NOT_BE_HERE;
 }
 
 /****************************************************************

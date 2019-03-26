@@ -404,18 +404,21 @@ e_confirm yes_no( string_view title ) {
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  auto finished = [] { return input::is_any_key_down(); };
+  for( int i = 0; i < 5; ++i ) {
+    auto  view     = make_unique<OkCancelView>();
+    auto* view_ptr = view.get();
 
-  auto view = make_unique<ButtonView>( "Cancel", []() {
-    logger->debug( "Cancel clicked." );
-  } ); //, Delta{2_h, 9_w} );
-  // view->set_enabled( false );
-  // view->set_pressed( true );
+    auto finished = [view_ptr] {
+      return view_ptr->state() != e_ok_cancel::none;
+    };
 
-  g_window_plane.wm.add_window( string( "Test Window" ),
-                                move( view ) );
-  frame_loop( true, finished );
-  g_window_plane.wm.clear_windows();
+    g_window_plane.wm.add_window( string( "Test Window" ),
+                                  move( view ) );
+    frame_loop( true, finished );
+
+    logger->info( "Pressed `{}`.", view_ptr->state() );
+    g_window_plane.wm.clear_windows();
+  }
 }
 
 } // namespace rn::ui
