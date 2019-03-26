@@ -83,7 +83,13 @@ concerned only with getting something functional.
 Implementation.  There will be the following new views:
 
   - ButtonView: a button (see separate design doc).
-  - UnitView: displays a unit and nat. icon.
+
+  - UnitView: displays a unit and nat. icon, not necessarily an
+    existing one.
+
+  - ClickableUnitView: a UnitView that can be clicked and calls a
+    callback when clicked.
+
   - UnitClearOrdersView: ties everything up into one large view
     which is then embedded in the window.
 
