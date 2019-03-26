@@ -204,8 +204,8 @@ void ButtonBaseView::render( string const& label,
                                     /*highlight=*/{}};
   auto info_hover =
       TextMarkupInfo{Color::banana(), /*highlight=*/{}};
-  auto info_pressed =
-      TextMarkupInfo{Color::banana(), /*highlight=*/{}};
+  auto info_pressed = TextMarkupInfo{Color::banana().shaded( 2 ),
+                                     /*highlight=*/{}};
   auto info_disabled = TextMarkupInfo{config_palette.grey.n50,
                                       /*highlight=*/{}};
 
