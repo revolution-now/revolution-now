@@ -173,6 +173,10 @@ Opt<e_direction> Coord::direction_to( Coord dest ) const {
   return {};
 }
 
+Coord Coord::with_new_origin( Coord new_origin ) const {
+  return Coord{} + ( ( *this ) - new_origin );
+}
+
 bool Coord::is_adjacent_to( Coord other ) const {
   auto direction = direction_to( other );
   if( direction.has_value() &&

@@ -278,6 +278,42 @@ bool WindowManager::input( input::event_t const& event ) {
   auto  view_rect =
       Rect::from( win.view_pos(), win.view->delta() );
 
+  if_v( event, input::mouse_move_event_t, val ) {
+    auto new_pos = val->pos;
+    auto old_pos = val->prev;
+    // We need to find which views (if any) have been entered or
+    // exited by the mouse as a result of this move and send them
+    // any relevant on_mouse_leave and on_mouse_enter messages.
+    Object::ObjectSet views_under_new_cursor;
+    Object::ObjectSet views_under_old_cursor;
+    if( new_pos.is_inside( view_rect ) ) {
+      views_under_new_cursor.insert( win.view.get() );
+      win.view->children_under_coord(
+          new_pos.with_new_origin( win.view_pos() ),
+          views_under_new_cursor );
+    }
+    if( old_pos.is_inside( view_rect ) ) {
+      views_under_old_cursor.insert( win.view.get() );
+      win.view->children_under_coord(
+          old_pos.with_new_origin( win.view_pos() ),
+          views_under_old_cursor );
+    }
+    // These loops are taking the disjunction of the two sets,
+    // i.e., finding the elements in one that are not in the
+    // other. Somehow there does not seem to be an API method for
+    // that.
+    for( auto* obj : views_under_new_cursor ) {
+      if( views_under_old_cursor.contains( obj ) ) continue;
+      logger->info( "entering" );
+      obj->on_mouse_enter();
+    }
+    for( auto* obj : views_under_old_cursor ) {
+      if( views_under_new_cursor.contains( obj ) ) continue;
+      logger->info( "leaving" );
+      obj->on_mouse_leave();
+    }
+  }
+
   if( input::is_mouse_event( event ) ) {
     auto maybe_pos = input::mouse_position( event );
     CHECK( maybe_pos.has_value() );

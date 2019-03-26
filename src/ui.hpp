@@ -15,6 +15,9 @@
 // Revolution Now
 #include "input.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_set.h"
+
 namespace rn {
 class Texture;
 }
@@ -60,6 +63,14 @@ public:
   // the view will not be sent to this function.
   ND virtual bool input( input::event_t const& e );
 
+  using ObjectSet = absl::flat_hash_set<ui::Object*>;
+  // This method is not const because it needs to insert
+  // non-const pointers to child objects into the set, which in
+  // turn is needed because we may need to call non-const methods
+  // on those objects.
+  virtual void children_under_coord( Coord      where,
+                                     ObjectSet& objects );
+
   /**************************************************************
   ** Input handlers
   ***************************************************************/
@@ -71,6 +82,7 @@ public:
   ND virtual bool on_mouse_button(
       input::mouse_button_event_t const& event );
   virtual void on_mouse_leave();
+  virtual void on_mouse_enter();
 };
 
 } // namespace rn::ui

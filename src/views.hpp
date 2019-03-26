@@ -81,6 +81,10 @@ public:
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
+  // Implement ui::Object
+  void children_under_coord( Coord      where,
+                             ObjectSet& objects ) override;
+
   virtual int count() const = 0;
 
   virtual PositionedViewConst at_const( int idx ) const = 0;
@@ -149,6 +153,9 @@ public:
 
   void set_delta( Delta const& delta ) { delta_ = delta; }
 
+  // Implement ui::Object
+  void children_under_coord( Coord, ObjectSet& ) override {}
+
 protected:
   Color color_;
   Delta delta_;
@@ -165,6 +172,9 @@ public:
 
   std::string const& msg() const { return msg_; }
 
+  // Implement ui::Object
+  void children_under_coord( Coord, ObjectSet& ) override {}
+
 protected:
   std::string msg_;
   Texture     tx_;
@@ -180,6 +190,9 @@ public:
              Coord          coord ) const override final;
   // Implement Object
   Delta delta() const override final { return pressed_.size(); }
+
+  // Implement ui::Object
+  void children_under_coord( Coord, ObjectSet& ) override {}
 
 protected:
   enum class button_state { down, up, hover, disabled };

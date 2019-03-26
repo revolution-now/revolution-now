@@ -179,6 +179,9 @@ struct ND Coord {
   // turned.
   Opt<e_direction> direction_to( Coord dest ) const;
 
+  // Returns this coordinate with respect to a new origin.
+  Coord with_new_origin( Coord new_origin ) const;
+
   bool is_adjacent_to( Coord other ) const;
 
   bool is_inside( Rect const& rect ) const;

@@ -84,6 +84,18 @@ bool CompositeView::on_mouse_button(
   return dispatch_mouse_event( event );
 }
 
+void CompositeView::children_under_coord( Coord      where,
+                                          ObjectSet& objects ) {
+  for( auto p_view : *this ) {
+    if( where.is_inside( p_view.rect() ) ) {
+      objects.insert( p_view.view.get() );
+      p_view.view->children_under_coord(
+          where.with_new_origin( p_view.rect().upper_left() ),
+          objects );
+    }
+  }
+}
+
 PositionedView CompositeView::at( int idx ) {
   auto p_view =
       static_cast<CompositeView const*>( this )->at_const( idx );
@@ -192,11 +204,15 @@ void ButtonBaseView::render( string const& label,
                                     /*highlight=*/{}};
   auto info_hover =
       TextMarkupInfo{Color::banana(), /*highlight=*/{}};
+  auto info_pressed =
+      TextMarkupInfo{Color::banana(), /*highlight=*/{}};
   auto info_disabled = TextMarkupInfo{config_palette.grey.n50,
                                       /*highlight=*/{}};
 
   auto tx_normal =
       render_text_markup( fonts::standard, info_normal, label );
+  auto tx_pressed =
+      render_text_markup( fonts::standard, info_pressed, label );
   auto tx_hover =
       render_text_markup( fonts::standard, info_hover, label );
   auto tx_disabled = render_text_markup( fonts::standard,
@@ -208,7 +224,7 @@ void ButtonBaseView::render( string const& label,
 
   copy_texture( tx_normal, unpressed_, unpressed_coord );
   copy_texture( tx_hover, hover_, unpressed_coord );
-  copy_texture( tx_normal, pressed_, pressed_coord );
+  copy_texture( tx_pressed, pressed_, pressed_coord );
   copy_texture( tx_disabled, disabled_, unpressed_coord );
 }
 
@@ -242,7 +258,7 @@ bool ButtonView::on_mouse_button(
       set_state( button_state::down );
       break;
     case input::e_mouse_button_event::left_up:
-      set_state( button_state::up );
+      set_state( button_state::hover );
       break;
     default: break;
   }
