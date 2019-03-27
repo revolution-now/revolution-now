@@ -1,3 +1,80 @@
+Mouse Selection of Units
+========================
+
+Problem: currently, when units are given Fortify or Sentry orders
+there is not simple way to clear those orders.
+
+In the viewport either at an end-of-turn or when units are
+blinking one will be able to click on a square with units and a
+window will pop up listing the units in the square with their or-
+ders shown in the nationality icon. The player will then be able
+to clear orders by clicking on the unit. When finished the user
+can press OK to accept the changes, or Cancel to cancel.
+
+After a unit has its orders cleared it will be eligible to move
+in that same turn if it didn't already move in that turn. So
+e.g., if a unit is Fortified in one turn they can be reactivated
+in the same turn, but they won't be able to move again until the
+next turn.
+
+Graphical Layout: the units will be arranged in a vertical line.
+
+Note that even units in the square that already have their orders
+cleared will still show up in the window to avoid confusing the
+player.
+
+Overall, the UX could be made much more polished (and robust, to
+handle edge cases like large number of units), but here we are
+concerned only with getting something functional.
+
+Implementation. There will be the following new views:
+
+  - TileView: displays a sprite.
+
+  - UnitView: displays a unit and optionally a nat. icon, not
+    necessarily corresponding to any real or existing unit. This
+    will contain a TileView by composition.
+
+  - ClickableView: a view that holds a single other view and
+    adapts it into something clickable, that is, when clicked it
+    calls a callback (does not pass the click through to the un-
+    derlying view because that view would not handle it by as-
+    sumption.
+
+  - UnitClearOrdersView: ties everything up into one large view
+    which is then embedded in the window. It will contain a ver-
+    tical array of clickable unit views (which are UnitView
+    adapted by ClickableView). When the player clicks on a unit
+    its orders will be cleared in an irreversible way.
+
+  - OkCancelAdapter: a view that takes another view and adds a
+    pair of OK/Cancel buttons at the bottom.
+
+Then there will be a ok_cancel_window function will will take a
+view (in this case, a UnitClearOrdersView) and will use the Ok-
+CancelAdapter to show it in a window along with two OK/Cancel
+buttons at the bottom and will keep the window open until the
+user presses one of the buttons.
+
+At that point, any changes made will be gathered from the Unit-
+ClearOrdersView and applied. Calling unit.clear_orders() should
+be sufficient.
+
+The UnitClearOrders will simply keep a list of unit ids that had
+their orders cleared.
+
+Button Views
+============
+
+// Handles rendering the button in pressed, non-pressed, or dis-
+// abled state, keeps track of state, renders text. Does not
+// handle input, and has no callbacks.
+class ButtonViewBase;
+
+// Represents a button that springs back up when clicked. Handles
+// input, and has a callback that gets called on each click.
+class ButtonView;
+
 Mouse Leave Events
 ==================
 
@@ -38,60 +115,6 @@ the current position and take the disjunction of the sets. Any
 views under the old position but not the new position will have
 their on_mouse_leave method called, and conversely for
 on_mouse_enter.
-
-Button Views
-============
-
-// Handles rendering the button in pressed, non-pressed, or dis-
-// abled state, keeps track of state, renders text. Does not
-// handle input, and has no callbacks.
-class ButtonViewBase;
-
-// Represents a button that springs back up when clicked. Handles
-// input, and has a callback that gets called on each click.
-class ButtonView;
-
-Mouse Selection of Units
-========================
-
-Problem: currently, when units are given Fortify or Sentry orders
-there is not simple way to clear those orders.
-
-In the viewport either at an end-of-turn or when units are
-blinking one will be able to click on a square with units and a
-window will pop up listing the units in the square with their or-
-ders shown in the nationality icon. The player will then be able
-to clear orders by clicking on the unit. When finished the user
-can press OK to accept the changes, or Cancel to cancel.
-
-After a unit has its orders cleared it will be eligible to move
-in that same turn if it didn't already move in that turn. So
-e.g., if a unit is Fortified in one turn they can be reactivated
-in the same turn, but they won't be able to move again until the
-next turn.
-
-Graphical Layout: the units will be arranged in a vertical line.
-
-Note that even units in the square that already have their orders
-cleared will still show up in the window to avoid confusing the
-player.
-
-Overall, the UX could be made much more polished (and robust, to
-handle edge cases like large number of units), but here we are
-concerned only with getting something functional.
-
-Implementation.  There will be the following new views:
-
-  - ButtonView: a button (see separate design doc).
-
-  - UnitView: displays a unit and nat. icon, not necessarily an
-    existing one.
-
-  - ClickableUnitView: a UnitView that can be clicked and calls a
-    callback when clicked.
-
-  - UnitClearOrdersView: ties everything up into one large view
-    which is then embedded in the window.
 
 Text Rendering with Markup
 ==========================
