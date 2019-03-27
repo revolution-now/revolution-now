@@ -3,6 +3,8 @@ UI
 =================================================================
 
   - Implement mouse selection of units to e.g. activate.
+  - End-of-turn button
+  - Minimap
 
 =================================================================
 Rendering
@@ -28,11 +30,82 @@ Basic Game Mechanics
   - Fix handling of multiple units on a square with combat.
   - Finish ship combat
 
+  List of basic game mechanics:
+
+    * All Units
+
+        x sentry
+        - goto
+        x wait / forfeight
+        x moving to friendly squares
+        - click on unit to clear orders / open orders window.
+        x disband
+
+    * Land Units
+
+        x fortifying
+        x military unit attacking military unit
+        x military unit attacking civilian
+        - military unit attacking trade wagon / treasure
+        - unit moving into lost city
+
+    * Ships
+
+        - ship attacking ship (evade, damage, sink)
+        - privateer stealth
+
+    * Land Units + Ships
+
+        x ship holding units
+        x land unit boarding ship
+        x landfall
+        - treasure boarding ship
+
+=================================================================
+Game Save / Replay
+=================================================================
+
+  - data structure to hold game state
+
 =================================================================
 Old World View
 =================================================================
 
   - Determine layout of europe background image
+  - high seas
+  - player gold
+  - tax rate
+  - old world view
+  - unit immigration
+  - purchasing units
+
+=================================================================
+Cargo
+=================================================================
+
+  - ship can hold cargo
+  - europe sells cargo
+
+=================================================================
+Terrain
+=================================================================
+
+  - movement affected by terrain
+  - pioneer plow
+  - pioneer road
+
+=================================================================
+Colonies
+=================================================================
+
+  - Determine layout of europe background image
+
+=================================================================
+Game Narrative
+=================================================================
+
+  - game year/season
+  - royal army
 
 =================================================================
 Graphics Engine
