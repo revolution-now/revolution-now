@@ -2,38 +2,68 @@ Mouse Selection of Units
 ========================
 
 Problem: currently, when units are given Fortify or Sentry orders
-there is not simple way to clear those orders.
+there is not simple way to clear those orders, and there is no
+way to use the mouse to select a unit for receiving orders.
 
 In the viewport either at an end-of-turn or when units are
-blinking one will be able to click on a square with units and a
-window will pop up listing the units in the square with their or-
-ders shown in the nationality icon. The player will then be able
-to clear orders by clicking on the unit. When finished the user
-can press OK to accept the changes, or Cancel to cancel.
+blinking one will be able to click on a square with units and ei-
+ther clear their orders or ask them to ask for orders. The way
+this works depends on how many units there are on a square.
 
-After a unit has its orders cleared it will be eligible to move
-in that same turn if it didn't already move in that turn. So
-e.g., if a unit is Fortified in one turn they can be reactivated
-in the same turn, but they won't be able to move again until the
-next turn.
+I) Single unit (including ship with no units on it):
 
-Graphical Layout: the units will be arranged in a vertical line.
+  This one is simple: if the unit has no orders then it will
+  merely be selected to go to the front of the orders queue if it
+  has not yet moved this turn. If the unit has orders then those
+  orders are cleared on the first click, then a second click will
+  bring the unit to the front of the queue if it hasn't already
+  moved this turn.
+
+II) Multiple units in square (including ship with units):
+
+  Window will pop up listing the units in the square sorted in
+  order of decreasing (attack+defense) strength. The units will
+  have their orders shown in the nationality icon. The player
+  will then be able to click on the units. If the player clicks
+  on a unit with orders then those orders will be cleared on the
+  first click (nat icon will change to reflect that, but no other
+  visible changes in the window, and the real underlying unit
+  will not yet be modified). If the player clicks on a unit with
+  no orders then a white border will be drawn around it; clicking
+  on another unit without orders will move the white border (only
+  one unit can have it). When the window is later closed with OK
+  then the unit (if any) with a white border will be moved to the
+  front of the queue if it hasn't moved this turn.
+
+  When finished the user can press OK to accept the changes, or
+  Cancel to cancel. "Accepting changes" here means that the un-
+  derlying units will have their orders cleared as requested and
+  possibly that one unit will be moved to the front of the orders
+  queue.
+
+  After a unit has its orders cleared it will be eligible to move
+  in that same turn if it didn't already move in that turn. So
+  e.g., if a unit is Fortified in one turn they can be reacti-
+  vated in the same turn, but they won't be able to move again
+  until the next turn; this is because the act of fortifying will
+  remove the unit's movement points.
+
+Graphical Layout:
+
+  The units will be arranged in a vertical line with their names
+  printed along side.
 
 Note that even units in the square that already have their orders
 cleared will still show up in the window to avoid confusing the
 player.
 
-Overall, the UX could be made much more polished (and robust, to
-handle edge cases like large number of units), but here we are
-concerned only with getting something functional.
-
 Implementation. There will be the following new views:
 
-  - TileView: displays a sprite.
+  - SpriteView: displays a sprite.
 
   - UnitView: displays a unit and optionally a nat. icon, not
     necessarily corresponding to any real or existing unit. This
-    will contain a TileView by composition.
+    will contain a SpriteView by composition.
 
   - ClickableView: a view that holds a single other view and
     adapts it into something clickable, that is, when clicked it
@@ -41,11 +71,23 @@ Implementation. There will be the following new views:
     derlying view because that view would not handle it by as-
     sumption.
 
-  - UnitClearOrdersView: ties everything up into one large view
-    which is then embedded in the window. It will contain a ver-
-    tical array of clickable unit views (which are UnitView
-    adapted by ClickableView). When the player clicks on a unit
-    its orders will be cleared in an irreversible way.
+  - AdjacentLabelView: a view that takes a view and renders it
+    alongside some short one-line text label.
+
+  - VerticalArrayView: a view that wraps a list of views and dis-
+    plays them vertically. This will inherit from VectorView. On
+    creation, one can specify how to justify the views, either
+    left, right, or center. This question of justification arises
+    because the views in the array will generally have different
+    widths.
+
+  - UnitClearOrdersView: It will contain a VerticalArrayView pop-
+    ulated initially with a list of real units (each unit being
+    comprised of a UnitView wrapped in a ClickableView wrapped in
+    an AdjacentLabelView). It handles handling the clicks; when
+    the player clicks on a unit it will be recorded, white border
+    will be set, etc. But changes not applied to the underlying
+    units until OK button is pressed.
 
   - OkCancelAdapter: a view that takes another view and adds a
     pair of OK/Cancel buttons at the bottom.
@@ -58,10 +100,16 @@ user presses one of the buttons.
 
 At that point, any changes made will be gathered from the Unit-
 ClearOrdersView and applied. Calling unit.clear_orders() should
-be sufficient.
+be sufficient. As a result of this, none of the units whose or-
+ders were cleared will be prioritized for moving this turn, they
+will just wait their turn.
 
-The UnitClearOrders will simply keep a list of unit ids that had
-their orders cleared.
+The UnitClearOrdersView will simply keep a list of unit ids that
+had their orders cleared.
+
+Overall, the UX could be made much more polished (and robust, to
+handle edge cases like large number of units), but here we are
+concerned only with getting something functional.
 
 Button Views
 ============
