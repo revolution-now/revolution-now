@@ -244,9 +244,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   CHECK( base );
   auto keymods = ::SDL_GetModState();
 
-  base->l_alt_down = ( keymods & ::KMOD_LALT );
-  base->r_alt_down = ( keymods & ::KMOD_RALT );
-  base->alt_down   = base->l_alt_down || base->r_alt_down;
+  base->l_alt_down   = ( keymods & ::KMOD_LALT );
+  base->r_alt_down   = ( keymods & ::KMOD_RALT );
+  base->alt_down     = base->l_alt_down || base->r_alt_down;
+  base->l_mouse_down = bool( buttons & SDL_BUTTON_LMASK );
+  base->r_mouse_down = bool( buttons & SDL_BUTTON_RMASK );
 
   return event;
 }

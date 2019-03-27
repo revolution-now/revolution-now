@@ -76,6 +76,8 @@ private:
     Rect  rect() const;
     Coord inside_border() const;
     Rect  inside_border_rect() const;
+    Coord inside_padding() const;
+    Rect  inside_padding_rect() const;
     Rect  title_bar() const;
     // abs coord of upper-left corner of view.
     Coord view_pos() const;
@@ -167,6 +169,14 @@ Delta const& window_border() {
   return delta;
 }
 
+// Number of pixels of padding between border and start of the
+// window's view.
+Delta const& window_padding() {
+  static Delta const delta{W( config_ui.window.window_padding ),
+                           H( config_ui.window.window_padding )};
+  return delta;
+}
+
 } // namespace
 
 /****************************************************************
@@ -188,7 +198,7 @@ void WindowManager::window::draw( Texture const& tx ) const {
   auto win_size = delta();
   render_fill_rect(
       tx, Color( 0, 0, 0, 64 ),
-      Rect::from( position + Delta{5_w, 5_h}, win_size ) );
+      Rect::from( position + Delta{4_w, 4_h}, win_size ) );
   render_fill_rect(
       tx, config_palette.orange.sat0.lum1,
       {position.x, position.y, win_size.w, win_size.h} );
@@ -196,15 +206,20 @@ void WindowManager::window::draw( Texture const& tx ) const {
   auto inner_size    = win_size - Scale( 2 ) * window_border();
   render_fill_rect( tx, config_palette.orange.sat1.lum4,
                     Rect::from( inside_border, inner_size ) );
-  title_view->draw( tx, inside_border );
-  view->draw( tx, inside_border + title_view->delta().h );
+  auto title_start =
+      centered( title_view->delta(), title_bar() );
+  title_view->draw( tx, title_start );
+  view->draw( tx, inside_padding() + title_view->delta().h );
 }
 
 // Includes border
 Delta WindowManager::window::delta() const {
   Delta res;
-  res.w = std::max( title_view->delta().w, view->delta().w );
-  res.h += title_view->delta().h + view->delta().h;
+  res.w = std::max(
+      title_view->delta().w,
+      W( view->delta().w + window_padding().w * 2_sx ) );
+  res.h += title_view->delta().h + view->delta().h +
+           window_padding().h * 2_sy;
   // multiply by two since there is top/bottom or left/right.
   res += Scale( 2 ) * window_border();
   return res;
@@ -227,6 +242,23 @@ Rect WindowManager::window::inside_border_rect() const {
   return res;
 }
 
+Coord WindowManager::window::inside_padding() const {
+  return position + window_border() + window_padding();
+}
+
+Rect WindowManager::window::inside_padding_rect() const {
+  auto res = rect();
+  res.x += window_border().w;
+  res.y += window_border().h;
+  res.w -= window_border().w * 2_sx;
+  res.h -= window_border().h * 2_sy;
+  res.x += window_padding().w;
+  res.y += window_padding().h;
+  res.w -= window_padding().w * 2_sx;
+  res.h -= window_padding().h * 2_sy;
+  return res;
+}
+
 Rect WindowManager::window::title_bar() const {
   auto title_bar_rect = title_view->rect( inside_border() );
   title_bar_rect.w =
@@ -235,7 +267,7 @@ Rect WindowManager::window::title_bar() const {
 }
 
 Coord WindowManager::window::view_pos() const {
-  return inside_border() + title_view->delta().h;
+  return inside_padding() + title_view->delta().h;
 }
 
 void WindowManager::draw_layout( Texture const& tx ) const {
@@ -365,7 +397,7 @@ string select_box( string_view title, Vec<Str> options ) {
 
   auto* win = g_window_plane.wm.add_window( string( title ),
                                             move( view ) );
-  selector_ptr->grow_to( win->inside_border_rect().w );
+  selector_ptr->grow_to( win->inside_padding_rect().w );
   reset_fade_to_dark( chrono::milliseconds( 1500 ),
                       chrono::milliseconds( 3000 ), 65 );
   effects_plane_enable( true );
@@ -404,20 +436,20 @@ e_confirm yes_no( string_view title ) {
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  for( int i = 0; i < 5; ++i ) {
-    auto  view     = make_unique<OkCancelView>();
-    auto* view_ptr = view.get();
+  g_window_plane.wm.clear_windows();
+  auto  view     = make_unique<OkCancelView>();
+  auto* view_ptr = view.get();
 
-    auto finished = [view_ptr] {
+  g_window_plane.wm.add_window( string( "Test Window" ),
+                                move( view ) );
+  while( true ) {
+    frame_loop( true, [view_ptr] {
       return view_ptr->state() != e_ok_cancel::none;
-    };
-
-    g_window_plane.wm.add_window( string( "Test Window" ),
-                                  move( view ) );
-    frame_loop( true, finished );
+    } );
 
     logger->info( "Pressed `{}`.", view_ptr->state() );
-    g_window_plane.wm.clear_windows();
+    if( view_ptr->state() == e_ok_cancel::cancel ) break;
+    view_ptr->reset();
   }
 }
 

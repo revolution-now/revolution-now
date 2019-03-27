@@ -30,6 +30,7 @@ CFG( rn,
 CFG( ui,
   OBJ( window,
     FLD( int, border_width )
+    FLD( int, window_padding )
     FLD( Color, border_color )
   )
 

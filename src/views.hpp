@@ -239,6 +239,8 @@ public:
   // Implement CompositeView
   int count() const override { return 2; }
 
+  void reset();
+
   e_ok_cancel state() const { return state_; }
 
 private:

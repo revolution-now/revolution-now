@@ -219,7 +219,8 @@ void ButtonBaseView::render( string const& label,
                                          info_disabled, label );
 
   auto unpressed_coord =
-      centered( tx_normal.size(), unpressed_.rect() ) + 1_w;
+      centered( tx_normal.size(), unpressed_.rect() ) + 1_w -
+      1_h;
   auto pressed_coord = unpressed_coord + Delta{-1_w, 1_h};
 
   copy_texture( tx_normal, unpressed_, unpressed_coord );
@@ -242,11 +243,12 @@ ButtonView::ButtonView( string label, Delta size_in_blocks,
 }
 
 bool ButtonView::on_mouse_move(
-    input::mouse_move_event_t const& /*unused*/ ) {
+    input::mouse_move_event_t const& event ) {
   switch( state() ) {
     case button_state::down: break;
     case button_state::up:
-      set_state( button_state::hover );
+      set_state( event.l_mouse_down ? button_state::down
+                                    : button_state::hover );
       break;
     case button_state::disabled: break;
     case button_state::hover: break;
@@ -295,6 +297,8 @@ PositionedViewConst OkCancelView::at_const( int idx ) const {
   }
   SHOULD_NOT_BE_HERE;
 }
+
+void OkCancelView::reset() { state_ = e_ok_cancel::none; }
 
 /****************************************************************
 ** Derived Views

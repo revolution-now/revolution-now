@@ -36,6 +36,8 @@ struct event_base_t {
   bool l_alt_down;
   bool r_alt_down;
   bool alt_down; // either alt down
+  bool l_mouse_down;
+  bool r_mouse_down;
 };
 
 /****************************************************************
