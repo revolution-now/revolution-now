@@ -54,6 +54,10 @@ auto const& relevant_sdl_events() {
 // the current mouse position whenever it changes.
 Coord g_prev_mouse_pos{};
 
+using mouse_button_state_t =
+    decltype( declval<::SDL_Event>().button.state );
+mouse_button_state_t g_mouse_buttons{};
+
 // These maintain the dragging state.
 Opt<drag_state_t> l_drag{};
 Opt<drag_state_t> r_drag{};
@@ -85,7 +89,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   event_t event;
 
   Coord mouse;
-  auto  buttons = ::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
+  // This function returns the button state, but we should not
+  // use that because it may not be current with this event.
+  // FIXME: should instead use mouse coord current with this
+  //        event if it starts causing issues.
+  ::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
 
   // mouse.clip( ... );
   mouse.x /= g_resolution_scale_factor.sx;
@@ -124,9 +132,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       break;
     }
     case ::SDL_MOUSEMOTION: {
-      auto l_button_down = bool( buttons & SDL_BUTTON_LMASK );
-      // auto m_button_down = bool( buttons & SDL_BUTTON_MMASK );
-      auto r_button_down = bool( buttons & SDL_BUTTON_RMASK );
+      auto g_mouse_buttons = sdl_event.motion.state;
+      auto l_button_down =
+          bool( g_mouse_buttons & SDL_BUTTON_LMASK );
+      auto r_button_down =
+          bool( g_mouse_buttons & SDL_BUTTON_RMASK );
 
       auto update_drag = [&mouse]( auto button, auto& drag ) {
         if( button ) {
@@ -166,6 +176,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       break;
     }
     case ::SDL_MOUSEBUTTONDOWN: {
+      g_mouse_buttons = sdl_event.button.state;
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
         mouse_button_event_t button_event;
         button_event.pos     = mouse;
@@ -183,6 +194,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       break;
     }
     case ::SDL_MOUSEBUTTONUP: {
+      g_mouse_buttons = sdl_event.button.state;
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
         if( l_drag ) {
           CHECK( l_drag->phase != +e_drag_phase::end );
@@ -242,13 +254,17 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   // chosen.
   auto* base = variant_base_ptr<event_base_t>( event );
   CHECK( base );
+  // FIXME: need to use key state that is current with this event
+  //        being processed if it starts causing issues.
   auto keymods = ::SDL_GetModState();
 
-  base->l_alt_down   = ( keymods & ::KMOD_LALT );
-  base->r_alt_down   = ( keymods & ::KMOD_RALT );
-  base->alt_down     = base->l_alt_down || base->r_alt_down;
-  base->l_mouse_down = bool( buttons & SDL_BUTTON_LMASK );
-  base->r_mouse_down = bool( buttons & SDL_BUTTON_RMASK );
+  base->l_alt_down = ( keymods & ::KMOD_LALT );
+  base->r_alt_down = ( keymods & ::KMOD_RALT );
+  base->alt_down   = base->l_alt_down || base->r_alt_down;
+  base->l_mouse_down =
+      bool( g_mouse_buttons & SDL_BUTTON_LMASK );
+  base->r_mouse_down =
+      bool( g_mouse_buttons & SDL_BUTTON_RMASK );
 
   return event;
 }

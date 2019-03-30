@@ -261,6 +261,7 @@ bool send_input_to_planes( input::event_t const& event ) {
             // In this case the plane says that it doesn't want
             // to handle it AND it doesn't want anyone else to
             // handle it.
+            logger->debug( "plane `{}` swallowed drag.", e );
             return true;
           case Plane::e_accept_drag::yes:
             // Wants to handle it.

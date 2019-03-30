@@ -341,7 +341,9 @@ bool WindowManager::input( input::event_t const& event ) {
     if( maybe_pos.value().get().is_inside( view_rect ) ) {
       auto new_event = input::move_mouse_origin_by(
           event, win.view_pos() - Coord{} );
-      return win.view->input( new_event );
+      // Always return true, meaning that we handle the mouse
+      // event if we are inside a view.
+      return (void)win.view->input( new_event ), true;
     }
   } else {
     // It's a non-mouse event, so just send it and return if it
@@ -451,6 +453,7 @@ void window_test() {
     if( view_ptr->state() == e_ok_cancel::cancel ) break;
     view_ptr->reset();
   }
+  g_window_plane.wm.clear_windows();
 }
 
 } // namespace rn::ui
