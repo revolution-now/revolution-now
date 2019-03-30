@@ -23,9 +23,10 @@
 
 namespace rn {
 
+// This viewport also knows where it is located on screen.
 class SmoothViewport {
 public:
-  SmoothViewport();
+  SmoothViewport( Coord origin_on_screen );
 
   void advance();
 
@@ -59,6 +60,11 @@ public:
   // Given a screen pixel coordinate this will return the world
   // coordinate.
   Opt<Coord> screen_pixel_to_world_pixel(
+      Coord pixel_coord ) const;
+
+  // Given a screen pixel coordinate this will return the world
+  // tile coordinate.
+  Opt<Coord> screen_pixel_to_world_tile(
       Coord pixel_coord ) const;
 
   // Given a screen pixel coordinate this will determine whether
@@ -123,6 +129,8 @@ private:
   void center_on_tile( Coord const& coords );
 
   bool is_tile_fully_visible( Coord const& coords ) const;
+
+  Coord origin_on_screen_;
 
   DissipativeVelocity x_vel_;
   DissipativeVelocity y_vel_;

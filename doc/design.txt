@@ -10,18 +10,31 @@ blinking one will be able to click on a square with units and ei-
 ther clear their orders or ask them to ask for orders. The way
 this works depends on how many units there are on a square.
 
-I) Single unit (including ship with no units on it):
+1) Single unit (if ship, must have no units):
 
-  This one is simple: if the unit has no orders then it will
-  merely be selected to go to the front of the orders queue if it
-  has not yet moved this turn. If the unit has orders then those
-  orders are cleared on the first click, then a second click will
-  bring the unit to the front of the queue if it hasn't already
-  moved this turn.
+  a) During end of turn
+    1. Has no orders
+      No action.
+    2. Has orders
+      Orders are cleared.
+  b) Not end of turn
+    1. Has no orders
+      The unit is placed at the front of the orders queue.
+      Whether it moves this turn will depend if it has already
+      moved or not. The unit currently asking for orders is given
+      a `wait`.
+    2. Has orders
+      Orders are cleared.
 
-II) Multiple units in square (including ship with units):
+2) Single unit in square containing cargo units:
 
-  Window will pop up listing the units in the square sorted in
+3) Multiple units in square, none of which has cargo units:
+
+4) Multiple units in square (including ship with units):
+
+Unit selection window:
+
+  Window will pop up listing the units in question sorted in
   order of decreasing (attack+defense) strength. The units will
   have their orders shown in the nationality icon. The player
   will then be able to click on the units. If the player clicks
@@ -41,12 +54,12 @@ II) Multiple units in square (including ship with units):
   possibly that one unit will be moved to the front of the orders
   queue.
 
-  After a unit has its orders cleared it will be eligible to move
-  in that same turn if it didn't already move in that turn. So
-  e.g., if a unit is Fortified in one turn they can be reacti-
-  vated in the same turn, but they won't be able to move again
-  until the next turn; this is because the act of fortifying will
-  remove the unit's movement points.
+After a unit has its orders cleared it will be eligible to move
+in that same turn if it didn't already move in that turn. So
+e.g., if a unit is Fortified in one turn they can be reacti-
+vated in the same turn, but they won't be able to move again
+until the next turn; this is because the act of fortifying will
+remove the unit's movement points.
 
 Graphical Layout:
 

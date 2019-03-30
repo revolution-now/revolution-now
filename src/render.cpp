@@ -24,6 +24,7 @@
 #include "sdl-util.hpp"
 #include "terrain.hpp"
 #include "travel.hpp"
+#include "variant.hpp"
 #include "viewport.hpp"
 
 // base-util
@@ -358,6 +359,106 @@ namespace {
 
 ViewportState g_viewport_state{viewport_state::none{}};
 
+struct ClickTileActions {
+  Opt<UnitId> bring_to_front{};
+};
+
+// This actually gets called on both end-of-turn and blink-unit.
+Opt<ClickTileActions> click_on_world_tile_eot( Coord coord ) {
+  logger->debug( "click-tile-eot: {}", coord );
+  auto const& units = units_from_coord( coord );
+  if( units.size() == 0 ) {
+    logger->debug( "no units on square." );
+    return {};
+  }
+  if( units.size() == 1 ) {
+    auto id = *units.begin();
+    logger->debug( "unit on square: {}", debug_string( id ) );
+    auto& unit = unit_from_id( id );
+    if( unit.orders() == Unit::e_orders::none ) {
+      logger->debug( "no orders." );
+      // No action.
+      return {};
+    } else {
+      logger->debug( "clearing orders." );
+      // Orders are cleared.
+      unit.clear_orders();
+      return ClickTileActions{};
+    }
+  } else {
+    NOT_IMPLEMENTED; // multiple units on square
+  }
+  SHOULD_NOT_BE_HERE;
+  return {};
+}
+
+Opt<ClickTileActions> click_on_world_tile_blink( Coord coord ) {
+  logger->debug( "click-tile-blink: {}", coord );
+  //  2. Has orders
+  //    Orders are cleared.
+  auto const& units = units_from_coord( coord );
+  if( units.size() == 0 ) {
+    logger->debug( "no units on square (2)." );
+    return {};
+  }
+  if( units.size() == 1 ) {
+    auto id = *units.begin();
+    logger->debug( "unit on square (2): {}",
+                   debug_string( id ) );
+    auto& unit = unit_from_id( id );
+    if( unit.orders() == Unit::e_orders::none ) {
+      logger->debug( "bringing unit {} to front.",
+                     debug_string( id ) );
+      // The unit is placed at the front of the orders queue.
+      // Whether it moves this turn will depend if it has already
+      // moved or not. The unit currently asking for orders is
+      // given a `wait`.
+      return ClickTileActions{/*bring_to_front=*/{id}};
+    } else {
+      // The eot function should have cleared the units orders.
+      // So therefore, we...
+      SHOULD_NOT_BE_HERE;
+    }
+  } else {
+    NOT_IMPLEMENTED; // multiple units on square
+  }
+  SHOULD_NOT_BE_HERE;
+}
+
+// This function will handle all the actions that can happen as a
+// result of the player "clicking" on a world tile. This can in-
+// clude activiting units, popping up windows, etc.
+Opt<ClickTileActions> click_on_world_tile( Coord coord ) {
+  using Res_t  = Opt<ClickTileActions>;
+  auto matcher = scelta::match<Res_t>(
+      []( viewport_state::slide_unit const& ) {
+        return Res_t{};
+      },
+      []( viewport_state::depixelate_unit const& ) {
+        return Res_t{};
+      },
+      // During end of turn.
+      [&]( viewport_state::none const& ) {
+        return click_on_world_tile_eot( coord );
+      } )( //
+      // During unit blinking.
+      [&]( auto self, viewport_state::blink_unit const& ) {
+        // We forward this request to the end-of-turn case be-
+        // cause, during unit blinking, we will always either a)
+        // do the same as in end-of-turn, or b) to the same as
+        // end-of-turn on the first player click but then do
+        // extra stuff on the second click. This is to eliminate
+        // redundancy. Once again, this function will return
+        // false if it did not make any changes or show any win-
+        // dows.
+        auto none = ViewportState{viewport_state::none{}};
+        auto maybe_actions = self( none );
+        if( maybe_actions ) return maybe_actions;
+        return click_on_world_tile_blink( coord );
+      } );
+  return matcher( g_viewport_state );
+}
+
 struct ViewportPlane : public Plane {
   ViewportPlane() = default;
   bool enabled() const override { return true; }
@@ -365,9 +466,9 @@ struct ViewportPlane : public Plane {
   void draw( Texture const& tx ) const override {
     render_world_viewport( g_viewport_state );
     clear_texture_black( tx );
-    copy_texture_stretch(
-        g_texture_viewport, tx, viewport().rendering_src_rect(),
-        viewport().rendering_dest_rect() + Delta{0_w, 16_h} );
+    copy_texture_stretch( g_texture_viewport, tx,
+                          viewport().rendering_src_rect(),
+                          viewport().rendering_dest_rect() );
   }
   OptRef<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {
@@ -493,6 +594,22 @@ struct ViewportPlane : public Plane {
           viewport().stop_auto_zoom();
           viewport().stop_auto_panning();
           handled = true;
+        }
+      }
+      case_v( input::mouse_button_event_t ) {
+        if( val.buttons != input::e_mouse_button_event::left_up )
+          break_v;
+        auto maybe_tile =
+            viewport().screen_pixel_to_world_tile( val.pos );
+        // See if the cursor has clicked on a tile in the
+        // viewport.
+        if( maybe_tile.has_value() ) {
+          auto maybe_actions =
+              click_on_world_tile( *maybe_tile );
+          if( maybe_actions.has_value() ) {
+            handled = true;
+            // handle actions...
+          }
         }
       }
       default_v_no_check;

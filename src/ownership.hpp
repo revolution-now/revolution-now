@@ -39,7 +39,9 @@ void destroy_unit( UnitId id );
 ND UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                               Y y, X x );
 // Functions for mapping between units and coordinates on the
-// map.
+// map. These will only give the units that are owned immediately
+// by the map; it will not give units who are cargo of those
+// units.
 ND std::unordered_set<UnitId> const& units_from_coord( Y y,
                                                        X x );
 ND std::unordered_set<UnitId> const& units_from_coord( Coord c );

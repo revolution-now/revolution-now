@@ -91,6 +91,7 @@ struct depixelate_unit {
 
 } // namespace viewport_state
 
+// FIXME: use ADT here
 using ViewportState = std::variant<
     viewport_state::none,           // for end-of-turn
     viewport_state::blink_unit,     // waiting for orders

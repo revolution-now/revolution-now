@@ -41,12 +41,13 @@ double pan_accel_drag_init() {
 } // namespace
 
 SmoothViewport& viewport() {
-  static SmoothViewport viewport;
+  static SmoothViewport viewport{{0_x, 16_y}};
   return viewport;
 }
 
-SmoothViewport::SmoothViewport()
-  : x_vel_(
+SmoothViewport::SmoothViewport( Coord origin_on_screen )
+  : origin_on_screen_( origin_on_screen ),
+    x_vel_(
         /*min_velocity=*/-config_rn.viewport.pan_speed,
         /*max_velocity=*/config_rn.viewport.pan_speed,
         /*initial_velocity=*/0,
@@ -346,8 +347,8 @@ Rect SmoothViewport::rendering_src_rect() const {
 
 Rect SmoothViewport::rendering_dest_rect() const {
   Rect dest;
-  dest.x        = 0;
-  dest.y        = 0;
+  dest.x        = origin_on_screen_.x;
+  dest.y        = origin_on_screen_.y;
   dest.w        = viewport_size_pixels().w;
   dest.h        = viewport_size_pixels().h;
   Rect viewport = get_bounds();
@@ -394,6 +395,13 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
       Coord{X{int( viewport.x._ + percent_x * viewport.w._ )},
             Y{int( viewport.y._ + percent_y * viewport.h._ )}};
   return res;
+}
+
+Opt<Coord> SmoothViewport::screen_pixel_to_world_tile(
+    Coord pixel_coord ) const {
+  auto maybe_pixel = screen_pixel_to_world_pixel( pixel_coord );
+  if( !maybe_pixel.has_value() ) return {};
+  return maybe_pixel.value() / g_tile_scale;
 }
 
 bool SmoothViewport::screen_coord_in_viewport(

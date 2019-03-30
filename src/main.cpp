@@ -45,27 +45,16 @@ namespace rn {
 void game() {
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
-  for( Y y{1}; y < 1_y + 1_y; ++y ) {
-    (void)create_unit_on_map( e_nation::spanish,
-                              e_unit_type::soldier, y, 2_x );
-    (void)create_unit_on_map( e_nation::english,
-                              e_unit_type::soldier, y, 3_x );
-    (void)create_unit_on_map( e_nation::spanish,
-                              e_unit_type::soldier, y, 8_x );
-    (void)create_unit_on_map( e_nation::english,
-                              e_unit_type::soldier, y, 9_x );
-    if( y._ % 2 == 0 ) {
-      (void)create_unit_on_map( e_nation::english,
-                                e_unit_type::caravel, y, 5_x );
-      (void)create_unit_on_map( e_nation::spanish,
-                                e_unit_type::privateer, y, 6_x );
-    } else {
-      (void)create_unit_on_map( e_nation::spanish,
-                                e_unit_type::caravel, y, 5_x );
-      (void)create_unit_on_map( e_nation::english,
-                                e_unit_type::privateer, y, 6_x );
-    }
-  }
+  auto id1 = create_unit_on_map(
+      e_nation::spanish, e_unit_type::soldier, 2_y, 2_x );
+  unit_from_id( id1 ).fortify();
+
+  auto id2 = create_unit_on_map(
+      e_nation::spanish, e_unit_type::soldier, 2_y, 3_x );
+  unit_from_id( id2 ).sentry();
+
+  (void)create_unit_on_map( e_nation::spanish,
+                            e_unit_type::privateer, 2_y, 6_x );
 
   //(void)create_unit_on_map(
   //    e_nation::spanish, e_unit_type::free_colonist, 4_y, 4_x
@@ -92,8 +81,8 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines();
-  ui::window_test();
-  // game();
+  // ui::window_test();
+  game();
   // font_test();
   run_all_cleanup_routines();
   return 0;
