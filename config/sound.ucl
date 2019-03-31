@@ -1,10 +1,19 @@
 general {
+  # If this is too low then we may be unable to play multiple
+  # sounds at once.
   channels: 6
+  # Apparently higher frequency is better for decreasing delay at
+  # start of playing a sound.
+  #   See: discourse.libsdl.org/t/sdl-mixer-accuracy/25160
   frequency: 44800
+  # Higher chunk size size seems to noticeably increase delay at
+  # start of playing a sound.
   chunk_size: 512
 }
 
 sfx {
+  # Using mp3 instead of wav seems to noticeably increase the
+  # delay at the start of playing a sound.
   move:            "assets/sfx/whoosh-1.wav"
   attacker_lost:   "assets/sfx/explosion-1.wav"
   attacker_won:    "assets/sfx/explosion-2.wav"
