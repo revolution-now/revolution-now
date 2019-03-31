@@ -377,11 +377,17 @@ Opt<ClickTileActions> click_on_world_tile_eot( Coord coord ) {
     auto& unit = unit_from_id( id );
     if( unit.orders() == Unit::e_orders::none ) {
       logger->debug( "no orders." );
+      auto maybe_held_units = unit.units_in_cargo();
+      if( maybe_held_units.has_value() &&
+          maybe_held_units.value().size() > 0 ) {
+        // This will be true if the unit is able to hold cargo
+        // and it has some units as cargo.
+        NOT_IMPLEMENTED;
+      }
       // No action.
       return {};
     } else {
       logger->debug( "clearing orders." );
-      // Orders are cleared.
       unit.clear_orders();
       return ClickTileActions{};
     }
@@ -394,8 +400,6 @@ Opt<ClickTileActions> click_on_world_tile_eot( Coord coord ) {
 
 Opt<ClickTileActions> click_on_world_tile_blink( Coord coord ) {
   logger->debug( "click-tile-blink: {}", coord );
-  //  2. Has orders
-  //    Orders are cleared.
   auto const& units = units_from_coord( coord );
   if( units.size() == 0 ) {
     logger->debug( "no units on square (2)." );

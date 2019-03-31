@@ -17,6 +17,7 @@ this works depends on how many units there are on a square.
       No action.
     2. Has orders
       Orders are cleared.
+
   b) Not end of turn
     1. Has no orders
       The unit is placed at the front of the orders queue.
@@ -28,25 +29,60 @@ this works depends on how many units there are on a square.
 
 2) Single unit in square containing cargo units:
 
+  a) During end of turn
+    1. Has no orders
+      Opens window with cargo units, prioritization disabled.
+    2. Has orders
+      Orders are cleared for unit only (not cargo).
+
+  b) Not end of turn
+    1. Has no orders
+      Opens window with cargo units + prioritizing.
+    2. Has orders
+      Orders are cleared for unit only (not cargo).
+
 3) Multiple units in square, none of which has cargo units:
+
+  a) During end of turn
+      Opens window with units, prioritization disabled.
+
+  b) Not end of turn
+      Opens window with units + prioritizing.
 
 4) Multiple units in square (including ship with units):
 
+  a) During end of turn
+      Opens window with units and hierarchical display,
+      prioritization disabled.
+
+  b) Not end of turn
+      Opens window with units and hierarchical display,
+      prioritization enabled.
+
 Unit selection window:
 
-  Window will pop up listing the units in question sorted in
-  order of decreasing (attack+defense) strength. The units will
-  have their orders shown in the nationality icon. The player
-  will then be able to click on the units. If the player clicks
-  on a unit with orders then those orders will be cleared on the
-  first click (nat icon will change to reflect that, but no other
-  visible changes in the window, and the real underlying unit
-  will not yet be modified). If the player clicks on a unit with
-  no orders then a white border will be drawn around it; clicking
-  on another unit without orders will move the white border (only
-  one unit can have it). When the window is later closed with OK
-  then the unit (if any) with a white border will be moved to the
-  front of the queue if it hasn't moved this turn.
+  Window will pop up listing the units in question. They will be
+  shown in some kind of hierarchical structure that shows which
+  units are cargo of other units, if at all. Beyond that, they
+  will be sorted in order of decreasing (attack+defense)
+  strength.
+
+  The units will have their orders shown in the nationality icon.
+  The player will then be able to click on the units. If the
+  player clicks on a unit with orders then those orders will be
+  cleared on the first click (nat icon will change to reflect
+  that, but no other visible changes in the window, and the real
+  underlying unit will not yet be modified). If the player clicks
+  on a unit with no orders then a white border will be drawn
+  around it (there can be multiple of these; when the window is
+  later closed with OK then the units (if any) with a white
+  border will be moved to the front of the queue if they haven't
+  moved this turn).
+
+  However, the window will have an option to disable the white
+  borders; this will be used when the window is opened during the
+  end-of-turn loop when units are not prioritized in the queue
+  (because there is not queue during an end-of-turn).
 
   When finished the user can press OK to accept the changes, or
   Cancel to cancel. "Accepting changes" here means that the un-

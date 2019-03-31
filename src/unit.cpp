@@ -60,6 +60,11 @@ void Unit::finish_turn() {
 
 void Unit::unfinish_turn() { finished_turn_ = false; }
 
+Opt<Vec<UnitId>> Unit::units_in_cargo() const {
+  if( desc_->cargo_slots == 0 ) return nullopt;
+  return cargo_.items_of_type<UnitId>();
+}
+
 // Returns true if the unit's orders are such that the unit may
 // physically move this turn, either by way of player input or
 // automatically, assuming it has movement points.
