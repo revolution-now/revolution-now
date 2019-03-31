@@ -218,6 +218,11 @@ CFG( nation,
 * Sound
 *****************************************************************/
 CFG( sound,
+  OBJ( general,
+    FLD( int, channels )
+    FLD( int, frequency )
+    FLD( int, chunk_size )
+  )
   OBJ( sfx,
     FLD( Str, move )
     FLD( Str, attacker_lost )

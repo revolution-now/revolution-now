@@ -1,7 +1,13 @@
+general {
+  channels: 6
+  frequency: 44800
+  chunk_size: 512
+}
+
 sfx {
-  move:            "assets/sfx/whoosh-1.mp3"
-  attacker_lost:   "assets/sfx/explosion-1.mp3"
-  attacker_won:    "assets/sfx/explosion-2.mp3"
+  move:            "assets/sfx/whoosh-1.wav"
+  attacker_lost:   "assets/sfx/explosion-1.wav"
+  attacker_won:    "assets/sfx/explosion-2.wav"
 
   volume {
     move:           75

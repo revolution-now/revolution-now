@@ -56,16 +56,16 @@ void game() {
   (void)create_unit_on_map( e_nation::spanish,
                             e_unit_type::privateer, 2_y, 6_x );
 
-  //(void)create_unit_on_map(
-  //    e_nation::spanish, e_unit_type::free_colonist, 4_y, 4_x
-  //    );
-  //(void)create_unit_on_map( e_nation::spanish,
-  //                          e_unit_type::soldier, 4_y, 5_x );
+  // auto id3 = create_unit_on_map(
+  //    e_nation::english, e_unit_type::soldier, 3_y, 2_x );
+  // unit_from_id( id3 ).fortify();
 
-  //(void)create_unit_on_map(
-  //    e_nation::dutch, e_unit_type::free_colonist, 5_y, 4_x );
-  //(void)create_unit_on_map( e_nation::dutch,
-  //                          e_unit_type::soldier, 5_y, 5_x );
+  // auto id4 = create_unit_on_map(
+  //    e_nation::english, e_unit_type::soldier, 3_y, 3_x );
+  // unit_from_id( id4 ).sentry();
+
+  //(void)create_unit_on_map( e_nation::english,
+  //                          e_unit_type::privateer, 3_y, 6_x );
 
   while( turn() != e_turn_result::quit ) {}
 

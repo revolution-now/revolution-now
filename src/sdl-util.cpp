@@ -79,13 +79,11 @@ void init_sdl() {
   CHECK( ::SDL_Init( SDL_INIT_EVERYTHING ) >= 0,
          "sdl could not initialize" );
 
-  constexpr int frequency{44100};
-  constexpr int chunksize{4096};
-  constexpr int channels{2};
-
   // Open Audio device
-  CHECK( !Mix_OpenAudio( frequency, AUDIO_S16SYS, channels,
-                         chunksize ),
+  CHECK( !Mix_OpenAudio( config_sound.general.frequency,
+                         AUDIO_S16SYS,
+                         config_sound.general.channels,
+                         config_sound.general.chunk_size ),
          "could not open audio: Mix_OpenAudio ERROR: {}",
          ::Mix_GetError() );
 
