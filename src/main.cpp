@@ -3,7 +3,7 @@
 #include "fmt-helper.hpp"
 #include "fonts.hpp"
 #include "frame.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"

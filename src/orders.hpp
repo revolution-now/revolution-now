@@ -16,7 +16,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "fmt-helper.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "id.hpp"
 
 // C++ standard library

@@ -15,7 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "fmt-helper.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 
 // c++ standard library
 #include <cstdint>

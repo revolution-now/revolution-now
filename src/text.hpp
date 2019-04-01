@@ -16,7 +16,7 @@
 // Revolution Now
 #include "color.hpp"
 #include "fonts.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "sdl-util.hpp"
 
 namespace rn {

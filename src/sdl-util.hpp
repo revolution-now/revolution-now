@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "color.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "util.hpp"
 
 // base-util

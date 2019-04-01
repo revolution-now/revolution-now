@@ -15,7 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "typed-int.hpp"
 
 // base-util

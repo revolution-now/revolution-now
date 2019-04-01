@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 

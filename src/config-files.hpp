@@ -14,7 +14,7 @@
 
 #include "aliases.hpp"
 #include "color.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "typed-int.hpp"

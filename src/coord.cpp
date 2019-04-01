@@ -1,14 +1,14 @@
 /****************************************************************
-**geo-types.cpp
+**coord.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2018-12-08.
 *
-* Description: Holds types related to world geography.
+* Description: Holds types related to abstract coordinates.
 *
 *****************************************************************/
-#include "geo-types.hpp"
+#include "coord.hpp"
 
 // Revolution Now
 #include "errors.hpp"

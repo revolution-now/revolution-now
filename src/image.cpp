@@ -14,7 +14,7 @@
 #include "aliases.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "sdl-util.hpp"

@@ -15,7 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "enum.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 
 // SDL
 // TODO: get rid of this

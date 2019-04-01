@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "physics.hpp"
 
 // SDL

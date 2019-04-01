@@ -13,7 +13,7 @@
 // Revolution Now
 #include "fonts.hpp"
 #include "frame.hpp"
-#include "geo-types.hpp"
+#include "coord.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "sdl-util.hpp"
