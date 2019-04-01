@@ -124,7 +124,8 @@ struct NatIconRenderDesc {
 
 absl::flat_hash_map<NatIconRenderDesc, Texture> nat_icon_cache;
 
-Texture render_nationality_icon( e_nation nation, char c ) {
+Texture const& render_nationality_icon( e_nation nation,
+                                        char     c ) {
   auto do_render = [&] {
     return render_nationality_icon_impl( nation, c );
   };
@@ -134,18 +135,20 @@ Texture render_nationality_icon( e_nation nation, char c ) {
   if( auto maybe_cached =
           util::get_val_safe( nat_icon_cache, desc );
       maybe_cached.has_value() )
-    return maybe_cached.value().get().weak_ref();
+    return maybe_cached.value().get();
 
   nat_icon_cache.emplace( desc, do_render() );
-  return nat_icon_cache[desc].weak_ref();
+  return nat_icon_cache[desc];
 }
 
-void render_nationality_icon( Texture const& dest, UnitId id,
+void render_nationality_icon( Texture const&        dest,
+                              UnitDescriptor const& desc,
+                              e_nation              nation,
+                              Unit::e_orders        orders,
                               Coord pixel_coord ) {
-  auto const& unit = unit_from_id( id );
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.
-  auto position = unit.desc().nat_icon_position;
+  auto position = desc.nat_icon_position;
   switch( position ) {
     case +e_direction::nw: break;
     case +e_direction::ne:
@@ -165,13 +168,20 @@ void render_nationality_icon( Texture const& dest, UnitId id,
   };
 
   char c{'-'}; // gcc seems to want us to initialize this
-  switch( unit.orders() ) {
+  switch( orders ) {
     case Unit::e_orders::none: c = '-'; break;
     case Unit::e_orders::sentry: c = 'S'; break;
     case Unit::e_orders::fortified: c = 'F'; break;
   };
-  auto nat_icon = render_nationality_icon( unit.nation(), c );
+  auto const& nat_icon = render_nationality_icon( nation, c );
   copy_texture( nat_icon, dest, pixel_coord );
+}
+
+void render_nationality_icon( Texture const& dest, UnitId id,
+                              Coord pixel_coord ) {
+  auto const& unit = unit_from_id( id );
+  render_nationality_icon( dest, unit.desc(), unit.nation(),
+                           unit.orders(), pixel_coord );
 }
 
 // Unit only, no nationality icon.

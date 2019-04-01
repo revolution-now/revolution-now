@@ -105,7 +105,7 @@ Implementation. There will be the following new views:
 
   - SpriteView: displays a sprite.
 
-  - UnitView: displays a unit and optionally a nat. icon, not
+  - FakeUnitView: displays a unit and optionally a nat. icon, not
     necessarily corresponding to any real or existing unit. This
     will contain a SpriteView by composition.
 
@@ -122,6 +122,9 @@ Implementation. There will be the following new views:
   - AdjacentLabelView: a view that takes a view and renders it
     alongside some short one-line text label vertically centered.
 
+  - PaddingView: a view that takes another view and just adds
+    some padding around it.
+
   - VerticalArrayView: a view that wraps a list of views and dis-
     plays them vertically. This will inherit from VectorView. On
     creation, one can specify how to justify the views, either
@@ -131,11 +134,11 @@ Implementation. There will be the following new views:
 
   - UnitClearOrdersView: It will contain a VerticalArrayView pop-
     ulated initially with a list of real units (each unit being
-    comprised of a UnitView wrapped in a ClickableView wrapped in
-    an AdjacentLabelView). It handles handling the clicks; when
-    the player clicks on a unit it will be recorded, white border
-    will be set, etc. But changes not applied to the underlying
-    units until OK button is pressed.
+    comprised of a FakeUnitView wrapped in a ClickableView
+    wrapped in an AdjacentLabelView). It handles handling the
+    clicks; when the player clicks on a unit it will be recorded,
+    white border will be set, etc. But changes not applied to the
+    underlying units until OK button is pressed.
 
   - VerticalScrollView: this will be needed because the
     UnitClearOrdersView will sometimes be too big to fit on
@@ -159,12 +162,13 @@ Here is the view structure:
       | +-UnitClearOrdersView
       |   +-VerticalArrayView
       |     |-...
-      |     |-AdjacentLabelView
-      |     | |-OneLineTextView
-      |     | +-AddBorderView
-      |     |   +-ClickableView
-      |     |     +-UnitView
-      |     |       +-SpriteView
+      |     |-PaddingView
+      |     | +-AdjacentLabelView
+      |     |   |-OneLineTextView
+      |     |   +-AddBorderView
+      |     |     +-ClickableView
+      |     |       +-FakeUnitView
+      |     |         +-SpriteView
       |     +-...
       +-OkCancelView
         |-ButtonView
