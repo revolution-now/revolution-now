@@ -22,73 +22,68 @@ this works depends on how many units there are on a square.
     1. Has no orders
       The unit is placed at the front of the orders queue.
       Whether it moves this turn will depend if it has already
-      moved or not. The unit currently asking for orders is given
-      a `wait`.
+      moved or not. The unit currently asking for orders remains
+      where it is in the queue (it will be processed just after
+      the units that were moved to front).
     2. Has orders
       Orders are cleared.
 
-2) Single unit in square containing cargo units:
+2) All other cases
 
   a) During end of turn
-    1. Has no orders
-      Opens window with cargo units, prioritization disabled.
-    2. Has orders
-      Orders are cleared for unit only (not cargo).
+      Opens window with recursive list of all units in square
+      (including cargo units), prioritization disabled.
 
   b) Not end of turn
-    1. Has no orders
-      Opens window with cargo units + prioritizing.
-    2. Has orders
-      Orders are cleared for unit only (not cargo).
-
-3) Multiple units in square, none of which has cargo units:
-
-  a) During end of turn
-      Opens window with units, prioritization disabled.
-
-  b) Not end of turn
-      Opens window with units + prioritizing.
-
-4) Multiple units in square (including ship with units):
-
-  a) During end of turn
-      Opens window with units and hierarchical display,
-      prioritization disabled.
-
-  b) Not end of turn
-      Opens window with units and hierarchical display,
-      prioritization enabled.
+      Opens window with recursive list of all units in square
+      (including cargo units), prioritization enabled.
 
 Unit selection window:
 
-  Window will pop up listing the units in question. They will be
-  shown in some kind of hierarchical structure that shows which
-  units are cargo of other units, if at all. Beyond that, they
-  will be sorted in order of decreasing (attack+defense)
-  strength.
+Window will pop up listing the units in question. They will be
+sorted with the following comparison function:
 
-  The units will have their orders shown in the nationality icon.
-  The player will then be able to click on the units. If the
-  player clicks on a unit with orders then those orders will be
-  cleared on the first click (nat icon will change to reflect
-  that, but no other visible changes in the window, and the real
-  underlying unit will not yet be modified). If the player clicks
-  on a unit with no orders then a white border will be drawn
-  around it (there can be multiple of these; when the window is
-  later closed with OK then the units (if any) with a white
-  border will be moved to the front of the queue if they haven't
-  moved this turn).
+    operator<( unit1, unit2 ) {
+      if unit1 holds cargo and unit2 does not:
+        true
+      if unit1 is ship and unit2 is not:
+        true
+      if unit1 strength > unit2 strength:
+        true
+      false
+    }
 
-  However, the window will have an option to disable the white
-  borders; this will be used when the window is opened during the
-  end-of-turn loop when units are not prioritized in the queue
-  (because there is not queue during an end-of-turn).
+The units will have their orders shown in the nationality icon.
+The player will then be able to click on the units. Upon clicking
+on a unit the player will observe the following behavior. Each
+click on a given unit will cycle the unit through the following
+states (e.g., for a unit that is currently fortified):
 
-  When finished the user can press OK to accept the changes, or
-  Cancel to cancel. "Accepting changes" here means that the un-
-  derlying units will have their orders cleared as requested and
-  possibly that one unit will be moved to the front of the orders
-  queue.
+    Orders=Fortified:
+      Not End-of-turn:
+        Fortified --> No Orders --> No Orders+Prioritized --> ...
+      End-of-turn:
+        Fortified --> No Orders --> ...
+    Orders=None:
+      Not End-of-turn:
+        No Orders --> No Orders+Prioritized --> ...
+      End-of-turn:
+        No Orders --> ...
+
+The window will have an creation option to disable the
+prioritization states and this will be used on end-of-turn.
+
+On each click, the nat icon will change to reflect the orders
+status, but the real underlying unit will not be modified until
+the player clicks OK and closes the window. If the state is in a
+"prioritized" one then there will be a white border around the
+unit
+
+When finished the user can press OK to accept the changes, or
+Cancel to cancel. "Accepting changes" here means that the un-
+derlying units will have their orders cleared as requested and
+possibly that some units will be moved to the front of the orders
+queue.
 
 After a unit has its orders cleared it will be eligible to move
 in that same turn if it didn't already move in that turn. So
@@ -99,8 +94,8 @@ remove the unit's movement points.
 
 Graphical Layout:
 
-  The units will be arranged in a vertical line with their names
-  printed along side.
+The units will be arranged in a vertical line with their names
+printed along side. Sorting of units is as described above.
 
 Note that even units in the square that already have their orders
 cleared will still show up in the window to avoid confusing the
@@ -120,8 +115,12 @@ Implementation. There will be the following new views:
     derlying view because that view would not handle it by as-
     sumption.
 
+  - AddBorderView: a view that contains a boolean that, when
+    true, causes a border of a given color to be painted around
+    the contained view.
+
   - AdjacentLabelView: a view that takes a view and renders it
-    alongside some short one-line text label.
+    alongside some short one-line text label vertically centered.
 
   - VerticalArrayView: a view that wraps a list of views and dis-
     plays them vertically. This will inherit from VectorView. On
@@ -138,8 +137,38 @@ Implementation. There will be the following new views:
     will be set, etc. But changes not applied to the underlying
     units until OK button is pressed.
 
+  - VerticalScrollView: this will be needed because the
+    UnitClearOrdersView will sometimes be too big to fit on
+    screen. However, for now, it will be left as a stub with no
+    scrolling.
+
+  - OkCancelView: a view that contains an OK and Cancel button
+    net to each other horizontally and provides a callback that
+    indicates either OK or Cancel.
+
   - OkCancelAdapter: a view that takes another view and adds a
-    pair of OK/Cancel buttons at the bottom.
+    pair of OK/Cancel buttons at the bottom using a
+    VerficalArrayView containing two rows, one with adapted view
+    and one with the buttons, centered horizontally.
+
+Here is the view structure:
+
+    OkCancelAdapter
+    +-VerticalArrayView
+      +-VerticalScrollView
+      | +-UnitClearOrdersView
+      |   +-VerticalArrayView
+      |     |-...
+      |     |-AdjacentLabelView
+      |     | |-OneLineTextView
+      |     | +-AddBorderView
+      |     |   +-ClickableView
+      |     |     +-UnitView
+      |     |       +-SpriteView
+      |     +-...
+      +-OkCancelView
+        |-ButtonView
+        +-ButtonView
 
 Then there will be a ok_cancel_window function will will take a
 view (in this case, a UnitClearOrdersView) and will use the Ok-
@@ -149,16 +178,16 @@ user presses one of the buttons.
 
 At that point, any changes made will be gathered from the Unit-
 ClearOrdersView and applied. Calling unit.clear_orders() should
-be sufficient. As a result of this, none of the units whose or-
-ders were cleared will be prioritized for moving this turn, they
-will just wait their turn.
+be sufficient. Furthermore, if there were any units selected for
+prioritization then this list will be returned and applied by the
+`turn` module.
 
-The UnitClearOrdersView will simply keep a list of unit ids that
-had their orders cleared.
+The UnitClearOrdersView will hold all the state that will be read
+after the player clicks the OK button.
 
-Overall, the UX could be made much more polished (and robust, to
-handle edge cases like large number of units), but here we are
-concerned only with getting something functional.
+Eventually the VerticalScrollView can be implemented and that
+will automatically add a scroll bar to the window if it gets to
+vertically long.
 
 Button Views
 ============
