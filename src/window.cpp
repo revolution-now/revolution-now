@@ -233,15 +233,6 @@ Coord WindowManager::window::inside_border() const {
   return position + window_border();
 }
 
-Rect WindowManager::window::inside_border_rect() const {
-  auto res = rect();
-  res.x += window_border().w;
-  res.y += window_border().h;
-  res.w -= window_border().w * 2_sx;
-  res.h -= window_border().h * 2_sy;
-  return res;
-}
-
 Coord WindowManager::window::inside_padding() const {
   return position + window_border() + window_padding();
 }
@@ -282,13 +273,6 @@ WindowManager::window* WindowManager::add_window(
   new_window.position =
       centered( new_window.delta(), screen_logical_rect() );
   return &new_window;
-}
-
-WindowManager::window* WindowManager::add_window(
-    string title_, unique_ptr<View> view_, Coord position ) {
-  windows_.emplace_back( move( title_ ), move( view_ ),
-                         position );
-  return &windows_.back();
 }
 
 void WindowManager::clear_windows() { windows_.clear(); }
