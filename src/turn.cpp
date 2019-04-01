@@ -213,8 +213,15 @@ e_turn_result turn( e_nation nation ) {
               get<viewport_state::blink_unit>( vp_state );
           blink_unit.id = id;
           frame_loop( true, [&blink_unit] {
-            return blink_unit.orders.has_value();
+            return blink_unit.orders.has_value() ||
+                   blink_unit.prioritize.has_value();
           } );
+          if( blink_unit.prioritize.has_value() ) {
+            CHECK( !blink_unit.orders.has_value() );
+            for( auto prio_id : blink_unit.prioritize.value() )
+              q.push_front( prio_id );
+            continue;
+          }
           CHECK( blink_unit.orders.has_value() );
           maybe_orders = blink_unit.orders;
         } else {

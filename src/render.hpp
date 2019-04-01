@@ -51,8 +51,18 @@ namespace viewport_state {
 struct none {};
 
 struct blink_unit {
-  UnitId        id;
+  /**************************************************************
+  ** Input
+  ***************************************************************/
+  UnitId id;
+  /**************************************************************
+  ** Output
+  ***************************************************************/
+  // Orders given to `id` by player.
   Opt<orders_t> orders{};
+  // Units that the player has asked to prioritize (i.e., bring
+  // them forward in the queue of units waiting for orders).
+  Opt<Vec<UnitId>> prioritize{};
 };
 
 struct slide_unit {

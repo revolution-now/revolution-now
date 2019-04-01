@@ -360,7 +360,7 @@ namespace {
 ViewportState g_viewport_state{viewport_state::none{}};
 
 struct ClickTileActions {
-  Opt<UnitId> bring_to_front{};
+  Opt<Vec<UnitId>> bring_to_front{};
 };
 
 // This actually gets called on both end-of-turn and blink-unit.
@@ -417,7 +417,7 @@ Opt<ClickTileActions> click_on_world_tile_blink( Coord coord ) {
       // Whether it moves this turn will depend if it has already
       // moved or not. The unit currently asking for orders is
       // given a `wait`.
-      return ClickTileActions{/*bring_to_front=*/{id}};
+      return ClickTileActions{/*bring_to_front=*/{{id}}};
     } else {
       // The eot function should have cleared the units orders.
       // So therefore, we...
@@ -611,8 +611,11 @@ struct ViewportPlane : public Plane {
           auto maybe_actions =
               click_on_world_tile( *maybe_tile );
           if( maybe_actions.has_value() ) {
+            GET_CHECK_VARIANT( blink_unit, g_viewport_state,
+                               viewport_state::blink_unit );
+            blink_unit.prioritize =
+                maybe_actions->bring_to_front;
             handled = true;
-            // handle actions...
           }
         }
       }
