@@ -11,6 +11,7 @@
 #include "input.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
 #include "util.hpp"
@@ -24,6 +25,15 @@
 #include <array>
 
 using namespace std;
+
+// This type will keep track of the dragging state of a given
+// mouse button.
+ADT( rn::input, drag_phase,      //
+     ( none ),                   //
+     ( dragging,                 //
+       ( Coord, origin ),        //
+       ( e_drag_phase, phase ) ) //
+);
 
 namespace rn::input {
 
@@ -59,8 +69,8 @@ using mouse_button_state_t =
 mouse_button_state_t g_mouse_buttons{};
 
 // These maintain the dragging state.
-Opt<drag_state_t> l_drag{};
-Opt<drag_state_t> r_drag{};
+drag_phase_t l_drag{drag_phase::none{}};
+drag_phase_t r_drag{drag_phase::none{}};
 
 absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
     {::SDLK_LEFT, e_direction::w},
@@ -99,15 +109,23 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   mouse.x /= g_resolution_scale_factor.sx;
   mouse.y /= g_resolution_scale_factor.sy;
 
-  if( l_drag && l_drag->phase == +e_drag_phase::begin )
-    l_drag->phase = e_drag_phase::in_progress;
-  if( r_drag && r_drag->phase == +e_drag_phase::begin )
-    r_drag->phase = e_drag_phase::in_progress;
+  if_v( l_drag, drag_phase::dragging, val ) {
+    if( val->phase == +e_drag_phase::begin )
+      val->phase = e_drag_phase::in_progress;
+  }
+  if_v( r_drag, drag_phase::dragging, val ) {
+    if( val->phase == +e_drag_phase::begin )
+      val->phase = e_drag_phase::in_progress;
+  }
 
-  if( l_drag && l_drag->phase == +e_drag_phase::end )
-    l_drag = nullopt;
-  if( r_drag && r_drag->phase == +e_drag_phase::end )
-    r_drag = nullopt;
+  if_v( l_drag, drag_phase::dragging, val ) {
+    if( val->phase == +e_drag_phase::end )
+      l_drag = drag_phase::none{};
+  }
+  if_v( r_drag, drag_phase::dragging, val ) {
+    if( val->phase == +e_drag_phase::end )
+      r_drag = drag_phase::none{};
+  }
 
   switch( sdl_event.type ) {
     case ::SDL_QUIT: event = quit_event_t{}; break;
@@ -140,30 +158,51 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
       auto update_drag = [&mouse]( auto button, auto& drag ) {
         if( button ) {
-          if( !drag )
-            drag = drag_state_t{mouse, e_drag_phase::begin};
-          else
-            CHECK( drag->phase == +e_drag_phase::in_progress );
+          if_v( drag, drag_phase::none, val ) {
+            drag = drag_phase::dragging{
+                /*origin=*/mouse, /*phase=*/e_drag_phase::begin};
+          }
+          else {
+            GET_CHECK_VARIANT( dragging, drag,
+                               drag_phase::dragging );
+            CHECK( dragging.phase ==
+                   +e_drag_phase::in_progress );
+          }
         } else {
-          if( drag ) drag->phase = e_drag_phase::end;
+          if_v( drag, drag_phase::dragging, val ) {
+            val->phase = e_drag_phase::end;
+          }
         }
       };
 
       update_drag( l_button_down, l_drag );
       update_drag( r_button_down, r_drag );
 
+      auto l_dragging =
+          util::holds<drag_phase::dragging>( l_drag );
+      auto r_dragging =
+          util::holds<drag_phase::dragging>( r_drag );
+
       // Since we're in a mouse motion event, if any mouse button
       // dragging state is active then this is a dragging event.
-      if( l_drag || r_drag ) {
+      if( l_dragging || r_dragging ) {
         mouse_drag_event_t drag_event;
         drag_event.prev = g_prev_mouse_pos;
         drag_event.pos = g_prev_mouse_pos = mouse;
-        if( l_drag ) {
+        if( l_dragging ) {
+          auto& dragging =
+              std::get<drag_phase::dragging>( l_drag );
           drag_event.button = e_mouse_button::l;
-          drag_event.state  = *l_drag;
+          drag_event.state =
+              drag_state_t{/*origin=*/dragging.origin,
+                           /*phase=*/dragging.phase};
         } else {
+          auto& dragging =
+              std::get<drag_phase::dragging>( r_drag );
           drag_event.button = e_mouse_button::r;
-          drag_event.state  = *r_drag;
+          drag_event.state =
+              drag_state_t{/*origin=*/dragging.origin,
+                           /*phase=*/dragging.phase};
         }
         event = drag_event;
       } else {
@@ -196,18 +235,20 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     case ::SDL_MOUSEBUTTONUP: {
       g_mouse_buttons = sdl_event.button.state;
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
-        if( l_drag ) {
-          CHECK( l_drag->phase != +e_drag_phase::end );
-          l_drag->phase = e_drag_phase::end;
+        if_v( l_drag, drag_phase::dragging, val ) {
+          CHECK( val->phase != +e_drag_phase::end );
+          val->phase = e_drag_phase::end;
           mouse_drag_event_t drag_event;
           // Here we don't update the previous mouse position be-
           // cause this is not a mouse motion event.
           drag_event.prev   = mouse;
           drag_event.pos    = mouse;
           drag_event.button = e_mouse_button::l;
-          drag_event.state  = *l_drag;
-          event             = drag_event;
-        } else {
+          drag_event.state = drag_state_t{/*origin=*/val->origin,
+                                          /*phase=*/val->phase};
+          event            = drag_event;
+        }
+        else {
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
           button_event.buttons = e_mouse_button_event::left_up;
@@ -216,18 +257,20 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
         break;
       }
       if( sdl_event.button.button == SDL_BUTTON_RIGHT ) {
-        if( r_drag ) {
-          CHECK( r_drag->phase != +e_drag_phase::end );
-          r_drag->phase = e_drag_phase::end;
+        if_v( r_drag, drag_phase::dragging, val ) {
+          CHECK( val->phase != +e_drag_phase::end );
+          val->phase = e_drag_phase::end;
           mouse_drag_event_t drag_event;
           // Here we don't update the previous mouse position be-
           // cause this is not a mouse motion event.
           drag_event.prev   = mouse;
           drag_event.pos    = mouse;
           drag_event.button = e_mouse_button::r;
-          drag_event.state  = *r_drag;
-          event             = drag_event;
-        } else {
+          drag_event.state = drag_state_t{/*origin=*/val->origin,
+                                          /*phase=*/val->phase};
+          event            = drag_event;
+        }
+        else {
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
           button_event.buttons = e_mouse_button_event::right_up;
