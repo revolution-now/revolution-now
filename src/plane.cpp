@@ -229,8 +229,15 @@ bool send_input_to_planes( input::event_t const& event ) {
     // send out the event but only if it's a `begin` event.
     if( drag_event->state.phase == +e_drag_phase::begin ) {
       for( auto [e, plane] : relevant_planes() ) {
-        auto drag_result = plane->can_drag( drag_event->button,
-                                            drag_event->pos );
+        // Note here we use the origin position of the mouse drag
+        // as opposed to the current mouse position because that
+        // is what is relevant for determining whether the plane
+        // can handle the drag event or not (at this point, even
+        // though we are in a `begin` event, the current mouse
+        // position may already have moved a bit from the orig-
+        // in).
+        auto drag_result = plane->can_drag(
+            drag_event->button, drag_event->state.origin );
         switch( drag_result ) {
           // If the plane doesn't want to handle it then move
           // on to ask the next one.
