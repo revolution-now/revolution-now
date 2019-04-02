@@ -1119,41 +1119,10 @@ struct MenuPlane : public Plane {
                                  Coord origin ) override {
     if( !click_target( origin ).has_value() )
       return Plane::e_accept_drag::no;
+    // Convert drags to mouse motion events.
     return ( button == input::e_mouse_button::l )
-               ? Plane::e_accept_drag::yes
+               ? Plane::e_accept_drag::motion
                : Plane::e_accept_drag::swallow;
-  }
-  // We handle dragging but do not really treat it as a drag; in-
-  // stead  we  just receive the dragging events and convert them
-  // to the appropriate mouse motion/button event and  feed  that
-  // event back through the input() method in order  to  get  the
-  // behavior that we want but avoid code duplication.
-  void on_drag( input::e_mouse_button /*unused*/,
-                Coord /*unused*/, Coord prev,
-                Coord current ) override {
-    // Convert to mouse motion event.
-    input::mouse_move_event_t event{{current}, prev};
-    this->input( event );
-  }
-  void on_drag_finished( input::e_mouse_button button,
-                         Coord start, Coord end ) override {
-    // If the drag started and ended on the same menu element
-    // then do nothing, just leave the menu open. This will pre-
-    // vent the interface from acting flaky when e.g. the user
-    // attempts to click on a menu header but accidentally per-
-    // forms a tiny drag and then the menu quickly opens and
-    // closes, when it should actually have just stayed open.
-    auto click_start = click_target( start );
-    if( click_target( start ) == click_target( end ) &&
-        click_start.has_value() &&
-        util::holds<MouseOver::header>( *click_start ) )
-      return;
-    if( button == input::e_mouse_button::l ) {
-      // Convert to mouse button event.
-      auto buttons = input::e_mouse_button_event::left_up;
-      input::mouse_button_event_t event{{end}, buttons};
-      this->input( event );
-    }
   }
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
