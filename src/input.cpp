@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "adt.hpp"
+#include "config-files.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
 #include "util.hpp"
@@ -27,9 +28,23 @@
 using namespace std;
 
 // This type will keep track of the dragging state of a given
-// mouse button.
+// mouse button. When a drag is initiated is it represented as a
+// `maybe` state; in this state the drag event is not yet sent as
+// such to the consumers of input events. Instead, it will remain
+// in the `maybe` state until the mouse moves a certain number of
+// pixels away from the origin (buffer) to allow for a bit of
+// noise in mouse motion during normal clicks. When it leaves
+// this buffer region (just a few pixels wide) then it will be
+// converted to a `dragging` event and will be sent out as such
+// with origin equal to the original origin of the `maybe` state.
+// This aims to make clicking easier by preventing flaky behavior
+// where the user inadvertantly triggers a drag event by acciden-
+// tally moving the mouse a bit during a click (that would be bad
+// because it would not be sent as a click event).
 ADT( rn::input, drag_phase,      //
      ( none ),                   //
+     ( maybe,                    //
+       ( Coord, origin ) ),      //
      ( dragging,                 //
        ( Coord, origin ),        //
        ( e_drag_phase, phase ) ) //
@@ -86,6 +101,12 @@ absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
     {::SDLK_KP_1, e_direction::sw},
     {::SDLK_KP_3, e_direction::se},
 };
+
+bool is_in_drag_zone( Coord current, Coord origin ) {
+  auto delta = current - origin;
+  auto buf   = config_rn.controls.drag_buffer;
+  return abs( delta.w._ ) > buf || abs( delta.h._ ) > buf;
+}
 
 } // namespace
 
@@ -158,20 +179,47 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
       auto update_drag = [&mouse]( auto button, auto& drag ) {
         if( button ) {
-          if_v( drag, drag_phase::none, val ) {
-            drag = drag_phase::dragging{
-                /*origin=*/mouse, /*phase=*/e_drag_phase::begin};
-          }
-          else {
-            GET_CHECK_VARIANT( dragging, drag,
-                               drag_phase::dragging );
-            CHECK( dragging.phase ==
-                   +e_drag_phase::in_progress );
-          }
+          auto matcher = scelta::match(
+              [&]( drag_phase::none ) {
+                drag = drag_phase::maybe{
+                    /*origin=*/g_prev_mouse_pos};
+              },
+              [&]( drag_phase::maybe ) {
+                if_v( drag, drag_phase::maybe, val ) {
+                  if( is_in_drag_zone( val->origin, mouse ) ) {
+                    drag = drag_phase::dragging{
+                        /*origin=*/val->origin,
+                        /*phase=*/e_drag_phase::begin};
+                  }
+                }
+              },
+              []( drag_phase::dragging const& val ) {
+                CHECK( val.phase == +e_drag_phase::in_progress );
+              } );
+          matcher( drag );
         } else {
-          if_v( drag, drag_phase::dragging, val ) {
-            val->phase = e_drag_phase::end;
-          }
+          // If we were initiating a drag (or in a drag) and re-
+          // ceive a mouse motion event then there are three pos-
+          // sibilities: 1) the mouse button is still down, in
+          // which case we would not be here. 2) the mouse button
+          // was released and that event was sent before this mo-
+          // tion event, in which case we should not be in the
+          // `maybe` drag state or the `dragging` state. 3) the
+          // mouse button was released but that event is coming
+          // after this one, in which case the button should not
+          // appear up (since we extracted the button state from
+          // this event, so it should be current with it). There-
+          // fore, there is no situation where we should have
+          // (button up) + (mouse motion) + (`maybe`/`dragging`).
+          auto matcher =
+              scelta::match( [&]( drag_phase::none ) {},
+                             []( drag_phase::maybe const& ) {
+                               SHOULD_NOT_BE_HERE;
+                             },
+                             []( drag_phase::dragging const& ) {
+                               SHOULD_NOT_BE_HERE;
+                             } );
+          matcher( drag );
         }
       };
 
@@ -248,6 +296,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
                                           /*phase=*/val->phase};
           event            = drag_event;
         }
+        else if( util::holds<drag_phase::maybe>( l_drag ) ) {
+          l_drag = drag_phase::none{};
+          mouse_button_event_t button_event;
+          button_event.pos     = mouse;
+          button_event.buttons = e_mouse_button_event::left_up;
+          event                = button_event;
+        }
         else {
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
@@ -269,6 +324,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           drag_event.state = drag_state_t{/*origin=*/val->origin,
                                           /*phase=*/val->phase};
           event            = drag_event;
+        }
+        else if( util::holds<drag_phase::maybe>( r_drag ) ) {
+          r_drag = drag_phase::none{};
+          mouse_button_event_t button_event;
+          button_event.pos     = mouse;
+          button_event.buttons = e_mouse_button_event::right_up;
+          event                = button_event;
         }
         else {
           mouse_button_event_t button_event;

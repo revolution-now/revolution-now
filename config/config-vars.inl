@@ -22,6 +22,9 @@ CFG( rn,
     FLD( double, pan_accel_init_coeff )
     FLD( double, pan_accel_drag_init_coeff )
   )
+  OBJ( controls,
+    FLD( int, drag_buffer )
+  )
 )
 
 /****************************************************************
