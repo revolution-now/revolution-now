@@ -620,7 +620,9 @@ struct ViewportPlane : public Plane {
         if( maybe_tile.has_value() ) {
           auto maybe_actions =
               click_on_world_tile( *maybe_tile );
-          if( maybe_actions.has_value() ) {
+          if( maybe_actions.has_value() &&
+              maybe_actions.value()
+                  .bring_to_front.has_value() ) {
             GET_CHECK_VARIANT( blink_unit, g_viewport_state,
                                viewport_state::blink_unit );
             blink_unit.prioritize =
