@@ -44,7 +44,7 @@ Window will pop up listing the units in question. They will be
 sorted with the following comparison function:
 
     operator<( unit1, unit2 ) {
-      if unit1 holds cargo and unit2 does not:
+      if unit1 can hold cargo and unit2 can not:
         true
       if unit1 is ship and unit2 is not:
         true
@@ -70,27 +70,27 @@ states (e.g., for a unit that is currently fortified):
       End-of-turn:
         No Orders --> ...
 
-The window will have an creation option to disable the
-prioritization states and this will be used on end-of-turn.
+The window will have an creation option to disable the prioriti-
+zation states and this will be used on end-of-turn.
 
 On each click, the nat icon will change to reflect the orders
 status, but the real underlying unit will not be modified until
 the player clicks OK and closes the window. If the state is in a
-"prioritized" one then there will be a white border around the
-unit
+"prioritized" one then there will be a white highlight/border
+around the unit.
 
 When finished the user can press OK to accept the changes, or
-Cancel to cancel. "Accepting changes" here means that the un-
-derlying units will have their orders cleared as requested and
-possibly that some units will be moved to the front of the orders
+Cancel to cancel. "Accepting changes" here means that the under-
+lying units will have their orders cleared as requested and pos-
+sibly that some units will be moved to the front of the orders
 queue.
 
 After a unit has its orders cleared it will be eligible to move
 in that same turn if it didn't already move in that turn. So
-e.g., if a unit is Fortified in one turn they can be reacti-
-vated in the same turn, but they won't be able to move again
-until the next turn; this is because the act of fortifying will
-remove the unit's movement points.
+e.g., if a unit is Fortified in one turn they can be reactivated
+in the same turn, but they won't be able to move again until the
+next turn; this is because the act of fortifying will remove the
+unit's movement points.
 
 Graphical Layout:
 
@@ -115,9 +115,9 @@ Implementation. There will be the following new views:
     derlying view because that view would not handle it by as-
     sumption.
 
-  - AddBorderView: a view that contains a boolean that, when
-    true, causes a border of a given color to be painted around
-    the contained view.
+  - AddSelectBorderView: a view that contains a boolean that,
+    when true, causes a highlight/border of a given color to be
+    painted around the contained view.
 
   - AdjacentLabelView: a view that takes a view and renders it
     alongside some short one-line text label vertically centered.
@@ -135,24 +135,27 @@ Implementation. There will be the following new views:
   - UnitClearOrdersView: It will contain a VerticalArrayView pop-
     ulated initially with a list of real units (each unit being
     comprised of a FakeUnitView wrapped in a ClickableView
-    wrapped in an AdjacentLabelView). It handles handling the
-    clicks; when the player clicks on a unit it will be recorded,
-    white border will be set, etc. But changes not applied to the
-    underlying units until OK button is pressed.
+    wrapped in an AddSelectBorderView wrapped in an AdjacentLa-
+    belView). It handles handling the clicks; when the player
+    clicks on a unit it will be recorded, white border will be
+    set, etc. But changes not applied to the underlying units
+    until OK button is pressed.
 
-  - VerticalScrollView: this will be needed because the
-    UnitClearOrdersView will sometimes be too big to fit on
-    screen. However, for now, it will be left as a stub with no
+  - VerticalScrollView: this will be needed because the Unit-
+    ClearOrdersView will sometimes be too big to fit on screen.
+    However, for now, it will be left as a stub with no
     scrolling.
 
   - OkCancelView: a view that contains an OK and Cancel button
-    net to each other horizontally and provides a callback that
-    indicates either OK or Cancel.
+    net to each other (can specify either vertically or horizon-
+    tally) and provides a callback that indicates either OK or
+    Cancel.
 
   - OkCancelAdapter: a view that takes another view and adds a
-    pair of OK/Cancel buttons at the bottom using a
-    VerficalArrayView containing two rows, one with adapted view
-    and one with the buttons, centered horizontally.
+    pair of OK/Cancel buttons at the bottom using a VerficalAr-
+    rayView containing two rows, one with adapted view and one
+    with the buttons, layed out horizontally and centered hori-
+    zontally.
 
 Here is the view structure:
 
@@ -165,7 +168,7 @@ Here is the view structure:
       |     |-PaddingView
       |     | +-AdjacentLabelView
       |     |   |-OneLineTextView
-      |     |   +-AddBorderView
+      |     |   +-AddSelectBorderView
       |     |     +-ClickableView
       |     |       +-FakeUnitView
       |     |         +-SpriteView
@@ -190,7 +193,7 @@ The UnitClearOrdersView will hold all the state that will be read
 after the player clicks the OK button.
 
 Eventually the VerticalScrollView can be implemented and that
-will automatically add a scroll bar to the window if it gets to
+will automatically add a scroll bar to the window if it gets too
 vertically long.
 
 Button Views
