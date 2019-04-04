@@ -11,9 +11,9 @@
 #include "console.hpp"
 
 // Revolution Now
+#include "coord.hpp"
 #include "fonts.hpp"
 #include "frame.hpp"
-#include "coord.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "sdl-util.hpp"
@@ -87,7 +87,7 @@ struct ConsolePlane : public Plane {
     }
   }
 
-  bool enabled_{false};
+  bool enabled_{true};
 };
 
 ConsolePlane g_console_plane;

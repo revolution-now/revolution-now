@@ -116,11 +116,11 @@ private:
   bool dispatch_mouse_event( input::event_t const& event );
 };
 
-class ViewVector : public CompositeView {
+class VectorView : public CompositeView {
 public:
-  ViewVector() {}
+  VectorView() {}
 
-  ViewVector( std::vector<OwningPositionedView> views )
+  VectorView( std::vector<OwningPositionedView> views )
     : views_( std::move( views ) ) {}
 
   // Implement CompositeView
@@ -249,6 +249,18 @@ private:
   ButtonView  cancel_;
 };
 
+// VerticalArrayView: a view that wraps a list of views and dis-
+// plays them vertically. On creation, one can specify how to
+// justify the views, either left, right, or center. This ques-
+// tion of justification arises because the views in the array
+// will generally have different widths.
+class VerticalArrayView : public VectorView {
+public:
+  enum class align { left, right, center };
+  VerticalArrayView( std::vector<std::unique_ptr<View>> views,
+                     align                              how );
+};
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/
@@ -279,7 +291,7 @@ private:
   OneLineStringView foreground_inactive_;
 };
 
-class OptionSelectView : public ViewVector {
+class OptionSelectView : public VectorView {
 public:
   OptionSelectView( Vec<Str> const& options,
                     int             initial_selection );

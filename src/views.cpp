@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "fonts.hpp"
 #include "coord.hpp"
+#include "fonts.hpp"
 #include "logging.hpp"
 #include "text.hpp"
 #include "variant.hpp"
@@ -103,7 +103,7 @@ PositionedView CompositeView::at( int idx ) {
   return {view, p_view.coord};
 }
 
-PositionedViewConst ViewVector::at_const( int idx ) const {
+PositionedViewConst VectorView::at_const( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
   auto& view = views_[idx];
   return {view.view(), view.coord()};
@@ -299,6 +299,31 @@ PositionedViewConst OkCancelView::at_const( int idx ) const {
 }
 
 void OkCancelView::reset() { state_ = e_ok_cancel::none; }
+
+VerticalArrayView::VerticalArrayView(
+    vector<unique_ptr<View>> views, align how ) {
+  W max_width = 0_w;
+  for( auto& view : views )
+    max_width = std::max( max_width, view->delta().w );
+  Y y = 0_y;
+  for( auto& view : views ) {
+    auto size = view->delta();
+    X    x{0};
+    switch( how ) {
+      case align::left: x = 0_x; break;
+      case align::right: x = 0_x + ( max_width - size.w ); break;
+      case align::center:
+        x = 0_x + ( max_width / 2 - size.w / 2 );
+        break;
+    }
+    CHECK( x >= 0_x );
+    CHECK( x <= 0_x + max_width );
+    OwningPositionedView pos_view( std::move( view ),
+                                   Coord{x, y} );
+    push_back( std::move( pos_view ) );
+    y += size.h;
+  }
+}
 
 /****************************************************************
 ** Derived Views

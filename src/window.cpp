@@ -379,7 +379,7 @@ string select_box( string_view title, Vec<Str> options ) {
   };
   views.emplace_back(
       OwningPositionedView{move( selector ), Coord{0_y, 0_x}} );
-  auto view = make_unique<ViewVector>( move( views ) );
+  auto view = make_unique<VectorView>( move( views ) );
 
   auto* win = g_window_plane.wm.add_window( string( title ),
                                             move( view ) );
@@ -423,19 +423,34 @@ e_confirm yes_no( string_view title ) {
 *****************************************************************/
 void window_test() {
   g_window_plane.wm.clear_windows();
-  auto  view     = make_unique<OkCancelView>();
-  auto* view_ptr = view.get();
+  auto ok_cancel_1 = make_unique<OkCancelView>();
+  auto ok_cancel_2 = make_unique<OkCancelView>();
+  auto button_1 =
+      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
+  auto button_2 =
+      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
+
+  auto* terminal_ptr = ok_cancel_2.get();
+
+  vector<unique_ptr<View>> view_vec;
+  view_vec.emplace_back( std::move( ok_cancel_1 ) );
+  view_vec.emplace_back( std::move( button_1 ) );
+  view_vec.emplace_back( std::move( ok_cancel_2 ) );
+  view_vec.emplace_back( std::move( button_2 ) );
+
+  auto view = make_unique<VerticalArrayView>(
+      std::move( view_vec ), VerticalArrayView::align::center );
 
   g_window_plane.wm.add_window( string( "Test Window" ),
                                 move( view ) );
   while( true ) {
-    frame_loop( true, [view_ptr] {
-      return view_ptr->state() != e_ok_cancel::none;
+    frame_loop( true, [terminal_ptr] {
+      return terminal_ptr->state() != e_ok_cancel::none;
     } );
 
-    logger->info( "Pressed `{}`.", view_ptr->state() );
-    if( view_ptr->state() == e_ok_cancel::cancel ) break;
-    view_ptr->reset();
+    logger->info( "Pressed `{}`.", terminal_ptr->state() );
+    if( terminal_ptr->state() == e_ok_cancel::cancel ) break;
+    terminal_ptr->reset();
   }
   g_window_plane.wm.clear_windows();
 }

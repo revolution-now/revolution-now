@@ -1,9 +1,9 @@
 #include "config-files.hpp"
+#include "coord.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "fonts.hpp"
 #include "frame.hpp"
-#include "coord.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
@@ -81,8 +81,8 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines();
-  // ui::window_test();
-  game();
+  ui::window_test();
+  // game();
   // font_test();
   run_all_cleanup_routines();
   return 0;
