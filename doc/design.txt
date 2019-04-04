@@ -1,3 +1,42 @@
+UI Auto-Pad
+===========
+
++--------------+-----------------------+------------------------+
+|              |                       |                        |
+|              |                       +------------------------+
+|              |                       |                        |
+|              |                       |                        |
+|              +-----------------------+                        |
+|              |                       |                        |
+|              |                       |                        |
+|              |                       |                        |
+|              +-----------------------+------------------------+
+|              |                                                |
+|              |                                                |
+|              |                                                |
+|              |                                                |
+|              |                                                |
+|              |                                                |
+|              |                                                |
+|              |                                                |
+|              |                                                |
++--------------+------------------------------------------------+
+
+Algo:
+
+  // f will take a view and put spacing in all the innards of it,
+  // but not the outter edge.
+  f( view v ) {
+    for each child view cv of v:
+      cv = f( cv )
+     create hash map(s) to store borders added at this level.
+    for each child view cv of v:
+      for each side of cv:
+        add padding if there is none touching it
+  }
+
+  f( main_view )
+
 Mouse Selection of Units
 ========================
 
