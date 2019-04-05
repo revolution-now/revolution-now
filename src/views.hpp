@@ -139,6 +139,26 @@ private:
 /****************************************************************
 ** Primitive Views
 *****************************************************************/
+// Should not be used directly; will generally be inserted
+// automatically by the auto-pad mechanism.
+class PaddingView : public CompositeView {
+public:
+  PaddingView( std::unique_ptr<View> view, bool l, bool r,
+               bool u, bool d );
+
+  // Implement Object
+  Delta delta() const override;
+
+  // Implement CompositeView
+  PositionedViewConst at_const( int idx ) const override;
+  // Implement CompositeView
+  int count() const override { return 1; }
+
+private:
+  bool l_{false}, r_{false}, u_{false}, d_{false};
+  std::unique_ptr<View> view_;
+};
+
 class SolidRectView : public View {
 public:
   SolidRectView( Color color ) : color_( color ), delta_{} {}

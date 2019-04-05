@@ -35,6 +35,7 @@ CFG( ui,
     FLD( int, border_width )
     FLD( int, window_padding )
     FLD( Color, border_color )
+    FLD( int, ui_padding )
   )
 
   FLD( Str,    game_title )

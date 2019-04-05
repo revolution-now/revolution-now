@@ -2,6 +2,7 @@ window {
   border_width: 1
   window_padding: 3
   border_color: "#0CA0BD"
+  ui_padding: 8
 }
 
 game_title:  "Revolution | Now"

@@ -112,6 +112,31 @@ PositionedViewConst VectorView::at_const( int idx ) const {
 /****************************************************************
 ** Primitive Views
 *****************************************************************/
+PaddingView::PaddingView( std::unique_ptr<View> view, bool l,
+                          bool r, bool u, bool d )
+  : l_( l ),
+    r_( r ),
+    u_( u ),
+    d_( d ),
+    view_( std::move( view ) ) {}
+
+PositionedViewConst PaddingView::at_const( int idx ) const {
+  CHECK( idx == 0 );
+  Coord origin{};
+  if( l_ ) origin += W{config_ui.window.ui_padding};
+  if( u_ ) origin += H{config_ui.window.ui_padding};
+  return {ObserverCPtr<View>( view_.get() ), origin};
+}
+
+Delta PaddingView::delta() const {
+  Delta res = view_->delta();
+  if( l_ ) res.w += W{config_ui.window.ui_padding};
+  if( u_ ) res.h += H{config_ui.window.ui_padding};
+  if( r_ ) res.w += W{config_ui.window.ui_padding};
+  if( d_ ) res.h += H{config_ui.window.ui_padding};
+  return res;
+}
+
 void SolidRectView::draw( Texture const& tx,
                           Coord          coord ) const {
   render_fill_rect( tx, color_, rect( coord ) );
