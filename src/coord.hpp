@@ -122,6 +122,8 @@ struct ND Delta {
   // Will clamp each dimension individually to be within the
   // bounds of the given delta.
   Delta clamp( Delta const& delta ) const;
+
+  int area() const { return w._ * h._; }
 };
 
 struct ND Coord {
@@ -277,6 +279,10 @@ struct ND Rect {
   // Will return y*w + x if the coord is in the rect.
   Opt<int> rasterize( Coord coord );
 
+  int area() const { return delta().area(); }
+
+  // This iterator will iterate over all of the points in the
+  // rect in a well-defined order: top to bottom, left to right.
   struct const_iterator {
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;

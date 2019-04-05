@@ -9,6 +9,7 @@ let s:stems = [
   \ 'src/ui',
   \ 'src/window',
   \ 'src/views',
+  \ 'src/auto-pad',
   \ 'src/text',
   \ 'src/tiles',
   \ 'src/unit',

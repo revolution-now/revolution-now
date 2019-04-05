@@ -14,8 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "errors.hpp"
 #include "coord.hpp"
+#include "errors.hpp"
 #include "typed-int.hpp"
 
 // base-util
@@ -99,7 +99,7 @@ public:
 
   typed_span<T const, X> operator[]( Y y ) const {
     CHECK( y >= Y{0} && size_t( y._ ) < data_.size() );
-    return {&data_[y._ * w_._], w_._};
+    return {&data_[y._ * w_._], w_};
   }
   typed_span<T, X> operator[]( Y y ) {
     CHECK( y >= Y{0} && size_t( y._ ) < data_.size() );
