@@ -96,6 +96,12 @@ public:
   virtual PositionedViewConst at( int idx ) const;
   virtual PositionedView      at( int idx );
 
+  // This has to be implemented if the view holds any state that
+  // must be recomputed if the child views are changed in either
+  // number of geometry. For example, this may be called if the
+  // child views change size.
+  virtual void notify_children_updated() = 0;
+
   struct iter {
     CompositeView* cview;
     int            idx;
@@ -140,6 +146,15 @@ public:
     views_.push_back( std::move( view ) );
   }
 
+  OwningPositionedView const& operator[]( int idx ) const {
+    CHECK( idx >= 0 && idx < int( views_.size() ) );
+    return views_[idx];
+  }
+  OwningPositionedView& operator[]( int idx ) {
+    CHECK( idx >= 0 && idx < int( views_.size() ) );
+    return views_[idx];
+  }
+
 private:
   std::vector<OwningPositionedView> views_;
 };
@@ -163,6 +178,9 @@ public:
   UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 1; }
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
 
 private:
   bool l_{false}, r_{false}, u_{false}, d_{false};
@@ -269,6 +287,8 @@ public:
   UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 2; }
+  // Implement CompositeView
+  void notify_children_updated() override {}
 
 private:
   UPtr<View> ok_;
@@ -285,6 +305,14 @@ public:
   enum class align { left, right, center };
   VerticalArrayView( std::vector<std::unique_ptr<View>> views,
                      align                              how );
+
+  // Implement CompositeView
+  void notify_children_updated() override;
+
+  void recompute_child_positions();
+
+private:
+  align alignment_;
 };
 
 enum class e_( ok_cancel, ok, cancel );
@@ -310,6 +338,8 @@ public:
   UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 2; }
+  // Implement CompositeView
+  void notify_children_updated() override {}
 
   void set_active( e_option_active active ) { active_ = active; }
 
@@ -331,6 +361,9 @@ class OptionSelectView : public VectorView {
 public:
   OptionSelectView( Vec<Str> const& options,
                     int             initial_selection );
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
 
   bool on_key( input::key_event_t const& event ) override;
 

@@ -48,6 +48,20 @@ public:
     return casted;
   }
 
+  template<typename T>
+  Opt<T*> cast_safe() {
+    auto* casted = dynamic_cast<T*>( this );
+    if( !casted ) return std::nullopt;
+    return casted;
+  }
+
+  template<typename T>
+  Opt<T const*> cast_safe() const {
+    auto* casted = dynamic_cast<T const*>( this );
+    if( !casted ) return std::nullopt;
+    return casted;
+  }
+
   virtual void draw( Texture const& tx, Coord coord ) const = 0;
   // This is the physical size of the object in pixels.
   ND virtual Delta delta() const = 0;

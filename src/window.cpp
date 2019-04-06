@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "auto-pad.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
@@ -369,7 +370,6 @@ WindowManager::window& WindowManager::focused() {
 *****************************************************************/
 string select_box( string_view title, Vec<Str> options ) {
   logger->info( "question: \"{}\"", title );
-  std::vector<OwningPositionedView> views;
 
   auto selector = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
@@ -377,12 +377,9 @@ string select_box( string_view title, Vec<Str> options ) {
   auto  finished     = [selector_ptr] {
     return selector_ptr->confirmed();
   };
-  views.emplace_back(
-      OwningPositionedView{move( selector ), Coord{0_y, 0_x}} );
-  auto view = make_unique<VectorView>( move( views ) );
 
   auto* win = g_window_plane.wm.add_window( string( title ),
-                                            move( view ) );
+                                            move( selector ) );
   selector_ptr->grow_to( win->inside_padding_rect().w );
   reset_fade_to_dark( chrono::milliseconds( 1500 ),
                       chrono::milliseconds( 3000 ), 65 );
@@ -442,9 +439,12 @@ void window_test() {
 
   Opt<e_ok_cancel> state;
 
-  auto view = make_unique<OkCancelAdapterView>(
+  auto adapter = make_unique<OkCancelAdapterView>(
       std::move( arr_view ),
       [&state]( auto button ) { state = button; } );
+
+  UPtr<View> view( std::move( adapter ) );
+  autopad( view );
 
   g_window_plane.wm.add_window( string( "Test Window" ),
                                 move( view ) );

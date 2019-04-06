@@ -14,12 +14,15 @@
 
 // Revolution Now
 #include "coord.hpp"
+#include "views.hpp"
 
 // C++ standard library
 #include <vector>
 
-namespace rn::autopad {
+namespace rn {
+
+void autopad( UPtr<ui::View>& view );
 
 void test_autopad();
 
-} // namespace rn::autopad
+} // namespace rn

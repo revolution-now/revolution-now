@@ -327,11 +327,10 @@ OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
         std::move( on_cancel ) ) ) {}
 
 Coord OkCancelView::pos_of( int idx ) const {
-  CHECK( idx == 0 || idx == 1 );
-  auto coord_blocks = Coord{};
-  if( idx == 1 ) coord_blocks += ok_cancel_button_size_blocks.w;
-  coord_blocks *= Scale{8};
-  return coord_blocks;
+  if( idx == 0 ) return Coord{};
+  if( idx == 1 ) return Coord{} + ok_->delta().w;
+  SHOULD_NOT_BE_HERE;
+  return {};
 }
 
 UPtr<View>& OkCancelView::mutable_at( int idx ) {
@@ -340,15 +339,33 @@ UPtr<View>& OkCancelView::mutable_at( int idx ) {
 }
 
 VerticalArrayView::VerticalArrayView(
-    vector<unique_ptr<View>> views, align how ) {
-  W max_width = 0_w;
-  for( auto& view : views )
-    max_width = std::max( max_width, view->delta().w );
-  Y y = 0_y;
+    vector<unique_ptr<View>> views, align how )
+  : alignment_( how ) {
   for( auto& view : views ) {
-    auto size = view->delta();
-    X    x{0};
-    switch( how ) {
+    OwningPositionedView pos_view( std::move( view ), Coord{} );
+    push_back( std::move( pos_view ) );
+  }
+  notify_children_updated();
+}
+
+// When a child view is updated then we must recompute the posi-
+// tions of all the views.
+void VerticalArrayView::notify_children_updated() {
+  recompute_child_positions();
+}
+
+// When a child view is updated then we must recompute the posi-
+// tions of all the views.
+void VerticalArrayView::recompute_child_positions() {
+  W max_width = 0_w;
+  for( int i = 0; i < count(); ++i )
+    max_width = std::max( max_width, at( i ).view->delta().w );
+  Y y = 0_y;
+  for( int i = 0; i < count(); ++i ) {
+    auto& view = mutable_at( i );
+    auto  size = view->delta();
+    X     x{0};
+    switch( alignment_ ) {
       case align::left: x = 0_x; break;
       case align::right: x = 0_x + ( max_width - size.w ); break;
       case align::center:
@@ -359,7 +376,7 @@ VerticalArrayView::VerticalArrayView(
     CHECK( x <= 0_x + max_width );
     OwningPositionedView pos_view( std::move( view ),
                                    Coord{x, y} );
-    push_back( std::move( pos_view ) );
+    ( *this )[i] = std::move( pos_view );
     y += size.h;
   }
 }

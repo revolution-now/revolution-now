@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace rn::autopad {
+namespace rn {
 
 namespace {
 
@@ -203,7 +203,25 @@ void pad( block& b ) {
   b.l = b.r = b.u = b.d = true;
 }
 
+void autopad_composite( ui::CompositeView& view ) {
+  for( int i = 0; i < view.count(); ++i ) {
+    auto& sub_view = view.mutable_at( i );
+    autopad( sub_view );
+    auto new_sub_view = make_unique<ui::PaddingView>(
+        std::move( sub_view ), true, true, true, true );
+    sub_view = std::move( new_sub_view );
+  }
+  view.notify_children_updated();
+}
+
 } // namespace
+
+void autopad( UPtr<ui::View>& view ) {
+  if( auto maybe_composite_view =
+          view->cast_safe<ui::CompositeView>();
+      maybe_composite_view.has_value() )
+    autopad_composite( **maybe_composite_view );
+}
 
 void test_autopad() {
   /* clang-format off
@@ -257,4 +275,4 @@ void test_autopad() {
   fmt::print( "\n" );
 }
 
-} // namespace rn::autopad
+} // namespace rn
