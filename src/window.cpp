@@ -98,12 +98,18 @@ public:
                       std::unique_ptr<View> view,
                       Coord                 position );
 
+  void remove_window( window* ) {
+    // FIXME
+    clear_windows();
+  }
+
   void clear_windows();
 
 private:
   // Gets the window with focus, throws if no windows.
   window& focused();
 
+  // FIXME: should use a container with pointer stability here.
   std::vector<window> windows_;
 };
 
@@ -413,6 +419,30 @@ e_confirm yes_no( string_view title ) {
   };
   auto res = select_box_enum( title, dict );
   return res;
+}
+
+void message_box( std::string_view msg ) {
+  bool pressed_ok = false;
+
+  auto button = make_unique<ButtonView>(
+      "OK", Delta{2_h, 8_w}, [&] { pressed_ok = true; } );
+
+  vector<unique_ptr<View>> view_vec;
+  view_vec.emplace_back( make_unique<OneLineStringView>(
+      string( msg ), Color::banana(), /*shadow=*/false ) );
+  view_vec.emplace_back( std::move( button ) );
+
+  auto msg_view = make_unique<VerticalArrayView>(
+      std::move( view_vec ), VerticalArrayView::align::center );
+
+  UPtr<View> view( std::move( msg_view ) );
+  autopad( view );
+
+  auto* win = g_window_plane.wm.add_window( string( "Alert!" ),
+                                            move( view ) );
+  frame_loop( true, [&] { return pressed_ok; } );
+
+  g_window_plane.wm.remove_window( win );
 }
 
 /****************************************************************

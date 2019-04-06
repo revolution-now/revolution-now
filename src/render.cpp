@@ -26,6 +26,7 @@
 #include "travel.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -625,8 +626,31 @@ struct ViewportPlane : public Plane {
                   .bring_to_front.has_value() ) {
             GET_CHECK_VARIANT( blink_unit, g_viewport_state,
                                viewport_state::blink_unit );
+            auto prio_ids = *maybe_actions->bring_to_front;
+            // Filter out units that have already moved this turn
+            // from being prioritized. This check is not strictly
+            // necessary since the unit would be skipped anyway
+            // if it has already moved this turn. But we do it
+            // anyway because it makes things a bit easier for
+            // the code that will be handling this prioritizing.
+            util::remove_if(
+                prio_ids,
+                L( unit_from_id( _ ).moved_this_turn() ) );
+            // We must distinguish nullopt from empty-list be-
+            // cause any non-nullopt value will cause the current
+            // frame loop to terminate, which we don't want it to
+            // do if there are no units to prioritize.
             blink_unit.prioritize =
-                maybe_actions->bring_to_front;
+                prio_ids.empty() ? nullopt
+                                 : Opt<Vec<UnitId>>( prio_ids );
+            auto orig_size =
+                maybe_actions->bring_to_front->size();
+            auto curr_size = prio_ids.size();
+            CHECK( curr_size <= orig_size );
+            if( curr_size == 0 && orig_size > 0 )
+              ui::message_box(
+                  "The unit(s) on this square have already "
+                  "moved this turn." );
             handled = true;
           }
         }

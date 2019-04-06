@@ -28,6 +28,8 @@ Plane* window_plane();
 
 namespace rn::ui {
 
+void message_box( std::string_view msg );
+
 /****************************************************************
 ** Simple Option-Select Window
 *****************************************************************/

@@ -218,8 +218,23 @@ e_turn_result turn( e_nation nation ) {
           } );
           if( blink_unit.prioritize.has_value() ) {
             CHECK( !blink_unit.orders.has_value() );
-            for( auto prio_id : blink_unit.prioritize.value() )
+            // The code that produces this prioritization list is
+            // a) not supposed to allow exiting the frame loop if
+            // there are no units to prioritize, and b) not sup-
+            // posed to allow any units in the list that have al-
+            // ready moved this turn. Doing this makes this code
+            // here simpler since we don't have to deal with
+            // cases where we go to the trouble of restarting
+            // this while loop just for a unit that won't move
+            // anyway and end up e.g. re-scrolling the viewport
+            // for nothing in the process (non-ideal UI effects).
+            CHECK( blink_unit.prioritize.value().size() > 0 );
+            for( auto prio_id : blink_unit.prioritize.value() ) {
+              auto& prio_unit = unit_from_id( prio_id );
+              CHECK( !prio_unit.moved_this_turn() );
               q.push_front( prio_id );
+              prio_unit.unfinish_turn();
+            }
             continue;
           }
           CHECK( blink_unit.orders.has_value() );
