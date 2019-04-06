@@ -58,6 +58,9 @@ public:
   ObserverPtr<View> view() {
     return ObserverPtr<View>( view_.get() );
   }
+
+  UPtr<View>& mutable_view() { return view_; }
+
   Coord const& coord() const { return coord_; }
   Coord&       coord() { return coord_; }
 
@@ -87,7 +90,10 @@ public:
 
   virtual int count() const = 0;
 
-  virtual PositionedViewConst at_const( int idx ) const = 0;
+  virtual UPtr<View>& mutable_at( int idx )   = 0;
+  virtual Coord       pos_of( int idx ) const = 0;
+
+  virtual PositionedViewConst at( int idx ) const;
   virtual PositionedView      at( int idx );
 
   struct iter {
@@ -100,9 +106,9 @@ public:
   struct citer {
     CompositeView const* cview;
     int                  idx;
-    auto operator*() { return cview->at_const( idx ); }
-    void operator++() { ++idx; }
-    bool operator!=( citer const& rhs ) {
+    auto                 operator*() { return cview->at( idx ); }
+    void                 operator++() { ++idx; }
+    bool                 operator!=( citer const& rhs ) {
       return rhs.idx != idx;
     }
   };
@@ -124,7 +130,9 @@ public:
     : views_( std::move( views ) ) {}
 
   // Implement CompositeView
-  PositionedViewConst at_const( int idx ) const override;
+  Coord pos_of( int idx ) const override;
+  // Implement CompositeView
+  UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return int( views_.size() ); }
 
@@ -150,7 +158,9 @@ public:
   Delta delta() const override;
 
   // Implement CompositeView
-  PositionedViewConst at_const( int idx ) const override;
+  Coord pos_of( int idx ) const override;
+  // Implement CompositeView
+  UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 1; }
 
@@ -254,13 +264,15 @@ public:
                 ButtonView::OnClickFunc on_cancel );
 
   // Implement CompositeView
-  PositionedViewConst at_const( int idx ) const override;
+  Coord pos_of( int idx ) const override;
+  // Implement CompositeView
+  UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 2; }
 
 private:
-  ButtonView ok_;
-  ButtonView cancel_;
+  UPtr<View> ok_;
+  UPtr<View> cancel_;
 };
 
 // VerticalArrayView: a view that wraps a list of views and dis-
@@ -293,24 +305,26 @@ public:
   OptionSelectItemView( std::string msg );
 
   // Implement CompositeView
-  PositionedViewConst at_const( int idx ) const override;
+  Coord pos_of( int idx ) const override;
+  // Implement CompositeView
+  UPtr<View>& mutable_at( int idx ) override;
   // Implement CompositeView
   int count() const override { return 2; }
 
   void set_active( e_option_active active ) { active_ = active; }
 
   std::string const& line() const {
-    return foreground_active_.msg();
+    return foreground_active_->cast<OneLineStringView>()->msg();
   }
 
   void grow_to( W w );
 
 private:
-  e_option_active   active_;
-  SolidRectView     background_active_;
-  SolidRectView     background_inactive_;
-  OneLineStringView foreground_active_;
-  OneLineStringView foreground_inactive_;
+  e_option_active active_;
+  UPtr<View>      background_active_;
+  UPtr<View>      background_inactive_;
+  UPtr<View>      foreground_active_;
+  UPtr<View>      foreground_inactive_;
 };
 
 class OptionSelectView : public VectorView {

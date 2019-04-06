@@ -98,16 +98,25 @@ void CompositeView::children_under_coord( Coord      where,
 }
 
 PositionedView CompositeView::at( int idx ) {
-  auto p_view =
-      static_cast<CompositeView const*>( this )->at_const( idx );
-  ObserverPtr<View> view{const_cast<View*>( p_view.view.get() )};
-  return {view, p_view.coord};
+  ObserverPtr<View> view{
+      const_cast<View*>( mutable_at( idx ).get() )};
+  return {view, pos_of( idx )};
 }
 
-PositionedViewConst VectorView::at_const( int idx ) const {
+PositionedViewConst CompositeView::at( int idx ) const {
+  auto*              this_ = const_cast<CompositeView*>( this );
+  ObserverCPtr<View> view{this_->mutable_at( idx ).get()};
+  return {view, pos_of( idx )};
+}
+
+Coord VectorView::pos_of( int idx ) const {
   CHECK( idx >= 0 && idx < int( views_.size() ) );
-  auto& view = views_[idx];
-  return {view.view(), view.coord()};
+  return views_[idx].coord();
+}
+
+UPtr<View>& VectorView::mutable_at( int idx ) {
+  CHECK( idx >= 0 && idx < int( views_.size() ) );
+  return views_[idx].mutable_view();
 }
 
 /****************************************************************
@@ -121,12 +130,17 @@ PaddingView::PaddingView( std::unique_ptr<View> view, bool l,
     d_( d ),
     view_( std::move( view ) ) {}
 
-PositionedViewConst PaddingView::at_const( int idx ) const {
+Coord PaddingView::pos_of( int idx ) const {
   CHECK( idx == 0 );
-  Coord origin{};
-  if( l_ ) origin += W{config_ui.window.ui_padding};
-  if( u_ ) origin += H{config_ui.window.ui_padding};
-  return {ObserverCPtr<View>( view_.get() ), origin};
+  Coord res{};
+  if( l_ ) res.x += W{config_ui.window.ui_padding};
+  if( u_ ) res.y += H{config_ui.window.ui_padding};
+  return res;
+}
+
+UPtr<View>& PaddingView::mutable_at( int idx ) {
+  CHECK( idx == 0 );
+  return view_;
 }
 
 Delta PaddingView::delta() const {
@@ -305,24 +319,24 @@ constexpr Delta ok_cancel_button_size_blocks{2_h, 8_w};
 
 OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
                             ButtonView::OnClickFunc on_cancel )
-  : ok_( "OK", ok_cancel_button_size_blocks,
-         std::move( on_ok ) ),
-    cancel_( "Cancel", ok_cancel_button_size_blocks,
-             std::move( on_cancel ) ) {}
+  : ok_( make_unique<ButtonView>( "OK",
+                                  ok_cancel_button_size_blocks,
+                                  std::move( on_ok ) ) ),
+    cancel_( make_unique<ButtonView>(
+        "Cancel", ok_cancel_button_size_blocks,
+        std::move( on_cancel ) ) ) {}
 
-PositionedViewConst OkCancelView::at_const( int idx ) const {
-  if( idx == 0 ) {
-    auto coord_blocks = Coord{};
-    return {ObserverCPtr<View>( &ok_ ), coord_blocks * Scale{8}};
-  }
-  if( idx == 1 ) {
-    auto coord_blocks = Coord{};
-    coord_blocks += ok_cancel_button_size_blocks.w;
-    // coord_blocks += 1_w;
-    return {ObserverCPtr<View>( &cancel_ ),
-            coord_blocks * Scale{8}};
-  }
-  SHOULD_NOT_BE_HERE;
+Coord OkCancelView::pos_of( int idx ) const {
+  CHECK( idx == 0 || idx == 1 );
+  auto coord_blocks = Coord{};
+  if( idx == 1 ) coord_blocks += ok_cancel_button_size_blocks.w;
+  coord_blocks *= Scale{8};
+  return coord_blocks;
+}
+
+UPtr<View>& OkCancelView::mutable_at( int idx ) {
+  CHECK( idx == 0 || idx == 1 );
+  return ( idx == 0 ) ? ok_ : cancel_;
 }
 
 VerticalArrayView::VerticalArrayView(
@@ -369,55 +383,59 @@ OkCancelAdapterView::OkCancelAdapterView( UPtr<View>  view,
 *****************************************************************/
 OptionSelectItemView::OptionSelectItemView( string msg )
   : active_{e_option_active::inactive},
-    background_active_{config_palette.yellow.sat1.lum11},
-    background_inactive_{config_palette.orange.sat0.lum3},
-    foreground_active_( msg, config_palette.orange.sat0.lum2,
-                        /*shadow=*/true ),
-    foreground_inactive_( msg, config_palette.orange.sat1.lum11,
-                          /*shadow=*/true ) {
-  auto delta_active   = foreground_active_.delta();
-  auto delta_inactive = foreground_inactive_.delta();
-  background_active_.set_delta( delta_active );
-  background_inactive_.set_delta( delta_inactive );
+    background_active_( make_unique<SolidRectView>(
+        config_palette.yellow.sat1.lum11 ) ),
+    background_inactive_( make_unique<SolidRectView>(
+        config_palette.orange.sat0.lum3 ) ),
+    foreground_active_( make_unique<OneLineStringView>(
+        msg, config_palette.orange.sat0.lum2,
+        /*shadow=*/true ) ),
+    foreground_inactive_( make_unique<OneLineStringView>(
+        msg, config_palette.orange.sat1.lum11,
+        /*shadow=*/true ) ) {
+  auto delta_active   = foreground_active_->delta();
+  auto delta_inactive = foreground_inactive_->delta();
+  background_active_->cast<SolidRectView>()->set_delta(
+      delta_active );
+  background_inactive_->cast<SolidRectView>()->set_delta(
+      delta_inactive );
 }
 
-PositionedViewConst OptionSelectItemView::at_const(
-    int idx ) const {
-  CHECK( idx == 0 || idx == 1 );
-  Coord       coord{};
-  View const* view{};
+Coord OptionSelectItemView::pos_of( int idx ) const {
+  CHECK( idx == 0 );
+  return Coord{};
+}
+
+UPtr<View>& OptionSelectItemView::mutable_at( int idx ) {
+  CHECK( idx == 0 );
   switch( idx ) {
     case 0:
       switch( active_ ) {
-        case e_option_active::active:
-          view = &background_active_;
-          break;
+        case e_option_active::active: return background_active_;
         case e_option_active::inactive:
-          view = &background_inactive_;
-          break;
+          return background_inactive_;
       }
       break;
     case 1:
       switch( active_ ) {
-        case e_option_active::active:
-          view = &foreground_active_;
-          break;
+        case e_option_active::active: return foreground_active_;
         case e_option_active::inactive:
-          view = &foreground_inactive_;
-          break;
+          return foreground_inactive_;
       }
   }
-  return {ObserverCPtr<View>{view}, coord};
+  SHOULD_NOT_BE_HERE;
 }
 
 void OptionSelectItemView::grow_to( W w ) {
-  auto new_delta = foreground_active_.delta();
+  auto new_delta = foreground_active_->delta();
   if( new_delta.w > w )
     // we only grow here, not shrink.
     return;
   new_delta.w = w;
-  background_active_.set_delta( new_delta );
-  background_inactive_.set_delta( new_delta );
+  background_active_->cast<SolidRectView>()->set_delta(
+      new_delta );
+  background_inactive_->cast<SolidRectView>()->set_delta(
+      new_delta );
 }
 
 OptionSelectView::OptionSelectView( Vec<Str> const& options,
@@ -460,7 +478,7 @@ ObserverCPtr<OptionSelectItemView> OptionSelectView::get_view(
     int item ) const {
   CHECK( item >= 0 && item < count(),
          "item '{}' is out of bounds", item );
-  auto* view    = at_const( item ).view.get();
+  auto* view    = at( item ).view.get();
   auto* o_s_i_v = view->cast<OptionSelectItemView>();
   return ObserverCPtr<OptionSelectItemView>{o_s_i_v};
 }
