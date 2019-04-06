@@ -89,6 +89,10 @@ struct ND Delta {
     w += other.w;
     h += other.h;
   }
+  void operator-=( Delta const& other ) {
+    w -= other.w;
+    h -= other.h;
+  }
 
   static Delta const& zero() {
     static Delta const zero{};

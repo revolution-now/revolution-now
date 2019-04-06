@@ -423,16 +423,26 @@ void window_test() {
 
   auto ok_cancel_1 = make_unique<OkCancelView>( [] {}, [] {} );
   auto ok_cancel_2 = make_unique<OkCancelView>( [] {}, [] {} );
+  auto ok_cancel_3 = make_unique<OkCancelView>( [] {}, [] {} );
+  auto ok_cancel_4 = make_unique<OkCancelView>( [] {}, [] {} );
   auto button_1 =
       make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
   auto button_2 =
+      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
+  auto button_3 =
+      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
+  auto button_4 =
       make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
 
   vector<unique_ptr<View>> view_vec;
   view_vec.emplace_back( std::move( ok_cancel_1 ) );
   view_vec.emplace_back( std::move( button_1 ) );
   view_vec.emplace_back( std::move( ok_cancel_2 ) );
+  view_vec.emplace_back( std::move( ok_cancel_3 ) );
   view_vec.emplace_back( std::move( button_2 ) );
+  view_vec.emplace_back( std::move( button_3 ) );
+  view_vec.emplace_back( std::move( ok_cancel_4 ) );
+  view_vec.emplace_back( std::move( button_4 ) );
 
   auto arr_view = make_unique<VerticalArrayView>(
       std::move( view_vec ), VerticalArrayView::align::center );

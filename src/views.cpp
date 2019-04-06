@@ -419,12 +419,12 @@ OptionSelectItemView::OptionSelectItemView( string msg )
 }
 
 Coord OptionSelectItemView::pos_of( int idx ) const {
-  CHECK( idx == 0 );
+  CHECK( idx == 0 || idx == 1 );
   return Coord{};
 }
 
 UPtr<View>& OptionSelectItemView::mutable_at( int idx ) {
-  CHECK( idx == 0 );
+  CHECK( idx == 0 || idx == 1 );
   switch( idx ) {
     case 0:
       switch( active_ ) {

@@ -24,6 +24,8 @@ namespace rn {
 
 namespace {
 
+// This struct stands in for a ui::View in a data structure of
+// recursive block's that mirror the CompositeView structure.
 struct block {
   // Each Rect is in coordinates relative to the origin of its
   // parent.
@@ -85,6 +87,7 @@ struct block {
 };
 
 void print_matrix( Matrix<int> const& m ) {
+  fmt::print( "\n" );
   for( Y y{0}; y < m.rect().bottom_edge(); ++y ) {
     for( X x{0}; x < m.rect().right_edge(); ++x ) {
       auto i = m[y][x];
@@ -99,34 +102,38 @@ void print_matrix( Matrix<int> const& m ) {
     }
     fmt::print( "\n" );
   }
+  fmt::print( "\n" );
 }
 
 // Does [r1,r2] overlap with [r3,r4], where the intervals are
 // closed.
 template<typename T>
 bool overlap( T r1, T r2, T r3, T r4 ) {
-  return ( r1 >= r3 && r1 <= r4 ) || ( r2 >= r3 && r2 <= r4 );
+  return ( r1 >= r3 && r1 <= r4 ) || ( r2 >= r3 && r2 <= r4 ) ||
+         ( r3 >= r1 && r3 <= r2 ) || ( r4 >= r1 && r4 <= r2 );
 }
 
-/*
- *  f will take a view and put spacing in all the innards of it,
- *  but not the outter edge.
- *
- *  f( view v ) {
- *    for each child view cv of v:
- *      cv = f( cv )
- *     create hash map(s) to store borders added at this level.
- *    for each child view cv of v:
- *      for each side of cv:
- *        if side is not on edge:
- *          add padding if there is none touching it
- *  }
- *
- *  f( main_view )
- */
-void pad_impl( block& b ) {
+// f will take a view and put spacing in all the innards of it,
+// but not the outter edge. What is non-trivial in this algo-
+// rithm is that we cannot just put padding around every block,
+// because then there would be too much padding between adjacent
+// blocks; instead the padding has to be merged between blocks
+// so that we have a fixed amount of space between all UI ele-
+// ments regardless of where they are in the block hierarchy.
+//
+//   f( block b ) {
+//     for each child block cb of b:
+//       cb = f( cb )
+//     Create hash map(s) to store borders added at this level.
+//     for each child block cb of b:
+//       for each side of cb:
+//         if side is not on edge:
+//           add padding if there is none touching it
+//   }
+//
+void compute_merged_padding_impl( block& b ) {
   for( auto& [_, sub_block] : b.subdivisions )
-    pad_impl( sub_block );
+    compute_merged_padding_impl( sub_block );
   // These ranges are inclusive.
   absl::flat_hash_map<X, Vec<pair<Y, Y>>> vertical_edges;
   absl::flat_hash_map<Y, Vec<pair<X, X>>> horizontal_edges;
@@ -198,53 +205,135 @@ void pad_impl( block& b ) {
   }
 }
 
-void pad( block& b ) {
-  pad_impl( b );
-  b.l = b.r = b.u = b.d = true;
+void compute_merged_padding( block& b ) {
+  compute_merged_padding_impl( b );
+  // Do not add padding around the outter most one.
+  // b.l = b.r = b.u = b.d = true;
 }
 
-void autopad_composite( ui::CompositeView& view ) {
+void inc_sizes( block& b ) {
+  for( auto& sub_b : b.subdivisions ) inc_sizes( sub_b.second );
+  b.size += Delta{1_w, 1_h};
+}
+
+block derive_blocks_impl( ObserverCPtr<ui::View> view );
+
+block derive_blocks_impl_composite(
+    ui::CompositeView const& view ) {
+  block res( view.delta(), {} );
   for( int i = 0; i < view.count(); ++i ) {
-    auto& sub_view = view.mutable_at( i );
-    autopad( sub_view );
+    auto  p_view    = view.at( i );
+    block sub_block = derive_blocks_impl( p_view.view );
+    block::PositionedBlock p_block{view.pos_of( i ), sub_block};
+    res.subdivisions.push_back( p_block );
+  }
+  return res;
+}
+
+block derive_blocks_impl( ObserverCPtr<ui::View> view ) {
+  if( auto maybe_composite_view =
+          view->cast_safe<ui::CompositeView>();
+      maybe_composite_view.has_value() ) {
+    return derive_blocks_impl_composite(
+        **maybe_composite_view );
+  } else
+    return block( view->delta(), {} );
+}
+
+// This will traverse the view (tree ) hierarchy and construct a
+// block tree structure that mirrors the view structure.
+block derive_blocks( UPtr<ui::View>& view ) {
+  auto block =
+      derive_blocks_impl( ObserverCPtr<ui::View>( view.get() ) );
+
+  // inc_sizes will increment the size of each block by one. This
+  // is because the compute_merged_padding algorithm requires
+  // that the blocks overlap with right/down adjacent blocks by
+  // one square/pixel so that borders overlap and can be merged.
+  // In other words, it's just a quirk of the algorithm. For
+  // blocks that are touch a right/down edge this might not be
+  // necessary, but it doesn't seem to hurt (and is simpler) to
+  // just do it for all blocks.
+  inc_sizes( block );
+
+  return block;
+}
+
+void insert_padding_views( UPtr<ui::View>& view,
+                           block const&    b );
+
+void autopad_impl_composite( ui::CompositeView& view,
+                             block const&       b ) {
+  CHECK( int( b.subdivisions.size() ) == view.count() );
+  for( int i = 0; i < view.count(); ++i ) {
+    auto& sub_view  = view.mutable_at( i );
+    auto& sub_block = b.subdivisions[i].second;
+    insert_padding_views( sub_view, sub_block );
     auto new_sub_view = make_unique<ui::PaddingView>(
-        std::move( sub_view ), true, true, true, true );
+        std::move( sub_view ), sub_block.l, sub_block.r,
+        sub_block.u, sub_block.d );
     sub_view = std::move( new_sub_view );
   }
   view.notify_children_updated();
 }
 
-} // namespace
-
-void autopad( UPtr<ui::View>& view ) {
+void insert_padding_views( UPtr<ui::View>& view,
+                           block const&    b ) {
   if( auto maybe_composite_view =
           view->cast_safe<ui::CompositeView>();
-      maybe_composite_view.has_value() )
-    autopad_composite( **maybe_composite_view );
+      maybe_composite_view.has_value() ) {
+    auto& composite_view = **maybe_composite_view;
+    CHECK( int( b.subdivisions.size() ) ==
+           composite_view.count() );
+    autopad_impl_composite( composite_view, b );
+  } else {
+    CHECK( b.subdivisions.size() == 0 );
+  }
+}
+
+} // namespace
+
+// This will traverse the view (tree) hierarchy and construct a
+// block tree structure that mirrors the view structure. Then the
+// padding analysis will be performed on the block structure, and
+// the results copied into the view structure by inserting
+// PaddingView's where needed.
+void autopad( UPtr<ui::View>& view ) {
+  auto block = derive_blocks( view );
+
+  // Traverse the block structure and enable the l/r/u/d booleans
+  // intelligently to add a single line of padding between all
+  // elements.
+  compute_merged_padding( block );
+
+  // Turn on when debugging.
+  // print_matrix( block.to_matrix() );
+
+  insert_padding_views( view, block );
 }
 
 void test_autopad() {
   /* clang-format off
-   *+--------------+-----------------------+------------------------+
-   *|              |                       |           3            |
-   *|              |                       +------------------------+
-   *|              |           0           |                        |
-   *|              |                       4                        |
-   *|              +-----------------------+                        |
-   *|              |                       |           2            |
-   *|              |           1           |                        |
-   *|              |                       |                        |
-   *|              9--------------+--------+------------------------+
-   *|        8     |              |                                 |
-   *|              |              |                                 |
-   *|              |              |                                 |
-   *|              |              |                                 |
-   *|              |       6      7            5                    |
-   *|              |              |                                 |
-   *|              |              |                                 |
-   *|              |              |                                 |
-   *|              |              |                                 |
-   *+--------------+--------------+---------------------------------+
+   *.................................................................
+   *...............|.......................|...........3.............
+   *...............|.......................+------------------------.
+   *...............|...........0...........|.........................
+   *...............|.......................4.........................
+   *...............+-----------------------+.........................
+   *...............|.......................|...........2.............
+   *...............|...........1...........|.........................
+   *...............|.......................|.........................
+   *...............9--------------+--------+------------------------.
+   *.........8.....|..............|..................................
+   *...............|..............|..................................
+   *...............|..............|..................................
+   *...............|..............|..................................
+   *...............|.......6......7............5.....................
+   *...............|..............|..................................
+   *...............|..............|..................................
+   *...............|..............|..................................
+   *...............|..............|..................................
+   *.................................................................
    * clang-format on
    */
 
@@ -264,15 +353,13 @@ void test_autopad() {
   auto block9 = block( {65_w, 20_h}, {{{15_x, 0_y}, block4},
                                       {{15_x, 9_y}, block7},
                                       {{0_x, 0_y}, block8}} );
-  fmt::print( "\nBefore:\n\n" );
+  fmt::print( "\nBefore:\n" );
   print_matrix( block9.to_matrix() );
 
-  pad( block9 );
+  compute_merged_padding( block9 );
 
-  fmt::print( "\nAfter:\n\n" );
+  fmt::print( "After:\n" );
   print_matrix( block9.to_matrix() );
-
-  fmt::print( "\n" );
 }
 
 } // namespace rn

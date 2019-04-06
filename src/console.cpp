@@ -87,7 +87,7 @@ struct ConsolePlane : public Plane {
     }
   }
 
-  bool enabled_{true};
+  bool enabled_{false};
 };
 
 ConsolePlane g_console_plane;
