@@ -248,25 +248,19 @@ private:
   OnClickFunc on_click_;
 };
 
-enum class e_( ok_cancel, ok, cancel, none );
-
 class OkCancelView : public CompositeView {
 public:
-  OkCancelView();
+  OkCancelView( ButtonView::OnClickFunc on_ok,
+                ButtonView::OnClickFunc on_cancel );
 
   // Implement CompositeView
   PositionedViewConst at_const( int idx ) const override;
   // Implement CompositeView
   int count() const override { return 2; }
 
-  void reset();
-
-  e_ok_cancel state() const { return state_; }
-
 private:
-  e_ok_cancel state_{e_ok_cancel::none};
-  ButtonView  ok_;
-  ButtonView  cancel_;
+  ButtonView ok_;
+  ButtonView cancel_;
 };
 
 // VerticalArrayView: a view that wraps a list of views and dis-
@@ -279,6 +273,14 @@ public:
   enum class align { left, right, center };
   VerticalArrayView( std::vector<std::unique_ptr<View>> views,
                      align                              how );
+};
+
+enum class e_( ok_cancel, ok, cancel );
+
+class OkCancelAdapterView : public VerticalArrayView {
+public:
+  using OnClickFunc = std::function<void( e_ok_cancel )>;
+  OkCancelAdapterView( UPtr<View> view, OnClickFunc on_click );
 };
 
 /****************************************************************

@@ -16,6 +16,7 @@
 #include "fonts.hpp"
 #include "logging.hpp"
 #include "text.hpp"
+#include "util.hpp"
 #include "variant.hpp"
 
 // base-util
@@ -302,11 +303,12 @@ void ButtonView::on_mouse_leave() {
 
 constexpr Delta ok_cancel_button_size_blocks{2_h, 8_w};
 
-OkCancelView::OkCancelView()
+OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
+                            ButtonView::OnClickFunc on_cancel )
   : ok_( "OK", ok_cancel_button_size_blocks,
-         [this] { this->state_ = e_ok_cancel::ok; } ),
+         std::move( on_ok ) ),
     cancel_( "Cancel", ok_cancel_button_size_blocks,
-             [this] { this->state_ = e_ok_cancel::cancel; } ) {}
+             std::move( on_cancel ) ) {}
 
 PositionedViewConst OkCancelView::at_const( int idx ) const {
   if( idx == 0 ) {
@@ -316,14 +318,12 @@ PositionedViewConst OkCancelView::at_const( int idx ) const {
   if( idx == 1 ) {
     auto coord_blocks = Coord{};
     coord_blocks += ok_cancel_button_size_blocks.w;
-    coord_blocks += 1_w;
+    // coord_blocks += 1_w;
     return {ObserverCPtr<View>( &cancel_ ),
             coord_blocks * Scale{8}};
   }
   SHOULD_NOT_BE_HERE;
 }
-
-void OkCancelView::reset() { state_ = e_ok_cancel::none; }
 
 VerticalArrayView::VerticalArrayView(
     vector<unique_ptr<View>> views, align how ) {
@@ -349,6 +349,20 @@ VerticalArrayView::VerticalArrayView(
     y += size.h;
   }
 }
+
+OkCancelAdapterView::OkCancelAdapterView( UPtr<View>  view,
+                                          OnClickFunc on_click )
+  : VerticalArrayView(
+        params_to_vector<UPtr<View>>(
+            std::move( view ),
+            make_unique<OkCancelView>(
+                /*on_ok=*/
+                [on_click]() { on_click( e_ok_cancel::ok ); },
+                /*on_cancel=*/
+                [on_click]() {
+                  on_click( e_ok_cancel::cancel );
+                } ) ),
+        VerticalArrayView::align::center ) {}
 
 /****************************************************************
 ** Derived Views

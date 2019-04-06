@@ -19,6 +19,7 @@
 // c++ standard library
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -58,5 +59,11 @@ using ObserverPtr = ::nonstd::observer_ptr<T>;
 
 template<typename T>
 using ObserverCPtr = ObserverPtr<T const>;
+
+template<typename T>
+using UPtr = ::std::unique_ptr<T>;
+
+template<typename T>
+using UCPtr = ::std::unique_ptr<T const>;
 
 namespace rn {} // namespace rn

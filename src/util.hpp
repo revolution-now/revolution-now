@@ -230,4 +230,14 @@ void copy_common_base_object( From const& from, To& to ) {
       *( static_cast<Base const*>( &from ) );
 }
 
+// All the parameters must be either the result type or convert-
+// ible to the result type.
+template<typename Res, typename... T>
+auto params_to_vector( T&&... ts ) {
+  std::vector<Res> res;
+  res.reserve( sizeof...( T ) );
+  ( res.push_back( std::forward<T>( ts ) ), ... );
+  return res;
+}
+
 } // namespace rn
