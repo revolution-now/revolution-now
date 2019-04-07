@@ -269,11 +269,16 @@ void autopad_impl_composite( ui::CompositeView& view,
   for( int i = 0; i < view.count(); ++i ) {
     auto& sub_view  = view.mutable_at( i );
     auto& sub_block = b.subdivisions[i].second;
+    // Always try padding the sub views themselves, even if this
+    // view has should_pad_inside() == false, because that only
+    // applies to this level in the hierarchy, not recursively.
     insert_padding_views( sub_view, sub_block, pixels );
-    auto new_sub_view = make_unique<ui::PaddingView>(
-        std::move( sub_view ), pixels, sub_block.l, sub_block.r,
-        sub_block.u, sub_block.d );
-    sub_view = std::move( new_sub_view );
+    if( view.should_pad_inside() ) {
+      auto new_sub_view = make_unique<ui::PaddingView>(
+          std::move( sub_view ), pixels, sub_block.l,
+          sub_block.r, sub_block.u, sub_block.d );
+      sub_view = std::move( new_sub_view );
+    }
   }
   view.notify_children_updated();
 }

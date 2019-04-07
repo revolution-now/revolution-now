@@ -35,6 +35,9 @@
 #include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
 // c++ standard library
 #include <algorithm>
 #include <functional>
@@ -447,25 +450,24 @@ void message_box( std::string_view msg ) {
   g_window_plane.wm.remove_window( win );
 }
 
-void unit_selection_box() {
-  /*
+Vec<UnitSelectionResult> unit_selection_box(
+    Vec<UnitId> const& ids_, bool allow_activation ) {
+  /* First we assemble this structure:
+   *
    * OkCancelAdapter
    * +-VerticalScrollView // TODO
-   *   +-UnitClearOrdersView
-   *     +-VerticalArrayView
-   *       |-...
-   *       |-HorizontalArrayView
-   *       | |-OneLineTextView
-   *       | +-AddSelectBorderView
-   *       |   +-ClickableView
-   *       |     +-FakeUnitView
-   *       |       +-SpriteView
-   *       +-...
+   *   +-VerticalArrayView
+   *     |-...
+   *     |-HorizontalArrayView
+   *     | |-OneLineTextView
+   *     | +-AddSelectBorderView
+   *     |   +-ClickableView
+   *     |     +-FakeUnitView
+   *     |       +-SpriteView
+   *     +-...
    */
 
   g_window_plane.wm.clear_windows();
-
-  Vec<UnitId> ids{0_id, 1_id, 2_id};
 
   auto cmp = []( UnitId l, UnitId r ) {
     auto const& unit1 = unit_from_id( l ).desc();
@@ -476,9 +478,85 @@ void unit_selection_box() {
     return false;
   };
 
+  auto ids = ids_;
   sort( ids.begin(), ids.end(), cmp );
 
   Vec<UPtr<View>> units_vec;
+
+  // Holds the state of each unit in the window as the player is
+  // selecting them and cycling them through the states.
+  struct UnitInfo {
+    e_unit_orders original_orders;
+    e_unit_orders current_orders;
+    bool          is_activated;
+  };
+
+  absl::flat_hash_map<UnitId, UnitInfo> infos;
+  for( auto id : ids ) {
+    auto const& unit = unit_from_id( id );
+
+    UnitInfo info{/*original_orders=*/unit.orders(),
+                  /*current_orders=*/unit.orders(),
+                  /*is_activated=*/false};
+    infos[id] = info;
+  }
+  CHECK( ids.size() == infos.size() );
+
+  /* Each click on a unit cycles it through one the following cy-
+   * cles depending on whether it initially had orders and
+   * whether or not it is the end of turn:
+   *
+   * Orders=Fortified:
+   *   Not End-of-turn:
+   *     Fortified --> No Orders --> No Orders+Prio --> ...
+   *   End-of-turn:
+   *     Fortified --> No Orders --> ...
+   * Orders=None:
+   *   Not End-of-turn:
+   *     No Orders --> No Orders+Prioritized --> ...
+   *   End-of-turn:
+   *     No Orders --> ...
+   */
+  auto on_click_unit = [&infos, allow_activation]( UnitId id ) {
+    CHECK( infos.contains( id ) );
+    UnitInfo& info = infos[id];
+    if( info.original_orders != e_unit_orders::none ) {
+      if( allow_activation ) {
+        // Orders --> No Orders --> No Orders+Prio --> ...
+        if( info.current_orders != e_unit_orders::none ) {
+          CHECK( !info.is_activated );
+          info.current_orders = e_unit_orders::none;
+        } else if( info.is_activated ) {
+          CHECK( info.current_orders == e_unit_orders::none );
+          info.current_orders = info.original_orders;
+          info.is_activated   = false;
+        } else {
+          CHECK( !info.is_activated );
+          info.is_activated = true;
+        }
+      } else {
+        // Orders --> No Orders --> ...
+        CHECK( !info.is_activated );
+        if( info.current_orders != e_unit_orders::none ) {
+          info.current_orders = e_unit_orders::none;
+        } else {
+          info.current_orders = info.original_orders;
+        }
+      }
+    } else {
+      if( allow_activation ) {
+        // No Orders --> No Orders+Prioritized --> ...
+        CHECK( info.original_orders == e_unit_orders::none );
+        CHECK( info.current_orders == e_unit_orders::none );
+        info.is_activated = !info.is_activated;
+      } else {
+        // No Orders --> ...
+        CHECK( info.original_orders == e_unit_orders::none );
+        CHECK( info.current_orders == e_unit_orders::none );
+        CHECK( !info.is_activated );
+      }
+    }
+  };
 
   for( auto id : ids ) {
     auto const& unit = unit_from_id( id );
@@ -486,10 +564,42 @@ void unit_selection_box() {
     auto fake_unit_view = make_unique<FakeUnitView>(
         unit.desc().type, unit.nation(), unit.orders() );
 
-    units_vec.emplace_back( std::move( fake_unit_view ) );
+    auto* fake_unit_view_ptr = fake_unit_view.get();
+
+    auto border_view = make_unique<BorderView>(
+        std::move( fake_unit_view ), Color::white(),
+        /*padding=*/1,
+        /*on_initially=*/false );
+
+    auto* border_view_ptr = border_view.get();
+
+    auto clickable = make_unique<ClickableView>(
+        // Capture local variables by value.
+        std::move( border_view ),
+        [&infos, id, fake_unit_view_ptr, border_view_ptr,
+         &on_click_unit] {
+          logger->debug( "clicked on {}", debug_string( id ) );
+          on_click_unit( id );
+          CHECK( infos.contains( id ) );
+          auto& info = infos[id];
+          fake_unit_view_ptr->set_orders( info.current_orders );
+          border_view_ptr->on( info.is_activated );
+        } );
+
+    auto unit_label = make_unique<OneLineStringView>(
+        unit.desc().name, Color::banana(), /*shadow=*/true );
+
+    Vec<UPtr<View>> horizontal_vec;
+    horizontal_vec.emplace_back( std::move( clickable ) );
+    horizontal_vec.emplace_back( std::move( unit_label ) );
+    auto horizontal_view = make_unique<HorizontalArrayView>(
+        std::move( horizontal_vec ),
+        HorizontalArrayView::align::middle );
+
+    units_vec.emplace_back( std::move( horizontal_view ) );
   }
   auto arr_view = make_unique<VerticalArrayView>(
-      std::move( units_vec ), VerticalArrayView::align::center );
+      std::move( units_vec ), VerticalArrayView::align::left );
 
   Opt<e_ok_cancel> state;
 
@@ -508,12 +618,32 @@ void unit_selection_box() {
     logger->info( "Pressed `{}`.", state );
     if( state == e_ok_cancel::cancel ) break;
   }
+
+  Vec<UnitSelectionResult> res;
+  for( auto const& [id, info] : infos ) {
+    if( info.is_activated ) {
+      CHECK( info.current_orders == e_unit_orders::none );
+      res.push_back( {id, e_unit_selection_result::activate} );
+    } else if( info.current_orders != info.original_orders ) {
+      CHECK( info.current_orders == e_unit_orders::none );
+      res.push_back(
+          {id, e_unit_selection_result::clear_orders} );
+    }
+  }
+
   g_window_plane.wm.clear_windows();
+
+  return res;
 }
 
 /****************************************************************
 ** Testing Only
 *****************************************************************/
-void window_test() { unit_selection_box(); }
+void window_test() {
+  auto res = unit_selection_box( {0_id, 1_id, 2_id},
+                                 /*allow_activation=*/true );
+  for( auto r : res )
+    logger->debug( "r: {} -> {}", r.id, r.result );
+}
 
 } // namespace rn::ui

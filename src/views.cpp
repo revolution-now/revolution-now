@@ -268,11 +268,31 @@ PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
                              ( l ? W{pixels} : 0_w ) + //
                              ( u ? H{pixels} : 0_h ) ),
     pixels_( pixels ),
+    l_( l ),
+    r_( r ),
+    u_( u ),
+    d_( d ),
     delta_( single()->delta() + //
             ( l ? W{pixels_} : 0_w ) +
             ( u ? H{pixels_} : 0_h ) + //
             ( r ? W{pixels_} : 0_w ) + //
             ( d ? H{pixels_} : 0_h ) ) {}
+
+void PaddingView::notify_children_updated() {
+  delta_ = single()->delta() + //
+           ( l_ ? W{pixels_} : 0_w ) +
+           ( u_ ? H{pixels_} : 0_h ) + //
+           ( r_ ? W{pixels_} : 0_w ) + //
+           ( d_ ? H{pixels_} : 0_h );
+}
+
+// This prevents more padding from being added (this is already
+// ad padding view).
+bool PaddingView::should_pad_inside() const {
+  // If we're asking whether we can add padding into a
+  // PaddingView then something has gone wrong somewhere.
+  SHOULD_NOT_BE_HERE;
+}
 
 ButtonView::ButtonView( string label, OnClickFunc on_click )
   : ButtonBaseView( std::move( label ) ),
@@ -383,6 +403,49 @@ void VerticalArrayView::recompute_child_positions() {
                                    Coord{x, y} );
     ( *this )[i] = std::move( pos_view );
     y += size.h;
+  }
+}
+
+HorizontalArrayView::HorizontalArrayView(
+    vector<unique_ptr<View>> views, align how )
+  : alignment_( how ) {
+  for( auto& view : views ) {
+    OwningPositionedView pos_view( std::move( view ), Coord{} );
+    push_back( std::move( pos_view ) );
+  }
+  notify_children_updated();
+}
+
+// When a child view is updated then we must recompute the posi-
+// tions of all the views.
+void HorizontalArrayView::notify_children_updated() {
+  recompute_child_positions();
+}
+
+// When a child view is updated then we must recompute the posi-
+// tions of all the views.
+void HorizontalArrayView::recompute_child_positions() {
+  H max_height = 0_h;
+  for( int i = 0; i < count(); ++i )
+    max_height = std::max( max_height, at( i ).view->delta().h );
+  X x = 0_x;
+  for( int i = 0; i < count(); ++i ) {
+    auto& view = mutable_at( i );
+    auto  size = view->delta();
+    Y     y{0};
+    switch( alignment_ ) {
+      case align::up: y = 0_y; break;
+      case align::down: y = 0_y + ( max_height - size.h ); break;
+      case align::middle:
+        y = 0_y + ( max_height / 2 - size.h / 2 );
+        break;
+    }
+    CHECK( y >= 0_y );
+    CHECK( y <= 0_y + max_height );
+    OwningPositionedView pos_view( std::move( view ),
+                                   Coord{x, y} );
+    ( *this )[i] = std::move( pos_view );
+    x += size.w;
   }
 }
 
@@ -558,6 +621,40 @@ FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
 void FakeUnitView::draw( Texture const& tx, Coord coord ) const {
   this->CompositeSingleView::draw( tx, coord );
   render_nationality_icon( tx, type_, nation_, orders_, coord );
+}
+
+ClickableView::ClickableView(
+    UPtr<View> view, std::function<void( void )> on_click )
+  : CompositeSingleView( std::move( view ), Coord{} ),
+    on_click_( std::move( on_click ) ) {}
+
+bool ClickableView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  if( event.buttons == input::e_mouse_button_event::left_up )
+    on_click_();
+  return true;
+}
+
+BorderView::BorderView( UPtr<View> view, Color color,
+                        int padding, bool on_initially )
+  : CompositeSingleView(
+        std::move( view ),
+        Coord{1_x + W{padding}, 1_y + H{padding}} ),
+    color_( color ),
+    on_( on_initially ),
+    padding_( padding ) {}
+
+Delta BorderView::delta() const {
+  return this->CompositeSingleView::delta() +
+         Delta{( 1_w + W{padding_} ) * 2_sx,
+               ( 1_h + H{padding_} ) * 2_sy};
+}
+
+void BorderView::draw( Texture const& tx, Coord coord ) const {
+  this->CompositeSingleView::draw(
+      tx, coord + Delta{1_w + W{padding_}, 1_h + H{padding_}} );
+  if( on_ )
+    render_rect( tx, color_, Rect::from( coord, delta() ) );
 }
 
 } // namespace rn::ui

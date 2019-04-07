@@ -14,6 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "enum.hpp"
+#include "id.hpp"
 
 // c++ standard library
 #include <string_view>
@@ -29,6 +31,19 @@ Plane* window_plane();
 namespace rn::ui {
 
 void message_box( std::string_view msg );
+
+enum class e_( unit_selection_result, //
+               clear_orders,          //
+               activate               // implies clear_orders
+);
+
+struct UnitSelectionResult {
+  UnitId                  id;
+  e_unit_selection_result result;
+};
+
+Vec<UnitSelectionResult> unit_selection_box(
+    Vec<UnitId> const& ids_, bool allow_activation );
 
 /****************************************************************
 ** Simple Option-Select Window

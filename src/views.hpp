@@ -97,6 +97,16 @@ public:
   virtual UPtr<View>& mutable_at( int idx )   = 0;
   virtual Coord       pos_of( int idx ) const = 0;
 
+  // By default this view will be eligible for auto-padding of
+  // its consituent views (that means adding padding between
+  // them). However this is not always desireable and so can be
+  // turned off. Turning this off only means that padding will
+  // not be added on the inside of this view, not on its border.
+  // Also, it only means that padding will be suppressed between
+  // the views that are immediate children of this view, i.e.,
+  // this will not apply recursively.
+  virtual bool should_pad_inside() const { return true; }
+
   virtual PositionedViewConst at( int idx ) const;
   virtual PositionedView      at( int idx );
 
@@ -293,10 +303,13 @@ public:
   Delta delta() const override { return delta_; }
 
   // Implement CompositeView
-  void notify_children_updated() override {}
+  void notify_children_updated() override;
+
+  bool should_pad_inside() const override;
 
 private:
   int   pixels_;
+  bool  l_, r_, u_, d_;
   Delta delta_;
 };
 
@@ -346,6 +359,26 @@ public:
   enum class align { left, right, center };
   VerticalArrayView( std::vector<std::unique_ptr<View>> views,
                      align                              how );
+
+  // Implement CompositeView
+  void notify_children_updated() override;
+
+  void recompute_child_positions();
+
+private:
+  align alignment_;
+};
+
+// HorizontalArrayView: a view that wraps a list of views and
+// displays them horizontally. On creation, one can specify how
+// to justify the views, either up, down, or middle. This ques-
+// tion of justification arises because the views in the array
+// will generally have different heights.
+class HorizontalArrayView : public VectorView {
+public:
+  enum class align { up, down, middle };
+  HorizontalArrayView( std::vector<std::unique_ptr<View>> views,
+                       align                              how );
 
   // Implement CompositeView
   void notify_children_updated() override;
@@ -436,6 +469,48 @@ private:
   e_unit_type   type_;
   e_nation      nation_;
   e_unit_orders orders_;
+};
+
+class ClickableView : public CompositeSingleView {
+public:
+  using OnClick = std::function<void( void )>;
+
+  ClickableView( UPtr<View> view, OnClick on_click );
+
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+private:
+  OnClick on_click_;
+};
+
+class BorderView : public CompositeSingleView {
+public:
+  // padding is how many pixels between inner view and border.
+  BorderView( UPtr<View> view, Color color, int padding,
+              bool on_initially );
+
+  // Implement Object
+  void draw( Texture const& tx, Coord coord ) const override;
+  // Implement Object
+  Delta delta() const override;
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  bool should_pad_inside() const override { return false; }
+
+  void toggle() { on_ = !on_; }
+  void on( bool v ) { on_ = v; }
+  bool is_on() const { return on_; }
+
+private:
+  Color color_;
+  bool  on_;
+  int   padding_;
 };
 
 } // namespace rn::ui

@@ -154,12 +154,12 @@ Implementation. There will be the following new views:
     derlying view because that view would not handle it by as-
     sumption.
 
-  - AddSelectBorderView: a view that contains a boolean that,
-    when true, causes a highlight/border of a given color to be
-    painted around the contained view.
+  - BorderView: a view that contains a boolean that, when true,
+    causes a highlight/border of a given color to be painted
+    around the contained view.
 
-  - AdjacentLabelView: a view that takes a view and renders it
-    alongside some short one-line text label vertically centered.
+  - HorizontalArrayView: a view that takes multiple views and
+    renders them horizontally with top/bottom/middle alignment.
 
   - PaddingView: a view that takes another view and just adds
     some padding around it.
@@ -171,19 +171,9 @@ Implementation. There will be the following new views:
     because the views in the array will generally have different
     widths.
 
-  - UnitClearOrdersView: It will contain a VerticalArrayView pop-
-    ulated initially with a list of real units (each unit being
-    comprised of a FakeUnitView wrapped in a ClickableView
-    wrapped in an AddSelectBorderView wrapped in an AdjacentLa-
-    belView). It handles handling the clicks; when the player
-    clicks on a unit it will be recorded, white border will be
-    set, etc. But changes not applied to the underlying units
-    until OK button is pressed.
-
-  - VerticalScrollView: this will be needed because the Unit-
-    ClearOrdersView will sometimes be too big to fit on screen.
-    However, for now, it will be left as a stub with no
-    scrolling.
+  - VerticalScrollView: this will be needed because the contents
+    will sometimes be too big to fit on screen. However, for now,
+    it will be left as a stub with no scrolling.
 
   - OkCancelView: a view that contains an OK and Cancel button
     net to each other (can specify either vertically or horizon-
@@ -201,34 +191,28 @@ Here is the view structure:
     OkCancelAdapter
     +-VerticalArrayView
       +-VerticalScrollView
-      | +-UnitClearOrdersView
-      |   +-VerticalArrayView
-      |     |-...
-      |     |-HorizontalArrayView
-      |     | |-OneLineTextView
-      |     | +-AddSelectBorderView
-      |     |   +-ClickableView
-      |     |     +-FakeUnitView
-      |     |       +-SpriteView
-      |     +-...
+      | +-VerticalArrayView
+      |   |-...
+      |   |-HorizontalArrayView
+      |   | |-OneLineTextView
+      |   | +-AddSelectBorderView
+      |   |   +-ClickableView
+      |   |     +-FakeUnitView
+      |   |       +-SpriteView
+      |   +-...
       +-OkCancelView
         |-ButtonView
         +-ButtonView
 
 Then there will be a ok_cancel_window function will will take a
-view (in this case, a UnitClearOrdersView) and will use the Ok-
-CancelAdapter to show it in a window along with two OK/Cancel
-buttons at the bottom and will keep the window open until the
-user presses one of the buttons.
+view and will use the OkCancelAdapter to show it in a window
+along with two OK/Cancel buttons at the bottom and will keep the
+window open until the user presses one of the buttons.
 
-At that point, any changes made will be gathered from the Unit-
-ClearOrdersView and applied. Calling unit.clear_orders() should
-be sufficient. Furthermore, if there were any units selected for
-prioritization then this list will be returned and applied by the
-`turn` module.
-
-The UnitClearOrdersView will hold all the state that will be read
-after the player clicks the OK button.
+At that point, any changes made will be gathered and applied.
+Calling unit.clear_orders() should be sufficient. Furthermore, if
+there were any units selected for prioritization then this list
+will be returned and applied by the `turn` module.
 
 Eventually the VerticalScrollView can be implemented and that
 will automatically add a scroll bar to the window if it gets too
