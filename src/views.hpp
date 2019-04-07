@@ -23,7 +23,7 @@ namespace rn::ui {
 // window.cpp.
 
 /****************************************************************
-** Views
+** Fundamental Views
 *****************************************************************/
 class View : public Object {};
 
@@ -160,33 +160,8 @@ private:
 };
 
 /****************************************************************
-** Primitive Views
+** Simple Views
 *****************************************************************/
-// Should not be used directly; will generally be inserted
-// automatically by the auto-pad mechanism.
-class PaddingView : public CompositeView {
-public:
-  PaddingView( std::unique_ptr<View> view, bool l, bool r,
-               bool u, bool d );
-
-  // Implement Object
-  Delta delta() const override;
-
-  // Implement CompositeView
-  Coord pos_of( int idx ) const override;
-  // Implement CompositeView
-  UPtr<View>& mutable_at( int idx ) override;
-  // Implement CompositeView
-  int count() const override { return 1; }
-
-  // Implement CompositeView
-  void notify_children_updated() override {}
-
-private:
-  bool l_{false}, r_{false}, u_{false}, d_{false};
-  std::unique_ptr<View> view_;
-};
-
 class SolidRectView : public View {
 public:
   SolidRectView( Color color ) : color_( color ), delta_{} {}
@@ -259,6 +234,34 @@ private:
   Texture disabled_{};
 };
 
+/****************************************************************
+** Derived Views
+*****************************************************************/
+// Should not be used directly; will generally be inserted
+// automatically by the auto-pad mechanism.
+class PaddingView : public CompositeView {
+public:
+  PaddingView( std::unique_ptr<View> view, bool l, bool r,
+               bool u, bool d );
+
+  // Implement Object
+  Delta delta() const override;
+
+  // Implement CompositeView
+  Coord pos_of( int idx ) const override;
+  // Implement CompositeView
+  UPtr<View>& mutable_at( int idx ) override;
+  // Implement CompositeView
+  int count() const override { return 1; }
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+private:
+  bool l_{false}, r_{false}, u_{false}, d_{false};
+  std::unique_ptr<View> view_;
+};
+
 class ButtonView : public ButtonBaseView {
 public:
   using OnClickFunc = std::function<void( void )>;
@@ -323,9 +326,6 @@ public:
   OkCancelAdapterView( UPtr<View> view, OnClickFunc on_click );
 };
 
-/****************************************************************
-** Derived Views
-*****************************************************************/
 enum class e_option_active { inactive, active };
 
 class OptionSelectItemView : public CompositeView {

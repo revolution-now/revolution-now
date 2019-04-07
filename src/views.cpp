@@ -32,7 +32,7 @@ namespace rn::ui {
 namespace {} // namespace
 
 /****************************************************************
-** Views
+** Fundamental Views
 *****************************************************************/
 void CompositeView::draw( Texture const& tx,
                           Coord          coord ) const {
@@ -120,38 +120,8 @@ UPtr<View>& VectorView::mutable_at( int idx ) {
 }
 
 /****************************************************************
-** Primitive Views
+** Simple Views
 *****************************************************************/
-PaddingView::PaddingView( std::unique_ptr<View> view, bool l,
-                          bool r, bool u, bool d )
-  : l_( l ),
-    r_( r ),
-    u_( u ),
-    d_( d ),
-    view_( std::move( view ) ) {}
-
-Coord PaddingView::pos_of( int idx ) const {
-  CHECK( idx == 0 );
-  Coord res{};
-  if( l_ ) res.x += W{config_ui.window.ui_padding};
-  if( u_ ) res.y += H{config_ui.window.ui_padding};
-  return res;
-}
-
-UPtr<View>& PaddingView::mutable_at( int idx ) {
-  CHECK( idx == 0 );
-  return view_;
-}
-
-Delta PaddingView::delta() const {
-  Delta res = view_->delta();
-  if( l_ ) res.w += W{config_ui.window.ui_padding};
-  if( u_ ) res.h += H{config_ui.window.ui_padding};
-  if( r_ ) res.w += W{config_ui.window.ui_padding};
-  if( d_ ) res.h += H{config_ui.window.ui_padding};
-  return res;
-}
-
 void SolidRectView::draw( Texture const& tx,
                           Coord          coord ) const {
   render_fill_rect( tx, color_, rect( coord ) );
@@ -267,6 +237,39 @@ void ButtonBaseView::render( string const& label,
   copy_texture( tx_hover, hover_, unpressed_coord );
   copy_texture( tx_pressed, pressed_, pressed_coord );
   copy_texture( tx_disabled, disabled_, unpressed_coord );
+}
+
+/****************************************************************
+** Derived Views
+*****************************************************************/
+PaddingView::PaddingView( std::unique_ptr<View> view, bool l,
+                          bool r, bool u, bool d )
+  : l_( l ),
+    r_( r ),
+    u_( u ),
+    d_( d ),
+    view_( std::move( view ) ) {}
+
+Coord PaddingView::pos_of( int idx ) const {
+  CHECK( idx == 0 );
+  Coord res{};
+  if( l_ ) res.x += W{config_ui.window.ui_padding};
+  if( u_ ) res.y += H{config_ui.window.ui_padding};
+  return res;
+}
+
+UPtr<View>& PaddingView::mutable_at( int idx ) {
+  CHECK( idx == 0 );
+  return view_;
+}
+
+Delta PaddingView::delta() const {
+  Delta res = view_->delta();
+  if( l_ ) res.w += W{config_ui.window.ui_padding};
+  if( u_ ) res.h += H{config_ui.window.ui_padding};
+  if( r_ ) res.w += W{config_ui.window.ui_padding};
+  if( d_ ) res.h += H{config_ui.window.ui_padding};
+  return res;
 }
 
 ButtonView::ButtonView( string label, OnClickFunc on_click )
@@ -395,9 +398,6 @@ OkCancelAdapterView::OkCancelAdapterView( UPtr<View>  view,
                 } ) ),
         VerticalArrayView::align::center ) {}
 
-/****************************************************************
-** Derived Views
-*****************************************************************/
 OptionSelectItemView::OptionSelectItemView( string msg )
   : active_{e_option_active::inactive},
     background_active_( make_unique<SolidRectView>(
