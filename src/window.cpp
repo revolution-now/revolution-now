@@ -612,27 +612,30 @@ Vec<UnitSelectionResult> unit_selection_box(
 
   g_window_plane.wm.add_window( string( "Test Window" ),
                                 move( view ) );
-  while( true ) {
-    state = nullopt;
-    frame_loop( true, [&state] { return state != nullopt; } );
-    logger->info( "Pressed `{}`.", state );
-    if( state == e_ok_cancel::cancel ) break;
-  }
+
+  frame_loop( true, [&state] { return state != nullopt; } );
+  logger->info( "pressed `{}`.", state );
 
   Vec<UnitSelectionResult> res;
-  for( auto const& [id, info] : infos ) {
-    if( info.is_activated ) {
-      CHECK( info.current_orders == e_unit_orders::none );
-      res.push_back( {id, e_unit_selection_result::activate} );
-    } else if( info.current_orders != info.original_orders ) {
-      CHECK( info.current_orders == e_unit_orders::none );
-      res.push_back(
-          {id, e_unit_selection_result::clear_orders} );
+
+  if( state == e_ok_cancel::ok ) {
+    for( auto const& [id, info] : infos ) {
+      if( info.is_activated ) {
+        CHECK( info.current_orders == e_unit_orders::none );
+        res.push_back( {id, e_unit_selection_result::activate} );
+      } else if( info.current_orders != info.original_orders ) {
+        CHECK( info.current_orders == e_unit_orders::none );
+        res.push_back(
+            {id, e_unit_selection_result::clear_orders} );
+      }
     }
   }
 
   g_window_plane.wm.clear_windows();
 
+  for( auto r : res )
+    logger->debug( "selection: {} --> {}", debug_string( r.id ),
+                   r.result );
   return res;
 }
 
@@ -640,10 +643,8 @@ Vec<UnitSelectionResult> unit_selection_box(
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  auto res = unit_selection_box( {0_id, 1_id, 2_id},
-                                 /*allow_activation=*/true );
-  for( auto r : res )
-    logger->debug( "r: {} -> {}", r.id, r.result );
+  unit_selection_box( {0_id, 1_id, 2_id},
+                      /*allow_activation=*/true );
 }
 
 } // namespace rn::ui
