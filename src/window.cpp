@@ -450,8 +450,8 @@ void message_box( std::string_view msg ) {
   g_window_plane.wm.remove_window( win );
 }
 
-Vec<UnitSelectionResult> unit_selection_box(
-    Vec<UnitId> const& ids_, bool allow_activation ) {
+Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
+                                       bool allow_activation ) {
   /* First we assemble this structure:
    *
    * OkCancelAdapter
@@ -616,17 +616,16 @@ Vec<UnitSelectionResult> unit_selection_box(
   frame_loop( true, [&state] { return state != nullopt; } );
   logger->info( "pressed `{}`.", state );
 
-  Vec<UnitSelectionResult> res;
+  Vec<UnitSelection> res;
 
   if( state == e_ok_cancel::ok ) {
     for( auto const& [id, info] : infos ) {
       if( info.is_activated ) {
         CHECK( info.current_orders == e_unit_orders::none );
-        res.push_back( {id, e_unit_selection_result::activate} );
+        res.push_back( {id, e_unit_selection::activate} );
       } else if( info.current_orders != info.original_orders ) {
         CHECK( info.current_orders == e_unit_orders::none );
-        res.push_back(
-            {id, e_unit_selection_result::clear_orders} );
+        res.push_back( {id, e_unit_selection::clear_orders} );
       }
     }
   }
@@ -635,16 +634,13 @@ Vec<UnitSelectionResult> unit_selection_box(
 
   for( auto r : res )
     logger->debug( "selection: {} --> {}", debug_string( r.id ),
-                   r.result );
+                   r.what );
   return res;
 }
 
 /****************************************************************
 ** Testing Only
 *****************************************************************/
-void window_test() {
-  unit_selection_box( {0_id, 1_id, 2_id},
-                      /*allow_activation=*/true );
-}
+void window_test() {}
 
 } // namespace rn::ui

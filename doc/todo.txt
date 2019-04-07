@@ -1,9 +1,26 @@
 =================================================================
+TODO
+=================================================================
+
+  - Add a cache to the cache module that invalidates when the
+    scaling is changed. This will facilitate the next item.
+  - Modify the `screen` module to handle all quantities that de-
+    pend on the rendering scale, and allow dynamic changes to it,
+    still fullscreen.
+  - Allow non-fullscreen mode, window resizing, and automatic ad-
+    justing of scale.
+
+  - Allow multiple windows.
+  - Test unit selection window with end-of-turn window.
+  - Quick workaround to avoid end-of-turn window.
+  - Make windows model.
+
+=================================================================
 UI
 =================================================================
 
-  - Implement mouse selection of units to e.g. activate.
-  - End-of-turn button
+  - Next Turn button
+  - Escape cancels Ok/Cancel windows.
   - Minimap
 
 =================================================================
@@ -38,7 +55,7 @@ Basic Game Mechanics
         - goto
         x wait / forfeight
         x moving to friendly squares
-        - click on unit to clear orders / open orders window.
+        x click on unit to clear orders / open orders window.
         x disband
 
     * Land Units
@@ -78,6 +95,14 @@ Old World View
   - old world view
   - unit immigration
   - purchasing units
+
+=================================================================
+Frame Control / Animations
+=================================================================
+
+  - Create an animation module that handles managing elapsed time
+    for animations and scrolling so that the feel of the inter-
+    face will not change with framerate.
 
 =================================================================
 Cargo

@@ -46,6 +46,13 @@ ND std::unordered_set<UnitId> const& units_from_coord( Y y,
                                                        X x );
 ND std::unordered_set<UnitId> const& units_from_coord( Coord c );
 
+// This will give all units that are on a square or are cargo of
+// units on that square. This should not recurse more than one
+// level deep (beyond the first) because it is a game rule that a
+// unit cannot be held as cargo if it itself if capable of
+// holding cargo (e.g., a ship can't hold a wagon as cargo).
+Vec<UnitId> units_from_coord_recursive( Coord coord );
+
 ND Opt<e_nation> nation_from_coord( Coord coord );
 
 // This is in the rare cases that we need to change a unit's po-

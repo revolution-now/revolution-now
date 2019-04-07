@@ -180,6 +180,17 @@ unordered_set<UnitId> const& units_from_coord( Coord c ) {
   return units_from_coord( c.y, c.x );
 }
 
+Vec<UnitId> units_from_coord_recursive( Coord coord ) {
+  Vec<UnitId> res;
+  for( auto id : units_from_coord( coord ) ) {
+    res.push_back( id );
+    auto held_units =
+        unit_from_id( id ).cargo().items_of_type<UnitId>();
+    for( auto held_id : held_units ) res.push_back( held_id );
+  }
+  return res;
+}
+
 Opt<e_nation> nation_from_coord( Coord coord ) {
   auto const& units = units_from_coord( coord );
   if( units.empty() ) return nullopt;
@@ -238,6 +249,14 @@ void ownership_change_to_cargo( UnitId new_holder,
   // Make sure that we're not adding the unit to its own cargo.
   // Should never happen theoretically, but...
   CHECK( new_holder != held );
+  // Check that the proposed `held` unit cannot itself hold
+  // cargo, because it is a game rule that cargo-holding units
+  // cannot be cargo of other units.
+  CHECK( unit_from_id( held ).desc().cargo_slots == 0 );
+  // Check that the proposed `held` unit can occupy cargo.
+  CHECK( unit_from_id( held )
+             .desc()
+             .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // We're clear (at least on our end).
   ownership_disown_unit( held );

@@ -36,6 +36,31 @@ namespace rn {
 
 namespace {
 
+// For each unit in the queue, remove all occurrences of it after
+// the first. Duplicate ids in the queue is not actually a prob-
+// lem, since a unit will just be passed up if it has already
+// moved. Hence this is not strictly necessary, but leads to a
+// smoother user experience in situations where units are sponta-
+// neously prioritized in the queue.
+void deduplicate_q( deque<UnitId>* q ) {
+  deque<UnitId>               new_q;
+  absl::flat_hash_set<UnitId> s;
+  for( auto id : *q ) {
+    if( s.contains( id ) ) continue;
+    s.insert( id );
+    new_q.push_back( id );
+  }
+  *q = new_q;
+}
+
+// Log the first few ids in the queue and print ... if there are
+// more than 10.
+void log_q( deque<UnitId> const& q ) {
+  auto   q_str = rng_to_string( q | rv::take( 10 ) );
+  string dots  = q.size() > 10 ? " ..." : "";
+  logger->debug( "queue front: {}{}", q_str, dots );
+}
+
 bool animate_move( TravelAnalysis const& analysis ) {
   CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
   auto type = get<e_unit_travel_good>( analysis.desc );
@@ -196,6 +221,8 @@ e_turn_result turn( e_nation nation ) {
       while( CHECK_INL( !q.empty() ) && q.front() == id &&
              unit.orders_mean_input_required() &&
              !unit.moved_this_turn() ) {
+        deduplicate_q( &q );
+        log_q( q );
         logger->debug( "asking orders for: {}",
                        debug_string( id ) );
         orders_taken = true;
@@ -214,22 +241,25 @@ e_turn_result turn( e_nation nation ) {
           blink_unit.id = id;
           frame_loop( true, [&blink_unit] {
             return blink_unit.orders.has_value() ||
-                   blink_unit.prioritize.has_value();
+                   blink_unit.prioritize.size() > 0;
           } );
-          if( blink_unit.prioritize.has_value() ) {
+          for( auto add_id : blink_unit.add_to_back ) {
+            auto& add_unit = unit_from_id( add_id );
+            q.push_back( add_id );
+            add_unit.unfinish_turn();
+          }
+          if( blink_unit.prioritize.size() > 0 ) {
             CHECK( !blink_unit.orders.has_value() );
             // The code that produces this prioritization list is
-            // a) not supposed to allow exiting the frame loop if
-            // there are no units to prioritize, and b) not sup-
-            // posed to allow any units in the list that have al-
-            // ready moved this turn. Doing this makes this code
-            // here simpler since we don't have to deal with
-            // cases where we go to the trouble of restarting
-            // this while loop just for a unit that won't move
-            // anyway and end up e.g. re-scrolling the viewport
-            // for nothing in the process (non-ideal UI effects).
-            CHECK( blink_unit.prioritize.value().size() > 0 );
-            for( auto prio_id : blink_unit.prioritize.value() ) {
+            // not supposed to allow any units in the list that
+            // have already moved this turn. Doing this makes
+            // this code here simpler since we don't have to deal
+            // with cases where we go to the trouble of
+            // restarting this while loop just for a unit that
+            // won't move anyway and end up e.g. re-scrolling the
+            // viewport for nothing in the process (non-ideal UI
+            // effects).
+            for( auto prio_id : blink_unit.prioritize ) {
               auto& prio_unit = unit_from_id( prio_id );
               CHECK( !prio_unit.moved_this_turn() );
               q.push_front( prio_id );

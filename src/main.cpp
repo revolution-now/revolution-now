@@ -83,7 +83,7 @@ void game() {
 int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines();
   game();
-  ui::window_test();
+  // ui::window_test();
   run_all_cleanup_routines();
   return 0;
 

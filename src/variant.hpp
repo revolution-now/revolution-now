@@ -61,4 +61,12 @@ Base const* variant_base_ptr( std::variant<Args...> const& v ) {
   } );
 }
 
+// A wrapper around scelta::visit which allows taking the variant
+// as the first argument.
+template<typename Ret, typename Visited, typename... Args>
+auto match( Visited&& visited, Args&&... args ) {
+  return scelta::match<Ret>( std::forward<Args>( args )... )(
+      std::forward<Visited>( visited ) );
+}
+
 } // namespace rn

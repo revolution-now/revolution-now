@@ -378,82 +378,86 @@ namespace {
 
 ViewportState g_viewport_state{viewport_state::none{}};
 
+// If this is default constructed then it should represent "no
+// actions need to be taken."
 struct ClickTileActions {
-  Opt<Vec<UnitId>> bring_to_front{};
+  Vec<UnitId> bring_to_front{};
+  Vec<UnitId> add_to_back{};
 };
 
-// This actually gets called on both end-of-turn and blink-unit.
-Opt<ClickTileActions> click_on_world_tile_eot( Coord coord ) {
-  logger->debug( "click-tile-eot: {}", coord );
-  auto const& units = units_from_coord( coord );
+// This gets called when the player clicks on a square containing
+// units and will clear their orders and/or activate them. The
+// allow_activate flag must be true in order for any units to ei-
+// ther be prioritized (meaning that the current blinking unit is
+// pre-empted by the new one) or added to the back of the queue
+// (so that they will move later in the turn). This is because
+// the allow_activate=false is used during end of turn when it
+// doesn't make sense to do any manipulation of the queue.
+ClickTileActions click_on_world_tile_impl(
+    Coord coord, bool allow_activate ) {
+  ClickTileActions result{};
+  logger->debug( "clicked on tile {}, allow_activate={}", coord,
+                 allow_activate );
+  auto const& units = units_from_coord_recursive( coord );
   if( units.size() == 0 ) {
     logger->debug( "no units on square." );
-    return {};
+    return result;
   }
   if( units.size() == 1 ) {
     auto id = *units.begin();
     logger->debug( "unit on square: {}", debug_string( id ) );
     auto& unit = unit_from_id( id );
     if( unit.orders() == e_unit_orders::none ) {
-      logger->debug( "no orders." );
-      auto maybe_held_units = unit.units_in_cargo();
-      if( maybe_held_units.has_value() &&
-          maybe_held_units.value().size() > 0 ) {
-        // This will be true if the unit is able to hold cargo
-        // and it has some units as cargo.
-        NOT_IMPLEMENTED;
+      if( allow_activate ) {
+        logger->debug( "activating." );
+        result.bring_to_front.push_back( id );
+        return result;
+      } else {
+        // No action.
+        logger->debug( "no action." );
+        return result;
       }
-      // No action.
-      return {};
     } else {
       logger->debug( "clearing orders." );
       unit.clear_orders();
-      return ClickTileActions{};
+      if( allow_activate ) result.add_to_back.push_back( id );
+      return result;
     }
   } else {
-    NOT_IMPLEMENTED; // multiple units on square
-  }
-  SHOULD_NOT_BE_HERE;
-  return {};
-}
-
-Opt<ClickTileActions> click_on_world_tile_blink( Coord coord ) {
-  logger->debug( "click-tile-blink: {}", coord );
-  auto const& units = units_from_coord( coord );
-  if( units.size() == 0 ) {
-    logger->debug( "no units on square (2)." );
-    return {};
-  }
-  if( units.size() == 1 ) {
-    auto id = *units.begin();
-    logger->debug( "unit on square (2): {}",
-                   debug_string( id ) );
-    auto& unit = unit_from_id( id );
-    if( unit.orders() == e_unit_orders::none ) {
-      logger->debug( "bringing unit {} to front.",
-                     debug_string( id ) );
-      // The unit is placed at the front of the orders queue.
-      // Whether it moves this turn will depend if it has already
-      // moved or not. The unit currently asking for orders is
-      // given a `wait`.
-      return ClickTileActions{/*bring_to_front=*/{{id}}};
-    } else {
-      // The eot function should have cleared the units orders.
-      // So therefore, we...
-      SHOULD_NOT_BE_HERE;
+    auto selections =
+        ui::unit_selection_box( units, allow_activate );
+    for( auto const& selection : selections ) {
+      auto& sel_unit = unit_from_id( selection.id );
+      switch( selection.what ) {
+        case +ui::e_unit_selection::clear_orders:
+          logger->debug( "clearing orders for {}.",
+                         debug_string( sel_unit ) );
+          sel_unit.clear_orders();
+          if( allow_activate )
+            result.add_to_back.push_back( selection.id );
+          break;
+        case +ui::e_unit_selection::activate:
+          CHECK( allow_activate );
+          logger->debug( "activating {}.",
+                         debug_string( sel_unit ) );
+          // Activation implies also to clear orders if they're
+          // not already cleared.
+          sel_unit.clear_orders();
+          result.bring_to_front.push_back( selection.id );
+          break;
+      }
     }
-  } else {
-    NOT_IMPLEMENTED; // multiple units on square
+    return result;
   }
-  SHOULD_NOT_BE_HERE;
 }
 
 // This function will handle all the actions that can happen as a
 // result of the player "clicking" on a world tile. This can in-
 // clude activiting units, popping up windows, etc.
-Opt<ClickTileActions> click_on_world_tile( Coord coord ) {
-  using Res_t  = Opt<ClickTileActions>;
-  auto matcher = scelta::match<Res_t>(
+ClickTileActions click_on_world_tile( Coord coord ) {
+  using Res_t = ClickTileActions;
+  return match<Res_t>(
+      g_viewport_state,
       []( viewport_state::slide_unit const& ) {
         return Res_t{};
       },
@@ -462,24 +466,14 @@ Opt<ClickTileActions> click_on_world_tile( Coord coord ) {
       },
       // During end of turn.
       [&]( viewport_state::none const& ) {
-        return click_on_world_tile_eot( coord );
-      } )( //
+        return click_on_world_tile_impl(
+            coord, /*allow_activate=*/false );
+      },
       // During unit blinking.
-      [&]( auto self, viewport_state::blink_unit const& ) {
-        // We forward this request to the end-of-turn case be-
-        // cause, during unit blinking, we will always either a)
-        // do the same as in end-of-turn, or b) to the same as
-        // end-of-turn on the first player click but then do
-        // extra stuff on the second click. This is to eliminate
-        // redundancy. Once again, this function will return
-        // false if it did not make any changes or show any win-
-        // dows.
-        auto none = ViewportState{viewport_state::none{}};
-        auto maybe_actions = self( none );
-        if( maybe_actions ) return maybe_actions;
-        return click_on_world_tile_blink( coord );
+      [&]( viewport_state::blink_unit const& ) {
+        return click_on_world_tile_impl(
+            coord, /*allow_activate=*/true );
       } );
-  return matcher( g_viewport_state );
 }
 
 struct ViewportPlane : public Plane {
@@ -627,14 +621,23 @@ struct ViewportPlane : public Plane {
         // See if the cursor has clicked on a tile in the
         // viewport.
         if( maybe_tile.has_value() ) {
-          auto maybe_actions =
-              click_on_world_tile( *maybe_tile );
-          if( maybe_actions.has_value() &&
-              maybe_actions.value()
-                  .bring_to_front.has_value() ) {
+          auto actions = click_on_world_tile( *maybe_tile );
+          if( !actions.add_to_back.empty() ) {
             GET_CHECK_VARIANT( blink_unit, g_viewport_state,
                                viewport_state::blink_unit );
-            auto prio_ids = *maybe_actions->bring_to_front;
+            // Note: the blink_unit.add_to_back vector is not
+            // necessarily empty at this point, because ids can
+            // accumulate in that vector until something causes
+            // the frame loop to exit.
+            for( auto id : actions.add_to_back )
+              blink_unit.add_to_back.push_back( id );
+          }
+          if( !actions.bring_to_front.empty() ) {
+            GET_CHECK_VARIANT( blink_unit, g_viewport_state,
+                               viewport_state::blink_unit );
+            // This should be emptied each time it is filled.
+            CHECK( blink_unit.prioritize.empty() );
+            blink_unit.prioritize = actions.bring_to_front;
             // Filter out units that have already moved this turn
             // from being prioritized. This check is not strictly
             // necessary since the unit would be skipped anyway
@@ -642,25 +645,22 @@ struct ViewportPlane : public Plane {
             // anyway because it makes things a bit easier for
             // the code that will be handling this prioritizing.
             util::remove_if(
-                prio_ids,
+                blink_unit.prioritize,
                 L( unit_from_id( _ ).moved_this_turn() ) );
-            // We must distinguish nullopt from empty-list be-
-            // cause any non-nullopt value will cause the current
-            // frame loop to terminate, which we don't want it to
-            // do if there are no units to prioritize.
-            blink_unit.prioritize =
-                prio_ids.empty() ? nullopt
-                                 : Opt<Vec<UnitId>>( prio_ids );
-            auto orig_size =
-                maybe_actions->bring_to_front->size();
-            auto curr_size = prio_ids.size();
+
+            auto orig_size = actions.bring_to_front.size();
+            auto curr_size = blink_unit.prioritize.size();
             CHECK( curr_size <= orig_size );
-            if( curr_size == 0 && orig_size > 0 )
+            if( curr_size == 0 )
               ui::message_box(
-                  "The unit(s) on this square have already "
+                  "The selected unit(s) have already moved this "
+                  "turn." );
+            else if( curr_size < orig_size )
+              ui::message_box(
+                  "Some of the selected units have already "
                   "moved this turn." );
-            handled = true;
           }
+          handled = true;
         }
       }
       default_v_no_check;

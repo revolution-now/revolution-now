@@ -32,18 +32,18 @@ namespace rn::ui {
 
 void message_box( std::string_view msg );
 
-enum class e_( unit_selection_result, //
-               clear_orders,          //
-               activate               // implies clear_orders
+enum class e_( unit_selection, //
+               clear_orders,   //
+               activate        // implies clear_orders
 );
 
-struct UnitSelectionResult {
-  UnitId                  id;
-  e_unit_selection_result result;
+struct UnitSelection {
+  UnitId           id;
+  e_unit_selection what;
 };
 
-Vec<UnitSelectionResult> unit_selection_box(
-    Vec<UnitId> const& ids_, bool allow_activation );
+Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
+                                       bool allow_activation );
 
 /****************************************************************
 ** Simple Option-Select Window

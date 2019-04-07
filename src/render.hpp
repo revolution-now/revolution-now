@@ -67,7 +67,14 @@ struct blink_unit {
   Opt<orders_t> orders{};
   // Units that the player has asked to prioritize (i.e., bring
   // them forward in the queue of units waiting for orders).
-  Opt<Vec<UnitId>> prioritize{};
+  Vec<UnitId> prioritize{};
+  // Units that the player has asked to add to the orders queue
+  // but at the end. This is useful if a unit that is sentry'd
+  // has already been removed from the queue (without asking for
+  // orders) and later in the same turn had its orders cleared by
+  // the player (but not prioritized), this will allow it to ask
+  // for orders this turn.
+  Vec<UnitId> add_to_back{};
 };
 
 struct slide_unit {
