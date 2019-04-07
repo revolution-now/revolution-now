@@ -15,6 +15,7 @@
 #include "coord.hpp"
 #include "fonts.hpp"
 #include "logging.hpp"
+#include "render.hpp"
 #include "text.hpp"
 #include "util.hpp"
 #include "variant.hpp"
@@ -107,6 +108,20 @@ PositionedViewConst CompositeView::at( int idx ) const {
   auto*              this_ = const_cast<CompositeView*>( this );
   ObserverCPtr<View> view{this_->mutable_at( idx ).get()};
   return {view, pos_of( idx )};
+}
+
+CompositeSingleView::CompositeSingleView( UPtr<View> view,
+                                          Coord      coord )
+  : view_( std::move( view ) ), coord_( coord ) {}
+
+Coord CompositeSingleView::pos_of( int idx ) const {
+  CHECK( idx == 0 );
+  return coord_;
+}
+
+UPtr<View>& CompositeSingleView::mutable_at( int idx ) {
+  CHECK( idx == 0 );
+  return view_;
 }
 
 Coord VectorView::pos_of( int idx ) const {
@@ -239,38 +254,25 @@ void ButtonBaseView::render( string const& label,
   copy_texture( tx_disabled, disabled_, unpressed_coord );
 }
 
+void SpriteView::draw( Texture const& tx, Coord coord ) const {
+  render_sprite( tx, tile_, coord, 0, 0 );
+}
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/
-PaddingView::PaddingView( std::unique_ptr<View> view, bool l,
-                          bool r, bool u, bool d )
-  : l_( l ),
-    r_( r ),
-    u_( u ),
-    d_( d ),
-    view_( std::move( view ) ) {}
-
-Coord PaddingView::pos_of( int idx ) const {
-  CHECK( idx == 0 );
-  Coord res{};
-  if( l_ ) res.x += W{config_ui.window.ui_padding};
-  if( u_ ) res.y += H{config_ui.window.ui_padding};
-  return res;
-}
-
-UPtr<View>& PaddingView::mutable_at( int idx ) {
-  CHECK( idx == 0 );
-  return view_;
-}
-
-Delta PaddingView::delta() const {
-  Delta res = view_->delta();
-  if( l_ ) res.w += W{config_ui.window.ui_padding};
-  if( u_ ) res.h += H{config_ui.window.ui_padding};
-  if( r_ ) res.w += W{config_ui.window.ui_padding};
-  if( d_ ) res.h += H{config_ui.window.ui_padding};
-  return res;
-}
+PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
+                          bool l, bool r, bool u, bool d )
+  : CompositeSingleView( std::move( view ),
+                         Coord{} +                     //
+                             ( l ? W{pixels} : 0_w ) + //
+                             ( u ? H{pixels} : 0_h ) ),
+    pixels_( pixels ),
+    delta_( single()->delta() + //
+            ( l ? W{pixels_} : 0_w ) +
+            ( u ? H{pixels_} : 0_h ) + //
+            ( r ? W{pixels_} : 0_w ) + //
+            ( d ? H{pixels_} : 0_h ) ) {}
 
 ButtonView::ButtonView( string label, OnClickFunc on_click )
   : ButtonBaseView( std::move( label ) ),
@@ -542,6 +544,20 @@ bool OptionSelectView::on_key(
 
 string const& OptionSelectView::get_selected() const {
   return get_view( selected_ )->line();
+}
+
+FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
+                            e_unit_orders orders )
+  : CompositeSingleView(
+        make_unique<SpriteView>( unit_desc( type ).tile ),
+        Coord{} ),
+    type_( type ),
+    nation_( nation ),
+    orders_( orders ) {}
+
+void FakeUnitView::draw( Texture const& tx, Coord coord ) const {
+  this->CompositeSingleView::draw( tx, coord );
+  render_nationality_icon( tx, type_, nation_, orders_, coord );
 }
 
 } // namespace rn::ui

@@ -238,7 +238,7 @@ void CombatAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
 
   CHECK( !unit.moved_this_turn() );
-  CHECK( unit.orders() == Unit::e_orders::none );
+  CHECK( unit.orders() == e_unit_orders::none );
   CHECK( allowed() );
   CHECK( target_unit.has_value() );
   CHECK( fight_stats.has_value() );

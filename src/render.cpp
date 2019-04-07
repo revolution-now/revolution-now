@@ -145,7 +145,7 @@ Texture const& render_nationality_icon( e_nation nation,
 void render_nationality_icon( Texture const&        dest,
                               UnitDescriptor const& desc,
                               e_nation              nation,
-                              Unit::e_orders        orders,
+                              e_unit_orders         orders,
                               Coord pixel_coord ) {
   // Now we will advance the pixel_coord to put the icon at the
   // location specified in the unit descriptor.
@@ -170,12 +170,20 @@ void render_nationality_icon( Texture const&        dest,
 
   char c{'-'}; // gcc seems to want us to initialize this
   switch( orders ) {
-    case Unit::e_orders::none: c = '-'; break;
-    case Unit::e_orders::sentry: c = 'S'; break;
-    case Unit::e_orders::fortified: c = 'F'; break;
+    case +e_unit_orders::none: c = '-'; break;
+    case +e_unit_orders::sentry: c = 'S'; break;
+    case +e_unit_orders::fortified: c = 'F'; break;
   };
   auto const& nat_icon = render_nationality_icon( nation, c );
   copy_texture( nat_icon, dest, pixel_coord );
+}
+
+void render_nationality_icon( Texture const& dest,
+                              e_unit_type type, e_nation nation,
+                              e_unit_orders orders,
+                              Coord         pixel_coord ) {
+  render_nationality_icon( dest, unit_desc( type ), nation,
+                           orders, pixel_coord );
 }
 
 void render_nationality_icon( Texture const& dest, UnitId id,
@@ -386,7 +394,7 @@ Opt<ClickTileActions> click_on_world_tile_eot( Coord coord ) {
     auto id = *units.begin();
     logger->debug( "unit on square: {}", debug_string( id ) );
     auto& unit = unit_from_id( id );
-    if( unit.orders() == Unit::e_orders::none ) {
+    if( unit.orders() == e_unit_orders::none ) {
       logger->debug( "no orders." );
       auto maybe_held_units = unit.units_in_cargo();
       if( maybe_held_units.has_value() &&
@@ -421,7 +429,7 @@ Opt<ClickTileActions> click_on_world_tile_blink( Coord coord ) {
     logger->debug( "unit on square (2): {}",
                    debug_string( id ) );
     auto& unit = unit_from_id( id );
-    if( unit.orders() == Unit::e_orders::none ) {
+    if( unit.orders() == e_unit_orders::none ) {
       logger->debug( "bringing unit {} to front.",
                      debug_string( id ) );
       // The unit is placed at the front of the orders queue.

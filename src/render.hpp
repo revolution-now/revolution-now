@@ -36,6 +36,11 @@ struct Plane;
 void render_unit( Texture const& tx, UnitId id,
                   Coord texture_square );
 
+void render_nationality_icon( Texture const& dest,
+                              e_unit_type type, e_nation nation,
+                              e_unit_orders orders,
+                              Coord         pixel_coord );
+
 /****************************************************************
 ** Viewport Rendering
 *****************************************************************/

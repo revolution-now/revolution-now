@@ -22,6 +22,7 @@
 namespace rn {
 
 void autopad( UPtr<ui::View>& view );
+void autopad( UPtr<ui::View>& view, int pixels );
 
 void test_autopad();
 

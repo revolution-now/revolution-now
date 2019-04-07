@@ -381,7 +381,7 @@ void TravelAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
 
   CHECK( !unit.moved_this_turn() );
-  CHECK( unit.orders() == Unit::e_orders::none );
+  CHECK( unit.orders() == e_unit_orders::none );
   CHECK( allowed() );
 
   e_unit_travel_good outcome = get<e_unit_travel_good>( desc );
@@ -426,7 +426,7 @@ void TravelAnalysis::affect_orders_() const {
     case e_unit_travel_good::offboard_ship:
       ownership_change_to_map( id, move_target );
       unit.forfeight_mv_points();
-      CHECK( unit.orders() == Unit::e_orders::none );
+      CHECK( unit.orders() == e_unit_orders::none );
       break;
     case e_unit_travel_good::land_fall:
       // Just activate all the units on the ship that have not

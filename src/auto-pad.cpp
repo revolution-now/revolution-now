@@ -11,6 +11,7 @@
 #include "auto-pad.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "util.hpp"
@@ -259,33 +260,33 @@ block derive_blocks( UPtr<ui::View>& view ) {
   return block;
 }
 
-void insert_padding_views( UPtr<ui::View>& view,
-                           block const&    b );
+void insert_padding_views( UPtr<ui::View>& view, block const& b,
+                           int pixels );
 
 void autopad_impl_composite( ui::CompositeView& view,
-                             block const&       b ) {
+                             block const& b, int pixels ) {
   CHECK( int( b.subdivisions.size() ) == view.count() );
   for( int i = 0; i < view.count(); ++i ) {
     auto& sub_view  = view.mutable_at( i );
     auto& sub_block = b.subdivisions[i].second;
-    insert_padding_views( sub_view, sub_block );
+    insert_padding_views( sub_view, sub_block, pixels );
     auto new_sub_view = make_unique<ui::PaddingView>(
-        std::move( sub_view ), sub_block.l, sub_block.r,
+        std::move( sub_view ), pixels, sub_block.l, sub_block.r,
         sub_block.u, sub_block.d );
     sub_view = std::move( new_sub_view );
   }
   view.notify_children_updated();
 }
 
-void insert_padding_views( UPtr<ui::View>& view,
-                           block const&    b ) {
+void insert_padding_views( UPtr<ui::View>& view, block const& b,
+                           int pixels ) {
   if( auto maybe_composite_view =
           view->cast_safe<ui::CompositeView>();
       maybe_composite_view.has_value() ) {
     auto& composite_view = **maybe_composite_view;
     CHECK( int( b.subdivisions.size() ) ==
            composite_view.count() );
-    autopad_impl_composite( composite_view, b );
+    autopad_impl_composite( composite_view, b, pixels );
   } else {
     CHECK( b.subdivisions.size() == 0 );
   }
@@ -298,7 +299,7 @@ void insert_padding_views( UPtr<ui::View>& view,
 // padding analysis will be performed on the block structure, and
 // the results copied into the view structure by inserting
 // PaddingView's where needed.
-void autopad( UPtr<ui::View>& view ) {
+void autopad( UPtr<ui::View>& view, int pixels ) {
   auto block = derive_blocks( view );
 
   // Traverse the block structure and enable the l/r/u/d booleans
@@ -309,7 +310,11 @@ void autopad( UPtr<ui::View>& view ) {
   // Turn on when debugging.
   // print_matrix( block.to_matrix() );
 
-  insert_padding_views( view, block );
+  insert_padding_views( view, block, pixels );
+}
+
+void autopad( UPtr<ui::View>& view ) {
+  autopad( view, config_ui.window.ui_padding );
 }
 
 void test_autopad() {

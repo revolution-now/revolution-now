@@ -19,6 +19,7 @@
 #include "frame.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "ownership.hpp"
 #include "plane.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -26,6 +27,7 @@
 #include "tiles.hpp"
 #include "typed-int.hpp"
 #include "ui.hpp"
+#include "unit.hpp"
 #include "util.hpp"
 #include "views.hpp"
 
@@ -445,37 +447,49 @@ void message_box( std::string_view msg ) {
   g_window_plane.wm.remove_window( win );
 }
 
-/****************************************************************
-** Testing Only
-*****************************************************************/
-void window_test() {
+void unit_selection_box() {
+  /*
+   * OkCancelAdapter
+   * +-VerticalScrollView // TODO
+   *   +-UnitClearOrdersView
+   *     +-VerticalArrayView
+   *       |-...
+   *       |-HorizontalArrayView
+   *       | |-OneLineTextView
+   *       | +-AddSelectBorderView
+   *       |   +-ClickableView
+   *       |     +-FakeUnitView
+   *       |       +-SpriteView
+   *       +-...
+   */
+
   g_window_plane.wm.clear_windows();
 
-  auto ok_cancel_1 = make_unique<OkCancelView>( [] {}, [] {} );
-  auto ok_cancel_2 = make_unique<OkCancelView>( [] {}, [] {} );
-  auto ok_cancel_3 = make_unique<OkCancelView>( [] {}, [] {} );
-  auto ok_cancel_4 = make_unique<OkCancelView>( [] {}, [] {} );
-  auto button_1 =
-      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
-  auto button_2 =
-      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
-  auto button_3 =
-      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
-  auto button_4 =
-      make_unique<ButtonView>( "OK", Delta{2_h, 8_w}, [] {} );
+  Vec<UnitId> ids{0_id, 1_id, 2_id};
 
-  vector<unique_ptr<View>> view_vec;
-  view_vec.emplace_back( std::move( ok_cancel_1 ) );
-  view_vec.emplace_back( std::move( button_1 ) );
-  view_vec.emplace_back( std::move( ok_cancel_2 ) );
-  view_vec.emplace_back( std::move( ok_cancel_3 ) );
-  view_vec.emplace_back( std::move( button_2 ) );
-  view_vec.emplace_back( std::move( button_3 ) );
-  view_vec.emplace_back( std::move( ok_cancel_4 ) );
-  view_vec.emplace_back( std::move( button_4 ) );
+  auto cmp = []( UnitId l, UnitId r ) {
+    auto const& unit1 = unit_from_id( l ).desc();
+    auto const& unit2 = unit_from_id( r ).desc();
+    if( unit1.boat && !unit2.boat ) return true;
+    if( unit1.cargo_slots > unit2.cargo_slots ) return true;
+    if( unit1.attack_points > unit2.attack_points ) return true;
+    return false;
+  };
 
+  sort( ids.begin(), ids.end(), cmp );
+
+  Vec<UPtr<View>> units_vec;
+
+  for( auto id : ids ) {
+    auto const& unit = unit_from_id( id );
+
+    auto fake_unit_view = make_unique<FakeUnitView>(
+        unit.desc().type, unit.nation(), unit.orders() );
+
+    units_vec.emplace_back( std::move( fake_unit_view ) );
+  }
   auto arr_view = make_unique<VerticalArrayView>(
-      std::move( view_vec ), VerticalArrayView::align::center );
+      std::move( units_vec ), VerticalArrayView::align::center );
 
   Opt<e_ok_cancel> state;
 
@@ -484,18 +498,22 @@ void window_test() {
       [&state]( auto button ) { state = button; } );
 
   UPtr<View> view( std::move( adapter ) );
-  autopad( view );
+  autopad( view, 4 );
 
   g_window_plane.wm.add_window( string( "Test Window" ),
                                 move( view ) );
   while( true ) {
     state = nullopt;
     frame_loop( true, [&state] { return state != nullopt; } );
-
     logger->info( "Pressed `{}`.", state );
     if( state == e_ok_cancel::cancel ) break;
   }
   g_window_plane.wm.clear_windows();
 }
+
+/****************************************************************
+** Testing Only
+*****************************************************************/
+void window_test() { unit_selection_box(); }
 
 } // namespace rn::ui

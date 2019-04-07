@@ -54,8 +54,6 @@ bool Object::on_mouse_button(
   return false;
 }
 
-void Object::children_under_coord( Coord, ObjectSet& ) {}
-
 void Object::on_mouse_leave() {}
 void Object::on_mouse_enter() {}
 

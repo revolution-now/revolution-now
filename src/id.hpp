@@ -15,6 +15,7 @@
 #include "typed-int.hpp"
 
 TYPED_ID( UnitId ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+UD_LITERAL( UnitId, id )
 
 namespace rn {
 

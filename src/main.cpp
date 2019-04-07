@@ -47,7 +47,7 @@ void game() {
   // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
 
   auto id1 = create_unit_on_map(
-      e_nation::spanish, e_unit_type::soldier, 2_y, 2_x );
+      e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x );
   unit_from_id( id1 ).fortify();
 
   auto id2 = create_unit_on_map(

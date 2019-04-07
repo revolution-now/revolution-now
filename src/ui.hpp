@@ -83,7 +83,7 @@ public:
   // turn is needed because we may need to call non-const methods
   // on those objects.
   virtual void children_under_coord( Coord      where,
-                                     ObjectSet& objects );
+                                     ObjectSet& objects ) = 0;
 
   /**************************************************************
   ** Input handlers

@@ -112,7 +112,7 @@ struct ND sprite {
   Scale          scale{};
 };
 
-ND sprite const& lookup_sprite( std::string_view name );
+ND sprite const& lookup_sprite( g_tile tile );
 
 void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x );

@@ -14,8 +14,12 @@
 
 // Revolution Now
 #include "color.hpp"
+#include "nation.hpp"
 #include "sdl-util.hpp"
+#include "tiles.hpp"
 #include "ui.hpp"
+#include "unit.hpp"
+#include "utype.hpp"
 
 namespace rn::ui {
 
@@ -128,6 +132,29 @@ private:
   bool dispatch_mouse_event( input::event_t const& event );
 };
 
+class CompositeSingleView : public CompositeView {
+public:
+  CompositeSingleView( UPtr<View> view, Coord coord );
+
+  // Implement CompositeView
+  Coord pos_of( int idx ) const override;
+  // Implement CompositeView
+  UPtr<View>& mutable_at( int idx ) override;
+  // Implement CompositeView
+  int count() const override { return 1; }
+
+  ObserverPtr<View> single() {
+    return ObserverPtr<View>( view_.get() );
+  }
+  ObserverCPtr<View> single() const {
+    return ObserverCPtr<View>( view_.get() );
+  }
+
+private:
+  UPtr<View> view_;
+  Coord      coord_;
+};
+
 class VectorView : public CompositeView {
 public:
   VectorView() {}
@@ -234,32 +261,43 @@ private:
   Texture disabled_{};
 };
 
+class SpriteView : public View {
+public:
+  SpriteView( g_tile tile ) : tile_( tile ) {}
+
+  // Implement Object
+  void draw( Texture const& tx, Coord coord ) const override;
+  // Implement Object
+  Delta delta() const override {
+    return Delta{1_w, 1_h} * lookup_sprite( tile_ ).scale;
+  }
+
+  // Implement ui::Object
+  void children_under_coord( Coord, ObjectSet& ) override {}
+
+private:
+  g_tile tile_;
+};
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/
 // Should not be used directly; will generally be inserted
 // automatically by the auto-pad mechanism.
-class PaddingView : public CompositeView {
+class PaddingView : public CompositeSingleView {
 public:
-  PaddingView( std::unique_ptr<View> view, bool l, bool r,
-               bool u, bool d );
+  PaddingView( std::unique_ptr<View> view, int pixels, bool l,
+               bool r, bool u, bool d );
 
   // Implement Object
-  Delta delta() const override;
-
-  // Implement CompositeView
-  Coord pos_of( int idx ) const override;
-  // Implement CompositeView
-  UPtr<View>& mutable_at( int idx ) override;
-  // Implement CompositeView
-  int count() const override { return 1; }
+  Delta delta() const override { return delta_; }
 
   // Implement CompositeView
   void notify_children_updated() override {}
 
 private:
-  bool l_{false}, r_{false}, u_{false}, d_{false};
-  std::unique_ptr<View> view_;
+  int   pixels_;
+  Delta delta_;
 };
 
 class ButtonView : public ButtonBaseView {
@@ -379,6 +417,25 @@ private:
 
   int  selected_;
   bool has_confirmed;
+};
+
+class FakeUnitView : public CompositeSingleView {
+public:
+  FakeUnitView( e_unit_type type, e_nation nation,
+                e_unit_orders orders );
+
+  // Implement Object
+  void draw( Texture const& tx, Coord coord ) const override;
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  e_unit_orders orders() const { return orders_; }
+  void set_orders( e_unit_orders orders ) { orders_ = orders; }
+
+private:
+  e_unit_type   type_;
+  e_nation      nation_;
+  e_unit_orders orders_;
 };
 
 } // namespace rn::ui

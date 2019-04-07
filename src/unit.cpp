@@ -26,7 +26,7 @@ namespace {} // namespace
 Unit::Unit( e_nation nation, e_unit_type type )
   : id_( next_unit_id() ),
     desc_( &unit_desc( type ) ),
-    orders_( e_orders::none ),
+    orders_( e_unit_orders::none ),
     cargo_( desc_->cargo_slots ),
     nation_( nation ),
     movement_points_( desc_->movement_points ),
@@ -69,14 +69,14 @@ Opt<Vec<UnitId>> Unit::units_in_cargo() const {
 // physically move this turn, either by way of player input or
 // automatically, assuming it has movement points.
 bool Unit::orders_mean_move_needed() const {
-  return orders_ == e_orders::none;
+  return orders_ == e_unit_orders::none;
 }
 
 // Returns true if the unit's orders are such that the unit re-
 // quires player input this turn, assuming that it has some move-
 // ment points.
 bool Unit::orders_mean_input_required() const {
-  return orders_ == e_orders::none;
+  return orders_ == e_unit_orders::none;
 }
 
 // Called to consume movement points as a result of a move.
@@ -88,7 +88,7 @@ void Unit::consume_mv_points( MovementPoints points ) {
 
 void Unit::fortify() {
   CHECK( !desc().boat );
-  orders_ = e_orders::fortified;
+  orders_ = e_unit_orders::fortified;
 }
 
 void Unit::change_nation( e_nation nation ) {

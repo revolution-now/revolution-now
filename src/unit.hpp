@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "cargo.hpp"
+#include "enum.hpp"
 #include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
@@ -24,6 +25,12 @@
 #include "base-util/non-copyable.hpp"
 
 namespace rn {
+
+enum class e_( unit_orders, //
+               none,        //
+               sentry,      // includes units on ships
+               fortified    //
+);
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
@@ -38,19 +45,11 @@ public:
   Unit& operator=( Unit const& ) = delete;
   Unit& operator=( Unit&& ) = delete;
 
-  /************************** Enums ****************************/
-
-  enum class ND e_orders {
-    none,
-    sentry, // includes units on ships
-    fortified,
-  };
-
   /************************* Getters ***************************/
 
   UnitId                id() const { return id_; }
   UnitDescriptor const& desc() const { return *desc_; }
-  e_orders              orders() const { return orders_; }
+  e_unit_orders         orders() const { return orders_; }
   CargoHold const&      cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
@@ -120,11 +119,11 @@ public:
   // Called to consume movement points as a result of a move.
   void consume_mv_points( MovementPoints points );
   // Mark a unit as sentry.
-  void sentry() { orders_ = e_orders::sentry; }
+  void sentry() { orders_ = e_unit_orders::sentry; }
   // Mark a unit as fortified (non-ships only).
   void fortify();
   // Clear a unit's orders (they will then wait for orders).
-  void clear_orders() { orders_ = e_orders::none; }
+  void clear_orders() { orders_ = e_unit_orders::none; }
 
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );
@@ -137,7 +136,7 @@ private:
   // A unit can change type, but we cannot change the type
   // information of a unit descriptor itself.
   UnitDescriptor const* desc_;
-  e_orders              orders_;
+  e_unit_orders         orders_;
   CargoHold             cargo_;
   e_nation              nation_;
   // Movement points left this turn.

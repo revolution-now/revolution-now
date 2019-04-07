@@ -204,13 +204,12 @@ Here is the view structure:
       | +-UnitClearOrdersView
       |   +-VerticalArrayView
       |     |-...
-      |     |-PaddingView
-      |     | +-AdjacentLabelView
-      |     |   |-OneLineTextView
-      |     |   +-AddSelectBorderView
-      |     |     +-ClickableView
-      |     |       +-FakeUnitView
-      |     |         +-SpriteView
+      |     |-HorizontalArrayView
+      |     | |-OneLineTextView
+      |     | +-AddSelectBorderView
+      |     |   +-ClickableView
+      |     |     +-FakeUnitView
+      |     |       +-SpriteView
       |     +-...
       +-OkCancelView
         |-ButtonView
