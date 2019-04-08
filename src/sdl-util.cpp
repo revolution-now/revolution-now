@@ -151,22 +151,8 @@ void init_renderer() {
 
   // Now we calculate the necessary size of the viewport texture.
   // This needs to be large enough to accomodate a zoomed-out
-  // view in which there are many more tiles rendered than at a
-  // standard zoom.
-  //
-  // Add +1 tile because we may need to draw a bit in excess of
-  // the viewport window in order to facilitate smooth scrolling,
-  // though we shouldn't need more than 1 extra tile for that
-  // purpose. The zoom_multiplier is so that we can accomodate
-  // the maximum zoomed-out level which requires a large texture.
-  Scale zoom_multiplier{int( std::lround(
-      std::ceil( 1.0 / config_rn.viewport.zoom_min ) ) )};
-  logger->debug( "zoom_multiplier: {}", zoom_multiplier );
-  auto delta = ( viewport_size_pixels() +
-                 Delta{1_w, 1_h} * g_tile_scale ) *
-               zoom_multiplier;
-  // Need be no bigger than world.
-  delta = delta.clamp( world_size_pixels() );
+  // view in which the entire world is visible.
+  auto delta = world_size_pixels();
   // Must be at least as big as viewport.
   delta = delta.uni0n( viewport_size_pixels() );
   logger->debug( "g_texture_viewport proposed size: {}", delta );
