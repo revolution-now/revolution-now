@@ -153,8 +153,6 @@ void init_renderer() {
   // This needs to be large enough to accomodate a zoomed-out
   // view in which the entire world is visible.
   auto delta = world_size_pixels();
-  // Must be at least as big as viewport.
-  delta = delta.uni0n( viewport_size_pixels() );
   logger->debug( "g_texture_viewport proposed size: {}", delta );
   // Not certain how to know memory usage of a texture, and it
   // may be device dependent. Found a formula online that adds a
