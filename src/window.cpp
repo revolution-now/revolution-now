@@ -610,7 +610,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
   UPtr<View> view( std::move( adapter ) );
   autopad( view, 4 );
 
-  g_window_plane.wm.add_window( string( "Test Window" ),
+  g_window_plane.wm.add_window( string( "Activate Units" ),
                                 move( view ) );
 
   frame_loop( true, [&state] { return state != nullopt; } );

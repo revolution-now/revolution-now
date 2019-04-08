@@ -1,4 +1,12 @@
 =================================================================
+Bugs
+=================================================================
+
+  - Zoom all the way out, then click on a tile close to the upper
+    left corner of the map, and an exception will be thrown due
+    to invalid tile selected.
+
+=================================================================
 TODO
 =================================================================
 
