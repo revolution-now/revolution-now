@@ -49,6 +49,9 @@ struct ND Scale {
   constexpr bool operator==( Scale const& rhs ) const {
     return ( sx == rhs.sx ) && ( sy == rhs.sy );
   }
+  constexpr bool operator!=( Scale const& rhs ) const {
+    return ( sx != rhs.sx ) || ( sy != rhs.sy );
+  }
 };
 
 // clang-format off

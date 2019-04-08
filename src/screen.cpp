@@ -30,7 +30,7 @@ namespace rn {
 ::SDL_Renderer* g_renderer = nullptr;
 Texture         g_texture_viewport;
 
-Scale g_resolution_scale_factor{};
+Scale g_resolution_scale_factor{0};
 Delta g_screen_physical_size{};
 
 namespace {

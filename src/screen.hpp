@@ -13,7 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
+#include "cache.hpp"
 #include "coord.hpp"
+#include "errors.hpp"
 #include "sdl-util.hpp" // TODO: get rid of this here
 
 namespace rn {
@@ -35,5 +38,35 @@ Rect  screen_physical_rect();
 // g_tile_height), i.e., these are fixed and do not depend on any
 // viewport state.
 Delta viewport_size_pixels();
+
+// This invalidator will report an invalidation the first time
+// and then, after that, each time that the resolution scale
+// factor is changed. It must not be copyable otherwise some
+// frameworks (such as range-v3) will copy it and call it mul-
+// tiple times within a frame and hence it may end up return
+// `true` more than once per frame, thus causing unnecessary
+// calls to the wrapped function.
+struct ResolutionScaleInvalidator : public util::movable_only {
+  Opt<Scale> scale{};
+
+  bool operator()() {
+    CHECK( g_resolution_scale_factor != Scale{0} );
+    if( scale.has_value() &&
+        *scale == g_resolution_scale_factor )
+      return false;
+    scale = g_resolution_scale_factor;
+    return true;
+  }
+};
+
+// Use this to memoize a function in such a way that the wrapped
+// function will be called to compute a value at most once for
+// each change in scale factor per argument value (if there is an
+// argument). If the wrapped function takes no arguments then it
+// will be called at most once per scale factor change.
+template<typename Func>
+auto resolution_scale_memoize( Func func ) {
+  return memoizer( func, ResolutionScaleInvalidator{} );
+}
 
 } // namespace rn
