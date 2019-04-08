@@ -112,7 +112,7 @@ void init_app_window() {
   // CHECK( fullscreen_mode.w,
   //       "cannot find appropriate fullscreen mode" );
 
-  auto dm = main_window_size();
+  auto dm = current_display_mode().size;
 
   g_window =
       ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,

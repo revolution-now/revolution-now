@@ -37,20 +37,6 @@ namespace {
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
-struct DisplayMode {
-  Delta  size;
-  Uint32 format;
-  int    refresh_rate;
-};
-
-DisplayMode get_current_display_mode() {
-  SDL_DisplayMode dm;
-  SDL_GetCurrentDisplayMode( 0, &dm );
-  DisplayMode res{
-      {W{dm.w}, H{dm.h}}, dm.format, dm.refresh_rate};
-  return res;
-}
-
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
  *  ::SDL_DisplayMode dm;
@@ -89,7 +75,7 @@ double monitor_ddpi() {
 
 double monitor_inches() {
   return monitor_diagonal_length( monitor_ddpi(),
-                                  get_current_display_mode() );
+                                  current_display_mode() );
 }
 
 double const& viewer_distance_from_monitor() {
@@ -165,7 +151,7 @@ struct ScaleInfo {
 
 ScaleInfo scale_info( int scale_ ) {
   Scale scale{scale_};
-  Delta resolution = get_current_display_mode().size / scale;
+  Delta resolution = current_display_mode().size / scale;
 
   // Tile size in inches if it were measured on the surface of
   // the screen.
@@ -254,7 +240,7 @@ void find_pixel_scale_factor() {
          Delta{} );
 
   // For informational purposes
-  if( get_current_display_mode().size % Scale{optimal.scale} !=
+  if( current_display_mode().size % Scale{optimal.scale} !=
       Delta{} )
     logger->warn(
         "Desktop display resolution not commensurate with scale "
@@ -270,8 +256,12 @@ void init_screen() {
 
 REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
 
-Delta main_window_size() {
-  return get_current_display_mode().size;
+DisplayMode current_display_mode() {
+  SDL_DisplayMode dm;
+  SDL_GetCurrentDisplayMode( 0, &dm );
+  DisplayMode res{
+      {W{dm.w}, H{dm.h}}, dm.format, dm.refresh_rate};
+  return res;
 }
 
 Delta screen_logical_size() {

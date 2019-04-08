@@ -68,7 +68,7 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  }},
                 {e_init_routine::app_window,
                  {
-                     e_init_routine::screen //
+                     e_init_routine::sdl //
                  }},
                 {e_init_routine::screen,
                  {

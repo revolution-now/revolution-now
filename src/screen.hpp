@@ -29,6 +29,14 @@ extern Scale g_resolution_scale_factor;
 
 Delta main_window_size();
 
+struct DisplayMode {
+  Delta  size;
+  Uint32 format;
+  int    refresh_rate;
+};
+
+DisplayMode current_display_mode();
+
 Delta screen_logical_size();
 Rect  screen_logical_rect();
 Delta screen_physical_size();
