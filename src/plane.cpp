@@ -116,7 +116,7 @@ void init_planes() {
   // means, typically, that they will be smaller than the full
   // screen resolution).
   for( auto& tx : textures ) {
-    tx = create_screen_sized_texture();
+    tx = create_window_sized_texture();
     clear_texture_transparent( tx );
   }
 }

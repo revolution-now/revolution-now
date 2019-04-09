@@ -282,8 +282,10 @@ WindowManager::window* WindowManager::add_window(
   windows_.emplace_back( move( title_ ), move( view_ ),
                          Coord{} );
   auto& new_window = windows_.back();
+  // Here "main window" refers to the real window (recognized by
+  // the OS) in which this game lives.
   new_window.position =
-      centered( new_window.delta(), screen_logical_rect() );
+      centered( new_window.delta(), main_window_logical_rect() );
   return &new_window;
 }
 

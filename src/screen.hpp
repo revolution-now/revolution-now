@@ -27,7 +27,10 @@ extern Texture         g_texture_viewport;
 
 extern Scale g_resolution_scale_factor;
 
-Delta main_window_size();
+Delta main_window_logical_size();
+Rect  main_window_logical_rect();
+Delta main_window_physical_size();
+Rect  main_window_physical_rect(); // origin at (0,0)
 
 struct DisplayMode {
   Delta  size;
@@ -36,11 +39,6 @@ struct DisplayMode {
 };
 
 DisplayMode current_display_mode();
-
-Delta screen_logical_size();
-Rect  screen_logical_rect();
-Delta screen_physical_size();
-Rect  screen_physical_rect();
 
 // At standard zoom, when tile size is (g_tile_width,
 // g_tile_height), i.e., these are fixed and do not depend on any

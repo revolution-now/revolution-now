@@ -137,7 +137,7 @@ void init_renderer() {
 
   CHECK( g_renderer, "failed to create renderer" );
 
-  auto logical_size = screen_logical_size();
+  auto logical_size = main_window_logical_size();
 
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
@@ -203,7 +203,7 @@ Texture& load_texture( fs::path const& path ) {
 }
 
 Delta texture_delta( Texture const& texture ) {
-  if( !texture ) return screen_logical_size();
+  if( !texture ) return main_window_logical_size();
   int w, h;
   CHECK(
       !::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h ) );
@@ -328,8 +328,8 @@ ND Texture create_texture_transparent( Delta delta ) {
   return tx;
 }
 
-ND Texture create_screen_sized_texture() {
-  return create_texture( screen_logical_size() );
+ND Texture create_window_sized_texture() {
+  return create_texture( main_window_logical_size() );
 }
 
 ::SDL_Surface* create_surface( Delta delta ) {
@@ -429,7 +429,7 @@ void save_texture_png( Texture const&  tx,
 }
 
 void grab_screen( fs::path const& file ) {
-  auto screen = screen_logical_size();
+  auto screen = main_window_logical_size();
   logger->info(
       "grabbing screen with size [{} x {}] and saving to {}",
       screen.w, screen.h, file.string() );

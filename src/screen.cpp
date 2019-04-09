@@ -37,6 +37,20 @@ namespace {
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
+Delta screen_logical_size() {
+  return g_screen_physical_size / g_resolution_scale_factor;
+}
+
+Rect screen_logical_rect() {
+  return Rect::from( Coord{}, screen_logical_size() );
+}
+
+Delta screen_physical_size() { return g_screen_physical_size; }
+
+Rect screen_physical_rect() {
+  return Rect::from( Coord{}, screen_physical_size() );
+}
+
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
  *  ::SDL_DisplayMode dm;
@@ -264,23 +278,29 @@ DisplayMode current_display_mode() {
   return res;
 }
 
-Delta screen_logical_size() {
-  return g_screen_physical_size / g_resolution_scale_factor;
-}
-
-Rect screen_logical_rect() {
-  return Rect::from( {0_y, 0_x}, screen_logical_size() );
-}
-
-Delta screen_physical_size() { return g_screen_physical_size; }
-
-Rect screen_physical_rect() {
-  return Rect::from( {0_y, 0_x}, screen_physical_size() );
-}
-
 Delta viewport_size_pixels() {
   // Subtract height of menu and width of panel.
-  return screen_logical_size() - 16_h - 6_w * 32_sx;
+  return main_window_logical_size() - 16_h - 6_w * 32_sx;
+}
+
+Delta main_window_logical_size() {
+  return main_window_physical_size() / g_resolution_scale_factor;
+}
+
+Rect main_window_logical_rect() {
+  return main_window_physical_rect() / g_resolution_scale_factor;
+}
+
+Delta main_window_physical_size() {
+  CHECK( g_window != nullptr );
+  int w{}, h{};
+  ::SDL_GetWindowSize( g_window, &w, &h );
+  Delta res{W{w}, H{h}};
+  return res;
+}
+
+Rect main_window_physical_rect() {
+  return Rect::from( Coord{}, main_window_physical_size() );
 }
 
 } // namespace rn

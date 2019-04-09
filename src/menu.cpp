@@ -382,9 +382,10 @@ X menu_header_x_pos_( e_menu target ) {
   }
   width_delta += config_ui.menus.first_menu_start;
   CHECK( width_delta != 0_w );
-  return 0_x + ( !desc.right_side
-                     ? width_delta
-                     : screen_logical_size().w - width_delta );
+  return 0_x +
+         ( !desc.right_side
+               ? width_delta
+               : main_window_logical_size().w - width_delta );
 }
 
 auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
@@ -401,7 +402,7 @@ Rect menu_header_rect( e_menu menu ) {
 // the menu headers. but does not include the space that would be
 // occupied by open menu bodies.
 Rect menu_bar_rect() {
-  auto delta_screen = screen_logical_size();
+  auto delta_screen = main_window_logical_size();
   auto height       = menu_bar_height();
   return Rect::from( Coord{}, Delta{delta_screen.w, height} );
 }
@@ -582,7 +583,8 @@ ItemTextures render_menu_element( string_view const text,
       ItemTextures{std::move( inactive ), std::move( active ),
                    std::move( disabled ), width};
   // Sanity check
-  CHECK( res.width > 0 && res.width < screen_logical_size().w );
+  CHECK( res.width > 0 &&
+         res.width < main_window_logical_size().w );
   return res;
 }
 
@@ -746,11 +748,11 @@ void render_menu_bar() {
   // two. Also, put the y position such that the menu bar gets
   // the bottom portion of the texture, again so that it will be
   // continuous with that panel.
-  Coord start = Coord{} + screen_logical_size().w -
+  Coord start = Coord{} + main_window_logical_size().w -
                 ( 6_w * 32_sx ) - ( 64_h - 16_h );
   for( Coord c = start; c.x >= 0_x - 128_w; c -= 128_w )
     render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
-  for( Coord c = start; c.x < 0_x + screen_logical_size().w;
+  for( Coord c = start; c.x < 0_x + main_window_logical_size().w;
        c += 128_w )
     render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
 

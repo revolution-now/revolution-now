@@ -705,13 +705,14 @@ struct PanelPlane : public Plane {
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     constexpr W panel_width{6 * 32};
-    auto left_side = 0_x + screen_logical_size().w - panel_width;
+    auto        left_side =
+        0_x + main_window_logical_size().w - panel_width;
 
-    for( Y i( 16 ); i - 0_y < screen_logical_size().h;
+    for( Y i( 16 ); i - 0_y < main_window_logical_size().h;
          i += 64_h )
       render_sprite( tx, g_tile::wood_middle, i,
                      left_side + 128_w, 0, 0 );
-    for( Y i( 16 ); i - 0_y < screen_logical_size().h;
+    for( Y i( 16 ); i - 0_y < main_window_logical_size().h;
          i += 64_h )
       render_sprite( tx, g_tile::wood_left_edge, i, left_side, 0,
                      0 );
@@ -749,7 +750,7 @@ struct EffectsPlane : public Plane {
     }
     // TODO: this may not require changing alpha to work.
     render_fill_rect( tx, Color( 0, 0, 0, alpha ),
-                      screen_logical_rect() );
+                      main_window_logical_rect() );
   }
   Time_t  start_time;
   Time_t  end_time;
