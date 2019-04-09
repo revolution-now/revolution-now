@@ -32,8 +32,8 @@ enum class e_( plane,
                colony,   // colony view
                europe,   // the old world
                effects,  // such as e.g. fading
-               window,   // the windows
                menu,     // the menus at the top of screen
+               window,   // the windows
                console   // the developer console
 );
 

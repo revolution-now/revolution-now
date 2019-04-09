@@ -137,7 +137,13 @@ struct WindowPlane : public Plane {
     wm.draw_layout( tx );
   }
   bool input( input::event_t const& event ) override {
-    return wm.input( event );
+    CHECK( wm.num_windows() != 0 );
+    // Windows are modal, so ignore the result of this function
+    // because we need to swallow the event whether the window
+    // manager handled it or not. I.e., we cannot ever let an
+    // event go down to a lower plane.
+    (void)wm.input( event );
+    return true;
   }
   Plane::e_accept_drag can_drag( input::e_mouse_button button,
                                  Coord origin ) override {
@@ -363,7 +369,9 @@ Plane::e_accept_drag WindowManager::can_drag(
   if( origin.is_inside( focused().rect() ) )
     // Receive drag events as normal mouse events.
     return Plane::e_accept_drag::motion;
-  return Plane::e_accept_drag::no;
+  // If it's not in our window then swallow it to prevent any
+  // other plane from handling it (i.e., windows are modal).
+  return Plane::e_accept_drag::swallow;
 }
 
 void WindowManager::on_drag( input::e_mouse_button button,

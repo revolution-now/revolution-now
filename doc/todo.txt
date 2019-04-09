@@ -23,10 +23,8 @@ Low priority:
 TODO
 =================================================================
 
-  - Allow multiple windows.
-  - Test unit selection window with end-of-turn window.
-  - Quick workaround to avoid end-of-turn window.
-  - Make windows model.
+  - Add end-of-turn button to panel with blinking white text.
+  - Test unit selection window with end-of-turn.
 
 =================================================================
 UI
