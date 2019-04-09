@@ -13,10 +13,11 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "config-files.hpp"
-#include "errors.hpp"
 #include "coord.hpp"
+#include "errors.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 
@@ -51,8 +52,8 @@ struct ImagePlane : public Plane {
     CHECK( enabled_ );
     auto& image_tx    = val_or_die( g_images, *image );
     auto  image_delta = texture_delta( image_tx );
-    auto  tx_rect = Rect::from( Coord{}, texture_delta( tx ) );
-    auto  dest_coord = centered( image_delta, tx_rect );
+    auto  win_rect    = main_window_logical_rect();
+    auto  dest_coord  = centered( image_delta, win_rect );
     copy_texture( image_tx, tx, dest_coord );
   }
 
@@ -81,6 +82,7 @@ void init_images() {
   for( auto const& p : g_images ) CHECK( p.second.get().get() );
 }
 
+//
 REGISTER_INIT_ROUTINE( images, init_images, [] {} );
 
 Plane* image_plane() { return &g_image_plane; }

@@ -552,9 +552,9 @@ ItemTextures render_menu_element( string_view const text,
   Texture inactive, active;
   if( shortcut.has_value() ) {
     auto shortcut_pos =
-        text.find_first_of( tolower( *shortcut ) );
+        text.find_first_of( toupper( *shortcut ) );
     if( shortcut_pos == string_view::npos )
-      shortcut_pos = text.find_first_of( toupper( *shortcut ) );
+      shortcut_pos = text.find_first_of( tolower( *shortcut ) );
     CHECK( shortcut_pos != string_view::npos );
     string_view first_part( text.begin(), shortcut_pos );
     char        middle_part = text[shortcut_pos];
