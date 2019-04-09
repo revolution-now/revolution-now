@@ -39,6 +39,9 @@ EventCountMap g_event_counts;
 ND bool take_input() {
   bool received_input = false;
   while( auto event = input::poll_event() ) {
+    // Just in case we have resized the main window we need to
+    // call this before dispatching it to the planes.
+    viewport().enforce_invariants();
     send_input_to_planes( *event );
     received_input = true;
   }

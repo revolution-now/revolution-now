@@ -96,9 +96,9 @@ public:
   // edge of the viewport hids x=0.
   void pan_by_screen_coords( Delta delta );
 
-private:
   void enforce_invariants();
 
+private:
   void advance( e_push_direction x_push, e_push_direction y_push,
                 e_push_direction zoom_push );
 

@@ -83,6 +83,7 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     {e_menu::view, {"View", false, 'V'}},
     {e_menu::orders, {"Orders", false, 'O'}},
     {e_menu::advisors, {"Advisors", false, 'A'}},
+    {e_menu::window, {"Window", false, 'W'}},
     {e_menu::debug, {"Debug", true, 'D'}},
     {e_menu::pedia, {"Revolopedia", true, 'R'}}};
 
@@ -144,6 +145,11 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
          ITEM( military_advisor, "Military Advisor" ),   //
          ITEM( economics_advisor, "Economics Advisor" ), //
          ITEM( european_advisor, "Europian Advisor" )    //
+     }},
+    {e_menu::window,
+     {
+         ITEM( toggle_fullscreen, "Toggle Fullscreen" ), //
+         ITEM( restore_window, "Restore Window" )        //
      }},
     {e_menu::debug,
      {
@@ -805,7 +811,6 @@ void render_menu_bar() {
 
 void display_menu_bar_tx( Texture const& tx ) {
   render_menu_bar();
-  CHECK( tx.size().w == menu_bar_tx.size().w );
   copy_texture( menu_bar_tx, tx, Coord{} );
 }
 
@@ -1109,6 +1114,26 @@ function<bool( void )> quit_handler  = [] {
 };
 
 MENU_ITEM_HANDLER( exit, quit_handler, enabled_true );
+
+MENU_ITEM_HANDLER(
+    e_menu_item::toggle_fullscreen,
+    [] {
+      auto is_fullscreen = toggle_fullscreen();
+      if( !is_fullscreen ) restore_window();
+    },
+    L0( true ) )
+
+MENU_ITEM_HANDLER(
+    e_menu_item::restore_window,
+    [] {
+      if( is_window_fullscreen() ) {
+        toggle_fullscreen();
+        restore_window();
+      } else {
+        restore_window();
+      }
+    },
+    L0( true ) )
 
 /****************************************************************
 ** The Menu Plane

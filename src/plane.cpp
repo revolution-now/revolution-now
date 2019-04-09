@@ -111,12 +111,15 @@ void init_planes() {
   // object even if it is the dummy above.
   for( auto p : planes ) { CHECK( p ); }
 
-  // Initialize the textures. These are intended to cover the
-  // entire screen and are measured in logical coordinates (which
-  // means, typically, that they will be smaller than the full
-  // screen resolution).
+  // Initialize the textures. These are intended to be large
+  // enough to cover the entire screen at a scale factor of unity
+  // if necessary (i.e., when in fullscreen mode with smallest
+  // scale) but will also work when the main window is restored
+  // (only part of them will be used). Their coordinates are mea-
+  // sured in logical coordinates (which means, typically, that
+  // they will be smaller than the full screen resolution).
   for( auto& tx : textures ) {
-    tx = create_window_sized_texture();
+    tx = create_screen_physical_sized_texture();
     clear_texture_transparent( tx );
   }
 }

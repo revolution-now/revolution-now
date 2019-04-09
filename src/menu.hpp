@@ -29,6 +29,7 @@ enum class e_( menu,
                view,     //
                orders,   //
                advisors, //
+               window,   //
                debug,    //
                pedia     //
 );
@@ -41,6 +42,8 @@ enum class e_( menu_item,
                zoom_in,              //
                zoom_out,             //
                restore_zoom,         //
+               toggle_fullscreen,    //
+               restore_window,       //
                sentry,               //
                fortify,              //
                military_advisor,     //

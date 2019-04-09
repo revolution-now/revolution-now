@@ -469,7 +469,22 @@ mouse_move_event_t drag_event_to_mouse_motion_event(
 
 Opt<event_t> poll_event() {
   ::SDL_Event event;
-  if( ::SDL_PollEvent( &event ) != 0 ) return from_SDL( event );
+  if( ::SDL_PollEvent( &event ) != 0 ) {
+    // First check if it's an event that we can handle here, oth-
+    // erwise convert it to the input::event data structure and
+    // return it.
+    switch( event.type ) {
+      case ::SDL_WINDOWEVENT: {
+        if( event.window.event ==
+            ::SDL_WINDOWEVENT_SIZE_CHANGED ) {
+          on_main_window_resized();
+          return {};
+        }
+        break;
+      }
+      default: return from_SDL( event );
+    }
+  }
   return nullopt;
 }
 

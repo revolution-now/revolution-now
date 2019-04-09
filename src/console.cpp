@@ -16,6 +16,7 @@
 #include "frame.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 
 using namespace std;
@@ -42,6 +43,30 @@ struct ConsolePlane : public Plane {
                       rect );
 
     auto text_color = Color{255, 255, 255, console_alpha};
+
+    // auto info_start = Coord{} + 16_h;
+
+    // Coord mouse;
+    //::SDL_GetMouseState( &mouse.x._, &mouse.y._ );
+
+    //{
+    //  auto mouse_coords = fmt::format( "unscaled: {}", mouse );
+    //  auto mouse_coords_tx = render_text_line_solid(
+    //      fonts::standard, Color::white(), mouse_coords );
+    //  copy_texture( mouse_coords_tx, tx, info_start );
+    //  info_start += mouse_coords_tx.size().h;
+    //}
+
+    //// mouse.clip( ... );
+    // mouse.x /= g_resolution_scale_factor.sx;
+    // mouse.y /= g_resolution_scale_factor.sy;
+    //{
+    //  auto mouse_coords = fmt::format( "  scaled: {}", mouse );
+    //  auto mouse_coords_tx = render_text_line_solid(
+    //      fonts::standard, Color::white(), mouse_coords );
+    //  copy_texture( mouse_coords_tx, tx, info_start );
+    //  info_start += mouse_coords_tx.size().h;
+    //}
 
     auto info_start = rect.lower_right();
 

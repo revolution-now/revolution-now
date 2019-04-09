@@ -11,6 +11,7 @@
 #include "screen.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -36,20 +37,6 @@ Delta g_screen_physical_size{};
 namespace {
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
-
-Delta screen_logical_size() {
-  return g_screen_physical_size / g_resolution_scale_factor;
-}
-
-Rect screen_logical_rect() {
-  return Rect::from( Coord{}, screen_logical_size() );
-}
-
-Delta screen_physical_size() { return g_screen_physical_size; }
-
-Rect screen_physical_rect() {
-  return Rect::from( Coord{}, screen_physical_size() );
-}
 
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
@@ -266,9 +253,30 @@ void init_screen() {
   find_pixel_scale_factor();
 }
 
+void init_app_window() {
+  // NOLINTNEXTLINE(hicpp-signed-bitwise)
+  // auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
+  //             ::SDL_WINDOW_FULLSCREEN_DESKTOP;
+  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE;
+
+  auto dm = current_display_mode().size;
+
+  g_window =
+      ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
+                          0, dm.w._, dm.h._, flags );
+  CHECK( g_window != nullptr, "failed to create window" );
+}
+
+void cleanup_app_window() {
+  if( g_window != nullptr ) SDL_DestroyWindow( g_window );
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
+
+REGISTER_INIT_ROUTINE( app_window, init_app_window,
+                       cleanup_app_window );
 
 DisplayMode current_display_mode() {
   SDL_DisplayMode dm;
@@ -277,6 +285,12 @@ DisplayMode current_display_mode() {
       {W{dm.w}, H{dm.h}}, dm.format, dm.refresh_rate};
   return res;
 }
+
+Delta screen_logical_size() {
+  return g_screen_physical_size / g_resolution_scale_factor;
+}
+
+Delta screen_physical_size() { return g_screen_physical_size; }
 
 Delta viewport_size_pixels() {
   // Subtract height of menu and width of panel.
@@ -301,6 +315,19 @@ Delta main_window_physical_size() {
 
 Rect main_window_physical_rect() {
   return Rect::from( Coord{}, main_window_physical_size() );
+}
+
+void on_main_window_resized() {
+  logger->debug( "main window resizing." );
+  auto logical_size = main_window_logical_size();
+  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
+                              logical_size.h._ );
+
+  auto physical_size = main_window_physical_size();
+  if( physical_size % g_resolution_scale_factor != Delta{} )
+    logger->warn(
+        "Window physical resolution not commensurate with scale "
+        "factor." );
 }
 
 } // namespace rn

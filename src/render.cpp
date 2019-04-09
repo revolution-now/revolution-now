@@ -704,6 +704,7 @@ struct PanelPlane : public Plane {
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
+    clear_texture_transparent( tx );
     constexpr W panel_width{6 * 32};
     auto        left_side =
         0_x + main_window_logical_size().w - panel_width;

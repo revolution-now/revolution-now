@@ -32,6 +32,8 @@ Rect  main_window_logical_rect();
 Delta main_window_physical_size();
 Rect  main_window_physical_rect(); // origin at (0,0)
 
+void on_main_window_resized();
+
 struct DisplayMode {
   Delta  size;
   Uint32 format;
@@ -39,6 +41,11 @@ struct DisplayMode {
 };
 
 DisplayMode current_display_mode();
+
+// Shouldn't ever really need this except in special circum-
+// stances.
+Delta screen_logical_size();
+Delta screen_physical_size();
 
 // At standard zoom, when tile size is (g_tile_width,
 // g_tile_height), i.e., these are fixed and do not depend on any

@@ -103,32 +103,6 @@ void cleanup_sdl() {
 
 REGISTER_INIT_ROUTINE( sdl, init_sdl, cleanup_sdl );
 
-void init_app_window() {
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
-               ::SDL_WINDOW_FULLSCREEN_DESKTOP;
-
-  // auto fullscreen_mode = find_fullscreen_mode();
-  // CHECK( fullscreen_mode.w,
-  //       "cannot find appropriate fullscreen mode" );
-
-  auto dm = current_display_mode().size;
-
-  g_window =
-      ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
-                          0, dm.w._, dm.h._, flags );
-  CHECK( g_window != nullptr, "failed to create window" );
-
-  //::SDL_SetWindowDisplayMode( g_window, &fullscreen_mode );
-}
-
-void cleanup_app_window() {
-  if( g_window != nullptr ) SDL_DestroyWindow( g_window );
-}
-
-REGISTER_INIT_ROUTINE( app_window, init_app_window,
-                       cleanup_app_window );
-
 void init_renderer() {
   g_renderer = SDL_CreateRenderer(
       g_window, -1,
@@ -142,10 +116,11 @@ void init_renderer() {
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
   // I think in theory we should not need this because we should
-  // have already computed a logical_size that allowed for
-  // integer scaling, but just in case we do the calculations
-  // wrong this might help to flag that.
-  ::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
+  // have already computed a logical_size that allowed for in-
+  // teger scaling, but just in case we do the calculations wrong
+  // this might help to flag that.
+  //::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
+
   ::SDL_SetRenderDrawBlendMode( g_renderer,
                                 ::SDL_BLENDMODE_BLEND );
 
@@ -328,8 +303,8 @@ ND Texture create_texture_transparent( Delta delta ) {
   return tx;
 }
 
-ND Texture create_window_sized_texture() {
-  return create_texture( main_window_logical_size() );
+ND Texture create_screen_physical_sized_texture() {
+  return create_texture( screen_physical_size() );
 }
 
 ::SDL_Surface* create_surface( Delta delta ) {
@@ -478,9 +453,13 @@ void set_fullscreen( bool fullscreen ) {
   ::SDL_SetWindowFullscreen( g_window, flags );
 }
 
-void toggle_fullscreen() {
-  set_fullscreen( !is_window_fullscreen() );
+bool toggle_fullscreen() {
+  auto fullscreen = is_window_fullscreen();
+  set_fullscreen( !fullscreen );
+  return !fullscreen;
 }
+
+void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 Texture::Texture( ::SDL_Texture* tx )
   : own_{true}, tx_( tx ), id_{g_next_texture_id++} {

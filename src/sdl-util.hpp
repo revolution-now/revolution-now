@@ -94,7 +94,9 @@ ND Texture& load_texture( fs::path const& path );
 
 ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );
-void    toggle_fullscreen();
+// Returns true if the window is now fullscreen.
+bool toggle_fullscreen();
+void restore_window();
 
 ::SDL_Rect to_SDL( Rect const& rect );
 Rect       from_SDL( ::SDL_Rect const& rect );
@@ -141,7 +143,7 @@ ND Texture create_texture( W w, H h );
 ND Texture create_texture( Delta delta );
 ND Texture create_texture( Delta delta, Color const& color );
 ND Texture create_texture_transparent( Delta delta );
-ND Texture create_window_sized_texture();
+ND Texture create_screen_physical_sized_texture();
 
 ::SDL_Surface* create_surface( Delta delta );
 
