@@ -377,8 +377,17 @@ Plane::e_accept_drag WindowManager::can_drag(
 void WindowManager::on_drag( input::e_mouse_button button,
                              Coord /*unused*/, Coord prev,
                              Coord current ) {
-  if( button == input::e_mouse_button::l )
-    focused().position += ( current - prev );
+  if( button == input::e_mouse_button::l ) {
+    auto& pos = focused().position;
+    pos += ( current - prev );
+    // Now prevent the window from being dragged off screen.
+    pos.y =
+        clamp( pos.y, 16_y,
+               main_window_logical_rect().bottom_edge() - 16_h );
+    pos.x =
+        clamp( pos.x, 0_x - focused().delta().w + 16_w,
+               main_window_logical_rect().right_edge() - 16_w );
+  }
 }
 
 WindowManager::window& WindowManager::focused() {
