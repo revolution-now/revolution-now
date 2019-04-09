@@ -63,6 +63,12 @@ public:
 
   void free();
 
+  // Estimated memory size (in megabytes) of a texture with
+  // given pixel dimensions.
+  static double mem_usage_mb( Delta size );
+  // Estimated memory size of this texture in megabytes.
+  double mem_usage_mb() const;
+
 private:
   friend Texture from_SDL( ::SDL_Texture* tx );
   explicit Texture( ::SDL_Texture* tx );

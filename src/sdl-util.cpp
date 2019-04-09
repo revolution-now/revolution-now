@@ -129,12 +129,9 @@ void init_renderer() {
   // view in which the entire world is visible.
   auto delta = world_size_pixels();
   logger->debug( "g_texture_viewport proposed size: {}", delta );
-  // Not certain how to know memory usage of a texture, and it
-  // may be device dependent. Found a formula online that adds a
-  // 1.33 factor in there.  Note: 4 bytes per pixel.
   logger->debug(
       "g_texture_viewport memory usage estimate: {}MB",
-      delta.w._ * delta.h._ * 4 * 1.33 / ( 1024 * 1024 ) );
+      Texture::mem_usage_mb( delta ) );
   g_texture_viewport = create_texture( delta );
 }
 
@@ -304,7 +301,10 @@ ND Texture create_texture_transparent( Delta delta ) {
 }
 
 ND Texture create_screen_physical_sized_texture() {
-  return create_texture( screen_physical_size() );
+  auto res = create_texture( screen_physical_size() );
+  logger->debug( "created screen-sized texture occupying {}MB.",
+                 res.mem_usage_mb() );
+  return res;
 }
 
 ::SDL_Surface* create_surface( Delta delta ) {
@@ -514,6 +514,17 @@ Delta Texture::size() const {
   int w, h;
   ::SDL_QueryTexture( this->get(), nullptr, nullptr, &w, &h );
   return {W( w ), H( h )};
+}
+
+double Texture::mem_usage_mb( Delta size ) {
+  // Not certain how to know memory usage of a texture, and it
+  // may be device dependent. Found a formula online that adds a
+  // 1.33 factor in there.  Note: 4 bytes per pixel.
+  return size.w._ * size.h._ * 4 * 1.33 / ( 1024 * 1024 );
+}
+
+double Texture::mem_usage_mb() const {
+  return Texture::mem_usage_mb( size() );
 }
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,

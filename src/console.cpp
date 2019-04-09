@@ -36,7 +36,8 @@ struct ConsolePlane : public Plane {
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
-    auto rect = Rect::from( Coord{}, tx.size() );
+    auto rect =
+        Rect::from( Coord{}, main_window_logical_size() );
     rect.y += rect.h / 3_sy * 2_sy;
     rect.h /= 3_sy;
     render_fill_rect( tx, Color{0, 0, 255, console_alpha},
@@ -137,6 +138,7 @@ void log_to_debug_console( std::string&& msg ) {
 
 Plane* console_plane() { return &g_console_plane; }
 
+//
 MENU_ITEM_HANDLER(
     e_menu_item::toggle_console,
     [] { g_console_plane.enabled_ = !g_console_plane.enabled_; },
