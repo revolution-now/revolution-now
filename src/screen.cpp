@@ -423,12 +423,15 @@ void on_renderer_scale_factor_changed() {
   auto logical_size = main_window_logical_size();
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
-  // The below seems necessary to get the window to update itself
-  // with the new logical size. FIXME: need to find a more proper
-  // way of doing this.
+  // The below seems necessary to get the window to update
+  // itself with the new logical size.
+  //
+  // FIXME: need to find a more proper way of doing this.
   if( is_window_fullscreen() ) {
+#ifdef __linux__
     toggle_fullscreen();
     toggle_fullscreen();
+#endif
   } else {
     int w{}, h{};
     ::SDL_GetWindowSize( g_window, &w, &h );
