@@ -386,7 +386,9 @@ event_t move_mouse_origin_by( event_t const& event,
   input::event_t new_event = event;
   // This serves two purposes: 1) to tell us whether this is a
   // mouse event or not, and 2) to give us the mouse position.
-  auto matcher = scelta::match(
+
+  // First, move the current mouse position.
+  auto matcher_curr = scelta::match(
       []( input::unknown_event_t ) { return (Coord*)nullptr; },
       []( input::quit_event_t ) { return (Coord*)nullptr; },
       []( input::key_event_t ) { return (Coord*)nullptr; },
@@ -394,8 +396,27 @@ event_t move_mouse_origin_by( event_t const& event,
       []( input::mouse_move_event_t& e ) { return &e.pos; },
       []( input::mouse_button_event_t& e ) { return &e.pos; },
       []( input::mouse_drag_event_t& e ) { return &e.pos; } );
-  if( auto mouse_pos_ptr = matcher( new_event ); mouse_pos_ptr )
-    ( *mouse_pos_ptr ) -= delta;
+  if( auto ptr = matcher_curr( new_event ); ptr )
+    ( *ptr ) -= delta;
+
+  // Second, if mouse move event, move the previous mouse
+  // position.
+  auto matcher_prev = scelta::match(
+      []( input::unknown_event_t ) { return (Coord*)nullptr; },
+      []( input::quit_event_t ) { return (Coord*)nullptr; },
+      []( input::key_event_t ) { return (Coord*)nullptr; },
+      []( input::mouse_wheel_event_t& ) {
+        return (Coord*)nullptr;
+      },
+      []( input::mouse_move_event_t& e ) { return &e.prev; },
+      []( input::mouse_button_event_t& ) {
+        return (Coord*)nullptr;
+      },
+      []( input::mouse_drag_event_t& ) {
+        return (Coord*)nullptr;
+      } );
+  if( auto ptr = matcher_prev( new_event ); ptr )
+    ( *ptr ) -= delta;
   return new_event;
 }
 

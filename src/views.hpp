@@ -92,6 +92,10 @@ public:
   void children_under_coord( Coord      where,
                              ObjectSet& objects ) override;
 
+  // Implement ui::Object
+  void on_mouse_leave( Coord from ) override;
+  void on_mouse_enter( Coord to ) override;
+
   virtual int count() const = 0;
 
   virtual UPtr<View>& mutable_at( int idx )   = 0;
@@ -196,6 +200,28 @@ private:
   std::vector<OwningPositionedView> views_;
 };
 
+// Just a view for holding a collection of other views but which
+// has a fixed size and is invisible.
+class InvisibleView : public VectorView {
+public:
+  InvisibleView( Delta                             size,
+                 std::vector<OwningPositionedView> views )
+    : VectorView( std::move( views ) ), size_( size ) {}
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  // Implement Object
+  Delta delta() const override { return size_; }
+
+  void set_delta( Delta const& size ) { size_ = size; }
+
+private:
+  // We need to store the size because it cannot be derived from
+  // the child views.
+  Delta size_;
+};
+
 /****************************************************************
 ** Simple Views
 *****************************************************************/
@@ -242,8 +268,13 @@ protected:
 
 class ButtonBaseView : public View {
 public:
+  enum class e_type { standard, blink };
+
   ButtonBaseView( std::string label );
+  ButtonBaseView( std::string label, e_type type );
   ButtonBaseView( std::string label, Delta size_in_blocks );
+  ButtonBaseView( std::string label, Delta size_in_blocks,
+                  e_type type );
 
   // Implement Object
   void draw( Texture const& tx,
@@ -260,13 +291,21 @@ protected:
   void set_state( button_state state ) { state_ = state; }
   button_state state() const { return state_; }
 
+  // NOTE: It just so happens that it is safe to set the type
+  // after creation, but that may change in the future if more
+  // complicated types are added.
+  void   set_type( e_type type ) { type_ = type; }
+  e_type type() const { return type_; }
+
 private:
   void render( std::string const& label, Delta size_in_blocks );
 
   button_state state_{button_state::up};
 
+  e_type type_;
+
   Texture pressed_{};
-  Texture hover_{};
+  Texture hover_{}; // used for blinking when type is `blinking`
   Texture unpressed_{};
   Texture disabled_{};
 };
@@ -324,7 +363,11 @@ public:
       input::mouse_move_event_t const& event ) override;
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
-  void on_mouse_leave() override;
+  void on_mouse_leave( Coord from ) override;
+
+  void enable( bool enabled = true );
+
+  void blink( bool enabled = true );
 
 private:
   OnClickFunc on_click_;

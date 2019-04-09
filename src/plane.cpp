@@ -111,6 +111,9 @@ void init_planes() {
   // object even if it is the dummy above.
   for( auto p : planes ) { CHECK( p ); }
 
+  // Call any custom initialization routines.
+  for( auto p : planes ) { p->initialize(); }
+
   // Initialize the textures. These are intended to be large
   // enough to cover the entire screen at a scale factor of unity
   // if necessary (i.e., when in fullscreen mode with smallest
@@ -133,6 +136,8 @@ void cleanup_planes() {
 REGISTER_INIT_ROUTINE( planes, init_planes, cleanup_planes );
 
 } // namespace
+
+void Plane::initialize() {}
 
 Plane& Plane::get( e_plane p ) { return *plane( p ); }
 

@@ -95,8 +95,8 @@ public:
       input::mouse_move_event_t const& event );
   ND virtual bool on_mouse_button(
       input::mouse_button_event_t const& event );
-  virtual void on_mouse_leave();
-  virtual void on_mouse_enter();
+  virtual void on_mouse_leave( Coord from );
+  virtual void on_mouse_enter( Coord to );
 };
 
 } // namespace rn::ui

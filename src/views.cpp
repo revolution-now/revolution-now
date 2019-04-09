@@ -24,6 +24,7 @@
 #include "base-util/misc.hpp"
 
 // C++ standard library
+#include <chrono>
 #include <numeric>
 
 using namespace std;
@@ -78,6 +79,21 @@ bool CompositeView::on_wheel(
 
 bool CompositeView::on_mouse_move(
     input::mouse_move_event_t const& event ) {
+  auto to   = event.pos;
+  auto from = event.prev;
+  // First check for and send out any on_mouse_leave or
+  // on_mouse_enter events that happen among the sub-views.
+  for( auto p_view : *this ) {
+    if( from.is_inside( p_view.rect() ) &&
+        !to.is_inside( p_view.rect() ) )
+      p_view.view->on_mouse_leave(
+          from.with_new_origin( p_view.rect().upper_left() ) );
+    if( !from.is_inside( p_view.rect() ) &&
+        to.is_inside( p_view.rect() ) )
+      p_view.view->on_mouse_enter(
+          from.with_new_origin( p_view.rect().upper_left() ) );
+  }
+
   return dispatch_mouse_event( event );
 }
 
@@ -96,6 +112,20 @@ void CompositeView::children_under_coord( Coord      where,
           objects );
     }
   }
+}
+
+void CompositeView::on_mouse_leave( Coord from ) {
+  for( auto p_view : *this )
+    if( from.is_inside( p_view.rect() ) )
+      p_view.view->on_mouse_leave(
+          from.with_new_origin( p_view.rect().upper_left() ) );
+}
+
+void CompositeView::on_mouse_enter( Coord to ) {
+  for( auto p_view : *this )
+    if( to.is_inside( p_view.rect() ) )
+      p_view.view->on_mouse_enter(
+          to.with_new_origin( p_view.rect().upper_left() ) );
 }
 
 PositionedView CompositeView::at( int idx ) {
@@ -156,7 +186,8 @@ void OneLineStringView::draw( Texture const& tx,
   copy_texture( this->tx_, tx, coord );
 }
 
-ButtonBaseView::ButtonBaseView( string label ) {
+ButtonBaseView::ButtonBaseView( string label, e_type type )
+  : type_( type ) {
   auto info = TextMarkupInfo{}; // Should be irrelevant
   auto size = render_text_markup( fonts::standard, info, label )
                   .size()
@@ -166,22 +197,50 @@ ButtonBaseView::ButtonBaseView( string label ) {
   render( label, size_in_blocks );
 }
 
+ButtonBaseView::ButtonBaseView( string label )
+  : ButtonBaseView( label, e_type::standard ) {}
+
 ButtonBaseView::ButtonBaseView( string label,
-                                Delta  size_in_blocks ) {
+                                Delta  size_in_blocks,
+                                e_type type )
+  : type_( type ) {
   render( label, size_in_blocks );
 }
+
+ButtonBaseView::ButtonBaseView( string label,
+                                Delta  size_in_blocks )
+  : ButtonBaseView( label, size_in_blocks, e_type::standard ) {}
 
 void ButtonBaseView::draw( Texture const& tx,
                            Coord          coord ) const {
   auto do_copy = [&]( auto const& src ) {
     copy_texture( src, tx, coord );
   };
+
+  using namespace std::chrono;
+  using namespace std::literals::chrono_literals;
+  auto time        = system_clock::now().time_since_epoch();
+  auto one_second  = 1000ms;
+  auto half_second = 500ms;
+  bool on          = time % one_second > half_second;
+
   switch( state_ ) {
     case button_state::disabled: do_copy( disabled_ ); return;
     case button_state::down: do_copy( pressed_ ); return;
-    case button_state::up: do_copy( unpressed_ ); return;
-    case button_state::hover: do_copy( hover_ ); return;
+    case button_state::up:
+      if( type_ == e_type::blink && on )
+        do_copy( hover_ );
+      else
+        do_copy( unpressed_ );
+      return;
+    case button_state::hover:
+      if( type_ == e_type::blink && !on )
+        do_copy( unpressed_ );
+      else
+        do_copy( hover_ );
+      return;
   }
+
   SHOULD_NOT_BE_HERE;
 }
 
@@ -309,35 +368,61 @@ ButtonView::ButtonView( string label, Delta size_in_blocks,
 
 bool ButtonView::on_mouse_move(
     input::mouse_move_event_t const& event ) {
-  switch( state() ) {
-    case button_state::down: break;
-    case button_state::up:
-      set_state( event.l_mouse_down ? button_state::down
-                                    : button_state::hover );
-      break;
-    case button_state::disabled: break;
-    case button_state::hover: break;
+  if( state() != button_state::disabled ) {
+    switch( state() ) {
+      case button_state::down: break;
+      case button_state::up:
+        set_state( event.l_mouse_down ? button_state::down
+                                      : button_state::hover );
+        break;
+      case button_state::disabled: break;
+      case button_state::hover: break;
+    }
   }
   return true;
 }
 
 bool ButtonView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
-  switch( event.buttons ) {
-    case input::e_mouse_button_event::left_down:
-      set_state( button_state::down );
-      break;
-    case input::e_mouse_button_event::left_up:
-      if( state() == button_state::down ) on_click_();
-      set_state( button_state::hover );
-      break;
-    default: break;
+  if( state() != button_state::disabled ) {
+    switch( event.buttons ) {
+      case input::e_mouse_button_event::left_down:
+        set_state( button_state::down );
+        break;
+      case input::e_mouse_button_event::left_up:
+        set_state( button_state::hover );
+        // Must call on_click_ after setting the state to `hover`
+        // just in case the on_click_ function wants to change
+        // the state of the button (e.g., to disabled). In other-
+        // words, we should allow on_click_() to have the last
+        // word in this function.
+        on_click_();
+        break;
+      default: break;
+    }
   }
   return false;
 }
 
-void ButtonView::on_mouse_leave() {
-  set_state( button_state::up );
+void ButtonView::on_mouse_leave( Coord /*unused*/ ) {
+  if( state() != button_state::disabled )
+    set_state( button_state::up );
+}
+
+void ButtonView::enable( bool enabled ) {
+  if( enabled ) {
+    set_state( button_state::up );
+  } else {
+    set_state( button_state::disabled );
+  }
+}
+
+void ButtonView::blink( bool enabled ) {
+  if( enabled ) {
+    set_type( e_type::blink );
+  } else {
+    set_type( e_type::standard );
+  }
 }
 
 constexpr Delta ok_cancel_button_size_blocks{2_h, 8_w};

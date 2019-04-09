@@ -23,14 +23,12 @@ Low priority:
 TODO
 =================================================================
 
-  - Add end-of-turn button to panel with blinking white text.
-  - Test unit selection window with end-of-turn.
+  - ?
 
 =================================================================
 UI
 =================================================================
 
-  - Next Turn button
   - Escape cancels Ok/Cancel windows.
   - Minimap
 

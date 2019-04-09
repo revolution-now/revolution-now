@@ -102,11 +102,11 @@ e_turn_result turn() {
     /***************************************************/
     auto& vp_state = viewport_rendering_state();
     vp_state       = viewport_state::none{};
-    // frame_loop( true, [] { return false; } );
-    // TODO: use enums here
-    auto res =
-        ui::select_box( "End of turn.", {"Continue", "Quit"} );
-    if( res == "Quit" ) return e_turn_result::quit;
+
+    mark_end_of_turn();
+
+    frame_loop( true,
+                [] { return was_next_turn_button_clicked(); } );
     return e_turn_result::no_orders_taken;
   }
   return e_turn_result::orders_taken;

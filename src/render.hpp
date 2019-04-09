@@ -128,7 +128,11 @@ Plane* viewport_plane();
 /****************************************************************
 ** Panel Rendering
 *****************************************************************/
+// TODO: move panel into is own module
 Plane* panel_plane();
+
+void mark_end_of_turn();
+bool was_next_turn_button_clicked();
 
 /****************************************************************
 ** Miscellaneous Rendering

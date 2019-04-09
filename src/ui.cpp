@@ -54,7 +54,7 @@ bool Object::on_mouse_button(
   return false;
 }
 
-void Object::on_mouse_leave() {}
-void Object::on_mouse_enter() {}
+void Object::on_mouse_leave( Coord ) {}
+void Object::on_mouse_enter( Coord ) {}
 
 } // namespace rn::ui

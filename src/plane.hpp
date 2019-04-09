@@ -40,6 +40,10 @@ enum class e_( plane,
 struct Plane : public util::non_copy_non_move {
   static Plane& get( e_plane plane );
 
+  // Will be called on all planes (whether enabled or not) before
+  // any other methods are called on it. Default does nothing.
+  void virtual initialize();
+
   // Is this plane enabled.  If not, it won't be rendered.
   bool virtual enabled() const = 0;
 
