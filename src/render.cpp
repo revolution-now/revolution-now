@@ -575,6 +575,12 @@ struct ViewportPlane : public Plane {
                 blink_unit.orders = orders::fortify{};
                 handled           = true;
                 break;
+              case ::SDLK_c:
+                viewport().ensure_tile_visible(
+                    coords_for_unit( blink_unit.id ),
+                    /*smooth=*/true );
+                handled = true;
+                break;
               case ::SDLK_d:
                 blink_unit.orders = orders::disband{};
                 handled           = true;
