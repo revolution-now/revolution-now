@@ -2,9 +2,22 @@
 Bugs
 =================================================================
 
+High priority:
+
   - Zoom all the way out, then click on a tile close to the upper
     left corner of the map, and an exception will be thrown due
     to invalid tile selected.
+
+Low priority:
+
+  - When we toggle from fullscreen to non-fullscreen the mouse
+    position is a bit off. This is probably some kind of SDL
+    issue where the window thinks that it is in a different posi-
+    tion than where it is displayed on screen (off by about 10-20
+    pixels). As soon as the window position is moved slightly (by
+    dragging) then it is observed to self-correct. Somehow, after
+    restoring the window, we need to tell the window to update
+    itself.
 
 =================================================================
 TODO
