@@ -40,6 +40,9 @@ namespace {
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
+constexpr int min_scale_factor = 1;
+constexpr int max_scale_factor = 10;
+
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
  *  ::SDL_DisplayMode dm;
@@ -186,8 +189,9 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
-  auto scale_scores = rv::iota( 1, 11 ) //
-                      | rv::transform( scale_info );
+  auto scale_scores =
+      rv::iota( min_scale_factor, max_scale_factor + 1 ) //
+      | rv::transform( scale_info );
 
   // What we would like to do is use the following macro, but
   // this currently causes a compiler crash for GCC inside the
@@ -258,9 +262,8 @@ void init_screen() {
 
 void init_app_window() {
   // NOLINTNEXTLINE(hicpp-signed-bitwise)
-  // auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
-  //             ::SDL_WINDOW_FULLSCREEN_DESKTOP;
-  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE;
+  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
+               ::SDL_WINDOW_FULLSCREEN_DESKTOP;
 
   auto dm = current_display_mode().size;
 
@@ -276,15 +279,17 @@ void cleanup_app_window() {
 
 MENU_ITEM_HANDLER(
     e_menu_item::scale_up, [] { inc_resolution_scale(); },
-    L0( true ) )
+    L0( g_resolution_scale_factor != Scale{max_scale_factor} ) )
 
 MENU_ITEM_HANDLER(
     e_menu_item::scale_down, [] { dec_resolution_scale(); },
-    L0( true ) )
+    L0( g_resolution_scale_factor != Scale{min_scale_factor} ) )
 
 MENU_ITEM_HANDLER(
     e_menu_item::scale_optimal,
-    [] { set_optimal_resolution_scale(); }, L0( true ) )
+    [] { set_optimal_resolution_scale(); },
+    L0( g_resolution_scale_factor !=
+        g_optimal_resolution_scale_factor ) )
 
 void init_renderer() {
   g_renderer = SDL_CreateRenderer(
@@ -337,7 +342,7 @@ void inc_resolution_scale() {
   int scale     = g_resolution_scale_factor.sx._;
   int old_scale = scale;
   scale++;
-  scale                        = clamp( scale, 1, 10 );
+  scale = clamp( scale, min_scale_factor, max_scale_factor );
   g_resolution_scale_factor.sx = SX{scale};
   g_resolution_scale_factor.sy = SY{scale};
   if( old_scale != scale ) on_renderer_scale_factor_changed();
@@ -347,7 +352,7 @@ void dec_resolution_scale() {
   int scale     = g_resolution_scale_factor.sx._;
   int old_scale = scale;
   scale--;
-  scale                        = clamp( scale, 1, 10 );
+  scale = clamp( scale, min_scale_factor, max_scale_factor );
   g_resolution_scale_factor.sx = SX{scale};
   g_resolution_scale_factor.sy = SY{scale};
   if( old_scale != scale ) on_renderer_scale_factor_changed();

@@ -149,10 +149,10 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
     {e_menu::window,
      {
          ITEM( toggle_fullscreen, "Toggle Fullscreen" ), //
-         ITEM( restore_window, "Restore Window" ),       //
+         ITEM( restore_window, "Restore" ),              //
          /***********/ DIVIDER, /***********/            //
-         ITEM( scale_up, "Scale Up Resolution" ),        //
-         ITEM( scale_down, "Scale Down Resolution" ),    //
+         ITEM( scale_up, "Scale Up" ),                   //
+         ITEM( scale_down, "Scale Down" ),               //
          ITEM( scale_optimal, "Scale Optimal" )          //
      }},
     {e_menu::debug,

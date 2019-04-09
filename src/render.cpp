@@ -585,6 +585,15 @@ struct ViewportPlane : public Plane {
                 blink_unit.orders = orders::disband{};
                 handled           = true;
                 break;
+              case ::SDLK_F11:
+                if( is_window_fullscreen() ) {
+                  toggle_fullscreen();
+                  restore_window();
+                } else {
+                  toggle_fullscreen();
+                }
+                handled = true;
+                break;
               case ::SDLK_EQUALS:
               case ::SDLK_KP_PLUS:      //
                 inc_resolution_scale(); //
