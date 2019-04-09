@@ -428,10 +428,8 @@ void on_renderer_scale_factor_changed() {
   //
   // FIXME: need to find a more proper way of doing this.
   if( is_window_fullscreen() ) {
-#ifdef __linux__
     toggle_fullscreen();
     toggle_fullscreen();
-#endif
   } else {
     int w{}, h{};
     ::SDL_GetWindowSize( g_window, &w, &h );
