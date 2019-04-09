@@ -44,6 +44,9 @@ enum class e_( menu_item,
                restore_zoom,         //
                toggle_fullscreen,    //
                restore_window,       //
+               scale_up,             //
+               scale_down,           //
+               scale_optimal,        //
                sentry,               //
                fortify,              //
                military_advisor,     //

@@ -103,46 +103,6 @@ void cleanup_sdl() {
 
 REGISTER_INIT_ROUTINE( sdl, init_sdl, cleanup_sdl );
 
-void init_renderer() {
-  g_renderer = SDL_CreateRenderer(
-      g_window, -1,
-      SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE |
-          SDL_RENDERER_PRESENTVSYNC );
-
-  CHECK( g_renderer, "failed to create renderer" );
-
-  auto logical_size = main_window_logical_size();
-
-  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
-                              logical_size.h._ );
-  // I think in theory we should not need this because we should
-  // have already computed a logical_size that allowed for in-
-  // teger scaling, but just in case we do the calculations wrong
-  // this might help to flag that.
-  //::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
-
-  ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                ::SDL_BLENDMODE_BLEND );
-
-  // Now we calculate the necessary size of the viewport texture.
-  // This needs to be large enough to accomodate a zoomed-out
-  // view in which the entire world is visible.
-  auto delta = world_size_pixels();
-  logger->debug( "g_texture_viewport proposed size: {}", delta );
-  logger->debug(
-      "g_texture_viewport memory usage estimate: {}MB",
-      Texture::mem_usage_mb( delta ) );
-  g_texture_viewport = create_texture( delta );
-}
-
-void cleanup_renderer() {
-  if( g_renderer != nullptr )
-    ::SDL_DestroyRenderer( g_renderer );
-}
-
-REGISTER_INIT_ROUTINE( renderer, init_renderer,
-                       cleanup_renderer );
-
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 
 ::SDL_Surface* optimize_surface( ::SDL_Surface* in,

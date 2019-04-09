@@ -34,6 +34,12 @@ Rect  main_window_physical_rect(); // origin at (0,0)
 
 void on_main_window_resized();
 
+void inc_resolution_scale();
+void dec_resolution_scale();
+void set_optimal_resolution_scale();
+
+void on_renderer_scale_factor_changed();
+
 struct DisplayMode {
   Delta  size;
   Uint32 format;

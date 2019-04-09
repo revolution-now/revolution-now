@@ -10,14 +10,6 @@ Bugs
 TODO
 =================================================================
 
-  - Add a cache to the cache module that invalidates when the
-    scaling is changed. This will facilitate the next item.
-  - Modify the `screen` module to handle all quantities that de-
-    pend on the rendering scale, and allow dynamic changes to it,
-    still fullscreen.
-  - Allow non-fullscreen mode, window resizing, and automatic ad-
-    justing of scale.
-
   - Allow multiple windows.
   - Test unit selection window with end-of-turn window.
   - Quick workaround to avoid end-of-turn window.
@@ -149,11 +141,9 @@ Graphics Engine
     sprites speeds up copying.
 
   - Add a cache to the cache module that invalidates when the
-    scaling is changed. This will facilitate the next item.
-
-  - Modify the `screen` module to handle all quantities that de-
-    pend on the rendering scale, and allow dynamic changes to it.
-    Also try to fix non-fullscreen mode.
+    scaling is changed. This may not be necessary since, as of
+    now, it seems possible to write code that will work and ad-
+    just to any scale.
 
   - Remove color palette from config, generate a new palette data
     structure with a uniform distribution of hues/sats/lums. Kind

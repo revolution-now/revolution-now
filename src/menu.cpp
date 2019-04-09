@@ -149,7 +149,11 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
     {e_menu::window,
      {
          ITEM( toggle_fullscreen, "Toggle Fullscreen" ), //
-         ITEM( restore_window, "Restore Window" )        //
+         ITEM( restore_window, "Restore Window" ),       //
+         /***********/ DIVIDER, /***********/            //
+         ITEM( scale_up, "Scale Up Resolution" ),        //
+         ITEM( scale_down, "Scale Down Resolution" ),    //
+         ITEM( scale_optimal, "Scale Optimal" )          //
      }},
     {e_menu::debug,
      {
@@ -408,7 +412,10 @@ Rect menu_header_rect( e_menu menu ) {
 // the menu headers. but does not include the space that would be
 // occupied by open menu bodies.
 Rect menu_bar_rect() {
-  auto delta_screen = main_window_logical_size();
+  // Needs to be screen physical width because that is as large
+  // as we may need to get e.g. in fullscreen mode with scale of
+  // unity.
+  auto delta_screen = screen_physical_size();
   auto height       = menu_bar_height();
   return Rect::from( Coord{}, Delta{delta_screen.w, height} );
 }

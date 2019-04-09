@@ -48,6 +48,7 @@ struct ImagePlane : public Plane {
   bool covers_screen() const override { return true; }
   // Implement Plane
   void draw( Texture const& tx ) const override {
+    clear_texture_transparent( tx );
     check_invariants();
     CHECK( enabled_ );
     auto& image_tx    = val_or_die( g_images, *image );

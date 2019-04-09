@@ -15,6 +15,7 @@
 #include "errors.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "menu.hpp"
 #include "ranges.hpp"
 #include "sdl-util.hpp"
 #include "tiles.hpp"
@@ -32,6 +33,7 @@ namespace rn {
 Texture         g_texture_viewport;
 
 Scale g_resolution_scale_factor{0};
+Scale g_optimal_resolution_scale_factor{0};
 Delta g_screen_physical_size{};
 
 namespace {
@@ -228,7 +230,8 @@ void find_pixel_scale_factor() {
   logger->debug( bar );
   ///////////////////////////////////////////////////////////////
 
-  g_resolution_scale_factor = Scale{optimal.scale};
+  g_resolution_scale_factor         = Scale{optimal.scale};
+  g_optimal_resolution_scale_factor = Scale{optimal.scale};
   g_screen_physical_size =
       optimal.resolution * g_resolution_scale_factor;
   logger->debug( "screen physical size: {}",
@@ -271,12 +274,93 @@ void cleanup_app_window() {
   if( g_window != nullptr ) SDL_DestroyWindow( g_window );
 }
 
+MENU_ITEM_HANDLER(
+    e_menu_item::scale_up, [] { inc_resolution_scale(); },
+    L0( true ) )
+
+MENU_ITEM_HANDLER(
+    e_menu_item::scale_down, [] { dec_resolution_scale(); },
+    L0( true ) )
+
+MENU_ITEM_HANDLER(
+    e_menu_item::scale_optimal,
+    [] { set_optimal_resolution_scale(); }, L0( true ) )
+
+void init_renderer() {
+  g_renderer = SDL_CreateRenderer(
+      g_window, -1,
+      SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE |
+          SDL_RENDERER_PRESENTVSYNC );
+
+  CHECK( g_renderer, "failed to create renderer" );
+
+  // This will do what is necessary when the scale factor is
+  // reset (or, in this case, set for the first time).
+  on_renderer_scale_factor_changed();
+
+  // I think in theory we should not need this because we should
+  // have already computed a logical_size that allowed for in-
+  // teger scaling, but just in case we do the calculations wrong
+  // this might help to flag that.
+  //::SDL_RenderSetIntegerScale( g_renderer, ::SDL_TRUE );
+
+  ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                ::SDL_BLENDMODE_BLEND );
+
+  // Now we calculate the necessary size of the viewport texture.
+  // This needs to be large enough to accomodate a zoomed-out
+  // view in which the entire world is visible.
+  auto delta = world_size_pixels();
+  logger->debug( "g_texture_viewport proposed size: {}", delta );
+  logger->debug(
+      "g_texture_viewport memory usage estimate: {}MB",
+      Texture::mem_usage_mb( delta ) );
+  g_texture_viewport = create_texture( delta );
+}
+
+void cleanup_renderer() {
+  if( g_renderer != nullptr )
+    ::SDL_DestroyRenderer( g_renderer );
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
 
 REGISTER_INIT_ROUTINE( app_window, init_app_window,
                        cleanup_app_window );
+
+REGISTER_INIT_ROUTINE( renderer, init_renderer,
+                       cleanup_renderer );
+
+void inc_resolution_scale() {
+  int scale     = g_resolution_scale_factor.sx._;
+  int old_scale = scale;
+  scale++;
+  scale                        = clamp( scale, 1, 10 );
+  g_resolution_scale_factor.sx = SX{scale};
+  g_resolution_scale_factor.sy = SY{scale};
+  if( old_scale != scale ) on_renderer_scale_factor_changed();
+}
+
+void dec_resolution_scale() {
+  int scale     = g_resolution_scale_factor.sx._;
+  int old_scale = scale;
+  scale--;
+  scale                        = clamp( scale, 1, 10 );
+  g_resolution_scale_factor.sx = SX{scale};
+  g_resolution_scale_factor.sy = SY{scale};
+  if( old_scale != scale ) on_renderer_scale_factor_changed();
+}
+
+void set_optimal_resolution_scale() {
+  if( g_resolution_scale_factor !=
+      g_optimal_resolution_scale_factor ) {
+    g_resolution_scale_factor =
+        g_optimal_resolution_scale_factor;
+    on_renderer_scale_factor_changed();
+  }
+}
 
 DisplayMode current_display_mode() {
   SDL_DisplayMode dm;
@@ -328,6 +412,23 @@ void on_main_window_resized() {
     logger->warn(
         "Window physical resolution not commensurate with scale "
         "factor." );
+}
+
+void on_renderer_scale_factor_changed() {
+  auto logical_size = main_window_logical_size();
+  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
+                              logical_size.h._ );
+  // The below seems necessary to get the window to update itself
+  // with the new logical size. FIXME: need to find a more proper
+  // way of doing this.
+  if( is_window_fullscreen() ) {
+    toggle_fullscreen();
+    toggle_fullscreen();
+  } else {
+    int w{}, h{};
+    ::SDL_GetWindowSize( g_window, &w, &h );
+    ::SDL_SetWindowSize( g_window, w, h );
+  }
 }
 
 } // namespace rn

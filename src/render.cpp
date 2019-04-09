@@ -579,6 +579,14 @@ struct ViewportPlane : public Plane {
                 blink_unit.orders = orders::disband{};
                 handled           = true;
                 break;
+              case ::SDLK_EQUALS:
+              case ::SDLK_KP_PLUS:      //
+                inc_resolution_scale(); //
+                break;
+              case ::SDLK_MINUS:
+              case ::SDLK_KP_MINUS:     //
+                dec_resolution_scale(); //
+                break;
               case ::SDLK_SPACE:
               case ::SDLK_KP_5:
                 blink_unit.orders = orders::forfeight{};
