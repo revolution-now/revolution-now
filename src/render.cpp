@@ -550,7 +550,31 @@ struct ViewportPlane : public Plane {
         if( key_event.change != input::e_key_change::down )
           break_v;
         switch_v( g_viewport_state ) {
-          case_v( viewport_state::none ) {}
+          case_v( viewport_state::none ) {
+            switch( key_event.keycode ) {
+              case ::SDLK_z:
+                viewport().smooth_zoom_target( 1.0 );
+                break;
+              case ::SDLK_F11:
+                if( is_window_fullscreen() ) {
+                  toggle_fullscreen();
+                  restore_window();
+                } else {
+                  toggle_fullscreen();
+                }
+                handled = true;
+                break;
+              case ::SDLK_EQUALS:
+              case ::SDLK_KP_PLUS:      //
+                inc_resolution_scale(); //
+                break;
+              case ::SDLK_MINUS:
+              case ::SDLK_KP_MINUS:     //
+                dec_resolution_scale(); //
+                break;
+              default: break;
+            }
+          }
           case_v( viewport_state::slide_unit ) {}
           case_v( viewport_state::depixelate_unit ) {}
           case_v( viewport_state::blink_unit ) {
