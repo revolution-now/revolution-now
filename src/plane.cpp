@@ -20,6 +20,7 @@
 #include "menu.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
+#include "screen.hpp"
 #include "window.hpp"
 
 // base-util
@@ -40,6 +41,9 @@ namespace {
 constexpr auto num_planes =
     static_cast<size_t>( e_plane::_size() );
 
+/****************************************************************
+** Plane Textures
+*****************************************************************/
 // Planes are rendered from 0 --> count.
 array<ObserverPtr<Plane>, num_planes> planes;
 array<Texture, num_planes>            textures;
@@ -56,6 +60,9 @@ Texture& plane_tx( e_plane plane ) {
   return textures[idx];
 }
 
+/****************************************************************
+** The InactivePlane Plane
+*****************************************************************/
 struct InactivePlane : public Plane {
   InactivePlane() {}
   bool enabled() const override { return false; }
@@ -65,6 +72,63 @@ struct InactivePlane : public Plane {
 
 InactivePlane dummy;
 
+/****************************************************************
+** The Omni Plane
+*****************************************************************/
+// This plane is intended to be:
+//
+//   1) Always present / enabled
+//   2) Always invisible
+//   3) Always on top
+//   4) Catching any global events (such as special key presses)
+//
+struct OmniPlane : public Plane {
+  OmniPlane() = default;
+  bool enabled() const override { return true; }
+  bool covers_screen() const override { return false; }
+  void draw( Texture const& /*unused*/ ) const override {}
+  bool input( input::event_t const& event ) override {
+    bool handled = false;
+    switch_v( event ) {
+      case_v( input::quit_event_t ) { throw exception_exit{}; }
+      case_v( input::key_event_t ) {
+        auto& key_event = val;
+        if( key_event.change != input::e_key_change::up )
+          break_v;
+        handled = true;
+        switch( key_event.keycode ) {
+          case ::SDLK_F11:
+            if( is_window_fullscreen() ) {
+              toggle_fullscreen();
+              restore_window();
+            } else {
+              toggle_fullscreen();
+            }
+            break;
+          case ::SDLK_EQUALS:
+          case ::SDLK_KP_PLUS:      //
+            inc_resolution_scale(); //
+            break;
+          case ::SDLK_MINUS:
+          case ::SDLK_KP_MINUS:     //
+            dec_resolution_scale(); //
+            break;
+          default: handled = false; break;
+        }
+      }
+      default_v_no_check;
+    }
+    return handled;
+  }
+};
+
+OmniPlane g_omni_plane;
+
+Plane* omni_plane() { return &g_omni_plane; }
+
+/****************************************************************
+** Dragging Metadata
+*****************************************************************/
 struct DragInfo {
   explicit DragInfo() { reset(); }
 
@@ -81,6 +145,9 @@ struct DragInfo {
 
 DragInfo g_drag_info;
 
+/****************************************************************
+** Plane Range Combinators
+*****************************************************************/
 auto relevant_planes() {
   auto not_covers_screen = L( !_.second->covers_screen() );
   auto enabled           = L( _.second->enabled() );
@@ -92,6 +159,9 @@ auto relevant_planes() {
 
 auto planes_to_draw() { return relevant_planes() | rv::reverse; }
 
+/****************************************************************
+** Initialization
+*****************************************************************/
 void init_planes() {
   // By default, all planes are dummies, unless we provide an
   // object below.
@@ -106,6 +176,7 @@ void init_planes() {
   plane( e_plane::window ).reset( window_plane() );
   plane( e_plane::menu ).reset( menu_plane() );
   plane( e_plane::console ).reset( console_plane() );
+  plane( e_plane::omni ).reset( omni_plane() );
 
   // No plane must be null, they must all point to a valid Plane
   // object even if it is the dummy above.
@@ -137,6 +208,9 @@ REGISTER_INIT_ROUTINE( planes, init_planes, cleanup_planes );
 
 } // namespace
 
+/****************************************************************
+** Plane Default Implementations
+*****************************************************************/
 void Plane::initialize() {}
 
 Plane& Plane::get( e_plane p ) { return *plane( p ); }
@@ -163,6 +237,9 @@ OptRef<Plane::MenuClickHandler> Plane::menu_click_handler(
   return nullopt;
 }
 
+/****************************************************************
+** External API
+*****************************************************************/
 void draw_all_planes( Texture const& tx ) {
   clear_texture_black( tx );
 
@@ -307,6 +384,9 @@ bool send_input_to_planes( input::event_t const& event ) {
   return false;
 }
 
+/****************************************************************
+** Plane Menu Handling
+*****************************************************************/
 namespace {
 
 bool is_menu_item_enabled_( e_menu_item item ) {

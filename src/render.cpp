@@ -555,23 +555,6 @@ struct ViewportPlane : public Plane {
               case ::SDLK_z:
                 viewport().smooth_zoom_target( 1.0 );
                 break;
-              case ::SDLK_F11:
-                if( is_window_fullscreen() ) {
-                  toggle_fullscreen();
-                  restore_window();
-                } else {
-                  toggle_fullscreen();
-                }
-                handled = true;
-                break;
-              case ::SDLK_EQUALS:
-              case ::SDLK_KP_PLUS:      //
-                inc_resolution_scale(); //
-                break;
-              case ::SDLK_MINUS:
-              case ::SDLK_KP_MINUS:     //
-                dec_resolution_scale(); //
-                break;
               default: break;
             }
           }
@@ -579,6 +562,7 @@ struct ViewportPlane : public Plane {
           case_v( viewport_state::depixelate_unit ) {}
           case_v( viewport_state::blink_unit ) {
             auto& blink_unit = val;
+            handled          = true;
             switch( key_event.keycode ) {
               case ::SDLK_z:
                 viewport().smooth_zoom_target( 1.0 );
@@ -586,53 +570,30 @@ struct ViewportPlane : public Plane {
               case ::SDLK_q:
                 // TODO: temporary
                 blink_unit.orders = orders::quit{};
-                handled           = true;
                 break;
               case ::SDLK_w:
                 blink_unit.orders = orders::wait{};
-                handled           = true;
                 break;
               case ::SDLK_s:
                 blink_unit.orders = orders::sentry{};
-                handled           = true;
                 break;
               case ::SDLK_f:
                 blink_unit.orders = orders::fortify{};
-                handled           = true;
                 break;
               case ::SDLK_c:
                 viewport().ensure_tile_visible(
                     coords_for_unit( blink_unit.id ),
                     /*smooth=*/true );
-                handled = true;
                 break;
               case ::SDLK_d:
                 blink_unit.orders = orders::disband{};
-                handled           = true;
-                break;
-              case ::SDLK_F11:
-                if( is_window_fullscreen() ) {
-                  toggle_fullscreen();
-                  restore_window();
-                } else {
-                  toggle_fullscreen();
-                }
-                handled = true;
-                break;
-              case ::SDLK_EQUALS:
-              case ::SDLK_KP_PLUS:      //
-                inc_resolution_scale(); //
-                break;
-              case ::SDLK_MINUS:
-              case ::SDLK_KP_MINUS:     //
-                dec_resolution_scale(); //
                 break;
               case ::SDLK_SPACE:
               case ::SDLK_KP_5:
                 blink_unit.orders = orders::forfeight{};
-                handled           = true;
                 break;
               default:
+                handled = false;
                 if( key_event.direction ) {
                   blink_unit.orders =
                       orders::direction{*key_event.direction};

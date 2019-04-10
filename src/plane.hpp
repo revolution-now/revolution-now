@@ -34,7 +34,9 @@ enum class e_( plane,
                effects,  // such as e.g. fading
                menu,     // the menus at the top of screen
                window,   // the windows
-               console   // the developer console
+               console,  // the developer console
+               /*******/ //
+               omni      // Always present, invisible, and first.
 );
 
 struct Plane : public util::non_copy_non_move {
