@@ -120,6 +120,10 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
     advance_viewport_translation();
     viewport().advance();
 
+    // This calls an update method on each plane to allow it to
+    // update any internal state that it has each frame.
+    update_all_planes();
+
     if( finished() ) break;
 
     auto delta = system_clock::now() - start;

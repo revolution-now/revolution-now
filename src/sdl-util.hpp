@@ -98,12 +98,6 @@ void pop_clip_rect();
 ND Texture& load_texture( const char* file );
 ND Texture& load_texture( fs::path const& path );
 
-ND bool is_window_fullscreen();
-void    set_fullscreen( bool fullscreen );
-// Returns true if the window is now fullscreen.
-bool toggle_fullscreen();
-void restore_window();
-
 ::SDL_Rect to_SDL( Rect const& rect );
 Rect       from_SDL( ::SDL_Rect const& rect );
 

@@ -291,6 +291,26 @@ MENU_ITEM_HANDLER(
     L0( g_resolution_scale_factor !=
         g_optimal_resolution_scale_factor ) )
 
+MENU_ITEM_HANDLER(
+    e_menu_item::toggle_fullscreen,
+    [] {
+      auto is_fullscreen = toggle_fullscreen();
+      if( !is_fullscreen ) restore_window();
+    },
+    L0( true ) )
+
+MENU_ITEM_HANDLER(
+    e_menu_item::restore_window,
+    [] {
+      if( is_window_fullscreen() ) {
+        toggle_fullscreen();
+        restore_window();
+      } else {
+        restore_window();
+      }
+    },
+    L0( true ) )
+
 void init_renderer() {
   g_renderer = SDL_CreateRenderer(
       g_window, -1,
@@ -406,6 +426,33 @@ Rect main_window_physical_rect() {
   return Rect::from( Coord{}, main_window_physical_size() );
 }
 
+// TODO: mac-os, does not seem to be able to detect when the user
+// fullscreens a window.
+bool is_window_fullscreen() {
+  // This bit should always be set even if we're in the "desktop"
+  // fullscreen mode.
+  return ( ::SDL_GetWindowFlags( g_window ) &
+           ::SDL_WINDOW_FULLSCREEN ) != 0;
+}
+
+void set_fullscreen( bool fullscreen ) {
+  bool already = is_window_fullscreen();
+  if( ( fullscreen ^ already ) == 0 ) return;
+
+  // Must only contain one of the following values.
+  ::Uint32 flags =
+      fullscreen ? ::SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
+  ::SDL_SetWindowFullscreen( g_window, flags );
+}
+
+bool toggle_fullscreen() {
+  auto fullscreen = is_window_fullscreen();
+  set_fullscreen( !fullscreen );
+  return !fullscreen;
+}
+
+void restore_window() { ::SDL_RestoreWindow( g_window ); }
+
 void on_main_window_resized() {
   logger->debug( "main window resizing." );
   auto logical_size = main_window_logical_size();
@@ -423,17 +470,17 @@ void on_renderer_scale_factor_changed() {
   auto logical_size = main_window_logical_size();
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
-  // The below seems necessary to get the window to update
-  // itself with the new logical size.
-  //
-  // FIXME: need to find a more proper way of doing this.
+  // TODO: seems working on linux, test on Mac OS.
+  // FIXME: The below seems necessary to get the window to update
+  // itself with the new logical size, probably should find a
+  // more proper way to do this.
   if( is_window_fullscreen() ) {
-    toggle_fullscreen();
-    toggle_fullscreen();
+    // toggle_fullscreen();
+    // toggle_fullscreen();
   } else {
-    int w{}, h{};
-    ::SDL_GetWindowSize( g_window, &w, &h );
-    ::SDL_SetWindowSize( g_window, w, h );
+    // int w{}, h{};
+    //::SDL_GetWindowSize( g_window, &w, &h );
+    //::SDL_SetWindowSize( g_window, w, h );
   }
 }
 

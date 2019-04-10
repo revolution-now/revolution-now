@@ -53,6 +53,12 @@ DisplayMode current_display_mode();
 Delta screen_logical_size();
 Delta screen_physical_size();
 
+ND bool is_window_fullscreen();
+void    set_fullscreen( bool fullscreen );
+// Returns true if the window is now fullscreen.
+bool toggle_fullscreen();
+void restore_window();
+
 // At standard zoom, when tile size is (g_tile_width,
 // g_tile_height), i.e., these are fixed and do not depend on any
 // viewport state.

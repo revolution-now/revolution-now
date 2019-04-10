@@ -1122,26 +1122,6 @@ function<bool( void )> quit_handler  = [] {
 
 MENU_ITEM_HANDLER( exit, quit_handler, enabled_true );
 
-MENU_ITEM_HANDLER(
-    e_menu_item::toggle_fullscreen,
-    [] {
-      auto is_fullscreen = toggle_fullscreen();
-      if( !is_fullscreen ) restore_window();
-    },
-    L0( true ) )
-
-MENU_ITEM_HANDLER(
-    e_menu_item::restore_window,
-    [] {
-      if( is_window_fullscreen() ) {
-        toggle_fullscreen();
-        restore_window();
-      } else {
-        restore_window();
-      }
-    },
-    L0( true ) )
-
 /****************************************************************
 ** The Menu Plane
 *****************************************************************/
@@ -1161,7 +1141,8 @@ struct MenuPlane : public Plane {
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
     render_menus( tx );
-    // TODO: put this code in a dedicated plane `tick` callback.
+  }
+  void on_frame_tick() override {
     if_v( g_menu_state, MenuState::item_click, val ) {
       auto item  = val->item;
       auto start = val->start;

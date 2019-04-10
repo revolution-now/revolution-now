@@ -394,33 +394,6 @@ void clear_texture_transparent( Texture const& tx ) {
   ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_BLEND );
 }
 
-// TODO: mac-os, does not seem to be able to detect when the user
-// fullscreens a window.
-bool is_window_fullscreen() {
-  // This bit should always be set even if we're in the "desktop"
-  // fullscreen mode.
-  return ( ::SDL_GetWindowFlags( g_window ) &
-           ::SDL_WINDOW_FULLSCREEN ) != 0;
-}
-
-void set_fullscreen( bool fullscreen ) {
-  bool already = is_window_fullscreen();
-  if( ( fullscreen ^ already ) == 0 ) return;
-
-  // Must only contain one of the following values.
-  ::Uint32 flags =
-      fullscreen ? ::SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
-  ::SDL_SetWindowFullscreen( g_window, flags );
-}
-
-bool toggle_fullscreen() {
-  auto fullscreen = is_window_fullscreen();
-  set_fullscreen( !fullscreen );
-  return !fullscreen;
-}
-
-void restore_window() { ::SDL_RestoreWindow( g_window ); }
-
 Texture::Texture( ::SDL_Texture* tx )
   : own_{true}, tx_( tx ), id_{g_next_texture_id++} {
   CHECK( tx_ );
