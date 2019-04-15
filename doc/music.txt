@@ -1,0 +1,27 @@
+Music
+=====
+
+Music will work as follows:
+
+  - Music will be stored in a dedicated rn-music repo.
+  - In the repo the music will be stored as midi files.
+  - The game will use some third party libraries to read the midi
+    files and to send them to a midi port for playing. There will
+    have to be a softsynth server running to play them, such as
+    fluidsynth:
+      - libsmf to read the midi files
+      - rtmidi to send them to the midi port
+  - Releases of the game will instead hold its music in the form
+    of ogg files, since these are apparently better than mp3 but
+    are supported by SDL. The process of preparing a release
+    process will include using fluidsynth to generate wav files
+    from the midi files and to then convert the wav files to ogg
+    files, that way official releases of the game do not have to
+    have the capability of playing midi files, since this would
+    require:
+      - shipping the game with the sound font (which might not be
+        allowed depending on which sound font we end up using).
+      - linking the game with e.g. libfluidsynth, and then wor-
+        rying about either shipping a copy of it with the game or
+        requiring the user to have it installed (neither is ide-
+        al).
