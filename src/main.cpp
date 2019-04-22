@@ -9,6 +9,7 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "midi.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"
 #include "ranges.hpp"
@@ -81,10 +82,11 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines();
-  game();
+  // run_all_init_routines();
+  // game();
   // ui::window_test();
-  run_all_cleanup_routines();
+  // run_all_cleanup_routines();
+  test_midi();
   return 0;
 
 } catch( exception_exit const& ) {

@@ -17,6 +17,7 @@ target_link_libraries(
     base-util
     better-enums::better-enums
     fmt::fmt
+    midifile
     observer-ptr::observer-ptr
     range-v3
     scelta::headers

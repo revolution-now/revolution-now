@@ -7,6 +7,7 @@ let s:first = 'main.cpp'
 let s:stems = [
   \ 'src/sdl-util',
   \ 'src/init',
+  \ 'src/midi',
   \ 'src/input',
   \ 'src/frame',
   \ 'src/plane',
