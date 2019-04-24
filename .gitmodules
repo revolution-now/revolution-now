@@ -42,4 +42,7 @@
 	url = https://github.com/ericniebler/range-v3.git
 [submodule "extern/midifile"]
 	path = extern/midifile
-	url = https://github.com/dpacbach/midifile.git
+	url = ../../dpacbach/midifile.git
+[submodule "extern/rtmidi"]
+	path = extern/rtmidi
+	url = ../../dpacbach/rtmidi

@@ -50,6 +50,7 @@ add_subdirectory( extern/better-enums  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/scelta        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/range-v3      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
+add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 
 # === global settings =============================================
 

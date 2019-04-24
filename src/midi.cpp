@@ -17,6 +17,9 @@
 // midifile (FIXME)
 #include "../extern/midifile/include/MidiFile.h"
 
+// rtmidi
+#include "RtMidi.h"
+
 using namespace std;
 
 namespace rn {
@@ -24,6 +27,15 @@ namespace rn {
 namespace {} // namespace
 
 void test_midi() {
+  try {
+    RtMidiOut midi_out;
+  } catch( RtMidiError const& error ) {
+    // Handle the exception here
+    error.printMessage();
+  }
+
+  //////////////////////////////////////////////////////////
+
   smf::MidiFile midifile;
   CHECK( midifile.read( "take5.mid" ) );
   midifile.doTimeAnalysis();

@@ -20,6 +20,7 @@ target_link_libraries(
     midifile
     observer-ptr::observer-ptr
     range-v3
+    rtmidi
     scelta::headers
     spdlog::spdlog
     ucl
