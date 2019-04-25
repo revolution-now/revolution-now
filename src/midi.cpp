@@ -37,7 +37,7 @@ void test_midi() {
   //////////////////////////////////////////////////////////
 
   smf::MidiFile midifile;
-  CHECK( midifile.read( "take5.mid" ) );
+  CHECK( midifile.read( "test.mid" ) );
   midifile.doTimeAnalysis();
   midifile.linkNotePairs();
 
