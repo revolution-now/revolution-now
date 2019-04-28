@@ -82,11 +82,11 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  // run_all_init_routines();
+  run_all_init_routines();
   // game();
   // ui::window_test();
-  // run_all_cleanup_routines();
   test_midi();
+  run_all_cleanup_routines();
   return 0;
 
 } catch( exception_exit const& ) {

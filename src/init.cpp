@@ -109,6 +109,10 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                 {e_init_routine::terrain,
                  {
                      e_init_routine::sdl //
+                 }},
+                {e_init_routine::midi_io,
+                 {
+                     /*******************/
                  }}};
 
 } // namespace

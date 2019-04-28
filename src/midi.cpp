@@ -11,8 +11,11 @@
 #include "midi.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
+#include "init.hpp"
+#include "logging.hpp"
 
 // midifile (FIXME)
 #include "../extern/midifile/include/MidiFile.h"
@@ -20,24 +23,93 @@
 // rtmidi
 #include "RtMidi.h"
 
+// Abseil
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
+
+// C++ standard library
+#include <vector>
+
 using namespace std;
+
+#define RTMIDI_FATAL( exception_object ) \
+  FATAL( "rtmidi fatal error: {}",       \
+         exception_object.getMessage() )
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
 
-void test_midi() {
-  try {
-    RtMidiOut midi_out;
-  } catch( RtMidiError const& error ) {
-    // Handle the exception here
-    error.printMessage();
+/****************************************************************
+** Midi Output
+*****************************************************************/
+RtMidiOut* g_midi_out = nullptr;
+Opt<int>   g_midi_output_port;
+
+RtMidiOut& midi_out() {
+  if( !g_midi_out ) {
+    try {
+      g_midi_out = new RtMidiOut();
+    } catch( RtMidiError const& error ) {
+      RTMIDI_FATAL( error );
+    }
   }
+  return *g_midi_out;
+}
 
-  //////////////////////////////////////////////////////////
+void free_midi_out() { delete g_midi_out; }
 
+vector<pair<int, string>> scan_midi_output_ports() {
+  vector<pair<int, string>> res;
+  RtMidiOut&                midiout = midi_out();
+  try {
+    auto num_ports = int( midiout.getPortCount() );
+    for( auto i = 0; i < num_ports; i++ )
+      res.push_back( {i, midiout.getPortName( i )} );
+  } catch( RtMidiError& error ) { RTMIDI_FATAL( error ); }
+  return res;
+}
+
+bool is_valid_output_port_name( string_view port_name ) {
+  return absl::StrContains( absl::AsciiStrToLower( port_name ),
+                            "fluid" );
+}
+
+Opt<int> find_midi_output_port() {
+  auto ports = scan_midi_output_ports();
+  logger->info( "found {} midi output ports.", ports.size() );
+  Opt<int> res;
+  for( auto const& [port, name] : ports ) {
+    logger->info( "  MIDI output port #{}: {}", port, name );
+    if( !res && is_valid_output_port_name( name ) ) res = port;
+  }
+  if( !res ) {
+    logger->warn(
+        "failed to find recognizable midi output port." );
+    // Just use first port if we have one.
+    if( ports.size() > 0 ) res = 0;
+  }
+  if( !res ) logger->warn( "no midi output ports available." );
+  return res;
+}
+
+void init_midi_io() {
+  (void)midi_out(); // first time called will allocate.
+  g_midi_output_port = find_midi_output_port();
+  if( g_midi_output_port )
+    logger->info( "using MIDI output port #{}",
+                  *g_midi_output_port );
+}
+
+void cleanup_midi_io() { free_midi_out(); }
+
+/****************************************************************
+** Midi File Reading
+*****************************************************************/
+void scan_midi_file( string const& file ) {
   smf::MidiFile midifile;
-  CHECK( midifile.read( "test.mid" ) );
+  fmt::print( "File: {}", file );
+  CHECK( midifile.read( file ) );
   midifile.doTimeAnalysis();
   midifile.linkNotePairs();
 
@@ -66,5 +138,11 @@ void test_midi() {
     }
   }
 }
+
+} // namespace
+
+REGISTER_INIT_ROUTINE( midi_io, init_midi_io, cleanup_midi_io );
+
+void test_midi() {}
 
 } // namespace rn
