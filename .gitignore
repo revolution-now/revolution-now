@@ -40,6 +40,7 @@
 
 # Game specific
 assets/art/*.tm
+/*.mid
 
 # cmake
 /.builds
