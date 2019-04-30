@@ -16,6 +16,7 @@
 #include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "time.hpp"
 
 // midifile (FIXME)
 #include "../extern/midifile/include/MidiFile.h"
@@ -96,19 +97,25 @@ Opt<int> find_midi_output_port() {
 void init_midi_io() {
   (void)midi_out(); // first time called will allocate.
   g_midi_output_port = find_midi_output_port();
-  if( g_midi_output_port )
+  if( g_midi_output_port ) {
     logger->info( "using MIDI output port #{}",
                   *g_midi_output_port );
+    // TODO: error checking
+    g_midi_out->openPort( *g_midi_output_port );
+  }
 }
 
-void cleanup_midi_io() { free_midi_out(); }
+void cleanup_midi_io() {
+  g_midi_out->closePort();
+  free_midi_out();
+}
 
 /****************************************************************
 ** Midi File Reading
 *****************************************************************/
 void scan_midi_file( string const& file ) {
   smf::MidiFile midifile;
-  fmt::print( "File: {}", file );
+  fmt::print( "File: {}\n", file );
   CHECK( midifile.read( file ) );
   midifile.doTimeAnalysis();
   midifile.linkNotePairs();
@@ -139,10 +146,64 @@ void scan_midi_file( string const& file ) {
   }
 }
 
+void send_midi_message( smf::MidiEvent const& event ) {
+  // TODO get rid of heap allocation
+  vector<unsigned char> bytes;
+  bytes.resize( event.size() );
+  for( size_t i = 0; i < event.size(); ++i ) bytes[i] = event[i];
+  g_midi_out->sendMessage( &bytes );
+}
+
+// Assumes that port is already open.
+void play_midi_file( string const& file ) {
+  CHECK( g_midi_out );
+
+  smf::MidiFile midifile;
+  fmt::print( "File: {}\n", file );
+  CHECK( midifile.read( file ) );
+  midifile.doTimeAnalysis();
+  midifile.linkNotePairs();
+
+  int tracks = midifile.getTrackCount();
+  fmt::print( "TPQ: {}\n", midifile.getTicksPerQuarterNote() );
+  fmt::print( "TRACKS: {}\n", tracks );
+
+  int track = 1;
+
+  fmt::print( "\nTrack {}\n", track );
+  fmt::print( "-----------------------------------\n" );
+  fmt::print( "{:<8}{:<9}{:<10}{}\n", "Tick", "Seconds", "Dur",
+              "Message" );
+  fmt::print( "-----------------------------------\n" );
+  int tick = 0;
+  for( int event = 0; event < midifile[track].size(); event++ ) {
+    fmt::print( "{:<8}", midifile[track][event].tick );
+    fmt::print( "{:<9}", midifile[track][event].seconds );
+    if( midifile[track][event].isNoteOn() )
+      fmt::print(
+          "{:<10}",
+          midifile[track][event].getDurationInSeconds() );
+    else
+      fmt::print( "{:<10}", "" );
+    for( size_t i = 0; i < midifile[track][event].size(); i++ )
+      fmt::print( "{:<3x}", (int)midifile[track][event][i] );
+    fmt::print( "\n" );
+    auto const& e     = midifile[track][event];
+    int         delta = e.tick - tick;
+    using namespace std::chrono;
+    // FIXME: must compute 800.0
+    auto duration = int( delta / 800.0 * 1000.0 );
+    sleep( milliseconds( duration ) );
+    // Must send midi message AFTER sleeping.
+    send_midi_message( e );
+    tick = e.tick;
+  }
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( midi_io, init_midi_io, cleanup_midi_io );
 
-void test_midi() {}
+void test_midi() { play_midi_file( "test.mid" ); }
 
 } // namespace rn
