@@ -102,6 +102,12 @@ void init_midi_io() {
                   *g_midi_output_port );
     // TODO: error checking
     g_midi_out->openPort( *g_midi_output_port );
+    auto callback = []( RtMidiError::Type,
+                        const std::string& error_text, void* ) {
+      logger->warn( "RtMidi: {}", error_text );
+    };
+    void* userdata = nullptr;
+    g_midi_out->setErrorCallback( callback, userdata );
   }
 }
 
@@ -151,7 +157,9 @@ void send_midi_message( smf::MidiEvent const& event ) {
   vector<unsigned char> bytes;
   bytes.resize( event.size() );
   for( size_t i = 0; i < event.size(); ++i ) bytes[i] = event[i];
-  g_midi_out->sendMessage( &bytes );
+  try {
+    g_midi_out->sendMessage( &bytes );
+  } catch( RtMidiError const& error ) { RTMIDI_FATAL( error ); }
 }
 
 // Assumes that port is already open.
@@ -165,10 +173,22 @@ void play_midi_file( string const& file ) {
   midifile.linkNotePairs();
 
   int tracks = midifile.getTrackCount();
-  fmt::print( "TPQ: {}\n", midifile.getTicksPerQuarterNote() );
-  fmt::print( "TRACKS: {}\n", tracks );
+  fmt::print( "Tracks: {}\n", tracks );
 
-  int track = 1;
+  int const track = 0;
+
+  midifile.joinTracks();
+  fmt::print( "Tracks after join: {}\n",
+              midifile.getTrackCount() );
+
+  auto tpq = midifile.getTPQ();
+  fmt::print( "Ticks Per Quarter Note: {}\n", tpq );
+  auto duration_ticks = midifile.getFileDurationInTicks();
+  auto duration_secs  = midifile.getFileDurationInSeconds();
+  auto millisecs_per_tick =
+      1000.0 * duration_secs / duration_ticks;
+  fmt::print( "milliseconds per tick: {}\n",
+              millisecs_per_tick );
 
   fmt::print( "\nTrack {}\n", track );
   fmt::print( "-----------------------------------\n" );
@@ -191,8 +211,7 @@ void play_midi_file( string const& file ) {
     auto const& e     = midifile[track][event];
     int         delta = e.tick - tick;
     using namespace std::chrono;
-    // FIXME: must compute 800.0
-    auto duration = int( delta / 800.0 * 1000.0 );
+    auto duration = int( delta * millisecs_per_tick );
     sleep( milliseconds( duration ) );
     // Must send midi message AFTER sleeping.
     send_midi_message( e );
