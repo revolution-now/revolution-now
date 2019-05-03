@@ -41,9 +41,6 @@ namespace rn {
 
 namespace {
 
-/****************************************************************
-** Midi Output
-*****************************************************************/
 RtMidiOut* g_midi_out = nullptr;
 Opt<int>   g_midi_output_port;
 
@@ -114,42 +111,6 @@ void init_midi_io() {
 void cleanup_midi_io() {
   g_midi_out->closePort();
   free_midi_out();
-}
-
-/****************************************************************
-** Midi File Reading
-*****************************************************************/
-void scan_midi_file( string const& file ) {
-  smf::MidiFile midifile;
-  fmt::print( "File: {}\n", file );
-  CHECK( midifile.read( file ) );
-  midifile.doTimeAnalysis();
-  midifile.linkNotePairs();
-
-  int tracks = midifile.getTrackCount();
-  fmt::print( "TPQ: {}\n", midifile.getTicksPerQuarterNote() );
-  fmt::print( "TRACKS: {}\n", tracks );
-  for( int track = 0; track < tracks; track++ ) {
-    fmt::print( "\nTrack {}\n", track );
-    fmt::print( "-----------------------------------\n" );
-    fmt::print( "{:<8}{:<9}{:<10}{}\n", "Tick", "Seconds", "Dur",
-                "Message" );
-    fmt::print( "-----------------------------------\n" );
-    for( int event = 0; event < midifile[track].size();
-         event++ ) {
-      fmt::print( "{:<8}", midifile[track][event].tick );
-      fmt::print( "{:<9}", midifile[track][event].seconds );
-      if( midifile[track][event].isNoteOn() )
-        fmt::print(
-            "{:<10}",
-            midifile[track][event].getDurationInSeconds() );
-      else
-        fmt::print( "{:<10}", "" );
-      for( size_t i = 0; i < midifile[track][event].size(); i++ )
-        fmt::print( "{:<3x}", (int)midifile[track][event][i] );
-      fmt::print( "\n" );
-    }
-  }
 }
 
 void send_midi_message( smf::MidiEvent const& event ) {
