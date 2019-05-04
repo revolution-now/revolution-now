@@ -14,8 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "coord.hpp"
+#include "enum.hpp"
 
 // SDL
 // TODO: get rid of this
@@ -164,5 +164,6 @@ void eat_all_events();
 *****************************************************************/
 void wait_for_q();
 bool is_any_key_down();
+bool is_q_down();
 
 } // namespace rn::input

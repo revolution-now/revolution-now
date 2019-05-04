@@ -538,4 +538,12 @@ bool is_any_key_down() {
   return any_of( state, state + count, L( _ != 0 ) );
 }
 
+bool is_q_down() {
+  // must poll events in order for key state to be populated,
+  // although we don't care about the event here.
+  poll_event();
+  auto const* state = ::SDL_GetKeyboardState( nullptr );
+  return state[::SDL_SCANCODE_Q];
+}
+
 } // namespace rn::input
