@@ -100,6 +100,9 @@ call feedkeys( "\<C-L>" )
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function s:OpenSourcePair( name )
   call OpenCppPair( 'src/' . a:name )
+  " Move the red tab selector to align with this new tab which
+  " will now be selected.
+  :TabProposedNext
 endfunction
 
 command! -nargs=1 PairOpen call s:OpenSourcePair( <f-args> )
