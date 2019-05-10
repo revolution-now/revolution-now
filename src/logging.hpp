@@ -114,120 +114,47 @@
 
 namespace rn {
 
-void debug_console_sink_log_impl( std::string const& msg );
-void debug_console_sink_log_impl( std::string&& msg );
+std::shared_ptr<spdlog::logger> create_dbg_console_logger(
+    std::string const& logger_name );
 
-// This is only needed if we to take advantage of spdlog's
-// formatting of log messages, such as adding in the timestamp or
-// module name.
-class debug_console_sink final : public spdlog::sinks::sink {
-public:
-  debug_console_sink()           = default;
-  ~debug_console_sink() override = default;
+std::shared_ptr<spdlog::logger> create_terminal_logger(
+    std::string const& logger_name );
 
-  debug_console_sink( debug_console_sink const& ) = delete;
-  debug_console_sink& operator                    =(
-      debug_console_sink const& other ) = delete;
-
-  void log( spdlog::details::log_msg const& msg ) override {
-    // FIXME: reconfigure formatting to add module name back in
-    //        (but not timestamp) and then renable this code.
-    // fmt::memory_buffer formatted;
-    // formatter_->format( msg, formatted );
-    // std::string res( formatted.data(), formatted.size() );
-    std::string res( msg.payload.data(), msg.payload.size() );
-    debug_console_sink_log_impl( std::move( res ) );
-  }
-
-  void flush() final {}
-
-  void set_pattern( const std::string& pattern ) final {
-    formatter_ = std::unique_ptr<spdlog::formatter>(
-        new spdlog::pattern_formatter( pattern ) );
-  }
-
-  void set_formatter( std::unique_ptr<spdlog::formatter>
-                          sink_formatter ) override {
-    formatter_ = std::move( sink_formatter );
-  }
-};
-
-inline std::shared_ptr<spdlog::logger> create_dbg_console(
-    std::string const& logger_name ) {
-  return spdlog::default_factory::template create<
-      debug_console_sink>( logger_name );
-}
+std::shared_ptr<spdlog::logger> create_hybrid_logger(
+    std::string const&              logger_name,
+    std::shared_ptr<spdlog::logger> trm,
+    std::shared_ptr<spdlog::logger> dbg );
 
 namespace {
 
-// This will create one debug console logger for each translation
-// unit. The name of the logger will be the stem of the filename
-// of the cpp file. Using __FILE__ would yield the name of this
-// header file which would not be useful.
-auto dbg_console = rn::create_dbg_console( fmt::format(
-    "{: ^16}",
-    "~" + fs::path( __BASE_FILE__ ).filename().stem().string() +
-        "~" ) );
+// The name of the loggers for a given module will be the stem of
+// the filename of the cpp file. Using __FILE__ would yield the
+// name of this header file which would not be useful.
+auto __rn_module_name =
+    fs::path( __BASE_FILE__ ).filename().stem().string();
+
+// Create one debug console logger for each translation unit.
+// This one will send logging to the in-game console only.
+auto dbg_console_logger =
+    create_dbg_console_logger( __rn_module_name );
+
+// Create one stdout color terminal logger for each translation
+// unit.
+auto terminal_logger =
+    create_terminal_logger( __rn_module_name );
+
+// Create one hybrid logger for each translation unit. This one
+// will send its logging to the sinks of both the terminal logger
+// and dbg console logger so that one logging statement can log
+// to both of those at once, which is the most common use case.
+auto hybrid_logger = create_hybrid_logger(
+    __rn_module_name, terminal_logger, dbg_console_logger );
+
+// The game's default standard logger sends output to both the
+// terminal and the in-game console.
+auto logger = hybrid_logger;
 
 } // namespace
-
-// This is a wrapper around spdlog loggers.
-class Logger {
-public:
-  Logger( std::shared_ptr<spdlog::logger>&& logger )
-    : logger_( logger ) {}
-  template<typename... Args>
-  void info( Args... args ) {
-    logger_->info( args... );
-    dbg_console->info( args... );
-  }
-  template<typename... Args>
-  void debug( Args... args ) {
-    logger_->debug( args... );
-    dbg_console->debug( args... );
-  }
-  template<typename... Args>
-  void trace( Args... args ) {
-    logger_->trace( args... );
-    dbg_console->trace( args... );
-  }
-  template<typename... Args>
-  void warn( Args... args ) {
-    logger_->warn( args... );
-    dbg_console->warn( args... );
-  }
-  template<typename... Args>
-  void error( Args... args ) {
-    logger_->error( args... );
-    dbg_console->error( args... );
-  }
-  template<typename... Args>
-  void critical( Args... args ) {
-    logger_->critical( args... );
-    dbg_console->critical( args... );
-  }
-
-private:
-  std::shared_ptr<spdlog::logger> logger_;
-};
-
-} // namespace rn
-
-namespace {
-
-// This will create one logger for each translation unit.  The
-// name of the logger will be the stem of the filename of the
-// cpp file.  Using __FILE__ would yield the name of this header
-// file which would not be useful.
-auto logger = new rn::Logger( spdlog::stdout_color_mt(
-    fmt::format( "{: ^16}", fs::path( __BASE_FILE__ )
-                                .filename()
-                                .stem()
-                                .string() ) ) );
-
-} // namespace
-
-namespace rn {
 
 // This will initialize the log level.  If a level is not
 // specified then one will be chosen according to the build type.
