@@ -53,6 +53,7 @@ DisplayMode current_display_mode();
 Delta screen_logical_size();
 Delta screen_physical_size();
 
+void    hide_window();
 ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );
 // Returns true if the window is now fullscreen.

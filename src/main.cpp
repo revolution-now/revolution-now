@@ -13,6 +13,7 @@
 #include "ownership.hpp"
 #include "rand.hpp"
 #include "ranges.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 #include "sound.hpp"
 #include "terrain.hpp"
@@ -83,9 +84,13 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines();
+
+  hide_window();
+  test_midi();
+
   // game();
   // ui::window_test();
-  test_midi();
+
   run_all_cleanup_routines();
   return 0;
 
