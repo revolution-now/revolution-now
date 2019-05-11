@@ -12,8 +12,13 @@
 
 #include "core-config.hpp"
 
+// C++ standard library.
+#include <string>
+
 namespace rn {
 
+// Testing.
 void test_midi();
+void play_midi_file( std::string const& file );
 
 } // namespace rn
