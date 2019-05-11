@@ -114,6 +114,8 @@
 
 namespace rn {
 
+namespace detail {
+// Functions in this namespace should not be called externally.
 std::shared_ptr<spdlog::logger> create_dbg_console_logger(
     std::string const& logger_name );
 
@@ -124,30 +126,61 @@ std::shared_ptr<spdlog::logger> create_hybrid_logger(
     std::string const&              logger_name,
     std::shared_ptr<spdlog::logger> trm,
     std::shared_ptr<spdlog::logger> dbg );
+} // namespace detail
 
+/****************************************************************
+** Loggers
+*
+* The following are global logger objects that are available for
+* logging. The logger objects are 1) in an anonymous namespace,
+* and 2) are defined in this header file. The reason for this is
+* that each translation unit gets its own logger object (since
+* they will have formatting strings that are module-specific in
+* that they include the module name).
+*
+* The name of the loggers for a given module will be the stem of
+* the filename of the cpp file. Note that using __FILE__ would
+* yield the name of this header file which would not be useful.
+*
+* Each of these loggers is itself threadsafe meaning that it
+* should be safe for multiple threads to use the same logger at
+* the same time. It should also be fine for two threads to use
+* two difference loggers at the same time. It should also be fine
+* for two threads to use two different loggers of the same type
+* (e.g. from different modules). That last guarantee comes from
+* the fact that all loggers of a given type (across all modules)
+* will use the same underlying sink object (this is implemented
+* by us, not spdlog) and that sink object will use mutexes.
+*
+* The two basic loggers are the terminal logger and the in-game
+* console logger. The terminal logger goes to stdout (terminal)
+* while the in-game console logger goes to an in-memory log that
+* is visible by selecting the menu Debug --> Enable Console.
+*
+* The default game logger is one that feeds into both of the
+* above loggers so that a single typical logging statement will
+* go to both the terminal and the in-game console.
+*****************************************************************/
 namespace {
 
-// The name of the loggers for a given module will be the stem of
-// the filename of the cpp file. Using __FILE__ would yield the
-// name of this header file which would not be useful.
 auto __rn_module_name =
     fs::path( __BASE_FILE__ ).filename().stem().string();
 
 // Create one debug console logger for each translation unit.
 // This one will send logging to the in-game console only.
 auto dbg_console_logger =
-    create_dbg_console_logger( __rn_module_name );
+    detail::create_dbg_console_logger( __rn_module_name );
 
 // Create one stdout color terminal logger for each translation
 // unit.
 auto terminal_logger =
-    create_terminal_logger( __rn_module_name );
+    detail::create_terminal_logger( __rn_module_name );
 
 // Create one hybrid logger for each translation unit. This one
 // will send its logging to the sinks of both the terminal logger
 // and dbg console logger so that one logging statement can log
 // to both of those at once, which is the most common use case.
-auto hybrid_logger = create_hybrid_logger(
+auto hybrid_logger = detail::create_hybrid_logger(
     __rn_module_name, terminal_logger, dbg_console_logger );
 
 // The game's default standard logger sends output to both the

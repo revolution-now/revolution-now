@@ -74,6 +74,21 @@ public:
   }
 };
 
+namespace {
+
+spdlog::sink_ptr default_dbg_console_sink() {
+  static spdlog::sink_ptr p = make_shared<debug_console_sink>();
+  return p;
+}
+
+spdlog::sink_ptr default_terminal_sink() {
+  static spdlog::sink_ptr p =
+      make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
+  return p;
+}
+
+} // namespace
+
 void init_logging( optional<level::level_enum> level ) {
   if( !level.has_value() ) {
 #ifdef RN_TRACE
@@ -85,17 +100,35 @@ void init_logging( optional<level::level_enum> level ) {
   spdlog::set_level( *level );
 }
 
+namespace detail {
+
+// In the following functions we create loggers with a new in-
+// stance of their respective sinks, then we replace that sync
+// with our global instance of the sink. We want a global in-
+// stance because we want all loggers of a particular type to use
+// the same sink object so that thread safety can be maintained.
+// However, there doesn't appear to be a spdlog api for creating
+// a logger by specifying a sink object (only sink type).
+
 shared_ptr<spdlog::logger> create_dbg_console_logger(
     string const& logger_name ) {
-  return spdlog::default_factory::template create<
+  auto lager = spdlog::default_factory::template create<
       debug_console_sink>(
       fmt::format( "{: ^16}", "~" + logger_name + "~" ) );
+  CHECK( lager->sinks().size() == 1 );
+  // Replace sink with global.
+  lager->sinks()[0] = default_dbg_console_sink();
+  return lager;
 }
 
 shared_ptr<spdlog::logger> create_terminal_logger(
     string const& logger_name ) {
-  return spdlog::stdout_color_mt(
+  auto lager = spdlog::stdout_color_mt(
       fmt::format( "{: ^16}", logger_name ) );
+  CHECK( lager->sinks().size() == 1 );
+  // Replace sink with global.
+  lager->sinks()[0] = default_terminal_sink();
+  return lager;
 }
 
 shared_ptr<spdlog::logger> create_hybrid_logger(
@@ -104,9 +137,9 @@ shared_ptr<spdlog::logger> create_hybrid_logger(
   auto lgr = spdlog::stdout_color_mt(
       fmt::format( "{: ^16}", logger_name + "hyb" ) );
 
-  // Sanity check. If these checks fail the may cause a "core
-  // dump" because this code runs at global variable initializa-
-  // tion time.
+  // NOTE: if these checks fail the may cause a "core dump" be-
+  // cause this code runs at global variable initialization time.
+
   CHECK( dbg->sinks().size() == 1 );
   CHECK( trm->sinks().size() == 1 );
   CHECK( lgr->sinks().size() == 1 );
@@ -118,14 +151,13 @@ shared_ptr<spdlog::logger> create_hybrid_logger(
   lgr->sinks()[0] = trm->sinks()[0];
   lgr->sinks().push_back( dbg->sinks()[0] );
 
-  // Sanity check. If these checks fail the may cause a "core
-  // dump" because this code runs at global variable initializa-
-  // tion time.
   CHECK( dbg->sinks().size() == 1 );
   CHECK( trm->sinks().size() == 1 );
   CHECK( lgr->sinks().size() == 2 );
 
   return lgr;
 }
+
+} // namespace detail
 
 } // namespace rn
