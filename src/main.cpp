@@ -86,6 +86,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines();
 
   hide_window();
+  // TODO: compile with multithreaded runtime.
   test_midi();
 
   // game();

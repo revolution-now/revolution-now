@@ -12,10 +12,52 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "enum.hpp"
+
 // C++ standard library.
 #include <string>
 
 namespace rn {
+
+// State held by (and updated by) the midi thread.
+enum class e_( midi_player_state,
+               playing, //
+               paused,  //
+               failed,  //
+               off      //
+);
+
+bool is_midi_playable();
+// We can get state, but not set it. To change the state of the
+// midi player you must send it commands.
+e_midi_player_state midi_player_state();
+
+// The possible commands that can be sent to the midi thread.
+// Generally, after receiving one of these commands the midi
+// thread will update its state.
+//
+//   play:  If the player was paused in the middle of a tune
+//          then this will cause the tune to resume.  Otherwise
+//          it will start playing the next track in the playlist.
+//
+//   next:  If the player is playing then this will skip to the
+//          next track and play it.  If the player is paused then
+//          this will skip to the next track *and play it*.
+//
+//   pause: Pause the player wherever it is, whether in the
+//          middle of a tune or in the middle of tracks.
+//
+//   off:   Tell the player to turn off.
+//
+enum class e_( midi_player_cmd,
+               play,  //
+               next,  //
+               pause, //
+               off    //
+);
+
+void send_command_to_midi_player( e_midi_player_cmd cmd );
 
 // Testing.
 void test_midi();
