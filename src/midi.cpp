@@ -102,12 +102,28 @@ public:
     return res;
   }
 
+  void send_midi_message_raw( unsigned char* bytes,
+                              size_t         size ) {
+    int num_retries = 3;
+    for( int i = 0; i < num_retries; ++i ) {
+      try {
+        out->sendMessage( bytes, size );
+        return;
+      } catch( RtMidiError const& error ) {
+        if( i < num_retries - 1 ) {
+          sleep( chrono::milliseconds( 2 ) );
+          continue;
+        }
+        RTMIDI_WARN( error );
+      }
+    }
+  }
+
   void send_midi_message( smf::MidiEvent const& event ) {
     size_t const max_event_size = 200;
-    // Should be more than large enough for any event. The
-    // sendMessage API wants a vector, so we just use a static
-    // one so that we don't have to do a heap allocation on each
-    // event.
+    // Should be more than large enough for any event. Use a
+    // static vector so that we don't have to do a heap alloca-
+    // tion on each event.
     static vector<unsigned char> bytes = [&]() {
       vector<unsigned char> res;
       res.resize( max_event_size );
@@ -122,11 +138,7 @@ public:
     }
     for( size_t i = 0; i < event.size(); ++i )
       bytes[i] = event[i];
-    try {
-      // Do not use the vector overload here because our vector
-      // is always a fixed size.
-      out->sendMessage( &bytes[0], event.size() );
-    } catch( RtMidiError const& error ) { RTMIDI_WARN( error ); }
+    send_midi_message_raw( &bytes[0], event.size() );
   }
 
   // Apparently there is a midi message called "all notes off",
@@ -134,8 +146,7 @@ public:
   // devices. So just to be sure, we implement this by sending a
   // separate "Note Off" message for every note on every channel.
   void all_notes_off() {
-    vector<uint8_t> message;
-    message.resize( 3 );
+    uint8_t message[3];
 
     for( uint8_t channel = 0; channel < 16; ++channel ) {
       for( uint8_t note = 0; note < 128; ++note ) {
@@ -146,11 +157,7 @@ public:
         message[0] = 128 + channel;
         message[1] = 0 + note;
         message[2] = 0 + 127;
-        try {
-          out->sendMessage( &message );
-        } catch( RtMidiError const& error ) {
-          RTMIDI_WARN( error );
-        }
+        send_midi_message_raw( message, 3 );
       }
     }
   }
