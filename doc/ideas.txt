@@ -1,19 +1,24 @@
-========================================================
+=================================================================
 Ideas
-========================================================
+=================================================================
+
+Sound:
+
+  - libADLMIDI (or in the future they may change its name to li-
+    bOPLMIDI) is a midi player that generates sounds using an em-
+    bedded OPL3 emulator. This would be ideal, but the MIDI->OPL3
+    conversion code is currently GPL. Work is in progress to get
+    it to LGPL, and when that happens it should be incorporated
+    into rn.
 
 Game mechanics:
 
-  * When the player first makes land fall their ship
-    sinks; they must gain wealth initially by traiding with
-    the indians, then they can build ships to take them back
-    to the old world.
+  - When the player first makes land fall their ship sinks; they
+    must gain wealth initially by traiding with the indians, then
+    they can build ships to take them back to the old world.
 
-  * Free units require food and they carry it with them.
-
-========================================================
-Done
-========================================================
+  - Free units require food and they carry it with them.
 
 UI:
-  * Panel can be opened/closed with a sliding animation.
+
+  - Panel can be opened/closed with a sliding animation.
