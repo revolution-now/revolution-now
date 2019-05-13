@@ -589,6 +589,7 @@ void test_midi() {
     fmt::print( "[p]lay, [s]top, [n]ext, [q]uit]: " );
     string in;
     cin >> in;
+    sleep( chrono::milliseconds( 20 ) );
     if( in == "p" ) {
       g_midi_comm.send_cmd( e_midi_player_cmd::play );
       continue;

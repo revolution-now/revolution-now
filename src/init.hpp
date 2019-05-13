@@ -10,8 +10,10 @@
 *****************************************************************/
 #pragma once
 
-// Revolution Now
 #include "core-config.hpp"
+
+// Revolution Now
+#include "aliases.hpp"
 #include "enum.hpp"
 
 // base-util
@@ -54,8 +56,12 @@ void register_init_routine( e_init_routine      routine,
                            cleanup_func );                     \
   }
 
-// Will run initialization routines in order of dependencies.
-void run_all_init_routines();
+// Will run initialization routines in order of dependencies. If
+// `only` is not nullopt then just it and its dependencies will
+// be run. Otherwise all routines will be run in order of depen-
+// dencies.
+void run_all_init_routines(
+    Opt<e_init_routine> only = std::nullopt );
 // This will run the corresponding cleanup routine for each
 // initialization routine that was successfully run, and will do
 // so in the opposite order.

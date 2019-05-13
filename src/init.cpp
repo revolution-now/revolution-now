@@ -128,7 +128,7 @@ void register_init_routine( e_init_routine      routine,
   init_routine_run_map()[routine] = false;
 }
 
-void run_all_init_routines() {
+void run_all_init_routines( Opt<e_init_routine> only ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
   init_logging( spdlog::level::debug );
@@ -163,10 +163,22 @@ void run_all_init_routines() {
   // Should only be set after DAG creation succeeds.
   g_init_has_started = true;
 
-  for( auto routine : dag.sorted() ) {
-    logger->info( "initializing: {}", routine );
-    init_functions()[routine]();
-    init_routine_run_map()[routine] = true;
+  auto sorted = dag.sorted();
+
+  // By default initialize all elements from the dag, unless the
+  // caller has specified a routine on which to focus; in that
+  // case, only initialize it and its dependencies.
+  auto reachable = ( only.has_value() )
+                       ? dag.accessible( e_init_routine::midi,
+                                         /*with_self=*/true )
+                       : sorted;
+
+  for( auto routine : sorted ) {
+    if( rg::find( reachable, routine ) != reachable.end() ) {
+      logger->info( "initializing: {}", routine );
+      init_functions()[routine]();
+      init_routine_run_map()[routine] = true;
+    }
   }
 
   g_init_finished = true;
