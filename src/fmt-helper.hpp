@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "aliases.hpp"
+
 // {fmt}
 #include "fmt/format.h"
 
@@ -74,6 +77,15 @@ struct formatter<std::variant<Ts...>> : dynamic_formatter<> {
   template<typename Context>
   auto format( V const &v, Context &ctx ) {
     return std::visit( LC( B::format( _, ctx ) ), v );
+  }
+};
+
+template<>
+struct formatter<fs::path> : formatter_base {
+  template<typename FormatContext>
+  auto format( fs::path const &o, FormatContext &ctx ) {
+    return formatter_base::format( fmt::format( o.string() ),
+                                   ctx );
   }
 };
 

@@ -21,6 +21,7 @@
 #include "time.hpp"
 
 // base-util
+#include "base-util/io.hpp"
 #include "base-util/non-copyable.hpp"
 
 // midifile (FIXME)
@@ -62,22 +63,22 @@ namespace {
 class MidiIO : public util::movable_only {
 public:
   MidiIO( MidiIO&& rhs ) {
-    out = std::move( rhs.out );
+    out_ = std::move( rhs.out_ );
     rhs.release();
   }
 
   void close() {
-    if( out ) out->closePort();
+    if( out_ ) out_->closePort();
   }
 
-  void release() { out = nullptr; }
+  void release() { out_ = nullptr; }
 
   ~MidiIO() { close(); }
 
   static Opt<MidiIO> create() {
     MidiIO res;
     try {
-      res.out.reset( new RtMidiOut() );
+      res.out_.reset( new RtMidiOut() );
     } catch( RtMidiError const& error ) {
       RTMIDI_WARN( error );
       return nullopt;
@@ -89,10 +90,10 @@ public:
                         const std::string& error_text, void* ) {
       logger->warn( "rt-midi: {}", error_text );
     };
-    res.out->setErrorCallback( callback, /*userdata=*/nullptr );
+    res.out_->setErrorCallback( callback, /*userdata=*/nullptr );
 
     try {
-      res.out->openPort( *maybe_port );
+      res.out_->openPort( *maybe_port );
     } catch( RtMidiError const& error ) {
       RTMIDI_WARN( error );
       logger->warn( "failed to open MIDI output port {}." );
@@ -100,23 +101,6 @@ public:
     }
     logger->info( "using MIDI output port #{}", *maybe_port );
     return res;
-  }
-
-  void send_midi_message_raw( unsigned char* bytes,
-                              size_t         size ) {
-    int num_retries = 3;
-    for( int i = 0; i < num_retries; ++i ) {
-      try {
-        out->sendMessage( bytes, size );
-        return;
-      } catch( RtMidiError const& error ) {
-        if( i < num_retries - 1 ) {
-          sleep( chrono::milliseconds( 2 ) );
-          continue;
-        }
-        RTMIDI_WARN( error );
-      }
-    }
   }
 
   void send_midi_message( smf::MidiEvent const& event ) {
@@ -165,12 +149,29 @@ public:
 private:
   MidiIO() = default;
 
+  void send_midi_message_raw( unsigned char* bytes,
+                              size_t         size ) {
+    int num_retries = 3;
+    for( int i = 0; i < num_retries; ++i ) {
+      try {
+        out_->sendMessage( bytes, size );
+        return;
+      } catch( RtMidiError const& error ) {
+        if( i < num_retries - 1 ) {
+          sleep( chrono::milliseconds( 2 ) );
+          continue;
+        }
+        RTMIDI_WARN( error );
+      }
+    }
+  }
+
   vector<pair<int, string>> scan_midi_output_ports() {
     vector<pair<int, string>> res;
     try {
-      auto num_ports = int( out->getPortCount() );
+      auto num_ports = int( out_->getPortCount() );
       for( auto i = 0; i < num_ports; i++ )
-        res.push_back( {i, out->getPortName( i )} );
+        res.push_back( {i, out_->getPortName( i )} );
     } catch( RtMidiError& error ) { RTMIDI_WARN( error ); }
     return res;
   }
@@ -205,7 +206,7 @@ private:
   // Apart from initialization and cleanup (by the main thread)
   // this should only be used by the midi thread since it is un-
   // known whether it is thread safe.
-  unique_ptr<RtMidiOut> out{};
+  unique_ptr<RtMidiOut> out_{};
 };
 
 // This will be nullopt if midi music cannot be played for any
@@ -220,57 +221,58 @@ Opt<MidiIO> g_midi;
 Opt<thread> g_midi_thread;
 
 // Class used for communicating with the midi thread in a thread
-// safe way.
-class MidiCommunication {
+// safe way. Note that the methods here return things by copy for
+// thread safety (we don't want the caller to have a reference to
+// any data inside this class).
+class MidiCommunication : public util::non_copy_non_move {
 public:
   MidiCommunication() = default;
 
-  // This can be called from the midi thread or main thread.
+  // ************************************************************
+  // Interface for Any Thread
+  // ************************************************************
   e_midi_player_state state() {
     lock_guard<mutex> lock( mutex_ );
     return state_;
   }
 
-  // This should only be called from the midi thread itself.
-  void set_state( e_midi_player_state new_state ) {
-    lock_guard<mutex> lock( mutex_ );
-    state_ = new_state;
-  }
-
-  // Intended to be called by the main thread.
-  void set_playlist( set<string> const& files ) {
+  // ************************************************************
+  // Interface for Main Thread
+  // ************************************************************
+  void set_playlist( set<fs::path> const& files ) {
     lock_guard<mutex> lock( mutex_ );
     playlist_.clear();
     for( auto const& f : files ) playlist_.push_back( f );
   }
 
-  // Intended to be called by the midi thread.
-  vector<string> playlist() {
-    lock_guard<mutex> lock( mutex_ );
-    return playlist_; // copy
-  }
-
-  // Return copy for thread safety (we don't want the caller to
-  // have a reference to any data inside this class).
-  string last_error() {
-    lock_guard<mutex> lock( mutex_ );
-    return last_error_;
-  }
-
-  // Should only be called by the midi thread to record its er-
-  // ror.
-  void set_last_error( string error ) {
-    lock_guard<mutex> lock( mutex_ );
-    last_error_ = std::move( error );
-  }
-
-  // Intended to be called by the main thread.
   void send_cmd( e_midi_player_cmd cmd ) {
     lock_guard<mutex> lock( mutex_ );
     commands_.push( cmd );
   }
 
-  // Intended to be called by the midi thread.
+  string last_error() {
+    lock_guard<mutex> lock( mutex_ );
+    return last_error_;
+  }
+
+  // ************************************************************
+  // Interface for MIDI Thread
+  // ************************************************************
+  void set_state( e_midi_player_state new_state ) {
+    lock_guard<mutex> lock( mutex_ );
+    state_ = new_state;
+  }
+
+  vector<fs::path> playlist() {
+    lock_guard<mutex> lock( mutex_ );
+    return playlist_; // copy
+  }
+
+  void set_last_error( string error ) {
+    lock_guard<mutex> lock( mutex_ );
+    last_error_ = std::move( error );
+  }
+
   Opt<e_midi_player_cmd> pop_cmd() {
     lock_guard<mutex> lock( mutex_ );
     if( commands_.size() > 0 ) {
@@ -286,7 +288,7 @@ private:
   // The midi thread holds its state here and updates this when-
   // ever it changes.
   e_midi_player_state      state_{e_midi_player_state::paused};
-  vector<string>           playlist_{};
+  vector<fs::path>         playlist_{};
   string                   last_error_{};
   queue<e_midi_player_cmd> commands_{};
 };
@@ -316,8 +318,9 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
   info.midifile.doTimeAnalysis(); // why do we need this?
   info.midifile.linkNotePairs();  // why do we need this?
 
+  // Join/merge all tracks into one, otherwise we'd have to worry
+  // about writing an algorithm that can play two tracks at once.
   info.midifile.joinTracks();
-  // Should now have precisely one track.
 
   auto duration_ticks = info.midifile.getFileDurationInTicks();
   auto duration_secs  = info.midifile.getFileDurationInSeconds();
@@ -329,33 +332,43 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
 }
 
 // Plays a single midi event and waits first if necessary.
-void midi_play_event( MidiPlayInfo& info ) {
+void midi_play_event( MidiPlayInfo* info ) {
   // Always use track 0 because on loading the midi files we join
   // all tracks into one.
-  if( info.current_event >= info.midifile[0].size() ) return;
-  auto const& e     = info.midifile[0][info.current_event];
-  int         delta = e.tick - info.tick;
+  if( info->current_event >= info->midifile[0].size() ) {
+    // Finished playing this song.
+    return;
+  }
+  auto const& e     = info->midifile[0][info->current_event];
+  int         delta = e.tick - info->tick;
   using namespace std::chrono;
-  auto duration = int( delta * info.millisecs_per_tick );
+  auto duration = int( delta * info->millisecs_per_tick );
   // TODO: this could potentially block the midi thread for
   //       while.  Allow this to be broken up into smaller
   //       durations if it is e.g. larger than 100ms so that
   //       we don't block too long.
   sleep( milliseconds( duration ) );
-  // Must send midi message AFTER sleeping.
+  // Must send midi message AFTER sleeping; this is because the
+  // duration that we have calculated above is the amount of time
+  // we have to wait until we reach the absolute time (tick)
+  // where this new message is suppose to be sent.
   g_midi->send_midi_message( e );
-  info.tick = e.tick;
-  info.current_event++;
+  info->tick = e.tick;
+  info->current_event++;
 }
 
+// Called by the MIDI thread when it wants to abort due to an
+// error.
 template<typename... Args>
-void fail_midi_thread( Args... args ) {
+void midi_thread_record_failure( Args... args ) {
   g_midi_comm.set_state( e_midi_player_state::failed );
   logger->warn( std::forward<Args>( args )... );
   g_midi_comm.set_last_error(
       fmt::format( std::forward<Args>( args )... ) );
 }
 
+// The MIDI thread will just hang in this function for its entire
+// lifetime until it is terminated.
 void midi_thread_impl() {
   Opt<MidiPlayInfo>      maybe_info;
   int                    track = -1;
@@ -383,7 +396,7 @@ void midi_thread_impl() {
       case +e_midi_player_state::failed: return;
       case +e_midi_player_state::off:
         logger->critical(
-            "programmer error: should not be here ({})",
+            "programmer error: should not be here ({}:{})",
             __FILE__, __LINE__ );
         return;
       case +e_midi_player_state::paused:
@@ -406,24 +419,30 @@ void midi_thread_impl() {
           track      = track % playlist.size();
           maybe_info = load_midi_file( playlist[track] );
           if( !maybe_info ) {
-            fail_midi_thread( "failed to load midi file {}",
-                              playlist[track] );
+            midi_thread_record_failure(
+                "failed to load midi file {}", playlist[track] );
             break;
           }
           // We've loaded the midi file.
         }
-        if( maybe_info.has_value() ) {
-          auto& info = maybe_info.value();
-          midi_play_event( info );
-          // If this midi file has finished playing then signal
-          // that we should load the next one.
-          if( info.current_event >= info.midifile[0].size() ) {
-            logger->debug( "midi file {} has finished.",
-                           playlist[track] );
-            // Just for good measure.
-            g_midi->all_notes_off();
-            maybe_info = nullopt;
-          }
+        // maybe_info should have a value at this point.
+        if( !maybe_info.has_value() ) {
+          logger->critical(
+              "programmer error: should not be here ({}:{})",
+              __FILE__, __LINE__ );
+          return;
+        }
+
+        auto& info = maybe_info.value();
+        midi_play_event( &info ); // play a single event.
+        // If this midi file has finished playing then signal
+        // that we should load the next one.
+        if( info.current_event >= info.midifile[0].size() ) {
+          logger->debug( "midi file {} has finished.",
+                         playlist[track] );
+          // Just for good measure.
+          g_midi->all_notes_off();
+          maybe_info = nullopt;
         }
         break;
       }
@@ -437,6 +456,7 @@ void midi_thread_impl() {
 void midi_thread() {
   midi_thread_impl();
   logger->info( "MIDI thread exiting." );
+  // This may already have been done, but just in case.
   g_midi->all_notes_off();
   if( g_midi_comm.state() == e_midi_player_state::failed ) {
     logger->error( "MIDI thread failed: {}",
@@ -455,15 +475,15 @@ void init_midi() {
   if( maybe_midi_io ) {
     g_midi.emplace( std::move( *maybe_midi_io ) );
 
-    logger->info( "creating MIDI thread." );
+    logger->info( "Creating MIDI thread." );
     // Initialization of midi thread. This is only done if we
     // found a midi port.
-    g_midi_thread = thread( []() { midi_thread(); } );
+    g_midi_thread = thread( midi_thread );
   }
 
   if( !g_midi.has_value() ) {
     logger->warn(
-        "failed to initialize MIDI system; MIDI music will not "
+        "Failed to initialize MIDI system; MIDI music will not "
         "play." );
   }
 }
@@ -472,9 +492,9 @@ void cleanup_midi() {
   if( g_midi ) {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
-      logger->debug( "sending `off` message to midi thread" );
+      logger->debug( "Sending `off` message to midi thread." );
       g_midi_comm.send_cmd( e_midi_player_cmd::off );
-      logger->debug( "waiting for midi thread to join" );
+      logger->debug( "Waiting for midi thread to join." );
       g_midi_thread->join();
       logger->info( "MIDI thread closed." );
       // This may have already been done by the midi thread, but
@@ -496,9 +516,12 @@ REGISTER_INIT_ROUTINE( midi, init_midi, cleanup_midi );
 *****************************************************************/
 bool is_midi_playable() {
   // These are never expected to be different.
-  CHECK( g_midi.has_value() ^ g_midi_thread.has_value() );
+  CHECK( g_midi.has_value() ^ g_midi_thread.has_value(),
+         "g_midi.has_value() is {} but "
+         "g_midi_thread.has_value() is {}",
+         g_midi.has_value(), g_midi_thread.has_value() );
 
-  return g_midi && g_midi_thread;
+  return g_midi.has_value();
 }
 
 e_midi_player_state midi_player_state() {
@@ -506,13 +529,12 @@ e_midi_player_state midi_player_state() {
 }
 
 void send_command_to_midi_player( e_midi_player_cmd cmd ) {
-  // If MIDI is not playable then just do nothing; failure of
-  // MIDI to be playable can be caused by many things in the
-  // players environment and, since it is not required for the
-  // game, it is not a fatal error for midi to be not playable
-  // and we also don't want to cloud the log files when that hap-
-  // pens.  So just ignore this is midi is not playable.
-  if( is_midi_playable() ) g_midi_comm.send_cmd( cmd );
+  if( is_midi_playable() )
+    g_midi_comm.send_cmd( cmd );
+  else
+    logger->warn(
+        "MIDI is not playable but MIDI commands are being "
+        "received." );
 }
 
 /****************************************************************
@@ -577,8 +599,11 @@ void play_midi_file( string const& file ) {
 
 void test_midi() {
   if( !g_midi ) return;
-  g_midi_comm.set_playlist(
-      {"test.mid", "test2.mid", "test3.mid"} );
+  set<fs::path> midi_files;
+  for( auto const& file : util::wildcard(
+           "assets/music/midi/*.mid", /*with_folders=*/false ) )
+    midi_files.insert( file );
+  g_midi_comm.set_playlist( midi_files );
   while( true ) {
     sleep( chrono::milliseconds( 200 ) );
     if( g_midi_comm.state() == e_midi_player_state::failed ) {
