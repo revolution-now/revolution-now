@@ -43,3 +43,6 @@
 [submodule "extern/rtmidi"]
 	path = extern/rtmidi
 	url = ../../dpacbach/rtmidi
+[submodule "assets/music"]
+	path = assets/music
+	url = ../../dpacbach/rn-music.git
