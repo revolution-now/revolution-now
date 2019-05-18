@@ -36,12 +36,15 @@
 #include "absl/strings/match.h"
 
 // C++ standard library
+#include <algorithm>
 #include <queue>
 #include <set>
 #include <thread>
 #include <vector>
 
 using namespace std;
+using namespace std::chrono;
+using namespace std::literals::chrono_literals;
 
 #define RTMIDI_WARN( exception_object ) \
   logger->warn( "rtmidi warning: {}",   \
@@ -159,7 +162,7 @@ private:
         return;
       } catch( RtMidiError const& error ) {
         if( i < num_retries - 1 ) {
-          sleep( chrono::milliseconds( 2 ) );
+          sleep( milliseconds( 2 ) );
           continue;
         }
         RTMIDI_WARN( error );
@@ -298,14 +301,16 @@ private:
 MidiCommunication g_midi_comm;
 
 // This data structure holds the state of a midi file that is
-// being played. It will be updated on each event. It is used so
-// that we can play the midi file in a non-blocking way by
-// playing one event at a time and then doing other things, then
-// resuming playing using the data in this struct.
+// being played. It will be updated on each event and possibly
+// between events as well. It is used so that we can play the
+// midi file in a non-blocking way by playing one event at a time
+// and then doing other things, then resuming playing using the
+// data in this struct. Even the waiting between notes is done in
+// small intervals to avoid blocking.
 struct MidiPlayInfo {
   smf::MidiFile midifile;
   int           current_event;
-  double        millisecs_per_tick;
+  microseconds  duration_per_tick;
   int           tick;
 };
 
@@ -325,8 +330,8 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
 
   auto duration_ticks = info.midifile.getFileDurationInTicks();
   auto duration_secs  = info.midifile.getFileDurationInSeconds();
-  info.millisecs_per_tick =
-      1000.0 * duration_secs / duration_ticks;
+  info.duration_per_tick = microseconds(
+      int( 1000000.0 * duration_secs / duration_ticks ) );
   info.current_event = 0;
   info.tick          = 0;
   return info;
@@ -340,15 +345,36 @@ void midi_play_event( MidiPlayInfo* info ) {
     // Finished playing this song.
     return;
   }
-  auto const& e     = info->midifile[0][info->current_event];
-  int         delta = e.tick - info->tick;
-  using namespace std::chrono;
-  auto duration = int( delta * info->millisecs_per_tick );
-  // TODO: this could potentially block the midi thread for
-  //       while.  Allow this to be broken up into smaller
-  //       durations if it is e.g. larger than 100ms so that
-  //       we don't block too long.
-  sleep( milliseconds( duration ) );
+
+  auto const& e        = info->midifile[0][info->current_event];
+  int         delta    = e.tick - info->tick;
+  auto        duration = delta * info->duration_per_tick;
+
+  auto max_wait = 10s;
+  if( duration > max_wait ) {
+    logger->warn(
+        "long waiting duration encountered: {}s.  Skipping.",
+        duration_cast<seconds>( duration ).count() );
+    info->tick += ( duration / info->duration_per_tick );
+    duration = 0s;
+  }
+
+  // Now wait before sending the next MIDI message.
+  if( duration > 0s ) {
+    // If we are being asked to wait an amount of time larger
+    // than `max_blocking_wait` before the next MIDI message then
+    // we will split up the waiting into chunks of size
+    // `max_wait` so that we can do it in a non-blocking way.
+    // E.g., if there is a five second wait between two notes
+    // then we will wait five seconds but we will return from
+    // this function every 200ms to avoid blocking.
+    auto max_blocking_wait = 200000us;
+    auto wait_time = std::min( max_blocking_wait, duration );
+    sleep( wait_time );
+    info->tick += wait_time / info->duration_per_tick;
+    return;
+  }
+
   // Must send midi message AFTER sleeping; this is because the
   // duration that we have calculated above is the amount of time
   // we have to wait until we reach the absolute time (tick)
@@ -401,7 +427,7 @@ void midi_thread_impl() {
             __FILE__, __LINE__ );
         return;
       case +e_midi_player_state::paused:
-        sleep( chrono::milliseconds( 200 ) );
+        sleep( milliseconds( 200 ) );
         continue;
       case +e_midi_player_state::playing: {
         auto playlist = g_midi_comm.playlist();
@@ -587,10 +613,9 @@ void play_midi_file( string const& file ) {
     for( size_t i = 0; i < midifile[track][event].size(); i++ )
       fmt::print( "{:<3x}", (int)midifile[track][event][i] );
     fmt::print( "\n" );
-    auto const& e     = midifile[track][event];
-    int         delta = e.tick - tick;
-    using namespace std::chrono;
-    auto duration = int( delta * millisecs_per_tick );
+    auto const& e        = midifile[track][event];
+    int         delta    = e.tick - tick;
+    auto        duration = int( delta * millisecs_per_tick );
     sleep( milliseconds( duration ) );
     // Must send midi message AFTER sleeping.
     g_midi->send_midi_message( e );
@@ -606,7 +631,7 @@ void test_midi() {
     midi_files.insert( file );
   g_midi_comm.set_playlist( midi_files );
   while( true ) {
-    sleep( chrono::milliseconds( 200 ) );
+    sleep( milliseconds( 200 ) );
     if( g_midi_comm.state() == e_midi_player_state::failed ) {
       logger->info(
           "MIDI thread has failed and is no longer active." );
@@ -615,7 +640,7 @@ void test_midi() {
     fmt::print( "[p]lay, [s]top, [n]ext, [q]uit]: " );
     string in;
     cin >> in;
-    sleep( chrono::milliseconds( 20 ) );
+    sleep( milliseconds( 20 ) );
     if( in == "p" ) {
       g_midi_comm.send_cmd( e_midi_player_cmd::play );
       continue;
