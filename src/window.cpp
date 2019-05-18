@@ -387,8 +387,11 @@ string select_box( string_view title, Vec<Str> options ) {
     return selector_ptr->confirmed();
   };
 
+  UPtr<View> view( std::move( selector ) );
+  autopad( view, /*use_fancy=*/false );
+
   auto* win = g_window_plane.wm.add_window( string( title ),
-                                            move( selector ) );
+                                            move( view ) );
   selector_ptr->grow_to( win->inside_padding_rect().w );
   reset_fade_to_dark( chrono::milliseconds( 1500 ),
                       chrono::milliseconds( 3000 ), 65 );
@@ -439,7 +442,7 @@ void message_box( std::string_view msg ) {
       std::move( view_vec ), VerticalArrayView::align::center );
 
   UPtr<View> view( std::move( msg_view ) );
-  autopad( view );
+  autopad( view, /*use_fancy=*/false );
 
   auto* win = g_window_plane.wm.add_window( string( "Alert!" ),
                                             move( view ) );
@@ -606,7 +609,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
       [&state]( auto button ) { state = button; } );
 
   UPtr<View> view( std::move( adapter ) );
-  autopad( view, 4 );
+  autopad( view, /*use_fancy=*/false, 4 );
 
   g_window_plane.wm.add_window( string( "Activate Units" ),
                                 move( view ) );
@@ -639,6 +642,10 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 /****************************************************************
 ** Testing Only
 *****************************************************************/
-void window_test() {}
+void window_test() {
+  (void)select_box( "This is a test",
+                    {"option 1", "option 2", "option 3"} );
+  message_box( "This is the message." );
+}
 
 } // namespace rn::ui
