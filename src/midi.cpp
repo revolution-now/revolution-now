@@ -18,6 +18,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "rand.hpp"
+#include "ranges.hpp"
 #include "time.hpp"
 
 // base-util
@@ -177,11 +178,11 @@ private:
   }
 
   bool is_valid_output_port_name( string_view port_name ) {
-    return absl::StrContains( absl::AsciiStrToLower( port_name ),
-                              "fluid" );
-    // TODO: figure out why timidity doesn't seem to work.
-    //|| absl::StrContains( absl::AsciiStrToLower( port_name ),
-    //                        "timidity" );
+    auto valid = [&]( auto const& n ) {
+      return absl::StrContains(
+          absl::AsciiStrToLower( port_name ), n );
+    };
+    return rg::any_of( {"fluid", "timidity"}, valid );
   }
 
   Opt<int> find_midi_output_port() {
