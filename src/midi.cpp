@@ -358,10 +358,13 @@ void midi_play_event( MidiPlayInfo* info ) {
   // waver slightly when there are many rapid events (i.e., a
   // snare drum roll). This could (just speculation) have been
   // due to some overhead in calling std::this_thread::sleep.
-  // Also, this was observed on OSX but not on Linux.
-  auto wait_time = info->start_time +
-                   ( e.tick * info->duration_per_tick ) -
-                   Clock_t::now();
+  // Also, this was observed on OSX but not on Linux. Note: we
+  // need the duration_cast because otherwise the type of
+  // wait_time would depend on the duration type for the clock on
+  // the system.
+  auto wait_time = duration_cast<microseconds>(
+      info->start_time + ( e.tick * info->duration_per_tick ) -
+      Clock_t::now() );
   // As a consequence of using clock time, note that this dura-
   // tion might be (slightly) negative at times, so clamp it.
   wait_time = std::max( 0us, wait_time );
