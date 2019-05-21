@@ -312,6 +312,7 @@ struct MidiPlayInfo {
   int           current_event;
   microseconds  duration_per_tick;
   int           tick;
+  int           track;
 };
 
 // May fail to load the file.
@@ -334,6 +335,7 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
       int( 1000000.0 * duration_secs / duration_ticks ) );
   info.current_event = 0;
   info.tick          = 0;
+  info.track         = 0;
   return info;
 }
 
@@ -341,14 +343,16 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
 void midi_play_event( MidiPlayInfo* info ) {
   // Always use track 0 because on loading the midi files we join
   // all tracks into one.
-  if( info->current_event >= info->midifile[0].size() ) {
+  if( info->current_event >=
+      info->midifile[info->track].size() ) {
     // Finished playing this song.
     return;
   }
 
-  auto const& e        = info->midifile[0][info->current_event];
-  int         delta    = e.tick - info->tick;
-  auto        duration = delta * info->duration_per_tick;
+  auto const& e =
+      info->midifile[info->track][info->current_event];
+  int  delta    = e.tick - info->tick;
+  auto duration = delta * info->duration_per_tick;
 
   auto max_wait = 10s;
   if( duration > max_wait ) {
@@ -464,7 +468,8 @@ void midi_thread_impl() {
         midi_play_event( &info ); // play a single event.
         // If this midi file has finished playing then signal
         // that we should load the next one.
-        if( info.current_event >= info.midifile[0].size() ) {
+        if( info.current_event >=
+            info.midifile[info.track].size() ) {
           logger->debug( "midi file {} has finished.",
                          playlist[track] );
           // Just for good measure.
