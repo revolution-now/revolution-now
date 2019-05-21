@@ -311,8 +311,8 @@ struct MidiPlayInfo {
   smf::MidiFile midifile;
   int           current_event;
   microseconds  duration_per_tick;
-  int           tick;
   int           track;
+  Time_t        start_time;
 };
 
 // May fail to load the file.
@@ -334,8 +334,8 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
   info.duration_per_tick = microseconds(
       int( 1000000.0 * duration_secs / duration_ticks ) );
   info.current_event = 0;
-  info.tick          = 0;
   info.track         = 0;
+  info.start_time    = Clock_t::now();
   return info;
 }
 
@@ -351,31 +351,49 @@ void midi_play_event( MidiPlayInfo* info ) {
 
   auto const& e =
       info->midifile[info->track][info->current_event];
-  int  delta    = e.tick - info->tick;
-  auto duration = delta * info->duration_per_tick;
+  // Calculate the current tick from the current clock time. We
+  // could have instead kept a tick counter in the MidiPlayInfo
+  // struct that gets incremented with each passing event, but it
+  // was found that in doing that that the tempo of a tune can
+  // waver slightly when there are many rapid events (i.e., a
+  // snare drum roll). This could (just speculation) have been
+  // due to some overhead in calling std::this_thread::sleep.
+  // Also, this was observed on OSX but not on Linux.
+  auto wait_time = info->start_time +
+                   ( e.tick * info->duration_per_tick ) -
+                   Clock_t::now();
+  // As a consequence of using clock time, note that this dura-
+  // tion might be (slightly) negative at times, so clamp it.
+  wait_time = std::max( 0us, wait_time );
 
+  // Sometimes some corrupt or incorrectly-composed MIDI files
+  // can have abnormally long wait times in them, so avoid that.
   auto max_wait = 10s;
-  if( duration > max_wait ) {
+  if( wait_time > max_wait ) {
     logger->warn(
         "long waiting duration encountered: {}s.  Skipping.",
-        duration_cast<seconds>( duration ).count() );
-    info->tick += ( duration / info->duration_per_tick );
-    duration = 0s;
+        duration_cast<seconds>( wait_time ).count() );
+    // Must be smaller than max_blocking_wait below. So just make
+    // it zero for simplicity.
+    wait_time = 0s;
   }
 
-  // Now wait before sending the next MIDI message.
-  if( duration > 0s ) {
-    // If we are being asked to wait an amount of time larger
-    // than `max_blocking_wait` before the next MIDI message then
-    // we will split up the waiting into chunks of size
-    // `max_wait` so that we can do it in a non-blocking way.
-    // E.g., if there is a five second wait between two notes
-    // then we will wait five seconds but we will return from
-    // this function every 200ms to avoid blocking.
-    auto max_blocking_wait = 200000us;
-    auto wait_time = std::min( max_blocking_wait, duration );
-    sleep( wait_time );
-    info->tick += wait_time / info->duration_per_tick;
+  // Now wait before sending the next MIDI message. If we are
+  // being asked to wait an amount of time larger than
+  // `max_blocking_wait` before the next MIDI message then we
+  // will split up the waiting into chunks of size `max_wait` so
+  // that we can do it in a non-blocking way. E.g., if there is a
+  // five second wait between two notes then we will wait five
+  // seconds but we will return from this function every 200ms to
+  // avoid blocking.
+  auto max_blocking_wait = 200000us; // 0.2 seconds
+  wait_time = std::min( max_blocking_wait, wait_time );
+  // Just in case there's some overhead in calling sleep_for.
+  sleep( wait_time );
+
+  if( wait_time == max_blocking_wait ) {
+    // Must return here because we likely have more time to wait,
+    // but we want to return so that we don't block for too long.
     return;
   }
 
@@ -384,7 +402,6 @@ void midi_play_event( MidiPlayInfo* info ) {
   // we have to wait until we reach the absolute time (tick)
   // where this new message is suppose to be sent.
   g_midi->send_midi_message( e );
-  info->tick = e.tick;
   info->current_event++;
 }
 
