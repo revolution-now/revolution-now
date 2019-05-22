@@ -85,6 +85,14 @@ public:
   virtual void children_under_coord( Coord      where,
                                      ObjectSet& objects ) = 0;
 
+  // This one is only used for the "simple" method of autopadding
+  // (as opposed to the "fancy" method). The jury is still out as
+  // to which one is better. If the "simple" method proves best
+  // then the "fancy" method (and all the complicated logic that
+  // goes with it) can be deleted; otherwise this interface
+  // method can be deleted.
+  virtual bool needs_padding() const { return false; }
+
   /**************************************************************
   ** Input handlers
   ***************************************************************/

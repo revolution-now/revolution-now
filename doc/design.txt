@@ -1,3 +1,90 @@
+Music Playing
+=============
+
+Song Representation (song.h/song.cpp).
+
+  Songs will be referred to by runtime string identifiers. These
+  identifiers must follow these rules:
+
+    - Must be valid file names
+    - Must be unique
+    - Need not be valid C++ identifiers
+    - Must correspond to the stem of the filename of the songs in
+      the filesystem (for any extention/type).
+
+  Songs and/or song names will not be known at compile time. The
+  location of a song (in a particular format) on the filesystem
+  will consist of a folder path to the files of that type (speci-
+  fied in the config files) joined with the string song identi-
+  fier followed by the extension.
+
+  Songs will be listed in the config files as a list of Tune ob-
+  jects that classify the song along various enum dimensions:
+
+  enum class e_tune_tempo           { fast, medium, slow };
+  enum class e_tune_genre           { trad, classical };
+  enum class e_tune_culture         { native, new_world, old_world };
+  enum class e_tune_instrumentation { fife_and_drum, fiddle, percussive, orchestrated };
+  enum class e_tune_sentiment       { happy, sad, war_triumph, war_lost };
+  enum class e_tune_key             { a,bb,b,c,cs,d,eb,e,f,fs,g,ab };
+  enum class e_tune_tonality        { major, minor };
+  enum class e_tune_epoch           { standard, post_revolution }
+
+  struct Tune {
+    string display_name;
+    string stem;
+    string description;
+
+    // Classification.
+    e_tune_tempo           tempo;
+    e_tune_genre           genre;
+    e_tune_culture         culture;
+    e_tune_instrumentation instrumentation;
+    e_tune_sentiment       sentiment;
+    e_tune_key             key;
+    e_tune_tonality        tonality;
+    e_tune_epoch           epoch;
+  };
+
+  The `song` module will have the following methods:
+
+    init/cleanup:        read the config values and do some validation.
+    tune_from_stem:      get Tune object for tune stem/id.
+    list_all_tunes:      return list of stems of all tunes.
+    list_tunes:          list all tunes that meet certain enum criteria.
+    list_tunes_not:      list all tunes that do not fit certain enum criteria.
+    list_tunes_not_like: list all tunes not like given tune.
+
+Music Player (mplayer.h/mplayer.cpp).
+
+  Music will be played via Music Players. A music player is an
+  object that implements a music player interface with virtual
+  methods. A concrete music player will derive from the base
+  class. Some possible concrete music players are:
+
+    - wav player
+    - ogg player
+    - mp3 player
+    - MIDI player with RtMidi backend
+    - MIDI player with libfluidsynth backend
+    - MIDI player with OPL emulator backend
+
+  class MusicPlayer {
+  public:
+
+    void set_playlist( Opt<vector<string>> const& playlist ) final;
+    vector<string> const& playlist() const final;
+
+    virtual void play( Opt<string> tune ) = 0;
+    virtual void next() = 0;
+    virtual void pause() = 0;
+
+  };
+
+  The `mplayer` module will also decide which player to use
+  based (initially) on some config settings, and will support
+  the ability to change player mid-game via a GUI dialog.
+
 UI Auto-Pad
 ===========
 

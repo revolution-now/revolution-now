@@ -347,7 +347,7 @@ void PaddingView::notify_children_updated() {
 
 // This prevents more padding from being added (this is already
 // ad padding view).
-bool PaddingView::should_pad_inside() const {
+bool PaddingView::can_pad_immediate_children() const {
   // If we're asking whether we can add padding into a
   // PaddingView then something has gone wrong somewhere.
   SHOULD_NOT_BE_HERE;

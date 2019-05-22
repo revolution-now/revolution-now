@@ -260,20 +260,21 @@ block derive_blocks( UPtr<ui::View>& view ) {
   return block;
 }
 
-void insert_padding_views( UPtr<ui::View>& view, block const& b,
-                           int pixels );
+void insert_padding_views_fancy( UPtr<ui::View>& view,
+                                 block const& b, int pixels );
 
-void autopad_impl_composite( ui::CompositeView& view,
-                             block const& b, int pixels ) {
+void autopad_fancy_impl_composite( ui::CompositeView& view,
+                                   block const& b, int pixels ) {
   CHECK( int( b.subdivisions.size() ) == view.count() );
   for( int i = 0; i < view.count(); ++i ) {
     auto& sub_view  = view.mutable_at( i );
     auto& sub_block = b.subdivisions[i].second;
     // Always try padding the sub views themselves, even if this
-    // view has should_pad_inside() == false, because that only
-    // applies to this level in the hierarchy, not recursively.
-    insert_padding_views( sub_view, sub_block, pixels );
-    if( view.should_pad_inside() ) {
+    // view has can_pad_immediate_children() == false, because
+    // that only applies to this level in the hierarchy, not
+    // recursively.
+    insert_padding_views_fancy( sub_view, sub_block, pixels );
+    if( view.can_pad_immediate_children() ) {
       auto new_sub_view = make_unique<ui::PaddingView>(
           std::move( sub_view ), pixels, sub_block.l,
           sub_block.r, sub_block.u, sub_block.d );
@@ -283,28 +284,62 @@ void autopad_impl_composite( ui::CompositeView& view,
   view.notify_children_updated();
 }
 
-void insert_padding_views( UPtr<ui::View>& view, block const& b,
-                           int pixels ) {
+void insert_padding_views_fancy( UPtr<ui::View>& view,
+                                 block const& b, int pixels ) {
   if( auto maybe_composite_view =
           view->cast_safe<ui::CompositeView>();
       maybe_composite_view.has_value() ) {
     auto& composite_view = **maybe_composite_view;
     CHECK( int( b.subdivisions.size() ) ==
            composite_view.count() );
-    autopad_impl_composite( composite_view, b, pixels );
+    autopad_fancy_impl_composite( composite_view, b, pixels );
   } else {
     CHECK( b.subdivisions.size() == 0 );
   }
 }
 
-} // namespace
+void insert_padding_views_simple( UPtr<ui::View>& view,
+                                  int             pixels );
+
+void autopad_simple_impl_composite( ui::CompositeView& view,
+                                    int                pixels ) {
+  for( int i = 0; i < view.count(); ++i ) {
+    auto& sub_view = view.mutable_at( i );
+    // Always try padding the sub views themselves, even if this
+    // view has can_pad_immediate_children() == false, because
+    // that only applies to this level in the hierarchy, not
+    // recursively.
+    insert_padding_views_simple( sub_view, pixels );
+    if( view.can_pad_immediate_children() &&
+        sub_view->needs_padding() ) {
+      // In this one we use half the padding because the assump-
+      // tion is that this sub view will be touching another view
+      // that also has half padding.
+      auto new_sub_view = make_unique<ui::PaddingView>(
+          std::move( sub_view ), pixels / 2, true, true, true,
+          true );
+      sub_view = std::move( new_sub_view );
+    }
+  }
+  view.notify_children_updated();
+}
+
+void insert_padding_views_simple( UPtr<ui::View>& view,
+                                  int             pixels ) {
+  if( auto maybe_composite_view =
+          view->cast_safe<ui::CompositeView>();
+      maybe_composite_view.has_value() ) {
+    auto& composite_view = **maybe_composite_view;
+    autopad_simple_impl_composite( composite_view, pixels );
+  }
+}
 
 // This will traverse the view (tree) hierarchy and construct a
 // block tree structure that mirrors the view structure. Then the
 // padding analysis will be performed on the block structure, and
 // the results copied into the view structure by inserting
 // PaddingView's where needed.
-void autopad( UPtr<ui::View>& view, int pixels ) {
+void autopad_fancy( UPtr<ui::View>& view, int pixels ) {
   auto block = derive_blocks( view );
 
   // Traverse the block structure and enable the l/r/u/d booleans
@@ -315,11 +350,27 @@ void autopad( UPtr<ui::View>& view, int pixels ) {
   // Turn on when debugging.
   // print_matrix( block.to_matrix() );
 
-  insert_padding_views( view, block, pixels );
+  insert_padding_views_fancy( view, block, pixels );
 }
 
-void autopad( UPtr<ui::View>& view ) {
-  autopad( view, config_ui.window.ui_padding );
+void autopad_simple( UPtr<ui::View>& view, int pixels ) {
+  insert_padding_views_simple( view, pixels );
+}
+
+} // namespace
+
+void autopad( UPtr<ui::View>& view, bool use_fancy,
+              int pixels ) {
+  if( use_fancy )
+    autopad_fancy( view, pixels );
+  else
+    // TODO: reimplement this with a generic visitor that tra-
+    // verses the views.
+    autopad_simple( view, pixels );
+}
+
+void autopad( UPtr<ui::View>& view, bool use_fancy ) {
+  autopad( view, use_fancy, config_ui.window.ui_padding );
 }
 
 void test_autopad() {

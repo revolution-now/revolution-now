@@ -101,15 +101,15 @@ public:
   virtual UPtr<View>& mutable_at( int idx )   = 0;
   virtual Coord       pos_of( int idx ) const = 0;
 
-  // By default this view will be eligible for auto-padding of
-  // its consituent views (that means adding padding between
-  // them). However this is not always desireable and so can be
-  // turned off. Turning this off only means that padding will
-  // not be added on the inside of this view, not on its border.
-  // Also, it only means that padding will be suppressed between
-  // the views that are immediate children of this view, i.e.,
-  // this will not apply recursively.
-  virtual bool should_pad_inside() const { return true; }
+  // By default this view will be eligible for auto-padding be-
+  // tween the views inside of it. However this is not always de-
+  // sirable and so can be turned off. Turning this off only
+  // means that padding will not be added on the inside of this
+  // view and one level deep; i.e., this will not apply on its
+  // border or further down recursively.
+  virtual bool can_pad_immediate_children() const {
+    return true;
+  }
 
   virtual PositionedViewConst at( int idx ) const;
   virtual PositionedView      at( int idx );
@@ -261,6 +261,8 @@ public:
   // Implement ui::Object
   void children_under_coord( Coord, ObjectSet& ) override {}
 
+  bool needs_padding() const override { return true; }
+
 protected:
   std::string msg_;
   Texture     tx_;
@@ -284,6 +286,8 @@ public:
 
   // Implement ui::Object
   void children_under_coord( Coord, ObjectSet& ) override {}
+
+  bool needs_padding() const override { return true; }
 
 protected:
   enum class button_state { down, up, hover, disabled };
@@ -344,7 +348,7 @@ public:
   // Implement CompositeView
   void notify_children_updated() override;
 
-  bool should_pad_inside() const override;
+  bool can_pad_immediate_children() const override;
 
 private:
   int   pixels_;
@@ -463,6 +467,10 @@ public:
 
   void grow_to( W w );
 
+  bool can_pad_immediate_children() const override {
+    return false;
+  }
+
 private:
   e_option_active active_;
   UPtr<View>      background_active_;
@@ -486,6 +494,11 @@ public:
 
   void grow_to( W w );
 
+  bool can_pad_immediate_children() const override {
+    return false;
+  }
+  bool needs_padding() const override { return true; }
+
 private:
   ObserverPtr<OptionSelectItemView>  get_view( int item );
   ObserverCPtr<OptionSelectItemView> get_view( int item ) const;
@@ -507,6 +520,8 @@ public:
 
   e_unit_orders orders() const { return orders_; }
   void set_orders( e_unit_orders orders ) { orders_ = orders; }
+
+  bool needs_padding() const override { return true; }
 
 private:
   e_unit_type   type_;
@@ -544,7 +559,13 @@ public:
   // Implement CompositeView
   void notify_children_updated() override {}
 
-  bool should_pad_inside() const override { return false; }
+  // This one does its own padding around the border.
+  bool can_pad_immediate_children() const override {
+    return false;
+  }
+
+  // Padding outside of border.
+  bool needs_padding() const override { return true; }
 
   void toggle() { on_ = !on_; }
   void on( bool v ) { on_ = v; }
