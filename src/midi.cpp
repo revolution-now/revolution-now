@@ -313,6 +313,8 @@ struct MidiPlayInfo {
   microseconds  duration_per_tick;
   int           track;
   Time_t        start_time;
+  Opt<Time_t>   last_pause_time;
+  Duration_t    stoppage;
 };
 
 // May fail to load the file.
@@ -333,9 +335,11 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
   auto duration_secs  = info.midifile.getFileDurationInSeconds();
   info.duration_per_tick = microseconds(
       int( 1000000.0 * duration_secs / duration_ticks ) );
-  info.current_event = 0;
-  info.track         = 0;
-  info.start_time    = Clock_t::now();
+  info.current_event   = 0;
+  info.track           = 0;
+  info.start_time      = Clock_t::now();
+  info.last_pause_time = nullopt;
+  info.stoppage        = 0us;
   return info;
 }
 
@@ -364,7 +368,7 @@ void midi_play_event( MidiPlayInfo* info ) {
   // the system.
   auto wait_time = duration_cast<microseconds>(
       info->start_time + ( e.tick * info->duration_per_tick ) -
-      Clock_t::now() );
+      Clock_t::now() + info->stoppage );
   // As a consequence of using clock time, note that this dura-
   // tion might be (slightly) negative at times, so clamp it.
   wait_time = std::max( 0us, wait_time );
@@ -429,6 +433,19 @@ void midi_thread_impl() {
       switch( cmd.value() ) {
         case +e_midi_player_cmd::play:
           g_midi_comm.set_state( e_midi_player_state::playing );
+          // Check to see if a) we are playing a tune, and b) we
+          // are paused. If so then we need to add the "missing"
+          // time into the stoppage so that we don't skip over
+          // all the intervening MIDI events, since the sequencer
+          // uses absolute time.
+          if( maybe_info.has_value() ) {
+            auto& info = *maybe_info;
+            if( info.last_pause_time.has_value() ) {
+              info.stoppage +=
+                  Clock_t::now() - info.last_pause_time.value();
+              info.last_pause_time = nullopt;
+            }
+          }
           break;
         case +e_midi_player_cmd::next:
           g_midi->all_notes_off();
@@ -439,6 +456,8 @@ void midi_thread_impl() {
         case +e_midi_player_cmd::pause:
           g_midi->all_notes_off();
           g_midi_comm.set_state( e_midi_player_state::paused );
+          if( maybe_info.has_value() )
+            maybe_info.value().last_pause_time = Clock_t::now();
           break;
         case +e_midi_player_cmd::off: return;
       }
