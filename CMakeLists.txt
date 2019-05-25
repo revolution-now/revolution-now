@@ -30,6 +30,7 @@ force_compiler_color_diagnostics()
 
 # === subdirectories ==============================================
 
+add_subdirectory( assets/music )
 add_subdirectory( src )
 
 # === external dependencies =======================================

@@ -36,6 +36,10 @@ target_include_directories(
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${SDL2_MIXER_INCLUDE_DIR} )
 
+# The `midi_convert` target will convert (incrementally) any .rg
+# (Rosegarden) files to MIDI.
+add_dependencies( rn midi_convert )
+
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.
 if( CMAKE_BUILD_TYPE STREQUAL Debug )
