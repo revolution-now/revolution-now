@@ -46,3 +46,6 @@
 [submodule "assets/music"]
 	path = assets/music
 	url = ../../dpacbach/rn-music.git
+[submodule "extern/rg-2-midi"]
+	path = extern/rg-2-midi
+	url = ../../dpacbach/rg-2-midi
