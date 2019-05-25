@@ -3,6 +3,8 @@ build-current := .builds/current
 
 -include $(build-current)/env-vars.mk
 
+possible_targets := all run clean test midi_convert rg2midi
+
 build-config := $(notdir $(realpath $(build-current)))
 ifneq (,$(wildcard $(build-current)/Makefile))
     # Here we are invoking $(MAKE) directly instead of using
@@ -10,20 +12,23 @@ ifneq (,$(wildcard $(build-current)/Makefile))
     # propagating the jobserver.  For this same reason we
     # also do not just put the whole command into a variable
     # and just define the targets once.
-    all run clean test: $(build-current)
+    $(possible_targets): $(build-current)
 	    @cd $(build-current) && $(MAKE) -s $@
 else
     # Use cmake to build here because it is the preferred
     # way to go when it works for us (which it does in this
     # case).
-    all run clean test: $(build-current)
+    $(possible_targets): $(build-current)
 	    @cd $(build-current) && cmake --build . --target $@
 endif
 
-distclean:
+# Need to have `clean` as a dependency before removing the
+# .builds folder because some outputs of the build are in the
+# source tree and we need to clear them first.
+distclean: clean
 	@rm -rf .builds
 
 $(build-current):
 	@cmc
 
-.PHONY: all run clean test distclean
+.PHONY: $(possible_targets)
