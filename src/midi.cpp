@@ -57,6 +57,10 @@ namespace {
 /****************************************************************
 ** Midi I/O
 *****************************************************************/
+void rtmidi_error_callback( RtMidiError::Type,
+                            string const& error_text,
+                            void* /*unused*/ );
+
 // This class is a wrapper around the RtMidiOut object and han-
 // dles creating and initializing it. Initialization consists of
 // finding an appropriate midi output port and opening that port.
@@ -90,11 +94,8 @@ public:
     auto maybe_port = res.find_midi_output_port();
     if( !maybe_port ) return nullopt;
     // This may be called from the midi thread.
-    auto callback = []( RtMidiError::Type,
-                        const std::string& error_text, void* ) {
-      logger->warn( "rt-midi: {}", error_text );
-    };
-    res.out_->setErrorCallback( callback, /*userdata=*/nullptr );
+    res.out_->setErrorCallback( rtmidi_error_callback,
+                                /*userdata=*/nullptr );
 
     try {
       res.out_->openPort( *maybe_port );
@@ -153,8 +154,32 @@ public:
 private:
   MidiIO() = default;
 
+  vector<unsigned char> last_message_;
+
   void send_midi_message_raw( unsigned char* bytes,
                               size_t         size ) {
+    if( size == 0 ) return;
+
+    if( bytes[0] == 0xff ) {
+      if( size > 1 ) {
+        // This currently seems to happen for unknown reasons,
+        // see https://github.com/craigsapp/midifile/issues/67
+        // logger->warn(
+        //    "Skipping attempt to send `system reset` message "
+        //    "longer than one byte." );
+        return;
+      }
+      // If we routinely print the above warning but never ever
+      // get here then perhaps there is a problem with `midi-
+      // file`.
+      logger->debug( "sending MIDI `system reset` message." );
+    }
+
+    // Save the message for debugging purposes.
+    last_message_.resize( size );
+    for( size_t i = 0; i < size; ++i )
+      last_message_[i] = bytes[i];
+
     int num_retries = 3;
     for( int i = 0; i < num_retries; ++i ) {
       try {
@@ -207,6 +232,10 @@ private:
     return res;
   }
 
+  friend void rtmidi_error_callback( RtMidiError::Type,
+                                     string const& error_text,
+                                     void* /*unused*/ );
+
   // Apart from initialization and cleanup (by the main thread)
   // this should only be used by the midi thread since it is un-
   // known whether it is thread safe.
@@ -216,6 +245,25 @@ private:
 // This will be nullopt if midi music cannot be played for any
 // reason.
 Opt<MidiIO> g_midi;
+
+void rtmidi_error_callback( RtMidiError::Type,
+                            string const& error_text,
+                            void* /*unused*/ ) {
+  logger->warn( "rt-midi: {}", error_text );
+  if( absl::StrContains( error_text, "event parsing error" ) ) {
+    if( !g_midi.has_value() ) {
+      logger->critical(
+          "programmer error: should not be here ({}:{})",
+          __FILE__, __LINE__ );
+      return;
+    }
+    MidiIO& mio = g_midi.value();
+    string  lms = "last message sent:";
+    for( size_t i = 0; i < mio.last_message_.size(); i++ )
+      lms += fmt::format( " {:<3x}", mio.last_message_[i] );
+    logger->debug( "{}", lms );
+  }
+}
 
 /****************************************************************
 ** Midi Thread
@@ -322,7 +370,7 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
   MidiPlayInfo info;
 
   info.midifile.clear();
-  logger->info( "loading midi file: {}\n", file );
+  logger->info( "loading midi file: {}", file );
   if( !info.midifile.read( file ) ) return nullopt;
   info.midifile.doTimeAnalysis(); // why do we need this?
   info.midifile.linkNotePairs();  // why do we need this?
@@ -509,8 +557,8 @@ void midi_thread_impl() {
         // that we should load the next one.
         if( info.current_event >=
             info.midifile[info.track].size() ) {
-          logger->debug( "midi file {} has finished.",
-                         playlist[track] );
+          logger->info( "midi file {} has finished.",
+                        playlist[track] );
           // Just for good measure.
           g_midi->all_notes_off();
           maybe_info = nullopt;
@@ -563,9 +611,9 @@ void cleanup_midi() {
   if( g_midi ) {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
-      logger->debug( "Sending `off` message to midi thread." );
+      logger->info( "Sending `off` message to midi thread." );
       g_midi_comm.send_cmd( e_midi_player_cmd::off );
-      logger->debug( "Waiting for midi thread to join." );
+      logger->info( "Waiting for midi thread to join." );
       g_midi_thread->join();
       logger->info( "MIDI thread closed." );
       // This may have already been done by the midi thread, but
@@ -675,13 +723,12 @@ void test_midi() {
     midi_files.insert( file );
   g_midi_comm.set_playlist( midi_files );
   while( true ) {
-    sleep( milliseconds( 200 ) );
     if( g_midi_comm.state() == e_midi_player_state::failed ) {
       logger->info(
           "MIDI thread has failed and is no longer active." );
       break;
     }
-    fmt::print( "[p]lay, [s]top, [n]ext, [q]uit]: " );
+    logger->info( "[p]lay, [s]top, [n]ext, [q]uit: " );
     string in;
     cin >> in;
     sleep( milliseconds( 20 ) );
