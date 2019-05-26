@@ -722,6 +722,8 @@ void test_midi() {
            "assets/music/midi/*.mid", /*with_folders=*/false ) )
     midi_files.insert( file );
   g_midi_comm.set_playlist( midi_files );
+  g_midi_comm.send_cmd( e_midi_player_cmd::play );
+  sleep( 500ms );
   while( true ) {
     if( g_midi_comm.state() == e_midi_player_state::failed ) {
       logger->info(
