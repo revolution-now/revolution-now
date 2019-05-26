@@ -161,18 +161,13 @@ private:
     if( size == 0 ) return;
 
     if( bytes[0] == 0xff ) {
-      if( size > 1 ) {
-        // This currently seems to happen for unknown reasons,
-        // see https://github.com/craigsapp/midifile/issues/67
-        // logger->warn(
-        //    "Skipping attempt to send `system reset` message "
-        //    "longer than one byte." );
-        return;
-      }
-      // If we routinely print the above warning but never ever
-      // get here then perhaps there is a problem with `midi-
-      // file`.
-      logger->debug( "sending MIDI `system reset` message." );
+      // These messages that start with 0xff are "meta" MIDI mes-
+      // sages that are intended not for the synthesizer but for
+      // the MIDI sequencer itself. It doesn't appear that we
+      // need to process them, so here we just ignore them (if we
+      // were to send them to the synth we'd get an error). See
+      // https://github.com/craigsapp/midifile/issues/67.
+      return;
     }
 
     // Save the message for debugging purposes.
