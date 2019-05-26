@@ -353,11 +353,11 @@ MidiCommunication g_midi_comm;
 struct MidiPlayInfo {
   smf::MidiFile midifile;
   int           current_event;
-  microseconds  duration_per_tick;
   int           track;
   Time_t        start_time;
   Opt<Time_t>   last_pause_time;
   Duration_t    stoppage;
+  milliseconds  tune_duration;
 };
 
 // May fail to load the file.
@@ -365,24 +365,27 @@ Opt<MidiPlayInfo> load_midi_file( string const& file ) {
   MidiPlayInfo info;
 
   info.midifile.clear();
-  logger->info( "loading midi file: {}", file );
   if( !info.midifile.read( file ) ) return nullopt;
-  info.midifile.doTimeAnalysis(); // why do we need this?
-  info.midifile.linkNotePairs();  // why do we need this?
+  // This will cause the MidiEvent::seconds fields to be popu-
+  // lated with the time at which an event should be sent to the
+  // synth. And it does take into account meta events that cause
+  // tempo changes.
+  info.midifile.doTimeAnalysis();
+  info.midifile.linkNotePairs(); // why do we need this?
 
   // Join/merge all tracks into one, otherwise we'd have to worry
   // about writing an algorithm that can play two tracks at once.
   info.midifile.joinTracks();
 
-  auto duration_ticks = info.midifile.getFileDurationInTicks();
-  auto duration_secs  = info.midifile.getFileDurationInSeconds();
-  info.duration_per_tick = microseconds(
-      int( 1000000.0 * duration_secs / duration_ticks ) );
+  info.tune_duration = from_seconds<milliseconds>(
+      info.midifile.getFileDurationInSeconds() );
   info.current_event   = 0;
   info.track           = 0;
   info.start_time      = Clock_t::now();
   info.last_pause_time = nullopt;
   info.stoppage        = 0us;
+  logger->info( "loaded midi file: {} ({})", file,
+                to_string_colons( info.tune_duration ) );
   return info;
 }
 
@@ -398,23 +401,24 @@ void midi_play_event( MidiPlayInfo* info ) {
 
   auto const& e =
       info->midifile[info->track][info->current_event];
-  // Calculate the current tick from the current clock time. We
-  // could have instead kept a tick counter in the MidiPlayInfo
-  // struct that gets incremented with each passing event, but it
-  // was found that in doing that that the tempo of a tune can
-  // waver slightly when there are many rapid events (i.e., a
-  // snare drum roll). This could (just speculation) have been
-  // due to some overhead in calling std::this_thread::sleep.
-  // Also, this was observed on OSX but not on Linux. Note: we
-  // need the duration_cast because otherwise the type of
-  // wait_time would depend on the duration type for the clock on
-  // the system.
-  auto wait_time = duration_cast<microseconds>(
-      info->start_time + ( e.tick * info->duration_per_tick ) -
-      Clock_t::now() + info->stoppage );
+
+  // Get the time (from the start of the tune) at which this
+  // event should be played.
+  auto event_time_delta = from_seconds<Duration_t>( e.seconds );
+
+  // This will yield the correct time taking into account any
+  // amount of time that we've been paused during playing.
+  event_time_delta += info->stoppage;
+
+  // Convert to absolute time.
+  auto event_time = info->start_time + event_time_delta;
+
+  // How long do we have to wait before sending the event.
+  auto wait_time = event_time - Clock_t::now();
+
   // As a consequence of using clock time, note that this dura-
   // tion might be (slightly) negative at times, so clamp it.
-  wait_time = std::max( 0us, wait_time );
+  wait_time = std::max( Duration_t( 0 ), wait_time );
 
   // Sometimes some corrupt or incorrectly-composed MIDI files
   // can have abnormally long wait times in them, so avoid that.
@@ -436,7 +440,7 @@ void midi_play_event( MidiPlayInfo* info ) {
   // five second wait between two notes then we will wait five
   // seconds but we will return from this function every 200ms to
   // avoid blocking.
-  auto max_blocking_wait = 200000us; // 0.2 seconds
+  Duration_t max_blocking_wait = 200000us; // 0.2 seconds
   wait_time = std::min( max_blocking_wait, wait_time );
   // Just in case there's some overhead in calling sleep_for.
   sleep( wait_time );
@@ -449,8 +453,8 @@ void midi_play_event( MidiPlayInfo* info ) {
 
   // Must send midi message AFTER sleeping; this is because the
   // duration that we have calculated above is the amount of time
-  // we have to wait until we reach the absolute time (tick)
-  // where this new message is suppose to be sent.
+  // we have to wait until we reach the absolute time
+  // (event_time) where this new message is suppose to be sent.
   g_midi->send_midi_message( e );
   info->current_event++;
 }
@@ -654,62 +658,6 @@ void send_command_to_midi_player( e_midi_player_cmd cmd ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
-// Just for testing. Assumes that port is already open.
-void play_midi_file( string const& file ) {
-  CHECK( g_midi );
-
-  smf::MidiFile midifile;
-  fmt::print( "File: {}\n", file );
-  CHECK( midifile.read( file ) );
-  midifile.doTimeAnalysis();
-  midifile.linkNotePairs();
-
-  int tracks = midifile.getTrackCount();
-  fmt::print( "Tracks: {}\n", tracks );
-
-  int const track = 0;
-
-  midifile.joinTracks();
-  fmt::print( "Tracks after join: {}\n",
-              midifile.getTrackCount() );
-
-  auto tpq = midifile.getTPQ();
-  fmt::print( "Ticks Per Quarter Note: {}\n", tpq );
-  auto duration_ticks = midifile.getFileDurationInTicks();
-  auto duration_secs  = midifile.getFileDurationInSeconds();
-  auto millisecs_per_tick =
-      1000.0 * duration_secs / duration_ticks;
-  fmt::print( "milliseconds per tick: {}\n",
-              millisecs_per_tick );
-
-  fmt::print( "\nTrack {}\n", track );
-  fmt::print( "-----------------------------------\n" );
-  fmt::print( "{:<8}{:<9}{:<10}{}\n", "Tick", "Seconds", "Dur",
-              "Message" );
-  fmt::print( "-----------------------------------\n" );
-  int tick = 0;
-  for( int event = 0; event < midifile[track].size(); event++ ) {
-    fmt::print( "{:<8}", midifile[track][event].tick );
-    fmt::print( "{:<9}", midifile[track][event].seconds );
-    if( midifile[track][event].isNoteOn() )
-      fmt::print(
-          "{:<10}",
-          midifile[track][event].getDurationInSeconds() );
-    else
-      fmt::print( "{:<10}", "" );
-    for( size_t i = 0; i < midifile[track][event].size(); i++ )
-      fmt::print( "{:<3x}", (int)midifile[track][event][i] );
-    fmt::print( "\n" );
-    auto const& e        = midifile[track][event];
-    int         delta    = e.tick - tick;
-    auto        duration = int( delta * millisecs_per_tick );
-    sleep( milliseconds( duration ) );
-    // Must send midi message AFTER sleeping.
-    g_midi->send_midi_message( e );
-    tick = e.tick;
-  }
-}
-
 void test_midi() {
   if( !g_midi ) return;
   set<fs::path> midi_files;
