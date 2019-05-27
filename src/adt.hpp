@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "fmt-helper.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 

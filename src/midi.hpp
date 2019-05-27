@@ -13,25 +13,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "enum.hpp"
 
 // C++ standard library.
 #include <string>
-
-namespace rn {
-
-// State held by (and updated by) the midi thread.
-enum class e_( midi_player_state,
-               playing, //
-               paused,  //
-               failed,  //
-               off      //
-);
-
-bool is_midi_playable();
-// We can get state, but not set it. To change the state of the
-// midi player you must send it commands.
-e_midi_player_state midi_player_state();
 
 // The possible commands that can be sent to the midi thread.
 // Generally, after receiving one of these commands the midi
@@ -50,14 +36,31 @@ e_midi_player_state midi_player_state();
 //
 //   off:   Tell the player to turn off.
 //
-enum class e_( midi_player_cmd,
-               play,  //
-               next,  //
-               pause, //
-               off    //
+ADT( rn, midi_player_cmd,  //
+     ( play ),             //
+     ( next ),             //
+     ( pause ),            //
+     ( off ),              //
+     ( volume,             //
+       ( double, value ) ) //
 );
 
-void send_command_to_midi_player( e_midi_player_cmd cmd );
+namespace rn {
+
+// State held by (and updated by) the midi thread.
+enum class e_( midi_player_state,
+               playing, //
+               paused,  //
+               failed,  //
+               off      //
+);
+
+bool is_midi_playable();
+// We can get state, but not set it. To change the state of the
+// midi player you must send it commands.
+e_midi_player_state midi_player_state();
+
+void send_command_to_midi_player( midi_player_cmd_t cmd );
 
 // Testing.
 void test_midi();

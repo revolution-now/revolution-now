@@ -20,6 +20,7 @@
 #include "rand.hpp"
 #include "ranges.hpp"
 #include "time.hpp"
+#include "variant.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -149,6 +150,21 @@ public:
         send_midi_message_raw( message, 3 );
       }
     }
+  }
+
+  void set_volume( unsigned char vol ) {
+    for( uint8_t channel = 0; channel < 16; channel++ ) {
+      uint8_t message[3];
+      message[0] = 0xB0 + channel;
+      message[1] = 0x07;
+      message[2] = vol;
+      send_midi_message_raw( message, 3 );
+    }
+  }
+
+  void set_volume( double vol ) {
+    vol = std::clamp( vol, 0.0, 1.0 );
+    set_volume( uint8_t( std::lround( vol * 127 ) ) );
   }
 
 private:
@@ -292,7 +308,7 @@ public:
     for( auto const& f : files ) playlist_.push_back( f );
   }
 
-  void send_cmd( e_midi_player_cmd cmd ) {
+  void send_cmd( midi_player_cmd_t cmd ) {
     lock_guard<mutex> lock( mutex_ );
     commands_.push( cmd );
   }
@@ -320,7 +336,7 @@ public:
     last_error_ = std::move( error );
   }
 
-  Opt<e_midi_player_cmd> pop_cmd() {
+  Opt<midi_player_cmd_t> pop_cmd() {
     lock_guard<mutex> lock( mutex_ );
     if( commands_.size() > 0 ) {
       auto ret = commands_.front();
@@ -337,7 +353,7 @@ private:
   e_midi_player_state      state_{e_midi_player_state::paused};
   vector<fs::path>         playlist_{};
   string                   last_error_{};
-  queue<e_midi_player_cmd> commands_{};
+  queue<midi_player_cmd_t> commands_{};
 };
 
 // Shared state between main thread and midi thread.
@@ -474,11 +490,12 @@ void midi_thread_record_failure( Args... args ) {
 void midi_thread_impl() {
   Opt<MidiPlayInfo>      maybe_info;
   int                    track = -1;
-  Opt<e_midi_player_cmd> cmd;
+  Opt<midi_player_cmd_t> cmd;
+  bool                   time_to_go = false;
   while( true ) {
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
-      switch( cmd.value() ) {
-        case +e_midi_player_cmd::play:
+      switch_v( cmd.value() ) {
+        case_v( midi_player_cmd::play ) {
           g_midi_comm.set_state( e_midi_player_state::playing );
           // Check to see if a) we are playing a tune, and b) we
           // are paused. If so then we need to add the "missing"
@@ -493,22 +510,27 @@ void midi_thread_impl() {
               info.last_pause_time = nullopt;
             }
           }
-          break;
-        case +e_midi_player_cmd::next:
-          g_midi->all_notes_off();
+        }
+        case_v( midi_player_cmd::next ) {
+          g_midi.value().all_notes_off();
           maybe_info = nullopt;
           g_midi_comm.set_state( e_midi_player_state::playing );
           logger->info( "skipping to next track." );
-          break;
-        case +e_midi_player_cmd::pause:
-          g_midi->all_notes_off();
+        }
+        case_v( midi_player_cmd::pause ) {
+          g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midi_player_state::paused );
           if( maybe_info.has_value() )
             maybe_info.value().last_pause_time = Clock_t::now();
-          break;
-        case +e_midi_player_cmd::off: return;
+        }
+        case_v( midi_player_cmd::off ) { time_to_go = true; }
+        case_v_( midi_player_cmd::volume, new_value ) {
+          g_midi.value().set_volume( new_value );
+        }
+        default_v;
       }
     }
+    if( time_to_go ) return;
     switch( g_midi_comm.state() ) {
       case +e_midi_player_state::failed: return;
       case +e_midi_player_state::off:
@@ -611,7 +633,7 @@ void cleanup_midi() {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
       logger->info( "Sending `off` message to midi thread." );
-      g_midi_comm.send_cmd( e_midi_player_cmd::off );
+      g_midi_comm.send_cmd( midi_player_cmd::off{} );
       logger->info( "Waiting for midi thread to join." );
       g_midi_thread->join();
       logger->info( "MIDI thread closed." );
@@ -646,7 +668,7 @@ e_midi_player_state midi_player_state() {
   return g_midi_comm.state();
 }
 
-void send_command_to_midi_player( e_midi_player_cmd cmd ) {
+void send_command_to_midi_player( midi_player_cmd_t cmd ) {
   if( is_midi_playable() )
     g_midi_comm.send_cmd( cmd );
   else
@@ -665,28 +687,44 @@ void test_midi() {
            "assets/music/midi/*.mid", /*with_folders=*/false ) )
     midi_files.insert( file );
   g_midi_comm.set_playlist( midi_files );
-  g_midi_comm.send_cmd( e_midi_player_cmd::play );
+  g_midi_comm.send_cmd( midi_player_cmd::play{} );
   sleep( 500ms );
+  double vol = 0.5;
+  g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
   while( true ) {
     if( g_midi_comm.state() == e_midi_player_state::failed ) {
       logger->info(
           "MIDI thread has failed and is no longer active." );
       break;
     }
-    logger->info( "[p]lay, [s]top, [n]ext, [q]uit: " );
+    logger->info(
+        "[p]lay, [s]top, [n]ext, [u]p volume, [d]own volume, "
+        "[q]uit: " );
     string in;
     cin >> in;
     sleep( milliseconds( 20 ) );
     if( in == "p" ) {
-      g_midi_comm.send_cmd( e_midi_player_cmd::play );
+      g_midi_comm.send_cmd( midi_player_cmd::play{} );
       continue;
     }
     if( in == "s" ) {
-      g_midi_comm.send_cmd( e_midi_player_cmd::pause );
+      g_midi_comm.send_cmd( midi_player_cmd::pause{} );
       continue;
     }
     if( in == "n" ) {
-      g_midi_comm.send_cmd( e_midi_player_cmd::next );
+      g_midi_comm.send_cmd( midi_player_cmd::next{} );
+      continue;
+    }
+    if( in == "u" ) {
+      vol += .1;
+      vol = std::clamp( vol, 0.0, 1.0 );
+      g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
+      continue;
+    }
+    if( in == "d" ) {
+      vol -= .1;
+      vol = std::clamp( vol, 0.0, 1.0 );
+      g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
       continue;
     }
     if( in == "q" ) break;
