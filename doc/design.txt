@@ -1,25 +1,25 @@
 Music Playing
 =============
 
-Song Representation (song.h/song.cpp).
+Tune Representation (tune.h/tune.cpp).
 
-  Songs will be referred to by runtime string identifiers. These
+  Tunes will be referred to by runtime string identifiers. These
   identifiers must follow these rules:
 
     - Must be valid file names
     - Must be unique
     - Need not be valid C++ identifiers
-    - Must correspond to the stem of the filename of the songs in
+    - Must correspond to the stem of the filename of the tunes in
       the filesystem (for any extention/type).
 
-  Songs and/or song names will not be known at compile time. The
-  location of a song (in a particular format) on the filesystem
+  Tunes and/or tune names will not be known at compile time. The
+  location of a tune (in a particular format) on the filesystem
   will consist of a folder path to the files of that type (speci-
-  fied in the config files) joined with the string song identi-
+  fied in the config files) joined with the string tune identi-
   fier followed by the extension.
 
-  Songs will be listed in the config files as a list of Tune ob-
-  jects that classify the song along various enum dimensions:
+  Tunes will be listed in the config files as a list of Tune ob-
+  jects that classify the tune along various enum dimensions:
 
   enum class e_tune_tempo           { fast, medium, slow };
   enum class e_tune_genre           { trad, classical };
@@ -46,7 +46,7 @@ Song Representation (song.h/song.cpp).
     e_tune_epoch           epoch;
   };
 
-  The `song` module will have the following methods:
+  The `tune` module will have the following methods:
 
     init/cleanup:        read the config values and do some validation.
     tune_from_stem:      get Tune object for tune stem/id.
@@ -71,19 +71,29 @@ Music Player (mplayer.h/mplayer.cpp).
 
   class MusicPlayer {
   public:
-
-    void set_playlist( Opt<vector<string>> const& playlist ) final;
-    vector<string> const& playlist() const final;
-
-    virtual void play( Opt<string> tune ) = 0;
-    virtual void next() = 0;
-    virtual void pause() = 0;
-
+    virtual void play( string const& tune ) = 0;
+    virtual void pause()                    = 0;
+    virtual void resume()                   = 0;
+    virtual Opt<double> progress() const    = 0;
+    virtual void set_volume()               = 0;
+    virtual double volume()                 = 0;
   };
 
-  The `mplayer` module will also decide which player to use
-  based (initially) on some config settings, and will support
-  the ability to change player mid-game via a GUI dialog.
+Music Conductor (conductor.h/conductor.cpp)
+
+  The `conductor` module is the interface that the rest of the
+  game uses to the music system. It is responsible for the fol-
+  lowing things:
+
+    - Gathering all of the different music players.
+    - Selecting which music player to use.
+    - Switching among the various music players.
+    - Taking commands from the user/game to control the music
+      player, such as current tune, volume, etc.
+    - Managing the playlist.  This includes figuring out which
+      song to play when.
+
+Music GUI Elements
 
 UI Auto-Pad
 ===========

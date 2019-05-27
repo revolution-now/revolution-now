@@ -1,6 +1,6 @@
 midi_folder: assets/music/midi
 
-songs = [
+tunes = [
   {
     display_name:    "Fife & Drum March 1"
     stem:            "fife-and-drum-1"

@@ -7,6 +7,9 @@ let s:first = 'main.cpp'
 let s:stems = [
   \ 'src/sdl-util',
   \ 'src/init',
+  \ 'src/tune',
+  \ 'src/mplayer',
+  \ 'src/conductor',
   \ 'src/midi',
   \ 'src/input',
   \ 'src/frame',
