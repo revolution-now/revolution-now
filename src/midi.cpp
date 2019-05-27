@@ -128,7 +128,7 @@ public:
     }
     for( size_t i = 0; i < event.size(); ++i )
       bytes[i] = event[i];
-    send_midi_message_raw( &bytes[0], event.size() );
+    send_midi_message( &bytes[0], event.size() );
   }
 
   // Apparently there is a midi message called "all notes off",
@@ -147,33 +147,48 @@ public:
         message[0] = 128 + channel;
         message[1] = 0 + note;
         message[2] = 0 + 127;
-        send_midi_message_raw( message, 3 );
+        send_midi_message( message, 3 );
       }
     }
   }
 
-  void set_volume( unsigned char vol ) {
-    for( uint8_t channel = 0; channel < 16; channel++ ) {
-      uint8_t message[3];
-      message[0] = 0xB0 + channel;
-      message[1] = 0x07;
-      message[2] = vol;
-      send_midi_message_raw( message, 3 );
-    }
+  // Called in response to sending a `set volume` command to the
+  // midi thread.
+  void set_master_volume( double vol ) {
+    master_volume_ = std::clamp( vol, 0.0, 1.0 );
+    update_volumes();
   }
 
-  void set_volume( double vol ) {
-    vol = std::clamp( vol, 0.0, 1.0 );
-    set_volume( uint8_t( std::lround( vol * 127 ) ) );
+  void zero_channel_volumes() {
+    for( uint8_t channel = 0; channel < 16; channel++ ) {
+      midi_requested_volumes_[channel] = 0;
+      set_volume_impl( channel, 0 );
+    }
   }
 
 private:
   MidiIO() = default;
 
+  double             master_volume_{1.0};
+  array<uint8_t, 16> midi_requested_volumes_{}; // init to zeros
+
   vector<unsigned char> last_message_;
 
-  void send_midi_message_raw( unsigned char* bytes,
-                              size_t         size ) {
+  void update_volumes() {
+    for( uint8_t channel = 0; channel < 16; channel++ ) {
+      uint8_t vol = std::clamp(
+          std::lround( master_volume_ *
+                       midi_requested_volumes_[channel] ),
+          0l, 127l );
+      // Should not call `send_midi_message` here otherwise we
+      // could get an infinite loop. Must call only functions
+      // that call `send_midi_message_impl`.
+      set_volume_impl( channel, vol );
+    }
+  }
+
+  // This one does some filtering of midi messages.
+  void send_midi_message( unsigned char* bytes, size_t size ) {
     if( size == 0 ) return;
 
     if( bytes[0] == 0xff ) {
@@ -186,6 +201,37 @@ private:
       return;
     }
 
+    // Each time a "volume set" MIDI messages passes through we
+    // intercept the message, record the volume that is requested
+    // for that channel (16 channels in MIDI), and instead scale
+    // it by the user-defined master volume. This way when the
+    // user wishes to scale the master volume we can scale each
+    // channel in proportion. Furthermore, if the MIDI track
+    // changes the volume midway through it will respect the
+    // master volume.
+    if( size == 3 && ( bytes[0] & 0xf0 ) == 0xB0 &&
+        bytes[1] == 0x07 ) {
+      // We have a volume set message.
+      auto channel                     = bytes[0] & 0x0f;
+      auto vol                         = bytes[2];
+      midi_requested_volumes_[channel] = vol;
+      update_volumes(); // Send the messages
+      return;
+    }
+
+    send_midi_message_impl( bytes, size );
+  }
+
+  void set_volume_impl( uint8_t channel, uint8_t vol ) {
+    uint8_t message[3];
+    message[0] = 0xB0 + channel;
+    message[1] = 0x07;
+    message[2] = vol;
+    send_midi_message_impl( message, 3 );
+  }
+
+  void send_midi_message_impl( unsigned char* bytes,
+                               size_t         size ) {
     // Save the message for debugging purposes.
     last_message_.resize( size );
     for( size_t i = 0; i < size; ++i )
@@ -318,6 +364,13 @@ public:
     return last_error_;
   }
 
+  // If in a tune, it will return a double in [0,1] indicating
+  // how far it is through the tune.
+  Opt<double> progress() {
+    lock_guard<mutex> lock( mutex_ );
+    return progress_;
+  }
+
   // ************************************************************
   // Interface for MIDI Thread
   // ************************************************************
@@ -334,6 +387,11 @@ public:
   void set_last_error( string error ) {
     lock_guard<mutex> lock( mutex_ );
     last_error_ = std::move( error );
+  }
+
+  void set_progress( Opt<double> progress ) {
+    lock_guard<mutex> lock( mutex_ );
+    progress_ = progress;
   }
 
   Opt<midi_player_cmd_t> pop_cmd() {
@@ -354,6 +412,7 @@ private:
   vector<fs::path>         playlist_{};
   string                   last_error_{};
   queue<midi_player_cmd_t> commands_{};
+  Opt<double>              progress_;
 };
 
 // Shared state between main thread and midi thread.
@@ -523,9 +582,12 @@ void midi_thread_impl() {
           if( maybe_info.has_value() )
             maybe_info.value().last_pause_time = Clock_t::now();
         }
-        case_v( midi_player_cmd::off ) { time_to_go = true; }
+        case_v( midi_player_cmd::off ) {
+          g_midi_comm.set_progress( nullopt );
+          time_to_go = true;
+        }
         case_v_( midi_player_cmd::volume, new_value ) {
-          g_midi.value().set_volume( new_value );
+          g_midi.value().set_master_volume( new_value );
         }
         default_v;
       }
@@ -562,7 +624,11 @@ void midi_thread_impl() {
                 "failed to load midi file {}", playlist[track] );
             break;
           }
-          // We've loaded the midi file.
+          // We've loaded the midi file. Now set all channel vol-
+          // umes to zero so that we can more easily track which
+          // ones are being changed by the midi files (useful for
+          // debugging, though not strictly necessary).
+          g_midi.value().zero_channel_volumes();
         }
         // maybe_info should have a value at this point.
         if( !maybe_info.has_value() ) {
@@ -573,6 +639,17 @@ void midi_thread_impl() {
         }
 
         auto& info = maybe_info.value();
+
+        // Update progress meter.
+        double progress =
+            double( duration_cast<milliseconds>(
+                        Clock_t::now() -
+                        ( info.start_time + info.stoppage ) )
+                        .count() ) /
+            info.tune_duration.count();
+        progress = std::clamp( progress, 0.0, 1.0 );
+        g_midi_comm.set_progress( progress );
+
         midi_play_event( &info ); // play a single event.
         // If this midi file has finished playing then signal
         // that we should load the next one.
@@ -583,6 +660,7 @@ void midi_thread_impl() {
           // Just for good measure.
           g_midi->all_notes_off();
           maybe_info = nullopt;
+          g_midi_comm.set_progress( nullopt );
         }
         break;
       }
@@ -687,10 +765,10 @@ void test_midi() {
            "assets/music/midi/*.mid", /*with_folders=*/false ) )
     midi_files.insert( file );
   g_midi_comm.set_playlist( midi_files );
-  g_midi_comm.send_cmd( midi_player_cmd::play{} );
-  sleep( 500ms );
   double vol = 0.5;
   g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
+  g_midi_comm.send_cmd( midi_player_cmd::play{} );
+  sleep( 500ms );
   while( true ) {
     if( g_midi_comm.state() == e_midi_player_state::failed ) {
       logger->info(
@@ -699,6 +777,7 @@ void test_midi() {
     }
     logger->info(
         "[p]lay, [s]top, [n]ext, [u]p volume, [d]own volume, "
+        "[P]rogress, "
         "[q]uit: " );
     string in;
     cin >> in;
@@ -719,12 +798,20 @@ void test_midi() {
       vol += .1;
       vol = std::clamp( vol, 0.0, 1.0 );
       g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
+      logger->info( "Volume: {}", vol );
       continue;
     }
     if( in == "d" ) {
       vol -= .1;
       vol = std::clamp( vol, 0.0, 1.0 );
       g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
+      logger->info( "Volume: {}", vol );
+      continue;
+    }
+    if( in == "P" ) {
+      auto progress = g_midi_comm.progress();
+      if( progress.has_value() )
+        logger->info( "Progress: {}", progress.value() * 100.0 );
       continue;
     }
     if( in == "q" ) break;
