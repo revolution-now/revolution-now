@@ -64,42 +64,51 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  }},
                 {e_init_routine::fonts,
                  {
-                     e_init_routine::sdl //
+                     e_init_routine::configs, //
+                     e_init_routine::sdl      //
                  }},
                 {e_init_routine::app_window,
                  {
-                     e_init_routine::sdl //
+                     e_init_routine::configs, //
+                     e_init_routine::sdl      //
                  }},
                 {e_init_routine::screen,
                  {
-                     e_init_routine::sdl //
+                     e_init_routine::configs, //
+                     e_init_routine::sdl      //
                  }},
                 {e_init_routine::renderer,
                  {
+                     e_init_routine::configs,    //
                      e_init_routine::app_window, //
                      e_init_routine::screen      //
                  }},
                 {e_init_routine::sprites,
                  {
+                     e_init_routine::configs, //
                      e_init_routine::sdl,     //
                      e_init_routine::renderer //
                  }},
                 {e_init_routine::planes,
                  {
+                     e_init_routine::configs, //
                      e_init_routine::sdl,     //
                      e_init_routine::screen,  //
                      e_init_routine::renderer //
                  }},
                 {e_init_routine::sound,
                  {
-                     e_init_routine::sdl //
+                     e_init_routine::configs, //
+                     e_init_routine::sdl      //
                  }},
                 {e_init_routine::images,
                  {
-                     e_init_routine::sdl //
+                     e_init_routine::configs, //
+                     e_init_routine::sdl      //
                  }},
                 {e_init_routine::menus,
                  {
+                     e_init_routine::configs,  //
                      e_init_routine::sdl,      //
                      e_init_routine::screen,   //
                      e_init_routine::renderer, //
@@ -108,10 +117,18 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  }},
                 {e_init_routine::terrain,
                  {
-                     e_init_routine::sdl //
+                     e_init_routine::configs, //
+                     e_init_routine::sdl      //
+                 }},
+                {e_init_routine::tunes,
+                 {
+                     e_init_routine::configs, //
+                     e_init_routine::rng,     //
                  }},
                 {e_init_routine::midi,
                  {
+                     e_init_routine::tunes,   //
+                     e_init_routine::configs, //
                      /*******************/
                  }}};
 
@@ -169,7 +186,7 @@ void run_all_init_routines( Opt<e_init_routine> only ) {
   // caller has specified a routine on which to focus; in that
   // case, only initialize it and its dependencies.
   auto reachable = ( only.has_value() )
-                       ? dag.accessible( e_init_routine::midi,
+                       ? dag.accessible( only.value(),
                                          /*with_self=*/true )
                        : sorted;
 

@@ -20,6 +20,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/pp.hpp"
 #include "base-util/string.hpp"
 
 // libucl: only include this in this cpp module.
@@ -217,6 +218,7 @@ UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
 UCL_TYPE( X,          UCL_INT,       int_value      )
 UCL_TYPE( W,          UCL_INT,       int_value      )
 UCL_TYPE( fs::path,   UCL_STRING,    string_value   )
+UCL_TYPE( Tune,       UCL_OBJECT,    type /*dummy*/ )
 //UCL_TYPE( Y,          UCL_INT,       int_value     )
 //UCL_TYPE( H,          UCL_INT,       int_value     )
 // clang-format on
@@ -325,6 +327,14 @@ SUPPORT_ENUM( e_nation )
 SUPPORT_ENUM( e_direction )
 SUPPORT_ENUM( e_unit_type )
 SUPPORT_ENUM( e_unit_death )
+SUPPORT_ENUM( e_tune_tempo )
+SUPPORT_ENUM( e_tune_genre )
+SUPPORT_ENUM( e_tune_culture )
+SUPPORT_ENUM( e_tune_instrumentation )
+SUPPORT_ENUM( e_tune_sentiment )
+SUPPORT_ENUM( e_tune_key )
+SUPPORT_ENUM( e_tune_tonality )
+SUPPORT_ENUM( e_tune_epoch )
 
 // Coord
 template<>
@@ -350,6 +360,72 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
   dest.y = obj["y"].int_value();
   used_field_paths.insert( file + "." + dotted + ".x" );
   used_field_paths.insert( file + "." + dotted + ".y" );
+}
+
+#define COLLECT_NESTED_STR_FIELD( name_ )                       \
+  {                                                             \
+    string name =                                               \
+        TO_STRING( name_ ); /* need this for macro expansion */ \
+    check_field_type( obj[name], UCL_STRING, dotted,            \
+                      config_name,                              \
+                      "a string field named `"s + name + "`" ); \
+    path_field.push_back( name );                               \
+    dest.name_ = obj[name].string_value();                      \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." +        \
+                             name );                            \
+  }
+
+#define COLLECT_NESTED_ENUM_FIELD( type, name )                 \
+  {                                                             \
+    check_field_type( obj[#name], UCL_STRING, dotted,           \
+                      config_name,                              \
+                      "an enum field named `"s + #name +        \
+                          "` of type `" #type "`" );            \
+    path_field.push_back( #name );                              \
+    type name{};                                                \
+    populate_config_field( obj[#name], name, path_field,        \
+                           config_name, file );                 \
+    dest.name = name;                                           \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." #name ); \
+  }
+
+// Tune
+template<>
+void populate_config_field( ucl::Ucl obj, Tune& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  // Silence unused-variable warnings.
+  (void)ucl_type_of_v<Tune>;
+  (void)ucl_type_name_of_v<Tune>;
+  (void)ucl_getter_for_type_v<Tune>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_OBJECT, dotted, config_name,
+                    "a Tune object" );
+
+  auto path_field = path;
+
+  EVAL( PP_MAP(                 //
+      COLLECT_NESTED_STR_FIELD, //
+      display_name,             //
+      stem,                     //
+      description               //
+      ) );
+
+  EVAL( PP_MAP_TUPLE(                              //
+      COLLECT_NESTED_ENUM_FIELD,                   //
+      ( e_tune_tempo, tempo ),                     //
+      ( e_tune_genre, genre ),                     //
+      ( e_tune_culture, culture ),                 //
+      ( e_tune_instrumentation, instrumentation ), //
+      ( e_tune_sentiment, sentiment ),             //
+      ( e_tune_key, key ),                         //
+      ( e_tune_tonality, tonality ),               //
+      ( e_tune_epoch, epoch )                      //
+      ) );
 }
 
 // Color
@@ -405,10 +481,15 @@ void populate_config_field( ucl::Ucl obj, vector<T>& dest,
   check_field_type( obj, UCL_ARRAY, dotted, config_name,
                     "an array" );
   dest.resize( obj.size() );
-  size_t idx = 0;
-  for( auto elem : obj )
-    populate_config_field( elem, dest[idx++], path, config_name,
-                           file );
+  size_t idx       = 0;
+  auto   last_elem = path.back();
+  auto   elem_path = path;
+  for( auto elem : obj ) {
+    elem_path.back() =
+        last_elem + "[" + std::to_string( idx ) + "]";
+    populate_config_field( elem, dest[idx++], elem_path,
+                           config_name, file );
+  }
   CHECK( dest.size() == obj.size() );
 }
 
@@ -437,6 +518,7 @@ vector<string> get_all_fields( ucl::Ucl const& obj ) {
 }
 
 void init_configs() {
+  logger->info( "Reading config files." );
   for( auto const& f : load_functions() ) f();
   for( auto [ucl_name, file] : config_files() ) {
     // cout << "Loading file " << file << "\n";

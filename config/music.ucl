@@ -4,6 +4,7 @@ tunes = [
   {
     display_name:    "Fife & Drum March 1"
     stem:            "fife-and-drum-1"
+    description:     "(none)"
     tempo:           medium
     genre:           trad
     culture:         new_world
@@ -15,6 +16,7 @@ tunes = [
   },{
     display_name:    "Bonny Morn"
     stem:            "bonny-morn"
+    description:     "An old English folk tune"
     tempo:           slow
     genre:           trad
     culture:         new_world

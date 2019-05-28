@@ -17,6 +17,7 @@
 #include "coord.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
+#include "tune.hpp"
 #include "typed-int.hpp"
 #include "utype.hpp"
 

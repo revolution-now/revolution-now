@@ -34,6 +34,7 @@ enum class e_( init_routine,
                fonts,      //
                app_window, //
                midi,       //
+               tunes,      //
                screen,     //
                renderer,   //
                sprites,    //

@@ -243,7 +243,7 @@ CFG( sound,
 /****************************************************************
 * Music
 *****************************************************************/
-//CFG( tune,
-//  FLD( fs::path, midi_folder )
-//  FLD( Vec<Tune>, tunes );
-//)
+CFG( music,
+  FLD( fs::path, midi_folder )
+  FLD( Vec<Tune>, tunes );
+)

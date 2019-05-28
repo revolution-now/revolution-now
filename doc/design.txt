@@ -6,9 +6,8 @@ Tune Representation (tune.h/tune.cpp).
   Tunes will be referred to by runtime string identifiers. These
   identifiers must follow these rules:
 
-    - Must be valid file names
+    - Must adhere to the regex: [a-z0-9-]+
     - Must be unique
-    - Need not be valid C++ identifiers
     - Must correspond to the stem of the filename of the tunes in
       the filesystem (for any extention/type).
 
@@ -46,14 +45,11 @@ Tune Representation (tune.h/tune.cpp).
     e_tune_epoch           epoch;
   };
 
-  The `tune` module will have the following methods:
-
-    init/cleanup:        read the config values and do some validation.
-    tune_from_stem:      get Tune object for tune stem/id.
-    list_all_tunes:      return list of stems of all tunes.
-    list_tunes:          list all tunes that meet certain enum criteria.
-    list_tunes_not:      list all tunes that do not fit certain enum criteria.
-    list_tunes_not_like: list all tunes not like given tune.
+  The API for the tune module will be such as to deal in TuneId's
+  rather than string names, with the goal that client code should
+  not interact with tunes based on names in any way, but instead
+  should interact with them only through their classification di-
+  mensions.
 
 Music Player (mplayer.h/mplayer.cpp).
 
