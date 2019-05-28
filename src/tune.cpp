@@ -92,6 +92,7 @@ void init_tunes() {
            "display_name for tune {} is empty.", tune.stem );
     CHECK( !tune.description.empty(),
            "description for tune {} is empty.", tune.stem );
+    stems.insert( tune.stem );
     idx++;
   }
 }
@@ -100,6 +101,7 @@ void clean_tunes() {}
 
 } // namespace
 
+//
 REGISTER_INIT_ROUTINE( tunes, init_tunes, clean_tunes );
 
 Vec<TuneId> all_tunes() {

@@ -3,19 +3,10 @@ Music Playing
 
 Tune Representation (tune.h/tune.cpp).
 
-  Tunes will be referred to by runtime string identifiers. These
-  identifiers must follow these rules:
-
-    - Must adhere to the regex: [a-z0-9-]+
-    - Must be unique
-    - Must correspond to the stem of the filename of the tunes in
-      the filesystem (for any extention/type).
-
-  Tunes and/or tune names will not be known at compile time. The
-  location of a tune (in a particular format) on the filesystem
-  will consist of a folder path to the files of that type (speci-
-  fied in the config files) joined with the string tune identi-
-  fier followed by the extension.
+  Tunes and/or tune names will not be known at compile time.
+  Tunes will be referenced at runtime by IDs only. There should
+  be no part of a game that has a particular tune or tune name
+  hard-coded.
 
   Tunes will be listed in the config files as a list of Tune ob-
   jects that classify the tune along various enum dimensions:
@@ -28,6 +19,28 @@ Tune Representation (tune.h/tune.cpp).
   enum class e_tune_key             { a,bb,b,c,cs,d,eb,e,f,fs,g,ab };
   enum class e_tune_tonality        { major, minor };
   enum class e_tune_epoch           { standard, post_revolution }
+
+  The API for managing tunes will, to the furthest extent possi-
+  ble, only use tune IDs and the above dimension enums. That way,
+  it will force client code to be written in such a way that does
+  not depend on the precise set of tunes that are available. For
+  example, we do not want a section of the game to say "when
+  event X happens play tune Y". Instead, it will say "when event
+  X happens play a tune that meets the following classification
+  dimensions or is as close to it as possible."
+
+  Despite the above, there will be an API for getting the name of
+  a tune for displayin the GUI. Also, the location of a tune (in
+  a particular format) on the filesystem will consist of a folder
+  path to the files of that type (specified in the config files)
+  joined with a string tune identifier (plus extension). The
+  string identifier will be available for each tune via the API,
+  and must follow these rules:
+
+    - Must adhere to the regex: [a-z0-9-]+
+    - Must be unique
+    - Must correspond to the stem of the filename of the tunes in
+      the filesystem (for any extention/type).
 
   struct Tune {
     string display_name;
