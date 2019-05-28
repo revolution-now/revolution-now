@@ -1,15 +1,67 @@
-Music Playing
-=============
+Music GUI Elements
+==================
 
-Tune Representation (tune.h/tune.cpp).
+There will be a Sound menu with the following items:
 
-  Tunes and/or tune names will not be known at compile time.
-  Tunes will be referenced at runtime by IDs only. There should
-  be no part of a game that has a particular tune or tune name
-  hard-coded.
+  - Pause Music
+  - Resume Music
+  - Next Tune
+  - Select Tune...
+  - Music Options...
 
-  Tunes will be listed in the config files as a list of Tune ob-
-  jects that classify the tune along various enum dimensions:
+Each of these items will be handled by the Music Conductor mod-
+ule.
+
+Music Conductor (conductor.h/conductor.cpp)
+===============
+
+The `conductor` module is the interface that the rest of the game
+uses to the music system. It is responsible for the following
+things:
+
+  - Gathering all of the different music players.
+  - Selecting which music player to use.
+  - Switching among the various music players.
+  - Taking commands from the user/game to control the music
+    player, such as current tune, volume, etc.
+  - Managing the playlist. This includes figuring out which song
+    to play when.
+
+Music Player (mplayer.h/mplayer.cpp)
+============
+
+Music will be played via Music Players. A music player is an ob-
+ject that implements a music player interface with virtual meth-
+ods. A concrete music player will derive from the base class.
+Some possible concrete music players are:
+
+  - wav player
+  - ogg player
+  - mp3 player
+  - MIDI player with RtMidi backend
+  - MIDI player with libfluidsynth backend
+  - MIDI player with OPL emulator backend
+
+  class MusicPlayer {
+  public:
+    virtual void play( string const& tune ) = 0;
+    virtual void pause()                    = 0;
+    virtual void resume()                   = 0;
+    virtual Opt<double> progress() const    = 0;
+    virtual void set_volume()               = 0;
+    virtual double volume()                 = 0;
+  };
+
+Tune Representation (tune.h/tune.cpp)
+===================
+
+Tunes and/or tune names will not be known at compile time. Tunes
+will be referenced at runtime by IDs only. There should be no
+part of a game that has a particular tune or tune name
+hard-coded.
+
+Tunes will be listed in the config files as a list of Tune ob-
+jects that classify the tune along various enum dimensions:
 
   enum class e_tune_tempo           { fast, medium, slow };
   enum class e_tune_genre           { trad, classical };
@@ -20,27 +72,27 @@ Tune Representation (tune.h/tune.cpp).
   enum class e_tune_tonality        { major, minor };
   enum class e_tune_epoch           { standard, post_revolution }
 
-  The API for managing tunes will, to the furthest extent possi-
-  ble, only use tune IDs and the above dimension enums. That way,
-  it will force client code to be written in such a way that does
-  not depend on the precise set of tunes that are available. For
-  example, we do not want a section of the game to say "when
-  event X happens play tune Y". Instead, it will say "when event
-  X happens play a tune that meets the following classification
-  dimensions or is as close to it as possible."
+The API for managing tunes will, to the furthest extent possible,
+only use tune IDs and the above dimension enums. That way, it
+will force client code to be written in such a way that does not
+depend on the precise set of tunes that are available. For exam-
+ple, we do not want a section of the game to say "when event X
+happens play tune Y". Instead, it will say "when event X happens
+play a tune that meets the following classification dimensions or
+is as close to it as possible."
 
-  Despite the above, there will be an API for getting the name of
-  a tune for displayin the GUI. Also, the location of a tune (in
-  a particular format) on the filesystem will consist of a folder
-  path to the files of that type (specified in the config files)
-  joined with a string tune identifier (plus extension). The
-  string identifier will be available for each tune via the API,
-  and must follow these rules:
+Despite the above, there will be an API for getting the name of a
+tune for displayin the GUI. Also, the location of a tune (in a
+particular format) on the filesystem will consist of a folder
+path to the files of that type (specified in the config files)
+joined with a string tune identifier (plus extension). The string
+identifier will be available for each tune via the API, and must
+follow these rules:
 
-    - Must adhere to the regex: [a-z0-9-]+
-    - Must be unique
-    - Must correspond to the stem of the filename of the tunes in
-      the filesystem (for any extention/type).
+  - Must adhere to the regex: [a-z0-9-]+
+  - Must be unique
+  - Must correspond to the stem of the filename of the tunes in
+    the filesystem (for any extention/type).
 
   struct Tune {
     string display_name;
@@ -58,51 +110,11 @@ Tune Representation (tune.h/tune.cpp).
     e_tune_epoch           epoch;
   };
 
-  The API for the tune module will be such as to deal in TuneId's
-  rather than string names, with the goal that client code should
-  not interact with tunes based on names in any way, but instead
-  should interact with them only through their classification di-
-  mensions.
-
-Music Player (mplayer.h/mplayer.cpp).
-
-  Music will be played via Music Players. A music player is an
-  object that implements a music player interface with virtual
-  methods. A concrete music player will derive from the base
-  class. Some possible concrete music players are:
-
-    - wav player
-    - ogg player
-    - mp3 player
-    - MIDI player with RtMidi backend
-    - MIDI player with libfluidsynth backend
-    - MIDI player with OPL emulator backend
-
-  class MusicPlayer {
-  public:
-    virtual void play( string const& tune ) = 0;
-    virtual void pause()                    = 0;
-    virtual void resume()                   = 0;
-    virtual Opt<double> progress() const    = 0;
-    virtual void set_volume()               = 0;
-    virtual double volume()                 = 0;
-  };
-
-Music Conductor (conductor.h/conductor.cpp)
-
-  The `conductor` module is the interface that the rest of the
-  game uses to the music system. It is responsible for the fol-
-  lowing things:
-
-    - Gathering all of the different music players.
-    - Selecting which music player to use.
-    - Switching among the various music players.
-    - Taking commands from the user/game to control the music
-      player, such as current tune, volume, etc.
-    - Managing the playlist.  This includes figuring out which
-      song to play when.
-
-Music GUI Elements
+The API for the tune module will be such as to deal in TuneId's
+rather than string names, with the goal that client code should
+not interact with tunes based on names in any way, but instead
+should interact with them only through their classification di-
+mensions.
 
 UI Auto-Pad
 ===========
