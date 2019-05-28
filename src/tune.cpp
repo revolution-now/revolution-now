@@ -122,6 +122,11 @@ string const& tune_desc_from_id( TuneId id ) {
   return g_tunes[id]->description;
 }
 
+string const& tune_stem_from_id( TuneId id ) {
+  CHECK( g_tunes.contains( id ) );
+  return g_tunes[id]->stem;
+}
+
 Vec<TuneId> tunes_with(
     Opt<e_tune_tempo>           tempo,           //
     Opt<e_tune_genre>           genre,           //

@@ -73,6 +73,7 @@ Vec<TuneId> all_tunes();
 // Get Tune object for tune stem/id.
 std::string const& tune_display_name_from_id( TuneId id );
 std::string const& tune_desc_from_id( TuneId id );
+std::string const& tune_stem_from_id( TuneId id );
 
 // List all tunes that meet certain enum criteria. If a parameter
 // is ommitted (nullopt) then it acts as a wildcard, i.e., any
