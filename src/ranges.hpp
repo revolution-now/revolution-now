@@ -19,6 +19,9 @@
 // range-v3
 #include "range/v3/all.hpp"
 
+// C++ standard library
+#include <utility>
+
 namespace rv = ::ranges::view;
 namespace rg = ::ranges;
 
@@ -82,14 +85,21 @@ auto min_by_key( Func f ) {
   } );
 }
 
-// Returns the maximum of a range, by value, if one exists.
+// Returns the maximum of a range, by value, if one exists. NOTE:
+// unfortunately, due to a strange issue where clang doesn't
+// agree with libstdc++'s implementation of std::optional we
+// return a std::pair here with the first element indicating the
+// presence of the return value (we would have liked to use
+// std::optional). See:
+// https://stackoverflow.com/questions/51379597/
+//   should-you-be-able-move-from-stdoptionalt-where-t-has-non-trivial-constructo
 inline auto maximum() {
   return ranges::make_pipeable( [=]( auto&& r ) {
     using ResType = decltype( *r.begin() );
     using Rng     = decltype( r );
-    std::optional<ResType> res{};
+    std::pair<bool, ResType> res( false, {} );
     for( auto const& elem : std::forward<Rng>( r ) )
-      if( !res.has_value() || *res < elem ) res = elem;
+      if( !res.first || res.second < elem ) res = {true, elem};
     return res;
   } );
 }

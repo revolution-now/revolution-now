@@ -111,10 +111,10 @@ Texture render_line_markup( vector<MarkedUpText> const& mks,
   CHECK( !txs.empty() );
   auto w = rg::accumulate(
       txs | rv::transform( L( _.size().w ) ), 0_w );
-  auto maybe_h =
+  auto [has_h, maybe_h] =
       txs | rv::transform( L( _.size().h ) ) | maximum();
-  CHECK( maybe_h );
-  auto  res = create_texture_transparent( {w, *maybe_h} );
+  CHECK( has_h );
+  auto  res = create_texture_transparent( {w, maybe_h} );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -131,10 +131,10 @@ Texture render_lines( Vec<Vec<MarkedUpText>> const& mk_text,
   auto txs = util::map( renderer, mk_text );
   auto h   = rg::accumulate(
       txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto maybe_w =
+  auto [has_w, maybe_w] =
       txs | rv::transform( L( _.size().w ) ) | maximum();
-  CHECK( maybe_w );
-  auto  res = create_texture_transparent( {h, *maybe_w} );
+  CHECK( has_w );
+  auto  res = create_texture_transparent( {h, maybe_w} );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
