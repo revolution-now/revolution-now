@@ -3,6 +3,10 @@ find_sdl2_lib( SDL2_ttf   )
 find_sdl2_lib( SDL2_image )
 find_sdl2_lib( SDL2_mixer )
 
+# We need threading.
+set( THREADS_PREFER_PTHREAD_FLAG ON )
+find_package( Threads REQUIRED )
+
 file( GLOB sources "[a-zA-Z]*.cpp" )
 add_executable( rn ${sources} )
 target_compile_features( rn PUBLIC cxx_std_20 )
@@ -23,6 +27,7 @@ target_link_libraries(
     rtmidi
     scelta::headers
     spdlog::spdlog
+    Threads::Threads
     ucl
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
