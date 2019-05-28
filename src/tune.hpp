@@ -75,42 +75,40 @@ std::string const& tune_display_name_from_id( TuneId id );
 std::string const& tune_desc_from_id( TuneId id );
 std::string const& tune_stem_from_id( TuneId id );
 
-// List all tunes that meet certain enum criteria. If a parameter
-// is ommitted (nullopt) then it acts as a wildcard, i.e., any
-// value for that field will be accepted.
-Vec<TuneId> tunes_with(
-    Opt<e_tune_tempo>           tempo,           //
-    Opt<e_tune_genre>           genre,           //
-    Opt<e_tune_culture>         culture,         //
-    Opt<e_tune_instrumentation> instrumentation, //
-    Opt<e_tune_sentiment>       sentiment,       //
-    Opt<e_tune_key>             key,             //
-    Opt<e_tune_tonality>        tonality,        //
-    Opt<e_tune_epoch>           epoch            //
+// List all tunes that meet certain enum criteria. If
+// `fuzzy_match` is false then only tunes will be returned that
+// precisely fit the given criteria (either matching it or not
+// matching it according to the value of `not_like`). If
+// `fuzzy_match` is true the resulting list will contain all
+// tunes, but sorted in the order of how closely they meet the
+// given criteria (again, either matching or not matching de-
+// pending on the value of `not_like`). If a parameter is om-
+// mitted (nullopt) then it acts as a wildcard, i.e., any value
+// for that field will match the given one. Therefore, the more
+// parameters that are left as `nullopt`, the more values there
+// will be for a `not_like == false` scenario and the fewer
+// values there will be for a `not_like=true` scenario.
+Vec<TuneId> find_tunes(
+    Opt<e_tune_tempo>           tempo,              //
+    Opt<e_tune_genre>           genre,              //
+    Opt<e_tune_culture>         culture,            //
+    Opt<e_tune_instrumentation> instrumentation,    //
+    Opt<e_tune_sentiment>       sentiment,          //
+    Opt<e_tune_key>             key,                //
+    Opt<e_tune_tonality>        tonality,           //
+    Opt<e_tune_epoch>           epoch,              //
+    bool                        fuzzy_match = true, //
+    bool                        not_like    = false //
 );
 
-// List all tunes that do not fit certain enum criteria. If a pa-
-// rameter is ommitted (nullopt) then it acts as a wildcard,
-// i.e., any value for that field will be accepted.
-Vec<TuneId> tunes_without(
-    Opt<e_tune_tempo>           tempo,           //
-    Opt<e_tune_genre>           genre,           //
-    Opt<e_tune_culture>         culture,         //
-    Opt<e_tune_instrumentation> instrumentation, //
-    Opt<e_tune_sentiment>       sentiment,       //
-    Opt<e_tune_key>             key,             //
-    Opt<e_tune_tonality>        tonality,        //
-    Opt<e_tune_epoch>           epoch            //
-);
-
-// List tunes like given tune. This is a fuzzy (meant in the
-// technical sense) algorithm. It will list the half of all tunes
-// that are most similar to the given tune.
+// List tunes like given tune. Actually it will return a list of
+// all tunes, sorted so that tunes that are most similar to the
+// given one appear earlier in the list.
 Vec<TuneId> tunes_like( TuneId id );
 
-// List tunes not like given tune. This is a fuzzy (meant in the
-// technical sense) algorithm. It will list the half of all tunes
-// that are most different from the given tune.
+// List tunes not like given tune. Actually it will return a list
+// of all tunes, sorted so that tunes that are most different to
+// the given one appear earlier in the list.
 Vec<TuneId> tunes_not_like( TuneId id );
 
 // This will generate a random tune by using the classification
