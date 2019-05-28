@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := all
+builds        := .builds
 build-current := .builds/current
 
 -include $(build-current)/env-vars.mk
@@ -22,10 +23,12 @@ else
 	    @cd $(build-current) && cmake --build . --target $@
 endif
 
+clean-target := $(if $(wildcard $(builds)),clean,)
+
 # Need to have `clean` as a dependency before removing the
 # .builds folder because some outputs of the build are in the
 # source tree and we need to clear them first.
-distclean: clean
+distclean: $(clean-target)
 	@rm -rf .builds
 
 $(build-current):
