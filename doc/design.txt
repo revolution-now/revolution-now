@@ -33,23 +33,54 @@ Music Player (mplayer.h/mplayer.cpp)
 Music will be played via Music Players. A music player is an ob-
 ject that implements a music player interface with virtual meth-
 ods. A concrete music player will derive from the base class.
+
 Some possible concrete music players are:
 
   - wav player
   - ogg player
   - mp3 player
-  - MIDI player with RtMidi backend
-  - MIDI player with libfluidsynth backend
-  - MIDI player with OPL emulator backend
+  - MidiSequencerMusicPlayer
+  - MidiSynthesizerMusicPlayer
+  - MidiOPLMusicPlayer
+
+The MusicPlayer does not have a concept of playlist or any asso-
+ciated concepts, such as "skip to next tune." Instead it focuses
+on the playing of one tune at a time.
 
   class MusicPlayer {
   public:
-    virtual void play( string const& tune ) = 0;
-    virtual void pause()                    = 0;
-    virtual void resume()                   = 0;
-    virtual Opt<double> progress() const    = 0;
-    virtual void set_volume()               = 0;
-    virtual double volume()                 = 0;
+    // Get some info, such as name, description, about this music
+    // player.
+    virtual PlayerInfo info() const = 0;
+
+    // Start playing the given tune from the beginning. When the
+    // tune finishes it stops playing until it is given another
+    // play command.
+    virtual void play( TuneId id ) = 0;
+
+    // If the player is currently playing a tune then it will re-
+    // turn a number in [0,1.0] representing the progress through
+    // the tune. Returns `nullopt` if no tune is playing or if
+    // the most recent tune has finished.
+    virtual Opt<double> is_playing() const = 0;
+
+    // Pause playing of current tune. No-op if no tune is playing
+    // or if most recent tune has finished.
+    virtual void pause() = 0;
+
+    // Resume playing of paused tune. No-op if no tune is playing
+    // or if most recent tune has finished.
+    virtual void resume() = 0;
+
+    // Get/Set current volume [0,1.0].
+    virtual void set_volume() = 0;
+    virtual double volume() const = 0;
+
+    // Load the given tune but do not play it. If successful, re-
+    // turn some info about the given tune, such as the duration.
+    // This serves two purposes: 1) check that a tune can be
+    // loaded properly, and 2) to get info on it.
+    virtual TuneInfo load_tune_info( TuneId id ) = 0;
   };
 
 Tune Representation (tune.h/tune.cpp)
