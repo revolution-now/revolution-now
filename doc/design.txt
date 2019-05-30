@@ -43,9 +43,8 @@ ods. A concrete music player will derive from the base class.
 
 Some possible concrete music players are:
 
-  - wav player
-  - ogg player
-  - mp3 player
+  - OGG/WAV player
+  - MP3 player
   - MidiSequencerMusicPlayer
   - MidiSynthesizerMusicPlayer
   - MidiOPLMusicPlayer
@@ -54,18 +53,34 @@ The MusicPlayer does not have a concept of playlist or any asso-
 ciated concepts, such as "skip to next tune." Instead it focuses
 on the playing of one tune at a time.
 
+  // It is important to note when using this class that, in gen-
+  // eral, calling the member functions may not cause instanta-
+  // neous change to the real underlying music player for which
+  // this class is a facade. This is because some music players
+  // run in other threads and so these interface methods may
+  // simply add commands into a queue to be consumed asynchro-
+  // nously by the music-playing thread. Hence, change may not
+  // take effect immediately and in some cases operations may
+  // happen out of order.
+  //
+  // To help with this there is a method called `fence`. Calling
+  // it will cause the calling thread to block until all previous
+  // commands sent to the music player have been processed. It
+  // also accepts a timeout to avoid hanging if something goes
+  // wrong.
   class MusicPlayer {
   public:
     // Verifies that the tune exists on the filesystem in a
     // format that can be read by this player and that the file
-    // can be opened.
-    virtual bool can_play_tune( TuneId id ) = 0;
+    // can be opened. If successfull then it will return a Tune-
+    // Info (so this means that it actually has to load and parse
+    // the file).
+    virtual Opt<TuneInfo> can_play_tune( TuneId id ) = 0;
 
     // Start playing the given tune from the beginning. When the
     // tune finishes it stops playing until it is given another
-    // play command. If successful, return some info about the
-    // given tune, such as the duration.
-    virtual expect<TuneInfo> play( TuneId id ) = 0;
+    // play command. Returns false if the tune cannot be played.
+    virtual bool play( TuneId id ) = 0;
 
     // If playing will stop the player from playing music.
     virtual void stop() = 0;
@@ -80,20 +95,48 @@ on the playing of one tune at a time.
     // ume, etc.
     virtual MusicPlayerCapabilities capabilities() const = 0;
 
-    // -- Optional Extensions -----------------------------------
+    // -- Synchronization ---------------------------------------
+    // To help ensure that operations on the music player are
+    // well-ordered one calls `fence` before an operation that
+    // must wait until previous operations have completed before
+    // running. Calling it will cause the calling thread to block
+    // until all previous commands sent to the music player have
+    // been processed.
+    //
+    // It also accepts a timeout to avoid hanging if something
+    // goes wrong. If a timeout occurs then the function returns
+    // false, otherwise true.
+    virtual bool fence( Opt<Duration_t> timeout );
 
-    // [if supported] Pause playing of current tune. No-op if no
-    // tune is playing, most recent tune has finished, or if
-    // `pause` is not supported.
+    // This one is a more passive aid in making sure that music
+    // player commands are well-ordered. It simply returns true
+    // the music player is still processing previous commands. It
+    // is guaranteed safe to send new commands to the music
+    // player regardless of whether it is processing or not, but
+    // one will might want to call this to aid in e.g. disabling
+    // GUI elements while waiting for the music player to enact
+    // the last command.
+    virtual bool is_processing() const;
+
+    // -- Optional Extensions -----------------------------------
+    // The functions below may or may not be supported by a given
+    // music player. If called on a player that doesn't support
+    // them they will throw an exception on a debug build and
+    // just log an error on a release build.
+
+    // Pause playing of current tune. No-op if no tune is playing
+    // or most recent tune has finished.
     virtual void pause();
 
-    // [if supported] Resume playing of paused tune. No-op if no
-    // tune is playing, if most recent tune has finished, or if
-    // `resume` is not supported.
+    // Resume playing of paused tune. No-op if no tune is playing
+    // or if most recent tune has finished.
     virtual void resume();
 
-    // [if supported] Get/Set current volume [0,1.0].
+    // Get/Set current volume [0, 1.0].
     virtual void set_volume();
+
+    // Seek to given position in current tune. position in [0,1].
+    virtual void seek( double position );
   };
 
   struct MusicPlayerState {
@@ -106,18 +149,22 @@ on the playing of one tune at a time.
     Opt<double> progress;
     // If the player is paused in the middle of a tune.
     bool is_paused;
-    double volume;
+    // If the player has a notion of settable volume then this
+    // will be populated.
+    Opt<double> volume;
   };
 
   struct TuneInfo {
+    TuneId     id;
     Duration_t length;
   };
 
   struct MusicPlayerCapabilities {
-    bool can_pause{false}; // implies `can_resume`
+    bool can_pause{false}; // implies that it can also resume
     bool has_volume{false};
     bool has_progress{false};
     bool has_tune_duration{false};
+    bool can_seek{false};
   };
 
 Each subclass must have a static method with signature:

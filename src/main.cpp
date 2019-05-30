@@ -83,7 +83,7 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::tunes );
+  run_all_init_routines( e_init_routine::midi );
   // run_all_init_routines();
 
   // TODO: compile with multithreaded runtime.

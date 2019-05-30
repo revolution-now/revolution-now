@@ -359,14 +359,21 @@ public:
     commands_.push( cmd );
   }
 
-  string last_error() {
+  string last_error() const {
     lock_guard<mutex> lock( mutex_ );
     return last_error_;
   }
 
+  // This returns false iff there are no commands queued and no
+  // previous commands are still being processed.
+  bool processing_commands() const {
+    lock_guard<mutex> lock( mutex_ );
+    return !commands_.empty() || running_commands_;
+  }
+
   // If in a tune, it will return a double in [0,1] indicating
   // how far it is through the tune.
-  Opt<double> progress() {
+  Opt<double> progress() const {
     lock_guard<mutex> lock( mutex_ );
     return progress_;
   }
@@ -379,7 +386,17 @@ public:
     state_ = new_state;
   }
 
-  vector<fs::path> playlist() {
+  void set_running_commands( bool running_commands ) {
+    lock_guard<mutex> lock( mutex_ );
+    running_commands_ = running_commands;
+  }
+
+  bool has_commands() const {
+    lock_guard<mutex> lock( mutex_ );
+    return !commands_.empty();
+  }
+
+  vector<fs::path> playlist() const {
     lock_guard<mutex> lock( mutex_ );
     return playlist_; // copy
   }
@@ -396,7 +413,7 @@ public:
 
   Opt<midi_player_cmd_t> pop_cmd() {
     lock_guard<mutex> lock( mutex_ );
-    if( commands_.size() > 0 ) {
+    if( !commands_.empty() ) {
       auto ret = commands_.front();
       commands_.pop();
       return ret;
@@ -405,14 +422,15 @@ public:
   }
 
 private:
-  mutex mutex_;
+  mutable mutex mutex_;
   // The midi thread holds its state here and updates this when-
   // ever it changes.
   e_midi_player_state      state_{e_midi_player_state::paused};
   vector<fs::path>         playlist_{};
   string                   last_error_{};
   queue<midi_player_cmd_t> commands_{};
-  Opt<double>              progress_;
+  Opt<double>              progress_{};
+  bool                     running_commands_{false};
 };
 
 // Shared state between main thread and midi thread.
@@ -552,6 +570,18 @@ void midi_thread_impl() {
   Opt<midi_player_cmd_t> cmd;
   bool                   time_to_go = false;
   while( true ) {
+    // If there are commands to process then mark that we are
+    // running commands. Need to do this before entering into the
+    // while loop because, by the time we are there, the (pos-
+    // sibly single) command in the queue will have been popped.
+    //
+    // If this is set to true then it should (and will) remain
+    // true until this outter while loop comes back again to this
+    // point. I.e., in order for the commands to be considered
+    // fully "run" we need to finish this while loop just below
+    // and then thw switch statement below it.
+    g_midi_comm.set_running_commands(
+        g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
       switch_v( cmd.value() ) {
         case_v( midi_player_cmd::play ) {
@@ -673,6 +703,7 @@ void midi_thread_impl() {
 // so does the MIDI thread.
 void midi_thread() {
   midi_thread_impl();
+  g_midi_comm.set_running_commands( false );
   logger->info( "MIDI thread exiting." );
   // This may already have been done, but just in case.
   g_midi->all_notes_off();
