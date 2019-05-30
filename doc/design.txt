@@ -56,38 +56,44 @@ on the playing of one tune at a time.
 
   class MusicPlayer {
   public:
+    // Verifies that the tune exists on the filesystem in a
+    // format that can be read by this player and that the file
+    // can be opened.
+    virtual bool can_play_tune( TuneId id ) = 0;
+
     // Start playing the given tune from the beginning. When the
     // tune finishes it stops playing until it is given another
-    // play command.
-    virtual void play( TuneId id ) = 0;
+    // play command. If successful, return some info about the
+    // given tune, such as the duration.
+    virtual expect<TuneInfo> play( TuneId id ) = 0;
+
+    // If playing will stop the player from playing music.
+    virtual void stop() = 0;
 
     // Returns a structure giving the current state of the
     // player, such as whether it is playing a tune, progress
     // through the tune, volume, etc.
     virtual MusicPlayerState state() const = 0;
 
-    // Pause playing of current tune. No-op if no tune is playing
-    // or if most recent tune has finished.
-    virtual void pause() = 0;
+    // Returns info on what this music player is capable of do-
+    // ing. E.g., can it seek within a tune, can it adjust vol-
+    // ume, etc.
+    virtual MusicPlayerCapabilities capabilities() const = 0;
 
-    // Resume playing of paused tune. No-op if no tune is playing
-    // or if most recent tune has finished.
-    virtual void resume() = 0;
+    // -- Optional Extensions -----------------------------------
 
-    // Get/Set current volume [0,1.0].
-    virtual void set_volume() = 0;
-    virtual double volume() const = 0;
+    // [if supported] Pause playing of current tune. No-op if no
+    // tune is playing, most recent tune has finished, or if
+    // `pause` is not supported.
+    virtual void pause();
 
-    // Load the given tune but do not play it. If successful, re-
-    // turn some info about the given tune, such as the duration.
-    // This serves two purposes: 1) check that a tune can be
-    // loaded properly, and 2) to get info on it.
-    virtual expect<TuneInfo> load_tune_info( TuneId id ) = 0;
+    // [if supported] Resume playing of paused tune. No-op if no
+    // tune is playing, if most recent tune has finished, or if
+    // `resume` is not supported.
+    virtual void resume();
 
-    // Will return a data structure giving the player-specific
-    // settings for this music player. Will be used ultimately in
-    // the UI to allow the player to configure the player.
-    virtual MusicPlayerSettings& settings() = 0;
+    // [if supported] Get/Set current volume [0,1.0].
+    virtual void set_volume();
   };
 
   struct MusicPlayerState {
@@ -100,7 +106,6 @@ on the playing of one tune at a time.
     Opt<double> progress;
     // If the player is paused in the middle of a tune.
     bool is_paused;
-    // Same as calling volume().
     double volume;
   };
 
@@ -108,39 +113,12 @@ on the playing of one tune at a time.
     Duration_t length;
   };
 
-  using MusicPlayerSettings = std::vector<MusicPlayerSetting>;
-
-  template<typename T>
-  class ValueWithOptionalRange {
-  public:
-    ValueWithOptionRange(
-      value, min = std::nullopt, max = std::nullopt );
-
-    void set( T const& val );
-    T const& get() const;
-
-  private:
-    void clamp();
-
-    Opt<T> min;
-    Opt<T> max;
-    T value;
+  struct MusicPlayerCapabilities {
+    bool can_pause{false}; // implies `can_resume`
+    bool has_volume{false};
+    bool has_progress{false};
+    bool has_tune_duration{false};
   };
-
-  using MusicPlayerOptionValue = std::variant<
-    bool,                           // checkbox
-    std::string,                    // user types it in
-    fs::path,                       // user selects on file system
-    std::vector<int>,               // select box by number
-    std::vector<string>,            // select box by name
-    ValueWithOptionalRange<int>,
-    ValueWithOptionalRange<double>
-  >
-
-  using MusicPlayerSettings = FlatMap<
-    std::string,
-    MusicPlayerOptionValue
-  >;
 
 Each subclass must have a static method with signature:
 
@@ -162,9 +140,9 @@ Each subclass must have a static method with signature:
     expect<Ref<MusicPlayer>> player;
   }
 
-If the player has initialized properly and is able to play music
-then the `player` member will refer to the (singleton) instance
-of that player.
+If the player has been initialized properly and is able to play
+music then the `player` member will refer to the (singleton) in-
+stance of that player.
 
 Tune Representation (tune.h/tune.cpp)
 ===================
