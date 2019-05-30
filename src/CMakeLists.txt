@@ -20,6 +20,7 @@ target_link_libraries(
     absl::strings
     base-util
     better-enums::better-enums
+    expected-lite
     fmt::fmt
     midifile
     observer-ptr::observer-ptr

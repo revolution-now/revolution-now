@@ -19,6 +19,9 @@
 #include "base-util/macros.hpp"
 #include "base-util/variant.hpp"
 
+// expected-lite
+#include "nonstd/expected.hpp"
+
 // c++ standard library
 #include <memory>
 #include <stdexcept>
