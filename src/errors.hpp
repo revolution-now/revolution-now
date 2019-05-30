@@ -219,4 +219,76 @@ void print_stack_trace( StackTrace const& st, int skip = 0 );
 [[noreturn]] void die( char const* file, int line,
                        std::string_view msg );
 
+/****************************************************************
+**Expected
+*****************************************************************/
+
+struct Unexpected {
+  std::string what;
+  size_t      line;
+  fs::path    file;
+};
+
+// All `expected` types should use this so that they have a
+// common error type.
+template<typename T>
+using expect = ::nonstd::expected<T, ::rn::Unexpected>;
+
+// Use this to construct unexpected's because it records file and
+// line no.
+#define UNEXPECTED( ... )                      \
+  ::nonstd::make_unexpected( ::rn::Unexpected{ \
+      fmt::format( __VA_ARGS__ ), __LINE__, __FILE__} )
+
+#define CHECK_UNEXPECTED( e )                                   \
+  CHECK( e.has_value(), "unexpected:{}:{}: {}", e.error().file, \
+         e.error().line, e.error().what )
+
+#define ASSIGN_CHECK_UNEXPECTED( a, b )             \
+  auto STRING_JOIN( __x, __LINE__ ) = b;            \
+  CHECK_UNEXPECTED( STRING_JOIN( __x, __LINE__ ) ); \
+  auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
+
+// Used for converting a value of one expected type into another
+// in the case when: 1) it is in an unexpected state, and 2) both
+// expected types share the same error type. This is useful when
+// recieving one unexpected type as a return value of a function
+// and then propagating it as another type:
+//
+//   expect<string> foo( ... ) {}
+//
+//   expect<int> bar( ... ) {
+//     auto res = foo();
+//     if( !res.has_value() )
+//       return propagate_unexpected( res );
+//     ...
+//   }
+//
+template<typename T>
+auto propagate_unexpected( ::rn::expect<T> const& e ) {
+  CHECK( !e.has_value() );
+  return ::nonstd::make_unexpected( e.error() );
+}
+
 } // namespace rn
+
+namespace fmt {
+
+// {fmt} formatter for formatting `expected` whose contained
+// types is formattable.
+template<typename T>
+struct formatter<::rn::expect<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::expect<T> const& o, FormatContext& ctx ) {
+    return formatter_base::format(
+        fmt::format( o.has_value()
+                         ? fmt::format( "{}", *o )
+                         : fmt::format( "<unexpected:{}:{}: {}>",
+                                        o.error().file.stem(),
+                                        o.error().line,
+                                        o.error().what ) ),
+        ctx );
+  }
+};
+
+} // namespace fmt
