@@ -27,6 +27,13 @@ things:
   - Managing the playlist. This includes figuring out which song
     to play when.
 
+The interface will be a collection of functions in a namespace:
+
+  namespace conductor {
+
+
+  }
+
 Music Player (mplayer.h/mplayer.cpp)
 ============
 
@@ -49,20 +56,15 @@ on the playing of one tune at a time.
 
   class MusicPlayer {
   public:
-    // Get some info, such as name, description, about this music
-    // player.
-    virtual PlayerInfo info() const = 0;
-
     // Start playing the given tune from the beginning. When the
     // tune finishes it stops playing until it is given another
     // play command.
     virtual void play( TuneId id ) = 0;
 
-    // If the player is currently playing a tune then it will re-
-    // turn a number in [0,1.0] representing the progress through
-    // the tune. Returns `nullopt` if no tune is playing or if
-    // the most recent tune has finished.
-    virtual Opt<double> is_playing() const = 0;
+    // Returns a structure giving the current state of the
+    // player, such as whether it is playing a tune, progress
+    // through the tune, volume, etc.
+    virtual MusicPlayerState state() const = 0;
 
     // Pause playing of current tune. No-op if no tune is playing
     // or if most recent tune has finished.
@@ -80,8 +82,89 @@ on the playing of one tune at a time.
     // turn some info about the given tune, such as the duration.
     // This serves two purposes: 1) check that a tune can be
     // loaded properly, and 2) to get info on it.
-    virtual TuneInfo load_tune_info( TuneId id ) = 0;
+    virtual expect<TuneInfo> load_tune_info( TuneId id ) = 0;
+
+    // Will return a data structure giving the player-specific
+    // settings for this music player. Will be used ultimately in
+    // the UI to allow the player to configure the player.
+    virtual MusicPlayerSettings& settings() = 0;
   };
+
+  struct MusicPlayerState {
+    // TuneInfo struct for currently playing tune, if any.
+    Opt<TuneInfo> tune_info;
+    // If the player is currently playing a tune then it will re-
+    // turn a number in [0,1.0] representing the progress through
+    // the tune. Returns `nullopt` if no tune is playing or if
+    // the most recent tune has finished.
+    Opt<double> progress;
+    // If the player is paused in the middle of a tune.
+    bool is_paused;
+    // Same as calling volume().
+    double volume;
+  };
+
+  struct TuneInfo {
+    Duration_t length;
+  };
+
+  using MusicPlayerSettings = std::vector<MusicPlayerSetting>;
+
+  template<typename T>
+  class ValueWithOptionalRange {
+  public:
+    ValueWithOptionRange(
+      value, min = std::nullopt, max = std::nullopt );
+
+    void set( T const& val );
+    T const& get() const;
+
+  private:
+    void clamp();
+
+    Opt<T> min;
+    Opt<T> max;
+    T value;
+  };
+
+  using MusicPlayerOptionValue = std::variant<
+    bool,                           // checkbox
+    std::string,                    // user types it in
+    fs::path,                       // user selects on file system
+    std::vector<int>,               // select box by number
+    std::vector<string>,            // select box by name
+    ValueWithOptionalRange<int>,
+    ValueWithOptionalRange<double>
+  >
+
+  using MusicPlayerSettings = FlatMap<
+    std::string,
+    MusicPlayerOptionValue
+  >;
+
+Each subclass must have a static method with signature:
+
+  static MusicPlayerInfo const& player();
+
+  struct MusicPlayerInfo {
+    // E.g. "MIDI File Player"
+    std::string name;
+
+    // E.g. "Plays MIDI files using a player-supplied softsynth"
+    std::string description;
+
+    // E.g. "To use this music player you must have..."
+    std::string how_it_works;
+
+    // Will be non-null if the player successfully initialized
+    // and is able to play music. Otherwise will contain an error
+    // indicating why.
+    expect<Ref<MusicPlayer>> player;
+  }
+
+If the player has initialized properly and is able to play music
+then the `player` member will refer to the (singleton) instance
+of that player.
 
 Tune Representation (tune.h/tune.cpp)
 ===================
