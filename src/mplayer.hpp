@@ -69,8 +69,6 @@ struct MusicPlayerCapabilities {
   bool can_seek{false};
 };
 
-// static MusicPlayerInfo const& player();
-
 // It is important to note when using this class that, in gen-
 // eral, calling the member functions may not cause instantaneous
 // change to the real underlying music player for which this

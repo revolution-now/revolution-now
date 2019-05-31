@@ -19,10 +19,18 @@ namespace rn {
 
 namespace {
 
-MusicPlayer& silent_music_player();
-
 class SilentMusicPlayer : public MusicPlayer {
 public:
+  static MusicPlayerInfo player() {
+    static SilentMusicPlayer player;
+    return {
+        /*name=*/"Silent Music Player",
+        /*description=*/"For testing; does not play music",
+        /*how_it_works=*/"It doesn't.",
+        /*player=*/player,
+    };
+  }
+
   // Implement MusicPlayer
   Opt<TuneInfo> can_play_tune( TuneId id ) override {
     logger->info( "SilentMusicPlayer: can_play_tune" );
@@ -45,12 +53,7 @@ public:
   }
 
   MusicPlayerInfo info() const override {
-    return {
-        /*name=*/"Silent Music Player",
-        /*description=*/"For testing; does not play music",
-        /*how_it_works=*/"It doesn't.",
-        /*player=*/silent_music_player(),
-    };
+    return SilentMusicPlayer::player();
   }
 
   // Implement MusicPlayer
@@ -98,19 +101,12 @@ public:
     is_paused_ = false;
   }
 
-  friend MusicPlayer& silent_music_player();
-
 private:
   SilentMusicPlayer() = default;
 
   bool        is_paused_{false};
   Opt<TuneId> id_{};
 };
-
-MusicPlayer& silent_music_player() {
-  static SilentMusicPlayer g_silent_player;
-  return g_silent_player;
-}
 
 } // namespace
 
@@ -180,7 +176,9 @@ void MusicPlayer::seek( double /*unused*/ ) {
 }
 
 void test_music_player() {
-  auto& mplayer = silent_music_player();
+  auto info = SilentMusicPlayer::player();
+  CHECK_UNEXPECTED( info.player );
+  auto& mplayer = info.player.value().get();
   auto  tune    = random_tune();
   logger->info( "can_play_tune: {}",
                 mplayer.can_play_tune( tune ).has_value() );
@@ -191,7 +189,8 @@ void test_music_player() {
   logger->info( "is_processing: {}", mplayer.is_processing() );
   mplayer.pause();
   mplayer.resume();
-  mplayer.seek( .5 );
+  // Would cause an error.
+  // mplayer.seek( .5 );
 }
 
 } // namespace rn
