@@ -1,14 +1,14 @@
 /****************************************************************
-**midi.cpp
+**midiseq.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-04-20.
 *
-* Description: Interface for playing midi files.
+* Description: Realtime MIDI Sequencer.
 *
 *****************************************************************/
-#include "midi.hpp"
+#include "midiseq.hpp"
 
 // Revolution Now
 #include "aliases.hpp"

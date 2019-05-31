@@ -9,7 +9,6 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
-#include "midi.hpp"
 #include "mplayer.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"

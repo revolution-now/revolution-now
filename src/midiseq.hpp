@@ -1,11 +1,11 @@
 /****************************************************************
-**midi.hpp
+**midiseq.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-04-20.
 *
-* Description: Interface for playing midi files.
+* Description: Realtime MIDI Sequencer.
 *
 *****************************************************************/
 #pragma once
