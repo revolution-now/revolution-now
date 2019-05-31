@@ -43,8 +43,10 @@ target_include_directories(
     ${SDL2_MIXER_INCLUDE_DIR} )
 
 # The `midi-convert` target will convert (incrementally) any .rg
-# (Rosegarden) files to MIDI.
+# (Rosegarden) files to MIDI.  The `ogg-convert` will render the
+# midi to OGG.
 add_dependencies( rn midi-convert )
+add_dependencies( rn ogg-convert )
 
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.
