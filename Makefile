@@ -31,7 +31,14 @@ clean-target := $(if $(wildcard $(builds)),clean,)
 distclean: $(clean-target)
 	@rm -rf .builds
 
+update:
+	@git pull origin master
+	@git submodule update --init
+	@cmc rc
+	@echo
+	@$(MAKE) -s all
+
 $(build-current):
 	@cmc
 
-.PHONY: $(possible_targets)
+.PHONY: $(possible_targets) update
