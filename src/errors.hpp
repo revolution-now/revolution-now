@@ -91,6 +91,14 @@ bool check_inline( bool b, char const* msg );
         detail::check_msg( #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
 
+// DCHECK is CHECK in debug builds, but compiles to nothing in
+// release builds.
+#ifdef NDEBUG
+#  define DCHECK( ... )
+#else
+#  define DCHECK( ... ) CHECK( __VA_ARGS__ )
+#endif
+
 // Use this when the check is on a boolean and the check itself
 // must be an expression and return a boolean.
 #define CHECK_INL( b ) detail::check_inline( b, #b )

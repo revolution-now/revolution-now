@@ -9,9 +9,11 @@ let s:stems = [
   \ 'src/init',
   \ 'src/config-files',
   \ 'src/tune',
-  "\ 'src/mplayer',
-  "\ 'src/conductor',
+  \ 'src/mplayer',
   \ 'src/midi',
+\]
+
+  "\ 'src/conductor',
   "\ 'src/input',
   "\ 'src/frame',
   "\ 'src/plane',
@@ -27,7 +29,6 @@ let s:stems = [
   "\ 'src/tiles',
   "\ 'src/turn',
   "\ 'src/render',
-\]
 
 "let s:pairs = [
 "  \ ['x/y/z.ext', 'a/c/d.xyz']

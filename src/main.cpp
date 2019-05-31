@@ -10,6 +10,7 @@
 #include "input.hpp"
 #include "logging.hpp"
 #include "midi.hpp"
+#include "mplayer.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"
 #include "ranges.hpp"
@@ -86,8 +87,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines( e_init_routine::midi );
   // run_all_init_routines();
 
-  // TODO: compile with multithreaded runtime.
-  // test_midi();
+  test_music_player();
 
   // game();
   // ui::window_test();
