@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "logging.hpp"
+#include "time.hpp"
 
 using namespace std;
 
@@ -30,6 +31,8 @@ public:
         /*player=*/player,
     };
   }
+
+  bool good() const override { return true; }
 
   // Implement MusicPlayer
   Opt<TuneInfo> can_play_tune( TuneId id ) override {
@@ -113,19 +116,21 @@ private:
 void MusicPlayerState::log() const {
   logger->info( "MusicPlayerState:" );
   if( tune_info.has_value() ) {
-    logger->info( "  tune_info.id:     {} ({})", tune_info->id._,
+    logger->info( "  tune_info.id:      {} ({})",
+                  tune_info->id._,
                   tune_display_name_from_id( tune_info->id ) );
     if( tune_info->length.has_value() )
-      logger->info( "  tune_info.length: {}sec",
+      logger->info( "  tune_info.length:  {}sec",
                     chrono::duration_cast<chrono::seconds>(
                         tune_info->length.value() )
                         .count() );
   }
   if( progress.has_value() )
-    logger->info( "  progress:         {}", *progress );
-  logger->info( "  is_paused:        {}", is_paused );
+    logger->info( "  progress:          {}%",
+                  int( *progress * 100 ) );
+  logger->info( "  is_paused:         {}", is_paused );
   if( volume.has_value() )
-    logger->info( "  volume:           {}", *volume );
+    logger->info( "  volume:            {}", *volume );
 }
 
 void MusicPlayerCapabilities::log() const {
@@ -175,22 +180,77 @@ void MusicPlayer::seek( double /*unused*/ ) {
   logger->error( msg );
 }
 
-void test_music_player() {
-  auto info = SilentMusicPlayer::player();
-  CHECK_UNEXPECTED( info.player );
-  auto& mplayer = info.player.value().get();
-  auto  tune    = random_tune();
-  logger->info( "can_play_tune: {}",
-                mplayer.can_play_tune( tune ).has_value() );
-  logger->info( "play: {}", mplayer.play( tune ) );
-  mplayer.state().log();
-  mplayer.capabilities().log();
-  mplayer.fence();
-  logger->info( "is_processing: {}", mplayer.is_processing() );
-  mplayer.pause();
-  mplayer.resume();
-  // Would cause an error.
-  // mplayer.seek( .5 );
+/****************************************************************
+**Testing
+*****************************************************************/
+void test_music_player_impl( MusicPlayer& mplayer ) {
+  if( !mplayer.good() ) {
+    logger->error( "Music Player {} has failed.",
+                   mplayer.info().name );
+    return;
+  }
+
+  auto capabilities = mplayer.capabilities();
+
+  logger->info( "Testing `{}`", mplayer.info().name );
+  capabilities.log();
+
+  double vol = 1.0;
+  if( capabilities.has_volume ) mplayer.set_volume( vol );
+
+  while( true ) {
+    // Wait for music player to consume commands.
+    mplayer.fence( /*timeout=*/1s );
+    mplayer.state().log();
+    logger->info(
+        "[p]lay next, p[a]use, [r]esume, [s]top, [u]p volume, "
+        "[d]own volume, s[t]ate, [q]uit: " );
+    string in;
+    cin >> in;
+    sleep( chrono::milliseconds( 20 ) );
+    if( in == "q" ) break;
+    if( !mplayer.good() ) {
+      logger->warn(
+          "Music Player has failed and is no longer active." );
+      continue;
+    }
+    if( in == "p" ) {
+      auto tune = random_tune();
+      logger->info( "play result: {}", mplayer.play( tune ) );
+      continue;
+    }
+    if( in == "a" ) {
+      mplayer.pause();
+      continue;
+    }
+    if( in == "r" ) {
+      mplayer.resume();
+      continue;
+    }
+    if( in == "s" ) {
+      mplayer.stop();
+      continue;
+    }
+    if( in == "u" ) {
+      if( capabilities.has_volume ) {
+        vol += .1;
+        vol = std::clamp( vol, 0.0, 1.0 );
+        mplayer.set_volume( vol );
+      }
+      logger->info( "Volume: {}", vol );
+      continue;
+    }
+    if( in == "d" ) {
+      if( capabilities.has_volume ) {
+        vol -= .1;
+        vol = std::clamp( vol, 0.0, 1.0 );
+        mplayer.set_volume( vol );
+      }
+      logger->info( "Volume: {}", vol );
+      continue;
+    }
+    if( in == "t" ) { continue; }
+  }
 }
 
 } // namespace rn

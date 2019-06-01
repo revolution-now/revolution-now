@@ -99,8 +99,10 @@ TuneId gen_tune_id() {
 }
 
 void init_tunes() {
-  if( config_music.tunes.size() == 0 )
-    logger->warn( "Tune list is empty." );
+  if( config_music.tunes.size() == 0 ) {
+    logger->error( "Tune list is empty." );
+    return;
+  }
   absl::flat_hash_set<string> stems;
 
   int    idx = 0;

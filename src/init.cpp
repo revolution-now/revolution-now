@@ -125,11 +125,15 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                      e_init_routine::configs, //
                      e_init_routine::rng,     //
                  }},
-                {e_init_routine::midi,
+                {e_init_routine::midiseq,
                  {
                      e_init_routine::tunes,   //
                      e_init_routine::configs, //
-                     /*******************/
+                 }},
+                {e_init_routine::midiplayer,
+                 {
+                     e_init_routine::midiseq, //
+                     e_init_routine::configs, //
                  }}};
 
 } // namespace

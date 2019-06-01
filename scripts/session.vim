@@ -10,7 +10,8 @@ let s:stems = [
   \ 'src/config-files',
   \ 'src/tune',
   \ 'src/mplayer',
-  \ 'src/midi',
+  \ 'src/midiseq',
+  \ 'src/midiplayer',
 \]
 
   "\ 'src/conductor',

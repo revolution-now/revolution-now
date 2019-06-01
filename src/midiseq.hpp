@@ -23,17 +23,17 @@
 // Generally, after receiving one of these commands the midi
 // thread will update its state.
 //
-//   play:   If the player was paused in the middle of a tune
-//           then this will cause the tune to resume.  Otherwise
-//           it will start playing the next track in the
-//           playlist.
+//   play:   Start playing the given tune from the beginning,
+//           even if the player was paused.
 //
-//   next:   If the player is playing then this will skip to the
-//           next track and play it.  If the player is paused
-//           then this will skip to the next track *and play it*.
+//   stop:   Stop playing (if playing).  If playing, position in
+//           current tune will be lost.  Playing must be resumed
+//           with a `play` command.
 //
 //   pause:  Pause the player wherever it is, whether in the
 //           middle of a tune or in the middle of tracks.
+//
+//   pause:  Resume the player if it was paused.
 //
 //   off:    Tell the player to turn off.
 //
@@ -45,9 +45,11 @@
 //
 ADT( /*namespace */ rn::midiseq, //
      command,                    //
-     ( play ),                   //
-     ( next ),                   //
+     ( play,                     //
+       ( fs::path, file ) ),     //
+     ( stop ),                   //
      ( pause ),                  //
+     ( resume ),                 //
      ( off ),                    //
      ( volume,                   //
        ( double, value ) )       //
@@ -59,6 +61,7 @@ namespace rn::midiseq {
 enum class e_( midiseq_state,
                playing, //
                paused,  //
+               stopped, //
                failed,  //
                off      //
 );
@@ -66,13 +69,18 @@ enum class e_( midiseq_state,
 bool midiseq_enabled();
 // We can get state, but not set it. To change the state of the
 // midi player you must send it commands.
-e_midiseq_state midiseq_state();
+e_midiseq_state state();
+
+// If playing a tune, returns [0,1.0] progress.
+Opt<double> progress();
 
 bool is_processing_commands();
+
+Opt<Duration_t> can_play_tune( fs::path const& path );
 
 void send_command( command_t cmd );
 
 // Testing.
-void test_midi();
+void test();
 
 } // namespace rn::midiseq

@@ -33,7 +33,8 @@ enum class e_( init_routine,
                sdl,        //
                fonts,      //
                app_window, //
-               midi,       //
+               midiseq,    //
+               midiplayer, //
                tunes,      //
                screen,     //
                renderer,   //

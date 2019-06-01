@@ -348,12 +348,6 @@ public:
   // ************************************************************
   // Interface for Main Thread
   // ************************************************************
-  void set_playlist( set<fs::path> const& files ) {
-    lock_guard<mutex> lock( mutex_ );
-    playlist_.clear();
-    for( auto const& f : files ) playlist_.push_back( f );
-  }
-
   void send_cmd( command_t cmd ) {
     lock_guard<mutex> lock( mutex_ );
     commands_.push( cmd );
@@ -396,11 +390,6 @@ public:
     return !commands_.empty();
   }
 
-  vector<fs::path> playlist() const {
-    lock_guard<mutex> lock( mutex_ );
-    return playlist_; // copy
-  }
-
   void set_last_error( string error ) {
     lock_guard<mutex> lock( mutex_ );
     last_error_ = std::move( error );
@@ -425,8 +414,7 @@ private:
   mutable mutex mutex_;
   // The midi thread holds its state here and updates this when-
   // ever it changes.
-  e_midiseq_state  state_{e_midiseq_state::paused};
-  vector<fs::path> playlist_{};
+  e_midiseq_state  state_{e_midiseq_state::stopped};
   string           last_error_{};
   queue<command_t> commands_{};
   Opt<double>      progress_{};
@@ -453,11 +441,13 @@ struct MidiPlayInfo {
   milliseconds  tune_duration;
 };
 
-// May fail to load the file.
-Opt<MidiPlayInfo> load_midi_file( string const& file ) {
+// May fail to load the file. NOTE: this method must be callable
+// from both the main thread and the MIDI thread simultaneously,
+// so it should not change any state of the world apart from log-
+// ging.
+Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   MidiPlayInfo info;
-
-  info.midifile.clear();
+  // TODO: check if midifile.read() is thread safe.
   if( !info.midifile.read( file ) ) return nullopt;
   // This will cause the MidiEvent::seconds fields to be popu-
   // lated with the time at which an event should be sent to the
@@ -557,7 +547,7 @@ void midi_play_event( MidiPlayInfo* info ) {
 template<typename... Args>
 void midi_thread_record_failure( Args... args ) {
   g_midi_comm.set_state( e_midiseq_state::failed );
-  logger->warn( std::forward<Args>( args )... );
+  logger->error( std::forward<Args>( args )... );
   g_midi_comm.set_last_error(
       fmt::format( std::forward<Args>( args )... ) );
 }
@@ -566,8 +556,8 @@ void midi_thread_record_failure( Args... args ) {
 // lifetime until it is terminated.
 void midi_thread_impl() {
   Opt<MidiPlayInfo> maybe_info;
-  int               track = -1;
   Opt<command_t>    cmd;
+  Opt<fs::path>     stem;
   bool              time_to_go = false;
   while( true ) {
     // If there are commands to process then mark that we are
@@ -584,37 +574,66 @@ void midi_thread_impl() {
         g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
       switch_v( cmd.value() ) {
-        case_v( command::play ) {
+        case_v_( command::play, file ) {
           g_midi_comm.set_state( e_midiseq_state::playing );
-          // Check to see if a) we are playing a tune, and b) we
-          // are paused. If so then we need to add the "missing"
-          // time into the stoppage so that we don't skip over
-          // all the intervening MIDI events, since the sequencer
-          // uses absolute time.
-          if( maybe_info.has_value() ) {
-            auto& info = *maybe_info;
-            if( info.last_pause_time.has_value() ) {
-              info.stoppage +=
-                  Clock_t::now() - info.last_pause_time.value();
-              info.last_pause_time = nullopt;
-            }
-          }
-        }
-        case_v( command::next ) {
           g_midi.value().all_notes_off();
+          // ****************************************************
+          // FIXME: This reset is needed to avoid memory manage-
+          // ment bugs in the smf::MidiFile move assignment oper-
+          // ator. Fix is to trigger destructor before moving.
+          // This can be removed once the issue is fixed. See:
+          //   https://github.com/craigsapp/midifile/issues/69
+          maybe_info.reset();
+          // ****************************************************
+          maybe_info = load_midi_file( file );
+          if( !maybe_info ) {
+            midi_thread_record_failure(
+                "failed to load midi file {}", file );
+            break_v;
+          }
+          // We've loaded the midi file. Now set all channel vol-
+          // umes to zero so that we can more easily track which
+          // ones are being changed by the midi files (useful for
+          // debugging, though not strictly necessary).
+          g_midi.value().zero_channel_volumes();
+          stem = file.stem();
+        }
+        case_v( command::stop ) {
+          g_midi.value().all_notes_off();
+          g_midi_comm.set_state( e_midiseq_state::stopped );
           maybe_info = nullopt;
-          g_midi_comm.set_state( e_midiseq_state::playing );
-          logger->info( "skipping to next track." );
+          logger->info( "midi file {} has been stopped.", stem );
+          stem = nullopt;
+          g_midi_comm.set_progress( nullopt );
         }
         case_v( command::pause ) {
+          if( g_midi_comm.state() == e_midiseq_state::paused )
+            break_v;
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::paused );
           if( maybe_info.has_value() )
             maybe_info.value().last_pause_time = Clock_t::now();
         }
+        case_v( command::resume ) {
+          if( !maybe_info.has_value() ) break_v;
+          if( g_midi_comm.state() != e_midiseq_state::paused )
+            break_v;
+          // We're paused playing a tune.
+          g_midi_comm.set_state( e_midiseq_state::playing );
+          // We need to add the "missing" time into the stoppage
+          // so that we don't skip over all the intervening MIDI
+          // events, since the sequencer uses absolute time.
+          auto& info = *maybe_info;
+          if( info.last_pause_time.has_value() ) {
+            info.stoppage +=
+                Clock_t::now() - info.last_pause_time.value();
+            info.last_pause_time = nullopt;
+          }
+        }
         case_v( command::off ) {
           g_midi_comm.set_progress( nullopt );
           time_to_go = true;
+          stem       = nullopt;
         }
         case_v_( command::volume, new_value ) {
           g_midi.value().set_master_volume( new_value );
@@ -631,40 +650,18 @@ void midi_thread_impl() {
             __FILE__, __LINE__ );
         return;
       case +e_midiseq_state::paused:
-        sleep( milliseconds( 200 ) );
+      case +e_midiseq_state::stopped:
+        sleep( milliseconds( 100 ) );
         continue;
       case +e_midiseq_state::playing: {
-        auto playlist = g_midi_comm.playlist();
-        if( !maybe_info.has_value() ) {
-          // Try loading the next track.
-          if( playlist.size() == 0 ) {
-            // There are no songs in the playlist, so just go
-            // into the pause state.
-            logger->warn(
-                "no midi files in playlist; stopping player." );
-            g_midi_comm.set_state( e_midiseq_state::paused );
-            break;
-          }
-          // We have at least one track in the playlist.
-          track++;
-          track      = track % playlist.size();
-          maybe_info = load_midi_file( playlist[track] );
-          if( !maybe_info ) {
-            midi_thread_record_failure(
-                "failed to load midi file {}", playlist[track] );
-            break;
-          }
-          // We've loaded the midi file. Now set all channel vol-
-          // umes to zero so that we can more easily track which
-          // ones are being changed by the midi files (useful for
-          // debugging, though not strictly necessary).
-          g_midi.value().zero_channel_volumes();
-        }
         // maybe_info should have a value at this point.
         if( !maybe_info.has_value() ) {
           logger->critical(
               "programmer error: should not be here ({}:{})",
               __FILE__, __LINE__ );
+          midi_thread_record_failure(
+              "MIDI Sequencer has experienced an internal "
+              "error." );
           return;
         }
 
@@ -685,12 +682,12 @@ void midi_thread_impl() {
         // that we should load the next one.
         if( info.current_event >=
             info.midifile[info.track].size() ) {
-          logger->info( "midi file {} has finished.",
-                        playlist[track] );
+          logger->info( "midi file {} has finished.", stem );
           // Just for good measure.
           g_midi->all_notes_off();
           maybe_info = nullopt;
           g_midi_comm.set_progress( nullopt );
+          g_midi_comm.set_state( e_midiseq_state::stopped );
         }
         break;
       }
@@ -710,7 +707,14 @@ void midi_thread() {
   if( g_midi_comm.state() == e_midiseq_state::failed ) {
     logger->error( "MIDI thread failed: {}",
                    g_midi_comm.last_error() );
-    return;
+    g_midi.reset();
+    // Not sure the best way to do this, but it seems that we get
+    // a crash when destroying the std::thread object if the
+    // thread has exited and we haven't called join(). Since here
+    // we are still in the MIDI thread we probably shouldn't call
+    // join, so we will call detach instead.
+    g_midi_thread.value().detach();
+    return; // exit thread
   }
   g_midi_comm.set_state( e_midiseq_state::off );
 }
@@ -718,7 +722,7 @@ void midi_thread() {
 /****************************************************************
 ** Init/Cleanup
 *****************************************************************/
-void init_midi() {
+void init_midiseq() {
   // Initilization of rt-midi i/o mechanism.
   auto maybe_midi_io = MidiIO::create();
   if( maybe_midi_io ) {
@@ -737,7 +741,7 @@ void init_midi() {
   }
 }
 
-void cleanup_midi() {
+void cleanup_midiseq() {
   if( g_midi ) {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
@@ -758,22 +762,19 @@ void cleanup_midi() {
 
 } // namespace
 
-REGISTER_INIT_ROUTINE( midi, init_midi, cleanup_midi );
+REGISTER_INIT_ROUTINE( midiseq, init_midiseq, cleanup_midiseq );
 
 /****************************************************************
 ** User API
 *****************************************************************/
 bool midiseq_enabled() {
-  // These are never expected to be different.
-  CHECK( g_midi.has_value() ^ g_midi_thread.has_value(),
-         "g_midi.has_value() is {} but "
-         "g_midi_thread.has_value() is {}",
-         g_midi.has_value(), g_midi_thread.has_value() );
-
-  return g_midi.has_value();
+  // These should usually always be the same (either both true or
+  // both false, but could be different if some kind of internal
+  // error happens).
+  return g_midi.has_value() && g_midi_thread.has_value();
 }
 
-e_midiseq_state midiseq_state() { return g_midi_comm.state(); }
+e_midiseq_state state() { return g_midi_comm.state(); }
 
 bool is_processing_commands() {
   return g_midi_comm.processing_commands();
@@ -788,19 +789,25 @@ void send_command( command_t cmd ) {
         "received." );
 }
 
+Opt<Duration_t> can_play_tune( fs::path const& path ) {
+  auto info = load_midi_file( path.string() );
+  if( info.has_value() ) return info->tune_duration;
+  return nullopt;
+}
+
+Opt<double> progress() { return g_midi_comm.progress(); }
+
 /****************************************************************
 ** Testing
 *****************************************************************/
-void test_midi() {
+void test() {
   if( !g_midi ) return;
-  set<fs::path> midi_files;
+  vector<fs::path> midi_files;
   for( auto const& file : util::wildcard(
            "assets/music/midi/*.mid", /*with_folders=*/false ) )
-    midi_files.insert( file );
-  g_midi_comm.set_playlist( midi_files );
+    midi_files.push_back( file );
   double vol = 0.5;
   g_midi_comm.send_cmd( command::volume{vol} );
-  g_midi_comm.send_cmd( command::play{} );
   sleep( 500ms );
   while( true ) {
     if( g_midi_comm.state() == e_midiseq_state::failed ) {
@@ -809,22 +816,28 @@ void test_midi() {
       break;
     }
     logger->info(
-        "[p]lay, [s]top, [n]ext, [u]p volume, [d]own volume, "
-        "[P]rogress, "
+        "[p]lay next, p[a]use, [r]esume, [s]top, [u]p volume, "
+        "[d]own volume, [P]rogress, "
         "[q]uit: " );
     string in;
     cin >> in;
     sleep( milliseconds( 20 ) );
     if( in == "p" ) {
-      g_midi_comm.send_cmd( command::play{} );
+      if( midi_files.empty() ) break;
+      g_midi_comm.send_cmd( command::play{midi_files.back()} );
+      midi_files.pop_back();
       continue;
     }
-    if( in == "s" ) {
+    if( in == "a" ) {
       g_midi_comm.send_cmd( command::pause{} );
       continue;
     }
-    if( in == "n" ) {
-      g_midi_comm.send_cmd( command::next{} );
+    if( in == "r" ) {
+      g_midi_comm.send_cmd( command::resume{} );
+      continue;
+    }
+    if( in == "s" ) {
+      g_midi_comm.send_cmd( command::stop{} );
       continue;
     }
     if( in == "u" ) {

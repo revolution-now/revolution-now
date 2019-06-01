@@ -9,6 +9,8 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "midiplayer.hpp"
+#include "midiseq.hpp"
 #include "mplayer.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"
@@ -83,10 +85,11 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::midi );
+  run_all_init_routines( e_init_routine::midiplayer );
   // run_all_init_routines();
 
-  test_music_player();
+  test_music_player<MidiSeqMusicPlayer>();
+  // midiseq::test();
 
   // game();
   // ui::window_test();

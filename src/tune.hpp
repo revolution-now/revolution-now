@@ -54,6 +54,13 @@ struct Tune {
   e_tune_epoch           epoch;
 };
 
+// This can only be populated by a music player since otherwise
+// the length of the tune is not known.
+struct TuneInfo {
+  TuneId          id;
+  Opt<Duration_t> length;
+};
+
 /****************************************************************
 ** Tune API
 *****************************************************************

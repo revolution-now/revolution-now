@@ -17,6 +17,9 @@
 #include "errors.hpp"
 #include "tune.hpp"
 
+// base-util
+#include "base-util/non-copyable.hpp"
+
 namespace rn {
 
 class MusicPlayer;
@@ -35,11 +38,6 @@ struct MusicPlayerInfo {
   // is able to play music. Otherwise will contain an error indi-
   // cating why.
   expect<Ref<MusicPlayer>> player;
-};
-
-struct TuneInfo {
-  TuneId          id;
-  Opt<Duration_t> length;
 };
 
 struct MusicPlayerState {
@@ -82,8 +80,15 @@ struct MusicPlayerCapabilities {
 // will cause the calling thread to block until all previous com-
 // mands sent to the music player have been processed. It also
 // accepts a timeout to avoid hanging if something goes wrong.
-class MusicPlayer {
+class MusicPlayer : public util::movable_only {
 public:
+  // Check if the player is enabled. If the Music Player object
+  // exists then it should be enabled, unless either a) it failed
+  // to initialize or b) a fatal error happens within the player
+  // (even after initialization) in which case it may disable it-
+  // self. This method should be checked before calling API.
+  virtual bool good() const = 0;
+
   // Verifies that the tune exists on the filesystem in a format
   // that can be read by this player and that the file can be
   // opened. If successfull then it will return a TuneInfo (so
@@ -155,6 +160,13 @@ public:
 };
 
 // For testing
-void test_music_player();
+void test_music_player_impl( MusicPlayer& mplayer );
+
+template<typename MusicPlayerT>
+void test_music_player() {
+  auto mplayer_info = MusicPlayerT::player();
+  if( mplayer_info.player.has_value() )
+    test_music_player_impl( *mplayer_info.player );
+}
 
 } // namespace rn
