@@ -55,36 +55,35 @@ constexpr auto k_num_dimensions =
 // different it is (distance) from the given set of dimensions.
 // The result will be sorted from most similar to most different.
 Vec<pair<TuneId, int>> tune_difference_scores(
-    Opt<e_tune_tempo>           tempo,           //
-    Opt<e_tune_genre>           genre,           //
-    Opt<e_tune_culture>         culture,         //
-    Opt<e_tune_instrumentation> instrumentation, //
-    Opt<e_tune_sentiment>       sentiment,       //
-    Opt<e_tune_key>             key,             //
-    Opt<e_tune_tonality>        tonality,        //
-    Opt<e_tune_epoch>           epoch            //
-) {
+    TuneOptDimensions dims ) {
   vector<pair<TuneId, int /*score*/>> scores;
   for( auto const& [id, tune_ptr] : g_tunes ) {
     auto const& tune  = *tune_ptr;
     int         score = 0;
-    if( tempo.has_value() && tune.tempo != tempo.value() )
+    if( dims.tempo.has_value() &&
+        tune.dimensions.tempo != dims.tempo.value() )
       score++;
-    if( genre.has_value() && tune.genre != genre.value() )
+    if( dims.genre.has_value() &&
+        tune.dimensions.genre != dims.genre.value() )
       score++;
-    if( culture.has_value() && tune.culture != culture.value() )
+    if( dims.culture.has_value() &&
+        tune.dimensions.culture != dims.culture.value() )
       score++;
-    if( instrumentation.has_value() &&
-        tune.instrumentation != instrumentation.value() )
+    if( dims.instrumentation.has_value() &&
+        tune.dimensions.instrumentation !=
+            dims.instrumentation.value() )
       score++;
-    if( sentiment.has_value() &&
-        tune.sentiment != sentiment.value() )
+    if( dims.sentiment.has_value() &&
+        tune.dimensions.sentiment != dims.sentiment.value() )
       score++;
-    if( key.has_value() && tune.key != key.value() ) score++;
-    if( tonality.has_value() &&
-        tune.tonality != tonality.value() )
+    if( dims.key.has_value() &&
+        tune.dimensions.key != dims.key.value() )
       score++;
-    if( epoch.has_value() && tune.epoch != epoch.value() )
+    if( dims.tonality.has_value() &&
+        tune.dimensions.tonality != dims.tonality.value() )
+      score++;
+    if( dims.epoch.has_value() &&
+        tune.dimensions.epoch != dims.epoch.value() )
       score++;
     scores.emplace_back( id, score );
   }
@@ -132,6 +131,19 @@ void clean_tunes() {}
 //
 REGISTER_INIT_ROUTINE( tunes, init_tunes, clean_tunes );
 
+TuneOptDimensions TuneDimensions::to_optional() const {
+  return {
+      tempo,           //
+      genre,           //
+      culture,         //
+      instrumentation, //
+      sentiment,       //
+      key,             //
+      tonality,        //
+      epoch,           //
+  };
+}
+
 Vec<TuneId> all_tunes() {
   Vec<TuneId> res;
   res.reserve( g_tunes.size() );
@@ -157,31 +169,19 @@ string const& tune_stem_from_id( TuneId id ) {
   return g_tunes[id]->stem;
 }
 
-Vec<TuneId> find_tunes(
-    Opt<e_tune_tempo>           tempo,           //
-    Opt<e_tune_genre>           genre,           //
-    Opt<e_tune_culture>         culture,         //
-    Opt<e_tune_instrumentation> instrumentation, //
-    Opt<e_tune_sentiment>       sentiment,       //
-    Opt<e_tune_key>             key,             //
-    Opt<e_tune_tonality>        tonality,        //
-    Opt<e_tune_epoch>           epoch,           //
-    bool                        fuzzy_match,     //
-    bool                        not_like         //
-) {
-  auto scores = tune_difference_scores(
-      tempo, genre, culture, instrumentation, sentiment, key,
-      tonality, epoch );
+Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
+                        bool not_like ) {
+  auto scores = tune_difference_scores( dims );
 
   size_t enabled_dimensions =
-      ( tempo.has_value() ? 1 : 0 ) +           //
-      ( genre.has_value() ? 1 : 0 ) +           //
-      ( culture.has_value() ? 1 : 0 ) +         //
-      ( instrumentation.has_value() ? 1 : 0 ) + //
-      ( sentiment.has_value() ? 1 : 0 ) +       //
-      ( key.has_value() ? 1 : 0 ) +             //
-      ( tonality.has_value() ? 1 : 0 ) +        //
-      ( epoch.has_value() ? 1 : 0 );            //
+      ( dims.tempo.has_value() ? 1 : 0 ) +           //
+      ( dims.genre.has_value() ? 1 : 0 ) +           //
+      ( dims.culture.has_value() ? 1 : 0 ) +         //
+      ( dims.instrumentation.has_value() ? 1 : 0 ) + //
+      ( dims.sentiment.has_value() ? 1 : 0 ) +       //
+      ( dims.key.has_value() ? 1 : 0 ) +             //
+      ( dims.tonality.has_value() ? 1 : 0 ) +        //
+      ( dims.epoch.has_value() ? 1 : 0 );            //
   CHECK( enabled_dimensions <= k_num_dimensions );
 
   if( !fuzzy_match ) {
@@ -200,58 +200,33 @@ Vec<TuneId> find_tunes(
 Vec<TuneId> tunes_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
-  return find_tunes( tune.tempo,           //
-                     tune.genre,           //
-                     tune.culture,         //
-                     tune.instrumentation, //
-                     tune.sentiment,       //
-                     tune.key,             //
-                     tune.tonality,        //
-                     tune.epoch,           //
-                     /*fuzzy_match=*/true, //
-                     /*not_like=*/false    //
+  return find_tunes( tune.dimensions.to_optional(), //
+                     /*fuzzy_match=*/true,          //
+                     /*not_like=*/false             //
   );
 }
 
 Vec<TuneId> tunes_not_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
-  return find_tunes( tune.tempo,           //
-                     tune.genre,           //
-                     tune.culture,         //
-                     tune.instrumentation, //
-                     tune.sentiment,       //
-                     tune.key,             //
-                     tune.tonality,        //
-                     tune.epoch,           //
-                     /*fuzzy_match=*/true, //
-                     /*not_like=*/true     //
+  return find_tunes( tune.dimensions.to_optional(), //
+                     /*fuzzy_match=*/true,          //
+                     /*not_like=*/true              //
   );
 }
 
 TuneId random_tune() {
-  return find_tunes( rng::pick_one<e_tune_tempo>(),           //
-                     rng::pick_one<e_tune_genre>(),           //
-                     rng::pick_one<e_tune_culture>(),         //
-                     rng::pick_one<e_tune_instrumentation>(), //
-                     rng::pick_one<e_tune_sentiment>(),       //
-                     rng::pick_one<e_tune_key>(),             //
-                     rng::pick_one<e_tune_tonality>(),        //
-                     rng::pick_one<e_tune_epoch>()            //
-                     )[0];
-}
-
-Vec<TuneId> random_playlist() {
-  absl::flat_hash_set<TuneId> s;
-  Vec<TuneId>                 res;
-  logger->debug( "Generating random playlist..." );
-  while( res.size() < g_tunes.size() ) {
-    auto id = random_tune();
-    if( s.contains( id ) ) continue;
-    s.insert( id );
-    res.push_back( id );
+  return find_tunes( TuneDimensions{
+      rng::pick_one<e_tune_tempo>(),           //
+      rng::pick_one<e_tune_genre>(),           //
+      rng::pick_one<e_tune_culture>(),         //
+      rng::pick_one<e_tune_instrumentation>(), //
+      rng::pick_one<e_tune_sentiment>(),       //
+      rng::pick_one<e_tune_key>(),             //
+      rng::pick_one<e_tune_tonality>(),        //
+      rng::pick_one<e_tune_epoch>()            //
   }
-  return res;
+                         .to_optional() )[0];
 }
 
 } // namespace rn

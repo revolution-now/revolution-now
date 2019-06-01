@@ -24,6 +24,13 @@ namespace rn {
 
 class MusicPlayer;
 
+// This can only be populated by a music player.
+struct TunePlayerInfo {
+  TuneId          id;
+  Opt<Duration_t> length;
+  Opt<double>     progress;
+};
+
 struct MusicPlayerInfo {
   // E.g. "MIDI File Player"
   std::string name;
@@ -43,8 +50,8 @@ struct MusicPlayerInfo {
 struct MusicPlayerState {
   void log() const;
 
-  // TuneInfo struct for currently playing tune, if any.
-  Opt<TuneInfo> tune_info;
+  // TunePlayerInfo struct for currently playing tune, if any.
+  Opt<TunePlayerInfo> tune_info;
   // If the player is currently playing a tune then it will re-
   // turn a number in [0,1.0] representing the progress through
   // the tune. Returns `nullopt` if no tune is playing or if the
@@ -91,9 +98,10 @@ public:
 
   // Verifies that the tune exists on the filesystem in a format
   // that can be read by this player and that the file can be
-  // opened. If successfull then it will return a TuneInfo (so
-  // this means that it actually has to load and parse the file).
-  virtual Opt<TuneInfo> can_play_tune( TuneId id ) = 0;
+  // opened. If successfull then it will return a TunePlayerInfo
+  // (so this means that it actually has to load and parse the
+  // file).
+  virtual Opt<TunePlayerInfo> can_play_tune( TuneId id ) = 0;
 
   // Start playing the given tune from the beginning. When the
   // tune finishes it stops playing until it is given another

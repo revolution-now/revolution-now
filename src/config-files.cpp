@@ -206,21 +206,22 @@ struct ucl_type_name_of_t;
 // clang-format off
 // ============================================================
 //
-//        C++ type    UCL type       Getter
-//        -----------------------------------------
-UCL_TYPE( int,        UCL_INT,       int_value      )
-UCL_TYPE( bool,       UCL_BOOLEAN,   bool_value     )
-UCL_TYPE( double,     UCL_FLOAT,     number_value   )
-UCL_TYPE( string,     UCL_STRING,    string_value   )
-UCL_TYPE( Coord,      UCL_OBJECT,    type /*dummy*/ )
-UCL_TYPE( Color,      UCL_STRING,    string_value   )
-UCL_TYPE( MvPoints,   UCL_INT,       int_value      )
-UCL_TYPE( X,          UCL_INT,       int_value      )
-UCL_TYPE( W,          UCL_INT,       int_value      )
-UCL_TYPE( fs::path,   UCL_STRING,    string_value   )
-UCL_TYPE( Tune,       UCL_OBJECT,    type /*dummy*/ )
-//UCL_TYPE( Y,          UCL_INT,       int_value     )
-//UCL_TYPE( H,          UCL_INT,       int_value     )
+//        C++ type        UCL type       Getter
+//        ----------------------------------------------
+UCL_TYPE( int,            UCL_INT,       int_value      )
+UCL_TYPE( bool,           UCL_BOOLEAN,   bool_value     )
+UCL_TYPE( double,         UCL_FLOAT,     number_value   )
+UCL_TYPE( string,         UCL_STRING,    string_value   )
+UCL_TYPE( Coord,          UCL_OBJECT,    type /*dummy*/ )
+UCL_TYPE( Color,          UCL_STRING,    string_value   )
+UCL_TYPE( MvPoints,       UCL_INT,       int_value      )
+UCL_TYPE( X,              UCL_INT,       int_value      )
+UCL_TYPE( W,              UCL_INT,       int_value      )
+UCL_TYPE( fs::path,       UCL_STRING,    string_value   )
+UCL_TYPE( Tune,           UCL_OBJECT,    type /*dummy*/ )
+UCL_TYPE( TuneDimensions, UCL_OBJECT,    type /*dummy*/ )
+//UCL_TYPE( Y,              UCL_INT,       int_value      )
+//UCL_TYPE( H,              UCL_INT,       int_value      )
 // clang-format on
 
 template<typename T>
@@ -362,6 +363,24 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
   used_field_paths.insert( file + "." + dotted + ".y" );
 }
 
+#define COLLECT_NESTED_OBJ_FIELD( type_, name_ )                \
+  {                                                             \
+    string name =                                               \
+        TO_STRING( name_ ); /* need this for macro expansion */ \
+    check_field_type( obj[name], UCL_OBJECT, dotted,            \
+                      config_name,                              \
+                      "a object of type `"s + #type_ +          \
+                          "` named `" + name + "`" );           \
+    path_field.push_back( name );                               \
+    type_ obj_read{};                                           \
+    populate_config_field( obj[name], obj_read, path_field,     \
+                           config_name, file );                 \
+    dest.name_ = obj_read;                                      \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." +        \
+                             name );                            \
+  }
+
 #define COLLECT_NESTED_STR_FIELD( name_ )                       \
   {                                                             \
     string name =                                               \
@@ -391,6 +410,36 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
     used_field_paths.insert( file + "." + dotted + "." #name ); \
   }
 
+// TuneDimensions
+template<>
+void populate_config_field( ucl::Ucl obj, TuneDimensions& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  // Silence unused-variable warnings.
+  (void)ucl_type_of_v<TuneDimensions>;
+  (void)ucl_type_name_of_v<TuneDimensions>;
+  (void)ucl_getter_for_type_v<TuneDimensions>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_OBJECT, dotted, config_name,
+                    "a TuneDimensions object" );
+
+  auto path_field = path;
+
+  EVAL( PP_MAP_TUPLE(                              //
+      COLLECT_NESTED_ENUM_FIELD,                   //
+      ( e_tune_tempo, tempo ),                     //
+      ( e_tune_genre, genre ),                     //
+      ( e_tune_culture, culture ),                 //
+      ( e_tune_instrumentation, instrumentation ), //
+      ( e_tune_sentiment, sentiment ),             //
+      ( e_tune_key, key ),                         //
+      ( e_tune_tonality, tonality ),               //
+      ( e_tune_epoch, epoch )                      //
+      ) );
+}
+
 // Tune
 template<>
 void populate_config_field( ucl::Ucl obj, Tune& dest,
@@ -415,17 +464,7 @@ void populate_config_field( ucl::Ucl obj, Tune& dest,
       description               //
       ) );
 
-  EVAL( PP_MAP_TUPLE(                              //
-      COLLECT_NESTED_ENUM_FIELD,                   //
-      ( e_tune_tempo, tempo ),                     //
-      ( e_tune_genre, genre ),                     //
-      ( e_tune_culture, culture ),                 //
-      ( e_tune_instrumentation, instrumentation ), //
-      ( e_tune_sentiment, sentiment ),             //
-      ( e_tune_key, key ),                         //
-      ( e_tune_tonality, tonality ),               //
-      ( e_tune_epoch, epoch )                      //
-      ) );
+  COLLECT_NESTED_OBJ_FIELD( TuneDimensions, dimensions );
 }
 
 // Color

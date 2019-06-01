@@ -16,6 +16,10 @@
 // obesrver-ptr
 #include "observer-ptr/observer-ptr.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 // c++ standard library
 #include <chrono>
 #include <functional>
@@ -65,5 +69,11 @@ using UPtr = ::std::unique_ptr<T>;
 
 template<typename T>
 using UCPtr = ::std::unique_ptr<T const>;
+
+template<typename K, typename V>
+using FlatMap = ::absl::flat_hash_map<K, V>;
+
+template<typename T>
+using FlatSet = ::absl::flat_hash_set<T>;
 
 namespace rn {} // namespace rn

@@ -35,15 +35,20 @@ enum class e_( tune_key, a, bb, b, c, cs, d, eb, e, f, fs, g,
 enum class e_( tune_tonality, major, minor );
 enum class e_( tune_epoch, standard, post_revolution );
 
-// Client code is not supposed to get access to this struct di-
-// rectly, it is just in the header to allow deserialization from
-// the config files.
-struct Tune {
-  std::string display_name;
-  std::string stem;
-  std::string description;
+struct TuneOptDimensions {
+  Opt<e_tune_tempo>           tempo;
+  Opt<e_tune_genre>           genre;
+  Opt<e_tune_culture>         culture;
+  Opt<e_tune_instrumentation> instrumentation;
+  Opt<e_tune_sentiment>       sentiment;
+  Opt<e_tune_key>             key;
+  Opt<e_tune_tonality>        tonality;
+  Opt<e_tune_epoch>           epoch;
+};
 
-  // Classification.
+struct TuneDimensions {
+  TuneOptDimensions to_optional() const;
+
   e_tune_tempo           tempo;
   e_tune_genre           genre;
   e_tune_culture         culture;
@@ -54,11 +59,16 @@ struct Tune {
   e_tune_epoch           epoch;
 };
 
-// This can only be populated by a music player since otherwise
-// the length of the tune is not known.
-struct TuneInfo {
-  TuneId          id;
-  Opt<Duration_t> length;
+// Client code is not supposed to get access to this struct di-
+// rectly, it is just in the header to allow deserialization from
+// the config files.
+struct Tune {
+  std::string display_name;
+  std::string stem;
+  std::string description;
+
+  // Classification.
+  TuneDimensions dimensions;
 };
 
 /****************************************************************
@@ -95,18 +105,9 @@ std::string const& tune_stem_from_id( TuneId id );
 // parameters that are left as `nullopt`, the more values there
 // will be for a `not_like == false` scenario and the fewer
 // values there will be for a `not_like=true` scenario.
-Vec<TuneId> find_tunes(
-    Opt<e_tune_tempo>           tempo,              //
-    Opt<e_tune_genre>           genre,              //
-    Opt<e_tune_culture>         culture,            //
-    Opt<e_tune_instrumentation> instrumentation,    //
-    Opt<e_tune_sentiment>       sentiment,          //
-    Opt<e_tune_key>             key,                //
-    Opt<e_tune_tonality>        tonality,           //
-    Opt<e_tune_epoch>           epoch,              //
-    bool                        fuzzy_match = true, //
-    bool                        not_like    = false //
-);
+Vec<TuneId> find_tunes( TuneOptDimensions dimensions,
+                        bool              fuzzy_match = true,
+                        bool              not_like    = false );
 
 // List tunes like given tune. Actually it will return a list of
 // all tunes, sorted so that tunes that are most similar to the
@@ -124,9 +125,5 @@ Vec<TuneId> tunes_not_like( TuneId id );
 // sions, as opposed to e.g. being evenly distributed across ID,
 // which is not very meaningful.
 TuneId random_tune();
-
-// This will generate a random playlist which attempts to avoid
-// playing two consecutive tunes with similar classification.
-Vec<TuneId> random_playlist();
 
 } // namespace rn

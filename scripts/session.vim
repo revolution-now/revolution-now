@@ -15,6 +15,7 @@ let s:stems = [
 \]
 
   "\ 'src/conductor',
+  "\ 'src/sdlmplayer',
   "\ 'src/input',
   "\ 'src/frame',
   "\ 'src/plane',

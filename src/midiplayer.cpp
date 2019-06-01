@@ -78,15 +78,17 @@ bool MidiSeqMusicPlayer::good() const {
   return midiseq::midiseq_enabled();
 }
 
-Opt<TuneInfo> MidiSeqMusicPlayer::can_play_tune( TuneId id ) {
+Opt<TunePlayerInfo> MidiSeqMusicPlayer::can_play_tune(
+    TuneId id ) {
   if( !good() ) return {};
   auto maybe_duration =
       midiseq::can_play_tune( mid_file_from_id( id ) );
   if( !maybe_duration.has_value() ) return nullopt;
   if( !( *maybe_duration > chrono::seconds( 0 ) ) )
     return nullopt;
-  return TuneInfo{/*id=*/id,
-                  /*length=*/*maybe_duration};
+  return TunePlayerInfo{/*id=*/id,
+                        /*length=*/*maybe_duration,
+                        /*progress=*/nullopt};
 }
 
 bool MidiSeqMusicPlayer::play( TuneId id ) {
@@ -112,8 +114,8 @@ MusicPlayerInfo MidiSeqMusicPlayer::info() const {
 }
 
 MusicPlayerState MidiSeqMusicPlayer::state() const {
-  Opt<TuneInfo> maybe_tune_info;
-  bool          is_paused =
+  Opt<TunePlayerInfo> maybe_tune_info;
+  bool                is_paused =
       ( midiseq::state() == midiseq::e_midiseq_state::paused );
   if( midiseq::state() == midiseq::e_midiseq_state::playing )
     maybe_tune_info = last_played_tune_info_;

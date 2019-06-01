@@ -35,10 +35,11 @@ public:
   bool good() const override { return true; }
 
   // Implement MusicPlayer
-  Opt<TuneInfo> can_play_tune( TuneId id ) override {
+  Opt<TunePlayerInfo> can_play_tune( TuneId id ) override {
     logger->info( "SilentMusicPlayer: can_play_tune" );
-    return TuneInfo{/*id=*/id,
-                    /*length=*/chrono::minutes( 1 )};
+    return TunePlayerInfo{/*id=*/id,
+                          /*length=*/chrono::minutes( 1 ),
+                          /*progress=*/nullopt};
   }
 
   // Implement MusicPlayer
@@ -61,11 +62,12 @@ public:
 
   // Implement MusicPlayer
   MusicPlayerState state() const override {
-    Opt<TuneInfo> maybe_tune_info;
+    Opt<TunePlayerInfo> maybe_tune_info;
     if( id_.has_value() ) {
       maybe_tune_info =
-          TuneInfo{/*id=*/*id_,
-                   /*length=*/chrono::minutes( 1 )};
+          TunePlayerInfo{/*id=*/*id_,
+                         /*length=*/chrono::minutes( 1 ),
+                         /*progress=*/.5};
     }
     return {/*tune_info=*/maybe_tune_info,
             /*progress=*/0.5,
