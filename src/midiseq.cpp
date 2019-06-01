@@ -51,7 +51,7 @@ using namespace std::literals::chrono_literals;
   logger->warn( "rtmidi warning: {}",   \
                 exception_object.getMessage() )
 
-namespace rn {
+namespace rn::midiseq {
 
 namespace {
 
@@ -340,7 +340,7 @@ public:
   // ************************************************************
   // Interface for Any Thread
   // ************************************************************
-  e_midi_player_state state() {
+  e_midiseq_state state() {
     lock_guard<mutex> lock( mutex_ );
     return state_;
   }
@@ -354,7 +354,7 @@ public:
     for( auto const& f : files ) playlist_.push_back( f );
   }
 
-  void send_cmd( midi_player_cmd_t cmd ) {
+  void send_cmd( command_t cmd ) {
     lock_guard<mutex> lock( mutex_ );
     commands_.push( cmd );
   }
@@ -381,7 +381,7 @@ public:
   // ************************************************************
   // Interface for MIDI Thread
   // ************************************************************
-  void set_state( e_midi_player_state new_state ) {
+  void set_state( e_midiseq_state new_state ) {
     lock_guard<mutex> lock( mutex_ );
     state_ = new_state;
   }
@@ -411,7 +411,7 @@ public:
     progress_ = progress;
   }
 
-  Opt<midi_player_cmd_t> pop_cmd() {
+  Opt<command_t> pop_cmd() {
     lock_guard<mutex> lock( mutex_ );
     if( !commands_.empty() ) {
       auto ret = commands_.front();
@@ -425,12 +425,12 @@ private:
   mutable mutex mutex_;
   // The midi thread holds its state here and updates this when-
   // ever it changes.
-  e_midi_player_state      state_{e_midi_player_state::paused};
-  vector<fs::path>         playlist_{};
-  string                   last_error_{};
-  queue<midi_player_cmd_t> commands_{};
-  Opt<double>              progress_{};
-  bool                     running_commands_{false};
+  e_midiseq_state  state_{e_midiseq_state::paused};
+  vector<fs::path> playlist_{};
+  string           last_error_{};
+  queue<command_t> commands_{};
+  Opt<double>      progress_{};
+  bool             running_commands_{false};
 };
 
 // Shared state between main thread and midi thread.
@@ -556,7 +556,7 @@ void midi_play_event( MidiPlayInfo* info ) {
 // error.
 template<typename... Args>
 void midi_thread_record_failure( Args... args ) {
-  g_midi_comm.set_state( e_midi_player_state::failed );
+  g_midi_comm.set_state( e_midiseq_state::failed );
   logger->warn( std::forward<Args>( args )... );
   g_midi_comm.set_last_error(
       fmt::format( std::forward<Args>( args )... ) );
@@ -565,10 +565,10 @@ void midi_thread_record_failure( Args... args ) {
 // The MIDI thread will just hang in this function for its entire
 // lifetime until it is terminated.
 void midi_thread_impl() {
-  Opt<MidiPlayInfo>      maybe_info;
-  int                    track = -1;
-  Opt<midi_player_cmd_t> cmd;
-  bool                   time_to_go = false;
+  Opt<MidiPlayInfo> maybe_info;
+  int               track = -1;
+  Opt<command_t>    cmd;
+  bool              time_to_go = false;
   while( true ) {
     // If there are commands to process then mark that we are
     // running commands. Need to do this before entering into the
@@ -584,8 +584,8 @@ void midi_thread_impl() {
         g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
       switch_v( cmd.value() ) {
-        case_v( midi_player_cmd::play ) {
-          g_midi_comm.set_state( e_midi_player_state::playing );
+        case_v( command::play ) {
+          g_midi_comm.set_state( e_midiseq_state::playing );
           // Check to see if a) we are playing a tune, and b) we
           // are paused. If so then we need to add the "missing"
           // time into the stoppage so that we don't skip over
@@ -600,23 +600,23 @@ void midi_thread_impl() {
             }
           }
         }
-        case_v( midi_player_cmd::next ) {
+        case_v( command::next ) {
           g_midi.value().all_notes_off();
           maybe_info = nullopt;
-          g_midi_comm.set_state( e_midi_player_state::playing );
+          g_midi_comm.set_state( e_midiseq_state::playing );
           logger->info( "skipping to next track." );
         }
-        case_v( midi_player_cmd::pause ) {
+        case_v( command::pause ) {
           g_midi.value().all_notes_off();
-          g_midi_comm.set_state( e_midi_player_state::paused );
+          g_midi_comm.set_state( e_midiseq_state::paused );
           if( maybe_info.has_value() )
             maybe_info.value().last_pause_time = Clock_t::now();
         }
-        case_v( midi_player_cmd::off ) {
+        case_v( command::off ) {
           g_midi_comm.set_progress( nullopt );
           time_to_go = true;
         }
-        case_v_( midi_player_cmd::volume, new_value ) {
+        case_v_( command::volume, new_value ) {
           g_midi.value().set_master_volume( new_value );
         }
         default_v;
@@ -624,16 +624,16 @@ void midi_thread_impl() {
     }
     if( time_to_go ) return;
     switch( g_midi_comm.state() ) {
-      case +e_midi_player_state::failed: return;
-      case +e_midi_player_state::off:
+      case +e_midiseq_state::failed: return;
+      case +e_midiseq_state::off:
         logger->critical(
             "programmer error: should not be here ({}:{})",
             __FILE__, __LINE__ );
         return;
-      case +e_midi_player_state::paused:
+      case +e_midiseq_state::paused:
         sleep( milliseconds( 200 ) );
         continue;
-      case +e_midi_player_state::playing: {
+      case +e_midiseq_state::playing: {
         auto playlist = g_midi_comm.playlist();
         if( !maybe_info.has_value() ) {
           // Try loading the next track.
@@ -642,7 +642,7 @@ void midi_thread_impl() {
             // into the pause state.
             logger->warn(
                 "no midi files in playlist; stopping player." );
-            g_midi_comm.set_state( e_midi_player_state::paused );
+            g_midi_comm.set_state( e_midiseq_state::paused );
             break;
           }
           // We have at least one track in the playlist.
@@ -707,12 +707,12 @@ void midi_thread() {
   logger->info( "MIDI thread exiting." );
   // This may already have been done, but just in case.
   g_midi->all_notes_off();
-  if( g_midi_comm.state() == e_midi_player_state::failed ) {
+  if( g_midi_comm.state() == e_midiseq_state::failed ) {
     logger->error( "MIDI thread failed: {}",
                    g_midi_comm.last_error() );
     return;
   }
-  g_midi_comm.set_state( e_midi_player_state::off );
+  g_midi_comm.set_state( e_midiseq_state::off );
 }
 
 /****************************************************************
@@ -742,7 +742,7 @@ void cleanup_midi() {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
       logger->info( "Sending `off` message to midi thread." );
-      g_midi_comm.send_cmd( midi_player_cmd::off{} );
+      g_midi_comm.send_cmd( command::off{} );
       logger->info( "Waiting for midi thread to join." );
       g_midi_thread->join();
       logger->info( "MIDI thread closed." );
@@ -763,7 +763,7 @@ REGISTER_INIT_ROUTINE( midi, init_midi, cleanup_midi );
 /****************************************************************
 ** User API
 *****************************************************************/
-bool is_midi_playable() {
+bool midiseq_enabled() {
   // These are never expected to be different.
   CHECK( g_midi.has_value() ^ g_midi_thread.has_value(),
          "g_midi.has_value() is {} but "
@@ -773,12 +773,14 @@ bool is_midi_playable() {
   return g_midi.has_value();
 }
 
-e_midi_player_state midi_player_state() {
-  return g_midi_comm.state();
+e_midiseq_state midiseq_state() { return g_midi_comm.state(); }
+
+bool is_processing_commands() {
+  return g_midi_comm.processing_commands();
 }
 
-void send_command_to_midi_player( midi_player_cmd_t cmd ) {
-  if( is_midi_playable() )
+void send_command( command_t cmd ) {
+  if( midiseq_enabled() )
     g_midi_comm.send_cmd( cmd );
   else
     logger->warn(
@@ -797,11 +799,11 @@ void test_midi() {
     midi_files.insert( file );
   g_midi_comm.set_playlist( midi_files );
   double vol = 0.5;
-  g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
-  g_midi_comm.send_cmd( midi_player_cmd::play{} );
+  g_midi_comm.send_cmd( command::volume{vol} );
+  g_midi_comm.send_cmd( command::play{} );
   sleep( 500ms );
   while( true ) {
-    if( g_midi_comm.state() == e_midi_player_state::failed ) {
+    if( g_midi_comm.state() == e_midiseq_state::failed ) {
       logger->info(
           "MIDI thread has failed and is no longer active." );
       break;
@@ -814,28 +816,28 @@ void test_midi() {
     cin >> in;
     sleep( milliseconds( 20 ) );
     if( in == "p" ) {
-      g_midi_comm.send_cmd( midi_player_cmd::play{} );
+      g_midi_comm.send_cmd( command::play{} );
       continue;
     }
     if( in == "s" ) {
-      g_midi_comm.send_cmd( midi_player_cmd::pause{} );
+      g_midi_comm.send_cmd( command::pause{} );
       continue;
     }
     if( in == "n" ) {
-      g_midi_comm.send_cmd( midi_player_cmd::next{} );
+      g_midi_comm.send_cmd( command::next{} );
       continue;
     }
     if( in == "u" ) {
       vol += .1;
       vol = std::clamp( vol, 0.0, 1.0 );
-      g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
+      g_midi_comm.send_cmd( command::volume{vol} );
       logger->info( "Volume: {}", vol );
       continue;
     }
     if( in == "d" ) {
       vol -= .1;
       vol = std::clamp( vol, 0.0, 1.0 );
-      g_midi_comm.send_cmd( midi_player_cmd::volume{vol} );
+      g_midi_comm.send_cmd( command::volume{vol} );
       logger->info( "Volume: {}", vol );
       continue;
     }
@@ -849,4 +851,4 @@ void test_midi() {
   }
 }
 
-} // namespace rn
+} // namespace rn::midiseq

@@ -43,35 +43,36 @@
 //           the volume.  Gain beyond the standard volume would
 //           need to be done with the synthesizer.
 //
-ADT( /*namespace */ rn,    //
-     midi_player_cmd,      //
-     ( play ),             //
-     ( next ),             //
-     ( pause ),            //
-     ( off ),              //
-     ( volume,             //
-       ( double, value ) ) //
+ADT( /*namespace */ rn::midiseq, //
+     command,                    //
+     ( play ),                   //
+     ( next ),                   //
+     ( pause ),                  //
+     ( off ),                    //
+     ( volume,                   //
+       ( double, value ) )       //
 );
 
-namespace rn {
+namespace rn::midiseq {
 
 // State held by (and updated by) the midi thread.
-enum class e_( midi_player_state,
+enum class e_( midiseq_state,
                playing, //
                paused,  //
                failed,  //
                off      //
 );
 
-bool is_midi_playable();
+bool midiseq_enabled();
 // We can get state, but not set it. To change the state of the
 // midi player you must send it commands.
-e_midi_player_state midi_player_state();
+e_midiseq_state midiseq_state();
 
-void send_command_to_midi_player( midi_player_cmd_t cmd );
+bool is_processing_commands();
+
+void send_command( command_t cmd );
 
 // Testing.
 void test_midi();
-void play_midi_file( std::string const& file );
 
-} // namespace rn
+} // namespace rn::midiseq
