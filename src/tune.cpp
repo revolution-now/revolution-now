@@ -45,7 +45,8 @@ using DimensionTuple = tuple<e_tune_tempo,           //
                              e_tune_sentiment,       //
                              e_tune_key,             //
                              e_tune_tonality,        //
-                             e_tune_epoch            //
+                             e_tune_epoch,           //
+                             e_tune_purpose          //
                              >;
 constexpr auto k_num_dimensions =
     tuple_size<DimensionTuple>::value;
@@ -84,6 +85,9 @@ Vec<pair<TuneId, int>> tune_difference_scores(
       score++;
     if( dims.epoch.has_value() &&
         tune.dimensions.epoch != dims.epoch.value() )
+      score++;
+    if( dims.purpose.has_value() &&
+        tune.dimensions.purpose != dims.purpose.value() )
       score++;
     scores.emplace_back( id, score );
   }
@@ -141,6 +145,7 @@ TuneOptDimensions TuneDimensions::to_optional() const {
       key,             //
       tonality,        //
       epoch,           //
+      purpose,         //
   };
 }
 
@@ -181,7 +186,8 @@ Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
       ( dims.sentiment.has_value() ? 1 : 0 ) +       //
       ( dims.key.has_value() ? 1 : 0 ) +             //
       ( dims.tonality.has_value() ? 1 : 0 ) +        //
-      ( dims.epoch.has_value() ? 1 : 0 );            //
+      ( dims.epoch.has_value() ? 1 : 0 ) +           //
+      ( dims.purpose.has_value() ? 1 : 0 );          //
   CHECK( enabled_dimensions <= k_num_dimensions );
 
   if( !fuzzy_match ) {
@@ -224,7 +230,8 @@ TuneId random_tune() {
       rng::pick_one<e_tune_sentiment>(),       //
       rng::pick_one<e_tune_key>(),             //
       rng::pick_one<e_tune_tonality>(),        //
-      rng::pick_one<e_tune_epoch>()            //
+      rng::pick_one<e_tune_epoch>(),           //
+      rng::pick_one<e_tune_purpose>()          //
   }
                          .to_optional() )[0];
 }

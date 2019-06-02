@@ -336,6 +336,7 @@ SUPPORT_ENUM( e_tune_sentiment )
 SUPPORT_ENUM( e_tune_key )
 SUPPORT_ENUM( e_tune_tonality )
 SUPPORT_ENUM( e_tune_epoch )
+SUPPORT_ENUM( e_tune_purpose )
 
 // Coord
 template<>
@@ -436,7 +437,8 @@ void populate_config_field( ucl::Ucl obj, TuneDimensions& dest,
       ( e_tune_sentiment, sentiment ),             //
       ( e_tune_key, key ),                         //
       ( e_tune_tonality, tonality ),               //
-      ( e_tune_epoch, epoch )                      //
+      ( e_tune_epoch, epoch ),                     //
+      ( e_tune_purpose, purpose )                  //
       ) );
 }
 

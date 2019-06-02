@@ -34,6 +34,7 @@ enum class e_( tune_key, a, bb, b, c, cs, d, eb, e, f, fs, g,
                ab );
 enum class e_( tune_tonality, major, minor );
 enum class e_( tune_epoch, standard, post_revolution );
+enum class e_( tune_purpose, standard, special_event );
 
 struct TuneOptDimensions {
   Opt<e_tune_tempo>           tempo;
@@ -44,6 +45,7 @@ struct TuneOptDimensions {
   Opt<e_tune_key>             key;
   Opt<e_tune_tonality>        tonality;
   Opt<e_tune_epoch>           epoch;
+  Opt<e_tune_purpose>         purpose;
 };
 
 struct TuneDimensions {
@@ -57,6 +59,7 @@ struct TuneDimensions {
   e_tune_key             key;
   e_tune_tonality        tonality;
   e_tune_epoch           epoch;
+  e_tune_purpose         purpose;
 };
 
 // Client code is not supposed to get access to this struct di-
