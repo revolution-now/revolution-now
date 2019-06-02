@@ -22,3 +22,8 @@ Game mechanics:
 UI:
 
   - Panel can be opened/closed with a sliding animation.
+
+Core Libraries:
+
+  - Need to use a custom variant implementation (call it var1ant
+    that does not have any exception stuff in it.

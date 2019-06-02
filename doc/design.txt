@@ -16,13 +16,12 @@ Music Conductor (conductor.h/conductor.cpp)
 ===============
 
 The `conductor` module is the interface that the rest of the game
-uses to the music system. It is responsible for the following
-things:
+uses to the music system. It performs the following roles:
 
-  - Gathering all of the different music players.
-  - Selecting which music player to use.
+  - Gathers all of the different music players.
+  - Selecting/switching music player.
   - Taking commands from the user/game to control the music
-    player, such as current tune, volume, etc.
+    player, such as current tune, volume, play, stop, etc.
   - Managing the playlist. This includes figuring out which song
     to play when.
 
@@ -30,96 +29,108 @@ The interface will be a collection of functions in a namespace:
 
   namespace conductor {
 
-    enum class e_music_player {
-      silent,
-      midiseq
-    };
+  enum class e_music_player {
+    silent,
+    midiseq
+  };
 
-    enum class e_conductor_event {
-      start_tune,
-      finish_tune,
-      volume_change,
-      pause,
-      resume,
-      mplayer_changed
-    };
+  enum class e_conductor_event {
+    start_tune,
+    finish_tune,
+    volume_change,
+    pause,
+    resume,
+    mplayer_changed
+  };
 
-    enum class e_music_state {
-      playing,
-      stopped,
-      paused
-    };
+  enum class e_music_state {
+    playing,
+    stopped,
+    paused
+  };
 
-    enum class e_special_music_event {
-      fountain_of_youth,
-      king_raise_taxes,
-      founding_father
-    };
+  enum class e_special_music_event {
+    fountain_of_youth,
+    king_raise_taxes,
+    founding_father
+  };
 
-    struct ConductorInfo {
-      e_music_state          music_state;
-      Opt<TuneInfo>          playing_now;
-      Opt<double>            volume;
-      bool                   autoplay;
-      MusicPlayerInfo const* player_info;
-    };
+  struct ConductorInfo {
+    e_music_player         mplayer;
+    e_music_state          music_state;
+    Opt<TunePlayerInfo>    playing_now;
+    Opt<double>            volume;
+    bool                   autoplay;
+  };
 
-    FlatMap<e_music_player, MusicPlayerInfo> const&
-      all_music_players();
+  struct MusicPlayerInfo {
+    bool        enabled;
+    std::string name;
+    std::string description;
+    std::string how_it_works;
+  };
 
-    // Get the current state of the conductor. If not music
-    // players are available then we get an `unexpected`.
-    expect<MusicPlayerInfo> state();
+  MusicPlayerInfo const& music_player_info( e_music_player mplayer );
 
-    // Since the conductor does not run in its own thread it
-    // needs to be send ticks on each frame so that it can manage
-    // things like autoplay. Note: this should ideally just be
-    // called each frame (will be lightweight) but the timing
-    // does not matter precisely, because e.g. this is not being
-    // used to generate music (that will always happen asynchro-
-    // nously for all music players).
-    void tick();
+  // Stops any playing music and changes the music player. Re-
+  // turns true if success and false otherwise. If it fails then
+  // no music player will be enabled.
+  bool set_music_player( e_music_player mplayer );
 
-    // This will allow other code to recieve messages when the
-    // conductor performs certain events. It will always send the
-    // notification after the event.
-    void subscribe_to_event(
-          e_conductor_event, std::function<void(void)> );
+  // Get the current state of the conductor. If no music players
+  // are available then we get an `unexpected`.
+  expect<ConductorInfo> state();
 
-    // If this is off then the conductor will never automatically
-    // advance to the next tune when one is complete.
-    void set_autoplay( bool enabled );
-    // Play. If a tune is specified the it will start with that
-    // one and then keep playing (from the random playlist if au-
-    // toplay is enabled). Otherwise, if a tune is not specified,
-    // it will enable auto play and start playing.
-    void play( Opt<TuneId> id );
-    // Skip to beginning of this tune if > 5% progress, or pre-
-    // vious tune if < 5% progress. If progress is not available
-    // then just skip to previous tune.
-    void prev();
-    // Skip to next tune in playlist. If we are paused this will
-    // go into the stop state after advancing to the next tune.
-    // If we are stopped then it will just advance to the next
-    // tune. In any case it will not start player.
-    void next();
-    // Stop playing current tune (if playing) and forget current
-    // place in tune.
-    void stop();
-    // If supported, stop playing but remember place in tune.
-    void pause();
-    // If supported, and if paused, resume playing.
-    void resume();
-    // If supported, jump to a certain place [0,1.0] in tune.
-    void seek( double pos );
+  // This will allow other code to recieve messages when the con-
+  // ductor performs certain events. It will always send the no-
+  // tification after the event. All functions are called in the
+  // game's main thread.
+  void subscribe_to_event(
+        e_conductor_event, std::function<void(void)> );
 
-    // Tune Selection. Each of these methods will search through
-    // available tunes and select one that meets the criteria and
-    // then play it if requested. If the tune is played then the
-    // conductor will return to autoplay when it is finished.
-    #define PLAY( what ) \
-      TuneId play_ ## what( bool play = true )
+  // If this is off then the conductor will never automatically
+  // advance to the next tune when one is complete.
+  void set_autoplay( bool enabled );
 
+  // Play. If a tune is specified the it will start with that one
+  // and then keep playing (from the random playlist if autoplay
+  // is enabled). Otherwise, if a tune is not specified, it will
+  // enable auto play and start playing.
+  void play( Opt<TuneId> id );
+
+  // Skip to beginning of this tune if > 5% progress, or previous
+  // tune if < 5% progress. If progress is not available then
+  // just skip to previous tune.
+  void prev();
+
+  // Skip to next tune in playlist. If we are paused this will go
+  // into the stop state after advancing to the next tune. If we
+  // are stopped then it will just advance to the next tune. In
+  // any case it will not start player.
+  void next();
+
+  // Stop playing current tune (if playing) and forget current
+  // place in tune.
+  void stop();
+
+  // If supported, stop playing but remember place in tune.
+  void pause();
+
+  // If supported, and if paused, resume playing.
+  void resume();
+
+  // If supported, jump to a certain place [0,1.0] in tune.
+  void seek( double pos );
+
+  // Tune Selection. Each of these methods will search through
+  // available tunes and select one that meets the criteria and
+  // then play it if requested. If the tune is played then the
+  // conductor will return to autoplay when it is finished, if
+  // autoplay is enabled.
+  #define PLAY( what ) \
+    TuneId what( bool play = true )
+
+  namespace play {
     PLAY( won_battle_europeans );
     PLAY( won_battle_natives );
     PLAY( lost_battle_europeans );
@@ -142,40 +153,37 @@ The interface will be a collection of functions in a namespace:
     PLAY( king_happy );
     PLAY( king_sad );
     PLAY( king_war );
+  }
 
-    // Playlists.
+  // Playlists.
 
-    // Get full playlist and current tune (or next up if not
-    // playing).
-    std::pair<Vec<TuneId>,int> const& playlist();
+  // Get full playlist and current tune (or next up if not play-
+  // ing).
+  std::pair<Vec<TuneId>,int> const& playlist();
 
-    // Regenerate a new playlist. We will not merely shuffle here
-    // because the playlist must satisfy some invariants.
-    playlist_shuffle();
+  // Generate a random playlist. If one exists it will be regen-
+  // erated (we will not merely shuffle here because the playlist
+  // must satisfy some invariants).
+  playlist_generate();
 
-    // E.g. if we want a playlist that excludes all native tunes
-    // or all post-revolution tunes.
-    playlist_regen_excluding( TuneOptDimensions dimensions );
+  // E.g. if we want a playlist that excludes all native tunes or
+  // all post-revolution tunes. If playing this will take effect
+  // on the next tune.
+  playlist_generate_excluding( TuneOptDimensions dimensions );
+
   }
 
 Initialization
 
 When the conductor initializes it does a few things:
 
-  - Generates a random playlist. For this it will first generate
-    a random list of tunes whose length is 10 times the total
-    number of tunes. This list must obey two constraints: 1. it
-    cannot play a tune that was already played in the last five
-    items in the playlist, unless there are fewer than five total
-    tunes. 2. the last tune shall not be the same as the first
-    tune. Finally, it will take this list and create an infinite
-    cycle out of it effectively creating an infinite
-    random-sounding playlist.
+  - Generates a random playlist using playlist_generate().
 
   - Gathers a list of all available music players. Each music
-    player will correspond to a private enum. A map will be cre-
-    ated from enum to music player info object by calling the
-    Music Player's static `player` method.
+    player will correspond to an enum value in e_music_player. A
+    map will be created from enum to music player info and an-
+    other map to MusicPlayer pointer (by calling the Music Play-
+    er's static `player` method).
 
   - The conductor will set the active music player by consulting
     the config file for the first choice; if that is not avail-
@@ -183,14 +191,57 @@ When the conductor initializes it does a few things:
     available then the first available one will be selected. If
     none are available then the conductor simply will not play
     music, though its API methods can still be called in general.
+    It may be desirable during development to have the default
+    music player be the "silent" one so that the game can still
+    be tested with a music player enabled but no music will be
+    produced until the music player is switched.
 
-  - In order for a music player to be selected as enabled it must
-    meet a few criteria.  1. good() == true.  2. The can_play_tune
-    must return true for all tunes.
+  - In order for a music player to be considered as enabled it
+    must meet a few criteria. 1. good() == true. 2. The
+    can_play_tune must return true for all tunes. The init rou-
+    tine will check this.
 
   - The conductor will make sure that there is precisely one tune
     associated to each special music event, and this would come
     from the conductor's config file.
+
+Playlist Generation
+
+  For this it will first generate a random list of tunes,
+  choosing among all the tunes who have purpose=standard. The
+  length of this list will be 10 times the total number of tunes.
+  This list must obey two constraints: 1. it cannot play a tune
+  that was already played in the last five items in the playlist,
+  unless there are fewer than five total tunes. 2. the last tune
+  shall not be the same as the first tune. Finally, it will take
+  the list and create an infinite cycle out of it effectively
+  creating an infinite random-sounding playlist.
+
+Tick
+
+  Since the conductor does not run in its own thread it needs to
+  be sent ticks on each frame so that it can manage things like
+  autoplay. This will be done via a new frame-loop-subscription
+  API in the frame module. The conductor module will supply a
+  callback that does the following:
+
+    - Maintains a counter and just increments the counter on each
+      call. When the counter hits a threshold value (specified in
+      config files) then the tick callback will perform its du-
+      ties, otherwise it will just return and do nothing to avoid
+      adding any overhead to the frame loop.
+
+    - Will check up on the current music player to make sure that
+      it is still in good condition. If not then it will attempt
+      to switch to another music player.
+
+    - If no tunes are playing and autoplay is enabled then it
+      will kick off the next tune in the playlist.
+
+  Note: this should be called each frame (will be lightweight)
+  but the timing does not matter precisely, because e.g. this is
+  not being used to generate music (that will always happen asyn-
+  chronously for all music players).
 
 Music Player (mplayer.h/mplayer.cpp)
 ============
