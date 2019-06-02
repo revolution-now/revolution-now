@@ -586,11 +586,13 @@ void init_configs() {
   }
 }
 
+void cleanup_configs() {}
+
 } // namespace
 
 #include "../config/config-vars.inl"
 
-REGISTER_INIT_ROUTINE( configs, init_configs, [] {} );
+REGISTER_INIT_ROUTINE( configs );
 
 Vec<Color> const& g_palette() {
   static Vec<Color> const& colors = [] {

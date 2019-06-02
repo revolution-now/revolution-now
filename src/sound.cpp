@@ -85,7 +85,7 @@ void cleanup_sound() {
 
 } // namespace
 
-REGISTER_INIT_ROUTINE( sound, init_sound, cleanup_sound );
+REGISTER_INIT_ROUTINE( sound );
 
 bool play_music_file( char const* file ) {
   stop_music_if_playing();

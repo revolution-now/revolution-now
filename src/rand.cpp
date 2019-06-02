@@ -36,14 +36,6 @@ auto& maybe_engine() {
   return engine;
 }
 
-// If a seed is not provided then it will use one from std::ran-
-// dom_device.
-void init_rng( Opt<uint32_t> maybe_seed = nullopt ) {
-  auto seed =
-      maybe_seed.value_or( uint32_t( random_device{}() ) );
-  maybe_engine() = default_random_engine( seed );
-}
-
 } // namespace
 
 default_random_engine& engine() {
@@ -81,7 +73,22 @@ int between( int lower, int upper, e_interval type ) {
 
 } // namespace rng
 
-REGISTER_INIT_ROUTINE(
-    rng, [] { rng::init_rng(); }, [] {} );
+namespace {
+
+// If a seed is not provided then it will use one from std::ran-
+// dom_device.
+void init_rng() {
+  // Change this to get a fixed seed.
+  Opt<uint32_t> maybe_seed = nullopt;
+  auto          seed =
+      maybe_seed.value_or( uint32_t( random_device{}() ) );
+  rng::maybe_engine() = default_random_engine( seed );
+}
+
+void cleanup_rng() {}
+
+} // namespace
+
+REGISTER_INIT_ROUTINE( rng );
 
 } // namespace rn

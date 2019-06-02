@@ -1107,7 +1107,7 @@ void cleanup_menus() {
   menu_bar_tx.free();
 }
 
-REGISTER_INIT_ROUTINE( menus, init_menus, cleanup_menus );
+REGISTER_INIT_ROUTINE( menus );
 
 /****************************************************************
 ** Handlers (temporary)

@@ -204,7 +204,7 @@ void cleanup_planes() {
   for( auto& tx : textures ) tx = {};
 }
 
-REGISTER_INIT_ROUTINE( planes, init_planes, cleanup_planes );
+REGISTER_INIT_ROUTINE( planes );
 
 } // namespace
 

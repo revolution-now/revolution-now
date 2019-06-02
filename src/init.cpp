@@ -117,8 +117,10 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  }},
                 {e_init_routine::terrain,
                  {
-                     e_init_routine::configs, //
-                     e_init_routine::sdl      //
+                     e_init_routine::configs,  //
+                     e_init_routine::renderer, // for block cache
+                     e_init_routine::sprites,  // for block cache
+                     e_init_routine::sdl       //
                  }},
                 {e_init_routine::tunes,
                  {
@@ -127,7 +129,6 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  }},
                 {e_init_routine::midiseq,
                  {
-                     e_init_routine::tunes,   //
                      e_init_routine::configs, //
                  }},
                 {e_init_routine::midiplayer,
@@ -137,6 +138,7 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  }},
                 {e_init_routine::conductor,
                  {
+                     e_init_routine::tunes,      //
                      e_init_routine::midiplayer, //
                      // *** Should depend on all future music
                      // players added.

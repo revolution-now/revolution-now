@@ -49,8 +49,7 @@ void init_midiplayer() {
   }
 }
 
-REGISTER_INIT_ROUTINE( midiplayer, init_midiplayer,
-                       cleanup_midiplayer );
+REGISTER_INIT_ROUTINE( midiplayer );
 
 pair<MusicPlayerDesc, MaybeMusicPlayer>
 MidiSeqMusicPlayer::player() {

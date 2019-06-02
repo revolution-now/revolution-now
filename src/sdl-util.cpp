@@ -101,7 +101,7 @@ void cleanup_sdl() {
   ::SDL_Quit();
 }
 
-REGISTER_INIT_ROUTINE( sdl, init_sdl, cleanup_sdl );
+REGISTER_INIT_ROUTINE( sdl );
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
 

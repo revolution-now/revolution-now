@@ -68,8 +68,6 @@ struct ImagePlane : public Plane {
 
 ImagePlane g_image_plane;
 
-} // namespace
-
 // This will cause all images to be loaded into memory but the
 // resulting textures will not be owned by this module, so there
 // is no need for a corresponding `release` function.
@@ -83,8 +81,13 @@ void init_images() {
   for( auto const& p : g_images ) CHECK( p.second.get().get() );
 }
 
+void cleanup_images() {}
+
+} // namespace
+
 //
-REGISTER_INIT_ROUTINE( images, init_images, [] {} );
+//
+REGISTER_INIT_ROUTINE( images );
 
 Plane* image_plane() { return &g_image_plane; }
 

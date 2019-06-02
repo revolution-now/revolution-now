@@ -177,10 +177,12 @@ void init_sprites() {
   SET_SPRITE_BUTTON( button_down_lr );
 }
 
+void cleanup_sprites() {}
+
 } // namespace
 
 //
-REGISTER_INIT_ROUTINE( sprites, init_sprites, [] {} );
+REGISTER_INIT_ROUTINE( sprites );
 
 sprite const& lookup_sprite( g_tile tile ) {
   auto where = sprites.find( tile );

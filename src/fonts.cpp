@@ -116,7 +116,7 @@ void cleanup_fonts() {
   TTF_Quit();
 }
 
-REGISTER_INIT_ROUTINE( fonts, init_fonts, cleanup_fonts );
+REGISTER_INIT_ROUTINE( fonts );
 
 } // namespace
 

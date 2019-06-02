@@ -260,6 +260,8 @@ void init_screen() {
   find_pixel_scale_factor();
 }
 
+void cleanup_screen() {}
+
 void init_app_window() {
   // NOLINTNEXTLINE(hicpp-signed-bitwise)
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
@@ -350,13 +352,9 @@ void cleanup_renderer() {
 
 } // namespace
 
-REGISTER_INIT_ROUTINE( screen, init_screen, [] {} );
-
-REGISTER_INIT_ROUTINE( app_window, init_app_window,
-                       cleanup_app_window );
-
-REGISTER_INIT_ROUTINE( renderer, init_renderer,
-                       cleanup_renderer );
+REGISTER_INIT_ROUTINE( screen );
+REGISTER_INIT_ROUTINE( app_window );
+REGISTER_INIT_ROUTINE( renderer );
 
 void inc_resolution_scale() {
   int scale     = g_resolution_scale_factor.sx._;

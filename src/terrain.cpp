@@ -86,7 +86,7 @@ void cleanup_terrain() { block_cache.clear(); }
 
 } // namespace
 
-REGISTER_INIT_ROUTINE( terrain, init_terrain, cleanup_terrain );
+REGISTER_INIT_ROUTINE( terrain );
 
 void render_terrain_square( Texture const& tx,
                             Coord          world_square,

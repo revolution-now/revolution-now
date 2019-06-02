@@ -762,7 +762,7 @@ void cleanup_midiseq() {
 
 } // namespace
 
-REGISTER_INIT_ROUTINE( midiseq, init_midiseq, cleanup_midiseq );
+REGISTER_INIT_ROUTINE( midiseq );
 
 /****************************************************************
 ** User API

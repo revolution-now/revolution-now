@@ -30,8 +30,7 @@ void cleanup_conductor() {
 
 } // namespace
 
-REGISTER_INIT_ROUTINE( conductor, init_conductor,
-                       cleanup_conductor );
+REGISTER_INIT_ROUTINE( conductor );
 
 void ConductorInfo::log() const {}
 

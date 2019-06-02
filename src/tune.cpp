@@ -128,12 +128,12 @@ void init_tunes() {
   }
 }
 
-void clean_tunes() {}
+void cleanup_tunes() {}
 
 } // namespace
 
 //
-REGISTER_INIT_ROUTINE( tunes, init_tunes, clean_tunes );
+REGISTER_INIT_ROUTINE( tunes );
 
 TuneOptDimensions TuneDimensions::to_optional() const {
   return {

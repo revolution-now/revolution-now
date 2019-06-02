@@ -53,10 +53,10 @@ void register_init_routine( e_init_routine      routine,
                             InitFunction const& init_func,
                             InitFunction const& cleanup_func );
 
-#define REGISTER_INIT_ROUTINE( name, init_func, cleanup_func ) \
-  STARTUP() {                                                  \
-    register_init_routine( e_init_routine::name, init_func,    \
-                           cleanup_func );                     \
+#define REGISTER_INIT_ROUTINE( name )                         \
+  STARTUP() {                                                 \
+    register_init_routine( e_init_routine::name, init_##name, \
+                           cleanup_##name );                  \
   }
 
 // Will run initialization routines in order of dependencies. If
