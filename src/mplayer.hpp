@@ -31,20 +31,13 @@ struct TunePlayerInfo {
   Opt<double>     progress;
 };
 
-struct MusicPlayerInfo {
+struct MusicPlayerDesc {
   // E.g. "MIDI File Player"
   std::string name;
-
   // E.g. "Plays MIDI files using a player-supplied softsynth"
   std::string description;
-
   // E.g. "To use this music player you must have..."
   std::string how_it_works;
-
-  // Will be non-null if the player successfully initialized and
-  // is able to play music. Otherwise will contain an error indi-
-  // cating why.
-  expect<Ref<MusicPlayer>> player;
 };
 
 struct MusicPlayerState {
@@ -74,6 +67,8 @@ struct MusicPlayerCapabilities {
   bool can_seek{false};
 };
 
+using MaybeMusicPlayer = expect<Ref<MusicPlayer>>;
+
 // It is important to note when using this class that, in gen-
 // eral, calling the member functions may not cause instantaneous
 // change to the real underlying music player for which this
@@ -89,6 +84,9 @@ struct MusicPlayerCapabilities {
 // accepts a timeout to avoid hanging if something goes wrong.
 class MusicPlayer : public util::movable_only {
 public:
+  // All subclasses must have one of these.
+  /* static pair<MusicPlayerDesc, MaybeMusicPlayer> player(); */
+
   // Check if the player is enabled. If the Music Player object
   // exists then it should be enabled, unless either a) it failed
   // to initialize or b) a fatal error happens within the player
@@ -112,7 +110,7 @@ public:
   virtual void stop() = 0;
 
   // Returns some general information about this music player.
-  virtual MusicPlayerInfo info() const = 0;
+  virtual MusicPlayerDesc info() const = 0;
 
   // Returns a structure giving the current state of the player,
   // such as whether it is playing a tune, progress through the
@@ -172,9 +170,9 @@ void test_music_player_impl( MusicPlayer& mplayer );
 
 template<typename MusicPlayerT>
 void test_music_player() {
-  auto mplayer_info = MusicPlayerT::player();
-  if( mplayer_info.player.has_value() )
-    test_music_player_impl( *mplayer_info.player );
+  auto mplayer_desc = MusicPlayerT::player();
+  if( mplayer_desc.second.has_value() )
+    test_music_player_impl( *mplayer_desc.second );
 }
 
 } // namespace rn

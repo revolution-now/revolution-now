@@ -22,12 +22,14 @@ namespace {
 
 class SilentMusicPlayer : public MusicPlayer {
 public:
-  static MusicPlayerInfo player() {
+  static pair<MusicPlayerDesc, MaybeMusicPlayer> player() {
     static SilentMusicPlayer player;
     return {
-        /*name=*/"Silent Music Player",
-        /*description=*/"For testing; does not play music",
-        /*how_it_works=*/"It doesn't.",
+        /*desc=*/{
+            /*name=*/"Silent Music Player",
+            /*description=*/"For testing; does not play music",
+            /*how_it_works=*/"It doesn't.",
+        },
         /*player=*/player,
     };
   }
@@ -56,8 +58,8 @@ public:
     id_ = nullopt;
   }
 
-  MusicPlayerInfo info() const override {
-    return SilentMusicPlayer::player();
+  MusicPlayerDesc info() const override {
+    return SilentMusicPlayer::player().first;
   }
 
   // Implement MusicPlayer

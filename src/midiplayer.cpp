@@ -52,23 +52,26 @@ void init_midiplayer() {
 REGISTER_INIT_ROUTINE( midiplayer, init_midiplayer,
                        cleanup_midiplayer );
 
-MusicPlayerInfo MidiSeqMusicPlayer::player() {
+pair<MusicPlayerDesc, MaybeMusicPlayer>
+MidiSeqMusicPlayer::player() {
   auto name         = "MIDI Sequencer Music Player";
   auto description  = "MIDI Music Player with Sequencer";
   auto how_it_works = "There must be a synth available.";
+
+  auto desc = MusicPlayerDesc{
+      /*name=*/name,
+      /*description=*/description,
+      /*how_it_works=*/how_it_works,
+  };
+
   if( g_midiseq_player.has_value() ) {
     return {
-        /*name=*/name,
-        /*description=*/description,
-        /*how_it_works=*/how_it_works,
-        /*player=*/*g_midiseq_player,
+        desc,
+        *g_midiseq_player,
     };
   } else {
     return {
-        /*name=*/name,
-        /*description=*/description,
-        /*how_it_works=*/how_it_works,
-        /*player=*/
+        desc,
         UNEXPECTED( "MIDI Sequencer failed to initialize" ),
     };
   }
@@ -109,8 +112,8 @@ void MidiSeqMusicPlayer::stop() {
   midiseq::send_command( midiseq::command::stop{} );
 }
 
-MusicPlayerInfo MidiSeqMusicPlayer::info() const {
-  return MidiSeqMusicPlayer::player();
+MusicPlayerDesc MidiSeqMusicPlayer::info() const {
+  return MidiSeqMusicPlayer::player().first;
 }
 
 MusicPlayerState MidiSeqMusicPlayer::state() const {

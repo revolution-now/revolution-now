@@ -20,7 +20,7 @@ namespace rn {
 // A MusicPlayer with a MIDI sequencer backend.
 class MidiSeqMusicPlayer : public MusicPlayer {
 public:
-  static MusicPlayerInfo player();
+  static std::pair<MusicPlayerDesc, MaybeMusicPlayer> player();
 
   // Implement MusicPlayer
   bool good() const override;
@@ -34,7 +34,7 @@ public:
   // Implement MusicPlayer
   void stop() override;
 
-  MusicPlayerInfo info() const override;
+  MusicPlayerDesc info() const override;
 
   // Implement MusicPlayer
   MusicPlayerState state() const override;
