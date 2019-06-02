@@ -12,9 +12,9 @@ let s:stems = [
   \ 'src/mplayer',
   \ 'src/midiseq',
   \ 'src/midiplayer',
+  \ 'src/conductor',
 \]
 
-  "\ 'src/conductor',
   "\ 'src/sdlmplayer',
   "\ 'src/input',
   "\ 'src/frame',

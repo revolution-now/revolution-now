@@ -35,6 +35,7 @@ enum class e_( init_routine,
                app_window, //
                midiseq,    //
                midiplayer, //
+               conductor,  //
                tunes,      //
                screen,     //
                renderer,   //

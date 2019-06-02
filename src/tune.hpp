@@ -74,6 +74,13 @@ struct Tune {
   TuneDimensions dimensions;
 };
 
+// This can only be populated by a music player.
+struct TunePlayerInfo {
+  TuneId          id;
+  Opt<Duration_t> length;
+  Opt<double>     progress;
+};
+
 /****************************************************************
 ** Tune API
 *****************************************************************

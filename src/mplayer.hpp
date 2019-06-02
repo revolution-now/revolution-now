@@ -24,13 +24,6 @@ namespace rn {
 
 class MusicPlayer;
 
-// This can only be populated by a music player.
-struct TunePlayerInfo {
-  TuneId          id;
-  Opt<Duration_t> length;
-  Opt<double>     progress;
-};
-
 struct MusicPlayerDesc {
   // E.g. "MIDI File Player"
   std::string name;

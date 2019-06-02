@@ -1,4 +1,5 @@
 #include "auto-pad.hpp"
+#include "conductor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
@@ -85,11 +86,12 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::midiplayer );
+  run_all_init_routines( e_init_routine::conductor );
   // run_all_init_routines();
 
-  test_music_player<MidiSeqMusicPlayer>();
+  // test_music_player<MidiSeqMusicPlayer>();
   // midiseq::test();
+  conductor::test();
 
   // game();
   // ui::window_test();
