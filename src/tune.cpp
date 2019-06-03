@@ -40,19 +40,6 @@ namespace {
 
 absl::flat_hash_map<TuneId, Tune const*> g_tunes;
 
-using DimensionTuple = tuple<e_tune_tempo,           //
-                             e_tune_genre,           //
-                             e_tune_culture,         //
-                             e_tune_instrumentation, //
-                             e_tune_sentiment,       //
-                             e_tune_key,             //
-                             e_tune_tonality,        //
-                             e_tune_epoch,           //
-                             e_tune_purpose          //
-                             >;
-constexpr auto k_num_dimensions =
-    tuple_size<DimensionTuple>::value;
-
 // Return a list of pairs where there is one pair for each tune,
 // and each pair gives the tune ID and the score representing how
 // different it is (distance) from the given set of dimensions.
