@@ -33,7 +33,6 @@ enum class e_( music_player, //
 
 enum class e_( special_music_event, //
                fountain_of_youth,   //
-               king_raise_taxes,    //
                founding_father      //
 );
 

@@ -108,6 +108,8 @@ std::string const& tune_display_name_from_id( TuneId id );
 std::string const& tune_desc_from_id( TuneId id );
 std::string const& tune_stem_from_id( TuneId id );
 
+TuneDimensions const& tune_dimensions( TuneId id );
+
 // List all tunes that meet certain enum criteria. If
 // `fuzzy_match` is false then only tunes will be returned that
 // precisely fit the given criteria (either matching it or not

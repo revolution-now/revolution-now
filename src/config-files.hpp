@@ -7,6 +7,12 @@
 *
 * Description: Handles config file data.
 *
+*  FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+*  The config-vars.inl needs to be split because each time it
+*  changes (i.e., we add a new config module) it causes all files
+*  that include this one to be rebuilt (i.e., most).
+*  FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME FIXME
+*
 *****************************************************************/
 #pragma once
 
@@ -22,6 +28,7 @@
 #include "typed-int.hpp"
 #include "utype.hpp"
 
+#include <chrono>
 #include <optional>
 #include <string>
 #include <vector>

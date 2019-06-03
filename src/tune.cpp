@@ -181,6 +181,11 @@ string const& tune_stem_from_id( TuneId id ) {
   return g_tunes[id]->stem;
 }
 
+TuneDimensions const& tune_dimensions( TuneId id ) {
+  CHECK( g_tunes.contains( id ) );
+  return g_tunes[id]->dimensions;
+}
+
 Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
                         bool not_like ) {
   auto scores = tune_difference_scores( dims );

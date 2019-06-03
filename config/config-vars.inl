@@ -252,7 +252,7 @@ CFG( music,
   FLD( e_music_player, first_choice_music_player )
   FLD( e_music_player, second_choice_music_player )
 
-  FLD( double, threshold_previous_tune )
+  FLD( Seconds, threshold_previous_tune_secs )
 
   FLD( Vec<Tune>, tunes )
 

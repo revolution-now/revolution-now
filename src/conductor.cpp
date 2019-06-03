@@ -170,6 +170,8 @@ void init_conductor() {
   // Copy this so that we can use the operator[].
   auto m = config_music.special_event_tunes;
 
+  FlatSet<string> used_stems;
+
   // Now check that there is a tune assigned to each special
   // music event. That is defined as a game event where there
   // should always be the tune played.
@@ -184,6 +186,11 @@ void init_conductor() {
         logger->debug(
             "tune `{}` will be played for event `{}`.",
             tune_stem_from_id( tune_id ), event );
+        CHECK( !used_stems.contains( stem ),
+               "The tune `{}` is set to be used in multiple "
+               "special events.",
+               tune_stem_from_id( tune_id ) );
+        used_stems.insert( stem );
         g_special_tunes[event] = tune_id;
         break;
       }
@@ -342,19 +349,40 @@ void play() {
 }
 
 void prev() {
+  // In this function we alter our behavior depending on whether
+  // a tune is playing or not and, if it is, whether or not the
+  // progress has reached beyond a threshold. If it has then we
+  // simply rewind back to the beginning of the tune. If not then
+  // we move to the previous tune. This is to emulate the be-
+  // havior of most compact disc players.
   CONDUCTOR_INFO_OR_RETURN( info );
-  // If progress is not available then behave as if it is zero.
-  double      progress = 0.0;
+  // If progress and/or duration are not available then behave as
+  // if it is zero.
+  Duration_t  progress_time = 0s;
   Opt<TuneId> id;
   if( info.playing_now.has_value() ) {
-    if( ( *info.playing_now ).progress.has_value() )
-      progress = *( *info.playing_now ).progress;
+    if( ( *info.playing_now ).progress.has_value() ) {
+      double progress = *( *info.playing_now ).progress;
+      // Just use this as a dummy in case we dont' have duration.
+      // This means that if a music player does not provide dura-
+      // tion then we effectively consider the threshold to be a
+      // percentage (i.e., a threshold in the progess as opposed
+      // to threshold in elapsed time).
+      Duration_t tune_duration = 120s;
+      if( ( *info.playing_now ).length.has_value() )
+        tune_duration = *( *info.playing_now ).length;
+      progress_time = chrono::seconds( int(
+          chrono::duration_cast<chrono::seconds>( tune_duration )
+              .count() *
+          progress ) );
+    }
     id = ( *info.playing_now ).id;
   }
   switch( info.music_state ) {
     case +e_music_state::playing: {
       DCHECK( id );
-      if( progress > config_music.threshold_previous_tune )
+      if( progress_time >
+          config_music.threshold_previous_tune_secs )
         play_impl( *id );
       else
         play_impl( prev_tune_in_playlist() );
@@ -509,6 +537,9 @@ void playlist_generate() {
       timeout_countdown--;
       if( timeout_countdown <= 0 ) break;
       auto id = random_tune();
+      if( tune_dimensions( id ).purpose ==
+          e_tune_purpose::special_event )
+        continue;
       if( overlaps( id ) ) continue;
       res.push_back( id );
       last_n.erase( last_n.begin() );
@@ -521,9 +552,9 @@ void playlist_generate() {
       break;
     }
   }
-  logger->debug( "Playlist:" );
+  logger->trace( "Playlist:" );
   for( auto [idx, id] : res | rv::enumerate )
-    logger->debug( " {: >4}. {}", idx + 1,
+    logger->trace( " {: >4}. {}", idx + 1,
                    tune_display_name_from_id( id ) );
   CHECK( res.size() > 0 );
 

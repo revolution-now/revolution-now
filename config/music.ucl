@@ -3,11 +3,10 @@ midi_folder: assets/music/midi
 first_choice_music_player: midiseq
 second_choice_music_player: silent
 
-# This is the fraction (of unity) that represents the threshold
-# after which a "previous tune" command to the Conductor will
-# simply restart the current tune. Early than this it will go to
-# the previous tune.
-threshold_previous_tune: 0.10
+# This represents the threshold in seconds after which a "pre-
+# vious tune" command to the Conductor will simply restart the
+# current tune. Early than this it will go to the previous tune.
+threshold_previous_tune_secs: 6
 
 # Should autoplay be on initially.  Not sure why not.
 autoplay: true
@@ -50,7 +49,6 @@ tunes = [
 ]
 
 special_event_tunes = [
-  { key: king_raise_taxes,  val: "fife-and-drum-1" }
   { key: fountain_of_youth, val: "bonny-morn"      }
   { key: founding_father,   val: "fife-and-drum-1" }
 ]
