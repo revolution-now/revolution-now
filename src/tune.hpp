@@ -95,7 +95,7 @@ struct TunePlayerInfo {
 
 // Return list of stems of all tunes. The IDs themselves are not
 // useful to client code other than to iterate over the tunes.
-Vec<TuneId> all_tunes();
+Vec<TuneId> const& all_tunes();
 
 // Get Tune object for tune stem/id.
 std::string const& tune_display_name_from_id( TuneId id );

@@ -1,5 +1,8 @@
 midi_folder: assets/music/midi
 
+first_choice_music_player: midiseq
+second_choice_music_player: silent
+
 tunes = [
   {
     display_name:    "Fife & Drum March 1"
@@ -32,4 +35,10 @@ tunes = [
       purpose:         standard
     }
   }
+]
+
+special_event_tunes = [
+  { key: king_raise_taxes,  val: "fife-and-drum-1" }
+  { key: fountain_of_youth, val: "bonny-morn"      }
+  { key: founding_father,   val: "fife-and-drum-1" }
 ]

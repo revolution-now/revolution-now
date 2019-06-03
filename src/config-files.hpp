@@ -14,6 +14,7 @@
 
 #include "aliases.hpp"
 #include "color.hpp"
+#include "conductor.hpp"
 #include "coord.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"

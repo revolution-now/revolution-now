@@ -21,12 +21,25 @@
 // C++ standard library
 #include <functional>
 
-namespace rn::conductor {
+namespace rn {
 
+// NOTE: The ordering of these determines priority in the event
+// that the first and second choices (set in the config files)
+// are not available.
 enum class e_( music_player, //
-               silent,       //
-               midiseq       //
+               midiseq,      //
+               silent        //
 );
+
+enum class e_( special_music_event, //
+               fountain_of_youth,   //
+               king_raise_taxes,    //
+               founding_father      //
+);
+
+} // namespace rn
+
+namespace rn::conductor {
 
 enum class e_conductor_event {
   start_tune,
@@ -41,12 +54,6 @@ enum class e_( music_state, //
                playing,     //
                stopped,     //
                paused       //
-);
-
-enum class e_( special_music_event, //
-               fountain_of_youth,   //
-               king_raise_taxes,    //
-               founding_father      //
 );
 
 struct ConductorInfo {

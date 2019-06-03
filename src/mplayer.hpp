@@ -60,7 +60,8 @@ struct MusicPlayerCapabilities {
   bool can_seek{false};
 };
 
-using MaybeMusicPlayer = expect<Ref<MusicPlayer>>;
+// Needs to have a default constructor, so can't use ref.
+using MaybeMusicPlayer = expect<MusicPlayer*>;
 
 // It is important to note when using this class that, in gen-
 // eral, calling the member functions may not cause instantaneous
@@ -158,14 +159,71 @@ public:
   virtual void seek( double position );
 };
 
-// For testing
+/****************************************************************
+** Silent Music Player
+*
+* This is a no-op music player for those cases where we want to
+* have an active music player (that behaves as a real one) but we
+* don't want any music playing. This is probably mostly for test-
+* ing.
+*
+* This music player has the ability to simulate the playing of a
+* tune, including duration/progress, and also has the ability to
+* simulate failures to test overall error handling of the code
+* that manages music players.
+*****************************************************************/
+class SilentMusicPlayer : public MusicPlayer {
+public:
+  static std::pair<MusicPlayerDesc, MaybeMusicPlayer> player();
+
+  bool good() const override;
+
+  // Implement MusicPlayer
+  Opt<TunePlayerInfo> can_play_tune( TuneId id ) override;
+
+  // Implement MusicPlayer
+  bool play( TuneId id ) override;
+
+  // Implement MusicPlayer
+  void stop() override;
+
+  MusicPlayerDesc info() const override;
+
+  // Implement MusicPlayer
+  MusicPlayerState state() const override;
+
+  // Implement MusicPlayer
+  MusicPlayerCapabilities capabilities() const override;
+
+  // Implement MusicPlayer
+  bool fence( Opt<Duration_t> /*unused*/ ) override;
+
+  // Implement MusicPlayer
+  bool is_processing() const override;
+
+  // Implement MusicPlayer
+  void pause() override;
+
+  // Implement MusicPlayer
+  void resume() override;
+
+private:
+  SilentMusicPlayer() = default;
+
+  bool        is_paused_{false};
+  Opt<TuneId> id_{};
+};
+
+/****************************************************************
+**Testing
+*****************************************************************/
 void test_music_player_impl( MusicPlayer& mplayer );
 
 template<typename MusicPlayerT>
 void test_music_player() {
   auto mplayer_desc = MusicPlayerT::player();
   if( mplayer_desc.second.has_value() )
-    test_music_player_impl( *mplayer_desc.second );
+    test_music_player_impl( **mplayer_desc.second );
 }
 
 } // namespace rn

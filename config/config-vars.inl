@@ -243,7 +243,16 @@ CFG( sound,
 /****************************************************************
 * Music
 *****************************************************************/
+// This is to avoid commas in macro arguments.
+using SpecialMusicEventMap = FlatMap<e_special_music_event, Str>;
+
 CFG( music,
   FLD( fs::path, midi_folder )
-  FLD( Vec<Tune>, tunes );
+
+  FLD( e_music_player, first_choice_music_player )
+  FLD( e_music_player, second_choice_music_player )
+
+  FLD( Vec<Tune>, tunes )
+
+  FLD( SpecialMusicEventMap, special_event_tunes )
 )

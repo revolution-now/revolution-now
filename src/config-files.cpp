@@ -32,6 +32,7 @@
 
 // c++ standard library
 #include <string>
+#include <typeinfo>
 
 using namespace std;
 
@@ -250,6 +251,69 @@ void check_field_type( ucl::Ucl obj, UclType_t type,
          config_name, dotted, desc, obj.type() );
 }
 
+#define COLLECT_NESTED_FIELD( dest, type_, name_ )              \
+  {                                                             \
+    string name =                                               \
+        TO_STRING( name_ ); /* need this for macro expansion */ \
+    check_field_type(                                           \
+        obj[name], ucl_type_of_v<type_>, dotted, config_name,   \
+        "a object of type `"s + ucl_type_name_of_v<type_> +     \
+            "` named `" + name + "`" );                         \
+    path_field.push_back( name );                               \
+    populate_config_field( obj[name], dest, path_field,         \
+                           config_name, file );                 \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." +        \
+                             name );                            \
+  }
+
+#define COLLECT_NESTED_OBJ_FIELD( type_, name_ )                \
+  {                                                             \
+    string name =                                               \
+        TO_STRING( name_ ); /* need this for macro expansion */ \
+    check_field_type( obj[name], UCL_OBJECT, dotted,            \
+                      config_name,                              \
+                      "a object of type `"s + #type_ +          \
+                          "` named `" + name + "`" );           \
+    path_field.push_back( name );                               \
+    type_ obj_read{};                                           \
+    populate_config_field( obj[name], obj_read, path_field,     \
+                           config_name, file );                 \
+    dest.name_ = obj_read;                                      \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." +        \
+                             name );                            \
+  }
+
+#define COLLECT_NESTED_STR_FIELD( name_ )                       \
+  {                                                             \
+    string name =                                               \
+        TO_STRING( name_ ); /* need this for macro expansion */ \
+    check_field_type( obj[name], UCL_STRING, dotted,            \
+                      config_name,                              \
+                      "a string field named `"s + name + "`" ); \
+    path_field.push_back( name );                               \
+    dest.name_ = obj[name].string_value();                      \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." +        \
+                             name );                            \
+  }
+
+#define COLLECT_NESTED_ENUM_FIELD( type, name )                 \
+  {                                                             \
+    check_field_type( obj[#name], UCL_STRING, dotted,           \
+                      config_name,                              \
+                      "an enum field named `"s + #name +        \
+                          "` of type `" #type "`" );            \
+    path_field.push_back( #name );                              \
+    type name{};                                                \
+    populate_config_field( obj[#name], name, path_field,        \
+                           config_name, file );                 \
+    dest.name = name;                                           \
+    path_field.pop_back();                                      \
+    used_field_paths.insert( file + "." + dotted + "." #name ); \
+  }
+
 #define DECLARE_POPULATE( type )                            \
   template<typename T>                                      \
   void populate_config_field(                               \
@@ -322,7 +386,18 @@ void populate_config_field_enum( ucl::Ucl obj, Enum& dest,
       string const& config_name, string const& file ) {         \
     populate_config_field_enum( obj, dest, path, config_name,   \
                                 file, TO_STRING( EnumType ) );  \
-  }
+  }                                                             \
+  template<>                                                    \
+  struct ucl_type_of_t<EnumType> {                              \
+    static constexpr UclType_t value = UCL_STRING;              \
+    /* Need to use `value` to avoid unused var warning. */      \
+    ucl_type_of_t() { (void)value; }                            \
+  };                                                            \
+  template<>                                                    \
+  struct ucl_type_name_of_t<EnumType> {                         \
+    static constexpr char const* value = "UCL_STRING";          \
+    ucl_type_name_of_t() { (void)value; }                       \
+  };
 
 SUPPORT_ENUM( e_nation )
 SUPPORT_ENUM( e_direction )
@@ -337,6 +412,43 @@ SUPPORT_ENUM( e_tune_key )
 SUPPORT_ENUM( e_tune_tonality )
 SUPPORT_ENUM( e_tune_epoch )
 SUPPORT_ENUM( e_tune_purpose )
+SUPPORT_ENUM( e_music_player )
+SUPPORT_ENUM( e_special_music_event )
+
+// std::pair
+template<typename K, typename V>
+void populate_config_field( ucl::Ucl obj, pair<K, V>& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_OBJECT, dotted, config_name,
+                    "a pair object" );
+
+  auto path_field = path;
+
+  COLLECT_NESTED_FIELD( dest.first, K, key );
+  COLLECT_NESTED_FIELD( dest.second, V, val );
+}
+
+// FlatMap. For this we make the user input a list of pairs, each
+// of which has it's elements referenced by "key" and "val". We
+// don't use a native UCL dictionary (object) because they can
+// only have strings as keys.
+template<typename K, typename V>
+void populate_config_field( ucl::Ucl obj, FlatMap<K, V>& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  Vec<Pair<K, V>> assoc_list;
+
+  populate_config_field( obj, assoc_list, path, config_name,
+                         file );
+
+  dest.clear();
+  dest.insert( assoc_list.begin(), assoc_list.end() );
+}
 
 // Coord
 template<>
@@ -363,53 +475,6 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
   used_field_paths.insert( file + "." + dotted + ".x" );
   used_field_paths.insert( file + "." + dotted + ".y" );
 }
-
-#define COLLECT_NESTED_OBJ_FIELD( type_, name_ )                \
-  {                                                             \
-    string name =                                               \
-        TO_STRING( name_ ); /* need this for macro expansion */ \
-    check_field_type( obj[name], UCL_OBJECT, dotted,            \
-                      config_name,                              \
-                      "a object of type `"s + #type_ +          \
-                          "` named `" + name + "`" );           \
-    path_field.push_back( name );                               \
-    type_ obj_read{};                                           \
-    populate_config_field( obj[name], obj_read, path_field,     \
-                           config_name, file );                 \
-    dest.name_ = obj_read;                                      \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." +        \
-                             name );                            \
-  }
-
-#define COLLECT_NESTED_STR_FIELD( name_ )                       \
-  {                                                             \
-    string name =                                               \
-        TO_STRING( name_ ); /* need this for macro expansion */ \
-    check_field_type( obj[name], UCL_STRING, dotted,            \
-                      config_name,                              \
-                      "a string field named `"s + name + "`" ); \
-    path_field.push_back( name );                               \
-    dest.name_ = obj[name].string_value();                      \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." +        \
-                             name );                            \
-  }
-
-#define COLLECT_NESTED_ENUM_FIELD( type, name )                 \
-  {                                                             \
-    check_field_type( obj[#name], UCL_STRING, dotted,           \
-                      config_name,                              \
-                      "an enum field named `"s + #name +        \
-                          "` of type `" #type "`" );            \
-    path_field.push_back( #name );                              \
-    type name{};                                                \
-    populate_config_field( obj[#name], name, path_field,        \
-                           config_name, file );                 \
-    dest.name = name;                                           \
-    path_field.pop_back();                                      \
-    used_field_paths.insert( file + "." + dotted + "." #name ); \
-  }
 
 // TuneDimensions
 template<>

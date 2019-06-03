@@ -20,6 +20,7 @@
 
 // base-util
 #include "base-util/algo.hpp"
+#include "base-util/misc.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
@@ -149,14 +150,11 @@ TuneOptDimensions TuneDimensions::to_optional() const {
   };
 }
 
-Vec<TuneId> all_tunes() {
-  Vec<TuneId> res;
-  res.reserve( g_tunes.size() );
-  for( auto const& [id, tune_ptr] : g_tunes ) {
-    (void)tune_ptr;
-    res.push_back( id );
-  }
-  return res;
+Vec<TuneId> const& all_tunes() {
+  static Vec<TuneId> tunes;
+  if( tunes.empty() )
+    tunes = g_tunes | rv::transform( L( _.first ) );
+  return tunes;
 }
 
 string const& tune_display_name_from_id( TuneId id ) {

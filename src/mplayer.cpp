@@ -18,104 +18,95 @@ using namespace std;
 
 namespace rn {
 
-namespace {
+namespace {}
 
-class SilentMusicPlayer : public MusicPlayer {
-public:
-  static pair<MusicPlayerDesc, MaybeMusicPlayer> player() {
-    static SilentMusicPlayer player;
-    return {
-        /*desc=*/{
-            /*name=*/"Silent Music Player",
-            /*description=*/"For testing; does not play music",
-            /*how_it_works=*/"It doesn't.",
-        },
-        /*player=*/player,
-    };
+pair<MusicPlayerDesc, MaybeMusicPlayer>
+SilentMusicPlayer::player() {
+  static SilentMusicPlayer player;
+  return {
+      /*desc=*/{
+          /*name=*/"Silent Music Player",
+          /*description=*/"For testing; does not play music",
+          /*how_it_works=*/"It doesn't.",
+      },
+      /*player=*/&player,
+  };
+}
+
+bool SilentMusicPlayer::good() const { return true; }
+
+// Implement MusicPlayer
+Opt<TunePlayerInfo> SilentMusicPlayer::can_play_tune(
+    TuneId id ) {
+  logger->info( "SilentMusicPlayer: can_play_tune" );
+  return TunePlayerInfo{/*id=*/id,
+                        /*length=*/chrono::minutes( 1 ),
+                        /*progress=*/nullopt};
+}
+
+// Implement MusicPlayer
+bool SilentMusicPlayer::play( TuneId id ) {
+  logger->info( "SilentMusicPlayer: playing tune `{}`",
+                tune_display_name_from_id( id ) );
+  id_ = id;
+  return true;
+}
+
+// Implement MusicPlayer
+void SilentMusicPlayer::stop() {
+  logger->info( "SilentMusicPlayer: stop" );
+  id_ = nullopt;
+}
+
+MusicPlayerDesc SilentMusicPlayer::info() const {
+  return SilentMusicPlayer::player().first;
+}
+
+// Implement MusicPlayer
+MusicPlayerState SilentMusicPlayer::state() const {
+  Opt<TunePlayerInfo> maybe_tune_info;
+  if( id_.has_value() ) {
+    maybe_tune_info =
+        TunePlayerInfo{/*id=*/*id_,
+                       /*length=*/chrono::minutes( 1 ),
+                       /*progress=*/.5};
   }
+  return {/*tune_info=*/maybe_tune_info,
+          /*progress=*/0.5,
+          /*is_paused=*/is_paused_,
+          /*volume=*/nullopt};
+}
 
-  bool good() const override { return true; }
+// Implement MusicPlayer
+MusicPlayerCapabilities SilentMusicPlayer::capabilities() const {
+  return {
+      /*can_pause=*/true,
+      /*has_volume=*/false,
+      /*has_progress=*/true,
+      /*has_tune_duration=*/true,
+      /*can_seek=*/false,
+  };
+}
 
-  // Implement MusicPlayer
-  Opt<TunePlayerInfo> can_play_tune( TuneId id ) override {
-    logger->info( "SilentMusicPlayer: can_play_tune" );
-    return TunePlayerInfo{/*id=*/id,
-                          /*length=*/chrono::minutes( 1 ),
-                          /*progress=*/nullopt};
-  }
+// Implement MusicPlayer
+bool SilentMusicPlayer::fence( Opt<Duration_t> /*unused*/ ) {
+  return true;
+}
 
-  // Implement MusicPlayer
-  bool play( TuneId id ) override {
-    logger->info( "SilentMusicPlayer: playing tune `{}`",
-                  tune_display_name_from_id( id ) );
-    id_ = id;
-    return true;
-  }
+// Implement MusicPlayer
+bool SilentMusicPlayer::is_processing() const { return false; }
 
-  // Implement MusicPlayer
-  void stop() override {
-    logger->info( "SilentMusicPlayer: stop" );
-    id_ = nullopt;
-  }
+// Implement MusicPlayer
+void SilentMusicPlayer::pause() {
+  logger->info( "SilentMusicPlayer: pause" );
+  is_paused_ = true;
+}
 
-  MusicPlayerDesc info() const override {
-    return SilentMusicPlayer::player().first;
-  }
-
-  // Implement MusicPlayer
-  MusicPlayerState state() const override {
-    Opt<TunePlayerInfo> maybe_tune_info;
-    if( id_.has_value() ) {
-      maybe_tune_info =
-          TunePlayerInfo{/*id=*/*id_,
-                         /*length=*/chrono::minutes( 1 ),
-                         /*progress=*/.5};
-    }
-    return {/*tune_info=*/maybe_tune_info,
-            /*progress=*/0.5,
-            /*is_paused=*/is_paused_,
-            /*volume=*/nullopt};
-  }
-
-  // Implement MusicPlayer
-  MusicPlayerCapabilities capabilities() const override {
-    return {
-        /*can_pause=*/true,
-        /*has_volume=*/false,
-        /*has_progress=*/true,
-        /*has_tune_duration=*/true,
-        /*can_seek=*/false,
-    };
-  }
-
-  // Implement MusicPlayer
-  bool fence( Opt<Duration_t> /*unused*/ ) override {
-    return true;
-  }
-
-  // Implement MusicPlayer
-  bool is_processing() const override { return false; }
-
-  // Implement MusicPlayer
-  void pause() override {
-    logger->info( "SilentMusicPlayer: pause" );
-    is_paused_ = true;
-  }
-
-  // Implement MusicPlayer
-  void resume() override {
-    logger->info( "SilentMusicPlayer: resume" );
-    is_paused_ = false;
-  }
-
-private:
-  SilentMusicPlayer() = default;
-
-  bool        is_paused_{false};
-  Opt<TuneId> id_{};
-};
-
-} // namespace
+// Implement MusicPlayer
+void SilentMusicPlayer::resume() {
+  logger->info( "SilentMusicPlayer: resume" );
+  is_paused_ = false;
+}
 
 void MusicPlayerState::log() const {
   logger->info( "MusicPlayerState:" );

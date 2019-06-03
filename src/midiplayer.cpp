@@ -66,7 +66,7 @@ MidiSeqMusicPlayer::player() {
   if( g_midiseq_player.has_value() ) {
     return {
         desc,
-        *g_midiseq_player,
+        &( *g_midiseq_player ),
     };
   } else {
     return {

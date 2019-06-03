@@ -76,4 +76,7 @@ using FlatMap = ::absl::flat_hash_map<K, V>;
 template<typename T>
 using FlatSet = ::absl::flat_hash_set<T>;
 
+template<typename F, typename S>
+using Pair = std::pair<F, S>;
+
 namespace rn {} // namespace rn
