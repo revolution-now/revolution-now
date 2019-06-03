@@ -78,7 +78,11 @@ struct Tune {
 struct TunePlayerInfo {
   TuneId          id;
   Opt<Duration_t> length;
-  Opt<double>     progress;
+  // If the player is currently playing a tune then it will re-
+  // turn a number in [0,1.0] representing the progress through
+  // the tune. Returns `nullopt` if no tune is playing or if the
+  // most recent tune has finished.
+  Opt<double> progress;
 
   void log() const;
 };

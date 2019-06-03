@@ -257,4 +257,7 @@ CFG( music,
   FLD( Vec<Tune>, tunes )
 
   FLD( SpecialMusicEventMap, special_event_tunes )
+
+  FLD( bool, autoplay )
+  FLD( double, initial_volume )
 )

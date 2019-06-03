@@ -68,9 +68,7 @@ MusicPlayerState SilentMusicPlayer::state() const {
                        /*progress=*/.5};
   }
   return {/*tune_info=*/maybe_tune_info,
-          /*progress=*/0.5,
-          /*is_paused=*/is_paused_,
-          /*volume=*/nullopt};
+          /*is_paused=*/is_paused_};
 }
 
 // Implement MusicPlayer
@@ -109,13 +107,11 @@ void MusicPlayerState::log() const {
                     chrono::duration_cast<chrono::seconds>(
                         tune_info->length.value() )
                         .count() );
+    if( tune_info->progress.has_value() )
+      logger->info( "  progress:          {}%",
+                    int( *tune_info->progress * 100 ) );
   }
-  if( progress.has_value() )
-    logger->info( "  progress:          {}%",
-                  int( *progress * 100 ) );
   logger->info( "  is_paused:         {}", is_paused );
-  if( volume.has_value() )
-    logger->info( "  volume:            {}", *volume );
 }
 
 void MusicPlayerCapabilities::log() const {

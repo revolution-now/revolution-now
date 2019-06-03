@@ -601,9 +601,11 @@ void midi_thread_impl() {
         case_v( command::stop ) {
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::stopped );
+          if( stem.has_value() )
+            logger->info( "midi file {} has been stopped.",
+                          stem );
           maybe_info = nullopt;
-          logger->info( "midi file {} has been stopped.", stem );
-          stem = nullopt;
+          stem       = nullopt;
           g_midi_comm.set_progress( nullopt );
         }
         case_v( command::pause ) {

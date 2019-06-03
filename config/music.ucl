@@ -9,6 +9,12 @@ second_choice_music_player: silent
 # the previous tune.
 threshold_previous_tune: 0.10
 
+# Should autoplay be on initially.  Not sure why not.
+autoplay: true
+
+# Between 0.0 and 1.0 inclusive.
+initial_volume: 1.0
+
 tunes = [
   {
     display_name:    "Fife & Drum March 1"

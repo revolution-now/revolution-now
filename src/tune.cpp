@@ -139,7 +139,8 @@ REGISTER_INIT_ROUTINE( tunes );
 
 void TunePlayerInfo::log() const {
   logger->info( "TunePlayerInfo:" );
-  logger->info( "  id:       {}", id );
+  logger->info( "  id:       {} ({})", id,
+                tune_stem_from_id( id ) );
   logger->info( "  length:   {}", length );
   logger->info( "  progress: {}", progress );
 }

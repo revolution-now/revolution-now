@@ -129,8 +129,18 @@ void pause();
 // If supported, and if paused, resume playing.
 void resume();
 
+// If supported, sets the volume.
+void set_volume( double vol );
+
 // If supported, jump to a certain place [0,1.0] in tune.
 void seek( double pos );
+
+// Playlists.
+
+// Generate a random playlist. If one exists it will be regener-
+// ated (we will not merely shuffle here because the playlist
+// must satisfy some invariants).
+void playlist_generate();
 
 // Tune Selection. Each of these methods will search through
 // available tunes and select one that meets the criteria and
@@ -163,13 +173,6 @@ void king_sad();
 void king_war();
 
 } // namespace request
-
-// Playlists.
-
-// Generate a random playlist. If one exists it will be regener-
-// ated (we will not merely shuffle here because the playlist
-// must satisfy some invariants).
-void playlist_generate();
 
 // Testing
 void test();

@@ -38,23 +38,16 @@ struct MusicPlayerState {
 
   // TunePlayerInfo struct for currently playing tune, if any.
   Opt<TunePlayerInfo> tune_info;
-  // If the player is currently playing a tune then it will re-
-  // turn a number in [0,1.0] representing the progress through
-  // the tune. Returns `nullopt` if no tune is playing or if the
-  // most recent tune has finished.
-  Opt<double> progress;
   // If the player is paused in the middle of a tune.
   bool is_paused;
-  // If the player has a notion of settable volume then this will
-  // be populated.
-  Opt<double> volume;
 };
 
 struct MusicPlayerCapabilities {
   void log() const;
 
-  bool can_pause{false}; // implies that it can also resume
-  bool has_volume{false};
+  bool can_pause{false};  // implies that it can also resume
+  bool has_volume{false}; // means that volume is settable,
+                          // though not necessarily readable.
   bool has_progress{false};
   bool has_tune_duration{false};
   bool can_seek{false};

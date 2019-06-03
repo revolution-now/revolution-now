@@ -120,12 +120,13 @@ MusicPlayerState MidiSeqMusicPlayer::state() const {
   bool                is_paused =
       ( midiseq::state() == midiseq::e_midiseq_state::paused );
   if( midiseq::state() == midiseq::e_midiseq_state::playing ||
-      midiseq::state() == midiseq::e_midiseq_state::paused )
+      midiseq::state() == midiseq::e_midiseq_state::paused ) {
     maybe_tune_info = last_played_tune_info_;
+    // Need to update the progress since it would be stale.
+    maybe_tune_info->progress = midiseq::progress();
+  }
   return {/*tune_info=*/maybe_tune_info,
-          /*progress=*/midiseq::progress(),
-          /*is_paused=*/is_paused,
-          /*volume=*/nullopt};
+          /*is_paused=*/is_paused};
 }
 
 MusicPlayerCapabilities MidiSeqMusicPlayer::capabilities()

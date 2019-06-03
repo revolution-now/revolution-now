@@ -16,7 +16,12 @@
 #include "logging.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"
+#include "rand.hpp"
 #include "ranges.hpp"
+#include "time.hpp"
+
+// base-util
+#include "base-util/algo.hpp"
 
 using namespace std;
 
@@ -40,6 +45,10 @@ Opt<e_music_player> g_active_mplayer;
 size_t      g_playlist_pos{};
 Vec<TuneId> g_playlist;
 
+bool g_autoplay{true};
+
+double g_master_volume{1.0};
+
 #define ADD_MUSIC_PLAYER( enum, prefix )           \
   std::tie( g_mplayer_descs[e_music_player::enum], \
             g_mplayers[e_music_player::enum] ) =   \
@@ -60,6 +69,10 @@ auto enabled_mplayers_enums() {
 TuneId next_tune_in_playlist() {
   g_playlist_pos++;
   g_playlist_pos %= g_playlist.size();
+  return g_playlist[g_playlist_pos];
+}
+
+TuneId current_tune_in_playlist() {
   return g_playlist[g_playlist_pos];
 }
 
@@ -86,10 +99,12 @@ TuneId prev_tune_in_playlist() {
 
 void play_impl( TuneId id ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  logger->info( "Playing \"{}\"",
+  logger->info( "Playing \"{}\".",
                 tune_display_name_from_id( id ) );
   mplayer->play( id );
 }
+
+void conductor_tick() { NOT_IMPLEMENTED; }
 
 void init_conductor() {
   // Generate a random playlist.
@@ -140,7 +155,7 @@ void init_conductor() {
     }
 
     if( !enable_mplayer ) {
-      logger->warn( "Music player `{}` not enabled: {}",
+      logger->warn( "Music player `{}` not enabled: {}.",
                     g_mplayer_descs[mplayer].name, reason );
     }
     MusicPlayerInfo info{
@@ -234,17 +249,32 @@ bool set_music_player( e_music_player mplayer ) {
 }
 
 expect<ConductorInfo> state() {
-  NOT_IMPLEMENTED; //
-}
-
-void subscribe_to_event( e_conductor_event,
-                         function<void( void )> ) {
-  NOT_IMPLEMENTED; //
+  if( !g_active_mplayer.has_value() )
+    return UNEXPECTED( "No viable music players available." );
+  auto expect_mplayer = g_mplayers[*g_active_mplayer];
+  DCHECK( expect_mplayer.has_value() );
+  auto          mplayer  = *expect_mplayer;
+  auto          mp_state = mplayer->state();
+  e_music_state st       = e_music_state::stopped;
+  if( mp_state.tune_info.has_value() ) {
+    if( mp_state.is_paused )
+      st = e_music_state::paused;
+    else
+      st = e_music_state::playing;
+  }
+  return ConductorInfo{
+      /*mplayer=*/*g_active_mplayer,
+      /*music_state=*/st,
+      /*playing_now=*/mp_state.tune_info,
+      /*volume=*/g_master_volume,
+      /*autoplay=*/g_autoplay,
+  };
 }
 
 void set_autoplay( bool enabled ) {
-  NOT_IMPLEMENTED; //
-  (void)enabled;
+  g_autoplay  = enabled;
+  auto on_off = enabled ? "on" : "off";
+  logger->info( "Music Autoplay is {}", on_off );
 }
 
 void reset() {
@@ -261,17 +291,18 @@ void reset() {
   } else if( g_mplayer_infos[config_music
                                  .second_choice_music_player]
                  .enabled ) {
-    g_active_mplayer = config_music.first_choice_music_player;
+    g_active_mplayer = config_music.second_choice_music_player;
     logger->info(
         "First choice music player not available; using second "
-        "choice." );
+        "choice: {}",
+        g_active_mplayer );
   } else {
     if( auto maybe_first_available =
             head( enabled_mplayers_enums() );
         maybe_first_available.has_value() ) {
       g_active_mplayer = *maybe_first_available;
       logger->info(
-          "Preferred music players not available; using {}",
+          "Preferred music players not available; using {}.",
           g_active_mplayer );
     }
   }
@@ -281,8 +312,17 @@ void reset() {
         "No usable music player found; music will not be "
         "played." );
 
+  g_master_volume = config_music.initial_volume;
+
   // Need fence() here?  Don't think so...
-  for( auto* mplayer : enabled_mplayers_ptrs() ) mplayer->stop();
+  for( auto* mplayer : enabled_mplayers_ptrs() ) {
+    mplayer->stop();
+    auto capabilities = mplayer->capabilities();
+    if( capabilities.has_volume )
+      mplayer->set_volume( g_master_volume );
+  }
+
+  g_autoplay = config_music.autoplay;
 }
 
 void play() {
@@ -296,7 +336,7 @@ void play() {
       mplayer->resume();
       break;
     case +e_music_state::stopped: //
-      play_impl( next_tune_in_playlist() );
+      play_impl( current_tune_in_playlist() );
       break;
   }
 }
@@ -399,6 +439,22 @@ void resume() {
   }
 }
 
+void set_volume( double vol ) {
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  vol = std::clamp( vol, 0.0, 1.0 );
+
+  g_master_volume = vol;
+
+  auto capabilities = mplayer->capabilities();
+  if( !capabilities.has_volume ) {
+    logger->warn(
+        "Music player `{}` does not support setting volume.",
+        mplayer->info().name );
+    return;
+  }
+  mplayer->set_volume( vol );
+}
+
 void seek( double pos ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
@@ -420,6 +476,64 @@ void seek( double pos ) {
     case +e_music_state::stopped: //
       break;
   }
+}
+
+void playlist_generate() {
+  // For this it will first generate a random list of tunes,
+  // choosing among all the tunes who have purpose=standard. The
+  // length of this list will be 10 times the total number of
+  // tunes. This list must obey two constraints: 1. it cannot
+  // play a tune that was already played in the last five items
+  // in the playlist, unless there are fewer than five total
+  // tunes. 2. the last set of tunes shall not overlap with the
+  // first set of tunes, since the playlist needs to wrap around.
+  logger->info( "Generating playlist." );
+  CHECK( config_music.tunes.size() > 0 );
+  auto   num_tunes = config_music.tunes.size();
+  size_t no_overlap_size =
+      ( num_tunes > 5 ) ? 5 : ( num_tunes - 1 );
+  CHECK( no_overlap_size < 100000 ); // sanity check
+  vector<TuneId> last_n;
+  for( auto id : all_tunes() | rv::take( no_overlap_size ) )
+    last_n.push_back( id );
+  CHECK( last_n.size() == no_overlap_size );
+  auto overlaps = [&]( TuneId id ) {
+    return util::find( last_n, id ) != last_n.end();
+  };
+  vector<TuneId>   res;
+  constexpr size_t num_chunks        = 10;
+  size_t const     playlist_size     = num_tunes * num_chunks;
+  size_t           timeout_countdown = playlist_size * 100;
+  for( size_t i = 0; i < playlist_size; ++i ) {
+    while( true ) {
+      timeout_countdown--;
+      if( timeout_countdown <= 0 ) break;
+      auto id = random_tune();
+      if( overlaps( id ) ) continue;
+      res.push_back( id );
+      last_n.erase( last_n.begin() );
+      last_n.push_back( id );
+      break;
+    }
+    if( timeout_countdown <= 0 ) {
+      logger->warn(
+          "Max cycles reached when generating playlist." );
+      break;
+    }
+  }
+  logger->debug( "Playlist:" );
+  for( auto [idx, id] : res | rv::enumerate )
+    logger->debug( " {: >4}. {}", idx + 1,
+                   tune_display_name_from_id( id ) );
+  CHECK( res.size() > 0 );
+
+  g_playlist     = res;
+  g_playlist_pos = 0;
+}
+
+void subscribe_to_event( e_conductor_event,
+                         function<void( void )> ) {
+  NOT_IMPLEMENTED; //
 }
 
 namespace request {
@@ -449,13 +563,64 @@ void king_war() {}
 
 } // namespace request
 
-// Playlists.
-
-void playlist_generate() {
-  NOT_IMPLEMENTED; //
-}
-
 // Testing
-void test() { logger->info( "Testing Music Conductor" ); }
+void test() {
+  logger->info( "Testing Music Conductor" );
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+
+  double vol = 1.0;
+
+  while( true ) {
+    // Wait for music player to consume commands.
+    mplayer->fence();
+    auto st = state();
+    if( !st ) break;
+    st.value().log();
+    logger->info(
+        "[p]lay, [n]ext, pre[v], p[a]use, [r]esume, [s]top, "
+        "[u]p volume, [d]own volume, s[t]ate, [q]uit: " );
+    string in;
+    cin >> in;
+    sleep( chrono::milliseconds( 20 ) );
+    if( in == "q" ) break;
+    if( in == "p" ) {
+      play();
+      continue;
+    }
+    if( in == "n" ) {
+      next();
+      continue;
+    }
+    if( in == "v" ) {
+      prev();
+      continue;
+    }
+    if( in == "a" ) {
+      pause();
+      continue;
+    }
+    if( in == "r" ) {
+      resume();
+      continue;
+    }
+    if( in == "s" ) {
+      stop();
+      continue;
+    }
+    if( in == "u" ) {
+      vol += .1;
+      vol = std::clamp( vol, 0.0, 1.0 );
+      set_volume( vol );
+      continue;
+    }
+    if( in == "d" ) {
+      vol -= .1;
+      vol = std::clamp( vol, 0.0, 1.0 );
+      set_volume( vol );
+      continue;
+    }
+    if( in == "t" ) { continue; }
+  }
+}
 
 } // namespace rn::conductor
