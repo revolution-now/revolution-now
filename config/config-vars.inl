@@ -252,6 +252,8 @@ CFG( music,
   FLD( e_music_player, first_choice_music_player )
   FLD( e_music_player, second_choice_music_player )
 
+  FLD( double, threshold_previous_tune )
+
   FLD( Vec<Tune>, tunes )
 
   FLD( SpecialMusicEventMap, special_event_tunes )

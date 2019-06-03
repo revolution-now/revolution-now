@@ -468,7 +468,7 @@ Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   info.last_pause_time = nullopt;
   info.stoppage        = 0us;
   logger->info( "loaded midi file: {} ({})", file,
-                to_string_colons( info.tune_duration ) );
+                info.tune_duration );
   return info;
 }
 

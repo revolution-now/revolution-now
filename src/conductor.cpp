@@ -24,24 +24,77 @@ namespace rn::conductor {
 
 namespace {
 
-Vec<TuneId> g_playlist;
-
-FlatMap<e_music_player, MusicPlayerDesc>  g_mplayer_descs;
+// The pointers to music players are setup once duration initial-
+// ization and will never change, even if a music player fails.
+// If a music player fails then will mark it as disable in the
+// associated MusicPlayerInfo struct.
 FlatMap<e_music_player, MaybeMusicPlayer> g_mplayers;
-FlatMap<e_music_player, MusicPlayerInfo>  g_mplayer_infos;
+
+FlatMap<e_music_player, MusicPlayerDesc> g_mplayer_descs;
+FlatMap<e_music_player, MusicPlayerInfo> g_mplayer_infos;
 
 FlatMap<e_special_music_event, TuneId> g_special_tunes;
 
 Opt<e_music_player> g_active_mplayer;
+
+size_t      g_playlist_pos{};
+Vec<TuneId> g_playlist;
 
 #define ADD_MUSIC_PLAYER( enum, prefix )           \
   std::tie( g_mplayer_descs[e_music_player::enum], \
             g_mplayers[e_music_player::enum] ) =   \
       prefix##MusicPlayer::player()
 
+auto enabled_mplayers_ptrs() {
+  return g_mplayers                                            //
+         | rv::filter( L( g_mplayer_infos[_.first].enabled ) ) //
+         | rv::transform( L( *( _.second ) ) );
+}
+
+auto enabled_mplayers_enums() {
+  return g_mplayers                                            //
+         | rv::filter( L( g_mplayer_infos[_.first].enabled ) ) //
+         | rv::transform( L( _.first ) );
+}
+
+TuneId next_tune_in_playlist() {
+  g_playlist_pos++;
+  g_playlist_pos %= g_playlist.size();
+  return g_playlist[g_playlist_pos];
+}
+
+TuneId prev_tune_in_playlist() {
+  if( g_playlist_pos == 0 )
+    g_playlist_pos = g_playlist.size() - 1;
+  else
+    g_playlist_pos--;
+  CHECK( g_playlist_pos < g_playlist.size() );
+  return g_playlist[g_playlist_pos];
+}
+
+#define ACTIVE_MUSIC_PLAYER_OR_RETURN( var )           \
+  if( !g_active_mplayer.has_value() ) return;          \
+  auto expect_mplayer = g_mplayers[*g_active_mplayer]; \
+  DCHECK( expect_mplayer.has_value() );                \
+  auto var = *expect_mplayer;                          \
+  if( !var->good() ) return
+
+#define CONDUCTOR_INFO_OR_RETURN( var )  \
+  auto expect_info = state();            \
+  if( !expect_info.has_value() ) return; \
+  auto const& info = *expect_info
+
+void play_impl( TuneId id ) {
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  logger->info( "Playing \"{}\"",
+                tune_display_name_from_id( id ) );
+  mplayer->play( id );
+}
+
 void init_conductor() {
   // Generate a random playlist.
   playlist_generate();
+  CHECK( g_playlist.size() > 0 );
 
   // Gather a list of all available music players.
   ADD_MUSIC_PLAYER( silent, Silent );
@@ -99,37 +152,6 @@ void init_conductor() {
     g_mplayer_infos[mplayer] = info;
   }
 
-  // Now try to select which music player to use by taking some
-  // hints from the config file. If those don't work out that
-  // just take the first one (in the ordering of e_music_player
-  // enum values) that is enabled.
-  if( g_mplayer_infos[config_music.first_choice_music_player]
-          .enabled )
-    g_active_mplayer = config_music.first_choice_music_player;
-  else if( g_mplayer_infos[config_music
-                               .second_choice_music_player]
-               .enabled ) {
-    g_active_mplayer = config_music.first_choice_music_player;
-    logger->info(
-        "First choice music player not available; using second "
-        "choice." );
-  } else {
-    for( auto mplayer : values<e_music_player> ) {
-      if( g_mplayer_infos[mplayer].enabled ) {
-        g_active_mplayer = mplayer;
-        logger->info(
-            "Preferred music players not available; using {}",
-            mplayer );
-        break;
-      }
-    }
-  }
-
-  if( !g_active_mplayer.has_value() )
-    logger->warn(
-        "No usable music player found; music will not be "
-        "played." );
-
   // Copy this so that we can use the operator[].
   auto m = config_music.special_event_tunes;
 
@@ -145,8 +167,8 @@ void init_conductor() {
     for( auto tune_id : all_tunes() ) {
       if( tune_stem_from_id( tune_id ) == stem ) {
         logger->debug(
-            "tune `{}` will be played for event `{}`.", tune_id,
-            event );
+            "tune `{}` will be played for event `{}`.",
+            tune_stem_from_id( tune_id ), event );
         g_special_tunes[event] = tune_id;
         break;
       }
@@ -159,6 +181,10 @@ void init_conductor() {
 
   CHECK( g_special_tunes.size() ==
          rg::distance( values<e_special_music_event> ) );
+
+  // This will set the music player if possible, make sure all
+  // music is stopped, etc.
+  reset();
 }
 
 void cleanup_conductor() {
@@ -171,19 +197,40 @@ void cleanup_conductor() {
 
 REGISTER_INIT_ROUTINE( conductor );
 
-void ConductorInfo::log() const {}
+void ConductorInfo::log() const {
+  logger->info( "ConductorInfo:" );
+  logger->info( "  mplayer:     {}", mplayer );
+  logger->info( "  music_state: {}", music_state );
+  logger->info( "  volume:      {}", volume );
+  logger->info( "  autoplay:    {}", autoplay );
+  if( playing_now.has_value() ) ( *playing_now ).log();
+}
 
-void MusicPlayerInfo::log() const {}
+void MusicPlayerInfo::log() const {
+  logger->info( "MusicPlayerInfo:" );
+  logger->info( "  enabled:      {}", enabled );
+  logger->info( "  name:         {}", name );
+  logger->info( "  description:  {}", description );
+  logger->info( "  how_it_works: {}", how_it_works );
+}
 
 MusicPlayerInfo const& music_player_info(
     e_music_player mplayer ) {
-  NOT_IMPLEMENTED; //
-  (void)mplayer;
+  DCHECK( g_mplayer_infos.contains( mplayer ) );
+  return g_mplayer_infos[mplayer];
 }
 
 bool set_music_player( e_music_player mplayer ) {
-  NOT_IMPLEMENTED; //
-  (void)mplayer;
+  reset();
+  if( !g_mplayer_infos[mplayer].enabled ) {
+    logger->error(
+        "attempt to set music player `{}` but it is disabled.",
+        g_mplayer_infos[mplayer].name );
+    g_active_mplayer = nullopt;
+    return false;
+  }
+  g_active_mplayer = mplayer;
+  return true;
 }
 
 expect<ConductorInfo> state() {
@@ -200,95 +247,205 @@ void set_autoplay( bool enabled ) {
   (void)enabled;
 }
 
+void reset() {
+  logger->info( "Resetting Conductor state." );
+  // Try to select which music player to use by taking some hints
+  // from the config file. If those don't work out that just take
+  // the first one (in the ordering of e_music_player enum val-
+  // ues) that is enabled.
+  if( g_mplayer_infos[config_music.first_choice_music_player]
+          .enabled ) {
+    g_active_mplayer = config_music.first_choice_music_player;
+    logger->info( "Using first choice music player `{}`.",
+                  g_active_mplayer );
+  } else if( g_mplayer_infos[config_music
+                                 .second_choice_music_player]
+                 .enabled ) {
+    g_active_mplayer = config_music.first_choice_music_player;
+    logger->info(
+        "First choice music player not available; using second "
+        "choice." );
+  } else {
+    if( auto maybe_first_available =
+            head( enabled_mplayers_enums() );
+        maybe_first_available.has_value() ) {
+      g_active_mplayer = *maybe_first_available;
+      logger->info(
+          "Preferred music players not available; using {}",
+          g_active_mplayer );
+    }
+  }
+
+  if( !g_active_mplayer.has_value() )
+    logger->warn(
+        "No usable music player found; music will not be "
+        "played." );
+
+  // Need fence() here?  Don't think so...
+  for( auto* mplayer : enabled_mplayers_ptrs() ) mplayer->stop();
+}
+
 void play() {
-  NOT_IMPLEMENTED; //
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  CONDUCTOR_INFO_OR_RETURN( info );
+  switch( info.music_state ) {
+    case +e_music_state::playing: //
+      // We're already playing, so do nothing.
+      break;
+    case +e_music_state::paused: //
+      mplayer->resume();
+      break;
+    case +e_music_state::stopped: //
+      play_impl( next_tune_in_playlist() );
+      break;
+  }
 }
 
 void prev() {
-  NOT_IMPLEMENTED; //
+  CONDUCTOR_INFO_OR_RETURN( info );
+  // If progress is not available then behave as if it is zero.
+  double      progress = 0.0;
+  Opt<TuneId> id;
+  if( info.playing_now.has_value() ) {
+    if( ( *info.playing_now ).progress.has_value() )
+      progress = *( *info.playing_now ).progress;
+    id = ( *info.playing_now ).id;
+  }
+  switch( info.music_state ) {
+    case +e_music_state::playing: {
+      DCHECK( id );
+      if( progress > config_music.threshold_previous_tune )
+        play_impl( *id );
+      else
+        play_impl( prev_tune_in_playlist() );
+      break;
+    }
+    case +e_music_state::paused: {
+      DCHECK( id );
+      stop();
+      prev_tune_in_playlist();
+      break;
+    }
+    case +e_music_state::stopped: //
+      prev_tune_in_playlist();
+      break;
+  }
 }
 
 void next() {
-  NOT_IMPLEMENTED; //
+  CONDUCTOR_INFO_OR_RETURN( info );
+  switch( info.music_state ) {
+    case +e_music_state::playing: {
+      play_impl( next_tune_in_playlist() );
+      break;
+    }
+    case +e_music_state::paused: {
+      stop();
+      next_tune_in_playlist();
+      break;
+    }
+    case +e_music_state::stopped: //
+      next_tune_in_playlist();
+      break;
+  }
 }
 
 void stop() {
-  NOT_IMPLEMENTED; //
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  mplayer->stop();
 }
 
 void pause() {
-  NOT_IMPLEMENTED; //
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  auto capabilities = mplayer->capabilities();
+  if( !capabilities.can_pause ) {
+    logger->warn( "Music player `{}` does not support pausing.",
+                  mplayer->info().name );
+    return;
+  }
+  CONDUCTOR_INFO_OR_RETURN( info );
+  switch( info.music_state ) {
+    case +e_music_state::playing: {
+      mplayer->pause();
+      break;
+    }
+    case +e_music_state::paused: {
+      break;
+    }
+    case +e_music_state::stopped: //
+      break;
+  }
 }
 
 void resume() {
-  NOT_IMPLEMENTED; //
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  auto capabilities = mplayer->capabilities();
+  if( !capabilities.can_pause ) {
+    logger->warn( "Music player `{}` does not support pausing.",
+                  mplayer->info().name );
+    return;
+  }
+  CONDUCTOR_INFO_OR_RETURN( info );
+  switch( info.music_state ) {
+    case +e_music_state::playing: {
+      break;
+    }
+    case +e_music_state::paused: {
+      mplayer->resume();
+      break;
+    }
+    case +e_music_state::stopped: //
+      break;
+  }
 }
 
 void seek( double pos ) {
-  NOT_IMPLEMENTED; //
-  (void)pos;
+  ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
+  auto capabilities = mplayer->capabilities();
+  if( !capabilities.can_seek ) {
+    logger->warn( "Music player `{}` does not support seeking.",
+                  mplayer->info().name );
+    return;
+  }
+  CONDUCTOR_INFO_OR_RETURN( info );
+  switch( info.music_state ) {
+    case +e_music_state::playing: {
+      mplayer->seek( pos );
+      break;
+    }
+    case +e_music_state::paused: {
+      mplayer->seek( pos );
+      break;
+    }
+    case +e_music_state::stopped: //
+      break;
+  }
 }
 
 namespace request {
 
-void won_battle_europeans() {
-  NOT_IMPLEMENTED; //
-}
-void won_battle_natives() {
-  NOT_IMPLEMENTED; //
-}
-void lost_battle_europeans() {
-  NOT_IMPLEMENTED; //
-}
-void lost_battle_natives() {
-  NOT_IMPLEMENTED; //
-}
+void won_battle_europeans() {}
+void won_battle_natives() {}
+void lost_battle_europeans() {}
+void lost_battle_natives() {}
 
-void slow_sad() {
-  NOT_IMPLEMENTED; //
-}
-void medium_tempo() {
-  NOT_IMPLEMENTED; //
-}
-void happy_fast() {
-  NOT_IMPLEMENTED; //
-}
+void slow_sad() {}
+void medium_tempo() {}
+void happy_fast() {}
 
-void orchestrated() {
-  NOT_IMPLEMENTED; //
-}
-void fiddle_tune() {
-  NOT_IMPLEMENTED; //
-}
-void fife_drum_sad() {
-  NOT_IMPLEMENTED; //
-}
-void fife_drum_slow() {
-  NOT_IMPLEMENTED; //
-}
-void fife_drum_fast() {
-  NOT_IMPLEMENTED; //
-}
-void fife_drum_happy() {
-  NOT_IMPLEMENTED; //
-}
+void orchestrated() {}
+void fiddle_tune() {}
+void fife_drum_sad() {}
+void fife_drum_slow() {}
+void fife_drum_fast() {}
+void fife_drum_happy() {}
 
-void native_sad() {
-  NOT_IMPLEMENTED; //
-}
-void native_happy() {
-  NOT_IMPLEMENTED; //
-}
+void native_sad() {}
+void native_happy() {}
 
-void king_happy() {
-  NOT_IMPLEMENTED; //
-}
-void king_sad() {
-  NOT_IMPLEMENTED; //
-}
-void king_war() {
-  NOT_IMPLEMENTED; //
-}
+void king_happy() {}
+void king_sad() {}
+void king_war() {}
 
 } // namespace request
 

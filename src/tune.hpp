@@ -79,6 +79,8 @@ struct TunePlayerInfo {
   TuneId          id;
   Opt<Duration_t> length;
   Opt<double>     progress;
+
+  void log() const;
 };
 
 /****************************************************************

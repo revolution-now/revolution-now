@@ -98,6 +98,10 @@ void subscribe_to_event( e_conductor_event,
 // vance to the next tune when one is complete.
 void set_autoplay( bool enabled );
 
+// This will reset the conductor state to initial settings that
+// it would have just after initialization.  Music will stop.
+void reset();
+
 // Play. If paused this will resume. If not paused it will start
 // playing the next tune in the playlist. When that tune is fin-
 // ished it will continue playing the playlist if autoplay is en-

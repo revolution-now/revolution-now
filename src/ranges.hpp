@@ -112,7 +112,7 @@ inline auto maximum() {
 // Rng must be taken by reference in case it is e.g. a vector, we
 // don't want to copy the vector.
 template<typename Rng>
-auto rng_head( Rng const& r )
+auto head( Rng&& r )
     -> Opt<std::decay_t<decltype( *r.begin() )>> {
   for( auto const& e : r ) return e;
   return std::nullopt;

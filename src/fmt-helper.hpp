@@ -102,6 +102,43 @@ struct formatter<std::optional<T>> : formatter_base {
   }
 };
 
+// FIXME: move this somewhere else and improve it.
+template<class Rep, class Period>
+auto to_string_colons(
+    std::chrono::duration<Rep, Period> const &duration ) {
+  using namespace std::chrono;
+  using namespace std::literals::chrono_literals;
+  std::string res; // should use small-string optimization.
+  auto        d = duration;
+  if( d > 1h ) {
+    auto hrs = duration_cast<hours>( d );
+    res += fmt::format( "{:0>2}", hrs.count() );
+    res += ':';
+    d -= hrs;
+  }
+  if( d > 1min ) {
+    auto mins = duration_cast<minutes>( d );
+    res += fmt::format( "{:0>2}", mins.count() );
+    res += ':';
+    d -= mins;
+  }
+  auto secs = duration_cast<seconds>( d );
+  res += fmt::format( "{:0>2}", secs.count() );
+  return res;
+}
+
+// {fmt} formatter for formatting duration.
+template<class Rep, class Period>
+struct formatter<std::chrono::duration<Rep, Period>>
+  : formatter_base {
+  template<typename FormatContext>
+  auto format( std::chrono::duration<Rep, Period> const &o,
+               FormatContext &                           ctx ) {
+    return formatter_base::format(
+        fmt::format( "{}", to_string_colons( o ) ), ctx );
+  }
+};
+
 // This is a specialization (via SFINAE) for enums, though it
 // will actually only work for the smart enums that can be
 // converted to strings (and, in particular, the ones that come

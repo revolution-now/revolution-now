@@ -3,6 +3,12 @@ midi_folder: assets/music/midi
 first_choice_music_player: midiseq
 second_choice_music_player: silent
 
+# This is the fraction (of unity) that represents the threshold
+# after which a "previous tune" command to the Conductor will
+# simply restart the current tune. Early than this it will go to
+# the previous tune.
+threshold_previous_tune: 0.10
+
 tunes = [
   {
     display_name:    "Fife & Drum March 1"

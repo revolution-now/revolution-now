@@ -17,6 +17,7 @@
 #include "logging.hpp"
 #include "rand.hpp"
 #include "ranges.hpp"
+#include "time.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -135,6 +136,13 @@ void cleanup_tunes() {}
 
 //
 REGISTER_INIT_ROUTINE( tunes );
+
+void TunePlayerInfo::log() const {
+  logger->info( "TunePlayerInfo:" );
+  logger->info( "  id:       {}", id );
+  logger->info( "  length:   {}", length );
+  logger->info( "  progress: {}", progress );
+}
 
 TuneOptDimensions TuneDimensions::to_optional() const {
   return {

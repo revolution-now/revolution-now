@@ -266,7 +266,7 @@ bool have_some_visible_menus() {
 }
 
 Opt<e_menu> first_visible_menu() {
-  return rng_head( visible_menus() );
+  return head( visible_menus() );
 }
 
 /****************************************************************
