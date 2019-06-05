@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
 
-stem=config-files
+[[ -z "$1" ]] && {
+  echo 'first parameter is stem.'
+  exit 1
+}
+
+stem=$1
 
 CXX_FLAGS="-Wno-unused-command-line-argument -fcolor-diagnostics -g   -Wall -Wextra -pthread -std=c++2a"
 

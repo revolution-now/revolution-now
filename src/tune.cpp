@@ -40,6 +40,11 @@ namespace {
 
 absl::flat_hash_map<TuneId, Tune const*> g_tunes;
 
+#define TUNE_DIMENSION_ADD_IF_DIFFERENT( dim )  \
+  if( dims.dim.has_value() &&                   \
+      tune.dimensions.dim != dims.dim.value() ) \
+  score++
+
 // Return a list of pairs where there is one pair for each tune,
 // and each pair gives the tune ID and the score representing how
 // different it is (distance) from the given set of dimensions.
@@ -50,34 +55,8 @@ Vec<pair<TuneId, int>> tune_difference_scores(
   for( auto const& [id, tune_ptr] : g_tunes ) {
     auto const& tune  = *tune_ptr;
     int         score = 0;
-    if( dims.tempo.has_value() &&
-        tune.dimensions.tempo != dims.tempo.value() )
-      score++;
-    if( dims.genre.has_value() &&
-        tune.dimensions.genre != dims.genre.value() )
-      score++;
-    if( dims.culture.has_value() &&
-        tune.dimensions.culture != dims.culture.value() )
-      score++;
-    if( dims.instrumentation.has_value() &&
-        tune.dimensions.instrumentation !=
-            dims.instrumentation.value() )
-      score++;
-    if( dims.sentiment.has_value() &&
-        tune.dimensions.sentiment != dims.sentiment.value() )
-      score++;
-    if( dims.key.has_value() &&
-        tune.dimensions.key != dims.key.value() )
-      score++;
-    if( dims.tonality.has_value() &&
-        tune.dimensions.tonality != dims.tonality.value() )
-      score++;
-    if( dims.epoch.has_value() &&
-        tune.dimensions.epoch != dims.epoch.value() )
-      score++;
-    if( dims.purpose.has_value() &&
-        tune.dimensions.purpose != dims.purpose.value() )
-      score++;
+    EVAL( PP_MAP_SEMI( TUNE_DIMENSION_ADD_IF_DIFFERENT,
+                       TUNE_DIMENSION_LIST ) )
     scores.emplace_back( id, score );
   }
   // Sort from most similar to most different.
@@ -133,17 +112,7 @@ void TunePlayerInfo::log() const {
 }
 
 TuneOptDimensions TuneDimensions::to_optional() const {
-  return {
-      tempo,           //
-      genre,           //
-      culture,         //
-      instrumentation, //
-      sentiment,       //
-      key,             //
-      tonality,        //
-      epoch,           //
-      purpose,         //
-  };
+  return {EVAL( TUNE_DIMENSION_LIST )};
 }
 
 Vec<TuneId> const& all_tunes() {
@@ -173,21 +142,17 @@ TuneDimensions const& tune_dimensions( TuneId id ) {
   return g_tunes[id]->dimensions;
 }
 
+#define TUNE_DIMENSION_COUNT_IF_ENABLED( dim ) \
+  ( dims.dim.has_value() ? 1 : 0 )
+
 Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
                         bool not_like ) {
   auto scores = tune_difference_scores( dims );
 
   if( !fuzzy_match ) {
-    size_t enabled_dimensions =
-        ( dims.tempo.has_value() ? 1 : 0 ) +           //
-        ( dims.genre.has_value() ? 1 : 0 ) +           //
-        ( dims.culture.has_value() ? 1 : 0 ) +         //
-        ( dims.instrumentation.has_value() ? 1 : 0 ) + //
-        ( dims.sentiment.has_value() ? 1 : 0 ) +       //
-        ( dims.key.has_value() ? 1 : 0 ) +             //
-        ( dims.tonality.has_value() ? 1 : 0 ) +        //
-        ( dims.epoch.has_value() ? 1 : 0 ) +           //
-        ( dims.purpose.has_value() ? 1 : 0 );          //
+    size_t enabled_dimensions = EVAL( PP_MAP_PLUS(
+        TUNE_DIMENSION_COUNT_IF_ENABLED, TUNE_DIMENSION_LIST ) );
+
     CHECK( enabled_dimensions <= k_num_dimensions );
 
     int target_score_for_non_fuzzy =
@@ -220,6 +185,9 @@ Vec<TuneId> tunes_not_like( TuneId id ) {
   );
 }
 
+#define TUNE_DIMENSION_PICK_ONE( dim ) \
+  rng::pick_one<e_tune_##dim>()
+
 // The idea here is that we pick a random set of dimensions, then
 // rank all tunes according to their distance from that. Then we
 // take the distance of the most similar one, and pick out all
@@ -230,15 +198,9 @@ Vec<TuneId> tunes_not_like( TuneId id ) {
 // one would never get picked.
 TuneId random_tune() {
   TuneOptDimensions dims{
-      rng::pick_one<e_tune_tempo>(),           //
-      rng::pick_one<e_tune_genre>(),           //
-      rng::pick_one<e_tune_culture>(),         //
-      rng::pick_one<e_tune_instrumentation>(), //
-      rng::pick_one<e_tune_sentiment>(),       //
-      rng::pick_one<e_tune_key>(),             //
-      rng::pick_one<e_tune_tonality>(),        //
-      rng::pick_one<e_tune_epoch>(),           //
-      rng::pick_one<e_tune_purpose>()          //
+      //
+      EVAL( PP_MAP_COMMAS( TUNE_DIMENSION_PICK_ONE,
+                           EVAL( TUNE_DIMENSION_LIST ) ) ) //
   };
   auto tunes_scores = tune_difference_scores( dims );
   CHECK( !tunes_scores.empty() );
