@@ -478,6 +478,8 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
   used_field_paths.insert( file + "." + dotted + ".y" );
 }
 
+#define TUNE_DIMENSION_TO_ENUM_PAIR( dim ) ( e_tune_##dim, dim )
+
 // TuneDimensions
 template<>
 void populate_config_field( ucl::Ucl obj, TuneDimensions& dest,
@@ -495,18 +497,10 @@ void populate_config_field( ucl::Ucl obj, TuneDimensions& dest,
 
   auto path_field = path;
 
-  EVAL( PP_MAP_TUPLE(                              //
-      COLLECT_NESTED_ENUM_FIELD,                   //
-      ( e_tune_tempo, tempo ),                     //
-      ( e_tune_genre, genre ),                     //
-      ( e_tune_culture, culture ),                 //
-      ( e_tune_instrumentation, instrumentation ), //
-      ( e_tune_sentiment, sentiment ),             //
-      ( e_tune_key, key ),                         //
-      ( e_tune_tonality, tonality ),               //
-      ( e_tune_epoch, epoch ),                     //
-      ( e_tune_purpose, purpose )                  //
-      ) );
+  EVAL( PP_MAP_TUPLE(
+      COLLECT_NESTED_ENUM_FIELD,
+      PP_MAP_COMMAS( TUNE_DIMENSION_TO_ENUM_PAIR,
+                     EVAL( TUNE_DIMENSION_LIST ) ) ) )
 }
 
 // Tune
