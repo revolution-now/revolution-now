@@ -112,6 +112,9 @@
     }                                                    \
   }
 
+// Logs the variable "v: <value of v>".
+#define LOG_VAR( level, v ) logger->level( #v ": {}", v )
+
 namespace rn {
 
 namespace detail {

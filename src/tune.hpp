@@ -17,50 +17,71 @@
 #include "enum.hpp"
 #include "typed-int.hpp"
 
+// base-util
+#include "base-util/pp.hpp"
+
 TYPED_ID( TuneId )
 
 namespace rn {
 
-// These need to be reflected enums for deserialization from the
-// config files.
-enum class e_( tune_tempo, fast, medium, slow );
-enum class e_( tune_genre, trad, classical );
-enum class e_( tune_culture, native, new_world, old_world );
-enum class e_( tune_instrumentation, fife_and_drum, fiddle,
-               percussive, orchestrated );
-enum class e_( tune_sentiment, happy, sad, war_triumph,
-               war_lost );
-enum class e_( tune_key, a, bb, b, c, cs, d, eb, e, f, fs, g,
-               ab );
-enum class e_( tune_tonality, major, minor );
-enum class e_( tune_epoch, standard, post_revolution );
-enum class e_( tune_purpose, standard, special_event );
+// clang-format off
+#define TUNE_DIMENSIONS_DEFINITIONS                             \
+  ( tempo,           fast, medium, slow ),                      \
+  ( genre,           trad, classical ),                         \
+  ( culture,         native, new_world, old_world ),            \
+  ( instrumentation, fife_and_drum, fiddle, percussive,         \
+                     orchestrated ),                            \
+  ( sentiment,       happy, sad, war_triumph, war_lost ),       \
+  ( key,             a, bb, b, c, cs, d, eb, e, f, fs, g, ab ), \
+  ( tonality,        major, minor ),                            \
+  ( epoch,           standard, post_revolution ),               \
+  ( purpose,         standard, special_event )
+// clang-format on
+
+#define TUNE_DIMENSION_ENUM( name, ... ) \
+  enum class e_( tune_##name, __VA_ARGS__ );
+
+// Create a reflected enum for each of the dimensions. These need
+// to be reflected enums for deserialization from the config
+// files. E.g., for the `tempo` dimension this will generate:
+//
+//   enum class e_( tune_##tempo, fast, medium, slow );
+//
+// which of course is itself a macro.
+EVAL( PP_MAP_TUPLE( TUNE_DIMENSION_ENUM,
+                    TUNE_DIMENSIONS_DEFINITIONS ) )
+
+// Take the first element of each tuple in the dimension
+// definitions list; this yields a comma-separated list of
+// dimension names.
+#define TUNE_DIMENSION_LIST \
+  PP_MAP_COMMAS( HEAD_TUPLE, TUNE_DIMENSIONS_DEFINITIONS )
+
+#define TUNE_OPT_DIMENSION( name ) \
+  Opt<PP_JOIN( e_tune_, name )> name;
 
 struct TuneOptDimensions {
-  Opt<e_tune_tempo>           tempo;
-  Opt<e_tune_genre>           genre;
-  Opt<e_tune_culture>         culture;
-  Opt<e_tune_instrumentation> instrumentation;
-  Opt<e_tune_sentiment>       sentiment;
-  Opt<e_tune_key>             key;
-  Opt<e_tune_tonality>        tonality;
-  Opt<e_tune_epoch>           epoch;
-  Opt<e_tune_purpose>         purpose;
+  EVAL( PP_MAP( TUNE_OPT_DIMENSION, TUNE_DIMENSION_LIST ) )
 };
+
+#define TUNE_DIMENSION( name ) PP_JOIN( e_tune_, name ) name;
 
 struct TuneDimensions {
+  EVAL( PP_MAP( TUNE_DIMENSION, TUNE_DIMENSION_LIST ) )
   TuneOptDimensions to_optional() const;
-
-  e_tune_tempo           tempo;
-  e_tune_genre           genre;
-  e_tune_culture         culture;
-  e_tune_instrumentation instrumentation;
-  e_tune_sentiment       sentiment;
-  e_tune_key             key;
-  e_tune_tonality        tonality;
-  e_tune_epoch           epoch;
-  e_tune_purpose         purpose;
 };
+
+#define K_NUM_DIMENSIONS           \
+  EVAL( PP_MAP_PLUS( PP_CONST_ONE, \
+                     TUNE_DIMENSIONS_DEFINITIONS ) )
+
+constexpr size_t k_num_dimensions = K_NUM_DIMENSIONS;
+
+// Sanity checks.
+static_assert( sizeof( TuneDimensions ) ==
+               k_num_dimensions * sizeof( e_tune_tempo ) );
+static_assert( sizeof( TuneOptDimensions ) ==
+               k_num_dimensions * sizeof( Opt<e_tune_tempo> ) );
 
 // Client code is not supposed to get access to this struct di-
 // rectly, it is just in the header to allow deserialization from
@@ -141,7 +162,11 @@ Vec<TuneId> tunes_not_like( TuneId id );
 // attributes as random variables, thus yielding an stream of
 // tunes that are evenly distributed across classification dimen-
 // sions, as opposed to e.g. being evenly distributed across ID,
-// which is not very meaningful.
+// which is not very meaningful. When a given random set of
+// dimension values are chosen that still does not uniquely
+// specify a tune, since multiple tunes can have the same set of
+// dimensions. In those cases, a random tune will be selected
+// among the resulting subset.
 TuneId random_tune();
 
 } // namespace rn
