@@ -36,6 +36,13 @@ double avg_frame_rate();
 
 uint64_t total_frame_count();
 
+// Subscribe to receive a notification every n ticks.
+void subscribe_to_frame_tick( std::function<void( void )>,
+                              int n );
+// Subscribe to receive a notification every n milliseconds.
+void subscribe_to_frame_tick( std::function<void( void )>,
+                              std::chrono::milliseconds n );
+
 // Use node_hash_map because MovingAverage objects are
 // non-copyable and non-movable.
 using EventCountMap =
