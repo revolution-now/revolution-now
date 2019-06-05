@@ -159,11 +159,14 @@ public:
     update_volumes();
   }
 
-  void zero_channel_volumes() {
-    for( uint8_t channel = 0; channel < 16; channel++ ) {
-      midi_requested_volumes_[channel] = 0;
-      set_volume_impl( channel, 0 );
-    }
+  // Set all channel volumes to max, as if the MIDI file had re-
+  // quested it. This is to accommodate MIDI files that don't set
+  // their own channel volumes. But note that we do not change
+  // the master volume in this function.
+  void reset_channel_volumes() {
+    for( uint8_t channel = 0; channel < 16; channel++ )
+      midi_requested_volumes_[channel] = 127;
+    update_volumes();
   }
 
 private:
@@ -592,10 +595,12 @@ void midi_thread_impl() {
             break_v;
           }
           // We've loaded the midi file. Now set all channel vol-
-          // umes to zero so that we can more easily track which
-          // ones are being changed by the midi files (useful for
-          // debugging, though not strictly necessary).
-          g_midi.value().zero_channel_volumes();
+          // umes to maximum. This is because some MIDI files
+          // (maybe old ones?) do not send MIDI events to set
+          // their own volume, and so therefore they would play
+          // at whatever the channel volumes currently are, which
+          // we don't want.
+          g_midi.value().reset_channel_volumes();
           stem = file.stem();
         }
         case_v( command::stop ) {
