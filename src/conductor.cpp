@@ -535,7 +535,7 @@ void playlist_generate() {
   for( size_t i = 0; i < playlist_size; ++i ) {
     while( true ) {
       timeout_countdown--;
-      if( timeout_countdown <= 0 ) break;
+      if( timeout_countdown == 0 ) break;
       auto id = random_tune();
       if( tune_dimensions( id ).purpose ==
           e_tune_purpose::special_event )
@@ -546,7 +546,7 @@ void playlist_generate() {
       last_n.push_back( id );
       break;
     }
-    if( timeout_countdown <= 0 ) {
+    if( timeout_countdown == 0 ) {
       logger->warn(
           "Max cycles reached when generating playlist." );
       break;

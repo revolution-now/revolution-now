@@ -177,19 +177,19 @@ Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
                         bool not_like ) {
   auto scores = tune_difference_scores( dims );
 
-  size_t enabled_dimensions =
-      ( dims.tempo.has_value() ? 1 : 0 ) +           //
-      ( dims.genre.has_value() ? 1 : 0 ) +           //
-      ( dims.culture.has_value() ? 1 : 0 ) +         //
-      ( dims.instrumentation.has_value() ? 1 : 0 ) + //
-      ( dims.sentiment.has_value() ? 1 : 0 ) +       //
-      ( dims.key.has_value() ? 1 : 0 ) +             //
-      ( dims.tonality.has_value() ? 1 : 0 ) +        //
-      ( dims.epoch.has_value() ? 1 : 0 ) +           //
-      ( dims.purpose.has_value() ? 1 : 0 );          //
-  CHECK( enabled_dimensions <= k_num_dimensions );
-
   if( !fuzzy_match ) {
+    size_t enabled_dimensions =
+        ( dims.tempo.has_value() ? 1 : 0 ) +           //
+        ( dims.genre.has_value() ? 1 : 0 ) +           //
+        ( dims.culture.has_value() ? 1 : 0 ) +         //
+        ( dims.instrumentation.has_value() ? 1 : 0 ) + //
+        ( dims.sentiment.has_value() ? 1 : 0 ) +       //
+        ( dims.key.has_value() ? 1 : 0 ) +             //
+        ( dims.tonality.has_value() ? 1 : 0 ) +        //
+        ( dims.epoch.has_value() ? 1 : 0 ) +           //
+        ( dims.purpose.has_value() ? 1 : 0 );          //
+    CHECK( enabled_dimensions <= k_num_dimensions );
+
     int target_score_for_non_fuzzy =
         not_like ? enabled_dimensions : 0;
     scores = scores |
@@ -220,8 +220,16 @@ Vec<TuneId> tunes_not_like( TuneId id ) {
   );
 }
 
+// The idea here is that we pick a random set of dimensions, then
+// rank all tunes according to their distance from that. Then we
+// take the distance of the most similar one, and pick out all
+// the tunes that have that same distance, and select randomly
+// among them. If we were not to choose randomly among all the
+// most similar tunes of equal distance then we would run into
+// problems where two tunes have the exact same dimensions and
+// one would never get picked.
 TuneId random_tune() {
-  return find_tunes( TuneDimensions{
+  TuneOptDimensions dims{
       rng::pick_one<e_tune_tempo>(),           //
       rng::pick_one<e_tune_genre>(),           //
       rng::pick_one<e_tune_culture>(),         //
@@ -231,8 +239,13 @@ TuneId random_tune() {
       rng::pick_one<e_tune_tonality>(),        //
       rng::pick_one<e_tune_epoch>(),           //
       rng::pick_one<e_tune_purpose>()          //
-  }
-                         .to_optional() )[0];
+  };
+  auto tunes_scores = tune_difference_scores( dims );
+  CHECK( !tunes_scores.empty() );
+  auto first_score = tunes_scores[0].second;
+  tunes_scores     = tunes_scores |
+                 rv::take_while( LC( _.second == first_score ) );
+  return rng::pick_one( tunes_scores ).first;
 }
 
 } // namespace rn
