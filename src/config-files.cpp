@@ -405,17 +405,14 @@ SUPPORT_ENUM( e_nation )
 SUPPORT_ENUM( e_direction )
 SUPPORT_ENUM( e_unit_type )
 SUPPORT_ENUM( e_unit_death )
-SUPPORT_ENUM( e_tune_tempo )
-SUPPORT_ENUM( e_tune_genre )
-SUPPORT_ENUM( e_tune_culture )
-SUPPORT_ENUM( e_tune_instrumentation )
-SUPPORT_ENUM( e_tune_sentiment )
-SUPPORT_ENUM( e_tune_key )
-SUPPORT_ENUM( e_tune_tonality )
-SUPPORT_ENUM( e_tune_epoch )
-SUPPORT_ENUM( e_tune_purpose )
 SUPPORT_ENUM( e_music_player )
 SUPPORT_ENUM( e_special_music_event )
+
+#define TUNE_DIMENSION_SUPPORT_ENUM( dim ) \
+  SUPPORT_ENUM( PP_JOIN( e_tune_, dim ) )
+
+EVAL( PP_MAP( TUNE_DIMENSION_SUPPORT_ENUM,
+              TUNE_DIMENSION_LIST ) )
 
 // std::pair
 template<typename K, typename V>
