@@ -164,7 +164,9 @@ Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
 
   if( not_like ) rg::reverse( scores );
 
-  return scores | rv::transform( L( _.first ) );
+  Vec<TuneId> res = scores | rv::transform( L( _.first ) );
+  if( fuzzy_match ) { DCHECK( !res.empty() ); }
+  return res;
 }
 
 Vec<TuneId> tunes_like( TuneId id ) {

@@ -90,7 +90,10 @@ public:
 
   // Start playing the given tune from the beginning. When the
   // tune finishes it stops playing until it is given another
-  // play command. Returns false if the tune cannot be played.
+  // play command. Returns false if the tune cannot be played. If
+  // another tune is already playing then it will be stopped and
+  // the new one will start. If the player was paused, it will
+  // start playing.
   virtual bool play( TuneId id ) = 0;
 
   // If playing will stop the player from playing music.

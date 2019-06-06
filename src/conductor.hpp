@@ -40,13 +40,10 @@ enum class e_( special_music_event, //
 
 namespace rn::conductor {
 
-enum class e_conductor_event {
-  start_tune,
-  finish_tune,
-  volume_change,
-  pause,
-  resume,
-  mplayer_changed
+// Add more events here as they are needed.
+enum class e_conductor_event { //
+  volume_changed,              //
+  mplayer_changed              //
 };
 
 enum class e_( music_state, //
@@ -86,12 +83,14 @@ bool set_music_player( e_music_player mplayer );
 // are available then we get an `unexpected`.
 expect<ConductorInfo> state();
 
+using ConductorEventFunc = std::function<void( void )>;
+
 // This will allow other code to recieve messages when the con-
 // ductor performs certain events. It will always send the noti-
 // fication after the event. All functions are called in the
 // game's main thread.
-void subscribe_to_event( e_conductor_event,
-                         std::function<void( void )> );
+void subscribe_to_conductor_event( e_conductor_event  event,
+                                   ConductorEventFunc func );
 
 // If this is off then the conductor will never automatically ad-
 // vance to the next tune when one is complete.

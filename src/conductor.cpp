@@ -96,7 +96,7 @@ TuneId prev_tune_in_playlist() {
 #define CONDUCTOR_INFO_OR_RETURN( var )  \
   auto expect_info = state();            \
   if( !expect_info.has_value() ) return; \
-  auto const& info = *expect_info
+  auto const& var = *expect_info
 
 void play_impl( TuneId id ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
@@ -105,7 +105,30 @@ void play_impl( TuneId id ) {
   mplayer->play( id );
 }
 
-void conductor_tick() { logger->debug( "Conductor tick." ); }
+// This will get called roughly once per second and, if autoplay
+// is enabled, it will start playing the next song if the music
+// player has stopped.
+//
+// TODO: Consider checking in here the state of the music player
+// and dealing with it if it is in a failed state.
+void conductor_tick() {
+  CONDUCTOR_INFO_OR_RETURN( info );
+  if( info.autoplay ) {
+    if( info.music_state != e_music_state::stopped ) {
+      next();
+      play();
+    }
+  }
+}
+
+// This API for playing a specific tune is only supposed to be
+// used internally. Outside callers should go through the Conduc-
+// tor's request:: api to request playing a particular kind of
+// tune.
+//
+// This method will always cause the given tune to start playing
+// from the beginning.
+void play( TuneId id ) { play_impl( id ); }
 
 void init_conductor() {
   // Generate a random playlist.
@@ -218,6 +241,17 @@ void cleanup_conductor() {
   g_mplayers.clear();
 }
 
+FlatMap<e_conductor_event, vector<ConductorEventFunc>>&
+subscriptions() {
+  static FlatMap<e_conductor_event, vector<ConductorEventFunc>>
+      subs;
+  return subs;
+}
+
+void send_notifications( e_conductor_event event ) {
+  for( auto const& func : subscriptions()[event] ) func();
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( conductor );
@@ -255,6 +289,7 @@ bool set_music_player( e_music_player mplayer ) {
     return false;
   }
   g_active_mplayer = mplayer;
+  send_notifications( e_conductor_event::mplayer_changed );
   return true;
 }
 
@@ -317,12 +352,16 @@ void reset() {
     }
   }
 
-  if( !g_active_mplayer.has_value() )
+  if( g_active_mplayer.has_value() ) {
+    send_notifications( e_conductor_event::mplayer_changed );
+  } else {
     logger->warn(
         "No usable music player found; music will not be "
         "played." );
+  }
 
   g_master_volume = config_music.initial_volume;
+  send_notifications( e_conductor_event::volume_changed );
 
   // Need fence() here?  Don't think so...
   for( auto* mplayer : enabled_mplayers_ptrs() ) {
@@ -475,6 +514,7 @@ void set_volume( double vol ) {
   vol = std::clamp( vol, 0.0, 1.0 );
 
   g_master_volume = vol;
+  send_notifications( e_conductor_event::volume_changed );
 
   auto capabilities = mplayer->capabilities();
   if( !capabilities.has_volume ) {
@@ -565,14 +605,28 @@ void playlist_generate() {
   g_playlist_pos = 0;
 }
 
-void subscribe_to_event( e_conductor_event,
-                         function<void( void )> ) {
-  NOT_IMPLEMENTED; //
+void subscribe_to_conductor_event( e_conductor_event  event,
+                                   ConductorEventFunc func ) {
+  subscriptions()[event].push_back( std::move( func ) );
 }
 
 namespace request {
 
-void won_battle_europeans() {}
+// In the below functions we use fuzzy_match=true because we al-
+// ways want to guarantee some tunes returned regardless of our
+// search criteria.
+
+void won_battle_europeans() {
+  TuneOptDimensions dims;
+  dims.tempo     = e_tune_tempo::medium;
+  dims.genre     = e_tune_genre::trad;
+  dims.culture   = e_tune_culture::new_world;
+  dims.sentiment = e_tune_sentiment::war_triumph;
+  dims.tonality  = e_tune_tonality::major;
+  play( find_tunes( dims,
+                    /*fuzzy_match=*/true,
+                    /*not_like=*/false )[0] );
+}
 void won_battle_natives() {}
 void lost_battle_europeans() {}
 void lost_battle_natives() {}
