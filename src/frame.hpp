@@ -36,11 +36,12 @@ double avg_frame_rate();
 
 uint64_t total_frame_count();
 
+using FrameSubscriptionFunc = std::function<void( void )>;
+
 // Subscribe to receive a notification every n ticks.
-void subscribe_to_frame_tick( std::function<void( void )>,
-                              int n );
+void subscribe_to_frame_tick( FrameSubscriptionFunc f, int n );
 // Subscribe to receive a notification every n milliseconds.
-void subscribe_to_frame_tick( std::function<void( void )>,
+void subscribe_to_frame_tick( FrameSubscriptionFunc,
                               std::chrono::milliseconds n );
 
 // Use node_hash_map because MovingAverage objects are

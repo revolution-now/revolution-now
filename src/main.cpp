@@ -86,14 +86,14 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::conductor );
-  // run_all_init_routines();
+  // run_all_init_routines( e_init_routine::conductor );
+  run_all_init_routines();
 
   // test_music_player<MidiSeqMusicPlayer>();
   // midiseq::test();
-  conductor::test();
+  // conductor::test();
 
-  // game();
+  game();
   // ui::window_test();
 
   run_all_cleanup_routines();

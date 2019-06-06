@@ -17,6 +17,7 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+#include "variant.hpp"
 #include "viewport.hpp"
 
 // C++ standard library
@@ -76,7 +77,64 @@ void advance_viewport_translation() {
   }
 }
 
+struct FrameSubscriptionTick {
+  int                   interval{1};
+  int                   last_message{0};
+  FrameSubscriptionFunc func;
+};
+
+struct FrameSubscriptionTime {
+  chrono::milliseconds  interval;
+  Time_t                last_message{};
+  FrameSubscriptionFunc func;
+};
+
+using FrameSubscription =
+    variant<FrameSubscriptionTick, FrameSubscriptionTime>;
+
+vector<FrameSubscription>& subscriptions() {
+  static vector<FrameSubscription> subs;
+  return subs;
+}
+
+void notify_subscribers() {
+  for( auto& sub : subscriptions() ) {
+    switch_v( sub ) {
+      case_v_( FrameSubscriptionTick, interval, last_message,
+               func ) {
+        auto total = total_frame_count();
+        if( long( total ) - last_message > interval ) {
+          last_message = total;
+          func();
+        }
+      }
+      case_v_( FrameSubscriptionTime, interval, last_message,
+               func ) {
+        auto now = Clock_t::now();
+        if( now - last_message > interval ) {
+          last_message = now;
+          func();
+        }
+      }
+      default_v;
+    }
+  }
+}
+
 } // namespace
+
+void subscribe_to_frame_tick( FrameSubscriptionFunc func,
+                              int                   n ) {
+  subscriptions().push_back( FrameSubscriptionTick{
+      /*interval=*/n, /*last_message=*/0, /*func=*/func} );
+}
+
+void subscribe_to_frame_tick( FrameSubscriptionFunc     func,
+                              std::chrono::milliseconds n ) {
+  subscriptions().push_back( FrameSubscriptionTime{
+      /*interval=*/n, /*last_message=*/Clock_t::now(),
+      /*func=*/func} );
+}
 
 EventCountMap& event_counts() { return g_event_counts; }
 
@@ -123,6 +181,11 @@ void frame_loop( bool poll_input, function<bool()> finished ) {
     // This calls an update method on each plane to allow it to
     // update any internal state that it has each frame.
     update_all_planes();
+
+    // This invokes (synchronous/blocking) callbacks to any sub-
+    // scribers that want to be notified at regular tick or time
+    // intervals.
+    notify_subscribers();
 
     if( finished() ) break;
 

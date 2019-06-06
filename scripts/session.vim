@@ -8,6 +8,7 @@ let s:stems = [
   \ 'src/sdl-util',
   \ 'src/init',
   \ 'src/config-files',
+  \ 'src/frame',
   \ 'src/tune',
   \ 'src/mplayer',
   \ 'src/midiseq',
@@ -17,7 +18,6 @@ let s:stems = [
 
   "\ 'src/sdlmplayer',
   "\ 'src/input',
-  "\ 'src/frame',
   "\ 'src/plane',
   "\ 'src/cache',
   "\ 'src/screen',

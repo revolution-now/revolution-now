@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
+#include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "midiplayer.hpp"
@@ -104,12 +105,14 @@ void play_impl( TuneId id ) {
   mplayer->play( id );
 }
 
-void conductor_tick() { NOT_IMPLEMENTED; }
+void conductor_tick() { logger->debug( "Conductor tick." ); }
 
 void init_conductor() {
   // Generate a random playlist.
   playlist_generate();
   CHECK( g_playlist.size() > 0 );
+
+  subscribe_to_frame_tick( conductor_tick, 1s );
 
   // Gather a list of all available music players.
   ADD_MUSIC_PLAYER( silent, Silent );
