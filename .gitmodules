@@ -12,7 +12,7 @@
 	url = https://github.com/gabime/spdlog.git
 [submodule "extern/libucl"]
 	path = extern/libucl
-	url = https://github.com/vstakhov/libucl.git
+	url = ../../dpacbach/libucl.git
 [submodule "extern/backward-cpp"]
 	path = extern/backward-cpp
 	url = https://github.com/bombela/backward-cpp.git
@@ -36,7 +36,7 @@
 	url = ../../dpacbach/vrm_cmake.git
 [submodule "extern/range-v3"]
 	path = extern/range-v3
-	url = https://github.com/ericniebler/range-v3.git
+	url = ../../dpacbach/range-v3.git
 [submodule "extern/midifile"]
 	path = extern/midifile
 	url = ../../dpacbach/midifile.git
