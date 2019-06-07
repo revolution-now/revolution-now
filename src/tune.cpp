@@ -40,17 +40,15 @@ namespace {
 
 absl::flat_hash_map<TuneId, Tune const*> g_tunes;
 
-#define TUNE_DIMENSION_ADD_IF_DIFFERENT( dim )  \
-  if( dims.dim.has_value() &&                   \
-      tune.dimensions.dim != dims.dim.value() ) \
-  score++
+#define TUNE_DIMENSION_ADD_IF_DIFFERENT( dim ) \
+  if( !util::contains( dims.dim, tune.dimensions.dim ) ) score++
 
 // Return a list of pairs where there is one pair for each tune,
 // and each pair gives the tune ID and the score representing how
 // different it is (distance) from the given set of dimensions.
 // The result will be sorted from most similar to most different.
 Vec<pair<TuneId, int>> tune_difference_scores(
-    TuneOptDimensions dims ) {
+    TuneVecDimensions dims ) {
   vector<pair<TuneId, int /*score*/>> scores;
   for( auto const& [id, tune_ptr] : g_tunes ) {
     auto const& tune  = *tune_ptr;
@@ -103,16 +101,28 @@ void cleanup_tunes() {}
 //
 REGISTER_INIT_ROUTINE( tunes );
 
+#define OPT_TO_VEC( what )                                     \
+  {                                                            \
+    what.has_value()                                           \
+        ? Vec<std::decay_t<decltype( what.value() )>>{{*what}} \
+        : Vec<std::decay_t<decltype( what.value() )>> {}       \
+  }
+
+TuneVecDimensions TuneOptDimensions::to_vec_dims() const {
+  return {EVAL( PP_MAP_COMMAS( OPT_TO_VEC,
+                               EVAL( TUNE_DIMENSION_LIST ) ) )};
+}
+
+TuneOptDimensions TuneDimensions::to_opt_dims() const {
+  return {EVAL( TUNE_DIMENSION_LIST )};
+}
+
 void TunePlayerInfo::log() const {
   logger->info( "TunePlayerInfo:" );
   logger->info( "  id:       {} ({})", id,
                 tune_stem_from_id( id ) );
   logger->info( "  length:   {}", length );
   logger->info( "  progress: {}", progress );
-}
-
-TuneOptDimensions TuneDimensions::to_optional() const {
-  return {EVAL( TUNE_DIMENSION_LIST )};
 }
 
 Vec<TuneId> const& all_tunes() {
@@ -142,12 +152,17 @@ TuneDimensions const& tune_dimensions( TuneId id ) {
   return g_tunes[id]->dimensions;
 }
 
-#define TUNE_DIMENSION_COUNT_IF_ENABLED( dim ) \
-  ( dims.dim.has_value() ? 1 : 0 )
-
 Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
                         bool not_like ) {
-  auto scores = tune_difference_scores( dims );
+  return find_tunes( dims.to_vec_dims(), fuzzy_match, not_like );
+}
+
+#define TUNE_DIMENSION_COUNT_IF_ENABLED( dim ) \
+  ( !dimensions.dim.empty() ? 1 : 0 )
+
+Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
+                        bool fuzzy_match, bool not_like ) {
+  auto scores = tune_difference_scores( dimensions );
 
   if( !fuzzy_match ) {
     size_t enabled_dimensions = EVAL( PP_MAP_PLUS(
@@ -172,7 +187,7 @@ Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
 Vec<TuneId> tunes_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
-  return find_tunes( tune.dimensions.to_optional(), //
+  return find_tunes( tune.dimensions.to_opt_dims(), //
                      /*fuzzy_match=*/true,          //
                      /*not_like=*/false             //
   );
@@ -181,7 +196,7 @@ Vec<TuneId> tunes_like( TuneId id ) {
 Vec<TuneId> tunes_not_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
-  return find_tunes( tune.dimensions.to_optional(), //
+  return find_tunes( tune.dimensions.to_opt_dims(), //
                      /*fuzzy_match=*/true,          //
                      /*not_like=*/true              //
   );
@@ -204,7 +219,8 @@ TuneId random_tune() {
       EVAL( PP_MAP_COMMAS( TUNE_DIMENSION_PICK_ONE,
                            EVAL( TUNE_DIMENSION_LIST ) ) ) //
   };
-  auto tunes_scores = tune_difference_scores( dims );
+  auto tunes_scores =
+      tune_difference_scores( dims.to_vec_dims() );
   CHECK( !tunes_scores.empty() );
   auto first_score = tunes_scores[0].second;
   tunes_scores     = tunes_scores |

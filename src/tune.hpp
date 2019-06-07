@@ -57,18 +57,26 @@ EVAL( PP_MAP_TUPLE( TUNE_DIMENSION_ENUM,
 #define TUNE_DIMENSION_LIST \
   PP_MAP_COMMAS( HEAD_TUPLE, TUNE_DIMENSIONS_DEFINITIONS )
 
+#define TUNE_VEC_DIMENSION( name ) \
+  Vec<PP_JOIN( e_tune_, name )> name;
+
+struct TuneVecDimensions {
+  EVAL( PP_MAP( TUNE_VEC_DIMENSION, TUNE_DIMENSION_LIST ) )
+};
+
 #define TUNE_OPT_DIMENSION( name ) \
   Opt<PP_JOIN( e_tune_, name )> name;
 
 struct TuneOptDimensions {
   EVAL( PP_MAP( TUNE_OPT_DIMENSION, TUNE_DIMENSION_LIST ) )
+  TuneVecDimensions to_vec_dims() const;
 };
 
 #define TUNE_DIMENSION( name ) PP_JOIN( e_tune_, name ) name;
 
 struct TuneDimensions {
   EVAL( PP_MAP( TUNE_DIMENSION, TUNE_DIMENSION_LIST ) )
-  TuneOptDimensions to_optional() const;
+  TuneOptDimensions to_opt_dims() const;
 };
 
 #define K_NUM_DIMENSIONS           \
@@ -139,12 +147,21 @@ TuneDimensions const& tune_dimensions( TuneId id );
 // tunes, but sorted in the order of how closely they meet the
 // given criteria (again, either matching or not matching de-
 // pending on the value of `not_like`). If a parameter is om-
-// mitted (nullopt) then it acts as a wildcard, i.e., any value
-// for that field will match the given one. Therefore, the more
-// parameters that are left as `nullopt`, the more values there
-// will be for a `not_like == false` scenario and the fewer
-// values there will be for a `not_like=true` scenario.
+// mitted (nullopt or empty vector) then it acts as a wildcard,
+// i.e., any value for that field will match the given one.
+// Therefore, the more parameters that are left as `nullopt` or
+// empty, the more values there will be for a `not_like == false`
+// scenario and the fewer values there will be for a
+// `not_like=true` scenario. The criteria for matching depends on
+// which overload is called: for the TuneOptDimensions, a
+// specified dimension must match a tune's dimension exactly; for
+// TuneVecDimensions it mush match any of the possibilities in
+// the vector associated to that dimension.
 Vec<TuneId> find_tunes( TuneOptDimensions dimensions,
+                        bool              fuzzy_match = true,
+                        bool              not_like    = false );
+// Matches any of the possibilities for each dimension.
+Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
                         bool              fuzzy_match = true,
                         bool              not_like    = false );
 
