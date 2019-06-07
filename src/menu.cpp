@@ -83,6 +83,7 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     {e_menu::view, {"View", false, 'V'}},
     {e_menu::orders, {"Orders", false, 'O'}},
     {e_menu::advisors, {"Advisors", false, 'A'}},
+    {e_menu::music, {"Music", false, 'M'}},
     {e_menu::window, {"Window", false, 'W'}},
     {e_menu::debug, {"Debug", true, 'D'}},
     {e_menu::pedia, {"Revolopedia", true, 'R'}}};
@@ -145,6 +146,19 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
          ITEM( military_advisor, "Military Advisor" ),   //
          ITEM( economics_advisor, "Economics Advisor" ), //
          ITEM( european_advisor, "Europian Advisor" )    //
+     }},
+    {e_menu::music,
+     {
+         ITEM( music_play, "Play" ),           //
+         ITEM( music_stop, "Stop" ),           //
+         ITEM( music_pause, "Pause" ),         //
+         ITEM( music_resume, "Resume" ),       //
+         /***********/ DIVIDER, /***********/  //
+         ITEM( music_next, "Next Tune" ),      //
+         ITEM( music_prev, "Previous Tune" ),  //
+         /***********/ DIVIDER, /***********/  //
+         ITEM( music_vol_up, "Volume Up" ),    //
+         ITEM( music_vol_down, "Volume Down" ) //
      }},
     {e_menu::window,
      {

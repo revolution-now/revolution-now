@@ -15,6 +15,7 @@
 #include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "menu.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"
 #include "rand.hpp"
@@ -96,6 +97,11 @@ TuneId prev_tune_in_playlist() {
 #define CONDUCTOR_INFO_OR_RETURN( var )  \
   auto expect_info = state();            \
   if( !expect_info.has_value() ) return; \
+  auto const& var = *expect_info
+
+#define CONDUCTOR_INFO_OR_RETURN_FALSE( var )  \
+  auto expect_info = state();                  \
+  if( !expect_info.has_value() ) return false; \
   auto const& var = *expect_info
 
 void play_impl( TuneId id ) {
@@ -651,6 +657,78 @@ void native_happy() {}
 void king_happy() {}
 void king_sad() {}
 void king_war() {}
+
+/****************************************************************
+** Menu Handlers
+*****************************************************************/
+void menu_music_play() { play(); }
+bool menu_music_play_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  return info.music_state == e_music_state::stopped;
+}
+
+void menu_music_stop() { stop(); }
+bool menu_music_stop_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  return info.music_state == e_music_state::playing;
+}
+
+void menu_music_pause() { pause(); }
+bool menu_music_pause_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  return info.music_state == e_music_state::playing;
+}
+
+void menu_music_resume() { resume(); }
+bool menu_music_resume_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  return info.music_state == e_music_state::paused;
+}
+
+void menu_music_next() { next(); }
+bool menu_music_next_enabled() { return true; }
+
+void menu_music_prev() { prev(); }
+bool menu_music_prev_enabled() { return true; }
+
+void menu_music_vol_up() {
+  CONDUCTOR_INFO_OR_RETURN( info );
+  if( !info.volume.has_value() ) return;
+  set_volume( std::clamp( *info.volume + 0.1, 0.0, 1.0 ) );
+}
+bool menu_music_vol_up_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  if( !info.volume.has_value() ) return false;
+  return *info.volume < 1.0;
+}
+
+void menu_music_vol_down() {
+  CONDUCTOR_INFO_OR_RETURN( info );
+  if( !info.volume.has_value() ) return;
+  set_volume( std::clamp( *info.volume - 0.1, 0.0, 1.0 ) );
+}
+bool menu_music_vol_down_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  if( !info.volume.has_value() ) return false;
+  return *info.volume > 0.0;
+}
+
+MENU_ITEM_HANDLER( music_play, menu_music_play,
+                   menu_music_play_enabled );
+MENU_ITEM_HANDLER( music_stop, menu_music_stop,
+                   menu_music_stop_enabled );
+MENU_ITEM_HANDLER( music_pause, menu_music_pause,
+                   menu_music_pause_enabled );
+MENU_ITEM_HANDLER( music_resume, menu_music_resume,
+                   menu_music_resume_enabled );
+MENU_ITEM_HANDLER( music_next, menu_music_next,
+                   menu_music_next_enabled );
+MENU_ITEM_HANDLER( music_prev, menu_music_prev,
+                   menu_music_prev_enabled );
+MENU_ITEM_HANDLER( music_vol_up, menu_music_vol_up,
+                   menu_music_vol_up_enabled );
+MENU_ITEM_HANDLER( music_vol_down, menu_music_vol_down,
+                   menu_music_vol_down_enabled );
 
 } // namespace request
 

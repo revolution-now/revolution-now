@@ -1,17 +1,3 @@
-Music GUI Elements
-==================
-
-There will be a Sound menu with the following items:
-
-  - Pause Music
-  - Resume Music
-  - Next Tune
-  - Select Tune...
-  - Music Options...
-
-Each of these items will be handled by the Music Conductor mod-
-ule.
-
 Music Conductor (conductor.h/conductor.cpp)
 ===============
 

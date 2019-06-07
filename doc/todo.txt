@@ -23,7 +23,12 @@ Low priority:
 TODO
 =================================================================
 
-  - ?
+  - More flexible tune selection.
+  - Implement the remainder of Conductor request functions.
+  - Implement ogg music player.
+  - Switching music players.
+  - Make silent music player default in configs.
+  - Re-init of music player if failed.
 
 =================================================================
 UI

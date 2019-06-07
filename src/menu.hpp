@@ -29,6 +29,7 @@ enum class e_( menu,
                view,     //
                orders,   //
                advisors, //
+               music,    //
                window,   //
                debug,    //
                pedia     //
@@ -42,6 +43,14 @@ enum class e_( menu_item,
                zoom_in,              //
                zoom_out,             //
                restore_zoom,         //
+               music_play,           //
+               music_stop,           //
+               music_pause,          //
+               music_resume,         //
+               music_next,           //
+               music_prev,           //
+               music_vol_up,         //
+               music_vol_down,       //
                toggle_fullscreen,    //
                restore_window,       //
                scale_up,             //
