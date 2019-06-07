@@ -114,7 +114,7 @@ void play_impl( TuneId id ) {
 void conductor_tick() {
   CONDUCTOR_INFO_OR_RETURN( info );
   if( info.autoplay ) {
-    if( info.music_state != e_music_state::stopped ) {
+    if( info.music_state == e_music_state::stopped ) {
       next();
       play();
     }
@@ -233,6 +233,9 @@ void init_conductor() {
   // This will set the music player if possible, make sure all
   // music is stopped, etc.
   reset();
+
+  auto info = state();
+  if( info.has_value() ) ( *info ).log();
 }
 
 void cleanup_conductor() {
