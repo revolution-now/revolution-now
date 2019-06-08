@@ -16,34 +16,34 @@ initial_volume: 1.0
 
 tunes = [
   {
-    display_name:    "Fife & Drum March 1"
-    stem:            "fife-and-drum-1"
-    description:     "(none)"
+    display_name:   "Fife & Drum March 1"
+    stem:           "fife-and-drum-1"
+    description:    "(none)"
     dimensions = {
-      tempo:           medium
-      genre:           trad
-      culture:         new_world
-      instrumentation: fife_and_drum
-      sentiment:       happy
-      key:             d
-      tonality:        major
-      epoch:           standard
-      purpose:         standard
+      tempo:         medium
+      genre:         trad
+      culture:       new_world
+      inst:          fife_and_drum
+      sentiment:     happy
+      key:           d
+      tonality:      major
+      epoch:         standard
+      purpose:       standard
     }
   },{
-    display_name:    "Bonny Morn"
-    stem:            "bonny-morn"
-    description:     "An old English folk tune"
+    display_name:   "Bonny Morn"
+    stem:           "bonny-morn"
+    description:    "An old English folk tune"
     dimensions = {
-      tempo:           slow
-      genre:           trad
-      culture:         new_world
-      instrumentation: orchestrated
-      sentiment:       sad
-      key:             e
-      tonality:        minor
-      epoch:           standard
-      purpose:         standard
+      tempo:         slow
+      genre:         trad
+      culture:       new_world
+      inst:          orchestrated
+      sentiment:     sad
+      key:           e
+      tonality:      minor
+      epoch:         standard
+      purpose:       standard
     }
   }
 ]

@@ -11,6 +11,7 @@
 #include "turn.hpp"
 
 // Revolution Now
+#include "conductor.hpp"
 #include "dispatch.hpp"
 #include "frame.hpp"
 #include "logging.hpp"
@@ -351,6 +352,11 @@ e_turn_result turn( e_nation nation ) {
               combat_res->fight_stats->attacker_wins
                   ? e_sfx::attacker_won
                   : e_sfx::attacker_lost );
+          conductor::play_request(
+              combat_res->fight_stats->attacker_wins
+                  ? conductor::e_request::won_battle_europeans
+                  : conductor::e_request::lost_battle_europeans,
+              conductor::e_request_probability::rarely );
           frame_loop( /*poll_input=*/true, [&depixelate_unit] {
             return depixelate_unit.finished;
           } );

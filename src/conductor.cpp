@@ -136,10 +136,48 @@ void conductor_tick() {
 // from the beginning.
 void play( TuneId id ) { play_impl( id ); }
 
+/****************************************************************
+** Requests
+*****************************************************************/
+
+FlatMap<e_request, TuneVecDimensions>& dimensions_for_request() {
+  static FlatMap<e_request, TuneVecDimensions> m;
+  return m;
+}
+
+#define DIM( name, _, ... ) \
+  dims.name = {             \
+      EVAL( PP_MAP_PREPEND_NS( e_tune_##name, __VA_ARGS__ ) )};
+
+#define REQUEST( name, ... )                          \
+  {                                                   \
+    CHECK( !dimensions_for_request().contains(        \
+        e_request::name ) );                          \
+    TuneVecDimensions dims;                           \
+    __VA_ARGS__                                       \
+    dimensions_for_request()[e_request::name] = dims; \
+  }
+
+void register_requests() {
+#include "../config/tune-requests.inl"
+  for( auto req : values<e_request> ) {
+    CHECK( dimensions_for_request().contains( req ),
+           "The Conductor request category `{}` has not been "
+           "given a definition.",
+           req );
+  }
+}
+
+/****************************************************************
+** Init / Cleanup
+*****************************************************************/
+
 void init_conductor() {
   // Generate a random playlist.
   playlist_generate();
   CHECK( g_playlist.size() > 0 );
+
+  register_requests();
 
   subscribe_to_frame_tick( conductor_tick, 1s );
 
@@ -264,6 +302,29 @@ void send_notifications( e_conductor_event event ) {
 } // namespace
 
 REGISTER_INIT_ROUTINE( conductor );
+
+void play_request( e_request             request,
+                   e_request_probability probability ) {
+  CONDUCTOR_INFO_OR_RETURN( info );
+  DCHECK( dimensions_for_request().contains( request ) );
+  auto const& dims = dimensions_for_request()[request];
+  double      prob = 1.0;
+  switch( probability ) {
+    case e_request_probability::always: prob = 1.0; break;
+    case e_request_probability::sometimes: prob = .3; break;
+    case e_request_probability::rarely: prob = .1; break;
+  }
+  // In the below we use fuzzy_match=true because we always want
+  // to guarantee some tunes returned regardless of our search
+  // criteria.
+  if( rng::flip_coin( prob ) ) {
+    auto tune_id = find_tunes( dims, /*fuzzy_match=*/true,
+                               /*not_like=*/false )[0];
+    // Only play it if we're not already playing it.
+    if( info.playing_now && ( *info.playing_now ).id != tune_id )
+      play( tune_id );
+  }
+}
 
 void ConductorInfo::log() const {
   logger->info( "ConductorInfo:" );
@@ -619,45 +680,6 @@ void subscribe_to_conductor_event( e_conductor_event  event,
   subscriptions()[event].push_back( std::move( func ) );
 }
 
-namespace request {
-
-// In the below functions we use fuzzy_match=true because we al-
-// ways want to guarantee some tunes returned regardless of our
-// search criteria.
-
-void won_battle_europeans() {
-  TuneOptDimensions dims;
-  dims.tempo     = e_tune_tempo::medium;
-  dims.genre     = e_tune_genre::trad;
-  dims.culture   = e_tune_culture::new_world;
-  dims.sentiment = e_tune_sentiment::war_triumph;
-  dims.tonality  = e_tune_tonality::major;
-  play( find_tunes( dims,
-                    /*fuzzy_match=*/true,
-                    /*not_like=*/false )[0] );
-}
-void won_battle_natives() {}
-void lost_battle_europeans() {}
-void lost_battle_natives() {}
-
-void slow_sad() {}
-void medium_tempo() {}
-void happy_fast() {}
-
-void orchestrated() {}
-void fiddle_tune() {}
-void fife_drum_sad() {}
-void fife_drum_slow() {}
-void fife_drum_fast() {}
-void fife_drum_happy() {}
-
-void native_sad() {}
-void native_happy() {}
-
-void king_happy() {}
-void king_sad() {}
-void king_war() {}
-
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
@@ -729,8 +751,6 @@ MENU_ITEM_HANDLER( music_vol_up, menu_music_vol_up,
                    menu_music_vol_up_enabled );
 MENU_ITEM_HANDLER( music_vol_down, menu_music_vol_down,
                    menu_music_vol_down_enabled );
-
-} // namespace request
 
 // Testing
 void test() {

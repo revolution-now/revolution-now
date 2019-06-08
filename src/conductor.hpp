@@ -145,32 +145,30 @@ void playlist_generate();
 // then play it if requested. If the tune is played then the con-
 // ductor will return to autoplay when it is finished, if auto-
 // play is enabled.
-namespace request {
+enum class e_( request,               //
+               won_battle_europeans,  //
+               won_battle_natives,    //
+               lost_battle_europeans, //
+               lost_battle_natives,   //
+               slow_sad,              //
+               happy_fast,            //
+               orchestrated,          //
+               fiddle_tune,           //
+               fife_drum_sad,         //
+               fife_drum_slow,        //
+               fife_drum_fast,        //
+               fife_drum_happy,       //
+               native_sad,            //
+               native_happy,          //
+               king_happy,            //
+               king_sad,              //
+               king_war               //
+);
 
-void won_battle_europeans();
-void won_battle_natives();
-void lost_battle_europeans();
-void lost_battle_natives();
+enum class e_request_probability { always, sometimes, rarely };
 
-void slow_sad();
-void medium_tempo();
-void happy_fast();
-
-void orchestrated();
-void fiddle_tune();
-void fife_drum_sad();
-void fife_drum_slow();
-void fife_drum_fast();
-void fife_drum_happy();
-
-void native_sad();
-void native_happy();
-
-void king_happy();
-void king_sad();
-void king_war();
-
-} // namespace request
+void play_request( e_request             request,
+                   e_request_probability probability );
 
 // Testing
 void test();

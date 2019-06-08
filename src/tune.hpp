@@ -25,17 +25,16 @@ TYPED_ID( TuneId )
 namespace rn {
 
 // clang-format off
-#define TUNE_DIMENSIONS_DEFINITIONS                             \
-  ( tempo,           fast, medium, slow ),                      \
-  ( genre,           trad, classical ),                         \
-  ( culture,         native, new_world, old_world ),            \
-  ( instrumentation, fife_and_drum, fiddle, percussive,         \
-                     orchestrated ),                            \
-  ( sentiment,       happy, sad, war_triumph, war_lost ),       \
-  ( key,             a, bb, b, c, cs, d, eb, e, f, fs, g, ab ), \
-  ( tonality,        major, minor ),                            \
-  ( epoch,           standard, post_revolution ),               \
-  ( purpose,         standard, special_event )
+#define TUNE_DIMENSIONS_DEFINITIONS                               \
+  ( tempo,     fast, medium, slow ),                              \
+  ( genre,     trad, classical ),                                 \
+  ( culture,   native, new_world, old_world ),                    \
+  ( inst,      fife_and_drum, fiddle, percussive, orchestrated ), \
+  ( sentiment, happy, sad, war_triumph, war_lost ),               \
+  ( key,       a, bb, b, c, cs, d, eb, e, f, fs, g, ab ),         \
+  ( tonality,  major, minor ),                                    \
+  ( epoch,     standard, post_revolution ),                       \
+  ( purpose,   standard, special_event )
 // clang-format on
 
 #define TUNE_DIMENSION_ENUM( name, ... ) \
