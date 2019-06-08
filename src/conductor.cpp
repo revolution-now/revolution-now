@@ -321,8 +321,11 @@ void play_request( e_request             request,
     auto tune_id = find_tunes( dims, /*fuzzy_match=*/true,
                                /*not_like=*/false )[0];
     // Only play it if we're not already playing it.
-    if( info.playing_now && ( *info.playing_now ).id != tune_id )
+    if( info.playing_now &&
+        ( *info.playing_now ).id != tune_id ) {
+      logger->info( "requesting music for `{}`", request );
       play( tune_id );
+    }
   }
 }
 
