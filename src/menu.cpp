@@ -1235,6 +1235,7 @@ struct MenuPlane : public Plane {
           if( key_event.change == input::e_key_change::down ) {
             switch( key_event.keycode ) {
               case ::SDLK_RETURN:
+              case ::SDLK_KP_5:
               case ::SDLK_KP_ENTER:
                 if_v( g_menu_state, MenuState::menu_open, val ) {
                   if( val->hover.has_value() ) {

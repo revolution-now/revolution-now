@@ -523,8 +523,7 @@ void next() {
       break;
     }
     case +e_music_state::paused: {
-      stop();
-      next_tune_in_playlist();
+      play_impl( next_tune_in_playlist() );
       break;
     }
     case +e_music_state::stopped: //
@@ -686,16 +685,23 @@ void subscribe_to_conductor_event( e_conductor_event  event,
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
-void menu_music_play() { play(); }
+void menu_music_play() {
+  play();
+  set_autoplay( true );
+}
 bool menu_music_play_enabled() {
   CONDUCTOR_INFO_OR_RETURN_FALSE( info );
   return info.music_state == e_music_state::stopped;
 }
 
-void menu_music_stop() { stop(); }
+void menu_music_stop() {
+  stop();
+  set_autoplay( false );
+}
 bool menu_music_stop_enabled() {
   CONDUCTOR_INFO_OR_RETURN_FALSE( info );
-  return info.music_state == e_music_state::playing;
+  return info.music_state == e_music_state::playing ||
+         info.music_state == e_music_state::paused;
 }
 
 void menu_music_pause() { pause(); }
@@ -711,10 +717,18 @@ bool menu_music_resume_enabled() {
 }
 
 void menu_music_next() { next(); }
-bool menu_music_next_enabled() { return true; }
+bool menu_music_next_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  return info.music_state == e_music_state::playing ||
+         info.music_state == e_music_state::paused;
+}
 
 void menu_music_prev() { prev(); }
-bool menu_music_prev_enabled() { return true; }
+bool menu_music_prev_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  return info.music_state == e_music_state::playing ||
+         info.music_state == e_music_state::paused;
+}
 
 void menu_music_vol_up() {
   CONDUCTOR_INFO_OR_RETURN( info );
