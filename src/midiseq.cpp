@@ -502,6 +502,19 @@ void midi_play_event( MidiPlayInfo* info ) {
   // How long do we have to wait before sending the event.
   auto wait_time = event_time - Clock_t::now();
 
+  // Just in case the computer goes to sleep for a while then
+  // wakes up, the `wait_time` will be a large negative value. In
+  // this case we don't want to play any more events/sounds be-
+  // cause then we'd end up playing all the rest of the notes in
+  // the tune in an instant and it will produce an unpleasant
+  // sound. This will have the effect of basically ending the
+  // tune.
+  auto time_delta_indicating_machine_went_2_sleep = 30s;
+  if( wait_time < -time_delta_indicating_machine_went_2_sleep ) {
+    info->current_event++;
+    return;
+  }
+
   // As a consequence of using clock time, note that this dura-
   // tion might be (slightly) negative at times, so clamp it.
   wait_time = std::max( Duration_t( 0 ), wait_time );
@@ -690,7 +703,6 @@ void midi_thread_impl() {
         if( info.current_event >=
             info.midifile[info.track].size() ) {
           logger->info( "midi file {} has finished.", stem );
-          // Just for good measure.
           g_midi->all_notes_off();
           maybe_info = nullopt;
           g_midi_comm.set_progress( nullopt );

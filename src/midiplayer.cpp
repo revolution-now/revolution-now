@@ -83,6 +83,9 @@ bool MidiSeqMusicPlayer::good() const {
 Opt<TunePlayerInfo> MidiSeqMusicPlayer::can_play_tune(
     TuneId id ) {
   if( !good() ) return {};
+  // Return value serves two purposes: determine if tune can be
+  // played, and if so, gives duration (which is always available
+  // for the midi files).
   auto maybe_duration =
       midiseq::can_play_tune( mid_file_from_id( id ) );
   if( !maybe_duration.has_value() ) return nullopt;
