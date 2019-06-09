@@ -28,6 +28,7 @@ namespace rn {
 // are not available.
 enum class e_( music_player, //
                midiseq,      //
+               ogg,          //
                silent        //
 );
 

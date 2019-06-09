@@ -30,17 +30,6 @@ namespace rn {
 
 namespace {
 
-::Mix_Music* current_music = nullptr;
-
-void stop_music_if_playing() {
-  if( ::Mix_PlayingMusic() != 0 ) {
-    CHECK( current_music );
-    ::Mix_HaltMusic();
-    ::Mix_FreeMusic( current_music );
-    current_music = nullptr;
-  }
-}
-
 struct SfxDesc {
   string file;
   int    volume;
@@ -75,33 +64,77 @@ auto* load_sfx( e_sfx sound ) {
 }
 
 void init_sound() {
+  // Make sure that we're dynamically linked with a version of
+  // SDL_mixer approximately like the one we compiled with.
+  ::SDL_version      compiled_version;
+  SDL_version const* link_version = ::Mix_Linked_Version();
+  SDL_MIXER_VERSION( &compiled_version );
+  logger->info( "SDL mixer: compiled with version: {}.{}.{}",
+                compiled_version.major, compiled_version.minor,
+                compiled_version.patch );
+  logger->info( "SDL mider: running with version: {}.{}.{}",
+                link_version->major, link_version->minor,
+                link_version->patch );
+  CHECK(
+      compiled_version.major == link_version->major,
+      "This game was compiled with a version of SDL Mixer whose "
+      "major version number ({}) is different from the major "
+      "version number of the SDL Mixer runtime library ({})",
+      compiled_version.major, link_version->major );
+
+  if( compiled_version.minor != link_version->minor ) {
+    logger->warn(
+        "This game was compiled with a version of SDL Mixer "
+        "whose "
+        "minor version number ({}) is different from the minor "
+        "version number of the SDL Mixer runtime library ({})",
+        compiled_version.minor, link_version->minor );
+  }
+
+  // Seemingly not needed?
+  //::Mix_Init( ... );
+
+  // Open Audio device
+  CHECK( !Mix_OpenAudio( config_sound.general.frequency,
+                         AUDIO_S16SYS,
+                         config_sound.general.channels,
+                         config_sound.general.chunk_size ),
+         "could not open audio: Mix_OpenAudio error: {}",
+         ::Mix_GetError() );
+
+  // Verify settings.
+  int      frequency{0};
+  uint16_t format{0};
+  int      channels{0};
+  auto     audio_opened =
+      ::Mix_QuerySpec( &frequency, &format, &channels );
+
+  CHECK(
+      audio_opened,
+      "unexpected: SDL Mixer audio has not been initialized." );
+
+  logger->info( "Opening audio with {} channels @ {}Hz.",
+                channels, frequency );
+
+  // Set Volume for all channels.
+  //
+  // TODO: is this necessary given that we also set the volume
+  // per chunk for sfx and set the volume for music separately?
+  constexpr int default_volume{10}; // [0, 128)
+  ::Mix_Volume( -1 /*=all channels*/, default_volume );
+
   for( auto sound : values<e_sfx> ) load_sfx( sound );
 }
 
 void cleanup_sound() {
-  stop_music_if_playing();
   for( auto& p : loaded_sfx ) ::Mix_FreeChunk( p.second );
+  ::Mix_CloseAudio();
+  ::Mix_Quit();
 }
 
 } // namespace
 
 REGISTER_INIT_ROUTINE( sound );
-
-bool play_music_file( char const* file ) {
-  stop_music_if_playing();
-  current_music = ::Mix_LoadMUS( file );
-  if( current_music == nullptr ) {
-    cerr << "Mix_LoadMUS error: " << ::SDL_GetError() << "\n";
-    return false;
-  }
-  // Start Playback
-  if( ::Mix_PlayMusic( current_music, 1 ) == 0 ) return true;
-
-  cerr << "Mix_PlayMusic error: " << ::SDL_GetError() << "\n";
-  ::Mix_FreeMusic( current_music );
-  current_music = nullptr;
-  return false;
-}
 
 void play_sound_effect( e_sfx sound ) {
   auto* chunk = load_sfx( sound );

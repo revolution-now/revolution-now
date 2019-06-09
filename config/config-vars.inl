@@ -248,6 +248,7 @@ using SpecialMusicEventMap = FlatMap<e_special_music_event, Str>;
 
 CFG( music,
   FLD( fs::path, midi_folder )
+  FLD( fs::path, ogg_folder )
 
   FLD( e_music_player, first_choice_music_player )
   FLD( e_music_player, second_choice_music_player )

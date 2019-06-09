@@ -22,9 +22,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// SDL
-#include "SDL_mixer.h"
-
 // c++ standard library
 #include <cmath>
 #include <iomanip>
@@ -78,19 +75,6 @@ ND Rect from_SDL( ::SDL_Rect const& rect ) {
 void init_sdl() {
   CHECK( ::SDL_Init( SDL_INIT_EVERYTHING ) >= 0,
          "sdl could not initialize" );
-
-  // Open Audio device
-  CHECK( !Mix_OpenAudio( config_sound.general.frequency,
-                         AUDIO_S16SYS,
-                         config_sound.general.channels,
-                         config_sound.general.chunk_size ),
-         "could not open audio: Mix_OpenAudio ERROR: {}",
-         ::Mix_GetError() );
-
-  // Set Volume
-  constexpr int default_volume{10};
-
-  ::Mix_VolumeMusic( default_volume );
 }
 
 // All the functions in this method should not cause problems
@@ -101,7 +85,6 @@ void cleanup_sdl() {
   ::SDL_Quit();
 }
 
-//
 REGISTER_INIT_ROUTINE( sdl );
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }

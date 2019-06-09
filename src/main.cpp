@@ -13,6 +13,7 @@
 #include "midiplayer.hpp"
 #include "midiseq.hpp"
 #include "mplayer.hpp"
+#include "oggplayer.hpp"
 #include "ownership.hpp"
 #include "rand.hpp"
 #include "ranges.hpp"
@@ -89,8 +90,6 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   // run_all_init_routines( e_init_routine::conductor );
   run_all_init_routines();
 
-  // test_music_player<MidiSeqMusicPlayer>();
-  // midiseq::test();
   // conductor::test();
 
   game();

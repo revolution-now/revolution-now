@@ -1,7 +1,8 @@
 midi_folder: assets/music/midi
+ogg_folder: assets/music/ogg
 
-first_choice_music_player: midiseq
-second_choice_music_player: silent
+first_choice_music_player: ogg
+second_choice_music_player: midiseq
 
 # This represents the threshold in seconds after which a "pre-
 # vious tune" command to the Conductor will simply restart the

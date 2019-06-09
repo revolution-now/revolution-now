@@ -13,6 +13,8 @@ let s:stems = [
   \ 'src/mplayer',
   \ 'src/midiseq',
   \ 'src/midiplayer',
+  \ 'src/sound',
+  \ 'src/oggplayer',
   \ 'src/conductor',
 \]
 

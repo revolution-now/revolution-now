@@ -17,8 +17,6 @@
 
 namespace rn {
 
-ND bool play_music_file( char const* file );
-
 enum class e_( sfx, move, attacker_lost, attacker_won );
 
 void play_sound_effect( e_sfx sound );

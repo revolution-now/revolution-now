@@ -18,6 +18,7 @@
 #include "menu.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"
+#include "oggplayer.hpp"
 #include "rand.hpp"
 #include "ranges.hpp"
 #include "time.hpp"
@@ -184,6 +185,7 @@ void init_conductor() {
   // Gather a list of all available music players.
   ADD_MUSIC_PLAYER( silent, Silent );
   ADD_MUSIC_PLAYER( midiseq, MidiSeq );
+  ADD_MUSIC_PLAYER( ogg, Ogg );
 
   // Check each music player for viability and populate info.
   for( auto mplayer : values<e_music_player> ) {
