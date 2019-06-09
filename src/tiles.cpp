@@ -12,9 +12,9 @@
 
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "hash.hpp"
 #include "init.hpp"
 #include "sdl-util.hpp"
-#include "util.hpp"
 
 #include <string>
 #include <unordered_map>

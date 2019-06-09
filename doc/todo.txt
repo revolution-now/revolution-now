@@ -23,9 +23,6 @@ Low priority:
 TODO
 =================================================================
 
-  - Implement ogg music player.
-  - Switching music players.
-  - Make silent music player default in configs.
   - Re-init of music player if failed.
 
 =================================================================

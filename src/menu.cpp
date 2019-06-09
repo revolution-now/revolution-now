@@ -149,16 +149,18 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
      }},
     {e_menu::music,
      {
-         ITEM( music_play, "Play" ),           //
-         ITEM( music_stop, "Stop" ),           //
-         ITEM( music_pause, "Pause" ),         //
-         ITEM( music_resume, "Resume" ),       //
-         /***********/ DIVIDER, /***********/  //
-         ITEM( music_next, "Next Tune" ),      //
-         ITEM( music_prev, "Previous Tune" ),  //
-         /***********/ DIVIDER, /***********/  //
-         ITEM( music_vol_up, "Volume Up" ),    //
-         ITEM( music_vol_down, "Volume Down" ) //
+         ITEM( music_play, "Play" ),                     //
+         ITEM( music_stop, "Stop" ),                     //
+         ITEM( music_pause, "Pause" ),                   //
+         ITEM( music_resume, "Resume" ),                 //
+         /***********/ DIVIDER, /***********/            //
+         ITEM( music_next, "Next Tune" ),                //
+         ITEM( music_prev, "Previous Tune" ),            //
+         /***********/ DIVIDER, /***********/            //
+         ITEM( music_vol_up, "Volume Up" ),              //
+         ITEM( music_vol_down, "Volume Down" ),          //
+         /***********/ DIVIDER, /***********/            //
+         ITEM( music_set_player, "Set Music Player..." ) //
      }},
     {e_menu::window,
      {
@@ -1162,8 +1164,12 @@ struct MenuPlane : public Plane {
       auto start = val->start;
       if( chrono::system_clock::now() - start >=
           click_anim::total_duration ) {
-        g_menu_items[item]->callbacks.on_click();
+        // Must set this before calling on_click since the
+        // on_click function itself might enter into a frame loop
+        // that calls this on_frame_tick function, then we would
+        // end up calling on_click multiple times.
         g_menu_state = MenuState::menus_closed{/*hover=*/{}};
+        g_menu_items[item]->callbacks.on_click();
       }
     }
   }

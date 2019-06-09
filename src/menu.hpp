@@ -51,6 +51,7 @@ enum class e_( menu_item,
                music_prev,           //
                music_vol_up,         //
                music_vol_down,       //
+               music_set_player,     //
                toggle_fullscreen,    //
                restore_window,       //
                scale_up,             //

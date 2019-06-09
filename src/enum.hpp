@@ -63,4 +63,15 @@ constexpr auto values = Enum::_values();
 enum class e_( size_test, _ );
 static_assert( sizeof( e_size_test ) == sizeof( int ) );
 
+char const* enum_to_display_name_impl(
+    std::string const& type_name, int index,
+    char const* default_ );
+
+template<typename ReflectedEnum>
+char const* enum_to_display_name( ReflectedEnum value ) {
+  auto const* default_ = value._to_string();
+  return enum_to_display_name_impl(
+      ReflectedEnum::_name(), value._to_index(), default_ );
+}
+
 } // namespace rn

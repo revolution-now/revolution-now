@@ -22,6 +22,7 @@
 #include "rand.hpp"
 #include "ranges.hpp"
 #include "time.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -301,6 +302,16 @@ void send_notifications( e_conductor_event event ) {
   for( auto const& func : subscriptions()[event] ) func();
 }
 
+void silence_all_music_players() {
+  // Need fence() here?  Don't think so...
+  for( auto* mplayer : enabled_mplayers_ptrs() ) {
+    mplayer->stop();
+    auto capabilities = mplayer->capabilities();
+    if( capabilities.has_volume )
+      mplayer->set_volume( g_master_volume );
+  }
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( conductor );
@@ -355,16 +366,23 @@ MusicPlayerInfo const& music_player_info(
 }
 
 bool set_music_player( e_music_player mplayer ) {
-  reset();
   if( !g_mplayer_infos[mplayer].enabled ) {
-    logger->error(
+    logger->warn(
         "attempt to set music player `{}` but it is disabled.",
         g_mplayer_infos[mplayer].name );
-    g_active_mplayer = nullopt;
     return false;
   }
+  if( g_active_mplayer == mplayer ) return true;
+  // Probably only need to silence the active one at this point,
+  // but just in case...
+  silence_all_music_players();
   g_active_mplayer = mplayer;
   send_notifications( e_conductor_event::mplayer_changed );
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  if( info.autoplay ) {
+    next();
+    play();
+  }
   return true;
 }
 
@@ -438,13 +456,7 @@ void reset() {
   g_master_volume = config_music.initial_volume;
   send_notifications( e_conductor_event::volume_changed );
 
-  // Need fence() here?  Don't think so...
-  for( auto* mplayer : enabled_mplayers_ptrs() ) {
-    mplayer->stop();
-    auto capabilities = mplayer->capabilities();
-    if( capabilities.has_volume )
-      mplayer->set_volume( g_master_volume );
-  }
+  silence_all_music_players();
 
   g_autoplay = config_music.autoplay;
 }
@@ -754,6 +766,15 @@ bool menu_music_vol_down_enabled() {
   return *info.volume > 0.0;
 }
 
+void menu_music_set_player() {
+  auto result = ui::select_box_enum<e_music_player>(
+      "Select Music Player" );
+  if( !set_music_player( result ) )
+    ui::message_box( "The \"{}\" music player is not available.",
+                     result );
+}
+bool menu_music_set_player_enabled() { return true; }
+
 MENU_ITEM_HANDLER( music_play, menu_music_play,
                    menu_music_play_enabled );
 MENU_ITEM_HANDLER( music_stop, menu_music_stop,
@@ -770,6 +791,8 @@ MENU_ITEM_HANDLER( music_vol_up, menu_music_vol_up,
                    menu_music_vol_up_enabled );
 MENU_ITEM_HANDLER( music_vol_down, menu_music_vol_down,
                    menu_music_vol_down_enabled );
+MENU_ITEM_HANDLER( music_set_player, menu_music_set_player,
+                   menu_music_set_player_enabled );
 
 // Testing
 void test() {

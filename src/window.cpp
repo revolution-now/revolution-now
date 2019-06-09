@@ -404,27 +404,8 @@ string select_box( string_view title, Vec<Str> options ) {
   return result;
 }
 
-template<typename Enum>
-Enum select_box_enum(
-    std::string_view                          title,
-    std::vector<std::pair<Enum, std::string>> options ) {
-  // map over member function?
-  std::vector<std::string> words;
-  for( auto const& option : options )
-    words.push_back( option.second );
-  auto result = select_box( title, words );
-  for( auto const& option : options )
-    if( result == option.second ) return option.first;
-  SHOULD_NOT_BE_HERE;
-}
-
 e_confirm yes_no( string_view title ) {
-  vector<pair<e_confirm, string>> dict{
-      {e_confirm::yes, "Yes"},
-      {e_confirm::no, "No"},
-  };
-  auto res = select_box_enum( title, dict );
-  return res;
+  return select_box_enum<e_confirm>( title );
 }
 
 void message_box( std::string_view msg ) {
