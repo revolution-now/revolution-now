@@ -76,7 +76,11 @@ enum class e_ogg_state { playing, paused, stopped };
 *****************************************************************/
 Opt<OggMusicPlayer> g_ogg_player{};
 Opt<OggTune>        g_current_music{};
-e_ogg_state         g_state{e_ogg_state::stopped};
+// Note that this state may not be updated when a tune stops
+// playing on its own (but before the next one is played). If
+// this turns out to be a problem then we would either need to
+// hook into some callback from SDL Mixer or poll for it.
+e_ogg_state g_state{e_ogg_state::stopped};
 
 /****************************************************************
 ** Impl Functions
@@ -90,8 +94,9 @@ void stop_music_if_playing() {
     g_current_music.reset();
     g_state = e_ogg_state::stopped;
   } else {
-    // Supposedly stopped.
-    CHECK( g_state == e_ogg_state::stopped );
+    // The following check may not be true because the music may
+    // have stopped on its own.
+    // CHECK( g_state == e_ogg_state::stopped );
     CHECK( !g_current_music );
   }
 }
