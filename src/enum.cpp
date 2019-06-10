@@ -19,6 +19,9 @@
 #include "conductor.hpp"
 #include "window.hpp"
 
+// base-util
+#include "base-util/pp.hpp"
+
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
@@ -33,45 +36,61 @@ namespace rn {
 namespace {
 
 template<typename EnumType>
-char const* enum_val_to_str( int );
+char const* enum_to_str( int );
 
-template<>
-char const* enum_val_to_str<ui::e_confirm>( int in ) {
-  DCHECK( ui::e_confirm::_is_valid( in ) );
-  auto val = ui::e_confirm::_from_integral_unchecked( in );
-  switch( val ) {
-    case +ui::e_confirm::yes: return "Yes";
-    case +ui::e_confirm::no: return "No";
-  }
-};
+#define ENUM_TO_STR_SINGLE( val, str ) \
+  case +enum_type::val:                \
+    return str;
 
-template<>
-char const* enum_val_to_str<e_music_player>( int in ) {
-  DCHECK( e_music_player::_is_valid( in ) );
-  auto val = e_music_player::_from_integral_unchecked( in );
-  switch( val ) {
-    case +e_music_player::midiseq: return "MIDI Sequencer";
-    case +e_music_player::ogg: return "OGG Player";
-    case +e_music_player::silent: return "Silent";
+#define ENUM_TO_STR_IMPL( type, ... )                      \
+  template<>                                               \
+  char const* enum_to_str<type>( int e ) {                 \
+    DCHECK( type::_is_valid( e ) );                        \
+    auto val        = type::_from_integral_unchecked( e ); \
+    using enum_type = type;                                \
+    switch( val ) {                                        \
+      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )      \
+    }                                                      \
   }
-};
+
+#define TRANSLATION( type, ... ) \
+  EVAL( ENUM_TO_STR_IMPL( type, __VA_ARGS__ ) )
+
+#include "../config/enum-name.inl"
 
 // Takes the index of an enum value.
 using EnumNameFunc = char const* (*)( int );
 
-FlatMap<string /*type hash*/, EnumNameFunc> g_enum_display_names{
-    {"e_confirm", &enum_val_to_str<ui::e_confirm>},       //
-    {"e_music_player", &enum_val_to_str<e_music_player>}, //
+#define ENUM_TO_STR_FUNC( type ) \
+  { type::_name(), &enum_to_str<type> }
+
+using EnumNameMap = FlatMap<char const*, EnumNameFunc>;
+
+EnumNameMap& enum_display_names() {
+  static auto m = [] {
+    return EnumNameMap{EVAL( PP_MAP_COMMAS(
+        ENUM_TO_STR_FUNC, //
+        /*************************************************/
+        ui::e_confirm, //
+        e_music_player //
+        /*************************************************/
+        ) )};
+  }();
+  return m;
 };
 
 } // namespace
 
-char const* enum_to_display_name_impl( string const& type_name,
-                                       int           index,
-                                       char const*   default_ ) {
-  if( !g_enum_display_names.contains( type_name ) )
+namespace internal {
+
+char const* enum_to_display_name( char const* type_name,
+                                  int         index,
+                                  char const* default_ ) {
+  if( !enum_display_names().contains( type_name ) )
     return default_;
-  return g_enum_display_names[type_name]( index );
+  return enum_display_names()[type_name]( index );
 }
+
+} // namespace internal
 
 } // namespace rn
