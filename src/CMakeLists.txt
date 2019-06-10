@@ -16,6 +16,8 @@ target_link_libraries(
     rn
     PRIVATE
     absl::container
+    absl::flat_hash_map
+    absl::flat_hash_set
     absl::hash
     absl::strings
     base-util
