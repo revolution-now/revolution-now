@@ -20,6 +20,9 @@
 #include "variant.hpp"
 #include "viewport.hpp"
 
+// Revolution Now (config)
+#include "config/rn.inl"
+
 // C++ standard library
 #include <thread>
 

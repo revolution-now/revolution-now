@@ -11,12 +11,16 @@
 *****************************************************************/
 #include "viewport.hpp"
 
+// Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "screen.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
+
+// Revolution Now (config)
+#include "config/rn.inl"
 
 using namespace std;
 

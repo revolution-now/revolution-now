@@ -21,6 +21,9 @@
 #include "sdl-util.hpp"
 #include "util.hpp"
 
+// Revolution Now (config)
+#include "config/art.inl"
+
 // abseil
 #include "absl/container/flat_hash_map.h"
 
@@ -85,6 +88,7 @@ void cleanup_images() {}
 
 } // namespace
 
+//
 //
 //
 REGISTER_INIT_ROUTINE( images );

@@ -29,6 +29,9 @@
 #include "views.hpp"
 #include "window.hpp"
 
+// Revolution Now (config)
+#include "config/rn.inl"
+
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/variant.hpp"

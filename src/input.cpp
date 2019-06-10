@@ -18,6 +18,9 @@
 #include "util.hpp"
 #include "variant.hpp"
 
+// Revolution Now (config)
+#include "config/input.inl"
+
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
@@ -104,7 +107,7 @@ absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
 
 bool is_in_drag_zone( Coord current, Coord origin ) {
   auto delta = current - origin;
-  auto buf   = config_rn.controls.drag_buffer;
+  auto buf   = config_input.controls.drag_buffer;
   return abs( delta.w._ ) > buf || abs( delta.h._ ) > buf;
 }
 

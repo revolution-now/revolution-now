@@ -11,7 +11,6 @@
 #include "sdl-util.hpp"
 
 // Revolution Now
-#include "config-files.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "frame.hpp"

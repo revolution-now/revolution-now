@@ -12,11 +12,23 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "color.hpp"
+#include "conductor.hpp"
+#include "coord.hpp"
 #include "errors.hpp"
+#include "mv-points.hpp"
+#include "nation.hpp"
+#include "tune.hpp"
+#include "typed-int.hpp"
+#include "utype.hpp"
+
 #include "init.hpp"
 #include "logging.hpp"
 #include "util.hpp"
 #include "utype.hpp"
+
+// Revolution Now (config inl files)
+#include "config/all.inl"
 
 // base-util
 #include "base-util/misc.hpp"
@@ -646,11 +658,16 @@ void init_configs() {
 
 void cleanup_configs() {}
 
+REGISTER_INIT_ROUTINE( configs );
+
 } // namespace
 
-#include "../config/config-vars.inl"
+} // namespace rn
 
-REGISTER_INIT_ROUTINE( configs );
+// Revolution Now (config inl files)
+#include "config/all.inl"
+
+namespace rn {
 
 Vec<Color> const& g_palette() {
   static Vec<Color> const& colors = [] {

@@ -20,6 +20,9 @@
 #include "util.hpp"
 #include "variant.hpp"
 
+// Revolution Now (config)
+#include "config/palette.inl"
+
 // base-util
 #include "base-util/misc.hpp"
 

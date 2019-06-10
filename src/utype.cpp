@@ -14,6 +14,9 @@
 #include "config-files.hpp"
 #include "util.hpp"
 
+// Revolution Now (config)
+#include "config/units.inl"
+
 // Abseil
 #include "absl/container/flat_hash_map.h"
 

@@ -1,0 +1,8 @@
+controls {
+  # How many pixels to drag before creating a drag input event.
+  # This adds a small buffer which prevents drag events from from
+  # being created unnecessarily since typically the mouse will
+  # move a few pixels during a click even when the user is not
+  # intending to drag.
+  drag_buffer: 3
+}

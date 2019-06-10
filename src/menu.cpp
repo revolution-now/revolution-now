@@ -13,6 +13,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
+#include "color.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
@@ -26,6 +27,10 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
+
+// Revolution Now (config)
+#include "config/palette.inl"
+#include "config/ui.inl"
 
 // base-util
 #include "base-util/algo.hpp"

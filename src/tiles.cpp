@@ -10,12 +10,17 @@
 *****************************************************************/
 #include "tiles.hpp"
 
+// Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "hash.hpp"
 #include "init.hpp"
 #include "sdl-util.hpp"
 
+// Revolution Now (config)
+#include "config/art.inl"
+
+// C++ standard library
 #include <string>
 #include <unordered_map>
 #include <vector>

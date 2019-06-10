@@ -19,6 +19,9 @@
 #include "ranges.hpp"
 #include "time.hpp"
 
+// Revolution Now (config)
+#include "config/music.inl"
+
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/misc.hpp"

@@ -24,6 +24,9 @@
 #include "time.hpp"
 #include "window.hpp"
 
+// Revolution Now (config)
+#include "config/music.inl"
+
 // base-util
 #include "base-util/algo.hpp"
 

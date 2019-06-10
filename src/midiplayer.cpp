@@ -18,6 +18,9 @@
 #include "midiseq.hpp"
 #include "time.hpp"
 
+// Revolution Now (config)
+#include "config/music.inl"
+
 using namespace std;
 
 namespace rn {

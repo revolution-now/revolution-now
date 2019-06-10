@@ -39,6 +39,7 @@ target_link_libraries(
 target_include_directories(
     rn
     PRIVATE
+    ${PROJECT_SOURCE_DIR} # top-level folder
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}

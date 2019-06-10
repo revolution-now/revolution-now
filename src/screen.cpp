@@ -18,7 +18,11 @@
 #include "menu.hpp"
 #include "ranges.hpp"
 #include "sdl-util.hpp"
+#include "terrain.hpp"
 #include "tiles.hpp"
+
+// Revolution Now (config)
+#include "config/rn.inl"
 
 // C++ standard library
 #include <cmath>

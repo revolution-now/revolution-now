@@ -1,4 +1,8 @@
 // Auto-Generated: DO NOT EDIT
+#ifndef PALETTE_INL
+#define PALETTE_INL
+
+namespace rn {
 
 CFG( palette,
   OBJ( red,
@@ -443,3 +447,7 @@ CFG( palette,
     FLD( Color, nFC )
   )
 )
+
+}
+
+#endif

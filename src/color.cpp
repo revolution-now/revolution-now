@@ -17,6 +17,9 @@
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
+// Revolution Now (config)
+#include "config/palette.inl"
+
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
@@ -697,8 +700,8 @@ void show_color_adjustment( Color center ) {
 }
 
 void write_palette_png( fs::path const& png_file ) {
-  auto tx     = create_texture( W{500}, H{480} );
-  auto colors = g_palette();
+  auto        tx     = create_texture( W{500}, H{480} );
+  auto const& colors = g_palette();
   show_palette( tx, hsl_bucket( colors ) );
   save_texture_png( tx, png_file );
 }
@@ -733,7 +736,7 @@ void update_palette( fs::path const& where ) {
 }
 
 void show_config_palette() {
-  auto colors = g_palette();
+  auto const& colors = g_palette();
   show_palette( Texture(), hsl_bucket( colors ) );
 }
 

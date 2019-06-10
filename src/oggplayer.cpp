@@ -16,6 +16,9 @@
 #include "init.hpp"
 #include "logging.hpp"
 
+// Revolution Now (config)
+#include "config/music.inl"
+
 // base-util
 #include "base-util/non-copyable.hpp"
 
