@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // C++ standard library
+#include <cstddef>
 #include <cstdint>
 
 namespace rn {
