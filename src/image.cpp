@@ -22,7 +22,7 @@
 #include "util.hpp"
 
 // Revolution Now (config)
-#include "config/art.inl"
+#include "config/ucl/art.inl"
 
 // abseil
 #include "absl/container/flat_hash_map.h"

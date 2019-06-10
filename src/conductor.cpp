@@ -25,7 +25,7 @@
 #include "window.hpp"
 
 // Revolution Now (config)
-#include "config/music.inl"
+#include "config/ucl/music.inl"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -164,7 +164,7 @@ FlatMap<e_request, TuneVecDimensions>& dimensions_for_request() {
   }
 
 void register_requests() {
-#include "../config/tune-requests.inl"
+#include "../config/c++/tune-requests.inl"
   for( auto req : values<e_request> ) {
     CHECK( dimensions_for_request().contains( req ),
            "The Conductor request category `{}` has not been "

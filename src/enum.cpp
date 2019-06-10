@@ -56,7 +56,7 @@ char const* enum_to_str( int );
 #define TRANSLATION( type, ... ) \
   EVAL( ENUM_TO_STR_IMPL( type, __VA_ARGS__ ) )
 
-#include "../config/enum-name.inl"
+#include "../config/c++/enum-name.inl"
 
 // Takes the index of an enum value.
 using EnumNameFunc = char const* (*)( int );

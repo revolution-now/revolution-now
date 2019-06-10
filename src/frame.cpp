@@ -21,7 +21,7 @@
 #include "viewport.hpp"
 
 // Revolution Now (config)
-#include "config/rn.inl"
+#include "config/ucl/rn.inl"
 
 // C++ standard library
 #include <thread>

@@ -30,7 +30,7 @@
 #include "window.hpp"
 
 // Revolution Now (config)
-#include "config/rn.inl"
+#include "config/ucl/rn.inl"
 
 // base-util
 #include "base-util/algo.hpp"

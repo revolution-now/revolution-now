@@ -29,8 +29,8 @@
 #include "variant.hpp"
 
 // Revolution Now (config)
-#include "config/palette.inl"
-#include "config/ui.inl"
+#include "config/ucl/palette.inl"
+#include "config/ucl/ui.inl"
 
 // base-util
 #include "base-util/algo.hpp"

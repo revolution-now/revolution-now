@@ -28,7 +28,7 @@
 #include "utype.hpp"
 
 // Revolution Now (config inl files)
-#include "config/all.inl"
+#include "config/all-ucl.inl"
 
 // base-util
 #include "base-util/misc.hpp"
@@ -202,7 +202,7 @@ vector<function<void( void )>>& load_functions() {
 }
 
 string config_file_for_name( string const& name ) {
-  return "config/" + name + ".ucl";
+  return "config/ucl/" + name + ".ucl";
 }
 
 // The type of UCL's enum representing types.
@@ -654,6 +654,8 @@ void init_configs() {
       }
     }
   }
+  // Make sure this can load.
+  (void)g_palette();
 }
 
 void cleanup_configs() {}
@@ -665,14 +667,14 @@ REGISTER_INIT_ROUTINE( configs );
 } // namespace rn
 
 // Revolution Now (config inl files)
-#include "config/all.inl"
+#include "config/all-ucl.inl"
 
 namespace rn {
 
 Vec<Color> const& g_palette() {
   static Vec<Color> const& colors = [] {
     Vec<Color>* res  = new Vec<Color>;
-    string      file = "config/palette.ucl";
+    string      file = "config/ucl/palette.ucl";
 
     string errors;
     auto   ucl_obj = ucl::Ucl::parse_from_file( file, errors );

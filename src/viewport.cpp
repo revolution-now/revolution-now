@@ -20,7 +20,7 @@
 #include "util.hpp"
 
 // Revolution Now (config)
-#include "config/rn.inl"
+#include "config/ucl/rn.inl"
 
 using namespace std;
 

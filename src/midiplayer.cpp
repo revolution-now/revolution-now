@@ -19,7 +19,7 @@
 #include "time.hpp"
 
 // Revolution Now (config)
-#include "config/music.inl"
+#include "config/ucl/music.inl"
 
 using namespace std;
 
