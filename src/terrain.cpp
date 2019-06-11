@@ -142,6 +142,10 @@ bool square_exists( Y y, X x ) {
   return 0_y + h > y && 0_x + w > x;
 }
 
+bool square_exists( Coord coord ) {
+  return square_exists( coord.y, coord.x );
+}
+
 Opt<Ref<Square const>> maybe_square_at( Coord coord ) {
   if( !square_exists( coord.y, coord.x ) ) return nullopt;
   return world_map[coord.y][coord.x];

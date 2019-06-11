@@ -116,8 +116,18 @@ void SmoothViewport::advance( e_push_direction x_push,
   scale_zoom( 1.0 + zoom_vel_.to_double() );
 
   if( zoom_point_seek_ ) {
-    center_x_ += zoom_point_seek_->w._ * zoom_vel_.to_double();
-    center_y_ += zoom_point_seek_->h._ * zoom_vel_.to_double();
+    auto log_zoom_change = log( 1.0 + zoom_vel_.to_double() );
+    // .98 found empirically, makes it slightly better, where
+    // "better" means that the same pixel stays under the cursor
+    // as the zooming happens.
+    auto delta_x =
+        .98 * ( ( zoom_point_seek_->x - center_rounded().x )._ *
+                log_zoom_change );
+    auto delta_y =
+        .98 * ( ( zoom_point_seek_->y - center_rounded().y )._ *
+                log_zoom_change );
+    center_x_ += delta_x;
+    center_y_ += delta_y;
     enforce_invariants();
   }
 }
@@ -213,12 +223,9 @@ void SmoothViewport::set_zoom_push(
   // If the caller has specified a coordinate and if that
   // coordinate is in the viewport then record it so that the
   // viewport center can tend to that point as the zoom happens.
-  if( maybe_seek_screen_coord ) {
-    auto world_coord_seek =
+  if( maybe_seek_screen_coord )
+    zoom_point_seek_ =
         screen_pixel_to_world_pixel( *maybe_seek_screen_coord );
-    if( world_coord_seek )
-      zoom_point_seek_ = *world_coord_seek - center_rounded();
-  }
 }
 
 void SmoothViewport::smooth_zoom_target( double target ) {
@@ -383,8 +390,8 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
       from_visible_start.h < 0_h ) {
     return nullopt;
   }
-  if( from_visible_start.w > visible_on_screen.w ||
-      from_visible_start.h > visible_on_screen.h ) {
+  if( from_visible_start.w >= visible_on_screen.w ||
+      from_visible_start.h >= visible_on_screen.h ) {
     return nullopt;
   }
 
@@ -393,11 +400,18 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
   double percent_y =
       double( from_visible_start.h._ ) / visible_on_screen.h._;
 
-  Rect viewport = get_bounds();
+  DCHECK( percent_x >= 0 );
+  DCHECK( percent_y >= 0 );
 
-  auto res =
-      Coord{X{int( viewport.x._ + percent_x * viewport.w._ )},
-            Y{int( viewport.y._ + percent_y * viewport.h._ )}};
+  auto viewport_or_world =
+      get_bounds().clamp( world_rect_pixels() );
+
+  auto res = Coord{X{int( viewport_or_world.x._ +
+                          percent_x * viewport_or_world.w._ )},
+                   Y{int( viewport_or_world.y._ +
+                          percent_y * viewport_or_world.h._ )}};
+
+  DCHECK( res.x >= 0_x && res.y >= 0_y );
   return res;
 }
 

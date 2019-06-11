@@ -2,12 +2,6 @@
 Bugs
 =================================================================
 
-High priority:
-
-  - Zoom all the way out, then click on a tile close to the upper
-    left corner of the map, and an exception will be thrown due
-    to invalid tile selected.
-
 Low priority:
 
   - When we toggle from fullscreen to non-fullscreen the mouse

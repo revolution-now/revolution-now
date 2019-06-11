@@ -146,9 +146,9 @@ private:
   Opt<XD>     smooth_center_x_target_{};
   Opt<YD>     smooth_center_y_target_{};
 
-  // Delta in world pixel coordinates indicating the direction in
-  // which the viewport center should tend as we zoom in.
-  Opt<Delta> zoom_point_seek_{};
+  // Coord in world pixel coordinates indicating the point toward
+  // which we should focus as we zoom.
+  Opt<Coord> zoom_point_seek_{};
 };
 
 SmoothViewport& viewport();

@@ -14,8 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "coord.hpp"
+#include "enum.hpp"
 #include "sdl-util.hpp"
 
 namespace rn {
@@ -32,6 +32,7 @@ Rect  world_rect_tiles();
 Rect  world_rect_pixels();
 
 bool square_exists( Y y, X x );
+bool square_exists( Coord coord );
 
 Square const&          square_at( Coord coord );
 Opt<Ref<Square const>> maybe_square_at( Coord coord );
