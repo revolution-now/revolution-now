@@ -1,3 +1,44 @@
+Old World Dock Screen
+=====================
+
+  - Create a dynamic square that is always centered but that can
+    be dragged with a mouse to different sizes and aspect ratios.
+    This will allow simulating screen dimensions while designing
+    the UI without having to change the size of the window.
+  - Create a series of old world UI objects; each of these ob-
+    jects knows how to do the following:
+
+      - Take a rectangle and then compute its configuration and
+        position. From this can be computed a bounding rectangle.
+      - Draw itself given configuration and position.
+      - Determine if it is not possible to draw itself.
+
+  - Each frame, all the UI elements will be asked to compute
+    their positions and configurations. The scene will be X'd out
+    if:
+
+      - Any element cannot draw itself.
+      - Any two elements overlap.
+      - Any element runs out of bounds of the rectangle.
+
+    Otherwise, the scene can be drawn.
+  - Element positions/configurations will be cached with key
+    being the rectangle size, although this may not be necessary.
+
+Elements:
+
+  - Outbound ships
+  - Inbound ships
+  - Ships in dock
+  - Dock
+  - Units on dock
+  - Ship cargo
+  - Market commodities
+  - Exit button
+  - Buttons
+  - Message box
+  - Stats area (money, tax rate, etc.)
+
 Music Conductor (conductor.h/conductor.cpp)
 ===============
 
