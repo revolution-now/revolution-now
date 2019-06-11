@@ -219,7 +219,7 @@ auto total_duration =
 MenuState_t g_menu_state{MenuState::menus_closed{}};
 
 void log_menu_state() {
-  logger->debug( "g_menu_state: {}", g_menu_state );
+  logger->trace( "g_menu_state: {}", g_menu_state );
 }
 
 /****************************************************************
