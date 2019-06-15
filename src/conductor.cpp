@@ -776,7 +776,11 @@ void menu_music_set_player() {
     ui::message_box( "The \"{}\" music player is not available.",
                      result );
 }
-bool menu_music_set_player_enabled() { return true; }
+bool menu_music_set_player_enabled() {
+  CONDUCTOR_INFO_OR_RETURN_FALSE( info );
+  (void)info;
+  return true;
+}
 
 MENU_ITEM_HANDLER( music_play, menu_music_play,
                    menu_music_play_enabled );
