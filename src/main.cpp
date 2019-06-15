@@ -85,8 +85,8 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  // run_all_init_routines( e_init_routine::conductor );
-  run_all_init_routines();
+  run_all_init_routines( e_init_routine::europe );
+  // run_all_init_routines();
 
   // conductor::test();
 

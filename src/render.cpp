@@ -679,8 +679,8 @@ struct ViewportPlane : public Plane {
     }
     return handled;
   }
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
+  Plane::DragInfo can_drag( input::e_mouse_button button,
+                            Coord origin ) override {
     if( button == input::e_mouse_button::r &&
         viewport().screen_coord_in_viewport( origin ) )
       return Plane::e_accept_drag::yes;

@@ -122,6 +122,17 @@ struct ND Delta {
     h /= scale.sy;
   }
 
+  // Returns the length of the diagonal according to Pythagoras.
+  double diagonal() const;
+
+  // Will project this delta along the given one; the length of
+  // the returned delta will generally be different than this
+  // one.
+  Delta projected_along( Delta const& along ) const;
+
+  // Multiply both components by the scale and round.
+  Delta multiply_and_round( double scale ) const;
+
   // Result will be the smallest delta that encompasses both
   // this one and the parameter.
   Delta uni0n( Delta const& rhs ) const;
@@ -194,6 +205,9 @@ struct ND Coord {
   bool is_adjacent_to( Coord other ) const;
 
   bool is_inside( Rect const& rect ) const;
+
+  // True if e.g. x is in [x,x+w).
+  bool is_on_border_of( Rect const& rect ) const;
 
   auto to_tuple() const { return std::tuple( y, x ); }
 
@@ -337,6 +351,9 @@ using OptCoord = std::optional<Coord>;
 // return the coordinate of the upper-left corner of the centered
 // rect.  Note that the coord returned may be negative.
 Coord centered( Delta const& delta, Rect const& rect );
+
+// Takes the "dot product".
+int inner_product( Delta const& fst, Delta const& snd );
 
 // Same as Delta::uni0n
 ND Delta max( Delta const& lhs, Delta const& rhs );

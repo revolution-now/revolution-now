@@ -16,6 +16,7 @@
 
 // c++ standard library
 #include <algorithm>
+#include <cmath>
 #include <utility>
 
 using namespace std;
@@ -190,6 +191,10 @@ bool Coord::is_inside( Rect const& rect ) const {
          ( x < rect.x + rect.w ) && ( y < rect.y + rect.h );
 }
 
+bool Coord::is_on_border_of( Rect const& rect ) const {
+  return is_inside( rect ) && !is_inside( rect.edges_removed() );
+}
+
 Delta Delta::round_up( Scale grid_size ) const {
   Coord bottom_right = Coord{} + *this;
   return bottom_right.rounded_up_to_multiple( grid_size )
@@ -209,6 +214,27 @@ Delta Delta::trimmed_by_one() const {
   return res;
 }
 
+double Delta::diagonal() const {
+  return std::sqrt( w._ * w._ + h._ * h._ );
+}
+
+Delta Delta::projected_along( Delta const& along ) const {
+  double mag = along.diagonal();
+  DCHECK( mag >= 0 );
+  // If we effectively don't have a projection direction than the
+  // resultant vector will be of zero length, which means that
+  // the new end == start.
+  if( mag == 0 ) return {};
+  auto dot_product = inner_product( *this, along );
+  return along.multiply_and_round( dot_product / ( mag * mag ) );
+}
+
+Delta Delta::multiply_and_round( double scale ) const {
+  return Delta{
+      W{static_cast<int>( std::lround( w._ * scale ) )},
+      H{static_cast<int>( std::lround( h._ * scale ) )}};
+}
+
 Delta Delta::uni0n( Delta const& rhs ) const {
   return {std::max( w, rhs.w ), std::max( h, rhs.h )};
 }
@@ -220,6 +246,10 @@ Delta Delta::clamp( Delta const& delta ) const {
 Coord centered( Delta const& delta, Rect const& rect ) {
   return {rect.y + rect.h / 2 - delta.h / 2,
           rect.x + rect.w / 2 - delta.w / 2};
+}
+
+int inner_product( Delta const& fst, Delta const& snd ) {
+  return fst.w._ * snd.w._ + fst.h._ * snd.h._;
 }
 
 Delta max( Delta const& lhs, Delta const& rhs ) {

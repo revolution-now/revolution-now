@@ -163,6 +163,7 @@ void grab_screen( fs::path const& file );
 
 void clear_texture_black( Texture const& tx );
 void clear_texture_transparent( Texture const& tx );
+void clear_texture( Texture const& tx, Color color );
 
 void fill_texture( Texture const& tx, Color color );
 

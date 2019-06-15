@@ -366,6 +366,13 @@ void clear_texture_black( Texture const& tx ) {
   ::SDL_RenderClear( g_renderer );
 }
 
+void clear_texture( Texture const& tx, Color color ) {
+  set_render_target( tx );
+  ::SDL_SetRenderDrawColor( g_renderer, color.r, color.g,
+                            color.b, 255 );
+  ::SDL_RenderClear( g_renderer );
+}
+
 void clear_texture_transparent( Texture const& tx ) {
   set_render_target( tx );
   ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_NONE );

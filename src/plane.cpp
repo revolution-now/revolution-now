@@ -130,21 +130,23 @@ Plane* omni_plane() { return &g_omni_plane; }
 /****************************************************************
 ** Dragging Metadata
 *****************************************************************/
-struct DragInfo {
-  explicit DragInfo() { reset(); }
+struct DragState {
+  explicit DragState() { reset(); }
 
   // This is the plan that is currently receiving mouse dragging
   // events (nullopt if there is not dragging event happening).
   Opt<e_plane> plane{};
   bool         send_as_motion{false};
+  Opt<Delta>   projection{};
 
   void reset() {
     plane          = nullopt;
     send_as_motion = false;
+    projection     = nullopt;
   }
 };
 
-DragInfo g_drag_info;
+DragState g_drag_state;
 
 /****************************************************************
 ** Plane Range Combinators
@@ -207,6 +209,26 @@ void cleanup_planes() {
 
 REGISTER_INIT_ROUTINE( planes );
 
+input::mouse_drag_event_t project_drag_event(
+    input::mouse_drag_event_t const& drag_event,
+    Delta const&                     along ) {
+  // Takes the vector defined by (end-start) and projects it
+  // along the `along` vector, returning a new `end`.
+  auto project = []( Coord const& start, Coord const& end,
+                     Delta const& along ) {
+    return start + ( end - start ).projected_along( along );
+  };
+
+  auto res = drag_event;
+  res.prev = project( /*start=*/drag_event.state.origin,
+                      /*end=*/drag_event.prev,
+                      /*along=*/along );
+  res.pos  = project( /*start=*/drag_event.state.origin,
+                     /*end=*/drag_event.pos,
+                     /*along=*/along );
+  return res;
+}
+
 } // namespace
 
 /****************************************************************
@@ -222,7 +244,7 @@ bool Plane::input( input::event_t const& /*unused*/ ) {
 
 void Plane::on_frame_tick() {}
 
-Plane::e_accept_drag Plane::can_drag(
+Plane::DragInfo Plane::can_drag(
     input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
   return e_accept_drag::no;
 }
@@ -265,12 +287,12 @@ void update_all_planes() {
 bool send_input_to_planes( input::event_t const& event ) {
   using namespace input;
   if_v( event, input::mouse_drag_event_t, drag_event ) {
-    if( g_drag_info.plane ) {
-      auto& plane = Plane::get( *g_drag_info.plane );
+    if( g_drag_state.plane ) {
+      auto& plane = Plane::get( *g_drag_state.plane );
       CHECK( plane.enabled() );
       // Drag should already be in progress.
       CHECK( drag_event->state.phase != +e_drag_phase::begin );
-      if( g_drag_info.send_as_motion ) {
+      if( g_drag_state.send_as_motion ) {
         // The plane wants to be sent this drag event as regular
         // mouse motion / click events, so we need to convert the
         // drag events to those events and send them.
@@ -287,30 +309,38 @@ bool send_input_to_planes( input::event_t const& event ) {
         // If the drag is finished then send out that event.
         if( drag_event->state.phase == +e_drag_phase::end ) {
           logger->debug( "finished `{}` drag motion event",
-                         *g_drag_info.plane );
+                         *g_drag_state.plane );
           auto maybe_button =
               input::drag_event_to_mouse_button_event(
                   *drag_event );
           CHECK( maybe_button.has_value() );
           (void)plane.input( *maybe_button );
-          g_drag_info.reset();
+          g_drag_state.reset();
         }
       } else {
         // The plane wishes to be sent these drag events as drag
         // events. There is already a drag in progress, so send
         // this one to the same plane that accepted the initial
         // drag event.
-        plane.on_drag( drag_event->button,
-                       drag_event->state.origin,
-                       drag_event->prev, drag_event->pos );
+        //
+        // First project the coordinates if it was requested.
+        input::mouse_drag_event_t prj_drag_event =
+            ( g_drag_state.projection.has_value() )
+                ? project_drag_event( *drag_event,
+                                      *g_drag_state.projection )
+                : *drag_event;
+        plane.on_drag( prj_drag_event.button,
+                       prj_drag_event.state.origin,
+                       prj_drag_event.prev, //
+                       prj_drag_event.pos );
         // If the drag is finished then send out that event.
-        if( drag_event->state.phase == +e_drag_phase::end ) {
+        if( prj_drag_event.state.phase == +e_drag_phase::end ) {
           logger->debug( "finished `{}` drag event",
-                         *g_drag_info.plane );
-          plane.on_drag_finished( drag_event->button,
-                                  drag_event->state.origin,
-                                  drag_event->pos );
-          g_drag_info.reset();
+                         *g_drag_state.plane );
+          plane.on_drag_finished( prj_drag_event.button,
+                                  prj_drag_event.state.origin,
+                                  prj_drag_event.pos );
+          g_drag_state.reset();
         }
       }
       // Here it is assumed/required that the plane handle it
@@ -328,9 +358,9 @@ bool send_input_to_planes( input::event_t const& event ) {
         // though we are in a `begin` event, the current mouse
         // position may already have moved a bit from the orig-
         // in).
-        auto drag_result = plane->can_drag(
+        auto drag_desc = plane->can_drag(
             drag_event->button, drag_event->state.origin );
-        switch( drag_result ) {
+        switch( drag_desc.accept ) {
           // If the plane doesn't want to handle it then move
           // on to ask the next one.
           case Plane::e_accept_drag::no: continue;
@@ -338,8 +368,9 @@ bool send_input_to_planes( input::event_t const& event ) {
             // In this case the plane says that it wants to re-
             // ceive the events, but just as normal mouse
             // move/click events.
-            g_drag_info.plane          = e;
-            g_drag_info.send_as_motion = true;
+            g_drag_state.reset();
+            g_drag_state.plane          = e;
+            g_drag_state.send_as_motion = true;
             logger->debug( "plane `{}` can drag as motion.", e );
             auto motion =
                 input::drag_event_to_mouse_motion_event(
@@ -364,17 +395,26 @@ bool send_input_to_planes( input::event_t const& event ) {
             return true;
           case Plane::e_accept_drag::yes:
             // Wants to handle it.
-            g_drag_info.plane          = e;
-            g_drag_info.send_as_motion = false;
+            g_drag_state.reset();
+            g_drag_state.plane          = e;
+            g_drag_state.send_as_motion = false;
+            g_drag_state.projection     = drag_desc.projection;
             logger->debug( "plane `{}` can drag", e );
-            // Now we must send it an on_drag because this
-            // mouse event that we're dealing with serves both
-            // to tell us about a new drag even but also may
-            // have a mouse delta in it that needs to be
-            // processed.
-            plane->on_drag( drag_event->button,
-                            drag_event->state.origin,
-                            drag_event->prev, drag_event->pos );
+            // Now we must send it an on_drag because this mouse
+            // event that we're dealing with serves both to tell
+            // us about a new drag even but also may have a mouse
+            // delta in it that needs to be processed.
+            //
+            // First project the coordinates if it was requested.
+            input::mouse_drag_event_t prj_drag_event =
+                ( g_drag_state.projection.has_value() )
+                    ? project_drag_event(
+                          *drag_event, *g_drag_state.projection )
+                    : *drag_event;
+            plane->on_drag( prj_drag_event.button,
+                            prj_drag_event.state.origin,
+                            prj_drag_event.prev, //
+                            prj_drag_event.pos );
             return true;
         }
       }

@@ -91,13 +91,22 @@ struct Plane : public util::non_copy_non_move {
   // monormal use motion events and/or mouse button events.
   enum class e_accept_drag { yes, no, motion, swallow };
 
+  // This allows the plane to further customize the drag process
+  // if it accepts it. TODO: this should be an ADH.
+  struct DragInfo {
+    DragInfo( e_accept_drag accept_ ) : accept( accept_ ) {}
+    e_accept_drag accept{};
+    // This field is relevant if accept == yes.
+    Opt<Delta> projection{};
+  };
+
   // This is to determine if a plane is willing to accept a drag
   // event (and also serves as a notification that a drag event
-  // has started). If it returns `true` then it will immediately
-  // receive the initial on_drag() event and then continue to
-  // receive all the drag events until the current drag ends.
-  ND e_accept_drag virtual can_drag(
-      input::e_mouse_button button, Coord origin );
+  // has started). If it returns `yes` then it will immediately
+  // receive the initial on_drag() event and then continue to re-
+  // ceive all the drag events until the current drag ends.
+  ND DragInfo virtual can_drag( input::e_mouse_button button,
+                                Coord                 origin );
 
   // For drag events from [first, last). This will only be called
   // if the can_drag returned true at the start of the drag

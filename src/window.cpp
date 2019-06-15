@@ -69,8 +69,8 @@ public:
 
   ND bool input( input::event_t const& event );
 
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord                 origin );
+  Plane::DragInfo can_drag( input::e_mouse_button button,
+                            Coord                 origin );
   void on_drag( input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current );
 
@@ -149,8 +149,8 @@ struct WindowPlane : public Plane {
     (void)wm.input( event );
     return true;
   }
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
+  Plane::DragInfo can_drag( input::e_mouse_button button,
+                            Coord origin ) override {
     CHECK( wm.num_windows() != 0 );
     return wm.can_drag( button, origin );
   }
@@ -340,7 +340,7 @@ bool WindowManager::input( input::event_t const& event ) {
   return false;
 }
 
-Plane::e_accept_drag WindowManager::can_drag(
+Plane::DragInfo WindowManager::can_drag(
     input::e_mouse_button /*unused*/, Coord origin ) {
   // If we're in the title bar then we'll drag; if we not, but
   // still in the window somewhere, we will "swallow" which means

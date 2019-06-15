@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "enum.hpp"
+#include "typed-int.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -82,6 +83,8 @@ void register_menu_item_handler(
     e_menu_item                        item,
     std::function<void( void )> const& on_click,
     std::function<bool( void )> const& is_enabled );
+
+H menu_height();
 
 struct Plane;
 Plane* menu_plane();

@@ -887,8 +887,6 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
   return matcher( g_menu_state );
 }
 
-} // namespace
-
 /****************************************************************
 ** Top-level Render Method
 *****************************************************************/
@@ -976,20 +974,6 @@ auto& is_enabled_handlers() {
                              std::function<bool( void )>>
       m;
   return m;
-}
-
-void register_menu_item_handler(
-    e_menu_item                        item,
-    std::function<void( void )> const& on_click,
-    std::function<bool( void )> const& is_enabled ) {
-  CHECK( on_click );
-  CHECK( is_enabled );
-  auto& on_clicks   = on_click_handlers();
-  auto& is_enableds = is_enabled_handlers();
-  CHECK( !on_clicks.contains( item ) );
-  CHECK( !is_enableds.contains( item ) );
-  on_clicks[item]   = on_click;
-  is_enableds[item] = is_enabled;
 }
 
 /****************************************************************
@@ -1150,8 +1134,8 @@ struct MenuPlane : public Plane {
   MenuPlane() = default;
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
+  Plane::DragInfo can_drag( input::e_mouse_button button,
+                            Coord origin ) override {
     if( !click_target( origin ).has_value() )
       return Plane::e_accept_drag::no;
     // Convert drags to mouse motion events.
@@ -1487,6 +1471,27 @@ private:
 };
 
 MenuPlane g_menu_plane;
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+void register_menu_item_handler(
+    e_menu_item                        item,
+    std::function<void( void )> const& on_click,
+    std::function<bool( void )> const& is_enabled ) {
+  CHECK( on_click );
+  CHECK( is_enabled );
+  auto& on_clicks   = on_click_handlers();
+  auto& is_enableds = is_enabled_handlers();
+  CHECK( !on_clicks.contains( item ) );
+  CHECK( !is_enableds.contains( item ) );
+  on_clicks[item]   = on_click;
+  is_enableds[item] = is_enabled;
+}
+
+H menu_height() { return menu_bar_height(); }
 
 Plane* menu_plane() { return &g_menu_plane; }
 
