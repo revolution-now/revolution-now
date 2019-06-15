@@ -49,37 +49,36 @@ using namespace std;
 namespace rn {
 
 void game() {
-  // CHECK( play_music_file( "assets/music/bonny-morn.mp3" ) );
+  // auto id1 = create_unit_on_map(
+  //    e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x
+  //    );
+  // unit_from_id( id1 ).fortify();
 
-  auto id1 = create_unit_on_map(
-      e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x );
-  unit_from_id( id1 ).fortify();
+  // auto id2 = create_unit_on_map(
+  //    e_nation::spanish, e_unit_type::soldier, 2_y, 3_x );
+  // unit_from_id( id2 ).sentry();
 
-  auto id2 = create_unit_on_map(
-      e_nation::spanish, e_unit_type::soldier, 2_y, 3_x );
-  unit_from_id( id2 ).sentry();
+  //(void)create_unit_on_map( e_nation::spanish,
+  //                          e_unit_type::privateer, 2_y, 6_x );
 
-  (void)create_unit_on_map( e_nation::spanish,
-                            e_unit_type::privateer, 2_y, 6_x );
+  // auto id3 = create_unit_on_map(
+  //    e_nation::english, e_unit_type::soldier, 3_y, 2_x );
+  // unit_from_id( id3 ).fortify();
 
-  auto id3 = create_unit_on_map(
-      e_nation::english, e_unit_type::soldier, 3_y, 2_x );
-  unit_from_id( id3 ).fortify();
+  // auto id4 = create_unit_on_map(
+  //    e_nation::english, e_unit_type::soldier, 3_y, 3_x );
+  // unit_from_id( id4 ).sentry();
 
-  auto id4 = create_unit_on_map(
-      e_nation::english, e_unit_type::soldier, 3_y, 3_x );
-  unit_from_id( id4 ).sentry();
+  //(void)create_unit_on_map( e_nation::english,
+  //                          e_unit_type::privateer, 3_y, 6_x );
 
-  (void)create_unit_on_map( e_nation::english,
-                            e_unit_type::privateer, 3_y, 6_x );
+  // while( turn() != e_turn_result::quit ) {}
 
-  while( turn() != e_turn_result::quit ) {}
+  // using namespace std::literals::chrono_literals;
+  // while( input::is_any_key_down() ) {}
 
-  using namespace std::literals::chrono_literals;
-  while( input::is_any_key_down() ) {}
-
-  image_plane_set( e_image::old_world );
-  image_plane_enable( true );
+  // image_plane_set( e_image::old_world );
+  // image_plane_enable( true );
   frame_loop( true, [] { return input::is_q_down(); } );
 }
 

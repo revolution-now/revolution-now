@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "console.hpp"
+#include "europe.hpp"
 #include "frame.hpp"
 #include "image.hpp"
 #include "init.hpp"
@@ -171,7 +172,7 @@ void init_planes() {
   plane( e_plane::panel ).reset( panel_plane() );
   plane( e_plane::image ).reset( image_plane() );
   // plane( e_plane::colony ).reset( colony_plane() );
-  // plane( e_plane::europe ).reset( europe_plane() );
+  plane( e_plane::europe ).reset( europe_plane() );
   plane( e_plane::effects ).reset( effects_plane() );
   plane( e_plane::window ).reset( window_plane() );
   plane( e_plane::menu ).reset( menu_plane() );

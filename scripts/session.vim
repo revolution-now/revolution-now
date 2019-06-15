@@ -8,12 +8,13 @@ let s:stems = [
   \ 'src/sdl-util',
   \ 'src/init',
   \ 'src/config-files',
+  \ 'src/coord',
   \ 'src/screen',
   \ 'src/frame',
   \ 'src/plane',
   \ 'src/image',
   \ 'src/tiles',
-  \ 'src/oldworld',
+  \ 'src/europe',
 \]
 
   "\ 'src/adt',
@@ -25,7 +26,6 @@ let s:stems = [
   "\ 'src/combat',
   "\ 'src/conductor',
   "\ 'src/console',
-  "\ 'src/coord',
   "\ 'src/dispatch',
   "\ 'src/enum',
   "\ 'src/errors',
