@@ -102,7 +102,9 @@ enum class ND g_tile {
   button_down_mr,
   button_down_ll,
   button_down_lm,
-  button_down_lr
+  button_down_lr,
+
+  checkers
 };
 
 struct ND sprite {
@@ -118,11 +120,21 @@ void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x );
 void render_sprite( Texture const& tx, g_tile tile,
                     Coord pixel_coord, int rot, int flip_x );
+// This will render the sprite clipped to the given rect, where
+// the coordinates of the rect are in pixels and the origin is
+// relative to the origin of the sprite.
+void render_sprite_clip( Texture const& tx, g_tile tile,
+                         Coord pixel_coord, Rect const& clip );
 void render_sprite_grid( Texture const& tx, g_tile tile,
                          Y tile_row, X tile_col, int rot,
                          int flip_x );
 void render_sprite_grid( Texture const& tx, g_tile tile,
                          Coord coord, int rot, int flip_x );
+
+// Here the word "tile" is used to mean "repeat the sprite in a
+// tiled pattern within the rectangle".
+void tile_sprite( Texture const& tx, g_tile tile,
+                  Rect const& rect );
 
 // This function will render a rectangle with border, but
 // where the rectangle and border are comprised of tiles,

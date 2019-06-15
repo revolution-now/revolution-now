@@ -105,4 +105,11 @@ tiles {
       button_down_lr: { y: 2, x: 5 }
     }
   }
+
+  testing {
+    img: assets/art/tiles/testing.png
+    coords {
+      checkers: { y: 0, x: 0 }
+    }
+  }
 }

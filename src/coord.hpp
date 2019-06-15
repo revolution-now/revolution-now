@@ -102,6 +102,9 @@ struct ND Delta {
     return zero;
   }
 
+  Delta with_height( H h_ ) const { return Delta{w, h_}; }
+  Delta with_width( W w_ ) const { return Delta{w_, h}; }
+
   // Given a grid size this will round each dimension up to the
   // nearest multiple of that size.
   Delta round_up( Scale grid_size ) const;
@@ -293,6 +296,13 @@ struct ND Rect {
   // that dimension will remain as-is.
   Rect edges_removed() const;
 
+  Rect shifted_by( Delta const& delta ) const {
+    return Rect{x + delta.w, y + delta.h, w, h};
+  }
+  Rect with_new_upper_left( Coord const& coord ) const {
+    return Rect{coord.x, coord.y, w, h};
+  }
+
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
   Rect uni0n( Rect const& rhs ) const;
@@ -335,7 +345,10 @@ struct ND Rect {
     }
   };
 
-  const_iterator begin() const { return {upper_left(), *this}; }
+  const_iterator begin() const {
+    if( w == 0_w || h == 0_h ) return end();
+    return {upper_left(), *this};
+  }
   const_iterator end() const {
     // The "end" is the _start_ of the row that is one passed the
     // last row. This is because this will be the position of the

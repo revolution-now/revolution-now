@@ -82,8 +82,7 @@ Rect Rect::clamp( Rect const& rect ) const {
     res.w = 0;
   } else {
     if( res.x < rect.x ) res.x = rect.x;
-    if( res.x >= rect.right_edge() )
-      res.x = rect.right_edge() - 1_w;
+    if( res.x >= rect.right_edge() ) res.x = rect.right_edge();
     if( res.x + res.w > rect.right_edge() )
       res.w = rect.right_edge() - res.x;
   }
@@ -92,8 +91,7 @@ Rect Rect::clamp( Rect const& rect ) const {
     res.h = 0;
   } else {
     if( res.y < rect.y ) res.y = rect.y;
-    if( res.y >= rect.bottom_edge() )
-      res.y = rect.bottom_edge() - 1_h;
+    if( res.y >= rect.bottom_edge() ) res.y = rect.bottom_edge();
     if( res.y + res.h > rect.bottom_edge() )
       res.h = rect.bottom_edge() - res.y;
   }

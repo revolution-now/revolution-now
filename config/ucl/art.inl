@@ -103,6 +103,13 @@ CFG( art,
         FLD( Coord, button_down_lr )
       )
     )
+
+    OBJ( testing,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, checkers )
+      )
+    )
   )
 )
 

@@ -17,12 +17,16 @@
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
+#include "tiles.hpp"
 #include "variant.hpp"
 
 namespace rn {
 
 namespace {
 
+/****************************************************************
+** The Clip Rect
+*****************************************************************/
 Delta g_clip;
 
 Rect clip_rect() {
@@ -73,6 +77,37 @@ bool is_on_clip_rect( Coord const& coord ) {
          is_on_clip_rect_bottom_side( coord );
 }
 
+/****************************************************************
+** Europe View Entities
+*****************************************************************/
+
+namespace entity {
+
+// Each entity is defined by a struct that holds its state and
+// that has the following methods:
+//
+//  void draw( Texture const& tx ) const;
+//  Rect bounds() const;
+
+// This object represents the array of cargo items available for
+// trade in europe and which is show at the bottom of the screen.
+class MarketCommodities {
+  void draw( Texture const& tx ) const;
+  Rect bounds() const;
+
+  static Opt<MarketCommodities> create( Rect const& rect ) {
+    auto single_layer_width = ( 16 + 1 ) * 16 + 1;
+    (void)single_layer_width;
+    (void)rect;
+    return {};
+  }
+
+private:
+  MarketCommodities() = default;
+  bool  doubled{};
+  Coord origin{};
+};
+
 //- Outbound ships
 //- Inbound ships
 //- Ships in dock
@@ -85,6 +120,7 @@ bool is_on_clip_rect( Coord const& coord ) {
 //- Message box
 //- Stats area (money, tax rate, etc.)
 
+} // namespace entity
 /****************************************************************
 ** The Europe Plane
 *****************************************************************/
@@ -95,6 +131,7 @@ struct EuropePlane : public Plane {
   void draw( Texture const& tx ) const override {
     // clear_texture_transparent( tx );
     clear_texture( tx, Color::white() );
+    tile_sprite( tx, g_tile::checkers, clip_rect() );
     render_rect( tx, rect_color, clip_rect() );
   }
   bool input( input::event_t const& event ) override {
@@ -161,6 +198,9 @@ struct EuropePlane : public Plane {
 
 EuropePlane g_europe_plane;
 
+/****************************************************************
+** Initialization / Cleanup
+*****************************************************************/
 void init_europe() {
   g_clip = main_window_logical_size() - menu_height() -
            Delta{32_w, 32_h};
@@ -172,6 +212,9 @@ REGISTER_INIT_ROUTINE( europe );
 
 } // namespace
 
+/****************************************************************
+** Public API
+*****************************************************************/
 Plane* europe_plane() { return &g_europe_plane; }
 
 } // namespace rn
