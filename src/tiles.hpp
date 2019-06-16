@@ -104,7 +104,9 @@ enum class ND g_tile {
   button_down_lm,
   button_down_lr,
 
-  checkers
+  // testing
+  checkers,
+  checkers_inv
 };
 
 struct ND sprite {

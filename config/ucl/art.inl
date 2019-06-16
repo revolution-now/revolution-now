@@ -108,6 +108,7 @@ CFG( art,
       FLD( fs::path, img )
       OBJ( coords,
         FLD( Coord, checkers )
+        FLD( Coord, checkers_inv )
       )
     )
   )

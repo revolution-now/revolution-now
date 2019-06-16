@@ -188,6 +188,7 @@ void init_sprites() {
   SET_SPRITE_BUTTON( button_down_lr );
 
   SET_SPRITE_TESTING( checkers );
+  SET_SPRITE_TESTING( checkers_inv );
 }
 
 void cleanup_sprites() {}

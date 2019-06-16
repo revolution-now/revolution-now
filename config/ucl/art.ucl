@@ -109,7 +109,8 @@ tiles {
   testing {
     img: assets/art/tiles/testing.png
     coords {
-      checkers: { y: 0, x: 0 }
+      checkers:     { y: 0, x: 0 }
+      checkers_inv: { y: 0, x: 1 }
     }
   }
 }

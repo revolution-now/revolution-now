@@ -207,7 +207,14 @@ struct EuropePlane : public Plane {
   void draw( Texture const& tx ) const override {
     // clear_texture_transparent( tx );
     clear_texture( tx, Color::white() );
-    tile_sprite( tx, g_tile::checkers, clip_rect() );
+    // We need to keep the checkers pattern stationary.
+    auto tile = ( clip_rect().upper_left().x._ +
+                  clip_rect().upper_left().y._ ) %
+                            2 ==
+                        0
+                    ? g_tile::checkers
+                    : g_tile::checkers_inv;
+    tile_sprite( tx, tile, clip_rect() );
     render_rect( tx, rect_color, clip_rect() );
     entity::Entities entities;
     create_entities( &entities );
