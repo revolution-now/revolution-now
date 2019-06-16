@@ -97,7 +97,8 @@ class MarketCommodities {
   static constexpr H single_layer_blocks_height = 1_h;
   static constexpr H double_layer_blocks_height = 2_h;
 
-  static constexpr auto sprite_with_border_scale = Scale{16 + 1};
+  // Commodities will be 24x24 + 8 pixels for text.
+  static constexpr auto sprite_with_border_scale = Scale{32 + 1};
 
   static constexpr W single_layer_width =
       single_layer_blocks_width * sprite_with_border_scale.sx +
@@ -203,10 +204,10 @@ void draw_entities( Texture const&  tx,
 struct EuropePlane : public Plane {
   EuropePlane() = default;
   bool enabled() const override { return true; }
-  bool covers_screen() const override { return true; }
+  bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
-    // clear_texture_transparent( tx );
-    clear_texture( tx, Color::white() );
+    clear_texture_transparent( tx );
+    // clear_texture( tx, Color::white() );
     // We need to keep the checkers pattern stationary.
     auto tile = ( clip_rect().upper_left().x._ +
                   clip_rect().upper_left().y._ ) %
