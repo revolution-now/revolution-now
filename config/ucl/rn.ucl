@@ -1,6 +1,6 @@
 player_nation: english
 
-target_frame_rate: 60
+target_frame_rate: 65
 
 depixelate_pixels_per_frame: 10
 
