@@ -149,224 +149,246 @@ struct TypedDouble : public TypedDoubleMinimal<Tag> {
 /** TypedDouble
  * ***************************************************/
 template<typename Tag>
-inline TypedDouble<Tag> operator*( TypedDouble<Tag> left,
-                                   TypedDouble<Tag> right ) {
+inline constexpr TypedDouble<Tag> operator*(
+    TypedDouble<Tag> left, TypedDouble<Tag> right ) {
   return TypedDouble<Tag>( left._ * right._ );
 }
 
 template<typename Tag>
-inline TypedDouble<Tag> operator/( TypedDouble<Tag> left,
-                                   double           right ) {
+inline constexpr TypedDouble<Tag> operator/(
+    TypedDouble<Tag> left, double right ) {
   return TypedDouble<Tag>( left._ / right );
 }
 /* dividing like types yields TypedDouble<Tag> dimensionless
  * ratio.
  */
 template<typename Tag>
-inline double operator/( TypedDouble<Tag> a1,
-                         TypedDouble<Tag> a2 ) {
+inline constexpr double operator/( TypedDouble<Tag> a1,
+                                   TypedDouble<Tag> a2 ) {
   return a1._ / a2._;
 }
 
 template<typename Tag>
-inline TypedDouble<Tag> operator+( TypedDouble<Tag> left,
-                                   double           right ) {
+inline constexpr TypedDouble<Tag> operator+(
+    TypedDouble<Tag> left, double right ) {
   return TypedDouble<Tag>( left._ + right );
 }
 
 template<typename Tag>
-inline TypedDouble<Tag> operator+( double           left,
-                                   TypedDouble<Tag> right ) {
+inline constexpr TypedDouble<Tag> operator+(
+    double left, TypedDouble<Tag> right ) {
   return TypedDouble<Tag>( right._ + left );
 }
 
 template<typename Tag>
-inline TypedDouble<Tag> operator+( TypedDouble<Tag> left,
-                                   TypedDouble<Tag> right ) {
+inline constexpr TypedDouble<Tag> operator+(
+    TypedDouble<Tag> left, TypedDouble<Tag> right ) {
   return TypedDouble<Tag>( left._ + right._ );
 }
 
 template<typename Tag>
-inline TypedDouble<Tag> operator-( TypedDouble<Tag> left,
-                                   double           right ) {
+inline constexpr TypedDouble<Tag> operator-(
+    TypedDouble<Tag> left, double right ) {
   return TypedDouble<Tag>( left._ - right );
 }
 
 template<typename Tag>
-inline TypedDouble<Tag> operator-( double           left,
-                                   TypedDouble<Tag> right ) {
+inline constexpr TypedDouble<Tag> operator-(
+    double left, TypedDouble<Tag> right ) {
   return TypedDouble<Tag>( left - right._ );
 }
 
 template<typename Tag>
-inline bool operator<( TypedDouble<Tag> left, double right ) {
+inline constexpr bool operator<( TypedDouble<Tag> left,
+                                 double           right ) {
   return left._ < right;
 }
 
 template<typename Tag>
-inline bool operator<( double left, TypedDouble<Tag> right ) {
+inline constexpr bool operator<( double           left,
+                                 TypedDouble<Tag> right ) {
   return left < right._;
 }
 
 template<typename Tag>
-inline bool operator<( TypedDouble<Tag> left,
-                       TypedDouble<Tag> right ) {
+inline constexpr bool operator<( TypedDouble<Tag> left,
+                                 TypedDouble<Tag> right ) {
   return left._ < right._;
 }
 
 template<typename Tag>
-inline bool operator>( TypedDouble<Tag> left, double right ) {
+inline constexpr bool operator>( TypedDouble<Tag> left,
+                                 double           right ) {
   return left._ > right;
 }
 
 template<typename Tag>
-inline bool operator>( double left, TypedDouble<Tag> right ) {
+inline constexpr bool operator>( double           left,
+                                 TypedDouble<Tag> right ) {
   return left > right._;
 }
 
 template<typename Tag>
-inline bool operator>( TypedDouble<Tag> left,
-                       TypedDouble<Tag> right ) {
+inline constexpr bool operator>( TypedDouble<Tag> left,
+                                 TypedDouble<Tag> right ) {
   return left._ > right._;
 }
 
 template<typename Tag>
-inline bool operator<=( TypedDouble<Tag> left, double right ) {
+inline constexpr bool operator<=( TypedDouble<Tag> left,
+                                  double           right ) {
   return left._ <= right;
 }
 
 template<typename Tag>
-inline bool operator<=( double left, TypedDouble<Tag> right ) {
+inline constexpr bool operator<=( double           left,
+                                  TypedDouble<Tag> right ) {
   return left <= right._;
 }
 
 template<typename Tag>
-inline bool operator<=( TypedDouble<Tag> left,
-                        TypedDouble<Tag> right ) {
+inline constexpr bool operator<=( TypedDouble<Tag> left,
+                                  TypedDouble<Tag> right ) {
   return left._ <= right._;
 }
 
 template<typename Tag>
-inline bool operator>=( TypedDouble<Tag> left, double right ) {
+inline constexpr bool operator>=( TypedDouble<Tag> left,
+                                  double           right ) {
   return left._ >= right;
 }
 
 template<typename Tag>
-inline bool operator>=( double left, TypedDouble<Tag> right ) {
+inline constexpr bool operator>=( double           left,
+                                  TypedDouble<Tag> right ) {
   return left >= right._;
 }
 
 template<typename Tag>
-inline bool operator>=( TypedDouble<Tag> left,
-                        TypedDouble<Tag> right ) {
+inline constexpr bool operator>=( TypedDouble<Tag> left,
+                                  TypedDouble<Tag> right ) {
   return left._ >= right._;
 }
 
 /** TypedInt ***************************************************/
 template<typename Tag>
-inline TypedInt<Tag> operator*( TypedInt<Tag> left,
-                                TypedInt<Tag> right ) {
+inline constexpr TypedInt<Tag> operator*( TypedInt<Tag> left,
+                                          TypedInt<Tag> right ) {
   return TypedInt<Tag>( left._ * right._ );
 }
 
 template<typename Tag>
-inline TypedInt<Tag> operator/( TypedInt<Tag> left, int right ) {
+inline constexpr TypedInt<Tag> operator/( TypedInt<Tag> left,
+                                          int           right ) {
   return TypedInt<Tag>( left._ / right );
 }
 /* dividing like types yields TypedInt<Tag> dimensionless ratio.
  */
 template<typename Tag>
-inline int operator/( TypedInt<Tag> a1, TypedInt<Tag> a2 ) {
+inline constexpr int operator/( TypedInt<Tag> a1,
+                                TypedInt<Tag> a2 ) {
   return a1._ / a2._;
 }
 
 template<typename Tag>
-inline TypedInt<Tag> operator+( TypedInt<Tag> left, int right ) {
+inline constexpr TypedInt<Tag> operator+( TypedInt<Tag> left,
+                                          int           right ) {
   return TypedInt<Tag>( left._ + right );
 }
 
 template<typename Tag>
-inline TypedInt<Tag> operator+( int left, TypedInt<Tag> right ) {
+inline constexpr TypedInt<Tag> operator+( int           left,
+                                          TypedInt<Tag> right ) {
   return TypedInt<Tag>( right._ + left );
 }
 
 template<typename Tag>
-inline TypedInt<Tag> operator+( TypedInt<Tag> left,
-                                TypedInt<Tag> right ) {
+inline constexpr TypedInt<Tag> operator+( TypedInt<Tag> left,
+                                          TypedInt<Tag> right ) {
   return TypedInt<Tag>( left._ + right._ );
 }
 
 template<typename Tag>
-inline TypedInt<Tag> operator-( TypedInt<Tag> left, int right ) {
+inline constexpr TypedInt<Tag> operator-( TypedInt<Tag> left,
+                                          int           right ) {
   return TypedInt<Tag>( left._ - right );
 }
 
 template<typename Tag>
-inline TypedInt<Tag> operator-( int left, TypedInt<Tag> right ) {
+inline constexpr TypedInt<Tag> operator-( int           left,
+                                          TypedInt<Tag> right ) {
   return TypedInt<Tag>( left - right._ );
 }
 
 template<typename Tag>
-inline bool operator<( TypedInt<Tag> left, int right ) {
+inline constexpr bool operator<( TypedInt<Tag> left,
+                                 int           right ) {
   return left._ < right;
 }
 
 template<typename Tag>
-inline bool operator<( int left, TypedInt<Tag> right ) {
+inline constexpr bool operator<( int           left,
+                                 TypedInt<Tag> right ) {
   return left < right._;
 }
 
 template<typename Tag>
-inline bool operator<( TypedInt<Tag> left,
-                       TypedInt<Tag> right ) {
+inline constexpr bool operator<( TypedInt<Tag> left,
+                                 TypedInt<Tag> right ) {
   return left._ < right._;
 }
 
 template<typename Tag>
-inline bool operator>( TypedInt<Tag> left, int right ) {
+inline constexpr bool operator>( TypedInt<Tag> left,
+                                 int           right ) {
   return left._ > right;
 }
 
 template<typename Tag>
-inline bool operator>( int left, TypedInt<Tag> right ) {
+inline constexpr bool operator>( int           left,
+                                 TypedInt<Tag> right ) {
   return left > right._;
 }
 
 template<typename Tag>
-inline bool operator>( TypedInt<Tag> left,
-                       TypedInt<Tag> right ) {
+inline constexpr bool operator>( TypedInt<Tag> left,
+                                 TypedInt<Tag> right ) {
   return left._ > right._;
 }
 
 template<typename Tag>
-inline bool operator<=( TypedInt<Tag> left, int right ) {
+inline constexpr bool operator<=( TypedInt<Tag> left,
+                                  int           right ) {
   return left._ <= right;
 }
 
 template<typename Tag>
-inline bool operator<=( int left, TypedInt<Tag> right ) {
+inline constexpr bool operator<=( int           left,
+                                  TypedInt<Tag> right ) {
   return left <= right._;
 }
 
 template<typename Tag>
-inline bool operator<=( TypedInt<Tag> left,
-                        TypedInt<Tag> right ) {
+inline constexpr bool operator<=( TypedInt<Tag> left,
+                                  TypedInt<Tag> right ) {
   return left._ <= right._;
 }
 
 template<typename Tag>
-inline bool operator>=( TypedInt<Tag> left, int right ) {
+inline constexpr bool operator>=( TypedInt<Tag> left,
+                                  int           right ) {
   return left._ >= right;
 }
 
 template<typename Tag>
-inline bool operator>=( int left, TypedInt<Tag> right ) {
+inline constexpr bool operator>=( int           left,
+                                  TypedInt<Tag> right ) {
   return left >= right._;
 }
 
 template<typename Tag>
-inline bool operator>=( TypedInt<Tag> left,
-                        TypedInt<Tag> right ) {
+inline constexpr bool operator>=( TypedInt<Tag> left,
+                                  TypedInt<Tag> right ) {
   return left._ >= right._;
 }
 

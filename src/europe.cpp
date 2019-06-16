@@ -92,20 +92,79 @@ namespace entity {
 // This object represents the array of cargo items available for
 // trade in europe and which is show at the bottom of the screen.
 class MarketCommodities {
-  void draw( Texture const& tx ) const;
-  Rect bounds() const;
+  static constexpr W single_layer_blocks_width  = 16_w;
+  static constexpr W double_layer_blocks_width  = 8_w;
+  static constexpr H single_layer_blocks_height = 1_h;
+  static constexpr H double_layer_blocks_height = 2_h;
+
+  static constexpr auto sprite_with_border_scale = Scale{16 + 1};
+
+  static constexpr W single_layer_width =
+      single_layer_blocks_width * sprite_with_border_scale.sx +
+      1_w;
+  static constexpr W double_layer_width =
+      double_layer_blocks_width * sprite_with_border_scale.sx +
+      1_w;
+  static constexpr H single_layer_height =
+      single_layer_blocks_height * sprite_with_border_scale.sy +
+      1_h;
+  static constexpr H double_layer_height =
+      double_layer_blocks_height * sprite_with_border_scale.sy +
+      1_h;
+
+public:
+  Rect bounds() const {
+    return Rect::from(
+        origin_,
+        Delta{doubled_ ? double_layer_width : single_layer_width,
+              doubled_ ? double_layer_height
+                       : single_layer_height} );
+  }
+
+  void draw( Texture const& tx ) const {
+    auto rect = bounds().with_new_upper_left( Coord{} );
+    for( auto coord : rect / sprite_with_border_scale )
+      render_rect(
+          tx, Color::black(),
+          Rect::from(
+              coord * sprite_with_border_scale +
+                  origin_.distance_from_origin(),
+              Delta{1_w, 1_h} * sprite_with_border_scale +
+                  Delta{1_w, 1_h} ) );
+  }
+
+  MarketCommodities( MarketCommodities&& ) = default;
+  MarketCommodities& operator=( MarketCommodities&& ) = default;
 
   static Opt<MarketCommodities> create( Rect const& rect ) {
-    auto single_layer_width = ( 16 + 1 ) * 16 + 1;
-    (void)single_layer_width;
-    (void)rect;
-    return {};
+    Opt<MarketCommodities> res;
+    if( rect.w >= single_layer_width &&
+        rect.h >= single_layer_height ) {
+      res = MarketCommodities{
+          /*doubled_=*/false,
+          /*origin_=*/Coord{
+              /*x=*/rect.center().x - single_layer_width / 2_sx,
+              /*y=*/rect.bottom_edge() - single_layer_height}};
+    } else if( rect.w >= double_layer_width &&
+               rect.h >= double_layer_height ) {
+      res = MarketCommodities{
+          /*doubled_=*/true,
+          /*origin_=*/Coord{
+              /*x=*/rect.center().x - double_layer_width / 2_sx,
+              /*y=*/rect.bottom_edge() - double_layer_height}};
+
+    } else {
+      // cannot draw.
+    }
+    return res;
   }
 
 private:
   MarketCommodities() = default;
-  bool  doubled{};
-  Coord origin{};
+  MarketCommodities( bool doubled, Coord origin )
+    : doubled_( doubled ), origin_( origin ) {}
+  bool  doubled_{};
+  Coord origin_{};
 };
 
 //- Outbound ships
@@ -114,11 +173,28 @@ private:
 //- Dock
 //- Units on dock
 //- Ship cargo
-//- Market commodities
 //- Exit button
 //- Buttons
 //- Message box
 //- Stats area (money, tax rate, etc.)
+
+struct Entities {
+  Opt<MarketCommodities> market_commodities;
+  // ...
+};
+
+void create_entities( Entities* entities ) {
+  entities->market_commodities =
+      MarketCommodities::create( clip_rect() );
+  // ...
+}
+
+void draw_entities( Texture const&  tx,
+                    Entities const& entities ) {
+  if( entities.market_commodities.has_value() )
+    entities.market_commodities->draw( tx );
+  // ...
+}
 
 } // namespace entity
 /****************************************************************
@@ -133,6 +209,9 @@ struct EuropePlane : public Plane {
     clear_texture( tx, Color::white() );
     tile_sprite( tx, g_tile::checkers, clip_rect() );
     render_rect( tx, rect_color, clip_rect() );
+    entity::Entities entities;
+    create_entities( &entities );
+    draw_entities( tx, entities );
   }
   bool input( input::event_t const& event ) override {
     auto matcher = scelta::match(
