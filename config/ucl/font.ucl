@@ -1,0 +1,14 @@
+game_default: _6x6
+#game_default: _7_12_serif_16pt
+
+paths = [
+  { key: _7_12_serif_16pt, val: "assets/fonts/7-12-serif/712_serif.ttf"  }
+  { key: _6x6,             val: "assets/fonts/six-by-six/six-by-six.ttf" }
+]
+
+# The fonts created in the BitFont font creator should have pt
+# size equal to the ascension+descension.
+sizes = [
+  { key: _7_12_serif_16pt, val: 16 }
+  { key: _6x6,             val: 9  }
+]

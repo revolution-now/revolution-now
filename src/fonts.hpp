@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "color.hpp"
+#include "enum.hpp"
 #include "sdl-util.hpp"
 
 // C++ standard library
@@ -21,10 +22,17 @@
 
 namespace rn {
 
-enum class e_font { _7_12_serif_16pt };
+enum class e_(
+    font,
+    /************************************************************/
+    _7_12_serif_16pt, //
+    _6x6              //
+);
 
 namespace fonts {
-constexpr e_font standard = e_font::_7_12_serif_16pt;
+
+e_font standard();
+
 }
 
 Texture render_text_line_solid( e_font font, Color fg,

@@ -96,7 +96,8 @@ Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
 Texture render_markup( MarkedUpText const&   mk,
                        TextMarkupInfo const& info ) {
   auto fg = mk.style.highlight ? info.highlight : info.normal;
-  return render_text_line_solid( fonts::standard, fg, mk.text );
+  return render_text_line_solid( fonts::standard(), fg,
+                                 mk.text );
 }
 
 Texture render_line_markup( vector<MarkedUpText> const& mks,
@@ -283,10 +284,10 @@ void text_render_test() {
 
   TextMarkupInfo info{Color::white(), Color::red()};
 
-  auto tx1 = render_text_markup( fonts::standard, info, msg );
+  auto tx1 = render_text_markup( fonts::standard(), info, msg );
   copy_texture( tx1, Texture{}, {50_y, 100_x} );
 
-  auto tx2 = render_text_markup_reflow( fonts::standard, info,
+  auto tx2 = render_text_markup_reflow( fonts::standard(), info,
                                         msg2, 50 );
   copy_texture( tx2, Texture{}, {200_y, 100_x} );
 

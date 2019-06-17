@@ -22,6 +22,7 @@
 #include "util.hpp"
 
 // Revolution Now (config)
+#include "config/ucl/font.inl"
 #include "config/ucl/palette.inl"
 
 // base-util
@@ -48,17 +49,34 @@ namespace rn {
 namespace {
 
 struct FontDesc {
-  char const* file_name;
+  fs::path    file_name;
   int         pt_size;
   ::TTF_Font* ttf_font;
 };
 
-constexpr int _7_12_font_pt_size = 16;
+FlatMap<e_font, FontDesc>& loaded_fonts() {
+  static FlatMap<e_font, FontDesc> m = [] {
+    FlatMap<e_font, FontDesc> res;
+    e_font                    font;
 
-unordered_map<e_font, FontDesc> loaded_fonts{
-    {e_font::_7_12_serif_16pt,
-     {"assets/fonts/7-12-serif/712_serif.ttf",
-      _7_12_font_pt_size, nullptr}}};
+    {
+      font       = e_font::_7_12_serif_16pt;
+      auto& path = val_or_die( config_font.paths, font );
+      auto& size = val_or_die( config_font.sizes, font );
+      res[font]  = FontDesc{path, size, nullptr};
+    }
+
+    {
+      font       = e_font::_6x6;
+      auto& path = val_or_die( config_font.paths, font );
+      auto& size = val_or_die( config_font.sizes, font );
+      res[font]  = FontDesc{path, size, nullptr};
+    }
+
+    return res;
+  }();
+  return m;
+}
 
 Texture render_line_standard_impl( ::TTF_Font* font,
                                    ::SDL_Color fg,
@@ -96,12 +114,12 @@ absl::flat_hash_map<TextRenderDesc, Texture> text_cache_solid;
 
 void init_fonts() {
   CHECK( !TTF_Init() );
-  for( auto& font : loaded_fonts ) {
-    auto&       font_desc = font.second;
-    int         pt_size   = font_desc.pt_size;
-    char const* font_file = font_desc.file_name;
+  for( auto& font : loaded_fonts() ) {
+    auto& font_desc = font.second;
+    int   pt_size   = font_desc.pt_size;
+    auto  font_file = font_desc.file_name.string();
     ASSIGN_CHECK( ttf_font,
-                  ::TTF_OpenFont( font_file, pt_size ) );
+                  ::TTF_OpenFont( font_file.c_str(), pt_size ) );
     // Check style first before setting this.
     ::TTF_SetFontStyle( ttf_font, TTF_STYLE_NORMAL );
     int outline = 0;
@@ -111,7 +129,7 @@ void init_fonts() {
 }
 
 void cleanup_fonts() {
-  for( auto& font : loaded_fonts ) {
+  for( auto& font : loaded_fonts() ) {
     auto& font_desc = font.second;
     ::TTF_CloseFont( font_desc.ttf_font );
   }
@@ -123,12 +141,21 @@ REGISTER_INIT_ROUTINE( fonts );
 
 } // namespace
 
+/****************************************************************
+** Public API
+*****************************************************************/
+namespace fonts {
+
+e_font standard() { return config_font.game_default; }
+
+} // namespace fonts
+
 // All text rendering should ultimately go through this function
 // because it does the cache handling.
 Texture render_text_line_solid( e_font font, Color fg,
                                 string_view line ) {
   auto do_render = [&] {
-    auto* ttf_font = loaded_fonts[font].ttf_font;
+    auto* ttf_font = loaded_fonts()[font].ttf_font;
     return render_line_standard_impl( ttf_font, to_SDL( fg ),
                                       line );
   };
@@ -227,7 +254,7 @@ void font_size_spectrum( char const* msg,
 
 Delta font_rendered_width( e_font font, string_view text ) {
   int w, h;
-  ::TTF_SizeText( loaded_fonts[font].ttf_font,
+  ::TTF_SizeText( loaded_fonts()[font].ttf_font,
                   string( text ).c_str(), &w, &h );
   return {W( w ), H( h )};
 }
@@ -235,7 +262,7 @@ Delta font_rendered_width( e_font font, string_view text ) {
 void font_test() {
   auto font = e_font::_7_12_serif_16pt;
 
-  H skip( ::TTF_FontLineSkip( loaded_fonts[font].ttf_font ) );
+  H skip( ::TTF_FontLineSkip( loaded_fonts()[font].ttf_font ) );
 
   char const* msg =
       "Ask not what your country can do for you, "

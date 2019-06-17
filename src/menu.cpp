@@ -367,9 +367,9 @@ H const& max_text_height() {
         res = std::max( res, textures.highlighted.size().h );
         res = std::max( res, textures.disabled.size().h );
       }
-      return res;
     }
     CHECK( res > 0_h );
+    logger->debug( "max menu text height: {}", res );
     return res;
   }();
   return max_height;
@@ -598,17 +598,17 @@ ItemTextures render_menu_element( string_view const text,
         /*normal=*/active_color,
         /*highlight=*/active_color.highlighted( 3 )};
 
-    inactive = render_text_markup( fonts::standard,
+    inactive = render_text_markup( fonts::standard(),
                                    inactive_info, mk_text );
-    active   = render_text_markup( fonts::standard, active_info,
+    active = render_text_markup( fonts::standard(), active_info,
                                  mk_text );
   } else {
-    inactive = render_text_line_shadow( fonts::standard,
+    inactive = render_text_line_shadow( fonts::standard(),
                                         inactive_color, text );
-    active   = render_text_line_shadow( fonts::standard,
+    active   = render_text_line_shadow( fonts::standard(),
                                       active_color, text );
   }
-  auto disabled = render_text_line_solid( fonts::standard,
+  auto disabled = render_text_line_solid( fonts::standard(),
                                           disabled_color, text );
   // Need to do this first before moving.
   auto width = std::max(
@@ -791,7 +791,8 @@ void render_menu_bar() {
     render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
 
   // Center the text vertically in the menu bar.
-  auto offset = 0_y + ( ( 16_h - max_text_height() ) / 2_sy );
+  auto offset =
+      0_y + ( ( menu_bar_height() - max_text_height() ) / 2_sy );
 
   for( auto menu : visible_menus() ) {
     CHECK( g_menu_rendered.contains( menu ),

@@ -16,6 +16,7 @@
 #include "conductor.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
+#include "fonts.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tune.hpp"
@@ -419,6 +420,7 @@ SUPPORT_ENUM( e_unit_type )
 SUPPORT_ENUM( e_unit_death )
 SUPPORT_ENUM( e_music_player )
 SUPPORT_ENUM( e_special_music_event )
+SUPPORT_ENUM( e_font )
 
 #define TUNE_DIMENSION_SUPPORT_ENUM( dim ) \
   SUPPORT_ENUM( PP_JOIN( e_tune_, dim ) )

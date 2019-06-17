@@ -99,7 +99,7 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
                {0_h, delta.w - 7_w} );
 
   auto char_tx = render_text_line_solid(
-      fonts::standard, text_color, string( 1, c ) );
+      fonts::standard(), text_color, string( 1, c ) );
 
   auto char_tx_size = texture_delta( char_tx );
   copy_texture(
