@@ -262,10 +262,6 @@ Delta operator-( Delta const& lhs, Delta const& rhs ) {
   return {lhs.w - rhs.w, lhs.h - rhs.h};
 }
 
-Delta operator+( Delta const& lhs, Delta const& rhs ) {
-  return {lhs.w + rhs.w, lhs.h + rhs.h};
-}
-
 Coord operator+( Delta const& delta, Coord const& coord ) {
   return {coord.y + delta.h, coord.x + delta.w};
 }
@@ -338,12 +334,6 @@ Delta operator-( Coord const& lhs, Coord const& rhs ) {
 
 ND Coord operator*( Coord const& coord, Scale const& scale ) {
   Coord res = coord;
-  res *= scale;
-  return res;
-}
-
-ND Delta operator*( Delta const& delta, Scale const& scale ) {
-  Delta res = delta;
   res *= scale;
   return res;
 }

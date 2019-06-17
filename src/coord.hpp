@@ -115,7 +115,7 @@ struct ND Delta {
   // will remain zero.
   Delta trimmed_by_one() const;
 
-  void operator*=( Scale const& scale ) {
+  constexpr void operator*=( Scale const& scale ) {
     w *= scale.sx;
     h *= scale.sy;
   }
@@ -372,7 +372,10 @@ int inner_product( Delta const& fst, Delta const& snd );
 ND Delta max( Delta const& lhs, Delta const& rhs );
 
 ND Delta operator-( Delta const& lhs, Delta const& rhs );
-ND Delta operator+( Delta const& lhs, Delta const& rhs );
+ND inline constexpr Delta operator+( Delta const& lhs,
+                                     Delta const& rhs ) {
+  return {lhs.w + rhs.w, lhs.h + rhs.h};
+}
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
 ND Coord operator+( Delta const& delta, Coord const& coord );
@@ -403,7 +406,12 @@ void     operator-=( Delta& delta, W w );
 void     operator-=( Delta& delta, H h );
 
 ND Coord operator*( Coord const& coord, Scale const& scale );
-ND Delta operator*( Delta const& delta, Scale const& scale );
+ND inline constexpr Delta operator*( Delta const& delta,
+                                     Scale const& scale ) {
+  Delta res = delta;
+  res *= scale;
+  return res;
+}
 ND Coord operator*( Scale const& scale, Coord const& coord );
 ND Delta operator*( Scale const& scale, Delta const& delta );
 ND Rect operator*( Rect const& rect, Scale const& scale );

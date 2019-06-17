@@ -86,8 +86,9 @@ namespace entity {
 // Each entity is defined by a struct that holds its state and
 // that has the following methods:
 //
-//  void draw( Texture const& tx ) const;
+//  void draw( Texture const& tx, Delta offset ) const;
 //  Rect bounds() const;
+//  static Opt<EntityClass> create( Delta const& size, ... );
 
 // This object represents the array of cargo items available for
 // trade in europe and which is show at the bottom of the screen.
@@ -122,14 +123,14 @@ public:
                        : single_layer_height} );
   }
 
-  void draw( Texture const& tx ) const {
-    auto rect = bounds().with_new_upper_left( Coord{} );
-    for( auto coord : rect / sprite_with_border_scale )
+  void draw( Texture const& tx, Delta offset ) const {
+    for( auto coord : bounds().with_new_upper_left( Coord{} ) /
+                          sprite_with_border_scale )
       render_rect(
           tx, Color::black(),
           Rect::from(
               coord * sprite_with_border_scale +
-                  origin_.distance_from_origin(),
+                  origin_.distance_from_origin() + offset,
               Delta{1_w, 1_h} * sprite_with_border_scale +
                   Delta{1_w, 1_h} ) );
   }
@@ -137,10 +138,11 @@ public:
   MarketCommodities( MarketCommodities&& ) = default;
   MarketCommodities& operator=( MarketCommodities&& ) = default;
 
-  static Opt<MarketCommodities> create( Rect const& rect ) {
+  static Opt<MarketCommodities> create( Delta const& size ) {
     Opt<MarketCommodities> res;
-    if( rect.w >= single_layer_width &&
-        rect.h >= single_layer_height ) {
+    auto                   rect = Rect::from( Coord{}, size );
+    if( size.w >= single_layer_width &&
+        size.h >= single_layer_height ) {
       res = MarketCommodities{
           /*doubled_=*/false,
           /*origin_=*/Coord{
@@ -160,11 +162,78 @@ public:
     return res;
   }
 
+  bool  doubled_{};
+  Coord origin_{};
+
 private:
   MarketCommodities() = default;
   MarketCommodities( bool doubled, Coord origin )
     : doubled_( doubled ), origin_( origin ) {}
-  bool  doubled_{};
+};
+
+// This object represents the array of cargo items held by the
+// ship currently selected in dock.
+class ActiveCargo {
+  static constexpr Delta size_blocks{6_w, 1_h};
+
+  // Commodities will be 24x24.
+  static constexpr auto sprite_with_border_scale = Scale{24 + 1};
+
+  static constexpr Delta size_pixels =
+      size_blocks * sprite_with_border_scale + Delta{1_w, 1_h};
+
+public:
+  Rect bounds() const {
+    return Rect::from( origin_, size_pixels );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    for( auto coord : bounds().with_new_upper_left( Coord{} ) /
+                          sprite_with_border_scale )
+      render_rect(
+          tx, Color::black(),
+          Rect::from(
+              coord * sprite_with_border_scale +
+                  origin_.distance_from_origin() + offset,
+              Delta{1_w, 1_h} * sprite_with_border_scale +
+                  Delta{1_w, 1_h} ) );
+  }
+
+  ActiveCargo( ActiveCargo&& ) = default;
+  ActiveCargo& operator=( ActiveCargo&& ) = default;
+
+  static Opt<ActiveCargo> create(
+      Delta const&                  size,
+      Opt<MarketCommodities> const& maybe_market_commodities ) {
+    Opt<ActiveCargo> res;
+    auto             rect = Rect::from( Coord{}, size );
+    if( size.w < size_pixels.w || size.h < size_pixels.h )
+      return res;
+    if( maybe_market_commodities.has_value() ) {
+      auto const& market_commodities = *maybe_market_commodities;
+      if( market_commodities.origin_.y < 0_y + size_pixels.h )
+        return res;
+      if( market_commodities.doubled_ ) {
+        res = ActiveCargo(
+            /*origin_=*/Coord{
+                market_commodities.origin_.y - size_pixels.h +
+                    1_h,
+                rect.center().x - size_pixels.w / 2_sx} );
+      } else {
+        // Possibly just for now do this.
+        res = ActiveCargo(
+            /*origin_=*/Coord{
+                market_commodities.origin_.y - size_pixels.h +
+                    1_h,
+                rect.center().x - size_pixels.w / 2_sx} );
+      }
+    }
+    return res;
+  }
+
+private:
+  ActiveCargo() = default;
+  ActiveCargo( Coord origin ) : origin_( origin ) {}
   Coord origin_{};
 };
 
@@ -173,7 +242,6 @@ private:
 //- Ships in dock
 //- Dock
 //- Units on dock
-//- Ship cargo
 //- Exit button
 //- Buttons
 //- Message box
@@ -181,20 +249,24 @@ private:
 
 struct Entities {
   Opt<MarketCommodities> market_commodities;
-  // ...
+  Opt<ActiveCargo>       active_cargo;
 };
 
 void create_entities( Entities* entities ) {
-  entities->market_commodities =
-      MarketCommodities::create( clip_rect() );
-  // ...
+  entities->market_commodities = //
+      MarketCommodities::create( g_clip );
+  entities->active_cargo = //
+      ActiveCargo::create( g_clip,
+                           entities->market_commodities );
 }
 
 void draw_entities( Texture const&  tx,
                     Entities const& entities ) {
+  auto offset = clip_rect().upper_left().distance_from_origin();
   if( entities.market_commodities.has_value() )
-    entities.market_commodities->draw( tx );
-  // ...
+    entities.market_commodities->draw( tx, offset );
+  if( entities.active_cargo.has_value() )
+    entities.active_cargo->draw( tx, offset );
 }
 
 } // namespace entity
