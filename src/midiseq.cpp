@@ -590,7 +590,7 @@ void midi_thread_impl() {
         g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
       switch_v( cmd.value() ) {
-        case_v_( command::play, file ) {
+        case_v( command::play, file ) {
           g_midi_comm.set_state( e_midiseq_state::playing );
           g_midi.value().all_notes_off();
           // ****************************************************
@@ -655,7 +655,7 @@ void midi_thread_impl() {
           time_to_go = true;
           stem       = nullopt;
         }
-        case_v_( command::volume, new_value ) {
+        case_v( command::volume, new_value ) {
           g_midi.value().set_master_volume( new_value );
         }
         default_v;

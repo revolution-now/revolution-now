@@ -103,16 +103,16 @@ vector<FrameSubscription>& subscriptions() {
 void notify_subscribers() {
   for( auto& sub : subscriptions() ) {
     switch_v( sub ) {
-      case_v_( FrameSubscriptionTick, interval, last_message,
-               func ) {
+      case_v( FrameSubscriptionTick, interval, last_message,
+              func ) {
         auto total = total_frame_count();
         if( long( total ) - last_message > interval ) {
           last_message = total;
           func();
         }
       }
-      case_v_( FrameSubscriptionTime, interval, last_message,
-               func ) {
+      case_v( FrameSubscriptionTime, interval, last_message,
+              func ) {
         auto now = Clock_t::now();
         if( now - last_message > interval ) {
           last_message = now;
