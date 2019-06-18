@@ -18,21 +18,30 @@ namespace rn::ui {
 namespace {} // namespace
 
 bool Object::input( input::event_t const& event ) {
-  auto matcher = scelta::match(
-      []( input::unknown_event_t ) { return false; },
-      []( input::quit_event_t ) { return false; },
-      [&]( input::key_event_t const& e ) { return on_key( e ); },
-      [&]( input::mouse_wheel_event_t const& e ) {
-        return on_wheel( e );
-      },
-      [&]( input::mouse_move_event_t const& e ) {
-        return on_mouse_move( e );
-      },
-      [&]( input::mouse_button_event_t const& e ) {
-        return on_mouse_button( e );
-      },
-      []( input::mouse_drag_event_t ) { return false; } );
-  return matcher( event );
+  return switch_v( event ) {
+    case_v( input::unknown_event_t ) { //
+      return false;
+    }
+    case_v( input::quit_event_t ) { //
+      return false;
+    }
+    case_v( input::key_event_t ) { //
+      return on_key( val );
+    }
+    case_v( input::mouse_wheel_event_t ) { //
+      return on_wheel( val );
+    }
+    case_v( input::mouse_move_event_t ) { //
+      return on_mouse_move( val );
+    }
+    case_v( input::mouse_button_event_t ) { //
+      return on_mouse_button( val );
+    }
+    case_v( input::mouse_drag_event_t ) { //
+      return false;
+    }
+    default_v;
+  };
 }
 
 bool Object::on_key( input::key_event_t const& /*unused*/ ) {

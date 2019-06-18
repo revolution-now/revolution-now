@@ -294,27 +294,38 @@ struct EuropePlane : public Plane {
     draw_entities( tx, entities );
   }
   bool input( input::event_t const& event ) override {
-    auto matcher = scelta::match(
-        []( input::unknown_event_t ) { return false; },
-        []( input::quit_event_t ) { return false; },
-        []( input::key_event_t const& ) { return false; },
-        []( input::mouse_wheel_event_t ) { return false; },
-        [&]( input::mouse_move_event_t mv_event ) {
-          if( is_on_clip_rect( mv_event.pos ) )
-            this->rect_color = Color::blue();
-          else
-            this->rect_color = Color::black();
-          return true;
-        },
-        [&]( input::mouse_button_event_t ) { return false; },
-        []( input::mouse_drag_event_t ) {
-          // The framework does not send us mouse drag events
-          // directly; instead it uses the api methods on the
-          // Plane class.
-          SHOULD_NOT_BE_HERE;
-          return false;
-        } );
-    return matcher( event );
+    return switch_v( event ) {
+      case_v( input::unknown_event_t ) { //
+        return false;
+      }
+      case_v( input::quit_event_t ) { //
+        return false;
+      }
+      case_v( input::key_event_t ) { //
+        return false;
+      }
+      case_v( input::mouse_wheel_event_t ) { //
+        return false;
+      }
+      case_v( input::mouse_move_event_t ) { //
+        if( is_on_clip_rect( val.pos ) )
+          this->rect_color = Color::blue();
+        else
+          this->rect_color = Color::black();
+        return true;
+      }
+      case_v( input::mouse_button_event_t ) { //
+        return false;
+      }
+      case_v( input::mouse_drag_event_t ) { //
+        // The framework does not send us mouse drag events
+        // directly; instead it uses the api methods on the
+        // Plane class.
+        SHOULD_NOT_BE_HERE;
+        return false;
+      }
+      default_v;
+    }
   }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
