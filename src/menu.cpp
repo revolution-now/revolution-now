@@ -549,12 +549,15 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
         } );
     advance( item );
     if( pos > h ) {
-      return scelta::match(
-          [&]( MenuDivider ) { return Opt<e_menu_item>{}; },
-          [&]( MenuClickable const& clickable ) {
-            return Opt<e_menu_item>( clickable.item );
-          } //
-          )( item );
+      return switch_v( Opt<e_menu_item>, item ) {
+        case_v( MenuDivider ) { //
+          return nullopt;
+        }
+        case_v( MenuClickable ) { //
+          return val.item;
+        }
+        default_v;
+      }
     }
   }
   return {};
