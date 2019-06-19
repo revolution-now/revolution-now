@@ -23,12 +23,16 @@ stamp="$current/last-build-stamp"
 
 [[ "$1" == "-v" ]] && verbose=1 || verbose=0
 
+files="$(find . -not -name '.*' -not -wholename '*/.*' -type f -newer "$stamp" | sed 's|^./||')"
+
+[[ -z "$files" ]] && exit 0
+
 (( verbose )) && {
   echo -e "*** ${c_yellow}${s_bold}files changed $c_norm***********************************************"
   echo -en "$c_red"
 }
 
-find . -not -name '.*' -not -wholename '*/.*' -type f -newer "$stamp" | sed 's|^./||'
+echo -e "$files"
 
 (( verbose )) && {
   echo -en "$c_norm"

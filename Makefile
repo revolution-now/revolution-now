@@ -35,10 +35,10 @@ distclean: $(clean-target)
 	@rm -rf .builds
 
 update:
-	@git pull origin master
+	@git pull origin master --quiet
 	@git submodule update --init
 	@cmc rc
-	@scripts/outdated.sh -v
+	@bash scripts/outdated.sh -v
 	@$(MAKE) -s all
 
 what:
