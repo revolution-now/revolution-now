@@ -24,7 +24,10 @@ $HOME/dev/tools/llvm-current/bin/clang++ \
   -o $stem.pp.cpp                        \
   -c $HOME/dev/rn/src/$stem.cpp
 
-cat $stem.pp.cpp | sed '0,/marker_start/d; /marker_end/,$d' >$stem.pp.fmt.cpp
+cat $stem.pp.cpp | sed '0,/marker_start/d; /marker_end/,$d' \
+                 | grep -v marker_start                     \
+                 | grep -v marker_end                       \
+                   >$stem.pp.fmt.cpp
 
 clang-format -i ./$stem.pp.fmt.cpp
 

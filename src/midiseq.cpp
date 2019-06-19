@@ -655,8 +655,8 @@ void midi_thread_impl() {
           time_to_go = true;
           stem       = nullopt;
         }
-        case_v( command::volume, new_value ) {
-          g_midi.value().set_master_volume( new_value );
+        case_v( command::volume, value ) {
+          g_midi.value().set_master_volume( value );
         }
         default_v;
       }
