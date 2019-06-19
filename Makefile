@@ -1,6 +1,7 @@
 .DEFAULT_GOAL := all
 builds        := .builds
 build-current := .builds/current
+stamp-file    := $(build-current)/last-build-stamp
 
 -include $(build-current)/env-vars.mk
 
@@ -14,12 +15,14 @@ ifneq (,$(wildcard $(build-current)/Makefile))
     # also do not just put the whole command into a variable
     # and just define the targets once.
     $(possible_targets): $(build-current)
+	    @touch $(stamp-file)
 	    @cd $(build-current) && $(MAKE) -s $@
 else
     # Use cmake to build here because it is the preferred
     # way to go when it works for us (which it does in this
     # case).
     $(possible_targets): $(build-current)
+	    @touch $(stamp-file)
 	    @cd $(build-current) && cmake --build . --target $@
 endif
 
@@ -35,10 +38,13 @@ update:
 	@git pull origin master
 	@git submodule update --init
 	@cmc rc
-	@echo
+	@scripts/outdated.sh -v
 	@$(MAKE) -s all
+
+what:
+	@scripts/outdated.sh
 
 $(build-current):
 	@cmc
 
-.PHONY: $(possible_targets) update
+.PHONY: $(possible_targets) update what
