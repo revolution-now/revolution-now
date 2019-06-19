@@ -75,7 +75,7 @@ void init_sound() {
   logger->info( "SDL mixer: compiled with version: {}.{}.{}",
                 compiled_version.major, compiled_version.minor,
                 compiled_version.patch );
-  logger->info( "SDL mider: running with version: {}.{}.{}",
+  logger->info( "SDL mixer: running with version: {}.{}.{}",
                 link_version->major, link_version->minor,
                 link_version->patch );
   CHECK(
@@ -119,6 +119,13 @@ void init_sound() {
   logger->info( "Opening audio with {} channels @ {}Hz.",
                 channels, frequency );
 
+  for( int i = 0; i < ::SDL_GetNumAudioDrivers(); ++i )
+    logger->debug( "Audio Driver #{}: {}", i,
+                   ::SDL_GetAudioDriver( i ) );
+
+  logger->info( "Using Audio Driver: {}",
+                ::SDL_GetCurrentAudioDriver() );
+
   // Set Volume for all channels.
   //
   // TODO: is this necessary given that we also set the volume
@@ -131,6 +138,16 @@ void init_sound() {
 
 void cleanup_sound() {
   for( auto& p : loaded_sfx ) ::Mix_FreeChunk( p.second );
+  // FIXME: On Linux sometimes the program will hang inside this
+  // Mix_CloseAudio function. This has been determined to be due
+  // to pulseaudio, specifically, when another application is
+  // using pulseaudio (or possibly alsa which then uses pulseau-
+  // dio) this function will do a thread_join and hang while
+  // waiting for the other application to stop using pulseaudio
+  // (closing that other application will then immediately cause
+  // the program to proceed). E.g., if fluidsynth is running and
+  // we are hanging here then quitting fluidsynth should stop the
+  // hanging. Not yet clear what the proper fix is for this.
   ::Mix_CloseAudio();
   ::Mix_Quit();
 }
