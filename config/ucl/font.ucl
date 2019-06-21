@@ -13,3 +13,14 @@ sizes = [
   { key: _6x6,             val: 9  }
   { key: habbo_15,         val: 15 }
 ]
+
+# This is kind of a hack to fix fonts that SDL_ttf does not
+# render properly. In particular, this fixes the case when they
+# get rendered without enough space at the top; it will, after
+# rendering, shift the rendered text down by the given number of
+# pixels (should work with negative values too).
+offsets = [
+  { key: _7_12_serif_16pt, val: 0 }
+  { key: _6x6,             val: 2 }
+  { key: habbo_15,         val: 0 }
+]

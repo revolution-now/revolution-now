@@ -51,6 +51,7 @@ namespace {
 struct FontDesc {
   fs::path    file_name;
   int         pt_size;
+  Y           vert_offset;
   ::TTF_Font* ttf_font;
 };
 
@@ -60,7 +61,9 @@ FlatMap<e_font, FontDesc>& loaded_fonts() {
     for( auto font : values<e_font> ) {
       auto& path = val_or_die( config_font.paths, font );
       auto& size = val_or_die( config_font.sizes, font );
-      res[font]  = FontDesc{path, size, nullptr};
+      auto& vert_offset =
+          val_or_die( config_font.offsets, font );
+      res[font] = FontDesc{path, size, vert_offset, nullptr};
     }
     return res;
   }();
@@ -69,7 +72,8 @@ FlatMap<e_font, FontDesc>& loaded_fonts() {
 
 Texture render_line_standard_impl( ::TTF_Font* font,
                                    ::SDL_Color fg,
-                                   string_view line ) {
+                                   string_view line,
+                                   Y           vert_offset ) {
   ASSIGN_CHECK( surface,
                 ::TTF_RenderText_Solid(
                     font, string( line ).c_str(), fg ) );
@@ -77,6 +81,13 @@ Texture render_line_standard_impl( ::TTF_Font* font,
   ::SDL_FreeSurface( surface );
   // Not sure why this doesn't happen automatically.
   ::SDL_SetTextureAlphaMod( texture, fg.a );
+  if( vert_offset != 0_y ) {
+    auto new_texture = create_texture( texture.size() );
+    clear_texture_transparent( new_texture );
+    copy_texture( texture, new_texture, {0_x, vert_offset} );
+    ::SDL_SetTextureAlphaMod( new_texture, fg.a );
+    texture = std::move( new_texture );
+  }
   return texture;
 }
 
@@ -144,9 +155,10 @@ e_font standard() { return config_font.game_default; }
 Texture render_text_line_solid( e_font font, Color fg,
                                 string_view line ) {
   auto do_render = [&] {
-    auto* ttf_font = loaded_fonts()[font].ttf_font;
+    auto* ttf_font    = loaded_fonts()[font].ttf_font;
+    auto  vert_offset = loaded_fonts()[font].vert_offset;
     return render_line_standard_impl( ttf_font, to_SDL( fg ),
-                                      line );
+                                      line, vert_offset );
   };
 
   TextRenderDesc desc{font, fg, string( line )};
@@ -234,7 +246,7 @@ void font_size_spectrum( char const* msg,
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     ::SDL_Color fg{255, 255, 255, 255};
     auto        texture =
-        render_line_standard_impl( font, fg, num_msg );
+        render_line_standard_impl( font, fg, num_msg, 0_y );
     copy_texture( texture, Texture{}, {Y( y ), 0_x} );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
