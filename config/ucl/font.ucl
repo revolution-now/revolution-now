@@ -21,6 +21,6 @@ sizes = [
 # pixels (should work with negative values too).
 offsets = [
   { key: _7_12_serif_16pt, val: 0 }
-  { key: _6x6,             val: 2 }
+  { key: _6x6,             val: 1 }
   { key: habbo_15,         val: 0 }
 ]

@@ -83,7 +83,6 @@ Texture render_line_standard_impl( ::TTF_Font* font,
     auto new_texture = create_texture( texture.size() );
     clear_texture_transparent( new_texture );
     copy_texture( texture, new_texture, {0_x, vert_offset} );
-    ::SDL_SetTextureAlphaMod( new_texture, fg.a );
     texture = std::move( new_texture );
   }
   // Not sure why this doesn't happen automatically.
