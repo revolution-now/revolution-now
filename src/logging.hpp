@@ -73,6 +73,10 @@
 #  endif
 #endif
 
+// Customization point.
+#define SPDLOG_LEVEL_NAMES \
+  { "TRACE", "DEBG", "INFO", "WARN", "ERROR", "CRITICAL", "OFF" }
+
 // clang-format will reorder these headers which then generates
 // an error because they need to be included in a certian order.
 // clang-format off

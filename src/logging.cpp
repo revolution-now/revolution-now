@@ -11,6 +11,7 @@
 #include "logging.hpp"
 
 // Revolution Now
+#include "ansi.hpp"
 #include "console.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
@@ -76,14 +77,31 @@ public:
 
 namespace {
 
+// %n = module name
+// %^ = start color (color used is determined by the sink)
+// %l = log level (defined in logging.hpp, our header file)
+// %$ = end color
+// %v = message
+string const pattern() {
+  return "%Y-%m-%d %H:%M:%S.%e  %n | %^%l%$ %v";
+}
+
 spdlog::sink_ptr default_dbg_console_sink() {
-  static spdlog::sink_ptr p = make_shared<debug_console_sink>();
+  static spdlog::sink_ptr p = [] {
+    auto p = make_shared<debug_console_sink>();
+    p->set_pattern( pattern() );
+    return p;
+  }();
   return p;
 }
 
 spdlog::sink_ptr default_terminal_sink() {
-  static spdlog::sink_ptr p =
-      make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
+  static spdlog::sink_ptr p = [] {
+    auto p =
+        make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
+    p->set_pattern( pattern() );
+    return p;
+  }();
   return p;
 }
 
@@ -114,7 +132,7 @@ shared_ptr<spdlog::logger> create_dbg_console_logger(
     string const& logger_name ) {
   auto lager = spdlog::default_factory::template create<
       debug_console_sink>(
-      fmt::format( "{: ^16}", "~" + logger_name + "~" ) );
+      fmt::format( "{: <12}", "~" + logger_name + "~" ) );
   CHECK( lager->sinks().size() == 1 );
   // Replace sink with global.
   lager->sinks()[0] = default_dbg_console_sink();
@@ -124,7 +142,7 @@ shared_ptr<spdlog::logger> create_dbg_console_logger(
 shared_ptr<spdlog::logger> create_terminal_logger(
     string const& logger_name ) {
   auto lager = spdlog::stdout_color_mt(
-      fmt::format( "{: ^16}", "." + logger_name + "." ) );
+      fmt::format( "{: <12}", "." + logger_name + "." ) );
   CHECK( lager->sinks().size() == 1 );
   // Replace sink with global.
   lager->sinks()[0] = default_terminal_sink();
@@ -135,7 +153,7 @@ shared_ptr<spdlog::logger> create_hybrid_logger(
     string const& logger_name, shared_ptr<spdlog::logger> trm,
     shared_ptr<spdlog::logger> dbg ) {
   auto lgr = spdlog::stdout_color_mt(
-      fmt::format( "{: ^16}", logger_name ) );
+      fmt::format( "{: <12}", logger_name ) );
 
   // NOTE: if these checks fail the may cause a "core dump" be-
   // cause this code runs at global variable initialization time.
