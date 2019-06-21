@@ -400,29 +400,29 @@ struct ClickTileActions {
 ClickTileActions click_on_world_tile_impl(
     Coord coord, bool allow_activate ) {
   ClickTileActions result{};
-  logger->debug( "clicked on tile {}, allow_activate={}", coord,
+  lg.debug( "clicked on tile {}, allow_activate={}", coord,
                  allow_activate );
   auto const& units = units_from_coord_recursive( coord );
   if( units.size() == 0 ) {
-    logger->debug( "no units on square." );
+    lg.debug( "no units on square." );
     return result;
   }
   if( units.size() == 1 ) {
     auto id = *units.begin();
-    logger->debug( "unit on square: {}", debug_string( id ) );
+    lg.debug( "unit on square: {}", debug_string( id ) );
     auto& unit = unit_from_id( id );
     if( unit.orders() == e_unit_orders::none ) {
       if( allow_activate ) {
-        logger->debug( "activating." );
+        lg.debug( "activating." );
         result.bring_to_front.push_back( id );
         return result;
       } else {
         // No action.
-        logger->debug( "no action." );
+        lg.debug( "no action." );
         return result;
       }
     } else {
-      logger->debug( "clearing orders." );
+      lg.debug( "clearing orders." );
       unit.clear_orders();
       if( allow_activate ) result.add_to_back.push_back( id );
       return result;
@@ -434,7 +434,7 @@ ClickTileActions click_on_world_tile_impl(
       auto& sel_unit = unit_from_id( selection.id );
       switch( selection.what ) {
         case +ui::e_unit_selection::clear_orders:
-          logger->debug( "clearing orders for {}.",
+          lg.debug( "clearing orders for {}.",
                          debug_string( sel_unit ) );
           sel_unit.clear_orders();
           if( allow_activate )
@@ -442,7 +442,7 @@ ClickTileActions click_on_world_tile_impl(
           break;
         case +ui::e_unit_selection::activate:
           CHECK( allow_activate );
-          logger->debug( "activating {}.",
+          lg.debug( "activating {}.",
                          debug_string( sel_unit ) );
           // Activation implies also to clear orders if they're
           // not already cleared.
@@ -739,7 +739,7 @@ struct PanelPlane : public Plane {
 
     auto button_view =
         make_unique<ui::ButtonView>( "Next Turn", [this] {
-          logger->debug( "on to next turn." );
+          lg.debug( "on to next turn." );
           this->next_turn_clicked = true;
           // Disable the button as soon as it is clicked.
           this->next_turn_button().enable( /*enabled=*/false );

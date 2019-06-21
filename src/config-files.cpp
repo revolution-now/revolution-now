@@ -631,7 +631,7 @@ vector<string> get_all_fields( ucl::Ucl const& obj ) {
 }
 
 void init_configs() {
-  logger->info( "Reading config files." );
+  lg.info( "Reading config files." );
   for( auto const& f : load_functions() ) f();
   for( auto [ucl_name, file] : config_files() ) {
     // cout << "Loading file " << file << "\n";
@@ -650,7 +650,7 @@ void init_configs() {
     for( auto const& f : fields ) {
       auto full_name = file + "." + f;
       if( !util::has_key( used_field_paths, full_name ) ) {
-        logger->warn( "config field `{}' unused", full_name );
+        lg.warn( "config field `{}' unused", full_name );
       } else {
         LOG_TRACE( "field loaded: {}", full_name );
       }

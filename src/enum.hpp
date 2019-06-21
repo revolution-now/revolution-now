@@ -44,7 +44,7 @@ public:                                          \
 // Iteration and logging "just works" as follows:
 //
 //   for( auto val : values<e_color> )
-//     logger->debug( "val: {}", val );
+//     lg.debug( "val: {}", val );
 //
 #define e_( n, ... )                                   \
   __e_##n;                                             \

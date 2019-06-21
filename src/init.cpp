@@ -184,7 +184,7 @@ void run_all_init_routines( Opt<e_init_routine> only ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
   init_logging( spdlog::level::debug );
-  logger->info( "initializing: logging" );
+  lg.info( "initializing: logging" );
 
   // These should guarantee that the maps contain all enum
   // values, no more and no fewer.
@@ -227,7 +227,7 @@ void run_all_init_routines( Opt<e_init_routine> only ) {
 
   for( auto routine : sorted ) {
     if( rg::find( reachable, routine ) != reachable.end() ) {
-      logger->info( "initializing: {}", routine );
+      lg.info( "initializing: {}", routine );
       init_functions()[routine]();
       init_routine_run_map()[routine] = true;
     }
@@ -248,7 +248,7 @@ void run_all_cleanup_routines() {
   // We must cleanup in the reverse order that we initialized.
   for( auto routine : ordered | rv::reverse ) {
     if( init_routine_run_map()[routine] ) {
-      logger->info( "cleaning: {}", routine );
+      lg.info( "cleaning: {}", routine );
       cleanup_functions()[routine]();
     }
   }

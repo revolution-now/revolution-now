@@ -36,7 +36,7 @@ static_assert( world_size % terrain_block_size == Delta{} );
 struct TerrainBlockCache {
   void redraw_if_needed() {
     if( !needs_redraw ) return;
-    logger->debug( "redrawing terrain block {}", block_coord );
+    lg.debug( "redrawing terrain block {}", block_coord );
     Rect tiles = Rect::from( block_coord, Delta{1_w, 1_h} ) *
                  terrain_block_size;
     for( auto coord : tiles )

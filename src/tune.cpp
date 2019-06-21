@@ -72,7 +72,7 @@ TuneId gen_tune_id() {
 
 void init_tunes() {
   if( config_music.tunes.size() == 0 ) {
-    logger->error( "Tune list is empty." );
+    lg.error( "Tune list is empty." );
     return;
   }
   absl::flat_hash_set<string> stems;
@@ -121,11 +121,11 @@ TuneOptDimensions TuneDimensions::to_opt_dims() const {
 }
 
 void TunePlayerInfo::log() const {
-  logger->info( "TunePlayerInfo:" );
-  logger->info( "  id:       {} ({})", id,
+  lg.info( "TunePlayerInfo:" );
+  lg.info( "  id:       {} ({})", id,
                 tune_stem_from_id( id ) );
-  logger->info( "  length:   {}", length );
-  logger->info( "  progress: {}", progress );
+  lg.info( "  length:   {}", length );
+  lg.info( "  progress: {}", progress );
 }
 
 Vec<TuneId> const& all_tunes() {

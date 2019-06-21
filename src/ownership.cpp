@@ -136,7 +136,7 @@ void destroy_unit( UnitId id ) {
     // Check this until we know how to deal with other types of
     // cargo.
     GET_CHECK_VARIANT( cargo_id, item, UnitId const );
-    logger->info(
+    lg.info(
         "{} being destroyed as a consequence of {} being "
         "destroyed",
         debug_string( unit_from_id( cargo_id ) ),

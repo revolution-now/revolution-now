@@ -97,20 +97,20 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   return 0;
 
 } catch( exception_exit const& ) {
-  logger->info( "exiting due to exception_exit." );
+  lg.info( "exiting due to exception_exit." );
   run_all_cleanup_routines();
 } catch( exception_with_bt const& e ) {
-  logger->error( e.what() );
+  lg.error( e.what() );
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
-    logger->error( "SDL error: {}", sdl_error );
+    lg.error( "SDL error: {}", sdl_error );
   print_stack_trace( e.st, 4 );
   run_all_cleanup_routines();
 } catch( exception const& e ) {
-  logger->error( e.what() );
+  lg.error( e.what() );
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
-    logger->error( "SDL error: {}", sdl_error );
+    lg.error( "SDL error: {}", sdl_error );
   run_all_cleanup_routines();
   return 1;
 }

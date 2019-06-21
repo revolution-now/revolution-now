@@ -382,7 +382,7 @@ WindowManager::window& WindowManager::focused() {
 ** High-level Methods
 *****************************************************************/
 string select_box( string_view title, Vec<Str> options ) {
-  logger->info( "question: \"{}\"", title );
+  lg.info( "question: \"{}\"", title );
 
   auto selector = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
@@ -402,7 +402,7 @@ string select_box( string_view title, Vec<Str> options ) {
   effects_plane_enable( true );
   frame_loop( true, finished );
   effects_plane_enable( false );
-  logger->info( "selected: {}", selector_ptr->get_selected() );
+  lg.info( "selected: {}", selector_ptr->get_selected() );
   auto result = selector_ptr->get_selected();
   g_window_plane.wm.clear_windows();
   return result;
@@ -564,7 +564,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
         std::move( border_view ),
         [&infos, id, fake_unit_view_ptr, border_view_ptr,
          &on_click_unit] {
-          logger->debug( "clicked on {}", debug_string( id ) );
+          lg.debug( "clicked on {}", debug_string( id ) );
           on_click_unit( id );
           CHECK( infos.contains( id ) );
           auto& info = infos[id];
@@ -600,7 +600,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
                                 move( view ) );
 
   frame_loop( true, [&state] { return state != nullopt; } );
-  logger->info( "pressed `{}`.", state );
+  lg.info( "pressed `{}`.", state );
 
   Vec<UnitSelection> res;
 
@@ -619,7 +619,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
   g_window_plane.wm.clear_windows();
 
   for( auto r : res )
-    logger->debug( "selection: {} --> {}", debug_string( r.id ),
+    lg.debug( "selection: {} --> {}", debug_string( r.id ),
                    r.what );
   return res;
 }

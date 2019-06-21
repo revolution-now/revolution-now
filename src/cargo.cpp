@@ -27,7 +27,7 @@ namespace {} // namespace
 
 CargoHold::~CargoHold() {
   if( !items_.empty() )
-    logger->warn( "CargoHold destroyed with {} remaining items.",
+    lg.warn( "CargoHold destroyed with {} remaining items.",
                   items_.size() );
 }
 

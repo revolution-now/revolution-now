@@ -101,7 +101,7 @@ void image_plane_enable( bool enable ) {
 }
 
 void image_plane_set( e_image image ) {
-  logger->info( "setting image background to {}", image );
+  lg.info( "setting image background to {}", image );
   g_image_plane.image = image;
 }
 

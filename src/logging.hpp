@@ -27,10 +27,10 @@
 //
 //   Level               Command
 //   ------------------------------------------------------------
-//   CRITICAL            logger->critical(...)
-//   ERROR               logger->error(...)
-//   WARN                logger->warn(...)
-//   INFO                logger->info(...)
+//   CRITICAL            lg.critical(...)
+//   ERROR               lg.error(...)
+//   WARN                lg.warn(...)
+//   INFO                lg.info(...)
 //   DEBUG               LOG_DEBUG( ... )
 //   TRACE               LOG_TRACE( ... )
 //
@@ -99,7 +99,7 @@
   {                                                      \
     static std::remove_cv_t<decltype( var )> __to_log{}; \
     if( __to_log != var ) {                              \
-      logger->level( "{} changed: {}", #var, var );      \
+      lg.level( "{} changed: {}", #var, var );          \
       __to_log = var;                                    \
     }                                                    \
   }
@@ -117,7 +117,7 @@
   }
 
 // Logs the variable "v: <value of v>".
-#define LOG_VAR( level, v ) logger->level( #v ": {}", v )
+#define LOG_VAR( level, v ) lg.level( #v ": {}", v )
 
 namespace rn {
 
@@ -192,7 +192,7 @@ auto hybrid_logger = detail::create_hybrid_logger(
 
 // The game's default standard logger sends output to both the
 // terminal and the in-game console.
-auto logger = hybrid_logger;
+auto& lg = *hybrid_logger;
 
 } // namespace
 

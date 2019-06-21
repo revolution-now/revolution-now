@@ -79,7 +79,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
       L( unit_from_id( _ ).desc().defense_points ) );
   CHECK( !sorted_by_defense.empty() );
   UnitId highest_defense_unit = sorted_by_defense.back();
-  logger->info( "unit in target square with highest defense: {}",
+  lg.info( "unit in target square with highest defense: {}",
                 debug_string( highest_defense_unit ) );
 
   // Deferred evaluation until we know that the attack makes

@@ -48,7 +48,7 @@ using namespace std::chrono;
 using namespace std::literals::chrono_literals;
 
 #define RTMIDI_WARN( exception_object ) \
-  logger->warn( "rtmidi warning: {}",   \
+  lg.warn( "rtmidi warning: {}",   \
                 exception_object.getMessage() )
 
 namespace rn::midiseq {
@@ -102,10 +102,10 @@ public:
       res.out_->openPort( *maybe_port );
     } catch( RtMidiError const& error ) {
       RTMIDI_WARN( error );
-      logger->warn( "failed to open MIDI output port {}." );
+      lg.warn( "failed to open MIDI output port {}." );
       return nullopt;
     }
-    logger->info( "using MIDI output port #{}", *maybe_port );
+    lg.info( "using MIDI output port #{}", *maybe_port );
     return res;
   }
 
@@ -121,7 +121,7 @@ public:
     }();
     if( event.size() > max_event_size ) {
       // Should be extremely rare.
-      logger->warn(
+      lg.warn(
           "MIDI event size {} is larger than max (={})",
           event.size(), max_event_size );
       return;
@@ -275,17 +275,17 @@ private:
 
   Opt<int> find_midi_output_port() {
     auto ports = scan_midi_output_ports();
-    logger->info( "found {} midi output ports.", ports.size() );
+    lg.info( "found {} midi output ports.", ports.size() );
     Opt<int> res;
     for( auto const& [port, name] : ports ) {
-      logger->info( "  MIDI output port #{}: {}", port, name );
+      lg.info( "  MIDI output port #{}: {}", port, name );
       if( !res && is_valid_output_port_name( name ) ) res = port;
     }
     if( !res ) {
       if( ports.size() == 0 )
-        logger->warn( "no midi output ports available." );
+        lg.warn( "no midi output ports available." );
       else
-        logger->warn(
+        lg.warn(
             "failed to find recognizable midi output port." );
       return nullopt;
     }
@@ -309,10 +309,10 @@ Opt<MidiIO> g_midi;
 void rtmidi_error_callback( RtMidiError::Type,
                             string const& error_text,
                             void* /*unused*/ ) {
-  logger->warn( "rt-midi: {}", error_text );
+  lg.warn( "rt-midi: {}", error_text );
   if( absl::StrContains( error_text, "event parsing error" ) ) {
     if( !g_midi.has_value() ) {
-      logger->critical(
+      lg.critical(
           "programmer error: should not be here ({}:{})",
           __FILE__, __LINE__ );
       return;
@@ -321,7 +321,7 @@ void rtmidi_error_callback( RtMidiError::Type,
     string  lms = "last message sent:";
     for( size_t i = 0; i < mio.last_message_.size(); i++ )
       lms += fmt::format( " {:<3x}", mio.last_message_[i] );
-    logger->debug( "{}", lms );
+    lg.debug( "{}", lms );
   }
 }
 
@@ -470,7 +470,7 @@ Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   info.start_time      = Clock_t::now();
   info.last_pause_time = nullopt;
   info.stoppage        = 0us;
-  logger->info( "loaded midi file: {} ({})", file,
+  lg.info( "loaded midi file: {} ({})", file,
                 info.tune_duration );
   return info;
 }
@@ -523,7 +523,7 @@ void midi_play_event( MidiPlayInfo* info ) {
   // can have abnormally long wait times in them, so avoid that.
   auto max_wait = 10s;
   if( wait_time > max_wait ) {
-    logger->warn(
+    lg.warn(
         "long waiting duration encountered: {}s.  Skipping.",
         duration_cast<seconds>( wait_time ).count() );
     // Must be smaller than max_blocking_wait below. So just make
@@ -563,7 +563,7 @@ void midi_play_event( MidiPlayInfo* info ) {
 template<typename... Args>
 void midi_thread_record_failure( Args... args ) {
   g_midi_comm.set_state( e_midiseq_state::failed );
-  logger->error( std::forward<Args>( args )... );
+  lg.error( std::forward<Args>( args )... );
   g_midi_comm.set_last_error(
       fmt::format( std::forward<Args>( args )... ) );
 }
@@ -620,7 +620,7 @@ void midi_thread_impl() {
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::stopped );
           if( stem.has_value() )
-            logger->info( "midi file {} has been stopped.",
+            lg.info( "midi file {} has been stopped.",
                           stem );
           maybe_info = nullopt;
           stem       = nullopt;
@@ -665,7 +665,7 @@ void midi_thread_impl() {
     switch( g_midi_comm.state() ) {
       case +e_midiseq_state::failed: return;
       case +e_midiseq_state::off:
-        logger->critical(
+        lg.critical(
             "programmer error: should not be here ({}:{})",
             __FILE__, __LINE__ );
         return;
@@ -676,7 +676,7 @@ void midi_thread_impl() {
       case +e_midiseq_state::playing: {
         // maybe_info should have a value at this point.
         if( !maybe_info.has_value() ) {
-          logger->critical(
+          lg.critical(
               "programmer error: should not be here ({}:{})",
               __FILE__, __LINE__ );
           midi_thread_record_failure(
@@ -702,7 +702,7 @@ void midi_thread_impl() {
         // that we should load the next one.
         if( info.current_event >=
             info.midifile[info.track].size() ) {
-          logger->info( "midi file {} has finished.", stem );
+          lg.info( "midi file {} has finished.", stem );
           g_midi->all_notes_off();
           maybe_info = nullopt;
           g_midi_comm.set_progress( nullopt );
@@ -720,11 +720,11 @@ void midi_thread_impl() {
 void midi_thread() {
   midi_thread_impl();
   g_midi_comm.set_running_commands( false );
-  logger->info( "MIDI thread exiting." );
+  lg.info( "MIDI thread exiting." );
   // This may already have been done, but just in case.
   g_midi->all_notes_off();
   if( g_midi_comm.state() == e_midiseq_state::failed ) {
-    logger->error( "MIDI thread failed: {}",
+    lg.error( "MIDI thread failed: {}",
                    g_midi_comm.last_error() );
     g_midi.reset();
     // Not sure the best way to do this, but it seems that we get
@@ -747,14 +747,14 @@ void init_midiseq() {
   if( maybe_midi_io ) {
     g_midi.emplace( std::move( *maybe_midi_io ) );
 
-    logger->info( "Creating MIDI thread." );
+    lg.info( "Creating MIDI thread." );
     // Initialization of midi thread. This is only done if we
     // found a midi port.
     g_midi_thread = thread( midi_thread );
   }
 
   if( !g_midi.has_value() ) {
-    logger->warn(
+    lg.warn(
         "Failed to initialize MIDI system; MIDI music will not "
         "play." );
   }
@@ -764,11 +764,11 @@ void cleanup_midiseq() {
   if( g_midi ) {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
-      logger->info( "Sending `off` message to midi thread." );
+      lg.info( "Sending `off` message to midi thread." );
       g_midi_comm.send_cmd( command::off{} );
-      logger->info( "Waiting for midi thread to join." );
+      lg.info( "Waiting for midi thread to join." );
       g_midi_thread->join();
-      logger->info( "MIDI thread closed." );
+      lg.info( "MIDI thread closed." );
       // This may have already been done by the midi thread, but
       // just in case...
       g_midi->all_notes_off();
@@ -803,7 +803,7 @@ void send_command( command_t cmd ) {
   if( midiseq_enabled() )
     g_midi_comm.send_cmd( cmd );
   else
-    logger->warn(
+    lg.warn(
         "MIDI is not playable but MIDI commands are being "
         "received." );
 }
@@ -830,11 +830,11 @@ void test() {
   sleep( 500ms );
   while( true ) {
     if( g_midi_comm.state() == e_midiseq_state::failed ) {
-      logger->info(
+      lg.info(
           "MIDI thread has failed and is no longer active." );
       break;
     }
-    logger->info(
+    lg.info(
         "[p]lay next, p[a]use, [r]esume, [s]top, [u]p volume, "
         "[d]own volume, [P]rogress, "
         "[q]uit: " );
@@ -863,20 +863,20 @@ void test() {
       vol += .1;
       vol = std::clamp( vol, 0.0, 1.0 );
       g_midi_comm.send_cmd( command::volume{vol} );
-      logger->info( "Volume: {}", vol );
+      lg.info( "Volume: {}", vol );
       continue;
     }
     if( in == "d" ) {
       vol -= .1;
       vol = std::clamp( vol, 0.0, 1.0 );
       g_midi_comm.send_cmd( command::volume{vol} );
-      logger->info( "Volume: {}", vol );
+      lg.info( "Volume: {}", vol );
       continue;
     }
     if( in == "P" ) {
       auto progress = g_midi_comm.progress();
       if( progress.has_value() )
-        logger->info( "Progress: {}", progress.value() * 100.0 );
+        lg.info( "Progress: {}", progress.value() * 100.0 );
       continue;
     }
     if( in == "q" ) break;

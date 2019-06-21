@@ -43,11 +43,11 @@ fs::path mid_file_from_id( TuneId id ) {
 // to be to instantiate it.
 void init_midiplayer() {
   if( midiseq::midiseq_enabled() ) {
-    logger->info(
+    lg.info(
         "MIDI Sequencer Enabled: enabling Music Player." );
     g_midiseq_player = MidiSeqMusicPlayer();
   } else {
-    logger->info(
+    lg.info(
         "MIDI Sequencer Disabled: not enabling Music Player." );
   }
 }
@@ -103,7 +103,7 @@ bool MidiSeqMusicPlayer::play( TuneId id ) {
   if( !good() ) return false;
   auto maybe_info = can_play_tune( id );
   if( !maybe_info.has_value() ) return false;
-  logger->debug( "MidiSeqMusicPlayer: playing tune `{}`",
+  lg.debug( "MidiSeqMusicPlayer: playing tune `{}`",
                  tune_display_name_from_id( id ) );
   midiseq::send_command(
       midiseq::command::play{mid_file_from_id( id )} );
@@ -113,7 +113,7 @@ bool MidiSeqMusicPlayer::play( TuneId id ) {
 
 void MidiSeqMusicPlayer::stop() {
   if( !good() ) return;
-  logger->debug( "MidiSeqMusicPlayer: stop" );
+  lg.debug( "MidiSeqMusicPlayer: stop" );
   midiseq::send_command( midiseq::command::stop{} );
 }
 
@@ -168,14 +168,14 @@ bool MidiSeqMusicPlayer::is_processing() const {
 
 void MidiSeqMusicPlayer::pause() {
   if( !good() ) return;
-  logger->debug( "MidiSeqMusicPlayer: pause" );
+  lg.debug( "MidiSeqMusicPlayer: pause" );
   midiseq::send_command( midiseq::command::pause{} );
 }
 
 // TODO
 void MidiSeqMusicPlayer::resume() {
   if( !good() ) return;
-  logger->debug( "MidiSeqMusicPlayer: resume" );
+  lg.debug( "MidiSeqMusicPlayer: resume" );
   midiseq::send_command( midiseq::command::resume{} );
 }
 

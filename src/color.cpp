@@ -480,13 +480,13 @@ vector<Color> extract_palette( fs::path const& glob,
     auto bpp = fmt->BitsPerPixel;
     CHECK( bpp == 8 || bpp == 32 || bpp == 24 );
 
-    logger->info(
+    lg.info(
         "loading palette from {} containing {} pixels and {} "
         "bits-per-pixel.",
         file.string(), surface->h * surface->w, bpp );
 
     if( bpp == 24 ) {
-      logger->warn(
+      lg.warn(
           "loading palettes from images with 24 bits-per-pixel "
           "not supported until implementation is fixed (doesn't "
           "currently work right).  Skipping image {}.",
@@ -533,11 +533,11 @@ vector<Color> extract_palette( fs::path const& glob,
   // not permitted by the API).
   util::sort( res );
 
-  logger->info( "found {} colors", res.size() );
+  lg.info( "found {} colors", res.size() );
 
   if( target.has_value() ) {
     res = coursen( res, target.value() );
-    logger->info( "coursened to {} colors", res.size() );
+    lg.info( "coursened to {} colors", res.size() );
   }
 
   CHECK( !colors.empty(), "no colors remaining" );
@@ -648,7 +648,7 @@ void remove_greys( Vec<Color>& colors ) {
   auto init = colors.size();
   util::remove_if( colors, is_greyscale );
   auto final = colors.size();
-  logger->info( "removed {} greys", init - final );
+  lg.info( "removed {} greys", init - final );
 }
 
 Vec<Color> coursen( Vec<Color> const& colors, int min_count ) {
@@ -709,7 +709,7 @@ void write_palette_png( fs::path const& png_file ) {
 void update_palette( fs::path const& where ) {
   // int constexpr coursen_to = 4096;
   fs::path glob{where / "*.*"};
-  logger->info( "updating palettes from {}", glob.string() );
+  lg.info( "updating palettes from {}", glob.string() );
 
   auto colors = extract_palette( glob, nullopt );
   remove_greys( colors ); // we will add greys back in later
@@ -722,15 +722,15 @@ void update_palette( fs::path const& where ) {
       size += no_null.size();
     }
   }
-  logger->info( "total bucketed colors: {}", size );
+  lg.info( "total bucketed colors: {}", size );
 
   fs::path const inl_file{"config/palette.inl"};
   fs::path const ucl_file{"config/palette.ucl"};
   fs::path const pal_file{"assets/art/palette.png"};
-  logger->info( "writing to {} and {}", inl_file.string(),
+  lg.info( "writing to {} and {}", inl_file.string(),
                 ucl_file.string() );
   dump_palette( bucketed, inl_file, ucl_file );
-  logger->info( "writing palette png image to {}",
+  lg.info( "writing palette png image to {}",
                 pal_file.string() );
   write_palette_png( pal_file );
 }

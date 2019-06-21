@@ -50,7 +50,7 @@ constexpr int max_scale_factor = 10;
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
  *  ::SDL_DisplayMode dm;
- *  logger->debug( "Available display modes:" );
+ *  lg.debug( "Available display modes:" );
  *  auto num_display_modes = ::SDL_GetNumDisplayModes( 0 );
  *  constexpr int min_x_res{1920};
  *  constexpr int min_y_res{1080};
@@ -58,7 +58,7 @@ constexpr int max_scale_factor = 10;
  *    ::SDL_GetDisplayMode( 0, i, &dm );
  *    if( dm.w % g_tile_width._ == 0 &&
  *        dm.h % g_tile_height._ == 0 ) {
- *      logger->debug( "{}x{}", dm.w, dm.h );
+ *      lg.debug( "{}x{}", dm.w, dm.h );
  *      if( dm.w >= min_x_res && dm.h >= min_y_res ) return dm;
  *    }
  *  }
@@ -98,7 +98,7 @@ double const& viewer_distance_from_monitor() {
     auto             res =
         std::max( viewer_distance_multiplier * monitor_inches(),
                   viewer_distance_minimum );
-    logger->debug( "Computed Viewer Distance from Screen: {}in.",
+    lg.debug( "Computed Viewer Distance from Screen: {}in.",
                    res );
     return res;
   }();
@@ -108,10 +108,10 @@ double const& viewer_distance_from_monitor() {
 void query_video_stats() {
   float ddpi, hdpi, vdpi;
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  logger->debug( "GetDisplayDPI:" );
-  logger->debug( "  ddpi: {}", ddpi );
-  logger->debug( "  hdpi: {}", hdpi );
-  logger->debug( "  vdpi: {}", vdpi );
+  lg.debug( "GetDisplayDPI:" );
+  lg.debug( "  ddpi: {}", ddpi );
+  lg.debug( "  hdpi: {}", hdpi );
+  lg.debug( "  vdpi: {}", vdpi );
 
   SDL_DisplayMode dm;
 
@@ -122,33 +122,33 @@ void query_video_stats() {
   };
   (void)dm_to_str;
 
-  logger->debug( "Default game pixel format: {}",
+  lg.debug( "Default game pixel format: {}",
                  ::SDL_GetPixelFormatName( g_pixel_format ) );
 
-  logger->debug( "GetCurrentDisplayMode: " );
+  lg.debug( "GetCurrentDisplayMode: " );
   SDL_GetCurrentDisplayMode( 0, &dm );
-  logger->debug( "  {}", dm_to_str() );
+  lg.debug( "  {}", dm_to_str() );
   if( g_pixel_format != dm.format ) {
     // g_pixel_format =
     //    static_cast<decltype( g_pixel_format )>( dm.format );
-    // logger->debug( "Correcting game pixel format to {}",
+    // lg.debug( "Correcting game pixel format to {}",
     //               ::SDL_GetPixelFormatName( dm.format ) );
   }
 
-  logger->debug( "GetDesktopDisplayMode: " );
+  lg.debug( "GetDesktopDisplayMode: " );
   SDL_GetDesktopDisplayMode( 0, &dm );
-  logger->debug( "  {}", dm_to_str() );
+  lg.debug( "  {}", dm_to_str() );
 
-  logger->debug( "GetDisplayMode: " );
+  lg.debug( "GetDisplayMode: " );
   SDL_GetDisplayMode( 0, 0, &dm );
-  logger->debug( "  {}", dm_to_str() );
+  lg.debug( "  {}", dm_to_str() );
 
   SDL_Rect r;
-  logger->debug( "GetDisplayBounds:" );
+  lg.debug( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  logger->debug( "  {}", from_SDL( r ) );
+  lg.debug( "  {}", from_SDL( r ) );
 
-  logger->debug( "Monitor Diagonal Length: {}in.",
+  lg.debug( "Monitor Diagonal Length: {}in.",
                  monitor_inches() );
 }
 
@@ -219,7 +219,7 @@ void find_pixel_scale_factor() {
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
                        auto score ) {
-    logger->debug( "{: ^10}{: ^19}{: ^18}{: ^18}{: ^10}",
+    lg.debug( "{: ^10}{: ^19}{: ^18}{: ^18}{: ^10}",
                    possibility, resolution, tile_size_screen,
                    tile_size_1ft, score );
   };
@@ -227,7 +227,7 @@ void find_pixel_scale_factor() {
   table_row( "Scale", "Resolution", "Tile-Size-Screen",
              "Tile-Angular-Size", "Score" );
   auto bar = string( 86, '-' );
-  logger->debug( bar );
+  lg.debug( bar );
   for( auto const& info : scale_scores ) {
     string chosen =
         ( info.scale == optimal.scale ) ? "=> " : "   ";
@@ -235,16 +235,16 @@ void find_pixel_scale_factor() {
                info.tile_size_on_screen_surface_inches,
                info.tile_angular_size, scale_score( info ) );
   }
-  logger->debug( bar );
+  lg.debug( bar );
   ///////////////////////////////////////////////////////////////
 
   g_resolution_scale_factor         = Scale{optimal.scale};
   g_optimal_resolution_scale_factor = Scale{optimal.scale};
   g_screen_physical_size =
       optimal.resolution * g_resolution_scale_factor;
-  logger->debug( "screen physical size: {}",
+  lg.debug( "screen physical size: {}",
                  g_screen_physical_size );
-  logger->debug( "screen logical size: {}",
+  lg.debug( "screen logical size: {}",
                  screen_logical_size() );
 
   // If this is violated then we have non-integer scaling.
@@ -254,7 +254,7 @@ void find_pixel_scale_factor() {
   // For informational purposes
   if( current_display_mode().size % Scale{optimal.scale} !=
       Delta{} )
-    logger->warn(
+    lg.warn(
         "Desktop display resolution not commensurate with scale "
         "factor." );
 }
@@ -342,8 +342,8 @@ void init_renderer() {
   // This needs to be large enough to accomodate a zoomed-out
   // view in which the entire world is visible.
   auto delta = world_size_pixels();
-  logger->debug( "g_texture_viewport proposed size: {}", delta );
-  logger->debug(
+  lg.debug( "g_texture_viewport proposed size: {}", delta );
+  lg.debug(
       "g_texture_viewport memory usage estimate: {}MB",
       Texture::mem_usage_mb( delta ) );
   g_texture_viewport = create_texture( delta );
@@ -458,14 +458,14 @@ bool toggle_fullscreen() {
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 void on_main_window_resized() {
-  logger->debug( "main window resizing." );
+  lg.debug( "main window resizing." );
   auto logical_size = main_window_logical_size();
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
 
   auto physical_size = main_window_physical_size();
   if( physical_size % g_resolution_scale_factor != Delta{} )
-    logger->warn(
+    lg.warn(
         "Window physical resolution not commensurate with scale "
         "factor." );
 }
@@ -474,7 +474,7 @@ void on_renderer_scale_factor_changed() {
   auto logical_size = main_window_logical_size();
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
-  logger->info( "Scale factor changed: {}", logical_size );
+  lg.info( "Scale factor changed: {}", logical_size );
 }
 
 } // namespace rn

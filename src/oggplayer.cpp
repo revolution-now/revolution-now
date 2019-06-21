@@ -111,7 +111,7 @@ ND bool play_impl( OggTune&& music ) {
   auto channel_used =
       ::Mix_PlayMusic( music.ptr(), /*loops=*/1 );
   if( channel_used < 0 ) {
-    logger->error( "Unexpected error: unable to play music: {}",
+    lg.error( "Unexpected error: unable to play music: {}",
                    ::SDL_GetError() );
     return false;
   }
@@ -125,7 +125,7 @@ Opt<OggTune> load_tune( TuneId id ) {
               fs::path( tune_stem_from_id( id ) + ".ogg" );
   auto* music = ::Mix_LoadMUS( file.string().c_str() );
   if( !music ) {
-    logger->error(
+    lg.error(
         "Failed to load OGG file `{}` for tune `{}`: "
         "Mix_LoadMUS error: {}",
         file.string(), tune_stem_from_id( id ),
@@ -150,13 +150,13 @@ void init_oggplayer() {
   g_state    = e_ogg_state::stopped;
   auto flags = ::Mix_Init( MIX_INIT_OGG );
   if( !( flags & MIX_INIT_OGG ) ) {
-    logger->warn(
+    lg.warn(
         "Failed to initialize SDL Mixer with OGG support; OGG "
         "player will not be enabled." );
     return;
   }
 
-  logger->info(
+  lg.info(
       "SDL Mixer OGG support enabled: enabling Music Player." );
   g_ogg_player = OggMusicPlayer();
 }
@@ -213,7 +213,7 @@ bool OggMusicPlayer::play( TuneId id ) {
   if( !good() ) return false;
   auto ogg = load_tune( id );
   if( !ogg ) return false;
-  logger->debug( "OggMusicPlayer: playing tune `{}`",
+  lg.debug( "OggMusicPlayer: playing tune `{}`",
                  tune_display_name_from_id( id ) );
   return play_impl( std::move( *ogg ) );
 }
@@ -273,7 +273,7 @@ void OggMusicPlayer::pause() {
   if( !good() ) return;
   if( g_state == e_ogg_state::playing ) {
     CHECK( g_current_music );
-    logger->debug( "OggMusicPlayer: pause" );
+    lg.debug( "OggMusicPlayer: pause" );
     g_state = e_ogg_state::paused;
     ::Mix_PauseMusic();
   }
@@ -284,7 +284,7 @@ void OggMusicPlayer::resume() {
   if( g_state == e_ogg_state::paused ) {
     CHECK( g_current_music );
     CHECK( ::Mix_PausedMusic() );
-    logger->debug( "OggMusicPlayer: resume" );
+    lg.debug( "OggMusicPlayer: resume" );
     g_state = e_ogg_state::playing;
     ::Mix_ResumeMusic();
   }

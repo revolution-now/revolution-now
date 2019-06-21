@@ -72,10 +72,10 @@ void init_sound() {
   ::SDL_version      compiled_version;
   SDL_version const* link_version = ::Mix_Linked_Version();
   SDL_MIXER_VERSION( &compiled_version );
-  logger->info( "SDL mixer: compiled with version: {}.{}.{}",
+  lg.info( "SDL mixer: compiled with version: {}.{}.{}",
                 compiled_version.major, compiled_version.minor,
                 compiled_version.patch );
-  logger->info( "SDL mixer: running with version: {}.{}.{}",
+  lg.info( "SDL mixer: running with version: {}.{}.{}",
                 link_version->major, link_version->minor,
                 link_version->patch );
   CHECK(
@@ -86,7 +86,7 @@ void init_sound() {
       compiled_version.major, link_version->major );
 
   if( compiled_version.minor != link_version->minor ) {
-    logger->warn(
+    lg.warn(
         "This game was compiled with a version of SDL Mixer "
         "whose "
         "minor version number ({}) is different from the minor "
@@ -116,14 +116,14 @@ void init_sound() {
       audio_opened,
       "unexpected: SDL Mixer audio has not been initialized." );
 
-  logger->info( "Opening audio with {} channels @ {}Hz.",
+  lg.info( "Opening audio with {} channels @ {}Hz.",
                 channels, frequency );
 
   for( int i = 0; i < ::SDL_GetNumAudioDrivers(); ++i )
-    logger->debug( "Audio Driver #{}: {}", i,
+    lg.debug( "Audio Driver #{}: {}", i,
                    ::SDL_GetAudioDriver( i ) );
 
-  logger->info( "Using Audio Driver: {}",
+  lg.info( "Using Audio Driver: {}",
                 ::SDL_GetCurrentAudioDriver() );
 
   // Set Volume for all channels.
@@ -159,7 +159,7 @@ REGISTER_INIT_ROUTINE( sound );
 void play_sound_effect( e_sfx sound ) {
   auto* chunk = load_sfx( sound );
   if( ::Mix_PlayChannel( -1, chunk, 0 ) == -1 )
-    logger->warn( "Unable to play sound effect {}", sound );
+    lg.warn( "Unable to play sound effect {}", sound );
 }
 
 } // namespace rn

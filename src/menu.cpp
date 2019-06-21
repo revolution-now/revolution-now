@@ -219,7 +219,7 @@ auto total_duration =
 MenuState_t g_menu_state{MenuState::menus_closed{}};
 
 void log_menu_state() {
-  logger->trace( "g_menu_state: {}", g_menu_state );
+  lg.trace( "g_menu_state: {}", g_menu_state );
 }
 
 /****************************************************************
@@ -369,7 +369,7 @@ H const& max_text_height() {
       }
     }
     CHECK( res > 0_h );
-    logger->debug( "max menu text height: {}", res );
+    lg.debug( "max menu text height: {}", res );
     return res;
   }();
   return max_height;
@@ -1464,7 +1464,7 @@ private:
         // enablement and when this click is called. That's also
         // why we don't call the (memoized) is_menu_item_enabled.
         if( !g_menu_items[item]->callbacks.enabled() ) return;
-        logger->info( "selected menu item `{}`", item );
+        lg.info( "selected menu item `{}`", item );
         g_menu_state = MenuState::item_click{
             item, chrono::system_clock::now()};
         log_menu_state();

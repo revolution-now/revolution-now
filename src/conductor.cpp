@@ -111,7 +111,7 @@ TuneId prev_tune_in_playlist() {
 
 void play_impl( TuneId id ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  logger->info( "Playing \"{}\".",
+  lg.info( "Playing \"{}\".",
                 tune_display_name_from_id( id ) );
   mplayer->play( id );
 }
@@ -231,7 +231,7 @@ void init_conductor() {
     }
 
     if( !enable_mplayer ) {
-      logger->warn( "Music player `{}` not enabled: {}.",
+      lg.warn( "Music player `{}` not enabled: {}.",
                     g_mplayer_descs[mplayer].name, reason );
     }
     MusicPlayerInfo info{
@@ -259,7 +259,7 @@ void init_conductor() {
     auto stem = m[event];
     for( auto tune_id : all_tunes() ) {
       if( tune_stem_from_id( tune_id ) == stem ) {
-        logger->debug(
+        lg.debug(
             "tune `{}` will be played for event `{}`.",
             tune_stem_from_id( tune_id ), event );
         CHECK( !used_stems.contains( stem ),
@@ -339,27 +339,27 @@ void play_request( e_request             request,
     // Only play it if we're not already playing it.
     if( info.playing_now &&
         ( *info.playing_now ).id != tune_id ) {
-      logger->info( "requesting music for `{}`", request );
+      lg.info( "requesting music for `{}`", request );
       play( tune_id );
     }
   }
 }
 
 void ConductorInfo::log() const {
-  logger->info( "ConductorInfo:" );
-  logger->info( "  mplayer:     {}", mplayer );
-  logger->info( "  music_state: {}", music_state );
-  logger->info( "  volume:      {}", volume );
-  logger->info( "  autoplay:    {}", autoplay );
+  lg.info( "ConductorInfo:" );
+  lg.info( "  mplayer:     {}", mplayer );
+  lg.info( "  music_state: {}", music_state );
+  lg.info( "  volume:      {}", volume );
+  lg.info( "  autoplay:    {}", autoplay );
   if( playing_now.has_value() ) ( *playing_now ).log();
 }
 
 void MusicPlayerInfo::log() const {
-  logger->info( "MusicPlayerInfo:" );
-  logger->info( "  enabled:      {}", enabled );
-  logger->info( "  name:         {}", name );
-  logger->info( "  description:  {}", description );
-  logger->info( "  how_it_works: {}", how_it_works );
+  lg.info( "MusicPlayerInfo:" );
+  lg.info( "  enabled:      {}", enabled );
+  lg.info( "  name:         {}", name );
+  lg.info( "  description:  {}", description );
+  lg.info( "  how_it_works: {}", how_it_works );
 }
 
 MusicPlayerInfo const& music_player_info(
@@ -370,7 +370,7 @@ MusicPlayerInfo const& music_player_info(
 
 bool set_music_player( e_music_player mplayer ) {
   if( !g_mplayer_infos[mplayer].enabled ) {
-    logger->warn(
+    lg.warn(
         "attempt to set music player `{}` but it is disabled.",
         g_mplayer_infos[mplayer].name );
     return false;
@@ -415,11 +415,11 @@ expect<ConductorInfo> state() {
 void set_autoplay( bool enabled ) {
   g_autoplay  = enabled;
   auto on_off = enabled ? "on" : "off";
-  logger->info( "Music Autoplay is {}", on_off );
+  lg.info( "Music Autoplay is {}", on_off );
 }
 
 void reset() {
-  logger->info( "Resetting Conductor state." );
+  lg.info( "Resetting Conductor state." );
   // Try to select which music player to use by taking some hints
   // from the config file. If those don't work out that just take
   // the first one (in the ordering of e_music_player enum val-
@@ -427,13 +427,13 @@ void reset() {
   if( g_mplayer_infos[config_music.first_choice_music_player]
           .enabled ) {
     g_active_mplayer = config_music.first_choice_music_player;
-    logger->info( "Using first choice music player `{}`.",
+    lg.info( "Using first choice music player `{}`.",
                   g_active_mplayer );
   } else if( g_mplayer_infos[config_music
                                  .second_choice_music_player]
                  .enabled ) {
     g_active_mplayer = config_music.second_choice_music_player;
-    logger->info(
+    lg.info(
         "First choice music player not available; using second "
         "choice: {}",
         g_active_mplayer );
@@ -442,7 +442,7 @@ void reset() {
             head( enabled_mplayers_enums() );
         maybe_first_available.has_value() ) {
       g_active_mplayer = *maybe_first_available;
-      logger->info(
+      lg.info(
           "Preferred music players not available; using {}.",
           g_active_mplayer );
     }
@@ -451,7 +451,7 @@ void reset() {
   if( g_active_mplayer.has_value() ) {
     send_notifications( e_conductor_event::mplayer_changed );
   } else {
-    logger->warn(
+    lg.warn(
         "No usable music player found; music will not be "
         "played." );
   }
@@ -558,7 +558,7 @@ void pause() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_pause ) {
-    logger->warn( "Music player `{}` does not support pausing.",
+    lg.warn( "Music player `{}` does not support pausing.",
                   mplayer->info().name );
     return;
   }
@@ -580,7 +580,7 @@ void resume() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_pause ) {
-    logger->warn( "Music player `{}` does not support pausing.",
+    lg.warn( "Music player `{}` does not support pausing.",
                   mplayer->info().name );
     return;
   }
@@ -607,7 +607,7 @@ void set_volume( double vol ) {
 
   auto capabilities = mplayer->capabilities();
   if( !capabilities.has_volume ) {
-    logger->warn(
+    lg.warn(
         "Music player `{}` does not support setting volume.",
         mplayer->info().name );
     return;
@@ -619,7 +619,7 @@ void seek( double pos ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_seek ) {
-    logger->warn( "Music player `{}` does not support seeking.",
+    lg.warn( "Music player `{}` does not support seeking.",
                   mplayer->info().name );
     return;
   }
@@ -647,7 +647,7 @@ void playlist_generate() {
   // in the playlist, unless there are fewer than five total
   // tunes. 2. the last set of tunes shall not overlap with the
   // first set of tunes, since the playlist needs to wrap around.
-  logger->info( "Generating playlist." );
+  lg.info( "Generating playlist." );
   CHECK( config_music.tunes.size() > 0 );
   auto   num_tunes = config_music.tunes.size();
   size_t no_overlap_size =
@@ -679,14 +679,14 @@ void playlist_generate() {
       break;
     }
     if( timeout_countdown == 0 ) {
-      logger->warn(
+      lg.warn(
           "Max cycles reached when generating playlist." );
       break;
     }
   }
-  logger->trace( "Playlist:" );
+  lg.trace( "Playlist:" );
   for( auto [idx, id] : res | rv::enumerate )
-    logger->trace( " {: >4}. {}", idx + 1,
+    lg.trace( " {: >4}. {}", idx + 1,
                    tune_display_name_from_id( id ) );
   CHECK( res.size() > 0 );
 
@@ -803,7 +803,7 @@ MENU_ITEM_HANDLER( music_set_player, menu_music_set_player,
 
 // Testing
 void test() {
-  logger->info( "Testing Music Conductor" );
+  lg.info( "Testing Music Conductor" );
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
 
   double vol = 1.0;
@@ -814,7 +814,7 @@ void test() {
     auto st = state();
     if( !st ) break;
     st.value().log();
-    logger->info(
+    lg.info(
         "[p]lay, [n]ext, pre[v], p[a]use, [r]esume, [s]top, "
         "[u]p volume, [d]own volume, s[t]ate, [q]uit: " );
     string in;

@@ -59,7 +59,7 @@ void deduplicate_q( deque<UnitId>* q ) {
 void log_q( deque<UnitId> const& q ) {
   auto   q_str = rng_to_string( q | rv::take( 10 ) );
   string dots  = q.size() > 10 ? " ..." : "";
-  logger->debug( "queue front: {}{}", q_str, dots );
+  lg.debug( "queue front: {}{}", q_str, dots );
 }
 
 bool animate_move( TravelAnalysis const& analysis ) {
@@ -116,7 +116,7 @@ e_turn_result turn() {
 e_turn_result turn( e_nation nation ) {
   // start of turn:
 
-  logger->debug( "------ starting turn ({}) -------", nation );
+  lg.debug( "------ starting turn ({}) -------", nation );
 
   // Mark all units as not having moved.
   map_units( []( Unit& unit ) { unit.new_turn(); } );
@@ -178,7 +178,7 @@ e_turn_result turn( e_nation nation ) {
       if( !unit_exists( id ) ) {
         // This will happen if the unit is disbanded or it is
         // cargo of something that was disbanded.
-        logger->debug( "unit {} no longer exists.", id );
+        lg.debug( "unit {} no longer exists.", id );
         q.pop_front();
         continue;
       }
@@ -188,7 +188,7 @@ e_turn_result turn( e_nation nation ) {
         q.pop_front();
         continue;
       }
-      logger->debug( "processing turn for {}",
+      lg.debug( "processing turn for {}",
                      debug_string( id ) );
 
       //    clang-format off
@@ -224,7 +224,7 @@ e_turn_result turn( e_nation nation ) {
              !unit.moved_this_turn() ) {
         deduplicate_q( &q );
         log_q( q );
-        logger->debug( "asking orders for: {}",
+        lg.debug( "asking orders for: {}",
                        debug_string( id ) );
         orders_taken = true;
 
@@ -271,13 +271,13 @@ e_turn_result turn( e_nation nation ) {
           CHECK( blink_unit.orders.has_value() );
           maybe_orders = blink_unit.orders;
         } else {
-          logger->debug( "found queued orders." );
+          lg.debug( "found queued orders." );
         }
         /***************************************************/
 
         CHECK( maybe_orders.has_value() );
         auto& orders = *maybe_orders;
-        logger->debug( "received orders: {}", orders );
+        lg.debug( "received orders: {}", orders );
 
         if( util::holds<orders::quit>( orders ) )
           return e_turn_result::quit;
@@ -340,7 +340,7 @@ e_turn_result turn( e_nation nation ) {
               unit_from_id( dying_unit ).desc();
           Opt<e_unit_type> demote_to;
           if( dying_unit_desc.demoted.has_value() ) {
-            logger->debug( "animating unit demotion to {}",
+            lg.debug( "animating unit demotion to {}",
                            dying_unit_desc.demoted.value() );
             demote_to = dying_unit_desc.demoted.value();
           }

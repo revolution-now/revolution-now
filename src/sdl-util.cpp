@@ -245,7 +245,7 @@ ND Texture create_texture_transparent( Delta delta ) {
 
 ND Texture create_screen_physical_sized_texture() {
   auto res = create_texture( screen_physical_size() );
-  logger->debug( "created screen-sized texture occupying {}MB.",
+  lg.debug( "created screen-sized texture occupying {}MB.",
                  res.mem_usage_mb() );
   return res;
 }
@@ -275,7 +275,7 @@ Matrix<Color> texture_pixels( Texture const& tx ) {
   // This is the only one we use in the game for rendering.
   CHECK( fmt->BitsPerPixel == 32 );
 
-  logger->debug( "reading texture pixel data of size {}",
+  lg.debug( "reading texture pixel data of size {}",
                  delta );
 
   Matrix<Color> res( delta );
@@ -334,7 +334,7 @@ Texture create_shadow_texture( Texture const& tx ) {
 
 void save_texture_png( Texture const&  tx,
                        fs::path const& file ) {
-  logger->info( "writing png file {}", file.string() );
+  lg.info( "writing png file {}", file.string() );
   set_render_target( tx );
   auto           delta   = texture_delta( tx );
   ::SDL_Surface* surface = SDL_CreateRGBSurface(
@@ -348,7 +348,7 @@ void save_texture_png( Texture const&  tx,
 
 void grab_screen( fs::path const& file ) {
   auto screen = main_window_logical_size();
-  logger->info(
+  lg.info(
       "grabbing screen with size [{} x {}] and saving to {}",
       screen.w, screen.h, file.string() );
   ::SDL_Surface* surface = create_surface( screen );

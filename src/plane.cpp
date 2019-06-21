@@ -315,7 +315,7 @@ bool send_input_to_planes( input::event_t const& event ) {
         (void)plane.input( motion );
         // If the drag is finished then send out that event.
         if( drag_event->state.phase == +e_drag_phase::end ) {
-          logger->debug( "finished `{}` drag motion event",
+          lg.debug( "finished `{}` drag motion event",
                          *g_drag_state.plane );
           auto maybe_button =
               input::drag_event_to_mouse_button_event(
@@ -342,7 +342,7 @@ bool send_input_to_planes( input::event_t const& event ) {
                        prj_drag_event.pos );
         // If the drag is finished then send out that event.
         if( prj_drag_event.state.phase == +e_drag_phase::end ) {
-          logger->debug( "finished `{}` drag event",
+          lg.debug( "finished `{}` drag event",
                          *g_drag_state.plane );
           plane.on_drag_finished( prj_drag_event.button,
                                   prj_drag_event.state.origin,
@@ -378,7 +378,7 @@ bool send_input_to_planes( input::event_t const& event ) {
             g_drag_state.reset();
             g_drag_state.plane          = e;
             g_drag_state.send_as_motion = true;
-            logger->debug( "plane `{}` can drag as motion.", e );
+            lg.debug( "plane `{}` can drag as motion.", e );
             auto motion =
                 input::drag_event_to_mouse_motion_event(
                     *drag_event );
@@ -398,7 +398,7 @@ bool send_input_to_planes( input::event_t const& event ) {
             // In this case the plane says that it doesn't want
             // to handle it AND it doesn't want anyone else to
             // handle it.
-            logger->debug( "plane `{}` swallowed drag.", e );
+            lg.debug( "plane `{}` swallowed drag.", e );
             return true;
           case Plane::e_accept_drag::yes:
             // Wants to handle it.
@@ -406,7 +406,7 @@ bool send_input_to_planes( input::event_t const& event ) {
             g_drag_state.plane          = e;
             g_drag_state.send_as_motion = false;
             g_drag_state.projection     = drag_desc.projection;
-            logger->debug( "plane `{}` can drag", e );
+            lg.debug( "plane `{}` can drag", e );
             // Now we must send it an on_drag because this mouse
             // event that we're dealing with serves both to tell
             // us about a new drag even but also may have a mouse

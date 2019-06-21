@@ -30,7 +30,7 @@ FightStatistics fight_statistics( UnitId attacker_id,
       double( attack_points + defend_points );
   CHECK( attack_points > 0 );
   CHECK( winning_probability <= 1.0 );
-  logger->info( "winning probability: {}", winning_probability );
+  lg.info( "winning probability: {}", winning_probability );
   return {rng::flip_coin( winning_probability )};
 }
 

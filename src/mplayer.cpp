@@ -45,7 +45,7 @@ Opt<TunePlayerInfo> SilentMusicPlayer::can_play_tune(
 
 // Implement MusicPlayer
 bool SilentMusicPlayer::play( TuneId id ) {
-  logger->info( "SilentMusicPlayer: playing tune `{}`",
+  lg.info( "SilentMusicPlayer: playing tune `{}`",
                 tune_display_name_from_id( id ) );
   id_ = id;
   return true;
@@ -97,30 +97,30 @@ void SilentMusicPlayer::pause() { is_paused_ = true; }
 void SilentMusicPlayer::resume() { is_paused_ = false; }
 
 void MusicPlayerState::log() const {
-  logger->info( "MusicPlayerState:" );
+  lg.info( "MusicPlayerState:" );
   if( tune_info.has_value() ) {
-    logger->info( "  tune_info.id:      {} ({})",
+    lg.info( "  tune_info.id:      {} ({})",
                   tune_info->id._,
                   tune_display_name_from_id( tune_info->id ) );
     if( tune_info->length.has_value() )
-      logger->info( "  tune_info.length:  {}sec",
+      lg.info( "  tune_info.length:  {}sec",
                     chrono::duration_cast<chrono::seconds>(
                         tune_info->length.value() )
                         .count() );
     if( tune_info->progress.has_value() )
-      logger->info( "  progress:          {}%",
+      lg.info( "  progress:          {}%",
                     int( *tune_info->progress * 100 ) );
   }
-  logger->info( "  is_paused:         {}", is_paused );
+  lg.info( "  is_paused:         {}", is_paused );
 }
 
 void MusicPlayerCapabilities::log() const {
-  logger->info( "MusicPlayerCapabilities:" );
-  logger->info( "  can_pause:         {}", can_pause );
-  logger->info( "  has_volume:        {}", has_volume );
-  logger->info( "  has_progress:      {}", has_progress );
-  logger->info( "  has_tune_duration: {}", has_tune_duration );
-  logger->info( "  can_seek:          {}", can_seek );
+  lg.info( "MusicPlayerCapabilities:" );
+  lg.info( "  can_pause:         {}", can_pause );
+  lg.info( "  has_volume:        {}", has_volume );
+  lg.info( "  has_progress:      {}", has_progress );
+  lg.info( "  has_tune_duration: {}", has_tune_duration );
+  lg.info( "  can_seek:          {}", can_seek );
 }
 
 bool MusicPlayer::fence( Opt<Duration_t> /*unused*/ ) {
@@ -134,7 +134,7 @@ void MusicPlayer::pause() {
       "Music Player `{}` does not support pausing/resuming.",
       info().name );
   DCHECK( capabilities().can_pause, "{}", msg );
-  logger->error( msg );
+  lg.error( msg );
 }
 
 void MusicPlayer::resume() {
@@ -142,7 +142,7 @@ void MusicPlayer::resume() {
       "Music Player `{}` does not support pausing/resuming.",
       info().name );
   DCHECK( capabilities().can_pause, "{}", msg );
-  logger->error( msg );
+  lg.error( msg );
 }
 
 void MusicPlayer::set_volume( double /*unused*/ ) {
@@ -150,7 +150,7 @@ void MusicPlayer::set_volume( double /*unused*/ ) {
       "Music Player `{}` does not support setting volume.",
       info().name );
   DCHECK( capabilities().has_volume, "{}", msg );
-  logger->error( msg );
+  lg.error( msg );
 }
 
 void MusicPlayer::seek( double /*unused*/ ) {
@@ -158,7 +158,7 @@ void MusicPlayer::seek( double /*unused*/ ) {
       fmt::format( "Music Player `{}` does not support seeking.",
                    info().name );
   DCHECK( capabilities().can_seek, "{}", msg );
-  logger->error( msg );
+  lg.error( msg );
 }
 
 /****************************************************************
@@ -166,14 +166,14 @@ void MusicPlayer::seek( double /*unused*/ ) {
 *****************************************************************/
 void test_music_player_impl( MusicPlayer& mplayer ) {
   if( !mplayer.good() ) {
-    logger->error( "Music Player {} has failed.",
+    lg.error( "Music Player {} has failed.",
                    mplayer.info().name );
     return;
   }
 
   auto capabilities = mplayer.capabilities();
 
-  logger->info( "Testing `{}`", mplayer.info().name );
+  lg.info( "Testing `{}`", mplayer.info().name );
   capabilities.log();
 
   double vol = 1.0;
@@ -183,7 +183,7 @@ void test_music_player_impl( MusicPlayer& mplayer ) {
     // Wait for music player to consume commands.
     mplayer.fence( /*timeout=*/1s );
     mplayer.state().log();
-    logger->info(
+    lg.info(
         "[p]lay next, p[a]use, [r]esume, [s]top, [u]p volume, "
         "[d]own volume, s[t]ate, [q]uit: " );
     string in;
@@ -191,13 +191,13 @@ void test_music_player_impl( MusicPlayer& mplayer ) {
     sleep( chrono::milliseconds( 20 ) );
     if( in == "q" ) break;
     if( !mplayer.good() ) {
-      logger->warn(
+      lg.warn(
           "Music Player has failed and is no longer active." );
       continue;
     }
     if( in == "p" ) {
       auto tune = random_tune();
-      logger->info( "play result: {}", mplayer.play( tune ) );
+      lg.info( "play result: {}", mplayer.play( tune ) );
       continue;
     }
     if( in == "a" ) {
@@ -218,7 +218,7 @@ void test_music_player_impl( MusicPlayer& mplayer ) {
         vol = std::clamp( vol, 0.0, 1.0 );
         mplayer.set_volume( vol );
       }
-      logger->info( "Volume: {}", vol );
+      lg.info( "Volume: {}", vol );
       continue;
     }
     if( in == "d" ) {
@@ -227,7 +227,7 @@ void test_music_player_impl( MusicPlayer& mplayer ) {
         vol = std::clamp( vol, 0.0, 1.0 );
         mplayer.set_volume( vol );
       }
-      logger->info( "Volume: {}", vol );
+      lg.info( "Volume: {}", vol );
       continue;
     }
     if( in == "t" ) { continue; }
