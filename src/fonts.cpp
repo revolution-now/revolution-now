@@ -79,8 +79,6 @@ Texture render_line_standard_impl( ::TTF_Font* font,
                     font, string( line ).c_str(), fg ) );
   auto texture = Texture::from_surface( surface );
   ::SDL_FreeSurface( surface );
-  // Not sure why this doesn't happen automatically.
-  ::SDL_SetTextureAlphaMod( texture, fg.a );
   if( vert_offset != 0_y ) {
     auto new_texture = create_texture( texture.size() );
     clear_texture_transparent( new_texture );
@@ -88,6 +86,8 @@ Texture render_line_standard_impl( ::TTF_Font* font,
     ::SDL_SetTextureAlphaMod( new_texture, fg.a );
     texture = std::move( new_texture );
   }
+  // Not sure why this doesn't happen automatically.
+  ::SDL_SetTextureAlphaMod( texture, fg.a );
   return texture;
 }
 
