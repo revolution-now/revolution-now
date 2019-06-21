@@ -57,22 +57,11 @@ struct FontDesc {
 FlatMap<e_font, FontDesc>& loaded_fonts() {
   static FlatMap<e_font, FontDesc> m = [] {
     FlatMap<e_font, FontDesc> res;
-    e_font                    font;
-
-    {
-      font       = e_font::_7_12_serif_16pt;
+    for( auto font : values<e_font> ) {
       auto& path = val_or_die( config_font.paths, font );
       auto& size = val_or_die( config_font.sizes, font );
       res[font]  = FontDesc{path, size, nullptr};
     }
-
-    {
-      font       = e_font::_6x6;
-      auto& path = val_or_die( config_font.paths, font );
-      auto& size = val_or_die( config_font.sizes, font );
-      res[font]  = FontDesc{path, size, nullptr};
-    }
-
     return res;
   }();
   return m;
