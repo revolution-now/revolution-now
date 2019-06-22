@@ -88,8 +88,17 @@ e_ogg_state g_state{e_ogg_state::stopped};
 /****************************************************************
 ** Impl Functions
 *****************************************************************/
+bool is_playing() { return ::Mix_PlayingMusic() != 0; }
+
+void update_state_if_stopped() {
+  if( !is_playing() ) {
+    g_current_music.reset();
+    g_state = e_ogg_state::stopped;
+  }
+}
+
 void stop_music_if_playing() {
-  if( ::Mix_PlayingMusic() != 0 ) {
+  if( is_playing() ) {
     CHECK( g_state == e_ogg_state::playing ||
            g_state == e_ogg_state::paused );
     CHECK( g_current_music, "Internal error." );
@@ -97,10 +106,8 @@ void stop_music_if_playing() {
     g_current_music.reset();
     g_state = e_ogg_state::stopped;
   } else {
-    // The following check may not be true because the music may
-    // have stopped on its own.
-    // CHECK( g_state == e_ogg_state::stopped );
-    CHECK( !g_current_music );
+    // May not be necessary, but...
+    update_state_if_stopped();
   }
 }
 
@@ -112,7 +119,7 @@ ND bool play_impl( OggTune&& music ) {
       ::Mix_PlayMusic( music.ptr(), /*loops=*/1 );
   if( channel_used < 0 ) {
     lg.error( "Unexpected error: unable to play music: {}",
-                   ::SDL_GetError() );
+              ::SDL_GetError() );
     return false;
   }
   g_current_music = std::move( music );
@@ -137,8 +144,7 @@ Opt<OggTune> load_tune( TuneId id ) {
 
 void cleanup_oggplayer() {
   stop_music_if_playing();
-  g_current_music.reset();
-  g_state = e_ogg_state::stopped;
+  update_state_if_stopped();
 }
 
 } // namespace
@@ -214,7 +220,7 @@ bool OggMusicPlayer::play( TuneId id ) {
   auto ogg = load_tune( id );
   if( !ogg ) return false;
   lg.debug( "OggMusicPlayer: playing tune `{}`",
-                 tune_display_name_from_id( id ) );
+            tune_display_name_from_id( id ) );
   return play_impl( std::move( *ogg ) );
 }
 
@@ -229,6 +235,7 @@ MusicPlayerDesc OggMusicPlayer::info() const {
 
 MusicPlayerState OggMusicPlayer::state() const {
   Opt<TunePlayerInfo> maybe_tune_info;
+  update_state_if_stopped();
   bool is_playing = ( g_state == e_ogg_state::playing );
   bool is_paused  = ( g_state == e_ogg_state::paused );
   if( is_paused ) { CHECK( ::Mix_PausedMusic() ); }
