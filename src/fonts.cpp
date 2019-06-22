@@ -186,50 +186,6 @@ Texture render_text_line_shadow( e_font font, Color fg,
   return result_texture;
 }
 
-using RenderLineFn = std::function<Texture( string const& )>;
-
-Texture render_lines( H min_skip, vector<string> const& lines,
-                      RenderLineFn const& render_line ) {
-  auto textures = util::map( render_line, lines );
-  auto deltas   = util::map( texture_delta, textures );
-  H    res_height( 0 );
-  W    res_width( 0 );
-  for( auto const& delta : deltas ) {
-    res_height += std::max( min_skip, delta.h );
-    res_width = std::max( res_width, delta.w );
-  }
-
-  auto result_texture = create_texture( res_width, res_height );
-
-  Y y( 0 );
-  for( size_t i = 0; i < textures.size(); ++i ) {
-    copy_texture( textures[i], result_texture, {y, 0_x} );
-    y += std::max( min_skip, deltas[i].h );
-  }
-  return result_texture;
-}
-
-Texture render_wrapped_text(
-    H min_skip, string_view text,
-    RenderLineFn const&      render_line,
-    util::IsStrOkFunc const& width_checker ) {
-  auto wrapped = util::wrap_text_fn( text, width_checker );
-  return render_lines( min_skip, wrapped, render_line );
-}
-
-Texture render_wrapped_text_by_pixels(
-    ::TTF_Font* font, int max_pixel_width, H min_skip,
-    string_view text, RenderLineFn const& render_line ) {
-  auto width_checker = [font,
-                        max_pixel_width]( string_view text ) {
-    int w, h;
-    ::TTF_SizeText( font, string( text ).c_str(), &w, &h );
-    return w <= max_pixel_width;
-  };
-  auto wrapped = util::wrap_text_fn( text, width_checker );
-  return render_lines( min_skip, wrapped, render_line );
-}
-
 void font_size_spectrum( char const* msg,
                          char const* font_file ) {
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
@@ -262,18 +218,18 @@ Delta font_rendered_width( e_font font, string_view text ) {
 void font_test() {
   auto font = e_font::_7_12_serif_16pt;
 
-  H skip( ::TTF_FontLineSkip( loaded_fonts()[font].ttf_font ) );
+  // H skip( ::TTF_FontLineSkip( loaded_fonts()[font].ttf_font )
+  // );
 
-  char const* msg =
-      "Ask not what your country can do for you, "
-      "but instead ask what you can do for your country!";
+  string msg =
+      "Ask not what your country can do for you, but instead "
+      "ask what you can do for your country!";
 
   auto render_line = [font]( string const& text ) {
     Color fg = config_palette.orange.sat1.lum11;
     return render_text_line_shadow( font, fg, text );
   };
-  auto texture = render_wrapped_text( skip, msg, render_line,
-                                      L( _.size() <= 20 ) );
+  auto texture = render_line( msg );
 
   copy_texture( texture, Texture{}, {100_y, 100_x} );
   // font_size_spectrum( msg, font_file );

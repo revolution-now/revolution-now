@@ -17,6 +17,9 @@
 #include "aliases.hpp"
 #include "unit.hpp"
 
+// function_ref
+#include "function_ref.hpp"
+
 // C++ standard library
 #include <functional>
 #include <optional>
@@ -30,7 +33,7 @@ Vec<UnitId> units_all(
     std::optional<e_nation> n = std::nullopt );
 // Apply a function to all units. The function may mutate the
 // units.
-void map_units( std::function<void( Unit& )> const& func );
+void map_units( tl::function_ref<void( Unit& )> func );
 
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id );
@@ -66,7 +69,7 @@ ND Vec<UnitId> units_in_rect( Rect const& rect );
 // the map or the coordinates of its owner if it is ultimately
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
-ND Coord coords_for_unit( UnitId id );
+ND Coord    coords_for_unit( UnitId id );
 ND OptCoord coords_for_unit_safe( UnitId id );
 
 // If the unit is being held as cargo then it will return the id

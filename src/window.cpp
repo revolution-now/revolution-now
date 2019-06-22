@@ -44,7 +44,6 @@
 
 // c++ standard library
 #include <algorithm>
-#include <functional>
 #include <memory>
 #include <numeric>
 #include <string_view>
@@ -59,8 +58,6 @@ namespace {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-using FinishedFunc = std::function<bool( void )>;
-
 enum class e_window_state { running, closed };
 
 class WindowManager {
@@ -620,7 +617,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 
   for( auto r : res )
     lg.debug( "selection: {} --> {}", debug_string( r.id ),
-                   r.what );
+              r.what );
   return res;
 }
 

@@ -21,6 +21,9 @@
 // Abseil
 #include "absl/container/node_hash_map.h"
 
+// function_ref
+#include "function_ref.hpp"
+
 // C++ standard library
 #include <chrono>
 #include <functional>
@@ -29,8 +32,8 @@ namespace rn {
 
 using Frames = std::chrono::duration<int, std::ratio<1, 60>>;
 
-void frame_loop( bool                  poll_input,
-                 std::function<bool()> finished );
+void frame_loop( bool                     poll_input,
+                 tl::function_ref<bool()> finished );
 
 double avg_frame_rate();
 

@@ -22,6 +22,9 @@
 // base-util
 #include "base-util/non-copyable.hpp"
 
+// function_ref
+#include "function_ref.hpp"
+
 namespace rn {
 
 enum class e_( plane,
@@ -125,7 +128,7 @@ struct Plane : public util::non_copy_non_move {
   // be error-prone in that it may end up receiving a request to
   // handle an item that it does not actually handle, which would
   // then require a check failure, which we want to avoid.
-  using MenuClickHandler = std::function<void()>;
+  using MenuClickHandler = tl::function_ref<void()>;
 
   // Asks the plane if it can handler a particular menu item. If
   // it returns nullopt that means "no." Otherwise it means
@@ -133,7 +136,12 @@ struct Plane : public util::non_copy_non_move {
   // which will be called when them item is clicked assuming that
   // the menu item is enabled and if there are no higher planes
   // that also handle it. Default implementation returns nullopt.
-  virtual OptRef<MenuClickHandler> menu_click_handler(
+  //
+  // IMPORTANT: Being that this is returning a function_ref, it
+  // is important that function returned outlive the function
+  // call. So e.g. returning a non-static lambda with captures
+  // would probably not be good.
+  virtual Opt<MenuClickHandler> menu_click_handler(
       e_menu_item item ) const;
 };
 

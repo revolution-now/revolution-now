@@ -401,7 +401,7 @@ ClickTileActions click_on_world_tile_impl(
     Coord coord, bool allow_activate ) {
   ClickTileActions result{};
   lg.debug( "clicked on tile {}, allow_activate={}", coord,
-                 allow_activate );
+            allow_activate );
   auto const& units = units_from_coord_recursive( coord );
   if( units.size() == 0 ) {
     lg.debug( "no units on square." );
@@ -435,15 +435,14 @@ ClickTileActions click_on_world_tile_impl(
       switch( selection.what ) {
         case +ui::e_unit_selection::clear_orders:
           lg.debug( "clearing orders for {}.",
-                         debug_string( sel_unit ) );
+                    debug_string( sel_unit ) );
           sel_unit.clear_orders();
           if( allow_activate )
             result.add_to_back.push_back( selection.id );
           break;
         case +ui::e_unit_selection::activate:
           CHECK( allow_activate );
-          lg.debug( "activating {}.",
-                         debug_string( sel_unit ) );
+          lg.debug( "activating {}.", debug_string( sel_unit ) );
           // Activation implies also to clear orders if they're
           // not already cleared.
           sel_unit.clear_orders();
@@ -491,7 +490,7 @@ struct ViewportPlane : public Plane {
                           viewport().rendering_src_rect(),
                           viewport().rendering_dest_rect() );
   }
-  OptRef<Plane::MenuClickHandler> menu_click_handler(
+  Opt<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {
     // These are factors by which the zoom will be scaled when
     // zooming in/out with the menus.

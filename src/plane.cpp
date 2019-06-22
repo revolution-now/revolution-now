@@ -257,7 +257,7 @@ void Plane::on_drag_finished( input::e_mouse_button /*unused*/,
                               Coord /*unused*/,
                               Coord /*unused*/ ) {}
 
-OptRef<Plane::MenuClickHandler> Plane::menu_click_handler(
+Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
     e_menu_item /*unused*/ ) const {
   return nullopt;
 }
@@ -316,7 +316,7 @@ bool send_input_to_planes( input::event_t const& event ) {
         // If the drag is finished then send out that event.
         if( drag_event->state.phase == +e_drag_phase::end ) {
           lg.debug( "finished `{}` drag motion event",
-                         *g_drag_state.plane );
+                    *g_drag_state.plane );
           auto maybe_button =
               input::drag_event_to_mouse_button_event(
                   *drag_event );
@@ -343,7 +343,7 @@ bool send_input_to_planes( input::event_t const& event ) {
         // If the drag is finished then send out that event.
         if( prj_drag_event.state.phase == +e_drag_phase::end ) {
           lg.debug( "finished `{}` drag event",
-                         *g_drag_state.plane );
+                    *g_drag_state.plane );
           plane.on_drag_finished( prj_drag_event.button,
                                   prj_drag_event.state.origin,
                                   prj_drag_event.pos );
@@ -459,7 +459,7 @@ void on_menu_item_clicked( e_menu_item item ) {
     if( auto maybe_handler =
             p.second->menu_click_handler( item );
         maybe_handler.has_value() ) {
-      maybe_handler.value().get()();
+      maybe_handler.value()();
       return;
     }
   }

@@ -144,7 +144,8 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( bool poll_input, function<bool()> finished ) {
+void frame_loop( bool                     poll_input,
+                 tl::function_ref<bool()> finished ) {
   using namespace chrono;
 
   auto normal_frame_length =

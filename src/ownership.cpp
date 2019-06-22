@@ -120,7 +120,7 @@ Unit& unit_from_id( UnitId id ) {
 
 // Apply a function to all units. The function may mutate the
 // units.
-void map_units( function<void( Unit& )> const& func ) {
+void map_units( tl::function_ref<void( Unit& )> func ) {
   for( auto& p : units ) func( p.second );
 }
 
