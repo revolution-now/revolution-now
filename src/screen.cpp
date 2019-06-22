@@ -99,7 +99,7 @@ double const& viewer_distance_from_monitor() {
         std::max( viewer_distance_multiplier * monitor_inches(),
                   viewer_distance_minimum );
     lg.debug( "Computed Viewer Distance from Screen: {}in.",
-                   res );
+              res );
     return res;
   }();
   return distance;
@@ -123,7 +123,7 @@ void query_video_stats() {
   (void)dm_to_str;
 
   lg.debug( "Default game pixel format: {}",
-                 ::SDL_GetPixelFormatName( g_pixel_format ) );
+            ::SDL_GetPixelFormatName( g_pixel_format ) );
 
   lg.debug( "GetCurrentDisplayMode: " );
   SDL_GetCurrentDisplayMode( 0, &dm );
@@ -148,8 +148,7 @@ void query_video_stats() {
   SDL_GetDisplayBounds( 0, &r );
   lg.debug( "  {}", from_SDL( r ) );
 
-  lg.debug( "Monitor Diagonal Length: {}in.",
-                 monitor_inches() );
+  lg.debug( "Monitor Diagonal Length: {}in.", monitor_inches() );
 }
 
 struct ScaleInfo {
@@ -180,9 +179,8 @@ ScaleInfo scale_info( int scale_ ) {
 
 // Lower score is better.
 double scale_score( ScaleInfo const& info ) {
-  constexpr double ideal_tile_angular_size{.025}; // radians
   return ::abs( info.tile_angular_size -
-                ideal_tile_angular_size );
+                config_rn.ideal_tile_angular_size );
 }
 
 // This function attempts to find an integer scale factor with
@@ -219,9 +217,9 @@ void find_pixel_scale_factor() {
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
                        auto score ) {
-    lg.debug( "{: ^10}{: ^19}{: ^18}{: ^18}{: ^10}",
-                   possibility, resolution, tile_size_screen,
-                   tile_size_1ft, score );
+    lg.debug( "{: ^10}{: ^19}{: ^18}{: ^18}{: ^10}", possibility,
+              resolution, tile_size_screen, tile_size_1ft,
+              score );
   };
 
   table_row( "Scale", "Resolution", "Tile-Size-Screen",
@@ -242,10 +240,8 @@ void find_pixel_scale_factor() {
   g_optimal_resolution_scale_factor = Scale{optimal.scale};
   g_screen_physical_size =
       optimal.resolution * g_resolution_scale_factor;
-  lg.debug( "screen physical size: {}",
-                 g_screen_physical_size );
-  lg.debug( "screen logical size: {}",
-                 screen_logical_size() );
+  lg.debug( "screen physical size: {}", g_screen_physical_size );
+  lg.debug( "screen logical size: {}", screen_logical_size() );
 
   // If this is violated then we have non-integer scaling.
   CHECK( g_screen_physical_size % Scale{optimal.scale} ==
@@ -343,9 +339,8 @@ void init_renderer() {
   // view in which the entire world is visible.
   auto delta = world_size_pixels();
   lg.debug( "g_texture_viewport proposed size: {}", delta );
-  lg.debug(
-      "g_texture_viewport memory usage estimate: {}MB",
-      Texture::mem_usage_mb( delta ) );
+  lg.debug( "g_texture_viewport memory usage estimate: {}MB",
+            Texture::mem_usage_mb( delta ) );
   g_texture_viewport = create_texture( delta );
 }
 

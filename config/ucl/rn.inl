@@ -10,11 +10,14 @@ namespace rn {
 
 CFG( rn,
   FLD( e_nation, player_nation )
-  FLD( int, target_frame_rate )
-  FLD( int, depixelate_pixels_per_frame )
+  FLD( int,      target_frame_rate )
+  FLD( int,      depixelate_pixels_per_frame )
+  FLD( double,   ideal_tile_angular_size )
+
   OBJ( main_window,
     FLD( Str, title )
   )
+
   OBJ( viewport,
     FLD( double, pan_speed )
     FLD( double, zoom_min )
@@ -24,6 +27,7 @@ CFG( rn,
     FLD( double, pan_accel_init_coeff )
     FLD( double, pan_accel_drag_init_coeff )
   )
+
   OBJ( controls,
     FLD( int, drag_buffer )
   )

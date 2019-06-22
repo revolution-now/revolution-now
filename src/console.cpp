@@ -26,6 +26,7 @@ namespace rn {
 namespace {
 
 uint8_t console_alpha = 128;
+uint8_t text_alpha    = 192;
 
 size_t constexpr max_dbg_log_lines = 100000;
 vector<string> dbg_log;
@@ -43,7 +44,7 @@ struct ConsolePlane : public Plane {
     render_fill_rect( tx, Color{0, 0, 255, console_alpha},
                       rect );
 
-    auto text_color = Color{255, 255, 255, console_alpha};
+    auto text_color = Color{255, 255, 255, text_alpha};
 
     // auto info_start = Coord{} + 16_h;
 

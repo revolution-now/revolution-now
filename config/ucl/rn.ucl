@@ -4,6 +4,8 @@ target_frame_rate: 65
 
 depixelate_pixels_per_frame: 10
 
+ideal_tile_angular_size: 0.030 # radians
+
 main_window {
   title: "Revolution | Now"
 }
