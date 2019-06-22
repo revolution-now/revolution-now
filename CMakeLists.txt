@@ -54,6 +54,7 @@ add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/expected-lite EXCLUDE_FROM_ALL )
+add_subdirectory( extern/function_ref  EXCLUDE_FROM_ALL )
 
 # === global settings =============================================
 

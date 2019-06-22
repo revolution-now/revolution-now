@@ -52,3 +52,6 @@
 [submodule "extern/expected-lite"]
 	path = extern/expected-lite
 	url = https://github.com/martinmoene/expected-lite
+[submodule "extern/function_ref"]
+	path = extern/function_ref
+	url = ../function_ref.git
