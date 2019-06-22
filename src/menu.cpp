@@ -424,7 +424,9 @@ auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
 // Rectangle around a menu header.
 Rect menu_header_rect( e_menu menu ) {
   CHECK( g_menu_rendered.contains( menu ) );
-  return Rect::from( Coord{0_y, menu_header_x_pos( menu )},
+  auto y_offset =
+      0_y + ( ( menu_bar_height() - max_text_height() ) / 2_sy );
+  return Rect::from( Coord{y_offset, menu_header_x_pos( menu )},
                      menu_header_delta( menu ) );
 }
 
@@ -793,10 +795,6 @@ void render_menu_bar() {
        c += 128_w )
     render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
 
-  // Center the text vertically in the menu bar.
-  auto offset =
-      0_y + ( ( menu_bar_height() - max_text_height() ) / 2_sy );
-
   for( auto menu : visible_menus() ) {
     CHECK( g_menu_rendered.contains( menu ),
            "g_menu_rendered.size(): {}",
@@ -830,13 +828,14 @@ void render_menu_bar() {
                 MenuState_t{MenuState::menus_closed{}} );
         } );
     if( auto p = matcher( g_menu_state ); p.has_value() ) {
-      auto pos = menu_header_x_pos( menu );
+      auto rect = menu_header_rect( menu );
       if( ( *p ).second )
         copy_texture( *( ( *p ).second ), menu_bar_tx,
-                      {offset, pos} );
+                      rect.upper_left() );
       CHECK( ( *p ).first );
-      copy_texture( *( ( *p ).first ), menu_bar_tx,
-                    {offset, pos + config_ui.menus.padding} );
+      copy_texture(
+          *( ( *p ).first ), menu_bar_tx,
+          rect.upper_left() + config_ui.menus.padding );
     }
   }
 }
