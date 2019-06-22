@@ -4,7 +4,7 @@
 #ifndef MUSIC_INL
 #define MUSIC_INL
 
-#include "src/conductor.hpp"
+#include "../../src/conductor.hpp"
 
 namespace rn {
 

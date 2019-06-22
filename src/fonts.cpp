@@ -22,8 +22,8 @@
 #include "util.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/font.inl"
-#include "config/ucl/palette.inl"
+#include "../config/ucl/font.inl"
+#include "../config/ucl/palette.inl"
 
 // base-util
 #include "base-util/algo.hpp"

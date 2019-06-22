@@ -22,7 +22,7 @@
 #include "tiles.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/rn.inl"
+#include "../config/ucl/rn.inl"
 
 // C++ standard library
 #include <cmath>

@@ -20,7 +20,7 @@
 #include "time.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/music.inl"
+#include "../config/ucl/music.inl"
 
 // base-util
 #include "base-util/algo.hpp"

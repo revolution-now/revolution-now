@@ -1,15 +1,15 @@
 // This file should ONLY be included by config-files.cpp.
 
-#include "config/ucl/art.inl"
-#include "config/ucl/font.inl"
-#include "config/ucl/input.inl"
-#include "config/ucl/music.inl"
-#include "config/ucl/nation.inl"
-#include "config/ucl/palette.inl"
-#include "config/ucl/rn.inl"
-#include "config/ucl/sound.inl"
-#include "config/ucl/ui.inl"
-#include "config/ucl/units.inl"
+#include "ucl/art.inl"
+#include "ucl/font.inl"
+#include "ucl/input.inl"
+#include "ucl/music.inl"
+#include "ucl/nation.inl"
+#include "ucl/palette.inl"
+#include "ucl/rn.inl"
+#include "ucl/sound.inl"
+#include "ucl/ui.inl"
+#include "ucl/units.inl"
 
 #undef ART_INL
 #undef FONT_INL

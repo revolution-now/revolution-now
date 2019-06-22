@@ -19,7 +19,7 @@
 #include "variant.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/input.inl"
+#include "../config/ucl/input.inl"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"

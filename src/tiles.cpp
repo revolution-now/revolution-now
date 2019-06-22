@@ -18,7 +18,7 @@
 #include "sdl-util.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/art.inl"
+#include "../config/ucl/art.inl"
 
 // C++ standard library
 #include <string>

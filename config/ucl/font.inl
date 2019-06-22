@@ -4,7 +4,7 @@
 #ifndef FONT_INL
 #define FONT_INL
 
-#include "src/fonts.hpp"
+#include "../../src/fonts.hpp"
 
 namespace rn {
 

@@ -18,7 +18,7 @@
 #include "util.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/sound.inl"
+#include "../config/ucl/sound.inl"
 
 // abseil
 #include "absl/container/flat_hash_map.h"

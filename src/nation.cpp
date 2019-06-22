@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 
 // Revolution Now (config)
-#include "config/ucl/nation.inl"
+#include "../config/ucl/nation.inl"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"

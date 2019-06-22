@@ -29,7 +29,7 @@
 #include "utype.hpp"
 
 // Revolution Now (config inl files)
-#include "config/all-ucl.inl"
+#include "../config/all-ucl.inl"
 
 // base-util
 #include "base-util/misc.hpp"
@@ -669,7 +669,7 @@ REGISTER_INIT_ROUTINE( configs );
 } // namespace rn
 
 // Revolution Now (config inl files)
-#include "config/all-ucl.inl"
+#include "../config/all-ucl.inl"
 
 namespace rn {
 
