@@ -372,6 +372,26 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   base->r_mouse_down =
       bool( g_mouse_buttons & SDL_BUTTON_RMASK );
 
+  /**** Debugging **********************/
+  static bool is_in_drag = false;
+  if_v( event, mouse_drag_event_t, drag_event ) {
+    switch( drag_event->state.phase ) {
+      case +e_drag_phase::begin:
+        // If this triggers then it explains the troubles that
+        // the plane module is having.
+        CHECK( !is_in_drag, "uh-oh" );
+        is_in_drag = true;
+        break;
+      case +e_drag_phase::in_progress:
+        CHECK( is_in_drag, "uh-oh" );
+        break;
+      case +e_drag_phase::end:
+        CHECK( is_in_drag, "uh-oh" );
+        is_in_drag = false;
+        break;
+    }
+  }
+  /*************************************/
   return event;
 }
 
