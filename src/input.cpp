@@ -182,24 +182,25 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
       auto update_drag = [&mouse]( auto button, auto& drag ) {
         if( button ) {
-          auto matcher = scelta::match(
-              [&]( drag_phase::none ) {
-                drag = drag_phase::maybe{
-                    /*origin=*/g_prev_mouse_pos};
-              },
-              [&]( drag_phase::maybe ) {
-                if_v( drag, drag_phase::maybe, val ) {
-                  if( is_in_drag_zone( val->origin, mouse ) ) {
-                    drag = drag_phase::dragging{
-                        /*origin=*/val->origin,
-                        /*phase=*/e_drag_phase::begin};
-                  }
+          switch_( drag ) {
+            case_( drag_phase::none ) {
+              drag =
+                  drag_phase::maybe{/*origin=*/g_prev_mouse_pos};
+            }
+            case_( drag_phase::maybe ) {
+              if_v( drag, drag_phase::maybe, val ) {
+                if( is_in_drag_zone( val->origin, mouse ) ) {
+                  drag = drag_phase::dragging{
+                      /*origin=*/val->origin,
+                      /*phase=*/e_drag_phase::begin};
                 }
-              },
-              []( drag_phase::dragging const& val ) {
-                CHECK( val.phase == +e_drag_phase::in_progress );
-              } );
-          matcher( drag );
+              }
+            }
+            case_( drag_phase::dragging ) {
+              CHECK( val.phase == +e_drag_phase::in_progress );
+            }
+            switch_exhaustive;
+          }
         } else {
           // If we were initiating a drag (or in a drag) and re-
           // ceive a mouse motion event then there are three pos-
@@ -214,15 +215,12 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           // this event, so it should be current with it). There-
           // fore, there is no situation where we should have
           // (button up) + (mouse motion) + (`maybe`/`dragging`).
-          auto matcher =
-              scelta::match( [&]( drag_phase::none ) {},
-                             []( drag_phase::maybe const& ) {
-                               SHOULD_NOT_BE_HERE;
-                             },
-                             []( drag_phase::dragging const& ) {
-                               SHOULD_NOT_BE_HERE;
-                             } );
-          matcher( drag );
+          switch_( drag ) {
+            case_( drag_phase::none ) {}
+            case_( drag_phase::maybe ) { SHOULD_NOT_BE_HERE; }
+            case_( drag_phase::dragging ) { SHOULD_NOT_BE_HERE; }
+            switch_exhaustive;
+          }
         }
       };
 
@@ -391,73 +389,58 @@ event_t move_mouse_origin_by( event_t const& event,
   // mouse event or not, and 2) to give us the mouse position.
 
   // First, move the current mouse position.
-  auto matcher_curr = scelta::match(
-      []( input::unknown_event_t ) { return (Coord*)nullptr; },
-      []( input::quit_event_t ) { return (Coord*)nullptr; },
-      []( input::key_event_t ) { return (Coord*)nullptr; },
-      []( input::mouse_wheel_event_t& e ) { return &e.pos; },
-      []( input::mouse_move_event_t& e ) { return &e.pos; },
-      []( input::mouse_button_event_t& e ) { return &e.pos; },
-      []( input::mouse_drag_event_t& e ) { return &e.pos; } );
-  if( auto ptr = matcher_curr( new_event ); ptr )
-    ( *ptr ) -= delta;
+  auto ptr = matcher_( new_event, ->, Coord* ) {
+    case_( input::unknown_event_t ) return nullptr;
+    case_( input::quit_event_t ) return nullptr;
+    case_( input::key_event_t ) return nullptr;
+    case_( input::mouse_wheel_event_t ) return &val.pos;
+    case_( input::mouse_move_event_t ) return &val.pos;
+    case_( input::mouse_button_event_t ) return &val.pos;
+    case_( input::mouse_drag_event_t ) return &val.pos;
+    matcher_exhaustive;
+  };
+  if( ptr ) ( *ptr ) -= delta;
 
   // Second, if mouse move event, move the previous mouse
   // position.
-  auto matcher_prev = scelta::match(
-      []( input::unknown_event_t ) { return (Coord*)nullptr; },
-      []( input::quit_event_t ) { return (Coord*)nullptr; },
-      []( input::key_event_t ) { return (Coord*)nullptr; },
-      []( input::mouse_wheel_event_t& ) {
-        return (Coord*)nullptr;
-      },
-      []( input::mouse_move_event_t& e ) { return &e.prev; },
-      []( input::mouse_button_event_t& ) {
-        return (Coord*)nullptr;
-      },
-      []( input::mouse_drag_event_t& ) {
-        return (Coord*)nullptr;
-      } );
-  if( auto ptr = matcher_prev( new_event ); ptr )
-    ( *ptr ) -= delta;
+  ptr = matcher_( new_event, ->, Coord* ) {
+    case_( input::unknown_event_t ) return nullptr;
+    case_( input::quit_event_t ) return nullptr;
+    case_( input::key_event_t ) return nullptr;
+    case_( input::mouse_wheel_event_t ) return nullptr;
+    case_( input::mouse_move_event_t ) return &val.prev;
+    case_( input::mouse_button_event_t ) return nullptr;
+    case_( input::mouse_drag_event_t ) return nullptr;
+    matcher_exhaustive;
+  };
+  if( ptr ) ( *ptr ) -= delta;
   return new_event;
 }
 
 bool is_mouse_event( event_t const& event ) {
-  auto matcher = scelta::match(
-      []( input::unknown_event_t ) { return false; },
-      []( input::quit_event_t ) { return false; },
-      []( input::key_event_t const& ) { return false; },
-      []( input::mouse_wheel_event_t const& ) { return true; },
-      []( input::mouse_move_event_t const& ) { return true; },
-      []( input::mouse_button_event_t const& ) { return true; },
-      []( input::mouse_drag_event_t const& ) { return true; } );
-  return matcher( event );
+  return matcher_( event ) {
+    case_( input::unknown_event_t ) return false;
+    case_( input::quit_event_t ) return false;
+    case_( input::key_event_t ) return false;
+    case_( input::mouse_wheel_event_t ) return true;
+    case_( input::mouse_move_event_t ) return true;
+    case_( input::mouse_button_event_t ) return true;
+    case_( input::mouse_drag_event_t ) return true;
+    matcher_exhaustive;
+  }
 }
 
 Opt<CRef<Coord>> mouse_position( event_t const& event ) {
-  auto matcher = scelta::match(
-      []( input::unknown_event_t ) {
-        return (Coord const*)nullptr;
-      },
-      []( input::quit_event_t ) {
-        return (Coord const*)nullptr;
-      },
-      []( input::key_event_t ) { return (Coord const*)nullptr; },
-      []( input::mouse_wheel_event_t const& e ) {
-        return &e.pos;
-      },
-      []( input::mouse_move_event_t const& e ) {
-        return &e.pos;
-      },
-      []( input::mouse_button_event_t const& e ) {
-        return &e.pos;
-      },
-      []( input::mouse_drag_event_t const& e ) {
-        return &e.pos;
-      } );
-  auto const* res = matcher( event );
-  return res ? Opt<CRef<Coord>>{*res} : nullopt;
+  return matcher_( event, ->, Opt<CRef<Coord>> ) {
+    case_( input::unknown_event_t ) return nullopt;
+    case_( input::quit_event_t ) return nullopt;
+    case_( input::key_event_t ) return nullopt;
+    case_( input::mouse_wheel_event_t ) return val.pos;
+    case_( input::mouse_move_event_t ) return val.pos;
+    case_( input::mouse_button_event_t ) return val.pos;
+    case_( input::mouse_drag_event_t ) return val.pos;
+    matcher_exhaustive;
+  };
 }
 
 Opt<mouse_button_event_t> drag_event_to_mouse_button_event(
