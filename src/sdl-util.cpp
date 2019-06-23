@@ -46,6 +46,32 @@ int g_next_texture_id{1};
 
 } // namespace
 
+void check_compile_link_version(
+    string_view module_name, ::SDL_version const* link_version,
+    ::SDL_version const& compiled_version ) {
+  lg.info( "SDL {}: compiled with version: {}.{}.{}",
+           module_name, compiled_version.major,
+           compiled_version.minor, compiled_version.patch );
+  lg.info( "SDL {}: running with version: {}.{}.{}", module_name,
+           link_version->major, link_version->minor,
+           link_version->patch );
+  CHECK( compiled_version.major == link_version->major,
+         "This game was compiled with a version of SDL {} whose "
+         "major version number ({}) is different from the major "
+         "version number of the runtime library ({})",
+         module_name, compiled_version.major,
+         link_version->major );
+
+  if( compiled_version.minor != link_version->minor ) {
+    lg.warn(
+        "This game was compiled with a version of SDL {} whose "
+        "minor version number ({}) is different from the minor "
+        "version number of the runtime library ({})",
+        module_name, compiled_version.minor,
+        link_version->minor );
+  }
+}
+
 ::SDL_Rect to_SDL( Rect const& rect ) {
   ::SDL_Rect res;
   res.x = rect.x._;
@@ -246,7 +272,7 @@ ND Texture create_texture_transparent( Delta delta ) {
 ND Texture create_screen_physical_sized_texture() {
   auto res = create_texture( screen_physical_size() );
   lg.debug( "created screen-sized texture occupying {}MB.",
-                 res.mem_usage_mb() );
+            res.mem_usage_mb() );
   return res;
 }
 
@@ -275,8 +301,7 @@ Matrix<Color> texture_pixels( Texture const& tx ) {
   // This is the only one we use in the game for rendering.
   CHECK( fmt->BitsPerPixel == 32 );
 
-  lg.debug( "reading texture pixel data of size {}",
-                 delta );
+  lg.debug( "reading texture pixel data of size {}", delta );
 
   Matrix<Color> res( delta );
   SDL_LockSurface( surface );

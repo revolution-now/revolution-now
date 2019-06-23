@@ -113,6 +113,12 @@ absl::flat_hash_map<TextRenderDesc, Texture> text_cache_solid;
 
 void init_fonts() {
   CHECK( !TTF_Init() );
+  ::SDL_version        compiled_version;
+  ::SDL_version const* link_version = ::TTF_Linked_Version();
+  SDL_TTF_VERSION( &compiled_version );
+  check_compile_link_version( "TTF", link_version,
+                              compiled_version );
+
   for( auto& font : loaded_fonts() ) {
     auto& font_desc = font.second;
     int   pt_size   = font_desc.pt_size;

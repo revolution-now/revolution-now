@@ -15,6 +15,7 @@
 #include "errors.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "sdl-util.hpp"
 #include "util.hpp"
 
 // Revolution Now (config)
@@ -72,27 +73,8 @@ void init_sound() {
   ::SDL_version      compiled_version;
   SDL_version const* link_version = ::Mix_Linked_Version();
   SDL_MIXER_VERSION( &compiled_version );
-  lg.info( "SDL mixer: compiled with version: {}.{}.{}",
-           compiled_version.major, compiled_version.minor,
-           compiled_version.patch );
-  lg.info( "SDL mixer: running with version: {}.{}.{}",
-           link_version->major, link_version->minor,
-           link_version->patch );
-  CHECK(
-      compiled_version.major == link_version->major,
-      "This game was compiled with a version of SDL Mixer whose "
-      "major version number ({}) is different from the major "
-      "version number of the SDL Mixer runtime library ({})",
-      compiled_version.major, link_version->major );
-
-  if( compiled_version.minor != link_version->minor ) {
-    lg.warn(
-        "This game was compiled with a version of SDL Mixer "
-        "whose "
-        "minor version number ({}) is different from the minor "
-        "version number of the SDL Mixer runtime library ({})",
-        compiled_version.minor, link_version->minor );
-  }
+  check_compile_link_version( "Mixer", link_version,
+                              compiled_version );
 
   // Seemingly not needed?
   //::Mix_Init( ... );

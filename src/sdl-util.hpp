@@ -24,8 +24,9 @@
 #include "SDL.h"
 #include "SDL_image.h"
 
-// c++ standard library
+// C++ standard library
 #include <optional>
+#include <string_view>
 
 namespace rn {
 
@@ -82,6 +83,15 @@ private:
 };
 
 using TextureRef = std::reference_wrapper<Texture>;
+
+// Will throw an error is the game is being run with a different
+// major version of the given SDL library (e.g., mixer, ttf,
+// etc.) than it was built with. A warning will be issued if the
+// minor version is different.
+void check_compile_link_version(
+    std::string_view     module_name,
+    ::SDL_version const* link_version,
+    ::SDL_version const& compiled_version );
 
 void set_render_target( Texture const& tx );
 
