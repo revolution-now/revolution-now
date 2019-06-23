@@ -551,14 +551,10 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
         } );
     advance( item );
     if( pos > h ) {
-      return switch_v( Opt<e_menu_item>, item ) {
-        case_v( MenuDivider ) { //
-          return nullopt;
-        }
-        case_v( MenuClickable ) { //
-          return val.item;
-        }
-        default_v;
+      return matcher_( item, ->, Opt<e_menu_item> ) {
+        case_( MenuDivider ) result_   nullopt;
+        case_( MenuClickable ) result_ val.item;
+        matcher_exhaustive;
       }
     }
   }
@@ -1445,15 +1441,15 @@ struct MenuPlane : public Plane {
 
 private:
   void click_menu_item( e_menu_item item ) {
-    switch_v( g_menu_state ) {
-      case_v( MenuState::item_click ) {
+    switch_( g_menu_state ) {
+      case_( MenuState::item_click ) {
         // Already clicking, so do nothing. This can happen if a
         // menu item is clicked after it is already in the click
         // animation.
       }
-      case_v( MenuState::menus_closed ) { SHOULD_NOT_BE_HERE; }
-      case_v( MenuState::menus_hidden ) { SHOULD_NOT_BE_HERE; }
-      case_v( MenuState::menu_open ) {
+      case_( MenuState::menus_closed ) { SHOULD_NOT_BE_HERE; }
+      case_( MenuState::menus_hidden ) { SHOULD_NOT_BE_HERE; }
+      case_( MenuState::menu_open ) {
         // This check is important even if the code in this
         // module is structured in such a way that this function
         // is only called when the menu item has responded as
@@ -1462,13 +1458,13 @@ private:
         // (within a frame) that the item is checked for
         // enablement and when this click is called. That's also
         // why we don't call the (memoized) is_menu_item_enabled.
-        if( !g_menu_items[item]->callbacks.enabled() ) return;
+        if( !g_menu_items[item]->callbacks.enabled() ) break_;
         lg.info( "selected menu item `{}`", item );
         g_menu_state = MenuState::item_click{
             item, chrono::system_clock::now()};
         log_menu_state();
       }
-      default_v;
+      switch_exhaustive;
     };
   }
 };

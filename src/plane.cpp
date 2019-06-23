@@ -90,12 +90,11 @@ struct OmniPlane : public Plane {
   void draw( Texture const& /*unused*/ ) const override {}
   bool input( input::event_t const& event ) override {
     bool handled = false;
-    switch_v( event ) {
-      case_v( input::quit_event_t ) { throw exception_exit{}; }
-      case_v( input::key_event_t ) {
+    switch_( event ) {
+      case_( input::quit_event_t ) { throw exception_exit{}; }
+      case_( input::key_event_t ) {
         auto& key_event = val;
-        if( key_event.change != input::e_key_change::up )
-          break_v;
+        if( key_event.change != input::e_key_change::up ) break_;
         handled = true;
         switch( key_event.keycode ) {
           case ::SDLK_F11:
@@ -117,7 +116,7 @@ struct OmniPlane : public Plane {
           default: handled = false; break;
         }
       }
-      default_v_no_check;
+      switch_non_exhaustive;
     }
     return handled;
   }

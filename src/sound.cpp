@@ -73,11 +73,11 @@ void init_sound() {
   SDL_version const* link_version = ::Mix_Linked_Version();
   SDL_MIXER_VERSION( &compiled_version );
   lg.info( "SDL mixer: compiled with version: {}.{}.{}",
-                compiled_version.major, compiled_version.minor,
-                compiled_version.patch );
+           compiled_version.major, compiled_version.minor,
+           compiled_version.patch );
   lg.info( "SDL mixer: running with version: {}.{}.{}",
-                link_version->major, link_version->minor,
-                link_version->patch );
+           link_version->major, link_version->minor,
+           link_version->patch );
   CHECK(
       compiled_version.major == link_version->major,
       "This game was compiled with a version of SDL Mixer whose "
@@ -116,15 +116,15 @@ void init_sound() {
       audio_opened,
       "unexpected: SDL Mixer audio has not been initialized." );
 
-  lg.info( "Opening audio with {} channels @ {}Hz.",
-                channels, frequency );
+  lg.info( "Opening audio with {} channels @ {}Hz.", channels,
+           frequency );
 
   for( int i = 0; i < ::SDL_GetNumAudioDrivers(); ++i )
     lg.debug( "Audio Driver #{}: {}", i,
-                   ::SDL_GetAudioDriver( i ) );
+              ::SDL_GetAudioDriver( i ) );
 
   lg.info( "Using Audio Driver: {}",
-                ::SDL_GetCurrentAudioDriver() );
+           ::SDL_GetCurrentAudioDriver() );
 
   // Set Volume for all channels.
   //

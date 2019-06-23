@@ -48,8 +48,7 @@ using namespace std::chrono;
 using namespace std::literals::chrono_literals;
 
 #define RTMIDI_WARN( exception_object ) \
-  lg.warn( "rtmidi warning: {}",   \
-                exception_object.getMessage() )
+  lg.warn( "rtmidi warning: {}", exception_object.getMessage() )
 
 namespace rn::midiseq {
 
@@ -121,9 +120,8 @@ public:
     }();
     if( event.size() > max_event_size ) {
       // Should be extremely rare.
-      lg.warn(
-          "MIDI event size {} is larger than max (={})",
-          event.size(), max_event_size );
+      lg.warn( "MIDI event size {} is larger than max (={})",
+               event.size(), max_event_size );
       return;
     }
     for( size_t i = 0; i < event.size(); ++i )
@@ -471,7 +469,7 @@ Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   info.last_pause_time = nullopt;
   info.stoppage        = 0us;
   lg.info( "loaded midi file: {} ({})", file,
-                info.tune_duration );
+           info.tune_duration );
   return info;
 }
 
@@ -589,8 +587,8 @@ void midi_thread_impl() {
     g_midi_comm.set_running_commands(
         g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
-      switch_v( cmd.value() ) {
-        case_v( command::play, file ) {
+      switch_( cmd.value() ) {
+        case_( command::play, file ) {
           g_midi_comm.set_state( e_midiseq_state::playing );
           g_midi.value().all_notes_off();
           // ****************************************************
@@ -605,7 +603,7 @@ void midi_thread_impl() {
           if( !maybe_info ) {
             midi_thread_record_failure(
                 "failed to load midi file {}", file );
-            break_v;
+            break_;
           }
           // We've loaded the midi file. Now set all channel vol-
           // umes to maximum. This is because some MIDI files
@@ -616,28 +614,27 @@ void midi_thread_impl() {
           g_midi.value().reset_channel_volumes();
           stem = file.stem();
         }
-        case_v( command::stop ) {
+        case_( command::stop ) {
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::stopped );
           if( stem.has_value() )
-            lg.info( "midi file {} has been stopped.",
-                          stem );
+            lg.info( "midi file {} has been stopped.", stem );
           maybe_info = nullopt;
           stem       = nullopt;
           g_midi_comm.set_progress( nullopt );
         }
-        case_v( command::pause ) {
+        case_( command::pause ) {
           if( g_midi_comm.state() == e_midiseq_state::paused )
-            break_v;
+            break_;
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::paused );
           if( maybe_info.has_value() )
             maybe_info.value().last_pause_time = Clock_t::now();
         }
-        case_v( command::resume ) {
-          if( !maybe_info.has_value() ) break_v;
+        case_( command::resume ) {
+          if( !maybe_info.has_value() ) break_;
           if( g_midi_comm.state() != e_midiseq_state::paused )
-            break_v;
+            break_;
           // We're paused playing a tune.
           g_midi_comm.set_state( e_midiseq_state::playing );
           // We need to add the "missing" time into the stoppage
@@ -650,15 +647,15 @@ void midi_thread_impl() {
             info.last_pause_time = nullopt;
           }
         }
-        case_v( command::off ) {
+        case_( command::off ) {
           g_midi_comm.set_progress( nullopt );
           time_to_go = true;
           stem       = nullopt;
         }
-        case_v( command::volume, value ) {
+        case_( command::volume, value ) {
           g_midi.value().set_master_volume( value );
         }
-        default_v;
+        switch_exhaustive;
       }
     }
     if( time_to_go ) return;
@@ -725,7 +722,7 @@ void midi_thread() {
   g_midi->all_notes_off();
   if( g_midi_comm.state() == e_midiseq_state::failed ) {
     lg.error( "MIDI thread failed: {}",
-                   g_midi_comm.last_error() );
+              g_midi_comm.last_error() );
     g_midi.reset();
     // Not sure the best way to do this, but it seems that we get
     // a crash when destroying the std::thread object if the

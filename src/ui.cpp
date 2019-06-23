@@ -18,29 +18,22 @@ namespace rn::ui {
 namespace {} // namespace
 
 bool Object::input( input::event_t const& event ) {
-  return switch_v( event ) {
-    case_v( input::unknown_event_t ) { //
-      return false;
-    }
-    case_v( input::quit_event_t ) { //
-      return false;
-    }
-    case_v( input::key_event_t ) { //
-      return on_key( val );
-    }
-    case_v( input::mouse_wheel_event_t ) { //
-      return on_wheel( val );
-    }
-    case_v( input::mouse_move_event_t ) { //
-      return on_mouse_move( val );
-    }
-    case_v( input::mouse_button_event_t ) { //
-      return on_mouse_button( val );
-    }
-    case_v( input::mouse_drag_event_t ) { //
-      return false;
-    }
-    default_v;
+  return matcher_( event ) {
+    case_( input::unknown_event_t ) //
+        result_ false;
+    case_( input::quit_event_t ) //
+        result_ false;
+    case_( input::key_event_t ) //
+        result_ on_key( val );
+    case_( input::mouse_wheel_event_t ) //
+        result_ on_wheel( val );
+    case_( input::mouse_move_event_t ) //
+        result_ on_mouse_move( val );
+    case_( input::mouse_button_event_t ) //
+        result_ on_mouse_button( val );
+    case_( input::mouse_drag_event_t ) //
+        result_ false;
+    matcher_exhaustive;
   };
 }
 

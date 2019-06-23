@@ -532,10 +532,10 @@ struct ViewportPlane : public Plane {
   }
   bool input( input::event_t const& event ) override {
     bool handled = false;
-    switch_v( event ) {
-      case_v( input::unknown_event_t ) {}
-      case_v( input::quit_event_t ) {}
-      case_v( input::key_event_t ) {
+    switch_( event ) {
+      case_( input::unknown_event_t ) {}
+      case_( input::quit_event_t ) {}
+      case_( input::key_event_t ) {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
@@ -546,13 +546,13 @@ struct ViewportPlane : public Plane {
         // lowercase.
         if( state( ::SDL_SCANCODE_LSHIFT ) ||
             state( ::SDL_SCANCODE_RSHIFT ) )
-          break_v;
+          break_;
 
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
-          break_v;
-        switch_v( g_viewport_state ) {
-          case_v( viewport_state::none ) {
+          break_;
+        switch_( g_viewport_state ) {
+          case_( viewport_state::none ) {
             switch( key_event.keycode ) {
               case ::SDLK_z:
                 viewport().smooth_zoom_target( 1.0 );
@@ -560,9 +560,9 @@ struct ViewportPlane : public Plane {
               default: break;
             }
           }
-          case_v( viewport_state::slide_unit ) {}
-          case_v( viewport_state::depixelate_unit ) {}
-          case_v( viewport_state::blink_unit ) {
+          case_( viewport_state::slide_unit ) {}
+          case_( viewport_state::depixelate_unit ) {}
+          case_( viewport_state::blink_unit ) {
             auto& blink_unit = val;
             handled          = true;
             switch( key_event.keycode ) {
@@ -604,10 +604,10 @@ struct ViewportPlane : public Plane {
                 break;
             }
           }
-          default_v;
+          switch_exhaustive;
         }
       }
-      case_v( input::mouse_wheel_event_t ) {
+      case_( input::mouse_wheel_event_t ) {
         // If the mouse is in the viewport and its a wheel event
         // then we are in business.
         if( viewport().screen_coord_in_viewport( val.pos ) ) {
@@ -624,9 +624,9 @@ struct ViewportPlane : public Plane {
           handled = true;
         }
       }
-      case_v( input::mouse_button_event_t ) {
+      case_( input::mouse_button_event_t ) {
         if( val.buttons != input::e_mouse_button_event::left_up )
-          break_v;
+          break_;
         auto maybe_tile =
             viewport().screen_pixel_to_world_tile( val.pos );
         // See if the cursor has clicked on a tile in the
@@ -674,7 +674,7 @@ struct ViewportPlane : public Plane {
           handled = true;
         }
       }
-      default_v_no_check;
+      switch_non_exhaustive;
     }
     return handled;
   }
