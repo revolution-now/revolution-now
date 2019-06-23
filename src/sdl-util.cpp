@@ -52,8 +52,8 @@ void check_compile_link_version(
   lg.info( "SDL {}: compiled with version: {}.{}.{}",
            module_name, compiled_version.major,
            compiled_version.minor, compiled_version.patch );
-  lg.info( "SDL {}: running with version: {}.{}.{}", module_name,
-           link_version->major, link_version->minor,
+  lg.info( "SDL {}:  running with version: {}.{}.{}",
+           module_name, link_version->major, link_version->minor,
            link_version->patch );
   CHECK( compiled_version.major == link_version->major,
          "This game was compiled with a version of SDL {} whose "
