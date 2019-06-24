@@ -237,10 +237,46 @@ private:
   Coord origin_{};
 };
 
+// This object represents the dock, which can change in length.
+class Dock {
+  static constexpr Delta dock_block_pixels{32_w, 32_h};
+
+public:
+  Rect bounds() const {
+    return Rect::from(
+        origin_, Delta{dock_block_pixels.w * length_in_blocks_,
+                       dock_block_pixels.h} );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    (void)tx;
+    (void)offset;
+  }
+
+  Dock( Dock&& ) = default;
+  Dock& operator=( Dock&& ) = default;
+
+  static Opt<Dock> create(
+      Delta const&            size,
+      Opt<ActiveCargo> const& maybe_active_cargo ) {
+    Opt<Dock> res;
+    if( maybe_active_cargo ) {
+      (void)size; //
+    }
+    return res;
+  }
+
+private:
+  Dock() = default;
+  Dock( Coord origin, SX length_in_blocks )
+    : origin_( origin ), length_in_blocks_( length_in_blocks ) {}
+  Coord origin_{};
+  SX    length_in_blocks_{};
+};
+
 //- Outbound ships
 //- Inbound ships
 //- Ships in dock
-//- Dock
 //- Units on dock
 //- Exit button
 //- Buttons
