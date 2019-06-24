@@ -339,6 +339,9 @@ bool send_input_to_planes( input::event_t const& event ) {
                        prj_drag_event.state.origin,
                        prj_drag_event.prev, //
                        prj_drag_event.pos );
+        // Sanity check that we copied properly.
+        DCHECK( prj_drag_event.state.phase ==
+                drag_event->state.phase );
         // If the drag is finished then send out that event.
         if( prj_drag_event.state.phase == +e_drag_phase::end ) {
           lg.debug( "finished `{}` drag event",
@@ -417,6 +420,9 @@ bool send_input_to_planes( input::event_t const& event ) {
                     ? project_drag_event(
                           *drag_event, *g_drag_state.projection )
                     : *drag_event;
+            // Sanity check that we copied properly.
+            DCHECK( prj_drag_event.state.phase ==
+                    drag_event->state.phase );
             plane->on_drag( prj_drag_event.button,
                             prj_drag_event.state.origin,
                             prj_drag_event.prev, //
