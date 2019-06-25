@@ -57,24 +57,6 @@ namespace rn::input {
 
 namespace {
 
-// This function returns the list of events that we care about
-// from SDL in this game.
-auto const& relevant_sdl_events() {
-  static auto constexpr events =
-      array<::SDL_EventType, 11>{::SDL_QUIT,
-                                 ::SDL_APP_TERMINATING,
-                                 ::SDL_WINDOWEVENT,
-                                 ::SDL_KEYDOWN,
-                                 ::SDL_KEYUP,
-                                 ::SDL_TEXTEDITING,
-                                 ::SDL_TEXTINPUT,
-                                 ::SDL_MOUSEMOTION,
-                                 ::SDL_MOUSEBUTTONDOWN,
-                                 ::SDL_MOUSEBUTTONUP,
-                                 ::SDL_MOUSEWHEEL};
-  return events;
-}
-
 // This is used to hold the last "measured" mouse position, where
 // "measured" means the last time there was a mouse motion event
 // that we processed in this module.  Clients cannot see this
@@ -110,8 +92,6 @@ bool is_in_drag_zone( Coord current, Coord origin ) {
   auto buf   = config_input.controls.drag_buffer;
   return abs( delta.w._ ) > buf || abs( delta.h._ ) > buf;
 }
-
-} // namespace
 
 // Takes an SDL event and converts it to our own event descriptor
 // struct which is easier to deal with. This function's output
@@ -372,51 +352,26 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   base->r_mouse_down =
       bool( g_mouse_buttons & SDL_BUTTON_RMASK );
 
-  /**** Debugging **********************/
-  static bool is_in_drag = false;
-  if_v( event, mouse_drag_event_t, drag_event ) {
-    switch( drag_event->state.phase ) {
-      case +e_drag_phase::begin:
-        // If this triggers then it explains the troubles that
-        // the plane module is having.
-        CHECK( !is_in_drag, "uh-oh" );
-        is_in_drag = true;
-        break;
-      case +e_drag_phase::in_progress:
-        CHECK( is_in_drag, "uh-oh" );
-        break;
-      case +e_drag_phase::end:
-        CHECK( is_in_drag, "uh-oh" );
-        is_in_drag = false;
-        break;
-    }
-  }
-  /*************************************/
   return event;
 }
 
-// FIXME: ::SDL_HasEvent does not seem to work...
-bool has_event() {
-  for( auto event_type : relevant_sdl_events() )
-    if( ::SDL_HasEvent( event_type ) ) return true;
-  return false;
-}
+} // namespace
 
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta ) {
-  input::event_t new_event = event;
+  event_t new_event = event;
   // This serves two purposes: 1) to tell us whether this is a
   // mouse event or not, and 2) to give us the mouse position.
 
   // First, move the current mouse position.
   auto ptr = matcher_( new_event, ->, Coord* ) {
-    case_( input::unknown_event_t ) return nullptr;
-    case_( input::quit_event_t ) return nullptr;
-    case_( input::key_event_t ) return nullptr;
-    case_( input::mouse_wheel_event_t ) return &val.pos;
-    case_( input::mouse_move_event_t ) return &val.pos;
-    case_( input::mouse_button_event_t ) return &val.pos;
-    case_( input::mouse_drag_event_t ) return &val.pos;
+    case_( unknown_event_t ) return nullptr;
+    case_( quit_event_t ) return nullptr;
+    case_( key_event_t ) return nullptr;
+    case_( mouse_wheel_event_t ) return &val.pos;
+    case_( mouse_move_event_t ) return &val.pos;
+    case_( mouse_button_event_t ) return &val.pos;
+    case_( mouse_drag_event_t ) return &val.pos;
     matcher_exhaustive;
   };
   if( ptr ) ( *ptr ) -= delta;
@@ -424,13 +379,13 @@ event_t move_mouse_origin_by( event_t const& event,
   // Second, if mouse move event, move the previous mouse
   // position.
   ptr = matcher_( new_event, ->, Coord* ) {
-    case_( input::unknown_event_t ) return nullptr;
-    case_( input::quit_event_t ) return nullptr;
-    case_( input::key_event_t ) return nullptr;
-    case_( input::mouse_wheel_event_t ) return nullptr;
-    case_( input::mouse_move_event_t ) return &val.prev;
-    case_( input::mouse_button_event_t ) return nullptr;
-    case_( input::mouse_drag_event_t ) return nullptr;
+    case_( unknown_event_t ) return nullptr;
+    case_( quit_event_t ) return nullptr;
+    case_( key_event_t ) return nullptr;
+    case_( mouse_wheel_event_t ) return nullptr;
+    case_( mouse_move_event_t ) return &val.prev;
+    case_( mouse_button_event_t ) return nullptr;
+    case_( mouse_drag_event_t ) return nullptr;
     matcher_exhaustive;
   };
   if( ptr ) ( *ptr ) -= delta;
@@ -439,26 +394,26 @@ event_t move_mouse_origin_by( event_t const& event,
 
 bool is_mouse_event( event_t const& event ) {
   return matcher_( event ) {
-    case_( input::unknown_event_t ) return false;
-    case_( input::quit_event_t ) return false;
-    case_( input::key_event_t ) return false;
-    case_( input::mouse_wheel_event_t ) return true;
-    case_( input::mouse_move_event_t ) return true;
-    case_( input::mouse_button_event_t ) return true;
-    case_( input::mouse_drag_event_t ) return true;
+    case_( unknown_event_t ) return false;
+    case_( quit_event_t ) return false;
+    case_( key_event_t ) return false;
+    case_( mouse_wheel_event_t ) return true;
+    case_( mouse_move_event_t ) return true;
+    case_( mouse_button_event_t ) return true;
+    case_( mouse_drag_event_t ) return true;
     matcher_exhaustive;
   }
 }
 
 Opt<CRef<Coord>> mouse_position( event_t const& event ) {
   return matcher_( event, ->, Opt<CRef<Coord>> ) {
-    case_( input::unknown_event_t ) return nullopt;
-    case_( input::quit_event_t ) return nullopt;
-    case_( input::key_event_t ) return nullopt;
-    case_( input::mouse_wheel_event_t ) return val.pos;
-    case_( input::mouse_move_event_t ) return val.pos;
-    case_( input::mouse_button_event_t ) return val.pos;
-    case_( input::mouse_drag_event_t ) return val.pos;
+    case_( unknown_event_t ) return nullopt;
+    case_( quit_event_t ) return nullopt;
+    case_( key_event_t ) return nullopt;
+    case_( mouse_wheel_event_t ) return val.pos;
+    case_( mouse_move_event_t ) return val.pos;
+    case_( mouse_button_event_t ) return val.pos;
+    case_( mouse_drag_event_t ) return val.pos;
     matcher_exhaustive;
   };
 }
@@ -494,60 +449,112 @@ mouse_move_event_t drag_event_to_mouse_motion_event(
   return res;
 }
 
-Opt<event_t> poll_event() {
+/****************************************************************
+** Event Queue
+*****************************************************************/
+namespace {
+
+// This function returns the list of events that we care about
+// from SDL in this game.
+auto const& relevant_sdl_events() {
+  static auto constexpr events =
+      array<::SDL_EventType, 11>{::SDL_QUIT,
+                                 ::SDL_APP_TERMINATING,
+                                 ::SDL_WINDOWEVENT,
+                                 ::SDL_KEYDOWN,
+                                 ::SDL_KEYUP,
+                                 ::SDL_TEXTEDITING,
+                                 ::SDL_TEXTINPUT,
+                                 ::SDL_MOUSEMOTION,
+                                 ::SDL_MOUSEBUTTONDOWN,
+                                 ::SDL_MOUSEBUTTONUP,
+                                 ::SDL_MOUSEWHEEL};
+  return events;
+}
+
+bool is_relevant_event_type( ::SDL_EventType type ) {
+  for( auto t : relevant_sdl_events() )
+    if( t == type ) return true;
+  return false;
+}
+
+// Unfortunately SDL_Event::type is a 32 bit int, while
+// ::SDL_EventType is an enum.
+bool is_relevant_event_type( ::Uint32 type ) {
+  return is_relevant_event_type( ::SDL_EventType( type ) );
+}
+
+Opt<::SDL_Event> next_sdl_event() {
+  ::SDL_PumpEvents();
   ::SDL_Event event;
-  if( ::SDL_PollEvent( &event ) != 0 ) {
+  if( ::SDL_PollEvent( &event ) != 0 ) return event;
+  return nullopt;
+}
+
+} // namespace
+
+// Not yet sure when we would need this.
+bool has_event() {
+  WARNING_THIS_FUNCTION_HAS_NOT_BEEN_TESTED;
+  ::SDL_PumpEvents();
+  for( auto event_type : relevant_sdl_events() )
+    if( ::SDL_HasEvent( event_type ) ) //
+      return true;
+  return false;
+}
+
+Opt<event_t> next_event() {
+  while( auto event = next_sdl_event() ) {
+    if( !is_relevant_event_type( event->type ) ) continue;
     // First check if it's an event that we can handle here, oth-
-    // erwise convert it to the input::event data structure and
-    // return it.
-    switch( event.type ) {
+    // erwise convert it to the event data structure and return
+    // it.
+    switch( event->type ) {
       case ::SDL_WINDOWEVENT: {
-        if( event.window.event ==
-            ::SDL_WINDOWEVENT_SIZE_CHANGED ) {
+        // FIXME: this is icky here.
+        if( event->window.event ==
+            ::SDL_WINDOWEVENT_SIZE_CHANGED )
           on_main_window_resized();
-          return {};
-        }
         break;
       }
-      default: return from_SDL( event );
+      default: //
+        return from_SDL( *event );
     }
   }
   return nullopt;
 }
 
 void eat_all_events() {
-  while( poll_event() ) {}
+  while( next_event() ) {}
 }
 
 /****************************************************************
 ** For Testing
 *****************************************************************/
 void wait_for_q() {
-  bool        running = true;
-  ::SDL_Event event;
-  while( running ) {
-    while( ::SDL_PollEvent( &event ) != 0 ) {
-      if( event.type == SDL_KEYDOWN &&
-          event.key.keysym.sym == ::SDLK_q )
-        running = false;
+  while( true ) {
+    while( auto event = next_sdl_event() ) {
+      if( event->type == ::SDL_KEYDOWN &&
+          event->key.keysym.sym == ::SDLK_q )
+        return;
     }
     ::SDL_Delay( 50 );
   }
 }
 
 bool is_any_key_down() {
-  // must poll events in order for key state to be populated,
-  // although we don't care about the event here.
-  poll_event();
+  // must pump events in order for key state to be populated, al-
+  // though we don't care about the event here.
+  ::SDL_PumpEvents();
   int         count = 0;
-  auto const* state = SDL_GetKeyboardState( &count );
+  auto const* state = ::SDL_GetKeyboardState( &count );
   return any_of( state, state + count, L( _ != 0 ) );
 }
 
 bool is_q_down() {
-  // must poll events in order for key state to be populated,
-  // although we don't care about the event here.
-  poll_event();
+  // must pump events in order for key state to be populated, al-
+  // though we don't care about the event here.
+  ::SDL_PumpEvents();
   auto const* state = ::SDL_GetKeyboardState( nullptr );
   return state[::SDL_SCANCODE_Q];
 }

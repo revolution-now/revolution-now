@@ -290,13 +290,6 @@ bool send_input_to_planes( input::event_t const& event ) {
       auto& plane = Plane::get( *g_drag_state.plane );
       CHECK( plane.enabled() );
       // Drag should already be in progress.
-      //
-      // FIXME: It seems that this can fire in very rare circum-
-      // stances. If it happens again, try adding an error log-
-      // ging statement into the input module when it tries to
-      // send to e_drag_phase::begin events in succession. That
-      // will tell us if the problem is this module or the input
-      // module.
       CHECK( drag_event->state.phase != +e_drag_phase::begin );
       if( g_drag_state.send_as_motion ) {
         // The plane wants to be sent this drag event as regular

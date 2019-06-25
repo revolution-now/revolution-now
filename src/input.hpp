@@ -132,12 +132,12 @@ using event_t = std::variant<
 >;
 // clang-format on
 
-Opt<event_t> poll_event();
-
 // Returns true if there is an event waiting in the queue that is
 // relevant to RN.
-// FIXME: this function does not seem to work...
 ND bool has_event();
+// Go through SDL's event queue and eat up all events that are
+// not relevant and then return the first one that is, if any.
+ND Opt<event_t> next_event();
 
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-

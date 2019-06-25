@@ -36,16 +36,13 @@ MovingAverage<3 /*seconds*/> frame_rate;
 
 EventCountMap g_event_counts;
 
-// Returns true if there is any pending user input, regardless of
-// whether it is actually handled or not. FIXME: we only need to
-// return this bool because SDL's SDL_HasEvent function does not
-// seem to work.
+// Returns true if any input was received.
 ND bool take_input() {
   bool received_input = false;
-  while( auto event = input::poll_event() ) {
+  while( auto event = input::next_event() ) {
     // Just in case we have resized the main window we need to
     // call this before dispatching it to the planes.
-    viewport().enforce_invariants();
+    viewport().enforce_invariants(); // FIXME: this is icky here.
     send_input_to_planes( *event );
     received_input = true;
   }

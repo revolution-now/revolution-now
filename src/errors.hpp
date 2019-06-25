@@ -50,6 +50,11 @@
       "the implementation of this function must be improved " \
       "before use" )
 
+#define WARNING_THIS_FUNCTION_HAS_NOT_BEEN_TESTED         \
+  FATAL_(                                                 \
+      "the implementation of this function has not been " \
+      "verified." )
+
 // This is used to wrap calls to fmt::format that want
 // compile-time format string checking. It assumes that the first
 // argument is some kind of constexpr expression (maybe has to
