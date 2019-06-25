@@ -32,4 +32,5 @@ menus {
   padding: 6
   spacing: 0
   body_min_width: 120 # must be a multiple of 8
+  font: _7_12_serif_16pt
 }

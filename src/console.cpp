@@ -11,6 +11,7 @@
 #include "console.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "coord.hpp"
 #include "fonts.hpp"
 #include "frame.hpp"
@@ -18,6 +19,9 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+
+// Revolution Now (config)
+#include "../config/ucl/rn.inl"
 
 using namespace std;
 
@@ -54,7 +58,8 @@ struct ConsolePlane : public Plane {
     //{
     //  auto mouse_coords = fmt::format( "unscaled: {}", mouse );
     //  auto mouse_coords_tx = render_text_line_solid(
-    //      fonts::standard(), Color::white(), mouse_coords );
+    //      config_rn.console.font, Color::white(), mouse_coords
+    //      );
     //  copy_texture( mouse_coords_tx, tx, info_start );
     //  info_start += mouse_coords_tx.size().h;
     //}
@@ -65,7 +70,8 @@ struct ConsolePlane : public Plane {
     //{
     //  auto mouse_coords = fmt::format( "  scaled: {}", mouse );
     //  auto mouse_coords_tx = render_text_line_solid(
-    //      fonts::standard(), Color::white(), mouse_coords );
+    //      config_rn.console.font, Color::white(), mouse_coords
+    //      );
     //  copy_texture( mouse_coords_tx, tx, info_start );
     //  info_start += mouse_coords_tx.size().h;
     //}
@@ -75,7 +81,7 @@ struct ConsolePlane : public Plane {
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
     auto frame_rate_tx = render_text_line_solid(
-        fonts::standard(), Color::white(), frame_rate );
+        config_rn.console.font, Color::white(), frame_rate );
     copy_texture( frame_rate_tx, tx,
                   info_start - frame_rate_tx.size() );
     info_start -= frame_rate_tx.size().h;
@@ -85,7 +91,7 @@ struct ConsolePlane : public Plane {
 
     auto dashes    = fmt::format( "--------------------" );
     auto dashes_tx = render_text_line_solid(
-        fonts::standard(), text_color, dashes );
+        config_rn.console.font, text_color, dashes );
     copy_texture( dashes_tx, tx, info_start - dashes_tx.size() );
     info_start -= dashes_tx.size().h;
 
@@ -94,7 +100,7 @@ struct ConsolePlane : public Plane {
           "{}/f: {}", name,
           std::lround( mv_avg.average() / avg_frame_rate() ) );
       auto src_tx = render_text_line_solid(
-          fonts::standard(), text_color, formatted );
+          config_rn.console.font, text_color, formatted );
       copy_texture( src_tx, tx, info_start - src_tx.size() );
       info_start -= src_tx.size().h;
     }
@@ -108,7 +114,7 @@ struct ConsolePlane : public Plane {
     for( auto i = log_start; i < dbg_log.size(); ++i ) {
       CHECK( i < dbg_log.size() );
       auto src_tx = render_text_line_solid(
-          fonts::standard(), text_color, dbg_log[i] );
+          config_rn.console.font, text_color, dbg_log[i] );
       copy_texture( src_tx, tx, log_px_start );
       log_px_start += src_tx.size().h;
     }

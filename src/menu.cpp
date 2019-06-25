@@ -599,17 +599,17 @@ ItemTextures render_menu_element( string_view const text,
         /*normal=*/active_color,
         /*highlight=*/active_color.highlighted( 3 )};
 
-    inactive = render_text_markup( fonts::standard(),
+    inactive = render_text_markup( config_ui.menus.font,
                                    inactive_info, mk_text );
-    active = render_text_markup( fonts::standard(), active_info,
-                                 mk_text );
+    active   = render_text_markup( config_ui.menus.font,
+                                 active_info, mk_text );
   } else {
-    inactive = render_text_line_shadow( fonts::standard(),
+    inactive = render_text_line_shadow( config_ui.menus.font,
                                         inactive_color, text );
-    active   = render_text_line_shadow( fonts::standard(),
+    active   = render_text_line_shadow( config_ui.menus.font,
                                       active_color, text );
   }
-  auto disabled = render_text_line_solid( fonts::standard(),
+  auto disabled = render_text_line_solid( config_ui.menus.font,
                                           disabled_color, text );
   // Need to do this first before moving.
   auto width = std::max(

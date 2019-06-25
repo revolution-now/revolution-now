@@ -4,6 +4,7 @@
 #ifndef RN_INL
 #define RN_INL
 
+#include "../../src/fonts.hpp"
 #include "../../src/nation.hpp"
 
 namespace rn {
@@ -30,6 +31,10 @@ CFG( rn,
 
   OBJ( controls,
     FLD( int, drag_buffer )
+  )
+
+  OBJ( console,
+    FLD( e_font, font )
   )
 )
 

@@ -4,6 +4,8 @@
 #ifndef UI_INL
 #define UI_INL
 
+#include "../../src/fonts.hpp"
+
 namespace rn {
 
 CFG( ui,
@@ -26,10 +28,11 @@ CFG( ui,
   FLD( Vec<rn::W>, widths )
 
   OBJ( menus,
-    FLD( rn::W, first_menu_start )
-    FLD( rn::W, padding )
-    FLD( rn::W, spacing )
-    FLD( rn::W, body_min_width )
+    FLD( rn::W,  first_menu_start )
+    FLD( rn::W,  padding )
+    FLD( rn::W,  spacing )
+    FLD( rn::W,  body_min_width )
+    FLD( e_font, font )
   )
 )
 

@@ -93,17 +93,17 @@ Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
   return line_frags;
 }
 
-Texture render_markup( MarkedUpText const&   mk,
+Texture render_markup( e_font font, MarkedUpText const& mk,
                        TextMarkupInfo const& info ) {
   auto fg = mk.style.highlight ? info.highlight : info.normal;
-  return render_text_line_solid( fonts::standard(), fg,
-                                 mk.text );
+  return render_text_line_solid( font, fg, mk.text );
 }
 
-Texture render_line_markup( vector<MarkedUpText> const& mks,
+Texture render_line_markup( e_font                      font,
+                            vector<MarkedUpText> const& mks,
                             TextMarkupInfo const&       info ) {
   auto renderer = [&]( MarkedUpText const& mk ) {
-    return render_markup( mk, info );
+    return render_markup( font, mk, info );
   };
   vector<Texture> txs =
       mks                                        //
@@ -124,10 +124,11 @@ Texture render_line_markup( vector<MarkedUpText> const& mks,
   return res;
 }
 
-Texture render_lines( Vec<Vec<MarkedUpText>> const& mk_text,
+Texture render_lines( e_font                        font,
+                      Vec<Vec<MarkedUpText>> const& mk_text,
                       TextMarkupInfo const&         info ) {
   auto renderer = [&]( auto const& mks ) {
-    return render_line_markup( mks, info );
+    return render_line_markup( font, mks, info );
   };
   auto txs = util::map( renderer, mk_text );
   auto h   = rg::accumulate(
@@ -146,10 +147,10 @@ Texture render_lines( Vec<Vec<MarkedUpText>> const& mk_text,
 
 } // namespace
 
-Texture render_text_markup( e_font /*unused*/,
+Texture render_text_markup( e_font                font,
                             TextMarkupInfo const& info,
                             std::string_view      text ) {
-  return render_lines( parse_text( text ), info );
+  return render_lines( font, parse_text( text ), info );
 }
 
 // Will flatten the text onto one line, then wrap it to within
@@ -175,7 +176,7 @@ Texture render_text_markup( e_font /*unused*/,
 //        in a Vec<Vec<MarkedUpText>>.
 //     7) Render marked up lines.
 
-Texture render_text_markup_reflow( e_font /*unused*/,
+Texture render_text_markup_reflow( e_font                font,
                                    TextMarkupInfo const& info,
                                    std::string_view      text,
                                    int max_cols ) {
@@ -261,7 +262,7 @@ Texture render_text_markup_reflow( e_font /*unused*/,
   CHECK( reflowed.size() == wrapped.size() );
 
   // (7)
-  return render_lines( reflowed, info );
+  return render_lines( font, reflowed, info );
 }
 
 void text_render_test() {

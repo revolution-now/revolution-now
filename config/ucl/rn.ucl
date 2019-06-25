@@ -28,3 +28,7 @@ controls {
   # intending to drag.
   drag_buffer: 3
 }
+
+console {
+  font: _6x6
+}
