@@ -72,7 +72,7 @@ function! MyTabLine()
     if i + 1 == tabpagenr()
       let s .= '%#TabLineSel#'
     elseif i + 1 == g:focused_tab
-      let s .= '%#Keyword#'
+      let s .= '%#Todo#'
     else
       let s .= '%#TabLine#'
     endif
