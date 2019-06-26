@@ -128,6 +128,9 @@ struct ND Delta {
   // Returns the length of the diagonal according to Pythagoras.
   double diagonal() const;
 
+  Delta mirrored_vertically() const { return {w, -h}; }
+  Delta mirrored_horizontally() const { return {-w, h}; }
+
   // Will project this delta along the given one; the length of
   // the returned delta will generally be different than this
   // one.
@@ -414,9 +417,9 @@ ND inline constexpr Delta operator*( Delta const& delta,
 }
 ND Coord operator*( Scale const& scale, Coord const& coord );
 ND Delta operator*( Scale const& scale, Delta const& delta );
-ND Rect operator*( Rect const& rect, Scale const& scale );
-ND Rect operator*( Scale const& scale, Rect const& rect );
-ND Rect operator/( Rect const& rect, Scale const& scale );
+ND Rect  operator*( Rect const& rect, Scale const& scale );
+ND Rect  operator*( Scale const& scale, Rect const& rect );
+ND Rect  operator/( Rect const& rect, Scale const& scale );
 ND Coord operator/( Coord const& coord, Scale const& scale );
 ND Delta operator/( Delta const& delta, Scale const& scale );
 ND Delta operator%( Coord const& coord, Scale const& scale );

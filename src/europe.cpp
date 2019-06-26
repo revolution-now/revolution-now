@@ -20,6 +20,8 @@
 #include "tiles.hpp"
 #include "variant.hpp"
 
+using namespace std;
+
 namespace rn {
 
 namespace {
@@ -238,6 +240,54 @@ private:
 };
 
 // This object represents the dock, which can change in length.
+class DockAnchor {
+  static constexpr Delta cross_leg_size{5_w, 5_h};
+  static constexpr H     above_active_cargo{16_h};
+
+public:
+  Rect bounds() const {
+    return Rect::from( location_ - cross_leg_size,
+                       cross_leg_size * Scale{2} );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    // This mess just draws an X.
+    render_line( tx, Color::white(),
+                 location_ - cross_leg_size + offset,
+                 cross_leg_size * Scale{2} + Delta{1_w, 1_h} );
+    render_line(
+        tx, Color::white(),
+        location_ - cross_leg_size.mirrored_vertically() +
+            offset,
+        cross_leg_size.mirrored_vertically() * Scale{2} +
+            Delta{1_w, -1_h} );
+  }
+
+  DockAnchor( DockAnchor&& ) = default;
+  DockAnchor& operator=( DockAnchor&& ) = default;
+
+  static Opt<DockAnchor> create(
+      Delta const&            size,
+      Opt<ActiveCargo> const& maybe_active_cargo ) {
+    Opt<DockAnchor> res;
+    if( maybe_active_cargo ) {
+      res = DockAnchor{};
+      auto active_cargo_top =
+          maybe_active_cargo->bounds().top_edge();
+      res->location_.y = active_cargo_top - above_active_cargo;
+      res->location_.x = 0_x + size.w - 32_w;
+      if( res->location_.y < 0_y ) res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  DockAnchor() = default;
+  DockAnchor( Coord location ) : location_( location ) {}
+  Coord location_{};
+};
+
+// This object represents the dock, which can change in length.
 class Dock {
   static constexpr Delta dock_block_pixels{32_w, 32_h};
 
@@ -257,8 +307,8 @@ public:
   Dock& operator=( Dock&& ) = default;
 
   static Opt<Dock> create(
-      Delta const&            size,
-      Opt<ActiveCargo> const& maybe_active_cargo ) {
+      Delta const&           size,
+      Opt<DockAnchor> const& maybe_active_cargo ) {
     Opt<Dock> res;
     if( maybe_active_cargo ) {
       (void)size; //
@@ -286,6 +336,7 @@ private:
 struct Entities {
   Opt<MarketCommodities> market_commodities;
   Opt<ActiveCargo>       active_cargo;
+  Opt<DockAnchor>        dock_anchor;
 };
 
 void create_entities( Entities* entities ) {
@@ -294,6 +345,8 @@ void create_entities( Entities* entities ) {
   entities->active_cargo = //
       ActiveCargo::create( g_clip,
                            entities->market_commodities );
+  entities->dock_anchor = //
+      DockAnchor::create( g_clip, entities->active_cargo );
 }
 
 void draw_entities( Texture const&  tx,
@@ -303,6 +356,8 @@ void draw_entities( Texture const&  tx,
     entities.market_commodities->draw( tx, offset );
   if( entities.active_cargo.has_value() )
     entities.active_cargo->draw( tx, offset );
+  if( entities.dock_anchor.has_value() )
+    entities.dock_anchor->draw( tx, offset );
 }
 
 } // namespace entity

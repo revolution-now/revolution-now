@@ -81,7 +81,9 @@ struct TypedInt : public TypedIntMinimal<Tag> {
   constexpr bool operator!=( TypedInt<Tag> other ) const {
     return P::_ != other._;
   }
-  TypedInt<Tag> operator-() { return TypedInt<Tag>( -P::_ ); }
+  TypedInt<Tag> operator-() const {
+    return TypedInt<Tag>( -P::_ );
+  }
   void          operator++( int ) { ++P::_; }
   TypedInt<Tag> operator++() { return TypedInt<Tag>( P::_++ ); }
   void          operator--( int ) { --P::_; }
