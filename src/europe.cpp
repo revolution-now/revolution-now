@@ -14,6 +14,7 @@
 #include "coord.hpp"
 #include "init.hpp"
 #include "input.hpp"
+#include "logging.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -242,7 +243,7 @@ private:
 // This object represents the dock, which can change in length.
 class DockAnchor {
   static constexpr Delta cross_leg_size{5_w, 5_h};
-  static constexpr H     above_active_cargo{16_h};
+  static constexpr H     above_active_cargo{32_h};
 
 public:
   Rect bounds() const {
@@ -267,16 +268,26 @@ public:
   DockAnchor& operator=( DockAnchor&& ) = default;
 
   static Opt<DockAnchor> create(
-      Delta const&            size,
-      Opt<ActiveCargo> const& maybe_active_cargo ) {
+      Delta const&                  size,
+      Opt<ActiveCargo> const&       maybe_active_cargo,
+      Opt<MarketCommodities> const& maybe_market_commodities ) {
     Opt<DockAnchor> res;
-    if( maybe_active_cargo ) {
-      res = DockAnchor{};
+    if( maybe_active_cargo && maybe_market_commodities ) {
       auto active_cargo_top =
           maybe_active_cargo->bounds().top_edge();
-      res->location_.y = active_cargo_top - above_active_cargo;
-      res->location_.x = 0_x + size.w - 32_w;
-      if( res->location_.y < 0_y ) res = nullopt;
+      auto location_y = active_cargo_top - above_active_cargo;
+      auto location_x =
+          maybe_market_commodities->bounds().right_edge() - 32_w;
+      auto x_upper_bound = 0_x + size.w - 64_w;
+      auto x_lower_bound =
+          maybe_active_cargo->bounds().right_edge();
+      if( x_upper_bound < x_lower_bound ) return res;
+      location_x =
+          std::clamp( location_x, x_lower_bound, x_upper_bound );
+      if( location_y < 0_y ) return res;
+      res              = DockAnchor{};
+      res->location_.x = location_x;
+      res->location_.y = location_y;
     }
     return res;
   }
@@ -342,11 +353,13 @@ struct Entities {
 void create_entities( Entities* entities ) {
   entities->market_commodities = //
       MarketCommodities::create( g_clip );
-  entities->active_cargo = //
-      ActiveCargo::create( g_clip,
+  entities->active_cargo =         //
+      ActiveCargo::create( g_clip, //
                            entities->market_commodities );
-  entities->dock_anchor = //
-      DockAnchor::create( g_clip, entities->active_cargo );
+  entities->dock_anchor =                         //
+      DockAnchor::create( g_clip,                 //
+                          entities->active_cargo, //
+                          entities->market_commodities );
 }
 
 void draw_entities( Texture const&  tx,
