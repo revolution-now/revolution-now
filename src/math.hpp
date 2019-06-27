@@ -40,7 +40,7 @@ namespace rn {
 // "now".
 //
 // Ideally we'd be able to use nanoseconds here as the template
-// parameter.
+// parameter (FIXME: C++20 will allow this!)
 //
 // Note: these are non-copyable and non-movable to simplify
 // implementation. If we were to move or copy them then we'd have
