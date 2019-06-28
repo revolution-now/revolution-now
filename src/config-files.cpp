@@ -631,7 +631,7 @@ vector<string> get_all_fields( ucl::Ucl const& obj ) {
 }
 
 void init_configs() {
-  lg.info( "Reading config files." );
+  lg.info( "reading config files." );
   for( auto const& f : load_functions() ) f();
   for( auto [ucl_name, file] : config_files() ) {
     // cout << "Loading file " << file << "\n";

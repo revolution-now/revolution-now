@@ -49,12 +49,12 @@ int g_next_texture_id{1};
 void check_compile_link_version(
     string_view module_name, ::SDL_version const* link_version,
     ::SDL_version const& compiled_version ) {
-  lg.info( "SDL {}: compiled with version: {}.{}.{}",
-           module_name, compiled_version.major,
-           compiled_version.minor, compiled_version.patch );
-  lg.info( "SDL {}:  running with version: {}.{}.{}",
-           module_name, link_version->major, link_version->minor,
-           link_version->patch );
+  lg.debug( "SDL {}: compiled with version: {}.{}.{}",
+            module_name, compiled_version.major,
+            compiled_version.minor, compiled_version.patch );
+  lg.debug( "SDL {}:  running with version: {}.{}.{}",
+            module_name, link_version->major,
+            link_version->minor, link_version->patch );
   CHECK( compiled_version.major == link_version->major,
          "This game was compiled with a version of SDL {} whose "
          "major version number ({}) is different from the major "
@@ -134,7 +134,7 @@ void init_sdl() {
          "sdl could not initialize" );
 
   auto power_info = machine_power_info();
-  lg.info( "Power Info: {}, Battery: {}%",
+  lg.info( "power info: {}, Battery: {}%",
            power_info.power_state,
            power_info.battery_percentage );
 }

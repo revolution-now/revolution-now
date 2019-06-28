@@ -469,7 +469,7 @@ void on_renderer_scale_factor_changed() {
   auto logical_size = main_window_logical_size();
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
                               logical_size.h._ );
-  lg.info( "Scale factor changed: {}", logical_size );
+  lg.info( "scale factor changed: {}", logical_size );
 }
 
 } // namespace rn
