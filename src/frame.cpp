@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "input.hpp"
+#include "macros.hpp"
 #include "math.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -91,6 +92,7 @@ struct FrameSubscriptionTime {
 
 using FrameSubscription =
     variant<FrameSubscriptionTick, FrameSubscriptionTime>;
+ASSERT_NOTHROW_MOVING( FrameSubscription );
 
 vector<FrameSubscription>& subscriptions() {
   static vector<FrameSubscription> subs;

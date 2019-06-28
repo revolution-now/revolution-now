@@ -16,6 +16,7 @@
 #include "analysis.hpp"
 #include "combat.hpp"
 #include "job.hpp"
+#include "macros.hpp"
 #include "travel.hpp"
 
 // C++ standard library
@@ -33,6 +34,7 @@ using PlayerIntent = std::variant<
     TravelAnalysis,
     // If the move is toward a foreign unit
     CombatAnalysis>;
+ASSERT_NOTHROW_MOVING( PlayerIntent );
 
 Opt<PlayerIntent> player_intent( UnitId          id,
                                  orders_t const& orders );

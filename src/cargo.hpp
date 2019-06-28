@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "id.hpp"
+#include "macros.hpp"
 #include "util.hpp"
 
 // base-util
@@ -37,6 +38,7 @@ struct ND Commodity {
 // more cargo slots. E.g., it may represent a unit that takes six
 // cargo slots.
 using Cargo = std::variant<UnitId, Commodity>;
+ASSERT_NOTHROW_MOVING( Cargo );
 
 class ND CargoHold : public util::movable_only {
 public:

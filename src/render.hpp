@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "macros.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "unit.hpp"
@@ -120,6 +121,7 @@ using ViewportState = std::variant<
     viewport_state::slide_unit,     // unit moving on the map
     viewport_state::depixelate_unit // unit moving on the map
     >;
+ASSERT_NOTHROW_MOVING( ViewportState );
 
 ViewportState& viewport_rendering_state();
 

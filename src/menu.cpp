@@ -20,6 +20,7 @@
 #include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "macros.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "screen.hpp"
@@ -108,6 +109,7 @@ struct MenuClickable {
 };
 
 using MenuItem = variant<MenuDivider, MenuClickable>;
+ASSERT_NOTHROW_MOVING( MenuItem );
 
 flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
 flat_hash_map<e_menu_item, e_menu>         g_item_to_menu;

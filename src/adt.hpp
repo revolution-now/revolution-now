@@ -20,6 +20,7 @@
 
 // C++ standard library
 #include <string_view>
+#include <type_traits>
 #include <variant>
 
 /****************************************************************
@@ -117,6 +118,10 @@
 
 #define ADT_MAKE_STRUCT_TUPLE( a ) ADT_MAKE_STRUCT a
 
+// Arguably most move constructors/assignment members should be
+// noexcept, but these variants need to have be that way because
+// it allows std::variant to generate more efficient code (in
+// some cases it doesn't have to worry about the empty state).
 #define ADT_IMPL( ns, name, ... )                          \
   DEFER( PP_MAP )                                          \
   ( ADT_MAKE_STRUCT_TUPLE,                                 \
@@ -124,6 +129,10 @@
                           __VA_ARGS__ ) ) namespace ns {   \
     using name##_t = std::variant<PP_MAP_PREPEND_NS(       \
         name, PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) )>; \
+    static_assert(                                         \
+        std::is_nothrow_move_constructible_v<name##_t> );  \
+    static_assert(                                         \
+        std::is_nothrow_move_assignable_v<name##_t> );     \
   }
 
 #define ADT( ns, ... ) EVAL( ADT_IMPL( ns, __VA_ARGS__ ) )

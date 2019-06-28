@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "analysis.hpp"
+#include "macros.hpp"
 #include "unit.hpp"
 
 namespace rn {
@@ -51,6 +52,7 @@ enum class ND e_unit_travel_error {
 
 using unit_travel_verdict =
     std::variant<e_unit_travel_good, e_unit_travel_error>;
+ASSERT_NOTHROW_MOVING( unit_travel_verdict );
 
 struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
   TravelAnalysis( UnitId id_, orders_t orders_,

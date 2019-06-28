@@ -15,6 +15,7 @@
 // Revolution Now
 #include "analysis.hpp"
 #include "fight.hpp"
+#include "macros.hpp"
 #include "unit.hpp"
 
 // C++ standard library
@@ -42,6 +43,7 @@ enum class ND e_attack_error {
 
 using unit_combat_verdict =
     std::variant<e_attack_good, e_attack_error>;
+ASSERT_NOTHROW_MOVING( unit_combat_verdict );
 
 struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   CombatAnalysis( UnitId id_, orders_t orders_,

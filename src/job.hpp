@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "analysis.hpp"
+#include "macros.hpp"
 
 // C++ standard library
 #include <variant>
@@ -26,6 +27,7 @@ enum class ND e_unit_job_error { ship_cannot_fortify };
 
 using v_unit_job_desc =
     std::variant<e_unit_job_good, e_unit_job_error>;
+ASSERT_NOTHROW_MOVING( v_unit_job_desc );
 
 struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
   JobAnalysis( UnitId id_, orders_t orders_ )

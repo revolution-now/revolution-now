@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "macros.hpp"
 
 // SDL
 // TODO: get rid of this
@@ -131,6 +132,7 @@ using event_t = std::variant<
   mouse_drag_event_t
 >;
 // clang-format on
+ASSERT_NOTHROW_MOVING( event_t );
 
 // Returns true if there is an event waiting in the queue that is
 // relevant to RN.
