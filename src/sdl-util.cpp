@@ -16,6 +16,7 @@
 #include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "macros.hpp"
 #include "screen.hpp"
 
 // base-util
@@ -630,8 +631,7 @@ auto rounded_corner_template( rounded_corner_type type,
           {{2_x, 3_y}, color}, {{3_x, 3_y}, color}};
     }
   }
-  SHOULD_NOT_BE_HERE;
-  return vector<Pixel>{}; // for gcc
+  UNREACHABLE_LOCATION;
 }
 
 // WARNING: this is slow, only use in pre-rendered textures.

@@ -14,6 +14,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "hash.hpp"
+#include "macros.hpp"
 
 // Revolution Now (for importing enum types)
 #include "conductor.hpp"
@@ -51,6 +52,7 @@ char const* enum_to_str( int );
     switch( val ) {                                        \
       PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )      \
     }                                                      \
+    UNREACHABLE_LOCATION;                                  \
   }
 
 #define TRANSLATION( type, ... ) \

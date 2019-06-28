@@ -111,8 +111,7 @@ TuneId prev_tune_in_playlist() {
 
 void play_impl( TuneId id ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  lg.info( "Playing \"{}\".",
-                tune_display_name_from_id( id ) );
+  lg.info( "Playing \"{}\".", tune_display_name_from_id( id ) );
   mplayer->play( id );
 }
 
@@ -232,7 +231,7 @@ void init_conductor() {
 
     if( !enable_mplayer ) {
       lg.warn( "Music player `{}` not enabled: {}.",
-                    g_mplayer_descs[mplayer].name, reason );
+               g_mplayer_descs[mplayer].name, reason );
     }
     MusicPlayerInfo info{
         /*enabled=*/enable_mplayer,
@@ -259,9 +258,8 @@ void init_conductor() {
     auto stem = m[event];
     for( auto tune_id : all_tunes() ) {
       if( tune_stem_from_id( tune_id ) == stem ) {
-        lg.debug(
-            "tune `{}` will be played for event `{}`.",
-            tune_stem_from_id( tune_id ), event );
+        lg.debug( "tune `{}` will be played for event `{}`.",
+                  tune_stem_from_id( tune_id ), event );
         CHECK( !used_stems.contains( stem ),
                "The tune `{}` is set to be used in multiple "
                "special events.",
@@ -277,7 +275,7 @@ void init_conductor() {
            stem, event );
   }
 
-  CHECK( g_special_tunes.size() ==
+  CHECK( int( g_special_tunes.size() ) ==
          rg::distance( values<e_special_music_event> ) );
 
   // This will set the music player if possible, make sure all
@@ -428,7 +426,7 @@ void reset() {
           .enabled ) {
     g_active_mplayer = config_music.first_choice_music_player;
     lg.info( "Using first choice music player `{}`.",
-                  g_active_mplayer );
+             g_active_mplayer );
   } else if( g_mplayer_infos[config_music
                                  .second_choice_music_player]
                  .enabled ) {
@@ -559,7 +557,7 @@ void pause() {
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_pause ) {
     lg.warn( "Music player `{}` does not support pausing.",
-                  mplayer->info().name );
+             mplayer->info().name );
     return;
   }
   CONDUCTOR_INFO_OR_RETURN( info );
@@ -581,7 +579,7 @@ void resume() {
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_pause ) {
     lg.warn( "Music player `{}` does not support pausing.",
-                  mplayer->info().name );
+             mplayer->info().name );
     return;
   }
   CONDUCTOR_INFO_OR_RETURN( info );
@@ -620,7 +618,7 @@ void seek( double pos ) {
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_seek ) {
     lg.warn( "Music player `{}` does not support seeking.",
-                  mplayer->info().name );
+             mplayer->info().name );
     return;
   }
   CONDUCTOR_INFO_OR_RETURN( info );
@@ -679,15 +677,14 @@ void playlist_generate() {
       break;
     }
     if( timeout_countdown == 0 ) {
-      lg.warn(
-          "Max cycles reached when generating playlist." );
+      lg.warn( "Max cycles reached when generating playlist." );
       break;
     }
   }
   lg.trace( "Playlist:" );
   for( auto [idx, id] : res | rv::enumerate )
     lg.trace( " {: >4}. {}", idx + 1,
-                   tune_display_name_from_id( id ) );
+              tune_display_name_from_id( id ) );
   CHECK( res.size() > 0 );
 
   g_playlist     = res;
