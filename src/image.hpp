@@ -18,7 +18,9 @@
 
 namespace rn {
 
-enum class e_( image, old_world );
+enum class e_( image, europe );
+
+Texture const& image( e_image which );
 
 Plane* image_plane();
 void   image_plane_enable( bool enable );

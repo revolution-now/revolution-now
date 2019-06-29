@@ -8,7 +8,7 @@ namespace rn {
 
 CFG( art,
   OBJ( images,
-    FLD( fs::path, old_world )
+    FLD( fs::path, europe )
   )
   OBJ( tiles,
     OBJ( world,

@@ -36,7 +36,7 @@ absl::flat_hash_map<e_image, Ref<Texture>> g_images;
 
 fs::path const& image_file_path( e_image image ) {
   switch( image ) {
-    case +e_image::old_world: return config_art.images.old_world;
+    case +e_image::europe: return config_art.images.europe;
   }
   SHOULD_NOT_BE_HERE;
 }
@@ -86,13 +86,13 @@ void init_images() {
 
 void cleanup_images() {}
 
-} // namespace
-
-//
-//
-//
 REGISTER_INIT_ROUTINE( images );
 
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
 Plane* image_plane() { return &g_image_plane; }
 
 void image_plane_enable( bool enable ) {
@@ -103,6 +103,10 @@ void image_plane_enable( bool enable ) {
 void image_plane_set( e_image image ) {
   lg.debug( "setting image background to {}", image );
   g_image_plane.image = image;
+}
+
+Texture const& image( e_image which ) {
+  return val_or_die( g_images, which ).get();
 }
 
 } // namespace rn

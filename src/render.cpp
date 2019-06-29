@@ -481,7 +481,7 @@ ClickTileActions click_on_world_tile( Coord coord ) {
 
 struct ViewportPlane : public Plane {
   ViewportPlane() = default;
-  bool enabled() const override { return true; }
+  bool enabled() const override { return false; }
   bool covers_screen() const override { return true; }
   void draw( Texture const& tx ) const override {
     render_world_viewport( g_viewport_state );
@@ -712,7 +712,7 @@ namespace {
 
 struct PanelPlane : public Plane {
   PanelPlane() = default;
-  bool enabled() const override { return true; }
+  bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
 
   constexpr static W panel_width = 6_w * g_tile_scale.sx;

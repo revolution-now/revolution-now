@@ -222,6 +222,12 @@ void copy_texture( Texture const& from, Texture const& to,
                               &sdl_dst, angle, nullptr, flip ) );
 }
 
+void copy_texture( Texture const& from, Texture const& to,
+                   Rect const& src, Coord dst_coord ) {
+  copy_texture( from, to, src,
+                src.with_new_upper_left( dst_coord ), 0, {} );
+}
+
 // With alpha. TODO: figure out why this doesn't behave like a
 // standard copy_texture when alpha == 255.
 void copy_texture_alpha( Texture const& from, Texture const& to,

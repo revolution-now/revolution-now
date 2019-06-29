@@ -1,5 +1,5 @@
 images {
-  old_world: "assets/art/old-world/old-world.png"
+  europe: "assets/art/old-world/old-world.png"
 }
 
 tiles {

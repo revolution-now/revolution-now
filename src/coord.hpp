@@ -186,6 +186,8 @@ struct ND Coord {
     y /= scale.sy;
   }
 
+  Coord operator-() const { return {-x, -y}; }
+
   // If this coord is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line
   // in each direction (or possibly only one direction).

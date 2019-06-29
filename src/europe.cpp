@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "coord.hpp"
+#include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
@@ -299,6 +300,45 @@ private:
 };
 
 // This object represents the dock, which can change in length.
+class Backdrop {
+  static constexpr Delta image_distance_from_anchor{950_w,
+                                                    544_h};
+
+public:
+  Rect bounds() const { return Rect::from( Coord{}, size_ ); }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    copy_texture(
+        image( e_image::europe ), tx,
+        Rect::from( upper_left_of_render_rect_, size_ ),
+        Coord{} + offset );
+  }
+
+  Backdrop( Backdrop&& ) = default;
+  Backdrop& operator=( Backdrop&& ) = default;
+
+  static Opt<Backdrop> create(
+      Delta const&           size,
+      Opt<DockAnchor> const& maybe_dock_anchor ) {
+    Opt<Backdrop> res;
+    if( maybe_dock_anchor ) {
+      res =
+          Backdrop{-( maybe_dock_anchor->bounds().upper_left() -
+                      image_distance_from_anchor ),
+                   size};
+    }
+    return res;
+  }
+
+private:
+  Backdrop() = default;
+  Backdrop( Coord upper_left, Delta size )
+    : upper_left_of_render_rect_( upper_left ), size_( size ) {}
+  Coord upper_left_of_render_rect_{};
+  Delta size_{};
+};
+
+// This object represents the dock, which can change in length.
 class Dock {
   static constexpr Delta dock_block_pixels{32_w, 32_h};
 
@@ -319,9 +359,9 @@ public:
 
   static Opt<Dock> create(
       Delta const&           size,
-      Opt<DockAnchor> const& maybe_active_cargo ) {
+      Opt<DockAnchor> const& maybe_dock_anchor ) {
     Opt<Dock> res;
-    if( maybe_active_cargo ) {
+    if( maybe_dock_anchor ) {
       (void)size; //
     }
     return res;
@@ -348,6 +388,7 @@ struct Entities {
   Opt<MarketCommodities> market_commodities;
   Opt<ActiveCargo>       active_cargo;
   Opt<DockAnchor>        dock_anchor;
+  Opt<Backdrop>          backdrop;
 };
 
 void create_entities( Entities* entities ) {
@@ -360,11 +401,16 @@ void create_entities( Entities* entities ) {
       DockAnchor::create( g_clip,                 //
                           entities->active_cargo, //
                           entities->market_commodities );
+  entities->backdrop =          //
+      Backdrop::create( g_clip, //
+                        entities->dock_anchor );
 }
 
 void draw_entities( Texture const&  tx,
                     Entities const& entities ) {
   auto offset = clip_rect().upper_left().distance_from_origin();
+  if( entities.backdrop.has_value() )
+    entities.backdrop->draw( tx, offset );
   if( entities.market_commodities.has_value() )
     entities.market_commodities->draw( tx, offset );
   if( entities.active_cargo.has_value() )

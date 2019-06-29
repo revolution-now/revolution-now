@@ -146,6 +146,8 @@ void copy_texture( Texture const& from, Texture const& to,
 // rendering target.
 void copy_texture( Texture const& from, Texture const& to,
                    Coord const& dst_coord );
+void copy_texture( Texture const& from, Texture const& to,
+                   Rect const& src, Coord dst_coord );
 // With alpha.  Note, that this does not seem to behave the same
 // as a "regular" copy_texture call when setting alpha == 255,
 // so we should only use this when we need to specify the alpha.
