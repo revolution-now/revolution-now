@@ -337,15 +337,17 @@ private:
 };
 
 class InPortBox {
-  static constexpr Delta ship_box_block_size{32_w, 32_h};
-  static constexpr SY    ship_box_height_blocks{3};
-
 public:
+  static constexpr Delta block_size{32_w, 32_h};
+  static constexpr SY    height_blocks{3};
+  static constexpr SX    width_wide{3};
+  static constexpr SX    width_narrow{2};
+
   Rect bounds() const {
     return Rect::from(
-        origin_, ( ship_box_block_size + Delta{1_w, 1_h} ) *
-                         size_in_blocks_ +
-                     Delta{1_w, 1_h} );
+        origin_,
+        ( block_size + Delta{1_w, 1_h} ) * size_in_blocks_ +
+            Delta{1_w, 1_h} );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
@@ -364,15 +366,70 @@ public:
     if( maybe_active_cargo && maybe_market_commodities ) {
       bool  is_wide = !maybe_market_commodities->doubled_;
       Scale size_in_blocks;
-      size_in_blocks.sy = ship_box_height_blocks;
-      size_in_blocks.sx = is_wide ? 4_sx : 2_sx;
-      auto origin =
-          maybe_active_cargo->bounds().upper_left() -
-          ( ship_box_block_size.h + 1_h ) * size_in_blocks.sy;
+      size_in_blocks.sy = height_blocks;
+      size_in_blocks.sx = is_wide ? width_wide : width_narrow;
+      auto origin = maybe_active_cargo->bounds().upper_left() -
+                    ( block_size.h + 1_h ) * size_in_blocks.sy;
       if( origin.y < 0_y || origin.x < 0_x ) return res;
-      res = InPortBox{
-          origin,        //
-          size_in_blocks //
+
+      res = InPortBox{origin,         //
+                      size_in_blocks, //
+                      is_wide};
+
+      auto lr_delta = res->bounds().lower_right() - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+    }
+    return res;
+  }
+
+  Coord origin_{};
+  Scale size_in_blocks_{};
+  bool  is_wide_{};
+
+private:
+  InPortBox() = default;
+  InPortBox( Coord origin, Scale size_in_blocks, bool is_wide )
+    : origin_( origin ),
+      size_in_blocks_( size_in_blocks ),
+      is_wide_( is_wide ) {}
+};
+
+class InboundBox {
+public:
+  Rect bounds() const {
+    return Rect::from(
+        origin_, ( InPortBox::block_size + Delta{1_w, 1_h} ) *
+                         size_in_blocks_ +
+                     Delta{1_w, 1_h} );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    render_rect( tx, Color::white(),
+                 bounds().shifted_by( offset ) );
+  }
+
+  InboundBox( InboundBox&& ) = default;
+  InboundBox& operator=( InboundBox&& ) = default;
+
+  static Opt<InboundBox> create(
+      Delta const&          size,
+      Opt<InPortBox> const& maybe_in_port_box ) {
+    Opt<InboundBox> res;
+    if( maybe_in_port_box ) {
+      bool  is_wide = maybe_in_port_box->is_wide_;
+      Scale size_in_blocks;
+      size_in_blocks.sy = InPortBox::height_blocks;
+      size_in_blocks.sx = is_wide ? InPortBox::width_wide
+                                  : InPortBox::width_narrow;
+      auto origin =
+          maybe_in_port_box->bounds().upper_left() -
+          ( InPortBox::block_size.w + 1_w ) * size_in_blocks.sx;
+      if( origin.y < 0_y || origin.x < 0_x ) return res;
+      res = InboundBox{
+          origin,         //
+          size_in_blocks, //
+          is_wide         //
       };
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
@@ -381,12 +438,17 @@ public:
     return res;
   }
 
+  bool is_wide() const { return is_wide_; }
+
 private:
-  InPortBox() = default;
-  InPortBox( Coord origin, Scale size_in_blocks )
-    : origin_( origin ), size_in_blocks_( size_in_blocks ) {}
+  InboundBox() = default;
+  InboundBox( Coord origin, Scale size_in_blocks, bool is_wide )
+    : origin_( origin ),
+      size_in_blocks_( size_in_blocks ),
+      is_wide_( is_wide ) {}
   Coord origin_{};
   Scale size_in_blocks_{};
+  bool  is_wide_{};
 };
 
 // This object represents the dock, which can change in length.
@@ -441,6 +503,7 @@ struct Entities {
   Opt<DockAnchor>        dock_anchor;
   Opt<Backdrop>          backdrop;
   Opt<InPortBox>         in_port_box;
+  Opt<InboundBox>        inbound_box;
 };
 
 void create_entities( Entities* entities ) {
@@ -460,6 +523,9 @@ void create_entities( Entities* entities ) {
       InPortBox::create( g_clip,                 //
                          entities->active_cargo, //
                          entities->market_commodities );
+  entities->inbound_box =         //
+      InboundBox::create( g_clip, //
+                          entities->in_port_box );
 }
 
 void draw_entities( Texture const&  tx,
@@ -475,6 +541,8 @@ void draw_entities( Texture const&  tx,
     entities.dock_anchor->draw( tx, offset );
   if( entities.in_port_box.has_value() )
     entities.in_port_box->draw( tx, offset );
+  if( entities.inbound_box.has_value() )
+    entities.inbound_box->draw( tx, offset );
 }
 
 } // namespace entity
