@@ -131,7 +131,7 @@ public:
     for( auto coord : bounds().with_new_upper_left( Coord{} ) /
                           sprite_with_border_scale )
       render_rect(
-          tx, Color::black(),
+          tx, Color::white(),
           Rect::from(
               coord * sprite_with_border_scale +
                   origin_.distance_from_origin() + offset,
@@ -195,7 +195,7 @@ public:
     for( auto coord : bounds().with_new_upper_left( Coord{} ) /
                           sprite_with_border_scale )
       render_rect(
-          tx, Color::black(),
+          tx, Color::white(),
           Rect::from(
               coord * sprite_with_border_scale +
                   origin_.distance_from_origin() + offset,
@@ -241,7 +241,6 @@ private:
   Coord origin_{};
 };
 
-// This object represents the dock, which can change in length.
 class DockAnchor {
   static constexpr Delta cross_leg_size{5_w, 5_h};
   static constexpr H     above_active_cargo{32_h};
@@ -299,7 +298,6 @@ private:
   Coord location_{};
 };
 
-// This object represents the dock, which can change in length.
 class Backdrop {
   static constexpr Delta image_distance_from_anchor{950_w,
                                                     544_h};
@@ -336,6 +334,59 @@ private:
     : upper_left_of_render_rect_( upper_left ), size_( size ) {}
   Coord upper_left_of_render_rect_{};
   Delta size_{};
+};
+
+class InPortBox {
+  static constexpr Delta ship_box_block_size{32_w, 32_h};
+  static constexpr SY    ship_box_height_blocks{3};
+
+public:
+  Rect bounds() const {
+    return Rect::from(
+        origin_, ( ship_box_block_size + Delta{1_w, 1_h} ) *
+                         size_in_blocks_ +
+                     Delta{1_w, 1_h} );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    render_rect( tx, Color::white(),
+                 bounds().shifted_by( offset ) );
+  }
+
+  InPortBox( InPortBox&& ) = default;
+  InPortBox& operator=( InPortBox&& ) = default;
+
+  static Opt<InPortBox> create(
+      Delta const&                  size,
+      Opt<ActiveCargo> const&       maybe_active_cargo,
+      Opt<MarketCommodities> const& maybe_market_commodities ) {
+    Opt<InPortBox> res;
+    if( maybe_active_cargo && maybe_market_commodities ) {
+      bool  is_wide = !maybe_market_commodities->doubled_;
+      Scale size_in_blocks;
+      size_in_blocks.sy = ship_box_height_blocks;
+      size_in_blocks.sx = is_wide ? 4_sx : 2_sx;
+      auto origin =
+          maybe_active_cargo->bounds().upper_left() -
+          ( ship_box_block_size.h + 1_h ) * size_in_blocks.sy;
+      if( origin.y < 0_y || origin.x < 0_x ) return res;
+      res = InPortBox{
+          origin,        //
+          size_in_blocks //
+      };
+      auto lr_delta = res->bounds().lower_right() - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  InPortBox() = default;
+  InPortBox( Coord origin, Scale size_in_blocks )
+    : origin_( origin ), size_in_blocks_( size_in_blocks ) {}
+  Coord origin_{};
+  Scale size_in_blocks_{};
 };
 
 // This object represents the dock, which can change in length.
@@ -389,6 +440,7 @@ struct Entities {
   Opt<ActiveCargo>       active_cargo;
   Opt<DockAnchor>        dock_anchor;
   Opt<Backdrop>          backdrop;
+  Opt<InPortBox>         in_port_box;
 };
 
 void create_entities( Entities* entities ) {
@@ -404,6 +456,10 @@ void create_entities( Entities* entities ) {
   entities->backdrop =          //
       Backdrop::create( g_clip, //
                         entities->dock_anchor );
+  entities->in_port_box =                        //
+      InPortBox::create( g_clip,                 //
+                         entities->active_cargo, //
+                         entities->market_commodities );
 }
 
 void draw_entities( Texture const&  tx,
@@ -417,6 +473,8 @@ void draw_entities( Texture const&  tx,
     entities.active_cargo->draw( tx, offset );
   if( entities.dock_anchor.has_value() )
     entities.dock_anchor->draw( tx, offset );
+  if( entities.in_port_box.has_value() )
+    entities.in_port_box->draw( tx, offset );
 }
 
 } // namespace entity
@@ -429,6 +487,9 @@ struct EuropePlane : public Plane {
   bool covers_screen() const override { return false; }
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
+    entity::Entities entities;
+    create_entities( &entities );
+    draw_entities( tx, entities );
     // clear_texture( tx, Color::white() );
     // We need to keep the checkers pattern stationary.
     auto tile = ( clip_rect().upper_left().x._ +
@@ -439,9 +500,6 @@ struct EuropePlane : public Plane {
                     : g_tile::checkers_inv;
     tile_sprite( tx, tile, clip_rect() );
     render_rect( tx, rect_color, clip_rect() );
-    entity::Entities entities;
-    create_entities( &entities );
-    draw_entities( tx, entities );
   }
   bool input( input::event_t const& event ) override {
     return matcher_( event ) {
@@ -453,7 +511,7 @@ struct EuropePlane : public Plane {
         if( is_on_clip_rect( val.pos ) )
           this->rect_color = Color::blue();
         else
-          this->rect_color = Color::black();
+          this->rect_color = Color::white();
         result_ true;
       }
       case_( input::mouse_button_event_t ) result_ false;
@@ -497,7 +555,7 @@ struct EuropePlane : public Plane {
     g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
     g_clip   = g_clip.clamp( main_window_logical_size() );
   }
-  Color rect_color{Color::black()};
+  Color rect_color{Color::white()};
 };
 
 EuropePlane g_europe_plane;
