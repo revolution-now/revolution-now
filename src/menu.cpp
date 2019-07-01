@@ -307,7 +307,7 @@ auto disabled() {
 } // namespace color::item::foreground
 
 namespace color::menu::foreground {
-auto const& disabled = config_palette.grey.n68;
+auto const& disabled = config_palette.grey.nA4;
 } // namespace color::menu::foreground
 
 /****************************************************************
@@ -630,7 +630,7 @@ ItemTextures render_menu_item_element(
     string const& text, optional<char> /*unused*/ ) {
   return render_menu_element(
       text, nullopt, //
-      menu_theme_color2, menu_theme_color2,
+      menu_theme_color1, menu_theme_color2,
       color::item::foreground::disabled() );
 }
 
@@ -645,7 +645,7 @@ ItemTextures render_menu_header_element(
 Texture render_divider( e_menu menu ) {
   Delta   delta      = divider_delta( menu );
   Texture res        = create_texture_transparent( delta );
-  Color   color_fore = color::item::foreground::disabled();
+  Color   color_fore = menu_theme_color2.shaded( 3 );
   render_line( res, color_fore, Coord{} + delta.h / 2 + 2_w,
                {delta.w - 5_w, 0_h} );
   return res;
