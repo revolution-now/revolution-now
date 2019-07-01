@@ -451,6 +451,70 @@ private:
   bool  is_wide_{};
 };
 
+class OutboundBox {
+public:
+  Rect bounds() const {
+    return Rect::from(
+        origin_, ( InPortBox::block_size + Delta{1_w, 1_h} ) *
+                         size_in_blocks_ +
+                     Delta{1_w, 1_h} );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    render_rect( tx, Color::white(),
+                 bounds().shifted_by( offset ) );
+  }
+
+  OutboundBox( OutboundBox&& ) = default;
+  OutboundBox& operator=( OutboundBox&& ) = default;
+
+  static Opt<OutboundBox> create(
+      Delta const&           size,
+      Opt<InboundBox> const& maybe_inbound_box ) {
+    Opt<OutboundBox> res;
+    if( maybe_inbound_box ) {
+      bool  is_wide = maybe_inbound_box->is_wide();
+      Scale size_in_blocks;
+      size_in_blocks.sy = InPortBox::height_blocks;
+      size_in_blocks.sx = is_wide ? InPortBox::width_wide
+                                  : InPortBox::width_narrow;
+      auto origin =
+          maybe_inbound_box->bounds().upper_left() -
+          ( InPortBox::block_size.w + 1_w ) * size_in_blocks.sx;
+      if( origin.x < 0_x ) {
+        // Screen is too narrow horizontally to fit this box, so
+        // we need to try to put it on top of the InboundBox.
+        origin = maybe_inbound_box->bounds().upper_left() -
+                 ( InPortBox::block_size.h + 1_h ) *
+                     size_in_blocks.sy;
+      }
+      res = OutboundBox{
+          origin,         //
+          size_in_blocks, //
+          is_wide         //
+      };
+      auto lr_delta = res->bounds().lower_right() - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( res->bounds().y < 0_y ) return nullopt;
+      if( res->bounds().x < 0_x ) return nullopt;
+    }
+    return res;
+  }
+
+  bool is_wide() const { return is_wide_; }
+
+private:
+  OutboundBox() = default;
+  OutboundBox( Coord origin, Scale size_in_blocks, bool is_wide )
+    : origin_( origin ),
+      size_in_blocks_( size_in_blocks ),
+      is_wide_( is_wide ) {}
+  Coord origin_{};
+  Scale size_in_blocks_{};
+  bool  is_wide_{};
+};
+
 // This object represents the dock, which can change in length.
 class Dock {
   static constexpr Delta dock_block_pixels{32_w, 32_h};
@@ -488,9 +552,6 @@ private:
   SX    length_in_blocks_{};
 };
 
-//- Outbound ships
-//- Inbound ships
-//- Ships in dock
 //- Units on dock
 //- Exit button
 //- Buttons
@@ -504,6 +565,7 @@ struct Entities {
   Opt<Backdrop>          backdrop;
   Opt<InPortBox>         in_port_box;
   Opt<InboundBox>        inbound_box;
+  Opt<OutboundBox>       outbound_box;
 };
 
 void create_entities( Entities* entities ) {
@@ -526,6 +588,9 @@ void create_entities( Entities* entities ) {
   entities->inbound_box =         //
       InboundBox::create( g_clip, //
                           entities->in_port_box );
+  entities->outbound_box =         //
+      OutboundBox::create( g_clip, //
+                           entities->inbound_box );
 }
 
 void draw_entities( Texture const&  tx,
@@ -543,6 +608,8 @@ void draw_entities( Texture const&  tx,
     entities.in_port_box->draw( tx, offset );
   if( entities.inbound_box.has_value() )
     entities.inbound_box->draw( tx, offset );
+  if( entities.outbound_box.has_value() )
+    entities.outbound_box->draw( tx, offset );
 }
 
 } // namespace entity
