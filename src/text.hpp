@@ -15,12 +15,20 @@
 
 // Revolution Now
 #include "color.hpp"
-#include "fonts.hpp"
 #include "coord.hpp"
+#include "fonts.hpp"
 #include "sdl-util.hpp"
 
 namespace rn {
 
+// Will not in any way reformat or re-flow or wrap the text; will
+// just render it with spacing/newlines as-is and with the given
+// color. Will ignore markup (will render it literally).
+Texture render_text( e_font font, Color color,
+                     std::string_view text );
+
+// The struct gives the engine information on how to interpret
+// the markup language.
 struct TextMarkupInfo {
   Color normal;
   Color highlight;

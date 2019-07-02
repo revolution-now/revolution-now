@@ -93,10 +93,18 @@ Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
   return line_frags;
 }
 
+Texture render( e_font font, Color fg, string_view txt ) {
+  return render_text_line_solid( font, fg, txt );
+}
+
 Texture render_markup( e_font font, MarkedUpText const& mk,
                        TextMarkupInfo const& info ) {
   auto fg = mk.style.highlight ? info.highlight : info.normal;
   return render_text_line_solid( font, fg, mk.text );
+}
+
+Texture render_line( e_font font, Color fg, string_view txt ) {
+  return render( font, fg, txt );
 }
 
 Texture render_line_markup( e_font                      font,
@@ -124,9 +132,29 @@ Texture render_line_markup( e_font                      font,
   return res;
 }
 
-Texture render_lines( e_font                        font,
-                      Vec<Vec<MarkedUpText>> const& mk_text,
-                      TextMarkupInfo const&         info ) {
+Texture render_lines( e_font font, Color fg,
+                      Vec<Str> const& txt ) {
+  auto renderer = [&]( string_view line ) {
+    return render_line( font, fg, line );
+  };
+  auto txs = util::map( renderer, txt );
+  auto h   = rg::accumulate(
+      txs | rv::transform( L( _.size().h ) ), 0_h );
+  auto [has_w, maybe_w] =
+      txs | rv::transform( L( _.size().w ) ) | maximum();
+  CHECK( has_w );
+  auto  res = create_texture_transparent( {h, maybe_w} );
+  Coord where{};
+  for( auto const& tx : txs ) {
+    copy_texture( tx, res, where );
+    where += tx.size().h;
+  }
+  return res;
+}
+
+Texture render_lines_markup(
+    e_font font, Vec<Vec<MarkedUpText>> const& mk_text,
+    TextMarkupInfo const& info ) {
   auto renderer = [&]( auto const& mks ) {
     return render_line_markup( font, mks, info );
   };
@@ -150,7 +178,20 @@ Texture render_lines( e_font                        font,
 Texture render_text_markup( e_font                font,
                             TextMarkupInfo const& info,
                             std::string_view      text ) {
-  return render_lines( font, parse_text( text ), info );
+  return render_lines_markup( font, parse_text( text ), info );
+}
+
+Texture render_text( e_font font, Color color,
+                     std::string_view text ) {
+  return render_lines( font, color,
+                       absl::StrSplit( text, '\n' ) );
+}
+
+Texture render_text_reflow( e_font font, Color fg,
+                            std::string_view text,
+                            int              max_cols ) {
+  return render_lines( font, fg,
+                       util::wrap_text( text, max_cols ) );
 }
 
 // Will flatten the text onto one line, then wrap it to within
@@ -262,7 +303,7 @@ Texture render_text_markup_reflow( e_font                font,
   CHECK( reflowed.size() == wrapped.size() );
 
   // (7)
-  return render_lines( font, reflowed, info );
+  return render_lines_markup( font, reflowed, info );
 }
 
 void text_render_test() {
@@ -286,10 +327,14 @@ void text_render_test() {
   TextMarkupInfo info{Color::white(), Color::red()};
 
   auto tx1 = render_text_markup( fonts::standard(), info, msg );
+  // auto tx1 =
+  //    render_text( fonts::standard(), Color::white(), msg );
   copy_texture( tx1, Texture{}, {50_y, 100_x} );
 
   auto tx2 = render_text_markup_reflow( fonts::standard(), info,
                                         msg2, 50 );
+  // auto tx2 = render_text_reflow( fonts::standard(),
+  //                               Color::white(), msg2, 50 );
   copy_texture( tx2, Texture{}, {200_y, 100_x} );
 
   ::SDL_RenderPresent( g_renderer );

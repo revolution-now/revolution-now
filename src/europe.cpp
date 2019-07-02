@@ -19,6 +19,7 @@
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
 
@@ -29,9 +30,15 @@ namespace rn {
 namespace {
 
 /****************************************************************
-** The Clip Rect
+** Global State
 *****************************************************************/
 Delta g_clip;
+
+Texture g_exit_tx;
+
+/****************************************************************
+** The Clip Rect
+*****************************************************************/
 
 Rect clip_rect() {
   return Rect::from(
@@ -523,6 +530,58 @@ private:
   bool  is_wide_{};
 };
 
+class Exit {
+  static constexpr Delta exit_block_pixels{24_w, 24_h};
+
+public:
+  Rect bounds() const {
+    return Rect::from( origin_, exit_block_pixels ) +
+           Delta{2_w, 2_h};
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    auto bds            = bounds().with_inc_size();
+    bds                 = bds.shifted_by( Delta{-2_w, -2_h} );
+    auto drawing_origin = centered( g_exit_tx.size(), bds );
+    copy_texture( g_exit_tx, tx, drawing_origin + offset );
+    render_rect( tx, Color::white(), bds.shifted_by( offset ) );
+  }
+
+  Exit( Exit&& ) = default;
+  Exit& operator=( Exit&& ) = default;
+
+  static Opt<Exit> create(
+      Delta const&                  size,
+      Opt<MarketCommodities> const& maybe_market_commodities ) {
+    Opt<Exit> res;
+    if( maybe_market_commodities ) {
+      auto origin =
+          maybe_market_commodities->bounds().lower_right() -
+          Delta{1_w, 1_h} - exit_block_pixels.h;
+      auto lr_delta = origin + exit_block_pixels - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h ) {
+        origin =
+            maybe_market_commodities->bounds().upper_right() -
+            1_w - exit_block_pixels;
+      }
+      res = Exit{origin};
+      lr_delta =
+          ( res->bounds().lower_right() - Delta{1_w, 1_h} ) -
+          Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( res->bounds().y < 0_y ) return nullopt;
+      if( res->bounds().x < 0_x ) return nullopt;
+    }
+    return res;
+  }
+
+private:
+  Exit() = default;
+  Exit( Coord origin ) : origin_( origin ) {}
+  Coord origin_{};
+};
+
 // This object represents the dock, which can change in length.
 class Dock {
   static constexpr Delta dock_block_pixels{32_w, 32_h};
@@ -574,6 +633,7 @@ struct Entities {
   Opt<InPortBox>         in_port_box;
   Opt<InboundBox>        inbound_box;
   Opt<OutboundBox>       outbound_box;
+  Opt<Exit>              exit_label;
 };
 
 void create_entities( Entities* entities ) {
@@ -599,6 +659,9 @@ void create_entities( Entities* entities ) {
   entities->outbound_box =         //
       OutboundBox::create( g_clip, //
                            entities->inbound_box );
+  entities->exit_label =    //
+      Exit::create( g_clip, //
+                    entities->market_commodities );
 }
 
 void draw_entities( Texture const&  tx,
@@ -618,9 +681,12 @@ void draw_entities( Texture const&  tx,
     entities.inbound_box->draw( tx, offset );
   if( entities.outbound_box.has_value() )
     entities.outbound_box->draw( tx, offset );
+  if( entities.exit_label.has_value() )
+    entities.exit_label->draw( tx, offset );
 }
 
 } // namespace entity
+
 /****************************************************************
 ** The Europe Plane
 *****************************************************************/
@@ -709,9 +775,11 @@ EuropePlane g_europe_plane;
 void init_europe() {
   g_clip = main_window_logical_size() - menu_height() -
            Delta{32_w, 32_h};
+  g_exit_tx =
+      render_text( fonts::standard(), Color::red(), "Exit" );
 }
 
-void cleanup_europe() {}
+void cleanup_europe() { g_exit_tx.free(); }
 
 REGISTER_INIT_ROUTINE( europe );
 

@@ -308,6 +308,8 @@ struct ND Rect {
     return Rect{coord.x, coord.y, w, h};
   }
 
+  Rect with_inc_size() const { return {x, y, w + 1_w, h + 1_h}; }
+
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
   Rect uni0n( Rect const& rhs ) const;
