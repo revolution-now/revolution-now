@@ -425,7 +425,13 @@ public:
       auto origin =
           maybe_in_port_box->bounds().upper_left() -
           ( InPortBox::block_size.w + 1_w ) * size_in_blocks.sx;
-      if( origin.y < 0_y || origin.x < 0_x ) return res;
+      if( origin.x < 0_x ) {
+        // Screen is too narrow horizontally to fit this box, so
+        // we need to try to put it on top of the InPortBox.
+        origin = maybe_in_port_box->bounds().upper_left() -
+                 ( InPortBox::block_size.h + 1_h ) *
+                     size_in_blocks.sy;
+      }
       res = InboundBox{
           origin,         //
           size_in_blocks, //
@@ -434,6 +440,8 @@ public:
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
+      if( res->bounds().y < 0_y ) return nullopt;
+      if( res->bounds().x < 0_x ) return nullopt;
     }
     return res;
   }
