@@ -14,7 +14,7 @@ let s:stems = [
   \ 'src/plane',
   \ 'src/image',
   \ 'src/tiles',
-  \ 'src/europe',
+  \ 'src/euroview',
 \]
 
   "\ 'src/adt',

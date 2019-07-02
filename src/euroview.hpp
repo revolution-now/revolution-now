@@ -1,5 +1,5 @@
 /****************************************************************
-**europe.hpp
+**euroview.hpp
 *
 * Project: Revolution Now
 *

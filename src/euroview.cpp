@@ -1,5 +1,5 @@
 /****************************************************************
-**europe.cpp
+**euroview.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Implements the Europe port view.
 *
 *****************************************************************/
-#include "europe.hpp"
+#include "euroview.hpp"
 
 // Revolution Now
 #include "coord.hpp"
