@@ -310,18 +310,18 @@ g_tile index_to_tile( int index ) {
 }
 
 void render_rect_of_sprites_with_border(
-    Texture& dst,         // where to draw it
-    Coord    dest_origin, // pixel coord of upper left
-    Delta    size_tiles,  // tile coords, including border
-    g_tile   middle,      //
-    g_tile   top,         //
-    g_tile   bottom,      //
-    g_tile   left,        //
-    g_tile   right,       //
-    g_tile   top_left,    //
-    g_tile   top_right,   //
-    g_tile   bottom_left, //
-    g_tile   bottom_right //
+    Texture const& dst,         // where to draw it
+    Coord          dest_origin, // pixel coord of upper left
+    Delta          size_tiles,  // tile coords, including border
+    g_tile         middle,      //
+    g_tile         top,         //
+    g_tile         bottom,      //
+    g_tile         left,        //
+    g_tile         right,       //
+    g_tile         top_left,    //
+    g_tile         top_right,   //
+    g_tile         bottom_left, //
+    g_tile         bottom_right //
 ) {
   auto const& sprite_middle = lookup_sprite( middle );
   CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );

@@ -142,18 +142,18 @@ void tile_sprite( Texture const& tx, g_tile tile,
 // where the rectangle and border are comprised of tiles,
 // not pixels.  All given tiles must have the same dimensions.
 void render_rect_of_sprites_with_border(
-    Texture& dest,        // where to draw it
-    Coord    dest_origin, // pixel coord of upper left
-    Delta    size_tiles,  // tile coords, including border
-    g_tile   middle,      //
-    g_tile   top,         //
-    g_tile   bottom,      //
-    g_tile   left,        //
-    g_tile   right,       //
-    g_tile   top_left,    //
-    g_tile   top_right,   //
-    g_tile   bottom_left, //
-    g_tile   bottom_right //
+    Texture const& dest,        // where to draw it
+    Coord          dest_origin, // pixel coord of upper left
+    Delta          size_tiles,  // tile coords, including border
+    g_tile         middle,      //
+    g_tile         top,         //
+    g_tile         bottom,      //
+    g_tile         left,        //
+    g_tile         right,       //
+    g_tile         top_left,    //
+    g_tile         top_right,   //
+    g_tile         bottom_left, //
+    g_tile         bottom_right //
 );
 
 void load_tile_maps();
