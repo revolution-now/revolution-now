@@ -226,6 +226,8 @@ struct ND Coord {
   }
 };
 
+class RectGridProxyIteratorHelper;
+
 struct ND Rect {
   X x = 0_x;
   Y y = 0_y;
@@ -319,6 +321,15 @@ struct ND Rect {
 
   int area() const { return delta().area(); }
 
+  // These will divide the inside of the rect into subrects of
+  // the given scale and will return an object which, when iter-
+  // ated over, will yield a series of Coord's representing the
+  // upper-left corners of each of those sub rects.
+  RectGridProxyIteratorHelper to_grid_noalign(
+      Scale scale ) const&;
+  RectGridProxyIteratorHelper to_grid_noalign(
+      Scale scale ) const&& = delete;
+
   // This iterator will iterate over all of the points in the
   // rect in a well-defined order: top to bottom, left to right.
   struct const_iterator {
@@ -365,6 +376,80 @@ struct ND Rect {
   }
 };
 
+// This object will be returned as a proxy by the Rect class to
+// facilitate iterating over the inside of the rect in jumps of a
+// certain size.
+class RectGridProxyIteratorHelper {
+  Rect const& rect;
+  Scale       chunk_size;
+
+public:
+  RectGridProxyIteratorHelper( Rect&& rect_,
+                               Scale  chunk_size_ ) = delete;
+
+  RectGridProxyIteratorHelper( Rect const& rect_,
+                               Scale       chunk_size_ )
+    : rect( rect_ ), chunk_size( chunk_size_ ) {}
+
+  Scale scale() const { return chunk_size; }
+
+  // This iterator will iterate through the points within the
+  // rect in jumps given by chunk_size in a well-defined order:
+  // top to bottom, left to right.
+  struct const_iterator {
+    using iterator_category = std::input_iterator_tag;
+    using difference_type   = int;
+    using value_type        = Coord;
+    using pointer           = Coord const*;
+    using reference         = Coord const&;
+
+    Coord                              it;
+    RectGridProxyIteratorHelper const* rect_proxy;
+    auto                               operator*() const {
+      DCHECK( it.is_inside( rect_proxy->rect ) );
+      return it;
+    }
+    const_iterator& operator++() {
+      it.x += 1_w * rect_proxy->chunk_size.sx;
+      if( it.x >= rect_proxy->rect.right_edge() ) {
+        it.x = rect_proxy->rect.left_edge();
+        it.y += 1_h * rect_proxy->chunk_size.sy;
+        // If we've finished iterating then put the coordinate in
+        // a well defined position (lower left corner, one past
+        // the bottom edge).
+        if( it.y >= rect_proxy->rect.bottom_edge() ) {
+          it.x = rect_proxy->rect.left_edge();
+          it.y = rect_proxy->rect.bottom_edge();
+          DCHECK( it == rect_proxy->rect.lower_left() );
+        }
+      }
+      DCHECK( it == rect_proxy->rect.lower_left() ||
+              it.is_inside( rect_proxy->rect ) );
+      return *this;
+    }
+    const_iterator operator++( int ) { return ++( *this ); }
+    bool operator!=( const_iterator const& rhs ) const {
+      return it != rhs.it;
+    }
+    bool operator==( const_iterator const& rhs ) const {
+      return it == rhs.it;
+    }
+    int operator-( const_iterator const& rhs ) const;
+  };
+
+  const_iterator begin() const {
+    return {rect.upper_left(), this};
+  }
+  const_iterator end() const {
+    // The "end", by convention, is the _start_ of the row that
+    // is one passed the last row. Also note that, when the rect
+    // has zero area, upper_left() and lower_left are the same
+    // point.
+    return {rect.lower_left(), this};
+  }
+};
+
+// TODO: remove
 using OptCoord = std::optional<Coord>;
 
 // Will take the delta and center it with respect to the rect and
@@ -423,6 +508,7 @@ ND Coord operator*( Scale const& scale, Coord const& coord );
 ND Delta operator*( Scale const& scale, Delta const& delta );
 ND Rect  operator*( Rect const& rect, Scale const& scale );
 ND Rect  operator*( Scale const& scale, Rect const& rect );
+// FIXME: deprecated
 ND Rect  operator/( Rect const& rect, Scale const& scale );
 ND Coord operator/( Coord const& coord, Scale const& scale );
 ND Delta operator/( Delta const& delta, Scale const& scale );

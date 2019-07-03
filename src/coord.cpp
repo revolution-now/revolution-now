@@ -103,6 +103,18 @@ Opt<int> Rect::rasterize( Coord coord ) {
   return ( coord.y - y )._ * w._ + ( coord.x - x )._;
 }
 
+RectGridProxyIteratorHelper Rect::to_grid_noalign(
+    Scale scale ) const& {
+  return RectGridProxyIteratorHelper( *this, scale );
+}
+
+int RectGridProxyIteratorHelper::const_iterator::operator-(
+    RectGridProxyIteratorHelper::const_iterator const& rhs )
+    const {
+  auto delta = it - rhs.it;
+  return delta.h._ * rect_proxy->rect.w._ + delta.w._;
+}
+
 template<>
 X const& Rect::coordinate<X>() const {
   return x;
@@ -239,6 +251,15 @@ Delta Delta::uni0n( Delta const& rhs ) const {
 
 Delta Delta::clamp( Delta const& delta ) const {
   return {std::min( w, delta.w ), std::min( h, delta.h )};
+}
+
+RectGridProxyIteratorHelper::const_iterator begin(
+    RectGridProxyIteratorHelper const& rect_proxy ) {
+  return rect_proxy.begin();
+}
+RectGridProxyIteratorHelper::const_iterator end(
+    RectGridProxyIteratorHelper const& rect_proxy ) {
+  return rect_proxy.end();
 }
 
 Coord centered( Delta const& delta, Rect const& rect ) {

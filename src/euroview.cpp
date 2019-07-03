@@ -18,6 +18,7 @@
 #include "logging.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
+#include "ranges.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -89,9 +90,20 @@ bool is_on_clip_rect( Coord const& coord ) {
 }
 
 /****************************************************************
+** Helpers
+*****************************************************************/
+auto range_of_rects(
+    RectGridProxyIteratorHelper const& rect_proxy ) {
+  auto scale       = rect_proxy.scale();
+  auto to_sub_rect = [scale]( Coord coord ) {
+    return Rect::from( coord, Delta{1_w, 1_h} * scale );
+  };
+  return rv::all( rect_proxy ) | rv::transform( to_sub_rect );
+}
+
+/****************************************************************
 ** Europe View Entities
 *****************************************************************/
-
 namespace entity {
 
 // Each entity is defined by a struct that holds its state and
@@ -110,20 +122,16 @@ class MarketCommodities {
   static constexpr H double_layer_blocks_height = 2_h;
 
   // Commodities will be 24x24 + 8 pixels for text.
-  static constexpr auto sprite_with_border_scale = Scale{32 + 1};
+  static constexpr auto sprite_scale = Scale{32};
 
   static constexpr W single_layer_width =
-      single_layer_blocks_width * sprite_with_border_scale.sx +
-      1_w;
+      single_layer_blocks_width * sprite_scale.sx;
   static constexpr W double_layer_width =
-      double_layer_blocks_width * sprite_with_border_scale.sx +
-      1_w;
+      double_layer_blocks_width * sprite_scale.sx;
   static constexpr H single_layer_height =
-      single_layer_blocks_height * sprite_with_border_scale.sy +
-      1_h;
+      single_layer_blocks_height * sprite_scale.sy;
   static constexpr H double_layer_height =
-      double_layer_blocks_height * sprite_with_border_scale.sy +
-      1_h;
+      double_layer_blocks_height * sprite_scale.sy;
 
 public:
   Rect bounds() const {
@@ -135,15 +143,11 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    for( auto coord : bounds().with_new_upper_left( Coord{} ) /
-                          sprite_with_border_scale )
-      render_rect(
-          tx, Color::white(),
-          Rect::from(
-              coord * sprite_with_border_scale +
-                  origin_.distance_from_origin() + offset,
-              Delta{1_w, 1_h} * sprite_with_border_scale +
-                  Delta{1_w, 1_h} ) );
+    auto bds = bounds();
+    for( auto rect :
+         range_of_rects( bds.to_grid_noalign( sprite_scale ) ) )
+      render_rect( tx, Color::white(),
+                   rect.shifted_by( offset ) );
   }
 
   MarketCommodities( MarketCommodities&& ) = default;
@@ -188,10 +192,10 @@ class ActiveCargo {
   static constexpr Delta size_blocks{6_w, 1_h};
 
   // Commodities will be 24x24.
-  static constexpr auto sprite_with_border_scale = Scale{24 + 1};
+  static constexpr auto sprite_scale = Scale{24};
 
   static constexpr Delta size_pixels =
-      size_blocks * sprite_with_border_scale + Delta{1_w, 1_h};
+      size_blocks * sprite_scale;
 
 public:
   Rect bounds() const {
@@ -199,15 +203,11 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    for( auto coord : bounds().with_new_upper_left( Coord{} ) /
-                          sprite_with_border_scale )
-      render_rect(
-          tx, Color::white(),
-          Rect::from(
-              coord * sprite_with_border_scale +
-                  origin_.distance_from_origin() + offset,
-              Delta{1_w, 1_h} * sprite_with_border_scale +
-                  Delta{1_w, 1_h} ) );
+    auto bds = bounds();
+    for( auto rect :
+         range_of_rects( bds.to_grid_noalign( sprite_scale ) ) )
+      render_rect( tx, Color::white(),
+                   rect.shifted_by( offset ) );
   }
 
   ActiveCargo( ActiveCargo&& ) = default;
@@ -594,17 +594,11 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    for( auto coord : bounds().with_new_upper_left( Coord{} ) /
-                          dock_block_pixels ) {
-      render_rect(
-          tx, Color::white(),
-          Rect::from( origin_ +
-                          coord.distance_from_origin() *
-                              dock_block_pixels +
-                          offset,
-                      ( dock_block_pixels * Delta{1_w, 1_h} ) +
-                          Delta{1_w, 1_h} ) );
-    }
+    auto bds = bounds();
+    for( auto rect : range_of_rects(
+             bds.to_grid_noalign( dock_block_pixels ) ) )
+      render_rect( tx, Color::white(),
+                   rect.shifted_by( offset ) );
   }
 
   Dock( Dock&& ) = default;
