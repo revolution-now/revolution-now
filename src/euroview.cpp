@@ -254,8 +254,8 @@ class DockAnchor {
 
 public:
   Rect bounds() const {
-    return Rect::from( location_ - cross_leg_size,
-                       cross_leg_size * Scale{2} );
+    // Just a point.
+    return Rect::from( location_, Delta{} );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
@@ -447,8 +447,8 @@ public:
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
-      if( res->bounds().y < 0_y ) return nullopt;
-      if( res->bounds().x < 0_x ) return nullopt;
+      if( res->bounds().y < 0_y ) res = nullopt;
+      if( res->bounds().x < 0_x ) res = nullopt;
     }
     return res;
   }
@@ -511,8 +511,8 @@ public:
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
-      if( res->bounds().y < 0_y ) return nullopt;
-      if( res->bounds().x < 0_x ) return nullopt;
+      if( res->bounds().y < 0_y ) res = nullopt;
+      if( res->bounds().x < 0_x ) res = nullopt;
     }
     return res;
   }
@@ -570,8 +570,8 @@ public:
           Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
-      if( res->bounds().y < 0_y ) return nullopt;
-      if( res->bounds().x < 0_x ) return nullopt;
+      if( res->bounds().y < 0_y ) res = nullopt;
+      if( res->bounds().x < 0_x ) res = nullopt;
     }
     return res;
   }
@@ -584,18 +584,27 @@ private:
 
 // This object represents the dock, which can change in length.
 class Dock {
-  static constexpr Delta dock_block_pixels{32_w, 32_h};
+  static constexpr Scale dock_block_pixels{24};
 
 public:
   Rect bounds() const {
     return Rect::from(
-        origin_, Delta{dock_block_pixels.w * length_in_blocks_,
-                       dock_block_pixels.h} );
+        origin_, Delta{length_in_blocks_ * dock_block_pixels.sx,
+                       1_h * dock_block_pixels.sy} );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    (void)tx;
-    (void)offset;
+    for( auto coord : bounds().with_new_upper_left( Coord{} ) /
+                          dock_block_pixels ) {
+      render_rect(
+          tx, Color::white(),
+          Rect::from( origin_ +
+                          coord.distance_from_origin() *
+                              dock_block_pixels +
+                          offset,
+                      ( dock_block_pixels * Delta{1_w, 1_h} ) +
+                          Delta{1_w, 1_h} ) );
+    }
   }
 
   Dock( Dock&& ) = default;
@@ -603,20 +612,35 @@ public:
 
   static Opt<Dock> create(
       Delta const&           size,
-      Opt<DockAnchor> const& maybe_dock_anchor ) {
+      Opt<DockAnchor> const& maybe_dock_anchor,
+      Opt<InPortBox> const&  maybe_in_port_box ) {
     Opt<Dock> res;
-    if( maybe_dock_anchor ) {
-      (void)size; //
+    if( maybe_dock_anchor && maybe_in_port_box ) {
+      auto available = maybe_dock_anchor->bounds().left_edge() -
+                       maybe_in_port_box->bounds().right_edge();
+      available /= dock_block_pixels.sx;
+      auto origin = maybe_dock_anchor->bounds().upper_left() -
+                    ( available * dock_block_pixels.sx );
+      origin -= 1_h * dock_block_pixels.sy / 2;
+      res = Dock{/*origin_=*/origin,
+                 /*length_in_blocks_=*/available};
+      auto lr_delta =
+          ( res->bounds().lower_right() - Delta{1_w, 1_h} ) -
+          Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( res->bounds().y < 0_y ) res = nullopt;
+      if( res->bounds().x < 0_x ) res = nullopt;
     }
     return res;
   }
 
 private:
   Dock() = default;
-  Dock( Coord origin, SX length_in_blocks )
+  Dock( Coord origin, W length_in_blocks )
     : origin_( origin ), length_in_blocks_( length_in_blocks ) {}
   Coord origin_{};
-  SX    length_in_blocks_{};
+  W     length_in_blocks_{};
 };
 
 //- Units on dock
@@ -634,6 +658,7 @@ struct Entities {
   Opt<InboundBox>        inbound_box;
   Opt<OutboundBox>       outbound_box;
   Opt<Exit>              exit_label;
+  Opt<Dock>              dock;
 };
 
 void create_entities( Entities* entities ) {
@@ -662,6 +687,10 @@ void create_entities( Entities* entities ) {
   entities->exit_label =    //
       Exit::create( g_clip, //
                     entities->market_commodities );
+  entities->dock =                         //
+      Dock::create( g_clip,                //
+                    entities->dock_anchor, //
+                    entities->in_port_box );
 }
 
 void draw_entities( Texture const&  tx,
@@ -683,6 +712,8 @@ void draw_entities( Texture const&  tx,
     entities.outbound_box->draw( tx, offset );
   if( entities.exit_label.has_value() )
     entities.exit_label->draw( tx, offset );
+  if( entities.dock.has_value() )
+    entities.dock->draw( tx, offset );
 }
 
 } // namespace entity
