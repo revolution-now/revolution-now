@@ -92,13 +92,18 @@ bool is_on_clip_rect( Coord const& coord ) {
 /****************************************************************
 ** Helpers
 *****************************************************************/
+// Both rv::all and the lambda will take rect_proxy by reference
+// so we therefore must have this function take a reference to a
+// rect_proxy that outlives the use of the returned range. And of
+// course the Rect referred to by the rect_proxy must outlive
+// everything.
 auto range_of_rects(
     RectGridProxyIteratorHelper const& rect_proxy ) {
-  auto scale       = rect_proxy.scale();
-  auto to_sub_rect = [scale]( Coord coord ) {
-    return Rect::from( coord, Delta{1_w, 1_h} * scale );
-  };
-  return rv::all( rect_proxy ) | rv::transform( to_sub_rect );
+  return rv::all( rect_proxy ) |
+         rv::transform( [&rect_proxy]( Coord coord ) {
+           return Rect::from(
+               coord, Delta{1_w, 1_h} * rect_proxy.scale() );
+         } );
 }
 
 /****************************************************************
