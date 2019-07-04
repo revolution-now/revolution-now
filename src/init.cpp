@@ -13,13 +13,16 @@
 // Revolution Now
 #include "errors.hpp"
 #include "logging.hpp"
-#include "ranges.hpp"
 
 // base-util
 #include "base-util/graph.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
+
+// Range-v3
+#include "range/v3/algorithm/find.hpp"
+#include "range/v3/view/reverse.hpp"
 
 using namespace std;
 

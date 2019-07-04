@@ -18,7 +18,6 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "rand.hpp"
-#include "ranges.hpp"
 #include "time.hpp"
 #include "variant.hpp"
 
@@ -35,6 +34,9 @@
 // Abseil
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+
+// Range-v3
+#include "range/v3/algorithm/any_of.hpp"
 
 // C++ standard library
 #include <algorithm>

@@ -29,6 +29,11 @@
 #include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
 
+// Range-v3
+#include "range/v3/view/filter.hpp"
+#include "range/v3/view/reverse.hpp"
+#include "range/v3/view/zip.hpp"
+
 // C++ standard library
 #include <algorithm>
 #include <array>

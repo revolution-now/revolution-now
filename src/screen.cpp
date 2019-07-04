@@ -16,13 +16,16 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
-#include "ranges.hpp"
 #include "sdl-util.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
+
+// Range-v3
+#include "range/v3/view/iota.hpp"
+#include "range/v3/view/transform.hpp"
 
 // C++ standard library
 #include <cmath>

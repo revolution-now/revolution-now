@@ -28,6 +28,12 @@
 // Abseil
 #include "absl/strings/str_split.h"
 
+// Range-v3
+#include "range/v3/numeric/accumulate.hpp"
+#include "range/v3/view/remove_if.hpp"
+#include "range/v3/view/transform.hpp"
+#include "range/v3/view/zip.hpp"
+
 using namespace std;
 
 namespace rn {

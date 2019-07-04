@@ -14,10 +14,14 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "ranges.hpp"
 
 // base-util
 #include "base-util/non-copyable.hpp"
+
+// Range-v3 (FIXME: get this out of the interface)
+#include "range/v3/view/cycle.hpp"
+#include "range/v3/view/reverse.hpp"
+#include "range/v3/view/sliding.hpp"
 
 // C++ standard library
 #include <array>

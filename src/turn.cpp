@@ -16,6 +16,7 @@
 #include "frame.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"
+#include "ranges.hpp"
 #include "render.hpp"
 #include "sound.hpp"
 #include "unit.hpp"
@@ -26,6 +27,9 @@
 #include "base-util/algo.hpp"
 #include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
+
+// Range-v3
+#include "range/v3/view/take.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -188,8 +192,7 @@ e_turn_result turn( e_nation nation ) {
         q.pop_front();
         continue;
       }
-      lg.debug( "processing turn for {}",
-                     debug_string( id ) );
+      lg.debug( "processing turn for {}", debug_string( id ) );
 
       //    clang-format off
       //
@@ -224,8 +227,7 @@ e_turn_result turn( e_nation nation ) {
              !unit.moved_this_turn() ) {
         deduplicate_q( &q );
         log_q( q );
-        lg.debug( "asking orders for: {}",
-                       debug_string( id ) );
+        lg.debug( "asking orders for: {}", debug_string( id ) );
         orders_taken = true;
 
         auto coords = coords_for_unit( id );
@@ -341,7 +343,7 @@ e_turn_result turn( e_nation nation ) {
           Opt<e_unit_type> demote_to;
           if( dying_unit_desc.demoted.has_value() ) {
             lg.debug( "animating unit demotion to {}",
-                           dying_unit_desc.demoted.value() );
+                      dying_unit_desc.demoted.value() );
             demote_to = dying_unit_desc.demoted.value();
           }
           vp_state = viewport_state::depixelate_unit(

@@ -40,6 +40,15 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 
+// Range-v3
+#include "range/v3/algorithm/any_of.hpp"
+#include "range/v3/view/filter.hpp"
+#include "range/v3/view/intersperse.hpp"
+#include "range/v3/view/remove_if.hpp"
+#include "range/v3/view/reverse.hpp"
+#include "range/v3/view/take_while.hpp"
+#include "range/v3/view/transform.hpp"
+
 // C++ standard library
 #include <chrono>
 

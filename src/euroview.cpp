@@ -18,11 +18,14 @@
 #include "logging.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
-#include "ranges.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
+
+// Range-v3
+#include "range/v3/view/all.hpp"
+#include "range/v3/view/transform.hpp"
 
 using namespace std;
 

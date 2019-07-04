@@ -80,4 +80,13 @@ using FlatSet = ::absl::flat_hash_set<T>;
 template<typename F, typename S>
 using Pair = std::pair<F, S>;
 
+namespace ranges {
+inline namespace v3 {
+namespace view {}
+} // namespace v3
+} // namespace ranges
+
+namespace rv = ::ranges::view;
+namespace rg = ::ranges;
+
 namespace rn {} // namespace rn

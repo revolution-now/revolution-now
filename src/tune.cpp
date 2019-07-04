@@ -16,7 +16,6 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "rand.hpp"
-#include "ranges.hpp"
 #include "time.hpp"
 
 // Revolution Now (config)
@@ -29,6 +28,12 @@
 // Abseil
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
+
+// Range-v3
+#include "range/v3/algorithm/reverse.hpp"
+#include "range/v3/view/filter.hpp"
+#include "range/v3/view/take_while.hpp"
+#include "range/v3/view/transform.hpp"
 
 // C++ standard library
 #include <limits>
@@ -122,8 +127,7 @@ TuneOptDimensions TuneDimensions::to_opt_dims() const {
 
 void TunePlayerInfo::log() const {
   lg.info( "TunePlayerInfo:" );
-  lg.info( "  id:       {} ({})", id,
-                tune_stem_from_id( id ) );
+  lg.info( "  id:       {} ({})", id, tune_stem_from_id( id ) );
   lg.info( "  length:   {}", length );
   lg.info( "  progress: {}", progress );
 }

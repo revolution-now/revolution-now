@@ -17,13 +17,17 @@
 #include "fmt-helper.hpp"
 
 // range-v3
-#include "range/v3/all.hpp"
+#include "range/v3/numeric/accumulate.hpp"
+#include "range/v3/view/concat.hpp"
+#include "range/v3/view/drop_while.hpp"
+#include "range/v3/view/intersperse.hpp"
+#include "range/v3/view/take.hpp"
+#include "range/v3/view/take_while.hpp"
+#include "range/v3/view/transform.hpp"
+#include "range/v3/view/zip.hpp"
 
 // C++ standard library
 #include <utility>
-
-namespace rv = ::ranges::view;
-namespace rg = ::ranges;
 
 namespace rn {
 
@@ -44,7 +48,7 @@ auto take_while_inclusive( Func f ) {
 
 template<typename Rng>
 std::string rng_to_string( Rng&& rng ) {
-  return ranges::accumulate(
+  return rg::accumulate(
       std::forward<Rng>( rng )                           //
           | rv::transform( L( fmt::format( "{}", _ ) ) ) //
           | rv::intersperse( std::string( "," ) ),
