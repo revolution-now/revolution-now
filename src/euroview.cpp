@@ -805,16 +805,16 @@ EuropePlane g_europe_plane;
 /****************************************************************
 ** Initialization / Cleanup
 *****************************************************************/
-void init_europe() {
+void init_euroview() {
   g_clip = main_window_logical_size() - menu_height() -
            Delta{32_w, 32_h};
   g_exit_tx =
       render_text( fonts::standard(), Color::red(), "Exit" );
 }
 
-void cleanup_europe() { g_exit_tx.free(); }
+void cleanup_euroview() { g_exit_tx.free(); }
 
-REGISTER_INIT_ROUTINE( europe );
+REGISTER_INIT_ROUTINE( euroview );
 
 } // namespace
 

@@ -82,7 +82,7 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::europe );
+  run_all_init_routines( e_init_routine::euroview );
   // run_all_init_routines();
 
   // conductor::test();
