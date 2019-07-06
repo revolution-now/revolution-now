@@ -75,6 +75,20 @@ bool Rect::is_inside( Rect const& rect ) const {
              .is_inside( rect );
 }
 
+Opt<Rect> Rect::overlap_with( Rect const& rhs ) const {
+  // NOTE: be careful here with returning references; we should
+  // only be using auto const& when the function will not return
+  // a reference to a temporary.
+  auto const& new_x1 = std::max( x, rhs.x );
+  auto const& new_y1 = std::max( y, rhs.y );
+  auto /*!!*/ new_x2 = std::min( x + w, rhs.x + rhs.w );
+  auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
+  Opt<Rect>   res =
+      Rect::from( Coord{new_x1, new_y1}, Coord{new_x2, new_y2} );
+  if( res->area() == 0 ) res = nullopt;
+  return res;
+}
+
 Rect Rect::clamp( Rect const& rect ) const {
   Rect res = *this;
   if( rect.w == 0_w ) {

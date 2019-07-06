@@ -10,6 +10,7 @@ let s:stems = [
   \ 'src/config-files',
   \ 'src/coord',
   \ 'src/screen',
+  \ 'src/compositor',
   \ 'src/frame',
   \ 'src/plane',
   \ 'src/image',

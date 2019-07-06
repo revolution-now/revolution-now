@@ -283,6 +283,10 @@ struct ND Rect {
   // be fully inside, or its borders may be overlapping.
   bool is_inside( Rect const& rect ) const;
 
+  // Returns true if any part of the two rects overlap, which
+  // does not include the borders touching.
+  Opt<Rect> overlap_with( Rect const& rhs ) const;
+
   // Returns a rect that is adjusted (without respecting
   // proportions) so that it fits inside the given rect.
   Rect clamp( Rect const& rect ) const;

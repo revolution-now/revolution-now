@@ -646,7 +646,6 @@ private:
 };
 
 //- Units on dock
-//- Exit button
 //- Buttons
 //- Message box
 //- Stats area (money, tax rate, etc.)

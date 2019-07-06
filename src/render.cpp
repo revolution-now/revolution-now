@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "compositor.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
@@ -715,17 +716,13 @@ struct PanelPlane : public Plane {
   bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
 
-  constexpr static W panel_width = 6_w * g_tile_scale.sx;
-  static H           panel_height() {
-    return main_window_logical_size().h - 16_h;
+  static auto rect() {
+    return compositor::section( compositor::e_section::panel );
   }
+  static W panel_width() { return rect().w; }
+  static H panel_height() { return rect().h; }
 
-  Delta delta() const { return {panel_width, panel_height()}; }
-  Rect  rect() const {
-    auto left_side = main_window_logical_size().w - panel_width;
-    return Rect::from( Coord{} + 16_h + left_side,
-                       Delta{panel_width, panel_height()} );
-  }
+  Delta delta() const { return {panel_width(), panel_height()}; }
   Coord origin() const { return rect().upper_left(); };
 
   ui::ButtonView& next_turn_button() {
@@ -747,7 +744,7 @@ struct PanelPlane : public Plane {
 
     auto button_size = button_view->delta();
     auto where =
-        Coord{} + ( panel_width / 2 ) - ( button_size.w / 2 );
+        Coord{} + ( panel_width() / 2 ) - ( button_size.w / 2 );
     where += 16_h;
 
     ui::OwningPositionedView p_view( std::move( button_view ),
@@ -763,14 +760,18 @@ struct PanelPlane : public Plane {
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
     auto left_side =
-        0_x + main_window_logical_size().w - panel_width;
+        0_x + main_window_logical_size().w - panel_width();
 
-    for( Y i( 16 ); i - 0_y < main_window_logical_size().h;
-         i += 64_h )
+    auto const& wood = lookup_sprite( g_tile::wood_middle );
+    auto        wood_width  = wood.size().w;
+    auto        wood_height = wood.size().h;
+
+    for( Y i = rect().top_edge(); i < rect().bottom_edge();
+         i += wood_height )
       render_sprite( tx, g_tile::wood_middle, i,
-                     left_side + 128_w, 0, 0 );
-    for( Y i( 16 ); i - 0_y < main_window_logical_size().h;
-         i += 64_h )
+                     left_side + wood_width, 0, 0 );
+    for( Y i = rect().top_edge(); i < rect().bottom_edge();
+         i += wood_height )
       render_sprite( tx, g_tile::wood_left_edge, i, left_side, 0,
                      0 );
 

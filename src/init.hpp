@@ -38,6 +38,7 @@ enum class e_( init_routine,
                midiplayer, //
                oggplayer,  //
                conductor,  //
+               compositor, //
                tunes,      //
                screen,     //
                renderer,   //

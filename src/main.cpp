@@ -1,4 +1,5 @@
 #include "auto-pad.hpp"
+#include "compositor.hpp"
 #include "conductor.hpp"
 #include "coord.hpp"
 #include "errors.hpp"

@@ -318,7 +318,7 @@ ND Texture create_texture_transparent( Delta delta ) {
 }
 
 ND Texture create_screen_physical_sized_texture() {
-  auto res = create_texture( screen_physical_size() );
+  auto res = create_texture( whole_screen_physical_size() );
   lg.debug( "created screen-sized texture occupying {}MB.",
             res.mem_usage_mb() );
   return res;

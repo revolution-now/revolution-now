@@ -110,7 +110,10 @@ enum class ND g_tile {
 };
 
 struct ND sprite {
-  // try making these const
+  Delta size() const { return source.delta(); }
+
+  // NOTE: the size of this texture will NOT be the same as the
+  // size of the sprite.
   Texture const* texture{};
   Rect           source{};
   Scale          scale{};

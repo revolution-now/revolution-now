@@ -70,6 +70,14 @@ constexpr int max_scale_factor = 10;
  *}
  */
 
+// Do not use this from outside this module: it refers to the en-
+// tire screen, even if the game is in an unmaximized window. In
+// the vast majority of cases you want to use
+// main_window_logical_size.
+Delta screen_logical_size() {
+  return g_screen_physical_size / g_resolution_scale_factor;
+}
+
 double monitor_diagonal_length( float ddpi, DisplayMode dm ) {
   double length =
       sqrt( pow( dm.size.w._, 2.0 ) + pow( dm.size.h._, 2.0 ) ) /
@@ -395,15 +403,8 @@ DisplayMode current_display_mode() {
   return res;
 }
 
-Delta screen_logical_size() {
-  return g_screen_physical_size / g_resolution_scale_factor;
-}
-
-Delta screen_physical_size() { return g_screen_physical_size; }
-
-Delta viewport_size_pixels() {
-  // Subtract height of menu and width of panel.
-  return main_window_logical_size() - 16_h - 6_w * 32_sx;
+Delta whole_screen_physical_size() {
+  return g_screen_physical_size;
 }
 
 Delta main_window_logical_size() {

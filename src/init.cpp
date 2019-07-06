@@ -109,6 +109,12 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                      e_init_routine::configs, //
                      e_init_routine::sdl      //
                  }},
+                {e_init_routine::compositor,
+                 {
+                     e_init_routine::configs, //
+                     e_init_routine::sdl,     //
+                     e_init_routine::screen   //
+                 }},
                 {e_init_routine::euroview,
                  {
                      e_init_routine::configs,    //
@@ -119,17 +125,19 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                      e_init_routine::renderer,   //
                      e_init_routine::sprites,    //
                      e_init_routine::planes,     //
+                     e_init_routine::compositor, //
                      e_init_routine::images,     //
                      e_init_routine::menus       //
                  }},
                 {e_init_routine::menus,
                  {
-                     e_init_routine::configs,  //
-                     e_init_routine::sdl,      //
-                     e_init_routine::screen,   //
-                     e_init_routine::renderer, //
-                     e_init_routine::sprites,  //
-                     e_init_routine::fonts     //
+                     e_init_routine::configs,    //
+                     e_init_routine::sdl,        //
+                     e_init_routine::screen,     //
+                     e_init_routine::compositor, //
+                     e_init_routine::renderer,   //
+                     e_init_routine::sprites,    //
+                     e_init_routine::fonts       //
                  }},
                 {e_init_routine::terrain,
                  {

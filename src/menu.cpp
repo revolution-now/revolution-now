@@ -14,6 +14,7 @@
 #include "adt.hpp"
 #include "aliases.hpp"
 #include "color.hpp"
+#include "compositor.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fonts.hpp"
@@ -350,8 +351,6 @@ struct MenuTextures {
 
 absl::flat_hash_map<e_menu, MenuTextures> g_menu_rendered;
 
-Texture menu_bar_tx;
-
 // Must be called after all textures are rendered. It will it-
 // erate through all the rendered text textures (both menu
 // headers and menu items) and will compute the maximum height of
@@ -389,7 +388,13 @@ H const& max_text_height() {
 /****************************************************************
 ** Geometry
 *****************************************************************/
-H menu_bar_height() { return 16_h; }
+// The long, thin rectangle around the menu bar. This does not
+// include the space that would be occupied by open menu bodies.
+Rect menu_bar_rect() {
+  return compositor::section( compositor::e_section::menu_bar );
+}
+
+H menu_bar_height() { return menu_bar_rect().h; }
 
 Delta menu_header_delta( e_menu menu ) {
   CHECK( g_menu_rendered.contains( menu ) );
@@ -424,10 +429,9 @@ X menu_header_x_pos_( e_menu target ) {
   }
   width_delta += config_ui.menus.first_menu_start;
   CHECK( width_delta != 0_w );
-  return 0_x +
-         ( !desc.right_side
-               ? width_delta
-               : main_window_logical_size().w - width_delta );
+  return 0_x + ( !desc.right_side
+                     ? width_delta
+                     : menu_bar_rect().w - width_delta );
 }
 
 auto menu_header_x_pos = per_frame_memoize( menu_header_x_pos_ );
@@ -439,19 +443,6 @@ Rect menu_header_rect( e_menu menu ) {
       0_y + ( ( menu_bar_height() - max_text_height() ) / 2_sy );
   return Rect::from( Coord{y_offset, menu_header_x_pos( menu )},
                      menu_header_delta( menu ) );
-}
-
-// The long, thin rectangle around the top menu bar. This extends
-// from the left side of the screen to the right, and includes
-// the menu headers. but does not include the space that would be
-// occupied by open menu bodies.
-Rect menu_bar_rect() {
-  // Needs to be screen physical width because that is as large
-  // as we may need to get e.g. in fullscreen mode with scale of
-  // unity.
-  auto delta_screen = screen_physical_size();
-  auto height       = menu_bar_height();
-  return Rect::from( Coord{}, Delta{delta_screen.w, height} );
 }
 
 // This is the width of the menu body not including the borders,
@@ -629,8 +620,7 @@ ItemTextures render_menu_element( string_view const text,
       ItemTextures{std::move( inactive ), std::move( active ),
                    std::move( disabled ), width};
   // Sanity check
-  CHECK( res.width > 0 &&
-         res.width < main_window_logical_size().w );
+  CHECK( res.width > 0 && res.width < menu_bar_rect().w );
   return res;
 }
 
@@ -670,8 +660,10 @@ Texture render_item_background( e_menu menu, bool active ) {
   clear_texture_transparent( res );
   render_sprite( res, g_tile::menu_item_sel_back, Coord{}, 0,
                  0 );
+  auto sprite_width =
+      lookup_sprite( g_tile::menu_item_sel_back ).size().w;
   render_sprite( res, g_tile::menu_item_sel_back,
-                 Coord{} + 128_w, 0, 0 );
+                 Coord{} + sprite_width, 0, 0 );
   return res;
 }
 
@@ -786,21 +778,24 @@ Texture const& render_open_menu( e_menu           menu,
   return dst;
 }
 
-void render_menu_bar() {
-  CHECK( menu_bar_tx );
-
+void render_menu_bar( Texture const& tx ) {
   // Render the "wood" panel. Start from the left edge of the
   // panel so that we get a continuous wood texture between the
   // two. Also, put the y position such that the menu bar gets
   // the bottom portion of the texture, again so that it will be
   // continuous with that panel.
-  Coord start = Coord{} + main_window_logical_size().w -
-                ( 6_w * 32_sx ) - ( 64_h - 16_h );
-  for( Coord c = start; c.x >= 0_x - 128_w; c -= 128_w )
-    render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
-  for( Coord c = start; c.x < 0_x + main_window_logical_size().w;
-       c += 128_w )
-    render_sprite( menu_bar_tx, g_tile::wood_middle, c, 0, 0 );
+  auto panel_rect =
+      compositor::section( compositor::e_section::panel );
+  auto        bar_rect = menu_bar_rect();
+  auto const& wood     = lookup_sprite( g_tile::wood_middle );
+  Coord       start    = panel_rect.upper_left() - wood.size().h;
+  auto        wood_width = wood.size().w;
+  for( Coord c = start; c.x >= 0_x - wood_width;
+       c -= wood_width )
+    render_sprite( tx, g_tile::wood_middle, c, 0, 0 );
+  for( Coord c = start; c.x < bar_rect.right_edge();
+       c += wood_width )
+    render_sprite( tx, g_tile::wood_middle, c, 0, 0 );
 
   for( auto menu : visible_menus() ) {
     CHECK( g_menu_rendered.contains( menu ),
@@ -837,19 +832,14 @@ void render_menu_bar() {
     if( auto p = matcher( g_menu_state ); p.has_value() ) {
       auto rect = menu_header_rect( menu );
       if( ( *p ).second )
-        copy_texture( *( ( *p ).second ), menu_bar_tx,
+        copy_texture( *( ( *p ).second ), tx,
                       rect.upper_left() );
       CHECK( ( *p ).first );
       copy_texture(
-          *( ( *p ).first ), menu_bar_tx,
+          *( ( *p ).first ), tx,
           rect.upper_left() + config_ui.menus.padding );
     }
   }
-}
-
-void display_menu_bar_tx( Texture const& tx ) {
-  render_menu_bar();
-  copy_texture( menu_bar_tx, tx, Coord{} );
 }
 
 /****************************************************************
@@ -901,7 +891,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
 ** Top-level Render Method
 *****************************************************************/
 void render_menus( Texture const& tx ) {
-  display_menu_bar_tx( tx );
+  render_menu_bar( tx );
   auto maybe_render_open_menu = scelta::match(
       []( MenuState::menus_hidden ) {},  //
       [&]( MenuState::menus_closed ) {}, //
@@ -1110,8 +1100,6 @@ void init_menus() {
     g_menu_rendered[menu].menu_body_shadow =
         create_shadow_texture( to_be_shadowed );
   }
-
-  menu_bar_tx = create_texture( menu_bar_rect().delta() );
 }
 
 void cleanup_menus() {
@@ -1119,7 +1107,6 @@ void cleanup_menus() {
   // items.
   g_menu_rendered.clear();
   g_menu_item_rendered.clear();
-  menu_bar_tx.free();
 }
 
 REGISTER_INIT_ROUTINE( menus );

@@ -12,6 +12,7 @@
 #include "viewport.hpp"
 
 // Revolution Now
+#include "compositor.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "screen.hpp"
@@ -40,6 +41,11 @@ double pan_accel_init() {
 double pan_accel_drag_init() {
   return config_rn.viewport.pan_accel_drag_init_coeff *
          config_rn.viewport.pan_speed;
+}
+
+Delta viewport_size_pixels() {
+  return compositor::section( compositor::e_section::viewport )
+      .delta();
 }
 
 } // namespace
