@@ -11,6 +11,7 @@
 #include "sdl-util.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "frame.hpp"
@@ -18,13 +19,18 @@
 #include "logging.hpp"
 #include "macros.hpp"
 #include "screen.hpp"
+#include "util.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
+#include "base-util/string.hpp"
 
 // Range-v3
 #include "range/v3/view/group_by.hpp"
 #include "range/v3/view/transform.hpp"
+
+// Abseil
+#include "absl/strings/str_replace.h"
 
 // C++ standard library
 #include <cmath>
@@ -232,6 +238,11 @@ void copy_texture( Texture const& from, Texture const& to,
                 src.with_new_upper_left( dst_coord ), 0, {} );
 }
 
+void copy_texture( Texture const& from, Texture const& to,
+                   Rect const& src, Rect const& dst ) {
+  copy_texture( from, to, src, dst, 0, ::SDL_FLIP_NONE );
+}
+
 // With alpha. TODO: figure out why this doesn't behave like a
 // standard copy_texture when alpha == 255.
 void copy_texture_alpha( Texture const& from, Texture const& to,
@@ -294,9 +305,13 @@ Texture clone_texture( Texture const& tx ) {
 }
 
 Texture create_texture( W w, H h ) {
+  bool is_target = true;
+
+  ::SDL_TextureAccess access = is_target
+                                   ? ::SDL_TEXTUREACCESS_TARGET
+                                   : ::SDL_TEXTUREACCESS_STATIC;
   auto tx = from_SDL( ::SDL_CreateTexture(
-      g_renderer, g_pixel_format, SDL_TEXTUREACCESS_TARGET, w._,
-      h._ ) );
+      g_renderer, g_pixel_format, access, w._, h._ ) );
   clear_texture_black( tx );
   return tx;
 }
@@ -405,32 +420,69 @@ Texture create_shadow_texture( Texture const& tx ) {
   return cloned;
 }
 
-void save_texture_png( Texture const&  tx,
+bool save_texture_png( Texture const&  tx,
                        fs::path const& file ) {
-  lg.info( "writing png file {}", file.string() );
+  lg.info( "writing png file {}.", file );
+  ::SDL_Surface* surface = create_surface( tx.size() );
+  CHECK( surface );
   set_render_target( tx );
-  auto           delta   = texture_delta( tx );
-  ::SDL_Surface* surface = SDL_CreateRGBSurface(
-      0, delta.w._, delta.h._, 32, 0, 0, 0, 0 );
   ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
                           surface->pixels, surface->pitch );
-  CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
-         "failed to save png file {}", file.string() );
+  bool status =
+      ::IMG_SavePNG( surface, file.string().c_str() ) == 0;
+  if( !status ) lg.error( "failed to save png file {}.", file );
   ::SDL_FreeSurface( surface );
+  return status;
 }
 
-void grab_screen( fs::path const& file ) {
-  auto screen = main_window_logical_size();
-  lg.info(
-      "grabbing screen with size [{} x {}] and saving to {}",
-      screen.w, screen.h, file.string() );
-  ::SDL_Surface* surface = create_surface( screen );
+bool screenshot( fs::path const& file ) {
+  // We need to scale down the main window's contents to the log-
+  // ical resolution.
+  auto* physical_surface =
+      create_surface( main_window_physical_size() );
+  auto* logical_surface =
+      create_surface( main_window_logical_size() );
   set_render_target( Texture{} );
+  // It seems that we unfortunately cannot use read from the
+  // screen using a texture-copy operation; we must use this to
+  // read into a surface.
   ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
-                          surface->pixels, surface->pitch );
-  CHECK( !::IMG_SavePNG( surface, file.string().c_str() ),
-         "failed to save png file {}", file.string() );
-  ::SDL_FreeSurface( surface );
+                          physical_surface->pixels,
+                          physical_surface->pitch );
+  CHECK( !::SDL_BlitScaled( physical_surface, NULL,
+                            logical_surface, NULL ) );
+  auto logical_tx = Texture::from_surface( logical_surface );
+  CHECK( logical_tx );
+  ::SDL_FreeSurface( physical_surface );
+  ::SDL_FreeSurface( logical_surface );
+  // Unfortunately the above tx will not support being a render
+  // target, so we need to create yet another texture. It needs
+  // to be a render target because we're going to need to set it
+  // as such to read from it in the save_texture_png function.
+  auto logical_tx_target = create_texture( logical_tx.size() );
+  CHECK( logical_tx_target );
+  copy_texture( logical_tx, logical_tx_target );
+
+  lg.info( "saving screenshot with size {}x{} to \"{}\".",
+           logical_tx_target.size().w._,
+           logical_tx_target.size().h._, file.string() );
+  return save_texture_png( logical_tx_target, file );
+}
+
+bool screenshot() {
+  auto home_folder = user_home_folder();
+  if( !home_folder ) {
+    lg.error(
+        "Cannot save screenshot; HOME variable not set in "
+        "environment." );
+    return false;
+  }
+  return screenshot(
+      ( *home_folder ) /
+      absl::StrReplaceAll(
+          fmt::format( "revolution-now-screenshot-{}.png",
+                       util::to_string( Clock_t::now() ) ),
+          {{" ", "-"}} ) );
 }
 
 void clear_texture_black( Texture const& tx ) {

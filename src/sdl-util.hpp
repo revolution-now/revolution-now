@@ -148,6 +148,9 @@ void copy_texture( Texture const& from, Texture const& to,
                    Coord const& dst_coord );
 void copy_texture( Texture const& from, Texture const& to,
                    Rect const& src, Coord dst_coord );
+// This one may stretch/scale if the rects are not the same size.
+void copy_texture( Texture const& from, Texture const& to,
+                   Rect const& src, Rect const& dst );
 // With alpha.  Note, that this does not seem to behave the same
 // as a "regular" copy_texture call when setting alpha == 255,
 // so we should only use this when we need to specify the alpha.
@@ -189,8 +192,14 @@ Matrix<Color> texture_pixels( Texture const& tx );
 // source texture's opaque (or semi-opaque) parts.
 Texture create_shadow_texture( Texture const& tx );
 
-void save_texture_png( Texture const& tx, fs::path const& file );
-void grab_screen( fs::path const& file );
+// Returns true on success.
+bool save_texture_png( Texture const& tx, fs::path const& file );
+// Returns true on success.
+bool screenshot( fs::path const& file );
+// Generate a filename in the user's home folder containing the
+// current timestamp and save a screenshot there. Returns true on
+// success.
+bool screenshot();
 
 void clear_texture_black( Texture const& tx );
 void clear_texture_transparent( Texture const& tx );

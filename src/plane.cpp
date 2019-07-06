@@ -102,6 +102,10 @@ struct OmniPlane : public Plane {
         if( key_event.change != input::e_key_change::up ) break_;
         handled = true;
         switch( key_event.keycode ) {
+          case ::SDLK_F12:
+            if( !screenshot() )
+              lg.warn( "failed to take screenshot." );
+            break;
           case ::SDLK_F11:
             if( is_window_fullscreen() ) {
               toggle_fullscreen();

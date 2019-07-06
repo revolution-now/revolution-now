@@ -243,4 +243,7 @@ std::string demangled_typename() {
   return demangle( typeid( T ).name() );
 }
 
+// If the HOME environment variable is set then return it.
+Opt<fs::path> user_home_folder();
+
 } // namespace rn

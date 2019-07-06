@@ -12,6 +12,7 @@
 
 #include "errors.hpp"
 
+// C++ standard library.
 #include <cstdlib>
 #include <exception>
 #include <memory>
@@ -60,5 +61,12 @@ string demangle( char const* name ) {
 // Does nothing if not g++/clang
 string demangle( const char* name ) { return name; }
 #endif
+
+Opt<fs::path> user_home_folder() {
+  Opt<fs::path> res;
+  auto const*   HOME = getenv( "HOME" );
+  if( HOME != nullptr ) res = HOME;
+  return res;
+}
 
 } // namespace rn
