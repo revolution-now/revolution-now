@@ -113,6 +113,8 @@ auto range_of_rects(
          } );
 }
 
+auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
+
 /****************************************************************
 ** Europe View Entities
 *****************************************************************/
@@ -155,9 +157,9 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    auto bds = bounds();
-    for( auto rect :
-         range_of_rects( bds.to_grid_noalign( sprite_scale ) ) )
+    auto bds  = bounds();
+    auto grid = bds.to_grid_noalign( sprite_scale );
+    for( auto rect : range_of_rects( grid ) )
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
   }
@@ -215,9 +217,9 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    auto bds = bounds();
-    for( auto rect :
-         range_of_rects( bds.to_grid_noalign( sprite_scale ) ) )
+    auto bds  = bounds();
+    auto grid = bds.to_grid_noalign( sprite_scale );
+    for( auto rect : range_of_rects( grid ) )
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
   }
@@ -606,9 +608,9 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    auto bds = bounds();
-    for( auto rect : range_of_rects(
-             bds.to_grid_noalign( dock_block_pixels ) ) )
+    auto bds  = bounds();
+    auto grid = bds.to_grid_noalign( dock_block_pixels );
+    for( auto rect : range_of_rects( grid ) )
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
   }
