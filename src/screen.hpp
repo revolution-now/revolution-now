@@ -27,10 +27,13 @@ extern Texture         g_texture_viewport;
 
 extern Scale g_resolution_scale_factor;
 
+// These are cheap to call because their values are cached and
+// are only updated when either the main window is resized or if
+// the user changes the scale factor.
 Delta main_window_logical_size();
-Rect  main_window_logical_rect();
 Delta main_window_physical_size();
-Rect  main_window_physical_rect(); // origin at (0,0)
+Rect  main_window_logical_rect();  // !! origin at (0,0)
+Rect  main_window_physical_rect(); // !! origin at (0,0)
 
 void on_main_window_resized();
 

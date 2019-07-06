@@ -50,6 +50,9 @@ auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 constexpr int min_scale_factor = 1;
 constexpr int max_scale_factor = 10;
 
+// Cache is invalidated by setting to nullopt.
+Opt<Delta> main_window_physical_size_cache;
+
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
  *  ::SDL_DisplayMode dm;
@@ -360,6 +363,22 @@ void cleanup_renderer() {
     ::SDL_DestroyRenderer( g_renderer );
 }
 
+void on_logical_resolution_changed() {
+  // Invalidate cache.
+  main_window_physical_size_cache = nullopt;
+
+  auto logical_size = main_window_logical_size();
+  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
+                              logical_size.h._ );
+  lg.debug( "logical resolution changed to {}", logical_size );
+
+  auto physical_size = main_window_physical_size();
+  if( physical_size % g_resolution_scale_factor != Delta{} )
+    lg.warn(
+        "main window physical resolution not commensurate with "
+        "scale factor." );
+}
+
 } // namespace
 
 REGISTER_INIT_ROUTINE( screen );
@@ -416,11 +435,13 @@ Rect main_window_logical_rect() {
 }
 
 Delta main_window_physical_size() {
-  CHECK( g_window != nullptr );
-  int w{}, h{};
-  ::SDL_GetWindowSize( g_window, &w, &h );
-  Delta res{W{w}, H{h}};
-  return res;
+  if( !main_window_physical_size_cache ) {
+    CHECK( g_window != nullptr );
+    int w{}, h{};
+    ::SDL_GetWindowSize( g_window, &w, &h );
+    main_window_physical_size_cache = Delta{W{w}, H{h}};
+  }
+  return *main_window_physical_size_cache;
 }
 
 Rect main_window_physical_rect() {
@@ -458,22 +479,13 @@ void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 void on_main_window_resized() {
   lg.debug( "main window resizing." );
-  auto logical_size = main_window_logical_size();
-  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
-                              logical_size.h._ );
-
-  auto physical_size = main_window_physical_size();
-  if( physical_size % g_resolution_scale_factor != Delta{} )
-    lg.warn(
-        "Window physical resolution not commensurate with scale "
-        "factor." );
+  on_logical_resolution_changed();
 }
 
 void on_renderer_scale_factor_changed() {
-  auto logical_size = main_window_logical_size();
-  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
-                              logical_size.h._ );
-  lg.info( "scale factor changed: {}", logical_size );
+  lg.info( "scale factor changed: {}",
+           g_resolution_scale_factor );
+  on_logical_resolution_changed();
 }
 
 } // namespace rn
