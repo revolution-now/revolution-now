@@ -36,12 +36,6 @@ void check_invariants() {
     CHECK( rect.top_edge() >= bounds.top_edge(),
            "section {} is out of bounds", e );
   }
-  // Make sure none of the sections overlap.
-  for( auto e1 : values<e_section> )
-    for( auto e2 : values<e_section> )
-      if( e1 != e2 )
-        CHECK( !section( e1 ).overlap_with( section( e2 ) ),
-               "section {} overlaps with section", e1, e2 );
 }
 
 void init_compositor() { check_invariants(); }
@@ -61,6 +55,10 @@ Rect section( e_section section ) {
   switch( section ) {
     case +e_section::menu_bar:
       res = Rect{0_x, 0_y, screen_size.w, g_menu_height};
+      break;
+    case +e_section::non_menu_bar:
+      res = Rect{0_x, 0_y + g_menu_height, screen_size.w,
+                 screen_size.h - g_menu_height};
       break;
     case +e_section::viewport:
       // At standard zoom; i.e., these are fixed with respect to

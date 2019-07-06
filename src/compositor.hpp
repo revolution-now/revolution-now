@@ -18,10 +18,14 @@
 
 namespace rn::compositor {
 
-enum class e_( section,  //
-               menu_bar, //
-               viewport, //
-               panel     //
+// In general, these sections may overlap.
+enum class e_(
+    section,  // e_section
+    menu_bar, //
+    // All parts of the screen except for the menu bar.
+    non_menu_bar, //
+    viewport,     //
+    panel         //
 );
 
 Rect section( e_section section );

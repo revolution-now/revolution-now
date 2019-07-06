@@ -11,6 +11,7 @@
 #include "euroview.hpp"
 
 // Revolution Now
+#include "compositor.hpp"
 #include "coord.hpp"
 #include "image.hpp"
 #include "init.hpp"
@@ -46,7 +47,10 @@ Texture g_exit_tx;
 
 Rect clip_rect() {
   return Rect::from(
-      centered( g_clip, main_window_logical_rect() ), g_clip );
+      centered( g_clip,
+                compositor::section(
+                    compositor::e_section::non_menu_bar ) ),
+      g_clip );
 }
 
 Delta clip_rect_drag_region{4_w, 4_h};
