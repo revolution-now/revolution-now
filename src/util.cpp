@@ -23,7 +23,16 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+Opt<string> environment_variable( char const* name ) {
+  Opt<string> res;
+  auto const* value = getenv( name );
+  if( value != nullptr ) res = value;
+  return res;
+}
+
+} // namespace
 
 int round_up_to_nearest_int_multiple( double d, int m ) {
   if( d < 0.0 )
@@ -63,10 +72,7 @@ string demangle( const char* name ) { return name; }
 #endif
 
 Opt<fs::path> user_home_folder() {
-  Opt<fs::path> res;
-  auto const*   HOME = getenv( "HOME" );
-  if( HOME != nullptr ) res = HOME;
-  return res;
+  return environment_variable( "HOME" );
 }
 
 } // namespace rn
