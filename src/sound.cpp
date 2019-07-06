@@ -98,14 +98,14 @@ void init_sound() {
       audio_opened,
       "unexpected: SDL Mixer audio has not been initialized." );
 
-  lg.info( "Opening audio with {} channels @ {}Hz.", channels,
+  lg.info( "opening audio with {} channels @ {}Hz.", channels,
            frequency );
 
   for( int i = 0; i < ::SDL_GetNumAudioDrivers(); ++i )
-    lg.debug( "Audio Driver #{}: {}", i,
+    lg.debug( "audio driver #{}: {}", i,
               ::SDL_GetAudioDriver( i ) );
 
-  lg.info( "Using Audio Driver: {}",
+  lg.info( "using audio driver: {}",
            ::SDL_GetCurrentAudioDriver() );
 
   // Set Volume for all channels.
@@ -141,7 +141,7 @@ REGISTER_INIT_ROUTINE( sound );
 void play_sound_effect( e_sfx sound ) {
   auto* chunk = load_sfx( sound );
   if( ::Mix_PlayChannel( -1, chunk, 0 ) == -1 )
-    lg.warn( "Unable to play sound effect {}", sound );
+    lg.warn( "unable to play sound effect {}", sound );
 }
 
 } // namespace rn

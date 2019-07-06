@@ -118,7 +118,7 @@ TuneId prev_tune_in_playlist() {
 
 void play_impl( TuneId id ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  lg.info( "Playing \"{}\".", tune_display_name_from_id( id ) );
+  lg.info( "playing \"{}\".", tune_display_name_from_id( id ) );
   mplayer->play( id );
 }
 
@@ -237,7 +237,7 @@ void init_conductor() {
     }
 
     if( !enable_mplayer ) {
-      lg.warn( "Music player `{}` not enabled: {}.",
+      lg.warn( "music player `{}` not enabled: {}.",
                g_mplayer_descs[mplayer].name, reason );
     }
     MusicPlayerInfo info{
@@ -351,20 +351,20 @@ void play_request( e_request             request,
 }
 
 void ConductorInfo::log() const {
-  lg.info( "ConductorInfo:" );
-  lg.info( "  mplayer:     {}", mplayer );
-  lg.info( "  music_state: {}", music_state );
-  lg.info( "  volume:      {}", volume );
-  lg.info( "  autoplay:    {}", autoplay );
+  lg.debug( "ConductorInfo:" );
+  lg.debug( "  mplayer:     {}", mplayer );
+  lg.debug( "  music_state: {}", music_state );
+  lg.debug( "  volume:      {}", volume );
+  lg.debug( "  autoplay:    {}", autoplay );
   if( playing_now.has_value() ) ( *playing_now ).log();
 }
 
 void MusicPlayerInfo::log() const {
-  lg.info( "MusicPlayerInfo:" );
-  lg.info( "  enabled:      {}", enabled );
-  lg.info( "  name:         {}", name );
-  lg.info( "  description:  {}", description );
-  lg.info( "  how_it_works: {}", how_it_works );
+  lg.debug( "MusicPlayerInfo:" );
+  lg.debug( "  enabled:      {}", enabled );
+  lg.debug( "  name:         {}", name );
+  lg.debug( "  description:  {}", description );
+  lg.debug( "  how_it_works: {}", how_it_works );
 }
 
 MusicPlayerInfo const& music_player_info(
@@ -396,7 +396,7 @@ bool set_music_player( e_music_player mplayer ) {
 
 expect<ConductorInfo> state() {
   if( !g_active_mplayer.has_value() )
-    return UNEXPECTED( "No viable music players available." );
+    return UNEXPECTED( "no viable music players available." );
   auto expect_mplayer = g_mplayers[*g_active_mplayer];
   DCHECK( expect_mplayer.has_value() );
   auto          mplayer  = *expect_mplayer;
@@ -420,11 +420,11 @@ expect<ConductorInfo> state() {
 void set_autoplay( bool enabled ) {
   g_autoplay  = enabled;
   auto on_off = enabled ? "on" : "off";
-  lg.info( "Music Autoplay is {}", on_off );
+  lg.info( "music autoplay is {}", on_off );
 }
 
 void reset() {
-  lg.info( "Resetting Conductor state." );
+  lg.info( "resetting conductor state." );
   // Try to select which music player to use by taking some hints
   // from the config file. If those don't work out that just take
   // the first one (in the ordering of e_music_player enum val-
@@ -432,7 +432,7 @@ void reset() {
   if( g_mplayer_infos[config_music.first_choice_music_player]
           .enabled ) {
     g_active_mplayer = config_music.first_choice_music_player;
-    lg.info( "Using first choice music player `{}`.",
+    lg.info( "using first choice music player `{}`.",
              g_active_mplayer );
   } else if( g_mplayer_infos[config_music
                                  .second_choice_music_player]
@@ -563,7 +563,7 @@ void pause() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_pause ) {
-    lg.warn( "Music player `{}` does not support pausing.",
+    lg.warn( "music player `{}` does not support pausing.",
              mplayer->info().name );
     return;
   }
@@ -585,7 +585,7 @@ void resume() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_pause ) {
-    lg.warn( "Music player `{}` does not support pausing.",
+    lg.warn( "music player `{}` does not support pausing.",
              mplayer->info().name );
     return;
   }
@@ -624,7 +624,7 @@ void seek( double pos ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   auto capabilities = mplayer->capabilities();
   if( !capabilities.can_seek ) {
-    lg.warn( "Music player `{}` does not support seeking.",
+    lg.warn( "music player `{}` does not support seeking.",
              mplayer->info().name );
     return;
   }
@@ -652,7 +652,7 @@ void playlist_generate() {
   // in the playlist, unless there are fewer than five total
   // tunes. 2. the last set of tunes shall not overlap with the
   // first set of tunes, since the playlist needs to wrap around.
-  lg.info( "Generating playlist." );
+  lg.info( "generating playlist." );
   CHECK( config_music.tunes.size() > 0 );
   auto   num_tunes = config_music.tunes.size();
   size_t no_overlap_size =
@@ -684,11 +684,11 @@ void playlist_generate() {
       break;
     }
     if( timeout_countdown == 0 ) {
-      lg.warn( "Max cycles reached when generating playlist." );
+      lg.warn( "max cycles reached when generating playlist." );
       break;
     }
   }
-  lg.trace( "Playlist:" );
+  lg.trace( "playlist:" );
   for( auto [idx, id] : res | rv::enumerate )
     lg.trace( " {: >4}. {}", idx + 1,
               tune_display_name_from_id( id ) );
@@ -807,7 +807,7 @@ MENU_ITEM_HANDLER( music_set_player, menu_music_set_player,
 
 // Testing
 void test() {
-  lg.info( "Testing Music Conductor" );
+  lg.info( "testing Music Conductor" );
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
 
   double vol = 1.0;

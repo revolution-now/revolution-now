@@ -194,7 +194,7 @@ void register_init_routine( e_init_routine      routine,
 void run_all_init_routines( Opt<e_init_routine> only ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
-  init_logging( spdlog::level::debug );
+  init_logging( /*level=*/nullopt );
   lg.debug( "initializing: logging" );
 
   // These should guarantee that the maps contain all enum

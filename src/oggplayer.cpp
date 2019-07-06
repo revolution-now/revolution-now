@@ -118,7 +118,7 @@ ND bool play_impl( OggTune&& music ) {
   auto channel_used =
       ::Mix_PlayMusic( music.ptr(), /*loops=*/1 );
   if( channel_used < 0 ) {
-    lg.error( "Unexpected error: unable to play music: {}",
+    lg.error( "unexpected error: unable to play music: {}",
               ::SDL_GetError() );
     return false;
   }

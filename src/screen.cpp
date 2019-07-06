@@ -56,7 +56,7 @@ Opt<Delta> main_window_physical_size_cache;
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {
  *  ::SDL_DisplayMode dm;
- *  lg.debug( "Available display modes:" );
+ *  lg.debug( "available display modes:" );
  *  auto num_display_modes = ::SDL_GetNumDisplayModes( 0 );
  *  constexpr int min_x_res{1920};
  *  constexpr int min_y_res{1080};
@@ -112,7 +112,7 @@ double const& viewer_distance_from_monitor() {
     auto             res =
         std::max( viewer_distance_multiplier * monitor_inches(),
                   viewer_distance_minimum );
-    lg.debug( "Computed Viewer Distance from Screen: {}in.",
+    lg.debug( "computed viewer distance from screen: {}in.",
               res );
     return res;
   }();
@@ -136,7 +136,7 @@ void query_video_stats() {
   };
   (void)dm_to_str;
 
-  lg.debug( "Default game pixel format: {}",
+  lg.debug( "default game pixel format: {}",
             ::SDL_GetPixelFormatName( g_pixel_format ) );
 
   lg.debug( "GetCurrentDisplayMode: " );
@@ -145,7 +145,7 @@ void query_video_stats() {
   if( g_pixel_format != dm.format ) {
     // g_pixel_format =
     //    static_cast<decltype( g_pixel_format )>( dm.format );
-    // lg.debug( "Correcting game pixel format to {}",
+    // lg.debug( "correcting game pixel format to {}",
     //               ::SDL_GetPixelFormatName( dm.format ) );
   }
 
@@ -162,7 +162,7 @@ void query_video_stats() {
   SDL_GetDisplayBounds( 0, &r );
   lg.debug( "  {}", from_SDL( r ) );
 
-  lg.debug( "Monitor Diagonal Length: {}in.", monitor_inches() );
+  lg.debug( "monitor diagonal length: {}in.", monitor_inches() );
 }
 
 struct ScaleInfo {

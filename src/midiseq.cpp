@@ -122,7 +122,7 @@ public:
     }();
     if( event.size() > max_event_size ) {
       // Should be extremely rare.
-      lg.warn( "MIDI event size {} is larger than max (={})",
+      lg.warn( "midi event size {} is larger than max (={})",
                event.size(), max_event_size );
       return;
     }
@@ -719,11 +719,11 @@ void midi_thread_impl() {
 void midi_thread() {
   midi_thread_impl();
   g_midi_comm.set_running_commands( false );
-  lg.info( "MIDI thread exiting." );
+  lg.info( "midi thread exiting." );
   // This may already have been done, but just in case.
   g_midi->all_notes_off();
   if( g_midi_comm.state() == e_midiseq_state::failed ) {
-    lg.error( "MIDI thread failed: {}",
+    lg.error( "midi thread failed: {}",
               g_midi_comm.last_error() );
     g_midi.reset();
     // Not sure the best way to do this, but it seems that we get
@@ -746,7 +746,7 @@ void init_midiseq() {
   if( maybe_midi_io ) {
     g_midi.emplace( std::move( *maybe_midi_io ) );
 
-    lg.info( "Creating MIDI thread." );
+    lg.info( "creating midi thread." );
     // Initialization of midi thread. This is only done if we
     // found a midi port.
     g_midi_thread = thread( midi_thread );
@@ -754,7 +754,7 @@ void init_midiseq() {
 
   if( !g_midi.has_value() ) {
     lg.warn(
-        "Failed to initialize MIDI system; MIDI music will not "
+        "failed to initialize MIDI system; MIDI music will not "
         "play." );
   }
 }
@@ -763,11 +763,11 @@ void cleanup_midiseq() {
   if( g_midi ) {
     // Cleanup midi thread.
     if( g_midi_thread.has_value() ) {
-      lg.info( "Sending `off` message to midi thread." );
+      lg.info( "sending `off` message to midi thread." );
       g_midi_comm.send_cmd( command::off{} );
-      lg.info( "Waiting for midi thread to join." );
+      lg.info( "waiting for midi thread to join." );
       g_midi_thread->join();
-      lg.info( "MIDI thread closed." );
+      lg.info( "midi thread closed." );
       // This may have already been done by the midi thread, but
       // just in case...
       g_midi->all_notes_off();
@@ -862,20 +862,20 @@ void test() {
       vol += .1;
       vol = std::clamp( vol, 0.0, 1.0 );
       g_midi_comm.send_cmd( command::volume{vol} );
-      lg.info( "Volume: {}", vol );
+      lg.info( "volume: {}", vol );
       continue;
     }
     if( in == "d" ) {
       vol -= .1;
       vol = std::clamp( vol, 0.0, 1.0 );
       g_midi_comm.send_cmd( command::volume{vol} );
-      lg.info( "Volume: {}", vol );
+      lg.info( "volume: {}", vol );
       continue;
     }
     if( in == "P" ) {
       auto progress = g_midi_comm.progress();
       if( progress.has_value() )
-        lg.info( "Progress: {}", progress.value() * 100.0 );
+        lg.info( "progress: {}", progress.value() * 100.0 );
       continue;
     }
     if( in == "q" ) break;
