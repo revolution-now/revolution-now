@@ -131,7 +131,7 @@ bool check_inline( bool b, char const* msg );
 // Same as above but returns on failure instead of throwing. As
 // can be seen, this macro should be used inside functions that
 // return a default-initialized value to mean failure, such as
-// bool or optional.
+// bool, std::optional, or std::expected.
 #define ASSIGN_OR_RETURN( a, b )                     \
   auto STRING_JOIN( __x, __LINE__ ) = b;             \
   if( !( STRING_JOIN( __x, __LINE__ ) ) ) return {}; \

@@ -43,23 +43,36 @@ unordered_map<UnitId, Coord>                coords_from_unit;
 unordered_map</*held*/ UnitId, /*holder*/ UnitId>
     holder_from_held;
 
+// For units that are owned by either the high seas or by the eu-
+// rope view (NOTE: this does NOT refer to the King's army; "own-
+// ership" here refers to where the unit is located in the game).
+unordered_map<UnitId, UnitEuroviewState_t> g_euroview_units;
+
 enum class e_unit_ownership {
   // Unit is on the map.  This includes units that are stationed
   // in colonies.  It does not include units in indian villages
   // or in boats.
   world,
   // This includes units in boats or wagons.
-  cargo
+  cargo,
+  // This is for units that are on the high seas, in port, or on
+  // dock in the europe view.
+  old_world
 };
 
 unordered_map<UnitId, e_unit_ownership> unit_ownership;
 
 } // namespace
 
+string debug_string( UnitId id ) {
+  return debug_string( unit_from_id( id ) );
+}
+
 // The purpose of this function is *only* to manipulate the above
 // global maps. It does not follow any of the associated proce-
 // dures that need to be followed when a unit is added, removed,
-// or moved from one map to another.
+// or moved from one map to another (or from one owner to anoth-
+// er).
 //
 // Specifically, it will erase any ownership that is had over the
 // given unit and mark it as unowned.
@@ -83,13 +96,23 @@ void ownership_disown_unit( UnitId id ) {
       if( units_set.empty() ) units_from_coords.erase( set_it );
       break;
     }
-    case e_unit_ownership::cargo:
+    case e_unit_ownership::cargo: {
       ASSIGN_CHECK_OPT( pair_it,
                         has_key( holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
       holder_unit.cargo().remove( id );
       holder_from_held.erase( pair_it );
       break;
+    }
+    case e_unit_ownership::old_world: {
+      CHECK( has_key( g_euroview_units, id ) );
+      // Ensure the unit has no cargo.
+      CHECK( unit_from_id( id )
+                 .cargo()
+                 .count_items_of_type<UnitId>() == 0 );
+      g_euroview_units.erase( id );
+      break;
+    }
   };
   // Probably need to do this last so iterators don't get
   // invalidated.
@@ -159,6 +182,9 @@ Unit& create_unit( e_nation nation, e_unit_type type ) {
   return units.find( id )->second;
 }
 
+/****************************************************************
+** Map Ownership
+*****************************************************************/
 // need to think about what this API should be.
 UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                            Y y, X x ) {
@@ -221,20 +247,51 @@ Coord coords_for_unit( UnitId id ) {
 
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
-OptCoord coords_for_unit_safe( UnitId id ) {
+Opt<Coord> coords_for_unit_safe( UnitId id ) {
   ASSIGN_OR_RETURN( ownership, val_safe( unit_ownership, id ) );
   switch( ownership ) {
     case e_unit_ownership::world:
       return val_safe( coords_from_unit, id );
-    case e_unit_ownership::cargo:
+    case e_unit_ownership::cargo: {
       ASSIGN_OR_RETURN( holder,
                         val_safe( holder_from_held, id ) );
       // Coordinates of unit are coordinates of holder.
       return coords_for_unit_safe( holder );
+    }
+    case e_unit_ownership::old_world: //
+      return nullopt;
   };
-  SHOULD_NOT_BE_HERE;
+  UNREACHABLE_LOCATION;
 }
 
+/****************************************************************
+** Cargo Ownership
+*****************************************************************/
+// If the unit is being held as cargo then it will return the id
+// of the unit that is holding it; nullopt otherwise.
+Opt<UnitId> is_unit_onboard( UnitId id ) {
+  auto opt_iter = has_key( holder_from_held, id );
+  return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
+                  : nullopt;
+}
+
+/****************************************************************
+** Euroview Ownership
+*****************************************************************/
+Opt<Ref<UnitEuroviewState_t>> unit_euroview_info( UnitId id ) {
+  ASSIGN_OR_RETURN( it, has_key( g_euroview_units, id ) );
+  return it->second;
+}
+
+FlatSet<UnitId> units_in_euroview() {
+  FlatSet<UnitId> res;
+  for( auto const& p : g_euroview_units ) res.insert( p.first );
+  return res;
+}
+
+/****************************************************************
+** Low-Level Ownership Change Functions
+*****************************************************************/
 void ownership_change_to_map( UnitId id, Coord const& target ) {
   ownership_disown_unit( id );
   // Add unit to new square.
@@ -266,16 +323,12 @@ void ownership_change_to_cargo( UnitId new_holder,
   holder_from_held[held] = new_holder;
 }
 
-// If the unit is being held as cargo then it will return the id
-// of the unit that is holding it; nullopt otherwise.
-Opt<UnitId> is_unit_onboard( UnitId id ) {
-  auto opt_iter = has_key( holder_from_held, id );
-  return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
-                  : nullopt;
-}
-
-string debug_string( UnitId id ) {
-  return debug_string( unit_from_id( id ) );
+void ownership_change_to_euroview( UnitId              id,
+                                   UnitEuroviewState_t info ) {
+  CHECK( !has_key( g_euroview_units, id ) );
+  ownership_disown_unit( id );
+  unit_ownership[id]   = e_unit_ownership::old_world;
+  g_euroview_units[id] = info;
 }
 
 } // namespace rn

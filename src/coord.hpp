@@ -453,9 +453,6 @@ public:
   }
 };
 
-// TODO: remove
-using OptCoord = std::optional<Coord>;
-
 // Will take the delta and center it with respect to the rect and
 // return the coordinate of the upper-left corner of the centered
 // rect.  Note that the coord returned may be negative.

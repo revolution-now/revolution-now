@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "aliases.hpp"
 #include "unit.hpp"
 
@@ -27,17 +28,23 @@
 
 namespace rn {
 
+std::string debug_string( UnitId id );
+
 ND bool unit_exists( UnitId id );
 ND Unit&    unit_from_id( UnitId id );
 Vec<UnitId> units_all(
     std::optional<e_nation> n = std::nullopt );
 // Apply a function to all units. The function may mutate the
-// units.
+// units. NOTE: here, the word "map" is meant in the functional
+// programming sense, and not in the sense of the game world map.
 void map_units( tl::function_ref<void( Unit& )> func );
 
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id );
 
+/****************************************************************
+** Map Ownership
+*****************************************************************/
 // Not safe, probably temporary.
 ND UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                               Y y, X x );
@@ -69,14 +76,42 @@ ND Vec<UnitId> units_in_rect( Rect const& rect );
 // the map or the coordinates of its owner if it is ultimately
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
-ND Coord    coords_for_unit( UnitId id );
-ND OptCoord coords_for_unit_safe( UnitId id );
+ND Coord coords_for_unit( UnitId id );
+ND Opt<Coord> coords_for_unit_safe( UnitId id );
 
+/****************************************************************
+** Cargo Ownership
+*****************************************************************/
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nullopt otherwise.
 Opt<UnitId> is_unit_onboard( UnitId id );
 
-std::string debug_string( UnitId id );
+/****************************************************************
+** Euroview Ownership
+*****************************************************************/
+// These pertain to units who are owned by either the high seas
+// or by europe view (e.g., in port, on the dock, etc.);
+ADT_RN(
+    UnitEuroviewState,
+    // For ships that are venturing to europe. `percent` starts
+    // from 0 and goes to 1.0 at arrival.
+    ( to_old_world,          //
+      ( double, percent ) ), //
+    // For ships that are traveling from europe to the new world.
+    // `percent` starts from 0 and goes to 1.0 at arrival.
+    ( to_new_world,          //
+      ( double, percent ) ), //
+    // If a ship is in this state then it is in port (shown in
+    // the "in port" box) whereas for land units this means that
+    // they are on the dock.
+    ( in_port ) //
+);
+
+// If unit is owned by euroview then this will return info.
+Opt<Ref<UnitEuroviewState_t>> unit_euroview_info( UnitId id );
+
+// Get a set of all units owned by the euroview.
+FlatSet<UnitId> units_in_euroview();
 
 /****************************************************************
 ** Do not call directly
@@ -90,6 +125,9 @@ std::string debug_string( UnitId id );
 void ownership_change_to_map( UnitId id, Coord const& target );
 
 void ownership_change_to_cargo( UnitId new_holder, UnitId held );
+
+void ownership_change_to_euroview( UnitId              id,
+                                   UnitEuroviewState_t info );
 
 // Removes unit from any ownership. Used when transitioning own-
 // ership.

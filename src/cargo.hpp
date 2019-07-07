@@ -18,6 +18,7 @@
 #include "util.hpp"
 
 // base-util
+#include "base-util/algo.hpp"
 #include "base-util/non-copyable.hpp"
 #include "base-util/variant.hpp"
 
@@ -71,6 +72,9 @@ public:
   template<typename T>
   std::vector<T> items_of_type() const;
 
+  template<typename T>
+  int count_items_of_type() const;
+
   // Cargo const& operator[]( int idx ) const;
 
   bool fits( Cargo const& cargo ) const;
@@ -110,6 +114,11 @@ std::vector<T> CargoHold::items_of_type() const {
     }
   }
   return res;
+}
+
+template<typename T>
+int CargoHold::count_items_of_type() const {
+  return util::count_if( items_, L( util::holds<T>( _ ) ) );
 }
 
 } // namespace rn
