@@ -136,8 +136,11 @@ for q in s:quads | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
 
 " Move back to first tab
 :tabn 1
-" Move cursor from NERDTree into main pane.
-call feedkeys( "\<C-L>" )
+" Move cursor from main pane to TagBar, refresh it once (by tog-
+" gling on/off the help screen) then move back to main pane. This
+" is to work around a strange issue where the tagbar is empty in
+" the first tab.
+call feedkeys( "\<C-L>??\<C-H>" )
 " Open a terminal in a vsplit.
 "call feedkeys( ":vert term\<CR>\<C-W>h" )
 
