@@ -266,10 +266,14 @@ void copy_texture_alpha( Texture const& from, Texture const& to,
 
 void copy_texture( Texture const& from, Texture const& to,
                    Coord const& dst_coord ) {
-  ::SDL_Texture* target = to.get();
-  CHECK( from );
-  ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
-  ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
+  CHECK( !::SDL_SetTextureBlendMode( from,
+                                     ::SDL_BLENDMODE_BLEND ) );
+  // For some reason SDL complains when we try to set the blend
+  // mode for the default texture.
+  if( auto target = to.get(); target != nullptr ) {
+    CHECK( !::SDL_SetTextureBlendMode( target,
+                                       ::SDL_BLENDMODE_BLEND ) );
+  }
   set_render_target( to );
   auto rect     = Rect::from( dst_coord, texture_delta( from ) );
   auto sdl_rect = to_SDL( rect );
@@ -802,6 +806,10 @@ void render_points( Texture const& tx, Color color,
   set_render_draw_color( color );
   CHECK( !::SDL_RenderDrawPoints( g_renderer, &sdl_points[0],
                                   sdl_points.size() ) );
+}
+
+void debug_check_SDL_error_throw() {
+  DCHECK( string( ::SDL_GetError() ).empty() );
 }
 
 } // namespace rn
