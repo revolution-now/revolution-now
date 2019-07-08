@@ -115,7 +115,7 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                      e_init_routine::sdl,     //
                      e_init_routine::screen   //
                  }},
-                {e_init_routine::euroview,
+                {e_init_routine::europort_view,
                  {
                      e_init_routine::configs,    //
                      e_init_routine::sdl,        //

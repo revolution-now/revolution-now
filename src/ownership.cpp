@@ -46,7 +46,8 @@ unordered_map</*held*/ UnitId, /*holder*/ UnitId>
 // For units that are owned by either the high seas or by the eu-
 // rope view (NOTE: this does NOT refer to the King's army; "own-
 // ership" here refers to where the unit is located in the game).
-unordered_map<UnitId, UnitEuroviewState_t> g_euroview_units;
+unordered_map<UnitId, UnitEuroPortViewState_t>
+    g_euro_port_view_units;
 
 enum class e_unit_ownership {
   // Unit is on the map.  This includes units that are stationed
@@ -105,12 +106,12 @@ void ownership_disown_unit( UnitId id ) {
       break;
     }
     case e_unit_ownership::old_world: {
-      CHECK( has_key( g_euroview_units, id ) );
+      CHECK( has_key( g_euro_port_view_units, id ) );
       // Ensure the unit has no cargo.
       CHECK( unit_from_id( id )
                  .cargo()
                  .count_items_of_type<UnitId>() == 0 );
-      g_euroview_units.erase( id );
+      g_euro_port_view_units.erase( id );
       break;
     }
   };
@@ -276,16 +277,18 @@ Opt<UnitId> is_unit_onboard( UnitId id ) {
 }
 
 /****************************************************************
-** Euroview Ownership
+** EuroPort View Ownership
 *****************************************************************/
-Opt<Ref<UnitEuroviewState_t>> unit_euroview_info( UnitId id ) {
-  ASSIGN_OR_RETURN( it, has_key( g_euroview_units, id ) );
+Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
+    UnitId id ) {
+  ASSIGN_OR_RETURN( it, has_key( g_euro_port_view_units, id ) );
   return it->second;
 }
 
-FlatSet<UnitId> units_in_euroview() {
+FlatSet<UnitId> units_in_euro_port_view() {
   FlatSet<UnitId> res;
-  for( auto const& p : g_euroview_units ) res.insert( p.first );
+  for( auto const& p : g_euro_port_view_units )
+    res.insert( p.first );
   return res;
 }
 
@@ -323,12 +326,12 @@ void ownership_change_to_cargo( UnitId new_holder,
   holder_from_held[held] = new_holder;
 }
 
-void ownership_change_to_euroview( UnitId              id,
-                                   UnitEuroviewState_t info ) {
-  CHECK( !has_key( g_euroview_units, id ) );
+void ownership_change_to_euro_port_view(
+    UnitId id, UnitEuroPortViewState_t info ) {
+  CHECK( !has_key( g_euro_port_view_units, id ) );
   ownership_disown_unit( id );
-  unit_ownership[id]   = e_unit_ownership::old_world;
-  g_euroview_units[id] = info;
+  unit_ownership[id]         = e_unit_ownership::old_world;
+  g_euro_port_view_units[id] = info;
 }
 
 } // namespace rn

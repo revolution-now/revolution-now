@@ -15,7 +15,12 @@ let s:stems = [
   \ 'src/plane',
   \ 'src/image',
   \ 'src/tiles',
-  \ 'src/euroview',
+  \ 'src/cargo',
+  \ 'src/utype',
+  \ 'src/unit',
+  \ 'src/ownership',
+  \ 'src/europort',
+  \ 'src/europort-view',
 \]
 
   "\ 'src/adt',

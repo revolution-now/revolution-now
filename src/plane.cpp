@@ -13,7 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "console.hpp"
-#include "euroview.hpp"
+#include "europort-view.hpp"
 #include "frame.hpp"
 #include "image.hpp"
 #include "init.hpp"

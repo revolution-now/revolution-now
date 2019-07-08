@@ -1,5 +1,5 @@
 /****************************************************************
-**euroview.cpp
+**europort-view.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Implements the Europe port view.
 *
 *****************************************************************/
-#include "euroview.hpp"
+#include "europort-view.hpp"
 
 // Revolution Now
 #include "compositor.hpp"
@@ -810,16 +810,16 @@ EuropePlane g_europe_plane;
 /****************************************************************
 ** Initialization / Cleanup
 *****************************************************************/
-void init_euroview() {
+void init_europort_view() {
   g_clip = main_window_logical_size() - menu_height() -
            Delta{32_w, 32_h};
   g_exit_tx =
       render_text( fonts::standard(), Color::red(), "Exit" );
 }
 
-void cleanup_euroview() { g_exit_tx.free(); }
+void cleanup_europort_view() { g_exit_tx.free(); }
 
-REGISTER_INIT_ROUTINE( euroview );
+REGISTER_INIT_ROUTINE( europort_view );
 
 } // namespace
 

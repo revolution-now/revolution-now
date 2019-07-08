@@ -28,26 +28,26 @@ namespace rn {
 // Ordering of these enum values does not matter.
 enum class e_( init_routine,
                /************/
-               configs,    //
-               rng,        //
-               sdl,        //
-               fonts,      //
-               app_window, //
-               euroview,   //
-               midiseq,    //
-               midiplayer, //
-               oggplayer,  //
-               conductor,  //
-               compositor, //
-               tunes,      //
-               screen,     //
-               renderer,   //
-               sprites,    //
-               planes,     //
-               sound,      //
-               images,     //
-               menus,      //
-               terrain     //
+               configs,       //
+               rng,           //
+               sdl,           //
+               fonts,         //
+               app_window,    //
+               europort_view, //
+               midiseq,       //
+               midiplayer,    //
+               oggplayer,     //
+               conductor,     //
+               compositor,    //
+               tunes,         //
+               screen,        //
+               renderer,      //
+               sprites,       //
+               planes,        //
+               sound,         //
+               images,        //
+               menus,         //
+               terrain        //
 );
 
 using InitFunction = std::function<void( void )>;

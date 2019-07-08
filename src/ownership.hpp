@@ -87,12 +87,12 @@ ND Opt<Coord> coords_for_unit_safe( UnitId id );
 Opt<UnitId> is_unit_onboard( UnitId id );
 
 /****************************************************************
-** Euroview Ownership
+** EuroPort View Ownership
 *****************************************************************/
 // These pertain to units who are owned by either the high seas
 // or by europe view (e.g., in port, on the dock, etc.);
 ADT_RN(
-    UnitEuroviewState,
+    UnitEuroPortViewState,
     // For ships that are venturing to europe. `percent` starts
     // from 0 and goes to 1.0 at arrival.
     ( to_old_world,          //
@@ -107,11 +107,12 @@ ADT_RN(
     ( in_port ) //
 );
 
-// If unit is owned by euroview then this will return info.
-Opt<Ref<UnitEuroviewState_t>> unit_euroview_info( UnitId id );
+// If unit is owned by euro-port-view then this will return info.
+Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
+    UnitId id );
 
-// Get a set of all units owned by the euroview.
-FlatSet<UnitId> units_in_euroview();
+// Get a set of all units owned by the euro-port-view.
+FlatSet<UnitId> units_in_euro_port_view();
 
 /****************************************************************
 ** Do not call directly
@@ -126,8 +127,8 @@ void ownership_change_to_map( UnitId id, Coord const& target );
 
 void ownership_change_to_cargo( UnitId new_holder, UnitId held );
 
-void ownership_change_to_euroview( UnitId              id,
-                                   UnitEuroviewState_t info );
+void ownership_change_to_euro_port_view(
+    UnitId id, UnitEuroPortViewState_t info );
 
 // Removes unit from any ownership. Used when transitioning own-
 // ership.
