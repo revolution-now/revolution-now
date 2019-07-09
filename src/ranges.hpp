@@ -55,6 +55,18 @@ std::string rng_to_string( Rng&& rng ) {
       std::string{} );
 }
 
+template<typename Rng, typename Func>
+auto accumulate_monoid( Rng&& rng, Func&& func )
+    -> Opt<std::decay_t<decltype( func( *rng.begin(),
+                                        *rng.begin() ) )>> {
+  if( rng.begin() == rng.end() ) return std::nullopt;
+  auto start = std::begin( std::forward<Rng>( rng ) );
+  start++;
+  return std::accumulate( start,
+                          std::end( std::forward<Rng>( rng ) ),
+                          *rng.begin(), func );
+}
+
 // Given a function f and a range [1,2,3...] this will return a
 // range of: [(1,f(1)), (2,f(2)), (3,f(3)), ...]
 template<typename Func>

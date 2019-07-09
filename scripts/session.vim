@@ -21,6 +21,8 @@ let s:stems = [
   \ 'src/ownership',
   \ 'src/europort',
   \ 'src/europort-view',
+  \ 'src/turn',
+  \ 'src/render',
 \]
 
   "\ 'src/adt',

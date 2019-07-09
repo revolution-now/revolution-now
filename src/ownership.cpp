@@ -35,6 +35,9 @@ namespace {
 // All units that exist anywhere.
 unordered_map<UnitId, Unit> units;
 
+// FIXME: get rid of all these separate maps and represent owner-
+//        ship as a single map from UnitId --> ADT.
+
 // For units that are on (owned by) the world (map).
 unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
 unordered_map<UnitId, Coord>                coords_from_unit;
@@ -48,6 +51,11 @@ unordered_map</*held*/ UnitId, /*holder*/ UnitId>
 // ership" here refers to where the unit is located in the game).
 unordered_map<UnitId, UnitEuroPortViewState_t>
     g_euro_port_view_units;
+
+// Each time a unit is placed in port (or on dock) it is assigned
+// the next (incremented) value of this id. This allows storing
+// the ordering in which units arrived there.
+int g_port_arrival_id{0};
 
 enum class e_unit_ownership {
   // Unit is on the map.  This includes units that are stationed
@@ -63,61 +71,12 @@ enum class e_unit_ownership {
 
 unordered_map<UnitId, e_unit_ownership> unit_ownership;
 
+int next_port_arrival_id() { return g_port_arrival_id++; }
+
 } // namespace
 
 string debug_string( UnitId id ) {
   return debug_string( unit_from_id( id ) );
-}
-
-// The purpose of this function is *only* to manipulate the above
-// global maps. It does not follow any of the associated proce-
-// dures that need to be followed when a unit is added, removed,
-// or moved from one map to another (or from one owner to anoth-
-// er).
-//
-// Specifically, it will erase any ownership that is had over the
-// given unit and mark it as unowned.
-void ownership_disown_unit( UnitId id ) {
-  ASSIGN_CHECK_OPT( it, has_key( unit_ownership, id ) );
-  switch( it->second ) {
-    // For some strange reason we need braces around this case
-    // statement otherwise we get errors... something to do with
-    // local variables declared inside of it.
-    case e_unit_ownership::world: {
-      // First remove from coords_from_unit
-      ASSIGN_CHECK_OPT( pair_it,
-                        has_key( coords_from_unit, id ) );
-      auto coords = pair_it->second;
-      coords_from_unit.erase( pair_it );
-      // Now remove from units_from_coords
-      ASSIGN_CHECK_OPT( set_it,
-                        has_key( units_from_coords, coords ) );
-      auto& units_set = set_it->second;
-      units_set.erase( id );
-      if( units_set.empty() ) units_from_coords.erase( set_it );
-      break;
-    }
-    case e_unit_ownership::cargo: {
-      ASSIGN_CHECK_OPT( pair_it,
-                        has_key( holder_from_held, id ) );
-      auto& holder_unit = unit_from_id( pair_it->second );
-      holder_unit.cargo().remove( id );
-      holder_from_held.erase( pair_it );
-      break;
-    }
-    case e_unit_ownership::old_world: {
-      CHECK( has_key( g_euro_port_view_units, id ) );
-      // Ensure the unit has no cargo.
-      CHECK( unit_from_id( id )
-                 .cargo()
-                 .count_items_of_type<UnitId>() == 0 );
-      g_euro_port_view_units.erase( id );
-      break;
-    }
-  };
-  // Probably need to do this last so iterators don't get
-  // invalidated.
-  unit_ownership.erase( it );
 }
 
 Vec<UnitId> units_all( optional<e_nation> nation ) {
@@ -186,16 +145,6 @@ Unit& create_unit( e_nation nation, e_unit_type type ) {
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-// need to think about what this API should be.
-UnitId create_unit_on_map( e_nation nation, e_unit_type type,
-                           Y y, X x ) {
-  Unit& unit = create_unit( nation, type );
-  units_from_coords[Coord{y, x}].insert( unit.id() );
-  coords_from_unit[unit.id()] = Coord{y, x};
-  unit_ownership[unit.id()]   = e_unit_ownership::world;
-  return unit.id();
-}
-
 unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
   static unordered_set<UnitId> empty = {};
   CHECK( square_exists( y, x ) );
@@ -285,16 +234,88 @@ Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
   return it->second;
 }
 
-FlatSet<UnitId> units_in_euro_port_view() {
-  FlatSet<UnitId> res;
+Vec<UnitId> units_in_euro_port_view() {
+  Vec<UnitId> res;
   for( auto const& p : g_euro_port_view_units )
-    res.insert( p.first );
+    res.push_back( p.first );
   return res;
+}
+
+/****************************************************************
+** For Testing / Development Only
+*****************************************************************/
+UnitId create_unit_on_map( e_nation nation, e_unit_type type,
+                           Y y, X x ) {
+  Unit& unit = create_unit( nation, type );
+  ownership_change_to_map( unit.id(), {x, y} );
+  return unit.id();
+}
+
+UnitId create_unit_in_euroview_port( e_nation    nation,
+                                     e_unit_type type ) {
+  Unit& unit = create_unit( nation, type );
+  ownership_change_to_euro_port_view(
+      unit.id(),
+      UnitEuroPortViewState::in_port{
+          /*global_arrival_id=*/next_port_arrival_id()} );
+  return unit.id();
 }
 
 /****************************************************************
 ** Low-Level Ownership Change Functions
 *****************************************************************/
+// The purpose of this function is *only* to manipulate the above
+// global maps. It does not follow any of the associated proce-
+// dures that need to be followed when a unit is added, removed,
+// or moved from one map to another (or from one owner to anoth-
+// er).
+//
+// Specifically, it will erase any ownership that is had over the
+// given unit and mark it as unowned.
+void ownership_disown_unit( UnitId id ) {
+  // If there is no ownership then return and do nothing.
+  ASSIGN_OR_RETURN_( it, has_key( unit_ownership, id ) );
+  switch( it->second ) {
+    // For some strange reason we need braces around this case
+    // statement otherwise we get errors... something to do with
+    // local variables declared inside of it.
+    case e_unit_ownership::world: {
+      // First remove from coords_from_unit
+      ASSIGN_CHECK_OPT( pair_it,
+                        has_key( coords_from_unit, id ) );
+      auto coords = pair_it->second;
+      coords_from_unit.erase( pair_it );
+      // Now remove from units_from_coords
+      ASSIGN_CHECK_OPT( set_it,
+                        has_key( units_from_coords, coords ) );
+      auto& units_set = set_it->second;
+      units_set.erase( id );
+      if( units_set.empty() ) units_from_coords.erase( set_it );
+      break;
+    }
+    case e_unit_ownership::cargo: {
+      ASSIGN_CHECK_OPT( pair_it,
+                        has_key( holder_from_held, id ) );
+      auto& holder_unit = unit_from_id( pair_it->second );
+      holder_unit.cargo().remove( id );
+      holder_from_held.erase( pair_it );
+      break;
+    }
+    case e_unit_ownership::old_world: {
+      CHECK( has_key( g_euro_port_view_units, id ) );
+      // Ensure the unit has no cargo.
+      CHECK( unit_from_id( id )
+                 .cargo()
+                 .count_items_of_type<UnitId>() == 0 );
+      g_euro_port_view_units.erase( id );
+      break;
+    }
+  };
+  // Probably need to do this last so iterators don't get
+  // invalidated.
+  unit_ownership.erase( it );
+}
+
 void ownership_change_to_map( UnitId id, Coord const& target ) {
   ownership_disown_unit( id );
   // Add unit to new square.

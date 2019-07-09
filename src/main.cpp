@@ -49,28 +49,55 @@ using namespace std;
 namespace rn {
 
 void game() {
-  // auto id1 = create_unit_on_map(
-  //    e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x
-  //    );
-  // unit_from_id( id1 ).fortify();
+  UnitId id;
 
-  // auto id2 = create_unit_on_map(
-  //    e_nation::spanish, e_unit_type::soldier, 2_y, 3_x );
-  // unit_from_id( id2 ).sentry();
+  for( auto i : {1, 2, 3} ) {
+    (void)i;
 
-  //(void)create_unit_on_map( e_nation::spanish,
-  //                          e_unit_type::privateer, 2_y, 6_x );
+    id = create_unit_in_euroview_port(
+        e_nation::spanish, e_unit_type::free_colonist );
+    unit_from_id( id ).sentry();
 
-  // auto id3 = create_unit_on_map(
-  //    e_nation::english, e_unit_type::soldier, 3_y, 2_x );
-  // unit_from_id( id3 ).fortify();
+    id = create_unit_in_euroview_port( e_nation::spanish,
+                                       e_unit_type::soldier );
+    unit_from_id( id ).clear_orders();
 
-  // auto id4 = create_unit_on_map(
-  //    e_nation::english, e_unit_type::soldier, 3_y, 3_x );
-  // unit_from_id( id4 ).sentry();
+    (void)create_unit_in_euroview_port( e_nation::spanish,
+                                        e_unit_type::privateer );
 
-  //(void)create_unit_on_map( e_nation::english,
-  //                          e_unit_type::privateer, 3_y, 6_x );
+    id = create_unit_in_euroview_port( e_nation::english,
+                                       e_unit_type::soldier );
+    unit_from_id( id ).sentry();
+
+    id = create_unit_in_euroview_port( e_nation::english,
+                                       e_unit_type::soldier );
+    unit_from_id( id ).clear_orders();
+
+    (void)create_unit_in_euroview_port( e_nation::english,
+                                        e_unit_type::privateer );
+  }
+
+  auto id1 = create_unit_on_map(
+      e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x );
+  unit_from_id( id1 ).fortify();
+
+  auto id2 = create_unit_on_map(
+      e_nation::spanish, e_unit_type::soldier, 2_y, 3_x );
+  unit_from_id( id2 ).sentry();
+
+  (void)create_unit_on_map( e_nation::spanish,
+                            e_unit_type::privateer, 2_y, 6_x );
+
+  auto id3 = create_unit_on_map(
+      e_nation::english, e_unit_type::soldier, 3_y, 2_x );
+  unit_from_id( id3 ).fortify();
+
+  auto id4 = create_unit_on_map(
+      e_nation::english, e_unit_type::soldier, 3_y, 3_x );
+  unit_from_id( id4 ).sentry();
+
+  (void)create_unit_on_map( e_nation::english,
+                            e_unit_type::privateer, 3_y, 6_x );
 
   // while( turn() != e_turn_result::quit ) {}
 
@@ -83,8 +110,8 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::europort_view );
-  // run_all_init_routines();
+  // run_all_init_routines( e_init_routine::europort_view );
+  run_all_init_routines();
 
   // conductor::test();
 

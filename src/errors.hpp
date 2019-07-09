@@ -137,6 +137,12 @@ bool check_inline( bool b, char const* msg );
   if( !( STRING_JOIN( __x, __LINE__ ) ) ) return {}; \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
+// One that does not return a value.
+#define ASSIGN_OR_RETURN_( a, b )                 \
+  auto STRING_JOIN( __x, __LINE__ ) = b;          \
+  if( !( STRING_JOIN( __x, __LINE__ ) ) ) return; \
+  auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
+
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is
 // expected to result in a value that can be tested for true'-

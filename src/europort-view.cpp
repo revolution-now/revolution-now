@@ -13,12 +13,15 @@
 // Revolution Now
 #include "compositor.hpp"
 #include "coord.hpp"
+#include "europort.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
+#include "ranges.hpp"
+#include "render.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -651,7 +654,79 @@ private:
   W     length_in_blocks_{};
 };
 
-//- Units on dock
+// This object represents the dock, which can change in length.
+class UnitsOnDock {
+  // static constexpr Scale dock_block_pixels{24};
+
+public:
+  Rect bounds() const {
+    auto uni0n = L2( _1.uni0n( _2 ) );
+    auto to_rect =
+        L( Rect::from( _.pixel_coord, g_tile_delta ) );
+    auto maybe_rect = accumulate_monoid(
+        units_ | rv::transform( to_rect ), uni0n );
+    return maybe_rect.value_or( dock_anchor_ );
+  }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    auto bds = bounds();
+    render_rect( tx, Color::white(), bds.shifted_by( offset ) );
+    for( auto const& dock_unit : units_ )
+      render_unit( tx, dock_unit.id,
+                   dock_unit.pixel_coord + offset,
+                   /*with_icon=*/true );
+  }
+
+  UnitsOnDock( UnitsOnDock&& ) = default;
+  UnitsOnDock& operator=( UnitsOnDock&& ) = default;
+
+  static Opt<UnitsOnDock> create(
+      Delta const&           size,
+      Opt<DockAnchor> const& maybe_dock_anchor,
+      Opt<Dock> const&       maybe_dock ) {
+    Opt<UnitsOnDock> res;
+    if( maybe_dock_anchor && maybe_dock ) {
+      vector<DockUnit> units;
+      Coord            coord =
+          maybe_dock->bounds().upper_right() - g_tile_delta;
+      for( auto id : europort_units_on_dock() ) {
+        units.push_back( {id, coord} );
+        coord -= g_tile_delta.w;
+        if( coord.x < maybe_dock->bounds().left_edge() )
+          coord = Coord{( maybe_dock->bounds().upper_right() -
+                          g_tile_delta )
+                            .x,
+                        coord.y - g_tile_delta.h};
+      }
+      // populate units...
+      res = UnitsOnDock{
+          /*dock_anchor_=*/maybe_dock_anchor->bounds(),
+          /*units_=*/std::move( units )};
+      auto bds = res->bounds();
+      auto lr_delta =
+          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( bds.y < 0_y ) res = nullopt;
+      if( bds.x < 0_x ) res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  struct DockUnit {
+    UnitId id;
+    Coord  pixel_coord;
+  };
+
+  UnitsOnDock( Rect dock_anchor, vector<DockUnit>&& units )
+    : dock_anchor_( dock_anchor ),
+      units_( std::move( units ) ) {}
+  // Returned as rect when no units. This is actaully a point.
+  Rect             dock_anchor_;
+  vector<DockUnit> units_;
+};
+
 //- Buttons
 //- Message box
 //- Stats area (money, tax rate, etc.)
@@ -666,6 +741,7 @@ struct Entities {
   Opt<OutboundBox>       outbound_box;
   Opt<Exit>              exit_label;
   Opt<Dock>              dock;
+  Opt<UnitsOnDock>       units_on_dock;
 };
 
 void create_entities( Entities* entities ) {
@@ -698,6 +774,10 @@ void create_entities( Entities* entities ) {
       Dock::create( g_clip,                //
                     entities->dock_anchor, //
                     entities->in_port_box );
+  entities->units_on_dock =                       //
+      UnitsOnDock::create( g_clip,                //
+                           entities->dock_anchor, //
+                           entities->dock );
 }
 
 void draw_entities( Texture const&  tx,
@@ -721,6 +801,8 @@ void draw_entities( Texture const&  tx,
     entities.exit_label->draw( tx, offset );
   if( entities.dock.has_value() )
     entities.dock->draw( tx, offset );
+  if( entities.units_on_dock.has_value() )
+    entities.units_on_dock->draw( tx, offset );
 }
 
 } // namespace entity

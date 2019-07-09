@@ -54,6 +54,14 @@ namespace {
 
 constexpr Delta nationality_icon_size( 13_h, 13_w );
 
+// Unit only, no nationality icon.
+void render_unit_no_icon( Texture const& tx,
+                          e_unit_type    unit_type,
+                          Coord          pixel_coord ) {
+  auto const& desc = unit_desc( unit_type );
+  render_sprite( tx, desc.tile, pixel_coord, 0, 0 );
+}
+
 } // namespace
 
 /****************************************************************
@@ -198,24 +206,26 @@ void render_nationality_icon( Texture const& dest, UnitId id,
                            unit.orders(), pixel_coord );
 }
 
-// Unit only, no nationality icon.
-void render_unit( Texture const& tx, e_unit_type unit_type,
-                  Coord pixel_coord ) {
-  auto const& desc = unit_desc( unit_type );
-  render_sprite( tx, desc.tile, pixel_coord, 0, 0 );
+void render_unit( Texture const& tx, UnitId id,
+                  Coord pixel_coord, bool with_icon ) {
+  auto const& unit = unit_from_id( id );
+  if( with_icon ) {
+    // Should the icon be in front of the unit or in back.
+    if( !unit.desc().nat_icon_front ) {
+      render_nationality_icon( tx, id, pixel_coord );
+      render_unit_no_icon( tx, unit.desc().type, pixel_coord );
+    } else {
+      render_unit_no_icon( tx, unit.desc().type, pixel_coord );
+      render_nationality_icon( tx, id, pixel_coord );
+    }
+  } else {
+    render_unit_no_icon( tx, unit.desc().type, pixel_coord );
+  }
 }
 
-void render_unit_with_icon( Texture const& tx, UnitId id,
-                            Coord pixel_coord ) {
-  auto const& unit = unit_from_id( id );
-  // Should the icon be in front of the unit or in back.
-  if( !unit.desc().nat_icon_front ) {
-    render_nationality_icon( tx, id, pixel_coord );
-    render_unit( tx, unit.desc().type, pixel_coord );
-  } else {
-    render_unit( tx, unit.desc().type, pixel_coord );
-    render_nationality_icon( tx, id, pixel_coord );
-  }
+void render_unit( Texture const& tx, e_unit_type unit_type,
+                  Coord pixel_coord ) {
+  render_unit_no_icon( tx, unit_type, pixel_coord );
 }
 
 /****************************************************************
@@ -230,7 +240,7 @@ depixelate_unit::depixelate_unit( UnitId           id_,
   rng::shuffle( all_pixels );
   tx_from = create_texture( g_tile_delta );
   clear_texture_transparent( tx_from );
-  render_unit_with_icon( tx_from, id, Coord{} );
+  render_unit( tx_from, id, Coord{}, /*with_icon=*/true );
 
   // Now, if we are depixelating to another unit then we will set
   // that process up.
@@ -301,8 +311,8 @@ void render_world_viewport( ViewportState& state ) {
       //       multiple units on a square.
       for( auto id : units_from_coord( coord ) )
         if( slide_id != id && depixelate_id != id )
-          render_unit_with_icon( g_texture_viewport, id,
-                                 pixel_coord );
+          render_unit( g_texture_viewport, id, pixel_coord,
+                       /*with_icon=*/true );
     }
 
     // Now do a blinking unit, if any.
@@ -313,8 +323,8 @@ void render_world_viewport( ViewportState& state ) {
       auto one_second  = 1000ms;
       auto half_second = 500ms;
       if( time % one_second > half_second )
-        render_unit_with_icon( g_texture_viewport, *blink_id,
-                               pixel_coord );
+        render_unit( g_texture_viewport, *blink_id, pixel_coord,
+                     /*with_icon=*/true );
     }
   }
 
@@ -337,8 +347,8 @@ void render_world_viewport( ViewportState& state ) {
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
     pixel_coord += pixel_delta;
-    render_unit_with_icon( g_texture_viewport, slide->id,
-                           pixel_coord );
+    render_unit( g_texture_viewport, slide->id, pixel_coord,
+                 /*with_icon=*/true );
   }
 
   // Now do depixelation, if any.

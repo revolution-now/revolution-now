@@ -35,7 +35,9 @@ struct Plane;
 ** Rendering Building Blocks
 *****************************************************************/
 void render_unit( Texture const& tx, UnitId id,
-                  Coord texture_square );
+                  Coord pixel_coord, bool with_icon );
+void render_unit( Texture const& tx, e_unit_type unit_type,
+                  Coord pixel_coord );
 
 void render_nationality_icon( Texture const& dest,
                               e_unit_type type, e_nation nation,
