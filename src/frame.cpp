@@ -154,7 +154,6 @@ void frame_loop( bool                     poll_input,
   static auto time_of_last_input = Clock_t::now();
 
   while( true ) {
-    debug_check_SDL_error_throw();
     // First calculate the frame rate that we are currently tar-
     // getting. If we go more than 10s without any user input
     // then slow down the frame rate to save battery.

@@ -808,8 +808,4 @@ void render_points( Texture const& tx, Color color,
                                   sdl_points.size() ) );
 }
 
-void debug_check_SDL_error_throw() {
-  DCHECK( string( ::SDL_GetError() ).empty() );
-}
-
 } // namespace rn

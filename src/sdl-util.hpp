@@ -239,7 +239,4 @@ void render_fill_rect_rounded( Texture const& tx, Color color,
 void render_points( Texture const& tx, Color color,
                     std::vector<Coord> const& points );
 
-// Checks if there is an SDL error and throws if so.
-void debug_check_SDL_error_throw();
-
 } // namespace rn

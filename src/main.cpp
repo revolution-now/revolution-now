@@ -112,9 +112,7 @@ void game() {
 int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines( e_init_routine::europort_view );
   // run_all_init_routines();
-
   // conductor::test();
-
   game();
   // ui::window_test();
 
@@ -128,14 +126,16 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   lg.error( e.what() );
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
-    lg.error( "SDL error: {}", sdl_error );
+    lg.error( "SDL error (may be a false positive): {}",
+              sdl_error );
   print_stack_trace( e.st, 4 );
   run_all_cleanup_routines();
 } catch( exception const& e ) {
   lg.error( e.what() );
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
-    lg.error( "SDL error: {}", sdl_error );
+    lg.error( "SDL error (may be a false positive): {}",
+              sdl_error );
   run_all_cleanup_routines();
   return 1;
 }
