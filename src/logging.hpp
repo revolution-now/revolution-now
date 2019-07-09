@@ -75,7 +75,7 @@
 
 // Customization point.
 #define SPDLOG_LEVEL_NAMES \
-  { "TRACE", "DEBG", "INFO", "WARN", "ERROR", "CRITICAL", "OFF" }
+  { "TRCE", "DEBG", "INFO", "WARN", "ERRO", "CRIT", "OFF" }
 
 // clang-format will reorder these headers which then generates
 // an error because they need to be included in a certian order.
@@ -99,7 +99,7 @@
   {                                                      \
     static std::remove_cv_t<decltype( var )> __to_log{}; \
     if( __to_log != var ) {                              \
-      lg.level( "{} changed: {}", #var, var );          \
+      lg.level( "{} changed: {}", #var, var );           \
       __to_log = var;                                    \
     }                                                    \
   }
