@@ -599,7 +599,6 @@ private:
   Coord origin_{};
 };
 
-// This object represents the dock, which can change in length.
 class Dock {
   static constexpr Scale dock_block_pixels{24};
 
@@ -654,10 +653,7 @@ private:
   W     length_in_blocks_{};
 };
 
-// This object represents the dock, which can change in length.
-class UnitsOnDock {
-  // static constexpr Scale dock_block_pixels{24};
-
+class UnitCollection {
 public:
   Rect bounds() const {
     auto uni0n = L2( _1.uni0n( _2 ) );
@@ -665,18 +661,38 @@ public:
         L( Rect::from( _.pixel_coord, g_tile_delta ) );
     auto maybe_rect = accumulate_monoid(
         units_ | rv::transform( to_rect ), uni0n );
-    return maybe_rect.value_or( dock_anchor_ );
+    return maybe_rect.value_or( bounds_when_no_units_ );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
     auto bds = bounds();
     render_rect( tx, Color::white(), bds.shifted_by( offset ) );
-    for( auto const& dock_unit : units_ )
-      render_unit( tx, dock_unit.id,
-                   dock_unit.pixel_coord + offset,
+    for( auto const& unit_with_pos : units_ )
+      render_unit( tx, unit_with_pos.id,
+                   unit_with_pos.pixel_coord + offset,
                    /*with_icon=*/true );
   }
 
+  UnitCollection( UnitCollection&& ) = default;
+  UnitCollection& operator=( UnitCollection&& ) = default;
+
+protected:
+  struct UnitWithPosition {
+    UnitId id;
+    Coord  pixel_coord;
+  };
+
+  UnitCollection( Rect bounds_when_no_units,
+                  vector<UnitWithPosition>&& units )
+    : bounds_when_no_units_( bounds_when_no_units ),
+      units_( std::move( units ) ) {}
+  // Returned as rect when no units. This is actaully a point.
+  Rect                     bounds_when_no_units_;
+  vector<UnitWithPosition> units_;
+};
+
+class UnitsOnDock : public UnitCollection {
+public:
   UnitsOnDock( UnitsOnDock&& ) = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
@@ -686,8 +702,8 @@ public:
       Opt<Dock> const&       maybe_dock ) {
     Opt<UnitsOnDock> res;
     if( maybe_dock_anchor && maybe_dock ) {
-      vector<DockUnit> units;
-      Coord            coord =
+      vector<UnitWithPosition> units;
+      Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
       for( auto id : europort_units_on_dock() ) {
         units.push_back( {id, coord} );
@@ -700,7 +716,7 @@ public:
       }
       // populate units...
       res = UnitsOnDock{
-          /*dock_anchor_=*/maybe_dock_anchor->bounds(),
+          /*bounds_when_no_units_=*/maybe_dock_anchor->bounds(),
           /*units_=*/std::move( units )};
       auto bds = res->bounds();
       auto lr_delta =
@@ -714,17 +730,135 @@ public:
   }
 
 private:
-  struct DockUnit {
-    UnitId id;
-    Coord  pixel_coord;
-  };
+  UnitsOnDock( Rect                       dock_anchor,
+               vector<UnitWithPosition>&& units )
+    : UnitCollection( dock_anchor, std::move( units ) ) {}
+};
 
-  UnitsOnDock( Rect dock_anchor, vector<DockUnit>&& units )
-    : dock_anchor_( dock_anchor ),
-      units_( std::move( units ) ) {}
-  // Returned as rect when no units. This is actaully a point.
-  Rect             dock_anchor_;
-  vector<DockUnit> units_;
+class ShipsInPort : public UnitCollection {
+public:
+  ShipsInPort( ShipsInPort&& ) = default;
+  ShipsInPort& operator=( ShipsInPort&& ) = default;
+
+  static Opt<ShipsInPort> create(
+      Delta const&          size,
+      Opt<InPortBox> const& maybe_in_port_box ) {
+    Opt<ShipsInPort> res;
+    if( maybe_in_port_box ) {
+      vector<UnitWithPosition> units;
+      auto  in_port_bds = maybe_in_port_box->bounds();
+      Coord coord = in_port_bds.lower_right() - g_tile_delta;
+      for( auto id : europort_units_in_port() ) {
+        units.push_back( {id, coord} );
+        coord -= g_tile_delta.w;
+        if( coord.x < in_port_bds.left_edge() )
+          coord = Coord{
+              ( in_port_bds.upper_right() - g_tile_delta ).x,
+              coord.y - g_tile_delta.h};
+      }
+      // populate units...
+      res = ShipsInPort{/*bounds_when_no_units_=*/Rect::from(
+                            in_port_bds.lower_right(), Delta{} ),
+                        /*units_=*/std::move( units )};
+      auto bds = res->bounds();
+      auto lr_delta =
+          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( bds.y < 0_y ) res = nullopt;
+      if( bds.x < 0_x ) res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  ShipsInPort( Rect                       dock_anchor,
+               vector<UnitWithPosition>&& units )
+    : UnitCollection( dock_anchor, std::move( units ) ) {}
+};
+
+class ShipsInbound : public UnitCollection {
+public:
+  ShipsInbound( ShipsInbound&& ) = default;
+  ShipsInbound& operator=( ShipsInbound&& ) = default;
+
+  static Opt<ShipsInbound> create(
+      Delta const&           size,
+      Opt<InboundBox> const& maybe_inbound_box ) {
+    Opt<ShipsInbound> res;
+    if( maybe_inbound_box ) {
+      vector<UnitWithPosition> units;
+      auto  frame_bds = maybe_inbound_box->bounds();
+      Coord coord     = frame_bds.lower_right() - g_tile_delta;
+      for( auto id : europort_units_inbound() ) {
+        units.push_back( {id, coord} );
+        coord -= g_tile_delta.w;
+        if( coord.x < frame_bds.left_edge() )
+          coord =
+              Coord{( frame_bds.upper_right() - g_tile_delta ).x,
+                    coord.y - g_tile_delta.h};
+      }
+      // populate units...
+      res = ShipsInbound{/*bounds_when_no_units_=*/Rect::from(
+                             frame_bds.lower_right(), Delta{} ),
+                         /*units_=*/std::move( units )};
+      auto bds = res->bounds();
+      auto lr_delta =
+          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( bds.y < 0_y ) res = nullopt;
+      if( bds.x < 0_x ) res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  ShipsInbound( Rect                       dock_anchor,
+                vector<UnitWithPosition>&& units )
+    : UnitCollection( dock_anchor, std::move( units ) ) {}
+};
+
+class ShipsOutbound : public UnitCollection {
+public:
+  ShipsOutbound( ShipsOutbound&& ) = default;
+  ShipsOutbound& operator=( ShipsOutbound&& ) = default;
+
+  static Opt<ShipsOutbound> create(
+      Delta const&            size,
+      Opt<OutboundBox> const& maybe_outbound_box ) {
+    Opt<ShipsOutbound> res;
+    if( maybe_outbound_box ) {
+      vector<UnitWithPosition> units;
+      auto  frame_bds = maybe_outbound_box->bounds();
+      Coord coord     = frame_bds.lower_right() - g_tile_delta;
+      for( auto id : europort_units_outbound() ) {
+        units.push_back( {id, coord} );
+        coord -= g_tile_delta.w;
+        if( coord.x < frame_bds.left_edge() )
+          coord =
+              Coord{( frame_bds.upper_right() - g_tile_delta ).x,
+                    coord.y - g_tile_delta.h};
+      }
+      // populate units...
+      res = ShipsOutbound{/*bounds_when_no_units_=*/Rect::from(
+                              frame_bds.lower_right(), Delta{} ),
+                          /*units_=*/std::move( units )};
+      auto bds = res->bounds();
+      auto lr_delta =
+          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( bds.y < 0_y ) res = nullopt;
+      if( bds.x < 0_x ) res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  ShipsOutbound( Rect                       dock_anchor,
+                 vector<UnitWithPosition>&& units )
+    : UnitCollection( dock_anchor, std::move( units ) ) {}
 };
 
 //- Buttons
@@ -742,6 +876,9 @@ struct Entities {
   Opt<Exit>              exit_label;
   Opt<Dock>              dock;
   Opt<UnitsOnDock>       units_on_dock;
+  Opt<ShipsInPort>       ships_in_port;
+  Opt<ShipsInbound>      ships_inbound;
+  Opt<ShipsOutbound>     ships_outbound;
 };
 
 void create_entities( Entities* entities ) {
@@ -778,6 +915,15 @@ void create_entities( Entities* entities ) {
       UnitsOnDock::create( g_clip,                //
                            entities->dock_anchor, //
                            entities->dock );
+  entities->ships_in_port =        //
+      ShipsInPort::create( g_clip, //
+                           entities->in_port_box );
+  entities->ships_inbound =         //
+      ShipsInbound::create( g_clip, //
+                            entities->inbound_box );
+  entities->ships_outbound =         //
+      ShipsOutbound::create( g_clip, //
+                             entities->outbound_box );
 }
 
 void draw_entities( Texture const&  tx,
@@ -803,6 +949,12 @@ void draw_entities( Texture const&  tx,
     entities.dock->draw( tx, offset );
   if( entities.units_on_dock.has_value() )
     entities.units_on_dock->draw( tx, offset );
+  if( entities.ships_in_port.has_value() )
+    entities.ships_in_port->draw( tx, offset );
+  if( entities.ships_inbound.has_value() )
+    entities.ships_inbound->draw( tx, offset );
+  if( entities.ships_outbound.has_value() )
+    entities.ships_outbound->draw( tx, offset );
 }
 
 } // namespace entity

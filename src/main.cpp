@@ -3,6 +3,7 @@
 #include "conductor.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
+#include "europort.hpp"
 #include "fmt-helper.hpp"
 #include "fonts.hpp"
 #include "frame.hpp"
@@ -62,8 +63,9 @@ void game() {
                                        e_unit_type::soldier );
     unit_from_id( id ).clear_orders();
 
-    (void)create_unit_in_euroview_port( e_nation::spanish,
-                                        e_unit_type::privateer );
+    id = create_unit_in_euroview_port( e_nation::spanish,
+                                       e_unit_type::privateer );
+    if( i == 2 ) unit_sail_to_new_world( id );
 
     id = create_unit_in_euroview_port( e_nation::english,
                                        e_unit_type::soldier );
@@ -73,31 +75,33 @@ void game() {
                                        e_unit_type::soldier );
     unit_from_id( id ).clear_orders();
 
-    (void)create_unit_in_euroview_port( e_nation::english,
-                                        e_unit_type::privateer );
+    id = create_unit_in_euroview_port( e_nation::english,
+                                       e_unit_type::privateer );
+    if( i == 2 ) unit_sail_to_new_world( id );
   }
 
-  auto id1 = create_unit_on_map(
+  id = create_unit_on_map(
       e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x );
-  unit_from_id( id1 ).fortify();
+  unit_from_id( id ).fortify();
 
-  auto id2 = create_unit_on_map(
-      e_nation::spanish, e_unit_type::soldier, 2_y, 3_x );
-  unit_from_id( id2 ).sentry();
+  id = create_unit_on_map( e_nation::spanish,
+                           e_unit_type::soldier, 2_y, 3_x );
+  unit_from_id( id ).sentry();
 
   (void)create_unit_on_map( e_nation::spanish,
                             e_unit_type::privateer, 2_y, 6_x );
 
-  auto id3 = create_unit_on_map(
-      e_nation::english, e_unit_type::soldier, 3_y, 2_x );
-  unit_from_id( id3 ).fortify();
+  id = create_unit_on_map( e_nation::english,
+                           e_unit_type::soldier, 3_y, 2_x );
+  unit_from_id( id ).fortify();
 
-  auto id4 = create_unit_on_map(
-      e_nation::english, e_unit_type::soldier, 3_y, 3_x );
-  unit_from_id( id4 ).sentry();
+  id = create_unit_on_map( e_nation::english,
+                           e_unit_type::soldier, 3_y, 3_x );
+  unit_from_id( id ).sentry();
 
-  (void)create_unit_on_map( e_nation::english,
-                            e_unit_type::privateer, 3_y, 6_x );
+  id = create_unit_on_map( e_nation::english,
+                           e_unit_type::privateer, 3_y, 6_x );
+  unit_sail_to_old_world( id );
 
   // while( turn() != e_turn_result::quit ) {}
 

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "logging.hpp"
 #include "ownership.hpp"
 
 // base-util
@@ -102,6 +103,77 @@ Vec<UnitId> europort_units_inbound() {
 Vec<UnitId> europort_units_outbound() {
   auto in_euroview = units_in_euro_port_view();
   return in_euroview | rv::filter( is_unit_outbound );
+}
+
+void unit_sail_to_old_world( UnitId id ) {
+  // FIXME: do other checks here, e.g., make sure that the
+  //        ship is not damaged.
+  CHECK( unit_from_id( id ).desc().boat );
+  // This is the state to which we will set the unit, at least by
+  // default (though it might get modified below based on the
+  // current state of the unit).
+  auto target_state =
+      UnitEuroPortViewState::inbound{/*progress=*/0.0};
+  auto maybe_state = unit_euro_port_view_info( id );
+  if( maybe_state ) {
+    switch_( maybe_state->get() ) {
+      case_( UnitEuroPortViewState::inbound ) {
+        // no-op, i.e., keep state the same.
+        target_state = val;
+      }
+      case_( UnitEuroPortViewState::outbound, percent ) {
+        // Unit must "turn around" and go the other way.
+        target_state = UnitEuroPortViewState::inbound{
+            /*progress=*/( 1.0 - percent )};
+      }
+      case_( UnitEuroPortViewState::in_port ) {
+        FATAL(
+            "unit {} cannot sail to the old world because it is "
+            "already in-port in the old world.",
+            debug_string( id ) );
+      }
+      switch_exhaustive;
+    }
+  }
+  lg.info( "setting unit {} to state {}", debug_string( id ),
+           target_state );
+  // Note: unit may already be in a europort state here.
+  ownership_change_to_euro_port_view( id, target_state );
+}
+
+void unit_sail_to_new_world( UnitId id ) {
+  // FIXME: do other checks here, e.g., make sure that the
+  //        ship is not damaged.
+  CHECK( unit_from_id( id ).desc().boat );
+  // This is the state to which we will set the unit, at least by
+  // default (though it might get modified below based on the
+  // current state of the unit).
+  auto target_state =
+      UnitEuroPortViewState::outbound{/*progress=*/0.0};
+  auto maybe_state = unit_euro_port_view_info( id );
+  CHECK( maybe_state,
+         "unit {} cannot sail to the new world because it is "
+         "already in the new world.",
+         debug_string( id ) );
+  switch_( maybe_state->get() ) {
+    case_( UnitEuroPortViewState::outbound ) {
+      // no-op, i.e., keep state the same.
+      target_state = val;
+    }
+    case_( UnitEuroPortViewState::inbound, percent ) {
+      // Unit must "turn around" and go the other way.
+      target_state = UnitEuroPortViewState::outbound{
+          /*progress=*/( 1.0 - percent )};
+    }
+    case_( UnitEuroPortViewState::in_port ) {
+      // keep default target.
+    }
+    switch_exhaustive;
+  }
+  lg.info( "setting unit {} to state {}", debug_string( id ),
+           target_state );
+  // Note: unit may already be in a europort state here.
+  ownership_change_to_euro_port_view( id, target_state );
 }
 
 } // namespace rn

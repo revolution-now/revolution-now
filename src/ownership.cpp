@@ -349,9 +349,10 @@ void ownership_change_to_cargo( UnitId new_holder,
 
 void ownership_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
-  CHECK( !has_key( g_euro_port_view_units, id ) );
-  ownership_disown_unit( id );
-  unit_ownership[id]         = e_unit_ownership::old_world;
+  if( !has_key( g_euro_port_view_units, id ) ) {
+    ownership_disown_unit( id );
+    unit_ownership[id] = e_unit_ownership::old_world;
+  }
   g_euro_port_view_units[id] = info;
 }
 
