@@ -368,15 +368,17 @@ public:
   static constexpr SX    width_narrow{2};
 
   Rect bounds() const {
-    return Rect::from(
-        origin_,
-        ( block_size + Delta{1_w, 1_h} ) * size_in_blocks_ +
-            Delta{1_w, 1_h} );
+    return Rect::from( origin_, block_size * size_in_blocks_ +
+                                    Delta{1_w, 1_h} );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
+    auto label_tx = render_text( "In Port", Color::white() );
+    copy_texture(
+        label_tx, tx,
+        bounds().upper_left() + Delta{2_w, 2_h} + offset );
   }
 
   InPortBox( InPortBox&& ) = default;
@@ -393,7 +395,7 @@ public:
       size_in_blocks.sy = height_blocks;
       size_in_blocks.sx = is_wide ? width_wide : width_narrow;
       auto origin = maybe_active_cargo->bounds().upper_left() -
-                    ( block_size.h + 1_h ) * size_in_blocks.sy;
+                    block_size.h * size_in_blocks.sy;
       if( origin.y < 0_y || origin.x < 0_x ) return res;
 
       res = InPortBox{origin,         //
@@ -422,15 +424,18 @@ private:
 class InboundBox {
 public:
   Rect bounds() const {
-    return Rect::from(
-        origin_, ( InPortBox::block_size + Delta{1_w, 1_h} ) *
-                         size_in_blocks_ +
-                     Delta{1_w, 1_h} );
+    return Rect::from( origin_,
+                       InPortBox::block_size * size_in_blocks_ +
+                           Delta{1_w, 1_h} );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
+    auto label_tx = render_text( "Inbound", Color::white() );
+    copy_texture(
+        label_tx, tx,
+        bounds().upper_left() + Delta{2_w, 2_h} + offset );
   }
 
   InboundBox( InboundBox&& ) = default;
@@ -446,15 +451,13 @@ public:
       size_in_blocks.sy = InPortBox::height_blocks;
       size_in_blocks.sx = is_wide ? InPortBox::width_wide
                                   : InPortBox::width_narrow;
-      auto origin =
-          maybe_in_port_box->bounds().upper_left() -
-          ( InPortBox::block_size.w + 1_w ) * size_in_blocks.sx;
+      auto origin = maybe_in_port_box->bounds().upper_left() -
+                    InPortBox::block_size.w * size_in_blocks.sx;
       if( origin.x < 0_x ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InPortBox.
         origin = maybe_in_port_box->bounds().upper_left() -
-                 ( InPortBox::block_size.h + 1_h ) *
-                     size_in_blocks.sy;
+                 InPortBox::block_size.h * size_in_blocks.sy;
       }
       res = InboundBox{
           origin,         //
@@ -486,15 +489,18 @@ private:
 class OutboundBox {
 public:
   Rect bounds() const {
-    return Rect::from(
-        origin_, ( InPortBox::block_size + Delta{1_w, 1_h} ) *
-                         size_in_blocks_ +
-                     Delta{1_w, 1_h} );
+    return Rect::from( origin_,
+                       InPortBox::block_size * size_in_blocks_ +
+                           Delta{1_w, 1_h} );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
+    auto label_tx = render_text( "Outbound", Color::white() );
+    copy_texture(
+        label_tx, tx,
+        bounds().upper_left() + Delta{2_w, 2_h} + offset );
   }
 
   OutboundBox( OutboundBox&& ) = default;
@@ -510,15 +516,13 @@ public:
       size_in_blocks.sy = InPortBox::height_blocks;
       size_in_blocks.sx = is_wide ? InPortBox::width_wide
                                   : InPortBox::width_narrow;
-      auto origin =
-          maybe_inbound_box->bounds().upper_left() -
-          ( InPortBox::block_size.w + 1_w ) * size_in_blocks.sx;
+      auto origin = maybe_inbound_box->bounds().upper_left() -
+                    InPortBox::block_size.w * size_in_blocks.sx;
       if( origin.x < 0_x ) {
         // Screen is too narrow horizontally to fit this box, so
         // we need to try to put it on top of the InboundBox.
         origin = maybe_inbound_box->bounds().upper_left() -
-                 ( InPortBox::block_size.h + 1_h ) *
-                     size_in_blocks.sy;
+                 InPortBox::block_size.h * size_in_blocks.sy;
       }
       res = OutboundBox{
           origin,         //
@@ -665,8 +669,9 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    auto bds = bounds();
-    render_rect( tx, Color::white(), bds.shifted_by( offset ) );
+    // auto bds = bounds();
+    // render_rect( tx, Color::white(), bds.shifted_by( offset )
+    // );
     for( auto const& unit_with_pos : units_ )
       render_unit( tx, unit_with_pos.id,
                    unit_with_pos.pixel_coord + offset,

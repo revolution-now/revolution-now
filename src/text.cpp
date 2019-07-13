@@ -193,6 +193,10 @@ Texture render_text( e_font font, Color color,
                        absl::StrSplit( text, '\n' ) );
 }
 
+Texture render_text( std::string_view text, Color color ) {
+  return render_text( fonts::standard(), color, text );
+}
+
 Texture render_text_reflow( e_font font, Color fg,
                             std::string_view text,
                             int              max_cols ) {

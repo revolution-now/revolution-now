@@ -27,6 +27,9 @@ namespace rn {
 Texture render_text( e_font font, Color color,
                      std::string_view text );
 
+// Same as above but uses the default font.
+Texture render_text( std::string_view text, Color color );
+
 // The struct gives the engine information on how to interpret
 // the markup language.
 struct TextMarkupInfo {
