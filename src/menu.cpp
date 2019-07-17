@@ -1144,7 +1144,7 @@ struct MenuPlane : public Plane {
     clear_texture_transparent( tx );
     render_menus( tx );
   }
-  void on_frame_tick() override {
+  void on_frame_end() override {
     if_v( g_menu_state, MenuState::item_click, val ) {
       auto item  = val->item;
       auto start = val->start;
@@ -1152,7 +1152,7 @@ struct MenuPlane : public Plane {
           click_anim::total_duration ) {
         // Must set this before calling on_click since the
         // on_click function itself might enter into a frame loop
-        // that calls this on_frame_tick function, then we would
+        // that calls this on_frame_end function, then we would
         // end up calling on_click multiple times.
         g_menu_state = MenuState::menus_closed{/*hover=*/{}};
         g_menu_items[item]->callbacks.on_click();

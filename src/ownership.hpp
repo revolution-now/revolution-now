@@ -126,6 +126,9 @@ UnitId create_unit_on_map( e_nation nation, e_unit_type type,
 UnitId create_unit_in_euroview_port( e_nation    nation,
                                      e_unit_type type );
 
+UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
+                             UnitId holder );
+
 /****************************************************************
 ** Do not call directly
 *****************************************************************/

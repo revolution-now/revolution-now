@@ -65,7 +65,14 @@ void game() {
 
     id = create_unit_in_euroview_port( e_nation::spanish,
                                        e_unit_type::privateer );
-    if( i == 2 ) unit_sail_to_new_world( id );
+    if( i == 2 )
+      unit_sail_to_new_world( id );
+    else {
+      (void)create_unit_as_cargo(
+          e_nation::spanish, e_unit_type::free_colonist, id );
+      (void)create_unit_as_cargo( e_nation::spanish,
+                                  e_unit_type::soldier, id );
+    }
 
     id = create_unit_in_euroview_port( e_nation::english,
                                        e_unit_type::soldier );
@@ -77,7 +84,13 @@ void game() {
 
     id = create_unit_in_euroview_port( e_nation::english,
                                        e_unit_type::privateer );
-    if( i == 2 ) unit_sail_to_new_world( id );
+    if( i == 2 ) {
+      unit_sail_to_new_world( id );
+      (void)create_unit_as_cargo(
+          e_nation::english, e_unit_type::free_colonist, id );
+      (void)create_unit_as_cargo( e_nation::english,
+                                  e_unit_type::soldier, id );
+    }
   }
 
   id = create_unit_on_map(

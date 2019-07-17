@@ -261,6 +261,13 @@ UnitId create_unit_in_euroview_port( e_nation    nation,
   return unit.id();
 }
 
+UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
+                             UnitId holder ) {
+  Unit& unit = create_unit( nation, type );
+  ownership_change_to_cargo( holder, unit.id() );
+  return unit.id();
+}
+
 /****************************************************************
 ** Low-Level Ownership Change Functions
 *****************************************************************/
@@ -339,9 +346,12 @@ void ownership_change_to_cargo( UnitId new_holder,
              .desc()
              .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
+  // Check that there are enough open slots.
+  CHECK( cargo_hold.fits( held ) );
   // We're clear (at least on our end).
   ownership_disown_unit( held );
   cargo_hold.add( held );
+  unit_from_id( held ).sentry();
   // Set new ownership
   unit_ownership[held]   = e_unit_ownership::cargo;
   holder_from_held[held] = new_holder;

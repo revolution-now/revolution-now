@@ -19,6 +19,7 @@
 #include "input.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
+#include "ownership.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
@@ -30,6 +31,7 @@
 // Range-v3
 #include "range/v3/view/all.hpp"
 #include "range/v3/view/transform.hpp"
+#include "range/v3/view/zip.hpp"
 
 using namespace std;
 
@@ -43,6 +45,9 @@ namespace {
 Delta g_clip;
 
 Texture g_exit_tx;
+
+// This can be any ship that is visible on the europe view.
+Opt<UnitId> g_selected_unit;
 
 /****************************************************************
 ** The Clip Rect
@@ -205,36 +210,34 @@ private:
 
 // This object represents the array of cargo items held by the
 // ship currently selected in dock.
-class ActiveCargo {
+class ActiveCargoBox {
   static constexpr Delta size_blocks{6_w, 1_h};
 
-  // Commodities will be 24x24.
-  static constexpr auto sprite_scale = Scale{24};
-
-  static constexpr Delta size_pixels =
-      size_blocks * sprite_scale;
-
 public:
+  // Commodities will be 24x24.
+  static constexpr auto  box_scale   = Scale{32};
+  static constexpr Delta size_pixels = size_blocks * box_scale;
+
   Rect bounds() const {
     return Rect::from( origin_, size_pixels );
   }
 
   void draw( Texture const& tx, Delta offset ) const {
     auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( sprite_scale );
+    auto grid = bds.to_grid_noalign( box_scale );
     for( auto rect : range_of_rects( grid ) )
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
   }
 
-  ActiveCargo( ActiveCargo&& ) = default;
-  ActiveCargo& operator=( ActiveCargo&& ) = default;
+  ActiveCargoBox( ActiveCargoBox&& ) = default;
+  ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
 
-  static Opt<ActiveCargo> create(
+  static Opt<ActiveCargoBox> create(
       Delta const&                  size,
       Opt<MarketCommodities> const& maybe_market_commodities ) {
-    Opt<ActiveCargo> res;
-    auto             rect = Rect::from( Coord{}, size );
+    Opt<ActiveCargoBox> res;
+    auto                rect = Rect::from( Coord{}, size );
     if( size.w < size_pixels.w || size.h < size_pixels.h )
       return res;
     if( maybe_market_commodities.has_value() ) {
@@ -242,14 +245,14 @@ public:
       if( market_commodities.origin_.y < 0_y + size_pixels.h )
         return res;
       if( market_commodities.doubled_ ) {
-        res = ActiveCargo(
+        res = ActiveCargoBox(
             /*origin_=*/Coord{
                 market_commodities.origin_.y - size_pixels.h +
                     1_h,
                 rect.center().x - size_pixels.w / 2_sx} );
       } else {
         // Possibly just for now do this.
-        res = ActiveCargo(
+        res = ActiveCargoBox(
             /*origin_=*/Coord{
                 market_commodities.origin_.y - size_pixels.h +
                     1_h,
@@ -260,14 +263,14 @@ public:
   }
 
 private:
-  ActiveCargo() = default;
-  ActiveCargo( Coord origin ) : origin_( origin ) {}
+  ActiveCargoBox() = default;
+  ActiveCargoBox( Coord origin ) : origin_( origin ) {}
   Coord origin_{};
 };
 
 class DockAnchor {
   static constexpr Delta cross_leg_size{5_w, 5_h};
-  static constexpr H     above_active_cargo{32_h};
+  static constexpr H     above_active_cargo_box{32_h};
 
 public:
   Rect bounds() const {
@@ -293,18 +296,19 @@ public:
 
   static Opt<DockAnchor> create(
       Delta const&                  size,
-      Opt<ActiveCargo> const&       maybe_active_cargo,
+      Opt<ActiveCargoBox> const&    maybe_active_cargo_box,
       Opt<MarketCommodities> const& maybe_market_commodities ) {
     Opt<DockAnchor> res;
-    if( maybe_active_cargo && maybe_market_commodities ) {
-      auto active_cargo_top =
-          maybe_active_cargo->bounds().top_edge();
-      auto location_y = active_cargo_top - above_active_cargo;
+    if( maybe_active_cargo_box && maybe_market_commodities ) {
+      auto active_cargo_box_top =
+          maybe_active_cargo_box->bounds().top_edge();
+      auto location_y =
+          active_cargo_box_top - above_active_cargo_box;
       auto location_x =
           maybe_market_commodities->bounds().right_edge() - 32_w;
       auto x_upper_bound = 0_x + size.w - 64_w;
       auto x_lower_bound =
-          maybe_active_cargo->bounds().right_edge();
+          maybe_active_cargo_box->bounds().right_edge();
       if( x_upper_bound < x_lower_bound ) return res;
       location_x =
           std::clamp( location_x, x_lower_bound, x_upper_bound );
@@ -386,16 +390,17 @@ public:
 
   static Opt<InPortBox> create(
       Delta const&                  size,
-      Opt<ActiveCargo> const&       maybe_active_cargo,
+      Opt<ActiveCargoBox> const&    maybe_active_cargo_box,
       Opt<MarketCommodities> const& maybe_market_commodities ) {
     Opt<InPortBox> res;
-    if( maybe_active_cargo && maybe_market_commodities ) {
+    if( maybe_active_cargo_box && maybe_market_commodities ) {
       bool  is_wide = !maybe_market_commodities->doubled_;
       Scale size_in_blocks;
       size_in_blocks.sy = height_blocks;
       size_in_blocks.sx = is_wide ? width_wide : width_narrow;
-      auto origin = maybe_active_cargo->bounds().upper_left() -
-                    block_size.h * size_in_blocks.sy;
+      auto origin =
+          maybe_active_cargo_box->bounds().upper_left() -
+          block_size.h * size_in_blocks.sy;
       if( origin.y < 0_y || origin.x < 0_x ) return res;
 
       res = InPortBox{origin,         //
@@ -657,6 +662,8 @@ private:
   W     length_in_blocks_{};
 };
 
+// Base class for other entities that just consist of a collec-
+// tion of units.
 class UnitCollection {
 public:
   Rect bounds() const {
@@ -676,6 +683,27 @@ public:
       render_unit( tx, unit_with_pos.id,
                    unit_with_pos.pixel_coord + offset,
                    /*with_icon=*/true );
+    if( g_selected_unit ) {
+      for( auto [id, coord] : units_ ) {
+        if( id == *g_selected_unit ) {
+          render_rect( tx, Color::green(),
+                       Rect::from( coord, g_tile_delta )
+                           .shifted_by( offset ) );
+          break;
+        }
+      }
+    }
+  }
+
+  Opt<UnitId> unit_under_cursor( Coord pos ) const {
+    Opt<UnitId> res;
+    for( auto [id, coord] : units_ ) {
+      if( pos.is_inside( Rect::from( coord, g_tile_delta ) ) ) {
+        res = id;
+        // !! don't break in case units are overlapping.
+      }
+    }
+    return res;
   }
 
   UnitCollection( UnitCollection&& ) = default;
@@ -866,13 +894,63 @@ private:
     : UnitCollection( dock_anchor, std::move( units ) ) {}
 };
 
+class ActiveCargo {
+public:
+  Rect bounds() const { return bounds_; }
+
+  void draw( Texture const& tx, Delta offset ) const {
+    if( maybe_active_unit_ ) {
+      auto bds = bounds();
+      auto grid =
+          bds.to_grid_noalign( ActiveCargoBox::box_scale );
+      auto& unit        = unit_from_id( *maybe_active_unit_ );
+      auto  cargo_units = unit.cargo().items_of_type<UnitId>();
+      for( auto [id, rect] :
+           rv::zip( cargo_units, range_of_rects( grid ) ) )
+        render_unit( tx, id, rect.upper_left() + offset,
+                     /*with_icon=*/false );
+    }
+  }
+
+  ActiveCargo( ActiveCargo&& ) = default;
+  ActiveCargo& operator=( ActiveCargo&& ) = default;
+
+  static Opt<ActiveCargo> create(
+      Delta const&               size,
+      Opt<ActiveCargoBox> const& maybe_active_cargo_box,
+      Opt<ShipsInPort> const&    maybe_ships_in_port ) {
+    Opt<ActiveCargo> res;
+    if( maybe_active_cargo_box && maybe_ships_in_port ) {
+      res = ActiveCargo{
+          /*maybe_active_unit_=*/g_selected_unit,
+          /*bounds_=*/maybe_active_cargo_box->bounds()};
+      auto lr_delta =
+          ( res->bounds().lower_right() - Delta{1_w, 1_h} ) -
+          Coord{};
+      if( lr_delta.w > size.w || lr_delta.h > size.h )
+        res = nullopt;
+      if( res->bounds().y < 0_y ) res = nullopt;
+      if( res->bounds().x < 0_x ) res = nullopt;
+    }
+    return res;
+  }
+
+private:
+  ActiveCargo() = default;
+  ActiveCargo( Opt<UnitId> maybe_active_unit, Rect bounds )
+    : maybe_active_unit_( maybe_active_unit ),
+      bounds_( bounds ) {}
+  Opt<UnitId> maybe_active_unit_;
+  Rect        bounds_;
+};
+
 //- Buttons
 //- Message box
 //- Stats area (money, tax rate, etc.)
 
 struct Entities {
   Opt<MarketCommodities> market_commodities;
-  Opt<ActiveCargo>       active_cargo;
+  Opt<ActiveCargoBox>    active_cargo_box;
   Opt<DockAnchor>        dock_anchor;
   Opt<Backdrop>          backdrop;
   Opt<InPortBox>         in_port_box;
@@ -884,24 +962,25 @@ struct Entities {
   Opt<ShipsInPort>       ships_in_port;
   Opt<ShipsInbound>      ships_inbound;
   Opt<ShipsOutbound>     ships_outbound;
+  Opt<ActiveCargo>       active_cargo;
 };
 
 void create_entities( Entities* entities ) {
   entities->market_commodities = //
       MarketCommodities::create( g_clip );
-  entities->active_cargo =         //
-      ActiveCargo::create( g_clip, //
-                           entities->market_commodities );
-  entities->dock_anchor =                         //
-      DockAnchor::create( g_clip,                 //
-                          entities->active_cargo, //
+  entities->active_cargo_box =        //
+      ActiveCargoBox::create( g_clip, //
+                              entities->market_commodities );
+  entities->dock_anchor =                             //
+      DockAnchor::create( g_clip,                     //
+                          entities->active_cargo_box, //
                           entities->market_commodities );
   entities->backdrop =          //
       Backdrop::create( g_clip, //
                         entities->dock_anchor );
-  entities->in_port_box =                        //
-      InPortBox::create( g_clip,                 //
-                         entities->active_cargo, //
+  entities->in_port_box =                            //
+      InPortBox::create( g_clip,                     //
+                         entities->active_cargo_box, //
                          entities->market_commodities );
   entities->inbound_box =         //
       InboundBox::create( g_clip, //
@@ -929,6 +1008,10 @@ void create_entities( Entities* entities ) {
   entities->ships_outbound =         //
       ShipsOutbound::create( g_clip, //
                              entities->outbound_box );
+  entities->active_cargo =                             //
+      ActiveCargo::create( g_clip,                     //
+                           entities->active_cargo_box, //
+                           entities->ships_in_port );
 }
 
 void draw_entities( Texture const&  tx,
@@ -938,8 +1021,8 @@ void draw_entities( Texture const&  tx,
     entities.backdrop->draw( tx, offset );
   if( entities.market_commodities.has_value() )
     entities.market_commodities->draw( tx, offset );
-  if( entities.active_cargo.has_value() )
-    entities.active_cargo->draw( tx, offset );
+  if( entities.active_cargo_box.has_value() )
+    entities.active_cargo_box->draw( tx, offset );
   if( entities.dock_anchor.has_value() )
     entities.dock_anchor->draw( tx, offset );
   if( entities.in_port_box.has_value() )
@@ -960,6 +1043,8 @@ void draw_entities( Texture const&  tx,
     entities.ships_inbound->draw( tx, offset );
   if( entities.ships_outbound.has_value() )
     entities.ships_outbound->draw( tx, offset );
+  if( entities.active_cargo.has_value() )
+    entities.active_cargo->draw( tx, offset );
 }
 
 } // namespace entity
@@ -971,20 +1056,21 @@ struct EuropePlane : public Plane {
   EuropePlane() = default;
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
+  void on_frame_start() override {
+    create_entities( &entities );
+  }
   void draw( Texture const& tx ) const override {
     clear_texture_transparent( tx );
-    entity::Entities entities;
-    create_entities( &entities );
     draw_entities( tx, entities );
     // clear_texture( tx, Color::white() );
     // We need to keep the checkers pattern stationary.
-    auto tile = ( clip_rect().upper_left().x._ +
-                  clip_rect().upper_left().y._ ) %
-                            2 ==
-                        0
-                    ? g_tile::checkers
-                    : g_tile::checkers_inv;
-    tile_sprite( tx, tile, clip_rect() );
+    // auto tile = ( clip_rect().upper_left().x._ +
+    //              clip_rect().upper_left().y._ ) %
+    //                        2 ==
+    //                    0
+    //                ? g_tile::checkers
+    //                : g_tile::checkers_inv;
+    // tile_sprite( tx, tile, clip_rect() );
     render_rect( tx, rect_color, clip_rect() );
   }
   bool input( input::event_t const& event ) override {
@@ -1000,7 +1086,25 @@ struct EuropePlane : public Plane {
           this->rect_color = Color::white();
         result_ true;
       }
-      case_( input::mouse_button_event_t ) result_ false;
+      case_( input::mouse_button_event_t ) {
+        bool handled         = false;
+        auto try_select_unit = [&]( auto const& maybe_entity ) {
+          if( maybe_entity ) {
+            auto shifted_pos =
+                val.pos + ( Coord{} - clip_rect().upper_left() );
+            if( auto maybe_id = maybe_entity->unit_under_cursor(
+                    shifted_pos );
+                maybe_id ) {
+              g_selected_unit = maybe_id;
+              handled         = true;
+            }
+          }
+        };
+        try_select_unit( entities.ships_in_port );
+        try_select_unit( entities.ships_inbound );
+        try_select_unit( entities.ships_outbound );
+        result_ handled;
+      }
       case_( input::mouse_drag_event_t ) result_ false;
       matcher_exhaustive;
     }
@@ -1041,7 +1145,8 @@ struct EuropePlane : public Plane {
     g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
     g_clip   = g_clip.clamp( main_window_logical_size() );
   }
-  Color rect_color{Color::white()};
+  Color            rect_color{Color::white()};
+  entity::Entities entities;
 };
 
 EuropePlane g_europe_plane;

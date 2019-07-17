@@ -67,10 +67,11 @@ struct Plane : public util::non_copy_non_move {
   // end of the last such call (if that happens to be useful).
   void virtual draw( Texture const& tx ) const = 0;
 
-  // This will be called at the end of each frame to allow a
-  // plane to update any state that it has. It will only be
+  // This will be called at the start/end of each frame to allow
+  // a plane to update any state that it has. It will only be
   // called on frames that are enabled and visible.
-  virtual void on_frame_tick();
+  virtual void on_frame_start();
+  virtual void on_frame_end();
 
   // Accept input; returns true/false depending on whether the
   // input was handled or not.  If it was handled (true) then
@@ -147,10 +148,11 @@ struct Plane : public util::non_copy_non_move {
 
 void draw_all_planes( Texture const& tx = Texture() );
 
-// This will call the on_frame_tick method on each plane to
-// update any state that it has. It will only be called on frames
-// that are enabled and visible.
-void update_all_planes();
+// This will call the on_frame_{start,end} method on each plane
+// to update any state that it has. It will only be called on
+// frames that are enabled and visible.
+void update_all_planes_start();
+void update_all_planes_end();
 
 // Returns true if one of the planes handled the input, false
 // otherwise. At most one plane will handle the input.

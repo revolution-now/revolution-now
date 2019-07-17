@@ -250,7 +250,8 @@ bool Plane::input( input::event_t const& /*unused*/ ) {
   return false;
 }
 
-void Plane::on_frame_tick() {}
+void Plane::on_frame_start() {}
+void Plane::on_frame_end() {}
 
 Plane::DragInfo Plane::can_drag(
     input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
@@ -288,8 +289,12 @@ void draw_all_planes( Texture const& tx ) {
   }
 }
 
-void update_all_planes() {
-  for( auto [e, ptr] : relevant_planes() ) ptr->on_frame_tick();
+void update_all_planes_start() {
+  for( auto [e, ptr] : relevant_planes() ) ptr->on_frame_start();
+}
+
+void update_all_planes_end() {
+  for( auto [e, ptr] : relevant_planes() ) ptr->on_frame_end();
 }
 
 bool send_input_to_planes( input::event_t const& event ) {

@@ -154,6 +154,12 @@ void frame_loop( bool                     poll_input,
   static auto time_of_last_input = Clock_t::now();
 
   while( true ) {
+    // Must call this at the start of the frame before doing any-
+    // thing else. This calls an update method on each plane to
+    // allow it to update any internal state that it has each
+    // frame that must be done at start of frame.
+    update_all_planes_start();
+
     // First calculate the frame rate that we are currently tar-
     // getting. If we go more than 10s without any user input
     // then slow down the frame rate to save battery.
@@ -181,14 +187,16 @@ void frame_loop( bool                     poll_input,
     advance_viewport_translation();
     viewport().advance();
 
-    // This calls an update method on each plane to allow it to
-    // update any internal state that it has each frame.
-    update_all_planes();
-
     // This invokes (synchronous/blocking) callbacks to any sub-
     // scribers that want to be notified at regular tick or time
     // intervals.
     notify_subscribers();
+
+    // Must call this at the end of the frame after doing every-
+    // thing else. This calls an update method on each plane to
+    // allow it to update any internal state that it has each
+    // frame that must be done at end of frame.
+    update_all_planes_end();
 
     if( finished() ) break;
 
