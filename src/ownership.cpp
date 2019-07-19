@@ -35,6 +35,10 @@ namespace {
 // All units that exist anywhere.
 unordered_map<UnitId, Unit> units;
 
+// Holds deleted units for debugging purposes (they will never be
+// resurrected and their IDs will never be reused).
+FlatSet<UnitId> g_deleted_units;
+
 // FIXME: get rid of all these separate maps and represent owner-
 //        ship as a single map from UnitId --> ADT.
 
@@ -93,12 +97,16 @@ Vec<UnitId> units_all( optional<e_nation> nation ) {
 }
 
 bool unit_exists( UnitId id ) {
-  return has_key( units, id ).has_value();
+  bool exists  = has_key( units, id ).has_value();
+  bool deleted = has_key( g_deleted_units, id ).has_value();
+  CHECK( exists != deleted, "{}: exists: {}, deleted: {}.",
+         debug_string( id ), exists, deleted );
+  return exists;
 }
 
 Unit& unit_from_id( UnitId id ) {
-  ASSIGN_CHECK_OPT( res, has_key( units, id ) );
-  return res->second;
+  CHECK( unit_exists( id ) );
+  return val_or_die( units, id );
 }
 
 // Apply a function to all units. The function may mutate the
@@ -110,6 +118,7 @@ void map_units( tl::function_ref<void( Unit& )> func ) {
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
+  CHECK( !g_deleted_units.contains( id ) );
   auto& unit = unit_from_id( id );
   // Recursively destroy any units in the cargo. We must get the
   // list of units to destroy first because we don't want to
@@ -131,11 +140,14 @@ void destroy_unit( UnitId id ) {
   auto it = units.find( id );
   CHECK( it != units.end() );
   units.erase( it->first );
+  g_deleted_units.insert( id );
 }
 
 Unit& create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
+  CHECK( !has_key( units, id ) );
+  CHECK( !g_deleted_units.contains( id ) );
   // To avoid requirement of operator[] that we have a default
   // constructor on Unit.
   units.emplace( id, move( unit ) );
