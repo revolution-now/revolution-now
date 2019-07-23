@@ -103,6 +103,27 @@ CFG( art,
         FLD( Coord, button_down_lr )
       )
     )
+    OBJ( commodities,
+      FLD( fs::path, img )
+      OBJ( coords,
+        FLD( Coord, commodity_food )
+        FLD( Coord, commodity_sugar )
+        FLD( Coord, commodity_tobacco )
+        FLD( Coord, commodity_cotton )
+        FLD( Coord, commodity_fur )
+        FLD( Coord, commodity_lumber )
+        FLD( Coord, commodity_ore )
+        FLD( Coord, commodity_silver )
+        FLD( Coord, commodity_horses )
+        FLD( Coord, commodity_rum )
+        FLD( Coord, commodity_cigars )
+        FLD( Coord, commodity_cloth )
+        FLD( Coord, commodity_coats )
+        FLD( Coord, commodity_trade_goods )
+        FLD( Coord, commodity_tools )
+        FLD( Coord, commodity_muskets )
+      )
+    )
 
     OBJ( testing,
       FLD( fs::path, img )

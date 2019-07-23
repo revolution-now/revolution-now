@@ -104,6 +104,24 @@ enum class ND g_tile {
   button_down_lm,
   button_down_lr,
 
+  // Commodities
+  commodity_food,
+  commodity_sugar,
+  commodity_tobacco,
+  commodity_cotton,
+  commodity_fur,
+  commodity_lumber,
+  commodity_ore,
+  commodity_silver,
+  commodity_horses,
+  commodity_rum,
+  commodity_cigars,
+  commodity_cloth,
+  commodity_coats,
+  commodity_trade_goods,
+  commodity_tools,
+  commodity_muskets,
+
   // testing
   checkers,
   checkers_inv

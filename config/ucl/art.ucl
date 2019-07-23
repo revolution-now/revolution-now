@@ -106,6 +106,28 @@ tiles {
     }
   }
 
+  commodities {
+    img: assets/art/tiles/commodities.png
+    coords {
+      commodity_food:        { y: 0, x: 0  }
+      commodity_sugar:       { y: 0, x: 1  }
+      commodity_tobacco:     { y: 0, x: 2  }
+      commodity_cotton:      { y: 0, x: 3  }
+      commodity_fur:         { y: 0, x: 4  }
+      commodity_lumber:      { y: 0, x: 5  }
+      commodity_ore:         { y: 0, x: 6  }
+      commodity_silver:      { y: 0, x: 7  }
+      commodity_horses:      { y: 0, x: 8  }
+      commodity_rum:         { y: 0, x: 9  }
+      commodity_cigars:      { y: 0, x: 10 }
+      commodity_cloth:       { y: 0, x: 11 }
+      commodity_coats:       { y: 0, x: 12 }
+      commodity_trade_goods: { y: 0, x: 13 }
+      commodity_tools:       { y: 0, x: 14 }
+      commodity_muskets:     { y: 0, x: 15 }
+    }
+  }
+
   testing {
     img: assets/art/tiles/testing.png
     coords {

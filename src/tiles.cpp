@@ -60,6 +60,11 @@ sprite create_sprite_16( Texture const& texture, Coord coord ) {
   return {&texture, rect, {16_sx, 16_sy}};
 }
 
+sprite create_sprite_24( Texture const& texture, Coord coord ) {
+  Rect rect{coord.x * 24_sx, coord.y * 24_sy, 24_w, 24_h};
+  return {&texture, rect, {24_sx, 24_sy}};
+}
+
 sprite create_sprite_128_64( Texture const& texture,
                              Coord          coord ) {
   Rect rect{coord.x * 128_sx, coord.y * 64_sy, 128_w, 64_h};
@@ -101,6 +106,11 @@ sprite create_sprite_128_16( Texture const& texture,
   sprites[g_tile::name] = create_sprite_8( \
       tile_set_button, config_art.tiles.button.coords.name )
 
+#define SET_SPRITE_COMMODITIES( name )      \
+  sprites[g_tile::name] = create_sprite_24( \
+      tile_set_commodities,                 \
+      config_art.tiles.commodities.coords.name )
+
 #define SET_SPRITE_TESTING( name )          \
   sprites[g_tile::name] = create_sprite_32( \
       tile_set_testing, config_art.tiles.testing.coords.name )
@@ -120,6 +130,8 @@ void init_sprites() {
       load_texture( config_art.tiles.menu_sel.img );
   auto& tile_set_button =
       load_texture( config_art.tiles.button.img );
+  auto& tile_set_commodities =
+      load_texture( config_art.tiles.commodities.img );
   auto& tile_set_testing =
       load_texture( config_art.tiles.testing.img );
 
@@ -186,6 +198,23 @@ void init_sprites() {
   SET_SPRITE_BUTTON( button_down_ll );
   SET_SPRITE_BUTTON( button_down_lm );
   SET_SPRITE_BUTTON( button_down_lr );
+
+  SET_SPRITE_COMMODITIES( commodity_food );
+  SET_SPRITE_COMMODITIES( commodity_sugar );
+  SET_SPRITE_COMMODITIES( commodity_tobacco );
+  SET_SPRITE_COMMODITIES( commodity_cotton );
+  SET_SPRITE_COMMODITIES( commodity_fur );
+  SET_SPRITE_COMMODITIES( commodity_lumber );
+  SET_SPRITE_COMMODITIES( commodity_ore );
+  SET_SPRITE_COMMODITIES( commodity_silver );
+  SET_SPRITE_COMMODITIES( commodity_horses );
+  SET_SPRITE_COMMODITIES( commodity_rum );
+  SET_SPRITE_COMMODITIES( commodity_cigars );
+  SET_SPRITE_COMMODITIES( commodity_cloth );
+  SET_SPRITE_COMMODITIES( commodity_coats );
+  SET_SPRITE_COMMODITIES( commodity_trade_goods );
+  SET_SPRITE_COMMODITIES( commodity_tools );
+  SET_SPRITE_COMMODITIES( commodity_muskets );
 
   SET_SPRITE_TESTING( checkers );
   SET_SPRITE_TESTING( checkers_inv );
