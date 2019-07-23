@@ -20,6 +20,9 @@
 // Revolution Now (config)
 #include "../config/ucl/art.inl"
 
+// base-util
+#include "base-util/pp.hpp"
+
 // C++ standard library
 #include <string>
 #include <unordered_map>
@@ -77,21 +80,24 @@ sprite create_sprite_128_16( Texture const& texture,
   return {&texture, rect, {128_sx, 16_sy}};
 }
 
-#define SET_SPRITE_WORLD( name )            \
-  sprites[g_tile::name] = create_sprite_32( \
-      tile_set_world, config_art.tiles.world.coords.name )
+#define SET_SPRITE_WORLD( name )              \
+  sprites[g_tile::name] =                     \
+      create_sprite_32( tile_set_world_32_32, \
+                        config_art.tiles.world.coords.name )
 
-#define SET_SPRITE_UNIT( name )             \
-  sprites[g_tile::name] = create_sprite_32( \
-      tile_set_units, config_art.tiles.units.coords.name )
+#define SET_SPRITE_UNITS( name )              \
+  sprites[g_tile::name] =                     \
+      create_sprite_32( tile_set_units_32_32, \
+                        config_art.tiles.units.coords.name )
 
 #define SET_SPRITE_MENU( name )            \
   sprites[g_tile::name] = create_sprite_8( \
-      tile_set_menu, config_art.tiles.menu.coords.name )
+      tile_set_menu_8_8, config_art.tiles.menu.coords.name )
 
-#define SET_SPRITE_MENU16( name )           \
-  sprites[g_tile::name] = create_sprite_16( \
-      tile_set_menu16, config_art.tiles.menu16.coords.name )
+#define SET_SPRITE_MENU16( name )              \
+  sprites[g_tile::name] =                      \
+      create_sprite_16( tile_set_menu16_16_16, \
+                        config_art.tiles.menu16.coords.name )
 
 #define SET_SPRITE_WOOD( name )                 \
   sprites[g_tile::name] = create_sprite_128_64( \
@@ -99,125 +105,131 @@ sprite create_sprite_128_16( Texture const& texture,
 
 #define SET_SPRITE_MENU_SEL( name )             \
   sprites[g_tile::name] = create_sprite_128_16( \
-      tile_set_menu_sel,                        \
+      tile_set_menu_sel_128_16,                 \
       config_art.tiles.menu_sel.coords.name )
 
-#define SET_SPRITE_BUTTON( name )          \
-  sprites[g_tile::name] = create_sprite_8( \
-      tile_set_button, config_art.tiles.button.coords.name )
+#define SET_SPRITE_BUTTON( name )           \
+  sprites[g_tile::name] =                   \
+      create_sprite_8( tile_set_button_8_8, \
+                       config_art.tiles.button.coords.name )
 
 #define SET_SPRITE_COMMODITIES( name )      \
   sprites[g_tile::name] = create_sprite_24( \
-      tile_set_commodities,                 \
+      tile_set_commodities_24_24,           \
       config_art.tiles.commodities.coords.name )
 
-#define SET_SPRITE_TESTING( name )          \
-  sprites[g_tile::name] = create_sprite_32( \
-      tile_set_testing, config_art.tiles.testing.coords.name )
+#define SET_SPRITE_TESTING( name )              \
+  sprites[g_tile::name] =                       \
+      create_sprite_32( tile_set_testing_32_32, \
+                        config_art.tiles.testing.coords.name )
+
+#define LOAD_SPRITES_IMPL( name, width, height, suffix, ... ) \
+  auto& tile_set_##name##_##width##_##height =                \
+      load_texture( config_art.tiles.name.img );              \
+  PP_MAP_SEMI( SET_SPRITE_##suffix, __VA_ARGS__ )
+
+#define LOAD_SPRITES( ... ) \
+  EVAL( LOAD_SPRITES_IMPL( __VA_ARGS__ ) )
 
 void init_sprites() {
-  auto& tile_set_world =
-      load_texture( config_art.tiles.world.img );
-  auto& tile_set_units =
-      load_texture( config_art.tiles.units.img );
-  auto& tile_set_menu =
-      load_texture( config_art.tiles.menu.img );
-  auto& tile_set_menu16 =
-      load_texture( config_art.tiles.menu16.img );
-  auto& tile_set_wood_128_64 =
-      load_texture( config_art.tiles.wood.img );
-  auto& tile_set_menu_sel =
-      load_texture( config_art.tiles.menu_sel.img );
-  auto& tile_set_button =
-      load_texture( config_art.tiles.button.img );
-  auto& tile_set_commodities =
-      load_texture( config_art.tiles.commodities.img );
-  auto& tile_set_testing =
-      load_texture( config_art.tiles.testing.img );
+  LOAD_SPRITES( world, 32, 32, WORLD,
+                water,               //
+                land,                //
+                land_1_side,         //
+                land_2_sides,        //
+                land_3_sides,        //
+                land_4_sides,        //
+                land_corner,         //
+                fog,                 //
+                fog_1_side,          //
+                fog_corner,          //
+                terrain_grass,       //
+                panel,               //
+                panel_edge_left,     //
+                panel_slate,         //
+                panel_slate_1_side,  //
+                panel_slate_2_sides, //
+  );
 
-  SET_SPRITE_WORLD( water );
-  SET_SPRITE_WORLD( land );
-  SET_SPRITE_WORLD( land_1_side );
-  SET_SPRITE_WORLD( land_2_sides );
-  SET_SPRITE_WORLD( land_3_sides );
-  SET_SPRITE_WORLD( land_4_sides );
-  SET_SPRITE_WORLD( land_corner );
+  LOAD_SPRITES( wood, 128, 64, WOOD,
+                wood_middle,    //
+                wood_left_edge, //
+  );
 
-  SET_SPRITE_WORLD( fog );
-  SET_SPRITE_WORLD( fog_1_side );
-  SET_SPRITE_WORLD( fog_corner );
+  LOAD_SPRITES( units, 32, 32, UNITS,
+                free_colonist, //
+                privateer,     //
+                caravel,       //
+                soldier,       //
+  );
 
-  SET_SPRITE_WORLD( terrain_grass );
+  LOAD_SPRITES( menu, 8, 8, MENU,
+                menu_top_left,     //
+                menu_body,         //
+                menu_top,          //
+                menu_left,         //
+                menu_bottom,       //
+                menu_bottom_left,  //
+                menu_right,        //
+                menu_top_right,    //
+                menu_bottom_right, //
+  );
 
-  SET_SPRITE_WORLD( panel );
-  SET_SPRITE_WORLD( panel_edge_left );
-  SET_SPRITE_WORLD( panel_slate );
-  SET_SPRITE_WORLD( panel_slate_1_side );
-  SET_SPRITE_WORLD( panel_slate_2_sides );
+  LOAD_SPRITES( menu16, 16, 16, MENU16,
+                menu_bar_0, //
+                menu_bar_1, //
+                menu_bar_2, //
+  );
 
-  SET_SPRITE_WOOD( wood_middle );
-  SET_SPRITE_WOOD( wood_left_edge );
+  LOAD_SPRITES( menu_sel, 128, 16, MENU_SEL,
+                menu_item_sel_back, //
+                menu_hdr_sel_back,  //
+  );
 
-  SET_SPRITE_UNIT( free_colonist );
-  SET_SPRITE_UNIT( privateer );
-  SET_SPRITE_UNIT( caravel );
-  SET_SPRITE_UNIT( soldier );
+  LOAD_SPRITES( button, 8, 8, BUTTON,
+                button_up_ul,   //
+                button_up_um,   //
+                button_up_ur,   //
+                button_up_ml,   //
+                button_up_mm,   //
+                button_up_mr,   //
+                button_up_ll,   //
+                button_up_lm,   //
+                button_up_lr,   //
+                button_down_ul, //
+                button_down_um, //
+                button_down_ur, //
+                button_down_ml, //
+                button_down_mm, //
+                button_down_mr, //
+                button_down_ll, //
+                button_down_lm, //
+                button_down_lr, //
+  );
 
-  SET_SPRITE_MENU( menu_top_left );
-  SET_SPRITE_MENU( menu_body );
-  SET_SPRITE_MENU( menu_top );
-  SET_SPRITE_MENU( menu_left );
-  SET_SPRITE_MENU( menu_bottom );
-  SET_SPRITE_MENU( menu_bottom_left );
-  SET_SPRITE_MENU( menu_right );
-  SET_SPRITE_MENU( menu_top_right );
-  SET_SPRITE_MENU( menu_bottom_right );
+  LOAD_SPRITES( commodities, 24, 24, COMMODITIES,
+                commodity_food,        //
+                commodity_sugar,       //
+                commodity_tobacco,     //
+                commodity_cotton,      //
+                commodity_fur,         //
+                commodity_lumber,      //
+                commodity_ore,         //
+                commodity_silver,      //
+                commodity_horses,      //
+                commodity_rum,         //
+                commodity_cigars,      //
+                commodity_cloth,       //
+                commodity_coats,       //
+                commodity_trade_goods, //
+                commodity_tools,       //
+                commodity_muskets,     //
+  );
 
-  SET_SPRITE_MENU16( menu_bar_0 );
-  SET_SPRITE_MENU16( menu_bar_1 );
-  SET_SPRITE_MENU16( menu_bar_2 );
-
-  SET_SPRITE_MENU_SEL( menu_item_sel_back );
-  SET_SPRITE_MENU_SEL( menu_hdr_sel_back );
-
-  SET_SPRITE_BUTTON( button_up_ul );
-  SET_SPRITE_BUTTON( button_up_um );
-  SET_SPRITE_BUTTON( button_up_ur );
-  SET_SPRITE_BUTTON( button_up_ml );
-  SET_SPRITE_BUTTON( button_up_mm );
-  SET_SPRITE_BUTTON( button_up_mr );
-  SET_SPRITE_BUTTON( button_up_ll );
-  SET_SPRITE_BUTTON( button_up_lm );
-  SET_SPRITE_BUTTON( button_up_lr );
-  SET_SPRITE_BUTTON( button_down_ul );
-  SET_SPRITE_BUTTON( button_down_um );
-  SET_SPRITE_BUTTON( button_down_ur );
-  SET_SPRITE_BUTTON( button_down_ml );
-  SET_SPRITE_BUTTON( button_down_mm );
-  SET_SPRITE_BUTTON( button_down_mr );
-  SET_SPRITE_BUTTON( button_down_ll );
-  SET_SPRITE_BUTTON( button_down_lm );
-  SET_SPRITE_BUTTON( button_down_lr );
-
-  SET_SPRITE_COMMODITIES( commodity_food );
-  SET_SPRITE_COMMODITIES( commodity_sugar );
-  SET_SPRITE_COMMODITIES( commodity_tobacco );
-  SET_SPRITE_COMMODITIES( commodity_cotton );
-  SET_SPRITE_COMMODITIES( commodity_fur );
-  SET_SPRITE_COMMODITIES( commodity_lumber );
-  SET_SPRITE_COMMODITIES( commodity_ore );
-  SET_SPRITE_COMMODITIES( commodity_silver );
-  SET_SPRITE_COMMODITIES( commodity_horses );
-  SET_SPRITE_COMMODITIES( commodity_rum );
-  SET_SPRITE_COMMODITIES( commodity_cigars );
-  SET_SPRITE_COMMODITIES( commodity_cloth );
-  SET_SPRITE_COMMODITIES( commodity_coats );
-  SET_SPRITE_COMMODITIES( commodity_trade_goods );
-  SET_SPRITE_COMMODITIES( commodity_tools );
-  SET_SPRITE_COMMODITIES( commodity_muskets );
-
-  SET_SPRITE_TESTING( checkers );
-  SET_SPRITE_TESTING( checkers_inv );
+  LOAD_SPRITES( testing, 32, 32, TESTING,
+                checkers,     //
+                checkers_inv, //
+  );
 }
 
 void cleanup_sprites() {}
