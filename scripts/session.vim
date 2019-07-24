@@ -15,6 +15,7 @@ let s:stems = [
   \ 'src/plane',
   \ 'src/image',
   \ 'src/tiles',
+  \ 'src/commodity',
   \ 'src/cargo',
   \ 'src/utype',
   \ 'src/unit',

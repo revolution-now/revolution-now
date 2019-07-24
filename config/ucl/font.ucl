@@ -1,4 +1,5 @@
 game_default: _6x6
+small_font:   _6x6
 
 paths = [
   { key: _7_12_serif_16pt, val: "assets/fonts/7-12-serif/712_serif.ttf"  }

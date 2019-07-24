@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "commodity.hpp"
 #include "id.hpp"
 #include "macros.hpp"
 #include "util.hpp"
@@ -27,13 +28,6 @@
 #include <vector>
 
 namespace rn {
-
-// temporary dummy
-struct ND Commodity {
-  bool operator==( Commodity const& /*unused*/ ) const {
-    return true;
-  }
-};
 
 // This Cargo element represents something that may occupy one or
 // more cargo slots. E.g., it may represent a unit that takes six

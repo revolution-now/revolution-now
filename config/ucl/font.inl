@@ -14,6 +14,7 @@ using FontVertOffsetMap = FlatMap<e_font, Y>;
 
 CFG( font,
   FLD( e_font, game_default )
+  FLD( e_font, small_font   )
   FLD( FontPathMap,       paths   )
   FLD( FontSizeMap,       sizes   )
   FLD( FontVertOffsetMap, offsets )

@@ -1156,7 +1156,7 @@ EuropePlane g_europe_plane;
 *****************************************************************/
 void init_europort_view() {
   g_clip = main_window_logical_size() - menu_height() -
-           Delta{32_w, 32_h};
+           Delta{0_w, 0_h};
   g_exit_tx =
       render_text( fonts::standard(), Color::red(), "Exit" );
 }

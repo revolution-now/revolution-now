@@ -152,6 +152,7 @@ REGISTER_INIT_ROUTINE( fonts );
 namespace fonts {
 
 e_font standard() { return config_font.game_default; }
+e_font small() { return config_font.small_font; }
 
 } // namespace fonts
 

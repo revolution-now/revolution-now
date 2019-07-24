@@ -39,6 +39,7 @@ inline Rect g_tile_rect = Rect::from(
 inline Delta g_tile_delta =
     Delta{W{1} * g_tile_width, H{1} * g_tile_height};
 
+// FIXME: change this to e_tile
 enum class ND g_tile {
   water,
   land,
@@ -141,6 +142,8 @@ ND sprite const& lookup_sprite( g_tile tile );
 
 void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x );
+void render_sprite( Texture const& tx, g_tile tile,
+                    Coord pixel_coord );
 void render_sprite( Texture const& tx, g_tile tile,
                     Coord pixel_coord, int rot, int flip_x );
 // This will render the sprite clipped to the given rect, where

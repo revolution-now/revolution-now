@@ -296,6 +296,11 @@ void render_sprite( Texture const& tx, g_tile tile,
                  flip_x );
 }
 
+void render_sprite( Texture const& tx, g_tile tile,
+                    Coord pixel_coord ) {
+  render_sprite( tx, tile, pixel_coord.y, pixel_coord.x, 0, 0 );
+}
+
 void render_sprite_grid( Texture const& tx, g_tile tile,
                          Y tile_row, X tile_col, int rot,
                          int flip_x ) {

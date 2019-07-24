@@ -33,8 +33,9 @@ enum class e_(
 namespace fonts {
 
 e_font standard();
+e_font small();
 
-}
+} // namespace fonts
 
 Texture render_text_line_solid( e_font font, Color fg,
                                 std::string_view line );
