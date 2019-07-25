@@ -74,7 +74,7 @@ void render_commodity_impl( Texture const& tx, e_commodity type,
     // Place text below commodity, but centered horizontally.
     auto comm_size  = lookup_sprite( tile ).size();
     auto label_size = label->size();
-    auto origin     = pixel_coord + comm_size.h + 1_h -
+    auto origin     = pixel_coord + comm_size.h + 2_h -
                   ( label_size.w - comm_size.w ) / 2_sx;
     copy_texture( *label, tx, origin );
   }

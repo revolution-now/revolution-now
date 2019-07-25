@@ -169,15 +169,16 @@ public:
     auto bds     = bounds();
     auto grid    = bds.to_grid_noalign( sprite_scale );
     auto comm_it = values<e_commodity>.begin();
-    auto label   = CommodityLabel::quantity{0};
+    auto label   = CommodityLabel::buy_sell{100, 200};
     for( auto rect : range_of_rects( grid ) ) {
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
       render_commodity_annotated(
           tx, *comm_it++,
-          rect.shifted_by( offset ).upper_left() + 8_w + 5_h,
+          rect.shifted_by( offset ).upper_left() + 8_w + 4_h,
           label );
-      label.value += 20;
+      label.buy += 120;
+      label.sell += 120;
     }
   }
 
