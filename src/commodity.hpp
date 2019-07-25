@@ -13,16 +13,20 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
 #include "sdl-util.hpp" // FIXME: get rid of this.
 
 // C++ standard library
-#include <string_view>
+#include <string>
 
 namespace rn {
 
+/****************************************************************
+** Commodity List
+*****************************************************************/
 // Important: the ordering here matters, as it determines the
 // order in which the commodities are displayed in an array and
 // the order in which they are processed.
@@ -47,6 +51,32 @@ enum class e_(commodity,
 );
 // clang-format on
 
+/****************************************************************
+** Commodity Labels
+*****************************************************************/
+ADT_RN( CommodityLabel,     //
+        ( none ),           //
+        ( quantity,         //
+          ( int, value ) ), //
+        ( buy_sell,         //
+          ( int, sell ),    //
+          ( int, buy ) )    //
+);
+
+// Returns markup text representing the label.
+Opt<std::string> commodity_label_to_markup(
+    CommodityLabel_t const& label );
+
+// Will be rendered as a one-line text string with transparent
+// background. Could return nullopt if label is `none`.
+Opt<Texture> render_commodity_label(
+    CommodityLabel_t const& label );
+
+/****************************************************************
+** Commodity Cargo
+*****************************************************************/
+// This is the object that gets held as cargo either in a unit's
+// cargo or in a colony.
 struct Commodity {
   e_commodity type;
   int         quantity;
@@ -56,9 +86,25 @@ struct Commodity {
   }
 };
 
-// The optional label may contain markup characters.
+/****************************************************************
+** Commodity Renderers
+*****************************************************************/
 void render_commodity( Texture const& tx, e_commodity type,
-                       Coord            pixel_coord,
-                       std::string_view label = "" );
+                       Coord pixel_coord );
+
+// The "annotated" functions will render the label just below the
+// commodity sprite and both will have their centers aligned hor-
+// izontally. Note that the pixel coordinate is the upper left
+// corner of the commodity sprite.
+
+void render_commodity_annotated( Texture const& tx,
+                                 e_commodity    type,
+                                 Coord          pixel_coord,
+                                 CommodityLabel_t const& label );
+
+// Will use quantity as label.
+void render_commodity_annotated( Texture const&   tx,
+                                 Commodity const& comm,
+                                 Coord            pixel_coord );
 
 } // namespace rn

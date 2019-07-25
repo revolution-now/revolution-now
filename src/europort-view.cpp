@@ -11,6 +11,7 @@
 #include "europort-view.hpp"
 
 // Revolution Now
+#include "commodity.hpp"
 #include "compositor.hpp"
 #include "coord.hpp"
 #include "europort.hpp"
@@ -165,11 +166,19 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( sprite_scale );
-    for( auto rect : range_of_rects( grid ) )
+    auto bds     = bounds();
+    auto grid    = bds.to_grid_noalign( sprite_scale );
+    auto comm_it = values<e_commodity>.begin();
+    auto label   = CommodityLabel::quantity{0};
+    for( auto rect : range_of_rects( grid ) ) {
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
+      render_commodity_annotated(
+          tx, *comm_it++,
+          rect.shifted_by( offset ).upper_left() + 8_w + 5_h,
+          label );
+      label.value += 20;
+    }
   }
 
   MarketCommodities( MarketCommodities&& ) = default;

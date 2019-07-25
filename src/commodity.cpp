@@ -11,12 +11,14 @@
 #include "commodity.hpp"
 
 // Revolution Now
+#include "fmt-helper.hpp"
 #include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
+#include "base-util/variant.hpp"
 
 using namespace std;
 
@@ -53,27 +55,91 @@ g_tile tile_for_commodity( e_commodity c ) {
   UNREACHABLE_LOCATION;
 }
 
+Opt<Texture> render_commodity_label( string_view label ) {
+  Opt<Texture> res;
+  if( !label.empty() ) {
+    TextMarkupInfo info{/*normal=*/Color::white(),
+                        /*highlight=*/Color::green()};
+    res = render_text_markup( fonts::small(), info, label );
+  }
+  return res;
+}
+
+void render_commodity_impl( Texture const& tx, e_commodity type,
+                            Coord        pixel_coord,
+                            Opt<Texture> label ) {
+  auto tile = tile_for_commodity( type );
+  render_sprite( tx, tile, pixel_coord );
+  if( label ) {
+    // Place text below commodity, but centered horizontally.
+    auto comm_size  = lookup_sprite( tile ).size();
+    auto label_size = label->size();
+    auto origin     = pixel_coord + comm_size.h + 1_h -
+                  ( label_size.w - comm_size.w ) / 2_sx;
+    copy_texture( *label, tx, origin );
+  }
+}
+
+string commodity_number_to_markup( int value ) {
+  if( value < 100 ) //
+    return fmt::format( "{}", value );
+  if( value < 200 )
+    return fmt::format( "@[H]{}@[]{:0>2}", value / 100,
+                        value % 100 );
+  return fmt::format( "@[H]{}@[]{:0>2}", value / 100,
+                      value % 100 );
+}
+
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
+Opt<string> commodity_label_to_markup(
+    CommodityLabel_t const& label ) {
+  return matcher_( label, ->, Opt<string> ) {
+    case_( CommodityLabel::none ) { //
+      return nullopt;
+    }
+    case_( CommodityLabel::quantity, value ) { //
+      return fmt::format( "{}",
+                          commodity_number_to_markup( value ) );
+    }
+    case_( CommodityLabel::buy_sell, sell, buy ) { //
+      return fmt::format( "{}/{}", sell / 100, buy / 100 );
+    }
+    matcher_exhaustive;
+  };
+}
+
+Opt<Texture> render_commodity_label(
+    CommodityLabel_t const& label ) {
+  Opt<Texture> res;
+  auto         maybe_text = commodity_label_to_markup( label );
+  if( maybe_text ) res = render_commodity_label( *maybe_text );
+  return res;
+}
+
 void render_commodity( Texture const& tx, e_commodity type,
-                       Coord pixel_coord, string_view label ) {
-  auto tile = tile_for_commodity( type );
-  render_sprite( tx, tile, pixel_coord );
-  if( !label.empty() ) {
-    TextMarkupInfo info{/*normal=*/Color::white(),
-                        /*highlight=*/Color::green()};
-    auto           text =
-        render_text_markup( fonts::small(), info, label );
-    auto comm_rect =
-        Rect::from( pixel_coord, lookup_sprite( tile ).size() );
-    auto origin = centered( text.size(), comm_rect );
-    // Place text at the bottom, but centered horizontally.
-    origin.y = comm_rect.bottom_edge() - text.size().h;
-    copy_texture( text, tx, origin );
-  }
+                       Coord pixel_coord ) {
+  render_commodity_impl( tx, type, pixel_coord,
+                         /*label=*/nullopt );
+}
+
+void render_commodity_annotated(
+    Texture const& tx, e_commodity type, Coord pixel_coord,
+    CommodityLabel_t const& label ) {
+  render_commodity_impl( tx, type, pixel_coord,
+                         render_commodity_label( label ) );
+}
+
+// Will use quantity as label.
+void render_commodity_annotated( Texture const&   tx,
+                                 Commodity const& comm,
+                                 Coord            pixel_coord ) {
+  render_commodity_annotated(
+      tx, comm.type, pixel_coord,
+      CommodityLabel::quantity{comm.quantity} );
 }
 
 } // namespace rn

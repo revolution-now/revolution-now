@@ -63,10 +63,11 @@ sprite create_sprite_16( Texture const& texture, Coord coord ) {
   return {&texture, rect, {16_sx, 16_sy}};
 }
 
-sprite create_sprite_24( Texture const& texture, Coord coord ) {
-  Rect rect{coord.x * 24_sx, coord.y * 24_sy, 24_w, 24_h};
-  return {&texture, rect, {24_sx, 24_sy}};
-}
+// sprite create_sprite_24( Texture const& texture, Coord coord )
+// {
+//  Rect rect{coord.x * 24_sx, coord.y * 24_sy, 24_w, 24_h};
+//  return {&texture, rect, {24_sx, 24_sy}};
+//}
 
 sprite create_sprite_128_64( Texture const& texture,
                              Coord          coord ) {
@@ -114,8 +115,8 @@ sprite create_sprite_128_16( Texture const& texture,
                        config_art.tiles.button.coords.name )
 
 #define SET_SPRITE_COMMODITIES( name )      \
-  sprites[g_tile::name] = create_sprite_24( \
-      tile_set_commodities_24_24,           \
+  sprites[g_tile::name] = create_sprite_16( \
+      tile_set_commodities_16_16,           \
       config_art.tiles.commodities.coords.name )
 
 #define SET_SPRITE_TESTING( name )              \
@@ -207,7 +208,7 @@ void init_sprites() {
                 button_down_lr, //
   );
 
-  LOAD_SPRITES( commodities, 24, 24, COMMODITIES,
+  LOAD_SPRITES( commodities, 16, 16, COMMODITIES,
                 commodity_food,        //
                 commodity_sugar,       //
                 commodity_tobacco,     //
