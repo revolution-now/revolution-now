@@ -524,7 +524,7 @@ Texture::Texture( ::SDL_Texture* tx )
 }
 
 Texture::Texture( Texture&& tx ) noexcept
-  : own_{false}, tx_( tx.tx_ ), id_( tx.id_ ) {
+  : own_{tx.own_}, tx_( tx.tx_ ), id_( tx.id_ ) {
   tx.own_ = false;
   tx.tx_  = nullptr;
   tx.id_  = 0;
