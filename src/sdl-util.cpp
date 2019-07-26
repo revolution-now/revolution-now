@@ -55,6 +55,10 @@ vector<Rect> clip_stack;
 int g_current_render_target{-1};
 int g_next_texture_id{1};
 
+// Holds the number of Texture objects that hold live textures.
+// Monitoring this helps to track texture leaks.
+int g_live_texture_count{0};
+
 } // namespace
 
 void check_compile_link_version(
@@ -516,6 +520,7 @@ void clear_texture_transparent( Texture const& tx ) {
 Texture::Texture( ::SDL_Texture* tx )
   : own_{true}, tx_( tx ), id_{g_next_texture_id++} {
   CHECK( tx_ );
+  g_live_texture_count++;
 }
 
 Texture::Texture( Texture&& tx ) noexcept
@@ -526,7 +531,7 @@ Texture::Texture( Texture&& tx ) noexcept
 }
 
 Texture& Texture::operator=( Texture&& rhs ) noexcept {
-  if( own_ && tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
+  if( own_ && tx_ != nullptr ) free();
   tx_      = rhs.tx_;
   own_     = rhs.own_;
   id_      = rhs.id_;
@@ -537,7 +542,10 @@ Texture& Texture::operator=( Texture&& rhs ) noexcept {
 }
 
 void Texture::free() {
-  if( own_ && tx_ != nullptr ) ::SDL_DestroyTexture( tx_ );
+  if( own_ && tx_ != nullptr ) {
+    g_live_texture_count--;
+    ::SDL_DestroyTexture( tx_ );
+  }
   own_ = false;
   tx_  = nullptr;
   id_  = 0;
@@ -807,5 +815,10 @@ void render_points( Texture const& tx, Color color,
   CHECK( !::SDL_RenderDrawPoints( g_renderer, &sdl_points[0],
                                   sdl_points.size() ) );
 }
+
+/****************************************************************
+** Debugging
+*****************************************************************/
+int live_texture_count() { return g_live_texture_count; }
 
 } // namespace rn

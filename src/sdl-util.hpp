@@ -239,4 +239,11 @@ void render_fill_rect_rounded( Texture const& tx, Color color,
 void render_points( Texture const& tx, Color color,
                     std::vector<Coord> const& points );
 
+/****************************************************************
+** Debugging
+*****************************************************************/
+// Holds the number of Texture objects that hold live textures.
+// Monitoring this helps to track texture leaks.
+int live_texture_count();
+
 } // namespace rn

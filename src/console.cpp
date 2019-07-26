@@ -86,6 +86,14 @@ struct ConsolePlane : public Plane {
                   info_start - frame_rate_tx.size() );
     info_start -= frame_rate_tx.size().h;
 
+    auto tx_count =
+        fmt::format( "tx count: {}", live_texture_count() );
+    auto tx_count_tx = render_text_line_solid(
+        config_rn.console.font, Color::white(), tx_count );
+    copy_texture( tx_count_tx, tx,
+                  info_start - tx_count_tx.size() );
+    info_start -= tx_count_tx.size().h;
+
     // FIXME: better way to get this?
     auto text_height = frame_rate_tx.size().h;
 
