@@ -4,7 +4,7 @@
 #ifndef FONT_INL
 #define FONT_INL
 
-#include "../../src/fonts.hpp"
+#include "../../src/font.hpp"
 
 namespace rn {
 
@@ -14,6 +14,7 @@ using FontVertOffsetMap = FlatMap<e_font, Y>;
 
 CFG( font,
   FLD( e_font, game_default )
+  FLD( e_font, nat_icon     )
   FLD( e_font, small_font   )
   FLD( FontPathMap,       paths   )
   FLD( FontSizeMap,       sizes   )

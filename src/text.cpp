@@ -14,11 +14,11 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
-#include "fonts.hpp"
-#include "input.hpp"
+#include "hash.hpp"
+#include "init.hpp"
 #include "logging.hpp"
 #include "ranges.hpp"
-#include "screen.hpp"
+#include "ttf.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -40,6 +40,73 @@ namespace rn {
 
 namespace {
 
+/****************************************************************
+** Caching
+*****************************************************************/
+// This struct must contain all of the options that can affect
+// the generation of a texture from any of the possible inputs
+// (or parameters) in any function in this module.
+struct TextCacheKey {
+  string text; // may contain markup.
+  e_font font;
+  Color  color;
+  // If this is active then we are in markup mode.
+  Opt<TextMarkupInfo> markup_info;
+  // If this is active then we are in reflow mode.
+  Opt<TextReflowInfo> reflow_info;
+
+  // Adds some member functions to make this struct a cache key.
+  MAKE_CACHE_KEY( TextCacheKey, text, font, color, markup_info,
+                  reflow_info );
+};
+
+FlatMap<TextCacheKey, Texture> g_text_cache;
+constexpr int const            k_max_text_cache_size = 2000;
+
+Opt<Ref<Texture>> text_cache_lookup( TextCacheKey const& key ) {
+  return val_safe( g_text_cache, key );
+}
+
+void trim_text_cache() {
+  if( g_text_cache.size() < k_max_text_cache_size ) return;
+  // First check if the cache has reached the max size; if so,
+  // then cut it down to half size using the global Texture ID
+  // (monotonically increasing) to decide which ones are the
+  // oldest and remove them.
+  vector<int> ids = g_text_cache                           //
+                    | rv::transform( L( _.second.id() ) ); //
+  util::sort( ids );
+  FlatSet<int> to_remove(
+      ids.begin(), ids.begin() + ( k_max_text_cache_size / 2 ) );
+  vector<TextCacheKey const*> keys_to_remove;
+  keys_to_remove.reserve( to_remove.size() );
+  for( auto const& [k, v] : g_text_cache )
+    if( to_remove.contains( v.id() ) )
+      keys_to_remove.push_back( &k );
+  lg.debug( "removing {} entries from text cache.",
+            keys_to_remove.size() );
+  for( auto* k : keys_to_remove ) g_text_cache.erase( *k );
+}
+
+Texture const& insert_into_text_cache( TextCacheKey&& key,
+                                       Texture&&      tx ) {
+  trim_text_cache();
+  auto it = g_text_cache.insert( {key, std::move( tx )} );
+  return it.first->second;
+}
+
+#define RETURN_IF_CACHED( ... )                                  \
+  TextCacheKey cache_key{__VA_ARGS__};                           \
+  auto         maybe_cached_tx = text_cache_lookup( cache_key ); \
+  if( maybe_cached_tx ) return std::move( *maybe_cached_tx );
+
+#define CACHE_AND_RETURN( tx )                           \
+  return insert_into_text_cache( std::move( cache_key ), \
+                                 std::move( tx ) );
+
+/****************************************************************
+** Markup Parsing
+*****************************************************************/
 struct MarkupStyle {
   bool highlight{false};
 };
@@ -99,14 +166,17 @@ Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
   return line_frags;
 }
 
+/****************************************************************
+** Rendering
+*****************************************************************/
 Texture render( e_font font, Color fg, string_view txt ) {
-  return render_text_line_solid( font, fg, txt );
+  return ttf_render_text_line_uncached( font, fg, txt );
 }
 
 Texture render_markup( e_font font, MarkedUpText const& mk,
                        TextMarkupInfo const& info ) {
   auto fg = mk.style.highlight ? info.highlight : info.normal;
-  return render_text_line_solid( font, fg, mk.text );
+  return ttf_render_text_line_uncached( font, fg, mk.text );
 }
 
 Texture render_line( e_font font, Color fg, string_view txt ) {
@@ -179,31 +249,6 @@ Texture render_lines_markup(
   return res;
 }
 
-} // namespace
-
-Texture render_text_markup( e_font                font,
-                            TextMarkupInfo const& info,
-                            std::string_view      text ) {
-  return render_lines_markup( font, parse_text( text ), info );
-}
-
-Texture render_text( e_font font, Color color,
-                     std::string_view text ) {
-  return render_lines( font, color,
-                       absl::StrSplit( text, '\n' ) );
-}
-
-Texture render_text( std::string_view text, Color color ) {
-  return render_text( fonts::standard(), color, text );
-}
-
-Texture render_text_reflow( e_font font, Color fg,
-                            std::string_view text,
-                            int              max_cols ) {
-  return render_lines( font, fg,
-                       util::wrap_text( text, max_cols ) );
-}
-
 // Will flatten the text onto one line, then wrap it to within
 // `max_cols` columns.
 //
@@ -227,10 +272,9 @@ Texture render_text_reflow( e_font font, Color fg,
 //        in a Vec<Vec<MarkedUpText>>.
 //     7) Render marked up lines.
 
-Texture render_text_markup_reflow( e_font                font,
-                                   TextMarkupInfo const& info,
-                                   std::string_view      text,
-                                   int max_cols ) {
+Texture render_text_markup_reflow_impl(
+    e_font font, TextMarkupInfo const& markup_info,
+    TextReflowInfo const& reflow_info, string_view text ) {
   // (1)
   auto words = util::split_strip_any( text, " \t\r\n" );
 
@@ -248,7 +292,8 @@ Texture render_text_markup_reflow( e_font                font,
       string( "" ) );
 
   // (5)
-  auto wrapped = util::wrap_text( non_mk_text, max_cols );
+  auto wrapped =
+      util::wrap_text( non_mk_text, reflow_info.max_cols );
 
   // (6)
   vector<vector<MarkedUpText>> reflowed;
@@ -313,9 +358,84 @@ Texture render_text_markup_reflow( e_font                font,
   CHECK( reflowed.size() == wrapped.size() );
 
   // (7)
-  return render_lines_markup( font, reflowed, info );
+  return render_lines_markup( font, reflowed, markup_info );
 }
 
+void init_text() {}
+
+void cleanup_text() {
+  for( auto& p : g_text_cache ) p.second.free();
+}
+
+REGISTER_INIT_ROUTINE( text );
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+// All API methods here that return textures employ caching, and
+// furthermore that caching happens at the level of these func-
+// tions; functions called herein will not do caching themselves.
+
+Texture const& render_text_markup( e_font                font,
+                                   TextMarkupInfo const& info,
+                                   std::string_view      text ) {
+  RETURN_IF_CACHED(
+      /*text=*/string( text ),
+      /*font=*/font,
+      /*color=*/info.normal,
+      /*markup_info=*/info,
+      /*reflow_info=*/nullopt //
+  );
+  auto res =
+      render_lines_markup( font, parse_text( text ), info );
+  CACHE_AND_RETURN( res );
+}
+
+Texture const& render_text( e_font font, Color color,
+                            std::string_view text ) {
+  RETURN_IF_CACHED(
+      /*text=*/string( text ),
+      /*font=*/font,
+      /*color=*/color,
+      /*markup_info=*/nullopt,
+      /*reflow_info=*/nullopt //
+  );
+  auto res =
+      render_lines( font, color, absl::StrSplit( text, '\n' ) );
+  CACHE_AND_RETURN( res );
+}
+
+Texture const& render_text( std::string_view text,
+                            Color            color ) {
+  // Caching will happen in the following method.
+  return render_text( font::standard(), color, text );
+}
+
+Texture const& render_text_markup_reflow(
+    e_font font, TextMarkupInfo const& markup_info,
+    TextReflowInfo const& reflow_info, string_view text ) {
+  RETURN_IF_CACHED(
+      /*text=*/string( text ),
+      /*font=*/font,
+      /*color=*/markup_info.normal,
+      /*markup_info=*/markup_info,
+      /*reflow_info=*/reflow_info //
+  );
+  auto res = render_text_markup_reflow_impl( font, markup_info,
+                                             reflow_info, text );
+  CACHE_AND_RETURN( res );
+}
+
+/****************************************************************
+** Debugging
+*****************************************************************/
+int text_cache_size() { return g_text_cache.size(); }
+
+/****************************************************************
+** Testing
+*****************************************************************/
 void text_render_test() {
   char const* msg =
       "Ask not\n"
@@ -336,20 +456,19 @@ void text_render_test() {
 
   TextMarkupInfo info{Color::white(), Color::red()};
 
-  auto tx1 = render_text_markup( fonts::standard(), info, msg );
+  auto const& tx1 =
+      render_text_markup( font::standard(), info, msg );
   // auto tx1 =
-  //    render_text( fonts::standard(), Color::white(), msg );
+  //    render_text( font::standard(), Color::white(), msg );
   copy_texture( tx1, Texture{}, {50_y, 100_x} );
 
-  auto tx2 = render_text_markup_reflow( fonts::standard(), info,
-                                        msg2, 50 );
-  // auto tx2 = render_text_reflow( fonts::standard(),
-  //                               Color::white(), msg2, 50 );
+  auto const& tx2 = render_text_markup_reflow(
+      font::standard(), info, {50}, msg2 );
   copy_texture( tx2, Texture{}, {200_y, 100_x} );
 
-  ::SDL_RenderPresent( g_renderer );
+  //::SDL_RenderPresent( g_renderer );
 
-  input::wait_for_q();
+  // input::wait_for_q();
 }
 
 } // namespace rn

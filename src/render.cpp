@@ -15,7 +15,6 @@
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "fonts.hpp"
 #include "logging.hpp"
 #include "orders.hpp"
 #include "ownership.hpp"
@@ -24,6 +23,7 @@
 #include "screen.hpp"
 #include "sdl-util.hpp"
 #include "terrain.hpp"
+#include "text.hpp"
 #include "travel.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
@@ -107,8 +107,8 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
   render_line( tx, dark3, origin + ( delta.h - 1_h ),
                {0_h, delta.w - 7_w} );
 
-  auto char_tx = render_text_line_solid(
-      fonts::standard(), text_color, string( 1, c ) );
+  auto const& char_tx = render_text(
+      font::nat_icon(), text_color, string( 1, c ) );
 
   auto char_tx_size = texture_delta( char_tx );
   copy_texture(

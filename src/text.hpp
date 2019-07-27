@@ -16,45 +16,70 @@
 // Revolution Now
 #include "color.hpp"
 #include "coord.hpp"
-#include "fonts.hpp"
+#include "font.hpp"
+#include "macros.hpp"
 #include "sdl-util.hpp"
+
+// C++ standard library
+#include <tuple>
 
 namespace rn {
 
-// FIXME: needs caching beyond what is already done in `fonts`.
+// Note: these functions cache/reuse results, and so the textures
+// returned may be weak references to textures held in the cache.
+// However, periodically those textures will be cleaned up, and
+// so it is important not to assume anything about the lifetimes
+// of the textures referred to by the return values of these
+// functions. If you need the texture to last then you should
+// clone it.
+
 // Will not in any way reformat or re-flow or wrap the text; will
 // just render it with spacing/newlines as-is and with the given
 // color. Will ignore markup (will render it literally).
-Texture render_text( e_font font, Color color,
-                     std::string_view text );
+Texture const& render_text( e_font font, Color color,
+                            std::string_view text );
 
-// FIXME: needs caching beyond what is already done in `fonts`.
 // Same as above but uses the default font.
-Texture render_text( std::string_view text, Color color );
+Texture const& render_text( std::string_view text, Color color );
 
 // The struct gives the engine information on how to interpret
 // the markup language.
 struct TextMarkupInfo {
   Color normal;
   Color highlight;
+
+  // Adds some member functions to make this struct a cache key.
+  MAKE_CACHE_KEY( TextMarkupInfo, normal, highlight );
 };
 
-// FIXME: needs caching beyond what is already done in `fonts`.
 // Will not in any way reformat or re-flow or wrap the text; will
 // just render it with spacing/newlines as-is.
-Texture render_text_markup( e_font                font,
-                            TextMarkupInfo const& info,
-                            std::string_view      text );
+Texture const& render_text_markup( e_font                font,
+                                   TextMarkupInfo const& info,
+                                   std::string_view      text );
 
-// FIXME: needs caching beyond what is already done in `fonts`.
+struct TextReflowInfo {
+  int max_cols;
+
+  // Adds some member functions to make this struct a cache key.
+  MAKE_CACHE_KEY( TextReflowInfo, max_cols );
+};
+
 // This will totally re-flow the text with regard to all spacing,
 // including newlines, tabs, and inter-word spaces. It will also
 // wrap the text to fix in `max_cols`.
-Texture render_text_markup_reflow( e_font                font,
-                                   TextMarkupInfo const& info,
-                                   std::string_view      text,
-                                   int max_cols );
+Texture const& render_text_markup_reflow(
+    e_font font, TextMarkupInfo const& m_info,
+    TextReflowInfo const& r_info, std::string_view text );
 
+/****************************************************************
+** Debugging
+*****************************************************************/
+int text_cache_size();
+
+/****************************************************************
+** Testing
+*****************************************************************/
 // For testing
 void text_render_test();
 

@@ -45,8 +45,6 @@ namespace {
 *****************************************************************/
 Delta g_clip;
 
-Texture g_exit_tx;
-
 // This can be any ship that is visible on the europe view.
 Opt<UnitId> g_selected_unit;
 
@@ -389,7 +387,8 @@ public:
   void draw( Texture const& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
-    auto label_tx = render_text( "In Port", Color::white() );
+    auto const& label_tx =
+        render_text( "In Port", Color::white() );
     copy_texture(
         label_tx, tx,
         bounds().upper_left() + Delta{2_w, 2_h} + offset );
@@ -447,7 +446,8 @@ public:
   void draw( Texture const& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
-    auto label_tx = render_text( "Inbound", Color::white() );
+    auto const& label_tx =
+        render_text( "Inbound", Color::white() );
     copy_texture(
         label_tx, tx,
         bounds().upper_left() + Delta{2_w, 2_h} + offset );
@@ -512,7 +512,8 @@ public:
   void draw( Texture const& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
-    auto label_tx = render_text( "Outbound", Color::white() );
+    auto const& label_tx =
+        render_text( "Outbound", Color::white() );
     copy_texture(
         label_tx, tx,
         bounds().upper_left() + Delta{2_w, 2_h} + offset );
@@ -576,10 +577,12 @@ public:
   }
 
   void draw( Texture const& tx, Delta offset ) const {
-    auto bds            = bounds().with_inc_size();
-    bds                 = bds.shifted_by( Delta{-2_w, -2_h} );
-    auto drawing_origin = centered( g_exit_tx.size(), bds );
-    copy_texture( g_exit_tx, tx, drawing_origin + offset );
+    auto bds = bounds().with_inc_size();
+    bds      = bds.shifted_by( Delta{-2_w, -2_h} );
+    auto const& exit_tx =
+        render_text( font::standard(), Color::red(), "Exit" );
+    auto drawing_origin = centered( exit_tx.size(), bds );
+    copy_texture( exit_tx, tx, drawing_origin + offset );
     render_rect( tx, Color::white(), bds.shifted_by( offset ) );
   }
 
@@ -1167,11 +1170,9 @@ EuropePlane g_europe_plane;
 void init_europort_view() {
   g_clip = main_window_logical_size() - menu_height() -
            Delta{0_w, 0_h};
-  g_exit_tx =
-      render_text( fonts::standard(), Color::red(), "Exit" );
 }
 
-void cleanup_europort_view() { g_exit_tx.free(); }
+void cleanup_europort_view() {}
 
 REGISTER_INIT_ROUTINE( europort_view );
 

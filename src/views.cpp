@@ -13,7 +13,6 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "coord.hpp"
-#include "fonts.hpp"
 #include "logging.hpp"
 #include "render.hpp"
 #include "text.hpp"
@@ -179,11 +178,11 @@ OneLineStringView::OneLineStringView( string msg, Color color,
                                       bool shadow )
   : msg_( move( msg ) ) {
   if( shadow )
-    tx_ =
-        render_text_line_solid( fonts::standard(), color, msg_ );
+    tx_ = clone_texture(
+        render_text( font::standard(), color, msg_ ) );
   else
-    tx_ =
-        render_text_line_solid( fonts::standard(), color, msg_ );
+    tx_ = clone_texture(
+        render_text( font::standard(), color, msg_ ) );
 }
 
 void OneLineStringView::draw( Texture const& tx,
@@ -194,10 +193,9 @@ void OneLineStringView::draw( Texture const& tx,
 ButtonBaseView::ButtonBaseView( string label, e_type type )
   : type_( type ) {
   auto info = TextMarkupInfo{}; // Should be irrelevant
-  auto size =
-      render_text_markup( fonts::standard(), info, label )
-          .size()
-          .round_up( Scale{8} );
+  auto size = render_text_markup( font::standard(), info, label )
+                  .size()
+                  .round_up( Scale{8} );
   auto size_in_blocks = size / Scale{8};
   size_in_blocks.w += 2_w;
   render( label, size_in_blocks );
@@ -299,14 +297,14 @@ void ButtonBaseView::render( string const& label,
   auto info_disabled = TextMarkupInfo{config_palette.grey.n50,
                                       /*highlight=*/{}};
 
-  auto tx_normal  = render_text_markup( fonts::standard(),
-                                       info_normal, label );
-  auto tx_pressed = render_text_markup( fonts::standard(),
-                                        info_pressed, label );
-  auto tx_hover =
-      render_text_markup( fonts::standard(), info_hover, label );
-  auto tx_disabled = render_text_markup( fonts::standard(),
-                                         info_disabled, label );
+  auto const& tx_normal =
+      render_text_markup( font::standard(), info_normal, label );
+  auto const& tx_pressed = render_text_markup(
+      font::standard(), info_pressed, label );
+  auto const& tx_hover =
+      render_text_markup( font::standard(), info_hover, label );
+  auto const& tx_disabled = render_text_markup(
+      font::standard(), info_disabled, label );
 
   auto unpressed_coord =
       centered( tx_normal.size(), unpressed_.rect() ) + 1_w -

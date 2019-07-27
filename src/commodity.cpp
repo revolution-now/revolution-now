@@ -55,25 +55,25 @@ g_tile tile_for_commodity( e_commodity c ) {
   UNREACHABLE_LOCATION;
 }
 
-Opt<Texture> render_commodity_label( string_view label ) {
-  Opt<Texture> res;
+Opt<CRef<Texture>> render_commodity_label( string_view label ) {
+  Opt<CRef<Texture>> res;
   if( !label.empty() ) {
     TextMarkupInfo info{/*normal=*/Color::white(),
                         /*highlight=*/Color::green()};
-    res = render_text_markup( fonts::small(), info, label );
+    res = render_text_markup( font::small(), info, label );
   }
   return res;
 }
 
 void render_commodity_impl( Texture const& tx, e_commodity type,
-                            Coord        pixel_coord,
-                            Opt<Texture> label ) {
+                            Coord              pixel_coord,
+                            Opt<CRef<Texture>> label ) {
   auto tile = tile_for_commodity( type );
   render_sprite( tx, tile, pixel_coord );
   if( label ) {
     // Place text below commodity, but centered horizontally.
     auto comm_size  = lookup_sprite( tile ).size();
-    auto label_size = label->size();
+    auto label_size = label->get().size();
     auto origin     = pixel_coord + comm_size.h + 2_h -
                   ( label_size.w - comm_size.w ) / 2_sx;
     copy_texture( *label, tx, origin );
@@ -112,10 +112,10 @@ Opt<string> commodity_label_to_markup(
   };
 }
 
-Opt<Texture> render_commodity_label(
+Opt<CRef<Texture>> render_commodity_label(
     CommodityLabel_t const& label ) {
-  Opt<Texture> res;
-  auto         maybe_text = commodity_label_to_markup( label );
+  Opt<CRef<Texture>> res;
+  auto maybe_text = commodity_label_to_markup( label );
   if( maybe_text ) res = render_commodity_label( *maybe_text );
   return res;
 }

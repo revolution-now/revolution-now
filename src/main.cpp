@@ -5,7 +5,6 @@
 #include "errors.hpp"
 #include "europort.hpp"
 #include "fmt-helper.hpp"
-#include "fonts.hpp"
 #include "frame.hpp"
 #include "image.hpp"
 #include "init.hpp"

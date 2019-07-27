@@ -553,14 +553,6 @@ void Texture::free() {
 
 Texture::~Texture() { free(); }
 
-Texture Texture::weak_ref() const {
-  Texture res;
-  res.own_ = false;
-  res.tx_  = tx_;
-  res.id_  = id_;
-  return res;
-}
-
 Texture Texture::from_surface( ::SDL_Surface* surface ) {
   auto* optimized =
       optimize_surface( surface, /*release_input=*/false );

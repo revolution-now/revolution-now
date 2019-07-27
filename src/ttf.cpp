@@ -1,46 +1,26 @@
 /****************************************************************
-**fonts.cpp
+**ttf.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-09-22.
+* Created by dsicilia on 2019-07-27.
 *
-* Description: Code for handling all things text.
+* Description: Render TTF fonts.
 *
 *****************************************************************/
-#include "fonts.hpp"
+#include "ttf.hpp"
 
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "init.hpp"
-#include "input.hpp"
-#include "logging.hpp"
-#include "menu.hpp"
-#include "screen.hpp"
-#include "sdl-util.hpp"
-#include "util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/font.inl"
 #include "../config/ucl/palette.inl"
 
-// base-util
-#include "base-util/algo.hpp"
-#include "base-util/misc.hpp"
-#include "base-util/string.hpp"
-
 // SDL
 #include "SDL_ttf.h"
-
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
-// C++ standard library
-#include <algorithm>
-#include <string>
-#include <string_view>
-#include <unordered_map>
 
 using namespace std;
 
@@ -90,28 +70,7 @@ Texture render_line_standard_impl( ::TTF_Font* font,
   return texture;
 }
 
-struct TextRenderDesc {
-  e_font font;
-  Color  color;
-  string line;
-
-  auto to_tuple() const { return tuple{font, color, line}; }
-
-  // Abseil hashing API.
-  template<typename H>
-  friend H AbslHashValue( H h, TextRenderDesc const& c ) {
-    return H::combine( std::move( h ), c.to_tuple() );
-  }
-
-  friend bool operator==( TextRenderDesc const& lhs,
-                          TextRenderDesc const& rhs ) {
-    return lhs.to_tuple() == rhs.to_tuple();
-  }
-};
-
-absl::flat_hash_map<TextRenderDesc, Texture> text_cache_solid;
-
-void init_fonts() {
+void init_ttf() {
   CHECK( !TTF_Init() );
   ::SDL_version        compiled_version;
   ::SDL_version const* link_version = ::TTF_Linked_Version();
@@ -133,64 +92,44 @@ void init_fonts() {
   }
 }
 
-void cleanup_fonts() {
+// Texture render_text_line_shadow( e_font font, Color fg,
+//                                 string_view line ) {
+//  Color bg        = fg.shaded( 6 );
+//  bg.a            = 80;
+//  auto texture_fg = ttf_render_text_line_uncached( font, fg,
+//  line ); auto texture_bg = ttf_render_text_line_uncached(
+//  font, bg, line ); auto delta      = texture_delta( texture_fg
+//  ); auto result_texture =
+//      create_texture( delta.w + 1, delta.h + 1 );
+//  clear_texture_transparent( result_texture );
+//  copy_texture( texture_bg, result_texture, {1_y, 1_x} );
+//  copy_texture( texture_fg, result_texture, {0_y, 0_x} );
+//  return result_texture;
+//}
+
+void cleanup_ttf() {
   for( auto& font : loaded_fonts() ) {
     auto& font_desc = font.second;
     ::TTF_CloseFont( font_desc.ttf_font );
   }
-  for( auto& p : text_cache_solid ) p.second.free();
   TTF_Quit();
 }
 
-REGISTER_INIT_ROUTINE( fonts );
+REGISTER_INIT_ROUTINE( ttf );
 
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-namespace fonts {
-
-e_font standard() { return config_font.game_default; }
-e_font small() { return config_font.small_font; }
-
-} // namespace fonts
-
 // All text rendering should ultimately go through this function
 // because it does the cache handling.
-Texture render_text_line_solid( e_font font, Color fg,
-                                string_view line ) {
-  auto do_render = [&] {
-    auto* ttf_font    = loaded_fonts()[font].ttf_font;
-    auto  vert_offset = loaded_fonts()[font].vert_offset;
-    return render_line_standard_impl( ttf_font, to_SDL( fg ),
-                                      line, vert_offset );
-  };
-
-  TextRenderDesc desc{font, fg, string( line )};
-
-  if( auto maybe_cached =
-          util::get_val_safe( text_cache_solid, desc );
-      maybe_cached.has_value() )
-    return maybe_cached.value().get().weak_ref();
-
-  text_cache_solid.emplace( desc, do_render() );
-  return text_cache_solid[desc].weak_ref();
-}
-
-Texture render_text_line_shadow( e_font font, Color fg,
-                                 string_view line ) {
-  Color bg        = fg.shaded( 6 );
-  bg.a            = 80;
-  auto texture_fg = render_text_line_solid( font, fg, line );
-  auto texture_bg = render_text_line_solid( font, bg, line );
-  auto delta      = texture_delta( texture_fg );
-  auto result_texture =
-      create_texture( delta.w + 1, delta.h + 1 );
-  clear_texture_transparent( result_texture );
-  copy_texture( texture_bg, result_texture, {1_y, 1_x} );
-  copy_texture( texture_fg, result_texture, {0_y, 0_x} );
-  return result_texture;
+Texture ttf_render_text_line_uncached( e_font font, Color fg,
+                                       string_view line ) {
+  auto* ttf_font    = loaded_fonts()[font].ttf_font;
+  auto  vert_offset = loaded_fonts()[font].vert_offset;
+  return render_line_standard_impl( ttf_font, to_SDL( fg ), line,
+                                    vert_offset );
 }
 
 void font_size_spectrum( char const* msg,
@@ -215,13 +154,6 @@ void font_size_spectrum( char const* msg,
   }
 }
 
-Delta font_rendered_width( e_font font, string_view text ) {
-  int w, h;
-  ::TTF_SizeText( loaded_fonts()[font].ttf_font,
-                  string( text ).c_str(), &w, &h );
-  return {W( w ), H( h )};
-}
-
 void font_test() {
   auto font = e_font::_7_12_serif_16pt;
 
@@ -234,16 +166,16 @@ void font_test() {
 
   auto render_line = [font]( string const& text ) {
     Color fg = config_palette.orange.sat1.lum11;
-    return render_text_line_shadow( font, fg, text );
+    return ttf_render_text_line_uncached( font, fg, text );
   };
   auto texture = render_line( msg );
 
   copy_texture( texture, Texture{}, {100_y, 100_x} );
   // font_size_spectrum( msg, font_file );
 
-  ::SDL_RenderPresent( g_renderer );
+  //::SDL_RenderPresent( g_renderer );
 
-  input::wait_for_q();
+  // input::wait_for_q();
 }
 
 } // namespace rn

@@ -16,7 +16,7 @@
 #include "conductor.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
-#include "fonts.hpp"
+#include "font.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "tune.hpp"

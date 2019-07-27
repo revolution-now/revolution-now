@@ -4,7 +4,7 @@
 #ifndef UI_INL
 #define UI_INL
 
-#include "../../src/fonts.hpp"
+#include "../../src/font.hpp"
 
 namespace rn {
 

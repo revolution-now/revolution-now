@@ -49,10 +49,6 @@ public:
   // NOLINTNEXTLINE(hicpp-explicit-conversions)
   operator ::SDL_Texture*() const { return tx_; }
 
-  // Returns a Texture object that refers to the same underlying
-  // texture but does not own it.
-  Texture weak_ref() const;
-
   ::SDL_Texture* get() const { return tx_; }
   static Texture from_surface( ::SDL_Surface* surface );
 
@@ -79,7 +75,8 @@ private:
   // value of this is.
   bool           own_{false};
   ::SDL_Texture* tx_{nullptr};
-  // globally unique id.  0 is for default texture.
+  // globally unique id and monotonically increasing. 0 is for
+  // default texture.
   int id_{0};
 };
 

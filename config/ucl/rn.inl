@@ -4,7 +4,7 @@
 #ifndef RN_INL
 #define RN_INL
 
-#include "../../src/fonts.hpp"
+#include "../../src/font.hpp"
 #include "../../src/nation.hpp"
 
 namespace rn {

@@ -17,7 +17,6 @@
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "fonts.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -601,18 +600,18 @@ ItemTextures render_menu_element( string_view const text,
         /*normal=*/active_color,
         /*highlight=*/active_color.highlighted( 3 )};
 
-    inactive = render_text_markup( config_ui.menus.font,
-                                   inactive_info, mk_text );
-    active   = render_text_markup( config_ui.menus.font,
-                                 active_info, mk_text );
+    inactive = clone_texture( render_text_markup(
+        config_ui.menus.font, inactive_info, mk_text ) );
+    active   = clone_texture( render_text_markup(
+        config_ui.menus.font, active_info, mk_text ) );
   } else {
-    inactive = render_text_line_shadow( config_ui.menus.font,
-                                        inactive_color, text );
-    active   = render_text_line_shadow( config_ui.menus.font,
-                                      active_color, text );
+    inactive = clone_texture( render_text(
+        config_ui.menus.font, inactive_color, text ) );
+    active   = clone_texture( render_text( config_ui.menus.font,
+                                         active_color, text ) );
   }
-  auto disabled = render_text_line_solid( config_ui.menus.font,
-                                          disabled_color, text );
+  auto disabled = clone_texture( render_text(
+      config_ui.menus.font, disabled_color, text ) );
   // Need to do this first before moving.
   auto width = std::max(
       {inactive.size().w, active.size().w, disabled.size().w} );
@@ -770,7 +769,7 @@ Texture const& render_open_menu( e_menu           menu,
         if( background ) copy_texture( *background, dst, pos );
         CHECK( foreground );
         copy_texture( *foreground, dst,
-                      pos + config_ui.menus.padding );
+                      pos + config_ui.menus.padding - 1_h );
         pos += max_text_height();
       } );
 
@@ -837,7 +836,7 @@ void render_menu_bar( Texture const& tx ) {
       CHECK( ( *p ).first );
       copy_texture(
           *( ( *p ).first ), tx,
-          rect.upper_left() + config_ui.menus.padding );
+          rect.upper_left() + config_ui.menus.padding - 1_h );
     }
   }
 }

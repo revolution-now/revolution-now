@@ -15,7 +15,6 @@
 #include "auto-pad.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "fonts.hpp"
 #include "frame.hpp"
 #include "input.hpp"
 #include "logging.hpp"

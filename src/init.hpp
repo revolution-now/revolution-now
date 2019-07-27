@@ -31,7 +31,8 @@ enum class e_( init_routine,
                configs,       //
                rng,           //
                sdl,           //
-               fonts,         //
+               ttf,           //
+               text,          //
                app_window,    //
                europort_view, //
                midiseq,       //

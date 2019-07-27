@@ -12,9 +12,13 @@
 
 #include "core-config.hpp"
 
+// Abseil
+#include "absl/hash/hash.h"
+
 // C++ standard library
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 namespace rn {
 
@@ -65,5 +69,16 @@ struct EnumClassHash {
     return static_cast<std::size_t>( t );
   }
 };
+
+// AbslHashValue for hashing std::optional. Mirrored from ab-
+// seil's implementation for absl::optional.
+template<typename H, typename T>
+typename std::enable_if<
+    absl::hash_internal::is_hashable<T>::value, H>::type
+AbslHashValue( H hash_state, std::optional<T> const& opt ) {
+  if( opt )
+    hash_state = H::combine( std::move( hash_state ), *opt );
+  return H::combine( std::move( hash_state ), opt.has_value() );
+}
 
 } // namespace rn

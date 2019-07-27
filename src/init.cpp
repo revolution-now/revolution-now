@@ -65,10 +65,16 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  {
                      e_init_routine::configs //
                  }},
-                {e_init_routine::fonts,
+                {e_init_routine::ttf,
                  {
                      e_init_routine::configs, //
                      e_init_routine::sdl      //
+                 }},
+                {e_init_routine::text,
+                 {
+                     e_init_routine::configs, //
+                     e_init_routine::sdl,     //
+                     e_init_routine::ttf      //
                  }},
                 {e_init_routine::app_window,
                  {
@@ -119,7 +125,7 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                  {
                      e_init_routine::configs,    //
                      e_init_routine::sdl,        //
-                     e_init_routine::fonts,      //
+                     e_init_routine::text,       //
                      e_init_routine::app_window, //
                      e_init_routine::screen,     //
                      e_init_routine::renderer,   //
@@ -137,7 +143,7 @@ absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
                      e_init_routine::compositor, //
                      e_init_routine::renderer,   //
                      e_init_routine::sprites,    //
-                     e_init_routine::fonts       //
+                     e_init_routine::text        //
                  }},
                 {e_init_routine::terrain,
                  {
