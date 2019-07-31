@@ -17,6 +17,7 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "fmt-helper.hpp"
 #include "sdl-util.hpp" // FIXME: get rid of this.
 
 // C++ standard library
@@ -108,3 +109,6 @@ void render_commodity_annotated( Texture const&   tx,
                                  Coord            pixel_coord );
 
 } // namespace rn
+
+DEFINE_FORMAT( rn::Commodity, "Commodity{{type={},quantity{}}}",
+               o.type, o.quantity );

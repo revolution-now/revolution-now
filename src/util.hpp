@@ -125,6 +125,7 @@ public:
 ND int round_up_to_nearest_int_multiple( double d, int m );
 ND int round_down_to_nearest_int_multiple( double d, int m );
 
+// FIXME: merge with base-util.
 // Get a reference to a value in a map. Since the key may not ex-
 // ist, we return an optional. But since we want a reference to
 // the object, we return an optional of a reference wrapper,
@@ -139,6 +140,7 @@ ND auto val_safe( MapT const& m, KeyT const& k )
   return found->second;
 }
 
+// FIXME: merge with base-util.
 // Gave up trying to make variadic templates work inside a
 // templatized template parameter, so just use auto for the
 // return value.
@@ -149,6 +151,7 @@ ND auto& val_or_die( MapT& m, KeyT const& k ) {
   return found->second;
 }
 
+// FIXME: merge with base-util.
 // Gave up trying to make variadic templates work inside a
 // templatized template parameter, so just use auto for the
 // return value.
@@ -159,6 +162,7 @@ ND auto const& val_or_die( MapT const& m, KeyT const& k ) {
   return found->second;
 }
 
+// FIXME: merge with base-util.
 template<typename MapT, typename KeyT>
 ND auto val_safe( MapT& m, KeyT const& k )
     -> OptRef<std::remove_reference_t<decltype( m[k] )>> {
@@ -167,30 +171,35 @@ ND auto val_safe( MapT& m, KeyT const& k )
   return found->second;
 }
 
+// FIXME: merge with base-util.
 template<typename T, typename... Vs>
 auto const& val_or_die( std::variant<Vs...> const& v ) {
   CHECK( std::holds_alternative<T>( v ) );
   return std::get<T>( v );
 }
 
+// FIXME: merge with base-util.
 template<typename T, typename... Vs>
 auto& val_or_die( std::variant<Vs...>& v ) {
   CHECK( std::holds_alternative<T>( v ) );
   return std::get<T>( v );
 }
 
+// FIXME: merge with base-util.
 template<typename T>
 auto const& val_or_die( std::optional<T> const& o ) {
   CHECK( o.has_value() );
   return o.value();
 }
 
+// FIXME: merge with base-util.
 template<typename T>
 auto& val_or_die( std::optional<T>& o ) {
   CHECK( o.has_value() );
   return o.value();
 }
 
+// FIXME: merge with base-util.
 // Does the set contain the given key. If not, returns nullopt.
 // If so, returns the iterator to the location.
 template<typename ContainerT, typename KeyT>
@@ -201,6 +210,7 @@ ND auto has_key( ContainerT const& s, KeyT const& k )
   return it;
 }
 
+// FIXME: merge with base-util.
 // Non-const version.
 template<typename ContainerT, typename KeyT>
 ND auto has_key( ContainerT& s, KeyT const& k )
@@ -210,9 +220,12 @@ ND auto has_key( ContainerT& s, KeyT const& k )
   return it;
 }
 
+// FIXME: move to base-util.
 template<typename ContainerT, typename ElemT>
-ND int count( ContainerT& c, ElemT const& e ) {
-  return std::count( c.begin(), c.end(), e );
+ND int count( ContainerT&& c, ElemT&& e ) {
+  return std::count( std::forward<ContainerT>( c ).begin(),
+                     std::forward<ContainerT>( c ).end(),
+                     std::forward<ElemT>( e ) );
 }
 
 template<typename Base, typename From, typename To>

@@ -59,7 +59,7 @@ void Unit::finish_turn() {
 
 void Unit::unfinish_turn() { finished_turn_ = false; }
 
-Opt<Vec<UnitId>> Unit::units_in_cargo() const {
+Opt<Vec<CRef<UnitId>>> Unit::units_in_cargo() const {
   if( desc_->cargo_slots == 0 ) return nullopt;
   return cargo_.items_of_type<UnitId>();
 }

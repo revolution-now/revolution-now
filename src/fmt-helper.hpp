@@ -28,12 +28,16 @@
 #include <string>
 #include <type_traits>
 #include <variant>
+#include <vector>
 
 // The reason that we inherit from std::string is so that we can
 // inherit its parser. Without the parser then we would not be
 // able format custom types with non-trivial format strings.
 using formatter_base = ::fmt::formatter<::std::string>;
 
+/****************************************************************
+** Macros
+*****************************************************************/
 // Macro to easily extend {fmt} to user-defined types. This macro
 // should be issued in the global namespace.
 #define DEFINE_FORMAT_IMPL( use_param, type, ... )     \
@@ -55,6 +59,25 @@ using formatter_base = ::fmt::formatter<::std::string>;
 #define DEFINE_FORMAT_( type, ... ) \
   DEFINE_FORMAT_IMPL( (void)o;, type, __VA_ARGS__ )
 
+/****************************************************************
+** Type Wrappers
+*****************************************************************/
+namespace rn {
+
+template<typename T>
+struct FmtJsonStyleList {
+  CRef<Vec<T>> vec;
+};
+
+// Deduction guide.
+template<typename T>
+FmtJsonStyleList( Vec<T> const & )->FmtJsonStyleList<T>;
+
+} // namespace rn
+
+/****************************************************************
+** Formatters
+*****************************************************************/
 namespace fmt {
 
 template<typename... Ts>
@@ -86,6 +109,26 @@ struct formatter<fs::path> : formatter_base {
   auto format( fs::path const &o, FormatContext &ctx ) {
     return formatter_base::format( fmt::format( o.string() ),
                                    ctx );
+  }
+};
+
+// {fmt} formatter for vectors whose contained type is format-
+// table, in a JSON-like notation: [3,4,8,3]. However note that
+// it is not real json since e.g. strings will not have quotes
+// around them.
+template<typename T>
+struct formatter<::rn::FmtJsonStyleList<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::FmtJsonStyleList<T> const &o,
+               FormatContext &                  ctx ) {
+    std::vector<T> const &   vec = o.vec.get();
+    std::vector<std::string> items;
+    items.reserve( vec.size() );
+    for( auto const &item : vec )
+      items.push_back( fmt::format( "{}", item ) );
+    return formatter_base::format(
+        std::string( "[" ) + util::join( items, "," ) + "]",
+        ctx );
   }
 };
 
@@ -191,5 +234,3 @@ struct formatter<T, char, std::void_t<typename T::_enumerated>>
 };
 
 } // namespace fmt
-
-namespace rn {} // namespace rn

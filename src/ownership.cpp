@@ -124,11 +124,9 @@ void destroy_unit( UnitId id ) {
   // list of units to destroy first because we don't want to
   // destroy a cargo unit while iterating over the cargo.
   vector<UnitId> cargo_units_to_destroy;
-  for( auto const& item : unit.cargo() ) {
-    // Check this until we know how to deal with other types of
-    // cargo.
-    GET_CHECK_VARIANT( cargo_id, item, UnitId const );
-    lg.info(
+  for( auto const& cargo_id :
+       unit.cargo().items_of_type<UnitId>() ) {
+    lg.debug(
         "{} being destroyed as a consequence of {} being "
         "destroyed",
         debug_string( unit_from_id( cargo_id ) ),
@@ -316,7 +314,9 @@ void ownership_disown_unit( UnitId id ) {
       ASSIGN_CHECK_OPT( pair_it,
                         has_key( holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
-      holder_unit.cargo().remove( id );
+      ASSIGN_CHECK_OPT( slot_idx,
+                        holder_unit.cargo().find_unit( id ) );
+      holder_unit.cargo().remove( slot_idx );
       holder_from_held.erase( pair_it );
       break;
     }
@@ -359,10 +359,11 @@ void ownership_change_to_cargo( UnitId new_holder,
              .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // Check that there are enough open slots.
-  CHECK( cargo_hold.fits( held ) );
+  auto possible_slots = cargo_hold.find_fit( held );
+  CHECK( !possible_slots.empty() );
   // We're clear (at least on our end).
   ownership_disown_unit( held );
-  cargo_hold.add( held );
+  CHECK( cargo_hold.try_add( Cargo{held}, possible_slots[0] ) );
   unit_from_id( held ).sentry();
   // Set new ownership
   unit_ownership[held]   = e_unit_ownership::cargo;
