@@ -2,7 +2,7 @@
 " Revolution|Now code editing startup script for vim.
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-let s:first = 'main.cpp'
+let s:first = 'exe/main.cpp'
 
 let s:stems = [
   \ 'src/sdl-util',
@@ -138,7 +138,7 @@ endfunction
 " Do it
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-call OpenFirst( 'src/' . s:first )
+call OpenFirst( s:first )
 for s in s:stems | call OpenCppPair( s )                   | endfor
 "for p in s:pairs | call OpenPair( p[0], p[1] )             | endfor
 for q in s:quads | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
