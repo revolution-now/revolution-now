@@ -32,12 +32,19 @@ force_compiler_color_diagnostics()
 
 add_subdirectory( assets/music )
 add_subdirectory( src )
+add_subdirectory( exe )
+add_subdirectory( test )
 
 # === external dependencies =======================================
 
 # This should not be necessary, but some subdirectories' cmake
 # files are not playing nicely and just setting this to 11.
 set( CMAKE_CXX_STANDARD 17 )
+
+# We don't want this variable set when we import the externs be-
+# cause it will cause trouble; it may be enabled from the pre-
+# vious CMake run because we do enable tests us.
+set( BUILD_TESTING OFF )
 
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
@@ -56,6 +63,9 @@ add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/expected-lite EXCLUDE_FROM_ALL )
 add_subdirectory( extern/function_ref  EXCLUDE_FROM_ALL )
 
+set( BUILD_TESTING ON ) # Catch2 will actually do this as well.
+add_subdirectory( extern/Catch2        EXCLUDE_FROM_ALL )
+
 # === global settings =============================================
 
 # This tells fmt headers to include an external version of fmt
@@ -66,6 +76,10 @@ target_compile_definitions( fmt INTERFACE SPDLOG_FMT_EXTERNAL )
 # === custom targets ==============================================
 
 add_custom_target( run
-                   COMMAND rn
+                   COMMAND exe
                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+                   USES_TERMINAL )
+add_custom_target( test
+                   COMMAND unittest
+                   WORKING_DIRECTORY ../../
                    USES_TERMINAL )

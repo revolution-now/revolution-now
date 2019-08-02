@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "fmt-helper.hpp"
 #include "logging.hpp"
 
 // base-util
@@ -203,19 +204,28 @@ void run_all_init_routines( Opt<e_init_routine> only ) {
   init_logging( /*level=*/nullopt );
   lg.debug( "initializing: logging" );
 
+  // A list of init routines that are unregistered.
+  vector<e_init_routine> unregistered_init, unregistered_cleanup;
+  for( auto routine : values<e_init_routine> ) {
+    if( !init_functions().contains( routine ) )
+      unregistered_init.push_back( routine );
+    if( !cleanup_functions().contains( routine ) )
+      unregistered_cleanup.push_back( routine );
+  }
+
   // These should guarantee that the maps contain all enum
   // values, no more and no fewer.
   CHECK( e_init_routine::_values().size() == g_init_deps.size(),
          "The init routine dependency graph is missing some "
          "enum values" );
-  CHECK( e_init_routine::_values().size() ==
-             init_functions().size(),
+  CHECK( unregistered_init.empty(),
          "not all e_init_routine values have registered "
-         "init/cleanup functions" );
-  CHECK( e_init_routine::_values().size() ==
-             cleanup_functions().size(),
+         "init functions: {}",
+         FmtJsonStyleList{unregistered_init} );
+  CHECK( unregistered_cleanup.empty(),
          "not all e_init_routine values have registered "
-         "init/cleanup functions" );
+         "cleanup functions: {}",
+         FmtJsonStyleList{unregistered_cleanup} );
 
   auto graph = util::make_graph( g_init_deps );
   CHECK( !graph.cyclic(),

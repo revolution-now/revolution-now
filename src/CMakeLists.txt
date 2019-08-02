@@ -8,13 +8,17 @@ set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
 file( GLOB sources "[a-zA-Z]*.cpp" )
-add_executable( rn ${sources} )
+add_library(
+  rn
+  STATIC
+  ${sources}
+)
 target_compile_features( rn PUBLIC cxx_std_20 )
 set_target_properties( rn PROPERTIES CXX_EXTENSIONS OFF )
 set_warning_options( rn )
 target_link_libraries(
     rn
-    PRIVATE
+    PUBLIC
     absl::container
     absl::flat_hash_map
     absl::flat_hash_set
@@ -39,18 +43,12 @@ target_link_libraries(
     ${SDL2_MIXER_LIBRARY} )
 target_include_directories(
     rn
-    PRIVATE
+    PUBLIC
     ${PROJECT_SOURCE_DIR} # top-level folder
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}
     ${SDL2_MIXER_INCLUDE_DIR} )
-
-# The `midi-convert` target will convert (incrementally) any .rg
-# (Rosegarden) files to MIDI.  The `ogg-convert` will render the
-# midi to OGG.
-add_dependencies( rn midi-convert )
-add_dependencies( rn ogg-convert )
 
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.
@@ -78,7 +76,7 @@ endif()
 
 target_compile_definitions(
   rn
-  PRIVATE
+  PUBLIC
   FMT_STRING_ALIAS=1
   BETTER_ENUMS_STRICT_CONVERSION=1
   SCELTA_SUPPORT_VARIANT_BOOST_DISABLE

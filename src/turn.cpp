@@ -404,6 +404,8 @@ e_turn_result turn( e_nation nation ) {
 
   return orders_taken ? e_turn_result::orders_taken
                       : e_turn_result::no_orders_taken;
-} // namespace rn
+}
+
+void linker_dont_discard_module_turn() {}
 
 } // namespace rn

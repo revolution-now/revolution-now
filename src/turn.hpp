@@ -29,4 +29,6 @@ ND e_turn_result turn( e_nation nation );
 // Do a turn, start to finish, all nations.
 ND e_turn_result turn();
 
+void linker_dont_discard_module_turn();
+
 } // namespace rn

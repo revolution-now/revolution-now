@@ -49,6 +49,7 @@ using namespace std;
 namespace rn {
 
 void game() {
+  linker_dont_discard_module_turn();
   UnitId id;
 
   for( auto i : {1, 2, 3} ) {

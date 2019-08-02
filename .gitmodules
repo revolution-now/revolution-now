@@ -55,3 +55,6 @@
 [submodule "extern/function_ref"]
 	path = extern/function_ref
 	url = ../function_ref.git
+[submodule "extern/Catch2"]
+	path = extern/Catch2
+	url = ../Catch2.git
