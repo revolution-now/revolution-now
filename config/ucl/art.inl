@@ -46,6 +46,8 @@ CFG( art,
         FLD( Coord, privateer )
         FLD( Coord, free_colonist )
         FLD( Coord, soldier )
+        FLD( Coord, large_treasure )
+        FLD( Coord, small_treasure )
       )
     )
     OBJ( menu,

@@ -57,3 +57,33 @@ soldier {
   cargo_slots:           0
   cargo_slots_occupies:  1
 }
+
+large_treasure {
+  name:                  Large Treasure
+  boat:                  no
+  nat_icon_front:        false
+  nat_icon_position:     nw
+  visibility:            1
+  movement_points:       1
+  attack_points:         0
+  defense_points:        1
+  on_death:              capture
+  demoted:               null
+  cargo_slots:           0
+  cargo_slots_occupies:  6
+}
+
+small_treasure {
+  name:                  Small Treasure
+  boat:                  no
+  nat_icon_front:        false
+  nat_icon_position:     nw
+  visibility:            1
+  movement_points:       1
+  attack_points:         0
+  defense_points:        1
+  on_death:              capture
+  demoted:               null
+  cargo_slots:           0
+  cargo_slots_occupies:  4
+}

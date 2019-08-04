@@ -68,6 +68,8 @@ enum class ND g_tile {
   privateer,
   caravel,
   soldier,
+  large_treasure,
+  small_treasure,
 
   menu_top_left,
   menu_body,

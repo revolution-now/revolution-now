@@ -14,8 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "coord.hpp"
+#include "enum.hpp"
 #include "mv-points.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
@@ -23,7 +23,7 @@
 namespace rn {
 
 enum class ND e_( unit_type, free_colonist, soldier, caravel,
-                  privateer );
+                  privateer, large_treasure, small_treasure );
 
 enum class ND e_( unit_death, destroy, naval, capture, demote,
                   maybe_demote, demote_and_capture );

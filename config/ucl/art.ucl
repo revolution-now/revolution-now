@@ -44,6 +44,8 @@ tiles {
       privateer:           { y: 0, x: 1 }
       free_colonist:       { y: 1, x: 0 }
       soldier:             { y: 1, x: 1 }
+      large_treasure:      { y: 2, x: 0 }
+      small_treasure:      { y: 2, x: 1 }
     }
   }
 

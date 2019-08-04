@@ -28,11 +28,24 @@ Unit::Unit( e_nation nation, e_unit_type type )
     orders_( e_unit_orders::none ),
     cargo_( desc_->cargo_slots ),
     nation_( nation ),
+    worth_( nullopt ),
     movement_points_( desc_->movement_points ),
     finished_turn_( false ) {}
 
 // Ideally this should be empty... try to do this with types.
-void Unit::check_invariants() const {}
+void Unit::check_invariants() const {
+  // Check that only treasure units can have a worth.
+  switch( desc_->type ) {
+    case +e_unit_type::large_treasure:
+    case +e_unit_type::small_treasure:
+      CHECK( worth_.has_value() );
+      CHECK( *worth_ > 0 );
+      break;
+    default: //
+      CHECK( !worth_.has_value() );
+      break;
+  };
+}
 
 // Mark unit as having moved.
 void Unit::forfeight_mv_points() {

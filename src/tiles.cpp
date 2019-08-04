@@ -158,10 +158,12 @@ void init_sprites() {
   );
 
   LOAD_SPRITES( units, 32, 32, UNITS,
-                free_colonist, //
-                privateer,     //
-                caravel,       //
-                soldier,       //
+                free_colonist,  //
+                privateer,      //
+                caravel,        //
+                soldier,        //
+                large_treasure, //
+                small_treasure, //
   );
 
   LOAD_SPRITES( menu, 8, 8, MENU,

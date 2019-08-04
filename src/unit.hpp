@@ -56,6 +56,7 @@ public:
   // doesn't really depend on any private Unit data.
   CargoHold&     cargo() { return cargo_; }
   e_nation       nation() const { return nation_; }
+  Opt<int>       worth() const { return worth_; }
   MovementPoints movement_points() const {
     return movement_points_;
   }
@@ -139,6 +140,7 @@ private:
   e_unit_orders         orders_;
   CargoHold             cargo_;
   e_nation              nation_;
+  Opt<int>              worth_; // for treasure
   // Movement points left this turn.
   MovementPoints movement_points_;
   bool           finished_turn_;
