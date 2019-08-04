@@ -31,6 +31,33 @@ struct CargoHoldTester : public CargoHold {
 
 namespace {
 
+TEST_CASE( "CargoHold slot bounds" ) {
+  CargoHoldTester ch0( 0 );
+  REQUIRE_THROWS( ch0[0] );
+
+  CargoHoldTester ch6( 6 );
+  REQUIRE_THROWS( ch6[6] );
+  REQUIRE_THROWS( ch6[7] );
+}
+
+TEST_CASE( "CargoHold zero size" ) {
+  CargoHoldTester ch( 0 );
+
+  REQUIRE( ch.slots_occupied() == 0 );
+  REQUIRE( ch.slots_remaining() == 0 );
+  REQUIRE( ch.slots_total() == 0 );
+
+  REQUIRE( ch.count_items() == 0 );
+  REQUIRE( ch.count_items_of_type<UnitId>() == 0 );
+  REQUIRE( ch.count_items_of_type<Commodity>() == 0 );
+  REQUIRE( ch.items_of_type<UnitId>().empty() );
+  REQUIRE( ch.items_of_type<Commodity>().empty() );
+  REQUIRE( ch.units().empty() );
+  REQUIRE( ch.commodities().empty() );
+
+  REQUIRE( ch.debug_string() == "[]" );
+}
+
 TEST_CASE( "CargoHold empty state" ) {
   CargoHoldTester ch( 6 );
 
