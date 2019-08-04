@@ -24,6 +24,7 @@
 #include "absl/strings/str_replace.h"
 
 // Range-v3
+#include "range/v3/view/enumerate.hpp"
 #include "range/v3/view/group_by.hpp"
 #include "range/v3/view/iota.hpp"
 #include "range/v3/view/map.hpp"
@@ -65,12 +66,17 @@ void CargoHold::check_invariants() const {
         CHECK( !holds<CargoSlot::overflow>( slots_[i + 1] ) );
     }
   }
-  // 4. Commodities don't exceed max quantity.
-  for( auto const& slot : slots_ )
-    if_v( slot, CargoSlot::cargo, cargo )
-        if_v( cargo->contents, Commodity, commodity )
-            CHECK( commodity->quantity <=
-                   k_max_commodity_cargo_per_slot );
+  // 4. Commodities don't exceed max quantity and are not zero
+  // quantity.
+  for( auto const& slot : slots_ ) {
+    if_v( slot, CargoSlot::cargo, cargo ) {
+      if_v( cargo->contents, Commodity, commodity ) {
+        CHECK( commodity->quantity <=
+               k_max_commodity_cargo_per_slot );
+        CHECK( commodity->quantity > 0 );
+      }
+    }
+  }
   // 5. Units with overflow are properly followed by `overflow`.
   for( int i = 0; i < slots_total(); ++i ) {
     auto const& slot = slots_[i];
@@ -156,8 +162,8 @@ Opt<int> CargoHold::find_unit( UnitId id ) const {
 // Returns all units in the cargo.
 Vec<UnitId> CargoHold::units() const {
   Vec<UnitId> res;
-  for( auto unit_id_ref : items_of_type<UnitId>() )
-    res.push_back( unit_id_ref.get() );
+  for( auto unit_id : items_of_type<UnitId>() )
+    res.push_back( unit_id );
   return res;
 }
 
@@ -168,11 +174,13 @@ Vec<Pair<Commodity, int>> CargoHold::commodities(
     Opt<e_commodity> type ) {
   Vec<Pair<Commodity, int>> res;
 
-  int idx = 0;
-  for( auto comm_ref : items_of_type<Commodity>() ) {
-    if( !type || ( comm_ref.get().type == *type ) )
-      res.emplace_back( comm_ref.get(), idx );
-    idx++;
+  for( auto const& [idx, slot] : rv::enumerate( slots_ ) ) {
+    if_v( slot, CargoSlot::cargo, cargo ) {
+      if_v( cargo->contents, Commodity, commodity ) {
+        if( !type || ( commodity->type == *type ) )
+          res.emplace_back( *commodity, idx );
+      }
+    }
   }
   return res;
 }
@@ -239,6 +247,8 @@ bool CargoHold::fits( Cargo const& cargo, int idx ) const {
       auto const& proposed = val;
       if( proposed.quantity > k_max_commodity_cargo_per_slot )
         result_ false;
+      if( proposed.quantity == 0 ) //
+        result_ false;
       result_ matcher_( slots_[idx] ) {
         case_( CargoSlot::overflow ) result_ false;
         case_( CargoSlot::empty ) result_ true;
@@ -278,12 +288,12 @@ bool CargoHold::try_add_first_available( Cargo const& cargo ) {
 }
 
 bool CargoHold::try_add( Cargo const& cargo, int idx ) {
-  if( !fits( cargo, idx ) ) return false;
   if_v( cargo, UnitId, id ) {
     // Make sure that the unit is not already in this cargo.
     auto units = items_of_type<UnitId>();
-    CHECK( util::count_if( units, LC( _.get() == *id ) ) == 0 );
+    CHECK( util::count_if( units, LC( _ == *id ) ) == 0 );
   }
+  if( !fits( cargo, idx ) ) return false;
   // From here on we assume it is totally safe in every way to
   // blindly add this cargo into the given slot(s).
   auto was_added = matcher_( cargo ) {

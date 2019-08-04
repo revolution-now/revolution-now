@@ -81,12 +81,13 @@ public:
   // For convenience. Iterates over all cargo items of a certain
   // type.
   template<typename T>
-  std::vector<CRef<T>> items_of_type() const;
+  std::vector<T> items_of_type() const;
 
   auto begin() const { return slots_.begin(); }
   auto end() const { return slots_.end(); }
 
-  CargoSlot_t const& operator[]( int idx ) const;
+  CargoSlot_t const&      operator[]( int idx ) const;
+  Vec<CargoSlot_t> const& slots() const { return slots_; }
 
   // If unit is in cargo, returns its slot index.
   Opt<int> find_unit( UnitId id ) const;
@@ -151,8 +152,8 @@ protected:
 // For convenience. Iterates over all cargo items of a certain
 // type.
 template<typename T>
-std::vector<CRef<T>> CargoHold::items_of_type() const {
-  std::vector<CRef<T>> res;
+std::vector<T> CargoHold::items_of_type() const {
+  std::vector<T> res;
   for( auto const& slot : slots_ ) {
     if_v( slot, CargoSlot::cargo, cargo ) {
       if_v( cargo->contents, T, val ) { //

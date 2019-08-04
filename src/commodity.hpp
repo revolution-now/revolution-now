@@ -110,5 +110,5 @@ void render_commodity_annotated( Texture const&   tx,
 
 } // namespace rn
 
-DEFINE_FORMAT( rn::Commodity, "Commodity{{type={},quantity{}}}",
+DEFINE_FORMAT( rn::Commodity, "Commodity{{type={},quantity={}}}",
                o.type, o.quantity );
