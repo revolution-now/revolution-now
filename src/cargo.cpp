@@ -20,6 +20,9 @@
 #include "base-util/algo.hpp"
 #include "base-util/variant.hpp"
 
+// Abseil
+#include "absl/strings/str_replace.h"
+
 // Range-v3
 #include "range/v3/view/group_by.hpp"
 #include "range/v3/view/iota.hpp"
@@ -41,7 +44,9 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 } // namespace
 
 string CargoHold::debug_string() const {
-  return fmt::format( "{}", FmtJsonStyleList{slots_} );
+  return absl::StrReplaceAll(
+      fmt::format( "{}", FmtJsonStyleList{slots_} ),
+      {{"CargoSlot::", ""}} );
 }
 
 void CargoHold::check_invariants() const {
