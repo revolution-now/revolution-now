@@ -99,8 +99,9 @@ Vec<UnitId> units_all( optional<e_nation> nation ) {
 bool unit_exists( UnitId id ) {
   bool exists  = has_key( units, id ).has_value();
   bool deleted = has_key( g_deleted_units, id ).has_value();
-  CHECK( exists != deleted, "{}: exists: {}, deleted: {}.",
-         debug_string( id ), exists, deleted );
+  if( exists )
+    CHECK( !deleted, "{}: exists: {}, deleted: {}.",
+           /*no debug_string*/ id, exists, deleted );
   return exists;
 }
 

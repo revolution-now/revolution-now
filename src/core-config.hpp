@@ -25,4 +25,16 @@ namespace std::experimental::filesystem {}
 
 namespace fs = std::experimental::filesystem;
 
-namespace rn {} // namespace rn
+namespace rn {
+
+enum class e_log_level {
+  trace,
+  debug,
+  info,
+  warn,
+  error,
+  critical,
+  off
+};
+
+} // namespace rn

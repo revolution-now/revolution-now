@@ -77,6 +77,8 @@
 #define SPDLOG_LEVEL_NAMES \
   { "TRCE", "DEBG", "INFO", "WARN", "ERRO", "CRIT", "OFF" }
 
+// FIXME: try to get spdlog out of here so that we don't have to
+// compile it in every translation unit.
 // clang-format will reorder these headers which then generates
 // an error because they need to be included in a certian order.
 // clang-format off
@@ -120,6 +122,8 @@
 #define LOG_VAR( level, v ) lg.level( #v ": {}", v )
 
 namespace rn {
+
+spdlog::level::level_enum to_spdlog_level( e_log_level level );
 
 namespace detail {
 // Functions in this namespace should not be called externally.

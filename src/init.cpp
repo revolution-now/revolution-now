@@ -17,6 +17,7 @@
 
 // base-util
 #include "base-util/graph.hpp"
+#include "base-util/optional.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
@@ -198,10 +199,11 @@ void register_init_routine( e_init_routine      routine,
   init_routine_run_map()[routine] = false;
 }
 
-void run_all_init_routines( Opt<e_init_routine> only ) {
+void run_all_init_routines( Opt<e_log_level>    level,
+                            Opt<e_init_routine> only ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
-  init_logging( /*level=*/nullopt );
+  init_logging( util::fmap( to_spdlog_level, level ) );
   lg.debug( "initializing: logging" );
 
   // A list of init routines that are unregistered.

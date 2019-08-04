@@ -9,6 +9,7 @@
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
+#include "linking.hpp"
 #include "logging.hpp"
 #include "midiplayer.hpp"
 #include "midiseq.hpp"
@@ -49,7 +50,6 @@ using namespace std;
 namespace rn {
 
 void game() {
-  linker_dont_discard_module_turn();
   UnitId id;
 
   for( auto i : {1, 2, 3} ) {
@@ -127,7 +127,9 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  run_all_init_routines( e_init_routine::europort_view );
+  linker_dont_discard_me();
+  run_all_init_routines( e_log_level::debug,
+                         e_init_routine::europort_view );
   // run_all_init_routines();
   // conductor::test();
   game();

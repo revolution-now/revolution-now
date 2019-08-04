@@ -35,6 +35,18 @@ mutex g_dbg_console_impl_mutex;
 
 } // namespace
 
+spdlog::level::level_enum to_spdlog_level( e_log_level level ) {
+  switch( level ) {
+    case e_log_level::trace: return spdlog::level::trace;
+    case e_log_level::debug: return spdlog::level::debug;
+    case e_log_level::info: return spdlog::level::info;
+    case e_log_level::warn: return spdlog::level::warn;
+    case e_log_level::error: return spdlog::level::err;
+    case e_log_level::critical: return spdlog::level::critical;
+    case e_log_level::off: return spdlog::level::off;
+  }
+}
+
 // A "sink" that goes to the in-game console in a thread-safe
 // way.
 class debug_console_sink final : public spdlog::sinks::sink {

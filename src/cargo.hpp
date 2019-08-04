@@ -29,6 +29,8 @@
 #include <variant>
 #include <vector>
 
+struct CargoHoldTester;
+
 namespace rn {
 
 using Cargo = std::variant<UnitId, Commodity>;
@@ -116,6 +118,8 @@ public:
 
 private:
   void check_invariants() const;
+
+  friend struct ::CargoHoldTester;
 
   // This is the only function that should be called to add some-
   // thing to the cargo.

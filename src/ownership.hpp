@@ -129,6 +129,9 @@ UnitId create_unit_in_euroview_port( e_nation    nation,
 UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
                              UnitId holder );
 
+// Creates a unit with no ownership.
+Unit& create_unit( e_nation nation, e_unit_type type );
+
 /****************************************************************
 ** Do not call directly
 *****************************************************************/

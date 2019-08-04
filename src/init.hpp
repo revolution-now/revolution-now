@@ -68,6 +68,7 @@ void register_init_routine( e_init_routine      routine,
 // be run. Otherwise all routines will be run in order of depen-
 // dencies.
 void run_all_init_routines(
+    Opt<e_log_level>    level,
     Opt<e_init_routine> only = std::nullopt );
 // This will run the corresponding cleanup routine for each
 // initialization routine that was successfully run, and will do
