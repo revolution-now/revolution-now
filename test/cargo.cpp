@@ -748,6 +748,32 @@ TEST_CASE(
       ch.try_add_as_available( unit_id9, /*starting_slot=*/6 ) );
 }
 
+TEST_CASE( "CargoHold try add as available from all (units)" ) {
+  CargoHoldTester ch( 6 );
+
+  auto start = GENERATE( 0, 1, 2, 3, 4, 5 );
+
+  UnitId unit_ids[6];
+  for( auto i = 0; i < 6; ++i )
+    unit_ids[i] = create_unit( e_nation::english,
+                               e_unit_type::free_colonist )
+                      .id();
+
+  Vec<CargoSlot_t> cmp_slots( 6 );
+
+  for( auto i = 0; i < 6; ++i ) {
+    REQUIRE( ch.try_add_as_available(
+        unit_ids[i], /*starting_slot=*/start ) );
+    REQUIRE( ch.count_items() == i + 1 );
+    REQUIRE( ch.slots_occupied() == i + 1 );
+    cmp_slots[( i + start ) % 6] =
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_ids[i]}};
+    REQUIRE( ch.slots_ == cmp_slots );
+    REQUIRE_THROWS_AS_RN(
+        ch.try_add_as_available( unit_ids[i] ) );
+  }
+}
+
 TEST_CASE( "CargoHold check broken invariants" ) {
   CargoHoldTester ch( 6 );
   REQUIRE_GOOD_INVARIANTS;
