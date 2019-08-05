@@ -24,10 +24,13 @@
 #include "absl/strings/str_replace.h"
 
 // Range-v3
+#include "range/v3/view/cycle.hpp"
+#include "range/v3/view/drop.hpp"
 #include "range/v3/view/enumerate.hpp"
 #include "range/v3/view/group_by.hpp"
 #include "range/v3/view/iota.hpp"
 #include "range/v3/view/map.hpp"
+#include "range/v3/view/take.hpp"
 
 // C++ standard library
 #include <type_traits>
@@ -171,7 +174,7 @@ Vec<UnitId> CargoHold::units() const {
 // less a specific type is specified in which case it will be
 // limited to those.
 Vec<Pair<Commodity, int>> CargoHold::commodities(
-    Opt<e_commodity> type ) {
+    Opt<e_commodity> type ) const {
   Vec<Pair<Commodity, int>> res;
 
   for( auto const& [idx, slot] : rv::enumerate( slots_ ) ) {
@@ -196,7 +199,7 @@ void CargoHold::compactify() {
           0 ) ) );
   util::sort_by_key( comms, L( _.type ) );
   for( UnitId id : unit_ids )
-    CHECK( try_add_first_available( id ) );
+    CHECK( try_add_as_available( id ) );
   auto like_types =
       comms | rv::group_by( L2( _1.type == _2.type ) );
   for( auto group : like_types ) {
@@ -217,7 +220,7 @@ void CargoHold::compactify() {
       }
     }
     for( auto const& comm : new_comms )
-      CHECK( try_add_first_available( comm ) );
+      CHECK( try_add_as_available( comm ) );
   }
   check_invariants();
 }
@@ -280,11 +283,77 @@ Vec<int> CargoHold::find_fit( Cargo const& cargo ) const {
   return res;
 }
 
-bool CargoHold::try_add_first_available( Cargo const& cargo ) {
-  for( int idx : rv::ints( 0, slots_total() ) )
-    if( try_add( cargo, idx ) ) //
-      return true;
-  return false;
+bool CargoHold::try_add_as_available( Cargo const& cargo,
+                                      int starting_from ) {
+  if( slots_total() == 0 ) return false;
+  CHECK( starting_from >= 0 && starting_from < slots_total() );
+  auto slots = rv::ints( 0, slots_total() ) //
+               | rv::cycle                  //
+               | rv::drop( starting_from )  //
+               | rv::take( slots_total() );
+  return matcher_( cargo ) {
+    case_( UnitId ) {
+      for( int idx : slots )
+        if( try_add( val, idx ) ) //
+          return true;
+      return false;
+    }
+    case_( Commodity ) {
+      auto old_slots = slots_;
+      auto commodity = val; // make copy.
+      CHECK( commodity.quantity > 0 );
+      for( int idx : slots ) {
+        if( commodity.quantity == 0 ) break;
+        switch_( slots_[idx] ) {
+          case_( CargoSlot::empty ) {
+            auto quantity_to_add =
+                std::min( commodity.quantity,
+                          k_max_commodity_cargo_per_slot );
+            CHECK( quantity_to_add > 0 );
+            commodity.quantity -= quantity_to_add;
+            CHECK(
+                try_add( Commodity{/*type=*/commodity.type,
+                                   /*quantity=*/quantity_to_add},
+                         idx ),
+                "failed to add commodity of type {} and "
+                "quantity {} to slot {}",
+                commodity.type, quantity_to_add, idx )
+          }
+          case_( CargoSlot::overflow ) {}
+          case_( CargoSlot::cargo ) {
+            if_v( val.contents, Commodity, comm_in_slot ) {
+              if( comm_in_slot->type == commodity.type ) {
+                auto quantity_to_add =
+                    std::min( commodity.quantity,
+                              k_max_commodity_cargo_per_slot -
+                                  comm_in_slot->quantity );
+                commodity.quantity -= quantity_to_add;
+                if( quantity_to_add > 0 ) {
+                  CHECK(
+                      try_add( Commodity{
+                                   /*type=*/commodity.type,
+                                   /*quantity=*/quantity_to_add},
+                               idx ),
+                      "failed to add commodity of type {} and "
+                      "quantity {} to slot {}",
+                      commodity.type, quantity_to_add, idx )
+                }
+              }
+            }
+          }
+          switch_exhaustive;
+        }
+      }
+      if( commodity.quantity == 0 )
+        result_ true;
+      else {
+        // Couldn't make it work, so restore state.
+        slots_ = old_slots;
+        result_ false;
+      }
+    }
+    matcher_exhaustive;
+  }
 }
 
 bool CargoHold::try_add( Cargo const& cargo, int idx ) {

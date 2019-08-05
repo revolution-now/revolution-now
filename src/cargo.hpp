@@ -97,7 +97,7 @@ public:
   // less a specific type is specified in which case it will be
   // limited to those.
   Vec<Pair<Commodity, int>> commodities(
-      Opt<e_commodity> type = std::nullopt );
+      Opt<e_commodity> type = std::nullopt ) const;
 
   // Checks if the given cargo could be added at the given slot
   // index. If UnitId, will not check for unit id already in
@@ -124,13 +124,16 @@ protected:
                                          UnitId held );
   friend void ownership_disown_unit( UnitId id );
 
-  // Will search through the cargo slots until one is found at
-  // which the given cargo can be inserted. If none is found then
-  // returns false. If an attempt is made to add a unit that is
-  // already in the cargo then an exception will be thrown, since
-  // this likely reflects a logic error on the part of the
-  // caller.
-  ND bool try_add_first_available( Cargo const& cargo );
+  // Will search through the cargo slots, starting at the speci-
+  // fied slot, until one is found at which the given cargo can
+  // be inserted. Note that for commodities, this may mean that
+  // it gets broken up across a few slots. If none is found or if
+  // the commodity cannot be distributed then it returns false.
+  // If an attempt is made to add a unit that is already in the
+  // cargo then an exception will be thrown, since this likely
+  // reflects a logic error on the part of the caller.
+  ND bool try_add_as_available( Cargo const& cargo,
+                                int          starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true
   // if there was enough space at the given slot (and possibly
