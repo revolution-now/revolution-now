@@ -971,22 +971,221 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
 }
 
 TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
+  CargoHoldTester ch( 6 );
+
+  auto food_full  = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/100};
+  auto food_part  = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/25};
+  auto sugar_full = Commodity{/*type=*/e_commodity::sugar,
+                              /*quantity=*/100};
+  auto sugar_part = Commodity{/*type=*/e_commodity::sugar,
+                              /*quantity=*/25};
+
   SECTION( "full slot" ) {
-    //
+    REQUIRE( ch.slots_occupied() == 0 );
+    REQUIRE( ch.try_add( food_full, 0 ) );
+    REQUIRE( ch.slots_occupied() == 1 );
+    REQUIRE(
+        ch[0] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/100}}} );
+    REQUIRE_FALSE( ch.fits( food_full, 0 ) );
+    REQUIRE_FALSE( ch.fits( food_part, 0 ) );
+    REQUIRE_FALSE( ch.fits( sugar_full, 0 ) );
+    REQUIRE_FALSE( ch.fits( sugar_part, 0 ) );
+    REQUIRE_FALSE( ch.try_add( food_full, 0 ) );
+    REQUIRE_FALSE( ch.try_add( food_part, 0 ) );
+    REQUIRE_FALSE( ch.try_add( sugar_full, 0 ) );
+    REQUIRE_FALSE( ch.try_add( sugar_part, 0 ) );
+    REQUIRE( ch.slots_occupied() == 1 );
   }
 
   SECTION( "partial slot" ) {
-    //
+    REQUIRE( ch.slots_occupied() == 0 );
+    REQUIRE( ch.try_add( food_part, 0 ) );
+    REQUIRE( ch.slots_occupied() == 1 );
+    REQUIRE(
+        ch[0] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/25}}} );
+    REQUIRE_FALSE( ch.fits( food_full, 0 ) );
+    REQUIRE( ch.fits( food_part, 0 ) );
+    REQUIRE_FALSE( ch.fits( sugar_full, 0 ) );
+    REQUIRE_FALSE( ch.fits( sugar_part, 0 ) );
+    REQUIRE_FALSE( ch.try_add( food_full, 0 ) );
+    REQUIRE_FALSE( ch.try_add( sugar_full, 0 ) );
+    REQUIRE_FALSE( ch.try_add( sugar_part, 0 ) );
+    REQUIRE(
+        ch[0] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/25}}} );
+    REQUIRE( ch.slots_occupied() == 1 );
+    REQUIRE( ch.try_add( food_part, 0 ) );
+    REQUIRE(
+        ch[0] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/50}}} );
+    REQUIRE( ch.slots_occupied() == 1 );
+    REQUIRE( ch.try_add( sugar_part, 1 ) );
+    REQUIRE_FALSE( ch.fits( food_full, 1 ) );
+    REQUIRE_FALSE( ch.fits( food_part, 1 ) );
+    REQUIRE_FALSE( ch.fits( sugar_full, 1 ) );
+    REQUIRE_FALSE( ch.try_add( food_full, 1 ) );
+    REQUIRE_FALSE( ch.try_add( food_part, 1 ) );
+    REQUIRE_FALSE( ch.try_add( sugar_full, 1 ) );
+    REQUIRE( ch.fits( sugar_part, 1 ) );
+    REQUIRE( ch.try_add( sugar_part, 1 ) );
+    REQUIRE(
+        ch[1] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
+    REQUIRE( ch.slots_occupied() == 2 );
   }
 }
 
 TEST_CASE(
     "CargoHold commodity consolidation try add as available" ) {
-  //
-}
+  CargoHoldTester ch( 6 );
 
-TEST_CASE( "CargoHold commodity consolidation max quantities" ) {
-  //
+  auto food_full  = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/100};
+  auto food_part  = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/25};
+  auto sugar_full = Commodity{/*type=*/e_commodity::sugar,
+                              /*quantity=*/100};
+  auto sugar_part = Commodity{/*type=*/e_commodity::sugar,
+                              /*quantity=*/25};
+
+  auto start = GENERATE( 0, 1, 2, 3, 4, 5 );
+  auto prev  = ( start + 6 - 1 ) % 6;
+  auto next  = ( start + 1 ) % 6;
+  auto next2 = ( start + 2 ) % 6;
+  auto next3 = ( start + 3 ) % 6;
+
+  SECTION( "same types" ) {
+    REQUIRE( ch.slots_occupied() == 0 );
+    REQUIRE( ch.try_add_as_available( food_full, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE( ch.slots_occupied() == 1 );
+    REQUIRE(
+        ch[start] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/100}}} );
+    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/25}}} );
+    REQUIRE( ch.slots_occupied() == 2 );
+    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/50}}} );
+    REQUIRE( ch.slots_occupied() == 2 );
+    // This should cause overflow.
+    REQUIRE( ch.try_add_as_available( food_full, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/100}}} );
+    REQUIRE(
+        ch[next2] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/50}}} );
+    REQUIRE( ch.slots_occupied() == 3 );
+    REQUIRE( ch[next3] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[next2] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/75}}} );
+    REQUIRE( ch.slots_occupied() == 3 );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+  }
+
+  SECTION( "unlike types" ) {
+    REQUIRE( ch.slots_occupied() == 0 );
+    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch.slots_occupied() == 1 );
+    REQUIRE(
+        ch[start] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/25}}} );
+    REQUIRE( ch.try_add_as_available( sugar_part, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/25}}} );
+    REQUIRE( ch.slots_occupied() == 2 );
+    REQUIRE( ch.try_add_as_available( sugar_part, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[start] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/25}}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
+    REQUIRE( ch.slots_occupied() == 2 );
+    REQUIRE( ch.try_add_as_available( food_full, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[start] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/100}}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
+    REQUIRE(
+        ch[next2] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/25}}} );
+    REQUIRE( ch.slots_occupied() == 3 );
+    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[start] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/100}}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
+    REQUIRE(
+        ch[next2] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/50}}} );
+    REQUIRE( ch[next3] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE( ch.slots_occupied() == 3 );
+    REQUIRE( ch.try_add_as_available( sugar_full, start ) );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE(
+        ch[start] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/100}}} );
+    REQUIRE(
+        ch[next] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/100}}} );
+    REQUIRE(
+        ch[next2] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::food, /*quantity=*/50}}} );
+    REQUIRE(
+        ch[next3] ==
+        CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
+            /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
+    REQUIRE( ch.slots_occupied() == 4 );
+    REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
+  }
 }
 
 TEST_CASE( "CargoHold compactify empty" ) {
