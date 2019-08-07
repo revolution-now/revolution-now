@@ -192,12 +192,14 @@ void CargoHold::compactify() {
   auto           unit_ids    = units();
   auto           comms_pairs = commodities();
   Vec<Commodity> comms       = comms_pairs | rv::keys;
-  // negative to do reverse sort.
-  util::sort_by_key(
+  // Negative to do reverse sort.  Note we use stable sort.
+  util::stable_sort_by_key(
       unit_ids,
       L( -unit_from_id( _ ).desc().cargo_slots_occupies.value_or(
           0 ) ) );
   util::sort_by_key( comms, L( _.type ) );
+  for( auto& slot : slots_ ) slot = CargoSlot::empty{};
+  check_invariants();
   for( UnitId id : unit_ids )
     CHECK( try_add_as_available( id ) );
   auto like_types =
@@ -225,8 +227,8 @@ void CargoHold::compactify() {
   check_invariants();
 }
 
-bool CargoHold::fits( Cargo const& cargo, int idx ) const {
-  CHECK( idx >= 0 && idx < int( slots_.size() ) );
+bool CargoHold::fits( Cargo const& cargo, int slot ) const {
+  CHECK( slot >= 0 && slot < int( slots_.size() ) );
   return matcher_( cargo ) {
     case_( UnitId ) {
       auto maybe_occupied =
@@ -236,7 +238,7 @@ bool CargoHold::fits( Cargo const& cargo, int idx ) const {
         result_ false;
       auto occupied = *maybe_occupied;
       // Check that all needed slots are `empty`.
-      for( int i = idx; i < idx + occupied; ++i ) {
+      for( int i = slot; i < slot + occupied; ++i ) {
         if( i >= slots_total() )
           // Not enough slots left.
           result_ false;
@@ -252,7 +254,7 @@ bool CargoHold::fits( Cargo const& cargo, int idx ) const {
         result_ false;
       if( proposed.quantity == 0 ) //
         result_ false;
-      result_ matcher_( slots_[idx] ) {
+      result_ matcher_( slots_[slot] ) {
         case_( CargoSlot::overflow ) result_ false;
         case_( CargoSlot::empty ) result_ true;
         case_( CargoSlot::cargo ) {
@@ -354,13 +356,13 @@ bool CargoHold::try_add_as_available( Cargo const& cargo,
   }
 }
 
-bool CargoHold::try_add( Cargo const& cargo, int idx ) {
+bool CargoHold::try_add( Cargo const& cargo, int slot ) {
   if_v( cargo, UnitId, id ) {
     // Make sure that the unit is not already in this cargo.
     auto units = items_of_type<UnitId>();
     CHECK( util::count_if( units, LC( _ == *id ) ) == 0 );
   }
-  if( !fits( cargo, idx ) ) return false;
+  if( !fits( cargo, slot ) ) return false;
   // From here on we assume it is totally safe in every way to
   // blindly add this cargo into the given slot(s).
   auto was_added = matcher_( cargo ) {
@@ -369,17 +371,17 @@ bool CargoHold::try_add( Cargo const& cargo, int idx ) {
           unit_from_id( val ).desc().cargo_slots_occupies;
       if( !maybe_occupied ) result_ false;
       auto occupied = *maybe_occupied;
-      slots_[idx]   = CargoSlot::cargo{/*contents=*/cargo};
+      slots_[slot]  = CargoSlot::cargo{/*contents=*/cargo};
       // Now handle overflow.
-      while( idx++, occupied-- > 1 )
-        slots_[idx] = CargoSlot::overflow{};
+      while( slot++, occupied-- > 1 )
+        slots_[slot] = CargoSlot::overflow{};
       result_ true;
     }
     case_( Commodity ) {
-      if( holds<CargoSlot::empty>( slots_[idx] ) )
-        slots_[idx] = CargoSlot::cargo{/*contents=*/cargo};
+      if( holds<CargoSlot::empty>( slots_[slot] ) )
+        slots_[slot] = CargoSlot::cargo{/*contents=*/cargo};
       else {
-        GET_CHECK_VARIANT( cargo, slots_[idx],
+        GET_CHECK_VARIANT( cargo, slots_[slot],
                            CargoSlot::cargo );
         GET_CHECK_VARIANT( comm, cargo.contents, Commodity );
         CHECK( comm.type == val.type );
@@ -393,15 +395,15 @@ bool CargoHold::try_add( Cargo const& cargo, int idx ) {
   return was_added;
 }
 
-void CargoHold::remove( int idx ) {
-  CHECK( idx >= 0 && idx < int( slots_.size() ) );
-  CHECK( holds<CargoSlot::cargo>( slots_[idx] ) );
-  slots_[idx] = CargoSlot::empty{};
-  idx++;
-  while( idx < int( slots_.size() ) &&
-         holds<CargoSlot::overflow>( slots_[idx] ) ) {
-    slots_[idx] = CargoSlot::empty{};
-    ++idx;
+void CargoHold::remove( int slot ) {
+  CHECK( slot >= 0 && slot < int( slots_.size() ) );
+  CHECK( holds<CargoSlot::cargo>( slots_[slot] ) );
+  slots_[slot] = CargoSlot::empty{};
+  slot++;
+  while( slot < int( slots_.size() ) &&
+         holds<CargoSlot::overflow>( slots_[slot] ) ) {
+    slots_[slot] = CargoSlot::empty{};
+    ++slot;
   }
   check_invariants();
 }

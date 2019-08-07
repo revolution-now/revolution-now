@@ -102,7 +102,7 @@ public:
   // Checks if the given cargo could be added at the given slot
   // index. If UnitId, will not check for unit id already in
   // cargo.
-  ND bool fits( Cargo const& cargo, int idx ) const;
+  ND bool fits( Cargo const& cargo, int slot ) const;
 
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can
@@ -117,7 +117,9 @@ public:
 
   // Optimizes the arrangement of cargo items. Places units occu-
   // pying multiple slots further to the left and will consoli-
-  // date like commodities where possible.
+  // date like commodities where possible. Units with equal occu-
+  // pancy size will be kept in the same order relative to each
+  // other.
   void compactify();
 
   std::string debug_string() const;
@@ -149,11 +151,11 @@ protected:
   // is made to add a unit that is already in the cargo then an
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
-  ND bool try_add( Cargo const& cargo, int idx );
+  ND bool try_add( Cargo const& cargo, int slot );
 
   // There must be a cargo item in that slot, i.e., it cannot be
   // `overflow` or `empty`. Otherwise an error will be thrown.
-  void remove( int slot_idx );
+  void remove( int slot );
 
   // This will be of fixed length (number of total slots).
   std::vector<CargoSlot_t> slots_;
