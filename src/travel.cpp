@@ -287,7 +287,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
           auto const& ship_unit = unit_from_id( ship_id );
           CHECK( ship_unit.desc().boat );
           if( auto const& cargo = ship_unit.cargo();
-              !cargo.find_fit( id ).empty() ) {
+              cargo.fits_as_available( id ) ) {
             return TravelAnalysis{
                 /*id_=*/id,
                 /*orders_=*/orders,

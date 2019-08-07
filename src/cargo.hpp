@@ -103,6 +103,7 @@ public:
   // index. If UnitId, will not check for unit id already in
   // cargo.
   ND bool fits( Cargo const& cargo, int idx ) const;
+
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can
   // be inserted, or for commodities, if it can be distributed
@@ -113,11 +114,6 @@ public:
   // error on the part of the caller.
   ND bool fits_as_available( Cargo const& cargo,
                              int starting_slot = 0 ) const;
-  // Will return a list of slot indices where the proposed cargo
-  // could potentially fit. Resulting vector may be empty if
-  // there is no fit anywhere. Note that this will not distribute
-  // commodities, so might be of limited usefulness there.
-  ND Vec<int> find_fit( Cargo const& cargo ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
   // pying multiple slots further to the left and will consoli-

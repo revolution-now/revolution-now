@@ -281,15 +281,6 @@ bool CargoHold::fits_as_available( Cargo const& cargo,
   return new_hold.try_add_as_available( cargo, starting_slot );
 }
 
-Vec<int> CargoHold::find_fit( Cargo const& cargo ) const {
-  Vec<int> res;
-  res.reserve( slots_.size() );
-  for( int idx : rv::ints( 0, slots_total() ) )
-    if( fits( cargo, idx ) ) //
-      res.push_back( idx );
-  return res;
-}
-
 bool CargoHold::try_add_as_available( Cargo const& cargo,
                                       int starting_from ) {
   if( slots_total() == 0 ) return false;

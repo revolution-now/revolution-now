@@ -113,8 +113,6 @@ TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
   REQUIRE_THROWS_AS_RN( ch.fits( unit_id, 0 ) );
   REQUIRE_THROWS_AS_RN( ch.fits( unit_id, 1 ) );
 
-  REQUIRE( ch.find_fit( comm1 ).empty() );
-
   REQUIRE_FALSE( ch.fits_as_available( unit_id ) );
   REQUIRE_FALSE( ch.try_add_as_available( unit_id ) );
   REQUIRE_FALSE( ch.fits_as_available( comm1 ) );
@@ -146,7 +144,6 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
 
   REQUIRE( ch.fits( cargo.contents, 0 ) );
   REQUIRE_THROWS_AS_RN( ch.fits( cargo.contents, 1 ) );
-  REQUIRE( ch.find_fit( cargo.contents ) == Vec<int>{0} );
   REQUIRE_THROWS_AS_RN( ch.try_add( cargo.contents, 1 ) );
 
   REQUIRE( ch.debug_string() == "[empty]" );
@@ -227,8 +224,6 @@ TEST_CASE(
   REQUIRE( ch.fits( cargo.contents, 0 ) );
   REQUIRE( ch.fits( cargo.contents, 3 ) );
   REQUIRE_THROWS_AS_RN( ch.fits( cargo.contents, 6 ) );
-  REQUIRE( ch.find_fit( cargo.contents ) ==
-           Vec<int>{0, 1, 2, 3, 4, 5} );
   REQUIRE_THROWS_AS_RN( ch.try_add( cargo.contents, 6 ) );
 
   SECTION( "specify zero slot" ) {
@@ -334,8 +329,6 @@ TEST_CASE(
   REQUIRE_FALSE( ch.fits( unit_id, 5 ) );
   REQUIRE_THROWS_AS_RN( ch.fits( unit_id, 6 ) );
 
-  REQUIRE( ch.find_fit( unit_id ) == Vec<int>{0, 1, 2} );
-
   SECTION( "specify middle slot" ) {
     REQUIRE( ch.try_add( unit_id, 1 ) );
     REQUIRE( ch.count_items() == 1 );
@@ -425,7 +418,6 @@ TEST_CASE( "CargoHold add item too large for cargo hold" ) {
   REQUIRE_FALSE( ch.fits( unit_id1, 0 ) );
   REQUIRE_FALSE( ch.fits( unit_id1, 1 ) );
   REQUIRE_FALSE( ch.fits( unit_id1, 2 ) );
-  REQUIRE( ch.find_fit( unit_id1 ) == Vec<int>{} );
   REQUIRE_FALSE( ch.try_add( unit_id1, 0 ) );
   REQUIRE_FALSE( ch.fits_as_available( unit_id1 ) );
   REQUIRE_FALSE( ch.try_add_as_available( unit_id1 ) );
@@ -452,7 +444,6 @@ TEST_CASE( "CargoHold try to add too many things" ) {
   REQUIRE_FALSE( ch.try_add_as_available( unit_id3 ) );
   REQUIRE( ch.fits_as_available( comm1 ) );
   REQUIRE( ch.try_add_as_available( comm1 ) );
-  REQUIRE( ch.find_fit( unit_id1 ) == Vec<int>{} );
   REQUIRE_FALSE( ch.fits_as_available( unit_id1 ) );
   REQUIRE_FALSE( ch.try_add_as_available( unit_id1 ) );
   REQUIRE_FALSE( ch.fits_as_available( comm1 ) );
@@ -729,7 +720,6 @@ TEST_CASE(
       ch.fits_as_available( unit_id3, /*starting_slot=*/2 ) );
   REQUIRE_FALSE(
       ch.try_add_as_available( unit_id3, /*starting_slot=*/2 ) );
-  REQUIRE( ch.find_fit( unit_id3 ) == Vec<int>{} );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
 

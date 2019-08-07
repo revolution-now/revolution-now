@@ -360,11 +360,10 @@ void ownership_change_to_cargo( UnitId new_holder,
              .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // Check that there are enough open slots.
-  auto possible_slots = cargo_hold.find_fit( held );
-  CHECK( !possible_slots.empty() );
+  CHECK( cargo_hold.fits_as_available( held ) );
   // We're clear (at least on our end).
   ownership_disown_unit( held );
-  CHECK( cargo_hold.try_add( Cargo{held}, possible_slots[0] ) );
+  CHECK( cargo_hold.try_add_as_available( Cargo{held} ) );
   unit_from_id( held ).sentry();
   // Set new ownership
   unit_ownership[held]   = e_unit_ownership::cargo;
