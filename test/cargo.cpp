@@ -13,6 +13,7 @@
 // Revolution Now
 #include "src/cargo.hpp"
 #include "src/ownership.hpp"
+#include "src/rand.hpp"
 
 // base-util
 #include "base-util/variant.hpp"
@@ -1808,6 +1809,100 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
   REQUIRE( ch[21] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[22] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[23] == CargoSlot_t{CargoSlot::empty{}} );
+}
+
+TEST_CASE(
+    "CargoHold compactify units and commodities shuffle" ) {
+  CargoHoldTester ch( 24 );
+  auto food_full      = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/100};
+  auto food_overflow  = Commodity{/*type=*/e_commodity::food,
+                                 /*quantity=*/32};
+  auto sugar_combined = Commodity{/*type=*/e_commodity::sugar,
+                                  /*quantity=*/66};
+  auto food_part      = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/66};
+  auto sugar_part     = Commodity{/*type=*/e_commodity::sugar,
+                              /*quantity=*/33};
+  auto unit_id1       = create_unit( e_nation::english,
+                               e_unit_type::free_colonist )
+                      .id();
+  auto unit_id2 = create_unit( e_nation::english,
+                               e_unit_type::small_treasure )
+                      .id();
+  auto unit_id3 = create_unit( e_nation::english,
+                               e_unit_type::large_treasure )
+                      .id();
+
+  REQUIRE_NOTHROW( ch.compactify() );
+  REQUIRE( ch.slots_total() == 24 );
+  REQUIRE( ch.slots_remaining() == 24 );
+  REQUIRE( ch.slots_occupied() == 0 );
+
+  Cargo cargos[8] = {
+      unit_id1,   //
+      unit_id2,   //
+      unit_id3,   //
+      food_part,  //
+      food_part,  //
+      food_full,  //
+      sugar_part, //
+      sugar_part  //
+  };
+
+  // Catch2 takes its seed on the command line; from this seed we
+  // generate some random numbers to reseed our own random gener-
+  // ator to get predictable results based on Catch2's seed.
+  uint32_t sub_seed =
+      GENERATE( take( 100, random( 0, 1000000 ) ) );
+  INFO( fmt::format( "sub_seed: {}", sub_seed ) );
+  rng::reseed( sub_seed );
+
+  Vec<Cargo> shuffled( begin( cargos ), end( cargos ) );
+  rng::shuffle( shuffled );
+
+  for( auto const& cargo : shuffled ) {
+    auto maybe_idx = util::find_index(
+        ch.slots_, CargoSlot_t{CargoSlot::empty{}} );
+    REQUIRE( maybe_idx.has_value() );
+    // Don't use try_add_as_available here because we don't want
+    // to consolidate commodities a priori.
+    REQUIRE( ch.try_add( cargo, /*slot=*/*maybe_idx ) );
+    INFO( fmt::format( "index {}: {}", *maybe_idx, cargo ) );
+  }
+  REQUIRE( ch.slots_total() == 24 );
+  REQUIRE( ch.slots_remaining() == 8 );
+  REQUIRE( ch.slots_occupied() == 16 );
+
+  INFO( fmt::format( "Shuffled cargo: {}",
+                     FmtJsonStyleList{shuffled} ) );
+
+  REQUIRE_NOTHROW( ch.compactify() );
+  REQUIRE( ch.slots_total() == 24 );
+  REQUIRE( ch.slots_remaining() == 9 );
+  REQUIRE( ch.slots_occupied() == 15 );
+  REQUIRE( ch[0] == CargoSlot_t{CargoSlot::cargo{
+                        /*contents=*/unit_id3}} );
+  REQUIRE( ch[6] == CargoSlot_t{CargoSlot::cargo{
+                        /*contents=*/unit_id2}} );
+  REQUIRE( ch[10] == CargoSlot_t{CargoSlot::cargo{
+                         /*contents=*/unit_id1}} );
+  REQUIRE( ch[11] == CargoSlot_t{CargoSlot::cargo{
+                         /*contents=*/food_full}} );
+  REQUIRE( ch[12] == CargoSlot_t{CargoSlot::cargo{
+                         /*contents=*/food_full}} );
+  REQUIRE( ch[13] == CargoSlot_t{CargoSlot::cargo{
+                         /*contents=*/food_overflow}} );
+  REQUIRE( ch[14] == CargoSlot_t{CargoSlot::cargo{
+                         /*contents=*/sugar_combined}} );
+  REQUIRE( ch[15] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[16] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[17] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[18] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[19] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[20] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[21] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[22] == CargoSlot_t{CargoSlot::empty{}} );
 }
 
 } // namespace

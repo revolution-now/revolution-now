@@ -78,6 +78,13 @@ void shuffle( std::vector<T>& v ) {
   std::shuffle( v.begin(), v.end(), engine() );
 }
 
+/****************************************************************
+** Testing
+*****************************************************************/
+// This only needs to be called to control seeding during
+// testing.
+void reseed( uint32_t seed );
+
 } // namespace rng
 
 } // namespace rn

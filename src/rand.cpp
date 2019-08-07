@@ -71,6 +71,12 @@ int between( int lower, int upper, e_interval type ) {
   return uniform_dist( engine() );
 }
 
+void reseed( uint32_t seed ) {
+  CHECK( maybe_engine().has_value(),
+         "engine has not been seeded for the first time." );
+  rng::maybe_engine() = default_random_engine( seed );
+}
+
 } // namespace rng
 
 namespace {
