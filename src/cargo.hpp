@@ -103,9 +103,20 @@ public:
   // index. If UnitId, will not check for unit id already in
   // cargo.
   ND bool fits( Cargo const& cargo, int idx ) const;
+  // Will search through the cargo slots, starting at the speci-
+  // fied slot, until one is found at which the given cargo can
+  // be inserted, or for commodities, if it can be distributed
+  // among multiple slots. If none is found or if the commodity
+  // cannot be distributed then it returns false. If an attempt
+  // is made to add a unit that is already in the cargo then an
+  // exception will be thrown, since this likely reflects a logic
+  // error on the part of the caller.
+  ND bool fits_as_available( Cargo const& cargo,
+                             int starting_slot = 0 ) const;
   // Will return a list of slot indices where the proposed cargo
   // could potentially fit. Resulting vector may be empty if
-  // there is no fit anywhere.
+  // there is no fit anywhere. Note that this will not distribute
+  // commodities, so might be of limited usefulness there.
   ND Vec<int> find_fit( Cargo const& cargo ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
@@ -136,12 +147,12 @@ protected:
                                 int          starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true
-  // if there was enough space at the given slot (and possibly
-  // subsequent slots if needed) to add the cargo, and returns
-  // false otherwise. If an attempt is made to add a unit that is
-  // already in the cargo then an exception will be thrown, since
-  // this likely reflects a logic error on the part of the
-  // caller.
+  // if there was enough space at the given slot to add the
+  // cargo, and returns false otherwise. Note that this will not
+  // distribute a commodity across multiple slots. If an attempt
+  // is made to add a unit that is already in the cargo then an
+  // exception will be thrown, since this likely reflects a logic
+  // error on the part of the caller.
   ND bool try_add( Cargo const& cargo, int idx );
 
   // There must be a cargo item in that slot, i.e., it cannot be

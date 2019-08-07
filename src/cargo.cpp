@@ -274,6 +274,13 @@ bool CargoHold::fits( Cargo const& cargo, int idx ) const {
   }
 }
 
+bool CargoHold::fits_as_available( Cargo const& cargo,
+                                   int starting_slot ) const {
+  CargoHold new_hold( slots_total() );
+  new_hold.slots_ = slots_;
+  return new_hold.try_add_as_available( cargo, starting_slot );
+}
+
 Vec<int> CargoHold::find_fit( Cargo const& cargo ) const {
   Vec<int> res;
   res.reserve( slots_.size() );
