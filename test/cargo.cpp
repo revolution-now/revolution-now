@@ -1941,4 +1941,40 @@ TEST_CASE(
   REQUIRE( ch[23] == CargoSlot_t{CargoSlot::empty{}} );
 }
 
+TEST_CASE( "CargoHold find_unit" ) {
+  CargoHoldTester ch( 6 );
+
+  auto unit_id1 = create_unit( e_nation::english,
+                               e_unit_type::free_colonist )
+                      .id();
+  auto unit_id2 = create_unit( e_nation::english,
+                               e_unit_type::small_treasure )
+                      .id();
+  auto unit_id3 =
+      create_unit( e_nation::english, e_unit_type::soldier )
+          .id();
+
+  REQUIRE( ch.find_unit( unit_id1 ) == nullopt );
+  REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
+  REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
+
+  REQUIRE( ch.try_add_as_available( unit_id1 ) );
+
+  REQUIRE( ch.find_unit( unit_id1 ) == 0 );
+  REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
+  REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
+
+  REQUIRE( ch.try_add_as_available( unit_id2 ) );
+
+  REQUIRE( ch.find_unit( unit_id1 ) == 0 );
+  REQUIRE( ch.find_unit( unit_id2 ) == 1 );
+  REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
+
+  REQUIRE( ch.try_add_as_available( unit_id3 ) );
+
+  REQUIRE( ch.find_unit( unit_id1 ) == 0 );
+  REQUIRE( ch.find_unit( unit_id2 ) == 1 );
+  REQUIRE( ch.find_unit( unit_id3 ) == 5 );
+}
+
 } // namespace
