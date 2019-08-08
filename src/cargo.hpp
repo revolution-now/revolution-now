@@ -118,8 +118,8 @@ public:
   // Optimizes the arrangement of cargo items. Places units occu-
   // pying multiple slots further to the left and will consoli-
   // date like commodities where possible. Units with equal occu-
-  // pancy size will be kept in the same order relative to each
-  // other.
+  // pancy size will be put in order of creation, with older
+  // units first.
   void compactify();
 
   std::string debug_string() const;

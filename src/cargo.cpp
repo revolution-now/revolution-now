@@ -192,7 +192,10 @@ void CargoHold::compactify() {
   auto           unit_ids    = units();
   auto           comms_pairs = commodities();
   Vec<Commodity> comms       = comms_pairs | rv::keys;
-  // Negative to do reverse sort.  Note we use stable sort.
+  // First sort by ID, then do a stable sort on slot occupancy to
+  // get "deterministic" results.
+  util::sort_by_key( unit_ids, []( auto id ) { return id._; } );
+  // Negative to do reverse sort.
   util::stable_sort_by_key(
       unit_ids,
       L( -unit_from_id( _ ).desc().cargo_slots_occupies.value_or(
