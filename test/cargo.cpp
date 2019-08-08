@@ -1939,6 +1939,17 @@ TEST_CASE(
   REQUIRE( ch[21] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[22] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[23] == CargoSlot_t{CargoSlot::empty{}} );
+
+  REQUIRE_THAT( ch.units(), UnorderedEquals( Vec<UnitId>{
+                                unit_id1, unit_id2, unit_id3,
+                                unit_id4, unit_id5} ) );
+
+  REQUIRE_THAT( ch.commodities(),
+                UnorderedEquals( Vec<Pair<Commodity, int>>{
+                    {food_full, 16},
+                    {food_full, 17},
+                    {food_overflow, 18},
+                    {sugar_combined, 19}} ) );
 }
 
 TEST_CASE( "CargoHold find_unit" ) {
@@ -1975,6 +1986,10 @@ TEST_CASE( "CargoHold find_unit" ) {
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == 1 );
   REQUIRE( ch.find_unit( unit_id3 ) == 5 );
+
+  REQUIRE_THAT( ch.units(),
+                UnorderedEquals( Vec<UnitId>{unit_id1, unit_id2,
+                                             unit_id3} ) );
 }
 
 } // namespace
