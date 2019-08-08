@@ -160,7 +160,9 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
       REQUIRE( ch.find_unit( *unit_id ) == 0 );
       REQUIRE_THAT( ch.units(),
                     UnorderedEquals( Vec<UnitId>{*unit_id} ) );
-      REQUIRE( ch.debug_string() == "[cargo{contents=1_id}]" );
+      REQUIRE(
+          ch.debug_string() ==
+          fmt::format( "[cargo{{contents={}}}]", *unit_id ) );
     }
     if_v( cargo.contents, Commodity, comm ) {
       REQUIRE_THAT( ch.commodities(),
@@ -188,7 +190,9 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
       REQUIRE( ch.find_unit( *unit_id ) == 0 );
       REQUIRE_THAT( ch.units(),
                     UnorderedEquals( Vec<UnitId>{*unit_id} ) );
-      REQUIRE( ch.debug_string() == "[cargo{contents=1_id}]" );
+      REQUIRE(
+          ch.debug_string() ==
+          fmt::format( "[cargo{{contents={}}}]", *unit_id ) );
     }
     if_v( cargo.contents, Commodity, comm ) {
       REQUIRE_THAT( ch.commodities(),
@@ -239,8 +243,9 @@ TEST_CASE(
       REQUIRE_THAT( ch.units(),
                     UnorderedEquals( Vec<UnitId>{*unit_id} ) );
       REQUIRE( ch.debug_string() ==
-               "[cargo{contents=2_id},empty,empty,empty,empty,"
-               "empty]" );
+               fmt::format( "[cargo{{contents={}}},empty,empty,"
+                            "empty,empty,empty]",
+                            *unit_id ) );
     }
     if_v( cargo.contents, Commodity, comm ) {
       REQUIRE_THAT( ch.commodities(),
@@ -265,8 +270,9 @@ TEST_CASE(
       REQUIRE_THAT( ch.units(),
                     UnorderedEquals( Vec<UnitId>{*unit_id} ) );
       REQUIRE( ch.debug_string() ==
-               "[empty,empty,empty,cargo{contents=2_id},empty,"
-               "empty]" );
+               fmt::format( "[empty,empty,empty,cargo{{contents="
+                            "{}}},empty,empty]",
+                            *unit_id ) );
     }
     if_v( cargo.contents, Commodity, comm ) {
       REQUIRE_THAT( ch.commodities(),
@@ -293,8 +299,9 @@ TEST_CASE(
       REQUIRE_THAT( ch.units(),
                     UnorderedEquals( Vec<UnitId>{*unit_id} ) );
       REQUIRE( ch.debug_string() ==
-               "[cargo{contents=2_id},empty,empty,empty,empty,"
-               "empty]" );
+               fmt::format( "[cargo{{contents={}}},empty,empty,"
+                            "empty,empty,empty]",
+                            *unit_id ) );
     }
     if_v( cargo.contents, Commodity, comm ) {
       REQUIRE_THAT( ch.commodities(),
@@ -351,8 +358,9 @@ TEST_CASE(
                   UnorderedEquals( Vec<UnitId>{unit_id} ) );
     REQUIRE( ch.commodities().empty() );
     REQUIRE( ch.debug_string() ==
-             "[empty,cargo{contents=3_id},overflow,overflow,"
-             "overflow,empty]" );
+             fmt::format( "[empty,cargo{{contents={}}},overflow,"
+                          "overflow,overflow,empty]",
+                          unit_id ) );
     REQUIRE_THROWS_AS_RN( ch.remove( 0 ) );
     REQUIRE_THROWS_AS_RN( ch.remove( 2 ) );
     REQUIRE_NOTHROW( ch.remove( 1 ) );
@@ -380,8 +388,9 @@ TEST_CASE(
                   UnorderedEquals( Vec<UnitId>{unit_id} ) );
     REQUIRE( ch.commodities().empty() );
     REQUIRE( ch.debug_string() ==
-             "[cargo{contents=4_id},overflow,overflow,overflow,"
-             "empty,empty]" );
+             fmt::format( "[cargo{{contents={}}},overflow,"
+                          "overflow,overflow,empty,empty]",
+                          unit_id ) );
     REQUIRE_THROWS_AS_RN( ch.remove( 1 ) );
     REQUIRE_THROWS_AS_RN( ch.remove( 5 ) );
     REQUIRE_NOTHROW( ch.remove( 0 ) );
@@ -450,9 +459,12 @@ TEST_CASE( "CargoHold try to add too many things" ) {
   REQUIRE_FALSE( ch.fits_as_available( comm1 ) );
   REQUIRE_FALSE( ch.try_add_as_available( comm1 ) );
   REQUIRE( ch.count_items() == 2 );
-  REQUIRE( ch.debug_string() ==
-           "[cargo{contents=Commodity{type=food,quantity=100}},"
-           "cargo{contents=9_id},overflow,overflow,overflow]" );
+  REQUIRE(
+      ch.debug_string() ==
+      fmt::format(
+          "[cargo{{contents=Commodity{{type=food,quantity=100}}}"
+          "},cargo{{contents={}}},overflow,overflow,overflow]",
+          unit_id2 ) );
 }
 
 TEST_CASE( "CargoHold add multiple units" ) {
@@ -504,8 +516,10 @@ TEST_CASE( "CargoHold add multiple units" ) {
 
   REQUIRE(
       ch.debug_string() ==
-      "[cargo{contents=11_id},cargo{contents=12_id},overflow,"
-      "overflow,overflow,cargo{contents=13_id}]" );
+      fmt::format(
+          "[cargo{{contents={}}},cargo{{contents={}}},overflow,"
+          "overflow,overflow,cargo{{contents={}}}]",
+          unit_id1, unit_id2, unit_id3 ) );
 
   REQUIRE( ch.commodities().empty() );
 }

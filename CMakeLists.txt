@@ -80,6 +80,6 @@ add_custom_target( run
                    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
                    USES_TERMINAL )
 add_custom_target( test
-                   COMMAND unittest --rng-seed=time
+                   COMMAND unittest --rng-seed=time --order=rand --abort
                    WORKING_DIRECTORY ../../
                    USES_TERMINAL )
