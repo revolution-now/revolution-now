@@ -460,11 +460,11 @@ void text_render_test() {
       render_text_markup( font::standard(), info, msg );
   // auto tx1 =
   //    render_text( font::standard(), Color::white(), msg );
-  copy_texture( tx1, Texture{}, {50_y, 100_x} );
+  copy_texture( tx1, Texture::screen(), {50_y, 100_x} );
 
   auto const& tx2 = render_text_markup_reflow(
       font::standard(), info, {50}, msg2 );
-  copy_texture( tx2, Texture{}, {200_y, 100_x} );
+  copy_texture( tx2, Texture::screen(), {200_y, 100_x} );
 
   //::SDL_RenderPresent( g_renderer );
 

@@ -57,8 +57,7 @@ Texture render_line_standard_impl( ::TTF_Font* font,
   ASSIGN_CHECK( surface,
                 ::TTF_RenderText_Solid(
                     font, string( line ).c_str(), fg ) );
-  auto texture = Texture::from_surface( surface );
-  ::SDL_FreeSurface( surface );
+  auto texture = Texture::from_surface( Surface( surface ) );
   if( vert_offset != 0_y ) {
     auto new_texture = create_texture( texture.size() );
     clear_texture_transparent( new_texture );
@@ -66,7 +65,7 @@ Texture render_line_standard_impl( ::TTF_Font* font,
     texture = std::move( new_texture );
   }
   // Not sure why this doesn't happen automatically.
-  ::SDL_SetTextureAlphaMod( texture, fg.a );
+  texture.set_alpha_mod( fg.a );
   return texture;
 }
 
@@ -148,7 +147,7 @@ void font_size_spectrum( char const* msg,
     ::SDL_Color fg{255, 255, 255, 255};
     auto        texture =
         render_line_standard_impl( font, fg, num_msg, 0_y );
-    copy_texture( texture, Texture{}, {Y( y ), 0_x} );
+    copy_texture( texture, Texture::screen(), {Y( y ), 0_x} );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
   }
@@ -170,7 +169,7 @@ void font_test() {
   };
   auto texture = render_line( msg );
 
-  copy_texture( texture, Texture{}, {100_y, 100_x} );
+  copy_texture( texture, Texture::screen(), {100_y, 100_x} );
   // font_size_spectrum( msg, font_file );
 
   //::SDL_RenderPresent( g_renderer );

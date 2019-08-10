@@ -31,8 +31,7 @@ namespace rn {
 
 namespace {
 
-// These textures are not owned by us.
-absl::flat_hash_map<e_image, Ref<Texture>> g_images;
+absl::flat_hash_map<e_image, Texture> g_images;
 
 fs::path const& image_file_path( e_image image ) {
   switch( image ) {
@@ -50,12 +49,12 @@ struct ImagePlane : public Plane {
   // Implement Plane
   bool covers_screen() const override { return true; }
   // Implement Plane
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     check_invariants();
     CHECK( enabled_ );
     auto& image_tx    = val_or_die( g_images, *image );
-    auto  image_delta = texture_delta( image_tx );
+    auto  image_delta = image_tx.size();
     auto  win_rect    = main_window_logical_rect();
     auto  dest_coord  = centered( image_delta, win_rect );
     copy_texture( image_tx, tx, dest_coord );
@@ -76,15 +75,14 @@ ImagePlane g_image_plane;
 // is no need for a corresponding `release` function.
 void init_images() {
   for( auto image : values<e_image> ) {
-    g_images.insert(
-        {image, load_texture( image_file_path( image ) )} );
+    g_images.insert( {image, Texture::load_image(
+                                 image_file_path( image ) )} );
   }
-  // Sanity check. This checks that the underlying SDL texture
-  // pointers are non-null.
-  for( auto const& p : g_images ) CHECK( p.second.get().get() );
 }
 
-void cleanup_images() {}
+void cleanup_images() {
+  for( auto& p : g_images ) p.second.free();
+}
 
 REGISTER_INIT_ROUTINE( images );
 
@@ -106,7 +104,7 @@ void image_plane_set( e_image image ) {
 }
 
 Texture const& image( e_image which ) {
-  return val_or_die( g_images, which ).get();
+  return val_or_die( g_images, which );
 }
 
 } // namespace rn

@@ -62,7 +62,7 @@ public:
     return casted;
   }
 
-  virtual void draw( Texture const& tx, Coord coord ) const = 0;
+  virtual void draw( Texture& tx, Coord coord ) const = 0;
   // This is the physical size of the object in pixels.
   ND virtual Delta delta() const = 0;
   // Given a position, returns a bounding rect.  We need to be

@@ -364,7 +364,6 @@ H const& max_text_height() {
     for( auto menu : values<e_menu> ) {
       CHECK( g_menu_rendered.contains( menu ) );
       auto const& textures = g_menu_rendered[menu];
-      CHECK( textures.name.normal );
       res = std::max( res, textures.name.normal.size().h );
       for( auto item : g_items_from_menu[menu] ) {
         CHECK( g_menu_item_rendered.contains( item ) );
@@ -682,9 +681,8 @@ Texture render_menu_header_background( e_menu menu, bool active,
   return res;
 }
 
-Texture const& render_open_menu( e_menu           menu,
-                                 Opt<e_menu_item> subject,
-                                 bool             clicking ) {
+Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
+                           bool clicking ) {
   CHECK( g_menu_rendered.contains( menu ) );
   if( subject.has_value() ) {
     CHECK( g_item_to_menu[*subject] == menu );
@@ -777,7 +775,7 @@ Texture const& render_open_menu( e_menu           menu,
   return dst;
 }
 
-void render_menu_bar( Texture const& tx ) {
+void render_menu_bar( Texture& tx ) {
   // Render the "wood" panel. Start from the left edge of the
   // panel so that we get a continuous wood texture between the
   // two. Also, put the y position such that the menu bar gets
@@ -889,19 +887,17 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
 /****************************************************************
 ** Top-level Render Method
 *****************************************************************/
-void render_menus( Texture const& tx ) {
+void render_menus( Texture& tx ) {
   render_menu_bar( tx );
   auto maybe_render_open_menu = scelta::match(
       []( MenuState::menus_hidden ) {},  //
       [&]( MenuState::menus_closed ) {}, //
       [&]( MenuState::item_click const& ic ) {
-        auto        menu = g_item_to_menu[ic.item];
-        auto const& shadow =
-            g_menu_rendered[menu].menu_body_shadow;
-        CHECK( shadow );
+        auto  menu   = g_item_to_menu[ic.item];
+        auto& shadow = g_menu_rendered[menu].menu_body_shadow;
         // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        auto const& open_tx =
+        auto& open_tx =
             render_open_menu( menu, ic.item, /*clicking=*/true );
         Coord   pos   = menu_body_rect( menu ).upper_left();
         uint8_t alpha = 255;
@@ -945,9 +941,7 @@ void render_menus( Texture const& tx ) {
       [&]( MenuState::menu_open const& o ) {
         Coord pos = menu_body_rect( o.menu ).upper_left();
 
-        auto const& shadow =
-            g_menu_rendered[o.menu].menu_body_shadow;
-        CHECK( shadow );
+        auto& shadow = g_menu_rendered[o.menu].menu_body_shadow;
         copy_texture_alpha( shadow, tx, pos + Delta{5_w, 5_h},
                             64 );
         auto const& open_tx = render_open_menu(
@@ -1139,7 +1133,7 @@ struct MenuPlane : public Plane {
                ? Plane::e_accept_drag::motion
                : Plane::e_accept_drag::swallow;
   }
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     render_menus( tx );
   }

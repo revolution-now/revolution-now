@@ -73,7 +73,7 @@ struct InactivePlane : public Plane {
   InactivePlane() {}
   bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
-  void draw( Texture const& /*unused*/ ) const override {}
+  void draw( Texture& /*unused*/ ) const override {}
 };
 
 InactivePlane dummy;
@@ -92,7 +92,7 @@ struct OmniPlane : public Plane {
   OmniPlane() = default;
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
-  void draw( Texture const& /*unused*/ ) const override {}
+  void draw( Texture& /*unused*/ ) const override {}
   bool input( input::event_t const& event ) override {
     bool handled = false;
     switch_( event ) {
@@ -212,7 +212,7 @@ void init_planes() {
 void cleanup_planes() {
   // This actually just destroys the textures, since the planes
   // will be held by value as global variables elsewhere.
-  for( auto& tx : textures ) tx = {};
+  for( auto& tx : textures ) tx.free();
 }
 
 REGISTER_INIT_ROUTINE( planes );
@@ -274,7 +274,7 @@ Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
 /****************************************************************
 ** External API
 *****************************************************************/
-void draw_all_planes( Texture const& tx ) {
+void draw_all_planes( Texture& tx ) {
   clear_texture_black( tx );
 
   // This will find the last plane that will render (opaquely)
@@ -283,7 +283,7 @@ void draw_all_planes( Texture const& tx ) {
   // saves rendering work by avoiding to render things that would
   // go unseen anyway.
   for( auto [e, ptr] : planes_to_draw() ) {
-    set_render_target( plane_tx( e ) );
+    plane_tx( e ).set_render_target();
     ptr->draw( plane_tx( e ) );
     copy_texture( plane_tx( e ), tx );
   }

@@ -39,9 +39,8 @@ Opt<Ref<Square const>> maybe_square_at( Coord coord );
 
 // This will fully render a lang square with no units or colonies
 // on it.
-void render_terrain_square( Texture const& tx,
-                            Coord          world_square,
-                            Coord          texture_square );
+void render_terrain_square( Texture& tx, Coord world_square,
+                            Coord texture_square );
 
 // This function will render the terrain in large blocks and so
 // it will in general overshoot the edges of the destination rec-

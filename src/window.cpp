@@ -61,7 +61,7 @@ enum class e_window_state { running, closed };
 
 class WindowManager {
 public:
-  void draw_layout( Texture const& tx ) const;
+  void draw_layout( Texture& tx ) const;
 
   ND bool input( input::event_t const& event );
 
@@ -77,7 +77,7 @@ private:
     window( std::string title_, std::unique_ptr<View> view_,
             Coord position_ );
 
-    void  draw( Texture const& tx ) const;
+    void  draw( Texture& tx ) const;
     Delta delta() const;
     Rect  rect() const;
     Coord inside_border() const;
@@ -132,7 +132,7 @@ struct WindowPlane : public Plane {
   WindowPlane() = default;
   bool enabled() const override { return wm.num_windows() > 0; }
   bool covers_screen() const override { return false; }
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     wm.draw_layout( tx );
   }
@@ -212,7 +212,7 @@ WindowManager::window::window( string           title_,
       title, config_palette.orange.sat1.lum11, /*shadow=*/true );
 }
 
-void WindowManager::window::draw( Texture const& tx ) const {
+void WindowManager::window::draw( Texture& tx ) const {
   auto win_size = delta();
   render_fill_rect(
       tx, Color( 0, 0, 0, 64 ),
@@ -279,7 +279,7 @@ Coord WindowManager::window::view_pos() const {
   return inside_padding() + title_view->delta().h;
 }
 
-void WindowManager::draw_layout( Texture const& tx ) const {
+void WindowManager::draw_layout( Texture& tx ) const {
   for( auto const& window : windows_ ) window.draw( tx );
 }
 

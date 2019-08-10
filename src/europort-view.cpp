@@ -130,7 +130,7 @@ namespace entity {
 // Each entity is defined by a struct that holds its state and
 // that has the following methods:
 //
-//  void draw( Texture const& tx, Delta offset ) const;
+//  void draw( Texture& tx, Delta offset ) const;
 //  Rect bounds() const;
 //  static Opt<EntityClass> create( Delta const& size, ... );
 
@@ -163,7 +163,7 @@ public:
                        : single_layer_height} );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     auto bds     = bounds();
     auto grid    = bds.to_grid_noalign( sprite_scale );
     auto comm_it = values<e_commodity>.begin();
@@ -230,7 +230,7 @@ public:
     return Rect::from( origin_, size_pixels );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( box_scale );
     for( auto rect : range_of_rects( grid ) )
@@ -286,7 +286,7 @@ public:
     return Rect::from( location_, Delta{} );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     // This mess just draws an X.
     render_line( tx, Color::white(),
                  location_ - cross_leg_size + offset,
@@ -341,7 +341,7 @@ class Backdrop {
 public:
   Rect bounds() const { return Rect::from( Coord{}, size_ ); }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     copy_texture(
         image( e_image::europe ), tx,
         Rect::from( upper_left_of_render_rect_, size_ ),
@@ -384,7 +384,7 @@ public:
                                     Delta{1_w, 1_h} );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
@@ -443,7 +443,7 @@ public:
                            Delta{1_w, 1_h} );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
@@ -509,7 +509,7 @@ public:
                            Delta{1_w, 1_h} );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     render_rect( tx, Color::white(),
                  bounds().shifted_by( offset ) );
     auto const& label_tx =
@@ -576,7 +576,7 @@ public:
            Delta{2_w, 2_h};
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     auto bds = bounds().with_inc_size();
     bds      = bds.shifted_by( Delta{-2_w, -2_h} );
     auto const& exit_tx =
@@ -631,7 +631,7 @@ public:
                        1_h * dock_block_pixels.sy} );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( dock_block_pixels );
     for( auto rect : range_of_rects( grid ) )
@@ -688,7 +688,7 @@ public:
     return maybe_rect.value_or( bounds_when_no_units_ );
   }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     // auto bds = bounds();
     // render_rect( tx, Color::white(), bds.shifted_by( offset )
     // );
@@ -911,7 +911,7 @@ class ActiveCargo {
 public:
   Rect bounds() const { return bounds_; }
 
-  void draw( Texture const& tx, Delta offset ) const {
+  void draw( Texture& tx, Delta offset ) const {
     if( maybe_active_unit_ ) {
       auto bds = bounds();
       auto grid =
@@ -1027,8 +1027,7 @@ void create_entities( Entities* entities ) {
                            entities->ships_in_port );
 }
 
-void draw_entities( Texture const&  tx,
-                    Entities const& entities ) {
+void draw_entities( Texture& tx, Entities const& entities ) {
   auto offset = clip_rect().upper_left().distance_from_origin();
   if( entities.backdrop.has_value() )
     entities.backdrop->draw( tx, offset );
@@ -1072,7 +1071,7 @@ struct EuropePlane : public Plane {
   void on_frame_start() override {
     create_entities( &entities );
   }
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     draw_entities( tx, entities );
     // clear_texture( tx, Color::white() );

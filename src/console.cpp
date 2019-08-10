@@ -41,7 +41,7 @@ struct ConsolePlane : public Plane {
   ConsolePlane() = default;
   bool enabled() const override { return enabled_; }
   bool covers_screen() const override { return false; }
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     auto rect =
         Rect::from( Coord{}, main_window_logical_size() );

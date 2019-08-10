@@ -45,6 +45,7 @@ struct tile_map {
   vector<one_tile> tiles;
 };
 
+vector<Texture>                              g_images;
 unordered_map<g_tile, sprite, EnumClassHash> sprites;
 unordered_map<std::string, tile_map>         tile_maps;
 
@@ -124,9 +125,10 @@ sprite create_sprite_128_16( Texture const& texture,
       create_sprite_32( tile_set_testing_32_32, \
                         config_art.tiles.testing.coords.name )
 
-#define LOAD_SPRITES_IMPL( name, width, height, suffix, ... ) \
-  auto& tile_set_##name##_##width##_##height =                \
-      load_texture( config_art.tiles.name.img );              \
+#define LOAD_SPRITES_IMPL( name, width, height, suffix, ... )   \
+  g_images.push_back(                                           \
+      Texture::load_image( config_art.tiles.name.img ) );       \
+  auto& tile_set_##name##_##width##_##height = g_images.back(); \
   PP_MAP_SEMI( SET_SPRITE_##suffix, __VA_ARGS__ )
 
 #define LOAD_SPRITES( ... ) \
@@ -235,7 +237,9 @@ void init_sprites() {
   );
 }
 
-void cleanup_sprites() {}
+void cleanup_sprites() {
+  for( auto& p : g_images ) p.free();
+}
 
 } // namespace
 
@@ -249,7 +253,7 @@ sprite const& lookup_sprite( g_tile tile ) {
   return where->second;
 }
 
-void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
+void render_sprite( Texture& tx, g_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x ) {
   auto where = sprites.find( tile );
   CHECK( where != sprites.end(), "failed to find sprite {}",
@@ -266,13 +270,13 @@ void render_sprite( Texture const& tx, g_tile tile, Y pixel_row,
 
   double angle = rot * right_angle;
 
-  SDL_RendererFlip flip =
-      ( flip_x != 0 ) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+  auto flip =
+      ( flip_x != 0 ) ? e_flip::horizontal : e_flip::none;
 
-  copy_texture( *sp.texture, tx, sp.source, dst, angle, flip );
+  sp.texture->copy_to( tx, sp.source, dst, angle, flip );
 }
 
-void render_sprite_clip( Texture const& tx, g_tile tile,
+void render_sprite_clip( Texture& tx, g_tile tile,
                          Coord pixel_coord, Rect const& clip ) {
   auto where = sprites.find( tile );
   CHECK( where != sprites.end(), "failed to find sprite {}",
@@ -289,36 +293,33 @@ void render_sprite_clip( Texture const& tx, g_tile tile,
   dst.w = new_src.w;
   dst.h = new_src.h;
 
-  copy_texture( *sp.texture, tx, new_src, dst, 0.0,
-                ::SDL_FLIP_NONE );
+  sp.texture->copy_to( tx, new_src, dst, 0.0, e_flip::none );
 }
 
-void render_sprite( Texture const& tx, g_tile tile,
-                    Coord pixel_coord, int rot, int flip_x ) {
+void render_sprite( Texture& tx, g_tile tile, Coord pixel_coord,
+                    int rot, int flip_x ) {
   render_sprite( tx, tile, pixel_coord.y, pixel_coord.x, rot,
                  flip_x );
 }
 
-void render_sprite( Texture const& tx, g_tile tile,
+void render_sprite( Texture& tx, g_tile tile,
                     Coord pixel_coord ) {
   render_sprite( tx, tile, pixel_coord.y, pixel_coord.x, 0, 0 );
 }
 
-void render_sprite_grid( Texture const& tx, g_tile tile,
-                         Y tile_row, X tile_col, int rot,
-                         int flip_x ) {
+void render_sprite_grid( Texture& tx, g_tile tile, Y tile_row,
+                         X tile_col, int rot, int flip_x ) {
   auto const& sprite = lookup_sprite( tile );
   render_sprite( tx, tile, tile_row * sprite.scale.sy,
                  tile_col * sprite.scale.sx, rot, flip_x );
 }
 
-void render_sprite_grid( Texture const& tx, g_tile tile,
-                         Coord coord, int rot, int flip_x ) {
+void render_sprite_grid( Texture& tx, g_tile tile, Coord coord,
+                         int rot, int flip_x ) {
   render_sprite_grid( tx, tile, coord.y, coord.x, rot, flip_x );
 }
 
-void tile_sprite( Texture const& tx, g_tile tile,
-                  Rect const& rect ) {
+void tile_sprite( Texture& tx, g_tile tile, Rect const& rect ) {
   auto& info = lookup_sprite( tile );
   auto  mod  = rect.delta() % info.scale;
   if( mod.w == 0_w && rect.delta().w != 0_w )
@@ -359,18 +360,18 @@ g_tile index_to_tile( int index ) {
 }
 
 void render_rect_of_sprites_with_border(
-    Texture const& dst,         // where to draw it
-    Coord          dest_origin, // pixel coord of upper left
-    Delta          size_tiles,  // tile coords, including border
-    g_tile         middle,      //
-    g_tile         top,         //
-    g_tile         bottom,      //
-    g_tile         left,        //
-    g_tile         right,       //
-    g_tile         top_left,    //
-    g_tile         top_right,   //
-    g_tile         bottom_left, //
-    g_tile         bottom_right //
+    Texture& dst,         // where to draw it
+    Coord    dest_origin, // pixel coord of upper left
+    Delta    size_tiles,  // tile coords, including border
+    g_tile   middle,      //
+    g_tile   top,         //
+    g_tile   bottom,      //
+    g_tile   left,        //
+    g_tile   right,       //
+    g_tile   top_left,    //
+    g_tile   top_right,   //
+    g_tile   bottom_left, //
+    g_tile   bottom_right //
 ) {
   auto const& sprite_middle = lookup_sprite( middle );
   CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );

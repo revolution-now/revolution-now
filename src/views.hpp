@@ -76,7 +76,7 @@ private:
 class CompositeView : public View {
 public:
   // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
+  void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -233,7 +233,7 @@ public:
     : color_( color ), delta_( delta ) {}
 
   // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
+  void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override { return delta_; }
 
@@ -252,7 +252,7 @@ public:
   OneLineStringView( std::string msg, Color color, bool shadow );
 
   // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
+  void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override { return tx_.size(); }
 
@@ -279,8 +279,7 @@ public:
                   e_type type );
 
   // Implement Object
-  void draw( Texture const& tx,
-             Coord          coord ) const override final;
+  void draw( Texture& tx, Coord coord ) const override final;
   // Implement Object
   Delta delta() const override final { return pressed_.size(); }
 
@@ -319,7 +318,7 @@ public:
   SpriteView( g_tile tile ) : tile_( tile ) {}
 
   // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
+  void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override {
     return Delta{1_w, 1_h} * lookup_sprite( tile_ ).scale;
@@ -514,7 +513,7 @@ public:
                 e_unit_orders orders );
 
   // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
+  void draw( Texture& tx, Coord coord ) const override;
   // Implement CompositeView
   void notify_children_updated() override {}
 
@@ -552,7 +551,7 @@ public:
               bool on_initially );
 
   // Implement Object
-  void draw( Texture const& tx, Coord coord ) const override;
+  void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 

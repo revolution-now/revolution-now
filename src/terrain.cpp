@@ -88,9 +88,8 @@ void cleanup_terrain() { block_cache.clear(); }
 
 REGISTER_INIT_ROUTINE( terrain );
 
-void render_terrain_square( Texture const& tx,
-                            Coord          world_square,
-                            Coord          pixel_coord ) {
+void render_terrain_square( Texture& tx, Coord world_square,
+                            Coord pixel_coord ) {
   auto   s = square_at( world_square );
   g_tile tile =
       s.crust == +e_crust::land ? g_tile::land : g_tile::water;

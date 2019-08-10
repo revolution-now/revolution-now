@@ -221,7 +221,7 @@ HueBucketKey sat_bucket_key( Color c ) {
   return to_bucket( to_HSL( c ).s, saturation_buckets );
 }
 
-void render_palette_segment( Texture const&       tx,
+void render_palette_segment( Texture&             tx,
                              vector<Color> const& colors,
                              Coord origin, int row_size = 64 ) {
   int idx                  = 0;
@@ -474,8 +474,9 @@ vector<Color> extract_palette( fs::path const& glob,
   absl::flat_hash_set<Color> colors;
 
   for( auto const& file : files ) {
-    SDL_Surface*     surface = load_surface( file.c_str() );
-    SDL_PixelFormat* fmt     = surface->format;
+    ::SDL_Surface* surface = ::IMG_Load( file.c_str() );
+    CHECK( surface, "failed to load image: {}", file );
+    SDL_PixelFormat* fmt = surface->format;
 
     auto bpp = fmt->BitsPerPixel;
     CHECK( bpp == 8 || bpp == 32 || bpp == 24 );
@@ -661,8 +662,7 @@ Vec<Color> coursen( Vec<Color> const& colors, int min_count ) {
   return colors;
 }
 
-void show_palette( Texture const&    tx,
-                   Vec<Color> const& colors ) {
+void show_palette( Texture& tx, Vec<Color> const& colors ) {
   clear_texture_black( tx );
   render_palette_segment( tx, colors, palette_render_origin,
                           64 );
@@ -670,11 +670,10 @@ void show_palette( Texture const&    tx,
 }
 
 void show_palette( Vec<Color> const& colors ) {
-  show_palette( Texture(), colors );
+  show_palette( Texture::screen(), colors );
 }
 
-void show_palette( Texture const&      tx,
-                   ColorBuckets const& colors ) {
+void show_palette( Texture& tx, ColorBuckets const& colors ) {
   clear_texture_black( tx );
   Coord origin( palette_render_origin );
   H     group_offset{10};
@@ -700,10 +699,10 @@ void show_color_adjustment( Color center ) {
 }
 
 void write_palette_png( fs::path const& png_file ) {
-  auto        tx     = create_texture( W{500}, H{480} );
+  auto        tx     = create_texture( Delta{W{500}, H{480}} );
   auto const& colors = g_palette();
   show_palette( tx, hsl_bucket( colors ) );
-  save_texture_png( tx, png_file );
+  tx.save_png( png_file );
 }
 
 void update_palette( fs::path const& where ) {
@@ -728,16 +727,16 @@ void update_palette( fs::path const& where ) {
   fs::path const ucl_file{"config/palette.ucl"};
   fs::path const pal_file{"assets/art/palette.png"};
   lg.info( "writing to {} and {}", inl_file.string(),
-                ucl_file.string() );
+           ucl_file.string() );
   dump_palette( bucketed, inl_file, ucl_file );
   lg.info( "writing palette png image to {}",
-                pal_file.string() );
+           pal_file.string() );
   write_palette_png( pal_file );
 }
 
 void show_config_palette() {
   auto const& colors = g_palette();
-  show_palette( Texture(), hsl_bucket( colors ) );
+  show_palette( Texture::screen(), hsl_bucket( colors ) );
 }
 
 string bucket_path( Color c ) {

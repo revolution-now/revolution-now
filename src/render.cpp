@@ -55,9 +55,8 @@ namespace {
 constexpr Delta nationality_icon_size( 13_h, 13_w );
 
 // Unit only, no nationality icon.
-void render_unit_no_icon( Texture const& tx,
-                          e_unit_type    unit_type,
-                          Coord          pixel_coord ) {
+void render_unit_no_icon( Texture& tx, e_unit_type unit_type,
+                          Coord pixel_coord ) {
   auto const& desc = unit_desc( unit_type );
   render_sprite( tx, desc.tile, pixel_coord, 0, 0 );
 }
@@ -110,7 +109,7 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
   auto const& char_tx = render_text(
       font::nat_icon(), text_color, string( 1, c ) );
 
-  auto char_tx_size = texture_delta( char_tx );
+  auto char_tx_size = char_tx.size();
   copy_texture(
       char_tx, tx,
       centered( char_tx_size, rect ) + Delta{1_w, 0_h} );
@@ -155,7 +154,7 @@ Texture const& render_nationality_icon( e_nation nation,
   return nat_icon_cache[desc];
 }
 
-void render_nationality_icon( Texture const&        dest,
+void render_nationality_icon( Texture&              dest,
                               UnitDescriptor const& desc,
                               e_nation              nation,
                               e_unit_orders         orders,
@@ -191,23 +190,23 @@ void render_nationality_icon( Texture const&        dest,
   copy_texture( nat_icon, dest, pixel_coord );
 }
 
-void render_nationality_icon( Texture const& dest,
-                              e_unit_type type, e_nation nation,
+void render_nationality_icon( Texture& dest, e_unit_type type,
+                              e_nation      nation,
                               e_unit_orders orders,
                               Coord         pixel_coord ) {
   render_nationality_icon( dest, unit_desc( type ), nation,
                            orders, pixel_coord );
 }
 
-void render_nationality_icon( Texture const& dest, UnitId id,
+void render_nationality_icon( Texture& dest, UnitId id,
                               Coord pixel_coord ) {
   auto const& unit = unit_from_id( id );
   render_nationality_icon( dest, unit.desc(), unit.nation(),
                            unit.orders(), pixel_coord );
 }
 
-void render_unit( Texture const& tx, UnitId id,
-                  Coord pixel_coord, bool with_icon ) {
+void render_unit( Texture& tx, UnitId id, Coord pixel_coord,
+                  bool with_icon ) {
   auto const& unit = unit_from_id( id );
   if( with_icon ) {
     // Should the icon be in front of the unit or in back.
@@ -223,7 +222,7 @@ void render_unit( Texture const& tx, UnitId id,
   }
 }
 
-void render_unit( Texture const& tx, e_unit_type unit_type,
+void render_unit( Texture& tx, e_unit_type unit_type,
                   Coord pixel_coord ) {
   render_unit_no_icon( tx, unit_type, pixel_coord );
 }
@@ -258,7 +257,7 @@ depixelate_unit::depixelate_unit( UnitId           id_,
       render_nationality_icon( tx, id, Coord{} );
       render_unit( tx, *demote_to, Coord{} );
     }
-    demote_pixels = texture_pixels( tx );
+    demote_pixels = tx.pixels();
   }
 }
 
@@ -270,7 +269,7 @@ depixelate_unit::depixelate_unit( UnitId           id_,
 // TODO: the state should eventually be const when animations are
 //       sorted out.
 void render_world_viewport( ViewportState& state ) {
-  set_render_target( g_texture_viewport );
+  g_texture_viewport.set_render_target();
 
   auto covered = viewport().covered_tiles();
 
@@ -372,7 +371,7 @@ void render_world_viewport( ViewportState& state ) {
                          ? ( *dying->demote_pixels )[point]
                          : Color( 0, 0, 0, 0 );
         set_render_draw_color( color );
-        set_render_target( dying->tx_from );
+        dying->tx_from.set_render_target();
         ::SDL_RenderDrawPoint( g_renderer, point.x._,
                                point.y._ );
       }
@@ -494,7 +493,7 @@ struct ViewportPlane : public Plane {
   ViewportPlane() = default;
   bool enabled() const override { return false; }
   bool covers_screen() const override { return true; }
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     render_world_viewport( g_viewport_state );
     clear_texture_black( tx );
     copy_texture_stretch( g_texture_viewport, tx,
@@ -767,7 +766,7 @@ struct PanelPlane : public Plane {
     next_turn_button().enable( false );
   }
 
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     auto left_side =
         0_x + main_window_logical_size().w - panel_width();
@@ -835,7 +834,7 @@ struct EffectsPlane : public Plane {
   EffectsPlane() = default;
   bool enabled() const override { return enabled_; }
   bool covers_screen() const override { return false; }
-  void draw( Texture const& tx ) const override {
+  void draw( Texture& tx ) const override {
     using namespace chrono;
     clear_texture_transparent( tx );
     auto now = system_clock::now();

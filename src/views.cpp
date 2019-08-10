@@ -38,8 +38,7 @@ namespace {} // namespace
 /****************************************************************
 ** Fundamental Views
 *****************************************************************/
-void CompositeView::draw( Texture const& tx,
-                          Coord          coord ) const {
+void CompositeView::draw( Texture& tx, Coord coord ) const {
   // Draw each of the sub views, by augmenting its origin (which
   // is relative to the origin of the parent by the origin that
   // we have been given.
@@ -169,8 +168,7 @@ UPtr<View>& VectorView::mutable_at( int idx ) {
 /****************************************************************
 ** Simple Views
 *****************************************************************/
-void SolidRectView::draw( Texture const& tx,
-                          Coord          coord ) const {
+void SolidRectView::draw( Texture& tx, Coord coord ) const {
   render_fill_rect( tx, color_, rect( coord ) );
 }
 
@@ -185,8 +183,7 @@ OneLineStringView::OneLineStringView( string msg, Color color,
         render_text( font::standard(), color, msg_ ) );
 }
 
-void OneLineStringView::draw( Texture const& tx,
-                              Coord          coord ) const {
+void OneLineStringView::draw( Texture& tx, Coord coord ) const {
   copy_texture( this->tx_, tx, coord );
 }
 
@@ -215,8 +212,7 @@ ButtonBaseView::ButtonBaseView( string label,
                                 Delta  size_in_blocks )
   : ButtonBaseView( label, size_in_blocks, e_type::standard ) {}
 
-void ButtonBaseView::draw( Texture const& tx,
-                           Coord          coord ) const {
+void ButtonBaseView::draw( Texture& tx, Coord coord ) const {
   auto do_copy = [&]( auto const& src ) {
     copy_texture( src, tx, coord );
   };
@@ -317,7 +313,7 @@ void ButtonBaseView::render( string const& label,
   copy_texture( tx_disabled, disabled_, unpressed_coord );
 }
 
-void SpriteView::draw( Texture const& tx, Coord coord ) const {
+void SpriteView::draw( Texture& tx, Coord coord ) const {
   render_sprite( tx, tile_, coord, 0, 0 );
 }
 
@@ -707,7 +703,7 @@ FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
     nation_( nation ),
     orders_( orders ) {}
 
-void FakeUnitView::draw( Texture const& tx, Coord coord ) const {
+void FakeUnitView::draw( Texture& tx, Coord coord ) const {
   this->CompositeSingleView::draw( tx, coord );
   render_nationality_icon( tx, type_, nation_, orders_, coord );
 }
@@ -739,7 +735,7 @@ Delta BorderView::delta() const {
                ( 1_h + H{padding_} ) * 2_sy};
 }
 
-void BorderView::draw( Texture const& tx, Coord coord ) const {
+void BorderView::draw( Texture& tx, Coord coord ) const {
   this->CompositeSingleView::draw(
       tx, coord + Delta{1_w + W{padding_}, 1_h + H{padding_}} );
   if( on_ )

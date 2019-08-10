@@ -44,20 +44,7 @@ namespace rn {
 
 namespace {
 
-auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
-
-// Must be unordered_map since we need pointer stability; other
-// modules will hold references to these.
-unordered_map<string, Texture> loaded_textures;
-
 vector<Rect> clip_stack;
-
-int g_current_render_target{-1};
-int g_next_texture_id{1};
-
-// Holds the number of Texture objects that hold live textures.
-// Monitoring this helps to track texture leaks.
-int g_live_texture_count{0};
 
 } // namespace
 
@@ -154,61 +141,11 @@ void init_sdl() {
            power_info.battery_percentage );
 }
 
-// All the functions in this method should not cause problems
-// even if their corresponding initialization routines were
-// not successfully run.
-void cleanup_sdl() {
-  for( auto& p : loaded_textures ) p.second.free();
-  ::SDL_Quit();
-}
+void cleanup_sdl() { ::SDL_Quit(); }
 
 REGISTER_INIT_ROUTINE( sdl );
 
 Texture from_SDL( ::SDL_Texture* tx ) { return Texture( tx ); }
-
-::SDL_Surface* optimize_surface( ::SDL_Surface* in,
-                                 bool           release_input ) {
-  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
-  CHECK( fmt != nullptr );
-  auto* optimized = ::SDL_ConvertSurface( in, fmt, 0 );
-  CHECK( optimized != nullptr );
-  ::SDL_FreeFormat( fmt );
-  if( release_input ) ::SDL_FreeSurface( in );
-  return optimized;
-}
-
-::SDL_Surface* load_surface( const char* file ) {
-  SDL_Surface* surface = IMG_Load( file );
-  CHECK( surface, "failed to load image: {}", file );
-  return surface;
-}
-
-Texture& load_texture( const char* file ) {
-  SDL_Surface* image = IMG_Load( file );
-  CHECK( image != nullptr, "failed to load image {}", file );
-  loaded_textures[string( file )] =
-      Texture::from_surface( image );
-  return loaded_textures[string( file )];
-}
-
-Texture& load_texture( fs::path const& path ) {
-  return load_texture( path.string().c_str() );
-}
-
-Delta texture_delta( Texture const& texture ) {
-  if( !texture ) return main_window_logical_size();
-  int w, h;
-  CHECK(
-      !::SDL_QueryTexture( texture, nullptr, nullptr, &w, &h ) );
-  return {W{w}, H{h}};
-}
-
-void set_render_target( Texture const& tx ) {
-  if( g_current_render_target == tx.id() ) return;
-  CHECK( !::SDL_SetRenderTarget( g_renderer, tx.get() ) );
-  g_current_render_target = tx.id();
-  event_counts()["set-render-target"].tick();
-}
 
 void push_clip_rect( Rect const& rect ) {
   ::SDL_Rect sdl_rect;
@@ -226,84 +163,67 @@ void pop_clip_rect() {
   ::SDL_RenderSetClipRect( g_renderer, &sdl_rect );
 }
 
-void copy_texture( Texture const& from, Texture const& to,
+void copy_texture( Texture const& from, Texture& to,
                    Rect const& src, Rect const& dst,
-                   double angle, SDL_RendererFlip flip ) {
-  set_render_target( to );
-  auto sdl_src = to_SDL( src );
-  auto sdl_dst = to_SDL( dst );
-  CHECK( !::SDL_RenderCopyEx( g_renderer, from, &sdl_src,
-                              &sdl_dst, angle, nullptr, flip ) );
+                   double angle, e_flip flip ) {
+  from.copy_to( to, src, dst, angle, flip );
 }
 
-void copy_texture( Texture const& from, Texture const& to,
+void copy_texture( Texture const& from, Texture& to,
                    Rect const& src, Coord dst_coord ) {
   copy_texture( from, to, src,
                 src.with_new_upper_left( dst_coord ), 0, {} );
 }
 
-void copy_texture( Texture const& from, Texture const& to,
+void copy_texture( Texture const& from, Texture& to,
                    Rect const& src, Rect const& dst ) {
-  copy_texture( from, to, src, dst, 0, ::SDL_FLIP_NONE );
+  copy_texture( from, to, src, dst, 0, e_flip::none );
 }
 
 // With alpha. TODO: figure out why this doesn't behave like a
 // standard copy_texture when alpha == 255.
-void copy_texture_alpha( Texture const& from, Texture const& to,
+void copy_texture_alpha( Texture& from, Texture& to,
                          Coord const& dst_coord,
                          uint8_t      alpha ) {
-  ::SDL_Texture* target = to.get();
-  CHECK( from );
-  ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
-  ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
-  CHECK( !::SDL_SetTextureAlphaMod( from.get(), alpha ) );
-  set_render_target( to );
-  auto rect     = Rect::from( dst_coord, texture_delta( from ) );
-  auto sdl_rect = to_SDL( rect );
-  CHECK( !::SDL_RenderCopy( g_renderer, from, nullptr,
-                            &sdl_rect ) );
+  CHECK( !from.is_screen() );
+  // TODO: Do we really need this? If we can get rid of it then
+  // the `from` parameter can be const like it probably should
+  // be, and then many variables in the vicinity of the call
+  // sites of this function can be made const.
+  from.set_blend_mode( e_tx_blend_mode::blend );
+  to.set_blend_mode( e_tx_blend_mode::blend );
+  from.set_alpha_mod( alpha );
+  auto rect = Rect::from( dst_coord, from.size() );
+  from.copy_to( to, /*src=*/nullopt, /*dest=*/rect );
   // Restore texture's alpha because that is what most actions
   // will need it to be, and we don't set it before every texture
   // copying action in this module.
-  ::SDL_SetTextureAlphaMod( from.get(), 255 );
+  from.set_alpha_mod( 255 );
 }
 
-void copy_texture( Texture const& from, Texture const& to,
+void copy_texture( Texture const& from, Texture& to,
                    Coord const& dst_coord ) {
-  CHECK( !::SDL_SetTextureBlendMode( from,
-                                     ::SDL_BLENDMODE_BLEND ) );
-  // For some reason SDL complains when we try to set the blend
-  // mode for the default texture.
-  if( auto target = to.get(); target != nullptr ) {
-    CHECK( !::SDL_SetTextureBlendMode( target,
-                                       ::SDL_BLENDMODE_BLEND ) );
-  }
-  set_render_target( to );
-  auto rect     = Rect::from( dst_coord, texture_delta( from ) );
-  auto sdl_rect = to_SDL( rect );
-  CHECK( !::SDL_RenderCopy( g_renderer, from, nullptr,
-                            &sdl_rect ) );
+  // TODO: do we actually need this?
+  // from.set_blend_mode( e_tx_blend_mode::blend );
+  to.set_blend_mode( e_tx_blend_mode::blend );
+  auto rect = Rect::from( dst_coord, from.size() );
+  from.copy_to( to, /*src=*/nullopt, /*dest=*/rect );
 }
 
 void copy_texture_to_main( Texture const& from ) {
-  copy_texture( from, Texture{}, Coord{} );
+  copy_texture( from, Texture::screen(), Coord{} );
 }
 
-void copy_texture( Texture const& from, Texture const& to ) {
+void copy_texture( Texture const& from, Texture& to ) {
   copy_texture( from, to, Coord{} );
 }
 
-void copy_texture_stretch( Texture const& from,
-                           Texture const& to, Rect const& src,
-                           Rect const& dest ) {
-  ::SDL_Texture* target = to.get();
-  ::SDL_SetTextureBlendMode( from, ::SDL_BLENDMODE_BLEND );
-  ::SDL_SetTextureBlendMode( target, ::SDL_BLENDMODE_BLEND );
-  set_render_target( to );
-  ::SDL_Rect sdl_src  = to_SDL( src );
-  ::SDL_Rect sdl_dest = to_SDL( dest );
-  CHECK( !::SDL_RenderCopy( g_renderer, from, &sdl_src,
-                            &sdl_dest ) );
+void copy_texture_stretch( Texture const& from, Texture& to,
+                           Rect const& src, Rect const& dest ) {
+  // TODO: do we actually need this?
+  // from.set_blend_mode( e_tx_blend_mode::blend );
+  to.set_blend_mode( e_tx_blend_mode::blend );
+  from.copy_to( to, /*src=*/src, /*dest=*/dest );
 }
 
 Texture clone_texture( Texture const& tx ) {
@@ -312,30 +232,20 @@ Texture clone_texture( Texture const& tx ) {
   return res;
 }
 
-Texture create_texture( W w, H h ) {
-  bool is_target = true;
-
-  ::SDL_TextureAccess access = is_target
-                                   ? ::SDL_TEXTUREACCESS_TARGET
-                                   : ::SDL_TEXTUREACCESS_STATIC;
-  auto tx = from_SDL( ::SDL_CreateTexture(
-      g_renderer, g_pixel_format, access, w._, h._ ) );
+ND Texture create_texture( Delta delta ) {
+  auto tx = Texture::create( delta );
   clear_texture_black( tx );
   return tx;
 }
 
-ND Texture create_texture( Delta delta ) {
-  return create_texture( delta.w, delta.h );
-}
-
 ND Texture create_texture( Delta delta, Color const& color ) {
-  auto tx = create_texture( delta.w, delta.h );
+  auto tx = create_texture( delta );
   fill_texture( tx, color );
   return tx;
 }
 
 ND Texture create_texture_transparent( Delta delta ) {
-  auto tx = create_texture( delta.w, delta.h );
+  auto tx = create_texture( delta );
   clear_texture_transparent( tx );
   return tx;
 }
@@ -347,54 +257,8 @@ ND Texture create_screen_physical_sized_texture() {
   return res;
 }
 
-::SDL_Surface* create_surface( Delta delta ) {
-  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
-
-  SDL_Surface* surface = SDL_CreateRGBSurface(
-      0, delta.w._, delta.h._, fmt->BitsPerPixel, 0, 0, 0, 0 );
-
-  ::SDL_FreeFormat( fmt );
-  CHECK( surface != nullptr, "SDL_CreateRGBSurface failed" );
-  return optimize_surface( surface, /*release_input=*/true );
-  ;
-}
-
-Matrix<Color> texture_pixels( Texture const& tx ) {
-  auto  delta   = texture_delta( tx );
-  auto* surface = create_surface( delta );
-
-  auto* fmt = ::SDL_AllocFormat( g_pixel_format );
-
-  set_render_target( tx );
-  ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
-                          surface->pixels, surface->pitch );
-
-  // This is the only one we use in the game for rendering.
-  CHECK( fmt->BitsPerPixel == 32 );
-
-  lg.debug( "reading texture pixel data of size {}", delta );
-
-  Matrix<Color> res( delta );
-  SDL_LockSurface( surface );
-
-  auto rect = Rect::from( Coord{}, delta );
-  for( auto coord : rect ) {
-    ASSIGN_CHECK_OPT( idx, rect.rasterize( coord ) );
-    Uint32 pixel = ( (Uint32*)surface->pixels )[idx];
-    res[coord]   = from_SDL( color_from_pixel( fmt, pixel ) );
-  }
-
-  ::SDL_UnlockSurface( surface );
-  ::SDL_FreeFormat( fmt );
-  ::SDL_FreeSurface( surface );
-
-  return res;
-}
-
 Texture create_shadow_texture( Texture const& tx ) {
   auto cloned = clone_texture( tx );
-  auto white =
-      create_texture( tx.size(), Color{255, 255, 255, 255} );
   // black.a should not be relevant here.
   auto black = create_texture( tx.size(), Color{0, 0, 0, 255} );
 
@@ -402,79 +266,48 @@ Texture create_shadow_texture( Texture const& tx ) {
   // respects alpha gradations when performing its action, so
   // that the resulting texture will maintain the same alpha
   // pattern as the input texture.
-  set_render_target( cloned );
 
   // Stage one: turn the cloned texture all white in its opaque
   // parts.
   //   dstRGB = (srcRGB * srcA) + dstRGB
   //   dstA = dstA
-  ::SDL_SetTextureBlendMode( cloned, ::SDL_BLENDMODE_ADD );
-  ::SDL_SetTextureBlendMode( white, ::SDL_BLENDMODE_ADD );
-  CHECK(
-      !::SDL_RenderCopy( g_renderer, white, nullptr, nullptr ) );
+  Texture::screen().set_blend_mode( e_tx_blend_mode::add );
+  cloned.set_blend_mode( e_tx_blend_mode::add );
+  auto white =
+      create_texture( tx.size(), Color{255, 255, 255, 255} );
+  white.set_blend_mode( e_tx_blend_mode::add );
+  white.copy_to( cloned );
 
   // Stage two: turn the white parts of the cloned texture to
   // black.
   //   dstRGB = srcRGB * dstRGB
   //   dstA = dstA
-  ::SDL_SetTextureBlendMode( cloned, ::SDL_BLENDMODE_MOD );
-  ::SDL_SetTextureBlendMode( black, ::SDL_BLENDMODE_MOD );
-  CHECK(
-      !::SDL_RenderCopy( g_renderer, black, nullptr, nullptr ) );
+  cloned.set_blend_mode( e_tx_blend_mode::mod );
+  black.set_blend_mode( e_tx_blend_mode::mod );
+  black.copy_to( cloned );
 
   // Return blend mode to a standard value just for good measure.
-  ::SDL_SetTextureBlendMode( cloned, ::SDL_BLENDMODE_BLEND );
+  cloned.set_blend_mode( e_tx_blend_mode::blend );
 
   return cloned;
 }
 
-bool save_texture_png( Texture const&  tx,
-                       fs::path const& file ) {
-  lg.info( "writing png file {}.", file );
-  ::SDL_Surface* surface = create_surface( tx.size() );
-  CHECK( surface );
-  set_render_target( tx );
-  ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
-                          surface->pixels, surface->pitch );
-  bool status =
-      ::IMG_SavePNG( surface, file.string().c_str() ) == 0;
-  if( !status ) lg.error( "failed to save png file {}.", file );
-  ::SDL_FreeSurface( surface );
-  return status;
-}
-
 bool screenshot( fs::path const& file ) {
-  // We need to scale down the main window's contents to the log-
-  // ical resolution.
-  auto* physical_surface =
-      create_surface( main_window_physical_size() );
-  auto* logical_surface =
-      create_surface( main_window_logical_size() );
-  set_render_target( Texture{} );
-  // It seems that we unfortunately cannot use read from the
-  // screen using a texture-copy operation; we must use this to
-  // read into a surface.
-  ::SDL_RenderReadPixels( g_renderer, NULL, g_pixel_format,
-                          physical_surface->pixels,
-                          physical_surface->pitch );
-  CHECK( !::SDL_BlitScaled( physical_surface, NULL,
-                            logical_surface, NULL ) );
-  auto logical_tx = Texture::from_surface( logical_surface );
-  CHECK( logical_tx );
-  ::SDL_FreeSurface( physical_surface );
-  ::SDL_FreeSurface( logical_surface );
+  auto logical_screen =
+      Texture::screen()
+          .to_surface( main_window_physical_size() )
+          .scaled( main_window_logical_size() );
+  auto logical_tx = Texture::from_surface( logical_screen );
   // Unfortunately the above tx will not support being a render
   // target, so we need to create yet another texture. It needs
   // to be a render target because we're going to need to set it
-  // as such to read from it in the save_texture_png function.
-  auto logical_tx_target = create_texture( logical_tx.size() );
-  CHECK( logical_tx_target );
+  // as such to read from it in the save_png function.
+  auto logical_tx_target = Texture::create( logical_tx.size() );
   copy_texture( logical_tx, logical_tx_target );
-
   lg.info( "saving screenshot with size {}x{} to \"{}\".",
            logical_tx_target.size().w._,
            logical_tx_target.size().h._, file.string() );
-  return save_texture_png( logical_tx_target, file );
+  return logical_tx_target.save_png( file );
 }
 
 bool screenshot() {
@@ -493,90 +326,28 @@ bool screenshot() {
           {{" ", "-"}} ) );
 }
 
-void clear_texture_black( Texture const& tx ) {
-  set_render_target( tx );
+void clear_texture_black( Texture& tx ) {
+  tx.set_render_target();
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 255 );
   ::SDL_RenderClear( g_renderer );
 }
 
-void clear_texture( Texture const& tx, Color color ) {
-  set_render_target( tx );
+void clear_texture( Texture& tx, Color color ) {
+  tx.set_render_target();
   ::SDL_SetRenderDrawColor( g_renderer, color.r, color.g,
                             color.b, 255 );
   ::SDL_RenderClear( g_renderer );
 }
 
-void clear_texture_transparent( Texture const& tx ) {
-  set_render_target( tx );
-  ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_NONE );
+void clear_texture_transparent( Texture& tx ) {
+  tx.set_render_target();
+  tx.set_blend_mode( e_tx_blend_mode::none );
   ::SDL_SetRenderDrawColor( g_renderer, 0, 0, 0, 0 );
   ::SDL_RenderClear( g_renderer );
   // TODO: this shouldn't be necessary since anyone who is
   // relying on blend mode should be setting it prior to
   // doing any operations.
-  ::SDL_SetTextureBlendMode( tx, ::SDL_BLENDMODE_BLEND );
-}
-
-Texture::Texture( ::SDL_Texture* tx )
-  : own_{true}, tx_( tx ), id_{g_next_texture_id++} {
-  CHECK( tx_ );
-  g_live_texture_count++;
-}
-
-Texture::Texture( Texture&& tx ) noexcept
-  : own_{tx.own_}, tx_( tx.tx_ ), id_( tx.id_ ) {
-  tx.own_ = false;
-  tx.tx_  = nullptr;
-  tx.id_  = 0;
-}
-
-Texture& Texture::operator=( Texture&& rhs ) noexcept {
-  if( own_ && tx_ != nullptr ) free();
-  tx_      = rhs.tx_;
-  own_     = rhs.own_;
-  id_      = rhs.id_;
-  rhs.tx_  = nullptr;
-  rhs.own_ = false;
-  rhs.id_  = 0;
-  return *this;
-}
-
-void Texture::free() {
-  if( own_ && tx_ != nullptr ) {
-    g_live_texture_count--;
-    ::SDL_DestroyTexture( tx_ );
-  }
-  own_ = false;
-  tx_  = nullptr;
-  id_  = 0;
-}
-
-Texture::~Texture() { free(); }
-
-Texture Texture::from_surface( ::SDL_Surface* surface ) {
-  auto* optimized =
-      optimize_surface( surface, /*release_input=*/false );
-  ASSIGN_CHECK( texture, ::SDL_CreateTextureFromSurface(
-                             g_renderer, optimized ) );
-  ::SDL_FreeSurface( optimized );
-  return from_SDL( texture );
-}
-
-Delta Texture::size() const {
-  int w, h;
-  ::SDL_QueryTexture( this->get(), nullptr, nullptr, &w, &h );
-  return {W( w ), H( h )};
-}
-
-double Texture::mem_usage_mb( Delta size ) {
-  // Not certain how to know memory usage of a texture, and it
-  // may be device dependent. Found a formula online that adds a
-  // 1.33 factor in there.  Note: 4 bytes per pixel.
-  return size.w._ * size.h._ * 4 * 1.33 / ( 1024 * 1024 );
-}
-
-double Texture::mem_usage_mb() const {
-  return Texture::mem_usage_mb( size() );
+  tx.set_blend_mode( e_tx_blend_mode::blend );
 }
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
@@ -625,9 +396,9 @@ void set_render_draw_color( Color color ) {
                                     color.b, color.a ) );
 }
 
-void render_fill_rect( Texture const& tx, Color color,
+void render_fill_rect( Texture& tx, Color color,
                        Rect const& rect ) {
-  set_render_target( move( tx ) );
+  tx.set_render_target();
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderFillRect( g_renderer, &sdl_rect );
@@ -701,7 +472,7 @@ auto rounded_corner_template( rounded_corner_type type,
 }
 
 // WARNING: this is slow, only use in pre-rendered textures.
-void render_fill_rect_rounded( Texture const& tx, Color color,
+void render_fill_rect_rounded( Texture& tx, Color color,
                                Rect const&         rect,
                                rounded_corner_type type ) {
   SHOULD_BE_HERE_ONLY_DURING_INITIALIZATION;
@@ -770,47 +541,41 @@ void render_fill_rect_rounded( Texture const& tx, Color color,
                                 ::SDL_BLENDMODE_BLEND );
 }
 
-void fill_texture( Texture const& tx, Color color ) {
+void fill_texture( Texture& tx, Color color ) {
   render_fill_rect( tx, color,
-                    Rect::from( Coord{}, texture_delta( tx ) ) );
+                    Rect::from( Coord{}, tx.size() ) );
 }
 
-void render_line( Texture const& tx, Color color, Coord start,
+void render_line( Texture& tx, Color color, Coord start,
                   Delta delta ) {
   // The SDL rendering method used below includes end points, so
   // we must avoid calling it if the line will have zero length.
   if( delta == Delta::zero() ) return;
-  set_render_target( tx );
+  tx.set_render_target();
   set_render_draw_color( color );
   Coord end = start + delta.trimmed_by_one();
   ::SDL_RenderDrawLine( g_renderer, start.x._, start.y._,
                         end.x._, end.y._ );
 }
 
-void render_rect( Texture const& tx, Color color,
-                  Rect const& rect ) {
-  set_render_target( move( tx ) );
+void render_rect( Texture& tx, Color color, Rect const& rect ) {
+  tx.set_render_target();
   set_render_draw_color( color );
   auto sdl_rect = to_SDL( rect );
   ::SDL_RenderDrawRect( g_renderer, &sdl_rect );
 }
 
 // Caller must set blend mode!
-void render_points( Texture const& tx, Color color,
+void render_points( Texture& tx, Color color,
                     vector<Coord> const& points ) {
   auto to_sdl = []( Coord const& coord ) {
     return to_SDL( coord );
   };
   auto sdl_points = util::map( to_sdl, points );
-  set_render_target( tx );
+  tx.set_render_target();
   set_render_draw_color( color );
   CHECK( !::SDL_RenderDrawPoints( g_renderer, &sdl_points[0],
                                   sdl_points.size() ) );
 }
-
-/****************************************************************
-** Debugging
-*****************************************************************/
-int live_texture_count() { return g_live_texture_count; }
 
 } // namespace rn

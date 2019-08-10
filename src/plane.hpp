@@ -65,7 +65,7 @@ struct Plane : public util::non_copy_non_move {
   // these draw() function calls. That way, this function can
   // rely on the texture having the same state that it had at the
   // end of the last such call (if that happens to be useful).
-  void virtual draw( Texture const& tx ) const = 0;
+  void virtual draw( Texture& tx ) const = 0;
 
   // This will be called at the start/end of each frame to allow
   // a plane to update any state that it has. It will only be
@@ -146,7 +146,7 @@ struct Plane : public util::non_copy_non_move {
       e_menu_item item ) const;
 };
 
-void draw_all_planes( Texture const& tx = Texture() );
+void draw_all_planes( Texture& tx = Texture::screen() );
 
 // This will call the on_frame_{start,end} method on each plane
 // to update any state that it has. It will only be called on

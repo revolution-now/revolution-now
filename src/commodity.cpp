@@ -65,7 +65,7 @@ Opt<CRef<Texture>> render_commodity_label( string_view label ) {
   return res;
 }
 
-void render_commodity_impl( Texture const& tx, e_commodity type,
+void render_commodity_impl( Texture& tx, e_commodity type,
                             Coord              pixel_coord,
                             Opt<CRef<Texture>> label ) {
   auto tile = tile_for_commodity( type );
@@ -76,7 +76,7 @@ void render_commodity_impl( Texture const& tx, e_commodity type,
     auto label_size = label->get().size();
     auto origin     = pixel_coord + comm_size.h + 2_h -
                   ( label_size.w - comm_size.w ) / 2_sx;
-    copy_texture( *label, tx, origin );
+    copy_texture( label->get(), tx, origin );
   }
 }
 
@@ -120,21 +120,21 @@ Opt<CRef<Texture>> render_commodity_label(
   return res;
 }
 
-void render_commodity( Texture const& tx, e_commodity type,
+void render_commodity( Texture& tx, e_commodity type,
                        Coord pixel_coord ) {
   render_commodity_impl( tx, type, pixel_coord,
                          /*label=*/nullopt );
 }
 
 void render_commodity_annotated(
-    Texture const& tx, e_commodity type, Coord pixel_coord,
+    Texture& tx, e_commodity type, Coord pixel_coord,
     CommodityLabel_t const& label ) {
   render_commodity_impl( tx, type, pixel_coord,
                          render_commodity_label( label ) );
 }
 
 // Will use quantity as label.
-void render_commodity_annotated( Texture const&   tx,
+void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord ) {
   render_commodity_annotated(

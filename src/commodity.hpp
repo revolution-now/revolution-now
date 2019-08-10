@@ -18,7 +18,7 @@
 #include "coord.hpp"
 #include "enum.hpp"
 #include "fmt-helper.hpp"
-#include "sdl-util.hpp" // FIXME: get rid of this.
+#include "tx.hpp"
 
 // C++ standard library
 #include <string>
@@ -90,7 +90,7 @@ struct Commodity {
 /****************************************************************
 ** Commodity Renderers
 *****************************************************************/
-void render_commodity( Texture const& tx, e_commodity type,
+void render_commodity( Texture& tx, e_commodity type,
                        Coord pixel_coord );
 
 // The "annotated" functions will render the label just below the
@@ -98,13 +98,12 @@ void render_commodity( Texture const& tx, e_commodity type,
 // izontally. Note that the pixel coordinate is the upper left
 // corner of the commodity sprite.
 
-void render_commodity_annotated( Texture const& tx,
-                                 e_commodity    type,
-                                 Coord          pixel_coord,
+void render_commodity_annotated( Texture& tx, e_commodity type,
+                                 Coord pixel_coord,
                                  CommodityLabel_t const& label );
 
 // Will use quantity as label.
-void render_commodity_annotated( Texture const&   tx,
+void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord );
 
