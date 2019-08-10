@@ -40,6 +40,7 @@ struct CargoHoldTester : public CargoHold {
 
   // Methods.
   using CargoHold::check_invariants;
+  using CargoHold::clear;
   using CargoHold::remove;
   using CargoHold::try_add;
   using CargoHold::try_add_as_available;
@@ -59,6 +60,9 @@ TEST_CASE( "CargoHold slot bounds" ) {
   REQUIRE_THROWS_AS_RN( ch6[6] );
   REQUIRE_THROWS_AS_RN( ch6[7] );
   REQUIRE( distance( ch0.begin(), ch0.end() ) == 0 );
+
+  ch0.clear();
+  ch6.clear();
 }
 
 TEST_CASE( "CargoHold zero size" ) {
@@ -78,6 +82,8 @@ TEST_CASE( "CargoHold zero size" ) {
   REQUIRE( ch.commodities().empty() );
 
   REQUIRE( ch.debug_string() == "[]" );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold has slots but empty" ) {
@@ -101,6 +107,8 @@ TEST_CASE( "CargoHold has slots but empty" ) {
 
   REQUIRE( ch.debug_string() ==
            "[empty,empty,empty,empty,empty,empty]" );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
@@ -126,6 +134,8 @@ TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
 
   REQUIRE_THROWS_AS_RN( ch.remove( 0 ) );
   REQUIRE_THROWS_AS_RN( ch.remove( 1 ) );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
@@ -207,6 +217,8 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     REQUIRE( ch.slots_remaining() == 1 );
     REQUIRE( ch.slots_occupied() == 0 );
   }
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -318,6 +330,8 @@ TEST_CASE(
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -399,6 +413,8 @@ TEST_CASE(
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold try to add same unit twice" ) {
@@ -418,6 +434,9 @@ TEST_CASE( "CargoHold try to add same unit twice" ) {
   REQUIRE( ch.try_add_as_available( unit_id2 ) );
   REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id2 ) );
   REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id2 ) );
+
+  ch.clear();
+  REQUIRE( ch.count_items() == 0 );
 }
 
 TEST_CASE( "CargoHold add item too large for cargo hold" ) {
@@ -432,6 +451,8 @@ TEST_CASE( "CargoHold add item too large for cargo hold" ) {
   REQUIRE_FALSE( ch.fits_as_available( unit_id1 ) );
   REQUIRE_FALSE( ch.try_add_as_available( unit_id1 ) );
   REQUIRE( ch.count_items() == 0 );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold try to add too many things" ) {
@@ -465,6 +486,8 @@ TEST_CASE( "CargoHold try to add too many things" ) {
           "[cargo{{contents=Commodity{{type=food,quantity=100}}}"
           "},cargo{{contents={}}},overflow,overflow,overflow]",
           unit_id2 ) );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold add multiple units" ) {
@@ -522,6 +545,8 @@ TEST_CASE( "CargoHold add multiple units" ) {
           unit_id1, unit_id2, unit_id3 ) );
 
   REQUIRE( ch.commodities().empty() );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold remove from empty slot" ) {
@@ -529,6 +554,8 @@ TEST_CASE( "CargoHold remove from empty slot" ) {
   REQUIRE_THROWS_AS_RN( ch.remove( 0 ) );
   REQUIRE_THROWS_AS_RN( ch.remove( 1 ) );
   REQUIRE_THROWS_AS_RN( ch.remove( 5 ) );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold remove from overflow slot" ) {
@@ -545,6 +572,8 @@ TEST_CASE( "CargoHold remove from overflow slot" ) {
   REQUIRE_THROWS_AS_RN( ch.remove( 0 ) );
   REQUIRE( ch.debug_string() ==
            "[empty,empty,empty,empty,empty,empty]" );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold remove large cargo" ) {
@@ -578,6 +607,43 @@ TEST_CASE( "CargoHold remove large cargo" ) {
   REQUIRE_THROWS_AS_RN( ch.remove( 1 ) );
   REQUIRE( ch.debug_string() ==
            "[empty,empty,empty,empty,empty,empty]" );
+
+  ch.clear();
+}
+
+TEST_CASE( "CargoHold clear" ) {
+  CargoHoldTester ch( 12 );
+
+  auto unit_id1 = create_unit( e_nation::english,
+                               e_unit_type::small_treasure )
+                      .id();
+  auto unit_id2 =
+      create_unit( e_nation::english, e_unit_type::soldier )
+          .id();
+  auto comm =
+      Commodity{/*type=*/e_commodity::food, /*quantity=*/100};
+
+  REQUIRE( ch.try_add( unit_id1, 0 ) );
+  REQUIRE( ch.try_add( unit_id2, 4 ) );
+  REQUIRE( ch.try_add( comm, 5 ) );
+
+  REQUIRE( ch.count_items() == 3 );
+  REQUIRE( ch.slots_occupied() == 6 );
+  REQUIRE( ch.slots_total() == 12 );
+  REQUIRE( ch.slots_remaining() == 6 );
+
+  ch.clear();
+
+  REQUIRE( ch.count_items() == 0 );
+  REQUIRE( ch.slots_occupied() == 0 );
+  REQUIRE( ch.slots_total() == 12 );
+  REQUIRE( ch.slots_remaining() == 12 );
+
+  for( auto const& slot : ch ) {
+    REQUIRE( slot == CargoSlot_t{CargoSlot::empty{}} );
+  }
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold try add as available from invalid" ) {
@@ -597,6 +663,8 @@ TEST_CASE( "CargoHold try add as available from invalid" ) {
   REQUIRE( ch.try_add_as_available( unit_id1, 0 ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -669,6 +737,8 @@ TEST_CASE(
   REQUIRE_FALSE( ch.try_add_as_available( unit_id5 ) );
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 12 );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -810,6 +880,8 @@ TEST_CASE(
       ch.fits_as_available( unit_id9, /*starting_slot=*/6 ) );
   REQUIRE_FALSE(
       ch.try_add_as_available( unit_id9, /*starting_slot=*/6 ) );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold try add as available from all (units)" ) {
@@ -839,6 +911,8 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
     REQUIRE_THROWS_AS_RN(
         ch.try_add_as_available( unit_ids[i] ) );
   }
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold check broken invariants" ) {
@@ -966,6 +1040,8 @@ TEST_CASE( "CargoHold check broken invariants" ) {
         CargoSlot_t{CargoSlot::cargo{/*contents=*/comm3}};
     REQUIRE_BROKEN_INVARIANTS;
   }
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold commodity consolidation like types" ) {
@@ -1035,6 +1111,8 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
     REQUIRE_FALSE( ch.fits( food_full, 0 ) );
     REQUIRE_FALSE( ch.try_add( food_part, 0 ) );
   }
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
@@ -1109,6 +1187,8 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
             /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
     REQUIRE( ch.slots_occupied() == 2 );
   }
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -1264,6 +1344,8 @@ TEST_CASE(
     REQUIRE( ch.slots_occupied() == 4 );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
   }
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify empty" ) {
@@ -1272,6 +1354,8 @@ TEST_CASE( "CargoHold compactify empty" ) {
   REQUIRE( ch.slots_total() == 0 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 0 );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify size-1 with unit" ) {
@@ -1297,6 +1381,8 @@ TEST_CASE( "CargoHold compactify size-1 with unit" ) {
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[0] == CargoSlot_t{CargoSlot::cargo{
                         /*contents=*/unit_id1}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
@@ -1336,6 +1422,8 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
   REQUIRE( ch[3] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[0] == CargoSlot_t{CargoSlot::cargo{
                         /*contents=*/unit_id1}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
@@ -1387,6 +1475,8 @@ TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
   REQUIRE( ch[3] == CargoSlot_t{CargoSlot::overflow{}} );
   REQUIRE( ch[4] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[5] == CargoSlot_t{CargoSlot::empty{}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
@@ -1425,6 +1515,8 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
   REQUIRE( ch[3] == CargoSlot_t{CargoSlot::overflow{}} );
   REQUIRE( ch[4] == CargoSlot_t{CargoSlot::overflow{}} );
   REQUIRE( ch[5] == CargoSlot_t{CargoSlot::overflow{}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify multiple units" ) {
@@ -1499,6 +1591,8 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
                          /*contents=*/unit_id1}} );
   REQUIRE( ch[15] == CargoSlot_t{CargoSlot::cargo{
                          /*contents=*/unit_id2}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
@@ -1523,6 +1617,8 @@ TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[0] == CargoSlot_t{CargoSlot::cargo{
                         /*contents=*/food_full}} );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -1562,6 +1658,8 @@ TEST_CASE(
   REQUIRE( ch[3] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[0] == CargoSlot_t{CargoSlot::cargo{
                         /*contents=*/food_part}} );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -1621,6 +1719,8 @@ TEST_CASE(
   REQUIRE( ch[3] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[4] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[5] == CargoSlot_t{CargoSlot::empty{}} );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -1679,6 +1779,8 @@ TEST_CASE(
   REQUIRE( ch[3] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[4] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[5] == CargoSlot_t{CargoSlot::empty{}} );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -1748,6 +1850,8 @@ TEST_CASE(
                         /*contents=*/sugar_combined}} );
   REQUIRE( ch[5] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[6] == CargoSlot_t{CargoSlot::empty{}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold compactify units and commodities" ) {
@@ -1823,6 +1927,8 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
   REQUIRE( ch[21] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[22] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[23] == CargoSlot_t{CargoSlot::empty{}} );
+
+  ch.clear();
 }
 
 TEST_CASE(
@@ -1964,6 +2070,8 @@ TEST_CASE(
                     {food_full, 17},
                     {food_overflow, 18},
                     {sugar_combined, 19}} ) );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold find_unit" ) {
@@ -2004,6 +2112,8 @@ TEST_CASE( "CargoHold find_unit" ) {
   REQUIRE_THAT( ch.units(),
                 UnorderedEquals( Vec<UnitId>{unit_id1, unit_id2,
                                              unit_id3} ) );
+
+  ch.clear();
 }
 
 } // namespace

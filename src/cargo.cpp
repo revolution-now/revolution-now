@@ -14,6 +14,7 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"
+#include "scope-exit.hpp"
 #include "util.hpp"
 
 // base-util
@@ -201,7 +202,7 @@ void CargoHold::compactify() {
       L( -unit_from_id( _ ).desc().cargo_slots_occupies.value_or(
           0 ) ) );
   util::sort_by_key( comms, L( _.type ) );
-  for( auto& slot : slots_ ) slot = CargoSlot::empty{};
+  clear();
   check_invariants();
   for( UnitId id : unit_ids )
     CHECK( try_add_as_available( id ) );
@@ -283,7 +284,14 @@ bool CargoHold::fits_as_available( Cargo const& cargo,
                                    int starting_slot ) const {
   CargoHold new_hold( slots_total() );
   new_hold.slots_ = slots_;
-  return new_hold.try_add_as_available( cargo, starting_slot );
+  // Need to make sure we clear this out in case the line after
+  // throws an exception. This is only needed for convenience
+  // when unit testing, which catches exceptions (so it's nice to
+  // be exception safe).
+  SCOPE_EXIT( new_hold.clear() );
+  auto res =
+      new_hold.try_add_as_available( cargo, starting_slot );
+  return res;
 }
 
 bool CargoHold::try_add_as_available( Cargo const& cargo,
@@ -408,6 +416,12 @@ void CargoHold::remove( int slot ) {
     slots_[slot] = CargoSlot::empty{};
     ++slot;
   }
+  check_invariants();
+}
+
+void CargoHold::clear() {
+  for( auto& slot : slots_ ) //
+    slot = CargoSlot::empty{};
   check_invariants();
 }
 
