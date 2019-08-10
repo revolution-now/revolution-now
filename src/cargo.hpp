@@ -157,6 +157,10 @@ protected:
   // `overflow` or `empty`. Otherwise an error will be thrown.
   void remove( int slot );
 
+  // Remove all cargo elements, keeping cargo the same size but
+  // filled with "empty"s.
+  void clear();
+
   // This will be of fixed length (number of total slots).
   std::vector<CargoSlot_t> slots_;
 };
