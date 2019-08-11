@@ -16,7 +16,7 @@
 #include "color.hpp"
 #include "coord.hpp"
 #include "font.hpp"
-#include "sdl-util.hpp" // FIXME: remove
+#include "tx.hpp"
 
 // C++ standard library
 #include <string_view>

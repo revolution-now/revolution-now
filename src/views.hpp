@@ -15,8 +15,8 @@
 // Revolution Now
 #include "color.hpp"
 #include "nation.hpp"
-#include "sdl-util.hpp"
 #include "tiles.hpp"
+#include "tx.hpp"
 #include "ui.hpp"
 #include "unit.hpp"
 #include "utype.hpp"

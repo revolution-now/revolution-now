@@ -14,6 +14,7 @@
 #include "errors.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "sdl-util.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
 

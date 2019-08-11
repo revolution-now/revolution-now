@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "sdl-util.hpp"
+#include "tx.hpp"
 #include "util.hpp"
 
 // SDL

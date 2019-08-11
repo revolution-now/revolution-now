@@ -14,6 +14,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "init.hpp"
+#include "sdl-util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/font.inl"

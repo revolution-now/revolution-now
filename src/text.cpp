@@ -18,6 +18,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "ranges.hpp"
+#include "sdl-util.hpp"
 #include "ttf.hpp"
 
 // base-util

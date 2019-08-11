@@ -16,7 +16,7 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
-#include "sdl-util.hpp"
+#include "tx.hpp"
 
 namespace rn {
 

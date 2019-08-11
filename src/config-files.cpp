@@ -674,9 +674,9 @@ REGISTER_INIT_ROUTINE( configs );
 namespace rn {
 
 Vec<Color> const& g_palette() {
-  static Vec<Color> const& colors = [] {
-    Vec<Color>* res  = new Vec<Color>;
-    string      file = "config/ucl/palette.ucl";
+  static Vec<Color> colors = [] {
+    Vec<Color> res;
+    string     file = "config/ucl/palette.ucl";
 
     string errors;
     auto   ucl_obj = ucl::Ucl::parse_from_file( file, errors );
@@ -695,12 +695,12 @@ Vec<Color> const& g_palette() {
           auto parsed = Color::parse_from_hex( digits );
           CHECK( parsed, "failed to parse {}",
                  lum.string_value() );
-          res->push_back( *parsed );
+          res.push_back( *parsed );
         }
       }
     }
-    hsl_bucketed_sort( *res );
-    return *res;
+    hsl_bucketed_sort( res );
+    return res;
   }();
   return colors;
 }

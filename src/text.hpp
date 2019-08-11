@@ -18,7 +18,7 @@
 #include "coord.hpp"
 #include "font.hpp"
 #include "macros.hpp"
-#include "sdl-util.hpp"
+#include "tx.hpp"
 
 // C++ standard library
 #include <tuple>

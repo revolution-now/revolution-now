@@ -21,6 +21,8 @@
 #include "../config/ucl/art.inl"
 
 // base-util
+#include "base-util/fs.hpp"
+#include "base-util/misc.hpp"
 #include "base-util/pp.hpp"
 
 // C++ standard library
@@ -45,9 +47,16 @@ struct tile_map {
   vector<one_tile> tiles;
 };
 
-vector<Texture>                              g_images;
+// Need pointer stability for these.
+unordered_map<fs::path, Texture>             g_images;
 unordered_map<g_tile, sprite, EnumClassHash> sprites;
 unordered_map<std::string, tile_map>         tile_maps;
+
+Texture const& load_image( fs::path const& p ) {
+  if( !util::has_key( g_images, p ) )
+    g_images.emplace( p, Texture::load_image( p ) );
+  return g_images[p];
+}
 
 sprite create_sprite_32( Texture const& texture, Coord coord ) {
   Rect rect{coord.x * 32_sx, coord.y * 32_sy, 32_w, 32_h};
@@ -125,10 +134,9 @@ sprite create_sprite_128_16( Texture const& texture,
       create_sprite_32( tile_set_testing_32_32, \
                         config_art.tiles.testing.coords.name )
 
-#define LOAD_SPRITES_IMPL( name, width, height, suffix, ... )   \
-  g_images.push_back(                                           \
-      Texture::load_image( config_art.tiles.name.img ) );       \
-  auto& tile_set_##name##_##width##_##height = g_images.back(); \
+#define LOAD_SPRITES_IMPL( name, width, height, suffix, ... ) \
+  auto& tile_set_##name##_##width##_##height =                \
+      load_image( config_art.tiles.name.img );                \
   PP_MAP_SEMI( SET_SPRITE_##suffix, __VA_ARGS__ )
 
 #define LOAD_SPRITES( ... ) \
@@ -238,7 +246,7 @@ void init_sprites() {
 }
 
 void cleanup_sprites() {
-  for( auto& p : g_images ) p.free();
+  for( auto& p : g_images ) p.second.free();
 }
 
 } // namespace

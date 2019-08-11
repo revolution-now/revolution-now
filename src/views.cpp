@@ -15,6 +15,7 @@
 #include "coord.hpp"
 #include "logging.hpp"
 #include "render.hpp"
+#include "sdl-util.hpp"
 #include "text.hpp"
 #include "util.hpp"
 #include "variant.hpp"

@@ -17,7 +17,7 @@
 #include "fmt-helper.hpp"
 #include "input.hpp"
 #include "menu.hpp"
-#include "sdl-util.hpp"
+#include "tx.hpp"
 
 // base-util
 #include "base-util/non-copyable.hpp"
