@@ -17,7 +17,6 @@
 #include "math.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
-#include "sdl-util.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
 

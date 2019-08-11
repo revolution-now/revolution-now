@@ -13,10 +13,10 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
-#include "sdl-util.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 
@@ -160,7 +160,7 @@ void query_video_stats() {
   SDL_Rect r;
   lg.debug( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  lg.debug( "  {}", from_SDL( r ) );
+  lg.debug( "  {}", Rect{X{r.x}, Y{r.y}, W{r.w}, H{r.h}} );
 
   lg.debug( "monitor diagonal length: {}in.", monitor_inches() );
 }
@@ -348,6 +348,7 @@ void init_renderer() {
   ::SDL_SetRenderDrawBlendMode( g_renderer,
                                 ::SDL_BLENDMODE_BLEND );
 
+  // FIXME: move this out of here.
   // Now we calculate the necessary size of the viewport texture.
   // This needs to be large enough to accomodate a zoomed-out
   // view in which the entire world is visible.

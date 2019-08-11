@@ -5,7 +5,8 @@
 let s:first = 'exe/main.cpp'
 
 let s:stems = [
-  \ 'src/sdl-util',
+  \ 'src/tx',
+  \ 'src/gfx',
   \ 'src/init',
   \ 'src/config-files',
   \ 'src/coord',

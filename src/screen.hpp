@@ -17,11 +17,14 @@
 #include "cache.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
-#include "sdl-util.hpp" // TODO: get rid of this here
+#include "tx.hpp"
+
+// SDL
+#include "SDL.h"       // FIXME: get rid of this.
+#include "SDL_image.h" // FIXME: get rid of this.
 
 namespace rn {
 
-extern ::SDL_Window*   g_window;
 extern ::SDL_Renderer* g_renderer;
 extern Texture         g_texture_viewport;
 

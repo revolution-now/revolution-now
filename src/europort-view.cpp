@@ -15,6 +15,7 @@
 #include "compositor.hpp"
 #include "coord.hpp"
 #include "europort.hpp"
+#include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"

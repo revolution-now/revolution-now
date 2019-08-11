@@ -13,9 +13,9 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "coord.hpp"
+#include "gfx.hpp"
 #include "logging.hpp"
 #include "render.hpp"
-#include "sdl-util.hpp"
 #include "text.hpp"
 #include "util.hpp"
 #include "variant.hpp"

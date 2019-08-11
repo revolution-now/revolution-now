@@ -15,7 +15,6 @@
 #include "errors.hpp"
 #include "hash.hpp"
 #include "init.hpp"
-#include "sdl-util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/art.inl"

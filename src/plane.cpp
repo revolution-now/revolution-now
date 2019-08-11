@@ -15,6 +15,7 @@
 #include "console.hpp"
 #include "europort-view.hpp"
 #include "frame.hpp"
+#include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "logging.hpp"

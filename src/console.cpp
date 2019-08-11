@@ -14,10 +14,10 @@
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "frame.hpp"
+#include "gfx.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
-#include "sdl-util.hpp"
 #include "text.hpp"
 #include "ttf.hpp"
 

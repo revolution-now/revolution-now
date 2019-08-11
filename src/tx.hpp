@@ -131,6 +131,8 @@ public:
   void copy_to( Texture& to, Rect const& src, Rect const& dst,
                 double angle, e_flip flip ) const;
 
+  void fill( Color const& color );
+
   // Estimated memory size (in megabytes) of a texture with
   // given pixel dimensions.
   static double mem_usage_mb( Delta size );

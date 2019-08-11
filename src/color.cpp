@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
+#include "gfx.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"

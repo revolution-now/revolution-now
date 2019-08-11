@@ -12,9 +12,9 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
-#include "sdl-util.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
 

@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "fmt-helper.hpp"
+#include "gfx.hpp"
 #include "macros.hpp"
-#include "sdl-util.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 

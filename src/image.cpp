@@ -15,10 +15,10 @@
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
+#include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
-#include "sdl-util.hpp"
 #include "util.hpp"
 
 // Revolution Now (config)

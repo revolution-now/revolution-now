@@ -14,11 +14,11 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "gfx.hpp"
 #include "hash.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "ranges.hpp"
-#include "sdl-util.hpp"
 #include "ttf.hpp"
 
 // base-util

@@ -20,6 +20,7 @@
 #include "logging.hpp"
 #include "macros.hpp"
 #include "screen.hpp"
+#include "sdl-util.hpp"
 
 // SDL
 #include "SDL.h"
@@ -325,6 +326,18 @@ void Texture::copy_to( Texture& to ) const {
   to.set_render_target();
   CHECK( !::SDL_RenderCopy( g_renderer, to_SDL_Texture( tx_ ),
                             nullptr, nullptr ) );
+}
+
+void Texture::fill( Color const& color ) {
+  set_render_target();
+  set_blend_mode( e_tx_blend_mode::none );
+  ::SDL_SetRenderDrawColor( g_renderer, color.r, color.g,
+                            color.b, color.a );
+  ::SDL_RenderClear( g_renderer );
+  // TODO: this shouldn't be necessary since anyone who is re-
+  // lying on blend mode should be setting it prior to doing any
+  // operations.  Try removing it.
+  set_blend_mode( e_tx_blend_mode::blend );
 }
 
 double Texture::mem_usage_mb( Delta size ) {
