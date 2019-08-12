@@ -1,3 +1,34 @@
+Drag & Drop Framework
+=====================
+
+The goal is to create a generic drag-n-drop framework that can be
+used anywhere where dragging and dropping of items is needed.
+
+Currently the input/plane mechanism supports sending dragging
+messages so that a plane can easily handle dragging, but it does
+not handle dragging of items per say.
+
+Therefore, we will create a framework that adds another layer
+onto the existing dragging framework that facilitates dragging of
+items.
+
+Dragging and dropping involves the following players:
+
+  - DragContainer
+
+    Holds an item that is being dragged along with info about
+    where it came from.  This is useful if the dragged item
+    needs to be physically removed from where it lives during
+    dragging.
+
+  - DraggableItem
+
+    An item that can be dragged; will be put inside a drag
+    container during dragging.
+
+  - DragSink
+  - DragStatus
+
 Old World Dock Screen
 =====================
 
