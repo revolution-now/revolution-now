@@ -6,11 +6,29 @@ used anywhere where dragging and dropping of items is needed.
 
 Currently the input/plane mechanism supports sending dragging
 messages so that a plane can easily handle dragging, but it does
-not handle dragging of items per say.
+not handle dragging of items per se.
 
-Therefore, we will create a framework that adds another layer
-onto the existing dragging framework that facilitates dragging of
-items.
+Here we will create a framework that allows configuring a drag &
+drop configuration object which can be configured with a descrip-
+tion of all the ways in which things can be dragged and dropped
+in a particular scene, such as the set of things that can be
+dragged, the set of things that can receive a drop, which items
+can be dropped where, what should happen to the dragged item
+during dragging, etc.
+
+High-Level Interface
+
+First, a config object must be created:
+
+  DragAndDropConfig dd_config(
+    // 1. Things that can be dragged.
+    // 2. Things that can receive drags.
+    // 3. Matrix describing "interactions" between prev. two.
+    // 4. What should happen to an item when being dragged.
+    // 5. What should be shown under cursor when dragging item.
+    // 6. What should be done to receiver when drag-hovering.
+    // 7. Callbacks for e.g. drag start, drag complete, etc.
+  );
 
 Dragging and dropping involves the following players:
 
