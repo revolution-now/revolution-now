@@ -700,7 +700,7 @@ public:
     for( auto const& unit_with_pos : units_ )
       render_unit( tx, unit_with_pos.id,
                    unit_with_pos.pixel_coord + offset,
-                   /*with_icon=*/true );
+                   /*with_icon=*/false );
     if( g_selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *g_selected_unit ) {
@@ -920,12 +920,29 @@ public:
     auto bds  = bounds();
     auto grid = bds.to_grid_noalign( ActiveCargoBox::box_scale );
     if( maybe_active_unit_ ) {
-      auto& unit        = unit_from_id( *maybe_active_unit_ );
-      auto  cargo_units = unit.cargo().items_of_type<UnitId>();
-      for( auto [id, rect] :
-           rv::zip( cargo_units, range_of_rects( grid ) ) ) {
-        render_unit( tx, id, rect.upper_left() + offset,
-                     /*with_icon=*/false );
+      auto&       unit = unit_from_id( *maybe_active_unit_ );
+      auto const& cargo_slots = unit.cargo().slots();
+      for( auto const& [cargo_slot, rect] :
+           rv::zip( cargo_slots, range_of_rects( grid ) ) ) {
+        auto dst_coord       = rect.upper_left() + offset;
+        auto cargo_slot_copy = cargo_slot;
+        switch_( cargo_slot_copy ) {
+          case_( CargoSlot::empty ) {}
+          case_( CargoSlot::overflow ) {}
+          case_( CargoSlot::cargo ) {
+            switch_( val.contents ) {
+              case_( UnitId ) {
+                render_unit( tx, val, dst_coord,
+                             /*with_icon=*/false );
+              }
+              case_( Commodity ) {
+                render_commodity_annotated( tx, val, dst_coord );
+              }
+              switch_exhaustive;
+            }
+          }
+          switch_exhaustive;
+        }
       }
       for( auto [idx, rect] :
            rv::zip( rv::ints, range_of_rects( grid ) ) ) {
@@ -1192,6 +1209,18 @@ Opt<DragArc_t> drag_arc( DragSrc_t const& src,
   return res;
 }
 
+void draw_drag_src( Texture&         tx,
+                    DragSrc_t const& being_dragged ) {
+  auto coord = input::current_mouse_position();
+  switch_( being_dragged ) {
+    case_( DragSrc::dock, id ) {
+      render_unit( tx, id, coord - g_tile_delta / Scale{2},
+                   /*with_icon=*/false );
+    }
+    switch_non_exhaustive;
+  }
+}
+
 void perform_drag( DragArc_t const& drag_arc_to_perform ) {
   switch_( drag_arc_to_perform ) {
     case_( DragArc::dock_to_cargo, src, dst ) {
@@ -1202,6 +1231,9 @@ void perform_drag( DragArc_t const& drag_arc_to_perform ) {
               .cargo()
               .fits( src.id, dst.slot ) )
         ownership_change_to_cargo( dst.ship, src.id, dst.slot );
+      else
+        lg.debug( "unit {} does not fit in slot {}", src.id,
+                  dst.slot );
     }
     switch_exhaustive;
   }
@@ -1215,15 +1247,15 @@ struct EuropePlane : public Plane {
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void on_frame_start() override {
-    if( maybe_drag_arc_to_perform ) {
-      perform_drag( *maybe_drag_arc_to_perform );
-      maybe_drag_arc_to_perform = nullopt;
+    if( maybe_drag_arc_to_perform_ ) {
+      perform_drag( *maybe_drag_arc_to_perform_ );
+      maybe_drag_arc_to_perform_ = nullopt;
     }
-    create_entities( &entities );
+    create_entities( &entities_ );
   }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
-    draw_entities( tx, entities );
+    draw_entities( tx, entities_ );
     // clear_texture( tx, Color::white() );
     // We need to keep the checkers pattern stationary.
     // auto tile = ( clip_rect().upper_left().x._ +
@@ -1233,7 +1265,10 @@ struct EuropePlane : public Plane {
     //                ? g_tile::checkers
     //                : g_tile::checkers_inv;
     // tile_sprite( tx, tile, clip_rect() );
-    render_rect( tx, rect_color, clip_rect() );
+    render_rect( tx, rect_color_, clip_rect() );
+    if( maybe_being_dragged_ ) {
+      draw_drag_src( tx, *maybe_being_dragged_ );
+    }
   }
   bool input( input::event_t const& event ) override {
     return matcher_( event ) {
@@ -1243,9 +1278,9 @@ struct EuropePlane : public Plane {
       case_( input::mouse_wheel_event_t ) result_ false;
       case_( input::mouse_move_event_t ) {
         if( is_on_clip_rect( val.pos ) )
-          this->rect_color = Color::blue();
+          this->rect_color_ = Color::blue();
         else
-          this->rect_color = Color::white();
+          this->rect_color_ = Color::white();
         result_ true;
       }
       case_( input::mouse_button_event_t ) {
@@ -1262,9 +1297,9 @@ struct EuropePlane : public Plane {
             }
           }
         };
-        try_select_unit( entities.ships_in_port );
-        try_select_unit( entities.ships_inbound );
-        try_select_unit( entities.ships_outbound );
+        try_select_unit( entities_.ships_in_port );
+        try_select_unit( entities_.ships_inbound );
+        try_select_unit( entities_.ships_outbound );
         result_ handled;
       }
       case_( input::mouse_drag_event_t ) result_ false;
@@ -1273,6 +1308,7 @@ struct EuropePlane : public Plane {
   }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
+    CHECK( !maybe_being_dragged_ );
     if( button == input::e_mouse_button::l ) {
       // if( button == input::e_mouse_button::l &&
       //    is_on_clip_rect( origin ) ) {
@@ -1290,11 +1326,12 @@ struct EuropePlane : public Plane {
       //  if( top || bottom ) res.projection = Delta{1_h, 0_w};
       //  return res;
       //}
-      auto offset = clip_rect().upper_left();
-      auto maybe_drag_src =
-          drag_src( entities, origin.with_new_origin( offset ) );
-      lg.info( "drag_src: {}", maybe_drag_src );
-      if( maybe_drag_src ) return Plane::e_accept_drag::yes;
+      auto offset          = clip_rect().upper_left();
+      maybe_being_dragged_ = drag_src(
+          entities_, origin.with_new_origin( offset ) );
+      lg.info( "drag_src: {}", maybe_being_dragged_ );
+      if( maybe_being_dragged_ )
+        return Plane::e_accept_drag::yes;
     }
     return Plane::e_accept_drag::no;
   }
@@ -1303,7 +1340,7 @@ struct EuropePlane : public Plane {
                 Coord /*current*/ ) override {
     // auto offset = clip_rect().upper_left();
     // auto maybe_drag_dst =
-    //    drag_dst( entities, current.with_new_origin( offset )
+    //    drag_dst( entities_, current.with_new_origin( offset )
     //    );
     // lg.info( "drag_dst: {}", maybe_drag_dst );
 
@@ -1323,23 +1360,24 @@ struct EuropePlane : public Plane {
     // g_clip   = g_clip.clamp( main_window_logical_size() );
   }
   void on_drag_finished( input::e_mouse_button button,
-                         Coord origin, Coord end ) override {
+                         Coord /*origin*/, Coord end ) override {
     if( button == input::e_mouse_button::l ) {
-      auto offset = clip_rect().upper_left();
-      auto maybe_drag_src =
-          drag_src( entities, origin.with_new_origin( offset ) );
+      auto offset         = clip_rect().upper_left();
+      auto maybe_drag_src = maybe_being_dragged_;
       auto maybe_drag_dst =
-          drag_dst( entities, end.with_new_origin( offset ) );
+          drag_dst( entities_, end.with_new_origin( offset ) );
       if( maybe_drag_src && maybe_drag_dst ) {
-        maybe_drag_arc_to_perform =
+        maybe_drag_arc_to_perform_ =
             drag_arc( *maybe_drag_src, *maybe_drag_dst );
-        lg.info( "drag_arc: {}", maybe_drag_arc_to_perform );
+        lg.info( "drag_arc: {}", maybe_drag_arc_to_perform_ );
       }
     }
+    maybe_being_dragged_ = nullopt;
   }
-  Opt<DragArc_t> maybe_drag_arc_to_perform;
-  Color          rect_color{Color::white()};
-  Entities       entities;
+  Opt<DragArc_t> maybe_drag_arc_to_perform_;
+  Opt<DragSrc_t> maybe_being_dragged_;
+  Color          rect_color_{Color::white()};
+  Entities       entities_;
 };
 
 EuropePlane g_europe_plane;

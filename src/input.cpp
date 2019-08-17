@@ -357,6 +357,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
 } // namespace
 
+Coord current_mouse_position() { return g_prev_mouse_pos; }
+
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta ) {
   event_t new_event = event;

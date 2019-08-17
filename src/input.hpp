@@ -81,6 +81,18 @@ struct mouse_move_event_t : public mouse_event_base_t {
   auto  delta() const { return pos - prev; }
 };
 
+// In logical coordinates. Note that this is not actually the
+// most current mouse position known to the hardware or runtime,
+// it is the mouse position as recorded when the last event was
+// polled. There may be mouse events in the queue that move the
+// mouse position but have yet to be fetched by the game, and
+// those will not be reflected in the position returned here.
+// This situation should probably be fine though, perhaps even
+// desirable, since that guarantees that this mouse position
+// won't be inconsistent with other parts of the game that are
+// processing mouse positions by receiving mouse events.
+Coord current_mouse_position();
+
 /****************************************************************
 ** Mouse Dragging
 *****************************************************************/
