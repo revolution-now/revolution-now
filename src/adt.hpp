@@ -137,24 +137,22 @@
 
 #define ADT( ns, ... ) EVAL( ADT_IMPL( ns, __VA_ARGS__ ) )
 
-// Use this in namespace ::rn. The static assert in this macro
-// typically will not trigger even when there are violations
-// (i.e., usage of this macro outside of the ::rn namespace); in-
-// stead, the evaluation of the is_same_v will trigger a compiler
-// error. However, the static_assert is still needed in the (un-
-// likely) event that there actually is a type called
-// ::rn::name##_namespace_check but that doesn't coincide with
-// the temp one we defined.
-#define ADT_RN( name, ... )                                     \
-  struct name##_namespace_check {};                             \
-  static_assert( std::is_same_v<name##_namespace_check,         \
-                                ::rn::name##_namespace_check>,  \
-                 "The ADT_RN macro should only be used in the " \
-                 "::rn namespace." );                           \
-  } /* close namespace rn. */                                   \
-  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) )                     \
-  /* Re-open namespace rn. */                                   \
+// Use this in namespace ::rn.
+#define ADT_RN( name, ... )                 \
+  } /* close namespace rn. */               \
+  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */               \
   namespace rn {
+
+// Use this in namespace ::rn::(anonymous).
+#define ADT_RN_( name, ... )                \
+  } /* close namespace (anonymous). */      \
+  } /* close namespace rn. */               \
+  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */               \
+  namespace rn {                            \
+  /* Re-open namespace (anonymous). */      \
+  namespace {
 
 namespace rn {
 
