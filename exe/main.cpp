@@ -64,7 +64,7 @@ void game() {
     unit_from_id( id ).clear_orders();
 
     id = create_unit_in_euroview_port( e_nation::spanish,
-                                       e_unit_type::privateer );
+                                       e_unit_type::caravel );
     if( i == 2 )
       unit_sail_to_new_world( id );
     else {

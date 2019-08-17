@@ -11,6 +11,7 @@
 #include "europort-view.hpp"
 
 // Revolution Now
+#include "cargo.hpp"
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "coord.hpp"
@@ -30,8 +31,13 @@
 #include "tiles.hpp"
 #include "variant.hpp"
 
+// base-util
+#include "base-util/optional.hpp"
+#include "base-util/variant.hpp"
+
 // Range-v3
 #include "range/v3/view/all.hpp"
+#include "range/v3/view/iota.hpp"
 #include "range/v3/view/transform.hpp"
 #include "range/v3/view/zip.hpp"
 
@@ -217,8 +223,6 @@ private:
     : doubled_( doubled ), origin_( origin ) {}
 };
 
-// This object represents the array of cargo items held by the
-// ship currently selected in dock.
 class ActiveCargoBox {
   static constexpr Delta size_blocks{6_w, 1_h};
 
@@ -913,16 +917,26 @@ public:
   Rect bounds() const { return bounds_; }
 
   void draw( Texture& tx, Delta offset ) const {
+    auto bds  = bounds();
+    auto grid = bds.to_grid_noalign( ActiveCargoBox::box_scale );
     if( maybe_active_unit_ ) {
-      auto bds = bounds();
-      auto grid =
-          bds.to_grid_noalign( ActiveCargoBox::box_scale );
       auto& unit        = unit_from_id( *maybe_active_unit_ );
       auto  cargo_units = unit.cargo().items_of_type<UnitId>();
       for( auto [id, rect] :
-           rv::zip( cargo_units, range_of_rects( grid ) ) )
+           rv::zip( cargo_units, range_of_rects( grid ) ) ) {
         render_unit( tx, id, rect.upper_left() + offset,
                      /*with_icon=*/false );
+      }
+      for( auto [idx, rect] :
+           rv::zip( rv::ints, range_of_rects( grid ) ) ) {
+        if( idx >= unit.cargo().slots_total() )
+          render_fill_rect( tx, Color::white(),
+                            rect.shifted_by( offset ) );
+      }
+    } else {
+      for( auto rect : range_of_rects( grid ) )
+        render_fill_rect( tx, Color::white(),
+                          rect.shifted_by( offset ) );
     }
   }
 
@@ -949,6 +963,31 @@ public:
     return res;
   }
 
+  Opt<int> cargo_slot_idx_from_coord( Coord coord ) const {
+    Opt<int> res;
+    if( maybe_active_unit_ ) {
+      if( coord.is_inside( bounds_ ) ) {
+        auto boxes = bounds_.with_new_upper_left( Coord{} ) /
+                     ActiveCargoBox::box_scale;
+        res = boxes.rasterize(
+            coord.with_new_origin( bounds_.upper_left() ) /
+            ActiveCargoBox::box_scale );
+      }
+      auto& unit = unit_from_id( *maybe_active_unit_ );
+      if( res && *res >= unit.cargo().slots_total() )
+        res = nullopt;
+    }
+    return res;
+  }
+
+  Opt<CargoSlot_t> cargo_slot_from_coord( Coord coord ) const {
+    // Lambda will only be called if a valid index is returned,
+    // in which case there is guaranteed to be an active unit.
+    return util::fmap(
+        LC( unit_from_id( *maybe_active_unit_ ).cargo()[_] ),
+        cargo_slot_idx_from_coord( coord ) );
+  }
+
 private:
   ActiveCargo() = default;
   ActiveCargo( Opt<UnitId> maybe_active_unit, Rect bounds )
@@ -958,28 +997,31 @@ private:
   Rect        bounds_;
 };
 
+} // namespace entity
+
 //- Buttons
 //- Message box
 //- Stats area (money, tax rate, etc.)
 
 struct Entities {
-  Opt<MarketCommodities> market_commodities;
-  Opt<ActiveCargoBox>    active_cargo_box;
-  Opt<DockAnchor>        dock_anchor;
-  Opt<Backdrop>          backdrop;
-  Opt<InPortBox>         in_port_box;
-  Opt<InboundBox>        inbound_box;
-  Opt<OutboundBox>       outbound_box;
-  Opt<Exit>              exit_label;
-  Opt<Dock>              dock;
-  Opt<UnitsOnDock>       units_on_dock;
-  Opt<ShipsInPort>       ships_in_port;
-  Opt<ShipsInbound>      ships_inbound;
-  Opt<ShipsOutbound>     ships_outbound;
-  Opt<ActiveCargo>       active_cargo;
+  Opt<entity::MarketCommodities> market_commodities;
+  Opt<entity::ActiveCargoBox>    active_cargo_box;
+  Opt<entity::DockAnchor>        dock_anchor;
+  Opt<entity::Backdrop>          backdrop;
+  Opt<entity::InPortBox>         in_port_box;
+  Opt<entity::InboundBox>        inbound_box;
+  Opt<entity::OutboundBox>       outbound_box;
+  Opt<entity::Exit>              exit_label;
+  Opt<entity::Dock>              dock;
+  Opt<entity::UnitsOnDock>       units_on_dock;
+  Opt<entity::ShipsInPort>       ships_in_port;
+  Opt<entity::ShipsInbound>      ships_inbound;
+  Opt<entity::ShipsOutbound>     ships_outbound;
+  Opt<entity::ActiveCargo>       active_cargo;
 };
 
 void create_entities( Entities* entities ) {
+  using namespace entity;
   entities->market_commodities = //
       MarketCommodities::create( g_clip );
   entities->active_cargo_box =        //
@@ -1060,7 +1102,95 @@ void draw_entities( Texture& tx, Entities const& entities ) {
     entities.active_cargo->draw( tx, offset );
 }
 
-} // namespace entity
+/****************************************************************
+** Drag & Drop
+*****************************************************************/
+ADT_RN_( DragSrc,                  //
+         ( dock,                   //
+           ( UnitId, id ) ),       //
+         ( ship_in_port,           //
+           ( UnitId, id ) ),       //
+         ( ship_inbound,           //
+           ( UnitId, id ) ),       //
+         ( ship_outbound,          //
+           ( UnitId, id ) ),       //
+         ( cargo_unit,             //
+           ( int, slot ) ),        //
+         ( cargo_commodity,        //
+           ( int, slot ) ),        //
+         ( market_commodity,       //
+           ( e_commodity, type ) ) //
+);
+
+ADT_RN_( DragDst,                //
+         ( dock,                 //
+           ( int, where ) ),     //
+         ( cargo,                //
+           ( int, slot ) ),      //
+         ( market_commodities ), //
+         ( ship_in_port,         //
+           ( UnitId, id ) ),     //
+         ( in_port_box ),        //
+         ( inbound_box ),        //
+         ( outbound_box )        //
+);
+
+ADT_RN_( Drag, //
+               //( dock_to_dock,                     //
+               //  ( DragSrc::dock, src ),           //
+               //  ( DragDst::dock, dst ) ),         //
+               //( dock_to_ship,                     //
+               //  ( DragSrc::dock, src ),           //
+               //  ( DragDst::ship_in_port, dst ) ), //
+         ( dock_to_cargo,            //
+           ( DragSrc::dock, src ),   //
+           ( DragDst::cargo, dst ) ) //
+);
+
+// Coord is relative to clip_rect for now.
+Opt<DragSrc_t> drag_src( Entities const& entities,
+                         Coord const&    coord ) {
+  using namespace entity;
+  Opt<DragSrc_t> res;
+  if( entities.units_on_dock.has_value() ) {
+    if( auto maybe_id =
+            entities.units_on_dock->unit_under_cursor( coord );
+        maybe_id )
+      res = DragSrc::dock{*maybe_id};
+  }
+  return res;
+}
+
+// Coord is relative to clip_rect for now.
+Opt<DragDst_t> drag_dst( Entities const& entities,
+                         Coord const&    coord ) {
+  using namespace entity;
+  Opt<DragDst_t> res;
+  if( entities.active_cargo.has_value() ) {
+    if( auto maybe_slot =
+            entities.active_cargo->cargo_slot_idx_from_coord(
+                coord );
+        maybe_slot ) {
+      res = DragDst::cargo{*maybe_slot};
+    }
+  }
+  return res;
+}
+
+Opt<Drag_t> drag_arc( DragSrc_t const& src,
+                      DragDst_t const& dst ) {
+  Opt<Drag_t> res;
+  // Can this be done automatically with the types?
+  if_v( src, DragSrc::dock, p_src ) {
+    // if_v( dst, DragDst::dock, p_dst ) //
+    //    res = Drag::dock_to_dock{*p_src, *p_dst};
+    // if_v( dst, DragDst::ship_in_port, p_dst ) //
+    //    res = Drag::dock_to_ship{*p_src, *p_dst};
+    if_v( dst, DragDst::cargo, p_dst ) //
+        res = Drag::dock_to_cargo{*p_src, *p_dst};
+  }
+  return res;
+}
 
 /****************************************************************
 ** The Europe Plane
@@ -1124,42 +1254,73 @@ struct EuropePlane : public Plane {
   }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    if( button == input::e_mouse_button::l &&
-        is_on_clip_rect( origin ) ) {
-      DragInfo res( Plane::e_accept_drag::yes );
-      bool     left   = is_on_clip_rect_left_side( origin );
-      bool     right  = is_on_clip_rect_right_side( origin );
-      bool     top    = is_on_clip_rect_top_side( origin );
-      bool     bottom = is_on_clip_rect_bottom_side( origin );
-      // test for corners.
-      if( ( left && top ) || ( left && bottom ) ||
-          ( right && top ) || ( right && bottom ) )
-        return res;
-      if( left || right ) res.projection = Delta{0_h, 1_w};
-      if( top || bottom ) res.projection = Delta{1_h, 0_w};
-      return res;
+    if( button == input::e_mouse_button::l ) {
+      // if( button == input::e_mouse_button::l &&
+      //    is_on_clip_rect( origin ) ) {
+      //  DragInfo res( Plane::e_accept_drag::yes );
+      //  bool     left   = is_on_clip_rect_left_side( origin );
+      //  bool     right  = is_on_clip_rect_right_side( origin );
+      //  bool     top    = is_on_clip_rect_top_side( origin );
+      //  bool     bottom = is_on_clip_rect_bottom_side( origin
+      //  );
+      //  // test for corners.
+      //  if( ( left && top ) || ( left && bottom ) ||
+      //      ( right && top ) || ( right && bottom ) )
+      //    return res;
+      //  if( left || right ) res.projection = Delta{0_h, 1_w};
+      //  if( top || bottom ) res.projection = Delta{1_h, 0_w};
+      //  return res;
+      //}
+      auto offset = clip_rect().upper_left();
+      auto maybe_drag_src =
+          drag_src( entities, origin.with_new_origin( offset ) );
+      lg.info( "drag_src: {}", maybe_drag_src );
+      if( maybe_drag_src ) return Plane::e_accept_drag::yes;
     }
     return Plane::e_accept_drag::no;
   }
-  void on_drag( input::e_mouse_button /*button*/, Coord origin,
-                Coord prev, Coord current ) override {
-    auto delta = ( current - prev );
-    delta.h *= 2_sy;
-    delta.w *= 2_sx;
-    if( origin.x >= main_window_logical_rect().center().x )
-      g_clip.w += delta.w;
-    else
-      g_clip.w -= delta.w;
-    if( origin.y >= main_window_logical_rect().center().y )
-      g_clip.h += delta.h;
-    else
-      g_clip.h -= delta.h;
-    g_clip.w = g_clip.w < 0_w ? 0_w : g_clip.w;
-    g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
-    g_clip   = g_clip.clamp( main_window_logical_size() );
+  void on_drag( input::e_mouse_button /*button*/,
+                Coord /*origin*/, Coord /*prev*/,
+                Coord /*current*/ ) override {
+    // auto offset = clip_rect().upper_left();
+    // auto maybe_drag_dst =
+    //    drag_dst( entities, current.with_new_origin( offset )
+    //    );
+    // lg.info( "drag_dst: {}", maybe_drag_dst );
+
+    // auto delta = ( current - prev );
+    // delta.h *= 2_sy;
+    // delta.w *= 2_sx;
+    // if( origin.x >= main_window_logical_rect().center().x )
+    //  g_clip.w += delta.w;
+    // else
+    //  g_clip.w -= delta.w;
+    // if( origin.y >= main_window_logical_rect().center().y )
+    //  g_clip.h += delta.h;
+    // else
+    //  g_clip.h -= delta.h;
+    // g_clip.w = g_clip.w < 0_w ? 0_w : g_clip.w;
+    // g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
+    // g_clip   = g_clip.clamp( main_window_logical_size() );
   }
-  Color            rect_color{Color::white()};
-  entity::Entities entities;
+  void on_drag_finished( input::e_mouse_button button,
+                         Coord origin, Coord end ) override {
+    if( button == input::e_mouse_button::l ) {
+      auto offset = clip_rect().upper_left();
+      auto maybe_drag_src =
+          drag_src( entities, origin.with_new_origin( offset ) );
+      auto maybe_drag_dst =
+          drag_dst( entities, end.with_new_origin( offset ) );
+      if( maybe_drag_src && maybe_drag_dst ) {
+        auto maybe_drag_arc =
+            drag_arc( *maybe_drag_src, *maybe_drag_dst );
+        lg.info( "drag_arc: {}", maybe_drag_arc );
+        // TODO: handle drag event.
+      }
+    }
+  }
+  Color    rect_color{Color::white()};
+  Entities entities;
 };
 
 EuropePlane g_europe_plane;
