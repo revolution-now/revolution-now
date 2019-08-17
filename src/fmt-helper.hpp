@@ -138,9 +138,9 @@ template<typename T>
 struct formatter<std::optional<T>> : formatter_base {
   template<typename FormatContext>
   auto format( std::optional<T> const &o, FormatContext &ctx ) {
+    static const std::string nullopt_str( "nullopt" );
     return formatter_base::format(
-        fmt::format( o.has_value() ? fmt::format( "{}", *o )
-                                   : "nullopt" ),
+        o.has_value() ? fmt::format( "{}", *o ) : nullopt_str,
         ctx );
   }
 };
