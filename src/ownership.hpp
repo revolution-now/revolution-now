@@ -133,12 +133,8 @@ UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
 Unit& create_unit( e_nation nation, e_unit_type type );
 
 /****************************************************************
-** Do not call directly
+** Changing Unit Ownership
 *****************************************************************/
-// Removes unit from any ownership. Used when transitioning own-
-// ership.
-void ownership_disown_unit( UnitId id );
-
 // Changes a unit's ownership from whatever it is (map or other-
 // wise) to the map at the given coordinate. It will always move
 // the unit to the target square without question (checking only
@@ -148,8 +144,17 @@ void ownership_disown_unit( UnitId id );
 void ownership_change_to_map( UnitId id, Coord const& target );
 
 void ownership_change_to_cargo( UnitId new_holder, UnitId held );
+void ownership_change_to_cargo( UnitId new_holder, UnitId held,
+                                int slot );
 
 void ownership_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info );
+
+/****************************************************************
+** Do not call directly
+*****************************************************************/
+// Removes unit from any ownership. Used when transitioning own-
+// ership.
+void ownership_disown_unit( UnitId id );
 
 } // namespace rn

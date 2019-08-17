@@ -28,6 +28,18 @@ namespace rn {
 
 namespace {
 
+int unit_arrival_id_throw( UnitId id ) {
+  ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
+  GET_CHECK_VARIANT( in_port, info.get(),
+                     UnitEuroPortViewState::in_port );
+  return in_port.global_arrival_id;
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
 bool is_unit_on_dock( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
   return europort_status.has_value() &&
@@ -63,18 +75,6 @@ bool is_unit_in_port( UnitId id ) {
              europort_status->get() );
 }
 
-int unit_arrival_id_throw( UnitId id ) {
-  ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
-  GET_CHECK_VARIANT( in_port, info.get(),
-                     UnitEuroPortViewState::in_port );
-  return in_port.global_arrival_id;
-}
-
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
 Vec<UnitId> europort_units_on_dock() {
   auto        in_euroview = units_in_euro_port_view();
   Vec<UnitId> res = in_euroview | rv::filter( is_unit_on_dock );

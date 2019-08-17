@@ -131,6 +131,8 @@ protected:
   // thing to the cargo.
   friend void ownership_change_to_cargo( UnitId new_holder,
                                          UnitId held );
+  friend void ownership_change_to_cargo( UnitId new_holder,
+                                         UnitId held, int slot );
   friend void ownership_disown_unit( UnitId id );
 
   // Will search through the cargo slots, starting at the speci-

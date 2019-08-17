@@ -988,6 +988,8 @@ public:
         cargo_slot_idx_from_coord( coord ) );
   }
 
+  Opt<UnitId> active_unit() const { return maybe_active_unit_; }
+
 private:
   ActiveCargo() = default;
   ActiveCargo( Opt<UnitId> maybe_active_unit, Rect bounds )
@@ -1126,6 +1128,7 @@ ADT_RN_( DragDst,                //
          ( dock,                 //
            ( int, where ) ),     //
          ( cargo,                //
+           ( UnitId, ship ),     //
            ( int, slot ) ),      //
          ( market_commodities ), //
          ( ship_in_port,         //
@@ -1135,13 +1138,7 @@ ADT_RN_( DragDst,                //
          ( outbound_box )        //
 );
 
-ADT_RN_( Drag, //
-               //( dock_to_dock,                     //
-               //  ( DragSrc::dock, src ),           //
-               //  ( DragDst::dock, dst ) ),         //
-               //( dock_to_ship,                     //
-               //  ( DragSrc::dock, src ),           //
-               //  ( DragDst::ship_in_port, dst ) ), //
+ADT_RN_( DragArc,                    //
          ( dock_to_cargo,            //
            ( DragSrc::dock, src ),   //
            ( DragDst::cargo, dst ) ) //
@@ -1171,15 +1168,18 @@ Opt<DragDst_t> drag_dst( Entities const& entities,
             entities.active_cargo->cargo_slot_idx_from_coord(
                 coord );
         maybe_slot ) {
-      res = DragDst::cargo{*maybe_slot};
+      ASSIGN_CHECK_OPT( ship,
+                        entities.active_cargo->active_unit() );
+      if( is_unit_in_port( ship ) )
+        res = DragDst::cargo{ship, *maybe_slot};
     }
   }
   return res;
 }
 
-Opt<Drag_t> drag_arc( DragSrc_t const& src,
-                      DragDst_t const& dst ) {
-  Opt<Drag_t> res;
+Opt<DragArc_t> drag_arc( DragSrc_t const& src,
+                         DragDst_t const& dst ) {
+  Opt<DragArc_t> res;
   // Can this be done automatically with the types?
   if_v( src, DragSrc::dock, p_src ) {
     // if_v( dst, DragDst::dock, p_dst ) //
@@ -1187,9 +1187,24 @@ Opt<Drag_t> drag_arc( DragSrc_t const& src,
     // if_v( dst, DragDst::ship_in_port, p_dst ) //
     //    res = Drag::dock_to_ship{*p_src, *p_dst};
     if_v( dst, DragDst::cargo, p_dst ) //
-        res = Drag::dock_to_cargo{*p_src, *p_dst};
+        res = DragArc::dock_to_cargo{*p_src, *p_dst};
   }
   return res;
+}
+
+void perform_drag( DragArc_t const& drag_arc_to_perform ) {
+  switch_( drag_arc_to_perform ) {
+    case_( DragArc::dock_to_cargo, src, dst ) {
+      lg.info( "dragging unit {} into ship {}'s cargo slot {}",
+               debug_string( src.id ), debug_string( dst.ship ),
+               dst.slot );
+      if( unit_from_id( dst.ship )
+              .cargo()
+              .fits( src.id, dst.slot ) )
+        ownership_change_to_cargo( dst.ship, src.id, dst.slot );
+    }
+    switch_exhaustive;
+  }
 }
 
 /****************************************************************
@@ -1200,6 +1215,10 @@ struct EuropePlane : public Plane {
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void on_frame_start() override {
+    if( maybe_drag_arc_to_perform ) {
+      perform_drag( *maybe_drag_arc_to_perform );
+      maybe_drag_arc_to_perform = nullopt;
+    }
     create_entities( &entities );
   }
   void draw( Texture& tx ) const override {
@@ -1312,15 +1331,15 @@ struct EuropePlane : public Plane {
       auto maybe_drag_dst =
           drag_dst( entities, end.with_new_origin( offset ) );
       if( maybe_drag_src && maybe_drag_dst ) {
-        auto maybe_drag_arc =
+        maybe_drag_arc_to_perform =
             drag_arc( *maybe_drag_src, *maybe_drag_dst );
-        lg.info( "drag_arc: {}", maybe_drag_arc );
-        // TODO: handle drag event.
+        lg.info( "drag_arc: {}", maybe_drag_arc_to_perform );
       }
     }
   }
-  Color    rect_color{Color::white()};
-  Entities entities;
+  Opt<DragArc_t> maybe_drag_arc_to_perform;
+  Color          rect_color{Color::white()};
+  Entities       entities;
 };
 
 EuropePlane g_europe_plane;

@@ -345,8 +345,8 @@ void ownership_change_to_map( UnitId id, Coord const& target ) {
   unit_ownership[id]   = e_unit_ownership::world;
 }
 
-void ownership_change_to_cargo( UnitId new_holder,
-                                UnitId held ) {
+void ownership_change_to_cargo( UnitId new_holder, UnitId held,
+                                int slot ) {
   // Make sure that we're not adding the unit to its own cargo.
   // Should never happen theoretically, but...
   CHECK( new_holder != held );
@@ -360,14 +360,27 @@ void ownership_change_to_cargo( UnitId new_holder,
              .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // Check that there are enough open slots.
-  CHECK( cargo_hold.fits_as_available( held ) );
+  CHECK( cargo_hold.fits( held, slot ) );
   // We're clear (at least on our end).
   ownership_disown_unit( held );
-  CHECK( cargo_hold.try_add_as_available( Cargo{held} ) );
+  CHECK( cargo_hold.try_add( Cargo{held}, slot ) );
   unit_from_id( held ).sentry();
   // Set new ownership
   unit_ownership[held]   = e_unit_ownership::cargo;
   holder_from_held[held] = new_holder;
+}
+
+void ownership_change_to_cargo( UnitId new_holder,
+                                UnitId held ) {
+  auto& cargo = unit_from_id( new_holder ).cargo();
+  for( int i = 0; i < cargo.slots_total(); ++i ) {
+    if( cargo.fits( held, i ) )
+      ownership_change_to_cargo( new_holder, held, i );
+    return;
+  }
+  FATAL( "Unit {} cannot be placed in unit {}'s cargo: {}",
+         debug_string( held ), debug_string( new_holder ),
+         cargo );
 }
 
 void ownership_change_to_euro_port_view(
