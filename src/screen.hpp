@@ -44,8 +44,6 @@ void inc_resolution_scale();
 void dec_resolution_scale();
 void set_optimal_resolution_scale();
 
-void on_renderer_scale_factor_changed();
-
 struct DisplayMode {
   Delta  size;
   Uint32 format;

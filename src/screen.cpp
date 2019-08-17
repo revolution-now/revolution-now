@@ -327,6 +327,28 @@ MENU_ITEM_HANDLER(
     },
     L0( true ) )
 
+void on_logical_resolution_changed() {
+  // Invalidate cache.
+  main_window_physical_size_cache = nullopt;
+
+  auto logical_size = main_window_logical_size();
+  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
+                              logical_size.h._ );
+  lg.debug( "logical resolution changed to {}", logical_size );
+
+  auto physical_size = main_window_physical_size();
+  if( physical_size % g_resolution_scale_factor != Delta{} )
+    lg.warn(
+        "main window physical resolution not commensurate with "
+        "scale factor." );
+}
+
+void on_renderer_scale_factor_changed() {
+  lg.info( "scale factor changed: {}",
+           g_resolution_scale_factor );
+  on_logical_resolution_changed();
+}
+
 void init_renderer() {
   g_renderer = SDL_CreateRenderer(
       g_window, -1,
@@ -362,22 +384,6 @@ void init_renderer() {
 void cleanup_renderer() {
   if( g_renderer != nullptr )
     ::SDL_DestroyRenderer( g_renderer );
-}
-
-void on_logical_resolution_changed() {
-  // Invalidate cache.
-  main_window_physical_size_cache = nullopt;
-
-  auto logical_size = main_window_logical_size();
-  ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,
-                              logical_size.h._ );
-  lg.debug( "logical resolution changed to {}", logical_size );
-
-  auto physical_size = main_window_physical_size();
-  if( physical_size % g_resolution_scale_factor != Delta{} )
-    lg.warn(
-        "main window physical resolution not commensurate with "
-        "scale factor." );
 }
 
 } // namespace
@@ -480,12 +486,6 @@ void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 void on_main_window_resized() {
   lg.debug( "main window resizing." );
-  on_logical_resolution_changed();
-}
-
-void on_renderer_scale_factor_changed() {
-  lg.info( "scale factor changed: {}",
-           g_resolution_scale_factor );
   on_logical_resolution_changed();
 }
 
