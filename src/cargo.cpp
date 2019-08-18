@@ -58,7 +58,8 @@ void CargoHold::check_invariants() const {
   // 0. Accurate reporting of number of slots.
   CHECK( slots_total() == int( slots_.size() ) );
   // 1. First slot is not an `overflow`.
-  CHECK( !holds<CargoSlot::overflow>( slots_[0] ) );
+  if( slots_.size() > 0 )
+    CHECK( !holds<CargoSlot::overflow>( slots_[0] ) );
   // 2. There are no `overflow`s following `empty`s.
   for( int i = 0; i < slots_total() - 1; ++i )
     if( holds<CargoSlot::empty>( slots_[i] ) )
