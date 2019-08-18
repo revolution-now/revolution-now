@@ -1227,6 +1227,7 @@ Opt<Texture> draw_dragged_item(
   return res;
 }
 
+// The `none` state should be first.
 ADT_RN_( DragState,                 //
          ( none ),                  //
          ( in_progress,             //
@@ -1240,36 +1241,6 @@ ADT_RN_( DragState,                 //
            ( Coord, dest ),         //
            ( Opt<Texture>, tx ) )   //
 );
-
-void draw_drag_cursor( Texture&                      target,
-                       DragState::in_progress const& info ) {
-  if( !info.tx ) return;
-  auto mouse_pos = input::current_mouse_position();
-  copy_texture( *info.tx, target,
-                mouse_pos - info.tx->size() / Scale{2} );
-}
-
-Opt<DragState::in_progress> try_drag_start(
-    input::e_mouse_button button, Coord const& origin,
-    Entities const& entities ) {
-  Opt<DragState::in_progress> res;
-  if( button == input::e_mouse_button::l ) {
-    auto offset = clip_rect().upper_left();
-    auto maybe_being_dragged =
-        drag_src( entities, origin.with_new_origin( offset ) );
-    lg.info( "drag src: {}", maybe_being_dragged );
-    if( maybe_being_dragged ) {
-      auto const& drag_src = *maybe_being_dragged;
-
-      res = DragState::in_progress{
-          /*src=*/drag_src,
-          /*dst=*/nullopt,
-          /*tx=*/draw_dragged_item( drag_src ),
-      };
-    }
-  }
-  return res;
-}
 
 void perform_drag( DragArc_t const& drag_arc_to_perform ) {
   switch_( drag_arc_to_perform ) {
@@ -1289,53 +1260,95 @@ void perform_drag( DragArc_t const& drag_arc_to_perform ) {
   }
 }
 
-void drag_n_drop_handle_draw( DragState_t const& state,
-                              Texture&           tx ) {
-  if_v( state, DragState::in_progress, in_progress ) {
-    draw_drag_cursor( tx, *in_progress );
-  }
-}
+class DragAndDrop {
+public:
+  DragAndDrop() : state_{DragState::none{}} {}
 
-Plane::DragInfo drag_n_drop_handle_can_drag(
-    DragState_t* state, input::e_mouse_button button,
-    Coord origin, Entities const& entities ) {
-  CHECK( holds<DragState::none>( *state ) );
-  auto maybe_drag_in_progress =
-      try_drag_start( button, origin, entities );
-  if( maybe_drag_in_progress ) {
-    *state = std::move( *maybe_drag_in_progress );
-    lg.info( "drag state: {}", *state );
-    return Plane::e_accept_drag::yes;
-  }
-  return Plane::e_accept_drag::no;
-}
-
-void drag_n_drop_handle_on_drag( DragState_t*    state,
-                                 Coord           current,
-                                 Entities const& entities ) {
-  if_v( *state, DragState::in_progress, in_progress ) {
-    in_progress->dst = drag_dst(
-        entities,
-        current.with_new_origin( clip_rect().upper_left() ) );
-  }
-}
-
-bool drag_n_drop_handle_on_drag_finished( DragState_t* state ) {
-  if_v( *state, DragState::in_progress, in_progress ) {
-    if( in_progress->dst ) {
-      auto maybe_drag_arc =
-          drag_arc( in_progress->src, *in_progress->dst );
-      if( maybe_drag_arc ) {
-        *state = DragState::complete{/*arc=*/*maybe_drag_arc};
-        lg.info( "drag state: {}", *state );
-        return true;
-      }
+  void handle_draw( Texture& tx ) const {
+    if_v( state_, DragState::in_progress, in_progress ) {
+      draw_drag_cursor( tx, *in_progress );
     }
-    *state = DragState::none{};
-    return true;
   }
-  return false;
-}
+
+  Plane::DragInfo handle_can_drag( Coord           origin,
+                                   Entities const& entities ) {
+    CHECK( holds<DragState::none>( state_ ) );
+    auto maybe_drag_in_progress =
+        try_drag_start( origin, entities );
+    if( maybe_drag_in_progress ) {
+      state_ = std::move( *maybe_drag_in_progress );
+      lg.info( "drag state: {}", state_ );
+      return Plane::e_accept_drag::yes;
+    }
+    return Plane::e_accept_drag::no;
+  }
+
+  void handle_on_drag( Coord           current,
+                       Entities const& entities ) {
+    if_v( state_, DragState::in_progress, in_progress ) {
+      in_progress->dst = drag_dst(
+          entities,
+          current.with_new_origin( clip_rect().upper_left() ) );
+    }
+  }
+
+  bool handle_on_drag_finished() {
+    if_v( state_, DragState::in_progress, in_progress ) {
+      if( in_progress->dst ) {
+        auto maybe_drag_arc =
+            drag_arc( in_progress->src, *in_progress->dst );
+        if( maybe_drag_arc ) {
+          state_ = DragState::complete{/*arc=*/*maybe_drag_arc};
+          lg.info( "drag state: {}", state_ );
+          return true;
+        }
+      }
+      state_ = DragState::none{};
+      return true;
+    }
+    return false;
+  }
+
+  void handle_on_frame_start() {
+    if_v( state_, DragState::complete, p_arc ) {
+      perform_drag( p_arc->arc );
+      state_ = DragState::none{};
+      lg.info( "drag state: {}", state_ );
+    }
+  }
+
+private:
+  void draw_drag_cursor(
+      Texture&                      target,
+      DragState::in_progress const& info ) const {
+    if( !info.tx ) return;
+    auto mouse_pos = input::current_mouse_position();
+    copy_texture( *info.tx, target,
+                  mouse_pos - info.tx->size() / Scale{2} );
+  }
+
+  Opt<DragState::in_progress> try_drag_start(
+      Coord const& origin, Entities const& entities ) const {
+    Opt<DragState::in_progress> res;
+    auto offset = clip_rect().upper_left();
+    auto maybe_being_dragged =
+        drag_src( entities, origin.with_new_origin( offset ) );
+    lg.info( "drag src: {}", maybe_being_dragged );
+    if( maybe_being_dragged ) {
+      auto const& drag_src = *maybe_being_dragged;
+
+      res = DragState::in_progress{
+          /*src=*/drag_src,
+          /*dst=*/nullopt,
+          /*tx=*/draw_dragged_item( drag_src ),
+      };
+    }
+    return res;
+  }
+
+public: // FIXME: temporary
+  DragState_t state_;
+};
 
 /****************************************************************
 ** The Europe Plane
@@ -1345,11 +1358,8 @@ struct EuropePlane : public Plane {
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void on_frame_start() override {
-    if_v( drag_n_drop_state_, DragState::complete, p_arc ) {
-      perform_drag( p_arc->arc );
-      drag_n_drop_state_ = DragState::none{};
-      lg.info( "drag state: {}", drag_n_drop_state_ );
-    }
+    drag_n_drop_.handle_on_frame_start();
+    // Should be last.
     create_entities( &entities_ );
   }
   void draw( Texture& tx ) const override {
@@ -1365,7 +1375,8 @@ struct EuropePlane : public Plane {
     //                : g_tile::checkers_inv;
     // tile_sprite( tx, tile, clip_rect() );
     render_rect( tx, rect_color_, clip_rect() );
-    drag_n_drop_handle_draw( drag_n_drop_state_, tx );
+    // Should be last.
+    drag_n_drop_.handle_draw( tx );
   }
   bool input( input::event_t const& event ) override {
     return matcher_( event ) {
@@ -1423,14 +1434,14 @@ struct EuropePlane : public Plane {
     //}
 
     // Should be last.
-    return drag_n_drop_handle_can_drag(
-        &drag_n_drop_state_, button, origin, entities_ );
+    if( button == input::e_mouse_button::l )
+      return drag_n_drop_.handle_can_drag( origin, entities_ );
+    return e_accept_drag::no;
   }
   void on_drag( input::e_mouse_button /*button*/,
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
-    drag_n_drop_handle_on_drag( &drag_n_drop_state_, current,
-                                entities_ );
+    drag_n_drop_.handle_on_drag( current, entities_ );
     // auto offset = clip_rect().upper_left();
     // auto maybe_drag_dst =
     //    drag_dst( entities_, current.with_new_origin( offset )
@@ -1455,12 +1466,9 @@ struct EuropePlane : public Plane {
   void on_drag_finished( input::e_mouse_button /*button*/,
                          Coord /*origin*/,
                          Coord /*end*/ ) override {
-    if( drag_n_drop_handle_on_drag_finished(
-            &drag_n_drop_state_ ) )
-      return;
-    CHECK( holds<DragState::none>( drag_n_drop_state_ ) );
+    if( drag_n_drop_.handle_on_drag_finished() ) return;
   }
-  DragState_t drag_n_drop_state_;
+  DragAndDrop drag_n_drop_;
   Color       rect_color_{Color::white()};
   Entities    entities_;
 };
