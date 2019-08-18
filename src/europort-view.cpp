@@ -47,6 +47,8 @@ namespace rn {
 
 namespace {
 
+using util::holds;
+
 /****************************************************************
 ** Global State
 *****************************************************************/
@@ -1209,16 +1211,64 @@ Opt<DragArc_t> drag_arc( DragSrc_t const& src,
   return res;
 }
 
-void draw_drag_src( Texture&         tx,
-                    DragSrc_t const& being_dragged ) {
-  auto coord = input::current_mouse_position();
+Opt<Texture> draw_dragged_item(
+    DragSrc_t const& being_dragged ) {
+  Opt<Texture> res;
   switch_( being_dragged ) {
     case_( DragSrc::dock, id ) {
-      render_unit( tx, id, coord - g_tile_delta / Scale{2},
-                   /*with_icon=*/false );
+      auto tx = create_texture_transparent(
+          lookup_sprite( unit_from_id( id ).desc().tile )
+              .size() );
+      render_unit( tx, id, Coord{}, /*with_icon=*/false );
+      res = std::move( tx );
     }
     switch_non_exhaustive;
   }
+  return res;
+}
+
+ADT_RN_( DragState,                 //
+         ( none ),                  //
+         ( in_progress,             //
+           ( DragSrc_t, src ),      //
+           ( Opt<DragDst_t>, dst ), //
+           ( Opt<Texture>, tx ) ),  //
+         ( complete,                //
+           ( DragArc_t, arc ) ),    //
+         ( rubber_band,             //
+           ( Coord, current ),      //
+           ( Coord, dest ),         //
+           ( Opt<Texture>, tx ) )   //
+);
+
+void draw_drag_cursor( Texture&                      target,
+                       DragState::in_progress const& info ) {
+  if( !info.tx ) return;
+  auto mouse_pos = input::current_mouse_position();
+  copy_texture( *info.tx, target,
+                mouse_pos - info.tx->size() / Scale{2} );
+}
+
+Opt<DragState::in_progress> try_drag_start(
+    input::e_mouse_button button, Coord const& origin,
+    Entities const& entities ) {
+  Opt<DragState::in_progress> res;
+  if( button == input::e_mouse_button::l ) {
+    auto offset = clip_rect().upper_left();
+    auto maybe_being_dragged =
+        drag_src( entities, origin.with_new_origin( offset ) );
+    lg.info( "drag src: {}", maybe_being_dragged );
+    if( maybe_being_dragged ) {
+      auto const& drag_src = *maybe_being_dragged;
+
+      res = DragState::in_progress{
+          /*src=*/drag_src,
+          /*dst=*/nullopt,
+          /*tx=*/draw_dragged_item( drag_src ),
+      };
+    }
+  }
+  return res;
 }
 
 void perform_drag( DragArc_t const& drag_arc_to_perform ) {
@@ -1239,6 +1289,54 @@ void perform_drag( DragArc_t const& drag_arc_to_perform ) {
   }
 }
 
+void drag_n_drop_handle_draw( DragState_t const& state,
+                              Texture&           tx ) {
+  if_v( state, DragState::in_progress, in_progress ) {
+    draw_drag_cursor( tx, *in_progress );
+  }
+}
+
+Plane::DragInfo drag_n_drop_handle_can_drag(
+    DragState_t* state, input::e_mouse_button button,
+    Coord origin, Entities const& entities ) {
+  CHECK( holds<DragState::none>( *state ) );
+  auto maybe_drag_in_progress =
+      try_drag_start( button, origin, entities );
+  if( maybe_drag_in_progress ) {
+    *state = std::move( *maybe_drag_in_progress );
+    lg.info( "drag state: {}", *state );
+    return Plane::e_accept_drag::yes;
+  }
+  return Plane::e_accept_drag::no;
+}
+
+void drag_n_drop_handle_on_drag( DragState_t*    state,
+                                 Coord           current,
+                                 Entities const& entities ) {
+  if_v( *state, DragState::in_progress, in_progress ) {
+    in_progress->dst = drag_dst(
+        entities,
+        current.with_new_origin( clip_rect().upper_left() ) );
+  }
+}
+
+bool drag_n_drop_handle_on_drag_finished( DragState_t* state ) {
+  if_v( *state, DragState::in_progress, in_progress ) {
+    if( in_progress->dst ) {
+      auto maybe_drag_arc =
+          drag_arc( in_progress->src, *in_progress->dst );
+      if( maybe_drag_arc ) {
+        *state = DragState::complete{/*arc=*/*maybe_drag_arc};
+        lg.info( "drag state: {}", *state );
+        return true;
+      }
+    }
+    *state = DragState::none{};
+    return true;
+  }
+  return false;
+}
+
 /****************************************************************
 ** The Europe Plane
 *****************************************************************/
@@ -1247,9 +1345,10 @@ struct EuropePlane : public Plane {
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void on_frame_start() override {
-    if( maybe_drag_arc_to_perform_ ) {
-      perform_drag( *maybe_drag_arc_to_perform_ );
-      maybe_drag_arc_to_perform_ = nullopt;
+    if_v( drag_n_drop_state_, DragState::complete, p_arc ) {
+      perform_drag( p_arc->arc );
+      drag_n_drop_state_ = DragState::none{};
+      lg.info( "drag state: {}", drag_n_drop_state_ );
     }
     create_entities( &entities_ );
   }
@@ -1266,9 +1365,7 @@ struct EuropePlane : public Plane {
     //                : g_tile::checkers_inv;
     // tile_sprite( tx, tile, clip_rect() );
     render_rect( tx, rect_color_, clip_rect() );
-    if( maybe_being_dragged_ ) {
-      draw_drag_src( tx, *maybe_being_dragged_ );
-    }
+    drag_n_drop_handle_draw( drag_n_drop_state_, tx );
   }
   bool input( input::event_t const& event ) override {
     return matcher_( event ) {
@@ -1308,36 +1405,32 @@ struct EuropePlane : public Plane {
   }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    CHECK( !maybe_being_dragged_ );
-    if( button == input::e_mouse_button::l ) {
-      // if( button == input::e_mouse_button::l &&
-      //    is_on_clip_rect( origin ) ) {
-      //  DragInfo res( Plane::e_accept_drag::yes );
-      //  bool     left   = is_on_clip_rect_left_side( origin );
-      //  bool     right  = is_on_clip_rect_right_side( origin );
-      //  bool     top    = is_on_clip_rect_top_side( origin );
-      //  bool     bottom = is_on_clip_rect_bottom_side( origin
-      //  );
-      //  // test for corners.
-      //  if( ( left && top ) || ( left && bottom ) ||
-      //      ( right && top ) || ( right && bottom ) )
-      //    return res;
-      //  if( left || right ) res.projection = Delta{0_h, 1_w};
-      //  if( top || bottom ) res.projection = Delta{1_h, 0_w};
-      //  return res;
-      //}
-      auto offset          = clip_rect().upper_left();
-      maybe_being_dragged_ = drag_src(
-          entities_, origin.with_new_origin( offset ) );
-      lg.info( "drag_src: {}", maybe_being_dragged_ );
-      if( maybe_being_dragged_ )
-        return Plane::e_accept_drag::yes;
-    }
-    return Plane::e_accept_drag::no;
+    // if( button == input::e_mouse_button::l &&
+    //    is_on_clip_rect( origin ) ) {
+    //  DragInfo res( Plane::e_accept_drag::yes );
+    //  bool     left   = is_on_clip_rect_left_side( origin );
+    //  bool     right  = is_on_clip_rect_right_side( origin );
+    //  bool     top    = is_on_clip_rect_top_side( origin );
+    //  bool     bottom = is_on_clip_rect_bottom_side( origin
+    //  );
+    //  // test for corners.
+    //  if( ( left && top ) || ( left && bottom ) ||
+    //      ( right && top ) || ( right && bottom ) )
+    //    return res;
+    //  if( left || right ) res.projection = Delta{0_h, 1_w};
+    //  if( top || bottom ) res.projection = Delta{1_h, 0_w};
+    //  return res;
+    //}
+
+    // Should be last.
+    return drag_n_drop_handle_can_drag(
+        &drag_n_drop_state_, button, origin, entities_ );
   }
   void on_drag( input::e_mouse_button /*button*/,
                 Coord /*origin*/, Coord /*prev*/,
-                Coord /*current*/ ) override {
+                Coord current ) override {
+    drag_n_drop_handle_on_drag( &drag_n_drop_state_, current,
+                                entities_ );
     // auto offset = clip_rect().upper_left();
     // auto maybe_drag_dst =
     //    drag_dst( entities_, current.with_new_origin( offset )
@@ -1359,25 +1452,17 @@ struct EuropePlane : public Plane {
     // g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
     // g_clip   = g_clip.clamp( main_window_logical_size() );
   }
-  void on_drag_finished( input::e_mouse_button button,
-                         Coord /*origin*/, Coord end ) override {
-    if( button == input::e_mouse_button::l ) {
-      auto offset         = clip_rect().upper_left();
-      auto maybe_drag_src = maybe_being_dragged_;
-      auto maybe_drag_dst =
-          drag_dst( entities_, end.with_new_origin( offset ) );
-      if( maybe_drag_src && maybe_drag_dst ) {
-        maybe_drag_arc_to_perform_ =
-            drag_arc( *maybe_drag_src, *maybe_drag_dst );
-        lg.info( "drag_arc: {}", maybe_drag_arc_to_perform_ );
-      }
-    }
-    maybe_being_dragged_ = nullopt;
+  void on_drag_finished( input::e_mouse_button /*button*/,
+                         Coord /*origin*/,
+                         Coord /*end*/ ) override {
+    if( drag_n_drop_handle_on_drag_finished(
+            &drag_n_drop_state_ ) )
+      return;
+    CHECK( holds<DragState::none>( drag_n_drop_state_ ) );
   }
-  Opt<DragArc_t> maybe_drag_arc_to_perform_;
-  Opt<DragSrc_t> maybe_being_dragged_;
-  Color          rect_color_{Color::white()};
-  Entities       entities_;
+  DragState_t drag_n_drop_state_;
+  Color       rect_color_{Color::white()};
+  Entities    entities_;
 };
 
 EuropePlane g_europe_plane;

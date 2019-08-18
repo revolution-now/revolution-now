@@ -18,6 +18,7 @@
 #include "aliases.hpp"
 #include "color.hpp"
 #include "coord.hpp"
+#include "fmt-helper.hpp"
 #include "util.hpp"
 
 // base-util
@@ -91,6 +92,14 @@ public:
 
   ~Texture();
 
+  // NOTE: this will NOT compare the contents of the textures, it
+  // will return `false` if the textures are different objects,
+  // even if they have the same size and contents. It will return
+  // true only if we are comparing the same object with itself,
+  // or if we are comparing two textures that both refer to the
+  // screen.
+  bool operator==( Texture const& rhs ) const;
+
   void free();
 
   // Size of the texture in pixels; if this is the screen texture
@@ -154,3 +163,5 @@ private:
 int live_texture_count();
 
 } // namespace rn
+
+DEFINE_FORMAT( ::rn::Texture, "Texture[id={}]", o.id() );

@@ -172,6 +172,22 @@ Texture& Texture::operator=( Texture&& rhs ) noexcept {
   return *this;
 }
 
+bool Texture::operator==( Texture const& rhs ) const {
+  if( this == &rhs ) return true;
+  // Because textures have move semantics they should never be
+  // equal unless they both correspond to the screen.
+  if( id_ == 0 && rhs.id_ == 0 ) {
+    DCHECK( tx_ == nullptr );
+    DCHECK( rhs.tx_ == nullptr );
+    return true;
+  }
+  // At least one texture is not "the screen", so we will return
+  // false, but before we do, as a sanity check:
+  DCHECK( id_ != rhs.id_ );
+  DCHECK( tx_ != rhs.tx_ );
+  return false;
+}
+
 void Texture::free() {
   if( tx_ != nullptr ) {
     g_live_texture_count--;

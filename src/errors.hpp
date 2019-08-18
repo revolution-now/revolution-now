@@ -128,6 +128,29 @@ bool check_inline( bool b, char const* msg );
     FATAL_( TO_STRING( b ) " has no value." ); \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
+// This takes care to only evaluate `v_expr` once, since it may
+// be e.g. a function call. The function will evaluate `v_expr`
+// which is expected to result in a std::variant. It will then
+// keep the resulting variant alive by assign it to a reference.
+// Finally it will check that the variant is of the right type
+// and, if so, it will assign it to a local reference of the
+// given name. The ID_ is to suppress warnings about parenthesis
+// around macro parameters.
+//
+// Example:
+//
+//   std::variant<Object, int> v = ...;
+//
+//   ASSIGN_CHECK_V( obj, v, Object );
+//   obj.method();
+//
+#define ASSIGN_CHECK_V( ref, v_expr, type )               \
+  auto& STRING_JOIN( __x, __LINE__ ) = v_expr;            \
+  auto* STRING_JOIN( __ptr, __LINE__ ) =                  \
+      std::get_if<type>( &STRING_JOIN( __x, __LINE__ ) ); \
+  CHECK( STRING_JOIN( __ptr, __LINE__ ) != nullptr );     \
+  auto& ID_( ref ) = *STRING_JOIN( __ptr, __LINE__ )
+
 // Same as above but returns on failure instead of throwing. As
 // can be seen, this macro should be used inside functions that
 // return a default-initialized value to mean failure, such as
