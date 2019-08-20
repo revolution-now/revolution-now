@@ -1126,6 +1126,133 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
+// To be used as a base class in the CRTP.
+template<typename Child, typename DragSrcT, typename DragDstT,
+         typename DragArcT>
+class DragAndDrop {
+protected:
+  //// The `none` state should be first.
+  // ADT_RN_( DragState,                 //
+  //         ( none ),                  //
+  //         ( in_progress,             //
+  //           ( DragSrc_t, src ),      //
+  //           ( Opt<DragDst_t>, dst ), //
+  //           ( Opt<Texture>, tx ) ),  //
+  //         ( complete,                //
+  //           ( DragArc_t, arc ) ),    //
+  //         ( rubber_band,             //
+  //           ( Coord, current ),      //
+  //           ( Coord, dest ),         //
+  //           ( Opt<Texture>, tx ) )   //
+  //);
+  struct DragState {
+    struct none {};
+    struct in_progress {
+      DragSrcT      src;
+      Opt<DragDstT> dst;
+      Opt<Texture>  tx;
+    };
+    struct complete {
+      DragArcT arc;
+    };
+  };
+  using DragState_t = variant<         //
+      typename DragState::none,        //
+      typename DragState::in_progress, //
+      typename DragState::complete     //
+      >;
+
+public:
+  DragAndDrop() : state_{typename DragState::none{}} {}
+
+  Child const& child() const {
+    return *static_cast<Child const*>( this );
+  }
+  Child& child() { return *static_cast<Child*>( this ); }
+
+  void handle_draw( Texture& tx ) const {
+    if_v( state_, typename DragState::in_progress,
+          in_progress ) {
+      child().draw_drag_cursor( tx, *in_progress );
+    }
+  }
+
+  Plane::DragInfo handle_can_drag( Coord origin ) {
+    CHECK( holds<typename DragState::none>( state_ ) );
+    auto maybe_drag_in_progress = try_drag_start( origin );
+    if( maybe_drag_in_progress ) {
+      state_ = std::move( *maybe_drag_in_progress );
+      // lg.info( "drag state: {}", state_ );
+      return Plane::e_accept_drag::yes;
+    }
+    return Plane::e_accept_drag::no;
+  }
+
+  void handle_on_drag( Coord current ) {
+    if_v( state_, typename DragState::in_progress,
+          in_progress ) {
+      in_progress->dst = child().drag_dst( current );
+    }
+  }
+
+  bool handle_on_drag_finished() {
+    if_v( state_, typename DragState::in_progress,
+          in_progress ) {
+      if( in_progress->dst ) {
+        auto maybe_drag_arc = child().drag_arc(
+            in_progress->src, *in_progress->dst );
+        if( maybe_drag_arc ) {
+          state_ = typename DragState::complete{
+              /*arc=*/*maybe_drag_arc};
+          // lg.info( "drag state: {}", state_ );
+          return true;
+        }
+      }
+      state_ = typename DragState::none{};
+      return true;
+    }
+    return false;
+  }
+
+  void handle_on_frame_start() {
+    if_v( state_, typename DragState::complete, p_arc ) {
+      child().perform_drag( p_arc->arc );
+      state_ = typename DragState::none{};
+      // lg.info( "drag state: {}", state_ );
+    }
+  }
+
+private:
+  void draw_drag_cursor(
+      Texture&                               target,
+      typename DragState::in_progress const& info ) const {
+    if( !info.tx ) return;
+    auto mouse_pos = input::current_mouse_position();
+    copy_texture( *info.tx, target,
+                  mouse_pos - info.tx->size() / Scale{2} );
+  }
+
+  Opt<typename DragState::in_progress> try_drag_start(
+      Coord const& origin ) const {
+    Opt<typename DragState::in_progress> res;
+    auto maybe_being_dragged = child().drag_src( origin );
+    lg.info( "drag src: {}", maybe_being_dragged );
+    if( maybe_being_dragged ) {
+      auto const& drag_src = *maybe_being_dragged;
+
+      res = typename DragState::in_progress{
+          /*src=*/drag_src,
+          /*dst=*/nullopt,
+          /*tx=*/child().draw_dragged_item( drag_src ),
+      };
+    }
+    return res;
+  }
+
+private:
+  DragState_t state_;
+};
+
 ADT_RN_( DragSrc,                  //
          ( dock,                   //
            ( UnitId, id ) ),       //
@@ -1163,191 +1290,101 @@ ADT_RN_( DragArc,                    //
            ( DragDst::cargo, dst ) ) //
 );
 
-// Coord is relative to clip_rect for now.
-Opt<DragSrc_t> drag_src( Entities const& entities,
-                         Coord const&    coord ) {
-  using namespace entity;
-  Opt<DragSrc_t> res;
-  if( entities.units_on_dock.has_value() ) {
-    if( auto maybe_id =
-            entities.units_on_dock->unit_under_cursor( coord );
-        maybe_id )
-      res = DragSrc::dock{*maybe_id};
-  }
-  return res;
-}
-
-// Coord is relative to clip_rect for now.
-Opt<DragDst_t> drag_dst( Entities const& entities,
-                         Coord const&    coord ) {
-  using namespace entity;
-  Opt<DragDst_t> res;
-  if( entities.active_cargo.has_value() ) {
-    if( auto maybe_slot =
-            entities.active_cargo->cargo_slot_idx_from_coord(
-                coord );
-        maybe_slot ) {
-      ASSIGN_CHECK_OPT( ship,
-                        entities.active_cargo->active_unit() );
-      if( is_unit_in_port( ship ) )
-        res = DragDst::cargo{ship, *maybe_slot};
-    }
-  }
-  return res;
-}
-
-Opt<DragArc_t> drag_arc( DragSrc_t const& src,
-                         DragDst_t const& dst ) {
-  Opt<DragArc_t> res;
-  // Can this be done automatically with the types?
-  if_v( src, DragSrc::dock, p_src ) {
-    // if_v( dst, DragDst::dock, p_dst ) //
-    //    res = Drag::dock_to_dock{*p_src, *p_dst};
-    // if_v( dst, DragDst::ship_in_port, p_dst ) //
-    //    res = Drag::dock_to_ship{*p_src, *p_dst};
-    if_v( dst, DragDst::cargo, p_dst ) //
-        res = DragArc::dock_to_cargo{*p_src, *p_dst};
-  }
-  return res;
-}
-
-Opt<Texture> draw_dragged_item(
-    DragSrc_t const& being_dragged ) {
-  Opt<Texture> res;
-  switch_( being_dragged ) {
-    case_( DragSrc::dock, id ) {
-      auto tx = create_texture_transparent(
-          lookup_sprite( unit_from_id( id ).desc().tile )
-              .size() );
-      render_unit( tx, id, Coord{}, /*with_icon=*/false );
-      res = std::move( tx );
-    }
-    switch_non_exhaustive;
-  }
-  return res;
-}
-
-// The `none` state should be first.
-ADT_RN_( DragState,                 //
-         ( none ),                  //
-         ( in_progress,             //
-           ( DragSrc_t, src ),      //
-           ( Opt<DragDst_t>, dst ), //
-           ( Opt<Texture>, tx ) ),  //
-         ( complete,                //
-           ( DragArc_t, arc ) ),    //
-         ( rubber_band,             //
-           ( Coord, current ),      //
-           ( Coord, dest ),         //
-           ( Opt<Texture>, tx ) )   //
-);
-
-void perform_drag( DragArc_t const& drag_arc_to_perform ) {
-  switch_( drag_arc_to_perform ) {
-    case_( DragArc::dock_to_cargo, src, dst ) {
-      lg.info( "dragging unit {} into ship {}'s cargo slot {}",
-               debug_string( src.id ), debug_string( dst.ship ),
-               dst.slot );
-      if( unit_from_id( dst.ship )
-              .cargo()
-              .fits( src.id, dst.slot ) )
-        ownership_change_to_cargo( dst.ship, src.id, dst.slot );
-      else
-        lg.debug( "unit {} does not fit in slot {}", src.id,
-                  dst.slot );
-    }
-    switch_exhaustive;
-  }
-}
-
-class DragAndDrop {
+class EuroViewDragAndDrop
+  : public DragAndDrop<EuroViewDragAndDrop, DragSrc_t, DragDst_t,
+                       DragArc_t> {
 public:
-  DragAndDrop() : state_{DragState::none{}} {}
-
-  void handle_draw( Texture& tx ) const {
-    if_v( state_, DragState::in_progress, in_progress ) {
-      draw_drag_cursor( tx, *in_progress );
-    }
+  EuroViewDragAndDrop( Entities const* entities )
+    : entities_( entities ) {
+    CHECK( entities );
   }
 
-  Plane::DragInfo handle_can_drag( Coord           origin,
-                                   Entities const& entities ) {
-    CHECK( holds<DragState::none>( state_ ) );
-    auto maybe_drag_in_progress =
-        try_drag_start( origin, entities );
-    if( maybe_drag_in_progress ) {
-      state_ = std::move( *maybe_drag_in_progress );
-      lg.info( "drag state: {}", state_ );
-      return Plane::e_accept_drag::yes;
-    }
-    return Plane::e_accept_drag::no;
-  }
-
-  void handle_on_drag( Coord           current,
-                       Entities const& entities ) {
-    if_v( state_, DragState::in_progress, in_progress ) {
-      in_progress->dst = drag_dst(
-          entities,
-          current.with_new_origin( clip_rect().upper_left() ) );
-    }
-  }
-
-  bool handle_on_drag_finished() {
-    if_v( state_, DragState::in_progress, in_progress ) {
-      if( in_progress->dst ) {
-        auto maybe_drag_arc =
-            drag_arc( in_progress->src, *in_progress->dst );
-        if( maybe_drag_arc ) {
-          state_ = DragState::complete{/*arc=*/*maybe_drag_arc};
-          lg.info( "drag state: {}", state_ );
-          return true;
-        }
-      }
-      state_ = DragState::none{};
-      return true;
-    }
-    return false;
-  }
-
-  void handle_on_frame_start() {
-    if_v( state_, DragState::complete, p_arc ) {
-      perform_drag( p_arc->arc );
-      state_ = DragState::none{};
-      lg.info( "drag state: {}", state_ );
-    }
-  }
-
-private:
-  void draw_drag_cursor(
-      Texture&                      target,
-      DragState::in_progress const& info ) const {
-    if( !info.tx ) return;
-    auto mouse_pos = input::current_mouse_position();
-    copy_texture( *info.tx, target,
-                  mouse_pos - info.tx->size() / Scale{2} );
-  }
-
-  Opt<DragState::in_progress> try_drag_start(
-      Coord const& origin, Entities const& entities ) const {
-    Opt<DragState::in_progress> res;
-    auto offset = clip_rect().upper_left();
-    auto maybe_being_dragged =
-        drag_src( entities, origin.with_new_origin( offset ) );
-    lg.info( "drag src: {}", maybe_being_dragged );
-    if( maybe_being_dragged ) {
-      auto const& drag_src = *maybe_being_dragged;
-
-      res = DragState::in_progress{
-          /*src=*/drag_src,
-          /*dst=*/nullopt,
-          /*tx=*/draw_dragged_item( drag_src ),
-      };
+  // Coord is relative to clip_rect for now.
+  Opt<DragSrc_t> drag_src( Coord const& coord ) const {
+    using namespace entity;
+    Opt<DragSrc_t> res;
+    auto           offset = clip_rect().upper_left();
+    if( entities_->units_on_dock.has_value() ) {
+      if( auto maybe_id =
+              entities_->units_on_dock->unit_under_cursor(
+                  coord.with_new_origin( offset ) );
+          maybe_id )
+        res = DragSrc::dock{*maybe_id};
     }
     return res;
   }
 
-public: // FIXME: temporary
-  DragState_t state_;
+  // Coord is relative to clip_rect for now.
+  Opt<DragDst_t> drag_dst( Coord const& coord ) const {
+    using namespace entity;
+    Opt<DragDst_t> res;
+    auto           offset = clip_rect().upper_left();
+    if( entities_->active_cargo.has_value() ) {
+      if( auto maybe_slot =
+              entities_->active_cargo->cargo_slot_idx_from_coord(
+                  coord.with_new_origin( offset ) );
+          maybe_slot ) {
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo->active_unit() );
+        if( is_unit_in_port( ship ) )
+          res = DragDst::cargo{ship, *maybe_slot};
+      }
+    }
+    return res;
+  }
+
+  Opt<DragArc_t> drag_arc( DragSrc_t const& src,
+                           DragDst_t const& dst ) const {
+    Opt<DragArc_t> res;
+    // Can this be done automatically with the types?
+    if_v( src, DragSrc::dock, p_src ) {
+      // if_v( dst, DragDst::dock, p_dst ) //
+      //    res = Drag::dock_to_dock{*p_src, *p_dst};
+      // if_v( dst, DragDst::ship_in_port, p_dst ) //
+      //    res = Drag::dock_to_ship{*p_src, *p_dst};
+      if_v( dst, DragDst::cargo, p_dst ) //
+          res = DragArc::dock_to_cargo{*p_src, *p_dst};
+    }
+    return res;
+  }
+
+  Opt<Texture> draw_dragged_item(
+      DragSrc_t const& being_dragged ) const {
+    Opt<Texture> res;
+    switch_( being_dragged ) {
+      case_( DragSrc::dock, id ) {
+        auto tx = create_texture_transparent(
+            lookup_sprite( unit_from_id( id ).desc().tile )
+                .size() );
+        render_unit( tx, id, Coord{}, /*with_icon=*/false );
+        res = std::move( tx );
+      }
+      switch_non_exhaustive;
+    }
+    return res;
+  }
+
+  void perform_drag(
+      DragArc_t const& drag_arc_to_perform ) const {
+    switch_( drag_arc_to_perform ) {
+      case_( DragArc::dock_to_cargo, src, dst ) {
+        lg.info( "dragging unit {} into ship {}'s cargo slot {}",
+                 debug_string( src.id ),
+                 debug_string( dst.ship ), dst.slot );
+        if( unit_from_id( dst.ship )
+                .cargo()
+                .fits( src.id, dst.slot ) )
+          ownership_change_to_cargo( dst.ship, src.id,
+                                     dst.slot );
+        else
+          lg.debug( "unit {} does not fit in slot {}", src.id,
+                    dst.slot );
+      }
+      switch_exhaustive;
+    }
+  }
+
+  Entities const* entities_;
 };
 
 /****************************************************************
@@ -1435,13 +1472,13 @@ struct EuropePlane : public Plane {
 
     // Should be last.
     if( button == input::e_mouse_button::l )
-      return drag_n_drop_.handle_can_drag( origin, entities_ );
+      return drag_n_drop_.handle_can_drag( origin );
     return e_accept_drag::no;
   }
   void on_drag( input::e_mouse_button /*button*/,
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
-    drag_n_drop_.handle_on_drag( current, entities_ );
+    drag_n_drop_.handle_on_drag( current );
     // auto offset = clip_rect().upper_left();
     // auto maybe_drag_dst =
     //    drag_dst( entities_, current.with_new_origin( offset )
@@ -1468,9 +1505,9 @@ struct EuropePlane : public Plane {
                          Coord /*end*/ ) override {
     if( drag_n_drop_.handle_on_drag_finished() ) return;
   }
-  DragAndDrop drag_n_drop_;
-  Color       rect_color_{Color::white()};
-  Entities    entities_;
+  Color               rect_color_{Color::white()};
+  Entities            entities_;
+  EuroViewDragAndDrop drag_n_drop_{&entities_};
 };
 
 EuropePlane g_europe_plane;
