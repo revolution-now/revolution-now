@@ -15,6 +15,7 @@
 #include "commodity.hpp"
 #include "compositor.hpp"
 #include "coord.hpp"
+#include "dragdrop.hpp"
 #include "europort.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
@@ -33,7 +34,6 @@
 
 // base-util
 #include "base-util/optional.hpp"
-#include "base-util/variant.hpp"
 
 // Range-v3
 #include "range/v3/view/all.hpp"
@@ -46,8 +46,6 @@ using namespace std;
 namespace rn {
 
 namespace {
-
-using util::holds;
 
 /****************************************************************
 ** Global State
@@ -1126,133 +1124,6 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-// To be used as a base class in the CRTP.
-template<typename Child, typename DragSrcT, typename DragDstT,
-         typename DragArcT>
-class DragAndDrop {
-protected:
-  //// The `none` state should be first.
-  // ADT_RN_( DragState,                 //
-  //         ( none ),                  //
-  //         ( in_progress,             //
-  //           ( DragSrc_t, src ),      //
-  //           ( Opt<DragDst_t>, dst ), //
-  //           ( Opt<Texture>, tx ) ),  //
-  //         ( complete,                //
-  //           ( DragArc_t, arc ) ),    //
-  //         ( rubber_band,             //
-  //           ( Coord, current ),      //
-  //           ( Coord, dest ),         //
-  //           ( Opt<Texture>, tx ) )   //
-  //);
-  struct DragState {
-    struct none {};
-    struct in_progress {
-      DragSrcT      src;
-      Opt<DragDstT> dst;
-      Opt<Texture>  tx;
-    };
-    struct complete {
-      DragArcT arc;
-    };
-  };
-  using DragState_t = variant<         //
-      typename DragState::none,        //
-      typename DragState::in_progress, //
-      typename DragState::complete     //
-      >;
-
-public:
-  DragAndDrop() : state_{typename DragState::none{}} {}
-
-  Child const& child() const {
-    return *static_cast<Child const*>( this );
-  }
-  Child& child() { return *static_cast<Child*>( this ); }
-
-  void handle_draw( Texture& tx ) const {
-    if_v( state_, typename DragState::in_progress,
-          in_progress ) {
-      child().draw_drag_cursor( tx, *in_progress );
-    }
-  }
-
-  Plane::DragInfo handle_can_drag( Coord origin ) {
-    CHECK( holds<typename DragState::none>( state_ ) );
-    auto maybe_drag_in_progress = try_drag_start( origin );
-    if( maybe_drag_in_progress ) {
-      state_ = std::move( *maybe_drag_in_progress );
-      // lg.info( "drag state: {}", state_ );
-      return Plane::e_accept_drag::yes;
-    }
-    return Plane::e_accept_drag::no;
-  }
-
-  void handle_on_drag( Coord current ) {
-    if_v( state_, typename DragState::in_progress,
-          in_progress ) {
-      in_progress->dst = child().drag_dst( current );
-    }
-  }
-
-  bool handle_on_drag_finished() {
-    if_v( state_, typename DragState::in_progress,
-          in_progress ) {
-      if( in_progress->dst ) {
-        auto maybe_drag_arc = child().drag_arc(
-            in_progress->src, *in_progress->dst );
-        if( maybe_drag_arc ) {
-          state_ = typename DragState::complete{
-              /*arc=*/*maybe_drag_arc};
-          // lg.info( "drag state: {}", state_ );
-          return true;
-        }
-      }
-      state_ = typename DragState::none{};
-      return true;
-    }
-    return false;
-  }
-
-  void handle_on_frame_start() {
-    if_v( state_, typename DragState::complete, p_arc ) {
-      child().perform_drag( p_arc->arc );
-      state_ = typename DragState::none{};
-      // lg.info( "drag state: {}", state_ );
-    }
-  }
-
-private:
-  void draw_drag_cursor(
-      Texture&                               target,
-      typename DragState::in_progress const& info ) const {
-    if( !info.tx ) return;
-    auto mouse_pos = input::current_mouse_position();
-    copy_texture( *info.tx, target,
-                  mouse_pos - info.tx->size() / Scale{2} );
-  }
-
-  Opt<typename DragState::in_progress> try_drag_start(
-      Coord const& origin ) const {
-    Opt<typename DragState::in_progress> res;
-    auto maybe_being_dragged = child().drag_src( origin );
-    lg.info( "drag src: {}", maybe_being_dragged );
-    if( maybe_being_dragged ) {
-      auto const& drag_src = *maybe_being_dragged;
-
-      res = typename DragState::in_progress{
-          /*src=*/drag_src,
-          /*dst=*/nullopt,
-          /*tx=*/child().draw_dragged_item( drag_src ),
-      };
-    }
-    return res;
-  }
-
-private:
-  DragState_t state_;
-};
-
 ADT_RN_( DragSrc,                  //
          ( dock,                   //
            ( UnitId, id ) ),       //
