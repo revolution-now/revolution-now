@@ -8,9 +8,16 @@ set -e
 
 stem=$1
 
-CXX_FLAGS="-Wno-unused-command-line-argument -fcolor-diagnostics -g   -Wall -Wextra -pthread -std=c++2a"
-CXX_DEFINES="-DBACKWARD_HAS_BACKTRACE=0 -DBACKWARD_HAS_BACKTRACE_SYMBOL=0 -DBACKWARD_HAS_BFD=0 -DBACKWARD_HAS_DW=1 -DBACKWARD_HAS_DWARF=0 -DBACKWARD_HAS_UNWIND=1 -DBETTER_ENUMS_STRICT_CONVERSION=1 -DFMT_STRING_ALIAS=1 -DSPDLOG_FMT_EXTERNAL -D__CLANG_SUPPORT_DYN_ANNOTATION__"
-CXX_INCLUDES="-I$HOME/dev/revolution-now -I/usr/include/SDL2 -I$HOME/dev/revolution-now/extern/abseil-cpp -I$HOME/dev/revolution-now/extern/base-util/src/include -I$HOME/dev/revolution-now/extern/better-enums -I$HOME/dev/revolution-now/extern/expected-lite/include -I$HOME/dev/revolution-now/extern/fmt/include -I$HOME/dev/revolution-now/extern/function_ref -I$HOME/dev/revolution-now/extern/observer-ptr/include -I$HOME/dev/revolution-now/extern/range-v3/include -I$HOME/dev/revolution-now/extern/rtmidi -I$HOME/dev/revolution-now/extern/scelta/include -I$HOME/dev/revolution-now/extern/spdlog/include -I$HOME/dev/revolution-now/extern/libucl/include -I$HOME/dev/revolution-now/extern/backward-cpp"
+get_flag() {
+  local flag=$1
+  cat .builds/current/src/CMakeFiles/rn.dir/flags.make \
+    | grep "^$flag"                                    \
+    | sed -r 's/^[^ ]+ = (.*)/\1/'
+}
+
+CXX_FLAGS=$(get_flag CXX_FLAGS)
+CXX_DEFINES=$(get_flag CXX_DEFINES)
+CXX_INCLUDES=$(get_flag CXX_INCLUDES)
 
 clear
 
