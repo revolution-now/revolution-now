@@ -14,8 +14,10 @@
 
 // Revolution Now
 #include "fmt-helper.hpp"
+#include "util.hpp"
 
 // base-util
+#include "base-util/macros.hpp"
 #include "base-util/pp.hpp"
 
 // C++ standard library
@@ -86,6 +88,11 @@
 // which are probably not under scrutiny here.
 #define _DEFINE_FORMAT( ... ) DEFINE_FORMAT( __VA_ARGS__ )
 #define _DEFINE_FORMAT_( ... ) DEFINE_FORMAT_( __VA_ARGS__ )
+#define _DEFINE_FORMAT_T( ... ) DEFINE_FORMAT_T( __VA_ARGS__ )
+#define _DEFINE_FORMAT_T_( ... ) DEFINE_FORMAT_T_( __VA_ARGS__ )
+
+#define TEMPLATE( ... ) ( __VA_ARGS__ )
+#define ADD_TYPENAME( a ) typename a
 
 // We need the DEFER here because this will be called recursively
 // from another PP_MAP_SEMI below.
@@ -116,7 +123,45 @@
                          ::rn::remove_rn_ns( #ns ), #name );   \
       , __VA_ARGS__ )
 
+#define ADT_MAKE_STRUCT_T( ns, t_args, name, ... )             \
+  namespace ns {                                               \
+  template<PP_MAP_COMMAS( ADD_TYPENAME, EXPAND t_args )>       \
+  struct name {                                                \
+    __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE,      \
+                                      __VA_ARGS__ ) )          \
+  };                                                           \
+  template<PP_MAP_COMMAS( ADD_TYPENAME, EXPAND t_args )>       \
+  SWITCH_EMPTY(                                                \
+      inline bool operator==( name<EXPAND t_args> const& l,    \
+                              name<EXPAND t_args> const& r ) { \
+        return PP_MAP_AMP( PAIR_TO_CMP_TUPLE, __VA_ARGS__ );   \
+      },                                                       \
+      inline bool operator==( name<EXPAND t_args> const&,      \
+                              name<EXPAND t_args> const& ) {   \
+        return true;                                           \
+      },                                                       \
+      __VA_ARGS__ )                                            \
+  }                                                            \
+  SWITCH_EMPTY(                                                \
+      _DEFINE_FORMAT_T(                                        \
+          t_args, (ns::name<EXPAND t_args>),                   \
+          "{}::{}{{" JOIN_WITH(                                \
+              ", ", PP_MAP_COMMAS( PAIR_TO_FMT_TUPLE,          \
+                                   __VA_ARGS__ ) ) "}}",       \
+          ::rn::remove_rn_ns( #ns ),                           \
+          std::string( #name ) + "<" +                         \
+              ::rn::type_list_to_names<EXPAND t_args>() + ">", \
+          PP_MAP_COMMAS( PAIR_TO_FMT_O_TUPLE, __VA_ARGS__ ) ), \
+      _DEFINE_FORMAT_T_(                                       \
+          t_args, (ns::name<EXPAND t_args>), "{}::{}",         \
+          ::rn::remove_rn_ns( #ns ),                           \
+          std::string( #name ) + "<" +                         \
+              ::rn::type_list_to_names<EXPAND t_args>() +      \
+              ">" ),                                           \
+      __VA_ARGS__ )
+
 #define ADT_MAKE_STRUCT_TUPLE( a ) ADT_MAKE_STRUCT a
+#define ADT_MAKE_STRUCT_TUPLE_T( a ) ADT_MAKE_STRUCT_T a
 
 // Arguably most move constructors/assignment members should be
 // noexcept, but these variants need to have be that way because
@@ -135,7 +180,21 @@
         std::is_nothrow_move_assignable_v<name##_t> );     \
   }
 
-#define ADT( ns, ... ) EVAL( ADT_IMPL( ns, __VA_ARGS__ ) )
+#define ADT_T_IMPL( ns, t_args, name, ... )                \
+  DEFER( PP_MAP )                                          \
+  ( ADT_MAKE_STRUCT_TUPLE_T,                               \
+    PP_MAP_PREPEND2_TUPLE( ns::name, t_args,               \
+                           __VA_ARGS__ ) ) namespace ns {  \
+    template<PP_MAP_COMMAS( ADD_TYPENAME, EXPAND t_args )> \
+    using name##_t = std::variant<JOIN_WITH_TUPLE_EXPAND(  \
+        (<EXPAND t_args>),                                 \
+        PP_MAP_PREPEND_NS(                                 \
+            name,                                          \
+            PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) ) )>; \
+  }
+
+#define ADT( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
+#define ADT_T( ... ) EVAL( ADT_T_IMPL( __VA_ARGS__ ) )
 
 // Use this in namespace ::rn.
 #define ADT_RN( name, ... )                 \
@@ -157,5 +216,10 @@
 namespace rn {
 
 std::string_view remove_rn_ns( std::string_view sv );
+
+/****************************************************************
+** Testing
+*****************************************************************/
+void test_adt();
 
 } // namespace rn

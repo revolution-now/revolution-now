@@ -256,6 +256,14 @@ std::string demangled_typename() {
   return demangle( typeid( T ).name() );
 }
 
+template<typename... Types>
+std::string type_list_to_names() {
+  std::string joiner = ",";
+  auto res = ( ( demangled_typename<Types>() + joiner ) + ... );
+  if( res.size() > 0 ) res.resize( res.size() - joiner.size() );
+  return res;
+}
+
 // If the HOME environment variable is set then return it.
 Opt<fs::path> user_home_folder();
 

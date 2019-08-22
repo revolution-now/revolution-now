@@ -20,6 +20,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/pp.hpp"
 #include "base-util/string.hpp"
 
 // C++ standard library
@@ -38,16 +39,29 @@ using formatter_base = ::fmt::formatter<::std::string>;
 /****************************************************************
 ** Macros
 *****************************************************************/
+#define FMT_ADD_TYPENAME( a ) typename a
+
 // Macro to easily extend {fmt} to user-defined types. This macro
 // should be issued in the global namespace.
 #define DEFINE_FORMAT_IMPL( use_param, type, ... )     \
   template<>                                           \
   struct fmt::formatter<type> : formatter_base {       \
     template<typename FormatContext>                   \
-    auto format( const type &o, FormatContext &ctx ) { \
+    auto format( type const &o, FormatContext &ctx ) { \
       use_param return formatter_base::format(         \
           fmt::format( __VA_ARGS__ ), ctx );           \
     }                                                  \
+  };
+
+// When the type is templated. May need to be surrounded by EVAL.
+#define DEFINE_FORMAT_T_IMPL( use_param, t_args, type, ... )  \
+  template<PP_MAP_COMMAS( FMT_ADD_TYPENAME, EXPAND t_args )>  \
+  struct fmt::formatter<EXPAND type> : formatter_base {       \
+    template<typename FormatContext>                          \
+    auto format( EXPAND type const &o, FormatContext &ctx ) { \
+      use_param return formatter_base::format(                \
+          fmt::format( __VA_ARGS__ ), ctx );                  \
+    }                                                         \
   };
 
 // This is the one to use when the formatting output depends on
@@ -58,6 +72,12 @@ using formatter_base = ::fmt::formatter<::std::string>;
 // value (i.e., only dependent on type); e.g., std::monostate.
 #define DEFINE_FORMAT_( type, ... ) \
   DEFINE_FORMAT_IMPL( (void)o;, type, __VA_ARGS__ )
+// For when the type is templated. Important: the `type` argument
+// must be surrounded in parenthesis.
+#define DEFINE_FORMAT_T( t_args, type, ... ) \
+  DEFINE_FORMAT_T_IMPL(, t_args, type, __VA_ARGS__ )
+#define DEFINE_FORMAT_T_( t_args, type, ... ) \
+  DEFINE_FORMAT_T_IMPL( (void)o;, t_args, type, __VA_ARGS__ )
 
 /****************************************************************
 ** Type Wrappers
