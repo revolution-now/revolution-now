@@ -1235,21 +1235,35 @@ public:
     return res;
   }
 
+  bool can_perform_drag(
+      DragArc_t const& drag_arc_to_perform ) const {
+    return matcher_( drag_arc_to_perform ) {
+      case_( DragArc::dock_to_cargo, src, dst ) {
+        result_ unit_from_id( dst.ship )
+            .cargo()
+            .fits( src.id, dst.slot );
+      }
+      matcher_exhaustive;
+    }
+  }
+
   void perform_drag(
       DragArc_t const& drag_arc_to_perform ) const {
+    if( !can_perform_drag( drag_arc_to_perform ) ) {
+      lg.error(
+          "Drag was marked as correct, but can_perform_drag "
+          "returned false for arc: {}",
+          drag_arc_to_perform );
+      return;
+    }
+    // Beyond this point it is assumed that this drag is compat-
+    // ible with game rules.
     switch_( drag_arc_to_perform ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
         lg.info( "dragging unit {} into ship {}'s cargo slot {}",
                  debug_string( src.id ),
                  debug_string( dst.ship ), dst.slot );
-        if( unit_from_id( dst.ship )
-                .cargo()
-                .fits( src.id, dst.slot ) )
-          ownership_change_to_cargo( dst.ship, src.id,
-                                     dst.slot );
-        else
-          lg.debug( "unit {} does not fit in slot {}", src.id,
-                    dst.slot );
+        ownership_change_to_cargo( dst.ship, src.id, dst.slot );
       }
       switch_exhaustive;
     }
@@ -1271,9 +1285,8 @@ struct EuropePlane : public Plane {
     create_entities( &entities_ );
   }
   void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
+    tx.fill( Color::white() );
     draw_entities( tx, entities_ );
-    // clear_texture( tx, Color::white() );
     // We need to keep the checkers pattern stationary.
     // auto tile = ( clip_rect().upper_left().x._ +
     //              clip_rect().upper_left().y._ ) %
@@ -1372,9 +1385,9 @@ struct EuropePlane : public Plane {
     // g_clip   = g_clip.clamp( main_window_logical_size() );
   }
   void on_drag_finished( input::e_mouse_button /*button*/,
-                         Coord /*origin*/,
-                         Coord /*end*/ ) override {
-    if( drag_n_drop_.handle_on_drag_finished() ) return;
+                         Coord origin, Coord end ) override {
+    if( drag_n_drop_.handle_on_drag_finished( origin, end ) )
+      return;
   }
   Color               rect_color_{Color::white()};
   Entities            entities_;
