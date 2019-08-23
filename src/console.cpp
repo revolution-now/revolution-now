@@ -31,7 +31,7 @@ namespace rn {
 namespace {
 
 uint8_t console_alpha = 128;
-uint8_t text_alpha    = 192;
+uint8_t text_alpha    = 255;
 uint8_t stats_alpha   = 255;
 
 size_t constexpr max_dbg_log_lines = 100000;
