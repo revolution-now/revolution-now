@@ -194,8 +194,10 @@ struct ND Coord {
   // TODO: change to clamp
   void clip( Rect const& rect );
 
-  Coord rounded_up_to_multiple( Scale multiple ) const;
-  Coord rounded_up_to_multiple( Delta multiple ) const;
+  Coord rounded_to_multiple_to_plus_inf( Scale multiple ) const;
+  Coord rounded_to_multiple_to_plus_inf( Delta multiple ) const;
+  Coord rounded_to_multiple_to_minus_inf( Scale multiple ) const;
+  Coord rounded_to_multiple_to_minus_inf( Delta multiple ) const;
 
   Delta distance_from_origin() const {
     return {y - 0_y, x - 0_x};
@@ -267,6 +269,8 @@ struct ND Rect {
   Coord upper_right() const { return Coord{y, x + w}; }
   // Center
   Coord center() const { return Coord{y + h / 2, x + w / 2}; }
+
+  Rect centered_on( Coord coord ) const;
 
   Delta delta() const { return {w, h}; }
 

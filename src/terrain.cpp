@@ -102,11 +102,11 @@ void render_terrain_square( Texture& tx, Coord world_square,
 
 void render_terrain( Rect src_tiles, Texture& dest,
                      Coord dest_pixel_coord ) {
-  Rect blocks =
-      Rect::from( src_tiles.upper_left() / terrain_block_size,
-                  src_tiles.lower_right().rounded_up_to_multiple(
-                      terrain_block_size ) /
-                      terrain_block_size );
+  Rect blocks = Rect::from(
+      src_tiles.upper_left() / terrain_block_size,
+      src_tiles.lower_right().rounded_to_multiple_to_plus_inf(
+          terrain_block_size ) /
+          terrain_block_size );
 
   Coord origin = dest_pixel_coord -
                  g_tile_scale * ( src_tiles.upper_left() %

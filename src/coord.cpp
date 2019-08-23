@@ -112,6 +112,11 @@ Rect Rect::clamp( Rect const& rect ) const {
   return res;
 }
 
+Rect Rect::centered_on( Coord coord ) const {
+  return Rect::from( coord - this->delta() / Scale{2},
+                     this->delta() );
+}
+
 Opt<int> Rect::rasterize( Coord coord ) {
   if( !coord.is_inside( *this ) ) return nullopt;
   return ( coord.y - y )._ * w._ + ( coord.x - x )._;
@@ -162,17 +167,48 @@ void Coord::clip( Rect const& rect ) {
   if( x > rect.x + rect.w ) x = rect.x + rect.w;
 }
 
-Coord Coord::rounded_up_to_multiple( Delta multiple ) const {
-  auto res = *this;
-  auto mod = res % multiple;
+Coord Coord::rounded_to_multiple_to_plus_inf(
+    Delta multiple ) const {
+  CHECK( multiple.w > 0_w );
+  CHECK( multiple.h > 0_h );
+  auto res     = *this;
+  auto mod     = res % multiple;
+  auto delta_w = res.x >= 0_x ? ( multiple.w - mod.w ) : -mod.w;
+  auto delta_h = res.y >= 0_y ? ( multiple.h - mod.h ) : -mod.h;
+  CHECK( delta_w >= 0_w );
+  CHECK( delta_h >= 0_h );
   // These must be done separately.
-  if( mod.w != 0_w ) res.x += ( multiple - mod ).w;
-  if( mod.h != 0_h ) res.y += ( multiple - mod ).h;
+  if( mod.w != 0_w ) res.x += delta_w;
+  if( mod.h != 0_h ) res.y += delta_h;
   return res;
 }
 
-Coord Coord::rounded_up_to_multiple( Scale multiple ) const {
-  return rounded_up_to_multiple( Delta{1_w, 1_h} * multiple );
+Coord Coord::rounded_to_multiple_to_plus_inf(
+    Scale multiple ) const {
+  return rounded_to_multiple_to_plus_inf( Delta{1_w, 1_h} *
+                                          multiple );
+}
+
+Coord Coord::rounded_to_multiple_to_minus_inf(
+    Delta multiple ) const {
+  CHECK( multiple.w > 0_w );
+  CHECK( multiple.h > 0_h );
+  auto res     = *this;
+  auto mod     = res % multiple;
+  auto delta_w = res.x >= 0_x ? mod.w : ( multiple.w + mod.w );
+  auto delta_h = res.y >= 0_y ? mod.h : ( multiple.h + mod.h );
+  CHECK( delta_w >= 0_w );
+  CHECK( delta_h >= 0_h );
+  // These must be done separately.
+  if( mod.w != 0_w ) res.x -= delta_w;
+  if( mod.h != 0_h ) res.y -= delta_h;
+  return res;
+}
+
+Coord Coord::rounded_to_multiple_to_minus_inf(
+    Scale multiple ) const {
+  return rounded_to_multiple_to_minus_inf( Delta{1_w, 1_h} *
+                                           multiple );
 }
 
 Coord Coord::moved( e_direction d ) const {
@@ -221,7 +257,8 @@ bool Coord::is_on_border_of( Rect const& rect ) const {
 
 Delta Delta::round_up( Scale grid_size ) const {
   Coord bottom_right = Coord{} + *this;
-  return bottom_right.rounded_up_to_multiple( grid_size )
+  return bottom_right
+      .rounded_to_multiple_to_plus_inf( grid_size )
       .distance_from_origin();
 }
 
