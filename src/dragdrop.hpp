@@ -94,7 +94,6 @@ public:
   }
 
   Plane::DragInfo handle_can_drag( Coord origin ) {
-    CHECK( util::holds<NoneT>( state_ ) );
     auto maybe_drag_in_progress = try_drag_start( origin );
     if( maybe_drag_in_progress ) {
       state_ = std::move( *maybe_drag_in_progress );
