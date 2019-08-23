@@ -92,7 +92,6 @@
 #define _DEFINE_FORMAT_T_( ... ) DEFINE_FORMAT_T_( __VA_ARGS__ )
 
 #define TEMPLATE( ... ) ( __VA_ARGS__ )
-#define ADD_TYPENAME( a ) typename a
 
 // We need the DEFER here because this will be called recursively
 // from another PP_MAP_SEMI below.
@@ -125,12 +124,12 @@
 
 #define ADT_MAKE_STRUCT_T( ns, t_args, name, ... )             \
   namespace ns {                                               \
-  template<PP_MAP_COMMAS( ADD_TYPENAME, EXPAND t_args )>       \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
   struct name {                                                \
     __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE,      \
                                       __VA_ARGS__ ) )          \
   };                                                           \
-  template<PP_MAP_COMMAS( ADD_TYPENAME, EXPAND t_args )>       \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
   SWITCH_EMPTY(                                                \
       inline bool operator==( name<EXPAND t_args> const& l,    \
                               name<EXPAND t_args> const& r ) { \
@@ -180,17 +179,17 @@
         std::is_nothrow_move_assignable_v<name##_t> );     \
   }
 
-#define ADT_T_IMPL( ns, t_args, name, ... )                \
-  DEFER( PP_MAP )                                          \
-  ( ADT_MAKE_STRUCT_TUPLE_T,                               \
-    PP_MAP_PREPEND2_TUPLE( ns::name, t_args,               \
-                           __VA_ARGS__ ) ) namespace ns {  \
-    template<PP_MAP_COMMAS( ADD_TYPENAME, EXPAND t_args )> \
-    using name##_t = std::variant<JOIN_WITH_TUPLE_EXPAND(  \
-        (<EXPAND t_args>),                                 \
-        PP_MAP_PREPEND_NS(                                 \
-            name,                                          \
-            PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) ) )>; \
+#define ADT_T_IMPL( ns, t_args, name, ... )                   \
+  DEFER( PP_MAP )                                             \
+  ( ADT_MAKE_STRUCT_TUPLE_T,                                  \
+    PP_MAP_PREPEND2_TUPLE( ns::name, t_args,                  \
+                           __VA_ARGS__ ) ) namespace ns {     \
+    template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )> \
+    using name##_t = std::variant<JOIN_WITH_TUPLE_EXPAND(     \
+        (<EXPAND t_args>),                                    \
+        PP_MAP_PREPEND_NS(                                    \
+            name,                                             \
+            PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) ) )>;    \
   }
 
 #define ADT( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )

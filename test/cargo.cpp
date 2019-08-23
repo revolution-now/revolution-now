@@ -18,14 +18,18 @@
 // base-util
 #include "base-util/variant.hpp"
 
-// Catch2
-#include "catch2/catch.hpp"
+// Must be last.
+#include "catch-common.hpp"
 
 #define REQUIRE_BROKEN_INVARIANTS \
   REQUIRE_THROWS_AS_RN( ch.check_invariants() )
 
 #define REQUIRE_GOOD_INVARIANTS \
   REQUIRE_NOTHROW( ch.check_invariants() )
+
+FMT_TO_CATCH( ::rn::CargoSlot_t );
+FMT_TO_CATCH( ::rn::UnitId );
+FMT_TO_CATCH( ::rn::Commodity );
 
 namespace {
 

@@ -39,8 +39,6 @@ using formatter_base = ::fmt::formatter<::std::string>;
 /****************************************************************
 ** Macros
 *****************************************************************/
-#define FMT_ADD_TYPENAME( a ) typename a
-
 // Macro to easily extend {fmt} to user-defined types. This macro
 // should be issued in the global namespace.
 #define DEFINE_FORMAT_IMPL( use_param, type, ... )     \
@@ -55,7 +53,7 @@ using formatter_base = ::fmt::formatter<::std::string>;
 
 // When the type is templated. May need to be surrounded by EVAL.
 #define DEFINE_FORMAT_T_IMPL( use_param, t_args, type, ... )  \
-  template<PP_MAP_COMMAS( FMT_ADD_TYPENAME, EXPAND t_args )>  \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>   \
   struct fmt::formatter<EXPAND type> : formatter_base {       \
     template<typename FormatContext>                          \
     auto format( EXPAND type const &o, FormatContext &ctx ) { \
@@ -162,6 +160,17 @@ struct formatter<std::optional<T>> : formatter_base {
     return formatter_base::format(
         o.has_value() ? fmt::format( "{}", *o ) : nullopt_str,
         ctx );
+  }
+};
+
+// {fmt} formatter for formatting pairs whose contained types are
+// formattable.
+template<typename T, typename U>
+struct formatter<std::pair<T, U>> : formatter_base {
+  template<typename FormatContext>
+  auto format( std::pair<T, U> const &o, FormatContext &ctx ) {
+    return formatter_base::format(
+        fmt::format( "({},{})", o.first, o.second ), ctx );
   }
 };
 
