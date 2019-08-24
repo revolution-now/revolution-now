@@ -1259,21 +1259,6 @@ public:
     return res;
   }
 
-  Opt<DragArc_t> drag_arc( DragSrc_t const& src,
-                           DragDst_t const& dst ) const {
-    Opt<DragArc_t> res;
-    // Can this be done automatically with the types?
-    if_v( src, DragSrc::dock, p_src ) {
-      // if_v( dst, DragDst::dock, p_dst ) //
-      //    res = Drag::dock_to_dock{*p_src, *p_dst};
-      // if_v( dst, DragDst::ship_in_port, p_dst ) //
-      //    res = Drag::dock_to_ship{*p_src, *p_dst};
-      if_v( dst, DragDst::active_cargo, p_dst ) //
-          res = DragArc::dock_to_cargo{*p_src, *p_dst};
-    }
-    return res;
-  }
-
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
     return matcher_( drag_arc ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
@@ -1291,6 +1276,7 @@ public:
           "Drag was marked as correct, but can_perform_drag "
           "returned false for arc: {}",
           drag_arc );
+      DCHECK( false );
       return;
     }
     // Beyond this point it is assumed that this drag is compat-

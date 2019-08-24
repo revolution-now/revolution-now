@@ -149,8 +149,8 @@ public:
                                 Coord const& drag_end ) {
     if_v( state_, InProgress_t, in_progress ) {
       if( in_progress->dst ) {
-        auto maybe_drag_arc = child().drag_arc(
-            in_progress->src, *in_progress->dst );
+        auto maybe_drag_arc =
+            drag_arc( in_progress->src, *in_progress->dst );
         if( maybe_drag_arc &&
             child().can_perform_drag( *maybe_drag_arc ) ) {
           state_ = Complete_t{
@@ -199,13 +199,56 @@ private:
   using State_t = DragState_t<DragSrcT, DragDstT, DragArcT>;
 
 private:
+  template<size_t ArcTypeIndex>
+  void try_set_arc_impl( Opt<DragArcT>* arc, DragSrcT const& src,
+                         DragDstT const& dst ) const {
+    CHECK( arc );
+    using ArcSubType =
+        std::variant_alternative_t<ArcTypeIndex, DragArcT>;
+    using ArcSrcType =
+        std::decay_t<decltype( std::declval<ArcSubType>().src )>;
+    using ArcDstType =
+        std::decay_t<decltype( std::declval<ArcSubType>().dst )>;
+    auto const* p_src = get_if<ArcSrcType>( &src );
+    auto const* p_dst = get_if<ArcDstType>( &dst );
+    if( p_src && p_dst ) {
+      CHECK( !arc->has_value(),
+             "There are two DragArc subtypes that have the same "
+             "src & dst types but this is not allowed." );
+      *arc = ArcSubType{*p_src, *p_dst};
+    }
+  }
+
+  // Here we will iterate through all the types that DragArcT can
+  // have (DragArcT is assumed to be a variant) and we will find
+  // one whose `src` and `dst` field types match the types of the
+  // arguments. If found we will copy src/dst into the arc. We
+  // expect that at most one DragArcT subtype will be found com-
+  // patible; the above helper function will check-fail if more
+  // than one is found.
+  template<size_t... Indexes>
+  void try_set_arc( Opt<DragArcT>* arc, DragSrcT const& src,
+                    DragDstT const& dst,
+                    std::index_sequence<Indexes...> ) const {
+    ( try_set_arc_impl<Indexes>( arc, src, dst ), ... );
+  }
+
+  Opt<DragArcT> drag_arc( DragSrcT const& src,
+                          DragDstT const& dst ) const {
+    Opt<DragArcT> res;
+    try_set_arc( &res, src, dst,
+                 std::make_index_sequence<
+                     std::variant_size_v<DragArcT>>() );
+    return res;
+  }
+
   enum class e_drag_status_indicator { none, never, bad, good };
 
   e_drag_status_indicator drag_status_indicator(
       InProgress_t const& in_progress ) const {
     if( !in_progress.dst ) return e_drag_status_indicator::none;
     auto maybe_arc =
-        child().drag_arc( in_progress.src, *in_progress.dst );
+        drag_arc( in_progress.src, *in_progress.dst );
     if( !maybe_arc ) return e_drag_status_indicator::never;
     if( !child().can_perform_drag( *maybe_arc ) )
       return e_drag_status_indicator::bad;
