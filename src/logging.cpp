@@ -15,6 +15,7 @@
 #include "console.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
+#include "macros.hpp"
 
 // C++ standard library
 #include <mutex>
@@ -45,6 +46,7 @@ spdlog::level::level_enum to_spdlog_level( e_log_level level ) {
     case e_log_level::critical: return spdlog::level::critical;
     case e_log_level::off: return spdlog::level::off;
   }
+  UNREACHABLE_LOCATION;
 }
 
 // A "sink" that goes to the in-game console in a thread-safe
