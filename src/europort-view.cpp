@@ -53,7 +53,7 @@ namespace {
 using DraggableObject = std::variant< //
     UnitId,                           //
     e_commodity,                      // from market.
-    CargoSlotIndex                    //
+    Commodity                         //
     >;
 
 static_assert( std::is_copy_constructible_v<DraggableObject> );
@@ -66,7 +66,37 @@ Delta g_clip;
 // This can be any ship that is visible on the europe view.
 Opt<UnitId> g_selected_unit;
 
-Opt<DraggableObject> g_dragging_unit;
+Opt<DraggableObject> g_dragging_object;
+
+/****************************************************************
+** Utilities
+*****************************************************************/
+
+Opt<DraggableObject> cargo_slot_to_draggable(
+    CargoSlot_t const& slot ) {
+  return matcher_( slot, ->, Opt<DraggableObject> ) {
+    case_( CargoSlot::empty ) result_    nullopt;
+    case_( CargoSlot::overflow ) result_ nullopt;
+    case_( CargoSlot::cargo, contents ) {
+      return matcher_( contents, ->, DraggableObject ) {
+        case_( UnitId ) result_    val;
+        case_( Commodity ) result_ val;
+        matcher_exhaustive;
+      }
+    }
+    matcher_exhaustive;
+  }
+}
+
+Opt<DraggableObject> draggable_in_cargo_slot(
+    CargoSlotIndex slot ) {
+  using util::infix::fmap;
+  using util::infix::fmap_join;
+  return g_selected_unit                                 //
+         | fmap( unit_from_id )                          //
+         | fmap_join( LC( _.get().cargo().at( slot ) ) ) //
+         | fmap_join( cargo_slot_to_draggable );
+}
 
 /****************************************************************
 ** The Clip Rect
@@ -288,8 +318,9 @@ public:
     return res;
   }
 
-  Opt<int> cargo_slot_idx_from_coord( Coord coord ) const {
-    Opt<int> res;
+  Opt<CargoSlotIndex> cargo_slot_idx_from_coord(
+      Coord coord ) const {
+    Opt<CargoSlotIndex> res;
     if( coord.is_inside( bounds() ) ) {
       auto boxes =
           bounds().with_new_upper_left( Coord{} ) / box_scale;
@@ -723,7 +754,8 @@ public:
     // render_rect( tx, Color::white(), bds.shifted_by( offset )
     // );
     for( auto const& unit_with_pos : units_ )
-      if( g_dragging_unit != DraggableObject{unit_with_pos.id} )
+      if( g_dragging_object !=
+          DraggableObject{unit_with_pos.id} )
         render_unit( tx, unit_with_pos.id,
                      unit_with_pos.pixel_coord + offset,
                      /*with_icon=*/false );
@@ -958,8 +990,9 @@ public:
           case_( CargoSlot::cargo ) {
             switch_( val.contents ) {
               case_( UnitId ) {
-                render_unit( tx, val, dst_coord,
-                             /*with_icon=*/false );
+                if( g_dragging_object != DraggableObject{val} )
+                  render_unit( tx, val, dst_coord,
+                               /*with_icon=*/false );
               }
               case_( Commodity ) {
                 render_commodity_annotated( tx, val, dst_coord );
@@ -1006,8 +1039,9 @@ public:
     return res;
   }
 
-  Opt<int> cargo_slot_idx_from_coord( Coord coord ) const {
-    Opt<int> res;
+  Opt<CargoSlotIndex> cargo_slot_idx_from_coord(
+      Coord coord ) const {
+    Opt<CargoSlotIndex> res;
     if( maybe_active_unit_ ) {
       if( coord.is_inside( bounds_ ) ) {
         auto boxes = bounds_.with_new_upper_left( Coord{} ) /
@@ -1023,12 +1057,14 @@ public:
     return res;
   }
 
-  Opt<CargoSlot_t> cargo_slot_from_coord( Coord coord ) const {
+  Opt<CRef<CargoSlot_t>> cargo_slot_from_coord(
+      Coord coord ) const {
+    using util::infix::fmap;
     // Lambda will only be called if a valid index is returned,
     // in which case there is guaranteed to be an active unit.
-    return util::fmap(
-        LC( unit_from_id( *maybe_active_unit_ ).cargo()[_] ),
-        cargo_slot_idx_from_coord( coord ) );
+    return cargo_slot_idx_from_coord( coord ) //
+           | fmap( LC( unit_from_id( *maybe_active_unit_ )
+                           .cargo()[_] ) );
   }
 
   Opt<UnitId> active_unit() const { return maybe_active_unit_; }
@@ -1150,9 +1186,11 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-ADT_RN_( DragSrc,           //
-         ( dock,            //
-           ( UnitId, id ) ) //
+ADT_RN_( DragSrc,                     //
+         ( dock,                      //
+           ( UnitId, id ) ),          //
+         ( cargo,                     //
+           ( CargoSlotIndex, slot ) ) //
 );
 
 ADT_RN_( DragDst,                      //
@@ -1181,7 +1219,15 @@ public:
   DraggableObject draggable_from_src(
       DragSrc_t const& drag_src ) const {
     return matcher_( drag_src, ->, DraggableObject ) {
-      case_( DragSrc::dock ) { return val.id; }
+      case_( DragSrc::dock, id ) { return id; }
+      case_( DragSrc::cargo, slot ) {
+        // Not all cargo slots must have an item in them, but in
+        // this case the slot should otherwise the DragSrc object
+        // should never have been created.
+        ASSIGN_CHECK_OPT( object,
+                          draggable_in_cargo_slot( slot ) );
+        return object;
+      }
       matcher_exhaustive;
     }
   }
@@ -1200,7 +1246,7 @@ public:
         NOT_IMPLEMENTED;
         return Texture{};
       }
-      case_( CargoSlotIndex ) {
+      case_( Commodity ) {
         NOT_IMPLEMENTED;
         return Texture{};
       }
@@ -1209,16 +1255,34 @@ public:
   }
 
   // Coord is relative to clip_rect for now.
-  Opt<DragSrc_t> drag_src( Coord const& coord ) const {
+  Opt<DragSrc_t> drag_src( Coord const& do_not_use ) const {
     using namespace entity;
+    auto coord =
+        do_not_use.with_new_origin( clip_rect().upper_left() );
     Opt<DragSrc_t> res;
-    auto           offset = clip_rect().upper_left();
     if( entities_->units_on_dock.has_value() ) {
       if( auto maybe_id =
               entities_->units_on_dock->unit_under_cursor(
-                  coord.with_new_origin( offset ) );
+                  coord );
           maybe_id )
-        res = DragSrc::dock{*maybe_id};
+        res = DragSrc::dock{
+            /*id=*/*maybe_id //
+        };
+    }
+    if( entities_->active_cargo.has_value() ) {
+      if( auto maybe_idx =
+              entities_->active_cargo->cargo_slot_idx_from_coord(
+                  coord );
+          maybe_idx ) {
+        // There must be an object in the slot to be dragged.
+        if( auto maybe_object =
+                draggable_in_cargo_slot( *maybe_idx );
+            maybe_object ) {
+          res = DragSrc::cargo{
+              /*slot=*/CargoSlotIndex{*maybe_idx} //
+          };
+        };
+      }
     }
     return res;
   }
@@ -1227,15 +1291,15 @@ public:
   // function we should not return early; we should check all the
   // entities (in order) to allow later ones to override earlier
   // ones.
-  Opt<DragDst_t> drag_dst( Coord const& coord ) const {
+  Opt<DragDst_t> drag_dst( Coord const& do_not_use ) const {
     using namespace entity;
+    auto coord =
+        do_not_use.with_new_origin( clip_rect().upper_left() );
     Opt<DragDst_t> res;
-    auto           offset = clip_rect().upper_left();
     if( entities_->active_cargo_box.has_value() ) {
       if( auto maybe_slot =
               entities_->active_cargo_box
-                  ->cargo_slot_idx_from_coord(
-                      coord.with_new_origin( offset ) );
+                  ->cargo_slot_idx_from_coord( coord );
           maybe_slot ) {
         res = DragDst::cargo_box{
             /*slot=*/CargoSlotIndex{*maybe_slot} //
@@ -1245,7 +1309,7 @@ public:
     if( entities_->active_cargo.has_value() ) {
       if( auto maybe_slot =
               entities_->active_cargo->cargo_slot_idx_from_coord(
-                  coord.with_new_origin( offset ) );
+                  coord );
           maybe_slot ) {
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo->active_unit() );
@@ -1307,7 +1371,7 @@ struct EuropePlane : public Plane {
   bool covers_screen() const override { return false; }
   void on_frame_start() override {
     drag_n_drop_.handle_on_frame_start();
-    g_dragging_unit = drag_n_drop_.obj_being_dragged();
+    g_dragging_object = drag_n_drop_.obj_being_dragged();
     // Should be last.
     create_entities( &entities_ );
   }

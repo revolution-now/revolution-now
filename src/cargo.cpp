@@ -147,9 +147,24 @@ int CargoHold::count_items() const {
                          L( holds<CargoSlot::cargo>( _ ) ) );
 }
 
+Opt<CRef<CargoSlot_t>> CargoHold::at( int slot ) const {
+  if( slot < 0 || slot >= slots_total() ) return nullopt;
+  return ( *this )[slot];
+}
+
+Opt<CRef<CargoSlot_t>> CargoHold::at(
+    CargoSlotIndex slot ) const {
+  return this->at( slot._ );
+}
+
 CargoSlot_t const& CargoHold::operator[]( int idx ) const {
   CHECK( idx >= 0 && idx < int( slots_.size() ) );
   return slots_[idx];
+}
+
+CargoSlot_t const& CargoHold::operator[](
+    CargoSlotIndex idx ) const {
+  return this->operator[]( idx._ );
 }
 
 Opt<int> CargoHold::find_unit( UnitId id ) const {

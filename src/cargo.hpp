@@ -89,7 +89,11 @@ public:
   auto begin() const { return slots_.begin(); }
   auto end() const { return slots_.end(); }
 
+  Opt<CRef<CargoSlot_t>> at( int slot ) const;
+  Opt<CRef<CargoSlot_t>> at( CargoSlotIndex slot ) const;
+
   CargoSlot_t const&      operator[]( int idx ) const;
+  CargoSlot_t const&      operator[]( CargoSlotIndex idx ) const;
   Vec<CargoSlot_t> const& slots() const { return slots_; }
 
   // If unit is in cargo, returns its slot index.

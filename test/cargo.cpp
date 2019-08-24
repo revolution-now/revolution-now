@@ -53,7 +53,7 @@ struct CargoHoldTester : public CargoHold {
   using CargoHold::slots_;
 };
 
-TEST_CASE( "CargoHold slot bounds" ) {
+TEST_CASE( "CargoHold slot bounds zero" ) {
   CargoHoldTester ch0( 0 );
   REQUIRE_THROWS_AS_RN( ch0[0] );
   REQUIRE( ch0.begin() == ch0.end() );
@@ -67,6 +67,29 @@ TEST_CASE( "CargoHold slot bounds" ) {
 
   ch0.clear();
   ch6.clear();
+}
+
+TEST_CASE( "CargoHold slot bounds six" ) {
+  CargoHoldTester ch( 6 );
+  REQUIRE( distance( ch.begin(), ch.end() ) == 6 );
+
+  REQUIRE_THROWS_AS_RN( ch[-1] );
+  REQUIRE_THROWS_AS_RN( ch[6] );
+  REQUIRE_THROWS_AS_RN( ch[7] );
+  REQUIRE( ch[5] == CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch[0] == CargoSlot_t{CargoSlot::empty{}} );
+
+  REQUIRE( ch.at( -1 ) == nullopt );
+  REQUIRE( ch.at( 6 ) == nullopt );
+  REQUIRE( ch.at( 7 ) == nullopt );
+  REQUIRE( ch.at( 5 ).has_value() );
+  REQUIRE( ch.at( 0 ).has_value() );
+  REQUIRE( ch.at( 5 )->get() ==
+           CargoSlot_t{CargoSlot::empty{}} );
+  REQUIRE( ch.at( 0 )->get() ==
+           CargoSlot_t{CargoSlot::empty{}} );
+
+  ch.clear();
 }
 
 TEST_CASE( "CargoHold zero size" ) {

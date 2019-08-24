@@ -45,3 +45,10 @@
   static_assert( sizeof( decltype( name{}.to_tuple() ) ) ==    \
                  sizeof( name ) );                             \
   struct ____##name {
+//
+// Hopefully, if someone else defines this, it will be defined
+// equivalently, since this seems to be a standard thing.
+#ifndef FWD
+#  define FWD( ... ) \
+    ::std::forward<decltype( __VA_ARGS__ )>( __VA_ARGS__ )
+#endif

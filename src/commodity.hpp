@@ -85,6 +85,9 @@ struct Commodity {
   bool operator==( Commodity const& rhs ) const {
     return type == rhs.type && quantity == rhs.quantity;
   }
+  bool operator!=( Commodity const& rhs ) const {
+    return !( *this == rhs );
+  }
 };
 
 /****************************************************************
