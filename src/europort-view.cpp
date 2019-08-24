@@ -48,7 +48,14 @@ namespace rn {
 namespace {
 
 /****************************************************************
-** Types
+** Selected Unit
+*****************************************************************/
+// Global State. This can be any ship that is visible on the eu-
+// rope view.
+Opt<UnitId> g_selected_unit;
+
+/****************************************************************
+** Draggable Object
 *****************************************************************/
 using DraggableObject = std::variant< //
     UnitId,                           //
@@ -58,19 +65,8 @@ using DraggableObject = std::variant< //
 
 static_assert( std::is_copy_constructible_v<DraggableObject> );
 
-/****************************************************************
-** Global State
-*****************************************************************/
-Delta g_clip;
-
-// This can be any ship that is visible on the europe view.
-Opt<UnitId> g_selected_unit;
-
+// Global State.
 Opt<DraggableObject> g_dragging_object;
-
-/****************************************************************
-** Utilities
-*****************************************************************/
 
 Opt<DraggableObject> cargo_slot_to_draggable(
     CargoSlot_t const& slot ) {
@@ -98,9 +94,32 @@ Opt<DraggableObject> draggable_in_cargo_slot(
          | fmap_join( cargo_slot_to_draggable );
 }
 
+Texture draw_draggable_object( DraggableObject const& object ) {
+  return matcher_( object ) {
+    case_( UnitId ) {
+      auto tx = create_texture_transparent(
+          lookup_sprite( unit_from_id( val ).desc().tile )
+              .size() );
+      render_unit( tx, val, Coord{}, /*with_icon=*/false );
+      return tx;
+    }
+    case_( e_commodity ) {
+      NOT_IMPLEMENTED;
+      return Texture{};
+    }
+    case_( Commodity ) {
+      NOT_IMPLEMENTED;
+      return Texture{};
+    }
+    matcher_exhaustive;
+  }
+}
+
 /****************************************************************
 ** The Clip Rect
 *****************************************************************/
+// Global State.
+Delta g_clip;
 
 Rect clip_rect() {
   return Rect::from(
@@ -1232,27 +1251,8 @@ public:
     }
   }
 
-  Texture draw_dragged_item(
-      DraggableObject const& object ) const {
-    return matcher_( object ) {
-      case_( UnitId ) {
-        auto tx = create_texture_transparent(
-            lookup_sprite( unit_from_id( val ).desc().tile )
-                .size() );
-        render_unit( tx, val, Coord{}, /*with_icon=*/false );
-        return tx;
-      }
-      case_( e_commodity ) {
-        NOT_IMPLEMENTED;
-        return Texture{};
-      }
-      case_( Commodity ) {
-        NOT_IMPLEMENTED;
-        return Texture{};
-      }
-      matcher_exhaustive;
-    }
-  }
+  constexpr static auto const draw_dragged_item =
+      L( draw_draggable_object( _ ) );
 
   // Coord is relative to clip_rect for now.
   Opt<DragSrc_t> drag_src( Coord const& do_not_use ) const {
