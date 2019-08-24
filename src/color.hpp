@@ -14,8 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "fmt-helper.hpp"
 #include "coord.hpp"
+#include "fmt-helper.hpp"
 
 // c++ standard library
 #include <cstdint>
@@ -88,6 +88,7 @@ struct Color {
   }
 
   static Color red() { return {255, 0, 0, 255}; }
+  static Color yellow() { return {255, 255, 0, 255}; }
   static Color green() { return {0, 255, 0, 255}; }
   static Color blue() { return {0, 0, 255, 255}; }
   static Color white() { return {255, 255, 255, 255}; }

@@ -16,8 +16,10 @@
 #include "adt.hpp"
 #include "aliases.hpp"
 #include "coord.hpp"
+#include "gfx.hpp"
 #include "input.hpp"
 #include "plane.hpp"
+#include "text.hpp"
 #include "tx.hpp"
 
 // base-util
@@ -77,6 +79,35 @@ public:
           auto mouse_pos = input::current_mouse_position();
           copy_texture( *val.tx, tx,
                         mouse_pos - val.tx->size() / Scale{2} );
+          // Now draw the indicator.
+          auto indicator = drag_status_indicator( val );
+          switch( indicator ) {
+            case e_drag_status_indicator::none: break;
+            case e_drag_status_indicator::never: {
+              auto const& status_tx =
+                  render_text( "X", Color::yellow() );
+              auto indicator_pos =
+                  mouse_pos - status_tx.size() / Scale{1};
+              copy_texture( status_tx, tx, indicator_pos );
+              break;
+            }
+            case e_drag_status_indicator::bad: {
+              auto const& status_tx =
+                  render_text( "X", Color::red() );
+              auto indicator_pos =
+                  mouse_pos - status_tx.size() / Scale{1};
+              copy_texture( status_tx, tx, indicator_pos );
+              break;
+            }
+            case e_drag_status_indicator::good: {
+              auto const& status_tx =
+                  render_text( "+", Color::green() );
+              auto indicator_pos =
+                  mouse_pos - status_tx.size() / Scale{1};
+              copy_texture( status_tx, tx, indicator_pos );
+              break;
+            }
+          }
         }
       }
       case_( RubberBandT ) {
@@ -94,12 +125,15 @@ public:
   }
 
   Plane::DragInfo handle_can_drag( Coord origin ) {
-    auto maybe_drag_in_progress = try_drag_start( origin );
-    if( maybe_drag_in_progress ) {
-      state_ = std::move( *maybe_drag_in_progress );
-      return Plane::e_accept_drag::yes;
-    }
-    return Plane::e_accept_drag::no;
+    auto maybe_drag_src = child().drag_src( origin );
+    if( !maybe_drag_src ) return Plane::e_accept_drag::no;
+
+    state_ = InProgressT{
+        /*src=*/*maybe_drag_src,
+        /*dst=*/std::nullopt,
+        /*tx=*/child().draw_dragged_item( *maybe_drag_src ),
+    };
+    return Plane::e_accept_drag::yes;
   }
 
   void handle_on_drag( Coord current ) {
@@ -148,19 +182,17 @@ private:
       DragState::rubber_band<DragSrcT, DragDstT, DragArcT>;
 
 private:
-  Opt<InProgressT> try_drag_start( Coord const& origin ) const {
-    Opt<InProgressT> res;
-    auto maybe_being_dragged = child().drag_src( origin );
-    if( maybe_being_dragged ) {
-      auto const& drag_src = *maybe_being_dragged;
+  enum class e_drag_status_indicator { none, never, bad, good };
 
-      res = InProgressT{
-          /*src=*/drag_src,
-          /*dst=*/std::nullopt,
-          /*tx=*/child().draw_dragged_item( drag_src ),
-      };
-    }
-    return res;
+  e_drag_status_indicator drag_status_indicator(
+      InProgressT const& in_progress ) const {
+    if( !in_progress.dst ) return e_drag_status_indicator::none;
+    auto maybe_arc =
+        child().drag_arc( in_progress.src, *in_progress.dst );
+    if( !maybe_arc ) return e_drag_status_indicator::never;
+    if( !child().can_perform_drag( *maybe_arc ) )
+      return e_drag_status_indicator::bad;
+    return e_drag_status_indicator::good;
   }
 
 private:
