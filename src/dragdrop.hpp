@@ -131,11 +131,12 @@ public:
       return Plane::e_accept_drag::swallow;
     auto maybe_drag_src = child().drag_src( origin );
     if( !maybe_drag_src ) return Plane::e_accept_drag::no;
-
+    auto draggable =
+        child().draggable_from_src( *maybe_drag_src );
     state_ = InProgress_t{
         /*src=*/*maybe_drag_src,
         /*dst=*/std::nullopt,
-        /*tx=*/child().draw_dragged_item( *maybe_drag_src ),
+        /*tx=*/child().draw_dragged_item( draggable ),
     };
     return Plane::e_accept_drag::yes;
   }

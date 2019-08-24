@@ -1178,6 +1178,36 @@ public:
     CHECK( entities );
   }
 
+  DraggableObject draggable_from_src(
+      DragSrc_t const& drag_src ) const {
+    return matcher_( drag_src, ->, DraggableObject ) {
+      case_( DragSrc::dock ) { return val.id; }
+      matcher_exhaustive;
+    }
+  }
+
+  Texture draw_dragged_item(
+      DraggableObject const& object ) const {
+    return matcher_( object ) {
+      case_( UnitId ) {
+        auto tx = create_texture_transparent(
+            lookup_sprite( unit_from_id( val ).desc().tile )
+                .size() );
+        render_unit( tx, val, Coord{}, /*with_icon=*/false );
+        return tx;
+      }
+      case_( e_commodity ) {
+        NOT_IMPLEMENTED;
+        return Texture{};
+      }
+      case_( CargoSlotIndex ) {
+        NOT_IMPLEMENTED;
+        return Texture{};
+      }
+      matcher_exhaustive;
+    }
+  }
+
   // Coord is relative to clip_rect for now.
   Opt<DragSrc_t> drag_src( Coord const& coord ) const {
     using namespace entity;
@@ -1244,25 +1274,8 @@ public:
     return res;
   }
 
-  Opt<Texture> draw_dragged_item(
-      DragSrc_t const& being_dragged ) const {
-    Opt<Texture> res;
-    switch_( being_dragged ) {
-      case_( DragSrc::dock, id ) {
-        auto tx = create_texture_transparent(
-            lookup_sprite( unit_from_id( id ).desc().tile )
-                .size() );
-        render_unit( tx, id, Coord{}, /*with_icon=*/false );
-        res = std::move( tx );
-      }
-      switch_non_exhaustive;
-    }
-    return res;
-  }
-
-  bool can_perform_drag(
-      DragArc_t const& drag_arc_to_perform ) const {
-    return matcher_( drag_arc_to_perform ) {
+  bool can_perform_drag( DragArc_t const& drag_arc ) const {
+    return matcher_( drag_arc ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
         result_ unit_from_id( dst.ship )
             .cargo()
@@ -1272,18 +1285,17 @@ public:
     }
   }
 
-  void perform_drag(
-      DragArc_t const& drag_arc_to_perform ) const {
-    if( !can_perform_drag( drag_arc_to_perform ) ) {
+  void perform_drag( DragArc_t const& drag_arc ) const {
+    if( !can_perform_drag( drag_arc ) ) {
       lg.error(
           "Drag was marked as correct, but can_perform_drag "
           "returned false for arc: {}",
-          drag_arc_to_perform );
+          drag_arc );
       return;
     }
     // Beyond this point it is assumed that this drag is compat-
     // ible with game rules.
-    switch_( drag_arc_to_perform ) {
+    switch_( drag_arc ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
         lg.info( "dragging unit {} into ship {}'s cargo slot {}",
                  debug_string( src.id ),
@@ -1295,16 +1307,8 @@ public:
     }
   }
 
-  Opt<DraggableObject> draggable_from_src(
-      DragSrc_t const& drag_src ) const {
-    Opt<DraggableObject> res;
-    switch_( drag_src ) {
-      case_( DragSrc::dock ) { res = val.id; }
-      switch_exhaustive;
-    }
-    return res;
-  }
-
+  // This class cannot change the entities, but note that the en-
+  // tities will be changed on each frame.
   Entities const* entities_;
 };
 
