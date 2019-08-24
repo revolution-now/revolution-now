@@ -469,6 +469,9 @@ inline constexpr bool operator>=( TypedInt<Tag> left,
 #define TYPED_ID( a ) \
   DERIVE_TYPED_NUM( int, a, TypedIntMinimal, id )
 
+#define TYPED_INDEX( a ) \
+  DERIVE_TYPED_NUM( int, a, TypedInt, idx )
+
 // Scales are numbers that can only be multiplied by themselves
 // or by the corresponding coordinate/length type.
 #define TYPED_SCALE( t, a, s ) \

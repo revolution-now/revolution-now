@@ -18,6 +18,7 @@
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "macros.hpp"
+#include "typed-int.hpp"
 #include "util.hpp"
 
 // base-util
@@ -28,6 +29,8 @@
 // C++ standard library
 #include <variant>
 #include <vector>
+
+TYPED_INDEX( CargoSlotIndex );
 
 namespace rn {
 

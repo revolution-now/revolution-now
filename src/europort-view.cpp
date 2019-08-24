@@ -48,12 +48,25 @@ namespace rn {
 namespace {
 
 /****************************************************************
+** Types
+*****************************************************************/
+using DraggableObject = std::variant< //
+    UnitId,                           //
+    e_commodity,                      // from market.
+    CargoSlotIndex                    //
+    >;
+
+static_assert( std::is_copy_constructible_v<DraggableObject> );
+
+/****************************************************************
 ** Global State
 *****************************************************************/
 Delta g_clip;
 
 // This can be any ship that is visible on the europe view.
 Opt<UnitId> g_selected_unit;
+
+Opt<DraggableObject> g_dragging_unit;
 
 /****************************************************************
 ** The Clip Rect
@@ -271,6 +284,18 @@ public:
                     1_h,
                 rect.center().x - size_pixels.w / 2_sx} );
       }
+    }
+    return res;
+  }
+
+  Opt<int> cargo_slot_idx_from_coord( Coord coord ) const {
+    Opt<int> res;
+    if( coord.is_inside( bounds() ) ) {
+      auto boxes =
+          bounds().with_new_upper_left( Coord{} ) / box_scale;
+      res = boxes.rasterize(
+          coord.with_new_origin( bounds().upper_left() ) /
+          box_scale );
     }
     return res;
   }
@@ -698,9 +723,10 @@ public:
     // render_rect( tx, Color::white(), bds.shifted_by( offset )
     // );
     for( auto const& unit_with_pos : units_ )
-      render_unit( tx, unit_with_pos.id,
-                   unit_with_pos.pixel_coord + offset,
-                   /*with_icon=*/false );
+      if( g_dragging_unit != DraggableObject{unit_with_pos.id} )
+        render_unit( tx, unit_with_pos.id,
+                     unit_with_pos.pixel_coord + offset,
+                     /*with_icon=*/false );
     if( g_selected_unit ) {
       for( auto [id, coord] : units_ ) {
         if( id == *g_selected_unit ) {
@@ -1124,46 +1150,28 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-ADT_RN_( DragSrc,                  //
-         ( dock,                   //
-           ( UnitId, id ) ),       //
-         ( ship_in_port,           //
-           ( UnitId, id ) ),       //
-         ( ship_inbound,           //
-           ( UnitId, id ) ),       //
-         ( ship_outbound,          //
-           ( UnitId, id ) ),       //
-         ( cargo_unit,             //
-           ( int, slot ) ),        //
-         ( cargo_commodity,        //
-           ( int, slot ) ),        //
-         ( market_commodity,       //
-           ( e_commodity, type ) ) //
+ADT_RN_( DragSrc,           //
+         ( dock,            //
+           ( UnitId, id ) ) //
 );
 
-ADT_RN_( DragDst,                //
-         ( dock,                 //
-           ( int, where ) ),     //
-         ( cargo,                //
-           ( UnitId, ship ),     //
-           ( int, slot ) ),      //
-         ( market_commodities ), //
-         ( ship_in_port,         //
-           ( UnitId, id ) ),     //
-         ( in_port_box ),        //
-         ( inbound_box ),        //
-         ( outbound_box )        //
+ADT_RN_( DragDst,                      //
+         ( cargo_box,                  //
+           ( CargoSlotIndex, slot ) ), //
+         ( active_cargo,               //
+           ( UnitId, ship ),           //
+           ( CargoSlotIndex, slot ) )  //
 );
 
-ADT_RN_( DragArc,                    //
-         ( dock_to_cargo,            //
-           ( DragSrc::dock, src ),   //
-           ( DragDst::cargo, dst ) ) //
+ADT_RN_( DragArc,                           //
+         ( dock_to_cargo,                   //
+           ( DragSrc::dock, src ),          //
+           ( DragDst::active_cargo, dst ) ) //
 );
 
 class EuroViewDragAndDrop
-  : public DragAndDrop<EuroViewDragAndDrop, DragSrc_t, DragDst_t,
-                       DragArc_t> {
+  : public DragAndDrop<EuroViewDragAndDrop, DraggableObject,
+                       DragSrc_t, DragDst_t, DragArc_t> {
 public:
   EuroViewDragAndDrop( Entities const* entities )
     : entities_( entities ) {
@@ -1185,11 +1193,25 @@ public:
     return res;
   }
 
-  // Coord is relative to clip_rect for now.
+  // Coord is relative to clip_rect for now. Important: in this
+  // function we should not return early; we should check all the
+  // entities (in order) to allow later ones to override earlier
+  // ones.
   Opt<DragDst_t> drag_dst( Coord const& coord ) const {
     using namespace entity;
     Opt<DragDst_t> res;
     auto           offset = clip_rect().upper_left();
+    if( entities_->active_cargo_box.has_value() ) {
+      if( auto maybe_slot =
+              entities_->active_cargo_box
+                  ->cargo_slot_idx_from_coord(
+                      coord.with_new_origin( offset ) );
+          maybe_slot ) {
+        res = DragDst::cargo_box{
+            /*slot=*/CargoSlotIndex{*maybe_slot} //
+        };
+      }
+    }
     if( entities_->active_cargo.has_value() ) {
       if( auto maybe_slot =
               entities_->active_cargo->cargo_slot_idx_from_coord(
@@ -1198,7 +1220,10 @@ public:
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo->active_unit() );
         if( is_unit_in_port( ship ) )
-          res = DragDst::cargo{ship, *maybe_slot};
+          res = DragDst::active_cargo{
+              /*ship=*/ship,                       //
+              /*slot=*/CargoSlotIndex{*maybe_slot} //
+          };
       }
     }
     return res;
@@ -1213,7 +1238,7 @@ public:
       //    res = Drag::dock_to_dock{*p_src, *p_dst};
       // if_v( dst, DragDst::ship_in_port, p_dst ) //
       //    res = Drag::dock_to_ship{*p_src, *p_dst};
-      if_v( dst, DragDst::cargo, p_dst ) //
+      if_v( dst, DragDst::active_cargo, p_dst ) //
           res = DragArc::dock_to_cargo{*p_src, *p_dst};
     }
     return res;
@@ -1241,7 +1266,7 @@ public:
       case_( DragArc::dock_to_cargo, src, dst ) {
         result_ unit_from_id( dst.ship )
             .cargo()
-            .fits( src.id, dst.slot );
+            .fits( src.id, dst.slot._ );
       }
       matcher_exhaustive;
     }
@@ -1263,10 +1288,21 @@ public:
         lg.info( "dragging unit {} into ship {}'s cargo slot {}",
                  debug_string( src.id ),
                  debug_string( dst.ship ), dst.slot );
-        ownership_change_to_cargo( dst.ship, src.id, dst.slot );
+        ownership_change_to_cargo( dst.ship, src.id,
+                                   dst.slot._ );
       }
       switch_exhaustive;
     }
+  }
+
+  Opt<DraggableObject> draggable_from_src(
+      DragSrc_t const& drag_src ) const {
+    Opt<DraggableObject> res;
+    switch_( drag_src ) {
+      case_( DragSrc::dock ) { res = val.id; }
+      switch_exhaustive;
+    }
+    return res;
   }
 
   Entities const* entities_;
@@ -1281,6 +1317,7 @@ struct EuropePlane : public Plane {
   bool covers_screen() const override { return false; }
   void on_frame_start() override {
     drag_n_drop_.handle_on_frame_start();
+    g_dragging_unit = drag_n_drop_.obj_being_dragged();
     // Should be last.
     create_entities( &entities_ );
   }

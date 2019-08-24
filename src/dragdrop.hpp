@@ -18,6 +18,7 @@
 #include "coord.hpp"
 #include "gfx.hpp"
 #include "input.hpp"
+#include "macros.hpp"
 #include "plane.hpp"
 #include "text.hpp"
 #include "tx.hpp"
@@ -41,6 +42,7 @@ ADT_T( rn,                                       //
        ( rubber_band,                            //
          ( Coord, current ),                     //
          ( Coord, dest ),                        //
+         ( DragSrcT, src ),                      //
          ( double, percent ),                    //
          ( Opt<Texture>, tx ) )                  //
 );
@@ -48,12 +50,11 @@ ADT_T( rn,                                       //
 namespace rn {
 
 // To be used as a base class in the CRTP.
-template<typename Child, typename DragSrcT, typename DragDstT,
-         typename DragArcT>
+template<typename Child, typename DraggableObjectT,
+         typename DragSrcT, typename DragDstT, typename DragArcT>
 class DragAndDrop {
-protected:
 public:
-  DragAndDrop() : state_{NoneT{}} {}
+  DragAndDrop() : state_{None_t{}} {}
 
   Child const& child() const {
     return *static_cast<Child const*>( this );
@@ -61,20 +62,20 @@ public:
   Child& child() { return *static_cast<Child*>( this ); }
 
   void handle_on_frame_start() {
-    if_v( state_, CompleteT, p_arc ) {
+    if_v( state_, Complete_t, p_arc ) {
       child().perform_drag( p_arc->arc );
-      state_ = NoneT{};
+      state_ = None_t{};
       return;
     }
-    if_v( state_, RubberBandT, p_band ) {
+    if_v( state_, RubberBand_t, p_band ) {
       p_band->percent += 0.15;
-      if( p_band->percent > 1.0 ) state_ = NoneT{};
+      if( p_band->percent > 1.0 ) state_ = None_t{};
     }
   }
 
   void handle_draw( Texture& tx ) const {
     switch_( state_ ) {
-      case_( InProgressT ) {
+      case_( InProgress_t ) {
         if( val.tx ) {
           auto mouse_pos = input::current_mouse_position();
           copy_texture( *val.tx, tx,
@@ -110,7 +111,7 @@ public:
           }
         }
       }
-      case_( RubberBandT ) {
+      case_( RubberBand_t ) {
         CHECK( val.tx.has_value() );
         auto  mouse_pos = input::current_mouse_position();
         auto  delta     = val.dest - val.current;
@@ -125,10 +126,13 @@ public:
   }
 
   Plane::DragInfo handle_can_drag( Coord origin ) {
+    if( !util::holds<None_t>( state_ ) )
+      // e.g. we're rubber-banding.
+      return Plane::e_accept_drag::swallow;
     auto maybe_drag_src = child().drag_src( origin );
     if( !maybe_drag_src ) return Plane::e_accept_drag::no;
 
-    state_ = InProgressT{
+    state_ = InProgress_t{
         /*src=*/*maybe_drag_src,
         /*dst=*/std::nullopt,
         /*tx=*/child().draw_dragged_item( *maybe_drag_src ),
@@ -137,20 +141,20 @@ public:
   }
 
   void handle_on_drag( Coord current ) {
-    if_v( state_, InProgressT, in_progress ) {
+    if_v( state_, InProgress_t, in_progress ) {
       in_progress->dst = child().drag_dst( current );
     }
   }
 
   bool handle_on_drag_finished( Coord const& drag_start,
                                 Coord const& drag_end ) {
-    if_v( state_, InProgressT, in_progress ) {
+    if_v( state_, InProgress_t, in_progress ) {
       if( in_progress->dst ) {
         auto maybe_drag_arc = child().drag_arc(
             in_progress->src, *in_progress->dst );
         if( maybe_drag_arc &&
             child().can_perform_drag( *maybe_drag_arc ) ) {
-          state_ = CompleteT{
+          state_ = Complete_t{
               /*arc=*/*maybe_drag_arc //
           };
           return true;
@@ -158,34 +162,52 @@ public:
       }
 
       if( in_progress->tx.has_value() ) {
-        state_ = RubberBandT{
+        state_ = RubberBand_t{
             /*current=*/drag_end,
             /*dest=*/drag_start,
+            /*src=*/in_progress->src,
             /*percent=*/0.0,
             /*<Texture> tx=*/std::move( in_progress->tx ),
         };
       } else {
-        state_ = NoneT{};
+        state_ = None_t{};
       }
       return true;
     }
     return false;
   }
 
+  Opt<DraggableObjectT> obj_being_dragged() const {
+    Opt<DraggableObjectT> res;
+    switch_( state_ ) {
+      case_( None_t ) break_;
+      case_( RubberBand_t ) {
+        res = child().draggable_from_src( val.src );
+      }
+      case_( InProgress_t ) {
+        res = child().draggable_from_src( val.src );
+      }
+      case_( Complete_t ) {}
+      switch_exhaustive;
+    }
+    return res;
+  }
+
 private:
-  using NoneT = DragState::none<DragSrcT, DragDstT, DragArcT>;
-  using InProgressT =
+  using None_t = DragState::none<DragSrcT, DragDstT, DragArcT>;
+  using InProgress_t =
       DragState::in_progress<DragSrcT, DragDstT, DragArcT>;
-  using CompleteT =
+  using Complete_t =
       DragState::complete<DragSrcT, DragDstT, DragArcT>;
-  using RubberBandT =
+  using RubberBand_t =
       DragState::rubber_band<DragSrcT, DragDstT, DragArcT>;
+  using State_t = DragState_t<DragSrcT, DragDstT, DragArcT>;
 
 private:
   enum class e_drag_status_indicator { none, never, bad, good };
 
   e_drag_status_indicator drag_status_indicator(
-      InProgressT const& in_progress ) const {
+      InProgress_t const& in_progress ) const {
     if( !in_progress.dst ) return e_drag_status_indicator::none;
     auto maybe_arc =
         child().drag_arc( in_progress.src, *in_progress.dst );
@@ -196,7 +218,8 @@ private:
   }
 
 private:
-  DragState_t<DragSrcT, DragDstT, DragArcT> state_;
+  State_t state_;
+  ASSERT_NOTHROW_MOVING( State_t );
 };
 
 } // namespace rn
