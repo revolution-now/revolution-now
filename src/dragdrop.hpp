@@ -36,7 +36,7 @@ ADT_T( rn,                                       //
        ( in_progress,                            //
          ( DragSrcT, src ),                      //
          ( Opt<DragDstT>, dst ),                 //
-         ( Opt<Texture>, tx ) ),                 //
+         ( Texture, tx ) ),                      //
        ( complete,                               //
          ( DragArcT, arc ) ),                    //
        ( rubber_band,                            //
@@ -44,7 +44,7 @@ ADT_T( rn,                                       //
          ( Coord, dest ),                        //
          ( DragSrcT, src ),                      //
          ( double, percent ),                    //
-         ( Opt<Texture>, tx ) )                  //
+         ( Texture, tx ) )                       //
 );
 
 namespace rn {
@@ -76,50 +76,48 @@ public:
   void handle_draw( Texture& tx ) const {
     switch_( state_ ) {
       case_( InProgress_t ) {
-        if( val.tx ) {
-          auto mouse_pos = input::current_mouse_position();
-          copy_texture( *val.tx, tx,
-                        mouse_pos - val.tx->size() / Scale{2} );
-          // Now draw the indicator.
-          auto indicator = drag_status_indicator( val );
-          switch( indicator ) {
-            case e_drag_status_indicator::none: break;
-            case e_drag_status_indicator::never: {
-              auto const& status_tx =
-                  render_text( "X", Color::yellow() );
-              auto indicator_pos =
-                  mouse_pos - status_tx.size() / Scale{1};
-              copy_texture( status_tx, tx, indicator_pos );
-              break;
-            }
-            case e_drag_status_indicator::bad: {
-              auto const& status_tx =
-                  render_text( "X", Color::red() );
-              auto indicator_pos =
-                  mouse_pos - status_tx.size() / Scale{1};
-              copy_texture( status_tx, tx, indicator_pos );
-              break;
-            }
-            case e_drag_status_indicator::good: {
-              auto const& status_tx =
-                  render_text( "+", Color::green() );
-              auto indicator_pos =
-                  mouse_pos - status_tx.size() / Scale{1};
-              copy_texture( status_tx, tx, indicator_pos );
-              break;
-            }
+        auto mouse_pos = input::current_mouse_position();
+        copy_texture( val.tx, tx,
+                      mouse_pos - val.tx.size() / Scale{2} );
+        // Now draw the indicator.
+        auto indicator = drag_status_indicator( val );
+        switch( indicator ) {
+          case e_drag_status_indicator::none: break;
+          case e_drag_status_indicator::never: {
+            auto const& status_tx =
+                render_text( "X", Color::yellow() );
+            auto indicator_pos =
+                mouse_pos - status_tx.size() / Scale{1};
+            copy_texture( status_tx, tx, indicator_pos );
+            break;
+          }
+          case e_drag_status_indicator::bad: {
+            auto const& status_tx =
+                render_text( "X", Color::red() );
+            auto indicator_pos =
+                mouse_pos - status_tx.size() / Scale{1};
+            copy_texture( status_tx, tx, indicator_pos );
+            break;
+          }
+          case e_drag_status_indicator::good: {
+            auto const& status_tx =
+                render_text( "+", Color::green() );
+            auto indicator_pos =
+                mouse_pos - status_tx.size() / Scale{1};
+            copy_texture( status_tx, tx, indicator_pos );
+            break;
           }
         }
       }
       case_( RubberBand_t ) {
-        CHECK( val.tx.has_value() );
-        auto  mouse_pos = input::current_mouse_position();
-        auto  delta     = val.dest - val.current;
+        auto  delta = val.dest - val.current;
         Coord pos;
-        pos.x._ = mouse_pos.x._ + int( delta.w._ * val.percent );
-        pos.y._ = mouse_pos.y._ + int( delta.h._ * val.percent );
-        copy_texture( *val.tx, tx,
-                      pos - val.tx->size() / Scale{2} );
+        pos.x._ =
+            val.current.x._ + int( delta.w._ * val.percent );
+        pos.y._ =
+            val.current.y._ + int( delta.h._ * val.percent );
+        copy_texture( val.tx, tx,
+                      pos - val.tx.size() / Scale{2} );
       }
       switch_non_exhaustive;
     }
@@ -162,17 +160,13 @@ public:
         }
       }
 
-      if( in_progress->tx.has_value() ) {
-        state_ = RubberBand_t{
-            /*current=*/drag_end,
-            /*dest=*/drag_start,
-            /*src=*/in_progress->src,
-            /*percent=*/0.0,
-            /*<Texture> tx=*/std::move( in_progress->tx ),
-        };
-      } else {
-        state_ = None_t{};
-      }
+      state_ = RubberBand_t{
+          /*current=*/drag_end,
+          /*dest=*/drag_start,
+          /*src=*/in_progress->src,
+          /*percent=*/0.0,
+          /*<Texture> tx=*/std::move( in_progress->tx ),
+      };
       return true;
     }
     return false;
