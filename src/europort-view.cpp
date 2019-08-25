@@ -86,8 +86,7 @@ Opt<DraggableObject> cargo_slot_to_draggable(
 
 Opt<DraggableObject> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  using util::infix::fmap;
-  using util::infix::fmap_join;
+  using namespace util::infix;
   return g_selected_unit                                 //
          | fmap( unit_from_id )                          //
          | fmap_join( LC( _.get().cargo().at( slot ) ) ) //
@@ -337,8 +336,7 @@ public:
     return res;
   }
 
-  Opt<CargoSlotIndex> cargo_slot_idx_from_coord(
-      Coord coord ) const {
+  Opt<CargoSlotIndex> slot_idx_from_coord( Coord coord ) const {
     Opt<CargoSlotIndex> res;
     if( coord.is_inside( bounds() ) ) {
       auto boxes =
@@ -1058,8 +1056,7 @@ public:
     return res;
   }
 
-  Opt<CargoSlotIndex> cargo_slot_idx_from_coord(
-      Coord coord ) const {
+  Opt<CargoSlotIndex> slot_idx_from_coord( Coord coord ) const {
     Opt<CargoSlotIndex> res;
     if( maybe_active_unit_ ) {
       if( coord.is_inside( bounds_ ) ) {
@@ -1078,10 +1075,10 @@ public:
 
   Opt<CRef<CargoSlot_t>> cargo_slot_from_coord(
       Coord coord ) const {
-    using util::infix::fmap;
+    using namespace util::infix;
     // Lambda will only be called if a valid index is returned,
     // in which case there is guaranteed to be an active unit.
-    return cargo_slot_idx_from_coord( coord ) //
+    return slot_idx_from_coord( coord ) //
            | fmap( LC( unit_from_id( *maybe_active_unit_ )
                            .cargo()[_] ) );
   }
@@ -1270,17 +1267,19 @@ public:
         };
     }
     if( entities_->active_cargo.has_value() ) {
-      if( auto maybe_idx =
-              entities_->active_cargo->cargo_slot_idx_from_coord(
-                  coord );
-          maybe_idx ) {
-        // There must be an object in the slot to be dragged.
-        if( auto maybe_object =
-                draggable_in_cargo_slot( *maybe_idx );
-            maybe_object ) {
-          res = DragSrc::cargo{
-              /*slot=*/CargoSlotIndex{*maybe_idx} //
-          };
+      using namespace util::infix;
+      auto const& active_cargo = *entities_->active_cargo;
+      if( active_cargo.active_unit()    //
+              | fmap( is_unit_in_port ) //
+              | maybe_truish_to_bool    //
+          &&
+          util::just( coord ) //
+              | fmap_join( LC(
+                    active_cargo.slot_idx_from_coord( _ ) ) ) //
+              | fmap_join( draggable_in_cargo_slot ) ) {
+        res = DragSrc::cargo{
+            /*slot=*/*active_cargo.slot_idx_from_coord(
+                coord ) //
         };
       }
     }
@@ -1298,25 +1297,25 @@ public:
     Opt<DragDst_t> res;
     if( entities_->active_cargo_box.has_value() ) {
       if( auto maybe_slot =
-              entities_->active_cargo_box
-                  ->cargo_slot_idx_from_coord( coord );
+              entities_->active_cargo_box->slot_idx_from_coord(
+                  coord );
           maybe_slot ) {
         res = DragDst::cargo_box{
-            /*slot=*/CargoSlotIndex{*maybe_slot} //
+            /*slot=*/*maybe_slot //
         };
       }
     }
     if( entities_->active_cargo.has_value() ) {
       if( auto maybe_slot =
-              entities_->active_cargo->cargo_slot_idx_from_coord(
+              entities_->active_cargo->slot_idx_from_coord(
                   coord );
           maybe_slot ) {
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo->active_unit() );
         if( is_unit_in_port( ship ) )
           res = DragDst::active_cargo{
-              /*ship=*/ship,                       //
-              /*slot=*/CargoSlotIndex{*maybe_slot} //
+              /*ship=*/ship,       //
+              /*slot=*/*maybe_slot //
           };
       }
     }
