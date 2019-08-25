@@ -209,8 +209,8 @@ private:
         std::decay_t<decltype( std::declval<ArcSubType>().src )>;
     using ArcDstType =
         std::decay_t<decltype( std::declval<ArcSubType>().dst )>;
-    auto const* p_src = get_if<ArcSrcType>( &src );
-    auto const* p_dst = get_if<ArcDstType>( &dst );
+    auto const* p_src = std::get_if<ArcSrcType>( &src );
+    auto const* p_dst = std::get_if<ArcDstType>( &dst );
     if( p_src && p_dst ) {
       CHECK( !arc->has_value(),
              "There are two DragArc subtypes that have the same "
