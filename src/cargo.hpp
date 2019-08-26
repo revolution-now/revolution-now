@@ -61,14 +61,20 @@ ADT_RN( CargoSlot,              //
           ( Cargo, contents ) ) //
 );
 
-class ND CargoHold : public util::movable_only {
+class ND CargoHold {
 public:
   explicit CargoHold( int num_slots ) : slots_( num_slots ) {
     check_invariants();
   }
 
-  ~CargoHold(); // TODO: can delete this eventually.
+  // TODO: eventually we should change this to noexcept(false)
+  // and throw an exception from it (after logging an error) if
+  // it is called with items in the cargo (probably an indication
+  // of a logic error in the program.
+  ~CargoHold();
 
+  // We need this so that structures containing this CargoHold
+  // can be moved.
   CargoHold( CargoHold&& ) = default;
 
   int slots_occupied() const;
@@ -110,6 +116,17 @@ public:
   // index. If UnitId, will not check for unit id already in
   // cargo.
   ND bool fits( Cargo const& cargo, int slot ) const;
+  ND bool fits( Cargo const& cargo, CargoSlotIndex slot ) const;
+
+  // Precondition: there must be a cargo item whose first slot is
+  // the given slot; if not, then an error will be thrown. This
+  // function will determine whether the given cargo item would
+  // fit in the cargo if the item at the given slot were first
+  // removed. Will not throw an error if the cargo represents a
+  // unit that is already in the cargo.
+  ND bool fits_with_item_removed(
+      Cargo const& cargo, CargoSlotIndex remove_slot,
+      CargoSlotIndex insert_slot ) const;
 
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can
@@ -136,8 +153,6 @@ protected:
 
   // This is the only function that should be called to add some-
   // thing to the cargo.
-  friend void ownership_change_to_cargo( UnitId new_holder,
-                                         UnitId held );
   friend void ownership_change_to_cargo( UnitId new_holder,
                                          UnitId held, int slot );
   friend void ownership_disown_unit( UnitId id );
@@ -172,6 +187,10 @@ protected:
 
   // This will be of fixed length (number of total slots).
   std::vector<CargoSlot_t> slots_;
+
+private:
+  CargoHold( CargoHold const& ) = default; // !! default
+  CargoHold operator=( CargoHold const& ) = delete;
 };
 
 // For convenience. Iterates over all cargo items of a certain

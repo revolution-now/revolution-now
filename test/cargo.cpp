@@ -2143,4 +2143,86 @@ TEST_CASE( "CargoHold find_unit" ) {
   ch.clear();
 }
 
+TEST_CASE( "CargoHold fits_with_item_removed" ) {
+  CargoHoldTester ch( 6 );
+
+  auto unit_id1 = create_unit( e_nation::english,
+                               e_unit_type::free_colonist )
+                      .id();
+  auto unit_id2 = create_unit( e_nation::english,
+                               e_unit_type::small_treasure )
+                      .id();
+  auto unit_id3 =
+      create_unit( e_nation::english, e_unit_type::soldier )
+          .id();
+
+  SECTION( "insert small unit first" ) {
+    REQUIRE( ch.try_add( unit_id1, 1 ) );
+
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{0}, CargoSlotIndex{0} ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{0}, CargoSlotIndex{1} ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{0}, CargoSlotIndex{2} ) );
+
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{1}, CargoSlotIndex{0} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{1}, CargoSlotIndex{1} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{1}, CargoSlotIndex{2} ) );
+
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{0} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{1} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{2} ) );
+
+    REQUIRE( ch.try_add( unit_id3, 5 ) );
+
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{0} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{1} ) );
+    REQUIRE_FALSE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{2} ) );
+  }
+
+  SECTION( "insert large unit first" ) {
+    REQUIRE( ch.try_add( unit_id2, 1 ) );
+
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{0}, CargoSlotIndex{0} ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{0}, CargoSlotIndex{1} ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{0}, CargoSlotIndex{2} ) );
+
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{2}, CargoSlotIndex{0} ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{2}, CargoSlotIndex{1} ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{2}, CargoSlotIndex{2} ) );
+
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{1}, CargoSlotIndex{0} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{1}, CargoSlotIndex{1} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id1, CargoSlotIndex{1}, CargoSlotIndex{2} ) );
+
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{0} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{1} ) );
+    REQUIRE( ch.fits_with_item_removed(
+        unit_id2, CargoSlotIndex{1}, CargoSlotIndex{2} ) );
+  }
+
+  ch.clear();
+}
+
 } // namespace

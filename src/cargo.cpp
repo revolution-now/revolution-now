@@ -296,10 +296,27 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
   }
 }
 
+ND bool CargoHold::fits( Cargo const&   cargo,
+                         CargoSlotIndex slot ) const {
+  return fits( cargo, slot._ );
+}
+
+ND bool CargoHold::fits_with_item_removed(
+    Cargo const& cargo, CargoSlotIndex remove_slot,
+    CargoSlotIndex insert_slot ) const {
+  CargoHold new_hold = *this;
+  // Need to make sure we clear this out in case the line after
+  // throws an exception. This is only needed for convenience
+  // when unit testing, which catches exceptions (so it's nice to
+  // be exception safe).
+  SCOPE_EXIT( new_hold.clear() );
+  new_hold.remove( remove_slot._ );
+  return new_hold.fits( cargo, insert_slot );
+}
+
 bool CargoHold::fits_as_available( Cargo const& cargo,
                                    int starting_slot ) const {
-  CargoHold new_hold( slots_total() );
-  new_hold.slots_ = slots_;
+  CargoHold new_hold = *this;
   // Need to make sure we clear this out in case the line after
   // throws an exception. This is only needed for convenience
   // when unit testing, which catches exceptions (so it's nice to
