@@ -83,14 +83,6 @@ public:
         auto indicator = drag_status_indicator( val );
         switch( indicator ) {
           case e_drag_status_indicator::none: break;
-          case e_drag_status_indicator::never: {
-            auto const& status_tx =
-                render_text( "X", Color::yellow() );
-            auto indicator_pos =
-                mouse_pos - status_tx.size() / Scale{1};
-            copy_texture( status_tx, tx, indicator_pos );
-            break;
-          }
           case e_drag_status_indicator::bad: {
             auto const& status_tx =
                 render_text( "X", Color::red() );
@@ -242,14 +234,14 @@ private:
     return res;
   }
 
-  enum class e_drag_status_indicator { none, never, bad, good };
+  enum class e_drag_status_indicator { none, bad, good };
 
   e_drag_status_indicator drag_status_indicator(
       InProgress_t const& in_progress ) const {
     if( !in_progress.dst ) return e_drag_status_indicator::none;
     auto maybe_arc =
         drag_arc( in_progress.src, *in_progress.dst );
-    if( !maybe_arc ) return e_drag_status_indicator::never;
+    if( !maybe_arc ) return e_drag_status_indicator::none;
     if( !child().can_perform_drag( *maybe_arc ) )
       return e_drag_status_indicator::bad;
     return e_drag_status_indicator::good;
