@@ -1228,6 +1228,9 @@ ADT_RN_( DragArc,                     //
          ( cargo_to_dock,             //
            ( DragSrc::cargo, src ),   //
            ( DragDst::dock, dst ) ),  //
+         ( dock_to_dock,              //
+           ( DragSrc::dock, src ),    //
+           ( DragDst::dock, dst ) ),  //
          ( cargo_to_cargo,            //
            ( DragSrc::cargo, src ),   //
            ( DragDst::cargo, dst ) )  //
@@ -1353,6 +1356,7 @@ public:
         return util::holds<UnitId>(
             draggable_from_src( val.src ) );
       }
+      case_( DragArc::dock_to_dock ) { return true; }
       case_( DragArc::cargo_to_cargo, src, dst ) {
         using namespace util::infix;
         ASSIGN_CHECK_OPT(
@@ -1400,9 +1404,9 @@ public:
                  draggable_from_src( val.src ), val.src.slot );
         ASSIGN_CHECK_V( unit_id, draggable_from_src( val.src ),
                         UnitId );
-        ownership_change_to_euro_port_view(
-            unit_id, UnitEuroPortViewState::in_port{} );
+        unit_move_to_europort_dock( unit_id );
       }
+      case_( DragArc::dock_to_dock ) {}
       case_( DragArc::cargo_to_cargo, src, dst ) {
         using namespace util::infix;
         ASSIGN_CHECK_OPT(

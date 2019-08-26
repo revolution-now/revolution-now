@@ -174,4 +174,16 @@ void unit_sail_to_new_world( UnitId id ) {
   ownership_change_to_euro_port_view( id, target_state );
 }
 
+void unit_move_to_europort_dock( UnitId id ) {
+  if( is_unit_on_dock( id ) ) return;
+  auto holder = is_unit_onboard( id );
+  CHECK( holder && is_unit_in_port( *holder ),
+         "cannot move unit to dock unless it is in the cargo of "
+         "a ship that is in port." );
+  ownership_change_to_euro_port_view(
+      id, UnitEuroPortViewState::in_port{} );
+  DCHECK( is_unit_on_dock( id ) );
+  DCHECK( !is_unit_onboard( id ) );
+}
+
 } // namespace rn

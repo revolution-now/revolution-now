@@ -40,4 +40,8 @@ Vec<UnitId> europort_units_outbound(); // to new world
 void unit_sail_to_old_world( UnitId id );
 void unit_sail_to_new_world( UnitId id );
 
+// Takes a unit (which is required to be in the cargo of a ship
+// that is in port) and moves it to the dock.
+void unit_move_to_europort_dock( UnitId id );
+
 } // namespace rn
