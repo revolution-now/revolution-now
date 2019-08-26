@@ -59,7 +59,6 @@ Opt<UnitId> g_selected_unit;
 *****************************************************************/
 using DraggableObject = std::variant< //
     UnitId,                           //
-    e_commodity,                      // from market.
     Commodity                         //
     >;
 
@@ -84,6 +83,15 @@ Opt<DraggableObject> cargo_slot_to_draggable(
   }
 }
 
+Opt<Cargo> draggable_to_cargo_object(
+    DraggableObject const& draggable ) {
+  return matcher_( draggable, ->, Opt<Cargo> ) {
+    case_( UnitId ) result_    val;
+    case_( Commodity ) result_ val;
+    matcher_exhaustive;
+  }
+}
+
 Opt<DraggableObject> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
   using namespace util::infix;
@@ -101,10 +109,6 @@ Texture draw_draggable_object( DraggableObject const& object ) {
               .size() );
       render_unit( tx, val, Coord{}, /*with_icon=*/false );
       return tx;
-    }
-    case_( e_commodity ) {
-      NOT_IMPLEMENTED;
-      return Texture{};
     }
     case_( Commodity ) {
       NOT_IMPLEMENTED;
@@ -1212,15 +1216,17 @@ ADT_RN_( DragSrc,                     //
 ADT_RN_( DragDst,                      //
          ( cargo_box,                  //
            ( CargoSlotIndex, slot ) ), //
-         ( active_cargo,               //
-           ( UnitId, ship ),           //
+         ( cargo,                      //
            ( CargoSlotIndex, slot ) )  //
 );
 
-ADT_RN_( DragArc,                           //
-         ( dock_to_cargo,                   //
-           ( DragSrc::dock, src ),          //
-           ( DragDst::active_cargo, dst ) ) //
+ADT_RN_( DragArc,                     //
+         ( dock_to_cargo,             //
+           ( DragSrc::dock, src ),    //
+           ( DragDst::cargo, dst ) ), //
+         ( cargo_to_cargo,            //
+           ( DragSrc::cargo, src ),   //
+           ( DragDst::cargo, dst ) )  //
 );
 
 class EuroViewDragAndDrop
@@ -1313,8 +1319,7 @@ public:
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo->active_unit() );
         if( is_unit_in_port( ship ) )
-          res = DragDst::active_cargo{
-              /*ship=*/ship,       //
+          res = DragDst::cargo{
               /*slot=*/*maybe_slot //
           };
       }
@@ -1325,9 +1330,28 @@ public:
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
     return matcher_( drag_arc ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
-        result_ unit_from_id( dst.ship )
+        using namespace util::infix;
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        result_ unit_from_id( ship ).cargo().fits( src.id,
+                                                   dst.slot._ );
+      }
+      case_( DragArc::cargo_to_cargo, src, dst ) {
+        using namespace util::infix;
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        auto maybe_cargo_object = draggable_to_cargo_object(
+            draggable_from_src( src ) );
+        if( !maybe_cargo_object ) return false;
+        return unit_from_id( ship )
             .cargo()
-            .fits( src.id, dst.slot._ );
+            .fits_with_item_removed(
+                /*cargo=*/*maybe_cargo_object, //
+                /*remove_slot=*/src.slot,      //
+                /*insert_slot=*/dst.slot       //
+            );
       }
       matcher_exhaustive;
     }
@@ -1346,11 +1370,35 @@ public:
     // ible with game rules.
     switch_( drag_arc ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
-        lg.info( "dragging unit {} into ship {}'s cargo slot {}",
-                 debug_string( src.id ),
-                 debug_string( dst.ship ), dst.slot );
-        ownership_change_to_cargo( dst.ship, src.id,
-                                   dst.slot._ );
+        using namespace util::infix;
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        lg.info( "dragging {} into ship {}'s cargo slot {}",
+                 debug_string( src.id ), debug_string( ship ),
+                 dst.slot );
+        ownership_change_to_cargo( ship, src.id, dst.slot._ );
+      }
+      case_( DragArc::cargo_to_cargo, src, dst ) {
+        using namespace util::infix;
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        lg.info(
+            "dragging {} from cargo slot {} to cargo slot {}",
+            draggable_from_src( src ), src.slot, dst.slot );
+        auto draggable = draggable_from_src( src );
+        switch_( draggable ) {
+          case_( UnitId ) {
+            // Will first "disown" unit which will remove it from
+            // the cargo.
+            ownership_change_to_cargo( ship, val, dst.slot._ );
+          }
+          case_( Commodity ) {
+            NOT_IMPLEMENTED; // FIXME
+          }
+          switch_exhaustive;
+        }
       }
       switch_exhaustive;
     }

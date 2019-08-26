@@ -112,21 +112,20 @@ bool check_inline( bool b, char const* msg );
 // e.g. a function call. This function will evaluate (b) which is
 // expected to result in a std::optional (ideally it should be
 // returned from a function where elision is possible, otherwise
-// there may be a copy happening). It will assign that std::op-
-// tional by value (hopefully elided) to a local anonymous vari-
-// able and will then inspect it to see if it has a value. If
-// not, error is thrown. If it does have a value then another
-// local reference variable will be created to reference the
-// value inside the optional, so there should not be any unneces-
-// sary copies.
+// there may be a copy happening). It will then keep the re-
+// sulting variant alive by assign it to a reference and will
+// then inspect it to see if it has a value. If not, error is
+// thrown. If it does have a value then another local reference
+// variable will be created to reference the value inside the op-
+// tional, so there should not be any unnecessary copies.
 //
 // The ID_ is to suppress warnings about parenthesis around
 // macro parameters.
 #define ASSIGN_CHECK_OPT( a, b )               \
-  auto STRING_JOIN( __x, __LINE__ ) = b;       \
+  auto&& STRING_JOIN( __x, __LINE__ ) = b;     \
   if( !( STRING_JOIN( __x, __LINE__ ) ) )      \
     FATAL_( TO_STRING( b ) " has no value." ); \
-  auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
+  auto&& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // This takes care to only evaluate `v_expr` once, since it may
 // be e.g. a function call. The function will evaluate `v_expr`
@@ -145,8 +144,8 @@ bool check_inline( bool b, char const* msg );
 //   obj.method();
 //
 #define ASSIGN_CHECK_V( ref, v_expr, type )               \
-  auto& STRING_JOIN( __x, __LINE__ ) = v_expr;            \
-  auto* STRING_JOIN( __ptr, __LINE__ ) =                  \
+  auto&& STRING_JOIN( __x, __LINE__ ) = v_expr;           \
+  auto*  STRING_JOIN( __ptr, __LINE__ ) =                 \
       std::get_if<type>( &STRING_JOIN( __x, __LINE__ ) ); \
   CHECK( STRING_JOIN( __ptr, __LINE__ ) != nullptr );     \
   auto& ID_( ref ) = *STRING_JOIN( __ptr, __LINE__ )

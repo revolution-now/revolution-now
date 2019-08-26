@@ -359,10 +359,15 @@ void ownership_change_to_cargo( UnitId new_holder, UnitId held,
              .desc()
              .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
-  // Check that there are enough open slots.
-  CHECK( cargo_hold.fits( held, slot ) );
   // We're clear (at least on our end).
   ownership_disown_unit( held );
+  // Check that there are enough open slots. Note we do this
+  // after disowning the unit just in case we are moving the unit
+  // into a cargo slot that it already occupies or moving a large
+  // unit (i.e., one occupying multiple slots) to another slot in
+  // the same cargo where it will not fit unless it is first re-
+  // moved from its current slot.
+  CHECK( cargo_hold.fits( held, slot ) );
   CHECK( cargo_hold.try_add( Cargo{held}, slot ) );
   unit_from_id( held ).sentry();
   // Set new ownership
