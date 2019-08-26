@@ -91,11 +91,16 @@ Opt<UnitId> is_unit_onboard( UnitId id );
 ADT_RN(
     UnitEuroPortViewState,
     // For ships that are venturing to europe. `percent` starts
-    // from 0 and goes to 1.0 at arrival.
+    // from 0 and goes to 1.0 at arrival. This means that the
+    // value should never actually assume a value of 1.0, because
+    // as soon as it does, the state is transitioned to in_port.
     ( outbound,              //
       ( double, percent ) ), //
     // For ships that are traveling from europe to the new world.
-    // `percent` starts from 0 and goes to 1.0 at arrival.
+    // `percent` starts from 0 and goes to 1.0 at arrival. This
+    // means that the value should never actually assume a value
+    // of 1.0, because as soon as it does, the state is transi-
+    // tioned to the map.
     ( inbound,               //
       ( double, percent ) ), //
     // If a ship is in this state then it is in port (shown in

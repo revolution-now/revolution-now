@@ -70,6 +70,24 @@ enum class e_unit_ownership {
 
 unordered_map<UnitId, e_unit_ownership> unit_ownership;
 
+void check_europort_state_invariants(
+    UnitEuroPortViewState_t const& info ) {
+  switch_( info ) {
+    case_( UnitEuroPortViewState::outbound, percent ) {
+      CHECK( percent >= 0.0 );
+      CHECK( percent < 1.0 );
+    }
+    case_( UnitEuroPortViewState::inbound, percent ) {
+      CHECK( percent >= 0.0 );
+      CHECK( percent < 1.0 );
+    }
+    case_( UnitEuroPortViewState::in_port ) {
+      //
+    }
+    switch_exhaustive;
+  }
+}
+
 } // namespace
 
 string debug_string( UnitId id ) {
@@ -327,6 +345,7 @@ void ownership_change_to_cargo( UnitId new_holder,
 
 void ownership_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
+  check_europort_state_invariants( info );
   if( !has_key( g_euro_port_view_units, id ) ) {
     internal::ownership_disown_unit( id );
     unit_ownership[id] = e_unit_ownership::old_world;

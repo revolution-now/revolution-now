@@ -1206,11 +1206,17 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-ADT_RN_( DragSrc,                     //
-         ( dock,                      //
-           ( UnitId, id ) ),          //
-         ( cargo,                     //
-           ( CargoSlotIndex, slot ) ) //
+ADT_RN_( DragSrc,                      //
+         ( dock,                       //
+           ( UnitId, id ) ),           //
+         ( cargo,                      //
+           ( CargoSlotIndex, slot ) ), //
+         ( outbound,                   //
+           ( UnitId, id ) ),           //
+         ( inbound,                    //
+           ( UnitId, id ) ),           //
+         ( inport,                     //
+           ( UnitId, id ) )            //
 );
 
 ADT_RN_( DragDst,                      //
@@ -1218,7 +1224,10 @@ ADT_RN_( DragDst,                      //
            ( CargoSlotIndex, slot ) ), //
          ( cargo,                      //
            ( CargoSlotIndex, slot ) ), //
-         ( dock )                      //
+         ( dock ),                     //
+         ( outbound ),                 //
+         ( inbound ),                  //
+         ( inport )                    //
 );
 
 ADT_RN_( DragArc,                     //
@@ -1257,6 +1266,9 @@ public:
                           draggable_in_cargo_slot( slot ) );
         return object;
       }
+      case_( DragSrc::outbound, id ) { return id; }
+      case_( DragSrc::inbound, id ) { return id; }
+      case_( DragSrc::inport, id ) { return id; }
       matcher_exhaustive;
     }
   }
@@ -1293,6 +1305,36 @@ public:
         res = DragSrc::cargo{
             /*slot=*/*active_cargo.slot_idx_from_coord(
                 coord ) //
+        };
+      }
+    }
+    if( entities_->ships_outbound.has_value() ) {
+      if( auto maybe_id =
+              entities_->ships_outbound->unit_under_cursor(
+                  coord );
+          maybe_id ) {
+        res = DragSrc::outbound{
+            /*id=*/*maybe_id //
+        };
+      }
+    }
+    if( entities_->ships_inbound.has_value() ) {
+      if( auto maybe_id =
+              entities_->ships_inbound->unit_under_cursor(
+                  coord );
+          maybe_id ) {
+        res = DragSrc::inbound{
+            /*id=*/*maybe_id //
+        };
+      }
+    }
+    if( entities_->ships_in_port.has_value() ) {
+      if( auto maybe_id =
+              entities_->ships_in_port->unit_under_cursor(
+                  coord );
+          maybe_id ) {
+        res = DragSrc::inport{
+            /*id=*/*maybe_id //
         };
       }
     }
@@ -1338,6 +1380,18 @@ public:
     if( entities_->units_on_dock.has_value() ) {
       if( coord.is_inside( entities_->units_on_dock->bounds() ) )
         res = DragDst::dock{};
+    }
+    if( entities_->outbound_box.has_value() ) {
+      if( coord.is_inside( entities_->outbound_box->bounds() ) )
+        res = DragDst::outbound{};
+    }
+    if( entities_->inbound_box.has_value() ) {
+      if( coord.is_inside( entities_->inbound_box->bounds() ) )
+        res = DragDst::inbound{};
+    }
+    if( entities_->in_port_box.has_value() ) {
+      if( coord.is_inside( entities_->in_port_box->bounds() ) )
+        res = DragDst::inport{};
     }
     return res;
   }

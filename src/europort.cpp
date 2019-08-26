@@ -110,7 +110,7 @@ void unit_sail_to_old_world( UnitId id ) {
   // This is the state to which we will set the unit, at least by
   // default (though it might get modified below based on the
   // current state of the unit).
-  auto target_state =
+  UnitEuroPortViewState_t target_state =
       UnitEuroPortViewState::inbound{/*progress=*/0.0};
   auto maybe_state = unit_euro_port_view_info( id );
   if( maybe_state ) {
@@ -120,19 +120,25 @@ void unit_sail_to_old_world( UnitId id ) {
         target_state = val;
       }
       case_( UnitEuroPortViewState::outbound, percent ) {
-        // Unit must "turn around" and go the other way.
-        target_state = UnitEuroPortViewState::inbound{
-            /*progress=*/( 1.0 - percent )};
+        if( percent > 0.0 ) {
+          // Unit must "turn around" and go the other way.
+          target_state = UnitEuroPortViewState::inbound{
+              /*progress=*/( 1.0 - percent )};
+        } else {
+          // Unit has not yet made any progress, so we can imme-
+          // diately move it to in_port.
+          target_state = UnitEuroPortViewState::in_port{};
+        }
       }
       case_( UnitEuroPortViewState::in_port ) {
-        FATAL(
-            "unit {} cannot sail to the old world because it is "
-            "already in-port in the old world.",
-            debug_string( id ) );
+        // no-op, unit is already in port.
+        target_state = val;
       }
       switch_exhaustive;
     }
   }
+  if( maybe_state && target_state == maybe_state->get() ) //
+    return;
   lg.info( "setting unit {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a europort state here.
