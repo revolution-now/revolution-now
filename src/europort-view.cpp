@@ -1217,13 +1217,17 @@ ADT_RN_( DragDst,                      //
          ( cargo_box,                  //
            ( CargoSlotIndex, slot ) ), //
          ( cargo,                      //
-           ( CargoSlotIndex, slot ) )  //
+           ( CargoSlotIndex, slot ) ), //
+         ( dock )                      //
 );
 
 ADT_RN_( DragArc,                     //
          ( dock_to_cargo,             //
            ( DragSrc::dock, src ),    //
            ( DragDst::cargo, dst ) ), //
+         ( cargo_to_dock,             //
+           ( DragSrc::cargo, src ),   //
+           ( DragDst::dock, dst ) ),  //
          ( cargo_to_cargo,            //
            ( DragSrc::cargo, src ),   //
            ( DragDst::cargo, dst ) )  //
@@ -1324,18 +1328,30 @@ public:
           };
       }
     }
+    if( entities_->dock.has_value() ) {
+      if( coord.is_inside( entities_->dock->bounds() ) )
+        res = DragDst::dock{};
+    }
+    if( entities_->units_on_dock.has_value() ) {
+      if( coord.is_inside( entities_->units_on_dock->bounds() ) )
+        res = DragDst::dock{};
+    }
     return res;
   }
 
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
-    return matcher_( drag_arc ) {
+    return matcher_( drag_arc, ->, bool ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
         using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
-        result_ unit_from_id( ship ).cargo().fits( src.id,
-                                                   dst.slot._ );
+        return unit_from_id( ship ).cargo().fits( src.id,
+                                                  dst.slot._ );
+      }
+      case_( DragArc::cargo_to_dock ) {
+        return util::holds<UnitId>(
+            draggable_from_src( val.src ) );
       }
       case_( DragArc::cargo_to_cargo, src, dst ) {
         using namespace util::infix;
@@ -1378,6 +1394,14 @@ public:
                  debug_string( src.id ), debug_string( ship ),
                  dst.slot );
         ownership_change_to_cargo( ship, src.id, dst.slot._ );
+      }
+      case_( DragArc::cargo_to_dock ) {
+        lg.info( "dragging {} from cargo slot {} to dock.",
+                 draggable_from_src( val.src ), val.src.slot );
+        ASSIGN_CHECK_V( unit_id, draggable_from_src( val.src ),
+                        UnitId );
+        ownership_change_to_euro_port_view(
+            unit_id, UnitEuroPortViewState::in_port{} );
       }
       case_( DragArc::cargo_to_cargo, src, dst ) {
         using namespace util::infix;

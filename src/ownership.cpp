@@ -56,11 +56,6 @@ unordered_map</*held*/ UnitId, /*holder*/ UnitId>
 unordered_map<UnitId, UnitEuroPortViewState_t>
     g_euro_port_view_units;
 
-// Each time a unit is placed in port (or on dock) it is assigned
-// the next (incremented) value of this id. This allows storing
-// the ordering in which units arrived there.
-int g_port_arrival_id{0};
-
 enum class e_unit_ownership {
   // Unit is on the map.  This includes units that are stationed
   // in colonies.  It does not include units in indian villages
@@ -74,8 +69,6 @@ enum class e_unit_ownership {
 };
 
 unordered_map<UnitId, e_unit_ownership> unit_ownership;
-
-int next_port_arrival_id() { return g_port_arrival_id++; }
 
 } // namespace
 
@@ -135,7 +128,7 @@ void destroy_unit( UnitId id ) {
     cargo_units_to_destroy.push_back( cargo_id );
   }
   util::map_( destroy_unit, cargo_units_to_destroy );
-  ownership_disown_unit( id );
+  internal::ownership_disown_unit( id );
   auto it = units.find( id );
   CHECK( it != units.end() );
   units.erase( it->first );
@@ -266,9 +259,7 @@ UnitId create_unit_in_euroview_port( e_nation    nation,
                                      e_unit_type type ) {
   Unit& unit = create_unit( nation, type );
   ownership_change_to_euro_port_view(
-      unit.id(),
-      UnitEuroPortViewState::in_port{
-          /*global_arrival_id=*/next_port_arrival_id()} );
+      unit.id(), UnitEuroPortViewState::in_port{} );
   return unit.id();
 }
 
@@ -282,6 +273,71 @@ UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
 /****************************************************************
 ** Low-Level Ownership Change Functions
 *****************************************************************/
+void ownership_change_to_map( UnitId id, Coord const& target ) {
+  internal::ownership_disown_unit( id );
+  // Add unit to new square.
+  units_from_coords[{target.y, target.x}].insert( id );
+  // Set unit coords to new value.
+  coords_from_unit[id] = {target.y, target.x};
+  unit_ownership[id]   = e_unit_ownership::world;
+}
+
+void ownership_change_to_cargo( UnitId new_holder, UnitId held,
+                                int slot ) {
+  // Make sure that we're not adding the unit to its own cargo.
+  // Should never happen theoretically, but...
+  CHECK( new_holder != held );
+  // Check that the proposed `held` unit cannot itself hold
+  // cargo, because it is a game rule that cargo-holding units
+  // cannot be cargo of other units.
+  CHECK( unit_from_id( held ).desc().cargo_slots == 0 );
+  // Check that the proposed `held` unit can occupy cargo.
+  CHECK( unit_from_id( held )
+             .desc()
+             .cargo_slots_occupies.has_value() );
+  auto& cargo_hold = unit_from_id( new_holder ).cargo();
+  // We're clear (at least on our end).
+  internal::ownership_disown_unit( held );
+  // Check that there are enough open slots. Note we do this
+  // after disowning the unit just in case we are moving the unit
+  // into a cargo slot that it already occupies or moving a large
+  // unit (i.e., one occupying multiple slots) to another slot in
+  // the same cargo where it will not fit unless it is first re-
+  // moved from its current slot.
+  CHECK( cargo_hold.fits( held, slot ) );
+  CHECK( cargo_hold.try_add( Cargo{held}, slot ) );
+  unit_from_id( held ).sentry();
+  // Set new ownership
+  unit_ownership[held]   = e_unit_ownership::cargo;
+  holder_from_held[held] = new_holder;
+}
+
+void ownership_change_to_cargo( UnitId new_holder,
+                                UnitId held ) {
+  auto& cargo = unit_from_id( new_holder ).cargo();
+  for( int i = 0; i < cargo.slots_total(); ++i ) {
+    if( cargo.fits( held, i ) )
+      ownership_change_to_cargo( new_holder, held, i );
+    return;
+  }
+  FATAL( "Unit {} cannot be placed in unit {}'s cargo: {}",
+         debug_string( held ), debug_string( new_holder ),
+         cargo );
+}
+
+void ownership_change_to_euro_port_view(
+    UnitId id, UnitEuroPortViewState_t info ) {
+  if( !has_key( g_euro_port_view_units, id ) ) {
+    internal::ownership_disown_unit( id );
+    unit_ownership[id] = e_unit_ownership::old_world;
+  }
+  g_euro_port_view_units[id] = info;
+}
+
+/****************************************************************
+** Do not call directly
+*****************************************************************/
+namespace internal {
 // The purpose of this function is *only* to manipulate the above
 // global maps. It does not follow any of the associated proce-
 // dures that need to be followed when a unit is added, removed,
@@ -335,66 +391,6 @@ void ownership_disown_unit( UnitId id ) {
   // invalidated.
   unit_ownership.erase( it );
 }
-
-void ownership_change_to_map( UnitId id, Coord const& target ) {
-  ownership_disown_unit( id );
-  // Add unit to new square.
-  units_from_coords[{target.y, target.x}].insert( id );
-  // Set unit coords to new value.
-  coords_from_unit[id] = {target.y, target.x};
-  unit_ownership[id]   = e_unit_ownership::world;
-}
-
-void ownership_change_to_cargo( UnitId new_holder, UnitId held,
-                                int slot ) {
-  // Make sure that we're not adding the unit to its own cargo.
-  // Should never happen theoretically, but...
-  CHECK( new_holder != held );
-  // Check that the proposed `held` unit cannot itself hold
-  // cargo, because it is a game rule that cargo-holding units
-  // cannot be cargo of other units.
-  CHECK( unit_from_id( held ).desc().cargo_slots == 0 );
-  // Check that the proposed `held` unit can occupy cargo.
-  CHECK( unit_from_id( held )
-             .desc()
-             .cargo_slots_occupies.has_value() );
-  auto& cargo_hold = unit_from_id( new_holder ).cargo();
-  // We're clear (at least on our end).
-  ownership_disown_unit( held );
-  // Check that there are enough open slots. Note we do this
-  // after disowning the unit just in case we are moving the unit
-  // into a cargo slot that it already occupies or moving a large
-  // unit (i.e., one occupying multiple slots) to another slot in
-  // the same cargo where it will not fit unless it is first re-
-  // moved from its current slot.
-  CHECK( cargo_hold.fits( held, slot ) );
-  CHECK( cargo_hold.try_add( Cargo{held}, slot ) );
-  unit_from_id( held ).sentry();
-  // Set new ownership
-  unit_ownership[held]   = e_unit_ownership::cargo;
-  holder_from_held[held] = new_holder;
-}
-
-void ownership_change_to_cargo( UnitId new_holder,
-                                UnitId held ) {
-  auto& cargo = unit_from_id( new_holder ).cargo();
-  for( int i = 0; i < cargo.slots_total(); ++i ) {
-    if( cargo.fits( held, i ) )
-      ownership_change_to_cargo( new_holder, held, i );
-    return;
-  }
-  FATAL( "Unit {} cannot be placed in unit {}'s cargo: {}",
-         debug_string( held ), debug_string( new_holder ),
-         cargo );
-}
-
-void ownership_change_to_euro_port_view(
-    UnitId id, UnitEuroPortViewState_t info ) {
-  if( !has_key( g_euro_port_view_units, id ) ) {
-    ownership_disown_unit( id );
-    unit_ownership[id] = e_unit_ownership::old_world;
-  }
-  g_euro_port_view_units[id] = info;
-}
+} // namespace internal
 
 } // namespace rn

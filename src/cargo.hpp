@@ -32,6 +32,15 @@
 
 TYPED_INDEX( CargoSlotIndex );
 
+// Friends.
+namespace rn {
+void ownership_change_to_cargo( UnitId new_holder, UnitId held,
+                                int slot );
+namespace internal {
+void ownership_disown_unit( UnitId id );
+}
+} // namespace rn
+
 namespace rn {
 
 using Cargo = std::variant<UnitId, Commodity>;
@@ -155,7 +164,7 @@ protected:
   // thing to the cargo.
   friend void ownership_change_to_cargo( UnitId new_holder,
                                          UnitId held, int slot );
-  friend void ownership_disown_unit( UnitId id );
+  friend void internal::ownership_disown_unit( UnitId id );
 
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can

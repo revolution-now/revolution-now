@@ -29,10 +29,8 @@ namespace rn {
 namespace {
 
 int unit_arrival_id_throw( UnitId id ) {
-  ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
-  GET_CHECK_VARIANT( in_port, info.get(),
-                     UnitEuroPortViewState::in_port );
-  return in_port.global_arrival_id;
+  // Until a better method is found to organize units in port.
+  return id._;
 }
 
 } // namespace
