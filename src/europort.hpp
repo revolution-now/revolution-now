@@ -44,4 +44,12 @@ void unit_sail_to_new_world( UnitId id );
 // that is in port) and moves it to the dock.
 void unit_move_to_europort_dock( UnitId id );
 
+// Takes a unit on the high seas and increases the percentage
+// completion of its journey. If the percentage reaches 1.0 as a
+// result of this call then the state will automatically be tran-
+// sitioned to either the old-world or the new world, as appro-
+// priate. If this is called with a unit that is not on the high
+// seas then an error will be thrown.
+void advance_unit_on_high_seas( UnitId id );
+
 } // namespace rn

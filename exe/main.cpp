@@ -65,9 +65,10 @@ void game() {
 
     id = create_unit_in_euroview_port( e_nation::spanish,
                                        e_unit_type::caravel );
-    if( i == 2 )
+    if( i == 2 ) {
       unit_sail_to_new_world( id );
-    else {
+      advance_unit_on_high_seas( id );
+    } else {
       (void)create_unit_as_cargo(
           e_nation::spanish, e_unit_type::free_colonist, id );
       (void)create_unit_as_cargo( e_nation::spanish,
@@ -115,6 +116,7 @@ void game() {
   id = create_unit_on_map( e_nation::english,
                            e_unit_type::privateer, 3_y, 6_x );
   unit_sail_to_old_world( id );
+  advance_unit_on_high_seas( id );
 
   // while( turn() != e_turn_result::quit ) {}
 

@@ -334,9 +334,10 @@ void ownership_change_to_cargo( UnitId new_holder,
                                 UnitId held ) {
   auto& cargo = unit_from_id( new_holder ).cargo();
   for( int i = 0; i < cargo.slots_total(); ++i ) {
-    if( cargo.fits( held, i ) )
+    if( cargo.fits( held, i ) ) {
       ownership_change_to_cargo( new_holder, held, i );
-    return;
+      return;
+    }
   }
   FATAL( "Unit {} cannot be placed in unit {}'s cargo: {}",
          debug_string( held ), debug_string( new_holder ),

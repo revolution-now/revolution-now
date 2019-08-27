@@ -152,28 +152,30 @@ void unit_sail_to_new_world( UnitId id ) {
   // This is the state to which we will set the unit, at least by
   // default (though it might get modified below based on the
   // current state of the unit).
-  auto target_state =
+  UnitEuroPortViewState_t target_state =
       UnitEuroPortViewState::outbound{/*progress=*/0.0};
   auto maybe_state = unit_euro_port_view_info( id );
-  CHECK( maybe_state,
-         "unit {} cannot sail to the new world because it is "
-         "already in the new world.",
-         debug_string( id ) );
   switch_( maybe_state->get() ) {
     case_( UnitEuroPortViewState::outbound ) {
       // no-op, i.e., keep state the same.
       target_state = val;
     }
     case_( UnitEuroPortViewState::inbound, percent ) {
-      // Unit must "turn around" and go the other way.
-      target_state = UnitEuroPortViewState::outbound{
-          /*progress=*/( 1.0 - percent )};
+      if( percent > 0.0 ) {
+        // Unit must "turn around" and go the other way.
+        target_state = UnitEuroPortViewState::outbound{
+            /*progress=*/( 1.0 - percent )};
+      } else {
+        NOT_IMPLEMENTED; // find a place on the map to move to.
+      }
     }
     case_( UnitEuroPortViewState::in_port ) {
       // keep default target.
     }
     switch_exhaustive;
   }
+  if( maybe_state && target_state == maybe_state->get() ) //
+    return;
   lg.info( "setting unit {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a europort state here.
@@ -190,6 +192,26 @@ void unit_move_to_europort_dock( UnitId id ) {
       id, UnitEuroPortViewState::in_port{} );
   DCHECK( is_unit_on_dock( id ) );
   DCHECK( !is_unit_onboard( id ) );
+}
+
+void advance_unit_on_high_seas( UnitId id ) {
+  ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
+  constexpr double const advance = 0.2;
+  if_v( info.get(), UnitEuroPortViewState::outbound, outbound ) {
+    outbound->percent += advance;
+    if( outbound->percent >= 1.0 ) {
+      NOT_IMPLEMENTED; // find a place on the map to move to.
+    }
+    return;
+  }
+  if_v( info.get(), UnitEuroPortViewState::inbound, inbound ) {
+    inbound->percent += advance;
+    if( inbound->percent >= 1.0 )
+      ownership_change_to_euro_port_view(
+          id, UnitEuroPortViewState::in_port{} );
+    return;
+  }
+  FATAL( "{} is not on the high seas.", debug_string( id ) );
 }
 
 } // namespace rn

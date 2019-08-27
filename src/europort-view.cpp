@@ -1230,16 +1230,28 @@ ADT_RN_( DragDst,                      //
          ( inport )                    //
 );
 
-ADT_RN_( DragArc,                     //
-         ( dock_to_cargo,             //
-           ( DragSrc::dock, src ),    //
-           ( DragDst::cargo, dst ) ), //
-         ( cargo_to_dock,             //
-           ( DragSrc::cargo, src ),   //
-           ( DragDst::dock, dst ) ),  //
-         ( cargo_to_cargo,            //
-           ( DragSrc::cargo, src ),   //
-           ( DragDst::cargo, dst ) )  //
+ADT_RN_( DragArc,                        //
+         ( dock_to_cargo,                //
+           ( DragSrc::dock, src ),       //
+           ( DragDst::cargo, dst ) ),    //
+         ( cargo_to_dock,                //
+           ( DragSrc::cargo, src ),      //
+           ( DragDst::dock, dst ) ),     //
+         ( cargo_to_cargo,               //
+           ( DragSrc::cargo, src ),      //
+           ( DragDst::cargo, dst ) ),    //
+         ( outbound_to_inbound,          //
+           ( DragSrc::outbound, src ),   //
+           ( DragDst::inbound, dst ) ),  //
+         ( outbound_to_inport,           //
+           ( DragSrc::outbound, src ),   //
+           ( DragDst::inport, dst ) ),   //
+         ( inbound_to_outbound,          //
+           ( DragSrc::inbound, src ),    //
+           ( DragDst::outbound, dst ) ), //
+         ( inport_to_outbound,           //
+           ( DragSrc::inport, src ),     //
+           ( DragDst::outbound, dst ) )  //
 );
 
 class EuroViewDragAndDrop
@@ -1423,6 +1435,16 @@ public:
                 /*insert_slot=*/dst.slot       //
             );
       }
+      case_( DragArc::outbound_to_inbound ) { return true; }
+      case_( DragArc::outbound_to_inport ) {
+        ASSIGN_CHECK_OPT(
+            info, unit_euro_port_view_info( val.src.id ) );
+        ASSIGN_CHECK_V( outbound, info.get(),
+                        UnitEuroPortViewState::outbound );
+        return outbound.percent == 0.0;
+      }
+      case_( DragArc::inbound_to_outbound ) { return true; }
+      case_( DragArc::inport_to_outbound ) { return true; }
       matcher_exhaustive;
     }
   }
@@ -1476,6 +1498,18 @@ public:
           }
           switch_exhaustive;
         }
+      }
+      case_( DragArc::outbound_to_inbound ) {
+        unit_sail_to_old_world( val.src.id );
+      }
+      case_( DragArc::outbound_to_inport ) {
+        unit_sail_to_old_world( val.src.id );
+      }
+      case_( DragArc::inbound_to_outbound ) {
+        unit_sail_to_new_world( val.src.id );
+      }
+      case_( DragArc::inport_to_outbound ) {
+        unit_sail_to_new_world( val.src.id );
       }
       switch_exhaustive;
     }
