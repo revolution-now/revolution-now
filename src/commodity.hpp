@@ -52,6 +52,9 @@ enum class e_(commodity,
 );
 // clang-format on
 
+// Index refers to the ordering in the enum above, starting at 0.
+Opt<e_commodity> commodity_from_index( int index );
+
 /****************************************************************
 ** Commodity Labels
 *****************************************************************/
@@ -109,6 +112,9 @@ void render_commodity_annotated( Texture& tx, e_commodity type,
 void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord );
+
+// Only call this if you need to create a new small texture.
+Texture render_commodity_create( e_commodity type );
 
 } // namespace rn
 

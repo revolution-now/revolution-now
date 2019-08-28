@@ -17,6 +17,7 @@
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "europort.hpp"
+#include "fmt-helper.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
@@ -45,6 +46,25 @@ using namespace std;
 
 namespace rn {
 
+// FIXME: move this to new market module along with formatter.
+struct MarketCommodity {
+  e_commodity type;
+
+  bool operator==( MarketCommodity const& rhs ) const {
+    return type == rhs.type;
+  }
+  bool operator!=( MarketCommodity const& rhs ) const {
+    return !( *this == rhs );
+  }
+};
+
+} // namespace rn
+
+DEFINE_FORMAT( ::rn::MarketCommodity,
+               "MarketCommodity{{type={}}}", o.type );
+
+namespace rn {
+
 namespace {
 
 /****************************************************************
@@ -58,8 +78,9 @@ Opt<UnitId> g_selected_unit;
 ** Draggable Object
 *****************************************************************/
 using DraggableObject = std::variant< //
-    UnitId,                           //
-    Commodity                         //
+    UnitId,                           // cargo or dock or in-port
+    MarketCommodity,                  // market
+    Commodity                         // cargo only
     >;
 
 static_assert( std::is_copy_constructible_v<DraggableObject> );
@@ -86,8 +107,9 @@ Opt<DraggableObject> cargo_slot_to_draggable(
 Opt<Cargo> draggable_to_cargo_object(
     DraggableObject const& draggable ) {
   return matcher_( draggable, ->, Opt<Cargo> ) {
-    case_( UnitId ) result_    val;
-    case_( Commodity ) result_ val;
+    case_( UnitId ) result_          val;
+    case_( MarketCommodity ) result_ nullopt;
+    case_( Commodity ) result_       val;
     matcher_exhaustive;
   }
 }
@@ -111,8 +133,10 @@ Texture draw_draggable_object( DraggableObject const& object ) {
       return tx;
     }
     case_( Commodity ) {
-      NOT_IMPLEMENTED;
-      return Texture{};
+      return render_commodity_create( val.type );
+    }
+    case_( MarketCommodity ) {
+      return render_commodity_create( val.type );
     }
     matcher_exhaustive;
   }
@@ -275,6 +299,21 @@ public:
 
     } else {
       // cannot draw.
+    }
+    return res;
+  }
+
+  Opt<e_commodity> commodity_under_cursor(
+      Coord const& coord ) const {
+    Opt<e_commodity> res;
+    if( coord.is_inside( bounds() ) ) {
+      auto boxes =
+          bounds().with_new_upper_left( Coord{} ) / sprite_scale;
+      using namespace util::infix;
+      res = boxes.rasterize(
+                coord.with_new_origin( bounds().upper_left() ) /
+                sprite_scale ) //
+            | fmap_join( commodity_from_index );
     }
     return res;
   }
@@ -1216,7 +1255,9 @@ ADT_RN_( DragSrc,                      //
          ( inbound,                    //
            ( UnitId, id ) ),           //
          ( inport,                     //
-           ( UnitId, id ) )            //
+           ( UnitId, id ) ),           //
+         ( market,                     //
+           ( MarketCommodity, comm ) ) //
 );
 
 ADT_RN_( DragDst,                      //
@@ -1286,6 +1327,7 @@ public:
       case_( DragSrc::outbound, id ) { return id; }
       case_( DragSrc::inbound, id ) { return id; }
       case_( DragSrc::inport, id ) { return id; }
+      case_( DragSrc::market, comm ) { return comm; }
       matcher_exhaustive;
     }
   }
@@ -1352,6 +1394,16 @@ public:
           maybe_id ) {
         res = DragSrc::inport{
             /*id=*/*maybe_id //
+        };
+      }
+    }
+    if( entities_->market_commodities.has_value() ) {
+      if( auto maybe_type =
+              entities_->market_commodities
+                  ->commodity_under_cursor( coord );
+          maybe_type ) {
+        res = DragSrc::market{
+            /*type=*/*maybe_type //
         };
       }
     }
@@ -1441,15 +1493,15 @@ public:
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
         if( !is_unit_in_port( ship ) ) return false;
-        auto maybe_cargo_object = draggable_to_cargo_object(
-            draggable_from_src( src ) );
-        if( !maybe_cargo_object ) return false;
+        ASSIGN_CHECK_OPT( cargo_object,
+                          draggable_to_cargo_object(
+                              draggable_from_src( src ) ) );
         return unit_from_id( ship )
             .cargo()
             .fits_with_item_removed(
-                /*cargo=*/*maybe_cargo_object, //
-                /*remove_slot=*/src.slot,      //
-                /*insert_slot=*/dst.slot       //
+                /*cargo=*/cargo_object,   //
+                /*remove_slot=*/src.slot, //
+                /*insert_slot=*/dst.slot  //
             );
       }
       case_( DragArc::outbound_to_inbound ) { return true; }
@@ -1468,11 +1520,11 @@ public:
       }
       case_( DragArc::cargo_to_inport_ship, src, dst ) {
         using namespace util::infix;
-        auto ship               = dst.id;
-        auto maybe_cargo_object = draggable_to_cargo_object(
-            draggable_from_src( src ) );
-        if( !maybe_cargo_object ) return false;
-        return matcher_( *maybe_cargo_object ) {
+        auto ship = dst.id;
+        ASSIGN_CHECK_OPT( cargo_object,
+                          draggable_to_cargo_object(
+                              draggable_from_src( src ) ) );
+        return matcher_( cargo_object ) {
           case_( UnitId ) {
             if( is_unit_onboard( val ) == ship ) return false;
             return unit_from_id( ship )
@@ -1528,8 +1580,10 @@ public:
         lg.info(
             "dragging {} from cargo slot {} to cargo slot {}",
             draggable_from_src( src ), src.slot, dst.slot );
-        auto draggable = draggable_from_src( src );
-        switch_( draggable ) {
+        ASSIGN_CHECK_OPT( cargo_object,
+                          draggable_to_cargo_object(
+                              draggable_from_src( src ) ) );
+        switch_( cargo_object ) {
           case_( UnitId ) {
             // Will first "disown" unit which will remove it from
             // the cargo.
@@ -1557,8 +1611,10 @@ public:
         ownership_change_to_cargo( dst.id, src.id );
       }
       case_( DragArc::cargo_to_inport_ship, src, dst ) {
-        auto draggable = draggable_from_src( src );
-        switch_( draggable ) {
+        ASSIGN_CHECK_OPT( cargo_object,
+                          draggable_to_cargo_object(
+                              draggable_from_src( src ) ) );
+        switch_( cargo_object ) {
           case_( UnitId ) {
             // Will first "disown" unit which will remove it from
             // the cargo.

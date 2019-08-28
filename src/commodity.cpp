@@ -96,6 +96,13 @@ string commodity_number_to_markup( int value ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
+Opt<e_commodity> commodity_from_index( int index ) {
+  Opt<e_commodity> res;
+  if( index >= 0 && index < int( values<e_commodity>.size() ) )
+    res = values<e_commodity>[index];
+  return res;
+}
+
 Opt<string> commodity_label_to_markup(
     CommodityLabel_t const& label ) {
   return matcher_( label, ->, Opt<string> ) {
@@ -141,6 +148,13 @@ void render_commodity_annotated( Texture&         tx,
   render_commodity_annotated(
       tx, comm.type, pixel_coord,
       CommodityLabel::quantity{comm.quantity} );
+}
+
+Texture render_commodity_create( e_commodity type ) {
+  auto tx = create_texture_transparent(
+      lookup_sprite( tile_for_commodity( type ) ).size() );
+  render_commodity( tx, type, Coord{} );
+  return tx;
 }
 
 } // namespace rn
