@@ -1227,31 +1227,39 @@ ADT_RN_( DragDst,                      //
          ( dock ),                     //
          ( outbound ),                 //
          ( inbound ),                  //
-         ( inport )                    //
+         ( inport ),                   //
+         ( inport_ship,                //
+           ( UnitId, id ) )            //
 );
 
-ADT_RN_( DragArc,                        //
-         ( dock_to_cargo,                //
-           ( DragSrc::dock, src ),       //
-           ( DragDst::cargo, dst ) ),    //
-         ( cargo_to_dock,                //
-           ( DragSrc::cargo, src ),      //
-           ( DragDst::dock, dst ) ),     //
-         ( cargo_to_cargo,               //
-           ( DragSrc::cargo, src ),      //
-           ( DragDst::cargo, dst ) ),    //
-         ( outbound_to_inbound,          //
-           ( DragSrc::outbound, src ),   //
-           ( DragDst::inbound, dst ) ),  //
-         ( outbound_to_inport,           //
-           ( DragSrc::outbound, src ),   //
-           ( DragDst::inport, dst ) ),   //
-         ( inbound_to_outbound,          //
-           ( DragSrc::inbound, src ),    //
-           ( DragDst::outbound, dst ) ), //
-         ( inport_to_outbound,           //
-           ( DragSrc::inport, src ),     //
-           ( DragDst::outbound, dst ) )  //
+ADT_RN_( DragArc,                           //
+         ( dock_to_cargo,                   //
+           ( DragSrc::dock, src ),          //
+           ( DragDst::cargo, dst ) ),       //
+         ( cargo_to_dock,                   //
+           ( DragSrc::cargo, src ),         //
+           ( DragDst::dock, dst ) ),        //
+         ( cargo_to_cargo,                  //
+           ( DragSrc::cargo, src ),         //
+           ( DragDst::cargo, dst ) ),       //
+         ( outbound_to_inbound,             //
+           ( DragSrc::outbound, src ),      //
+           ( DragDst::inbound, dst ) ),     //
+         ( outbound_to_inport,              //
+           ( DragSrc::outbound, src ),      //
+           ( DragDst::inport, dst ) ),      //
+         ( inbound_to_outbound,             //
+           ( DragSrc::inbound, src ),       //
+           ( DragDst::outbound, dst ) ),    //
+         ( inport_to_outbound,              //
+           ( DragSrc::inport, src ),        //
+           ( DragDst::outbound, dst ) ),    //
+         ( dock_to_inport_ship,             //
+           ( DragSrc::dock, src ),          //
+           ( DragDst::inport_ship, dst ) ), //
+         ( cargo_to_inport_ship,            //
+           ( DragSrc::cargo, src ),         //
+           ( DragDst::inport_ship, dst ) )  //
 );
 
 class EuroViewDragAndDrop
@@ -1374,12 +1382,9 @@ public:
               entities_->active_cargo->slot_idx_from_coord(
                   coord );
           maybe_slot ) {
-        ASSIGN_CHECK_OPT(
-            ship, entities_->active_cargo->active_unit() );
-        if( is_unit_in_port( ship ) )
-          res = DragDst::cargo{
-              /*slot=*/*maybe_slot //
-          };
+        res = DragDst::cargo{
+            /*slot=*/*maybe_slot //
+        };
       }
     }
     if( entities_->dock.has_value() ) {
@@ -1402,6 +1407,16 @@ public:
       if( coord.is_inside( entities_->in_port_box->bounds() ) )
         res = DragDst::inport{};
     }
+    if( entities_->ships_in_port.has_value() ) {
+      if( auto maybe_ship =
+              entities_->ships_in_port->unit_under_cursor(
+                  coord );
+          maybe_ship ) {
+        res = DragDst::inport_ship{
+            /*id=*/*maybe_ship, //
+        };
+      }
+    }
     return res;
   }
 
@@ -1412,6 +1427,7 @@ public:
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
+        if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship ).cargo().fits( src.id,
                                                   dst.slot._ );
       }
@@ -1424,6 +1440,7 @@ public:
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
+        if( !is_unit_in_port( ship ) ) return false;
         auto maybe_cargo_object = draggable_to_cargo_object(
             draggable_from_src( src ) );
         if( !maybe_cargo_object ) return false;
@@ -1445,6 +1462,31 @@ public:
       }
       case_( DragArc::inbound_to_outbound ) { return true; }
       case_( DragArc::inport_to_outbound ) { return true; }
+      case_( DragArc::dock_to_inport_ship, src, dst ) {
+        return unit_from_id( dst.id ).cargo().fits_as_available(
+            src.id );
+      }
+      case_( DragArc::cargo_to_inport_ship, src, dst ) {
+        using namespace util::infix;
+        auto ship               = dst.id;
+        auto maybe_cargo_object = draggable_to_cargo_object(
+            draggable_from_src( src ) );
+        if( !maybe_cargo_object ) return false;
+        return matcher_( *maybe_cargo_object ) {
+          case_( UnitId ) {
+            if( is_unit_onboard( val ) == ship ) return false;
+            return unit_from_id( ship )
+                .cargo()
+                .fits_as_available( val );
+          }
+          case_( Commodity ) {
+            return unit_from_id( ship )
+                .cargo()
+                .fits_as_available( val );
+          }
+          matcher_exhaustive;
+        }
+      }
       matcher_exhaustive;
     }
   }
@@ -1510,6 +1552,23 @@ public:
       }
       case_( DragArc::inport_to_outbound ) {
         unit_sail_to_new_world( val.src.id );
+      }
+      case_( DragArc::dock_to_inport_ship, src, dst ) {
+        ownership_change_to_cargo( dst.id, src.id );
+      }
+      case_( DragArc::cargo_to_inport_ship, src, dst ) {
+        auto draggable = draggable_from_src( src );
+        switch_( draggable ) {
+          case_( UnitId ) {
+            // Will first "disown" unit which will remove it from
+            // the cargo.
+            ownership_change_to_cargo( dst.id, val );
+          }
+          case_( Commodity ) {
+            NOT_IMPLEMENTED; // FIXME
+          }
+          switch_exhaustive;
+        }
       }
       switch_exhaustive;
     }
