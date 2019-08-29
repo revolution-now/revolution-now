@@ -1261,8 +1261,6 @@ ADT_RN_( DragSrc,                      //
 );
 
 ADT_RN_( DragDst,                      //
-         ( cargo_box,                  //
-           ( CargoSlotIndex, slot ) ), //
          ( cargo,                      //
            ( CargoSlotIndex, slot ) ), //
          ( dock ),                     //
@@ -1419,16 +1417,6 @@ public:
     auto coord =
         do_not_use.with_new_origin( clip_rect().upper_left() );
     Opt<DragDst_t> res;
-    if( entities_->active_cargo_box.has_value() ) {
-      if( auto maybe_slot =
-              entities_->active_cargo_box->slot_idx_from_coord(
-                  coord );
-          maybe_slot ) {
-        res = DragDst::cargo_box{
-            /*slot=*/*maybe_slot //
-        };
-      }
-    }
     if( entities_->active_cargo.has_value() ) {
       if( auto maybe_slot =
               entities_->active_cargo->slot_idx_from_coord(
