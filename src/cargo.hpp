@@ -121,6 +121,14 @@ public:
   Vec<Pair<Commodity, int>> commodities(
       Opt<e_commodity> type = std::nullopt ) const;
 
+  // Find the maximum quantity of the commodity of the given type
+  // that can fit in the entire cargo hold (given its current
+  // contents). This function will return the quantity of the
+  // commodity necessary to 1) fill every empty slot, and 2) fill
+  // any partial slot currently occupied by a commodity of the
+  // same type.
+  int max_commodity_quantity_that_fits( e_commodity type ) const;
+
   // Checks if the given cargo could be added at the given slot
   // index. If UnitId, will not check for unit id already in
   // cargo.

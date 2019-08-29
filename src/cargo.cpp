@@ -25,6 +25,7 @@
 #include "absl/strings/str_replace.h"
 
 // Range-v3
+#include "range/v3/numeric/accumulate.hpp"
 #include "range/v3/view/cycle.hpp"
 #include "range/v3/view/drop.hpp"
 #include "range/v3/view/enumerate.hpp"
@@ -245,6 +246,29 @@ void CargoHold::compactify() {
       CHECK( try_add_as_available( comm ) );
   }
   check_invariants();
+}
+
+int CargoHold::max_commodity_quantity_that_fits(
+    e_commodity type ) const {
+  auto one_slot = variant_function_c( slot, ->, int ) {
+    case_( CargoSlot::empty ) {
+      return k_max_commodity_cargo_per_slot;
+    }
+    case_( CargoSlot::overflow ) return 0;
+    case_( CargoSlot::cargo ) {
+      return matcher_( slot.contents ) {
+        case_( UnitId ) return 0;
+        case_( Commodity ) {
+          if( val.type == type )
+            return k_max_commodity_cargo_per_slot - val.quantity;
+          return 0;
+        }
+        matcher_exhaustive;
+      }
+    }
+    variant_function_exhaustive;
+  };
+  return rg::accumulate( slots_ | rv::transform( one_slot ), 0 );
 }
 
 bool CargoHold::fits( Cargo const& cargo, int slot ) const {

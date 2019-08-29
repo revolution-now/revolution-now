@@ -2225,4 +2225,91 @@ TEST_CASE( "CargoHold fits_with_item_removed" ) {
   ch.clear();
 }
 
+TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
+  auto food_full  = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/100};
+  auto food_part  = Commodity{/*type=*/e_commodity::food,
+                             /*quantity=*/66};
+  auto sugar_part = Commodity{/*type=*/e_commodity::sugar,
+                              /*quantity=*/33};
+  auto unit_id1   = create_unit( e_nation::english,
+                               e_unit_type::small_treasure )
+                      .id();
+
+  SECTION( "size zero" ) {
+    CargoHoldTester ch( 0 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 0 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 0 );
+    ch.clear();
+  }
+
+  SECTION( "size one full" ) {
+    CargoHoldTester ch( 1 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 100 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 100 );
+    REQUIRE( ch.try_add_as_available( food_full ) );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 0 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 0 );
+    ch.clear();
+  }
+
+  SECTION( "size one partial" ) {
+    CargoHoldTester ch( 1 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 100 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 100 );
+    REQUIRE( ch.try_add_as_available( food_part ) );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 34 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 0 );
+    ch.clear();
+  }
+
+  SECTION( "size six" ) {
+    CargoHoldTester ch( 6 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 600 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 600 );
+    REQUIRE( ch.try_add_as_available( food_full ) );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 500 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 500 );
+    REQUIRE( ch.try_add_as_available( sugar_part ) );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 400 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 467 );
+    ch.clear();
+  }
+
+  SECTION( "size six with units" ) {
+    CargoHoldTester ch( 6 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 600 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 600 );
+    REQUIRE( ch.try_add_as_available( unit_id1 ) );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 200 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 200 );
+    REQUIRE( ch.try_add_as_available( sugar_part ) );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::food ) == 100 );
+    REQUIRE( ch.max_commodity_quantity_that_fits(
+                 e_commodity::sugar ) == 167 );
+    ch.clear();
+  }
+}
+
 } // namespace
