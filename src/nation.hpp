@@ -34,9 +34,6 @@ struct NationDesc {
   std::string name_proper() const;
 };
 
-// disabled until there is an AI.
-// ND e_nation player_nation();
-
 NationDesc const& nation_obj( e_nation nation );
 
 constexpr std::array<e_nation, e_nation::_size()> all_nations() {

@@ -19,6 +19,7 @@ let s:stems = [
   \ 'src/commodity',
   \ 'src/cargo',
   \ 'src/ownership',
+  \ 'src/player',
   \ 'src/europort',
   \ 'src/fsm',
   \ 'src/dragdrop',

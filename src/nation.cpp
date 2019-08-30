@@ -47,9 +47,6 @@ NationDesc const& nation_obj( e_nation nation ) {
   return nations[nation];
 }
 
-// disabled until there is an AI.
-// e_nation player_nation() { return config_rn.player_nation; }
-
 string NationDesc::name_proper() const {
   string res = name_lowercase;
   CHECK( !res.empty() );
