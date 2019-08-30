@@ -67,6 +67,8 @@ namespace rn {
 
 namespace {
 
+constexpr Delta const k_rendered_commodity_offset{8_w, 3_h};
+
 /****************************************************************
 ** Selected Unit
 *****************************************************************/
@@ -269,7 +271,8 @@ public:
                    rect.shifted_by( offset ) );
       render_commodity_annotated(
           tx, *comm_it++,
-          rect.shifted_by( offset ).upper_left() + 8_w + 4_h,
+          rect.shifted_by( offset ).upper_left() +
+              k_rendered_commodity_offset,
           label );
       label.buy += 120;
       label.sell += 120;
@@ -1055,7 +1058,9 @@ public:
                                /*with_icon=*/false );
               }
               case_( Commodity ) {
-                render_commodity_annotated( tx, val, dst_coord );
+                render_commodity_annotated(
+                    tx, val,
+                    dst_coord + k_rendered_commodity_offset );
               }
               switch_exhaustive;
             }
@@ -1245,19 +1250,19 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-ADT_RN_( DragSrc,                      //
-         ( dock,                       //
-           ( UnitId, id ) ),           //
-         ( cargo,                      //
-           ( CargoSlotIndex, slot ) ), //
-         ( outbound,                   //
-           ( UnitId, id ) ),           //
-         ( inbound,                    //
-           ( UnitId, id ) ),           //
-         ( inport,                     //
-           ( UnitId, id ) ),           //
-         ( market,                     //
-           ( MarketCommodity, comm ) ) //
+ADT_RN_( DragSrc,                         //
+         ( dock,                          //
+           ( UnitId, id ) ),              //
+         ( cargo,                         //
+           ( CargoSlotIndex, slot ) ),    //
+         ( outbound,                      //
+           ( UnitId, id ) ),              //
+         ( inbound,                       //
+           ( UnitId, id ) ),              //
+         ( inport,                        //
+           ( UnitId, id ) ),              //
+         ( market,                        //
+           ( MarketCommodity, mktcomm ) ) //
 );
 
 ADT_RN_( DragDst,                      //
@@ -1298,7 +1303,10 @@ ADT_RN_( DragArc,                           //
            ( DragDst::inport_ship, dst ) ), //
          ( cargo_to_inport_ship,            //
            ( DragSrc::cargo, src ),         //
-           ( DragDst::inport_ship, dst ) )  //
+           ( DragDst::inport_ship, dst ) ), //
+         ( market_to_cargo,                 //
+           ( DragSrc::market, src ),        //
+           ( DragDst::cargo, dst ) )        //
 );
 
 class EuroViewDragAndDrop
@@ -1325,7 +1333,7 @@ public:
       case_( DragSrc::outbound, id ) { return id; }
       case_( DragSrc::inbound, id ) { return id; }
       case_( DragSrc::inport, id ) { return id; }
-      case_( DragSrc::market, comm ) { return comm; }
+      case_( DragSrc::market, mktcomm ) { return mktcomm; }
       matcher_exhaustive;
     }
   }
@@ -1400,9 +1408,9 @@ public:
               entities_->market_commodities
                   ->commodity_under_cursor( coord );
           maybe_type ) {
-        res = DragSrc::market{
+        res = DragSrc::market{/*mktcomm=*/MarketCommodity{
             /*type=*/*maybe_type //
-        };
+        }};
       }
     }
     return res;
@@ -1484,6 +1492,15 @@ public:
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
                               draggable_from_src( src ) ) );
+        // For commodities we'd ideally like to treat this spe-
+        // cially in that we want to be able to consolidate like
+        // commodities by dragging where the the source+target
+        // quantities would be > 100. In that case, only part of
+        // the source commodity would be dragged. However, the
+        // below check will not allow this since it will return
+        // false if the dragged commodity cannot entirely fit
+        // into the target slot. This is fine, since we will have
+        // a separate UI button to compactify the cargo.
         return unit_from_id( ship )
             .cargo()
             .fits_with_item_removed(
@@ -1526,6 +1543,22 @@ public:
           }
           matcher_exhaustive;
         }
+      }
+      case_( DragArc::market_to_cargo, src, dst ) {
+        using namespace util::infix;
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        if( !is_unit_in_port( ship ) ) return false;
+        auto comm = Commodity{
+            /*type=*/src.mktcomm.type, //
+            // If the commodity can fit even with just one quan-
+            // tity then it is allowed, since we will just insert
+            // as much as possible if we can't insert 100.
+            /*quantity=*/1 //
+        };
+        return unit_from_id( ship ).cargo().fits_as_available(
+            comm, dst.slot._ );
       }
       matcher_exhaustive;
     }
@@ -1578,7 +1611,10 @@ public:
             ownership_change_to_cargo( ship, val, dst.slot._ );
           }
           case_( Commodity ) {
-            NOT_IMPLEMENTED; // FIXME
+            auto comm_removed =
+                rm_commodity_from_cargo( ship, src.slot._ );
+            add_commodity_to_cargo( comm_removed, ship,
+                                    dst.slot._ );
           }
           switch_exhaustive;
         }
@@ -1613,6 +1649,26 @@ public:
           }
           switch_exhaustive;
         }
+      }
+      case_( DragArc::market_to_cargo, src, dst ) {
+        using namespace util::infix;
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        auto comm = Commodity{
+            /*type=*/src.mktcomm.type, //
+            /*quantity=*/0             //
+        };
+        comm.quantity = unit_from_id( ship )
+                            .cargo()
+                            .max_commodity_quantity_that_fits(
+                                src.mktcomm.type );
+        CHECK( comm.quantity > 0 );
+        // Cap it at 100.
+        comm.quantity = std::min( 30, comm.quantity );
+        add_commodity_to_cargo( comm, ship, dst.slot._ );
+        lg.info( "dragging {} into ship {}'s cargo slot {}",
+                 comm, debug_string( ship ), dst.slot );
       }
       switch_exhaustive;
     }

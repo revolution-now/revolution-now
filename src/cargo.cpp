@@ -163,6 +163,11 @@ CargoSlot_t const& CargoHold::operator[]( int idx ) const {
   return slots_[idx];
 }
 
+CargoSlot_t& CargoHold::operator[]( int idx ) {
+  CHECK( idx >= 0 && idx < int( slots_.size() ) );
+  return slots_[idx];
+}
+
 CargoSlot_t const& CargoHold::operator[](
     CargoSlotIndex idx ) const {
   return this->operator[]( idx._ );

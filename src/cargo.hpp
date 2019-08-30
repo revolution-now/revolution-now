@@ -36,9 +36,12 @@ TYPED_INDEX( CargoSlotIndex );
 namespace rn {
 void ownership_change_to_cargo( UnitId new_holder, UnitId held,
                                 int slot );
+void add_commodity_to_cargo( Commodity const& comm,
+                             UnitId holder, int starting_slot );
+Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 namespace internal {
 void ownership_disown_unit( UnitId id );
-}
+} // namespace internal
 } // namespace rn
 
 namespace rn {
@@ -168,11 +171,22 @@ public:
 protected:
   void check_invariants() const;
 
-  // This is the only function that should be called to add some-
-  // thing to the cargo.
+  // ------------------------------------------------------------
+  // These are the only functions that should be allowed to add
+  // or remove units to/from the cargo.
   friend void ownership_change_to_cargo( UnitId new_holder,
                                          UnitId held, int slot );
   friend void internal::ownership_disown_unit( UnitId id );
+
+  // These are the only functions that should be allowed to add
+  // or remove commodities to/from the cargo.
+  friend void add_commodity_to_cargo( Commodity const& comm,
+                                      UnitId           holder,
+                                      int starting_slot );
+
+  friend Commodity rm_commodity_from_cargo( UnitId holder,
+                                            int    slot );
+  // ------------------------------------------------------------
 
   // Will search through the cargo slots, starting at the speci-
   // fied slot, until one is found at which the given cargo can
@@ -201,6 +215,8 @@ protected:
   // Remove all cargo elements, keeping cargo the same size but
   // filled with "empty"s.
   void clear();
+
+  CargoSlot_t& operator[]( int idx );
 
   // This will be of fixed length (number of total slots).
   std::vector<CargoSlot_t> slots_;

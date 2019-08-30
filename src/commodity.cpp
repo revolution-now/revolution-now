@@ -14,6 +14,7 @@
 #include "fmt-helper.hpp"
 #include "gfx.hpp"
 #include "macros.hpp"
+#include "ownership.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 
@@ -100,6 +101,24 @@ Opt<e_commodity> commodity_from_index( int index ) {
   Opt<e_commodity> res;
   if( index >= 0 && index < int( values<e_commodity>.size() ) )
     res = values<e_commodity>[index];
+  return res;
+}
+
+void add_commodity_to_cargo( Commodity const& comm,
+                             UnitId holder, int starting_slot ) {
+  CHECK( unit_from_id( holder ).cargo().try_add_as_available(
+      comm, starting_slot ) );
+}
+
+Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
+  auto& cargo = unit_from_id( holder ).cargo();
+
+  ASSIGN_CHECK_V( cargo_item, cargo[slot], CargoSlot::cargo );
+  ASSIGN_CHECK_V( comm, cargo_item.contents, Commodity );
+
+  Commodity res = std::move( comm );
+  cargo[slot]   = CargoSlot::empty{};
+  cargo.check_invariants();
   return res;
 }
 

@@ -48,6 +48,7 @@ struct CargoHoldTester : public CargoHold {
   using CargoHold::remove;
   using CargoHold::try_add;
   using CargoHold::try_add_as_available;
+  using CargoHold::operator[];
 
   // Data members.
   using CargoHold::slots_;

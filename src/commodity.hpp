@@ -18,6 +18,7 @@
 #include "coord.hpp"
 #include "enum.hpp"
 #include "fmt-helper.hpp"
+#include "id.hpp"
 #include "tx.hpp"
 
 // C++ standard library
@@ -92,6 +93,14 @@ struct Commodity {
     return !( *this == rhs );
   }
 };
+
+// These are "low level" functions that should only be called
+// after all the right checks have been made that the cargo can
+// fit (or exists, as the case may be). If the action cannot be
+// carried out then an error will be thrown.
+void      add_commodity_to_cargo( Commodity const& comm,
+                                  UnitId holder, int starting_slot );
+Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 
 /****************************************************************
 ** Commodity Renderers
