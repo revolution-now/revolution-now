@@ -23,7 +23,7 @@
 #include <cctype>
 
 #define MAKE_NATION( __name )                               \
-  m[e_nation::__name] = Nation {                            \
+  m[e_nation::__name] = NationDesc {                        \
     TO_STRING( __name ), config_nation.__name.country_name, \
         *config_nation.__name.flag_color                    \
   }
@@ -34,9 +34,9 @@ namespace rn {
 
 namespace {} // namespace
 
-Nation const& nation_obj( e_nation nation ) {
-  static absl::flat_hash_map<e_nation, Nation> nations = [] {
-    absl::flat_hash_map<e_nation, Nation> m;
+NationDesc const& nation_obj( e_nation nation ) {
+  static absl::flat_hash_map<e_nation, NationDesc> nations = [] {
+    absl::flat_hash_map<e_nation, NationDesc> m;
     MAKE_NATION( dutch );
     MAKE_NATION( french );
     MAKE_NATION( english );
@@ -50,7 +50,7 @@ Nation const& nation_obj( e_nation nation ) {
 // disabled until there is an AI.
 // e_nation player_nation() { return config_rn.player_nation; }
 
-string Nation::name_proper() const {
+string NationDesc::name_proper() const {
   string res = name_lowercase;
   CHECK( !res.empty() );
   res[0] = std::toupper( res[0] );

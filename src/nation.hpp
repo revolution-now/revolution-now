@@ -26,7 +26,7 @@ enum class ND e_( nation, //
                   /*values*/
                   dutch, french, english, spanish );
 
-struct Nation {
+struct NationDesc {
   std::string name_lowercase;
   std::string country_name;
   Color       flag_color;
@@ -37,7 +37,7 @@ struct Nation {
 // disabled until there is an AI.
 // ND e_nation player_nation();
 
-Nation const& nation_obj( e_nation nation );
+NationDesc const& nation_obj( e_nation nation );
 
 constexpr std::array<e_nation, e_nation::_size()> all_nations() {
   constexpr std::array<e_nation, e_nation::_size()> nations =
