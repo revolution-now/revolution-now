@@ -32,7 +32,7 @@
 #include "../config/all-ucl.inl"
 
 // base-util
-#include "base-util/misc.hpp"
+#include "base-util/keyval.hpp"
 #include "base-util/pp.hpp"
 #include "base-util/string.hpp"
 
@@ -649,7 +649,7 @@ void init_configs() {
     auto fields = get_all_fields( ucl_configs[ucl_name] );
     for( auto const& f : fields ) {
       auto full_name = file + "." + f;
-      if( !util::has_key( used_field_paths, full_name ) ) {
+      if( !bu::has_key( used_field_paths, full_name ) ) {
         lg.warn( "config field `{}' unused", full_name );
       } else {
         LOG_TRACE( "field loaded: {}", full_name );

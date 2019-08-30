@@ -16,10 +16,10 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "terrain.hpp"
-#include "util.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
+#include "base-util/keyval.hpp"
 #include "base-util/variant.hpp"
 
 // C++ standard library
@@ -108,8 +108,8 @@ Vec<UnitId> units_all( optional<e_nation> nation ) {
 }
 
 bool unit_exists( UnitId id ) {
-  bool exists  = has_key( units, id ).has_value();
-  bool deleted = has_key( g_deleted_units, id ).has_value();
+  bool exists  = bu::has_key( units, id ).has_value();
+  bool deleted = bu::has_key( g_deleted_units, id ).has_value();
   if( exists )
     CHECK( !deleted, "{}: exists: {}, deleted: {}.",
            /*no debug_string*/ id, exists, deleted );
@@ -156,7 +156,7 @@ void destroy_unit( UnitId id ) {
 Unit& create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
-  CHECK( !has_key( units, id ) );
+  CHECK( !bu::has_key( units, id ) );
   CHECK( !g_deleted_units.contains( id ) );
   // To avoid requirement of operator[] that we have a default
   // constructor on Unit.
@@ -170,7 +170,7 @@ Unit& create_unit( e_nation nation, e_unit_type type ) {
 unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
   static unordered_set<UnitId> empty = {};
   CHECK( square_exists( y, x ) );
-  auto opt_set = val_safe( units_from_coords, Coord{y, x} );
+  auto opt_set = bu::val_safe( units_from_coords, Coord{y, x} );
   return opt_set.value_or( empty );
 }
 
@@ -220,13 +220,14 @@ Coord coords_for_unit( UnitId id ) {
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
 Opt<Coord> coords_for_unit_safe( UnitId id ) {
-  ASSIGN_OR_RETURN( ownership, val_safe( unit_ownership, id ) );
+  ASSIGN_OR_RETURN( ownership,
+                    bu::val_safe( unit_ownership, id ) );
   switch( ownership ) {
     case e_unit_ownership::world:
-      return val_safe( coords_from_unit, id );
+      return bu::val_safe( coords_from_unit, id );
     case e_unit_ownership::cargo: {
       ASSIGN_OR_RETURN( holder,
-                        val_safe( holder_from_held, id ) );
+                        bu::val_safe( holder_from_held, id ) );
       // Coordinates of unit are coordinates of holder.
       return coords_for_unit_safe( holder );
     }
@@ -242,7 +243,7 @@ Opt<Coord> coords_for_unit_safe( UnitId id ) {
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nullopt otherwise.
 Opt<UnitId> is_unit_onboard( UnitId id ) {
-  auto opt_iter = has_key( holder_from_held, id );
+  auto opt_iter = bu::has_key( holder_from_held, id );
   return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
                   : nullopt;
 }
@@ -252,7 +253,8 @@ Opt<UnitId> is_unit_onboard( UnitId id ) {
 *****************************************************************/
 Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
     UnitId id ) {
-  ASSIGN_OR_RETURN( it, has_key( g_euro_port_view_units, id ) );
+  ASSIGN_OR_RETURN( it,
+                    bu::has_key( g_euro_port_view_units, id ) );
   return it->second;
 }
 
@@ -347,7 +349,7 @@ void ownership_change_to_cargo( UnitId new_holder,
 void ownership_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
   check_europort_state_invariants( info );
-  if( !has_key( g_euro_port_view_units, id ) ) {
+  if( !bu::has_key( g_euro_port_view_units, id ) ) {
     internal::ownership_disown_unit( id );
     unit_ownership[id] = e_unit_ownership::old_world;
   }
@@ -368,7 +370,7 @@ namespace internal {
 // given unit and mark it as unowned.
 void ownership_disown_unit( UnitId id ) {
   // If there is no ownership then return and do nothing.
-  ASSIGN_OR_RETURN_( it, has_key( unit_ownership, id ) );
+  ASSIGN_OR_RETURN_( it, bu::has_key( unit_ownership, id ) );
   switch( it->second ) {
     // For some strange reason we need braces around this case
     // statement otherwise we get errors... something to do with
@@ -376,12 +378,12 @@ void ownership_disown_unit( UnitId id ) {
     case e_unit_ownership::world: {
       // First remove from coords_from_unit
       ASSIGN_CHECK_OPT( pair_it,
-                        has_key( coords_from_unit, id ) );
+                        bu::has_key( coords_from_unit, id ) );
       auto coords = pair_it->second;
       coords_from_unit.erase( pair_it );
       // Now remove from units_from_coords
-      ASSIGN_CHECK_OPT( set_it,
-                        has_key( units_from_coords, coords ) );
+      ASSIGN_CHECK_OPT(
+          set_it, bu::has_key( units_from_coords, coords ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() ) units_from_coords.erase( set_it );
@@ -389,7 +391,7 @@ void ownership_disown_unit( UnitId id ) {
     }
     case e_unit_ownership::cargo: {
       ASSIGN_CHECK_OPT( pair_it,
-                        has_key( holder_from_held, id ) );
+                        bu::has_key( holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
       ASSIGN_CHECK_OPT( slot_idx,
                         holder_unit.cargo().find_unit( id ) );
@@ -398,7 +400,7 @@ void ownership_disown_unit( UnitId id ) {
       break;
     }
     case e_unit_ownership::old_world: {
-      CHECK( has_key( g_euro_port_view_units, id ) );
+      CHECK( bu::has_key( g_euro_port_view_units, id ) );
       // Ensure the unit has no cargo.
       CHECK( unit_from_id( id )
                  .cargo()

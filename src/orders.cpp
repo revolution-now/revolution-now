@@ -11,8 +11,8 @@
 *****************************************************************/
 #include "orders.hpp"
 
-// Revolution Now
-#include "util.hpp"
+// base-util
+#include "base-util/keyval.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
@@ -36,7 +36,7 @@ void push_unit_orders( UnitId id, orders_t const& orders ) {
 
 Opt<orders_t> pop_unit_orders( UnitId id ) {
   Opt<orders_t> res{};
-  if( has_key( g_orders_queue, id ) ) {
+  if( bu::has_key( g_orders_queue, id ) ) {
     auto& q = g_orders_queue[id];
     if( !q.empty() ) {
       res = q.front();

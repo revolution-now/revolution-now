@@ -21,6 +21,9 @@
 // Revolution Now (config)
 #include "../config/ucl/input.inl"
 
+// base-util
+#include "base-util/keyval.hpp"
+
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
@@ -139,7 +142,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       key_event.keycode  = sdl_event.key.keysym.sym;
       key_event.scancode = sdl_event.key.keysym.scancode;
       key_event.direction =
-          val_safe( nav_keys, sdl_event.key.keysym.sym );
+          bu::val_safe( nav_keys, sdl_event.key.keysym.sym );
       event = key_event;
       break;
     }
@@ -149,7 +152,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       key_event.keycode  = sdl_event.key.keysym.sym;
       key_event.scancode = sdl_event.key.keysym.scancode;
       key_event.direction =
-          val_safe( nav_keys, sdl_event.key.keysym.sym );
+          bu::val_safe( nav_keys, sdl_event.key.keysym.sym );
       event = key_event;
       break;
     }

@@ -35,6 +35,7 @@
 
 // base-util
 #include "base-util/algo.hpp"
+#include "base-util/keyval.hpp"
 #include "base-util/variant.hpp"
 
 // SDL
@@ -145,8 +146,7 @@ Texture const& render_nationality_icon( e_nation nation,
 
   NatIconRenderDesc desc{nation, c};
 
-  if( auto maybe_cached =
-          util::get_val_safe( nat_icon_cache, desc );
+  if( auto maybe_cached = bu::val_safe( nat_icon_cache, desc );
       maybe_cached.has_value() )
     return maybe_cached.value().get();
 

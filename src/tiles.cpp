@@ -21,7 +21,7 @@
 
 // base-util
 #include "base-util/fs.hpp"
-#include "base-util/misc.hpp"
+#include "base-util/keyval.hpp"
 #include "base-util/pp.hpp"
 
 // C++ standard library
@@ -52,7 +52,7 @@ unordered_map<g_tile, sprite, EnumClassHash> sprites;
 unordered_map<std::string, tile_map>         tile_maps;
 
 Texture const& load_image( fs::path const& p ) {
-  if( !util::has_key( g_images, p ) )
+  if( !bu::has_key( g_images, p ) )
     g_images.emplace( p, Texture::load_image( p ) );
   return g_images[p];
 }
