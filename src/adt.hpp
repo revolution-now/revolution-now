@@ -109,6 +109,9 @@
         return true;                                           \
       },                                                       \
       __VA_ARGS__ )                                            \
+  inline bool operator!=( name const& l, name const& r ) {     \
+    return !( l == r );                                        \
+  }                                                            \
   }                                                            \
   SWITCH_EMPTY(                                                \
       _DEFINE_FORMAT(                                          \
@@ -140,6 +143,11 @@
         return true;                                           \
       },                                                       \
       __VA_ARGS__ )                                            \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
+  inline bool operator!=( name<EXPAND t_args> const& l,        \
+                          name<EXPAND t_args> const& r ) {     \
+    return !( l == r );                                        \
+  }                                                            \
   }                                                            \
   SWITCH_EMPTY(                                                \
       _DEFINE_FORMAT_T(                                        \

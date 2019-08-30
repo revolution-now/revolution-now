@@ -46,25 +46,6 @@ using namespace std;
 
 namespace rn {
 
-// FIXME: move this to new market module along with formatter.
-struct MarketCommodity {
-  e_commodity type;
-
-  bool operator==( MarketCommodity const& rhs ) const {
-    return type == rhs.type;
-  }
-  bool operator!=( MarketCommodity const& rhs ) const {
-    return !( *this == rhs );
-  }
-};
-
-} // namespace rn
-
-DEFINE_FORMAT( ::rn::MarketCommodity,
-               "MarketCommodity{{type={}}}", o.type );
-
-namespace rn {
-
 namespace {
 
 constexpr Delta const k_rendered_commodity_offset{8_w, 3_h};
@@ -79,26 +60,36 @@ Opt<UnitId> g_selected_unit;
 /****************************************************************
 ** Draggable Object
 *****************************************************************/
-using DraggableObject = std::variant< //
-    UnitId,                           // cargo or dock or in-port
-    MarketCommodity,                  // market
-    Commodity                         // cargo only
-    >;
+ADT_RN_( DraggableObject,             //
+         ( unit,                      //
+           ( UnitId, id ) ),          //
+         ( market_commodity,          //
+           ( e_commodity, type ) ),   //
+         ( cargo_commodity,           //
+           ( Commodity, comm ),       //
+           ( CargoSlotIndex, slot ) ) //
+);
 
-static_assert( std::is_copy_constructible_v<DraggableObject> );
+static_assert( std::is_copy_constructible_v<DraggableObject_t> );
 
 // Global State.
-Opt<DraggableObject> g_dragging_object;
+Opt<DraggableObject_t> g_dragging_object;
 
-Opt<DraggableObject> cargo_slot_to_draggable(
-    CargoSlot_t const& slot ) {
-  return matcher_( slot, ->, Opt<DraggableObject> ) {
+Opt<DraggableObject_t> cargo_slot_to_draggable(
+    CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
+  return matcher_( slot, ->, Opt<DraggableObject_t> ) {
     case_( CargoSlot::empty ) result_    nullopt;
     case_( CargoSlot::overflow ) result_ nullopt;
     case_( CargoSlot::cargo, contents ) {
-      return matcher_( contents, ->, DraggableObject ) {
-        case_( UnitId ) result_    val;
-        case_( Commodity ) result_ val;
+      return matcher_( contents, ->, DraggableObject_t ) {
+        case_( UnitId ) {
+          return DraggableObject::unit{/*id=*/val};
+        }
+        case_( Commodity ) {
+          return DraggableObject::cargo_commodity{
+              /*comm=*/val,
+              /*slot=*/slot_idx};
+        }
         matcher_exhaustive;
       }
     }
@@ -107,38 +98,39 @@ Opt<DraggableObject> cargo_slot_to_draggable(
 }
 
 Opt<Cargo> draggable_to_cargo_object(
-    DraggableObject const& draggable ) {
+    DraggableObject_t const& draggable ) {
   return matcher_( draggable, ->, Opt<Cargo> ) {
-    case_( UnitId ) result_          val;
-    case_( MarketCommodity ) result_ nullopt;
-    case_( Commodity ) result_       val;
+    case_( DraggableObject::unit ) return val.id;
+    case_( DraggableObject::market_commodity ) return nullopt;
+    case_( DraggableObject::cargo_commodity ) return val.comm;
     matcher_exhaustive;
   }
 }
 
-Opt<DraggableObject> draggable_in_cargo_slot(
+Opt<DraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
   using namespace util::infix;
   return g_selected_unit                                 //
          | fmap( unit_from_id )                          //
          | fmap_join( LC( _.get().cargo().at( slot ) ) ) //
-         | fmap_join( cargo_slot_to_draggable );
+         | fmap_join( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
-Texture draw_draggable_object( DraggableObject const& object ) {
+Texture draw_draggable_object(
+    DraggableObject_t const& object ) {
   return matcher_( object ) {
-    case_( UnitId ) {
+    case_( DraggableObject::unit, id ) {
       auto tx = create_texture_transparent(
-          lookup_sprite( unit_from_id( val ).desc().tile )
+          lookup_sprite( unit_from_id( id ).desc().tile )
               .size() );
-      render_unit( tx, val, Coord{}, /*with_icon=*/false );
+      render_unit( tx, id, Coord{}, /*with_icon=*/false );
       return tx;
     }
-    case_( Commodity ) {
-      return render_commodity_create( val.type );
+    case_( DraggableObject::market_commodity, type ) {
+      return render_commodity_create( type );
     }
-    case_( MarketCommodity ) {
-      return render_commodity_create( val.type );
+    case_( DraggableObject::cargo_commodity ) {
+      return render_commodity_create( val.comm.type );
     }
     matcher_exhaustive;
   }
@@ -818,7 +810,8 @@ public:
     // );
     for( auto const& unit_with_pos : units_ )
       if( g_dragging_object !=
-          DraggableObject{unit_with_pos.id} )
+          DraggableObject_t{
+              DraggableObject::unit{unit_with_pos.id}} )
         render_unit( tx, unit_with_pos.id,
                      unit_with_pos.pixel_coord + offset,
                      /*with_icon=*/false );
@@ -1043,8 +1036,15 @@ public:
     if( maybe_active_unit_ ) {
       auto&       unit = unit_from_id( *maybe_active_unit_ );
       auto const& cargo_slots = unit.cargo().slots();
-      for( auto const& [cargo_slot, rect] :
-           rv::zip( cargo_slots, range_of_rects( grid ) ) ) {
+      for( auto const& [idx, cargo_slot, rect] :
+           rv::zip( rv::ints, cargo_slots,
+                    range_of_rects( grid ) ) ) {
+        if( g_dragging_object.has_value() ) {
+          if_v( *g_dragging_object,
+                DraggableObject::cargo_commodity, cc ) {
+            if( cc->slot._ == idx ) continue;
+          }
+        }
         auto dst_coord       = rect.upper_left() + offset;
         auto cargo_slot_copy = cargo_slot;
         switch_( cargo_slot_copy ) {
@@ -1053,7 +1053,9 @@ public:
           case_( CargoSlot::cargo ) {
             switch_( val.contents ) {
               case_( UnitId ) {
-                if( g_dragging_object != DraggableObject{val} )
+                if( g_dragging_object !=
+                    DraggableObject_t{
+                        DraggableObject::unit{val}} )
                   render_unit( tx, val, dst_coord,
                                /*with_icon=*/false );
               }
@@ -1250,19 +1252,19 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-ADT_RN_( DragSrc,                         //
-         ( dock,                          //
-           ( UnitId, id ) ),              //
-         ( cargo,                         //
-           ( CargoSlotIndex, slot ) ),    //
-         ( outbound,                      //
-           ( UnitId, id ) ),              //
-         ( inbound,                       //
-           ( UnitId, id ) ),              //
-         ( inport,                        //
-           ( UnitId, id ) ),              //
-         ( market,                        //
-           ( MarketCommodity, mktcomm ) ) //
+ADT_RN_( DragSrc,                      //
+         ( dock,                       //
+           ( UnitId, id ) ),           //
+         ( cargo,                      //
+           ( CargoSlotIndex, slot ) ), //
+         ( outbound,                   //
+           ( UnitId, id ) ),           //
+         ( inbound,                    //
+           ( UnitId, id ) ),           //
+         ( inport,                     //
+           ( UnitId, id ) ),           //
+         ( market,                     //
+           ( e_commodity, type ) )     //
 );
 
 ADT_RN_( DragDst,                      //
@@ -1310,7 +1312,7 @@ ADT_RN_( DragArc,                           //
 );
 
 class EuroViewDragAndDrop
-  : public DragAndDrop<EuroViewDragAndDrop, DraggableObject,
+  : public DragAndDrop<EuroViewDragAndDrop, DraggableObject_t,
                        DragSrc_t, DragDst_t, DragArc_t> {
 public:
   EuroViewDragAndDrop( Entities const* entities )
@@ -1318,10 +1320,12 @@ public:
     CHECK( entities );
   }
 
-  DraggableObject draggable_from_src(
+  DraggableObject_t draggable_from_src(
       DragSrc_t const& drag_src ) const {
-    return matcher_( drag_src, ->, DraggableObject ) {
-      case_( DragSrc::dock, id ) { return id; }
+    return matcher_( drag_src, ->, DraggableObject_t ) {
+      case_( DragSrc::dock, id ) {
+        return DraggableObject::unit{id};
+      }
       case_( DragSrc::cargo, slot ) {
         // Not all cargo slots must have an item in them, but in
         // this case the slot should otherwise the DragSrc object
@@ -1330,10 +1334,18 @@ public:
                           draggable_in_cargo_slot( slot ) );
         return object;
       }
-      case_( DragSrc::outbound, id ) { return id; }
-      case_( DragSrc::inbound, id ) { return id; }
-      case_( DragSrc::inport, id ) { return id; }
-      case_( DragSrc::market, mktcomm ) { return mktcomm; }
+      case_( DragSrc::outbound, id ) {
+        return DraggableObject::unit{id};
+      }
+      case_( DragSrc::inbound, id ) {
+        return DraggableObject::unit{id};
+      }
+      case_( DragSrc::inport, id ) {
+        return DraggableObject::unit{id};
+      }
+      case_( DragSrc::market, type ) {
+        return DraggableObject::market_commodity{type};
+      }
       matcher_exhaustive;
     }
   }
@@ -1408,9 +1420,9 @@ public:
               entities_->market_commodities
                   ->commodity_under_cursor( coord );
           maybe_type ) {
-        res = DragSrc::market{/*mktcomm=*/MarketCommodity{
+        res = DragSrc::market{
             /*type=*/*maybe_type //
-        }};
+        };
       }
     }
     return res;
@@ -1480,7 +1492,7 @@ public:
                                                   dst.slot._ );
       }
       case_( DragArc::cargo_to_dock ) {
-        return util::holds<UnitId>(
+        return util::holds<DraggableObject::unit>(
             draggable_from_src( val.src ) );
       }
       case_( DragArc::cargo_to_cargo, src, dst ) {
@@ -1551,7 +1563,7 @@ public:
                       fmap_join( L( _.active_unit() ) ) );
         if( !is_unit_in_port( ship ) ) return false;
         auto comm = Commodity{
-            /*type=*/src.mktcomm.type, //
+            /*type=*/src.type, //
             // If the commodity can fit even with just one quan-
             // tity then it is allowed, since we will just insert
             // as much as possible if we can't insert 100.
@@ -1589,9 +1601,9 @@ public:
       case_( DragArc::cargo_to_dock ) {
         lg.info( "dragging {} from cargo slot {} to dock.",
                  draggable_from_src( val.src ), val.src.slot );
-        ASSIGN_CHECK_V( unit_id, draggable_from_src( val.src ),
-                        UnitId );
-        unit_move_to_europort_dock( unit_id );
+        ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),
+                        DraggableObject::unit );
+        unit_move_to_europort_dock( unit.id );
       }
       case_( DragArc::cargo_to_cargo, src, dst ) {
         using namespace util::infix;
@@ -1656,13 +1668,13 @@ public:
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
         auto comm = Commodity{
-            /*type=*/src.mktcomm.type, //
-            /*quantity=*/0             //
+            /*type=*/src.type, //
+            /*quantity=*/0     //
         };
-        comm.quantity = unit_from_id( ship )
-                            .cargo()
-                            .max_commodity_quantity_that_fits(
-                                src.mktcomm.type );
+        comm.quantity =
+            unit_from_id( ship )
+                .cargo()
+                .max_commodity_quantity_that_fits( src.type );
         CHECK( comm.quantity > 0 );
         // Cap it at 100.
         comm.quantity = std::min( 30, comm.quantity );
