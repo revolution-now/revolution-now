@@ -1550,7 +1550,7 @@ public:
       case_( DragArc::inbound_to_outbound ) { return true; }
       case_( DragArc::inport_to_outbound ) { return true; }
       case_( DragArc::dock_to_inport_ship, src, dst ) {
-        return unit_from_id( dst.id ).cargo().fits_as_available(
+        return unit_from_id( dst.id ).cargo().fits_somewhere(
             src.id );
       }
       case_( DragArc::cargo_to_inport_ship, src, dst ) {
@@ -1564,7 +1564,7 @@ public:
               return false;
             return unit_from_id( dst_ship )
                 .cargo()
-                .fits_as_available( val );
+                .fits_somewhere( val );
           }
           case_( Commodity ) {
             // If even 1 quantity can fit then we can proceed
@@ -1573,7 +1573,7 @@ public:
             size_one.quantity = 1;
             return unit_from_id( dst_ship )
                 .cargo()
-                .fits_as_available( size_one );
+                .fits_somewhere( size_one );
           }
           matcher_exhaustive;
         }
@@ -1590,7 +1590,7 @@ public:
             // as much as possible if we can't insert 100.
             /*quantity=*/1 //
         };
-        return unit_from_id( ship ).cargo().fits_as_available(
+        return unit_from_id( ship ).cargo().fits_somewhere(
             comm, dst.slot._ );
       }
       case_( DragArc::market_to_inport_ship, src, dst ) {
@@ -1601,7 +1601,7 @@ public:
             // as much as possible if we can't insert 100.
             /*quantity=*/1 //
         };
-        return unit_from_id( dst.id ).cargo().fits_as_available(
+        return unit_from_id( dst.id ).cargo().fits_somewhere(
             comm, /*starting_slot=*/0 );
       }
       case_( DragArc::cargo_to_market ) {

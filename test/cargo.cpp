@@ -47,7 +47,7 @@ struct CargoHoldTester : public CargoHold {
   using CargoHold::clear;
   using CargoHold::remove;
   using CargoHold::try_add;
-  using CargoHold::try_add_as_available;
+  using CargoHold::try_add_somewhere;
   using CargoHold::operator[];
 
   // Data members.
@@ -150,10 +150,10 @@ TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
   REQUIRE_THROWS_AS_RN( ch.fits( unit_id, 0 ) );
   REQUIRE_THROWS_AS_RN( ch.fits( unit_id, 1 ) );
 
-  REQUIRE_FALSE( ch.fits_as_available( unit_id ) );
-  REQUIRE_FALSE( ch.try_add_as_available( unit_id ) );
-  REQUIRE_FALSE( ch.fits_as_available( comm1 ) );
-  REQUIRE_FALSE( ch.try_add_as_available( comm1 ) );
+  REQUIRE_FALSE( ch.fits_somewhere( unit_id ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( unit_id ) );
+  REQUIRE_FALSE( ch.fits_somewhere( comm1 ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( comm1 ) );
 
   REQUIRE( ch.count_items() == 0 );
 
@@ -217,8 +217,8 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
   }
 
   SECTION( "first available" ) {
-    REQUIRE( ch.fits_as_available( cargo.contents ) );
-    REQUIRE( ch.try_add_as_available( cargo.contents ) );
+    REQUIRE( ch.fits_somewhere( cargo.contents ) );
+    REQUIRE( ch.try_add_somewhere( cargo.contents ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 1 );
     REQUIRE( ch.slots_remaining() == 0 );
@@ -327,8 +327,8 @@ TEST_CASE(
   }
 
   SECTION( "first available" ) {
-    REQUIRE( ch.fits_as_available( cargo.contents ) );
-    REQUIRE( ch.try_add_as_available( cargo.contents ) );
+    REQUIRE( ch.fits_somewhere( cargo.contents ) );
+    REQUIRE( ch.try_add_somewhere( cargo.contents ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 5 );
@@ -409,8 +409,8 @@ TEST_CASE(
   }
 
   SECTION( "first available" ) {
-    REQUIRE( ch.fits_as_available( unit_id ) );
-    REQUIRE( ch.try_add_as_available( unit_id ) );
+    REQUIRE( ch.fits_somewhere( unit_id ) );
+    REQUIRE( ch.try_add_somewhere( unit_id ) );
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_total() == 6 );
     REQUIRE( ch.slots_remaining() == 2 );
@@ -456,12 +456,12 @@ TEST_CASE( "CargoHold try to add same unit twice" ) {
                       .id();
 
   REQUIRE( ch.try_add( unit_id1, 1 ) );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id1 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id1 ) );
-  REQUIRE( ch.fits_as_available( unit_id2 ) );
-  REQUIRE( ch.try_add_as_available( unit_id2 ) );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id2 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1 ) );
+  REQUIRE( ch.fits_somewhere( unit_id2 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id2 ) );
 
   ch.clear();
   REQUIRE( ch.count_items() == 0 );
@@ -476,8 +476,8 @@ TEST_CASE( "CargoHold add item too large for cargo hold" ) {
   REQUIRE_FALSE( ch.fits( unit_id1, 1 ) );
   REQUIRE_FALSE( ch.fits( unit_id1, 2 ) );
   REQUIRE_FALSE( ch.try_add( unit_id1, 0 ) );
-  REQUIRE_FALSE( ch.fits_as_available( unit_id1 ) );
-  REQUIRE_FALSE( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE_FALSE( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( unit_id1 ) );
   REQUIRE( ch.count_items() == 0 );
 
   ch.clear();
@@ -499,14 +499,14 @@ TEST_CASE( "CargoHold try to add too many things" ) {
                          /*quantity=*/100};
 
   REQUIRE( ch.try_add( unit_id2, 1 ) );
-  REQUIRE_FALSE( ch.fits_as_available( unit_id3 ) );
-  REQUIRE_FALSE( ch.try_add_as_available( unit_id3 ) );
-  REQUIRE( ch.fits_as_available( comm1 ) );
-  REQUIRE( ch.try_add_as_available( comm1 ) );
-  REQUIRE_FALSE( ch.fits_as_available( unit_id1 ) );
-  REQUIRE_FALSE( ch.try_add_as_available( unit_id1 ) );
-  REQUIRE_FALSE( ch.fits_as_available( comm1 ) );
-  REQUIRE_FALSE( ch.try_add_as_available( comm1 ) );
+  REQUIRE_FALSE( ch.fits_somewhere( unit_id3 ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( unit_id3 ) );
+  REQUIRE( ch.fits_somewhere( comm1 ) );
+  REQUIRE( ch.try_add_somewhere( comm1 ) );
+  REQUIRE_FALSE( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( unit_id1 ) );
+  REQUIRE_FALSE( ch.fits_somewhere( comm1 ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( comm1 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE(
       ch.debug_string() ==
@@ -531,16 +531,16 @@ TEST_CASE( "CargoHold add multiple units" ) {
       create_unit( e_nation::english, e_unit_type::soldier )
           .id();
 
-  REQUIRE( ch.fits_as_available( unit_id1 ) );
-  REQUIRE( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1 ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.count_items_of_type<UnitId>() == 1 );
   REQUIRE_THAT( ch.units(),
                 UnorderedEquals( Vec<UnitId>{unit_id1} ) );
   REQUIRE_THAT( ch.items_of_type<UnitId>(),
                 UnorderedEquals( Vec<UnitId>{unit_id1} ) );
-  REQUIRE( ch.fits_as_available( unit_id2 ) );
-  REQUIRE( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE( ch.fits_somewhere( unit_id2 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id2 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.count_items_of_type<UnitId>() == 2 );
   REQUIRE_THAT( ch.units(), UnorderedEquals( Vec<UnitId>{
@@ -548,8 +548,8 @@ TEST_CASE( "CargoHold add multiple units" ) {
   REQUIRE_THAT(
       ch.items_of_type<UnitId>(),
       UnorderedEquals( Vec<UnitId>{unit_id1, unit_id2} ) );
-  REQUIRE( ch.fits_as_available( unit_id3 ) );
-  REQUIRE( ch.try_add_as_available( unit_id3 ) );
+  REQUIRE( ch.fits_somewhere( unit_id3 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id3 ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.count_items_of_type<UnitId>() == 3 );
   REQUIRE_THAT( ch.units(),
@@ -592,8 +592,8 @@ TEST_CASE( "CargoHold remove from overflow slot" ) {
   auto unit_id1 = create_unit( e_nation::english,
                                e_unit_type::small_treasure )
                       .id();
-  REQUIRE( ch.fits_as_available( unit_id1 ) );
-  REQUIRE( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1 ) );
   REQUIRE( ch.slots_[1] == CargoSlot_t{CargoSlot::overflow{}} );
   REQUIRE_THROWS_AS_RN( ch.remove( 1 ) );
   REQUIRE_NOTHROW( ch.remove( 0 ) );
@@ -681,14 +681,14 @@ TEST_CASE( "CargoHold try add as available from invalid" ) {
                                e_unit_type::free_colonist )
                       .id();
 
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id1, 6 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id1, 6 ) );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id1, 7 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id1, 7 ) );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id1, 8 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id1, 8 ) );
-  REQUIRE( ch.fits_as_available( unit_id1, 0 ) );
-  REQUIRE( ch.try_add_as_available( unit_id1, 0 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1, 6 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1, 6 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1, 7 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1, 7 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1, 8 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1, 8 ) );
+  REQUIRE( ch.fits_somewhere( unit_id1, 0 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1, 0 ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
 
@@ -717,18 +717,18 @@ TEST_CASE(
 
   Vec<CargoSlot_t> cmp_slots( 12 );
 
-  REQUIRE( ch.fits_as_available( unit_id1 ) );
-  REQUIRE( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1 ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
   cmp_slots[0] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id1}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id1 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1 ) );
 
-  REQUIRE( ch.fits_as_available( unit_id2 ) );
-  REQUIRE( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE( ch.fits_somewhere( unit_id2 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id2 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
   cmp_slots[1] =
@@ -736,11 +736,11 @@ TEST_CASE(
   for( int i = 2; i <= 6; ++i )
     cmp_slots[i] = CargoSlot_t{CargoSlot::overflow{}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id2 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id2 ) );
 
-  REQUIRE( ch.fits_as_available( unit_id3 ) );
-  REQUIRE( ch.try_add_as_available( unit_id3 ) );
+  REQUIRE( ch.fits_somewhere( unit_id3 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id3 ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.slots_occupied() == 11 );
   cmp_slots[7] =
@@ -748,21 +748,21 @@ TEST_CASE(
   for( int i = 8; i <= 10; ++i )
     cmp_slots[i] = CargoSlot_t{CargoSlot::overflow{}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id3 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id3 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id3 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id3 ) );
 
-  REQUIRE( ch.fits_as_available( unit_id4 ) );
-  REQUIRE( ch.try_add_as_available( unit_id4 ) );
+  REQUIRE( ch.fits_somewhere( unit_id4 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id4 ) );
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 12 );
   cmp_slots[11] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id4}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id4 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id4 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id4 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id4 ) );
 
-  REQUIRE_FALSE( ch.fits_as_available( unit_id5 ) );
-  REQUIRE_FALSE( ch.try_add_as_available( unit_id5 ) );
+  REQUIRE_FALSE( ch.fits_somewhere( unit_id5 ) );
+  REQUIRE_FALSE( ch.try_add_somewhere( unit_id5 ) );
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 12 );
 
@@ -803,22 +803,20 @@ TEST_CASE(
 
   Vec<CargoSlot_t> cmp_slots( 12 );
 
+  REQUIRE( ch.fits_somewhere( unit_id1, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id1, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id1, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id1, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
   cmp_slots[2] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id1}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id1 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1 ) );
 
+  REQUIRE( ch.fits_somewhere( unit_id2, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id2, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id2, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id2, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
   cmp_slots[3] =
@@ -826,88 +824,83 @@ TEST_CASE(
   for( int i = 4; i <= 8; ++i )
     cmp_slots[i] = CargoSlot_t{CargoSlot::overflow{}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id2 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id2 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id2 ) );
 
   REQUIRE_FALSE(
-      ch.fits_as_available( unit_id3, /*starting_slot=*/2 ) );
+      ch.fits_somewhere( unit_id3, /*starting_slot=*/2 ) );
   REQUIRE_FALSE(
-      ch.try_add_as_available( unit_id3, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id3, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
 
+  REQUIRE( ch.fits_somewhere( unit_id4, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id4, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id4, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id4, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.slots_occupied() == 8 );
   cmp_slots[9] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id4}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id4 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id4 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id4 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id4 ) );
 
+  REQUIRE( ch.fits_somewhere( unit_id5, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id5, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id5, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id5, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 9 );
   cmp_slots[10] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id5}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id5 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id5 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id5 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id5 ) );
 
+  REQUIRE( ch.fits_somewhere( unit_id6, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id6, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id6, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id6, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 5 );
   REQUIRE( ch.slots_occupied() == 10 );
   cmp_slots[11] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id6}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id6 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id6 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id6 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id6 ) );
 
+  REQUIRE( ch.fits_somewhere( unit_id7, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id7, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id7, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id7, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 6 );
   REQUIRE( ch.slots_occupied() == 11 );
   cmp_slots[0] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id7}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id7 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id7 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id7 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id7 ) );
 
+  REQUIRE( ch.fits_somewhere( unit_id8, /*starting_slot=*/2 ) );
   REQUIRE(
-      ch.fits_as_available( unit_id8, /*starting_slot=*/2 ) );
-  REQUIRE(
-      ch.try_add_as_available( unit_id8, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id8, /*starting_slot=*/2 ) );
   REQUIRE( ch.count_items() == 7 );
   REQUIRE( ch.slots_occupied() == 12 );
   cmp_slots[1] =
       CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_id8}};
   REQUIRE( ch.slots_ == cmp_slots );
-  REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_id8 ) );
-  REQUIRE_THROWS_AS_RN( ch.try_add_as_available( unit_id8 ) );
+  REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id8 ) );
+  REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id8 ) );
 
   REQUIRE_FALSE(
-      ch.fits_as_available( unit_id9, /*starting_slot=*/2 ) );
+      ch.fits_somewhere( unit_id9, /*starting_slot=*/2 ) );
   REQUIRE_FALSE(
-      ch.try_add_as_available( unit_id9, /*starting_slot=*/2 ) );
+      ch.try_add_somewhere( unit_id9, /*starting_slot=*/2 ) );
   REQUIRE_FALSE(
-      ch.fits_as_available( unit_id9, /*starting_slot=*/0 ) );
+      ch.fits_somewhere( unit_id9, /*starting_slot=*/0 ) );
   REQUIRE_FALSE(
-      ch.try_add_as_available( unit_id9, /*starting_slot=*/0 ) );
+      ch.try_add_somewhere( unit_id9, /*starting_slot=*/0 ) );
   REQUIRE_FALSE(
-      ch.fits_as_available( unit_id9, /*starting_slot=*/6 ) );
+      ch.fits_somewhere( unit_id9, /*starting_slot=*/6 ) );
   REQUIRE_FALSE(
-      ch.try_add_as_available( unit_id9, /*starting_slot=*/6 ) );
+      ch.try_add_somewhere( unit_id9, /*starting_slot=*/6 ) );
 
   ch.clear();
 }
@@ -926,18 +919,17 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
   Vec<CargoSlot_t> cmp_slots( 6 );
 
   for( auto i = 0; i < 6; ++i ) {
-    REQUIRE( ch.fits_as_available( unit_ids[i],
+    REQUIRE( ch.fits_somewhere( unit_ids[i],
+                                /*starting_slot=*/start ) );
+    REQUIRE( ch.try_add_somewhere( unit_ids[i],
                                    /*starting_slot=*/start ) );
-    REQUIRE( ch.try_add_as_available(
-        unit_ids[i], /*starting_slot=*/start ) );
     REQUIRE( ch.count_items() == i + 1 );
     REQUIRE( ch.slots_occupied() == i + 1 );
     cmp_slots[( i + start ) % 6] =
         CargoSlot_t{CargoSlot::cargo{/*contents=*/unit_ids[i]}};
     REQUIRE( ch.slots_ == cmp_slots );
-    REQUIRE_THROWS_AS_RN( ch.fits_as_available( unit_ids[i] ) );
-    REQUIRE_THROWS_AS_RN(
-        ch.try_add_as_available( unit_ids[i] ) );
+    REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_ids[i] ) );
+    REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_ids[i] ) );
   }
 
   ch.clear();
@@ -1240,23 +1232,23 @@ TEST_CASE(
 
   SECTION( "same types" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.fits_as_available( food_full, start ) );
-    REQUIRE( ch.try_add_as_available( food_full, start ) );
+    REQUIRE( ch.fits_somewhere( food_full, start ) );
+    REQUIRE( ch.try_add_somewhere( food_full, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE(
         ch[start] ==
         CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
             /*type=*/e_commodity::food, /*quantity=*/100}}} );
-    REQUIRE( ch.fits_as_available( food_part, start ) );
-    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch.fits_somewhere( food_part, start ) );
+    REQUIRE( ch.try_add_somewhere( food_part, start ) );
     REQUIRE(
         ch[next] ==
         CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
             /*type=*/e_commodity::food, /*quantity=*/25}}} );
     REQUIRE( ch.slots_occupied() == 2 );
-    REQUIRE( ch.fits_as_available( food_part, start ) );
-    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch.fits_somewhere( food_part, start ) );
+    REQUIRE( ch.try_add_somewhere( food_part, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[next] ==
@@ -1264,8 +1256,8 @@ TEST_CASE(
             /*type=*/e_commodity::food, /*quantity=*/50}}} );
     REQUIRE( ch.slots_occupied() == 2 );
     // This should cause overflow.
-    REQUIRE( ch.fits_as_available( food_full, start ) );
-    REQUIRE( ch.try_add_as_available( food_full, start ) );
+    REQUIRE( ch.fits_somewhere( food_full, start ) );
+    REQUIRE( ch.try_add_somewhere( food_full, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[next] ==
@@ -1277,8 +1269,8 @@ TEST_CASE(
             /*type=*/e_commodity::food, /*quantity=*/50}}} );
     REQUIRE( ch.slots_occupied() == 3 );
     REQUIRE( ch[next3] == CargoSlot_t{CargoSlot::empty{}} );
-    REQUIRE( ch.fits_as_available( food_part, start ) );
-    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch.fits_somewhere( food_part, start ) );
+    REQUIRE( ch.try_add_somewhere( food_part, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[next2] ==
@@ -1290,23 +1282,23 @@ TEST_CASE(
 
   SECTION( "unlike types" ) {
     REQUIRE( ch.slots_occupied() == 0 );
-    REQUIRE( ch.fits_as_available( food_part, start ) );
-    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch.fits_somewhere( food_part, start ) );
+    REQUIRE( ch.try_add_somewhere( food_part, start ) );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE(
         ch[start] ==
         CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
             /*type=*/e_commodity::food, /*quantity=*/25}}} );
-    REQUIRE( ch.fits_as_available( sugar_part, start ) );
-    REQUIRE( ch.try_add_as_available( sugar_part, start ) );
+    REQUIRE( ch.fits_somewhere( sugar_part, start ) );
+    REQUIRE( ch.try_add_somewhere( sugar_part, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[next] ==
         CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
             /*type=*/e_commodity::sugar, /*quantity=*/25}}} );
     REQUIRE( ch.slots_occupied() == 2 );
-    REQUIRE( ch.fits_as_available( sugar_part, start ) );
-    REQUIRE( ch.try_add_as_available( sugar_part, start ) );
+    REQUIRE( ch.fits_somewhere( sugar_part, start ) );
+    REQUIRE( ch.try_add_somewhere( sugar_part, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[start] ==
@@ -1317,8 +1309,8 @@ TEST_CASE(
         CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
             /*type=*/e_commodity::sugar, /*quantity=*/50}}} );
     REQUIRE( ch.slots_occupied() == 2 );
-    REQUIRE( ch.fits_as_available( food_full, start ) );
-    REQUIRE( ch.try_add_as_available( food_full, start ) );
+    REQUIRE( ch.fits_somewhere( food_full, start ) );
+    REQUIRE( ch.try_add_somewhere( food_full, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[start] ==
@@ -1333,8 +1325,8 @@ TEST_CASE(
         CargoSlot_t{CargoSlot::cargo{/*contents=*/Commodity{
             /*type=*/e_commodity::food, /*quantity=*/25}}} );
     REQUIRE( ch.slots_occupied() == 3 );
-    REQUIRE( ch.fits_as_available( food_part, start ) );
-    REQUIRE( ch.try_add_as_available( food_part, start ) );
+    REQUIRE( ch.fits_somewhere( food_part, start ) );
+    REQUIRE( ch.try_add_somewhere( food_part, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[start] ==
@@ -1350,8 +1342,8 @@ TEST_CASE(
             /*type=*/e_commodity::food, /*quantity=*/50}}} );
     REQUIRE( ch[next3] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE( ch.slots_occupied() == 3 );
-    REQUIRE( ch.fits_as_available( sugar_full, start ) );
-    REQUIRE( ch.try_add_as_available( sugar_full, start ) );
+    REQUIRE( ch.fits_somewhere( sugar_full, start ) );
+    REQUIRE( ch.try_add_somewhere( sugar_full, start ) );
     REQUIRE( ch[prev] == CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE(
         ch[start] ==
@@ -1398,7 +1390,7 @@ TEST_CASE( "CargoHold compactify size-1 with unit" ) {
   REQUIRE( ch.slots_remaining() == 1 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1 ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1426,7 +1418,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
   REQUIRE( ch.slots_occupied() == 0 );
 
   REQUIRE(
-      ch.try_add_as_available( unit_id1, /*starting_slot=*/3 ) );
+      ch.try_add_somewhere( unit_id1, /*starting_slot=*/3 ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 5 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1570,11 +1562,11 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
   REQUIRE( ch.slots_remaining() == 20 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_as_available( unit_id1 ) );
-  REQUIRE( ch.try_add_as_available( unit_id3 ) );
-  REQUIRE( ch.try_add_as_available( unit_id5 ) );
-  REQUIRE( ch.try_add_as_available( unit_id4 ) );
-  REQUIRE( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id3 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id5 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id4 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id2 ) );
   REQUIRE( ch[0] == CargoSlot_t{CargoSlot::cargo{
                         /*contents=*/unit_id1}} );
   REQUIRE( ch[1] == CargoSlot_t{CargoSlot::cargo{
@@ -1634,7 +1626,7 @@ TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
   REQUIRE( ch.slots_remaining() == 1 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_as_available( food_full ) );
+  REQUIRE( ch.try_add_somewhere( food_full ) );
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1661,8 +1653,8 @@ TEST_CASE(
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_as_available( food_part,
-                                    /*starting_slot=*/3 ) );
+  REQUIRE( ch.try_add_somewhere( food_part,
+                                 /*starting_slot=*/3 ) );
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 5 );
   REQUIRE( ch.slots_occupied() == 1 );
@@ -1703,12 +1695,12 @@ TEST_CASE(
   REQUIRE( ch.slots_remaining() == 6 );
   REQUIRE( ch.slots_occupied() == 0 );
 
-  REQUIRE( ch.try_add_as_available( food_full,
-                                    /*starting_slot=*/3 ) );
-  REQUIRE( ch.try_add_as_available( food_full,
-                                    /*starting_slot=*/3 ) );
-  REQUIRE( ch.try_add_as_available( food_full,
-                                    /*starting_slot=*/3 ) );
+  REQUIRE( ch.try_add_somewhere( food_full,
+                                 /*starting_slot=*/3 ) );
+  REQUIRE( ch.try_add_somewhere( food_full,
+                                 /*starting_slot=*/3 ) );
+  REQUIRE( ch.try_add_somewhere( food_full,
+                                 /*starting_slot=*/3 ) );
   REQUIRE( ch[0] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[1] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch[2] == CargoSlot_t{CargoSlot::empty{}} );
@@ -2021,7 +2013,7 @@ TEST_CASE(
     auto maybe_idx = util::find_index(
         ch.slots_, CargoSlot_t{CargoSlot::empty{}} );
     REQUIRE( maybe_idx.has_value() );
-    // Don't use try_add_as_available here because we don't want
+    // Don't use try_add_somewhere here because we don't want
     // to consolidate commodities a priori.
     REQUIRE( ch.try_add( cargo, /*slot=*/*maybe_idx ) );
     INFO( fmt::format( "index {}: {}", *maybe_idx, cargo ) );
@@ -2119,19 +2111,19 @@ TEST_CASE( "CargoHold find_unit" ) {
   REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
   REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
 
-  REQUIRE( ch.try_add_as_available( unit_id1 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id1 ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
   REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
 
-  REQUIRE( ch.try_add_as_available( unit_id2 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id2 ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == 1 );
   REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
 
-  REQUIRE( ch.try_add_as_available( unit_id3 ) );
+  REQUIRE( ch.try_add_somewhere( unit_id3 ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == 1 );
@@ -2252,7 +2244,7 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
                  e_commodity::food ) == 100 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 100 );
-    REQUIRE( ch.try_add_as_available( food_full ) );
+    REQUIRE( ch.try_add_somewhere( food_full ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 0 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2266,7 +2258,7 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
                  e_commodity::food ) == 100 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 100 );
-    REQUIRE( ch.try_add_as_available( food_part ) );
+    REQUIRE( ch.try_add_somewhere( food_part ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 34 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2280,12 +2272,12 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
                  e_commodity::food ) == 600 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 600 );
-    REQUIRE( ch.try_add_as_available( food_full ) );
+    REQUIRE( ch.try_add_somewhere( food_full ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 500 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 500 );
-    REQUIRE( ch.try_add_as_available( sugar_part ) );
+    REQUIRE( ch.try_add_somewhere( sugar_part ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 400 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
@@ -2299,12 +2291,12 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
                  e_commodity::food ) == 600 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 600 );
-    REQUIRE( ch.try_add_as_available( unit_id1 ) );
+    REQUIRE( ch.try_add_somewhere( unit_id1 ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 200 );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::sugar ) == 200 );
-    REQUIRE( ch.try_add_as_available( sugar_part ) );
+    REQUIRE( ch.try_add_somewhere( sugar_part ) );
     REQUIRE( ch.max_commodity_quantity_that_fits(
                  e_commodity::food ) == 100 );
     REQUIRE( ch.max_commodity_quantity_that_fits(

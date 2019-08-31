@@ -230,8 +230,7 @@ void CargoHold::compactify() {
   util::sort_by_key( comms, L( _.type ) );
   clear();
   check_invariants();
-  for( UnitId id : unit_ids )
-    CHECK( try_add_as_available( id ) );
+  for( UnitId id : unit_ids ) CHECK( try_add_somewhere( id ) );
   auto like_types =
       comms | rv::group_by( L2( _1.type == _2.type ) );
   for( auto group : like_types ) {
@@ -252,7 +251,7 @@ void CargoHold::compactify() {
       }
     }
     for( auto const& comm : new_comms )
-      CHECK( try_add_as_available( comm ) );
+      CHECK( try_add_somewhere( comm ) );
   }
   check_invariants();
 }
@@ -347,21 +346,20 @@ ND bool CargoHold::fits_with_item_removed(
   return new_hold.fits( cargo, insert_slot );
 }
 
-bool CargoHold::fits_as_available( Cargo const& cargo,
-                                   int starting_slot ) const {
+bool CargoHold::fits_somewhere( Cargo const& cargo,
+                                int starting_slot ) const {
   CargoHold new_hold = *this;
   // Need to make sure we clear this out in case the line after
   // throws an exception. This is only needed for convenience
   // when unit testing, which catches exceptions (so it's nice to
   // be exception safe).
   SCOPE_EXIT( new_hold.clear() );
-  auto res =
-      new_hold.try_add_as_available( cargo, starting_slot );
+  auto res = new_hold.try_add_somewhere( cargo, starting_slot );
   return res;
 }
 
-bool CargoHold::try_add_as_available( Cargo const& cargo,
-                                      int starting_from ) {
+bool CargoHold::try_add_somewhere( Cargo const& cargo,
+                                   int          starting_from ) {
   if( slots_total() == 0 ) return false;
   CHECK( starting_from >= 0 && starting_from < slots_total() );
   auto slots = rv::ints( 0, slots_total() ) //

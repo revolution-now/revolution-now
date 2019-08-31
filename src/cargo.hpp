@@ -163,8 +163,8 @@ public:
   // is made to add a unit that is already in the cargo then an
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
-  ND bool fits_as_available( Cargo const& cargo,
-                             int starting_slot = 0 ) const;
+  ND bool fits_somewhere( Cargo const& cargo,
+                          int          starting_slot = 0 ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
   // pying multiple slots further to the left and will consoli-
@@ -203,8 +203,8 @@ protected:
   // If an attempt is made to add a unit that is already in the
   // cargo then an exception will be thrown, since this likely
   // reflects a logic error on the part of the caller.
-  ND bool try_add_as_available( Cargo const& cargo,
-                                int          starting_slot = 0 );
+  ND bool try_add_somewhere( Cargo const& cargo,
+                             int          starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true
   // if there was enough space at the given slot to add the

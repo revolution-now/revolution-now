@@ -108,7 +108,7 @@ void add_commodity_to_cargo( Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots ) {
   if( try_other_slots ) {
-    CHECK( unit_from_id( holder ).cargo().try_add_as_available(
+    CHECK( unit_from_id( holder ).cargo().try_add_somewhere(
                comm, slot ),
            "failed to add {} starting at slot {}", comm, slot );
   } else {
