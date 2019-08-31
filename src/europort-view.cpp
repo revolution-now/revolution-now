@@ -1277,7 +1277,8 @@ ADT_RN_( DragDst,                      //
          ( inbound ),                  //
          ( inport ),                   //
          ( inport_ship,                //
-           ( UnitId, id ) )            //
+           ( UnitId, id ) ),           //
+         ( market )                    //
 );
 
 ADT_RN_( DragArc,                           //
@@ -1313,7 +1314,10 @@ ADT_RN_( DragArc,                           //
            ( DragDst::cargo, dst ) ),       //
          ( market_to_inport_ship,           //
            ( DragSrc::market, src ),        //
-           ( DragDst::inport_ship, dst ) )  //
+           ( DragDst::inport_ship, dst ) ), //
+         ( cargo_to_market,                 //
+           ( DragSrc::cargo, src ),         //
+           ( DragDst::market, dst ) ),      //
 );
 
 class EuroViewDragAndDrop
@@ -1481,6 +1485,11 @@ public:
         };
       }
     }
+    if( entities_->market_commodities.has_value() ) {
+      if( coord.is_inside(
+              entities_->market_commodities->bounds() ) )
+        return DragDst::market{};
+    }
     return res;
   }
 
@@ -1594,6 +1603,17 @@ public:
         };
         return unit_from_id( dst.id ).cargo().fits_as_available(
             comm, /*starting_slot=*/0 );
+      }
+      case_( DragArc::cargo_to_market ) {
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        if( !is_unit_in_port( ship ) ) return false;
+        return unit_from_id( ship )
+            .cargo()
+            .template slot_holds_cargo_type<Commodity>(
+                val.src.slot._ )
+            .has_value();
       }
       matcher_exhaustive;
     }
@@ -1716,6 +1736,12 @@ public:
         CHECK( comm.quantity > 0 );
         add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
                                 /*try_other_slots=*/true );
+      }
+      case_( DragArc::cargo_to_market ) {
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        rm_commodity_from_cargo( ship, val.src.slot._ );
       }
       switch_exhaustive;
     }
