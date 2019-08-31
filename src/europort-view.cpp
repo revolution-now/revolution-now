@@ -51,6 +51,10 @@ namespace {
 
 constexpr Delta const k_rendered_commodity_offset{8_w, 3_h};
 
+// When we drag a commodity from the market this is the default
+// amount that we take.
+constexpr int const k_default_market_quantity = 30;
+
 /****************************************************************
 ** Selected Unit
 *****************************************************************/
@@ -1306,7 +1310,10 @@ ADT_RN_( DragArc,                           //
            ( DragDst::inport_ship, dst ) ), //
          ( market_to_cargo,                 //
            ( DragSrc::market, src ),        //
-           ( DragDst::cargo, dst ) )        //
+           ( DragDst::cargo, dst ) ),       //
+         ( market_to_inport_ship,           //
+           ( DragSrc::market, src ),        //
+           ( DragDst::inport_ship, dst ) )  //
 );
 
 class EuroViewDragAndDrop
@@ -1577,6 +1584,17 @@ public:
         return unit_from_id( ship ).cargo().fits_as_available(
             comm, dst.slot._ );
       }
+      case_( DragArc::market_to_inport_ship, src, dst ) {
+        auto comm = Commodity{
+            /*type=*/src.type, //
+            // If the commodity can fit even with just one quan-
+            // tity then it is allowed, since we will just insert
+            // as much as possible if we can't insert 100.
+            /*quantity=*/1 //
+        };
+        return unit_from_id( dst.id ).cargo().fits_as_available(
+            comm, /*starting_slot=*/0 );
+      }
       matcher_exhaustive;
     }
   }
@@ -1679,9 +1697,24 @@ public:
                 .max_commodity_quantity_that_fits( src.type );
         CHECK( comm.quantity > 0 );
         // Cap it at 100.
-        comm.quantity = std::min( 30, comm.quantity );
+        comm.quantity =
+            std::min( k_default_market_quantity, comm.quantity );
         add_commodity_to_cargo( comm, ship,
                                 /*slot=*/dst.slot._,
+                                /*try_other_slots=*/true );
+      }
+      case_( DragArc::market_to_inport_ship, src, dst ) {
+        auto comm = Commodity{
+            /*type=*/src.type, //
+            /*quantity=*/0     //
+        };
+        comm.quantity = std::min(
+            k_default_market_quantity,
+            unit_from_id( dst.id )
+                .cargo()
+                .max_commodity_quantity_that_fits( src.type ) );
+        CHECK( comm.quantity > 0 );
+        add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
                                 /*try_other_slots=*/true );
       }
       switch_exhaustive;
