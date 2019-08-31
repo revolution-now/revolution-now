@@ -47,13 +47,13 @@ using namespace std;
 // where the user inadvertantly triggers a drag event by acciden-
 // tally moving the mouse a bit during a click (that would be bad
 // because it would not be sent as a click event).
-ADT( rn::input, drag_phase,      //
-     ( none ),                   //
-     ( maybe,                    //
-       ( Coord, origin ) ),      //
-     ( dragging,                 //
-       ( Coord, origin ),        //
-       ( e_drag_phase, phase ) ) //
+adt_( rn::input, drag_phase,      //
+      ( none ),                   //
+      ( maybe,                    //
+        ( Coord, origin ) ),      //
+      ( dragging,                 //
+        ( Coord, origin ),        //
+        ( e_drag_phase, phase ) ) //
 );
 
 namespace rn::input {

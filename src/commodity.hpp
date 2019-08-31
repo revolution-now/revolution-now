@@ -59,7 +59,7 @@ Opt<e_commodity> commodity_from_index( int index );
 /****************************************************************
 ** Commodity Labels
 *****************************************************************/
-ADT_RN( CommodityLabel,     //
+adt_rn( CommodityLabel,     //
         ( none ),           //
         ( quantity,         //
           ( int, value ) ), //

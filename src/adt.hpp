@@ -28,12 +28,12 @@
 /****************************************************************
 ** Algebraic Data Types
 *****************************************************************
-*  This module defines a macro ADT(...) which is used to declare
+*  This module defines a macro adt_(...) which is used to declare
 *  an Algebraic Data Type.  This is essentially a variant where
 *  each alternative is a struct, possibly with members.  Example
 *  usage would be:
 *
-*    ADT( rn::input, state,
+*    adt_( rn::input, state,
 *        ( steady ),             //
 *        ( stopped ),            //
 *        ( paused,               //
@@ -200,18 +200,21 @@
             PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) ) )>;    \
   }
 
-#define ADT( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
-#define ADT_T( ... ) EVAL( ADT_T_IMPL( __VA_ARGS__ ) )
+/****************************************************************
+** Public Interface
+*****************************************************************/
+#define adt_( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
+#define adt_template( ... ) EVAL( ADT_T_IMPL( __VA_ARGS__ ) )
 
 // Use this in namespace ::rn.
-#define ADT_RN( name, ... )                 \
+#define adt_rn( name, ... )                 \
   } /* close namespace rn. */               \
   EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
   /* Re-open namespace rn. */               \
   namespace rn {
 
 // Use this in namespace ::rn::(anonymous).
-#define ADT_RN_( name, ... )                \
+#define adt_rn_( name, ... )                \
   } /* close namespace (anonymous). */      \
   } /* close namespace rn. */               \
   EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \

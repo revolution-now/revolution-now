@@ -56,30 +56,6 @@ using namespace std;
 
 using absl::flat_hash_map;
 
-ADT( rn, MenuState,                   //
-     ( menus_hidden ),                //
-     ( menus_closed,                  //
-       ( Opt<e_menu>, hover ) ),      //
-     ( menu_open,                     //
-       ( e_menu, menu ),              //
-       ( Opt<e_menu_item>, hover ) ), //
-     ( item_click,                    //
-       ( e_menu_item, item ),         //
-       ( Time_t, start ) )            //
-);
-
-ADT( rn, MouseOver,
-     ( header,                  //
-       ( e_menu, menu ) ),      //
-     ( item,                    //
-       ( e_menu_item, item ) ), //
-     ( divider,                 //
-       ( e_menu, menu ) ),      //
-     ( border,                  //
-       ( e_menu, menu ) ),      //
-     ( bar )                    //
-);
-
 namespace rn {
 
 namespace {
@@ -87,6 +63,30 @@ namespace {
 /****************************************************************
 ** Main Data Structures
 *****************************************************************/
+adt_rn_( MenuState,                       //
+         ( menus_hidden ),                //
+         ( menus_closed,                  //
+           ( Opt<e_menu>, hover ) ),      //
+         ( menu_open,                     //
+           ( e_menu, menu ),              //
+           ( Opt<e_menu_item>, hover ) ), //
+         ( item_click,                    //
+           ( e_menu_item, item ),         //
+           ( Time_t, start ) )            //
+);
+
+adt_rn_( MouseOver,
+         ( header,                  //
+           ( e_menu, menu ) ),      //
+         ( item,                    //
+           ( e_menu_item, item ) ), //
+         ( divider,                 //
+           ( e_menu, menu ) ),      //
+         ( border,                  //
+           ( e_menu, menu ) ),      //
+         ( bar )                    //
+);
+
 struct Menu {
   string name;
   bool   right_side;

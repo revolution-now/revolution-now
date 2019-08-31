@@ -65,7 +65,7 @@ Opt<UnitId> g_selected_unit;
 /****************************************************************
 ** Draggable Object
 *****************************************************************/
-ADT_RN_( DraggableObject,             //
+adt_rn_( DraggableObject,             //
          ( unit,                      //
            ( UnitId, id ) ),          //
          ( market_commodity,          //
@@ -1254,7 +1254,7 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-ADT_RN_( DragSrc,                      //
+adt_rn_( DragSrc,                      //
          ( dock,                       //
            ( UnitId, id ) ),           //
          ( cargo,                      //
@@ -1269,7 +1269,7 @@ ADT_RN_( DragSrc,                      //
            ( e_commodity, type ) )     //
 );
 
-ADT_RN_( DragDst,                      //
+adt_rn_( DragDst,                      //
          ( cargo,                      //
            ( CargoSlotIndex, slot ) ), //
          ( dock ),                     //
@@ -1281,7 +1281,7 @@ ADT_RN_( DragDst,                      //
          ( market )                    //
 );
 
-ADT_RN_( DragArc,                           //
+adt_rn_( DragArc,                           //
          ( dock_to_cargo,                   //
            ( DragSrc::dock, src ),          //
            ( DragDst::cargo, dst ) ),       //

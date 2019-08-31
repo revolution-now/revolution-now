@@ -29,22 +29,22 @@
 // C++ standard library
 #include <variant>
 
-ADT_T( rn,                                       //
-       TEMPLATE( DragSrcT, DragDstT, DragArcT ), //
-       DragState,                                //
-       ( none ),                                 //
-       ( in_progress,                            //
-         ( DragSrcT, src ),                      //
-         ( Opt<DragDstT>, dst ),                 //
-         ( Texture, tx ) ),                      //
-       ( complete,                               //
-         ( DragArcT, arc ) ),                    //
-       ( rubber_band,                            //
-         ( Coord, current ),                     //
-         ( Coord, dest ),                        //
-         ( DragSrcT, src ),                      //
-         ( double, percent ),                    //
-         ( Texture, tx ) )                       //
+adt_template( rn,                                       //
+              TEMPLATE( DragSrcT, DragDstT, DragArcT ), //
+              DragState,                                //
+              ( none ),                                 //
+              ( in_progress,                            //
+                ( DragSrcT, src ),                      //
+                ( Opt<DragDstT>, dst ),                 //
+                ( Texture, tx ) ),                      //
+              ( complete,                               //
+                ( DragArcT, arc ) ),                    //
+              ( rubber_band,                            //
+                ( Coord, current ),                     //
+                ( Coord, dest ),                        //
+                ( DragSrcT, src ),                      //
+                ( double, percent ),                    //
+                ( Texture, tx ) )                       //
 );
 
 namespace rn {

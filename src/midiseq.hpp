@@ -43,16 +43,16 @@
 //           the volume.  Gain beyond the standard volume would
 //           need to be done with the synthesizer.
 //
-ADT( /*namespace */ rn::midiseq, //
-     command,                    //
-     ( play,                     //
-       ( fs::path, file ) ),     //
-     ( stop ),                   //
-     ( pause ),                  //
-     ( resume ),                 //
-     ( off ),                    //
-     ( volume,                   //
-       ( double, value ) )       //
+adt_( /*namespace */ rn::midiseq, //
+      command,                    //
+      ( play,                     //
+        ( fs::path, file ) ),     //
+      ( stop ),                   //
+      ( pause ),                  //
+      ( resume ),                 //
+      ( off ),                    //
+      ( volume,                   //
+        ( double, value ) )       //
 );
 
 namespace rn::midiseq {

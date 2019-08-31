@@ -68,7 +68,7 @@ ASSERT_NOTHROW_MOVING( Cargo );
 //
 // NOTE: the `empty` state must be first in the list so that it
 // it will be the default-constructed value.
-ADT_RN( CargoSlot,              //
+adt_rn( CargoSlot,              //
         ( empty ),              //
         ( overflow ),           //
         ( cargo,                //

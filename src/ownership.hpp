@@ -88,7 +88,7 @@ Opt<UnitId> is_unit_onboard( UnitId id );
 *****************************************************************/
 // These pertain to units who are owned by either the high seas
 // or by europe view (e.g., in port, on the dock, etc.);
-ADT_RN(
+adt_rn(
     UnitEuroPortViewState,
     // For ships that are venturing to europe. `percent` starts
     // from 0 and goes to 1.0 at arrival. This means that the
