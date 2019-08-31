@@ -61,6 +61,10 @@ public:
   }
   Child& child() { return *static_cast<Child*>( this ); }
 
+  bool is_drag_in_progress() const {
+    return util::holds<InProgress_t>( state_ );
+  }
+
   void handle_on_frame_start() {
     if_v( state_, Complete_t, p_arc ) {
       child().perform_drag( p_arc->arc );

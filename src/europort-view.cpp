@@ -433,7 +433,7 @@ public:
           active_cargo_box_top - above_active_cargo_box;
       auto location_x =
           maybe_market_commodities->bounds().right_edge() - 32_w;
-      auto x_upper_bound = 0_x + size.w - 64_w;
+      auto x_upper_bound = 0_x + size.w - 60_w;
       auto x_lower_bound =
           maybe_active_cargo_box->bounds().right_edge();
       if( x_upper_bound < x_lower_bound ) return res;
@@ -1768,14 +1768,6 @@ struct EuropePlane : public Plane {
   void draw( Texture& tx ) const override {
     tx.fill( Color::white() );
     draw_entities( tx, entities_ );
-    // We need to keep the checkers pattern stationary.
-    // auto tile = ( clip_rect().upper_left().x._ +
-    //              clip_rect().upper_left().y._ ) %
-    //                        2 ==
-    //                    0
-    //                ? g_tile::checkers
-    //                : g_tile::checkers_inv;
-    // tile_sprite( tx, tile, clip_rect() );
     render_rect( tx, rect_color_, clip_rect() );
     // Should be last.
     drag_n_drop_.handle_draw( tx );
@@ -1818,52 +1810,47 @@ struct EuropePlane : public Plane {
   }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    // if( button == input::e_mouse_button::l &&
-    //    is_on_clip_rect( origin ) ) {
-    //  DragInfo res( Plane::e_accept_drag::yes );
-    //  bool     left   = is_on_clip_rect_left_side( origin );
-    //  bool     right  = is_on_clip_rect_right_side( origin );
-    //  bool     top    = is_on_clip_rect_top_side( origin );
-    //  bool     bottom = is_on_clip_rect_bottom_side( origin
-    //  );
-    //  // test for corners.
-    //  if( ( left && top ) || ( left && bottom ) ||
-    //      ( right && top ) || ( right && bottom ) )
-    //    return res;
-    //  if( left || right ) res.projection = Delta{0_h, 1_w};
-    //  if( top || bottom ) res.projection = Delta{1_h, 0_w};
-    //  return res;
-    //}
+    if( button == input::e_mouse_button::l &&
+        is_on_clip_rect( origin ) ) {
+      DragInfo res( Plane::e_accept_drag::yes );
+      bool     left   = is_on_clip_rect_left_side( origin );
+      bool     right  = is_on_clip_rect_right_side( origin );
+      bool     top    = is_on_clip_rect_top_side( origin );
+      bool     bottom = is_on_clip_rect_bottom_side( origin );
+      // test for corners.
+      if( ( left && top ) || ( left && bottom ) ||
+          ( right && top ) || ( right && bottom ) )
+        return res;
+      if( left || right ) res.projection = Delta{0_h, 1_w};
+      if( top || bottom ) res.projection = Delta{1_h, 0_w};
+      return res;
+    }
 
     // Should be last.
     if( button == input::e_mouse_button::l )
       return drag_n_drop_.handle_can_drag( origin );
     return e_accept_drag::no;
   }
-  void on_drag( input::e_mouse_button /*button*/,
-                Coord /*origin*/, Coord /*prev*/,
-                Coord current ) override {
-    drag_n_drop_.handle_on_drag( current );
-    // auto offset = clip_rect().upper_left();
-    // auto maybe_drag_dst =
-    //    drag_dst( entities_, current.with_new_origin( offset )
-    //    );
-    // lg.info( "drag_dst: {}", maybe_drag_dst );
-
-    // auto delta = ( current - prev );
-    // delta.h *= 2_sy;
-    // delta.w *= 2_sx;
-    // if( origin.x >= main_window_logical_rect().center().x )
-    //  g_clip.w += delta.w;
-    // else
-    //  g_clip.w -= delta.w;
-    // if( origin.y >= main_window_logical_rect().center().y )
-    //  g_clip.h += delta.h;
-    // else
-    //  g_clip.h -= delta.h;
-    // g_clip.w = g_clip.w < 0_w ? 0_w : g_clip.w;
-    // g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
-    // g_clip   = g_clip.clamp( main_window_logical_size() );
+  void on_drag( input::e_mouse_button /*button*/, Coord origin,
+                Coord prev, Coord current ) override {
+    if( drag_n_drop_.is_drag_in_progress() ) {
+      drag_n_drop_.handle_on_drag( current );
+    } else {
+      auto delta = ( current - prev );
+      delta.h *= 2_sy;
+      delta.w *= 2_sx;
+      if( origin.x >= main_window_logical_rect().center().x )
+        g_clip.w += delta.w;
+      else
+        g_clip.w -= delta.w;
+      if( origin.y >= main_window_logical_rect().center().y )
+        g_clip.h += delta.h;
+      else
+        g_clip.h -= delta.h;
+      g_clip.w = g_clip.w < 0_w ? 0_w : g_clip.w;
+      g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
+      g_clip   = g_clip.clamp( main_window_logical_size() );
+    }
   }
   void on_drag_finished( input::e_mouse_button /*button*/,
                          Coord origin, Coord end ) override {
@@ -1881,8 +1868,8 @@ EuropePlane g_europe_plane;
 ** Initialization / Cleanup
 *****************************************************************/
 void init_europort_view() {
-  g_clip = main_window_logical_size() - menu_height() -
-           Delta{0_w, 0_h};
+  g_clip = main_window_logical_size() - menu_height() +
+           Delta{2_w, 2_h};
 }
 
 void cleanup_europort_view() {}
