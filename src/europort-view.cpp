@@ -43,6 +43,7 @@
 #include "range/v3/view/zip.hpp"
 
 using namespace std;
+using namespace util::infix;
 
 namespace rn {
 
@@ -109,7 +110,6 @@ Opt<Cargo> draggable_to_cargo_object(
 
 Opt<DraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  using namespace util::infix;
   return g_selected_unit                                 //
          | fmap( unit_from_id )                          //
          | fmap_join( LC( _.get().cargo().at( slot ) ) ) //
@@ -304,7 +304,6 @@ public:
     if( coord.is_inside( bounds() ) ) {
       auto boxes =
           bounds().with_new_upper_left( Coord{} ) / sprite_scale;
-      using namespace util::infix;
       res = boxes.rasterize(
                 coord.with_new_origin( bounds().upper_left() ) /
                 sprite_scale ) //
@@ -1125,7 +1124,6 @@ public:
 
   Opt<CRef<CargoSlot_t>> cargo_slot_from_coord(
       Coord coord ) const {
-    using namespace util::infix;
     // Lambda will only be called if a valid index is returned,
     // in which case there is guaranteed to be an active unit.
     return slot_idx_from_coord( coord ) //
@@ -1369,7 +1367,6 @@ public:
         };
     }
     if( entities_->active_cargo.has_value() ) {
-      using namespace util::infix;
       auto const& active_cargo = *entities_->active_cargo;
       if( active_cargo.active_unit()    //
               | fmap( is_unit_in_port ) //
@@ -1483,7 +1480,6 @@ public:
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
     return matcher_( drag_arc, ->, bool ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
-        using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1496,30 +1492,36 @@ public:
             draggable_from_src( val.src ) );
       }
       case_( DragArc::cargo_to_cargo, src, dst ) {
-        using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
         if( !is_unit_in_port( ship ) ) return false;
+        if( src.slot == dst.slot ) return true;
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
                               draggable_from_src( src ) ) );
-        // For commodities we'd ideally like to treat this spe-
-        // cially in that we want to be able to consolidate like
-        // commodities by dragging where the the source+target
-        // quantities would be > 100. In that case, only part of
-        // the source commodity would be dragged. However, the
-        // below check will not allow this since it will return
-        // false if the dragged commodity cannot entirely fit
-        // into the target slot. This is fine, since we will have
-        // a separate UI button to compactify the cargo.
-        return unit_from_id( ship )
-            .cargo()
-            .fits_with_item_removed(
-                /*cargo=*/cargo_object,   //
-                /*remove_slot=*/src.slot, //
-                /*insert_slot=*/dst.slot  //
-            );
+        return matcher_( cargo_object ) {
+          case_( UnitId ) {
+            return unit_from_id( ship )
+                .cargo()
+                .fits_with_item_removed(
+                    /*cargo=*/cargo_object,   //
+                    /*remove_slot=*/src.slot, //
+                    /*insert_slot=*/dst.slot  //
+                );
+          }
+          case_( Commodity ) {
+            // If at least one quantity of the commodity can be
+            // moved then we will allow (at least a partial
+            // transfer) to proceed.
+            auto size_one     = val;
+            size_one.quantity = 1;
+            return unit_from_id( ship ).cargo().fits(
+                /*cargo=*/size_one,
+                /*slot=*/dst.slot );
+          }
+          matcher_exhaustive;
+        }
       }
       case_( DragArc::outbound_to_inbound ) { return true; }
       case_( DragArc::outbound_to_inport ) {
@@ -1536,28 +1538,31 @@ public:
             src.id );
       }
       case_( DragArc::cargo_to_inport_ship, src, dst ) {
-        using namespace util::infix;
-        auto ship = dst.id;
+        auto dst_ship = dst.id;
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
                               draggable_from_src( src ) ) );
         return matcher_( cargo_object ) {
           case_( UnitId ) {
-            if( is_unit_onboard( val ) == ship ) return false;
-            return unit_from_id( ship )
+            if( is_unit_onboard( val ) == dst_ship )
+              return false;
+            return unit_from_id( dst_ship )
                 .cargo()
                 .fits_as_available( val );
           }
           case_( Commodity ) {
-            return unit_from_id( ship )
+            // If even 1 quantity can fit then we can proceed
+            // with (at least) a partial transfer.
+            auto size_one     = val;
+            size_one.quantity = 1;
+            return unit_from_id( dst_ship )
                 .cargo()
-                .fits_as_available( val );
+                .fits_as_available( size_one );
           }
           matcher_exhaustive;
         }
       }
       case_( DragArc::market_to_cargo, src, dst ) {
-        using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1585,34 +1590,25 @@ public:
       DCHECK( false );
       return;
     }
+    lg.debug( "performing drag: {}", drag_arc );
     // Beyond this point it is assumed that this drag is compat-
     // ible with game rules.
     switch_( drag_arc ) {
       case_( DragArc::dock_to_cargo, src, dst ) {
-        using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
-        lg.info( "dragging {} into ship {}'s cargo slot {}",
-                 debug_string( src.id ), debug_string( ship ),
-                 dst.slot );
         ownership_change_to_cargo( ship, src.id, dst.slot._ );
       }
       case_( DragArc::cargo_to_dock ) {
-        lg.info( "dragging {} from cargo slot {} to dock.",
-                 draggable_from_src( val.src ), val.src.slot );
         ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),
                         DraggableObject::unit );
         unit_move_to_europort_dock( unit.id );
       }
       case_( DragArc::cargo_to_cargo, src, dst ) {
-        using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
-        lg.info(
-            "dragging {} from cargo slot {} to cargo slot {}",
-            draggable_from_src( src ), src.slot, dst.slot );
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
                               draggable_from_src( src ) ) );
@@ -1623,10 +1619,9 @@ public:
             ownership_change_to_cargo( ship, val, dst.slot._ );
           }
           case_( Commodity ) {
-            auto comm_removed =
-                rm_commodity_from_cargo( ship, src.slot._ );
-            add_commodity_to_cargo( comm_removed, ship,
-                                    dst.slot._ );
+            move_commodity_as_much_as_possible(
+                ship, src.slot._, ship, dst.slot._,
+                /*try_other_dst_slots=*/false );
           }
           switch_exhaustive;
         }
@@ -1657,13 +1652,20 @@ public:
             ownership_change_to_cargo( dst.id, val );
           }
           case_( Commodity ) {
-            NOT_IMPLEMENTED; // FIXME
+            ASSIGN_CHECK_OPT(
+                src_ship,
+                entities_->active_cargo |
+                    fmap_join( L( _.active_unit() ) ) );
+
+            move_commodity_as_much_as_possible(
+                src_ship, src.slot._, /*dst_ship=*/dst.id,
+                /*dst_slot=*/0,
+                /*try_other_dst_slots=*/true );
           }
           switch_exhaustive;
         }
       }
       case_( DragArc::market_to_cargo, src, dst ) {
-        using namespace util::infix;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1678,9 +1680,9 @@ public:
         CHECK( comm.quantity > 0 );
         // Cap it at 100.
         comm.quantity = std::min( 30, comm.quantity );
-        add_commodity_to_cargo( comm, ship, dst.slot._ );
-        lg.info( "dragging {} into ship {}'s cargo slot {}",
-                 comm, debug_string( ship ), dst.slot );
+        add_commodity_to_cargo( comm, ship,
+                                /*slot=*/dst.slot._,
+                                /*try_other_slots=*/true );
       }
       switch_exhaustive;
     }

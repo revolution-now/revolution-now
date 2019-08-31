@@ -63,8 +63,8 @@ void game() {
                                        e_unit_type::soldier );
     unit_from_id( id ).clear_orders();
 
-    id = create_unit_in_euroview_port( e_nation::spanish,
-                                       e_unit_type::caravel );
+    id = create_unit_in_euroview_port(
+        e_nation::spanish, e_unit_type::merchantman );
     if( i == 2 ) {
       unit_sail_to_new_world( id );
       advance_unit_on_high_seas( id );

@@ -132,6 +132,10 @@ CargoHold::~CargoHold() {
              count_items() );
 }
 
+int CargoHold::max_commodity_per_cargo_slot() const {
+  return k_max_commodity_cargo_per_slot;
+}
+
 int CargoHold::slots_occupied() const {
   return slots_total() - slots_remaining();
 }

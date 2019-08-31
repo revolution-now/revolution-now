@@ -66,7 +66,7 @@ enum class ND g_tile {
 
   free_colonist,
   privateer,
-  caravel,
+  merchantman,
   soldier,
   large_treasure,
   small_treasure,

@@ -48,7 +48,7 @@ absl::flat_hash_map<e_unit_type, UnitDescriptor> const&
 unit_desc() {
   static auto const desc = [] {
     absl::flat_hash_map<e_unit_type, UnitDescriptor> desc_{
-        LOAD_UNIT_DESC( caravel ),        //
+        LOAD_UNIT_DESC( merchantman ),    //
         LOAD_UNIT_DESC( privateer ),      //
         LOAD_UNIT_DESC( free_colonist ),  //
         LOAD_UNIT_DESC( soldier ),        //

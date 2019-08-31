@@ -23,7 +23,7 @@ namespace rn {
                                                   )
 
 CFG( units,
-  UNIT_SCHEMA( caravel        )
+  UNIT_SCHEMA( merchantman    )
   UNIT_SCHEMA( privateer      )
   UNIT_SCHEMA( free_colonist  )
   UNIT_SCHEMA( soldier        )

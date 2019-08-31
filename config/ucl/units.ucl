@@ -1,12 +1,12 @@
-caravel {
-  name:                  Caravel
+merchantman {
+  name:                  Merchantman
   boat:                  yes
   nat_icon_front:        false
   nat_icon_position:     nw
   visibility:            1
-  movement_points:       4
+  movement_points:       5
   attack_points:         0
-  defense_points:        2
+  defense_points:        3
   on_death:              naval
   demoted:               null
   cargo_slots:           4

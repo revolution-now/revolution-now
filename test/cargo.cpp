@@ -2313,4 +2313,49 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
   }
 }
 
+TEST_CASE( "CargoHold slot_holds_cargo_type" ) {
+  CargoHoldTester ch( 8 );
+
+  auto food    = Commodity{/*type=*/e_commodity::food,
+                        /*quantity=*/100};
+  auto unit_id = create_unit( e_nation::english,
+                              e_unit_type::small_treasure )
+                     .id();
+
+  REQUIRE( ch.try_add( food, 1 ) );
+  REQUIRE( ch.try_add( unit_id, 2 ) );
+
+  REQUIRE_THROWS_AS_RN( ch.slot_holds_cargo_type<UnitId>( -1 ) );
+  REQUIRE_THROWS_AS_RN( ch.slot_holds_cargo_type<UnitId>( 8 ) );
+  REQUIRE_THROWS_AS_RN( ch.slot_holds_cargo_type<UnitId>( 9 ) );
+
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 0 ) );
+  REQUIRE( ch.slot_holds_cargo_type<UnitId>( 2 ) );
+  REQUIRE( ch.slot_holds_cargo_type<UnitId>( 2 ).value().get() ==
+           unit_id );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 1 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 6 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 7 ) );
+
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 0 ) );
+  REQUIRE( ch.slot_holds_cargo_type<Commodity>( 1 ) );
+  REQUIRE(
+      ch.slot_holds_cargo_type<Commodity>( 1 ).value().get() ==
+      food );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 2 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 3 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 4 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 5 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 6 ) );
+  REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 7 ) );
+
+  ch.clear();
+}
+
+TEST_CASE( "CargoHold max_commodity_per_cargo_slot" ) {
+  CargoHoldTester ch( 2 );
+  REQUIRE( ch.max_commodity_per_cargo_slot() == 100 );
+  ch.clear();
+}
+
 } // namespace

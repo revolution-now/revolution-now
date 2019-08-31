@@ -105,9 +105,16 @@ Opt<e_commodity> commodity_from_index( int index ) {
 }
 
 void add_commodity_to_cargo( Commodity const& comm,
-                             UnitId holder, int starting_slot ) {
-  CHECK( unit_from_id( holder ).cargo().try_add_as_available(
-      comm, starting_slot ) );
+                             UnitId holder, int slot,
+                             bool try_other_slots ) {
+  if( try_other_slots ) {
+    CHECK( unit_from_id( holder ).cargo().try_add_as_available(
+               comm, slot ),
+           "failed to add {} starting at slot {}", comm, slot );
+  } else {
+    CHECK( unit_from_id( holder ).cargo().try_add( comm, slot ),
+           "failed to add {} at slot {}", comm, slot );
+  }
 }
 
 Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
@@ -120,6 +127,73 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
   cargo[slot]   = CargoSlot::empty{};
   cargo.check_invariants();
   return res;
+}
+
+int move_commodity_as_much_as_possible(
+    UnitId src, int src_slot, UnitId dst, int dst_slot,
+    bool try_other_dst_slots ) {
+  auto const& src_cargo = unit_from_id( src ).cargo();
+  auto        maybe_src_comm =
+      src_cargo.slot_holds_cargo_type<Commodity>( src_slot );
+  CHECK( maybe_src_comm.has_value() );
+
+  auto const& dst_cargo = unit_from_id( dst ).cargo();
+  auto        maybe_dst_comm =
+      dst_cargo.slot_holds_cargo_type<Commodity>( dst_slot );
+  if( maybe_dst_comm.has_value() && !try_other_dst_slots ) {
+    CHECK(
+        maybe_dst_comm->get().type == maybe_src_comm->get().type,
+        "src and dst have different commodity types: {} vs {}",
+        maybe_src_comm->get(), maybe_dst_comm->get() );
+  }
+
+  // Need to remove first in case src/dst are the same unit.
+  auto removed = rm_commodity_from_cargo( src, src_slot );
+  CHECK( removed.quantity > 0 );
+
+  int max_transfer_quantity = 0;
+
+  if( try_other_dst_slots ) {
+    max_transfer_quantity =
+        std::min( removed.quantity,
+                  dst_cargo.max_commodity_quantity_that_fits(
+                      removed.type ) );
+  } else {
+    if( maybe_dst_comm.has_value() ) {
+      max_transfer_quantity =
+          std::min( removed.quantity,
+                    dst_cargo.max_commodity_per_cargo_slot() -
+                        maybe_dst_comm->get().quantity );
+    } else {
+      CHECK(
+          util::holds<CargoSlot::empty>( dst_cargo[dst_slot] ) );
+      max_transfer_quantity =
+          std::min( removed.quantity,
+                    dst_cargo.max_commodity_per_cargo_slot() );
+    }
+  }
+
+  CHECK( max_transfer_quantity >= 0 &&
+         max_transfer_quantity <=
+             dst_cargo.max_commodity_per_cargo_slot() );
+
+  if( max_transfer_quantity > 0 ) {
+    auto comm_to_transfer     = removed;
+    comm_to_transfer.quantity = max_transfer_quantity;
+    add_commodity_to_cargo(
+        comm_to_transfer, dst,
+        /*slot=*/dst_slot,
+        /*try_other_slots=*/try_other_dst_slots );
+    removed.quantity -= max_transfer_quantity;
+    CHECK( removed.quantity >= 0 );
+  }
+
+  if( removed.quantity > 0 )
+    add_commodity_to_cargo( removed, src,
+                            /*slot=*/src_slot,
+                            /*try_other_slots=*/false );
+
+  return max_transfer_quantity;
 }
 
 Opt<string> commodity_label_to_markup(

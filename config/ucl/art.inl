@@ -42,7 +42,7 @@ CFG( art,
     OBJ( units,
       FLD( fs::path, img )
       OBJ( coords,
-        FLD( Coord, caravel )
+        FLD( Coord, merchantman )
         FLD( Coord, privateer )
         FLD( Coord, free_colonist )
         FLD( Coord, soldier )

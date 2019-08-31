@@ -40,7 +40,7 @@ tiles {
   units {
     img: assets/art/tiles/units.png
     coords {
-      caravel:             { y: 0, x: 0 }
+      merchantman:         { y: 0, x: 0 }
       privateer:           { y: 0, x: 1 }
       free_colonist:       { y: 1, x: 0 }
       soldier:             { y: 1, x: 1 }

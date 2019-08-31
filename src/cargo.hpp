@@ -15,6 +15,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "commodity.hpp"
+#include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "macros.hpp"
@@ -37,7 +38,8 @@ namespace rn {
 void ownership_change_to_cargo( UnitId new_holder, UnitId held,
                                 int slot );
 void add_commodity_to_cargo( Commodity const& comm,
-                             UnitId holder, int starting_slot );
+                             UnitId holder, int slot,
+                             bool try_other_slots );
 Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 namespace internal {
 void ownership_disown_unit( UnitId id );
@@ -104,6 +106,8 @@ public:
   template<typename T>
   std::vector<T> items_of_type() const;
 
+  int max_commodity_per_cargo_slot() const;
+
   auto begin() const { return slots_.begin(); }
   auto end() const { return slots_.end(); }
 
@@ -113,6 +117,9 @@ public:
   CargoSlot_t const&      operator[]( int idx ) const;
   CargoSlot_t const&      operator[]( CargoSlotIndex idx ) const;
   Vec<CargoSlot_t> const& slots() const { return slots_; }
+
+  template<typename T>
+  Opt<CRef<T>> slot_holds_cargo_type( int idx ) const;
 
   // If unit is in cargo, returns its slot index.
   Opt<int> find_unit( UnitId id ) const;
@@ -181,8 +188,8 @@ protected:
   // These are the only functions that should be allowed to add
   // or remove commodities to/from the cargo.
   friend void add_commodity_to_cargo( Commodity const& comm,
-                                      UnitId           holder,
-                                      int starting_slot );
+                                      UnitId holder, int slot,
+                                      bool try_other_slots );
 
   friend Commodity rm_commodity_from_cargo( UnitId holder,
                                             int    slot );
@@ -252,6 +259,18 @@ int CargoHold::count_items_of_type() const {
     }
   }
   return count;
+}
+
+template<typename T>
+Opt<CRef<T>> CargoHold::slot_holds_cargo_type( int idx ) const {
+  CHECK( idx >= 0 && idx < slots_total() );
+  Opt<CRef<T>> res;
+  if_v( slots_[idx], CargoSlot::cargo, cargo ) {
+    if_v( cargo->contents, T, content ) { //
+      res = *content;
+    }
+  }
+  return res;
 }
 
 } // namespace rn
