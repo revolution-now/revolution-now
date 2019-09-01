@@ -28,6 +28,11 @@ enable_address_sanitizer_if_requested()
 # compilers to force color output.
 force_compiler_color_diagnostics()
 
+# === compiler flags ==============================================
+
+# Might have to turn this one off for producing generic builds.
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native" )
+
 # === subdirectories ==============================================
 
 add_subdirectory( assets/music )
