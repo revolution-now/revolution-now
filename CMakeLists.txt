@@ -31,6 +31,8 @@ force_compiler_color_diagnostics()
 # === compiler flags ==============================================
 
 # Might have to turn this one off for producing generic builds.
+# FIXME: put this behind a configure variable and include mention
+#        of it in the configuration identifier.
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native" )
 
 # === subdirectories ==============================================
