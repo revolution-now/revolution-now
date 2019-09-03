@@ -1,3 +1,177 @@
+Finite State Machine
+====================
+
+Introduction
+
+  There will be a finite state machine class called `fsm`. It
+  will be a class template using CRTP as well as other types
+  needed, which will include:
+
+  - Variant representing state.
+  - Variant representing events.
+  - Type map from <StateT, EventT> -> <StateT>.
+  - Mapping from (State1, Event, State2) -> Action.
+  - Initial state type.
+
+The API of `fsm` will be:
+
+  - Reset: resets the state to the initial state.
+
+  - Queue event: signal to the state machine that an event has
+    happened. fsm will queue it for later.
+
+  - Perform next event: take the next event from the queue, if
+    any, and do double dispatch to map the state and event types
+    to a new state type, then it will call a child method with
+    the following signature:
+
+      State2_t transition( State1_t const&, Event1_t const& );
+
+    if one exists (will try to determine this with SFINAE). If it
+    doesn't exist then it will just default construct the final
+    state. Then it will look for a function with this signature:
+
+      void action( State1_t const&, Event1_t const&, State2_t const& );
+
+    and if one exists it will call it to perform an action.
+
+    If there exists no such transition (even a transition that
+    keeps the state the same) then the fsm will fail with an
+    error (probably has to be a runtime error even though we have
+    a compile time type map).
+
+  - Get state. Returns a const reference to the internal variant
+    state.
+
+  - Query if holds state of type.
+
+Auto Transitions
+
+  An auto-transition can be implemented in a way such that when-
+  ever a state is entered the action function will enqueue a new
+  event which will bring it out of that state. This should be
+  possible by e.g. defining the action function so that the
+  "from" state is the state variant type so that it should act as
+  a catch-all.
+
+List of Current FSMs
+
+  The following is a list of current candidates for FSMs that
+  must be supported by the above model:
+
+    - Music Players / Conductor:
+    - Drag & Drop:
+    - Plane+Modal Windows:
+    - Plane (or input module) Drag & Drop:
+    - Menus:
+    - Overall Program State:
+    - Game State (i.e., pre/post revolution):
+    - Unit orders:
+    - Ship damage status:
+    - Viewport (maybe):
+    - Game world animation state (e.g. unit sliding):
+    - Intra-turn state:
+
+Plane Integration of FSM
+
+  If each plane has its own top-level FSM then it might make
+  sense to allow the generic plane manager code to do as much of
+  the work as possible.
+
+  It is not clear yet whether this will be needed.
+
+Pushdown Automata
+
+  This will be a type that exposes an fsm API and also takes an
+  FSM type as a template paramter. It will maintain a stack of
+  state machines. The PDA will act as a state machine where the
+  state is held by the FSM at the top of the stack. New FSMs can
+  be pushed/popped using special API methods.
+
+  It is not clear yet whether this will be needed.
+
+Drag & Drop with Dialog Box
+===========================
+
+In general it will be necessary to allow the drag & drop frame-
+work to pop up a dialog box and ask the user for more information
+when a successfull drag is completed. In other words, when the
+user releases the mouse to complete (what is or may be) a suc-
+cessful drag a dialog box will pop up asking the user for input
+before affecting the drag&drop action.
+
+Some possible use cases for this could be:
+
+  - Asking the user how much of a quantity they wish to drop
+    (which it might do when the user holds down shift while drag-
+    ging).
+  - Asking the user to confirm the drag.
+
+The following implementation assumes a future where both the drag
+and drop framework as well as the relevant plane are operated
+with finite state machines.
+
+  - When the plane is notified that a drag is finished then we
+    call the drag & drop class to handle it as usual.
+  - If the resulting drag is verified to be valid then it will
+    compute the drag arc as usual.
+  - If valid, the drag & drop framework will set its state to
+    "waiting for finalization."
+  - The drag arc will then be given to the child class along with
+    any necessary additional metadata to give the child a chance
+    to alter it. This method will be called "finalize drag arc.":
+
+      void finalize_drag_arc( DragArcT const& drag_arc ) const;
+
+  - When the child has the result (which it may have immediately
+    if no processing is necessary) then it will call an API
+    method called "accept finalized drag arc." The framework will
+    throw an error if this method is called when not in the ap-
+    propriate state.
+
+      void accept_finalized_drag_arc(
+               Opt<CRef<DragArcT>> maybe_drag_arc ) final;
+
+    If nullopt is provided then the drag will be cancelled.
+  - The framework will test the resulting drag arc once more for
+    validity. If invalid then it will throw an error (maybe).
+  - If the drag is valid then it will transition to a "complete"
+    state and will store the drag arc (not perform it).
+  - As usual, when in the complete state, it will not accept any
+    further drags until the stored one has been performed.
+  - On the next frame, the plane will see the stored arc and will
+    perform it by calling an API method called "perform drag if
+    ready."
+  - After performing the drag the framework will reset its state.
+
+The following is an example of the workflow of the plane and
+child drag&drop class during the "waiting for finalization" state
+where a dialog box needs to be presented to the user to ask for
+the quantity of commodity to be dragged:
+
+  - As stated above, the framework will put itself into a
+    "waiting for finalization state" and then call a child method
+    with the drag arc.
+  - The child class will add an event into the plane's event
+    queue to signal to it to ask the user for quantity. This
+    event can only be accepted when the plane is in the dragging
+    state (though at first, try without dragging state as it may
+    not be necessary).
+  - The plane will then pop up the quantity box and wait for the
+    user to enter. The result could either be OK (with a quantity
+    or cancel) which would cancel the drag.
+  - The window will be instructed that, when it closes, it should
+    put its result (an Opt<int>) into an event and then add that
+    event into the plane's event queue to signal that it has
+    closed.
+  - The plane will then transition back to the "waiting for drag"
+    state (or the normal state) that it was in during the drag,
+    and in so doing, it will call the drag&drop child's "accept
+    quantity" function.
+  - The "accept quantity" will then adjust the (stored) drag arc
+    and then call the parent's "accept finalized drag arc" func-
+    tion.
+
 Drag & Drop Framework
 =====================
 
@@ -16,36 +190,7 @@ dragged, the set of things that can receive a drop, which items
 can be dropped where, what should happen to the dragged item
 during dragging, etc.
 
-High-Level Interface
-
-First, a config object must be created:
-
-  DragAndDropConfig dd_config(
-    // 1. Things that can be dragged.
-    // 2. Things that can receive drags.
-    // 3. Matrix describing "interactions" between prev. two.
-    // 4. What should happen to an item when being dragged.
-    // 5. What should be shown under cursor when dragging item.
-    // 6. What should be done to receiver when drag-hovering.
-    // 7. Callbacks for e.g. drag start, drag complete, etc.
-  );
-
-Dragging and dropping involves the following players:
-
-  - DragContainer
-
-    Holds an item that is being dragged along with info about
-    where it came from.  This is useful if the dragged item
-    needs to be physically removed from where it lives during
-    dragging.
-
-  - DraggableItem
-
-    An item that can be dragged; will be put inside a drag
-    container during dragging.
-
-  - DragSink
-  - DragStatus
+See code for API/implementation results.
 
 Old World Dock Screen
 =====================

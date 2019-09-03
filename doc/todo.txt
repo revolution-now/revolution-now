@@ -2,20 +2,6 @@
 State
 =================================================================
 
-  - C++ serialization.  Candidates:
-
-      - protobuf.
-      - boost serialization.
-      - custom solution.
-      - ucl
-
-  - Game State. Once serialization is figured out, we need to
-    create a centralized game state data structure that can be
-    serialized. This is not to be confused with a state machine;
-    this is just a serializable data structure that holds the
-    game state, which will include some finite state machines
-    within it.
-
   - fsm module. Need a good generic finite state machine
     infrastructure since much of the game will probably turn out
     to be fsm's. Known fsm's in the game already:
@@ -34,6 +20,20 @@ State
 
   - Need to restructure the architecture of the game so to work
     based on fsm's.
+
+  - C++ serialization.  Candidates:
+
+      - protobuf.
+      - boost serialization.
+      - custom solution.
+      - ucl
+
+  - Game State. Once serialization is figured out, we need to
+    create a centralized game state data structure that can be
+    serialized. This is not to be confused with a state machine;
+    this is just a serializable data structure that holds the
+    game state, which will include some finite state machines
+    within it.
 
 =================================================================
 Bugs
@@ -60,6 +60,8 @@ Infrastructure
 
   - Allow ADT to compare the variant type with a subttype using
     the == operator.
+
+  - Replace better enums with magic enums where possible.
 
   - Add a cache to the cache module that invalidates when the
     scaling is changed. This may not be necessary since, as of

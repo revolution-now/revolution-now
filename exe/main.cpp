@@ -6,6 +6,7 @@
 #include "europort.hpp"
 #include "fmt-helper.hpp"
 #include "frame.hpp"
+#include "fsm.hpp"
 #include "image.hpp"
 #include "init.hpp"
 #include "input.hpp"
@@ -129,15 +130,17 @@ void game() {
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) try {
-  linker_dont_discard_me();
-  run_all_init_routines( e_log_level::debug,
-                         e_init_routine::europort_view );
+  // linker_dont_discard_me();
+  // run_all_init_routines( e_log_level::debug,
+  //                       e_init_routine::europort_view );
   // run_all_init_routines();
   // conductor::test();
-  game();
+  // game();
   // ui::window_test();
 
-  run_all_cleanup_routines();
+  test_fsm();
+
+  // run_all_cleanup_routines();
   return 0;
 
 } catch( exception_exit const& ) {
