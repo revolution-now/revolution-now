@@ -163,6 +163,18 @@ struct formatter<std::optional<T>> : formatter_base {
   }
 };
 
+// {fmt} formatter for formatting reference wrappers whose
+// referenced type is formattable.
+template<typename T>
+struct formatter<std::reference_wrapper<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( std::reference_wrapper<T> const &o,
+               FormatContext &                  ctx ) {
+    return formatter_base::format( fmt::format( "{}", o.get() ),
+                                   ctx );
+  }
+};
+
 // {fmt} formatter for formatting pairs whose contained types are
 // formattable.
 template<typename T, typename U>

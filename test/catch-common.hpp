@@ -23,6 +23,7 @@
 #include "catch2/catch.hpp"
 
 // C++ standard library
+#include <optional>
 #include <utility>
 
 // Use this to teach Catch2 how to convert types to strings that
@@ -59,3 +60,5 @@ namespace rn {} // namespace rn
 ** Standard Formatting
 *****************************************************************/
 FMT_TO_CATCH_T( ( T, U ), ::std::pair );
+FMT_TO_CATCH_T( ( T ), ::std::reference_wrapper );
+FMT_TO_CATCH_T( ( T ), ::std::optional );
