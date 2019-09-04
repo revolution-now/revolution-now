@@ -51,6 +51,14 @@ Low priority:
     itself.
 
 =================================================================
+Language Changes
+=================================================================
+
+  - Rewrite move constructors/move assignment operators using
+    std::exchange.  See:
+      https://en.cppreference.com/w/cpp/utility/exchange
+
+=================================================================
 Infrastructure
 =================================================================
 
