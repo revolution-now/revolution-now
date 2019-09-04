@@ -53,7 +53,7 @@ namespace rn {
 template<typename Child, typename DraggableObjectT,
          typename DragSrcT, typename DragDstT, typename DragArcT>
 class DragAndDrop {
-public:
+protected:
   DragAndDrop() : state_{None_t{}} {}
 
   Child const& child() const {
@@ -61,6 +61,7 @@ public:
   }
   Child& child() { return *static_cast<Child*>( this ); }
 
+public:
   bool is_drag_in_progress() const {
     return util::holds<InProgress_t>( state_ );
   }
