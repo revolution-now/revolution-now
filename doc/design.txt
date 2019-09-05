@@ -15,8 +15,6 @@ Introduction
 
 The API of `fsm` will be:
 
-  - Reset: resets the state to the initial state.
-
   - Queue event: signal to the state machine that an event has
     happened. fsm will queue it for later.
 
