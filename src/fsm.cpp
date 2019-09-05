@@ -46,10 +46,9 @@ adt_rn_( BallEvent,           //
          ( stop_spinning )    //
 );
 
-using BallTransitionMap = FSM_TRANSITIONS(
-    BallState,
-    BallEvent
+FSM_TRANSITIONS(
     // clang-format off
+    Ball
    ,((none,     do_nothing    ),  /*->*/  none    )
    ,((none,     start_spinning),  /*->*/  spinning)
    ,((none,     start_rolling ),  /*->*/  rolling )
@@ -60,9 +59,8 @@ using BallTransitionMap = FSM_TRANSITIONS(
     // clang-format on
 );
 
-struct BallFsm : public fsm<BallFsm, BallState_t, BallEvent_t,
-                            BallTransitionMap> {
-  using Parent::transition;
+FSM( Ball ) {
+  FSM_INIT( BallState::none{} );
 
   BallState_t transition( BallState::none const&,
                           BallEvent::start_rolling const& event,
@@ -75,6 +73,49 @@ struct BallFsm : public fsm<BallFsm, BallState_t, BallEvent_t,
                           BallState::bouncing const& ) {
     return BallState_t{BallState::bouncing{event.height}};
   }
+};
+
+adt_rn_( ColorState,       //
+         ( red ),          //
+         ( light_red ),    //
+         ( dark_red ),     //
+         ( blue ),         //
+         ( light_blue ),   //
+         ( dark_blue ),    //
+         ( yellow ),       //
+         ( light_yellow ), //
+         ( dark_yellow )   //
+);
+
+adt_rn_( ColorEvent, //
+         ( light ),  //
+         ( dark ),   //
+         ( rotate )  //
+);
+
+FSM_TRANSITIONS(
+    // clang-format off
+    Color
+   ,((red,          light),  /*->*/  light_red   )
+   ,((red,          dark ),  /*->*/  dark_red    )
+   ,((light_red,    dark ),  /*->*/  red         )
+   ,((dark_red,     light),  /*->*/  red         )
+   ,((blue,         light),  /*->*/  light_blue  )
+   ,((blue,         dark ),  /*->*/  dark_blue   )
+   ,((light_blue,   dark ),  /*->*/  blue        )
+   ,((dark_blue,    light),  /*->*/  blue        )
+   ,((yellow,       light),  /*->*/  light_yellow)
+   ,((yellow,       dark ),  /*->*/  dark_yellow )
+   ,((light_yellow, dark ),  /*->*/  yellow      )
+   ,((dark_yellow,  light),  /*->*/  yellow      )
+   ,((red,          rotate), /*->*/  blue        )
+   ,((blue,         rotate), /*->*/  yellow      )
+   ,((yellow,       rotate), /*->*/  red         )
+    // clang-format on
+);
+
+FSM( Color ) { //
+  FSM_INIT( ColorState::red{} );
 };
 
 } // namespace
@@ -110,6 +151,25 @@ void test_fsm() {
   ball.send_event( BallEvent::do_nothing{} );
   ball.process_events();
   lg.info( "ball state: {}", ball.state() );
+
+  // Colors.
+
+  ColorFsm color;
+  lg.info( "color state: {}", color.state() );
+
+  color.send_event( ColorEvent::light{} );
+  color.process_events();
+  lg.info( "color state: {}", color.state() );
+
+  color.send_event( ColorEvent::dark{} );
+  color.process_events();
+  lg.info( "color state: {}", color.state() );
+
+  color.send_event( ColorEvent::rotate{} );
+  color.send_event( ColorEvent::rotate{} );
+  color.send_event( ColorEvent::light{} );
+  color.process_events();
+  lg.info( "color state: {}", color.state() );
 }
 
 } // namespace rn

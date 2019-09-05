@@ -24,6 +24,45 @@
 
 namespace rn {
 
+/****************************************************************
+** Finite State Machine
+*****************************************************************/
+// Example:
+//
+//   adt_rn_( ColorState,
+//            ( red ),
+//            ( light_red ),
+//            ( dark_red )
+//   );
+//
+//   adt_rn_( ColorEvent,
+//            ( light ),
+//            ( dark )
+//   );
+//
+//   FSM_TRANSITIONS(
+//       Color
+//      ,((red,          light),  /*->*/  light_red   )
+//      ,((red,          dark ),  /*->*/  dark_red    )
+//      ,((light_red,    dark ),  /*->*/  red         )
+//      ,((dark_red,     light),  /*->*/  red         )
+//   );
+//
+//   FSM( Color ) {
+//     FSM_INIT( ColorState::red{} );
+//   };
+//
+//   ColorFsm color;
+//   lg.info( "color state: {}", color.state() );
+//
+//   color.send_event( ColorEvent::light{} );
+//   color.process_events();
+//   lg.info( "color state: {}", color.state() );
+//
+//   color.send_event( ColorEvent::dark{} );
+//   color.process_events();
+//   lg.info( "color state: {}", color.state() );
+//
 template<typename ChildT, typename StateT, typename EventT,
          typename TransitionMap>
 class fsm {
@@ -85,8 +124,6 @@ protected:
   }
 
 private:
-  static StateT initial_state() { return StateT{}; }
-
   ChildT const& child() const {
     return *static_cast<ChildT const*>( this );
   }
@@ -117,23 +154,20 @@ private:
 };
 
 /****************************************************************
-** Transition Map Macros
+** Macros
 *****************************************************************/
-// Example:
-//
-//    using TestMap = FSM_TRANSITIONS( BallState, BallEvent,
-//        ((none, start_spinning), /*->*/ spinning),
-//        ((none, start_rolling),  /*->*/ rolling)
-//    );
-
 #define FSM_TRANSITIONS( ... ) \
   EVAL( FSM_TRANSITION_MAP_IMPL( __VA_ARGS__ ) )
 
-#define FSM_TRANSITION_MAP_IMPL( state_t_name, event_t_name, \
-                                 ... )                       \
-  TypeMap<PP_MAP_TUPLE_COMMAS(                               \
-      FSM_TO_KV_PAIR,                                        \
-      PP_MAP_PREPEND2_TUPLE( state_t_name, event_t_name,     \
+#define FSM_TRANSITION_MAP_IMPL( name, ... )             \
+  using name##FsmTransitions = FSM_TRANSITION_MAP_IMPL2( \
+      name##State, name##Event, __VA_ARGS__ )
+
+#define FSM_TRANSITION_MAP_IMPL2( state_t_name, event_t_name, \
+                                  ... )                       \
+  TypeMap<PP_MAP_TUPLE_COMMAS(                                \
+      FSM_TO_KV_PAIR,                                         \
+      PP_MAP_PREPEND2_TUPLE( state_t_name, event_t_name,      \
                              __VA_ARGS__ ) )>
 
 #define FSM_TO_KV_PAIR( state_t_name, event_t_name,          \
@@ -144,6 +178,15 @@ private:
 
 #define FSM_TO_PAIR( state_t_name, event_t_name, a, b ) \
   std::pair<state_t_name::a, event_t_name::b>
+
+#define FSM( name )                                       \
+  struct name##Fsm                                        \
+    : public fsm<name##Fsm, name##State_t, name##Event_t, \
+                 name##FsmTransitions>
+
+#define FSM_INIT( a )       \
+  using Parent::transition; \
+  auto initial_state() const { return a; }
 
 /****************************************************************
 ** Testing
