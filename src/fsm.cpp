@@ -59,19 +59,15 @@ FSM_TRANSITIONS(
     // clang-format on
 );
 
-FSM( Ball ) {
-  FSM_INIT( BallState::none{} );
+fsm_class( Ball ) {
+  fsm_init( BallState::none{} );
 
-  BallState_t transition( BallState::none const&,
-                          BallEvent::start_rolling const& event,
-                          BallState::rolling const& ) {
-    return BallState_t{BallState::rolling{event.speed}};
+  fsm_transition( Ball, none, start_rolling, ->, rolling ) {
+    return {event.speed};
   }
 
-  BallState_t transition( BallState::none const&,
-                          BallEvent::start_bouncing const& event,
-                          BallState::bouncing const& ) {
-    return BallState_t{BallState::bouncing{event.height}};
+  fsm_transition( Ball, none, start_bouncing, ->, bouncing ) {
+    return {event.height};
   }
 };
 
@@ -114,8 +110,13 @@ FSM_TRANSITIONS(
     // clang-format on
 );
 
-FSM( Color ) { //
-  FSM_INIT( ColorState::red{} );
+fsm_class( Color ) { //
+  fsm_init( ColorState::red{} );
+
+  fsm_transition( Color, blue, rotate, ->, yellow ) {
+    (void)event;
+    return {};
+  }
 };
 
 } // namespace

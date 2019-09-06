@@ -48,8 +48,8 @@ namespace rn {
 //      ,((dark_red,     light),  /*->*/  red         )
 //   );
 //
-//   FSM( Color ) {
-//     FSM_INIT( ColorState::red{} );
+//   fsm_class( Color ) {
+//     fsm_init( ColorState::red{} );
 //   };
 //
 //   ColorFsm color;
@@ -103,9 +103,15 @@ public:
   }
 
 protected:
+  template<typename T>
+  struct FsmTag {
+    using type = T;
+  };
+
   // Default transition function.
   template<typename S1, typename E, typename S2>
-  static StateT transition( S1 const&, E const&, S2 const& ) {
+  static S2 transition( S1 const&, E const&,
+                        FsmTag<S2> const& ) {
     // Unfortunately it seems that empty structs still report
     // having a size of one, so we'll just assume that if the
     // size is one that it is empty.
@@ -120,7 +126,7 @@ protected:
         "containing data members as this could be an indication "
         "of data loss.  Please provide a custom override of "
         "`transition` to handle this case." );
-    return StateT{S2{}};
+    return S2{};
   }
 
 private:
@@ -143,7 +149,23 @@ private:
         FATAL( "state {} cannot receive the event {}", state,
                event );
       } else {
-        return child().transition( state, event, state2_t{} );
+        if constexpr(
+            !std::is_same_v<
+                std::decay_t<decltype( child().transition(
+                    state, event, FsmTag<state2_t>{} ) )>,
+                state2_t> ) {
+          struct
+              one_of_your_transition_functions_returns_the_wrong_type {
+          };
+          // If you get an error on the line below, then one of
+          // your transition functions does not return the right
+          // type. A transition function must return the type of
+          // the new state (not the state variant).
+          return one_of_your_transition_functions_returns_the_wrong_type{};
+        } else {
+          return child().transition( state, event,
+                                     FsmTag<state2_t>{} );
+        }
       }
     };
     state_ = std::visit( visitor, state_, event );
@@ -179,14 +201,20 @@ private:
 #define FSM_TO_PAIR( state_t_name, event_t_name, a, b ) \
   std::pair<state_t_name::a, event_t_name::b>
 
-#define FSM( name )                                       \
+#define fsm_class( name )                                 \
   struct name##Fsm                                        \
     : public fsm<name##Fsm, name##State_t, name##Event_t, \
                  name##FsmTransitions>
 
-#define FSM_INIT( a )       \
+#define fsm_init( a )       \
   using Parent::transition; \
   auto initial_state() const { return a; }
+
+#define fsm_transition( fsm_name, start, e, dummy, end ) \
+  fsm_name##State::end transition(                       \
+      fsm_name##State::start const&,                     \
+      fsm_name##Event::e const& event,                   \
+      FsmTag<fsm_name##State::end> )
 
 /****************************************************************
 ** Testing
