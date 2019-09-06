@@ -18,7 +18,7 @@
 #include "base-util/string.hpp"
 
 adt_template( rn,               //
-              TEMPLATE( T, U ), //
+              template( T, U ), //
               State,            //
               ( none ),         //
               ( starting,       //

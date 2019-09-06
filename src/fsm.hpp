@@ -133,12 +133,6 @@ protected:
         "should not default-construct a state with data "
         "members.  Please provide a custom override of "
         "`transition` to handle this case." );
-    static_assert(
-        sizeof( E ) <= 1,
-        "cannot default-construct a target state from an event "
-        "containing data members as this could be an indication "
-        "of data loss.  Please provide a custom override of "
-        "`transition` to handle this case." );
     return S2{};
   }
 
@@ -193,7 +187,7 @@ private:
 };
 
 /****************************************************************
-** Macros
+** Macros For Standard FSM
 *****************************************************************/
 #define fsm_transitions( ... ) \
   EVAL( FSM_TRANSITION_MAP_IMPL( __VA_ARGS__ ) )
@@ -238,6 +232,76 @@ private:
       fsm_name##State::start const&,                       \
       fsm_name##Event::e const& event,                     \
       FsmTag<fsm_name##State::end> )
+
+/****************************************************************
+** Macros For Templated FSM
+*****************************************************************/
+#define fsm_transitions_template( ts, ... ) \
+  EVAL( FSM_TRANSITION_MAP_T_IMPL( EAT_##ts, __VA_ARGS__ ) )
+
+#define FSM_TRANSITION_MAP_T_IMPL( ts, name, ... )         \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND ts )>    \
+  using name##FsmTransitions = FSM_TRANSITION_MAP_T_IMPL2( \
+      ts, name##State, name##Event, __VA_ARGS__ )
+
+#define FSM_TRANSITION_MAP_T_IMPL2( ts, state_t_name,        \
+                                    event_t_name, ... )      \
+  TypeMap<PP_MAP_TUPLE_COMMAS(                               \
+      FSM_TO_KV_PAIR_T,                                      \
+      PP_MAP_PREPEND3_TUPLE( ts, state_t_name, event_t_name, \
+                             __VA_ARGS__ ) )>
+
+#define FSM_TO_KV_PAIR_T( ts, state_t_name, event_t_name, \
+                          state1_event, dummy, state2 )   \
+  KV<FSM_TO_PAIR_T PREPEND_TUPLE3(                        \
+         ts, state_t_name, event_t_name, state1_event ),  \
+     state_t_name::state2<EXPAND ts>>
+
+#define FSM_TO_PAIR_T( ts, state_t_name, event_t_name, a, b ) \
+  std::pair<state_t_name::a<EXPAND ts>,                       \
+            event_t_name::b<EXPAND ts>>
+
+#define fsm_class_template( ts, ... ) \
+  EVAL( fsm_class_template_impl( EAT_##ts, __VA_ARGS__ ) )
+
+#define fsm_class_template_impl( ts, name )             \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND ts )> \
+  struct name##Fsm                                      \
+    : public fsm<name##Fsm<EXPAND ts>,                  \
+                 name##State_t<EXPAND ts>,              \
+                 name##Event_t<EXPAND ts>,              \
+                 name##FsmTransitions<EXPAND ts>>
+
+#define fsm_init_template( ts, ... ) \
+  EVAL( fsm_init_template_impl( EAT_##ts, __VA_ARGS__ ) )
+
+#define fsm_init_template_impl( ts, name, a )             \
+  using Parent =                                          \
+      fsm<name##Fsm<EXPAND ts>, name##State_t<EXPAND ts>, \
+          name##Event_t<EXPAND ts>,                       \
+          name##FsmTransitions<EXPAND ts>>;               \
+  using Parent::transition;                               \
+  auto initial_state() const { return a; }
+
+#define fsm_transition_template( ts, ... )          \
+  EVAL( fsm_transition_template_impl( ( EAT_##ts ), \
+                                      __VA_ARGS__ ) )
+
+#define fsm_transition_template_impl( ts, fsm_name, start, e, \
+                                      dummy, end )            \
+  static_assert(                                              \
+      std::is_same_v<                                         \
+          fsm_name##State::end<EXPAND EXPAND ts>,             \
+          Get<fsm_name##FsmTransitions<EXPAND EXPAND ts>,     \
+              std::pair<                                      \
+                  fsm_name##State::start<EXPAND EXPAND ts>,   \
+                  fsm_name##Event::e<EXPAND EXPAND ts>>>>,    \
+      "this transition is not in the transitions map" );      \
+  fsm_name##State::end<EXPAND EXPAND ts> transition(          \
+      fsm_name##State::start<EXPAND EXPAND ts> const&,        \
+      fsm_name##Event::e<EXPAND EXPAND ts> const& event,      \
+      typename Parent::template FsmTag<                       \
+          fsm_name##State::end<EXPAND EXPAND ts>> )
 
 /****************************************************************
 ** Testing

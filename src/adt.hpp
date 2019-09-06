@@ -91,7 +91,7 @@
 #define _DEFINE_FORMAT_T( ... ) DEFINE_FORMAT_T( __VA_ARGS__ )
 #define _DEFINE_FORMAT_T_( ... ) DEFINE_FORMAT_T_( __VA_ARGS__ )
 
-#define TEMPLATE( ... ) ( __VA_ARGS__ )
+#define EAT_template( ... ) ( __VA_ARGS__ )
 
 // We need the DEFER here because this will be called recursively
 // from another PP_MAP_SEMI below.
@@ -187,7 +187,10 @@
         std::is_nothrow_move_assignable_v<name##_t> );     \
   }
 
-#define ADT_T_IMPL( ns, t_args, name, ... )                   \
+#define ADT_T_IMPL( ns, t_args, name, ... ) \
+  ADT_T_IMPL_EAT( ns, EAT_##t_args, name, __VA_ARGS__ )
+
+#define ADT_T_IMPL_EAT( ns, t_args, name, ... )               \
   DEFER( PP_MAP )                                             \
   ( ADT_MAKE_STRUCT_TUPLE_T,                                  \
     PP_MAP_PREPEND2_TUPLE( ns::name, t_args,                  \
@@ -228,6 +231,13 @@
   } /* close namespace (anonymous). */      \
   EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
   /* Re-open namespace (anonymous). */      \
+  namespace {
+
+// Use this in namespace ::(anonymous).
+#define adt_template_( ... )            \
+  } /* close namespace (anonymous). */  \
+  EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \
+  /* Re-open namespace (anonymous). */  \
   namespace {
 
 namespace rn {

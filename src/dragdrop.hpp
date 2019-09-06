@@ -30,7 +30,7 @@
 #include <variant>
 
 adt_template( rn,                                       //
-              TEMPLATE( DragSrcT, DragDstT, DragArcT ), //
+              template( DragSrcT, DragDstT, DragArcT ), //
               DragState,                                //
               ( none ),                                 //
               ( in_progress,                            //

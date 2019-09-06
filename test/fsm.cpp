@@ -109,6 +109,104 @@ TEST_CASE( "[fsm] test color" ) {
 }
 
 /****************************************************************
+** Templated Color
+*****************************************************************/
+adt_template_( template( T, U ), //
+               TColorState,      //
+               ( red ),          //
+               ( light_red,      //
+                 ( U, n ) ),     //
+               ( dark_red ),     //
+               ( blue ),         //
+               ( light_blue ),   //
+               ( dark_blue ),    //
+               ( yellow ),       //
+               ( light_yellow ), //
+               ( dark_yellow )   //
+);
+
+adt_template_( template( T, U ), //
+               TColorEvent,      //
+               ( light,          //
+                 ( U, n ) ),     //
+               ( dark ),         //
+               ( rotate )        //
+);
+
+fsm_transitions_template(
+    // clang-format off
+    template( T, U )
+   ,TColor
+   ,((red,          light),  ->,  light_red   )
+   ,((red,          dark ),  ->,  dark_red    )
+   ,((light_red,    dark ),  ->,  red         )
+   ,((dark_red,     light),  ->,  red         )
+   ,((blue,         light),  ->,  light_blue  )
+   ,((blue,         dark ),  ->,  dark_blue   )
+   ,((light_blue,   dark ),  ->,  blue        )
+   ,((dark_blue,    light),  ->,  blue        )
+   ,((yellow,       light),  ->,  light_yellow)
+   ,((yellow,       dark ),  ->,  dark_yellow )
+   ,((light_yellow, dark ),  ->,  yellow      )
+   ,((dark_yellow,  light),  ->,  yellow      )
+   ,((red,          rotate), ->,  blue        )
+   ,((blue,         rotate), ->,  yellow      )
+   ,((yellow,       rotate), ->,  red         )
+    // clang-format on
+);
+
+fsm_class_template( template( T, U ), TColor ) {
+  fsm_init_template( template( T, U ), TColor,
+                     ( TColorState::red<T, U>{} ) );
+
+  fsm_transition_template( template( T, U ), //
+                           TColor, red, light, ->, light_red ) {
+    return {event.n};
+  }
+};
+
+TEST_CASE( "[fsm] test templated color" ) {
+  TColorFsm<int, double> color;
+  REQUIRE( color.state().get() ==
+           TColorState_t<int, double>{
+               TColorState::red<int, double>{}} );
+  REQUIRE( color.holds<TColorState::red<int, double>>() );
+  REQUIRE( !color.holds<TColorState::yellow<int, double>>() );
+
+  color.send_event( TColorEvent::light<int, double>{} );
+  color.process_events();
+  REQUIRE( color.state().get() ==
+           TColorState_t<int, double>{
+               TColorState::light_red<int, double>{}} );
+  REQUIRE( color.holds<TColorState::light_red<int, double>>() );
+  REQUIRE( !color.holds<TColorState::yellow<int, double>>() );
+
+  color.send_event( TColorEvent::dark<int, double>{} );
+  color.process_events();
+  REQUIRE( color.state().get() ==
+           TColorState_t<int, double>{
+               TColorState::red<int, double>{}} );
+  REQUIRE( color.holds<TColorState::red<int, double>>() );
+  REQUIRE( !color.holds<TColorState::light_red<int, double>>() );
+
+  color.send_event( TColorEvent::rotate<int, double>{} );
+  color.send_event( TColorEvent::rotate<int, double>{} );
+  color.send_event( TColorEvent::light<int, double>{} );
+  color.process_events();
+  REQUIRE( color.state().get() ==
+           TColorState_t<int, double>{
+               TColorState::light_yellow<int, double>{}} );
+  REQUIRE(
+      color.holds<TColorState::light_yellow<int, double>>() );
+  REQUIRE( !color.holds<TColorState::light_red<int, double>>() );
+
+  SECTION( "throws" ) {
+    color.send_event( TColorEvent::light<int, double>{} );
+    REQUIRE_THROWS_AS_RN( color.process_events() );
+  }
+}
+
+/****************************************************************
 ** Ball
 *****************************************************************/
 adt__( BallState,           //
