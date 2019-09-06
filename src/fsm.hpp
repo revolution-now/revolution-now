@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "errors.hpp"
 #include "flat-queue.hpp"
 
@@ -40,7 +41,7 @@ namespace rn {
 //            ( dark )
 //   );
 //
-//   FSM_TRANSITIONS(
+//   fsm_transitions(
 //       Color
 //      ,((red,          light),  /*->*/  light_red   )
 //      ,((red,          dark ),  /*->*/  dark_red    )
@@ -50,6 +51,14 @@ namespace rn {
 //
 //   fsm_class( Color ) {
 //     fsm_init( ColorState::red{} );
+//
+//     // Optionally can override these to perform actions
+//     // during a transition.  Overriding these are mandatory
+//     // if either the event or target state has data members.
+//     fsm_transition( Color, blue, rotate, ->, yellow ) {
+//       cout << "Going from blue to yellow via rotate.\n";
+//       return {};
+//     }
 //   };
 //
 //   ColorFsm color;
@@ -178,7 +187,7 @@ private:
 /****************************************************************
 ** Macros
 *****************************************************************/
-#define FSM_TRANSITIONS( ... ) \
+#define fsm_transitions( ... ) \
   EVAL( FSM_TRANSITION_MAP_IMPL( __VA_ARGS__ ) )
 
 #define FSM_TRANSITION_MAP_IMPL( name, ... )             \

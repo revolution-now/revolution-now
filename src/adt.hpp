@@ -223,6 +223,13 @@
   /* Re-open namespace (anonymous). */      \
   namespace {
 
+// Use this in namespace ::(anonymous).
+#define adt__( name, ... )                  \
+  } /* close namespace (anonymous). */      \
+  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace (anonymous). */      \
+  namespace {
+
 namespace rn {
 
 std::string_view remove_rn_ns( std::string_view sv );
