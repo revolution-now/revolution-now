@@ -76,16 +76,22 @@ TEST_CASE( "[fsm] test color" ) {
   ColorFsm color;
   REQUIRE( color.state().get() ==
            ColorState_t{ColorState::red{}} );
+  REQUIRE( color.holds<ColorState::red>() );
+  REQUIRE( !color.holds<ColorState::yellow>() );
 
   color.send_event( ColorEvent::light{} );
   color.process_events();
   REQUIRE( color.state().get() ==
            ColorState_t{ColorState::light_red{}} );
+  REQUIRE( color.holds<ColorState::light_red>() );
+  REQUIRE( !color.holds<ColorState::yellow>() );
 
   color.send_event( ColorEvent::dark{} );
   color.process_events();
   REQUIRE( color.state().get() ==
            ColorState_t{ColorState::red{}} );
+  REQUIRE( color.holds<ColorState::red>() );
+  REQUIRE( !color.holds<ColorState::light_red>() );
 
   color.send_event( ColorEvent::rotate{} );
   color.send_event( ColorEvent::rotate{} );
@@ -93,6 +99,8 @@ TEST_CASE( "[fsm] test color" ) {
   color.process_events();
   REQUIRE( color.state().get() ==
            ColorState_t{ColorState::light_yellow{}} );
+  REQUIRE( color.holds<ColorState::light_yellow>() );
+  REQUIRE( !color.holds<ColorState::light_red>() );
 
   SECTION( "throws" ) {
     color.send_event( ColorEvent::light{} );

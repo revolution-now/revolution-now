@@ -105,6 +105,16 @@ public:
 
   CRef<StateT> state() const { return state_; }
 
+  // !! No pointer stability here; state could change after
+  //    calling another non-const method.
+  template<typename T>
+  Opt<CRef<T>> holds() const {
+    Opt<CRef<T>> res;
+    if( auto* s = std::get_if<T>( &state_ ); s != nullptr )
+      res = *s;
+    return res;
+  }
+
 protected:
   template<typename T>
   struct FsmTag {
