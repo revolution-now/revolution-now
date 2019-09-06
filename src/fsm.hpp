@@ -101,13 +101,19 @@ public:
     }
   }
 
-  StateT const& state() const { return state_; }
+  bool has_pending_events() const { return !events_.empty(); }
 
-  template<typename T>
-  Opt<CRef<T>> holds() const {
-    Opt<CRef<T>> res;
-    if( auto* s = std::get_if<T>( state_ ); s != nullptr )
-      res = *s;
+  // Even though this state machine always has a state, this
+  // function will refuse to return it when there are pending
+  // events in order to prevent callers from assuming that they
+  // can decide which events to send based on the current state.
+  // That is not a good thing to do since sending an event will
+  // just put it at the end of the event queue, and by the time
+  // it gets processed the fsm might be in a different state that
+  // can no longer accept that event.
+  Opt<CRef<StateT>> state() const {
+    Opt<CRef<StateT>> res;
+    if( !has_pending_events() ) res = state_;
     return res;
   }
 
@@ -155,6 +161,10 @@ private:
       using state2_t = Get<TransitionMap, key_t, NoTransition>;
 
       if constexpr( std::is_same_v<state2_t, NoTransition> ) {
+        // Maybe in the future, at least for release builds, we
+        // will want to avoid throwing here and just emit an
+        // error and return the current state (i.e., leave state
+        // unchanged).
         FATAL( "state {} cannot receive the event {}", state,
                event );
       } else {
@@ -202,7 +212,7 @@ private:
                              __VA_ARGS__ ) )>
 
 #define FSM_TO_KV_PAIR( state_t_name, event_t_name,          \
-                        state1_event, state2 )               \
+                        state1_event, dummy, state2 )        \
   KV<FSM_TO_PAIR PREPEND_TUPLE2( state_t_name, event_t_name, \
                                  state1_event ),             \
      state_t_name::state2>
@@ -219,10 +229,16 @@ private:
   using Parent::transition; \
   auto initial_state() const { return a; }
 
-#define fsm_transition( fsm_name, start, e, dummy, end ) \
-  fsm_name##State::end transition(                       \
-      fsm_name##State::start const&,                     \
-      fsm_name##Event::e const& event,                   \
+#define fsm_transition( fsm_name, start, e, dummy, end )   \
+  static_assert(                                           \
+      std::is_same_v<fsm_name##State::end,                 \
+                     Get<fsm_name##FsmTransitions,         \
+                         std::pair<fsm_name##State::start, \
+                                   fsm_name##Event::e>>>,  \
+      "this transition is not in the transitions map" );   \
+  fsm_name##State::end transition(                         \
+      fsm_name##State::start const&,                       \
+      fsm_name##Event::e const& event,                     \
       FsmTag<fsm_name##State::end> )
 
 /****************************************************************

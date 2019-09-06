@@ -45,21 +45,21 @@ adt__( ColorEvent, //
 fsm_transitions(
     // clang-format off
     Color
-   ,((red,          light),  /*->*/  light_red   )
-   ,((red,          dark ),  /*->*/  dark_red    )
-   ,((light_red,    dark ),  /*->*/  red         )
-   ,((dark_red,     light),  /*->*/  red         )
-   ,((blue,         light),  /*->*/  light_blue  )
-   ,((blue,         dark ),  /*->*/  dark_blue   )
-   ,((light_blue,   dark ),  /*->*/  blue        )
-   ,((dark_blue,    light),  /*->*/  blue        )
-   ,((yellow,       light),  /*->*/  light_yellow)
-   ,((yellow,       dark ),  /*->*/  dark_yellow )
-   ,((light_yellow, dark ),  /*->*/  yellow      )
-   ,((dark_yellow,  light),  /*->*/  yellow      )
-   ,((red,          rotate), /*->*/  blue        )
-   ,((blue,         rotate), /*->*/  yellow      )
-   ,((yellow,       rotate), /*->*/  red         )
+   ,((red,          light),  ->,  light_red   )
+   ,((red,          dark ),  ->,  dark_red    )
+   ,((light_red,    dark ),  ->,  red         )
+   ,((dark_red,     light),  ->,  red         )
+   ,((blue,         light),  ->,  light_blue  )
+   ,((blue,         dark ),  ->,  dark_blue   )
+   ,((light_blue,   dark ),  ->,  blue        )
+   ,((dark_blue,    light),  ->,  blue        )
+   ,((yellow,       light),  ->,  light_yellow)
+   ,((yellow,       dark ),  ->,  dark_yellow )
+   ,((light_yellow, dark ),  ->,  yellow      )
+   ,((dark_yellow,  light),  ->,  yellow      )
+   ,((red,          rotate), ->,  blue        )
+   ,((blue,         rotate), ->,  yellow      )
+   ,((yellow,       rotate), ->,  red         )
     // clang-format on
 );
 
@@ -74,22 +74,31 @@ fsm_class( Color ) { //
 
 TEST_CASE( "[fsm] test color" ) {
   ColorFsm color;
-  REQUIRE( color.state() == ColorState_t{ColorState::red{}} );
+  REQUIRE( color.state().has_value() );
+  REQUIRE( color.state().value().get() ==
+           ColorState_t{ColorState::red{}} );
 
   color.send_event( ColorEvent::light{} );
   color.process_events();
-  REQUIRE( color.state() ==
+  REQUIRE( color.state().has_value() );
+  REQUIRE( color.state().value().get() ==
            ColorState_t{ColorState::light_red{}} );
 
   color.send_event( ColorEvent::dark{} );
   color.process_events();
-  REQUIRE( color.state() == ColorState_t{ColorState::red{}} );
+  REQUIRE( color.state().has_value() );
+  REQUIRE( color.state().value().get() ==
+           ColorState_t{ColorState::red{}} );
 
   color.send_event( ColorEvent::rotate{} );
+  REQUIRE( !color.state().has_value() );
   color.send_event( ColorEvent::rotate{} );
+  REQUIRE( !color.state().has_value() );
   color.send_event( ColorEvent::light{} );
+  REQUIRE( !color.state().has_value() );
   color.process_events();
-  REQUIRE( color.state() ==
+  REQUIRE( color.state().has_value() );
+  REQUIRE( color.state().value().get() ==
            ColorState_t{ColorState::light_yellow{}} );
 
   SECTION( "throws" ) {
@@ -125,13 +134,13 @@ adt__( BallEvent,           //
 fsm_transitions(
     // clang-format off
     Ball
-   ,((none,     do_nothing    ),  /*->*/  none    )
-   ,((none,     start_spinning),  /*->*/  spinning)
-   ,((none,     start_rolling ),  /*->*/  rolling )
-   ,((none,     start_bouncing),  /*->*/  bouncing)
-   ,((rolling,  stop_rolling  ),  /*->*/  none    )
-   ,((spinning, stop_spinning ),  /*->*/  none    )
-   ,((bouncing, stop_bouncing ),  /*->*/  none    )
+   ,((none,     do_nothing    ),  ->,  none    )
+   ,((none,     start_spinning),  ->,  spinning)
+   ,((none,     start_rolling ),  ->,  rolling )
+   ,((none,     start_bouncing),  ->,  bouncing)
+   ,((rolling,  stop_rolling  ),  ->,  none    )
+   ,((spinning, stop_spinning ),  ->,  none    )
+   ,((bouncing, stop_bouncing ),  ->,  none    )
     // clang-format on
 );
 
@@ -149,35 +158,51 @@ fsm_class( Ball ) {
 
 TEST_CASE( "[fsm] test ball" ) {
   BallFsm ball;
-  REQUIRE( ball.state() == BallState_t{BallState::none{}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::start_rolling{5} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::rolling{5}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::rolling{5}} );
 
   ball.send_event( BallEvent::stop_rolling{} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::none{}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::start_spinning{} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::spinning{}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::spinning{}} );
 
   ball.send_event( BallEvent::stop_spinning{} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::none{}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::start_bouncing{4} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::bouncing{4}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::bouncing{4}} );
 
   ball.send_event( BallEvent::stop_bouncing{} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::none{}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::do_nothing{} );
   ball.process_events();
-  REQUIRE( ball.state() == BallState_t{BallState::none{}} );
+  REQUIRE( ball.state().has_value() );
+  REQUIRE( ball.state().value().get() ==
+           BallState_t{BallState::none{}} );
 
   SECTION( "throws 1" ) {
     ball.send_event( BallEvent::stop_bouncing{} );
@@ -186,7 +211,7 @@ TEST_CASE( "[fsm] test ball" ) {
 
   SECTION( "throws 2" ) {
     ball.send_event( BallEvent::start_bouncing{4} );
-    ball.process_events();
+    REQUIRE( !ball.state().has_value() );
     ball.send_event( BallEvent::stop_rolling{} );
     REQUIRE_THROWS_AS_RN( ball.process_events() );
   }

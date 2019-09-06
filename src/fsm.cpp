@@ -38,10 +38,10 @@ adt_rn_( ColorEvent, //
 fsm_transitions(
     // clang-format off
     Color
-   ,((red,          light),  /*->*/  light_red   )
-   ,((red,          dark ),  /*->*/  dark_red    )
-   ,((light_red,    dark ),  /*->*/  red         )
-   ,((dark_red,     light),  /*->*/  red         )
+    ,((red,       light), ->, light_red)
+    ,((red,       dark ), ->, dark_red)
+    ,((light_red, dark ), ->, red)
+    ,((dark_red,  light), ->, red)
     // clang-format on
 );
 
