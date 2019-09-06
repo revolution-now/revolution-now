@@ -240,6 +240,16 @@
   /* Re-open namespace (anonymous). */  \
   namespace {
 
+// Use this in namespace ::(anonymous).
+#define adt_template_rn_( ... )         \
+  } /* close namespace (anonymous). */  \
+  } /* close namespace rn. */           \
+  EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */           \
+  namespace rn {                        \
+  /* Re-open namespace (anonymous). */  \
+  namespace {
+
 namespace rn {
 
 std::string_view remove_rn_ns( std::string_view sv );

@@ -16,6 +16,7 @@
 #include "adt.hpp"
 #include "errors.hpp"
 #include "flat-queue.hpp"
+#include "fmt-helper.hpp"
 
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
@@ -41,13 +42,12 @@ namespace rn {
 //            ( dark )
 //   );
 //
-//   fsm_transitions(
-//       Color
-//      ,((red,          light),  /*->*/  light_red   )
-//      ,((red,          dark ),  /*->*/  dark_red    )
-//      ,((light_red,    dark ),  /*->*/  red         )
-//      ,((dark_red,     light),  /*->*/  red         )
-//   );
+//   fsm_transitions( Color
+//    ,(   (red,       light),  ->   ,light_red
+//   ),(   (red,       dark ),  ->   ,dark_red
+//   ),(   (light_red, dark ),  ->   ,red
+//   ),(   (dark_red,  light),  ->   ,red
+//   ));
 //
 //   fsm_class( Color ) {
 //     fsm_init( ColorState::red{} );
@@ -116,6 +116,8 @@ public:
   }
 
 protected:
+  struct NoTransition {};
+
   template<typename T>
   struct FsmTag {
     using type = T;
@@ -149,7 +151,6 @@ private:
       using event_t  = std::decay_t<decltype( event )>;
       using key_t    = std::pair<state1_t, event_t>;
 
-      struct NoTransition {};
       using state2_t = Get<TransitionMap, key_t, NoTransition>;
 
       if constexpr( std::is_same_v<state2_t, NoTransition> ) {
@@ -226,7 +227,8 @@ private:
       std::is_same_v<fsm_name##State::end,                 \
                      Get<fsm_name##FsmTransitions,         \
                          std::pair<fsm_name##State::start, \
-                                   fsm_name##Event::e>>>,  \
+                                   fsm_name##Event::e>,    \
+                         Parent::NoTransition>>,           \
       "this transition is not in the transitions map" );   \
   fsm_name##State::end transition(                         \
       fsm_name##State::start const&,                       \
@@ -295,13 +297,97 @@ private:
           Get<fsm_name##FsmTransitions<EXPAND EXPAND ts>,     \
               std::pair<                                      \
                   fsm_name##State::start<EXPAND EXPAND ts>,   \
-                  fsm_name##Event::e<EXPAND EXPAND ts>>>>,    \
+                  fsm_name##Event::e<EXPAND EXPAND ts>>,      \
+              typename Parent::NoTransition>>,                \
       "this transition is not in the transitions map" );      \
   fsm_name##State::end<EXPAND EXPAND ts> transition(          \
       fsm_name##State::start<EXPAND EXPAND ts> const&,        \
       fsm_name##Event::e<EXPAND EXPAND ts> const& event,      \
       typename Parent::template FsmTag<                       \
           fsm_name##State::end<EXPAND EXPAND ts>> )
+
+/****************************************************************
+** Formatting
+*****************************************************************/
+#define FSM_DEFINE_FORMAT_RN( name )                         \
+  } /* close namespace rn */                                 \
+  namespace fmt {                                            \
+  template<>                                                 \
+  struct formatter<::rn::name##Fsm> : formatter_base {       \
+    template<typename FormatContext>                         \
+    auto format( ::rn::name##Fsm const& o,                   \
+                 FormatContext&         ctx ) {                      \
+      return formatter_base::format(                         \
+          fmt::format( #name "Fsm{{state={}}}", o.state() ), \
+          ctx );                                             \
+    }                                                        \
+  };                                                         \
+  } /* namespace fmt */                                      \
+  /* reopen namespace rn */                                  \
+  namespace rn {
+
+#define FSM_DEFINE_FORMAT_RN_( name )                        \
+  } /* close namespace (anonymous) */                        \
+  } /* close namespace rn */                                 \
+  namespace fmt {                                            \
+  template<>                                                 \
+  struct formatter<::rn::name##Fsm> : formatter_base {       \
+    template<typename FormatContext>                         \
+    auto format( ::rn::name##Fsm const& o,                   \
+                 FormatContext&         ctx ) {                      \
+      return formatter_base::format(                         \
+          fmt::format( #name "Fsm{{state={}}}", o.state() ), \
+          ctx );                                             \
+    }                                                        \
+  };                                                         \
+  } /* namespace fmt */                                      \
+  /* reopen namespace rn */                                  \
+  namespace rn {                                             \
+  /* reopen namespace (anonymous) */                         \
+  namespace {
+
+#define FSM_DEFINE_FORMAT_T_RN( ts, name )                    \
+  EVAL(                                                       \
+  } /* close namespace rn */                                  \
+  namespace fmt {                                             \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND EAT_##ts )> \
+  struct formatter<::rn::name##Fsm<EXPAND EAT_##ts>>          \
+    : formatter_base {                                        \
+    template<typename FormatContext>                          \
+    auto format( ::rn::name##Fsm<EXPAND EAT_##ts> const& o,   \
+                 FormatContext&                          ctx ) {                       \
+      return formatter_base::format(                          \
+          fmt::format( #name "Fsm{{state={}}}", o.state() ),  \
+          ctx );                                              \
+    }                                                         \
+  };                                                          \
+  } /* namespace fmt */                                       \
+  /* reopen namespace rn */                                   \
+  namespace rn {                                              \
+  )
+
+#define FSM_DEFINE_FORMAT_T_RN_( ts, name )                   \
+  EVAL(                                                       \
+  } /* close namespace (anonymous) */                         \
+  } /* close namespace rn */                                  \
+  namespace fmt {                                             \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND EAT_##ts )> \
+  struct formatter<::rn::name##Fsm<EXPAND EAT_##ts>>          \
+    : formatter_base {                                        \
+    template<typename FormatContext>                          \
+    auto format( ::rn::name##Fsm<EXPAND EAT_##ts> const& o,   \
+                 FormatContext&                          ctx ) {                       \
+      return formatter_base::format(                          \
+          fmt::format( #name "Fsm{{state={}}}", o.state() ),  \
+          ctx );                                              \
+    }                                                         \
+  };                                                          \
+  } /* namespace fmt */                                       \
+  /* reopen namespace rn */                                   \
+  namespace rn {                                              \
+  /* reopen namespace (anonymous) */                          \
+  namespace {                                                 \
+  )
 
 /****************************************************************
 ** Testing
