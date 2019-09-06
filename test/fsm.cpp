@@ -74,31 +74,24 @@ fsm_class( Color ) { //
 
 TEST_CASE( "[fsm] test color" ) {
   ColorFsm color;
-  REQUIRE( color.state().has_value() );
-  REQUIRE( color.state().value().get() ==
+  REQUIRE( color.state().get() ==
            ColorState_t{ColorState::red{}} );
 
   color.send_event( ColorEvent::light{} );
   color.process_events();
-  REQUIRE( color.state().has_value() );
-  REQUIRE( color.state().value().get() ==
+  REQUIRE( color.state().get() ==
            ColorState_t{ColorState::light_red{}} );
 
   color.send_event( ColorEvent::dark{} );
   color.process_events();
-  REQUIRE( color.state().has_value() );
-  REQUIRE( color.state().value().get() ==
+  REQUIRE( color.state().get() ==
            ColorState_t{ColorState::red{}} );
 
   color.send_event( ColorEvent::rotate{} );
-  REQUIRE( !color.state().has_value() );
   color.send_event( ColorEvent::rotate{} );
-  REQUIRE( !color.state().has_value() );
   color.send_event( ColorEvent::light{} );
-  REQUIRE( !color.state().has_value() );
   color.process_events();
-  REQUIRE( color.state().has_value() );
-  REQUIRE( color.state().value().get() ==
+  REQUIRE( color.state().get() ==
            ColorState_t{ColorState::light_yellow{}} );
 
   SECTION( "throws" ) {
@@ -158,50 +151,42 @@ fsm_class( Ball ) {
 
 TEST_CASE( "[fsm] test ball" ) {
   BallFsm ball;
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::start_rolling{5} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::rolling{5}} );
 
   ball.send_event( BallEvent::stop_rolling{} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::start_spinning{} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::spinning{}} );
 
   ball.send_event( BallEvent::stop_spinning{} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::start_bouncing{4} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::bouncing{4}} );
 
   ball.send_event( BallEvent::stop_bouncing{} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::none{}} );
 
   ball.send_event( BallEvent::do_nothing{} );
   ball.process_events();
-  REQUIRE( ball.state().has_value() );
-  REQUIRE( ball.state().value().get() ==
+  REQUIRE( ball.state().get() ==
            BallState_t{BallState::none{}} );
 
   SECTION( "throws 1" ) {
@@ -211,7 +196,6 @@ TEST_CASE( "[fsm] test ball" ) {
 
   SECTION( "throws 2" ) {
     ball.send_event( BallEvent::start_bouncing{4} );
-    REQUIRE( !ball.state().has_value() );
     ball.send_event( BallEvent::stop_rolling{} );
     REQUIRE_THROWS_AS_RN( ball.process_events() );
   }

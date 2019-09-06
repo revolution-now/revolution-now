@@ -103,19 +103,7 @@ public:
 
   bool has_pending_events() const { return !events_.empty(); }
 
-  // Even though this state machine always has a state, this
-  // function will refuse to return it when there are pending
-  // events in order to prevent callers from assuming that they
-  // can decide which events to send based on the current state.
-  // That is not a good thing to do since sending an event will
-  // just put it at the end of the event queue, and by the time
-  // it gets processed the fsm might be in a different state that
-  // can no longer accept that event.
-  Opt<CRef<StateT>> state() const {
-    Opt<CRef<StateT>> res;
-    if( !has_pending_events() ) res = state_;
-    return res;
-  }
+  CRef<StateT> state() const { return state_; }
 
 protected:
   template<typename T>
