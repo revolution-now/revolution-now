@@ -82,6 +82,16 @@ using formatter_base = ::fmt::formatter<::std::string>;
 *****************************************************************/
 namespace rn {
 
+#define DEFINE_FMT_TAG( name ) \
+  template<typename T>         \
+  struct name {                \
+    CRef<T> ref;               \
+  };                           \
+  template<typename T>         \
+  name( T const & )->name<T>;
+
+DEFINE_FMT_TAG( FmtRemoveTemplateArgs );
+
 template<typename T>
 struct FmtJsonStyleList {
   CRef<Vec<T>> vec;
@@ -92,6 +102,61 @@ template<typename T>
 FmtJsonStyleList( Vec<T> const & )->FmtJsonStyleList<T>;
 
 } // namespace rn
+
+/****************************************************************
+** Formatters for Type Wrappers
+*****************************************************************/
+namespace fmt {
+
+// "some_type<x, y, z<a, b, c>>" --> "some_type<...>"
+template<typename T>
+struct formatter<::rn::FmtRemoveTemplateArgs<T>>
+  : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::FmtRemoveTemplateArgs<T> const &o,
+               FormatContext &                       ctx ) {
+    std::string inner = fmt::format( "{}", o.ref.get() );
+    std::string reduced;
+    reduced.reserve( inner.size() );
+    int angle_bracket_level = 0;
+    for( int i = 0; i < int( inner.size() ); ++i ) {
+      if( inner[i] == '<' ) {
+        if( angle_bracket_level == 0 ) reduced += "<...>";
+        angle_bracket_level++;
+        continue;
+      }
+      if( inner[i] == '>' ) {
+        angle_bracket_level--;
+        continue;
+      }
+      if( angle_bracket_level == 0 )
+        reduced.push_back( inner[i] );
+    }
+    return formatter_base::format( reduced, ctx );
+  }
+};
+
+// {fmt} formatter for vectors whose contained type is format-
+// table, in a JSON-like notation: [3,4,8,3]. However note that
+// it is not real json since e.g. strings will not have quotes
+// around them.
+template<typename T>
+struct formatter<::rn::FmtJsonStyleList<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::FmtJsonStyleList<T> const &o,
+               FormatContext &                  ctx ) {
+    std::vector<T> const &   vec = o.vec.get();
+    std::vector<std::string> items;
+    items.reserve( vec.size() );
+    for( auto const &item : vec )
+      items.push_back( fmt::format( "{}", item ) );
+    return formatter_base::format(
+        std::string( "[" ) + util::join( items, "," ) + "]",
+        ctx );
+  }
+};
+
+} // namespace fmt
 
 /****************************************************************
 ** Formatters
@@ -138,26 +203,6 @@ struct formatter<fs::path> : formatter_base {
   auto format( fs::path const &o, FormatContext &ctx ) {
     return formatter_base::format( fmt::format( o.string() ),
                                    ctx );
-  }
-};
-
-// {fmt} formatter for vectors whose contained type is format-
-// table, in a JSON-like notation: [3,4,8,3]. However note that
-// it is not real json since e.g. strings will not have quotes
-// around them.
-template<typename T>
-struct formatter<::rn::FmtJsonStyleList<T>> : formatter_base {
-  template<typename FormatContext>
-  auto format( ::rn::FmtJsonStyleList<T> const &o,
-               FormatContext &                  ctx ) {
-    std::vector<T> const &   vec = o.vec.get();
-    std::vector<std::string> items;
-    items.reserve( vec.size() );
-    for( auto const &item : vec )
-      items.push_back( fmt::format( "{}", item ) );
-    return formatter_base::format(
-        std::string( "[" ) + util::join( items, "," ) + "]",
-        ctx );
   }
 };
 

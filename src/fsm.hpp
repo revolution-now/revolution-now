@@ -188,7 +188,8 @@ private:
         FATAL(
             "state {} cannot receive the event {} (sent from "
             "{})",
-            state, event, src_location );
+            FmtRemoveTemplateArgs{state},
+            FmtRemoveTemplateArgs{event}, src_location );
       } else {
         if constexpr(
             !std::is_same_v<
