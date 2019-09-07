@@ -115,26 +115,26 @@ TEST_CASE( "[fsm] test color" ) {
 /****************************************************************
 ** Templated Color
 *****************************************************************/
-adt_template_rn_( template( T, U ), //
-                  TColorState,      //
-                  ( red ),          //
-                  ( light_red,      //
-                    ( U, n ) ),     //
-                  ( dark_red ),     //
-                  ( blue ),         //
-                  ( light_blue ),   //
-                  ( dark_blue ),    //
-                  ( yellow ),       //
-                  ( light_yellow ), //
-                  ( dark_yellow )   //
+adt_T_rn_( template( T, U ), //
+           TColorState,      //
+           ( red ),          //
+           ( light_red,      //
+             ( U, n ) ),     //
+           ( dark_red ),     //
+           ( blue ),         //
+           ( light_blue ),   //
+           ( dark_blue ),    //
+           ( yellow ),       //
+           ( light_yellow ), //
+           ( dark_yellow )   //
 );
 
-adt_template_rn_( template( T, U ), //
-                  TColorEvent,      //
-                  ( light,          //
-                    ( U, n ) ),     //
-                  ( dark ),         //
-                  ( rotate )        //
+adt_T_rn_( template( T, U ), //
+           TColorEvent,      //
+           ( light,          //
+             ( U, n ) ),     //
+           ( dark ),         //
+           ( rotate )        //
 );
 
 // clang-format off
@@ -157,12 +157,12 @@ fsm_transitions_T( template( T, U ), TColor
 ));
 // clang-format on
 
-fsm_class_template( template( T, U ), TColor ) {
-  fsm_init_template( template( T, U ), TColor,
-                     ( TColorState::red<T, U>{} ) );
+fsm_class_T( template( T, U ), TColor ) {
+  fsm_init_T( template( T, U ), TColor,
+              ( TColorState::red<T, U>{} ) );
 
-  fsm_transition_template( template( T, U ), //
-                           TColor, red, light, ->, light_red ) {
+  fsm_transition_T( template( T, U ), //
+                    TColor, red, light, ->, light_red ) {
     return {event.n};
   }
 };

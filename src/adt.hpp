@@ -207,7 +207,7 @@
 ** Public Interface
 *****************************************************************/
 #define adt_( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
-#define adt_template( ... ) EVAL( ADT_T_IMPL( __VA_ARGS__ ) )
+#define adt_T( ... ) EVAL( ADT_T_IMPL( __VA_ARGS__ ) )
 
 // Use this in namespace ::rn.
 #define adt_rn( name, ... )                 \
@@ -234,21 +234,21 @@
   namespace {
 
 // Use this in namespace ::(anonymous).
-#define adt_template_( ... )            \
+#define adt_T_( ... )                   \
   } /* close namespace (anonymous). */  \
   EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \
   /* Re-open namespace (anonymous). */  \
   namespace {
 
 // Use this in namespace ::(anonymous).
-#define adt_template_rn( ... )          \
+#define adt_T_rn( ... )                 \
   } /* close namespace rn. */           \
   EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \
   /* Re-open namespace rn. */           \
   namespace rn {
 
 // Use this in namespace ::(anonymous).
-#define adt_template_rn_( ... )         \
+#define adt_T_rn_( ... )                \
   } /* close namespace (anonymous). */  \
   } /* close namespace rn. */           \
   EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \

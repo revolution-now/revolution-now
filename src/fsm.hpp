@@ -280,10 +280,10 @@ private:
   std::pair<state_t_name::a<EXPAND ts>,                       \
             event_t_name::b<EXPAND ts>>
 
-#define fsm_class_template( ts, ... ) \
-  EVAL( fsm_class_template_impl( EAT_##ts, __VA_ARGS__ ) )
+#define fsm_class_T( ts, ... ) \
+  EVAL( fsm_class_T_impl( EAT_##ts, __VA_ARGS__ ) )
 
-#define fsm_class_template_impl( ts, name )             \
+#define fsm_class_T_impl( ts, name )                    \
   template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND ts )> \
   struct name##Fsm                                      \
     : public fsm<name##Fsm<EXPAND ts>,                  \
@@ -291,10 +291,10 @@ private:
                  name##Event_t<EXPAND ts>,              \
                  name##FsmTransitions<EXPAND ts>>
 
-#define fsm_init_template( ts, ... ) \
-  EVAL( fsm_init_template_impl( EAT_##ts, __VA_ARGS__ ) )
+#define fsm_init_T( ts, ... ) \
+  EVAL( fsm_init_T_impl( EAT_##ts, __VA_ARGS__ ) )
 
-#define fsm_init_template_impl( ts, name, a )             \
+#define fsm_init_T_impl( ts, name, a )                    \
   using Parent =                                          \
       fsm<name##Fsm<EXPAND ts>, name##State_t<EXPAND ts>, \
           name##Event_t<EXPAND ts>,                       \
@@ -302,12 +302,11 @@ private:
   using Parent::transition;                               \
   auto initial_state() const { return a; }
 
-#define fsm_transition_template( ts, ... )          \
-  EVAL( fsm_transition_template_impl( ( EAT_##ts ), \
-                                      __VA_ARGS__ ) )
+#define fsm_transition_T( ts, ... ) \
+  EVAL( fsm_transition_T_impl( ( EAT_##ts ), __VA_ARGS__ ) )
 
-#define fsm_transition_template_impl( ts, fsm_name, start, e, \
-                                      dummy, end )            \
+#define fsm_transition_T_impl( ts, fsm_name, start, e, dummy, \
+                               end )                          \
   static_assert(                                              \
       std::is_same_v<                                         \
           fsm_name##State::end<EXPAND EXPAND ts>,             \

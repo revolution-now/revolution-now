@@ -32,38 +32,38 @@
 
 namespace rn {
 
-adt_template_rn( template( DragSrcT, DragDstT, DragArcT ), //
-                 DragState,                                //
-                 ( none ),                                 //
-                 ( in_progress,                            //
-                   ( DragSrcT, src ),                      //
-                   ( Opt<DragDstT>, dst ),                 //
-                   ( Texture, tx ) ),                      //
-                 ( waiting_to_execute,                     //
-                   ( DragArcT, arc ) ),                    //
-                 ( rubber_banding,                         //
-                   ( Coord, current ),                     //
-                   ( Coord, dest ),                        //
-                   ( DragSrcT, src ),                      //
-                   ( double, percent ),                    //
-                   ( Texture, tx ) )                       //
+adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
+          DragState,                                //
+          ( none ),                                 //
+          ( in_progress,                            //
+            ( DragSrcT, src ),                      //
+            ( Opt<DragDstT>, dst ),                 //
+            ( Texture, tx ) ),                      //
+          ( waiting_to_execute,                     //
+            ( DragArcT, arc ) ),                    //
+          ( rubber_banding,                         //
+            ( Coord, current ),                     //
+            ( Coord, dest ),                        //
+            ( DragSrcT, src ),                      //
+            ( double, percent ),                    //
+            ( Texture, tx ) )                       //
 );
 
-adt_template_rn( template( DragSrcT, DragDstT, DragArcT ), //
-                 DragEvent,                                //
-                 ( start,                                  //
-                   ( DragSrcT, src ),                      //
-                   ( Opt<DragDstT>, dst ),                 //
-                   ( Texture, tx ) ),                      //
-                 ( rubber_band,                            //
-                   ( Coord, current ),                     //
-                   ( Coord, dest ),                        //
-                   ( DragSrcT, src ),                      //
-                   ( double, percent ),                    //
-                   ( Texture, tx ) ),                      //
-                 ( complete,                               //
-                   ( DragArcT, arc ) ),                    //
-                 ( reset )                                 //
+adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
+          DragEvent,                                //
+          ( start,                                  //
+            ( DragSrcT, src ),                      //
+            ( Opt<DragDstT>, dst ),                 //
+            ( Texture, tx ) ),                      //
+          ( rubber_band,                            //
+            ( Coord, current ),                     //
+            ( Coord, dest ),                        //
+            ( DragSrcT, src ),                      //
+            ( double, percent ),                    //
+            ( Texture, tx ) ),                      //
+          ( complete,                               //
+            ( DragArcT, arc ) ),                    //
+          ( reset )                                 //
 );
 
 // clang-format off
@@ -76,15 +76,14 @@ fsm_transitions_T( template( DragSrcT, DragDstT, DragArcT ), Drag,
 );
 // clang-format on
 
-fsm_class_template( template( DragSrcT, DragDstT, DragArcT ),
-                    Drag ) {
-  fsm_init_template(
+fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
+  fsm_init_T(
       template( DragSrcT, DragDstT, DragArcT ), Drag,
       ( DragState::none<DragSrcT, DragDstT, DragArcT>{} ) );
 
-  fsm_transition_template(
-      template( DragSrcT, DragDstT, DragArcT ), Drag, //
-      none, start, ->, in_progress ) {
+  fsm_transition_T( template( DragSrcT, DragDstT, DragArcT ),
+                    Drag, //
+                    none, start, ->, in_progress ) {
     return {
         /*src=*/std::move( event.src ), //
         /*dst=*/std::move( event.dst ), //
@@ -92,7 +91,7 @@ fsm_class_template( template( DragSrcT, DragDstT, DragArcT ),
     };
   }
 
-  fsm_transition_template(
+  fsm_transition_T(
       template( DragSrcT, DragDstT, DragArcT ), Drag, //
       in_progress, complete, ->, waiting_to_execute ) {
     return {
@@ -100,7 +99,7 @@ fsm_class_template( template( DragSrcT, DragDstT, DragArcT ),
     };
   }
 
-  fsm_transition_template(
+  fsm_transition_T(
       template( DragSrcT, DragDstT, DragArcT ), Drag, //
       in_progress, rubber_band, ->, rubber_banding ) {
     return {

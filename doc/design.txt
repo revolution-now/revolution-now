@@ -1,3 +1,85 @@
+Drag & Drop with Dialog Box
+===========================
+
+In general it will be necessary to allow the drag & drop frame-
+work to pop up a dialog box and ask the user for more information
+when a successfull drag is completed. In other words, when the
+user releases the mouse to complete (what is or may be) a suc-
+cessful drag a dialog box will pop up asking the user for input
+before affecting the drag&drop action.
+
+Some possible use cases for this could be:
+
+  - Asking the user how much of a quantity they wish to drop
+    (which it might do when the user holds down shift while drag-
+    ging).
+  - Asking the user to confirm the drag.
+
+The following implementation assumes a future where both the drag
+and drop framework as well as the relevant plane are operated
+with finite state machines.
+
+  - When the plane is notified that a drag is finished then we
+    call the drag & drop class to handle it as usual.
+  - If the resulting drag is verified to be valid then it will
+    compute the drag arc as usual.
+  - If valid, the drag & drop framework will set its state to
+    "waiting for finalization."
+  - The drag arc will then be given to the child class along with
+    any necessary additional metadata to give the child a chance
+    to alter it. This method will be called "finalize drag arc.":
+
+      void finalize_drag_arc( DragArcT const& drag_arc ) const;
+
+  - When the child has the result (which it may have immediately
+    if no processing is necessary) then it will call an API
+    method called "accept finalized drag arc." The framework will
+    throw an error if this method is called when not in the ap-
+    propriate state.
+
+      void accept_finalized_drag_arc(
+               Opt<CRef<DragArcT>> maybe_drag_arc ) final;
+
+    If nullopt is provided then the drag will be cancelled.
+  - The framework will test the resulting drag arc once more for
+    validity. If invalid then it will throw an error (maybe).
+  - If the drag is valid then it will transition to a "complete"
+    state and will store the drag arc (not perform it).
+  - As usual, when in the complete state, it will not accept any
+    further drags until the stored one has been performed.
+  - On the next frame, the plane will see the stored arc and will
+    perform it by calling an API method called "perform drag if
+    ready."
+  - After performing the drag the framework will reset its state.
+
+The following is an example of the workflow of the plane and
+child drag&drop class during the "waiting for finalization" state
+where a dialog box needs to be presented to the user to ask for
+the quantity of commodity to be dragged:
+
+  - As stated above, the framework will put itself into a
+    "waiting for finalization state" and then call a child method
+    with the drag arc.
+  - The child class will add an event into the plane's event
+    queue to signal to it to ask the user for quantity. This
+    event can only be accepted when the plane is in the dragging
+    state (though at first, try without dragging state as it may
+    not be necessary).
+  - The plane will then pop up the quantity box and wait for the
+    user to enter. The result could either be OK (with a quantity
+    or cancel) which would cancel the drag.
+  - The window will be instructed that, when it closes, it should
+    put its result (an Opt<int>) into an event and then add that
+    event into the plane's event queue to signal that it has
+    closed.
+  - The plane will then transition back to the "waiting for drag"
+    state (or the normal state) that it was in during the drag,
+    and in so doing, it will call the drag&drop child's "accept
+    quantity" function.
+  - The "accept quantity" will then adjust the (stored) drag arc
+    and then call the parent's "accept finalized drag arc" func-
+    tion.
+
 Finite State Machine
 ====================
 
@@ -87,88 +169,6 @@ Pushdown Automata
   be pushed/popped using special API methods.
 
   It is not clear yet whether this will be needed.
-
-Drag & Drop with Dialog Box
-===========================
-
-In general it will be necessary to allow the drag & drop frame-
-work to pop up a dialog box and ask the user for more information
-when a successfull drag is completed. In other words, when the
-user releases the mouse to complete (what is or may be) a suc-
-cessful drag a dialog box will pop up asking the user for input
-before affecting the drag&drop action.
-
-Some possible use cases for this could be:
-
-  - Asking the user how much of a quantity they wish to drop
-    (which it might do when the user holds down shift while drag-
-    ging).
-  - Asking the user to confirm the drag.
-
-The following implementation assumes a future where both the drag
-and drop framework as well as the relevant plane are operated
-with finite state machines.
-
-  - When the plane is notified that a drag is finished then we
-    call the drag & drop class to handle it as usual.
-  - If the resulting drag is verified to be valid then it will
-    compute the drag arc as usual.
-  - If valid, the drag & drop framework will set its state to
-    "waiting for finalization."
-  - The drag arc will then be given to the child class along with
-    any necessary additional metadata to give the child a chance
-    to alter it. This method will be called "finalize drag arc.":
-
-      void finalize_drag_arc( DragArcT const& drag_arc ) const;
-
-  - When the child has the result (which it may have immediately
-    if no processing is necessary) then it will call an API
-    method called "accept finalized drag arc." The framework will
-    throw an error if this method is called when not in the ap-
-    propriate state.
-
-      void accept_finalized_drag_arc(
-               Opt<CRef<DragArcT>> maybe_drag_arc ) final;
-
-    If nullopt is provided then the drag will be cancelled.
-  - The framework will test the resulting drag arc once more for
-    validity. If invalid then it will throw an error (maybe).
-  - If the drag is valid then it will transition to a "complete"
-    state and will store the drag arc (not perform it).
-  - As usual, when in the complete state, it will not accept any
-    further drags until the stored one has been performed.
-  - On the next frame, the plane will see the stored arc and will
-    perform it by calling an API method called "perform drag if
-    ready."
-  - After performing the drag the framework will reset its state.
-
-The following is an example of the workflow of the plane and
-child drag&drop class during the "waiting for finalization" state
-where a dialog box needs to be presented to the user to ask for
-the quantity of commodity to be dragged:
-
-  - As stated above, the framework will put itself into a
-    "waiting for finalization state" and then call a child method
-    with the drag arc.
-  - The child class will add an event into the plane's event
-    queue to signal to it to ask the user for quantity. This
-    event can only be accepted when the plane is in the dragging
-    state (though at first, try without dragging state as it may
-    not be necessary).
-  - The plane will then pop up the quantity box and wait for the
-    user to enter. The result could either be OK (with a quantity
-    or cancel) which would cancel the drag.
-  - The window will be instructed that, when it closes, it should
-    put its result (an Opt<int>) into an event and then add that
-    event into the plane's event queue to signal that it has
-    closed.
-  - The plane will then transition back to the "waiting for drag"
-    state (or the normal state) that it was in during the drag,
-    and in so doing, it will call the drag&drop child's "accept
-    quantity" function.
-  - The "accept quantity" will then adjust the (stored) drag arc
-    and then call the parent's "accept finalized drag arc" func-
-    tion.
 
 Drag & Drop Framework
 =====================

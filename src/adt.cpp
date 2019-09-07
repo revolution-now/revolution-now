@@ -17,16 +17,16 @@
 // base-util
 #include "base-util/string.hpp"
 
-adt_template( rn,               //
-              template( T, U ), //
-              State,            //
-              ( none ),         //
-              ( starting,       //
-                ( T, x ),       //
-                ( int, y ) ),   //
-              ( ending,         //
-                ( int, x ),     //
-                ( U, y ) )      //
+adt_T( rn,               //
+       template( T, U ), //
+       State,            //
+       ( none ),         //
+       ( starting,       //
+         ( T, x ),       //
+         ( int, y ) ),   //
+       ( ending,         //
+         ( int, x ),     //
+         ( U, y ) )      //
 );
 
 namespace rn {
