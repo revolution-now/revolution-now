@@ -241,6 +241,13 @@
   namespace {
 
 // Use this in namespace ::(anonymous).
+#define adt_template_rn( ... )          \
+  } /* close namespace rn. */           \
+  EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */           \
+  namespace rn {
+
+// Use this in namespace ::(anonymous).
 #define adt_template_rn_( ... )         \
   } /* close namespace (anonymous). */  \
   } /* close namespace rn. */           \

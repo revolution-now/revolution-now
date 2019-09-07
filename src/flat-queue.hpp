@@ -100,9 +100,9 @@ private:
     CHECK( front_ < reallocation_size_ );
   }
 
-  Vec<T>    queue_;
-  int       front_; // no iterator; would be invalidated.
-  int const reallocation_size_;
+  Vec<T> queue_;
+  int    front_; // no iterator; would be invalidated.
+  int    reallocation_size_;
 };
 
 } // namespace rn

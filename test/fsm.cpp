@@ -138,7 +138,7 @@ adt_template_rn_( template( T, U ), //
 );
 
 // clang-format off
-fsm_transitions_template( template( T, U ), TColor
+fsm_transitions_T( template( T, U ), TColor
  ,(    (red,          light ),  ->   ,light_red
 ),(    (red,          dark  ),  ->   ,dark_red
 ),(    (light_red,    dark  ),  ->   ,red
