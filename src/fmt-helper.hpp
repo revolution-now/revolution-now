@@ -122,6 +122,17 @@ struct formatter<std::variant<Ts...>> : dynamic_formatter<> {
 };
 
 template<>
+struct formatter<SourceLoc> : formatter_base {
+  template<typename FormatContext>
+  auto format( SourceLoc const &o, FormatContext &ctx ) {
+    return formatter_base::format(
+        fmt::format( "{}:{}:{}", o.file_name(), o.line(),
+                     o.column() ),
+        ctx );
+  }
+};
+
+template<>
 struct formatter<fs::path> : formatter_base {
   template<typename FormatContext>
   auto format( fs::path const &o, FormatContext &ctx ) {

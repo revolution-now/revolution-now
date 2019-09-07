@@ -57,3 +57,6 @@
 #  define FWD( ... ) \
     ::std::forward<decltype( __VA_ARGS__ )>( __VA_ARGS__ )
 #endif
+
+#define CALLER_LOCATION( var ) \
+  const SourceLoc& var = SourceLoc::current()

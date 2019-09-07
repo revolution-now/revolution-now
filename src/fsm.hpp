@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "adt.hpp"
+#include "aliases.hpp"
 #include "errors.hpp"
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
@@ -88,13 +89,18 @@ public:
   }
 
   // Queue an event, but do not process it immediately.
-  void send_event( EventT const& event ) {
-    events_.push( event );
+  void send_event( EventT const& event,
+                   CALLER_LOCATION( loc ) ) {
+    events_.push( {event, loc} );
   }
 
   // Queue an event, but do not process it immediately.
-  void send_event( EventT&& event ) {
-    events_.push_emplace( std::move( event ) );
+  void send_event( EventT&& event, CALLER_LOCATION( loc ) ) {
+    EventWithSource event_with_src{
+        /*event=*/std::move( event ), //
+        /*location=*/loc              //
+    };
+    events_.push_emplace( std::move( event_with_src ) );
   }
 
   // Process all pending events.
@@ -152,14 +158,22 @@ protected:
   }
 
 private:
+  struct EventWithSource {
+    EventT                             event;
+    std::experimental::source_location location;
+  };
+
   ChildT const& child() const {
     return *static_cast<ChildT const*>( this );
   }
   ChildT& child() { return *static_cast<ChildT*>( this ); }
 
-  void process_event( EventT& event ) {
-    auto visitor = [this]( auto const& state,
-                           auto&       event ) -> StateT {
+  void process_event( EventWithSource& event_with_src ) {
+    auto& event        = event_with_src.event;
+    auto& src_location = event_with_src.location;
+    auto  visitor      = [this, &src_location](
+                       auto const& state,
+                       auto&       event ) -> StateT {
       using state1_t = std::decay_t<decltype( state )>;
       using event_t  = std::decay_t<decltype( event )>;
       using key_t    = std::pair<state1_t, event_t>;
@@ -171,8 +185,10 @@ private:
         // will want to avoid throwing here and just emit an
         // error and return the current state (i.e., leave state
         // unchanged).
-        FATAL( "state {} cannot receive the event {}", state,
-               event );
+        FATAL(
+            "state {} cannot receive the event {} (sent from "
+            "{})",
+            state, event, src_location );
       } else {
         if constexpr(
             !std::is_same_v<
@@ -200,9 +216,9 @@ private:
     state_ = std::visit( visitor, state_, event );
   }
 
-  StateT             state_;
-  flat_queue<EventT> events_;
-  ASSERT_NOTHROW_MOVING( flat_queue<EventT> );
+  StateT                      state_;
+  flat_queue<EventWithSource> events_;
+  ASSERT_NOTHROW_MOVING( flat_queue<EventWithSource> );
 };
 
 /****************************************************************

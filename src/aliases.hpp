@@ -33,6 +33,9 @@
 #include <variant>
 #include <vector>
 
+// C++ experimental
+#include <experimental/source_location>
+
 using Clock_t    = ::std::chrono::system_clock;
 using Time_t     = decltype( Clock_t::now() );
 using Duration_t = ::std::chrono::nanoseconds;
@@ -83,6 +86,8 @@ using NodeMap = ::absl::node_hash_map<K, V>;
 
 template<typename F, typename S>
 using Pair = std::pair<F, S>;
+
+using SourceLoc = std::experimental::source_location;
 
 namespace ranges {
 inline namespace v3 {
