@@ -40,7 +40,14 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
             ( Opt<DragDstT>, dst ),                 //
             ( Texture, tx ) ),                      //
           ( waiting_to_execute,                     //
-            ( DragArcT, arc ) ),                    //
+            ( DragArcT, arc ),                      //
+            ( Coord, mouse_released ),              //
+            ( Texture, tx ) ),                      //
+          ( finalizing,                             //
+            ( DragArcT, arc ),                      //
+            ( Coord, drag_start ),                  //
+            ( Coord, mouse_released ),              //
+            ( Texture, tx ) ),                      //
           ( rubber_banding,                         //
             ( Coord, current ),                     //
             ( Coord, dest ),                        //
@@ -61,8 +68,15 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
             ( DragSrcT, src ),                      //
             ( double, percent ),                    //
             ( Texture, tx ) ),                      //
+          ( finalize,                               //
+            ( DragArcT, arc ),                      //
+            ( Coord, drag_start ),                  //
+            ( Coord, mouse_released ),              //
+            ( Texture, tx ) ),                      //
           ( complete,                               //
-            ( DragArcT, arc ) ),                    //
+            ( DragArcT, arc ),                      //
+            ( Coord, mouse_released ),              //
+            ( Texture, tx ) ),                      //
           ( reset )                                 //
 );
 
@@ -70,7 +84,9 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
 fsm_transitions_T( template( DragSrcT, DragDstT, DragArcT ), Drag,
   ((none,               start      ), ->  ,in_progress       ),
   ((in_progress,        rubber_band), ->  ,rubber_banding    ),
-  ((in_progress,        complete   ), ->  ,waiting_to_execute),
+  ((in_progress,        finalize   ), ->  ,finalizing        ),
+  ((finalizing,         rubber_band), ->  ,rubber_banding    ),
+  ((finalizing,         complete   ), ->  ,waiting_to_execute),
   ((rubber_banding,     reset      ), ->  ,none              ),
   ((waiting_to_execute, reset      ), ->  ,none              )
 );
@@ -91,17 +107,42 @@ fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
     };
   }
 
+  fsm_transition_T( template( DragSrcT, DragDstT, DragArcT ),
+                    Drag, //
+                    in_progress, finalize, ->, finalizing ) {
+    return {
+        /*arc=*/std::move( event.arc ),          //
+        /*drag_start=*/event.drag_start,         //
+        /*mouse_released=*/event.mouse_released, //
+        /*tx=*/std::move( event.tx )             //
+    };
+  }
+
   fsm_transition_T(
       template( DragSrcT, DragDstT, DragArcT ), Drag, //
-      in_progress, complete, ->, waiting_to_execute ) {
+      finalizing, complete, ->, waiting_to_execute ) {
     return {
-        /*arc=*/std::move( event.arc ) //
+        /*arc=*/std::move( event.arc ),          //
+        /*mouse_released=*/event.mouse_released, //
+        /*tx=*/std::move( event.tx )             //
     };
   }
 
   fsm_transition_T(
       template( DragSrcT, DragDstT, DragArcT ), Drag, //
       in_progress, rubber_band, ->, rubber_banding ) {
+    return {
+        /*current=*/std::move( event.current ), //
+        /*dest=*/std::move( event.dest ),       //
+        /*src=*/std::move( event.src ),         //
+        /*percent=*/std::move( event.percent ), //
+        /*tx=*/std::move( event.tx ),           //
+    };
+  }
+
+  fsm_transition_T(
+      template( DragSrcT, DragDstT, DragArcT ), Drag, //
+      finalizing, rubber_band, ->, rubber_banding ) {
     return {
         /*current=*/std::move( event.current ), //
         /*dest=*/std::move( event.dest ),       //
@@ -117,6 +158,11 @@ template<typename Child, typename DraggableObjectT,
          typename DragSrcT, typename DragDstT, typename DragArcT>
 class DragAndDrop {
 protected:
+  using State_t = DragState_t<DragSrcT, DragDstT, DragArcT>;
+  using Event_t = DragEvent_t<DragSrcT, DragDstT, DragArcT>;
+  using fsm_t   = DragFsm<DragSrcT, DragDstT, DragArcT>;
+
+protected:
   DragAndDrop() {}
 
   Child const& child() const {
@@ -125,6 +171,9 @@ protected:
   Child& child() { return *static_cast<Child*>( this ); }
 
 public:
+  // For logging/debugging.
+  fsm_t const& state() const { return fsm_; }
+
   bool is_drag_in_progress() const {
     return fsm_.template holds<InProgress_t>().has_value();
   }
@@ -185,7 +234,18 @@ public:
         copy_texture( val.tx, tx,
                       pos - val.tx.size() / Scale{2} );
       }
-      switch_non_exhaustive;
+      case_( None_t ) break_;
+      case_( WaitingToExecute_t ) {
+        copy_texture(
+            val.tx, tx,
+            val.mouse_released - val.tx.size() / Scale{2} );
+      }
+      case_( Finalizing_t ) {
+        copy_texture(
+            val.tx, tx,
+            val.mouse_released - val.tx.size() / Scale{2} );
+      }
+      switch_exhaustive;
     }
   }
 
@@ -215,17 +275,23 @@ public:
 
   bool handle_on_drag_finished( Coord const& drag_start,
                                 Coord const& drag_end ) {
-    if( auto in_progress = fsm_.template holds<InProgress_t>();
-        in_progress ) {
-      if( in_progress->get().dst ) {
-        auto maybe_drag_arc = drag_arc(
-            in_progress->get().src, *in_progress->get().dst );
+    if( auto in_progress_ref =
+            fsm_.template holds<InProgress_t>();
+        in_progress_ref ) {
+      auto& in_progress = in_progress_ref->get();
+      if( in_progress.dst ) {
+        auto maybe_drag_arc =
+            drag_arc( in_progress.src, *in_progress.dst );
         if( maybe_drag_arc &&
             child().can_perform_drag( *maybe_drag_arc ) ) {
-          fsm_.send_event( Complete_t{
-              /*arc=*/*maybe_drag_arc //
+          fsm_.send_event( Finalize_t{
+              /*arc=*/*maybe_drag_arc, //
+              /*drag_start=*/drag_start,
+              /*mouse_released=*/drag_end,
+              /*tx=*/std::move( in_progress.tx ) //
           } );
           fsm_.process_events();
+          child().finalize_drag( *maybe_drag_arc );
           return true;
         }
       }
@@ -233,14 +299,40 @@ public:
       fsm_.send_event( RubberBand_t{
           /*current=*/drag_end,
           /*dest=*/drag_start,
-          /*src=*/in_progress->get().src,
+          /*src=*/in_progress.src,
           /*percent=*/0.0,
-          /*tx=*/std::move( in_progress->get().tx ),
+          /*tx=*/std::move( in_progress.tx ),
       } );
       fsm_.process_events();
       return true;
     }
     return false;
+  }
+
+  void accept_finalized_drag(
+      Opt<CRef<DragArcT>> maybe_drag_arc ) {
+    ASSIGN_CHECK_OPT( finalized_ref,
+                      fsm_.template holds<Finalizing_t>() );
+    auto& finalized = finalized_ref.get();
+    if( !maybe_drag_arc ) {
+      // Caller has told us to cancel the drag.
+      fsm_.send_event( RubberBand_t{
+          /*current=*/finalized.mouse_released,
+          /*dest=*/finalized.drag_start,
+          /*src=*/drag_src_from_arc( finalized.arc ),
+          /*percent=*/0.0,
+          /*tx=*/std::move( finalized.tx ),
+      } );
+      fsm_.process_events();
+      return;
+    }
+    CHECK( child().can_perform_drag( *maybe_drag_arc ) );
+    fsm_.send_event( Complete_t{
+        /*arc=*/*maybe_drag_arc,                     //
+        /*mouse_released=*/finalized.mouse_released, //
+        /*tx=*/std::move( finalized.tx )             //
+    } );
+    fsm_.process_events();
   }
 
   Opt<DraggableObjectT> obj_being_dragged() const {
@@ -253,10 +345,20 @@ public:
       case_( InProgress_t ) {
         res = child().draggable_from_src( val.src );
       }
-      case_( WaitingToExecute_t ) {}
+      case_( WaitingToExecute_t ) { //
+        draggable_from_arc( val.arc );
+      }
+      case_( Finalizing_t ) { //
+        draggable_from_arc( val.arc );
+      }
       switch_exhaustive;
     }
     return res;
+  }
+
+  // Default implementation; accepts all drags unchanged.
+  void finalize_drag( DragArcT const& drag_arc ) {
+    accept_finalized_drag( drag_arc );
   }
 
 private:
@@ -269,15 +371,16 @@ private:
   using WaitingToExecute_t =
       DragState::waiting_to_execute<DragSrcT, DragDstT,
                                     DragArcT>;
+  using Finalizing_t =
+      DragState::finalizing<DragSrcT, DragDstT, DragArcT>;
+  using Finalize_t =
+      DragEvent::finalize<DragSrcT, DragDstT, DragArcT>;
   using Complete_t =
       DragEvent::complete<DragSrcT, DragDstT, DragArcT>;
   using RubberBanding_t =
       DragState::rubber_banding<DragSrcT, DragDstT, DragArcT>;
   using RubberBand_t =
       DragEvent::rubber_band<DragSrcT, DragDstT, DragArcT>;
-  using State_t = DragState_t<DragSrcT, DragDstT, DragArcT>;
-  using Event_t = DragEvent_t<DragSrcT, DragDstT, DragArcT>;
-  using fsm_t   = DragFsm<DragSrcT, DragDstT, DragArcT>;
 
   ASSERT_NOTHROW_MOVING(
       DragState_t<DragSrcT, DragDstT, DragArcT> );
@@ -286,6 +389,18 @@ private:
   ASSERT_NOTHROW_MOVING( fsm_t );
 
 private:
+  static DragSrcT drag_src_from_arc( DragArcT const& drag_arc ) {
+    return std::visit( L( DragSrcT{_.src} ), drag_arc );
+  }
+
+  DraggableObjectT draggable_from_arc(
+      DragArcT const& drag_arc ) const {
+    auto visitor = [this]( auto const& some_arc ) {
+      return child().draggable_from_src( some_arc.src );
+    };
+    return std::visit( visitor, drag_arc );
+  }
+
   template<size_t ArcTypeIndex>
   static void try_set_arc_impl( Opt<DragArcT>*  arc,
                                 DragSrcT const& src,
