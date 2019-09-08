@@ -21,6 +21,7 @@
 #include "logging.hpp"
 #include "ownership.hpp"
 #include "plane.hpp"
+#include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -41,6 +42,9 @@
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
+// range-v3
+#include "range/v3/view/filter.hpp"
+
 // c++ standard library
 #include <algorithm>
 #include <memory>
@@ -55,10 +59,47 @@ namespace rn::ui {
 namespace {
 
 /****************************************************************
-** WindowManager
+** Window
 *****************************************************************/
 enum class e_window_state { running, closed };
+struct Window {
+  Window( std::string title_, Coord position_ );
+  Window( std::string title_, std::unique_ptr<View> view_,
+          Coord position_ );
 
+  void set_view( UPtr<View> view_ ) {
+    view = std::move( view_ );
+  }
+
+  void center_window() {
+    // Here "main window" refers to the real window (recognized
+    // by the OS) in which this game lives.
+    position = centered( delta(), main_window_logical_rect() );
+  }
+
+  void close_window() { window_state = e_window_state::closed; }
+
+  void  draw( Texture& tx ) const;
+  Delta delta() const;
+  Rect  rect() const;
+  Coord inside_border() const;
+  Rect  inside_border_rect() const;
+  Coord inside_padding() const;
+  Rect  inside_padding_rect() const;
+  Rect  title_bar() const;
+  // abs coord of upper-left corner of view.
+  Coord view_pos() const;
+
+  e_window_state                     window_state;
+  std::string                        title;
+  std::unique_ptr<View>              view;
+  std::unique_ptr<OneLineStringView> title_view;
+  Coord                              position;
+};
+
+/****************************************************************
+** WindowManager
+*****************************************************************/
 class WindowManager {
 public:
   void draw_layout( Texture& tx ) const;
@@ -70,52 +111,45 @@ public:
   void on_drag( input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current );
 
-  auto num_windows() const { return windows_.size(); }
+  auto active_windows() {
+    return rv::all( windows_ ) //
+           | rv::filter(
+                 L( _.window_state != e_window_state::closed ) );
+  }
 
-private:
-  struct window {
-    window( std::string title_, std::unique_ptr<View> view_,
-            Coord position_ );
+  auto active_windows() const {
+    return rv::all( windows_ ) //
+           | rv::filter(
+                 L( _.window_state != e_window_state::closed ) );
+  }
 
-    void  draw( Texture& tx ) const;
-    Delta delta() const;
-    Rect  rect() const;
-    Coord inside_border() const;
-    Rect  inside_border_rect() const;
-    Coord inside_padding() const;
-    Rect  inside_padding_rect() const;
-    Rect  title_bar() const;
-    // abs coord of upper-left corner of view.
-    Coord view_pos() const;
+  int num_windows() const {
+    auto aw = active_windows();
+    return std::distance( aw.begin(), aw.end() );
+  }
 
-    e_window_state                     window_state;
-    std::string                        title;
-    std::unique_ptr<View>              view;
-    std::unique_ptr<OneLineStringView> title_view;
-    Coord                              position;
-  };
+  void remove_closed_windows();
 
 public:
-  window* add_window( std::string           title,
+  Window* add_window( std::string title );
+
+  Window* add_window( std::string           title,
                       std::unique_ptr<View> view );
 
-  window* add_window( std::string           title,
+  Window* add_window( std::string           title,
                       std::unique_ptr<View> view,
                       Coord                 position );
 
-  void remove_window( window* ) {
-    // FIXME
-    clear_windows();
+  void remove_window( Window* p_win ) {
+    windows_.remove_if( LC( &_ == p_win ) );
   }
-
-  void clear_windows();
 
 private:
   // Gets the window with focus, throws if no windows.
-  window& focused();
+  Window& focused();
 
-  // FIXME: should use a container with pointer stability here.
-  std::vector<window> windows_;
+  // We need order and pointer stability here.
+  list<Window> windows_;
 };
 
 } // namespace
@@ -132,6 +166,7 @@ struct WindowPlane : public Plane {
   WindowPlane() = default;
   bool enabled() const override { return wm.num_windows() > 0; }
   bool covers_screen() const override { return false; }
+  void on_frame_start() override { wm.remove_closed_windows(); }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     wm.draw_layout( tx );
@@ -171,10 +206,6 @@ namespace rn::ui {
 namespace {
 
 /****************************************************************
-** Window/View Classes
-*****************************************************************/
-
-/****************************************************************
 ** Misc. Helpers
 *****************************************************************/
 // This returns the width in pixels of the window border ( same
@@ -200,19 +231,30 @@ Delta const& window_padding() {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-WindowManager::window::window( string           title_,
-                               unique_ptr<View> view_,
-                               Coord            position_ )
+Window::Window( string title_, unique_ptr<View> view_,
+                Coord position_ )
   : window_state( e_window_state::running ),
     title( move( title_ ) ),
     view( move( view_ ) ),
+    title_view(),
+    position( position_ ) {
+  CHECK( view );
+  title_view = make_unique<OneLineStringView>(
+      title, config_palette.orange.sat1.lum11, /*shadow=*/true );
+}
+
+Window::Window( string title_, Coord position_ )
+  : window_state( e_window_state::running ),
+    title( move( title_ ) ),
+    view{},
     title_view(),
     position( position_ ) {
   title_view = make_unique<OneLineStringView>(
       title, config_palette.orange.sat1.lum11, /*shadow=*/true );
 }
 
-void WindowManager::window::draw( Texture& tx ) const {
+void Window::draw( Texture& tx ) const {
+  CHECK( view );
   auto win_size = delta();
   render_fill_rect(
       tx, Color( 0, 0, 0, 64 ),
@@ -231,7 +273,8 @@ void WindowManager::window::draw( Texture& tx ) const {
 }
 
 // Includes border
-Delta WindowManager::window::delta() const {
+Delta Window::delta() const {
+  CHECK( view );
   Delta res;
   res.w = std::max(
       title_view->delta().w,
@@ -243,19 +286,19 @@ Delta WindowManager::window::delta() const {
   return res;
 }
 
-Rect WindowManager::window::rect() const {
+Rect Window::rect() const {
   return Rect::from( position, delta() );
 }
 
-Coord WindowManager::window::inside_border() const {
+Coord Window::inside_border() const {
   return position + window_border();
 }
 
-Coord WindowManager::window::inside_padding() const {
+Coord Window::inside_padding() const {
   return position + window_border() + window_padding();
 }
 
-Rect WindowManager::window::inside_padding_rect() const {
+Rect Window::inside_padding_rect() const {
   auto res = rect();
   res.x += window_border().w;
   res.y += window_border().h;
@@ -268,34 +311,41 @@ Rect WindowManager::window::inside_padding_rect() const {
   return res;
 }
 
-Rect WindowManager::window::title_bar() const {
+Rect Window::title_bar() const {
+  CHECK( view );
   auto title_bar_rect = title_view->rect( inside_border() );
   title_bar_rect.w =
       std::max( title_bar_rect.w, view->delta().w );
   return title_bar_rect;
 }
 
-Coord WindowManager::window::view_pos() const {
+Coord Window::view_pos() const {
   return inside_padding() + title_view->delta().h;
 }
 
 void WindowManager::draw_layout( Texture& tx ) const {
-  for( auto const& window : windows_ ) window.draw( tx );
+  for( auto const& window : active_windows() ) window.draw( tx );
 }
 
-WindowManager::window* WindowManager::add_window(
-    string title_, unique_ptr<View> view_ ) {
+void WindowManager::remove_closed_windows() {
+  // Don't use active_windows() here... would defeat the points.
+  windows_.remove_if(
+      L( _.window_state == e_window_state::closed ) );
+}
+
+Window* WindowManager::add_window( string           title_,
+                                   unique_ptr<View> view_ ) {
   windows_.emplace_back( move( title_ ), move( view_ ),
                          Coord{} );
   auto& new_window = windows_.back();
-  // Here "main window" refers to the real window (recognized by
-  // the OS) in which this game lives.
-  new_window.position =
-      centered( new_window.delta(), main_window_logical_rect() );
+  new_window.center_window();
   return &new_window;
 }
 
-void WindowManager::clear_windows() { windows_.clear(); }
+Window* WindowManager::add_window( string title_ ) {
+  windows_.emplace_back( move( title_ ), Coord{} );
+  return &windows_.back();
+}
 
 bool WindowManager::input( input::event_t const& event ) {
   auto& win = focused();
@@ -369,23 +419,47 @@ void WindowManager::on_drag( input::e_mouse_button button,
   }
 }
 
-WindowManager::window& WindowManager::focused() {
-  CHECK( !windows_.empty() );
-  return windows_[0];
+Window& WindowManager::focused() {
+  CHECK( num_windows() > 0 );
+  return *active_windows().begin();
 }
 
 /****************************************************************
-** Async Windows
+** Windows
 *****************************************************************/
-namespace async {
+void async_window_builder(
+    std::string_view                title,
+    function<UPtr<View>( Window* )> get_view_fn ) {
+  auto* win  = g_window_plane.wm.add_window( string( title ) );
+  auto  view = get_view_fn( win );
+  autopad( view, /*use_fancy=*/false );
+  win->set_view( std::move( view ) );
+  win->center_window();
+}
 
 void ok_cancel( std::string_view                   msg,
                 std::function<void( e_ok_cancel )> on_result ) {
-  lg.info( "ok_cancel msg: {}", msg );
-  on_result( e_ok_cancel::ok );
+  async_window_builder(
+      "Question",
+      [=, on_result{std::move( on_result )}]( auto* win ) {
+        lg.info( "ok/cancel: {}", msg );
+        TextMarkupInfo m_info{/*normal=*/Color::banana(),
+                              /*highlight=*/Color::green()};
+        TextReflowInfo r_info{/*max_cols=*/40};
+        auto text = make_unique<TextView>( string( msg ), m_info,
+                                           r_info );
+        auto ok_cancel_view = make_unique<OkCancelAdapterView>(
+            std::move( text ),
+            [win, on_result{std::move( on_result )}](
+                e_ok_cancel result ) {
+              lg.info( "selected: {}", result );
+              on_result( result );
+              win->close_window();
+            } //
+        );
+        return ok_cancel_view;
+      } );
 }
-
-} // namespace async
 
 /****************************************************************
 ** High-level Methods
@@ -413,7 +487,7 @@ string select_box( string_view title, Vec<Str> options ) {
   effects_plane_enable( false );
   lg.info( "selected: {}", selector_ptr->get_selected() );
   auto result = selector_ptr->get_selected();
-  g_window_plane.wm.clear_windows();
+  win->close_window();
   return result;
 }
 
@@ -461,8 +535,6 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
    *     |       +-SpriteView
    *     +-...
    */
-
-  g_window_plane.wm.clear_windows();
 
   auto cmp = []( UnitId l, UnitId r ) {
     auto const& unit1 = unit_from_id( l ).desc();
@@ -605,8 +677,8 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
   UPtr<View> view( std::move( adapter ) );
   autopad( view, /*use_fancy=*/false, 4 );
 
-  g_window_plane.wm.add_window( string( "Activate Units" ),
-                                move( view ) );
+  auto* win = g_window_plane.wm.add_window(
+      string( "Activate Units" ), move( view ) );
 
   frame_loop( true, [&state] { return state != nullopt; } );
   lg.info( "pressed `{}`.", state );
@@ -625,7 +697,7 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
     }
   }
 
-  g_window_plane.wm.clear_windows();
+  win->close_window();
 
   for( auto r : res )
     lg.debug( "selection: {} --> {}", debug_string( r.id ),

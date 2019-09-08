@@ -54,14 +54,10 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
                                        bool allow_activation );
 
 /****************************************************************
-** Async Windows
+** Windows
 *****************************************************************/
-namespace async {
-
 void ok_cancel( std::string_view                   msg,
                 std::function<void( e_ok_cancel )> on_result );
-
-}
 
 /****************************************************************
 ** Simple Option-Select Window

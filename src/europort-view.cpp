@@ -29,6 +29,7 @@
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
+#include "scope-exit.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -1645,6 +1646,12 @@ public:
 
   void receive_quantity( int quantity ) {
     CHECK( stored_arc_.has_value() );
+    SCOPE_EXIT( stored_arc_ = nullopt );
+    if( quantity == 0 ) {
+      // The drag has been cancelled.
+      accept_finalized_drag( nullopt );
+      return;
+    }
     switch_( *stored_arc_ ) {
       case_( DragArc::market_to_cargo ) {
         auto new_val         = val;
@@ -1663,7 +1670,6 @@ public:
                *stored_arc_ );
       } );
     }
-    stored_arc_ = nullopt;
   }
 
   void perform_drag( DragArc_t const& drag_arc ) const {
@@ -1971,11 +1977,11 @@ struct EuropePlane : public Plane {
   // Callbacks
   // ------------------------------------------------------------
   void open_quantity_window() {
-    ui::async::ok_cancel(
-        "hello", [this]( ui::e_ok_cancel result ) {
-          lg.info( "received result: {}", result );
-          fsm_.send_event( EuroviewEvent::send_quantity{100} );
-        } );
+    ui::ok_cancel( "hello", [this]( ui::e_ok_cancel result ) {
+      lg.info( "received result: {}", result );
+      fsm_.send_event( EuroviewEvent::send_quantity{
+          result == ui::e_ok_cancel::ok ? 100 : 0} );
+    } );
   }
 
   void send_quantity( int quantity ) {
