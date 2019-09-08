@@ -56,6 +56,11 @@ Texture render_line_standard_impl( ::TTF_Font* font,
                                    ::SDL_Color fg,
                                    string_view line,
                                    Y           vert_offset ) {
+  // SDL can't render empty lines for some reason.
+  if( line.empty() ) {
+    return Texture::create( Delta{W{1}, // maybe safer than zero?
+                                  H{TTF_FontHeight( font )}} );
+  }
   ASSIGN_CHECK( surface,
                 ::TTF_RenderText_Solid(
                     font, string( line ).c_str(), fg ) );

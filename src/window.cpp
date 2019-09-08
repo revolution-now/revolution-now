@@ -476,8 +476,16 @@ void text_input_box( string_view title, string_view msg,
             /*max_cols=*/config_ui.dialog_text.columns};
         auto text = make_unique<TextView>( string( msg ), m_info,
                                            r_info );
+        auto le_view = make_unique<LineEditorView>( 20 );
+        Vec<UPtr<View>> view_vec;
+        view_vec.emplace_back( std::move( text ) );
+        view_vec.emplace_back( std::move( le_view ) );
+        auto text_and_edit = make_unique<VerticalArrayView>(
+            std::move( view_vec ),
+            VerticalArrayView::align::center );
+
         auto ok_cancel_view = make_unique<OkCancelAdapterView>(
-            std::move( text ),
+            std::move( text_and_edit ),
             [win, on_result{std::move( on_result )}](
                 e_ok_cancel result ) {
               lg.info( "selected: {}", result );

@@ -117,8 +117,8 @@ bool LineEditor::input( input::key_event_t const& event ) {
   ASSERT_INVARIANTS_POS   \
   ASSERT_INVARIANTS_BUF
 
-string InputView::render( int           abs_cursor_pos,
-                          string const& buffer ) {
+string LineEditorInputView::render( int           abs_cursor_pos,
+                                    string const& buffer ) {
   int pos = abs_cursor_pos;
 
   // First update internal state

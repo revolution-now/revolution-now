@@ -326,6 +326,10 @@ Delta max( Delta const& lhs, Delta const& rhs ) {
   return {std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h )};
 }
 
+Delta min( Delta const& lhs, Delta const& rhs ) {
+  return {std::min( lhs.w, rhs.w ), std::min( lhs.h, rhs.h )};
+}
+
 Coord operator+( Coord const& coord, Delta const& delta ) {
   return {coord.y + delta.h, coord.x + delta.w};
 }

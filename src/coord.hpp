@@ -468,6 +468,8 @@ int inner_product( Delta const& fst, Delta const& snd );
 // Same as Delta::uni0n
 ND Delta max( Delta const& lhs, Delta const& rhs );
 
+ND Delta min( Delta const& lhs, Delta const& rhs );
+
 ND Delta operator-( Delta const& lhs, Delta const& rhs );
 ND inline constexpr Delta operator+( Delta const& lhs,
                                      Delta const& rhs ) {

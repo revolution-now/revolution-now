@@ -26,7 +26,6 @@ namespace rn {
 // LineEditor: class that accepts a stream of key presses and
 // uses them to edit a one-line block of text together with a
 // "cursor position" within that line.
-
 class LineEditor {
   std::string buffer_{};
   int         pos_ = 0;
@@ -39,7 +38,7 @@ public:
 };
 
 /****************************************************************
-** InputView
+** LineEditorInputView
 *****************************************************************/
 // Represents a movable window into a string. It takes a string
 // and renders a slice of it depending on the "location" of the
@@ -52,14 +51,13 @@ public:
 // sitions. This is required in order to deliver a natural expe-
 // rience that a user would expect when a string is navigated by
 // moving a cursor along a line.
-
-class InputView {
+class LineEditorInputView {
   int start_pos_{0};
   // Size of the window.
   int const width_;
 
 public:
-  InputView( int w ) : width_( w ) {}
+  LineEditorInputView( int w ) : width_( w ) {}
 
   // Given an absolute cursor position, return the distance from
   // the start of the viewing window.
@@ -67,15 +65,16 @@ public:
 
   // Will always return a string whose length is == width. This
   // function cannot be const because in general it must be al-
-  // lowed to mutate the InputView's starting position (state).
-  // The InputView must maintain this state because there are ac-
-  // tually multiple ways that the InputView could be rendered
-  // given the same abs_cursor_pos input, and the one that is
-  // chosen it affected by previous renderings and cursor posi-
-  // tions. This is to allow a natural editing experience that a
-  // user would expect where the cursor can move from the start
-  // to end of a line and only moving to the next frame when the
-  // cursor touches one of the extremities.
+  // lowed to mutate the LineEditorInputView's starting position
+  // (state). The LineEditorInputView must maintain this state
+  // because there are actually multiple ways that the LineEdi-
+  // torInputView could be rendered given the same abs_cursor_pos
+  // input, and the one that is chosen it affected by previous
+  // renderings and cursor positions. This is to allow a natural
+  // editing experience that a user would expect where the cursor
+  // can move from the start to end of a line and only moving to
+  // the next frame when the cursor touches one of the extremi-
+  // ties.
   std::string render( int                abs_cursor_pos,
                       std::string const& buffer );
 };

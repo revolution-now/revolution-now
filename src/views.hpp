@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "color.hpp"
+#include "line-editor.hpp"
 #include "nation.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -350,6 +351,33 @@ public:
 
 private:
   g_tile tile_;
+};
+
+class LineEditorView : public View {
+public:
+  LineEditorView( int chars_wide );
+
+  // Implement Object
+  void draw( Texture& tx, Coord coord ) const override;
+  // Implement Object
+  Delta delta() const override { return background_.size(); }
+
+  // Implement ui::Object
+  void children_under_coord( Coord, ObjectSet& ) override {}
+
+  bool needs_padding() const override { return true; }
+
+  // Implement UI.
+  bool on_key( input::key_event_t const& event ) override;
+
+  std::string const& text() const { return current_rendering_; }
+
+private:
+  LineEditor          line_editor_;
+  LineEditorInputView input_view_;
+  Texture             background_;
+  std::string         current_rendering_;
+  W                   cursor_width_;
 };
 
 /****************************************************************

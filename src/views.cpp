@@ -329,6 +329,59 @@ void SpriteView::draw( Texture& tx, Coord coord ) const {
   render_sprite( tx, tile_, coord, 0, 0 );
 }
 
+LineEditorView::LineEditorView( int chars_wide )
+  : line_editor_{},
+    input_view_{chars_wide},
+    background_{},
+    current_rendering_{},
+    cursor_width_{} {
+  string      text( chars_wide, 'X' );
+  auto const& xs =
+      render_text( font::standard(), Color::wood(), text );
+  cursor_width_ = xs.size().w / SX{chars_wide};
+  background_   = Texture::create( xs.size() + Delta{6_w, 6_h} );
+  background_.fill( Color::banana() );
+  render_rect( background_, Color::wood(),
+               background_.rect().edges_removed() );
+}
+
+// Implement Object
+void LineEditorView::draw( Texture& tx, Coord coord ) const {
+  copy_texture( background_, tx, coord );
+  auto const& text_tx = render_text(
+      font::standard(), Color::wood(), current_rendering_ );
+  auto bounds    = background_.size() - Delta{6_w, 6_h};
+  auto copy_size = min( bounds, text_tx.size() );
+  auto from_rect = Rect::from( Coord{}, copy_size );
+  auto to_rect =
+      Rect::from( coord + Delta{3_w, 3_h}, copy_size );
+  copy_texture( text_tx, tx, from_rect, to_rect );
+
+  auto rel_pos = input_view_.rel_pos( line_editor_.pos() );
+  CHECK( rel_pos <= int( current_rendering_.size() ) );
+  string string_up_to_cursor(
+      current_rendering_.begin(),
+      current_rendering_.begin() + rel_pos );
+  auto rel_cursor_pixels =
+      rel_pos == 0
+          ? W{0} // render_text might return 1_w in this case.
+          : render_text( font::standard(), Color::wood(),
+                         string_up_to_cursor )
+                .size()
+                .w;
+  Rect cursor{coord.x + 3_w + rel_cursor_pixels, coord.y + 3_h,
+              cursor_width_, background_.size().h - 6_h};
+  render_rect( tx, Color::black(), cursor );
+}
+
+bool LineEditorView::on_key( input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down ) return false;
+  if( !line_editor_.input( event ) ) return false;
+  current_rendering_ = input_view_.render(
+      line_editor_.pos(), line_editor_.buffer() );
+  return true;
+}
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/
