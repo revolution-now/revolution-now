@@ -18,6 +18,7 @@
 #include "dragdrop.hpp"
 #include "europort.hpp"
 #include "fmt-helper.hpp"
+#include "fsm.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
@@ -32,6 +33,7 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/optional.hpp"
@@ -53,7 +55,7 @@ constexpr Delta const k_rendered_commodity_offset{8_w, 3_h};
 
 // When we drag a commodity from the market this is the default
 // amount that we take.
-constexpr int const k_default_market_quantity = 30;
+constexpr int const k_default_market_quantity = 100;
 
 /****************************************************************
 ** Selected Unit
@@ -1266,7 +1268,8 @@ adt_rn_( DragSrc,                      //
          ( inport,                     //
            ( UnitId, id ) ),           //
          ( market,                     //
-           ( e_commodity, type ) )     //
+           ( e_commodity, type ),      //
+           ( int, quantity ) )         //
 );
 
 adt_rn_( DragDst,                      //
@@ -1324,8 +1327,11 @@ class EuroViewDragAndDrop
   : public DragAndDrop<EuroViewDragAndDrop, DraggableObject_t,
                        DragSrc_t, DragDst_t, DragArc_t> {
 public:
-  EuroViewDragAndDrop( Entities const* entities )
-    : entities_( entities ) {
+  EuroViewDragAndDrop( Entities const*  entities,
+                       function<void()> ask_for_quantity )
+    : entities_( entities ),
+      stored_arc_{},
+      ask_for_quantity_( std::move( ask_for_quantity ) ) {
     CHECK( entities );
   }
 
@@ -1352,8 +1358,8 @@ public:
       case_( DragSrc::inport, id ) {
         return DraggableObject::unit{id};
       }
-      case_( DragSrc::market, type ) {
-        return DraggableObject::market_commodity{type};
+      case_( DragSrc::market ) {
+        return DraggableObject::market_commodity{val.type};
       }
       matcher_exhaustive;
     }
@@ -1429,7 +1435,8 @@ public:
                   ->commodity_under_cursor( coord );
           maybe_type ) {
         res = DragSrc::market{
-            /*type=*/*maybe_type //
+            /*type=*/*maybe_type,                  //
+            /*quantity=*/k_default_market_quantity //
         };
       }
     }
@@ -1619,6 +1626,46 @@ public:
     }
   }
 
+  void finalize_drag( DragArc_t const& drag_arc ) {
+    CHECK( !stored_arc_.has_value() );
+    switch_( drag_arc ) {
+      case_( DragArc::market_to_cargo ) {
+        ask_for_quantity_();
+        stored_arc_ = drag_arc;
+      }
+      case_( DragArc::market_to_inport_ship ) {
+        ask_for_quantity_();
+        stored_arc_ = drag_arc;
+      }
+      default_switch( {
+        accept_finalized_drag( drag_arc ); //
+      } );
+    }
+  }
+
+  void receive_quantity( int quantity ) {
+    CHECK( stored_arc_.has_value() );
+    switch_( *stored_arc_ ) {
+      case_( DragArc::market_to_cargo ) {
+        auto new_val         = val;
+        new_val.src.quantity = quantity;
+        DragArc_t new_arc    = DragArc_t{new_val};
+        accept_finalized_drag( new_arc );
+      }
+      case_( DragArc::market_to_inport_ship ) {
+        auto new_val         = val;
+        new_val.src.quantity = quantity;
+        DragArc_t new_arc    = DragArc_t{new_val};
+        accept_finalized_drag( new_arc );
+      }
+      default_switch( {
+        FATAL( "need to receive quantity for drag arc type {}",
+               *stored_arc_ );
+      } );
+    }
+    stored_arc_ = nullopt;
+  }
+
   void perform_drag( DragArc_t const& drag_arc ) const {
     if( !can_perform_drag( drag_arc ) ) {
       lg.error(
@@ -1708,31 +1755,35 @@ public:
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
         auto comm = Commodity{
-            /*type=*/src.type, //
-            /*quantity=*/0     //
+            /*type=*/src.type,        //
+            /*quantity=*/src.quantity //
         };
-        comm.quantity =
+        comm.quantity = std::min(
+            comm.quantity,
             unit_from_id( ship )
                 .cargo()
-                .max_commodity_quantity_that_fits( src.type );
-        CHECK( comm.quantity > 0 );
-        // Cap it at 100.
+                .max_commodity_quantity_that_fits( src.type ) );
+        // Cap it.
         comm.quantity =
-            std::min( k_default_market_quantity, comm.quantity );
+            std::min( comm.quantity, k_default_market_quantity );
+        CHECK( comm.quantity > 0 );
         add_commodity_to_cargo( comm, ship,
                                 /*slot=*/dst.slot._,
                                 /*try_other_slots=*/true );
       }
       case_( DragArc::market_to_inport_ship, src, dst ) {
         auto comm = Commodity{
-            /*type=*/src.type, //
-            /*quantity=*/0     //
+            /*type=*/src.type,        //
+            /*quantity=*/src.quantity //
         };
         comm.quantity = std::min(
-            k_default_market_quantity,
+            comm.quantity,
             unit_from_id( dst.id )
                 .cargo()
                 .max_commodity_quantity_that_fits( src.type ) );
+        // Cap it.
+        comm.quantity =
+            std::min( comm.quantity, k_default_market_quantity );
         CHECK( comm.quantity > 0 );
         add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
                                 /*try_other_slots=*/true );
@@ -1749,8 +1800,59 @@ public:
 
   // This class cannot change the entities, but note that the en-
   // tities will be changed on each frame.
-  Entities const* entities_;
+  Entities const*  entities_;
+  Opt<DragArc_t>   stored_arc_;
+  function<void()> ask_for_quantity_;
 };
+
+/****************************************************************
+** The Europe View State Machine
+*****************************************************************/
+adt_rn_( EuroviewState,      //
+         ( normal ),         //
+         ( asking_quantity ) //
+);
+
+adt_rn_( EuroviewEvent,        //
+         ( ask_quantity ),     //
+         ( send_quantity,      //
+           ( int, quantity ) ) //
+);
+
+// clang-format off
+fsm_transitions( Euroview,
+  ((normal,          ask_quantity ), ->  ,asking_quantity),
+  ((asking_quantity, send_quantity), ->  ,normal         )
+);
+// clang-format on
+
+fsm_class( Euroview ) {
+  fsm_init( EuroviewState::normal{} );
+
+  EuroviewFsm( function<void()>      open_quantity_window,
+               function<void( int )> send_quantity )
+    : Parent{},
+      open_quantity_window_( std::move( open_quantity_window ) ),
+      send_quantity_( std::move( send_quantity ) ) {}
+
+  fsm_transition( Euroview, //
+                  normal, ask_quantity, ->, asking_quantity ) {
+    (void)event;
+    open_quantity_window_();
+    return {};
+  }
+
+  fsm_transition( Euroview, //
+                  asking_quantity, send_quantity, ->, normal ) {
+    send_quantity_( event.quantity );
+    return {};
+  }
+
+  std::function<void()>      open_quantity_window_;
+  std::function<void( int )> send_quantity_;
+};
+
+FSM_DEFINE_FORMAT_RN_( Euroview );
 
 /****************************************************************
 ** The Europe Plane
@@ -1759,12 +1861,15 @@ struct EuropePlane : public Plane {
   EuropePlane() = default;
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
+
   void on_frame_start() override {
+    fsm_.process_events();
     drag_n_drop_.handle_on_frame_start();
     g_dragging_object = drag_n_drop_.obj_being_dragged();
     // Should be last.
     create_entities( &entities_ );
   }
+
   void draw( Texture& tx ) const override {
     tx.fill( Color::white() );
     draw_entities( tx, entities_ );
@@ -1772,6 +1877,7 @@ struct EuropePlane : public Plane {
     // Should be last.
     drag_n_drop_.handle_draw( tx );
   }
+
   bool input( input::event_t const& event ) override {
     return matcher_( event ) {
       case_( input::unknown_event_t ) result_ false;
@@ -1808,6 +1914,7 @@ struct EuropePlane : public Plane {
       matcher_exhaustive;
     }
   }
+
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
     if( button == input::e_mouse_button::l &&
@@ -1831,6 +1938,7 @@ struct EuropePlane : public Plane {
       return drag_n_drop_.handle_can_drag( origin );
     return e_accept_drag::no;
   }
+
   void on_drag( input::e_mouse_button /*button*/, Coord origin,
                 Coord prev, Coord current ) override {
     if( drag_n_drop_.is_drag_in_progress() ) {
@@ -1852,14 +1960,45 @@ struct EuropePlane : public Plane {
       g_clip   = g_clip.clamp( main_window_logical_size() );
     }
   }
+
   void on_drag_finished( input::e_mouse_button /*button*/,
                          Coord origin, Coord end ) override {
     if( drag_n_drop_.handle_on_drag_finished( origin, end ) )
       return;
   }
-  Color               rect_color_{Color::white()};
-  Entities            entities_;
-  EuroViewDragAndDrop drag_n_drop_{&entities_};
+
+  // ------------------------------------------------------------
+  // Callbacks
+  // ------------------------------------------------------------
+  void open_quantity_window() {
+    ui::async::ok_cancel(
+        "hello", [this]( ui::e_ok_cancel result ) {
+          lg.info( "received result: {}", result );
+          fsm_.send_event( EuroviewEvent::send_quantity{100} );
+        } );
+  }
+
+  void send_quantity( int quantity ) {
+    drag_n_drop_.receive_quantity( quantity );
+  }
+
+  void ask_for_quantity() {
+    fsm_.send_event( EuroviewEvent::ask_quantity{} );
+  }
+
+  // ------------------------------------------------------------
+  // Members
+  // ------------------------------------------------------------
+  Color       rect_color_{Color::white()};
+  Entities    entities_{};
+  EuroviewFsm fsm_{
+      LC0_( open_quantity_window() ), //
+      LC_( send_quantity( _ ) )       //
+  };
+  EuroViewDragAndDrop drag_n_drop_{
+      &entities_,                //
+      LC0_( ask_for_quantity() ) //
+  };
 };
 
 EuropePlane g_europe_plane;

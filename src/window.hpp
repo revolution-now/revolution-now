@@ -17,6 +17,7 @@
 #include "enum.hpp"
 #include "errors.hpp"
 #include "id.hpp"
+#include "ui-enums.hpp"
 
 // c++ standard library
 #include <string_view>
@@ -53,6 +54,16 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
                                        bool allow_activation );
 
 /****************************************************************
+** Async Windows
+*****************************************************************/
+namespace async {
+
+void ok_cancel( std::string_view                   msg,
+                std::function<void( e_ok_cancel )> on_result );
+
+}
+
+/****************************************************************
 ** Simple Option-Select Window
 *****************************************************************/
 std::string select_box( std::string_view title,
@@ -82,11 +93,6 @@ Enum select_box_enum( std::string_view title ) {
 /****************************************************************
 ** Canned Option-Select Windows
 *****************************************************************/
-enum class e_( confirm, //
-               yes,     //
-               no       //
-);
-
 e_confirm yes_no( std::string_view title );
 
 /****************************************************************

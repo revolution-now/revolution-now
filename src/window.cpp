@@ -375,6 +375,19 @@ WindowManager::window& WindowManager::focused() {
 }
 
 /****************************************************************
+** Async Windows
+*****************************************************************/
+namespace async {
+
+void ok_cancel( std::string_view                   msg,
+                std::function<void( e_ok_cancel )> on_result ) {
+  lg.info( "ok_cancel msg: {}", msg );
+  on_result( e_ok_cancel::ok );
+}
+
+} // namespace async
+
+/****************************************************************
 ** High-level Methods
 *****************************************************************/
 string select_box( string_view title, Vec<Str> options ) {

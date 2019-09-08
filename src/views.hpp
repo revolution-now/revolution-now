@@ -17,6 +17,7 @@
 #include "nation.hpp"
 #include "tiles.hpp"
 #include "tx.hpp"
+#include "ui-enums.hpp"
 #include "ui.hpp"
 #include "unit.hpp"
 #include "utype.hpp"
@@ -434,8 +435,6 @@ public:
 private:
   align alignment_;
 };
-
-enum class e_( ok_cancel, ok, cancel );
 
 class OkCancelAdapterView : public VerticalArrayView {
 public:
