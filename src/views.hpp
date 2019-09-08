@@ -15,6 +15,7 @@
 // Revolution Now
 #include "color.hpp"
 #include "nation.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 #include "tx.hpp"
 #include "ui-enums.hpp"
@@ -267,6 +268,25 @@ public:
 protected:
   std::string msg_;
   Texture     tx_;
+};
+
+class TextView : public View {
+public:
+  TextView( std::string const& msg, TextMarkupInfo const& m_info,
+            TextReflowInfo const& r_info );
+
+  // Implement Object
+  void draw( Texture& tx, Coord coord ) const override;
+  // Implement Object
+  Delta delta() const override { return tx_.size(); }
+
+  // Implement ui::Object
+  void children_under_coord( Coord, ObjectSet& ) override {}
+
+  bool needs_padding() const override { return true; }
+
+protected:
+  Texture tx_;
 };
 
 class ButtonBaseView : public View {

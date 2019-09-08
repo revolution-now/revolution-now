@@ -188,6 +188,17 @@ void OneLineStringView::draw( Texture& tx, Coord coord ) const {
   copy_texture( this->tx_, tx, coord );
 }
 
+TextView::TextView( string const&         msg,
+                    TextMarkupInfo const& m_info,
+                    TextReflowInfo const& r_info ) {
+  tx_ = clone_texture( render_text_markup_reflow(
+      font::standard(), m_info, r_info, msg ) );
+}
+
+void TextView::draw( Texture& tx, Coord coord ) const {
+  copy_texture( this->tx_, tx, coord );
+}
+
 ButtonBaseView::ButtonBaseView( string label, e_type type )
   : type_( type ) {
   auto info = TextMarkupInfo{}; // Should be irrelevant
