@@ -11,6 +11,7 @@
 #include "commodity.hpp"
 
 // Revolution Now
+#include "enum.hpp"
 #include "fmt-helper.hpp"
 #include "gfx.hpp"
 #include "macros.hpp"
@@ -102,6 +103,10 @@ Opt<e_commodity> commodity_from_index( int index ) {
   if( index >= 0 && index < int( values<e_commodity>.size() ) )
     res = values<e_commodity>[index];
   return res;
+}
+
+char const* commodity_display_name( e_commodity type ) {
+  return enum_to_display_name( type );
 }
 
 void add_commodity_to_cargo( Commodity const& comm,

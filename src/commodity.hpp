@@ -56,6 +56,9 @@ enum class e_(commodity,
 // Index refers to the ordering in the enum above, starting at 0.
 Opt<e_commodity> commodity_from_index( int index );
 
+// Gets a nice display name; may contain spaces.
+char const* commodity_display_name( e_commodity type );
+
 /****************************************************************
 ** Commodity Labels
 *****************************************************************/

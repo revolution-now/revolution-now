@@ -10,3 +10,22 @@ TRANSLATION( e_music_player,
   ( midiseq,         "MIDI Sequencer"  ),
   ( ogg,             "OGG Player"      ),
   ( silent,          "Silent"          ))
+
+TRANSLATION( e_commodity,
+
+  ( food,            "food"            ),
+  ( sugar,           "sugar"           ),
+  ( tobacco,         "tobacco"         ),
+  ( cotton,          "cotton"          ),
+  ( fur,             "fur"             ),
+  ( lumber,          "lumber"          ),
+  ( ore,             "ore"             ),
+  ( silver,          "silver"          ),
+  ( horses,          "horses"          ),
+  ( rum,             "run"             ),
+  ( cigars,          "cigars"          ),
+  ( cloth,           "cloth"           ),
+  ( coats,           "coats"           ),
+  ( trade_goods,     "trade goods"     ),
+  ( tools,           "tools"           ),
+  ( muskets,         "muskets"         ))

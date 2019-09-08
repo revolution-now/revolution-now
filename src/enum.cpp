@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "commodity.hpp"
 #include "errors.hpp"
 #include "hash.hpp"
 #include "macros.hpp"
@@ -73,8 +74,9 @@ EnumNameMap& enum_display_names() {
     return EnumNameMap{EVAL( PP_MAP_COMMAS(
         ENUM_TO_STR_FUNC, //
         /*************************************************/
-        ui::e_confirm, //
-        e_music_player //
+        ui::e_confirm,  //
+        e_music_player, //
+        e_commodity     //
         /*************************************************/
         ) )};
   }();

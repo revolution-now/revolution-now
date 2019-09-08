@@ -1328,8 +1328,10 @@ class EuroViewDragAndDrop
   : public DragAndDrop<EuroViewDragAndDrop, DraggableObject_t,
                        DragSrc_t, DragDst_t, DragArc_t> {
 public:
-  EuroViewDragAndDrop( Entities const*  entities,
-                       function<void()> ask_for_quantity )
+  EuroViewDragAndDrop(
+      Entities const* entities,
+      function<void( e_commodity, std::string const& )>
+          ask_for_quantity )
     : entities_( entities ),
       stored_arc_{},
       ask_for_quantity_( std::move( ask_for_quantity ) ) {
@@ -1631,11 +1633,11 @@ public:
     CHECK( !stored_arc_.has_value() );
     switch_( drag_arc ) {
       case_( DragArc::market_to_cargo ) {
-        ask_for_quantity_();
+        ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
       }
       case_( DragArc::market_to_inport_ship ) {
-        ask_for_quantity_();
+        ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
       }
       default_switch( {
@@ -1806,9 +1808,10 @@ public:
 
   // This class cannot change the entities, but note that the en-
   // tities will be changed on each frame.
-  Entities const*  entities_;
-  Opt<DragArc_t>   stored_arc_;
-  function<void()> ask_for_quantity_;
+  Entities const* entities_;
+  Opt<DragArc_t>  stored_arc_;
+  function<void( e_commodity, std::string const& )>
+      ask_for_quantity_;
 };
 
 /****************************************************************
@@ -1819,10 +1822,12 @@ adt_rn_( EuroviewState,      //
          ( asking_quantity ) //
 );
 
-adt_rn_( EuroviewEvent,        //
-         ( ask_quantity ),     //
-         ( send_quantity,      //
-           ( int, quantity ) ) //
+adt_rn_( EuroviewEvent,           //
+         ( ask_quantity,          //
+           ( e_commodity, type ), //
+           ( string, verb ) ),    //
+         ( send_quantity,         //
+           ( int, quantity ) )    //
 );
 
 // clang-format off
@@ -1832,19 +1837,22 @@ fsm_transitions( Euroview,
 );
 // clang-format on
 
+using OpenQuantityWindowFunc =
+    std::function<void( e_commodity, string )>;
+using SendQuantityFunc = std::function<void( int )>;
+
 fsm_class( Euroview ) {
   fsm_init( EuroviewState::normal{} );
 
-  EuroviewFsm( function<void()>      open_quantity_window,
-               function<void( int )> send_quantity )
+  EuroviewFsm( OpenQuantityWindowFunc open_quantity_window,
+               SendQuantityFunc       send_quantity )
     : Parent{},
       open_quantity_window_( std::move( open_quantity_window ) ),
       send_quantity_( std::move( send_quantity ) ) {}
 
   fsm_transition( Euroview, //
                   normal, ask_quantity, ->, asking_quantity ) {
-    (void)event;
-    open_quantity_window_();
+    open_quantity_window_( event.type, event.verb );
     return {};
   }
 
@@ -1854,8 +1862,8 @@ fsm_class( Euroview ) {
     return {};
   }
 
-  std::function<void()>      open_quantity_window_;
-  std::function<void( int )> send_quantity_;
+  OpenQuantityWindowFunc open_quantity_window_;
+  SendQuantityFunc       send_quantity_;
 };
 
 FSM_DEFINE_FORMAT_RN_( Euroview );
@@ -1947,6 +1955,7 @@ struct EuropePlane : public Plane {
 
   void on_drag( input::e_mouse_button /*button*/, Coord origin,
                 Coord prev, Coord current ) override {
+    CHECK( fsm_.holds<EuroviewState::normal>() );
     if( drag_n_drop_.is_drag_in_progress() ) {
       drag_n_drop_.handle_on_drag( current );
     } else {
@@ -1969,6 +1978,7 @@ struct EuropePlane : public Plane {
 
   void on_drag_finished( input::e_mouse_button /*button*/,
                          Coord origin, Coord end ) override {
+    CHECK( fsm_.holds<EuroviewState::normal>() );
     if( drag_n_drop_.handle_on_drag_finished( origin, end ) )
       return;
   }
@@ -1976,8 +1986,14 @@ struct EuropePlane : public Plane {
   // ------------------------------------------------------------
   // Callbacks
   // ------------------------------------------------------------
-  void open_quantity_window() {
-    ui::ok_cancel( "hello", [this]( ui::e_ok_cancel result ) {
+  void open_quantity_window( e_commodity type,
+                             string_view verb ) {
+    CHECK( fsm_.holds<EuroviewState::normal>() );
+    auto text = fmt::format(
+        "What quantity of @[H]{}@[] would you like to "
+        "@[H]{}@[]?",
+        commodity_display_name( type ), verb );
+    ui::ok_cancel( text, [this]( ui::e_ok_cancel result ) {
       lg.info( "received result: {}", result );
       fsm_.send_event( EuroviewEvent::send_quantity{
           result == ui::e_ok_cancel::ok ? 100 : 0} );
@@ -1985,11 +2001,13 @@ struct EuropePlane : public Plane {
   }
 
   void send_quantity( int quantity ) {
+    CHECK( fsm_.holds<EuroviewState::asking_quantity>() );
     drag_n_drop_.receive_quantity( quantity );
   }
 
-  void ask_for_quantity() {
-    fsm_.send_event( EuroviewEvent::ask_quantity{} );
+  void ask_for_quantity( e_commodity type, string const& verb ) {
+    CHECK( fsm_.holds<EuroviewState::normal>() );
+    fsm_.send_event( EuroviewEvent::ask_quantity{type, verb} );
   }
 
   // ------------------------------------------------------------
@@ -1998,12 +2016,12 @@ struct EuropePlane : public Plane {
   Color       rect_color_{Color::white()};
   Entities    entities_{};
   EuroviewFsm fsm_{
-      LC0_( open_quantity_window() ), //
-      LC_( send_quantity( _ ) )       //
+      LC2_( open_quantity_window( _1, _2 ) ), //
+      LC_( send_quantity( _ ) )               //
   };
   EuroViewDragAndDrop drag_n_drop_{
-      &entities_,                //
-      LC0_( ask_for_quantity() ) //
+      &entities_,                        //
+      LC2_( ask_for_quantity( _1, _2 ) ) //
   };
 };
 
