@@ -23,6 +23,7 @@ let s:stems = [
   \ 'src/europort',
   \ 'src/fsm',
   \ 'src/dragdrop',
+  \ 'src/line-editor',
   \ 'src/europort-view',
 \]
 

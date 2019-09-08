@@ -347,9 +347,12 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   //        being processed if it starts causing issues.
   auto keymods = ::SDL_GetModState();
 
-  base->l_alt_down = ( keymods & ::KMOD_LALT );
-  base->r_alt_down = ( keymods & ::KMOD_RALT );
-  base->alt_down   = base->l_alt_down || base->r_alt_down;
+  base->l_alt_down  = ( keymods & ::KMOD_LALT );
+  base->r_alt_down  = ( keymods & ::KMOD_RALT );
+  base->alt_down    = base->l_alt_down || base->r_alt_down;
+  base->l_ctrl_down = ( keymods & ::KMOD_LCTRL );
+  base->r_ctrl_down = ( keymods & ::KMOD_RCTRL );
+  base->ctrl_down   = base->l_ctrl_down || base->r_ctrl_down;
   base->l_mouse_down =
       bool( g_mouse_buttons & SDL_BUTTON_LMASK );
   base->r_mouse_down =
