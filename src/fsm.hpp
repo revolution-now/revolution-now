@@ -19,6 +19,7 @@
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
+#include "util.hpp"
 
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
@@ -27,6 +28,16 @@
 #include <variant>
 
 namespace rn {
+
+namespace internal {
+
+void log_state( std::string const& child_name,
+                std::string const& logged_state );
+
+void log_event( std::string const& child_name,
+                std::string const& logged_event );
+
+} // namespace internal
 
 /****************************************************************
 ** Finite State Machine
@@ -106,7 +117,12 @@ public:
   // Process all pending events.
   void process_events() {
     while( auto maybe_event_ref = events_.front() ) {
+      internal::log_event(
+          demangled_typename<ChildT>(),
+          fmt::format( "{}", maybe_event_ref->get().event ) );
       process_event( maybe_event_ref->get() );
+      internal::log_state( demangled_typename<ChildT>(),
+                           fmt::format( "{}", state_ ) );
       events_.pop();
     }
   }

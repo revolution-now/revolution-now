@@ -20,6 +20,29 @@ namespace rn {
 
 namespace {} // namespace
 
+namespace internal {
+
+using tag_t = FmtTags<    //
+    FmtRemoveRnNamespace, //
+    FmtRemoveTemplateArgs //
+    >;
+
+void log_state( std::string const& child_name,
+                std::string const& logged_state ) {
+  auto tag = tag_t{};
+  lg.debug( "{} state: {}", tag( child_name ),
+            tag( logged_state ) );
+}
+
+void log_event( std::string const& child_name,
+                std::string const& logged_event ) {
+  auto tag = tag_t{};
+  lg.debug( "{} processing event: {}", tag( child_name ),
+            tag( logged_event ) );
+}
+
+} // namespace internal
+
 void test_fsm() {}
 
 } // namespace rn

@@ -82,15 +82,57 @@ using formatter_base = ::fmt::formatter<::std::string>;
 *****************************************************************/
 namespace rn {
 
-#define DEFINE_FMT_TAG( name ) \
-  template<typename T>         \
-  struct name {                \
-    CRef<T> ref;               \
-  };                           \
-  template<typename T>         \
+// Tag assembler.  Example:
+//
+//   auto tag = FmtTags<
+//     MyTag1,
+//     MyTag2
+//   >{};
+//
+//   fmt::format( "{}", tag( var ) );
+//
+// MyTag2 will be applied first to var, then MyTag1 will be ap-
+// plied to the result.
+//
+template<template<typename U> typename... Tags>
+struct FmtTags;
+
+template<template<typename U> typename Tag>
+struct FmtTags<Tag> {
+  template<typename T>
+  auto operator()( T &&o ) {
+    return Tag{std::forward<T>( o )};
+  }
+};
+
+template<template<typename U> typename FirstTag,
+         template<typename Z> typename... RestTags>
+struct FmtTags<FirstTag, RestTags...> {
+  template<typename T>
+  auto operator()( T &&o ) const {
+    return FirstTag{
+        FmtTags<RestTags...>{}( std::forward<T>( o ) )};
+  }
+};
+
+// In the struct below we capture the argument by value if it is
+// a temporary and then point to it with the ref. If not a tempo-
+// rary we just point to it with the ref. In either case, the ref
+// will always refer to the underlying value.
+#define DEFINE_FMT_TAG( name )                              \
+  template<typename T>                                      \
+  struct name {                                             \
+    name( T const &o ) : maybe_o{}, ref( o ) {}             \
+    name( T &&o )                                           \
+      : maybe_o( std::forward<T>( o ) ), ref( *maybe_o ) {} \
+    Opt<T>  maybe_o;                                        \
+    CRef<T> ref;                                            \
+  };                                                        \
+  template<typename T>                                      \
   name( T const & )->name<T>;
 
 DEFINE_FMT_TAG( FmtRemoveTemplateArgs );
+DEFINE_FMT_TAG( FmtRemoveRnNamespace );
 
 template<typename T>
 struct FmtJsonStyleList {
@@ -133,6 +175,25 @@ struct formatter<::rn::FmtRemoveTemplateArgs<T>>
         reduced.push_back( inner[i] );
     }
     return formatter_base::format( reduced, ctx );
+  }
+};
+
+// "rn::xyz" --> "xyz"
+// "rn::(anonymous namespace)::xyz" --> "xyz"
+template<typename T>
+struct formatter<::rn::FmtRemoveRnNamespace<T>>
+  : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::FmtRemoveRnNamespace<T> const &o,
+               FormatContext &                      ctx ) {
+    std::string with_namespaces =
+        fmt::format( "{}", o.ref.get() );
+    std::string_view sv = with_namespaces;
+    if( util::starts_with( sv, "::" ) ) sv.remove_prefix( 2 );
+    if( util::starts_with( sv, "rn::" ) ) sv.remove_prefix( 4 );
+    if( util::starts_with( sv, "(anonymous namespace)::" ) )
+      sv.remove_prefix( 23 );
+    return formatter_base::format( std::string( sv ), ctx );
   }
 };
 
