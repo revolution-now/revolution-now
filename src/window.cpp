@@ -442,10 +442,11 @@ void ok_cancel( std::string_view                   msg,
   async_window_builder(
       "Question",
       [=, on_result{std::move( on_result )}]( auto* win ) {
-        lg.info( "ok/cancel: {}", msg );
-        TextMarkupInfo m_info{/*normal=*/Color::banana(),
-                              /*highlight=*/Color::green()};
-        TextReflowInfo r_info{/*max_cols=*/40};
+        TextMarkupInfo m_info{
+            /*normal=*/config_ui.dialog_text.normal,
+            /*highlight=*/config_ui.dialog_text.highlighted};
+        TextReflowInfo r_info{
+            /*max_cols=*/config_ui.dialog_text.columns};
         auto text = make_unique<TextView>( string( msg ), m_info,
                                            r_info );
         auto ok_cancel_view = make_unique<OkCancelAdapterView>(
@@ -454,6 +455,36 @@ void ok_cancel( std::string_view                   msg,
                 e_ok_cancel result ) {
               lg.info( "selected: {}", result );
               on_result( result );
+              win->close_window();
+            } //
+        );
+        return ok_cancel_view;
+      } );
+}
+
+void text_input_box( string_view title, string_view msg,
+                     function<bool( string const& )> on_validate,
+                     function<void( Opt<string> )> on_result ) {
+  async_window_builder(
+      title,
+      [=, on_result{std::move( on_result )},
+       on_validate{std::move( on_validate )}]( auto* win ) {
+        TextMarkupInfo m_info{
+            /*normal=*/config_ui.dialog_text.normal,
+            /*highlight=*/config_ui.dialog_text.highlighted};
+        TextReflowInfo r_info{
+            /*max_cols=*/config_ui.dialog_text.columns};
+        auto text = make_unique<TextView>( string( msg ), m_info,
+                                           r_info );
+        auto ok_cancel_view = make_unique<OkCancelAdapterView>(
+            std::move( text ),
+            [win, on_result{std::move( on_result )}](
+                e_ok_cancel result ) {
+              lg.info( "selected: {}", result );
+              if( result == e_ok_cancel::ok )
+                on_result( "25" );
+              else
+                on_result( nullopt );
               win->close_window();
             } //
         );
@@ -709,9 +740,17 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  (void)select_box( "This is a test",
-                    {"option 1", "option 2", "option 3"} );
-  message_box( "This is the message." );
+  text_input_box(
+      /*title=*/"Line Editor Test",
+      /*msg=*/"Please enter a valid number between 1-100:",
+      /*on_validate=*/
+      []( auto const& to_validate ) {
+        return !to_validate.empty();
+      },
+      /*on_result=*/
+      []( auto result ) { lg.info( "result: {}", result ); } );
+  // ------------------------------------------------------------
+  frame_loop( true, L0( g_window_plane.wm.num_windows() == 0 ) );
 }
 
 } // namespace rn::ui

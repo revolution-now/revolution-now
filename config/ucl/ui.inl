@@ -16,16 +16,11 @@ CFG( ui,
     FLD( int, ui_padding )
   )
 
-  FLD( Str,    game_title )
-  FLD( double, game_version )
-  FLD( Coord,  coordinates )
-  OBJ( window_error,
-    FLD( Str,        title )
-    FLD( bool,       show )
-    FLD( rn::X,      x_size )
-    FLD( Vec<Coord>, positions )
+  OBJ( dialog_text,
+    FLD( Color, normal )
+    FLD( Color, highlighted )
+    FLD( int, columns )
   )
-  FLD( Vec<rn::W>, widths )
 
   OBJ( menus,
     FLD( rn::W,  first_menu_start )

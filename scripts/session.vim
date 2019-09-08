@@ -15,15 +15,15 @@ let s:stems = [
   \ 'src/text',
   \ 'src/frame',
   \ 'src/plane',
-  \ 'src/tiles',
   \ 'src/commodity',
-  \ 'src/cargo',
   \ 'src/ownership',
   \ 'src/player',
   \ 'src/europort',
   \ 'src/fsm',
   \ 'src/dragdrop',
   \ 'src/line-editor',
+  \ 'src/window',
+  \ 'src/views',
   \ 'src/europort-view',
 \]
 

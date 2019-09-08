@@ -5,27 +5,11 @@ window {
   ui_padding: 4
 }
 
-game_title:  "Revolution | Now"
-game_version: 2.1
-
-coordinates = { x: 5, y: 7 }
-
-window_error {
-    title: "An Error has Occurred"
-    x_size: 3
-    show:   off
-    positions: [
-      { x: 1, y: 2 }
-      { x: 2, y: 3 }
-      { x: 3, y: 4 }
-      { y: 7, x: 5 }
-      { x: 5, y: 6 }
-      { x: 6, y: 7 }
-      { x: 7, y: 8 }
-    ]
+dialog_text {
+  normal:      "#E4C890"
+  highlighted: "#FFFFFF"
+  columns:     40
 }
-
-widths = [5, 6, 7, 8]
 
 menus {
   first_menu_start: 8

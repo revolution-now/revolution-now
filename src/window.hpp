@@ -59,6 +59,11 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 void ok_cancel( std::string_view                   msg,
                 std::function<void( e_ok_cancel )> on_result );
 
+void text_input_box(
+    std::string_view title, std::string_view msg,
+    std::function<bool( std::string const& )> on_validate,
+    std::function<void( Opt<std::string> )>   on_result );
+
 /****************************************************************
 ** Simple Option-Select Window
 *****************************************************************/
