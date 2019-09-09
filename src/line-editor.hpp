@@ -63,7 +63,7 @@ public:
   // the start of the viewing window.
   int rel_pos( int p ) const { return p - start_pos_; }
 
-  // Will always return a string whose length is == width. This
+  // Will always return a string whose length is <= width. This
   // function cannot be const because in general it must be al-
   // lowed to mutate the LineEditorInputView's starting position
   // (state). The LineEditorInputView must maintain this state

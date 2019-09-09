@@ -37,6 +37,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/string.hpp"
 #include "base-util/variant.hpp"
 
 // Abseil
@@ -477,6 +478,7 @@ void text_input_box( string_view title, string_view msg,
         auto text = make_unique<TextView>( string( msg ), m_info,
                                            r_info );
         auto le_view = make_unique<LineEditorView>( 20 );
+        LineEditorView* p_le_view = le_view.get();
         Vec<UPtr<View>> view_vec;
         view_vec.emplace_back( std::move( text ) );
         view_vec.emplace_back( std::move( le_view ) );
@@ -486,14 +488,23 @@ void text_input_box( string_view title, string_view msg,
 
         auto ok_cancel_view = make_unique<OkCancelAdapterView>(
             std::move( text_and_edit ),
-            [win, on_result{std::move( on_result )}](
+            [win, p_le_view,
+             on_validate{std::move( on_validate )},
+             on_result{std::move( on_result )}](
                 e_ok_cancel result ) {
               lg.info( "selected: {}", result );
-              if( result == e_ok_cancel::ok )
-                on_result( "25" );
-              else
+              if( result == e_ok_cancel::ok ) {
+                auto const& proposed = p_le_view->text();
+                if( on_validate( proposed ) ) {
+                  on_result( proposed );
+                  win->close_window();
+                } else {
+                  lg.debug( "{} is invalid.", proposed );
+                }
+              } else {
                 on_result( nullopt );
-              win->close_window();
+                win->close_window();
+              }
             } //
         );
         return ok_cancel_view;
@@ -748,17 +759,26 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  text_input_box(
-      /*title=*/"Line Editor Test",
-      /*msg=*/"Please enter a valid number between 1-100:",
-      /*on_validate=*/
-      []( auto const& to_validate ) {
-        return !to_validate.empty();
-      },
-      /*on_result=*/
-      []( auto result ) { lg.info( "result: {}", result ); } );
-  // ------------------------------------------------------------
-  frame_loop( true, L0( g_window_plane.wm.num_windows() == 0 ) );
+  int magic = 0;
+  while( magic != 33 ) {
+    text_input_box(
+        /*title=*/"Line Editor Test",
+        /*msg=*/"Please enter a valid number between 1-100:",
+        /*on_validate=*/
+        []( auto const& to_validate ) {
+          return util::stoi( to_validate ).has_value();
+        },
+        /*on_result=*/
+        [&]( auto result ) {
+          lg.info( "result: {}", result );
+          if( result )
+            magic = util::stoi( result.value() ).value();
+        } );
+    // ------------------------------------------------------------
+    frame_loop( true,
+                L0( g_window_plane.wm.num_windows() == 0 ) );
+  }
+  lg.info( "exiting." );
 }
 
 } // namespace rn::ui

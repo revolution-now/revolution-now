@@ -138,14 +138,12 @@ string LineEditorInputView::render( int           abs_cursor_pos,
   }
   ASSERT_INVARIANTS
 
-  // Now  render. First take all characters in the buffer after
-  // the starting position, then cut  it  down  to a maximum of
-  // the  width of the window, padding with spaces if necessary
-  // since we must always return a string with precisely
-  // `width` characters.
+  // Now render. First take all characters in the buffer after
+  // the starting position, then cut it down to a maximum of the
+  // width of the window.
   string out( buffer.begin() + start_pos_, buffer.end() );
-  out.resize( width_, ' ' );
-  CHECK( out.size() == size_t( width_ ) );
+  if( int( out.size() ) > width_ ) out.resize( width_ );
+  CHECK( out.size() <= size_t( width_ ) );
   return out;
 }
 } // namespace rn
