@@ -175,8 +175,8 @@ protected:
 
 private:
   struct EventWithSource {
-    EventT                             event;
-    std::experimental::source_location location;
+    EventT    event;
+    SourceLoc location;
   };
 
   ChildT const& child() const {

@@ -33,9 +33,6 @@
 #include <variant>
 #include <vector>
 
-// C++ experimental
-#include <experimental/source_location>
-
 using Clock_t    = ::std::chrono::system_clock;
 using Time_t     = decltype( Clock_t::now() );
 using Duration_t = ::std::chrono::nanoseconds;
@@ -87,8 +84,6 @@ using NodeMap = ::absl::node_hash_map<K, V>;
 template<typename F, typename S>
 using Pair = std::pair<F, S>;
 
-using SourceLoc = std::experimental::source_location;
-
 namespace ranges {
 inline namespace v3 {
 namespace view {}
@@ -97,5 +92,22 @@ namespace view {}
 
 namespace rv = ::ranges::view;
 namespace rg = ::ranges;
+
+// source_location (coming in C++20)
+#if __has_include( <experimental/source_location>)
+#  include <experimental/source_location>
+using SourceLoc = std::experimental::source_location;
+#else
+// Dummy to allow compilation to proceed; can be deleted after
+// all compilers supported support C++20.
+struct SourceLoc {
+  int         line() const { return 0; }
+  int         column() const { return 0; }
+  char const* file_name() const { return "unknown"; }
+  char const* function_name() const { return "unknown"; }
+
+  static SourceLoc current() { return SourceLoc{}; }
+};
+#endif
 
 namespace rn {} // namespace rn
