@@ -329,8 +329,10 @@ void SpriteView::draw( Texture& tx, Coord coord ) const {
   render_sprite( tx, tile_, coord, 0, 0 );
 }
 
-LineEditorView::LineEditorView( int chars_wide )
-  : line_editor_{},
+LineEditorView::LineEditorView( int          chars_wide,
+                                OnChangeFunc on_change )
+  : on_change_{std::move( on_change )},
+    line_editor_{},
     input_view_{chars_wide},
     background_{},
     current_rendering_{},
@@ -344,6 +346,9 @@ LineEditorView::LineEditorView( int chars_wide )
   render_rect( background_, Color::wood(),
                background_.rect().edges_removed() );
 }
+
+LineEditorView::LineEditorView( int chars_wide )
+  : LineEditorView( chars_wide, []( auto const& ) {} ) {}
 
 // Implement Object
 void LineEditorView::draw( Texture& tx, Coord coord ) const {
@@ -379,6 +384,7 @@ bool LineEditorView::on_key( input::key_event_t const& event ) {
   if( !line_editor_.input( event ) ) return false;
   current_rendering_ = input_view_.render(
       line_editor_.pos(), line_editor_.buffer() );
+  on_change_( current_rendering_ );
   return true;
 }
 
@@ -493,13 +499,19 @@ void ButtonView::blink( bool enabled ) {
 constexpr Delta ok_cancel_button_size_blocks{2_h, 8_w};
 
 OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
-                            ButtonView::OnClickFunc on_cancel )
-  : ok_( make_unique<ButtonView>( "OK",
-                                  ok_cancel_button_size_blocks,
-                                  std::move( on_ok ) ) ),
-    cancel_( make_unique<ButtonView>(
-        "Cancel", ok_cancel_button_size_blocks,
-        std::move( on_cancel ) ) ) {}
+                            ButtonView::OnClickFunc on_cancel ) {
+  auto ok_button = make_unique<ButtonView>(
+      "OK", ok_cancel_button_size_blocks, std::move( on_ok ) );
+  auto cancel_button = make_unique<ButtonView>(
+      "Cancel", ok_cancel_button_size_blocks,
+      std::move( on_cancel ) );
+
+  ok_ref_     = ok_button.get();
+  cancel_ref_ = cancel_button.get();
+
+  ok_     = std::move( ok_button );
+  cancel_ = std::move( cancel_button );
+}
 
 Coord OkCancelView::pos_of( int idx ) const {
   if( idx == 0 ) return Coord{};

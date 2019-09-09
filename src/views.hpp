@@ -355,7 +355,10 @@ private:
 
 class LineEditorView : public View {
 public:
+  using OnChangeFunc = std::function<void( std::string const& )>;
+
   LineEditorView( int chars_wide );
+  LineEditorView( int chars_wide, OnChangeFunc on_change );
 
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
@@ -372,7 +375,12 @@ public:
 
   std::string const& text() const { return current_rendering_; }
 
+  void set_on_change_fn( OnChangeFunc on_change ) {
+    on_change_ = std::move( on_change );
+  }
+
 private:
+  OnChangeFunc        on_change_;
   LineEditor          line_editor_;
   LineEditorInputView input_view_;
   Texture             background_;
@@ -439,9 +447,15 @@ public:
   // Implement CompositeView
   void notify_children_updated() override {}
 
+  ButtonView* ok_button() { return ok_ref_; }
+  ButtonView* cancel_button() { return cancel_ref_; }
+
 private:
   UPtr<View> ok_;
   UPtr<View> cancel_;
+  // Cache these to avoid dynamic_casts.
+  ButtonView* ok_ref_;
+  ButtonView* cancel_ref_;
 };
 
 // VerticalArrayView: a view that wraps a list of views and dis-

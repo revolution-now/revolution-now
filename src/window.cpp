@@ -457,36 +457,51 @@ void async_window_builder(
   win->center_window();
 }
 
+// FIXME: should be function_ref.
+using GetOkCancelSubjectViewFunc = function<UPtr<View>(
+    function<void( bool )> /*enable_ok_button*/ //
+    )>;
+
 template<typename ResultT>
 void ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
-    function<bool( ResultT const& )>        validator,
-    function<void( Opt<ResultT> )>          on_result,
-    tl::function_ref<UPtr<View>( Window* )> get_view_fn ) {
+    function<bool( ResultT const& )> validator,
+    // on_result must be copyable.
+    function<void( Opt<ResultT> )> on_result,
+    GetOkCancelSubjectViewFunc     get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
-    auto view           = get_view_fn( win );
-    auto ok_cancel_view = make_unique<OkCancelAdapterView>(
-        std::move( view ),
-        [win, get_result{std::move( get_result )},
-         validator{std::move( validator )},
-         on_result{std::move( on_result )}](
-            e_ok_cancel result ) {
-          lg.info( "selected: {}", result );
-          if( result == e_ok_cancel::ok ) {
-            decltype( auto ) proposed = get_result();
-            if( validator( proposed ) ) {
-              on_result( proposed );
-              win->close_window();
-            } else {
-              lg.debug( "{} is invalid.", proposed );
-            }
-          } else {
-            on_result( nullopt );
+    auto ok_cancel_view = make_unique<OkCancelView>(
+        /*on_ok=*/
+        [win, on_result, validator{std::move( validator )},
+         get_result{std::move( get_result )}] {
+          lg.info( "selected ok." );
+          decltype( auto ) proposed = get_result();
+          if( validator( proposed ) ) {
+            on_result( proposed );
             win->close_window();
+          } else {
+            lg.debug( "{} is invalid.", proposed );
           }
-        } //
+        }, /*on_cancel=*/
+        [win, on_result] {
+          lg.info( "selected cancel." );
+          on_result( nullopt );
+          win->close_window();
+        } );
+    auto* p_ok_button      = ok_cancel_view->ok_button();
+    auto  enable_ok_button = [p_ok_button]( bool enable ) {
+      p_ok_button->enable( enable );
+    };
+    auto subject_view = get_view_fn(
+        /*enable_ok_button=*/std::move( enable_ok_button ) //
     );
-    return ok_cancel_view;
+    Vec<UPtr<View>> view_vec;
+    view_vec.emplace_back( std::move( subject_view ) );
+    view_vec.emplace_back( std::move( ok_cancel_view ) );
+    auto view = make_unique<VerticalArrayView>(
+        std::move( view_vec ),
+        VerticalArrayView::align::center );
+    return view;
   } );
 }
 
@@ -495,7 +510,7 @@ void ok_cancel( string_view                   msg,
   auto on_ok_cancel_result =
       [on_result{std::move( on_result )}]( Opt<int> o ) {
         if( o.has_value() ) return on_result( e_ok_cancel::ok );
-        return on_result( e_ok_cancel::cancel );
+        on_result( e_ok_cancel::cancel );
       };
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -505,15 +520,21 @@ void ok_cancel( string_view                   msg,
   auto view =
       make_unique<TextView>( string( msg ), m_info, r_info );
 
+  // We can capture by reference here because the function will
+  // be called before this scope exits.
+  GetOkCancelSubjectViewFunc get_view_fn =
+      [&]( function<void( bool )> /*enable_ok_button*/ ) {
+        return std::move( view );
+      };
+
   // Use <int> for lack of anything better.
   ok_cancel_window_builder<int>(
       /*title=*/"Question",
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
       /*on_result=*/std::move( on_ok_cancel_result ),
-      [view{std::move( view )}]( auto* ) mutable {
-        return UPtr<View>( std::move( view ) );
-      } );
+      /*get_view_fn=*/std::move( get_view_fn ) //
+  );
 }
 
 void text_input_box( string_view title, string_view msg,
@@ -529,22 +550,40 @@ void text_input_box( string_view title, string_view msg,
   auto le_view =
       make_unique<LineEditorView>( /*chars_wide=*/20 );
   LineEditorView* p_le_view = le_view.get();
-  Vec<UPtr<View>> view_vec;
-  view_vec.emplace_back( std::move( text ) );
-  view_vec.emplace_back( std::move( le_view ) );
-  auto text_and_edit = make_unique<VerticalArrayView>(
-      std::move( view_vec ), VerticalArrayView::align::center );
-  UPtr<View> view( std::move( text_and_edit ) );
+
+  // We can capture by reference here because the function will
+  // be called before this scope exits.
+  GetOkCancelSubjectViewFunc get_view_fn{
+      [&]( function<void( bool )> enable_ok_button ) {
+        LineEditorView::OnChangeFunc on_change =
+            [validator,
+             enable_ok_button{std::move( enable_ok_button )}](
+                string const& new_str ) {
+              if( validator( new_str ) )
+                enable_ok_button( true );
+              else
+                enable_ok_button( false );
+            };
+        // Make sure initial state of button is consistent with
+        // initial validation result.
+        on_change( le_view->text() );
+        le_view->set_on_change_fn( std::move( on_change ) );
+        Vec<UPtr<View>> view_vec;
+        view_vec.emplace_back( std::move( text ) );
+        view_vec.emplace_back( std::move( le_view ) );
+        return make_unique<VerticalArrayView>(
+            std::move( view_vec ),
+            VerticalArrayView::align::center );
+      }};
 
   ok_cancel_window_builder<string>(
       /*title=*/title,
       /*get_result=*/
       [p_le_view]() -> string { return p_le_view->text(); },
-      /*validator=*/std::move( validator ),
+      /*validator=*/validator, // must be copied.
       /*on_result=*/std::move( on_result ),
-      [view{std::move( view )}]( auto* ) mutable {
-        return UPtr<View>( std::move( view ) );
-      } );
+      /*get_view_fun=*/std::move( get_view_fn ) //
+  );
 }
 
 void int_input_box( std::string_view title, std::string_view msg,
