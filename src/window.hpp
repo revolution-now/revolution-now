@@ -54,6 +54,17 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
                                        bool allow_activation );
 
 /****************************************************************
+** Validators
+*****************************************************************/
+// These should probably be moved elsewhere.
+
+using ValidatorFunc = std::function<bool( std::string const& )>;
+
+// Makes a validator that enforces that the input be parsable
+// into an integer and that (optionally) it is within [min, max].
+ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max );
+
+/****************************************************************
 ** Windows
 *****************************************************************/
 void ok_cancel( std::string_view                   msg,
@@ -61,8 +72,8 @@ void ok_cancel( std::string_view                   msg,
 
 void text_input_box(
     std::string_view title, std::string_view msg,
-    std::function<bool( std::string const& )> on_validate,
-    std::function<void( Opt<std::string> )>   on_result );
+    ValidatorFunc                           validator,
+    std::function<void( Opt<std::string> )> on_result );
 
 /****************************************************************
 ** Simple Option-Select Window

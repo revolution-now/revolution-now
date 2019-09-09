@@ -40,6 +40,9 @@
 #include "base-util/string.hpp"
 #include "base-util/variant.hpp"
 
+// function_ref
+#include "function_ref.hpp"
+
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
@@ -426,11 +429,26 @@ Window& WindowManager::focused() {
 }
 
 /****************************************************************
+** Validators
+*****************************************************************/
+// These should probably be moved elsewhere.
+
+ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max ) {
+  return [min, max]( std::string const& proposed ) {
+    auto maybe_int = util::stoi( proposed );
+    if( !maybe_int.has_value() ) return false;
+    if( min.has_value() && *maybe_int < *min ) return false;
+    if( max.has_value() && *maybe_int > *max ) return false;
+    return true;
+  };
+}
+
+/****************************************************************
 ** Windows
 *****************************************************************/
 void async_window_builder(
-    std::string_view                title,
-    function<UPtr<View>( Window* )> get_view_fn ) {
+    std::string_view                        title,
+    tl::function_ref<UPtr<View>( Window* )> get_view_fn ) {
   auto* win  = g_window_plane.wm.add_window( string( title ) );
   auto  view = get_view_fn( win );
   autopad( view, /*use_fancy=*/false );
@@ -438,38 +456,71 @@ void async_window_builder(
   win->center_window();
 }
 
+template<typename ResultT>
+void ok_cancel_window_builder(
+    string_view title, function<ResultT()> get_result,
+    function<bool( ResultT const& )>        validator,
+    function<void( Opt<ResultT> )>          on_result,
+    tl::function_ref<UPtr<View>( Window* )> get_view_fn ) {
+  async_window_builder( title, [=]( auto* win ) {
+    auto view           = get_view_fn( win );
+    auto ok_cancel_view = make_unique<OkCancelAdapterView>(
+        std::move( view ),
+        [win, get_result{std::move( get_result )},
+         validator{std::move( validator )},
+         on_result{std::move( on_result )}](
+            e_ok_cancel result ) {
+          lg.info( "selected: {}", result );
+          if( result == e_ok_cancel::ok ) {
+            decltype( auto ) proposed = get_result();
+            if( validator( proposed ) ) {
+              on_result( proposed );
+              win->close_window();
+            } else {
+              lg.debug( "{} is invalid.", proposed );
+            }
+          } else {
+            on_result( nullopt );
+            win->close_window();
+          }
+        } //
+    );
+    return ok_cancel_view;
+  } );
+}
+
 void ok_cancel( std::string_view                   msg,
                 std::function<void( e_ok_cancel )> on_result ) {
-  async_window_builder(
-      "Question",
-      [=, on_result{std::move( on_result )}]( auto* win ) {
-        TextMarkupInfo m_info{
-            /*normal=*/config_ui.dialog_text.normal,
-            /*highlight=*/config_ui.dialog_text.highlighted};
-        TextReflowInfo r_info{
-            /*max_cols=*/config_ui.dialog_text.columns};
-        auto text = make_unique<TextView>( string( msg ), m_info,
-                                           r_info );
-        auto ok_cancel_view = make_unique<OkCancelAdapterView>(
-            std::move( text ),
-            [win, on_result{std::move( on_result )}](
-                e_ok_cancel result ) {
-              lg.info( "selected: {}", result );
-              on_result( result );
-              win->close_window();
-            } //
-        );
-        return ok_cancel_view;
+  auto on_ok_cancel_result =
+      [on_result{std::move( on_result )}]( Opt<int> o ) {
+        if( o.has_value() ) return on_result( e_ok_cancel::ok );
+        return on_result( e_ok_cancel::cancel );
+      };
+  TextMarkupInfo m_info{
+      /*normal=*/config_ui.dialog_text.normal,
+      /*highlight=*/config_ui.dialog_text.highlighted};
+  TextReflowInfo r_info{
+      /*max_cols=*/config_ui.dialog_text.columns};
+  auto view =
+      make_unique<TextView>( string( msg ), m_info, r_info );
+
+  // Use <int> for lack of anything better.
+  ok_cancel_window_builder<int>(
+      /*title=*/"Question",
+      /*get_result=*/L0( 0 ),
+      /*validator=*/L( _ == 0 ), // always true.
+      /*on_result=*/std::move( on_ok_cancel_result ),
+      [view{std::move( view )}]( auto* ) mutable {
+        return UPtr<View>( std::move( view ) );
       } );
 }
 
 void text_input_box( string_view title, string_view msg,
-                     function<bool( string const& )> on_validate,
+                     function<bool( string const& )> validator,
                      function<void( Opt<string> )> on_result ) {
   async_window_builder(
-      title,
-      [=, on_result{std::move( on_result )},
-       on_validate{std::move( on_validate )}]( auto* win ) {
+      title, [=, on_result{std::move( on_result )},
+              validator{std::move( validator )}]( auto* win ) {
         TextMarkupInfo m_info{
             /*normal=*/config_ui.dialog_text.normal,
             /*highlight=*/config_ui.dialog_text.highlighted};
@@ -488,14 +539,13 @@ void text_input_box( string_view title, string_view msg,
 
         auto ok_cancel_view = make_unique<OkCancelAdapterView>(
             std::move( text_and_edit ),
-            [win, p_le_view,
-             on_validate{std::move( on_validate )},
+            [win, p_le_view, validator{std::move( validator )},
              on_result{std::move( on_result )}](
                 e_ok_cancel result ) {
               lg.info( "selected: {}", result );
               if( result == e_ok_cancel::ok ) {
                 auto const& proposed = p_le_view->text();
-                if( on_validate( proposed ) ) {
+                if( validator( proposed ) ) {
                   on_result( proposed );
                   win->close_window();
                 } else {
@@ -759,25 +809,24 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  int magic = 0;
-  while( magic != 33 ) {
+  // int magic = 0;
+  // while( magic != 33 ) {
+  ok_cancel( "Hello", L_( lg.info( "result: {}", _ ) ) );
+#if 0
     text_input_box(
         /*title=*/"Line Editor Test",
         /*msg=*/"Please enter a valid number between 1-100:",
-        /*on_validate=*/
-        []( auto const& to_validate ) {
-          return util::stoi( to_validate ).has_value();
-        },
+        /*validator=*/make_int_validator( 1, 100 ),
         /*on_result=*/
         [&]( auto result ) {
           lg.info( "result: {}", result );
           if( result )
             magic = util::stoi( result.value() ).value();
         } );
-    // ------------------------------------------------------------
-    frame_loop( true,
-                L0( g_window_plane.wm.num_windows() == 0 ) );
-  }
+#endif
+  // ------------------------------------------------------------
+  frame_loop( true, L0( g_window_plane.wm.num_windows() == 0 ) );
+  //}
   lg.info( "exiting." );
 }
 
