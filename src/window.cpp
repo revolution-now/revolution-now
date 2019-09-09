@@ -37,6 +37,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/optional.hpp"
 #include "base-util/string.hpp"
 #include "base-util/variant.hpp"
 
@@ -546,12 +547,15 @@ void text_input_box( string_view title, string_view msg,
       } );
 }
 
-void int_input_box(
-    std::string_view title, std::string_view msg,
-    std::function<void( Opt<std::string> )> on_result,
-    Opt<int> min, Opt<int> max ) {
-  text_input_box( title, msg, make_int_validator( min, max ),
-                  std::move( on_result ) );
+void int_input_box( std::string_view title, std::string_view msg,
+                    std::function<void( Opt<int> )> on_result,
+                    Opt<int> min, Opt<int> max ) {
+  using namespace util::infix;
+  text_input_box(
+      title, msg, make_int_validator( min, max ),
+      [on_result{std::move( on_result )}]( Opt<string> result ) {
+        on_result( result | fmap_join( L( util::stoi( _ ) ) ) );
+      } );
 }
 
 /****************************************************************
@@ -808,10 +812,9 @@ void window_test() {
         /*title=*/"Line Editor Test",
         /*msg=*/"Please enter a valid number between 1-100:",
         /*on_result=*/
-        [&]( Opt<string> result ) {
+        [&]( Opt<int> result ) {
           lg.info( "result: {}", result );
-          if( result )
-            magic = util::stoi( result.value() ).value();
+          if( result ) magic = result.value();
         },
         /*min=*/1,
         /*max=*/100 );

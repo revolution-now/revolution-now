@@ -106,12 +106,12 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   linker_dont_discard_me();
-  // run_all_init_routines( e_log_level::debug,
-  //                       e_init_routine::europort_view );
-  run_all_init_routines( /*level=*/nullopt );
-  // game();
+  run_all_init_routines( e_log_level::debug,
+                         e_init_routine::europort_view );
+  // run_all_init_routines( [>level=<]nullopt );
+  game();
 
-  ui::window_test();
+  // ui::window_test();
 
   // test_fsm();
 

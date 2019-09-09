@@ -1991,13 +1991,20 @@ struct EuropePlane : public Plane {
     CHECK( fsm_.holds<EuroviewState::normal>() );
     auto text = fmt::format(
         "What quantity of @[H]{}@[] would you like to "
-        "@[H]{}@[]?",
+        "{}? (0-100):",
         commodity_display_name( type ), verb );
-    ui::ok_cancel( text, [this]( ui::e_ok_cancel result ) {
-      lg.info( "received result: {}", result );
-      fsm_.send_event( EuroviewEvent::send_quantity{
-          result == ui::e_ok_cancel::ok ? 100 : 0} );
-    } );
+
+    ui::int_input_box(
+        /*title=*/"Choose Quantity",
+        /*msg=*/text,
+        /*on_result=*/
+        [&]( Opt<int> result ) {
+          lg.info( "received quantity: {}", result );
+          fsm_.send_event( EuroviewEvent::send_quantity{
+              result.value_or( 0 )} );
+        },
+        /*min=*/0,
+        /*max=*/100 );
   }
 
   void send_quantity( int quantity ) {
