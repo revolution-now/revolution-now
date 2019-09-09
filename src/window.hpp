@@ -75,6 +75,11 @@ void text_input_box(
     ValidatorFunc                           validator,
     std::function<void( Opt<std::string> )> on_result );
 
+void int_input_box(
+    std::string_view title, std::string_view msg,
+    std::function<void( Opt<std::string> )> on_result,
+    Opt<int> min = std::nullopt, Opt<int> max = std::nullopt );
+
 /****************************************************************
 ** Simple Option-Select Window
 *****************************************************************/

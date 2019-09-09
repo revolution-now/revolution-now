@@ -489,8 +489,8 @@ void ok_cancel_window_builder(
   } );
 }
 
-void ok_cancel( std::string_view                   msg,
-                std::function<void( e_ok_cancel )> on_result ) {
+void ok_cancel( string_view                   msg,
+                function<void( e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
       [on_result{std::move( on_result )}]( Opt<int> o ) {
         if( o.has_value() ) return on_result( e_ok_cancel::ok );
@@ -516,49 +516,42 @@ void ok_cancel( std::string_view                   msg,
 }
 
 void text_input_box( string_view title, string_view msg,
-                     function<bool( string const& )> validator,
+                     ValidatorFunc                 validator,
                      function<void( Opt<string> )> on_result ) {
-  async_window_builder(
-      title, [=, on_result{std::move( on_result )},
-              validator{std::move( validator )}]( auto* win ) {
-        TextMarkupInfo m_info{
-            /*normal=*/config_ui.dialog_text.normal,
-            /*highlight=*/config_ui.dialog_text.highlighted};
-        TextReflowInfo r_info{
-            /*max_cols=*/config_ui.dialog_text.columns};
-        auto text = make_unique<TextView>( string( msg ), m_info,
-                                           r_info );
-        auto le_view = make_unique<LineEditorView>( 20 );
-        LineEditorView* p_le_view = le_view.get();
-        Vec<UPtr<View>> view_vec;
-        view_vec.emplace_back( std::move( text ) );
-        view_vec.emplace_back( std::move( le_view ) );
-        auto text_and_edit = make_unique<VerticalArrayView>(
-            std::move( view_vec ),
-            VerticalArrayView::align::center );
+  TextMarkupInfo m_info{
+      /*normal=*/config_ui.dialog_text.normal,
+      /*highlight=*/config_ui.dialog_text.highlighted};
+  TextReflowInfo r_info{
+      /*max_cols=*/config_ui.dialog_text.columns};
+  auto text =
+      make_unique<TextView>( string( msg ), m_info, r_info );
+  auto le_view =
+      make_unique<LineEditorView>( /*chars_wide=*/20 );
+  LineEditorView* p_le_view = le_view.get();
+  Vec<UPtr<View>> view_vec;
+  view_vec.emplace_back( std::move( text ) );
+  view_vec.emplace_back( std::move( le_view ) );
+  auto text_and_edit = make_unique<VerticalArrayView>(
+      std::move( view_vec ), VerticalArrayView::align::center );
+  UPtr<View> view( std::move( text_and_edit ) );
 
-        auto ok_cancel_view = make_unique<OkCancelAdapterView>(
-            std::move( text_and_edit ),
-            [win, p_le_view, validator{std::move( validator )},
-             on_result{std::move( on_result )}](
-                e_ok_cancel result ) {
-              lg.info( "selected: {}", result );
-              if( result == e_ok_cancel::ok ) {
-                auto const& proposed = p_le_view->text();
-                if( validator( proposed ) ) {
-                  on_result( proposed );
-                  win->close_window();
-                } else {
-                  lg.debug( "{} is invalid.", proposed );
-                }
-              } else {
-                on_result( nullopt );
-                win->close_window();
-              }
-            } //
-        );
-        return ok_cancel_view;
+  ok_cancel_window_builder<string>(
+      /*title=*/title,
+      /*get_result=*/
+      [p_le_view]() -> string { return p_le_view->text(); },
+      /*validator=*/std::move( validator ),
+      /*on_result=*/std::move( on_result ),
+      [view{std::move( view )}]( auto* ) mutable {
+        return UPtr<View>( std::move( view ) );
       } );
+}
+
+void int_input_box(
+    std::string_view title, std::string_view msg,
+    std::function<void( Opt<std::string> )> on_result,
+    Opt<int> min, Opt<int> max ) {
+  text_input_box( title, msg, make_int_validator( min, max ),
+                  std::move( on_result ) );
 }
 
 /****************************************************************
@@ -809,24 +802,24 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 ** Testing Only
 *****************************************************************/
 void window_test() {
-  // int magic = 0;
-  // while( magic != 33 ) {
-  ok_cancel( "Hello", L_( lg.info( "result: {}", _ ) ) );
-#if 0
-    text_input_box(
+  int magic = 0;
+  while( magic != 33 ) {
+    int_input_box(
         /*title=*/"Line Editor Test",
         /*msg=*/"Please enter a valid number between 1-100:",
-        /*validator=*/make_int_validator( 1, 100 ),
         /*on_result=*/
-        [&]( auto result ) {
+        [&]( Opt<string> result ) {
           lg.info( "result: {}", result );
           if( result )
             magic = util::stoi( result.value() ).value();
-        } );
-#endif
-  // ------------------------------------------------------------
-  frame_loop( true, L0( g_window_plane.wm.num_windows() == 0 ) );
-  //}
+        },
+        /*min=*/1,
+        /*max=*/100 );
+
+    // ------------------------------------------------------------
+    frame_loop( true,
+                L0( g_window_plane.wm.num_windows() == 0 ) );
+  }
   lg.info( "exiting." );
 }
 
