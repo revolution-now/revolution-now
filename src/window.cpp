@@ -457,7 +457,6 @@ void async_window_builder(
   win->center_window();
 }
 
-// FIXME: should be function_ref.
 using GetOkCancelSubjectViewFunc = function<UPtr<View>(
     function<void( bool )> /*enable_ok_button*/ //
     )>;

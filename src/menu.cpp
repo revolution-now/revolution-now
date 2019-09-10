@@ -1165,7 +1165,8 @@ struct MenuPlane : public Plane {
           auto menu = opened_menu();
           // `is_alt` decides whether the pressed key is an alt,
           // not whether it is being held down while another key
-          // is pressed ( the latter would be keyevent.alt_down).
+          // is pressed ( the latter would be
+          // keyevent.mod.alt_down).
           bool is_alt = ( key_event.keycode == ::SDLK_LALT ||
                           key_event.keycode == ::SDLK_RALT );
           if( !menu.has_value() &&
@@ -1200,7 +1201,7 @@ struct MenuPlane : public Plane {
           }
           // Check for an alt-shortcut key to open a menu.
           if( key_event.change == input::e_key_change::down &&
-              key_event.alt_down ) {
+              key_event.mod.alt_down ) {
             for( auto menu : visible_menus() ) {
               auto const& menu_desc = g_menus[menu];
               if( key_event.keycode ==
