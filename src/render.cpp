@@ -695,7 +695,8 @@ struct ViewportPlane : public Plane {
       return Plane::e_accept_drag::yes;
     return Plane::e_accept_drag::no;
   }
-  void on_drag( input::e_mouse_button /*unused*/,
+  void on_drag( input::mod_keys const& /*unused*/,
+                input::e_mouse_button /*unused*/,
                 Coord /*unused*/, Coord prev,
                 Coord current ) override {
     viewport().stop_auto_panning();

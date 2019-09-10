@@ -259,11 +259,13 @@ Plane::DragInfo Plane::can_drag(
   return e_accept_drag::no;
 }
 
-void Plane::on_drag( input::e_mouse_button /*unused*/,
+void Plane::on_drag( input::mod_keys const& /*unused*/,
+                     input::e_mouse_button /*unused*/,
                      Coord /*unused*/, Coord /*unused*/,
                      Coord /*unused*/ ) {}
 
-void Plane::on_drag_finished( input::e_mouse_button /*unused*/,
+void Plane::on_drag_finished( input::mod_keys const& /*unused*/,
+                              input::e_mouse_button /*unused*/,
                               Coord /*unused*/,
                               Coord /*unused*/ ) {}
 
@@ -343,7 +345,7 @@ bool send_input_to_planes( input::event_t const& event ) {
                 ? project_drag_event( *drag_event,
                                       *g_drag_state.projection )
                 : *drag_event;
-        plane.on_drag( prj_drag_event.button,
+        plane.on_drag( prj_drag_event.mod, prj_drag_event.button,
                        prj_drag_event.state.origin,
                        prj_drag_event.prev, //
                        prj_drag_event.pos );
@@ -354,9 +356,9 @@ bool send_input_to_planes( input::event_t const& event ) {
         if( prj_drag_event.state.phase == +e_drag_phase::end ) {
           lg.debug( "finished `{}` drag event",
                     *g_drag_state.plane );
-          plane.on_drag_finished( prj_drag_event.button,
-                                  prj_drag_event.state.origin,
-                                  prj_drag_event.pos );
+          plane.on_drag_finished(
+              prj_drag_event.mod, prj_drag_event.button,
+              prj_drag_event.state.origin, prj_drag_event.pos );
           g_drag_state.reset();
         }
       }
@@ -431,7 +433,8 @@ bool send_input_to_planes( input::event_t const& event ) {
             // Sanity check that we copied properly.
             DCHECK( prj_drag_event.state.phase ==
                     drag_event->state.phase );
-            plane->on_drag( prj_drag_event.button,
+            plane->on_drag( prj_drag_event.mod,
+                            prj_drag_event.button,
                             prj_drag_event.state.origin,
                             prj_drag_event.prev, //
                             prj_drag_event.pos );

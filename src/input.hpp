@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "fmt-helper.hpp"
 #include "macros.hpp"
 
 // SDL
@@ -42,6 +43,8 @@ struct mod_keys {
   bool r_ctrl_down;
   bool ctrl_down; // either ctrl down
 };
+
+mod_keys query_mod_keys();
 
 // All event types must inherit either directly or indirectly
 // from this type.
@@ -191,3 +194,5 @@ bool is_any_key_down();
 bool is_q_down();
 
 } // namespace rn::input
+
+DEFINE_FORMAT_( ::rn::input::mod_keys, "<mod_keys>" );

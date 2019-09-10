@@ -23,6 +23,7 @@
 #include "plane.hpp"
 #include "text.hpp"
 #include "tx.hpp"
+#include "variant.hpp"
 
 // base-util
 #include "base-util/variant.hpp"
@@ -38,7 +39,8 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
           ( in_progress,                            //
             ( DragSrcT, src ),                      //
             ( Opt<DragDstT>, dst ),                 //
-            ( Texture, tx ) ),                      //
+            ( Texture, tx ),                        //
+            ( input::mod_keys, mod_keys ) ),        //
           ( waiting_to_execute,                     //
             ( DragArcT, arc ),                      //
             ( Coord, mouse_released ),              //
@@ -47,7 +49,8 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
             ( DragArcT, arc ),                      //
             ( Coord, drag_start ),                  //
             ( Coord, mouse_released ),              //
-            ( Texture, tx ) ),                      //
+            ( Texture, tx ),                        //
+            ( input::mod_keys, mod_keys ) ),        //
           ( rubber_banding,                         //
             ( Coord, current ),                     //
             ( Coord, dest ),                        //
@@ -72,7 +75,8 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
             ( DragArcT, arc ),                      //
             ( Coord, drag_start ),                  //
             ( Coord, mouse_released ),              //
-            ( Texture, tx ) ),                      //
+            ( Texture, tx ),                        //
+            ( input::mod_keys, mod_keys ) ),        //
           ( complete,                               //
             ( DragArcT, arc ),                      //
             ( Coord, mouse_released ),              //
@@ -104,6 +108,7 @@ fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
         /*src=*/std::move( event.src ), //
         /*dst=*/std::move( event.dst ), //
         /*tx=*/std::move( event.tx ),   //
+        /*mod_keys=*/{},                //
     };
   }
 
@@ -114,7 +119,8 @@ fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
         /*arc=*/std::move( event.arc ),          //
         /*drag_start=*/event.drag_start,         //
         /*mouse_released=*/event.mouse_released, //
-        /*tx=*/std::move( event.tx )             //
+        /*tx=*/std::move( event.tx ),            //
+        /*mod_keys=*/event.mod_keys,             //
     };
   }
 
@@ -196,6 +202,18 @@ public:
     }
   }
 
+  bool handle_input( input::event_t const& event ) {
+    if( auto in_progress = fsm_.template holds<InProgress_t>();
+        in_progress ) {
+      auto* base =
+          variant_base_ptr<input::event_base_t>( event );
+      in_progress->get().mod_keys = base->mod;
+    }
+    // Currently, us handling some input doesn't require us
+    // blocking anyone else from handling it.
+    return false;
+  }
+
   void handle_draw( Texture& tx ) const {
     switch_( fsm_.state().get() ) {
       case_( InProgress_t ) {
@@ -220,6 +238,14 @@ public:
             auto indicator_pos =
                 mouse_pos - status_tx.size() / Scale{1};
             copy_texture( status_tx, tx, indicator_pos );
+            if( val.mod_keys.shf_down || val.mod_keys.alt_down ||
+                val.mod_keys.ctrl_down ) {
+              auto const& mod_tx =
+                  render_text( "?", Color::green() );
+              auto mod_pos = mouse_pos;
+              mod_pos.y -= mod_tx.size().h;
+              copy_texture( mod_tx, tx, mod_pos );
+            }
             break;
           }
         }
@@ -266,32 +292,38 @@ public:
     return Plane::e_accept_drag::yes;
   }
 
-  void handle_on_drag( Coord current ) {
+  void handle_on_drag( input::mod_keys const& mod,
+                       Coord                  current ) {
     if( auto in_progress = fsm_.template holds<InProgress_t>();
         in_progress ) {
-      in_progress->get().dst = child().drag_dst( current );
+      in_progress->get().dst      = child().drag_dst( current );
+      in_progress->get().mod_keys = mod;
     }
   }
 
-  bool handle_on_drag_finished( Coord const& drag_start,
-                                Coord const& drag_end ) {
+  bool handle_on_drag_finished(
+      input::mod_keys const& /*unused*/, Coord const& drag_start,
+      Coord const& drag_end ) {
     if( auto in_progress_ref =
             fsm_.template holds<InProgress_t>();
         in_progress_ref ) {
       auto& in_progress = in_progress_ref->get();
       if( in_progress.dst ) {
+        // Must save these before we change state.
+        auto mod_keys = in_progress.mod_keys;
         auto maybe_drag_arc =
             drag_arc( in_progress.src, *in_progress.dst );
         if( maybe_drag_arc &&
             child().can_perform_drag( *maybe_drag_arc ) ) {
           fsm_.send_event( Finalize_t{
-              /*arc=*/*maybe_drag_arc, //
-              /*drag_start=*/drag_start,
-              /*mouse_released=*/drag_end,
-              /*tx=*/std::move( in_progress.tx ) //
+              /*arc=*/*maybe_drag_arc,            //
+              /*drag_start=*/drag_start,          //
+              /*mouse_released=*/drag_end,        //
+              /*tx=*/std::move( in_progress.tx ), //
+              /*mod_keys=*/mod_keys,              //
           } );
           fsm_.process_events();
-          child().finalize_drag( *maybe_drag_arc );
+          child().finalize_drag( mod_keys, *maybe_drag_arc );
           return true;
         }
       }
@@ -357,7 +389,8 @@ public:
   }
 
   // Default implementation; accepts all drags unchanged.
-  void finalize_drag( DragArcT const& drag_arc ) {
+  void finalize_drag( input::mod_keys const& /*unused*/,
+                      DragArcT const& drag_arc ) {
     accept_finalized_drag( drag_arc );
   }
 

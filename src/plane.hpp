@@ -115,11 +115,13 @@ struct Plane : public util::non_copy_non_move {
   // For drag events from [first, last). This will only be called
   // if the can_drag returned true at the start of the drag
   // action.
-  void virtual on_drag( input::e_mouse_button button,
+  void virtual on_drag( input::mod_keys const& mod,
+                        input::e_mouse_button  button,
                         Coord origin, Coord prev,
                         Coord current );
 
-  void virtual on_drag_finished( input::e_mouse_button button,
+  void virtual on_drag_finished( input::mod_keys const& mod,
+                                 input::e_mouse_button  button,
                                  Coord origin, Coord end );
 
   // This handler function does not take the e_menu_item as a pa-

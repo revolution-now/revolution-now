@@ -1629,8 +1629,14 @@ public:
     }
   }
 
-  void finalize_drag( DragArc_t const& drag_arc ) {
+  void finalize_drag( input::mod_keys const& mod,
+                      DragArc_t const&       drag_arc ) {
     CHECK( !stored_arc_.has_value() );
+    if( !mod.shf_down ) {
+      accept_finalized_drag( drag_arc );
+      return;
+    }
+    // Shift is down.
     switch_( drag_arc ) {
       case_( DragArc::market_to_cargo ) {
         ask_for_quantity_( val.src.type, "buy" );
@@ -1893,6 +1899,7 @@ struct EuropePlane : public Plane {
   }
 
   bool input( input::event_t const& event ) override {
+    if( drag_n_drop_.handle_input( event ) ) return true;
     return matcher_( event ) {
       case_( input::unknown_event_t ) result_ false;
       case_( input::quit_event_t ) result_ false;
@@ -1953,11 +1960,12 @@ struct EuropePlane : public Plane {
     return e_accept_drag::no;
   }
 
-  void on_drag( input::e_mouse_button /*button*/, Coord origin,
+  void on_drag( input::mod_keys const& mod,
+                input::e_mouse_button /*button*/, Coord origin,
                 Coord prev, Coord current ) override {
     CHECK( fsm_.holds<EuroviewState::normal>() );
     if( drag_n_drop_.is_drag_in_progress() ) {
-      drag_n_drop_.handle_on_drag( current );
+      drag_n_drop_.handle_on_drag( mod, current );
     } else {
       auto delta = ( current - prev );
       delta.h *= 2_sy;
@@ -1976,10 +1984,12 @@ struct EuropePlane : public Plane {
     }
   }
 
-  void on_drag_finished( input::e_mouse_button /*button*/,
+  void on_drag_finished( input::mod_keys const& mod,
+                         input::e_mouse_button /*button*/,
                          Coord origin, Coord end ) override {
     CHECK( fsm_.holds<EuroviewState::normal>() );
-    if( drag_n_drop_.handle_on_drag_finished( origin, end ) )
+    if( drag_n_drop_.handle_on_drag_finished( mod, origin,
+                                              end ) )
       return;
   }
 

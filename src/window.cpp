@@ -113,8 +113,9 @@ public:
 
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord                 origin );
-  void on_drag( input::e_mouse_button button, Coord origin,
-                Coord prev, Coord current );
+  void            on_drag( input::mod_keys const& mod,
+                           input::e_mouse_button button, Coord origin,
+                           Coord prev, Coord current );
 
   auto active_windows() {
     return rv::all( windows_ ) //
@@ -190,10 +191,11 @@ struct WindowPlane : public Plane {
     CHECK( wm.num_windows() != 0 );
     return wm.can_drag( button, origin );
   }
-  void on_drag( input::e_mouse_button button, Coord origin,
+  void on_drag( input::mod_keys const& mod,
+                input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current ) override {
     CHECK( wm.num_windows() != 0 );
-    wm.on_drag( button, origin, prev, current );
+    wm.on_drag( mod, button, origin, prev, current );
   }
   ui::WindowManager wm;
 };
@@ -408,7 +410,8 @@ Plane::DragInfo WindowManager::can_drag(
   return Plane::e_accept_drag::swallow;
 }
 
-void WindowManager::on_drag( input::e_mouse_button button,
+void WindowManager::on_drag( input::mod_keys const& /*unused*/,
+                             input::e_mouse_button button,
                              Coord /*unused*/, Coord prev,
                              Coord current ) {
   if( button == input::e_mouse_button::l ) {

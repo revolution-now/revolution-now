@@ -343,22 +343,11 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   // chosen.
   auto* base = variant_base_ptr<event_base_t>( event );
   CHECK( base );
+
   // FIXME: need to use key state that is current with this event
   //        being processed if it starts causing issues.
-  auto keymods = ::SDL_GetModState();
+  base->mod = query_mod_keys();
 
-  base->mod.l_shf_down = ( keymods & ::KMOD_LSHIFT );
-  base->mod.r_shf_down = ( keymods & ::KMOD_RSHIFT );
-  base->mod.shf_down =
-      base->mod.l_shf_down || base->mod.r_shf_down;
-  base->mod.l_alt_down = ( keymods & ::KMOD_LALT );
-  base->mod.r_alt_down = ( keymods & ::KMOD_RALT );
-  base->mod.alt_down =
-      base->mod.l_alt_down || base->mod.r_alt_down;
-  base->mod.l_ctrl_down = ( keymods & ::KMOD_LCTRL );
-  base->mod.r_ctrl_down = ( keymods & ::KMOD_RCTRL );
-  base->mod.ctrl_down =
-      base->mod.l_ctrl_down || base->mod.r_ctrl_down;
   base->l_mouse_down =
       bool( g_mouse_buttons & SDL_BUTTON_LMASK );
   base->r_mouse_down =
@@ -368,6 +357,24 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 }
 
 } // namespace
+
+mod_keys query_mod_keys() {
+  auto     keymods = ::SDL_GetModState();
+  mod_keys mod;
+
+  mod.l_shf_down  = ( keymods & ::KMOD_LSHIFT );
+  mod.r_shf_down  = ( keymods & ::KMOD_RSHIFT );
+  mod.l_alt_down  = ( keymods & ::KMOD_LALT );
+  mod.r_alt_down  = ( keymods & ::KMOD_RALT );
+  mod.l_ctrl_down = ( keymods & ::KMOD_LCTRL );
+  mod.r_ctrl_down = ( keymods & ::KMOD_RCTRL );
+
+  mod.shf_down  = mod.l_shf_down || mod.r_shf_down;
+  mod.alt_down  = mod.l_alt_down || mod.r_alt_down;
+  mod.ctrl_down = mod.l_ctrl_down || mod.r_ctrl_down;
+
+  return mod;
+}
 
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
