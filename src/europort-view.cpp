@@ -1282,7 +1282,8 @@ adt_rn_( DragDst,                      //
          ( inport ),                   //
          ( inport_ship,                //
            ( UnitId, id ) ),           //
-         ( market )                    //
+         ( market,                     //
+           ( Opt<int>, quantity ) )    //
 );
 
 adt_rn_( DragArc,                           //
@@ -1498,7 +1499,7 @@ public:
     if( entities_->market_commodities.has_value() ) {
       if( coord.is_inside(
               entities_->market_commodities->bounds() ) )
-        return DragDst::market{};
+        return DragDst::market{/*quantity=*/nullopt};
     }
     return res;
   }
@@ -1646,6 +1647,23 @@ public:
         ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
       }
+      case_( DragArc::cargo_to_market ) {
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        CHECK( is_unit_in_port( ship ) );
+        ASSIGN_CHECK_OPT(
+            commodity_ref,
+            unit_from_id( ship )
+                .cargo()
+                .template slot_holds_cargo_type<Commodity>(
+                    val.src.slot._ ) );
+        ask_for_quantity_( commodity_ref.get().type, "sell" );
+        stored_arc_ = drag_arc;
+      }
+
+      // cargo_to_inport_ship
+
       default_switch( {
         accept_finalized_drag( drag_arc ); //
       } );
@@ -1670,6 +1688,12 @@ public:
       case_( DragArc::market_to_inport_ship ) {
         auto new_val         = val;
         new_val.src.quantity = quantity;
+        DragArc_t new_arc    = DragArc_t{new_val};
+        accept_finalized_drag( new_arc );
+      }
+      case_( DragArc::cargo_to_market ) {
+        auto new_val         = val;
+        new_val.dst.quantity = quantity;
         DragArc_t new_arc    = DragArc_t{new_val};
         accept_finalized_drag( new_arc );
       }
@@ -1806,7 +1830,24 @@ public:
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
+        ASSIGN_CHECK_OPT(
+            commodity_ref,
+            unit_from_id( ship )
+                .cargo()
+                .template slot_holds_cargo_type<Commodity>(
+                    val.src.slot._ ) );
+        auto quantity_wants_to_sell = val.dst.quantity.value_or(
+            commodity_ref.get().quantity );
+        int amount_to_sell =
+            std::min( quantity_wants_to_sell,
+                      commodity_ref.get().quantity );
+        Commodity new_comm = commodity_ref.get();
+        new_comm.quantity -= amount_to_sell;
         rm_commodity_from_cargo( ship, val.src.slot._ );
+        if( new_comm.quantity > 0 )
+          add_commodity_to_cargo( new_comm, ship,
+                                  /*slot=*/val.src.slot._,
+                                  /*try_other_slots=*/false );
       }
       switch_exhaustive;
     }
