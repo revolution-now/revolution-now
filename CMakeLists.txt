@@ -52,6 +52,7 @@ set( CMAKE_CXX_STANDARD 17 )
 # cause it will cause trouble; it may be enabled from the pre-
 # vious CMake run because we do enable tests us.
 set( BUILD_TESTING OFF )
+set( FUNCTION_REF_ENABLE_TESTS OFF )
 
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )

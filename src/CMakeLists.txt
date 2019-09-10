@@ -28,7 +28,7 @@ target_link_libraries(
     better-enums::better-enums
     expected-lite
     fmt::fmt
-    function_ref
+    function-ref
     midifile
     observer-ptr::observer-ptr
     range-v3
