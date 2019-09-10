@@ -1257,20 +1257,21 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-adt_rn_( DragSrc,                      //
-         ( dock,                       //
-           ( UnitId, id ) ),           //
-         ( cargo,                      //
-           ( CargoSlotIndex, slot ) ), //
-         ( outbound,                   //
-           ( UnitId, id ) ),           //
-         ( inbound,                    //
-           ( UnitId, id ) ),           //
-         ( inport,                     //
-           ( UnitId, id ) ),           //
-         ( market,                     //
-           ( e_commodity, type ),      //
-           ( int, quantity ) )         //
+adt_rn_( DragSrc,                    //
+         ( dock,                     //
+           ( UnitId, id ) ),         //
+         ( cargo,                    //
+           ( CargoSlotIndex, slot ), //
+           ( Opt<int>, quantity ) ), //
+         ( outbound,                 //
+           ( UnitId, id ) ),         //
+         ( inbound,                  //
+           ( UnitId, id ) ),         //
+         ( inport,                   //
+           ( UnitId, id ) ),         //
+         ( market,                   //
+           ( e_commodity, type ),    //
+           ( Opt<int>, quantity ) )  //
 );
 
 adt_rn_( DragDst,                      //
@@ -1282,8 +1283,7 @@ adt_rn_( DragDst,                      //
          ( inport ),                   //
          ( inport_ship,                //
            ( UnitId, id ) ),           //
-         ( market,                     //
-           ( Opt<int>, quantity ) )    //
+         ( market )                    //
 );
 
 adt_rn_( DragArc,                           //
@@ -1345,12 +1345,12 @@ public:
       case_( DragSrc::dock, id ) {
         return DraggableObject::unit{id};
       }
-      case_( DragSrc::cargo, slot ) {
+      case_( DragSrc::cargo ) {
         // Not all cargo slots must have an item in them, but in
         // this case the slot should otherwise the DragSrc object
         // should never have been created.
         ASSIGN_CHECK_OPT( object,
-                          draggable_in_cargo_slot( slot ) );
+                          draggable_in_cargo_slot( val.slot ) );
         return object;
       }
       case_( DragSrc::outbound, id ) {
@@ -1398,8 +1398,8 @@ public:
                     active_cargo.slot_idx_from_coord( _ ) ) ) //
               | fmap_join( draggable_in_cargo_slot ) ) {
         res = DragSrc::cargo{
-            /*slot=*/*active_cargo.slot_idx_from_coord(
-                coord ) //
+            /*slot=*/*active_cargo.slot_idx_from_coord( coord ),
+            /*quantity=*/nullopt //
         };
       }
     }
@@ -1439,8 +1439,8 @@ public:
                   ->commodity_under_cursor( coord );
           maybe_type ) {
         res = DragSrc::market{
-            /*type=*/*maybe_type,                  //
-            /*quantity=*/k_default_market_quantity //
+            /*type=*/*maybe_type, //
+            /*quantity=*/nullopt  //
         };
       }
     }
@@ -1499,7 +1499,7 @@ public:
     if( entities_->market_commodities.has_value() ) {
       if( coord.is_inside(
               entities_->market_commodities->bounds() ) )
-        return DragDst::market{/*quantity=*/nullopt};
+        return DragDst::market{};
     }
     return res;
   }
@@ -1693,7 +1693,7 @@ public:
       }
       case_( DragArc::cargo_to_market ) {
         auto new_val         = val;
-        new_val.dst.quantity = quantity;
+        new_val.src.quantity = quantity;
         DragArc_t new_arc    = DragArc_t{new_val};
         accept_finalized_drag( new_arc );
       }
@@ -1793,8 +1793,9 @@ public:
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
         auto comm = Commodity{
-            /*type=*/src.type,        //
-            /*quantity=*/src.quantity //
+            /*type=*/src.type, //
+            /*quantity=*/src.quantity.value_or(
+                k_default_market_quantity ) //
         };
         comm.quantity = std::min(
             comm.quantity,
@@ -1811,8 +1812,9 @@ public:
       }
       case_( DragArc::market_to_inport_ship, src, dst ) {
         auto comm = Commodity{
-            /*type=*/src.type,        //
-            /*quantity=*/src.quantity //
+            /*type=*/src.type, //
+            /*quantity=*/src.quantity.value_or(
+                k_default_market_quantity ) //
         };
         comm.quantity = std::min(
             comm.quantity,
@@ -1836,7 +1838,7 @@ public:
                 .cargo()
                 .template slot_holds_cargo_type<Commodity>(
                     val.src.slot._ ) );
-        auto quantity_wants_to_sell = val.dst.quantity.value_or(
+        auto quantity_wants_to_sell = val.src.quantity.value_or(
             commodity_ref.get().quantity );
         int amount_to_sell =
             std::min( quantity_wants_to_sell,
