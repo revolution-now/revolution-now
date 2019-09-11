@@ -321,9 +321,10 @@ public:
         auto box_origin =
             coord.with_new_origin( bounds().upper_left() )
                 .rounded_to_multiple_to_minus_inf( sprite_scale )
-                .as_if_origin_were( bounds().upper_left() );
+                .as_if_origin_were( bounds().upper_left() ) +
+            k_rendered_commodity_offset;
         auto box = Rect::from( box_origin,
-                               Delta{1_w, 1_h} * sprite_scale );
+                               Delta{1_w, 1_h} * Scale{16} );
 
         res = pair{*maybe_type, box};
       }
@@ -405,9 +406,10 @@ public:
         auto box_origin =
             coord.with_new_origin( bounds().upper_left() )
                 .rounded_to_multiple_to_minus_inf( box_scale )
-                .as_if_origin_were( bounds().upper_left() );
+                .as_if_origin_were( bounds().upper_left() ) +
+            k_rendered_commodity_offset;
         auto box = Rect::from( box_origin,
-                               Delta{1_w, 1_h} * box_scale );
+                               Delta{1_w, 1_h} * Scale{16} );
 
         res = pair{*maybe_slot, box};
       }
@@ -1152,10 +1154,10 @@ public:
               coord.with_new_origin( bounds().upper_left() )
                   .rounded_to_multiple_to_minus_inf(
                       ActiveCargoBox::box_scale )
-                  .as_if_origin_were( bounds().upper_left() );
-          auto box = Rect::from(
-              box_origin,
-              Delta{1_w, 1_h} * ActiveCargoBox::box_scale );
+                  .as_if_origin_were( bounds().upper_left() ) +
+              k_rendered_commodity_offset;
+          auto box = Rect::from( box_origin,
+                                 Delta{1_w, 1_h} * Scale{16} );
 
           res = pair{*maybe_slot, box};
         }
