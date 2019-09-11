@@ -238,6 +238,10 @@ Coord Coord::with_new_origin( Coord new_origin ) const {
   return Coord{} + ( ( *this ) - new_origin );
 }
 
+Coord Coord::as_if_origin_were( Coord const& coord ) const {
+  return ( *this ) + ( coord - Coord{} );
+}
+
 bool Coord::is_adjacent_to( Coord other ) const {
   auto direction = direction_to( other );
   if( direction.has_value() &&

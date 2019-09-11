@@ -320,8 +320,8 @@ public:
       if( maybe_type ) {
         auto box_origin =
             coord.with_new_origin( bounds().upper_left() )
-                .rounded_to_multiple_to_minus_inf(
-                    sprite_scale );
+                .rounded_to_multiple_to_minus_inf( sprite_scale )
+                .as_if_origin_were( bounds().upper_left() );
         auto box = Rect::from( box_origin,
                                Delta{1_w, 1_h} * sprite_scale );
 
@@ -404,7 +404,8 @@ public:
       if( maybe_slot ) {
         auto box_origin =
             coord.with_new_origin( bounds().upper_left() )
-                .rounded_to_multiple_to_minus_inf( box_scale );
+                .rounded_to_multiple_to_minus_inf( box_scale )
+                .as_if_origin_were( bounds().upper_left() );
         auto box = Rect::from( box_origin,
                                Delta{1_w, 1_h} * box_scale );
 
@@ -1150,7 +1151,8 @@ public:
           auto box_origin =
               coord.with_new_origin( bounds().upper_left() )
                   .rounded_to_multiple_to_minus_inf(
-                      ActiveCargoBox::box_scale );
+                      ActiveCargoBox::box_scale )
+                  .as_if_origin_were( bounds().upper_left() );
           auto box = Rect::from(
               box_origin,
               Delta{1_w, 1_h} * ActiveCargoBox::box_scale );

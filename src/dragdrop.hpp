@@ -40,17 +40,20 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
             ( DragSrcT, src ),                      //
             ( Opt<DragDstT>, dst ),                 //
             ( Texture, tx ),                        //
-            ( input::mod_keys, mod_keys ) ),        //
+            ( input::mod_keys, mod_keys ),          //
+            ( Delta, click_offset ) ),              //
           ( waiting_to_execute,                     //
             ( DragArcT, arc ),                      //
             ( Coord, mouse_released ),              //
-            ( Texture, tx ) ),                      //
+            ( Texture, tx ),                        //
+            ( Delta, click_offset ) ),              //
           ( finalizing,                             //
             ( DragArcT, arc ),                      //
             ( Coord, drag_start ),                  //
             ( Coord, mouse_released ),              //
             ( Texture, tx ),                        //
-            ( input::mod_keys, mod_keys ) ),        //
+            ( input::mod_keys, mod_keys ),          //
+            ( Delta, click_offset ) ),              //
           ( rubber_banding,                         //
             ( Coord, current ),                     //
             ( Coord, dest ),                        //
@@ -64,7 +67,8 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
           ( start,                                  //
             ( DragSrcT, src ),                      //
             ( Opt<DragDstT>, dst ),                 //
-            ( Texture, tx ) ),                      //
+            ( Texture, tx ),                        //
+            ( Delta, click_offset ) ),              //
           ( rubber_band,                            //
             ( Coord, current ),                     //
             ( Coord, dest ),                        //
@@ -76,11 +80,13 @@ adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
             ( Coord, drag_start ),                  //
             ( Coord, mouse_released ),              //
             ( Texture, tx ),                        //
-            ( input::mod_keys, mod_keys ) ),        //
+            ( input::mod_keys, mod_keys ),          //
+            ( Delta, click_offset ) ),              //
           ( complete,                               //
             ( DragArcT, arc ),                      //
             ( Coord, mouse_released ),              //
-            ( Texture, tx ) ),                      //
+            ( Texture, tx ),                        //
+            ( Delta, click_offset ) ),              //
           ( reset )                                 //
 );
 
@@ -105,10 +111,11 @@ fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
                     Drag, //
                     none, start, ->, in_progress ) {
     return {
-        /*src=*/std::move( event.src ), //
-        /*dst=*/std::move( event.dst ), //
-        /*tx=*/std::move( event.tx ),   //
-        /*mod_keys=*/{},                //
+        /*src=*/std::move( event.src ),      //
+        /*dst=*/std::move( event.dst ),      //
+        /*tx=*/std::move( event.tx ),        //
+        /*mod_keys=*/{},                     //
+        /*click_offset=*/event.click_offset, //
     };
   }
 
@@ -121,6 +128,7 @@ fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
         /*mouse_released=*/event.mouse_released, //
         /*tx=*/std::move( event.tx ),            //
         /*mod_keys=*/event.mod_keys,             //
+        /*click_offset=*/event.click_offset,     //
     };
   }
 
@@ -130,7 +138,8 @@ fsm_class_T( template( DragSrcT, DragDstT, DragArcT ), Drag ) {
     return {
         /*arc=*/std::move( event.arc ),          //
         /*mouse_released=*/event.mouse_released, //
-        /*tx=*/std::move( event.tx )             //
+        /*tx=*/std::move( event.tx ),            //
+        /*click_offset=*/event.click_offset,     //
     };
   }
 
@@ -219,7 +228,8 @@ public:
       case_( InProgress_t ) {
         auto mouse_pos = input::current_mouse_position();
         copy_texture( val.tx, tx,
-                      mouse_pos - val.tx.size() / Scale{2} );
+                      mouse_pos - val.tx.size() / Scale{2} -
+                          val.click_offset );
         // Now draw the indicator.
         auto indicator = drag_status_indicator( val );
         switch( indicator ) {
@@ -229,7 +239,8 @@ public:
                 render_text( "X", Color::red() );
             auto indicator_pos =
                 mouse_pos - status_tx.size() / Scale{1};
-            copy_texture( status_tx, tx, indicator_pos );
+            copy_texture( status_tx, tx,
+                          indicator_pos - val.click_offset );
             break;
           }
           case e_drag_status_indicator::good: {
@@ -237,14 +248,16 @@ public:
                 render_text( "+", Color::green() );
             auto indicator_pos =
                 mouse_pos - status_tx.size() / Scale{1};
-            copy_texture( status_tx, tx, indicator_pos );
+            copy_texture( status_tx, tx,
+                          indicator_pos - val.click_offset );
             if( val.mod_keys.shf_down || val.mod_keys.alt_down ||
                 val.mod_keys.ctrl_down ) {
               auto const& mod_tx =
                   render_text( "?", Color::green() );
               auto mod_pos = mouse_pos;
               mod_pos.y -= mod_tx.size().h;
-              copy_texture( mod_tx, tx, mod_pos );
+              copy_texture( mod_tx, tx,
+                            mod_pos - val.click_offset );
             }
             break;
           }
@@ -262,14 +275,16 @@ public:
       }
       case_( None_t ) break_;
       case_( WaitingToExecute_t ) {
-        copy_texture(
-            val.tx, tx,
-            val.mouse_released - val.tx.size() / Scale{2} );
+        copy_texture( val.tx, tx,
+                      val.mouse_released -
+                          val.tx.size() / Scale{2} -
+                          val.click_offset );
       }
       case_( Finalizing_t ) {
-        copy_texture(
-            val.tx, tx,
-            val.mouse_released - val.tx.size() / Scale{2} );
+        copy_texture( val.tx, tx,
+                      val.mouse_released -
+                          val.tx.size() / Scale{2} -
+                          val.click_offset );
       }
       switch_exhaustive;
     }
@@ -292,6 +307,8 @@ public:
         /*src=*/maybe_drag_src_info->src,
         /*dst=*/std::nullopt,
         /*tx=*/child().draw_dragged_item( draggable ),
+        /*click_offset=*/origin -
+            maybe_drag_src_info->rect.center(),
     } );
     fsm_.process_events();
     return Plane::e_accept_drag::yes;
@@ -321,11 +338,12 @@ public:
         if( maybe_drag_arc &&
             child().can_perform_drag( *maybe_drag_arc ) ) {
           fsm_.send_event( Finalize_t{
-              /*arc=*/*maybe_drag_arc,            //
-              /*drag_start=*/drag_start,          //
-              /*mouse_released=*/drag_end,        //
-              /*tx=*/std::move( in_progress.tx ), //
-              /*mod_keys=*/mod_keys,              //
+              /*arc=*/*maybe_drag_arc,                   //
+              /*drag_start=*/drag_start,                 //
+              /*mouse_released=*/drag_end,               //
+              /*tx=*/std::move( in_progress.tx ),        //
+              /*mod_keys=*/mod_keys,                     //
+              /*click_offset=*/in_progress.click_offset, //
           } );
           fsm_.process_events();
           child().finalize_drag( mod_keys, *maybe_drag_arc );
@@ -334,8 +352,8 @@ public:
       }
 
       fsm_.send_event( RubberBand_t{
-          /*current=*/drag_end,
-          /*dest=*/drag_start,
+          /*current=*/drag_end - in_progress.click_offset,
+          /*dest=*/drag_start - in_progress.click_offset,
           /*src=*/in_progress.src,
           /*percent=*/0.0,
           /*tx=*/std::move( in_progress.tx ),
@@ -354,8 +372,9 @@ public:
     if( !maybe_drag_arc ) {
       // Caller has told us to cancel the drag.
       fsm_.send_event( RubberBand_t{
-          /*current=*/finalized.mouse_released,
-          /*dest=*/finalized.drag_start,
+          /*current=*/finalized.mouse_released -
+              finalized.click_offset,
+          /*dest=*/finalized.drag_start - finalized.click_offset,
           /*src=*/drag_src_from_arc( finalized.arc ),
           /*percent=*/0.0,
           /*tx=*/std::move( finalized.tx ),
@@ -367,7 +386,8 @@ public:
     fsm_.send_event( Complete_t{
         /*arc=*/*maybe_drag_arc,                     //
         /*mouse_released=*/finalized.mouse_released, //
-        /*tx=*/std::move( finalized.tx )             //
+        /*tx=*/std::move( finalized.tx ),            //
+        /*click_offset=*/finalized.click_offset,     //
     } );
     fsm_.process_events();
   }

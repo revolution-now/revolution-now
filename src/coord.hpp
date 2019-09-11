@@ -212,6 +212,9 @@ struct ND Coord {
   // Returns this coordinate with respect to a new origin.
   Coord with_new_origin( Coord new_origin ) const;
 
+  // If current origin were coord instead of 0,0.
+  Coord as_if_origin_were( Coord const& coord ) const;
+
   bool is_adjacent_to( Coord other ) const;
 
   bool is_inside( Rect const& rect ) const;
