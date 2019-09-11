@@ -1661,9 +1661,25 @@ public:
         ask_for_quantity_( commodity_ref.get().type, "sell" );
         stored_arc_ = drag_arc;
       }
-
-      // cargo_to_inport_ship
-
+      case_( DragArc::cargo_to_inport_ship ) {
+        ASSIGN_CHECK_OPT(
+            ship, entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+        CHECK( is_unit_in_port( ship ) );
+        auto maybe_commodity_ref =
+            unit_from_id( ship )
+                .cargo()
+                .template slot_holds_cargo_type<Commodity>(
+                    val.src.slot._ );
+        if( !maybe_commodity_ref.has_value() ) {
+          // It's a unit.
+          accept_finalized_drag( drag_arc );
+        } else {
+          ask_for_quantity_( maybe_commodity_ref->get().type,
+                             "move" );
+          stored_arc_ = drag_arc;
+        }
+      }
       default_switch( {
         accept_finalized_drag( drag_arc ); //
       } );
@@ -1678,25 +1694,17 @@ public:
       accept_finalized_drag( nullopt );
       return;
     }
+    auto set_it = [this, quantity]( auto& val ) {
+      auto new_val         = val;
+      new_val.src.quantity = quantity;
+      DragArc_t new_arc    = DragArc_t{new_val};
+      accept_finalized_drag( new_arc );
+    };
     switch_( *stored_arc_ ) {
-      case_( DragArc::market_to_cargo ) {
-        auto new_val         = val;
-        new_val.src.quantity = quantity;
-        DragArc_t new_arc    = DragArc_t{new_val};
-        accept_finalized_drag( new_arc );
-      }
-      case_( DragArc::market_to_inport_ship ) {
-        auto new_val         = val;
-        new_val.src.quantity = quantity;
-        DragArc_t new_arc    = DragArc_t{new_val};
-        accept_finalized_drag( new_arc );
-      }
-      case_( DragArc::cargo_to_market ) {
-        auto new_val         = val;
-        new_val.src.quantity = quantity;
-        DragArc_t new_arc    = DragArc_t{new_val};
-        accept_finalized_drag( new_arc );
-      }
+      case_( DragArc::market_to_cargo ) set_it( val );
+      case_( DragArc::market_to_inport_ship ) set_it( val );
+      case_( DragArc::cargo_to_market ) set_it( val );
+      case_( DragArc::cargo_to_inport_ship ) set_it( val );
       default_switch( {
         FATAL( "need to receive quantity for drag arc type {}",
                *stored_arc_ );
@@ -1744,6 +1752,7 @@ public:
           case_( Commodity ) {
             move_commodity_as_much_as_possible(
                 ship, src.slot._, ship, dst.slot._,
+                /*max_quantity=*/nullopt,
                 /*try_other_dst_slots=*/false );
           }
           switch_exhaustive;
@@ -1770,6 +1779,7 @@ public:
                               draggable_from_src( src ) ) );
         switch_( cargo_object ) {
           case_( UnitId ) {
+            CHECK( !src.quantity.has_value() );
             // Will first "disown" unit which will remove it from
             // the cargo.
             ownership_change_to_cargo( dst.id, val );
@@ -1779,10 +1789,10 @@ public:
                 src_ship,
                 entities_->active_cargo |
                     fmap_join( L( _.active_unit() ) ) );
-
             move_commodity_as_much_as_possible(
                 src_ship, src.slot._, /*dst_ship=*/dst.id,
                 /*dst_slot=*/0,
+                /*max_quantity=*/src.quantity,
                 /*try_other_dst_slots=*/true );
           }
           switch_exhaustive;

@@ -121,7 +121,7 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 // same (and then even if the src/dst slots are the same).
 int move_commodity_as_much_as_possible(
     UnitId src, int src_slot, UnitId dst, int dst_slot,
-    bool try_other_dst_slots );
+    Opt<int> max_quantity, bool try_other_dst_slots );
 
 /****************************************************************
 ** Commodity Renderers

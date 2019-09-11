@@ -136,7 +136,7 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
 
 int move_commodity_as_much_as_possible(
     UnitId src, int src_slot, UnitId dst, int dst_slot,
-    bool try_other_dst_slots ) {
+    Opt<int> max_quantity, bool try_other_dst_slots ) {
   auto const& src_cargo = unit_from_id( src ).cargo();
   auto        maybe_src_comm =
       src_cargo.slot_holds_cargo_type<Commodity>( src_slot );
@@ -177,6 +177,10 @@ int move_commodity_as_much_as_possible(
                     dst_cargo.max_commodity_per_cargo_slot() );
     }
   }
+
+  if( max_quantity.has_value() )
+    max_transfer_quantity =
+        std::min( max_transfer_quantity, *max_quantity );
 
   CHECK( max_transfer_quantity >= 0 &&
          max_transfer_quantity <=
