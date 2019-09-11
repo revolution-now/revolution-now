@@ -1488,6 +1488,12 @@ public:
             /*rect=*/rect};
       }
     }
+
+    if( res ) {
+      auto& rect = res->rect;
+      rect       = rect.shifted_by(
+          clip_rect().upper_left().distance_from_origin() );
+    }
     return res;
   }
 
