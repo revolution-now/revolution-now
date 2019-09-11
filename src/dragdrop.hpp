@@ -275,16 +275,21 @@ public:
     }
   }
 
+  struct DragSrcInfo {
+    DragSrcT src;
+    Rect     rect;
+  };
+
   Plane::DragInfo handle_can_drag( Coord origin ) {
     if( !fsm_.template holds<None_t>() )
       // e.g. we're rubber-banding, or waiting to execute.
       return Plane::e_accept_drag::swallow;
-    auto maybe_drag_src = child().drag_src( origin );
-    if( !maybe_drag_src ) return Plane::e_accept_drag::no;
+    auto maybe_drag_src_info = child().drag_src( origin );
+    if( !maybe_drag_src_info ) return Plane::e_accept_drag::no;
     auto draggable =
-        child().draggable_from_src( *maybe_drag_src );
+        child().draggable_from_src( maybe_drag_src_info->src );
     fsm_.send_event( Start_t{
-        /*src=*/*maybe_drag_src,
+        /*src=*/maybe_drag_src_info->src,
         /*dst=*/std::nullopt,
         /*tx=*/child().draw_dragged_item( draggable ),
     } );

@@ -230,6 +230,7 @@ namespace entity {
 //  void draw( Texture& tx, Delta offset ) const;
 //  Rect bounds() const;
 //  static Opt<EntityClass> create( Delta const& size, ... );
+//  Opt<pair<T,Rect>> obj_under_cursor( Coord const& );
 
 // This object represents the array of cargo items available for
 // trade in europe and which is show at the bottom of the screen.
@@ -305,16 +306,27 @@ public:
     return res;
   }
 
-  Opt<e_commodity> commodity_under_cursor(
+  Opt<pair<e_commodity, Rect>> obj_under_cursor(
       Coord const& coord ) const {
-    Opt<e_commodity> res;
+    Opt<pair<e_commodity, Rect>> res;
     if( coord.is_inside( bounds() ) ) {
       auto boxes =
           bounds().with_new_upper_left( Coord{} ) / sprite_scale;
-      res = boxes.rasterize(
-                coord.with_new_origin( bounds().upper_left() ) /
-                sprite_scale ) //
-            | fmap_join( commodity_from_index );
+      auto maybe_type =
+          boxes.rasterize(
+              coord.with_new_origin( bounds().upper_left() ) /
+              sprite_scale ) //
+          | fmap_join( commodity_from_index );
+      if( maybe_type ) {
+        auto box_origin =
+            coord.with_new_origin( bounds().upper_left() )
+                .rounded_to_multiple_to_minus_inf(
+                    sprite_scale );
+        auto box = Rect::from( box_origin,
+                               Delta{1_w, 1_h} * sprite_scale );
+
+        res = pair{*maybe_type, box};
+      }
     }
     return res;
   }
@@ -380,14 +392,24 @@ public:
     return res;
   }
 
-  Opt<CargoSlotIndex> slot_idx_from_coord( Coord coord ) const {
-    Opt<CargoSlotIndex> res;
+  Opt<pair<CargoSlotIndex, Rect>> obj_under_cursor(
+      Coord const& coord ) const {
+    Opt<pair<CargoSlotIndex, Rect>> res;
     if( coord.is_inside( bounds() ) ) {
       auto boxes =
           bounds().with_new_upper_left( Coord{} ) / box_scale;
-      res = boxes.rasterize(
+      auto maybe_slot = boxes.rasterize(
           coord.with_new_origin( bounds().upper_left() ) /
           box_scale );
+      if( maybe_slot ) {
+        auto box_origin =
+            coord.with_new_origin( bounds().upper_left() )
+                .rounded_to_multiple_to_minus_inf( box_scale );
+        auto box = Rect::from( box_origin,
+                               Delta{1_w, 1_h} * box_scale );
+
+        res = pair{*maybe_slot, box};
+      }
     }
     return res;
   }
@@ -833,11 +855,13 @@ public:
     }
   }
 
-  Opt<UnitId> unit_under_cursor( Coord pos ) const {
-    Opt<UnitId> res;
+  Opt<pair<UnitId, Rect>> obj_under_cursor(
+      Coord const& pos ) const {
+    Opt<pair<UnitId, Rect>> res;
     for( auto [id, coord] : units_ ) {
-      if( pos.is_inside( Rect::from( coord, g_tile_delta ) ) ) {
-        res = id;
+      auto rect = Rect::from( coord, g_tile_delta );
+      if( pos.is_inside( rect ) ) {
+        res = pair{id, rect};
         // !! don't break in case units are overlapping.
       }
     }
@@ -1112,31 +1136,43 @@ public:
     return res;
   }
 
-  Opt<CargoSlotIndex> slot_idx_from_coord( Coord coord ) const {
-    Opt<CargoSlotIndex> res;
+  Opt<pair<CargoSlotIndex, Rect>> obj_under_cursor(
+      Coord const& coord ) const {
+    Opt<pair<CargoSlotIndex, Rect>> res;
     if( maybe_active_unit_ ) {
       if( coord.is_inside( bounds_ ) ) {
         auto boxes = bounds_.with_new_upper_left( Coord{} ) /
                      ActiveCargoBox::box_scale;
-        res = boxes.rasterize(
+        auto maybe_slot = boxes.rasterize(
             coord.with_new_origin( bounds_.upper_left() ) /
             ActiveCargoBox::box_scale );
+        if( maybe_slot ) {
+          auto box_origin =
+              coord.with_new_origin( bounds().upper_left() )
+                  .rounded_to_multiple_to_minus_inf(
+                      ActiveCargoBox::box_scale );
+          auto box = Rect::from(
+              box_origin,
+              Delta{1_w, 1_h} * ActiveCargoBox::box_scale );
+
+          res = pair{*maybe_slot, box};
+        }
       }
       auto& unit = unit_from_id( *maybe_active_unit_ );
-      if( res && *res >= unit.cargo().slots_total() )
+      if( res && res->first >= unit.cargo().slots_total() )
         res = nullopt;
     }
     return res;
   }
 
-  Opt<CRef<CargoSlot_t>> cargo_slot_from_coord(
-      Coord coord ) const {
-    // Lambda will only be called if a valid index is returned,
-    // in which case there is guaranteed to be an active unit.
-    return slot_idx_from_coord( coord ) //
-           | fmap( LC( unit_from_id( *maybe_active_unit_ )
-                           .cargo()[_] ) );
-  }
+  // Opt<CRef<CargoSlot_t>> cargo_slot_from_coord(
+  //    Coord coord ) const {
+  //  // Lambda will only be called if a valid index is returned,
+  //  // in which case there is guaranteed to be an active unit.
+  //  return slot_idx_from_coord( coord ) //
+  //         | fmap( LC( unit_from_id( *maybe_active_unit_ )
+  //                         .cargo()[_] ) );
+  //}
 
   Opt<UnitId> active_unit() const { return maybe_active_unit_; }
 
@@ -1373,75 +1409,83 @@ public:
       L( draw_draggable_object( _ ) );
 
   // Coord is relative to clip_rect for now.
-  Opt<DragSrc_t> drag_src( Coord const& do_not_use ) const {
+  Opt<DragSrcInfo> drag_src( Coord const& do_not_use ) const {
     using namespace entity;
     auto coord =
         do_not_use.with_new_origin( clip_rect().upper_left() );
-    Opt<DragSrc_t> res;
+    Opt<DragSrcInfo> res;
     if( entities_->units_on_dock.has_value() ) {
-      if( auto maybe_id =
-              entities_->units_on_dock->unit_under_cursor(
+      if( auto maybe_pair =
+              entities_->units_on_dock->obj_under_cursor(
                   coord );
-          maybe_id )
-        res = DragSrc::dock{
-            /*id=*/*maybe_id //
-        };
+          maybe_pair ) {
+        auto const& [id, rect] = *maybe_pair;
+        res = DragSrcInfo{/*src=*/DragSrc::dock{/*id=*/id},
+                          /*rect=*/rect};
+      }
     }
     if( entities_->active_cargo.has_value() ) {
       auto const& active_cargo = *entities_->active_cargo;
-      if( active_cargo.active_unit()    //
-              | fmap( is_unit_in_port ) //
-              | maybe_truish_to_bool    //
-          &&
-          util::just( coord ) //
-              | fmap_join( LC(
-                    active_cargo.slot_idx_from_coord( _ ) ) ) //
-              | fmap_join( draggable_in_cargo_slot ) ) {
-        res = DragSrc::cargo{
-            /*slot=*/*active_cargo.slot_idx_from_coord( coord ),
-            /*quantity=*/nullopt //
-        };
+      auto        in_port      = active_cargo.active_unit() //
+                     | fmap( is_unit_in_port )              //
+                     | maybe_truish_to_bool;
+      auto maybe_pair =
+          util::just( coord ) |
+          fmap_join( LC( active_cargo.obj_under_cursor( _ ) ) );
+      if( in_port && maybe_pair | fmap( L( _.first ) ) |
+                         fmap_join( draggable_in_cargo_slot ) ) {
+        auto const& [slot, rect] = *maybe_pair;
+
+        res = DragSrcInfo{
+            /*src=*/DragSrc::cargo{/*slot=*/slot,
+                                   /*quantity=*/nullopt},
+            /*rect=*/rect};
       }
     }
     if( entities_->ships_outbound.has_value() ) {
-      if( auto maybe_id =
-              entities_->ships_outbound->unit_under_cursor(
+      if( auto maybe_pair =
+              entities_->ships_outbound->obj_under_cursor(
                   coord );
-          maybe_id ) {
-        res = DragSrc::outbound{
-            /*id=*/*maybe_id //
-        };
+          maybe_pair ) {
+        auto const& [id, rect] = *maybe_pair;
+
+        res = DragSrcInfo{/*src=*/DragSrc::outbound{/*id=*/id},
+                          /*rect=*/rect};
       }
     }
     if( entities_->ships_inbound.has_value() ) {
-      if( auto maybe_id =
-              entities_->ships_inbound->unit_under_cursor(
+      if( auto maybe_pair =
+              entities_->ships_inbound->obj_under_cursor(
                   coord );
-          maybe_id ) {
-        res = DragSrc::inbound{
-            /*id=*/*maybe_id //
-        };
+          maybe_pair ) {
+        auto const& [id, rect] = *maybe_pair;
+
+        res = DragSrcInfo{/*src=*/DragSrc::inbound{/*id=*/id},
+                          /*rect=*/rect};
       }
     }
     if( entities_->ships_in_port.has_value() ) {
-      if( auto maybe_id =
-              entities_->ships_in_port->unit_under_cursor(
+      if( auto maybe_pair =
+              entities_->ships_in_port->obj_under_cursor(
                   coord );
-          maybe_id ) {
-        res = DragSrc::inport{
-            /*id=*/*maybe_id //
-        };
+          maybe_pair ) {
+        auto const& [id, rect] = *maybe_pair;
+
+        res = DragSrcInfo{/*src=*/DragSrc::inport{/*id=*/id},
+                          /*rect=*/rect};
       }
     }
     if( entities_->market_commodities.has_value() ) {
-      if( auto maybe_type =
-              entities_->market_commodities
-                  ->commodity_under_cursor( coord );
-          maybe_type ) {
-        res = DragSrc::market{
-            /*type=*/*maybe_type, //
-            /*quantity=*/nullopt  //
-        };
+      if( auto maybe_pair =
+              entities_->market_commodities->obj_under_cursor(
+                  coord );
+          maybe_pair ) {
+        auto const& [type, rect] = *maybe_pair;
+
+        res = DragSrcInfo{
+            /*src=*/DragSrc::market{/*type=*/type,
+                                    /*quantity=*/nullopt},
+            /*rect=*/rect};
       }
     }
     return res;
@@ -1457,12 +1501,13 @@ public:
         do_not_use.with_new_origin( clip_rect().upper_left() );
     Opt<DragDst_t> res;
     if( entities_->active_cargo.has_value() ) {
-      if( auto maybe_slot =
-              entities_->active_cargo->slot_idx_from_coord(
-                  coord );
-          maybe_slot ) {
+      if( auto maybe_pair =
+              entities_->active_cargo->obj_under_cursor( coord );
+          maybe_pair ) {
+        auto const& slot = maybe_pair->first;
+
         res = DragDst::cargo{
-            /*slot=*/*maybe_slot //
+            /*slot=*/slot //
         };
       }
     }
@@ -1487,12 +1532,14 @@ public:
         res = DragDst::inport{};
     }
     if( entities_->ships_in_port.has_value() ) {
-      if( auto maybe_ship =
-              entities_->ships_in_port->unit_under_cursor(
+      if( auto maybe_pair =
+              entities_->ships_in_port->obj_under_cursor(
                   coord );
-          maybe_ship ) {
+          maybe_pair ) {
+        auto const& ship = maybe_pair->first;
+
         res = DragDst::inport_ship{
-            /*id=*/*maybe_ship, //
+            /*id=*/ship, //
         };
       }
     }
@@ -1971,10 +2018,10 @@ struct EuropePlane : public Plane {
           if( maybe_entity ) {
             auto shifted_pos =
                 val.pos + ( Coord{} - clip_rect().upper_left() );
-            if( auto maybe_id = maybe_entity->unit_under_cursor(
+            if( auto maybe_pair = maybe_entity->obj_under_cursor(
                     shifted_pos );
-                maybe_id ) {
-              g_selected_unit = maybe_id;
+                maybe_pair ) {
+              g_selected_unit = maybe_pair->first;
               handled         = true;
             }
           }
