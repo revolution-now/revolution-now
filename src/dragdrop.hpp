@@ -378,10 +378,10 @@ public:
         res = child().draggable_from_src( val.src );
       }
       case_( WaitingToExecute_t ) { //
-        draggable_from_arc( val.arc );
+        res = draggable_from_arc( val.arc );
       }
       case_( Finalizing_t ) { //
-        draggable_from_arc( val.arc );
+        res = draggable_from_arc( val.arc );
       }
       switch_exhaustive;
     }
