@@ -2108,7 +2108,7 @@ struct EuropePlane : public Plane {
         /*msg=*/text,
         /*on_result=*/
         [&]( Opt<int> result ) {
-          lg.info( "received quantity: {}", result );
+          lg.trace( "received quantity: {}", result );
           fsm_.send_event( EuroviewEvent::send_quantity{
               result.value_or( 0 )} );
         },

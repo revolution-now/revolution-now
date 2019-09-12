@@ -22,6 +22,7 @@ namespace {} // namespace
 
 namespace internal {
 
+#if 0
 using tag_t = FmtTags<    //
     FmtRemoveRnNamespace, //
     FmtRemoveTemplateArgs //
@@ -40,6 +41,13 @@ void log_event( std::string const& child_name,
   lg.debug( "{} processing event: {}", tag( child_name ),
             tag( logged_event ) );
 }
+#else
+void log_state( std::string const& /*unused*/,
+                std::string const& /*unused*/ ) {}
+
+void log_event( std::string const& /*unused*/,
+                std::string const& /*unused*/ ) {}
+#endif
 
 } // namespace internal
 

@@ -476,7 +476,7 @@ void ok_cancel_window_builder(
         /*on_ok=*/
         [win, on_result, validator{std::move( validator )},
          get_result{std::move( get_result )}] {
-          lg.info( "selected ok." );
+          lg.trace( "selected ok." );
           decltype( auto ) proposed = get_result();
           if( validator( proposed ) ) {
             on_result( proposed );
@@ -486,7 +486,7 @@ void ok_cancel_window_builder(
           }
         }, /*on_cancel=*/
         [win, on_result] {
-          lg.info( "selected cancel." );
+          lg.trace( "selected cancel." );
           on_result( nullopt );
           win->close_window();
         } );
