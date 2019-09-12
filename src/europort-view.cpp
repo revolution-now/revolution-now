@@ -123,6 +123,10 @@ Opt<DraggableObject_t> draggable_in_cargo_slot(
          | fmap_join( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
+Opt<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
+  return draggable_in_cargo_slot( CargoSlotIndex{slot} );
+}
+
 Texture draw_draggable_object(
     DraggableObject_t const& object ) {
   return matcher_( object ) {
@@ -388,30 +392,6 @@ public:
                 market_commodities.origin_.y - size_pixels.h +
                     1_h,
                 rect.center().x - size_pixels.w / 2_sx} );
-      }
-    }
-    return res;
-  }
-
-  Opt<pair<CargoSlotIndex, Rect>> obj_under_cursor(
-      Coord const& coord ) const {
-    Opt<pair<CargoSlotIndex, Rect>> res;
-    if( coord.is_inside( bounds() ) ) {
-      auto boxes =
-          bounds().with_new_upper_left( Coord{} ) / box_scale;
-      auto maybe_slot = boxes.rasterize(
-          coord.with_new_origin( bounds().upper_left() ) /
-          box_scale );
-      if( maybe_slot ) {
-        auto box_origin =
-            coord.with_new_origin( bounds().upper_left() )
-                .rounded_to_multiple_to_minus_inf( box_scale )
-                .as_if_origin_were( bounds().upper_left() ) +
-            k_rendered_commodity_offset;
-        auto box = Rect::from( box_origin,
-                               Delta{1_w, 1_h} * Scale{16} );
-
-        res = pair{*maybe_slot, box};
       }
     }
     return res;
@@ -1154,10 +1134,18 @@ public:
               coord.with_new_origin( bounds().upper_left() )
                   .rounded_to_multiple_to_minus_inf(
                       ActiveCargoBox::box_scale )
-                  .as_if_origin_were( bounds().upper_left() ) +
-              k_rendered_commodity_offset;
-          auto box = Rect::from( box_origin,
-                                 Delta{1_w, 1_h} * Scale{16} );
+                  .as_if_origin_were( bounds().upper_left() );
+          auto scale = ActiveCargoBox::box_scale;
+
+          using DraggableObject::cargo_commodity;
+          if( draggable_in_cargo_slot( *maybe_slot )           //
+              | fmap( L( util::holds<cargo_commodity>( _ ) ) ) //
+              | maybe_truish_to_bool ) {
+            box_origin += k_rendered_commodity_offset;
+            scale = Scale{16};
+          }
+          auto box =
+              Rect::from( box_origin, Delta{1_w, 1_h} * scale );
 
           res = pair{*maybe_slot, box};
         }
@@ -1436,8 +1424,9 @@ public:
       auto maybe_pair =
           util::just( coord ) |
           fmap_join( LC( active_cargo.obj_under_cursor( _ ) ) );
-      if( in_port && maybe_pair | fmap( L( _.first ) ) |
-                         fmap_join( draggable_in_cargo_slot ) ) {
+      if( in_port &&
+          maybe_pair | fmap( L( _.first ) ) |
+              fmap_join( L( draggable_in_cargo_slot( _ ) ) ) ) {
         auto const& [slot, rect] = *maybe_pair;
 
         res = DragSrcInfo{
