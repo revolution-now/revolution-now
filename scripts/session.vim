@@ -9,6 +9,7 @@ let s:stems = [
   \ 'src/gfx',
   \ 'src/init',
   \ 'src/config-files',
+  \ 'src/lua',
   \ 'src/coord',
   \ 'src/screen',
   \ 'src/compositor',

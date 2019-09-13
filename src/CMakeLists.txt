@@ -7,6 +7,8 @@ find_sdl2_lib( SDL2_mixer )
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
+find_package( Lua REQUIRED )
+
 file( GLOB sources "[a-zA-Z]*.cpp" )
 add_library(
   rn
@@ -34,13 +36,15 @@ target_link_libraries(
     range-v3
     rtmidi
     scelta::headers
+    sol2::sol2
     spdlog::spdlog
     Threads::Threads
     ucl
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_MIXER_LIBRARY} )
+    ${SDL2_MIXER_LIBRARY}
+    ${LUA_LIBRARIES} )
 target_include_directories(
     rn
     PUBLIC
@@ -48,7 +52,8 @@ target_include_directories(
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}
-    ${SDL2_MIXER_INCLUDE_DIR} )
+    ${SDL2_MIXER_INCLUDE_DIR}
+    ${LUA_INCLUDE_DIR} )
 
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.

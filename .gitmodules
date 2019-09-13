@@ -58,3 +58,6 @@
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = ../Catch2.git
+[submodule "extern/sol2"]
+	path = extern/sol2
+	url = ../../dpacbach/sol2.git
