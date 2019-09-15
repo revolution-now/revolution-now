@@ -32,3 +32,7 @@ controls {
 console {
   font: _6x6
 }
+
+power {
+  time_till_slow_fps: 60
+}

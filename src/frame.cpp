@@ -159,13 +159,12 @@ void frame_loop( bool                     poll_input,
     // frame that must be done at start of frame.
     update_all_planes_start();
 
-    // First calculate the frame rate that we are currently tar-
-    // getting. If we go more than 10s without any user input
-    // then slow down the frame rate to save battery.
-    auto frame_length =
-        ( Clock_t::now() - time_of_last_input > 10s )
-            ? slow_frame_length
-            : normal_frame_length;
+    // If we go more than the configured time without any user
+    // input then slow down the frame rate to save battery.
+    auto frame_length = ( Clock_t::now() - time_of_last_input >
+                          config_rn.power.time_till_slow_fps )
+                            ? slow_frame_length
+                            : normal_frame_length;
 
     auto start = system_clock::now();
     frame_rate.tick();

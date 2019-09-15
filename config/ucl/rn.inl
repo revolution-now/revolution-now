@@ -36,6 +36,10 @@ CFG( rn,
   OBJ( console,
     FLD( e_font, font )
   )
+
+  OBJ( power,
+    FLD( Seconds, time_till_slow_fps )
+  )
 )
 
 }
