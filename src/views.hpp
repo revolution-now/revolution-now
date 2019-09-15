@@ -359,6 +359,9 @@ public:
 
   LineEditorView( int chars_wide );
   LineEditorView( int chars_wide, OnChangeFunc on_change );
+  LineEditorView( e_font font, W pixels_wide,
+                  OnChangeFunc on_change, Color fg, Color bg,
+                  std::string_view prompt );
 
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
@@ -379,7 +382,15 @@ public:
     on_change_ = std::move( on_change );
   }
 
+  void set_pixel_size( Delta const& size );
+
 private:
+  void render_background( Delta const& size );
+
+  std::string         prompt_;
+  Color               fg_;
+  Color               bg_;
+  e_font              font_;
   OnChangeFunc        on_change_;
   LineEditor          line_editor_;
   LineEditorInputView input_view_;

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "coord.hpp"
+#include "deferred.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "menu.hpp"
@@ -20,6 +21,7 @@
 #include "screen.hpp"
 #include "text.hpp"
 #include "ttf.hpp"
+#include "views.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
@@ -30,23 +32,35 @@ namespace rn {
 
 namespace {
 
-uint8_t console_alpha = 128;
-uint8_t text_alpha    = 255;
-uint8_t stats_alpha   = 255;
+constexpr uint8_t console_alpha = 200;
+constexpr uint8_t edit_alpha    = 200;
+constexpr uint8_t text_alpha    = 220;
+constexpr uint8_t stats_alpha   = 255;
 
 size_t constexpr max_dbg_log_lines = 100000;
 vector<string> dbg_log;
 
 struct ConsolePlane : public Plane {
   ConsolePlane() = default;
-  bool enabled() const override { return enabled_; }
+  void initialize() override {
+    // FIXME: move this into method that gets called when logical
+    // window size changes.
+    le_view_.emplace(
+        font::standard(), main_window_logical_size().w,
+        []( string const& ) {}, Color::blue(), Color::white(),
+        ">" );
+  }
+  bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
+    if( !show_ ) return;
     auto rect =
         Rect::from( Coord{}, main_window_logical_size() );
     rect.y += rect.h / 3_sy * 2_sy;
     rect.h /= 3_sy;
+    rect =
+        rect.shifted_by( Delta{0_w, -le_view_.get().delta().h} );
     render_fill_rect( tx, Color{0, 0, 255, console_alpha},
                       rect );
 
@@ -145,9 +159,32 @@ struct ConsolePlane : public Plane {
       copy_texture( src_tx, tx, log_px_start );
       log_px_start += src_tx.size().h;
     }
+
+    auto edit_rect =
+        Rect::from( main_window_logical_rect().lower_left() -
+                        le_view_.get().delta().h,
+                    le_view_.get().delta() );
+
+    render_rect( tx, Color::white().with_alpha( edit_alpha ),
+                 rect );
+    le_view_.get().draw( tx, edit_rect.upper_left() );
   }
 
-  bool enabled_{false};
+  bool input( input::event_t const& event ) override {
+    if( !util::holds<input::key_event_t>( event ) ) return false;
+    auto const& key_event =
+        *std::get_if<input::key_event_t>( &event );
+    if( key_event.change == input::e_key_change::down &&
+        key_event.keycode == ::SDLK_SLASH ) {
+      show_ = !show_;
+      return true;
+    }
+    if( !show_ ) return false;
+    return le_view_.get().on_key( key_event );
+  }
+
+  bool                         show_{false};
+  deferred<ui::LineEditorView> le_view_{};
 };
 
 ConsolePlane g_console_plane;
@@ -175,7 +212,7 @@ Plane* console_plane() { return &g_console_plane; }
 //
 MENU_ITEM_HANDLER(
     e_menu_item::toggle_console,
-    [] { g_console_plane.enabled_ = !g_console_plane.enabled_; },
+    [] { g_console_plane.show_ = !g_console_plane.show_; },
     [] { return true; } )
 
 } // namespace rn

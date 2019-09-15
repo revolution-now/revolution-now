@@ -329,54 +329,79 @@ void SpriteView::draw( Texture& tx, Coord coord ) const {
   render_sprite( tx, tile_, coord, 0, 0 );
 }
 
-LineEditorView::LineEditorView( int          chars_wide,
-                                OnChangeFunc on_change )
-  : on_change_{std::move( on_change )},
+LineEditorView::LineEditorView( e_font font, W pixels_wide,
+                                OnChangeFunc on_change, Color fg,
+                                Color bg, string_view prompt )
+  : prompt_{prompt},
+    fg_{fg},
+    bg_{bg},
+    font_{font},
+    on_change_{std::move( on_change )},
     line_editor_{},
-    input_view_{chars_wide},
+    input_view_{1},
     background_{},
     current_rendering_{},
     cursor_width_{} {
-  string      text( chars_wide, 'X' );
-  auto const& xs =
-      render_text( font::standard(), Color::wood(), text );
-  cursor_width_ = xs.size().w / SX{chars_wide};
-  background_   = Texture::create( xs.size() + Delta{6_w, 6_h} );
-  background_.fill( Color::banana() );
-  render_rect( background_, Color::wood(),
-               background_.rect().edges_removed() );
+  string      text( 100, 'X' );
+  auto const& X_tx = render_text( font, Color::wood(), text );
+  cursor_width_    = X_tx.size().w / SX{int( text.size() )};
+  set_pixel_size( Delta{pixels_wide, X_tx.size().h} );
 }
+
+LineEditorView::LineEditorView( int          chars_wide,
+                                OnChangeFunc on_change )
+  : LineEditorView( font::standard(),
+                    render_text( font::standard(), Color::wood(),
+                                 string( chars_wide, 'X' ) )
+                        .size()
+                        .w,
+                    std::move( on_change ), Color::wood(),
+                    Color::banana(), "" ) {}
 
 LineEditorView::LineEditorView( int chars_wide )
   : LineEditorView( chars_wide, []( auto const& ) {} ) {}
 
+void LineEditorView::set_pixel_size( Delta const& size ) {
+  render_background( size );
+  // This doesn't work precisely because 1) the font may not be
+  // fixed width, and 2) cursor_width_ is just an average.
+  input_view_ = LineEditorInputView{size.w / cursor_width_};
+  current_rendering_ = input_view_.render(
+      line_editor_.pos(), line_editor_.buffer() );
+}
+
+void LineEditorView::render_background( Delta const& size ) {
+  background_ = Texture::create( size + Delta{2_w, 2_h} );
+  background_.fill( bg_ );
+}
+
 // Implement Object
 void LineEditorView::draw( Texture& tx, Coord coord ) const {
   copy_texture( background_, tx, coord );
-  auto const& text_tx = render_text(
-      font::standard(), Color::wood(), current_rendering_ );
-  auto bounds    = background_.size() - Delta{6_w, 6_h};
+  auto        all_chars = prompt_ + current_rendering_;
+  auto const& text_tx =
+      render_text( font::standard(), fg_, all_chars );
+  auto bounds    = background_.size();
   auto copy_size = min( bounds, text_tx.size() );
   auto from_rect = Rect::from( Coord{}, copy_size );
   auto to_rect =
-      Rect::from( coord + Delta{3_w, 3_h}, copy_size );
+      Rect::from( coord + Delta{1_w, 1_h}, copy_size );
   copy_texture( text_tx, tx, from_rect, to_rect );
 
-  auto rel_pos = input_view_.rel_pos( line_editor_.pos() );
-  CHECK( rel_pos <= int( current_rendering_.size() ) );
-  string string_up_to_cursor(
-      current_rendering_.begin(),
-      current_rendering_.begin() + rel_pos );
-  auto rel_cursor_pixels =
+  auto rel_pos = input_view_.rel_pos( line_editor_.pos() ) +
+                 int( prompt_.size() );
+  CHECK( rel_pos <= int( all_chars.size() ) );
+  string string_up_to_cursor( all_chars.begin(),
+                              all_chars.begin() + rel_pos );
+  auto   rel_cursor_pixels =
       rel_pos == 0
           ? W{0} // render_text might return 1_w in this case.
-          : render_text( font::standard(), Color::wood(),
-                         string_up_to_cursor )
+          : render_text( font_, fg_, string_up_to_cursor )
                 .size()
                 .w;
-  Rect cursor{coord.x + 3_w + rel_cursor_pixels, coord.y + 3_h,
-              cursor_width_, background_.size().h - 6_h};
-  render_rect( tx, Color::black(), cursor );
+  Rect cursor{coord.x + 1_w + rel_cursor_pixels, coord.y + 1_h,
+              cursor_width_, background_.size().h - 2_h};
+  render_rect( tx, fg_, cursor );
 }
 
 bool LineEditorView::on_key( input::key_event_t const& event ) {

@@ -54,10 +54,12 @@ public:
 class LineEditorInputView {
   int start_pos_{0};
   // Size of the window.
-  int const width_;
+  int width_;
 
 public:
   LineEditorInputView( int w ) : width_( w ) {}
+
+  int width() const { return width_; }
 
   // Given an absolute cursor position, return the distance from
   // the start of the viewing window.
