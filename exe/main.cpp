@@ -100,7 +100,7 @@ void game() {
   // using namespace std::literals::chrono_literals;
   // while( input::is_any_key_down() ) {}
 
-  frame_loop( true, [] { return input::is_q_down(); } );
+  frame_loop( true, [] { return false; } );
 }
 
 } // namespace rn

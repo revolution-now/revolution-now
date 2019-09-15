@@ -24,6 +24,9 @@
 #include "ttf.hpp"
 #include "views.hpp"
 
+// base-util
+#include "base-util/keyval.hpp"
+
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
@@ -33,20 +36,46 @@ namespace rn {
 
 namespace {
 
+/****************************************************************
+** Console Logging
+*****************************************************************/
+size_t constexpr max_dbg_log_lines = 100000;
+vector<string> dbg_log;
+
+void trim_dbg_log() {
+  if( dbg_log.size() > max_dbg_log_lines )
+    dbg_log = vector<string>(
+        dbg_log.begin() + max_dbg_log_lines / 2, dbg_log.end() );
+}
+
+void clear_dbg_log() { dbg_log.clear(); }
+
+/****************************************************************
+** Console Commands
+*****************************************************************/
+constexpr string_view prompt = "> ";
+
+FlatMap<string, tl::function_ref<void()>> g_console_commands{
+    {"clear", clear_dbg_log},                //
+    {"quit", [] { throw exception_exit{}; }} //
+};
+
 void run_console_cmd( string const& cmd ) {
-  lg.info( "cmd: {}", cmd );
+  lg.debug( "{}{}", prompt, cmd );
+  auto maybe_fn = bu::val_safe( g_console_commands, cmd );
+  if( maybe_fn.has_value() ) {
+    maybe_fn->get()();
+    return;
+  }
+  // run lua command.
 }
 
 /****************************************************************
 ** Console Plane
 *****************************************************************/
 constexpr uint8_t console_alpha = 200;
-constexpr uint8_t edit_alpha    = 200;
 constexpr uint8_t text_alpha    = 220;
 constexpr uint8_t stats_alpha   = 255;
-
-size_t constexpr max_dbg_log_lines = 100000;
-vector<string> dbg_log;
 
 struct ConsolePlane : public Plane {
   ConsolePlane() = default;
@@ -55,8 +84,8 @@ struct ConsolePlane : public Plane {
     // window size changes.
     le_view_.emplace(
         font::standard(), main_window_logical_size().w,
-        []( string const& ) {}, Color::black(),
-        Color{235, 235, 255}, "lua> " );
+        []( string const& ) {}, Color::banana(), Color::wood(),
+        prompt );
   }
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
@@ -65,15 +94,21 @@ struct ConsolePlane : public Plane {
     if( !show_ ) return;
     auto rect =
         Rect::from( Coord{}, main_window_logical_size() );
-    rect.y += rect.h / 3_sy * 2_sy;
+    // rect.y += rect.h / 3_sy * 2_sy;
     rect.h /= 3_sy;
-    rect =
-        rect.shifted_by( Delta{0_w, -le_view_.get().delta().h} );
-    render_fill_rect( tx, Color{50, 50, 200, console_alpha},
-                      rect );
+    rect.h -= rect.h %
+              ttf_get_font_info( config_rn.console.font ).height;
 
-    auto text_color  = Color::white().with_alpha( text_alpha );
-    auto stats_color = Color::white().with_alpha( stats_alpha );
+    // rect =
+    //    rect.shifted_by( Delta{0_w, -le_view_.get().delta().h}
+    //    );
+    render_fill_rect(
+        tx, Color::wood().with_alpha( console_alpha ), rect );
+
+    auto text_color = Color::banana().with_alpha( text_alpha );
+    auto stats_color =
+        Color::banana().highlighted( 5 ).with_alpha(
+            stats_alpha );
 
     // auto info_start = Coord{} + 16_h;
 
@@ -106,7 +141,7 @@ struct ConsolePlane : public Plane {
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
     auto const& frame_rate_tx = render_text(
-        config_rn.console.font, Color::white(), frame_rate );
+        config_rn.console.font, stats_color, frame_rate );
     copy_texture( frame_rate_tx, tx,
                   info_start - frame_rate_tx.size() );
     info_start -= frame_rate_tx.size().h;
@@ -118,7 +153,7 @@ struct ConsolePlane : public Plane {
     // creases the texture count. This is because rendering this
     // number, in general, causes a new texture to be created.
     auto tx_count_tx = ttf_render_text_line_uncached(
-        config_rn.console.font, Color::white(), tx_count );
+        config_rn.console.font, stats_color, tx_count );
     copy_texture( tx_count_tx, tx,
                   info_start - tx_count_tx.size() );
     info_start -= tx_count_tx.size().h;
@@ -130,7 +165,7 @@ struct ConsolePlane : public Plane {
     // creases the texture count. This is because rendering this
     // number, in general, causes a new texture to be created.
     auto text_tx_count_tx = ttf_render_text_line_uncached(
-        config_rn.console.font, Color::white(), text_tx_count );
+        config_rn.console.font, stats_color, text_tx_count );
     copy_texture( text_tx_count_tx, tx,
                   info_start - text_tx_count_tx.size() );
     info_start -= text_tx_count_tx.size().h;
@@ -154,29 +189,31 @@ struct ConsolePlane : public Plane {
       info_start -= src_tx.size().h;
     }
 
-    size_t max_lines = rect.h / text_height;
+    int max_lines = rect.h / text_height;
     // Render the log
-    size_t log_start = dbg_log.size() < max_lines
-                           ? 0
-                           : dbg_log.size() - max_lines;
-    auto log_px_start = rect.upper_left() + 1_w;
-    for( auto i = log_start; i < dbg_log.size(); ++i ) {
-      CHECK( i < dbg_log.size() );
+    int dbg_log_size = int( dbg_log.size() );
+    int log_start    = dbg_log_size < max_lines
+                        ? 0
+                        : dbg_log.size() - max_lines;
+    auto log_px_start =
+        Coord{} +
+        H{max_lines - ( dbg_log_size - log_start )} *
+            ttf_get_font_info( config_rn.console.font ).height;
+    for( auto i = log_start; i < dbg_log_size; ++i ) {
+      CHECK( i < dbg_log_size );
+      auto color = text_color;
+      if( util::starts_with( dbg_log[i], prompt ) )
+        color = color.highlighted( 5 ).with_alpha( stats_alpha );
       auto const& src_tx = render_text( config_rn.console.font,
-                                        text_color, dbg_log[i] );
+                                        color, dbg_log[i] );
       copy_texture( src_tx, tx, log_px_start );
       log_px_start += src_tx.size().h;
     }
 
+    // Render edit box.
     auto edit_rect =
-        Rect::from( main_window_logical_rect().lower_left() -
-                        le_view_.get().delta().h,
-                    le_view_.get().delta() );
+        Rect::from( rect.lower_left(), le_view_.get().delta() );
 
-    auto border =
-        Rect{rect.x, rect.y - 1_h, rect.w, rect.h + 1_h};
-    render_rect( tx, Color::white().with_alpha( edit_alpha ),
-                 border );
     le_view_.get().draw( tx, edit_rect.upper_left() );
   }
 
@@ -186,7 +223,7 @@ struct ConsolePlane : public Plane {
         *std::get_if<input::key_event_t>( &event );
     if( key_event.change != input::e_key_change::down )
       return false;
-    if( key_event.keycode == ::SDLK_SLASH ) {
+    if( key_event.keycode == ::SDLK_BACKQUOTE ) {
       show_ = !show_;
       return true;
     }
@@ -209,14 +246,11 @@ struct ConsolePlane : public Plane {
 
 ConsolePlane g_console_plane;
 
-void trim_dbg_log() {
-  if( dbg_log.size() > max_dbg_log_lines )
-    dbg_log = vector<string>(
-        dbg_log.begin() + max_dbg_log_lines / 2, dbg_log.end() );
-}
-
 } // namespace
 
+/****************************************************************
+** Public API
+*****************************************************************/
 void log_to_debug_console( std::string const& msg ) {
   dbg_log.push_back( msg );
   trim_dbg_log();

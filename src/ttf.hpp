@@ -26,6 +26,12 @@ namespace rn {
 Texture ttf_render_text_line_uncached( e_font font, Color fg,
                                        std::string_view line );
 
+struct FontTTFInfo {
+  SY height;
+};
+
+FontTTFInfo const& ttf_get_font_info( e_font font );
+
 /****************************************************************
 ** Testing
 *****************************************************************/

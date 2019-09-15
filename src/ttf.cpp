@@ -30,6 +30,8 @@ namespace rn {
 
 namespace {
 
+FlatMap<e_font, FontTTFInfo> g_font_ttf_info;
+
 struct FontDesc {
   fs::path    file_name;
   int         pt_size;
@@ -136,6 +138,17 @@ Texture ttf_render_text_line_uncached( e_font font, Color fg,
   auto  vert_offset = loaded_fonts()[font].vert_offset;
   return render_line_standard_impl( ttf_font, to_SDL( fg ), line,
                                     vert_offset );
+}
+
+FontTTFInfo const& ttf_get_font_info( e_font font ) {
+  if( !g_font_ttf_info.contains( font ) ) {
+    auto* ttf_font        = loaded_fonts()[font].ttf_font;
+    auto  height          = ::TTF_FontHeight( ttf_font );
+    g_font_ttf_info[font] = FontTTFInfo{
+        /*height=*/SY{height} //
+    };
+  }
+  return g_font_ttf_info[font];
 }
 
 void font_size_spectrum( char const* msg,
