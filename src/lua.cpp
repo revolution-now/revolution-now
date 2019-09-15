@@ -108,7 +108,20 @@ void init_lua() {
   g_lua["log"]["critical"] = []( string const& msg ) {
     lg.critical( "{}", msg );
   };
-  g_lua["print"] = g_lua["log"]["info"];
+  g_lua["print"] = []( sol::object o ) {
+    if( o == sol::nil ) return;
+    if( auto maybe_string = o.as<Opt<string>>();
+        maybe_string.has_value() )
+      lg.info( "{}", *maybe_string );
+    else if( auto maybe_bool = o.as<Opt<bool>>();
+             maybe_bool.has_value() )
+      lg.info( "{}", *maybe_bool );
+    else if( auto maybe_double = o.as<Opt<double>>();
+             maybe_double.has_value() )
+      lg.info( "{}", *maybe_double );
+    else
+      lg.info( "(argument cannot be converted to string)" );
+  };
 }
 
 void cleanup_lua() { g_lua = sol::state{}; }
