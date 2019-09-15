@@ -28,7 +28,7 @@ namespace {
 bool is_char_allowed( char c ) {
   static string_view const cs{
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "0123456789 +-*/^._,()[]!@#$%&={}|?<>`~"};
+      "0123456789 +-*/^._,()[]!@#$%&={}|?<>`~;"};
   return find( begin( cs ), end( cs ), c ) != end( cs );
 }
 
@@ -52,7 +52,9 @@ bool LineEditor::input( input::key_event_t const& event ) {
   //}
 
   if( pressed < 128 && is_char_allowed( char( pressed ) ) ) {
-    buffer_.insert( pos_, 1, char( pressed ) );
+    ASSIGN_CHECK_OPT( ascii,
+                      input::ascii_char_for_event( event ) );
+    buffer_.insert( pos_, 1, char( ascii ) );
     ++pos_;
     LE_ASSERT_INVARIANTS;
     return true;

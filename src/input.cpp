@@ -96,6 +96,26 @@ bool is_in_drag_zone( Coord current, Coord origin ) {
   return abs( delta.w._ ) > buf || abs( delta.h._ ) > buf;
 }
 
+// Should not call this from outside this module; should instead
+// use the mod keys delivered with the input events.
+mod_keys query_mod_keys() {
+  auto     keymods = ::SDL_GetModState();
+  mod_keys mod;
+
+  mod.l_shf_down  = ( keymods & ::KMOD_LSHIFT );
+  mod.r_shf_down  = ( keymods & ::KMOD_RSHIFT );
+  mod.l_alt_down  = ( keymods & ::KMOD_LALT );
+  mod.r_alt_down  = ( keymods & ::KMOD_RALT );
+  mod.l_ctrl_down = ( keymods & ::KMOD_LCTRL );
+  mod.r_ctrl_down = ( keymods & ::KMOD_RCTRL );
+
+  mod.shf_down  = mod.l_shf_down || mod.r_shf_down;
+  mod.alt_down  = mod.l_alt_down || mod.r_alt_down;
+  mod.ctrl_down = mod.l_ctrl_down || mod.r_ctrl_down;
+
+  return mod;
+}
+
 // Takes an SDL event and converts it to our own event descriptor
 // struct which is easier to deal with. This function's output
 // actually depends on when it is run (not just on the SDL_Event
@@ -136,6 +156,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
   switch( sdl_event.type ) {
     case ::SDL_QUIT: event = quit_event_t{}; break;
+    // FIXME: need to handle these to get unicode input.
+    // case ::SDL_TEXTINPUT: {
+    //  break;
+    //}
+    // case ::SDL_TEXTEDITING: {
+    //  break;
+    //}
     case ::SDL_KEYDOWN: {
       key_event_t key_event;
       key_event.change   = e_key_change::down;
@@ -358,25 +385,113 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
 } // namespace
 
-mod_keys query_mod_keys() {
-  auto     keymods = ::SDL_GetModState();
-  mod_keys mod;
+Coord current_mouse_position() { return g_prev_mouse_pos; }
 
-  mod.l_shf_down  = ( keymods & ::KMOD_LSHIFT );
-  mod.r_shf_down  = ( keymods & ::KMOD_RSHIFT );
-  mod.l_alt_down  = ( keymods & ::KMOD_LALT );
-  mod.r_alt_down  = ( keymods & ::KMOD_RALT );
-  mod.l_ctrl_down = ( keymods & ::KMOD_LCTRL );
-  mod.r_ctrl_down = ( keymods & ::KMOD_RCTRL );
+/****************************************************************
+** Event Queue
+*****************************************************************/
+namespace {
 
-  mod.shf_down  = mod.l_shf_down || mod.r_shf_down;
-  mod.alt_down  = mod.l_alt_down || mod.r_alt_down;
-  mod.ctrl_down = mod.l_ctrl_down || mod.r_ctrl_down;
-
-  return mod;
+// This function returns the list of events that we care about
+// from SDL in this game.
+auto const& relevant_sdl_events() {
+  static auto constexpr events =
+      array<::SDL_EventType, 11>{::SDL_QUIT,
+                                 ::SDL_APP_TERMINATING,
+                                 ::SDL_WINDOWEVENT,
+                                 ::SDL_KEYDOWN,
+                                 ::SDL_KEYUP,
+                                 ::SDL_TEXTEDITING,
+                                 ::SDL_TEXTINPUT,
+                                 ::SDL_MOUSEMOTION,
+                                 ::SDL_MOUSEBUTTONDOWN,
+                                 ::SDL_MOUSEBUTTONUP,
+                                 ::SDL_MOUSEWHEEL};
+  return events;
 }
 
-Coord current_mouse_position() { return g_prev_mouse_pos; }
+bool is_relevant_event_type( ::SDL_EventType type ) {
+  for( auto t : relevant_sdl_events() )
+    if( t == type ) return true;
+  return false;
+}
+
+// Unfortunately SDL_Event::type is a 32 bit int, while
+// ::SDL_EventType is an enum.
+bool is_relevant_event_type( ::Uint32 type ) {
+  return is_relevant_event_type( ::SDL_EventType( type ) );
+}
+
+Opt<::SDL_Event> next_sdl_event() {
+  ::SDL_PumpEvents();
+  ::SDL_Event event;
+  if( ::SDL_PollEvent( &event ) != 0 ) return event;
+  return nullopt;
+}
+
+} // namespace
+
+// Not yet sure when we would need this.
+bool has_event() {
+  WARNING_THIS_FUNCTION_HAS_NOT_BEEN_TESTED;
+  ::SDL_PumpEvents();
+  for( auto event_type : relevant_sdl_events() )
+    if( ::SDL_HasEvent( event_type ) ) //
+      return true;
+  return false;
+}
+
+Opt<event_t> next_event() {
+  while( auto event = next_sdl_event() ) {
+    if( !is_relevant_event_type( event->type ) ) continue;
+    // First check if it's an event that we can handle here, oth-
+    // erwise convert it to the event data structure and return
+    // it.
+    switch( event->type ) {
+      case ::SDL_WINDOWEVENT: {
+        // FIXME: this is icky here.
+        if( event->window.event ==
+            ::SDL_WINDOWEVENT_SIZE_CHANGED )
+          on_main_window_resized();
+        break;
+      }
+      default: //
+        return from_SDL( *event );
+    }
+  }
+  return nullopt;
+}
+
+void eat_all_events() {
+  while( next_event() ) {}
+}
+
+/****************************************************************
+** Utilities
+*****************************************************************/
+Opt<char> ascii_char_for_event( key_event_t const& event ) {
+  static FlatMap<char, char> shift_map{
+      {'`', '~'},  {'1', '!'},  {'2', '@'}, {'3', '#'},
+      {'4', '$'},  {'5', '%'},  {'6', '^'}, {'7', '&'},
+      {'8', '*'},  {'9', '('},  {'0', ')'}, {'-', '_'},
+      {'=', '+'},  {'q', 'Q'},  {'w', 'W'}, {'e', 'E'},
+      {'r', 'R'},  {'t', 'T'},  {'y', 'Y'}, {'u', 'U'},
+      {'i', 'I'},  {'o', 'O'},  {'p', 'P'}, {'[', '{'},
+      {']', '}'},  {'\\', '|'}, {'a', 'A'}, {'s', 'S'},
+      {'d', 'D'},  {'f', 'F'},  {'g', 'G'}, {'h', 'H'},
+      {'j', 'J'},  {'k', 'K'},  {'l', 'L'}, {';', ':'},
+      {'\'', '"'}, {'z', 'Z'},  {'x', 'X'}, {'c', 'C'},
+      {'v', 'V'},  {'b', 'B'},  {'n', 'N'}, {'m', 'M'},
+      {',', '<'},  {'.', '>'},  {'/', '?'}};
+  Opt<char> res;
+  if( event.keycode < 128 ) {
+    char keychar = char( event.keycode );
+    res          = keychar;
+    if( event.mod.shf_down && shift_map.contains( keychar ) )
+      res = shift_map[keychar];
+  }
+  return res;
+}
 
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta ) {
@@ -468,85 +583,6 @@ mouse_move_event_t drag_event_to_mouse_motion_event(
   copy_common_base_object<mouse_move_event_t>( /*from=*/event,
                                                /*to=*/res );
   return res;
-}
-
-/****************************************************************
-** Event Queue
-*****************************************************************/
-namespace {
-
-// This function returns the list of events that we care about
-// from SDL in this game.
-auto const& relevant_sdl_events() {
-  static auto constexpr events =
-      array<::SDL_EventType, 11>{::SDL_QUIT,
-                                 ::SDL_APP_TERMINATING,
-                                 ::SDL_WINDOWEVENT,
-                                 ::SDL_KEYDOWN,
-                                 ::SDL_KEYUP,
-                                 ::SDL_TEXTEDITING,
-                                 ::SDL_TEXTINPUT,
-                                 ::SDL_MOUSEMOTION,
-                                 ::SDL_MOUSEBUTTONDOWN,
-                                 ::SDL_MOUSEBUTTONUP,
-                                 ::SDL_MOUSEWHEEL};
-  return events;
-}
-
-bool is_relevant_event_type( ::SDL_EventType type ) {
-  for( auto t : relevant_sdl_events() )
-    if( t == type ) return true;
-  return false;
-}
-
-// Unfortunately SDL_Event::type is a 32 bit int, while
-// ::SDL_EventType is an enum.
-bool is_relevant_event_type( ::Uint32 type ) {
-  return is_relevant_event_type( ::SDL_EventType( type ) );
-}
-
-Opt<::SDL_Event> next_sdl_event() {
-  ::SDL_PumpEvents();
-  ::SDL_Event event;
-  if( ::SDL_PollEvent( &event ) != 0 ) return event;
-  return nullopt;
-}
-
-} // namespace
-
-// Not yet sure when we would need this.
-bool has_event() {
-  WARNING_THIS_FUNCTION_HAS_NOT_BEEN_TESTED;
-  ::SDL_PumpEvents();
-  for( auto event_type : relevant_sdl_events() )
-    if( ::SDL_HasEvent( event_type ) ) //
-      return true;
-  return false;
-}
-
-Opt<event_t> next_event() {
-  while( auto event = next_sdl_event() ) {
-    if( !is_relevant_event_type( event->type ) ) continue;
-    // First check if it's an event that we can handle here, oth-
-    // erwise convert it to the event data structure and return
-    // it.
-    switch( event->type ) {
-      case ::SDL_WINDOWEVENT: {
-        // FIXME: this is icky here.
-        if( event->window.event ==
-            ::SDL_WINDOWEVENT_SIZE_CHANGED )
-          on_main_window_resized();
-        break;
-      }
-      default: //
-        return from_SDL( *event );
-    }
-  }
-  return nullopt;
-}
-
-void eat_all_events() {
-  while( next_event() ) {}
 }
 
 /****************************************************************

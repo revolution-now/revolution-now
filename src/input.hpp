@@ -44,8 +44,6 @@ struct mod_keys {
   bool ctrl_down; // either ctrl down
 };
 
-mod_keys query_mod_keys();
-
 // All event types must inherit either directly or indirectly
 // from this type.
 struct event_base_t {
@@ -165,6 +163,15 @@ ND bool has_event();
 // Go through SDL's event queue and eat up all events that are
 // not relevant and then return the first one that is, if any.
 ND Opt<event_t> next_event();
+
+/****************************************************************
+** Utilities
+*****************************************************************/
+// Takes into account the shift key which normal key codes or
+// scan codes do not. FIXME: this is only a temporary solution
+// until a more proper method is employed based on SDL's
+// SDL_TextInputEvent events.
+Opt<char> ascii_char_for_event( key_event_t const& event );
 
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-
