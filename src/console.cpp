@@ -16,6 +16,7 @@
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
+#include "logging.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -32,6 +33,13 @@ namespace rn {
 
 namespace {
 
+void run_console_cmd( string const& cmd ) {
+  lg.info( "cmd: {}", cmd );
+}
+
+/****************************************************************
+** Console Plane
+*****************************************************************/
 constexpr uint8_t console_alpha = 200;
 constexpr uint8_t edit_alpha    = 200;
 constexpr uint8_t text_alpha    = 220;
@@ -47,8 +55,8 @@ struct ConsolePlane : public Plane {
     // window size changes.
     le_view_.emplace(
         font::standard(), main_window_logical_size().w,
-        []( string const& ) {}, Color::blue(), Color::white(),
-        ">" );
+        []( string const& ) {}, Color::black(),
+        Color{235, 235, 255}, "lua> " );
   }
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
@@ -61,11 +69,11 @@ struct ConsolePlane : public Plane {
     rect.h /= 3_sy;
     rect =
         rect.shifted_by( Delta{0_w, -le_view_.get().delta().h} );
-    render_fill_rect( tx, Color{0, 0, 255, console_alpha},
+    render_fill_rect( tx, Color{50, 50, 200, console_alpha},
                       rect );
 
-    auto text_color  = Color{255, 255, 255, text_alpha};
-    auto stats_color = Color{255, 255, 255, stats_alpha};
+    auto text_color  = Color::white().with_alpha( text_alpha );
+    auto stats_color = Color::white().with_alpha( stats_alpha );
 
     // auto info_start = Coord{} + 16_h;
 
@@ -93,7 +101,7 @@ struct ConsolePlane : public Plane {
     //  info_start += mouse_coords_tx.size().h;
     //}
 
-    auto info_start = rect.lower_right();
+    auto info_start = rect.lower_right() - 1_w;
 
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
@@ -151,7 +159,7 @@ struct ConsolePlane : public Plane {
     size_t log_start = dbg_log.size() < max_lines
                            ? 0
                            : dbg_log.size() - max_lines;
-    auto log_px_start = rect.upper_left();
+    auto log_px_start = rect.upper_left() + 1_w;
     for( auto i = log_start; i < dbg_log.size(); ++i ) {
       CHECK( i < dbg_log.size() );
       auto const& src_tx = render_text( config_rn.console.font,
@@ -165,8 +173,10 @@ struct ConsolePlane : public Plane {
                         le_view_.get().delta().h,
                     le_view_.get().delta() );
 
+    auto border =
+        Rect{rect.x, rect.y - 1_h, rect.w, rect.h + 1_h};
     render_rect( tx, Color::white().with_alpha( edit_alpha ),
-                 rect );
+                 border );
     le_view_.get().draw( tx, edit_rect.upper_left() );
   }
 
@@ -174,12 +184,22 @@ struct ConsolePlane : public Plane {
     if( !util::holds<input::key_event_t>( event ) ) return false;
     auto const& key_event =
         *std::get_if<input::key_event_t>( &event );
-    if( key_event.change == input::e_key_change::down &&
-        key_event.keycode == ::SDLK_SLASH ) {
+    if( key_event.change != input::e_key_change::down )
+      return false;
+    if( key_event.keycode == ::SDLK_SLASH ) {
       show_ = !show_;
       return true;
     }
     if( !show_ ) return false;
+    if( key_event.keycode == ::SDLK_RETURN ) {
+      auto text = le_view_.get().text();
+      if( !text.empty() ) {
+        run_console_cmd( text );
+        le_view_.get().clear();
+        return true;
+      }
+      return false;
+    }
     return le_view_.get().on_key( key_event );
   }
 

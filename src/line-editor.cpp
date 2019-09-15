@@ -96,6 +96,12 @@ bool LineEditor::input( input::key_event_t const& event ) {
   return false;
 }
 
+void LineEditor::clear() {
+  pos_    = 0;
+  buffer_ = "";
+  LE_ASSERT_INVARIANTS;
+}
+
 #define ASSERT_INVARIANTS_BUF                           \
   CHECK( ( buffer.length() == 0 && start_pos_ == 0 ) || \
          ( start_pos_ < (int)buffer.length() ) );

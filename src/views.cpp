@@ -366,8 +366,7 @@ void LineEditorView::set_pixel_size( Delta const& size ) {
   // This doesn't work precisely because 1) the font may not be
   // fixed width, and 2) cursor_width_ is just an average.
   input_view_ = LineEditorInputView{size.w / cursor_width_};
-  current_rendering_ = input_view_.render(
-      line_editor_.pos(), line_editor_.buffer() );
+  update_visible_string();
 }
 
 void LineEditorView::render_background( Delta const& size ) {
@@ -407,10 +406,24 @@ void LineEditorView::draw( Texture& tx, Coord coord ) const {
 bool LineEditorView::on_key( input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down ) return false;
   if( !line_editor_.input( event ) ) return false;
+  update_visible_string();
+  return true;
+}
+
+void LineEditorView::update_visible_string() {
   current_rendering_ = input_view_.render(
       line_editor_.pos(), line_editor_.buffer() );
+  // This technically doesn't necessarily need to be called each
+  // time the visible string gets updated, because not all of
+  // those updates consist of modifying the string, i.e., some
+  // just change the visible window, but it probably doesn't hurt
+  // to call it.
   on_change_( current_rendering_ );
-  return true;
+}
+
+void LineEditorView::clear() {
+  line_editor_.clear();
+  update_visible_string();
 }
 
 /****************************************************************

@@ -34,6 +34,8 @@ public:
   std::string const& buffer() const { return buffer_; }
   int                pos() const { return pos_; }
 
+  void clear();
+
   bool input( input::key_event_t const& event );
 };
 

@@ -384,8 +384,11 @@ public:
 
   void set_pixel_size( Delta const& size );
 
+  void clear();
+
 private:
   void render_background( Delta const& size );
+  void update_visible_string();
 
   std::string         prompt_;
   Color               fg_;
