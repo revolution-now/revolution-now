@@ -87,17 +87,22 @@ struct ConsolePlane : public Plane {
         []( string const& ) {}, Color::banana(), Color::wood(),
         prompt );
   }
+  void on_frame_start() override {
+    show_percent_ += show_ ? .1 : -.1;
+    show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
+  }
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
-    if( !show_ ) return;
+    if( show_percent_ < .0001 ) return;
     auto rect =
         Rect::from( Coord{}, main_window_logical_size() );
     // rect.y += rect.h / 3_sy * 2_sy;
     rect.h /= 3_sy;
     rect.h -= rect.h %
               ttf_get_font_info( config_rn.console.font ).height;
+    rect.h -= H{int( rect.h._ * ( 1.0 - show_percent_ ) )};
 
     // rect =
     //    rect.shifted_by( Delta{0_w, -le_view_.get().delta().h}
@@ -241,6 +246,7 @@ struct ConsolePlane : public Plane {
   }
 
   bool                         show_{false};
+  double                       show_percent_{0.0};
   deferred<ui::LineEditorView> le_view_{};
 };
 
