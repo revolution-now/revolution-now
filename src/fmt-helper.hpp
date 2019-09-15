@@ -224,6 +224,14 @@ struct formatter<::rn::FmtJsonStyleList<T>> : formatter_base {
 *****************************************************************/
 namespace fmt {
 
+template<>
+struct formatter<std::monostate> : formatter_base {
+  template<typename FormatContext>
+  auto format( std::monostate const &, FormatContext &ctx ) {
+    return formatter_base::format( "monostate", ctx );
+  }
+};
+
 template<typename... Ts>
 struct formatter<std::chrono::time_point<Ts...>>
   : formatter_base {

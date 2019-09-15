@@ -11,12 +11,14 @@
 #include "console.hpp"
 
 // Revolution Now
+#include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -60,6 +62,16 @@ FlatMap<string, tl::function_ref<void()>> g_console_commands{
     {"quit", [] { throw exception_exit{}; }} //
 };
 
+void run_lua_cmd( string const& cmd ) {
+  auto expected = lua<void>( cmd );
+  if( !expected.has_value() ) {
+    lg.error( "lua command failed:" );
+    for( auto const& line :
+         format_lua_error_msg( expected.error().what ) )
+      lg.error( "  {}", line );
+  }
+}
+
 void run_console_cmd( string const& cmd ) {
   lg.debug( "{}{}", prompt, cmd );
   auto maybe_fn = bu::val_safe( g_console_commands, cmd );
@@ -67,7 +79,7 @@ void run_console_cmd( string const& cmd ) {
     maybe_fn->get()();
     return;
   }
-  // run lua command.
+  run_lua_cmd( cmd );
 }
 
 /****************************************************************
@@ -103,6 +115,8 @@ struct ConsolePlane : public Plane {
     rect.h -= rect.h %
               ttf_get_font_info( config_rn.console.font ).height;
     rect.h -= H{int( rect.h._ * ( 1.0 - show_percent_ ) )};
+    rect.y +=
+        compositor::section( compositor::e_section::menu_bar ).h;
 
     // rect =
     //    rect.shifted_by( Delta{0_w, -le_view_.get().delta().h}
@@ -201,7 +215,7 @@ struct ConsolePlane : public Plane {
                         ? 0
                         : dbg_log.size() - max_lines;
     auto log_px_start =
-        Coord{} +
+        rect.upper_left() +
         H{max_lines - ( dbg_log_size - log_start )} *
             ttf_get_font_info( config_rn.console.font ).height;
     for( auto i = log_start; i < dbg_log_size; ++i ) {

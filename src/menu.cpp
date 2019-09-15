@@ -1046,53 +1046,6 @@ void init_menus() {
            "registered",
            item );
   }
-
-  // Render Menu and Menu-item names. These have to be done first
-  // because other things need to be calculated from the sizes of
-  // the rendered text.
-  for( auto menu_item : values<e_menu_item> )
-    g_menu_item_rendered[menu_item] = render_menu_item_element(
-        g_menu_items[menu_item]->name, nullopt );
-  for( auto menu : values<e_menu> ) {
-    g_menu_rendered[menu]      = {};
-    g_menu_rendered[menu].name = render_menu_header_element(
-        g_menus[menu].name, g_menus[menu].shortcut );
-  }
-
-  for( auto menu : values<e_menu> ) {
-    // The order in which these are done matters, unfortunately,
-    // because some of the functions below rely on results from
-    // the previous ones.
-    g_menu_rendered[menu].header_width =
-        g_menu_rendered[menu].name.normal.size().w +
-        config_ui.menus.padding * 2_sx;
-    g_menu_rendered[menu].item_background_highlight =
-        render_item_background( menu, /*hightlight=*/true );
-    g_menu_rendered[menu].menu_body =
-        create_menu_body_texture( menu );
-    g_menu_rendered[menu].menu_background_highlight =
-        render_menu_header_background( menu,
-                                       /*highlight=*/true,
-                                       /*hover=*/false );
-    g_menu_rendered[menu].menu_background_hover =
-        render_menu_header_background( menu,
-                                       /*highlight=*/false,
-                                       /*hover=*/true );
-
-    g_menu_rendered[menu].divider = render_divider( menu );
-
-    // This will render to the g_menu_rendered[menu].menu_body
-    // texture an open menu with nothing selected. This is
-    // necessary so that we can then convert it to a shadow. We
-    // only need to render the shadow once, because all that
-    // matters about it is the shape, which will not change even
-    // as the open menu body changes (i.e., items are
-    // highlighted).
-    auto const& to_be_shadowed =
-        render_open_menu( menu, nullopt, false );
-    g_menu_rendered[menu].menu_body_shadow =
-        create_shadow_texture( to_be_shadowed );
-  }
 }
 
 void cleanup_menus() {
@@ -1124,6 +1077,61 @@ struct MenuPlane : public Plane {
   MenuPlane() = default;
   bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
+  void initialize() override {
+    // In this method we do things that initialize global state
+    // (not necessarily the menu plane) but we do them here be-
+    // cause the actions are complex enough that we need the rest
+    // of the game to be initialized first to be on the safe/ro-
+    // bust side (though theoretically this could probably be
+    // done in the init_menu method).
+
+    // Render Menu and Menu-item names. These have to be done
+    // first because other things need to be calculated from the
+    // sizes of the rendered text.
+    for( auto menu_item : values<e_menu_item> )
+      g_menu_item_rendered[menu_item] = render_menu_item_element(
+          g_menu_items[menu_item]->name, nullopt );
+    for( auto menu : values<e_menu> ) {
+      g_menu_rendered[menu]      = {};
+      g_menu_rendered[menu].name = render_menu_header_element(
+          g_menus[menu].name, g_menus[menu].shortcut );
+    }
+
+    for( auto menu : values<e_menu> ) {
+      // The order in which these are done matters,
+      // unfortunately, because some of the functions below rely
+      // on results from the previous ones.
+      g_menu_rendered[menu].header_width =
+          g_menu_rendered[menu].name.normal.size().w +
+          config_ui.menus.padding * 2_sx;
+      g_menu_rendered[menu].item_background_highlight =
+          render_item_background( menu, /*hightlight=*/true );
+      g_menu_rendered[menu].menu_body =
+          create_menu_body_texture( menu );
+      g_menu_rendered[menu].menu_background_highlight =
+          render_menu_header_background( menu,
+                                         /*highlight=*/true,
+                                         /*hover=*/false );
+      g_menu_rendered[menu].menu_background_hover =
+          render_menu_header_background( menu,
+                                         /*highlight=*/false,
+                                         /*hover=*/true );
+
+      g_menu_rendered[menu].divider = render_divider( menu );
+
+      // This will render to the g_menu_rendered[menu].menu_body
+      // texture an open menu with nothing selected. This is
+      // necessary so that we can then convert it to a shadow. We
+      // only need to render the shadow once, because all that
+      // matters about it is the shape, which will not change
+      // even as the open menu body changes (i.e., items are
+      // highlighted).
+      auto const& to_be_shadowed =
+          render_open_menu( menu, nullopt, false );
+      g_menu_rendered[menu].menu_body_shadow =
+          create_shadow_texture( to_be_shadowed );
+    }
+  }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
     if( !click_target( origin ).has_value() )

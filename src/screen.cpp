@@ -272,12 +272,7 @@ void find_pixel_scale_factor() {
 void init_screen() {
   query_video_stats();
   find_pixel_scale_factor();
-}
 
-void cleanup_screen() {}
-
-void init_app_window() {
-  // NOLINTNEXTLINE(hicpp-signed-bitwise)
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
                ::SDL_WINDOW_FULLSCREEN_DESKTOP;
 
@@ -289,7 +284,7 @@ void init_app_window() {
   CHECK( g_window != nullptr, "failed to create window" );
 }
 
-void cleanup_app_window() {
+void cleanup_screen() {
   if( g_window != nullptr ) SDL_DestroyWindow( g_window );
 }
 
@@ -389,7 +384,6 @@ void cleanup_renderer() {
 } // namespace
 
 REGISTER_INIT_ROUTINE( screen );
-REGISTER_INIT_ROUTINE( app_window );
 REGISTER_INIT_ROUTINE( renderer );
 
 void inc_resolution_scale() {

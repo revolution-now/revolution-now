@@ -24,7 +24,6 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
-#include "menu.hpp"
 #include "ownership.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
@@ -2147,8 +2146,10 @@ EuropePlane g_europe_plane;
 ** Initialization / Cleanup
 *****************************************************************/
 void init_europort_view() {
-  g_clip = main_window_logical_size() - menu_height() +
-           Delta{2_w, 2_h};
+  g_clip =
+      main_window_logical_size() -
+      compositor::section( compositor::e_section::menu_bar ).h +
+      Delta{2_w, 2_h};
 }
 
 void cleanup_europort_view() {}
