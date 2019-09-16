@@ -29,48 +29,6 @@ namespace rn {
 void game() {
   UnitId id;
 
-  for( auto i : {1, 2, 3} ) {
-    (void)i;
-
-    id = create_unit_in_euroview_port(
-        e_nation::spanish, e_unit_type::free_colonist );
-    unit_from_id( id ).sentry();
-
-    id = create_unit_in_euroview_port( e_nation::spanish,
-                                       e_unit_type::soldier );
-    unit_from_id( id ).clear_orders();
-
-    id = create_unit_in_euroview_port(
-        e_nation::spanish, e_unit_type::merchantman );
-    if( i == 2 ) {
-      unit_sail_to_new_world( id );
-      advance_unit_on_high_seas( id );
-    } else {
-      (void)create_unit_as_cargo(
-          e_nation::spanish, e_unit_type::free_colonist, id );
-      (void)create_unit_as_cargo( e_nation::spanish,
-                                  e_unit_type::soldier, id );
-    }
-
-    id = create_unit_in_euroview_port( e_nation::english,
-                                       e_unit_type::soldier );
-    unit_from_id( id ).sentry();
-
-    id = create_unit_in_euroview_port( e_nation::english,
-                                       e_unit_type::soldier );
-    unit_from_id( id ).clear_orders();
-
-    id = create_unit_in_euroview_port( e_nation::english,
-                                       e_unit_type::privateer );
-    if( i == 2 ) {
-      unit_sail_to_new_world( id );
-      (void)create_unit_as_cargo(
-          e_nation::english, e_unit_type::free_colonist, id );
-      (void)create_unit_as_cargo( e_nation::english,
-                                  e_unit_type::soldier, id );
-    }
-  }
-
   id = create_unit_on_map(
       e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x );
   unit_from_id( id ).fortify();
@@ -92,8 +50,6 @@ void game() {
 
   id = create_unit_on_map( e_nation::english,
                            e_unit_type::privateer, 3_y, 6_x );
-  unit_sail_to_old_world( id );
-  advance_unit_on_high_seas( id );
 
   // while( turn() != e_turn_result::quit ) {}
 

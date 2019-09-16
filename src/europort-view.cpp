@@ -1989,7 +1989,7 @@ struct EuropePlane : public Plane {
   }
 
   void draw( Texture& tx ) const override {
-    tx.fill( Color::white() );
+    clear_texture_transparent( tx );
     draw_entities( tx, entities_ );
     render_rect( tx, rect_color_, clip_rect() );
     // Should be last.
