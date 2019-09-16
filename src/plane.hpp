@@ -35,9 +35,9 @@ enum class e_( plane,
                colony,   // colony view
                europe,   // the old world
                effects,  // such as e.g. fading
+               console,  // the developer console
                menu,     // the menus at the top of screen
                window,   // the windows
-               console,  // the developer console
                /*******/ //
                omni      // Always present, invisible, and first.
 );

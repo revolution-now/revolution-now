@@ -120,7 +120,7 @@ void init_lua() {
              maybe_double.has_value() )
       lg.info( "{}", *maybe_double );
     else
-      lg.info( "(argument cannot be converted to string)" );
+      lg.info( "(print: object cannot be converted to string)" );
   };
 }
 

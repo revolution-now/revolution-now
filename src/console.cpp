@@ -79,7 +79,13 @@ void run_console_cmd( string const& cmd ) {
     maybe_fn->get()();
     return;
   }
-  run_lua_cmd( cmd );
+  // Try to determine if it's not a statement and, if not, print
+  // the result to emulate a typical REPL.
+  if( !util::contains( cmd, "=" ) &&
+      !util::contains( cmd, ";" ) )
+    run_lua_cmd( fmt::format( "print( {} )", cmd ) );
+  else
+    run_lua_cmd( cmd );
 }
 
 /****************************************************************
@@ -233,7 +239,7 @@ struct ConsolePlane : public Plane {
     auto edit_rect =
         Rect::from( rect.lower_left(), le_view_.get().delta() );
 
-    le_view_.get().draw( tx, edit_rect.upper_left() );
+    le_view_.get().draw( tx, edit_rect.upper_left() - 1_w );
   }
 
   bool input( input::event_t const& event ) override {

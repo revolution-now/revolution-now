@@ -115,15 +115,9 @@ struct OmniPlane : public Plane {
               toggle_fullscreen();
             }
             break;
-          case ::SDLK_EQUALS:
-          case ::SDLK_KP_PLUS:      //
-            inc_resolution_scale(); //
+          default: //
+            handled = false;
             break;
-          case ::SDLK_MINUS:
-          case ::SDLK_KP_MINUS:     //
-            dec_resolution_scale(); //
-            break;
-          default: handled = false; break;
         }
       }
       switch_non_exhaustive;
