@@ -30,7 +30,7 @@ controls {
 }
 
 console {
-  font: _6x6
+  font: habbo_15
 }
 
 power {

@@ -378,12 +378,11 @@ void LineEditorView::render_background( Delta const& size ) {
 void LineEditorView::draw( Texture& tx, Coord coord ) const {
   copy_texture( background_, tx, coord );
   auto        all_chars = prompt_ + current_rendering_;
-  auto const& text_tx =
-      render_text( font::standard(), fg_, all_chars );
-  auto bounds    = background_.size();
-  auto copy_size = min( bounds, text_tx.size() );
-  auto from_rect = Rect::from( Coord{}, copy_size );
-  auto to_rect =
+  auto const& text_tx   = render_text( font_, fg_, all_chars );
+  auto        bounds    = background_.size();
+  auto        copy_size = min( bounds, text_tx.size() );
+  auto        from_rect = Rect::from( Coord{}, copy_size );
+  auto        to_rect =
       Rect::from( coord + Delta{1_w, 1_h}, copy_size );
   copy_texture( text_tx, tx, from_rect, to_rect );
 

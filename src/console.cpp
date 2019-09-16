@@ -102,7 +102,7 @@ struct ConsolePlane : public Plane {
     // FIXME: move this into method that gets called when logical
     // window size changes.
     le_view_.emplace(
-        font::standard(), main_window_logical_size().w,
+        config_rn.console.font, main_window_logical_size().w,
         []( string const& ) {}, Color::banana(), Color::wood(),
         prompt );
   }
