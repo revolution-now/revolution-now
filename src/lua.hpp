@@ -15,15 +15,18 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "sol.hpp"
 
 // base-util
+#include "base-util/macros.hpp"
+#include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
 
 // C++ standard library
 #include <string>
 #include <variant>
 
-namespace rn {
+namespace rn::lua {
 
 /****************************************************************
 ** Run Lua Scripts
@@ -35,14 +38,47 @@ using LuaRetMap = TypeMap<   //
 }
 
 template<typename Ret>
-expect<Get<detail::LuaRetMap, Ret, Ret>> lua(
+expect<Get<detail::LuaRetMap, Ret, Ret>> run(
     Str const& script );
 
 template<>
-expect<std::monostate> lua<void>( Str const& script );
+expect<std::monostate> run<void>( Str const& script );
 
 template<>
-expect<Str> lua<Str>( Str const& script );
+expect<Str> run<Str>( Str const& script );
+
+// sol::state& state();
+
+/****************************************************************
+** Registration
+*****************************************************************/
+#define LUA_FN( ... ) PP_N_OR_MORE_ARGS_3( LUA_FN, __VA_ARGS__ )
+
+#define LUA_FN_STARTUP( ns, name )             \
+  STARTUP() {                                  \
+    lua::register_fn( []( sol::state& st ) {   \
+      st[#ns].get_or_create<sol::table>();     \
+      st[#ns][#name] = lua_fn_##ns##_##name{}; \
+    } );                                       \
+  }
+
+#define LUA_FN_SINGLE( ns, name, ret_type ) \
+  struct lua_fn_##ns##_##name {             \
+    ret_type operator()() const;            \
+  };                                        \
+  LUA_FN_STARTUP( ns, name )                \
+  ret_type lua_fn_##ns##_##name::operator()() const
+
+#define LUA_FN_MULTI( ns, name, ret_type, ... ) \
+  struct lua_fn_##ns##_##name {                 \
+    ret_type operator()( __VA_ARGS__ ) const;   \
+  };                                            \
+  LUA_FN_STARTUP( ns, name )                    \
+  ret_type lua_fn_##ns##_##name::operator()( __VA_ARGS__ ) const
+
+using RegistrationFn_t = std::function<void( sol::state& )>;
+
+void register_fn( RegistrationFn_t fn );
 
 /****************************************************************
 ** Utilites
@@ -54,4 +90,4 @@ Vec<Str> format_lua_error_msg( Str const& msg );
 *****************************************************************/
 void test_lua();
 
-} // namespace rn
+} // namespace rn::lua

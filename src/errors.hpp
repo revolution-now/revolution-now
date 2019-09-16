@@ -17,6 +17,7 @@
 
 // base-util
 #include "base-util/macros.hpp"
+#include "base-util/pp.hpp"
 #include "base-util/variant.hpp"
 
 // expected-lite
@@ -79,9 +80,9 @@ bool check_inline( bool b, char const* msg );
 
 // This is used when you want to just fail but with formatting in
 // the error message.
-#define FATAL( ... )                        \
-  FATAL_( detail::check_msg( "fatal error", \
-                             FMT_SAFE( "" __VA_ARGS__ ) ) );
+#define FATAL( ... )               \
+  FATAL_( ::rn::detail::check_msg( \
+      "fatal error", FMT_SAFE( "" __VA_ARGS__ ) ) );
 
 // This CHECK macro should be used most of the time to do
 // assertions.
@@ -90,10 +91,10 @@ bool check_inline( bool b, char const* msg );
 // once in case evaluating it either has side effects or is
 // expensive. Hopefully the implementation below conforms to
 // this.
-#define CHECK( a, ... )                                        \
-  if( !( a ) ) {                                               \
-    FATAL_(                                                    \
-        detail::check_msg( #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
+#define CHECK( a, ... )                     \
+  if( !( a ) ) {                            \
+    FATAL_( ::rn::detail::check_msg(        \
+        #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
 
 // DCHECK is CHECK in debug builds, but compiles to nothing in
@@ -106,7 +107,7 @@ bool check_inline( bool b, char const* msg );
 
 // Use this when the check is on a boolean and the check itself
 // must be an expression and return a boolean.
-#define CHECK_INL( b ) detail::check_inline( b, #b )
+#define CHECK_INL( b ) ::rn::detail::check_inline( b, #b )
 
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is
@@ -275,11 +276,20 @@ struct Unexpected {
 template<typename T>
 using expect = ::nonstd::expected<T, ::rn::Unexpected>;
 
+// If there are >1 args then the 1st one must be a format string.
+#define UNEXPECTED( ... ) \
+  PP_ONE_OR_MORE_ARGS( UNEXPECTED, __VA_ARGS__ )
+
 // Use this to construct unexpected's because it records file and
 // line no.
-#define UNEXPECTED( ... )                      \
+#define UNEXPECTED_SINGLE( str )               \
   ::nonstd::make_unexpected( ::rn::Unexpected{ \
-      fmt::format( __VA_ARGS__ ), __LINE__, __FILE__} )
+      fmt::format( "{}", str ), __LINE__, __FILE__} )
+
+#define UNEXPECTED_MULTI( fmt_str, ... )                    \
+  ::nonstd::make_unexpected(                                \
+      ::rn::Unexpected{fmt::format( fmt_str, __VA_ARGS__ ), \
+                       __LINE__, __FILE__} )
 
 #define CHECK_UNEXPECTED( e )                                   \
   CHECK( e.has_value(), "unexpected:{}:{}: {}", e.error().file, \

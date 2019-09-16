@@ -25,27 +25,18 @@
 // Abseil
 #include "absl/strings/str_replace.h"
 
-// Won't be needed in future versions.
-#define SOL_CXX17_FEATURES 1
-
-// Maybe can turn this off at some point?
-#define SOL_ALL_SAFETIES_ON 1
-
-#ifdef L
-#  undef L
-#  include "sol/sol.hpp"
-#  define L( a ) []( auto const& _ ) { return a; }
-#else
-#  include "sol/sol.hpp"
-#endif
-
 using namespace std;
 
-namespace rn {
+namespace rn::lua {
 
 namespace {
 
 sol::state g_lua;
+
+auto& registration_functions() {
+  static vector<RegistrationFn_t> fns;
+  return fns;
+}
 
 expect<monostate> lua_script_( string_view script ) {
   auto result =
@@ -122,6 +113,10 @@ void init_lua() {
     else
       lg.info( "(print: object cannot be converted to string)" );
   };
+
+  lg.info( "registering Lua functions." );
+  // Now run all the registration functions.
+  for( auto const& fn : registration_functions() ) fn( g_lua );
 }
 
 void cleanup_lua() { g_lua = sol::state{}; }
@@ -133,13 +128,15 @@ REGISTER_INIT_ROUTINE( lua );
 /****************************************************************
 ** Public API
 *****************************************************************/
+sol::state& state() { return g_lua; }
+
 template<>
-expect<monostate> lua<void>( string const& script ) {
+expect<monostate> run<void>( string const& script ) {
   return lua_script_( script );
 }
 
 template<>
-expect<string> lua<string>( string const& script ) {
+expect<string> run<string>( string const& script ) {
   return lua_script<string>( script );
 }
 
@@ -150,6 +147,10 @@ Vec<Str> format_lua_error_msg( Str const& msg ) {
       res.push_back(
           absl::StrReplaceAll( line, {{"\t", "  "}} ) );
   return res;
+}
+
+void register_fn( RegistrationFn_t fn ) {
+  registration_functions().push_back( std::move( fn ) );
 }
 
 /****************************************************************
@@ -164,4 +165,4 @@ void test_lua() {
   lg.info( "result: {}", result );
 }
 
-} // namespace rn
+} // namespace rn::lua

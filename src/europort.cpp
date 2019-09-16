@@ -14,6 +14,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
 #include "ownership.hpp"
 
 // base-util
@@ -23,6 +24,8 @@
 // Range-v3
 #include "range/v3/action/sort.hpp"
 #include "range/v3/view/filter.hpp"
+
+using namespace std;
 
 namespace rn {
 
@@ -213,5 +216,22 @@ void advance_unit_on_high_seas( UnitId id ) {
   }
   FATAL( "{} is not on the high seas.", debug_string( id ) );
 }
+
+/****************************************************************
+** Lua Functions
+*****************************************************************/
+namespace {
+
+// FIXME: should take nation argument.
+LUA_FN( europort, create_unit_in_port, void, Str const& unit ) {
+  auto maybe_unit_type =
+      e_unit_type::_from_string_nothrow( unit.c_str() );
+  CHECK( maybe_unit_type, "`{}` is not recognized.", unit );
+  e_nation nation = e_nation::dutch;
+  create_unit_in_euroview_port( nation, *maybe_unit_type );
+  lg.info( "created a {} on {} dock.", unit, nation );
+}
+
+} // namespace
 
 } // namespace rn

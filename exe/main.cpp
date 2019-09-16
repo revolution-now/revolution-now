@@ -112,7 +112,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
 
   // ui::window_test();
 
-  // test_lua();
+  // lua::test_lua();
 
   run_all_cleanup_routines();
   return 0;

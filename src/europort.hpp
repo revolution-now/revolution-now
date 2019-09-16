@@ -23,6 +23,7 @@ bool is_unit_inbound( UnitId id );
 bool is_unit_outbound( UnitId id );
 bool is_unit_in_port( UnitId id );
 
+// FIXME: needs to be nation-specific.
 Vec<UnitId> europort_units_on_dock();  // Sorted by arrival.
 Vec<UnitId> europort_units_in_port();  // Sorted by arrival.
 Vec<UnitId> europort_units_inbound();  // to old world

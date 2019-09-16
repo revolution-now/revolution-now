@@ -63,11 +63,11 @@ FlatMap<string, tl::function_ref<void()>> g_console_commands{
 };
 
 void run_lua_cmd( string const& cmd ) {
-  auto expected = lua<void>( cmd );
+  auto expected = lua::run<void>( cmd );
   if( !expected.has_value() ) {
     lg.error( "lua command failed:" );
     for( auto const& line :
-         format_lua_error_msg( expected.error().what ) )
+         lua::format_lua_error_msg( expected.error().what ) )
       lg.error( "  {}", line );
   }
 }
@@ -93,6 +93,7 @@ void run_console_cmd( string const& cmd ) {
 *****************************************************************/
 constexpr uint8_t console_alpha = 200;
 constexpr uint8_t text_alpha    = 220;
+constexpr uint8_t cmds_alpha    = 240;
 constexpr uint8_t stats_alpha   = 255;
 
 struct ConsolePlane : public Plane {
@@ -228,7 +229,7 @@ struct ConsolePlane : public Plane {
       CHECK( i < dbg_log_size );
       auto color = text_color;
       if( util::starts_with( dbg_log[i], prompt ) )
-        color = color.highlighted( 5 ).with_alpha( stats_alpha );
+        color = color.highlighted( 5 ).with_alpha( cmds_alpha );
       auto const& src_tx = render_text( config_rn.console.font,
                                         color, dbg_log[i] );
       copy_texture( src_tx, tx, log_px_start );
