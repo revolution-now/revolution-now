@@ -38,16 +38,17 @@ using LuaRetMap = TypeMap<   //
 }
 
 template<typename Ret>
-expect<Get<detail::LuaRetMap, Ret, Ret>> run(
+ND expect<Get<detail::LuaRetMap, Ret, Ret>> run(
     Str const& script );
 
 template<>
-expect<std::monostate> run<void>( Str const& script );
+ND expect<std::monostate> run<void>( Str const& script );
 
 template<>
-expect<Str> run<Str>( Str const& script );
+ND expect<Str> run<Str>( Str const& script );
 
-// sol::state& state();
+void load_modules();
+void run_startup();
 
 /****************************************************************
 ** Registration

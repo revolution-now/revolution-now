@@ -81,6 +81,30 @@ expect<Ret> lua_script( string_view script ) {
   return sol_obj_convert<Ret>( result.get<sol::object>() );
 }
 
+bool is_valid_lua_identifier( string_view name ) {
+  // Good enough for now.
+  return !util::contains( name, " " ) &&
+         !util::contains( name, "." );
+}
+
+expect<monostate> load_module( string const& name ) {
+  CHECK( is_valid_lua_identifier( name ),
+         "module name {} is not a valid lua identifier.", name );
+  g_lua[name].get_or_create<sol::table>();
+  g_lua["_"]         = g_lua[name];
+  fs::path file_name = "src/lua/" + name + ".lua";
+  CHECK( fs::exists( file_name ), "file {} does not exist.",
+         file_name );
+  auto pf_result = g_lua.safe_script_file(
+      "src/lua/" + name + ".lua",
+      []( auto*, auto pfr ) { return std::move( pfr ); } );
+  g_lua["_"] = sol::lua_nil;
+  if( !pf_result.valid() ) {
+    sol::error err = pf_result;
+    return UNEXPECTED( err.what() );
+  }
+  return monostate{};
+}
 void init_lua() {
   CHECK( g_lua["log"] == sol::lua_nil );
   g_lua["log"].get_or_create<sol::table>();
@@ -138,6 +162,14 @@ expect<monostate> run<void>( string const& script ) {
 template<>
 expect<string> run<string>( string const& script ) {
   return lua_script<string>( script );
+}
+
+void load_modules() {
+  CHECK_UNEXPECTED( load_module( "startup" ) );
+}
+
+void run_startup() {
+  CHECK_UNEXPECTED( lua::run<void>( "startup.run()" ) );
 }
 
 Vec<Str> format_lua_error_msg( Str const& msg ) {

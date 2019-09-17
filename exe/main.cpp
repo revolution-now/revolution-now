@@ -64,6 +64,9 @@ void game() {
 int main( int /*unused*/, char** /*unused*/ ) try {
   linker_dont_discard_me();
   run_all_init_routines( /*level=*/nullopt );
+  lua::load_modules();
+  lua::run_startup();
+
   game();
 
   // ui::window_test();
