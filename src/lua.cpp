@@ -106,6 +106,7 @@ expect<monostate> load_module( string const& name ) {
   return monostate{};
 }
 void init_lua() {
+  g_lua.open_libraries( sol::lib::base );
   CHECK( g_lua["log"] == sol::lua_nil );
   g_lua["log"].get_or_create<sol::table>();
   g_lua["log"]["info"] = []( string const& msg ) {
