@@ -8,6 +8,8 @@ set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
 find_package( Lua REQUIRED )
+# Works for single digit minor version numbers (pad with zero).
+set( LUA_VERSION_NUM "${LUA_VERSION_MAJOR}0${LUA_VERSION_MINOR}" )
 
 file( GLOB sources "[a-zA-Z]*.cpp" )
 add_library(
@@ -86,6 +88,7 @@ target_compile_definitions(
   BETTER_ENUMS_STRICT_CONVERSION=1
   SCELTA_SUPPORT_VARIANT_BOOST_DISABLE
   SCELTA_SUPPORT_OPTIONAL_BOOST_DISABLE
+  LUA_VERSION_NUM=${LUA_VERSION_NUM}
   )
 
 clang_tidy( rn )

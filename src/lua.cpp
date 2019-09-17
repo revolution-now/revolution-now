@@ -82,7 +82,7 @@ expect<Ret> lua_script( string_view script ) {
 }
 
 void init_lua() {
-  CHECK( g_lua["log"] == sol::nil );
+  CHECK( g_lua["log"] == sol::lua_nil );
   g_lua["log"].get_or_create<sol::table>();
   g_lua["log"]["info"] = []( string const& msg ) {
     lg.info( "{}", msg );
@@ -100,7 +100,7 @@ void init_lua() {
     lg.critical( "{}", msg );
   };
   g_lua["print"] = []( sol::object o ) {
-    if( o == sol::nil ) return;
+    if( o == sol::lua_nil ) return;
     if( auto maybe_string = o.as<Opt<string>>();
         maybe_string.has_value() )
       lg.info( "{}", *maybe_string );

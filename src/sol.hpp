@@ -13,8 +13,6 @@
 
 #include "core-config.hpp"
 
-#include <lua.h>
-
 // Won't be needed in future versions.
 #define SOL_CXX17_FEATURES 1
 
