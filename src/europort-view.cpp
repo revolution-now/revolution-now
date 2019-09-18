@@ -1556,8 +1556,8 @@ public:
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
         if( !is_unit_in_port( ship ) ) return false;
-        return unit_from_id( ship ).cargo().fits( src.id,
-                                                  dst.slot._ );
+        return unit_from_id( ship ).cargo().fits_somewhere(
+            src.id, dst.slot._ );
       }
       case_( DragArc::cargo_to_dock ) {
         return util::holds<DraggableObject::unit>(
@@ -1774,7 +1774,13 @@ public:
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
-        ownership_change_to_cargo( ship, src.id, dst.slot._ );
+        // First try to respect the destination slot chosen by
+        // the player,
+        if( unit_from_id( ship ).cargo().fits( src.id,
+                                               dst.slot._ ) )
+          ownership_change_to_cargo( ship, src.id, dst.slot._ );
+        else
+          ownership_change_to_cargo( ship, src.id );
       }
       case_( DragArc::cargo_to_dock ) {
         ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),

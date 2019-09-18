@@ -115,6 +115,9 @@ struct OmniPlane : public Plane {
               toggle_fullscreen();
             }
             break;
+          case ::SDLK_q:
+            if( key_event.mod.ctrl_down ) throw exception_exit{};
+            break;
           default: //
             handled = false;
             break;
