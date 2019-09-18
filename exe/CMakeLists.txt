@@ -7,13 +7,6 @@ target_link_libraries(
     rn
 )
 
-target_include_directories(
-    exe
-    PUBLIC
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/src
-)
-
 # The `midi-convert` target will convert (incrementally) any .rg
 # (Rosegarden) files to MIDI.  The `ogg-convert` will render the
 # midi to OGG.

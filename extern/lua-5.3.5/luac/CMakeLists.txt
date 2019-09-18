@@ -14,9 +14,3 @@ target_link_libraries(
   PUBLIC
   lua::lua
 )
-
-target_include_directories(
-    luac
-    PUBLIC
-    ${PROJECT_SOURCE_DIR}/lib
-)

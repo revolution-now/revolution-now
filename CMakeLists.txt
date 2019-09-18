@@ -45,7 +45,7 @@ add_subdirectory( test )
 # === external dependencies =======================================
 
 # This should not be necessary, but some subdirectories' cmake
-# files are not playing nicely and just setting this to 11.
+# files are not playing nicely and just setting this to 17.
 set( CMAKE_CXX_STANDARD 17 )
 
 # We don't want this variable set when we import the externs be-
@@ -72,6 +72,7 @@ add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/expected-lite EXCLUDE_FROM_ALL )
 add_subdirectory( extern/function_ref  EXCLUDE_FROM_ALL )
+add_subdirectory( extern/lua-5.3.5     EXCLUDE_FROM_ALL )
 add_subdirectory( extern/sol2          EXCLUDE_FROM_ALL )
 
 set( BUILD_TESTING ON ) # Catch2 will actually do this as well.

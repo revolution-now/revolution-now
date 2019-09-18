@@ -7,19 +7,18 @@ find_sdl2_lib( SDL2_mixer )
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
-find_package( Lua REQUIRED )
-# Works for single digit minor version numbers (pad with zero).
-set( LUA_VERSION_NUM "${LUA_VERSION_MAJOR}0${LUA_VERSION_MINOR}" )
-
 file( GLOB sources "[a-zA-Z]*.cpp" )
+
 add_library(
   rn
   STATIC
   ${sources}
 )
+
 target_compile_features( rn PUBLIC cxx_std_20 )
 set_target_properties( rn PROPERTIES CXX_EXTENSIONS OFF )
 set_warning_options( rn )
+
 target_link_libraries(
     rn
     PUBLIC
@@ -33,6 +32,7 @@ target_link_libraries(
     expected-lite
     fmt::fmt
     function-ref
+    lua::lua
     midifile
     observer-ptr::observer-ptr
     range-v3
@@ -45,17 +45,17 @@ target_link_libraries(
     ${SDL2_LIBRARY}
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
-    ${SDL2_MIXER_LIBRARY}
-    ${LUA_LIBRARIES} )
+    ${SDL2_MIXER_LIBRARY} )
+
 target_include_directories(
     rn
     PUBLIC
     ${PROJECT_SOURCE_DIR} # top-level folder
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}
-    ${SDL2_MIXER_INCLUDE_DIR}
-    ${LUA_INCLUDE_DIR} )
+    ${SDL2_MIXER_INCLUDE_DIR} )
 
 # If this is a debug build then link with the backward-cpp
 # library which provides stack traces.
@@ -88,7 +88,8 @@ target_compile_definitions(
   BETTER_ENUMS_STRICT_CONVERSION=1
   SCELTA_SUPPORT_VARIANT_BOOST_DISABLE
   SCELTA_SUPPORT_OPTIONAL_BOOST_DISABLE
-  LUA_VERSION_NUM=${LUA_VERSION_NUM}
+  LUA_VERSION_NUM=503
+  SOL_USING_CXX_LUA=1
   )
 
 clang_tidy( rn )

@@ -14,11 +14,4 @@ target_link_libraries(
   PUBLIC
   lua::lua
   readline
-  ${CMAKE_DL_LIBS}
-)
-
-target_include_directories(
-    lua-repl
-    PUBLIC
-    ${PROJECT_SOURCE_DIR}/lib
 )

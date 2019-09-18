@@ -11,6 +11,14 @@ set_source_files_properties(
 add_library( lua STATIC ${sources} )
 add_library( lua::lua ALIAS lua )
 
+target_include_directories( lua PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
+
+target_link_libraries(
+  lua
+  PUBLIC
+  ${CMAKE_DL_LIBS}
+)
+
 target_compile_features( lua PUBLIC cxx_std_20 )
 
 set_lua_warning_options( lua )

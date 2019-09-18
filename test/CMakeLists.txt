@@ -9,10 +9,3 @@ target_link_libraries(
     rn
     Catch2
 )
-
-target_include_directories(
-    unittest
-    PRIVATE
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_SOURCE_DIR}/src
-)
