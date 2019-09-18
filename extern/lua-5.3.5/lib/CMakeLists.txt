@@ -1,0 +1,29 @@
+# Note: restrictive pattern.
+file( GLOB sources "*.c" )
+
+# Need to compile Lua as C++ so that it can throw exceptions.
+set_source_files_properties(
+  ${sources}
+  PROPERTIES
+  LANGUAGE CXX
+)
+
+add_library( lua STATIC ${sources} )
+add_library( lua::lua ALIAS lua )
+
+target_compile_features( lua PUBLIC cxx_std_20 )
+
+set_lua_warning_options( lua )
+
+if( CMAKE_SYSTEM_NAME STREQUAL Linux )
+  set( LUA_USE LUA_USE_LINUX )
+elseif( CMAKE_SYSTEM_NAME STREQUAL Darwin )
+  set( LUA_USE LUA_USE_MACOSX )
+endif()
+
+target_compile_definitions(
+  lua
+  PUBLIC
+  ${LUA_USE}
+  LUA_COMPAT_5_2
+)
