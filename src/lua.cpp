@@ -99,7 +99,7 @@ expect<monostate> load_module( string const& name ) {
   g_lua["package_exports"] = sol::lua_nil;
   auto pf_result           = g_lua.safe_script_file(
       "src/lua/" + name + ".lua",
-      []( auto*, auto pfr ) { return std::move( pfr ); } );
+      []( auto*, auto pfr ) { return pfr; } );
   if( !pf_result.valid() ) {
     sol::error err = pf_result;
     return UNEXPECTED( err.what() );
