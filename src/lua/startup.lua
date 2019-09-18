@@ -10,7 +10,7 @@
 -----------------------------------------------------------------
 
 local function run()
-  europort.create_units_in_europort()
+  europort.create_some_units( e.nation.dutch )
 end
 
 package_exports = {

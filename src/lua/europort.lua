@@ -10,7 +10,7 @@
 |
 --]]-------------------------------------------------------------
 
-local function create_units_in_europort()
+local function create_some_units( nation )
   local units = {
     e.unit_type.free_colonist,
     e.unit_type.soldier,
@@ -20,10 +20,10 @@ local function create_units_in_europort()
     e.unit_type.large_treasure
   }
   for _, u in ipairs( units ) do
-    europort.create_unit_in_port( e.nation.dutch, u )
+    europort.create_unit_in_port( nation, u )
   end
 end
 
 package_exports = {
-  create_units_in_europort = create_units_in_europort
+  create_some_units = create_some_units
 }
