@@ -93,10 +93,6 @@ expect<monostate> load_module( string const& name ) {
   CHECK( is_valid_lua_identifier( name ),
          "module name `{}` is not a valid lua identifier.",
          name );
-  CHECK( g_lua[name] == sol::lua_nil,
-         "cannot import package `{}` because that symbol "
-         "already exists.",
-         name );
   fs::path file_name = "src/lua/" + name + ".lua";
   CHECK( fs::exists( file_name ), "file {} does not exist.",
          file_name );
@@ -110,7 +106,11 @@ expect<monostate> load_module( string const& name ) {
   }
   CHECK( g_lua["package_exports"] != sol::lua_nil,
          "module `{}` does not have package exports.", name );
-  g_lua[name] = g_lua["package_exports"];
+  // In case the symbol already exists we will assume that it is
+  // a table and merge its contents into this one.
+  auto old_table = g_lua[name].get_or_create<sol::table>();
+  g_lua[name]    = g_lua["package_exports"];
+  for( auto [k, v] : old_table ) g_lua[name][k] = v;
 
   g_lua["package_exports"] = sol::lua_nil;
   return monostate{};

@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
+#include "lua.hpp"
 #include "util.hpp"
 
 // Revolution Now (config)
@@ -165,5 +166,14 @@ BEHAVIOR_IMPL_START( water, friendly, unit ) {
              : res_t::never;
 }
 BEHAVIOR_IMPL_END()
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_ENUM( unit_type );
+
+} // namespace
 
 } // namespace rn

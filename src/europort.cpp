@@ -218,18 +218,15 @@ void advance_unit_on_high_seas( UnitId id ) {
 }
 
 /****************************************************************
-** Lua Functions
+** Lua Bindings
 *****************************************************************/
 namespace {
 
-// FIXME: should take nation argument.
-LUA_FN( europort, create_unit_in_port, void, Str const& unit ) {
-  auto maybe_unit_type =
-      e_unit_type::_from_string_nothrow( unit.c_str() );
-  CHECK( maybe_unit_type, "`{}` is not recognized.", unit );
-  e_nation nation = e_nation::dutch;
-  create_unit_in_euroview_port( nation, *maybe_unit_type );
-  lg.info( "created a {} on {} dock.", unit, nation );
+LUA_FN( europort, create_unit_in_port, void, e_nation nation,
+        e_unit_type type ) {
+  create_unit_in_euroview_port( nation, type );
+  lg.info( "created a {} on {} dock.", unit_desc( type ).name,
+           nation );
 }
 
 } // namespace

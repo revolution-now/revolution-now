@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
+#include "lua.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/nation.inl"
@@ -53,5 +54,14 @@ string NationDesc::name_proper() const {
   res[0] = std::toupper( res[0] );
   return res;
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_ENUM( nation );
+
+} // namespace
 
 } // namespace rn
