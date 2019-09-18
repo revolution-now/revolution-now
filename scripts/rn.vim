@@ -110,6 +110,10 @@ function! MyTabLabel( n )
     if ext == 'txt'
       return fnamemodify( 'docs', ':t:r' )
     endif
+    if ext == 'lua'
+      let path = fnamemodify( path, ':t:r' )
+      return 'lua/' . path
+    endif
   endfor
   let winnr = tabpagewinnr( a:n )
   return bufname( buflist[winnr - 1] )

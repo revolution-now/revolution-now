@@ -90,6 +90,11 @@ let s:stems = [
 "  \ ['x/y/z.ext', 'a/c/d.xyz']
 "\]
 
+let s:luas = [
+  \ 'startup',
+  \ 'populate',
+\]
+
 let s:quads = [
   \ ['doc/todo.txt', 'scripts/session.vim',
   \  'doc/design.txt',     'doc/ideas.txt'],
@@ -123,6 +128,11 @@ function OpenPair( hpp, cpp )
     call OpenVSplit( a:hpp )
 endfunction
 
+function OpenLua( lua )
+    call OpenInTab( 'src/lua/' . a:lua . '.lua' )
+    call OpenVSplit( 'src/lua/' . a:lua . '.lua' )
+endfunction
+
 function OpenQuad( f1, f2, f3, f4 )
     call OpenPair( a:f1, a:f2 )
     execute ':split ' . a:f3
@@ -141,9 +151,10 @@ endfunction
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 call OpenFirst( s:first )
-for s in s:stems | call OpenCppPair( s )                   | endfor
-"for p in s:pairs | call OpenPair( p[0], p[1] )             | endfor
-for q in s:quads | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
+"for p in s:pairs  | call OpenPair( p[0], p[1] )             | endfor
+for l in s:luas   | call OpenLua( l )                       | endfor
+for s in s:stems  | call OpenCppPair( s )                   | endfor
+for q in s:quads  | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Finish up.
@@ -170,3 +181,4 @@ function s:OpenSourcePair( name )
 endfunction
 
 command! -nargs=1 PairOpen call s:OpenSourcePair( <f-args> )
+command! -nargs=1 LuaOpen  call OpenLua( <f-args> )

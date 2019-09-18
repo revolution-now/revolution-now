@@ -1,0 +1,19 @@
+--[[-------------------------------------------------------------
+|
+| {{FILEE}}
+|
+| Project: Revolution Now
+|
+| Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+|
+| Description: {{CURSOR}}
+|
+--]]-------------------------------------------------------------
+
+local function foo()
+  -- code here.
+end
+
+package_exports = {
+  foo = foo
+}

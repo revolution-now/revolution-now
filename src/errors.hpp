@@ -291,13 +291,19 @@ using expect = ::nonstd::expected<T, ::rn::Unexpected>;
       ::rn::Unexpected{fmt::format( fmt_str, __VA_ARGS__ ), \
                        __LINE__, __FILE__} )
 
-#define CHECK_UNEXPECTED( e )                                   \
-  CHECK( e.has_value(), "unexpected:{}:{}: {}", e.error().file, \
-         e.error().line, e.error().what )
+#define CHECK_XP( e )                                  \
+  {                                                    \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;      \
+    CHECK( STRING_JOIN( __e, __LINE__ ).has_value(),   \
+           "unexpected:{}:{}: {}",                     \
+           STRING_JOIN( __e, __LINE__ ).error().file,  \
+           STRING_JOIN( __e, __LINE__ ).error().line,  \
+           STRING_JOIN( __e, __LINE__ ).error().what ) \
+  }
 
-#define ASSIGN_CHECK_UNEXPECTED( a, b )             \
-  auto STRING_JOIN( __x, __LINE__ ) = b;            \
-  CHECK_UNEXPECTED( STRING_JOIN( __x, __LINE__ ) ); \
+#define ASSIGN_CHECK_XP( a, b )             \
+  auto STRING_JOIN( __x, __LINE__ ) = b;    \
+  CHECK_XP( STRING_JOIN( __x, __LINE__ ) ); \
   auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
 
 // Used for converting a value of one expected type into another
