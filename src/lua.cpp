@@ -16,12 +16,10 @@
 #include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logging.hpp"
-#include "util.hpp"
 
 // base-util
 #include "base-util/io.hpp"
 #include "base-util/string.hpp"
-#include "base-util/type-map.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -37,49 +35,6 @@ sol::state g_lua;
 auto& registration_functions() {
   static vector<RegistrationFn_t> fns;
   return fns;
-}
-
-expect<monostate> lua_script_( string_view script ) {
-  auto result =
-      g_lua.safe_script( script, sol::script_pass_on_error );
-  if( !result.valid() ) {
-    sol::error err = result;
-    return UNEXPECTED( err.what() );
-  }
-  return monostate{};
-}
-
-using IntermediateCppTypeMap = TypeMap< //
-    KV<int, double>                     //
-    >;
-
-template<typename Ret>
-expect<Ret> sol_obj_convert( sol::object const& o ) {
-  using intermediate_t = Get<IntermediateCppTypeMap, Ret, Ret>;
-  if( !o.is<intermediate_t>() ) {
-    string via =
-        is_same_v<Ret, intermediate_t>
-            ? ""
-            : ( " (via `"s +
-                demangled_typename<intermediate_t>() + "`)" );
-    return UNEXPECTED( fmt::format(
-        "expected type `{}`{} but got `{}`.",
-        demangled_typename<Ret>(), via,
-        sol::type_name( g_lua.lua_state(), o.get_type() ) ) );
-  }
-  auto intermediate_res = o.as<intermediate_t>();
-  return static_cast<Ret>( intermediate_res );
-}
-
-template<typename Ret>
-expect<Ret> lua_script( string_view script ) {
-  auto result =
-      g_lua.safe_script( script, sol::script_pass_on_error );
-  if( !result.valid() ) {
-    sol::error err = result;
-    return UNEXPECTED( err.what() );
-  }
-  return sol_obj_convert<Ret>( result.get<sol::object>() );
 }
 
 bool is_valid_lua_identifier( string_view name ) {
@@ -116,7 +71,8 @@ expect<monostate> load_module( string const& name ) {
   return monostate{};
 }
 
-void init_lua() {
+void reset_state_impl() {
+  g_lua = sol::state{};
   g_lua.open_libraries( sol::lib::base );
   CHECK( g_lua["log"] == sol::lua_nil );
   g_lua["log"].get_or_create<sol::table>();
@@ -155,6 +111,8 @@ void init_lua() {
   for( auto const& fn : registration_functions() ) fn( g_lua );
 }
 
+void init_lua() { reset_state_impl(); }
+
 void cleanup_lua() { g_lua = sol::state{}; }
 
 REGISTER_INIT_ROUTINE( lua );
@@ -164,17 +122,7 @@ REGISTER_INIT_ROUTINE( lua );
 /****************************************************************
 ** Public API
 *****************************************************************/
-sol::state& state() { return g_lua; }
-
-template<>
-expect<monostate> run<void>( string const& script ) {
-  return lua_script_( script );
-}
-
-template<>
-expect<string> run<string>( string const& script ) {
-  return lua_script<string>( script );
-}
+sol::state& global_state() { return g_lua; }
 
 void load_modules() {
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
@@ -206,8 +154,10 @@ void test_lua() {
   // int        x = 0;
   // lua.open_libraries( sol::lib::base );
   // lua.set_function( "beep", [&x]() { ++x; } );
-  auto result = lua_script<int>( "return 56.4" );
+  auto result = run<int>( "return 56.4" );
   lg.info( "result: {}", result );
 }
+
+void reset_state() { reset_state_impl(); }
 
 } // namespace rn::lua

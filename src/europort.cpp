@@ -222,11 +222,13 @@ void advance_unit_on_high_seas( UnitId id ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( europort, create_unit_in_port, void, e_nation nation,
+// FIXME: support UnitId.
+LUA_FN( europort, create_unit_in_port, int, e_nation nation,
         e_unit_type type ) {
-  create_unit_in_euroview_port( nation, type );
+  auto id = create_unit_in_euroview_port( nation, type );
   lg.info( "created a {} on {} dock.", unit_desc( type ).name,
            nation );
+  return id._;
 }
 
 } // namespace

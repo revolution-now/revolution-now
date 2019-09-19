@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "sol.hpp"
+#include "util.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -29,24 +30,67 @@
 namespace rn::lua {
 
 /****************************************************************
+** Lua (Sol2) State
+*****************************************************************/
+sol::state& global_state();
+
+/****************************************************************
 ** Run Lua Scripts
 *****************************************************************/
 namespace detail {
+
 using LuaRetMap = TypeMap<   //
     KV<void, std::monostate> //
     >;
+
+using IntermediateCppTypeMap = TypeMap< //
+    KV<int, double>                     //
+    >;
+
+template<typename Ret>
+expect<Ret> sol_obj_convert( sol::object const& o ) {
+  using intermediate_t = Get<IntermediateCppTypeMap, Ret, Ret>;
+  if( !o.is<intermediate_t>() ) {
+    std::string via =
+        std::is_same_v<Ret, intermediate_t>
+            ? ""
+            : ( std::string( " (via `" ) +
+                demangled_typename<intermediate_t>() + "`)" );
+    return UNEXPECTED(
+        fmt::format( "expected type `{}`{} but got `{}`.",
+                     demangled_typename<Ret>(), via,
+                     sol::type_name( global_state().lua_state(),
+                                     o.get_type() ) ) );
+  }
+  auto intermediate_res = o.as<intermediate_t>();
+  return static_cast<Ret>( intermediate_res );
 }
 
 template<typename Ret>
-ND expect<Get<detail::LuaRetMap, Ret, Ret>> run(
-    Str const& script );
+expect<Ret> lua_script( std::string_view script ) {
+  auto result = global_state().safe_script(
+      script, sol::script_pass_on_error );
+  if( !result.valid() ) {
+    sol::error err = result;
+    return UNEXPECTED( err.what() );
+  }
+  if constexpr( std::is_same_v<Ret, std::monostate> )
+    return std::monostate{};
+  else
+    return sol_obj_convert<Ret>( result.get<sol::object>() );
+}
 
-template<>
-ND expect<std::monostate> run<void>( Str const& script );
+} // namespace detail
 
-template<>
-ND expect<Str> run<Str>( Str const& script );
+template<typename Ret>
+ND auto run( Str const& script ) {
+  return detail::lua_script<Get<detail::LuaRetMap, Ret, Ret>>(
+      script );
+}
 
+/****************************************************************
+** Lua Modules
+*****************************************************************/
 void load_modules();
 void run_startup();
 
@@ -133,5 +177,7 @@ Vec<Str> format_lua_error_msg( Str const& msg );
 ** Testing
 *****************************************************************/
 void test_lua();
+
+void reset_state();
 
 } // namespace rn::lua
