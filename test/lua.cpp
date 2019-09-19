@@ -148,11 +148,13 @@ LUA_FN( testing, coord_test, Coord, Coord const& coord ) {
 
 TEST_CASE( "[lua] Coord" ) {
   auto script = R"(
-    coord = {x=2, y=2}
+    coord = Coord{x=2, y=2}
     coord = testing.coord_test( coord )
+    coord.x = coord.x + 1
+    coord.y = coord.y + 2
     return coord
   )";
-  REQUIRE( lua::run<Coord>( script ) == Coord{3_x, 3_y} );
+  REQUIRE( lua::run<Coord>( script ) == Coord{4_x, 5_y} );
 }
 
 } // namespace

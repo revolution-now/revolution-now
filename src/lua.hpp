@@ -177,8 +177,8 @@ void register_enum( sol::state& st, std::string_view name ) {
                              int index, Handler&& handler,    \
                              sol::stack::record& tracking ) { \
     int  absolute_index = lua_absindex( L, index );           \
-    bool success =                                            \
-        sol::stack::check<int>( L, absolute_index, handler ); \
+    bool success        = sol::stack::check<double>(          \
+        L, absolute_index, handler );                  \
     tracking.use( 1 ); /* use one stack slot. */              \
     return success;                                           \
   }                                                           \
@@ -186,7 +186,8 @@ void register_enum( sol::state& st, std::string_view name ) {
                            int                 index,         \
                            sol::stack::record& tracking ) {   \
     int absolute_index = lua_absindex( L, index );            \
-    int val = sol::stack::get<int>( L, absolute_index );      \
+    int val =                                                 \
+        int( sol::stack::get<double>( L, absolute_index ) );  \
     tracking.use( 1 ); /* use one stack slot. */              \
     return name{val};                                         \
   }                                                           \

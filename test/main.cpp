@@ -8,12 +8,13 @@
 * Description: Provides main() for the unit tests.
 *
 *****************************************************************/
-#define CATCH_CONFIG_RUNNER
-#include "catch2/catch.hpp"
-
 // Revolution Now
 #include "init.hpp"
 #include "linking.hpp"
+#include "lua.hpp"
+
+#define CATCH_CONFIG_RUNNER
+#include "catch2/catch.hpp"
 
 using namespace rn;
 
@@ -24,6 +25,7 @@ int main( int argc, char** argv ) {
                              e_init_routine::rng, //
                              e_init_routine::lua, //
                          } );
+  lua::load_modules();
 
   int result = Catch::Session().run( argc, argv );
 

@@ -51,10 +51,7 @@ inline ::rn::Coord sol_lua_get( sol::types<::rn::Coord>,
                                 sol::stack::record& tracking ) {
   int  absolute_index = lua_absindex( L, index );
   auto table = sol::stack::get<sol::table>( L, absolute_index );
-  ::rn::Coord coord{
-      ::rn::X{int( table["x"].get<double>() )}, // try X
-      ::rn::Y{int( table["y"].get<double>() )}  // try Y
-  };
+  ::rn::Coord coord{table["x"].get<X>(), table["y"].get<Y>()};
   tracking.use( 1 );
   return coord;
 }
@@ -66,8 +63,8 @@ inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
   auto tmp_table = "____tmp"; // FIXME: better way?
   auto table     = st.create_table( tmp_table );
 
-  table["x"]    = double( coord.x._ );
-  table["y"]    = double( coord.y._ );
+  table["x"]    = coord.x;
+  table["y"]    = coord.y;
   int amount    = sol::stack::push( L, table );
   st[tmp_table] = sol::lua_nil;
 

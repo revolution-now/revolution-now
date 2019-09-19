@@ -23,10 +23,6 @@ local function create_some_units_in_europort( nation )
   end
 end
 
-Coord = function( arg )
-  return {x=arg.x, y=arg.y}
-end
-
 local function create_some_units_on_land( nation )
   coord = Coord{y=2, x=2}
   id = ownership.create_unit_on_map(
