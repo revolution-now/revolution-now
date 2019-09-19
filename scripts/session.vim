@@ -88,7 +88,7 @@ let s:stems = [
 
 let s:luas = [
   \ 'startup',
-  \ 'populate',
+  \ 'europort',
 \]
 
 let s:quads = [

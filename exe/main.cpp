@@ -27,30 +27,6 @@ using namespace std;
 namespace rn {
 
 void game() {
-  UnitId id;
-
-  id = create_unit_on_map(
-      e_nation::spanish, e_unit_type::free_colonist, 2_y, 2_x );
-  unit_from_id( id ).fortify();
-
-  id = create_unit_on_map( e_nation::spanish,
-                           e_unit_type::soldier, 2_y, 3_x );
-  unit_from_id( id ).sentry();
-
-  (void)create_unit_on_map( e_nation::spanish,
-                            e_unit_type::privateer, 2_y, 6_x );
-
-  id = create_unit_on_map( e_nation::english,
-                           e_unit_type::soldier, 3_y, 2_x );
-  unit_from_id( id ).fortify();
-
-  id = create_unit_on_map( e_nation::english,
-                           e_unit_type::soldier, 3_y, 3_x );
-  unit_from_id( id ).sentry();
-
-  id = create_unit_on_map( e_nation::english,
-                           e_unit_type::privateer, 3_y, 6_x );
-
   // while( turn() != e_turn_result::quit ) {}
 
   // using namespace std::literals::chrono_literals;

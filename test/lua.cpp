@@ -11,6 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "lua-ext.hpp"
 #include "lua.hpp"
 
 // Must be last.
@@ -136,6 +137,22 @@ TEST_CASE( "[lua] C++ function binding" ) {
   )";
 
   REQUIRE( lua::run<int>( script ) == 2 );
+}
+
+LUA_FN( testing, coord_test, Coord, Coord const& coord ) {
+  auto new_coord = coord;
+  new_coord.x += 1_w;
+  new_coord.y += 1_h;
+  return new_coord;
+}
+
+TEST_CASE( "[lua] Coord" ) {
+  auto script = R"(
+    coord = {x=2, y=2}
+    coord = testing.coord_test( coord )
+    return coord
+  )";
+  REQUIRE( lua::run<Coord>( script ) == Coord{3_x, 3_y} );
 }
 
 } // namespace

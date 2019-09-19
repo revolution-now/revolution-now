@@ -24,3 +24,55 @@ LUA_TYPED_INT( ::rn::W );
 LUA_TYPED_INT( ::rn::H );
 
 LUA_TYPED_INT( ::rn::UnitId );
+
+/****************************************************************
+** Coord
+*****************************************************************/
+namespace rn {
+
+template<typename Handler>
+inline bool sol_lua_check( sol::types<::rn::Coord>, lua_State* L,
+                           int index, Handler&& handler,
+                           sol::stack::record& tracking ) {
+  int  absolute_index = lua_absindex( L, index );
+  bool success        = sol::stack::check<sol::table>(
+      L, absolute_index, handler );
+  tracking.use( 1 );
+  if( !success ) return false;
+  auto table = sol::stack::get<sol::table>( L, absolute_index );
+  success    = ( table["x"].get_type() == sol::type::number ) &&
+            ( table["y"].get_type() == sol::type::number );
+  if( !success ) return false;
+  return success;
+}
+
+inline ::rn::Coord sol_lua_get( sol::types<::rn::Coord>,
+                                lua_State* L, int index,
+                                sol::stack::record& tracking ) {
+  int  absolute_index = lua_absindex( L, index );
+  auto table = sol::stack::get<sol::table>( L, absolute_index );
+  ::rn::Coord coord{
+      ::rn::X{int( table["x"].get<double>() )}, // try X
+      ::rn::Y{int( table["y"].get<double>() )}  // try Y
+  };
+  tracking.use( 1 );
+  return coord;
+}
+
+inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
+                         ::rn::Coord const& coord ) {
+  sol::state_view st( L );
+
+  auto tmp_table = "____tmp"; // FIXME: better way?
+  auto table     = st.create_table( tmp_table );
+
+  table["x"]    = double( coord.x._ );
+  table["y"]    = double( coord.y._ );
+  int amount    = sol::stack::push( L, table );
+  st[tmp_table] = sol::lua_nil;
+
+  /* amount will be 1: int pushes 1 item. */
+  return amount;
+}
+
+} // namespace rn
