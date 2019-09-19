@@ -106,12 +106,12 @@ void register_fn( RegistrationFn_t fn );
 *****************************************************************/
 #define LUA_FN( ... ) PP_N_OR_MORE_ARGS_3( LUA_FN, __VA_ARGS__ )
 
-#define LUA_FN_STARTUP( ns, name )             \
-  STARTUP() {                                  \
-    lua::register_fn( []( sol::state& st ) {   \
-      st[#ns].get_or_create<sol::table>();     \
-      st[#ns][#name] = lua_fn_##ns##_##name{}; \
-    } );                                       \
+#define LUA_FN_STARTUP( ns, name )                 \
+  STARTUP() {                                      \
+    ::rn::lua::register_fn( []( sol::state& st ) { \
+      st[#ns].get_or_create<sol::table>();         \
+      st[#ns][#name] = lua_fn_##ns##_##name{};     \
+    } );                                           \
   }
 
 #define LUA_FN_SINGLE( ns, name, ret_type ) \
@@ -154,11 +154,11 @@ void register_enum( sol::state& st, std::string_view name ) {
 
 #define LUA_ENUM( what )                                        \
   STARTUP() {                                                   \
-    lua::register_fn( []( sol::state& st ) {                    \
-      lua::register_enum<e_##what>( st, #what );                \
+    ::rn::lua::register_fn( []( sol::state& st ) {              \
+      ::rn::lua::register_enum<::rn::e_##what>( st, #what );    \
       st["e"][#what "_from_string"] = []( char const* name ) {  \
         auto maybe_val =                                        \
-            e_##what::_from_string_nothrow( name );             \
+            ::rn::e_##what::_from_string_nothrow( name );       \
         CHECK(                                                  \
             maybe_val,                                          \
             "enum value `{}` is not a member of the enum `{}`", \
@@ -166,6 +166,35 @@ void register_enum( sol::state& st, std::string_view name ) {
         return *maybe_val;                                      \
       };                                                        \
     } );                                                        \
+  }
+
+/****************************************************************
+** Typed Int
+*****************************************************************/
+#define LUA_TYPED_INT( name )                                 \
+  template<typename Handler>                                  \
+  inline bool sol_lua_check( sol::types<name>, lua_State* L,  \
+                             int index, Handler&& handler,    \
+                             sol::stack::record& tracking ) { \
+    int  absolute_index = lua_absindex( L, index );           \
+    bool success =                                            \
+        sol::stack::check<int>( L, absolute_index, handler ); \
+    tracking.use( 1 ); /* use one stack slot. */              \
+    return success;                                           \
+  }                                                           \
+  inline name sol_lua_get( sol::types<name>, lua_State* L,    \
+                           int                 index,         \
+                           sol::stack::record& tracking ) {   \
+    int absolute_index = lua_absindex( L, index );            \
+    int val = sol::stack::get<int>( L, absolute_index );      \
+    tracking.use( 1 ); /* use one stack slot. */              \
+    return name{val};                                         \
+  }                                                           \
+  inline int sol_lua_push( sol::types<name>, lua_State* L,    \
+                           name const& n ) {                  \
+    int amount = sol::stack::push( L, n._ );                  \
+    /* amount will be 1: int pushes 1 item. */                \
+    return amount;                                            \
   }
 
 /****************************************************************

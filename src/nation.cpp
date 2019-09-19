@@ -55,6 +55,8 @@ string NationDesc::name_proper() const {
   return res;
 }
 
+} // namespace rn
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -62,6 +64,4 @@ namespace {
 
 LUA_ENUM( nation );
 
-} // namespace
-
-} // namespace rn
+}

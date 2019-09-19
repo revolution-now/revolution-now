@@ -14,6 +14,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
+#include "lua-ext.hpp"
 #include "lua.hpp"
 #include "ownership.hpp"
 
@@ -222,13 +223,12 @@ void advance_unit_on_high_seas( UnitId id ) {
 *****************************************************************/
 namespace {
 
-// FIXME: support UnitId.
-LUA_FN( europort, create_unit_in_port, int, e_nation nation,
+LUA_FN( europort, create_unit_in_port, UnitId, e_nation nation,
         e_unit_type type ) {
   auto id = create_unit_in_euroview_port( nation, type );
   lg.info( "created a {} on {} dock.", unit_desc( type ).name,
            nation );
-  return id._;
+  return id;
 }
 
 } // namespace

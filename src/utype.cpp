@@ -167,6 +167,8 @@ BEHAVIOR_IMPL_START( water, friendly, unit ) {
 }
 BEHAVIOR_IMPL_END()
 
+} // namespace rn
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
@@ -174,6 +176,4 @@ namespace {
 
 LUA_ENUM( unit_type );
 
-} // namespace
-
-} // namespace rn
+}

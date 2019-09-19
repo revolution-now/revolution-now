@@ -16,6 +16,7 @@
 #include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "lua-ext.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -149,14 +150,7 @@ void register_fn( RegistrationFn_t fn ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void test_lua() {
-  sol::state lua;
-  // int        x = 0;
-  // lua.open_libraries( sol::lib::base );
-  // lua.set_function( "beep", [&x]() { ++x; } );
-  auto result = run<int>( "return 56.4" );
-  lg.info( "result: {}", result );
-}
+void test_lua() {}
 
 void reset_state() { reset_state_impl(); }
 
