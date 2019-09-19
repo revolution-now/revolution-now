@@ -19,6 +19,9 @@
 // base-util
 #include "base-util/macros.hpp"
 
+// Abseil
+#include "absl/types/span.h"
+
 // C++ standard library
 #include <functional>
 #include <vector>
@@ -68,8 +71,8 @@ void register_init_routine( e_init_routine      routine,
 // be run. Otherwise all routines will be run in order of depen-
 // dencies.
 void run_all_init_routines(
-    Opt<e_log_level>    level,
-    Opt<e_init_routine> only = std::nullopt );
+    Opt<e_log_level>                 level,
+    absl::Span<e_init_routine const> top_level = {} );
 // This will run the corresponding cleanup routine for each
 // initialization routine that was successfully run, and will do
 // so in the opposite order.

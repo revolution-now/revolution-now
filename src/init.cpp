@@ -24,6 +24,7 @@
 
 // Range-v3
 #include "range/v3/algorithm/find.hpp"
+#include "range/v3/algorithm/for_each.hpp"
 #include "range/v3/view/reverse.hpp"
 
 using namespace std;
@@ -186,8 +187,9 @@ void register_init_routine( e_init_routine      routine,
   init_routine_run_map()[routine] = false;
 }
 
-void run_all_init_routines( Opt<e_log_level>    level,
-                            Opt<e_init_routine> only ) {
+void run_all_init_routines(
+    Opt<e_log_level>                 level,
+    absl::Span<e_init_routine const> top_level ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
   init_logging( util::fmap( to_spdlog_level, level ) );
@@ -233,13 +235,21 @@ void run_all_init_routines( Opt<e_log_level>    level,
 
   auto sorted = dag.sorted();
 
+  FlatSet<e_init_routine> reachable;
+
   // By default initialize all elements from the dag, unless the
-  // caller has specified a routine on which to focus; in that
-  // case, only initialize it and its dependencies.
-  auto reachable = ( only.has_value() )
-                       ? dag.accessible( only.value(),
-                                         /*with_self=*/true )
-                       : sorted;
+  // caller has specified some items to represent the top level
+  // of the dependency graph; in that case, only initialize those
+  // and their dependencies.
+  if( !top_level.empty() ) {
+    for( auto routine : top_level ) {
+      rg::for_each(
+          dag.accessible( routine, /*with_self=*/true ),
+          LC( reachable.insert( _ ) ) );
+    }
+  } else {
+    rg::for_each( sorted, LC( reachable.insert( _ ) ) );
+  }
 
   for( auto routine : sorted ) {
     if( rg::find( reachable, routine ) != reachable.end() ) {
