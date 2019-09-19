@@ -24,6 +24,11 @@ using namespace rn;
 
 using Catch::Contains;
 
+void reset_lua_state() {
+  lua::reset_state();
+  lua::load_modules();
+}
+
 TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
     x = 5+6
@@ -109,26 +114,19 @@ TEST_CASE( "[lua] enums from string" ) {
   REQUIRE( lua::run<bool>( script ) == true );
 }
 
-TEST_CASE( "[lua] load modules" ) {
-  lua::reset_state();
+TEST_CASE( "[lua] has startup.run" ) {
+  reset_lua_state();
   auto script = R"(
     return tostring( startup.run )
   )";
 
   auto xp = lua::run<string>( script );
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what,
-                Contains( "attempt to index a nil value" ) );
-
-  REQUIRE_NOTHROW( lua::load_modules() );
-
-  xp = lua::run<string>( script );
   REQUIRE( xp.has_value() );
   REQUIRE_THAT( xp.value(), Contains( "function" ) );
 }
 
 TEST_CASE( "[lua] C++ function binding" ) {
-  lua::reset_state();
+  reset_lua_state();
   auto script = R"(
     id1 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
     id2 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
