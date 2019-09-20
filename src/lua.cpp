@@ -34,7 +34,7 @@ namespace {
 sol::state g_lua;
 
 auto& registration_functions() {
-  static vector<RegistrationFn_t> fns;
+  static vector<RegistrationFnSig**> fns;
   return fns;
 }
 
@@ -109,7 +109,7 @@ void reset_state_impl() {
 
   lg.info( "registering Lua functions." );
   // Now run all the registration functions.
-  for( auto const& fn : registration_functions() ) fn( g_lua );
+  for( auto fn : registration_functions() ) ( *fn )( g_lua );
 }
 
 void init_lua() { reset_state_impl(); }
@@ -143,8 +143,8 @@ Vec<Str> format_lua_error_msg( Str const& msg ) {
   return res;
 }
 
-void register_fn( RegistrationFn_t fn ) {
-  registration_functions().push_back( std::move( fn ) );
+void register_fn( RegistrationFnSig** fn ) {
+  registration_functions().push_back( fn );
 }
 
 /****************************************************************

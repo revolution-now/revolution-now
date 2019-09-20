@@ -98,18 +98,26 @@ void run_startup();
 ** Registration
 *****************************************************************/
 using RegistrationFnSig = void( sol::state& );
-using RegistrationFn_t  = std::function<RegistrationFnSig>;
 
-void register_fn( RegistrationFn_t fn );
+void register_fn( RegistrationFnSig** fn );
 
 /****************************************************************
 ** General
 *****************************************************************/
 // For startup code that just needs access to the lua state.
+
+// In the constructor of this temp class we register a pointer to
+// a function pointer so that we can work around initialization
+// order issues. Specifically, the constructor may run before the
+// `init_fn` static variable is initialized (due to the order in
+// which they appear in the translation unit) and so we just
+// capture the address of it instead of its value. This init_fn
+// won't be dereferenced and called until long after all static
+// initialization has completed.
 #define LUA_STARTUP( st )                       \
   struct STRING_JOIN( register_, __LINE__ ) {   \
     STRING_JOIN( register_, __LINE__ )() {      \
-      rn::lua::register_fn( init_fn );          \
+      rn::lua::register_fn( &init_fn );         \
     }                                           \
     static rn::lua::RegistrationFnSig* init_fn; \
   } STRING_JOIN( obj, __LINE__ );               \
@@ -121,13 +129,11 @@ void register_fn( RegistrationFn_t fn );
 *****************************************************************/
 #define LUA_FN( ... ) PP_N_OR_MORE_ARGS_3( LUA_FN, __VA_ARGS__ )
 
-#define LUA_FN_STARTUP( ns, name )                 \
-  STARTUP() {                                      \
-    ::rn::lua::register_fn( []( sol::state& st ) { \
-      st[#ns].get_or_create<sol::table>();         \
-      st[#ns][#name] = lua_fn_##ns##_##name{};     \
-    } );                                           \
-  }
+#define LUA_FN_STARTUP( ns, name )           \
+  LUA_STARTUP( sol::state& st ) {            \
+    st[#ns].get_or_create<sol::table>();     \
+    st[#ns][#name] = lua_fn_##ns##_##name{}; \
+  };
 
 #define LUA_FN_SINGLE( ns, name, ret_type ) \
   struct lua_fn_##ns##_##name {             \
@@ -167,21 +173,19 @@ void register_enum( sol::state& st, std::string_view name ) {
       st, name, std::make_index_sequence<Enum::_size()>() );
 }
 
-#define LUA_ENUM( what )                                        \
-  STARTUP() {                                                   \
-    ::rn::lua::register_fn( []( sol::state& st ) {              \
-      ::rn::lua::register_enum<::rn::e_##what>( st, #what );    \
-      st["e"][#what "_from_string"] = []( char const* name ) {  \
-        auto maybe_val =                                        \
-            ::rn::e_##what::_from_string_nothrow( name );       \
-        CHECK(                                                  \
-            maybe_val,                                          \
-            "enum value `{}` is not a member of the enum `{}`", \
-            name, #what );                                      \
-        return *maybe_val;                                      \
-      };                                                        \
-    } );                                                        \
-  }
+#define LUA_ENUM( what )                                      \
+  LUA_STARTUP( sol::state& st ) {                             \
+    ::rn::lua::register_enum<::rn::e_##what>( st, #what );    \
+    st["e"][#what "_from_string"] = []( char const* name ) {  \
+      auto maybe_val =                                        \
+          ::rn::e_##what::_from_string_nothrow( name );       \
+      CHECK(                                                  \
+          maybe_val,                                          \
+          "enum value `{}` is not a member of the enum `{}`", \
+          name, #what );                                      \
+      return *maybe_val;                                      \
+    };                                                        \
+  };
 
 /****************************************************************
 ** Typed Int
