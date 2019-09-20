@@ -38,7 +38,9 @@ TEST_CASE( "[flat-queue] initialization" ) {
   REQUIRE( q.empty() );
 
   REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
   REQUIRE_THROWS_AS_RN( q.pop() );
+#endif
 }
 
 TEST_CASE( "[flat-queue] push pop small" ) {
@@ -53,7 +55,9 @@ TEST_CASE( "[flat-queue] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
   REQUIRE_THROWS_AS_RN( q.pop() );
+#endif
 
   q.push( 5 );
   q.push( 6 );
@@ -71,7 +75,9 @@ TEST_CASE( "[flat-queue] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
   REQUIRE_THROWS_AS_RN( q.pop() );
+#endif
 }
 
 TEST_CASE( "[flat-queue] min size" ) {
@@ -101,7 +107,9 @@ TEST_CASE( "[flat-queue] min size" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
   REQUIRE_THROWS_AS_RN( q.pop() );
+#endif
 }
 
 TEST_CASE( "[flat-queue] reallocation size" ) {
