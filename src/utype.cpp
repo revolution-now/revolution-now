@@ -23,23 +23,23 @@
 
 using namespace std;
 
-#define LOAD_UNIT_DESC( __name )                              \
-  {                                                           \
-    e_unit_type::__name, UnitDescriptor {                     \
-      config_units.__name.name, e_unit_type::__name,          \
-          g_tile::__name, config_units.__name.nat_icon_front, \
-          config_units.__name.nat_icon_position,              \
-          config_units.__name.boat,                           \
-          config_units.__name.visibility,                     \
-          config_units.__name.movement_points,                \
-          config_units.__name.attack_points,                  \
-          config_units.__name.defense_points,                 \
-          config_units.__name.on_death,                       \
-          config_units.__name.demoted,                        \
-          config_units.__name.cargo_slots,                    \
-          config_units.__name.cargo_slots_occupies            \
-    }                                                         \
-  }
+#define LOAD_UNIT_DESC( u )                            \
+  desc_[e_unit_type::u] =                              \
+      UnitDescriptor{/*util::movable_only=*/{},        \
+                     config_units.u.name,              \
+                     e_unit_type::u,                   \
+                     g_tile::u,                        \
+                     config_units.u.nat_icon_front,    \
+                     config_units.u.nat_icon_position, \
+                     config_units.u.boat,              \
+                     config_units.u.visibility,        \
+                     config_units.u.movement_points,   \
+                     config_units.u.attack_points,     \
+                     config_units.u.defense_points,    \
+                     config_units.u.on_death,          \
+                     config_units.u.demoted,           \
+                     config_units.u.cargo_slots,       \
+                     config_units.u.cargo_slots_occupies};
 
 namespace rn {
 
@@ -48,14 +48,13 @@ namespace {
 absl::flat_hash_map<e_unit_type, UnitDescriptor> const&
 unit_desc() {
   static auto const desc = [] {
-    absl::flat_hash_map<e_unit_type, UnitDescriptor> desc_{
-        LOAD_UNIT_DESC( merchantman ),    //
-        LOAD_UNIT_DESC( privateer ),      //
-        LOAD_UNIT_DESC( free_colonist ),  //
-        LOAD_UNIT_DESC( soldier ),        //
-        LOAD_UNIT_DESC( large_treasure ), //
-        LOAD_UNIT_DESC( small_treasure )  //
-    };
+    absl::flat_hash_map<e_unit_type, UnitDescriptor> desc_;
+    LOAD_UNIT_DESC( merchantman );
+    LOAD_UNIT_DESC( privateer );
+    LOAD_UNIT_DESC( free_colonist );
+    LOAD_UNIT_DESC( soldier );
+    LOAD_UNIT_DESC( large_treasure );
+    LOAD_UNIT_DESC( small_treasure );
     for( auto const& p : desc_ ) p.second.check_invariants();
     return desc_;
   }();
@@ -176,4 +175,26 @@ namespace {
 
 LUA_ENUM( unit_type );
 
-}
+LUA_STARTUP( sol::state& st ) {
+  using UD = ::rn::UnitDescriptor;
+
+  sol::usertype<UD> utype = st.new_usertype<UD>(
+      "UnitDescriptor", sol::no_constructor );
+
+  LUA_RO_FIELD( name );
+  LUA_RO_FIELD( type );
+  LUA_RO_FIELD( tile );
+  LUA_RO_FIELD( nat_icon_front );
+  LUA_RO_FIELD( nat_icon_position );
+  LUA_RO_FIELD( boat );
+  LUA_RO_FIELD( visibility );
+  LUA_RO_FIELD( movement_points );
+  LUA_RO_FIELD( attack_points );
+  LUA_RO_FIELD( defense_points );
+  LUA_RO_FIELD( on_death );
+  LUA_RO_FIELD( demoted );
+  LUA_RO_FIELD( cargo_slots );
+  LUA_RO_FIELD( cargo_slots_occupies );
+};
+
+} // namespace

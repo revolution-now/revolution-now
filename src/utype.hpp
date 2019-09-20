@@ -20,6 +20,9 @@
 #include "terrain.hpp"
 #include "tiles.hpp"
 
+// base-util
+#include "base-util/non-copyable.hpp"
+
 namespace rn {
 
 enum class ND e_( unit_type, free_colonist, soldier, merchantman,
@@ -30,7 +33,7 @@ enum class ND e_( unit_death, destroy, naval, capture, demote,
 
 // Static information describing classes of units. There will be
 // one of these for each type of unit.
-struct ND UnitDescriptor {
+struct ND UnitDescriptor : util::movable_only {
   std::string name{};
   e_unit_type type{};
 

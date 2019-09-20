@@ -97,9 +97,24 @@ void run_startup();
 /****************************************************************
 ** Registration
 *****************************************************************/
-using RegistrationFn_t = std::function<void( sol::state& )>;
+using RegistrationFnSig = void( sol::state& );
+using RegistrationFn_t  = std::function<RegistrationFnSig>;
 
 void register_fn( RegistrationFn_t fn );
+
+/****************************************************************
+** General
+*****************************************************************/
+// For startup code that just needs access to the lua state.
+#define LUA_STARTUP( st )                       \
+  struct STRING_JOIN( register_, __LINE__ ) {   \
+    STRING_JOIN( register_, __LINE__ )() {      \
+      rn::lua::register_fn( init_fn );          \
+    }                                           \
+    static rn::lua::RegistrationFnSig* init_fn; \
+  } STRING_JOIN( obj, __LINE__ );               \
+  rn::lua::RegistrationFnSig* STRING_JOIN(      \
+      register_, __LINE__ )::init_fn = []( st )
 
 /****************************************************************
 ** Functions
@@ -201,6 +216,9 @@ void register_enum( sol::state& st, std::string_view name ) {
 /****************************************************************
 ** Utilites
 *****************************************************************/
+#define LUA_RO_FIELD( n ) \
+  utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
+
 Vec<Str> format_lua_error_msg( Str const& msg );
 
 /****************************************************************

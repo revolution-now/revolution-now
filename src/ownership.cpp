@@ -430,6 +430,12 @@ LUA_FN( ownership, create_unit_on_map, UnitId, e_nation nation,
   return id;
 }
 
+// FIXME: temporary.
+LUA_FN( ownership, unit_desc_for_id, UnitDescriptor const&,
+        UnitId id ) {
+  return unit_from_id( id ).desc();
+}
+
 } // namespace
 
 } // namespace rn
