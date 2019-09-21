@@ -10,6 +10,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "ownership.hpp"
+#include "turn.hpp"
 #include "unit.hpp"
 #include "window.hpp"
 
@@ -27,12 +28,12 @@ using namespace std;
 namespace rn {
 
 void game() {
-  // while( turn() != e_turn_result::quit ) {}
+  while( turn() != e_turn_result::quit ) {}
 
   // using namespace std::literals::chrono_literals;
   // while( input::is_any_key_down() ) {}
 
-  frame_loop( true, [] { return false; } );
+  // frame_loop( true, [] { return false; } );
 }
 
 } // namespace rn
@@ -42,6 +43,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines( nullopt );
   // run_all_init_routines( nullopt, {e_init_routine::lua} );
   lua::reload();
+  lua::run_startup();
 
   game();
 

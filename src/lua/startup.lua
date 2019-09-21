@@ -14,9 +14,7 @@ local function create_some_units_in_europort( nation )
     e.unit_type.free_colonist,
     e.unit_type.soldier,
     e.unit_type.merchantman,
-    e.unit_type.small_treasure,
     e.unit_type.privateer,
-    e.unit_type.large_treasure
   }
   for _, u in ipairs( units ) do
     europort.create_unit_in_port( nation, u )

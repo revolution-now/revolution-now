@@ -1983,7 +1983,7 @@ FSM_DEFINE_FORMAT_RN_( Euroview );
 *****************************************************************/
 struct EuropePlane : public Plane {
   EuropePlane() = default;
-  bool enabled() const override { return true; }
+  bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
 
   void on_frame_start() override {
