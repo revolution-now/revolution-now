@@ -20,8 +20,12 @@
 
 // base-util
 #include "base-util/macros.hpp"
+#include "base-util/optional.hpp"
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
+
+// Abseil
+#include "absl/strings/str_replace.h"
 
 // C++ standard library
 #include <string>
@@ -62,8 +66,15 @@ expect<Ret> sol_obj_convert( sol::object const& o ) {
                      sol::type_name( global_state().lua_state(),
                                      o.get_type() ) ) );
   }
-  auto intermediate_res = o.as<intermediate_t>();
-  return static_cast<Ret>( intermediate_res );
+  return static_cast<Ret>( o.as<intermediate_t>() );
+}
+
+template<typename T>
+expect<Opt<T>> sol_opt_convert( sol::object const& o ) {
+  if( o.is<sol::lua_nil_t>() ) //
+    return std::nullopt;
+  XP_OR_RETURN( xp_T, sol_obj_convert<T>( o ) );
+  return Opt<T>{*xp_T};
 }
 
 template<typename Ret>
@@ -76,6 +87,9 @@ expect<Ret> lua_script( std::string_view script ) {
   }
   if constexpr( std::is_same_v<Ret, std::monostate> )
     return std::monostate{};
+  if constexpr( util::is_optional_v<Ret> )
+    return sol_opt_convert<typename Ret::value_type>(
+        result.get<sol::object>() );
   else
     return sol_obj_convert<Ret>( result.get<sol::object>() );
 }
@@ -130,27 +144,27 @@ void register_fn( RegistrationFnSig** fn );
 /****************************************************************
 ** Functions
 *****************************************************************/
-#define LUA_FN( ... ) PP_N_OR_MORE_ARGS_3( LUA_FN, __VA_ARGS__ )
+#define LUA_FN( ... ) PP_N_OR_MORE_ARGS_2( LUA_FN, __VA_ARGS__ )
 
-#define LUA_FN_STARTUP( ns, name )           \
-  LUA_STARTUP( sol::state& st ) {            \
-    st[#ns].get_or_create<sol::table>();     \
-    st[#ns][#name] = lua_fn_##ns##_##name{}; \
+#define LUA_FN_STARTUP( name )                          \
+  LUA_STARTUP( sol::state& st ) {                       \
+    st[lua::module_name__].get_or_create<sol::table>(); \
+    st[lua::module_name__][#name] = lua_fn_##name{};    \
   };
 
-#define LUA_FN_SINGLE( ns, name, ret_type ) \
-  struct lua_fn_##ns##_##name {             \
-    ret_type operator()() const;            \
-  };                                        \
-  LUA_FN_STARTUP( ns, name )                \
-  ret_type lua_fn_##ns##_##name::operator()() const
+#define LUA_FN_SINGLE( name, ret_type ) \
+  struct lua_fn_##name {                \
+    ret_type operator()() const;        \
+  };                                    \
+  LUA_FN_STARTUP( name )                \
+  ret_type lua_fn_##name::operator()() const
 
-#define LUA_FN_MULTI( ns, name, ret_type, ... ) \
-  struct lua_fn_##ns##_##name {                 \
-    ret_type operator()( __VA_ARGS__ ) const;   \
-  };                                            \
-  LUA_FN_STARTUP( ns, name )                    \
-  ret_type lua_fn_##ns##_##name::operator()( __VA_ARGS__ ) const
+#define LUA_FN_MULTI( name, ret_type, ... )   \
+  struct lua_fn_##name {                      \
+    ret_type operator()( __VA_ARGS__ ) const; \
+  };                                          \
+  LUA_FN_STARTUP( name )                      \
+  ret_type lua_fn_##name::operator()( __VA_ARGS__ ) const
 
 /****************************************************************
 ** Enums
@@ -227,6 +241,18 @@ void register_enum( sol::state& st, std::string_view name ) {
   utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
 
 Vec<Str> format_lua_error_msg( Str const& msg );
+
+namespace {
+auto module_name__ =
+#ifdef LUA_MODULE_NAME_OVERRIDE
+    LUA_MODULE_NAME_OVERRIDE;
+#else
+    // Used by above macros when registering functions.
+    absl::StrReplaceAll(
+        fs::path( __BASE_FILE__ ).filename().stem().string(),
+        {{"-", "_"}} );
+#endif
+} // namespace
 
 /****************************************************************
 ** Testing

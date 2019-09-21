@@ -223,7 +223,7 @@ void advance_unit_on_high_seas( UnitId id ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( europort, create_unit_in_port, UnitId, e_nation nation,
+LUA_FN( create_unit_in_port, UnitId, e_nation nation,
         e_unit_type type ) {
   auto id = create_unit_in_euroview_port( nation, type );
   lg.info( "created a {} on {} dock.", unit_desc( type ).name,

@@ -327,6 +327,10 @@ auto propagate_unexpected( ::rn::expect<T> const& e ) {
   return ::nonstd::make_unexpected( e.error() );
 }
 
+#define XP_OR_RETURN( var, expr ) \
+  auto var = expr;                \
+  if( !var.has_value() ) return propagate_unexpected( var );
+
 } // namespace rn
 
 namespace fmt {

@@ -422,7 +422,7 @@ void ownership_disown_unit( UnitId id ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( ownership, create_unit_on_map, UnitId, e_nation nation,
+LUA_FN( create_unit_on_map, UnitId, e_nation nation,
         e_unit_type type, Coord const& coord ) {
   auto id = create_unit_on_map( nation, type, coord.y, coord.x );
   lg.info( "created a {} on square {}.", unit_desc( type ).name,
@@ -431,8 +431,7 @@ LUA_FN( ownership, create_unit_on_map, UnitId, e_nation nation,
 }
 
 // FIXME: temporary.
-LUA_FN( ownership, unit_desc_for_id, UnitDescriptor const&,
-        UnitId id ) {
+LUA_FN( unit_desc_for_id, UnitDescriptor const&, UnitId id ) {
   return unit_from_id( id ).desc();
 }
 

@@ -10,6 +10,8 @@
 *****************************************************************/
 #include "testing.hpp"
 
+#define LUA_MODULE_NAME_OVERRIDE "testing"
+
 // Revolution Now
 #include "lua-ext.hpp"
 #include "lua.hpp"
@@ -28,7 +30,7 @@ TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
     x = 5+6
   )";
-  REQUIRE( lua::run<void>( script ).has_value() );
+  REQUIRE( lua::run<void>( script ) == monostate{} );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
@@ -132,7 +134,7 @@ TEST_CASE( "[lua] C++ function binding" ) {
   REQUIRE( lua::run<int>( script ) == 2 );
 }
 
-LUA_FN( testing, coord_test, Coord, Coord const& coord ) {
+LUA_FN( coord_test, Coord, Coord const& coord ) {
   auto new_coord = coord;
   new_coord.x += 1_w;
   new_coord.y += 1_h;
@@ -148,6 +150,31 @@ TEST_CASE( "[lua] Coord" ) {
     return coord
   )";
   REQUIRE( lua::run<Coord>( script ) == Coord{4_x, 5_y} );
+}
+
+LUA_FN( opt_test, Opt<string>, Opt<int> const& maybe_int ) {
+  if( !maybe_int ) return "got nullopt";
+  int n = *maybe_int;
+  if( n < 5 ) return nullopt;
+  if( n < 10 ) return "less than 10";
+  return to_string( n );
+}
+
+TEST_CASE( "[lua] optional" ) {
+  auto script = R"(
+    assert( testing.opt_test( nil ) == "got nullopt" )
+    assert( testing.opt_test( 0 ) == nil )
+    assert( testing.opt_test( 4 ) == nil )
+    assert( testing.opt_test( 5 ) == "less than 10" )
+    assert( testing.opt_test( 9 ) == "less than 10" )
+    assert( testing.opt_test( 10 ) == "10" )
+    assert( testing.opt_test( 100 ) == "100" )
+  )";
+  REQUIRE( lua::run<void>( script ) == monostate{} );
+
+  REQUIRE( lua::run<Opt<string>>( "return nil" ) == nullopt );
+  REQUIRE( lua::run<Opt<string>>( "return 'hello'" ) ==
+           "hello" );
 }
 
 } // namespace
