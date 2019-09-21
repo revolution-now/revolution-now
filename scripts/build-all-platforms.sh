@@ -17,10 +17,6 @@ build_threads() {
   return 0
 }
 
-remove_spaces() {
-  echo $*
-}
-
 c_norm="\033[00m"
 c_green="\033[32m"
 c_red="\033[31m"
@@ -38,43 +34,39 @@ die() {
   exit 1
 }
 
+run_for_flags() {
+  flags="$@"
+  if (( print_only )); then
+    echo "cmc $flags"
+    return
+  fi
+  log "configuration: $flags"
+  if ! cmc $flags; then
+    die "configure failed for flags: $flags"
+  fi
+
+  if ! make all -j$(build_threads); then
+    die "build failed for flags: $flags"
+  fi
+
+  if ! make test; then
+    die "tests failed for flags: $flags"
+  fi
+}
+
 for cc in --clang --gcc=current; do
   for opt in '' --release; do
     for asan in '' --asan; do
-
-      maybe_lld=
-      maybe_lto=
-      if [[ "$cc" =~ clang ]]; then
-        maybe_lld=$lld
-        [[ "$opt" =~ release ]] && maybe_lto='--lto'
-      fi
-
-      config_flags="$cc $opt $asan $maybe_lld $maybe_lto"
-      config_flags="$(remove_spaces $config_flags)"
-
-      (( print_only )) && {
-        echo "cmc $config_flags"
-        continue
-      }
-
-      log "configuration: $config_flags"
-
-      if ! cmc $config_flags; then
-        die "configure failed for flags: $config_flags"
-      fi
-
-      if ! make all -j$(build_threads); then
-        die "build failed for flags: $config_flags"
-      fi
-
-      if ! make test; then
-        die "tests failed for flags: $config_flags"
-      fi
-
+      [[ "$cc" =~ clang ]] && lld=$lld || lld=
+      run_for_flags $cc $opt $asan $lld
     done
   done
 done
 
-cmc --clang $lld
+# Do --lto just once since it can take a really long time.
+run_for_flags --clang --lld --release --lto
+
+# Restore to default devel flags.
+(( print_only )) || cmc --cached --clang --lld --asan
 
 log "success."
