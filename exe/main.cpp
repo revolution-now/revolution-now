@@ -41,8 +41,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   linker_dont_discard_me();
   run_all_init_routines( nullopt );
   // run_all_init_routines( nullopt, {e_init_routine::lua} );
-  lua::load_modules();
-  lua::run_startup();
+  lua::reload();
 
   game();
 

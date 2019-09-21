@@ -72,7 +72,7 @@ expect<monostate> load_module( string const& name ) {
   return monostate{};
 }
 
-void reset_state_impl() {
+void reset_sol_state() {
   g_lua = sol::state{};
   g_lua.open_libraries( sol::lib::base );
   CHECK( g_lua["log"] == sol::lua_nil );
@@ -108,11 +108,9 @@ void reset_state_impl() {
   };
 
   lg.info( "registering Lua functions." );
-  // Now run all the registration functions.
-  for( auto fn : registration_functions() ) ( *fn )( g_lua );
 }
 
-void init_lua() { reset_state_impl(); }
+void init_lua() {}
 
 void cleanup_lua() { g_lua = sol::state{}; }
 
@@ -125,6 +123,10 @@ REGISTER_INIT_ROUTINE( lua );
 *****************************************************************/
 sol::state& global_state() { return g_lua; }
 
+void run_startup_routines() {
+  for( auto fn : registration_functions() ) ( *fn )( g_lua );
+}
+
 void load_modules() {
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
     CHECK_XP( load_module( path.stem() ) );
@@ -132,6 +134,12 @@ void load_modules() {
 
 void run_startup() {
   CHECK_XP( lua::run<void>( "startup.run()" ) );
+}
+
+void reload() {
+  reset_sol_state();
+  run_startup_routines();
+  load_modules();
 }
 
 Vec<Str> format_lua_error_msg( Str const& msg ) {
@@ -152,6 +160,6 @@ void register_fn( RegistrationFnSig** fn ) {
 *****************************************************************/
 void test_lua() {}
 
-void reset_state() { reset_state_impl(); }
+void reset_state() { reload(); }
 
 } // namespace rn::lua

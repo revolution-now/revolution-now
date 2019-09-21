@@ -91,8 +91,11 @@ ND auto run( Str const& script ) {
 /****************************************************************
 ** Lua Modules
 *****************************************************************/
+void run_startup_routines();
 void load_modules();
 void run_startup();
+
+void reload();
 
 /****************************************************************
 ** Registration

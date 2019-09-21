@@ -24,11 +24,6 @@ using namespace rn;
 
 using Catch::Contains;
 
-void reset_lua_state() {
-  lua::reset_state();
-  lua::load_modules();
-}
-
 TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
     x = 5+6
@@ -115,7 +110,7 @@ TEST_CASE( "[lua] enums from string" ) {
 }
 
 TEST_CASE( "[lua] has startup.run" ) {
-  reset_lua_state();
+  lua::reload();
   auto script = R"(
     return tostring( startup.run )
   )";
@@ -126,7 +121,7 @@ TEST_CASE( "[lua] has startup.run" ) {
 }
 
 TEST_CASE( "[lua] C++ function binding" ) {
-  reset_lua_state();
+  lua::reload();
   auto script = R"(
     id1 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
     id2 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
