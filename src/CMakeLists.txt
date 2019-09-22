@@ -93,6 +93,7 @@ target_compile_definitions(
   SOL_CXX17_FEATURES=1  # won't need this in future versions.
   SOL_ALL_SAFETIES_ON=1
   SOL_EXCEPTIONS_ALWAYS_UNSAFE=1
+  SOL_PRINT_ERRORS=0
   )
 
 clang_tidy( rn )

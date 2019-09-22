@@ -133,6 +133,23 @@ TEST_CASE( "[lua] C++ function binding" ) {
   REQUIRE( lua::run<int>( script ) == 2 );
 }
 
+LUA_FN( check_failure, int, int x ) {
+  RN_CHECK( x < 10, "x (which is {}) must be less than 10.", x );
+  return x + 1;
+};
+
+TEST_CASE( "[lua] check-failure" ) {
+  auto script = "return testing.check_failure( 5 )";
+  REQUIRE( lua::run<int>( script ) == 6 );
+
+  script  = "return testing.check_failure( 11 )";
+  auto xp = lua::run<int>( script );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "x (which is 11) must be less than 10." ) );
+}
+
 LUA_FN( coord_test, Coord, Coord const& coord ) {
   auto new_coord = coord;
   new_coord.x += 1_w;

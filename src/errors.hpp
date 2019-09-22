@@ -91,18 +91,23 @@ bool check_inline( bool b, char const* msg );
 // once in case evaluating it either has side effects or is
 // expensive. Hopefully the implementation below conforms to
 // this.
-#define CHECK( a, ... )                     \
+#define RN_CHECK( a, ... )                  \
   if( !( a ) ) {                            \
     FATAL_( ::rn::detail::check_msg(        \
         #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
+
+// Non-testing code should use this. Code written in unit test
+// cpp files should use RN_CHECK to avoid a collision with a sim-
+// ilar Catch2 symbol.
+#define CHECK( ... ) RN_CHECK( __VA_ARGS__ )
 
 // DCHECK is CHECK in debug builds, but compiles to nothing in
 // release builds.
 #ifdef NDEBUG
 #  define DCHECK( ... )
 #else
-#  define DCHECK( ... ) CHECK( __VA_ARGS__ )
+#  define DCHECK( ... ) RN_CHECK( __VA_ARGS__ )
 #endif
 
 // Use this when the check is on a boolean and the check itself
@@ -148,7 +153,7 @@ bool check_inline( bool b, char const* msg );
   auto&& STRING_JOIN( __x, __LINE__ ) = v_expr;           \
   auto*  STRING_JOIN( __ptr, __LINE__ ) =                 \
       std::get_if<type>( &STRING_JOIN( __x, __LINE__ ) ); \
-  CHECK( STRING_JOIN( __ptr, __LINE__ ) != nullptr );     \
+  RN_CHECK( STRING_JOIN( __ptr, __LINE__ ) != nullptr );  \
   auto& ID_( ref ) = *STRING_JOIN( __ptr, __LINE__ )
 
 // Same as above but returns on failure instead of throwing. As
@@ -186,14 +191,15 @@ bool check_inline( bool b, char const* msg );
 // be required if the `expression` yields a const value. If the
 // variant does not have the expected type then there will be a
 // check failure.
-#define GET_CHECK_VARIANT( dest, expression, type )            \
-  auto& STRING_JOIN( __x, __LINE__ ) = expression;             \
-  CHECK( ::util::holds<std::remove_cv_t<type>>(                \
-             STRING_JOIN( __x, __LINE__ ) ),                   \
-         "variant expected to be holding type `{}` but it is " \
-         "holding index {}",                                   \
-         #type, STRING_JOIN( __x, __LINE__ ).index() )         \
-  type& ID_( dest ) = std::get<std::remove_cv_t<type>>(        \
+#define GET_CHECK_VARIANT( dest, expression, type )         \
+  auto& STRING_JOIN( __x, __LINE__ ) = expression;          \
+  RN_CHECK(                                                 \
+      ::util::holds<std::remove_cv_t<type>>(                \
+          STRING_JOIN( __x, __LINE__ ) ),                   \
+      "variant expected to be holding type `{}` but it is " \
+      "holding index {}",                                   \
+      #type, STRING_JOIN( __x, __LINE__ ).index() )         \
+  type& ID_( dest ) = std::get<std::remove_cv_t<type>>(     \
       STRING_JOIN( __x, __LINE__ ) )
 
 /****************************************************************
@@ -291,14 +297,14 @@ using expect = ::nonstd::expected<T, ::rn::Unexpected>;
       ::rn::Unexpected{fmt::format( fmt_str, __VA_ARGS__ ), \
                        __LINE__, __FILE__} )
 
-#define CHECK_XP( e )                                  \
-  {                                                    \
-    auto const& STRING_JOIN( __e, __LINE__ ) = e;      \
-    CHECK( STRING_JOIN( __e, __LINE__ ).has_value(),   \
-           "unexpected:{}:{}: {}",                     \
-           STRING_JOIN( __e, __LINE__ ).error().file,  \
-           STRING_JOIN( __e, __LINE__ ).error().line,  \
-           STRING_JOIN( __e, __LINE__ ).error().what ) \
+#define CHECK_XP( e )                                     \
+  {                                                       \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;         \
+    RN_CHECK( STRING_JOIN( __e, __LINE__ ).has_value(),   \
+              "unexpected:{}:{}: {}",                     \
+              STRING_JOIN( __e, __LINE__ ).error().file,  \
+              STRING_JOIN( __e, __LINE__ ).error().line,  \
+              STRING_JOIN( __e, __LINE__ ).error().what ) \
   }
 
 #define ASSIGN_CHECK_XP( a, b )             \
@@ -323,7 +329,7 @@ using expect = ::nonstd::expected<T, ::rn::Unexpected>;
 //
 template<typename T>
 auto propagate_unexpected( ::rn::expect<T> const& e ) {
-  CHECK( !e.has_value() );
+  RN_CHECK( !e.has_value() );
   return ::nonstd::make_unexpected( e.error() );
 }
 
