@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "lua.hpp"
 
 // {fmt}
 #include "fmt/format.h"
@@ -99,7 +100,7 @@ void Unit::consume_mv_points( MovementPoints points ) {
 }
 
 void Unit::fortify() {
-  CHECK( !desc().boat );
+  CHECK( !desc().boat, "Only land units can be fortified." );
   orders_ = e_unit_orders::fortified;
 }
 
@@ -130,3 +131,37 @@ string debug_string( Unit const& unit ) {
 }
 
 } // namespace rn
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_ENUM( unit_orders );
+
+LUA_STARTUP( sol::state& st ) {
+  using U = ::rn::Unit;
+
+  sol::usertype<U> u =
+      st.new_usertype<U>( "Unit", sol::no_constructor );
+
+  // Getters.
+  u["id"]              = &U::id;
+  u["desc"]            = &U::desc;
+  u["orders"]          = &U::orders;
+  u["nation"]          = &U::nation;
+  u["worth"]           = &U::worth;
+  u["movement_points"] = &U::movement_points;
+  // u["cargo"] = &U::cargo;
+  // CargoHold&     cargo() { return cargo_; }
+  // Opt<Vec<UnitId>> units_in_cargo() const;
+
+  // Actions.
+  u["change_nation"] = &U::change_nation;
+  u["change_type"]   = &U::change_type;
+  u["sentry"]        = &U::sentry;
+  u["fortify"]       = &U::fortify;
+  u["clear_orders"]  = &U::clear_orders;
+};
+
+} // namespace

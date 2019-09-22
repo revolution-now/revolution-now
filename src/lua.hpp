@@ -87,7 +87,7 @@ expect<Ret> lua_script( std::string_view script ) {
   }
   if constexpr( std::is_same_v<Ret, std::monostate> )
     return std::monostate{};
-  if constexpr( util::is_optional_v<Ret> )
+  else if constexpr( util::is_optional_v<Ret> )
     return sol_opt_convert<typename Ret::value_type>(
         result.get<sol::object>() );
   else
@@ -237,9 +237,6 @@ void register_enum( sol::state& st, std::string_view name ) {
 /****************************************************************
 ** Utilites
 *****************************************************************/
-#define LUA_RO_FIELD( n ) \
-  utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
-
 Vec<Str> format_lua_error_msg( Str const& msg );
 
 namespace {
@@ -262,3 +259,8 @@ void test_lua();
 void reset_state();
 
 } // namespace rn::lua
+
+/****************************************************************
+** Customizations
+*****************************************************************/
+#include "lua-ext.hpp"

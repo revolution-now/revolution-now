@@ -22,34 +22,34 @@ local function create_some_units_in_europort( nation )
 end
 
 local function create_some_units_on_land( nation )
-  coord = Coord{y=2, x=2}
-  id = ownership.create_unit_on_map(
+  local coord = Coord{y=6, x=2}
+  local unit = ownership.create_unit_on_map(
            e.nation.spanish, e.unit_type.free_colonist, coord )
-  --ownership.unit_from_id( id ).fortify();
+  unit:fortify();
 
-  coord = Coord{y=2, x=3}
-  id = ownership.create_unit_on_map(
+  coord = Coord{y=6, x=3}
+  unit = ownership.create_unit_on_map(
            e.nation.spanish, e.unit_type.soldier, coord )
-  --ownership.unit_from_id( id ).sentry();
+  unit:sentry();
 
-  coord = Coord{y=2, x=6}
+  coord = Coord{y=6, x=6}
   ownership.create_unit_on_map(
       e.nation.spanish, e.unit_type.privateer, coord )
 
-  coord = Coord{y=3, x=2}
-  id = ownership.create_unit_on_map(
+  coord = Coord{y=7, x=2}
+  unit = ownership.create_unit_on_map(
            e.nation.english, e.unit_type.soldier, coord )
-  --ownership.unit_from_id( id ).fortify();
+  unit:fortify();
 
-  coord = Coord{y=3, x=3}
-  id = ownership.create_unit_on_map(
+  coord = Coord{y=7, x=3}
+  unit = ownership.create_unit_on_map(
            e.nation.english, e.unit_type.soldier, coord )
-  --ownership.unit_from_id( id ).sentry();
+  unit:sentry();
 
-  coord = Coord{y=3, x=6}
-  id = ownership.create_unit_on_map(
+  coord = Coord{y=7, x=6}
+  unit = ownership.create_unit_on_map(
            e.nation.english, e.unit_type.privateer, coord )
-  --ownership.unit_from_id( id ).clear_orders();
+  unit:clear_orders();
 end
 
 local function run()

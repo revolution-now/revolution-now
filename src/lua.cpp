@@ -158,7 +158,20 @@ void register_fn( RegistrationFnSig** fn ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void test_lua() {}
+void test_lua() {
+  sol::state st;
+  st["thrower"] = [] { throw std::logic_error( "hello2" ); };
+
+  auto ptr =
+      st.safe_script( "thrower()", sol::script_pass_on_error );
+
+  if( !ptr.valid() ) {
+    sol::error err = ptr;
+    lg.info( "error: {}", err.what() );
+  } else {
+    lg.info( "valid." );
+  }
+}
 
 void reset_state() { reload(); }
 

@@ -16,7 +16,6 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "id.hpp"
-#include "lua.hpp"
 #include "typed-int.hpp"
 
 LUA_TYPED_INT( ::rn::X );
@@ -71,48 +70,6 @@ inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
 
   /* amount will be 1: int pushes 1 item. */
   return amount;
-}
-
-/****************************************************************
-** Optional
-*****************************************************************/
-template<typename Handler, typename T>
-inline bool sol_lua_check( sol::types<std::optional<T>>,
-                           lua_State* L, int index,
-                           Handler&&           handler,
-                           sol::stack::record& tracking ) {
-  int absolute_index = lua_absindex( L, index );
-  if( sol::stack::check<sol::lua_nil_t>( L, absolute_index,
-                                         handler ) ) {
-    tracking.use( 1 );
-    return true;
-  }
-  return sol_lua_check( sol::types<T>{}, L, index, handler,
-                        tracking );
-}
-
-template<typename T>
-inline std::optional<T> sol_lua_get(
-    sol::types<std::optional<T>>, lua_State* L, int index,
-    sol::stack::record& tracking ) {
-  int absolute_index = lua_absindex( L, index );
-  if( sol::stack::get<Opt<sol::lua_nil_t>>( L,
-                                            absolute_index ) ) {
-    tracking.use( 1 );
-    return std::nullopt;
-  }
-  return sol_lua_get( sol::types<T>{}, L, index, tracking );
-}
-
-template<typename T>
-inline int sol_lua_push( sol::types<std::optional<T>>,
-                         lua_State*              L,
-                         std::optional<T> const& o ) {
-  if( !o ) {
-    sol::stack::push( L, sol::lua_nil );
-    return 1;
-  }
-  return sol_lua_push( sol::types<T>{}, L, *o );
 }
 
 } // namespace rn

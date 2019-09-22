@@ -15,7 +15,6 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
-#include "lua-ext.hpp"
 #include "lua.hpp"
 #include "terrain.hpp"
 
@@ -422,17 +421,16 @@ void ownership_disown_unit( UnitId id ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( create_unit_on_map, UnitId, e_nation nation,
+LUA_FN( create_unit_on_map, Unit const&, e_nation nation,
         e_unit_type type, Coord const& coord ) {
   auto id = create_unit_on_map( nation, type, coord.y, coord.x );
   lg.info( "created a {} on square {}.", unit_desc( type ).name,
            coord );
-  return id;
+  return unit_from_id( id );
 }
 
-// FIXME: temporary.
-LUA_FN( unit_desc_for_id, UnitDescriptor const&, UnitId id ) {
-  return unit_from_id( id ).desc();
+LUA_FN( unit_from_id, Unit const&, UnitId id ) {
+  return unit_from_id( id );
 }
 
 } // namespace

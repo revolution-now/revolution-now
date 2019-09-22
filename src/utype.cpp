@@ -171,9 +171,13 @@ BEHAVIOR_IMPL_END()
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
+namespace rn {
 namespace {
 
 LUA_ENUM( unit_type );
+
+#define RO_FIELD( n ) \
+  utype[#n] = sol::readonly( &rn::UnitDescriptor::n )
 
 LUA_STARTUP( sol::state& st ) {
   using UD = ::rn::UnitDescriptor;
@@ -181,20 +185,21 @@ LUA_STARTUP( sol::state& st ) {
   sol::usertype<UD> utype = st.new_usertype<UD>(
       "UnitDescriptor", sol::no_constructor );
 
-  LUA_RO_FIELD( name );
-  LUA_RO_FIELD( type );
-  LUA_RO_FIELD( tile );
-  LUA_RO_FIELD( nat_icon_front );
-  LUA_RO_FIELD( nat_icon_position );
-  LUA_RO_FIELD( boat );
-  LUA_RO_FIELD( visibility );
-  LUA_RO_FIELD( movement_points );
-  LUA_RO_FIELD( attack_points );
-  LUA_RO_FIELD( defense_points );
-  LUA_RO_FIELD( on_death );
-  LUA_RO_FIELD( demoted );
-  LUA_RO_FIELD( cargo_slots );
-  LUA_RO_FIELD( cargo_slots_occupies );
+  RO_FIELD( name );
+  RO_FIELD( type );
+  RO_FIELD( tile );
+  RO_FIELD( nat_icon_front );
+  RO_FIELD( nat_icon_position );
+  RO_FIELD( boat );
+  RO_FIELD( visibility );
+  RO_FIELD( movement_points );
+  RO_FIELD( attack_points );
+  RO_FIELD( defense_points );
+  RO_FIELD( on_death );
+  RO_FIELD( demoted );
+  RO_FIELD( cargo_slots );
+  RO_FIELD( cargo_slots_occupies );
 };
 
 } // namespace
+} // namespace rn

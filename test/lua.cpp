@@ -13,7 +13,6 @@
 #define LUA_MODULE_NAME_OVERRIDE "testing"
 
 // Revolution Now
-#include "lua-ext.hpp"
 #include "lua.hpp"
 
 // Must be last.

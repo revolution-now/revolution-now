@@ -14,7 +14,6 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
-#include "lua-ext.hpp"
 #include "lua.hpp"
 #include "ownership.hpp"
 
