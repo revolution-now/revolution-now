@@ -10,6 +10,7 @@ set_source_files_properties(
 
 add_library( lua STATIC ${sources} )
 add_library( lua::lua ALIAS lua )
+set_target_properties( lua PROPERTIES CXX_EXTENSIONS OFF )
 
 target_include_directories( lua PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} )
 

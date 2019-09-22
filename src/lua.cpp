@@ -162,14 +162,15 @@ void test_lua() {
   sol::state st;
   st["thrower"] = [] { throw std::logic_error( "hello2" ); };
 
-  auto ptr =
+  auto pfr =
       st.safe_script( "thrower()", sol::script_pass_on_error );
 
-  if( !ptr.valid() ) {
-    sol::error err = ptr;
-    lg.info( "error: {}", err.what() );
+  if( !pfr.valid() ) {
+    sol::error err = pfr;
+    cerr << err.what() << "\n";
   } else {
     lg.info( "valid." );
+    cout << "valid.\n";
   }
 }
 
