@@ -90,6 +90,9 @@ target_compile_definitions(
   SCELTA_SUPPORT_OPTIONAL_BOOST_DISABLE
   LUA_VERSION_NUM=503
   SOL_USING_CXX_LUA=1
+  SOL_CXX17_FEATURES=1  # won't need this in future versions.
+  SOL_ALL_SAFETIES_ON=1
+  SOL_EXCEPTIONS_ALWAYS_UNSAFE=1
   )
 
 clang_tidy( rn )

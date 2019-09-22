@@ -13,12 +13,6 @@
 
 #include "core-config.hpp"
 
-// Won't be needed in future versions.
-#define SOL_CXX17_FEATURES 1
-
-// Maybe can turn this off at some point?
-#define SOL_ALL_SAFETIES_ON 1
-
 #ifdef L
 #  undef L
 #  include "sol/sol.hpp"
