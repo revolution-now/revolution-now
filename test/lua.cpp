@@ -27,14 +27,14 @@ using Catch::Contains;
 
 TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
-    x = 5+6
+    local x = 5+6
   )";
   REQUIRE( lua::run<void>( script ) == monostate{} );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
   auto script = R"(
-    x =
+    local x =
   )";
 
   auto xp = lua::run<void>( script );
@@ -45,7 +45,8 @@ TEST_CASE( "[lua] syntax error" ) {
 
 TEST_CASE( "[lua] semantic error" ) {
   auto script = R"(
-    x = a + b
+    local a, b
+    local x = a + b
   )";
 
   auto xp = lua::run<void>( script );
@@ -77,7 +78,7 @@ TEST_CASE( "[lua] returns double" ) {
 
 TEST_CASE( "[lua] returns string" ) {
   auto script = R"(
-    function f( s )
+    local function f( s )
       return s .. '!'
     end
     return f( 'hello' )
@@ -113,7 +114,7 @@ TEST_CASE( "[lua] enums from string" ) {
 TEST_CASE( "[lua] has startup.run" ) {
   lua::reload();
   auto script = R"(
-    return tostring( startup.run )
+    return tostring( startup.main )
   )";
 
   auto xp = lua::run<string>( script );
@@ -124,13 +125,71 @@ TEST_CASE( "[lua] has startup.run" ) {
 TEST_CASE( "[lua] C++ function binding" ) {
   lua::reload();
   auto script = R"(
-    id1 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
-    id2 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
-    id3 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local id1 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local id2 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local id3 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
     return id3-id1
   )";
 
   REQUIRE( lua::run<int>( script ) == 2 );
+}
+
+TEST_CASE( "[lua] read from uninitialized global" ) {
+  auto script = R"(
+    return XYZ
+  )";
+
+  auto xp = lua::run<void>( script );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to read a nil global variable." ) );
+}
+
+TEST_CASE( "[lua] frozen globals" ) {
+  auto xp = lua::run<void>( "e = 1" );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to modify a read-only global." ) );
+
+  xp = lua::run<void>( "startup = 1" );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to modify a read-only global." ) );
+
+  xp = lua::run<void>( "startup.x = 1" );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to modify a read-only table." ) );
+
+  xp = lua::run<void>( "id = 1" );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to modify a read-only global." ) );
+
+  xp = lua::run<void>( "id.x = 1" );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to modify a read-only table." ) );
+
+  REQUIRE( lua::run<int>( "x = 1; return x" ) == 1 );
+
+  REQUIRE( lua::run<int>( "d = {}; d.x = 1; return d.x" ) == 1 );
+}
+
+TEST_CASE( "[lua] has modules" ) {
+  auto script = R"lua(
+    assert( modules['startup'] ~= nil )
+    assert( modules['util']    ~= nil )
+    assert( modules['meta']    ~= nil )
+    assert( modules['utype']   ~= nil )
+  )lua";
+  REQUIRE( lua::run<void>( script ) == monostate{} );
 }
 
 LUA_FN( check_failure, int, int x ) {
@@ -159,7 +218,7 @@ LUA_FN( coord_test, Coord, Coord const& coord ) {
 
 TEST_CASE( "[lua] Coord" ) {
   auto script = R"(
-    coord = Coord{x=2, y=2}
+    local coord = Coord{x=2, y=2}
     coord = testing.coord_test( coord )
     coord.x = coord.x + 1
     coord.y = coord.y + 2

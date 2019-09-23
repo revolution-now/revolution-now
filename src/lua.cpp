@@ -152,7 +152,7 @@ void reload() {
   run_startup_routines();
   load_modules();
   // Freeze all existing global variables and tables.
-  CHECK_XP( run<void>( "util.freeze_all()" ) );
+  CHECK_XP( run<void>( "meta.freeze_all()" ) );
 }
 
 Vec<Str> format_lua_error_msg( Str const& msg ) {
