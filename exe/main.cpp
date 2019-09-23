@@ -43,7 +43,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   run_all_init_routines( nullopt );
   // run_all_init_routines( nullopt, {e_init_routine::lua} );
   lua::reload();
-  lua::run_startup();
+  lua::run_startup_main();
 
   game();
 

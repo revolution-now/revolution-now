@@ -107,7 +107,7 @@ ND auto run( Str const& script ) {
 *****************************************************************/
 void run_startup_routines();
 void load_modules();
-void run_startup();
+void run_startup_main();
 
 void reload();
 
@@ -116,7 +116,8 @@ void reload();
 *****************************************************************/
 using RegistrationFnSig = void( sol::state& );
 
-void register_fn( RegistrationFnSig** fn );
+void register_fn( std::string_view    module_name,
+                  RegistrationFnSig** fn );
 
 /****************************************************************
 ** General
@@ -131,14 +132,14 @@ void register_fn( RegistrationFnSig** fn );
 // capture the address of it instead of its value. This init_fn
 // won't be dereferenced and called until long after all static
 // initialization has completed.
-#define LUA_STARTUP( st )                       \
-  struct STRING_JOIN( register_, __LINE__ ) {   \
-    STRING_JOIN( register_, __LINE__ )() {      \
-      rn::lua::register_fn( &init_fn );         \
-    }                                           \
-    static rn::lua::RegistrationFnSig* init_fn; \
-  } STRING_JOIN( obj, __LINE__ );               \
-  rn::lua::RegistrationFnSig* STRING_JOIN(      \
+#define LUA_STARTUP( st )                                       \
+  struct STRING_JOIN( register_, __LINE__ ) {                   \
+    STRING_JOIN( register_, __LINE__ )() {                      \
+      rn::lua::register_fn( rn::lua::module_name__, &init_fn ); \
+    }                                                           \
+    static rn::lua::RegistrationFnSig* init_fn;                 \
+  } STRING_JOIN( obj, __LINE__ );                               \
+  rn::lua::RegistrationFnSig* STRING_JOIN(                      \
       register_, __LINE__ )::init_fn = []( st )
 
 /****************************************************************
@@ -193,6 +194,7 @@ void register_enum( sol::state& st, std::string_view name ) {
 #define LUA_ENUM( what )                                      \
   LUA_STARTUP( sol::state& st ) {                             \
     ::rn::lua::register_enum<::rn::e_##what>( st, #what );    \
+    st[::rn::lua::module_name__].get_or_create<sol::table>(); \
     st["e"][#what "_from_string"] = []( char const* name ) {  \
       auto maybe_val =                                        \
           ::rn::e_##what::_from_string_nothrow( name );       \

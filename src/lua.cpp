@@ -34,7 +34,7 @@ namespace {
 sol::state g_lua;
 
 auto& registration_functions() {
-  static vector<RegistrationFnSig**> fns;
+  static vector<pair<string, RegistrationFnSig**>> fns;
   return fns;
 }
 
@@ -74,7 +74,8 @@ expect<monostate> load_module( string const& name ) {
 
 void reset_sol_state() {
   g_lua = sol::state{};
-  g_lua.open_libraries( sol::lib::base );
+  g_lua.open_libraries( sol::lib::base, sol::lib::table,
+                        sol::lib::string );
   CHECK( g_lua["log"] == sol::lua_nil );
   g_lua["log"].get_or_create<sol::table>();
   g_lua["log"]["info"] = []( string const& msg ) {
@@ -106,8 +107,6 @@ void reset_sol_state() {
     else
       lg.info( "(print: object cannot be converted to string)" );
   };
-
-  lg.info( "registering Lua functions." );
 }
 
 void init_lua() {}
@@ -124,22 +123,35 @@ REGISTER_INIT_ROUTINE( lua );
 sol::state& global_state() { return g_lua; }
 
 void run_startup_routines() {
-  for( auto fn : registration_functions() ) ( *fn )( g_lua );
+  lg.info( "registering Lua functions." );
+  auto modules = g_lua["modules"].get_or_create<sol::table>();
+  for( auto const& [mod_name, fn] : registration_functions() ) {
+    modules[mod_name] = "module";
+    ( *fn )( g_lua );
+    CHECK( g_lua[mod_name] != sol::lua_nil,
+           "module \"{}\" has not been defined.", mod_name );
+  }
 }
 
 void load_modules() {
-  for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
-    CHECK_XP( load_module( path.stem() ) );
+  auto modules = g_lua["modules"].get_or_create<sol::table>();
+  for( auto const& path : util::wildcard( "src/lua/*.lua" ) ) {
+    string stem = path.stem();
+    CHECK_XP( load_module( stem ) );
+    modules[stem] = "module";
+  }
 }
 
-void run_startup() {
-  CHECK_XP( lua::run<void>( "startup.run()" ) );
+void run_startup_main() {
+  CHECK_XP( lua::run<void>( "startup.main()" ) );
 }
 
 void reload() {
   reset_sol_state();
   run_startup_routines();
   load_modules();
+  // Freeze all existing global variables and tables.
+  CHECK_XP( run<void>( "util.freeze_all()" ) );
 }
 
 Vec<Str> format_lua_error_msg( Str const& msg ) {
@@ -151,8 +163,9 @@ Vec<Str> format_lua_error_msg( Str const& msg ) {
   return res;
 }
 
-void register_fn( RegistrationFnSig** fn ) {
-  registration_functions().push_back( fn );
+void register_fn( string_view         module_name,
+                  RegistrationFnSig** fn ) {
+  registration_functions().emplace_back( module_name, fn );
 }
 
 /****************************************************************

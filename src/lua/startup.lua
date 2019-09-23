@@ -52,11 +52,11 @@ local function create_some_units_on_land( nation )
   unit:clear_orders();
 end
 
-local function run()
+local function main()
   create_some_units_in_europort( e.nation.dutch )
   create_some_units_on_land()
 end
 
 package_exports = {
-  run = run
+  main = main
 }
