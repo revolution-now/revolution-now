@@ -96,10 +96,11 @@ void reset_sol_state() {
   g_lua["print"] = []( sol::object o ) {
     if( o == sol::lua_nil ) return;
     if( auto maybe_string = o.as<Opt<string>>();
-        maybe_string.has_value() )
+        maybe_string.has_value() ) {
+      if( *maybe_string == "nil" ) return;
       lg.info( "{}", *maybe_string );
-    else if( auto maybe_bool = o.as<Opt<bool>>();
-             maybe_bool.has_value() )
+    } else if( auto maybe_bool = o.as<Opt<bool>>();
+               maybe_bool.has_value() )
       lg.info( "{}", *maybe_bool );
     else if( auto maybe_double = o.as<Opt<double>>();
              maybe_double.has_value() )

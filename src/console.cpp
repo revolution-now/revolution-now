@@ -83,7 +83,8 @@ void run_console_cmd( string const& cmd ) {
   // the result to emulate a typical REPL.
   if( !util::contains( cmd, "=" ) &&
       !util::contains( cmd, ";" ) )
-    run_lua_cmd( fmt::format( "print( {} )", cmd ) );
+    run_lua_cmd(
+        fmt::format( "print(tostring(({}) or nil))", cmd ) );
   else
     run_lua_cmd( cmd );
 }
