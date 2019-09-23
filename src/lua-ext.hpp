@@ -60,13 +60,10 @@ inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
                          ::rn::Coord const& coord ) {
   sol::state_view st( L );
 
-  auto tmp_table = "____tmp"; // FIXME: better way?
-  auto table     = st.create_table( tmp_table );
-
-  table["x"]    = coord.x;
-  table["y"]    = coord.y;
-  int amount    = sol::stack::push( L, table );
-  st[tmp_table] = sol::lua_nil;
+  auto table = sol::lua_value( st, {} ).as<sol::table>();
+  table["x"] = coord.x;
+  table["y"] = coord.y;
+  int amount = sol::stack::push( L, table );
 
   /* amount will be 1: int pushes 1 item. */
   return amount;
