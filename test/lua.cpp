@@ -100,7 +100,8 @@ TEST_CASE( "[lua] enums no assign" ) {
 
   auto xp = lua::run<void>( script );
   REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what, Contains( "cannot modify" ) );
+  REQUIRE_THAT( xp.error().what,
+                Contains( "modify a read-only table" ) );
 }
 
 TEST_CASE( "[lua] enums from string" ) {
