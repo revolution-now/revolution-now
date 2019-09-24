@@ -22,7 +22,7 @@ end
 
 local function ls( table )
   for k, v in pairs( table ) do
-    log.debug( tostring( k ) .. " = " .. tostring( v ) )
+    log.debug( tostring( k ) .. ": " .. tostring( v ) )
   end
 end
 

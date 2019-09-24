@@ -51,6 +51,14 @@ local function freeze_table( parent, tbl_name )
   } );
 end
 
+local function freeze_table_members( tbl )
+  for k, v in pairs( tbl ) do
+    if type( v ) == "table" then
+      freeze_table( tbl, k )
+    end
+  end
+end
+
 -- In this case "freeze" means that one cannot change what a
 -- global variable name points to; it does not make the global
 -- variable contents (i.e., if it is a table) readonly.
@@ -92,6 +100,7 @@ local function freeze_all()
     freeze_table( _G, k )
   end
   -- Freeze enums.
+  freeze_table_members( _G["e"] )
   freeze_table( _G, "e" )
   -- Freeze existing globals.
   freeze_existing_globals()

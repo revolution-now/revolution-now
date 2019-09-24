@@ -170,6 +170,8 @@ void register_fn( std::string_view    module_name,
 /****************************************************************
 ** Enums
 *****************************************************************/
+namespace detail {
+
 template<typename Enum, size_t... Indexes>
 void register_enum_impl( sol::state& st, std::string_view name,
                          std::index_sequence<Indexes...> ) {
@@ -177,7 +179,10 @@ void register_enum_impl( sol::state& st, std::string_view name,
   CHECK( e[name] == sol::lua_nil,
          "symbol named `{}` has already been registered.",
          name );
-  e.new_enum<Enum>(
+  // Somehow making it read-only prevents iteration over the
+  // values (sol bug?). In any case, we will manually make it
+  // readonly later with lua code.
+  e.new_enum<Enum, /*read_only=*/false>(
       name,
       std::initializer_list<std::pair<std::string_view, Enum>>{
           std::pair{
@@ -191,19 +196,53 @@ void register_enum( sol::state& st, std::string_view name ) {
       st, name, std::make_index_sequence<Enum::_size()>() );
 }
 
-#define LUA_ENUM( what )                                      \
-  LUA_STARTUP( sol::state& st ) {                             \
-    ::rn::lua::register_enum<::rn::e_##what>( st, #what );    \
-    st[::rn::lua::module_name__].get_or_create<sol::table>(); \
-    st["e"][#what "_from_string"] = []( char const* name ) {  \
-      auto maybe_val =                                        \
-          ::rn::e_##what::_from_string_nothrow( name );       \
-      CHECK(                                                  \
-          maybe_val,                                          \
-          "enum value `{}` is not a member of the enum `{}`", \
-          name, #what );                                      \
-      return *maybe_val;                                      \
-    };                                                        \
+/*
+template<typename Enum>
+sol::variadic_results mt_pairs_enum( sol::table tbl ) {
+  sol::variadic_results res;
+  sol::state_view       st( tbl.lua_state() );
+  sol::lua_value        value( st );
+  value = [tbl]( sol::table, Enum k ) {
+    sol::variadic_results res;
+    sol::state_view       st( tbl.lua_state() );
+    sol::lua_value        value( st );
+
+    auto next =
+        util::find_subsequent_and_cycle( values<Enum>, k );
+    if( next == values<Enum>[0] ) {
+      res.push_back( sol::lua_nil );
+    } else {
+      value = next;
+      res.push_back( value.as<sol::object>() );
+      value = "enum value";
+      res.push_back( value.as<sol::object>() );
+    }
+    return res;
+  };
+  res.push_back( value.as<sol::function>() );
+  res.push_back( tbl );
+  value = values<Enum>[0];
+  res.push_back( value.as<sol::object>() );
+  return res;
+}
+*/
+
+} // namespace detail
+
+#define LUA_ENUM( what )                                       \
+  LUA_STARTUP( sol::state& st ) {                              \
+    ::rn::lua::detail::register_enum<::rn::e_##what>( st,      \
+                                                      #what ); \
+    st[::rn::lua::module_name__].get_or_create<sol::table>();  \
+    st["e"][#what "_from_string"] = []( char const* name ) {   \
+      auto maybe_val =                                         \
+          ::rn::e_##what::_from_string_nothrow( name );        \
+      CHECK(                                                   \
+          maybe_val,                                           \
+          "enum value `{}` is not a member of the enum `{}`",  \
+          name, #what );                                       \
+      return *maybe_val;                                       \
+    };                                                         \
   };
 
 /****************************************************************
