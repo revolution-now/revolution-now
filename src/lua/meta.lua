@@ -99,6 +99,7 @@ local function freeze_all()
   for k, v in pairs( modules ) do
     freeze_table( _G, k )
   end
+  freeze_table( _G, "modules" )
   -- Freeze enums.
   freeze_table_members( _G["e"] )
   freeze_table( _G, "e" )
