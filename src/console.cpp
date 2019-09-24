@@ -92,8 +92,8 @@ void run_console_cmd( string const& cmd ) {
 /****************************************************************
 ** Console Plane
 *****************************************************************/
-constexpr uint8_t console_alpha = 200;
-constexpr uint8_t text_alpha    = 220;
+constexpr uint8_t console_alpha = 180;
+constexpr uint8_t text_alpha    = 225;
 constexpr uint8_t cmds_alpha    = 240;
 constexpr uint8_t stats_alpha   = 255;
 
@@ -116,21 +116,24 @@ struct ConsolePlane : public Plane {
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     if( show_percent_ < .0001 ) return;
-    auto rect =
-        Rect::from( Coord{}, main_window_logical_size() );
-    // rect.y += rect.h / 3_sy * 2_sy;
-    rect.h /= 3_sy;
-    rect.h -= rect.h %
-              ttf_get_font_info( config_rn.console.font ).height;
-    rect.h -= H{int( rect.h._ * ( 1.0 - show_percent_ ) )};
-    rect.y +=
-        compositor::section( compositor::e_section::menu_bar ).h;
+    auto console_rect = Rect::from(
+        compositor::section( compositor::e_section::menu_bar )
+            .lower_left(),
+        main_window_logical_rect().lower_right() -
+            le_view_.get().delta().h );
+    // console_rect.h -=
+    //    console_rect.h %
+    //    ttf_get_font_info( config_rn.console.font ).height;
+    console_rect.h -=
+        H{int( console_rect.h._ * ( 1.0 - show_percent_ ) )};
 
-    // rect =
-    //    rect.shifted_by( Delta{0_w, -le_view_.get().delta().h}
-    //    );
-    render_fill_rect(
-        tx, Color::wood().with_alpha( console_alpha ), rect );
+    // Render edit box.
+    auto console_edit_rect = Rect::from(
+        console_rect.lower_left(), le_view_.get().delta() );
+
+    render_fill_rect( tx,
+                      Color::wood().with_alpha( console_alpha ),
+                      console_rect );
 
     auto text_color = Color::banana().with_alpha( text_alpha );
     auto stats_color =
@@ -163,7 +166,7 @@ struct ConsolePlane : public Plane {
     //  info_start += mouse_coords_tx.size().h;
     //}
 
-    auto info_start = rect.lower_right() - 1_w;
+    auto info_start = console_rect.lower_right() - 1_w;
 
     auto frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
@@ -216,14 +219,14 @@ struct ConsolePlane : public Plane {
       info_start -= src_tx.size().h;
     }
 
-    int max_lines = rect.h / text_height;
+    int max_lines = console_rect.h / text_height;
     // Render the log
     int dbg_log_size = int( dbg_log.size() );
     int log_start    = dbg_log_size < max_lines
                         ? 0
                         : dbg_log.size() - max_lines;
     auto log_px_start =
-        rect.upper_left() +
+        console_rect.upper_left() +
         H{max_lines - ( dbg_log_size - log_start )} *
             ttf_get_font_info( config_rn.console.font ).height;
     for( auto i = log_start; i < dbg_log_size; ++i ) {
@@ -237,11 +240,8 @@ struct ConsolePlane : public Plane {
       log_px_start += src_tx.size().h;
     }
 
-    // Render edit box.
-    auto edit_rect =
-        Rect::from( rect.lower_left(), le_view_.get().delta() );
-
-    le_view_.get().draw( tx, edit_rect.upper_left() - 1_w );
+    le_view_.get().draw( tx,
+                         console_edit_rect.upper_left() - 1_w );
   }
 
   bool input( input::event_t const& event ) override {
