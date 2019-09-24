@@ -174,18 +174,19 @@ void register_fn( string_view         module_name,
 *****************************************************************/
 void test_lua() {
   sol::state st;
-  st["thrower"] = [] { throw std::logic_error( "hello2" ); };
-
-  auto pfr =
-      st.safe_script( "thrower()", sol::script_pass_on_error );
-
-  if( !pfr.valid() ) {
-    sol::error err = pfr;
-    cerr << err.what() << "\n";
-  } else {
-    lg.info( "valid." );
-    cout << "valid.\n";
-  }
+  st.open_libraries( sol::lib::base );
+  enum class color { red, blue };
+  constexpr bool ro = false;
+  st.new_enum<color, /*read_only=*/ro>(
+      "color", {{"red", color::red}, {"blue", color::blue}} );
+  auto script = R"lua(
+    print( "start" )
+    for k, v in pairs( color ) do
+      print( tostring(k) .. ": " .. tostring(v) )
+    end
+    print( "end" )
+  )lua";
+  st.safe_script( script );
 }
 
 void reset_state() { reload(); }
