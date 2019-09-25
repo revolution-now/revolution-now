@@ -268,6 +268,19 @@ TEST_CASE( "[lua] autocomplete" ) {
   in = "xgiebg";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
+  in  = "ownersh";
+  out = Vec<Str>{"ownership"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ownership";
+  out = Vec<Str>{"ownership."};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ownership.";
+  out = Vec<Str>{"ownership.create_unit_on_map",
+                 "ownership.unit_from_id"};
+  REQUIRE_THAT( autocomplete( in ), Contains( out ) );
+
   in  = "ownership.unit_fr";
   out = Vec<Str>{"ownership.unit_from_id"};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
@@ -276,8 +289,18 @@ TEST_CASE( "[lua] autocomplete" ) {
   out = Vec<Str>{"ownership.unit_from_id("};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ownership";
-  out = Vec<Str>{"ownership."};
+  in = "ownership.unit_from_id(";
+  REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
+
+  in = "ownership.unit_from_id( ";
+  REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
+
+  in  = "ownership.unit_from_id( ownersh";
+  out = Vec<Str>{"ownership.unit_from_id( ownership"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ownership.unit_from_id( ownership";
+  out = Vec<Str>{"ownership.unit_from_id( ownership."};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";

@@ -181,8 +181,6 @@ Vec<Str> autocomplete( std::string_view fragment ) {
   auto is_autocomplete_char = []( char c ) {
     return std::isalnum( c ) || ( c == '.' ) || ( c == '_' );
   };
-  Vec<Str> res;
-  if( fragment.empty() ) return res;
   lg.trace( "fragment: {}", fragment );
   string to_autocomplete =
       fragment                                 //
@@ -190,6 +188,13 @@ Vec<Str> autocomplete( std::string_view fragment ) {
       | rv::take_while( is_autocomplete_char ) //
       | rv::reverse;
   lg.trace( "to_autocomplete: {}", to_autocomplete );
+  string prefix = fragment                             //
+                  | rv::reverse                        //
+                  | rv::drop( to_autocomplete.size() ) //
+                  | rv::reverse;
+  lg.trace( "prefix: {}", prefix );
+  // Stop here otherwise we'll be looking through all globals.
+  if( to_autocomplete.empty() ) return {};
   // range-v3 split doesn't do the right thing here if the string
   // ends in a dot.
   Vec<Str> segments = absl::StrSplit( to_autocomplete, '.' );
@@ -204,18 +209,19 @@ Vec<Str> autocomplete( std::string_view fragment ) {
   sol::state_view st_view( g_lua );
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
-    if( curr_table[piece] == sol::lua_nil ) return res;
+    if( curr_table[piece] == sol::lua_nil ) return {};
     sol::object o = curr_table[piece];
     DCHECK( o != sol::lua_nil );
     bool is_table_like = ( o.get_type() == sol::type::table );
     lg.trace( "is_table_like: {}", is_table_like );
-    if( !is_table_like ) return res;
+    if( !is_table_like ) return {};
     curr_table = o.as<sol::table>();
   }
   auto last = segments.back();
   lg.trace( "last: {}", last );
-  string initial  = initial_segments | rv::join( '.' );
-  auto   add_keys = [&]( auto p ) {
+  string   initial = initial_segments | rv::join( '.' );
+  Vec<Str> res;
+  auto     add_keys = [&]( auto p ) {
     sol::object o = p.first;
     if( o.is<string>() ) {
       string key = o.as<string>();
@@ -224,7 +230,7 @@ Vec<Str> autocomplete( std::string_view fragment ) {
         lg.trace( "  key: {}", key );
         auto match =
             initial.empty() ? key : ( initial + '.' + key );
-        res.push_back( match );
+        res.push_back( prefix + match );
         lg.trace( "  push_back: {}", match );
       }
     }
