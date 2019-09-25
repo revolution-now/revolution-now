@@ -10,6 +10,20 @@
 |
 --]]-------------------------------------------------------------
 
+-- Takes a table and just returns a new table with all the same
+-- key/value pairs that come from the pairs(...) iterator. This
+-- is useful if e.g. a table's pairs are produced by a __pairs
+-- metafunction that we either can't call (sol2 doesn't seem to
+-- call it when iterating over a table, possibly a bug) or don't
+-- want to call (maybe it's expensive).
+local function all_pairs( tbl )
+  res = {}
+  for k, v in pairs( tbl ) do
+    res[k] = v
+  end
+  return res
+end
+
 -- Default implementation of the __pairs metamethod that repro-
 -- duces standard behavior.
 local function default_pairs( tbl )
@@ -81,6 +95,8 @@ local function freeze_existing_globals()
                     end
                     return globals[k]
                   end,
+    __pairs     = default_pairs( globals ),
+    __ipairs    = default_ipairs( tbl ),
     __newindex  = function( t, k, v )
                     if globals[k] ~= nil then
                       error("attempt to modify a read-only global.")
@@ -108,5 +124,6 @@ local function freeze_all()
 end
 
 package_exports = {
-  freeze_all = freeze_all
+  freeze_all = freeze_all,
+  all_pairs = all_pairs
 }

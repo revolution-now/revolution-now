@@ -229,7 +229,9 @@ Vec<Str> autocomplete( std::string_view fragment ) {
       }
     }
   };
-  curr_table.for_each( add_keys );
+  // FIXME: sol2 should access __pairs.
+  sol::table lifted = g_lua["meta"]["all_pairs"]( curr_table );
+  lifted.for_each( add_keys );
 
   sort( res.begin(), res.end() );
   lg.trace( "sorted; size: {}", res.size() );
@@ -257,8 +259,10 @@ Vec<Str> autocomplete( std::string_view fragment ) {
     bool is_table_like = ( o.get_type() == sol::type::table );
     lg.trace( "is_table_like: {}", is_table_like );
     if( is_table_like ) {
-      auto t    = o.as<sol::table>();
-      auto size = table_size( t );
+      auto t = o.as<sol::table>();
+      // FIXME: sol2 should access __pairs.
+      sol::table lifted = g_lua["meta"]["all_pairs"]( t );
+      auto       size   = table_size( lifted );
       lg.trace( "table size: {}", size );
       if( size > 0 ) res[0] += '.';
     }
