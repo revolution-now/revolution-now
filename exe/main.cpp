@@ -40,8 +40,9 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   linker_dont_discard_me();
-  run_all_init_routines( nullopt );
-  // run_all_init_routines( nullopt, {e_init_routine::lua} );
+  run_all_init_routines( e_log_level::debug );
+  // run_all_init_routines( e_log_level::debug,
+  // {e_init_routine::lua} );
   lua::reload();
   lua::run_startup_main();
 

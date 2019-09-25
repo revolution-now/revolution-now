@@ -10,6 +10,10 @@
 |
 --]]-------------------------------------------------------------
 
+local function type_of_child( parent, child_name )
+  return type( parent[child_name] )
+end
+
 -- Takes a table and just returns a new table with all the same
 -- key/value pairs that come from the pairs(...) iterator. This
 -- is useful if e.g. a table's pairs are produced by a __pairs
@@ -25,28 +29,46 @@ local function all_pairs( tbl )
 end
 
 -- Default implementation of the __pairs metamethod that repro-
--- duces standard behavior.
-local function default_pairs( tbl )
-  return function( t )
-    local function stateless_iter( t, k )
+-- duces standard behavior, but where we hardcode a table to use.
+local function pairs_table_override( tbl )
+  return function( _ )
+    local function stateless_iter( _, k )
       local v
       k, v = next( tbl, k )
       if v then return k, v end
     end
-    return stateless_iter, t, nil
+    return stateless_iter, tbl, nil
   end
 end
 
 -- Default implementation of the __ipairs metamethod that repro-
--- duces standard behavior.
-local function default_ipairs( tbl )
-  return function( t )
-    local function stateless_iter( t, i )
+-- duces standard behavior, but where we hardcode a table to use.
+local function ipairs_table_override( tbl )
+  return function( _ )
+    local function stateless_iter( _, i )
       i = i + 1
       local v = tbl[i]
       if v then return i, v end
     end
-    return stateless_iter, t, 0
+    return stateless_iter, tbl, 0
+  end
+end
+
+-- Returns a pairs iterator (generator) with two tables
+-- hard-coded: iterates over the first table, then the second.
+local function pairs_two_tables_override( tbl1, tbl2 )
+  return function( _ )
+    local which_table = tbl1
+    local function stateless_iter( _, k )
+      local v
+      k, v = next( which_table, k )
+      if v then return k, v end
+      if which_table ~= tbl2 then
+        which_table = tbl2
+        return stateless_iter( _, nil )
+      end
+    end
+    return stateless_iter, tbl1, nil
   end
 end
 
@@ -56,8 +78,8 @@ local function freeze_table( parent, tbl_name )
   log.debug( "freezing table \"" .. tbl_name .. "\"." )
   parent[tbl_name] = setmetatable( {}, {
     __index     = tbl,
-    __pairs     = default_pairs( tbl ),
-    __ipairs    = default_ipairs( tbl ),
+    __pairs     = pairs_table_override( tbl ),
+    __ipairs    = ipairs_table_override( tbl ),
     __newindex  = function( t, k, v )
                     error("attempt to modify a read-only table.")
                   end,
@@ -84,19 +106,14 @@ local function freeze_existing_globals()
   -- After clearing out all of _ENV's values then any read/write
   -- to it will always come to these metamethods for the first
   -- time when referring to a variable. That allows us to inter-
-  -- cept it. We reject reads from non-existent variables and we
-  -- reject writes to variables that already existed prior to the
-  -- freezing. However, we allow writing to new global variables
-  -- (and reassigning to them).
+  -- cept it. We reject writes to variables that already existed
+  -- prior to the freezing. However, we allow writing to new
+  -- global variables (and reassigning to them).
   setmetatable( _ENV, {
     __index     = function( t, k )
-                    if globals[k] == nil then
-                      error("attempt to read a nil global variable.")
-                    end
                     return globals[k]
                   end,
-    __pairs     = default_pairs( globals ),
-    __ipairs    = default_ipairs( globals ),
+    __pairs     = pairs_two_tables_override( _ENV, globals ),
     __newindex  = function( t, k, v )
                     if globals[k] ~= nil then
                       error("attempt to modify a read-only global.")
@@ -125,5 +142,6 @@ end
 
 package_exports = {
   freeze_all = freeze_all,
-  all_pairs = all_pairs
+  all_pairs = all_pairs,
+  type_of_child = type_of_child,
 }

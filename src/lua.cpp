@@ -83,7 +83,7 @@ expect<monostate> load_module( string const& name ) {
 void reset_sol_state() {
   g_lua = sol::state{};
   g_lua.open_libraries( sol::lib::base, sol::lib::table,
-                        sol::lib::string );
+                        sol::lib::string, sol::lib::debug );
   CHECK( g_lua["log"] == sol::lua_nil );
   g_lua["log"].get_or_create<sol::table>();
   g_lua["log"]["info"] = []( string const& msg ) {
@@ -118,6 +118,22 @@ void reset_sol_state() {
   };
 }
 
+// This is for use in the unit tests.
+struct MyType {
+  int  x{5};
+  char get() { return 'c'; }
+  int  add( int a, int b ) { return a + b; }
+};
+
+void register_my_type() {
+  sol::usertype<MyType> u = g_lua.new_usertype<MyType>(
+      "MyType", sol::constructors<MyType()>{} );
+
+  u["x"]   = &MyType::x;
+  u["get"] = &MyType::get;
+  u["add"] = &MyType::add;
+}
+
 void init_lua() {}
 
 void cleanup_lua() { g_lua = sol::state{}; }
@@ -140,6 +156,7 @@ void run_startup_routines() {
     CHECK( g_lua[mod_name] != sol::lua_nil,
            "module \"{}\" has not been defined.", mod_name );
   }
+  register_my_type(); // for unit testing.
 }
 
 void load_modules() {
@@ -179,7 +196,8 @@ void register_fn( string_view         module_name,
 
 Vec<Str> autocomplete( std::string_view fragment ) {
   auto is_autocomplete_char = []( char c ) {
-    return std::isalnum( c ) || ( c == '.' ) || ( c == '_' );
+    return std::isalnum( c ) || ( c == ':' ) || ( c == '.' ) ||
+           ( c == '_' );
   };
   lg.trace( "fragment: {}", fragment );
   string to_autocomplete =
@@ -197,7 +215,8 @@ Vec<Str> autocomplete( std::string_view fragment ) {
   if( to_autocomplete.empty() ) return {};
   // range-v3 split doesn't do the right thing here if the string
   // ends in a dot.
-  Vec<Str> segments = absl::StrSplit( to_autocomplete, '.' );
+  Vec<Str> segments =
+      absl::StrSplit( to_autocomplete, absl::ByAnyChar( ".:" ) );
   CHECK( segments.size() > 0 );
   lg.trace( "segments.size(): {}", segments.size() );
   // FIXME: after upgrading range-v3, use rv::drop_last here.
@@ -205,45 +224,124 @@ Vec<Str> autocomplete( std::string_view fragment ) {
                           | rv::reverse   //
                           | rv::drop( 1 ) //
                           | rv::reverse;
+
+  auto lua_type_string = []( sol::object   parent,
+                             string const& key ) {
+    // FIXME: this shouldn't be needed, but it seems that sol2
+    // reports userdata members always as type function.
+    auto pfr = g_lua["meta"]["type_of_child"]( parent, key );
+    DCHECK( pfr.valid() );
+    auto maybe_res = pfr.get<sol::optional<string>>();
+    CHECK( maybe_res );
+    return *maybe_res;
+  };
+
+  auto sep_for_parent_child = [&]( sol::object   parent,
+                                   string const& key ) {
+    if( parent.get_type() == sol::type::userdata &&
+        lua_type_string( parent, key ) == "function" ) {
+      return ':';
+    }
+    return '.';
+  };
+
+  auto table_for_object = []( sol::object o ) {
+    Opt<sol::table> res;
+    if( o.get_type() == sol::type::table )
+      res = o.as<sol::table>();
+    if( o.get_type() == sol::type::userdata )
+      res = o.as<sol::userdata>()[sol::metatable_key]
+                .get<sol::table>();
+    return res;
+  };
+
+  auto lifted_pairs_for_table = []( sol::table t ) {
+    // FIXME: sol2 should access __pairs.
+    return g_lua["meta"]["all_pairs"]( t ).get<sol::table>();
+  };
+
+  auto table_count_if = [&]( sol::table t, auto&& func ) {
+    int  size   = 0;
+    auto lifted = lifted_pairs_for_table( t );
+    lifted.for_each( [&]( auto const& p ) {
+      if( func( lifted, p.first ) ) ++size;
+    } );
+    return size;
+  };
+
+  auto table_size_non_meta = [&]( sol::table t ) {
+    return table_count_if( t, []( sol::object /*parent*/,
+                                  sol::object key_obj ) {
+      if( !key_obj.is<string>() ) return false;
+      return !util::starts_with( key_obj.as<string>(), "__" );
+    } );
+  };
+
+  auto table_fn_members_non_meta = [&]( sol::table t ) {
+    return table_count_if( t, [&]( sol::object parent,
+                                   sol::object key_obj ) {
+      if( !key_obj.is<string>() ) return false;
+      auto key = key_obj.as<string>();
+      if( util::starts_with( key, "__" ) ) return false;
+      return ( lua_type_string( parent, key ) == "function" );
+    } );
+  };
+
   sol::table      curr_table = g_lua.globals();
+  sol::object     curr_obj   = g_lua.globals();
   sol::state_view st_view( g_lua );
+
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
-    if( curr_table[piece] == sol::lua_nil ) return {};
-    sol::object o = curr_table[piece];
-    DCHECK( o != sol::lua_nil );
-    bool is_table_like = ( o.get_type() == sol::type::table );
-    lg.trace( "is_table_like: {}", is_table_like );
-    if( !is_table_like ) return {};
-    curr_table = o.as<sol::table>();
+    if( piece.empty() ) return {};
+    auto maybe_table = table_for_object( curr_table[piece] );
+    // lg.trace( "maybe_table: {}", maybe_table.has_value() );
+    if( !maybe_table ) return {};
+    auto size = table_size_non_meta( *maybe_table );
+    // lg.trace( "table_size_non_meta: {}", size );
+    if( size == 0 ) return {};
+    curr_obj   = curr_table[piece];
+    curr_table = *maybe_table;
   }
   auto last = segments.back();
   lg.trace( "last: {}", last );
   string   initial = initial_segments | rv::join( '.' );
   Vec<Str> res;
-  auto     add_keys = [&]( auto p ) {
-    sol::object o = p.first;
+
+  auto add_keys = [&]( sol::object parent, auto kv ) {
+    sol::object o = kv.first;
     if( o.is<string>() ) {
       string key = o.as<string>();
+      lg.trace( "does {} start with last?", key, last );
+      if( util::starts_with( key, "__" ) ) return;
       if( util::starts_with( key, last ) ) {
-        lg.trace( "[k,v]" );
-        lg.trace( "  key: {}", key );
-        auto match =
-            initial.empty() ? key : ( initial + '.' + key );
-        res.push_back( prefix + match );
-        lg.trace( "  push_back: {}", match );
+        // lg.trace( "  key: {}", key );
+        if( initial.empty() )
+          res.push_back( key );
+        else {
+          auto last_sep = sep_for_parent_child( parent, key );
+          lg.trace( "last_sep ({}): {}", key, last_sep );
+          res.push_back( initial + last_sep + key );
+        }
+        res.back() = prefix + res.back();
+        lg.trace( "  push_back: {}", res.back() );
       }
     }
   };
-  // FIXME: sol2 should access __pairs.
-  sol::table lifted = g_lua["meta"]["all_pairs"]( curr_table );
-  lifted.for_each( add_keys );
+  lifted_pairs_for_table( curr_table ).for_each( [&]( auto p ) {
+    add_keys( curr_obj, p );
+  } );
 
   sort( res.begin(), res.end() );
   lg.trace( "sorted; size: {}", res.size() );
 
   for( auto const& match : res ) {
-    DCHECK( util::starts_with( match, fragment ) );
+    auto match_dots = absl::StrReplaceAll( match, {{":", "."}} );
+    auto fragment_dots =
+        absl::StrReplaceAll( fragment, {{":", "."}} );
+    DCHECK( util::starts_with( match_dots, fragment_dots ),
+            "`{}` does not start with `{}`", match_dots,
+            fragment_dots );
   }
 
   if( res.size() == 0 ) {
@@ -258,28 +356,34 @@ Vec<Str> autocomplete( std::string_view fragment ) {
     return res;
   }
 
-  auto table_size = []( sol::table t ) {
-    int size = 0;
-    t.for_each( [&]( auto const& ) { ++size; } );
-    return size;
-  };
-
   DCHECK( res.size() == 1 );
   if( res[0] == fragment ) {
     lg.trace( "res[0], fragment: {},{}", res[0], fragment );
     sol::object o = curr_table[last];
     DCHECK( o != sol::lua_nil );
-    bool is_table_like = ( o.get_type() == sol::type::table );
-    lg.trace( "is_table_like: {}", is_table_like );
-    if( is_table_like ) {
-      auto t = o.as<sol::table>();
-      // FIXME: sol2 should access __pairs.
-      sol::table lifted = g_lua["meta"]["all_pairs"]( t );
-      auto       size   = table_size( lifted );
+    if( o.get_type() == sol::type::table ) {
+      ASSIGN_CHECK_OPT( t, table_for_object( o ) );
+      auto size = table_size_non_meta( t );
       lg.trace( "table size: {}", size );
       if( size > 0 ) res[0] += '.';
     }
-    if( o.is<sol::function>() ) { res[0] += "( "; }
+    if( o.get_type() == sol::type::userdata ) {
+      ASSIGN_CHECK_OPT( t, table_for_object( o ) );
+      auto fn_count = table_fn_members_non_meta( t );
+      auto size     = table_size_non_meta( t );
+      lg.trace( "table size: {}", size );
+      lg.trace( "fn count: {}", fn_count );
+      if( size > 0 ) {
+        if( fn_count == size )
+          res[0] += ':';
+        else if( fn_count == 0 )
+          res[0] += '.';
+        else
+          res[0] += '.';
+      }
+    }
+    if( lua_type_string( curr_obj, last ) == "function" )
+      res[0] += '(';
     lg.trace( "final res[0]: {}", res[0] );
   }
   lg.trace( "returning: {}", FmtJsonStyleList{res} );
