@@ -286,7 +286,7 @@ TEST_CASE( "[lua] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ownership.unit_from_id";
-  out = Vec<Str>{"ownership.unit_from_id("};
+  out = Vec<Str>{"ownership.unit_from_id( "};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in = "ownership.unit_from_id(";
@@ -324,7 +324,7 @@ TEST_CASE( "[lua] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation_from_string";
-  out = {"e.nation_from_string("};
+  out = {"e.nation_from_string( "};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation.";
