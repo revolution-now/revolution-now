@@ -66,19 +66,19 @@ if( CMAKE_BUILD_TYPE STREQUAL Debug )
       message( WARNING "libdw not found; not linking to backward-cpp library" )
     else()
       message( STATUS "RN Found libdw." )
-      target_link_libraries( rn PRIVATE dw )
+      target_link_libraries( rn PUBLIC dw )
       target_compile_definitions(
         rn
-        PRIVATE
+        PUBLIC
         BACKWARD_HAS_DW=1 )
     endif()
   endif()
-  target_link_libraries( rn PRIVATE backward backward_object )
+  target_link_libraries( rn PUBLIC backward backward_object )
 endif()
 
 if( DEBUG_TRACE )
   message( STATUS "Enabling trace-level logging" )
-  target_compile_definitions( rn PRIVATE RN_TRACE=1 )
+  target_compile_definitions( rn PUBLIC RN_TRACE=1 )
 endif()
 
 target_compile_definitions(
