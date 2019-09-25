@@ -6,3 +6,7 @@ controls {
   # intending to drag.
   drag_buffer: 3
 }
+
+keyboard {
+  use_capslock_as_ctrl: true
+}

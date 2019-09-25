@@ -255,6 +255,18 @@ struct ConsolePlane : public Plane {
       return true;
     }
     if( !show_ ) return false;
+    if( key_event.keycode == ::SDLK_l &&
+        key_event.mod.ctrl_down ) {
+      clear_dbg_log();
+      return true;
+    }
+    if( key_event.keycode == ::SDLK_u &&
+        key_event.mod.ctrl_down ) {
+      auto text = le_view_.get().text();
+      text.erase( 0, le_view_.get().cursor_pos() );
+      le_view_.get().set( text, 0 );
+      return true;
+    }
     if( key_event.keycode == ::SDLK_TAB ) {
       auto const& text = le_view_.get().text();
       if( int( text.size() ) == le_view_.get().cursor_pos() ) {

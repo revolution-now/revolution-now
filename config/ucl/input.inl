@@ -10,6 +10,10 @@ CFG( input,
   OBJ( controls,
     FLD( int, drag_buffer )
   )
+
+  OBJ( keyboard,
+    FLD( bool, use_capslock_as_ctrl )
+  )
 )
 
 }

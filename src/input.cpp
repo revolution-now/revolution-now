@@ -98,9 +98,9 @@ bool is_in_drag_zone( Coord current, Coord origin ) {
 
 // Should not call this from outside this module; should instead
 // use the mod keys delivered with the input events.
-mod_keys query_mod_keys() {
+mod_keys query_mod_keys( ::Uint8 const* sdl_keyboard_state ) {
   auto     keymods = ::SDL_GetModState();
-  mod_keys mod;
+  mod_keys mod{};
 
   mod.l_shf_down  = ( keymods & ::KMOD_LSHIFT );
   mod.r_shf_down  = ( keymods & ::KMOD_RSHIFT );
@@ -108,6 +108,14 @@ mod_keys query_mod_keys() {
   mod.r_alt_down  = ( keymods & ::KMOD_RALT );
   mod.l_ctrl_down = ( keymods & ::KMOD_LCTRL );
   mod.r_ctrl_down = ( keymods & ::KMOD_RCTRL );
+
+  if( config_input.keyboard.use_capslock_as_ctrl ) {
+    // Below does not seem to work here as SDL seems to want to
+    // toggle the caps lock with each press.
+    // if( keymods & ::KMOD_CAPS )
+    if( sdl_keyboard_state[::SDL_SCANCODE_CAPSLOCK] ) //
+      mod.l_ctrl_down = true;
+  }
 
   mod.shf_down  = mod.l_shf_down || mod.r_shf_down;
   mod.alt_down  = mod.l_alt_down || mod.r_alt_down;
@@ -364,6 +372,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     default: event = unknown_event_t{};
   }
 
+  auto const* keyboard_state = ::SDL_GetKeyboardState( nullptr );
+
   // Populate the keymod state common to all events. We must do
   // this at the end because `event` is a variant and we don't
   // know at the start of this function which alternative will be
@@ -371,9 +381,10 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   auto* base = variant_base_ptr<event_base_t>( event );
   CHECK( base );
 
-  // FIXME: need to use key state that is current with this event
-  //        being processed if it starts causing issues.
-  base->mod = query_mod_keys();
+  // TODO: is the keyboard_state as well as the key mod state
+  // (obtained inside the query_mod_keys function) both current
+  // with this event?
+  base->mod = query_mod_keys( keyboard_state );
 
   base->l_mouse_down =
       bool( g_mouse_buttons & SDL_BUTTON_LMASK );

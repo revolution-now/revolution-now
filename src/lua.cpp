@@ -279,7 +279,7 @@ Vec<Str> autocomplete( std::string_view fragment ) {
       lg.trace( "table size: {}", size );
       if( size > 0 ) res[0] += '.';
     }
-    if( o.is<sol::function>() ) { res[0] += '('; }
+    if( o.is<sol::function>() ) { res[0] += "( "; }
     lg.trace( "final res[0]: {}", res[0] );
   }
   lg.trace( "returning: {}", FmtJsonStyleList{res} );
