@@ -30,6 +30,15 @@
 
 namespace rn {
 
+template<typename T,
+         typename = std::enable_if_t<std::is_signed_v<T> &&
+                                     std::is_integral_v<T>>>
+T modulus( T a, T b ) {
+  auto m = a % b;
+  if( m < 0 ) m = ( b < 0 ) ? m - b : m + b;
+  return m;
+}
+
 // MovingAverage is a class for computing a moving average of a
 // tick count over time. Conceptually, we have a time window of
 // length BucketLengthSeconds that slides and collects the tick

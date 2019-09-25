@@ -425,6 +425,12 @@ void LineEditorView::clear() {
   update_visible_string();
 }
 
+void LineEditorView::set( std::string_view new_string,
+                          Opt<int>         cursor_pos ) {
+  line_editor_.set( new_string, cursor_pos );
+  update_visible_string();
+}
+
 /****************************************************************
 ** Derived Views
 *****************************************************************/

@@ -307,6 +307,9 @@ Vec<Str> format_lua_error_msg( Str const& msg );
 //   Result:   []
 //
 Vec<Str> autocomplete( std::string_view fragment );
+// Will keep autocompleting so long as there is a single result,
+// until the result converges and stops changing.
+Vec<Str> autocomplete_iterative( std::string_view fragment );
 
 namespace {
 auto module_name__ =

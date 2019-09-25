@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "math.hpp"
 
 // SDL
 #include "SDL.h"
@@ -37,6 +38,14 @@ bool is_char_allowed( char c ) {
 #define LE_ASSERT_INVARIANTS \
   CHECK( pos_ >= 0 )         \
   CHECK( pos_ <= (int)buffer_.length() )
+
+LineEditor::LineEditor( string buffer, int pos )
+  : buffer_( std::move( buffer ) ), pos_( pos ) {
+  // Include buffer_.size() (i.e., closed upper bound) because
+  // the cursor can be one-past-the-end.
+  pos_ = std::clamp( pos_, 0, int( buffer_.size() ) );
+  LE_ASSERT_INVARIANTS;
+}
 
 bool LineEditor::input( input::key_event_t const& event ) {
   // bool alt     = event.alt_down;
@@ -101,6 +110,22 @@ bool LineEditor::input( input::key_event_t const& event ) {
 void LineEditor::clear() {
   pos_    = 0;
   buffer_ = "";
+  LE_ASSERT_INVARIANTS;
+}
+
+void LineEditor::set( std::string_view new_buffer,
+                      Opt<int>         maybe_pos ) {
+  int  requested_cursor_pos = maybe_pos.value_or( pos_ );
+  auto new_cursor_closed_upper_bound = int( new_buffer.size() );
+  auto new_cursor_closed_lower_bound =
+      int( -new_buffer.size() - 1 );
+  auto clamped_pos = std::clamp( requested_cursor_pos,
+                                 new_cursor_closed_lower_bound,
+                                 new_cursor_closed_upper_bound );
+
+  pos_    = ::rn::modulus( clamped_pos,
+                        new_cursor_closed_upper_bound + 1 );
+  buffer_ = string( new_buffer );
   LE_ASSERT_INVARIANTS;
 }
 

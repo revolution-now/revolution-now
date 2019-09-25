@@ -31,8 +31,21 @@ class LineEditor {
   int         pos_ = 0;
 
 public:
+  LineEditor() = default;
+  LineEditor( std::string buffer, int pos );
+
   std::string const& buffer() const { return buffer_; }
   int                pos() const { return pos_; }
+
+  // Leaving off cursor position, it will attempt to keep it
+  // where it is, unless it is out of bounds in which case it
+  // will be put at the end. One can specify -1 for the cursor
+  // position which means one-past-the-ene; -2 places the cursor
+  // over the last character, etc. Regardless of the `cursor_pos`
+  // specified, it will always be clamped to the bounds of the
+  // new string.
+  void set( std::string_view new_buffer,
+            Opt<int>         maybe_pos = std::nullopt );
 
   void clear();
 

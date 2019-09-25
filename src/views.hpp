@@ -377,6 +377,8 @@ public:
   bool on_key( input::key_event_t const& event ) override;
 
   std::string const& text() const { return current_rendering_; }
+  // Absolute cursor position.
+  int cursor_pos() const { return line_editor_.pos(); }
 
   void set_on_change_fn( OnChangeFunc on_change ) {
     on_change_ = std::move( on_change );
@@ -385,6 +387,15 @@ public:
   void set_pixel_size( Delta const& size );
 
   void clear();
+  // Leaving off cursor position, it will attempt to keep it
+  // where it is, unless it is out of bounds in which case it
+  // will be put at the end. One can specify -1 for the cursor
+  // position which means one-past-the-ene; -2 places the cursor
+  // over the last character, etc. Regardless of the `cursor_pos`
+  // specified, it will always be clamped to the bounds of the
+  // new string.
+  void set( std::string_view new_string,
+            Opt<int>         cursor_pos = std::nullopt );
 
 private:
   void render_background( Delta const& size );

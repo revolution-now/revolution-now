@@ -246,7 +246,14 @@ Vec<Str> autocomplete( std::string_view fragment ) {
     DCHECK( util::starts_with( match, fragment ) );
   }
 
-  if( res.size() != 1 ) {
+  if( res.size() == 0 ) {
+    lg.trace( "returning: {}", FmtJsonStyleList{res} );
+    return res;
+  } else if( res.size() > 1 ) {
+    // Try to find a common prefix.
+    auto prefix = util::common_prefix( res );
+    CHECK( prefix.has_value() );
+    if( prefix->size() > fragment.size() ) res = {*prefix};
     lg.trace( "returning: {}", FmtJsonStyleList{res} );
     return res;
   }
@@ -276,6 +283,31 @@ Vec<Str> autocomplete( std::string_view fragment ) {
     lg.trace( "final res[0]: {}", res[0] );
   }
   lg.trace( "returning: {}", FmtJsonStyleList{res} );
+  return res;
+}
+
+Vec<Str> autocomplete_iterative( std::string_view fragment ) {
+  Vec<Str> res;
+  string   single_result( fragment );
+  do {
+    lg.trace( "single_result: {}", single_result );
+    auto try_res = autocomplete( single_result );
+    if( try_res.empty() ) break;
+    res = std::move( try_res );
+    lg.trace( "  res: {}", FmtJsonStyleList{res} );
+    if( res.size() == 1 ) {
+      lg.trace( "  size is 1" );
+      if( single_result == res[0] ) break;
+      lg.trace( "  not equal" );
+      single_result = res[0];
+    }
+  } while( res.size() == 1 );
+  if( res.size() > 1 ) {
+    // Try to find a common prefix.
+    auto prefix = util::common_prefix( res );
+    CHECK( prefix.has_value() );
+    if( prefix->size() > fragment.size() ) res = {*prefix};
+  }
   return res;
 }
 

@@ -316,6 +316,10 @@ TEST_CASE( "[lua] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
   in  = "e.nat";
+  out = {"e.nation"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation";
   out = {"e.nation", "e.nation_from_string"};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 

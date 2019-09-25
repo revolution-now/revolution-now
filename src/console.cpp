@@ -255,6 +255,21 @@ struct ConsolePlane : public Plane {
       return true;
     }
     if( !show_ ) return false;
+    if( key_event.keycode == ::SDLK_TAB ) {
+      auto const& text = le_view_.get().text();
+      if( int( text.size() ) == le_view_.get().cursor_pos() ) {
+        auto options = lua::autocomplete_iterative( text );
+        if( options.size() == 1 ) {
+          // Set cursor pos to one-past-the-end.
+          le_view_.get().set( options[0], /*cursor_pos=*/-1 );
+        } else if( options.size() > 1 ) {
+          log_to_debug_console( "--" );
+          for( auto const& option : options )
+            log_to_debug_console( option );
+        }
+      }
+      return true;
+    }
     if( key_event.keycode == ::SDLK_RETURN ) {
       auto text = le_view_.get().text();
       if( !text.empty() ) {
