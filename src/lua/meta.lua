@@ -96,7 +96,7 @@ local function freeze_existing_globals()
                     return globals[k]
                   end,
     __pairs     = default_pairs( globals ),
-    __ipairs    = default_ipairs( tbl ),
+    __ipairs    = default_ipairs( globals ),
     __newindex  = function( t, k, v )
                     if globals[k] ~= nil then
                       error("attempt to modify a read-only global.")
