@@ -24,6 +24,7 @@ using namespace std;
 using namespace rn;
 
 using Catch::Contains;
+using Catch::Equals;
 
 TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
@@ -251,6 +252,78 @@ TEST_CASE( "[lua] optional" ) {
   REQUIRE( lua::run<Opt<string>>( "return nil" ) == nullopt );
   REQUIRE( lua::run<Opt<string>>( "return 'hello'" ) ==
            "hello" );
+}
+
+TEST_CASE( "[lua] autocomplete" ) {
+  using lua::autocomplete;
+
+  auto empty = Vec<Str>{};
+
+  string   in;
+  Vec<Str> out;
+
+  in = "";
+  REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
+
+  in = "xgiebg";
+  REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
+
+  in  = "ownership.unit_fr";
+  out = Vec<Str>{"ownership.unit_from_id"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ownership.unit_from_id";
+  out = Vec<Str>{"ownership.unit_from_id("};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "ownership";
+  out = Vec<Str>{"ownership."};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "uni";
+  out = {"unit"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "id";
+  out = {"id."};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.";
+  out = {"e.nation", "e.unit_type", "e.unit_orders"};
+  REQUIRE_THAT( autocomplete( in ), Contains( out ) );
+
+  in  = "e.nat";
+  out = {"e.nation", "e.nation_from_string"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation_from_string";
+  out = {"e.nation_from_string("};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation.";
+  out = {
+      "e.nation.dutch",
+      "e.nation.english",
+      "e.nation.french",
+      "e.nation.spanish",
+  };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation.engli";
+  out = {"e.nation.english"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation.english";
+  out = {"e.nation.english"};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation.englishx";
+  out = {};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+
+  in  = "e.nation.english.";
+  out = {};
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 }
 
 } // namespace

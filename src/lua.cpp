@@ -17,6 +17,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "lua-ext.hpp"
+#include "ranges.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -24,6 +25,13 @@
 
 // Abseil
 #include "absl/strings/str_replace.h"
+#include "absl/strings/str_split.h"
+
+// Range-v3
+#include "range/v3/view/drop.hpp"
+#include "range/v3/view/join.hpp"
+#include "range/v3/view/reverse.hpp"
+#include "range/v3/view/take_while.hpp"
 
 using namespace std;
 
@@ -167,6 +175,98 @@ Vec<Str> format_lua_error_msg( Str const& msg ) {
 void register_fn( string_view         module_name,
                   RegistrationFnSig** fn ) {
   registration_functions().emplace_back( module_name, fn );
+}
+
+Vec<Str> autocomplete( std::string_view fragment ) {
+  auto is_autocomplete_char = []( char c ) {
+    return std::isalnum( c ) || ( c == '.' ) || ( c == '_' );
+  };
+  Vec<Str> res;
+  if( fragment.empty() ) return res;
+  lg.trace( "fragment: {}", fragment );
+  string to_autocomplete =
+      fragment                                 //
+      | rv::reverse                            //
+      | rv::take_while( is_autocomplete_char ) //
+      | rv::reverse;
+  lg.trace( "to_autocomplete: {}", to_autocomplete );
+  // range-v3 split doesn't do the right thing here if the string
+  // ends in a dot.
+  Vec<Str> segments = absl::StrSplit( to_autocomplete, '.' );
+  CHECK( segments.size() > 0 );
+  lg.trace( "segments.size(): {}", segments.size() );
+  // FIXME: after upgrading range-v3, use rv::drop_last here.
+  auto initial_segments = segments        //
+                          | rv::reverse   //
+                          | rv::drop( 1 ) //
+                          | rv::reverse;
+  sol::table      curr_table = g_lua.globals();
+  sol::state_view st_view( g_lua );
+  for( auto piece : initial_segments ) {
+    lg.trace( "piece: {}", piece );
+    if( curr_table[piece] == sol::lua_nil ) return res;
+    sol::object o = curr_table[piece];
+    DCHECK( o != sol::lua_nil );
+    bool is_table_like = ( o.get_type() == sol::type::table );
+    lg.trace( "is_table_like: {}", is_table_like );
+    if( !is_table_like ) return res;
+    curr_table = o.as<sol::table>();
+  }
+  auto last = segments.back();
+  lg.trace( "last: {}", last );
+  string initial  = initial_segments | rv::join( '.' );
+  auto   add_keys = [&]( auto p ) {
+    sol::object o = p.first;
+    if( o.is<string>() ) {
+      string key = o.as<string>();
+      if( util::starts_with( key, last ) ) {
+        lg.trace( "[k,v]" );
+        lg.trace( "  key: {}", key );
+        auto match =
+            initial.empty() ? key : ( initial + '.' + key );
+        res.push_back( match );
+        lg.trace( "  push_back: {}", match );
+      }
+    }
+  };
+  curr_table.for_each( add_keys );
+
+  sort( res.begin(), res.end() );
+  lg.trace( "sorted; size: {}", res.size() );
+
+  for( auto const& match : res ) {
+    DCHECK( util::starts_with( match, fragment ) );
+  }
+
+  if( res.size() != 1 ) {
+    lg.trace( "returning: {}", FmtJsonStyleList{res} );
+    return res;
+  }
+
+  auto table_size = []( sol::table t ) {
+    int size = 0;
+    t.for_each( [&]( auto const& ) { ++size; } );
+    return size;
+  };
+
+  DCHECK( res.size() == 1 );
+  if( res[0] == fragment ) {
+    lg.trace( "res[0], fragment: {},{}", res[0], fragment );
+    sol::object o = curr_table[last];
+    DCHECK( o != sol::lua_nil );
+    bool is_table_like = ( o.get_type() == sol::type::table );
+    lg.trace( "is_table_like: {}", is_table_like );
+    if( is_table_like ) {
+      auto t    = o.as<sol::table>();
+      auto size = table_size( t );
+      lg.trace( "table size: {}", size );
+      if( size > 0 ) res[0] += '.';
+    }
+    if( o.is<sol::function>() ) { res[0] += '('; }
+    lg.trace( "final res[0]: {}", res[0] );
+  }
+  lg.trace( "returning: {}", FmtJsonStyleList{res} );
+  return res;
 }
 
 /****************************************************************

@@ -120,7 +120,7 @@ void register_fn( std::string_view    module_name,
                   RegistrationFnSig** fn );
 
 /****************************************************************
-** General
+** Registration: General
 *****************************************************************/
 // For startup code that just needs access to the lua state.
 
@@ -143,7 +143,7 @@ void register_fn( std::string_view    module_name,
       register_, __LINE__ )::init_fn = []( st )
 
 /****************************************************************
-** Functions
+** Registration: Functions
 *****************************************************************/
 #define LUA_FN( ... ) PP_N_OR_MORE_ARGS_2( LUA_FN, __VA_ARGS__ )
 
@@ -168,7 +168,7 @@ void register_fn( std::string_view    module_name,
   ret_type lua_fn_##name::operator()( __VA_ARGS__ ) const
 
 /****************************************************************
-** Enums
+** Registration: Enums
 *****************************************************************/
 namespace detail {
 
@@ -246,7 +246,7 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
   };
 
 /****************************************************************
-** Typed Int
+** Registration: Typed Int
 *****************************************************************/
 #define LUA_TYPED_INT( name )                                 \
   template<typename Handler>                                  \
@@ -279,6 +279,34 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
 ** Utilites
 *****************************************************************/
 Vec<Str> format_lua_error_msg( Str const& msg );
+
+// Given a fragment of Lua this will return a vector of all pos-
+// sible (immediate) completions. If it returns an empty vector
+// then that means the fragment is invalid (i.e., it is not a
+// prefix of any valid completion). Example:
+//
+//   fragment: "ownersh"
+//   Result:   ["ownership"]
+//
+//   fragment: "e."
+//   Result:   ["e.nation", "e.user_type", etc.]
+//
+//   fragment: "e.nat"
+//   Result:   ["e.nation"]
+//
+//   fragment: "e.nation"
+//   Result:   ["e.nation."]
+//
+//   fragment: "e.nation."
+//   Result:   ["e.nation.english", "e.nation.dutch", etc.]
+//
+//   fragment: "e.nation.english"
+//   Result:   ["e.nation.english"]
+//
+//   fragment: "e.nation.english."
+//   Result:   []
+//
+Vec<Str> autocomplete( std::string_view fragment );
 
 namespace {
 auto module_name__ =
