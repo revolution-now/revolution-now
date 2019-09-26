@@ -16,6 +16,7 @@
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
+#include "terminal.hpp"
 
 // C++ standard library
 #include <mutex>
@@ -68,7 +69,7 @@ public:
     // formatter_->format( msg, formatted );
     // string res( formatted.data(), formatted.size() );
     string res( msg.payload.data(), msg.payload.size() );
-    log_to_debug_console( std::move( res ) );
+    term::log( std::move( res ) );
   }
 
   void flush() final {

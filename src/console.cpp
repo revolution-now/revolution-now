@@ -18,16 +18,13 @@
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
-#include "lua.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
+#include "terminal.hpp"
 #include "text.hpp"
 #include "ttf.hpp"
 #include "views.hpp"
-
-// base-util
-#include "base-util/keyval.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
@@ -39,55 +36,9 @@ namespace rn {
 namespace {
 
 /****************************************************************
-** Console Logging
-*****************************************************************/
-size_t constexpr max_dbg_log_lines = 100000;
-vector<string> dbg_log;
-
-void trim_dbg_log() {
-  if( dbg_log.size() > max_dbg_log_lines )
-    dbg_log = vector<string>(
-        dbg_log.begin() + max_dbg_log_lines / 2, dbg_log.end() );
-}
-
-void clear_dbg_log() { dbg_log.clear(); }
-
-/****************************************************************
 ** Console Commands
 *****************************************************************/
 constexpr string_view prompt = "> ";
-
-FlatMap<string, tl::function_ref<void()>> g_console_commands{
-    {"clear", clear_dbg_log},                //
-    {"quit", [] { throw exception_exit{}; }} //
-};
-
-void run_lua_cmd( string const& cmd ) {
-  auto expected = lua::run<void>( cmd );
-  if( !expected.has_value() ) {
-    lg.error( "lua command failed:" );
-    for( auto const& line :
-         lua::format_lua_error_msg( expected.error().what ) )
-      lg.error( "  {}", line );
-  }
-}
-
-void run_console_cmd( string const& cmd ) {
-  lg.debug( "{}{}", prompt, cmd );
-  auto maybe_fn = bu::val_safe( g_console_commands, cmd );
-  if( maybe_fn.has_value() ) {
-    maybe_fn->get()();
-    return;
-  }
-  // Try to determine if it's not a statement and, if not, print
-  // the result to emulate a typical REPL.
-  if( !util::contains( cmd, "=" ) &&
-      !util::contains( cmd, ";" ) )
-    run_lua_cmd(
-        fmt::format( "print(tostring(({}) or nil))", cmd ) );
-  else
-    run_lua_cmd( cmd );
-}
 
 /****************************************************************
 ** Console Plane
@@ -219,25 +170,21 @@ struct ConsolePlane : public Plane {
       info_start -= src_tx.size().h;
     }
 
-    int max_lines = console_rect.h / text_height;
     // Render the log
-    int dbg_log_size = int( dbg_log.size() );
-    int log_start    = dbg_log_size < max_lines
-                        ? 0
-                        : dbg_log.size() - max_lines;
+    int  max_lines = console_rect.h / text_height;
     auto log_px_start =
-        console_rect.upper_left() +
-        H{max_lines - ( dbg_log_size - log_start )} *
-            ttf_get_font_info( config_rn.console.font ).height;
-    for( auto i = log_start; i < dbg_log_size; ++i ) {
-      CHECK( i < dbg_log_size );
+        console_rect.lower_left() -
+        1_h * ttf_get_font_info( config_rn.console.font ).height;
+    for( auto i = 0; i < max_lines; ++i ) {
+      auto maybe_line = term::line( i );
+      if( !maybe_line ) break;
       auto color = text_color;
-      if( util::starts_with( dbg_log[i], prompt ) )
+      if( util::starts_with( maybe_line->get(), prompt ) )
         color = color.highlighted( 5 ).with_alpha( cmds_alpha );
-      auto const& src_tx = render_text( config_rn.console.font,
-                                        color, dbg_log[i] );
+      auto const& src_tx = render_text(
+          config_rn.console.font, color, maybe_line->get() );
       copy_texture( src_tx, tx, log_px_start );
-      log_px_start += src_tx.size().h;
+      log_px_start -= src_tx.size().h;
     }
 
     le_view_.get().draw( tx,
@@ -257,7 +204,7 @@ struct ConsolePlane : public Plane {
     if( !show_ ) return false;
     if( key_event.keycode == ::SDLK_l &&
         key_event.mod.ctrl_down ) {
-      clear_dbg_log();
+      term::clear();
       return true;
     }
     if( key_event.keycode == ::SDLK_u &&
@@ -270,14 +217,14 @@ struct ConsolePlane : public Plane {
     if( key_event.keycode == ::SDLK_TAB ) {
       auto const& text = le_view_.get().text();
       if( int( text.size() ) == le_view_.get().cursor_pos() ) {
-        auto options = lua::autocomplete_iterative( text );
+        auto options = term::autocomplete_iterative( text );
         if( options.size() == 1 ) {
           // Set cursor pos to one-past-the-end.
           le_view_.get().set( options[0], /*cursor_pos=*/-1 );
         } else if( options.size() > 1 ) {
-          log_to_debug_console( "--" );
+          term::log( "--" );
           for( auto const& option : options )
-            log_to_debug_console( option );
+            term::log( option );
         }
       }
       return true;
@@ -285,7 +232,8 @@ struct ConsolePlane : public Plane {
     if( key_event.keycode == ::SDLK_RETURN ) {
       auto text = le_view_.get().text();
       if( !text.empty() ) {
-        run_console_cmd( text );
+        // Don't care here whether command succeeded or not.
+        (void)term::run_cmd( text );
         le_view_.get().clear();
         return true;
       }
@@ -306,16 +254,6 @@ ConsolePlane g_console_plane;
 /****************************************************************
 ** Public API
 *****************************************************************/
-void log_to_debug_console( std::string const& msg ) {
-  dbg_log.push_back( msg );
-  trim_dbg_log();
-}
-
-void log_to_debug_console( std::string&& msg ) {
-  dbg_log.emplace_back( msg );
-  trim_dbg_log();
-}
-
 Plane* console_plane() { return &g_console_plane; }
 
 //

@@ -280,37 +280,6 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
 *****************************************************************/
 Vec<Str> format_lua_error_msg( Str const& msg );
 
-// Given a fragment of Lua this will return a vector of all pos-
-// sible (immediate) completions. If it returns an empty vector
-// then that means the fragment is invalid (i.e., it is not a
-// prefix of any valid completion). Example:
-//
-//   fragment: "ownersh"
-//   Result:   ["ownership"]
-//
-//   fragment: "e."
-//   Result:   ["e.nation", "e.user_type", etc.]
-//
-//   fragment: "e.nat"
-//   Result:   ["e.nation"]
-//
-//   fragment: "e.nation"
-//   Result:   ["e.nation."]
-//
-//   fragment: "e.nation."
-//   Result:   ["e.nation.english", "e.nation.dutch", etc.]
-//
-//   fragment: "e.nation.english"
-//   Result:   ["e.nation.english"]
-//
-//   fragment: "e.nation.english."
-//   Result:   []
-//
-Vec<Str> autocomplete( std::string_view fragment );
-// Will keep autocompleting so long as there is a single result,
-// until the result converges and stops changing.
-Vec<Str> autocomplete_iterative( std::string_view fragment );
-
 namespace {
 auto module_name__ =
 #ifdef LUA_MODULE_NAME_OVERRIDE

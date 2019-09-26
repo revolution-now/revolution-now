@@ -8,10 +8,13 @@ let s:stems = [
   \ 'src/tx',
   \ 'src/gfx',
   \ 'src/lua',
+  \ 'src/console',
+  \ 'src/line-editor',
+  \ 'src/terminal',
+  \ 'src/views',
+  \ 'src/input',
   \ 'src/nation',
   \ 'src/player',
-  \ 'src/console',
-  \ 'src/views',
   \ 'src/screen',
   \ 'src/compositor',
   \ 'src/frame',
@@ -48,7 +51,6 @@ let s:stems = [
   "\ 'src/input',
   "\ 'src/job',
   "\ 'src/logging',
-  "\ 'src/main',
   "\ 'src/math',
   "\ 'src/menu',
   "\ 'src/midiplayer',
@@ -88,7 +90,8 @@ let s:stems = [
 
 let s:luas = [
   \ 'startup',
-  \ 'europort',
+  \ 'meta',
+  \ 'util',
 \]
 
 let s:quads = [
