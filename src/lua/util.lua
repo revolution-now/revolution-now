@@ -14,6 +14,10 @@ function Coord( arg )
   return {x=arg.x, y=arg.y}
 end
 
+local function starts_with( str, start )
+   return str:sub( 1, #start ) == start
+end
+
 local function foreach( list, f )
   for _, e in ipairs( list ) do
     f( e )
@@ -21,12 +25,20 @@ local function foreach( list, f )
 end
 
 local function ls( table )
+  if type( table ) == "userdata" then
+    -- For sol2 userdata. Unfortunately the types of the members
+    -- all show as functions.
+    table = getmetatable( table ) or {}
+  end
   for k, v in pairs( table ) do
-    log.debug( tostring( k ) .. ": " .. tostring( v ) )
+    if not starts_with( tostring( k ), '__' ) then
+      log.console( tostring( k ) .. ": " .. tostring( v ) )
+    end
   end
 end
 
 package_exports = {
-  foreach    = foreach,
-  ls         = ls,
+  foreach     = foreach,
+  ls          = ls,
+  starts_with = starts_with,
 }

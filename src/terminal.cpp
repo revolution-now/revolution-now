@@ -350,3 +350,21 @@ Vec<Str> autocomplete_iterative( string_view fragment ) {
 }
 
 } // namespace rn::term
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace rn {
+namespace {
+
+LUA_STARTUP( sol::state& st ) {
+  // Need to do this somewhere.
+  st["terminal"].get_or_create<sol::table>();
+
+  st["log"]["console"] = []( string const& msg ) {
+    ::rn::term::log( msg );
+  };
+};
+
+} // namespace
+} // namespace rn
