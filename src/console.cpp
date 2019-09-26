@@ -229,9 +229,30 @@ struct ConsolePlane : public Plane {
       }
       return true;
     }
+    if( key_event.keycode == ::SDLK_UP ) {
+      CHECK( history_index_ >= -1 );
+      auto maybe_item_ref = term::history( history_index_ + 1 );
+      if( !maybe_item_ref ) return true;
+      history_index_++;
+      le_view_.get().set( maybe_item_ref->get(),
+                          /*cursor_pos=*/-1 );
+      return true;
+    }
+    if( key_event.keycode == ::SDLK_DOWN ) {
+      if( history_index_ == -1 ) return true;
+      CHECK( history_index_ >= 0 );
+      history_index_--;
+      if( history_index_ == -1 ) return true;
+      auto maybe_item_ref = term::history( history_index_ );
+      if( !maybe_item_ref ) return true;
+      le_view_.get().set( maybe_item_ref->get(),
+                          /*cursor_pos=*/-1 );
+      return true;
+    }
     if( key_event.keycode == ::SDLK_RETURN ) {
       auto text = le_view_.get().text();
       if( !text.empty() ) {
+        history_index_ = -1;
         // Don't care here whether command succeeded or not.
         (void)term::run_cmd( text );
         le_view_.get().clear();
@@ -245,6 +266,7 @@ struct ConsolePlane : public Plane {
   bool                         show_{false};
   double                       show_percent_{0.0};
   deferred<ui::LineEditorView> le_view_{};
+  int                          history_index_{0};
 };
 
 ConsolePlane g_console_plane;

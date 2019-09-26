@@ -25,7 +25,11 @@ ND expect<std::monostate> run_cmd( std::string const& cmd );
 
 void clear();
 
+// idx zero is most recent.
 Opt<CRef<Str>> line( int idx );
+
+// idx zero is most recent.
+Opt<CRef<Str>> history( int idx );
 
 // Given a fragment of Lua this will return a vector of all pos-
 // sible (immediate) completions. If it returns an empty vector

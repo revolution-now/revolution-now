@@ -42,6 +42,7 @@ namespace {
 *****************************************************************/
 size_t constexpr max_scrollback_lines = 10000;
 vector<string> g_buffer;
+vector<string> g_history;
 
 /****************************************************************
 ** Terminal Log
@@ -73,6 +74,7 @@ expect<monostate> run_lua_cmd( string const& cmd ) {
 }
 
 expect<monostate> run_cmd_impl( string const& cmd ) {
+  g_history.push_back( cmd );
   log( "> "s + cmd );
   auto maybe_fn = bu::val_safe( g_console_commands, cmd );
   if( maybe_fn.has_value() ) {
@@ -114,6 +116,13 @@ Opt<CRef<string>> line( int idx ) {
   Opt<CRef<string>> res;
   if( idx < int( g_buffer.size() ) )
     res = g_buffer[g_buffer.size() - 1 - idx];
+  return res;
+}
+
+Opt<CRef<string>> history( int idx ) {
+  Opt<CRef<string>> res;
+  if( idx < int( g_history.size() ) )
+    res = g_history[g_history.size() - 1 - idx];
   return res;
 }
 
