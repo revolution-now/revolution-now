@@ -24,6 +24,11 @@ local function foreach( list, f )
   end
 end
 
+local function print_passthrough( arg )
+  print( tostring( arg ) )
+  return arg
+end
+
 local function ls( table )
   if type( table ) == "userdata" then
     -- For sol2 userdata. Unfortunately the types of the members
@@ -38,7 +43,8 @@ local function ls( table )
 end
 
 package_exports = {
-  foreach     = foreach,
-  ls          = ls,
-  starts_with = starts_with,
+  foreach           = foreach,
+  ls                = ls,
+  starts_with       = starts_with,
+  print_passthrough = print_passthrough,
 }

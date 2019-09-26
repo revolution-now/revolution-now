@@ -62,8 +62,44 @@ FlatMap<string, tl::function_ref<void()>> g_console_commands{
     {"quit", [] { throw exception_exit{}; }} //
 };
 
+bool is_statement( string const& cmd ) {
+  return util::contains( cmd, "=" ) ||
+         util::contains( cmd, ";" ) ||
+         util::starts_with( cmd, "function " );
+}
+
+bool is_placeholder( string const& cmd ) {
+  if( cmd == "_" ) return true;
+  return cmd.size() == 2 && cmd[0] == '_' && cmd[1] >= '0' &&
+         cmd[1] <= '9';
+}
+
 expect<monostate> run_lua_cmd( string const& cmd ) {
-  auto expected = lua::run<void>( cmd );
+  expect<monostate> expected;
+  // Wrap the command if it's an expression.
+  auto cmd_wrapper = cmd;
+  if( !is_statement( cmd ) ) {
+    sol::state_view st = lua::global_state();
+    st["_tmp"]         = st["_"];
+    // Wrap command.
+    if( !is_placeholder( cmd ) )
+      cmd_wrapper = fmt::format(
+          "_ = util.print_passthrough(({}))", cmd_wrapper );
+    else
+      cmd_wrapper = fmt::format( "util.print_passthrough(({}))",
+                                 cmd_wrapper );
+    expected = lua::run<void>( cmd_wrapper );
+    if( !is_placeholder( cmd ) && expected ) {
+      st["_5"] = st["_4"];
+      st["_4"] = st["_3"];
+      st["_3"] = st["_2"];
+      st["_2"] = st["_tmp"];
+      // alias.
+      st["_1"] = st["_"];
+    }
+  } else {
+    expected = lua::run<void>( cmd_wrapper );
+  }
   if( !expected.has_value() ) {
     log( "lua command failed:" );
     for( auto const& line :
@@ -81,14 +117,7 @@ expect<monostate> run_cmd_impl( string const& cmd ) {
     maybe_fn->get()();
     return monostate{};
   }
-  // Try to determine if it's not a statement and, if not, print
-  // the result to emulate a typical REPL.
-  if( !util::contains( cmd, "=" ) &&
-      !util::contains( cmd, ";" ) )
-    return run_lua_cmd(
-        fmt::format( "print(tostring(({}) or nil))", cmd ) );
-  else
-    return run_lua_cmd( cmd );
+  return run_lua_cmd( cmd );
 }
 
 } // namespace
