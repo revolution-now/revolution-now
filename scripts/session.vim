@@ -105,6 +105,7 @@ let s:quads = [
 
 function OpenSidePanels()
     :NERDTreeToggle src
+    execute ':wincmd h'
     :TagbarOpen
 endfunction
 
@@ -123,13 +124,14 @@ function OpenVSplit( name )
 endfunction
 
 function OpenPair( hpp, cpp )
-    call OpenInTab( a:cpp )
-    call OpenVSplit( a:hpp )
+    call OpenInTab( a:hpp )
+    call OpenVSplit( a:cpp )
+    execute ':wincmd h'
 endfunction
 
 function OpenLua( lua )
     call OpenInTab( 'src/lua/' . a:lua . '.lua' )
-    call OpenVSplit( 'src/lua/' . a:lua . '.lua' )
+    "call OpenVSplit( 'src/lua/' . a:lua . '.lua' )
 endfunction
 
 function OpenQuad( f1, f2, f3, f4 )
