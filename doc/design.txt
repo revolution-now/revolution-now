@@ -1,3 +1,70 @@
+Serialization/Game State
+========================
+
+Definitions
+
+Below are the concepts used in this discussion. Note that, de-
+pending on the solution chosen, two or more of these concepts my
+end up coinciding in the implementation.
+
+  - Save File: this is the (single) file into which all state is
+    serialized. There wouldn't seem to be much gained by having
+    multiple files, since any serialization solution should be
+    composable.
+
+  - Omni Structure: this is the data structure into which the
+    save file will be deserialized. It may or may not have a
+    fixed (known at compile time) structure, depending on what
+    solution is chosen.
+
+  - Wire Format: the format in which the Omni structure is saved
+    in the file.
+
+  - Child Structures: these are the substructures composing the
+    omni structure. They may or may not have a fixed (known at
+    compile time) structure, depending on what solution is cho-
+    sen.
+
+  - Native Structures: these are the data structures used in
+    normal program code to hold game data.
+
+Requirements:
+
+  - Normal game code should not have to interact with anything
+    other than Native Structures; i.e., it should not be forced
+    to use special data structures with limitations just so that
+    they can be serialized. E.g., we should have have to use gen-
+    erated classes (proto).
+
+  - For simplicity and to facilitate error checking, any Native
+    Structure that is serialized (or can be created from a seri-
+    alizable Child Structure) must have *all* of its members se-
+    rialized. It is ok, however, to impose the constraint that a
+    serialized data structure must serialize all of its members.
+
+  - There must be a mechanism so that, at compile time, there
+    will be an error if a field is added to a Native Structure
+    that is not being serialized.
+
+  - It must be possible to add new fields to the serializable
+    data structures and give them default values and have the de-
+    serializer be able to read serialized data without those
+    fields. In other words, we must be able to support backward
+    compatibility when desired, at least to faciliate develop-
+    ment. Periodically, all existing fields can be made required
+    to avoid having to deal with default values on too many
+    fields, but there will be a need to have a small number of
+    fields with default values at any given time.
+
+  - Not yet sure if we need forward compatibility.
+
+High-Level Workflow:
+
+The serialization process can be broken down into a few "phases".
+In the first phase we convert the Native Structures into an in-
+termediate data structure that is independent data structure.
+This is to decouple this stage from later stages.
+
 Drag & Drop with Dialog Box
 ===========================
 

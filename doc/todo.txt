@@ -1,30 +1,11 @@
 =================================================================
-State
+Serialization
 =================================================================
-
-  - fsm module. Need a good generic finite state machine
-    infrastructure since much of the game will probably turn out
-    to be fsm's. Known fsm's in the game already:
-
-      - Drag & Drop framework.
-      - Music player state.
-      - Overall program state (loading, intro, game, etc.).
-      - Game state.
-      - UI state (e.g. menu state).
-      - Input state (such as low level drag state).
-      - Unit state (orders, etc.).
-
-    The state held by a state machine needs to be serializable
-    (where applicable).  Need to list out all the requirements
-    of a state machine and try to support all of them.
-
-  - Need to restructure the architecture of the game so to work
-    based on fsm's.
 
   - C++ serialization.  Candidates:
 
       - protobuf.
-      - boost serialization.
+      - Cereal
       - custom solution.
       - ucl
 
@@ -34,6 +15,28 @@ State
     this is just a serializable data structure that holds the
     game state, which will include some finite state machines
     within it.
+
+=================================================================
+FSM
+=================================================================
+
+  - Convert existing FSMs to the new FSM framework. Known fsm's
+    in the game already:
+
+      - Drag & Drop framework.
+      - Music player state.
+      - Overall program state (loading, intro, game, etc.).
+      - Game state.
+      - UI state (e.g. menu state).
+      - Input state (such as low level drag state).
+      - Unit state (orders, etc.).
+
+  - (maybe) The state held by a state machine needs to be serial-
+    izable (where applicable). Need to list out all the require-
+    ments of a state machine and try to support all of them.
+
+  - Need to restructure the architecture of the game so to work
+    based on fsm's.
 
 =================================================================
 Bugs
