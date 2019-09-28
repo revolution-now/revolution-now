@@ -61,6 +61,10 @@ Language Changes
     std::exchange.  See:
       https://en.cppreference.com/w/cpp/utility/exchange
 
+  - Use custom optional implementation that supports references.
+    https://github.com/TartanLlama/optional looks good. This one
+    also supports monadic operations.
+
 =================================================================
 Infrastructure
 =================================================================
