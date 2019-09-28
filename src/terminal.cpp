@@ -80,7 +80,8 @@ expect<monostate> run_lua_cmd( string const& cmd ) {
   auto cmd_wrapper = cmd;
   if( !is_statement( cmd ) ) {
     sol::state_view st = lua::global_state();
-    st["_tmp"]         = st["_"];
+    sol::lua_value  val( st );
+    val = st["_"];
     // Wrap command.
     if( !is_placeholder( cmd ) )
       cmd_wrapper = fmt::format(
@@ -93,7 +94,7 @@ expect<monostate> run_lua_cmd( string const& cmd ) {
       st["_5"] = st["_4"];
       st["_4"] = st["_3"];
       st["_3"] = st["_2"];
-      st["_2"] = st["_tmp"];
+      st["_2"] = val;
       // alias.
       st["_1"] = st["_"];
     }
