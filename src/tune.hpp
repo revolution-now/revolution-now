@@ -62,6 +62,7 @@ EVAL( PP_MAP_TUPLE( TUNE_DIMENSION_ENUM,
 struct TuneVecDimensions {
   EVAL( PP_MAP( TUNE_VEC_DIMENSION, TUNE_DIMENSION_LIST ) )
 };
+NOTHROW_MOVE( TuneVecDimensions );
 
 #define TUNE_OPT_DIMENSION( name ) \
   Opt<PP_JOIN( e_tune_, name )> name;
@@ -70,6 +71,7 @@ struct TuneOptDimensions {
   EVAL( PP_MAP( TUNE_OPT_DIMENSION, TUNE_DIMENSION_LIST ) )
   TuneVecDimensions to_vec_dims() const;
 };
+NOTHROW_MOVE( TuneOptDimensions );
 
 #define TUNE_DIMENSION( name ) PP_JOIN( e_tune_, name ) name;
 
@@ -77,6 +79,7 @@ struct TuneDimensions {
   EVAL( PP_MAP( TUNE_DIMENSION, TUNE_DIMENSION_LIST ) )
   TuneOptDimensions to_opt_dims() const;
 };
+NOTHROW_MOVE( TuneDimensions );
 
 #define K_NUM_DIMENSIONS           \
   EVAL( PP_MAP_PLUS( PP_CONST_ONE, \
@@ -101,6 +104,7 @@ struct Tune {
   // Classification.
   TuneDimensions dimensions;
 };
+NOTHROW_MOVE( Tune );
 
 // This can only be populated by a music player.
 struct TunePlayerInfo {
@@ -114,6 +118,7 @@ struct TunePlayerInfo {
 
   void log() const;
 };
+NOTHROW_MOVE( TunePlayerInfo );
 
 /****************************************************************
 ** Tune API

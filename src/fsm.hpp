@@ -88,8 +88,8 @@ void log_event( std::string const& child_name,
 template<typename ChildT, typename StateT, typename EventT,
          typename TransitionMap>
 class fsm {
-  ASSERT_NOTHROW_MOVING( StateT );
-  ASSERT_NOTHROW_MOVING( EventT );
+  NOTHROW_MOVE( StateT );
+  NOTHROW_MOVE( EventT );
 
 protected:
   using Parent = fsm<ChildT, StateT, EventT, TransitionMap>;
@@ -178,6 +178,7 @@ private:
     EventT    event;
     SourceLoc location;
   };
+  NOTHROW_MOVE( EventWithSource );
 
   ChildT const& child() const {
     return *static_cast<ChildT const*>( this );
@@ -235,7 +236,7 @@ private:
 
   StateT                      state_;
   flat_queue<EventWithSource> events_;
-  ASSERT_NOTHROW_MOVING( flat_queue<EventWithSource> );
+  NOTHROW_MOVE( flat_queue<EventWithSource> );
 };
 
 /****************************************************************

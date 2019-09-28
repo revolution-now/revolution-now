@@ -22,7 +22,8 @@
 #define STRUCT( name, body ) \
   struct name {              \
     body                     \
-  };
+  };                         \
+  NOTHROW_MOVE( name );
 
 // It is found that when a config object contains only fields
 // and subobjects which can be constructed at compile time
@@ -37,6 +38,7 @@
   struct config_##name##_t {              \
     body std::string __prevent_read_only; \
   };                                      \
+  NOTHROW_MOVE( config_##name##_t );      \
   extern config_##name##_t const config_##name;
 
 #define OBJ( name, body )  \

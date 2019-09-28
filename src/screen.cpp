@@ -171,6 +171,7 @@ struct ScaleInfo {
   Delta  resolution;
   double tile_angular_size;
 };
+NOTHROW_MOVE( ScaleInfo );
 
 ScaleInfo scale_info( int scale_ ) {
   Scale scale{scale_};

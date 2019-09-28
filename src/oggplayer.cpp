@@ -45,11 +45,12 @@ public:
     // ptr could be null if we've been moved out of.
     if( ptr_ ) ::Mix_FreeMusic( ptr_ );
   }
-  OggTune( OggTune&& rhs ) : ptr_( rhs.ptr_ ), id_( rhs.id_ ) {
+  OggTune( OggTune&& rhs ) noexcept
+    : ptr_( rhs.ptr_ ), id_( rhs.id_ ) {
     rhs.ptr_ = nullptr;
     rhs.id_  = 0;
   }
-  OggTune& operator=( OggTune&& rhs ) {
+  OggTune& operator=( OggTune&& rhs ) noexcept {
     if( this == &rhs ) return *this;
     ptr_     = rhs.ptr_;
     rhs.ptr_ = nullptr;
@@ -71,6 +72,7 @@ private:
   ::Mix_Music* ptr_;
   TuneId       id_;
 };
+NOTHROW_MOVE( OggTune );
 
 enum class e_ogg_state { playing, paused, stopped };
 

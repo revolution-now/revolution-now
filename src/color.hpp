@@ -96,6 +96,7 @@ struct Color {
   static Color banana();
   static Color wood();
 };
+NOTHROW_MOVE( Color );
 
 // Takes the average of each component.
 Color mix( Color first, Color second );

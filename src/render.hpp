@@ -123,7 +123,7 @@ using ViewportState = std::variant<
     viewport_state::slide_unit,     // unit moving on the map
     viewport_state::depixelate_unit // unit moving on the map
     >;
-ASSERT_NOTHROW_MOVING( ViewportState );
+NOTHROW_MOVE( ViewportState );
 
 ViewportState& viewport_rendering_state();
 

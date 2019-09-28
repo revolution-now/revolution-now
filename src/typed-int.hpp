@@ -454,7 +454,8 @@ inline constexpr bool operator>=( TypedInt<Tag> left,
     }                                                 \
   };                                                  \
   }                                                   \
-  DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );
+  DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );    \
+  NOTHROW_MOVE( ::rn::a );
 
 // Typed nums that are to represent coordinates should use this
 // macro. It will ensure that they have types that allow the nec-

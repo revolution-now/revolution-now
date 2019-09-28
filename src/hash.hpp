@@ -65,7 +65,7 @@ constexpr std::size_t type_hash = compute_type_hash<T>();
 // use enum classes as the keys in maps.
 struct EnumClassHash {
   template<class T>
-  std::size_t operator()( T t ) const {
+  std::size_t operator()( T t ) const noexcept {
     return static_cast<std::size_t>( t );
   }
 };

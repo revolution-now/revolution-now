@@ -43,6 +43,8 @@ enum class e_( plane,
 );
 
 struct Plane : public util::non_copy_non_move {
+  virtual ~Plane() = default;
+
   static Plane& get( e_plane plane );
 
   // Will be called on all planes (whether enabled or not) before
@@ -103,6 +105,7 @@ struct Plane : public util::non_copy_non_move {
     // This field is relevant if accept == yes.
     Opt<Delta> projection{};
   };
+  NOTHROW_MOVE( DragInfo );
 
   // This is to determine if a plane is willing to accept a drag
   // event (and also serves as a notification that a drag event

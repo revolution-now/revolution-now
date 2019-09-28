@@ -139,6 +139,7 @@ struct ND sprite {
   Rect           source{};
   Scale          scale{};
 };
+NOTHROW_MOVE( sprite );
 
 ND sprite const& lookup_sprite( g_tile tile );
 

@@ -52,6 +52,7 @@ struct TerrainBlockCache {
   Coord   block_coord;
   Texture tx;
 };
+NOTHROW_MOVE( TerrainBlockCache );
 
 Matrix<TerrainBlockCache> block_cache( world_size /
                                        terrain_block_size );

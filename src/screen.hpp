@@ -49,6 +49,7 @@ struct DisplayMode {
   Uint32 format;
   int    refresh_rate;
 };
+NOTHROW_MOVE( DisplayMode );
 
 DisplayMode current_display_mode();
 

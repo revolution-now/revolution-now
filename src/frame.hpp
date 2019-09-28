@@ -70,6 +70,7 @@ struct PerFrameInvalidator : public util::movable_only {
     return true;
   }
 };
+NOTHROW_MOVE( PerFrameInvalidator );
 
 // Use this to memoize a function in such a way that the wrapped
 // function will be called to compute a value at most once per

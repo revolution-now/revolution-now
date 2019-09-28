@@ -25,6 +25,7 @@ enum class e_( crust, land, water );
 struct ND Square {
   e_crust crust;
 };
+NOTHROW_MOVE( Square );
 
 Delta world_size_tiles();
 Delta world_size_pixels();

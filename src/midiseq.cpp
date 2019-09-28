@@ -72,9 +72,16 @@ void rtmidi_error_callback( RtMidiError::Type,
 // that means that MIDI music can and should be playable.
 class MidiIO : public util::movable_only {
 public:
-  MidiIO( MidiIO&& rhs ) {
+  MidiIO( MidiIO&& rhs ) noexcept {
     out_ = std::move( rhs.out_ );
     rhs.release();
+  }
+  MidiIO& operator=( MidiIO&& rhs ) noexcept {
+    close();
+    release();
+    out_ = std::move( rhs.out_ );
+    rhs.release();
+    return *this;
   }
 
   void close() {
@@ -301,6 +308,7 @@ private:
   // known whether it is thread safe.
   unique_ptr<RtMidiOut> out_{};
 };
+NOTHROW_MOVE( MidiIO );
 
 // This will be nullopt if midi music cannot be played for any
 // reason.

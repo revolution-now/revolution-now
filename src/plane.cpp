@@ -151,6 +151,7 @@ struct DragState {
     projection     = nullopt;
   }
 };
+NOTHROW_MOVE( DragState );
 
 DragState g_drag_state;
 

@@ -67,6 +67,7 @@ struct ND UnitDescriptor : util::movable_only {
 
   void check_invariants() const;
 };
+NOTHROW_MOVE( UnitDescriptor );
 
 UnitDescriptor const& unit_desc( e_unit_type type );
 

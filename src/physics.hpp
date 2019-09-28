@@ -58,5 +58,6 @@ private:
   double accel_;
   double drag_accel_;
 };
+NOTHROW_MOVE( DissipativeVelocity );
 
 } // namespace rn

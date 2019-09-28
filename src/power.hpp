@@ -31,6 +31,7 @@ struct MachinePowerInfo {
   // If known, this will be populated; [0, 100].
   Opt<int> battery_percentage{};
 };
+NOTHROW_MOVE( MachinePowerInfo );
 
 // This will return as much info about the power situation as the
 // system can give us.

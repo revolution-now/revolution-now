@@ -82,16 +82,18 @@ struct FrameSubscriptionTick {
   int                   last_message{0};
   FrameSubscriptionFunc func;
 };
+NOTHROW_MOVE( FrameSubscriptionTick );
 
 struct FrameSubscriptionTime {
   chrono::milliseconds  interval;
   Time_t                last_message{};
   FrameSubscriptionFunc func;
 };
+NOTHROW_MOVE( FrameSubscriptionTime );
 
 using FrameSubscription =
     variant<FrameSubscriptionTick, FrameSubscriptionTime>;
-ASSERT_NOTHROW_MOVING( FrameSubscription );
+NOTHROW_MOVE( FrameSubscription );
 
 vector<FrameSubscription>& subscriptions() {
   static vector<FrameSubscription> subs;

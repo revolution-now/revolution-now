@@ -148,6 +148,7 @@ struct TargetingRates {
   double shift;
   double linear_window;
 };
+NOTHROW_MOVE( TargetingRates );
 
 // These numbers were chosen through iterative trials to yield
 // the nicest looking result, which is to say that the transition

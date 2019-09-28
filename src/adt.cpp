@@ -42,7 +42,7 @@ namespace {} // namespace
 
 void test_adt() {
   using TestType = State_t<int, double>;
-  ASSERT_NOTHROW_MOVING( TestType );
+  NOTHROW_MOVE( TestType );
 
   TestType state = State::starting<int, double>{1, 2};
   lg.info( "state: {}", state );

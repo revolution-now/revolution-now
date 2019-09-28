@@ -135,6 +135,7 @@ struct NatIconRenderDesc {
     return lhs.to_tuple() == rhs.to_tuple();
   }
 };
+NOTHROW_MOVE( NatIconRenderDesc );
 
 absl::flat_hash_map<NatIconRenderDesc, Texture> nat_icon_cache;
 
@@ -398,6 +399,7 @@ struct ClickTileActions {
   Vec<UnitId> bring_to_front{};
   Vec<UnitId> add_to_back{};
 };
+NOTHROW_MOVE( ClickTileActions );
 
 // This gets called when the player clicks on a square containing
 // units and will clear their orders and/or activate them. The

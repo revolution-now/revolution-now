@@ -33,6 +33,7 @@ struct NationDesc {
 
   std::string name_proper() const;
 };
+NOTHROW_MOVE( NationDesc );
 
 NationDesc const& nation_obj( e_nation nation );
 

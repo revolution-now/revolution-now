@@ -43,7 +43,7 @@ public:
   Unit( Unit&& )      = default;
 
   Unit& operator=( Unit const& ) = delete;
-  Unit& operator=( Unit&& ) = delete;
+  Unit& operator=( Unit&& ) = default;
 
   /************************* Getters ***************************/
 
@@ -145,6 +145,7 @@ private:
   MovementPoints movement_points_;
   bool           finished_turn_;
 };
+NOTHROW_MOVE( Unit );
 
 std::string debug_string( Unit const& unit );
 

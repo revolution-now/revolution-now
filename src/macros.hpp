@@ -12,15 +12,6 @@
 
 #include "core-config.hpp"
 
-// C++ standard library
-#include <type_traits>
-
-// We use ... to allow types with commas in them.
-#define ASSERT_NOTHROW_MOVING( ... )                       \
-  static_assert(                                           \
-      std::is_nothrow_move_constructible_v<__VA_ARGS__> ); \
-  static_assert( std::is_nothrow_move_assignable_v<__VA_ARGS__> )
-
 // TODO: When C++20 comes change this to the new [[unreachable]].
 #ifndef _MSC_VER
 // POSIX.

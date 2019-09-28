@@ -120,6 +120,7 @@ private:
   // 2 points would be represented by 2*factor.
   int points_atoms{0};
 };
+NOTHROW_MOVE( MovementPoints );
 
 using MvPoints = MovementPoints;
 

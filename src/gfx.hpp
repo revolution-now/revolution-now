@@ -23,6 +23,7 @@ namespace rn {
 //  Coord coord;
 //  Color color;
 //};
+// NOTHROW_MOVE( Pixel );
 
 // This one is used for individual sprites that may need to be
 // flipped or rotated.

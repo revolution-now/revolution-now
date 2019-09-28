@@ -49,6 +49,7 @@ struct UnitSelection {
   UnitId           id;
   e_unit_selection what;
 };
+NOTHROW_MOVE( UnitSelection );
 
 Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
                                        bool allow_activation );

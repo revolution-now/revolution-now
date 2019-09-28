@@ -40,17 +40,19 @@ class View : public Object {};
 // window (whose position in turn will not be know by this
 // struct).
 struct PositionedView {
-  ObserverPtr<View> const view;
-  Coord const             coord;
+  ObserverPtr<View> view;
+  Coord             coord;
 
   Rect rect() const { return view->rect( coord ); }
 };
+NOTHROW_MOVE( PositionedView );
 struct PositionedViewConst {
-  ObserverCPtr<View> const view;
-  Coord const              coord;
+  ObserverCPtr<View> view;
+  Coord              coord;
 
   Rect rect() const { return view->rect( coord ); }
 };
+NOTHROW_MOVE( PositionedViewConst );
 
 // Same as above, but owns the view.  The
 class OwningPositionedView {
@@ -75,6 +77,7 @@ private:
   std::unique_ptr<View> view_;
   Coord                 coord_;
 };
+NOTHROW_MOVE( OwningPositionedView );
 
 class CompositeView : public View {
 public:

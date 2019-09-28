@@ -115,6 +115,7 @@ struct MyType {
   char get() { return 'c'; }
   int  add( int a, int b ) { return a + b; }
 };
+NOTHROW_MOVE( MyType );
 
 void register_my_type() {
   sol::usertype<MyType> u = g_lua.new_usertype<MyType>(

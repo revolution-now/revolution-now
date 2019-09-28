@@ -11,6 +11,9 @@
 *****************************************************************/
 #pragma once
 
+// C++ standard library
+#include <type_traits>
+
 #define ND [[nodiscard]]
 
 // The DEBUG_RELEASE macro will evalutate to the first argument
@@ -20,6 +23,12 @@
 #else // debug build
 #  define DEBUG_RELEASE( a, b ) ( a )
 #endif
+
+// We use ... to allow types with commas in them.
+#define NOTHROW_MOVE( ... )                                \
+  static_assert(                                           \
+      std::is_nothrow_move_constructible_v<__VA_ARGS__> ); \
+  static_assert( std::is_nothrow_move_assignable_v<__VA_ARGS__> )
 
 namespace std::experimental::filesystem {}
 

@@ -97,6 +97,7 @@ struct ColorHSL {
     return to_tuple() < rhs.to_tuple();
   }
 };
+NOTHROW_MOVE( ColorHSL );
 
 ColorHSL to_HSL( Color const& rgb ) {
   ColorHSL hsl;

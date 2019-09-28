@@ -106,5 +106,6 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
   static Opt<MetaAnalysis> analyze_( UnitId   id,
                                      orders_t orders );
 };
+NOTHROW_MOVE( MetaAnalysis );
 
 } // namespace rn

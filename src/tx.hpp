@@ -81,6 +81,7 @@ private:
 
   void* sf_{nullptr};
 };
+NOTHROW_MOVE( Surface );
 
 // RAII wrapper and type eraser for SDL Texture.
 class Texture : public util::movable_only {
@@ -154,6 +155,7 @@ private:
   // default texture.
   int id_{0};
 };
+NOTHROW_MOVE( Texture );
 
 /****************************************************************
 ** Debugging

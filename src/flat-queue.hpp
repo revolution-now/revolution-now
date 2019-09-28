@@ -103,6 +103,7 @@ private:
   Vec<T> queue_;
   int    front_; // no iterator; would be invalidated.
   int    reallocation_size_;
+  NOTHROW_MOVE( T );
 };
 
 } // namespace rn

@@ -20,6 +20,7 @@ namespace rn {
 struct FightStatistics {
   bool attacker_wins{};
 };
+NOTHROW_MOVE( FightStatistics );
 
 FightStatistics fight_statistics( UnitId attacker_id,
                                   UnitId defender_id );

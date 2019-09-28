@@ -51,6 +51,7 @@ public:
 
   bool input( input::key_event_t const& event );
 };
+NOTHROW_MOVE( LineEditor );
 
 /****************************************************************
 ** LineEditorInputView
@@ -95,5 +96,6 @@ public:
   std::string render( int                abs_cursor_pos,
                       std::string const& buffer );
 };
+NOTHROW_MOVE( LineEditorInputView );
 
 } // namespace rn

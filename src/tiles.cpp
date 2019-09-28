@@ -45,6 +45,7 @@ struct tile_map {
   };
   vector<one_tile> tiles;
 };
+NOTHROW_MOVE( tile_map );
 
 // Need pointer stability for these.
 unordered_map<fs::path, Texture>             g_images;

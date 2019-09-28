@@ -155,7 +155,7 @@ using event_t = std::variant<
   mouse_drag_event_t
 >;
 // clang-format on
-ASSERT_NOTHROW_MOVING( event_t );
+NOTHROW_MOVE( event_t );
 
 // Returns true if there is an event waiting in the queue that is
 // relevant to RN.

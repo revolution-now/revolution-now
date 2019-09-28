@@ -89,6 +89,7 @@ struct block {
 
   std::vector<PositionedBlock> subdivisions{};
 };
+NOTHROW_MOVE( block );
 
 void print_matrix( Matrix<int> const& m ) {
   fmt::print( "\n" );

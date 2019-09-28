@@ -43,7 +43,7 @@ enum class ND e_attack_error {
 
 using unit_combat_verdict =
     std::variant<e_attack_good, e_attack_error>;
-ASSERT_NOTHROW_MOVING( unit_combat_verdict );
+NOTHROW_MOVE( unit_combat_verdict );
 
 struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   CombatAnalysis( UnitId id_, orders_t orders_,
@@ -92,5 +92,6 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   static Opt<CombatAnalysis> analyze_( UnitId   id,
                                        orders_t orders );
 };
+NOTHROW_MOVE( CombatAnalysis );
 
 } // namespace rn

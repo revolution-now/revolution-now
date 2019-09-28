@@ -96,6 +96,7 @@ struct Commodity {
     return !( *this == rhs );
   }
 };
+NOTHROW_MOVE( Commodity );
 
 // These are "low level" functions that should only be called
 // after all the right checks have been made that the cargo can

@@ -343,6 +343,7 @@ private:
   MarketCommodities( bool doubled, Coord origin )
     : doubled_( doubled ), origin_( origin ) {}
 };
+NOTHROW_MOVE( MarketCommodities );
 
 class ActiveCargoBox {
   static constexpr Delta size_blocks{6_w, 1_h};
@@ -401,6 +402,7 @@ private:
   ActiveCargoBox( Coord origin ) : origin_( origin ) {}
   Coord origin_{};
 };
+NOTHROW_MOVE( ActiveCargoBox );
 
 class DockAnchor {
   static constexpr Delta cross_leg_size{5_w, 5_h};
@@ -459,6 +461,7 @@ private:
   DockAnchor( Coord location ) : location_( location ) {}
   Coord location_{};
 };
+NOTHROW_MOVE( DockAnchor );
 
 class Backdrop {
   static constexpr Delta image_distance_from_anchor{950_w,
@@ -497,6 +500,7 @@ private:
   Coord upper_left_of_render_rect_{};
   Delta size_{};
 };
+NOTHROW_MOVE( Backdrop );
 
 class InPortBox {
 public:
@@ -560,6 +564,7 @@ private:
       size_in_blocks_( size_in_blocks ),
       is_wide_( is_wide ) {}
 };
+NOTHROW_MOVE( InPortBox );
 
 class InboundBox {
 public:
@@ -626,6 +631,7 @@ private:
   Scale size_in_blocks_{};
   bool  is_wide_{};
 };
+NOTHROW_MOVE( InboundBox );
 
 class OutboundBox {
 public:
@@ -692,6 +698,7 @@ private:
   Scale size_in_blocks_{};
   bool  is_wide_{};
 };
+NOTHROW_MOVE( OutboundBox );
 
 class Exit {
   static constexpr Delta exit_block_pixels{24_w, 24_h};
@@ -746,6 +753,7 @@ private:
   Exit( Coord origin ) : origin_( origin ) {}
   Coord origin_{};
 };
+NOTHROW_MOVE( Exit );
 
 class Dock {
   static constexpr Scale dock_block_pixels{24};
@@ -800,6 +808,7 @@ private:
   Coord origin_{};
   W     length_in_blocks_{};
 };
+NOTHROW_MOVE( Dock );
 
 // Base class for other entities that just consist of a collec-
 // tion of units.
@@ -867,6 +876,7 @@ protected:
   Rect                     bounds_when_no_units_;
   vector<UnitWithPosition> units_;
 };
+NOTHROW_MOVE( UnitCollection );
 
 class UnitsOnDock : public UnitCollection {
 public:
@@ -911,6 +921,7 @@ private:
                vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
 };
+NOTHROW_MOVE( UnitsOnDock );
 
 class ShipsInPort : public UnitCollection {
 public:
@@ -953,6 +964,7 @@ private:
                vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
 };
+NOTHROW_MOVE( ShipsInPort );
 
 class ShipsInbound : public UnitCollection {
 public:
@@ -995,6 +1007,7 @@ private:
                 vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
 };
+NOTHROW_MOVE( ShipsInbound );
 
 class ShipsOutbound : public UnitCollection {
 public:
@@ -1037,6 +1050,7 @@ private:
                  vector<UnitWithPosition>&& units )
     : UnitCollection( dock_anchor, std::move( units ) ) {}
 };
+NOTHROW_MOVE( ShipsOutbound );
 
 class ActiveCargo {
 public:
@@ -1175,6 +1189,7 @@ private:
   Opt<UnitId> maybe_active_unit_;
   Rect        bounds_;
 };
+NOTHROW_MOVE( ActiveCargo );
 
 } // namespace entity
 
@@ -1198,6 +1213,7 @@ struct Entities {
   Opt<entity::ShipsOutbound>     ships_outbound;
   Opt<entity::ActiveCargo>       active_cargo;
 };
+NOTHROW_MOVE( Entities );
 
 void create_entities( Entities* entities ) {
   using namespace entity;
@@ -1923,6 +1939,7 @@ public:
   function<void( e_commodity, std::string const& )>
       ask_for_quantity_;
 };
+NOTHROW_MOVE( EuroViewDragAndDrop );
 
 /****************************************************************
 ** The Europe View State Machine

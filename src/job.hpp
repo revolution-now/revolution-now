@@ -27,7 +27,7 @@ enum class ND e_unit_job_error { ship_cannot_fortify };
 
 using v_unit_job_desc =
     std::variant<e_unit_job_good, e_unit_job_error>;
-ASSERT_NOTHROW_MOVING( v_unit_job_desc );
+NOTHROW_MOVE( v_unit_job_desc );
 
 struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
   JobAnalysis( UnitId id_, orders_t orders_ )
@@ -45,5 +45,6 @@ struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
 
   static Opt<JobAnalysis> analyze_( UnitId id, orders_t orders );
 };
+NOTHROW_MOVE( JobAnalysis );
 
 } // namespace rn

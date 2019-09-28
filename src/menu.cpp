@@ -92,6 +92,7 @@ struct Menu {
   bool   right_side;
   char   shortcut;
 };
+NOTHROW_MOVE( Menu );
 
 absl::flat_hash_map<e_menu, Menu> g_menus{
     {e_menu::game, {"Game", false, 'G'}},
@@ -109,6 +110,7 @@ struct MenuCallbacks {
   function<void( void )> on_click;
   function<bool( void )> enabled;
 };
+NOTHROW_MOVE( MenuCallbacks );
 
 // menu.cpp
 struct MenuClickable {
@@ -116,9 +118,10 @@ struct MenuClickable {
   string        name;
   MenuCallbacks callbacks;
 };
+NOTHROW_MOVE( MenuClickable );
 
 using MenuItem = variant<MenuDivider, MenuClickable>;
-ASSERT_NOTHROW_MOVING( MenuItem );
+NOTHROW_MOVE( MenuItem );
 
 flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
 flat_hash_map<e_menu_item, e_menu>         g_item_to_menu;
@@ -330,6 +333,7 @@ struct ItemTextures {
   // sake of having it precomputed.
   W width{0};
 };
+NOTHROW_MOVE( ItemTextures );
 
 flat_hash_map<e_menu_item, ItemTextures> g_menu_item_rendered;
 
@@ -347,6 +351,7 @@ struct MenuTextures {
   Texture      menu_background_hover;
   W            header_width{0};
 };
+NOTHROW_MOVE( MenuTextures );
 
 absl::flat_hash_map<e_menu, MenuTextures> g_menu_rendered;
 

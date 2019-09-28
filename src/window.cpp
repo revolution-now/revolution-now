@@ -101,6 +101,7 @@ struct Window {
   std::unique_ptr<OneLineStringView> title_view;
   Coord                              position;
 };
+NOTHROW_MOVE( Window );
 
 /****************************************************************
 ** WindowManager
@@ -157,6 +158,7 @@ private:
   // We need order and pointer stability here.
   list<Window> windows_;
 };
+NOTHROW_MOVE( WindowManager );
 
 } // namespace
 } // namespace rn::ui

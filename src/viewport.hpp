@@ -150,6 +150,7 @@ private:
   // which we should focus as we zoom.
   Opt<Coord> zoom_point_seek_{};
 };
+NOTHROW_MOVE( SmoothViewport );
 
 SmoothViewport& viewport();
 

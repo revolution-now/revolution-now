@@ -53,6 +53,7 @@ struct ND Scale {
     return ( sx != rhs.sx ) || ( sy != rhs.sy );
   }
 };
+NOTHROW_MOVE( Scale );
 
 // clang-format off
 enum class ND e_(direction,
@@ -149,6 +150,7 @@ struct ND Delta {
 
   int area() const { return w._ * h._; }
 };
+NOTHROW_MOVE( Delta );
 
 struct ND Coord {
   Y y = 0_y;
@@ -230,6 +232,7 @@ struct ND Coord {
     return H::combine( std::move( h ), c.to_tuple() );
   }
 };
+NOTHROW_MOVE( Coord );
 
 class RectGridProxyIteratorHelper;
 
@@ -386,6 +389,7 @@ struct ND Rect {
     return {lower_left(), *this};
   }
 };
+NOTHROW_MOVE( Rect );
 
 // This object will be returned as a proxy by the Rect class to
 // facilitate iterating over the inside of the rect in jumps of a

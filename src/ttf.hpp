@@ -29,6 +29,7 @@ Texture ttf_render_text_line_uncached( e_font font, Color fg,
 struct FontTTFInfo {
   SY height;
 };
+NOTHROW_MOVE( FontTTFInfo );
 
 FontTTFInfo const& ttf_get_font_info( e_font font );
 

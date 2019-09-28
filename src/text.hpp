@@ -51,6 +51,7 @@ struct TextMarkupInfo {
   // Adds some member functions to make this struct a cache key.
   MAKE_CACHE_KEY( TextMarkupInfo, normal, highlight );
 };
+NOTHROW_MOVE( TextMarkupInfo );
 
 // Will not in any way reformat or re-flow or wrap the text; will
 // just render it with spacing/newlines as-is.
@@ -64,6 +65,7 @@ struct TextReflowInfo {
   // Adds some member functions to make this struct a cache key.
   MAKE_CACHE_KEY( TextReflowInfo, max_cols );
 };
+NOTHROW_MOVE( TextReflowInfo );
 
 // This will totally re-flow the text with regard to all spacing,
 // including newlines, tabs, and inter-word spaces. It will also

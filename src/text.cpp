@@ -60,6 +60,7 @@ struct TextCacheKey {
   MAKE_CACHE_KEY( TextCacheKey, text, font, color, markup_info,
                   reflow_info );
 };
+NOTHROW_MOVE( TextCacheKey );
 
 NodeMap<TextCacheKey, Texture> g_text_cache;
 constexpr int const            k_max_text_cache_size = 2000;
@@ -111,11 +112,13 @@ Texture const& insert_into_text_cache( TextCacheKey&& key,
 struct MarkupStyle {
   bool highlight{false};
 };
+NOTHROW_MOVE( MarkupStyle );
 
 struct MarkedUpText {
   string_view text{};
   MarkupStyle style{};
 };
+NOTHROW_MOVE( MarkedUpText );
 
 auto parse_markup( string_view sv ) -> Opt<MarkupStyle> {
   if( sv.size() == 0 ) return MarkupStyle{};

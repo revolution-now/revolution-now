@@ -49,7 +49,7 @@ void ownership_disown_unit( UnitId id );
 namespace rn {
 
 using Cargo = std::variant<UnitId, Commodity>;
-ASSERT_NOTHROW_MOVING( Cargo );
+NOTHROW_MOVE( Cargo );
 
 // Here is an example of the way the cargo layout works:
 //
@@ -90,6 +90,7 @@ public:
   // We need this so that structures containing this CargoHold
   // can be moved.
   CargoHold( CargoHold&& ) = default;
+  CargoHold& operator=( CargoHold&& ) = default;
 
   int slots_occupied() const;
   int slots_remaining() const;
@@ -232,6 +233,7 @@ private:
   CargoHold( CargoHold const& ) = default; // !! default
   CargoHold operator=( CargoHold const& ) = delete;
 };
+NOTHROW_MOVE( CargoHold );
 
 // For convenience. Iterates over all cargo items of a certain
 // type.

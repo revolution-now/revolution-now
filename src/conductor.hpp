@@ -62,6 +62,7 @@ struct ConductorInfo {
 
   void log() const;
 };
+NOTHROW_MOVE( ConductorInfo );
 
 struct MusicPlayerInfo {
   bool        enabled;
@@ -71,6 +72,7 @@ struct MusicPlayerInfo {
 
   void log() const;
 };
+NOTHROW_MOVE( MusicPlayerInfo );
 
 MusicPlayerInfo const& music_player_info(
     e_music_player mplayer );

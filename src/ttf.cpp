@@ -38,6 +38,7 @@ struct FontDesc {
   Y           vert_offset;
   ::TTF_Font* ttf_font;
 };
+NOTHROW_MOVE( FontDesc );
 
 FlatMap<e_font, FontDesc>& loaded_fonts() {
   static FlatMap<e_font, FontDesc> m = [] {

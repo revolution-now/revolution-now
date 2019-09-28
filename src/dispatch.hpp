@@ -34,7 +34,7 @@ using PlayerIntent = std::variant<
     TravelAnalysis,
     // If the move is toward a foreign unit
     CombatAnalysis>;
-ASSERT_NOTHROW_MOVING( PlayerIntent );
+NOTHROW_MOVE( PlayerIntent );
 
 Opt<PlayerIntent> player_intent( UnitId          id,
                                  orders_t const& orders );

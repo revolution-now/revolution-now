@@ -108,6 +108,7 @@ struct SourceLoc {
 
   static SourceLoc current() { return SourceLoc{}; }
 };
+NOTHROW_MOVE( SourceLoc );
 #endif
 
 namespace rn {} // namespace rn

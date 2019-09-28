@@ -38,6 +38,7 @@ struct SfxDesc {
   string file;
   int    volume;
 };
+NOTHROW_MOVE( SfxDesc );
 
 #define SFX_FILE( sound )                                   \
   case +e_sfx::sound:                                       \

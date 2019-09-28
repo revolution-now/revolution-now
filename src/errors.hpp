@@ -276,6 +276,7 @@ struct Unexpected {
   size_t      line;
   fs::path    file;
 };
+NOTHROW_MOVE( Unexpected );
 
 // All `expected` types should use this so that they have a
 // common error type.

@@ -440,11 +440,9 @@ private:
   using RubberBand_t =
       DragEvent::rubber_band<DragSrcT, DragDstT, DragArcT>;
 
-  ASSERT_NOTHROW_MOVING(
-      DragState_t<DragSrcT, DragDstT, DragArcT> );
-  ASSERT_NOTHROW_MOVING(
-      DragEvent_t<DragSrcT, DragDstT, DragArcT> );
-  ASSERT_NOTHROW_MOVING( fsm_t );
+  NOTHROW_MOVE( DragState_t<DragSrcT, DragDstT, DragArcT> );
+  NOTHROW_MOVE( DragEvent_t<DragSrcT, DragDstT, DragArcT> );
+  NOTHROW_MOVE( fsm_t );
 
 private:
   static DragSrcT drag_src_from_arc( DragArcT const& drag_arc ) {
@@ -519,6 +517,7 @@ private:
 
 private:
   fsm_t fsm_{};
+  NOTHROW_MOVE( fsm_t );
 };
 
 } // namespace rn
