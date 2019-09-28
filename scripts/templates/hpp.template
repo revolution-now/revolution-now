@@ -5,15 +5,21 @@
 *
 * Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
 *
-* Description: {{CURSOR}}
+* Description: [FILL ME IN]
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
+// Revolution Now
+//#include "dummy.hpp"
+
 namespace rn {
 
-
+/****************************************************************
+** Testing
+*****************************************************************/
+void test_{{FILE}}();
 
 } // namespace rn
