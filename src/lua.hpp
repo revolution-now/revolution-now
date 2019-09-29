@@ -73,7 +73,9 @@ template<typename T>
 expect<Opt<T>> sol_opt_convert( sol::object const& o ) {
   if( o.is<sol::lua_nil_t>() ) //
     return std::nullopt;
-  XP_OR_RETURN( xp_T, sol_obj_convert<T>( o ) );
+  auto xp_T = sol_obj_convert<T>( o );
+  if( !xp_T.has_value() ) //
+    return std::nullopt;
   return Opt<T>{*xp_T};
 }
 

@@ -334,9 +334,12 @@ auto propagate_unexpected( ::rn::expect<T> const& e ) {
   return ::nonstd::make_unexpected( e.error() );
 }
 
-#define XP_OR_RETURN( var, expr ) \
-  auto var = expr;                \
-  if( !var.has_value() ) return propagate_unexpected( var );
+#define XP_OR_RETURN( var, expr )                       \
+  decltype( auto ) STRING_JOIN( __x, __LINE__ ) = expr; \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() )       \
+    return propagate_unexpected(                        \
+        STRING_JOIN( __x, __LINE__ ) );                 \
+  auto& var = STRING_JOIN( __x, __LINE__ );
 
 } // namespace rn
 

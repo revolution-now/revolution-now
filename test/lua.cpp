@@ -240,6 +240,7 @@ TEST_CASE( "[lua] optional" ) {
   REQUIRE( lua::run<Opt<string>>( "return nil" ) == nullopt );
   REQUIRE( lua::run<Opt<string>>( "return 'hello'" ) ==
            "hello" );
+  REQUIRE( lua::run<Opt<int>>( "return 'hello'" ) == nullopt );
 }
 
 TEST_CASE( "[lua] new_usertype" ) {
