@@ -23,43 +23,37 @@ namespace {
 template<int N>
 struct disambiguate;
 
-struct Archiver {
+struct UclArchiver {
   // All types that have a `serialize` member function.
   template<typename ObjectType, disambiguate<0>* = nullptr>
   auto save( string_view field_name, ObjectType const& o )
       -> void_t<decltype( o.serialize( *this ) )> {
-    result +=
-        fmt::format( "{}{}: object\n", spaces(), field_name );
+    print_line_prefix( field_name );
+    result += fmt::format( "{{\n" );
     level++;
     o.serialize( *this );
     level--;
+    result += fmt::format( "{}}}\n", spaces(), field_name );
   }
 
-  // All types that are formattable by {fmt} and/or one of our
-  // {fmt} formatting customizations that is visible in this
-  // translation unit.
-  // template<typename Formattable,
-  //         typename = void_t<
-  //             decltype( ::fmt::formatter<Formattable>{} )>*>
-  // void save( string_view        field_name,
-  //           Formattable const& fmtable ) {
-  //  result += fmt::format( "{}{}: {}\n", spaces(), field_name,
-  //                         fmtable );
-  //}
+  void save( string_view field_name, char n ) {
+    print_line_prefix( field_name );
+    result += fmt::format( "'{}'\n", n );
+  }
 
   void save( string_view field_name, int n ) {
-    result +=
-        fmt::format( "{}{}: {}\n", spaces(), field_name, n );
+    print_line_prefix( field_name );
+    result += fmt::format( "{}\n", n );
   }
 
   void save( string_view field_name, double d ) {
-    result +=
-        fmt::format( "{}{}: {}\n", spaces(), field_name, d );
+    print_line_prefix( field_name );
+    result += fmt::format( "{}\n", d );
   }
 
   void save( string_view field_name, string const& s ) {
-    result +=
-        fmt::format( "{}{}: {}\n", spaces(), field_name, s );
+    print_line_prefix( field_name );
+    result += fmt::format( "\"{}\"\n", s );
   }
 
   // Types for which there is a `serialize` free function found
@@ -68,23 +62,25 @@ struct Archiver {
   auto save( string_view            field_name,
              ADLserializable const& serializable )
       -> void_t<decltype( serialize( *this, serializable ) )> {
-    result += fmt::format( "{}{}:\n", spaces(), field_name );
+    print_line_prefix( field_name );
+    result += fmt::format( "{{\n" );
     level++;
     serialize( *this, serializable );
     level--;
+    result += fmt::format( "{}}}\n", spaces() );
   }
 
   // Vectors of serializable types.
   template<typename T>
   auto save( string_view field_name, Vec<T> const& v )
       -> void_t<decltype( save( field_name, v[0] ) )> {
-    result += fmt::format( "{}{} begin (size {}):\n", spaces(),
-                           field_name, v.size() );
-    int i = 0;
+    print_line_prefix( field_name );
+    result +=
+        fmt::format( "[\n", spaces(), field_name, v.size() );
     level++;
-    for( auto const& e : v ) save( std::to_string( i++ ), e );
+    for( auto const& e : v ) save( "", e );
     level--;
-    result += fmt::format( "{}{} end\n", spaces(), field_name );
+    result += fmt::format( "{}]\n", spaces() );
   }
 
   // Should not serialize pointers.
@@ -95,8 +91,15 @@ struct Archiver {
   template<typename ReflectedEnum>
   auto save( string_view field_name, ReflectedEnum const& e )
       -> void_t<typename ReflectedEnum::_enumerated> {
-    result +=
-        fmt::format( "{}{}: {}\n", spaces(), field_name, e );
+    print_line_prefix( field_name );
+    result += fmt::format( "\"{}\"\n", e );
+  }
+
+  void print_line_prefix( string_view field_name ) {
+    string if_not_empty =
+        field_name.empty() ? ""
+                           : fmt::format( "{}: ", field_name );
+    result += fmt::format( "{}{}", spaces(), if_not_empty );
   }
 
   string spaces() const { return string( level * 2, ' ' ); }
@@ -112,7 +115,7 @@ struct Archiver {
 *****************************************************************/
 void test_serial() {
   SaveableOmni omni;
-  Archiver     ar;
+  UclArchiver  ar;
 
   ar.save( "Parent", omni );
   lg.info( "result:\n{}", ar.result );

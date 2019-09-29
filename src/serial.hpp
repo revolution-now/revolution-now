@@ -58,11 +58,13 @@ namespace rn {
   EVAL( SERIALIZABL_IMPL( __VA_ARGS__ ) )
 
 struct SaveableChild {
-  Str s{"test"};
-  int i{5};
+  Str         s{"test"};
+  int         i{5};
+  char        cc{'g'};
+  Vec<double> vd{5.1};
 
   // Must be last.
-  SERIALIZABLE( s, i );
+  SERIALIZABLE( s, i, cc, vd );
 };
 
 struct SaveableParent {
