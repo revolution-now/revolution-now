@@ -11,8 +11,13 @@
 #include "serial.hpp"
 
 // Revolution Now
+#include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
+
+// Proto
+#include <google/protobuf/text_format.h>
+#include "testing.pb.h"
 
 using namespace std;
 
@@ -114,11 +119,35 @@ struct UclArchiver {
 ** Testing
 *****************************************************************/
 void test_serial() {
-  SaveableOmni omni;
-  UclArchiver  ar;
+  // SaveableOmni omni;
+  // UclArchiver  ar;
+  // ar.save( "Parent", omni );
+  // lg.info( "result:\n{}", ar.result );
 
-  ar.save( "Parent", omni );
-  lg.info( "result:\n{}", ar.result );
+  pb_test::AddressBook book;
+
+  auto& person = *book.mutable_people();
+  person.set_name( "David" );
+  person.set_id( 5 );
+  auto& phone_number = *person.mutable_phones();
+  phone_number.set_number( "000-0000" );
+  phone_number.set_type( pb_test::Person_PhoneType_MOBILE );
+
+  string pb;
+  google::protobuf::TextFormat::PrintToString( book, &pb );
+
+  lg.info( "proto result:\n{}", pb );
+
+  pb_test::AddressBook book2;
+  google::protobuf::TextFormat::ParseFromString( pb, &book2 );
+
+  CHECK( book.people().name() == book2.people().name() );
+  CHECK( book.people().id() == book2.people().id() );
+  CHECK( book.people().email() == book2.people().email() );
+  CHECK( book.people().phones().number() ==
+         book2.people().phones().number() );
+  CHECK( book.people().phones().type() ==
+         book2.people().phones().type() );
 }
 
 } // namespace rn

@@ -1,3 +1,9 @@
+# === subdirectories ==============================================
+
+add_subdirectory( proto )
+
+# === this directory ==============================================
+
 find_sdl2_lib( SDL2       )
 find_sdl2_lib( SDL2_ttf   )
 find_sdl2_lib( SDL2_image )
@@ -36,6 +42,7 @@ target_link_libraries(
     midifile
     observer-ptr::observer-ptr
     range-v3
+    rn-proto
     rtmidi
     scelta::headers
     sol2::sol2
