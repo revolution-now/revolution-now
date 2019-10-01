@@ -1,7 +1,7 @@
-set( CapnProto_ROOT "/home/dsicilia/dev/tools/capnproto-current" )
+set( CapnProto_ROOT "$ENV{HOME}/dev/tools/capnproto-current" )
 find_package( CapnProto REQUIRED )
 
-file( GLOB capnps "[a-zA-Z]*.capnp" )
+file( GLOB capnps "[a-z][a-z0-9-]*.capnp" )
 
 foreach( cp ${capnps} )
   capnp_generate_cpp( CAPNP_SRCS CAPNP_HDRS ${cp} )
@@ -13,6 +13,7 @@ target_link_libraries(
   rn-capnp
   PUBLIC
   CapnProto::capnp
+  CapnProto::capnp-json
 )
 
 target_include_directories(

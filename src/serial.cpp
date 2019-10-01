@@ -20,8 +20,11 @@
 #include "testing.pb.h"
 
 // CapnProto
+#include <capnp/compat/json.h>
 #include <capnp/message.h>
 #include <capnp/serialize-packed.h>
+#include <capnp/serialize.h>
+#include "kj/filesystem.h"
 #include "testing.capnp.h"
 
 using namespace std;
@@ -123,7 +126,8 @@ struct UclArchiver {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void writeAddressBook( int fd ) {
+// void writeAddressBook( int fd ) {
+void writeAddressBook( FILE* fp ) {
   capnp::MallocMessageBuilder message;
 
   AddressBook::Builder addressBook =
@@ -154,11 +158,31 @@ void writeAddressBook( int fd ) {
   bobPhones[1].setType( Person::PhoneNumber::Type::WORK );
   bob.getEmployment().setUnemployed();
 
-  writePackedMessageToFd( fd, message );
+  // writePackedMessageToFd( fd, message );
+  // writeMessageToFd( fd, message );
+
+  capnp::JsonCodec tcodec;
+  tcodec.setPrettyPrint( true );
+
+  auto str = tcodec.encode( addressBook );
+  ::fwrite( str.cStr(), 1, str.size(), fp );
 }
 
 void printAddressBook( int fd ) {
-  capnp::PackedFdMessageReader message( fd );
+  // capnp::PackedFdMessageReader message( fd );
+  // capnp::StreamFdMessageReader message( fd );
+
+  capnp::MallocMessageBuilder message;
+  capnp::JsonCodec            json;
+
+  auto readable =
+      kj::newDiskReadableFile( kj::AutoCloseFd( fd ) );
+  auto orphan = json.decode<AddressBook>(
+      readable->readAllText(), message.getOrphanage() );
+
+  message.adoptRoot( std::move( orphan ) );
+
+  // ============================================================
 
   AddressBook::Reader addressBook =
       message.getRoot<AddressBook>();
@@ -240,14 +264,16 @@ void test_serial() {
          book2.people().phones().type() );
 
   // ============================================================
-  FILE* fp = ::fopen( "capn.out", "w" );
+  FILE* fp;
+  fp = ::fopen( "capn.out", "w" );
   CHECK( fp );
-  writeAddressBook( fileno( fp ) );
+  // writeAddressBook( fileno( fp ) );
+  writeAddressBook( fp );
   ::fclose( fp );
   fp = ::fopen( "capn.out", "r" );
   CHECK( fp );
   printAddressBook( fileno( fp ) );
-  ::fclose( fp );
+  //::fclose( fp );
 }
 
 } // namespace rn

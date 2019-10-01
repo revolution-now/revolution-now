@@ -2,7 +2,7 @@ set( Protobuf_USE_STATIC_LIBS ON )
 
 find_package( Protobuf REQUIRED )
 
-file( GLOB protos "[a-zA-Z]*.proto" )
+file( GLOB protos "[a-z][a-z0-9-]*.proto" )
 
 foreach( pb ${protos} )
   protobuf_generate_cpp( PROTO_SRCS PROTO_HDRS ${pb} )
