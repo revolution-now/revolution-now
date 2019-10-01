@@ -1,6 +1,7 @@
 # === subdirectories ==============================================
 
 add_subdirectory( proto )
+add_subdirectory( capnp )
 
 # === this directory ==============================================
 
@@ -35,6 +36,7 @@ target_link_libraries(
     absl::strings
     base-util
     better-enums::better-enums
+    rn-capnp
     expected-lite
     fmt::fmt
     function-ref
