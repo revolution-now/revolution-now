@@ -29,10 +29,6 @@ CFG( rn,
     FLD( double, pan_accel_drag_init_coeff )
   )
 
-  OBJ( controls,
-    FLD( int, drag_buffer )
-  )
-
   OBJ( console,
     FLD( e_font, font )
   )
