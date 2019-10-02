@@ -1,7 +1,8 @@
 # === subdirectories ==============================================
 
-add_subdirectory( proto )
 add_subdirectory( capnp )
+add_subdirectory( fb    )
+add_subdirectory( proto )
 
 # === this directory ==============================================
 
@@ -36,7 +37,6 @@ target_link_libraries(
     absl::strings
     base-util
     better-enums::better-enums
-    rn-capnp
     expected-lite
     fmt::fmt
     function-ref
@@ -44,6 +44,7 @@ target_link_libraries(
     midifile
     observer-ptr::observer-ptr
     range-v3
+    rn-capnp
     rn-proto
     rtmidi
     scelta::headers
@@ -55,6 +56,8 @@ target_link_libraries(
     ${SDL2_TTF_LIBRARY}
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_MIXER_LIBRARY} )
+
+add_dependencies( rn flatbuf )
 
 target_include_directories(
     rn
