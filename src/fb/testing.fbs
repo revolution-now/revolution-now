@@ -1,6 +1,6 @@
 // For unit testing.
 
-namespace MyGame.Sample;
+namespace MyGame;
 
 enum Color:byte { Red = 0, Green, Blue = 2 }
 

@@ -1,8 +1,3 @@
-set( Flatbuffers_ROOT "$ENV{HOME}/dev/tools/flatbuffers-current" )
-find_package( Flatbuffers REQUIRED )
-
-include( ../../cmake/BuildFlatBuffers.cmake )
-
 file( GLOB fbs "[a-z][a-z0-9-]*.fbs" )
 
 build_flatbuffers(

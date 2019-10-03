@@ -1,3 +1,8 @@
+set( Flatbuffers_ROOT "$ENV{HOME}/dev/tools/flatbuffers-current" )
+find_package( Flatbuffers REQUIRED )
+
+include( ../cmake/BuildFlatBuffers.cmake )
+
 # === subdirectories ==============================================
 
 add_subdirectory( capnp )
@@ -38,6 +43,7 @@ target_link_libraries(
     base-util
     better-enums::better-enums
     expected-lite
+    flatbuffers::flatbuffers
     fmt::fmt
     function-ref
     lua::lua
@@ -64,6 +70,7 @@ target_include_directories(
     PUBLIC
     ${PROJECT_SOURCE_DIR} # top-level folder
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR} # FIXME: for flatbuffers
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}

@@ -96,6 +96,7 @@ function(build_flatbuffers flatbuffers_schemas
       add_custom_command(
         OUTPUT ${generated_include}
         COMMAND ${FLATC} ${FLATC_SCHEMA_ARGS}
+        --scoped-enums
         -o ${generated_includes_dir}
         ${include_params}
         -c ${schema}
