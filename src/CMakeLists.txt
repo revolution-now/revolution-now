@@ -1,16 +1,3 @@
-set( Flatbuffers_ROOT "$ENV{HOME}/dev/tools/flatbuffers-current" )
-find_package( Flatbuffers REQUIRED )
-
-include( ../cmake/BuildFlatBuffers.cmake )
-
-# === subdirectories ==============================================
-
-add_subdirectory( capnp )
-add_subdirectory( fb    )
-add_subdirectory( proto )
-
-# === this directory ==============================================
-
 find_sdl2_lib( SDL2       )
 find_sdl2_lib( SDL2_ttf   )
 find_sdl2_lib( SDL2_image )
@@ -19,6 +6,17 @@ find_sdl2_lib( SDL2_mixer )
 # We need threading.
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
+
+set( Flatbuffers_ROOT "$ENV{HOME}/dev/tools/flatbuffers-current" )
+find_package( Flatbuffers REQUIRED )
+
+# === subdirectories ==============================================
+
+add_subdirectory( capnp )
+add_subdirectory( fb    )
+add_subdirectory( proto )
+
+# === this directory ==============================================
 
 file( GLOB sources "[a-zA-Z]*.cpp" )
 
@@ -63,14 +61,14 @@ target_link_libraries(
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_MIXER_LIBRARY} )
 
-add_dependencies( rn flatbuf )
+add_dependencies( rn rn-flatbuf )
 
 target_include_directories(
     rn
     PUBLIC
     ${PROJECT_SOURCE_DIR} # top-level folder
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR} # FIXME: for flatbuffers
+    ${CMAKE_CURRENT_BINARY_DIR} # for flatbuffers files.
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}
