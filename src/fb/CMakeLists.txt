@@ -11,7 +11,7 @@ foreach( fb ${fbs} )
   add_custom_command(
     OUTPUT ${generated_include}
     COMMENT "Compiling flatbuffer for ${name}"
-    COMMAND flatbuffers::flatc
+    COMMAND flatc
     --cpp
     --lua
     --scoped-enums
@@ -19,7 +19,7 @@ foreach( fb ${fbs} )
     -o ${CMAKE_CURRENT_BINARY_DIR}
     -I ${CMAKE_CURRENT_SOURCE_DIR}
     ${fb}
-    DEPENDS flatbuffers::flatc ${fb}
+    DEPENDS flatc ${fb}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   list( APPEND generated_files ${generated_include} )

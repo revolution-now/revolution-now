@@ -61,3 +61,6 @@
 [submodule "extern/sol2"]
 	path = extern/sol2
 	url = ../../dpacbach/sol2.git
+[submodule "extern/flatbuffers"]
+	path = extern/flatbuffers
+	url = https://github.com/google/flatbuffers.git

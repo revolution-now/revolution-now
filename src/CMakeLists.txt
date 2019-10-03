@@ -1,3 +1,11 @@
+# === subdirectories ==============================================
+
+add_subdirectory( capnp )
+add_subdirectory( fb    )
+add_subdirectory( proto )
+
+# === this directory ==============================================
+
 find_sdl2_lib( SDL2       )
 find_sdl2_lib( SDL2_ttf   )
 find_sdl2_lib( SDL2_image )
@@ -6,17 +14,6 @@ find_sdl2_lib( SDL2_mixer )
 # We need threading.
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
-
-set( Flatbuffers_ROOT "$ENV{HOME}/dev/tools/flatbuffers-current" )
-find_package( Flatbuffers REQUIRED )
-
-# === subdirectories ==============================================
-
-add_subdirectory( capnp )
-add_subdirectory( fb    )
-add_subdirectory( proto )
-
-# === this directory ==============================================
 
 file( GLOB sources "[a-zA-Z]*.cpp" )
 
@@ -41,7 +38,7 @@ target_link_libraries(
     base-util
     better-enums::better-enums
     expected-lite
-    flatbuffers::flatbuffers
+    flatbuffers
     fmt::fmt
     function-ref
     lua::lua

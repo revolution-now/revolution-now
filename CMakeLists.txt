@@ -56,6 +56,11 @@ set( BUILD_TESTING OFF )
 set( SOL2_LUA_VERSION "5.3"  )
 set( SOL2_BUILD_LUA    FALSE )
 
+set( FLATBUFFERS_BUILD_TESTS       OFF CACHE BOOL "" )
+set( FLATBUFFERS_INSTALL           OFF CACHE BOOL "" )
+set( FLATBUFFERS_BUILD_FLATHASH    OFF CACHE BOOL "" )
+set( FLATBUFFERS_LIBCXX_WITH_CLANG OFF CACHE BOOL "" )
+
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/abseil-cpp    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
@@ -74,6 +79,7 @@ add_subdirectory( extern/expected-lite EXCLUDE_FROM_ALL )
 add_subdirectory( extern/function_ref  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/lua-5.3.5     EXCLUDE_FROM_ALL )
 add_subdirectory( extern/sol2          EXCLUDE_FROM_ALL )
+add_subdirectory( extern/flatbuffers   EXCLUDE_FROM_ALL )
 
 set( BUILD_TESTING ON ) # Catch2 will actually do this as well.
 add_subdirectory( extern/Catch2        EXCLUDE_FROM_ALL )
