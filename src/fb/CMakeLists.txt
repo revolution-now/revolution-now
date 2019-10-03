@@ -28,3 +28,9 @@ endforeach()
 # Create a custom target that depends on all the generated files.
 # Depending on this will trigger all these to be built.
 add_custom_target( rn-flatbuf DEPENDS ${generated_files} )
+
+set_property(
+  TARGET rn-flatbuf
+  PROPERTY INCLUDE_DIR
+  ${CMAKE_CURRENT_BINARY_DIR}/../
+)
