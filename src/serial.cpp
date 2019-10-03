@@ -30,6 +30,7 @@
 // Flatbuffers
 #include "fb/testing_generated.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/idl.h"
 
 using namespace std;
 
@@ -301,6 +302,20 @@ void writeMonster( FILE* fp ) {
   uint8_t* buf  = builder.GetBufferPointer();
   int      size = builder.GetSize();
   ::fwrite( buf, 1, size, fp );
+
+  flatbuffers::Parser parser;
+
+  char const* include_dirs[] = {"src/fb", nullptr};
+  string      root           = R"(
+    include "monster.fbs";
+    root_type MyGame.Monster;
+  )";
+  CHECK( parser.Parse( root.c_str(), include_dirs ) );
+
+  string output;
+  CHECK( flatbuffers::GenerateText( parser, buf, &output ) );
+
+  lg.info( "Flatbuffers text output:\n{}", output );
 }
 
 void test_serial() {
@@ -352,6 +367,7 @@ void test_serial() {
   fp = ::fopen( "fb.out", "wb" );
   CHECK( fp );
   writeMonster( fp );
+  ::fclose( fp );
 }
 
 } // namespace rn

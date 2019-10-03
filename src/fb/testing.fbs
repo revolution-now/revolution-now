@@ -2,6 +2,4 @@
 
 include "monster.fbs";
 
-namespace MyGame;
-
-root_type Monster;
+root_type MyGame.Monster;
