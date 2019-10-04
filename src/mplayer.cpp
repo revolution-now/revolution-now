@@ -23,14 +23,13 @@ namespace {}
 pair<MusicPlayerDesc, MaybeMusicPlayer>
 SilentMusicPlayer::player() {
   static SilentMusicPlayer player;
-  return {
+  return make_pair<MusicPlayerDesc, MaybeMusicPlayer>(
       /*desc=*/{
           /*name=*/"Silent Music Player",
           /*description=*/"For testing; does not play music",
           /*how_it_works=*/"It doesn't.",
       },
-      /*player=*/&player,
-  };
+      /*player=*/&player );
 }
 
 bool SilentMusicPlayer::good() const { return true; }
