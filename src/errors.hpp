@@ -97,6 +97,12 @@ bool check_inline( bool b, char const* msg );
         #a, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
   }
 
+#define RN_CHECK_DISPLAY( a, a_display, ... )      \
+  if( !( a ) ) {                                   \
+    FATAL_( ::rn::detail::check_msg(               \
+        a_display, FMT_SAFE( "" __VA_ARGS__ ) ) ); \
+  }
+
 // Non-testing code should use this. Code written in unit test
 // cpp files should use RN_CHECK to avoid a collision with a sim-
 // ilar Catch2 symbol.
@@ -312,20 +318,28 @@ using expect = ::nonstd::expected<T, ::rn::Unexpected>;
       ::rn::Unexpected{fmt::format( fmt_str, __VA_ARGS__ ), \
                        __LINE__, __FILE__} )
 
-#define CHECK_XP( e )                                     \
-  {                                                       \
-    auto const& STRING_JOIN( __e, __LINE__ ) = e;         \
-    RN_CHECK( STRING_JOIN( __e, __LINE__ ).has_value(),   \
-              "unexpected:{}:{}: {}",                     \
-              STRING_JOIN( __e, __LINE__ ).error().file,  \
-              STRING_JOIN( __e, __LINE__ ).error().line,  \
-              STRING_JOIN( __e, __LINE__ ).error().what ) \
+#define CHECK_XP( e )                                 \
+  {                                                   \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;     \
+    RN_CHECK_DISPLAY(                                 \
+        STRING_JOIN( __e, __LINE__ ).has_value(), #e, \
+        "unexpected:{}:{}: {}",                       \
+        STRING_JOIN( __e, __LINE__ ).error().file,    \
+        STRING_JOIN( __e, __LINE__ ).error().line,    \
+        STRING_JOIN( __e, __LINE__ ).error().what )   \
   }
 
-#define ASSIGN_CHECK_XP( a, b )             \
-  auto STRING_JOIN( __x, __LINE__ ) = b;    \
-  CHECK_XP( STRING_JOIN( __x, __LINE__ ) ); \
-  auto& ID_( a ) = *STRING_JOIN( __x, __LINE__ )
+#define ASSIGN_CHECK_XP( a, e )                       \
+  auto&& STRING_JOIN( __e, __LINE__ ) = e;            \
+  {                                                   \
+    RN_CHECK_DISPLAY(                                 \
+        STRING_JOIN( __e, __LINE__ ).has_value(), #e, \
+        "unexpected:{}:{}: {}",                       \
+        STRING_JOIN( __e, __LINE__ ).error().file,    \
+        STRING_JOIN( __e, __LINE__ ).error().line,    \
+        STRING_JOIN( __e, __LINE__ ).error().what )   \
+  }                                                   \
+  auto&& ID_( a ) = *STRING_JOIN( __e, __LINE__ )
 
 // Used for converting a value of one expected type into another
 // in the case when: 1) it is in an unexpected state, and 2) both

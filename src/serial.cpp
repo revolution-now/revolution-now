@@ -120,7 +120,98 @@ struct UclArchiver {
 /****************************************************************
 ** Testing
 *****************************************************************/
-flatbuffers::FlatBufferBuilder create_monster() {
+template<typename T>
+class ByteBuffer {
+  static_assert(
+      sizeof( T ) == 1,
+      "ByteBuffer template parameter must be of size one." );
+  static_assert( std::is_scalar_v<T> );
+  static_assert( std::is_trivial_v<T> );
+
+public:
+  ByteBuffer( T* buf, int size ) : size_( size ), buf_( buf ) {}
+
+  static expect<ByteBuffer<T>> from_file(
+      fs::path const& file ) {
+    if( !fs::exists( file ) )
+      return UNEXPECTED( "file `{}` does not exist.", file );
+    auto size = fs::file_size( file );
+
+    auto fp = ::fopen( string( file ).c_str(), "rb" );
+    if( !fp )
+      return UNEXPECTED( "failed to open file `{}`", file );
+
+    ByteBuffer<T> buffer( new uint8_t[size], size );
+    if( ::fread( buffer.get(), 1, size, fp ) != size_t( size ) )
+      return UNEXPECTED( "failed to read entire file: {}",
+                         file );
+    return buffer;
+  }
+
+  int size() const { return size_; }
+
+  T const* get() const { return buf_.get(); }
+  T*       get() { return buf_.get(); }
+
+private:
+  int                  size_{0};
+  std::unique_ptr<T[]> buf_{};
+};
+
+class BinaryBlob {
+public:
+  BinaryBlob( uint8_t* buf, int size, int offset )
+    : buf_( buf, size ), offset_( offset ) {}
+
+  BinaryBlob( ByteBuffer<uint8_t>&& buf )
+    : buf_( std::move( buf ) ), offset_( 0 ) {}
+
+  static expect<BinaryBlob> from_file( fs::path const& path ) {
+    XP_OR_RETURN( byte_buffer,
+                  ByteBuffer<uint8_t>::from_file( path ) );
+    return expect<BinaryBlob>( std::move( *byte_buffer ) );
+  }
+
+  expect<std::monostate> write( string_view file ) const {
+    // !! Must not access members directly in this function,
+    // should call the member functions.
+    auto fp = ::fopen( string( file ).c_str(), "wb" );
+    if( !fp )
+      return UNEXPECTED( "failed to open file `{}`.", file );
+    // This must be called after `Finish()`.
+    auto wrote = ::fwrite( get(), 1, size(), fp );
+    ::fclose( fp );
+    if( wrote != size_t( size() ) )
+      return UNEXPECTED(
+          "failed to write {} bytes to file {}; wrote only {}.",
+          size(), file, wrote );
+    return std::monostate{};
+  }
+
+  template<typename FB>
+  std::string to_json() const {
+    flatbuffers::ToStringVisitor tostring_visitor( //
+        /*delimiter=*/"\n",                        //
+        /*quotes=*/true,                           //
+        /*indent=*/"  ",                           //
+        /*vdelimited=*/true                        //
+    );
+    flatbuffers::IterateFlatBuffer(
+        get(), FB::MiniReflectTypeTable(), &tostring_visitor );
+    return tostring_visitor.s;
+  }
+
+  uint8_t const* get() const { return buf_.get() + offset_; }
+  uint8_t*       get() { return buf_.get() + offset_; }
+
+  int size() const { return buf_.size() - offset_; }
+
+private:
+  ByteBuffer<uint8_t> buf_;
+  int                 offset_;
+};
+
+BinaryBlob create_monster() {
   flatbuffers::FlatBufferBuilder builder;
 
   auto  weapon_one_name   = builder.CreateString( "Sword" );
@@ -183,75 +274,16 @@ flatbuffers::FlatBufferBuilder create_monster() {
   // still need to call `Finish()` on the `FlatBufferBuilder`.
   builder.Finish( orc );
 
-  return builder;
+  size_t out_size, out_offset;
+  auto*  buf = builder.ReleaseRaw( out_size, out_offset );
+
+  return BinaryBlob( buf, int( out_size ), int( out_offset ) );
 }
 
-template<typename FB>
-string fb_to_string( uint8_t* buf ) {
-  flatbuffers::ToStringVisitor tostring_visitor( //
-      /*delimiter=*/"\n",                        //
-      /*quotes=*/false,                          //
-      /*indent=*/"  ",                           //
-      /*vdelimited=*/true                        //
-  );
-  flatbuffers::IterateFlatBuffer(
-      buf, FB::MiniReflectTypeTable(), &tostring_visitor );
-  return tostring_visitor.s;
-}
-
-void write_monster(
-    flatbuffers::FlatBufferBuilder const& builder,
-    string_view                           file ) {
-  auto fp = ::fopen( string( file ).c_str(), "wb" );
-  CHECK( fp, "failed to open file `{}`.", file );
-  // This must be called after `Finish()`.
-  uint8_t* buf  = builder.GetBufferPointer();
-  int      size = builder.GetSize();
-  CHECK_EQ( ::fwrite( buf, 1, size, fp ), size_t( size ) );
-  ::fclose( fp );
-}
-
-template<typename T>
-class ByteBuffer {
-  static_assert(
-      sizeof( T ) == 1,
-      "ByteBuffer template parameter must be of size one." );
-  static_assert( std::is_scalar_v<T> );
-  static_assert( std::is_trivial_v<T> );
-
-public:
-  ByteBuffer( int size, T* buf ) : size_( size ), buf_( buf ) {}
-
-  static expect<ByteBuffer<T>> from_file(
-      fs::path const& file ) {
-    if( !fs::exists( file ) )
-      return UNEXPECTED( "file `{}` does not exist.", file );
-    auto size = fs::file_size( file );
-
-    auto fp = ::fopen( string( file ).c_str(), "rb" );
-    if( !fp )
-      return UNEXPECTED( "failed to open file `{}`", file );
-
-    ByteBuffer<T> buffer( size, new uint8_t[size] );
-    if( ::fread( buffer.get(), 1, size, fp ) != size_t( size ) )
-      return UNEXPECTED( "failed to read entire file: {}",
-                         file );
-    return buffer;
-  }
-
-  int size() const { return size_; }
-
-  T const* get() const { return buf_.get(); }
-  T*       get() { return buf_.get(); }
-
-private:
-  int                  size_{0};
-  std::unique_ptr<T[]> buf_{};
-};
-
-void print_monster_fields( uint8_t* buf ) {
+void print_monster_fields( BinaryBlob const& blob ) {
   // Get a pointer to the root object inside the buffer.
-  auto& monster = *MyGame::GetMonster( buf );
+  auto& monster =
+      *flatbuffers::GetRoot<MyGame::Monster>( blob.get() );
 
   lg.info( "monster.hp():    {}", monster.hp() );
   lg.info( "monster.mana():  {}", monster.mana() );
@@ -273,25 +305,6 @@ void print_monster_fields( uint8_t* buf ) {
            weapons->Get( 1 )->damage() );
 }
 
-string fb_to_json( uint8_t* buf ) {
-  flatbuffers::Parser parser;
-
-  char const* include_dirs[] = {"src/fb", nullptr};
-  string      root           = R"(
-    include "monster.fbs";
-    root_type MyGame.Monster;
-  )";
-  CHECK( parser.Parse( root.c_str(), include_dirs ) );
-  parser.opts.output_default_scalars_in_json = true;
-  parser.opts.output_enum_identifiers        = true;
-
-  string output;
-  CHECK( flatbuffers::GenerateText( parser, buf, &output ) );
-
-  return output;
-  lg.info( "Flatbuffers text output:\n{}", output );
-}
-
 void test_serial() {
   // == Direct ==================================================
   // SaveableOmni omni;
@@ -301,25 +314,22 @@ void test_serial() {
 
   // == Flatbuffers =============================================
   {
-    lg.info( "===== Creating =====" );
-    auto builder = create_monster();
+    lg.info( "Creating monster." );
+    auto blob = create_monster();
 
-    lg.info( "===== To Text (Mini-Reflection) =====" );
-    lg.info( "\n{}", fb_to_string<MyGame::Monster>(
-                         builder.GetBufferPointer() ) );
+    lg.info( "To JSON:\n{}", blob.to_json<MyGame::Monster>() );
 
-    lg.info( "===== Writing =====" );
-    write_monster( builder, "fb.out" );
+    lg.info( "Writing." );
+    CHECK_XP( blob.write( "fb.out" ) );
   }
 
   {
-    lg.info( "===== Reading =====" );
-    ASSIGN_CHECK_XP(
-        buf, ByteBuffer<uint8_t>::from_file( "fb.out" ) );
-    print_monster_fields( buf.get() );
+    lg.info( "Reading." );
+    ASSIGN_CHECK_XP( blob, BinaryBlob::from_file( "fb.out" ) );
 
-    lg.info( "===== To JSON =====" );
-    lg.info( "\n{}", fb_to_json( buf.get() ) );
+    lg.info( "To JSON:\n{}", blob.to_json<MyGame::Monster>() );
+
+    print_monster_fields( blob );
   }
 }
 
