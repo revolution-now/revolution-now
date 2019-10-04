@@ -99,11 +99,11 @@ TuneId prev_tune_in_playlist() {
   return g_playlist[g_playlist_pos];
 }
 
-#define ACTIVE_MUSIC_PLAYER_OR_RETURN( var )           \
-  if( !g_active_mplayer.has_value() ) return;          \
-  auto expect_mplayer = g_mplayers[*g_active_mplayer]; \
-  DCHECK( expect_mplayer.has_value() );                \
-  auto var = *expect_mplayer;                          \
+#define ACTIVE_MUSIC_PLAYER_OR_RETURN( var )                  \
+  if( !g_active_mplayer.has_value() ) return;                 \
+  auto const& expect_mplayer = g_mplayers[*g_active_mplayer]; \
+  DCHECK( expect_mplayer.has_value() );                       \
+  auto var = *expect_mplayer;                                 \
   if( !var->good() ) return
 
 #define CONDUCTOR_INFO_OR_RETURN( var )  \
@@ -397,7 +397,7 @@ bool set_music_player( e_music_player mplayer ) {
 expect<ConductorInfo> state() {
   if( !g_active_mplayer.has_value() )
     return UNEXPECTED( "no viable music players available." );
-  auto expect_mplayer = g_mplayers[*g_active_mplayer];
+  auto const& expect_mplayer = g_mplayers[*g_active_mplayer];
   DCHECK( expect_mplayer.has_value() );
   auto          mplayer  = *expect_mplayer;
   auto          mp_state = mplayer->state();
