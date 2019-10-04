@@ -131,8 +131,7 @@ class ByteBuffer {
 public:
   ByteBuffer( T* buf, int size ) : size_( size ), buf_( buf ) {}
 
-  static expect<ByteBuffer<T>> from_file(
-      fs::path const& file ) {
+  static expect<ByteBuffer<T>> read( fs::path const& file ) {
     if( !fs::exists( file ) )
       return UNEXPECTED( "file `{}` does not exist.", file );
     auto size = fs::file_size( file );
@@ -166,9 +165,9 @@ public:
   BinaryBlob( ByteBuffer<uint8_t>&& buf )
     : buf_( std::move( buf ) ), offset_( 0 ) {}
 
-  static expect<BinaryBlob> from_file( fs::path const& path ) {
+  static expect<BinaryBlob> read( fs::path const& path ) {
     XP_OR_RETURN( byte_buffer,
-                  ByteBuffer<uint8_t>::from_file( path ) );
+                  ByteBuffer<uint8_t>::read( path ) );
     return expect<BinaryBlob>( std::move( *byte_buffer ) );
   }
 
@@ -313,24 +312,13 @@ void test_serial() {
   // lg.info( "result:\n{}", ar.result );
 
   // == Flatbuffers =============================================
-  {
-    lg.info( "Creating monster." );
-    auto blob = create_monster();
+  auto blob = create_monster();
+  lg.info( "To JSON:\n{}", blob.to_json<MyGame::Monster>() );
+  CHECK_XP( blob.write( "fb.out" ) );
 
-    lg.info( "To JSON:\n{}", blob.to_json<MyGame::Monster>() );
-
-    lg.info( "Writing." );
-    CHECK_XP( blob.write( "fb.out" ) );
-  }
-
-  {
-    lg.info( "Reading." );
-    ASSIGN_CHECK_XP( blob, BinaryBlob::from_file( "fb.out" ) );
-
-    lg.info( "To JSON:\n{}", blob.to_json<MyGame::Monster>() );
-
-    print_monster_fields( blob );
-  }
+  ASSIGN_CHECK_XP( blob2, BinaryBlob::read( "fb.out" ) );
+  lg.info( "To JSON:\n{}", blob2.to_json<MyGame::Monster>() );
+  print_monster_fields( blob2 );
 }
 
 } // namespace rn
