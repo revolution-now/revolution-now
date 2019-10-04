@@ -119,7 +119,7 @@ struct UclArchiver {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void writeMonster( FILE* fp ) {
+void write_monster( FILE* fp ) {
   flatbuffers::FlatBufferBuilder builder;
 
   auto  weapon_one_name   = builder.CreateString( "Sword" );
@@ -186,6 +186,40 @@ void writeMonster( FILE* fp ) {
   uint8_t* buf  = builder.GetBufferPointer();
   int      size = builder.GetSize();
   ::fwrite( buf, 1, size, fp );
+}
+
+void read_monster( string_view file ) {
+  CHECK( fs::exists( file ) );
+  auto size = fs::file_size( file );
+
+  auto fp = ::fopen( string( file ).c_str(), "rb" );
+  CHECK( fp );
+
+  auto buffer = unique_ptr<uint8_t>( new uint8_t[size] );
+  CHECK_EQ( ::fread( buffer.get(), 1, size, fp ),
+            size_t( size ) );
+
+  // Get a pointer to the root object inside the buffer.
+  auto& monster = *MyGame::GetMonster( buffer.get() );
+
+  lg.info( "monster.hp():    {}", monster.hp() );
+  lg.info( "monster.mana():  {}", monster.mana() );
+  lg.info( "monster.name():  {}", monster.name()->c_str() );
+  CHECK( monster.pos() != nullptr );
+  lg.info( "monster.pos.x(): {}", monster.pos()->x() );
+  lg.info( "monster.pos.y(): {}", monster.pos()->y() );
+  lg.info( "monster.pos.z(): {}", monster.pos()->z() );
+
+  auto inv = monster.inventory();
+  lg.info( "inv->size(): {}", inv->size() );
+  lg.info( "inv->Get(2): {}", inv->Get( 2 ) );
+
+  auto weapons = monster.weapons();
+  lg.info( "weapon_len:           {}", weapons->size() );
+  lg.info( "second_weapon_name:   {}",
+           weapons->Get( 1 )->name()->str() );
+  lg.info( "second_weapon_damage: {}",
+           weapons->Get( 1 )->damage() );
 
   flatbuffers::Parser parser;
 
@@ -197,7 +231,8 @@ void writeMonster( FILE* fp ) {
   CHECK( parser.Parse( root.c_str(), include_dirs ) );
 
   string output;
-  CHECK( flatbuffers::GenerateText( parser, buf, &output ) );
+  CHECK( flatbuffers::GenerateText( parser, buffer.get(),
+                                    &output ) );
 
   lg.info( "Flatbuffers text output:\n{}", output );
 }
@@ -212,8 +247,9 @@ void test_serial() {
   // == Flatbuffers =============================================
   auto fp = ::fopen( "fb.out", "wb" );
   CHECK( fp );
-  writeMonster( fp );
+  write_monster( fp );
   ::fclose( fp );
+  read_monster( "fb.out" );
 }
 
 } // namespace rn

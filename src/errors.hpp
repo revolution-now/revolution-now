@@ -114,6 +114,20 @@ bool check_inline( bool b, char const* msg );
 // must be an expression and return a boolean.
 #define CHECK_INL( b ) ::rn::detail::check_inline( b, #b )
 
+// This is for when you want to check equality between two things
+// that are formattable, which allows for better error messages.
+// If they are not formattable then you should use CHECK( a == b
+// ) instead.
+#define CHECK_EQ( a, b )                                     \
+  {                                                          \
+    auto&& __a = a;                                          \
+    auto&& __b = b;                                          \
+    if( !( __a == __b ) ) {                                  \
+      FATAL( "`{}` is not equal to `{}: {} != {}`.", #a, #b, \
+             __a, __b );                                     \
+    }                                                        \
+  }
+
 // This takes care to only evaluate (b) once, since it may be
 // e.g. a function call. This function will evaluate (b) which is
 // expected to result in a std::optional (ideally it should be
