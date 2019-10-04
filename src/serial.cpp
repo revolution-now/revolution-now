@@ -19,6 +19,7 @@
 #include "fb/testing_generated.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
+#include "flatbuffers/minireflect.h"
 
 using namespace std;
 
@@ -119,7 +120,7 @@ struct UclArchiver {
 /****************************************************************
 ** Testing
 *****************************************************************/
-void write_monster( FILE* fp ) {
+flatbuffers::FlatBufferBuilder create_monster() {
   flatbuffers::FlatBufferBuilder builder;
 
   auto  weapon_one_name   = builder.CreateString( "Sword" );
@@ -182,25 +183,75 @@ void write_monster( FILE* fp ) {
   // still need to call `Finish()` on the `FlatBufferBuilder`.
   builder.Finish( orc );
 
+  return builder;
+}
+
+template<typename FB>
+string fb_to_string( uint8_t* buf ) {
+  flatbuffers::ToStringVisitor tostring_visitor( //
+      /*delimiter=*/"\n",                        //
+      /*quotes=*/false,                          //
+      /*indent=*/"  ",                           //
+      /*vdelimited=*/true                        //
+  );
+  flatbuffers::IterateFlatBuffer(
+      buf, FB::MiniReflectTypeTable(), &tostring_visitor );
+  return tostring_visitor.s;
+}
+
+void write_monster(
+    flatbuffers::FlatBufferBuilder const& builder,
+    string_view                           file ) {
+  auto fp = ::fopen( string( file ).c_str(), "wb" );
+  CHECK( fp, "failed to open file `{}`.", file );
   // This must be called after `Finish()`.
   uint8_t* buf  = builder.GetBufferPointer();
   int      size = builder.GetSize();
-  ::fwrite( buf, 1, size, fp );
+  CHECK_EQ( ::fwrite( buf, 1, size, fp ), size_t( size ) );
+  ::fclose( fp );
 }
 
-void read_monster( string_view file ) {
-  CHECK( fs::exists( file ) );
-  auto size = fs::file_size( file );
+template<typename T>
+class ByteBuffer {
+  static_assert(
+      sizeof( T ) == 1,
+      "ByteBuffer template parameter must be of size one." );
+  static_assert( std::is_scalar_v<T> );
+  static_assert( std::is_trivial_v<T> );
 
-  auto fp = ::fopen( string( file ).c_str(), "rb" );
-  CHECK( fp );
+public:
+  ByteBuffer( int size, T* buf ) : size_( size ), buf_( buf ) {}
 
-  auto buffer = unique_ptr<uint8_t>( new uint8_t[size] );
-  CHECK_EQ( ::fread( buffer.get(), 1, size, fp ),
-            size_t( size ) );
+  static expect<ByteBuffer<T>> from_file(
+      fs::path const& file ) {
+    if( !fs::exists( file ) )
+      return UNEXPECTED( "file `{}` does not exist.", file );
+    auto size = fs::file_size( file );
 
+    auto fp = ::fopen( string( file ).c_str(), "rb" );
+    if( !fp )
+      return UNEXPECTED( "failed to open file `{}`", file );
+
+    ByteBuffer<T> buffer( size, new uint8_t[size] );
+    if( ::fread( buffer.get(), 1, size, fp ) != size_t( size ) )
+      return UNEXPECTED( "failed to read entire file: {}",
+                         file );
+    return buffer;
+  }
+
+  int size() const { return size_; }
+
+  T const* get() const { return buf_.get(); }
+  T*       get() { return buf_.get(); }
+
+private:
+  int                  size_{0};
+  std::unique_ptr<T[]> buf_{};
+};
+
+void print_monster_fields( uint8_t* buf ) {
   // Get a pointer to the root object inside the buffer.
-  auto& monster = *MyGame::GetMonster( buffer.get() );
+  auto& monster = *MyGame::GetMonster( buf );
 
   lg.info( "monster.hp():    {}", monster.hp() );
   lg.info( "monster.mana():  {}", monster.mana() );
@@ -220,7 +271,9 @@ void read_monster( string_view file ) {
            weapons->Get( 1 )->name()->str() );
   lg.info( "second_weapon_damage: {}",
            weapons->Get( 1 )->damage() );
+}
 
+string fb_to_json( uint8_t* buf ) {
   flatbuffers::Parser parser;
 
   char const* include_dirs[] = {"src/fb", nullptr};
@@ -229,11 +282,13 @@ void read_monster( string_view file ) {
     root_type MyGame.Monster;
   )";
   CHECK( parser.Parse( root.c_str(), include_dirs ) );
+  parser.opts.output_default_scalars_in_json = true;
+  parser.opts.output_enum_identifiers        = true;
 
   string output;
-  CHECK( flatbuffers::GenerateText( parser, buffer.get(),
-                                    &output ) );
+  CHECK( flatbuffers::GenerateText( parser, buf, &output ) );
 
+  return output;
   lg.info( "Flatbuffers text output:\n{}", output );
 }
 
@@ -245,11 +300,27 @@ void test_serial() {
   // lg.info( "result:\n{}", ar.result );
 
   // == Flatbuffers =============================================
-  auto fp = ::fopen( "fb.out", "wb" );
-  CHECK( fp );
-  write_monster( fp );
-  ::fclose( fp );
-  read_monster( "fb.out" );
+  {
+    lg.info( "===== Creating =====" );
+    auto builder = create_monster();
+
+    lg.info( "===== To Text (Mini-Reflection) =====" );
+    lg.info( "\n{}", fb_to_string<MyGame::Monster>(
+                         builder.GetBufferPointer() ) );
+
+    lg.info( "===== Writing =====" );
+    write_monster( builder, "fb.out" );
+  }
+
+  {
+    lg.info( "===== Reading =====" );
+    ASSIGN_CHECK_XP(
+        buf, ByteBuffer<uint8_t>::from_file( "fb.out" ) );
+    print_monster_fields( buf.get() );
+
+    lg.info( "===== To JSON =====" );
+    lg.info( "\n{}", fb_to_json( buf.get() ) );
+  }
 }
 
 } // namespace rn

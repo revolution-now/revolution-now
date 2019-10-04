@@ -15,6 +15,8 @@ foreach( fb ${fbs} )
     --cpp
     --lua
     --scoped-enums
+    --reflect-types
+    --reflect-names
     --include-prefix "fb/"
     -o ${CMAKE_CURRENT_BINARY_DIR}
     -I ${CMAKE_CURRENT_SOURCE_DIR}
