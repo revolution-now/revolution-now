@@ -1,5 +1,39 @@
 // For unit testing.
 
-include "monster.fbs";
+namespace MyGame;
+
+enum Color:byte {
+  Red,
+  Green,
+  Blue
+}
+
+table Weapon {
+  name   : string;
+  damage : short;
+}
+
+union Equipment {
+  Weapon
+}
+
+struct Vec3 {
+  x : float;
+  y : float;
+  z : float;
+}
+
+table Monster {
+  pos       : Vec3;
+  mana      : short = 150;
+  hp        : short = 100;
+  name      : string;
+  friendly  : bool = false (deprecated);
+  inventory : [ubyte];
+  color     : Color = Blue;
+  weapons   : [Weapon];
+  equipped  : Equipment;
+  path      : [Vec3];
+}
 
 root_type MyGame.Monster;

@@ -298,9 +298,11 @@ struct Unexpected {
 };
 NOTHROW_MOVE( Unexpected );
 
+using xp_success_t = std::monostate;
+
 // All `expected` types should use this so that they have a
 // common error type.
-template<typename T>
+template<typename T = xp_success_t>
 using expect = ::nonstd::expected<T, ::rn::Unexpected>;
 
 // If there are >1 args then the 1st one must be a format string.

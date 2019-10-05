@@ -30,7 +30,7 @@ TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
     local x = 5+6
   )";
-  REQUIRE( lua::run<void>( script ) == monostate{} );
+  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
@@ -179,7 +179,7 @@ TEST_CASE( "[lua] has modules" ) {
     assert( modules['meta']    ~= nil )
     assert( modules['utype']   ~= nil )
   )lua";
-  REQUIRE( lua::run<void>( script ) == monostate{} );
+  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
 }
 
 LUA_FN( check_failure, int, int x ) {
@@ -235,7 +235,7 @@ TEST_CASE( "[lua] optional" ) {
     assert( testing.opt_test( 10 ) == "10" )
     assert( testing.opt_test( 100 ) == "100" )
   )";
-  REQUIRE( lua::run<void>( script ) == monostate{} );
+  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
 
   REQUIRE( lua::run<Opt<string>>( "return nil" ) == nullopt );
   REQUIRE( lua::run<Opt<string>>( "return 'hello'" ) ==
@@ -250,7 +250,7 @@ TEST_CASE( "[lua] new_usertype" ) {
     assert( u:get() == "c" )
     assert( u:add( 4, 5 ) == 9 )
   )";
-  REQUIRE( lua::run<void>( script ) == monostate{} );
+  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
 }
 
 } // namespace

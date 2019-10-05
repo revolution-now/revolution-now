@@ -139,7 +139,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   REQUIRE( term::run_cmd( "my_type = MyType.new()" ) ==
-           monostate{} );
+           xp_success_t{} );
 
   in  = "my_t";
   out = {"my_type"};
@@ -282,7 +282,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   REQUIRE( term::run_cmd( "my_type = MyType.new()" ) ==
-           monostate{} );
+           xp_success_t{} );
 
   in  = "my_t";
   out = {"my_type"};

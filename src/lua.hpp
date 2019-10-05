@@ -43,8 +43,8 @@ sol::state& global_state();
 *****************************************************************/
 namespace detail {
 
-using LuaRetMap = TypeMap<   //
-    KV<void, std::monostate> //
+using LuaRetMap = TypeMap< //
+    KV<void, xp_success_t> //
     >;
 
 using IntermediateCppTypeMap = TypeMap< //
@@ -87,8 +87,8 @@ expect<Ret> lua_script( std::string_view script ) {
     sol::error err = result;
     return UNEXPECTED( err.what() );
   }
-  if constexpr( std::is_same_v<Ret, std::monostate> )
-    return std::monostate{};
+  if constexpr( std::is_same_v<Ret, xp_success_t> )
+    return xp_success_t{};
   else if constexpr( util::is_optional_v<Ret> )
     return sol_opt_convert<typename Ret::value_type>(
         result.get<sol::object>() );

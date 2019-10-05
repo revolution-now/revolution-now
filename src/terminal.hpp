@@ -21,7 +21,7 @@ namespace rn::term {
 void log( std::string const& msg );
 void log( std::string&& msg );
 
-ND expect<std::monostate> run_cmd( std::string const& cmd );
+ND expect<> run_cmd( std::string const& cmd );
 
 void clear();
 

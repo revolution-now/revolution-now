@@ -74,8 +74,8 @@ bool is_placeholder( string const& cmd ) {
          cmd[1] <= '9';
 }
 
-expect<monostate> run_lua_cmd( string const& cmd ) {
-  expect<monostate> expected;
+expect<> run_lua_cmd( string const& cmd ) {
+  expect<> expected;
   // Wrap the command if it's an expression.
   auto cmd_wrapper = cmd;
   if( !is_statement( cmd ) ) {
@@ -110,13 +110,13 @@ expect<monostate> run_lua_cmd( string const& cmd ) {
   return expected;
 }
 
-expect<monostate> run_cmd_impl( string const& cmd ) {
+expect<> run_cmd_impl( string const& cmd ) {
   g_history.push_back( cmd );
   log( "> "s + cmd );
   auto maybe_fn = bu::val_safe( g_console_commands, cmd );
   if( maybe_fn.has_value() ) {
     maybe_fn->get()();
-    return monostate{};
+    return xp_success_t{};
   }
   return run_lua_cmd( cmd );
 }
@@ -138,7 +138,7 @@ void log( std::string&& msg ) {
   trim();
 }
 
-expect<monostate> run_cmd( string const& cmd ) {
+expect<> run_cmd( string const& cmd ) {
   return run_cmd_impl( cmd );
 }
 

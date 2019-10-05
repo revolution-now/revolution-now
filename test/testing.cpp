@@ -1,25 +1,25 @@
 /****************************************************************
-**testing.hpp
+**testing.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2019-08-04.
+* Created by dsicilia on 2019-10-05.
 *
 * Description: Common definitions for unit tests.
 *
 *****************************************************************/
-#pragma once
-
-#include "core-config.hpp"
+#include "testing.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "aliases.hpp"
 
-#define REQUIRE_THROWS_AS_RN( ... ) \
-  REQUIRE_THROWS_AS( __VA_ARGS__, ::rn::exception_with_bt )
+using namespace std;
 
 namespace testing {
 
-fs::path const& data_dir();
+fs::path const& data_dir() {
+  static fs::path data{"test/data"};
+  return data;
+}
 
 } // namespace testing

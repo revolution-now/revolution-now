@@ -43,7 +43,7 @@ bool is_valid_lua_identifier( string_view name ) {
          !util::contains( name, "." );
 }
 
-expect<monostate> load_module( string const& name ) {
+expect<> load_module( string const& name ) {
   lg.info( "loading lua module \"{}\".", name );
   CHECK( is_valid_lua_identifier( name ),
          "module name `{}` is not a valid lua identifier.",
@@ -68,7 +68,7 @@ expect<monostate> load_module( string const& name ) {
   for( auto [k, v] : old_table ) g_lua[name][k] = v;
 
   g_lua["package_exports"] = sol::lua_nil;
-  return monostate{};
+  return xp_success_t{};
 }
 
 void reset_sol_state() {

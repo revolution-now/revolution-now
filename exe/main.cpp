@@ -35,7 +35,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
 
   // game();
 
-  test_serial();
+  serial::test_serial();
 
   // run_all_cleanup_routines();
   return 0;
