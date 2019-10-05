@@ -16,6 +16,7 @@
 #include "adt.hpp"
 #include "commodity.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "macros.hpp"
@@ -32,6 +33,10 @@
 #include <vector>
 
 TYPED_INDEX( CargoSlotIndex );
+
+namespace fb {
+struct CargoHold;
+}
 
 // Friends.
 namespace rn {
@@ -175,6 +180,8 @@ public:
   void compactify();
 
   std::string debug_string() const;
+
+  SERIALIZABLE_TABLE( CargoHold );
 
 protected:
   void check_invariants() const;

@@ -17,9 +17,13 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "tx.hpp"
+
+// Flatbuffers
+#include "fb/commodity_generated.h"
 
 // C++ standard library
 #include <string>
@@ -52,6 +56,7 @@ enum class e_(commodity,
   muskets
 );
 // clang-format on
+SERIALIZABLE_ENUM( e_commodity );
 
 // Index refers to the ordering in the enum above, starting at 0.
 Opt<e_commodity> commodity_from_index( int index );
@@ -83,6 +88,7 @@ Opt<CRef<Texture>> render_commodity_label(
 /****************************************************************
 ** Commodity Cargo
 *****************************************************************/
+
 // This is the object that gets held as cargo either in a unit's
 // cargo or in a colony.
 struct Commodity {
@@ -95,6 +101,8 @@ struct Commodity {
   bool operator!=( Commodity const& rhs ) const {
     return !( *this == rhs );
   }
+
+  SERIALIZABLE_STRUCT( Commodity );
 };
 NOTHROW_MOVE( Commodity );
 

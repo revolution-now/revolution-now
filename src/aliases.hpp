@@ -33,6 +33,9 @@
 #include <variant>
 #include <vector>
 
+/****************************************************************
+** Time
+*****************************************************************/
 using Clock_t    = ::std::chrono::system_clock;
 using Time_t     = decltype( Clock_t::now() );
 using Duration_t = ::std::chrono::nanoseconds;
@@ -42,6 +45,9 @@ namespace chrono_literals = ::std::literals::chrono_literals;
 
 using Str = ::std::string;
 
+/****************************************************************
+** Vocabulary Types
+*****************************************************************/
 template<typename T>
 using Ref = ::std::reference_wrapper<T>;
 
@@ -84,6 +90,24 @@ using NodeMap = ::absl::node_hash_map<K, V>;
 template<typename F, typename S>
 using Pair = std::pair<F, S>;
 
+/****************************************************************
+** Flatbuffers
+*****************************************************************/
+namespace flatbuffers {
+class FlatBufferBuilder;
+template<typename T>
+struct Offset;
+} // namespace flatbuffers
+
+// These are probably not safe since the API probably does guar-
+// antee that we can do this.
+using FBBuilder = flatbuffers::FlatBufferBuilder;
+template<typename T>
+using FBOffset = flatbuffers::Offset<T>;
+
+/****************************************************************
+** Ranges
+*****************************************************************/
 namespace ranges {
 inline namespace v3 {
 namespace view {}
@@ -93,6 +117,9 @@ namespace view {}
 namespace rv = ::ranges::view;
 namespace rg = ::ranges;
 
+/****************************************************************
+** Source Location
+*****************************************************************/
 // source_location (coming in C++20)
 #if __has_include( <experimental/source_location>)
 #  include <experimental/source_location>

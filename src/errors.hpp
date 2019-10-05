@@ -56,6 +56,8 @@
       "the implementation of this function has not been " \
       "verified." )
 
+#define TODO( msg ) FATAL_( "TODO: " msg )
+
 // This is used to wrap calls to fmt::format that want
 // compile-time format string checking. It assumes that the first
 // argument is some kind of constexpr expression (maybe has to

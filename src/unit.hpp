@@ -15,11 +15,15 @@
 // Revolution Now
 #include "cargo.hpp"
 #include "enum.hpp"
+#include "fb.hpp"
 #include "id.hpp"
 #include "mv-points.hpp"
 #include "nation.hpp"
 #include "util.hpp"
 #include "utype.hpp"
+
+// Flatbuffers
+#include "fb/unit_generated.h"
 
 // base-util
 #include "base-util/non-copyable.hpp"
@@ -31,6 +35,7 @@ enum class e_( unit_orders, //
                sentry,      // includes units on ships
                fortified    //
 );
+SERIALIZABLE_ENUM( e_unit_orders );
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.
@@ -48,7 +53,7 @@ public:
   /************************* Getters ***************************/
 
   UnitId                id() const { return id_; }
-  UnitDescriptor const& desc() const { return *desc_; }
+  UnitDescriptor const& desc() const;
   e_unit_orders         orders() const { return orders_; }
   CargoHold const&      cargo() const { return cargo_; }
   // Allow non-const access to cargo since the CargoHold class
@@ -126,6 +131,8 @@ public:
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { orders_ = e_unit_orders::none; }
 
+  SERIALIZABLE_TABLE( Unit );
+
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );
   Unit( e_nation nation, e_unit_type type );
@@ -136,11 +143,11 @@ private:
   UnitId id_;
   // A unit can change type, but we cannot change the type
   // information of a unit descriptor itself.
-  UnitDescriptor const* desc_;
-  e_unit_orders         orders_;
-  CargoHold             cargo_;
-  e_nation              nation_;
-  Opt<int>              worth_; // for treasure
+  e_unit_type   type_;
+  e_unit_orders orders_;
+  CargoHold     cargo_;
+  e_nation      nation_;
+  Opt<int>      worth_; // for treasure
   // Movement points left this turn.
   MovementPoints movement_points_;
   bool           finished_turn_;

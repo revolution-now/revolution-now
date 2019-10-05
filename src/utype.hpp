@@ -16,9 +16,13 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "fb.hpp"
 #include "mv-points.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
+
+// Flatbuffers
+#include "fb/utype_generated.h"
 
 // base-util
 #include "base-util/non-copyable.hpp"
@@ -27,6 +31,7 @@ namespace rn {
 
 enum class ND e_( unit_type, free_colonist, soldier, merchantman,
                   privateer, large_treasure, small_treasure );
+SERIALIZABLE_ENUM( e_unit_type );
 
 enum class ND e_( unit_death, destroy, naval, capture, demote,
                   maybe_demote, demote_and_capture );

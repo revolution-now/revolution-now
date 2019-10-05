@@ -96,6 +96,13 @@ string commodity_number_to_markup( int value ) {
 } // namespace
 
 /****************************************************************
+** Commodity Cargo
+*****************************************************************/
+SERIALIZABLE_STRUCT_DEF( Commodity ) {
+  return fb::Commodity( serialize_enum( type ), quantity );
+}
+
+/****************************************************************
 ** Public API
 *****************************************************************/
 Opt<e_commodity> commodity_from_index( int index ) {

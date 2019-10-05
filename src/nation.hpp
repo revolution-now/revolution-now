@@ -13,9 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "color.hpp"
 #include "enum.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
+
+// Flatbuffers
+#include "fb/nation_generated.h"
 
 // C++ standard library
 #include <string>
@@ -25,6 +30,7 @@ namespace rn {
 enum class ND e_( nation, //
                   /*values*/
                   dutch, french, english, spanish );
+SERIALIZABLE_ENUM( e_nation );
 
 struct NationDesc {
   std::string name_lowercase;

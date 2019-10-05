@@ -1,0 +1,34 @@
+//***************************************************************
+// {{FILEE}}
+//
+// Project: Revolution Now
+//
+// Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+//
+// Description: Serializable types for the {{FILEE}} module.
+//
+// ***************************************************************
+namespace fb;
+
+enum MyEnum:byte {
+  Red,
+  Green,
+  Blue
+}
+
+union MyUnion {
+  SomeElement
+}
+
+struct Vec3 {
+  x : float;
+  y : float;
+  z : float;
+}
+
+table Person {
+  name : string;
+  age  : short;
+}
+
+//root_type fbs.Person;

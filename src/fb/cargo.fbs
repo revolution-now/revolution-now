@@ -1,0 +1,29 @@
+//***************************************************************
+// cargo.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-05.
+//
+// Description: For serializing cargo holds.
+//
+// ***************************************************************
+include "id.fbs";
+include "commodity.fbs";
+
+namespace fb;
+
+union Cargo_ {
+  UnitId,
+  Commodity,
+}
+table Cargo { u : Cargo_; }
+
+enum e_void_slot : byte { empty, overflow }
+struct VoidSlot { type : e_void_slot; }
+
+union CargoSlot { VoidSlot, Cargo }
+
+table CargoHold {
+  slots : [CargoSlot];
+}

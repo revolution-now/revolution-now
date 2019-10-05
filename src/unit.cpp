@@ -25,18 +25,18 @@ namespace {} // namespace
 
 Unit::Unit( e_nation nation, e_unit_type type )
   : id_( next_unit_id() ),
-    desc_( &unit_desc( type ) ),
+    type_( type ),
     orders_( e_unit_orders::none ),
-    cargo_( desc_->cargo_slots ),
+    cargo_( unit_desc( type ).cargo_slots ),
     nation_( nation ),
     worth_( nullopt ),
-    movement_points_( desc_->movement_points ),
+    movement_points_( unit_desc( type ).movement_points ),
     finished_turn_( false ) {}
 
 // Ideally this should be empty... try to do this with types.
 void Unit::check_invariants() const {
   // Check that only treasure units can have a worth.
-  switch( desc_->type ) {
+  switch( type_ ) {
     case +e_unit_type::large_treasure:
     case +e_unit_type::small_treasure:
       CHECK( worth_.has_value() );
@@ -46,6 +46,10 @@ void Unit::check_invariants() const {
       CHECK( !worth_.has_value() );
       break;
   };
+}
+
+UnitDescriptor const& Unit::desc() const {
+  return unit_desc( type_ );
 }
 
 // Mark unit as having moved.
@@ -59,7 +63,7 @@ void Unit::forfeight_mv_points() {
 
 // Marks unit as not having moved this turn.
 void Unit::new_turn() {
-  movement_points_ = desc_->movement_points;
+  movement_points_ = desc().movement_points;
   finished_turn_   = false;
   check_invariants();
 }
@@ -74,7 +78,7 @@ void Unit::finish_turn() {
 void Unit::unfinish_turn() { finished_turn_ = false; }
 
 Opt<Vec<UnitId>> Unit::units_in_cargo() const {
-  if( desc_->cargo_slots == 0 ) return nullopt;
+  if( desc().cargo_slots == 0 ) return nullopt;
   return cargo_.items_of_type<UnitId>();
 }
 
@@ -117,17 +121,34 @@ void Unit::change_nation( e_nation nation ) {
 }
 
 void Unit::change_type( e_unit_type type ) {
-  CHECK( cargo_.slots_total() == 0,
-         "what does it mean to change "
-         "the type of a unit with cargo slots?" );
-
-  desc_ = &unit_desc( type );
+  TODO(
+      "need to reset unit state to something that is consistent "
+      "with the new unit type." );
+  CHECK( cargo_.slots_occupied() == 0,
+         "cannot change the type of a unit holding cargo." );
+  type_ = type;
 }
 
 string debug_string( Unit const& unit ) {
   return fmt::format( "unit{{id: {}, nation: {}, type: \"{}\"}}",
                       unit.id(), unit.nation(),
                       unit.desc().name );
+}
+
+SERIALIZABLE_TABLE_DEF( Unit ) {
+  auto mv_pts  = movement_points_.serialize_struct();
+  auto unit_id = fb::UnitId( id_._ );
+  return fb::CreateUnit(                 //
+      builder,                           //
+      &unit_id,                          //
+      serialize_enum( type_ ),           //
+      serialize_enum( orders_ ),         //
+      cargo_.serialize_table( builder ), //
+      serialize_enum( nation_ ),         //
+      worth_.value_or( -1 ),             //
+      &mv_pts,                           //
+      finished_turn_                     //
+  );
 }
 
 } // namespace rn

@@ -14,7 +14,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "fb.hpp"
 #include "fmt-helper.hpp"
+
+// Flatbuffers
+#include "fb/mv-points_generated.h"
 
 namespace rn {
 
@@ -112,6 +116,8 @@ public:
   void operator-=( int rhs ) { points_atoms -= rhs * factor; }
 
   std::string to_string() const;
+
+  SERIALIZABLE_STRUCT( MovementPoints );
 
 private:
   // atoms can be > 2

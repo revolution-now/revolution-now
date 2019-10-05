@@ -11,6 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
 #include "serial.hpp"
@@ -33,10 +34,8 @@ using namespace rn;
 
 using ::rn::serial::BinaryBlob;
 
-namespace fb = ::flatbuffers;
-
 BinaryBlob create_monster() {
-  fb::FlatBufferBuilder builder;
+  FBBuilder builder;
 
   auto  weapon_one_name   = builder.CreateString( "Sword" );
   short weapon_one_damage = 3;
@@ -53,7 +52,7 @@ BinaryBlob create_monster() {
   unsigned char treasure[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   auto          inventory = builder.CreateVector( treasure, 10 );
 
-  vector<fb::Offset<MyGame::Weapon>> weapons_vector;
+  vector<FBOffset<MyGame::Weapon>> weapons_vector;
   weapons_vector.push_back( sword );
   weapons_vector.push_back( axe );
   auto weapons = builder.CreateVector( weapons_vector );
@@ -103,7 +102,8 @@ TEST_CASE( "[flatbuffers] round trip" ) {
     REQUIRE( json == json_golden );
 
     // Get a pointer to the root object inside the buffer.
-    auto& monster = *fb::GetRoot<MyGame::Monster>( blob.get() );
+    auto& monster =
+        *flatbuffers::GetRoot<MyGame::Monster>( blob.get() );
 
     REQUIRE( monster.hp() == 300 );
     REQUIRE( monster.mana() == 150 );

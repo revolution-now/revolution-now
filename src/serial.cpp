@@ -25,6 +25,13 @@ using namespace std;
 
 namespace rn::serial {
 
+// Hack to ensure that flatbuffers is being compiled with const-
+// expr on. FIXME: can remove this after setting a proper CMake
+// toolchain file that the flatbuffer build is looking for.
+inline FLATBUFFERS_CONSTEXPR int fb_ensure_constexpr_impl = 0;
+inline constexpr int             fb_ensure_constexpr =
+    fb_ensure_constexpr_impl;
+
 namespace {
 
 template<int N>
@@ -157,7 +164,7 @@ expect<> BinaryBlob::write( fs::path const& file ) const {
 }
 
 BinaryBlob BinaryBlob::from_builder(
-    fb::FlatBufferBuilder builder ) {
+    flatbuffers::FlatBufferBuilder builder ) {
   size_t out_size, out_offset;
   auto*  buf = builder.ReleaseRaw( out_size, out_offset );
   return BinaryBlob( buf, int( out_size ), int( out_offset ) );

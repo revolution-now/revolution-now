@@ -1,0 +1,35 @@
+//***************************************************************
+// commodity.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-05.
+//
+// Description: For serializing commodity-related types.
+//
+// ***************************************************************
+namespace fb;
+
+enum e_commodity : byte {
+  food,
+  sugar,
+  tobacco,
+  cotton,
+  fur,
+  lumber,
+  ore,
+  silver,
+  horses,
+  rum,
+  cigars,
+  cloth,
+  coats,
+  trade_goods,
+  tools,
+  muskets
+}
+
+struct Commodity {
+  type     : e_commodity;
+  quantity : int32;
+}

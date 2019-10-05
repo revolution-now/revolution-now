@@ -17,6 +17,9 @@
 #include "scope-exit.hpp"
 #include "util.hpp"
 
+// Flatbuffers
+#include "fb/cargo_generated.h"
+
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/variant.hpp"
@@ -487,6 +490,64 @@ void CargoHold::clear() {
   for( auto& slot : slots_ ) //
     slot = CargoSlot::empty{};
   check_invariants();
+}
+
+SERIALIZABLE_TABLE_DEF( CargoHold ) {
+  vector<uint8_t>        slot_types;
+  vector<FBOffset<void>> slots;
+  slot_types.reserve( slots_.size() );
+  slots.reserve( slots_.size() );
+  for( auto const& slot : slots_ ) {
+    switch_( slot ) {
+      case_( CargoSlot::empty ) {
+        slot_types.push_back(
+            static_cast<std::underlying_type_t<fb::CargoSlot>>(
+                fb::CargoSlot::VoidSlot ) );
+        fb::VoidSlot void_slot( fb::e_void_slot::empty );
+        slots.push_back(
+            builder.CreateStruct<fb::VoidSlot>( void_slot )
+                .Union() );
+      }
+      case_( CargoSlot::overflow ) {
+        slot_types.push_back(
+            static_cast<std::underlying_type_t<fb::CargoSlot>>(
+                fb::CargoSlot::VoidSlot ) );
+        fb::VoidSlot void_slot( fb::e_void_slot::overflow );
+        slots.push_back(
+            builder.CreateStruct<fb::VoidSlot>( void_slot )
+                .Union() );
+      }
+      case_( CargoSlot::cargo, contents ) {
+        slot_types.push_back(
+            static_cast<std::underlying_type_t<fb::CargoSlot>>(
+                fb::CargoSlot::Cargo ) );
+        switch_( contents ) {
+          case_( UnitId ) {
+            slots.push_back(
+                CreateCargo( builder, fb::Cargo_::UnitId,
+                             builder
+                                 .CreateStruct<fb::UnitId>(
+                                     fb::UnitId( val._ ) )
+                                 .Union() )
+                    .Union() );
+          }
+          case_( Commodity ) {
+            slots.push_back(
+                CreateCargo( builder, fb::Cargo_::Commodity,
+                             builder
+                                 .CreateStruct<fb::Commodity>(
+                                     val.serialize_struct() )
+                                 .Union() )
+                    .Union() );
+          }
+          switch_exhaustive;
+        }
+      }
+      switch_exhaustive;
+    }
+  }
+  return fb::CreateCargoHoldDirect( builder, &slot_types,
+                                    &slots );
 }
 
 } // namespace rn
