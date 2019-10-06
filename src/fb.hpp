@@ -84,6 +84,18 @@ struct ReturnAddress {
 template<typename SerializedT>
 ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
 
+template<typename From>
+auto opt_value_type_to_fb = 0;
+
+#define OPT_FACTORY( cpp_type, fb_type )       \
+  template<>                                   \
+  inline auto opt_value_type_to_fb<cpp_type> = \
+      ::fb::CreateOpt_##fb_type
+
+OPT_FACTORY( bool, bool );
+OPT_FACTORY( int, int );
+OPT_FACTORY( std::string, string );
+
 } // namespace detail
 
 // For scalars (non-enums).
@@ -140,13 +152,15 @@ template<typename T,                             //
              int> = 0                            //
          >
 auto serialize( FBBuilder& builder, T const& o ) {
+  auto factory =
+      detail::opt_value_type_to_fb<typename T::value_type>;
   if( o.has_value() ) {
     auto s_value = serialize( builder, *o );
-    return detail::ReturnValue{fb::CreateOpt_int(
-        builder, /*has_value=*/true, s_value.get() )};
+    return detail::ReturnValue{
+        factory( builder, /*has_value=*/true, s_value.get() )};
   } else {
     return detail::ReturnValue{
-        fb::CreateOpt_int( builder, /*has_value=*/false )};
+        factory( builder, /*has_value=*/false, {} )};
   }
 }
 

@@ -19,3 +19,8 @@ table Opt_int {
   has_value : bool;
   value     : int;
 }
+
+table Opt_bool {
+  has_value : bool;
+  value     : bool;
+}
