@@ -9,10 +9,10 @@
 //
 // ***************************************************************
 include "cargo.fbs";
-include "id.fbs";
 include "mv-points.fbs";
 include "nation.fbs";
 include "utype.fbs";
+include "vocab.fbs";
 
 namespace fb;
 
@@ -23,12 +23,12 @@ enum e_unit_orders : byte {
 }
 
 table Unit {
-  id            : UnitId;
+  id            : int;
   type          : e_unit_type;
   orders        : e_unit_orders;
   cargo         : CargoHold;
   nation        : e_nation;
-  worth         : int;
+  worth         : Opt_int;
   mv_pts        : MovementPoints;
   finished_turn : bool;
 }

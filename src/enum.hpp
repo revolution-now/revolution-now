@@ -64,6 +64,19 @@ enum class e_( size_test, _ );
 static_assert( sizeof( e_size_test ) == sizeof( int ) );
 
 /****************************************************************
+** Metaprogramming
+*****************************************************************/
+template<typename T, typename Enable = void>
+struct is_better_enum : std::false_type {};
+
+template<typename T>
+struct is_better_enum<T, std::void_t<typename T::_enumerated>>
+  : std::true_type {};
+
+template<typename T>
+constexpr auto is_better_enum_v = is_better_enum<T>::value;
+
+/****************************************************************
 ** Enum Value Display Names
 *****************************************************************/
 namespace internal {

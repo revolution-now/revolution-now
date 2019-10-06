@@ -3,6 +3,11 @@ file( GLOB fbs "[a-z][a-z0-9-]*.fbs" )
 # Generate the include files parameters.
 set( generated_files "" )
 
+# FIXME: this currently does not support proper incremental
+# builds in that it does not track dependencies among the fbs
+# files via their include statements. scripts/fbs-invalidator.sh
+# is being used as a pre-build step outside of the CMake files to
+# fix this, but ideally it should be done with CMake somehow.
 foreach( fb ${fbs} )
   get_filename_component( stem ${fb} NAME_WE )
   get_filename_component( name ${fb} NAME )

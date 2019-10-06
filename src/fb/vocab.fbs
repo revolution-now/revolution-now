@@ -1,0 +1,21 @@
+//***************************************************************
+// vocab.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-06.
+//
+// Description: Serializable types for the vocab.fbs module.
+//
+// ***************************************************************
+namespace fb;
+
+table Opt_string {
+  has_value : bool;
+  value     : string;
+}
+
+table Opt_int {
+  has_value : bool;
+  value     : int;
+}

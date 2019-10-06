@@ -181,7 +181,8 @@ public:
 
   std::string debug_string() const;
 
-  SERIALIZABLE_TABLE( CargoHold );
+  FBOffset<fb::CargoHold> serialize_table(
+      FBBuilder& builder ) const;
 
 protected:
   void check_invariants() const;

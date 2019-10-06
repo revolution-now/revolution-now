@@ -492,7 +492,8 @@ void CargoHold::clear() {
   check_invariants();
 }
 
-SERIALIZABLE_TABLE_DEF( CargoHold ) {
+FBOffset<fb::CargoHold> CargoHold::serialize_table(
+    FBBuilder& builder ) const {
   vector<uint8_t>        slot_types;
   vector<FBOffset<void>> slots;
   slot_types.reserve( slots_.size() );
@@ -524,10 +525,10 @@ SERIALIZABLE_TABLE_DEF( CargoHold ) {
         switch_( contents ) {
           case_( UnitId ) {
             slots.push_back(
-                CreateCargo( builder, fb::Cargo_::UnitId,
+                CreateCargo( builder, fb::Cargo_::CargoUnit,
                              builder
-                                 .CreateStruct<fb::UnitId>(
-                                     fb::UnitId( val._ ) )
+                                 .CreateStruct<fb::CargoUnit>(
+                                     fb::CargoUnit( val._ ) )
                                  .Union() )
                     .Union() );
           }

@@ -14,6 +14,7 @@
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
+#include "meta.hpp"
 
 // Flatbuffers
 #include "fb/testing_generated.h"
@@ -33,9 +34,6 @@ inline constexpr int             fb_ensure_constexpr =
     fb_ensure_constexpr_impl;
 
 namespace {
-
-template<int N>
-struct disambiguate;
 
 struct UclArchiver {
   // All types that have a `serialize` member function.

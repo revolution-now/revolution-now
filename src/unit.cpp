@@ -30,7 +30,7 @@ Unit::Unit( e_nation nation, e_unit_type type )
     cargo_( unit_desc( type ).cargo_slots ),
     nation_( nation ),
     worth_( nullopt ),
-    movement_points_( unit_desc( type ).movement_points ),
+    mv_pts_( unit_desc( type ).movement_points ),
     finished_turn_( false ) {}
 
 // Ideally this should be empty... try to do this with types.
@@ -57,14 +57,14 @@ void Unit::forfeight_mv_points() {
   // This function doesn't necessarily have to be responsible for
   // checking this, but it may end up catching some problems.
   CHECK( !moved_this_turn() );
-  movement_points_ = 0;
+  mv_pts_ = 0;
   check_invariants();
 }
 
 // Marks unit as not having moved this turn.
 void Unit::new_turn() {
-  movement_points_ = desc().movement_points;
-  finished_turn_   = false;
+  mv_pts_        = desc().movement_points;
+  finished_turn_ = false;
   check_invariants();
 }
 
@@ -98,8 +98,8 @@ bool Unit::orders_mean_input_required() const {
 
 // Called to consume movement points as a result of a move.
 void Unit::consume_mv_points( MovementPoints points ) {
-  movement_points_ -= points;
-  CHECK( movement_points_ >= 0 );
+  mv_pts_ -= points;
+  CHECK( mv_pts_ >= 0 );
   check_invariants();
 }
 
@@ -133,22 +133,6 @@ string debug_string( Unit const& unit ) {
   return fmt::format( "unit{{id: {}, nation: {}, type: \"{}\"}}",
                       unit.id(), unit.nation(),
                       unit.desc().name );
-}
-
-SERIALIZABLE_TABLE_DEF( Unit ) {
-  auto mv_pts  = movement_points_.serialize_struct();
-  auto unit_id = fb::UnitId( id_._ );
-  return fb::CreateUnit(                 //
-      builder,                           //
-      &unit_id,                          //
-      serialize_enum( type_ ),           //
-      serialize_enum( orders_ ),         //
-      cargo_.serialize_table( builder ), //
-      serialize_enum( nation_ ),         //
-      worth_.value_or( -1 ),             //
-      &mv_pts,                           //
-      finished_turn_                     //
-  );
 }
 
 } // namespace rn

@@ -8,13 +8,16 @@
 // Description: For serializing cargo holds.
 //
 // ***************************************************************
-include "id.fbs";
 include "commodity.fbs";
 
 namespace fb;
 
+struct CargoUnit {
+  id : int;
+}
+
 union Cargo_ {
-  UnitId,
+  CargoUnit,
   Commodity,
 }
 table Cargo { u : Cargo_; }

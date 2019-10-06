@@ -62,9 +62,7 @@ public:
   CargoHold&     cargo() { return cargo_; }
   e_nation       nation() const { return nation_; }
   Opt<int>       worth() const { return worth_; }
-  MovementPoints movement_points() const {
-    return movement_points_;
-  }
+  MovementPoints movement_points() const { return mv_pts_; }
 
   /************************* Setters ***************************/
   // This would be used when e.g. a colonist is captured and
@@ -96,7 +94,7 @@ public:
   // dinstict from whether the unit has been evolved this turn,
   // since not all units need to physically move or take orders
   // each turn (i.e., pioneer building).
-  bool moved_this_turn() const { return movement_points_ == 0; }
+  bool moved_this_turn() const { return mv_pts_ == 0; }
   // Returns true if the unit's orders are such that the unit may
   // physically move this turn, either by way of player input or
   // automatically, assuming it has movement points.
@@ -131,26 +129,24 @@ public:
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { orders_ = e_unit_orders::none; }
 
-  SERIALIZABLE_TABLE( Unit );
-
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );
   Unit( e_nation nation, e_unit_type type );
 
   void check_invariants() const;
 
-  // universal, unique, non-repeating, non-changing ID
-  UnitId id_;
-  // A unit can change type, but we cannot change the type
-  // information of a unit descriptor itself.
-  e_unit_type   type_;
-  e_unit_orders orders_;
-  CargoHold     cargo_;
-  e_nation      nation_;
-  Opt<int>      worth_; // for treasure
-  // Movement points left this turn.
-  MovementPoints movement_points_;
-  bool           finished_turn_;
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( Unit,
+    ( UnitId,         id_            ),
+    ( e_unit_type,    type_          ),
+    ( e_unit_orders,  orders_        ),
+    ( CargoHold,      cargo_         ),
+    ( e_nation,       nation_        ),
+    ( Opt<int>,       worth_         ),
+    ( MovementPoints, mv_pts_        ),
+    ( bool,           finished_turn_ )
+  );
+  // clang-format on
 };
 NOTHROW_MOVE( Unit );
 

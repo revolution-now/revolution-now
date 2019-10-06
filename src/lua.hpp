@@ -89,7 +89,7 @@ expect<Ret> lua_script( std::string_view script ) {
   }
   if constexpr( std::is_same_v<Ret, xp_success_t> )
     return xp_success_t{};
-  else if constexpr( util::is_optional_v<Ret> )
+  else if constexpr( mp::is_optional_v<Ret> )
     return sol_opt_convert<typename Ret::value_type>(
         result.get<sol::object>() );
   else

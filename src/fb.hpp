@@ -14,18 +14,18 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "meta.hpp"
+
+// Flatbuffers
+#include "fb/vocab_generated.h"
+
+// base-util
+#include "base-util/mp.hpp"
+#include "base-util/pp.hpp"
 
 /****************************************************************
 ** Tables/Structs
 *****************************************************************/
-#define SERIALIZABLE_TABLE( name )                            \
-  ND FBOffset<fb::name> serialize_table( FBBuilder& builder ) \
-      const
-
-#define SERIALIZABLE_TABLE_DEF( name )      \
-  FBOffset<fb::name> name::serialize_table( \
-      FBBuilder& builder ) const
-
 #define SERIALIZABLE_STRUCT( name ) \
   ND fb::name serialize_struct() const
 
@@ -61,11 +61,127 @@
   }
 
 /****************************************************************
-** Member Macros
+** Uniform serialization interface.
 *****************************************************************/
+namespace rn::serial {
+
 namespace detail {
-//
+
+template<typename SerializedT>
+struct ReturnValue {
+  SerializedT o_;
+  SerializedT get() const { return o_; }
+};
+template<typename SerializedT>
+ReturnValue( SerializedT )->ReturnValue<SerializedT>;
+
+template<typename SerializedT>
+struct ReturnAddress {
+  SerializedT        o_;
+  SerializedT const* get() const&& = delete;
+  SerializedT const* get() const& { return &o_; }
+};
+template<typename SerializedT>
+ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
+
+} // namespace detail
+
+// For scalars (non-enums).
+template<typename T,              //
+         std::enable_if_t<        //
+             std::is_scalar_v<T>, //
+             int> = 0             //
+         >
+auto serialize( FBBuilder&, T const& o ) {
+  struct Ret {
+    T o_;
+    T get() const { return o_; }
+  };
+  return Ret{o};
 }
+
+// For typed ints.
+template<typename T,                                //
+         std::enable_if_t<                          //
+             std::is_same_v<int, decltype( T::_ )>, //
+             int> = 0                               //
+         >
+auto serialize( FBBuilder&, T const& o ) {
+  struct Ret {
+    int o_;
+    int get() const { return o_; }
+  };
+  return Ret{o._};
+}
+
+// For enums.
+template<typename T, decltype( serialize_enum(
+                         std::declval<T>() ) )* = nullptr>
+auto serialize( FBBuilder&, T const& o ) {
+  return detail::ReturnValue{serialize_enum( o )};
+}
+
+// For C++ classes/structs that get serialized as FB structs.
+template<typename T, decltype( &T::serialize_struct )* = nullptr>
+auto serialize( FBBuilder&, T const& o ) {
+  return detail::ReturnAddress{o.serialize_struct()};
+}
+
+// For C++ classes/structs that get serialized as FB tables.
+template<typename T, decltype( &T::serialize_table )* = nullptr>
+auto serialize( FBBuilder& builder, T const& o ) {
+  return detail::ReturnValue{o.serialize_table( builder )};
+}
+
+// For C++ classes/structs that get serialized as FB structs.
+template<typename T,                             //
+         std::enable_if_t<                       //
+             mp::is_optional_v<std::decay_t<T>>, //
+             int> = 0                            //
+         >
+auto serialize( FBBuilder& builder, T const& o ) {
+  if( o.has_value() ) {
+    auto s_value = serialize( builder, *o );
+    return detail::ReturnValue{fb::CreateOpt_int(
+        builder, /*has_value=*/true, s_value.get() )};
+  } else {
+    return detail::ReturnValue{
+        fb::CreateOpt_int( builder, /*has_value=*/false )};
+  }
+}
+
+} // namespace rn::serial
+
+/****************************************************************
+** Table Macros
+*****************************************************************/
+#define SERIAL_CALL_SERIALIZE_IMPL( type, var ) \
+  auto PP_JOIN( s_, var ) = serialize( builder, var )
+
+#define SERIAL_CALL_SERIALIZE( p ) SERIAL_CALL_SERIALIZE_IMPL p
+
+#define SERIAL_GET_SERIALIZED_IMPL( type, var ) \
+  PP_JOIN( s_, var ).get()
+#define SERIAL_GET_SERIALIZED( p ) SERIAL_GET_SERIALIZED_IMPL p
+
+#define SERIAL_DECLARE_VAR( type, var ) type var;
+
+#define SERIALIZABLE_TABLE_MEMBERS_IMPL( name, ... )           \
+  PP_MAP_TUPLE( SERIAL_DECLARE_VAR, __VA_ARGS__ )              \
+public:                                                        \
+  FBOffset<fb::name> serialize_table( FBBuilder& builder )     \
+      const {                                                  \
+    using ::rn::serial::serialize;                             \
+    PP_MAP_SEMI( SERIAL_CALL_SERIALIZE, __VA_ARGS__ )          \
+    return fb::Create##name(                                   \
+        builder,                                               \
+        PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
+  }                                                            \
+                                                               \
+private:
+
+#define SERIALIZABLE_TABLE_MEMBERS( ... ) \
+  EVAL( SERIALIZABLE_TABLE_MEMBERS_IMPL( __VA_ARGS__ ) )
 
 #define SERIALIZABL_SAVE_ONE( name ) \
   ar.save( TO_STRING( name ), DEFER( name ) )
