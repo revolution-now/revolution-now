@@ -5,18 +5,6 @@
 
 [[ "$1" == '--print-only' ]] && print_only=1
 
-build_threads() {
-  local threads=4
-  if [[ "$(uname)" == Linux ]]; then
-    threads=$(nproc --all)
-  elif [[ "$(uname)" == Darwin ]]; then
-    threads=$(sysctl -n hw.ncpu)
-  fi
-  [[ -z "$threads" ]] && return 1
-  echo "$threads"
-  return 0
-}
-
 c_norm="\033[00m"
 c_green="\033[32m"
 c_red="\033[31m"
@@ -36,6 +24,7 @@ die() {
 
 run_for_flags() {
   flags="$@"
+  flags="$flags --generator=ninja"
   if (( print_only )); then
     echo "cmc $flags"
     return
@@ -45,7 +34,7 @@ run_for_flags() {
     die "configure failed for flags: $flags"
   fi
 
-  if ! make all -j$(build_threads); then
+  if ! make all; then
     die "build failed for flags: $flags"
   fi
 
@@ -67,6 +56,6 @@ done
 run_for_flags --clang --lld --release --lto
 
 # Restore to default devel flags.
-(( print_only )) || cmc --cached --clang --lld --asan
+(( print_only )) || cmc --cached --clang --lld --generator=ninja
 
 log "success."
