@@ -2,31 +2,21 @@
   "id": 1,
   "type": "merchantman",
   "cargo": {
-    "slots_type": [
-      "VoidSlot",
-      "Cargo",
-      "Cargo",
-      "Cargo"
-    ],
     "slots": [
       {
-        "type": "empty"
+
       },
       {
-        "u_type": "CargoUnit",
-        "u": {
-          "id": 2
-        }
+        "which": "cargo_unit",
+        "unit_id": 2
       },
       {
-        "u_type": "CargoUnit",
-        "u": {
-          "id": 3
-        }
+        "which": "cargo_unit",
+        "unit_id": 3
       },
       {
-        "u_type": "Commodity",
-        "u": {
+        "which": "cargo_commodity",
+        "commodity": {
           "type": "food",
           "quantity": 100
         }

@@ -68,6 +68,16 @@
 /****************************************************************
 ** Uniform serialization interface.
 *****************************************************************/
+namespace rn {
+// This is used as a dummy parameter to all rn::serial::serialize
+// calls so that we are guaranteed to always have at least one
+// parameter of a type defined in the rn:: namespace, that way we
+// can always rely on ADL to find serialize methods that we de-
+// clare throughout the codebase even if they are declared after
+// the ones below that might use them.
+struct rn_adl_tag {};
+} // namespace rn
+
 namespace rn::serial {
 
 template<typename SerializedT>
@@ -109,7 +119,7 @@ template<typename T,              //
              std::is_scalar_v<T>, //
              int> = 0             //
          >
-auto serialize( FBBuilder&, T const& o ) {
+auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
   struct Ret {
     T o_;
     T get() const { return o_; }
@@ -123,7 +133,7 @@ template<typename T,                                //
              std::is_same_v<int, decltype( T::_ )>, //
              int> = 0                               //
          >
-auto serialize( FBBuilder&, T const& o ) {
+auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
   struct Ret {
     int o_;
     int get() const { return o_; }
@@ -134,19 +144,20 @@ auto serialize( FBBuilder&, T const& o ) {
 // For enums.
 template<typename T, decltype( serialize_enum(
                          std::declval<T>() ) )* = nullptr>
-auto serialize( FBBuilder&, T const& o ) {
+auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
   return ReturnValue{serialize_enum( o )};
 }
 
 // For C++ classes/structs that get serialized as FB structs.
 template<typename T, decltype( &T::serialize_struct )* = nullptr>
-auto serialize( FBBuilder&, T const& o ) {
+auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
   return ReturnAddress{o.serialize_struct()};
 }
 
 // For C++ classes/structs that get serialized as FB tables.
 template<typename T, decltype( &T::serialize_table )* = nullptr>
-auto serialize( FBBuilder& builder, T const& o ) {
+auto serialize( FBBuilder& builder, T const& o,
+                ::rn::rn_adl_tag ) {
   return ReturnValue{o.serialize_table( builder )};
 }
 
@@ -156,11 +167,12 @@ template<typename T,               //
              mp::is_optional_v<T>, //
              int> = 0              //
          >
-auto serialize( FBBuilder& builder, T const& o ) {
+auto serialize( FBBuilder& builder, T const& o,
+                ::rn::rn_adl_tag ) {
   auto factory =
       detail::opt_value_type_to_fb<typename T::value_type>;
   if( o.has_value() ) {
-    auto s_value = serialize( builder, *o );
+    auto s_value = serialize( builder, *o, ::rn::rn_adl_tag{} );
     return ReturnValue{
         factory( builder, /*has_value=*/true, s_value.get() )};
   } else {
@@ -175,16 +187,18 @@ template<typename T,             //
              mp::is_vector_v<T>, //
              int> = 0            //
          >
-auto serialize( FBBuilder& builder, T const& o ) {
-  using fb_wrapper_elem_t =
-      std::decay_t<decltype( serialize( builder, *o.begin() ) )>;
+auto serialize( FBBuilder& builder, T const& o,
+                ::rn::rn_adl_tag ) {
+  using fb_wrapper_elem_t = std::decay_t<decltype(
+      serialize( builder, *o.begin(), ::rn::rn_adl_tag{} ) )>;
   using fb_get_elem_t =
       decltype( std::declval<fb_wrapper_elem_t>().get() );
   // This vector must live until we create the final fb vector.
   std::vector<fb_wrapper_elem_t> wrappers;
   wrappers.reserve( o.size() );
   for( auto const& e : o )
-    wrappers.push_back( serialize( builder, e ) );
+    wrappers.push_back(
+        serialize( builder, e, ::rn::rn_adl_tag{} ) );
   // This vector may hold pointers into the previous one if we're
   // dealing with structs.
   std::vector<fb_get_elem_t> gotten;
@@ -199,7 +213,8 @@ auto serialize( FBBuilder& builder, T const& o ) {
 ** Table Macros
 *****************************************************************/
 #define SERIAL_CALL_SERIALIZE_IMPL( type, var ) \
-  auto PP_JOIN( s_, var ) = serialize( builder, var )
+  auto PP_JOIN( s_, var ) =                     \
+      serialize( builder, var, ::rn::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE( p ) SERIAL_CALL_SERIALIZE_IMPL p
 
@@ -225,37 +240,5 @@ private:
 
 #define SERIALIZABLE_TABLE_MEMBERS( ... ) \
   EVAL( SERIALIZABLE_TABLE_MEMBERS_IMPL( __VA_ARGS__ ) )
-
-#define SERIALIZABL_SAVE_ONE( name ) \
-  ar.save( TO_STRING( name ), DEFER( name ) )
-#define SERIALIZABL_SIZE_CHECK( name )                   \
-  decltype( DEFER( name ) ) PP_JOIN( name, __ );         \
-  static_assert( !std::is_reference_v<decltype( name )>, \
-                 "cannot serialize references." )
-
-#define SERIALIZABL_IMPL( ... )                            \
-  std::byte last_member__;                                 \
-  /* This goes out here so it doesn't depend on the */     \
-  /* Archiver template argument, that way the static */    \
-  /* assert can be checked while compiling the header */   \
-  /* and does not need to wait until instantiation of */   \
-  /* the serialize method in a cpp. */                     \
-  struct serialize_size_checker__ {                        \
-    PP_MAP_SEMI( SERIALIZABL_SIZE_CHECK, __VA_ARGS__ )     \
-    std::byte last_member__;                               \
-  };                                                       \
-  template<typename Archiver>                              \
-  void serialize( Archiver&& ar ) const {                  \
-    PP_MAP_SEMI( SERIALIZABL_SAVE_ONE, __VA_ARGS__ )       \
-    using Parent_t = std::decay_t<decltype( *this )>;      \
-    static_assert( offsetof( Parent_t, last_member__ ) ==  \
-                       offsetof( serialize_size_checker__, \
-                                 last_member__ ),          \
-                   "some members are missing from the "    \
-                   "serialization list." );                \
-  }
-
-#define SERIALIZABLE( ... ) \
-  EVAL( SERIALIZABL_IMPL( __VA_ARGS__ ) )
 
 namespace rn {} // namespace rn

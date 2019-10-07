@@ -158,7 +158,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   rn::ownership_change_to_cargo( ship, unit_id3, 2 );
 
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 168;
+  constexpr uint64_t kExpectedBlobSize = 160;
   auto               json_file = data_dir() / "unit.json";
 
   SECTION( "create/serialize" ) {
@@ -208,19 +208,26 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( unit.cargo() != nullptr );
     auto cargo = unit.cargo();
     REQUIRE( cargo != nullptr );
-    REQUIRE( cargo->slots_type() != nullptr );
-    REQUIRE( cargo->slots() != nullptr );
-    REQUIRE( cargo->slots_type()->size() == 4 );
-    REQUIRE( cargo->slots()->size() == 4 );
-    REQUIRE( cargo->slots_type()->Get( 0 ) ==
-             static_cast<int>( fb::CargoSlot::VoidSlot ) );
-    REQUIRE( cargo->slots_type()->Get( 1 ) ==
-             static_cast<int>( fb::CargoSlot::Cargo ) );
-    REQUIRE( cargo->slots_type()->Get( 2 ) ==
-             static_cast<int>( fb::CargoSlot::Cargo ) );
-    REQUIRE( cargo->slots_type()->Get( 3 ) ==
-             static_cast<int>( fb::CargoSlot::Cargo ) );
-    // TODO: add more...
+    auto slots = cargo->slots();
+    REQUIRE( slots != nullptr );
+    REQUIRE( slots->size() == 4 );
+    REQUIRE( slots->Get( 0 ) != nullptr );
+    REQUIRE( slots->Get( 1 ) != nullptr );
+    REQUIRE( slots->Get( 2 ) != nullptr );
+    REQUIRE( slots->Get( 3 ) != nullptr );
+    REQUIRE( slots->Get( 0 )->which() ==
+             fb::e_cargo_slot_contents::empty );
+    REQUIRE( slots->Get( 1 )->which() ==
+             fb::e_cargo_slot_contents::cargo_unit );
+    REQUIRE( slots->Get( 2 )->which() ==
+             fb::e_cargo_slot_contents::cargo_unit );
+    REQUIRE( slots->Get( 3 )->which() ==
+             fb::e_cargo_slot_contents::cargo_commodity );
+    REQUIRE( slots->Get( 1 )->unit_id() == 2 );
+    REQUIRE( slots->Get( 2 )->unit_id() == 3 );
+    fb::Commodity comm = *slots->Get( 3 )->commodity();
+    REQUIRE( comm.type() == fb::e_commodity::food );
+    REQUIRE( comm.quantity() == 100 );
   }
 }
 

@@ -53,9 +53,13 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 } // namespace
 
 serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
-    FBBuilder& builder, CargoSlot_t const& o ) {
-  int32_t                   unit_id   = 0;
-  fb::Commodity*            commodity = nullptr;
+    FBBuilder& builder, CargoSlot_t const& o,
+    ::rn::rn_adl_tag ) {
+  int32_t       unit_id = 0;
+  fb::Commodity commodity;
+  // If this is not a commodity slot then just leave this as
+  // nullptr so that it doesn't get serialized.
+  fb::Commodity*            p_commodity = nullptr;
   fb::e_cargo_slot_contents which =
       fb::e_cargo_slot_contents::empty;
   switch_( o ) {
@@ -65,17 +69,22 @@ serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
         fb::e_cargo_slot_contents::overflow;
     case_( CargoSlot::cargo, contents ) {
       switch_( contents ) {
-        case_( UnitId ) which =
-            fb::e_cargo_slot_contents::cargo_unit;
-        case_( Commodity ) which =
-            fb::e_cargo_slot_contents::cargo_commodity;
+        case_( UnitId ) {
+          which   = fb::e_cargo_slot_contents::cargo_unit;
+          unit_id = val._;
+        }
+        case_( Commodity ) {
+          which     = fb::e_cargo_slot_contents::cargo_commodity;
+          commodity = val.serialize_struct();
+          p_commodity = &commodity;
+        }
         switch_exhaustive;
       }
     }
     switch_exhaustive;
   }
-  return serial::ReturnValue{
-      fb::CreateCargoSlot( builder, which, unit_id, commodity )};
+  return serial::ReturnValue{fb::CreateCargoSlot(
+      builder, which, unit_id, p_commodity )};
 }
 
 string CargoHold::debug_string() const {

@@ -83,8 +83,8 @@ adt_rn( CargoSlot,              //
           ( Cargo, contents ) ) //
 );
 
-serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
-    FBBuilder& builder, CargoSlot_t const& o );
+serial::ReturnValue<FBOffset<::fb::CargoSlot>> serialize(
+    FBBuilder& builder, CargoSlot_t const& o, ::rn::rn_adl_tag );
 
 class ND CargoHold {
 public:

@@ -6,6 +6,9 @@ let s:first = 'exe/main.cpp'
 
 let s:stems = [
   \ 'src/commodity',
+  \ 'src/cargo',
+  \ 'src/unit',
+  \ 'src/fb',
   \ 'src/serial',
 \]
 
