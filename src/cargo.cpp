@@ -52,6 +52,32 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 } // namespace
 
+serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
+    FBBuilder& builder, CargoSlot_t const& o ) {
+  int32_t                   unit_id   = 0;
+  fb::Commodity*            commodity = nullptr;
+  fb::e_cargo_slot_contents which =
+      fb::e_cargo_slot_contents::empty;
+  switch_( o ) {
+    case_( CargoSlot::empty ) which =
+        fb::e_cargo_slot_contents::empty;
+    case_( CargoSlot::overflow ) which =
+        fb::e_cargo_slot_contents::overflow;
+    case_( CargoSlot::cargo, contents ) {
+      switch_( contents ) {
+        case_( UnitId ) which =
+            fb::e_cargo_slot_contents::cargo_unit;
+        case_( Commodity ) which =
+            fb::e_cargo_slot_contents::cargo_commodity;
+        switch_exhaustive;
+      }
+    }
+    switch_exhaustive;
+  }
+  return serial::ReturnValue{
+      fb::CreateCargoSlot( builder, which, unit_id, commodity )};
+}
+
 string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
       fmt::format( "{}", FmtJsonStyleList{slots_} ),
@@ -490,65 +516,6 @@ void CargoHold::clear() {
   for( auto& slot : slots_ ) //
     slot = CargoSlot::empty{};
   check_invariants();
-}
-
-FBOffset<fb::CargoHold> CargoHold::serialize_table(
-    FBBuilder& builder ) const {
-  vector<uint8_t>        slot_types;
-  vector<FBOffset<void>> slots;
-  slot_types.reserve( slots_.size() );
-  slots.reserve( slots_.size() );
-  for( auto const& slot : slots_ ) {
-    switch_( slot ) {
-      case_( CargoSlot::empty ) {
-        slot_types.push_back(
-            static_cast<std::underlying_type_t<fb::CargoSlot>>(
-                fb::CargoSlot::VoidSlot ) );
-        fb::VoidSlot void_slot( fb::e_void_slot::empty );
-        slots.push_back(
-            builder.CreateStruct<fb::VoidSlot>( void_slot )
-                .Union() );
-      }
-      case_( CargoSlot::overflow ) {
-        slot_types.push_back(
-            static_cast<std::underlying_type_t<fb::CargoSlot>>(
-                fb::CargoSlot::VoidSlot ) );
-        fb::VoidSlot void_slot( fb::e_void_slot::overflow );
-        slots.push_back(
-            builder.CreateStruct<fb::VoidSlot>( void_slot )
-                .Union() );
-      }
-      case_( CargoSlot::cargo, contents ) {
-        slot_types.push_back(
-            static_cast<std::underlying_type_t<fb::CargoSlot>>(
-                fb::CargoSlot::Cargo ) );
-        switch_( contents ) {
-          case_( UnitId ) {
-            slots.push_back(
-                CreateCargo( builder, fb::Cargo_::CargoUnit,
-                             builder
-                                 .CreateStruct<fb::CargoUnit>(
-                                     fb::CargoUnit( val._ ) )
-                                 .Union() )
-                    .Union() );
-          }
-          case_( Commodity ) {
-            slots.push_back(
-                CreateCargo( builder, fb::Cargo_::Commodity,
-                             builder
-                                 .CreateStruct<fb::Commodity>(
-                                     val.serialize_struct() )
-                                 .Union() )
-                    .Union() );
-          }
-          switch_exhaustive;
-        }
-      }
-      switch_exhaustive;
-    }
-  }
-  return fb::CreateCargoHoldDirect( builder, &slot_types,
-                                    &slots );
 }
 
 } // namespace rn

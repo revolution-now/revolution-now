@@ -12,20 +12,22 @@ include "commodity.fbs";
 
 namespace fb;
 
-struct CargoUnit {
-  id : int;
+// Trying to avoid using unions in this file.
+
+enum e_cargo_slot_contents : byte {
+  empty,
+  overflow,
+  cargo_unit,
+  cargo_commodity,
 }
 
-union Cargo_ {
-  CargoUnit,
-  Commodity,
+// This models a union.
+table CargoSlot {
+  which     : e_cargo_slot_contents;
+  // Only one of the below will be active.
+  unit_id   : int;
+  commodity : Commodity;
 }
-table Cargo { u : Cargo_; }
-
-enum e_void_slot : byte { empty, overflow }
-struct VoidSlot { type : e_void_slot; }
-
-union CargoSlot { VoidSlot, Cargo }
 
 table CargoHold {
   slots : [CargoSlot];

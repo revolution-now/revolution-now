@@ -70,8 +70,6 @@
 *****************************************************************/
 namespace rn::serial {
 
-namespace detail {
-
 template<typename SerializedT>
 struct ReturnValue {
   SerializedT o_;
@@ -88,6 +86,8 @@ struct ReturnAddress {
 };
 template<typename SerializedT>
 ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
+
+namespace detail {
 
 template<typename From>
 auto opt_value_type_to_fb = 0;
@@ -135,38 +135,62 @@ auto serialize( FBBuilder&, T const& o ) {
 template<typename T, decltype( serialize_enum(
                          std::declval<T>() ) )* = nullptr>
 auto serialize( FBBuilder&, T const& o ) {
-  return detail::ReturnValue{serialize_enum( o )};
+  return ReturnValue{serialize_enum( o )};
 }
 
 // For C++ classes/structs that get serialized as FB structs.
 template<typename T, decltype( &T::serialize_struct )* = nullptr>
 auto serialize( FBBuilder&, T const& o ) {
-  return detail::ReturnAddress{o.serialize_struct()};
+  return ReturnAddress{o.serialize_struct()};
 }
 
 // For C++ classes/structs that get serialized as FB tables.
 template<typename T, decltype( &T::serialize_table )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o ) {
-  return detail::ReturnValue{o.serialize_table( builder )};
+  return ReturnValue{o.serialize_table( builder )};
 }
 
 // For C++ classes/structs that get serialized as FB structs.
-template<typename T,                             //
-         std::enable_if_t<                       //
-             mp::is_optional_v<std::decay_t<T>>, //
-             int> = 0                            //
+template<typename T,               //
+         std::enable_if_t<         //
+             mp::is_optional_v<T>, //
+             int> = 0              //
          >
 auto serialize( FBBuilder& builder, T const& o ) {
   auto factory =
       detail::opt_value_type_to_fb<typename T::value_type>;
   if( o.has_value() ) {
     auto s_value = serialize( builder, *o );
-    return detail::ReturnValue{
+    return ReturnValue{
         factory( builder, /*has_value=*/true, s_value.get() )};
   } else {
-    return detail::ReturnValue{
+    return ReturnValue{
         factory( builder, /*has_value=*/false, {} )};
   }
+}
+
+// For vectors.
+template<typename T,             //
+         std::enable_if_t<       //
+             mp::is_vector_v<T>, //
+             int> = 0            //
+         >
+auto serialize( FBBuilder& builder, T const& o ) {
+  using fb_wrapper_elem_t =
+      std::decay_t<decltype( serialize( builder, *o.begin() ) )>;
+  using fb_get_elem_t =
+      decltype( std::declval<fb_wrapper_elem_t>().get() );
+  // This vector must live until we create the final fb vector.
+  std::vector<fb_wrapper_elem_t> wrappers;
+  wrappers.reserve( o.size() );
+  for( auto const& e : o )
+    wrappers.push_back( serialize( builder, e ) );
+  // This vector may hold pointers into the previous one if we're
+  // dealing with structs.
+  std::vector<fb_get_elem_t> gotten;
+  gotten.reserve( o.size() );
+  for( auto const& e : wrappers ) gotten.push_back( e.get() );
+  return ReturnValue{builder.CreateVector( gotten )};
 }
 
 } // namespace rn::serial

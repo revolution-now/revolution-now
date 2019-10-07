@@ -23,6 +23,9 @@
 #include "typed-int.hpp"
 #include "util.hpp"
 
+// Flatbuffers
+#include "fb/cargo_generated.h"
+
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/non-copyable.hpp"
@@ -79,6 +82,9 @@ adt_rn( CargoSlot,              //
         ( cargo,                //
           ( Cargo, contents ) ) //
 );
+
+serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
+    FBBuilder& builder, CargoSlot_t const& o );
 
 class ND CargoHold {
 public:
@@ -181,9 +187,6 @@ public:
 
   std::string debug_string() const;
 
-  FBOffset<fb::CargoHold> serialize_table(
-      FBBuilder& builder ) const;
-
 protected:
   void check_invariants() const;
 
@@ -234,8 +237,12 @@ protected:
 
   CargoSlot_t& operator[]( int idx );
 
-  // This will be of fixed length (number of total slots).
-  std::vector<CargoSlot_t> slots_;
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( CargoHold,
+    // This will be of fixed length (number of total slots).
+    ( std::vector<CargoSlot_t>, slots_ )
+  );
+  // clang-format on
 
 private:
   CargoHold( CargoHold const& ) = default; // !! default
