@@ -24,15 +24,6 @@
 #include "base-util/pp.hpp"
 
 /****************************************************************
-** Tables/Structs
-*****************************************************************/
-#define SERIALIZABLE_STRUCT( name ) \
-  ND fb::name serialize_struct() const
-
-#define SERIALIZABLE_STRUCT_DEF( name ) \
-  fb::name name::serialize_struct() const
-
-/****************************************************************
 ** Enums
 *****************************************************************/
 #define SERIALIZABLE_ENUM( name )                             \
@@ -150,8 +141,9 @@ auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
 
 // For C++ classes/structs that get serialized as FB structs.
 template<typename T, decltype( &T::serialize_struct )* = nullptr>
-auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
-  return ReturnAddress{o.serialize_struct()};
+auto serialize( FBBuilder& builder, T const& o,
+                ::rn::rn_adl_tag ) {
+  return ReturnAddress{o.serialize_struct( builder )};
 }
 
 // For C++ classes/structs that get serialized as FB tables.
@@ -212,25 +204,26 @@ auto serialize( FBBuilder& builder, T const& o,
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_IMPL( type, var ) \
-  auto PP_JOIN( s_, var ) =                     \
-      serialize( builder, var, ::rn::rn_adl_tag{} )
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var ) \
+  auto PP_JOIN( s_, var ) =                           \
+      serialize( builder, var##_, ::rn::rn_adl_tag{} )
 
-#define SERIAL_CALL_SERIALIZE( p ) SERIAL_CALL_SERIALIZE_IMPL p
+#define SERIAL_CALL_SERIALIZE_TABLE( p ) \
+  SERIAL_CALL_SERIALIZE_TABLE_IMPL p
 
 #define SERIAL_GET_SERIALIZED_IMPL( type, var ) \
   PP_JOIN( s_, var ).get()
 #define SERIAL_GET_SERIALIZED( p ) SERIAL_GET_SERIALIZED_IMPL p
 
-#define SERIAL_DECLARE_VAR( type, var ) type var;
+#define SERIAL_DECLARE_VAR_TABLE( type, var ) type var##_;
 
 #define SERIALIZABLE_TABLE_MEMBERS_IMPL( name, ... )           \
-  PP_MAP_TUPLE( SERIAL_DECLARE_VAR, __VA_ARGS__ )              \
+  PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )        \
 public:                                                        \
   FBOffset<fb::name> serialize_table( FBBuilder& builder )     \
       const {                                                  \
     using ::rn::serial::serialize;                             \
-    PP_MAP_SEMI( SERIAL_CALL_SERIALIZE, __VA_ARGS__ )          \
+    PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_TABLE, __VA_ARGS__ )    \
     return fb::Create##name(                                   \
         builder,                                               \
         PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
@@ -240,5 +233,30 @@ private:
 
 #define SERIALIZABLE_TABLE_MEMBERS( ... ) \
   EVAL( SERIALIZABLE_TABLE_MEMBERS_IMPL( __VA_ARGS__ ) )
+
+/****************************************************************
+** Struct Macros
+*****************************************************************/
+#define SERIAL_CALL_SERIALIZE_STRUCT_IMPL( type, var ) \
+  auto PP_JOIN( s_, var ) =                            \
+      serialize( builder, var, ::rn::rn_adl_tag{} )
+
+#define SERIAL_CALL_SERIALIZE_STRUCT( p ) \
+  SERIAL_CALL_SERIALIZE_STRUCT_IMPL p
+
+#define SERIAL_DECLARE_VAR_STRUCT( type, var ) type var{};
+
+#define SERIALIZABLE_STRUCT_MEMBERS_IMPL( name, ... )          \
+  PP_MAP_TUPLE( SERIAL_DECLARE_VAR_STRUCT, __VA_ARGS__ )       \
+public:                                                        \
+  fb::name serialize_struct( FBBuilder& builder ) const {      \
+    using ::rn::serial::serialize;                             \
+    PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_STRUCT, __VA_ARGS__ )   \
+    return fb::name(                                           \
+        PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
+  }
+
+#define SERIALIZABLE_STRUCT_MEMBERS( ... ) \
+  EVAL( SERIALIZABLE_STRUCT_MEMBERS_IMPL( __VA_ARGS__ ) )
 
 namespace rn {} // namespace rn

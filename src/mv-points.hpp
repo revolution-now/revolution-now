@@ -117,14 +117,16 @@ public:
 
   std::string to_string() const;
 
-  SERIALIZABLE_STRUCT( MovementPoints );
-
 private:
   // atoms can be > 2
   MovementPoints( int integral, int atoms );
   static constexpr int factor = 3;
-  // 2 points would be represented by 2*factor.
-  int points_atoms{0};
+  // clang-format off
+  SERIALIZABLE_STRUCT_MEMBERS( MovementPoints,
+    // 2 points would be represented by 2*factor.
+    ( int,  points_atoms )
+  );
+  // clang-format on
 };
 NOTHROW_MOVE( MovementPoints );
 

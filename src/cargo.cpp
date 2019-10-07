@@ -75,7 +75,7 @@ serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
         }
         case_( Commodity ) {
           which     = fb::e_cargo_slot_contents::cargo_commodity;
-          commodity = val.serialize_struct();
+          commodity = val.serialize_struct( builder );
           p_commodity = &commodity;
         }
         switch_exhaustive;

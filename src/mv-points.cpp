@@ -31,8 +31,4 @@ std::string MovementPoints::to_string() const {
                         points_atoms % factor, factor );
 }
 
-SERIALIZABLE_STRUCT_DEF( MovementPoints ) {
-  return fb::MovementPoints( points_atoms );
-}
-
 } // namespace rn

@@ -92,9 +92,6 @@ Opt<CRef<Texture>> render_commodity_label(
 // This is the object that gets held as cargo either in a unit's
 // cargo or in a colony.
 struct Commodity {
-  e_commodity type;
-  int         quantity;
-
   bool operator==( Commodity const& rhs ) const {
     return type == rhs.type && quantity == rhs.quantity;
   }
@@ -102,7 +99,12 @@ struct Commodity {
     return !( *this == rhs );
   }
 
-  SERIALIZABLE_STRUCT( Commodity );
+  // clang-format off
+  SERIALIZABLE_STRUCT_MEMBERS( Commodity,
+    ( e_commodity, type     ),
+    ( int,         quantity )
+  );
+  // clang-format on
 };
 NOTHROW_MOVE( Commodity );
 
