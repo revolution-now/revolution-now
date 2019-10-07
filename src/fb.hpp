@@ -35,29 +35,34 @@
 /****************************************************************
 ** Enums
 *****************************************************************/
-#define SERIALIZABLE_ENUM( name )                            \
-  static_assert( static_cast<int>( fb::name::MIN ) == 0 );   \
-  static_assert( name::_size() ==                            \
-                 static_cast<size_t>( fb::name::MAX ) + 1 ); \
-  static_assert(                                             \
-      static_cast<int>(                                      \
-          ( *std::begin( values<name> ) )._value ) == 0 );   \
-  inline fb::name serialize_enum( name e ) {                 \
-    auto from_idx = e._value;                                \
-    CHECK( from_idx >= 0 &&                                  \
-           from_idx <= static_cast<int>( fb::name::MIN ) );  \
-    DCHECK( fb::EnumNames##name()[from_idx] == e._name() );  \
-    return fb::EnumValues##name()[from_idx];                 \
-  }                                                          \
-  inline name deserialize_enum( fb::name e ) {               \
-    auto from_idx = static_cast<int>( e );                   \
-    CHECK( from_idx >= 0 &&                                  \
-           from_idx <= static_cast<int>( fb::name::MAX ) );  \
-    auto res = name::_from_index_nothrow( from_idx );        \
-    CHECK( res );                                            \
-    DCHECK( ( *res )._name() ==                              \
-            fb::EnumNames##name()[from_idx] );               \
-    return *res;                                             \
+#define SERIALIZABLE_ENUM( name )                             \
+  static_assert( static_cast<int>( fb::name::MIN ) == 0 );    \
+  static_assert( name::_size() ==                             \
+                 static_cast<size_t>( fb::name::MAX ) + 1 );  \
+  static_assert(                                              \
+      static_cast<int>(                                       \
+          ( *std::begin( values<name> ) )._value ) == 0 );    \
+  inline fb::name serialize_enum( name e ) {                  \
+    auto from_idx = e._value;                                 \
+    CHECK( from_idx >= 0 &&                                   \
+           from_idx <= static_cast<int>( fb::name::MAX ) );   \
+    DCHECK( std::string( fb::EnumNames##name()[from_idx] ) == \
+                e._to_string(),                               \
+            "{} != {}", fb::EnumNames##name()[from_idx],      \
+            e._to_string() );                                 \
+    return fb::EnumValues##name()[from_idx];                  \
+  }                                                           \
+  inline name deserialize_enum( fb::name e ) {                \
+    auto from_idx = static_cast<int>( e );                    \
+    CHECK( from_idx >= 0 &&                                   \
+           from_idx <= static_cast<int>( fb::name::MAX ) );   \
+    auto res = name::_from_index_nothrow( from_idx );         \
+    CHECK( res );                                             \
+    DCHECK( std::string( ( *res )._to_string() ) ==           \
+                fb::EnumNames##name()[from_idx],              \
+            "{} != {}", ( *res )._to_string(),                \
+            fb::EnumNames##name()[from_idx] );                \
+    return *res;                                              \
   }
 
 /****************************************************************

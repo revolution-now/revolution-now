@@ -160,4 +160,11 @@ namespace internal {
 void ownership_disown_unit( UnitId id );
 }
 
+/****************************************************************
+** Testing
+*****************************************************************/
+namespace testing_only {
+void reset_unit_creation();
+}
+
 } // namespace rn

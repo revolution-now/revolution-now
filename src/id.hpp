@@ -21,6 +21,13 @@ namespace rn {
 
 ND UnitId next_unit_id();
 
+/****************************************************************
+** Testing
+*****************************************************************/
+namespace testing_only {
+void reset_unit_ids();
+}
+
 } // namespace rn
 
 namespace std {

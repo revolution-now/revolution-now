@@ -14,7 +14,9 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
+#include "ownership.hpp"
 #include "serial.hpp"
+#include "unit.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -93,7 +95,7 @@ TEST_CASE( "[flatbuffers] round trip" ) {
     REQUIRE( fs::file_size( tmp_file ) == kExpectedBlobSize );
   }
 
-  SECTION( "deserialize" ) {
+  SECTION( "deserialize to blob" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
@@ -132,6 +134,93 @@ TEST_CASE( "[flatbuffers] round trip" ) {
     REQUIRE( snd->name() != nullptr );
     REQUIRE( snd->name()->str() == "Axe" );
     REQUIRE( snd->damage() == 5 );
+  }
+}
+
+TEST_CASE( "[flatbuffers] serialize Unit" ) {
+  testing_only::reset_unit_creation();
+
+  auto ship =
+      create_unit( e_nation::english, e_unit_type::merchantman )
+          .id();
+  auto unit_id2 = create_unit( e_nation::english,
+                               e_unit_type::free_colonist )
+                      .id();
+  auto unit_id3 =
+      create_unit( e_nation::english, e_unit_type::soldier )
+          .id();
+  auto comm1 = Commodity{/*type=*/e_commodity::food,
+                         /*quantity=*/100};
+
+  add_commodity_to_cargo( comm1, ship, 3,
+                          /*try_other_slots=*/false );
+  rn::ownership_change_to_cargo( ship, unit_id2, 1 );
+  rn::ownership_change_to_cargo( ship, unit_id3, 2 );
+
+  auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
+  constexpr uint64_t kExpectedBlobSize = 168;
+  auto               json_file = data_dir() / "unit.json";
+
+  SECTION( "create/serialize" ) {
+    FBBuilder builder;
+    auto      ship_offset =
+        unit_from_id( ship ).serialize_table( builder );
+    builder.Finish( ship_offset );
+    auto blob = BinaryBlob::from_builder( std::move( builder ) );
+
+    REQUIRE( blob.size() == kExpectedBlobSize );
+
+    auto json        = blob.to_json<fb::Unit>();
+    auto json_golden = util::read_file_as_string( json_file );
+    INFO( json );
+    REQUIRE( json == json_golden );
+
+    CHECK_XP( blob.write( tmp_file.c_str() ) );
+    REQUIRE( fs::file_size( tmp_file ) == kExpectedBlobSize );
+  }
+
+  SECTION( "deserialize to blob" ) {
+    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    REQUIRE( blob.size() == kExpectedBlobSize );
+
+    auto json        = blob.to_json<fb::Unit>();
+    auto json_golden = util::read_file_as_string( json_file );
+    INFO( json );
+    REQUIRE( json == json_golden );
+
+    // Get a pointer to the root object inside the buffer.
+    auto& unit = *flatbuffers::GetRoot<fb::Unit>( blob.get() );
+
+    auto const& ship_unit = rn::unit_from_id( ship );
+
+    REQUIRE( unit.id() == ship._ );
+    REQUIRE( static_cast<int>( unit.type() ) ==
+             ship_unit.desc().type._value );
+    REQUIRE( static_cast<int>( unit.orders() ) ==
+             ship_unit.orders()._value );
+    REQUIRE( static_cast<int>( unit.nation() ) ==
+             ship_unit.nation()._value );
+    REQUIRE( unit.worth() != nullptr );
+    REQUIRE( unit.worth()->has_value() == false );
+    // REQUIRE( unit.mv_pts() == ship_unit.movement_points() );
+    REQUIRE( unit.finished_turn() == ship_unit.finished_turn() );
+
+    REQUIRE( unit.cargo() != nullptr );
+    auto cargo = unit.cargo();
+    REQUIRE( cargo != nullptr );
+    REQUIRE( cargo->slots_type() != nullptr );
+    REQUIRE( cargo->slots() != nullptr );
+    REQUIRE( cargo->slots_type()->size() == 4 );
+    REQUIRE( cargo->slots()->size() == 4 );
+    REQUIRE( cargo->slots_type()->Get( 0 ) ==
+             static_cast<int>( fb::CargoSlot::VoidSlot ) );
+    REQUIRE( cargo->slots_type()->Get( 1 ) ==
+             static_cast<int>( fb::CargoSlot::Cargo ) );
+    REQUIRE( cargo->slots_type()->Get( 2 ) ==
+             static_cast<int>( fb::CargoSlot::Cargo ) );
+    REQUIRE( cargo->slots_type()->Get( 3 ) ==
+             static_cast<int>( fb::CargoSlot::Cargo ) );
+    // TODO: add more...
   }
 }
 

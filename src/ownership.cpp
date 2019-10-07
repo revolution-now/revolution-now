@@ -358,6 +358,25 @@ void ownership_change_to_euro_port_view(
 }
 
 /****************************************************************
+** Testing
+*****************************************************************/
+namespace testing_only {
+
+void reset_unit_creation() {
+  units.clear();
+  g_deleted_units.clear();
+  units_from_coords.clear();
+  coords_from_unit.clear();
+  holder_from_held.clear();
+  g_euro_port_view_units.clear();
+  unit_ownership.clear();
+
+  reset_unit_ids();
+}
+
+} // namespace testing_only
+
+/****************************************************************
 ** Do not call directly
 *****************************************************************/
 namespace internal {

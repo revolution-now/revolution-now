@@ -17,7 +17,9 @@ namespace rn {
 
 namespace {
 
-int g_next_unit_id{-1};
+constexpr int kFirstUnitId = 1;
+
+int g_next_unit_id{kFirstUnitId - 1};
 
 } // namespace
 
@@ -25,6 +27,13 @@ UnitId next_unit_id() {
   ++g_next_unit_id;
   return UnitId{g_next_unit_id};
 }
+
+/****************************************************************
+** Testing
+*****************************************************************/
+namespace testing_only {
+void reset_unit_ids() { g_next_unit_id = kFirstUnitId - 1; }
+} // namespace testing_only
 
 /****************************************************************
 ** Lua Bindings
