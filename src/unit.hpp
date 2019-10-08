@@ -43,6 +43,7 @@ SERIALIZABLE_ENUM( e_unit_orders );
 // objects alive with the same ID) but moving is fine.
 class ND Unit : public util::movable_only {
 public:
+  Unit()              = default; // for serialization framework.
   ~Unit()             = default;
   Unit( Unit const& ) = delete;
   Unit( Unit&& )      = default;
@@ -131,6 +132,7 @@ public:
 
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );
+
   Unit( e_nation nation, e_unit_type type );
 
   void check_invariants() const;

@@ -11,5 +11,5 @@
 namespace fb;
 
 struct MovementPoints {
-  thirds : int;
+  points_atoms : int;
 }

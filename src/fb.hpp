@@ -340,7 +340,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
   }
   dst->emplace(); // default construct the value.
   return deserialize( to_const_ptr( src->value() ),
-                      std::addressof( *dst ),
+                      std::addressof( **dst ),
                       ::rn::rn_adl_tag{} );
 }
 
@@ -390,6 +390,14 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 
 #define SERIAL_DECLARE_VAR_TABLE( type, var ) type var##_;
 
+#define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var ) \
+  XP_OR_RETURN_(                                       \
+      deserialize( serial::to_const_ptr( src.var() ),  \
+                   &dst->var##_, ::rn::rn_adl_tag{} ) );
+
+#define SERIAL_DESERIALIZE_VAR_TABLE( p ) \
+  SERIAL_DESERIALIZE_VAR_TABLE_IMPL p
+
 #define SERIALIZABLE_TABLE_MEMBERS_IMPL( name, ... )           \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )        \
 public:                                                        \
@@ -400,6 +408,13 @@ public:                                                        \
     return fb::Create##name(                                   \
         builder,                                               \
         PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
+  }                                                            \
+  static expect<> deserialize_table( fb::name const& src,      \
+                                     name*           dst ) {             \
+    DCHECK( dst );                                             \
+    using ::rn::serial::deserialize;                           \
+    PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_TABLE, __VA_ARGS__ )   \
+    return xp_success_t{};                                     \
   }                                                            \
                                                                \
 private:
@@ -419,6 +434,14 @@ private:
 
 #define SERIAL_DECLARE_VAR_STRUCT( type, var ) type var{};
 
+#define SERIAL_DESERIALIZE_VAR_STRUCT_IMPL( type, var ) \
+  XP_OR_RETURN_(                                        \
+      deserialize( serial::to_const_ptr( src.var() ),   \
+                   &dst->var, ::rn::rn_adl_tag{} ) );
+
+#define SERIAL_DESERIALIZE_VAR_STRUCT( p ) \
+  SERIAL_DESERIALIZE_VAR_STRUCT_IMPL p
+
 #define SERIALIZABLE_STRUCT_MEMBERS_IMPL( name, ... )          \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_STRUCT, __VA_ARGS__ )       \
 public:                                                        \
@@ -427,6 +450,13 @@ public:                                                        \
     PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_STRUCT, __VA_ARGS__ )   \
     return fb::name(                                           \
         PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
+  }                                                            \
+  static expect<> deserialize_struct( fb::name const& src,     \
+                                      name*           dst ) {            \
+    DCHECK( dst );                                             \
+    using ::rn::serial::deserialize;                           \
+    PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_STRUCT, __VA_ARGS__ )  \
+    return xp_success_t{};                                     \
   }
 
 #define SERIALIZABLE_STRUCT_MEMBERS( ... ) \

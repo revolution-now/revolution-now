@@ -28,12 +28,17 @@
 // Must be last.
 #include "catch-common.hpp"
 
+FMT_TO_CATCH( ::rn::CargoSlot_t );
+FMT_TO_CATCH( ::rn::UnitId );
+FMT_TO_CATCH( ::rn::Commodity );
+
 namespace testing {
 namespace {
 
 using namespace std;
 using namespace rn;
 
+using ::Catch::Equals;
 using ::rn::serial::BinaryBlob;
 
 BinaryBlob create_monster() {
@@ -241,47 +246,53 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     auto* fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
 
     (void)fb_unit;
-    // Unit unit;
-    // rn::serial::deserialize( fb_unit, &unit );
+    Unit unit;
+    rn::serial::deserialize( fb_unit, &unit,
+                             ::rn::rn_adl_tag{} );
 
-    // auto const& ship_unit = rn::unit_from_id( ship );
+    auto const& orig = rn::unit_from_id( ship );
 
-    // REQUIRE( unit.id() == ship._ );
-    // REQUIRE( static_cast<int>( unit.type() ) ==
-    //         ship_unit.desc().type._value );
-    // REQUIRE( static_cast<int>( unit.orders() ) ==
-    //         ship_unit.orders()._value );
-    // REQUIRE( static_cast<int>( unit.nation() ) ==
-    //         ship_unit.nation()._value );
-    // REQUIRE( unit.worth() != nullptr );
-    // REQUIRE( unit.worth()->has_value() == false );
-    //// REQUIRE( unit.mv_pts() == ship_unit.movement_points() );
-    // REQUIRE( unit.finished_turn() == ship_unit.finished_turn()
-    // );
+    REQUIRE( unit.id() == orig.id() );
+    REQUIRE( unit.desc().type == orig.desc().type );
+    REQUIRE( unit.orders() == orig.orders() );
+    REQUIRE( unit.nation() == orig.nation() );
+    REQUIRE( unit.worth() == orig.worth() );
+    REQUIRE( unit.movement_points() == orig.movement_points() );
+    REQUIRE( unit.finished_turn() == orig.finished_turn() );
 
-    // REQUIRE( unit.cargo() != nullptr );
-    // auto cargo = unit.cargo();
-    // REQUIRE( cargo != nullptr );
-    // auto slots = cargo->slots();
-    // REQUIRE( slots != nullptr );
-    // REQUIRE( slots->size() == 4 );
-    // REQUIRE( slots->Get( 0 ) != nullptr );
-    // REQUIRE( slots->Get( 1 ) != nullptr );
-    // REQUIRE( slots->Get( 2 ) != nullptr );
-    // REQUIRE( slots->Get( 3 ) != nullptr );
-    // REQUIRE( slots->Get( 0 )->which() ==
-    //         fb::e_cargo_slot_contents::empty );
-    // REQUIRE( slots->Get( 1 )->which() ==
-    //         fb::e_cargo_slot_contents::cargo_unit );
-    // REQUIRE( slots->Get( 2 )->which() ==
-    //         fb::e_cargo_slot_contents::cargo_unit );
-    // REQUIRE( slots->Get( 3 )->which() ==
-    //         fb::e_cargo_slot_contents::cargo_commodity );
-    // REQUIRE( slots->Get( 1 )->unit_id() == 2 );
-    // REQUIRE( slots->Get( 2 )->unit_id() == 3 );
-    // fb::Commodity comm = *slots->Get( 3 )->commodity();
-    // REQUIRE( comm.type() == fb::e_commodity::food );
-    // REQUIRE( comm.quantity() == 100 );
+    REQUIRE( unit.units_in_cargo().has_value() );
+    REQUIRE( orig.units_in_cargo().has_value() );
+
+    REQUIRE_THAT( *unit.units_in_cargo(),
+                  Equals( *orig.units_in_cargo() ) );
+    REQUIRE( unit.finished_turn() == orig.finished_turn() );
+    REQUIRE( unit.moved_this_turn() == orig.moved_this_turn() );
+    REQUIRE( unit.orders_mean_move_needed() ==
+             orig.orders_mean_move_needed() );
+    REQUIRE( unit.orders_mean_input_required() ==
+             orig.orders_mean_input_required() );
+
+    auto& cargo      = unit.cargo();
+    auto& orig_cargo = orig.cargo();
+
+    REQUIRE( cargo.slots_occupied() ==
+             orig_cargo.slots_occupied() );
+    REQUIRE( cargo.slots_remaining() ==
+             orig_cargo.slots_remaining() );
+    REQUIRE( cargo.slots_total() == orig_cargo.slots_total() );
+
+    REQUIRE( cargo.count_items() == orig_cargo.count_items() );
+    REQUIRE( cargo.count_items_of_type<UnitId>() ==
+             orig_cargo.count_items_of_type<UnitId>() );
+    REQUIRE( cargo.count_items_of_type<Commodity>() ==
+             orig_cargo.count_items_of_type<Commodity>() );
+    REQUIRE( cargo.items_of_type<UnitId>() ==
+             orig_cargo.items_of_type<UnitId>() );
+    REQUIRE( cargo.items_of_type<Commodity>() ==
+             orig_cargo.items_of_type<Commodity>() );
+    REQUIRE( cargo.max_commodity_per_cargo_slot() ==
+             orig_cargo.max_commodity_per_cargo_slot() );
+    REQUIRE( cargo.slots() == orig_cargo.slots() );
   }
 }
 

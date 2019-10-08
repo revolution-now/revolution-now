@@ -121,16 +121,6 @@ expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
   return xp_success_t{};
 }
 
-expect<> CargoHold::deserialize_table( fb::CargoHold const& src,
-                                       CargoHold* dst ) {
-  DCHECK( dst );
-  using ::rn::serial::deserialize;
-  XP_OR_RETURN_(
-      deserialize( serial::to_const_ptr( src.slots() ),
-                   &dst->slots_, ::rn::rn_adl_tag{} ) );
-  return xp_success_t{};
-}
-
 string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
       fmt::format( "{}", FmtJsonStyleList{slots_} ),

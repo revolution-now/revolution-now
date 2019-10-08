@@ -91,6 +91,7 @@ expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
 
 class ND CargoHold {
 public:
+  CargoHold() = default; // for serialization framework.
   explicit CargoHold( int num_slots ) : slots_( num_slots ) {
     check_invariants();
   }
@@ -245,10 +246,6 @@ protected:
   // This will be of fixed length (number of total slots).
   ( std::vector<CargoSlot_t>, slots ));
   // clang-format on
-
-public:
-  static expect<> deserialize_table( fb::CargoHold const& src,
-                                     CargoHold*           dst );
 
 private:
   CargoHold( CargoHold const& ) = default; // !! default
