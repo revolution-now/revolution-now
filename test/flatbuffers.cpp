@@ -78,7 +78,7 @@ BinaryBlob create_monster() {
   return BinaryBlob::from_builder( std::move( builder ) );
 }
 
-TEST_CASE( "[flatbuffers] round trip" ) {
+TEST_CASE( "[flatbuffers] serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
   constexpr uint64_t kExpectedBlobSize = 188;
   auto               json_file = data_dir() / "monster.json";
@@ -179,14 +179,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( fs::file_size( tmp_file ) == kExpectedBlobSize );
   }
 
-  SECTION( "deserialize to blob" ) {
+  SECTION( "read from blob" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
-
-    auto json        = blob.to_json<fb::Unit>();
-    auto json_golden = util::read_file_as_string( json_file );
-    INFO( json );
-    REQUIRE( json == json_golden );
 
     // Get a pointer to the root object inside the buffer.
     auto& unit = *flatbuffers::GetRoot<fb::Unit>( blob.get() );
@@ -228,6 +223,65 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     fb::Commodity comm = *slots->Get( 3 )->commodity();
     REQUIRE( comm.type() == fb::e_commodity::food );
     REQUIRE( comm.quantity() == 100 );
+  }
+
+  SECTION( "deserialize unit to json" ) {
+    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    auto json        = blob.to_json<fb::Unit>();
+    auto json_golden = util::read_file_as_string( json_file );
+    INFO( json );
+    REQUIRE( json == json_golden );
+  }
+
+  SECTION( "deserialize unit" ) {
+    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    REQUIRE( blob.size() == kExpectedBlobSize );
+
+    // Get a pointer to the root object inside the buffer.
+    auto* fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
+
+    (void)fb_unit;
+    // Unit unit;
+    // rn::serial::deserialize( fb_unit, &unit );
+
+    // auto const& ship_unit = rn::unit_from_id( ship );
+
+    // REQUIRE( unit.id() == ship._ );
+    // REQUIRE( static_cast<int>( unit.type() ) ==
+    //         ship_unit.desc().type._value );
+    // REQUIRE( static_cast<int>( unit.orders() ) ==
+    //         ship_unit.orders()._value );
+    // REQUIRE( static_cast<int>( unit.nation() ) ==
+    //         ship_unit.nation()._value );
+    // REQUIRE( unit.worth() != nullptr );
+    // REQUIRE( unit.worth()->has_value() == false );
+    //// REQUIRE( unit.mv_pts() == ship_unit.movement_points() );
+    // REQUIRE( unit.finished_turn() == ship_unit.finished_turn()
+    // );
+
+    // REQUIRE( unit.cargo() != nullptr );
+    // auto cargo = unit.cargo();
+    // REQUIRE( cargo != nullptr );
+    // auto slots = cargo->slots();
+    // REQUIRE( slots != nullptr );
+    // REQUIRE( slots->size() == 4 );
+    // REQUIRE( slots->Get( 0 ) != nullptr );
+    // REQUIRE( slots->Get( 1 ) != nullptr );
+    // REQUIRE( slots->Get( 2 ) != nullptr );
+    // REQUIRE( slots->Get( 3 ) != nullptr );
+    // REQUIRE( slots->Get( 0 )->which() ==
+    //         fb::e_cargo_slot_contents::empty );
+    // REQUIRE( slots->Get( 1 )->which() ==
+    //         fb::e_cargo_slot_contents::cargo_unit );
+    // REQUIRE( slots->Get( 2 )->which() ==
+    //         fb::e_cargo_slot_contents::cargo_unit );
+    // REQUIRE( slots->Get( 3 )->which() ==
+    //         fb::e_cargo_slot_contents::cargo_commodity );
+    // REQUIRE( slots->Get( 1 )->unit_id() == 2 );
+    // REQUIRE( slots->Get( 2 )->unit_id() == 3 );
+    // fb::Commodity comm = *slots->Get( 3 )->commodity();
+    // REQUIRE( comm.type() == fb::e_commodity::food );
+    // REQUIRE( comm.quantity() == 100 );
   }
 }
 
