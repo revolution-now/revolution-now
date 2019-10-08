@@ -100,9 +100,10 @@ expect<> Commodity::deserialize_struct( fb::Commodity const& src,
   DCHECK( dst );
   using ::rn::serial::deserialize;
   XP_OR_RETURN_( deserialize( serial::to_const_ptr( src.type() ),
-                              &dst->type ) );
-  XP_OR_RETURN_( deserialize(
-      serial::to_const_ptr( src.quantity() ), &dst->quantity ) );
+                              &dst->type, ::rn::rn_adl_tag{} ) );
+  XP_OR_RETURN_(
+      deserialize( serial::to_const_ptr( src.quantity() ),
+                   &dst->quantity, ::rn::rn_adl_tag{} ) );
   return xp_success_t{};
 }
 

@@ -87,6 +87,50 @@ serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
       builder, which, unit_id, p_commodity )};
 }
 
+expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
+                      ::rn::rn_adl_tag ) {
+  DCHECK( dst );
+  if( src == nullptr ) return xp_success_t{};
+  using ::rn::serial::deserialize;
+  switch( src->which() ) {
+    case fb::e_cargo_slot_contents::empty:
+      *dst = CargoSlot_t{CargoSlot::empty{}};
+      break;
+    case fb::e_cargo_slot_contents::overflow:
+      *dst = CargoSlot_t{CargoSlot::overflow{}};
+      break;
+    case fb::e_cargo_slot_contents::cargo_unit: {
+      UnitId unit_id{0};
+      XP_OR_RETURN_(
+          deserialize( serial::to_const_ptr( src->unit_id() ),
+                       &unit_id, ::rn::rn_adl_tag{} ) );
+      *dst = CargoSlot_t{
+          CargoSlot::cargo{/*contents=*/Cargo{unit_id}}};
+      break;
+    }
+    case fb::e_cargo_slot_contents::cargo_commodity: {
+      Commodity commodity{};
+      XP_OR_RETURN_(
+          deserialize( serial::to_const_ptr( src->commodity() ),
+                       &commodity, ::rn::rn_adl_tag{} ) );
+      *dst = CargoSlot_t{
+          CargoSlot::cargo{/*contents=*/Cargo{commodity}}};
+      break;
+    }
+  }
+  return xp_success_t{};
+}
+
+expect<> CargoHold::deserialize_table( fb::CargoHold const& src,
+                                       CargoHold* dst ) {
+  DCHECK( dst );
+  using ::rn::serial::deserialize;
+  XP_OR_RETURN_(
+      deserialize( serial::to_const_ptr( src.slots() ),
+                   &dst->slots_, ::rn::rn_adl_tag{} ) );
+  return xp_success_t{};
+}
+
 string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
       fmt::format( "{}", FmtJsonStyleList{slots_} ),

@@ -77,12 +77,20 @@
 ** Uniform serialization interface.
 *****************************************************************/
 namespace rn {
-// This is used as a dummy parameter to all rn::serial::serialize
-// calls so that we are guaranteed to always have at least one
-// parameter of a type defined in the rn:: namespace, that way we
-// can always rely on ADL to find serialize methods that we de-
-// clare throughout the codebase even if they are declared after
-// the ones below that might use them.
+// This is used as a dummy parameter to all serialize / deseri-
+// alize calls so that we are guaranteed to always have at least
+// one parameter of a type defined in the rn:: namespace, that
+// way we can always rely on ADL to find serialize methods that
+// we declare throughout the codebase even if they are declared
+// after the ones below that might use them.
+//
+// This is kind of hacky and probably shouldn't be necessary,
+// since in theory we could declare our serialize / deserialize
+// calls all in the same (predictable namespace). But we are re-
+// lying on ADL (I think) because ADL is the only method that can
+// find a function declared after the template that uses it; and
+// we sometimes have to declare functions after the template that
+// uses it because this file has to be included in headers.
 struct rn_adl_tag {};
 } // namespace rn
 
@@ -253,7 +261,8 @@ template<typename SrcT,                    //
                                 std::decay_t<DstT>>, //
              int> = 0                                //
          >
-expect<> deserialize( SrcT const* src, DstT* dst ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing scalar." );
   *dst = *src;
@@ -267,7 +276,8 @@ template<
     decltype( deserialize_enum(
         std::declval<SrcT>(),
         std::add_pointer_t<std::decay_t<DstT>>{} ) )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing enum." );
   return deserialize_enum( *src, dst );
@@ -280,7 +290,8 @@ template<typename SrcT,                                //
              std::is_same_v<int, decltype( DstT::_ )>, //
              int> = 0                                  //
          >
-expect<> deserialize( SrcT const* src, DstT* dst ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing typed int." );
   *dst = DstT{*src};
@@ -291,7 +302,8 @@ expect<> deserialize( SrcT const* src, DstT* dst ) {
 template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_struct )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
   if( src == nullptr ) return xp_success_t{};
   return DstT::deserialize_struct( *src, dst );
 }
@@ -300,7 +312,8 @@ expect<> deserialize( SrcT const* src, DstT* dst ) {
 template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_table )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
   if( src == nullptr ) return xp_success_t{};
   return DstT::deserialize_table( *src, dst );
 }
@@ -312,7 +325,8 @@ template<typename SrcT,               //
              mp::is_optional_v<DstT>, //
              int> = 0                 //
          >
-expect<> deserialize( SrcT const* src, DstT* dst ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
   if( src == nullptr || !src->has_value() ) {
     // `dst` should be in its default-constructed state, which is
     // nullopt if it's an optional.
@@ -326,7 +340,8 @@ expect<> deserialize( SrcT const* src, DstT* dst ) {
   }
   dst->emplace(); // default construct the value.
   return deserialize( to_const_ptr( src->value() ),
-                      std::addressof( *dst ) );
+                      std::addressof( *dst ),
+                      ::rn::rn_adl_tag{} );
 }
 
 // For vectors.
@@ -336,14 +351,24 @@ template<typename SrcT,             //
              mp::is_vector_v<DstT>, //
              int> = 0               //
          >
-expect<> deserialize( SrcT const* src, DstT* dst ) {
-  if( src == nullptr || src->empty() ) {
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
+  // SrcT should be a flatbuffers::Vector.
+  if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
     // an empty vector.
     return xp_success_t{};
   }
-  // TODO
-  (void)dst;
+  dst->resize( src->size() );
+  using iter_t = decltype( src->size() );
+  for( iter_t i = 0; i < src->size(); ++i ) {
+    // This should be a value (scalar) or a pointer.
+    auto elem = src->Get( i );
+    XP_OR_RETURN_(
+        deserialize( to_const_ptr( elem ),
+                     std::addressof( dst->operator[]( i ) ),
+                     ::rn::rn_adl_tag{} ) );
+  }
   return xp_success_t{};
 }
 
