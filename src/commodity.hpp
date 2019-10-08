@@ -99,6 +99,10 @@ struct Commodity {
     return !( *this == rhs );
   }
 
+  void deserialize_struct( fb::Commodity const* p ) const;
+  static Commodity s_deserialize_struct(
+      fb::Commodity const* p );
+
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Commodity,
     ( e_commodity, type     ),

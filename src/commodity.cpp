@@ -95,6 +95,25 @@ string commodity_number_to_markup( int value ) {
 
 } // namespace
 
+void Commodity::deserialize_struct(
+    fb::Commodity const* p ) const {
+  if( !p ) return;
+  // using ::rn::serial::deserialize;
+  // deserialize( &type, p->type() );
+  // deserialize( &quantity, p->quantity() );
+}
+
+Commodity Commodity::s_deserialize_struct(
+    fb::Commodity const* p ) {
+  Commodity res;
+  if( p != nullptr ) {
+    // using ::rn::serial::deserialize;
+    // deserialize( &res.type, p->type() );
+    // deserialize( &res.quantity, p->quantity() );
+  }
+  return res;
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/
