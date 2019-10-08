@@ -171,12 +171,6 @@ BinaryBlob BinaryBlob::from_builder(
 /****************************************************************
 ** Testing
 *****************************************************************/
-void test_serial() {
-  // == Direct ==================================================
-  // SaveableOmni omni;
-  // UclArchiver  ar;
-  // ar.save( "Parent", omni );
-  // lg.info( "result:\n{}", ar.result );
-}
+void test_serial() {}
 
 } // namespace rn::serial

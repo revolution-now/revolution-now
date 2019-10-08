@@ -137,15 +137,14 @@ private:
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Unit,
-    ( UnitId,         id             ),
-    ( e_unit_type,    type           ),
-    ( e_unit_orders,  orders         ),
-    ( CargoHold,      cargo          ),
-    ( e_nation,       nation         ),
-    ( Opt<int>,       worth          ),
-    ( MovementPoints, mv_pts         ),
-    ( bool,           finished_turn  )
-  );
+  ( UnitId,         id             ),
+  ( e_unit_type,    type           ),
+  ( e_unit_orders,  orders         ),
+  ( CargoHold,      cargo          ),
+  ( e_nation,       nation         ),
+  ( Opt<int>,       worth          ),
+  ( MovementPoints, mv_pts         ),
+  ( bool,           finished_turn  ));
   // clang-format on
 };
 NOTHROW_MOVE( Unit );
