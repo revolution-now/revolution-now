@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "errors.hpp"
 #include "meta.hpp"
 
 // Flatbuffers
@@ -43,17 +44,33 @@
             e._to_string() );                                 \
     return fb::EnumValues##name()[from_idx];                  \
   }                                                           \
-  inline name deserialize_enum( fb::name e ) {                \
+  inline expect<> deserialize_enum( fb::name e, name* dst ) { \
     auto from_idx = static_cast<int>( e );                    \
-    CHECK( from_idx >= 0 &&                                   \
-           from_idx <= static_cast<int>( fb::name::MAX ) );   \
+    if( from_idx < 0 ||                                       \
+        from_idx > static_cast<int>( fb::name::MAX ) ) {      \
+      return UNEXPECTED(                                      \
+          "serialized enum of type fb::" #name                \
+          " has index out of its own range (idx={})",         \
+          from_idx );                                         \
+    }                                                         \
     auto res = name::_from_index_nothrow( from_idx );         \
-    CHECK( res );                                             \
-    DCHECK( std::string( ( *res )._to_string() ) ==           \
-                fb::EnumNames##name()[from_idx],              \
-            "{} != {}", ( *res )._to_string(),                \
-            fb::EnumNames##name()[from_idx] );                \
-    return *res;                                              \
+    if( !res ) {                                              \
+      return UNEXPECTED(                                      \
+          "serialized enum of type fb::" #name                \
+          " has index that is outside the range of the "      \
+          "corresponding native type (idx={}).",              \
+          from_idx );                                         \
+    }                                                         \
+    char const* name1 = ( *res )._to_string();                \
+    char const* name2 = fb::EnumNames##name()[from_idx];      \
+    if( std::strcmp( name1, name2 ) != 0 ) {                  \
+      return UNEXPECTED(                                      \
+          "error while deserializing enum of type " #name     \
+          ": {} != {}",                                       \
+          name1, name2 );                                     \
+    }                                                         \
+    *dst = *res;                                              \
+    return xp_success_t{};                                    \
   }
 
 /****************************************************************
@@ -71,6 +88,9 @@ struct rn_adl_tag {};
 
 namespace rn::serial {
 
+/****************************************************************
+** Helpers
+*****************************************************************/
 template<typename SerializedT>
 struct ReturnValue {
   SerializedT o_;
@@ -88,6 +108,24 @@ struct ReturnAddress {
 template<typename SerializedT>
 ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
 
+template<typename T,                //
+         std::enable_if_t<          //
+             !std::is_pointer_v<T>, //
+             int> = 0               //
+         >
+auto to_const_ptr( T const& arg ) {
+  return &arg;
+}
+
+template<typename T,               //
+         std::enable_if_t<         //
+             std::is_pointer_v<T>, //
+             int> = 0              //
+         >
+auto to_const_ptr( T arg ) {
+  return arg;
+}
+
 namespace detail {
 
 template<typename From>
@@ -104,6 +142,9 @@ OPT_FACTORY( std::string, string );
 
 } // namespace detail
 
+/****************************************************************
+** serialize()
+*****************************************************************/
 // For scalars (non-enums).
 template<typename T,              //
          std::enable_if_t<        //
@@ -153,7 +194,7 @@ auto serialize( FBBuilder& builder, T const& o,
   return ReturnValue{o.serialize_table( builder )};
 }
 
-// For C++ classes/structs that get serialized as FB structs.
+// For std::optional.
 template<typename T,               //
          std::enable_if_t<         //
              mp::is_optional_v<T>, //
@@ -197,6 +238,113 @@ auto serialize( FBBuilder& builder, T const& o,
   gotten.reserve( o.size() );
   for( auto const& e : wrappers ) gotten.push_back( e.get() );
   return ReturnValue{builder.CreateVector( gotten )};
+}
+
+/****************************************************************
+** deserialize()
+*****************************************************************/
+// For scalars (non-enums).
+template<typename SrcT,                    //
+         typename DstT,                    //
+         std::enable_if_t<                 //
+             std::is_scalar_v<SrcT> &&     //
+                 std::is_scalar_v<DstT> && //
+                 std::is_same_v<std::decay_t<SrcT>,
+                                std::decay_t<DstT>>, //
+             int> = 0                                //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  DCHECK( src != nullptr,
+          "`src` is nullptr when deserializing scalar." );
+  *dst = *src;
+  return xp_success_t{};
+}
+
+// For enums.
+template<
+    typename SrcT, //
+    typename DstT, //
+    decltype( deserialize_enum(
+        std::declval<SrcT>(),
+        std::add_pointer_t<std::decay_t<DstT>>{} ) )* = nullptr>
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  DCHECK( src != nullptr,
+          "`src` is nullptr when deserializing enum." );
+  return deserialize_enum( *src, dst );
+}
+
+// For typed ints.
+template<typename SrcT,                                //
+         typename DstT,                                //
+         std::enable_if_t<                             //
+             std::is_same_v<int, decltype( DstT::_ )>, //
+             int> = 0                                  //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  DCHECK( src != nullptr,
+          "`src` is nullptr when deserializing typed int." );
+  *dst = DstT{*src};
+  return xp_success_t{};
+}
+
+// For C++ classes/structs that get serialized as FB structs.
+template<typename SrcT, //
+         typename DstT, //
+         decltype( &DstT::deserialize_struct )* = nullptr>
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  if( src == nullptr ) return xp_success_t{};
+  return DstT::deserialize_struct( *src, dst );
+}
+
+// For C++ classes/structs that get serialized as FB tables.
+template<typename SrcT, //
+         typename DstT, //
+         decltype( &DstT::deserialize_table )* = nullptr>
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  if( src == nullptr ) return xp_success_t{};
+  return DstT::deserialize_table( *src, dst );
+}
+
+// For std::optional.
+template<typename SrcT,               //
+         typename DstT,               //
+         std::enable_if_t<            //
+             mp::is_optional_v<DstT>, //
+             int> = 0                 //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  if( src == nullptr || !src->has_value() ) {
+    // `dst` should be in its default-constructed state, which is
+    // nullopt if it's an optional.
+    return xp_success_t{};
+  }
+  if constexpr( std::is_pointer_v<decltype( src->value() )> ) {
+    if( src->value() == nullptr )
+      return UNEXPECTED(
+          "optional has no `value` but has `has_value` == "
+          "true." );
+  }
+  dst->emplace(); // default construct the value.
+  return deserialize( to_const_ptr( src->value() ),
+                      std::addressof( *dst ) );
+}
+
+// For vectors.
+template<typename SrcT,             //
+         typename DstT,             //
+         std::enable_if_t<          //
+             mp::is_vector_v<DstT>, //
+             int> = 0               //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst ) {
+  if( src == nullptr || src->empty() ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty vector.
+    return xp_success_t{};
+  }
+  // TODO
+  (void)dst;
+  return xp_success_t{};
 }
 
 } // namespace rn::serial

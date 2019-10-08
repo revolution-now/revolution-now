@@ -373,6 +373,12 @@ auto propagate_unexpected( ::rn::expect<T> const& e ) {
         STRING_JOIN( __x, __LINE__ ) );                 \
   auto& var = STRING_JOIN( __x, __LINE__ );
 
+#define XP_OR_RETURN_( ... )                         \
+  {                                                  \
+    if( auto xp__ = __VA_ARGS__; !xp__.has_value() ) \
+      return propagate_unexpected( xp__ );           \
+  }
+
 } // namespace rn
 
 namespace fmt {

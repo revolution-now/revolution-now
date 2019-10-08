@@ -95,23 +95,15 @@ string commodity_number_to_markup( int value ) {
 
 } // namespace
 
-void Commodity::deserialize_struct(
-    fb::Commodity const* p ) const {
-  if( !p ) return;
-  // using ::rn::serial::deserialize;
-  // deserialize( &type, p->type() );
-  // deserialize( &quantity, p->quantity() );
-}
-
-Commodity Commodity::s_deserialize_struct(
-    fb::Commodity const* p ) {
-  Commodity res;
-  if( p != nullptr ) {
-    // using ::rn::serial::deserialize;
-    // deserialize( &res.type, p->type() );
-    // deserialize( &res.quantity, p->quantity() );
-  }
-  return res;
+expect<> Commodity::deserialize_struct( fb::Commodity const& src,
+                                        Commodity* dst ) {
+  DCHECK( dst );
+  using ::rn::serial::deserialize;
+  XP_OR_RETURN_( deserialize( serial::to_const_ptr( src.type() ),
+                              &dst->type ) );
+  XP_OR_RETURN_( deserialize(
+      serial::to_const_ptr( src.quantity() ), &dst->quantity ) );
+  return xp_success_t{};
 }
 
 /****************************************************************
