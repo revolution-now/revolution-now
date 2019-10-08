@@ -15,19 +15,37 @@ get_flag() {
     | sed -r 's/^[^ ]+ = (.*)/\1/'
 }
 
-CXX_FLAGS=$(get_flag CXX_FLAGS)
-CXX_DEFINES=$(get_flag CXX_DEFINES)
-CXX_INCLUDES=$(get_flag CXX_INCLUDES)
+get_flag_ninja() {
+  local flag=$1
+  local chunk=$(cat .builds/current/build.ninja | grep ".*rn\.dir.*$stem\.cpp\.o:" -A6)
+  echo "$chunk" | sed -n "s/^  $flag = \(.*\)/\1/p"
+}
+
+[[ "$(realpath .builds/current)" =~ ninja ]] && ninja=1 || ninja=0
+
+if (( ninja )); then
+  CXX_FLAGS=$(get_flag_ninja FLAGS)
+  CXX_DEFINES=$(get_flag_ninja DEFINES)
+  CXX_INCLUDES=$(get_flag_ninja INCLUDES)
+else
+  CXX_FLAGS=$(get_flag CXX_FLAGS)
+  CXX_DEFINES=$(get_flag CXX_DEFINES)
+  CXX_INCLUDES=$(get_flag CXX_INCLUDES)
+fi
 
 clear
+
+(( ninja )) && pushd .builds/current &>/dev/null
 
 $HOME/dev/tools/llvm-current/bin/clang++ \
   -E                                     \
   $CXX_DEFINES                           \
   $CXX_INCLUDES                          \
   $CXX_FLAGS                             \
-  -o $stem.pp.cpp                        \
+  -o $HOME/dev/rn/$stem.pp.cpp           \
   -c $HOME/dev/rn/src/$stem.cpp
+
+(( ninja )) && popd &>/dev/null
 
 cat $stem.pp.cpp | sed '0,/marker_start/d; /marker_end/,$d' \
                  | grep -v marker_start                     \
