@@ -6,6 +6,11 @@
   },
   "hp": 300,
   "name": "Orc",
+  "names": [
+    "hello1",
+    "hello2",
+    "hello3"
+  ],
   "inventory": [
     0,
     1,
@@ -29,11 +34,6 @@
       "damage": 5
     }
   ],
-  "equipped_type": "Weapon",
-  "equipped": {
-    "name": "Axe",
-    "damage": 5
-  },
   "path": [
     {
       "x": 1.0,

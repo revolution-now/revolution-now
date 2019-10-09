@@ -1,8 +1,8 @@
 // For unit testing.
 
-namespace MyGame;
+namespace fb;
 
-enum Color:byte {
+enum e_color:byte {
   Red,
   Green,
   Blue
@@ -11,10 +11,6 @@ enum Color:byte {
 table Weapon {
   name   : string;
   damage : short;
-}
-
-union Equipment {
-  Weapon
 }
 
 struct Vec3 {
@@ -28,12 +24,12 @@ table Monster {
   mana      : short = 150;
   hp        : short = 100;
   name      : string;
+  names     : [string];
   friendly  : bool = false (deprecated);
   inventory : [ubyte];
-  color     : Color = Blue;
+  color     : e_color = Blue;
   weapons   : [Weapon];
-  equipped  : Equipment;
   path      : [Vec3];
 }
 
-root_type MyGame.Monster;
+root_type fb.Monster;

@@ -27,50 +27,50 @@
 /****************************************************************
 ** Enums
 *****************************************************************/
-#define SERIALIZABLE_ENUM( name )                             \
-  static_assert( static_cast<int>( fb::name::MIN ) == 0 );    \
-  static_assert( name::_size() ==                             \
-                 static_cast<size_t>( fb::name::MAX ) + 1 );  \
-  static_assert(                                              \
-      static_cast<int>(                                       \
-          ( *std::begin( values<name> ) )._value ) == 0 );    \
-  inline fb::name serialize_enum( name e ) {                  \
-    auto from_idx = e._value;                                 \
-    CHECK( from_idx >= 0 &&                                   \
-           from_idx <= static_cast<int>( fb::name::MAX ) );   \
-    DCHECK( std::string( fb::EnumNames##name()[from_idx] ) == \
-                e._to_string(),                               \
-            "{} != {}", fb::EnumNames##name()[from_idx],      \
-            e._to_string() );                                 \
-    return fb::EnumValues##name()[from_idx];                  \
-  }                                                           \
-  inline expect<> deserialize_enum( fb::name e, name* dst ) { \
-    auto from_idx = static_cast<int>( e );                    \
-    if( from_idx < 0 ||                                       \
-        from_idx > static_cast<int>( fb::name::MAX ) ) {      \
-      return UNEXPECTED(                                      \
-          "serialized enum of type fb::" #name                \
-          " has index out of its own range (idx={})",         \
-          from_idx );                                         \
-    }                                                         \
-    auto res = name::_from_index_nothrow( from_idx );         \
-    if( !res ) {                                              \
-      return UNEXPECTED(                                      \
-          "serialized enum of type fb::" #name                \
-          " has index that is outside the range of the "      \
-          "corresponding native type (idx={}).",              \
-          from_idx );                                         \
-    }                                                         \
-    char const* name1 = ( *res )._to_string();                \
-    char const* name2 = fb::EnumNames##name()[from_idx];      \
-    if( std::strcmp( name1, name2 ) != 0 ) {                  \
-      return UNEXPECTED(                                      \
-          "error while deserializing enum of type " #name     \
-          ": {} != {}",                                       \
-          name1, name2 );                                     \
-    }                                                         \
-    *dst = *res;                                              \
-    return xp_success_t{};                                    \
+#define SERIALIZABLE_ENUM( name )                              \
+  static_assert( static_cast<int>( fb::name::MIN ) == 0 );     \
+  static_assert( name::_size() ==                              \
+                 static_cast<size_t>( fb::name::MAX ) + 1 );   \
+  static_assert(                                               \
+      static_cast<int>(                                        \
+          ( *std::begin( values<name> ) )._value ) == 0 );     \
+  inline fb::name serialize_enum( name e ) {                   \
+    auto from_idx = e._value;                                  \
+    RN_CHECK( from_idx >= 0 &&                                 \
+              from_idx <= static_cast<int>( fb::name::MAX ) ); \
+    DCHECK( std::string( fb::EnumNames##name()[from_idx] ) ==  \
+                e._to_string(),                                \
+            "{} != {}", fb::EnumNames##name()[from_idx],       \
+            e._to_string() );                                  \
+    return fb::EnumValues##name()[from_idx];                   \
+  }                                                            \
+  inline expect<> deserialize_enum( fb::name e, name* dst ) {  \
+    auto from_idx = static_cast<int>( e );                     \
+    if( from_idx < 0 ||                                        \
+        from_idx > static_cast<int>( fb::name::MAX ) ) {       \
+      return UNEXPECTED(                                       \
+          "serialized enum of type fb::" #name                 \
+          " has index out of its own range (idx={})",          \
+          from_idx );                                          \
+    }                                                          \
+    auto res = name::_from_index_nothrow( from_idx );          \
+    if( !res ) {                                               \
+      return UNEXPECTED(                                       \
+          "serialized enum of type fb::" #name                 \
+          " has index that is outside the range of the "       \
+          "corresponding native type (idx={}).",               \
+          from_idx );                                          \
+    }                                                          \
+    char const* name1 = ( *res )._to_string();                 \
+    char const* name2 = fb::EnumNames##name()[from_idx];       \
+    if( std::strcmp( name1, name2 ) != 0 ) {                   \
+      return UNEXPECTED(                                       \
+          "error while deserializing enum of type " #name      \
+          ": {} != {}",                                        \
+          name1, name2 );                                      \
+    }                                                          \
+    *dst = *res;                                               \
+    return xp_success_t{};                                     \
   }
 
 /****************************************************************
@@ -160,11 +160,7 @@ template<typename T,              //
              int> = 0             //
          >
 auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
-  struct Ret {
-    T o_;
-    T get() const { return o_; }
-  };
-  return Ret{o};
+  return ReturnValue{o};
 }
 
 // For typed ints.
@@ -174,11 +170,19 @@ template<typename T,                                //
              int> = 0                               //
          >
 auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
-  struct Ret {
-    int o_;
-    int get() const { return o_; }
-  };
-  return Ret{o._};
+  return ReturnValue{o._};
+}
+
+// For strings.
+template<typename T,                         //
+         std::enable_if_t<                   //
+             std::is_same_v<std::string, T>, //
+             int> = 0                        //
+         >
+auto serialize( FBBuilder& builder, T const& o,
+                ::rn::rn_adl_tag ) {
+  auto offset = builder.CreateString( o );
+  return ReturnValue{offset};
 }
 
 // For enums.
@@ -233,7 +237,7 @@ auto serialize( FBBuilder& builder, T const& o,
   using fb_wrapper_elem_t = std::decay_t<decltype(
       serialize( builder, *o.begin(), ::rn::rn_adl_tag{} ) )>;
   using fb_get_elem_t =
-      decltype( std::declval<fb_wrapper_elem_t>().get() );
+      decltype( std::declval<fb_wrapper_elem_t const&>().get() );
   // This vector must live until we create the final fb vector.
   std::vector<fb_wrapper_elem_t> wrappers;
   wrappers.reserve( o.size() );
@@ -295,6 +299,20 @@ expect<> deserialize( SrcT const* src, DstT* dst,
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing typed int." );
   *dst = DstT{*src};
+  return xp_success_t{};
+}
+
+// For strings.
+template<typename SrcT,                         //
+         typename DstT,                         //
+         std::enable_if_t<                      //
+             std::is_same_v<std::string, DstT>, //
+             int> = 0                           //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::rn_adl_tag ) {
+  if( src == nullptr ) return xp_success_t{};
+  *dst = src->str();
   return xp_success_t{};
 }
 

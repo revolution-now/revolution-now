@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "enum.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"
 #include "serial.hpp"
@@ -41,6 +43,53 @@ using namespace rn;
 using ::Catch::Equals;
 using ::rn::serial::BinaryBlob;
 
+enum class e_( color, Red, Green, Blue );
+SERIALIZABLE_ENUM( e_color );
+
+struct Weapon {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( Weapon,
+  ( string, name   ),
+  ( short,  damage ));
+  // clang-format on
+};
+
+struct Vec3 {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // clang-format off
+  SERIALIZABLE_STRUCT_MEMBERS( Vec3,
+  ( float, x ),
+  ( float, y ),
+  ( float, z ));
+  // clang-format on
+};
+
+struct Monster {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( Monster,
+  ( Vec3,            pos       ),
+  ( short,           mana      ),
+  ( short,           hp        ),
+  ( string,          name      ),
+  ( vector<string>,  names     ),
+  ( vector<uint8_t>, inventory ),
+  ( e_color,         color     ),
+  ( vector<Weapon>,  weapons   ),
+  ( vector<Vec3>,    path      ));
+  // clang-format on
+};
+
 BinaryBlob create_monster() {
   FBBuilder builder;
 
@@ -49,50 +98,55 @@ BinaryBlob create_monster() {
   auto  weapon_two_name   = builder.CreateString( "Axe" );
   short weapon_two_damage = 5;
 
-  auto sword = MyGame::CreateWeapon( builder, weapon_one_name,
-                                     weapon_one_damage );
-  auto axe   = MyGame::CreateWeapon( builder, weapon_two_name,
-                                   weapon_two_damage );
+  auto sword = fb::CreateWeapon( builder, weapon_one_name,
+                                 weapon_one_damage );
+  auto axe   = fb::CreateWeapon( builder, weapon_two_name,
+                               weapon_two_damage );
 
   auto name = builder.CreateString( "Orc" );
+
+  vector<FBOffset<flatbuffers::String>> names_v;
+  names_v.push_back( builder.CreateString( "hello1" ) );
+  names_v.push_back( builder.CreateString( "hello2" ) );
+  names_v.push_back( builder.CreateString( "hello3" ) );
+  auto names = builder.CreateVector( names_v );
 
   unsigned char treasure[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
   auto          inventory = builder.CreateVector( treasure, 10 );
 
-  vector<FBOffset<MyGame::Weapon>> weapons_vector;
+  vector<FBOffset<fb::Weapon>> weapons_vector;
   weapons_vector.push_back( sword );
   weapons_vector.push_back( axe );
   auto weapons = builder.CreateVector( weapons_vector );
 
-  MyGame::Vec3 points[] = {MyGame::Vec3( 1.0f, 2.0f, 3.0f ),
-                           MyGame::Vec3( 4.0f, 5.0f, 6.0f )};
-  auto         path = builder.CreateVectorOfStructs( points, 2 );
+  fb::Vec3 points[] = {fb::Vec3( 1.0f, 2.0f, 3.0f ),
+                       fb::Vec3( 4.0f, 5.0f, 6.0f )};
+  auto     path     = builder.CreateVectorOfStructs( points, 2 );
 
-  auto position = MyGame::Vec3( 1.0f, 2.0f, 3.0f );
+  auto position = fb::Vec3( 1.0f, 2.0f, 3.0f );
 
   int hp   = 300;
   int mana = 150;
 
-  auto orc = MyGame::CreateMonster(
-      builder, &position, mana, hp, name, inventory,
-      MyGame::Color::Red, weapons, MyGame::Equipment::Weapon,
-      axe.Union(), path );
+  auto orc = fb::CreateMonster(
+      builder, &position, mana, hp, name, names, inventory,
+      fb::e_color::Red, weapons, path );
 
   builder.Finish( orc );
 
   return BinaryBlob::from_builder( std::move( builder ) );
 }
 
-TEST_CASE( "[flatbuffers] serialize to blob" ) {
+TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 188;
+  constexpr uint64_t kExpectedBlobSize = 236;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
     auto blob = create_monster();
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json        = blob.to_json<MyGame::Monster>();
+    auto json        = blob.to_json<fb::Monster>();
     auto json_golden = util::read_file_as_string( json_file );
     REQUIRE( json == json_golden );
 
@@ -104,19 +158,24 @@ TEST_CASE( "[flatbuffers] serialize to blob" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json        = blob.to_json<MyGame::Monster>();
+    auto json        = blob.to_json<fb::Monster>();
     auto json_golden = util::read_file_as_string( json_file );
     REQUIRE( json == json_golden );
 
     // Get a pointer to the root object inside the buffer.
     auto& monster =
-        *flatbuffers::GetRoot<MyGame::Monster>( blob.get() );
+        *flatbuffers::GetRoot<fb::Monster>( blob.get() );
 
     REQUIRE( monster.hp() == 300 );
     REQUIRE( monster.mana() == 150 );
 
     REQUIRE( monster.name() != nullptr );
     REQUIRE( monster.name()->str() == "Orc" );
+
+    REQUIRE( monster.names() != nullptr );
+    REQUIRE( monster.names()->Get( 0 )->str() == "hello1" );
+    REQUIRE( monster.names()->Get( 1 )->str() == "hello2" );
+    REQUIRE( monster.names()->Get( 2 )->str() == "hello3" );
 
     REQUIRE( monster.pos() != nullptr );
     REQUIRE( monster.pos()->x() == 1.0 );
@@ -139,6 +198,46 @@ TEST_CASE( "[flatbuffers] serialize to blob" ) {
     REQUIRE( snd->name() != nullptr );
     REQUIRE( snd->name()->str() == "Axe" );
     REQUIRE( snd->damage() == 5 );
+  }
+
+  SECTION( "deserialize to native" ) {
+    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    REQUIRE( blob.size() == kExpectedBlobSize );
+
+    // Get a pointer to the root object inside the buffer.
+    auto* fb_monster =
+        flatbuffers::GetRoot<fb::Monster>( blob.get() );
+
+    Monster monster;
+    CHECK_XP( rn::serial::deserialize( fb_monster, &monster,
+                                       ::rn::rn_adl_tag{} ) );
+
+    REQUIRE( monster.hp_ == 300 );
+    REQUIRE( monster.mana_ == 150 );
+
+    REQUIRE( monster.name_ == "Orc" );
+
+    REQUIRE( monster.names_.size() == 3 );
+    REQUIRE( monster.names_[0] == "hello1" );
+    REQUIRE( monster.names_[1] == "hello2" );
+    REQUIRE( monster.names_[2] == "hello3" );
+
+    REQUIRE( monster.pos_.x == 1.0 );
+    REQUIRE( monster.pos_.y == 2.0 );
+    REQUIRE( monster.pos_.z == 3.0 );
+
+    auto const& inv = monster.inventory_;
+    REQUIRE( inv.size() == 10 );
+    REQUIRE( inv[2] == 2 );
+
+    auto const& weapons = monster.weapons_;
+    REQUIRE( weapons.size() == 2 );
+    auto fst = weapons[0];
+    REQUIRE( fst.name_ == "Sword" );
+    REQUIRE( fst.damage_ == 3 );
+    auto snd = weapons[1];
+    REQUIRE( snd.name_ == "Axe" );
+    REQUIRE( snd.damage_ == 5 );
   }
 }
 
@@ -245,7 +344,6 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     // Get a pointer to the root object inside the buffer.
     auto* fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
 
-    (void)fb_unit;
     Unit unit;
     CHECK_XP( rn::serial::deserialize( fb_unit, &unit,
                                        ::rn::rn_adl_tag{} ) );
