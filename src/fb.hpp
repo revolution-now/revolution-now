@@ -305,7 +305,9 @@ template<typename SrcT, //
 expect<> deserialize( SrcT const* src, DstT* dst,
                       ::rn::rn_adl_tag ) {
   if( src == nullptr ) return xp_success_t{};
-  return DstT::deserialize_struct( *src, dst );
+  if( auto xp = DstT::deserialize_struct( *src, dst ); !xp )
+    return xp;
+  return dst->check_invariants_safe();
 }
 
 // For C++ classes/structs that get serialized as FB tables.
@@ -315,7 +317,9 @@ template<typename SrcT, //
 expect<> deserialize( SrcT const* src, DstT* dst,
                       ::rn::rn_adl_tag ) {
   if( src == nullptr ) return xp_success_t{};
-  return DstT::deserialize_table( *src, dst );
+  if( auto xp = DstT::deserialize_table( *src, dst ); !xp )
+    return xp;
+  return dst->check_invariants_safe();
 }
 
 // For std::optional.

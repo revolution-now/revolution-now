@@ -247,8 +247,8 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 
     (void)fb_unit;
     Unit unit;
-    rn::serial::deserialize( fb_unit, &unit,
-                             ::rn::rn_adl_tag{} );
+    CHECK_XP( rn::serial::deserialize( fb_unit, &unit,
+                                       ::rn::rn_adl_tag{} ) );
 
     auto const& orig = rn::unit_from_id( ship );
 

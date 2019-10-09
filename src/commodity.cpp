@@ -96,6 +96,16 @@ string commodity_number_to_markup( int value ) {
 } // namespace
 
 /****************************************************************
+** Commodity Cargo
+*****************************************************************/
+expect<> Commodity::check_invariants_safe() const {
+  if( quantity <= 0 )
+    return UNEXPECTED( "Commodity quantity <= 0 ({})",
+                       quantity );
+  return xp_success_t{};
+}
+
+/****************************************************************
 ** Public API
 *****************************************************************/
 Opt<e_commodity> commodity_from_index( int index ) {

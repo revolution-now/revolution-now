@@ -117,6 +117,8 @@ public:
 
   std::string to_string() const;
 
+  expect<> check_invariants_safe() const;
+
 private:
   // atoms can be > 2
   MovementPoints( int integral, int atoms );

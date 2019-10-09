@@ -99,6 +99,8 @@ struct Commodity {
     return !( *this == rhs );
   }
 
+  expect<> check_invariants_safe() const;
+
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Commodity,
     ( e_commodity, type     ),

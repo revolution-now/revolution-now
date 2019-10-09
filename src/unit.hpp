@@ -130,6 +130,8 @@ public:
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { orders_ = e_unit_orders::none; }
 
+  expect<> check_invariants_safe() const;
+
 private:
   friend Unit& create_unit( e_nation nation, e_unit_type type );
 

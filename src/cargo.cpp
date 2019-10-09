@@ -127,6 +127,16 @@ string CargoHold::debug_string() const {
       {{"CargoSlot::", ""}} );
 }
 
+expect<> CargoHold::check_invariants_safe() const {
+  try {
+    check_invariants();
+    return xp_success_t{};
+  } catch( ::rn::exception_with_bt const& e ) {
+    return UNEXPECTED( "CargoHold invariants not upheld: {}",
+                       e.what() );
+  }
+}
+
 void CargoHold::check_invariants() const {
   // 0. Accurate reporting of number of slots.
   CHECK( slots_total() == int( slots_.size() ) );

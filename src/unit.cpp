@@ -33,6 +33,16 @@ Unit::Unit( e_nation nation, e_unit_type type )
     mv_pts_( unit_desc( type ).movement_points ),
     finished_turn_( false ) {}
 
+expect<> Unit::check_invariants_safe() const {
+  try {
+    check_invariants();
+    return xp_success_t{};
+  } catch( exception_with_bt const& e ) {
+    return UNEXPECTED( "Unit invariants not upheld: {}",
+                       e.what() );
+  }
+}
+
 // Ideally this should be empty... try to do this with types.
 void Unit::check_invariants() const {
   // Check that only treasure units can have a worth.

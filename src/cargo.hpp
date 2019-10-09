@@ -191,6 +191,8 @@ public:
 
   std::string debug_string() const;
 
+  expect<> check_invariants_safe() const;
+
 protected:
   void check_invariants() const;
 
