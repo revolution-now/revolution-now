@@ -134,6 +134,16 @@ auto to_const_ptr( T arg ) {
   return arg;
 }
 
+// Takes the return type of a FB getter and converts it to a type
+// suitable for passing as a Hint to the `serialize` methods.
+template<typename T>
+using fb_serialize_hint_t =    //
+    std::decay_t<              //
+        std::remove_pointer_t< //
+            std::decay_t<T>    //
+            >                  //
+        >;
+
 namespace detail {
 
 template<typename From>
@@ -153,8 +163,17 @@ OPT_FACTORY( std::string, string );
 /****************************************************************
 ** serialize()
 *****************************************************************/
+// First template parameter is a hint for which flattbuffers type
+// to serialize to, but in many cases it is not used/needed. It's
+// only needed in those cases where we have some kind of generic
+// C++ type (like a map) that might need to be serialized to mul-
+// tiple different kinds of flatbuffers types, and which type is
+// only known by looking at the target flatbuffers type during
+// serialization.
+
 // For scalars (non-enums).
-template<typename T,              //
+template<typename Hint,           //
+         typename T,              //
          std::enable_if_t<        //
              std::is_scalar_v<T>, //
              int> = 0             //
@@ -164,7 +183,8 @@ auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
 }
 
 // For typed ints.
-template<typename T,                                //
+template<typename Hint,                             //
+         typename T,                                //
          std::enable_if_t<                          //
              std::is_same_v<int, decltype( T::_ )>, //
              int> = 0                               //
@@ -174,7 +194,8 @@ auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
 }
 
 // For strings.
-template<typename T,                         //
+template<typename Hint,                      //
+         typename T,                         //
          std::enable_if_t<                   //
              std::is_same_v<std::string, T>, //
              int> = 0                        //
@@ -186,28 +207,34 @@ auto serialize( FBBuilder& builder, T const& o,
 }
 
 // For enums.
-template<typename T, decltype( serialize_enum(
-                         std::declval<T>() ) )* = nullptr>
+template<
+    typename Hint, //
+    typename T,
+    decltype( serialize_enum( std::declval<T>() ) )* = nullptr>
 auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
   return ReturnValue{serialize_enum( o )};
 }
 
 // For C++ classes/structs that get serialized as FB structs.
-template<typename T, decltype( &T::serialize_struct )* = nullptr>
+template<typename Hint, //
+         typename T, decltype( &T::serialize_struct )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::rn_adl_tag ) {
   return ReturnAddress{o.serialize_struct( builder )};
 }
 
 // For C++ classes/structs that get serialized as FB tables.
-template<typename T, decltype( &T::serialize_table )* = nullptr>
+template<typename Hint, //
+         typename T, decltype( &T::serialize_table )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::rn_adl_tag ) {
   return ReturnValue{o.serialize_table( builder )};
 }
 
-// For std::optional.
-template<typename T,               //
+// For std::optional. FIXME: use Hint type and static Create
+// functions to automate creation of serialized type.
+template<typename Hint,            //
+         typename T,               //
          std::enable_if_t<         //
              mp::is_optional_v<T>, //
              int> = 0              //
@@ -217,7 +244,8 @@ auto serialize( FBBuilder& builder, T const& o,
   auto factory =
       detail::opt_value_type_to_fb<typename T::value_type>;
   if( o.has_value() ) {
-    auto s_value = serialize( builder, *o, ::rn::rn_adl_tag{} );
+    auto s_value =
+        serialize<void>( builder, *o, ::rn::rn_adl_tag{} );
     return ReturnValue{
         factory( builder, /*has_value=*/true, s_value.get() )};
   } else {
@@ -226,16 +254,19 @@ auto serialize( FBBuilder& builder, T const& o,
   }
 }
 
-// For vectors.
-template<typename T,             //
+// For vectors. FIXME: does not support extracting hint type for
+// the contained type.
+template<typename Hint,          //
+         typename T,             //
          std::enable_if_t<       //
              mp::is_vector_v<T>, //
              int> = 0            //
          >
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::rn_adl_tag ) {
-  using fb_wrapper_elem_t = std::decay_t<decltype(
-      serialize( builder, *o.begin(), ::rn::rn_adl_tag{} ) )>;
+  using fb_wrapper_elem_t =
+      std::decay_t<decltype( serialize<void>(
+          builder, *o.begin(), ::rn::rn_adl_tag{} ) )>;
   using fb_get_elem_t =
       decltype( std::declval<fb_wrapper_elem_t const&>().get() );
   // This vector must live until we create the final fb vector.
@@ -243,7 +274,7 @@ auto serialize( FBBuilder& builder, T const& o,
   wrappers.reserve( o.size() );
   for( auto const& e : o )
     wrappers.push_back(
-        serialize( builder, e, ::rn::rn_adl_tag{} ) );
+        serialize<void>( builder, e, ::rn::rn_adl_tag{} ) );
   // This vector may hold pointers into the previous one if we're
   // dealing with structs.
   std::vector<fb_get_elem_t> gotten;
@@ -399,9 +430,11 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var ) \
-  auto PP_JOIN( s_, var ) =                           \
-      serialize( builder, var##_, ::rn::rn_adl_tag{} )
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )       \
+  auto PP_JOIN( s_, var ) =                                 \
+      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
+          std::declval<FBTargetType>().var() )>>(           \
+          builder, var##_, ::rn::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
   SERIAL_CALL_SERIALIZE_TABLE_IMPL p
@@ -423,6 +456,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 #define SERIALIZABLE_TABLE_MEMBERS_IMPL( name, ... )           \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )        \
 public:                                                        \
+  using FBTargetType = fb::name;                               \
   FBOffset<fb::name> serialize_table( FBBuilder& builder )     \
       const {                                                  \
     using ::rn::serial::serialize;                             \
@@ -447,9 +481,11 @@ private:
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_IMPL( type, var ) \
-  auto PP_JOIN( s_, var ) =                            \
-      serialize( builder, var, ::rn::rn_adl_tag{} )
+#define SERIAL_CALL_SERIALIZE_STRUCT_IMPL( type, var )      \
+  auto PP_JOIN( s_, var ) =                                 \
+      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
+          std::declval<FBTargetType>().var() )>>(           \
+          builder, var, ::rn::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \
   SERIAL_CALL_SERIALIZE_STRUCT_IMPL p
@@ -467,6 +503,7 @@ private:
 #define SERIALIZABLE_STRUCT_MEMBERS_IMPL( name, ... )          \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_STRUCT, __VA_ARGS__ )       \
 public:                                                        \
+  using FBTargetType = fb::name;                               \
   fb::name serialize_struct( FBBuilder& builder ) const {      \
     using ::rn::serial::serialize;                             \
     PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_STRUCT, __VA_ARGS__ )   \

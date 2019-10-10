@@ -52,9 +52,8 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 } // namespace
 
-serial::ReturnValue<FBOffset<fb::CargoSlot>> serialize(
-    FBBuilder& builder, CargoSlot_t const& o,
-    ::rn::rn_adl_tag ) {
+serial::ReturnValue<FBOffset<fb::CargoSlot>> cargoslot_serialize(
+    FBBuilder& builder, CargoSlot_t const& o ) {
   int32_t       unit_id = 0;
   fb::Commodity commodity;
   // If this is not a commodity slot then just leave this as

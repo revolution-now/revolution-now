@@ -83,8 +83,15 @@ adt_rn( CargoSlot,              //
           ( Cargo, contents ) ) //
 );
 
+serial::ReturnValue<FBOffset<::fb::CargoSlot>>
+cargoslot_serialize( FBBuilder& builder, CargoSlot_t const& o );
+
+template<typename Hint>
 serial::ReturnValue<FBOffset<::fb::CargoSlot>> serialize(
-    FBBuilder& builder, CargoSlot_t const& o, ::rn::rn_adl_tag );
+    FBBuilder& builder, CargoSlot_t const& o,
+    ::rn::rn_adl_tag ) {
+  return cargoslot_serialize( builder, o );
+}
 
 expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
                       ::rn::rn_adl_tag );
