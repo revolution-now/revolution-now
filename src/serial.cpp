@@ -11,10 +11,15 @@
 #include "serial.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
+#include "io.hpp"
 #include "logging.hpp"
 #include "meta.hpp"
+
+// Revolution Now (config)
+#include "../config/ucl/rn.inl"
 
 // Flatbuffers
 #include "fb/testing_generated.h"
@@ -142,7 +147,7 @@ expect<ByteBuffer> ByteBuffer::read( fs::path const& file ) {
 
 expect<BinaryBlob> BinaryBlob::read( fs::path const& path ) {
   XP_OR_RETURN( byte_buffer, ByteBuffer::read( path ) );
-  return expect<BinaryBlob>( std::move( *byte_buffer ) );
+  return std::move( byte_buffer );
 }
 
 expect<> BinaryBlob::write( fs::path const& file ) const {
@@ -166,6 +171,36 @@ BinaryBlob BinaryBlob::from_builder(
   size_t out_size, out_offset;
   auto*  buf = builder.ReleaseRaw( out_size, out_offset );
   return BinaryBlob( buf, int( out_size ), int( out_offset ) );
+}
+
+expect<BinaryBlob> BinaryBlob::from_json(
+    fs::path const& schema_file_name,
+    fs::path const& json_file_path, string_view root_type ) {
+  flatbuffers::Parser parser;
+  // Store this as a string so that we can then pass C strings
+  // safely to the Parser API.
+  string include = config_rn.flatbuffers.include_path.string();
+  char const* c_includes[] = {include.c_str(), nullptr};
+
+  auto schema_path =
+      config_rn.flatbuffers.include_path / schema_file_name;
+  XP_OR_RETURN( schema, rn::read_file_as_string( schema_path ) );
+  if( !parser.Parse( schema.c_str(), c_includes ) )
+    return UNEXPECTED( "failed to parse schema file `{}`: {}",
+                       schema_path, parser.error_ );
+
+  if( !parser.SetRootType( string( root_type ).c_str() ) )
+    return UNEXPECTED( "failed to set root type: `{}`.",
+                       root_type );
+
+  XP_OR_RETURN( json,
+                rn::read_file_as_string( json_file_path ) );
+  if( !parser.Parse( json.c_str() ) )
+    return UNEXPECTED(
+        "failed to parse JSON flatbuffers file `{}`: {}",
+        json_file_path, parser.error_ );
+
+  return from_builder( std::move( parser.builder_ ) );
 }
 
 /****************************************************************

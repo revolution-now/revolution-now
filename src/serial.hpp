@@ -68,6 +68,11 @@ public:
   static BinaryBlob from_builder(
       flatbuffers::FlatBufferBuilder builder );
 
+  static expect<BinaryBlob> from_json(
+      fs::path const&  schema_file_name,
+      fs::path const&  json_file_path,
+      std::string_view root_type );
+
   template<typename FB>
   std::string to_json() const {
     flatbuffers::ToStringVisitor tostring_visitor( //

@@ -31,5 +31,3 @@ table Monster {
   weapons   : [Weapon];
   path      : [Vec3];
 }
-
-root_type fb.Monster;

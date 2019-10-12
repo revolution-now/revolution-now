@@ -15,6 +15,7 @@
 #include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "io.hpp"
 #include "logging.hpp"
 #include "ownership.hpp"
 #include "serial.hpp"
@@ -146,8 +147,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     auto blob = create_monster();
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json        = blob.to_json<fb::Monster>();
-    auto json_golden = util::read_file_as_string( json_file );
+    auto json = blob.to_json<fb::Monster>();
+    ASSIGN_CHECK_XP( json_golden,
+                     rn::read_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
 
     CHECK_XP( blob.write( tmp_file.c_str() ) );
@@ -158,8 +160,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json        = blob.to_json<fb::Monster>();
-    auto json_golden = util::read_file_as_string( json_file );
+    auto json = blob.to_json<fb::Monster>();
+    ASSIGN_CHECK_XP( json_golden,
+                     rn::read_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
 
     // Get a pointer to the root object inside the buffer.
@@ -241,6 +244,55 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   }
 }
 
+TEST_CASE( "deserialize json" ) {
+  testing_only::reset_unit_creation();
+
+  (void)create_unit( e_nation::english,
+                     e_unit_type::merchantman )
+      .id();
+  (void)create_unit( e_nation::english,
+                     e_unit_type::free_colonist )
+      .id();
+  (void)create_unit( e_nation::english, e_unit_type::soldier )
+      .id();
+
+  ASSIGN_CHECK_XP(
+      blob, BinaryBlob::from_json(
+                /*schema_file_name=*/"unit.fbs",
+                /*json_file_path=*/data_dir() / "unit.json",
+                /*root_type=*/"fb.Unit" ) );
+  REQUIRE( blob.size() == 160 );
+
+  // Get a pointer to the root object inside the buffer.
+  auto fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
+
+  Unit unit;
+  CHECK_XP( rn::serial::deserialize( fb_unit, &unit,
+                                     ::rn::rn_adl_tag{} ) );
+
+  REQUIRE( unit.id() == UnitId{1} );
+  REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
+  REQUIRE( unit.nation() == rn::e_nation::english );
+  REQUIRE( unit.worth() == nullopt );
+  REQUIRE( unit.movement_points() == rn::MovementPoints( 5 ) );
+
+  auto& cargo = unit.cargo();
+  REQUIRE( cargo.slots_total() == 4 );
+  REQUIRE( cargo.slots()[0] ==
+           rn::CargoSlot_t{rn::CargoSlot::empty{}} );
+  REQUIRE( cargo.slots()[1] ==
+           rn::CargoSlot_t{
+               rn::CargoSlot::cargo{/*contents=*/UnitId{2}}} );
+  REQUIRE( cargo.slots()[2] ==
+           rn::CargoSlot_t{
+               rn::CargoSlot::cargo{/*contents=*/UnitId{3}}} );
+  REQUIRE(
+      cargo.slots()[3] ==
+      rn::CargoSlot_t{rn::CargoSlot::cargo{
+          /*contents=*/Commodity{/*type=*/rn::e_commodity::food,
+                                 /*quantity=*/100}}} );
+}
+
 TEST_CASE( "[flatbuffers] serialize Unit" ) {
   testing_only::reset_unit_creation();
 
@@ -274,8 +326,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json        = blob.to_json<fb::Unit>();
-    auto json_golden = util::read_file_as_string( json_file );
+    auto json = blob.to_json<fb::Unit>();
+    ASSIGN_CHECK_XP( json_golden,
+                     rn::read_file_as_string( json_file ) );
     INFO( json );
     REQUIRE( json == json_golden );
 
@@ -331,8 +384,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 
   SECTION( "deserialize unit to json" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
-    auto json        = blob.to_json<fb::Unit>();
-    auto json_golden = util::read_file_as_string( json_file );
+    auto json = blob.to_json<fb::Unit>();
+    ASSIGN_CHECK_XP( json_golden,
+                     rn::read_file_as_string( json_file ) );
     INFO( json );
     REQUIRE( json == json_golden );
   }
