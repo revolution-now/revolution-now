@@ -59,6 +59,18 @@ struct Weapon {
   // clang-format on
 };
 
+struct Vec2 {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // clang-format off
+  SERIALIZABLE_STRUCT_MEMBERS( Vec2,
+  ( float, x ),
+  ( float, y ));
+  // clang-format on
+};
+
 struct Vec3 {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
@@ -77,17 +89,22 @@ struct Monster {
     return xp_success_t{};
   }
 
+  using map_vecs_t = FlatMap<Vec2, int>;
+  using map_strs_t = unordered_map<string, int>;
+
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Monster,
-  ( Vec3,            pos       ),
-  ( short,           mana      ),
-  ( short,           hp        ),
-  ( string,          name      ),
-  ( vector<string>,  names     ),
-  ( vector<uint8_t>, inventory ),
-  ( e_color,         color     ),
-  ( vector<Weapon>,  weapons   ),
-  ( vector<Vec3>,    path      ));
+  ( Vec3,            pos              ),
+  ( short,           mana             ),
+  ( short,           hp               ),
+  ( string,          name             ),
+  ( vector<string>,  names            ),
+  ( vector<uint8_t>, inventory        ),
+  ( e_color,         color            ),
+  ( vector<Weapon>,  weapons          ),
+  ( vector<Vec3>,    path             ));
+  //( map_vecs_t,      map_vecs         ),
+  //( map_strs_t,      map_strs         ));
   // clang-format on
 };
 
@@ -272,9 +289,11 @@ TEST_CASE( "deserialize json" ) {
 
   REQUIRE( unit.id() == UnitId{1} );
   REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
+  REQUIRE( unit.orders() == rn::e_unit_orders::none );
   REQUIRE( unit.nation() == rn::e_nation::english );
   REQUIRE( unit.worth() == nullopt );
   REQUIRE( unit.movement_points() == rn::MovementPoints( 5 ) );
+  REQUIRE( unit.finished_turn() == false );
 
   auto& cargo = unit.cargo();
   REQUIRE( cargo.slots_total() == 4 );

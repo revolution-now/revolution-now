@@ -283,6 +283,39 @@ auto serialize( FBBuilder& builder, T const& o,
   return ReturnValue{builder.CreateVector( gotten )};
 }
 
+// For map-like things.
+template<typename Hint,          //
+         typename T,             //
+         std::enable_if_t<       //
+             mp::is_map_like<T>, //
+             int> = 0            //
+         >
+auto serialize( FBBuilder&, T const&, ::rn::rn_adl_tag ) {
+  // using fb_key_wrapper_elem_t = std::decay_t<decltype(
+  //    serialize( builder, std::declval<typename T::key_type>(),
+  //               ::rn::rn_adl_tag{} ) )>;
+  // using fb_val_wrapper_elem_t = std::decay_t<decltype(
+  // serialize(
+  //    builder, std::declval<typename T::mapped_type>(),
+  //    ::rn::rn_adl_tag{} ) )>;
+  // using fb_key_get_elem_t     = decltype(
+  //    std::declval<fb_key_wrapper_elem_t const&>().get() );
+  // using fb_val_get_elem_t = decltype(
+  //    std::declval<fb_val_wrapper_elem_t const&>().get() );
+  //// This vector must live until we create the final fb vector.
+  // std::vector<fb_wrapper_elem_t> wrappers;
+  // wrappers.reserve( o.size() );
+  // for( auto const& e : o )
+  //  wrappers.push_back(
+  //      serialize( builder, e, ::rn::rn_adl_tag{} ) );
+  //// This vector may hold pointers into the previous one if
+  /// we're / dealing with structs.
+  // std::vector<fb_get_elem_t> gotten;
+  // gotten.reserve( o.size() );
+  // for( auto const& e : wrappers ) gotten.push_back( e.get() );
+  // return ReturnValue{builder.CreateVector( gotten )};
+}
+
 /****************************************************************
 ** deserialize()
 *****************************************************************/

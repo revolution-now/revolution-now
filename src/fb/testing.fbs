@@ -13,10 +13,25 @@ table Weapon {
   damage : short;
 }
 
+struct Vec2 {
+  x : float;
+  y : float;
+}
+
 struct Vec3 {
   x : float;
   y : float;
   z : float;
+}
+
+table Pair_string_int {
+  key   : string;
+  value : int;
+}
+
+struct Pair_Vec2_int {
+  key   : Vec2;
+  value : int;
 }
 
 table Monster {
@@ -30,4 +45,6 @@ table Monster {
   color     : e_color = Blue;
   weapons   : [Weapon];
   path      : [Vec3];
+  map_vecs  : [Pair_Vec2_int];
+  map_strs  : [Pair_string_int];
 }
