@@ -17,9 +17,6 @@
 #include "scope-exit.hpp"
 #include "util.hpp"
 
-// Flatbuffers
-#include "fb/cargo_generated.h"
-
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/variant.hpp"

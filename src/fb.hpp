@@ -18,7 +18,9 @@
 #include "meta.hpp"
 
 // Flatbuffers
-#include "fb/vocab_generated.h"
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/idl.h"
+#include "flatbuffers/minireflect.h"
 
 // base-util
 #include "base-util/mp.hpp"
@@ -164,17 +166,6 @@ using fb_serialize_hint_t =    //
             >                  //
         >;
 
-template<typename From>
-auto hint_to_fb_factory = 0;
-
-#define HINT_TO_FACTORY( fb_type )              \
-  template<>                                    \
-  inline auto hint_to_fb_factory<fb::fb_type> = \
-      ::fb::Create##fb_type
-
-HINT_TO_FACTORY( Opt_bool );
-HINT_TO_FACTORY( Opt_int );
-
 } // namespace detail
 
 /****************************************************************
@@ -257,15 +248,14 @@ template<typename Hint,            //
          >
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::rn_adl_tag ) {
-  auto factory = detail::hint_to_fb_factory<Hint>;
   if( o.has_value() ) {
     auto s_value =
         serialize<void>( builder, *o, ::rn::rn_adl_tag{} );
-    return ReturnValue{
-        factory( builder, /*has_value=*/true, s_value.get() )};
+    return ReturnValue{Hint::Create( builder, /*has_value=*/true,
+                                     s_value.get() )};
   } else {
     return ReturnValue{
-        factory( builder, /*has_value=*/false, {} )};
+        Hint::Create( builder, /*has_value=*/false, {} )};
   }
 }
 
