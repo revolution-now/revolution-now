@@ -173,11 +173,13 @@ using remove_fb_offset_t = typename remove_fb_offset<T>::type;
 // Takes the return type of a FB getter and converts it to a type
 // suitable for passing as a Hint to the `serialize` methods.
 template<typename T>
-using fb_serialize_hint_t =    //
-    std::decay_t<              //
-        std::remove_pointer_t< //
-            std::decay_t<T>    //
-            >                  //
+using fb_serialize_hint_t =        //
+    remove_fb_offset_t<            //
+        std::decay_t<              //
+            std::remove_pointer_t< //
+                std::decay_t<T>    //
+                >                  //
+            >                      //
         >;
 
 template<typename T, typename = void>
@@ -252,8 +254,6 @@ template<typename Hint, //
          typename T, decltype( &T::serialize_table )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::rn_adl_tag ) {
-  using namespace ::rn::serial::detail;
-  static_assert( has_create_v<remove_fb_offset_t<Hint>> );
   return ReturnValue{o.serialize_table( builder )};
 }
 
@@ -326,12 +326,28 @@ template<typename Hint,                        //
          >
 auto serialize( FBBuilder& builder, T const& m,
                 ::rn::rn_adl_tag ) {
-  using key_t = typename T::key_type;
-  using val_t = typename T::mapped_type;
-  Vec<Pair<key_t, val_t>> pairs;
-  pairs.reserve( m.size() );
-  for( auto const& [k, v] : m ) pairs.emplace_back( k, v );
-  return serialize<Hint>( builder, pairs, ::rn::rn_adl_tag{} );
+  using namespace detail;
+  // This should be a table with the name "Pair*".
+  using inner_hint_t =
+      fb_serialize_hint_t<remove_fb_vector_t<Hint>>;
+  using fb_wrapper_elem_t =
+      std::decay_t<decltype( serialize<inner_hint_t>(
+          builder, std::declval<typename T::value_type>(),
+          ::rn::rn_adl_tag{} ) )>;
+  using fb_get_elem_t =
+      decltype( std::declval<fb_wrapper_elem_t const&>().get() );
+  // This vector must live until we create the final fb vector.
+  std::vector<fb_wrapper_elem_t> wrappers;
+  wrappers.reserve( m.size() );
+  for( auto const& p : m )
+    wrappers.emplace_back( serialize<inner_hint_t>(
+        builder, p, ::rn::rn_adl_tag{} ) );
+  // This vector may hold pointers into the previous one if we're
+  // dealing with structs.
+  std::vector<fb_get_elem_t> gotten;
+  gotten.reserve( m.size() );
+  for( auto const& e : wrappers ) gotten.push_back( e.get() );
+  return ReturnValue{builder.CreateVector( gotten )};
 }
 
 /****************************************************************
@@ -477,6 +493,39 @@ expect<> deserialize( SrcT const* src, std::vector<T>* dst,
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem ),
                      std::addressof( dst->operator[]( i ) ),
+                     ::rn::rn_adl_tag{} ) );
+  }
+  return xp_success_t{};
+}
+
+// For map-like things.
+template<typename SrcT,                        //
+         typename DstT,                        //
+         std::enable_if_t<                     //
+             mp::is_map_like<DstT> &&          //
+                 detail::is_fb_vector_v<SrcT>, //
+             int> = 0                          //
+         >
+expect<> deserialize( SrcT const* src, DstT* m,
+                      ::rn::rn_adl_tag ) {
+  // SrcT should be a flatbuffers::Vector.
+  if( src == nullptr || src->size() == 0 ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty map.
+    return xp_success_t{};
+  }
+  using iter_t = decltype( src->size() );
+  using key_t  = typename DstT::key_type;
+  for( iter_t i = 0; i < src->size(); ++i ) {
+    auto* elem = src->Get( i );
+    key_t key{};
+    XP_OR_RETURN_(
+        deserialize( detail::to_const_ptr( elem->fst() ), &key,
+                     ::rn::rn_adl_tag{} ) );
+
+    XP_OR_RETURN_(
+        deserialize( detail::to_const_ptr( elem->snd() ),
+                     std::addressof( m->operator[]( key ) ),
                      ::rn::rn_adl_tag{} ) );
   }
   return xp_success_t{};

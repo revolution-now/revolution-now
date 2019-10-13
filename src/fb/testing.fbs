@@ -34,6 +34,11 @@ struct Pair_Vec2_int {
   snd : int;
 }
 
+table Pair_int_Weapon {
+  fst : int;
+  snd : Weapon;
+}
+
 table Monster {
   pos       : Vec3;
   mana      : short = 150;
@@ -49,4 +54,5 @@ table Monster {
   pair2     : Pair_Vec2_int;
   map_vecs  : [Pair_Vec2_int];
   map_strs  : [Pair_string_int];
+  map_wpns  : [Pair_int_Weapon];
 }

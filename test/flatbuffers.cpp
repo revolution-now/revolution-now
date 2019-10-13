@@ -28,6 +28,9 @@
 #include "fb/testing_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
+// C++ standard library
+#include <map>
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -52,6 +55,10 @@ struct Weapon {
     return xp_success_t{};
   }
 
+  bool operator==( Weapon const& rhs ) const {
+    return name_ == rhs.name_ && damage_ == rhs.damage_;
+  }
+
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Weapon,
   ( string, name   ),
@@ -62,6 +69,22 @@ struct Weapon {
 struct Vec2 {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
+  }
+
+  bool operator<( Vec2 const& rhs ) const {
+    if( x < rhs.x ) return true;
+    if( x > rhs.x ) return false;
+    return y < rhs.y;
+  }
+
+  bool operator==( Vec2 const& rhs ) const {
+    return x == rhs.x && y == rhs.y;
+  }
+
+  // Abseil hashing API.
+  template<typename H>
+  friend H AbslHashValue( H h, Vec2 const& v ) {
+    return H::combine( std::move( h ), v.x, v.y );
   }
 
   // clang-format off
@@ -89,10 +112,11 @@ struct Monster {
     return xp_success_t{};
   }
 
-  using map_vecs_t = FlatMap<Vec2, int>;
-  using map_strs_t = unordered_map<string, int>;
   using pair_s_i_t = pair<string, int>;
   using pair_v_i_t = pair<Vec2, int>;
+  using map_vecs_t = FlatMap<Vec2, int>;
+  using map_strs_t = unordered_map<string, int>;
+  using map_wpns_t = map<int, Weapon>;
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Monster,
@@ -106,9 +130,10 @@ struct Monster {
   ( vector<Weapon>,  weapons          ),
   ( vector<Vec3>,    path             ),
   ( pair_s_i_t,      pair1            ),
-  ( pair_v_i_t,      pair2            ));
-  //( map_vecs_t,      map_vecs         ),
-  //( map_strs_t,      map_strs         ));
+  ( pair_v_i_t,      pair2            ),
+  ( map_vecs_t,      map_vecs         ),
+  ( map_strs_t,      map_strs         ),
+  ( map_wpns_t,      map_wpns         ));
   // clang-format on
 };
 
@@ -155,9 +180,36 @@ BinaryBlob create_monster() {
 
   auto pair2 = fb::Pair_Vec2_int( fb::Vec2( 7.0, 8.0 ), 43 );
 
+  Vec<fb::Pair_Vec2_int>             map_vecs;
+  Vec<FBOffset<fb::Pair_string_int>> map_strs;
+  Vec<FBOffset<fb::Pair_int_Weapon>> map_wpns;
+
+  map_vecs.push_back(
+      fb::Pair_Vec2_int( fb::Vec2( 8.0, 9.0 ), 10 ) );
+  map_vecs.push_back(
+      fb::Pair_Vec2_int( fb::Vec2( 9.0, 10.0 ), 11 ) );
+
+  map_strs.push_back( fb::CreatePair_string_int(
+      builder, builder.CreateString( "blue" ), 5 ) );
+  map_strs.push_back( fb::CreatePair_string_int(
+      builder, builder.CreateString( "red" ), 4 ) );
+
+  map_wpns.push_back( fb::CreatePair_int_Weapon(
+      builder, -1,
+      fb::CreateWeapon( builder, builder.CreateString( "knife" ),
+                        30 ) ) );
+  map_wpns.push_back( fb::CreatePair_int_Weapon(
+      builder, 0,
+      fb::CreateWeapon( builder, builder.CreateString( "Gun" ),
+                        3000 ) ) );
+  auto fb_map_vecs = builder.CreateVectorOfStructs( map_vecs );
+  auto fb_map_strs = builder.CreateVector( map_strs );
+  auto fb_map_wpns = builder.CreateVector( map_wpns );
+
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, names, inventory,
-      fb::e_color::Red, weapons, path, pair1, &pair2 );
+      fb::e_color::Red, weapons, path, pair1, &pair2,
+      fb_map_vecs, fb_map_strs, fb_map_wpns );
 
   builder.Finish( orc );
 
@@ -166,7 +218,7 @@ BinaryBlob create_monster() {
 
 TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 288;
+  constexpr uint64_t kExpectedBlobSize = 476;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
@@ -236,6 +288,37 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( snd->name() != nullptr );
     REQUIRE( snd->name()->str() == "Axe" );
     REQUIRE( snd->damage() == 5 );
+
+    auto map_vecs = monster.map_vecs();
+    REQUIRE( map_vecs != nullptr );
+    auto map_strs = monster.map_strs();
+    REQUIRE( map_strs != nullptr );
+    auto map_wpns = monster.map_wpns();
+    REQUIRE( map_wpns != nullptr );
+
+    REQUIRE( map_vecs->size() == 2 );
+    REQUIRE( map_strs->size() == 2 );
+    REQUIRE( map_wpns->size() == 2 );
+
+    REQUIRE( map_vecs->Get( 0 )->fst().x() == 8.0 );
+    REQUIRE( map_vecs->Get( 0 )->fst().y() == 9.0 );
+    REQUIRE( map_vecs->Get( 0 )->snd() == 10 );
+    REQUIRE( map_vecs->Get( 1 )->fst().x() == 9.0 );
+    REQUIRE( map_vecs->Get( 1 )->fst().y() == 10.0 );
+    REQUIRE( map_vecs->Get( 1 )->snd() == 11 );
+
+    REQUIRE( map_strs->Get( 0 )->fst()->str() == "blue" );
+    REQUIRE( map_strs->Get( 0 )->snd() == 5 );
+    REQUIRE( map_strs->Get( 1 )->fst()->str() == "red" );
+    REQUIRE( map_strs->Get( 1 )->snd() == 4 );
+
+    REQUIRE( map_wpns->Get( 0 )->fst() == -1 );
+    REQUIRE( map_wpns->Get( 0 )->snd()->name()->str() ==
+             "knife" );
+    REQUIRE( map_wpns->Get( 0 )->snd()->damage() == 30 );
+    REQUIRE( map_wpns->Get( 1 )->fst() == 0 );
+    REQUIRE( map_wpns->Get( 1 )->snd()->name()->str() == "Gun" );
+    REQUIRE( map_wpns->Get( 1 )->snd()->damage() == 3000 );
   }
 
   SECTION( "deserialize to native" ) {
@@ -285,6 +368,23 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     auto snd = weapons[1];
     REQUIRE( snd.name_ == "Axe" );
     REQUIRE( snd.damage_ == 5 );
+
+    auto& map_vecs = monster.map_vecs_;
+    auto& map_strs = monster.map_strs_;
+    auto& map_wpns = monster.map_wpns_;
+
+    REQUIRE( map_vecs.size() == 2 );
+    REQUIRE( map_strs.size() == 2 );
+    REQUIRE( map_wpns.size() == 2 );
+
+    REQUIRE( map_vecs[Vec2{8.0, 9.0}] == 10 );
+    REQUIRE( map_vecs[Vec2{9.0, 10.0}] == 11 );
+
+    REQUIRE( map_strs["blue"] == 5 );
+    REQUIRE( map_strs["red"] == 4 );
+
+    REQUIRE( map_wpns[-1] == Weapon{"knife", 30} );
+    REQUIRE( map_wpns[0] == Weapon{"Gun", 3000} );
   }
 }
 

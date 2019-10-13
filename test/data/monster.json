@@ -56,5 +56,46 @@
       "y": 8.0
     },
     "snd": 43
-  }
+  },
+  "map_vecs": [
+    {
+      "fst": {
+        "x": 8.0,
+        "y": 9.0
+      },
+      "snd": 10
+    },
+    {
+      "fst": {
+        "x": 9.0,
+        "y": 10.0
+      },
+      "snd": 11
+    }
+  ],
+  "map_strs": [
+    {
+      "fst": "blue",
+      "snd": 5
+    },
+    {
+      "fst": "red",
+      "snd": 4
+    }
+  ],
+  "map_wpns": [
+    {
+      "fst": -1,
+      "snd": {
+        "name": "knife",
+        "damage": 30
+      }
+    },
+    {
+      "snd": {
+        "name": "Gun",
+        "damage": 3000
+      }
+    }
+  ]
 }
