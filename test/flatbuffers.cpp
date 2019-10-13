@@ -91,6 +91,8 @@ struct Monster {
 
   using map_vecs_t = FlatMap<Vec2, int>;
   using map_strs_t = unordered_map<string, int>;
+  using pair_s_i_t = pair<string, int>;
+  using pair_v_i_t = pair<Vec2, int>;
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Monster,
@@ -102,7 +104,9 @@ struct Monster {
   ( vector<uint8_t>, inventory        ),
   ( e_color,         color            ),
   ( vector<Weapon>,  weapons          ),
-  ( vector<Vec3>,    path             ));
+  ( vector<Vec3>,    path             ),
+  ( pair_s_i_t,      pair1            ),
+  ( pair_v_i_t,      pair2            ));
   //( map_vecs_t,      map_vecs         ),
   //( map_strs_t,      map_strs         ));
   // clang-format on
@@ -146,9 +150,14 @@ BinaryBlob create_monster() {
   int hp   = 300;
   int mana = 150;
 
+  auto pair1 = fb::CreatePair_string_int(
+      builder, builder.CreateString( "hello" ), 42 );
+
+  auto pair2 = fb::Pair_Vec2_int( fb::Vec2( 7.0, 8.0 ), 43 );
+
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, names, inventory,
-      fb::e_color::Red, weapons, path );
+      fb::e_color::Red, weapons, path, pair1, &pair2 );
 
   builder.Finish( orc );
 
@@ -157,7 +166,7 @@ BinaryBlob create_monster() {
 
 TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 236;
+  constexpr uint64_t kExpectedBlobSize = 288;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
@@ -207,6 +216,15 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( inv->size() == 10 );
     REQUIRE( inv->Get( 2 ) == 2 );
 
+    auto pair1 = monster.pair1();
+    REQUIRE( pair1 != nullptr );
+    REQUIRE( pair1->fst() != nullptr );
+    REQUIRE( pair1->fst()->str() == "hello" );
+    REQUIRE( pair1->snd() == 42 );
+    auto pair2 = monster.pair2();
+    REQUIRE( pair2->fst().x() == 7.0 );
+    REQUIRE( pair2->fst().y() == 8.0 );
+    REQUIRE( pair2->snd() == 43 );
     auto weapons = monster.weapons();
     REQUIRE( weapons != nullptr );
     REQUIRE( weapons->size() == 2 );
@@ -249,6 +267,15 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     auto const& inv = monster.inventory_;
     REQUIRE( inv.size() == 10 );
     REQUIRE( inv[2] == 2 );
+
+    auto const& pair1 = monster.pair1_;
+    REQUIRE( pair1.first == "hello" );
+    REQUIRE( pair1.second == 42 );
+
+    auto const& pair2 = monster.pair2_;
+    REQUIRE( pair2.first.x == 7.0 );
+    REQUIRE( pair2.first.y == 8.0 );
+    REQUIRE( pair2.second == 43 );
 
     auto const& weapons = monster.weapons_;
     REQUIRE( weapons.size() == 2 );

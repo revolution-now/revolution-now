@@ -25,13 +25,13 @@ struct Vec3 {
 }
 
 table Pair_string_int {
-  key   : string;
-  value : int;
+  fst : string;
+  snd : int;
 }
 
 struct Pair_Vec2_int {
-  key   : Vec2;
-  value : int;
+  fst : Vec2;
+  snd : int;
 }
 
 table Monster {
@@ -45,6 +45,8 @@ table Monster {
   color     : e_color = Blue;
   weapons   : [Weapon];
   path      : [Vec3];
+  pair1     : Pair_string_int;
+  pair2     : Pair_Vec2_int;
   map_vecs  : [Pair_Vec2_int];
   map_strs  : [Pair_string_int];
 }

@@ -26,6 +26,9 @@
 #include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
 
+// C++ standard library
+#include <utility>
+
 /****************************************************************
 ** Enums
 *****************************************************************/
@@ -118,25 +121,23 @@ struct ReturnAddress {
 template<typename SerializedT>
 ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
 
-template<typename T,                //
-         std::enable_if_t<          //
-             !std::is_pointer_v<T>, //
-             int> = 0               //
-         >
-auto to_const_ptr( T const& arg ) {
-  return &arg;
-}
-
-template<typename T,               //
-         std::enable_if_t<         //
-             std::is_pointer_v<T>, //
-             int> = 0              //
-         >
-auto to_const_ptr( T arg ) {
-  return arg;
-}
-
 namespace detail {
+
+template<typename T>
+auto* to_const_ptr( T&& arg ) {
+  if constexpr( std::is_pointer_v<std::remove_reference_t<T>> )
+    return arg;
+  else
+    return &arg;
+}
+
+template<typename T>
+auto ptr_to_ref( T&& t ) {
+  if constexpr( std::is_pointer_v<std::remove_reference_t<T>> )
+    return *t;
+  else
+    return std::forward<T>( t );
+}
 
 template<typename>
 inline constexpr bool is_fb_vector_v = false;
@@ -156,6 +157,19 @@ struct remove_fb_vector<flatbuffers::Vector<T>> {
 template<typename T>
 using remove_fb_vector_t = typename remove_fb_vector<T>::type;
 
+template<typename T>
+struct remove_fb_offset {
+  using type = T;
+};
+
+template<typename U>
+struct remove_fb_offset<flatbuffers::Offset<U>> {
+  using type = U;
+};
+
+template<typename T>
+using remove_fb_offset_t = typename remove_fb_offset<T>::type;
+
 // Takes the return type of a FB getter and converts it to a type
 // suitable for passing as a Hint to the `serialize` methods.
 template<typename T>
@@ -165,6 +179,13 @@ using fb_serialize_hint_t =    //
             std::decay_t<T>    //
             >                  //
         >;
+
+template<typename T, typename = void>
+inline constexpr bool has_create_v = false;
+
+template<typename T>
+inline constexpr bool
+    has_create_v<T, std::void_t<decltype( T::Create )>> = true;
 
 } // namespace detail
 
@@ -202,13 +223,8 @@ auto serialize( FBBuilder&, T const& o, ::rn::rn_adl_tag ) {
 }
 
 // For strings.
-template<typename Hint,                      //
-         typename T,                         //
-         std::enable_if_t<                   //
-             std::is_same_v<std::string, T>, //
-             int> = 0                        //
-         >
-auto serialize( FBBuilder& builder, T const& o,
+template<typename Hint>
+auto serialize( FBBuilder& builder, std::string const& o,
                 ::rn::rn_adl_tag ) {
   auto offset = builder.CreateString( o );
   return ReturnValue{offset};
@@ -236,17 +252,14 @@ template<typename Hint, //
          typename T, decltype( &T::serialize_table )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::rn_adl_tag ) {
+  using namespace ::rn::serial::detail;
+  static_assert( has_create_v<remove_fb_offset_t<Hint>> );
   return ReturnValue{o.serialize_table( builder )};
 }
 
 // For std::optional.
-template<typename Hint,            //
-         typename T,               //
-         std::enable_if_t<         //
-             mp::is_optional_v<T>, //
-             int> = 0              //
-         >
-auto serialize( FBBuilder& builder, T const& o,
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, std::optional<T> const& o,
                 ::rn::rn_adl_tag ) {
   if( o.has_value() ) {
     auto s_value =
@@ -259,15 +272,27 @@ auto serialize( FBBuilder& builder, T const& o,
   }
 }
 
+// For pairs.
+template<typename Hint, typename F, typename S>
+auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
+                ::rn::rn_adl_tag ) {
+  // Assume we don't need to supply hints for components.
+  auto const& s_fst =
+      serialize<void>( builder, o.first, ::rn::rn_adl_tag{} );
+  auto const& s_snd =
+      serialize<void>( builder, o.second, ::rn::rn_adl_tag{} );
+  if constexpr( detail::has_create_v<Hint> )
+    return ReturnValue{
+        Hint::Create( builder, s_fst.get(), s_snd.get() )};
+  else
+    return ReturnAddress{
+        Hint( detail::ptr_to_ref( s_fst.get() ),
+              detail::ptr_to_ref( s_snd.get() ) )};
+}
+
 // For vectors.
-template<typename Hint,                        //
-         typename T,                           //
-         std::enable_if_t<                     //
-             mp::is_vector_v<T> &&             //
-                 detail::is_fb_vector_v<Hint>, //
-             int> = 0                          //
-         >
-auto serialize( FBBuilder& builder, T const& o,
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, std::vector<T> const& o,
                 ::rn::rn_adl_tag ) {
   using namespace detail;
   using inner_hint_t =
@@ -292,36 +317,21 @@ auto serialize( FBBuilder& builder, T const& o,
 }
 
 // For map-like things.
-template<typename Hint,          //
-         typename T,             //
-         std::enable_if_t<       //
-             mp::is_map_like<T>, //
-             int> = 0            //
+template<typename Hint,                        //
+         typename T,                           //
+         std::enable_if_t<                     //
+             mp::is_map_like<T> &&             //
+                 detail::is_fb_vector_v<Hint>, //
+             int> = 0                          //
          >
-auto serialize( FBBuilder&, T const&, ::rn::rn_adl_tag ) {
-  // using fb_key_wrapper_elem_t = std::decay_t<decltype(
-  //    serialize( builder, std::declval<typename T::key_type>(),
-  //               ::rn::rn_adl_tag{} ) )>;
-  // using fb_val_wrapper_elem_t = std::decay_t<decltype(
-  // serialize(
-  //    builder, std::declval<typename T::mapped_type>(),
-  //    ::rn::rn_adl_tag{} ) )>;
-  // using fb_key_get_elem_t     = decltype(
-  //    std::declval<fb_key_wrapper_elem_t const&>().get() );
-  // using fb_val_get_elem_t = decltype(
-  //    std::declval<fb_val_wrapper_elem_t const&>().get() );
-  //// This vector must live until we create the final fb vector.
-  // std::vector<fb_wrapper_elem_t> wrappers;
-  // wrappers.reserve( o.size() );
-  // for( auto const& e : o )
-  //  wrappers.push_back(
-  //      serialize( builder, e, ::rn::rn_adl_tag{} ) );
-  //// This vector may hold pointers into the previous one if
-  /// we're / dealing with structs.
-  // std::vector<fb_get_elem_t> gotten;
-  // gotten.reserve( o.size() );
-  // for( auto const& e : wrappers ) gotten.push_back( e.get() );
-  // return ReturnValue{builder.CreateVector( gotten )};
+auto serialize( FBBuilder& builder, T const& m,
+                ::rn::rn_adl_tag ) {
+  using key_t = typename T::key_type;
+  using val_t = typename T::mapped_type;
+  Vec<Pair<key_t, val_t>> pairs;
+  pairs.reserve( m.size() );
+  for( auto const& [k, v] : m ) pairs.emplace_back( k, v );
+  return serialize<Hint>( builder, pairs, ::rn::rn_adl_tag{} );
 }
 
 /****************************************************************
@@ -375,13 +385,8 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 }
 
 // For strings.
-template<typename SrcT,                         //
-         typename DstT,                         //
-         std::enable_if_t<                      //
-             std::is_same_v<std::string, DstT>, //
-             int> = 0                           //
-         >
-expect<> deserialize( SrcT const* src, DstT* dst,
+template<typename SrcT>
+expect<> deserialize( SrcT const* src, std::string* dst,
                       ::rn::rn_adl_tag ) {
   if( src == nullptr ) return xp_success_t{};
   *dst = src->str();
@@ -413,13 +418,8 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 }
 
 // For std::optional.
-template<typename SrcT,               //
-         typename DstT,               //
-         std::enable_if_t<            //
-             mp::is_optional_v<DstT>, //
-             int> = 0                 //
-         >
-expect<> deserialize( SrcT const* src, DstT* dst,
+template<typename SrcT, typename T>
+expect<> deserialize( SrcT const* src, std::optional<T>* dst,
                       ::rn::rn_adl_tag ) {
   if( src == nullptr || !src->has_value() ) {
     // `dst` should be in its default-constructed state, which is
@@ -433,20 +433,35 @@ expect<> deserialize( SrcT const* src, DstT* dst,
           "true." );
   }
   dst->emplace(); // default construct the value.
-  return deserialize( to_const_ptr( src->value() ),
+  return deserialize( detail::to_const_ptr( src->value() ),
                       std::addressof( **dst ),
                       ::rn::rn_adl_tag{} );
 }
 
+// For pairs.
+template<typename SrcT, typename F, typename S>
+expect<> deserialize( SrcT const* src, std::pair<F, S>* dst,
+                      ::rn::rn_adl_tag ) {
+  if constexpr( std::is_pointer_v<decltype( src->fst() )> ) {
+    if( src->fst() == nullptr )
+      return UNEXPECTED( "pair has no `fst` value." );
+  }
+  if constexpr( std::is_pointer_v<decltype( src->snd() )> ) {
+    if( src->snd() == nullptr )
+      return UNEXPECTED( "pair has no `snd` value." );
+  }
+  XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->fst() ),
+                              &dst->first,
+                              ::rn::rn_adl_tag{} ) );
+  XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->snd() ),
+                              &dst->second,
+                              ::rn::rn_adl_tag{} ) );
+  return xp_success_t{};
+}
+
 // For vectors.
-template<typename SrcT,                        //
-         typename DstT,                        //
-         std::enable_if_t<                     //
-             mp::is_vector_v<DstT> &&          //
-                 detail::is_fb_vector_v<SrcT>, //
-             int> = 0                          //
-         >
-expect<> deserialize( SrcT const* src, DstT* dst,
+template<typename SrcT, typename T>
+expect<> deserialize( SrcT const* src, std::vector<T>* dst,
                       ::rn::rn_adl_tag ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
@@ -460,7 +475,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
     // This should be a value (scalar) or a pointer.
     auto elem = src->Get( i );
     XP_OR_RETURN_(
-        deserialize( to_const_ptr( elem ),
+        deserialize( detail::to_const_ptr( elem ),
                      std::addressof( dst->operator[]( i ) ),
                      ::rn::rn_adl_tag{} ) );
   }
@@ -487,9 +502,9 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 
 #define SERIAL_DECLARE_VAR_TABLE( type, var ) type var##_;
 
-#define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var ) \
-  XP_OR_RETURN_(                                       \
-      deserialize( serial::to_const_ptr( src.var() ),  \
+#define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var )        \
+  XP_OR_RETURN_(                                              \
+      deserialize( serial::detail::to_const_ptr( src.var() ), \
                    &dst->var##_, ::rn::rn_adl_tag{} ) );
 
 #define SERIAL_DESERIALIZE_VAR_TABLE( p ) \
@@ -534,9 +549,9 @@ private:
 
 #define SERIAL_DECLARE_VAR_STRUCT( type, var ) type var{};
 
-#define SERIAL_DESERIALIZE_VAR_STRUCT_IMPL( type, var ) \
-  XP_OR_RETURN_(                                        \
-      deserialize( serial::to_const_ptr( src.var() ),   \
+#define SERIAL_DESERIALIZE_VAR_STRUCT_IMPL( type, var )       \
+  XP_OR_RETURN_(                                              \
+      deserialize( serial::detail::to_const_ptr( src.var() ), \
                    &dst->var, ::rn::rn_adl_tag{} ) );
 
 #define SERIAL_DESERIALIZE_VAR_STRUCT( p ) \
