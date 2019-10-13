@@ -1,4 +1,14 @@
-// For unit testing.
+// **************************************************************
+// testing.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-13.
+//
+// Description: Serializable types for the unit tests.
+//
+// **************************************************************
+include "vocab.fbs";
 
 namespace fb;
 
@@ -22,11 +32,6 @@ struct Vec3 {
   x : float;
   y : float;
   z : float;
-}
-
-table Pair_string_int {
-  fst : string;
-  snd : int;
 }
 
 struct Pair_Vec2_int {
