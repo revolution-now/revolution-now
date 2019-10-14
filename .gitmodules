@@ -63,4 +63,4 @@
 	url = ../../dpacbach/sol2.git
 [submodule "extern/flatbuffers"]
 	path = extern/flatbuffers
-	url = ssh://git@github.com/dpacbach/flatbuffers.git
+	url = ../../dpacbach/flatbuffers.git
