@@ -142,7 +142,7 @@ struct Monster {
   // clang-format on
 };
 
-BinaryBlob create_monster() {
+BinaryBlob create_monster_blob() {
   FBBuilder builder;
 
   auto  weapon_one_name   = builder.CreateString( "Sword" );
@@ -227,10 +227,10 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
-    auto blob = create_monster();
+    auto blob = create_monster_blob();
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json = blob.to_json<fb::Monster>();
+    auto json = rn::serial::blob_to_json<Monster>( blob );
     ASSIGN_CHECK_XP( json_golden,
                      rn::read_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
@@ -239,7 +239,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( fs::file_size( tmp_file ) == kExpectedBlobSize );
   }
 
-  SECTION( "deserialize to blob" ) {
+  SECTION( "deserialize to flatbuffer" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
@@ -330,13 +330,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    // Get a pointer to the root object inside the buffer.
-    auto* fb_monster =
-        flatbuffers::GetRoot<fb::Monster>( blob.get() );
-
     Monster monster;
-    CHECK_XP( rn::serial::deserialize(
-        fb_monster, &monster, ::rn::serial::rn_adl_tag{} ) );
+    CHECK_XP(
+        rn::serial::deserialize_from_blob( blob, &monster ) );
 
     REQUIRE( monster.hp_ == 300 );
     REQUIRE( monster.mana_ == 150 );
@@ -415,26 +411,20 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.map_wpns_[3]             = Weapon{"rock", 2};
     monster.map_wpns_[4]             = Weapon{"stone", 4};
 
-    FBBuilder builder;
-    builder.Finish( monster.serialize_table( builder ) );
-    auto blob = BinaryBlob::from_builder( std::move( builder ) );
+    auto blob = rn::serial::serialize_to_blob( monster );
     constexpr uint64_t kExpectedBlobSize = 460;
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    auto json = blob.to_json<fb::Monster>();
+    auto json = rn::serial::serialize_to_json( monster );
     ASSIGN_CHECK_XP(
         json_golden,
         rn::read_file_as_string( data_dir() /
                                  "monster-round-trip.json" ) );
     REQUIRE( json == json_golden );
 
-    // Get a pointer to the root object inside the buffer.
-    auto* fb_monster =
-        flatbuffers::GetRoot<fb::Monster>( blob.get() );
-
     Monster monster_new;
-    CHECK_XP( rn::serial::deserialize(
-        fb_monster, &monster_new, ::rn::serial::rn_adl_tag{} ) );
+    CHECK_XP( rn::serial::deserialize_from_blob(
+        blob, &monster_new ) );
 
     REQUIRE( monster_new.pos_.x == 2.25 );
     REQUIRE( monster_new.pos_.y == 3.5 );
@@ -508,19 +498,12 @@ TEST_CASE( "deserialize json" ) {
   (void)create_unit( e_nation::english, e_unit_type::soldier )
       .id();
 
-  ASSIGN_CHECK_XP(
-      blob, BinaryBlob::from_json(
-                /*schema_file_name=*/"unit.fbs",
-                /*json_file_path=*/data_dir() / "unit.json",
-                /*root_type=*/"fb.Unit" ) );
-  REQUIRE( blob.size() == 160 );
-
-  // Get a pointer to the root object inside the buffer.
-  auto fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
-
+  ASSIGN_CHECK_XP( json, rn::read_file_as_string(
+                             data_dir() / "unit.json" ) );
   Unit unit;
-  CHECK_XP( rn::serial::deserialize(
-      fb_unit, &unit, ::rn::serial::rn_adl_tag{} ) );
+  CHECK_XP( rn::serial::deserialize_from_json(
+      /*schema_name=*/"unit",
+      /*json=*/json, /*out=*/&unit ) );
 
   REQUIRE( unit.id() == UnitId{1} );
   REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
@@ -649,12 +632,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
-    // Get a pointer to the root object inside the buffer.
-    auto* fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
-
     Unit unit;
-    CHECK_XP( rn::serial::deserialize(
-        fb_unit, &unit, ::rn::serial::rn_adl_tag{} ) );
+    CHECK_XP( rn::serial::deserialize_from_blob<rn::Unit>(
+        blob, &unit ) );
 
     auto const& orig = rn::unit_from_id( ship );
 

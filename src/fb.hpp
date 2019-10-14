@@ -546,10 +546,10 @@ expect<> deserialize( SrcT const* src, DstT* m,
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )       \
-  auto PP_JOIN( s_, var ) =                                 \
-      serialize<::rn::serial::detail::fb_serialize_hint_t<  \
-          decltype( std::declval<FBTargetType>().var() )>>( \
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )      \
+  auto PP_JOIN( s_, var ) =                                \
+      serialize<::rn::serial::detail::fb_serialize_hint_t< \
+          decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var##_, ::rn::serial::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
@@ -572,9 +572,12 @@ expect<> deserialize( SrcT const* src, DstT* m,
 #define SERIALIZABLE_TABLE_MEMBERS_IMPL( name, ... )           \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )        \
 public:                                                        \
-  using FBTargetType = fb::name;                               \
+  using fb_target_t = fb::name;                                \
+  static constexpr std::string_view fb_root_type_name =        \
+      "fb." #name;                                             \
   FBOffset<fb::name> serialize_table( FBBuilder& builder )     \
       const {                                                  \
+    (void)fb_root_type_name;                                   \
     using ::rn::serial::serialize;                             \
     PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_TABLE, __VA_ARGS__ )    \
     return fb::Create##name(                                   \
@@ -597,10 +600,10 @@ private:
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_IMPL( type, var )      \
-  auto PP_JOIN( s_, var ) =                                 \
-      serialize<::rn::serial::detail::fb_serialize_hint_t<  \
-          decltype( std::declval<FBTargetType>().var() )>>( \
+#define SERIAL_CALL_SERIALIZE_STRUCT_IMPL( type, var )     \
+  auto PP_JOIN( s_, var ) =                                \
+      serialize<::rn::serial::detail::fb_serialize_hint_t< \
+          decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var, ::rn::serial::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \
@@ -619,7 +622,7 @@ private:
 #define SERIALIZABLE_STRUCT_MEMBERS_IMPL( name, ... )          \
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_STRUCT, __VA_ARGS__ )       \
 public:                                                        \
-  using FBTargetType = fb::name;                               \
+  using fb_target_t = fb::name;                                \
   fb::name serialize_struct( FBBuilder& builder ) const {      \
     using ::rn::serial::serialize;                             \
     PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_STRUCT, __VA_ARGS__ )   \

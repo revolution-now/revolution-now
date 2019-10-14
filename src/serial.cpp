@@ -86,8 +86,8 @@ BinaryBlob BinaryBlob::from_builder(
 }
 
 expect<BinaryBlob> BinaryBlob::from_json(
-    fs::path const& schema_file_name,
-    fs::path const& json_file_path, string_view root_type ) {
+    fs::path const& schema_file_name, string const& json,
+    string_view root_type ) {
   flatbuffers::Parser parser;
   // Store this as a string so that we can then pass C strings
   // safely to the Parser API.
@@ -105,15 +105,17 @@ expect<BinaryBlob> BinaryBlob::from_json(
     return UNEXPECTED( "failed to set root type: `{}`.",
                        root_type );
 
-  XP_OR_RETURN( json,
-                rn::read_file_as_string( json_file_path ) );
   if( !parser.Parse( json.c_str() ) )
     return UNEXPECTED(
-        "failed to parse JSON flatbuffers file `{}`: {}",
-        json_file_path, parser.error_ );
+        "failed to parse JSON flatbuffers data: {}",
+        parser.error_ );
 
   return from_builder( std::move( parser.builder_ ) );
 }
+
+/****************************************************************
+** Public API
+*****************************************************************/
 
 /****************************************************************
 ** Testing

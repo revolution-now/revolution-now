@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -69,8 +70,7 @@ public:
       flatbuffers::FlatBufferBuilder builder );
 
   static expect<BinaryBlob> from_json(
-      fs::path const&  schema_file_name,
-      fs::path const&  json_file_path,
+      fs::path const& schema_file_name, std::string const& json,
       std::string_view root_type );
 
   template<typename FB>
@@ -95,6 +95,50 @@ private:
   ByteBuffer buf_;
   int        offset_;
 };
+
+/****************************************************************
+** Public API
+*****************************************************************/
+template<typename T>
+BinaryBlob serialize_to_blob( T const& o ) {
+  FBBuilder builder;
+  // Root-level objects must be tables.
+  builder.Finish( o.serialize_table( builder ) );
+  return BinaryBlob::from_builder( std::move( builder ) );
+}
+
+template<typename T>
+expect<> deserialize_from_blob( BinaryBlob const& blob,
+                                T*                out ) {
+  auto* fb = flatbuffers::GetRoot<typename T::fb_target_t>(
+      blob.get() );
+  return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );
+}
+
+template<typename T>
+std::string blob_to_json( BinaryBlob const& blob ) {
+  return blob.template to_json<typename T::fb_target_t>();
+}
+
+template<typename T>
+std::string serialize_to_json( T const& o ) {
+  return serialize_to_blob( o )
+      .template to_json<typename T::fb_target_t>();
+}
+
+template<typename T>
+expect<> deserialize_from_json( std::string const& schema_name,
+                                std::string const& json,
+                                T*                 out ) {
+  XP_OR_RETURN( blob,
+                BinaryBlob::from_json(
+                    /*schema_file_name=*/schema_name + ".fbs",
+                    /*json=*/json,
+                    /*root_type=*/T::fb_root_type_name ) );
+  auto fb = flatbuffers::GetRoot<typename T::fb_target_t>(
+      blob.get() );
+  return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );
+}
 
 /****************************************************************
 ** Testing
