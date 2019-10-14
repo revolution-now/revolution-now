@@ -18,6 +18,16 @@ template<int N>
 struct disambiguate;
 
 /****************************************************************
+** reference_wrapper
+*****************************************************************/
+template<typename>
+inline constexpr bool is_reference_wrapper_v = false;
+
+template<typename T>
+inline constexpr bool
+    is_reference_wrapper_v<::std::reference_wrapper<T>> = true;
+
+/****************************************************************
 ** is_map_like
 *****************************************************************/
 template<typename, typename = void>

@@ -29,6 +29,7 @@
 #include "flatbuffers/flatbuffers.h"
 
 // C++ standard library
+#include <fstream>
 #include <map>
 
 // Must be last.
@@ -99,6 +100,10 @@ struct Vec3 {
     return xp_success_t{};
   }
 
+  bool operator==( Vec3 const& rhs ) const {
+    return x == rhs.x && y == rhs.y && z == rhs.z;
+  }
+
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Vec3,
   ( float, x ),
@@ -114,8 +119,8 @@ struct Monster {
 
   using pair_s_i_t = pair<string, int>;
   using pair_v_i_t = pair<Vec2, int>;
-  using map_vecs_t = FlatMap<Vec2, int>;
-  using map_strs_t = unordered_map<string, int>;
+  using map_vecs_t = map<Vec2, int>;
+  using map_strs_t = map<string, int>;
   using map_wpns_t = map<int, Weapon>;
 
   // clang-format off
@@ -330,8 +335,8 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
         flatbuffers::GetRoot<fb::Monster>( blob.get() );
 
     Monster monster;
-    CHECK_XP( rn::serial::deserialize( fb_monster, &monster,
-                                       ::rn::rn_adl_tag{} ) );
+    CHECK_XP( rn::serial::deserialize(
+        fb_monster, &monster, ::rn::serial::rn_adl_tag{} ) );
 
     REQUIRE( monster.hp_ == 300 );
     REQUIRE( monster.mana_ == 150 );
@@ -386,6 +391,109 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( map_wpns[-1] == Weapon{"knife", 30} );
     REQUIRE( map_wpns[0] == Weapon{"Gun", 3000} );
   }
+
+  SECTION( "native to native roundtrip" ) {
+    Monster monster;
+    monster.pos_       = Vec3{2.25, 3.5, 4.5};
+    monster.mana_      = 9;
+    monster.hp_        = 200;
+    monster.name_      = "mon";
+    monster.names_     = {"A", "B"};
+    monster.inventory_ = {7, 6, 5, 4};
+    monster.color_     = e_color::Red;
+    monster.weapons_   = Vec<Weapon>{
+        Weapon{"rock", 2}, //
+        Weapon{"stone", 3} //
+    };
+    monster.path_  = {{3, 4.5, 5}, {4, 5.6, 5}, {7, 8.9, 5}};
+    monster.pair1_ = pair<string, int>( "primo", 2 );
+    monster.pair2_ = pair<Vec2, int>( Vec2{0.25, 0.5}, 3 );
+    monster.map_vecs_[Vec2{4.75, 8}] = 0;
+    monster.map_vecs_[Vec2{4.25, 7}] = 1;
+    monster.map_strs_["one"]         = -1;
+    monster.map_strs_["two"]         = -2;
+    monster.map_wpns_[3]             = Weapon{"rock", 2};
+    monster.map_wpns_[4]             = Weapon{"stone", 4};
+
+    FBBuilder builder;
+    builder.Finish( monster.serialize_table( builder ) );
+    auto blob = BinaryBlob::from_builder( std::move( builder ) );
+    constexpr uint64_t kExpectedBlobSize = 460;
+    REQUIRE( blob.size() == kExpectedBlobSize );
+
+    auto json = blob.to_json<fb::Monster>();
+    ASSIGN_CHECK_XP(
+        json_golden,
+        rn::read_file_as_string( data_dir() /
+                                 "monster-round-trip.json" ) );
+    REQUIRE( json == json_golden );
+
+    // Get a pointer to the root object inside the buffer.
+    auto* fb_monster =
+        flatbuffers::GetRoot<fb::Monster>( blob.get() );
+
+    Monster monster_new;
+    CHECK_XP( rn::serial::deserialize(
+        fb_monster, &monster_new, ::rn::serial::rn_adl_tag{} ) );
+
+    REQUIRE( monster_new.pos_.x == 2.25 );
+    REQUIRE( monster_new.pos_.y == 3.5 );
+    REQUIRE( monster_new.pos_.z == 4.5 );
+    REQUIRE( monster_new.mana_ == 9 );
+    REQUIRE( monster_new.hp_ == 200 );
+    REQUIRE( monster_new.name_ == "mon" );
+    REQUIRE( monster_new.names_.size() == 2 );
+    REQUIRE( monster_new.names_[0] == "A" );
+    REQUIRE( monster_new.names_[1] == "B" );
+
+    auto const& inv = monster_new.inventory_;
+    REQUIRE( inv.size() == 4 );
+    REQUIRE( inv[0] == 7 );
+    REQUIRE( inv[1] == 6 );
+    REQUIRE( inv[2] == 5 );
+    REQUIRE( inv[3] == 4 );
+
+    REQUIRE( monster_new.color_ == e_color::Red );
+
+    auto const& weapons = monster_new.weapons_;
+    REQUIRE( weapons.size() == 2 );
+    REQUIRE( weapons[0].name_ == "rock" );
+    REQUIRE( weapons[0].damage_ == 2 );
+    REQUIRE( weapons[1].name_ == "stone" );
+    REQUIRE( weapons[1].damage_ == 3 );
+
+    auto const& p = monster_new.path_;
+    REQUIRE( p.size() == 3 );
+    REQUIRE( p[0] == Vec3{3, 4.5, 5} );
+    REQUIRE( p[1] == Vec3{4, 5.6, 5} );
+    REQUIRE( p[2] == Vec3{7, 8.9, 5} );
+
+    auto const& pair1 = monster_new.pair1_;
+    REQUIRE( pair1.first == "primo" );
+    REQUIRE( pair1.second == 2 );
+
+    auto const& pair2 = monster_new.pair2_;
+    REQUIRE( pair2.first.x == 0.25 );
+    REQUIRE( pair2.first.y == 0.5 );
+    REQUIRE( pair2.second == 3 );
+
+    auto& map_vecs = monster_new.map_vecs_;
+    auto& map_strs = monster_new.map_strs_;
+    auto& map_wpns = monster_new.map_wpns_;
+
+    REQUIRE( map_vecs.size() == 2 );
+    REQUIRE( map_strs.size() == 2 );
+    REQUIRE( map_wpns.size() == 2 );
+
+    REQUIRE( map_vecs[Vec2{4.75, 8}] == 0 );
+    REQUIRE( map_vecs[Vec2{4.25, 7}] == 1 );
+
+    REQUIRE( map_strs["one"] == -1 );
+    REQUIRE( map_strs["two"] == -2 );
+
+    REQUIRE( map_wpns[3] == Weapon{"rock", 2} );
+    REQUIRE( map_wpns[4] == Weapon{"stone", 4} );
+  }
 }
 
 TEST_CASE( "deserialize json" ) {
@@ -411,8 +519,8 @@ TEST_CASE( "deserialize json" ) {
   auto fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
 
   Unit unit;
-  CHECK_XP( rn::serial::deserialize( fb_unit, &unit,
-                                     ::rn::rn_adl_tag{} ) );
+  CHECK_XP( rn::serial::deserialize(
+      fb_unit, &unit, ::rn::serial::rn_adl_tag{} ) );
 
   REQUIRE( unit.id() == UnitId{1} );
   REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
@@ -545,8 +653,8 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     auto* fb_unit = flatbuffers::GetRoot<fb::Unit>( blob.get() );
 
     Unit unit;
-    CHECK_XP( rn::serial::deserialize( fb_unit, &unit,
-                                       ::rn::rn_adl_tag{} ) );
+    CHECK_XP( rn::serial::deserialize(
+        fb_unit, &unit, ::rn::serial::rn_adl_tag{} ) );
 
     auto const& orig = rn::unit_from_id( ship );
 

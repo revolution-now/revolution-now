@@ -49,6 +49,7 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 } // namespace
 
+namespace serial {
 serial::ReturnValue<FBOffset<fb::CargoSlot>> cargoslot_serialize(
     FBBuilder& builder, CargoSlot_t const& o ) {
   int32_t       unit_id = 0;
@@ -84,7 +85,7 @@ serial::ReturnValue<FBOffset<fb::CargoSlot>> cargoslot_serialize(
 }
 
 expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
-                      ::rn::rn_adl_tag ) {
+                      ::rn::serial::rn_adl_tag ) {
   DCHECK( dst );
   if( src == nullptr ) return xp_success_t{};
   using ::rn::serial::deserialize;
@@ -99,7 +100,7 @@ expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
       UnitId unit_id{0};
       XP_OR_RETURN_( deserialize(
           serial::detail::to_const_ptr( src->unit_id() ),
-          &unit_id, ::rn::rn_adl_tag{} ) );
+          &unit_id, ::rn::serial::rn_adl_tag{} ) );
       *dst = CargoSlot_t{
           CargoSlot::cargo{/*contents=*/Cargo{unit_id}}};
       break;
@@ -108,7 +109,7 @@ expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
       Commodity commodity{};
       XP_OR_RETURN_( deserialize(
           serial::detail::to_const_ptr( src->commodity() ),
-          &commodity, ::rn::rn_adl_tag{} ) );
+          &commodity, ::rn::serial::rn_adl_tag{} ) );
       *dst = CargoSlot_t{
           CargoSlot::cargo{/*contents=*/Cargo{commodity}}};
       break;
@@ -116,6 +117,7 @@ expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
   }
   return xp_success_t{};
 }
+} // namespace serial
 
 string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
