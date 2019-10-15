@@ -8,6 +8,7 @@ let s:stems = [
   \ 'src/commodity',
   \ 'src/cargo',
   \ 'src/unit',
+  \ 'src/ownership',
   \ 'src/fb',
   \ 'src/serial',
 \]
