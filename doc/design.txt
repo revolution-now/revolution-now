@@ -14,6 +14,22 @@ The main questions to be answered here are:
   - By what process should the serialization happen when a
     save/load is performed.
 
+Option 1: Omni Structure.
+
+In this situation there will be one top-level structure
+encompassing all save-game state. There are two possibilities for
+reading this in:
+
+  1. Load it as a large blob, and deserialize it to a large
+  native structure, then pass that structure around to each
+  module and allow them to extract state from it.
+
+  2. Load it as a large blob, and then pass the blob around to
+  each module that needs state from it.
+
+  3. Load it as a large blob, then get a pointer into a
+  particular substructure, and pass that to the module.
+
 Drag & Drop with Dialog Box
 ===========================
 
