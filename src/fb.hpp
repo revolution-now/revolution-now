@@ -526,6 +526,9 @@ expect<> deserialize( SrcT const* src, DstT* m,
   }
   using iter_t = decltype( src->size() );
   using key_t  = typename DstT::key_type;
+  if constexpr( mp::has_reserve_method<std::decay_t<DstT>> ) {
+    m->reserve( src->size() );
+  }
   for( iter_t i = 0; i < src->size(); ++i ) {
     auto* elem = src->Get( i );
     key_t key{};

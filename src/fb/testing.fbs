@@ -44,6 +44,14 @@ table Pair_int_Weapon {
   snd : Weapon;
 }
 
+table MapTester1 {
+  map : [Pair_string_int];
+}
+
+table MapTester2 {
+  map : [Pair_int_int];
+}
+
 table Monster {
   pos       : Vec3;
   mana      : short = 150;

@@ -35,3 +35,8 @@ table Pair_string_int {
   fst : string;
   snd : int;
 }
+
+table Pair_int_int {
+  fst : int;
+  snd : int;
+}

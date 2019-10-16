@@ -633,8 +633,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     Unit unit;
-    CHECK_XP( rn::serial::deserialize_from_blob<rn::Unit>(
-        blob, &unit ) );
+    CHECK_XP( rn::serial::deserialize_from_blob( blob, &unit ) );
 
     auto const& orig = rn::unit_from_id( ship );
 
@@ -680,6 +679,46 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
              orig_cargo.max_commodity_per_cargo_slot() );
     REQUIRE( cargo.slots() == orig_cargo.slots() );
   }
+}
+
+struct MapTester1 {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+  using map_t = FlatMap<string, int>;
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( MapTester1,
+  ( map_t,        map                 ));
+  // clang-format on
+};
+
+struct MapTester2 {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+  using map_t = unordered_map<int, int>;
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( MapTester2,
+  ( map_t,        map                 ));
+  // clang-format on
+};
+
+TEST_CASE( "[flatbuffers] hash maps" ) {
+  using namespace ::rn::serial;
+
+  MapTester1 m1{{{"one", 1}, {"two", 2}}};
+  MapTester2 m2{{{2, 1}, {3, 2}}};
+
+  auto m1_blob = rn::serial::serialize_to_blob( m1 );
+  auto m2_blob = rn::serial::serialize_to_blob( m2 );
+
+  MapTester1 m1_new;
+  CHECK_XP( deserialize_from_blob( m1_blob, &m1_new ) );
+  MapTester2 m2_new;
+  CHECK_XP( deserialize_from_blob( m2_blob, &m2_new ) );
+
+  REQUIRE( m1.map_ == m1_new.map_ );
+  REQUIRE( m2.map_ == m2_new.map_ );
 }
 
 } // namespace

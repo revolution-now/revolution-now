@@ -56,4 +56,15 @@ template<typename T>
 constexpr bool is_map_like = has_key_type_member_v<T>&& //
                has_mapped_type_member_v<T>;
 
+/****************************************************************
+** has_reserve_method
+*****************************************************************/
+template<typename, typename = void>
+inline constexpr bool has_reserve_method = false;
+
+template<class T>
+inline constexpr bool has_reserve_method<
+    T, std::void_t<decltype( std::declval<T>().reserve( 0 ) )>> =
+    true;
+
 } // namespace mp
