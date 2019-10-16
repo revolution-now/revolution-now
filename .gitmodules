@@ -3,7 +3,7 @@
 	url = ../../dpacbach/base-util.git
 [submodule "extern/abseil-cpp"]
 	path = extern/abseil-cpp
-	url = https://github.com/abseil/abseil-cpp.git
+	url = ../../dpacbach/abseil-cpp.git
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git

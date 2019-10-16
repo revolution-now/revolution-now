@@ -70,15 +70,4 @@ struct EnumClassHash {
   }
 };
 
-// AbslHashValue for hashing std::optional. Mirrored from ab-
-// seil's implementation for absl::optional.
-template<typename H, typename T>
-typename std::enable_if<
-    absl::hash_internal::is_hashable<T>::value, H>::type
-AbslHashValue( H hash_state, std::optional<T> const& opt ) {
-  if( opt )
-    hash_state = H::combine( std::move( hash_state ), *opt );
-  return H::combine( std::move( hash_state ), opt.has_value() );
-}
-
 } // namespace rn
