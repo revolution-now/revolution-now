@@ -19,7 +19,6 @@
 #include "gfx.hpp"
 #include "input.hpp"
 #include "logging.hpp"
-#include "ownership.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
@@ -28,6 +27,7 @@
 #include "typed-int.hpp"
 #include "ui.hpp"
 #include "unit.hpp"
+#include "ustate.hpp"
 #include "util.hpp"
 #include "views.hpp"
 

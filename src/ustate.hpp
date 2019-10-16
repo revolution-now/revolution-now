@@ -1,5 +1,5 @@
 /****************************************************************
-**ownership.hpp
+**ustate.hpp
 *
 * Project: Revolution Now
 *
@@ -141,13 +141,13 @@ Unit& create_unit( e_nation nation, e_unit_type type );
 // that the unit exists). NOTE: this is a low-level function; it
 // does not do any checking, and should not be called directly.
 // E.g., this function will happily move a land unit into water.
-void ownership_change_to_map( UnitId id, Coord const& target );
+void ustate_change_to_map( UnitId id, Coord const& target );
 
-void ownership_change_to_cargo( UnitId new_holder, UnitId held );
-void ownership_change_to_cargo( UnitId new_holder, UnitId held,
-                                int slot );
+void ustate_change_to_cargo( UnitId new_holder, UnitId held );
+void ustate_change_to_cargo( UnitId new_holder, UnitId held,
+                             int slot );
 
-void ownership_change_to_euro_port_view(
+void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info );
 
 /****************************************************************
@@ -157,7 +157,7 @@ void ownership_change_to_euro_port_view(
 // ership. This is only in the header file because it needs to be
 // listed as the `friend` of some classes.
 namespace internal {
-void ownership_disown_unit( UnitId id );
+void ustate_disown_unit( UnitId id );
 }
 
 /****************************************************************

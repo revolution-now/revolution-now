@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "src/commodity.hpp"
-#include "src/ownership.hpp"
+#include "src/ustate.hpp"
 
 // Must be last.
 #include "catch-common.hpp"

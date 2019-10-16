@@ -15,8 +15,8 @@
 #include "errors.hpp"
 #include "id.hpp"
 #include "orders.hpp"
-#include "ownership.hpp"
 #include "terrain.hpp"
+#include "ustate.hpp"
 #include "util.hpp"
 #include "utype.hpp"
 #include "window.hpp"
@@ -405,7 +405,7 @@ void TravelAnalysis::affect_orders_() const {
       break;
     case e_unit_travel_good::board_ship: {
       CHECK( target_unit.has_value() );
-      ownership_change_to_cargo( *target_unit, id );
+      ustate_change_to_cargo( *target_unit, id );
       unit.forfeight_mv_points();
       unit.sentry();
       // If the ship is sentried then clear it's orders because
@@ -424,7 +424,7 @@ void TravelAnalysis::affect_orders_() const {
       break;
     }
     case e_unit_travel_good::offboard_ship:
-      ownership_change_to_map( id, move_target );
+      ustate_change_to_map( id, move_target );
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;

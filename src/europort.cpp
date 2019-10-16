@@ -15,7 +15,7 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "ownership.hpp"
+#include "ustate.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -145,7 +145,7 @@ void unit_sail_to_old_world( UnitId id ) {
   lg.info( "setting unit {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a europort state here.
-  ownership_change_to_euro_port_view( id, target_state );
+  ustate_change_to_euro_port_view( id, target_state );
 }
 
 void unit_sail_to_new_world( UnitId id ) {
@@ -182,7 +182,7 @@ void unit_sail_to_new_world( UnitId id ) {
   lg.info( "setting unit {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a europort state here.
-  ownership_change_to_euro_port_view( id, target_state );
+  ustate_change_to_euro_port_view( id, target_state );
 }
 
 void unit_move_to_europort_dock( UnitId id ) {
@@ -191,7 +191,7 @@ void unit_move_to_europort_dock( UnitId id ) {
   CHECK( holder && is_unit_in_port( *holder ),
          "cannot move unit to dock unless it is in the cargo of "
          "a ship that is in port." );
-  ownership_change_to_euro_port_view(
+  ustate_change_to_euro_port_view(
       id, UnitEuroPortViewState::in_port{} );
   DCHECK( is_unit_on_dock( id ) );
   DCHECK( !is_unit_onboard( id ) );
@@ -210,7 +210,7 @@ void advance_unit_on_high_seas( UnitId id ) {
   if_v( info.get(), UnitEuroPortViewState::inbound, inbound ) {
     inbound->percent += advance;
     if( inbound->percent >= 1.0 )
-      ownership_change_to_euro_port_view(
+      ustate_change_to_euro_port_view(
           id, UnitEuroPortViewState::in_port{} );
     return;
   }

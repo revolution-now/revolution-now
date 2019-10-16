@@ -17,9 +17,9 @@
 #include "fb.hpp"
 #include "io.hpp"
 #include "logging.hpp"
-#include "ownership.hpp"
 #include "serial.hpp"
 #include "unit.hpp"
+#include "ustate.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -547,8 +547,8 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 
   add_commodity_to_cargo( comm1, ship, 3,
                           /*try_other_slots=*/false );
-  rn::ownership_change_to_cargo( ship, unit_id2, 1 );
-  rn::ownership_change_to_cargo( ship, unit_id3, 2 );
+  rn::ustate_change_to_cargo( ship, unit_id2, 1 );
+  rn::ustate_change_to_cargo( ship, unit_id3, 2 );
 
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
   constexpr uint64_t kExpectedBlobSize = 160;

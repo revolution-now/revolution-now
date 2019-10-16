@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "logging.hpp"
-#include "ownership.hpp"
 #include "rand.hpp"
+#include "ustate.hpp"
 
 namespace rn {
 

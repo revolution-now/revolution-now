@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "ownership.hpp"
+#include "ustate.hpp"
 
 // base-util
 #include "base-util/variant.hpp"

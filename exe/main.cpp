@@ -29,15 +29,15 @@ void game() {
 
 int main( int /*unused*/, char** /*unused*/ ) try {
   linker_dont_discard_me();
-  // run_all_init_routines( e_log_level::debug );
-  // lua::reload();
-  // lua::run_startup_main();
+  run_all_init_routines( e_log_level::debug );
+  lua::reload();
+  lua::run_startup_main();
 
-  // game();
+  game();
 
-  serial::test_serial();
+  // serial::test_serial();
 
-  // run_all_cleanup_routines();
+  run_all_cleanup_routines();
   return 0;
 
 } catch( exception_exit const& ) {

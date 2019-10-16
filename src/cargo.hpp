@@ -43,14 +43,14 @@ struct CargoHold;
 
 // Friends.
 namespace rn {
-void ownership_change_to_cargo( UnitId new_holder, UnitId held,
-                                int slot );
-void add_commodity_to_cargo( Commodity const& comm,
-                             UnitId holder, int slot,
-                             bool try_other_slots );
+void      ustate_change_to_cargo( UnitId new_holder, UnitId held,
+                                  int slot );
+void      add_commodity_to_cargo( Commodity const& comm,
+                                  UnitId holder, int slot,
+                                  bool try_other_slots );
 Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 namespace internal {
-void ownership_disown_unit( UnitId id );
+void ustate_disown_unit( UnitId id );
 } // namespace internal
 } // namespace rn
 
@@ -208,9 +208,9 @@ protected:
   // ------------------------------------------------------------
   // These are the only functions that should be allowed to add
   // or remove units to/from the cargo.
-  friend void ownership_change_to_cargo( UnitId new_holder,
-                                         UnitId held, int slot );
-  friend void internal::ownership_disown_unit( UnitId id );
+  friend void ustate_change_to_cargo( UnitId new_holder,
+                                      UnitId held, int slot );
+  friend void internal::ustate_disown_unit( UnitId id );
 
   // These are the only functions that should be allowed to add
   // or remove commodities to/from the cargo.

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "logging.hpp"
-#include "ownership.hpp"
+#include "ustate.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -80,7 +80,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   CHECK( !sorted_by_defense.empty() );
   UnitId highest_defense_unit = sorted_by_defense.back();
   lg.info( "unit in target square with highest defense: {}",
-                debug_string( highest_defense_unit ) );
+           debug_string( highest_defense_unit ) );
 
   // Deferred evaluation until we know that the attack makes
   // sense.

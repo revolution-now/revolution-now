@@ -24,7 +24,6 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
-#include "ownership.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
@@ -32,6 +31,7 @@
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "ustate.hpp"
 #include "variant.hpp"
 #include "window.hpp"
 
@@ -1794,9 +1794,9 @@ public:
         // the player,
         if( unit_from_id( ship ).cargo().fits( src.id,
                                                dst.slot._ ) )
-          ownership_change_to_cargo( ship, src.id, dst.slot._ );
+          ustate_change_to_cargo( ship, src.id, dst.slot._ );
         else
-          ownership_change_to_cargo( ship, src.id );
+          ustate_change_to_cargo( ship, src.id );
       }
       case_( DragArc::cargo_to_dock ) {
         ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),
@@ -1814,7 +1814,7 @@ public:
           case_( UnitId ) {
             // Will first "disown" unit which will remove it from
             // the cargo.
-            ownership_change_to_cargo( ship, val, dst.slot._ );
+            ustate_change_to_cargo( ship, val, dst.slot._ );
           }
           case_( Commodity ) {
             move_commodity_as_much_as_possible(
@@ -1838,7 +1838,7 @@ public:
         unit_sail_to_new_world( val.src.id );
       }
       case_( DragArc::dock_to_inport_ship, src, dst ) {
-        ownership_change_to_cargo( dst.id, src.id );
+        ustate_change_to_cargo( dst.id, src.id );
       }
       case_( DragArc::cargo_to_inport_ship, src, dst ) {
         ASSIGN_CHECK_OPT( cargo_object,
@@ -1849,7 +1849,7 @@ public:
             CHECK( !src.quantity.has_value() );
             // Will first "disown" unit which will remove it from
             // the cargo.
-            ownership_change_to_cargo( dst.id, val );
+            ustate_change_to_cargo( dst.id, val );
           }
           case_( Commodity ) {
             ASSIGN_CHECK_OPT(

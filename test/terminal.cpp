@@ -38,39 +38,39 @@ TEST_CASE( "[terminal] autocomplete" ) {
   in = "xgiebg";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
-  in  = "ownersh";
-  out = Vec<Str>{"ownership"};
+  in  = "usta";
+  out = Vec<Str>{"ustate"};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ownership";
-  out = Vec<Str>{"ownership."};
+  in  = "ustate";
+  out = Vec<Str>{"ustate."};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ownership.";
-  out = Vec<Str>{"ownership.create_unit_on_map",
-                 "ownership.unit_from_id"};
+  in  = "ustate.";
+  out = Vec<Str>{"ustate.create_unit_on_map",
+                 "ustate.unit_from_id"};
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
-  in  = "ownership.unit_fr";
-  out = Vec<Str>{"ownership.unit_from_id"};
+  in  = "ustate.unit_fr";
+  out = Vec<Str>{"ustate.unit_from_id"};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ownership.unit_from_id";
-  out = Vec<Str>{"ownership.unit_from_id("};
+  in  = "ustate.unit_from_id";
+  out = Vec<Str>{"ustate.unit_from_id("};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in = "ownership.unit_from_id(";
+  in = "ustate.unit_from_id(";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
-  in = "ownership.unit_from_id(";
+  in = "ustate.unit_from_id(";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
-  in  = "ownership.unit_from_id( ownersh";
-  out = Vec<Str>{"ownership.unit_from_id( ownership"};
+  in  = "ustate.unit_from_id( usta";
+  out = Vec<Str>{"ustate.unit_from_id( ustate"};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "ownership.unit_from_id( ownership";
-  out = Vec<Str>{"ownership.unit_from_id( ownership."};
+  in  = "ustate.unit_from_id( ustate";
+  out = Vec<Str>{"ustate.unit_from_id( ustate."};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";
@@ -200,24 +200,24 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   in = "xgiebg";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
-  in  = "ownersh";
-  out = Vec<Str>{"ownership."};
+  in  = "usta";
+  out = Vec<Str>{"ustate."};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in  = "ownership.";
-  out = Vec<Str>{"ownership.create_unit_on_map",
-                 "ownership.unit_from_id"};
+  in  = "ustate.";
+  out = Vec<Str>{"ustate.create_unit_on_map",
+                 "ustate.unit_from_id"};
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
-  in  = "ownership.unit_fr";
-  out = Vec<Str>{"ownership.unit_from_id("};
+  in  = "ustate.unit_fr";
+  out = Vec<Str>{"ustate.unit_from_id("};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  in = "ownership.unit_from_id(";
+  in = "ustate.unit_from_id(";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
-  in  = "ownership.unit_from_id( ownersh";
-  out = Vec<Str>{"ownership.unit_from_id( ownership."};
+  in  = "ustate.unit_from_id( usta";
+  out = Vec<Str>{"ustate.unit_from_id( ustate."};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "uni";

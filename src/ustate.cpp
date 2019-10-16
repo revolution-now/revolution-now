@@ -1,5 +1,5 @@
 /****************************************************************
-**ownership.cpp
+**ustate.cpp
 *
 * Project: Revolution Now
 *
@@ -9,7 +9,7 @@
 *              units.
 *
 *****************************************************************/
-#include "ownership.hpp"
+#include "ustate.hpp"
 
 // Revolution Now
 #include "aliases.hpp"
@@ -147,7 +147,7 @@ void destroy_unit( UnitId id ) {
     cargo_units_to_destroy.push_back( cargo_id );
   }
   util::map_( destroy_unit, cargo_units_to_destroy );
-  internal::ownership_disown_unit( id );
+  internal::ustate_disown_unit( id );
   auto it = units.find( id );
   CHECK( it != units.end() );
   units.erase( it->first );
@@ -201,7 +201,7 @@ Opt<e_nation> nation_from_coord( Coord coord ) {
 
 void move_unit_from_map_to_map( UnitId id, Coord dest ) {
   CHECK( unit_ownership[id] == e_unit_ownership::world );
-  ownership_change_to_map( id, dest );
+  ustate_change_to_map( id, dest );
 }
 
 Vec<UnitId> units_in_rect( Rect const& rect ) {
@@ -272,14 +272,14 @@ Vec<UnitId> units_in_euro_port_view() {
 UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                            Y y, X x ) {
   Unit& unit = create_unit( nation, type );
-  ownership_change_to_map( unit.id(), {x, y} );
+  ustate_change_to_map( unit.id(), {x, y} );
   return unit.id();
 }
 
 UnitId create_unit_in_euroview_port( e_nation    nation,
                                      e_unit_type type ) {
   Unit& unit = create_unit( nation, type );
-  ownership_change_to_euro_port_view(
+  ustate_change_to_euro_port_view(
       unit.id(), UnitEuroPortViewState::in_port{} );
   return unit.id();
 }
@@ -287,15 +287,15 @@ UnitId create_unit_in_euroview_port( e_nation    nation,
 UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
                              UnitId holder ) {
   Unit& unit = create_unit( nation, type );
-  ownership_change_to_cargo( holder, unit.id() );
+  ustate_change_to_cargo( holder, unit.id() );
   return unit.id();
 }
 
 /****************************************************************
 ** Low-Level Ownership Change Functions
 *****************************************************************/
-void ownership_change_to_map( UnitId id, Coord const& target ) {
-  internal::ownership_disown_unit( id );
+void ustate_change_to_map( UnitId id, Coord const& target ) {
+  internal::ustate_disown_unit( id );
   // Add unit to new square.
   units_from_coords[{target.y, target.x}].insert( id );
   // Set unit coords to new value.
@@ -303,8 +303,8 @@ void ownership_change_to_map( UnitId id, Coord const& target ) {
   unit_ownership[id]   = e_unit_ownership::world;
 }
 
-void ownership_change_to_cargo( UnitId new_holder, UnitId held,
-                                int slot ) {
+void ustate_change_to_cargo( UnitId new_holder, UnitId held,
+                             int slot ) {
   // Make sure that we're not adding the unit to its own cargo.
   // Should never happen theoretically, but...
   CHECK( new_holder != held );
@@ -318,7 +318,7 @@ void ownership_change_to_cargo( UnitId new_holder, UnitId held,
              .cargo_slots_occupies.has_value() );
   auto& cargo_hold = unit_from_id( new_holder ).cargo();
   // We're clear (at least on our end).
-  internal::ownership_disown_unit( held );
+  internal::ustate_disown_unit( held );
   // Check that there are enough open slots. Note we do this
   // after disowning the unit just in case we are moving the unit
   // into a cargo slot that it already occupies or moving a large
@@ -333,12 +333,11 @@ void ownership_change_to_cargo( UnitId new_holder, UnitId held,
   holder_from_held[held] = new_holder;
 }
 
-void ownership_change_to_cargo( UnitId new_holder,
-                                UnitId held ) {
+void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
   auto& cargo = unit_from_id( new_holder ).cargo();
   for( int i = 0; i < cargo.slots_total(); ++i ) {
     if( cargo.fits( held, i ) ) {
-      ownership_change_to_cargo( new_holder, held, i );
+      ustate_change_to_cargo( new_holder, held, i );
       return;
     }
   }
@@ -347,11 +346,11 @@ void ownership_change_to_cargo( UnitId new_holder,
          cargo );
 }
 
-void ownership_change_to_euro_port_view(
+void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
   check_europort_state_invariants( info );
   if( !bu::has_key( g_euro_port_view_units, id ) ) {
-    internal::ownership_disown_unit( id );
+    internal::ustate_disown_unit( id );
     unit_ownership[id] = e_unit_ownership::old_world;
   }
   g_euro_port_view_units[id] = info;
@@ -388,7 +387,7 @@ namespace internal {
 //
 // Specifically, it will erase any ownership that is had over the
 // given unit and mark it as unowned.
-void ownership_disown_unit( UnitId id ) {
+void ustate_disown_unit( UnitId id ) {
   // If there is no ownership then return and do nothing.
   ASSIGN_OR_RETURN_( it, bu::has_key( unit_ownership, id ) );
   switch( it->second ) {
