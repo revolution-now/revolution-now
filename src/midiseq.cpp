@@ -73,24 +73,19 @@ void rtmidi_error_callback( RtMidiError::Type,
 class MidiIO : public util::movable_only {
 public:
   MidiIO( MidiIO&& rhs ) noexcept {
-    out_ = std::move( rhs.out_ );
-    rhs.release();
+    out_ = std::exchange( rhs.out_, nullptr );
   }
-  MidiIO& operator=( MidiIO&& rhs ) noexcept {
-    close();
-    release();
-    out_ = std::move( rhs.out_ );
-    rhs.release();
+
+  MidiIO& operator=( MidiIO rhs ) noexcept {
+    rhs.swap( *this );
     return *this;
   }
 
-  void close() {
+  void swap( MidiIO& rhs ) noexcept { rhs.out_.swap( out_ ); }
+
+  ~MidiIO() {
     if( out_ ) out_->closePort();
   }
-
-  void release() { out_ = nullptr; }
-
-  ~MidiIO() { close(); }
 
   static Opt<MidiIO> create() {
     MidiIO res;

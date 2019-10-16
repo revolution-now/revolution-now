@@ -255,6 +255,8 @@ struct StackTrace {
   StackTrace();
   ~StackTrace();
   StackTrace( std::unique_ptr<backward::StackTrace>&& st_ );
+  // This is not defaulted because backward::StackTrace is only
+  // forward declared in this header.
   StackTrace( StackTrace&& st );
 
   // Pointer so that we can avoid including backward.hpp here.

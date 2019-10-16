@@ -76,6 +76,14 @@ public:
   // scaling as needed.
   Surface scaled( Delta target_size );
 
+  void swap( Surface& rhs ) noexcept {
+    ::std::swap( sf_, rhs.sf_ );
+  }
+
+  friend void swap( Surface& lhs, Surface& rhs ) noexcept {
+    lhs.swap( rhs );
+  }
+
 private:
   friend class Texture;
 
@@ -148,6 +156,15 @@ public:
   static double mem_usage_mb( Delta size );
   // Estimated memory size of this texture in megabytes.
   double mem_usage_mb() const;
+
+  void swap( Texture& rhs ) noexcept {
+    ::std::swap( tx_, rhs.tx_ );
+    ::std::swap( id_, rhs.id_ );
+  }
+
+  friend void swap( Texture& lhs, Texture& rhs ) noexcept {
+    lhs.swap( rhs );
+  }
 
 private:
   void* tx_{nullptr};

@@ -39,23 +39,21 @@ class OggTune : public util::movable_only {
 public:
   OggTune( TuneId id, ::Mix_Music* music )
     : ptr_( music ), id_( id ) {
-    CHECK( music );
+    DCHECK( music );
   }
+
   ~OggTune() {
     // ptr could be null if we've been moved out of.
     if( ptr_ ) ::Mix_FreeMusic( ptr_ );
   }
-  OggTune( OggTune&& rhs ) noexcept
-    : ptr_( rhs.ptr_ ), id_( rhs.id_ ) {
-    rhs.ptr_ = nullptr;
-    rhs.id_  = 0;
+
+  OggTune( OggTune&& rhs ) noexcept {
+    ptr_ = std::exchange( rhs.ptr_, nullptr );
+    id_  = std::exchange( rhs.id_, 0 );
   }
-  OggTune& operator=( OggTune&& rhs ) noexcept {
-    if( this == &rhs ) return *this;
-    ptr_     = rhs.ptr_;
-    rhs.ptr_ = nullptr;
-    id_      = rhs.id_;
-    rhs.id_  = 0;
+
+  OggTune& operator=( OggTune rhs ) noexcept {
+    rhs.swap( *this );
     return *this;
   }
 
@@ -67,6 +65,11 @@ public:
   // be necessary to add libogg directly as a dependency to find
   // the length.
   Opt<chrono::milliseconds> duration() { return nullopt; }
+
+  void swap( OggTune& rhs ) noexcept {
+    ::std::swap( ptr_, rhs.ptr_ );
+    ::std::swap( id_, rhs.id_ );
+  }
 
 private:
   ::Mix_Music* ptr_;

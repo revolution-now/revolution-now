@@ -29,6 +29,7 @@
 // C++ standard library
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 namespace rn {
 
@@ -79,16 +80,13 @@ int g_current_render_target{-1};
 Surface::Surface( void* p ) : sf_{p} { CHECK( sf_ ); }
 
 Surface::Surface( Surface&& sf ) noexcept {
-  sf_ = sf.sf_;
-  CHECK( sf_, "attempt to move from a moved-from Surface." );
-  sf.sf_ = nullptr;
+  DCHECK( sf.sf_, "attempt to move from a moved-from Surface." );
+  sf_ = std::exchange( sf.sf_, nullptr );
 }
 
 Surface& Surface::operator=( Surface&& rhs ) noexcept {
-  free();
-  sf_ = rhs.sf_;
-  CHECK( sf_, "attempt to move from a moved-from Surface." );
-  rhs.sf_ = nullptr;
+  Surface moved( std::move( rhs ) );
+  moved.swap( *this );
   return *this;
 }
 
@@ -157,18 +155,17 @@ Texture::Texture( void* tx )
   g_live_texture_count++;
 }
 
-Texture::Texture( Texture&& tx ) noexcept
-  : tx_( tx.tx_ ), id_( tx.id_ ) {
-  tx.tx_ = nullptr;
-  tx.id_ = 0;
+Texture::Texture( Texture&& tx ) noexcept {
+  // !! here we don't check for tx.tx_ == nullptr because that is
+  // a valid Texture, namely, the default texture (screen). Al-
+  // though this may be SDL specific.
+  tx_ = std::exchange( tx.tx_, nullptr );
+  id_ = std::exchange( tx.id_, 0 );
 }
 
 Texture& Texture::operator=( Texture&& rhs ) noexcept {
-  free();
-  tx_     = rhs.tx_;
-  id_     = rhs.id_;
-  rhs.tx_ = nullptr;
-  rhs.id_ = 0;
+  Texture moved( std::move( rhs ) );
+  moved.swap( *this );
   return *this;
 }
 
