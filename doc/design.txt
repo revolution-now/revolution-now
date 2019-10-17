@@ -1,34 +1,30 @@
 Serialization/Game State
 ========================
 
-The game currently uses the Flatbuffers library to do serializa-
-tion. Although Flatbuffers provides generated classes repre-
-senting the serialized data structures, the game will not use
-these directly. It will use its own native data structures will
-are then serialized and deserialized.
+Plan:
 
-The main questions to be answered here are:
+  - Create a top level flatbuffers schema with a single table
+    containing one entry for each class of state, denoted S.
+  - Each S will have its structure defined in a separate schema
+    file, and that structure will begin with G_.
+  - The module that needs a given state class S will only declare
+    two interface methods, e.g., for unit state:
 
-  - What structure should the save file(s) take.
-  - In which module(s) should the game state be stored.
-  - By what process should the serialization happen when a
-    save/load is performed.
+      void init_savegame_state();
+      void reset_savegame_state();
 
-Option 1: Omni Structure.
+      Offset<fb::G_UnitState>
+      serialize_savegame_state( FBBuilder& builder );
 
-In this situation there will be one top-level structure
-encompassing all save-game state. There are two possibilities for
-reading this in:
+      expect<>
+      deserialize_savegame_state( fb::G_UnitState* src );
 
-  1. Load it as a large blob, and deserialize it to a large
-  native structure, then pass that structure around to each
-  module and allow them to extract state from it.
-
-  2. Load it as a large blob, and then pass the blob around to
-  each module that needs state from it.
-
-  3. Load it as a large blob, then get a pointer into a
-  particular substructure, and pass that to the module.
+    This has the benefit that the fb::G_UnitState need only be
+    forward declared in the header.
+  - The overall saving and restoring will be managed in a saves-
+    tate module, and this module can decide whether to put all of
+    the data from all the state classes in a single file, or sep-
+    arate.
 
 Drag & Drop with Dialog Box
 ===========================
