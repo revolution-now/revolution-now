@@ -1,0 +1,15 @@
+// **************************************************************
+// save-game.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-18.
+//
+// Description: Top-level table for save-game files.
+//
+// **************************************************************
+namespace fb;
+
+table SaveGame {
+  unit_state : int;
+}
