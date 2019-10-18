@@ -9,6 +9,7 @@ let s:stems = [
   \ 'src/cargo',
   \ 'src/unit',
   \ 'src/ustate',
+  \ 'src/save-game',
   \ 'src/fb',
   \ 'src/serial',
 \]

@@ -16,6 +16,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
+#include "save-game-macros.hpp"
 #include "unit.hpp"
 
 // function_ref
@@ -25,6 +26,8 @@
 #include <functional>
 #include <optional>
 #include <unordered_set>
+
+DECLARE_SAVEGAME_SERIALIZER( UnitState );
 
 namespace rn {
 

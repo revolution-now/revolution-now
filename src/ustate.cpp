@@ -14,6 +14,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 #include "terrain.hpp"
@@ -22,6 +23,9 @@
 #include "base-util/algo.hpp"
 #include "base-util/keyval.hpp"
 #include "base-util/variant.hpp"
+
+// Flatbuffers
+#include "fb/g-unit-state_generated.h"
 
 // C++ standard library
 #include <unordered_map>
@@ -32,6 +36,24 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+/****************************************************************
+** Save-Game State
+*****************************************************************/
+struct G_UnitState {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  using UnitStorageMap_t = unordered_map<UnitId, Unit>;
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( G_UnitState,
+  ( UnitStorageMap_t,    units          ));
+  // clang-format on
+};
+
+DEFINE_SAVEGAME_SERIALIZER_STATE( UnitState );
 
 // All units that exist anywhere.
 unordered_map<UnitId, Unit> units;
@@ -90,6 +112,8 @@ void check_europort_state_invariants(
 }
 
 } // namespace
+
+DEFINE_SAVEGAME_SERIALIZERS( UnitState );
 
 string debug_string( UnitId id ) {
   return debug_string( unit_from_id( id ) );

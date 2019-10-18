@@ -30,5 +30,3 @@ table Person {
   name : string;
   age  : short;
 }
-
-//root_type fbs.Person;
