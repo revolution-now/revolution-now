@@ -1,0 +1,20 @@
+{
+  "map": [
+    {
+      "fst": "hello",
+      "snd": 1
+    },
+    {
+      "fst": "hello2",
+      "snd": 1
+    },
+    {
+      "fst": "hello3",
+      "snd": 1
+    },
+    {
+      "fst": "hello2",
+      "snd": 1
+    }
+  ]
+}

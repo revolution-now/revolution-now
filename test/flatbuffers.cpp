@@ -45,6 +45,7 @@ namespace {
 using namespace std;
 using namespace rn;
 
+using ::Catch::Contains;
 using ::Catch::Equals;
 using ::rn::serial::BinaryBlob;
 
@@ -719,6 +720,19 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
 
   REQUIRE( m1.map_ == m1_new.map_ );
   REQUIRE( m2.map_ == m2_new.map_ );
+
+  // Make sure that deserializing a map with duplicate keys re-
+  // sults in an error.
+  MapTester1 m_dup;
+  ASSIGN_CHECK_XP( json, rn::read_file_as_string(
+                             data_dir() / "map-dup-key.json" ) );
+  auto xp = rn::serial::deserialize_from_json(
+      /*schema_name=*/"testing",
+      /*json=*/json, /*out=*/&m_dup );
+
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT( xp.error().what, Contains( "duplicate key" ) );
+  REQUIRE_THAT( xp.error().what, Contains( "string" ) );
 }
 
 } // namespace

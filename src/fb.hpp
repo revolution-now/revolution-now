@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "meta.hpp"
+#include "util.hpp"
 
 // Flatbuffers
 #include "flatbuffers/flatbuffers.h"
@@ -535,6 +536,20 @@ expect<> deserialize( SrcT const* src, DstT* m,
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem->fst() ), &key,
                      ::rn::serial::rn_adl_tag{} ) );
+
+    // FIXME
+    // if constexpr( is_fmtable<key_t> ) {
+    //  if( m->find( key ) != m->end() )
+    //    return UNEXPECTED(
+    //        "duplicate key ({}) found when deserializing map.",
+    //        key );
+    //} else {
+    if( m->find( key ) != m->end() )
+      return UNEXPECTED(
+          "duplicate key (type {}) found when deserializing "
+          "map.",
+          ::rn::demangled_typename<key_t>() );
+    //}
 
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem->snd() ),
