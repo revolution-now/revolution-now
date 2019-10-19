@@ -8,10 +8,12 @@
 // Description: Top-level table for save-game files.
 //
 // **************************************************************
+include "sg-id.fbs";
 include "sg-unit-state.fbs";
 
 namespace fb;
 
 table SaveGame {
-  unit_state : int;
+  id_state   : SG_Id;
+  unit_state : SG_UnitState;
 }

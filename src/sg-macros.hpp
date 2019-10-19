@@ -10,6 +10,10 @@
 *****************************************************************/
 #pragma once
 
+// Revolution Now
+#include "aliases.hpp"
+#include "errors.hpp"
+
 // C++ standard library
 #include <type_traits>
 

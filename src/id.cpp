@@ -11,7 +11,11 @@
 #include "id.hpp"
 
 // Revolution Now
+#include "fb.hpp"
 #include "lua.hpp"
+
+// Flatbuffers
+#include "fb/sg-id_generated.h"
 
 namespace rn {
 
@@ -19,20 +23,40 @@ namespace {
 
 constexpr int kFirstUnitId = 1;
 
-int g_next_unit_id{kFirstUnitId - 1};
+/****************************************************************
+** Save-Game State
+*****************************************************************/
+struct SAVEGAME_STRUCT( Id ) {
+  SG_Id() : next_unit_id_{kFirstUnitId - 1} {}
+
+  // This will be called after deserialization.
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // clang-format off
+  SAVEGAME_MEMBERS( Id,
+  ( int, next_unit_id ));
+  // clang-format on
+};
+SAVEGAME_IMPL( Id );
 
 } // namespace
 
+/****************************************************************
+** Public Interface
+*****************************************************************/
 UnitId next_unit_id() {
-  ++g_next_unit_id;
-  return UnitId{g_next_unit_id};
+  ++SG().next_unit_id_;
+  return UnitId{SG().next_unit_id_};
 }
 
 /****************************************************************
 ** Testing
 *****************************************************************/
 namespace testing_only {
-void reset_unit_ids() { g_next_unit_id = kFirstUnitId - 1; }
+// FIXME: get rid of this.
+void reset_unit_ids() { SG().next_unit_id_ = kFirstUnitId - 1; }
 } // namespace testing_only
 
 /****************************************************************
@@ -41,8 +65,8 @@ void reset_unit_ids() { g_next_unit_id = kFirstUnitId - 1; }
 namespace {
 
 LUA_FN( last_unit_id, UnitId ) {
-  CHECK( g_next_unit_id >= 0, "no units yet created." );
-  return UnitId{g_next_unit_id};
+  CHECK( SG().next_unit_id_ >= 0, "no units yet created." );
+  return UnitId{SG().next_unit_id_};
 }
 
 } // namespace

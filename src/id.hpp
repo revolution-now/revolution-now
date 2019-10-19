@@ -12,12 +12,16 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "sg-macros.hpp"
 #include "typed-int.hpp"
 
 TYPED_ID( UnitId ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
 UD_LITERAL( UnitId, id )
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Id );
 
 ND UnitId next_unit_id();
 
