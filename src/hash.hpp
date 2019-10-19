@@ -71,3 +71,18 @@ struct EnumClassHash {
 };
 
 } // namespace rn
+
+namespace std {
+
+// AbslHashValue for hashing std::optional.
+template<typename H, typename T>
+typename enable_if<::absl::hash_internal::is_hashable<T>::value,
+                   H>::type
+AbslHashValue( H hash_state, ::std::optional<T> const& opt ) {
+  if( opt )
+    hash_state = H::combine( ::std::move( hash_state ), *opt );
+  return H::combine( ::std::move( hash_state ),
+                     opt.has_value() );
+}
+
+} // namespace std
