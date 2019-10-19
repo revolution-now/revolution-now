@@ -1,5 +1,5 @@
 // **************************************************************
-// g-unit-state.fbs
+// sg-unit-state.fbs
 //
 // Project: Revolution Now
 //
@@ -17,6 +17,6 @@ table Pair_UnitId_Unit {
   snd: Unit;
 }
 
-table G_UnitState {
+table SG_UnitState {
   units : [Pair_UnitId_Unit];
 }

@@ -25,7 +25,7 @@
 #include "base-util/variant.hpp"
 
 // Flatbuffers
-#include "fb/g-unit-state_generated.h"
+#include "fb/sg-unit-state_generated.h"
 
 // C++ standard library
 #include <unordered_map>
@@ -40,7 +40,8 @@ namespace {
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
-struct G_UnitState {
+struct SAVEGAME_STRUCT( UnitState ) {
+  // This will be called after deserialization.
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
@@ -48,15 +49,11 @@ struct G_UnitState {
   using UnitStorageMap_t = unordered_map<UnitId, Unit>;
 
   // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( G_UnitState,
+  SAVEGAME_MEMBERS( UnitState,
   ( UnitStorageMap_t,    units          ));
   // clang-format on
 };
-
-DEFINE_SAVEGAME_SERIALIZER_STATE( UnitState );
-
-// All units that exist anywhere.
-unordered_map<UnitId, Unit> units;
+SAVEGAME_IMPL( UnitState );
 
 // Holds deleted units for debugging purposes (they will never be
 // resurrected and their IDs will never be reused).
@@ -113,27 +110,25 @@ void check_europort_state_invariants(
 
 } // namespace
 
-DEFINE_SAVEGAME_SERIALIZERS( UnitState );
-
 string debug_string( UnitId id ) {
   return debug_string( unit_from_id( id ) );
 }
 
 Vec<UnitId> units_all( optional<e_nation> nation ) {
   vector<UnitId> res;
-  res.reserve( units.size() );
+  res.reserve( SG().units_.size() );
   if( nation ) {
-    for( auto const& p : units )
+    for( auto const& p : SG().units_ )
       if( *nation == p.second.nation() )
         res.push_back( p.first );
   } else {
-    for( auto const& p : units ) res.push_back( p.first );
+    for( auto const& p : SG().units_ ) res.push_back( p.first );
   }
   return res;
 }
 
 bool unit_exists( UnitId id ) {
-  bool exists  = bu::has_key( units, id ).has_value();
+  bool exists  = bu::has_key( SG().units_, id ).has_value();
   bool deleted = bu::has_key( g_deleted_units, id ).has_value();
   if( exists )
     CHECK( !deleted, "{}: exists: {}, deleted: {}.",
@@ -143,13 +138,13 @@ bool unit_exists( UnitId id ) {
 
 Unit& unit_from_id( UnitId id ) {
   CHECK( unit_exists( id ) );
-  return val_or_die( units, id );
+  return val_or_die( SG().units_, id );
 }
 
 // Apply a function to all units. The function may mutate the
 // units.
 void map_units( tl::function_ref<void( Unit& )> func ) {
-  for( auto& p : units ) func( p.second );
+  for( auto& p : SG().units_ ) func( p.second );
 }
 
 // Should not be holding any references to the unit after this.
@@ -172,21 +167,21 @@ void destroy_unit( UnitId id ) {
   }
   util::map_( destroy_unit, cargo_units_to_destroy );
   internal::ustate_disown_unit( id );
-  auto it = units.find( id );
-  CHECK( it != units.end() );
-  units.erase( it->first );
+  auto it = SG().units_.find( id );
+  CHECK( it != SG().units_.end() );
+  SG().units_.erase( it->first );
   g_deleted_units.insert( id );
 }
 
 Unit& create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
-  CHECK( !bu::has_key( units, id ) );
+  CHECK( !bu::has_key( SG().units_, id ) );
   CHECK( !g_deleted_units.contains( id ) );
   // To avoid requirement of operator[] that we have a default
   // constructor on Unit.
-  units.emplace( id, move( unit ) );
-  return units.find( id )->second;
+  SG().units_.emplace( id, move( unit ) );
+  return SG().units_.find( id )->second;
 }
 
 /****************************************************************
@@ -386,7 +381,7 @@ void ustate_change_to_euro_port_view(
 namespace testing_only {
 
 void reset_unit_creation() {
-  units.clear();
+  SG().units_.clear();
   g_deleted_units.clear();
   units_from_coords.clear();
   coords_from_unit.clear();

@@ -16,7 +16,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
-#include "save-game-macros.hpp"
+#include "sg-macros.hpp"
 #include "unit.hpp"
 
 // function_ref
@@ -27,9 +27,9 @@
 #include <optional>
 #include <unordered_set>
 
-DECLARE_SAVEGAME_SERIALIZER( UnitState );
-
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( UnitState );
 
 std::string debug_string( UnitId id );
 
