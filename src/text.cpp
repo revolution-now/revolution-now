@@ -15,7 +15,6 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "gfx.hpp"
-#include "hash.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "ranges.hpp"
@@ -27,6 +26,7 @@
 #include "base-util/string.hpp"
 
 // Abseil
+#include "absl/hash/hash.h"
 #include "absl/strings/str_split.h"
 
 // Range-v3
