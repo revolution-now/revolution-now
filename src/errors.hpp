@@ -305,9 +305,16 @@ NOTHROW_MOVE( Unexpected );
 using xp_success_t = std::monostate;
 
 // All `expected` types should use this so that they have a
-// common error type.
+// common error type. Create a new derived type so that we can
+// attach [[nodiscard]].
 template<typename T = xp_success_t>
-using expect = ::nonstd::expected<T, ::rn::Unexpected>;
+struct ND expect
+  : public ::nonstd::expected<T, ::rn::Unexpected> {
+  using Base = ::nonstd::expected<T, ::rn::Unexpected>;
+
+  // Inherit constructors.
+  using Base::Base;
+};
 
 // If there are >1 args then the 1st one must be a format string.
 #define UNEXPECTED( ... ) \
