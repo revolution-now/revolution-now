@@ -369,8 +369,8 @@ void populate_config_field( ucl::Ucl obj, fs::path& dest,
                     config_name, "a file system path" );
   fs::path file_path(
       (obj.*ucl_getter_for_type_v<fs::path>)( {} ) );
-  CHECK( fs::exists( file_path ), "file path {} does not exist",
-         file_path.string() );
+  CHECK( fs::exists( file_path ),
+         "file path `{}` does not exist", file_path.string() );
   dest = move( file_path );
 }
 

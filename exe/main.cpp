@@ -4,6 +4,7 @@
 #include "linking.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "save-game.hpp"
 #include "serial.hpp"
 #include "turn.hpp"
 
@@ -34,6 +35,9 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   lua::run_startup_main();
 
   game();
+
+  ASSIGN_CHECK_XP( p, save_game( 0 ) );
+  lg.info( "saving game to {}", p );
 
   // serial::test_serial();
 

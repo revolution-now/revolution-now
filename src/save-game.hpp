@@ -13,9 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-//#include "dummy.hpp"
+#include "aliases.hpp"
+#include "errors.hpp"
 
 namespace rn {
+
+expect<fs::path> save_game( int slot );
+expect<fs::path> load_game( int slot );
 
 /****************************************************************
 ** Testing

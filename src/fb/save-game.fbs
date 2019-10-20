@@ -9,11 +9,11 @@
 //
 // **************************************************************
 include "sg-id.fbs";
-include "sg-unit-state.fbs";
+include "sg-unit.fbs";
 
 namespace fb;
 
 table SaveGame {
   id_state   : SG_Id;
-  unit_state : SG_UnitState;
+  unit_state : SG_Unit;
 }

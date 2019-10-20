@@ -24,35 +24,35 @@
   struct SG_##name;                          \
   }                                          \
   namespace rn {                             \
-  void SaveGameSerializer(                   \
+  void savegame_serializer(                  \
       FBBuilder&               builder,      \
       FBOffset<fb::SG_##name>* out_offset ); \
-  expect<> SaveGameDeserializer( fb::SG_##name const* src );
+  expect<> savegame_deserializer( fb::SG_##name const* src );
 
 #define SAVEGAME_STRUCT( name ) SG_##name
 
 #define SAVEGAME_MEMBERS( name, ... ) \
   SERIALIZABLE_TABLE_MEMBERS( SG_##name, __VA_ARGS__ )
 
-#define SAVEGAME_IMPL( name )                                 \
-  SG_##name& SG() {                                           \
-    static SG_##name s;                                       \
-    return s;                                                 \
-  }                                                           \
-  } /* anonymous namespace */                                 \
-  void SaveGameSerializer(                                    \
-      FBBuilder&               builder,                       \
-      FBOffset<fb::SG_##name>* out_offset ) {                 \
-    auto offset = serial::serialize<fb::SG_##name>(           \
-        builder, SG(), ::rn::serial::rn_adl_tag{} );          \
-    static_assert( std::is_same_v<decltype( offset.get() ),   \
-                                  FBOffset<fb::SG_##name>>,   \
-                   "Top-level save-game state can only be "   \
-                   "represented with Flatbuffers tables." );  \
-    *out_offset = offset.get();                               \
-  }                                                           \
-  expect<> SaveGameDeserializer( fb::SG_##name const* src ) { \
-    return serial::deserialize( src, &SG(),                   \
-                                ::rn::serial::rn_adl_tag{} ); \
-  }                                                           \
+#define SAVEGAME_IMPL( name )                                  \
+  SG_##name& SG() {                                            \
+    static SG_##name s;                                        \
+    return s;                                                  \
+  }                                                            \
+  } /* anonymous namespace */                                  \
+  void savegame_serializer(                                    \
+      FBBuilder&               builder,                        \
+      FBOffset<fb::SG_##name>* out_offset ) {                  \
+    auto offset = serial::serialize<fb::SG_##name>(            \
+        builder, SG(), ::rn::serial::rn_adl_tag{} );           \
+    static_assert( std::is_same_v<decltype( offset.get() ),    \
+                                  FBOffset<fb::SG_##name>>,    \
+                   "Top-level save-game state can only be "    \
+                   "represented with Flatbuffers tables." );   \
+    *out_offset = offset.get();                                \
+  }                                                            \
+  expect<> savegame_deserializer( fb::SG_##name const* src ) { \
+    return serial::deserialize( src, &SG(),                    \
+                                ::rn::serial::rn_adl_tag{} );  \
+  }                                                            \
   namespace {

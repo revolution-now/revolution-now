@@ -29,7 +29,7 @@
 
 namespace rn {
 
-DECLARE_SAVEGAME_SERIALIZERS( UnitState );
+DECLARE_SAVEGAME_SERIALIZERS( Unit );
 
 std::string debug_string( UnitId id );
 

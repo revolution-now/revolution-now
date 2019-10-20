@@ -41,6 +41,7 @@
 # Game specific
 assets/art/*.tm
 /*.mid
+saves/slot*
 
 # cmake
 /.builds

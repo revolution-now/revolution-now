@@ -25,7 +25,7 @@
 #include "base-util/variant.hpp"
 
 // Flatbuffers
-#include "fb/sg-unit-state_generated.h"
+#include "fb/sg-unit_generated.h"
 
 // C++ standard library
 #include <unordered_map>
@@ -40,7 +40,7 @@ namespace {
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
-struct SAVEGAME_STRUCT( UnitState ) {
+struct SAVEGAME_STRUCT( Unit ) {
   // This will be called after deserialization.
   expect<> check_invariants_safe() const {
     return xp_success_t{};
@@ -49,11 +49,11 @@ struct SAVEGAME_STRUCT( UnitState ) {
   using UnitStorageMap_t = unordered_map<UnitId, Unit>;
 
   // clang-format off
-  SAVEGAME_MEMBERS( UnitState,
+  SAVEGAME_MEMBERS( Unit,
   ( UnitStorageMap_t,    units          ));
   // clang-format on
 };
-SAVEGAME_IMPL( UnitState );
+SAVEGAME_IMPL( Unit );
 
 // Holds deleted units for debugging purposes (they will never be
 // resurrected and their IDs will never be reused).
