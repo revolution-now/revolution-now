@@ -15,11 +15,11 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
+#include "cc-specific.hpp"
 #include "errors.hpp"
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
-#include "util.hpp"
 
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"

@@ -8,6 +8,7 @@
 // Description: Serializable type for all unit state.
 //
 // **************************************************************
+include "coord.fbs";
 include "unit.fbs";
 
 namespace fb;
@@ -17,6 +18,12 @@ table Pair_UnitId_Unit {
   snd: Unit;
 }
 
+struct Pair_UnitId_Coord {
+  fst: int;
+  snd: Coord;
+}
+
 table SG_Unit {
-  units : [Pair_UnitId_Unit];
+  units  : [Pair_UnitId_Unit];
+  coords : [Pair_UnitId_Coord];
 }

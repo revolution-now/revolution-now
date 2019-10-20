@@ -29,7 +29,16 @@
       FBOffset<fb::SG_##name>* out_offset ); \
   expect<> savegame_deserializer( fb::SG_##name const* src );
 
-#define SAVEGAME_STRUCT( name ) SG_##name
+struct SaveGameComponentBase {
+  ::rn::expect<> check_invariants_safe() const {
+    // This function is not used in the top-level save-game com-
+    // ponents. Instead we use the `sync_and_validate` method.
+    return ::rn::xp_success_t{};
+  }
+};
+
+#define SAVEGAME_STRUCT( name ) \
+  SG_##name : public SaveGameComponentBase
 
 #define SAVEGAME_MEMBERS( name, ... ) \
   SERIALIZABLE_TABLE_MEMBERS( SG_##name, __VA_ARGS__ )
@@ -52,7 +61,14 @@
     *out_offset = offset.get();                                \
   }                                                            \
   expect<> savegame_deserializer( fb::SG_##name const* src ) { \
-    return serial::deserialize( src, &SG(),                    \
-                                ::rn::serial::rn_adl_tag{} );  \
+    XP_OR_RETURN_( serial::deserialize(                        \
+        src, &SG(), ::rn::serial::rn_adl_tag{} ) );            \
+    return SG().sync_and_validate();                           \
   }                                                            \
   namespace {
+
+#define SAVEGAME_FRIENDS( name )             \
+  friend expect<> rn::savegame_deserializer( \
+      fb::SG_##name const* src )
+
+#define SAVEGAME_SYNC() expect<> sync_and_validate()

@@ -14,9 +14,9 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "cc-specific.hpp"
 #include "errors.hpp"
 #include "sol.hpp"
-#include "util.hpp"
 
 // base-util
 #include "base-util/macros.hpp"

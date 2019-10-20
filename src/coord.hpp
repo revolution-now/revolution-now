@@ -15,9 +15,13 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "enum.hpp"
-#include "errors.hpp" // TODO: remove eventually
+#include "errors.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "typed-int.hpp"
+
+// Flatbuffers
+#include "fb/coord_generated.h"
 
 // c++ standard library
 #include <cmath>
@@ -153,8 +157,12 @@ struct ND Delta {
 NOTHROW_MOVE( Delta );
 
 struct ND Coord {
-  Y y = 0_y;
-  X x = 0_x;
+  SERIALIZABLE_STRUCT_MEMBERS( Coord, ( Y, y ), ( X, x ) );
+
+public:
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
 
   Coord() = default;
   Coord( X x_, Y y_ ) : y( y_ ), x( x_ ) {}

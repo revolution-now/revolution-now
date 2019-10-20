@@ -41,22 +41,31 @@ namespace {
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Unit ) {
-  // This will be called after deserialization.
-  expect<> check_invariants_safe() const {
+  using StorageMap_t = unordered_map<UnitId, Unit>;
+  using CoordMap_t   = FlatMap<UnitId, Coord>;
+
+  // Fields that are actually serialized.
+  // clang-format off
+  SAVEGAME_MEMBERS( Unit, //
+  ( StorageMap_t, units  ),
+  ( CoordMap_t,   coords ));
+  // clang-format on
+
+  // Fields that are derived from the serialized fields.
+
+private:
+  SAVEGAME_FRIENDS( Unit );
+  SAVEGAME_SYNC() {
+    // Sync all fields that are derived from serialized fields
+    // and then validate (check invariants).
     return xp_success_t{};
   }
-
-  using UnitStorageMap_t = unordered_map<UnitId, Unit>;
-
-  // clang-format off
-  SAVEGAME_MEMBERS( Unit,
-  ( UnitStorageMap_t,    units          ));
-  // clang-format on
 };
 SAVEGAME_IMPL( Unit );
 
 // Holds deleted units for debugging purposes (they will never be
 // resurrected and their IDs will never be reused).
+// FIXME: this can be derived from the units map + last unit id.
 FlatSet<UnitId> g_deleted_units;
 
 // FIXME: get rid of all these separate maps and represent owner-
@@ -64,7 +73,6 @@ FlatSet<UnitId> g_deleted_units;
 
 // For units that are on (owned by) the world (map).
 unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
-unordered_map<UnitId, Coord>                coords_from_unit;
 
 // For units that are held as cargo.
 unordered_map</*held*/ UnitId, /*holder*/ UnitId>
@@ -244,7 +252,7 @@ Opt<Coord> coords_for_unit_safe( UnitId id ) {
                     bu::val_safe( unit_ownership, id ) );
   switch( ownership ) {
     case e_unit_ownership::world:
-      return bu::val_safe( coords_from_unit, id );
+      return bu::val_safe( SG().coords_, id );
     case e_unit_ownership::cargo: {
       ASSIGN_OR_RETURN( holder,
                         bu::val_safe( holder_from_held, id ) );
@@ -318,8 +326,8 @@ void ustate_change_to_map( UnitId id, Coord const& target ) {
   // Add unit to new square.
   units_from_coords[{target.y, target.x}].insert( id );
   // Set unit coords to new value.
-  coords_from_unit[id] = {target.y, target.x};
-  unit_ownership[id]   = e_unit_ownership::world;
+  SG().coords_[id]   = {target.y, target.x};
+  unit_ownership[id] = e_unit_ownership::world;
 }
 
 void ustate_change_to_cargo( UnitId new_holder, UnitId held,
@@ -384,7 +392,7 @@ void reset_unit_creation() {
   SG().units_.clear();
   g_deleted_units.clear();
   units_from_coords.clear();
-  coords_from_unit.clear();
+  SG().coords_.clear();
   holder_from_held.clear();
   g_euro_port_view_units.clear();
   unit_ownership.clear();
@@ -414,11 +422,11 @@ void ustate_disown_unit( UnitId id ) {
     // statement otherwise we get errors... something to do with
     // local variables declared inside of it.
     case e_unit_ownership::world: {
-      // First remove from coords_from_unit
+      // First remove from SG().coords_
       ASSIGN_CHECK_OPT( pair_it,
-                        bu::has_key( coords_from_unit, id ) );
+                        bu::has_key( SG().coords_, id ) );
       auto coords = pair_it->second;
-      coords_from_unit.erase( pair_it );
+      SG().coords_.erase( pair_it );
       // Now remove from units_from_coords
       ASSIGN_CHECK_OPT(
           set_it, bu::has_key( units_from_coords, coords ) );

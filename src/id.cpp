@@ -34,10 +34,15 @@ struct SAVEGAME_STRUCT( Id ) {
     return xp_success_t{};
   }
 
-  // clang-format off
-  SAVEGAME_MEMBERS( Id,
-  ( int, next_unit_id ));
-  // clang-format on
+  SAVEGAME_MEMBERS( Id, ( int, next_unit_id ) );
+
+private:
+  SAVEGAME_FRIENDS( Id );
+  SAVEGAME_SYNC() {
+    // Sync all fields that are derived from serialized fields
+    // and then validate (check invariants).
+    return xp_success_t{};
+  }
 };
 SAVEGAME_IMPL( Id );
 

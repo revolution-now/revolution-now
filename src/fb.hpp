@@ -14,9 +14,9 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "cc-specific.hpp"
 #include "errors.hpp"
 #include "meta.hpp"
-#include "util.hpp"
 
 // Flatbuffers
 #include "flatbuffers/flatbuffers.h"

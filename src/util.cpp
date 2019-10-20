@@ -49,28 +49,6 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
   return floor / m;
 }
 
-// The below is a C++ name demangler that works when using
-// certain compilers, see:
-//   https://stackoverflow.com/questions/281818/
-//       unmangling-the-result-of-stdtype-infoname
-
-#ifdef __GNUG__
-#  include <cxxabi.h>
-
-string demangle( char const* name ) {
-  int status{};
-
-  unique_ptr<char, void ( * )( void* )> res{
-      abi::__cxa_demangle( name, NULL, NULL, &status ),
-      std::free};
-  return ( status == 0 ) ? res.get() : name;
-}
-
-#else
-// Does nothing if not g++/clang
-string demangle( const char* name ) { return name; }
-#endif
-
 Opt<fs::path> user_home_folder() {
   return environment_variable( "HOME" );
 }
