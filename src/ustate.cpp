@@ -124,19 +124,19 @@ string debug_string( UnitId id ) {
 
 Vec<UnitId> units_all( optional<e_nation> nation ) {
   vector<UnitId> res;
-  res.reserve( SG().units_.size() );
+  res.reserve( SG().units.size() );
   if( nation ) {
-    for( auto const& p : SG().units_ )
+    for( auto const& p : SG().units )
       if( *nation == p.second.nation() )
         res.push_back( p.first );
   } else {
-    for( auto const& p : SG().units_ ) res.push_back( p.first );
+    for( auto const& p : SG().units ) res.push_back( p.first );
   }
   return res;
 }
 
 bool unit_exists( UnitId id ) {
-  bool exists  = bu::has_key( SG().units_, id ).has_value();
+  bool exists  = bu::has_key( SG().units, id ).has_value();
   bool deleted = bu::has_key( g_deleted_units, id ).has_value();
   if( exists )
     CHECK( !deleted, "{}: exists: {}, deleted: {}.",
@@ -146,13 +146,13 @@ bool unit_exists( UnitId id ) {
 
 Unit& unit_from_id( UnitId id ) {
   CHECK( unit_exists( id ) );
-  return val_or_die( SG().units_, id );
+  return val_or_die( SG().units, id );
 }
 
 // Apply a function to all units. The function may mutate the
 // units.
 void map_units( tl::function_ref<void( Unit& )> func ) {
-  for( auto& p : SG().units_ ) func( p.second );
+  for( auto& p : SG().units ) func( p.second );
 }
 
 // Should not be holding any references to the unit after this.
@@ -175,21 +175,21 @@ void destroy_unit( UnitId id ) {
   }
   util::map_( destroy_unit, cargo_units_to_destroy );
   internal::ustate_disown_unit( id );
-  auto it = SG().units_.find( id );
-  CHECK( it != SG().units_.end() );
-  SG().units_.erase( it->first );
+  auto it = SG().units.find( id );
+  CHECK( it != SG().units.end() );
+  SG().units.erase( it->first );
   g_deleted_units.insert( id );
 }
 
 Unit& create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
-  CHECK( !bu::has_key( SG().units_, id ) );
+  CHECK( !bu::has_key( SG().units, id ) );
   CHECK( !g_deleted_units.contains( id ) );
   // To avoid requirement of operator[] that we have a default
   // constructor on Unit.
-  SG().units_.emplace( id, move( unit ) );
-  return SG().units_.find( id )->second;
+  SG().units.emplace( id, move( unit ) );
+  return SG().units.find( id )->second;
 }
 
 /****************************************************************
@@ -252,7 +252,7 @@ Opt<Coord> coords_for_unit_safe( UnitId id ) {
                     bu::val_safe( unit_ownership, id ) );
   switch( ownership ) {
     case e_unit_ownership::world:
-      return bu::val_safe( SG().coords_, id );
+      return bu::val_safe( SG().coords, id );
     case e_unit_ownership::cargo: {
       ASSIGN_OR_RETURN( holder,
                         bu::val_safe( holder_from_held, id ) );
@@ -326,7 +326,7 @@ void ustate_change_to_map( UnitId id, Coord const& target ) {
   // Add unit to new square.
   units_from_coords[{target.y, target.x}].insert( id );
   // Set unit coords to new value.
-  SG().coords_[id]   = {target.y, target.x};
+  SG().coords[id]    = {target.y, target.x};
   unit_ownership[id] = e_unit_ownership::world;
 }
 
@@ -389,10 +389,10 @@ void ustate_change_to_euro_port_view(
 namespace testing_only {
 
 void reset_unit_creation() {
-  SG().units_.clear();
+  SG().units.clear();
   g_deleted_units.clear();
   units_from_coords.clear();
-  SG().coords_.clear();
+  SG().coords.clear();
   holder_from_held.clear();
   g_euro_port_view_units.clear();
   unit_ownership.clear();
@@ -422,11 +422,11 @@ void ustate_disown_unit( UnitId id ) {
     // statement otherwise we get errors... something to do with
     // local variables declared inside of it.
     case e_unit_ownership::world: {
-      // First remove from SG().coords_
+      // First remove from SG().coords
       ASSIGN_CHECK_OPT( pair_it,
-                        bu::has_key( SG().coords_, id ) );
+                        bu::has_key( SG().coords, id ) );
       auto coords = pair_it->second;
-      SG().coords_.erase( pair_it );
+      SG().coords.erase( pair_it );
       // Now remove from units_from_coords
       ASSIGN_CHECK_OPT(
           set_it, bu::has_key( units_from_coords, coords ) );

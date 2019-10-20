@@ -27,7 +27,7 @@ constexpr int kFirstUnitId = 1;
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Id ) {
-  SG_Id() : next_unit_id_{kFirstUnitId - 1} {}
+  SG_Id() : next_unit_id{kFirstUnitId - 1} {}
 
   // This will be called after deserialization.
   expect<> check_invariants_safe() const {
@@ -52,8 +52,8 @@ SAVEGAME_IMPL( Id );
 ** Public Interface
 *****************************************************************/
 UnitId next_unit_id() {
-  ++SG().next_unit_id_;
-  return UnitId{SG().next_unit_id_};
+  ++SG().next_unit_id;
+  return UnitId{SG().next_unit_id};
 }
 
 /****************************************************************
@@ -61,7 +61,7 @@ UnitId next_unit_id() {
 *****************************************************************/
 namespace testing_only {
 // FIXME: get rid of this.
-void reset_unit_ids() { SG().next_unit_id_ = kFirstUnitId - 1; }
+void reset_unit_ids() { SG().next_unit_id = kFirstUnitId - 1; }
 } // namespace testing_only
 
 /****************************************************************
@@ -70,8 +70,8 @@ void reset_unit_ids() { SG().next_unit_id_ = kFirstUnitId - 1; }
 namespace {
 
 LUA_FN( last_unit_id, UnitId ) {
-  CHECK( SG().next_unit_id_ >= 0, "no units yet created." );
-  return UnitId{SG().next_unit_id_};
+  CHECK( SG().next_unit_id >= 0, "no units yet created." );
+  return UnitId{SG().next_unit_id};
 }
 
 } // namespace

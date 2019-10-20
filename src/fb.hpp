@@ -568,7 +568,7 @@ expect<> deserialize( SrcT const* src, DstT* m,
   auto PP_JOIN( s_, var ) =                                \
       serialize<::rn::serial::detail::fb_serialize_hint_t< \
           decltype( std::declval<fb_target_t>().var() )>>( \
-          builder, var##_, ::rn::serial::rn_adl_tag{} )
+          builder, var, ::rn::serial::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
   SERIAL_CALL_SERIALIZE_TABLE_IMPL p
@@ -577,12 +577,12 @@ expect<> deserialize( SrcT const* src, DstT* m,
   PP_JOIN( s_, var ).get()
 #define SERIAL_GET_SERIALIZED( p ) SERIAL_GET_SERIALIZED_IMPL p
 
-#define SERIAL_DECLARE_VAR_TABLE( type, var ) type var##_;
+#define SERIAL_DECLARE_VAR_TABLE( type, var ) type var;
 
-#define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var )         \
-  XP_OR_RETURN_( deserialize(                                  \
-      serial::detail::to_const_ptr( src.var() ), &dst->var##_, \
-      ::rn::serial::rn_adl_tag{} ) );
+#define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var )        \
+  XP_OR_RETURN_(                                              \
+      deserialize( serial::detail::to_const_ptr( src.var() ), \
+                   &dst->var, ::rn::serial::rn_adl_tag{} ) );
 
 #define SERIAL_DESERIALIZE_VAR_TABLE( p ) \
   SERIAL_DESERIALIZE_VAR_TABLE_IMPL p

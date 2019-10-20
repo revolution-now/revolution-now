@@ -255,7 +255,7 @@ protected:
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( CargoHold,
   // This will be of fixed length (number of total slots).
-  ( std::vector<CargoSlot_t>, slots ));
+  ( std::vector<CargoSlot_t>, slots_ ));
   // clang-format on
 
 private:

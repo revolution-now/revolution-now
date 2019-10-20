@@ -23,12 +23,12 @@ enum e_unit_orders : byte {
 }
 
 table Unit {
-  id            : int;
-  type          : e_unit_type;
-  orders        : e_unit_orders;
-  cargo         : CargoHold;
-  nation        : e_nation;
-  worth         : Opt_int;
-  mv_pts        : MovementPoints;
-  finished_turn : bool;
+  id_            : int;
+  type_          : e_unit_type;
+  orders_        : e_unit_orders;
+  cargo_         : CargoHold;
+  nation_        : e_nation;
+  worth_         : Opt_int;
+  mv_pts_        : MovementPoints;
+  finished_turn_ : bool;
 }

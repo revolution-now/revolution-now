@@ -1,8 +1,8 @@
 {
-  "id": 1,
-  "type": "merchantman",
-  "cargo": {
-    "slots": [
+  "id_": 1,
+  "type_": "merchantman",
+  "cargo_": {
+    "slots_": [
       {
 
       },
@@ -23,11 +23,11 @@
       }
     ]
   },
-  "nation": "english",
-  "worth": {
+  "nation_": "english",
+  "worth_": {
 
   },
-  "mv_pts": {
+  "mv_pts_": {
     "points_atoms": 15
   }
 }

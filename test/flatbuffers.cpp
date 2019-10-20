@@ -58,13 +58,13 @@ struct Weapon {
   }
 
   bool operator==( Weapon const& rhs ) const {
-    return name_ == rhs.name_ && damage_ == rhs.damage_;
+    return name == rhs.name && damage == rhs.damage;
   }
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Weapon,
-  ( string, name   ),
-  ( short,  damage ));
+  ( string, name    ),
+  ( short,  damage  ));
   // clang-format on
 };
 
@@ -126,20 +126,20 @@ struct Monster {
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( Monster,
-  ( Vec3,            pos              ),
-  ( short,           mana             ),
-  ( short,           hp               ),
-  ( string,          name             ),
-  ( vector<string>,  names            ),
-  ( vector<uint8_t>, inventory        ),
-  ( e_color,         color            ),
-  ( vector<Weapon>,  weapons          ),
-  ( vector<Vec3>,    path             ),
-  ( pair_s_i_t,      pair1            ),
-  ( pair_v_i_t,      pair2            ),
-  ( map_vecs_t,      map_vecs         ),
-  ( map_strs_t,      map_strs         ),
-  ( map_wpns_t,      map_wpns         ));
+  ( Vec3,            pos            ),
+  ( short,           mana           ),
+  ( short,           hp             ),
+  ( string,          name           ),
+  ( vector<string>,  names          ),
+  ( vector<uint8_t>, inventory      ),
+  ( e_color,         color          ),
+  ( vector<Weapon>,  weapons        ),
+  ( vector<Vec3>,    path           ),
+  ( pair_s_i_t,      pair1          ),
+  ( pair_v_i_t,      pair2          ),
+  ( map_vecs_t,      map_vecs       ),
+  ( map_strs_t,      map_strs       ),
+  ( map_wpns_t,      map_wpns       ));
   // clang-format on
 };
 
@@ -335,45 +335,45 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     CHECK_XP(
         rn::serial::deserialize_from_blob( blob, &monster ) );
 
-    REQUIRE( monster.hp_ == 300 );
-    REQUIRE( monster.mana_ == 150 );
+    REQUIRE( monster.hp == 300 );
+    REQUIRE( monster.mana == 150 );
 
-    REQUIRE( monster.name_ == "Orc" );
+    REQUIRE( monster.name == "Orc" );
 
-    REQUIRE( monster.names_.size() == 3 );
-    REQUIRE( monster.names_[0] == "hello1" );
-    REQUIRE( monster.names_[1] == "hello2" );
-    REQUIRE( monster.names_[2] == "hello3" );
+    REQUIRE( monster.names.size() == 3 );
+    REQUIRE( monster.names[0] == "hello1" );
+    REQUIRE( monster.names[1] == "hello2" );
+    REQUIRE( monster.names[2] == "hello3" );
 
-    REQUIRE( monster.pos_.x == 1.0 );
-    REQUIRE( monster.pos_.y == 2.0 );
-    REQUIRE( monster.pos_.z == 3.0 );
+    REQUIRE( monster.pos.x == 1.0 );
+    REQUIRE( monster.pos.y == 2.0 );
+    REQUIRE( monster.pos.z == 3.0 );
 
-    auto const& inv = monster.inventory_;
+    auto const& inv = monster.inventory;
     REQUIRE( inv.size() == 10 );
     REQUIRE( inv[2] == 2 );
 
-    auto const& pair1 = monster.pair1_;
+    auto const& pair1 = monster.pair1;
     REQUIRE( pair1.first == "hello" );
     REQUIRE( pair1.second == 42 );
 
-    auto const& pair2 = monster.pair2_;
+    auto const& pair2 = monster.pair2;
     REQUIRE( pair2.first.x == 7.0 );
     REQUIRE( pair2.first.y == 8.0 );
     REQUIRE( pair2.second == 43 );
 
-    auto const& weapons = monster.weapons_;
+    auto const& weapons = monster.weapons;
     REQUIRE( weapons.size() == 2 );
     auto fst = weapons[0];
-    REQUIRE( fst.name_ == "Sword" );
-    REQUIRE( fst.damage_ == 3 );
+    REQUIRE( fst.name == "Sword" );
+    REQUIRE( fst.damage == 3 );
     auto snd = weapons[1];
-    REQUIRE( snd.name_ == "Axe" );
-    REQUIRE( snd.damage_ == 5 );
+    REQUIRE( snd.name == "Axe" );
+    REQUIRE( snd.damage == 5 );
 
-    auto& map_vecs = monster.map_vecs_;
-    auto& map_strs = monster.map_strs_;
-    auto& map_wpns = monster.map_wpns_;
+    auto& map_vecs = monster.map_vecs;
+    auto& map_strs = monster.map_strs;
+    auto& map_wpns = monster.map_wpns;
 
     REQUIRE( map_vecs.size() == 2 );
     REQUIRE( map_strs.size() == 2 );
@@ -391,26 +391,26 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
   SECTION( "native to native roundtrip" ) {
     Monster monster;
-    monster.pos_       = Vec3{2.25, 3.5, 4.5};
-    monster.mana_      = 9;
-    monster.hp_        = 200;
-    monster.name_      = "mon";
-    monster.names_     = {"A", "B"};
-    monster.inventory_ = {7, 6, 5, 4};
-    monster.color_     = e_color::Red;
-    monster.weapons_   = Vec<Weapon>{
+    monster.pos       = Vec3{2.25, 3.5, 4.5};
+    monster.mana      = 9;
+    monster.hp        = 200;
+    monster.name      = "mon";
+    monster.names     = {"A", "B"};
+    monster.inventory = {7, 6, 5, 4};
+    monster.color     = e_color::Red;
+    monster.weapons   = Vec<Weapon>{
         Weapon{"rock", 2}, //
         Weapon{"stone", 3} //
     };
-    monster.path_  = {{3, 4.5, 5}, {4, 5.6, 5}, {7, 8.9, 5}};
-    monster.pair1_ = pair<string, int>( "primo", 2 );
-    monster.pair2_ = pair<Vec2, int>( Vec2{0.25, 0.5}, 3 );
-    monster.map_vecs_[Vec2{4.75, 8}] = 0;
-    monster.map_vecs_[Vec2{4.25, 7}] = 1;
-    monster.map_strs_["one"]         = -1;
-    monster.map_strs_["two"]         = -2;
-    monster.map_wpns_[3]             = Weapon{"rock", 2};
-    monster.map_wpns_[4]             = Weapon{"stone", 4};
+    monster.path  = {{3, 4.5, 5}, {4, 5.6, 5}, {7, 8.9, 5}};
+    monster.pair1 = pair<string, int>( "primo", 2 );
+    monster.pair2 = pair<Vec2, int>( Vec2{0.25, 0.5}, 3 );
+    monster.map_vecs[Vec2{4.75, 8}] = 0;
+    monster.map_vecs[Vec2{4.25, 7}] = 1;
+    monster.map_strs["one"]         = -1;
+    monster.map_strs["two"]         = -2;
+    monster.map_wpns[3]             = Weapon{"rock", 2};
+    monster.map_wpns[4]             = Weapon{"stone", 4};
 
     auto blob = rn::serial::serialize_to_blob( monster );
     constexpr uint64_t kExpectedBlobSize = 460;
@@ -427,50 +427,50 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     CHECK_XP( rn::serial::deserialize_from_blob(
         blob, &monster_new ) );
 
-    REQUIRE( monster_new.pos_.x == 2.25 );
-    REQUIRE( monster_new.pos_.y == 3.5 );
-    REQUIRE( monster_new.pos_.z == 4.5 );
-    REQUIRE( monster_new.mana_ == 9 );
-    REQUIRE( monster_new.hp_ == 200 );
-    REQUIRE( monster_new.name_ == "mon" );
-    REQUIRE( monster_new.names_.size() == 2 );
-    REQUIRE( monster_new.names_[0] == "A" );
-    REQUIRE( monster_new.names_[1] == "B" );
+    REQUIRE( monster_new.pos.x == 2.25 );
+    REQUIRE( monster_new.pos.y == 3.5 );
+    REQUIRE( monster_new.pos.z == 4.5 );
+    REQUIRE( monster_new.mana == 9 );
+    REQUIRE( monster_new.hp == 200 );
+    REQUIRE( monster_new.name == "mon" );
+    REQUIRE( monster_new.names.size() == 2 );
+    REQUIRE( monster_new.names[0] == "A" );
+    REQUIRE( monster_new.names[1] == "B" );
 
-    auto const& inv = monster_new.inventory_;
+    auto const& inv = monster_new.inventory;
     REQUIRE( inv.size() == 4 );
     REQUIRE( inv[0] == 7 );
     REQUIRE( inv[1] == 6 );
     REQUIRE( inv[2] == 5 );
     REQUIRE( inv[3] == 4 );
 
-    REQUIRE( monster_new.color_ == e_color::Red );
+    REQUIRE( monster_new.color == e_color::Red );
 
-    auto const& weapons = monster_new.weapons_;
+    auto const& weapons = monster_new.weapons;
     REQUIRE( weapons.size() == 2 );
-    REQUIRE( weapons[0].name_ == "rock" );
-    REQUIRE( weapons[0].damage_ == 2 );
-    REQUIRE( weapons[1].name_ == "stone" );
-    REQUIRE( weapons[1].damage_ == 3 );
+    REQUIRE( weapons[0].name == "rock" );
+    REQUIRE( weapons[0].damage == 2 );
+    REQUIRE( weapons[1].name == "stone" );
+    REQUIRE( weapons[1].damage == 3 );
 
-    auto const& p = monster_new.path_;
+    auto const& p = monster_new.path;
     REQUIRE( p.size() == 3 );
     REQUIRE( p[0] == Vec3{3, 4.5, 5} );
     REQUIRE( p[1] == Vec3{4, 5.6, 5} );
     REQUIRE( p[2] == Vec3{7, 8.9, 5} );
 
-    auto const& pair1 = monster_new.pair1_;
+    auto const& pair1 = monster_new.pair1;
     REQUIRE( pair1.first == "primo" );
     REQUIRE( pair1.second == 2 );
 
-    auto const& pair2 = monster_new.pair2_;
+    auto const& pair2 = monster_new.pair2;
     REQUIRE( pair2.first.x == 0.25 );
     REQUIRE( pair2.first.y == 0.5 );
     REQUIRE( pair2.second == 3 );
 
-    auto& map_vecs = monster_new.map_vecs_;
-    auto& map_strs = monster_new.map_strs_;
-    auto& map_wpns = monster_new.map_wpns_;
+    auto& map_vecs = monster_new.map_vecs;
+    auto& map_strs = monster_new.map_strs;
+    auto& map_wpns = monster_new.map_wpns;
 
     REQUIRE( map_vecs.size() == 2 );
     REQUIRE( map_strs.size() == 2 );
@@ -583,22 +583,23 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 
     auto const& ship_unit = rn::unit_from_id( ship );
 
-    REQUIRE( unit.id() == ship._ );
-    REQUIRE( static_cast<int>( unit.type() ) ==
+    REQUIRE( unit.id_() == ship._ );
+    REQUIRE( static_cast<int>( unit.type_() ) ==
              ship_unit.desc().type._value );
-    REQUIRE( static_cast<int>( unit.orders() ) ==
+    REQUIRE( static_cast<int>( unit.orders_() ) ==
              ship_unit.orders()._value );
-    REQUIRE( static_cast<int>( unit.nation() ) ==
+    REQUIRE( static_cast<int>( unit.nation_() ) ==
              ship_unit.nation()._value );
-    REQUIRE( unit.worth() != nullptr );
-    REQUIRE( unit.worth()->has_value() == false );
+    REQUIRE( unit.worth_() != nullptr );
+    REQUIRE( unit.worth_()->has_value() == false );
     // REQUIRE( unit.mv_pts() == ship_unit.movement_points() );
-    REQUIRE( unit.finished_turn() == ship_unit.finished_turn() );
+    REQUIRE( unit.finished_turn_() ==
+             ship_unit.finished_turn() );
 
-    REQUIRE( unit.cargo() != nullptr );
-    auto cargo = unit.cargo();
+    REQUIRE( unit.cargo_() != nullptr );
+    auto cargo = unit.cargo_();
     REQUIRE( cargo != nullptr );
-    auto slots = cargo->slots();
+    auto slots = cargo->slots_();
     REQUIRE( slots != nullptr );
     REQUIRE( slots->size() == 4 );
     REQUIRE( slots->Get( 0 ) != nullptr );
@@ -689,7 +690,7 @@ struct MapTester1 {
   using map_t = FlatMap<string, int>;
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( MapTester1,
-  ( map_t,        map                 ));
+  ( map_t,        map                ));
   // clang-format on
 };
 
@@ -700,7 +701,7 @@ struct MapTester2 {
   using map_t = unordered_map<int, int>;
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( MapTester2,
-  ( map_t,        map                 ));
+  ( map_t,        map                ));
   // clang-format on
 };
 
@@ -718,8 +719,8 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
   MapTester2 m2_new;
   CHECK_XP( deserialize_from_blob( m2_blob, &m2_new ) );
 
-  REQUIRE( m1.map_ == m1_new.map_ );
-  REQUIRE( m2.map_ == m2_new.map_ );
+  REQUIRE( m1.map == m1_new.map );
+  REQUIRE( m2.map == m2_new.map );
 
   // Make sure that deserializing a map with duplicate keys re-
   // sults in an error.
