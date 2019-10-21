@@ -12,6 +12,8 @@
 
 // Revolution Now
 #include "enum.hpp"
+#include "logging.hpp"
+#include "serial.hpp"
 
 // Flatbuffers
 #include "fb/testing_generated.h"
@@ -36,57 +38,57 @@ string ns_to_dots( string_view sv ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
-template<size_t Idx, typename T>
-struct enumerated_pair;
-
-template<typename...>
-struct enumerate_tuple;
-
-template<size_t... Indexes, typename... Ts>
-struct enumerate_tuple<std::index_sequence<Indexes...>,
-                       std::tuple<Ts...>> {
-  using type = std::tuple<enumerated_pair<Indexes, Ts>...>;
-};
-
-template<typename Tuple>
-using enumerate_tuple_t = typename enumerate_tuple<
-    decltype( std::make_index_sequence<
-              std::tuple_size<Tuple>::value>() ),
-    Tuple>::type;
-
 template<typename...>
 struct fb_creation_tuple;
 
 template<typename Ret, typename... Args>
 struct fb_creation_tuple<Ret( FBBuilder&, Args... )> {
-  using tuple            = std::tuple<Args...>;
-  using enumerated_tuple = enumerate_tuple_t<tuple>;
+  using tuple = std::tuple<Args...>;
 };
 
 template<typename FB>
 using fb_creation_tuple_t =
     typename fb_creation_tuple<decltype( FB::Create )>::tuple;
 
-// template<typename Tuple, size_t Idx,
-template<typename...>
-struct tuple_set_from_variant;
+template<size_t Idx, typename Tuple, typename Variant,
+         typename Func>
+void visit_tuple_variant_elem( Tuple& t, Variant const& v,
+                               Func const& func ) {
+  auto* p = std::get_if<Idx>( &v );
+  if( !p ) return;
+  func( *p, std::get<Idx>( t ) );
+}
 
-template<typename... TupleElems, typename... VariantElems>
-struct tuple_set_from_variant<std::tuple<TupleElems...>,
-                              std::variant<VariantElems...>> {
-  using tuple_t   = std::tuple<TupleElems...>;
-  using variant_t = std::variant<TupleElems...>;
+template<typename Tuple, typename Variant, typename Func,
+         size_t... Indexes>
+void visit_tuple_variant_impl(
+    Tuple& t, Variant const& v, Func const& func,
+    std::index_sequence<Indexes...> ) {
+  ( visit_tuple_variant_elem<Indexes>( t, v, func ), ... );
+}
 
-  // template<size_t Idx, typename Func>
-  // auto apply( Func&& f,
-};
+template<typename Tuple, typename Variant, typename Func>
+void visit_tuple_variant( Tuple& t, Variant const& v,
+                          Func const& f ) {
+  static_assert( std::tuple_size<Tuple>::value ==
+                 std::variant_size_v<Variant> );
+  visit_tuple_variant_impl(
+      t, v, f,
+      std::make_index_sequence<
+          std::tuple_size<Tuple>::value>() );
+}
 
-struct Point {
-  int x, y;
+struct Vec2 {
+  SERIALIZABLE_STRUCT_MEMBERS( Vec2,         //
+                               ( float, x ), //
+                               ( float, y )  //
+  );
 };
 struct Weapon {
-  string name;
-  short  damage;
+  SERIALIZABLE_TABLE_MEMBERS( fb, Weapon,       //
+                              ( string, name ), //
+                              ( short, damage ) //
+  );
 };
 
 enum class e_( color, //
@@ -94,10 +96,11 @@ enum class e_( color, //
                Green, //
                Blue   //
 );
+SERIALIZABLE_ENUM( e_color );
 
 using MyVariant = std::variant< //
     int,                        //
-    Point,                      //
+    Vec2,                       //
     Weapon,                     //
     e_color                     //
     >;
@@ -108,27 +111,54 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
                 ::rn::serial::rn_adl_tag ) {
   using tuple_t = fb_creation_tuple_t<Hint>;
   tuple_t t;
-  // ---
-  auto visitor = []( auto const& e ) {
-    //
-  };
-  std::visit( visitor, o );
-  // auto s_value =
-  //    serialize<void>( builder, *o, ::rn::serial::rn_adl_tag{}
-  //    );
-  // ---
+  int     count = 0;
+  // Set the relevant tuple field.
+  visit_tuple_variant(
+      t, o, [&]( auto const& variant_elem, auto& tuple_elem ) {
+        using elem_hint_t =
+            detail::fb_serialize_hint_t<decltype( tuple_elem )>;
+        auto res = serialize<elem_hint_t>(
+            builder, variant_elem, ::rn::serial::rn_adl_tag{} );
+        // FIXME: does not work for structs. For those, we need
+        // also to have a tuple of Return*{} structs to hold the
+        // struct results.
+        tuple_elem = res.get();
+        count++;
+      } );
+  DCHECK( count == 1 );
   auto apply_with_builder = [&]( auto... ts ) {
     return Hint::Create( builder, ts... );
   };
   return ReturnValue{std::apply( apply_with_builder, t )};
 }
 
-void test_fb() {
-  using fb_table_t = ::fb::MyVariant;
-  MyVariant v      = Weapon{"hello", 3};
+template<typename fb_table_t, typename Variant>
+void test_serialize_variant( Variant const& v ) {
   FBBuilder fbb;
   auto      res = serialize<fb_table_t>( fbb, v,
                                     ::rn::serial::rn_adl_tag{} );
+  fbb.Finish( res.get() );
+  auto blob = BinaryBlob::from_builder( std::move( fbb ) );
+  auto json = blob.template to_json<fb_table_t>();
+  lg.info( "json:\n{}", json );
+}
+
+void test_fb() {
+  using fb_table_t = ::fb::MyVariant;
+
+  MyVariant v;
+
+  v = 5;
+  test_serialize_variant<fb_table_t>( v );
+
+  v = Vec2{4.4, 6.6};
+  test_serialize_variant<fb_table_t>( v );
+
+  v = Weapon{"hello", 3};
+  test_serialize_variant<fb_table_t>( v );
+
+  v = e_color::Red;
+  test_serialize_variant<fb_table_t>( v );
 }
 
 } // namespace rn::serial
