@@ -11,25 +11,30 @@
 #include "adt.hpp"
 
 // Revolution Now
+#include "fb.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
+#include "serial.hpp"
+
+// Flatbuffers
+#include "fb/testing_generated.h"
 
 // base-util
 #include "base-util/string.hpp"
 
-adt_T( rn,               //
-       template( T, U ), //
-       State,            //
-       ( none ),         //
-       ( starting,       //
-         ( T, x ),       //
-         ( int, y ) ),   //
-       ( ending,         //
-         ( int, x ),     //
-         ( U, y ) )      //
-);
+using namespace std;
 
 namespace rn {
+
+adt_s_rn( MyAdt,            //
+          ( none ),         //
+          ( some,           //
+            ( string, s ),  //
+            ( int, y ) ),   //
+          ( more,           //
+            ( double, d ) ) //
+);
+NOTHROW_MOVE( MyAdt_t );
 
 std::string_view remove_rn_ns( std::string_view sv ) {
   constexpr std::string_view rn_ = "rn::";
@@ -38,18 +43,22 @@ std::string_view remove_rn_ns( std::string_view sv ) {
   return sv;
 }
 
-namespace {} // namespace
-
 void test_adt() {
-  using TestType = State_t<int, double>;
-  NOTHROW_MOVE( TestType );
-
-  TestType state = State::starting<int, double>{1, 2};
-  lg.info( "state: {}", state );
-  state = State::none<int, double>{};
-  lg.info( "state: {}", state );
-  state = State::ending<int, double>{3, 4.2};
-  lg.info( "state: {}", state );
+  using namespace ::rn::serial;
+  MyAdt::none n;
+  MyAdt::some s{"hello", 7};
+  // ---
+  auto s_n = serialize_to_json( n );
+  lg.info( "s_n:\n{}", s_n );
+  auto s_s = serialize_to_json( s );
+  lg.info( "s_s:\n{}", s_s );
+  // ---
+  MyAdt::none d_n;
+  MyAdt::some d_s;
+  CHECK_XP( deserialize_from_json( "testing", s_n, &d_n ) );
+  CHECK( n == d_n, "{} != {}", n, d_n );
+  CHECK_XP( deserialize_from_json( "testing", s_s, &d_s ) );
+  CHECK( s == d_s, "{} != {}", s, d_s );
 }
 
 } // namespace rn

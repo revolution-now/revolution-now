@@ -134,7 +134,7 @@ expect<> deserialize_from_json( std::string const& schema_name,
                 BinaryBlob::from_json(
                     /*schema_file_name=*/schema_name + ".fbs",
                     /*json=*/json,
-                    /*root_type=*/T::fb_root_type_name ) );
+                    /*root_type=*/T::fb_root_type_name() ) );
   auto fb = flatbuffers::GetRoot<typename T::fb_target_t>(
       blob.get() );
   return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );

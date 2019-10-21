@@ -10,6 +10,17 @@
 // **************************************************************
 include "vocab.fbs";
 
+namespace fb.MyAdt;
+
+table none {}
+table some {
+  s : string;
+  y : int;
+}
+table more {
+  d : double;
+}
+
 namespace fb;
 
 enum e_color:byte {

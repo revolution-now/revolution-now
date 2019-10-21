@@ -41,7 +41,7 @@ struct SaveGameComponentBase {
   SG_##name : public SaveGameComponentBase
 
 #define SAVEGAME_MEMBERS( name, ... ) \
-  SERIALIZABLE_TABLE_MEMBERS( SG_##name, __VA_ARGS__ )
+  SERIALIZABLE_TABLE_MEMBERS( fb, SG_##name, __VA_ARGS__ )
 
 #define SAVEGAME_IMPL( name )                                  \
   SG_##name& SG() {                                            \

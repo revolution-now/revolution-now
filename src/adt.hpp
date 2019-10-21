@@ -95,38 +95,53 @@
 
 // We need the DEFER here because this will be called recursively
 // from another PP_MAP_SEMI below.
-#define ADT_MAKE_STRUCT( ns, name, ... )                       \
-  namespace ns {                                               \
-  struct name {                                                \
-    __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE,      \
-                                      __VA_ARGS__ ) )          \
-  };                                                           \
-  SWITCH_EMPTY(                                                \
-      inline bool operator==( name const& l, name const& r ) { \
-        return PP_MAP_AMP( PAIR_TO_CMP_TUPLE, __VA_ARGS__ );   \
-      },                                                       \
-      inline bool operator==( name const&, name const& ) {     \
-        return true;                                           \
-      },                                                       \
-      __VA_ARGS__ )                                            \
-  inline bool operator!=( name const& l, name const& r ) {     \
-    return !( l == r );                                        \
-  }                                                            \
-  }                                                            \
-  SWITCH_EMPTY(                                                \
-      _DEFINE_FORMAT(                                          \
-          ns::name,                                            \
-          "{}::{}{{" JOIN_WITH(                                \
-              ", ", PP_MAP_COMMAS( PAIR_TO_FMT_TUPLE,          \
-                                   __VA_ARGS__ ) ) "}}",       \
-          ::rn::remove_rn_ns( #ns ), #name,                    \
-          PP_MAP_COMMAS( PAIR_TO_FMT_O_TUPLE, __VA_ARGS__ ) ); \
-      , _DEFINE_FORMAT_( ns::name, "{}::{}",                   \
-                         ::rn::remove_rn_ns( #ns ), #name );   \
+#define ADT_MAKE_STRUCT( serialize, outter_ns, inner_ns, name,  \
+                         ... )                                  \
+  namespace outter_ns::inner_ns {                               \
+  struct name {                                                 \
+    SWITCH_EMPTY(                                               \
+        SERIALIZABLE_TABLE_MEMBERS_NO_EVAL( fb::inner_ns, name, \
+                                            __VA_ARGS__ ),      \
+        __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE,   \
+                                          __VA_ARGS__ ) ),      \
+        serialize )                                             \
+  public:                                                       \
+    SWITCH_EMPTY(                                               \
+        ::rn::expect<> check_invariants_safe()                  \
+            const { return ::rn::xp_success_t{}; },             \
+        , serialize )                                           \
+  };                                                            \
+  SWITCH_EMPTY(                                                 \
+      inline bool operator==( name const& l, name const& r ) {  \
+        return PP_MAP_AMP( PAIR_TO_CMP_TUPLE, __VA_ARGS__ );    \
+      },                                                        \
+      inline bool operator==( name const&, name const& ) {      \
+        return true;                                            \
+      },                                                        \
+      __VA_ARGS__ )                                             \
+  inline bool operator!=( name const& l, name const& r ) {      \
+    return !( l == r );                                         \
+  }                                                             \
+  }                                                             \
+  SWITCH_EMPTY(                                                 \
+      _DEFINE_FORMAT(                                           \
+          outter_ns::inner_ns::name,                            \
+          "{}::{}{{" JOIN_WITH(                                 \
+              ", ", PP_MAP_COMMAS( PAIR_TO_FMT_TUPLE,           \
+                                   __VA_ARGS__ ) ) "}}",        \
+          ::rn::remove_rn_ns(                                   \
+              TO_STRING( outter_ns::inner_ns ) ),               \
+          #name,                                                \
+          PP_MAP_COMMAS( PAIR_TO_FMT_O_TUPLE, __VA_ARGS__ ) );  \
+      , _DEFINE_FORMAT_( outter_ns::inner_ns::name, "{}::{}",   \
+                         ::rn::remove_rn_ns( TO_STRING(         \
+                             outter_ns::inner_ns ) ),           \
+                         #name );                               \
       , __VA_ARGS__ )
 
-#define ADT_MAKE_STRUCT_T( ns, t_args, name, ... )             \
-  namespace ns {                                               \
+#define ADT_MAKE_STRUCT_T( outter_ns, t_args, inner_ns, name,  \
+                           ... )                               \
+  namespace outter_ns::inner_ns {                              \
   template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
   struct name {                                                \
     __VA_OPT__( DEFER( PP_MAP_SEMI )( PAIR_TO_DECL_TUPLE,      \
@@ -151,17 +166,20 @@
   }                                                            \
   SWITCH_EMPTY(                                                \
       _DEFINE_FORMAT_T(                                        \
-          t_args, (ns::name<EXPAND t_args>),                   \
+          t_args, (outter_ns::inner_ns::name<EXPAND t_args>),  \
           "{}::{}{{" JOIN_WITH(                                \
               ", ", PP_MAP_COMMAS( PAIR_TO_FMT_TUPLE,          \
                                    __VA_ARGS__ ) ) "}}",       \
-          ::rn::remove_rn_ns( #ns ),                           \
+          ::rn::remove_rn_ns(                                  \
+              TO_STRING( outter_ns::inner_ns ) ),              \
           std::string( #name ) + "<" +                         \
               ::rn::type_list_to_names<EXPAND t_args>() + ">", \
           PP_MAP_COMMAS( PAIR_TO_FMT_O_TUPLE, __VA_ARGS__ ) ), \
       _DEFINE_FORMAT_T_(                                       \
-          t_args, (ns::name<EXPAND t_args>), "{}::{}",         \
-          ::rn::remove_rn_ns( #ns ),                           \
+          t_args, (outter_ns::inner_ns::name<EXPAND t_args>),  \
+          "{}::{}",                                            \
+          ::rn::remove_rn_ns(                                  \
+              TO_STRING( outter_ns::inner_ns ) ),              \
           std::string( #name ) + "<" +                         \
               ::rn::type_list_to_names<EXPAND t_args>() +      \
               ">" ),                                           \
@@ -174,11 +192,11 @@
 // noexcept, but these variants need to have be that way because
 // it allows std::variant to generate more efficient code (in
 // some cases it doesn't have to worry about the empty state).
-#define ADT_IMPL( ns, name, ... )                          \
+#define ADT_IMPL( serialize, ns, name, ... )               \
   DEFER( PP_MAP )                                          \
   ( ADT_MAKE_STRUCT_TUPLE,                                 \
-    PP_MAP_PREPEND_TUPLE( ns::name,                        \
-                          __VA_ARGS__ ) ) namespace ns {   \
+    PP_MAP_PREPEND3_TUPLE( serialize, ns, name,            \
+                           __VA_ARGS__ ) ) namespace ns {  \
     using name##_t = std::variant<PP_MAP_PREPEND_NS(       \
         name, PP_MAP_COMMAS( HEAD_TUPLE, __VA_ARGS__ ) )>; \
     static_assert(                                         \
@@ -193,7 +211,7 @@
 #define ADT_T_IMPL_EAT( ns, t_args, name, ... )               \
   DEFER( PP_MAP )                                             \
   ( ADT_MAKE_STRUCT_TUPLE_T,                                  \
-    PP_MAP_PREPEND2_TUPLE( ns::name, t_args,                  \
+    PP_MAP_PREPEND3_TUPLE( ns, t_args, name,                  \
                            __VA_ARGS__ ) ) namespace ns {     \
     template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )> \
     using name##_t = std::variant<JOIN_WITH_TUPLE_EXPAND(     \
@@ -206,31 +224,39 @@
 /****************************************************************
 ** Public Interface
 *****************************************************************/
-#define adt_( ... ) EVAL( ADT_IMPL( __VA_ARGS__ ) )
+#define adt_( ... ) \
+  EVAL( ADT_IMPL( /*no serialize*/, __VA_ARGS__ ) )
 #define adt_T( ... ) EVAL( ADT_T_IMPL( __VA_ARGS__ ) )
 
 // Use this in namespace ::rn.
-#define adt_rn( name, ... )                 \
-  } /* close namespace rn. */               \
-  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
-  /* Re-open namespace rn. */               \
+#define adt_rn( name, ... )                                   \
+  } /* close namespace rn. */                                 \
+  EVAL( ADT_IMPL( /*no serialize*/, rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */                                 \
+  namespace rn {
+
+// With serialization. Use this in namespace ::rn.
+#define adt_s_rn( name, ... )                                \
+  } /* close namespace rn. */                                \
+  EVAL( ADT_IMPL( /*serialize=*/_, rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */                                \
   namespace rn {
 
 // Use this in namespace ::rn::(anonymous).
-#define adt_rn_( name, ... )                \
-  } /* close namespace (anonymous). */      \
-  } /* close namespace rn. */               \
-  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
-  /* Re-open namespace rn. */               \
-  namespace rn {                            \
-  /* Re-open namespace (anonymous). */      \
+#define adt_rn_( name, ... )                                  \
+  } /* close namespace (anonymous). */                        \
+  } /* close namespace rn. */                                 \
+  EVAL( ADT_IMPL( /*no serialize*/, rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */                                 \
+  namespace rn {                                              \
+  /* Re-open namespace (anonymous). */                        \
   namespace {
 
 // Use this in namespace ::(anonymous).
-#define adt__( name, ... )                  \
-  } /* close namespace (anonymous). */      \
-  EVAL( ADT_IMPL( rn, name, __VA_ARGS__ ) ) \
-  /* Re-open namespace (anonymous). */      \
+#define adt__( name, ... )                                    \
+  } /* close namespace (anonymous). */                        \
+  EVAL( ADT_IMPL( /*no serialize*/, rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace (anonymous). */                        \
   namespace {
 
 // Use this in namespace ::(anonymous).
@@ -240,14 +266,14 @@
   /* Re-open namespace (anonymous). */  \
   namespace {
 
-// Use this in namespace ::(anonymous).
+// Use this in namespace ::rn.
 #define adt_T_rn( ... )                 \
   } /* close namespace rn. */           \
   EVAL( ADT_T_IMPL( rn, __VA_ARGS__ ) ) \
   /* Re-open namespace rn. */           \
   namespace rn {
 
-// Use this in namespace ::(anonymous).
+// Use this in namespace ::rn::(anonymous).
 #define adt_T_rn_( ... )                \
   } /* close namespace (anonymous). */  \
   } /* close namespace rn. */           \

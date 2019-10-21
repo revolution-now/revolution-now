@@ -105,6 +105,8 @@ namespace rn::serial {
 /****************************************************************
 ** Helpers
 *****************************************************************/
+std::string ns_to_dots( std::string_view sv );
+
 template<typename SerializedT>
 struct ReturnValue {
   SerializedT o_;
@@ -587,45 +589,47 @@ expect<> deserialize( SrcT const* src, DstT* m,
 #define SERIAL_DESERIALIZE_VAR_TABLE( p ) \
   SERIAL_DESERIALIZE_VAR_TABLE_IMPL p
 
-#define SERIALIZABLE_TABLE_MEMBERS_IMPL( name, ... )           \
-  PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )        \
-public:                                                        \
-  using fb_target_t = fb::name;                                \
-  static constexpr std::string_view fb_root_type_name =        \
-      "fb." #name;                                             \
-  FBOffset<fb::name> serialize_table( FBBuilder& builder )     \
-      const {                                                  \
-    (void)fb_root_type_name;                                   \
-    using ::rn::serial::serialize;                             \
-    PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_TABLE, __VA_ARGS__ )    \
-    return fb::Create##name(                                   \
-        builder,                                               \
-        PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
-  }                                                            \
-  static expect<> deserialize_table( fb::name const& src,      \
-                                     name*           dst ) {             \
-    DCHECK( dst );                                             \
-    using ::rn::serial::deserialize;                           \
-    PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_TABLE, __VA_ARGS__ )   \
-    return xp_success_t{};                                     \
-  }                                                            \
-                                                               \
+#define SERIALIZABLE_TABLE_MEMBERS_NO_EVAL( ns, name, ... )  \
+  PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )      \
+public:                                                      \
+  using fb_target_t = ns::name;                              \
+  static std::string fb_root_type_name() {                   \
+    return ::rn::serial::ns_to_dots( #ns "::" #name );       \
+  }                                                          \
+  FBOffset<ns::name> serialize_table( FBBuilder& builder )   \
+      const {                                                \
+    (void)fb_root_type_name;                                 \
+    using ::rn::serial::serialize;                           \
+    PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_TABLE, __VA_ARGS__ )  \
+    return ns::Create##name(                                 \
+        builder __VA_OPT__(, ) PP_MAP_COMMAS(                \
+            SERIAL_GET_SERIALIZED, __VA_ARGS__ ) );          \
+  }                                                          \
+  static expect<> deserialize_table( ns::name const& src,    \
+                                     name*           dst ) {           \
+    DCHECK( dst );                                           \
+    (void)src;                                               \
+    using ::rn::serial::deserialize;                         \
+    PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_TABLE, __VA_ARGS__ ) \
+    return xp_success_t{};                                   \
+  }                                                          \
+                                                             \
 private:
 
 #define SERIALIZABLE_TABLE_MEMBERS( ... ) \
-  EVAL( SERIALIZABLE_TABLE_MEMBERS_IMPL( __VA_ARGS__ ) )
+  EVAL( SERIALIZABLE_TABLE_MEMBERS_NO_EVAL( __VA_ARGS__ ) )
 
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_IMPL( type, var )     \
+#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )  \
   auto PP_JOIN( s_, var ) =                                \
       serialize<::rn::serial::detail::fb_serialize_hint_t< \
           decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var, ::rn::serial::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \
-  SERIAL_CALL_SERIALIZE_STRUCT_IMPL p
+  SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL p
 
 #define SERIAL_DECLARE_VAR_STRUCT( type, var ) type var{};
 

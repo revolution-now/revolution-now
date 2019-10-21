@@ -62,7 +62,7 @@ struct Weapon {
   }
 
   // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( Weapon,
+  SERIALIZABLE_TABLE_MEMBERS( fb, Weapon,
   ( string, name    ),
   ( short,  damage  ));
   // clang-format on
@@ -125,7 +125,7 @@ struct Monster {
   using map_wpns_t = map<int, Weapon>;
 
   // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( Monster,
+  SERIALIZABLE_TABLE_MEMBERS( fb, Monster,
   ( Vec3,            pos            ),
   ( short,           mana           ),
   ( short,           hp             ),
@@ -689,7 +689,7 @@ struct MapTester1 {
   }
   using map_t = FlatMap<string, int>;
   // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( MapTester1,
+  SERIALIZABLE_TABLE_MEMBERS( fb, MapTester1,
   ( map_t,        map                ));
   // clang-format on
 };
@@ -700,7 +700,7 @@ struct MapTester2 {
   }
   using map_t = unordered_map<int, int>;
   // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( MapTester2,
+  SERIALIZABLE_TABLE_MEMBERS( fb, MapTester2,
   ( map_t,        map                ));
   // clang-format on
 };
