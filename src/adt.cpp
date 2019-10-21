@@ -58,7 +58,7 @@ void test_adt() {
   FBBuilder fbb;
   auto      v_offset = serialize<::fb::MyAdt_t>(
       fbb, v, ::rn::serial::rn_adl_tag{} );
-  fbb.Finish( v_offset );
+  fbb.Finish( v_offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
   auto s_v  = blob.template to_json<::fb::MyAdt_t>();
   lg.info( "s_v:\n{}", s_v );

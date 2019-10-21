@@ -59,6 +59,21 @@ namespace rn {
 using Cargo = std::variant<UnitId, Commodity>;
 NOTHROW_MOVE( Cargo );
 
+namespace serial {
+serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>>
+cargo_serialize( FBBuilder& builder, Cargo const& o );
+
+template<typename Hint>
+serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>> serialize(
+    FBBuilder& builder, Cargo const& o,
+    ::rn::serial::rn_adl_tag ) {
+  return cargo_serialize( builder, o );
+}
+
+expect<> deserialize( ::fb::CargoSlot::Cargo const* src,
+                      Cargo* dst, ::rn::serial::rn_adl_tag );
+} // namespace serial
+
 // Here is an example of the way the cargo layout works:
 //
 // +------------------------------------------------------------+
@@ -76,27 +91,12 @@ NOTHROW_MOVE( Cargo );
 //
 // NOTE: the `empty` state must be first in the list so that it
 // it will be the default-constructed value.
-adt_rn( CargoSlot,              //
-        ( empty ),              //
-        ( overflow ),           //
-        ( cargo,                //
-          ( Cargo, contents ) ) //
+adt_s_rn( CargoSlot,              //
+          ( empty ),              //
+          ( overflow ),           //
+          ( cargo,                //
+            ( Cargo, contents ) ) //
 );
-
-namespace serial {
-serial::ReturnValue<FBOffset<::fb::CargoSlot>>
-cargoslot_serialize( FBBuilder& builder, CargoSlot_t const& o );
-
-template<typename Hint>
-serial::ReturnValue<FBOffset<::fb::CargoSlot>> serialize(
-    FBBuilder& builder, CargoSlot_t const& o,
-    ::rn::serial::rn_adl_tag ) {
-  return cargoslot_serialize( builder, o );
-}
-
-expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
-                      ::rn::serial::rn_adl_tag );
-} // namespace serial
 
 class ND CargoHold {
 public:

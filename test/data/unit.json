@@ -4,21 +4,34 @@
   "cargo_": {
     "slots_": [
       {
+        "empty": {
 
+        }
       },
       {
-        "which": "cargo_unit",
-        "unit_id": 2
+        "cargo": {
+          "contents": {
+            "is_unit": true,
+            "unit_id": 2
+          }
+        }
       },
       {
-        "which": "cargo_unit",
-        "unit_id": 3
+        "cargo": {
+          "contents": {
+            "is_unit": true,
+            "unit_id": 3
+          }
+        }
       },
       {
-        "which": "cargo_commodity",
-        "commodity": {
-          "type": "food",
-          "quantity": 100
+        "cargo": {
+          "contents": {
+            "commodity": {
+              "type": "food",
+              "quantity": 100
+            }
+          }
         }
       }
     ]

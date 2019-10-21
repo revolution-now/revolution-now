@@ -50,70 +50,46 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 } // namespace
 
 namespace serial {
-serial::ReturnValue<FBOffset<fb::CargoSlot>> cargoslot_serialize(
-    FBBuilder& builder, CargoSlot_t const& o ) {
+serial::ReturnValue<FBOffset<fb::CargoSlot::Cargo>>
+cargo_serialize( FBBuilder& builder, Cargo const& o ) {
+  bool          is_unit = false;
   int32_t       unit_id = 0;
   fb::Commodity commodity;
   // If this is not a commodity slot then just leave this as
   // nullptr so that it doesn't get serialized.
-  fb::Commodity*            p_commodity = nullptr;
-  fb::e_cargo_slot_contents which =
-      fb::e_cargo_slot_contents::empty;
+  fb::Commodity* p_commodity = nullptr;
   switch_( o ) {
-    case_( CargoSlot::empty ) which =
-        fb::e_cargo_slot_contents::empty;
-    case_( CargoSlot::overflow ) which =
-        fb::e_cargo_slot_contents::overflow;
-    case_( CargoSlot::cargo, contents ) {
-      switch_( contents ) {
-        case_( UnitId ) {
-          which   = fb::e_cargo_slot_contents::cargo_unit;
-          unit_id = val._;
-        }
-        case_( Commodity ) {
-          which     = fb::e_cargo_slot_contents::cargo_commodity;
-          commodity = val.serialize_struct( builder );
-          p_commodity = &commodity;
-        }
-        switch_exhaustive;
-      }
+    case_( UnitId ) {
+      unit_id = val._;
+      is_unit = true;
+    }
+    case_( Commodity ) {
+      commodity   = val.serialize_struct( builder );
+      p_commodity = &commodity;
     }
     switch_exhaustive;
   }
-  return serial::ReturnValue{fb::CreateCargoSlot(
-      builder, which, unit_id, p_commodity )};
+  return serial::ReturnValue{fb::CargoSlot::CreateCargo(
+      builder, is_unit, unit_id, p_commodity )};
 }
 
-expect<> deserialize( fb::CargoSlot const* src, CargoSlot_t* dst,
-                      ::rn::serial::rn_adl_tag ) {
+expect<> deserialize( fb::CargoSlot::Cargo const* src,
+                      Cargo* dst, ::rn::serial::rn_adl_tag ) {
   DCHECK( dst );
   if( src == nullptr ) return xp_success_t{};
   using ::rn::serial::deserialize;
-  switch( src->which() ) {
-    case fb::e_cargo_slot_contents::empty:
-      *dst = CargoSlot_t{CargoSlot::empty{}};
-      break;
-    case fb::e_cargo_slot_contents::overflow:
-      *dst = CargoSlot_t{CargoSlot::overflow{}};
-      break;
-    case fb::e_cargo_slot_contents::cargo_unit: {
-      UnitId unit_id{0};
-      XP_OR_RETURN_( deserialize(
-          serial::detail::to_const_ptr( src->unit_id() ),
-          &unit_id, ::rn::serial::rn_adl_tag{} ) );
-      *dst = CargoSlot_t{
-          CargoSlot::cargo{/*contents=*/Cargo{unit_id}}};
-      break;
-    }
-    case fb::e_cargo_slot_contents::cargo_commodity: {
-      Commodity commodity{};
-      XP_OR_RETURN_( deserialize(
-          serial::detail::to_const_ptr( src->commodity() ),
-          &commodity, ::rn::serial::rn_adl_tag{} ) );
-      *dst = CargoSlot_t{
-          CargoSlot::cargo{/*contents=*/Cargo{commodity}}};
-      break;
-    }
+  if( src->is_unit() ) {
+    UnitId unit_id{0};
+    XP_OR_RETURN_( deserialize(
+        serial::detail::to_const_ptr( src->unit_id() ), &unit_id,
+        ::rn::serial::rn_adl_tag{} ) );
+    *dst = unit_id;
+  } else {
+    Commodity commodity{};
+    XP_OR_RETURN_( deserialize(
+        serial::detail::to_const_ptr( src->commodity() ),
+        &commodity, ::rn::serial::rn_adl_tag{} ) );
+    *dst = commodity;
   }
   return xp_success_t{};
 }

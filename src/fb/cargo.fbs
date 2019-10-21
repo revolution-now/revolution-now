@@ -10,25 +10,27 @@
 // **************************************************************
 include "commodity.fbs";
 
-namespace fb;
+namespace fb.CargoSlot;
 
-// Trying to avoid using unions in this file.
-
-enum e_cargo_slot_contents : byte {
-  empty,
-  overflow,
-  cargo_unit,
-  cargo_commodity,
-}
-
-// This models a union.
-table CargoSlot {
-  which     : e_cargo_slot_contents;
-  // Only one of the below will be active.
+table Cargo {
+  is_unit   : bool;
   unit_id   : int;
   commodity : Commodity;
 }
 
+table empty    {}
+table overflow {}
+table cargo    { contents : Cargo; }
+
+namespace fb;
+
+// This is a union.
+table CargoSlot_t {
+  empty    : CargoSlot.empty;
+  overflow : CargoSlot.overflow;
+  cargo    : CargoSlot.cargo;
+}
+
 table CargoHold {
-  slots_ : [CargoSlot];
+  slots_ : [CargoSlot_t];
 }

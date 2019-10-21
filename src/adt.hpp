@@ -226,23 +226,29 @@
         std::is_nothrow_move_constructible_v<name##_t> );       \
     static_assert(                                              \
         std::is_nothrow_move_assignable_v<name##_t> );          \
+    namespace serial {                                          \
     SWITCH_EMPTY(                                               \
-        ID( template<typename Hint> auto serialize(             \
-            FBBuilder& fbb, name##_t const& o,                  \
-            ::rn::serial::rn_adl_tag ) {                        \
-          auto offset  = util::visit( o, [&]( auto const& v ) { \
-            /* Call Union() to make the offset templated on */ \
-            /* type `void` instead of the type of this */      \
-            /* variant member so that we have a consistent */  \
-            /* return type. */                                 \
-            return v.serialize_table( fbb ).Union();           \
-          } );                                                 \
-          auto builder = fb::name##_t##Builder( fbb );         \
-          util::visit( o, [&]( auto const& v ) {                \
-            v.builder_add_me( builder, offset );                \
-          } );                                                  \
-          return builder.Finish();                              \
-        } ),                                                    \
+        ID( template<typename Hint>                             \
+            auto serialize( FBBuilder& fbb, name##_t const& o,  \
+                            ::rn::serial::rn_adl_tag ) {        \
+              auto offset =                                     \
+                  util::visit( o, [&]( auto const& v ) {        \
+                    /* Call Union() to make the offset          \
+                     * templated on */                          \
+                    /* type `void` instead of the type of this  \
+                     */                                         \
+                    /* variant member so that we have a         \
+                     * consistent */                            \
+                    /* return type. */                          \
+                    return v.serialize_table( fbb ).Union();    \
+                  } );                                          \
+              auto builder = fb::name##_t##Builder( fbb );      \
+              util::visit( o, [&]( auto const& v ) {            \
+                v.builder_add_me( builder, offset );            \
+              } );                                              \
+              return ::rn::serial::ReturnValue{                 \
+                  builder.Finish()};                            \
+            } ),                                                \
         , serialize_ )                                          \
     SWITCH_EMPTY(                                               \
         ID( expect<> inline deserialize(                        \
@@ -274,6 +280,7 @@
           return ::rn::xp_success_t{};                          \
         } ),                                                    \
         , serialize_ )                                          \
+    }                                                           \
   }
 
 #define ADT_T_IMPL( ns, t_args, name, ... ) \
