@@ -74,10 +74,10 @@ public:
       std::string_view root_type );
 
   template<typename FB>
-  std::string to_json() const {
+  std::string to_json( bool quotes = true ) const {
     flatbuffers::ToStringVisitor tostring_visitor( //
         /*delimiter=*/"\n",                        //
-        /*quotes=*/false,                          //
+        /*quotes=*/quotes,                         //
         /*indent=*/"  ",                           //
         /*vdelimited=*/true                        //
     );
@@ -116,14 +116,16 @@ expect<> deserialize_from_blob( BinaryBlob const& blob,
 }
 
 template<typename T>
-std::string blob_to_json( BinaryBlob const& blob ) {
-  return blob.template to_json<typename T::fb_target_t>();
+std::string blob_to_json( BinaryBlob const& blob,
+                          bool              quotes = true ) {
+  return blob.template to_json<typename T::fb_target_t>(
+      quotes );
 }
 
 template<typename T>
-std::string serialize_to_json( T const& o ) {
+std::string serialize_to_json( T const& o, bool quotes = true ) {
   return serialize_to_blob( o )
-      .template to_json<typename T::fb_target_t>();
+      .template to_json<typename T::fb_target_t>( quotes );
 }
 
 template<typename T>

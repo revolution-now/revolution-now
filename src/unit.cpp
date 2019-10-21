@@ -124,12 +124,14 @@ void Unit::change_nation( e_nation nation ) {
 }
 
 void Unit::change_type( e_unit_type type ) {
-  TODO(
-      "need to reset unit state to something that is consistent "
-      "with the new unit type." );
   CHECK( cargo_.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
-  type_ = type;
+  // Most attributes remain the same, save for a few.
+  type_  = type;
+  cargo_ = CargoHold( desc().cargo_slots );
+  // FIXME: worth?
+  mv_pts_ = std::clamp( mv_pts_, MovementPoints{0},
+                        desc().movement_points );
 }
 
 string debug_string( Unit const& unit ) {

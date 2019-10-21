@@ -16,6 +16,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
+#include "errors.hpp"
 #include "sg-macros.hpp"
 #include "unit.hpp"
 
@@ -111,6 +112,9 @@ adt_s_rn(
     // they are on the dock.
     ( in_port ) //
 );
+
+expect<> check_europort_state_invariants(
+    UnitEuroPortViewState_t const& info );
 
 // If unit is owned by euro-port-view then this will return info.
 Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(

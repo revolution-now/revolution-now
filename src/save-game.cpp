@@ -72,7 +72,7 @@ expect<fs::path> save_game( int slot ) {
   auto p = path_for_slot( slot );
   p.replace_extension( ".sav" );
   XP_OR_RETURN_( blob.write( p ) );
-  auto json = blob.to_json<fb::SaveGame>();
+  auto json = blob.to_json<fb::SaveGame>( /*quotes=*/false );
   p.replace_extension( ".jsav" );
   ofstream out( p );
   if( !out.good() )

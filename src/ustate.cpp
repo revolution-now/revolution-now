@@ -24,9 +24,6 @@
 #include "base-util/keyval.hpp"
 #include "base-util/variant.hpp"
 
-// Flatbuffers
-#include "fb/sg-unit_generated.h"
-
 // C++ standard library
 #include <unordered_map>
 
@@ -69,39 +66,52 @@ public:
   // pose in the hope that it might catch a bug.
   FlatSet<UnitId> deleted;
 
+  // For units that are on (owned by) the world (map).
+  unordered_map<Coord, FlatSet<UnitId>> units_from_coords;
+
+  // For units that are held as cargo.
+  FlatMap</*held*/ UnitId, /*holder*/ UnitId> holder_from_held;
+
 private:
   SAVEGAME_FRIENDS( Unit );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
+
+    UNXP_CHECK( units.size() == states.size() );
+
+    // Check for no free units.
+    for( auto const& [id, st] : states ) {
+      UNXP_CHECK( !util::holds<UnitState::free>( st ),
+                  "unit {} is in the `free` state.", id );
+    }
+
+    // Populate units_from_coords.
+    for( auto const& [id, st] : states ) {
+      if_v( st, UnitState::world, val ) {
+        units_from_coords[val->coord].insert( id );
+      }
+    }
+
+    // Populate holder_from_held.
+    for( auto const& [id, st] : states ) {
+      if_v( st, UnitState::cargo, val ) {
+        holder_from_held[id] = val->holder;
+      }
+    }
+
+    // Check europort states.
+    for( auto const& [id, st] : states ) {
+      if_v( st, UnitState::europort, val ) {
+        XP_OR_RETURN_(
+            check_europort_state_invariants( val->st ) );
+      }
+    }
+
     return xp_success_t{};
   }
 };
 SAVEGAME_IMPL( Unit );
-
-// For units that are on (owned by) the world (map).
-unordered_map<Coord, FlatSet<UnitId>> units_from_coords;
-
-// For units that are held as cargo.
-FlatMap</*held*/ UnitId, /*holder*/ UnitId> holder_from_held;
-
-void check_europort_state_invariants(
-    UnitEuroPortViewState_t const& info ) {
-  switch_( info ) {
-    case_( UnitEuroPortViewState::outbound, percent ) {
-      CHECK( percent >= 0.0 );
-      CHECK( percent < 1.0 );
-    }
-    case_( UnitEuroPortViewState::inbound, percent ) {
-      CHECK( percent >= 0.0 );
-      CHECK( percent < 1.0 );
-    }
-    case_( UnitEuroPortViewState::in_port ) {
-      //
-    }
-    switch_exhaustive;
-  }
-}
 
 } // namespace
 
@@ -193,7 +203,7 @@ UnitId create_unit( e_nation nation, e_unit_type type ) {
 FlatSet<UnitId> const& units_from_coord( Coord const& c ) {
   static FlatSet<UnitId> empty = {};
   CHECK( square_exists( c ) );
-  auto opt_set = bu::val_safe( units_from_coords, c );
+  auto opt_set = bu::val_safe( SG().units_from_coords, c );
   return opt_set.value_or( empty );
 }
 
@@ -264,7 +274,7 @@ Opt<Coord> coords_for_unit_safe( UnitId id ) {
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nullopt otherwise.
 Opt<UnitId> is_unit_onboard( UnitId id ) {
-  auto opt_iter = bu::has_key( holder_from_held, id );
+  auto opt_iter = bu::has_key( SG().holder_from_held, id );
   return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
                   : nullopt;
 }
@@ -272,6 +282,26 @@ Opt<UnitId> is_unit_onboard( UnitId id ) {
 /****************************************************************
 ** EuroPort View Ownership
 *****************************************************************/
+expect<> check_europort_state_invariants(
+    UnitEuroPortViewState_t const& info ) {
+  return matcher_( info, ->, expect<> ) {
+    case_( UnitEuroPortViewState::outbound, percent ) {
+      UNXP_CHECK( percent >= 0.0 );
+      UNXP_CHECK( percent < 1.0 );
+      return xp_success_t{};
+    }
+    case_( UnitEuroPortViewState::inbound, percent ) {
+      UNXP_CHECK( percent >= 0.0 );
+      UNXP_CHECK( percent < 1.0 );
+      return xp_success_t{};
+    }
+    case_( UnitEuroPortViewState::in_port ) {
+      return xp_success_t{};
+    }
+    matcher_exhaustive;
+  };
+}
+
 Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
     UnitId id ) {
   if_v( SG().states[id], UnitState::europort, val ) {
@@ -320,7 +350,7 @@ UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
 *****************************************************************/
 void ustate_change_to_map( UnitId id, Coord const& target ) {
   internal::ustate_disown_unit( id );
-  units_from_coords[target].insert( id );
+  SG().units_from_coords[target].insert( id );
   SG().states[id] = UnitState::world{/*coord=*/target};
 }
 
@@ -351,7 +381,7 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held,
   unit_from_id( held ).sentry();
   // Set new ownership
   SG().states[held] = UnitState::cargo{/*holder=*/new_holder};
-  holder_from_held[held] = new_holder;
+  SG().holder_from_held[held] = new_holder;
 }
 
 void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
@@ -369,7 +399,7 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
 
 void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
-  check_europort_state_invariants( info );
+  CHECK_XP( check_europort_state_invariants( info ) );
   if( !util::holds<UnitState::europort>( SG().states[id] ) )
     internal::ustate_disown_unit( id );
   SG().states[id] = UnitState::europort{/*st=*/info};
@@ -381,12 +411,7 @@ void ustate_change_to_euro_port_view(
 namespace testing_only {
 
 void reset_unit_creation() {
-  SG().units.clear();
-  SG().states.clear();
-  SG().deleted.clear();
-  units_from_coords.clear();
-  holder_from_held.clear();
-
+  SG() = SG_Unit{};
   reset_unit_ids();
 }
 
@@ -404,19 +429,20 @@ void ustate_disown_unit( UnitId id ) {
     case_( UnitState::free ) {}
     case_( UnitState::world, coord ) {
       ASSIGN_CHECK_OPT(
-          set_it, bu::has_key( units_from_coords, coord ) );
+          set_it, bu::has_key( SG().units_from_coords, coord ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
-      if( units_set.empty() ) units_from_coords.erase( set_it );
+      if( units_set.empty() )
+        SG().units_from_coords.erase( set_it );
     }
     case_( UnitState::cargo ) {
-      ASSIGN_CHECK_OPT( pair_it,
-                        bu::has_key( holder_from_held, id ) );
+      ASSIGN_CHECK_OPT(
+          pair_it, bu::has_key( SG().holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
       ASSIGN_CHECK_OPT( slot_idx,
                         holder_unit.cargo().find_unit( id ) );
       holder_unit.cargo().remove( slot_idx );
-      holder_from_held.erase( pair_it );
+      SG().holder_from_held.erase( pair_it );
     }
     case_( UnitState::europort ) {
       // Ensure the unit has no units in its cargo.
