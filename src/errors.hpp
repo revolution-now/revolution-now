@@ -316,6 +316,12 @@ struct ND expect
   using Base::Base;
 };
 
+template<typename>
+inline constexpr bool is_expect_v = false;
+
+template<typename T>
+inline constexpr bool is_expect_v<::rn::expect<T>> = true;
+
 // If there are >1 args then the 1st one must be a format string.
 #define UNEXPECTED( ... ) \
   PP_ONE_OR_MORE_ARGS( UNEXPECTED, __VA_ARGS__ )
@@ -330,6 +336,36 @@ struct ND expect
   ::nonstd::make_unexpected(                                \
       ::rn::Unexpected{fmt::format( fmt_str, __VA_ARGS__ ), \
                        __LINE__, __FILE__} )
+
+#define UNXP_CHECK( ... ) \
+  PP_ONE_OR_MORE_ARGS( UNXP_CHECK, __VA_ARGS__ )
+
+#define UNXP_CHECK_MULTI( e, ... )                           \
+  {                                                          \
+    auto const& STRING_JOIN( __e, __LINE__ ) = ( e );        \
+    static_assert(                                           \
+        !is_expect_v<std::decay_t<decltype(                  \
+            STRING_JOIN( __e, __LINE__ ) )>>,                \
+        "UNXP_CHECK is not to be used on `expect` types." ); \
+    if( !STRING_JOIN( __e, __LINE__ ) ) {                    \
+      return ::nonstd::make_unexpected( ::rn::Unexpected{    \
+          fmt::format( __VA_ARGS__ ), __LINE__, __FILE__} ); \
+    }                                                        \
+  }
+
+#define UNXP_CHECK_SINGLE( e )                               \
+  {                                                          \
+    auto const& STRING_JOIN( __e, __LINE__ ) = ( e );        \
+    static_assert(                                           \
+        !is_expect_v<std::decay_t<decltype(                  \
+            STRING_JOIN( __e, __LINE__ ) )>>,                \
+        "UNXP_CHECK is not to be used on `expect` types." ); \
+    if( !STRING_JOIN( __e, __LINE__ ) ) {                    \
+      return ::nonstd::make_unexpected( ::rn::Unexpected{    \
+          fmt::format( "{}", #e " is false." ), __LINE__,    \
+          __FILE__} );                                       \
+    }                                                        \
+  }
 
 #define CHECK_XP( e )                                 \
   {                                                   \

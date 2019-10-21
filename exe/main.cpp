@@ -40,7 +40,7 @@ int main( int /*unused*/, char** /*unused*/ ) try {
   ASSIGN_CHECK_XP( p, save_game( 0 ) );
   lg.info( "saving game to {}", p );
 
-  rn::serial::test_fb();
+  // rn::serial::test_fb();
 
   run_all_cleanup_routines();
   return 0;
