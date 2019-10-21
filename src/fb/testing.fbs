@@ -23,6 +23,12 @@ table more {
 
 namespace fb;
 
+table MyAdt_t {
+  none : MyAdt.none;
+  some : MyAdt.some;
+  more : MyAdt.more;
+}
+
 enum e_color:byte {
   Red,
   Green,

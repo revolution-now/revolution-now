@@ -11,6 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "aliases.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
@@ -38,6 +39,17 @@
 FMT_TO_CATCH( ::rn::CargoSlot_t );
 FMT_TO_CATCH( ::rn::UnitId );
 FMT_TO_CATCH( ::rn::Commodity );
+
+namespace rn {
+adt_s_rn( MyAdt,                //
+          ( none ),             //
+          ( some,               //
+            ( std::string, s ), //
+            ( int, y ) ),       //
+          ( more,               //
+            ( double, d ) )     //
+);
+}
 
 namespace testing {
 namespace {
@@ -734,6 +746,36 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT( xp.error().what, Contains( "duplicate key" ) );
   REQUIRE_THAT( xp.error().what, Contains( "string" ) );
+}
+
+TEST_CASE( "[flatbuffers] ADTs" ) {
+  using namespace ::rn::serial;
+  MyAdt::none n;
+  MyAdt::some s{"hello", 7};
+  MyAdt::more m{5.5};
+
+  MyAdt_t v;
+
+  SECTION( "none" ) { v = n; }
+  SECTION( "some" ) { v = s; }
+  SECTION( "more" ) { v = m; }
+
+  FBBuilder fbb;
+
+  auto v_offset = serialize<::fb::MyAdt_t>(
+      fbb, v, ::rn::serial::rn_adl_tag{} );
+
+  fbb.Finish( v_offset );
+  auto blob = BinaryBlob::from_builder( std::move( fbb ) );
+
+  auto* root = flatbuffers::GetRoot<::fb::MyAdt_t>( blob.get() );
+
+  MyAdt_t d_v;
+  REQUIRE(
+      deserialize( root, &d_v, ::rn::serial::rn_adl_tag{} ) ==
+      rn::xp_success_t{} );
+
+  REQUIRE( v == d_v );
 }
 
 } // namespace
