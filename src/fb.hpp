@@ -662,4 +662,11 @@ public:                                                        \
 #define SERIALIZABLE_STRUCT_MEMBERS( ... ) \
   EVAL( SERIALIZABLE_STRUCT_MEMBERS_IMPL( __VA_ARGS__ ) )
 
-namespace rn {} // namespace rn
+namespace rn::serial {
+
+/****************************************************************
+** Testing
+*****************************************************************/
+void test_fb();
+
+} // namespace rn::serial

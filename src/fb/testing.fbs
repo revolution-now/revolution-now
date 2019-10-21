@@ -69,6 +69,13 @@ table MapTester2 {
   map : [Pair_int_int];
 }
 
+table MyVariant {
+  one   : int;
+  two   : Vec2;
+  three : Weapon;
+  four  : e_color;
+}
+
 table Monster {
   pos       : Vec3;
   mana      : short = 150;
