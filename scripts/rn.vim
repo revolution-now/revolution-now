@@ -13,6 +13,8 @@ set tabstop=2
 " This makes the design doc look nicer because it typically con-
 " tains snippets of code.
 au BufNewFile,BufRead *design.txt set syntax=cpp11
+" jsav files are not yaml, but it seems to work nicely.
+au BufNewFile,BufRead *.jsav set syntax=yaml
 
 "function! CloseTerminal()
 "		let s:term_buf_name = bufname( "*bin/fish*" )

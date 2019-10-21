@@ -19,6 +19,9 @@
 #include "sg-macros.hpp"
 #include "unit.hpp"
 
+// Flatbuffers
+#include "fb/sg-unit_generated.h"
+
 // function_ref
 #include "tl/function_ref.hpp"
 
@@ -48,13 +51,10 @@ void destroy_unit( UnitId id );
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-// Functions for mapping between units and coordinates on the
-// map. These will only give the units that are owned immediately
-// by the map; it will not give units who are cargo of those
-// units.
-ND std::unordered_set<UnitId> const& units_from_coord( Y y,
-                                                       X x );
-ND std::unordered_set<UnitId> const& units_from_coord( Coord c );
+// Function for mapping between units and coordinates on the map.
+// These will only give the units that are owned immediately by
+// the map; it will not give units who are cargo of those units.
+ND FlatSet<UnitId> const& units_from_coord( Coord const& c );
 
 // This will give all units that are on a square or are cargo of
 // units on that square. This should not recurse more than one
@@ -91,7 +91,7 @@ Opt<UnitId> is_unit_onboard( UnitId id );
 *****************************************************************/
 // These pertain to units who are owned by either the high seas
 // or by europe view (e.g., in port, on the dock, etc.);
-adt_rn(
+adt_s_rn(
     UnitEuroPortViewState,
     // For ships that are venturing to europe. `percent` starts
     // from 0 and goes to 1.0 at arrival. This means that the
@@ -133,7 +133,7 @@ UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
                              UnitId holder );
 
 // Creates a unit with no ownership.
-Unit& create_unit( e_nation nation, e_unit_type type );
+UnitId create_unit( e_nation nation, e_unit_type type );
 
 /****************************************************************
 ** Changing Unit Ownership

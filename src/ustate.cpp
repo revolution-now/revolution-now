@@ -29,7 +29,6 @@
 
 // C++ standard library
 #include <unordered_map>
-#include <unordered_set>
 
 using namespace std;
 
@@ -37,21 +36,38 @@ namespace rn {
 
 namespace {
 
+adt_s_rn_( UnitState,                          //
+           ( free ),                           //
+           ( world,                            //
+             ( Coord, coord ) ),               //
+           ( cargo,                            //
+             ( UnitId, holder ) ),             //
+           ( europort,                         //
+             ( UnitEuroPortViewState_t, st ) ) //
+);
+
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Unit ) {
   using StorageMap_t = unordered_map<UnitId, Unit>;
-  using CoordMap_t   = FlatMap<UnitId, Coord>;
+  using StatesMap_t  = unordered_map<UnitId, UnitState_t>;
 
   // Fields that are actually serialized.
   // clang-format off
-  SAVEGAME_MEMBERS( Unit, //
+  SAVEGAME_MEMBERS( Unit,
   ( StorageMap_t, units  ),
-  ( CoordMap_t,   coords ));
+  ( StatesMap_t,  states ));
   // clang-format on
 
+public:
   // Fields that are derived from the serialized fields.
+
+  // Holds deleted units for debugging purposes (they will never
+  // be resurrected and their IDs will never be reused). Holding
+  // the IDs here is technically redundant, but this is on pur-
+  // pose in the hope that it might catch a bug.
+  FlatSet<UnitId> deleted;
 
 private:
   SAVEGAME_FRIENDS( Unit );
@@ -63,40 +79,11 @@ private:
 };
 SAVEGAME_IMPL( Unit );
 
-// Holds deleted units for debugging purposes (they will never be
-// resurrected and their IDs will never be reused).
-// FIXME: this can be derived from the units map + last unit id.
-FlatSet<UnitId> g_deleted_units;
-
-// FIXME: get rid of all these separate maps and represent owner-
-//        ship as a single map from UnitId --> ADT.
-
 // For units that are on (owned by) the world (map).
-unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
+unordered_map<Coord, FlatSet<UnitId>> units_from_coords;
 
 // For units that are held as cargo.
-unordered_map</*held*/ UnitId, /*holder*/ UnitId>
-    holder_from_held;
-
-// For units that are owned by either the high seas or by the eu-
-// rope view (NOTE: this does NOT refer to the King's army; "own-
-// ership" here refers to where the unit is located in the game).
-unordered_map<UnitId, UnitEuroPortViewState_t>
-    g_euro_port_view_units;
-
-enum class e_unit_ownership {
-  // Unit is on the map.  This includes units that are stationed
-  // in colonies.  It does not include units in indian villages
-  // or in boats.
-  world,
-  // This includes units in boats or wagons.
-  cargo,
-  // This is for units that are on the high seas, in port, or on
-  // dock in the europe view.
-  old_world
-};
-
-unordered_map<UnitId, e_unit_ownership> unit_ownership;
+FlatMap</*held*/ UnitId, /*holder*/ UnitId> holder_from_held;
 
 void check_europort_state_invariants(
     UnitEuroPortViewState_t const& info ) {
@@ -137,7 +124,7 @@ Vec<UnitId> units_all( optional<e_nation> nation ) {
 
 bool unit_exists( UnitId id ) {
   bool exists  = bu::has_key( SG().units, id ).has_value();
-  bool deleted = bu::has_key( g_deleted_units, id ).has_value();
+  bool deleted = bu::has_key( SG().deleted, id ).has_value();
   if( exists )
     CHECK( !deleted, "{}: exists: {}, deleted: {}.",
            /*no debug_string*/ id, exists, deleted );
@@ -158,7 +145,7 @@ void map_units( tl::function_ref<void( Unit& )> func ) {
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
-  CHECK( !g_deleted_units.contains( id ) );
+  CHECK( !SG().deleted.contains( id ) );
   auto& unit = unit_from_id( id );
   // Recursively destroy any units in the cargo. We must get the
   // list of units to destroy first because we don't want to
@@ -175,35 +162,39 @@ void destroy_unit( UnitId id ) {
   }
   util::map_( destroy_unit, cargo_units_to_destroy );
   internal::ustate_disown_unit( id );
-  auto it = SG().units.find( id );
-  CHECK( it != SG().units.end() );
-  SG().units.erase( it->first );
-  g_deleted_units.insert( id );
+
+  auto units_it = SG().units.find( id );
+  CHECK( units_it != SG().units.end() );
+  SG().units.erase( units_it->first );
+
+  auto states_it = SG().states.find( id );
+  CHECK( states_it != SG().states.end() );
+  SG().states.erase( states_it->first );
+
+  SG().deleted.insert( id );
 }
 
-Unit& create_unit( e_nation nation, e_unit_type type ) {
+UnitId create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
   CHECK( !bu::has_key( SG().units, id ) );
-  CHECK( !g_deleted_units.contains( id ) );
-  // To avoid requirement of operator[] that we have a default
-  // constructor on Unit.
-  SG().units.emplace( id, move( unit ) );
-  return SG().units.find( id )->second;
+  CHECK( !bu::has_key( SG().states, id ) );
+  CHECK( !SG().deleted.contains( id ) );
+
+  SG().units[id]  = move( unit );
+  SG().states[id] = UnitState::free{};
+
+  return id;
 }
 
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-unordered_set<UnitId> const& units_from_coord( Y y, X x ) {
-  static unordered_set<UnitId> empty = {};
-  CHECK( square_exists( y, x ) );
-  auto opt_set = bu::val_safe( units_from_coords, Coord{y, x} );
+FlatSet<UnitId> const& units_from_coord( Coord const& c ) {
+  static FlatSet<UnitId> empty = {};
+  CHECK( square_exists( c ) );
+  auto opt_set = bu::val_safe( units_from_coords, c );
   return opt_set.value_or( empty );
-}
-
-unordered_set<UnitId> const& units_from_coord( Coord c ) {
-  return units_from_coord( c.y, c.x );
 }
 
 Vec<UnitId> units_from_coord_recursive( Coord coord ) {
@@ -227,7 +218,8 @@ Opt<e_nation> nation_from_coord( Coord coord ) {
 }
 
 void move_unit_from_map_to_map( UnitId id, Coord dest ) {
-  CHECK( unit_ownership[id] == e_unit_ownership::world );
+  CHECK( unit_exists( id ) );
+  CHECK( util::holds<UnitState::world>( SG().states[id] ) );
   ustate_change_to_map( id, dest );
 }
 
@@ -235,7 +227,7 @@ Vec<UnitId> units_in_rect( Rect const& rect ) {
   Vec<UnitId> res;
   for( Y i = rect.y; i < rect.y + rect.h; ++i )
     for( X j = rect.x; j < rect.x + rect.w; ++j )
-      for( auto id : units_from_coord( i, j ) )
+      for( auto id : units_from_coord( Coord{i, j} ) )
         res.push_back( id );
   return res;
 }
@@ -248,21 +240,22 @@ Coord coords_for_unit( UnitId id ) {
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
 Opt<Coord> coords_for_unit_safe( UnitId id ) {
-  ASSIGN_OR_RETURN( ownership,
-                    bu::val_safe( unit_ownership, id ) );
-  switch( ownership ) {
-    case e_unit_ownership::world:
-      return bu::val_safe( SG().coords, id );
-    case e_unit_ownership::cargo: {
-      ASSIGN_OR_RETURN( holder,
-                        bu::val_safe( holder_from_held, id ) );
-      // Coordinates of unit are coordinates of holder.
+  CHECK( unit_exists( id ) );
+  return matcher_( SG().states[id], ->, Opt<Coord> ) {
+    case_( UnitState::free ) {
+      FATAL( "asking for coordinates of a free unit." );
+    }
+    case_( UnitState::world, coord ) { //
+      return coord;
+    }
+    case_( UnitState::cargo, holder ) { //
       return coords_for_unit_safe( holder );
     }
-    case e_unit_ownership::old_world: //
+    case_( UnitState::europort ) { //
       return nullopt;
+    }
+    matcher_exhaustive;
   };
-  UNREACHABLE_LOCATION;
 }
 
 /****************************************************************
@@ -281,15 +274,19 @@ Opt<UnitId> is_unit_onboard( UnitId id ) {
 *****************************************************************/
 Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
     UnitId id ) {
-  ASSIGN_OR_RETURN( it,
-                    bu::has_key( g_euro_port_view_units, id ) );
-  return it->second;
+  if_v( SG().states[id], UnitState::europort, val ) {
+    return val->st;
+  }
+  return nullopt;
 }
 
 Vec<UnitId> units_in_euro_port_view() {
   Vec<UnitId> res;
-  for( auto const& p : g_euro_port_view_units )
-    res.push_back( p.first );
+  for( auto const& [id, st] : SG().states ) {
+    if_v( st, UnitState::europort, val ) { //
+      res.push_back( id );
+    }
+  }
   return res;
 }
 
@@ -298,14 +295,14 @@ Vec<UnitId> units_in_euro_port_view() {
 *****************************************************************/
 UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                            Y y, X x ) {
-  Unit& unit = create_unit( nation, type );
+  Unit& unit = unit_from_id( create_unit( nation, type ) );
   ustate_change_to_map( unit.id(), {x, y} );
   return unit.id();
 }
 
 UnitId create_unit_in_euroview_port( e_nation    nation,
                                      e_unit_type type ) {
-  Unit& unit = create_unit( nation, type );
+  Unit& unit = unit_from_id( create_unit( nation, type ) );
   ustate_change_to_euro_port_view(
       unit.id(), UnitEuroPortViewState::in_port{} );
   return unit.id();
@@ -313,7 +310,7 @@ UnitId create_unit_in_euroview_port( e_nation    nation,
 
 UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
                              UnitId holder ) {
-  Unit& unit = create_unit( nation, type );
+  Unit& unit = unit_from_id( create_unit( nation, type ) );
   ustate_change_to_cargo( holder, unit.id() );
   return unit.id();
 }
@@ -323,11 +320,8 @@ UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
 *****************************************************************/
 void ustate_change_to_map( UnitId id, Coord const& target ) {
   internal::ustate_disown_unit( id );
-  // Add unit to new square.
-  units_from_coords[{target.y, target.x}].insert( id );
-  // Set unit coords to new value.
-  SG().coords[id]    = {target.y, target.x};
-  unit_ownership[id] = e_unit_ownership::world;
+  units_from_coords[target].insert( id );
+  SG().states[id] = UnitState::world{/*coord=*/target};
 }
 
 void ustate_change_to_cargo( UnitId new_holder, UnitId held,
@@ -356,7 +350,7 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held,
   CHECK( cargo_hold.try_add( Cargo{held}, slot ) );
   unit_from_id( held ).sentry();
   // Set new ownership
-  unit_ownership[held]   = e_unit_ownership::cargo;
+  SG().states[held] = UnitState::cargo{/*holder=*/new_holder};
   holder_from_held[held] = new_holder;
 }
 
@@ -376,11 +370,9 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
 void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
   check_europort_state_invariants( info );
-  if( !bu::has_key( g_euro_port_view_units, id ) ) {
+  if( !util::holds<UnitState::europort>( SG().states[id] ) )
     internal::ustate_disown_unit( id );
-    unit_ownership[id] = e_unit_ownership::old_world;
-  }
-  g_euro_port_view_units[id] = info;
+  SG().states[id] = UnitState::europort{/*st=*/info};
 }
 
 /****************************************************************
@@ -390,12 +382,10 @@ namespace testing_only {
 
 void reset_unit_creation() {
   SG().units.clear();
-  g_deleted_units.clear();
+  SG().states.clear();
+  SG().deleted.clear();
   units_from_coords.clear();
-  SG().coords.clear();
   holder_from_held.clear();
-  g_euro_port_view_units.clear();
-  unit_ownership.clear();
 
   reset_unit_ids();
 }
@@ -406,36 +396,20 @@ void reset_unit_creation() {
 ** Do not call directly
 *****************************************************************/
 namespace internal {
-// The purpose of this function is *only* to manipulate the above
-// global maps. It does not follow any of the associated proce-
-// dures that need to be followed when a unit is added, removed,
-// or moved from one map to another (or from one owner to anoth-
-// er).
-//
-// Specifically, it will erase any ownership that is had over the
-// given unit and mark it as unowned.
+
+// This will erase any ownership that is had over the given unit
+// and mark it as free.
 void ustate_disown_unit( UnitId id ) {
-  // If there is no ownership then return and do nothing.
-  ASSIGN_OR_RETURN_( it, bu::has_key( unit_ownership, id ) );
-  switch( it->second ) {
-    // For some strange reason we need braces around this case
-    // statement otherwise we get errors... something to do with
-    // local variables declared inside of it.
-    case e_unit_ownership::world: {
-      // First remove from SG().coords
-      ASSIGN_CHECK_OPT( pair_it,
-                        bu::has_key( SG().coords, id ) );
-      auto coords = pair_it->second;
-      SG().coords.erase( pair_it );
-      // Now remove from units_from_coords
+  switch_( SG().states[id] ) {
+    case_( UnitState::free ) {}
+    case_( UnitState::world, coord ) {
       ASSIGN_CHECK_OPT(
-          set_it, bu::has_key( units_from_coords, coords ) );
+          set_it, bu::has_key( units_from_coords, coord ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() ) units_from_coords.erase( set_it );
-      break;
     }
-    case e_unit_ownership::cargo: {
+    case_( UnitState::cargo ) {
       ASSIGN_CHECK_OPT( pair_it,
                         bu::has_key( holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
@@ -443,22 +417,18 @@ void ustate_disown_unit( UnitId id ) {
                         holder_unit.cargo().find_unit( id ) );
       holder_unit.cargo().remove( slot_idx );
       holder_from_held.erase( pair_it );
-      break;
     }
-    case e_unit_ownership::old_world: {
-      CHECK( bu::has_key( g_euro_port_view_units, id ) );
-      // Ensure the unit has no cargo.
+    case_( UnitState::europort ) {
+      // Ensure the unit has no units in its cargo.
       CHECK( unit_from_id( id )
                  .cargo()
                  .count_items_of_type<UnitId>() == 0 );
-      g_euro_port_view_units.erase( id );
-      break;
     }
+    switch_exhaustive;
   };
-  // Probably need to do this last so iterators don't get
-  // invalidated.
-  unit_ownership.erase( it );
+  SG().states[id] = UnitState::free{};
 }
+
 } // namespace internal
 
 /****************************************************************

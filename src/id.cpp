@@ -56,6 +56,11 @@ UnitId next_unit_id() {
   return UnitId{SG().next_unit_id};
 }
 
+UnitId last_unit_id() {
+  CHECK( SG().next_unit_id >= 0, "no units yet created." );
+  return UnitId{SG().next_unit_id};
+}
+
 /****************************************************************
 ** Testing
 *****************************************************************/
@@ -69,10 +74,7 @@ void reset_unit_ids() { SG().next_unit_id = kFirstUnitId - 1; }
 *****************************************************************/
 namespace {
 
-LUA_FN( last_unit_id, UnitId ) {
-  CHECK( SG().next_unit_id >= 0, "no units yet created." );
-  return UnitId{SG().next_unit_id};
-}
+LUA_FN( last_unit_id, UnitId ) { return last_unit_id(); }
 
 } // namespace
 

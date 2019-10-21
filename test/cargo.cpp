@@ -143,8 +143,7 @@ TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
   CargoHoldTester ch( 0 );
 
   auto unit_id = create_unit( e_nation::english,
-                              e_unit_type::free_colonist )
-                     .id();
+                              e_unit_type::free_colonist );
   auto comm1 = Commodity{/*type=*/e_commodity::food,
                          /*quantity=*/100};
   REQUIRE_THROWS_AS_RN( ch.fits( unit_id, 0 ) );
@@ -172,8 +171,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
   auto cargo = GENERATE(
       CargoSlot::cargo{
           /*contents=*/create_unit( e_nation::english,
-                                    e_unit_type::free_colonist )
-              .id()},
+                                    e_unit_type::free_colonist )},
       CargoSlot::cargo{/*contents=*/Commodity{
           /*type=*/e_commodity::food, /*quantity=*/100}} );
 
@@ -257,8 +255,7 @@ TEST_CASE(
   auto cargo = GENERATE(
       CargoSlot::cargo{
           /*contents=*/create_unit( e_nation::english,
-                                    e_unit_type::free_colonist )
-              .id()},
+                                    e_unit_type::free_colonist )},
       CargoSlot::cargo{/*contents=*/Commodity{
           /*type=*/e_commodity::food, /*quantity=*/100}} );
 
@@ -368,8 +365,7 @@ TEST_CASE(
   CargoHoldTester ch( 6 );
 
   auto unit_id = create_unit( e_nation::english,
-                              e_unit_type::small_treasure )
-                     .id();
+                              e_unit_type::small_treasure );
 
   REQUIRE( ch.fits( unit_id, 0 ) );
   REQUIRE( ch.fits( unit_id, 1 ) );
@@ -449,11 +445,9 @@ TEST_CASE( "CargoHold try to add same unit twice" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
 
   REQUIRE( ch.try_add( unit_id1, 1 ) );
   REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1 ) );
@@ -470,8 +464,7 @@ TEST_CASE( "CargoHold try to add same unit twice" ) {
 TEST_CASE( "CargoHold add item too large for cargo hold" ) {
   CargoHoldTester ch( 4 );
   auto            unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
   REQUIRE_FALSE( ch.fits( unit_id1, 0 ) );
   REQUIRE_FALSE( ch.fits( unit_id1, 1 ) );
   REQUIRE_FALSE( ch.fits( unit_id1, 2 ) );
@@ -487,14 +480,11 @@ TEST_CASE( "CargoHold try to add too many things" ) {
   CargoHoldTester ch( 5 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id3 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto comm1 = Commodity{/*type=*/e_commodity::food,
                          /*quantity=*/100};
 
@@ -522,14 +512,11 @@ TEST_CASE( "CargoHold add multiple units" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id3 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
 
   REQUIRE( ch.fits_somewhere( unit_id1 ) );
   REQUIRE( ch.try_add_somewhere( unit_id1 ) );
@@ -590,8 +577,7 @@ TEST_CASE( "CargoHold remove from overflow slot" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   REQUIRE( ch.fits_somewhere( unit_id1 ) );
   REQUIRE( ch.try_add_somewhere( unit_id1 ) );
   REQUIRE( ch.slots_[1] == CargoSlot_t{CargoSlot::overflow{}} );
@@ -608,8 +594,7 @@ TEST_CASE( "CargoHold remove large cargo" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   REQUIRE( ch.try_add( unit_id1, 1 ) );
   REQUIRE( ch.slots_[0] == CargoSlot_t{CargoSlot::empty{}} );
   REQUIRE( ch.slots_[1] == CargoSlot_t{CargoSlot::cargo{
@@ -643,11 +628,9 @@ TEST_CASE( "CargoHold clear" ) {
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id2 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto comm =
       Commodity{/*type=*/e_commodity::food, /*quantity=*/100};
 
@@ -678,8 +661,7 @@ TEST_CASE( "CargoHold try add as available from invalid" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
 
   REQUIRE_THROWS_AS_RN( ch.fits_somewhere( unit_id1, 6 ) );
   REQUIRE_THROWS_AS_RN( ch.try_add_somewhere( unit_id1, 6 ) );
@@ -700,20 +682,15 @@ TEST_CASE(
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
   auto unit_id3 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id4 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto unit_id5 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
 
   Vec<CargoSlot_t> cmp_slots( 12 );
 
@@ -774,32 +751,23 @@ TEST_CASE(
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
   auto unit_id3 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id4 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto unit_id5 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto unit_id6 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto unit_id7 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto unit_id8 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto unit_id9 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
 
   Vec<CargoSlot_t> cmp_slots( 12 );
 
@@ -913,8 +881,7 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
   UnitId unit_ids[6];
   for( auto i = 0; i < 6; ++i )
     unit_ids[i] = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
 
   Vec<CargoSlot_t> cmp_slots( 6 );
 
@@ -940,11 +907,9 @@ TEST_CASE( "CargoHold check broken invariants" ) {
   REQUIRE_GOOD_INVARIANTS;
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto comm1 = Commodity{/*type=*/e_commodity::food,
                          /*quantity=*/100};
   auto comm2 = Commodity{/*type=*/e_commodity::food,
@@ -1382,8 +1347,7 @@ TEST_CASE( "CargoHold compactify size-1 with unit" ) {
   CargoHoldTester ch( 1 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 1 );
@@ -1409,8 +1373,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 6 );
@@ -1450,8 +1413,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-4 unit" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 6 );
@@ -1503,8 +1465,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 6 );
@@ -1543,20 +1504,15 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
   CargoHoldTester ch( 20 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id3 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id4 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id5 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 20 );
   REQUIRE( ch.slots_remaining() == 20 );
@@ -1887,20 +1843,15 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
   auto sugar_part     = Commodity{/*type=*/e_commodity::sugar,
                               /*quantity=*/33};
   auto unit_id1       = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id3 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id4 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id5 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 24 );
@@ -1965,20 +1916,15 @@ TEST_CASE(
   auto sugar_part     = Commodity{/*type=*/e_commodity::sugar,
                               /*quantity=*/33};
   auto unit_id1       = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id3 = create_unit( e_nation::english,
-                               e_unit_type::large_treasure )
-                      .id();
+                               e_unit_type::large_treasure );
   auto unit_id4 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id5 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
 
   REQUIRE_NOTHROW( ch.compactify() );
   REQUIRE( ch.slots_total() == 24 );
@@ -2098,14 +2044,11 @@ TEST_CASE( "CargoHold find_unit" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id3 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
 
   REQUIRE( ch.find_unit( unit_id1 ) == nullopt );
   REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
@@ -2140,14 +2083,11 @@ TEST_CASE( "CargoHold fits_with_item_removed" ) {
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
   auto unit_id3 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
 
   SECTION( "insert small unit first" ) {
     REQUIRE( ch.try_add( unit_id1, 1 ) );
@@ -2226,8 +2166,7 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
   auto sugar_part = Commodity{/*type=*/e_commodity::sugar,
                               /*quantity=*/33};
   auto unit_id1   = create_unit( e_nation::english,
-                               e_unit_type::small_treasure )
-                      .id();
+                               e_unit_type::small_treasure );
 
   SECTION( "size zero" ) {
     CargoHoldTester ch( 0 );
@@ -2311,8 +2250,7 @@ TEST_CASE( "CargoHold slot_holds_cargo_type" ) {
   auto food    = Commodity{/*type=*/e_commodity::food,
                         /*quantity=*/100};
   auto unit_id = create_unit( e_nation::english,
-                              e_unit_type::small_treasure )
-                     .id();
+                              e_unit_type::small_treasure );
 
   REQUIRE( ch.try_add( food, 1 ) );
   REQUIRE( ch.try_add( unit_id, 2 ) );

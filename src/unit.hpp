@@ -133,7 +133,7 @@ public:
   expect<> check_invariants_safe() const;
 
 private:
-  friend Unit& create_unit( e_nation nation, e_unit_type type );
+  friend UnitId create_unit( e_nation nation, e_unit_type type );
 
   Unit( e_nation nation, e_unit_type type );
 

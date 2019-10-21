@@ -503,13 +503,10 @@ TEST_CASE( "deserialize json" ) {
   testing_only::reset_unit_creation();
 
   (void)create_unit( e_nation::english,
-                     e_unit_type::merchantman )
-      .id();
+                     e_unit_type::merchantman );
   (void)create_unit( e_nation::english,
-                     e_unit_type::free_colonist )
-      .id();
-  (void)create_unit( e_nation::english, e_unit_type::soldier )
-      .id();
+                     e_unit_type::free_colonist );
+  (void)create_unit( e_nation::english, e_unit_type::soldier );
 
   ASSIGN_CHECK_XP( json, rn::read_file_as_string(
                              data_dir() / "unit.json" ) );
@@ -547,14 +544,11 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   testing_only::reset_unit_creation();
 
   auto ship =
-      create_unit( e_nation::english, e_unit_type::merchantman )
-          .id();
+      create_unit( e_nation::english, e_unit_type::merchantman );
   auto unit_id2 = create_unit( e_nation::english,
-                               e_unit_type::free_colonist )
-                      .id();
+                               e_unit_type::free_colonist );
   auto unit_id3 =
-      create_unit( e_nation::english, e_unit_type::soldier )
-          .id();
+      create_unit( e_nation::english, e_unit_type::soldier );
   auto comm1 = Commodity{/*type=*/e_commodity::food,
                          /*quantity=*/100};
 

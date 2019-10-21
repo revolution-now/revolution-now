@@ -11,19 +11,49 @@
 include "coord.fbs";
 include "unit.fbs";
 
+namespace fb.UnitEuroPortViewState;
+
+  table outbound { percent : double; }
+  table inbound  { percent : double; }
+  table in_port  {}
+
+  namespace fb;
+
+  table UnitEuroPortViewState_t {
+    outbound : UnitEuroPortViewState.outbound;
+    inbound  : UnitEuroPortViewState.inbound;
+    in_port  : UnitEuroPortViewState.in_port;
+  }
+
+namespace fb.UnitState;
+
+  table free     {}
+  table world    { coord  : fb.Coord; }
+  table cargo    { holder : int; }
+  table europort { st : fb.UnitEuroPortViewState_t; }
+
+  namespace fb;
+
+  table UnitState_t {
+    free     : UnitState.free;
+    world    : UnitState.world;
+    cargo    : UnitState.cargo;
+    europort : UnitState.europort;
+  }
+
 namespace fb;
 
 table Pair_UnitId_Unit {
-  fst: int;
-  snd: Unit;
+  fst : int;
+  snd : Unit;
 }
 
-struct Pair_UnitId_Coord {
-  fst: int;
-  snd: Coord;
+table Pair_UnitId_UnitState {
+  fst : int;
+  snd : UnitState_t;
 }
 
 table SG_Unit {
   units  : [Pair_UnitId_Unit];
-  coords : [Pair_UnitId_Coord];
+  states : [Pair_UnitId_UnitState];
 }

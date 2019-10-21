@@ -73,7 +73,7 @@ expect<fs::path> save_game( int slot ) {
   p.replace_extension( ".sav" );
   XP_OR_RETURN_( blob.write( p ) );
   auto json = blob.to_json<fb::SaveGame>();
-  p.replace_extension( ".json" );
+  p.replace_extension( ".jsav" );
   ofstream out( p );
   if( !out.good() )
     return UNEXPECTED( "failed to open {} for writing.", p );

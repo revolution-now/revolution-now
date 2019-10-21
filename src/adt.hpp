@@ -330,6 +330,16 @@
   /* Re-open namespace (anonymous). */                        \
   namespace {
 
+// Use this in namespace ::rn::(anonymous).
+#define adt_s_rn_( name, ... )                               \
+  } /* close namespace (anonymous). */                       \
+  } /* close namespace rn. */                                \
+  EVAL( ADT_IMPL( /*serialize=*/_, rn, name, __VA_ARGS__ ) ) \
+  /* Re-open namespace rn. */                                \
+  namespace rn {                                             \
+  /* Re-open namespace (anonymous). */                       \
+  namespace {
+
 // Use this in namespace ::(anonymous).
 #define adt__( name, ... )                                    \
   } /* close namespace (anonymous). */                        \

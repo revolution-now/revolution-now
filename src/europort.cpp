@@ -230,6 +230,14 @@ LUA_FN( create_unit_in_port, UnitId, e_nation nation,
   return id;
 }
 
+LUA_FN( unit_sail_to_new_world, void, UnitId id ) {
+  unit_sail_to_new_world( id );
+}
+
+LUA_FN( advance_unit_on_high_seas, void, UnitId id ) {
+  advance_unit_on_high_seas( id );
+}
+
 } // namespace
 
 } // namespace rn

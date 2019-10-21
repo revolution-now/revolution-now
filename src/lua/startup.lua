@@ -19,6 +19,11 @@ local function create_some_units_in_europort( nation )
   for _, u in ipairs( units ) do
     europort.create_unit_in_port( nation, u )
   end
+
+  local id = europort.create_unit_in_port( nation,
+                                           e.unit_type.merchantman )
+  europort.unit_sail_to_new_world( id )
+  europort.advance_unit_on_high_seas( id )
 end
 
 local function create_some_units_on_land( nation )

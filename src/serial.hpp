@@ -77,7 +77,7 @@ public:
   std::string to_json() const {
     flatbuffers::ToStringVisitor tostring_visitor( //
         /*delimiter=*/"\n",                        //
-        /*quotes=*/true,                           //
+        /*quotes=*/false,                          //
         /*indent=*/"  ",                           //
         /*vdelimited=*/true                        //
     );
