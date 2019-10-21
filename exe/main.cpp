@@ -29,41 +29,43 @@ void game() {
 
 } // namespace rn
 
-int main( int /*unused*/, char** /*unused*/ ) try {
-  linker_dont_discard_me();
-  run_all_init_routines( e_log_level::debug );
-  lua::reload();
-  lua::run_startup_main();
+int main( int /*unused*/, char** /*unused*/ ) {
+  try {
+    try {
+      linker_dont_discard_me();
+      run_all_init_routines( e_log_level::debug );
+      lua::reload();
+      lua::run_startup_main();
 
-  game();
+      if( fs::exists( "saves/slot00.sav" ) )
+        CHECK_XP( load_game( 0 ) );
 
-  ASSIGN_CHECK_XP( p, save_game( 0 ) );
-  lg.info( "saving game to {}", p );
+      game();
 
-  // rn::serial::test_fb();
+      // rn::serial::test_fb();
 
-  run_all_cleanup_routines();
-  return 0;
+    } catch( exception_exit const& ) {}
 
-} catch( exception_exit const& ) {
-  lg.info( "exiting due to exception_exit." );
-  run_all_cleanup_routines();
-  return 0;
-} catch( exception_with_bt const& e ) {
-  lg.error( e.what() );
-  string sdl_error = SDL_GetError();
-  if( !sdl_error.empty() )
-    lg.error( "SDL error (may be a false positive): {}",
-              sdl_error );
-  print_stack_trace( e.st, 4 );
-  run_all_cleanup_routines();
-  return 1;
-} catch( exception const& e ) {
-  lg.error( e.what() );
-  string sdl_error = SDL_GetError();
-  if( !sdl_error.empty() )
-    lg.error( "SDL error (may be a false positive): {}",
-              sdl_error );
-  run_all_cleanup_routines();
-  return 1;
+    ASSIGN_CHECK_XP( p, save_game( 0 ) );
+    lg.info( "saving game to {}", p );
+
+    run_all_cleanup_routines();
+  } catch( exception_with_bt const& e ) {
+    lg.error( e.what() );
+    string sdl_error = SDL_GetError();
+    if( !sdl_error.empty() )
+      lg.error( "SDL error (may be a false positive): {}",
+                sdl_error );
+    print_stack_trace( e.st, 4 );
+    run_all_cleanup_routines();
+    return 1;
+  } catch( exception const& e ) {
+    lg.error( e.what() );
+    string sdl_error = SDL_GetError();
+    if( !sdl_error.empty() )
+      lg.error( "SDL error (may be a false positive): {}",
+                sdl_error );
+    run_all_cleanup_routines();
+    return 1;
+  }
 }

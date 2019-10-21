@@ -48,8 +48,32 @@ FBOffset<T> serialize_to_offset( FBBuilder& fbb ) {
   return state;
 }
 
-#define SERIALIZE_TO_OFFSET( name ) \
-  serialize_to_offset<fb::SG_##name>( fbb )
+template<typename... Args>
+auto creation_tuple( FBBuilder& fbb, tuple<Args...>* ) {
+  return tuple{
+      serialize_to_offset<serial::remove_fb_offset_t<Args>>(
+          fbb )...};
+}
+
+// FIXME: needs to wait until we can access the getters via types
+// only.
+// template<typename... Args>
+// expect<> deserialize_all( serial::BinaryBlob const& blob,
+//                          tuple<Args...>* ) {
+//  expect<> res;
+
+//  auto single = [&]( auto* root ) {
+//    // If we already have an error than return.
+//    if( !res ) return;
+//    res = savegame_deserializer( root );
+//  };
+
+//  ( single(
+//        blob.template root<serial::remove_fb_offset_t<Args>>()
+//        ),
+//    ... );
+//  return res;
+//}
 
 } // namespace
 
@@ -58,14 +82,16 @@ FBOffset<T> serialize_to_offset( FBBuilder& fbb ) {
 *****************************************************************/
 expect<fs::path> save_game( int slot ) {
   FBBuilder fbb;
-  // clang-format off
-  auto sg = fb::CreateSaveGame( fbb,
-    // ==========================================================
-    SERIALIZE_TO_OFFSET( Id             ),
-    SERIALIZE_TO_OFFSET( Unit           )
-    // ==========================================================
-  );
-  // clang-format on
+  // This gets a tuple whose element types are the types needed
+  // to be passed to the table creation method of fb::SaveGame.
+  using creation_types =
+      serial::fb_creation_tuple_t<fb::SaveGame>;
+  auto tpl = creation_tuple(
+      fbb, static_cast<creation_types*>( nullptr ) );
+  auto to_apply = [&]( auto const&... args ) {
+    return fb::CreateSaveGame( fbb, args... );
+  };
+  auto sg = std::apply( to_apply, tpl );
   fbb.Finish( sg );
   auto blob =
       serial::BinaryBlob::from_builder( std::move( fbb ) );
@@ -84,6 +110,17 @@ expect<fs::path> save_game( int slot ) {
 
 expect<fs::path> load_game( int slot ) {
   auto p = path_for_slot( slot );
+  p.replace_extension( ".sav" );
+  XP_OR_RETURN( blob, serial::BinaryBlob::read( p ) );
+  // FIXME: needs to wait until we can access the getters via
+  // types only.
+  // using creation_types =
+  //    serial::fb_creation_tuple_t<fb::SaveGame>;
+  // XP_OR_RETURN_( deserialize_all(
+  //    blob, static_cast<creation_types*>( nullptr ) ) );
+  auto* root = blob.root<fb::SaveGame>();
+  XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
   return p;
 }
 

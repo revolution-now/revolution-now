@@ -200,7 +200,15 @@ public:
 
   std::string debug_string() const;
 
-  expect<> check_invariants_safe() const;
+  // We can only validate fully after all units are loaded, so
+  // just return success here, and then expect that the unit
+  // state validation checks all of these.
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // FIXME: fix naming of these functions.
+  expect<> check_invariants_post_load() const;
 
 protected:
   void check_invariants() const;

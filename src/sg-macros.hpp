@@ -61,6 +61,7 @@ struct SaveGameComponentBase {
     *out_offset = offset.get();                                \
   }                                                            \
   expect<> savegame_deserializer( fb::SG_##name const* src ) { \
+    SG() = SG_##name{};                                        \
     XP_OR_RETURN_( serial::deserialize(                        \
         src, &SG(), ::rn::serial::rn_adl_tag{} ) );            \
     return SG().sync_and_validate();                           \

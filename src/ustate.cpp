@@ -108,6 +108,12 @@ private:
       }
     }
 
+    // Validate all unit cargos. We can only do this now after
+    // all units have been loaded.
+    for( auto const& p : units )
+      XP_OR_RETURN_(
+          p.second.cargo().check_invariants_post_load() );
+
     return xp_success_t{};
   }
 };

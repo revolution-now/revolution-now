@@ -101,7 +101,7 @@ string CargoHold::debug_string() const {
       {{"CargoSlot::", ""}} );
 }
 
-expect<> CargoHold::check_invariants_safe() const {
+expect<> CargoHold::check_invariants_post_load() const {
   try {
     check_invariants();
     return xp_success_t{};

@@ -21,9 +21,6 @@
 // Abseil
 #include "absl/strings/str_replace.h"
 
-// C++ standard library
-#include <tuple>
-
 using namespace std;
 
 namespace rn::serial {
@@ -38,18 +35,6 @@ string ns_to_dots( string_view sv ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
-template<typename...>
-struct fb_creation_tuple;
-
-template<typename Ret, typename... Args>
-struct fb_creation_tuple<Ret( FBBuilder&, Args... )> {
-  using tuple = std::tuple<Args...>;
-};
-
-template<typename FB>
-using fb_creation_tuple_t =
-    typename fb_creation_tuple<decltype( FB::Create )>::tuple;
-
 template<size_t Idx, typename Tuple, typename Variant,
          typename Func>
 void visit_tuple_variant_elem( Tuple& t, Variant const& v,

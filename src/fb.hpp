@@ -28,6 +28,7 @@
 #include "base-util/pp.hpp"
 
 // C++ standard library
+#include <tuple>
 #include <utility>
 
 /****************************************************************
@@ -124,6 +125,35 @@ struct ReturnAddress {
 template<typename SerializedT>
 ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
 
+// Obtains a type list of the parameter types (after the builder)
+// that need to be passed to a table's Create method. FIXME: will
+// need to be changed after upstreaming new changes to flat-
+// buffers.
+template<typename...>
+struct fb_creation_tuple;
+
+template<typename Ret, typename... Args>
+struct fb_creation_tuple<Ret( FBBuilder&, Args... )> {
+  using tuple = std::tuple<Args...>;
+};
+
+template<typename FB>
+using fb_creation_tuple_t =
+    typename fb_creation_tuple<decltype( FB::Create )>::tuple;
+
+template<typename T>
+struct remove_fb_offset {
+  using type = T;
+};
+
+template<typename U>
+struct remove_fb_offset<flatbuffers::Offset<U>> {
+  using type = U;
+};
+
+template<typename T>
+using remove_fb_offset_t = typename remove_fb_offset<T>::type;
+
 namespace detail {
 
 template<typename T>
@@ -159,19 +189,6 @@ struct remove_fb_vector<flatbuffers::Vector<T>> {
 
 template<typename T>
 using remove_fb_vector_t = typename remove_fb_vector<T>::type;
-
-template<typename T>
-struct remove_fb_offset {
-  using type = T;
-};
-
-template<typename U>
-struct remove_fb_offset<flatbuffers::Offset<U>> {
-  using type = U;
-};
-
-template<typename T>
-using remove_fb_offset_t = typename remove_fb_offset<T>::type;
 
 // Takes the return type of a FB getter and converts it to a type
 // suitable for passing as a Hint to the `serialize` methods.

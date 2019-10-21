@@ -65,6 +65,11 @@ public:
 
   expect<> write( fs::path const& path ) const;
 
+  template<typename FB>
+  auto* root() const {
+    return flatbuffers::GetRoot<FB>( get() );
+  }
+
   // Must move argument.
   static BinaryBlob from_builder(
       flatbuffers::FlatBufferBuilder builder );
@@ -110,8 +115,7 @@ BinaryBlob serialize_to_blob( T const& o ) {
 template<typename T>
 expect<> deserialize_from_blob( BinaryBlob const& blob,
                                 T*                out ) {
-  auto* fb = flatbuffers::GetRoot<typename T::fb_target_t>(
-      blob.get() );
+  auto* fb = blob.template root<typename T::fb_target_t>();
   return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );
 }
 
@@ -137,8 +141,7 @@ expect<> deserialize_from_json( std::string const& schema_name,
                     /*schema_file_name=*/schema_name + ".fbs",
                     /*json=*/json,
                     /*root_type=*/T::fb_root_type_name() ) );
-  auto fb = flatbuffers::GetRoot<typename T::fb_target_t>(
-      blob.get() );
+  auto* fb = blob.template root<typename T::fb_target_t>();
   return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );
 }
 
