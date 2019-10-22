@@ -371,6 +371,12 @@ auto serialize( FBBuilder& builder, T const& m,
   std::vector<CRef<typename T::value_type>> v;
   v.reserve( m.size() );
   for( auto const& p : m ) v.emplace_back( p );
+  // This sorting adds overhead, but avoids non-determinism in-
+  // troduced by unordered map key ordering.
+  std::sort( v.begin(), v.end(),
+             []( auto const& l, auto const& r ) {
+               return l.get().first < r.get().first;
+             } );
   return serialize<Hint>( builder, v,
                           ::rn::serial::rn_adl_tag{} );
 }

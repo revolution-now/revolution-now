@@ -18,7 +18,7 @@
 
 // This is a minimal wrapper around an T. It allows nothing ex-
 // cept for (explicit) construction from T, copying/assignment,
-// equality, and (explicit) conversion back to T.
+// equality, ordering, and (explicit) conversion back to T.
 //
 // One use case for this is to wrap an T which will not ever be
 // subject to any arithmetic operations, such as IDs.
@@ -35,6 +35,10 @@ struct TypedNumMinimal {
       TypedNumMinimal<T, Tag> other ) const {
     return _ != other._;
   }
+  constexpr bool operator<(
+      TypedNumMinimal<T, Tag> other ) const {
+    return _ < other._;
+  }
   constexpr explicit operator T() const { return _; }
 
   // Abseil hashing API.
@@ -44,7 +48,7 @@ struct TypedNumMinimal {
     return H::combine( std::move( h ), c._ );
   }
 
-  T _{0};
+  T _{ 0 };
 };
 
 template<typename Tag>
