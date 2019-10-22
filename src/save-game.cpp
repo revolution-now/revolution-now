@@ -14,6 +14,8 @@
 #include "aliases.hpp"
 #include "config-files.hpp"
 #include "fb.hpp"
+#include "logging.hpp"
+#include "macros.hpp"
 #include "serial.hpp"
 
 // Revolution Now (save-state modules)
@@ -25,6 +27,9 @@
 
 // Flatbuffers
 #include "fb/save-game_generated.h"
+
+// base-util
+#include "base-util/stopwatch.hpp"
 
 // C++ standard library
 #include <fstream>
@@ -52,7 +57,7 @@ template<typename... Args>
 auto creation_tuple( FBBuilder& fbb, tuple<Args...>* ) {
   return tuple{
       serialize_to_offset<serial::remove_fb_offset_t<Args>>(
-          fbb )...};
+          fbb )... };
 }
 
 // FIXME: needs to wait until we can access the getters via types
@@ -75,15 +80,11 @@ auto creation_tuple( FBBuilder& fbb, tuple<Args...>* ) {
 //  return res;
 //}
 
-} // namespace
-
-/****************************************************************
-** Public API
-*****************************************************************/
-expect<fs::path> save_game( int slot ) {
+serial::BinaryBlob save_game_to_blob() {
   FBBuilder fbb;
-  // This gets a tuple whose element types are the types needed
-  // to be passed to the table creation method of fb::SaveGame.
+  // This gets a tuple whose element types are the types
+  // needed to be passed to the table creation method of
+  // fb::SaveGame.
   using creation_types =
       serial::fb_creation_tuple_t<fb::SaveGame>;
   auto tpl = creation_tuple(
@@ -93,8 +94,28 @@ expect<fs::path> save_game( int slot ) {
   };
   auto sg = std::apply( to_apply, tpl );
   fbb.Finish( sg );
-  auto blob =
-      serial::BinaryBlob::from_builder( std::move( fbb ) );
+  return serial::BinaryBlob::from_builder( std::move( fbb ) );
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+expect<fs::path> save_game( int slot ) {
+  constexpr int   trials = 1;
+  util::StopWatch watch;
+  watch.start( "save" );
+  auto blob = [&] {
+    for( int i = trials; i >= 1; --i ) {
+      auto blob = save_game_to_blob();
+      if( i == 1 ) return blob;
+    }
+    UNREACHABLE_LOCATION;
+  }();
+  watch.stop( "save" );
+  lg.info( "saving game ({} trials) took: {}", trials,
+           watch.human( "save" ) );
   auto p = path_for_slot( slot );
   p.replace_extension( ".sav" );
   XP_OR_RETURN_( blob.write( p ) );
