@@ -91,7 +91,7 @@ struct ND Delta {
     if constexpr( std::is_same_v<Dimension, H> ) return h;
   }
 
-  Delta operator-() { return {-w, -h}; }
+  Delta operator-() { return { -w, -h }; }
 
   void operator+=( Delta const& other ) {
     w += other.w;
@@ -107,8 +107,8 @@ struct ND Delta {
     return zero;
   }
 
-  Delta with_height( H h_ ) const { return Delta{w, h_}; }
-  Delta with_width( W w_ ) const { return Delta{w_, h}; }
+  Delta with_height( H h_ ) const { return Delta{ w, h_ }; }
+  Delta with_width( W w_ ) const { return Delta{ w_, h }; }
 
   // Given a grid size this will round each dimension up to the
   // nearest multiple of that size.
@@ -133,8 +133,8 @@ struct ND Delta {
   // Returns the length of the diagonal according to Pythagoras.
   double diagonal() const;
 
-  Delta mirrored_vertically() const { return {w, -h}; }
-  Delta mirrored_horizontally() const { return {-w, h}; }
+  Delta mirrored_vertically() const { return { w, -h }; }
+  Delta mirrored_horizontally() const { return { -w, h }; }
 
   // Will project this delta along the given one; the length of
   // the returned delta will generally be different than this
@@ -196,7 +196,7 @@ public:
     y /= scale.sy;
   }
 
-  Coord operator-() const { return {-x, -y}; }
+  Coord operator-() const { return { -x, -y }; }
 
   // If this coord is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line
@@ -210,7 +210,7 @@ public:
   Coord rounded_to_multiple_to_minus_inf( Delta multiple ) const;
 
   Delta distance_from_origin() const {
-    return {y - 0_y, x - 0_x};
+    return { y - 0_y, x - 0_x };
   }
 
   Coord moved( e_direction d ) const;
@@ -274,26 +274,26 @@ struct ND Rect {
   LengthType<Dimension> const& length() const;
 
   // Upper left corner as a coordinate.
-  Coord upper_left() const { return Coord{y, x}; }
+  Coord upper_left() const { return Coord{ y, x }; }
   // Lower right corner; NOTE, this is one-past-the-end.
-  Coord lower_right() const { return Coord{y + h, x + w}; }
+  Coord lower_right() const { return Coord{ y + h, x + w }; }
   // Lower left corner; NOTE, this is one-past-the-end.
-  Coord lower_left() const { return Coord{y + h, x}; }
+  Coord lower_left() const { return Coord{ y + h, x }; }
   // Upper right corner; NOTE, this is one-past-the-end.
-  Coord upper_right() const { return Coord{y, x + w}; }
+  Coord upper_right() const { return Coord{ y, x + w }; }
   // Center
-  Coord center() const { return Coord{y + h / 2, x + w / 2}; }
+  Coord center() const { return Coord{ y + h / 2, x + w / 2 }; }
 
   Rect centered_on( Coord coord ) const;
 
-  Delta delta() const { return {w, h}; }
+  Delta delta() const { return { w, h }; }
 
   // Right edge; NOTE: this is one-past-the-end.
-  X right_edge() const { return {x + w}; }
+  X right_edge() const { return { x + w }; }
   // Left edge
   X left_edge() const { return x; }
   // Right edge; NOTE: this is one-past-the-end.
-  Y bottom_edge() const { return {y + h}; }
+  Y bottom_edge() const { return { y + h }; }
   // Left edge
   Y top_edge() const { return y; }
 
@@ -326,13 +326,15 @@ struct ND Rect {
   Rect edges_removed() const;
 
   Rect shifted_by( Delta const& delta ) const {
-    return Rect{x + delta.w, y + delta.h, w, h};
+    return Rect{ x + delta.w, y + delta.h, w, h };
   }
   Rect with_new_upper_left( Coord const& coord ) const {
-    return Rect{coord.x, coord.y, w, h};
+    return Rect{ coord.x, coord.y, w, h };
   }
 
-  Rect with_inc_size() const { return {x, y, w + 1_w, h + 1_h}; }
+  Rect with_inc_size() const {
+    return { x, y, w + 1_w, h + 1_h };
+  }
 
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
@@ -377,24 +379,24 @@ struct ND Rect {
       // TODO: can remove this check eventually.
       CHECK( it == rect.lower_left() || it.is_inside( rect ) );
     }
-    bool operator!=( const_iterator const& rhs ) {
+    bool operator!=( const_iterator const& rhs ) const {
       return it != rhs.it;
     }
-    bool operator==( const_iterator const& rhs ) {
+    bool operator==( const_iterator const& rhs ) const {
       return it == rhs.it;
     }
   };
 
   const_iterator begin() const {
     if( w == 0_w || h == 0_h ) return end();
-    return {upper_left(), *this};
+    return { upper_left(), *this };
   }
   const_iterator end() const {
     // The "end" is the _start_ of the row that is one passed the
     // last row. This is because this will be the position of the
     // iterator after advancing it past the lower right corner of
     // the rectangle.
-    return {lower_left(), *this};
+    return { lower_left(), *this };
   }
 };
 NOTHROW_MOVE( Rect );
@@ -461,14 +463,14 @@ public:
   };
 
   const_iterator begin() const {
-    return {rect.upper_left(), this};
+    return { rect.upper_left(), this };
   }
   const_iterator end() const {
     // The "end", by convention, is the _start_ of the row that
     // is one passed the last row. Also note that, when the rect
     // has zero area, upper_left() and lower_left are the same
     // point.
-    return {rect.lower_left(), this};
+    return { rect.lower_left(), this };
   }
 };
 
@@ -488,7 +490,7 @@ ND Delta min( Delta const& lhs, Delta const& rhs );
 ND Delta operator-( Delta const& lhs, Delta const& rhs );
 ND inline constexpr Delta operator+( Delta const& lhs,
                                      Delta const& rhs ) {
-  return {lhs.w + rhs.w, lhs.h + rhs.h};
+  return { lhs.w + rhs.w, lhs.h + rhs.h };
 }
 
 ND Coord operator+( Coord const& coord, Delta const& delta );
@@ -538,7 +540,7 @@ ND Delta operator%( Coord const& coord, Scale const& scale );
 ND Delta operator%( Coord const& coord, Delta const& delta );
 ND constexpr Delta operator%( Delta const& lhs,
                               Scale const& rhs ) {
-  return Delta{lhs.w % rhs.sx, lhs.h % rhs.sy};
+  return Delta{ lhs.w % rhs.sx, lhs.h % rhs.sy };
 }
 
 Scale operator*( Scale const& lhs, Scale const& rhs );

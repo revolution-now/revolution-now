@@ -231,7 +231,7 @@ template<typename Hint,           //
          >
 auto serialize( FBBuilder&, T const& o,
                 ::rn::serial::rn_adl_tag ) {
-  return ReturnValue{o};
+  return ReturnValue{ o };
 }
 
 // For typed ints.
@@ -243,7 +243,7 @@ template<typename Hint,                             //
          >
 auto serialize( FBBuilder&, T const& o,
                 ::rn::serial::rn_adl_tag ) {
-  return ReturnValue{o._};
+  return ReturnValue{ o._ };
 }
 
 // For strings.
@@ -251,7 +251,7 @@ template<typename Hint>
 auto serialize( FBBuilder& builder, std::string const& o,
                 ::rn::serial::rn_adl_tag ) {
   auto offset = builder.CreateString( o );
-  return ReturnValue{offset};
+  return ReturnValue{ offset };
 }
 
 // For enums.
@@ -261,7 +261,7 @@ template<
     decltype( serialize_enum( std::declval<T>() ) )* = nullptr>
 auto serialize( FBBuilder&, T const& o,
                 ::rn::serial::rn_adl_tag ) {
-  return ReturnValue{serialize_enum( o )};
+  return ReturnValue{ serialize_enum( o ) };
 }
 
 // For C++ classes/structs that get serialized as FB structs.
@@ -269,7 +269,7 @@ template<typename Hint, //
          typename T, decltype( &T::serialize_struct )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::serial::rn_adl_tag ) {
-  return ReturnAddress{o.serialize_struct( builder )};
+  return ReturnAddress{ o.serialize_struct( builder ) };
 }
 
 // For C++ classes/structs that get serialized as FB tables.
@@ -277,7 +277,7 @@ template<typename Hint, //
          typename T, decltype( &T::serialize_table )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
                 ::rn::serial::rn_adl_tag ) {
-  return ReturnValue{o.serialize_table( builder )};
+  return ReturnValue{ o.serialize_table( builder ) };
 }
 
 // For std::reference_wrapper.
@@ -296,11 +296,11 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
   if( o.has_value() ) {
     auto s_value = serialize<void>( builder, *o,
                                     ::rn::serial::rn_adl_tag{} );
-    return ReturnValue{Hint::Create( builder, /*has_value=*/true,
-                                     s_value.get() )};
+    return ReturnValue{ Hint::Create(
+        builder, /*has_value=*/true, s_value.get() ) };
   } else {
     return ReturnValue{
-        Hint::Create( builder, /*has_value=*/false, {} )};
+        Hint::Create( builder, /*has_value=*/false, {} ) };
   }
 }
 
@@ -315,11 +315,11 @@ auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
       builder, o.second, ::rn::serial::rn_adl_tag{} );
   if constexpr( detail::has_create_v<Hint> )
     return ReturnValue{
-        Hint::Create( builder, s_fst.get(), s_snd.get() )};
+        Hint::Create( builder, s_fst.get(), s_snd.get() ) };
   else
     return ReturnAddress{
         Hint( detail::ptr_to_ref( s_fst.get() ),
-              detail::ptr_to_ref( s_snd.get() ) )};
+              detail::ptr_to_ref( s_snd.get() ) ) };
 }
 
 // For vectors.
@@ -346,14 +346,15 @@ auto serialize( FBBuilder& builder, std::vector<T> const& o,
     values.reserve( o.size() );
     for( auto const& e : wrappers )
       values.emplace_back( *e.get() );
-    return ReturnValue{builder.CreateVectorOfStructs( values )};
+    return ReturnValue{
+        builder.CreateVectorOfStructs( values ) };
   } else {
     // This is anything other than a struct, such as a table,
     // scalar, etc.
     std::vector<fb_get_elem_t> gotten;
     gotten.reserve( o.size() );
     for( auto const& e : wrappers ) gotten.push_back( e.get() );
-    return ReturnValue{builder.CreateVector( gotten )};
+    return ReturnValue{ builder.CreateVector( gotten ) };
   }
 }
 
@@ -420,7 +421,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
                       ::rn::serial::rn_adl_tag ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing typed int." );
-  *dst = DstT{*src};
+  *dst = DstT{ *src };
   return xp_success_t{};
 }
 
@@ -626,6 +627,7 @@ public:                                                      \
                                      name*           dst ) {           \
     DCHECK( dst );                                           \
     (void)src;                                               \
+    (void)dst;                                               \
     using ::rn::serial::deserialize;                         \
     PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_TABLE, __VA_ARGS__ ) \
     return xp_success_t{};                                   \
