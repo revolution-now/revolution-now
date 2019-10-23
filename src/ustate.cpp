@@ -19,6 +19,9 @@
 #include "lua.hpp"
 #include "terrain.hpp"
 
+// Flatbuffers
+#include "fb/sg-unit_generated.h"
+
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/keyval.hpp"
@@ -243,7 +246,7 @@ Vec<UnitId> units_in_rect( Rect const& rect ) {
   Vec<UnitId> res;
   for( Y i = rect.y; i < rect.y + rect.h; ++i )
     for( X j = rect.x; j < rect.x + rect.w; ++j )
-      for( auto id : units_from_coord( Coord{i, j} ) )
+      for( auto id : units_from_coord( Coord{ i, j } ) )
         res.push_back( id );
   return res;
 }
@@ -332,7 +335,7 @@ Vec<UnitId> units_in_euro_port_view() {
 UnitId create_unit_on_map( e_nation nation, e_unit_type type,
                            Y y, X x ) {
   Unit& unit = unit_from_id( create_unit( nation, type ) );
-  ustate_change_to_map( unit.id(), {x, y} );
+  ustate_change_to_map( unit.id(), { x, y } );
   return unit.id();
 }
 
@@ -357,7 +360,7 @@ UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
 void ustate_change_to_map( UnitId id, Coord const& target ) {
   internal::ustate_disown_unit( id );
   SG().units_from_coords[target].insert( id );
-  SG().states[id] = UnitState::world{/*coord=*/target};
+  SG().states[id] = UnitState::world{ /*coord=*/target };
 }
 
 void ustate_change_to_cargo( UnitId new_holder, UnitId held,
@@ -383,10 +386,10 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held,
   // the same cargo where it will not fit unless it is first re-
   // moved from its current slot.
   CHECK( cargo_hold.fits( held, slot ) );
-  CHECK( cargo_hold.try_add( Cargo{held}, slot ) );
+  CHECK( cargo_hold.try_add( Cargo{ held }, slot ) );
   unit_from_id( held ).sentry();
   // Set new ownership
-  SG().states[held] = UnitState::cargo{/*holder=*/new_holder};
+  SG().states[held] = UnitState::cargo{ /*holder=*/new_holder };
   SG().holder_from_held[held] = new_holder;
 }
 
@@ -408,7 +411,7 @@ void ustate_change_to_euro_port_view(
   CHECK_XP( check_europort_state_invariants( info ) );
   if( !util::holds<UnitState::europort>( SG().states[id] ) )
     internal::ustate_disown_unit( id );
-  SG().states[id] = UnitState::europort{/*st=*/info};
+  SG().states[id] = UnitState::europort{ /*st=*/info };
 }
 
 /****************************************************************

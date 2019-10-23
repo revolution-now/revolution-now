@@ -1,0 +1,30 @@
+// **************************************************************
+// sg-terrain.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-22.
+//
+// Description: Serializable types for the sg-terrain module.
+//
+// **************************************************************
+include "coord.fbs";
+include "terrain.fbs";
+
+namespace fb;
+
+table Pair_Coord_Square {
+  fst : Coord;
+  snd : Square;
+}
+
+table Matrix_Square {
+  size : Delta;
+  // May change this in the future to remove the coords, since
+  // they are not actually needed to deserialize the matrix.
+  data : [Pair_Coord_Square];
+}
+
+table SG_Terrain {
+  world_map : Matrix_Square;
+}

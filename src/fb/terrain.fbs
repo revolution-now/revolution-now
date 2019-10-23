@@ -1,0 +1,20 @@
+// **************************************************************
+// terrain.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-22.
+//
+// Description: Serializable types for the terrain module.
+//
+// **************************************************************
+namespace fb;
+
+enum e_crust : byte {
+  water,
+  land
+}
+
+table Square {
+  crust : e_crust;
+}

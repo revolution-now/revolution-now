@@ -103,7 +103,7 @@ serial::BinaryBlob save_game_to_blob() {
 ** Public API
 *****************************************************************/
 expect<fs::path> save_game( int slot ) {
-  constexpr int   trials = 1;
+  constexpr int   trials = 10;
   util::StopWatch watch;
   watch.start( "save" );
   auto blob = [&] {
@@ -118,6 +118,7 @@ expect<fs::path> save_game( int slot ) {
            watch.human( "save" ) );
   auto p = path_for_slot( slot );
   p.replace_extension( ".sav" );
+  lg.info( "saving game to {}.", p );
   XP_OR_RETURN_( blob.write( p ) );
   auto json = blob.to_json<fb::SaveGame>( /*quotes=*/false );
   p.replace_extension( ".jsav" );
@@ -132,6 +133,7 @@ expect<fs::path> save_game( int slot ) {
 expect<fs::path> load_game( int slot ) {
   auto p = path_for_slot( slot );
   p.replace_extension( ".sav" );
+  lg.info( "loading game from {}.", p );
   XP_OR_RETURN( blob, serial::BinaryBlob::read( p ) );
   // FIXME: needs to wait until we can access the getters via
   // types only.
@@ -142,6 +144,8 @@ expect<fs::path> load_game( int slot ) {
   auto* root = blob.root<fb::SaveGame>();
   XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
+  XP_OR_RETURN_(
+      savegame_deserializer( root->terrain_state() ) );
   return p;
 }
 

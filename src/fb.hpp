@@ -84,24 +84,6 @@
 ** Uniform serialization interface.
 *****************************************************************/
 namespace rn::serial {
-// This is used as a dummy parameter to all serialize / deseri-
-// alize calls so that we are guaranteed to always have at least
-// one parameter of a type defined in the rn::serial namespace,
-// that way we can always rely on ADL to find serialize methods
-// that we declare throughout the codebase even if they are de-
-// clared after the ones below that might use them.
-//
-// This is kind of hacky and probably shouldn't be necessary,
-// since in theory we could declare our serialize / deserialize
-// calls all in the same (predictable namespace). But we are re-
-// lying on ADL (I think) because ADL is the only method that can
-// find a function declared after the template that uses it; and
-// we sometimes have to declare functions after the template that
-// uses it because this file has to be included in headers.
-struct rn_adl_tag {};
-} // namespace rn::serial
-
-namespace rn::serial {
 
 /****************************************************************
 ** Helpers
@@ -154,6 +136,18 @@ struct remove_fb_offset<flatbuffers::Offset<U>> {
 template<typename T>
 using remove_fb_offset_t = typename remove_fb_offset<T>::type;
 
+// Takes the return type of a FB getter and converts it to a type
+// suitable for passing as a Hint to the `serialize` methods.
+template<typename T>
+using fb_serialize_hint_t =        //
+    remove_fb_offset_t<            //
+        std::decay_t<              //
+            std::remove_pointer_t< //
+                std::decay_t<T>    //
+                >                  //
+            >                      //
+        >;
+
 namespace detail {
 
 template<typename T>
@@ -189,18 +183,6 @@ struct remove_fb_vector<flatbuffers::Vector<T>> {
 
 template<typename T>
 using remove_fb_vector_t = typename remove_fb_vector<T>::type;
-
-// Takes the return type of a FB getter and converts it to a type
-// suitable for passing as a Hint to the `serialize` methods.
-template<typename T>
-using fb_serialize_hint_t =        //
-    remove_fb_offset_t<            //
-        std::decay_t<              //
-            std::remove_pointer_t< //
-                std::decay_t<T>    //
-                >                  //
-            >                      //
-        >;
 
 template<typename T, typename = void>
 inline constexpr bool has_create_v = false;
@@ -590,10 +572,10 @@ expect<> deserialize( SrcT const* src, DstT* m,
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )      \
-  auto PP_JOIN( s_, var ) =                                \
-      serialize<::rn::serial::detail::fb_serialize_hint_t< \
-          decltype( std::declval<fb_target_t>().var() )>>( \
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )       \
+  auto PP_JOIN( s_, var ) =                                 \
+      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
+          std::declval<fb_target_t>().var() )>>(            \
           builder, var, ::rn::serial::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
@@ -647,10 +629,10 @@ private:
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )  \
-  auto PP_JOIN( s_, var ) =                                \
-      serialize<::rn::serial::detail::fb_serialize_hint_t< \
-          decltype( std::declval<fb_target_t>().var() )>>( \
+#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )   \
+  auto PP_JOIN( s_, var ) =                                 \
+      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
+          std::declval<fb_target_t>().var() )>>(            \
           builder, var, ::rn::serial::rn_adl_tag{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \

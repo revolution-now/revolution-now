@@ -14,6 +14,7 @@
 #include "logging.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+#include "util.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -121,7 +122,8 @@ ND Texture create_screen_physical_sized_texture() {
 Texture create_shadow_texture( Texture const& tx ) {
   auto cloned = clone_texture( tx );
   // black.a should not be relevant here.
-  auto black = create_texture( tx.size(), Color{0, 0, 0, 255} );
+  auto black =
+      create_texture( tx.size(), Color{ 0, 0, 0, 255 } );
 
   // The process will be done in two stages; note that each stage
   // respects alpha gradations when performing its action, so
@@ -135,7 +137,7 @@ Texture create_shadow_texture( Texture const& tx ) {
   Texture::screen().set_blend_mode( e_tx_blend_mode::add );
   cloned.set_blend_mode( e_tx_blend_mode::add );
   auto white =
-      create_texture( tx.size(), Color{255, 255, 255, 255} );
+      create_texture( tx.size(), Color{ 255, 255, 255, 255 } );
   white.set_blend_mode( e_tx_blend_mode::add );
   white.copy_to( cloned );
 
@@ -163,7 +165,7 @@ void clear_texture_black( Texture& tx ) {
 }
 
 void clear_texture_transparent( Texture& tx ) {
-  tx.fill( {0, 0, 0, 0} );
+  tx.fill( { 0, 0, 0, 0 } );
 }
 
 void render_fill_rect( Texture& tx, Color color,
@@ -224,7 +226,7 @@ bool screenshot() {
       absl::StrReplaceAll(
           fmt::format( "revolution-now-screenshot-{}.png",
                        util::to_string( Clock_t::now() ) ),
-          {{" ", "-"}} ) );
+          { { " ", "-" } } ) );
 }
 
 } // namespace rn

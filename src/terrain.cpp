@@ -12,11 +12,15 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "fb.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "matrix.hpp"
 #include "tiles.hpp"
-#include "util.hpp"
+
+// Flatbuffers
+#include "fb/sg-terrain_generated.h"
 
 using namespace std;
 
@@ -24,13 +28,30 @@ namespace rn {
 
 namespace {
 
-Square const L = Square{e_crust::land};
-Square const O = Square{e_crust::water};
+/****************************************************************
+** Save-Game State
+*****************************************************************/
+struct SAVEGAME_STRUCT( Terrain ) {
+  // Fields that are actually serialized.
+  // clang-format off
+  SAVEGAME_MEMBERS( Terrain,
+  ( Matrix<Square>, world_map ));
+  // clang-format on
 
-constexpr auto world_size = Delta{120_w, 60_h};
-Matrix<Square> world_map( world_size, O );
+public:
+  // Fields that are derived from the serialized fields.
 
-constexpr Scale terrain_block_size{30_sx, 30_sy};
+private:
+  SAVEGAME_FRIENDS( Terrain );
+  SAVEGAME_SYNC() {
+    // Sync all fields that are derived from serialized fields
+    // and then validate (check invariants).
+    return xp_success_t{};
+  }
+};
+SAVEGAME_IMPL( Terrain );
+
+constexpr Scale terrain_block_size{ 30_sx, 30_sy };
 
 static_assert( world_size % terrain_block_size == Delta{} );
 
@@ -38,7 +59,7 @@ struct TerrainBlockCache {
   void redraw_if_needed() {
     if( !needs_redraw ) return;
     lg.debug( "redrawing terrain block {}", block_coord );
-    Rect tiles = Rect::from( block_coord, Delta{1_w, 1_h} ) *
+    Rect tiles = Rect::from( block_coord, Delta{ 1_w, 1_h } ) *
                  terrain_block_size;
     for( auto coord : tiles )
       render_terrain_square(
@@ -48,7 +69,7 @@ struct TerrainBlockCache {
     needs_redraw = false;
   }
 
-  bool    needs_redraw{true};
+  bool    needs_redraw{ true };
   Coord   block_coord;
   Texture tx;
 };
@@ -58,28 +79,38 @@ Matrix<TerrainBlockCache> block_cache( world_size /
                                        terrain_block_size );
 
 void init_terrain() {
+  Square const L = Square{ e_crust::land };
+  Square const O = Square{ e_crust::water };
+
+  auto& world_map = SG().world_map;
+  // FIXME
+  world_map = Matrix<Square>( world_size );
+
+  for( auto const& coord : SG().world_map.rect() )
+    world_map[coord] = O;
+
   auto make_squares = [&]( Coord origin ) {
     for( Y y = origin.y; y < origin.y + 10_h; ++y ) {
       for( X x = origin.x; x < origin.x + 4_w; ++x )
-        world_map[y][x] = L;
+        SG().world_map[y][x] = L;
       for( X x = origin.x + 6_w; x < origin.x + 10_w; ++x )
-        world_map[y][x] = L;
+        SG().world_map[y][x] = L;
     }
   };
 
-  make_squares( {1_x, 1_y} );
-  make_squares( {20_x, 10_y} );
-  make_squares( {10_x, 30_y} );
-  make_squares( {70_x, 30_y} );
-  make_squares( {60_x, 10_y} );
-  make_squares( {40_x, 40_y} );
-  make_squares( {100_x, 25_y} );
+  make_squares( { 1_x, 1_y } );
+  make_squares( { 20_x, 10_y } );
+  make_squares( { 10_x, 30_y } );
+  make_squares( { 70_x, 30_y } );
+  make_squares( { 60_x, 10_y } );
+  make_squares( { 40_x, 40_y } );
+  make_squares( { 100_x, 25_y } );
 
   for( auto coord : block_cache.rect() ) {
     TerrainBlockCache cache{
         /*needs_redraw=*/true, coord,
-        create_texture( Delta{1_w, 1_h} * terrain_block_size *
-                        g_tile_scale )};
+        create_texture( Delta{ 1_w, 1_h } * terrain_block_size *
+                        g_tile_scale ) };
     block_cache[coord] = std::move( cache );
   }
 }
@@ -122,15 +153,16 @@ void render_terrain( Rect src_tiles, Texture& dest,
   }
 }
 
-Delta world_size_tiles() { return world_map.size(); }
+Delta world_size_tiles() { return SG().world_map.size(); }
 
 Delta world_size_pixels() {
   auto delta = world_size_tiles();
-  return {delta.h * g_tile_height, delta.w * g_tile_width};
+  return { delta.h * g_tile_height, delta.w * g_tile_width };
 }
 
 Rect world_rect_tiles() {
-  return {0_x, 0_y, world_size_tiles().w, world_size_tiles().h};
+  return { 0_x, 0_y, world_size_tiles().w,
+           world_size_tiles().h };
 }
 
 Rect world_rect_pixels() {
@@ -149,7 +181,7 @@ bool square_exists( Coord coord ) {
 
 Opt<Ref<Square const>> maybe_square_at( Coord coord ) {
   if( !square_exists( coord.y, coord.x ) ) return nullopt;
-  return world_map[coord.y][coord.x];
+  return SG().world_map[coord.y][coord.x];
 }
 
 Square const& square_at( Coord coord ) {

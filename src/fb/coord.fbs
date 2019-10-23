@@ -14,3 +14,15 @@ struct Coord {
   y : int;
   x : int;
 }
+
+struct Delta {
+  w : int;
+  h : int;
+}
+
+struct Rect {
+  x : int;
+  y : int;
+  w : int;
+  h : int;
+}

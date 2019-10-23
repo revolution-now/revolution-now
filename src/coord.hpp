@@ -68,8 +68,11 @@ enum class ND e_(direction,
 // clang-format on
 
 struct ND Delta {
-  W w = 0_w;
-  H h = 0_h;
+  SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );
+
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
 
   constexpr Delta() = default;
   constexpr Delta( W w_, H h_ ) : w( w_ ), h( h_ ) {}
@@ -245,10 +248,12 @@ NOTHROW_MOVE( Coord );
 class RectGridProxyIteratorHelper;
 
 struct ND Rect {
-  X x = 0_x;
-  Y y = 0_y;
-  W w = 0_w;
-  H h = 0_h;
+  SERIALIZABLE_STRUCT_MEMBERS( Rect, ( X, x ), ( Y, y ),
+                               ( W, w ), ( H, h ) );
+
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
 
   static Rect from( Coord const& _1, Coord const& _2 );
   static Rect from( Coord const& coord, Delta const& delta );
@@ -365,7 +370,7 @@ struct ND Rect {
 
     Coord       it;
     Rect const& rect;
-    auto        operator*() {
+    auto const& operator*() {
       // TODO: can remove this check eventually.
       CHECK( it.is_inside( rect ) );
       return it;

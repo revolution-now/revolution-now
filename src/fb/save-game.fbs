@@ -9,11 +9,13 @@
 //
 // **************************************************************
 include "sg-id.fbs";
+include "sg-terrain.fbs";
 include "sg-unit.fbs";
 
 namespace fb;
 
 table SaveGame {
-  id_state   : SG_Id;
-  unit_state : SG_Unit;
+  id_state      : SG_Id;
+  unit_state    : SG_Unit;
+  terrain_state : SG_Terrain;
 }

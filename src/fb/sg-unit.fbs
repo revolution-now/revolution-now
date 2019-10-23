@@ -11,20 +11,6 @@
 include "coord.fbs";
 include "unit.fbs";
 
-namespace fb.UnitEuroPortViewState;
-
-  table outbound { percent : double; }
-  table inbound  { percent : double; }
-  table in_port  {}
-
-  namespace fb;
-
-  table UnitEuroPortViewState_t {
-    outbound : UnitEuroPortViewState.outbound;
-    inbound  : UnitEuroPortViewState.inbound;
-    in_port  : UnitEuroPortViewState.in_port;
-  }
-
 namespace fb.UnitState;
 
   table free     {}

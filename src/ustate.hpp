@@ -21,7 +21,7 @@
 #include "unit.hpp"
 
 // Flatbuffers
-#include "fb/sg-unit_generated.h"
+#include "fb/unit_generated.h"
 
 // function_ref
 #include "tl/function_ref.hpp"

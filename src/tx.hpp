@@ -19,7 +19,7 @@
 #include "color.hpp"
 #include "coord.hpp"
 #include "fmt-helper.hpp"
-#include "util.hpp"
+#include "matrix.hpp"
 
 // base-util
 #include "base-util/non-copyable.hpp"
@@ -87,7 +87,7 @@ public:
 private:
   friend class Texture;
 
-  void* sf_{nullptr};
+  void* sf_{ nullptr };
 };
 NOTHROW_MOVE( Surface );
 
@@ -167,10 +167,10 @@ public:
   }
 
 private:
-  void* tx_{nullptr};
+  void* tx_{ nullptr };
   // globally unique id and monotonically increasing. 0 is for
   // default texture.
-  int id_{0};
+  int id_{ 0 };
 };
 NOTHROW_MOVE( Texture );
 

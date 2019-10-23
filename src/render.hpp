@@ -15,6 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "macros.hpp"
+#include "matrix.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "unit.hpp"
@@ -92,21 +93,21 @@ struct slide_unit {
 
   UnitId id;
   Coord  target;
-  double percent{0.0};
+  double percent{ 0.0 };
   // Note that mag_acceleration is not relevant here.
   DissipativeVelocity percent_vel{
       /*min_velocity=*/min_velocity,
       /*max_velocity=*/max_velocity,
       /*initial_velocity=*/initial_velocity,
       /*mag_acceleration=*/mag_acceleration,
-      /*mag_drag_acceleration=*/mag_drag_acceleration};
+      /*mag_drag_acceleration=*/mag_drag_acceleration };
 };
 
 struct depixelate_unit {
   depixelate_unit( UnitId id_, Opt<e_unit_type> demote_to_ );
   UnitId             id{};
   std::vector<Coord> all_pixels{};
-  bool               finished{false};
+  bool               finished{ false };
   Texture            tx_from;
   // If the unit is being depixelated to a different tile then
   // this will contain the unit that should be pixelated in.

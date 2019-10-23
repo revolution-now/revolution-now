@@ -138,4 +138,26 @@ struct SourceLoc {
 NOTHROW_MOVE( SourceLoc );
 #endif
 
+/****************************************************************
+** Serialization ADL Helper
+*****************************************************************/
+namespace rn::serial {
+// This is used as a dummy parameter to all serialize / deseri-
+// alize calls so that we are guaranteed to always have at least
+// one parameter of a type defined in the rn::serial namespace,
+// that way we can always rely on ADL to find serialize methods
+// that we declare throughout the codebase.
+//
+// Normally we wouldn't need ADL, since we could just define all
+// the serialize / deserialize methods in the same rn::serial
+// namespace. But we are relying on ADL (I think) because ADL is
+// the only method that can find a function declared after the
+// template that uses it; and we sometimes have to declare func-
+// tions after the template that uses it because sometimes tem-
+// plated serialize methods (which all reside in headers) must
+// call each other, and it is (at least) inconvenient to ensure
+// proper ordering.
+struct rn_adl_tag {};
+} // namespace rn::serial
+
 namespace rn {} // namespace rn

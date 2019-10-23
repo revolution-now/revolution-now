@@ -29,7 +29,7 @@ namespace rn::serial {
 ** Public API
 *****************************************************************/
 string ns_to_dots( string_view sv ) {
-  return absl::StrReplaceAll( sv, {{"::", "."}} );
+  return absl::StrReplaceAll( sv, { { "::", "." } } );
 }
 
 /****************************************************************
@@ -101,7 +101,7 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
   visit_tuple_variant(
       t, o, [&]( auto const& variant_elem, auto& tuple_elem ) {
         using elem_hint_t =
-            detail::fb_serialize_hint_t<decltype( tuple_elem )>;
+            fb_serialize_hint_t<decltype( tuple_elem )>;
         auto res = serialize<elem_hint_t>(
             builder, variant_elem, ::rn::serial::rn_adl_tag{} );
         // FIXME: does not work for structs. For those, we need
@@ -114,7 +114,7 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
   auto apply_with_builder = [&]( auto... ts ) {
     return Hint::Create( builder, ts... );
   };
-  return ReturnValue{std::apply( apply_with_builder, t )};
+  return ReturnValue{ std::apply( apply_with_builder, t ) };
 }
 
 template<typename fb_table_t, typename Variant>
@@ -136,10 +136,10 @@ void test_fb() {
   v = 5;
   test_serialize_variant<fb_table_t>( v );
 
-  v = Vec2{4.4, 6.6};
+  v = Vec2{ 4.4, 6.6 };
   test_serialize_variant<fb_table_t>( v );
 
-  v = Weapon{"hello", 3};
+  v = Weapon{ "hello", 3 };
   test_serialize_variant<fb_table_t>( v );
 
   v = e_color::Red;

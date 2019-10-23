@@ -5,7 +5,7 @@
 //
 // Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
 //
-// Description: Serializable types for the {{FILEE}} module.
+// Description: Serializable types for the {{FILE}} module.
 //
 // **************************************************************
 namespace fb;

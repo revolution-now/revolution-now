@@ -14,7 +14,7 @@
 #include "config-files.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
-#include "util.hpp"
+#include "matrix.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/ui.inl"
@@ -82,10 +82,10 @@ struct block {
 
   // Flags indicating whether padding is needed on which side
   // (left, right, up, down).
-  bool l{false};
-  bool r{false};
-  bool u{false};
-  bool d{false};
+  bool l{ false };
+  bool r{ false };
+  bool u{ false };
+  bool d{ false };
 
   std::vector<PositionedBlock> subdivisions{};
 };
@@ -93,8 +93,8 @@ NOTHROW_MOVE( block );
 
 void print_matrix( Matrix<int> const& m ) {
   fmt::print( "\n" );
-  for( Y y{0}; y < m.rect().bottom_edge(); ++y ) {
-    for( X x{0}; x < m.rect().right_edge(); ++x ) {
+  for( Y y{ 0 }; y < m.rect().bottom_edge(); ++y ) {
+    for( X x{ 0 }; x < m.rect().right_edge(); ++x ) {
       auto i = m[y][x];
       if( i < 0 )
         fmt::print( "+" );
@@ -157,7 +157,7 @@ void compute_merged_padding_impl( block& b ) {
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
           sub_block.u = true;
-          ranges.push_back( {start, end} );
+          ranges.push_back( { start, end } );
         }
       }
     }
@@ -173,7 +173,7 @@ void compute_merged_padding_impl( block& b ) {
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
           sub_block.d = true;
-          ranges.push_back( {start, end} );
+          ranges.push_back( { start, end } );
         }
       }
     }
@@ -188,7 +188,7 @@ void compute_merged_padding_impl( block& b ) {
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
           sub_block.l = true;
-          ranges.push_back( {start, end} );
+          ranges.push_back( { start, end } );
         }
       }
     }
@@ -203,7 +203,7 @@ void compute_merged_padding_impl( block& b ) {
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
           sub_block.r = true;
-          ranges.push_back( {start, end} );
+          ranges.push_back( { start, end } );
         }
       }
     }
@@ -218,7 +218,7 @@ void compute_merged_padding( block& b ) {
 
 void inc_sizes( block& b ) {
   for( auto& sub_b : b.subdivisions ) inc_sizes( sub_b.second );
-  b.size += Delta{1_w, 1_h};
+  b.size += Delta{ 1_w, 1_h };
 }
 
 block derive_blocks_impl( ObserverCPtr<ui::View> view );
@@ -229,7 +229,8 @@ block derive_blocks_impl_composite(
   for( int i = 0; i < view.count(); ++i ) {
     auto  p_view    = view.at( i );
     block sub_block = derive_blocks_impl( p_view.view );
-    block::PositionedBlock p_block{view.pos_of( i ), sub_block};
+    block::PositionedBlock p_block{ view.pos_of( i ),
+                                    sub_block };
     res.subdivisions.push_back( p_block );
   }
   return res;
@@ -402,22 +403,25 @@ void test_autopad() {
    * clang-format on
    */
 
-  auto block0 = block( {25_w, 6_h}, {} );
-  auto block1 = block( {25_w, 5_h}, {} );
-  auto block2 = block( {26_w, 8_h}, {} );
-  auto block3 = block( {26_w, 3_h}, {} );
-  auto block4 = block( {50_w, 10_h}, {{{0_x, 0_y}, block0},
-                                      {{0_x, 5_y}, block1},
-                                      {{24_x, 2_y}, block2},
-                                      {{24_x, 0_y}, block3}} );
-  auto block5 = block( {35_w, 11_h}, {} );
-  auto block6 = block( {16_w, 11_h}, {} );
-  auto block7 = block( {50_w, 11_h}, {{{15_x, 0_y}, block5},
-                                      {{0_x, 0_y}, block6}} );
-  auto block8 = block( {16_w, 20_h}, {} );
-  auto block9 = block( {65_w, 20_h}, {{{15_x, 0_y}, block4},
-                                      {{15_x, 9_y}, block7},
-                                      {{0_x, 0_y}, block8}} );
+  auto block0 = block( { 25_w, 6_h }, {} );
+  auto block1 = block( { 25_w, 5_h }, {} );
+  auto block2 = block( { 26_w, 8_h }, {} );
+  auto block3 = block( { 26_w, 3_h }, {} );
+  auto block4 =
+      block( { 50_w, 10_h }, { { { 0_x, 0_y }, block0 },
+                               { { 0_x, 5_y }, block1 },
+                               { { 24_x, 2_y }, block2 },
+                               { { 24_x, 0_y }, block3 } } );
+  auto block5 = block( { 35_w, 11_h }, {} );
+  auto block6 = block( { 16_w, 11_h }, {} );
+  auto block7 = block(
+      { 50_w, 11_h },
+      { { { 15_x, 0_y }, block5 }, { { 0_x, 0_y }, block6 } } );
+  auto block8 = block( { 16_w, 20_h }, {} );
+  auto block9 =
+      block( { 65_w, 20_h }, { { { 15_x, 0_y }, block4 },
+                               { { 15_x, 9_y }, block7 },
+                               { { 0_x, 0_y }, block8 } } );
   fmt::print( "\nBefore:\n" );
   print_matrix( block9.to_matrix() );
 

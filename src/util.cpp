@@ -5,11 +5,12 @@
 *
 * Created by dsicilia on 2018-08-25.
 *
-* Description:
+* Description: Common utilities for all modules.
 *
 *****************************************************************/
 #include "util.hpp"
 
+// Revolution Now
 #include "errors.hpp"
 
 // C++ standard library.

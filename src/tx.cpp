@@ -35,15 +35,15 @@ namespace rn {
 
 namespace {
 
-int g_next_texture_id{1};
+int g_next_texture_id{ 1 };
 
 // Holds the number of Texture objects that hold live textures.
 // Monitoring this helps to track texture leaks.
-int g_live_texture_count{0};
+int g_live_texture_count{ 0 };
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
-int g_current_render_target{-1};
+int g_current_render_target{ -1 };
 
 ::SDL_Texture* to_SDL_Texture( void* p ) {
   return static_cast<::SDL_Texture*>( p );
@@ -77,7 +77,7 @@ int g_current_render_target{-1};
 /****************************************************************
 ** Surface
 *****************************************************************/
-Surface::Surface( void* p ) : sf_{p} { CHECK( sf_ ); }
+Surface::Surface( void* p ) : sf_{ p } { CHECK( sf_ ); }
 
 Surface::Surface( Surface&& sf ) noexcept {
   DCHECK( sf.sf_, "attempt to move from a moved-from Surface." );
@@ -150,7 +150,7 @@ void Surface::unlock() {
 ** Texture
 *****************************************************************/
 Texture::Texture( void* tx )
-  : tx_( tx ), id_{g_next_texture_id++} {
+  : tx_( tx ), id_{ g_next_texture_id++ } {
   CHECK( tx_ );
   g_live_texture_count++;
 }
@@ -233,7 +233,7 @@ Delta Texture::size() const {
   int w, h;
   ::SDL_QueryTexture( to_SDL_Texture( tx_ ), nullptr, nullptr,
                       &w, &h );
-  return {W( w ), H( h )};
+  return { W( w ), H( h ) };
 }
 
 void Texture::set_render_target() const {

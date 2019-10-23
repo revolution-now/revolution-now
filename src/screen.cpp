@@ -39,8 +39,8 @@ namespace rn {
 ::SDL_Renderer* g_renderer = nullptr;
 Texture         g_texture_viewport;
 
-Scale g_resolution_scale_factor{0};
-Scale g_optimal_resolution_scale_factor{0};
+Scale g_resolution_scale_factor{ 0 };
+Scale g_optimal_resolution_scale_factor{ 0 };
 Delta g_screen_physical_size{};
 
 namespace {
@@ -107,8 +107,8 @@ double const& viewer_distance_from_monitor() {
     // Determined empirically; viewer distance from screen seems
     // to scale linearly with screen size, down to a certain
     // minimum distance.
-    constexpr double viewer_distance_multiplier{1.25};
-    constexpr double viewer_distance_minimum{18}; // inches
+    constexpr double viewer_distance_multiplier{ 1.25 };
+    constexpr double viewer_distance_minimum{ 18 }; // inches
     auto             res =
         std::max( viewer_distance_multiplier * monitor_inches(),
                   viewer_distance_minimum );
@@ -160,7 +160,8 @@ void query_video_stats() {
   SDL_Rect r;
   lg.debug( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  lg.debug( "  {}", Rect{X{r.x}, Y{r.y}, W{r.w}, H{r.h}} );
+  lg.debug( "  {}",
+            Rect{ X{ r.x }, Y{ r.y }, W{ r.w }, H{ r.h } } );
 
   lg.debug( "monitor diagonal length: {}in.", monitor_inches() );
 }
@@ -174,7 +175,7 @@ struct ScaleInfo {
 NOTHROW_MOVE( ScaleInfo );
 
 ScaleInfo scale_info( int scale_ ) {
-  Scale scale{scale_};
+  Scale scale{ scale_ };
   Delta resolution = current_display_mode().size / scale;
 
   // Tile size in inches if it were measured on the surface of
@@ -188,8 +189,8 @@ ScaleInfo scale_info( int scale_ ) {
       2.0 * std::atan( ( tile_size_screen_surface / 2.0 ) /
                        viewer_distance_from_monitor() );
 
-  return ScaleInfo{scale_, tile_size_screen_surface, resolution,
-                   theta};
+  return ScaleInfo{ scale_, tile_size_screen_surface, resolution,
+                    theta };
 }
 
 // Lower score is better.
@@ -251,19 +252,19 @@ void find_pixel_scale_factor() {
   lg.debug( bar );
   ///////////////////////////////////////////////////////////////
 
-  g_resolution_scale_factor         = Scale{optimal.scale};
-  g_optimal_resolution_scale_factor = Scale{optimal.scale};
+  g_resolution_scale_factor         = Scale{ optimal.scale };
+  g_optimal_resolution_scale_factor = Scale{ optimal.scale };
   g_screen_physical_size =
       optimal.resolution * g_resolution_scale_factor;
   lg.debug( "screen physical size: {}", g_screen_physical_size );
   lg.debug( "screen logical size: {}", screen_logical_size() );
 
   // If this is violated then we have non-integer scaling.
-  CHECK( g_screen_physical_size % Scale{optimal.scale} ==
+  CHECK( g_screen_physical_size % Scale{ optimal.scale } ==
          Delta{} );
 
   // For informational purposes
-  if( current_display_mode().size % Scale{optimal.scale} !=
+  if( current_display_mode().size % Scale{ optimal.scale } !=
       Delta{} )
     lg.warn(
         "Desktop display resolution not commensurate with scale "
@@ -291,11 +292,13 @@ void cleanup_screen() {
 
 MENU_ITEM_HANDLER(
     e_menu_item::scale_up, [] { inc_resolution_scale(); },
-    L0( g_resolution_scale_factor != Scale{max_scale_factor} ) )
+    L0( g_resolution_scale_factor !=
+        Scale{ max_scale_factor } ) )
 
 MENU_ITEM_HANDLER(
     e_menu_item::scale_down, [] { dec_resolution_scale(); },
-    L0( g_resolution_scale_factor != Scale{min_scale_factor} ) )
+    L0( g_resolution_scale_factor !=
+        Scale{ min_scale_factor } ) )
 
 MENU_ITEM_HANDLER(
     e_menu_item::scale_optimal,
@@ -366,11 +369,13 @@ void init_renderer() {
   ::SDL_SetRenderDrawBlendMode( g_renderer,
                                 ::SDL_BLENDMODE_BLEND );
 
-  // FIXME: move this out of here.
   // Now we calculate the necessary size of the viewport texture.
   // This needs to be large enough to accomodate a zoomed-out
   // view in which the entire world is visible.
-  auto delta = world_size_pixels();
+  //
+  // FIXME: move this out of here or, even better, get rid of it
+  // altogether.
+  auto delta = world_size * Scale{ 32 };
   lg.debug( "g_texture_viewport proposed size: {}", delta );
   lg.debug( "g_texture_viewport memory usage estimate: {}MB",
             Texture::mem_usage_mb( delta ) );
@@ -392,8 +397,8 @@ void inc_resolution_scale() {
   int old_scale = scale;
   scale++;
   scale = clamp( scale, min_scale_factor, max_scale_factor );
-  g_resolution_scale_factor.sx = SX{scale};
-  g_resolution_scale_factor.sy = SY{scale};
+  g_resolution_scale_factor.sx = SX{ scale };
+  g_resolution_scale_factor.sy = SY{ scale };
   if( old_scale != scale ) on_renderer_scale_factor_changed();
 }
 
@@ -402,8 +407,8 @@ void dec_resolution_scale() {
   int old_scale = scale;
   scale--;
   scale = clamp( scale, min_scale_factor, max_scale_factor );
-  g_resolution_scale_factor.sx = SX{scale};
-  g_resolution_scale_factor.sy = SY{scale};
+  g_resolution_scale_factor.sx = SX{ scale };
+  g_resolution_scale_factor.sy = SY{ scale };
   if( old_scale != scale ) on_renderer_scale_factor_changed();
 }
 
@@ -420,7 +425,7 @@ DisplayMode current_display_mode() {
   SDL_DisplayMode dm;
   SDL_GetCurrentDisplayMode( 0, &dm );
   DisplayMode res{
-      {W{dm.w}, H{dm.h}}, dm.format, dm.refresh_rate};
+      { W{ dm.w }, H{ dm.h } }, dm.format, dm.refresh_rate };
   return res;
 }
 
@@ -441,7 +446,7 @@ Delta main_window_physical_size() {
     CHECK( g_window != nullptr );
     int w{}, h{};
     ::SDL_GetWindowSize( g_window, &w, &h );
-    main_window_physical_size_cache = Delta{W{w}, H{h}};
+    main_window_physical_size_cache = Delta{ W{ w }, H{ h } };
   }
   return *main_window_physical_size_cache;
 }

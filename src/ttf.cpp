@@ -16,6 +16,7 @@
 #include "gfx.hpp"
 #include "init.hpp"
 #include "sdl-util.hpp"
+#include "util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/font.inl"
@@ -48,7 +49,7 @@ FlatMap<e_font, FontDesc>& loaded_fonts() {
       auto& size = val_or_die( config_font.sizes, font );
       auto& vert_offset =
           val_or_die( config_font.offsets, font );
-      res[font] = FontDesc{path, size, vert_offset, nullptr};
+      res[font] = FontDesc{ path, size, vert_offset, nullptr };
     }
     return res;
   }();
@@ -61,8 +62,9 @@ Texture render_line_standard_impl( ::TTF_Font* font,
                                    Y           vert_offset ) {
   // SDL can't render empty lines for some reason.
   if( line.empty() ) {
-    return Texture::create( Delta{W{1}, // maybe safer than zero?
-                                  H{TTF_FontHeight( font )}} );
+    return Texture::create(
+        Delta{ W{ 1 }, // maybe safer than zero?
+               H{ TTF_FontHeight( font ) } } );
   }
   ASSIGN_CHECK( surface,
                 ::TTF_RenderText_Solid(
@@ -71,7 +73,7 @@ Texture render_line_standard_impl( ::TTF_Font* font,
   if( vert_offset != 0_y ) {
     auto new_texture = create_texture( texture.size() );
     clear_texture_transparent( new_texture );
-    copy_texture( texture, new_texture, {0_x, vert_offset} );
+    copy_texture( texture, new_texture, { 0_x, vert_offset } );
     texture = std::move( new_texture );
   }
   // Not sure why this doesn't happen automatically.
@@ -146,7 +148,7 @@ FontTTFInfo const& ttf_get_font_info( e_font font ) {
     auto* ttf_font        = loaded_fonts()[font].ttf_font;
     auto  height          = ::TTF_FontHeight( ttf_font );
     g_font_ttf_info[font] = FontTTFInfo{
-        /*height=*/SY{height} //
+        /*height=*/SY{ height } //
     };
   }
   return g_font_ttf_info[font];
@@ -160,15 +162,15 @@ void font_size_spectrum( char const* msg,
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-      14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
+      14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
   for( auto ptsize : sizes ) {
     ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
     std::string num_msg = std::to_string( ptsize ) + ": " + msg;
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-    ::SDL_Color fg{255, 255, 255, 255};
+    ::SDL_Color fg{ 255, 255, 255, 255 };
     auto        texture =
         render_line_standard_impl( font, fg, num_msg, 0_y );
-    copy_texture( texture, Texture::screen(), {Y( y ), 0_x} );
+    copy_texture( texture, Texture::screen(), { Y( y ), 0_x } );
     y += ::TTF_FontLineSkip( font );
     TTF_CloseFont( font );
   }
@@ -190,7 +192,7 @@ void font_test() {
   };
   auto texture = render_line( msg );
 
-  copy_texture( texture, Texture::screen(), {100_y, 100_x} );
+  copy_texture( texture, Texture::screen(), { 100_y, 100_x } );
   // font_size_spectrum( msg, font_file );
 
   //::SDL_RenderPresent( g_renderer );

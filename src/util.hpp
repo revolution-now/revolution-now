@@ -14,112 +14,14 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "coord.hpp"
 #include "errors.hpp"
-#include "typed-int.hpp"
-
-// base-util
-#include "base-util/non-copyable.hpp"
-
-// Abseil
-#include "absl/types/span.h"
 
 // C++ standard library
 #include <algorithm>
-#include <optional>
 #include <string_view>
 #include <variant>
 
 namespace rn {
-
-// This is a span type with added type safety in that it can
-// only be indexed with a particular type.
-template<typename T, typename Idx>
-class typed_span {
-  absl::Span<T> span_;
-
-public:
-  typed_span( T* data, LengthType<Idx> size )
-    : span_( data, size._ ) {}
-
-  int size() const { return int( span_.size() ); }
-
-  T const& operator[]( Idx idx ) const {
-    CHECK( idx >= Idx{0} && idx._ < span_.size() );
-    return span_[idx._];
-  }
-
-  T& operator[]( Idx idx ) {
-    CHECK( idx >= Idx{0} && size_t( idx._ ) < span_.size() );
-    return span_[idx._];
-  }
-};
-
-// This is a matrix with type-safe indexing using X/Y and where
-// the dimensions are set with W/H. Indexing it once returns a
-// span that can only be indexed by X; indexing that span will
-// return a value.
-template<typename T>
-class Matrix : public util::movable_only {
-  W      w_ = 0_w;
-  Vec<T> data_{};
-
-public:
-  Matrix( W w, H h ) : w_( w ) {
-    CHECK( w >= 0_w );
-    CHECK( h >= 0_h );
-    size_t size = h._ * w._;
-    data_.resize( size );
-    CHECK( data_.size() == size );
-  }
-
-  Matrix( W w, H h, T init ) : w_( w ) {
-    CHECK( w >= 0_w );
-    CHECK( h >= 0_h );
-    size_t size = h._ * w._;
-    data_.assign( size, init );
-    CHECK( data_.size() == size );
-  }
-
-  Matrix( H h, W w, T init ) : Matrix( w, h, init ) {}
-  Matrix( H h, W w ) : Matrix( w, h ) {}
-  Matrix( Delta delta ) : Matrix( delta.w, delta.h ) {}
-  Matrix( Delta delta, T init )
-    : Matrix( delta.w, delta.h, init ) {}
-  Matrix() : Matrix( Delta{} ) {}
-
-  Delta size() const {
-    using coord_underlying_t = decltype( w_._ );
-    if( data_.size() == 0 ) return {};
-    return Delta{w_,
-                 H{coord_underlying_t( data_.size() / w_._ )}};
-  }
-
-  Rect rect() const { return Rect::from( Coord{}, size() ); }
-
-  typed_span<T const, X> operator[]( Y y ) const {
-    CHECK( y >= Y{0} && size_t( y._ ) < data_.size() );
-    return {&data_[y._ * w_._], w_};
-  }
-  typed_span<T, X> operator[]( Y y ) {
-    CHECK( y >= Y{0} && size_t( y._ ) < data_.size() );
-    return {&data_[y._ * w_._], w_};
-  }
-
-  T const& operator[]( Coord coord ) const {
-    // These subscript operators should do the range checking.
-    return ( *this )[coord.y][coord.x];
-  };
-  T& operator[]( Coord coord ) {
-    // These subscript operators should do the range checking.
-    return ( *this )[coord.y][coord.x];
-  };
-
-  void clear() {
-    data_.clear();
-    w_ = 0_w;
-  }
-};
 
 // Here "up" means "toward +inf" and "down" means "toward -inf".
 ND int round_up_to_nearest_int_multiple( double d, int m );

@@ -16,14 +16,31 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "fb.hpp"
+#include "sg-macros.hpp"
 #include "tx.hpp"
+
+// Flatbuffers
+#include "fb/terrain_generated.h"
 
 namespace rn {
 
-enum class e_( crust, land, water );
+inline constexpr auto world_size = Delta{ 120_w, 60_h };
+
+DECLARE_SAVEGAME_SERIALIZERS( Terrain );
+
+enum class e_( crust, water, land );
+SERIALIZABLE_ENUM( e_crust );
 
 struct ND Square {
-  e_crust crust;
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, Square,
+  ( e_crust, crust ));
+  // clang-format on
 };
 NOTHROW_MOVE( Square );
 
