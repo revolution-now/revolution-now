@@ -83,6 +83,9 @@ void reset_sol_state() {
   g_lua["log"]["debug"] = []( string const& msg ) {
     lg.debug( "{}", msg );
   };
+  g_lua["log"]["trace"] = []( string const& msg ) {
+    lg.trace( "{}", msg );
+  };
   g_lua["log"]["warn"] = []( string const& msg ) {
     lg.warn( "{}", msg );
   };
@@ -111,7 +114,7 @@ void reset_sol_state() {
 
 // This is for use in the unit tests.
 struct MyType {
-  int  x{5};
+  int  x{ 5 };
   char get() { return 'c'; }
   int  add( int a, int b ) { return a + b; }
 };
@@ -177,7 +180,7 @@ Vec<Str> format_lua_error_msg( Str const& msg ) {
   for( auto const& line : util::split_on_any( msg, "\n\r" ) )
     if( !line.empty() ) //
       res.push_back(
-          absl::StrReplaceAll( line, {{"\t", "  "}} ) );
+          absl::StrReplaceAll( line, { { "\t", "  " } } ) );
   return res;
 }
 
@@ -195,7 +198,8 @@ void test_lua() {
   enum class color { red, blue };
   constexpr bool ro = false;
   st.new_enum<color, /*read_only=*/ro>(
-      "color", {{"red", color::red}, {"blue", color::blue}} );
+      "color",
+      { { "red", color::red }, { "blue", color::blue } } );
   auto script = R"lua(
     print( "start" )
     for k, v in pairs( color ) do

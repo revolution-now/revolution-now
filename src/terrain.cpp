@@ -16,6 +16,7 @@
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
 #include "matrix.hpp"
 #include "tiles.hpp"
 
@@ -77,6 +78,11 @@ NOTHROW_MOVE( TerrainBlockCache );
 
 Matrix<TerrainBlockCache> block_cache( world_size /
                                        terrain_block_size );
+
+void invalidate_caches() {
+  for( Coord coord : block_cache.rect() )
+    block_cache[coord].needs_redraw = true;
+}
 
 void init_terrain() {
   Square const L = Square{ e_crust::land };
@@ -189,5 +195,22 @@ Square const& square_at( Coord coord ) {
   CHECK( res, "square {} does not exist!", coord );
   return *res;
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( toggle_crust, void, Coord const& coord ) {
+  CHECK( coord.is_inside( SG().world_map.rect() ),
+         "coordinate {} is out of bounds.", coord );
+  SG().world_map[coord].crust =
+      SG().world_map[coord].crust == e_crust::land
+          ? e_crust::water
+          : e_crust::land;
+  invalidate_caches();
+}
+
+} // namespace
 
 } // namespace rn

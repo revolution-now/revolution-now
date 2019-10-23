@@ -75,7 +75,7 @@ end
 local function freeze_table( parent, tbl_name )
   local tbl = parent[tbl_name]
   assert( tbl, 'cannot freeze nil table: ' .. tbl_name )
-  log.debug( "freezing table \"" .. tbl_name .. "\"." )
+  log.trace( "freezing table \"" .. tbl_name .. "\"." )
   parent[tbl_name] = setmetatable( {}, {
     __index     = tbl,
     __pairs     = pairs_table_override( tbl ),
