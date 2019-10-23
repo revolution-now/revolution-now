@@ -76,6 +76,11 @@ table MyVariant {
   four  : e_color;
 }
 
+table MyFlatQueues {
+  q1 : [int];
+  q2 : [string];
+}
+
 table Monster {
   pos       : Vec3;
   mana      : short = 150;

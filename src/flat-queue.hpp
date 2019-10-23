@@ -43,7 +43,7 @@ public:
   flat_queue( int reallocation_size =
                   k_flat_queue_reallocation_size_default )
     : queue_{},
-      front_{0},
+      front_{ 0 },
       reallocation_size_( reallocation_size ) {
     DCHECK( reallocation_size_ >= 10,
             "reallocation_size should be >= 10 to good "
@@ -105,5 +105,38 @@ private:
   int    reallocation_size_;
   NOTHROW_MOVE( T );
 };
+
+namespace serial {
+
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, ::rn::flat_queue<T> const& m,
+                ::rn::serial::rn_adl_tag ) {
+  std::vector<T> data;
+  data.reserve( size_t( m.size() ) );
+  auto m_copy = m;
+  while( m_copy.front() ) {
+    data.emplace_back( m_copy.front()->get() );
+    m_copy.pop();
+  }
+  return serialize<Hint>( builder, data,
+                          ::rn::serial::rn_adl_tag{} );
+}
+
+template<typename SrcT, typename T>
+expect<> deserialize( SrcT const* src, ::rn::flat_queue<T>* m,
+                      ::rn::serial::rn_adl_tag ) {
+  if( src == nullptr ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty queue.
+    return xp_success_t{};
+  }
+  std::vector<T> data;
+  XP_OR_RETURN_(
+      deserialize( src, &data, ::rn::serial::rn_adl_tag{} ) );
+  for( auto& e : data ) m->push_emplace( std::move( e ) );
+  return xp_success_t{};
+}
+
+} // namespace serial
 
 } // namespace rn

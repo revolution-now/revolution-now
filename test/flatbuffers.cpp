@@ -16,6 +16,7 @@
 #include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "flat-queue.hpp"
 #include "io.hpp"
 #include "logging.hpp"
 #include "serial.hpp"
@@ -176,7 +177,7 @@ BinaryBlob create_monster_blob() {
   names_v.push_back( builder.CreateString( "hello3" ) );
   auto names = builder.CreateVector( names_v );
 
-  unsigned char treasure[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  unsigned char treasure[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   auto          inventory = builder.CreateVector( treasure, 10 );
 
   vector<FBOffset<fb::Weapon>> weapons_vector;
@@ -184,8 +185,8 @@ BinaryBlob create_monster_blob() {
   weapons_vector.push_back( axe );
   auto weapons = builder.CreateVector( weapons_vector );
 
-  fb::Vec3 points[] = {fb::Vec3( 1.0f, 2.0f, 3.0f ),
-                       fb::Vec3( 4.0f, 5.0f, 6.0f )};
+  fb::Vec3 points[] = { fb::Vec3( 1.0f, 2.0f, 3.0f ),
+                        fb::Vec3( 4.0f, 5.0f, 6.0f ) };
   auto     path     = builder.CreateVectorOfStructs( points, 2 );
 
   auto position = fb::Vec3( 1.0f, 2.0f, 3.0f );
@@ -391,38 +392,39 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( map_strs.size() == 2 );
     REQUIRE( map_wpns.size() == 2 );
 
-    REQUIRE( map_vecs[Vec2{8.0, 9.0}] == 10 );
-    REQUIRE( map_vecs[Vec2{9.0, 10.0}] == 11 );
+    REQUIRE( map_vecs[Vec2{ 8.0, 9.0 }] == 10 );
+    REQUIRE( map_vecs[Vec2{ 9.0, 10.0 }] == 11 );
 
     REQUIRE( map_strs["blue"] == 5 );
     REQUIRE( map_strs["red"] == 4 );
 
-    REQUIRE( map_wpns[-1] == Weapon{"knife", 30} );
-    REQUIRE( map_wpns[0] == Weapon{"Gun", 3000} );
+    REQUIRE( map_wpns[-1] == Weapon{ "knife", 30 } );
+    REQUIRE( map_wpns[0] == Weapon{ "Gun", 3000 } );
   }
 
   SECTION( "native to native roundtrip" ) {
     Monster monster;
-    monster.pos       = Vec3{2.25, 3.5, 4.5};
+    monster.pos       = Vec3{ 2.25, 3.5, 4.5 };
     monster.mana      = 9;
     monster.hp        = 200;
     monster.name      = "mon";
-    monster.names     = {"A", "B"};
-    monster.inventory = {7, 6, 5, 4};
+    monster.names     = { "A", "B" };
+    monster.inventory = { 7, 6, 5, 4 };
     monster.color     = e_color::Red;
     monster.weapons   = Vec<Weapon>{
-        Weapon{"rock", 2}, //
-        Weapon{"stone", 3} //
+        Weapon{ "rock", 2 }, //
+        Weapon{ "stone", 3 } //
     };
-    monster.path  = {{3, 4.5, 5}, {4, 5.6, 5}, {7, 8.9, 5}};
+    monster.path = {
+        { 3, 4.5, 5 }, { 4, 5.6, 5 }, { 7, 8.9, 5 } };
     monster.pair1 = pair<string, int>( "primo", 2 );
-    monster.pair2 = pair<Vec2, int>( Vec2{0.25, 0.5}, 3 );
-    monster.map_vecs[Vec2{4.75, 8}] = 0;
-    monster.map_vecs[Vec2{4.25, 7}] = 1;
-    monster.map_strs["one"]         = -1;
-    monster.map_strs["two"]         = -2;
-    monster.map_wpns[3]             = Weapon{"rock", 2};
-    monster.map_wpns[4]             = Weapon{"stone", 4};
+    monster.pair2 = pair<Vec2, int>( Vec2{ 0.25, 0.5 }, 3 );
+    monster.map_vecs[Vec2{ 4.75, 8 }] = 0;
+    monster.map_vecs[Vec2{ 4.25, 7 }] = 1;
+    monster.map_strs["one"]           = -1;
+    monster.map_strs["two"]           = -2;
+    monster.map_wpns[3]               = Weapon{ "rock", 2 };
+    monster.map_wpns[4]               = Weapon{ "stone", 4 };
 
     auto blob = rn::serial::serialize_to_blob( monster );
     constexpr uint64_t kExpectedBlobSize = 460;
@@ -467,9 +469,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     auto const& p = monster_new.path;
     REQUIRE( p.size() == 3 );
-    REQUIRE( p[0] == Vec3{3, 4.5, 5} );
-    REQUIRE( p[1] == Vec3{4, 5.6, 5} );
-    REQUIRE( p[2] == Vec3{7, 8.9, 5} );
+    REQUIRE( p[0] == Vec3{ 3, 4.5, 5 } );
+    REQUIRE( p[1] == Vec3{ 4, 5.6, 5 } );
+    REQUIRE( p[2] == Vec3{ 7, 8.9, 5 } );
 
     auto const& pair1 = monster_new.pair1;
     REQUIRE( pair1.first == "primo" );
@@ -488,14 +490,14 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( map_strs.size() == 2 );
     REQUIRE( map_wpns.size() == 2 );
 
-    REQUIRE( map_vecs[Vec2{4.75, 8}] == 0 );
-    REQUIRE( map_vecs[Vec2{4.25, 7}] == 1 );
+    REQUIRE( map_vecs[Vec2{ 4.75, 8 }] == 0 );
+    REQUIRE( map_vecs[Vec2{ 4.25, 7 }] == 1 );
 
     REQUIRE( map_strs["one"] == -1 );
     REQUIRE( map_strs["two"] == -2 );
 
-    REQUIRE( map_wpns[3] == Weapon{"rock", 2} );
-    REQUIRE( map_wpns[4] == Weapon{"stone", 4} );
+    REQUIRE( map_wpns[3] == Weapon{ "rock", 2 } );
+    REQUIRE( map_wpns[4] == Weapon{ "stone", 4 } );
   }
 }
 
@@ -515,7 +517,7 @@ TEST_CASE( "deserialize json" ) {
       /*schema_name=*/"unit",
       /*json=*/json, /*out=*/&unit ) );
 
-  REQUIRE( unit.id() == UnitId{1} );
+  REQUIRE( unit.id() == UnitId{ 1 } );
   REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
   REQUIRE( unit.orders() == rn::e_unit_orders::none );
   REQUIRE( unit.nation() == rn::e_nation::english );
@@ -526,18 +528,18 @@ TEST_CASE( "deserialize json" ) {
   auto& cargo = unit.cargo();
   REQUIRE( cargo.slots_total() == 4 );
   REQUIRE( cargo.slots()[0] ==
-           rn::CargoSlot_t{rn::CargoSlot::empty{}} );
+           rn::CargoSlot_t{ rn::CargoSlot::empty{} } );
   REQUIRE( cargo.slots()[1] ==
-           rn::CargoSlot_t{
-               rn::CargoSlot::cargo{/*contents=*/UnitId{2}}} );
+           rn::CargoSlot_t{ rn::CargoSlot::cargo{
+               /*contents=*/UnitId{ 2 } } } );
   REQUIRE( cargo.slots()[2] ==
-           rn::CargoSlot_t{
-               rn::CargoSlot::cargo{/*contents=*/UnitId{3}}} );
+           rn::CargoSlot_t{ rn::CargoSlot::cargo{
+               /*contents=*/UnitId{ 3 } } } );
   REQUIRE(
       cargo.slots()[3] ==
-      rn::CargoSlot_t{rn::CargoSlot::cargo{
-          /*contents=*/Commodity{/*type=*/rn::e_commodity::food,
-                                 /*quantity=*/100}}} );
+      rn::CargoSlot_t{ rn::CargoSlot::cargo{
+          /*contents=*/Commodity{ /*type=*/rn::e_commodity::food,
+                                  /*quantity=*/100 } } } );
 }
 
 TEST_CASE( "[flatbuffers] serialize Unit" ) {
@@ -549,8 +551,8 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
                                e_unit_type::free_colonist );
   auto unit_id3 =
       create_unit( e_nation::english, e_unit_type::soldier );
-  auto comm1 = Commodity{/*type=*/e_commodity::food,
-                         /*quantity=*/100};
+  auto comm1 = Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 };
 
   add_commodity_to_cargo( comm1, ship, 3,
                           /*try_other_slots=*/false );
@@ -743,8 +745,8 @@ struct MapTester2 {
 TEST_CASE( "[flatbuffers] hash maps" ) {
   using namespace ::rn::serial;
 
-  MapTester1 m1{{{"one", 1}, {"two", 2}}};
-  MapTester2 m2{{{2, 1}, {3, 2}}};
+  MapTester1 m1{ { { "one", 1 }, { "two", 2 } } };
+  MapTester2 m2{ { { 2, 1 }, { 3, 2 } } };
 
   auto m1_blob = rn::serial::serialize_to_blob( m1 );
   auto m2_blob = rn::serial::serialize_to_blob( m2 );
@@ -774,8 +776,8 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
 TEST_CASE( "[flatbuffers] ADTs" ) {
   using namespace ::rn::serial;
   MyAdt::none n;
-  MyAdt::some s{"hello", 7};
-  MyAdt::more m{5.5};
+  MyAdt::some s{ "hello", 7 };
+  MyAdt::more m{ 5.5 };
 
   MyAdt_t v;
 
@@ -799,6 +801,67 @@ TEST_CASE( "[flatbuffers] ADTs" ) {
       rn::xp_success_t{} );
 
   REQUIRE( v == d_v );
+}
+
+struct MyFlatQueues {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, MyFlatQueues,
+  ( rn::flat_queue<int>,    q1 ),
+  ( rn::flat_queue<string>, q2 ));
+  // clang-format on
+};
+
+TEST_CASE( "[flatbuffers] flat_queue" ) {
+  FBBuilder fbb;
+
+  {
+    flat_queue<int> q1;
+    q1.push( 1 );
+    q1.push( 2 );
+    q1.push( 3 );
+    flat_queue<string> q2;
+    q2.push( "one" );
+    q2.push( "two" );
+    q2.push( "three" );
+    MyFlatQueues qs{ std::move( q1 ), std::move( q2 ) };
+
+    auto offset = serialize<::fb::MyFlatQueues>(
+        fbb, qs, ::rn::serial::rn_adl_tag{} );
+    fbb.Finish( offset.get() );
+  }
+
+  auto blob = BinaryBlob::from_builder( std::move( fbb ) );
+
+  auto* root =
+      flatbuffers::GetRoot<::fb::MyFlatQueues>( blob.get() );
+
+  MyFlatQueues qs;
+  REQUIRE(
+      deserialize( root, &qs, ::rn::serial::rn_adl_tag{} ) ==
+      rn::xp_success_t{} );
+
+  REQUIRE( qs.q1.size() == 3 );
+  REQUIRE( qs.q2.size() == 3 );
+
+  REQUIRE( qs.q1.front()->get() == 1 );
+  qs.q1.pop();
+  REQUIRE( qs.q1.front()->get() == 2 );
+  qs.q1.pop();
+  REQUIRE( qs.q1.front()->get() == 3 );
+  qs.q1.pop();
+
+  REQUIRE( qs.q2.front()->get() == "one" );
+  qs.q2.pop();
+  REQUIRE( qs.q2.front()->get() == "two" );
+  qs.q2.pop();
+  REQUIRE( qs.q2.front()->get() == "three" );
+  qs.q2.pop();
+
+  REQUIRE( qs.q1.size() == 0 );
+  REQUIRE( qs.q2.size() == 0 );
 }
 
 } // namespace
