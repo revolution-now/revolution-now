@@ -20,6 +20,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/container/node_hash_map.h"
+#include "absl/types/span.h"
 
 // c++ standard library
 #include <chrono>
@@ -86,6 +87,9 @@ using FlatSet = ::absl::flat_hash_set<T>;
 
 template<typename K, typename V>
 using NodeMap = ::absl::node_hash_map<K, V>;
+
+template<typename T>
+using Span = ::absl::Span<T>;
 
 template<typename F, typename S>
 using Pair = std::pair<F, S>;

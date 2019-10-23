@@ -58,6 +58,12 @@ local function create_some_units_on_land( nation )
 end
 
 local function main()
+  player.set_players( {
+    e.nation.dutch,
+    e.nation.spanish,
+    e.nation.english,
+    e.nation.french
+  } )
   create_some_units_in_europort( e.nation.dutch )
   create_some_units_on_land()
 end

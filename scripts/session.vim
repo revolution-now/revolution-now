@@ -10,6 +10,7 @@ let s:stems = [
   \ 'src/unit',
   \ 'src/ustate',
   \ 'src/terrain',
+  \ 'src/player',
   \ 'src/save-game',
   \ 'src/fb',
   \ 'src/serial',

@@ -20,6 +20,8 @@
 
 // Revolution Now (save-state modules)
 #include "id.hpp"
+#include "player.hpp"
+#include "terrain.hpp"
 #include "ustate.hpp"
 
 // Revolution Now (config)
@@ -144,6 +146,7 @@ expect<fs::path> load_game( int slot ) {
   auto* root = blob.root<fb::SaveGame>();
   XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->player_state() ) );
   XP_OR_RETURN_(
       savegame_deserializer( root->terrain_state() ) );
   return p;

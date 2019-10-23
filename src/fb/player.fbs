@@ -1,0 +1,19 @@
+// **************************************************************
+// player.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-23.
+//
+// Description: Serializable types for the player module.
+//
+// **************************************************************
+include "nation.fbs";
+
+namespace fb;
+
+table Player {
+  nation_ : e_nation;
+  human_  : bool;
+  money_  : int;
+}
