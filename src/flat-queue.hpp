@@ -15,6 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 
 namespace rn {
 
