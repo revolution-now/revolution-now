@@ -17,6 +17,7 @@
 #include "aliases.hpp"
 #include "cc-specific.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
@@ -95,14 +96,19 @@ protected:
   using Parent = fsm<ChildT, StateT, EventT, TransitionMap>;
 
 public:
+  using IamFsm_t = void;
+  using state_t  = StateT;
+
   fsm() : state_{}, events_{} {
     state_ = child().initial_state();
   }
 
+  fsm( StateT&& st ) : state_( std::move( st ) ), events_{} {}
+
   // Queue an event, but do not process it immediately.
   void send_event( EventT const& event,
                    CALLER_LOCATION( loc ) ) {
-    events_.push( {event, loc} );
+    events_.push( { event, loc } );
   }
 
   // Queue an event, but do not process it immediately.
@@ -129,7 +135,7 @@ public:
 
   bool has_pending_events() const { return !events_.empty(); }
 
-  CRef<StateT> state() const { return state_; }
+  StateT const& state() const { return state_; }
 
   // !! No pointer stability here; state could change after
   //    calling another non-const method.
@@ -205,8 +211,8 @@ private:
         FATAL(
             "state {} cannot receive the event {} (sent from "
             "{})",
-            FmtRemoveTemplateArgs{state},
-            FmtRemoveTemplateArgs{event}, src_location );
+            FmtRemoveTemplateArgs{ state },
+            FmtRemoveTemplateArgs{ event }, src_location );
       } else {
         if constexpr(
             !std::is_same_v<
@@ -238,6 +244,44 @@ private:
   flat_queue<EventWithSource> events_;
   NOTHROW_MOVE( flat_queue<EventWithSource> );
 };
+
+/****************************************************************
+** Serialization
+*****************************************************************/
+namespace serial {
+
+template<typename Hint,                  //
+         typename T,                     //
+         typename T::IamFsm_t* = nullptr //
+         >
+auto serialize( FBBuilder& builder, T const& o,
+                ::rn::serial::rn_adl_tag ) {
+  CHECK( !o.has_pending_events(),
+         "cannot serialize a finite state machine with pending "
+         "events." );
+  auto s_state = serialize<serial::fb_serialize_hint_t<decltype(
+      std::declval<Hint>().state() )>>(
+      builder, o.state(), ::rn::serial::rn_adl_tag{} );
+  return serial::ReturnValue{
+      Hint::Create( builder, s_state.get() ) };
+}
+
+template<typename SrcT,                     //
+         typename DstT,                     //
+         typename DstT::IamFsm_t* = nullptr //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst,
+                      ::rn::serial::rn_adl_tag ) {
+  if( src == nullptr ) return xp_success_t{};
+  UNXP_CHECK( src->state() != nullptr );
+  typename std::decay_t<DstT>::state_t state;
+  XP_OR_RETURN_( deserialize( src->state(), &state,
+                              ::rn::serial::rn_adl_tag{} ) );
+  *dst = DstT( std::move( state ) );
+  return xp_success_t{};
+}
+
+} // namespace serial
 
 /****************************************************************
 ** Macros For Standard FSM
@@ -272,6 +316,7 @@ private:
 
 #define fsm_init( a )       \
   using Parent::transition; \
+  using Parent::Parent;     \
   auto initial_state() const { return a; }
 
 #define fsm_transition( fsm_name, start, e, dummy, end )        \

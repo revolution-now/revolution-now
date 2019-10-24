@@ -224,11 +224,11 @@ public:
   }
 
   void handle_draw( Texture& tx ) const {
-    switch_( fsm_.state().get() ) {
+    switch_( fsm_.state() ) {
       case_( InProgress_t ) {
         auto mouse_pos = input::current_mouse_position();
         copy_texture( val.tx, tx,
-                      mouse_pos - val.tx.size() / Scale{2} -
+                      mouse_pos - val.tx.size() / Scale{ 2 } -
                           val.click_offset );
         // Now draw the indicator.
         auto indicator = drag_status_indicator( val );
@@ -238,7 +238,7 @@ public:
             auto const& status_tx =
                 render_text( "X", Color::red() );
             auto indicator_pos =
-                mouse_pos - status_tx.size() / Scale{1};
+                mouse_pos - status_tx.size() / Scale{ 1 };
             copy_texture( status_tx, tx,
                           indicator_pos - val.click_offset );
             break;
@@ -247,7 +247,7 @@ public:
             auto const& status_tx =
                 render_text( "+", Color::green() );
             auto indicator_pos =
-                mouse_pos - status_tx.size() / Scale{1};
+                mouse_pos - status_tx.size() / Scale{ 1 };
             copy_texture( status_tx, tx,
                           indicator_pos - val.click_offset );
             if( val.mod_keys.shf_down || val.mod_keys.alt_down ||
@@ -271,19 +271,19 @@ public:
         pos.y._ =
             val.current.y._ + int( delta.h._ * val.percent );
         copy_texture( val.tx, tx,
-                      pos - val.tx.size() / Scale{2} );
+                      pos - val.tx.size() / Scale{ 2 } );
       }
       case_( None_t ) break_;
       case_( WaitingToExecute_t ) {
         copy_texture( val.tx, tx,
                       val.mouse_released -
-                          val.tx.size() / Scale{2} -
+                          val.tx.size() / Scale{ 2 } -
                           val.click_offset );
       }
       case_( Finalizing_t ) {
         copy_texture( val.tx, tx,
                       val.mouse_released -
-                          val.tx.size() / Scale{2} -
+                          val.tx.size() / Scale{ 2 } -
                           val.click_offset );
       }
       switch_exhaustive;
@@ -394,7 +394,7 @@ public:
 
   Opt<DraggableObjectT> obj_being_dragged() const {
     Opt<DraggableObjectT> res;
-    switch_( fsm_.state().get() ) {
+    switch_( fsm_.state() ) {
       case_( None_t ) break_;
       case_( RubberBanding_t ) {
         res = child().draggable_from_src( val.src );
@@ -446,7 +446,7 @@ private:
 
 private:
   static DragSrcT drag_src_from_arc( DragArcT const& drag_arc ) {
-    return std::visit( L( DragSrcT{_.src} ), drag_arc );
+    return std::visit( L( DragSrcT{ _.src } ), drag_arc );
   }
 
   DraggableObjectT draggable_from_arc(
@@ -474,7 +474,7 @@ private:
       CHECK( !arc->has_value(),
              "There are two DragArc subtypes that have the same "
              "src & dst types but this is not allowed." );
-      *arc = ArcSubType{*p_src, *p_dst};
+      *arc = ArcSubType{ *p_src, *p_dst };
     }
   }
 

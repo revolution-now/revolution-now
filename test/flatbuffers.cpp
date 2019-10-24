@@ -17,6 +17,7 @@
 #include "errors.hpp"
 #include "fb.hpp"
 #include "flat-queue.hpp"
+#include "fsm.hpp"
 #include "io.hpp"
 #include "logging.hpp"
 #include "serial.hpp"
@@ -862,6 +863,100 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
 
   REQUIRE( qs.q1.size() == 0 );
   REQUIRE( qs.q2.size() == 0 );
+}
+
+} // namespace
+} // namespace testing
+
+namespace rn {
+namespace {
+
+adt_s_rn_( OnOffState,                //
+           ( off ),                   //
+           ( on,                      //
+             ( std::string, user ) ), //
+           ( switching_on,            //
+             ( double, percent ) ),   //
+           ( switching_off,           //
+             ( double, percent ) )    //
+);
+
+adt_rn_( OnOffEvent,   //
+         ( turn_off ), //
+         ( turn_on )   //
+);
+
+// clang-format off
+fsm_transitions( OnOff,
+  ((off, turn_on  ),  ->,  switching_on  ),
+  ((on,  turn_off ),  ->,  switching_off )
+);
+// clang-format on
+
+fsm_class( OnOff ) { //
+  fsm_init( OnOffState::off{} );
+
+  fsm_transition( OnOff, off, turn_on, ->, switching_on ) {
+    (void)event;
+    return { /*percent=*/0.3 };
+  }
+
+  fsm_transition( OnOff, on, turn_off, ->, switching_off ) {
+    (void)event;
+    return { /*percent=*/0.5 };
+  }
+};
+
+FSM_DEFINE_FORMAT_RN_( OnOff );
+
+} // namespace
+} // namespace rn
+
+namespace testing {
+namespace {
+
+TEST_CASE( "[flatbuffers] fsm" ) {
+  FBBuilder fbb;
+
+  rn::OnOffFsm on_off;
+
+  SECTION( "default state" ) {
+    REQUIRE( on_off.holds<rn::OnOffState::off>() );
+  }
+  SECTION( "on state" ) {
+    on_off =
+        rn::OnOffFsm( rn::OnOffState_t{ rn::OnOffState::on{} } );
+    REQUIRE( on_off.holds<rn::OnOffState::on>() );
+  }
+  SECTION( "switching on" ) {
+    on_off.send_event( rn::OnOffEvent::turn_on{} );
+    on_off.process_events();
+    REQUIRE( on_off.holds<rn::OnOffState::switching_on>() );
+  }
+  SECTION( "switching off" ) {
+    on_off =
+        rn::OnOffFsm( rn::OnOffState_t{ rn::OnOffState::on{} } );
+    on_off.send_event( rn::OnOffEvent::turn_off{} );
+    on_off.process_events();
+    REQUIRE( on_off.holds<rn::OnOffState::switching_off>() );
+  }
+
+  auto offset = serialize<::fb::OnOffFsm>(
+      fbb, on_off, ::rn::serial::rn_adl_tag{} );
+  fbb.Finish( offset.get() );
+  auto blob = BinaryBlob::from_builder( std::move( fbb ) );
+
+  auto* root =
+      flatbuffers::GetRoot<::fb::OnOffFsm>( blob.get() );
+
+  rn::OnOffFsm on_off_ds;
+  REQUIRE( deserialize( root, &on_off_ds,
+                        ::rn::serial::rn_adl_tag{} ) ==
+           rn::xp_success_t{} );
+
+  REQUIRE_FALSE( on_off_ds.has_pending_events() );
+
+  REQUIRE( on_off.state() == on_off_ds.state() );
 }
 
 } // namespace

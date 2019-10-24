@@ -81,6 +81,26 @@ table MyFlatQueues {
   q2 : [string];
 }
 
+namespace fb.OnOffState;
+
+  table off           {}
+  table on            { user    : string; }
+  table switching_on  { percent : double; }
+  table switching_off { percent : double; }
+
+  namespace fb;
+
+  table OnOffState_t {
+    off           : OnOffState.off;
+    on            : OnOffState.on;
+    switching_on  : OnOffState.switching_on;
+    switching_off : OnOffState.switching_off;
+  }
+
+table OnOffFsm {
+  state : OnOffState_t;
+}
+
 table Monster {
   pos       : Vec3;
   mana      : short = 150;
