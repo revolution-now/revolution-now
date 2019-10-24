@@ -8,6 +8,7 @@
 // Description: Serializable types for the unit tests.
 //
 // **************************************************************
+include "coord.fbs";
 include "vocab.fbs";
 
 namespace fb.MyAdt;
@@ -79,6 +80,16 @@ table MyVariant {
 table MyFlatQueues {
   q1 : [int];
   q2 : [string];
+}
+
+table Pair_Coord_String {
+  fst : Coord;
+  snd : string;
+}
+
+table Matrix_String {
+  size : Delta;
+  data : [Pair_Coord_String];
 }
 
 namespace fb.OnOffState;

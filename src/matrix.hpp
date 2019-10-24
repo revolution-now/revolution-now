@@ -60,11 +60,6 @@ public:
     : Matrix( delta.w, delta.h, init ) {}
   Matrix() : Matrix( Delta{} ) {}
 
-  auto begin() { return std::begin( data_ ); }
-  auto cbegin() const { return std::cbegin( data_ ); }
-  auto end() { return std::end( data_ ); }
-  auto cend() const { return std::cend( data_ ); }
-
   Delta size() const {
     using coord_underlying_t = decltype( w_._ );
     if( data_.size() == 0 ) return {};

@@ -20,6 +20,7 @@
 #include "fsm.hpp"
 #include "io.hpp"
 #include "logging.hpp"
+#include "matrix.hpp"
 #include "serial.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
@@ -863,6 +864,59 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
 
   REQUIRE( qs.q1.size() == 0 );
   REQUIRE( qs.q2.size() == 0 );
+}
+
+TEST_CASE( "[flatbuffers] matrix" ) {
+  FBBuilder fbb;
+
+  rn::Matrix<string> m;
+
+  SECTION( "default state" ) {
+    //
+  }
+  SECTION( "no width" ) {
+    m = rn::Matrix<string>( Delta{ 0_w, 3_h } );
+  }
+  SECTION( "no height" ) {
+    m = rn::Matrix<string>( Delta{ 3_w, 0_h } );
+  }
+  SECTION( "long" ) {
+    m           = rn::Matrix<string>( Delta{ 3_w, 1_h } );
+    m[0_y][0_x] = "one";
+    m[0_y][1_x] = "two";
+    m[0_y][2_x] = "three";
+  }
+  SECTION( "square" ) {
+    m           = rn::Matrix<string>( Delta{ 3_w, 3_h } );
+    m[0_y][0_x] = "one";
+    m[0_y][1_x] = "two";
+    m[0_y][2_x] = "three";
+    m[1_y][0_x] = "one1";
+    m[1_y][1_x] = "two1";
+    m[1_y][2_x] = "three1";
+    m[2_y][0_x] = "one2";
+    m[2_y][1_x] = "two2";
+    m[2_y][2_x] = "three2";
+  }
+
+  auto offset = serialize<::fb::Matrix_String>(
+      fbb, m, ::rn::serial::rn_adl_tag{} );
+  fbb.Finish( offset.get() );
+  auto blob = BinaryBlob::from_builder( std::move( fbb ) );
+
+  auto* root =
+      flatbuffers::GetRoot<::fb::Matrix_String>( blob.get() );
+
+  rn::Matrix<string> m_ds;
+  REQUIRE(
+      deserialize( root, &m_ds, ::rn::serial::rn_adl_tag{} ) ==
+      rn::xp_success_t{} );
+
+  REQUIRE( m.size() == m_ds.size() );
+
+  for( auto coord : m.rect() ) {
+    REQUIRE( m[coord] == m_ds[coord] );
+  }
 }
 
 } // namespace

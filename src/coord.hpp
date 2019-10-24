@@ -435,7 +435,7 @@ public:
 
     Coord                              it;
     RectGridProxyIteratorHelper const* rect_proxy;
-    auto                               operator*() const {
+    auto const&                        operator*() const {
       DCHECK( it.is_inside( rect_proxy->rect ) );
       return it;
     }
