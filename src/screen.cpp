@@ -455,7 +455,9 @@ Rect main_window_physical_rect() {
   return Rect::from( Coord{}, main_window_physical_size() );
 }
 
-void hide_window() { ::SDL_HideWindow( g_window ); }
+void hide_window() {
+  if( g_window ) ::SDL_HideWindow( g_window );
+}
 
 // TODO: mac-os, does not seem to be able to detect when the user
 // fullscreens a window.

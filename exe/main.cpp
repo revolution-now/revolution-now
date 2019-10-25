@@ -6,6 +6,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "save-game.hpp"
+#include "screen.hpp"
 #include "serial.hpp"
 #include "turn.hpp"
 
@@ -46,6 +47,7 @@ int main( int /*unused*/, char** /*unused*/ ) {
 
     } catch( exception_exit const& ) {}
 
+    hide_window();
     ASSIGN_CHECK_XP( p, save_game( 0 ) );
     lg.info( "saving game to {}", p );
 
