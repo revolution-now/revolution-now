@@ -59,6 +59,8 @@ $HOME/dev/tools/llvm-current/bin/clang++ \
     -c $HOME/dev/rn/src/$stem.cpp        \
     2>&1                                 \
     | sed -rn "s/$escape_pwd//p"         \
+    | sed -r "s/\.([. ])/..\1\1/g"       \
+    | sed -r "s/[ ]+/ /g"                \
     | sed -r "s/$looking_for_stem\.hpp/${esc}[91m${esc}[1m$looking_for_stem.hpp${esc}[0m/g"
 
 (( ninja )) && popd &>/dev/null

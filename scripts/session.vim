@@ -5,15 +5,9 @@
 let s:first = 'exe/main.cpp'
 
 let s:stems = [
-  \ 'src/commodity',
-  \ 'src/cargo',
-  \ 'src/unit',
-  \ 'src/ustate',
-  \ 'src/terrain',
-  \ 'src/player',
-  \ 'src/save-game',
-  \ 'src/fb',
-  \ 'src/serial',
+  \ 'src/frame',
+  \ 'src/turn',
+  \ 'src/render',
 \]
 
   "\ 'src/adt.cpp',
@@ -158,7 +152,7 @@ endfunction
 
 call OpenFirst( s:first )
 "for p in s:pairs  | call OpenPair( p[0], p[1] )             | endfor
-for l in s:luas   | call OpenLua( l )                       | endfor
+"for l in s:luas   | call OpenLua( l )                       | endfor
 for s in s:stems  | call OpenCppPair( s )                   | endfor
 for q in s:quads  | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
 
