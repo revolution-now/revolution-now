@@ -950,13 +950,11 @@ fsm_transitions( OnOff,
 fsm_class( OnOff ) { //
   fsm_init( OnOffState::off{} );
 
-  fsm_transition( OnOff, off, turn_on, ->, switching_on ) {
-    (void)event;
+  fsm_transition_( OnOff, off, turn_on, ->, switching_on ) {
     return { /*percent=*/0.3 };
   }
 
-  fsm_transition( OnOff, on, turn_off, ->, switching_off ) {
-    (void)event;
+  fsm_transition_( OnOff, on, turn_off, ->, switching_off ) {
     return { /*percent=*/0.5 };
   }
 };

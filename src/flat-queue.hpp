@@ -52,6 +52,26 @@ public:
     check_invariants();
   }
 
+  flat_queue( flat_queue<T> const& ) = default;
+  flat_queue( flat_queue<T>&& )      = default;
+
+  flat_queue<T>& operator=( flat_queue<T>&& rhs ) noexcept {
+    flat_queue<T> moved( std::move( rhs ) );
+    moved.swap( *this );
+    return *this;
+  }
+
+  void swap( flat_queue<T>& rhs ) noexcept {
+    std::swap( queue_, rhs.queue_ );
+    std::swap( front_, rhs.front_ );
+    std::swap( reallocation_size_, rhs.reallocation_size_ );
+  }
+
+  friend void swap( flat_queue<T>& lhs,
+                    flat_queue<T>& rhs ) noexcept {
+    lhs.swap( rhs );
+  }
+
   int  size() const { return int( queue_.size() ) - front_; }
   bool empty() const { return size() == 0; }
 
@@ -92,6 +112,23 @@ public:
       front_ = 0;
     }
     check_invariants();
+  }
+
+  bool operator==( flat_queue<T> const& rhs ) const {
+    if( size() != rhs.size() ) return false;
+    if( size() == 0 ) return true;
+    int front_lhs = front_;
+    int front_rhs = rhs.front_;
+    DCHECK( int( queue_.size() ) - front_lhs ==
+            int( rhs.queue_.size() ) - front_rhs );
+    for( int i = 0; i < int( size() ); ++i )
+      if( queue_[front_lhs] != rhs.queue_[front_rhs] )
+        return false;
+    return true;
+  }
+
+  bool operator!=( flat_queue<T> const& rhs ) const {
+    return !( ( *this ) == rhs );
   }
 
 private:

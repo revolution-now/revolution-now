@@ -112,6 +112,65 @@ TEST_CASE( "[flat-queue] min size" ) {
 #endif
 }
 
+TEST_CASE( "[flat-queue] equality" ) {
+  flat_queue<int> q1;
+  flat_queue<int> q2;
+
+  REQUIRE( q1 == q2 );
+  REQUIRE( q2 == q1 );
+
+  q1.push( 2 );
+  REQUIRE( q1 != q2 );
+  REQUIRE( q2 != q1 );
+  q2.push( 2 );
+  REQUIRE( q1 == q2 );
+  REQUIRE( q2 == q1 );
+
+  q1.push( 3 );
+  REQUIRE( q1 != q2 );
+  REQUIRE( q2 != q1 );
+  q2.push( 3 );
+  REQUIRE( q1 == q2 );
+  REQUIRE( q2 == q1 );
+
+  q1.pop();
+  REQUIRE( q1 != q2 );
+  REQUIRE( q2 != q1 );
+  q2.pop();
+  REQUIRE( q1 == q2 );
+  REQUIRE( q2 == q1 );
+  q1.pop();
+  REQUIRE( q1 != q2 );
+  REQUIRE( q2 != q1 );
+  q2.pop();
+  REQUIRE( q1 == q2 );
+  REQUIRE( q2 == q1 );
+
+  REQUIRE( q1.size() == 0 );
+  REQUIRE( q2.size() == 0 );
+
+  for( int i = 0;
+       i < k_flat_queue_reallocation_size_default * 10; ++i )
+    q1.push( 5 );
+  q1.push( 4 );
+  q1.push( 3 );
+  q1.push( 2 );
+  REQUIRE( q1 != q2 );
+  REQUIRE( q2 != q1 );
+
+  q2.push( 4 );
+  q2.push( 3 );
+  q2.push( 2 );
+  REQUIRE( q1 != q2 );
+  REQUIRE( q2 != q1 );
+  for( int i = 0;
+       i < k_flat_queue_reallocation_size_default * 10; ++i )
+    q1.pop();
+
+  REQUIRE( q1 == q2 );
+  REQUIRE( q2 == q1 );
+}
+
 TEST_CASE( "[flat-queue] reallocation size" ) {
   flat_queue<int> q;
 
@@ -151,7 +210,7 @@ TEST_CASE( "[flat-queue] non-copyable, non-def-constructible" ) {
     int x_;
   };
   flat_queue<A> q;
-  q.push_emplace( A{5} );
+  q.push_emplace( A{ 5 } );
   REQUIRE( q.size() == 1 );
   REQUIRE( q.front().has_value() );
   REQUIRE( q.front().value().get().x_ == 5 );

@@ -11,6 +11,7 @@
 include "sg-id.fbs";
 include "sg-player.fbs";
 include "sg-terrain.fbs";
+include "sg-turn.fbs";
 include "sg-unit.fbs";
 
 namespace fb;
@@ -19,5 +20,6 @@ table SaveGame {
   id_state      : SG_Id;
   unit_state    : SG_Unit;
   player_state  : SG_Player;
+  turn_state    : SG_Turn;
   terrain_state : SG_Terrain;
 }

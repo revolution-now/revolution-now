@@ -34,6 +34,11 @@
 /****************************************************************
 ** Enums
 *****************************************************************/
+// FIXME: in the deserialize_enum method below we need to take
+// and return a generic template type instead of (ideally) a
+// fb::name. See upstream flatbuffers issue #5285. After that
+// issue is resolved, remove the template and replace `T e` with
+// `fb::name`.
 #define SERIALIZABLE_ENUM( name )                              \
   static_assert( static_cast<int>( fb::name::MIN ) == 0 );     \
   static_assert( name::_size() ==                              \
@@ -51,7 +56,8 @@
             e._to_string() );                                  \
     return fb::EnumValues##name()[from_idx];                   \
   }                                                            \
-  inline expect<> deserialize_enum( fb::name e, name* dst ) {  \
+  template<typename T>                                         \
+  inline expect<> deserialize_enum( T e, name* dst ) {         \
     auto from_idx = static_cast<int>( e );                     \
     if( from_idx < 0 ||                                        \
         from_idx > static_cast<int>( fb::name::MAX ) ) {       \
@@ -243,7 +249,16 @@ template<
     decltype( serialize_enum( std::declval<T>() ) )* = nullptr>
 auto serialize( FBBuilder&, T const& o,
                 ::rn::serial::rn_adl_tag ) {
-  return ReturnValue{ serialize_enum( o ) };
+  if constexpr( !std::is_same_v<Hint, void> )
+    // FIXME: We use the Hint type here because the FB interface
+    // seems inconsistent with the type it uses for enums in
+    // getter return values. See issue #5285 in the upstream
+    // flatbuffers repo. After that is fixed then we should be
+    // able to remove this branch.
+    return ReturnValue{
+        static_cast<Hint>( serialize_enum( o ) ) };
+  else
+    return ReturnValue{ serialize_enum( o ) };
 }
 
 // For C++ classes/structs that get serialized as FB structs.

@@ -51,7 +51,7 @@ namespace rn {
 
 namespace {
 
-constexpr Delta const k_rendered_commodity_offset{8_w, 3_h};
+constexpr Delta const k_rendered_commodity_offset{ 8_w, 3_h };
 
 // When we drag a commodity from the market this is the default
 // amount that we take.
@@ -90,12 +90,12 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
     case_( CargoSlot::cargo, contents ) {
       return matcher_( contents, ->, DraggableObject_t ) {
         case_( UnitId ) {
-          return DraggableObject::unit{/*id=*/val};
+          return DraggableObject::unit{ /*id=*/val };
         }
         case_( Commodity ) {
           return DraggableObject::cargo_commodity{
               /*comm=*/val,
-              /*slot=*/slot_idx};
+              /*slot=*/slot_idx };
         }
         matcher_exhaustive;
       }
@@ -123,7 +123,7 @@ Opt<DraggableObject_t> draggable_in_cargo_slot(
 }
 
 Opt<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
-  return draggable_in_cargo_slot( CargoSlotIndex{slot} );
+  return draggable_in_cargo_slot( CargoSlotIndex{ slot } );
 }
 
 Texture draw_draggable_object(
@@ -160,7 +160,7 @@ Rect clip_rect() {
       g_clip );
 }
 
-Delta clip_rect_drag_region{4_w, 4_h};
+Delta clip_rect_drag_region{ 4_w, 4_h };
 
 bool is_on_clip_rect_left_side( Coord const& coord ) {
   Rect rect = clip_rect();
@@ -216,7 +216,7 @@ auto range_of_rects(
   return rv::all( rect_proxy ) |
          rv::transform( [&rect_proxy]( Coord coord ) {
            return Rect::from(
-               coord, Delta{1_w, 1_h} * rect_proxy.scale() );
+               coord, Delta{ 1_w, 1_h } * rect_proxy.scale() );
          } );
 }
 
@@ -244,7 +244,7 @@ class MarketCommodities {
   static constexpr H double_layer_blocks_height = 2_h;
 
   // Commodities will be 24x24 + 8 pixels for text.
-  static constexpr auto sprite_scale = Scale{32};
+  static constexpr auto sprite_scale = Scale{ 32 };
 
   static constexpr W single_layer_width =
       single_layer_blocks_width * sprite_scale.sx;
@@ -257,18 +257,18 @@ class MarketCommodities {
 
 public:
   Rect bounds() const {
-    return Rect::from(
-        origin_,
-        Delta{doubled_ ? double_layer_width : single_layer_width,
-              doubled_ ? double_layer_height
-                       : single_layer_height} );
+    return Rect::from( origin_,
+                       Delta{ doubled_ ? double_layer_width
+                                       : single_layer_width,
+                              doubled_ ? double_layer_height
+                                       : single_layer_height } );
   }
 
   void draw( Texture& tx, Delta offset ) const {
     auto bds     = bounds();
     auto grid    = bds.to_grid_noalign( sprite_scale );
     auto comm_it = values<e_commodity>.begin();
-    auto label   = CommodityLabel::buy_sell{100, 200};
+    auto label   = CommodityLabel::buy_sell{ 100, 200 };
     for( auto rect : range_of_rects( grid ) ) {
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );
@@ -294,14 +294,14 @@ public:
           /*doubled_=*/false,
           /*origin_=*/Coord{
               /*x=*/rect.center().x - single_layer_width / 2_sx,
-              /*y=*/rect.bottom_edge() - single_layer_height}};
+              /*y=*/rect.bottom_edge() - single_layer_height } };
     } else if( rect.w >= double_layer_width &&
                rect.h >= double_layer_height ) {
       res = MarketCommodities{
           /*doubled_=*/true,
           /*origin_=*/Coord{
               /*x=*/rect.center().x - double_layer_width / 2_sx,
-              /*y=*/rect.bottom_edge() - double_layer_height}};
+              /*y=*/rect.bottom_edge() - double_layer_height } };
 
     } else {
       // cannot draw.
@@ -327,9 +327,9 @@ public:
                 .as_if_origin_were( bounds().upper_left() ) +
             k_rendered_commodity_offset;
         auto box = Rect::from( box_origin,
-                               Delta{1_w, 1_h} * Scale{16} );
+                               Delta{ 1_w, 1_h } * Scale{ 16 } );
 
-        res = pair{*maybe_type, box};
+        res = pair{ *maybe_type, box };
       }
     }
     return res;
@@ -346,11 +346,11 @@ private:
 NOTHROW_MOVE( MarketCommodities );
 
 class ActiveCargoBox {
-  static constexpr Delta size_blocks{6_w, 1_h};
+  static constexpr Delta size_blocks{ 6_w, 1_h };
 
 public:
   // Commodities will be 24x24.
-  static constexpr auto  box_scale   = Scale{32};
+  static constexpr auto  box_scale   = Scale{ 32 };
   static constexpr Delta size_pixels = size_blocks * box_scale;
 
   Rect bounds() const {
@@ -384,14 +384,14 @@ public:
             /*origin_=*/Coord{
                 market_commodities.origin_.y - size_pixels.h +
                     1_h,
-                rect.center().x - size_pixels.w / 2_sx} );
+                rect.center().x - size_pixels.w / 2_sx } );
       } else {
         // Possibly just for now do this.
         res = ActiveCargoBox(
             /*origin_=*/Coord{
                 market_commodities.origin_.y - size_pixels.h +
                     1_h,
-                rect.center().x - size_pixels.w / 2_sx} );
+                rect.center().x - size_pixels.w / 2_sx } );
       }
     }
     return res;
@@ -405,8 +405,8 @@ private:
 NOTHROW_MOVE( ActiveCargoBox );
 
 class DockAnchor {
-  static constexpr Delta cross_leg_size{5_w, 5_h};
-  static constexpr H     above_active_cargo_box{32_h};
+  static constexpr Delta cross_leg_size{ 5_w, 5_h };
+  static constexpr H     above_active_cargo_box{ 32_h };
 
 public:
   Rect bounds() const {
@@ -416,15 +416,15 @@ public:
 
   void draw( Texture& tx, Delta offset ) const {
     // This mess just draws an X.
-    render_line( tx, Color::white(),
-                 location_ - cross_leg_size + offset,
-                 cross_leg_size * Scale{2} + Delta{1_w, 1_h} );
+    render_line(
+        tx, Color::white(), location_ - cross_leg_size + offset,
+        cross_leg_size * Scale{ 2 } + Delta{ 1_w, 1_h } );
     render_line(
         tx, Color::white(),
         location_ - cross_leg_size.mirrored_vertically() +
             offset,
-        cross_leg_size.mirrored_vertically() * Scale{2} +
-            Delta{1_w, -1_h} );
+        cross_leg_size.mirrored_vertically() * Scale{ 2 } +
+            Delta{ 1_w, -1_h } );
   }
 
   DockAnchor( DockAnchor&& ) = default;
@@ -464,8 +464,8 @@ private:
 NOTHROW_MOVE( DockAnchor );
 
 class Backdrop {
-  static constexpr Delta image_distance_from_anchor{950_w,
-                                                    544_h};
+  static constexpr Delta image_distance_from_anchor{ 950_w,
+                                                     544_h };
 
 public:
   Rect bounds() const { return Rect::from( Coord{}, size_ ); }
@@ -486,9 +486,9 @@ public:
     Opt<Backdrop> res;
     if( maybe_dock_anchor ) {
       res =
-          Backdrop{-( maybe_dock_anchor->bounds().upper_left() -
-                      image_distance_from_anchor ),
-                   size};
+          Backdrop{ -( maybe_dock_anchor->bounds().upper_left() -
+                       image_distance_from_anchor ),
+                    size };
     }
     return res;
   }
@@ -504,14 +504,14 @@ NOTHROW_MOVE( Backdrop );
 
 class InPortBox {
 public:
-  static constexpr Delta block_size{32_w, 32_h};
-  static constexpr SY    height_blocks{3};
-  static constexpr SX    width_wide{3};
-  static constexpr SX    width_narrow{2};
+  static constexpr Delta block_size{ 32_w, 32_h };
+  static constexpr SY    height_blocks{ 3 };
+  static constexpr SX    width_wide{ 3 };
+  static constexpr SX    width_narrow{ 2 };
 
   Rect bounds() const {
     return Rect::from( origin_, block_size * size_in_blocks_ +
-                                    Delta{1_w, 1_h} );
+                                    Delta{ 1_w, 1_h } );
   }
 
   void draw( Texture& tx, Delta offset ) const {
@@ -521,7 +521,7 @@ public:
         render_text( "In Port", Color::white() );
     copy_texture(
         label_tx, tx,
-        bounds().upper_left() + Delta{2_w, 2_h} + offset );
+        bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
   }
 
   InPortBox( InPortBox&& ) = default;
@@ -542,9 +542,9 @@ public:
           block_size.h * size_in_blocks.sy;
       if( origin.y < 0_y || origin.x < 0_x ) return res;
 
-      res = InPortBox{origin,         //
-                      size_in_blocks, //
-                      is_wide};
+      res = InPortBox{ origin,         //
+                       size_in_blocks, //
+                       is_wide };
 
       auto lr_delta = res->bounds().lower_right() - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
@@ -571,7 +571,7 @@ public:
   Rect bounds() const {
     return Rect::from( origin_,
                        InPortBox::block_size * size_in_blocks_ +
-                           Delta{1_w, 1_h} );
+                           Delta{ 1_w, 1_h } );
   }
 
   void draw( Texture& tx, Delta offset ) const {
@@ -581,7 +581,7 @@ public:
         render_text( "Inbound", Color::white() );
     copy_texture(
         label_tx, tx,
-        bounds().upper_left() + Delta{2_w, 2_h} + offset );
+        bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
   }
 
   InboundBox( InboundBox&& ) = default;
@@ -638,7 +638,7 @@ public:
   Rect bounds() const {
     return Rect::from( origin_,
                        InPortBox::block_size * size_in_blocks_ +
-                           Delta{1_w, 1_h} );
+                           Delta{ 1_w, 1_h } );
   }
 
   void draw( Texture& tx, Delta offset ) const {
@@ -648,7 +648,7 @@ public:
         render_text( "Outbound", Color::white() );
     copy_texture(
         label_tx, tx,
-        bounds().upper_left() + Delta{2_w, 2_h} + offset );
+        bounds().upper_left() + Delta{ 2_w, 2_h } + offset );
   }
 
   OutboundBox( OutboundBox&& ) = default;
@@ -701,17 +701,17 @@ private:
 NOTHROW_MOVE( OutboundBox );
 
 class Exit {
-  static constexpr Delta exit_block_pixels{24_w, 24_h};
+  static constexpr Delta exit_block_pixels{ 24_w, 24_h };
 
 public:
   Rect bounds() const {
     return Rect::from( origin_, exit_block_pixels ) +
-           Delta{2_w, 2_h};
+           Delta{ 2_w, 2_h };
   }
 
   void draw( Texture& tx, Delta offset ) const {
     auto bds = bounds().with_inc_size();
-    bds      = bds.shifted_by( Delta{-2_w, -2_h} );
+    bds      = bds.shifted_by( Delta{ -2_w, -2_h } );
     auto const& exit_tx =
         render_text( font::standard(), Color::red(), "Exit" );
     auto drawing_origin = centered( exit_tx.size(), bds );
@@ -729,16 +729,16 @@ public:
     if( maybe_market_commodities ) {
       auto origin =
           maybe_market_commodities->bounds().lower_right() -
-          Delta{1_w, 1_h} - exit_block_pixels.h;
+          Delta{ 1_w, 1_h } - exit_block_pixels.h;
       auto lr_delta = origin + exit_block_pixels - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h ) {
         origin =
             maybe_market_commodities->bounds().upper_right() -
             1_w - exit_block_pixels;
       }
-      res = Exit{origin};
+      res = Exit{ origin };
       lr_delta =
-          ( res->bounds().lower_right() - Delta{1_w, 1_h} ) -
+          ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
           Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
@@ -756,13 +756,13 @@ private:
 NOTHROW_MOVE( Exit );
 
 class Dock {
-  static constexpr Scale dock_block_pixels{24};
+  static constexpr Scale dock_block_pixels{ 24 };
 
 public:
   Rect bounds() const {
     return Rect::from(
-        origin_, Delta{length_in_blocks_ * dock_block_pixels.sx,
-                       1_h * dock_block_pixels.sy} );
+        origin_, Delta{ length_in_blocks_ * dock_block_pixels.sx,
+                        1_h * dock_block_pixels.sy } );
   }
 
   void draw( Texture& tx, Delta offset ) const {
@@ -788,10 +788,10 @@ public:
       auto origin = maybe_dock_anchor->bounds().upper_left() -
                     ( available * dock_block_pixels.sx );
       origin -= 1_h * dock_block_pixels.sy / 2;
-      res = Dock{/*origin_=*/origin,
-                 /*length_in_blocks_=*/available};
+      res = Dock{ /*origin_=*/origin,
+                  /*length_in_blocks_=*/available };
       auto lr_delta =
-          ( res->bounds().lower_right() - Delta{1_w, 1_h} ) -
+          ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
           Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
@@ -830,7 +830,7 @@ public:
     for( auto const& unit_with_pos : units_ )
       if( g_dragging_object !=
           DraggableObject_t{
-              DraggableObject::unit{unit_with_pos.id}} )
+              DraggableObject::unit{ unit_with_pos.id } } )
         render_unit( tx, unit_with_pos.id,
                      unit_with_pos.pixel_coord + offset,
                      /*with_icon=*/false );
@@ -852,7 +852,7 @@ public:
     for( auto [id, coord] : units_ ) {
       auto rect = Rect::from( coord, g_tile_delta );
       if( pos.is_inside( rect ) ) {
-        res = pair{id, rect};
+        res = pair{ id, rect };
         // !! don't break in case units are overlapping.
       }
     }
@@ -893,21 +893,21 @@ public:
       Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
       for( auto id : europort_units_on_dock() ) {
-        units.push_back( {id, coord} );
+        units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < maybe_dock->bounds().left_edge() )
-          coord = Coord{( maybe_dock->bounds().upper_right() -
-                          g_tile_delta )
-                            .x,
-                        coord.y - g_tile_delta.h};
+          coord = Coord{ ( maybe_dock->bounds().upper_right() -
+                           g_tile_delta )
+                             .x,
+                         coord.y - g_tile_delta.h };
       }
       // populate units...
       res = UnitsOnDock{
           /*bounds_when_no_units_=*/maybe_dock_anchor->bounds(),
-          /*units_=*/std::move( units )};
+          /*units_=*/std::move( units ) };
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
       if( bds.y < 0_y ) res = nullopt;
@@ -937,20 +937,21 @@ public:
       auto  in_port_bds = maybe_in_port_box->bounds();
       Coord coord = in_port_bds.lower_right() - g_tile_delta;
       for( auto id : europort_units_in_port() ) {
-        units.push_back( {id, coord} );
+        units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < in_port_bds.left_edge() )
           coord = Coord{
               ( in_port_bds.upper_right() - g_tile_delta ).x,
-              coord.y - g_tile_delta.h};
+              coord.y - g_tile_delta.h };
       }
       // populate units...
-      res = ShipsInPort{/*bounds_when_no_units_=*/Rect::from(
-                            in_port_bds.lower_right(), Delta{} ),
-                        /*units_=*/std::move( units )};
+      res =
+          ShipsInPort{ /*bounds_when_no_units_=*/Rect::from(
+                           in_port_bds.lower_right(), Delta{} ),
+                       /*units_=*/std::move( units ) };
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
       if( bds.y < 0_y ) res = nullopt;
@@ -980,20 +981,20 @@ public:
       auto  frame_bds = maybe_inbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
       for( auto id : europort_units_inbound() ) {
-        units.push_back( {id, coord} );
+        units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
-          coord =
-              Coord{( frame_bds.upper_right() - g_tile_delta ).x,
-                    coord.y - g_tile_delta.h};
+          coord = Coord{
+              ( frame_bds.upper_right() - g_tile_delta ).x,
+              coord.y - g_tile_delta.h };
       }
       // populate units...
-      res = ShipsInbound{/*bounds_when_no_units_=*/Rect::from(
-                             frame_bds.lower_right(), Delta{} ),
-                         /*units_=*/std::move( units )};
+      res = ShipsInbound{ /*bounds_when_no_units_=*/Rect::from(
+                              frame_bds.lower_right(), Delta{} ),
+                          /*units_=*/std::move( units ) };
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
       if( bds.y < 0_y ) res = nullopt;
@@ -1023,20 +1024,21 @@ public:
       auto  frame_bds = maybe_outbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
       for( auto id : europort_units_outbound() ) {
-        units.push_back( {id, coord} );
+        units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
-          coord =
-              Coord{( frame_bds.upper_right() - g_tile_delta ).x,
-                    coord.y - g_tile_delta.h};
+          coord = Coord{
+              ( frame_bds.upper_right() - g_tile_delta ).x,
+              coord.y - g_tile_delta.h };
       }
       // populate units...
-      res = ShipsOutbound{/*bounds_when_no_units_=*/Rect::from(
-                              frame_bds.lower_right(), Delta{} ),
-                          /*units_=*/std::move( units )};
+      res =
+          ShipsOutbound{ /*bounds_when_no_units_=*/Rect::from(
+                             frame_bds.lower_right(), Delta{} ),
+                         /*units_=*/std::move( units ) };
       auto bds = res->bounds();
       auto lr_delta =
-          ( bds.lower_right() - Delta{1_w, 1_h} ) - Coord{};
+          ( bds.lower_right() - Delta{ 1_w, 1_h } ) - Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
       if( bds.y < 0_y ) res = nullopt;
@@ -1081,7 +1083,7 @@ public:
               case_( UnitId ) {
                 if( g_dragging_object !=
                     DraggableObject_t{
-                        DraggableObject::unit{val}} )
+                        DraggableObject::unit{ val } } )
                   render_unit( tx, val, dst_coord,
                                /*with_icon=*/false );
               }
@@ -1120,9 +1122,9 @@ public:
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
       res = ActiveCargo{
           /*maybe_active_unit_=*/g_selected_unit,
-          /*bounds_=*/maybe_active_cargo_box->bounds()};
+          /*bounds_=*/maybe_active_cargo_box->bounds() };
       auto lr_delta =
-          ( res->bounds().lower_right() - Delta{1_w, 1_h} ) -
+          ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
           Coord{};
       if( lr_delta.w > size.w || lr_delta.h > size.h )
         res = nullopt;
@@ -1155,12 +1157,12 @@ public:
               | fmap( L( util::holds<cargo_commodity>( _ ) ) ) //
               | maybe_truish_to_bool ) {
             box_origin += k_rendered_commodity_offset;
-            scale = Scale{16};
+            scale = Scale{ 16 };
           }
-          auto box =
-              Rect::from( box_origin, Delta{1_w, 1_h} * scale );
+          auto box = Rect::from( box_origin,
+                                 Delta{ 1_w, 1_h } * scale );
 
-          res = pair{*maybe_slot, box};
+          res = pair{ *maybe_slot, box };
         }
       }
       auto& unit = unit_from_id( *maybe_active_unit_ );
@@ -1386,7 +1388,7 @@ public:
       DragSrc_t const& drag_src ) const {
     return matcher_( drag_src, ->, DraggableObject_t ) {
       case_( DragSrc::dock, id ) {
-        return DraggableObject::unit{id};
+        return DraggableObject::unit{ id };
       }
       case_( DragSrc::cargo ) {
         // Not all cargo slots must have an item in them, but in
@@ -1397,16 +1399,16 @@ public:
         return object;
       }
       case_( DragSrc::outbound, id ) {
-        return DraggableObject::unit{id};
+        return DraggableObject::unit{ id };
       }
       case_( DragSrc::inbound, id ) {
-        return DraggableObject::unit{id};
+        return DraggableObject::unit{ id };
       }
       case_( DragSrc::inport, id ) {
-        return DraggableObject::unit{id};
+        return DraggableObject::unit{ id };
       }
       case_( DragSrc::market ) {
-        return DraggableObject::market_commodity{val.type};
+        return DraggableObject::market_commodity{ val.type };
       }
       matcher_exhaustive;
     }
@@ -1427,8 +1429,8 @@ public:
                   coord );
           maybe_pair ) {
         auto const& [id, rect] = *maybe_pair;
-        res = DragSrcInfo{/*src=*/DragSrc::dock{/*id=*/id},
-                          /*rect=*/rect};
+        res = DragSrcInfo{ /*src=*/DragSrc::dock{ /*id=*/id },
+                           /*rect=*/rect };
       }
     }
     if( entities_->active_cargo.has_value() ) {
@@ -1445,9 +1447,9 @@ public:
         auto const& [slot, rect] = *maybe_pair;
 
         res = DragSrcInfo{
-            /*src=*/DragSrc::cargo{/*slot=*/slot,
-                                   /*quantity=*/nullopt},
-            /*rect=*/rect};
+            /*src=*/DragSrc::cargo{ /*slot=*/slot,
+                                    /*quantity=*/nullopt },
+            /*rect=*/rect };
       }
     }
     if( entities_->ships_outbound.has_value() ) {
@@ -1457,8 +1459,9 @@ public:
           maybe_pair ) {
         auto const& [id, rect] = *maybe_pair;
 
-        res = DragSrcInfo{/*src=*/DragSrc::outbound{/*id=*/id},
-                          /*rect=*/rect};
+        res =
+            DragSrcInfo{ /*src=*/DragSrc::outbound{ /*id=*/id },
+                         /*rect=*/rect };
       }
     }
     if( entities_->ships_inbound.has_value() ) {
@@ -1468,8 +1471,8 @@ public:
           maybe_pair ) {
         auto const& [id, rect] = *maybe_pair;
 
-        res = DragSrcInfo{/*src=*/DragSrc::inbound{/*id=*/id},
-                          /*rect=*/rect};
+        res = DragSrcInfo{ /*src=*/DragSrc::inbound{ /*id=*/id },
+                           /*rect=*/rect };
       }
     }
     if( entities_->ships_in_port.has_value() ) {
@@ -1479,8 +1482,8 @@ public:
           maybe_pair ) {
         auto const& [id, rect] = *maybe_pair;
 
-        res = DragSrcInfo{/*src=*/DragSrc::inport{/*id=*/id},
-                          /*rect=*/rect};
+        res = DragSrcInfo{ /*src=*/DragSrc::inport{ /*id=*/id },
+                           /*rect=*/rect };
       }
     }
     if( entities_->market_commodities.has_value() ) {
@@ -1491,9 +1494,9 @@ public:
         auto const& [type, rect] = *maybe_pair;
 
         res = DragSrcInfo{
-            /*src=*/DragSrc::market{/*type=*/type,
-                                    /*quantity=*/nullopt},
-            /*rect=*/rect};
+            /*src=*/DragSrc::market{ /*type=*/type,
+                                     /*quantity=*/nullopt },
+            /*rect=*/rect };
       }
     }
 
@@ -1758,7 +1761,7 @@ public:
     auto set_it = [this, quantity]( auto& val ) {
       auto new_val         = val;
       new_val.src.quantity = quantity;
-      DragArc_t new_arc    = DragArc_t{new_val};
+      DragArc_t new_arc    = DragArc_t{ new_val };
       accept_finalized_drag( new_arc );
     };
     switch_( *stored_arc_ ) {
@@ -1979,12 +1982,14 @@ fsm_class( Euroview ) {
 
   fsm_transition( Euroview, //
                   normal, ask_quantity, ->, asking_quantity ) {
+    (void)cur;
     open_quantity_window_( event.type, event.verb );
     return {};
   }
 
   fsm_transition( Euroview, //
                   asking_quantity, send_quantity, ->, normal ) {
+    (void)cur;
     send_quantity_( event.quantity );
     return {};
   }
@@ -2070,8 +2075,8 @@ struct EuropePlane : public Plane {
       if( ( left && top ) || ( left && bottom ) ||
           ( right && top ) || ( right && bottom ) )
         return res;
-      if( left || right ) res.projection = Delta{0_h, 1_w};
-      if( top || bottom ) res.projection = Delta{1_h, 0_w};
+      if( left || right ) res.projection = Delta{ 0_h, 1_w };
+      if( top || bottom ) res.projection = Delta{ 1_h, 0_w };
       return res;
     }
 
@@ -2132,7 +2137,7 @@ struct EuropePlane : public Plane {
         [&]( Opt<int> result ) {
           lg.trace( "received quantity: {}", result );
           fsm_.send_event( EuroviewEvent::send_quantity{
-              result.value_or( 0 )} );
+              result.value_or( 0 ) } );
         },
         /*min=*/0,
         /*max=*/100 );
@@ -2145,13 +2150,13 @@ struct EuropePlane : public Plane {
 
   void ask_for_quantity( e_commodity type, string const& verb ) {
     CHECK( fsm_.holds<EuroviewState::normal>() );
-    fsm_.send_event( EuroviewEvent::ask_quantity{type, verb} );
+    fsm_.send_event( EuroviewEvent::ask_quantity{ type, verb } );
   }
 
   // ------------------------------------------------------------
   // Members
   // ------------------------------------------------------------
-  Color       rect_color_{Color::white()};
+  Color       rect_color_{ Color::white() };
   Entities    entities_{};
   EuroviewFsm fsm_{
       LC2_( open_quantity_window( _1, _2 ) ), //
@@ -2172,7 +2177,7 @@ void init_europort_view() {
   g_clip =
       main_window_logical_size() -
       compositor::section( compositor::e_section::menu_bar ).h +
-      Delta{2_w, 2_h};
+      Delta{ 2_w, 2_h };
 }
 
 void cleanup_europort_view() {}

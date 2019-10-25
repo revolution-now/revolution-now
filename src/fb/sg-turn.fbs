@@ -1,0 +1,37 @@
+// **************************************************************
+// sg-turn.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-25.
+//
+// Description: Serializable types for the turn module.
+//
+// **************************************************************
+include "nation.fbs";
+
+namespace fb;
+
+namespace fb.TurnState;
+
+  table starting_turn {}
+  table ending_turn {}
+  table inside_turn {
+    nations : [e_nation];
+  }
+
+  namespace fb;
+
+  table TurnState_t {
+    starting_turn : TurnState.starting_turn;
+    inside_turn   : TurnState.inside_turn;
+    ending_turn   : TurnState.ending_turn;
+  }
+
+table TurnFsm {
+  state : TurnState_t;
+}
+
+table SG_Turn {
+  turn_state : TurnFsm;
+}

@@ -22,6 +22,7 @@
 #include "id.hpp"
 #include "player.hpp"
 #include "terrain.hpp"
+#include "turn.hpp"
 #include "ustate.hpp"
 
 // Revolution Now (config)
@@ -149,6 +150,7 @@ expect<fs::path> load_game( int slot ) {
   XP_OR_RETURN_( savegame_deserializer( root->player_state() ) );
   XP_OR_RETURN_(
       savegame_deserializer( root->terrain_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->turn_state() ) );
   return p;
 }
 

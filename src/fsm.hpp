@@ -319,16 +319,29 @@ expect<> deserialize( SrcT const* src, DstT* dst,
   using Parent::Parent;     \
   auto initial_state() const { return a; }
 
-#define fsm_transition( fsm_name, start, e, dummy, end )        \
-  static_assert(                                                \
-      std::is_same_v<fsm_name##State::end,                      \
-                     Get<fsm_name##FsmTransitions,              \
-                         std::pair<fsm_name##State::start,      \
-                                   fsm_name##Event::e>,         \
-                         Parent::NoTransition>>,                \
-      "this transition is not in the transitions map" );        \
-  fsm_name##State::end transition(                              \
-      fsm_name##State::start const&, fsm_name##Event::e& event, \
+#define fsm_transition( fsm_name, start, e, dummy, end )   \
+  static_assert(                                           \
+      std::is_same_v<fsm_name##State::end,                 \
+                     Get<fsm_name##FsmTransitions,         \
+                         std::pair<fsm_name##State::start, \
+                                   fsm_name##Event::e>,    \
+                         Parent::NoTransition>>,           \
+      "this transition is not in the transitions map" );   \
+  fsm_name##State::end transition(                         \
+      fsm_name##State::start const& cur,                   \
+      fsm_name##Event::e& event, FsmTag<fsm_name##State::end> )
+
+// This version is for when the arguments are not needed.
+#define fsm_transition_( fsm_name, start, e, dummy, end )  \
+  static_assert(                                           \
+      std::is_same_v<fsm_name##State::end,                 \
+                     Get<fsm_name##FsmTransitions,         \
+                         std::pair<fsm_name##State::start, \
+                                   fsm_name##Event::e>,    \
+                         Parent::NoTransition>>,           \
+      "this transition is not in the transitions map" );   \
+  fsm_name##State::end transition(                         \
+      fsm_name##State::start const&, fsm_name##Event::e&,  \
       FsmTag<fsm_name##State::end> )
 
 /****************************************************************

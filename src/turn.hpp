@@ -14,8 +14,11 @@
 
 // Revolution Now
 #include "nation.hpp"
+#include "sg-macros.hpp"
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Turn );
 
 enum class ND e_turn_result {
   orders_taken,

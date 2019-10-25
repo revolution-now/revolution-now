@@ -13,7 +13,10 @@
 // Revolution Now
 #include "conductor.hpp"
 #include "dispatch.hpp"
+#include "fb.hpp"
+#include "flat-queue.hpp"
 #include "frame.hpp"
+#include "fsm.hpp"
 #include "logging.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
@@ -22,6 +25,9 @@
 #include "ustate.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
+
+// Flatbuffers
+#include "fb/sg-turn_generated.h"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -41,6 +47,90 @@ namespace rn {
 
 namespace {
 
+/****************************************************************
+** FSMs
+*****************************************************************/
+adt_s_rn_( TurnState,                             //
+           ( starting_turn ),                     //
+           ( inside_turn,                         //
+             ( flat_queue<e_nation>, nations ) ), //
+           ( ending_turn )                        //
+);
+
+adt_rn_( TurnEvent,     //
+         ( next_turn ), //
+         ( end_turn ),  //
+         ( start_turn ) //
+);
+
+// clang-format off
+fsm_transitions( Turn,
+  ((starting_turn, next_turn),  ->,  inside_turn   ),
+  ((inside_turn,   next_turn),  ->,  inside_turn   ),
+  ((inside_turn,   end_turn ),  ->,  ending_turn   ),
+  ((ending_turn,   next_turn),  ->,  starting_turn )
+);
+// clang-format on
+
+fsm_class( Turn ) { //
+  fsm_init( TurnState::starting_turn{} );
+
+  fsm_transition_( Turn, starting_turn, next_turn, ->,
+                   inside_turn ) {
+    TurnState::inside_turn res{
+        /*nations=*/{} //
+    };
+    res.nations.push( e_nation::dutch );
+    res.nations.push( e_nation::english );
+    res.nations.push( e_nation::french );
+    res.nations.push( e_nation::spanish );
+    return res;
+  }
+
+  fsm_transition( Turn, inside_turn, next_turn, ->,
+                  inside_turn ) {
+    (void)event;
+    TurnState::inside_turn res = cur;
+    CHECK( res.nations.front(), "nation queue is empty." );
+    res.nations.pop();
+    if( !res.nations.front() )
+      this->send_event( TurnEvent::end_turn{} );
+    return res;
+  }
+};
+
+FSM_DEFINE_FORMAT_RN_( Turn );
+
+/****************************************************************
+** Save-Game State
+*****************************************************************/
+struct SAVEGAME_STRUCT( Turn ) {
+  // Fields that are actually serialized.
+
+  // clang-format off
+  SAVEGAME_MEMBERS( Turn,
+  ( TurnFsm, turn_state ));
+  // clang-format on
+
+public:
+  // Fields that are derived from the serialized fields.
+
+private:
+  SAVEGAME_FRIENDS( Turn );
+  SAVEGAME_SYNC() {
+    // Sync all fields that are derived from serialized fields
+    // and then validate (check invariants).
+
+    return xp_success_t{};
+  }
+};
+SAVEGAME_IMPL( Turn );
+
+} // namespace
+
+/****************************************************************
+** Helpers
+*****************************************************************/
 // For each unit in the queue, remove all occurrences of it after
 // the first. Duplicate ids in the queue is not actually a prob-
 // lem, since a unit will just be passed up if it has already
@@ -84,8 +174,6 @@ bool animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
-} // namespace
-
 e_turn_result turn() {
   // If no units need to take orders this turn then we need to
   // pause at the end of the turn to allow the user to take
@@ -97,7 +185,7 @@ e_turn_result turn() {
   bool need_eot = true;
   // for( auto nation : all_nations() ) {
   // for( auto nation : {e_nation::dutch} ) {
-  for( auto nation : {e_nation::english, e_nation::spanish} ) {
+  for( auto nation : { e_nation::english, e_nation::spanish } ) {
     auto res = turn( nation );
     if( res == e_turn_result::quit ) return e_turn_result::quit;
     if( res == e_turn_result::orders_taken ) need_eot = false;

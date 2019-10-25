@@ -65,8 +65,7 @@ fsm_transitions( Color
 fsm_class( Color ) { //
   fsm_init( ColorState::red{} );
 
-  fsm_transition( Color, blue, rotate, ->, yellow ) {
-    (void)event;
+  fsm_transition_( Color, blue, rotate, ->, yellow ) {
     return {};
   }
 };
@@ -252,10 +251,12 @@ fsm_class( Ball ) {
   fsm_init( BallState::none{} );
 
   fsm_transition( Ball, none, start_rolling, ->, rolling ) {
+    (void)cur;
     return { event.speed };
   }
 
   fsm_transition( Ball, none, start_bouncing, ->, bouncing ) {
+    (void)cur;
     return { event.height };
   }
 };
