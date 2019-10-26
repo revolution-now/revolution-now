@@ -68,9 +68,8 @@ struct MainMenuPlane : public Plane {
     h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
     for( auto e : values<e_main_menu_item> ) {
-      Color c = is_item_enabled( e )
-                    ? Color::banana().shaded( 3 )
-                    : Color::black();
+      if( !is_item_enabled( e ) ) continue;
+      Color       c       = Color::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
       auto w   = screen.w / 2_sx - text_tx.size().w / 2_sx;
