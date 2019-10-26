@@ -156,7 +156,7 @@ void frame_loop( bool                     poll_input,
   static auto time_of_last_input = Clock_t::now();
 
   while( true ) {
-    advance_app_state();
+    if( advance_app_state() ) return;
     // Must call this at the start of the frame before doing any-
     // thing else. This calls an update method on each plane to
     // allow it to update any internal state that it has each

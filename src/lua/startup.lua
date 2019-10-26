@@ -58,6 +58,7 @@ local function create_some_units_on_land( nation )
 end
 
 local function main()
+  terrain.generate_terrain()
   player.set_players( {
     e.nation.dutch,
     e.nation.spanish,

@@ -17,7 +17,9 @@
 
 namespace rn {
 
-void advance_app_state();
+ND bool advance_app_state();
+
+bool back_to_main_menu();
 
 /****************************************************************
 ** Testing

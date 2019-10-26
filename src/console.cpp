@@ -72,11 +72,8 @@ struct ConsolePlane : public Plane {
             .lower_left(),
         main_window_logical_rect().lower_right() -
             le_view_.get().delta().h );
-    // console_rect.h -=
-    //    console_rect.h %
-    //    ttf_get_font_info( config_rn.console.font ).height;
     console_rect.h -=
-        H{int( console_rect.h._ * ( 1.0 - show_percent_ ) )};
+        H{ int( console_rect.h._ * ( 1.0 - show_percent_ ) ) };
 
     // Render edit box.
     auto console_edit_rect = Rect::from(
@@ -174,7 +171,7 @@ struct ConsolePlane : public Plane {
     int  max_lines = console_rect.h / text_height;
     auto log_px_start =
         console_rect.lower_left() -
-        1_h * ttf_get_font_info( config_rn.console.font ).height;
+        ttf_get_font_info( config_rn.console.font ).height;
     for( auto i = 0; i < max_lines; ++i ) {
       auto maybe_line = term::line( i );
       if( !maybe_line ) break;
@@ -263,10 +260,10 @@ struct ConsolePlane : public Plane {
     return le_view_.get().on_key( key_event );
   }
 
-  bool                         show_{false};
-  double                       show_percent_{0.0};
+  bool                         show_{ false };
+  double                       show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
-  int                          history_index_{0};
+  int                          history_index_{ 0 };
 };
 
 ConsolePlane g_console_plane;

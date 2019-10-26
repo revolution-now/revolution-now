@@ -26,6 +26,8 @@ enum class ND e_turn_result {
   quit
 };
 
+void advance_turn_state();
+
 // Do a turn, start to finish, one nations.
 ND e_turn_result turn( e_nation nation );
 

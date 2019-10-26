@@ -174,6 +174,10 @@ bool animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
+void advance_turn_state() {
+  //
+}
+
 e_turn_result turn() {
   // If no units need to take orders this turn then we need to
   // pause at the end of the turn to allow the user to take

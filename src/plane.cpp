@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "app-state.hpp"
 #include "console.hpp"
 #include "europort-view.hpp"
 #include "frame.hpp"
@@ -101,7 +102,8 @@ struct OmniPlane : public Plane {
       case_( input::quit_event_t ) { throw exception_exit{}; }
       case_( input::key_event_t ) {
         auto& key_event = val;
-        if( key_event.change != input::e_key_change::up ) break_;
+        if( key_event.change != input::e_key_change::down )
+          break_;
         handled = true;
         switch( key_event.keycode ) {
           case ::SDLK_F12:
@@ -118,6 +120,9 @@ struct OmniPlane : public Plane {
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
+            break;
+          case ::SDLK_ESCAPE: //
+            handled = back_to_main_menu();
             break;
           default: //
             handled = false;

@@ -84,7 +84,7 @@ void invalidate_caches() {
     block_cache[coord].needs_redraw = true;
 }
 
-void init_terrain() {
+void generate_terrain() {
   Square const L = Square{ e_crust::land };
   Square const O = Square{ e_crust::water };
 
@@ -111,6 +111,10 @@ void init_terrain() {
   make_squares( { 60_x, 10_y } );
   make_squares( { 40_x, 40_y } );
   make_squares( { 100_x, 25_y } );
+}
+
+void init_terrain() {
+  generate_terrain();
 
   for( auto coord : block_cache.rect() ) {
     TerrainBlockCache cache{
@@ -210,6 +214,8 @@ LUA_FN( toggle_crust, void, Coord const& coord ) {
           : e_crust::land;
   invalidate_caches();
 }
+
+LUA_FN( generate_terrain, void ) { generate_terrain(); }
 
 } // namespace
 

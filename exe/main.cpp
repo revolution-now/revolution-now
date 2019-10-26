@@ -31,18 +31,11 @@ int main( int /*unused*/, char** /*unused*/ ) {
       lua::reload();
       lua::run_startup_main();
 
-      // if( fs::exists( "saves/slot00.sav" ) )
-      //  CHECK_XP( load_game( 0 ) );
-
       game();
-
-      // rn::serial::test_fb();
 
     } catch( exception_exit const& ) {}
 
     hide_window();
-    // ASSIGN_CHECK_XP( p, save_game( 0 ) );
-    // lg.info( "saving game to {}", p );
 
     run_all_cleanup_routines();
   } catch( exception_with_bt const& e ) {

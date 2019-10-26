@@ -29,13 +29,13 @@ namespace rn {
 
 enum class e_( plane,
                /* values */
-               main_menu, // main menu.
                viewport,  // land, units, colonies, etc.
                panel,     // the info panel on the right
                image,     // any of the fullscreen pics displayed
                colony,    // colony view
                europe,    // the old world
                effects,   // such as e.g. fading
+               main_menu, // main menu.
                console,   // the developer console
                menu,      // the menus at the top of screen
                window,    // the windows

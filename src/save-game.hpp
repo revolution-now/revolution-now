@@ -21,6 +21,9 @@ namespace rn {
 expect<fs::path> save_game( int slot );
 expect<fs::path> load_game( int slot );
 
+// Temporary.
+expect<> reset_savegame_state();
+
 /****************************************************************
 ** Testing
 *****************************************************************/

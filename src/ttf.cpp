@@ -148,7 +148,7 @@ FontTTFInfo const& ttf_get_font_info( e_font font ) {
     auto* ttf_font        = loaded_fonts()[font].ttf_font;
     auto  height          = ::TTF_FontHeight( ttf_font );
     g_font_ttf_info[font] = FontTTFInfo{
-        /*height=*/SY{ height } //
+        /*height=*/H{ height } //
     };
   }
   return g_font_ttf_info[font];

@@ -145,7 +145,7 @@ public:
 
   void copy_to( Texture& to ) const;
   void copy_to( Texture& to, Opt<Rect> src,
-                Opt<Rect> dest ) const;
+                Opt<Rect> dst ) const;
   void copy_to( Texture& to, Rect const& src, Rect const& dst,
                 double angle, e_flip flip ) const;
 

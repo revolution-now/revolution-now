@@ -100,6 +100,17 @@ serial::BinaryBlob save_game_to_blob() {
   return serial::BinaryBlob::from_builder( std::move( fbb ) );
 }
 
+expect<> load_from_blob( serial::BinaryBlob const& blob ) {
+  auto* root = blob.root<fb::SaveGame>();
+  XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->player_state() ) );
+  XP_OR_RETURN_(
+      savegame_deserializer( root->terrain_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->turn_state() ) );
+  return xp_success_t{};
+}
+
 } // namespace
 
 /****************************************************************
@@ -144,14 +155,18 @@ expect<fs::path> load_game( int slot ) {
   //    serial::fb_creation_tuple_t<fb::SaveGame>;
   // XP_OR_RETURN_( deserialize_all(
   //    blob, static_cast<creation_types*>( nullptr ) ) );
-  auto* root = blob.root<fb::SaveGame>();
-  XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->player_state() ) );
-  XP_OR_RETURN_(
-      savegame_deserializer( root->terrain_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->turn_state() ) );
+  XP_OR_RETURN_( load_from_blob( blob ) );
   return p;
+}
+
+expect<> reset_savegame_state() {
+  FBBuilder fbb;
+  auto      builder = fb::SaveGameBuilder( fbb );
+  auto      sg      = builder.Finish();
+  fbb.Finish( sg );
+  auto blob =
+      serial::BinaryBlob::from_builder( std::move( fbb ) );
+  return load_from_blob( blob );
 }
 
 /****************************************************************
