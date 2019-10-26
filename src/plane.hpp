@@ -29,17 +29,18 @@ namespace rn {
 
 enum class e_( plane,
                /* values */
-               viewport, // land, units, colonies, etc.
-               panel,    // the info panel on the right
-               image,    // any of the fullscreen pics displayed
-               colony,   // colony view
-               europe,   // the old world
-               effects,  // such as e.g. fading
-               console,  // the developer console
-               menu,     // the menus at the top of screen
-               window,   // the windows
-               /*******/ //
-               omni      // Always present, invisible, and first.
+               main_menu, // main menu.
+               viewport,  // land, units, colonies, etc.
+               panel,     // the info panel on the right
+               image,     // any of the fullscreen pics displayed
+               colony,    // colony view
+               europe,    // the old world
+               effects,   // such as e.g. fading
+               console,   // the developer console
+               menu,      // the menus at the top of screen
+               window,    // the windows
+               /*******/  //
+               omni // Always present, invisible, and first.
 );
 
 struct Plane : public util::non_copy_non_move {

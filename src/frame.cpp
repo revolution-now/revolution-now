@@ -11,6 +11,7 @@
 #include "frame.hpp"
 
 // Revolution Now
+#include "app-state.hpp"
 #include "config-files.hpp"
 #include "input.hpp"
 #include "macros.hpp"
@@ -78,8 +79,8 @@ void advance_viewport_translation() {
 }
 
 struct FrameSubscriptionTick {
-  int                   interval{1};
-  int                   last_message{0};
+  int                   interval{ 1 };
+  int                   last_message{ 0 };
   FrameSubscriptionFunc func;
 };
 NOTHROW_MOVE( FrameSubscriptionTick );
@@ -129,14 +130,14 @@ void notify_subscribers() {
 void subscribe_to_frame_tick( FrameSubscriptionFunc func,
                               int                   n ) {
   subscriptions().push_back( FrameSubscriptionTick{
-      /*interval=*/n, /*last_message=*/0, /*func=*/func} );
+      /*interval=*/n, /*last_message=*/0, /*func=*/func } );
 }
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc     func,
                               std::chrono::milliseconds n ) {
   subscriptions().push_back( FrameSubscriptionTime{
       /*interval=*/n, /*last_message=*/Clock_t::now(),
-      /*func=*/func} );
+      /*func=*/func } );
 }
 
 EventCountMap& event_counts() { return g_event_counts; }
@@ -155,6 +156,7 @@ void frame_loop( bool                     poll_input,
   static auto time_of_last_input = Clock_t::now();
 
   while( true ) {
+    advance_app_state();
     // Must call this at the start of the frame before doing any-
     // thing else. This calls an update method on each plane to
     // allow it to update any internal state that it has each

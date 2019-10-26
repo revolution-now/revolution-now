@@ -120,7 +120,10 @@ public:
     events_.push_emplace( std::move( event_with_src ) );
   }
 
-  // Process all pending events.
+  // Process all pending events. NOTE: that, in processing an
+  // event, additional events may be added to the queue; this
+  // will keep processing until all such events have been han-
+  // dled.
   void process_events() {
     while( auto maybe_event_ref = events_.front() ) {
       internal::log_event(

@@ -19,6 +19,7 @@
 #include "image.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "main-menu.hpp"
 #include "menu.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
@@ -142,7 +143,7 @@ struct DragState {
   // This is the plan that is currently receiving mouse dragging
   // events (nullopt if there is not dragging event happening).
   Opt<e_plane> plane{};
-  bool         send_as_motion{false};
+  bool         send_as_motion{ false };
   Opt<Delta>   projection{};
 
   void reset() {
@@ -177,6 +178,7 @@ void init_planes() {
   // object below.
   planes.fill( ObserverPtr<Plane>( &dummy ) );
 
+  plane( e_plane::main_menu ).reset( main_menu_plane() );
   plane( e_plane::viewport ).reset( viewport_plane() );
   plane( e_plane::panel ).reset( panel_plane() );
   plane( e_plane::image ).reset( image_plane() );

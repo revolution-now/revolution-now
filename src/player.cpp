@@ -88,6 +88,8 @@ void set_players( Vec<e_nation> const& nations ) {
   }
 }
 
+void linker_dont_discard_module_player() {}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

@@ -11,12 +11,14 @@
 #include "linking.hpp"
 
 // Revolution Now
+#include "player.hpp"
 #include "turn.hpp"
 
 namespace rn {
 
 void linker_dont_discard_me() {
   linker_dont_discard_module_turn();
+  linker_dont_discard_module_player();
   // Add more here as needed.
 }
 

@@ -1,22 +1,15 @@
-#include "adt.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
+#include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "save-game.hpp"
 #include "screen.hpp"
-#include "serial.hpp"
-#include "turn.hpp"
 
 #include "SDL.h"
 #include "SDL_image.h"
 #include "SDL_mixer.h"
-
-#include <algorithm>
-#include <functional>
-#include <vector>
 
 using namespace rn;
 using namespace std;
@@ -24,8 +17,8 @@ using namespace std;
 namespace rn {
 
 void game() {
-  while( turn() != e_turn_result::quit ) {}
-  // while( input::is_any_key_down() ) {}
+  frame_loop( /*poll_input=*/true,
+              /*finished=*/L0( false ) );
 }
 
 } // namespace rn
@@ -38,8 +31,8 @@ int main( int /*unused*/, char** /*unused*/ ) {
       lua::reload();
       lua::run_startup_main();
 
-      if( fs::exists( "saves/slot00.sav" ) )
-        CHECK_XP( load_game( 0 ) );
+      // if( fs::exists( "saves/slot00.sav" ) )
+      //  CHECK_XP( load_game( 0 ) );
 
       game();
 
@@ -48,11 +41,12 @@ int main( int /*unused*/, char** /*unused*/ ) {
     } catch( exception_exit const& ) {}
 
     hide_window();
-    ASSIGN_CHECK_XP( p, save_game( 0 ) );
-    lg.info( "saving game to {}", p );
+    // ASSIGN_CHECK_XP( p, save_game( 0 ) );
+    // lg.info( "saving game to {}", p );
 
     run_all_cleanup_routines();
   } catch( exception_with_bt const& e ) {
+    hide_window();
     lg.error( e.what() );
     string sdl_error = SDL_GetError();
     if( !sdl_error.empty() )
