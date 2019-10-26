@@ -16,6 +16,7 @@ CFG( font,
   FLD( e_font, game_default )
   FLD( e_font, nat_icon     )
   FLD( e_font, small_font   )
+  FLD( e_font, main_menu    )
   FLD( FontPathMap,       paths   )
   FLD( FontSizeMap,       sizes   )
   FLD( FontVertOffsetMap, offsets )

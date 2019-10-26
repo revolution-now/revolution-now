@@ -330,6 +330,8 @@ struct ND Rect {
   // that dimension will remain as-is.
   Rect edges_removed() const;
 
+  Rect with_border_added( int thickness = 1 ) const;
+
   Rect shifted_by( Delta const& delta ) const {
     return Rect{ x + delta.w, y + delta.h, w, h };
   }

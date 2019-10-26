@@ -65,20 +65,24 @@ struct MainMenuPlane : public Plane {
     auto screen    = main_window_logical_size();
     H    h         = screen.h / 2_sy;
     auto num_items = values<e_main_menu_item>.size();
-    h -= ttf_get_font_info( font::standard() ).height *
+    h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
     for( auto e : values<e_main_menu_item> ) {
-      Color c = is_item_enabled( e ) ? Color::banana()
-                                     : Color::black();
-      auto const& text_tx =
-          render_text( font::standard(), c, e._to_string() );
+      Color c = is_item_enabled( e )
+                    ? Color::banana().shaded( 3 )
+                    : Color::black();
+      auto const& text_tx = render_text(
+          font::main_menu(), c, enum_to_display_name( e ) );
       auto w   = screen.w / 2_sx - text_tx.size().w / 2_sx;
       auto dst = text_tx.rect().shifted_by( Delta{ w, h } );
       text_tx.copy_to( tx, /*src=*/nullopt,
                        /*dst=*/dst );
+      dst = dst.with_border_added( 2 );
+      dst.x -= 3_w;
+      dst.w += 6_w;
       if( e == g_curr_item )
-        render_rect( tx, Color::white(), dst );
-      h += text_tx.size().h;
+        render_rect( tx, Color::banana(), dst );
+      h += dst.delta().h;
     }
   }
   bool input( input::event_t const& event ) override {

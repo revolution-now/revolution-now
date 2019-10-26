@@ -30,6 +30,7 @@ namespace font {
 e_font standard() { return config_font.game_default; }
 e_font nat_icon() { return config_font.nat_icon; }
 e_font small() { return config_font.small_font; }
+e_font main_menu() { return config_font.main_menu; }
 
 } // namespace font
 

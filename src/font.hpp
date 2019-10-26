@@ -27,7 +27,9 @@ namespace font {
 
 e_font standard();
 e_font nat_icon();
+
 e_font small();
+e_font main_menu();
 
 } // namespace font
 

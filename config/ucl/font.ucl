@@ -1,6 +1,7 @@
 game_default: _6x6
 nat_icon:     _7_12_serif_16pt
 small_font:   _6x6
+main_menu:    _7_12_serif_16pt
 
 paths = [
   { key: _7_12_serif_16pt, val: "assets/fonts/7-12-serif/712_serif.ttf"  }

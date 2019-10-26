@@ -11,6 +11,8 @@ let s:stems = [
   \ 'src/main-menu',
   \ 'src/turn',
   \ 'src/render',
+  \ 'src/save-game',
+  \ 'src/window',
 \]
 
   "\ 'src/adt.cpp',

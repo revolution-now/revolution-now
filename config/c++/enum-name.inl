@@ -29,3 +29,12 @@ TRANSLATION( e_commodity,
   ( trade_goods,     "trade goods"     ),
   ( tools,           "tools"           ),
   ( muskets,         "muskets"         ))
+
+TRANSLATION( e_main_menu_item,
+
+  ( resume,          "Resume Game"     ),
+  ( new_,            "New Game"        ),
+  ( load,            "Load Game"       ),
+  ( save,            "Save Game"       ),
+  ( leave,           "Leave Game"      ),
+  ( quit,            "Quit"            ))

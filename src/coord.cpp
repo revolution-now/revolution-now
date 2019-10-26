@@ -35,7 +35,7 @@ Rect Rect::from( Coord const& _1, Coord const& _2 ) {
 }
 
 Rect Rect::from( Coord const& coord, Delta const& delta ) {
-  return {coord.x, coord.y, delta.w, delta.h};
+  return { coord.x, coord.y, delta.w, delta.h };
 }
 
 // New coord equal to this one unit of edge trimmed off
@@ -55,6 +55,12 @@ Rect Rect::edges_removed() const {
   return rect;
 }
 
+Rect Rect::with_border_added( int thickness ) const {
+  W wd{ thickness };
+  H hd{ thickness };
+  return { x - wd, y - hd, w + wd + wd, h + hd + hd };
+}
+
 Rect Rect::uni0n( Rect const& rhs ) const {
   // NOTE: be careful here with returning references; we should
   // only be using auto const& when the function will not return
@@ -63,15 +69,15 @@ Rect Rect::uni0n( Rect const& rhs ) const {
   auto const& new_y1 = std::min( y, rhs.y );
   auto /*!!*/ new_x2 = std::max( x + w, rhs.x + rhs.w );
   auto /*!!*/ new_y2 = std::max( y + h, rhs.y + rhs.h );
-  return {new_x1, new_y1, ( new_x2 - new_x1 ),
-          ( new_y2 - new_y1 )};
+  return { new_x1, new_y1, ( new_x2 - new_x1 ),
+           ( new_y2 - new_y1 ) };
 }
 
 bool Rect::is_inside( Rect const& rect ) const {
   // lower_right() is one-past-the-end, so we need to bump it
   // back by one.
   return this->upper_left().is_inside( rect ) &&
-         ( this->lower_right() - Delta{1_w, 1_h} )
+         ( this->lower_right() - Delta{ 1_w, 1_h } )
              .is_inside( rect );
 }
 
@@ -83,8 +89,8 @@ Opt<Rect> Rect::overlap_with( Rect const& rhs ) const {
   auto const& new_y1 = std::max( y, rhs.y );
   auto /*!!*/ new_x2 = std::min( x + w, rhs.x + rhs.w );
   auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
-  Opt<Rect>   res =
-      Rect::from( Coord{new_x1, new_y1}, Coord{new_x2, new_y2} );
+  Opt<Rect>   res    = Rect::from( Coord{ new_x1, new_y1 },
+                              Coord{ new_x2, new_y2 } );
   if( res->area() == 0 ) res = nullopt;
   return res;
 }
@@ -113,7 +119,7 @@ Rect Rect::clamp( Rect const& rect ) const {
 }
 
 Rect Rect::centered_on( Coord coord ) const {
-  return Rect::from( coord - this->delta() / Scale{2},
+  return Rect::from( coord - this->delta() / Scale{ 2 },
                      this->delta() );
 }
 
@@ -185,7 +191,7 @@ Coord Coord::rounded_to_multiple_to_plus_inf(
 
 Coord Coord::rounded_to_multiple_to_plus_inf(
     Scale multiple ) const {
-  return rounded_to_multiple_to_plus_inf( Delta{1_w, 1_h} *
+  return rounded_to_multiple_to_plus_inf( Delta{ 1_w, 1_h } *
                                           multiple );
 }
 
@@ -207,7 +213,7 @@ Coord Coord::rounded_to_multiple_to_minus_inf(
 
 Coord Coord::rounded_to_multiple_to_minus_inf(
     Scale multiple ) const {
-  return rounded_to_multiple_to_minus_inf( Delta{1_w, 1_h} *
+  return rounded_to_multiple_to_minus_inf( Delta{ 1_w, 1_h } *
                                            multiple );
 }
 
@@ -296,16 +302,16 @@ Delta Delta::projected_along( Delta const& along ) const {
 
 Delta Delta::multiply_and_round( double scale ) const {
   return Delta{
-      W{static_cast<int>( std::lround( w._ * scale ) )},
-      H{static_cast<int>( std::lround( h._ * scale ) )}};
+      W{ static_cast<int>( std::lround( w._ * scale ) ) },
+      H{ static_cast<int>( std::lround( h._ * scale ) ) } };
 }
 
 Delta Delta::uni0n( Delta const& rhs ) const {
-  return {std::max( w, rhs.w ), std::max( h, rhs.h )};
+  return { std::max( w, rhs.w ), std::max( h, rhs.h ) };
 }
 
 Delta Delta::clamp( Delta const& delta ) const {
-  return {std::min( w, delta.w ), std::min( h, delta.h )};
+  return { std::min( w, delta.w ), std::min( h, delta.h ) };
 }
 
 RectGridProxyIteratorHelper::const_iterator begin(
@@ -318,8 +324,8 @@ RectGridProxyIteratorHelper::const_iterator end(
 }
 
 Coord centered( Delta const& delta, Rect const& rect ) {
-  return {rect.y + rect.h / 2 - delta.h / 2,
-          rect.x + rect.w / 2 - delta.w / 2};
+  return { rect.y + rect.h / 2 - delta.h / 2,
+           rect.x + rect.w / 2 - delta.w / 2 };
 }
 
 int inner_product( Delta const& fst, Delta const& snd ) {
@@ -327,55 +333,55 @@ int inner_product( Delta const& fst, Delta const& snd ) {
 }
 
 Delta max( Delta const& lhs, Delta const& rhs ) {
-  return {std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h )};
+  return { std::max( lhs.w, rhs.w ), std::max( lhs.h, rhs.h ) };
 }
 
 Delta min( Delta const& lhs, Delta const& rhs ) {
-  return {std::min( lhs.w, rhs.w ), std::min( lhs.h, rhs.h )};
+  return { std::min( lhs.w, rhs.w ), std::min( lhs.h, rhs.h ) };
 }
 
 Coord operator+( Coord const& coord, Delta const& delta ) {
-  return {coord.y + delta.h, coord.x + delta.w};
+  return { coord.y + delta.h, coord.x + delta.w };
 }
 
 Delta operator-( Delta const& lhs, Delta const& rhs ) {
-  return {lhs.w - rhs.w, lhs.h - rhs.h};
+  return { lhs.w - rhs.w, lhs.h - rhs.h };
 }
 
 Coord operator+( Delta const& delta, Coord const& coord ) {
-  return {coord.y + delta.h, coord.x + delta.w};
+  return { coord.y + delta.h, coord.x + delta.w };
 }
 
 Coord operator-( Coord const& coord, Delta const& delta ) {
-  return {coord.y - delta.h, coord.x - delta.w};
+  return { coord.y - delta.h, coord.x - delta.w };
 }
 
 Rect operator+( Rect const& rect, Delta const& delta ) {
-  return {rect.x + delta.w, rect.y + delta.h, rect.w, rect.h};
+  return { rect.x + delta.w, rect.y + delta.h, rect.w, rect.h };
 }
 
 Rect operator+( Delta const& delta, Rect const& rect ) {
-  return {rect.x + delta.w, rect.y + delta.h, rect.w, rect.h};
+  return { rect.x + delta.w, rect.y + delta.h, rect.w, rect.h };
 }
 
 Rect operator-( Rect const& rect, Delta const& delta ) {
-  return {rect.x - delta.w, rect.y - delta.h, rect.w, rect.h};
+  return { rect.x - delta.w, rect.y - delta.h, rect.w, rect.h };
 }
 
 ND Coord operator+( Coord const& coord, W w ) {
-  return {coord.y, coord.x + w};
+  return { coord.y, coord.x + w };
 }
 
 ND Coord operator+( Coord const& coord, H h ) {
-  return {coord.y + h, coord.x};
+  return { coord.y + h, coord.x };
 }
 
 ND Coord operator-( Coord const& coord, W w ) {
-  return {coord.y, coord.x - w};
+  return { coord.y, coord.x - w };
 }
 
 ND Coord operator-( Coord const& coord, H h ) {
-  return {coord.y - h, coord.x};
+  return { coord.y - h, coord.x };
 }
 
 void operator+=( Coord& coord, W w ) { coord.x += w; }
@@ -388,19 +394,19 @@ void operator-=( Coord& coord, Delta delta ) {
 }
 
 ND Delta operator+( Delta const& delta, W w ) {
-  return {delta.h, delta.w + w};
+  return { delta.h, delta.w + w };
 }
 
 ND Delta operator+( Delta const& delta, H h ) {
-  return {delta.h + h, delta.w};
+  return { delta.h + h, delta.w };
 }
 
 ND Delta operator-( Delta const& delta, W w ) {
-  return {delta.h, delta.w - w};
+  return { delta.h, delta.w - w };
 }
 
 ND Delta operator-( Delta const& delta, H h ) {
-  return {delta.h - h, delta.w};
+  return { delta.h - h, delta.w };
 }
 
 void operator+=( Delta& delta, W w ) { delta.w += w; }
@@ -409,7 +415,7 @@ void operator-=( Delta& delta, W w ) { delta.w -= w; }
 void operator-=( Delta& delta, H h ) { delta.h -= h; }
 
 Delta operator-( Coord const& lhs, Coord const& rhs ) {
-  return {lhs.x - rhs.x, lhs.y - rhs.y};
+  return { lhs.x - rhs.x, lhs.y - rhs.y };
 }
 
 ND Coord operator*( Coord const& coord, Scale const& scale ) {
@@ -441,33 +447,33 @@ Rect operator*( Scale const& scale, Rect const& rect ) {
 }
 
 Coord operator/( Coord const& coord, Scale const& scale ) {
-  return Coord{coord.x / scale.sx, coord.y / scale.sy};
+  return Coord{ coord.x / scale.sx, coord.y / scale.sy };
 }
 
 Delta operator/( Delta const& delta, Scale const& scale ) {
-  return Delta{delta.w / scale.sx, delta.h / scale.sy};
+  return Delta{ delta.w / scale.sx, delta.h / scale.sy };
 }
 
 Rect operator/( Rect const& rect, Scale const& scale ) {
   auto coord = rect.upper_left();
-  auto delta = Delta{rect.w, rect.h};
+  auto delta = Delta{ rect.w, rect.h };
   return Rect::from( coord / scale, delta / scale );
 }
 
 Delta operator%( Coord const& coord, Scale const& scale ) {
-  return {coord.x % scale.sx, coord.y % scale.sy};
+  return { coord.x % scale.sx, coord.y % scale.sy };
 }
 
 Delta operator%( Coord const& coord, Delta const& delta ) {
-  return {coord.x % delta.w, coord.y % delta.h};
+  return { coord.x % delta.w, coord.y % delta.h };
 }
 
 Scale operator*( Scale const& lhs, Scale const& rhs ) {
-  return {lhs.sx * rhs.sx, lhs.sy * rhs.sy};
+  return { lhs.sx * rhs.sx, lhs.sy * rhs.sy };
 }
 
 Scale operator/( Scale const& lhs, Scale const& rhs ) {
-  return {lhs.sx / rhs.sx, lhs.sy / rhs.sy};
+  return { lhs.sx / rhs.sx, lhs.sy / rhs.sy };
 }
 
 } // namespace rn

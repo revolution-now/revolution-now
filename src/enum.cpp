@@ -19,6 +19,7 @@
 
 // Revolution Now (for importing enum types)
 #include "conductor.hpp"
+#include "main-menu.hpp"
 #include "window.hpp"
 
 // base-util
@@ -71,14 +72,15 @@ using EnumNameMap = FlatMap<char const*, EnumNameFunc>;
 
 EnumNameMap& enum_display_names() {
   static auto m = [] {
-    return EnumNameMap{EVAL( PP_MAP_COMMAS(
+    return EnumNameMap{ EVAL( PP_MAP_COMMAS(
         ENUM_TO_STR_FUNC, //
         /*************************************************/
-        ui::e_confirm,  //
-        e_music_player, //
-        e_commodity     //
+        ui::e_confirm,   //
+        e_music_player,  //
+        e_commodity,     //
+        e_main_menu_item //
         /*************************************************/
-        ) )};
+        ) ) };
   }();
   return m;
 };
