@@ -23,7 +23,6 @@ enum class e_( image, europe );
 Texture const& image( e_image which );
 
 Plane* image_plane();
-void   image_plane_enable( bool enable );
 void   image_plane_set( e_image image );
 
 } // namespace rn

@@ -11,7 +11,6 @@
 #include "main-menu.hpp"
 
 // Revolution Now
-#include "compositor.hpp"
 #include "gfx.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -56,12 +55,10 @@ bool is_item_enabled( e_main_menu_item item ) {
 *****************************************************************/
 struct MainMenuPlane : public Plane {
   MainMenuPlane() = default;
-  bool enabled() const override { return enabled_; }
   bool covers_screen() const override { return true; }
   void draw( Texture& tx ) const override {
     tile_sprite( tx, g_tile::wood_middle,
-                 compositor::section(
-                     compositor::e_section::non_menu_bar ) );
+                 main_window_logical_rect() );
     auto screen    = main_window_logical_size();
     H    h         = screen.h / 2_sy;
     auto num_items = values<e_main_menu_item>.size();
@@ -126,7 +123,6 @@ struct MainMenuPlane : public Plane {
     }
     return handled;
   }
-  bool enabled_{ true };
 };
 
 MainMenuPlane g_main_menu_plane;
@@ -138,13 +134,6 @@ Plane* main_menu_plane() { return &g_main_menu_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-void show_main_menu_plane() {
-  g_main_menu_plane.enabled_ = true;
-}
-void hide_main_menu_plane() {
-  g_main_menu_plane.enabled_ = false;
-}
-
 void set_main_menu( e_main_menu_type type ) {
   g_type = type;
   if( !is_item_enabled( g_curr_item ) ) {

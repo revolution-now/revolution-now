@@ -143,7 +143,6 @@ bool was_next_turn_button_clicked();
 ** Miscellaneous Rendering
 *****************************************************************/
 Plane* effects_plane();
-void   effects_plane_enable( bool enable );
 
 void reset_fade_to_dark( std::chrono::milliseconds wait,
                          std::chrono::milliseconds fade,

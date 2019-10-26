@@ -50,6 +50,17 @@ namespace {
 constexpr auto num_planes =
     static_cast<size_t>( e_plane::_size() );
 
+// The `values` array should be a constexpr.
+vector<e_plane> g_plane_list{ values<e_plane>.begin(),
+                              values<e_plane>.end() };
+// When a new list of planes is set, it will be set here instead
+// of modifying the primary one. This is to guarantee that no one
+// can mutate the primary list at the wrong time (i.e., while it
+// is being iterated over). Only at the start of each frame will
+// the contents of this vector (if present) be moved into the
+// primary one above.
+Opt<vector<e_plane>> g_plane_list_next;
+
 /****************************************************************
 ** Plane Textures
 *****************************************************************/
@@ -74,7 +85,6 @@ Texture& plane_tx( e_plane plane ) {
 *****************************************************************/
 struct InactivePlane : public Plane {
   InactivePlane() {}
-  bool enabled() const override { return false; }
   bool covers_screen() const override { return false; }
   void draw( Texture& /*unused*/ ) const override {}
 };
@@ -86,14 +96,13 @@ InactivePlane dummy;
 *****************************************************************/
 // This plane is intended to be:
 //
-//   1) Always present / enabled
+//   1) Always present
 //   2) Always invisible
 //   3) Always on top
 //   4) Catching any global events (such as special key presses)
 //
 struct OmniPlane : public Plane {
   OmniPlane() = default;
-  bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void draw( Texture& /*unused*/ ) const override {}
   bool input( input::event_t const& event ) override {
@@ -120,8 +129,11 @@ struct OmniPlane : public Plane {
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
+            handled = false;
             break;
           case ::SDLK_ESCAPE: //
+            // FIXME: this probably shouldn't be in the omni
+            // plane.
             handled = back_to_main_menu();
             break;
           default: //
@@ -165,11 +177,12 @@ DragState g_drag_state;
 ** Plane Range Combinators
 *****************************************************************/
 auto relevant_planes() {
-  auto not_covers_screen = L( !_.second->covers_screen() );
-  auto enabled           = L( _.second->enabled() );
-  return rv::zip( values<e_plane>, planes ) //
-         | rv::filter( enabled )            //
-         | rv::reverse                      //
+  static auto not_covers_screen =
+      L( !_.second->covers_screen() );
+  auto plane_ptrs =
+      g_plane_list | rv::transform( L( plane( _ ) ) );
+  return rv::zip( g_plane_list, plane_ptrs ) //
+         | rv::reverse                       //
          | take_while_inclusive( not_covers_screen );
 }
 
@@ -282,6 +295,25 @@ Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
 /****************************************************************
 ** External API
 *****************************************************************/
+void set_plane_list( Vec<e_plane> const& arr ) {
+  vector<e_plane>  res;
+  FlatSet<e_plane> set;
+  res.reserve( e_plane::_size() );
+  for( auto plane : arr ) {
+    CHECK( plane != e_plane::omni );
+    CHECK( !set.contains( plane ),
+           "plane {} appears twice in list.", plane );
+    set.insert( plane );
+    res.push_back( plane );
+  }
+  res.push_back( e_plane::omni );
+  // Only assign to the global variable as a last step, that way
+  // if we encounter an error we still have a usable plane list.
+  lg.debug( "setting next plane list: {}",
+            FmtJsonStyleList{ res } );
+  g_plane_list_next.emplace( std::move( res ) );
+}
+
 void draw_all_planes( Texture& tx ) {
   clear_texture_black( tx );
 
@@ -297,12 +329,12 @@ void draw_all_planes( Texture& tx ) {
   }
 }
 
-void update_all_planes_start() {
+void advance_plane_state() {
+  if( g_plane_list_next.has_value() ) {
+    g_plane_list      = std::move( *g_plane_list_next );
+    g_plane_list_next = nullopt;
+  }
   for( auto [e, ptr] : relevant_planes() ) ptr->on_frame_start();
-}
-
-void update_all_planes_end() {
-  for( auto [e, ptr] : relevant_planes() ) ptr->on_frame_end();
 }
 
 bool send_input_to_planes( input::event_t const& event ) {
@@ -310,7 +342,6 @@ bool send_input_to_planes( input::event_t const& event ) {
   if_v( event, input::mouse_drag_event_t, drag_event ) {
     if( g_drag_state.plane ) {
       auto& plane = Plane::get( *g_drag_state.plane );
-      CHECK( plane.enabled() );
       // Drag should already be in progress.
       CHECK( drag_event->state.phase != +e_drag_phase::begin );
       if( g_drag_state.send_as_motion ) {

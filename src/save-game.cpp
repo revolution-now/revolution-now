@@ -20,6 +20,7 @@
 
 // Revolution Now (save-state modules)
 #include "id.hpp"
+#include "plane-ctrl.hpp"
 #include "player.hpp"
 #include "terrain.hpp"
 #include "turn.hpp"
@@ -108,6 +109,7 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
   XP_OR_RETURN_(
       savegame_deserializer( root->terrain_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->turn_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->plane_state() ) );
   return xp_success_t{};
 }
 

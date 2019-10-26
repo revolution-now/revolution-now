@@ -1,0 +1,19 @@
+// **************************************************************
+// sg-plane.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-26.
+//
+// Description: Serializable types for planes.
+//
+// **************************************************************
+include "plane.fbs";
+
+namespace fb;
+
+table SG_Plane {
+  planes         : [e_plane];
+  in_game_planes : [e_plane];
+  console_open   : bool;
+}

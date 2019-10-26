@@ -42,17 +42,10 @@ fs::path const& image_file_path( e_image image ) {
 
 struct ImagePlane : public Plane {
   // Implement Plane
-  bool enabled() const override {
-    check_invariants();
-    return enabled_;
-  }
-  // Implement Plane
   bool covers_screen() const override { return true; }
   // Implement Plane
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
-    check_invariants();
-    CHECK( enabled_ );
     auto& image_tx    = val_or_die( g_images, *image );
     auto  image_delta = image_tx.size();
     auto  win_rect    = main_window_logical_rect();
@@ -60,11 +53,6 @@ struct ImagePlane : public Plane {
     copy_texture( image_tx, tx, dest_coord );
   }
 
-  void check_invariants() const {
-    if( enabled_ ) CHECK( image.has_value() );
-  }
-
-  bool         enabled_{false};
   Opt<e_image> image{};
 };
 
@@ -75,8 +63,8 @@ ImagePlane g_image_plane;
 // is no need for a corresponding `release` function.
 void init_images() {
   for( auto image : values<e_image> ) {
-    g_images.insert( {image, Texture::load_image(
-                                 image_file_path( image ) )} );
+    g_images.insert( { image, Texture::load_image(
+                                  image_file_path( image ) ) } );
   }
 }
 
@@ -92,11 +80,6 @@ REGISTER_INIT_ROUTINE( images );
 ** Public API
 *****************************************************************/
 Plane* image_plane() { return &g_image_plane; }
-
-void image_plane_enable( bool enable ) {
-  g_image_plane.enabled_ = enable;
-  g_image_plane.check_invariants();
-}
 
 void image_plane_set( e_image image ) {
   lg.debug( "setting image background to {}", image );

@@ -87,25 +87,28 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
 
   render_fill_rect( tx, color, rect );
 
-  render_line( tx, light1, origin + 1_w, {0_h, delta.w - 1_w} );
+  render_line( tx, light1, origin + 1_w,
+               { 0_h, delta.w - 1_w } );
   render_line( tx, light1, origin + ( delta.w - 1_w ),
-               {delta.h - 1_h, 0_w} );
-  render_line( tx, light2, origin + 4_w, {0_h, delta.w - 4_w} );
+               { delta.h - 1_h, 0_w } );
+  render_line( tx, light2, origin + 4_w,
+               { 0_h, delta.w - 4_w } );
   render_line( tx, light2, origin + ( delta.w - 1_w ),
-               {delta.h - 4_h, 0_w} );
-  render_line( tx, light3, origin + 7_w, {0_h, delta.w - 7_w} );
+               { delta.h - 4_h, 0_w } );
+  render_line( tx, light3, origin + 7_w,
+               { 0_h, delta.w - 7_w } );
   render_line( tx, light3, origin + ( delta.w - 1_w ),
-               {delta.h - 7_h, 0_w} );
+               { delta.h - 7_h, 0_w } );
 
-  render_line( tx, dark1, origin + 1_h, {delta.h - 1_h, 0_w} );
+  render_line( tx, dark1, origin + 1_h, { delta.h - 1_h, 0_w } );
   render_line( tx, dark1, origin + ( delta.h - 1_h ),
-               {0_h, delta.w - 1_w} );
-  render_line( tx, dark2, origin + 4_h, {delta.h - 4_h, 0_w} );
+               { 0_h, delta.w - 1_w } );
+  render_line( tx, dark2, origin + 4_h, { delta.h - 4_h, 0_w } );
   render_line( tx, dark2, origin + ( delta.h - 1_h ),
-               {0_h, delta.w - 4_w} );
-  render_line( tx, dark3, origin + 7_h, {delta.h - 7_h, 0_w} );
+               { 0_h, delta.w - 4_w } );
+  render_line( tx, dark3, origin + 7_h, { delta.h - 7_h, 0_w } );
   render_line( tx, dark3, origin + ( delta.h - 1_h ),
-               {0_h, delta.w - 7_w} );
+               { 0_h, delta.w - 7_w } );
 
   auto const& char_tx = render_text(
       font::nat_icon(), text_color, string( 1, c ) );
@@ -113,7 +116,7 @@ Texture render_nationality_icon_impl( e_nation nation, char c ) {
   auto char_tx_size = char_tx.size();
   copy_texture(
       char_tx, tx,
-      centered( char_tx_size, rect ) + Delta{1_w, 0_h} );
+      centered( char_tx_size, rect ) + Delta{ 1_w, 0_h } );
 
   return tx;
 }
@@ -122,7 +125,7 @@ struct NatIconRenderDesc {
   e_nation nation;
   char     c;
 
-  auto to_tuple() const { return tuple{nation, c}; }
+  auto to_tuple() const { return tuple{ nation, c }; }
 
   // Abseil hashing API.
   template<typename H>
@@ -145,7 +148,7 @@ Texture const& render_nationality_icon( e_nation nation,
     return render_nationality_icon_impl( nation, c );
   };
 
-  NatIconRenderDesc desc{nation, c};
+  NatIconRenderDesc desc{ nation, c };
 
   if( auto maybe_cached = bu::val_safe( nat_icon_cache, desc );
       maybe_cached.has_value() )
@@ -170,7 +173,7 @@ void render_nationality_icon( Texture&              dest,
           ( ( 1_w * g_tile_width ) - nationality_icon_size.w );
       break;
     case +e_direction::se:
-      pixel_coord += ( ( Delta{1_w, 1_h} * g_tile_scale ) -
+      pixel_coord += ( ( Delta{ 1_w, 1_h } * g_tile_scale ) -
                        nationality_icon_size );
       break;
     case +e_direction::sw:
@@ -181,7 +184,7 @@ void render_nationality_icon( Texture&              dest,
     default: break;
   };
 
-  char c{'-'}; // gcc seems to want us to initialize this
+  char c{ '-' }; // gcc seems to want us to initialize this
   switch( orders ) {
     case +e_unit_orders::none: c = '-'; break;
     case +e_unit_orders::sentry: c = 'S'; break;
@@ -339,8 +342,8 @@ void render_world_viewport( ViewportState& state ) {
     CHECK( -1 <= delta.w && delta.w <= 1 );
     CHECK( -1 <= delta.h && delta.h <= 1 );
     delta *= g_tile_scale;
-    Delta pixel_delta{W( int( delta.w._ * slide->percent ) ),
-                      H( int( delta.h._ * slide->percent ) )};
+    Delta pixel_delta{ W( int( delta.w._ * slide->percent ) ),
+                       H( int( delta.h._ * slide->percent ) ) };
 
     auto  covered = viewport().covered_tiles();
     Coord pixel_coord =
@@ -391,7 +394,7 @@ void render_world_viewport( ViewportState& state ) {
 
 namespace {
 
-ViewportState g_viewport_state{viewport_state::none{}};
+ViewportState g_viewport_state{ viewport_state::none{} };
 
 // If this is default constructed then it should represent "no
 // actions need to be taken."
@@ -493,7 +496,6 @@ ClickTileActions click_on_world_tile( Coord coord ) {
 
 struct ViewportPlane : public Plane {
   ViewportPlane() = default;
-  bool enabled() const override { return true; }
   bool covers_screen() const override { return true; }
   void draw( Texture& tx ) const override {
     render_world_viewport( g_viewport_state );
@@ -610,7 +612,7 @@ struct ViewportPlane : public Plane {
                 handled = false;
                 if( key_event.direction ) {
                   blink_unit.orders =
-                      orders::direction{*key_event.direction};
+                      orders::direction{ *key_event.direction };
                   handled = true;
                 }
                 break;
@@ -725,7 +727,6 @@ namespace {
 
 struct PanelPlane : public Plane {
   PanelPlane() = default;
-  bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
 
   static auto rect() {
@@ -734,7 +735,9 @@ struct PanelPlane : public Plane {
   static W panel_width() { return rect().w; }
   static H panel_height() { return rect().h; }
 
-  Delta delta() const { return {panel_width(), panel_height()}; }
+  Delta delta() const {
+    return { panel_width(), panel_height() };
+  }
   Coord origin() const { return rect().upper_left(); };
 
   ui::ButtonView& next_turn_button() {
@@ -816,7 +819,7 @@ struct PanelPlane : public Plane {
   }
 
   UPtr<ui::InvisibleView> view;
-  bool                    next_turn_clicked{false};
+  bool                    next_turn_clicked{ false };
 };
 
 PanelPlane g_panel_plane;
@@ -835,7 +838,6 @@ namespace {
 
 struct EffectsPlane : public Plane {
   EffectsPlane() = default;
-  bool enabled() const override { return enabled_; }
   bool covers_screen() const override { return false; }
   void draw( Texture& tx ) const override {
     using namespace chrono;
@@ -861,7 +863,6 @@ struct EffectsPlane : public Plane {
   Time_t  start_time;
   Time_t  end_time;
   uint8_t target_alpha;
-  bool    enabled_{false};
 };
 
 EffectsPlane g_effects_plane;
@@ -869,10 +870,6 @@ EffectsPlane g_effects_plane;
 } // namespace
 
 Plane* effects_plane() { return &g_effects_plane; }
-
-void effects_plane_enable( bool enable ) {
-  g_effects_plane.enabled_ = enable;
-}
 
 void reset_fade_to_dark( chrono::milliseconds wait,
                          chrono::milliseconds fade,

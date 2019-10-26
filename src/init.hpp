@@ -42,6 +42,7 @@ enum class e_( init_routine,
                midiseq,       //
                oggplayer,     //
                planes,        //
+               plane_config,  //
                renderer,      //
                rng,           //
                screen,        //

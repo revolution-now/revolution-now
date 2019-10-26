@@ -62,7 +62,6 @@ struct ConsolePlane : public Plane {
     show_percent_ += show_ ? .1 : -.1;
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
   }
-  bool enabled() const override { return true; }
   bool covers_screen() const override { return false; }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );

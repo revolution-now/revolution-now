@@ -172,7 +172,6 @@ namespace {
 *****************************************************************/
 struct WindowPlane : public Plane {
   WindowPlane() = default;
-  bool enabled() const override { return wm.num_windows() > 0; }
   bool covers_screen() const override { return false; }
   void on_frame_start() override { wm.remove_closed_windows(); }
   void draw( Texture& tx ) const override {
@@ -180,17 +179,14 @@ struct WindowPlane : public Plane {
     wm.draw_layout( tx );
   }
   bool input( input::event_t const& event ) override {
-    CHECK( wm.num_windows() != 0 );
     // Windows are modal, so ignore the result of this function
     // because we need to swallow the event whether the window
     // manager handled it or not. I.e., we cannot ever let an
     // event go down to a lower plane.
-    (void)wm.input( event );
-    return true;
+    return wm.input( event );
   }
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    CHECK( wm.num_windows() != 0 );
     return wm.can_drag( button, origin );
   }
   void on_drag( input::mod_keys const& mod,
@@ -222,16 +218,17 @@ namespace {
 // that this Delta must be multiplied by two to get the total
 // change in width/height of a window with such a border.
 Delta const& window_border() {
-  static Delta const delta{W( config_ui.window.border_width ),
-                           H( config_ui.window.border_width )};
+  static Delta const delta{ W( config_ui.window.border_width ),
+                            H( config_ui.window.border_width ) };
   return delta;
 }
 
 // Number of pixels of padding between border and start of the
 // window's view.
 Delta const& window_padding() {
-  static Delta const delta{W( config_ui.window.window_padding ),
-                           H( config_ui.window.window_padding )};
+  static Delta const delta{
+      W( config_ui.window.window_padding ),
+      H( config_ui.window.window_padding ) };
   return delta;
 }
 
@@ -267,10 +264,10 @@ void Window::draw( Texture& tx ) const {
   auto win_size = delta();
   render_fill_rect(
       tx, Color( 0, 0, 0, 64 ),
-      Rect::from( position + Delta{4_w, 4_h}, win_size ) );
+      Rect::from( position + Delta{ 4_w, 4_h }, win_size ) );
   render_fill_rect(
       tx, config_palette.orange.sat0.lum1,
-      {position.x, position.y, win_size.w, win_size.h} );
+      { position.x, position.y, win_size.w, win_size.h } );
   auto inside_border = position + window_border();
   auto inner_size    = win_size - Scale( 2 ) * window_border();
   render_fill_rect( tx, config_palette.orange.sat1.lum4,
@@ -357,6 +354,7 @@ Window* WindowManager::add_window( string title_ ) {
 }
 
 bool WindowManager::input( input::event_t const& event ) {
+  if( this->num_windows() == 0 ) return false;
   auto& win = focused();
   auto  view_rect =
       Rect::from( win.view_pos(), win.view->delta() );
@@ -397,6 +395,7 @@ bool WindowManager::input( input::event_t const& event ) {
 
 Plane::DragInfo WindowManager::can_drag(
     input::e_mouse_button /*unused*/, Coord origin ) {
+  if( num_windows() == 0 ) return Plane::e_accept_drag::no;
   // If we're in the title bar then we'll drag; if we not, but
   // still in the window somewhere, we will "swallow" which means
   // that no other planes should get this drag even (because the
@@ -476,8 +475,8 @@ void ok_cancel_window_builder(
   async_window_builder( title, [=]( auto* win ) {
     auto ok_cancel_view = make_unique<OkCancelView>(
         /*on_ok=*/
-        [win, on_result, validator{std::move( validator )},
-         get_result{std::move( get_result )}] {
+        [win, on_result, validator{ std::move( validator ) },
+         get_result{ std::move( get_result ) }] {
           lg.trace( "selected ok." );
           decltype( auto ) proposed = get_result();
           if( validator( proposed ) ) {
@@ -512,15 +511,15 @@ void ok_cancel_window_builder(
 void ok_cancel( string_view                   msg,
                 function<void( e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
-      [on_result{std::move( on_result )}]( Opt<int> o ) {
+      [on_result{ std::move( on_result ) }]( Opt<int> o ) {
         if( o.has_value() ) return on_result( e_ok_cancel::ok );
         on_result( e_ok_cancel::cancel );
       };
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
-      /*highlight=*/config_ui.dialog_text.highlighted};
+      /*highlight=*/config_ui.dialog_text.highlighted };
   TextReflowInfo r_info{
-      /*max_cols=*/config_ui.dialog_text.columns};
+      /*max_cols=*/config_ui.dialog_text.columns };
   auto view =
       make_unique<TextView>( string( msg ), m_info, r_info );
 
@@ -546,9 +545,9 @@ void text_input_box( string_view title, string_view msg,
                      function<void( Opt<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
-      /*highlight=*/config_ui.dialog_text.highlighted};
+      /*highlight=*/config_ui.dialog_text.highlighted };
   TextReflowInfo r_info{
-      /*max_cols=*/config_ui.dialog_text.columns};
+      /*max_cols=*/config_ui.dialog_text.columns };
   auto text =
       make_unique<TextView>( string( msg ), m_info, r_info );
   auto le_view =
@@ -561,7 +560,7 @@ void text_input_box( string_view title, string_view msg,
       [&]( function<void( bool )> enable_ok_button ) {
         LineEditorView::OnChangeFunc on_change =
             [validator,
-             enable_ok_button{std::move( enable_ok_button )}](
+             enable_ok_button{ std::move( enable_ok_button ) }](
                 string const& new_str ) {
               if( validator( new_str ) )
                 enable_ok_button( true );
@@ -578,7 +577,7 @@ void text_input_box( string_view title, string_view msg,
         return make_unique<VerticalArrayView>(
             std::move( view_vec ),
             VerticalArrayView::align::center );
-      }};
+      } };
 
   ok_cancel_window_builder<string>(
       /*title=*/title,
@@ -596,7 +595,8 @@ void int_input_box( std::string_view title, std::string_view msg,
   using namespace util::infix;
   text_input_box(
       title, msg, make_int_validator( min, max ),
-      [on_result{std::move( on_result )}]( Opt<string> result ) {
+      [on_result{ std::move( on_result ) }](
+          Opt<string> result ) {
         on_result( result | fmap_join( L( util::stoi( _ ) ) ) );
       } );
 }
@@ -622,9 +622,7 @@ string select_box( string_view title, Vec<Str> options ) {
   selector_ptr->grow_to( win->inside_padding_rect().w );
   reset_fade_to_dark( chrono::milliseconds( 1500 ),
                       chrono::milliseconds( 3000 ), 65 );
-  effects_plane_enable( true );
   frame_loop( true, finished );
-  effects_plane_enable( false );
   lg.info( "selected: {}", selector_ptr->get_selected() );
   auto result = selector_ptr->get_selected();
   win->close_window();
@@ -639,7 +637,7 @@ void message_box( std::string_view msg ) {
   bool pressed_ok = false;
 
   auto button = make_unique<ButtonView>(
-      "OK", Delta{2_h, 8_w}, [&] { pressed_ok = true; } );
+      "OK", Delta{ 2_h, 8_w }, [&] { pressed_ok = true; } );
 
   vector<unique_ptr<View>> view_vec;
   view_vec.emplace_back( make_unique<OneLineStringView>(
@@ -702,9 +700,9 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
   for( auto id : ids ) {
     auto const& unit = unit_from_id( id );
 
-    UnitInfo info{/*original_orders=*/unit.orders(),
-                  /*current_orders=*/unit.orders(),
-                  /*is_activated=*/false};
+    UnitInfo info{ /*original_orders=*/unit.orders(),
+                   /*current_orders=*/unit.orders(),
+                   /*is_activated=*/false };
     infos[id] = info;
   }
   CHECK( ids.size() == infos.size() );
@@ -829,10 +827,10 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
     for( auto const& [id, info] : infos ) {
       if( info.is_activated ) {
         CHECK( info.current_orders == e_unit_orders::none );
-        res.push_back( {id, e_unit_selection::activate} );
+        res.push_back( { id, e_unit_selection::activate } );
       } else if( info.current_orders != info.original_orders ) {
         CHECK( info.current_orders == e_unit_orders::none );
-        res.push_back( {id, e_unit_selection::clear_orders} );
+        res.push_back( { id, e_unit_selection::clear_orders } );
       }
     }
   }

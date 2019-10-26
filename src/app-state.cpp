@@ -18,6 +18,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "main-menu.hpp"
+#include "plane-ctrl.hpp"
 #include "save-game.hpp"
 #include "turn.hpp"
 #include "window.hpp"
@@ -87,28 +88,27 @@ fsm_class( App ) { //
 
   // FIXME: this should be done in a fsm_on_change_to.
   fsm_transition_( App, leaving, ok, ->, main_no_game ) {
-    show_main_menu_plane();
+    set_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::no_game );
     return {};
   }
 
   // FIXME: this should be done in a fsm_on_change_to.
   fsm_transition_( App, leaving, cancel, ->, main_in_game ) {
-    // probably not necessary.
-    show_main_menu_plane();
+    set_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::in_game );
     return {};
   }
 
   // FIXME: this should be done in a fsm_on_change_to.
   fsm_transition_( App, saving, to_main, ->, main_in_game ) {
-    show_main_menu_plane();
+    set_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::in_game );
     return {};
   }
 
   fsm_transition_( App, in_game, to_main, ->, main_in_game ) {
-    show_main_menu_plane();
+    set_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::in_game );
     return {};
   }
@@ -141,13 +141,13 @@ fsm_class( App ) { //
 
   // FIXME: this should be done in an on-leave function.
   fsm_transition_( App, main_in_game, to_game, ->, in_game ) {
-    hide_main_menu_plane();
+    set_plane_config( e_plane_config::play_game );
     return {};
   }
 
   // FIXME: this should be done in an on-leave function.
   fsm_transition_( App, creating, to_game, ->, in_game ) {
-    hide_main_menu_plane();
+    set_plane_config( e_plane_config::terrain_view );
     conductor::play_request(
         conductor::e_request::fife_drum_happy,
         conductor::e_request_probability::always );
@@ -156,7 +156,7 @@ fsm_class( App ) { //
 
   // FIXME: this should be done in an on-leave function.
   fsm_transition_( App, loading, to_game, ->, in_game ) {
-    hide_main_menu_plane();
+    set_plane_config( e_plane_config::play_game );
     conductor::play_request(
         conductor::e_request::fife_drum_happy,
         conductor::e_request_probability::always );

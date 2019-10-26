@@ -14,16 +14,23 @@
 
 // Revolution Now
 #include "enum.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "input.hpp"
 #include "menu.hpp"
 #include "tx.hpp"
+
+// Flatbuffers
+#include "fb/plane_generated.h"
 
 // base-util
 #include "base-util/non-copyable.hpp"
 
 // function_ref
 #include "tl/function_ref.hpp"
+
+// C++ standard library
+#include <array>
 
 namespace rn {
 
@@ -42,6 +49,7 @@ enum class e_( plane,
                /*******/  //
                omni // Always present, invisible, and first.
 );
+SERIALIZABLE_ENUM( e_plane );
 
 struct Plane : public util::non_copy_non_move {
   virtual ~Plane() = default;
@@ -51,9 +59,6 @@ struct Plane : public util::non_copy_non_move {
   // Will be called on all planes (whether enabled or not) before
   // any other methods are called on it. Default does nothing.
   void virtual initialize();
-
-  // Is this plane enabled.  If not, it won't be rendered.
-  bool virtual enabled() const = 0;
 
   // Will rendering this plane cover all pixels?  If so, then
   // planes under it will not be rendered.
@@ -152,13 +157,18 @@ struct Plane : public util::non_copy_non_move {
       e_menu_item item ) const;
 };
 
+// Last in the list becomes the top of the stack, and any planes
+// that are not in this list are disabled. The omni plane should
+// not be in this list, as it will always be enabled as the
+// front-most plane.
+void set_plane_list( Vec<e_plane> const& planes );
+
 void draw_all_planes( Texture& tx = Texture::screen() );
 
 // This will call the on_frame_{start,end} method on each plane
 // to update any state that it has. It will only be called on
 // frames that are enabled and visible.
-void update_all_planes_start();
-void update_all_planes_end();
+void advance_plane_state();
 
 // Returns true if one of the planes handled the input, false
 // otherwise. At most one plane will handle the input.

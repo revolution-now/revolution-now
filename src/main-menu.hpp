@@ -41,10 +41,6 @@ Opt<e_main_menu_item> main_menu_selection();
 struct Plane;
 Plane* main_menu_plane();
 
-// FIXME: temporary.
-void show_main_menu_plane();
-void hide_main_menu_plane();
-
 /****************************************************************
 ** Testing
 *****************************************************************/
