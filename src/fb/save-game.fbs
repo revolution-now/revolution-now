@@ -8,6 +8,7 @@
 // Description: Top-level table for save-game files.
 //
 // **************************************************************
+include "sg-europort-view.fbs";
 include "sg-id.fbs";
 include "sg-plane.fbs";
 include "sg-player.fbs";
@@ -18,10 +19,11 @@ include "sg-unit.fbs";
 namespace fb;
 
 table SaveGame {
-  id_state      : SG_Id;
-  unit_state    : SG_Unit;
-  player_state  : SG_Player;
-  turn_state    : SG_Turn;
-  plane_state   : SG_Plane;
-  terrain_state : SG_Terrain;
+  id_state       : SG_Id;
+  unit_state     : SG_Unit;
+  player_state   : SG_Player;
+  turn_state     : SG_Turn;
+  plane_state    : SG_Plane;
+  euroview_state : SG_EuroportView;
+  terrain_state  : SG_Terrain;
 }

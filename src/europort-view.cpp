@@ -17,6 +17,7 @@
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "europort.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "fsm.hpp"
 #include "gfx.hpp"
@@ -34,6 +35,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "window.hpp"
+
+// Flatbuffers
+#include "fb/sg-europort-view_generated.h"
 
 // base-util
 #include "base-util/optional.hpp"
@@ -58,11 +62,29 @@ constexpr Delta const k_rendered_commodity_offset{ 8_w, 3_h };
 constexpr int const k_default_market_quantity = 100;
 
 /****************************************************************
-** Selected Unit
+** Save-Game State
 *****************************************************************/
-// Global State. This can be any ship that is visible on the eu-
-// rope view.
-Opt<UnitId> g_selected_unit;
+struct SAVEGAME_STRUCT( EuroportView ) {
+  // Fields that are actually serialized.
+
+  // clang-format off
+  SAVEGAME_MEMBERS( EuroportView,
+  ( Opt<UnitId>, selected_unit ));
+  // clang-format on
+
+public:
+  // Fields that are derived from the serialized fields.
+
+private:
+  SAVEGAME_FRIENDS( EuroportView );
+  SAVEGAME_SYNC() {
+    // Sync all fields that are derived from serialized fields
+    // and then validate (check invariants).
+
+    return xp_success_t{};
+  }
+};
+SAVEGAME_IMPL( EuroportView );
 
 /****************************************************************
 ** Draggable Object
@@ -116,7 +138,7 @@ Opt<Cargo> draggable_to_cargo_object(
 
 Opt<DraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  return g_selected_unit                                 //
+  return SG().selected_unit                              //
          | fmap( unit_from_id )                          //
          | fmap_join( LC( _.get().cargo().at( slot ) ) ) //
          | fmap_join( LC( cargo_slot_to_draggable( slot, _ ) ) );
@@ -834,9 +856,9 @@ public:
         render_unit( tx, unit_with_pos.id,
                      unit_with_pos.pixel_coord + offset,
                      /*with_icon=*/false );
-    if( g_selected_unit ) {
+    if( SG().selected_unit ) {
       for( auto [id, coord] : units_ ) {
-        if( id == *g_selected_unit ) {
+        if( id == *SG().selected_unit ) {
           render_rect( tx, Color::green(),
                        Rect::from( coord, g_tile_delta )
                            .shifted_by( offset ) );
@@ -1121,7 +1143,7 @@ public:
     Opt<ActiveCargo> res;
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
       res = ActiveCargo{
-          /*maybe_active_unit_=*/g_selected_unit,
+          /*maybe_active_unit_=*/SG().selected_unit,
           /*bounds_=*/maybe_active_cargo_box->bounds() };
       auto lr_delta =
           ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
@@ -2046,8 +2068,8 @@ struct EuropePlane : public Plane {
             if( auto maybe_pair = maybe_entity->obj_under_cursor(
                     shifted_pos );
                 maybe_pair ) {
-              g_selected_unit = maybe_pair->first;
-              handled         = true;
+              SG().selected_unit = maybe_pair->first;
+              handled            = true;
             }
           }
         };

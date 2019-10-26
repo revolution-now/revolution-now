@@ -19,6 +19,7 @@
 #include "serial.hpp"
 
 // Revolution Now (save-state modules)
+#include "europort-view.hpp"
 #include "id.hpp"
 #include "plane-ctrl.hpp"
 #include "player.hpp"
@@ -110,6 +111,8 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
       savegame_deserializer( root->terrain_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->turn_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->plane_state() ) );
+  XP_OR_RETURN_(
+      savegame_deserializer( root->euroview_state() ) );
   return xp_success_t{};
 }
 

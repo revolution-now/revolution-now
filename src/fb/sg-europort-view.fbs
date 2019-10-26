@@ -1,0 +1,17 @@
+// **************************************************************
+// europort-view.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-26.
+//
+// Description: Serializable types for the europort-view module.
+//
+// **************************************************************
+include "vocab.fbs";
+
+namespace fb;
+
+table SG_EuroportView {
+  selected_unit : Opt_int;
+}
