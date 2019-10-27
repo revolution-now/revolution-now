@@ -123,8 +123,9 @@ public:
   // Process all pending events. NOTE: that, in processing an
   // event, additional events may be added to the queue; this
   // will keep processing until all such events have been han-
-  // dled.
-  void process_events() {
+  // dled.  Returns true if any events were processed.
+  bool process_events() {
+    bool processed_events = events_.size() > 0;
     while( auto maybe_event_ref = events_.front() ) {
       internal::log_event(
           demangled_typename<ChildT>(),
@@ -134,6 +135,7 @@ public:
                            fmt::format( "{}", state_ ) );
       events_.pop();
     }
+    return processed_events;
   }
 
   bool has_pending_events() const { return !events_.empty(); }

@@ -583,10 +583,6 @@ struct ViewportPlane : public Plane {
               case ::SDLK_z:
                 viewport().smooth_zoom_target( 1.0 );
                 break;
-              case ::SDLK_q:
-                // TODO: temporary
-                blink_unit.orders = orders::quit{};
-                break;
               case ::SDLK_w:
                 blink_unit.orders = orders::wait{};
                 break;

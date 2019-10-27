@@ -30,7 +30,6 @@ namespace {
 Opt<e_main_menu_item> g_item_sel;
 e_main_menu_type      g_type{ e_main_menu_type::no_game };
 e_main_menu_item      g_curr_item{ e_main_menu_item::new_ };
-;
 
 bool is_item_enabled( e_main_menu_item item ) {
   switch( item ) {

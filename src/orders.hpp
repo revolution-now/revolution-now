@@ -37,7 +37,6 @@ namespace rn {
 // would not be allowed. In that case, the orders are not al-
 // lowed.
 adt_rn( orders,                //
-        ( quit ),              //
         ( wait ),              //
         ( forfeight ),         //
         ( fortify ),           //

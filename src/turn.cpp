@@ -50,56 +50,78 @@ namespace {
 /****************************************************************
 ** FSMs
 *****************************************************************/
-adt_s_rn_( TurnState,                             //
-           ( starting_turn ),                     //
-           ( inside_turn,                         //
-             ( flat_queue<e_nation>, nations ) ), //
-           ( ending_turn )                        //
+adt_s_rn_( TurnCycleState,                          //
+           ( starting_cycle ),                      //
+           ( inside_cycle,                          //
+             ( bool, need_eot ),                    //
+             ( e_nation, nation ),                  //
+             ( flat_queue<e_nation>, remainder ) ), //
+           ( ending_cycle,                          //
+             ( bool, need_eot ) )                   //
 );
 
-adt_rn_( TurnEvent,     //
-         ( next_turn ), //
-         ( end_turn ),  //
-         ( start_turn ) //
+adt_rn_( TurnCycleEvent,         //
+         ( next_turn,            //
+           ( bool, need_eot ) ), //
+         ( end_cycle,            //
+           ( bool, need_eot ) )  //
 );
 
 // clang-format off
-fsm_transitions( Turn,
-  ((starting_turn, next_turn),  ->,  inside_turn   ),
-  ((inside_turn,   next_turn),  ->,  inside_turn   ),
-  ((inside_turn,   end_turn ),  ->,  ending_turn   ),
-  ((ending_turn,   next_turn),  ->,  starting_turn )
+fsm_transitions( TurnCycle,
+  ((starting_cycle, next_turn),  ->,  inside_cycle   ),
+  ((inside_cycle,   next_turn),  ->,  inside_cycle   ),
+  ((inside_cycle,   end_cycle),  ->,  ending_cycle   ),
+  ((ending_cycle,   next_turn),  ->,  starting_cycle )
 );
 // clang-format on
 
-fsm_class( Turn ) { //
-  fsm_init( TurnState::starting_turn{} );
+fsm_class( TurnCycle ) { //
+  fsm_init( TurnCycleState::starting_cycle{} );
 
-  fsm_transition_( Turn, starting_turn, next_turn, ->,
-                   inside_turn ) {
-    TurnState::inside_turn res{
-        /*nations=*/{} //
+  fsm_transition( TurnCycle, starting_cycle, next_turn, ->,
+                  inside_cycle ) {
+    (void)cur;
+    TurnCycleState::inside_cycle res{
+        /*need_eot=*/event.need_eot,  //
+        /*nation=*/e_nation::english, //
+        /*remainder=*/{}              //
     };
-    res.nations.push( e_nation::dutch );
-    res.nations.push( e_nation::english );
-    res.nations.push( e_nation::french );
-    res.nations.push( e_nation::spanish );
+    res.remainder.push( e_nation::french );
+    res.remainder.push( e_nation::dutch );
+    res.remainder.push( e_nation::spanish );
     return res;
   }
 
-  fsm_transition( Turn, inside_turn, next_turn, ->,
-                  inside_turn ) {
+  fsm_transition( TurnCycle, inside_cycle, next_turn, ->,
+                  inside_cycle ) {
     (void)event;
-    TurnState::inside_turn res = cur;
-    CHECK( res.nations.front(), "nation queue is empty." );
-    res.nations.pop();
-    if( !res.nations.front() )
-      this->send_event( TurnEvent::end_turn{} );
+    TurnCycleState::inside_cycle res = cur;
+
+    auto next = res.remainder.front();
+    CHECK( next, "nation remainder queue is empty." );
+    res.remainder.pop();
+    res.nation = *next;
+    res.need_eot &= event.need_eot;
     return res;
+  }
+
+  fsm_transition( TurnCycle, inside_cycle, end_cycle, ->,
+                  ending_cycle ) {
+    bool need_eot = event.need_eot && cur.need_eot;
+    if( need_eot ) {
+      // FIXME: temporary.
+      mark_end_of_turn();
+      auto& vp_state = viewport_rendering_state();
+      vp_state       = viewport_state::none{};
+    }
+    return {
+        /*need_eot=*/need_eot, //
+    };
   }
 };
 
-FSM_DEFINE_FORMAT_RN_( Turn );
+FSM_DEFINE_FORMAT_RN_( TurnCycle );
 
 /****************************************************************
 ** Save-Game State
@@ -109,7 +131,7 @@ struct SAVEGAME_STRUCT( Turn ) {
 
   // clang-format off
   SAVEGAME_MEMBERS( Turn,
-  ( TurnFsm, turn_state ));
+  ( TurnCycleFsm, cycle_state ));
   // clang-format on
 
 public:
@@ -127,6 +149,44 @@ private:
 SAVEGAME_IMPL( Turn );
 
 } // namespace
+
+/****************************************************************
+** Turn State Advancement
+*****************************************************************/
+void advance_turn_state() {
+  if( SG().cycle_state.process_events() )
+    lg.debug( "turn cycle state: {}", SG().cycle_state );
+  switch_( SG().cycle_state.state() ) {
+    case_( TurnCycleState::starting_cycle ) {
+      SG().cycle_state.send_event(
+          TurnCycleEvent::next_turn{ /*need_eot=*/true } );
+    }
+    case_( TurnCycleState::inside_cycle ) {
+      // If no units need to take orders this turn then we need
+      // to pause at the end of the turn to allow the user to
+      // take control or make changes.
+      bool need_eot = val.need_eot && true;
+      // TODO: check turn state here.
+      if( !val.remainder.empty() )
+        SG().cycle_state.send_event(
+            TurnCycleEvent::next_turn{ /*need_eot=*/need_eot } );
+      else
+        SG().cycle_state.send_event(
+            TurnCycleEvent::end_cycle{ /*need_eot=*/need_eot } );
+    }
+    case_( TurnCycleState::ending_cycle ) {
+      if( !val.need_eot ) {
+        SG().cycle_state.send_event(
+            TurnCycleEvent::next_turn{} );
+      } else {
+        if( was_next_turn_button_clicked() )
+          SG().cycle_state.send_event(
+              TurnCycleEvent::next_turn{} );
+      }
+    }
+    switch_exhaustive;
+  }
+}
 
 /****************************************************************
 ** Helpers
@@ -174,10 +234,6 @@ bool animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
-void advance_turn_state() {
-  //
-}
-
 e_turn_result turn() {
   // If no units need to take orders this turn then we need to
   // pause at the end of the turn to allow the user to take
@@ -191,7 +247,6 @@ e_turn_result turn() {
   // for( auto nation : {e_nation::dutch} ) {
   for( auto nation : { e_nation::english, e_nation::spanish } ) {
     auto res = turn( nation );
-    if( res == e_turn_result::quit ) return e_turn_result::quit;
     if( res == e_turn_result::orders_taken ) need_eot = false;
   }
 
@@ -373,9 +428,6 @@ e_turn_result turn( e_nation nation ) {
         auto& orders = *maybe_orders;
         lg.debug( "received orders: {}", orders );
 
-        if( util::holds<orders::quit>( orders ) )
-          return e_turn_result::quit;
-
         if( util::holds<orders::wait>( orders ) ) {
           q.push_back( q.front() );
           q.pop_front();
@@ -497,7 +549,5 @@ e_turn_result turn( e_nation nation ) {
   return orders_taken ? e_turn_result::orders_taken
                       : e_turn_result::no_orders_taken;
 }
-
-void linker_dont_discard_module_turn() {}
 
 } // namespace rn

@@ -136,6 +136,7 @@ Plane* viewport_plane();
 // TODO: move panel into is own module
 Plane* panel_plane();
 
+// FIXME: temporary.
 void mark_end_of_turn();
 bool was_next_turn_button_clicked();
 

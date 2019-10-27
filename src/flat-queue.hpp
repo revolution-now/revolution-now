@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "fmt-helper.hpp"
 
 namespace rn {
 
@@ -122,7 +123,7 @@ public:
     DCHECK( int( queue_.size() ) - front_lhs ==
             int( rhs.queue_.size() ) - front_rhs );
     for( int i = 0; i < int( size() ); ++i )
-      if( queue_[front_lhs] != rhs.queue_[front_rhs] )
+      if( queue_[front_lhs++] != rhs.queue_[front_rhs++] )
         return false;
     return true;
   }
@@ -130,6 +131,9 @@ public:
   bool operator!=( flat_queue<T> const& rhs ) const {
     return !( ( *this ) == rhs );
   }
+
+  // {fmt} formatter.
+  friend struct fmt::formatter<flat_queue<T>>;
 
 private:
   void check_invariants() {
@@ -178,3 +182,21 @@ expect<> deserialize( SrcT const* src, ::rn::flat_queue<T>* m,
 } // namespace serial
 
 } // namespace rn
+
+namespace fmt {
+// {fmt} formatter.
+template<typename T>
+struct formatter<::rn::flat_queue<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::flat_queue<T> const& o,
+               FormatContext&             ctx ) {
+    std::string res = "[front:";
+    for( int i = o.front_; i < int( o.queue_.size() ); ++i ) {
+      res += fmt::format( "{}", o.queue_[i] );
+      if( i != int( o.queue_.size() ) - 1 ) res += ',';
+    }
+    res += ']';
+    return formatter_base::format( res, ctx );
+  }
+};
+} // namespace fmt

@@ -20,11 +20,7 @@ namespace rn {
 
 DECLARE_SAVEGAME_SERIALIZERS( Turn );
 
-enum class ND e_turn_result {
-  orders_taken,
-  no_orders_taken,
-  quit
-};
+enum class ND e_turn_result { orders_taken, no_orders_taken };
 
 void advance_turn_state();
 

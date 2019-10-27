@@ -12,26 +12,30 @@ include "nation.fbs";
 
 namespace fb;
 
-namespace fb.TurnState;
+namespace fb.TurnCycleState;
 
-  table starting_turn {}
-  table ending_turn {}
-  table inside_turn {
-    nations : [e_nation];
+  table starting_cycle {}
+  table ending_cycle {
+    need_eot  : bool;
+  }
+  table inside_cycle {
+    need_eot  : bool;
+    nation    : e_nation;
+    remainder : [e_nation];
   }
 
   namespace fb;
 
-  table TurnState_t {
-    starting_turn : TurnState.starting_turn;
-    inside_turn   : TurnState.inside_turn;
-    ending_turn   : TurnState.ending_turn;
+  table TurnCycleState_t {
+    starting_cycle : TurnCycleState.starting_cycle;
+    inside_cycle   : TurnCycleState.inside_cycle;
+    ending_cycle   : TurnCycleState.ending_cycle;
   }
 
-table TurnFsm {
-  state : TurnState_t;
+table TurnCycleFsm {
+  state : TurnCycleState_t;
 }
 
 table SG_Turn {
-  turn_state : TurnFsm;
+  cycle_state : TurnCycleFsm;
 }

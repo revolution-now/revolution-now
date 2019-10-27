@@ -187,10 +187,9 @@ bool back_to_main_menu() {
 }
 
 bool advance_app_state() {
-  bool quit       = false;
-  bool had_events = g_app_state().has_pending_events();
-  g_app_state().process_events();
-  if( had_events ) lg.debug( "app state: {}", g_app_state() );
+  bool quit = false;
+  if( g_app_state().process_events() )
+    lg.debug( "app state: {}", g_app_state() );
   switch_( g_app_state().state() ) {
     case_( AppState::main_no_game ) {
       auto sel = main_menu_selection();

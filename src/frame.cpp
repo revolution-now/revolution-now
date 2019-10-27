@@ -17,6 +17,7 @@
 #include "macros.hpp"
 #include "math.hpp"
 #include "plane.hpp"
+#include "scope-exit.hpp"
 #include "screen.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
@@ -147,6 +148,12 @@ double   avg_frame_rate() { return frame_rate.average(); }
 
 void frame_loop( bool                     poll_input,
                  tl::function_ref<bool()> finished ) {
+  // FIXME: temporary.
+  static bool guard = false;
+  CHECK( !guard, "cannot re-enter frame_loop function." );
+  guard = true;
+  SCOPE_EXIT( guard = false );
+
   using namespace chrono;
 
   auto normal_frame_length =
