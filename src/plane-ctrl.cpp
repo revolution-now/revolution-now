@@ -71,13 +71,18 @@ private:
 SAVEGAME_IMPL( Plane );
 
 /****************************************************************
-** Set Planes
+** Helpers
 *****************************************************************/
 void set_planes() {
   vector<e_plane> res = SG().planes;
   if( SG().console_open ) res.push_back( e_plane::console );
   // This should be the only place where this is called.
   set_plane_list( res );
+}
+
+bool is_plane_enabled( e_plane pl ) {
+  return std::find( SG().planes.begin(), SG().planes.end(),
+                    pl ) != SG().planes.end();
 }
 
 /****************************************************************
@@ -141,12 +146,12 @@ void set_plane_config( e_plane_config conf ) {
 MENU_ITEM_HANDLER(
     e_menu_item::europort_view,
     [] { set_plane_config( e_plane_config::europe ); },
-    [] { return true; } )
+    [] { return !is_plane_enabled( e_plane::europe ); } )
 
 MENU_ITEM_HANDLER(
     e_menu_item::europort_close,
     [] { set_plane_config( e_plane_config::terrain_view ); },
-    [] { return true; } )
+    [] { return is_plane_enabled( e_plane::europe ); } )
 
 /****************************************************************
 ** Testing
