@@ -53,7 +53,7 @@ struct SaveGameComponentBase {
       FBBuilder&               builder,                        \
       FBOffset<fb::SG_##name>* out_offset ) {                  \
     auto offset = serial::serialize<fb::SG_##name>(            \
-        builder, SG(), ::rn::serial::rn_adl_tag{} );           \
+        builder, SG(), serial::ADL{} );           \
     static_assert( std::is_same_v<decltype( offset.get() ),    \
                                   FBOffset<fb::SG_##name>>,    \
                    "Top-level save-game state can only be "    \
@@ -63,7 +63,7 @@ struct SaveGameComponentBase {
   expect<> savegame_deserializer( fb::SG_##name const* src ) { \
     SG() = SG_##name{};                                        \
     XP_OR_RETURN_( serial::deserialize(                        \
-        src, &SG(), ::rn::serial::rn_adl_tag{} ) );            \
+        src, &SG(), serial::ADL{} ) );            \
     return SG().sync_and_validate();                           \
   }                                                            \
   namespace {

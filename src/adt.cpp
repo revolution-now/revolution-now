@@ -57,7 +57,7 @@ void test_adt() {
   lg.info( "s_m:\n{}", s_m );
   FBBuilder fbb;
   auto      v_offset = serialize<::fb::MyAdt_t>(
-      fbb, v, ::rn::serial::rn_adl_tag{} );
+      fbb, v, serial::ADL{} );
   fbb.Finish( v_offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
   auto s_v  = blob.template to_json<::fb::MyAdt_t>();
@@ -75,7 +75,7 @@ void test_adt() {
   CHECK( m == d_m, "{} != {}", m, d_m );
   auto* root = flatbuffers::GetRoot<::fb::MyAdt_t>( blob.get() );
   CHECK_XP(
-      deserialize( root, &d_v, ::rn::serial::rn_adl_tag{} ) );
+      deserialize( root, &d_v, serial::ADL{} ) );
   CHECK( v == d_v, "{} != {}", v, d_v );
   lg.info( "d_v:\n{}", d_v );
 }

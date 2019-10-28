@@ -74,7 +74,7 @@ cargo_serialize( FBBuilder& builder, Cargo const& o ) {
 }
 
 expect<> deserialize( fb::CargoSlot::Cargo const* src,
-                      Cargo* dst, ::rn::serial::rn_adl_tag ) {
+                      Cargo* dst, serial::ADL ) {
   DCHECK( dst );
   if( src == nullptr ) return xp_success_t{};
   using ::rn::serial::deserialize;
@@ -82,13 +82,13 @@ expect<> deserialize( fb::CargoSlot::Cargo const* src,
     UnitId unit_id{0};
     XP_OR_RETURN_( deserialize(
         serial::detail::to_const_ptr( src->unit_id() ), &unit_id,
-        ::rn::serial::rn_adl_tag{} ) );
+        serial::ADL{} ) );
     *dst = unit_id;
   } else {
     Commodity commodity{};
     XP_OR_RETURN_( deserialize(
         serial::detail::to_const_ptr( src->commodity() ),
-        &commodity, ::rn::serial::rn_adl_tag{} ) );
+        &commodity, serial::ADL{} ) );
     *dst = commodity;
   }
   return xp_success_t{};

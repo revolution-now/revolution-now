@@ -152,7 +152,7 @@ namespace serial {
 
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, ::rn::flat_queue<T> const& m,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   std::vector<T> data;
   data.reserve( size_t( m.size() ) );
   auto m_copy = m;
@@ -161,12 +161,12 @@ auto serialize( FBBuilder& builder, ::rn::flat_queue<T> const& m,
     m_copy.pop();
   }
   return serialize<Hint>( builder, data,
-                          ::rn::serial::rn_adl_tag{} );
+                          serial::ADL{} );
 }
 
 template<typename SrcT, typename T>
 expect<> deserialize( SrcT const* src, ::rn::flat_queue<T>* m,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if( src == nullptr ) {
     // `dst` should be in its default-constructed state, which is
     // an empty queue.
@@ -174,7 +174,7 @@ expect<> deserialize( SrcT const* src, ::rn::flat_queue<T>* m,
   }
   std::vector<T> data;
   XP_OR_RETURN_(
-      deserialize( src, &data, ::rn::serial::rn_adl_tag{} ) );
+      deserialize( src, &data, serial::ADL{} ) );
   for( auto& e : data ) m->push_emplace( std::move( e ) );
   return xp_success_t{};
 }

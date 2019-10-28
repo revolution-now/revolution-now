@@ -790,7 +790,7 @@ TEST_CASE( "[flatbuffers] ADTs" ) {
   FBBuilder fbb;
 
   auto v_offset = serialize<::fb::MyAdt_t>(
-      fbb, v, ::rn::serial::rn_adl_tag{} );
+      fbb, v, ::rn::serial::ADL{} );
 
   fbb.Finish( v_offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
@@ -799,7 +799,7 @@ TEST_CASE( "[flatbuffers] ADTs" ) {
 
   MyAdt_t d_v;
   REQUIRE(
-      deserialize( root, &d_v, ::rn::serial::rn_adl_tag{} ) ==
+      deserialize( root, &d_v, ::rn::serial::ADL{} ) ==
       rn::xp_success_t{} );
 
   REQUIRE( v == d_v );
@@ -831,7 +831,7 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
     MyFlatQueues qs{ std::move( q1 ), std::move( q2 ) };
 
     auto offset = serialize<::fb::MyFlatQueues>(
-        fbb, qs, ::rn::serial::rn_adl_tag{} );
+        fbb, qs, ::rn::serial::ADL{} );
     fbb.Finish( offset.get() );
   }
 
@@ -842,7 +842,7 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
 
   MyFlatQueues qs;
   REQUIRE(
-      deserialize( root, &qs, ::rn::serial::rn_adl_tag{} ) ==
+      deserialize( root, &qs, ::rn::serial::ADL{} ) ==
       rn::xp_success_t{} );
 
   REQUIRE( qs.q1.size() == 3 );
@@ -900,7 +900,7 @@ TEST_CASE( "[flatbuffers] matrix" ) {
   }
 
   auto offset = serialize<::fb::Matrix_String>(
-      fbb, m, ::rn::serial::rn_adl_tag{} );
+      fbb, m, ::rn::serial::ADL{} );
   fbb.Finish( offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
 
@@ -909,7 +909,7 @@ TEST_CASE( "[flatbuffers] matrix" ) {
 
   rn::Matrix<string> m_ds;
   REQUIRE(
-      deserialize( root, &m_ds, ::rn::serial::rn_adl_tag{} ) ==
+      deserialize( root, &m_ds, ::rn::serial::ADL{} ) ==
       rn::xp_success_t{} );
 
   REQUIRE( m.size() == m_ds.size() );
@@ -994,7 +994,7 @@ TEST_CASE( "[flatbuffers] fsm" ) {
   }
 
   auto offset = serialize<::fb::OnOffFsm>(
-      fbb, on_off, ::rn::serial::rn_adl_tag{} );
+      fbb, on_off, ::rn::serial::ADL{} );
   fbb.Finish( offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
 
@@ -1003,7 +1003,7 @@ TEST_CASE( "[flatbuffers] fsm" ) {
 
   rn::OnOffFsm on_off_ds;
   REQUIRE( deserialize( root, &on_off_ds,
-                        ::rn::serial::rn_adl_tag{} ) ==
+                        ::rn::serial::ADL{} ) ==
            rn::xp_success_t{} );
 
   REQUIRE_FALSE( on_off_ds.has_pending_events() );

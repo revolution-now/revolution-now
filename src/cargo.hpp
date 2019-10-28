@@ -66,12 +66,12 @@ cargo_serialize( FBBuilder& builder, Cargo const& o );
 template<typename Hint>
 serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>> serialize(
     FBBuilder& builder, Cargo const& o,
-    ::rn::serial::rn_adl_tag ) {
+    serial::ADL ) {
   return cargo_serialize( builder, o );
 }
 
 expect<> deserialize( ::fb::CargoSlot::Cargo const* src,
-                      Cargo* dst, ::rn::serial::rn_adl_tag );
+                      Cargo* dst, serial::ADL );
 } // namespace serial
 
 // Here is an example of the way the cargo layout works:

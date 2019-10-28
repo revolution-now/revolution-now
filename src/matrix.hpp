@@ -98,18 +98,18 @@ namespace serial {
 
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, Matrix<T> const& m,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   auto size   = m.size();
   auto s_size = serialize<fb_serialize_hint_t<decltype(
       std::declval<Hint>().size() )>>(
-      builder, size, ::rn::serial::rn_adl_tag{} );
+      builder, size, serial::ADL{} );
 
   std::vector<std::pair<Coord, T>> data;
   data.reserve( size_t( size.area() ) );
   for( auto const& c : m.rect() ) data.emplace_back( c, m[c] );
   auto s_data = serialize<fb_serialize_hint_t<decltype(
       std::declval<Hint>().data() )>>(
-      builder, data, ::rn::serial::rn_adl_tag{} );
+      builder, data, serial::ADL{} );
 
   return ReturnValue{
       Hint::Create( builder, s_size.get(), s_data.get() ) };
@@ -117,7 +117,7 @@ auto serialize( FBBuilder& builder, Matrix<T> const& m,
 
 template<typename SrcT, typename T>
 expect<> deserialize( SrcT const* src, Matrix<T>* m,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   // SrcT should be a table with a `size` field of type Delta and
   // a `data` field which is a flatbuffers Vector of a pair-like
   // object containing a Coord and the matrix element itself.
@@ -132,7 +132,7 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
 
   Delta size;
   XP_OR_RETURN_( deserialize( src->size(), &size,
-                              ::rn::serial::rn_adl_tag{} ) );
+                              serial::ADL{} ) );
 
   UNXP_CHECK( ( size.area() == 0 ) ==
               ( src->data()->size() == 0 ) );
@@ -141,7 +141,7 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
 
   std::vector<std::pair<Coord, T>> data;
   XP_OR_RETURN_( deserialize( src->data(), &data,
-                              ::rn::serial::rn_adl_tag{} ) );
+                              serial::ADL{} ) );
 
   *m = Matrix<T>( size );
   FlatSet<Coord> seen;

@@ -218,7 +218,7 @@ template<typename Hint,           //
              int> = 0             //
          >
 auto serialize( FBBuilder&, T const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   return ReturnValue{ o };
 }
 
@@ -230,14 +230,14 @@ template<typename Hint,                             //
              int> = 0                               //
          >
 auto serialize( FBBuilder&, T const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   return ReturnValue{ o._ };
 }
 
 // For strings.
 template<typename Hint>
 auto serialize( FBBuilder& builder, std::string const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   auto offset = builder.CreateString( o );
   return ReturnValue{ offset };
 }
@@ -248,7 +248,7 @@ template<
     typename T,
     decltype( serialize_enum( std::declval<T>() ) )* = nullptr>
 auto serialize( FBBuilder&, T const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   if constexpr( !std::is_same_v<Hint, void> )
     // FIXME: We use the Hint type here because the FB interface
     // seems inconsistent with the type it uses for enums in
@@ -265,7 +265,7 @@ auto serialize( FBBuilder&, T const& o,
 template<typename Hint, //
          typename T, decltype( &T::serialize_struct )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   return ReturnAddress{ o.serialize_struct( builder ) };
 }
 
@@ -273,7 +273,7 @@ auto serialize( FBBuilder& builder, T const& o,
 template<typename Hint, //
          typename T, decltype( &T::serialize_table )* = nullptr>
 auto serialize( FBBuilder& builder, T const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   return ReturnValue{ o.serialize_table( builder ) };
 }
 
@@ -281,18 +281,18 @@ auto serialize( FBBuilder& builder, T const& o,
 template<typename Hint, typename T>
 auto serialize( FBBuilder&                       builder,
                 std::reference_wrapper<T> const& rr,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   return serialize<Hint>( builder, rr.get(),
-                          ::rn::serial::rn_adl_tag{} );
+                          serial::ADL{} );
 }
 
 // For std::optional.
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::optional<T> const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   if( o.has_value() ) {
     auto s_value = serialize<void>( builder, *o,
-                                    ::rn::serial::rn_adl_tag{} );
+                                    serial::ADL{} );
     return ReturnValue{ Hint::Create(
         builder, /*has_value=*/true, s_value.get() ) };
   } else {
@@ -304,12 +304,12 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
 // For pairs.
 template<typename Hint, typename F, typename S>
 auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   // Assume we don't need to supply hints for components.
   auto const& s_fst = serialize<void>(
-      builder, o.first, ::rn::serial::rn_adl_tag{} );
+      builder, o.first, serial::ADL{} );
   auto const& s_snd = serialize<void>(
-      builder, o.second, ::rn::serial::rn_adl_tag{} );
+      builder, o.second, serial::ADL{} );
   if constexpr( detail::has_create_v<Hint> )
     return ReturnValue{
         Hint::Create( builder, s_fst.get(), s_snd.get() ) };
@@ -322,13 +322,13 @@ auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
 // For vectors.
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::vector<T> const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   using namespace detail;
   using inner_hint_t =
       fb_serialize_hint_t<remove_fb_vector_t<Hint>>;
   using fb_wrapper_elem_t =
       std::decay_t<decltype( serialize<inner_hint_t>(
-          builder, *o.begin(), ::rn::serial::rn_adl_tag{} ) )>;
+          builder, *o.begin(), serial::ADL{} ) )>;
   using fb_get_elem_t =
       decltype( std::declval<fb_wrapper_elem_t const&>().get() );
   // This vector must live until we create the final fb vector.
@@ -336,7 +336,7 @@ auto serialize( FBBuilder& builder, std::vector<T> const& o,
   wrappers.reserve( o.size() );
   for( auto const& e : o )
     wrappers.emplace_back( serialize<inner_hint_t>(
-        builder, e, ::rn::serial::rn_adl_tag{} ) );
+        builder, e, serial::ADL{} ) );
   if constexpr( std::is_pointer_v<fb_get_elem_t> ) {
     // This is a struct.
     std::vector<inner_hint_t> values;
@@ -364,7 +364,7 @@ template<typename Hint,                        //
              int> = 0                          //
          >
 auto serialize( FBBuilder& builder, T const& m,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   std::vector<CRef<typename T::value_type>> v;
   v.reserve( m.size() );
   for( auto const& p : m ) v.emplace_back( p );
@@ -375,7 +375,7 @@ auto serialize( FBBuilder& builder, T const& m,
                return l.get().first < r.get().first;
              } );
   return serialize<Hint>( builder, v,
-                          ::rn::serial::rn_adl_tag{} );
+                          serial::ADL{} );
 }
 
 /****************************************************************
@@ -392,7 +392,7 @@ template<typename SrcT,                    //
              int> = 0                                //
          >
 expect<> deserialize( SrcT const* src, DstT* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing scalar." );
   *dst = *src;
@@ -407,7 +407,7 @@ template<
         std::declval<SrcT>(),
         std::add_pointer_t<std::decay_t<DstT>>{} ) )* = nullptr>
 expect<> deserialize( SrcT const* src, DstT* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing enum." );
   return deserialize_enum( *src, dst );
@@ -421,7 +421,7 @@ template<typename SrcT,                                //
              int> = 0                                  //
          >
 expect<> deserialize( SrcT const* src, DstT* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing typed int." );
   *dst = DstT{ *src };
@@ -431,7 +431,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 // For strings.
 template<typename SrcT>
 expect<> deserialize( SrcT const* src, std::string* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   *dst = src->str();
   return xp_success_t{};
@@ -442,7 +442,7 @@ template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_struct )* = nullptr>
 expect<> deserialize( SrcT const* src, DstT* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   if( auto xp = DstT::deserialize_struct( *src, dst ); !xp )
     return xp;
@@ -454,7 +454,7 @@ template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_table )* = nullptr>
 expect<> deserialize( SrcT const* src, DstT* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   if( auto xp = DstT::deserialize_table( *src, dst ); !xp )
     return xp;
@@ -464,7 +464,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 // For std::optional.
 template<typename SrcT, typename T>
 expect<> deserialize( SrcT const* src, std::optional<T>* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if( src == nullptr || !src->has_value() ) {
     // `dst` should be in its default-constructed state, which is
     // nullopt if it's an optional.
@@ -479,19 +479,19 @@ expect<> deserialize( SrcT const* src, std::optional<T>* dst,
   dst->emplace(); // default construct the value.
   return deserialize( detail::to_const_ptr( src->value() ),
                       std::addressof( **dst ),
-                      ::rn::serial::rn_adl_tag{} );
+                      serial::ADL{} );
 }
 
 // For std::reference_wrapper.
 template<typename SrcT, typename T>
 expect<> deserialize( SrcT const*                src,
                       std::reference_wrapper<T>* dst,
-                      ::rn::serial::rn_adl_tag ) = delete;
+                      serial::ADL ) = delete;
 
 // For pairs.
 template<typename SrcT, typename F, typename S>
 expect<> deserialize( SrcT const* src, std::pair<F, S>* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if constexpr( std::is_pointer_v<decltype( src->fst() )> ) {
     if( src->fst() == nullptr )
       return UNEXPECTED( "pair has no `fst` value." );
@@ -502,17 +502,17 @@ expect<> deserialize( SrcT const* src, std::pair<F, S>* dst,
   }
   XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->fst() ),
                               &dst->first,
-                              ::rn::serial::rn_adl_tag{} ) );
+                              serial::ADL{} ) );
   XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->snd() ),
                               &dst->second,
-                              ::rn::serial::rn_adl_tag{} ) );
+                              serial::ADL{} ) );
   return xp_success_t{};
 }
 
 // For vectors.
 template<typename SrcT, typename T>
 expect<> deserialize( SrcT const* src, std::vector<T>* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
@@ -527,7 +527,7 @@ expect<> deserialize( SrcT const* src, std::vector<T>* dst,
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem ),
                      std::addressof( dst->operator[]( i ) ),
-                     ::rn::serial::rn_adl_tag{} ) );
+                     serial::ADL{} ) );
   }
   return xp_success_t{};
 }
@@ -541,7 +541,7 @@ template<typename SrcT,                        //
              int> = 0                          //
          >
 expect<> deserialize( SrcT const* src, DstT* m,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
@@ -558,7 +558,7 @@ expect<> deserialize( SrcT const* src, DstT* m,
     key_t key{};
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem->fst() ), &key,
-                     ::rn::serial::rn_adl_tag{} ) );
+                     serial::ADL{} ) );
 
     // FIXME
     // if constexpr( is_fmtable<key_t> ) {
@@ -577,7 +577,7 @@ expect<> deserialize( SrcT const* src, DstT* m,
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem->snd() ),
                      std::addressof( m->operator[]( key ) ),
-                     ::rn::serial::rn_adl_tag{} ) );
+                     serial::ADL{} ) );
   }
   return xp_success_t{};
 }
@@ -591,7 +591,7 @@ expect<> deserialize( SrcT const* src, DstT* m,
   auto PP_JOIN( s_, var ) =                                 \
       serialize<::rn::serial::fb_serialize_hint_t<decltype( \
           std::declval<fb_target_t>().var() )>>(            \
-          builder, var, ::rn::serial::rn_adl_tag{} )
+          builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
   SERIAL_CALL_SERIALIZE_TABLE_IMPL p
@@ -605,7 +605,7 @@ expect<> deserialize( SrcT const* src, DstT* m,
 #define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var )        \
   XP_OR_RETURN_(                                              \
       deserialize( serial::detail::to_const_ptr( src.var() ), \
-                   &dst->var, ::rn::serial::rn_adl_tag{} ) );
+                   &dst->var, serial::ADL{} ) );
 
 #define SERIAL_DESERIALIZE_VAR_TABLE( p ) \
   SERIAL_DESERIALIZE_VAR_TABLE_IMPL p
@@ -648,7 +648,7 @@ private:
   auto PP_JOIN( s_, var ) =                                 \
       serialize<::rn::serial::fb_serialize_hint_t<decltype( \
           std::declval<fb_target_t>().var() )>>(            \
-          builder, var, ::rn::serial::rn_adl_tag{} )
+          builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \
   SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL p
@@ -658,7 +658,7 @@ private:
 #define SERIAL_DESERIALIZE_VAR_STRUCT_IMPL( type, var )       \
   XP_OR_RETURN_(                                              \
       deserialize( serial::detail::to_const_ptr( src.var() ), \
-                   &dst->var, ::rn::serial::rn_adl_tag{} ) );
+                   &dst->var, serial::ADL{} ) );
 
 #define SERIAL_DESERIALIZE_VAR_STRUCT( p ) \
   SERIAL_DESERIALIZE_VAR_STRUCT_IMPL p

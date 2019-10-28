@@ -125,7 +125,7 @@
                   *dst = name{};                                \
                   XP_OR_RETURN_( deserialize(                   \
                       src->name(), std::get_if<name>( dst ),    \
-                      ::rn::serial::rn_adl_tag{} ) );           \
+                      serial::ADL{} ) );           \
                   return true;                                  \
                 } ),                                            \
         , serialize )                                           \
@@ -230,7 +230,7 @@
     SWITCH_EMPTY(                                               \
         ID( template<typename Hint>                             \
             auto serialize( FBBuilder& fbb, name##_t const& o,  \
-                            ::rn::serial::rn_adl_tag ) {        \
+                            serial::ADL ) {        \
               auto offset =                                     \
                   util::visit( o, [&]( auto const& v ) {        \
                     /* Call Union() to make the offset          \
@@ -253,7 +253,7 @@
     SWITCH_EMPTY(                                               \
         ID( expect<> inline deserialize(                        \
             fb::name##_t const* src, name##_t* dst,             \
-            ::rn::serial::rn_adl_tag ) {                        \
+            serial::ADL ) {                        \
           if( src == nullptr ) return ::rn::xp_success_t{};     \
           int            count  = 0;                            \
           ::rn::expect<> result = ::rn::xp_success_t{};         \

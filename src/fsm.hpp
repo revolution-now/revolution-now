@@ -260,13 +260,13 @@ template<typename Hint,                  //
          typename T::IamFsm_t* = nullptr //
          >
 auto serialize( FBBuilder& builder, T const& o,
-                ::rn::serial::rn_adl_tag ) {
+                serial::ADL ) {
   CHECK( !o.has_pending_events(),
          "cannot serialize a finite state machine with pending "
          "events." );
   auto s_state = serialize<serial::fb_serialize_hint_t<decltype(
       std::declval<Hint>().state() )>>(
-      builder, o.state(), ::rn::serial::rn_adl_tag{} );
+      builder, o.state(), serial::ADL{} );
   return serial::ReturnValue{
       Hint::Create( builder, s_state.get() ) };
 }
@@ -276,12 +276,12 @@ template<typename SrcT,                     //
          typename DstT::IamFsm_t* = nullptr //
          >
 expect<> deserialize( SrcT const* src, DstT* dst,
-                      ::rn::serial::rn_adl_tag ) {
+                      serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   UNXP_CHECK( src->state() != nullptr );
   typename std::decay_t<DstT>::state_t state;
   XP_OR_RETURN_( deserialize( src->state(), &state,
-                              ::rn::serial::rn_adl_tag{} ) );
+                              serial::ADL{} ) );
   *dst = DstT( std::move( state ) );
   return xp_success_t{};
 }

@@ -146,22 +146,42 @@ NOTHROW_MOVE( SourceLoc );
 ** Serialization ADL Helper
 *****************************************************************/
 namespace rn::serial {
-// This is used as a dummy parameter to all serialize / deseri-
-// alize calls so that we are guaranteed to always have at least
-// one parameter of a type defined in the rn::serial namespace,
-// that way we can always rely on ADL to find serialize methods
-// that we declare throughout the codebase.
+// In general, a serialize / deserialize method (say, for a
+// container) will need to call another serialize / deserialize
+// method on the contained type, and this contained type depends
+// on a template parameter which is not known until the point of
+// instantiation. This can sometimes be a problem because the
+// serialize / deserialize method for the contained type might
+// have been declared after the one for the container type; this
+// is because these methods are scattered about the code base and
+// it is hard and/or undesirable to either forward declare or to
+// precisely control the order. In those cases, the serialize /
+// deserialize method for the contained type will not be found in
+// phase I of the Two-Phase-Lookup mechanism; it can only be
+// found in phase II, which is ADL-only.
 //
-// Normally we wouldn't need ADL, since we could just define all
-// the serialize / deserialize methods in the same rn::serial
-// namespace. But we are relying on ADL (I think) because ADL is
-// the only method that can find a function declared after the
-// template that uses it; and we sometimes have to declare func-
-// tions after the template that uses it because sometimes tem-
-// plated serialize methods (which all reside in headers) must
-// call each other, and it is (at least) inconvenient to ensure
-// proper ordering.
-struct rn_adl_tag {};
+// However, sometimes a serialize / deserialize method for a
+// contained type (e.g., std::variant) will not contain any
+// parameters whose types are defined in the rn::serial
+// namespace, and so therefore even ADL will fail to find the
+// serialize / deserialize method.
+//
+// To resolve this, we introduce the following tag (dummy)
+// parameter to all serialize / deserialize calls so that we
+// are guaranteed to always have at least one argument of a type
+// defined in the rn::serial namespace. This allows the compiler
+// to always be able to find the serialize / deserialize function
+// (at least) using ADL.
+//
+// From a C++ expert:
+//
+//   For an unqualified name to be found in a template
+//   instantiation, it must either have been declared before the
+//   place where the template was defined, or it must be the name
+//   of a function (in a function call expression) that is
+//   declared in a namespace associated with one of its
+//   arguments.
+struct ADL {};
 } // namespace rn::serial
 
 namespace rn {} // namespace rn

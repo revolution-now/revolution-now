@@ -116,7 +116,7 @@ template<typename T>
 expect<> deserialize_from_blob( BinaryBlob const& blob,
                                 T*                out ) {
   auto* fb = blob.template root<typename T::fb_target_t>();
-  return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );
+  return deserialize( fb, out, serial::ADL{} );
 }
 
 template<typename T>
@@ -142,7 +142,7 @@ expect<> deserialize_from_json( std::string const& schema_name,
                     /*json=*/json,
                     /*root_type=*/T::fb_root_type_name() ) );
   auto* fb = blob.template root<typename T::fb_target_t>();
-  return deserialize( fb, out, ::rn::serial::rn_adl_tag{} );
+  return deserialize( fb, out, serial::ADL{} );
 }
 
 /****************************************************************
