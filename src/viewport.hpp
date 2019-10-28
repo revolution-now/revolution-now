@@ -71,8 +71,8 @@ public:
   // it is in the viewport.
   bool screen_coord_in_viewport( Coord pixel_coord ) const;
 
-  static void set_x_push( e_push_direction );
-  static void set_y_push( e_push_direction );
+  void set_x_push( e_push_direction );
+  void set_y_push( e_push_direction );
   // If provided, the maybe_seek_screen_coord represents a point
   // on the screen (typically, mouse cursor position) to which
   // the viewport center to should tend as the zoom is done. This
@@ -135,6 +135,10 @@ private:
   DissipativeVelocity x_vel_;
   DissipativeVelocity y_vel_;
   DissipativeVelocity zoom_vel_;
+
+  e_push_direction x_push_{ e_push_direction::none };
+  e_push_direction y_push_{ e_push_direction::none };
+  e_push_direction zoom_push_{ e_push_direction::none };
 
   double zoom_{};
   double center_x_{};

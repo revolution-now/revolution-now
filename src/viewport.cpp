@@ -29,10 +29,6 @@ namespace rn {
 
 namespace {
 
-e_push_direction x_push{e_push_direction::none};
-e_push_direction y_push{e_push_direction::none};
-e_push_direction zoom_push{e_push_direction::none};
-
 double pan_accel_init() {
   return config_rn.viewport.pan_accel_init_coeff *
          config_rn.viewport.pan_speed;
@@ -51,7 +47,7 @@ Delta viewport_size_pixels() {
 } // namespace
 
 SmoothViewport& viewport() {
-  static SmoothViewport viewport{{0_x, 16_y}};
+  static SmoothViewport viewport{ { 0_x, 16_y } };
   return viewport;
 }
 
@@ -159,11 +155,11 @@ NOTHROW_MOVE( TargetingRates );
 constexpr TargetingRates translation_seeking_parameters{
     /*rate=*/.90,
     /*shift=*/1.0,
-    /*linear_window=*/8.0};
+    /*linear_window=*/8.0 };
 constexpr TargetingRates zoom_seeking_parameters{
     /*rate=*/.95,
     /*shift=*/.001,
-    /*linear_window=*/.015};
+    /*linear_window=*/.015 };
 
 // This function will take a numerical value that is being
 // gradually moved to a target value (in a somewhat asymptotic
@@ -197,7 +193,7 @@ void advance_target_seeking( Opt<T>& maybe_target, double& val,
 }
 
 void SmoothViewport::advance() {
-  advance( x_push, y_push, zoom_push );
+  advance( x_push_, y_push_, zoom_push_ );
 
   advance_target_seeking( smooth_center_x_target_, center_x_,
                           x_vel_,
@@ -208,23 +204,23 @@ void SmoothViewport::advance() {
   advance_target_seeking( smooth_zoom_target_, zoom_, zoom_vel_,
                           zoom_seeking_parameters );
 
-  x_push    = e_push_direction::none;
-  y_push    = e_push_direction::none;
-  zoom_push = e_push_direction::none;
+  x_push_    = e_push_direction::none;
+  y_push_    = e_push_direction::none;
+  zoom_push_ = e_push_direction::none;
   enforce_invariants();
 }
 
 void SmoothViewport::set_x_push( e_push_direction push ) {
-  x_push = push;
+  x_push_ = push;
 }
 
 void SmoothViewport::set_y_push( e_push_direction push ) {
-  y_push = push;
+  y_push_ = push;
 }
 
 void SmoothViewport::set_zoom_push(
     e_push_direction push, Opt<Coord> maybe_seek_screen_coord ) {
-  zoom_push = push;
+  zoom_push_ = push;
 
   zoom_point_seek_ = nullopt;
   // If the caller has specified a coordinate and if that
@@ -274,14 +270,14 @@ Y SmoothViewport::start_tile_y() const {
 }
 
 Rect SmoothViewport::get_bounds() const {
-  return {X( int( start_x() ) ), Y( int( start_y() ) ),
-          W( int( width_pixels() ) ),
-          H( int( height_pixels() ) )};
+  return { X( int( start_x() ) ), Y( int( start_y() ) ),
+           W( int( width_pixels() ) ),
+           H( int( height_pixels() ) ) };
 }
 
 Coord SmoothViewport::center_rounded() const {
-  return Coord{X{int( lround( center_x_ ) )},
-               Y{int( lround( center_y_ ) )}};
+  return Coord{ X{ int( lround( center_x_ ) ) },
+                Y{ int( lround( center_y_ ) ) } };
 }
 
 // Number of tiles needed to be drawn in order to subsume the
@@ -339,19 +335,21 @@ void SmoothViewport::enforce_invariants() {
 // Tiles touched by the viewport (tiles at the edge may only be
 // partially visible).
 Rect SmoothViewport::covered_tiles() const {
-  return Rect{X( start_tile_x() ), Y( start_tile_y() ),
-              W{static_cast<int>( lround( width_tiles() ) )},
-              H{static_cast<int>( lround( height_tiles() ) )}}
+  return Rect{
+      X( start_tile_x() ), Y( start_tile_y() ),
+      W{ static_cast<int>( lround( width_tiles() ) ) },
+      H{ static_cast<int>( lround( height_tiles() ) ) } }
       .clamp( world_rect_tiles() );
 }
 
 Rect SmoothViewport::covered_pixels() const {
-  X x_start{static_cast<int>( lround( start_x() ) )};
-  Y y_start{static_cast<int>( lround( start_y() ) )};
-  X x_end{static_cast<int>( lround( end_x() ) )};
-  Y y_end{static_cast<int>( lround( end_y() ) )};
+  X x_start{ static_cast<int>( lround( start_x() ) ) };
+  Y y_start{ static_cast<int>( lround( start_y() ) ) };
+  X x_end{ static_cast<int>( lround( end_x() ) ) };
+  Y y_end{ static_cast<int>( lround( end_y() ) ) };
 
-  return Rect{x_start, y_start, x_end - x_start, y_end - y_start}
+  return Rect{ x_start, y_start, x_end - x_start,
+               y_end - y_start }
       .clamp( world_rect_pixels() );
 }
 
@@ -413,10 +411,11 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
   auto viewport_or_world =
       get_bounds().clamp( world_rect_pixels() );
 
-  auto res = Coord{X{int( viewport_or_world.x._ +
-                          percent_x * viewport_or_world.w._ )},
-                   Y{int( viewport_or_world.y._ +
-                          percent_y * viewport_or_world.h._ )}};
+  auto res =
+      Coord{ X{ int( viewport_or_world.x._ +
+                     percent_x * viewport_or_world.w._ ) },
+             Y{ int( viewport_or_world.y._ +
+                     percent_y * viewport_or_world.h._ ) } };
 
   DCHECK( res.x >= 0_x && res.y >= 0_y );
   return res;
@@ -481,7 +480,7 @@ bool SmoothViewport::is_tile_fully_visible(
 template<typename C>
 bool is_tile_fully_visible( SmoothViewport const& vp,
                             Coord const&          coords ) {
-  auto tile_rect       = Rect::from( coords, {1_w, 1_h} );
+  auto tile_rect       = Rect::from( coords, { 1_w, 1_h } );
   auto tile_pixel_rect = tile_rect * g_tile_scale;
   auto covered         = vp.covered_pixels();
   return tile_pixel_rect.is_inside( covered );
@@ -551,9 +550,9 @@ void SmoothViewport::ensure_tile_visible( Coord const& coord,
           *this, coord ) ) {
     if( smooth ) {
       smooth_center_x_target_ =
-          XD{double( ( coord.x * g_tile_width )._ )};
+          XD{ double( ( coord.x * g_tile_width )._ ) };
       smooth_center_y_target_ =
-          YD{double( ( coord.y * g_tile_height )._ )};
+          YD{ double( ( coord.y * g_tile_height )._ ) };
     } else {
       center_on_tile_x( coord );
       center_on_tile_y( coord );

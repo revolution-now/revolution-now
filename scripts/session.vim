@@ -11,7 +11,9 @@ let s:stems = [
   \ 'src/plane',
   \ 'src/main-menu',
   \ 'src/turn',
+  \ 'src/land-view',
   \ 'src/render',
+  \ 'src/viewport',
   \ 'src/save-game',
   \ 'src/window',
 \]
