@@ -17,6 +17,7 @@
 #include "macros.hpp"
 #include "math.hpp"
 #include "plane.hpp"
+#include "render.hpp" // FIXME
 #include "scope-exit.hpp"
 #include "screen.hpp"
 #include "variant.hpp"

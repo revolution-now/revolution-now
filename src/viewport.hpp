@@ -16,7 +16,12 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
+#include "errors.hpp"
+#include "fb.hpp"
 #include "physics.hpp"
+
+// Flatbuffers
+#include "fb/viewport_generated.h"
 
 // SDL
 #include "SDL.h"
@@ -26,7 +31,10 @@ namespace rn {
 // This viewport also knows where it is located on screen.
 class SmoothViewport {
 public:
-  SmoothViewport( Coord origin_on_screen );
+  // NOTE: invariants will not be satisifed after construction;
+  // must call enforce_invariants() after the information needed
+  // to enforce invariants becomes available.
+  SmoothViewport();
 
   void advance();
 
@@ -96,7 +104,11 @@ public:
   // edge of the viewport hids x=0.
   void pan_by_screen_coords( Delta delta );
 
+  // Will not throw; if an invariant is broken it will be fixed,
+  // and this is a normal part of the behavior of this class.
   void enforce_invariants();
+
+  expect<> check_invariants_safe() const;
 
 private:
   void advance( e_push_direction x_push, e_push_direction y_push,
@@ -130,19 +142,13 @@ private:
 
   bool is_tile_fully_visible( Coord const& coords ) const;
 
-  Coord origin_on_screen_;
-
-  DissipativeVelocity x_vel_;
-  DissipativeVelocity y_vel_;
-  DissipativeVelocity zoom_vel_;
+  DissipativeVelocity x_vel_{};
+  DissipativeVelocity y_vel_{};
+  DissipativeVelocity zoom_vel_{};
 
   e_push_direction x_push_{ e_push_direction::none };
   e_push_direction y_push_{ e_push_direction::none };
   e_push_direction zoom_push_{ e_push_direction::none };
-
-  double zoom_{};
-  double center_x_{};
-  double center_y_{};
 
   // If these have values then the viewport will attempt to move
   // the values to them smoothly.
@@ -153,9 +159,14 @@ private:
   // Coord in world pixel coordinates indicating the point toward
   // which we should focus as we zoom.
   Opt<Coord> zoom_point_seek_{};
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, SmoothViewport,
+  ( double, zoom_     ),
+  ( double, center_x_ ),
+  ( double, center_y_ ));
+  // clang-format on
 };
 NOTHROW_MOVE( SmoothViewport );
-
-SmoothViewport& viewport();
 
 } // namespace rn

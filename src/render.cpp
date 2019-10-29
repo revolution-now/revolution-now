@@ -67,6 +67,12 @@ void render_unit_no_icon( Texture& tx, e_unit_type unit_type,
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
+// FIXME: temporary
+SmoothViewport& viewport() {
+  static SmoothViewport svp;
+  return svp;
+}
+
 Texture render_nationality_icon_impl( e_nation nation, char c ) {
   Delta       delta = nationality_icon_size;
   Rect        rect  = Rect::from( Coord{}, delta );

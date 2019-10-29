@@ -19,8 +19,8 @@ namespace rn::compositor {
 
 namespace {
 
-H g_menu_height{16};
-W g_panel_width{6 * 32};
+H g_menu_height{ 16 };
+W g_panel_width{ 6 * 32 };
 
 void check_invariants() {
   auto bounds = main_window_logical_rect();
@@ -54,23 +54,23 @@ Rect section( e_section section ) {
   auto screen_size = main_window_logical_size();
   switch( section ) {
     case +e_section::menu_bar:
-      res = Rect{0_x, 0_y, screen_size.w, g_menu_height};
+      res = Rect{ 0_x, 0_y, screen_size.w, g_menu_height };
       break;
     case +e_section::non_menu_bar:
-      res = Rect{0_x, 0_y + g_menu_height, screen_size.w,
-                 screen_size.h - g_menu_height};
+      res = Rect{ 0_x, 0_y + g_menu_height, screen_size.w,
+                  screen_size.h - g_menu_height };
       break;
     case +e_section::viewport:
       // At standard zoom; i.e., these are fixed with respect to
       // viewport state.
-      res = Rect{0_x, 0_y + g_menu_height,
-                 screen_size.w - g_panel_width,
-                 screen_size.h - g_menu_height};
+      res = Rect{ 0_x, 0_y + g_menu_height,
+                  screen_size.w - g_panel_width,
+                  screen_size.h - g_menu_height };
       break;
     case +e_section::panel:
-      res = Rect{0_x + screen_size.w - g_panel_width,
-                 0_y + g_menu_height, g_panel_width,
-                 screen_size.h - g_menu_height};
+      res = Rect{ 0_x + screen_size.w - g_panel_width,
+                  0_y + g_menu_height, g_panel_width,
+                  screen_size.h - g_menu_height };
       break;
   }
   return res;

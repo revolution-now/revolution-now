@@ -19,6 +19,7 @@
 #include "orders.hpp"
 #include "physics.hpp"
 #include "unit.hpp"
+#include "viewport.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_set.h"
@@ -148,5 +149,7 @@ Plane* effects_plane();
 void reset_fade_to_dark( std::chrono::milliseconds wait,
                          std::chrono::milliseconds fade,
                          uint8_t target_alpha );
+
+SmoothViewport& viewport();
 
 } // namespace rn

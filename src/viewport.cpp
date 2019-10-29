@@ -39,21 +39,14 @@ double pan_accel_drag_init() {
          config_rn.viewport.pan_speed;
 }
 
-Delta viewport_size_pixels() {
-  return compositor::section( compositor::e_section::viewport )
-      .delta();
+Rect viewport_rect_pixels() {
+  return compositor::section( compositor::e_section::viewport );
 }
 
 } // namespace
 
-SmoothViewport& viewport() {
-  static SmoothViewport viewport{ { 0_x, 16_y } };
-  return viewport;
-}
-
-SmoothViewport::SmoothViewport( Coord origin_on_screen )
-  : origin_on_screen_( origin_on_screen ),
-    x_vel_(
+SmoothViewport::SmoothViewport()
+  : x_vel_(
         /*min_velocity=*/-config_rn.viewport.pan_speed,
         /*max_velocity=*/config_rn.viewport.pan_speed,
         /*initial_velocity=*/0,
@@ -75,15 +68,26 @@ SmoothViewport::SmoothViewport( Coord origin_on_screen )
         /*mag_drag_acceleration=*/
         config_rn.viewport.zoom_accel_drag_coeff *
             config_rn.viewport.zoom_speed ),
-    zoom_( 1.0 ),
-    // zoom_ must be initialized before center_x_/y_
-    center_x_( width_pixels() / 2 ),
-    center_y_( height_pixels() / 2 ),
     smooth_zoom_target_{},
     smooth_center_x_target_{},
     smooth_center_y_target_{},
-    zoom_point_seek_{} {
-  enforce_invariants();
+    zoom_point_seek_{},
+    zoom_( 1.0 ),
+    center_x_( 0 ),
+    center_y_( 0 ) {
+  // !! NOTE: invariants will not be satisifed here; must call
+  // enforce_invariants() after constructor, and after the infor-
+  // mation needed to enforce invariants becomes available. We
+  // don't call it here because it may not be available when this
+  // constructor is running.
+}
+
+expect<> SmoothViewport::check_invariants_safe() const {
+  UNXP_CHECK( zoom_ >= 0.0 );
+  UNXP_CHECK( zoom_ <= 1.0 );
+  UNXP_CHECK( center_x_ > 0.0 );
+  UNXP_CHECK( center_y_ > 0.0 );
+  return xp_success_t{};
 }
 
 void SmoothViewport::advance( e_push_direction x_push,
@@ -244,10 +248,10 @@ void SmoothViewport::stop_auto_panning() {
 }
 
 double SmoothViewport::width_pixels() const {
-  return double( viewport_size_pixels().w ) / zoom_;
+  return double( viewport_rect_pixels().delta().w ) / zoom_;
 }
 double SmoothViewport::height_pixels() const {
-  return double( viewport_size_pixels().h ) / zoom_;
+  return double( viewport_rect_pixels().delta().h ) / zoom_;
 }
 
 double SmoothViewport::start_x() const {
@@ -362,24 +366,22 @@ Rect SmoothViewport::rendering_src_rect() const {
 }
 
 Rect SmoothViewport::rendering_dest_rect() const {
-  Rect dest;
-  dest.x        = origin_on_screen_.x;
-  dest.y        = origin_on_screen_.y;
-  dest.w        = viewport_size_pixels().w;
-  dest.h        = viewport_size_pixels().h;
-  Rect viewport = get_bounds();
+  Rect dest                            = viewport_rect_pixels();
+  Rect viewport                        = get_bounds();
   auto [max_src_width, max_src_height] = world_size_pixels();
   if( viewport.w > max_src_width ) {
     double delta = ( double( viewport.w - max_src_width ) /
                      double( viewport.w ) ) *
-                   double( viewport_size_pixels().w._ ) / 2;
+                   double( viewport_rect_pixels().delta().w._ ) /
+                   2;
     dest.x += int( delta );
     dest.w -= int( delta * 2 );
   }
   if( viewport.h > max_src_height ) {
     double delta = ( double( viewport.h - max_src_height ) /
                      double( viewport.h ) ) *
-                   double( viewport_size_pixels().h._ ) / 2;
+                   double( viewport_rect_pixels().delta().h._ ) /
+                   2;
     dest.y += int( delta );
     dest.h -= int( delta * 2 );
   }

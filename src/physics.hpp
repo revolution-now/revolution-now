@@ -32,6 +32,7 @@ enum class ND e_push_direction {
 // (in the direction opposite the velocity).
 class ND DissipativeVelocity {
 public:
+  DissipativeVelocity() = default;
   DissipativeVelocity( double min_velocity, double max_velocity,
                        double initial_velocity,
                        // accerlerations are magnitudes
@@ -52,11 +53,11 @@ public:
   void set_accelerations( double accel, double drag_accel );
 
 private:
-  double min_velocity_;
-  double max_velocity_;
-  double velocity_;
-  double accel_;
-  double drag_accel_;
+  double min_velocity_{};
+  double max_velocity_{};
+  double velocity_{};
+  double accel_{};
+  double drag_accel_{};
 };
 NOTHROW_MOVE( DissipativeVelocity );
 
