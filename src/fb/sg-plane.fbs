@@ -15,5 +15,4 @@ namespace fb;
 table SG_Plane {
   planes         : [e_plane];
   in_game_planes : [e_plane];
-  console_open   : bool;
 }

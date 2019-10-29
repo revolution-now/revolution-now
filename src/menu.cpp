@@ -400,7 +400,9 @@ H const& max_text_height() {
 // The long, thin rectangle around the menu bar. This does not
 // include the space that would be occupied by open menu bodies.
 Rect menu_bar_rect() {
-  return compositor::section( compositor::e_section::menu_bar );
+  ASSIGN_CHECK_OPT( res, compositor::section(
+                             compositor::e_section::menu_bar ) );
+  return res;
 }
 
 H menu_bar_height() { return menu_bar_rect().h; }
@@ -795,11 +797,13 @@ void render_menu_bar( Texture& tx ) {
   // two. Also, put the y position such that the menu bar gets
   // the bottom portion of the texture, again so that it will be
   // continuous with that panel.
-  auto panel_rect =
-      compositor::section( compositor::e_section::panel );
-  auto        bar_rect = menu_bar_rect();
-  auto const& wood     = lookup_sprite( g_tile::wood_middle );
-  Coord       start    = panel_rect.upper_left() - wood.size().h;
+  auto panel_upper_left =
+      compositor::section( compositor::e_section::panel )
+          .value_or( Rect{} )
+          .upper_left();
+  auto        bar_rect   = menu_bar_rect();
+  auto const& wood       = lookup_sprite( g_tile::wood_middle );
+  Coord       start      = panel_upper_left - wood.size().h;
   auto        wood_width = wood.size().w;
   for( Coord c = start; c.x >= 0_x - wood_width;
        c -= wood_width )

@@ -40,7 +40,9 @@ double pan_accel_drag_init() {
 }
 
 Rect viewport_rect_pixels() {
-  return compositor::section( compositor::e_section::viewport );
+  ASSIGN_CHECK_OPT( res, compositor::section(
+                             compositor::e_section::viewport ) );
+  return res;
 }
 
 } // namespace

@@ -162,6 +162,7 @@ struct Plane : public util::non_copy_non_move {
 // not be in this list, as it will always be enabled as the
 // front-most plane.
 void set_plane_list( Vec<e_plane> const& planes );
+bool is_plane_enabled( e_plane plane );
 
 void draw_all_planes( Texture& tx = Texture::screen() );
 

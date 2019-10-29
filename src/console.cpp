@@ -68,6 +68,9 @@ struct ConsolePlane : public Plane {
     if( show_percent_ < .0001 ) return;
     auto console_rect = Rect::from(
         compositor::section( compositor::e_section::menu_bar )
+            .value_or( Rect::from(
+                Coord{},
+                Delta{ 0_h, main_window_logical_size().w } ) )
             .lower_left(),
         main_window_logical_rect().lower_right() -
             le_view_.get().delta().h );

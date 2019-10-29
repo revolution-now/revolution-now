@@ -28,9 +28,7 @@ enum class e_( plane_config, //
                main_menu,    //
                play_game,    //
                terrain_view, //
-               europe,       //
-               open_console, //
-               close_console //
+               europe        //
 );
 
 // Will change the state (subset and order of planes chosen) for

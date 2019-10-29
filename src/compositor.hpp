@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
 
@@ -28,6 +29,7 @@ enum class e_(
     panel         //
 );
 
-Rect section( e_section section );
+// If the section is visible it will return bounds.
+Opt<Rect> section( e_section section );
 
 } // namespace rn::compositor

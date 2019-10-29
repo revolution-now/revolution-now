@@ -732,7 +732,9 @@ struct PanelPlane : public Plane {
   bool covers_screen() const override { return false; }
 
   static auto rect() {
-    return compositor::section( compositor::e_section::panel );
+    ASSIGN_CHECK_OPT( res, compositor::section(
+                               compositor::e_section::panel ) );
+    return res;
   }
   static W panel_width() { return rect().w; }
   static H panel_height() { return rect().h; }

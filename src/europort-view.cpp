@@ -175,11 +175,10 @@ Texture draw_draggable_object(
 Delta g_clip;
 
 Rect clip_rect() {
-  return Rect::from(
-      centered( g_clip,
-                compositor::section(
-                    compositor::e_section::non_menu_bar ) ),
-      g_clip );
+  ASSIGN_CHECK_OPT( rect,
+                    compositor::section(
+                        compositor::e_section::non_menu_bar ) );
+  return Rect::from( centered( g_clip, rect ), g_clip );
 }
 
 Delta clip_rect_drag_region{ 4_w, 4_h };
@@ -2195,10 +2194,11 @@ EuropePlane g_europe_plane;
 ** Initialization / Cleanup
 *****************************************************************/
 void init_europort_view() {
-  g_clip =
-      main_window_logical_size() -
-      compositor::section( compositor::e_section::menu_bar ).h +
-      Delta{ 2_w, 2_h };
+  g_clip = main_window_logical_size() -
+           compositor::section( compositor::e_section::menu_bar )
+               .value_or( Rect{} )
+               .h +
+           Delta{ 2_w, 2_h };
 }
 
 void cleanup_europort_view() {}

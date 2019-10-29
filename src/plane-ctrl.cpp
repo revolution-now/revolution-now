@@ -47,8 +47,7 @@ struct SAVEGAME_STRUCT( Plane ) {
   // clang-format off
   SAVEGAME_MEMBERS( Plane,
   ( vector<e_plane>, planes         ),
-  ( vector<e_plane>, in_game_planes ),
-  ( bool,            console_open   ));
+  ( vector<e_plane>, in_game_planes ));
   // clang-format on
 
 public:
@@ -75,14 +74,10 @@ SAVEGAME_IMPL( Plane );
 *****************************************************************/
 void set_planes() {
   vector<e_plane> res = SG().planes;
-  if( SG().console_open ) res.push_back( e_plane::console );
+  // Should be last.
+  res.push_back( e_plane::console );
   // This should be the only place where this is called.
   set_plane_list( res );
-}
-
-bool is_plane_enabled( e_plane pl ) {
-  return std::find( SG().planes.begin(), SG().planes.end(),
-                    pl ) != SG().planes.end();
 }
 
 /****************************************************************
@@ -126,12 +121,6 @@ void set_plane_config( e_plane_config conf ) {
           e_plane::window  //
       };
       SG().planes = SG().in_game_planes;
-      break;
-    case +e_plane_config::open_console:
-      SG().console_open = true;
-      break;
-    case +e_plane_config::close_console:
-      SG().console_open = false;
       break;
   }
   CHECK( !SG().planes.empty() );

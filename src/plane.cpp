@@ -314,6 +314,11 @@ void set_plane_list( Vec<e_plane> const& arr ) {
   g_plane_list_next.emplace( std::move( res ) );
 }
 
+bool is_plane_enabled( e_plane plane ) {
+  return std::find( g_plane_list.begin(), g_plane_list.end(),
+                    plane ) != g_plane_list.end();
+}
+
 void draw_all_planes( Texture& tx ) {
   clear_texture_black( tx );
 

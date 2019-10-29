@@ -23,7 +23,7 @@ sizes = [
 # rendering, shift the rendered text down by the given number of
 # pixels (should work with negative values too).
 offsets = [
-  { key: _7_12_serif_16pt, val: 0 }
+  { key: _7_12_serif_16pt, val: 1 }
   { key: _6x6,             val: 1 }
   { key: habbo_15,         val: 0 }
 ]
