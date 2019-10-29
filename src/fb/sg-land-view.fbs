@@ -43,3 +43,9 @@ namespace fb.LandViewState;
     slide_unit      : LandViewState.slide_unit;
     depixelate_unit : LandViewState.depixelate_unit;
   }
+
+namespace fb;
+
+table SG_LandView {
+  b : bool;
+}

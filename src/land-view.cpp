@@ -15,12 +15,14 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "fb.hpp"
+#include "fsm.hpp"
 #include "id.hpp"
 #include "matrix.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "tx.hpp"
 #include "utype.hpp"
+#include "viewport.hpp"
 
 // Flatbuffers
 #include "fb/sg-land-view_generated.h"
@@ -84,6 +86,30 @@ adt_s_rn_(
       ( UnitId, id ),                         //
       ( bool, finished ) )                    //
 );
+
+/****************************************************************
+** Save-Game State
+*****************************************************************/
+struct SAVEGAME_STRUCT( LandView ) {
+  // Fields that are actually serialized.
+
+  // clang-format off
+  SAVEGAME_MEMBERS( LandView,
+  ( bool, b ));
+  // clang-format on
+
+public:
+  // Fields that are derived from the serialized fields.
+
+private:
+  SAVEGAME_FRIENDS( LandView );
+  SAVEGAME_SYNC() {
+    // Sync all fields that are derived from serialized fields
+    // and then validate (check invariants).
+    return xp_success_t{};
+  }
+};
+SAVEGAME_IMPL( LandView );
 
 } // namespace
 

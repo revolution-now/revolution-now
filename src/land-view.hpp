@@ -13,9 +13,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
-//#include "dummy.hpp"
+#include "sg-macros.hpp"
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 /****************************************************************
 ** Testing
