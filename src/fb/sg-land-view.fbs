@@ -12,40 +12,46 @@ include "coord.fbs";
 include "orders.fbs";
 include "physics.fbs";
 include "unit.fbs";
+include "utype.fbs";
 
 namespace fb;
 
 namespace fb.LandViewState;
 
-  table end_of_turn {}
-  table blink_unit {
+  table none {}
+  table blinking_unit {
     id          : int;
     orders      : Opt_orders_t;
     prioritize  : [int];
     add_to_back : [int];
   }
-  table slide_unit {
+  table sliding_unit {
     id          : int;
     target      : Coord;
     percent     : double;
     percent_vel : DissipativeVelocity;
   }
-  table depixelate_unit {
+  table depixelating_unit {
     id       : int;
+    demoted  : Opt_e_unit_type;
     finished : bool;
   }
 
   namespace fb;
 
   table LandViewState_t {
-    end_of_turn     : LandViewState.end_of_turn;
-    blink_unit      : LandViewState.blink_unit;
-    slide_unit      : LandViewState.slide_unit;
-    depixelate_unit : LandViewState.depixelate_unit;
+    none              : LandViewState.none;
+    blinking_unit     : LandViewState.blinking_unit;
+    sliding_unit      : LandViewState.sliding_unit;
+    depixelating_unit : LandViewState.depixelating_unit;
   }
 
 namespace fb;
 
+table LandViewFsm {
+  state : LandViewState_t;
+}
+
 table SG_LandView {
-  b : bool;
+  mode : LandViewFsm;
 }

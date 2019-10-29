@@ -289,7 +289,7 @@ void render_world_viewport( ViewportState& state ) {
   Opt<UnitId> blink_id;
   // if( util::holds( state, viewport_state::blink_unit
   if_v( state, viewport_state::blink_unit, blink ) {
-    blink_coords = coords_for_unit( blink->id );
+    blink_coords = coord_for_unit_indirect( blink->id );
     blink_id     = blink->id;
   }
 
@@ -343,7 +343,7 @@ void render_world_viewport( ViewportState& state ) {
     slide->percent += slide->percent_vel.to_double();
     if( slide->percent > 1.0 ) slide->percent = 1.0;
 
-    Coord coords = coords_for_unit( slide->id );
+    Coord coords = coord_for_unit_indirect( slide->id );
     Delta delta  = slide->target - coords;
     CHECK( -1 <= delta.w && delta.w <= 1 );
     CHECK( -1 <= delta.h && delta.h <= 1 );
@@ -388,7 +388,7 @@ void render_world_viewport( ViewportState& state ) {
       ::SDL_SetRenderDrawBlendMode( g_renderer,
                                     ::SDL_BLENDMODE_BLEND );
       auto  covered = viewport().covered_tiles();
-      Coord coords  = coords_for_unit( dying->id );
+      Coord coords  = coord_for_unit_indirect( dying->id );
       Coord pixel_coord =
           Coord{} + ( coords - covered.upper_left() );
       pixel_coord *= g_tile_scale;
@@ -600,7 +600,7 @@ struct ViewportPlane : public Plane {
                 break;
               case ::SDLK_c:
                 viewport().ensure_tile_visible(
-                    coords_for_unit( blink_unit.id ),
+                    coord_for_unit_indirect( blink_unit.id ),
                     /*smooth=*/true );
                 break;
               case ::SDLK_d:

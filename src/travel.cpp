@@ -62,7 +62,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   if( !util::holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
 
-  auto src_coord = coords_for_unit( id );
+  auto src_coord = coord_for_unit_indirect( id );
   auto dst_coord = src_coord.moved( direction );
 
   if( !dst_coord.is_inside( world_rect_tiles() ) ) {
@@ -74,7 +74,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
         /*move_src_=*/src_coord,
         /*move_target_=*/dst_coord,
         /*desc_=*/e_unit_travel_error::map_edge,
-        /*target_unit=*/{}};
+        /*target_unit=*/{} };
   }
   auto& square = square_at( dst_coord );
 
@@ -112,7 +112,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_target_=*/dst_coord,
             /*desc_=*/
             e_unit_travel_error::land_forbidden,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
       case +bh_t::always:
         // `holder` will be a valid value if the unit
         // is cargo of an- other unit; the holder's id
@@ -130,7 +130,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*move_target_=*/dst_coord,
               /*desc_=*/
               e_unit_travel_good::offboard_ship,
-              /*target_unit=*/{}};
+              /*target_unit=*/{} };
         } else {
           return TravelAnalysis{
               /*id_=*/id,
@@ -140,17 +140,17 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*move_src_=*/src_coord,
               /*move_target_=*/dst_coord,
               /*desc_=*/e_unit_travel_good::map_to_map,
-              /*target_unit=*/{}};
+              /*target_unit=*/{} };
         }
       case +bh_t::unload: {
-        auto res = TravelAnalysis{/*id_=*/id,
-                                  /*orders_=*/orders,
-                                  /*units_to_prioritize_=*/{},
-                                  /*unit_would_move_=*/false,
-                                  /*move_src_=*/src_coord,
-                                  /*move_target_=*/dst_coord,
-                                  /*desc_=*/{},
-                                  /*target_unit=*/{}};
+        auto res = TravelAnalysis{ /*id_=*/id,
+                                   /*orders_=*/orders,
+                                   /*units_to_prioritize_=*/{},
+                                   /*unit_would_move_=*/false,
+                                   /*move_src_=*/src_coord,
+                                   /*move_target_=*/dst_coord,
+                                   /*desc_=*/{},
+                                   /*target_unit=*/{} };
         analyze_unload( unit, res );
         return res;
       }
@@ -170,7 +170,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_target_=*/dst_coord,
             /*desc_=*/
             e_unit_travel_error::land_forbidden,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
       case +bh_t::always:
         // `holder` will be a valid value if the unit
         // is cargo of an- other unit; the holder's id
@@ -188,7 +188,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*move_target_=*/dst_coord,
               /*desc_=*/
               e_unit_travel_good::offboard_ship,
-              /*target_unit=*/{}};
+              /*target_unit=*/{} };
         } else {
           return TravelAnalysis{
               /*id_=*/id,
@@ -198,17 +198,17 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*move_src_=*/src_coord,
               /*move_target_=*/dst_coord,
               /*desc_=*/e_unit_travel_good::map_to_map,
-              /*target_unit=*/{}};
+              /*target_unit=*/{} };
         }
       case +bh_t::unload: {
-        auto res = TravelAnalysis{/*id_=*/id,
-                                  /*orders_=*/orders,
-                                  /*units_to_prioritize_=*/{},
-                                  /*unit_would_move_=*/false,
-                                  /*move_src_=*/src_coord,
-                                  /*move_target_=*/dst_coord,
-                                  /*desc_=*/{},
-                                  /*target_unit=*/{}};
+        auto res = TravelAnalysis{ /*id_=*/id,
+                                   /*orders_=*/orders,
+                                   /*units_to_prioritize_=*/{},
+                                   /*unit_would_move_=*/false,
+                                   /*move_src_=*/src_coord,
+                                   /*move_target_=*/dst_coord,
+                                   /*desc_=*/{},
+                                   /*target_unit=*/{} };
         analyze_unload( unit, res );
         return res;
       }
@@ -228,7 +228,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_target_=*/dst_coord,
             /*desc_=*/
             e_unit_travel_error::water_forbidden,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
       case +bh_t::always:
         return TravelAnalysis{
             /*id_=*/id,
@@ -238,7 +238,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_src_=*/src_coord,
             /*move_target_=*/dst_coord,
             /*desc_=*/e_unit_travel_good::map_to_map,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
     }
   }
   // We are entering a water square containing a friendly unit.
@@ -255,7 +255,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_target_=*/dst_coord,
             /*desc_=*/
             e_unit_travel_error::water_forbidden,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
       case +bh_t::always:
         return TravelAnalysis{
             /*id_=*/id,
@@ -265,7 +265,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_src_=*/src_coord,
             /*move_target_=*/dst_coord,
             /*desc_=*/e_unit_travel_good::map_to_map,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
       case +bh_t::move_onto_ship: {
         auto const& ships = units_at_dst;
         if( ships.empty() ) {
@@ -278,7 +278,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*move_target_=*/dst_coord,
               /*desc_=*/
               e_unit_travel_error::water_forbidden,
-              /*target_unit=*/{}};
+              /*target_unit=*/{} };
         }
         // We have at least one ship, so iterate
         // through and find the first one (if any) that
@@ -291,13 +291,13 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             return TravelAnalysis{
                 /*id_=*/id,
                 /*orders_=*/orders,
-                /*units_to_prioritize_=*/{ship_id},
+                /*units_to_prioritize_=*/{ ship_id },
                 /*unit_would_move_=*/true,
                 /*move_src_=*/src_coord,
                 /*move_target_=*/dst_coord,
                 /*desc_=*/
                 e_unit_travel_good::board_ship,
-                /*target_unit=*/ship_id};
+                /*target_unit=*/ship_id };
           }
         }
         return TravelAnalysis{
@@ -309,7 +309,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_target_=*/dst_coord,
             /*desc_=*/
             e_unit_travel_error::board_ship_full,
-            /*target_unit=*/{}};
+            /*target_unit=*/{} };
       }
     }
   }
@@ -350,7 +350,7 @@ Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId   id,
   CHECK( find( res.units_to_prioritize.begin(),
                res.units_to_prioritize.end(),
                id ) == res.units_to_prioritize.end() );
-  CHECK( res.move_src == coords_for_unit( id ) );
+  CHECK( res.move_src == coord_for_unit_indirect( id ) );
   CHECK( res.move_src.is_adjacent_to( res.move_target ) );
   CHECK( res.target_unit != id );
   return maybe_res;
@@ -388,7 +388,7 @@ void TravelAnalysis::affect_orders_() const {
 
   // This will throw if the unit has no coords, but I think it
   // should always at this point if we're moving it.
-  auto old_coord = coords_for_unit( id );
+  auto old_coord = coord_for_unit_indirect( id );
 
   switch( outcome ) {
     case e_unit_travel_good::map_to_map:
@@ -449,7 +449,7 @@ void TravelAnalysis::affect_orders_() const {
           cargo_unit.unfinish_turn();
           auto direction = old_coord.direction_to( move_target );
           CHECK( direction.has_value() );
-          orders_t orders = orders::direction{*direction};
+          orders_t orders = orders::direction{ *direction };
           push_unit_orders( cargo_id, orders );
         }
       }
@@ -457,7 +457,7 @@ void TravelAnalysis::affect_orders_() const {
   }
 
   // Now do a sanity check.
-  auto new_coord = coords_for_unit( id );
+  auto new_coord = coord_for_unit_indirect( id );
   CHECK( unit_would_move == ( new_coord == move_target ) );
 }
 

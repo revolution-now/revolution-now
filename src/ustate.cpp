@@ -251,14 +251,33 @@ Vec<UnitId> units_in_rect( Rect const& rect ) {
   return res;
 }
 
-Coord coords_for_unit( UnitId id ) {
-  ASSIGN_CHECK_OPT( res, coords_for_unit_safe( id ) );
+Opt<Coord> coord_for_unit( UnitId id ) {
+  CHECK( unit_exists( id ) );
+  return matcher_( SG().states[id], ->, Opt<Coord> ) {
+    case_( UnitState::free ) {
+      FATAL( "asking for coordinates of a free unit." );
+    }
+    case_( UnitState::world, coord ) { //
+      return coord;
+    }
+    case_( UnitState::cargo ) { //
+      return nullopt;
+    }
+    case_( UnitState::europort ) { //
+      return nullopt;
+    }
+    matcher_exhaustive;
+  };
+}
+
+Coord coord_for_unit_indirect( UnitId id ) {
+  ASSIGN_CHECK_OPT( res, coord_for_unit_indirect_safe( id ) );
   return res;
 }
 
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
-Opt<Coord> coords_for_unit_safe( UnitId id ) {
+Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
   CHECK( unit_exists( id ) );
   return matcher_( SG().states[id], ->, Opt<Coord> ) {
     case_( UnitState::free ) {
@@ -268,7 +287,7 @@ Opt<Coord> coords_for_unit_safe( UnitId id ) {
       return coord;
     }
     case_( UnitState::cargo, holder ) { //
-      return coords_for_unit_safe( holder );
+      return coord_for_unit_indirect_safe( holder );
     }
     case_( UnitState::europort ) { //
       return nullopt;

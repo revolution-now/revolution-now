@@ -18,3 +18,8 @@ enum e_unit_type : byte {
   large_treasure,
   small_treasure,
 }
+
+table Opt_e_unit_type {
+  has_value : bool;
+  value     : e_unit_type;
+}

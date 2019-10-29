@@ -377,7 +377,7 @@ e_turn_result turn( e_nation nation ) {
         lg.debug( "asking orders for: {}", debug_string( id ) );
         orders_taken = true;
 
-        auto coords = coords_for_unit( id );
+        auto coords = coord_for_unit_indirect( id );
         viewport().ensure_tile_visible( coords,
                                         /*smooth=*/true );
 

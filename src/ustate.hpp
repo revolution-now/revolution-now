@@ -73,12 +73,17 @@ void move_unit_from_map_to_map( UnitId id, Coord dest );
 
 ND Vec<UnitId> units_in_rect( Rect const& rect );
 
+// Returns the map coordinates for the unit if it is on the map
+// (which does NOT include being cargo of a unit on the map; for
+// that, see `coord_for_unit_indirect`).
+Opt<Coord> coord_for_unit( UnitId id );
+
 // These will return the coordinates for a unit if it is owned by
 // the map or the coordinates of its owner if it is ultimately
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
-ND Coord coords_for_unit( UnitId id );
-ND Opt<Coord> coords_for_unit_safe( UnitId id );
+ND Coord coord_for_unit_indirect( UnitId id );
+ND Opt<Coord> coord_for_unit_indirect_safe( UnitId id );
 
 /****************************************************************
 ** Cargo Ownership

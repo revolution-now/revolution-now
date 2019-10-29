@@ -36,7 +36,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   if( !util::holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
 
-  auto src_coord = coords_for_unit( id );
+  auto src_coord = coord_for_unit_indirect( id );
   auto dst_coord = src_coord.moved( direction );
 
   auto& unit = unit_from_id( id );
@@ -51,7 +51,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
         /*attack_target_=*/dst_coord,
         /*desc_=*/e_attack_error::attack_from_ship,
         /*target_unit_=*/{},
-        /*fight_stats_=*/{}};
+        /*fight_stats_=*/{} };
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
@@ -101,7 +101,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::unit_cannot_attack,
             /*target_unit_=*/{},
-            /*fight_stats_=*/{}};
+            /*fight_stats_=*/{} };
       case +bh_t::attack:
         return CombatAnalysis{
             /*id_=*/id,
@@ -111,7 +111,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_good::eu_land_unit,
             /*target_unit_=*/highest_defense_unit,
-            /*fight_stats_=*/run_stats()};
+            /*fight_stats_=*/run_stats() };
       case +bh_t::no_bombard:
         return CombatAnalysis{
             /*id_=*/id,
@@ -121,7 +121,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::ship_attack_land_unit,
             /*target_unit_=*/{},
-            /*fight_stats_=*/{}};
+            /*fight_stats_=*/{} };
       case +bh_t::bombard:
         return CombatAnalysis{
             /*id_=*/id,
@@ -131,7 +131,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_good::eu_land_unit,
             /*target_unit_=*/highest_defense_unit,
-            /*fight_stats_=*/run_stats()};
+            /*fight_stats_=*/run_stats() };
     }
   }
   // We are entering a water square containing a foreign unit.
@@ -147,7 +147,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::unit_cannot_attack,
             /*target_unit_=*/{},
-            /*fight_stats_=*/{}};
+            /*fight_stats_=*/{} };
       case +bh_t::attack:
         return CombatAnalysis{
             /*id_=*/id,
@@ -157,7 +157,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_good::ship,
             /*target_unit_=*/highest_defense_unit,
-            /*fight_stats_=*/run_stats()};
+            /*fight_stats_=*/run_stats() };
       case +bh_t::no_bombard:;
         return CombatAnalysis{
             /*id_=*/id,
@@ -167,7 +167,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_error::land_unit_attack_ship,
             /*target_unit_=*/{},
-            /*fight_stats_=*/{}};
+            /*fight_stats_=*/{} };
       case +bh_t::bombard:;
         return CombatAnalysis{
             /*id_=*/id,
@@ -177,7 +177,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*attack_target_=*/dst_coord,
             /*desc_=*/e_attack_good::ship,
             /*target_unit_=*/highest_defense_unit,
-            /*fight_stats_=*/run_stats()};
+            /*fight_stats_=*/run_stats() };
     }
   }
 
@@ -208,7 +208,7 @@ Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId   id,
   CHECK( find( res.units_to_prioritize.begin(),
                res.units_to_prioritize.end(),
                id ) == res.units_to_prioritize.end() );
-  CHECK( res.attack_src == coords_for_unit( id ) );
+  CHECK( res.attack_src == coord_for_unit_indirect( id ) );
   CHECK( res.attack_src.is_adjacent_to( res.attack_target ) );
   CHECK( res.target_unit != id );
 
@@ -270,7 +270,7 @@ void CombatAnalysis::affect_orders_() const {
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
-            loser.id(), coords_for_unit( winner.id() ) );
+            loser.id(), coord_for_unit_indirect( winner.id() ) );
         if( !loser.moved_this_turn() )
           loser.forfeight_mv_points();
         loser.finish_turn();
@@ -293,7 +293,7 @@ void CombatAnalysis::affect_orders_() const {
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
-            loser.id(), coords_for_unit( winner.id() ) );
+            loser.id(), coord_for_unit_indirect( winner.id() ) );
         if( !loser.moved_this_turn() )
           loser.forfeight_mv_points();
         loser.finish_turn();
