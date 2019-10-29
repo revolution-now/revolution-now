@@ -1,0 +1,42 @@
+// **************************************************************
+// orders.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-10-29.
+//
+// Description: Serializable types for the orders module.
+//
+// **************************************************************
+include "coord.fbs";
+
+namespace fb;
+
+namespace fb.orders;
+
+  table wait      {}
+  table forfeight {}
+  table fortify   {}
+  table sentry    {}
+  table disband   {}
+  table direction {
+    d : e_direction;
+  }
+
+  namespace fb;
+
+  table orders_t {
+    wait      : orders.wait;
+    forfeight : orders.forfeight;
+    fortify   : orders.fortify;
+    sentry    : orders.sentry;
+    disband   : orders.disband;
+    direction : orders.direction;
+  }
+
+namespace fb;
+
+table Opt_orders_t {
+  has_value : bool;
+  value     : orders_t;
+}

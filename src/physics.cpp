@@ -87,4 +87,8 @@ double DissipativeVelocity::advance(
 
 void DissipativeVelocity::hit_wall() { velocity_ = 0; }
 
+expect<> DissipativeVelocity::check_invariants_safe() const {
+  return xp_success_t{};
+}
+
 } // namespace rn

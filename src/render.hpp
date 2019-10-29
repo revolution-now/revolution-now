@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "aliases.hpp"
 #include "macros.hpp"
 #include "matrix.hpp"

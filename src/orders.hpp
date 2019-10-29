@@ -16,8 +16,12 @@
 // Revolution Now
 #include "adt.hpp"
 #include "coord.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
+
+// Flatbuffers
+#include "fb/orders_generated.h"
 
 // C++ standard library
 #include <variant>
@@ -36,14 +40,14 @@ namespace rn {
 // a land unit to go into a sea square without a ship, which
 // would not be allowed. In that case, the orders are not al-
 // lowed.
-adt_rn( orders,                //
-        ( wait ),              //
-        ( forfeight ),         //
-        ( fortify ),           //
-        ( sentry ),            //
-        ( disband ),           //
-        ( direction,           //
-          ( e_direction, d ) ) //
+adt_s_rn( orders,                //
+          ( wait ),              //
+          ( forfeight ),         //
+          ( fortify ),           //
+          ( sentry ),            //
+          ( disband ),           //
+          ( direction,           //
+            ( e_direction, d ) ) //
 );
 
 void push_unit_orders( UnitId id, orders_t const& orders );

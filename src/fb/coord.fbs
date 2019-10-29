@@ -10,6 +10,12 @@
 // **************************************************************
 namespace fb;
 
+enum e_direction : byte {
+  nw, n, ne,
+   w, c, e,
+  sw, s, se
+}
+
 struct Coord {
   y : int;
   x : int;

@@ -13,6 +13,14 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "aliases.hpp"
+#include "errors.hpp"
+#include "fb.hpp"
+
+// Flatbuffers
+#include "fb/physics_generated.h"
+
 namespace rn {
 
 enum class ND e_push_direction {
@@ -52,12 +60,25 @@ public:
   void set_bounds( double min_velocity, double max_velocity );
   void set_accelerations( double accel, double drag_accel );
 
+  bool operator==( DissipativeVelocity const& rhs ) const {
+    return ( min_velocity_ == rhs.min_velocity_ ) && //
+           ( max_velocity_ == rhs.max_velocity_ ) && //
+           ( velocity_ == rhs.velocity_ ) &&         //
+           ( accel_ == rhs.accel_ ) &&               //
+           ( drag_accel_ == rhs.drag_accel_ );
+  }
+
+  expect<> check_invariants_safe() const;
+
 private:
-  double min_velocity_{};
-  double max_velocity_{};
-  double velocity_{};
-  double accel_{};
-  double drag_accel_{};
+  // clang-format off
+  SERIALIZABLE_STRUCT_MEMBERS( DissipativeVelocity,
+  ( double, min_velocity_ ),
+  ( double, max_velocity_ ),
+  ( double, velocity_     ),
+  ( double, accel_        ),
+  ( double, drag_accel_   ));
+  // clang-format on
 };
 NOTHROW_MOVE( DissipativeVelocity );
 

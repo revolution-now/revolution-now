@@ -66,6 +66,7 @@ enum class ND e_(direction,
   sw, s, se
 );
 // clang-format on
+SERIALIZABLE_ENUM( e_direction );
 
 struct ND Delta {
   SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );
