@@ -26,6 +26,6 @@ table SaveGame {
   turn_state      : SG_Turn;
   plane_state     : SG_Plane;
   euroview_state  : SG_EuroportView;
-  terrain_state   : SG_Terrain;
   land_view_state : SG_LandView;
+  terrain_state   : SG_Terrain;
 }
