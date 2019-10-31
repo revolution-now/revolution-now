@@ -15,7 +15,11 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
+#include "fb.hpp"
 #include "fmt-helper.hpp"
+
+// Flatbuffers
+#include "fb/color_generated.h"
 
 // c++ standard library
 #include <cstdint>
@@ -28,16 +32,23 @@ namespace rn {
 
 // Standard RGBA form.  Can be freely passed by value.
 struct Color {
-  uint8_t r = 0;
-  uint8_t g = 0;
-  uint8_t b = 0;
-  uint8_t a = 0;
+  // clang-format off
+  SERIALIZABLE_STRUCT_MEMBERS( Color,
+  ( uint8_t, r ),
+  ( uint8_t, g ),
+  ( uint8_t, b ),
+  ( uint8_t, a ));
+  // clang-format on
 
-  Color() {}
+  Color() : r{ 0 }, g{ 0 }, b{ 0 }, a{ 0 } {}
   Color( uint8_t r_, uint8_t g_, uint8_t b_ )
     : r( r_ ), g( g_ ), b( b_ ), a( 255 ) {}
   Color( uint8_t r_, uint8_t g_, uint8_t b_, uint8_t a_ )
     : r( r_ ), g( g_ ), b( b_ ), a( a_ ) {}
+
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
 
   double luminosity() const;
 
@@ -86,13 +97,16 @@ struct Color {
   bool operator==( Color const& rhs ) const {
     return to_tuple() == rhs.to_tuple();
   }
+  bool operator!=( Color const& rhs ) const {
+    return !( *this == rhs );
+  }
 
-  static Color red() { return {255, 0, 0, 255}; }
-  static Color yellow() { return {255, 255, 0, 255}; }
-  static Color green() { return {0, 255, 0, 255}; }
-  static Color blue() { return {0, 0, 255, 255}; }
-  static Color white() { return {255, 255, 255, 255}; }
-  static Color black() { return {0, 0, 0, 255}; }
+  static Color red() { return { 255, 0, 0, 255 }; }
+  static Color yellow() { return { 255, 255, 0, 255 }; }
+  static Color green() { return { 0, 255, 0, 255 }; }
+  static Color blue() { return { 0, 0, 255, 255 }; }
+  static Color white() { return { 255, 255, 255, 255 }; }
+  static Color black() { return { 0, 0, 0, 255 }; }
   static Color banana();
   static Color wood();
 };

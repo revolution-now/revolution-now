@@ -17,6 +17,7 @@
 #include "coord.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "fmt-helper.hpp"
 #include "strong-span.hpp"
 
 // base-util
@@ -60,6 +61,13 @@ public:
     : Matrix( delta.w, delta.h, init ) {}
   Matrix() : Matrix( Delta{} ) {}
 
+  bool operator==( Matrix<T> const& rhs ) const {
+    return w_ == rhs.w_ && data_ == rhs.data_;
+  }
+  bool operator!=( Matrix<T> const& rhs ) const {
+    return !( *this == rhs );
+  }
+
   Delta size() const {
     using coord_underlying_t = decltype( w_._ );
     if( data_.size() == 0 ) return {};
@@ -101,15 +109,15 @@ auto serialize( FBBuilder& builder, Matrix<T> const& m,
                 serial::ADL ) {
   auto size   = m.size();
   auto s_size = serialize<fb_serialize_hint_t<decltype(
-      std::declval<Hint>().size() )>>(
-      builder, size, serial::ADL{} );
+      std::declval<Hint>().size() )>>( builder, size,
+                                       serial::ADL{} );
 
   std::vector<std::pair<Coord, T>> data;
   data.reserve( size_t( size.area() ) );
   for( auto const& c : m.rect() ) data.emplace_back( c, m[c] );
   auto s_data = serialize<fb_serialize_hint_t<decltype(
-      std::declval<Hint>().data() )>>(
-      builder, data, serial::ADL{} );
+      std::declval<Hint>().data() )>>( builder, data,
+                                       serial::ADL{} );
 
   return ReturnValue{
       Hint::Create( builder, s_size.get(), s_data.get() ) };
@@ -131,8 +139,8 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
   UNXP_CHECK( src->data() != nullptr );
 
   Delta size;
-  XP_OR_RETURN_( deserialize( src->size(), &size,
-                              serial::ADL{} ) );
+  XP_OR_RETURN_(
+      deserialize( src->size(), &size, serial::ADL{} ) );
 
   UNXP_CHECK( ( size.area() == 0 ) ==
               ( src->data()->size() == 0 ) );
@@ -140,8 +148,8 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
   if( size.area() == 0 ) return xp_success_t{};
 
   std::vector<std::pair<Coord, T>> data;
-  XP_OR_RETURN_( deserialize( src->data(), &data,
-                              serial::ADL{} ) );
+  XP_OR_RETURN_(
+      deserialize( src->data(), &data, serial::ADL{} ) );
 
   *m = Matrix<T>( size );
   FlatSet<Coord> seen;
@@ -160,3 +168,16 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
 } // namespace serial
 
 } // namespace rn
+
+namespace fmt {
+
+template<typename T>
+struct formatter<::rn::Matrix<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( ::rn::Matrix<T> const& o, FormatContext& ctx ) {
+    return formatter_base::format(
+        fmt::format( "Matrix{{size={}}}", o.size() ), ctx );
+  }
+};
+
+} // namespace fmt

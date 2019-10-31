@@ -8,6 +8,7 @@
 // Description: Serializable types for the sg-land-view module.
 //
 // **************************************************************
+include "color.fbs";
 include "coord.fbs";
 include "orders.fbs";
 include "physics.fbs";
@@ -37,9 +38,10 @@ namespace fb.LandViewState;
     percent_vel : DissipativeVelocity;
   }
   table depixelating_unit {
-    id       : int;
-    pixels   : [Coord];
-    demoted  : Opt_e_unit_type;
+    id             : int;
+    pixels         : [Coord];
+    demoted        : Opt_e_unit_type;
+    demoted_pixels : Matrix_Color;
   }
 
   namespace fb;

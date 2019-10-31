@@ -46,8 +46,7 @@ namespace rn {
 
 namespace {
 
-Texture            g_tx_depixelate_from;
-Opt<Matrix<Color>> g_demote_pixels{};
+Texture g_tx_depixelate_from;
 
 /****************************************************************
 ** FSMs
@@ -86,7 +85,8 @@ adt_s_rn_(
     ( depixelating_unit,                      //
       ( UnitId, id ),                         //
       ( Vec<Coord>, pixels ),                 //
-      ( Opt<e_unit_type>, demoted ) )         //
+      ( Opt<e_unit_type>, demoted ),          //
+      ( Matrix<Color>, demoted_pixels ) )     //
 );
 
 adt_rn_( LandViewEvent,                   //
@@ -196,9 +196,10 @@ fsm_class( LandView ) { //
              debug_string( event.id ) );
     }
     auto res = LandViewState::depixelating_unit{
-        /*id=*/event.id,          //
-        /*pixels=*/{},            //
-        /*demoted=*/maybe_demoted //
+        /*id=*/event.id,           //
+        /*pixels=*/{},             //
+        /*demoted=*/maybe_demoted, //
+        /*demoted_pixels=*/{}      //
     };
     res.pixels.assign( g_tile_rect.begin(), g_tile_rect.end() );
     rng::shuffle( res.pixels );
@@ -223,7 +224,7 @@ fsm_class( LandView ) { //
         render_nationality_icon( tx, res.id, Coord{} );
         render_unit( tx, *maybe_demoted, Coord{} );
       }
-      g_demote_pixels = tx.pixels();
+      res.demoted_pixels = tx.pixels();
     }
     return res;
   }
@@ -250,7 +251,11 @@ private:
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
 
+    // This won't recreate the previous contents of the texture,
+    // but it will be enough, since it only matters if the game
+    // happens to be saved while a unit is being depixelated.
     g_tx_depixelate_from = create_texture( g_tile_delta );
+    clear_texture_transparent( g_tx_depixelate_from );
 
     ASSIGN_CHECK_OPT(
         viewport_rect_pixels,
@@ -747,8 +752,8 @@ void advance_landview_state() {
         ::SDL_SetRenderDrawBlendMode( g_renderer,
                                       ::SDL_BLENDMODE_NONE );
         for( auto point : new_non_pixels ) {
-          auto color = g_demote_pixels.has_value()
-                           ? ( *g_demote_pixels )[point]
+          auto color = dying.demoted_pixels.size().area() > 0
+                           ? dying.demoted_pixels[point]
                            : Color( 0, 0, 0, 0 );
           set_render_draw_color( color );
           g_tx_depixelate_from.set_render_target();
