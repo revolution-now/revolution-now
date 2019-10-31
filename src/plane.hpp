@@ -36,7 +36,7 @@ namespace rn {
 
 enum class e_( plane,
                /* values */
-               viewport,  // land, units, colonies, etc.
+               land_view, // land, units, colonies, etc.
                panel,     // the info panel on the right
                image,     // any of the fullscreen pics displayed
                colony,    // colony view

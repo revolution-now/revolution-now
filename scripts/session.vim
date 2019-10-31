@@ -13,7 +13,6 @@ let s:stems = [
   \ 'src/turn',
   \ 'src/land-view',
   \ 'src/render',
-  \ 'src/viewport',
   \ 'src/save-game',
   \ 'src/window',
 \]

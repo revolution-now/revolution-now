@@ -101,7 +101,7 @@ template<template<typename U> typename Tag>
 struct FmtTags<Tag> {
   template<typename T>
   auto operator()( T &&o ) {
-    return Tag{std::forward<T>( o )};
+    return Tag{ std::forward<T>( o ) };
   }
 };
 
@@ -111,7 +111,7 @@ struct FmtTags<FirstTag, RestTags...> {
   template<typename T>
   auto operator()( T &&o ) const {
     return FirstTag{
-        FmtTags<RestTags...>{}( std::forward<T>( o ) )};
+        FmtTags<RestTags...>{}( std::forward<T>( o ) ) };
   }
 };
 
@@ -285,6 +285,17 @@ struct formatter<std::optional<T>> : formatter_base {
     return formatter_base::format(
         o.has_value() ? fmt::format( "{}", *o ) : nullopt_str,
         ctx );
+  }
+};
+
+// {fmt} formatter for formatting vectors whose contained
+// type is formattable.
+template<typename T>
+struct formatter<std::vector<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( std::vector<T> const &o, FormatContext &ctx ) {
+    return formatter_base::format(
+        fmt::format( "{}", ::rn::FmtJsonStyleList{ o } ), ctx );
   }
 };
 

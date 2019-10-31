@@ -31,12 +31,14 @@ namespace rn {
 // This viewport also knows where it is located on screen.
 class SmoothViewport {
 public:
-  // NOTE: invariants will not be satisifed after construction;
-  // must call enforce_invariants() after the information needed
-  // to enforce invariants becomes available.
+  // Note: this constructor will not itself put the object in a
+  // state that is ready to be used. After construction, but be-
+  // fore using the object, you must call `advance_state` on it
+  // at least once.
   SmoothViewport();
 
-  void advance();
+  void advance_state( Rect const&  viewport_rect_pixels,
+                      Delta const& world_size_tiles );
 
   // Tiles touched by the viewport (tiles at the edge may only be
   // partially visible).
@@ -114,8 +116,18 @@ private:
   void advance( e_push_direction x_push, e_push_direction y_push,
                 e_push_direction zoom_push );
 
+  template<typename C>
+  friend bool are_tile_surroundings_as_fully_visible_as_can_be(
+      SmoothViewport const& vp, Coord const& coords );
+
   double width_pixels() const;
   double height_pixels() const;
+
+  // These are to avoid a direct dependency on the screen module
+  // and its initialization code.
+  Delta world_size_pixels() const;
+  Rect  world_rect_pixels() const;
+  Rect  world_rect_tiles() const;
 
   double start_x() const;
   double start_y() const;
@@ -159,6 +171,9 @@ private:
   // Coord in world pixel coordinates indicating the point toward
   // which we should focus as we zoom.
   Opt<Coord> zoom_point_seek_{};
+
+  Rect  viewport_rect_pixels_{};
+  Delta world_size_tiles_{};
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, SmoothViewport,

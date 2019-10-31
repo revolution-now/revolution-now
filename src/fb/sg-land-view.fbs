@@ -13,6 +13,7 @@ include "orders.fbs";
 include "physics.fbs";
 include "unit.fbs";
 include "utype.fbs";
+include "viewport.fbs";
 
 namespace fb;
 
@@ -20,6 +21,10 @@ namespace fb.LandViewState;
 
   table none {}
   table blinking_unit {
+    id          : int;
+    add_to_back : [int];
+  }
+  table input_ready {
     id          : int;
     orders      : Opt_orders_t;
     prioritize  : [int];
@@ -33,8 +38,8 @@ namespace fb.LandViewState;
   }
   table depixelating_unit {
     id       : int;
+    pixels   : [Coord];
     demoted  : Opt_e_unit_type;
-    finished : bool;
   }
 
   namespace fb;
@@ -42,6 +47,7 @@ namespace fb.LandViewState;
   table LandViewState_t {
     none              : LandViewState.none;
     blinking_unit     : LandViewState.blinking_unit;
+    input_ready       : LandViewState.input_ready;
     sliding_unit      : LandViewState.sliding_unit;
     depixelating_unit : LandViewState.depixelating_unit;
   }
@@ -53,5 +59,6 @@ table LandViewFsm {
 }
 
 table SG_LandView {
-  mode : LandViewFsm;
+  mode     : LandViewFsm;
+  viewport : SmoothViewport;
 }

@@ -19,6 +19,8 @@ namespace rn {
 
 DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
+void advance_landview_state();
+
 /****************************************************************
 ** Testing
 *****************************************************************/

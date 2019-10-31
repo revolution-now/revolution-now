@@ -27,10 +27,10 @@ namespace rn {
 namespace {
 
 vector<e_plane> const default_in_game_config{
-    e_plane::viewport, //
-    e_plane::panel,    //
-    e_plane::menu,     //
-    e_plane::window    //
+    e_plane::land_view, //
+    e_plane::panel,     //
+    e_plane::menu,      //
+    e_plane::window     //
 };
 
 vector<e_plane> const g_main_menu_config{
@@ -107,10 +107,10 @@ void set_plane_config( e_plane_config conf ) {
       break;
     case +e_plane_config::terrain_view:
       SG().in_game_planes = vector<e_plane>{
-          e_plane::viewport, //
-          e_plane::panel,    //
-          e_plane::menu,     //
-          e_plane::window    //
+          e_plane::land_view, //
+          e_plane::panel,     //
+          e_plane::menu,      //
+          e_plane::window     //
       };
       SG().planes = SG().in_game_planes;
       break;

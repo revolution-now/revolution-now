@@ -17,6 +17,7 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "fmt-helper.hpp"
 
 // Flatbuffers
 #include "fb/physics_generated.h"
@@ -83,3 +84,7 @@ private:
 NOTHROW_MOVE( DissipativeVelocity );
 
 } // namespace rn
+
+DEFINE_FORMAT( ::rn::DissipativeVelocity,
+               "DissipativeVelocity{{velocity={}}}",
+               o.to_double() );

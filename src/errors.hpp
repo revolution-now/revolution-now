@@ -214,14 +214,14 @@ bool check_inline( bool b, char const* msg );
 // variant does not have the expected type then there will be a
 // check failure.
 #define GET_CHECK_VARIANT( dest, expression, type )         \
-  auto& STRING_JOIN( __x, __LINE__ ) = expression;          \
+  auto&& STRING_JOIN( __x, __LINE__ ) = expression;         \
   RN_CHECK(                                                 \
       ::util::holds<std::remove_cv_t<type>>(                \
           STRING_JOIN( __x, __LINE__ ) ),                   \
       "variant expected to be holding type `{}` but it is " \
       "holding index {}",                                   \
       #type, STRING_JOIN( __x, __LINE__ ).index() )         \
-  type& ID_( dest ) = std::get<std::remove_cv_t<type>>(     \
+  auto&& ID_( dest ) = std::get<std::remove_cv_t<type>>(    \
       STRING_JOIN( __x, __LINE__ ) )
 
 /****************************************************************
@@ -330,27 +330,27 @@ inline constexpr bool is_expect_v<::rn::expect<T>> = true;
 // line no.
 #define UNEXPECTED_SINGLE( str )               \
   ::nonstd::make_unexpected( ::rn::Unexpected{ \
-      fmt::format( "{}", str ), __LINE__, __FILE__} )
+      fmt::format( "{}", str ), __LINE__, __FILE__ } )
 
-#define UNEXPECTED_MULTI( fmt_str, ... )                    \
-  ::nonstd::make_unexpected(                                \
-      ::rn::Unexpected{fmt::format( fmt_str, __VA_ARGS__ ), \
-                       __LINE__, __FILE__} )
+#define UNEXPECTED_MULTI( fmt_str, ... )                     \
+  ::nonstd::make_unexpected(                                 \
+      ::rn::Unexpected{ fmt::format( fmt_str, __VA_ARGS__ ), \
+                        __LINE__, __FILE__ } )
 
 #define UNXP_CHECK( ... ) \
   PP_ONE_OR_MORE_ARGS( UNXP_CHECK, __VA_ARGS__ )
 
-#define UNXP_CHECK_MULTI( e, ... )                           \
-  {                                                          \
-    auto const& STRING_JOIN( __e, __LINE__ ) = ( e );        \
-    static_assert(                                           \
-        !is_expect_v<std::decay_t<decltype(                  \
-            STRING_JOIN( __e, __LINE__ ) )>>,                \
-        "UNXP_CHECK is not to be used on `expect` types." ); \
-    if( !STRING_JOIN( __e, __LINE__ ) ) {                    \
-      return ::nonstd::make_unexpected( ::rn::Unexpected{    \
-          fmt::format( __VA_ARGS__ ), __LINE__, __FILE__} ); \
-    }                                                        \
+#define UNXP_CHECK_MULTI( e, ... )                            \
+  {                                                           \
+    auto const& STRING_JOIN( __e, __LINE__ ) = ( e );         \
+    static_assert(                                            \
+        !is_expect_v<std::decay_t<decltype(                   \
+            STRING_JOIN( __e, __LINE__ ) )>>,                 \
+        "UNXP_CHECK is not to be used on `expect` types." );  \
+    if( !STRING_JOIN( __e, __LINE__ ) ) {                     \
+      return ::nonstd::make_unexpected( ::rn::Unexpected{     \
+          fmt::format( __VA_ARGS__ ), __LINE__, __FILE__ } ); \
+    }                                                         \
   }
 
 #define UNXP_CHECK_SINGLE( e )                               \
@@ -363,7 +363,7 @@ inline constexpr bool is_expect_v<::rn::expect<T>> = true;
     if( !STRING_JOIN( __e, __LINE__ ) ) {                    \
       return ::nonstd::make_unexpected( ::rn::Unexpected{    \
           fmt::format( "{}", #e " is false." ), __LINE__,    \
-          __FILE__} );                                       \
+          __FILE__ } );                                      \
     }                                                        \
   }
 

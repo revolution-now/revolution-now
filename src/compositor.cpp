@@ -23,25 +23,7 @@ namespace {
 H g_menu_height{ 16 };
 W g_panel_width{ 6 * 32 };
 
-void check_invariants() {
-  auto bounds = main_window_logical_rect();
-  // Make sure none of the section go off screen.
-  for( auto e : values<e_section> ) {
-    auto maybe_rect = section( e );
-    if( !maybe_rect.has_value() ) continue;
-    auto const& rect = *maybe_rect;
-    CHECK( rect.right_edge() <= bounds.right_edge(),
-           "section {} is out of bounds", e );
-    CHECK( rect.left_edge() >= bounds.left_edge(),
-           "section {} is out of bounds", e );
-    CHECK( rect.bottom_edge() <= bounds.bottom_edge(),
-           "section {} is out of bounds", e );
-    CHECK( rect.top_edge() >= bounds.top_edge(),
-           "section {} is out of bounds", e );
-  }
-}
-
-void init_compositor() { check_invariants(); }
+void init_compositor() {}
 
 void cleanup_compositor() {}
 
@@ -54,7 +36,8 @@ REGISTER_INIT_ROUTINE( compositor );
 *****************************************************************/
 Opt<Rect> section( e_section section ) {
   Opt<Rect> res;
-  auto      screen_size = main_window_logical_size();
+  auto      screen_rect = main_window_logical_rect();
+  auto      screen_size = screen_rect.delta();
   auto      menu_height =
       is_plane_enabled( e_plane::menu ) ? g_menu_height : 0_h;
   switch( section ) {
@@ -79,6 +62,17 @@ Opt<Rect> section( e_section section ) {
                   0_y + menu_height, g_panel_width,
                   screen_size.h - menu_height };
       break;
+  }
+  // Check invariants before returning.
+  if( res.has_value() ) {
+    DCHECK( res->right_edge() <= screen_rect.right_edge(),
+            "section {} is out of bounds", section );
+    DCHECK( res->left_edge() >= screen_rect.left_edge(),
+            "section {} is out of bounds", section );
+    DCHECK( res->bottom_edge() <= screen_rect.bottom_edge(),
+            "section {} is out of bounds", section );
+    DCHECK( res->top_edge() >= screen_rect.top_edge(),
+            "section {} is out of bounds", section );
   }
   return res;
 }

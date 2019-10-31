@@ -12,11 +12,8 @@
 #include "viewport.hpp"
 
 // Revolution Now
-#include "compositor.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "screen.hpp"
-#include "terrain.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
 
@@ -37,12 +34,6 @@ double pan_accel_init() {
 double pan_accel_drag_init() {
   return config_rn.viewport.pan_accel_drag_init_coeff *
          config_rn.viewport.pan_speed;
-}
-
-Rect viewport_rect_pixels() {
-  ASSIGN_CHECK_OPT( res, compositor::section(
-                             compositor::e_section::viewport ) );
-  return res;
 }
 
 } // namespace
@@ -74,14 +65,14 @@ SmoothViewport::SmoothViewport()
     smooth_center_x_target_{},
     smooth_center_y_target_{},
     zoom_point_seek_{},
+    viewport_rect_pixels_{},
+    world_size_tiles_{},
     zoom_( 1.0 ),
     center_x_( 0 ),
     center_y_( 0 ) {
   // !! NOTE: invariants will not be satisifed here; must call
-  // enforce_invariants() after constructor, and after the infor-
-  // mation needed to enforce invariants becomes available. We
-  // don't call it here because it may not be available when this
-  // constructor is running.
+  // advance_state() at least once after constructor to put the
+  // object in a ready state.
 }
 
 expect<> SmoothViewport::check_invariants_safe() const {
@@ -198,7 +189,14 @@ void advance_target_seeking( Opt<T>& maybe_target, double& val,
   }
 }
 
-void SmoothViewport::advance() {
+void SmoothViewport::advance_state(
+    Rect const&  viewport_rect_pixels,
+    Delta const& world_size_tiles ) {
+  // These could change each frame theoretically.
+  viewport_rect_pixels_ = viewport_rect_pixels;
+  world_size_tiles_     = world_size_tiles;
+  enforce_invariants();
+
   advance( x_push_, y_push_, zoom_push_ );
 
   advance_target_seeking( smooth_center_x_target_, center_x_,
@@ -250,10 +248,10 @@ void SmoothViewport::stop_auto_panning() {
 }
 
 double SmoothViewport::width_pixels() const {
-  return double( viewport_rect_pixels().delta().w ) / zoom_;
+  return double( viewport_rect_pixels_.delta().w ) / zoom_;
 }
 double SmoothViewport::height_pixels() const {
-  return double( viewport_rect_pixels().delta().h ) / zoom_;
+  return double( viewport_rect_pixels_.delta().h ) / zoom_;
 }
 
 double SmoothViewport::start_x() const {
@@ -306,10 +304,24 @@ double SmoothViewport::height_tiles() const {
   return upper - lower;
 }
 
+// These are to avoid a direct dependency on the screen module
+// and its initialization code.
+Delta SmoothViewport::world_size_pixels() const {
+  return world_size_tiles_ * Scale{ 32 };
+}
+
+Rect SmoothViewport::world_rect_pixels() const {
+  return Rect::from( Coord{}, world_size_pixels() );
+}
+
+Rect SmoothViewport::world_rect_tiles() const {
+  return Rect::from( Coord{}, world_size_tiles_ );
+}
+
 void SmoothViewport::enforce_invariants() {
   if( zoom_ < config_rn.viewport.zoom_min )
     zoom_ = config_rn.viewport.zoom_min;
-  auto [size_x, size_y] = world_size_tiles();
+  auto [size_x, size_y] = world_size_tiles_;
   size_y *= g_tile_height;
   size_x *= g_tile_width;
   // For each dimension we say the following: if we are zoomed in
@@ -326,7 +338,8 @@ void SmoothViewport::enforce_invariants() {
       center_x_ =
           double( size_x ) - double( width_pixels() ) / 2;
   } else {
-    center_x_ = double( 0_x + world_size_pixels().w / 2_sx );
+    center_x_ =
+        double( 0_x + this->world_size_pixels().w / 2_sx );
   }
   if( height_pixels() <= size_y ) {
     if( start_y() < 0 ) center_y_ = height_pixels() / 2;
@@ -334,7 +347,8 @@ void SmoothViewport::enforce_invariants() {
       center_y_ =
           double( size_y ) - double( height_pixels() ) / 2;
   } else {
-    center_y_ = double( 0_y + world_size_pixels().h / 2_sy );
+    center_y_ =
+        double( 0_y + this->world_size_pixels().h / 2_sy );
   }
 }
 
@@ -345,7 +359,7 @@ Rect SmoothViewport::covered_tiles() const {
       X( start_tile_x() ), Y( start_tile_y() ),
       W{ static_cast<int>( lround( width_tiles() ) ) },
       H{ static_cast<int>( lround( height_tiles() ) ) } }
-      .clamp( world_rect_tiles() );
+      .clamp( this->world_rect_tiles() );
 }
 
 Rect SmoothViewport::covered_pixels() const {
@@ -356,7 +370,7 @@ Rect SmoothViewport::covered_pixels() const {
 
   return Rect{ x_start, y_start, x_end - x_start,
                y_end - y_start }
-      .clamp( world_rect_pixels() );
+      .clamp( this->world_rect_pixels() );
 }
 
 Rect SmoothViewport::rendering_src_rect() const {
@@ -364,17 +378,18 @@ Rect SmoothViewport::rendering_src_rect() const {
   return Rect::from(
              Coord{} + viewport.upper_left() % g_tile_scale,
              viewport.delta() )
-      .clamp( world_rect_pixels() );
+      .clamp( this->world_rect_pixels() );
 }
 
 Rect SmoothViewport::rendering_dest_rect() const {
-  Rect dest                            = viewport_rect_pixels();
-  Rect viewport                        = get_bounds();
-  auto [max_src_width, max_src_height] = world_size_pixels();
+  Rect dest     = viewport_rect_pixels_;
+  Rect viewport = get_bounds();
+  auto [max_src_width, max_src_height] =
+      this->world_size_pixels();
   if( viewport.w > max_src_width ) {
     double delta = ( double( viewport.w - max_src_width ) /
                      double( viewport.w ) ) *
-                   double( viewport_rect_pixels().delta().w._ ) /
+                   double( viewport_rect_pixels_.delta().w._ ) /
                    2;
     dest.x += int( delta );
     dest.w -= int( delta * 2 );
@@ -382,7 +397,7 @@ Rect SmoothViewport::rendering_dest_rect() const {
   if( viewport.h > max_src_height ) {
     double delta = ( double( viewport.h - max_src_height ) /
                      double( viewport.h ) ) *
-                   double( viewport_rect_pixels().delta().h._ ) /
+                   double( viewport_rect_pixels_.delta().h._ ) /
                    2;
     dest.y += int( delta );
     dest.h -= int( delta * 2 );
@@ -413,7 +428,7 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
   DCHECK( percent_y >= 0 );
 
   auto viewport_or_world =
-      get_bounds().clamp( world_rect_pixels() );
+      get_bounds().clamp( this->world_rect_pixels() );
 
   auto res =
       Coord{ X{ int( viewport_or_world.x._ +
@@ -508,7 +523,7 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
   bool visible_in_inner_viewport = is_in(
       vp.covered_tiles().edges_removed().edges_removed() );
   bool in_inner_world = is_in(
-      world_rect_tiles().edges_removed().edges_removed() );
+      vp.world_rect_tiles().edges_removed().edges_removed() );
 
   // If the unit is not at all visible to the player then
   // obviously we must return true.

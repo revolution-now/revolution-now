@@ -19,6 +19,7 @@
 #include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
+#include "land-view.hpp"
 #include "logging.hpp"
 #include "main-menu.hpp"
 #include "menu.hpp"
@@ -197,7 +198,7 @@ void init_planes() {
   planes.fill( ObserverPtr<Plane>( &dummy ) );
 
   plane( e_plane::main_menu ).reset( main_menu_plane() );
-  plane( e_plane::viewport ).reset( viewport_plane() );
+  plane( e_plane::land_view ).reset( land_view_plane() );
   plane( e_plane::panel ).reset( panel_plane() );
   plane( e_plane::image ).reset( image_plane() );
   // plane( e_plane::colony ).reset( colony_plane() );

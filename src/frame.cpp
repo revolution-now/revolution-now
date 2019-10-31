@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "app-state.hpp"
+#include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"
 #include "macros.hpp"
@@ -191,7 +192,11 @@ void frame_loop( bool                     poll_input,
 
     // TODO: put this in a method of Plane
     advance_viewport_translation();
-    viewport().advance();
+    ASSIGN_CHECK_OPT(
+        viewport_rect_pixels,
+        compositor::section( compositor::e_section::viewport ) );
+    viewport().advance_state( viewport_rect_pixels,
+                              world_size_tiles() );
 
     // This invokes (synchronous/blocking) callbacks to any sub-
     // scribers that want to be notified at regular tick or time
