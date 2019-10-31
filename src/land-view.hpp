@@ -21,6 +21,9 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 void advance_landview_state();
 
+struct Plane;
+Plane* viewport_plane();
+
 /****************************************************************
 ** Testing
 *****************************************************************/
