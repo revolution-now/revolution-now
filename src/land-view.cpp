@@ -367,6 +367,45 @@ void render_land_view() {
   }
 }
 
+void advance_viewport_state() {
+  ASSIGN_CHECK_OPT(
+      viewport_rect_pixels,
+      compositor::section( compositor::e_section::viewport ) );
+
+  SG().viewport.advance_state( viewport_rect_pixels,
+                               world_size_tiles() );
+
+  // TODO: should only do the following when the viewport has
+  // input focus.
+  auto const* __state = ::SDL_GetKeyboardState( nullptr );
+
+  // Returns true if key is pressed.
+  auto state = [__state]( ::SDL_Scancode code ) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+    return __state[code] != 0;
+  };
+
+  if( state( ::SDL_SCANCODE_LSHIFT ) ) {
+    SG().viewport.set_x_push(
+        state( ::SDL_SCANCODE_A )
+            ? e_push_direction::negative
+            : state( ::SDL_SCANCODE_D )
+                  ? e_push_direction::positive
+                  : e_push_direction::none );
+    // y motion
+    SG().viewport.set_y_push(
+        state( ::SDL_SCANCODE_W )
+            ? e_push_direction::negative
+            : state( ::SDL_SCANCODE_S )
+                  ? e_push_direction::positive
+                  : e_push_direction::none );
+
+    if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
+        state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
+      SG().viewport.stop_auto_panning();
+  }
+}
+
 // If this is default constructed then it should represent "no
 // actions need to be taken."
 struct ClickTileActions {
@@ -523,6 +562,7 @@ struct LandViewPlane : public Plane {
     switch_( event ) {
       case_( input::unknown_event_t ) {}
       case_( input::quit_event_t ) {}
+      case_( input::win_event_t ) {}
       case_( input::key_event_t ) {
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
@@ -705,14 +745,9 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 ** Public API
 *****************************************************************/
 void advance_landview_state() {
-  ASSIGN_CHECK_OPT(
-      viewport_rect_pixels,
-      compositor::section( compositor::e_section::viewport ) );
-
   // Must be done as early as possible.
   SG().mode.process_events();
-  SG().viewport.advance_state( viewport_rect_pixels,
-                               world_size_tiles() );
+  advance_viewport_state();
 
   switch_( SG().mode.state() ) {
     case_( LandViewState::none ) {

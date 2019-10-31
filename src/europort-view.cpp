@@ -2049,6 +2049,7 @@ struct EuropePlane : public Plane {
     return matcher_( event ) {
       case_( input::unknown_event_t ) result_ false;
       case_( input::quit_event_t ) result_ false;
+      case_( input::win_event_t ) result_ false;
       case_( input::key_event_t ) result_ false;
       case_( input::mouse_wheel_event_t ) result_ false;
       case_( input::mouse_move_event_t ) {

@@ -32,8 +32,7 @@ namespace rn {
 
 using Frames = std::chrono::duration<int, std::ratio<1, 60>>;
 
-void frame_loop( bool                     poll_input,
-                 tl::function_ref<bool()> finished );
+void frame_loop();
 
 double avg_frame_rate();
 
@@ -62,7 +61,7 @@ EventCountMap& event_counts();
 // frame and hence it may end up return `true` more than once per
 // frame, thus causing unnecessary calls to the wrapped function.
 struct PerFrameInvalidator : public util::movable_only {
-  uint64_t curr_frame{0};
+  uint64_t curr_frame{ 0 };
   bool     operator()() {
     auto real_frame = total_frame_count();
     if( curr_frame == real_frame ) return false;

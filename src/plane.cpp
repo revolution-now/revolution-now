@@ -110,6 +110,7 @@ struct OmniPlane : public Plane {
     bool handled = false;
     switch_( event ) {
       case_( input::quit_event_t ) { throw exception_exit{}; }
+      case_( input::win_event_t ) {}
       case_( input::key_event_t ) {
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )

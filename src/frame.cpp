@@ -22,10 +22,12 @@
 #include "scope-exit.hpp"
 #include "screen.hpp"
 #include "variant.hpp"
-#include "viewport.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
+
+// Range-v3
+#include "range/v3/algorithm/any_of.hpp"
 
 // C++ standard library
 #include <thread>
@@ -39,47 +41,6 @@ namespace {
 MovingAverage<3 /*seconds*/> frame_rate;
 
 EventCountMap g_event_counts;
-
-// Returns true if any input was received.
-ND bool take_input() {
-  bool received_input = false;
-  while( auto event = input::next_event() ) {
-    // Just in case we have resized the main window we need to
-    // call this before dispatching it to the planes.
-    viewport().enforce_invariants(); // FIXME: this is icky here.
-    send_input_to_planes( *event );
-    received_input = true;
-  }
-  return received_input;
-}
-
-void advance_viewport_translation() {
-  auto const* __state = ::SDL_GetKeyboardState( nullptr );
-
-  // Returns true if key is pressed.
-  auto state = [__state]( ::SDL_Scancode code ) {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    return __state[code] != 0;
-  };
-
-  if( state( ::SDL_SCANCODE_LSHIFT ) ) {
-    viewport().set_x_push( state( ::SDL_SCANCODE_A )
-                               ? e_push_direction::negative
-                               : state( ::SDL_SCANCODE_D )
-                                     ? e_push_direction::positive
-                                     : e_push_direction::none );
-    // y motion
-    viewport().set_y_push( state( ::SDL_SCANCODE_W )
-                               ? e_push_direction::negative
-                               : state( ::SDL_SCANCODE_S )
-                                     ? e_push_direction::positive
-                                     : e_push_direction::none );
-
-    if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
-        state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
-      viewport().stop_auto_panning();
-  }
-}
 
 struct FrameSubscriptionTick {
   int                   interval{ 1 };
@@ -128,6 +89,45 @@ void notify_subscribers() {
   }
 }
 
+using InputReceivedFunc = tl::function_ref<void()>;
+using FrameLoopBodyFunc =
+    tl::function_ref<bool( InputReceivedFunc )>;
+
+void frame_loop_impl( FrameLoopBodyFunc body ) {
+  // FIXME: temporary.
+  static bool guard = false;
+  CHECK( !guard, "cannot re-enter frame_loop function." );
+  guard = true;
+  SCOPE_EXIT( guard = false );
+
+  using namespace chrono;
+
+  auto normal_frame_length =
+      1000000us / config_rn.target_frame_rate;
+  auto slow_frame_length = 1000000us / 5;
+
+  static auto time_of_last_input = Clock_t::now();
+
+  while( true ) {
+    // If we go more than the configured time without any user
+    // input then slow down the frame rate to save battery.
+    auto frame_length = ( Clock_t::now() - time_of_last_input >
+                          config_rn.power.time_till_slow_fps )
+                            ? slow_frame_length
+                            : normal_frame_length;
+
+    auto start = system_clock::now();
+    frame_rate.tick();
+    auto on_input = [] { time_of_last_input = Clock_t::now(); };
+    // ----------------------------------------------------------
+    if( body( on_input ) ) return;
+    // ----------------------------------------------------------
+    auto delta = system_clock::now() - start;
+    if( delta < frame_length )
+      this_thread::sleep_for( frame_length - delta );
+  }
+}
+
 } // namespace
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc func,
@@ -148,67 +148,54 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( bool                     poll_input,
-                 tl::function_ref<bool()> finished ) {
-  // FIXME: temporary.
-  static bool guard = false;
-  CHECK( !guard, "cannot re-enter frame_loop function." );
-  guard = true;
-  SCOPE_EXIT( guard = false );
+bool advance_all_state() {
+  if( advance_app_state() ) return true;
+  advance_plane_state();
+  return false;
+}
 
-  using namespace chrono;
+void frame_loop() {
+  frame_loop_impl( []( InputReceivedFunc input_received ) {
+    // ----------------------------------------------------------
+    // 1. Get Input.
+    auto events = input::pop_pending_events();
 
-  auto normal_frame_length =
-      1000000us / config_rn.target_frame_rate;
-  auto slow_frame_length = 1000000us / 5;
+    // ----------------------------------------------------------
+    // 2. Update State.
+    auto is_win_resize = []( auto const& e ) {
+      if_v( e, input::win_event_t, val ) {
+        return val->type == input::e_win_event_type::resized;
+      }
+      return false;
+    };
+    if( rg::any_of( events, is_win_resize ) )
+      on_main_window_resized();
 
-  static auto time_of_last_input = Clock_t::now();
+    for( auto const& event : events ) {
+      send_input_to_planes( event );
+      input_received();
+    }
 
-  while( true ) {
-    if( advance_app_state() ) return;
-    advance_plane_state();
-
-    // If we go more than the configured time without any user
-    // input then slow down the frame rate to save battery.
-    auto frame_length = ( Clock_t::now() - time_of_last_input >
-                          config_rn.power.time_till_slow_fps )
-                            ? slow_frame_length
-                            : normal_frame_length;
-
-    auto start = system_clock::now();
-    frame_rate.tick();
-    // Keep the state of the moving averages up to date even when
-    // there are no ticks happening on them. Specifically, if
-    // there are no ticks happening, then this will slowly cause
-    // the average to drop.
-    for( auto& p : g_event_counts ) p.second.update();
-
-    draw_all_planes();
-    ::SDL_RenderPresent( g_renderer );
-
-    if( poll_input )
-      if( take_input() ) //
-        time_of_last_input = Clock_t::now();
-
-    // TODO: put this in a method of Plane
-    advance_viewport_translation();
-    ASSIGN_CHECK_OPT(
-        viewport_rect_pixels,
-        compositor::section( compositor::e_section::viewport ) );
-    viewport().advance_state( viewport_rect_pixels,
-                              world_size_tiles() );
+    if( advance_all_state() ) return true;
 
     // This invokes (synchronous/blocking) callbacks to any sub-
     // scribers that want to be notified at regular tick or time
     // intervals.
     notify_subscribers();
 
-    if( finished() ) break;
+    // Keep the state of the moving averages up to date even when
+    // there are no ticks happening on them. Specifically, if
+    // there are no ticks happening, then this will slowly cause
+    // the average to drop.
+    for( auto& p : g_event_counts ) p.second.update();
 
-    auto delta = system_clock::now() - start;
-    if( delta < frame_length )
-      this_thread::sleep_for( frame_length - delta );
-  }
+    // ----------------------------------------------------------
+    // 3. Draw.
+    draw_all_planes();
+    ::SDL_RenderPresent( g_renderer );
+
+    return false;
+  } );
 }
 
 } // namespace rn

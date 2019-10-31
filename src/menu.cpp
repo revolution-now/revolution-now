@@ -1183,6 +1183,7 @@ struct MenuPlane : public Plane {
     auto matcher = scelta::match(
         []( input::unknown_event_t ) { return false; },
         []( input::quit_event_t ) { return false; },
+        []( input::win_event_t ) { return false; },
         [&]( input::key_event_t const& key_event ) {
           if( util::holds<MenuState::item_click>(
                   g_menu_state ) )

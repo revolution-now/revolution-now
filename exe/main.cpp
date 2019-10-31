@@ -16,10 +16,7 @@ using namespace std;
 
 namespace rn {
 
-void game() {
-  frame_loop( /*poll_input=*/true,
-              /*finished=*/L0( false ) );
-}
+void game() { frame_loop(); }
 
 } // namespace rn
 

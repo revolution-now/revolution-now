@@ -192,7 +192,10 @@ void advance_target_seeking( Opt<T>& maybe_target, double& val,
 void SmoothViewport::advance_state(
     Rect const&  viewport_rect_pixels,
     Delta const& world_size_tiles ) {
-  // These could change each frame theoretically.
+  // These could change each frame theoretically, breaking the
+  // invariants, so we need to recompute them each frame. That
+  // said, this should only happen rarely, when e.g. the user re-
+  // sizes or rescales the window.
   viewport_rect_pixels_ = viewport_rect_pixels;
   world_size_tiles_     = world_size_tiles;
   enforce_invariants();

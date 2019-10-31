@@ -622,7 +622,9 @@ string select_box( string_view title, Vec<Str> options ) {
   selector_ptr->grow_to( win->inside_padding_rect().w );
   reset_fade_to_dark( chrono::milliseconds( 1500 ),
                       chrono::milliseconds( 3000 ), 65 );
-  frame_loop( true, finished );
+  NOT_IMPLEMENTED;
+  (void)finished;
+  // frame_loop( true, finished );
   lg.info( "selected: {}", selector_ptr->get_selected() );
   auto result = selector_ptr->get_selected();
   win->close_window();
@@ -652,7 +654,8 @@ void message_box( std::string_view msg ) {
 
   auto* win = g_window_plane.wm.add_window( string( "Alert!" ),
                                             move( view ) );
-  frame_loop( true, [&] { return pressed_ok; } );
+  NOT_IMPLEMENTED;
+  // frame_loop( true, [&] { return pressed_ok; } );
 
   g_window_plane.wm.remove_window( win );
 }
@@ -818,7 +821,9 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
   auto* win = g_window_plane.wm.add_window(
       string( "Activate Units" ), move( view ) );
 
-  frame_loop( true, [&state] { return state != nullopt; } );
+  NOT_IMPLEMENTED;
+  (void)state;
+  // frame_loop( true, [&state] { return state != nullopt; } );
   lg.info( "pressed `{}`.", state );
 
   Vec<UnitSelection> res;
@@ -846,25 +851,6 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
 /****************************************************************
 ** Testing Only
 *****************************************************************/
-void window_test() {
-  int magic = 0;
-  while( magic != 33 ) {
-    int_input_box(
-        /*title=*/"Line Editor Test",
-        /*msg=*/"Please enter a valid number between 1-100:",
-        /*on_result=*/
-        [&]( Opt<int> result ) {
-          lg.info( "result: {}", result );
-          if( result ) magic = result.value();
-        },
-        /*min=*/1,
-        /*max=*/100 );
-
-    // ------------------------------------------------------------
-    frame_loop( true,
-                L0( g_window_plane.wm.num_windows() == 0 ) );
-  }
-  lg.info( "exiting." );
-}
+void window_test() {}
 
 } // namespace rn::ui

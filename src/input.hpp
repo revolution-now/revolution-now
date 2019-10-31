@@ -142,6 +142,15 @@ struct key_event_t : public event_base_t {
 };
 
 /****************************************************************
+** Window
+*****************************************************************/
+enum class e_win_event_type { resized, other };
+
+struct win_event_t : public event_base_t {
+  e_win_event_type type;
+};
+
+/****************************************************************
 ** Input Events
 *****************************************************************/
 // clang-format off
@@ -152,7 +161,8 @@ using event_t = std::variant<
   mouse_move_event_t,
   mouse_button_event_t,
   mouse_wheel_event_t,
-  mouse_drag_event_t
+  mouse_drag_event_t,
+  win_event_t
 >;
 // clang-format on
 NOTHROW_MOVE( event_t );
@@ -163,6 +173,8 @@ ND bool has_event();
 // Go through SDL's event queue and eat up all events that are
 // not relevant and then return the first one that is, if any.
 ND Opt<event_t> next_event();
+
+Vec<event_t> pop_pending_events();
 
 /****************************************************************
 ** Utilities
@@ -188,10 +200,6 @@ Opt<mouse_button_event_t> drag_event_to_mouse_button_event(
     mouse_drag_event_t const& event );
 mouse_move_event_t drag_event_to_mouse_motion_event(
     mouse_drag_event_t const& event );
-
-// This will consume (without processing) all queued input
-// events.
-void eat_all_events();
 
 /****************************************************************
 ** For Testing

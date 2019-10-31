@@ -23,6 +23,8 @@ bool Object::input( input::event_t const& event ) {
         result_ false;
     case_( input::quit_event_t ) //
         result_ false;
+    case_( input::win_event_t ) //
+        result_ false;
     case_( input::key_event_t ) //
         result_ on_key( val );
     case_( input::mouse_wheel_event_t ) //

@@ -72,22 +72,22 @@ using mouse_button_state_t =
 mouse_button_state_t g_mouse_buttons{};
 
 // These maintain the dragging state.
-drag_phase_t l_drag{drag_phase::none{}};
-drag_phase_t r_drag{drag_phase::none{}};
+drag_phase_t l_drag{ drag_phase::none{} };
+drag_phase_t r_drag{ drag_phase::none{} };
 
 absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
-    {::SDLK_LEFT, e_direction::w},
-    {::SDLK_RIGHT, e_direction::e},
-    {::SDLK_DOWN, e_direction::s},
-    {::SDLK_UP, e_direction::n},
-    {::SDLK_KP_4, e_direction::w},
-    {::SDLK_KP_6, e_direction::e},
-    {::SDLK_KP_2, e_direction::s},
-    {::SDLK_KP_8, e_direction::n},
-    {::SDLK_KP_7, e_direction::nw},
-    {::SDLK_KP_9, e_direction::ne},
-    {::SDLK_KP_1, e_direction::sw},
-    {::SDLK_KP_3, e_direction::se},
+    { ::SDLK_LEFT, e_direction::w },
+    { ::SDLK_RIGHT, e_direction::e },
+    { ::SDLK_DOWN, e_direction::s },
+    { ::SDLK_UP, e_direction::n },
+    { ::SDLK_KP_4, e_direction::w },
+    { ::SDLK_KP_6, e_direction::e },
+    { ::SDLK_KP_2, e_direction::s },
+    { ::SDLK_KP_8, e_direction::n },
+    { ::SDLK_KP_7, e_direction::nw },
+    { ::SDLK_KP_9, e_direction::ne },
+    { ::SDLK_KP_1, e_direction::sw },
+    { ::SDLK_KP_3, e_direction::se },
 };
 
 bool is_in_drag_zone( Coord current, Coord origin ) {
@@ -171,6 +171,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     // case ::SDL_TEXTEDITING: {
     //  break;
     //}
+    case ::SDL_WINDOWEVENT: {
+      win_event_t win_event;
+      win_event.type = ( sdl_event.window.event ==
+                         ::SDL_WINDOWEVENT_SIZE_CHANGED )
+                           ? e_win_event_type::resized
+                           : e_win_event_type::other;
+      event = win_event;
+      break;
+    }
     case ::SDL_KEYDOWN: {
       key_event_t key_event;
       key_event.change   = e_key_change::down;
@@ -202,15 +211,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
         if( button ) {
           switch_( drag ) {
             case_( drag_phase::none ) {
-              drag =
-                  drag_phase::maybe{/*origin=*/g_prev_mouse_pos};
+              drag = drag_phase::maybe{
+                  /*origin=*/g_prev_mouse_pos };
             }
             case_( drag_phase::maybe ) {
               if_v( drag, drag_phase::maybe, val ) {
                 if( is_in_drag_zone( val->origin, mouse ) ) {
                   drag = drag_phase::dragging{
                       /*origin=*/val->origin,
-                      /*phase=*/e_drag_phase::begin};
+                      /*phase=*/e_drag_phase::begin };
                 }
               }
             }
@@ -261,15 +270,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
               std::get<drag_phase::dragging>( l_drag );
           drag_event.button = e_mouse_button::l;
           drag_event.state =
-              drag_state_t{/*origin=*/dragging.origin,
-                           /*phase=*/dragging.phase};
+              drag_state_t{ /*origin=*/dragging.origin,
+                            /*phase=*/dragging.phase };
         } else {
           auto& dragging =
               std::get<drag_phase::dragging>( r_drag );
           drag_event.button = e_mouse_button::r;
           drag_event.state =
-              drag_state_t{/*origin=*/dragging.origin,
-                           /*phase=*/dragging.phase};
+              drag_state_t{ /*origin=*/dragging.origin,
+                            /*phase=*/dragging.phase };
         }
         event = drag_event;
       } else {
@@ -311,9 +320,10 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           drag_event.prev   = mouse;
           drag_event.pos    = mouse;
           drag_event.button = e_mouse_button::l;
-          drag_event.state = drag_state_t{/*origin=*/val->origin,
-                                          /*phase=*/val->phase};
-          event            = drag_event;
+          drag_event.state =
+              drag_state_t{ /*origin=*/val->origin,
+                            /*phase=*/val->phase };
+          event = drag_event;
         }
         else if( util::holds<drag_phase::maybe>( l_drag ) ) {
           l_drag = drag_phase::none{};
@@ -340,9 +350,10 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           drag_event.prev   = mouse;
           drag_event.pos    = mouse;
           drag_event.button = e_mouse_button::r;
-          drag_event.state = drag_state_t{/*origin=*/val->origin,
-                                          /*phase=*/val->phase};
-          event            = drag_event;
+          drag_event.state =
+              drag_state_t{ /*origin=*/val->origin,
+                            /*phase=*/val->phase };
+          event = drag_event;
         }
         else if( util::holds<drag_phase::maybe>( r_drag ) ) {
           r_drag = drag_phase::none{};
@@ -407,17 +418,17 @@ namespace {
 // from SDL in this game.
 auto const& relevant_sdl_events() {
   static auto constexpr events =
-      array<::SDL_EventType, 11>{::SDL_QUIT,
-                                 ::SDL_APP_TERMINATING,
-                                 ::SDL_WINDOWEVENT,
-                                 ::SDL_KEYDOWN,
-                                 ::SDL_KEYUP,
-                                 ::SDL_TEXTEDITING,
-                                 ::SDL_TEXTINPUT,
-                                 ::SDL_MOUSEMOTION,
-                                 ::SDL_MOUSEBUTTONDOWN,
-                                 ::SDL_MOUSEBUTTONUP,
-                                 ::SDL_MOUSEWHEEL};
+      array<::SDL_EventType, 11>{ ::SDL_QUIT,
+                                  ::SDL_APP_TERMINATING,
+                                  ::SDL_WINDOWEVENT,
+                                  ::SDL_KEYDOWN,
+                                  ::SDL_KEYUP,
+                                  ::SDL_TEXTEDITING,
+                                  ::SDL_TEXTINPUT,
+                                  ::SDL_MOUSEMOTION,
+                                  ::SDL_MOUSEBUTTONDOWN,
+                                  ::SDL_MOUSEBUTTONUP,
+                                  ::SDL_MOUSEWHEEL };
   return events;
 }
 
@@ -455,26 +466,16 @@ bool has_event() {
 Opt<event_t> next_event() {
   while( auto event = next_sdl_event() ) {
     if( !is_relevant_event_type( event->type ) ) continue;
-    // First check if it's an event that we can handle here, oth-
-    // erwise convert it to the event data structure and return
-    // it.
-    switch( event->type ) {
-      case ::SDL_WINDOWEVENT: {
-        // FIXME: this is icky here.
-        if( event->window.event ==
-            ::SDL_WINDOWEVENT_SIZE_CHANGED )
-          on_main_window_resized();
-        break;
-      }
-      default: //
-        return from_SDL( *event );
-    }
+    return from_SDL( *event );
   }
   return nullopt;
 }
 
-void eat_all_events() {
-  while( next_event() ) {}
+Vec<event_t> pop_pending_events() {
+  Vec<event_t> res;
+  while( auto event = input::next_event() )
+    res.push_back( *event );
+  return res;
 }
 
 /****************************************************************
@@ -482,18 +483,18 @@ void eat_all_events() {
 *****************************************************************/
 Opt<char> ascii_char_for_event( key_event_t const& event ) {
   static FlatMap<char, char> shift_map{
-      {'`', '~'},  {'1', '!'},  {'2', '@'}, {'3', '#'},
-      {'4', '$'},  {'5', '%'},  {'6', '^'}, {'7', '&'},
-      {'8', '*'},  {'9', '('},  {'0', ')'}, {'-', '_'},
-      {'=', '+'},  {'q', 'Q'},  {'w', 'W'}, {'e', 'E'},
-      {'r', 'R'},  {'t', 'T'},  {'y', 'Y'}, {'u', 'U'},
-      {'i', 'I'},  {'o', 'O'},  {'p', 'P'}, {'[', '{'},
-      {']', '}'},  {'\\', '|'}, {'a', 'A'}, {'s', 'S'},
-      {'d', 'D'},  {'f', 'F'},  {'g', 'G'}, {'h', 'H'},
-      {'j', 'J'},  {'k', 'K'},  {'l', 'L'}, {';', ':'},
-      {'\'', '"'}, {'z', 'Z'},  {'x', 'X'}, {'c', 'C'},
-      {'v', 'V'},  {'b', 'B'},  {'n', 'N'}, {'m', 'M'},
-      {',', '<'},  {'.', '>'},  {'/', '?'}};
+      { '`', '~' },  { '1', '!' },  { '2', '@' }, { '3', '#' },
+      { '4', '$' },  { '5', '%' },  { '6', '^' }, { '7', '&' },
+      { '8', '*' },  { '9', '(' },  { '0', ')' }, { '-', '_' },
+      { '=', '+' },  { 'q', 'Q' },  { 'w', 'W' }, { 'e', 'E' },
+      { 'r', 'R' },  { 't', 'T' },  { 'y', 'Y' }, { 'u', 'U' },
+      { 'i', 'I' },  { 'o', 'O' },  { 'p', 'P' }, { '[', '{' },
+      { ']', '}' },  { '\\', '|' }, { 'a', 'A' }, { 's', 'S' },
+      { 'd', 'D' },  { 'f', 'F' },  { 'g', 'G' }, { 'h', 'H' },
+      { 'j', 'J' },  { 'k', 'K' },  { 'l', 'L' }, { ';', ':' },
+      { '\'', '"' }, { 'z', 'Z' },  { 'x', 'X' }, { 'c', 'C' },
+      { 'v', 'V' },  { 'b', 'B' },  { 'n', 'N' }, { 'm', 'M' },
+      { ',', '<' },  { '.', '>' },  { '/', '?' } };
   Opt<char> res;
   if( event.keycode < 128 ) {
     char keychar = char( event.keycode );
@@ -514,6 +515,7 @@ event_t move_mouse_origin_by( event_t const& event,
   auto ptr = matcher_( new_event, ->, Coord* ) {
     case_( unknown_event_t ) return nullptr;
     case_( quit_event_t ) return nullptr;
+    case_( win_event_t ) return nullptr;
     case_( key_event_t ) return nullptr;
     case_( mouse_wheel_event_t ) return &val.pos;
     case_( mouse_move_event_t ) return &val.pos;
@@ -528,6 +530,7 @@ event_t move_mouse_origin_by( event_t const& event,
   ptr = matcher_( new_event, ->, Coord* ) {
     case_( unknown_event_t ) return nullptr;
     case_( quit_event_t ) return nullptr;
+    case_( win_event_t ) return nullptr;
     case_( key_event_t ) return nullptr;
     case_( mouse_wheel_event_t ) return nullptr;
     case_( mouse_move_event_t ) return &val.prev;
@@ -543,6 +546,7 @@ bool is_mouse_event( event_t const& event ) {
   return matcher_( event ) {
     case_( unknown_event_t ) return false;
     case_( quit_event_t ) return false;
+    case_( win_event_t ) return false;
     case_( key_event_t ) return false;
     case_( mouse_wheel_event_t ) return true;
     case_( mouse_move_event_t ) return true;
@@ -556,6 +560,7 @@ Opt<CRef<Coord>> mouse_position( event_t const& event ) {
   return matcher_( event, ->, Opt<CRef<Coord>> ) {
     case_( unknown_event_t ) return nullopt;
     case_( quit_event_t ) return nullopt;
+    case_( win_event_t ) return nullopt;
     case_( key_event_t ) return nullopt;
     case_( mouse_wheel_event_t ) return val.pos;
     case_( mouse_move_event_t ) return val.pos;
