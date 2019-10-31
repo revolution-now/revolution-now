@@ -14,7 +14,12 @@ is_newer_than() {
   local a=$1
   local b=$2
   local count=$(find . -maxdepth 1 -name $a -newer $b | wc -l)
-  [[ "$count" != 0 ]]
+  # We seem to need this branching on OSX.
+  if (( count != 0 )); then
+    return 0
+  else
+    return 1
+  fi
 }
 
 while true; do
