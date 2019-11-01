@@ -17,7 +17,9 @@
 #include "flat-queue.hpp"
 #include "frame.hpp"
 #include "fsm.hpp"
+#include "land-view.hpp"
 #include "logging.hpp"
+#include "panel.hpp" // FIXME
 #include "ranges.hpp"
 #include "render.hpp"
 #include "sound.hpp"
@@ -112,8 +114,8 @@ fsm_class( TurnCycle ) { //
     if( need_eot ) {
       // FIXME: temporary.
       mark_end_of_turn();
-      auto& vp_state = viewport_rendering_state();
-      vp_state       = viewport_state::none{};
+      // auto& vp_state = viewport_rendering_state();
+      // vp_state       = viewport_state::none{};
     }
     return {
         /*need_eot=*/need_eot, //
@@ -156,6 +158,7 @@ SAVEGAME_IMPL( Turn );
 void advance_turn_state() {
   if( SG().cycle_state.process_events() )
     lg.debug( "turn cycle state: {}", SG().cycle_state );
+
   switch_( SG().cycle_state.state() ) {
     case_( TurnCycleState::starting_cycle ) {
       SG().cycle_state.send_event(
@@ -234,36 +237,7 @@ bool animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
-e_turn_result turn() {
-  // If no units need to take orders this turn then we need to
-  // pause at the end of the turn to allow the user to take
-  // control or make changes. In that case, the flag will remain
-  // true. On the other hand, if at least one unit takes orders
-  // then that means that the user will at least have that
-  // opportunity to have control and so then we don't need to
-  // pause at the end of the turn. This flag controls that.
-  bool need_eot = true;
-  // for( auto nation : all_nations() ) {
-  // for( auto nation : {e_nation::dutch} ) {
-  for( auto nation : { e_nation::english, e_nation::spanish } ) {
-    auto res = turn( nation );
-    if( res == e_turn_result::orders_taken ) need_eot = false;
-  }
-
-  if( need_eot ) {
-    /***************************************************/
-    auto& vp_state = viewport_rendering_state();
-    vp_state       = viewport_state::none{};
-
-    mark_end_of_turn();
-
-    frame_loop( true,
-                [] { return was_next_turn_button_clicked(); } );
-    return e_turn_result::no_orders_taken;
-  }
-  return e_turn_result::orders_taken;
-}
-
+#if 0
 e_turn_result turn( e_nation nation ) {
   // start of turn:
 
@@ -272,33 +246,29 @@ e_turn_result turn( e_nation nation ) {
   // Mark all units as not having moved.
   map_units( []( Unit& unit ) { unit.new_turn(); } );
 
-  //  clang-format off
   //  Iterate through the colonies, for each:
-  //  TODO
-
-  //    * advance state of the colony
-
-  //    * display messages to user any/or show animations where
-  //    necessary
-
-  //    * allow them to enter colony when events happens; in that
-  //    case
-  //      go to the colony screen game loop.  When the user exits
-  //      the colony screen then this colony iteration
-  //      immediately proceeds; i.e., user cannot enter any other
-  //      colonies.  This prevents the user from making
+  //
+  //    - advance state of the colony
+  //
+  //    - display messages to user any/or show animations where
+  //      necessary
+  //
+  //    - allow them to enter colony when events happens; in that
+  //      case go to the colony screen game loop. When the user
+  //      exits the colony screen then this colony iteration im-
+  //      mediately proceeds; i.e., user cannot enter any other
+  //      colonies. This prevents the user from making
   //      last-minute changes to colonies that have not yet been
   //      advanced in this turn (otherwise that might allow
   //      cheating in some way).
-
-  //    * during this time, the user is not free to scroll
-  //      map (menus?) or make any changes to units.  They are
-  //      also not allowed to enter colonies apart from the one
-  //      that has just been processed.
-
+  //
+  //    - during this time, the user is not free to scroll map
+  //      (menus?) or make any changes to units. They are also
+  //      not allowed to enter colonies apart from the one that
+  //      has just been processed.
+  //
   //  Advance the state of the old world, possibly displaying
-  //  messages to the user where necessary.
-  //  clang-format on
+  //  messages to the user where necessary. clang-format on
 
   bool orders_taken = false;
 
@@ -549,5 +519,6 @@ e_turn_result turn( e_nation nation ) {
   return orders_taken ? e_turn_result::orders_taken
                       : e_turn_result::no_orders_taken;
 }
+#endif
 
 } // namespace rn

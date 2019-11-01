@@ -78,8 +78,8 @@ SmoothViewport::SmoothViewport()
 expect<> SmoothViewport::check_invariants_safe() const {
   UNXP_CHECK( zoom_ >= 0.0 );
   UNXP_CHECK( zoom_ <= 1.0 );
-  UNXP_CHECK( center_x_ > 0.0 );
-  UNXP_CHECK( center_y_ > 0.0 );
+  UNXP_CHECK( center_x_ >= 0.0 );
+  UNXP_CHECK( center_y_ >= 0.0 );
   return xp_success_t{};
 }
 

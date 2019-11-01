@@ -2028,9 +2028,9 @@ struct EuropePlane : public Plane {
   EuropePlane() = default;
   bool covers_screen() const override { return false; }
 
-  void on_frame_start() override {
+  void advance_state() override {
     fsm_.process_events();
-    drag_n_drop_.handle_on_frame_start();
+    drag_n_drop_.advance_state();
     g_dragging_object = drag_n_drop_.obj_being_dragged();
     // Should be last.
     create_entities( &entities_ );

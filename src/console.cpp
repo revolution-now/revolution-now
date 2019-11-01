@@ -58,7 +58,7 @@ struct ConsolePlane : public Plane {
         []( string const& ) {}, Color::banana(), Color::wood(),
         prompt );
   }
-  void on_frame_start() override {
+  void advance_state() override {
     show_percent_ += show_ ? .1 : -.1;
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
   }

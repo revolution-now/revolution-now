@@ -41,7 +41,6 @@ enum class e_( plane,
                image,     // any of the fullscreen pics displayed
                colony,    // colony view
                europe,    // the old world
-               effects,   // such as e.g. fading
                main_menu, // main menu.
                console,   // the developer console
                menu,      // the menus at the top of screen
@@ -75,11 +74,8 @@ struct Plane : public util::non_copy_non_move {
   // end of the last such call (if that happens to be useful).
   void virtual draw( Texture& tx ) const = 0;
 
-  // This will be called at the start/end of each frame to allow
-  // a plane to update any state that it has. It will only be
-  // called on frames that are enabled and visible.
-  virtual void on_frame_start();
-  virtual void on_frame_end();
+  // Called once per frame.
+  virtual void advance_state();
 
   // Accept input; returns true/false depending on whether the
   // input was handled or not.  If it was handled (true) then
@@ -166,9 +162,9 @@ bool is_plane_enabled( e_plane plane );
 
 void draw_all_planes( Texture& tx = Texture::screen() );
 
-// This will call the on_frame_{start,end} method on each plane
-// to update any state that it has. It will only be called on
-// frames that are enabled and visible.
+// This will call the advance_state method on each plane to up-
+// date any state that it has. It will only be called on frames
+// that are enabled and visible.
 void advance_plane_state();
 
 // Returns true if one of the planes handled the input, false

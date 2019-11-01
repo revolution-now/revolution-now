@@ -21,7 +21,6 @@
 #include "logging.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
-#include "render.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
 #include "typed-int.hpp"
@@ -173,7 +172,7 @@ namespace {
 struct WindowPlane : public Plane {
   WindowPlane() = default;
   bool covers_screen() const override { return false; }
-  void on_frame_start() override { wm.remove_closed_windows(); }
+  void advance_state() override { wm.remove_closed_windows(); }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     wm.draw_layout( tx );
@@ -620,8 +619,6 @@ string select_box( string_view title, Vec<Str> options ) {
   auto* win = g_window_plane.wm.add_window( string( title ),
                                             move( view ) );
   selector_ptr->grow_to( win->inside_padding_rect().w );
-  reset_fade_to_dark( chrono::milliseconds( 1500 ),
-                      chrono::milliseconds( 3000 ), 65 );
   NOT_IMPLEMENTED;
   (void)finished;
   // frame_loop( true, finished );

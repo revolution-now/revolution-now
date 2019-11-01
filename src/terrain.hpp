@@ -29,6 +29,9 @@ inline constexpr auto world_size = Delta{ 120_w, 60_h };
 
 DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 
+// FIXME: temporary.
+void generate_terrain();
+
 enum class e_( crust, water, land );
 SERIALIZABLE_ENUM( e_crust );
 

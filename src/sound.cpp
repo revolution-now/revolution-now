@@ -89,9 +89,9 @@ void init_sound() {
          ::Mix_GetError() );
 
   // Verify settings.
-  int      frequency{0};
-  uint16_t format{0};
-  int      channels{0};
+  int      frequency{ 0 };
+  uint16_t format{ 0 };
+  int      channels{ 0 };
   auto     audio_opened =
       ::Mix_QuerySpec( &frequency, &format, &channels );
 
@@ -113,7 +113,7 @@ void init_sound() {
   //
   // TODO: is this necessary given that we also set the volume
   // per chunk for sfx and set the volume for music separately?
-  constexpr int default_volume{10}; // [0, 128)
+  constexpr int default_volume{ 10 }; // [0, 128)
   ::Mix_Volume( -1 /*=all channels*/, default_volume );
 
   for( auto sound : values<e_sfx> ) load_sfx( sound );
@@ -144,5 +144,7 @@ void play_sound_effect( e_sfx sound ) {
   if( ::Mix_PlayChannel( -1, chunk, 0 ) == -1 )
     lg.warn( "unable to play sound effect {}", sound );
 }
+
+void linker_dont_discard_module_sound() {}
 
 } // namespace rn

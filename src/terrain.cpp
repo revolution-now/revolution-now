@@ -84,6 +84,22 @@ void invalidate_caches() {
     block_cache[coord].needs_redraw = true;
 }
 
+void init_terrain() {
+  for( auto coord : block_cache.rect() ) {
+    TerrainBlockCache cache{
+        /*needs_redraw=*/true, coord,
+        create_texture( Delta{ 1_w, 1_h } * terrain_block_size *
+                        g_tile_scale ) };
+    block_cache[coord] = std::move( cache );
+  }
+}
+
+void cleanup_terrain() { block_cache.clear(); }
+
+REGISTER_INIT_ROUTINE( terrain );
+
+} // namespace
+
 void generate_terrain() {
   Square const L = Square{ e_crust::land };
   Square const O = Square{ e_crust::water };
@@ -112,24 +128,6 @@ void generate_terrain() {
   make_squares( { 40_x, 40_y } );
   make_squares( { 100_x, 25_y } );
 }
-
-void init_terrain() {
-  generate_terrain();
-
-  for( auto coord : block_cache.rect() ) {
-    TerrainBlockCache cache{
-        /*needs_redraw=*/true, coord,
-        create_texture( Delta{ 1_w, 1_h } * terrain_block_size *
-                        g_tile_scale ) };
-    block_cache[coord] = std::move( cache );
-  }
-}
-
-void cleanup_terrain() { block_cache.clear(); }
-
-} // namespace
-
-REGISTER_INIT_ROUTINE( terrain );
 
 void render_terrain_square( Texture& tx, Coord world_square,
                             Coord pixel_coord ) {

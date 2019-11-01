@@ -1150,7 +1150,7 @@ struct MenuPlane : public Plane {
           create_shadow_texture( to_be_shadowed );
     }
   }
-  void on_frame_start() override {
+  void advance_state() override {
     if_v( g_menu_state, MenuState::item_click, val ) {
       auto item  = val->item;
       auto start = val->start;

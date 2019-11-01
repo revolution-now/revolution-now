@@ -12,12 +12,14 @@
 
 // Revolution Now
 #include "player.hpp"
+#include "sound.hpp"
 #include "turn.hpp"
 
 namespace rn {
 
 void linker_dont_discard_me() {
   linker_dont_discard_module_player();
+  linker_dont_discard_module_sound();
   // Add more here as needed.
 }
 

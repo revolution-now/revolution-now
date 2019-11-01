@@ -406,6 +406,62 @@ void advance_viewport_state() {
   }
 }
 
+void advance_landview_state() {
+  // Must be done as early as possible.
+  SG().mode.process_events();
+  advance_viewport_state();
+
+  switch_( SG().mode.state() ) {
+    case_( LandViewState::none ) {
+      //
+    }
+    case_( LandViewState::blinking_unit ) {
+      // FIXME: add blinking state here.
+    }
+    case_( LandViewState::input_ready ) {
+      //
+    }
+    case_( LandViewState::sliding_unit ) {
+      ASSIGN_CHECK_OPT(
+          slide,
+          SG().mode.holds<LandViewState::sliding_unit>() );
+      slide.get().percent_vel.advance( e_push_direction::none );
+      slide.get().percent += slide.get().percent_vel.to_double();
+      if( slide.get().percent > 1.0 ) slide.get().percent = 1.0;
+    }
+    case_( LandViewState::depixelating_unit ) {
+      ASSIGN_CHECK_OPT(
+          dying_ref,
+          SG().mode.holds<LandViewState::depixelating_unit>() );
+      auto& dying = dying_ref.get();
+      if( dying.pixels.empty() )
+        SG().mode.send_event( LandViewEvent::end{} );
+      else {
+        int to_depixelate =
+            std::min( config_rn.depixelate_pixels_per_frame,
+                      int( dying.pixels.size() ) );
+        vector<Coord> new_non_pixels;
+        for( int i = 0; i < to_depixelate; ++i ) {
+          auto next_coord = dying.pixels.back();
+          dying.pixels.pop_back();
+          new_non_pixels.push_back( next_coord );
+        }
+        ::SDL_SetRenderDrawBlendMode( g_renderer,
+                                      ::SDL_BLENDMODE_NONE );
+        for( auto point : new_non_pixels ) {
+          auto color = dying.demoted_pixels.size().area() > 0
+                           ? dying.demoted_pixels[point]
+                           : Color( 0, 0, 0, 0 );
+          set_render_draw_color( color );
+          g_tx_depixelate_from.set_render_target();
+          ::SDL_RenderDrawPoint( g_renderer, point.x._,
+                                 point.y._ );
+        }
+      }
+    }
+    switch_exhaustive;
+  }
+}
 // If this is default constructed then it should represent "no
 // actions need to be taken."
 struct ClickTileActions {
@@ -510,6 +566,7 @@ ClickTileActions click_on_world_tile( Coord coord ) {
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
+  void advance_state() override { advance_landview_state(); }
   void draw( Texture& tx ) const override {
     render_land_view();
     clear_texture_black( tx );
@@ -744,62 +801,6 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-void advance_landview_state() {
-  // Must be done as early as possible.
-  SG().mode.process_events();
-  advance_viewport_state();
-
-  switch_( SG().mode.state() ) {
-    case_( LandViewState::none ) {
-      //
-    }
-    case_( LandViewState::blinking_unit ) {
-      // FIXME: add blinking state here.
-    }
-    case_( LandViewState::input_ready ) {
-      //
-    }
-    case_( LandViewState::sliding_unit ) {
-      ASSIGN_CHECK_OPT(
-          slide,
-          SG().mode.holds<LandViewState::sliding_unit>() );
-      slide.get().percent_vel.advance( e_push_direction::none );
-      slide.get().percent += slide.get().percent_vel.to_double();
-      if( slide.get().percent > 1.0 ) slide.get().percent = 1.0;
-    }
-    case_( LandViewState::depixelating_unit ) {
-      ASSIGN_CHECK_OPT(
-          dying_ref,
-          SG().mode.holds<LandViewState::depixelating_unit>() );
-      auto& dying = dying_ref.get();
-      if( dying.pixels.empty() )
-        SG().mode.send_event( LandViewEvent::end{} );
-      else {
-        int to_depixelate =
-            std::min( config_rn.depixelate_pixels_per_frame,
-                      int( dying.pixels.size() ) );
-        vector<Coord> new_non_pixels;
-        for( int i = 0; i < to_depixelate; ++i ) {
-          auto next_coord = dying.pixels.back();
-          dying.pixels.pop_back();
-          new_non_pixels.push_back( next_coord );
-        }
-        ::SDL_SetRenderDrawBlendMode( g_renderer,
-                                      ::SDL_BLENDMODE_NONE );
-        for( auto point : new_non_pixels ) {
-          auto color = dying.demoted_pixels.size().area() > 0
-                           ? dying.demoted_pixels[point]
-                           : Color( 0, 0, 0, 0 );
-          set_render_draw_color( color );
-          g_tx_depixelate_from.set_render_target();
-          ::SDL_RenderDrawPoint( g_renderer, point.x._,
-                                 point.y._ );
-        }
-      }
-    }
-    switch_exhaustive;
-  }
-}
 
 /****************************************************************
 ** Testing

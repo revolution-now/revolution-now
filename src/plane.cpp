@@ -23,6 +23,7 @@
 #include "logging.hpp"
 #include "main-menu.hpp"
 #include "menu.hpp"
+#include "panel.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -204,7 +205,6 @@ void init_planes() {
   plane( e_plane::image ).reset( image_plane() );
   // plane( e_plane::colony ).reset( colony_plane() );
   plane( e_plane::europe ).reset( europe_plane() );
-  plane( e_plane::effects ).reset( effects_plane() );
   plane( e_plane::window ).reset( window_plane() );
   plane( e_plane::menu ).reset( menu_plane() );
   plane( e_plane::console ).reset( console_plane() );
@@ -271,8 +271,7 @@ bool Plane::input( input::event_t const& /*unused*/ ) {
   return false;
 }
 
-void Plane::on_frame_start() {}
-void Plane::on_frame_end() {}
+void Plane::advance_state() {}
 
 Plane::DragInfo Plane::can_drag(
     input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
@@ -341,7 +340,7 @@ void advance_plane_state() {
     g_plane_list      = std::move( *g_plane_list_next );
     g_plane_list_next = nullopt;
   }
-  for( auto [e, ptr] : relevant_planes() ) ptr->on_frame_start();
+  for( auto [e, ptr] : relevant_planes() ) ptr->advance_state();
 }
 
 bool send_input_to_planes( input::event_t const& event ) {

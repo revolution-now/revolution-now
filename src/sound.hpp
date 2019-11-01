@@ -21,4 +21,6 @@ enum class e_( sfx, move, attacker_lost, attacker_won );
 
 void play_sound_effect( e_sfx sound );
 
+void linker_dont_discard_module_sound();
+
 } // namespace rn

@@ -13,36 +13,19 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "compositor.hpp"
-#include "config-files.hpp"
 #include "errors.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
-#include "orders.hpp"
 #include "plane.hpp"
-#include "rand.hpp"
 #include "screen.hpp"
-#include "terrain.hpp"
 #include "text.hpp"
-#include "travel.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
-#include "viewport.hpp"
 #include "views.hpp"
 #include "window.hpp"
 
-// Revolution Now (config)
-#include "../config/ucl/rn.inl"
-
 // base-util
-#include "base-util/algo.hpp"
 #include "base-util/keyval.hpp"
-#include "base-util/variant.hpp"
-
-// SDL
-#include "SDL.h"
-
-// Abseil
-#include "absl/container/flat_hash_map.h"
 
 // C++ standard library
 #include <vector>
@@ -67,12 +50,6 @@ void render_unit_no_icon( Texture& tx, e_unit_type unit_type,
 /****************************************************************
 ** Rendering Building Blocks
 *****************************************************************/
-// FIXME: temporary
-SmoothViewport& viewport() {
-  static SmoothViewport svp;
-  return svp;
-}
-
 Texture render_nationality_icon_impl( e_nation nation, char c ) {
   Delta       delta = nationality_icon_size;
   Rect        rect  = Rect::from( Coord{}, delta );
@@ -146,7 +123,7 @@ struct NatIconRenderDesc {
 };
 NOTHROW_MOVE( NatIconRenderDesc );
 
-absl::flat_hash_map<NatIconRenderDesc, Texture> nat_icon_cache;
+FlatMap<NatIconRenderDesc, Texture> nat_icon_cache;
 
 Texture const& render_nationality_icon( e_nation nation,
                                         char     c ) {
@@ -235,169 +212,6 @@ void render_unit( Texture& tx, UnitId id, Coord pixel_coord,
 void render_unit( Texture& tx, e_unit_type unit_type,
                   Coord pixel_coord ) {
   render_unit_no_icon( tx, unit_type, pixel_coord );
-}
-
-/****************************************************************
-** Panel Rendering
-*****************************************************************/
-namespace {
-
-struct PanelPlane : public Plane {
-  PanelPlane() = default;
-  bool covers_screen() const override { return false; }
-
-  static auto rect() {
-    ASSIGN_CHECK_OPT( res, compositor::section(
-                               compositor::e_section::panel ) );
-    return res;
-  }
-  static W panel_width() { return rect().w; }
-  static H panel_height() { return rect().h; }
-
-  Delta delta() const {
-    return { panel_width(), panel_height() };
-  }
-  Coord origin() const { return rect().upper_left(); };
-
-  ui::ButtonView& next_turn_button() {
-    auto p_view = view->at( 0 );
-    return *p_view.view->cast<ui::ButtonView>();
-  }
-
-  void initialize() override {
-    vector<ui::OwningPositionedView> view_vec;
-
-    auto button_view =
-        make_unique<ui::ButtonView>( "Next Turn", [this] {
-          lg.debug( "on to next turn." );
-          this->next_turn_clicked = true;
-          // Disable the button as soon as it is clicked.
-          this->next_turn_button().enable( /*enabled=*/false );
-        } );
-    button_view->blink( /*enabled=*/true );
-
-    auto button_size = button_view->delta();
-    auto where =
-        Coord{} + ( panel_width() / 2 ) - ( button_size.w / 2 );
-    where += 16_h;
-
-    ui::OwningPositionedView p_view( std::move( button_view ),
-                                     where );
-    view_vec.emplace_back( std::move( p_view ) );
-
-    view = make_unique<ui::InvisibleView>(
-        delta(), std::move( view_vec ) );
-
-    next_turn_button().enable( false );
-  }
-
-  void draw( Texture& tx ) const override {
-    clear_texture_transparent( tx );
-    auto left_side =
-        0_x + main_window_logical_size().w - panel_width();
-
-    auto const& wood = lookup_sprite( g_tile::wood_middle );
-    auto        wood_width  = wood.size().w;
-    auto        wood_height = wood.size().h;
-
-    for( Y i = rect().top_edge(); i < rect().bottom_edge();
-         i += wood_height )
-      render_sprite( tx, g_tile::wood_middle, i,
-                     left_side + wood_width, 0, 0 );
-    for( Y i = rect().top_edge(); i < rect().bottom_edge();
-         i += wood_height )
-      render_sprite( tx, g_tile::wood_left_edge, i, left_side, 0,
-                     0 );
-
-    view->draw( tx, origin() );
-  }
-
-  bool input( input::event_t const& event ) override {
-    // FIXME: we need a window manager in the panel to avoid du-
-    // plicating logic between here and the window module.
-    if( input::is_mouse_event( event ) ) {
-      auto maybe_pos = input::mouse_position( event );
-      CHECK( maybe_pos.has_value() );
-      if( maybe_pos.value().get().is_inside( rect() ) ) {
-        auto new_event =
-            move_mouse_origin_by( event, origin() - Coord{} );
-        (void)view->input( new_event );
-        return true;
-      }
-      return false;
-    } else
-      return view->input( event );
-  }
-
-  void mark_end_of_turn() {
-    next_turn_button().enable( /*enabled=*/true );
-    next_turn_clicked = false;
-  }
-  bool was_next_turn_button_clicked() const {
-    return next_turn_clicked;
-  }
-
-  UPtr<ui::InvisibleView> view;
-  bool                    next_turn_clicked{ false };
-};
-
-PanelPlane g_panel_plane;
-
-} // namespace
-
-Plane* panel_plane() { return &g_panel_plane; }
-
-void mark_end_of_turn() { g_panel_plane.mark_end_of_turn(); }
-
-bool was_next_turn_button_clicked() {
-  return g_panel_plane.was_next_turn_button_clicked();
-}
-
-namespace {
-
-struct EffectsPlane : public Plane {
-  EffectsPlane() = default;
-  bool covers_screen() const override { return false; }
-  void draw( Texture& tx ) const override {
-    using namespace chrono;
-    clear_texture_transparent( tx );
-    auto now = system_clock::now();
-    if( now < start_time ) return;
-    uint8_t alpha = target_alpha;
-    if( now < end_time ) {
-      // TODO: are these casts necessary?
-      milliseconds delta =
-          duration_cast<milliseconds>( end_time - now );
-      milliseconds total =
-          duration_cast<milliseconds>( end_time - start_time );
-      double ratio = double( delta.count() ) / total.count();
-      CHECK( ratio >= 0.0 && ratio <= 1.0 );
-      alpha =
-          uint8_t( double( target_alpha ) * ( 1.0 - ratio ) );
-    }
-    // TODO: this may not require changing alpha to work.
-    render_fill_rect( tx, Color( 0, 0, 0, alpha ),
-                      main_window_logical_rect() );
-  }
-  Time_t  start_time;
-  Time_t  end_time;
-  uint8_t target_alpha;
-};
-
-EffectsPlane g_effects_plane;
-
-} // namespace
-
-Plane* effects_plane() { return &g_effects_plane; }
-
-void reset_fade_to_dark( chrono::milliseconds wait,
-                         chrono::milliseconds fade,
-                         uint8_t              target_alpha ) {
-  CHECK( wait >= 0ms && fade >= 0ms );
-  auto now                     = chrono::system_clock::now();
-  g_effects_plane.start_time   = now + wait;
-  g_effects_plane.end_time     = now + wait + fade;
-  g_effects_plane.target_alpha = target_alpha;
 }
 
 } // namespace rn

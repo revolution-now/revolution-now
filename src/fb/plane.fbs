@@ -11,12 +11,11 @@
 namespace fb;
 
 enum e_plane : byte {
-  viewport,
+  land_view,
   panel,
   image,
   colony,
   europe,
-  effects,
   main_menu,
   console,
   menu,

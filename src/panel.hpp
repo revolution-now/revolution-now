@@ -1,30 +1,29 @@
 /****************************************************************
-**land-view.hpp
+**panel.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2019-10-29.
+* Created by dsicilia on 2019-11-01.
 *
-* Description: Handles the main game view of the land.
+* Description: The side panel on land view.
 *
 *****************************************************************/
 #pragma once
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "sg-macros.hpp"
-
 namespace rn {
 
-DECLARE_SAVEGAME_SERIALIZERS( LandView );
-
 struct Plane;
-Plane* land_view_plane();
+Plane* panel_plane();
+
+// FIXME: temporary.
+void mark_end_of_turn();
+bool was_next_turn_button_clicked();
 
 /****************************************************************
 ** Testing
 *****************************************************************/
-void test_land_view();
+void test_panel();
 
 } // namespace rn

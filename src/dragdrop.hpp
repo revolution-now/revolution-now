@@ -193,7 +193,7 @@ public:
     return fsm_.template holds<InProgress_t>().has_value();
   }
 
-  void handle_on_frame_start() {
+  void advance_state() {
     if( auto arc = fsm_.template holds<WaitingToExecute_t>();
         arc ) {
       child().perform_drag( arc->get().arc );
