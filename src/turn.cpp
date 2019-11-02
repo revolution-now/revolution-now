@@ -50,41 +50,43 @@ namespace rn {
 namespace {
 
 /****************************************************************
-** FSMs
+** Turn Cycle FSM
 *****************************************************************/
+// This FSM represents state over an entire turn, where all na-
+// tions get processed (as well as anything else that needs to
+// happen each turn).
 adt_s_rn_( TurnCycleState,                          //
-           ( starting_cycle ),                      //
-           ( inside_cycle,                          //
+           ( starting ),                            //
+           ( inside,                                //
              ( bool, need_eot ),                    //
              ( e_nation, nation ),                  //
              ( flat_queue<e_nation>, remainder ) ), //
-           ( ending_cycle,                          //
+           ( ending,                                //
              ( bool, need_eot ) )                   //
 );
 
 adt_rn_( TurnCycleEvent,         //
-         ( next_turn,            //
+         ( next,                 //
            ( bool, need_eot ) ), //
-         ( end_cycle,            //
+         ( end,                  //
            ( bool, need_eot ) )  //
 );
 
 // clang-format off
 fsm_transitions( TurnCycle,
-  ((starting_cycle, next_turn),  ->,  inside_cycle   ),
-  ((inside_cycle,   next_turn),  ->,  inside_cycle   ),
-  ((inside_cycle,   end_cycle),  ->,  ending_cycle   ),
-  ((ending_cycle,   next_turn),  ->,  starting_cycle )
+  ((starting, next),  ->,  inside   ),
+  ((inside,   next),  ->,  inside   ),
+  ((inside,   end),   ->,  ending   ),
+  ((ending,   next),  ->,  starting )
 );
 // clang-format on
 
 fsm_class( TurnCycle ) { //
-  fsm_init( TurnCycleState::starting_cycle{} );
+  fsm_init( TurnCycleState::starting{} );
 
-  fsm_transition( TurnCycle, starting_cycle, next_turn, ->,
-                  inside_cycle ) {
+  fsm_transition( TurnCycle, starting, next, ->, inside ) {
     (void)cur;
-    TurnCycleState::inside_cycle res{
+    TurnCycleState::inside res{
         /*need_eot=*/event.need_eot,  //
         /*nation=*/e_nation::english, //
         /*remainder=*/{}              //
@@ -95,10 +97,9 @@ fsm_class( TurnCycle ) { //
     return res;
   }
 
-  fsm_transition( TurnCycle, inside_cycle, next_turn, ->,
-                  inside_cycle ) {
+  fsm_transition( TurnCycle, inside, next, ->, inside ) {
     (void)event;
-    TurnCycleState::inside_cycle res = cur;
+    TurnCycleState::inside res = cur;
 
     auto next = res.remainder.front();
     CHECK( next, "nation remainder queue is empty." );
@@ -108,8 +109,7 @@ fsm_class( TurnCycle ) { //
     return res;
   }
 
-  fsm_transition( TurnCycle, inside_cycle, end_cycle, ->,
-                  ending_cycle ) {
+  fsm_transition( TurnCycle, inside, end, ->, ending ) {
     bool need_eot = event.need_eot && cur.need_eot;
     if( need_eot ) {
       // FIXME: temporary.
@@ -160,11 +160,11 @@ void advance_turn_state() {
     lg.debug( "turn cycle state: {}", SG().cycle_state );
 
   switch_( SG().cycle_state.state() ) {
-    case_( TurnCycleState::starting_cycle ) {
+    case_( TurnCycleState::starting ) {
       SG().cycle_state.send_event(
-          TurnCycleEvent::next_turn{ /*need_eot=*/true } );
+          TurnCycleEvent::next{ /*need_eot=*/true } );
     }
-    case_( TurnCycleState::inside_cycle ) {
+    case_( TurnCycleState::inside ) {
       // If no units need to take orders this turn then we need
       // to pause at the end of the turn to allow the user to
       // take control or make changes.
@@ -172,19 +172,17 @@ void advance_turn_state() {
       // TODO: check turn state here.
       if( !val.remainder.empty() )
         SG().cycle_state.send_event(
-            TurnCycleEvent::next_turn{ /*need_eot=*/need_eot } );
+            TurnCycleEvent::next{ /*need_eot=*/need_eot } );
       else
         SG().cycle_state.send_event(
-            TurnCycleEvent::end_cycle{ /*need_eot=*/need_eot } );
+            TurnCycleEvent::end{ /*need_eot=*/need_eot } );
     }
-    case_( TurnCycleState::ending_cycle ) {
+    case_( TurnCycleState::ending ) {
       if( !val.need_eot ) {
-        SG().cycle_state.send_event(
-            TurnCycleEvent::next_turn{} );
+        SG().cycle_state.send_event( TurnCycleEvent::next{} );
       } else {
         if( was_next_turn_button_clicked() )
-          SG().cycle_state.send_event(
-              TurnCycleEvent::next_turn{} );
+          SG().cycle_state.send_event( TurnCycleEvent::next{} );
       }
     }
     switch_exhaustive;

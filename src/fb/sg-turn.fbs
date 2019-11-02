@@ -14,11 +14,11 @@ namespace fb;
 
 namespace fb.TurnCycleState;
 
-  table starting_cycle {}
-  table ending_cycle {
+  table starting {}
+  table ending {
     need_eot  : bool;
   }
-  table inside_cycle {
+  table inside {
     need_eot  : bool;
     nation    : e_nation;
     remainder : [e_nation];
@@ -27,9 +27,9 @@ namespace fb.TurnCycleState;
   namespace fb;
 
   table TurnCycleState_t {
-    starting_cycle : TurnCycleState.starting_cycle;
-    inside_cycle   : TurnCycleState.inside_cycle;
-    ending_cycle   : TurnCycleState.ending_cycle;
+    starting : TurnCycleState.starting;
+    inside   : TurnCycleState.inside;
+    ending   : TurnCycleState.ending;
   }
 
 table TurnCycleFsm {
