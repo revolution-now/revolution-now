@@ -162,6 +162,15 @@ public:
     return res;
   }
 
+  // NOTE: we're not comparing the event queue here.
+  bool operator==( Parent const& rhs ) const {
+    return ( state_ == rhs.state_ );
+  }
+
+  bool operator!=( Parent const& rhs ) const {
+    return !( *this == rhs );
+  }
+
 protected:
   struct NoTransition {};
 
@@ -259,14 +268,13 @@ template<typename Hint,                  //
          typename T,                     //
          typename T::IamFsm_t* = nullptr //
          >
-auto serialize( FBBuilder& builder, T const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
   CHECK( !o.has_pending_events(),
          "cannot serialize a finite state machine with pending "
          "events." );
   auto s_state = serialize<serial::fb_serialize_hint_t<decltype(
-      std::declval<Hint>().state() )>>(
-      builder, o.state(), serial::ADL{} );
+      std::declval<Hint>().state() )>>( builder, o.state(),
+                                        serial::ADL{} );
   return serial::ReturnValue{
       Hint::Create( builder, s_state.get() ) };
 }
@@ -275,13 +283,12 @@ template<typename SrcT,                     //
          typename DstT,                     //
          typename DstT::IamFsm_t* = nullptr //
          >
-expect<> deserialize( SrcT const* src, DstT* dst,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   UNXP_CHECK( src->state() != nullptr );
   typename std::decay_t<DstT>::state_t state;
-  XP_OR_RETURN_( deserialize( src->state(), &state,
-                              serial::ADL{} ) );
+  XP_OR_RETURN_(
+      deserialize( src->state(), &state, serial::ADL{} ) );
   *dst = DstT( std::move( state ) );
   return xp_success_t{};
 }

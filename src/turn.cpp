@@ -126,6 +126,50 @@ fsm_class( TurnCycle ) { //
 FSM_DEFINE_FORMAT_RN_( TurnCycle );
 
 /****************************************************************
+** Unit Turn FSM
+*****************************************************************/
+// This FSM represents the state across the processing of a
+// single unit.
+adt_rn_( UnitTurnState, //
+         ( none ),      //
+         ( inspect ),   //
+         ( ask )        //
+);
+
+adt_rn_( UnitTurnEvent, //
+         ( next )       //
+);
+
+// clang-format off
+fsm_transitions( UnitTurn,
+  ((ask,   next),  ->,  ask )
+);
+// clang-format on
+
+fsm_class( UnitTurn ) { //
+  fsm_init( UnitTurnState::ask{} );
+
+  fsm_transition_( UnitTurn, ask, next, ->, ask ) { return {}; }
+};
+
+/****************************************************************
+** Turn FSM
+*****************************************************************/
+// This FSM represents the state across the processing of a
+// single turn for a single nation.
+adt_rn_( TurnState,     //
+         ( starting ),  //
+         ( colonies ),  //
+         ( old_world ), //
+         ( units_all,   //
+                      // FIXME: deque
+           ( Vec<UnitId>, q ),       //
+           ( UnitTurnFsm, uturn ) ), //
+         ( ai ),                     //
+         ( ending )                  //
+);
+
+/****************************************************************
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Turn ) {
