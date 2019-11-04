@@ -10,6 +10,7 @@
 // **************************************************************
 include "color.fbs";
 include "coord.fbs";
+include "land-view.fbs";
 include "orders.fbs";
 include "physics.fbs";
 include "unit.fbs";
@@ -26,10 +27,7 @@ namespace fb.LandViewState;
     add_to_back : [int];
   }
   table input_ready {
-    id          : int;
-    orders      : Opt_orders_t;
-    prioritize  : [int];
-    add_to_back : [int];
+    response : UnitInputResponse;
   }
   table sliding_unit {
     id          : int;

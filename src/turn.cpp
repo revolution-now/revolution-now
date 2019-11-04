@@ -130,10 +130,12 @@ FSM_DEFINE_FORMAT_RN_( TurnCycle );
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
-adt_rn_( UnitTurnState, //
-         ( none ),      //
-         ( inspect ),   //
-         ( ask )        //
+adt_rn_( UnitTurnState,                      //
+         ( none ),                           //
+         ( inspect ),                        //
+         ( ask ),                            //
+         ( have_response,                    //
+           ( UnitInputResponse, response ) ) //
 );
 
 adt_rn_( UnitTurnEvent, //
@@ -155,19 +157,81 @@ fsm_class( UnitTurn ) { //
 /****************************************************************
 ** Turn FSM
 *****************************************************************/
+using UnitDequeType = Vec<UnitId>; // FIXME: deque
+
 // This FSM represents the state across the processing of a
 // single turn for a single nation.
-adt_rn_( TurnState,     //
-         ( starting ),  //
-         ( colonies ),  //
-         ( old_world ), //
-         ( units_all,   //
-                      // FIXME: deque
-           ( Vec<UnitId>, q ),       //
-           ( UnitTurnFsm, uturn ) ), //
-         ( ai ),                     //
-         ( ending )                  //
+adt_rn_( NationTurnState,                 //
+         ( starting,                      //
+           ( e_nation, nation ) ),        //
+         ( units_all,                     //
+           ( e_nation, nation ),          //
+           ( bool, need_eot ),            //
+           ( UnitDequeType, q ),          //
+           ( Opt<UnitTurnFsm>, uturn ) ), //
+         ( ending,                        //
+           ( bool, need_eot ) )           //
 );
+
+adt_rn_( NationTurnEvent, //
+         ( next ),        //
+         ( end )          //
+);
+
+// clang-format off
+fsm_transitions( NationTurn,
+  ((starting,  next),  ->,  units_all),
+  ((units_all, end ),  ->,  ending   ),
+);
+// clang-format on
+
+fsm_class( NationTurn ) {
+  fsm_init( NationTurnState::starting{ /*nation=*/{} } );
+
+  fsm_transition( NationTurn, starting, next, ->, units_all ) {
+    (void)event;
+    return {
+        /*nation=*/cur.nation, //
+        /*need_eot=*/true,     //
+        /*q=*/{},              //
+        /*uturn=*/{}           //
+    };
+    lg.info( "starting turn for nation `{}`.", cur.nation );
+  }
+
+  fsm_transition( NationTurn, units_all, end, ->, ending ) {
+    (void)event;
+    return { /*need_eot=*/cur.need_eot };
+  }
+};
+
+void advance_nation_turn_state( NationTurnFsm& fsm ) {
+  switch_( fsm.state() ) {
+    case_( NationTurnState::starting ) {
+      fsm.send_event( NationTurnEvent::next{} );
+    }
+    case_( NationTurnState::units_all ) {
+      // TODO
+      // auto          units = units_all( cur.nation );
+      //// Optional, but makes for good consistency for units to
+      //// ask for orders in the order that they were created.
+      //// TODO: in the future, try to sort by geographic
+      ///location.
+      // util::sort_by_key( units, []( auto id ) { return id._; }
+      // ); auto finished = []( UnitId id ) {
+      //  return unit_from_id( id ).finished_turn();
+      //};
+      // if( all_of( units.begin(), units.end(), finished ) )
+      // break;
+
+      // for( auto id : units ) q.push_back( id );
+    }
+    case_( NationTurnState::ending ) {
+      //
+    }
+    switch_exhaustive;
+  }
+}
 
 /****************************************************************
 ** Save-Game State

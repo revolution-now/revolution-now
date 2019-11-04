@@ -1,0 +1,20 @@
+// **************************************************************
+// land-view.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-11-04.
+//
+// Description: Serializable types for the land-view module.
+//
+// **************************************************************
+include "orders.fbs";
+
+namespace fb;
+
+table UnitInputResponse {
+  id           : int;
+  orders       : Opt_orders_t;
+  add_to_front : [int];
+  add_to_back  : [int];
+}

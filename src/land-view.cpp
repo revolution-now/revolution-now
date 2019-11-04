@@ -68,15 +68,9 @@ adt_s_rn_(
       // (without asking for orders) and later in the same turn
       // had its orders cleared by the player (but not priori-
       // tized), this will allow it to ask for orders this turn.
-      ( Vec<UnitId>, add_to_back ) ), //
-    ( input_ready,                    //
-      ( UnitId, id ),                 //
-      ( Opt<orders_t>, orders ),      //
-      // Units that the player has asked to prioritize (i.e.,
-      // bring them forward in the queue of units waiting for or-
-      // ders).
-      ( Vec<UnitId>, prioritize ),            //
       ( Vec<UnitId>, add_to_back ) ),         //
+    ( input_ready,                            //
+      ( UnitInputResponse, response ) ),      //
     ( sliding_unit,                           //
       ( UnitId, id ),                         //
       ( Coord, target ),                      //
@@ -125,22 +119,22 @@ fsm_class( LandView ) { //
 
   fsm_transition( LandView, blinking_unit, input_orders, ->,
                   input_ready ) {
-    return {
+    return { UnitInputResponse{
         /*id=*/cur.id,                  //
         /*orders=*/event.orders,        //
-        /*prioritize=*/{},              //
+        /*add_to_front=*/{},            //
         /*add_to_back=*/cur.add_to_back //
-    };
+    } };
   }
 
   fsm_transition( LandView, blinking_unit, input_prioritize, ->,
                   input_ready ) {
-    return {
-        /*id=*/cur.id,                   //
-        /*orders=*/nullopt,              //
-        /*prioritize=*/event.prioritize, //
-        /*add_to_back=*/cur.add_to_back  //
-    };
+    return { UnitInputResponse{
+        /*id=*/cur.id,                     //
+        /*orders=*/nullopt,                //
+        /*add_to_front=*/event.prioritize, //
+        /*add_to_back=*/cur.add_to_back    //
+    } };
   }
 
   fsm_transition( LandView, blinking_unit, add_to_back, ->,
