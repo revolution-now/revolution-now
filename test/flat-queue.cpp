@@ -11,6 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "src/rand.hpp"
 #include "src/ranges.hpp"
@@ -40,6 +41,18 @@ TEST_CASE( "[flat-queue] initialization" ) {
   REQUIRE( !q.front().has_value() );
 #ifndef NDEBUG
   REQUIRE_THROWS_AS_RN( q.pop() );
+#endif
+}
+
+TEST_CASE( "[flat-deque] initialization" ) {
+  flat_deque<int> q;
+
+  REQUIRE( q.size() == 0 );
+  REQUIRE( q.empty() );
+
+  REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
+  REQUIRE_THROWS_AS_RN( q.pop_front() );
 #endif
 }
 
@@ -77,6 +90,83 @@ TEST_CASE( "[flat-queue] push pop small" ) {
   REQUIRE( !q.front().has_value() );
 #ifndef NDEBUG
   REQUIRE_THROWS_AS_RN( q.pop() );
+#endif
+}
+
+TEST_CASE( "[flat-deque] push pop small" ) {
+  flat_deque<int> q;
+
+  q.push_back( 5 );
+  REQUIRE( q.size() == 1 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front() == 5 );
+
+  q.pop_front();
+  REQUIRE( q.size() == 0 );
+  REQUIRE( q.empty() );
+  REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
+  REQUIRE_THROWS_AS_RN( q.pop_front() );
+#endif
+
+  q.push_back( 5 );
+  q.push_back( 6 );
+  REQUIRE( q.size() == 2 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front() == 5 );
+
+  q.pop_front();
+  REQUIRE( q.size() == 1 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front().has_value() );
+  REQUIRE( q.front() == 6 );
+
+  q.pop_front();
+  REQUIRE( q.size() == 0 );
+  REQUIRE( q.empty() );
+  REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
+  REQUIRE_THROWS_AS_RN( q.pop_front() );
+#endif
+
+  q.push_front( 5 );
+  q.push_front( 6 );
+  REQUIRE( q.size() == 2 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front() == 6 );
+
+  q.pop_front();
+  REQUIRE( q.size() == 1 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front().has_value() );
+  REQUIRE( q.front() == 5 );
+
+  q.pop_front();
+  REQUIRE( q.size() == 0 );
+  REQUIRE( q.empty() );
+  REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
+  REQUIRE_THROWS_AS_RN( q.pop_back() );
+#endif
+
+  q.push_front( 5 );
+  q.push_front( 6 );
+  REQUIRE( q.size() == 2 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front() == 6 );
+
+  q.pop_back();
+  REQUIRE( q.size() == 1 );
+  REQUIRE( !q.empty() );
+  REQUIRE( q.front().has_value() );
+  REQUIRE( q.front() == 6 );
+
+  q.pop_front();
+  REQUIRE( q.size() == 0 );
+  REQUIRE( q.empty() );
+  REQUIRE( !q.front().has_value() );
+#ifndef NDEBUG
+  REQUIRE_THROWS_AS_RN( q.pop_front() );
 #endif
 }
 
@@ -171,6 +261,39 @@ TEST_CASE( "[flat-queue] equality" ) {
   REQUIRE( q2 == q1 );
 }
 
+TEST_CASE( "[flat-deque] equality" ) {
+  flat_deque<int> q1;
+  flat_deque<int> q2;
+
+  REQUIRE( q1 == q2 );
+
+  q1.push_front( 4 );
+  REQUIRE( q1 != q2 );
+  q1.push_front( 5 );
+  REQUIRE( q1 != q2 );
+  q1.push_front( 6 );
+  REQUIRE( q1 != q2 );
+  q2.push_back( 6 );
+  REQUIRE( q1 != q2 );
+  q2.push_back( 5 );
+  REQUIRE( q1 != q2 );
+  q2.push_back( 4 );
+  REQUIRE( q1 == q2 );
+
+  q1.push_back( 1 );
+  REQUIRE( q1 != q2 );
+  q1.push_back( 2 );
+  REQUIRE( q1 != q2 );
+  q1.push_back( 3 );
+  REQUIRE( q1 != q2 );
+  q2.push_back( 1 );
+  REQUIRE( q1 != q2 );
+  q2.push_back( 2 );
+  REQUIRE( q1 != q2 );
+  q2.push_back( 3 );
+  REQUIRE( q1 == q2 );
+}
+
 TEST_CASE( "[flat-queue] reallocation size" ) {
   flat_queue<int> q;
 
@@ -215,6 +338,28 @@ TEST_CASE( "[flat-queue] non-copyable, non-def-constructible" ) {
   REQUIRE( q.front().has_value() );
   REQUIRE( q.front().value().get().x_ == 5 );
   q.pop();
+  REQUIRE( q.size() == 0 );
+}
+
+TEST_CASE( "[flat-deque] non-copyable" ) {
+  struct A {
+    A() = default;
+
+    A( A const& ) = delete;
+    A( A&& )      = default;
+
+    A& operator=( A const& ) = delete;
+    A& operator=( A&& ) = default;
+
+    A( int x ) : x_( x ) {}
+    int x_;
+  };
+  flat_deque<A> q;
+  q.push_back_emplace( A{ 5 } );
+  REQUIRE( q.size() == 1 );
+  REQUIRE( q.front().has_value() );
+  REQUIRE( q.front().value().get().x_ == 5 );
+  q.pop_front();
   REQUIRE( q.size() == 0 );
 }
 
@@ -268,7 +413,7 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
   }
 
   SECTION( "biased to push" ) {
-    vector<bool> bs = rv::generate_n(
+    vector<int> bs = rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
         10000 );
     vector<int> is = rv::ints( 0, 10000 );
@@ -301,7 +446,7 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
   }
 
   SECTION( "biased to pop" ) {
-    vector<bool> bs = rv::generate_n(
+    vector<int> bs = rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
         10000 );
     vector<int> is = rv::ints( 0, 10000 );
@@ -330,6 +475,143 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
 
     REQUIRE( !q.front().has_value() );
     REQUIRE( q.size() == sq.size() );
+    REQUIRE( q.size() == 0 );
+  }
+}
+
+// This test really puts the flat_deque to the test. It will ran-
+// domly push and pop thousands of random elements into the
+// flat_deque and an std::deque and compare them at every turn.
+TEST_CASE( "[flat-deque] std::deque comparison" ) {
+  int size = 10000;
+
+  flat_deque<int> q;
+  std::deque<int> sq;
+
+  // Catch2 takes its seed on the command line; from this seed
+  // we generate some random numbers to reseed our own random
+  // gener- ator to get predictable results based on Catch2's
+  // seed.
+  uint32_t sub_seed =
+      GENERATE( take( 1, random( 0, 1000000 ) ) );
+  INFO( fmt::format( "sub_seed: {}", sub_seed ) );
+  rng::reseed( sub_seed );
+
+  SECTION( "roughly equal push and pop" ) {
+    vector<int> bs = rv::generate_n(
+        L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
+        size );
+    vector<int> is = rv::ints( 0, size );
+    REQUIRE( is.size() == bs.size() );
+
+    for( auto [action, n] : rv::zip( bs, is ) ) {
+      REQUIRE( action >= 0 );
+      REQUIRE( action <= 2 );
+      if( action == 0 ) {
+        q.push_back( n );
+        sq.push_back( n );
+      } else if( action == 1 ) {
+        q.push_front( n );
+        sq.push_front( n );
+      } else if( !q.empty() && !sq.empty() ) {
+        q.pop_front();
+        sq.pop_front();
+      }
+      REQUIRE( q.size() == int( sq.size() ) );
+      if( !q.empty() ) { REQUIRE( q.front() == sq.front() ); }
+      if( !q.empty() ) { REQUIRE( q.back() == sq.back() ); }
+    }
+
+    while( q.size() > 0 ) {
+      REQUIRE( q.front() == sq.front() );
+      REQUIRE( q.back() == sq.back() );
+      REQUIRE( q.size() == int( sq.size() ) );
+      q.pop_front();
+      sq.pop_front();
+    }
+
+    REQUIRE( !q.front().has_value() );
+    REQUIRE( q.size() == int( sq.size() ) );
+    REQUIRE( q.size() == 0 );
+  }
+
+  SECTION( "biased to push" ) {
+    vector<int> bs = rv::generate_n(
+        L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
+        10000 );
+    vector<int> is = rv::ints( 0, 10000 );
+    REQUIRE( is.size() == bs.size() );
+
+    for( auto [action, n] : rv::zip( bs, is ) ) {
+      REQUIRE( action >= 0 );
+      REQUIRE( action <= 2 );
+      if( action == 0 ) {
+        q.push_back( n );
+        sq.push_back( n );
+      } else if( action == 1 ) {
+        q.push_front( n );
+        sq.push_front( n );
+      } else if( !q.empty() && !sq.empty() ) {
+        q.pop_back();
+        sq.pop_back();
+      }
+      REQUIRE( q.size() == int( sq.size() ) );
+      if( !q.empty() ) { REQUIRE( q.back() == sq.back() ); }
+      if( !q.empty() ) { REQUIRE( q.front() == sq.front() ); }
+    }
+
+    while( q.size() > 0 ) {
+      REQUIRE( q.front() == sq.front() );
+      REQUIRE( q.back() == sq.back() );
+      REQUIRE( q.size() == int( sq.size() ) );
+      q.pop_front();
+      sq.pop_front();
+    }
+
+    REQUIRE( !q.front().has_value() );
+    REQUIRE( q.size() == int( sq.size() ) );
+    REQUIRE( q.size() == 0 );
+  }
+
+  SECTION( "biased to pop" ) {
+    vector<int> bs = rv::generate_n(
+        L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
+        10000 );
+    vector<int> is = rv::ints( 0, 10000 );
+    REQUIRE( is.size() == bs.size() );
+
+    bool front_back = true;
+    for( auto [action, n] : rv::zip( bs, is ) ) {
+      REQUIRE( action >= 0 );
+      REQUIRE( action <= 2 );
+      if( action == 0 ) {
+        if( front_back ) {
+          q.push_front( n );
+          sq.push_front( n );
+        } else {
+          q.push_back( n );
+          sq.push_back( n );
+        }
+        front_back = !front_back;
+      } else if( !q.empty() && !sq.empty() ) {
+        q.pop_back();
+        sq.pop_back();
+      }
+      REQUIRE( q.size() == sq.size() );
+      if( !q.empty() ) { REQUIRE( q.front() == sq.front() ); }
+      if( !q.empty() ) { REQUIRE( q.back() == sq.back() ); }
+    }
+
+    while( q.size() > 0 ) {
+      REQUIRE( q.front() == sq.front() );
+      REQUIRE( q.back() == sq.back() );
+      REQUIRE( q.size() == int( sq.size() ) );
+      q.pop_back();
+      sq.pop_back();
+    }
+
+    REQUIRE( !q.front().has_value() );
+    REQUIRE( q.size() == int( sq.size() ) );
     REQUIRE( q.size() == 0 );
   }
 }
