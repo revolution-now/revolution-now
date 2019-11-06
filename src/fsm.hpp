@@ -141,6 +141,10 @@ public:
   bool has_pending_events() const { return !events_.empty(); }
 
   StateT const& state() const { return state_; }
+  // Do not use this to set the state directly; only use it in a
+  // switch statement to get mutable references to an individual
+  // state to change its members if needed.
+  StateT& mutable_state() { return state_; }
 
   // !! No pointer stability here; state could change after
   //    calling another non-const method.

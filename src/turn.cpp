@@ -50,112 +50,108 @@ namespace rn {
 namespace {
 
 /****************************************************************
-** Turn Cycle FSM
-*****************************************************************/
-// This FSM represents state over an entire turn, where all na-
-// tions get processed (as well as anything else that needs to
-// happen each turn).
-adt_s_rn_( TurnCycleState,                          //
-           ( starting ),                            //
-           ( inside,                                //
-             ( bool, need_eot ),                    //
-             ( e_nation, nation ),                  //
-             ( flat_queue<e_nation>, remainder ) ), //
-           ( ending,                                //
-             ( bool, need_eot ) )                   //
-);
-
-adt_rn_( TurnCycleEvent,         //
-         ( next,                 //
-           ( bool, need_eot ) ), //
-         ( end,                  //
-           ( bool, need_eot ) )  //
-);
-
-// clang-format off
-fsm_transitions( TurnCycle,
-  ((starting, next),  ->,  inside   ),
-  ((inside,   next),  ->,  inside   ),
-  ((inside,   end),   ->,  ending   ),
-  ((ending,   next),  ->,  starting )
-);
-// clang-format on
-
-fsm_class( TurnCycle ) { //
-  fsm_init( TurnCycleState::starting{} );
-
-  fsm_transition( TurnCycle, starting, next, ->, inside ) {
-    (void)cur;
-    TurnCycleState::inside res{
-        /*need_eot=*/event.need_eot,  //
-        /*nation=*/e_nation::english, //
-        /*remainder=*/{}              //
-    };
-    res.remainder.push( e_nation::french );
-    res.remainder.push( e_nation::dutch );
-    res.remainder.push( e_nation::spanish );
-    return res;
-  }
-
-  fsm_transition( TurnCycle, inside, next, ->, inside ) {
-    (void)event;
-    TurnCycleState::inside res = cur;
-
-    auto next = res.remainder.front();
-    CHECK( next, "nation remainder queue is empty." );
-    res.remainder.pop();
-    res.nation = *next;
-    res.need_eot &= event.need_eot;
-    return res;
-  }
-
-  fsm_transition( TurnCycle, inside, end, ->, ending ) {
-    bool need_eot = event.need_eot && cur.need_eot;
-    if( need_eot ) {
-      // FIXME: temporary.
-      mark_end_of_turn();
-      // auto& vp_state = viewport_rendering_state();
-      // vp_state       = viewport_state::none{};
-    }
-    return {
-        /*need_eot=*/need_eot, //
-    };
-  }
-};
-
-FSM_DEFINE_FORMAT_RN_( TurnCycle );
-
-/****************************************************************
 ** Unit Turn FSM
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
 adt_rn_( UnitTurnState,                      //
          ( none ),                           //
-         ( inspect ),                        //
-         ( ask ),                            //
+         ( processing,                       //
+           ( UnitId, id ) ),                 //
+         ( asking,                           //
+           ( UnitId, id ) ),                 //
          ( have_response,                    //
            ( UnitInputResponse, response ) ) //
 );
 
-adt_rn_( UnitTurnEvent, //
-         ( next )       //
+adt_rn_( UnitTurnEvent,                       //
+         ( ask ),                             //
+         ( put_response,                      //
+           ( UnitInputResponse, response ) ), //
+         ( end )                              //
 );
 
 // clang-format off
 fsm_transitions( UnitTurn,
-  ((ask,   next),  ->,  ask )
+  ((processing,    ask         ),  ->,  asking        ),
+  ((processing,    put_response),  ->,  have_response ),
+  ((processing,    end         ),  ->,  none          ),
+  ((asking,        put_response),  ->,  have_response )
 );
 // clang-format on
 
 fsm_class( UnitTurn ) { //
-  fsm_init( UnitTurnState::ask{} );
+  fsm_init( UnitTurnState::none{} );
 
-  fsm_transition_( UnitTurn, ask, next, ->, ask ) { return {}; }
+  fsm_transition( UnitTurn, processing, ask, ->, asking ) {
+    (void)event;
+    return { /*id=*/cur.id };
+  }
+  fsm_transition( UnitTurn, processing, put_response, ->,
+                  have_response ) {
+    (void)cur;
+    return { /*response=*/std::move( event.response ) };
+  }
+  fsm_transition( UnitTurn, asking, put_response, ->,
+                  have_response ) {
+    (void)cur;
+    return { /*response=*/std::move( event.response ) };
+  }
 };
 
+FSM_DEFINE_FORMAT_RN_( UnitTurn );
+
+void advance_unit_turn_state( UnitTurnFsm& fsm ) {
+  bool done = false;
+  while( !done ) {
+    if( fsm.process_events() )
+      lg.debug( "unit turn state: {}", fsm );
+    switch_( fsm.state() ) {
+      case_( UnitTurnState::none ) {
+        done = true; //
+      }
+      case_( UnitTurnState::processing ) {
+        // - if it is it in `goto` mode focus on it and advance
+        //   it
+        //
+        // - if it is a ship on the high seas then advance it if
+        //   it has arrived in the old world then jump to the old
+        //   world screen (maybe ask user whether they want to
+        //   ignore), which has its own game loop (see old-world
+        //   loop).
+        //
+        // - if it is in the old world then ignore it, or pos-
+        //   sibly remind the user it is there.
+        //
+        // - if it is performing an action, such as building a
+        //   road, advance the state. If it finishes then mark it
+        //   as active so that it will wait for orders in the
+        //   next step.
+        //
+        // - if it is in an indian village then advance it, and
+        //   mark it active if it is finished.
+        //
+        // - if unit is waiting for orders then focus on it, make
+        //   it blink, and wait for orders.
+      }
+      case_( UnitTurnState::asking ) {
+        auto maybe_response_ref = unit_input_response();
+        if( maybe_response_ref.has_value() )
+          fsm.send_event( UnitTurnEvent::put_response{
+              /*response=*/maybe_response_ref->get() } );
+        else
+          done = true;
+      }
+      case_( UnitTurnState::have_response ) {
+        done = true; //
+      }
+      switch_exhaustive;
+    }
+  }
+}
+
 /****************************************************************
-** Turn FSM
+** Nation Turn FSM
 *****************************************************************/
 using UnitDequeType = Vec<UnitId>; // FIXME: deque
 
@@ -205,31 +201,171 @@ fsm_class( NationTurn ) {
   }
 };
 
-void advance_nation_turn_state( NationTurnFsm& fsm ) {
-  switch_( fsm.state() ) {
-    case_( NationTurnState::starting ) {
-      fsm.send_event( NationTurnEvent::next{} );
-    }
-    case_( NationTurnState::units_all ) {
-      // TODO
-      // auto          units = units_all( cur.nation );
-      //// Optional, but makes for good consistency for units to
-      //// ask for orders in the order that they were created.
-      //// TODO: in the future, try to sort by geographic
-      ///location.
-      // util::sort_by_key( units, []( auto id ) { return id._; }
-      // ); auto finished = []( UnitId id ) {
-      //  return unit_from_id( id ).finished_turn();
-      //};
-      // if( all_of( units.begin(), units.end(), finished ) )
-      // break;
+FSM_DEFINE_FORMAT_RN_( NationTurn );
 
-      // for( auto id : units ) q.push_back( id );
+void advance_nation_turn_state( NationTurnFsm& fsm ) {
+  bool done = false;
+  while( !done ) {
+    if( fsm.process_events() )
+      lg.debug( "nation turn state: {}", fsm );
+
+    switch_( fsm.mutable_state() ) {
+      case_( NationTurnState::starting ) {
+        fsm.send_event( NationTurnEvent::next{} );
+      }
+      case_( NationTurnState::units_all ) {
+        if( val.q.empty() ) {
+          CHECK( !val.uturn.has_value() );
+          auto units = units_all( val.nation );
+          util::sort_by_key( units,
+                             []( auto id ) { return id._; } );
+          units.erase(
+              remove_if(
+                  units.begin(), units.end(),
+                  L( unit_from_id( _ ).finished_turn() ) ),
+              units.end() );
+          for( auto id : units ) val.q.push_back( id );
+        }
+        if( val.q.empty() ) {
+          fsm.send_event( NationTurnEvent::end{} );
+          break_;
+        }
+        // There are units in the queue.
+        while( true ) {
+          if( val.q.empty() ) break;
+          auto id = val.q.front();
+          if( !val.uturn.has_value() ) {
+            val.uturn = UnitTurnFsm{
+                UnitTurnState::processing{ /*id=*/id } };
+          }
+          // TODO
+          done = true;
+        }
+      }
+      case_( NationTurnState::ending ) {
+        // TODO
+        done = true;
+      }
+      switch_exhaustive;
     }
-    case_( NationTurnState::ending ) {
-      //
+  }
+}
+
+/****************************************************************
+** Turn Cycle FSM
+*****************************************************************/
+// This FSM represents state over an entire turn, where all na-
+// tions get processed (as well as anything else that needs to
+// happen each turn).
+adt_s_rn_( TurnCycleState,                          //
+           ( starting ),                            //
+           ( inside,                                //
+             ( bool, need_eot ),                    //
+             ( e_nation, nation ),                  //
+             ( flat_queue<e_nation>, remainder ) ), //
+           ( ending,                                //
+             ( bool, need_eot ) )                   //
+);
+
+adt_rn_( TurnCycleEvent,         //
+         ( next,                 //
+           ( bool, need_eot ) ), //
+         ( end,                  //
+           ( bool, need_eot ) )  //
+);
+
+// clang-format off
+fsm_transitions( TurnCycle,
+  ((starting, next),  ->,  inside   ),
+  ((inside,   next),  ->,  inside   ),
+  ((inside,   end),   ->,  ending   ),
+  ((ending,   next),  ->,  starting )
+);
+// clang-format on
+
+fsm_class( TurnCycle ) { //
+  fsm_init( TurnCycleState::starting{} );
+
+  fsm_transition( TurnCycle, starting, next, ->, inside ) {
+    (void)cur;
+    TurnCycleState::inside res{
+        /*need_eot=*/event.need_eot,  //
+        /*nation=*/e_nation::english, //
+        /*remainder=*/{}              //
+    };
+    res.remainder.push( e_nation::french );
+    res.remainder.push( e_nation::dutch );
+    res.remainder.push( e_nation::spanish );
+    return res;
+  }
+
+  fsm_transition( TurnCycle, inside, next, ->, inside ) {
+    TurnCycleState::inside res = cur;
+
+    auto next = res.remainder.front();
+    if( next.has_value() ) {
+      res.remainder.pop();
+      res.nation = *next;
+      res.need_eot &= event.need_eot;
+    } else {
+      send_event( TurnCycleEvent::end{
+          /*need_eot=*/( cur.need_eot && event.need_eot ) } );
     }
-    switch_exhaustive;
+    return res;
+  }
+
+  fsm_transition( TurnCycle, inside, end, ->, ending ) {
+    bool need_eot = event.need_eot && cur.need_eot;
+    if( need_eot ) {
+      // FIXME: temporary.
+      mark_end_of_turn();
+      // auto& vp_state = viewport_rendering_state();
+      // vp_state       = viewport_state::none{};
+    }
+    return {
+        /*need_eot=*/need_eot, //
+    };
+  }
+};
+
+FSM_DEFINE_FORMAT_RN_( TurnCycle );
+
+void advance_turn_cycle_state( TurnCycleFsm&  fsm,
+                               NationTurnFsm& nation_turn_fsm ) {
+  bool done = false;
+  while( !done ) {
+    if( fsm.process_events() )
+      lg.debug( "turn cycle state: {}", fsm );
+
+    switch_( fsm.state() ) {
+      case_( TurnCycleState::starting ) {
+        fsm.send_event(
+            TurnCycleEvent::next{ /*need_eot=*/true } );
+      }
+      case_( TurnCycleState::inside ) {
+        advance_nation_turn_state( nation_turn_fsm );
+        if_v( nation_turn_fsm.state(), NationTurnState::ending,
+              ending ) {
+          bool need_eot = val.need_eot && ending->need_eot;
+          fsm.send_event(
+              TurnCycleEvent::next{ /*need_eot=*/need_eot } );
+        }
+        else {
+          done = true;
+        }
+      }
+      case_( TurnCycleState::ending ) {
+        if( !val.need_eot ) {
+          fsm.send_event( TurnCycleEvent::next{} );
+        } else {
+          if( was_next_turn_button_clicked() )
+            fsm.send_event( TurnCycleEvent::next{} );
+          else
+            done = true;
+        }
+      }
+      switch_exhaustive;
+    }
   }
 }
 
@@ -243,6 +379,9 @@ struct SAVEGAME_STRUCT( Turn ) {
   SAVEGAME_MEMBERS( Turn,
   ( TurnCycleFsm, cycle_state ));
   // clang-format on
+
+public:
+  NationTurnFsm nation_turn;
 
 public:
   // Fields that are derived from the serialized fields.
@@ -264,37 +403,7 @@ SAVEGAME_IMPL( Turn );
 ** Turn State Advancement
 *****************************************************************/
 void advance_turn_state() {
-  if( SG().cycle_state.process_events() )
-    lg.debug( "turn cycle state: {}", SG().cycle_state );
-
-  switch_( SG().cycle_state.state() ) {
-    case_( TurnCycleState::starting ) {
-      SG().cycle_state.send_event(
-          TurnCycleEvent::next{ /*need_eot=*/true } );
-    }
-    case_( TurnCycleState::inside ) {
-      // If no units need to take orders this turn then we need
-      // to pause at the end of the turn to allow the user to
-      // take control or make changes.
-      bool need_eot = val.need_eot && true;
-      // TODO: check turn state here.
-      if( !val.remainder.empty() )
-        SG().cycle_state.send_event(
-            TurnCycleEvent::next{ /*need_eot=*/need_eot } );
-      else
-        SG().cycle_state.send_event(
-            TurnCycleEvent::end{ /*need_eot=*/need_eot } );
-    }
-    case_( TurnCycleState::ending ) {
-      if( !val.need_eot ) {
-        SG().cycle_state.send_event( TurnCycleEvent::next{} );
-      } else {
-        if( was_next_turn_button_clicked() )
-          SG().cycle_state.send_event( TurnCycleEvent::next{} );
-      }
-    }
-    switch_exhaustive;
-  }
+  advance_turn_cycle_state( SG().cycle_state, SG().nation_turn );
 }
 
 /****************************************************************

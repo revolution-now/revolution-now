@@ -50,6 +50,8 @@ struct UnitInputResponse {
   // clang-format on
 };
 
+Opt<CRef<UnitInputResponse>> unit_input_response();
+
 struct Plane;
 Plane* land_view_plane();
 

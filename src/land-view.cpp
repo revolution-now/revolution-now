@@ -795,6 +795,12 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
+Opt<CRef<UnitInputResponse>> unit_input_response() {
+  if_v( SG().mode.state(), LandViewState::input_ready, val ) {
+    return val->response;
+  }
+  return nullopt;
+}
 
 /****************************************************************
 ** Testing
