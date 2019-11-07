@@ -14,6 +14,7 @@
 #include "conductor.hpp"
 #include "dispatch.hpp"
 #include "fb.hpp"
+#include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "frame.hpp"
 #include "fsm.hpp"
@@ -54,29 +55,33 @@ namespace {
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
-adt_rn_( UnitTurnState,                      //
-         ( none ),                           //
-         ( processing,                       //
-           ( UnitId, id ) ),                 //
-         ( asking,                           //
-           ( UnitId, id ) ),                 //
-         ( have_response,                    //
-           ( UnitInputResponse, response ) ) //
+adt_rn_( UnitTurnState,                       //
+         ( none ),                            //
+         ( processing,                        //
+           ( UnitId, id ) ),                  //
+         ( asking,                            //
+           ( UnitId, id ) ),                  //
+         ( have_response,                     //
+           ( UnitInputResponse, response ) ), //
+         ( executing_orders,                  //
+           ( orders_t, orders ) )             //
 );
 
 adt_rn_( UnitTurnEvent,                       //
          ( ask ),                             //
          ( put_response,                      //
            ( UnitInputResponse, response ) ), //
+         ( execute ),                         //
          ( end )                              //
 );
 
 // clang-format off
 fsm_transitions( UnitTurn,
-  ((processing,    ask         ),  ->,  asking        ),
-  ((processing,    put_response),  ->,  have_response ),
-  ((processing,    end         ),  ->,  none          ),
-  ((asking,        put_response),  ->,  have_response )
+  ((processing,    ask         ),  ->,  asking           ),
+  ((processing,    put_response),  ->,  have_response    ),
+  ((processing,    end         ),  ->,  none             ),
+  ((asking,        put_response),  ->,  have_response    ),
+  ((have_response, execute     ),  ->,  executing_orders )
 );
 // clang-format on
 
@@ -96,6 +101,12 @@ fsm_class( UnitTurn ) { //
                   have_response ) {
     (void)cur;
     return { /*response=*/std::move( event.response ) };
+  }
+  fsm_transition( UnitTurn, have_response, execute, ->,
+                  executing_orders ) {
+    (void)event;
+    CHECK( cur.response.orders.has_value() );
+    return { /*orders=*/*cur.response.orders };
   }
 };
 
@@ -145,6 +156,10 @@ void advance_unit_turn_state( UnitTurnFsm& fsm ) {
       case_( UnitTurnState::have_response ) {
         done = true; //
       }
+      case_( UnitTurnState::executing_orders ) {
+        // TODO
+        done = true; // maybe
+      }
       switch_exhaustive;
     }
   }
@@ -153,14 +168,14 @@ void advance_unit_turn_state( UnitTurnFsm& fsm ) {
 /****************************************************************
 ** Nation Turn FSM
 *****************************************************************/
-using UnitDequeType = Vec<UnitId>; // FIXME: deque
+using UnitDequeType = flat_deque<UnitId>;
 
 // This FSM represents the state across the processing of a
 // single turn for a single nation.
 adt_rn_( NationTurnState,                 //
          ( starting,                      //
            ( e_nation, nation ) ),        //
-         ( units_all,                     //
+         ( doing_units,                   //
            ( e_nation, nation ),          //
            ( bool, need_eot ),            //
            ( UnitDequeType, q ),          //
@@ -176,15 +191,15 @@ adt_rn_( NationTurnEvent, //
 
 // clang-format off
 fsm_transitions( NationTurn,
-  ((starting,  next),  ->,  units_all),
-  ((units_all, end ),  ->,  ending   ),
+  ((starting,  next),  ->,  doing_units),
+  ((doing_units, end ),  ->,  ending   ),
 );
 // clang-format on
 
 fsm_class( NationTurn ) {
   fsm_init( NationTurnState::starting{ /*nation=*/{} } );
 
-  fsm_transition( NationTurn, starting, next, ->, units_all ) {
+  fsm_transition( NationTurn, starting, next, ->, doing_units ) {
     (void)event;
     return {
         /*nation=*/cur.nation, //
@@ -195,7 +210,7 @@ fsm_class( NationTurn ) {
     lg.info( "starting turn for nation `{}`.", cur.nation );
   }
 
-  fsm_transition( NationTurn, units_all, end, ->, ending ) {
+  fsm_transition( NationTurn, doing_units, end, ->, ending ) {
     (void)event;
     return { /*need_eot=*/cur.need_eot };
   }
@@ -213,10 +228,11 @@ void advance_nation_turn_state( NationTurnFsm& fsm ) {
       case_( NationTurnState::starting ) {
         fsm.send_event( NationTurnEvent::next{} );
       }
-      case_( NationTurnState::units_all ) {
-        if( val.q.empty() ) {
-          CHECK( !val.uturn.has_value() );
-          auto units = units_all( val.nation );
+      case_( NationTurnState::doing_units ) {
+        auto& doing_units = val;
+        if( doing_units.q.empty() ) {
+          CHECK( !doing_units.uturn.has_value() );
+          auto units = units_all( doing_units.nation );
           util::sort_by_key( units,
                              []( auto id ) { return id._; } );
           units.erase(
@@ -224,21 +240,68 @@ void advance_nation_turn_state( NationTurnFsm& fsm ) {
                   units.begin(), units.end(),
                   L( unit_from_id( _ ).finished_turn() ) ),
               units.end() );
-          for( auto id : units ) val.q.push_back( id );
-        }
-        if( val.q.empty() ) {
-          fsm.send_event( NationTurnEvent::end{} );
-          break_;
+          for( auto id : units ) doing_units.q.push_back( id );
         }
         // There are units in the queue.
-        while( true ) {
-          if( val.q.empty() ) break;
-          auto id = val.q.front();
-          if( !val.uturn.has_value() ) {
-            val.uturn = UnitTurnFsm{
+        bool done_uturn = false;
+        while( !done_uturn ) {
+          if( doing_units.q.empty() ) break;
+          auto id = doing_units.q.front()->get();
+          // We need this check because units can be added into
+          // the queue in this loop by user input.
+          if( unit_from_id( id ).finished_turn() ) {
+            doing_units.q.pop_front();
+            continue;
+          }
+          if( !doing_units.uturn.has_value() ) {
+            doing_units.uturn = UnitTurnFsm{
                 UnitTurnState::processing{ /*id=*/id } };
           }
-          // TODO
+          DCHECK( doing_units.uturn.has_value() );
+          advance_unit_turn_state( *doing_units.uturn );
+          switch_( doing_units.uturn->state() ) {
+            case_( UnitTurnState::none ) {
+              // No need to ask for orders and no response
+              // waiting.
+              doing_units.q.pop_front();
+            }
+            case_( UnitTurnState::processing ) {
+              FATAL(
+                  "should not be in this state after an advance "
+                  "call." );
+            }
+            case_( UnitTurnState::asking ) {
+              // TODO
+              done_uturn = true;
+            }
+            case_( UnitTurnState::have_response ) {
+              for( auto id : val.response.add_to_back )
+                doing_units.q.push_back( id );
+              auto const& maybe_orders = val.response.orders;
+              auto const& add_to_front =
+                  val.response.add_to_front;
+              CHECK( maybe_orders.has_value() ==
+                     !add_to_front.empty() );
+              if( maybe_orders.has_value() ) {
+                doing_units.uturn->send_event(
+                    UnitTurnEvent::execute{} );
+              } else { // add_to_front not empty
+                for( auto id : val.response.add_to_front )
+                  doing_units.q.push_front( id );
+              }
+            }
+            case_( UnitTurnState::executing_orders ) {
+              done_uturn = true;
+            }
+            switch_exhaustive;
+          }
+          if( doing_units.q.front() != id )
+            doing_units.uturn = nullopt;
+        }
+        if( doing_units.q.empty() ) {
+          fsm.send_event( NationTurnEvent::end{} );
+          break_;
+        } else {
           done = true;
         }
       }
