@@ -50,6 +50,8 @@ struct UnitInputResponse {
   // clang-format on
 };
 
+void landview_do_eot();
+
 Opt<CRef<UnitInputResponse>> unit_input_response();
 
 struct Plane;

@@ -50,6 +50,13 @@ namespace rn {
 
 namespace {
 
+vector<e_nation> const g_turn_ordering{
+    e_nation::english,
+    e_nation::french,
+    e_nation::dutch,
+    e_nation::spanish,
+};
+
 /****************************************************************
 ** Unit Turn FSM
 *****************************************************************/
@@ -112,56 +119,53 @@ fsm_class( UnitTurn ) { //
 
 FSM_DEFINE_FORMAT_RN_( UnitTurn );
 
-void advance_unit_turn_state( UnitTurnFsm& fsm ) {
-  bool done = false;
-  while( !done ) {
-    if( fsm.process_events() )
-      lg.debug( "unit turn state: {}", fsm );
-    switch_( fsm.state() ) {
-      case_( UnitTurnState::none ) {
-        done = true; //
-      }
-      case_( UnitTurnState::processing ) {
-        // - if it is it in `goto` mode focus on it and advance
-        //   it
-        //
-        // - if it is a ship on the high seas then advance it if
-        //   it has arrived in the old world then jump to the old
-        //   world screen (maybe ask user whether they want to
-        //   ignore), which has its own game loop (see old-world
-        //   loop).
-        //
-        // - if it is in the old world then ignore it, or pos-
-        //   sibly remind the user it is there.
-        //
-        // - if it is performing an action, such as building a
-        //   road, advance the state. If it finishes then mark it
-        //   as active so that it will wait for orders in the
-        //   next step.
-        //
-        // - if it is in an indian village then advance it, and
-        //   mark it active if it is finished.
-        //
-        // - if unit is waiting for orders then focus on it, make
-        //   it blink, and wait for orders.
-      }
-      case_( UnitTurnState::asking ) {
-        auto maybe_response_ref = unit_input_response();
-        if( maybe_response_ref.has_value() )
-          fsm.send_event( UnitTurnEvent::put_response{
-              /*response=*/maybe_response_ref->get() } );
-        else
-          done = true;
-      }
-      case_( UnitTurnState::have_response ) {
-        done = true; //
-      }
-      case_( UnitTurnState::executing_orders ) {
-        // TODO
-        done = true; // maybe
-      }
-      switch_exhaustive;
+// Will be called repeatedly until done() is called.
+void advance_unit_turn_state( UnitTurnFsm&             fsm,
+                              tl::function_ref<void()> done ) {
+  switch_( fsm.state() ) {
+    case_( UnitTurnState::none ) {
+      done(); //
     }
+    case_( UnitTurnState::processing ) {
+      // - if it is it in `goto` mode focus on it and advance
+      //   it
+      //
+      // - if it is a ship on the high seas then advance it if
+      //   it has arrived in the old world then jump to the old
+      //   world screen (maybe ask user whether they want to
+      //   ignore), which has its own game loop (see old-world
+      //   loop).
+      //
+      // - if it is in the old world then ignore it, or pos-
+      //   sibly remind the user it is there.
+      //
+      // - if it is performing an action, such as building a
+      //   road, advance the state. If it finishes then mark it
+      //   as active so that it will wait for orders in the
+      //   next step.
+      //
+      // - if it is in an indian village then advance it, and
+      //   mark it active if it is finished.
+      //
+      // - if unit is waiting for orders then focus on it, make
+      //   it blink, and wait for orders.
+    }
+    case_( UnitTurnState::asking ) {
+      auto maybe_response_ref = unit_input_response();
+      if( maybe_response_ref.has_value() )
+        fsm.send_event( UnitTurnEvent::put_response{
+            /*response=*/maybe_response_ref->get() } );
+      else
+        done();
+    }
+    case_( UnitTurnState::have_response ) {
+      done(); //
+    }
+    case_( UnitTurnState::executing_orders ) {
+      // TODO
+      done(); // maybe
+    }
+    switch_exhaustive;
   }
 }
 
@@ -218,99 +222,94 @@ fsm_class( NationTurn ) {
 
 FSM_DEFINE_FORMAT_RN_( NationTurn );
 
-void advance_nation_turn_state( NationTurnFsm& fsm ) {
-  bool done = false;
-  while( !done ) {
-    if( fsm.process_events() )
-      lg.debug( "nation turn state: {}", fsm );
-
-    switch_( fsm.mutable_state() ) {
-      case_( NationTurnState::starting ) {
-        fsm.send_event( NationTurnEvent::next{} );
-      }
-      case_( NationTurnState::doing_units ) {
-        auto& doing_units = val;
-        if( doing_units.q.empty() ) {
-          CHECK( !doing_units.uturn.has_value() );
-          auto units = units_all( doing_units.nation );
-          util::sort_by_key( units,
-                             []( auto id ) { return id._; } );
-          units.erase(
-              remove_if(
-                  units.begin(), units.end(),
-                  L( unit_from_id( _ ).finished_turn() ) ),
-              units.end() );
-          for( auto id : units ) doing_units.q.push_back( id );
-        }
-        // There are units in the queue.
-        bool done_uturn = false;
-        while( !done_uturn ) {
-          if( doing_units.q.empty() ) break;
-          auto id = doing_units.q.front()->get();
-          // We need this check because units can be added into
-          // the queue in this loop by user input.
-          if( unit_from_id( id ).finished_turn() ) {
-            doing_units.q.pop_front();
-            continue;
-          }
-          if( !doing_units.uturn.has_value() ) {
-            doing_units.uturn = UnitTurnFsm{
-                UnitTurnState::processing{ /*id=*/id } };
-          }
-          DCHECK( doing_units.uturn.has_value() );
-          advance_unit_turn_state( *doing_units.uturn );
-          switch_( doing_units.uturn->state() ) {
-            case_( UnitTurnState::none ) {
-              // No need to ask for orders and no response
-              // waiting.
-              doing_units.q.pop_front();
-            }
-            case_( UnitTurnState::processing ) {
-              FATAL(
-                  "should not be in this state after an advance "
-                  "call." );
-            }
-            case_( UnitTurnState::asking ) {
-              // TODO
-              done_uturn = true;
-            }
-            case_( UnitTurnState::have_response ) {
-              for( auto id : val.response.add_to_back )
-                doing_units.q.push_back( id );
-              auto const& maybe_orders = val.response.orders;
-              auto const& add_to_front =
-                  val.response.add_to_front;
-              CHECK( maybe_orders.has_value() ==
-                     !add_to_front.empty() );
-              if( maybe_orders.has_value() ) {
-                doing_units.uturn->send_event(
-                    UnitTurnEvent::execute{} );
-              } else { // add_to_front not empty
-                for( auto id : val.response.add_to_front )
-                  doing_units.q.push_front( id );
-              }
-            }
-            case_( UnitTurnState::executing_orders ) {
-              done_uturn = true;
-            }
-            switch_exhaustive;
-          }
-          if( doing_units.q.front() != id )
-            doing_units.uturn = nullopt;
-        }
-        if( doing_units.q.empty() ) {
-          fsm.send_event( NationTurnEvent::end{} );
-          break_;
-        } else {
-          done = true;
-        }
-      }
-      case_( NationTurnState::ending ) {
-        // TODO
-        done = true;
-      }
-      switch_exhaustive;
+// Will be called repeatedly until done() is called.
+void advance_nation_turn_state( NationTurnFsm&           fsm,
+                                tl::function_ref<void()> done ) {
+  switch_( fsm.mutable_state() ) {
+    case_( NationTurnState::starting ) {
+      fsm.send_event( NationTurnEvent::next{} );
     }
+    case_( NationTurnState::doing_units ) {
+      auto& doing_units = val;
+      if( doing_units.q.empty() ) {
+        CHECK( !doing_units.uturn.has_value() );
+        auto units = units_all( doing_units.nation );
+        util::sort_by_key( units,
+                           []( auto id ) { return id._; } );
+        units.erase(
+            remove_if( units.begin(), units.end(),
+                       L( unit_from_id( _ ).finished_turn() ) ),
+            units.end() );
+        for( auto id : units ) doing_units.q.push_back( id );
+      }
+      // There are units in the queue.
+      bool done_uturn = false;
+      while( !done_uturn ) {
+        if( doing_units.q.empty() ) break;
+        auto id = doing_units.q.front()->get();
+        // We need this check because units can be added into
+        // the queue in this loop by user input.
+        if( unit_from_id( id ).finished_turn() ) {
+          doing_units.q.pop_front();
+          continue;
+        }
+        if( !doing_units.uturn.has_value() ) {
+          doing_units.uturn = UnitTurnFsm{
+              UnitTurnState::processing{ /*id=*/id } };
+        }
+        DCHECK( doing_units.uturn.has_value() );
+        fsm_auto_advance( *doing_units.uturn, "unit-turn",
+                          { advance_unit_turn_state } );
+        switch_( doing_units.uturn->state() ) {
+          case_( UnitTurnState::none ) {
+            // No need to ask for orders and no response
+            // waiting.
+            doing_units.q.pop_front();
+          }
+          case_( UnitTurnState::processing ) {
+            FATAL(
+                "should not be in this state after an advance "
+                "call." );
+          }
+          case_( UnitTurnState::asking ) {
+            // TODO
+            done_uturn = true;
+          }
+          case_( UnitTurnState::have_response ) {
+            for( auto id : val.response.add_to_back )
+              doing_units.q.push_back( id );
+            auto const& maybe_orders = val.response.orders;
+            auto const& add_to_front = val.response.add_to_front;
+            CHECK( maybe_orders.has_value() ==
+                   !add_to_front.empty() );
+            if( maybe_orders.has_value() ) {
+              doing_units.uturn->send_event(
+                  UnitTurnEvent::execute{} );
+            } else { // add_to_front not empty
+              for( auto id : val.response.add_to_front )
+                doing_units.q.push_front( id );
+            }
+          }
+          case_( UnitTurnState::executing_orders ) {
+            done_uturn = true;
+          }
+          switch_exhaustive;
+        }
+        if( doing_units.q.front() != id )
+          doing_units.uturn = nullopt;
+      }
+      if( doing_units.q.empty() ) {
+        fsm.send_event( NationTurnEvent::end{} );
+        break_;
+      } else {
+        done();
+      }
+    }
+    case_( NationTurnState::ending ) {
+      // TODO
+      done();
+    }
+    switch_exhaustive;
   }
 }
 
@@ -330,17 +329,15 @@ adt_s_rn_( TurnCycleState,                          //
              ( bool, need_eot ) )                   //
 );
 
-adt_rn_( TurnCycleEvent,         //
-         ( next,                 //
-           ( bool, need_eot ) ), //
-         ( end,                  //
-           ( bool, need_eot ) )  //
+adt_rn_( TurnCycleEvent,        //
+         ( next ),              //
+         ( end,                 //
+           ( bool, need_eot ) ) //
 );
 
 // clang-format off
 fsm_transitions( TurnCycle,
   ((starting, next),  ->,  inside   ),
-  ((inside,   next),  ->,  inside   ),
   ((inside,   end),   ->,  ending   ),
   ((ending,   next),  ->,  starting )
 );
@@ -349,86 +346,75 @@ fsm_transitions( TurnCycle,
 fsm_class( TurnCycle ) { //
   fsm_init( TurnCycleState::starting{} );
 
-  fsm_transition( TurnCycle, starting, next, ->, inside ) {
-    (void)cur;
+  fsm_transition_( TurnCycle, starting, next, ->, inside ) {
     TurnCycleState::inside res{
-        /*need_eot=*/event.need_eot,  //
-        /*nation=*/e_nation::english, //
-        /*remainder=*/{}              //
+        /*need_eot=*/true, //
+        /*nation=*/{},     //
+        /*remainder=*/{}   //
     };
-    res.remainder.push( e_nation::french );
-    res.remainder.push( e_nation::dutch );
-    res.remainder.push( e_nation::spanish );
-    return res;
-  }
-
-  fsm_transition( TurnCycle, inside, next, ->, inside ) {
-    TurnCycleState::inside res = cur;
-
-    auto next = res.remainder.front();
-    if( next.has_value() ) {
-      res.remainder.pop();
-      res.nation = *next;
-      res.need_eot &= event.need_eot;
-    } else {
-      send_event( TurnCycleEvent::end{
-          /*need_eot=*/( cur.need_eot && event.need_eot ) } );
-    }
+    CHECK( g_turn_ordering.size() > 0 );
+    for( auto nation : g_turn_ordering )
+      res.remainder.push( nation );
+    res.nation = res.remainder.front()->get();
+    res.remainder.pop();
+    DCHECK( res.remainder.size() ==
+            int( g_turn_ordering.size() - 1 ) );
     return res;
   }
 
   fsm_transition( TurnCycle, inside, end, ->, ending ) {
-    bool need_eot = event.need_eot && cur.need_eot;
-    if( need_eot ) {
-      // FIXME: temporary.
-      mark_end_of_turn();
-      // auto& vp_state = viewport_rendering_state();
-      // vp_state       = viewport_state::none{};
-    }
-    return {
-        /*need_eot=*/need_eot, //
-    };
+    return { /*need_eot=*/cur.need_eot && event.need_eot };
   }
 };
 
 FSM_DEFINE_FORMAT_RN_( TurnCycle );
 
-void advance_turn_cycle_state( TurnCycleFsm&  fsm,
+// Will be called repeatedly until done() is called.
+void advance_turn_cycle_state( TurnCycleFsm&            fsm,
+                               tl::function_ref<void()> done,
                                NationTurnFsm& nation_turn_fsm ) {
-  bool done = false;
-  while( !done ) {
-    if( fsm.process_events() )
-      lg.debug( "turn cycle state: {}", fsm );
-
-    switch_( fsm.state() ) {
-      case_( TurnCycleState::starting ) {
-        fsm.send_event(
-            TurnCycleEvent::next{ /*need_eot=*/true } );
-      }
-      case_( TurnCycleState::inside ) {
-        advance_nation_turn_state( nation_turn_fsm );
-        if_v( nation_turn_fsm.state(), NationTurnState::ending,
-              ending ) {
-          bool need_eot = val.need_eot && ending->need_eot;
-          fsm.send_event(
-              TurnCycleEvent::next{ /*need_eot=*/need_eot } );
-        }
-        else {
-          done = true;
-        }
-      }
-      case_( TurnCycleState::ending ) {
-        if( !val.need_eot ) {
-          fsm.send_event( TurnCycleEvent::next{} );
-        } else {
-          if( was_next_turn_button_clicked() )
-            fsm.send_event( TurnCycleEvent::next{} );
-          else
-            done = true;
-        }
-      }
-      switch_exhaustive;
+  switch_( fsm.mutable_state() ) {
+    case_( TurnCycleState::starting ) {
+      fsm.send_event( TurnCycleEvent::next{} );
+      nation_turn_fsm = NationTurnFsm(
+          NationTurnState::starting{ g_turn_ordering[0] } );
     }
+    case_( TurnCycleState::inside ) {
+      fsm_auto_advance( nation_turn_fsm, "nation-turn",
+                        { advance_nation_turn_state } );
+      if_v( nation_turn_fsm.state(), NationTurnState::ending,
+            ending ) {
+        auto next = val.remainder.front();
+        if( next.has_value() ) {
+          val.remainder.pop();
+          val.nation = *next;
+          val.need_eot &= ending->need_eot;
+          nation_turn_fsm = NationTurnFsm(
+              NationTurnState::starting{ val.nation } );
+        } else {
+          bool need_eot = ending->need_eot;
+          fsm.send_event( TurnCycleEvent::end{ need_eot } );
+          if( need_eot ) {
+            mark_end_of_turn();
+            landview_do_eot();
+          }
+        }
+      }
+      else {
+        done();
+      }
+    }
+    case_( TurnCycleState::ending ) {
+      if( !val.need_eot ) {
+        fsm.send_event( TurnCycleEvent::next{} );
+      } else {
+        if( was_next_turn_button_clicked() )
+          fsm.send_event( TurnCycleEvent::next{} );
+        else
+          done();
+      }
+    }
+    switch_exhaustive;
   }
 }
 
@@ -466,7 +452,9 @@ SAVEGAME_IMPL( Turn );
 ** Turn State Advancement
 *****************************************************************/
 void advance_turn_state() {
-  advance_turn_cycle_state( SG().cycle_state, SG().nation_turn );
+  fsm_auto_advance( SG().cycle_state, "turn-cycle",
+                    { advance_turn_cycle_state },
+                    SG().nation_turn );
 }
 
 /****************************************************************

@@ -22,8 +22,12 @@
 #include "fmt-helper.hpp"
 #include "macros.hpp"
 
+// base-util
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
+
+// function_ref
+#include "tl/function_ref.hpp"
 
 // C++ standard library
 #include <variant>
@@ -37,6 +41,8 @@ void log_state( std::string const& child_name,
 
 void log_event( std::string const& child_name,
                 std::string const& logged_event );
+
+void log_st_change( std::string_view sv );
 
 } // namespace internal
 
@@ -262,6 +268,29 @@ private:
   flat_queue<EventWithSource> events_;
   NOTHROW_MOVE( flat_queue<EventWithSource> );
 };
+
+/****************************************************************
+** Auto-Advancer
+*****************************************************************/
+template<typename FsmT, typename... Args>
+void fsm_auto_advance(
+    FsmT&            fsm,   //
+    std::string_view label, //
+    tl::function_ref<void(
+        FsmT&, tl::function_ref<void()> on_done, Args&&... )>
+        adv,
+    Args&&... args ) {
+  bool done    = false;
+  auto on_done = [&done] { done = true; };
+  while( !done ) {
+    bool changed = fsm.process_events();
+    // FIXME: test at compile time if FSM is formattable.
+    if( changed && !label.empty() )
+      internal::log_st_change(
+          fmt::format( "{} state: {}", label, fsm ) );
+    adv( fsm, on_done, std::forward<Args>( args )... );
+  }
+}
 
 /****************************************************************
 ** Serialization

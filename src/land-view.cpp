@@ -224,6 +224,8 @@ fsm_class( LandView ) { //
   }
 };
 
+FSM_DEFINE_FORMAT_RN_( LandView );
+
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
@@ -400,36 +402,32 @@ void advance_viewport_state() {
   }
 }
 
-void advance_landview_state() {
-  // Must be done as early as possible.
-  SG().mode.process_events();
+// Will be called repeatedly until done() is called.
+void advance_landview_state( LandViewFsm&             fsm,
+                             tl::function_ref<void()> done ) {
   advance_viewport_state();
 
-  switch_( SG().mode.state() ) {
-    case_( LandViewState::none ) {
-      //
-    }
+  switch_( fsm.state() ) {
+    case_( LandViewState::none ) { done(); }
     case_( LandViewState::blinking_unit ) {
       // FIXME: add blinking state here.
     }
-    case_( LandViewState::input_ready ) {
-      //
-    }
+    case_( LandViewState::input_ready ) { done(); }
     case_( LandViewState::sliding_unit ) {
       ASSIGN_CHECK_OPT(
-          slide,
-          SG().mode.holds<LandViewState::sliding_unit>() );
+          slide, fsm.holds<LandViewState::sliding_unit>() );
       slide.get().percent_vel.advance( e_push_direction::none );
       slide.get().percent += slide.get().percent_vel.to_double();
       if( slide.get().percent > 1.0 ) slide.get().percent = 1.0;
+      done();
     }
     case_( LandViewState::depixelating_unit ) {
       ASSIGN_CHECK_OPT(
           dying_ref,
-          SG().mode.holds<LandViewState::depixelating_unit>() );
+          fsm.holds<LandViewState::depixelating_unit>() );
       auto& dying = dying_ref.get();
       if( dying.pixels.empty() )
-        SG().mode.send_event( LandViewEvent::end{} );
+        fsm.send_event( LandViewEvent::end{} );
       else {
         int to_depixelate =
             std::min( config_rn.depixelate_pixels_per_frame,
@@ -451,11 +449,13 @@ void advance_landview_state() {
           ::SDL_RenderDrawPoint( g_renderer, point.x._,
                                  point.y._ );
         }
+        done();
       }
     }
     switch_exhaustive;
   }
 }
+
 // If this is default constructed then it should represent "no
 // actions need to be taken."
 struct ClickTileActions {
@@ -560,7 +560,10 @@ ClickTileActions click_on_world_tile( Coord coord ) {
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
-  void advance_state() override { advance_landview_state(); }
+  void advance_state() override {
+    fsm_auto_advance( SG().mode, "land-view",
+                      { advance_landview_state } );
+  }
   void draw( Texture& tx ) const override {
     render_land_view();
     clear_texture_black( tx );
@@ -800,6 +803,11 @@ Opt<CRef<UnitInputResponse>> unit_input_response() {
     return val->response;
   }
   return nullopt;
+}
+
+void landview_do_eot() {
+  // When we enter the end-of-turn this should already be true.
+  CHECK( SG().mode.holds<LandViewState::none>() );
 }
 
 /****************************************************************

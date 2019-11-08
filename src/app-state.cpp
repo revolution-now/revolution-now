@@ -171,6 +171,91 @@ AppFsm& g_app_state() {
   return fsm;
 }
 
+void advance_app_state_fsm( AppFsm&                  fsm,
+                            tl::function_ref<void()> done,
+                            bool*                    quit ) {
+  switch_( fsm.state() ) {
+    case_( AppState::main_no_game ) {
+      auto sel = main_menu_selection();
+      if( !sel.has_value() ) break_;
+      switch( *sel ) {
+        case +e_main_menu_item::resume: //
+          SHOULD_NOT_BE_HERE;
+          break;
+        case +e_main_menu_item::new_: //
+          fsm.send_event( AppEvent::new_{} );
+          break;
+        case +e_main_menu_item::load: //
+          fsm.send_event( AppEvent::load{} );
+          break;
+        case +e_main_menu_item::save: //
+          SHOULD_NOT_BE_HERE;
+          break;
+        case +e_main_menu_item::leave: //
+          SHOULD_NOT_BE_HERE;
+          break;
+        case +e_main_menu_item::quit: //
+          fsm.send_event( AppEvent::quit{} );
+          break;
+      }
+    }
+    case_( AppState::main_in_game ) {
+      auto sel = main_menu_selection();
+      if( !sel.has_value() ) break_;
+      switch( *sel ) {
+        case +e_main_menu_item::resume: //
+          fsm.send_event( AppEvent::to_game{} );
+          break;
+        case +e_main_menu_item::new_: //
+          SHOULD_NOT_BE_HERE;
+          break;
+        case +e_main_menu_item::load: //
+          SHOULD_NOT_BE_HERE;
+          break;
+        case +e_main_menu_item::save: //
+          fsm.send_event( AppEvent::save{} );
+          break;
+        case +e_main_menu_item::leave: //
+          fsm.send_event(
+              AppEvent::leave{ /*dirty=*/g_game_dirty_flag } );
+          break;
+        case +e_main_menu_item::quit: //
+          SHOULD_NOT_BE_HERE;
+          break;
+      }
+    }
+    case_( AppState::creating ) {
+      CHECK_XP( reset_savegame_state() );
+      lua::reload();
+      lua::run_startup_main();
+      fsm.send_event( AppEvent::to_game{} );
+    }
+    case_( AppState::leaving ) {
+      //
+    }
+    case_( AppState::loading, slot ) {
+      (void)slot; //
+      CHECK_XP( load_game( 0 ) );
+      fsm.send_event( AppEvent::to_game() );
+    }
+    case_( AppState::saving, slot ) {
+      (void)slot; //
+      CHECK_XP( save_game( 0 ) );
+      g_game_dirty_flag = false;
+      fsm.send_event( AppEvent::to_main() );
+    }
+    case_( AppState::in_game ) {
+      g_game_dirty_flag = true;
+      advance_turn_state(); //
+    }
+    case_( AppState::quitting ) {
+      *quit = true; //
+    }
+    switch_exhaustive;
+  }
+  done();
+}
+
 } // namespace
 
 /****************************************************************
@@ -188,87 +273,8 @@ bool back_to_main_menu() {
 
 bool advance_app_state() {
   bool quit = false;
-  if( g_app_state().process_events() )
-    lg.debug( "app state: {}", g_app_state() );
-  switch_( g_app_state().state() ) {
-    case_( AppState::main_no_game ) {
-      auto sel = main_menu_selection();
-      if( !sel.has_value() ) break_;
-      switch( *sel ) {
-        case +e_main_menu_item::resume: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case +e_main_menu_item::new_: //
-          g_app_state().send_event( AppEvent::new_{} );
-          break;
-        case +e_main_menu_item::load: //
-          g_app_state().send_event( AppEvent::load{} );
-          break;
-        case +e_main_menu_item::save: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case +e_main_menu_item::leave: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case +e_main_menu_item::quit: //
-          g_app_state().send_event( AppEvent::quit{} );
-          break;
-      }
-    }
-    case_( AppState::main_in_game ) {
-      auto sel = main_menu_selection();
-      if( !sel.has_value() ) break_;
-      switch( *sel ) {
-        case +e_main_menu_item::resume: //
-          g_app_state().send_event( AppEvent::to_game{} );
-          break;
-        case +e_main_menu_item::new_: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case +e_main_menu_item::load: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case +e_main_menu_item::save: //
-          g_app_state().send_event( AppEvent::save{} );
-          break;
-        case +e_main_menu_item::leave: //
-          g_app_state().send_event(
-              AppEvent::leave{ /*dirty=*/g_game_dirty_flag } );
-          break;
-        case +e_main_menu_item::quit: //
-          SHOULD_NOT_BE_HERE;
-          break;
-      }
-    }
-    case_( AppState::creating ) {
-      CHECK_XP( reset_savegame_state() );
-      lua::reload();
-      lua::run_startup_main();
-      g_app_state().send_event( AppEvent::to_game{} );
-    }
-    case_( AppState::leaving ) {
-      //
-    }
-    case_( AppState::loading, slot ) {
-      (void)slot; //
-      CHECK_XP( load_game( 0 ) );
-      g_app_state().send_event( AppEvent::to_game() );
-    }
-    case_( AppState::saving, slot ) {
-      (void)slot; //
-      CHECK_XP( save_game( 0 ) );
-      g_game_dirty_flag = false;
-      g_app_state().send_event( AppEvent::to_main() );
-    }
-    case_( AppState::in_game ) {
-      g_game_dirty_flag = true;
-      advance_turn_state(); //
-    }
-    case_( AppState::quitting ) {
-      quit = true; //
-    }
-    switch_exhaustive;
-  }
+  fsm_auto_advance( g_app_state(), "app-state",
+                    { advance_app_state_fsm }, &quit );
   return quit;
 }
 
