@@ -149,6 +149,8 @@ void advance_unit_turn_state( UnitTurnFsm&             fsm,
       //
       // - if unit is waiting for orders then focus on it, make
       //   it blink, and wait for orders.
+
+      // TODO
     }
     case_( UnitTurnState::asking ) {
       auto maybe_response_ref = unit_input_response();
@@ -271,10 +273,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
                 "should not be in this state after an advance "
                 "call." );
           }
-          case_( UnitTurnState::asking ) {
-            // TODO
-            done_uturn = true;
-          }
+          case_( UnitTurnState::asking ) { done_uturn = true; }
           case_( UnitTurnState::have_response ) {
             for( auto id : val.response.add_to_back )
               doing_units.q.push_back( id );
@@ -305,10 +304,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
         done();
       }
     }
-    case_( NationTurnState::ending ) {
-      // TODO
-      done();
-    }
+    case_( NationTurnState::ending ) { done(); }
     switch_exhaustive;
   }
 }
