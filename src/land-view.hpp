@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "enum.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
@@ -50,9 +51,21 @@ struct UnitInputResponse {
   // clang-format on
 };
 
+enum class e_( depixelate_anim, //
+               none,            //
+               death,           //
+               demote           //
+);
+SERIALIZABLE_ENUM( e_depixelate_anim );
+
 void landview_do_eot();
 void landview_ask_orders( UnitId id );
 void landview_ensure_unit_visible( UnitId id );
+void landview_animate_move( UnitId id, e_direction direction );
+void landview_animate_attack( UnitId attacker, UnitId defender,
+                              bool              attacker_wins,
+                              e_depixelate_anim dp_anim );
+bool landview_is_animating();
 
 Opt<UnitInputResponse> unit_input_response();
 
@@ -66,9 +79,9 @@ void test_land_view();
 
 } // namespace rn
 
-DEFINE_FORMAT( ::rn::UnitInputResponse,
+DEFINE_FORMAT( rn::UnitInputResponse,
                "UnitInputResponse{{id={},orders={},add_to_front="
                "{},add_to_back={}}}",
                o.id, o.orders,
-               ::rn::FmtJsonStyleList{ o.add_to_front },
-               ::rn::FmtJsonStyleList{ o.add_to_back } );
+               rn::FmtJsonStyleList{ o.add_to_front },
+               rn::FmtJsonStyleList{ o.add_to_back } );

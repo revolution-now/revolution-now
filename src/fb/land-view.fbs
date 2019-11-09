@@ -12,6 +12,12 @@ include "orders.fbs";
 
 namespace fb;
 
+enum e_depixelate_anim : byte {
+  none,
+  death,
+  demote
+}
+
 table UnitInputResponse {
   id           : int;
   orders       : Opt_orders_t;

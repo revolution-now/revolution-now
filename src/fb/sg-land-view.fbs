@@ -52,6 +52,28 @@ namespace fb.LandViewState;
     depixelating_unit : LandViewState.depixelating_unit;
   }
 
+namespace fb.LandViewAnim;
+
+  table none {}
+  table move {
+    id : int;
+    d  : e_direction;
+  }
+  table attack {
+    attacker      : int;
+    defender      : int;
+    attacker_wins : bool;
+    dp_anim       : e_depixelate_anim;
+  }
+
+  namespace fb;
+
+  table LandViewAnim_t {
+    none   : LandViewAnim.none;
+    move   : LandViewAnim.move;
+    attack : LandViewAnim.attack;
+  }
+
 namespace fb;
 
 table LandViewFsm {
@@ -60,5 +82,6 @@ table LandViewFsm {
 
 table SG_LandView {
   mode     : LandViewFsm;
+  anim     : LandViewAnim_t;
   viewport : SmoothViewport;
 }

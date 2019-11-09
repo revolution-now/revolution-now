@@ -227,6 +227,24 @@ fsm_class( LandView ) { //
 FSM_DEFINE_FORMAT_RN_( LandView );
 
 /****************************************************************
+** Animation State
+*****************************************************************/
+// Holds which animation we are currently in. A given animation
+// may involve multiple lower-level steps, each of which might be
+// represented by a different LandViewState.
+adt_s_rn_( LandViewAnim,
+           ( none ),                          //
+           ( move,                            //
+             ( UnitId, id ),                  //
+             ( e_direction, d ) ),            //
+           ( attack,                          //
+             ( UnitId, attacker ),            //
+             ( UnitId, defender ),            //
+             ( bool, attacker_wins ),         //
+             ( e_depixelate_anim, dp_anim ) ) //
+);
+
+/****************************************************************
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( LandView ) {
@@ -235,6 +253,7 @@ struct SAVEGAME_STRUCT( LandView ) {
   // clang-format off
   SAVEGAME_MEMBERS( LandView,
   ( LandViewFsm,    mode ),
+  ( LandViewAnim_t, anim ),
   ( SmoothViewport, viewport ));
   // clang-format on
 
@@ -402,6 +421,108 @@ void advance_viewport_state() {
   }
 }
 
+void advance_landview_anim_state() {
+  if( util::holds<LandViewAnim::none>( SG().anim ) ) {
+    // We're not supposed to be animating anything.
+    switch_( SG().mode.state() ) {
+      case_( LandViewState::none ) {}
+      case_( LandViewState::blinking_unit ) {}
+      case_( LandViewState::input_ready ) {}
+      case_( LandViewState::sliding_unit ) {
+        SHOULD_NOT_BE_HERE;
+      }
+      case_( LandViewState::depixelating_unit ) {
+        SHOULD_NOT_BE_HERE;
+      }
+      switch_exhaustive;
+    }
+    return;
+  }
+  // We're supposed to be animating something.
+  if( SG().mode.holds<LandViewState::none>() ) {
+    // Kick off the animation.
+    switch_( SG().anim ) {
+      case_( LandViewAnim::none ) { SHOULD_NOT_BE_HERE; }
+      case_( LandViewAnim::move ) {
+        SG().mode.send_event( LandViewEvent::slide_unit{
+            /*id=*/val.id,      //
+            /*direction=*/val.d //
+        } );
+      }
+      case_( LandViewAnim::attack ) {
+        ASSIGN_CHECK_OPT( attacker_coord,
+                          coord_for_unit( val.attacker ) );
+        ASSIGN_CHECK_OPT( defender_coord,
+                          coord_for_unit( val.defender ) );
+        ASSIGN_CHECK_OPT(
+            d, attacker_coord.direction_to( defender_coord ) );
+        SG().mode.send_event( LandViewEvent::slide_unit{
+            /*id=*/val.attacker, //
+            /*direction=*/d      //
+        } );
+      }
+      switch_exhaustive;
+    }
+    return;
+  }
+  // We should already be animating something.
+  switch_( SG().mode.state() ) {
+    case_( LandViewState::none ) { SHOULD_NOT_BE_HERE; }
+    case_( LandViewState::blinking_unit ) { SHOULD_NOT_BE_HERE; }
+    case_( LandViewState::input_ready ) { SHOULD_NOT_BE_HERE; }
+    case_( LandViewState::sliding_unit ) {}
+    case_( LandViewState::depixelating_unit ) {}
+    switch_exhaustive;
+  }
+  bool finished_anim = false;
+  switch_( SG().anim ) {
+    case_( LandViewAnim::none ) { SHOULD_NOT_BE_HERE; }
+    case_( LandViewAnim::move ) {
+      ASSIGN_CHECK_OPT(
+          sliding,
+          SG().mode.holds<LandViewState::sliding_unit>() );
+      // Are we finished?
+      if( sliding.get().percent >= 1.0 ) {
+        finished_anim = true;
+        SG().mode.send_event( LandViewEvent::end{} );
+      }
+    }
+    case_( LandViewAnim::attack ) {
+      CHECK( util::holds<LandViewState::sliding_unit>(
+                 SG().mode.state() ) ||
+             util::holds<LandViewState::depixelating_unit>(
+                 SG().mode.state() ) );
+      if_v( SG().mode.state(), LandViewState::sliding_unit,
+            sliding ) {
+        if( sliding->percent >= 1.0 ) {
+          SG().mode.send_event( LandViewEvent::end{} );
+          if( val.dp_anim == e_depixelate_anim::none ) {
+            finished_anim = true;
+          } else {
+            // Move on to depixelation.
+            bool demote =
+                ( val.dp_anim == e_depixelate_anim::demote );
+            SG().mode.send_event( LandViewEvent::depixelate_unit{
+                /*id=*/val.attacker_wins ? val.attacker
+                                         : val.defender, //
+                /*demote=*/demote                        //
+            } );
+          }
+        }
+      }
+      if_v( SG().mode.state(), LandViewState::depixelating_unit,
+            val ) {
+        if( val->pixels.empty() ) {
+          SG().mode.send_event( LandViewEvent::end{} );
+          finished_anim = true;
+        }
+      }
+    }
+    switch_exhaustive;
+  }
+  if( finished_anim ) SG().anim = LandViewAnim::none{};
+}
+
 // Will be called repeatedly until done() is called.
 void advance_landview_state( LandViewFsm&             fsm,
                              tl::function_ref<void()> done ) {
@@ -426,9 +547,7 @@ void advance_landview_state( LandViewFsm&             fsm,
           dying_ref,
           fsm.holds<LandViewState::depixelating_unit>() );
       auto& dying = dying_ref.get();
-      if( dying.pixels.empty() )
-        fsm.send_event( LandViewEvent::end{} );
-      else {
+      if( !dying.pixels.empty() ) {
         int to_depixelate =
             std::min( config_rn.depixelate_pixels_per_frame,
                       int( dying.pixels.size() ) );
@@ -561,6 +680,7 @@ struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
   void advance_state() override {
+    advance_landview_anim_state();
     fsm_auto_advance( SG().mode, "land-view",
                       { advance_landview_state } );
   }
@@ -821,6 +941,30 @@ void landview_ensure_unit_visible( UnitId id ) {
 void landview_ask_orders( UnitId id ) {
   landview_ensure_unit_visible( id );
   SG().mode.send_event( LandViewEvent::blink_unit{ /*id=*/id } );
+}
+
+bool landview_is_animating() {
+  return !util::holds<LandViewAnim::none>( SG().anim );
+}
+
+void landview_animate_move( UnitId id, e_direction direction ) {
+  CHECK( util::holds<LandViewAnim::none>( SG().anim ) );
+  SG().anim = LandViewAnim::move{
+      /*id=*/id,      //
+      /*d=*/direction //
+  };
+}
+
+void landview_animate_attack( UnitId attacker, UnitId defender,
+                              bool              attacker_wins,
+                              e_depixelate_anim dp_anim ) {
+  CHECK( util::holds<LandViewAnim::none>( SG().anim ) );
+  SG().anim = LandViewAnim::attack{
+      /*attacker=*/attacker,           //
+      /*defender=*/defender,           //
+      /*attacker_wins=*/attacker_wins, //
+      /*dp_anim=*/dp_anim              //
+  };
 }
 
 /****************************************************************
