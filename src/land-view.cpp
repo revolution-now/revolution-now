@@ -745,7 +745,7 @@ struct LandViewPlane : public Plane {
             // handling this prioritizing.
             util::remove_if(
                 prioritize,
-                L( unit_from_id( _ ).moved_this_turn() ) );
+                L( unit_from_id( _ ).mv_pts_exhausted() ) );
 
             auto orig_size = actions.bring_to_front.size();
             auto curr_size = prioritize.size();
@@ -798,16 +798,29 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-Opt<CRef<UnitInputResponse>> unit_input_response() {
+Opt<UnitInputResponse> unit_input_response() {
+  Opt<UnitInputResponse> res;
   if_v( SG().mode.state(), LandViewState::input_ready, val ) {
-    return val->response;
+    SG().mode.send_event( LandViewEvent::end{} );
+    res = std::move( val->response );
   }
-  return nullopt;
+  return res;
 }
 
 void landview_do_eot() {
   // When we enter the end-of-turn this should already be true.
   CHECK( SG().mode.holds<LandViewState::none>() );
+}
+
+void landview_ensure_unit_visible( UnitId id ) {
+  auto coords = coord_for_unit_indirect( id );
+  SG().viewport.ensure_tile_visible( coords,
+                                     /*smooth=*/true );
+}
+
+void landview_ask_orders( UnitId id ) {
+  landview_ensure_unit_visible( id );
+  SG().mode.send_event( LandViewEvent::blink_unit{ /*id=*/id } );
 }
 
 /****************************************************************

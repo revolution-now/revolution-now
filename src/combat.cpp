@@ -40,7 +40,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   auto dst_coord = src_coord.moved( direction );
 
   auto& unit = unit_from_id( id );
-  CHECK( !unit.moved_this_turn() );
+  CHECK( !unit.mv_pts_exhausted() );
 
   if( is_unit_onboard( id ) )
     return CombatAnalysis{
@@ -237,7 +237,7 @@ bool CombatAnalysis::confirm_explain_() const {
 void CombatAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
 
-  CHECK( !unit.moved_this_turn() );
+  CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
   CHECK( allowed() );
   CHECK( target_unit.has_value() );
@@ -271,7 +271,7 @@ void CombatAnalysis::affect_orders_() const {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
             loser.id(), coord_for_unit_indirect( winner.id() ) );
-        if( !loser.moved_this_turn() )
+        if( !loser.mv_pts_exhausted() )
           loser.forfeight_mv_points();
         loser.finish_turn();
         loser.clear_orders();
@@ -294,7 +294,7 @@ void CombatAnalysis::affect_orders_() const {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
             loser.id(), coord_for_unit_indirect( winner.id() ) );
-        if( !loser.moved_this_turn() )
+        if( !loser.mv_pts_exhausted() )
           loser.forfeight_mv_points();
         loser.finish_turn();
         loser.clear_orders();

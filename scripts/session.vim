@@ -10,7 +10,7 @@ let s:stems = [
   \ 'src/plane-ctrl',
   \ 'src/plane',
   \ 'src/main-menu',
-  \ 'src/fsm',
+  \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/land-view',
   \ 'src/render',

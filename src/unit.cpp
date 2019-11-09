@@ -59,7 +59,7 @@ UnitDescriptor const& Unit::desc() const {
 void Unit::forfeight_mv_points() {
   // This function doesn't necessarily have to be responsible for
   // checking this, but it may end up catching some problems.
-  CHECK( !moved_this_turn() );
+  CHECK( !mv_pts_exhausted() );
   mv_pts_ = 0;
   CHECK_XP( check_invariants_safe() );
 }
@@ -130,7 +130,7 @@ void Unit::change_type( e_unit_type type ) {
   type_  = type;
   cargo_ = CargoHold( desc().cargo_slots );
   // FIXME: worth?
-  mv_pts_ = std::clamp( mv_pts_, MovementPoints{0},
+  mv_pts_ = std::clamp( mv_pts_, MovementPoints{ 0 },
                         desc().movement_points );
 }
 

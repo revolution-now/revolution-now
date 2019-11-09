@@ -85,6 +85,10 @@ Opt<Coord> coord_for_unit( UnitId id );
 ND Coord coord_for_unit_indirect( UnitId id );
 ND Opt<Coord> coord_for_unit_indirect_safe( UnitId id );
 
+// These will return true for a unit if it is owned by the map or
+// if its owner is on the map.
+bool is_unit_on_map_indirect( UnitId id );
+
 /****************************************************************
 ** Cargo Ownership
 *****************************************************************/

@@ -296,6 +296,10 @@ Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
   };
 }
 
+bool is_unit_on_map_indirect( UnitId id ) {
+  return coord_for_unit_indirect_safe( id ).has_value();
+}
+
 /****************************************************************
 ** Cargo Ownership
 *****************************************************************/

@@ -692,7 +692,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE_THAT( *unit.units_in_cargo(),
                   Equals( *orig.units_in_cargo() ) );
     REQUIRE( unit.finished_turn() == orig.finished_turn() );
-    REQUIRE( unit.moved_this_turn() == orig.moved_this_turn() );
+    REQUIRE( unit.mv_pts_exhausted() == orig.mv_pts_exhausted() );
     REQUIRE( unit.orders_mean_move_needed() ==
              orig.orders_mean_move_needed() );
     REQUIRE( unit.orders_mean_input_required() ==

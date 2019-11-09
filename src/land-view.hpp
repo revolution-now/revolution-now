@@ -51,8 +51,10 @@ struct UnitInputResponse {
 };
 
 void landview_do_eot();
+void landview_ask_orders( UnitId id );
+void landview_ensure_unit_visible( UnitId id );
 
-Opt<CRef<UnitInputResponse>> unit_input_response();
+Opt<UnitInputResponse> unit_input_response();
 
 struct Plane;
 Plane* land_view_plane();

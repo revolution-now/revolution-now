@@ -39,7 +39,7 @@ void analyze_unload( Unit const&     unit,
   std::vector<UnitId> to_offload;
   for( auto cargo_id : unit.cargo().items_of_type<UnitId>() ) {
     auto const& cargo_unit = unit_from_id( cargo_id );
-    if( !cargo_unit.moved_this_turn() )
+    if( !cargo_unit.mv_pts_exhausted() )
       to_offload.push_back( cargo_id );
   }
   if( !to_offload.empty() ) {
@@ -79,7 +79,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   auto& square = square_at( dst_coord );
 
   auto& unit = unit_from_id( id );
-  CHECK( !unit.moved_this_turn() );
+  CHECK( !unit.mv_pts_exhausted() );
 
   auto crust = square.crust;
 
@@ -380,7 +380,7 @@ bool TravelAnalysis::confirm_explain_() const {
 void TravelAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
 
-  CHECK( !unit.moved_this_turn() );
+  CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
   CHECK( allowed() );
 
@@ -435,7 +435,7 @@ void TravelAnalysis::affect_orders_() const {
       for( auto cargo_id :
            unit.cargo().items_of_type<UnitId>() ) {
         auto& cargo_unit = unit_from_id( cargo_id );
-        if( !cargo_unit.moved_this_turn() ) {
+        if( !cargo_unit.mv_pts_exhausted() ) {
           cargo_unit.clear_orders();
           // In case the unit has already been processed in the
           // turn loop and was passed over due to sentry status

@@ -43,7 +43,7 @@ bool JobAnalysis::confirm_explain_() const {
 
 void JobAnalysis::affect_orders_() const {
   auto& unit = unit_from_id( id );
-  CHECK( !unit.moved_this_turn() );
+  CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders() == e_unit_orders::none );
   CHECK( holds<e_unit_job_good>( desc ) );
   switch( get<e_unit_job_good>( desc ) ) {

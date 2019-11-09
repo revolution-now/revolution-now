@@ -51,7 +51,7 @@ Opt<PlayerIntent> player_intent( UnitId          id,
   auto const& unit = unit_from_id( id );
   // TODO: consolidate these checks
   CHECK( unit.movement_points() > 0 );
-  CHECK( !unit.moved_this_turn() );
+  CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders_mean_input_required() );
 
   for( auto f : dispatches )

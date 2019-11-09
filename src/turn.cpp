@@ -71,6 +71,7 @@ adt_rn_( UnitTurnState,                       //
          ( have_response,                     //
            ( UnitInputResponse, response ) ), //
          ( executing_orders,                  //
+           ( UnitId, id ),                    //
            ( orders_t, orders ) )             //
 );
 
@@ -113,7 +114,8 @@ fsm_class( UnitTurn ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response.orders.has_value() );
-    return { /*orders=*/*cur.response.orders };
+    return { /*id=*/cur.response.id,
+             /*orders=*/*cur.response.orders };
   }
 };
 
@@ -150,13 +152,39 @@ void advance_unit_turn_state( UnitTurnFsm&             fsm,
       // - if unit is waiting for orders then focus on it, make
       //   it blink, and wait for orders.
 
-      // TODO
+      if( !is_unit_on_map_indirect( val.id ) ) {
+        // TODO.
+        fsm.send_event( UnitTurnEvent::end{} );
+        break_;
+      }
+
+      lg.debug( "asking orders for: {}",
+                debug_string( val.id ) );
+      auto const& unit = unit_from_id( val.id );
+      if( !unit.orders_mean_input_required() ||
+          unit.mv_pts_exhausted() ) {
+        fsm.send_event( UnitTurnEvent::end{} );
+        break_;
+      }
+
+      auto maybe_orders = pop_unit_orders( val.id );
+      if( maybe_orders.has_value() ) {
+        UnitInputResponse response;
+        response.orders = *maybe_orders;
+        fsm.send_event( UnitTurnEvent::put_response{
+            /*response=*/response } );
+        break_;
+      }
+
+      landview_ask_orders( val.id );
+      fsm.send_event( UnitTurnEvent::ask{} );
+      break_;
     }
     case_( UnitTurnState::asking ) {
-      auto maybe_response_ref = unit_input_response();
-      if( maybe_response_ref.has_value() )
+      auto maybe_response = unit_input_response();
+      if( maybe_response.has_value() )
         fsm.send_event( UnitTurnEvent::put_response{
-            /*response=*/maybe_response_ref->get() } );
+            /*response=*/std::move( *maybe_response ) } );
       else
         done();
     }
@@ -164,7 +192,15 @@ void advance_unit_turn_state( UnitTurnFsm&             fsm,
       done(); //
     }
     case_( UnitTurnState::executing_orders ) {
-      // TODO
+      auto maybe_intent = player_intent( val.id, val.orders );
+      CHECK( maybe_intent.has_value(),
+             "no handler for orders {}", val.orders );
+
+      // auto const& analysis = maybe_intent.value();
+
+      // FIXME
+      // if( !confirm_explain( analysis ) ) continue;
+
       done(); // maybe
     }
     switch_exhaustive;
@@ -280,14 +316,20 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
             auto const& maybe_orders = val.response.orders;
             auto const& add_to_front = val.response.add_to_front;
             CHECK( maybe_orders.has_value() ==
-                   !add_to_front.empty() );
-            if( maybe_orders.has_value() ) {
-              doing_units.uturn->send_event(
-                  UnitTurnEvent::execute{} );
-            } else { // add_to_front not empty
+                   add_to_front.empty() );
+            if( !add_to_front.empty() ) {
               for( auto id : val.response.add_to_front )
                 doing_units.q.push_front( id );
+              break_;
             }
+            ASSIGN_CHECK_OPT( orders, maybe_orders );
+            if( util::holds<orders::wait>( orders ) ) {
+              doing_units.q.push_back( val.response.id );
+              doing_units.q.pop_front();
+              break_;
+            }
+            doing_units.uturn->send_event(
+                UnitTurnEvent::execute{} );
           }
           case_( UnitTurnState::executing_orders ) {
             done_uturn = true;
@@ -603,7 +645,7 @@ e_turn_result turn( e_nation nation ) {
       //    clang-format on
       while( CHECK_INL( !q.empty() ) && q.front() == id &&
              unit.orders_mean_input_required() &&
-             !unit.moved_this_turn() ) {
+             !unit.mv_pts_exhausted() ) {
         deduplicate_q( &q );
         log_q( q );
         lg.debug( "asking orders for: {}", debug_string( id ) );
@@ -643,7 +685,7 @@ e_turn_result turn( e_nation nation ) {
             // effects).
             for( auto prio_id : blink_unit.prioritize ) {
               auto& prio_unit = unit_from_id( prio_id );
-              CHECK( !prio_unit.moved_this_turn() );
+              CHECK( !prio_unit.mv_pts_exhausted() );
               q.push_front( prio_id );
               prio_unit.unfinish_turn();
             }
@@ -765,7 +807,7 @@ e_turn_result turn( e_nation nation ) {
 
       // Now we must decide if the unit has finished its turn.
       // TODO: try to put this in the unit class.
-      if( unit.moved_this_turn() ||
+      if( unit.mv_pts_exhausted() ||
           !unit.orders_mean_input_required() )
         unit.finish_turn();
     }
