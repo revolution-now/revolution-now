@@ -16,6 +16,7 @@
 #include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "fsm.hpp"
 #include "io.hpp"
@@ -692,7 +693,8 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE_THAT( *unit.units_in_cargo(),
                   Equals( *orig.units_in_cargo() ) );
     REQUIRE( unit.finished_turn() == orig.finished_turn() );
-    REQUIRE( unit.mv_pts_exhausted() == orig.mv_pts_exhausted() );
+    REQUIRE( unit.mv_pts_exhausted() ==
+             orig.mv_pts_exhausted() );
     REQUIRE( unit.orders_mean_move_needed() ==
              orig.orders_mean_move_needed() );
     REQUIRE( unit.orders_mean_input_required() ==
@@ -789,8 +791,8 @@ TEST_CASE( "[flatbuffers] ADTs" ) {
 
   FBBuilder fbb;
 
-  auto v_offset = serialize<::fb::MyAdt_t>(
-      fbb, v, ::rn::serial::ADL{} );
+  auto v_offset =
+      serialize<::fb::MyAdt_t>( fbb, v, ::rn::serial::ADL{} );
 
   fbb.Finish( v_offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
@@ -798,9 +800,8 @@ TEST_CASE( "[flatbuffers] ADTs" ) {
   auto* root = flatbuffers::GetRoot<::fb::MyAdt_t>( blob.get() );
 
   MyAdt_t d_v;
-  REQUIRE(
-      deserialize( root, &d_v, ::rn::serial::ADL{} ) ==
-      rn::xp_success_t{} );
+  REQUIRE( deserialize( root, &d_v, ::rn::serial::ADL{} ) ==
+           rn::xp_success_t{} );
 
   REQUIRE( v == d_v );
 }
@@ -812,7 +813,8 @@ struct MyFlatQueues {
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, MyFlatQueues,
   ( rn::flat_queue<int>,    q1 ),
-  ( rn::flat_queue<string>, q2 ));
+  ( rn::flat_queue<string>, q2 ),
+  ( rn::flat_deque<int>,    dq ));
   // clang-format on
 };
 
@@ -828,7 +830,12 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
     q2.push( "one" );
     q2.push( "two" );
     q2.push( "three" );
-    MyFlatQueues qs{ std::move( q1 ), std::move( q2 ) };
+    flat_deque<int> dq;
+    dq.push_back( 1 );
+    dq.push_back( 2 );
+    dq.push_front( 3 );
+    MyFlatQueues qs{ std::move( q1 ), std::move( q2 ),
+                     std::move( dq ) };
 
     auto offset = serialize<::fb::MyFlatQueues>(
         fbb, qs, ::rn::serial::ADL{} );
@@ -841,12 +848,12 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
       flatbuffers::GetRoot<::fb::MyFlatQueues>( blob.get() );
 
   MyFlatQueues qs;
-  REQUIRE(
-      deserialize( root, &qs, ::rn::serial::ADL{} ) ==
-      rn::xp_success_t{} );
+  REQUIRE( deserialize( root, &qs, ::rn::serial::ADL{} ) ==
+           rn::xp_success_t{} );
 
   REQUIRE( qs.q1.size() == 3 );
   REQUIRE( qs.q2.size() == 3 );
+  REQUIRE( qs.dq.size() == 3 );
 
   REQUIRE( qs.q1.front()->get() == 1 );
   qs.q1.pop();
@@ -862,8 +869,16 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
   REQUIRE( qs.q2.front()->get() == "three" );
   qs.q2.pop();
 
+  REQUIRE( qs.dq.front()->get() == 3 );
+  qs.dq.pop_front();
+  REQUIRE( qs.dq.front()->get() == 1 );
+  qs.dq.pop_front();
+  REQUIRE( qs.dq.front()->get() == 2 );
+  qs.dq.pop_front();
+
   REQUIRE( qs.q1.size() == 0 );
   REQUIRE( qs.q2.size() == 0 );
+  REQUIRE( qs.dq.size() == 0 );
 }
 
 TEST_CASE( "[flatbuffers] matrix" ) {
@@ -908,9 +923,8 @@ TEST_CASE( "[flatbuffers] matrix" ) {
       flatbuffers::GetRoot<::fb::Matrix_String>( blob.get() );
 
   rn::Matrix<string> m_ds;
-  REQUIRE(
-      deserialize( root, &m_ds, ::rn::serial::ADL{} ) ==
-      rn::xp_success_t{} );
+  REQUIRE( deserialize( root, &m_ds, ::rn::serial::ADL{} ) ==
+           rn::xp_success_t{} );
 
   REQUIRE( m.size() == m_ds.size() );
 
@@ -993,8 +1007,8 @@ TEST_CASE( "[flatbuffers] fsm" ) {
     REQUIRE( on_off.holds<rn::OnOffState::switching_off>() );
   }
 
-  auto offset = serialize<::fb::OnOffFsm>(
-      fbb, on_off, ::rn::serial::ADL{} );
+  auto offset = serialize<::fb::OnOffFsm>( fbb, on_off,
+                                           ::rn::serial::ADL{} );
   fbb.Finish( offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
 
@@ -1002,9 +1016,9 @@ TEST_CASE( "[flatbuffers] fsm" ) {
       flatbuffers::GetRoot<::fb::OnOffFsm>( blob.get() );
 
   rn::OnOffFsm on_off_ds;
-  REQUIRE( deserialize( root, &on_off_ds,
-                        ::rn::serial::ADL{} ) ==
-           rn::xp_success_t{} );
+  REQUIRE(
+      deserialize( root, &on_off_ds, ::rn::serial::ADL{} ) ==
+      rn::xp_success_t{} );
 
   REQUIRE_FALSE( on_off_ds.has_pending_events() );
 

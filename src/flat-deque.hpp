@@ -190,7 +190,7 @@ auto serialize( FBBuilder& builder, ::rn::flat_deque<T> const& m,
   auto m_copy = m;
   while( m_copy.front() ) {
     data.emplace_back( m_copy.front()->get() );
-    m_copy.pop();
+    m_copy.pop_front();
   }
   return serialize<Hint>( builder, data, serial::ADL{} );
 }

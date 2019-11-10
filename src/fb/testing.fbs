@@ -80,6 +80,7 @@ table MyVariant {
 table MyFlatQueues {
   q1 : [int];
   q2 : [string];
+  dq : [int];
 }
 
 table Pair_Coord_String {
