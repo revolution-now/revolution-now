@@ -67,14 +67,11 @@ Opt<PlayerIntent> g_player_intent;
 // single unit.
 adt_rn_( UnitInputState,                      //
          ( none ),                            //
-         ( processing,                        //
-           ( UnitId, id ) ),                  //
-         ( asking,                            //
-           ( UnitId, id ) ),                  //
+         ( processing ),                      //
+         ( asking ),                          //
          ( have_response,                     //
            ( UnitInputResponse, response ) ), //
          ( executing_orders,                  //
-           ( UnitId, id ),                    //
            ( orders_t, orders ),              //
            ( bool, confirmed ) ),             //
          ( executed,                          //
@@ -82,8 +79,7 @@ adt_rn_( UnitInputState,                      //
 );
 
 adt_rn_( UnitInputEvent,                      //
-         ( process,                           //
-           ( UnitId, id ) ),                  //
+         ( process ),                         //
          ( ask ),                             //
          ( put_response,                      //
            ( UnitInputResponse, response ) ), //
@@ -98,7 +94,7 @@ fsm_transitions( UnitInput,
   ((none,             process     ),  ->,  processing       ),
   ((processing,       ask         ),  ->,  asking           ),
   ((processing,       put_response),  ->,  have_response    ),
-  ((processing,       end         ),  ->,  executed         ),
+  ((processing,       cancel      ),  ->,  none             ),
   ((asking,           put_response),  ->,  have_response    ),
   ((have_response,    execute     ),  ->,  executing_orders ),
   ((executing_orders, cancel      ),  ->,  processing       ),
@@ -110,21 +106,10 @@ fsm_transitions( UnitInput,
 fsm_class( UnitInput ) { //
   fsm_init( UnitInputState::none{} );
 
-  fsm_transition( UnitInput, none, process, ->, processing ) {
-    (void)cur;
-    return { /*id=*/event.id };
-  }
-  fsm_transition( UnitInput, processing, ask, ->, asking ) {
-    (void)event;
-    return { /*id=*/cur.id };
-  }
   fsm_transition( UnitInput, processing, put_response, ->,
                   have_response ) {
     (void)cur;
     return { /*response=*/std::move( event.response ) };
-  }
-  fsm_transition_( UnitInput, processing, end, ->, executed ) {
-    return { /*add_to_front=*/{} };
   }
   fsm_transition( UnitInput, asking, put_response, ->,
                   have_response ) {
@@ -135,24 +120,13 @@ fsm_class( UnitInput ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response.orders.has_value() );
-    return { /*id=*/cur.response.id,
-             /*orders=*/*cur.response.orders,
+    return { /*orders=*/*cur.response.orders,
              /*confirmed=*/false };
-  }
-  fsm_transition( UnitInput, executing_orders, cancel, ->,
-                  processing ) {
-    (void)event;
-    return { /*id=*/cur.id };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
                   executed ) {
     (void)cur;
     return { /*add_to_front=*/std::move( event.add_to_front ) };
-  }
-  fsm_transition( UnitInput, executed, process, ->,
-                  processing ) {
-    (void)cur;
-    return { /*id=*/event.id };
   }
 };
 
@@ -160,7 +134,8 @@ FSM_DEFINE_FORMAT_RN_( UnitInput );
 
 // Will be called repeatedly until done() is called.
 void advance_unit_turn_state( UnitInputFsm&            fsm,
-                              tl::function_ref<void()> done ) {
+                              tl::function_ref<void()> done,
+                              UnitId                   id ) {
   switch_( fsm.mutable_state() ) {
     case_( UnitInputState::none ) {
       done(); //
@@ -188,40 +163,41 @@ void advance_unit_turn_state( UnitInputFsm&            fsm,
       //
       // - if unit is waiting for orders then focus on it, make
       //   it blink, and wait for orders.
+      CHECK( unit_exists( id ) );
 
-      auto& unit = unit_from_id( val.id );
-      if( unit.mv_pts_exhausted() ||
-          !unit.orders_mean_input_required() )
-        unit.finish_turn();
+      auto& unit = unit_from_id( id );
 
-      if( !is_unit_on_map_indirect( val.id ) ) {
-        // TODO.
-        fsm.send_event(
-            UnitInputEvent::end{ /*add_to_front=*/{} } );
-        unit.finish_turn();
+      if( unit.finished_turn() ) {
+        fsm.send_event( UnitInputEvent::cancel{} );
         break_;
       }
 
-      lg.debug( "asking orders for: {}",
-                debug_string( val.id ) );
+      if( !is_unit_on_map_indirect( id ) ) {
+        // TODO.
+        unit.finish_turn();
+        fsm.send_event( UnitInputEvent::cancel{} );
+        break_;
+      }
+
       if( !unit.orders_mean_input_required() ||
           unit.mv_pts_exhausted() ) {
-        fsm.send_event(
-            UnitInputEvent::end{ /*add_to_front=*/{} } );
         unit.finish_turn();
+        fsm.send_event( UnitInputEvent::cancel{} );
         break_;
       }
 
-      auto maybe_orders = pop_unit_orders( val.id );
+      lg.debug( "asking orders for: {}", debug_string( id ) );
+
+      auto maybe_orders = pop_unit_orders( id );
       if( maybe_orders.has_value() ) {
         UnitInputResponse response;
         response.orders = *maybe_orders;
         fsm.send_event( UnitInputEvent::put_response{
-            /*response=*/response } );
+            /*response=*/std::move( response ) } );
         break_;
       }
 
-      landview_ask_orders( val.id );
+      landview_ask_orders( id );
       fsm.send_event( UnitInputEvent::ask{} );
       break_;
     }
@@ -239,7 +215,7 @@ void advance_unit_turn_state( UnitInputFsm&            fsm,
     case_( UnitInputState::executing_orders ) {
       if( !val.confirmed ) {
         CHECK( !g_player_intent.has_value() );
-        auto maybe_intent = player_intent( val.id, val.orders );
+        auto maybe_intent = player_intent( id, val.orders );
         CHECK( maybe_intent.has_value(),
                "no handler for orders {}", val.orders );
 
@@ -247,6 +223,7 @@ void advance_unit_turn_state( UnitInputFsm&            fsm,
 
         if( !confirm_explain( *g_player_intent ) ) {
           fsm.send_event( UnitInputEvent::cancel{} );
+          g_player_intent = nullopt;
           break_;
         }
 
@@ -255,19 +232,26 @@ void advance_unit_turn_state( UnitInputFsm&            fsm,
           case_( TravelAnalysis ) {
             ASSIGN_CHECK_OPT( d, val.move_src.direction_to(
                                      val.move_target ) );
-            landview_animate_move( val.id, d );
-            CHECK( landview_is_animating() );
+            landview_animate_move( id, d );
+            DCHECK( landview_is_animating() );
           }
           case_( CombatAnalysis ) {
+            auto attacker = id;
             ASSIGN_CHECK_OPT( defender, val.target_unit );
             ASSIGN_CHECK_OPT( stats, val.fight_stats );
             auto const& defender_unit = unit_from_id( defender );
+            auto const& attacker_unit = unit_from_id( attacker );
             e_depixelate_anim dp_anim =
-                defender_unit.desc().demoted.has_value()
-                    ? e_depixelate_anim::demote
-                    : e_depixelate_anim::death;
-            landview_animate_attack(
-                val.id, defender, stats.attacker_wins, dp_anim );
+                stats.attacker_wins
+                    ? ( defender_unit.desc().demoted.has_value()
+                            ? e_depixelate_anim::demote
+                            : e_depixelate_anim::death )
+                    : ( attacker_unit.desc().demoted.has_value()
+                            ? e_depixelate_anim::demote
+                            : e_depixelate_anim::death );
+            landview_animate_attack( attacker, defender,
+                                     stats.attacker_wins,
+                                     dp_anim );
             CHECK( landview_is_animating() );
           }
           switch_non_exhaustive;
@@ -286,6 +270,7 @@ void advance_unit_turn_state( UnitInputFsm&            fsm,
       fsm.send_event( UnitInputEvent::end{
           /*add_to_front=*/units_to_prioritize(
               *g_player_intent ) } );
+      g_player_intent = nullopt;
       // !! Unit may no longer exist here.
     }
     case_( UnitInputState::executed ) {
@@ -299,17 +284,13 @@ void advance_unit_turn_state( UnitInputFsm&            fsm,
 /****************************************************************
 ** Nation Turn FSM
 *****************************************************************/
-using UnitDequeType = flat_deque<UnitId>;
-
 // This FSM represents the state across the processing of a
 // single turn for a single nation.
 adt_rn_( NationTurnState,                  //
-         ( starting,                       //
-           ( e_nation, nation ) ),         //
+         ( starting ),                     //
          ( doing_units,                    //
-           ( e_nation, nation ),           //
            ( bool, need_eot ),             //
-           ( UnitDequeType, q ),           //
+           ( flat_deque<UnitId>, q ),      //
            ( Opt<UnitInputFsm>, uturn ) ), //
          ( ending,                         //
            ( bool, need_eot ) )            //
@@ -322,23 +303,19 @@ adt_rn_( NationTurnEvent, //
 
 // clang-format off
 fsm_transitions( NationTurn,
-  ((starting,  next),  ->,  doing_units),
-  ((doing_units, end ),  ->,  ending   ),
+  ((starting,    next),  ->,  doing_units),
+  ((doing_units, end ),  ->,  ending     ),
 );
 // clang-format on
 
 fsm_class( NationTurn ) {
-  fsm_init( NationTurnState::starting{ /*nation=*/{} } );
+  fsm_init( NationTurnState::starting{} );
 
-  fsm_transition( NationTurn, starting, next, ->, doing_units ) {
-    (void)event;
-    return {
-        /*nation=*/cur.nation, //
-        /*need_eot=*/true,     //
-        /*q=*/{},              //
-        /*uturn=*/{}           //
-    };
-    lg.info( "starting turn for nation `{}`.", cur.nation );
+  fsm_transition_( NationTurn, starting, next, ->,
+                   doing_units ) {
+    return { /*need_eot=*/true,
+             /*q=*/{},
+             /*uturn=*/{} };
   }
 
   fsm_transition( NationTurn, doing_units, end, ->, ending ) {
@@ -351,16 +328,19 @@ FSM_DEFINE_FORMAT_RN_( NationTurn );
 
 // Will be called repeatedly until done() is called.
 void advance_nation_turn_state( NationTurnFsm&           fsm,
-                                tl::function_ref<void()> done ) {
+                                tl::function_ref<void()> done,
+                                e_nation nation ) {
   switch_( fsm.mutable_state() ) {
     case_( NationTurnState::starting ) {
+      lg.info( "-------[ Starting turn for {} ]-------",
+               nation );
       fsm.send_event( NationTurnEvent::next{} );
     }
     case_( NationTurnState::doing_units ) {
       auto& doing_units = val;
       if( doing_units.q.empty() ) {
         CHECK( !doing_units.uturn.has_value() );
-        auto units = units_all( doing_units.nation );
+        auto units = units_all( nation );
         util::sort_by_key( units,
                            []( auto id ) { return id._; } );
         units.erase(
@@ -369,54 +349,63 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
             units.end() );
         for( auto id : units ) doing_units.q.push_back( id );
       }
-      // There are units in the queue.
       bool done_uturn = false;
       while( !done_uturn ) {
         if( doing_units.q.empty() ) break;
         auto id = doing_units.q.front()->get();
         // We need this check because units can be added into
         // the queue in this loop by user input.
-        if( unit_from_id( id ).finished_turn() ) {
+        if( !unit_exists( id ) ||
+            unit_from_id( id ).finished_turn() ) {
           doing_units.q.pop_front();
+          doing_units.uturn = nullopt;
           continue;
         }
+        // We have a unit that has not finished its turn.
         if( !doing_units.uturn.has_value() ) {
           doing_units.uturn = UnitInputFsm{};
           doing_units.uturn->send_event(
-              UnitInputEvent::process{ /*id=*/id } );
+              UnitInputEvent::process{} );
         }
         DCHECK( doing_units.uturn.has_value() );
         fsm_auto_advance( *doing_units.uturn, "unit-turn",
-                          { advance_unit_turn_state } );
+                          { advance_unit_turn_state }, id );
         switch_( doing_units.uturn->state() ) {
           case_( UnitInputState::none ) {
-            // No need to ask for orders and no response
-            // waiting.
-            doing_units.q.pop_front();
+            // All unit turns should end here.
           }
           case_( UnitInputState::processing ) {
             FATAL(
                 "should not be in this state after an advance "
                 "call." );
           }
-          case_( UnitInputState::asking ) { done_uturn = true; }
+          case_( UnitInputState::asking ) {
+            doing_units.need_eot = false;
+            done_uturn           = true;
+          }
           case_( UnitInputState::have_response ) {
-            for( auto id : val.response.add_to_back )
+            for( auto id : val.response.add_to_back ) {
               doing_units.q.push_back( id );
+              unit_from_id( id ).unfinish_turn();
+            }
             auto const& maybe_orders = val.response.orders;
             auto const& add_to_front = val.response.add_to_front;
+            // Can only have one or the other.
             CHECK( maybe_orders.has_value() ==
                    add_to_front.empty() );
             if( !add_to_front.empty() ) {
-              for( auto id : val.response.add_to_front )
+              for( auto id : val.response.add_to_front ) {
                 doing_units.q.push_front( id );
+                unit_from_id( id ).unfinish_turn();
+              }
               break_;
             }
             ASSIGN_CHECK_OPT( orders, maybe_orders );
             if( util::holds<orders::wait>( orders ) ) {
-              doing_units.q.push_back( val.response.id );
+              doing_units.q.push_back( id );
+              CHECK( doing_units.q.front() == id );
               doing_units.q.pop_front();
-              break_;
+              // fallthrough.
             }
             doing_units.uturn->send_event(
                 UnitInputEvent::execute{} );
@@ -425,14 +414,10 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
             done_uturn = true;
           }
           case_( UnitInputState::executed ) {
-            DCHECK( doing_units.q.front().has_value() );
-            CHECK( id == *doing_units.q.front() );
-            if( !unit_exists( id ) ) doing_units.q.pop_front();
             for( auto id : val.add_to_front )
               doing_units.q.push_front( id );
-            if( !unit_exists( id ) ) break_;
             doing_units.uturn->send_event(
-                UnitInputEvent::process{ /*id=*/id } );
+                UnitInputEvent::process{} );
           }
           switch_exhaustive;
         }
@@ -442,12 +427,10 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
             doing_units.q.front() != id )
           doing_units.uturn = nullopt;
       }
-      if( doing_units.q.empty() ) {
+      if( doing_units.q.empty() )
         fsm.send_event( NationTurnEvent::end{} );
-        break_;
-      } else {
+      else
         done();
-      }
     }
     case_( NationTurnState::ending ) {
       done(); //
@@ -466,16 +449,15 @@ adt_s_rn_( TurnCycleState,                          //
            ( starting ),                            //
            ( inside,                                //
              ( bool, need_eot ),                    //
-             ( e_nation, nation ),                  //
+             ( Opt<e_nation>, nation ),             //
              ( flat_queue<e_nation>, remainder ) ), //
            ( ending,                                //
              ( bool, need_eot ) )                   //
 );
 
-adt_rn_( TurnCycleEvent,        //
-         ( next ),              //
-         ( end,                 //
-           ( bool, need_eot ) ) //
+adt_rn_( TurnCycleEvent, //
+         ( next ),       //
+         ( end )         //
 );
 
 // clang-format off
@@ -498,15 +480,12 @@ fsm_class( TurnCycle ) { //
     CHECK( g_turn_ordering.size() > 0 );
     for( auto nation : g_turn_ordering )
       res.remainder.push( nation );
-    res.nation = res.remainder.front()->get();
-    res.remainder.pop();
-    DCHECK( res.remainder.size() ==
-            int( g_turn_ordering.size() - 1 ) );
     return res;
   }
 
   fsm_transition( TurnCycle, inside, end, ->, ending ) {
-    return { /*need_eot=*/cur.need_eot && event.need_eot };
+    (void)event;
+    return { /*need_eot=*/cur.need_eot };
   }
 };
 
@@ -518,30 +497,33 @@ void advance_turn_cycle_state( TurnCycleFsm&            fsm,
                                NationTurnFsm& nation_turn_fsm ) {
   switch_( fsm.mutable_state() ) {
     case_( TurnCycleState::starting ) {
+      map_units( []( Unit& unit ) { unit.new_turn(); } );
       fsm.send_event( TurnCycleEvent::next{} );
-      nation_turn_fsm = NationTurnFsm(
-          NationTurnState::starting{ g_turn_ordering[0] } );
     }
     case_( TurnCycleState::inside ) {
-      fsm_auto_advance( nation_turn_fsm, "nation-turn",
-                        { advance_nation_turn_state } );
-      if_v( nation_turn_fsm.state(), NationTurnState::ending,
-            ending ) {
-        auto next = val.remainder.front();
-        if( next.has_value() ) {
-          val.remainder.pop();
-          val.nation = *next;
-          val.need_eot &= ending->need_eot;
-          nation_turn_fsm = NationTurnFsm(
-              NationTurnState::starting{ val.nation } );
-        } else {
-          bool need_eot = ending->need_eot;
-          fsm.send_event( TurnCycleEvent::end{ need_eot } );
-          if( need_eot ) {
+      bool has_nation = val.nation.has_value();
+      bool has_next   = val.remainder.front().has_value();
+      if( !has_nation ) {
+        if( !has_next ) {
+          if( val.need_eot ) {
             mark_end_of_turn();
             landview_do_eot();
           }
+          fsm.send_event( TurnCycleEvent::end{} );
+          break_;
         }
+        val.nation = *val.remainder.front();
+        val.remainder.pop();
+        nation_turn_fsm =
+            NationTurnFsm( NationTurnState::starting{} );
+      }
+      fsm_auto_advance( nation_turn_fsm, "nation-turn",
+                        { advance_nation_turn_state },
+                        *val.nation );
+      if_v( nation_turn_fsm.state(), NationTurnState::ending,
+            ending ) {
+        val.nation = nullopt;
+        val.need_eot &= ending->need_eot;
       }
       else {
         done();

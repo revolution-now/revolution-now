@@ -283,11 +283,15 @@ void fsm_auto_advance(
   bool done    = false;
   auto on_done = [&done] { done = true; };
   while( !done ) {
+    // internal::log_st_change(
+    //    fmt::format( "processing events for {}", label ) );
     bool changed = fsm.process_events();
     // FIXME: test at compile time if FSM is formattable.
     if( changed && !label.empty() )
       internal::log_st_change(
           fmt::format( "{} state: {}", label, fsm ) );
+    // internal::log_st_change(
+    //    fmt::format( "advancing {}", label ) );
     adv( fsm, on_done, std::forward<Args>( args )... );
   }
 }

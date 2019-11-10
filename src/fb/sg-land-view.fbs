@@ -27,6 +27,7 @@ namespace fb.LandViewState;
     add_to_back : [int];
   }
   table input_ready {
+    consumed : bool;
     response : UnitInputResponse;
   }
   table sliding_unit {

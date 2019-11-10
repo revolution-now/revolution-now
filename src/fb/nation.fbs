@@ -16,3 +16,8 @@ enum e_nation : byte {
   english,
   spanish,
 }
+
+table Opt_e_nation {
+  has_value : bool;
+  value     : e_nation;
+}

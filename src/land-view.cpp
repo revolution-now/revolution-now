@@ -70,6 +70,7 @@ adt_s_rn_(
       // tized), this will allow it to ask for orders this turn.
       ( Vec<UnitId>, add_to_back ) ),         //
     ( input_ready,                            //
+      ( bool, consumed ),                     //
       ( UnitInputResponse, response ) ),      //
     ( sliding_unit,                           //
       ( UnitId, id ),                         //
@@ -108,6 +109,7 @@ fsm_transitions( LandView,
   ((none, depixelate_unit ),  ->,  depixelating_unit   ),
   ((sliding_unit,      end),  ->,  none                ),
   ((depixelating_unit, end),  ->,  none                ),
+  ((input_ready,       end),  ->,  none                ),
   ((blinking_unit, input_orders    ),  ->,  input_ready  ),
   ((blinking_unit, input_prioritize),  ->,  input_ready  ),
   ((blinking_unit, add_to_back     ),  ->,  blinking_unit),
@@ -119,22 +121,24 @@ fsm_class( LandView ) { //
 
   fsm_transition( LandView, blinking_unit, input_orders, ->,
                   input_ready ) {
-    return { UnitInputResponse{
-        /*id=*/cur.id,                  //
-        /*orders=*/event.orders,        //
-        /*add_to_front=*/{},            //
-        /*add_to_back=*/cur.add_to_back //
-    } };
+    return { /*consumed=*/false, //
+             UnitInputResponse{
+                 /*id=*/cur.id,                  //
+                 /*orders=*/event.orders,        //
+                 /*add_to_front=*/{},            //
+                 /*add_to_back=*/cur.add_to_back //
+             } };
   }
 
   fsm_transition( LandView, blinking_unit, input_prioritize, ->,
                   input_ready ) {
-    return { UnitInputResponse{
-        /*id=*/cur.id,                     //
-        /*orders=*/nullopt,                //
-        /*add_to_front=*/event.prioritize, //
-        /*add_to_back=*/cur.add_to_back    //
-    } };
+    return { /*consumed=*/false, //
+             UnitInputResponse{
+                 /*id=*/cur.id,                     //
+                 /*orders=*/nullopt,                //
+                 /*add_to_front=*/event.prioritize, //
+                 /*add_to_back=*/cur.add_to_back    //
+             } };
   }
 
   fsm_transition( LandView, blinking_unit, add_to_back, ->,
@@ -503,8 +507,8 @@ void advance_landview_anim_state() {
             bool demote =
                 ( val.dp_anim == e_depixelate_anim::demote );
             SG().mode.send_event( LandViewEvent::depixelate_unit{
-                /*id=*/val.attacker_wins ? val.attacker
-                                         : val.defender, //
+                /*id=*/val.attacker_wins ? val.defender
+                                         : val.attacker, //
                 /*demote=*/demote                        //
             } );
           }
@@ -526,12 +530,11 @@ void advance_landview_anim_state() {
 // Will be called repeatedly until done() is called.
 void advance_landview_state( LandViewFsm&             fsm,
                              tl::function_ref<void()> done ) {
-  advance_viewport_state();
-
   switch_( fsm.state() ) {
     case_( LandViewState::none ) { done(); }
     case_( LandViewState::blinking_unit ) {
       // FIXME: add blinking state here.
+      done();
     }
     case_( LandViewState::input_ready ) { done(); }
     case_( LandViewState::sliding_unit ) {
@@ -568,8 +571,8 @@ void advance_landview_state( LandViewFsm&             fsm,
           ::SDL_RenderDrawPoint( g_renderer, point.x._,
                                  point.y._ );
         }
-        done();
       }
+      done();
     }
     switch_exhaustive;
   }
@@ -680,9 +683,11 @@ struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
   void advance_state() override {
-    advance_landview_anim_state();
+    // Order matters here.
     fsm_auto_advance( SG().mode, "land-view",
                       { advance_landview_state } );
+    advance_landview_anim_state();
+    advance_viewport_state();
   }
   void draw( Texture& tx ) const override {
     render_land_view();
@@ -920,16 +925,19 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 *****************************************************************/
 Opt<UnitInputResponse> unit_input_response() {
   Opt<UnitInputResponse> res;
-  if_v( SG().mode.state(), LandViewState::input_ready, val ) {
-    SG().mode.send_event( LandViewEvent::end{} );
-    res = std::move( val->response );
+  if_v( SG().mode.mutable_state(), LandViewState::input_ready,
+        val ) {
+    if( !val->consumed ) {
+      SG().mode.send_event( LandViewEvent::end{} );
+      res           = std::move( val->response );
+      val->consumed = true;
+    }
   }
   return res;
 }
 
 void landview_do_eot() {
-  // When we enter the end-of-turn this should already be true.
-  CHECK( SG().mode.holds<LandViewState::none>() );
+  // nothing?
 }
 
 void landview_ensure_unit_visible( UnitId id ) {
