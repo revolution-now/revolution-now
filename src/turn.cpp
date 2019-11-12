@@ -61,6 +61,48 @@ vector<e_nation> const g_turn_ordering{
 Opt<PlayerIntent> g_player_intent;
 
 /****************************************************************
+** Helpers
+*****************************************************************/
+// For each unit in the queue, remove all occurrences of it after
+// the first. Duplicate ids in the queue is not actually a prob-
+// lem, since a unit will just be passed up if it has already
+// moved. Hence this is not strictly necessary, but leads to a
+// smoother user experience in situations where units are sponta-
+// neously prioritized in the queue.
+template<typename T>
+void deduplicate_deque( flat_deque<T>* q ) {
+  flat_deque<T>          new_q;
+  absl::flat_hash_set<T> s;
+  s.reserve( q->size() );
+  while( q->size() > 0 ) {
+    auto item = q->front()->get();
+    q->pop_front();
+    if( s.contains( item ) ) continue;
+    s.insert( item );
+    new_q.push_back( item );
+  }
+  *q = std::move( new_q );
+}
+
+bool animate_move( TravelAnalysis const& analysis ) {
+  CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
+  auto type = get<e_unit_travel_good>( analysis.desc );
+  // TODO: in the case of board_ship we need to make sure that
+  // the ship being borded gets rendered on top because there may
+  // be a stack of ships in the square, otherwise it will be de-
+  // ceiving to the player. This is because when a land unit en-
+  // ters a water square it will just automatically pick a ship
+  // and board it.
+  switch( type ) {
+    case e_unit_travel_good::map_to_map: return true;
+    case e_unit_travel_good::board_ship: return true;
+    case e_unit_travel_good::offboard_ship: return true;
+    case e_unit_travel_good::land_fall: return false;
+  };
+  SHOULD_NOT_BE_HERE;
+}
+
+/****************************************************************
 ** Unit Turn FSM
 *****************************************************************/
 // This FSM represents the state across the processing of a
@@ -133,9 +175,9 @@ fsm_class( UnitInput ) { //
 FSM_DEFINE_FORMAT_RN_( UnitInput );
 
 // Will be called repeatedly until done() is called.
-void advance_unit_turn_state( UnitInputFsm&            fsm,
-                              tl::function_ref<void()> done,
-                              UnitId                   id ) {
+void advance_unit_input_state( UnitInputFsm&            fsm,
+                               tl::function_ref<void()> done,
+                               UnitId                   id ) {
   switch_( fsm.mutable_state() ) {
     case_( UnitInputState::none ) {
       done(); //
@@ -338,6 +380,10 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
     }
     case_( NationTurnState::doing_units ) {
       auto& doing_units = val;
+      auto  log_q       = [&] {
+        deduplicate_deque( &doing_units.q );
+        lg.debug( "q: {}", doing_units.q.to_string( 3 ) );
+      };
       if( doing_units.q.empty() ) {
         CHECK( !doing_units.uturn.has_value() );
         auto units = units_all( nation );
@@ -348,6 +394,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
                        L( unit_from_id( _ ).finished_turn() ) ),
             units.end() );
         for( auto id : units ) doing_units.q.push_back( id );
+        log_q();
       }
       bool done_uturn = false;
       while( !done_uturn ) {
@@ -358,6 +405,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
         if( !unit_exists( id ) ||
             unit_from_id( id ).finished_turn() ) {
           doing_units.q.pop_front();
+          log_q();
           doing_units.uturn = nullopt;
           continue;
         }
@@ -369,7 +417,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
         }
         DCHECK( doing_units.uturn.has_value() );
         fsm_auto_advance( *doing_units.uturn, "unit-turn",
-                          { advance_unit_turn_state }, id );
+                          { advance_unit_input_state }, id );
         switch_( doing_units.uturn->state() ) {
           case_( UnitInputState::none ) {
             // All unit turns should end here.
@@ -398,6 +446,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
                 doing_units.q.push_front( id );
                 unit_from_id( id ).unfinish_turn();
               }
+              log_q();
               break_;
             }
             ASSIGN_CHECK_OPT( orders, maybe_orders );
@@ -407,6 +456,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
               doing_units.q.pop_front();
               // fallthrough.
             }
+            log_q();
             doing_units.uturn->send_event(
                 UnitInputEvent::execute{} );
           }
@@ -416,6 +466,7 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
           case_( UnitInputState::executed ) {
             for( auto id : val.add_to_front )
               doing_units.q.push_front( id );
+            log_q();
             doing_units.uturn->send_event(
                 UnitInputEvent::process{} );
           }
@@ -582,52 +633,6 @@ void advance_turn_state() {
                     SG().nation_turn );
 }
 
-/****************************************************************
-** Helpers
-*****************************************************************/
-// For each unit in the queue, remove all occurrences of it after
-// the first. Duplicate ids in the queue is not actually a prob-
-// lem, since a unit will just be passed up if it has already
-// moved. Hence this is not strictly necessary, but leads to a
-// smoother user experience in situations where units are sponta-
-// neously prioritized in the queue.
-void deduplicate_q( deque<UnitId>* q ) {
-  deque<UnitId>               new_q;
-  absl::flat_hash_set<UnitId> s;
-  for( auto id : *q ) {
-    if( s.contains( id ) ) continue;
-    s.insert( id );
-    new_q.push_back( id );
-  }
-  *q = new_q;
-}
-
-// Log the first few ids in the queue and print ... if there are
-// more than 10.
-void log_q( deque<UnitId> const& q ) {
-  auto   q_str = rng_to_string( q | rv::take( 10 ) );
-  string dots  = q.size() > 10 ? " ..." : "";
-  lg.debug( "queue front: {}{}", q_str, dots );
-}
-
-bool animate_move( TravelAnalysis const& analysis ) {
-  CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
-  auto type = get<e_unit_travel_good>( analysis.desc );
-  // TODO: in the case of board_ship we need to make sure that
-  // the ship being borded gets rendered on top because there may
-  // be a stack of ships in the square, otherwise it will be de-
-  // ceiving to the player. This is because when a land unit en-
-  // ters a water square it will just automatically pick a ship
-  // and board it.
-  switch( type ) {
-    case e_unit_travel_good::map_to_map: return true;
-    case e_unit_travel_good::board_ship: return true;
-    case e_unit_travel_good::offboard_ship: return true;
-    case e_unit_travel_good::land_fall: return false;
-  };
-  SHOULD_NOT_BE_HERE;
-}
-
 #if 0
 e_turn_result turn( e_nation nation ) {
   // start of turn:
@@ -733,7 +738,7 @@ e_turn_result turn( e_nation nation ) {
       while( CHECK_INL( !q.empty() ) && q.front() == id &&
              unit.orders_mean_input_required() &&
              !unit.mv_pts_exhausted() ) {
-        deduplicate_q( &q );
+        deduplicate_deque( &q );
         log_q( q );
         lg.debug( "asking orders for: {}", debug_string( id ) );
         orders_taken = true;

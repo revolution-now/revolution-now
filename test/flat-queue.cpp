@@ -93,6 +93,80 @@ TEST_CASE( "[flat-queue] push pop small" ) {
 #endif
 }
 
+TEST_CASE( "[flat-queue] to_string" ) {
+  flat_queue<int> q;
+
+  REQUIRE( q.to_string() == "[front:]" );
+  REQUIRE( q.to_string( 0 ) == "[front:]" );
+
+  q.push( 5 );
+  REQUIRE( q.to_string() == "[front:5]" );
+  REQUIRE( q.to_string( 0 ) == "[front:...]" );
+  REQUIRE( q.to_string( 1 ) == "[front:5]" );
+  REQUIRE( q.to_string( 2 ) == "[front:5]" );
+
+  q.pop();
+  REQUIRE( q.to_string() == "[front:]" );
+  REQUIRE( q.to_string( 0 ) == "[front:]" );
+
+  q.push( 5 );
+  q.push( 6 );
+  REQUIRE( q.to_string() == "[front:5,6]" );
+  REQUIRE( q.to_string( 0 ) == "[front:...]" );
+  REQUIRE( q.to_string( 1 ) == "[front:5...]" );
+  REQUIRE( q.to_string( 2 ) == "[front:5,6]" );
+  REQUIRE( q.to_string( 3 ) == "[front:5,6]" );
+
+  q.push( 7 );
+  q.push( 8 );
+  q.push( 9 );
+  REQUIRE( q.to_string() == "[front:5,6,7,8,9]" );
+  REQUIRE( q.to_string( 0 ) == "[front:...]" );
+  REQUIRE( q.to_string( 1 ) == "[front:5...]" );
+  REQUIRE( q.to_string( 2 ) == "[front:5,6...]" );
+  REQUIRE( q.to_string( 3 ) == "[front:5,6,7...]" );
+  REQUIRE( q.to_string( 4 ) == "[front:5,6,7,8...]" );
+  REQUIRE( q.to_string( 5 ) == "[front:5,6,7,8,9]" );
+  REQUIRE( q.to_string( 6 ) == "[front:5,6,7,8,9]" );
+}
+
+TEST_CASE( "[flat-deque] to_string" ) {
+  flat_deque<int> q;
+
+  REQUIRE( q.to_string() == "[front:]" );
+  REQUIRE( q.to_string( 0 ) == "[front:]" );
+
+  q.push_back( 5 );
+  REQUIRE( q.to_string() == "[front:5]" );
+  REQUIRE( q.to_string( 0 ) == "[front:...]" );
+  REQUIRE( q.to_string( 1 ) == "[front:5]" );
+  REQUIRE( q.to_string( 2 ) == "[front:5]" );
+
+  q.pop_front();
+  REQUIRE( q.to_string() == "[front:]" );
+  REQUIRE( q.to_string( 0 ) == "[front:]" );
+
+  q.push_back( 5 );
+  q.push_back( 6 );
+  REQUIRE( q.to_string() == "[front:5,6]" );
+  REQUIRE( q.to_string( 0 ) == "[front:...]" );
+  REQUIRE( q.to_string( 1 ) == "[front:5...]" );
+  REQUIRE( q.to_string( 2 ) == "[front:5,6]" );
+  REQUIRE( q.to_string( 3 ) == "[front:5,6]" );
+
+  q.push_front( 7 );
+  q.push_front( 8 );
+  q.push_front( 9 );
+  REQUIRE( q.to_string() == "[front:9,8,7,5,6]" );
+  REQUIRE( q.to_string( 0 ) == "[front:...]" );
+  REQUIRE( q.to_string( 1 ) == "[front:9...]" );
+  REQUIRE( q.to_string( 2 ) == "[front:9,8...]" );
+  REQUIRE( q.to_string( 3 ) == "[front:9,8,7...]" );
+  REQUIRE( q.to_string( 4 ) == "[front:9,8,7,5...]" );
+  REQUIRE( q.to_string( 5 ) == "[front:9,8,7,5,6]" );
+  REQUIRE( q.to_string( 6 ) == "[front:9,8,7,5,6]" );
+}
+
 TEST_CASE( "[flat-deque] push pop small" ) {
   flat_deque<int> q;
 

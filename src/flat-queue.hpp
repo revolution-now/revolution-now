@@ -132,6 +132,19 @@ public:
     return !( ( *this ) == rhs );
   }
 
+  std::string to_string(
+      int max_elems = std::numeric_limits<int>::max() ) const {
+    Str res  = "[front:";
+    int back = front_ + std::min( max_elems, size() );
+    for( int i = front_; i < back; ++i ) {
+      res += fmt::format( "{}", queue_[i] );
+      if( i != back - 1 ) res += ',';
+    }
+    if( max_elems < size() ) res += "...";
+    res += ']';
+    return res;
+  }
+
   // {fmt} formatter.
   friend struct fmt::formatter<flat_queue<T>>;
 
@@ -160,8 +173,7 @@ auto serialize( FBBuilder& builder, ::rn::flat_queue<T> const& m,
     data.emplace_back( m_copy.front()->get() );
     m_copy.pop();
   }
-  return serialize<Hint>( builder, data,
-                          serial::ADL{} );
+  return serialize<Hint>( builder, data, serial::ADL{} );
 }
 
 template<typename SrcT, typename T>
@@ -173,8 +185,7 @@ expect<> deserialize( SrcT const* src, ::rn::flat_queue<T>* m,
     return xp_success_t{};
   }
   std::vector<T> data;
-  XP_OR_RETURN_(
-      deserialize( src, &data, serial::ADL{} ) );
+  XP_OR_RETURN_( deserialize( src, &data, serial::ADL{} ) );
   for( auto& e : data ) m->push_emplace( std::move( e ) );
   return xp_success_t{};
 }

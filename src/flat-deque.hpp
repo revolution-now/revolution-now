@@ -153,6 +153,21 @@ public:
     return !( ( *this ) == rhs );
   }
 
+  std::string to_string(
+      int max_elems = std::numeric_limits<int>::max() ) const {
+    Str res  = "[front:";
+    int back = front_ + std::min( max_elems, size() );
+    for( int i = front_; i < back; ++i ) {
+      auto it = map_.find( i );
+      DCHECK( it != map_.end() );
+      res += fmt::format( "{}", it->second );
+      if( i != back - 1 ) res += ',';
+    }
+    if( max_elems < size() ) res += "...";
+    res += ']';
+    return res;
+  }
+
   // {fmt} formatter.
   friend struct fmt::formatter<flat_deque<T>>;
 
