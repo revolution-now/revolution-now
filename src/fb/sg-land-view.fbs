@@ -38,9 +38,7 @@ namespace fb.LandViewState;
   }
   table depixelating_unit {
     id             : int;
-    pixels         : [Coord];
     demoted        : Opt_e_unit_type;
-    demoted_pixels : Matrix_Color;
   }
 
   namespace fb;

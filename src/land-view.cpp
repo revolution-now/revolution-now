@@ -46,7 +46,9 @@ namespace rn {
 
 namespace {
 
-Texture g_tx_depixelate_from;
+Texture       g_tx_depixelate_from;
+Vec<Coord>    g_pixels;
+Matrix<Color> g_demoted_pixels;
 
 /****************************************************************
 ** FSMs
@@ -79,9 +81,7 @@ adt_s_rn_(
       ( DissipativeVelocity, percent_vel ) ), //
     ( depixelating_unit,                      //
       ( UnitId, id ),                         //
-      ( Vec<Coord>, pixels ),                 //
-      ( Opt<e_unit_type>, demoted ),          //
-      ( Matrix<Color>, demoted_pixels ) )     //
+      ( Opt<e_unit_type>, demoted ) )         //
 );
 
 adt_rn_( LandViewEvent,                   //
@@ -195,12 +195,12 @@ fsm_class( LandView ) { //
     }
     auto res = LandViewState::depixelating_unit{
         /*id=*/event.id,           //
-        /*pixels=*/{},             //
         /*demoted=*/maybe_demoted, //
-        /*demoted_pixels=*/{}      //
     };
-    res.pixels.assign( g_tile_rect.begin(), g_tile_rect.end() );
-    rng::shuffle( res.pixels );
+    g_pixels.clear();
+    g_demoted_pixels.clear();
+    g_pixels.assign( g_tile_rect.begin(), g_tile_rect.end() );
+    rng::shuffle( g_pixels );
     g_tx_depixelate_from = create_texture( g_tile_delta );
     clear_texture_transparent( g_tx_depixelate_from );
     render_unit( g_tx_depixelate_from, res.id, Coord{},
@@ -222,7 +222,7 @@ fsm_class( LandView ) { //
         render_nationality_icon( tx, res.id, Coord{} );
         render_unit( tx, *maybe_demoted, Coord{} );
       }
-      res.demoted_pixels = tx.pixels();
+      g_demoted_pixels = tx.pixels();
     }
     return res;
   }
@@ -516,7 +516,7 @@ void advance_landview_anim_state() {
       }
       if_v( SG().mode.state(), LandViewState::depixelating_unit,
             val ) {
-        if( val->pixels.empty() ) {
+        if( g_pixels.empty() ) {
           SG().mode.send_event( LandViewEvent::end{} );
           finished_anim = true;
         }
@@ -546,25 +546,21 @@ void advance_landview_state( LandViewFsm&             fsm,
       done();
     }
     case_( LandViewState::depixelating_unit ) {
-      ASSIGN_CHECK_OPT(
-          dying_ref,
-          fsm.holds<LandViewState::depixelating_unit>() );
-      auto& dying = dying_ref.get();
-      if( !dying.pixels.empty() ) {
+      if( !g_pixels.empty() ) {
         int to_depixelate =
             std::min( config_rn.depixelate_pixels_per_frame,
-                      int( dying.pixels.size() ) );
+                      int( g_pixels.size() ) );
         vector<Coord> new_non_pixels;
         for( int i = 0; i < to_depixelate; ++i ) {
-          auto next_coord = dying.pixels.back();
-          dying.pixels.pop_back();
+          auto next_coord = g_pixels.back();
+          g_pixels.pop_back();
           new_non_pixels.push_back( next_coord );
         }
         ::SDL_SetRenderDrawBlendMode( g_renderer,
                                       ::SDL_BLENDMODE_NONE );
         for( auto point : new_non_pixels ) {
-          auto color = dying.demoted_pixels.size().area() > 0
-                           ? dying.demoted_pixels[point]
+          auto color = g_demoted_pixels.size().area() > 0
+                           ? g_demoted_pixels[point]
                            : Color( 0, 0, 0, 0 );
           set_render_draw_color( color );
           g_tx_depixelate_from.set_render_target();
