@@ -56,6 +56,8 @@ DisplayMode current_display_mode();
 // Should not need this often.
 Delta whole_screen_physical_size();
 
+Delta max_texture_size();
+
 void    hide_window();
 ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );

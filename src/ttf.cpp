@@ -15,6 +15,8 @@
 #include "errors.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
+#include "macros.hpp"
+#include "screen.hpp"
 #include "sdl-util.hpp"
 #include "util.hpp"
 
@@ -56,6 +58,25 @@ FlatMap<e_font, FontDesc>& loaded_fonts() {
   return m;
 }
 
+Surface render_line_standard_surface( ::TTF_Font* font,
+                                      ::SDL_Color fg,
+                                      string_view line ) {
+  auto max_size = max_texture_size();
+  while( line.size() >= 1 ) {
+    auto* sdl_surface = ::TTF_RenderText_Solid(
+        font, string( line ).c_str(), fg );
+    CHECK( sdl_surface != nullptr );
+    auto surface = Surface( sdl_surface );
+    if( surface.size().w <= max_size.w &&
+        surface.size().h <= max_size.h )
+      return surface;
+    line.remove_suffix( line.size() / 2 );
+  }
+  FATAL( "failed to render string within max texture size: {}",
+         max_size );
+  UNREACHABLE_LOCATION;
+}
+
 Texture render_line_standard_impl( ::TTF_Font* font,
                                    ::SDL_Color fg,
                                    string_view line,
@@ -66,10 +87,8 @@ Texture render_line_standard_impl( ::TTF_Font* font,
         Delta{ W{ 1 }, // maybe safer than zero?
                H{ TTF_FontHeight( font ) } } );
   }
-  ASSIGN_CHECK( surface,
-                ::TTF_RenderText_Solid(
-                    font, string( line ).c_str(), fg ) );
-  auto texture = Texture::from_surface( Surface( surface ) );
+  auto surface = render_line_standard_surface( font, fg, line );
+  auto texture = Texture::from_surface( surface );
   if( vert_offset != 0_y ) {
     auto new_texture = create_texture( texture.size() );
     clear_texture_transparent( new_texture );

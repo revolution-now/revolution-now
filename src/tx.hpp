@@ -56,8 +56,8 @@ public:
   void free();
 
   // For convenience.
-  // Delta size() const;
-  // Rect  rect() const { return Rect::from( Coord{}, size() ); }
+  Delta size() const;
+  Rect  rect() const { return Rect::from( Coord{}, size() ); }
 
   // This will convert a surface to the game's display. NOTE: it
   // will free the input surface if release_input is true.

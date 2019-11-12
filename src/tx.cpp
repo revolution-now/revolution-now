@@ -99,6 +99,11 @@ void Surface::free() {
   }
 }
 
+Delta Surface::size() const {
+  auto* s = to_SDL_Surface( sf_ );
+  return Delta{ W{ s->w }, H{ s->h } };
+}
+
 void Surface::optimize() {
   auto* fmt = ::SDL_AllocFormat( g_pixel_format );
   CHECK( fmt != nullptr );

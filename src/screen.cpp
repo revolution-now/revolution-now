@@ -491,4 +491,11 @@ void on_main_window_resized() {
   on_logical_resolution_changed();
 }
 
+Delta max_texture_size() {
+  ::SDL_RendererInfo info;
+  ::SDL_GetRendererInfo( g_renderer, &info );
+  return Delta{ W{ info.max_texture_width },
+                H{ info.max_texture_height } };
+}
+
 } // namespace rn
