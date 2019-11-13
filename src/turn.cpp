@@ -139,6 +139,7 @@ fsm_transitions( UnitInput,
   ((processing,       cancel      ),  ->,  none             ),
   ((asking,           put_response),  ->,  have_response    ),
   ((have_response,    execute     ),  ->,  executing_orders ),
+  ((have_response,    process     ),  ->,  processing       ),
   ((executing_orders, cancel      ),  ->,  processing       ),
   ((executing_orders, end         ),  ->,  executed         ),
   ((executed,         process     ),  ->,  processing       )
@@ -471,6 +472,11 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
                 unit_from_id( id ).unfinish_turn();
               }
               log_q();
+              // Send a process signal in case add_to_front ==
+              // [id] (in which case we just keep asking the unit
+              // for orders).
+              doing_units.uturn->send_event(
+                  UnitInputEvent::process{} );
               break_;
             }
             ASSIGN_CHECK_OPT( orders, maybe_orders );
