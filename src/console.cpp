@@ -190,28 +190,29 @@ struct ConsolePlane : public Plane {
                          console_edit_rect.upper_left() - 1_w );
   }
 
-  bool input( input::event_t const& event ) override {
-    if( !util::holds<input::key_event_t>( event ) ) return false;
+  e_input_handled input( input::event_t const& event ) override {
+    if( !util::holds<input::key_event_t>( event ) )
+      return e_input_handled::no;
     auto const& key_event =
         *std::get_if<input::key_event_t>( &event );
     if( key_event.change != input::e_key_change::down )
-      return false;
+      return e_input_handled::no;
     if( key_event.keycode == ::SDLK_BACKQUOTE ) {
       show_ = !show_;
-      return true;
+      return e_input_handled::yes;
     }
-    if( !show_ ) return false;
+    if( !show_ ) return e_input_handled::no;
     if( key_event.keycode == ::SDLK_l &&
         key_event.mod.ctrl_down ) {
       term::clear();
-      return true;
+      return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_u &&
         key_event.mod.ctrl_down ) {
       auto text = le_view_.get().text();
       text.erase( 0, le_view_.get().cursor_pos() );
       le_view_.get().set( text, 0 );
-      return true;
+      return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_TAB ) {
       auto const& text = le_view_.get().text();
@@ -226,27 +227,27 @@ struct ConsolePlane : public Plane {
             term::log( option );
         }
       }
-      return true;
+      return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_UP ) {
       CHECK( history_index_ >= -1 );
       auto maybe_item_ref = term::history( history_index_ + 1 );
-      if( !maybe_item_ref ) return true;
+      if( !maybe_item_ref ) return e_input_handled::yes;
       history_index_++;
       le_view_.get().set( maybe_item_ref->get(),
                           /*cursor_pos=*/-1 );
-      return true;
+      return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_DOWN ) {
-      if( history_index_ == -1 ) return true;
+      if( history_index_ == -1 ) return e_input_handled::yes;
       CHECK( history_index_ >= 0 );
       history_index_--;
-      if( history_index_ == -1 ) return true;
+      if( history_index_ == -1 ) return e_input_handled::yes;
       auto maybe_item_ref = term::history( history_index_ );
-      if( !maybe_item_ref ) return true;
+      if( !maybe_item_ref ) return e_input_handled::yes;
       le_view_.get().set( maybe_item_ref->get(),
                           /*cursor_pos=*/-1 );
-      return true;
+      return e_input_handled::yes;
     }
     if( key_event.keycode == ::SDLK_RETURN ) {
       auto text = le_view_.get().text();
@@ -255,11 +256,13 @@ struct ConsolePlane : public Plane {
         // Don't care here whether command succeeded or not.
         (void)term::run_cmd( text );
         le_view_.get().clear();
-        return true;
+        return e_input_handled::yes;
       }
-      return false;
+      return e_input_handled::no;
     }
-    return le_view_.get().on_key( key_event );
+    return le_view_.get().on_key( key_event )
+               ? e_input_handled::yes
+               : e_input_handled::no;
   }
 
   bool                         show_{ false };

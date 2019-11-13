@@ -410,7 +410,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 /****************************************************************
-** Event Queue
+** SDL Event Queue
 *****************************************************************/
 namespace {
 
@@ -451,18 +451,6 @@ Opt<::SDL_Event> next_sdl_event() {
   return nullopt;
 }
 
-} // namespace
-
-// Not yet sure when we would need this.
-bool has_event() {
-  WARNING_THIS_FUNCTION_HAS_NOT_BEEN_TESTED;
-  ::SDL_PumpEvents();
-  for( auto event_type : relevant_sdl_events() )
-    if( ::SDL_HasEvent( event_type ) ) //
-      return true;
-  return false;
-}
-
 Opt<event_t> next_event() {
   while( auto event = next_sdl_event() ) {
     if( !is_relevant_event_type( event->type ) ) continue;
@@ -471,12 +459,18 @@ Opt<event_t> next_event() {
   return nullopt;
 }
 
-Vec<event_t> pop_pending_events() {
-  Vec<event_t> res;
+constexpr int       kMaxEventQueueSize = 10000;
+flat_queue<event_t> g_event_queue;
+
+} // namespace
+
+void pump_event_queue() {
   while( auto event = input::next_event() )
-    res.push_back( *event );
-  return res;
+    if( g_event_queue.size() < kMaxEventQueueSize )
+      g_event_queue.push( *event );
 }
+
+flat_queue<event_t>& event_queue() { return g_event_queue; }
 
 /****************************************************************
 ** Utilities

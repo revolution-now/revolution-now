@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
+#include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
 
@@ -167,14 +168,11 @@ using event_t = std::variant<
 // clang-format on
 NOTHROW_MOVE( event_t );
 
-// Returns true if there is an event waiting in the queue that is
-// relevant to RN.
-ND bool has_event();
-// Go through SDL's event queue and eat up all events that are
-// not relevant and then return the first one that is, if any.
-ND Opt<event_t> next_event();
+// Grab all new events and put them into the queue.
+void pump_event_queue();
 
-Vec<event_t> pop_pending_events();
+// Callers are responsible for popping used events.
+flat_queue<event_t>& event_queue();
 
 /****************************************************************
 ** Utilities

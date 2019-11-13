@@ -80,8 +80,8 @@ struct MainMenuPlane : public Plane {
       h += dst.delta().h;
     }
   }
-  bool input( input::event_t const& event ) override {
-    bool handled = false;
+  e_input_handled input( input::event_t const& event ) override {
+    auto handled = e_input_handled::no;
     switch_( event ) {
       case_( input::key_event_t ) {
         if( val.change != input::e_key_change::down ) break_;
@@ -93,7 +93,7 @@ struct MainMenuPlane : public Plane {
               g_curr_item = util::find_previous_and_cycle(
                   values<e_main_menu_item>, g_curr_item );
             } while( !is_item_enabled( g_curr_item ) );
-            handled = true;
+            handled = e_input_handled::yes;
             break;
           case ::SDLK_DOWN:
           case ::SDLK_KP_2:
@@ -101,18 +101,18 @@ struct MainMenuPlane : public Plane {
               g_curr_item = util::find_subsequent_and_cycle(
                   values<e_main_menu_item>, g_curr_item );
             } while( !is_item_enabled( g_curr_item ) );
-            handled = true;
+            handled = e_input_handled::yes;
             break;
           case ::SDLK_RETURN:
           case ::SDLK_KP_ENTER:
             CHECK( !g_item_sel.has_value() );
             g_item_sel = g_curr_item;
-            handled    = true;
+            handled    = e_input_handled::yes;
             break;
           case ::SDLK_ESCAPE: //
             if( g_type == e_main_menu_type::in_game )
               g_item_sel = e_main_menu_item::resume;
-            handled = true;
+            handled = e_input_handled::yes;
             break;
           default: break;
         }

@@ -109,7 +109,7 @@ class WindowManager {
 public:
   void draw_layout( Texture& tx ) const;
 
-  ND bool input( input::event_t const& event );
+  ND Plane::e_input_handled input( input::event_t const& event );
 
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord                 origin );
@@ -177,7 +177,7 @@ struct WindowPlane : public Plane {
     clear_texture_transparent( tx );
     wm.draw_layout( tx );
   }
-  bool input( input::event_t const& event ) override {
+  e_input_handled input( input::event_t const& event ) override {
     // Windows are modal, so ignore the result of this function
     // because we need to swallow the event whether the window
     // manager handled it or not. I.e., we cannot ever let an
@@ -352,8 +352,10 @@ Window* WindowManager::add_window( string title_ ) {
   return &windows_.back();
 }
 
-bool WindowManager::input( input::event_t const& event ) {
-  if( this->num_windows() == 0 ) return false;
+Plane::e_input_handled WindowManager::input(
+    input::event_t const& event ) {
+  if( this->num_windows() == 0 )
+    return Plane::e_input_handled::no;
   auto& win = focused();
   auto  view_rect =
       Rect::from( win.view_pos(), win.view->delta() );
@@ -380,16 +382,18 @@ bool WindowManager::input( input::event_t const& event ) {
     if( maybe_pos.value().get().is_inside( view_rect ) ) {
       auto new_event = input::move_mouse_origin_by(
           event, win.view_pos() - Coord{} );
-      // Always return true, meaning that we handle the mouse
-      // event if we are inside a view.
-      return (void)win.view->input( new_event ), true;
+      (void)win.view->input( new_event );
+      // Always return that we handled the mouse event if we are
+      // inside a view.
+      return Plane::e_input_handled::yes;
     }
   } else {
     // It's a non-mouse event, so just send it and return if it
     // was handled.
-    return win.view->input( event );
+    return win.view->input( event ) ? Plane::e_input_handled::yes
+                                    : Plane::e_input_handled::no;
   }
-  return false;
+  return Plane::e_input_handled::no;
 }
 
 Plane::DragInfo WindowManager::can_drag(

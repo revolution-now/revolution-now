@@ -1179,17 +1179,21 @@ struct MenuPlane : public Plane {
     clear_texture_transparent( tx );
     render_menus( tx );
   }
-  bool input( input::event_t const& event ) override {
+  e_input_handled input( input::event_t const& event ) override {
     auto matcher = scelta::match(
-        []( input::unknown_event_t ) { return false; },
-        []( input::quit_event_t ) { return false; },
-        []( input::win_event_t ) { return false; },
+        []( input::unknown_event_t ) {
+          return e_input_handled::no;
+        },
+        []( input::quit_event_t ) {
+          return e_input_handled::no;
+        },
+        []( input::win_event_t ) { return e_input_handled::no; },
         [&]( input::key_event_t const& key_event ) {
           if( util::holds<MenuState::item_click>(
                   g_menu_state ) )
             // If we are in the middle of a click process then
             // let it finish before handling anymore keys.
-            return false;
+            return e_input_handled::no;
           auto menu = opened_menu();
           // `is_alt` decides whether the pressed key is an alt,
           // not whether it is being held down while another key
@@ -1207,7 +1211,7 @@ struct MenuPlane : public Plane {
             if( maybe_first_menu.has_value() ) {
               g_menu_state = MenuState::menus_closed{
                   /*hover=*/*maybe_first_menu };
-              return true;
+              return e_input_handled::yes;
             }
           }
           if( !menu.has_value() &&
@@ -1218,7 +1222,7 @@ struct MenuPlane : public Plane {
             // headers.
             g_menu_state =
                 MenuState::menus_closed{ /*hover=*/{} };
-            return true;
+            return e_input_handled::yes;
           }
           if( menu.has_value() &&
               key_event.change == input::e_key_change::down &&
@@ -1227,7 +1231,7 @@ struct MenuPlane : public Plane {
             // key, so close menus.
             g_menu_state =
                 MenuState::menus_closed{ /*hover=*/{} };
-            return true;
+            return e_input_handled::yes;
           }
           // Check for an alt-shortcut key to open a menu.
           if( key_event.change == input::e_key_change::down &&
@@ -1243,11 +1247,11 @@ struct MenuPlane : public Plane {
                   g_menu_state =
                       MenuState::menus_closed{ /*hover=*/menu };
                 log_menu_state();
-                return true;
+                return e_input_handled::yes;
               }
             }
           }
-          if( !menu ) return false;
+          if( !menu ) return e_input_handled::no;
           if( key_event.change == input::e_key_change::down ) {
             switch( key_event.keycode ) {
               case ::SDLK_RETURN:
@@ -1259,11 +1263,11 @@ struct MenuPlane : public Plane {
                     log_menu_state();
                   }
                 }
-                return true;
+                return e_input_handled::yes;
               case ::SDLK_ESCAPE:
                 g_menu_state = MenuState::menus_closed{ {} };
                 log_menu_state();
-                return true;
+                return e_input_handled::yes;
               case ::SDLK_KP_4:
               case ::SDLK_LEFT: {
                 CHECK( have_some_visible_menus() );
@@ -1275,7 +1279,7 @@ struct MenuPlane : public Plane {
                 g_menu_state =
                     MenuState::menu_open{ *menu, /*hover=*/{} };
                 log_menu_state();
-                return true;
+                return e_input_handled::yes;
               }
               case ::SDLK_KP_6:
               case ::SDLK_RIGHT: {
@@ -1288,7 +1292,7 @@ struct MenuPlane : public Plane {
                 g_menu_state =
                     MenuState::menu_open{ *menu, /*hover=*/{} };
                 log_menu_state();
-                return true;
+                return e_input_handled::yes;
               }
               case ::SDLK_KP_2:
               case ::SDLK_DOWN: {
@@ -1309,7 +1313,7 @@ struct MenuPlane : public Plane {
                 } while( !is_menu_item_enabled( *state.hover ) );
                 g_menu_state = state;
                 log_menu_state();
-                return true;
+                return e_input_handled::yes;
               }
               case ::SDLK_KP_8:
               case ::SDLK_UP: {
@@ -1330,14 +1334,16 @@ struct MenuPlane : public Plane {
                 } while( !is_menu_item_enabled( *state.hover ) );
                 g_menu_state = state;
                 log_menu_state();
-                return true;
+                return e_input_handled::yes;
               }
               default: break;
             }
           }
-          return true;
+          return e_input_handled::yes;
         },
-        []( input::mouse_wheel_event_t ) { return false; },
+        []( input::mouse_wheel_event_t ) {
+          return e_input_handled::no;
+        },
         []( input::mouse_move_event_t mv_event ) {
           // Remove menu-hover by default and enable it again
           // below if the mouse if over a menu and menus are
@@ -1346,9 +1352,12 @@ struct MenuPlane : public Plane {
                   g_menu_state ) )
             g_menu_state = MenuState::menus_closed{};
           auto over_what = click_target( mv_event.pos );
-          if( !over_what.has_value() ) return false;
-          auto matcher = scelta::match<bool>(
-              []( MouseOver::bar ) { return true; },
+          if( !over_what.has_value() )
+            return e_input_handled::no;
+          auto matcher = scelta::match<e_input_handled>(
+              []( MouseOver::bar ) {
+                return e_input_handled::yes;
+              },
               []( MouseOver::divider desc ) {
                 CHECK( util::holds<MenuState::menu_open>(
                            g_menu_state ) ||
@@ -1359,7 +1368,7 @@ struct MenuPlane : public Plane {
                   g_menu_state = MenuState::menu_open{
                       desc.menu, /*hover=*/{} };
                 }
-                return true;
+                return e_input_handled::yes;
               },
               []( MouseOver::header header ) {
                 if( util::holds<MenuState::menu_open>(
@@ -1370,7 +1379,7 @@ struct MenuPlane : public Plane {
                         g_menu_state ) )
                   g_menu_state = MenuState::menus_closed{
                       /*hover=*/header.menu };
-                return true;
+                return e_input_handled::yes;
               },
               []( MouseOver::item item ) {
                 CHECK( util::holds<MenuState::menu_open>(
@@ -1386,7 +1395,7 @@ struct MenuPlane : public Plane {
                   if( is_menu_item_enabled( item.item ) )
                     o.hover = item.item;
                 }
-                return true;
+                return e_input_handled::yes;
               } )( //
               []( auto self, MouseOver::border border ) {
                 // Delegate to the divider handler for now.
@@ -1402,9 +1411,9 @@ struct MenuPlane : public Plane {
                     g_menu_state ) ) {
               g_menu_state = MenuState::menus_closed{ {} };
               log_menu_state();
-              return true; // no click through
+              return e_input_handled::yes; // no click through
             }
-            return false;
+            return e_input_handled::no;
           }
           if( b_event.buttons ==
               input::e_mouse_button_event::left_down ) {
@@ -1412,10 +1421,14 @@ struct MenuPlane : public Plane {
                 []( MouseOver::bar ) {
                   g_menu_state = MenuState::menus_closed{ {} };
                   log_menu_state();
-                  return true;
+                  return e_input_handled::yes;
                 },
-                []( MouseOver::border ) { return true; },
-                []( MouseOver::divider ) { return true; },
+                []( MouseOver::border ) {
+                  return e_input_handled::yes;
+                },
+                []( MouseOver::divider ) {
+                  return e_input_handled::yes;
+                },
                 []( MouseOver::header header ) {
                   if( !is_menu_open( header.menu ) )
                     g_menu_state = MenuState::menu_open{
@@ -1424,9 +1437,11 @@ struct MenuPlane : public Plane {
                     g_menu_state = MenuState::menus_closed{
                         /*hover=*/header.menu };
                   log_menu_state();
-                  return true;
+                  return e_input_handled::yes;
                 },
-                []( MouseOver::item ) { return true; } );
+                []( MouseOver::item ) {
+                  return e_input_handled::yes;
+                } );
             return matcher( *over_what );
           }
           if( b_event.buttons ==
@@ -1435,28 +1450,34 @@ struct MenuPlane : public Plane {
                 []( MouseOver::bar ) {
                   g_menu_state = MenuState::menus_closed{ {} };
                   log_menu_state();
-                  return true;
+                  return e_input_handled::yes;
                 },
-                []( MouseOver::border ) { return true; },
-                []( MouseOver::divider ) { return true; },
-                []( MouseOver::header ) { return true; },
+                []( MouseOver::border ) {
+                  return e_input_handled::yes;
+                },
+                []( MouseOver::divider ) {
+                  return e_input_handled::yes;
+                },
+                []( MouseOver::header ) {
+                  return e_input_handled::yes;
+                },
                 [&]( MouseOver::item item ) {
                   click_menu_item( item.item );
-                  return true;
+                  return e_input_handled::yes;
                 } );
             return matcher( *over_what );
           }
           // `true` here because the mouse is over some menu ui
           // element (and that in turn is because
           // over_what.has_value() == true).
-          return true;
+          return e_input_handled::yes;
         },
         []( input::mouse_drag_event_t ) {
           // The framework does not send us mouse drag events
           // directly; instead it uses the api methods on the
           // Plane class.
           SHOULD_NOT_BE_HERE;
-          return false;
+          return e_input_handled::no;
         } );
     return matcher( event );
   }

@@ -158,24 +158,38 @@ void frame_loop() {
   frame_loop_impl( []( InputReceivedFunc input_received ) {
     // ----------------------------------------------------------
     // 1. Get Input.
-    auto events = input::pop_pending_events();
+    input::pump_event_queue();
 
-    // ----------------------------------------------------------
-    // 2. Update State.
     auto is_win_resize = []( auto const& e ) {
       if_v( e, input::win_event_t, val ) {
         return val->type == input::e_win_event_type::resized;
       }
       return false;
     };
-    if( rg::any_of( events, is_win_resize ) )
-      on_main_window_resized();
 
-    for( auto const& event : events ) {
-      send_input_to_planes( event );
+    auto& q = input::event_queue();
+    while( q.size() > 0 ) {
       input_received();
+      ASSIGN_CHECK_OPT( event_ref, q.front() );
+      auto const& event = event_ref.get();
+      if( is_win_resize( event ) ) on_main_window_resized();
+      bool hold = false;
+      switch( send_input_to_planes( event ) ) {
+        case Plane::e_input_handled::yes: //
+          q.pop();
+          break;
+        case Plane::e_input_handled::no: //
+          q.pop();
+          break;
+        case Plane::e_input_handled::hold: //
+          hold = true;
+          break;
+      }
+      if( hold ) break;
     }
 
+    // ----------------------------------------------------------
+    // 2. Update State.
     if( advance_all_state() ) return true;
 
     // This invokes (synchronous/blocking) callbacks to any sub-

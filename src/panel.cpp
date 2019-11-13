@@ -99,7 +99,7 @@ struct PanelPlane : public Plane {
     view->draw( tx, origin() );
   }
 
-  bool input( input::event_t const& event ) override {
+  e_input_handled input( input::event_t const& event ) override {
     // FIXME: we need a window manager in the panel to avoid du-
     // plicating logic between here and the window module.
     if( input::is_mouse_event( event ) ) {
@@ -109,11 +109,12 @@ struct PanelPlane : public Plane {
         auto new_event =
             move_mouse_origin_by( event, origin() - Coord{} );
         (void)view->input( new_event );
-        return true;
+        return e_input_handled::yes;
       }
-      return false;
+      return e_input_handled::no;
     } else
-      return view->input( event );
+      return view->input( event ) ? e_input_handled::yes
+                                  : e_input_handled::no;
   }
 
   void mark_end_of_turn() {

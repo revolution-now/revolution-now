@@ -110,6 +110,7 @@ fsm_transitions( LandView,
   ((sliding_unit,      end),  ->,  none                ),
   ((depixelating_unit, end),  ->,  none                ),
   ((input_ready,       end),  ->,  none                ),
+  ((input_ready,   input_orders    ),  ->,  input_ready  ),
   ((blinking_unit, input_orders    ),  ->,  input_ready  ),
   ((blinking_unit, input_prioritize),  ->,  input_ready  ),
   ((blinking_unit, add_to_back     ),  ->,  blinking_unit),
@@ -127,6 +128,17 @@ fsm_class( LandView ) { //
                  /*orders=*/event.orders,        //
                  /*add_to_front=*/{},            //
                  /*add_to_back=*/cur.add_to_back //
+             } };
+  }
+
+  fsm_transition( LandView, input_ready, input_orders, ->,
+                  input_ready ) {
+    return { /*consumed=*/false, //
+             UnitInputResponse{
+                 /*id=*/cur.response.id,                     //
+                 /*orders=*/event.orders,                    //
+                 /*add_to_front=*/cur.response.add_to_front, //
+                 /*add_to_back=*/cur.response.add_to_back    //
              } };
   }
 
@@ -732,8 +744,17 @@ struct LandViewPlane : public Plane {
     }
     return nullopt;
   }
-  bool input( input::event_t const& event ) override {
-    bool handled = false;
+  e_input_handled input( input::event_t const& event ) override {
+    bool hold = matcher_( SG().mode.state() ) {
+      case_( LandViewState::none ) { return false; }
+      case_( LandViewState::sliding_unit ) { return true; }
+      case_( LandViewState::depixelating_unit ) { return true; }
+      case_( LandViewState::input_ready ) { return true; }
+      case_( LandViewState::blinking_unit ) { return false; }
+      matcher_exhaustive;
+    };
+    if( hold ) return e_input_handled::hold;
+    auto handled = e_input_handled::no;
     switch_( event ) {
       case_( input::unknown_event_t ) {}
       case_( input::quit_event_t ) {}
@@ -767,11 +788,11 @@ struct LandViewPlane : public Plane {
           case_( LandViewState::depixelating_unit ) {}
           case_( LandViewState::input_ready ) {
             // Swallow further inputs.
-            handled = true;
+            handled = e_input_handled::yes;
           }
           case_( LandViewState::blinking_unit ) {
             auto& blink_unit = val;
-            handled          = true;
+            handled          = e_input_handled::yes;
             switch( key_event.keycode ) {
               case ::SDLK_z:
                 SG().viewport.smooth_zoom_target( 1.0 );
@@ -808,13 +829,13 @@ struct LandViewPlane : public Plane {
                         /*orders=*/orders::forfeight{} } );
                 break;
               default:
-                handled = false;
+                handled = e_input_handled::no;
                 if( key_event.direction ) {
                   SG().mode.send_event(
                       LandViewEvent::input_orders{
                           /*orders=*/orders::direction{
                               *key_event.direction } } );
-                  handled = true;
+                  handled = e_input_handled::yes;
                 }
                 break;
             }
@@ -836,7 +857,7 @@ struct LandViewPlane : public Plane {
           // may currently be happening.
           SG().viewport.stop_auto_zoom();
           SG().viewport.stop_auto_panning();
-          handled = true;
+          handled = e_input_handled::yes;
         }
       }
       case_( input::mouse_button_event_t ) {
@@ -885,7 +906,7 @@ struct LandViewPlane : public Plane {
                       /*prioritize=*/prioritize } );
             }
           }
-          handled = true;
+          handled = e_input_handled::yes;
         }
       }
       switch_non_exhaustive;

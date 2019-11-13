@@ -107,8 +107,8 @@ struct OmniPlane : public Plane {
   OmniPlane() = default;
   bool covers_screen() const override { return false; }
   void draw( Texture& /*unused*/ ) const override {}
-  bool input( input::event_t const& event ) override {
-    bool handled = false;
+  e_input_handled input( input::event_t const& event ) override {
+    auto handled = e_input_handled::no;
     switch_( event ) {
       case_( input::quit_event_t ) { throw exception_exit{}; }
       case_( input::win_event_t ) {}
@@ -116,7 +116,7 @@ struct OmniPlane : public Plane {
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
           break_;
-        handled = true;
+        handled = e_input_handled::yes;
         switch( key_event.keycode ) {
           case ::SDLK_F12:
             if( !screenshot() )
@@ -132,15 +132,16 @@ struct OmniPlane : public Plane {
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
-            handled = false;
+            handled = e_input_handled::no;
             break;
           case ::SDLK_ESCAPE: //
             // FIXME: this probably shouldn't be in the omni
             // plane.
-            handled = back_to_main_menu();
+            handled = back_to_main_menu() ? e_input_handled::yes
+                                          : e_input_handled::no;
             break;
           default: //
-            handled = false;
+            handled = e_input_handled::no;
             break;
         }
       }
@@ -267,8 +268,9 @@ void Plane::initialize() {}
 
 Plane& Plane::get( e_plane p ) { return *plane( p ); }
 
-bool Plane::input( input::event_t const& /*unused*/ ) {
-  return false;
+Plane::e_input_handled Plane::input(
+    input::event_t const& /*unused*/ ) {
+  return e_input_handled::no;
 }
 
 void Plane::advance_state() {}
@@ -343,7 +345,8 @@ void advance_plane_state() {
   for( auto [e, ptr] : relevant_planes() ) ptr->advance_state();
 }
 
-bool send_input_to_planes( input::event_t const& event ) {
+Plane::e_input_handled send_input_to_planes(
+    input::event_t const& event ) {
   using namespace input;
   if_v( event, input::mouse_drag_event_t, drag_event ) {
     if( g_drag_state.plane ) {
@@ -406,7 +409,7 @@ bool send_input_to_planes( input::event_t const& event ) {
       }
       // Here it is assumed/required that the plane handle it
       // because the plane has already accepted this drag.
-      return true;
+      return Plane::e_input_handled::yes;
     }
     // No drag plane registered to accept the event, so lets
     // send out the event but only if it's a `begin` event.
@@ -446,14 +449,14 @@ bool send_input_to_planes( input::event_t const& event ) {
             CHECK( !maybe_button.has_value() );
             (void)plane->input( motion );
             // All events within a drag are assumed handled.
-            return true;
+            return Plane::e_input_handled::yes;
           }
           case Plane::e_accept_drag::swallow:
             // In this case the plane says that it doesn't want
             // to handle it AND it doesn't want anyone else to
             // handle it.
             // lg.debug( "plane `{}` swallowed drag.", e );
-            return true;
+            return Plane::e_input_handled::yes;
           case Plane::e_accept_drag::yes:
             // Wants to handle it.
             g_drag_state.reset();
@@ -480,20 +483,28 @@ bool send_input_to_planes( input::event_t const& event ) {
                             prj_drag_event.state.origin,
                             prj_drag_event.prev, //
                             prj_drag_event.pos );
-            return true;
+            return Plane::e_input_handled::yes;
         }
       }
     }
     // If no one handled it then that's it.
-    return false;
+    return Plane::e_input_handled::no;
   }
 
   // Just a normal event, so send it out using the usual proto-
   // col.
-  for( auto p : relevant_planes() )
-    if( p.second->input( event ) ) return true;
+  for( auto p : relevant_planes() ) {
+    switch( p.second->input( event ) ) {
+      case Plane::e_input_handled::yes:
+        return Plane::e_input_handled::yes;
+      case Plane::e_input_handled::no: //
+        break;
+      case Plane::e_input_handled::hold:
+        return Plane::e_input_handled::hold;
+    }
+  }
 
-  return false;
+  return Plane::e_input_handled::no;
 }
 
 /****************************************************************

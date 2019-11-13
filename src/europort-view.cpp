@@ -2044,23 +2044,26 @@ struct EuropePlane : public Plane {
     drag_n_drop_.handle_draw( tx );
   }
 
-  bool input( input::event_t const& event ) override {
-    if( drag_n_drop_.handle_input( event ) ) return true;
+  e_input_handled input( input::event_t const& event ) override {
+    if( drag_n_drop_.handle_input( event ) )
+      return e_input_handled::yes;
     return matcher_( event ) {
-      case_( input::unknown_event_t ) result_ false;
-      case_( input::quit_event_t ) result_ false;
-      case_( input::win_event_t ) result_ false;
-      case_( input::key_event_t ) result_ false;
-      case_( input::mouse_wheel_event_t ) result_ false;
+      case_( input::unknown_event_t )
+          result_                          e_input_handled::no;
+      case_( input::quit_event_t ) result_ e_input_handled::no;
+      case_( input::win_event_t ) result_  e_input_handled::no;
+      case_( input::key_event_t ) result_  e_input_handled::no;
+      case_( input::mouse_wheel_event_t )
+          result_ e_input_handled::no;
       case_( input::mouse_move_event_t ) {
         if( is_on_clip_rect( val.pos ) )
           this->rect_color_ = Color::blue();
         else
           this->rect_color_ = Color::white();
-        result_ true;
+        result_ e_input_handled::yes;
       }
       case_( input::mouse_button_event_t ) {
-        bool handled         = false;
+        auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
           if( maybe_entity ) {
             auto shifted_pos =
@@ -2069,7 +2072,7 @@ struct EuropePlane : public Plane {
                     shifted_pos );
                 maybe_pair ) {
               SG().selected_unit = maybe_pair->first;
-              handled            = true;
+              handled            = e_input_handled::yes;
             }
           }
         };
@@ -2078,7 +2081,8 @@ struct EuropePlane : public Plane {
         try_select_unit( entities_.ships_outbound );
         result_ handled;
       }
-      case_( input::mouse_drag_event_t ) result_ false;
+      case_( input::mouse_drag_event_t )
+          result_ e_input_handled::no;
       matcher_exhaustive;
     }
   }

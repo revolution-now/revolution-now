@@ -77,10 +77,17 @@ struct Plane : public util::non_copy_non_move {
   // Called once per frame.
   virtual void advance_state();
 
+  // yes:     Will not be given to any other planes.
+  // no:      Will try the next plane.
+  // hold:    Stop processing input this frame and leave events
+  //          in queue.  Defers input processing til next frame.
+  enum class e_input_handled { yes, no, hold };
+
   // Accept input; returns true/false depending on whether the
   // input was handled or not.  If it was handled (true) then
   // this input will not be given to any further planes.
-  ND bool virtual input( input::event_t const& event );
+  ND e_input_handled virtual input(
+      input::event_t const& event );
 
   // This encodes the result of asking a plane if it can handle a
   // drag event:
@@ -169,6 +176,7 @@ void advance_plane_state();
 
 // Returns true if one of the planes handled the input, false
 // otherwise. At most one plane will handle the input.
-bool send_input_to_planes( input::event_t const& event );
+ND Plane::e_input_handled send_input_to_planes(
+    input::event_t const& event );
 
 } // namespace rn
