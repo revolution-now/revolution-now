@@ -73,7 +73,6 @@ void Unit::new_turn() {
 
 // Marks unit as having finished processing this turn.
 void Unit::finish_turn() {
-  CHECK( !finished_turn_ );
   finished_turn_ = true;
   CHECK_XP( check_invariants_safe() );
 }
