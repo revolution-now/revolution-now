@@ -37,6 +37,17 @@
 using formatter_base = ::fmt::formatter<::std::string>;
 
 /****************************************************************
+** Metaprogramming
+*****************************************************************/
+namespace rn {
+
+template<typename T>
+constexpr bool has_fmt =
+    ::fmt::has_formatter<T, ::fmt::format_context>();
+
+}
+
+/****************************************************************
 ** Macros
 *****************************************************************/
 // Macro to easily extend {fmt} to user-defined types. This macro
@@ -251,7 +262,8 @@ struct formatter<std::variant<Ts...>> : dynamic_formatter<> {
   using B = dynamic_formatter<>;
   template<typename Context>
   auto format( V const &v, Context &ctx ) {
-    return std::visit( LC( B::format( _, ctx ) ), v );
+    return std::visit(
+        LC( B::format( fmt::format( "{}", _ ), ctx ) ), v );
   }
 };
 

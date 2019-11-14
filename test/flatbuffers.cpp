@@ -774,7 +774,7 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
 
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT( xp.error().what, Contains( "duplicate key" ) );
-  REQUIRE_THAT( xp.error().what, Contains( "string" ) );
+  REQUIRE_THAT( xp.error().what, Contains( "hello2" ) );
 }
 
 TEST_CASE( "[flatbuffers] ADTs" ) {

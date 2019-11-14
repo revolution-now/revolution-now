@@ -217,8 +217,7 @@ template<typename Hint,           //
              std::is_scalar_v<T>, //
              int> = 0             //
          >
-auto serialize( FBBuilder&, T const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder&, T const& o, serial::ADL ) {
   return ReturnValue{ o };
 }
 
@@ -229,8 +228,7 @@ template<typename Hint,                             //
              std::is_same_v<int, decltype( T::_ )>, //
              int> = 0                               //
          >
-auto serialize( FBBuilder&, T const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder&, T const& o, serial::ADL ) {
   return ReturnValue{ o._ };
 }
 
@@ -247,8 +245,7 @@ template<
     typename Hint, //
     typename T,
     decltype( serialize_enum( std::declval<T>() ) )* = nullptr>
-auto serialize( FBBuilder&, T const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder&, T const& o, serial::ADL ) {
   if constexpr( !std::is_same_v<Hint, void> )
     // FIXME: We use the Hint type here because the FB interface
     // seems inconsistent with the type it uses for enums in
@@ -264,16 +261,14 @@ auto serialize( FBBuilder&, T const& o,
 // For C++ classes/structs that get serialized as FB structs.
 template<typename Hint, //
          typename T, decltype( &T::serialize_struct )* = nullptr>
-auto serialize( FBBuilder& builder, T const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
   return ReturnAddress{ o.serialize_struct( builder ) };
 }
 
 // For C++ classes/structs that get serialized as FB tables.
 template<typename Hint, //
          typename T, decltype( &T::serialize_table )* = nullptr>
-auto serialize( FBBuilder& builder, T const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
   return ReturnValue{ o.serialize_table( builder ) };
 }
 
@@ -282,8 +277,7 @@ template<typename Hint, typename T>
 auto serialize( FBBuilder&                       builder,
                 std::reference_wrapper<T> const& rr,
                 serial::ADL ) {
-  return serialize<Hint>( builder, rr.get(),
-                          serial::ADL{} );
+  return serialize<Hint>( builder, rr.get(), serial::ADL{} );
 }
 
 // For std::optional.
@@ -291,8 +285,7 @@ template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::optional<T> const& o,
                 serial::ADL ) {
   if( o.has_value() ) {
-    auto s_value = serialize<void>( builder, *o,
-                                    serial::ADL{} );
+    auto s_value = serialize<void>( builder, *o, serial::ADL{} );
     return ReturnValue{ Hint::Create(
         builder, /*has_value=*/true, s_value.get() ) };
   } else {
@@ -306,10 +299,10 @@ template<typename Hint, typename F, typename S>
 auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
                 serial::ADL ) {
   // Assume we don't need to supply hints for components.
-  auto const& s_fst = serialize<void>(
-      builder, o.first, serial::ADL{} );
-  auto const& s_snd = serialize<void>(
-      builder, o.second, serial::ADL{} );
+  auto const& s_fst =
+      serialize<void>( builder, o.first, serial::ADL{} );
+  auto const& s_snd =
+      serialize<void>( builder, o.second, serial::ADL{} );
   if constexpr( detail::has_create_v<Hint> )
     return ReturnValue{
         Hint::Create( builder, s_fst.get(), s_snd.get() ) };
@@ -335,8 +328,8 @@ auto serialize( FBBuilder& builder, std::vector<T> const& o,
   std::vector<fb_wrapper_elem_t> wrappers;
   wrappers.reserve( o.size() );
   for( auto const& e : o )
-    wrappers.emplace_back( serialize<inner_hint_t>(
-        builder, e, serial::ADL{} ) );
+    wrappers.emplace_back(
+        serialize<inner_hint_t>( builder, e, serial::ADL{} ) );
   if constexpr( std::is_pointer_v<fb_get_elem_t> ) {
     // This is a struct.
     std::vector<inner_hint_t> values;
@@ -363,8 +356,7 @@ template<typename Hint,                        //
                  detail::is_fb_vector_v<Hint>, //
              int> = 0                          //
          >
-auto serialize( FBBuilder& builder, T const& m,
-                serial::ADL ) {
+auto serialize( FBBuilder& builder, T const& m, serial::ADL ) {
   std::vector<CRef<typename T::value_type>> v;
   v.reserve( m.size() );
   for( auto const& p : m ) v.emplace_back( p );
@@ -374,8 +366,7 @@ auto serialize( FBBuilder& builder, T const& m,
              []( auto const& l, auto const& r ) {
                return l.get().first < r.get().first;
              } );
-  return serialize<Hint>( builder, v,
-                          serial::ADL{} );
+  return serialize<Hint>( builder, v, serial::ADL{} );
 }
 
 /****************************************************************
@@ -391,8 +382,7 @@ template<typename SrcT,                    //
                                 std::decay_t<DstT>>, //
              int> = 0                                //
          >
-expect<> deserialize( SrcT const* src, DstT* dst,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing scalar." );
   *dst = *src;
@@ -406,8 +396,7 @@ template<
     decltype( deserialize_enum(
         std::declval<SrcT>(),
         std::add_pointer_t<std::decay_t<DstT>>{} ) )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing enum." );
   return deserialize_enum( *src, dst );
@@ -420,8 +409,7 @@ template<typename SrcT,                                //
              std::is_same_v<int, decltype( DstT::_ )>, //
              int> = 0                                  //
          >
-expect<> deserialize( SrcT const* src, DstT* dst,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing typed int." );
   *dst = DstT{ *src };
@@ -441,8 +429,7 @@ expect<> deserialize( SrcT const* src, std::string* dst,
 template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_struct )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   if( auto xp = DstT::deserialize_struct( *src, dst ); !xp )
     return xp;
@@ -453,8 +440,7 @@ expect<> deserialize( SrcT const* src, DstT* dst,
 template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_table )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
   if( auto xp = DstT::deserialize_table( *src, dst ); !xp )
     return xp;
@@ -478,8 +464,7 @@ expect<> deserialize( SrcT const* src, std::optional<T>* dst,
   }
   dst->emplace(); // default construct the value.
   return deserialize( detail::to_const_ptr( src->value() ),
-                      std::addressof( **dst ),
-                      serial::ADL{} );
+                      std::addressof( **dst ), serial::ADL{} );
 }
 
 // For std::reference_wrapper.
@@ -501,11 +486,9 @@ expect<> deserialize( SrcT const* src, std::pair<F, S>* dst,
       return UNEXPECTED( "pair has no `snd` value." );
   }
   XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->fst() ),
-                              &dst->first,
-                              serial::ADL{} ) );
+                              &dst->first, serial::ADL{} ) );
   XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->snd() ),
-                              &dst->second,
-                              serial::ADL{} ) );
+                              &dst->second, serial::ADL{} ) );
   return xp_success_t{};
 }
 
@@ -540,8 +523,7 @@ template<typename SrcT,                        //
                  detail::is_fb_vector_v<SrcT>, //
              int> = 0                          //
          >
-expect<> deserialize( SrcT const* src, DstT* m,
-                      serial::ADL ) {
+expect<> deserialize( SrcT const* src, DstT* m, serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
@@ -560,19 +542,18 @@ expect<> deserialize( SrcT const* src, DstT* m,
         deserialize( detail::to_const_ptr( elem->fst() ), &key,
                      serial::ADL{} ) );
 
-    // FIXME
-    // if constexpr( is_fmtable<key_t> ) {
-    //  if( m->find( key ) != m->end() )
-    //    return UNEXPECTED(
-    //        "duplicate key ({}) found when deserializing map.",
-    //        key );
-    //} else {
-    if( m->find( key ) != m->end() )
-      return UNEXPECTED(
-          "duplicate key (type {}) found when deserializing "
-          "map.",
-          ::rn::demangled_typename<key_t>() );
-    //}
+    if constexpr( has_fmt<key_t> ) {
+      if( m->find( key ) != m->end() )
+        return UNEXPECTED(
+            "duplicate key ({}) found when deserializing map.",
+            key );
+    } else {
+      if( m->find( key ) != m->end() )
+        return UNEXPECTED(
+            "duplicate key (type {}) found when deserializing "
+            "map.",
+            ::rn::demangled_typename<key_t>() );
+    }
 
     XP_OR_RETURN_(
         deserialize( detail::to_const_ptr( elem->snd() ),
