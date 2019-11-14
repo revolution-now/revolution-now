@@ -195,6 +195,22 @@ private:
   NOTHROW_MOVE( T );
 };
 
+// TODO: needs unit test.
+template<typename T>
+void deduplicate_deque( flat_deque<T>* q ) {
+  flat_deque<T>          new_q;
+  absl::flat_hash_set<T> s;
+  s.reserve( q->size() );
+  while( q->size() > 0 ) {
+    auto item = q->front()->get();
+    q->pop_front();
+    if( s.contains( item ) ) continue;
+    s.insert( item );
+    new_q.push_back( item );
+  }
+  *q = std::move( new_q );
+}
+
 namespace serial {
 
 template<typename Hint, typename T>

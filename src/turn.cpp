@@ -63,27 +63,6 @@ Opt<PlayerIntent> g_player_intent;
 /****************************************************************
 ** Helpers
 *****************************************************************/
-// For each unit in the queue, remove all occurrences of it after
-// the first. Duplicate ids in the queue is not actually a prob-
-// lem, since a unit will just be passed up if it has already
-// moved. Hence this is not strictly necessary, but leads to a
-// smoother user experience in situations where units are sponta-
-// neously prioritized in the queue.
-template<typename T>
-void deduplicate_deque( flat_deque<T>* q ) {
-  flat_deque<T>          new_q;
-  absl::flat_hash_set<T> s;
-  s.reserve( q->size() );
-  while( q->size() > 0 ) {
-    auto item = q->front()->get();
-    q->pop_front();
-    if( s.contains( item ) ) continue;
-    s.insert( item );
-    new_q.push_back( item );
-  }
-  *q = std::move( new_q );
-}
-
 bool animate_move( TravelAnalysis const& analysis ) {
   CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
   auto type = get<e_unit_travel_good>( analysis.desc );
@@ -406,7 +385,6 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
     case_( NationTurnState::doing_units ) {
       auto& doing_units = val;
       auto  log_q       = [&] {
-        deduplicate_deque( &doing_units.q );
         lg.debug( "q: {}", doing_units.q.to_string( 3 ) );
       };
       if( doing_units.q.empty() ) {
