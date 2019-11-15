@@ -973,6 +973,7 @@ bool landview_is_animating() {
 }
 
 void landview_animate_move( UnitId id, e_direction direction ) {
+  landview_ensure_unit_visible( id );
   CHECK( util::holds<LandViewAnim::none>( SG().anim ) );
   SG().anim = LandViewAnim::move{
       /*id=*/id,      //
@@ -983,6 +984,7 @@ void landview_animate_move( UnitId id, e_direction direction ) {
 void landview_animate_attack( UnitId attacker, UnitId defender,
                               bool              attacker_wins,
                               e_depixelate_anim dp_anim ) {
+  landview_ensure_unit_visible( attacker );
   CHECK( util::holds<LandViewAnim::none>( SG().anim ) );
   SG().anim = LandViewAnim::attack{
       /*attacker=*/attacker,           //
