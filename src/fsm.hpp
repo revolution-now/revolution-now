@@ -274,15 +274,11 @@ private:
 *****************************************************************/
 template<typename FsmT, typename... Args>
 void fsm_auto_advance(
-    FsmT&            fsm,   //
-    std::string_view label, //
-    tl::function_ref<void(
-        FsmT&, tl::function_ref<void()> on_done, Args&&... )>
-        adv,
+    FsmT&                                      fsm,   //
+    std::string_view                           label, //
+    tl::function_ref<void( FsmT&, Args&&... )> adv,
     Args&&... args ) {
-  bool done    = false;
-  auto on_done = [&done] { done = true; };
-  while( !done ) {
+  do {
     // internal::log_st_change(
     //    fmt::format( "processing events for {}", label ) );
     bool changed = fsm.process_events();
@@ -292,8 +288,8 @@ void fsm_auto_advance(
           fmt::format( "{} state: {}", label, fsm ) );
     // internal::log_st_change(
     //    fmt::format( "advancing {}", label ) );
-    adv( fsm, on_done, std::forward<Args>( args )... );
-  }
+    adv( fsm, std::forward<Args>( args )... );
+  } while( fsm.has_pending_events() );
 }
 
 /****************************************************************

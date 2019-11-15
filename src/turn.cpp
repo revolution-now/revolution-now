@@ -154,14 +154,10 @@ fsm_class( UnitInput ) { //
 
 FSM_DEFINE_FORMAT_RN_( UnitInput );
 
-// Will be called repeatedly until done() is called.
-void advance_unit_input_state( UnitInputFsm&            fsm,
-                               tl::function_ref<void()> done,
-                               UnitId                   id ) {
+// Will be called repeatedly until no more events added to fsm.
+void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
   switch_( fsm.mutable_state() ) {
-    case_( UnitInputState::none ) {
-      done(); //
-    }
+    case_( UnitInputState::none ) {}
     case_( UnitInputState::processing ) {
       // - if it is it in `goto` mode focus on it and advance
       //   it
@@ -228,12 +224,8 @@ void advance_unit_input_state( UnitInputFsm&            fsm,
       if( maybe_response.has_value() )
         fsm.send_event( UnitInputEvent::put_response{
             /*response=*/std::move( *maybe_response ) } );
-      else
-        done();
     }
-    case_( UnitInputState::have_response ) {
-      done(); //
-    }
+    case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
       if( !val.confirmed ) {
         CHECK( !g_player_intent.has_value() );
@@ -282,10 +274,7 @@ void advance_unit_input_state( UnitInputFsm&            fsm,
         val.confirmed = true;
       }
 
-      if( landview_is_animating() ) {
-        done();
-        break_;
-      }
+      if( landview_is_animating() ) { break_; }
 
       // Animation (if any) is finished.
       CHECK( g_player_intent );
@@ -298,7 +287,6 @@ void advance_unit_input_state( UnitInputFsm&            fsm,
     }
     case_( UnitInputState::executed ) {
       // !! Unit may no longer exist here.
-      done(); //
     }
     switch_exhaustive;
   }
@@ -349,10 +337,9 @@ fsm_class( NationTurn ) {
 
 FSM_DEFINE_FORMAT_RN_( NationTurn );
 
-// Will be called repeatedly until done() is called.
-void advance_nation_turn_state( NationTurnFsm&           fsm,
-                                tl::function_ref<void()> done,
-                                e_nation nation ) {
+// Will be called repeatedly until no more events added to fsm.
+void advance_nation_turn_state( NationTurnFsm& fsm,
+                                e_nation       nation ) {
   //  Iterate through the colonies, for each:
   //
   //    - advance state of the colony
@@ -490,12 +477,8 @@ void advance_nation_turn_state( NationTurnFsm&           fsm,
       }
       if( doing_units.q.empty() )
         fsm.send_event( NationTurnEvent::end{} );
-      else
-        done();
     }
-    case_( NationTurnState::ending ) {
-      done(); //
-    }
+    case_( NationTurnState::ending ) {}
     switch_exhaustive;
   }
 }
@@ -552,9 +535,8 @@ fsm_class( TurnCycle ) { //
 
 FSM_DEFINE_FORMAT_RN_( TurnCycle );
 
-// Will be called repeatedly until done() is called.
-void advance_turn_cycle_state( TurnCycleFsm&            fsm,
-                               tl::function_ref<void()> done,
+// Will be called repeatedly until no more events added to fsm.
+void advance_turn_cycle_state( TurnCycleFsm&  fsm,
                                NationTurnFsm& nation_turn_fsm ) {
   switch_( fsm.mutable_state() ) {
     case_( TurnCycleState::starting ) {
@@ -586,9 +568,6 @@ void advance_turn_cycle_state( TurnCycleFsm&            fsm,
         val.nation = nullopt;
         val.need_eot &= ending->need_eot;
       }
-      else {
-        done();
-      }
     }
     case_( TurnCycleState::ending ) {
       if( !val.need_eot ) {
@@ -596,8 +575,6 @@ void advance_turn_cycle_state( TurnCycleFsm&            fsm,
       } else {
         if( was_next_turn_button_clicked() )
           fsm.send_event( TurnCycleEvent::next{} );
-        else
-          done();
       }
     }
     switch_exhaustive;

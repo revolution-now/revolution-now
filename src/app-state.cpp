@@ -171,9 +171,8 @@ AppFsm& g_app_state() {
   return fsm;
 }
 
-void advance_app_state_fsm( AppFsm&                  fsm,
-                            tl::function_ref<void()> done,
-                            bool*                    quit ) {
+// Will be called repeatedly until no more events added to fsm.
+void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
   switch_( fsm.state() ) {
     case_( AppState::main_no_game ) {
       auto sel = main_menu_selection();
@@ -253,7 +252,6 @@ void advance_app_state_fsm( AppFsm&                  fsm,
     }
     switch_exhaustive;
   }
-  done();
 }
 
 } // namespace

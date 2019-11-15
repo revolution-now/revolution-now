@@ -539,23 +539,20 @@ void advance_landview_anim_state() {
   if( finished_anim ) SG().anim = LandViewAnim::none{};
 }
 
-// Will be called repeatedly until done() is called.
-void advance_landview_state( LandViewFsm&             fsm,
-                             tl::function_ref<void()> done ) {
+// Will be called repeatedly until no more events added to fsm.
+void advance_landview_state( LandViewFsm& fsm ) {
   switch_( fsm.state() ) {
-    case_( LandViewState::none ) { done(); }
+    case_( LandViewState::none ) {}
     case_( LandViewState::blinking_unit ) {
       // FIXME: add blinking state here.
-      done();
     }
-    case_( LandViewState::input_ready ) { done(); }
+    case_( LandViewState::input_ready ) {}
     case_( LandViewState::sliding_unit ) {
       ASSIGN_CHECK_OPT(
           slide, fsm.holds<LandViewState::sliding_unit>() );
       slide.get().percent_vel.advance( e_push_direction::none );
       slide.get().percent += slide.get().percent_vel.to_double();
       if( slide.get().percent > 1.0 ) slide.get().percent = 1.0;
-      done();
     }
     case_( LandViewState::depixelating_unit ) {
       if( !g_pixels.empty() ) {
@@ -580,7 +577,6 @@ void advance_landview_state( LandViewFsm&             fsm,
                                  point.y._ );
         }
       }
-      done();
     }
     switch_exhaustive;
   }
