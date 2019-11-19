@@ -58,6 +58,9 @@ Low priority:
 Language Changes
 =================================================================
 
+  - When gcc 10 is common, change L() macros to use a real lambda
+    which will then be supported (hopefully by default, but
+    possibly needing -fextended-identifiers).
   - Rewrite move constructors/move assignment operators using
     std::exchange.  See:
       https://en.cppreference.com/w/cpp/utility/exchange
