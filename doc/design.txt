@@ -1,3 +1,65 @@
+FSMs + UI Input
+===============
+
+State Machine:
+
+      A -> B -> C  (W)-+
+      ^    ^    |   ^  |
+      |    |    V   +--+
+      +-<--+--<-+
+
+void advance_state( TestFsm& fsm ) {
+  switch_( fsm.state() ) {
+    case_( TestState::A ) {
+      //
+    }
+    case_( TestState::B ) {
+      //
+    }
+    case_( TestState::W ) {
+
+      val.uif :: ui_future<bool>;
+
+      if( val.uif.should_set() )
+        val.uif = ???
+      if( val.uif.should_wait() )
+        return;
+      if( val.uif.should_get() ) {
+        ???
+        fsm.pop();
+      }
+    }
+    case_( TestState::C ) {
+
+      val.confirm1 :: ui_future<int>;
+      val.confirm2 :: ui_future<bool>;
+
+      if( val.confirm1.should_set() )
+        val.confirmation = confirm( ... );
+      if( val.confirm1.should_wait() )
+        return;
+      if( val.confirm1.should_get() ) {
+        auto res = val.confirm1.get();
+        ...
+      }
+
+      if( val.confirm2.should_set() )
+        val.confirmation = confirm( ... );
+      if( val.confirm2.should_wait() )
+        return;
+      if( val.confirm2.should_get() ) {
+        auto res = val.confirm2.get();
+        if( yes_now )
+          return TestState::to_a{};
+        else
+          return TestState::to_a{};
+      }
+
+    }
+    switch_exhaustive;
+  }
+}
+
 Serialization/Game State
 ========================
 
