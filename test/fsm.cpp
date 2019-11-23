@@ -85,6 +85,21 @@ TEST_CASE( "[fsm] test color" ) {
   REQUIRE( color.holds<ColorState::light_red>() );
   REQUIRE( !color.holds<ColorState::yellow>() );
 
+  // Test push/pop.
+  color.push( ColorState::blue{} );
+  REQUIRE( color.holds<ColorState::light_red>() );
+  color.process_events();
+  REQUIRE( color.holds<ColorState::blue>() );
+  color.push( ColorState::yellow{} );
+  color.process_events();
+  REQUIRE( color.holds<ColorState::yellow>() );
+  color.pop();
+  color.process_events();
+  REQUIRE( color.holds<ColorState::blue>() );
+  color.pop();
+  color.process_events();
+  REQUIRE( color.holds<ColorState::light_red>() );
+
   color.send_event( ColorEvent::dark{} );
   color.process_events();
   REQUIRE( color.state() == ColorState_t{ ColorState::red{} } );
@@ -107,6 +122,9 @@ TEST_CASE( "[fsm] test color" ) {
     color.send_event( ColorEvent::light{} );
     REQUIRE_THROWS_AS_RN( color.process_events() );
   }
+
+  color.pop();
+  REQUIRE_THROWS_AS_RN( color.process_events() );
 }
 
 /****************************************************************

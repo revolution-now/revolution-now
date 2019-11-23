@@ -999,6 +999,14 @@ TEST_CASE( "[flatbuffers] fsm" ) {
     on_off.process_events();
     REQUIRE( on_off.holds<rn::OnOffState::switching_on>() );
   }
+  SECTION( "switching on and pushing" ) {
+    on_off.send_event( rn::OnOffEvent::turn_on{} );
+    on_off.process_events();
+    REQUIRE( on_off.holds<rn::OnOffState::switching_on>() );
+    on_off.push( rn::OnOffState::off{} );
+    on_off.process_events();
+    REQUIRE( on_off.holds<rn::OnOffState::off>() );
+  }
   SECTION( "switching off" ) {
     on_off =
         rn::OnOffFsm( rn::OnOffState_t{ rn::OnOffState::on{} } );
@@ -1023,6 +1031,9 @@ TEST_CASE( "[flatbuffers] fsm" ) {
   REQUIRE_FALSE( on_off_ds.has_pending_events() );
 
   REQUIRE( on_off.state() == on_off_ds.state() );
+  REQUIRE( on_off_ds.pushed_states().size() ==
+           on_off.pushed_states().size() );
+  REQUIRE( on_off.pushed_states() == on_off_ds.pushed_states() );
 }
 
 } // namespace

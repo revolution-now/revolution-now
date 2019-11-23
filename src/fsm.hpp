@@ -105,25 +105,51 @@ public:
   using IamFsm_t = void;
   using state_t  = StateT;
 
-  fsm() : state_{}, events_{} {
-    state_ = child().initial_state();
-  }
+  fsm() { state_ = child().initial_state(); }
 
   fsm( StateT&& st ) : state_( std::move( st ) ), events_{} {}
 
   // Queue an event, but do not process it immediately.
   void send_event( EventT const& event,
                    CALLER_LOCATION( loc ) ) {
-    events_.push( { event, loc } );
+    events_.push( { /*type=*/e_event_type::event,
+                    /*state=*/{},
+                    /*event=*/event,
+                    /*location=*/loc } );
   }
 
   // Queue an event, but do not process it immediately.
   void send_event( EventT&& event, CALLER_LOCATION( loc ) ) {
-    EventWithSource event_with_src{
-        /*event=*/std::move( event ), //
-        /*location=*/loc              //
-    };
+    EventWithSource event_with_src{ /*type=*/e_event_type::event,
+                                    /*state=*/{},
+                                    /*event=*/std::move( event ),
+                                    /*location=*/loc };
     events_.push_emplace( std::move( event_with_src ) );
+  }
+
+  // Push a new state, but do not process it immediately.
+  void push( StateT const& state, CALLER_LOCATION( loc ) ) {
+    events_.push( { /*type=*/e_event_type::push,
+                    /*state=*/state,
+                    /*event=*/{},
+                    /*location=*/loc } );
+  }
+
+  // Push a new state, but do not process it immediately.
+  void push( StateT&& state, CALLER_LOCATION( loc ) ) {
+    EventWithSource event_with_src{ /*type=*/e_event_type::push,
+                                    /*state=*/std::move( state ),
+                                    /*event=*/{},
+                                    /*location=*/loc };
+    events_.push_emplace( std::move( event_with_src ) );
+  }
+
+  // Pop state, but do not process it immediately.
+  void pop( CALLER_LOCATION( loc ) ) {
+    events_.push( { /*type=*/e_event_type::pop,
+                    /*state=*/{},
+                    /*event=*/{},
+                    /*location=*/loc } );
   }
 
   // Process all pending events. NOTE: that, in processing an
@@ -151,6 +177,10 @@ public:
   // switch statement to get mutable references to an individual
   // state to change its members if needed.
   StateT& mutable_state() { return state_; }
+
+  Vec<StateT> const& pushed_states() const {
+    return pushed_states_;
+  }
 
   // !! No pointer stability here; state could change after
   //    calling another non-const method.
@@ -204,9 +234,12 @@ protected:
   }
 
 private:
+  enum class e_event_type { event, push, pop };
   struct EventWithSource {
-    EventT    event;
-    SourceLoc location;
+    e_event_type type;
+    StateT       state; // only for push/pop.
+    EventT       event; // only for events.
+    SourceLoc    location;
   };
   NOTHROW_MOVE( EventWithSource );
 
@@ -216,6 +249,23 @@ private:
   ChildT& child() { return *static_cast<ChildT*>( this ); }
 
   void process_event( EventWithSource& event_with_src ) {
+    switch( event_with_src.type ) {
+      case e_event_type::push:
+        pushed_states_.emplace_back( std::move( state_ ) );
+        state_ = std::move( event_with_src.state );
+        return;
+      case e_event_type::pop:
+        CHECK(
+            pushed_states_.size() > 0,
+            "attempt to pop fsm with no pushed states, from {}",
+            event_with_src.location );
+        state_ = std::move( pushed_states_.back() );
+        pushed_states_.pop_back();
+        return;
+      case e_event_type::event:
+        // fallthrough.
+        break;
+    }
     auto& event        = event_with_src.event;
     auto& src_location = event_with_src.location;
     auto  visitor      = [this, &src_location](
@@ -264,7 +314,16 @@ private:
     state_ = std::visit( visitor, state_, event );
   }
 
+  template<typename Hint, typename T, typename T::IamFsm_t*>
+  friend auto serial::serialize( FBBuilder& builder, T const& o,
+                                 serial::ADL );
+  template<typename SrcT, typename DstT,
+           typename DstT::IamFsm_t*>
+  friend expect<> serial::deserialize( SrcT const* src,
+                                       DstT* dst, serial::ADL );
+
   StateT                      state_;
+  Vec<StateT>                 pushed_states_;
   flat_queue<EventWithSource> events_;
   NOTHROW_MOVE( flat_queue<EventWithSource> );
 };
@@ -282,10 +341,11 @@ void fsm_auto_advance(
     // internal::log_st_change(
     //    fmt::format( "processing events for {}", label ) );
     bool changed = fsm.process_events();
-    // FIXME: test at compile time if FSM is formattable.
-    if( changed && !label.empty() )
-      internal::log_st_change(
-          fmt::format( "{} state: {}", label, fsm ) );
+    if constexpr( has_fmt<FsmT> ) {
+      if( changed && !label.empty() )
+        internal::log_st_change(
+            fmt::format( "{} state: {}", label, fsm ) );
+    }
     // internal::log_st_change(
     //    fmt::format( "advancing {}", label ) );
     adv( fsm, std::forward<Args>( args )... );
@@ -306,10 +366,14 @@ auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
          "cannot serialize a finite state machine with pending "
          "events." );
   auto s_state = serialize<serial::fb_serialize_hint_t<decltype(
-      std::declval<Hint>().state() )>>( builder, o.state(),
+      std::declval<Hint>().state() )>>( builder, o.state_,
                                         serial::ADL{} );
-  return serial::ReturnValue{
-      Hint::Create( builder, s_state.get() ) };
+  auto s_pushed_states =
+      serialize<serial::fb_serialize_hint_t<decltype(
+          std::declval<Hint>().pushed_states() )>>(
+          builder, o.pushed_states_, serial::ADL{} );
+  return serial::ReturnValue{ Hint::Create(
+      builder, s_state.get(), s_pushed_states.get() ) };
 }
 
 template<typename SrcT,                     //
@@ -322,7 +386,12 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   typename std::decay_t<DstT>::state_t state;
   XP_OR_RETURN_(
       deserialize( src->state(), &state, serial::ADL{} ) );
-  *dst = DstT( std::move( state ) );
+  dst->state_ = std::move( state );
+  Vec<typename std::decay_t<DstT>::state_t> pushed_states;
+  XP_OR_RETURN_( deserialize( src->pushed_states(),
+                              &pushed_states, serial::ADL{} ) );
+  dst->pushed_states_ = std::move( pushed_states );
+  CHECK( dst->events_.size() == 0 );
   return xp_success_t{};
 }
 

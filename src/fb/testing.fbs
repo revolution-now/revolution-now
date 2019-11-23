@@ -110,7 +110,8 @@ namespace fb.OnOffState;
   }
 
 table OnOffFsm {
-  state : OnOffState_t;
+  state         : OnOffState_t;
+  pushed_states : [OnOffState_t];
 }
 
 table Monster {
