@@ -15,7 +15,7 @@ foreach( fb ${fbs} )
   set( generated_include ${CMAKE_CURRENT_BINARY_DIR}/${stem}_generated.h )
   add_custom_command(
     OUTPUT ${generated_include}
-    COMMENT "Compiling flatbuffer for ${name}"
+    COMMENT "Building flatbuffer for ${name}"
     COMMAND flatc
     --cpp
     --lua
