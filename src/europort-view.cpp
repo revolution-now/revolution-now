@@ -2176,6 +2176,15 @@ struct EuropePlane : public Plane {
   void ask_for_quantity( e_commodity type, string const& verb ) {
     CHECK( fsm_.holds<EuroviewState::normal>() );
     fsm_.send_event( EuroviewEvent::ask_quantity{ type, verb } );
+    // Proposal:
+    //
+    // ui_future<int> uif_quantity = ui::int_input_box( ... );
+    // ui_future<monostate> uif = std::move( uif_quantity )
+    //    .then( []( int n ){
+    //       drag_n_drop_.receive_quantity( quantity );
+    //       return monostate{};
+    //     });
+    // fsm_.push( EuroviewState::ui{ std::move( uif ) } );
   }
 
   // ------------------------------------------------------------

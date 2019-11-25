@@ -227,6 +227,34 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
+      // Proposal:
+      //
+      // val.confirmed :: ui_future<bool>;
+      //
+      // if( val.confirmed.empty() ) {
+      //   CHECK( !g_player_intent.has_value() );
+      //   auto maybe_intent = player_intent( id, val.orders );
+      //   CHECK( maybe_intent.has_value(),
+      //         "no handler for orders {}", val.orders );
+      //   g_player_intent = std::move( *maybe_intent );
+      //   val.confirmed = confirm_explain( *g_player_intent );
+      // }
+      // if( val.confirmed.waiting() )
+      //   break_;
+      // if( !val.confirmed.taken() ) {
+      //   // kick off animation...
+      // }
+      //
+      // if( landview_is_animating() ) { break_; }
+      // Animation (if any) is finished.
+      // CHECK( g_player_intent );
+      // affect_orders( *g_player_intent );
+      // fsm.send_event( UnitInputEvent::end{
+      //     /*add_to_front=*/units_to_prioritize(
+      //          *g_player_intent ) } );
+      // g_player_intent = nullopt;
+      // !! Unit may no longer exist here.
+
       if( !val.confirmed ) {
         CHECK( !g_player_intent.has_value() );
         auto maybe_intent = player_intent( id, val.orders );

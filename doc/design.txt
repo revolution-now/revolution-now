@@ -18,41 +18,38 @@ void advance_state( TestFsm& fsm ) {
     }
     case_( TestState::W ) {
 
-      val.uif :: ui_future<bool>;
+      val.uif :: ui_future<std::monostate>;
 
-      if( val.uif.should_set() )
-        val.uif = ???
-      if( val.uif.should_wait() )
+      DCHECK( !val.uif.empty() );
+      if( val.uif.waiting() )
         return;
-      if( val.uif.should_get() ) {
-        ???
-        fsm.pop();
-      }
+      DCHECK( !val.uif.taken() );
+
+      fsm.pop();
+
+      val.uif.get();
     }
     case_( TestState::C ) {
 
       val.confirm1 :: ui_future<int>;
       val.confirm2 :: ui_future<bool>;
 
-      if( val.confirm1.should_set() )
-        val.confirmation = confirm( ... );
-      if( val.confirm1.should_wait() )
+      if( val.confirm1.empty() )
+        val.confirm1 = confirm( ... );
+      if( val.confirm1.waiting() )
         return;
-      if( val.confirm1.should_get() ) {
+      if( !val.confirm1.taken() ) {
         auto res = val.confirm1.get();
         ...
       }
 
-      if( val.confirm2.should_set() )
-        val.confirmation = confirm( ... );
-      if( val.confirm2.should_wait() )
+      if( val.confirm2.empty() )
+        val.confirm2 = confirm( ... );
+      if( val.confirm2.waiting() )
         return;
-      if( val.confirm2.should_get() ) {
+      if( !val.confirm2.taken() ) {
         auto res = val.confirm2.get();
-        if( yes_now )
-          return TestState::to_a{};
-        else
-          return TestState::to_a{};
+        ...
       }
 
     }

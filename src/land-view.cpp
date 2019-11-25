@@ -864,44 +864,49 @@ struct LandViewPlane : public Plane {
         // See if the cursor has clicked on a tile in the
         // viewport.
         if( maybe_tile.has_value() ) {
-          auto actions = click_on_world_tile( *maybe_tile );
-          if( !actions.add_to_back.empty() ) {
-            SG().mode.send_event( LandViewEvent::add_to_back{
-                /*ids=*/actions.add_to_back } );
-          }
-          // !! Must handle the add_to_back first before priori-
-          // tize, since prioritize will lead to a state change.
-          if( !actions.bring_to_front.empty() ) {
-            // Must copy (see below).
-            auto prioritize = actions.bring_to_front;
-            // Filter out units that have already moved this
-            // turn from being prioritized. This check is not
-            // strictly necessary since the unit would be
-            // skipped anyway if it has already moved this
-            // turn. But we do it anyway because it makes
-            // things a bit easier for the code that will be
-            // handling this prioritizing.
-            util::remove_if(
-                prioritize,
-                L( unit_from_id( _ ).mv_pts_exhausted() ) );
-
-            auto orig_size = actions.bring_to_front.size();
-            auto curr_size = prioritize.size();
-            CHECK( curr_size <= orig_size );
-            if( curr_size == 0 ) {
-              ui::message_box(
-                  "The selected unit(s) have already moved "
-                  "this turn." );
-            } else {
-              if( curr_size < orig_size )
-                ui::message_box(
-                    "Some of the selected units have already "
-                    "moved this turn." );
-              SG().mode.send_event(
-                  LandViewEvent::input_prioritize{
-                      /*prioritize=*/prioritize } );
-            }
-          }
+          // Proposal:
+          //
+          // clang-format off
+          // ui_future<ClickTileActions> uif_click =
+          //     click_on_world_tile( *maybe_tile );
+          // ui_future<monostate> uif = std::move( uif_click )
+          //     .then( []( ClickTileActions const& cta ){
+          //
+          //       if( !actions.add_to_back.empty() ) {
+          //         SG().mode.send_event( LandViewEvent::add_to_back{
+          //           [>ids=<]actions.add_to_back } );
+          //       }
+          //       if( !actions.bring_to_front.empty() ) {
+          //         auto prioritize = actions.bring_to_front;
+          //         util::remove_if(
+          //           prioritize,
+          //           L( unit_from_id( _ ).mv_pts_exhausted() ) );
+          //         auto orig_size = actions.bring_to_front.size();
+          //         auto curr_size = prioritize.size();
+          //         CHECK( curr_size <= orig_size );
+          //         if( curr_size == 0 ) {
+          //           SG().mode.push( LandViewState::ui{
+          //             ui::message_box(
+          //               "The selected unit(s) have already moved "
+          //               "this turn." )
+          //           } );
+          //         } else {
+          //           SG().mode.send_event(
+          //             LandViewEvent::input_prioritize{
+          //               [>prioritize=<]prioritize } );
+          //           if( curr_size < orig_size ) {
+          //             SG().mode.push( LandViewState::ui{
+          //               ui::message_box(
+          //                 "Some of the selected units have already "
+          //                 "moved this turn." );
+          //             } );
+          //           }
+          //         }
+          //       }
+          //
+          //     });
+          // SG().mode.push( LandViewState::ui{ std::move( uif ) });
+          // clang-format on
           handled = e_input_handled::yes;
         }
       }
