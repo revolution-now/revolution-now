@@ -242,9 +242,62 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
       // if( val.confirmed.waiting() )
       //   break_;
       // if( !val.confirmed.taken() ) {
-      //   // kick off animation...
+      //   if( val.confirmed == true ) {
+      //     // kick off animation...
+      //   } else {
+      //     fsm.send_event( UnitInputEvent::cancel{} );
+      //     break_;
+      //   }
       // }
       //
+
+      // Alternate 1
+
+      // val.confirmed :: Opt<e_ok_cancel>;
+      //
+      // if( !val.confirmed.has_value() ) {
+      //   CHECK( !g_player_intent.has_value() );
+      //   auto maybe_intent = player_intent( id, val.orders );
+      //   CHECK( maybe_intent.has_value(),
+      //          "no handler for orders {}", val.orders );
+      //   g_player_intent = std::move( *maybe_intent );
+      //   fsm.push( UnitInputState::ui{
+      //       confirm_explain( *g_player_intent )
+      //           .store( &val.confirmed ) } );
+      //   break_;
+      // }
+      // if( val.confirmed == e_ok_cancel::ok ) {
+      //   // kick off animation...
+      // } else {
+      //   fsm.send_event( UnitInputEvent::cancel{} );
+      //   break_;
+      // }
+
+      // Alternate 2
+
+      // val.confirmed :: bool;
+      //
+      // if( !val.confirmed ) {
+      //   CHECK( !g_player_intent.has_value() );
+      //   auto maybe_intent = player_intent( id, val.orders );
+      //   CHECK( maybe_intent.has_value(),
+      //          "no handler for orders {}", val.orders );
+      //   g_player_intent = std::move( *maybe_intent );
+      //   auto uif =
+      //       confirm_explain( *g_player_intent )
+      //           .then( [&]( e_ok_cancel oc ) {
+      //             if( oc == e_ok_cancel::ok ) {
+      //               val.confirmed = true;
+      //               // kick off animation...
+      //             } else {
+      //               fsm.send_event( UnitInputEvent::cancel{}
+      //               );
+      //             }
+      //           } );
+      //   fsm.push( UnitInputState::ui{ std::move( uif ) } );
+      //   break_;
+      // }
+
       // if( landview_is_animating() ) { break_; }
       // Animation (if any) is finished.
       // CHECK( g_player_intent );
