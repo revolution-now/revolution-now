@@ -528,7 +528,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
             ASSIGN_CHECK_OPT( orders, maybe_orders );
             if( util::holds<orders::wait>( orders ) ) {
               doing_units.q.push_back( id );
-              CHECK( doing_units.q.front() == id );
+              CHECK( doing_units.q.front()->get() == id );
               doing_units.q.pop_front();
               // fallthrough.
             }
@@ -553,7 +553,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
         // There may be no queue front at this point if there was
         // only one unit in the queue and it died.
         if( !doing_units.q.front().has_value() ||
-            doing_units.q.front() != id )
+            doing_units.q.front()->get() != id )
           doing_units.uturn = nullopt;
       }
       if( doing_units.q.empty() )

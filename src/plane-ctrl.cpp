@@ -137,6 +137,7 @@ MENU_ITEM_HANDLER(
     [] { set_plane_config( e_plane_config::europe ); },
     [] { return !is_plane_enabled( e_plane::europe ); } )
 
+//
 MENU_ITEM_HANDLER(
     e_menu_item::europort_close,
     [] { set_plane_config( e_plane_config::terrain_view ); },
