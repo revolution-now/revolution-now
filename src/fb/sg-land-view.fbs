@@ -76,8 +76,7 @@ namespace fb.LandViewAnim;
 namespace fb;
 
 table LandViewFsm {
-  state         : LandViewState_t;
-  pushed_states : [LandViewState_t];
+  state_stack : [LandViewState_t];
 }
 
 table SG_LandView {

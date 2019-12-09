@@ -155,7 +155,8 @@ struct Monster {
   ( pair_v_i_t,      pair2          ),
   ( map_vecs_t,      map_vecs       ),
   ( map_strs_t,      map_strs       ),
-  ( map_wpns_t,      map_wpns       ));
+  ( map_wpns_t,      map_wpns       ),
+  ( list<string>,    mylist         ));
   // clang-format on
 };
 
@@ -228,10 +229,16 @@ BinaryBlob create_monster_blob() {
   auto fb_map_strs = builder.CreateVector( map_strs );
   auto fb_map_wpns = builder.CreateVector( map_wpns );
 
+  vector<FBOffset<flatbuffers::String>> mylist_v;
+  mylist_v.push_back( builder.CreateString( "hello4" ) );
+  mylist_v.push_back( builder.CreateString( "hello5" ) );
+  mylist_v.push_back( builder.CreateString( "hello6" ) );
+  auto fb_mylist = builder.CreateVector( mylist_v );
+
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, names, inventory,
       fb::e_color::Red, weapons, path, pair1, &pair2,
-      fb_map_vecs, fb_map_strs, fb_map_wpns );
+      fb_map_vecs, fb_map_strs, fb_map_wpns, fb_mylist );
 
   builder.Finish( orc );
 
@@ -240,7 +247,7 @@ BinaryBlob create_monster_blob() {
 
 TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 476;
+  constexpr uint64_t kExpectedBlobSize = 532;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
@@ -341,6 +348,13 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( map_wpns->Get( 1 )->fst() == 0 );
     REQUIRE( map_wpns->Get( 1 )->snd()->name()->str() == "Gun" );
     REQUIRE( map_wpns->Get( 1 )->snd()->damage() == 3000 );
+
+    auto mylist = monster.mylist();
+    REQUIRE( mylist != nullptr );
+    REQUIRE( mylist->size() == 3 );
+    REQUIRE( mylist->Get( 0 )->str() == "hello4" );
+    REQUIRE( mylist->Get( 1 )->str() == "hello5" );
+    REQUIRE( mylist->Get( 2 )->str() == "hello6" );
   }
 
   SECTION( "deserialize to native" ) {
@@ -403,6 +417,14 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     REQUIRE( map_wpns[-1] == Weapon{ "knife", 30 } );
     REQUIRE( map_wpns[0] == Weapon{ "Gun", 3000 } );
+
+    auto& mylist = monster.mylist;
+    REQUIRE( mylist.size() == 3 );
+    auto it = mylist.begin();
+    REQUIRE( *it++ == "hello4" );
+    REQUIRE( *it++ == "hello5" );
+    REQUIRE( *it++ == "hello6" );
+    REQUIRE( it == mylist.end() );
   }
 
   SECTION( "native to native roundtrip" ) {
@@ -428,9 +450,12 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.map_strs["two"]           = -2;
     monster.map_wpns[3]               = Weapon{ "rock", 2 };
     monster.map_wpns[4]               = Weapon{ "stone", 4 };
+    monster.mylist.clear();
+    monster.mylist.push_back( "l1" );
+    monster.mylist.push_back( "l2" );
 
     auto blob = rn::serial::serialize_to_blob( monster );
-    constexpr uint64_t kExpectedBlobSize = 460;
+    constexpr uint64_t kExpectedBlobSize = 492;
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::serialize_to_json( monster );
@@ -501,6 +526,13 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     REQUIRE( map_wpns[3] == Weapon{ "rock", 2 } );
     REQUIRE( map_wpns[4] == Weapon{ "stone", 4 } );
+
+    auto& mylist = monster_new.mylist;
+    REQUIRE( mylist.size() == 2 );
+    auto it = mylist.begin();
+    REQUIRE( *it++ == "l1" );
+    REQUIRE( *it++ == "l2" );
+    REQUIRE( it == mylist.end() );
   }
 }
 

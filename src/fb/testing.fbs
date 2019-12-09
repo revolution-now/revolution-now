@@ -110,8 +110,7 @@ namespace fb.OnOffState;
   }
 
 table OnOffFsm {
-  state         : OnOffState_t;
-  pushed_states : [OnOffState_t];
+  state_stack : [OnOffState_t];
 }
 
 table Monster {
@@ -130,4 +129,5 @@ table Monster {
   map_vecs  : [Pair_Vec2_int];
   map_strs  : [Pair_string_int];
   map_wpns  : [Pair_int_Weapon];
+  mylist    : [string];
 }

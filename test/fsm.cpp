@@ -331,5 +331,35 @@ TEST_CASE( "[fsm] test ball" ) {
   }
 }
 
+TEST_CASE( "[fsm] test pointer stability on push/pop" ) {
+  BallFsm ball( BallState::rolling{ 5 } );
+  REQUIRE( ball.state() ==
+           BallState_t{ BallState::rolling{ 5 } } );
+
+  REQUIRE( ball.pushed_states().size() == 1 );
+  auto* ptr1 = &( *ball.pushed_states().begin() );
+  REQUIRE( ptr1 != nullptr );
+
+  for( int i = 0; i < 1000; ++i )
+    ball.push( BallState::rolling{ 7 } );
+  ball.process_events();
+  REQUIRE( ball.state() ==
+           BallState_t{ BallState::rolling{ 7 } } );
+
+  // Popping these 1000 elements
+  for( int i = 0; i < 1000; ++i ) ball.pop();
+  ball.process_events();
+  REQUIRE( ball.state() ==
+           BallState_t{ BallState::rolling{ 5 } } );
+
+  REQUIRE( ball.pushed_states().size() == 1 );
+  auto* ptr2 = &( *ball.pushed_states().begin() );
+  REQUIRE( ptr2 != nullptr );
+
+  // Now finally the real test: the address of the original state
+  // in memory should not have moved.
+  REQUIRE( ptr1 == ptr2 );
+}
+
 } // namespace
 } // namespace rn

@@ -33,8 +33,7 @@ namespace fb.TurnCycleState;
   }
 
 table TurnCycleFsm {
-  state         : TurnCycleState_t;
-  pushed_states : [TurnCycleState_t];
+  state_stack : [TurnCycleState_t];
 }
 
 table SG_Turn {

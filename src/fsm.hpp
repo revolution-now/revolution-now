@@ -105,9 +105,11 @@ public:
   using IamFsm_t = void;
   using state_t  = StateT;
 
-  fsm() { state_ = child().initial_state(); }
+  fsm() { state_stack_.push_front( child().initial_state() ); }
 
-  fsm( StateT&& st ) : state_( std::move( st ) ), events_{} {}
+  fsm( StateT&& st ) : state_stack_{}, events_{} {
+    state_stack_.push_front( std::move( st ) );
+  }
 
   // Queue an event, but do not process it immediately.
   void send_event( EventT const& event,
@@ -163,8 +165,9 @@ public:
           demangled_typename<ChildT>(),
           fmt::format( "{}", maybe_event_ref->get().event ) );
       process_event( maybe_event_ref->get() );
-      internal::log_state( demangled_typename<ChildT>(),
-                           fmt::format( "{}", state_ ) );
+      internal::log_state(
+          demangled_typename<ChildT>(),
+          fmt::format( "{}", state_stack_.front() ) );
       events_.pop();
     }
     return processed_events;
@@ -172,14 +175,14 @@ public:
 
   bool has_pending_events() const { return !events_.empty(); }
 
-  StateT const& state() const { return state_; }
+  StateT const& state() const { return state_stack_.front(); }
   // Do not use this to set the state directly; only use it in a
   // switch statement to get mutable references to an individual
   // state to change its members if needed.
-  StateT& mutable_state() { return state_; }
+  StateT& mutable_state() { return state_stack_.front(); }
 
-  Vec<StateT> const& pushed_states() const {
-    return pushed_states_;
+  std::list<StateT> const& pushed_states() const {
+    return state_stack_;
   }
 
   // !! No pointer stability here; state could change after
@@ -187,7 +190,8 @@ public:
   template<typename T>
   Opt<CRef<T>> holds() const {
     Opt<CRef<T>> res;
-    if( auto* s = std::get_if<T>( &state_ ); s != nullptr )
+    if( auto* s = std::get_if<T>( &state_stack_.front() );
+        s != nullptr )
       res = *s;
     return res;
   }
@@ -197,14 +201,16 @@ public:
   template<typename T>
   Opt<Ref<T>> holds() {
     Opt<Ref<T>> res;
-    if( auto* s = std::get_if<T>( &state_ ); s != nullptr )
+    if( auto* s = std::get_if<T>( &state_stack_.front() );
+        s != nullptr )
       res = *s;
     return res;
   }
 
-  // NOTE: we're not comparing the event queue here.
+  // NOTE: we're not comparing the event queue here or any states
+  // that are pushed in the stack.
   bool operator==( Parent const& rhs ) const {
-    return ( state_ == rhs.state_ );
+    return ( state_stack_.front() == rhs.state_stack_.front() );
   }
 
   bool operator!=( Parent const& rhs ) const {
@@ -251,16 +257,15 @@ private:
   void process_event( EventWithSource& event_with_src ) {
     switch( event_with_src.type ) {
       case e_event_type::push:
-        pushed_states_.emplace_back( std::move( state_ ) );
-        state_ = std::move( event_with_src.state );
+        state_stack_.push_front(
+            std::move( event_with_src.state ) );
         return;
       case e_event_type::pop:
         CHECK(
-            pushed_states_.size() > 0,
+            state_stack_.size() > 1,
             "attempt to pop fsm with no pushed states, from {}",
             event_with_src.location );
-        state_ = std::move( pushed_states_.back() );
-        pushed_states_.pop_back();
+        state_stack_.pop_front();
         return;
       case e_event_type::event:
         // fallthrough.
@@ -311,7 +316,8 @@ private:
         }
       }
     };
-    state_ = std::visit( visitor, state_, event );
+    state_stack_.front() =
+        std::visit( visitor, state_stack_.front(), event );
   }
 
   template<typename Hint, typename T, typename T::IamFsm_t*>
@@ -322,8 +328,9 @@ private:
   friend expect<> serial::deserialize( SrcT const* src,
                                        DstT* dst, serial::ADL );
 
-  StateT                      state_;
-  Vec<StateT>                 pushed_states_;
+  // states_.front() is current state. We use a list because we
+  // need pointer stability.
+  std::list<StateT>           state_stack_;
   flat_queue<EventWithSource> events_;
   NOTHROW_MOVE( flat_queue<EventWithSource> );
 };
@@ -365,15 +372,12 @@ auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
   CHECK( !o.has_pending_events(),
          "cannot serialize a finite state machine with pending "
          "events." );
-  auto s_state = serialize<serial::fb_serialize_hint_t<decltype(
-      std::declval<Hint>().state() )>>( builder, o.state_,
-                                        serial::ADL{} );
-  auto s_pushed_states =
+  auto s_state_stack =
       serialize<serial::fb_serialize_hint_t<decltype(
-          std::declval<Hint>().pushed_states() )>>(
-          builder, o.pushed_states_, serial::ADL{} );
-  return serial::ReturnValue{ Hint::Create(
-      builder, s_state.get(), s_pushed_states.get() ) };
+          std::declval<Hint>().state_stack() )>>(
+          builder, o.state_stack_, serial::ADL{} );
+  return serial::ReturnValue{
+      Hint::Create( builder, s_state_stack.get() ) };
 }
 
 template<typename SrcT,                     //
@@ -382,15 +386,9 @@ template<typename SrcT,                     //
          >
 expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   if( src == nullptr ) return xp_success_t{};
-  UNXP_CHECK( src->state() != nullptr );
-  typename std::decay_t<DstT>::state_t state;
-  XP_OR_RETURN_(
-      deserialize( src->state(), &state, serial::ADL{} ) );
-  dst->state_ = std::move( state );
-  Vec<typename std::decay_t<DstT>::state_t> pushed_states;
-  XP_OR_RETURN_( deserialize( src->pushed_states(),
-                              &pushed_states, serial::ADL{} ) );
-  dst->pushed_states_ = std::move( pushed_states );
+  UNXP_CHECK( src->state_stack() != nullptr );
+  XP_OR_RETURN_( deserialize(
+      src->state_stack(), &dst->state_stack_, serial::ADL{} ) );
   CHECK( dst->events_.size() == 0 );
   return xp_success_t{};
 }

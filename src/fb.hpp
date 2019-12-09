@@ -28,6 +28,7 @@
 #include "base-util/pp.hpp"
 
 // C++ standard library
+#include <list>
 #include <tuple>
 #include <utility>
 
@@ -348,6 +349,17 @@ auto serialize( FBBuilder& builder, std::vector<T> const& o,
   }
 }
 
+// For lists. Make a vector of references to the elements and
+// just serialize that.
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, std::list<T> const& l,
+                serial::ADL ) {
+  std::vector<CRef<T>> v;
+  v.reserve( l.size() );
+  for( auto const& e : l ) v.emplace_back( e );
+  return serialize<Hint>( builder, v, serial::ADL{} );
+}
+
 // For map-like things.
 template<typename Hint,                        //
          typename T,                           //
@@ -512,6 +524,28 @@ expect<> deserialize( SrcT const* src, std::vector<T>* dst,
                      std::addressof( dst->operator[]( i ) ),
                      serial::ADL{} ) );
   }
+  return xp_success_t{};
+}
+
+// For lists. Make a vector of references to the elements and
+// just serialize that.
+template<typename SrcT, typename T>
+expect<> deserialize( SrcT const* src, std::list<T>* dst,
+                      serial::ADL ) {
+  // SrcT should be a flatbuffers::Vector.
+  if( src == nullptr || src->size() == 0 ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty map.
+    return xp_success_t{};
+  }
+  std::vector<T> v;
+  v.reserve( src->size() );
+  XP_OR_RETURN_( deserialize( src, &v, serial::ADL{} ) );
+  // The list may have elements in it if it is the member of an
+  // object (such as fsm) that initializes it to always have at
+  // least one element.
+  dst->clear();
+  for( auto& e : v ) dst->push_back( std::move( e ) );
   return xp_success_t{};
 }
 
