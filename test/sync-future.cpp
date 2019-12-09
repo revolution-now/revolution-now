@@ -1,0 +1,191 @@
+/****************************************************************
+**sync-future.cpp
+*
+* Project: Revolution Now
+*
+* Created by dsicilia on 2019-12-08.
+*
+* Description: Unit tests for the sync-future module.
+*
+*****************************************************************/
+#include "testing.hpp"
+
+// Revolution Now
+#include "sync-future.hpp"
+
+// Must be last.
+#include "catch-common.hpp"
+
+FMT_TO_CATCH_T( ( T ), ::rn::sync_future );
+FMT_TO_CATCH_T( ( T ), ::rn::sync_promise );
+
+namespace {
+
+using namespace std;
+using namespace rn;
+
+struct shared_int_state
+  : public internal::sync_shared_state_base<int> {
+  ~shared_int_state() override = default;
+
+  bool has_value() const override {
+    return maybe_int.has_value();
+  }
+
+  int get() const override {
+    CHECK( has_value() );
+    return *maybe_int;
+  }
+
+  Opt<int> maybe_int;
+};
+
+TEST_CASE( "[sync-future] future api basic" ) {
+  auto ss = make_shared<shared_int_state>();
+
+  sync_future<int> s_future( ss );
+
+  REQUIRE( !s_future.empty() );
+  REQUIRE( s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+
+  ss->maybe_int = 3;
+  REQUIRE( !s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( s_future.ready() );
+
+  REQUIRE( s_future.get_and_reset() == 3 );
+  REQUIRE( s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+}
+
+TEST_CASE( "[sync-future] future api with continuation" ) {
+  auto ss = make_shared<shared_int_state>();
+
+  sync_future<int> s_future( ss );
+
+  REQUIRE( !s_future.empty() );
+  REQUIRE( s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+
+  auto s_future2 =
+      s_future.then( []( int n ) { return n + 1; } );
+
+  REQUIRE( !s_future.empty() );
+  REQUIRE( s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+
+  REQUIRE( !s_future2.empty() );
+  REQUIRE( s_future2.waiting() );
+  REQUIRE( !s_future2.ready() );
+
+  auto s_future3 = s_future2.then(
+      []( int n ) { return std::to_string( n ); } );
+
+  REQUIRE( !s_future2.empty() );
+  REQUIRE( s_future2.waiting() );
+  REQUIRE( !s_future2.ready() );
+
+  REQUIRE( !s_future3.empty() );
+  REQUIRE( s_future3.waiting() );
+  REQUIRE( !s_future3.ready() );
+
+  ss->maybe_int = 3;
+  REQUIRE( !s_future.empty() );
+  REQUIRE( !s_future2.empty() );
+  REQUIRE( !s_future3.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( !s_future2.waiting() );
+  REQUIRE( !s_future3.waiting() );
+  REQUIRE( s_future.ready() );
+  REQUIRE( s_future2.ready() );
+  REQUIRE( s_future3.ready() );
+
+  auto res3 = s_future3.get_and_reset();
+  static_assert( std::is_same_v<decltype( res3 ), std::string> );
+  REQUIRE( res3 == "4" );
+  auto res2 = s_future2.get_and_reset();
+  static_assert( std::is_same_v<decltype( res2 ), int> );
+  REQUIRE( res2 == 4 );
+  auto res1 = s_future.get_and_reset();
+  static_assert( std::is_same_v<decltype( res1 ), int> );
+  REQUIRE( res1 == 3 );
+
+  REQUIRE( s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+  REQUIRE( s_future2.empty() );
+  REQUIRE( !s_future2.waiting() );
+  REQUIRE( !s_future2.ready() );
+  REQUIRE( s_future3.empty() );
+  REQUIRE( !s_future3.waiting() );
+  REQUIRE( !s_future3.ready() );
+}
+
+TEST_CASE( "[sync-future] promise api basic api" ) {
+  sync_promise<int> s_promise;
+  REQUIRE( !s_promise.has_value() );
+
+  sync_future<int> s_future = s_promise.get_future();
+  REQUIRE( !s_future.empty() );
+  REQUIRE( s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+
+  s_promise.set_value( 3 );
+  REQUIRE( s_promise.has_value() );
+  REQUIRE_THROWS_AS_RN( s_promise.set_value( 4 ) );
+  REQUIRE( !s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( s_future.ready() );
+
+  REQUIRE( s_future.get_and_reset() == 3 );
+  REQUIRE( s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+}
+
+TEST_CASE( "[sync-future] stored" ) {
+  sync_promise<int> s_promise;
+  REQUIRE( !s_promise.has_value() );
+
+  int  result   = 0;
+  auto s_future = s_promise.get_future().stored( &result );
+  static_assert( std::is_same_v<decltype( s_future ),
+                                ::rn::sync_future<monostate>> );
+  REQUIRE( !s_future.empty() );
+  REQUIRE( s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+
+  s_promise.set_value( 3 );
+  REQUIRE( !s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( s_future.ready() );
+
+  REQUIRE( result == 0 );
+
+  REQUIRE( s_future.get_and_reset() == monostate{} );
+  REQUIRE( s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+
+  REQUIRE( result == 3 );
+}
+
+TEST_CASE( "[sync-future] formatting" ) {
+  sync_promise<int> s_promise;
+  REQUIRE( fmt::format( "{}", s_promise ) == "<empty>" );
+
+  sync_future<int> s_future = s_promise.get_future();
+  REQUIRE( fmt::format( "{}", s_future ) == "<waiting>" );
+
+  s_promise.set_value( 3 );
+  REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
+  REQUIRE( fmt::format( "{}", s_future ) == "<ready>" );
+
+  REQUIRE( s_future.get_and_reset() == 3 );
+  REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
+  REQUIRE( fmt::format( "{}", s_future ) == "<empty>" );
+}
+
+} // namespace
