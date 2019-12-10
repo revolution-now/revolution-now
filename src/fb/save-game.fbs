@@ -21,7 +21,7 @@ namespace fb;
 
 table SaveGame {
   id_state        : SG_Id;
-  unit_state       : SG_Unit;
+  unit_state      : SG_Unit;
   player_state    : SG_Player;
   turn_state      : SG_Turn;
   plane_state     : SG_Plane;

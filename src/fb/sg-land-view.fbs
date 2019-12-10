@@ -16,6 +16,7 @@ include "physics.fbs";
 include "unit.fbs";
 include "utype.fbs";
 include "viewport.fbs";
+include "vocab.fbs";
 
 namespace fb;
 
@@ -28,7 +29,7 @@ namespace fb.LandViewState;
   }
   table input_ready {
     consumed : bool;
-    response : UnitInputResponse;
+    response : no_serial;
   }
   table sliding_unit {
     id          : int;

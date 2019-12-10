@@ -38,17 +38,10 @@ struct UnitInputResponse {
     return !( *this == rhs );
   }
 
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
-  }
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, UnitInputResponse,
-  ( UnitId,        id ),
-  ( Opt<orders_t>, orders ),
-  ( Vec<UnitId>,   add_to_front ),
-  ( Vec<UnitId>,   add_to_back ));
-  // clang-format on
+  UnitId        id;
+  Opt<orders_t> orders;
+  Vec<UnitId>   add_to_front;
+  Vec<UnitId>   add_to_back;
 };
 
 enum class e_( depixelate_anim, //
@@ -59,6 +52,7 @@ enum class e_( depixelate_anim, //
 SERIALIZABLE_ENUM( e_depixelate_anim );
 
 void landview_do_eot();
+// TODO: try returning sync_future here.
 void landview_ask_orders( UnitId id );
 void landview_ensure_unit_visible( UnitId id );
 void landview_animate_move( UnitId id, e_direction direction );
@@ -67,6 +61,7 @@ void landview_animate_attack( UnitId attacker, UnitId defender,
                               e_depixelate_anim dp_anim );
 bool landview_is_animating();
 
+// TODO: might be able to get rid of this if we use sync_futures.
 Opt<UnitInputResponse> unit_input_response();
 
 struct Plane;

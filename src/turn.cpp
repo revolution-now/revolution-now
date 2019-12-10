@@ -20,6 +20,7 @@
 #include "fsm.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
+#include "no-serial.hpp"
 #include "panel.hpp" // FIXME
 #include "ranges.hpp"
 #include "render.hpp"
@@ -86,28 +87,28 @@ bool animate_move( TravelAnalysis const& analysis ) {
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
-adt_rn_( UnitInputState,                      //
-         ( none ),                            //
-         ( processing ),                      //
-         ( asking ),                          //
-         ( have_response,                     //
-           ( UnitInputResponse, response ) ), //
-         ( executing_orders,                  //
-           ( orders_t, orders ),              //
-           ( bool, confirmed ) ),             //
-         ( executed,                          //
-           ( Vec<UnitId>, add_to_front ) )    //
+adt_rn_( UnitInputState,                                 //
+         ( none ),                                       //
+         ( processing ),                                 //
+         ( asking ),                                     //
+         ( have_response,                                //
+           ( no_serial<UnitInputResponse>, response ) ), //
+         ( executing_orders,                             //
+           ( orders_t, orders ),                         //
+           ( bool, confirmed ) ),                        //
+         ( executed,                                     //
+           ( Vec<UnitId>, add_to_front ) )               //
 );
 
-adt_rn_( UnitInputEvent,                      //
-         ( process ),                         //
-         ( ask ),                             //
-         ( put_response,                      //
-           ( UnitInputResponse, response ) ), //
-         ( execute ),                         //
-         ( cancel ),                          //
-         ( end,                               //
-           ( Vec<UnitId>, add_to_front ) )    //
+adt_rn_( UnitInputEvent,                                 //
+         ( process ),                                    //
+         ( ask ),                                        //
+         ( put_response,                                 //
+           ( no_serial<UnitInputResponse>, response ) ), //
+         ( execute ),                                    //
+         ( cancel ),                                     //
+         ( end,                                          //
+           ( Vec<UnitId>, add_to_front ) )               //
 );
 
 // clang-format off
@@ -141,8 +142,8 @@ fsm_class( UnitInput ) { //
   fsm_transition( UnitInput, have_response, execute, ->,
                   executing_orders ) {
     (void)event;
-    CHECK( cur.response.orders.has_value() );
-    return { /*orders=*/*cur.response.orders,
+    CHECK( cur.response->orders.has_value() );
+    return { /*orders=*/*cur.response->orders,
              /*confirmed=*/false };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
@@ -503,12 +504,13 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
             done_uturn           = true;
           }
           case_( UnitInputState::have_response ) {
-            for( auto id : val.response.add_to_back ) {
+            for( auto id : val.response->add_to_back ) {
               doing_units.q.push_back( id );
               unit_from_id( id ).unfinish_turn();
             }
-            auto const& maybe_orders = val.response.orders;
-            auto const& add_to_front = val.response.add_to_front;
+            auto const& maybe_orders = val.response->orders;
+            auto const& add_to_front =
+                val.response->add_to_front;
             // Can only have one or the other.
             CHECK( maybe_orders.has_value() ==
                    add_to_front.empty() );

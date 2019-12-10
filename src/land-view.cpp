@@ -22,6 +22,7 @@
 #include "id.hpp"
 #include "logging.hpp"
 #include "matrix.hpp"
+#include "no-serial.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
@@ -70,18 +71,18 @@ adt_s_rn_(
       // (without asking for orders) and later in the same turn
       // had its orders cleared by the player (but not priori-
       // tized), this will allow it to ask for orders this turn.
-      ( Vec<UnitId>, add_to_back ) ),         //
-    ( input_ready,                            //
-      ( bool, consumed ),                     //
-      ( UnitInputResponse, response ) ),      //
-    ( sliding_unit,                           //
-      ( UnitId, id ),                         //
-      ( Coord, target ),                      //
-      ( double, percent ),                    //
-      ( DissipativeVelocity, percent_vel ) ), //
-    ( depixelating_unit,                      //
-      ( UnitId, id ),                         //
-      ( Opt<e_unit_type>, demoted ) )         //
+      ( Vec<UnitId>, add_to_back ) ),               //
+    ( input_ready,                                  //
+      ( bool, consumed ),                           //
+      ( no_serial<UnitInputResponse>, response ) ), //
+    ( sliding_unit,                                 //
+      ( UnitId, id ),                               //
+      ( Coord, target ),                            //
+      ( double, percent ),                          //
+      ( DissipativeVelocity, percent_vel ) ),       //
+    ( depixelating_unit,                            //
+      ( UnitId, id ),                               //
+      ( Opt<e_unit_type>, demoted ) )               //
 );
 
 adt_rn_( LandViewEvent,                   //
@@ -135,10 +136,10 @@ fsm_class( LandView ) { //
                   input_ready ) {
     return { /*consumed=*/false, //
              UnitInputResponse{
-                 /*id=*/cur.response.id,                     //
-                 /*orders=*/event.orders,                    //
-                 /*add_to_front=*/cur.response.add_to_front, //
-                 /*add_to_back=*/cur.response.add_to_back    //
+                 /*id=*/cur.response->id,                     //
+                 /*orders=*/event.orders,                     //
+                 /*add_to_front=*/cur.response->add_to_front, //
+                 /*add_to_back=*/cur.response->add_to_back    //
              } };
   }
 
@@ -947,7 +948,7 @@ Opt<UnitInputResponse> unit_input_response() {
         val ) {
     if( !val->consumed ) {
       SG().mode.send_event( LandViewEvent::end{} );
-      res           = std::move( val->response );
+      res           = std::move( val->response.o );
       val->consumed = true;
     }
   }
