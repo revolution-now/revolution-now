@@ -44,16 +44,14 @@ struct sync_shared_state_base {
 //
 // The sync_future has three states:
 //
-//   waiting --> ready -->? empty
+//   waiting --> ready --> empty
 //
 // It starts off in the `waiting` state upon construction (from a
 // sync_promise) then transitions to `ready` when the result be-
-// comes available. During this time, the value can be retrieved
-// any number of times. The sync_future remains in this state
-// until `reset` is called (or if `get_and_reset` had been called
-// instead of `get`), at which point it transitions to the
-// `empty` state. Once in the `empty` state the sync_future is
-// "dead" forever.
+// comes available. At this point, the value can be retrieved
+// once using the get_and_reset method, at which point it transi-
+// tions to the `empty` state. Once in the `empty` state the
+// sync_future is "dead" forever.
 //
 // Example usage:
 //
@@ -108,8 +106,6 @@ public:
     return res;
   }
 
-  void reset() { shared_state_.reset(); }
-
   template<typename Func>
   auto then( Func&& func ) {
     CHECK( !empty(),
@@ -145,9 +141,10 @@ public:
             shared_state_, std::forward<Func>( func ) ) );
   }
 
-  // Returns a future object that, when its value is retreived,
-  // will store the value in the given pointer and just return
-  // std::monostate{}.
+  // Returns a future object whose result is a monostate. When
+  // the monostate is retrieved with get_and_reset then a side
+  // effect will be performed, namely to store the result into
+  // the location given by the destination pointer.
   auto stored( T* destination ) {
     CHECK( !empty(),
            "attempting to attach a continuation to an empty "
@@ -221,11 +218,6 @@ public:
     return sync_future<T>( shared_state_ );
   }
 
-  std::shared_ptr<sync_shared_state> const& shared_state()
-      const {
-    return shared_state_;
-  }
-
 private:
   std::shared_ptr<sync_shared_state> shared_state_;
 };
@@ -267,4 +259,5 @@ struct formatter<::rn::sync_promise<T>> : formatter_base {
     return formatter_base::format( res, ctx );
   }
 };
+
 } // namespace fmt
