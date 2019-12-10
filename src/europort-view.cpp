@@ -30,6 +30,7 @@
 #include "render.hpp"
 #include "scope-exit.hpp"
 #include "screen.hpp"
+#include "sync-future.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ustate.hpp"
@@ -1968,58 +1969,38 @@ NOTHROW_MOVE( EuroViewDragAndDrop );
 /****************************************************************
 ** The Europe View State Machine
 *****************************************************************/
-adt_rn_( EuroviewState,      //
-         ( normal ),         //
-         ( asking_quantity ) //
+adt_rn_( EuroviewState,                  //
+         ( normal ),                     //
+         ( ui,                           //
+           ( sync_future<>, s_future ) ) //
 );
 
-adt_rn_( EuroviewEvent,           //
-         ( ask_quantity,          //
-           ( e_commodity, type ), //
-           ( string, verb ) ),    //
-         ( send_quantity,         //
-           ( int, quantity ) )    //
+adt_rn_( EuroviewEvent, //
+         ( none )       //
 );
 
 // clang-format off
 fsm_transitions( Euroview,
-  ((normal,          ask_quantity ), ->  ,asking_quantity),
-  ((asking_quantity, send_quantity), ->  ,normal         )
+  ((normal, none ),  ->  ,normal),
 );
 // clang-format on
 
-using OpenQuantityWindowFunc =
-    std::function<void( e_commodity, string )>;
-using SendQuantityFunc = std::function<void( int )>;
-
 fsm_class( Euroview ) {
-  fsm_init( EuroviewState::normal{} );
-
-  EuroviewFsm( OpenQuantityWindowFunc open_quantity_window,
-               SendQuantityFunc       send_quantity )
-    : Parent{},
-      open_quantity_window_( std::move( open_quantity_window ) ),
-      send_quantity_( std::move( send_quantity ) ) {}
-
-  fsm_transition( Euroview, //
-                  normal, ask_quantity, ->, asking_quantity ) {
-    (void)cur;
-    open_quantity_window_( event.type, event.verb );
-    return {};
-  }
-
-  fsm_transition( Euroview, //
-                  asking_quantity, send_quantity, ->, normal ) {
-    (void)cur;
-    send_quantity_( event.quantity );
-    return {};
-  }
-
-  OpenQuantityWindowFunc open_quantity_window_;
-  SendQuantityFunc       send_quantity_;
+  fsm_init( EuroviewState::normal{} ); //
 };
 
 FSM_DEFINE_FORMAT_RN_( Euroview );
+
+// Will be called repeatedly until no more events added to fsm.
+void advance_euroview_state( EuroviewFsm& fsm ) {
+  switch_( fsm.mutable_state() ) {
+    case_( EuroviewState::normal ) {}
+    case_( EuroviewState::ui, s_future ) {
+      advance_fsm_ui_state( &fsm, &s_future );
+    }
+    switch_exhaustive;
+  }
+}
 
 /****************************************************************
 ** The Europe Plane
@@ -2029,7 +2010,8 @@ struct EuropePlane : public Plane {
   bool covers_screen() const override { return false; }
 
   void advance_state() override {
-    fsm_.process_events();
+    fsm_auto_advance( fsm_, "euroview",
+                      { advance_euroview_state } );
     drag_n_drop_.advance_state();
     g_dragging_object = drag_n_drop_.obj_being_dragged();
     // Should be last.
@@ -2147,55 +2129,35 @@ struct EuropePlane : public Plane {
   // ------------------------------------------------------------
   // Callbacks
   // ------------------------------------------------------------
-  void open_quantity_window( e_commodity type,
-                             string_view verb ) {
+  void ask_for_quantity( e_commodity type, string const& verb ) {
     CHECK( fsm_.holds<EuroviewState::normal>() );
     auto text = fmt::format(
         "What quantity of @[H]{}@[] would you like to "
         "{}? (0-100):",
         commodity_display_name( type ), verb );
 
-    ui::int_input_box(
-        /*title=*/"Choose Quantity",
-        /*msg=*/text,
-        /*on_result=*/
-        [&]( Opt<int> result ) {
-          lg.trace( "received quantity: {}", result );
-          fsm_.send_event( EuroviewEvent::send_quantity{
-              result.value_or( 0 ) } );
-        },
-        /*min=*/0,
-        /*max=*/100 );
-  }
+    sync_future<> s_future =
+        ui::int_input_box(
+            /*title=*/"Choose Quantity",
+            /*msg=*/text,
+            /*min=*/0,
+            /*max=*/100 )
+            .then( [&]( Opt<int> result ) {
+              lg.debug( "received quantity: {}", result );
+              drag_n_drop_.receive_quantity(
+                  result.value_or( 0 ) );
+              return monostate{};
+            } );
 
-  void send_quantity( int quantity ) {
-    CHECK( fsm_.holds<EuroviewState::asking_quantity>() );
-    drag_n_drop_.receive_quantity( quantity );
-  }
-
-  void ask_for_quantity( e_commodity type, string const& verb ) {
-    CHECK( fsm_.holds<EuroviewState::normal>() );
-    fsm_.send_event( EuroviewEvent::ask_quantity{ type, verb } );
-    // Proposal:
-    //
-    // ui_future<int> uif_quantity = ui::int_input_box( ... );
-    // ui_future<monostate> uif = std::move( uif_quantity )
-    //    .then( []( int n ){
-    //       drag_n_drop_.receive_quantity( quantity );
-    //       return monostate{};
-    //     });
-    // fsm_.push( EuroviewState::ui{ std::move( uif ) } );
+    fsm_.push( EuroviewState::ui{ s_future } );
   }
 
   // ------------------------------------------------------------
   // Members
   // ------------------------------------------------------------
-  Color       rect_color_{ Color::white() };
-  Entities    entities_{};
-  EuroviewFsm fsm_{
-      LC2_( open_quantity_window( _1, _2 ) ), //
-      LC_( send_quantity( _ ) )               //
-  };
+  Color               rect_color_{ Color::white() };
+  Entities            entities_{};
+  EuroviewFsm         fsm_;
   EuroViewDragAndDrop drag_n_drop_{
       &entities_,                        //
       LC2_( ask_for_quantity( _1, _2 ) ) //

@@ -17,6 +17,7 @@
 #include "enum.hpp"
 #include "errors.hpp"
 #include "id.hpp"
+#include "sync-future.hpp"
 #include "ui-enums.hpp"
 
 // c++ standard library
@@ -76,10 +77,9 @@ void text_input_box(
     ValidatorFunc                           validator,
     std::function<void( Opt<std::string> )> on_result );
 
-void int_input_box( std::string_view title, std::string_view msg,
-                    std::function<void( Opt<int> )> on_result,
-                    Opt<int> min = std::nullopt,
-                    Opt<int> max = std::nullopt );
+sync_future<Opt<int>> int_input_box(
+    std::string_view title, std::string_view msg,
+    Opt<int> min = std::nullopt, Opt<int> max = std::nullopt );
 
 /****************************************************************
 ** Simple Option-Select Window

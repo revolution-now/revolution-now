@@ -17,9 +17,6 @@
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // C++ standard library
 #include <memory>
 
@@ -69,16 +66,26 @@ struct sync_shared_state_base {
 //   assert( s_future1.empty() );
 //   assert( s_future2.empty() );
 //
-template<typename T>
-class sync_future : public util::movable_only {
+template<typename T = std::monostate>
+class sync_future {
   using SharedStatePtr =
       std::shared_ptr<internal::sync_shared_state_base<T>>;
 
 public:
+  sync_future() {}
+
   // This constructor should not be used by client code.
   explicit sync_future( SharedStatePtr shared_state )
     : shared_state_{ shared_state } {
     CHECK( waiting() );
+  }
+
+  bool operator==( sync_future<T> const& rhs ) const {
+    return shared_state_.get() == rhs.shared_state_.get();
+  }
+
+  bool operator!=( sync_future<T> const& rhs ) const {
+    return !( *this == rhs );
   }
 
   bool empty() const { return shared_state_ == nullptr; }
@@ -180,7 +187,7 @@ private:
 //   assert( s_future.empty() );
 //
 template<typename T>
-class sync_promise : public util::movable_only {
+class sync_promise {
   struct sync_shared_state
     : public internal::sync_shared_state_base<T> {
     ~sync_shared_state() override = default;
@@ -221,6 +228,18 @@ public:
 private:
   std::shared_ptr<sync_shared_state> shared_state_;
 };
+
+/****************************************************************
+** Helpers
+*****************************************************************/
+template<typename Fsm>
+void advance_fsm_ui_state( Fsm* fsm, sync_future<>* s_future ) {
+  CHECK( !s_future->empty() );
+  if( s_future->ready() ) {
+    fsm->pop();
+    s_future->get_and_reset();
+  }
+}
 
 } // namespace rn
 

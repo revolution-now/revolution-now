@@ -592,16 +592,21 @@ void text_input_box( string_view title, string_view msg,
   );
 }
 
-void int_input_box( std::string_view title, std::string_view msg,
-                    std::function<void( Opt<int> )> on_result,
-                    Opt<int> min, Opt<int> max ) {
+sync_future<Opt<int>> int_input_box( std::string_view title,
+                                     std::string_view msg,
+                                     Opt<int>         min,
+                                     Opt<int>         max ) {
   using namespace util::infix;
+  sync_promise<Opt<int>> s_promise;
+  sync_future<Opt<int>>  s_future = s_promise.get_future();
   text_input_box(
       title, msg, make_int_validator( min, max ),
-      [on_result{ std::move( on_result ) }](
-          Opt<string> result ) {
-        on_result( result | fmap_join( L( util::stoi( _ ) ) ) );
+      [s_promise{ std::move( s_promise ) }](
+          Opt<string> result ) mutable {
+        s_promise.set_value( result |
+                             fmap_join( L( util::stoi( _ ) ) ) );
       } );
+  return s_future;
 }
 
 /****************************************************************

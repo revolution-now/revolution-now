@@ -24,6 +24,10 @@ namespace {
 using namespace std;
 using namespace rn;
 
+// Unit test for sync_future's default template parameter.
+static_assert(
+    is_same_v<rn::sync_future<>, rn::sync_future<monostate>> );
+
 struct shared_int_state
   : public internal::sync_shared_state_base<int> {
   ~shared_int_state() override = default;

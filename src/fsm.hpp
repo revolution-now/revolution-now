@@ -148,10 +148,11 @@ public:
 
   // Pop state, but do not process it immediately.
   void pop( CALLER_LOCATION( loc ) ) {
-    events_.push( { /*type=*/e_event_type::pop,
-                    /*state=*/{},
-                    /*event=*/{},
-                    /*location=*/loc } );
+    events_.push_emplace(
+        EventWithSource{ /*type=*/e_event_type::pop,
+                         /*state=*/{},
+                         /*event=*/{},
+                         /*location=*/loc } );
   }
 
   // Process all pending events. NOTE: that, in processing an
