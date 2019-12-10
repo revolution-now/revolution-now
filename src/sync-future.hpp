@@ -65,11 +65,11 @@ struct sync_shared_state_base {
 //
 //   s_promise.set_value( 3 );
 //
-//   assert( s_future1.get() == 3 );
-//   assert( s_future2.get() == 4 );
+//   assert( s_future1.get_and_reset() == 3 );
+//   assert( s_future2.get_and_reset() == 4 );
 //
-//   assert( s_future.get_and_reset() == 3 );
-//   assert( s_future.empty() );
+//   assert( s_future1.empty() );
+//   assert( s_future2.empty() );
 //
 template<typename T>
 class sync_future : public util::movable_only {
