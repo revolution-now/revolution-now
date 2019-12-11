@@ -23,6 +23,9 @@ namespace fb;
 namespace fb.LandViewState;
 
   table none {}
+  table ui {
+    s_future : no_serial;
+  }
   table blinking_unit {
     id          : int;
     add_to_back : [int];
@@ -46,6 +49,7 @@ namespace fb.LandViewState;
 
   table LandViewState_t {
     none              : LandViewState.none;
+    ui                : LandViewState.ui;
     blinking_unit     : LandViewState.blinking_unit;
     input_ready       : LandViewState.input_ready;
     sliding_unit      : LandViewState.sliding_unit;

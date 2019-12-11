@@ -641,7 +641,7 @@ e_confirm yes_no( string_view title ) {
   return select_box_enum<e_confirm>( title );
 }
 
-void message_box( std::string_view msg ) {
+sync_future<> message_box( std::string_view msg ) {
   bool pressed_ok = false;
 
   auto button = make_unique<ButtonView>(
@@ -664,10 +664,12 @@ void message_box( std::string_view msg ) {
   // frame_loop( true, [&] { return pressed_ok; } );
 
   g_window_plane.wm.remove_window( win );
+
+  return make_future_with_value( monostate{} );
 }
 
-Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
-                                       bool allow_activation ) {
+sync_future<Vec<UnitSelection>> unit_selection_box(
+    Vec<UnitId> const& ids_, bool allow_activation ) {
   /* First we assemble this structure:
    *
    * OkCancelAdapter
@@ -851,7 +853,9 @@ Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
   for( auto r : res )
     lg.debug( "selection: {} --> {}", debug_string( r.id ),
               r.what );
-  return res;
+
+  sync_promise<Vec<UnitSelection>> s_promise;
+  return s_promise.get_future();
 }
 
 /****************************************************************

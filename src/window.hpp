@@ -33,10 +33,11 @@ Plane* window_plane();
 
 namespace rn::ui {
 
-void message_box( std::string_view msg );
+sync_future<> message_box( std::string_view msg );
 
 template<typename... Args>
-void message_box( std::string_view msg, Args&&... args ) {
+sync_future<> message_box( std::string_view msg,
+                           Args&&... args ) {
   return message_box(
       fmt::format( msg, std::forward<Args>( args )... ) );
 }
@@ -52,8 +53,8 @@ struct UnitSelection {
 };
 NOTHROW_MOVE( UnitSelection );
 
-Vec<UnitSelection> unit_selection_box( Vec<UnitId> const& ids_,
-                                       bool allow_activation );
+sync_future<Vec<UnitSelection>> unit_selection_box(
+    Vec<UnitId> const& ids_, bool allow_activation );
 
 /****************************************************************
 ** Validators

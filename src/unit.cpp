@@ -84,6 +84,10 @@ Opt<Vec<UnitId>> Unit::units_in_cargo() const {
   return cargo_.items_of_type<UnitId>();
 }
 
+bool Unit::has_orders() const {
+  return orders_ != e_unit_orders::none;
+}
+
 // Returns true if the unit's orders are such that the unit may
 // physically move this turn, either by way of player input or
 // automatically, assuming it has movement points.

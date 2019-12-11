@@ -59,9 +59,9 @@ Opt<e_music_player> g_active_mplayer;
 size_t      g_playlist_pos{};
 Vec<TuneId> g_playlist;
 
-bool g_autoplay{true};
+bool g_autoplay{ true };
 
-double g_master_volume{1.0};
+double g_master_volume{ 1.0 };
 
 #define ADD_MUSIC_PLAYER( enum, prefix )           \
   std::tie( g_mplayer_descs[e_music_player::enum], \
@@ -157,8 +157,8 @@ FlatMap<e_request, TuneVecDimensions>& dimensions_for_request() {
 }
 
 #define DIM( name, _, ... ) \
-  dims.name = {             \
-      EVAL( PP_MAP_PREPEND_NS( e_tune_##name, __VA_ARGS__ ) )};
+  dims.name = { EVAL(       \
+      PP_MAP_PREPEND_NS( e_tune_##name, __VA_ARGS__ ) ) };
 
 #define REQUEST( name, ... )                          \
   {                                                   \
@@ -777,8 +777,8 @@ void menu_music_set_player() {
   auto result = ui::select_box_enum<e_music_player>(
       "Select Music Player" );
   if( !set_music_player( result ) )
-    ui::message_box( "The \"{}\" music player is not available.",
-                     result );
+    (void)ui::message_box(
+        "The \"{}\" music player is not available.", result );
 }
 bool menu_music_set_player_enabled() {
   CONDUCTOR_INFO_OR_RETURN_FALSE( info );

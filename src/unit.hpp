@@ -96,6 +96,8 @@ public:
   // since not all units need to physically move or take orders
   // each turn (i.e., pioneer building).
   bool mv_pts_exhausted() const { return mv_pts_ == 0; }
+  // Returns true if the unit's orders are other than `none`.
+  bool has_orders() const;
   // Returns true if the unit's orders are such that the unit may
   // physically move this turn, either by way of player input or
   // automatically, assuming it has movement points.

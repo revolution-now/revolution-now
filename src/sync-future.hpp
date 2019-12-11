@@ -67,7 +67,7 @@ struct sync_shared_state_base {
 //   assert( s_future2.empty() );
 //
 template<typename T = std::monostate>
-class sync_future {
+class ND sync_future {
   using SharedStatePtr =
       std::shared_ptr<internal::sync_shared_state_base<T>>;
 
@@ -239,6 +239,14 @@ void advance_fsm_ui_state( Fsm* fsm, sync_future<>* s_future ) {
     fsm->pop();
     s_future->get_and_reset();
   }
+}
+
+// Returns a sync_future immediately containing the given value.
+template<typename T>
+sync_future<T> make_future_with_value( T&& value ) {
+  sync_promise<T> s_promise;
+  s_promise.set_value( std::forward<T>( value ) );
+  return s_promise.get_future();
 }
 
 } // namespace rn

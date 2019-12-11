@@ -61,10 +61,12 @@ Matrix<Color> g_demoted_pixels;
 // in order to change/advance the state of animation, although
 // the rendering functions themselves will never mutate them.
 adt_s_rn_(
-    LandViewState,    //
-    ( none ),         //
-    ( blinking_unit,  //
-      ( UnitId, id ), //
+    LandViewState,                              //
+    ( none ),                                   //
+    ( ui,                                       //
+      ( no_serial<sync_future<>>, s_future ) ), //
+    ( blinking_unit,                            //
+      ( UnitId, id ),                           //
       // Units that the player has asked to add to the orders
       // queue but at the end. This is useful if a unit that is
       // sentry'd has already been removed from the queue
@@ -443,6 +445,7 @@ void advance_landview_anim_state() {
     // We're not supposed to be animating anything.
     switch_( SG().mode.state() ) {
       case_( LandViewState::none ) {}
+      case_( LandViewState::ui ) {}
       case_( LandViewState::blinking_unit ) {}
       case_( LandViewState::input_ready ) {}
       case_( LandViewState::sliding_unit ) {
@@ -485,6 +488,7 @@ void advance_landview_anim_state() {
   // We should already be animating something.
   switch_( SG().mode.state() ) {
     case_( LandViewState::none ) { SHOULD_NOT_BE_HERE; }
+    case_( LandViewState::ui ) { SHOULD_NOT_BE_HERE; }
     case_( LandViewState::blinking_unit ) { SHOULD_NOT_BE_HERE; }
     case_( LandViewState::input_ready ) { SHOULD_NOT_BE_HERE; }
     case_( LandViewState::sliding_unit ) {}
@@ -542,8 +546,11 @@ void advance_landview_anim_state() {
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_landview_state( LandViewFsm& fsm ) {
-  switch_( fsm.state() ) {
+  switch_( fsm.mutable_state() ) {
     case_( LandViewState::none ) {}
+    case_( LandViewState::ui, s_future ) {
+      advance_fsm_ui_state( &fsm, &s_future.o );
+    }
     case_( LandViewState::blinking_unit ) {
       // FIXME: add blinking state here.
     }
@@ -583,6 +590,9 @@ void advance_landview_state( LandViewFsm& fsm ) {
   }
 }
 
+/****************************************************************
+** Tile Clicking
+*****************************************************************/
 // If this is default constructed then it should represent "no
 // actions need to be taken."
 struct ClickTileActions {
@@ -591,97 +601,125 @@ struct ClickTileActions {
 };
 NOTHROW_MOVE( ClickTileActions );
 
-// This gets called when the player clicks on a square containing
-// units and will clear their orders and/or activate them. The
-// allow_activate flag must be true in order for any units to ei-
-// ther be prioritized (meaning that the current blinking unit is
-// pre-empted by the new one) or added to the back of the queue
-// (so that they will move later in the turn). This is because
-// the allow_activate=false is used during end of turn when it
-// doesn't make sense to do any manipulation of the queue.
-ClickTileActions click_on_world_tile_impl(
-    Coord coord, bool allow_activate ) {
-  ClickTileActions result{};
-  lg.debug( "clicked on tile {}, allow_activate={}", coord,
-            allow_activate );
-  auto const& units = units_from_coord_recursive( coord );
-  if( units.size() == 0 ) {
-    lg.debug( "no units on square." );
-    return result;
+void ProcessClickTileActions( ClickTileActions const& actions ) {
+  if( !actions.add_to_back.empty() ) {
+    SG().mode.send_event( LandViewEvent::add_to_back{
+        /*ids=*/actions.add_to_back } );
   }
-  if( units.size() == 1 ) {
-    auto id = *units.begin();
-    lg.debug( "unit on square: {}", debug_string( id ) );
-    auto& unit = unit_from_id( id );
-    if( unit.orders() == e_unit_orders::none ) {
-      if( allow_activate ) {
-        lg.debug( "activating." );
-        result.bring_to_front.push_back( id );
-        return result;
-      } else {
-        // No action.
-        lg.debug( "no action." );
-        return result;
-      }
+  if( !actions.bring_to_front.empty() ) {
+    auto prioritize = actions.bring_to_front;
+    util::remove_if( prioritize,
+                     L( unit_from_id( _ ).mv_pts_exhausted() ) );
+    auto orig_size = actions.bring_to_front.size();
+    auto curr_size = prioritize.size();
+    CHECK( curr_size <= orig_size );
+    if( curr_size == 0 ) {
+      SG().mode.push( LandViewState::ui{
+          ui::message_box( "The selected unit(s) have already "
+                           "moved this turn." ) } );
     } else {
-      lg.debug( "clearing orders." );
-      unit.clear_orders();
-      if( allow_activate ) result.add_to_back.push_back( id );
-      return result;
-    }
-  } else {
-    TODO( "need to use async windows here." );
-    auto selections =
-        ui::unit_selection_box( units, allow_activate );
-    for( auto const& selection : selections ) {
-      auto& sel_unit = unit_from_id( selection.id );
-      switch( selection.what ) {
-        case +ui::e_unit_selection::clear_orders:
-          lg.debug( "clearing orders for {}.",
-                    debug_string( sel_unit ) );
-          sel_unit.clear_orders();
-          if( allow_activate )
-            result.add_to_back.push_back( selection.id );
-          break;
-        case +ui::e_unit_selection::activate:
-          CHECK( allow_activate );
-          lg.debug( "activating {}.", debug_string( sel_unit ) );
-          // Activation implies also to clear orders if they're
-          // not already cleared.
-          sel_unit.clear_orders();
-          result.bring_to_front.push_back( selection.id );
-          break;
+      SG().mode.send_event( LandViewEvent::input_prioritize{
+          /*prioritize=*/prioritize } );
+      if( curr_size < orig_size ) {
+        SG().mode.push( LandViewState::ui{
+            ui::message_box( "Some of the selected units have "
+                             "already moved this turn." ) } );
       }
     }
-    return result;
   }
 }
 
-// This function will handle all the actions that can happen as
-// a result of the player "clicking" on a world tile. This can
-// in- clude activiting units, popping up windows, etc.
-ClickTileActions click_on_world_tile( Coord coord ) {
-  using Res_t = ClickTileActions;
-  return matcher_( SG().mode.state(), ->, Res_t ) {
+ClickTileActions ClickTileActionsFromUnitSelections(
+    Vec<ui::UnitSelection> const& selections,
+    bool                          allow_activate ) {
+  ClickTileActions result{};
+  for( auto const& selection : selections ) {
+    auto& sel_unit = unit_from_id( selection.id );
+    switch( selection.what ) {
+      case +ui::e_unit_selection::clear_orders:
+        lg.debug( "clearing orders for {}.",
+                  debug_string( sel_unit ) );
+        sel_unit.clear_orders();
+        if( allow_activate )
+          result.add_to_back.push_back( selection.id );
+        break;
+      case +ui::e_unit_selection::activate:
+        CHECK( allow_activate );
+        lg.debug( "activating {}.", debug_string( sel_unit ) );
+        // Activation implies also to clear orders if they're
+        // not already cleared.
+        sel_unit.clear_orders();
+        result.bring_to_front.push_back( selection.id );
+        break;
+    }
+  }
+  return result;
+}
+
+// If there is a single unit on the square with orders and
+// allow_activate is false then the unit's orders will be
+// cleared.
+//
+// If there is a single unit on the square with orders and
+// allow_activate is true then the unit's orders will be cleared
+// and the unit will be placed at the back of the queue to poten-
+// tially move this turn.
+//
+// If there is a single unit on the square with no orders and
+// allow_activate is false then nothing is done.
+//
+// If there is a single unit on the square with no orders and
+// allow_activate is true then the unit will be prioritized
+// (moved to the front of the queue).
+//
+// If there are multiple units on the square then it will pop
+// open a window to allow the user to select and/or activate
+// them, with the results for each unit behaving in a similar way
+// to the single-unit case described above with respect to orders
+// and the allow_activate flag.
+sync_future<ClickTileActions> click_on_world_tile_impl(
+    Coord coord, bool allow_activate ) {
+  auto const& units = units_from_coord_recursive( coord );
+  if( units.size() == 0 )
+    return make_future_with_value<ClickTileActions>( {} );
+
+  sync_future<Vec<ui::UnitSelection>> s_future;
+  if( units.size() == 1 ) {
+    auto              id = *units.begin();
+    ui::UnitSelection selection{
+        id, ui::e_unit_selection::clear_orders };
+    if( !unit_from_id( id ).has_orders() && allow_activate )
+      selection.what = ui::e_unit_selection::activate;
+    s_future = make_future_with_value( vector{ selection } );
+  } else {
+    s_future = ui::unit_selection_box( units, allow_activate );
+  }
+
+  return s_future.then( LC( ClickTileActionsFromUnitSelections(
+      _, allow_activate ) ) );
+}
+
+// This function will handle all the actions that can happen as a
+// result of the player "clicking" on a world tile. This can in-
+// clude activiting units, popping up windows, etc.
+sync_future<ClickTileActions> click_on_world_tile(
+    Coord coord ) {
+  auto s_future = make_future_with_value<ClickTileActions>( {} );
+  if( !util::holds<LandViewAnim::none>( SG().anim ) )
+    return s_future;
+  switch_( SG().mode.state() ) {
     case_( LandViewState::none ) {
-      return click_on_world_tile_impl(
+      s_future = click_on_world_tile_impl(
           coord, /*allow_activate=*/false );
     }
     case_( LandViewState::blinking_unit ) {
-      return click_on_world_tile_impl( coord,
-                                       /*allow_activate=*/true );
+      s_future =
+          click_on_world_tile_impl( coord,
+                                    /*allow_activate=*/true );
     }
-    case_( LandViewState::input_ready ) {
-      return Res_t{}; //
-    }
-    case_( LandViewState::sliding_unit ) {
-      return Res_t{}; //
-    }
-    case_( LandViewState::depixelating_unit ) {
-      return Res_t{}; //
-    }
-    matcher_exhaustive;
+    switch_non_exhaustive;
   }
+  return s_future;
 }
 
 struct LandViewPlane : public Plane {
@@ -744,6 +782,7 @@ struct LandViewPlane : public Plane {
   e_input_handled input( input::event_t const& event ) override {
     bool hold = matcher_( SG().mode.state() ) {
       case_( LandViewState::none ) { return false; }
+      case_( LandViewState::ui ) { return false; }
       case_( LandViewState::sliding_unit ) { return true; }
       case_( LandViewState::depixelating_unit ) { return true; }
       case_( LandViewState::input_ready ) { return true; }
@@ -781,6 +820,7 @@ struct LandViewPlane : public Plane {
               default: break;
             }
           }
+          case_( LandViewState::ui ) {}
           case_( LandViewState::sliding_unit ) {}
           case_( LandViewState::depixelating_unit ) {}
           case_( LandViewState::input_ready ) {
@@ -862,52 +902,15 @@ struct LandViewPlane : public Plane {
           break_;
         auto maybe_tile =
             SG().viewport.screen_pixel_to_world_tile( val.pos );
-        // See if the cursor has clicked on a tile in the
-        // viewport.
+        // See if cursor has clicked on a tile in the viewport.
         if( maybe_tile.has_value() ) {
-          // Proposal:
-          //
-          // clang-format off
-          // ui_future<ClickTileActions> uif_click =
-          //     click_on_world_tile( *maybe_tile );
-          // ui_future<monostate> uif = std::move( uif_click )
-          //     .then( []( ClickTileActions const& cta ){
-          //
-          //       if( !actions.add_to_back.empty() ) {
-          //         SG().mode.send_event( LandViewEvent::add_to_back{
-          //           [>ids=<]actions.add_to_back } );
-          //       }
-          //       if( !actions.bring_to_front.empty() ) {
-          //         auto prioritize = actions.bring_to_front;
-          //         util::remove_if(
-          //           prioritize,
-          //           L( unit_from_id( _ ).mv_pts_exhausted() ) );
-          //         auto orig_size = actions.bring_to_front.size();
-          //         auto curr_size = prioritize.size();
-          //         CHECK( curr_size <= orig_size );
-          //         if( curr_size == 0 ) {
-          //           SG().mode.push( LandViewState::ui{
-          //             ui::message_box(
-          //               "The selected unit(s) have already moved "
-          //               "this turn." )
-          //           } );
-          //         } else {
-          //           SG().mode.send_event(
-          //             LandViewEvent::input_prioritize{
-          //               [>prioritize=<]prioritize } );
-          //           if( curr_size < orig_size ) {
-          //             SG().mode.push( LandViewState::ui{
-          //               ui::message_box(
-          //                 "Some of the selected units have already "
-          //                 "moved this turn." );
-          //             } );
-          //           }
-          //         }
-          //       }
-          //
-          //     });
-          // SG().mode.push( LandViewState::ui{ std::move( uif ) });
-          // clang-format on
+          sync_future<> s_future =
+              click_on_world_tile( *maybe_tile )
+                  .then( []( ClickTileActions const& actions ) {
+                    ProcessClickTileActions( actions );
+                    return monostate{};
+                  } );
+          SG().mode.push( LandViewState::ui{ s_future } );
           handled = e_input_handled::yes;
         }
       }
