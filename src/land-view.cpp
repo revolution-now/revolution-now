@@ -63,7 +63,7 @@ Matrix<Color> g_demoted_pixels;
 adt_s_rn_(
     LandViewState,                              //
     ( none ),                                   //
-    ( ui,                                       //
+    ( future,                                   //
       ( no_serial<sync_future<>>, s_future ) ), //
     ( blinking_unit,                            //
       ( UnitId, id ),                           //
@@ -445,7 +445,7 @@ void advance_landview_anim_state() {
     // We're not supposed to be animating anything.
     switch_( SG().mode.state() ) {
       case_( LandViewState::none ) {}
-      case_( LandViewState::ui ) {}
+      case_( LandViewState::future ) {}
       case_( LandViewState::blinking_unit ) {}
       case_( LandViewState::input_ready ) {}
       case_( LandViewState::sliding_unit ) {
@@ -488,7 +488,7 @@ void advance_landview_anim_state() {
   // We should already be animating something.
   switch_( SG().mode.state() ) {
     case_( LandViewState::none ) { SHOULD_NOT_BE_HERE; }
-    case_( LandViewState::ui ) { SHOULD_NOT_BE_HERE; }
+    case_( LandViewState::future ) { SHOULD_NOT_BE_HERE; }
     case_( LandViewState::blinking_unit ) { SHOULD_NOT_BE_HERE; }
     case_( LandViewState::input_ready ) { SHOULD_NOT_BE_HERE; }
     case_( LandViewState::sliding_unit ) {}
@@ -548,7 +548,7 @@ void advance_landview_anim_state() {
 void advance_landview_state( LandViewFsm& fsm ) {
   switch_( fsm.mutable_state() ) {
     case_( LandViewState::none ) {}
-    case_( LandViewState::ui, s_future ) {
+    case_( LandViewState::future, s_future ) {
       advance_fsm_ui_state( &fsm, &s_future.o );
     }
     case_( LandViewState::blinking_unit ) {
@@ -614,14 +614,14 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
     auto curr_size = prioritize.size();
     CHECK( curr_size <= orig_size );
     if( curr_size == 0 ) {
-      SG().mode.push( LandViewState::ui{
+      SG().mode.push( LandViewState::future{
           ui::message_box( "The selected unit(s) have already "
                            "moved this turn." ) } );
     } else {
       SG().mode.send_event( LandViewEvent::input_prioritize{
           /*prioritize=*/prioritize } );
       if( curr_size < orig_size ) {
-        SG().mode.push( LandViewState::ui{
+        SG().mode.push( LandViewState::future{
             ui::message_box( "Some of the selected units have "
                              "already moved this turn." ) } );
       }
@@ -783,7 +783,7 @@ struct LandViewPlane : public Plane {
   e_input_handled input( input::event_t const& event ) override {
     bool hold = matcher_( SG().mode.state() ) {
       case_( LandViewState::none ) { return false; }
-      case_( LandViewState::ui ) { return false; }
+      case_( LandViewState::future ) { return false; }
       case_( LandViewState::sliding_unit ) { return true; }
       case_( LandViewState::depixelating_unit ) { return true; }
       case_( LandViewState::input_ready ) { return true; }
@@ -821,7 +821,7 @@ struct LandViewPlane : public Plane {
               default: break;
             }
           }
-          case_( LandViewState::ui ) {}
+          case_( LandViewState::future ) {}
           case_( LandViewState::sliding_unit ) {}
           case_( LandViewState::depixelating_unit ) {}
           case_( LandViewState::input_ready ) {
@@ -904,7 +904,7 @@ struct LandViewPlane : public Plane {
         if( auto maybe_tile =
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
-          SG().mode.push( LandViewState::ui{
+          SG().mode.push( LandViewState::future{
               click_on_world_tile( *maybe_tile )
                   .consume( ProcessClickTileActions ) } );
           handled = e_input_handled::yes;

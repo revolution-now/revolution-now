@@ -262,7 +262,7 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
       //   CHECK( maybe_intent.has_value(),
       //          "no handler for orders {}", val.orders );
       //   g_player_intent = std::move( *maybe_intent );
-      //   fsm.push( UnitInputState::ui{
+      //   fsm.push( UnitInputState::future{
       //       confirm_explain( *g_player_intent )
       //           .store( &val.confirmed ) } );
       //   break_;
@@ -295,8 +295,8 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
       //               );
       //             }
       //           } );
-      //   fsm.push( UnitInputState::ui{ std::move( uif ) } );
-      //   break_;
+      //   fsm.push( UnitInputState::future{ std::move( uif ) }
+      //   ); break_;
       // }
 
       // if( landview_is_animating() ) { break_; }

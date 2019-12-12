@@ -1971,7 +1971,7 @@ NOTHROW_MOVE( EuroViewDragAndDrop );
 *****************************************************************/
 adt_rn_( EuroviewState,                  //
          ( normal ),                     //
-         ( ui,                           //
+         ( future,                       //
            ( sync_future<>, s_future ) ) //
 );
 
@@ -1995,7 +1995,7 @@ FSM_DEFINE_FORMAT_RN_( Euroview );
 void advance_euroview_state( EuroviewFsm& fsm ) {
   switch_( fsm.mutable_state() ) {
     case_( EuroviewState::normal ) {}
-    case_( EuroviewState::ui, s_future ) {
+    case_( EuroviewState::future, s_future ) {
       advance_fsm_ui_state( &fsm, &s_future );
     }
     switch_exhaustive;
@@ -2148,7 +2148,7 @@ struct EuropePlane : public Plane {
                   result.value_or( 0 ) );
             } );
 
-    fsm_.push( EuroviewState::ui{ s_future } );
+    fsm_.push( EuroviewState::future{ s_future } );
   }
 
   // ------------------------------------------------------------
