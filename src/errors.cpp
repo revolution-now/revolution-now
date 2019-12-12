@@ -71,16 +71,9 @@ void print_stack_trace( StackTrace const& st_, int skip ) {
 }
 
 void die( char const* file, int line, std::string_view msg ) {
-#ifdef STACK_TRACE_ON
-  (void)file;
-  (void)line;
-  std::string result( msg );
-#else
-  std::string result =
-      fmt::format( "\n{}:{}:\n{}", file, line, msg );
-#endif
-  auto st = stack_trace_here();
-  throw exception_with_bt( result, std::move( st ) );
+  throw exception_with_bt(
+      fmt::format( "{} ({}:{})", msg, file, line ),
+      stack_trace_here() );
 }
 
 namespace detail {

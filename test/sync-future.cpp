@@ -127,6 +127,20 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( !s_future3.ready() );
 }
 
+TEST_CASE( "[sync-future] consume" ) {
+  bool run = false;
+
+  auto s_future = rn::make_sync_future<int>( 5 ).consume(
+      [&]( int ) { run = true; } );
+
+  static_assert(
+      std::is_same_v<decltype( s_future ), sync_future<>> );
+
+  REQUIRE( run == false );
+  s_future.get_and_reset();
+  REQUIRE( run == true );
+}
+
 TEST_CASE( "[sync-future] promise api basic api" ) {
   sync_promise<int> s_promise;
   REQUIRE( !s_promise.has_value() );

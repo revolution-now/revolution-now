@@ -2142,11 +2142,10 @@ struct EuropePlane : public Plane {
             /*msg=*/text,
             /*min=*/0,
             /*max=*/100 )
-            .then( [&]( Opt<int> result ) {
+            .consume( [&]( Opt<int> result ) {
               lg.debug( "received quantity: {}", result );
               drag_n_drop_.receive_quantity(
                   result.value_or( 0 ) );
-              return monostate{};
             } );
 
     fsm_.push( EuroviewState::ui{ s_future } );

@@ -665,7 +665,7 @@ sync_future<> message_box( std::string_view msg ) {
 
   g_window_plane.wm.remove_window( win );
 
-  return make_future_with_value( monostate{} );
+  return make_sync_future<monostate>();
 }
 
 sync_future<Vec<UnitSelection>> unit_selection_box(

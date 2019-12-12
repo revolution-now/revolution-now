@@ -76,9 +76,7 @@ public:
 
   // This constructor should not be used by client code.
   explicit sync_future( SharedStatePtr shared_state )
-    : shared_state_{ shared_state } {
-    CHECK( waiting() );
-  }
+    : shared_state_{ shared_state } {}
 
   bool operator==( sync_future<T> const& rhs ) const {
     return shared_state_.get() == rhs.shared_state_.get();
@@ -148,6 +146,15 @@ public:
             shared_state_, std::forward<Func>( func ) ) );
   }
 
+  template<typename Func>
+  sync_future<> consume( Func&& func ) {
+    return then( [func = std::forward<Func>( func )](
+                     auto const& value ) {
+      func( value );
+      return std::monostate{};
+    } );
+  }
+
   // Returns a future object whose result is a monostate. When
   // the monostate is retrieved with get_and_reset then a side
   // effect will be performed, namely to store the result into
@@ -156,9 +163,8 @@ public:
     CHECK( !empty(),
            "attempting to attach a continuation to an empty "
            "sync_future." );
-    return then( [destination]( T const& value ) {
+    return consume( [destination]( T const& value ) {
       *destination = value;
-      return std::monostate{};
     } );
   }
 
@@ -221,6 +227,13 @@ public:
     shared_state_->maybe_value = std::move( value );
   }
 
+  template<typename... Args>
+  void set_value_emplace( Args&&... args ) {
+    CHECK( !has_value() );
+    shared_state_->maybe_value.emplace(
+        std::forward<Args>( args )... );
+  }
+
   sync_future<T> get_future() const {
     return sync_future<T>( shared_state_ );
   }
@@ -242,10 +255,10 @@ void advance_fsm_ui_state( Fsm* fsm, sync_future<>* s_future ) {
 }
 
 // Returns a sync_future immediately containing the given value.
-template<typename T>
-sync_future<T> make_future_with_value( T&& value ) {
+template<typename T, typename... Args>
+sync_future<T> make_sync_future( Args&&... args ) {
   sync_promise<T> s_promise;
-  s_promise.set_value( std::forward<T>( value ) );
+  s_promise.set_value_emplace( std::forward<Args>( args )... );
   return s_promise.get_future();
 }
 

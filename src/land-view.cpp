@@ -681,7 +681,7 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
     Coord coord, bool allow_activate ) {
   auto const& units = units_from_coord_recursive( coord );
   if( units.size() == 0 )
-    return make_future_with_value<ClickTileActions>( {} );
+    return make_sync_future<ClickTileActions>();
 
   sync_future<Vec<ui::UnitSelection>> s_future;
   if( units.size() == 1 ) {
@@ -690,7 +690,8 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
         id, ui::e_unit_selection::clear_orders };
     if( !unit_from_id( id ).has_orders() && allow_activate )
       selection.what = ui::e_unit_selection::activate;
-    s_future = make_future_with_value( vector{ selection } );
+    s_future = make_sync_future<Vec<ui::UnitSelection>>(
+        vector{ selection } );
   } else {
     s_future = ui::unit_selection_box( units, allow_activate );
   }
@@ -704,7 +705,7 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
 // clude activiting units, popping up windows, etc.
 sync_future<ClickTileActions> click_on_world_tile(
     Coord coord ) {
-  auto s_future = make_future_with_value<ClickTileActions>( {} );
+  auto s_future = make_sync_future<ClickTileActions>();
   if( !util::holds<LandViewAnim::none>( SG().anim ) )
     return s_future;
   switch_( SG().mode.state() ) {
@@ -900,17 +901,12 @@ struct LandViewPlane : public Plane {
       case_( input::mouse_button_event_t ) {
         if( val.buttons != input::e_mouse_button_event::left_up )
           break_;
-        auto maybe_tile =
-            SG().viewport.screen_pixel_to_world_tile( val.pos );
-        // See if cursor has clicked on a tile in the viewport.
-        if( maybe_tile.has_value() ) {
-          sync_future<> s_future =
+        if( auto maybe_tile =
+                SG().viewport.screen_pixel_to_world_tile(
+                    val.pos ) ) {
+          SG().mode.push( LandViewState::ui{
               click_on_world_tile( *maybe_tile )
-                  .then( []( ClickTileActions const& actions ) {
-                    ProcessClickTileActions( actions );
-                    return monostate{};
-                  } );
-          SG().mode.push( LandViewState::ui{ s_future } );
+                  .consume( ProcessClickTileActions ) } );
           handled = e_input_handled::yes;
         }
       }
