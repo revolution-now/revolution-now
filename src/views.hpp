@@ -143,10 +143,10 @@ public:
     }
   };
 
-  iter  begin() { return iter{this, 0}; }
-  iter  end() { return iter{this, count()}; }
-  citer begin() const { return citer{this, 0}; }
-  citer end() const { return citer{this, count()}; }
+  iter  begin() { return iter{ this, 0 }; }
+  iter  end() { return iter{ this, count() }; }
+  citer begin() const { return citer{ this, 0 }; }
+  citer end() const { return citer{ this, count() }; }
 
 private:
   bool dispatch_mouse_event( input::event_t const& event );
@@ -328,7 +328,7 @@ protected:
 private:
   void render( std::string const& label, Delta size_in_blocks );
 
-  button_state state_{button_state::up};
+  button_state state_{ button_state::up };
 
   e_type type_;
 
@@ -346,7 +346,7 @@ public:
   void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override {
-    return Delta{1_w, 1_h} * lookup_sprite( tile_ ).scale;
+    return Delta{ 1_w, 1_h } * lookup_sprite( tile_ ).scale;
   }
 
   // Implement ui::Object
@@ -484,6 +484,20 @@ private:
   // Cache these to avoid dynamic_casts.
   ButtonView* ok_ref_;
   ButtonView* cancel_ref_;
+};
+
+class OkButtonView : public CompositeSingleView {
+public:
+  OkButtonView( ButtonView::OnClickFunc on_ok );
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  ButtonView* ok_button() { return ok_ref_; }
+
+private:
+  // Cache this to avoid dynamic_casts.
+  ButtonView* ok_ref_;
 };
 
 // VerticalArrayView: a view that wraps a list of views and dis-

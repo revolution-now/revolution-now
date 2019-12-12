@@ -511,6 +511,48 @@ void ok_cancel_window_builder(
   } );
 }
 
+using GetOkBoxSubjectViewFunc = function<UPtr<View>(
+    function<void( bool )> /*enable_ok_button*/ //
+    )>;
+
+template<typename ResultT>
+void ok_box_window_builder(
+    string_view title, function<ResultT()> get_result,
+    function<bool( ResultT const& )> validator,
+    // on_result must be copyable.
+    function<void( ResultT )> on_result,
+    GetOkBoxSubjectViewFunc   get_view_fn ) {
+  async_window_builder( title, [=]( auto* win ) {
+    auto ok_button_view = make_unique<OkButtonView>(
+        /*on_ok=*/
+        [win, on_result, validator{ std::move( validator ) },
+         get_result{ std::move( get_result ) }] {
+          lg.trace( "selected ok." );
+          auto const& proposed = get_result();
+          if( validator( proposed ) ) {
+            on_result( proposed );
+            win->close_window();
+          } else {
+            lg.debug( "{} is invalid.", proposed );
+          }
+        } );
+    auto* p_ok_button      = ok_button_view->ok_button();
+    auto  enable_ok_button = [p_ok_button]( bool enable ) {
+      p_ok_button->enable( enable );
+    };
+    auto subject_view = get_view_fn(
+        /*enable_ok_button=*/std::move( enable_ok_button ) //
+    );
+    Vec<UPtr<View>> view_vec;
+    view_vec.emplace_back( std::move( subject_view ) );
+    view_vec.emplace_back( std::move( ok_button_view ) );
+    auto view = make_unique<VerticalArrayView>(
+        std::move( view_vec ),
+        VerticalArrayView::align::center );
+    return view;
+  } );
+}
+
 void ok_cancel( string_view                   msg,
                 function<void( e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
@@ -539,6 +581,34 @@ void ok_cancel( string_view                   msg,
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
       /*on_result=*/std::move( on_ok_cancel_result ),
+      /*get_view_fn=*/std::move( get_view_fn ) //
+  );
+}
+
+void ok_box( string_view msg, function<void()> on_closing ) {
+  auto on_ok_closing = [on_closing{ std::move( on_closing ) }](
+                           int ) { on_closing(); };
+  TextMarkupInfo m_info{
+      /*normal=*/config_ui.dialog_text.normal,
+      /*highlight=*/config_ui.dialog_text.highlighted };
+  TextReflowInfo r_info{
+      /*max_cols=*/config_ui.dialog_text.columns };
+  auto view =
+      make_unique<TextView>( string( msg ), m_info, r_info );
+
+  // We can capture by reference here because the function will
+  // be called before this scope exits.
+  GetOkCancelSubjectViewFunc get_view_fn =
+      [&]( function<void( bool )> /*enable_ok_button*/ ) {
+        return std::move( view );
+      };
+
+  // Use <int> for lack of anything better.
+  ok_box_window_builder<int>(
+      /*title=*/"Question",
+      /*get_result=*/L0( 0 ),
+      /*validator=*/L( _ == 0 ), // always true.
+      /*on_result=*/std::move( on_ok_closing ),
       /*get_view_fn=*/std::move( get_view_fn ) //
   );
 }
@@ -641,31 +711,12 @@ e_confirm yes_no( string_view title ) {
   return select_box_enum<e_confirm>( title );
 }
 
-sync_future<> message_box( std::string_view msg ) {
-  bool pressed_ok = false;
-
-  auto button = make_unique<ButtonView>(
-      "OK", Delta{ 2_h, 8_w }, [&] { pressed_ok = true; } );
-
-  vector<unique_ptr<View>> view_vec;
-  view_vec.emplace_back( make_unique<OneLineStringView>(
-      string( msg ), Color::banana(), /*shadow=*/false ) );
-  view_vec.emplace_back( std::move( button ) );
-
-  auto msg_view = make_unique<VerticalArrayView>(
-      std::move( view_vec ), VerticalArrayView::align::center );
-
-  UPtr<View> view( std::move( msg_view ) );
-  autopad( view, /*use_fancy=*/false );
-
-  auto* win = g_window_plane.wm.add_window( string( "Alert!" ),
-                                            move( view ) );
-  NOT_IMPLEMENTED;
-  // frame_loop( true, [&] { return pressed_ok; } );
-
-  g_window_plane.wm.remove_window( win );
-
-  return make_sync_future<monostate>();
+sync_future<> message_box( string_view msg ) {
+  sync_promise<monostate> s_promise;
+  ok_box( msg, /*on_closing=*/[s_promise]() mutable {
+    s_promise.set_value( monostate{} );
+  } );
+  return s_promise.get_future();
 }
 
 sync_future<Vec<UnitSelection>> unit_selection_box(

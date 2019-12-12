@@ -50,7 +50,7 @@ void CompositeView::draw( Texture& tx, Coord coord ) const {
 Delta CompositeView::delta() const {
   auto uni0n = L2( _1.uni0n( _2.view->rect( _2.coord ) ) );
   auto rect  = accumulate( begin(), end(), Rect{}, uni0n );
-  return {rect.w, rect.h};
+  return { rect.w, rect.h };
 }
 
 bool CompositeView::dispatch_mouse_event(
@@ -132,14 +132,14 @@ void CompositeView::on_mouse_enter( Coord to ) {
 
 PositionedView CompositeView::at( int idx ) {
   ObserverPtr<View> view{
-      const_cast<View*>( mutable_at( idx ).get() )};
-  return {view, pos_of( idx )};
+      const_cast<View*>( mutable_at( idx ).get() ) };
+  return { view, pos_of( idx ) };
 }
 
 PositionedViewConst CompositeView::at( int idx ) const {
   auto*              this_ = const_cast<CompositeView*>( this );
-  ObserverCPtr<View> view{this_->mutable_at( idx ).get()};
-  return {view, pos_of( idx )};
+  ObserverCPtr<View> view{ this_->mutable_at( idx ).get() };
+  return { view, pos_of( idx ) };
 }
 
 CompositeSingleView::CompositeSingleView( UPtr<View> view,
@@ -204,8 +204,8 @@ ButtonBaseView::ButtonBaseView( string label, e_type type )
   auto info = TextMarkupInfo{}; // Should be irrelevant
   auto size = render_text_markup( font::standard(), info, label )
                   .size()
-                  .round_up( Scale{8} );
-  auto size_in_blocks = size / Scale{8};
+                  .round_up( Scale{ 8 } );
+  auto size_in_blocks = size / Scale{ 8 };
   size_in_blocks.w += 2_w;
   render( label, size_in_blocks );
 }
@@ -258,7 +258,7 @@ void ButtonBaseView::draw( Texture& tx, Coord coord ) const {
 
 void ButtonBaseView::render( string const& label,
                              Delta         size_in_blocks ) {
-  auto pixel_size = size_in_blocks * Scale{8};
+  auto pixel_size = size_in_blocks * Scale{ 8 };
   pressed_        = create_texture_transparent( pixel_size );
   hover_          = create_texture_transparent( pixel_size );
   unpressed_      = create_texture_transparent( pixel_size );
@@ -296,14 +296,15 @@ void ButtonBaseView::render( string const& label,
       g_tile::button_down_ur, g_tile::button_down_ll,
       g_tile::button_down_lr );
 
-  auto info_normal = TextMarkupInfo{Color::wood().shaded( 3 ),
-                                    /*highlight=*/{}};
+  auto info_normal = TextMarkupInfo{ Color::wood().shaded( 3 ),
+                                     /*highlight=*/{} };
   auto info_hover =
-      TextMarkupInfo{Color::banana(), /*highlight=*/{}};
-  auto info_pressed = TextMarkupInfo{Color::banana().shaded( 2 ),
-                                     /*highlight=*/{}};
-  auto info_disabled = TextMarkupInfo{config_palette.grey.n50,
-                                      /*highlight=*/{}};
+      TextMarkupInfo{ Color::banana(), /*highlight=*/{} };
+  auto info_pressed =
+      TextMarkupInfo{ Color::banana().shaded( 2 ),
+                      /*highlight=*/{} };
+  auto info_disabled = TextMarkupInfo{ config_palette.grey.n50,
+                                       /*highlight=*/{} };
 
   auto const& tx_normal =
       render_text_markup( font::standard(), info_normal, label );
@@ -317,7 +318,7 @@ void ButtonBaseView::render( string const& label,
   auto unpressed_coord =
       centered( tx_normal.size(), unpressed_.rect() ) + 1_w -
       1_h;
-  auto pressed_coord = unpressed_coord + Delta{-1_w, 1_h};
+  auto pressed_coord = unpressed_coord + Delta{ -1_w, 1_h };
 
   copy_texture( tx_normal, unpressed_, unpressed_coord );
   copy_texture( tx_hover, hover_, unpressed_coord );
@@ -332,20 +333,20 @@ void SpriteView::draw( Texture& tx, Coord coord ) const {
 LineEditorView::LineEditorView( e_font font, W pixels_wide,
                                 OnChangeFunc on_change, Color fg,
                                 Color bg, string_view prompt )
-  : prompt_{prompt},
-    fg_{fg},
-    bg_{bg},
-    font_{font},
-    on_change_{std::move( on_change )},
+  : prompt_{ prompt },
+    fg_{ fg },
+    bg_{ bg },
+    font_{ font },
+    on_change_{ std::move( on_change ) },
     line_editor_{},
-    input_view_{1},
+    input_view_{ 1 },
     background_{},
     current_rendering_{},
     cursor_width_{} {
   string      text( 100, 'X' );
   auto const& X_tx = render_text( font, Color::wood(), text );
-  cursor_width_    = X_tx.size().w / SX{int( text.size() )};
-  set_pixel_size( Delta{pixels_wide, X_tx.size().h} );
+  cursor_width_    = X_tx.size().w / SX{ int( text.size() ) };
+  set_pixel_size( Delta{ pixels_wide, X_tx.size().h } );
 }
 
 LineEditorView::LineEditorView( int          chars_wide,
@@ -365,12 +366,12 @@ void LineEditorView::set_pixel_size( Delta const& size ) {
   render_background( size );
   // This doesn't work precisely because 1) the font may not be
   // fixed width, and 2) cursor_width_ is just an average.
-  input_view_ = LineEditorInputView{size.w / cursor_width_};
+  input_view_ = LineEditorInputView{ size.w / cursor_width_ };
   update_visible_string();
 }
 
 void LineEditorView::render_background( Delta const& size ) {
-  background_ = Texture::create( size + Delta{2_w, 2_h} );
+  background_ = Texture::create( size + Delta{ 2_w, 2_h } );
   background_.fill( bg_ );
 }
 
@@ -383,7 +384,7 @@ void LineEditorView::draw( Texture& tx, Coord coord ) const {
   auto        copy_size = min( bounds, text_tx.size() );
   auto        from_rect = Rect::from( Coord{}, copy_size );
   auto        to_rect =
-      Rect::from( coord + Delta{1_w, 1_h}, copy_size );
+      Rect::from( coord + Delta{ 1_w, 1_h }, copy_size );
   copy_texture( text_tx, tx, from_rect, to_rect );
 
   auto rel_pos = input_view_.rel_pos( line_editor_.pos() ) +
@@ -393,12 +394,12 @@ void LineEditorView::draw( Texture& tx, Coord coord ) const {
                               all_chars.begin() + rel_pos );
   auto   rel_cursor_pixels =
       rel_pos == 0
-          ? W{0} // render_text might return 1_w in this case.
+          ? W{ 0 } // render_text might return 1_w in this case.
           : render_text( font_, fg_, string_up_to_cursor )
                 .size()
                 .w;
-  Rect cursor{coord.x + 1_w + rel_cursor_pixels, coord.y + 1_h,
-              cursor_width_, background_.size().h - 2_h};
+  Rect cursor{ coord.x + 1_w + rel_cursor_pixels, coord.y + 1_h,
+               cursor_width_, background_.size().h - 2_h };
   render_rect( tx, fg_, cursor );
 }
 
@@ -437,26 +438,26 @@ void LineEditorView::set( std::string_view new_string,
 PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
                           bool l, bool r, bool u, bool d )
   : CompositeSingleView( std::move( view ),
-                         Coord{} +                     //
-                             ( l ? W{pixels} : 0_w ) + //
-                             ( u ? H{pixels} : 0_h ) ),
+                         Coord{} +                       //
+                             ( l ? W{ pixels } : 0_w ) + //
+                             ( u ? H{ pixels } : 0_h ) ),
     pixels_( pixels ),
     l_( l ),
     r_( r ),
     u_( u ),
     d_( d ),
     delta_( single()->delta() + //
-            ( l ? W{pixels_} : 0_w ) +
-            ( u ? H{pixels_} : 0_h ) + //
-            ( r ? W{pixels_} : 0_w ) + //
-            ( d ? H{pixels_} : 0_h ) ) {}
+            ( l ? W{ pixels_ } : 0_w ) +
+            ( u ? H{ pixels_ } : 0_h ) + //
+            ( r ? W{ pixels_ } : 0_w ) + //
+            ( d ? H{ pixels_ } : 0_h ) ) {}
 
 void PaddingView::notify_children_updated() {
   delta_ = single()->delta() + //
-           ( l_ ? W{pixels_} : 0_w ) +
-           ( u_ ? H{pixels_} : 0_h ) + //
-           ( r_ ? W{pixels_} : 0_w ) + //
-           ( d_ ? H{pixels_} : 0_h );
+           ( l_ ? W{ pixels_ } : 0_w ) +
+           ( u_ ? H{ pixels_ } : 0_h ) + //
+           ( r_ ? W{ pixels_ } : 0_w ) + //
+           ( d_ ? H{ pixels_ } : 0_h );
 }
 
 // This prevents more padding from being added (this is already
@@ -539,7 +540,7 @@ void ButtonView::blink( bool enabled ) {
   }
 }
 
-constexpr Delta ok_cancel_button_size_blocks{2_h, 8_w};
+constexpr Delta ok_cancel_button_size_blocks{ 2_h, 8_w };
 
 OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
                             ButtonView::OnClickFunc on_cancel ) {
@@ -568,6 +569,14 @@ UPtr<View>& OkCancelView::mutable_at( int idx ) {
   return ( idx == 0 ) ? ok_ : cancel_;
 }
 
+OkButtonView::OkButtonView( ButtonView::OnClickFunc on_ok )
+  : CompositeSingleView( make_unique<ButtonView>(
+                             "OK", ok_cancel_button_size_blocks,
+                             std::move( on_ok ) ),
+                         Coord{} ) {
+  ok_ref_ = single().get()->cast<ButtonView>();
+}
+
 VerticalArrayView::VerticalArrayView(
     vector<unique_ptr<View>> views, align how )
   : alignment_( how ) {
@@ -594,7 +603,7 @@ void VerticalArrayView::recompute_child_positions() {
   for( int i = 0; i < count(); ++i ) {
     auto& view = mutable_at( i );
     auto  size = view->delta();
-    X     x{0};
+    X     x{ 0 };
     switch( alignment_ ) {
       case align::left: x = 0_x; break;
       case align::right: x = 0_x + ( max_width - size.w ); break;
@@ -605,7 +614,7 @@ void VerticalArrayView::recompute_child_positions() {
     CHECK( x >= 0_x );
     CHECK( x <= 0_x + max_width );
     OwningPositionedView pos_view( std::move( view ),
-                                   Coord{x, y} );
+                                   Coord{ x, y } );
     ( *this )[i] = std::move( pos_view );
     y += size.h;
   }
@@ -637,7 +646,7 @@ void HorizontalArrayView::recompute_child_positions() {
   for( int i = 0; i < count(); ++i ) {
     auto& view = mutable_at( i );
     auto  size = view->delta();
-    Y     y{0};
+    Y     y{ 0 };
     switch( alignment_ ) {
       case align::up: y = 0_y; break;
       case align::down: y = 0_y + ( max_height - size.h ); break;
@@ -648,7 +657,7 @@ void HorizontalArrayView::recompute_child_positions() {
     CHECK( y >= 0_y );
     CHECK( y <= 0_y + max_height );
     OwningPositionedView pos_view( std::move( view ),
-                                   Coord{x, y} );
+                                   Coord{ x, y } );
     ( *this )[i] = std::move( pos_view );
     x += size.w;
   }
@@ -669,7 +678,7 @@ OkCancelAdapterView::OkCancelAdapterView( UPtr<View>  view,
         VerticalArrayView::align::center ) {}
 
 OptionSelectItemView::OptionSelectItemView( string msg )
-  : active_{e_option_active::inactive},
+  : active_{ e_option_active::inactive },
     background_active_( make_unique<SolidRectView>(
         config_palette.yellow.sat1.lum11 ) ),
     background_inactive_( make_unique<SolidRectView>(
@@ -727,12 +736,12 @@ void OptionSelectItemView::grow_to( W w ) {
 
 OptionSelectView::OptionSelectView( Vec<Str> const& options,
                                     int initial_selection )
-  : selected_{initial_selection}, has_confirmed{false} {
+  : selected_{ initial_selection }, has_confirmed{ false } {
   CHECK( options.size() > 0 );
   CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
 
   Coord so_far{};
-  W     min_width{0};
+  W     min_width{ 0 };
   for( auto const& option : options ) {
     auto view   = make_unique<OptionSelectItemView>( option );
     auto width  = view->delta().w;
@@ -757,7 +766,7 @@ ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
          "item '{}' is out of bounds", item );
   auto* view    = at( item ).view.get();
   auto* o_s_i_v = view->cast<OptionSelectItemView>();
-  return ObserverPtr<OptionSelectItemView>{o_s_i_v};
+  return ObserverPtr<OptionSelectItemView>{ o_s_i_v };
 }
 
 // TODO: duplication
@@ -767,7 +776,7 @@ ObserverCPtr<OptionSelectItemView> OptionSelectView::get_view(
          "item '{}' is out of bounds", item );
   auto* view    = at( item ).view.get();
   auto* o_s_i_v = view->cast<OptionSelectItemView>();
-  return ObserverCPtr<OptionSelectItemView>{o_s_i_v};
+  return ObserverCPtr<OptionSelectItemView>{ o_s_i_v };
 }
 
 void OptionSelectView::set_selected( int item ) {
@@ -844,20 +853,21 @@ BorderView::BorderView( UPtr<View> view, Color color,
                         int padding, bool on_initially )
   : CompositeSingleView(
         std::move( view ),
-        Coord{1_x + W{padding}, 1_y + H{padding}} ),
+        Coord{ 1_x + W{ padding }, 1_y + H{ padding } } ),
     color_( color ),
     on_( on_initially ),
     padding_( padding ) {}
 
 Delta BorderView::delta() const {
   return this->CompositeSingleView::delta() +
-         Delta{( 1_w + W{padding_} ) * 2_sx,
-               ( 1_h + H{padding_} ) * 2_sy};
+         Delta{ ( 1_w + W{ padding_ } ) * 2_sx,
+                ( 1_h + H{ padding_ } ) * 2_sy };
 }
 
 void BorderView::draw( Texture& tx, Coord coord ) const {
   this->CompositeSingleView::draw(
-      tx, coord + Delta{1_w + W{padding_}, 1_h + H{padding_}} );
+      tx, coord + Delta{ 1_w + W{ padding_ },
+                         1_h + H{ padding_ } } );
   if( on_ )
     render_rect( tx, color_, Rect::from( coord, delta() ) );
 }
