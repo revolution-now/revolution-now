@@ -736,7 +736,7 @@ void OptionSelectItemView::grow_to( W w ) {
 
 OptionSelectView::OptionSelectView( Vec<Str> const& options,
                                     int initial_selection )
-  : selected_{ initial_selection }, has_confirmed{ false } {
+  : selected_{ initial_selection } {
   CHECK( options.size() > 0 );
   CHECK( selected_ >= 0 && selected_ < int( options.size() ) );
 
@@ -807,11 +807,6 @@ bool OptionSelectView::on_key(
     case ::SDLK_KP_2:
       if( selected_ < count() - 1 )
         set_selected( selected_ + 1 );
-      return true;
-      break;
-    case ::SDLK_RETURN:
-    case ::SDLK_KP_ENTER:
-      has_confirmed = true;
       return true;
       break;
     default: break;

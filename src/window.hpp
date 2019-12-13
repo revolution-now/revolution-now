@@ -83,36 +83,74 @@ sync_future<Opt<int>> int_input_box(
     Opt<int> min = std::nullopt, Opt<int> max = std::nullopt );
 
 /****************************************************************
-** Simple Option-Select Window
+** Generic Option-Select Window
 *****************************************************************/
-std::string select_box( std::string_view title,
-                        Vec<Str>         options );
+void select_box(
+    std::string_view title, Vec<Str> options,
+    std::function<void( std::string const& )> on_result );
+
+sync_future<std::string> select_box( std::string_view title,
+                                     Vec<Str>         options );
 
 template<typename Enum>
-Enum select_box_enum( std::string_view title,
-                      Vec<Enum> const& options ) {
+void select_box_enum( std::string_view            title,
+                      Vec<Enum> const&            options,
+                      std::function<void( Enum )> on_result ) {
   // map over member function?
   std::vector<std::string> words;
   for( auto option : options )
     words.push_back( enum_to_display_name( option ) );
-  auto result = select_box( title, words );
-  for( auto const& option : options )
-    if( result == enum_to_display_name( option ) ) return option;
-  SHOULD_NOT_BE_HERE;
+  select_box(
+      title, words,
+      [on_result = std::move( on_result ),
+       options]( std::string const& result ) {
+        for( auto const& option : options ) {
+          if( result == enum_to_display_name( option ) ) {
+            on_result( option );
+            return;
+          }
+        }
+        SHOULD_NOT_BE_HERE;
+      } );
 }
 
 template<typename Enum>
-Enum select_box_enum( std::string_view title ) {
+sync_future<Enum> select_box_enum( std::string_view title,
+                                   Vec<Enum> const& options ) {
+  sync_promise<Enum> s_promise;
+  select_box_enum<Enum>( title, options,
+                         [s_promise]( Enum result ) mutable {
+                           s_promise.set_value( result );
+                         } );
+  return s_promise.get_future();
+}
+
+template<typename Enum>
+void select_box_enum( std::string_view            title,
+                      std::function<void( Enum )> on_result ) {
   Vec<Enum> options;
   options.reserve( Enum::_size() );
   for( auto val : values<Enum> ) options.push_back( val );
-  return select_box_enum( title, options );
+  select_box_enum( title, options, std::move( on_result ) );
+}
+
+template<typename Enum>
+sync_future<Enum> select_box_enum( std::string_view title ) {
+  sync_promise<Enum> s_promise;
+  select_box_enum<Enum>( title,
+                         [s_promise]( Enum result ) mutable {
+                           s_promise.set_value( result );
+                         } );
+  return s_promise.get_future();
 }
 
 /****************************************************************
 ** Canned Option-Select Windows
 *****************************************************************/
-e_confirm yes_no( std::string_view title );
+void yes_no( std::string_view                 title,
+             std::function<void( e_confirm )> on_result );
+
+sync_future<e_confirm> yes_no( std::string_view title );
 
 /****************************************************************
 ** Testing Only

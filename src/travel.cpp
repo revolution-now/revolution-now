@@ -364,9 +364,10 @@ bool TravelAnalysis::confirm_explain_() const {
 
   switch( kind ) {
     case e_unit_travel_good::land_fall: {
-      auto answer =
-          ui::yes_no( "Would you like to make landfall?" );
-      return ( answer == ui::e_confirm::yes );
+      NOT_IMPLEMENTED;
+      // auto answer =
+      //    ui::yes_no( "Would you like to make landfall?" );
+      // return ( answer == ui::e_confirm::yes );
     }
     case e_unit_travel_good::map_to_map:
     case e_unit_travel_good::board_ship:

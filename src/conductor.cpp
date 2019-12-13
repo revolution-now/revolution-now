@@ -774,11 +774,14 @@ bool menu_music_vol_down_enabled() {
 }
 
 void menu_music_set_player() {
-  auto result = ui::select_box_enum<e_music_player>(
-      "Select Music Player" );
-  if( !set_music_player( result ) )
-    (void)ui::message_box(
-        "The \"{}\" music player is not available.", result );
+  ui::select_box_enum<e_music_player>(
+      "Select Music Player",
+      /*on_result=*/[]( e_music_player result ) {
+        if( !set_music_player( result ) )
+          (void)ui::message_box(
+              "The \"{}\" music player is not available.",
+              result );
+      } );
 }
 bool menu_music_set_player_enabled() {
   CONDUCTOR_INFO_OR_RETURN_FALSE( info );

@@ -16,6 +16,7 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "frame.hpp"
+#include "game-ui-views.hpp"
 #include "gfx.hpp"
 #include "input.hpp"
 #include "logging.hpp"
@@ -464,17 +465,17 @@ void async_window_builder(
   win->center_window();
 }
 
-using GetOkCancelSubjectViewFunc = function<UPtr<View>(
+using GetOkCancelSubjectViewFunc = UPtr<View>(
     function<void( bool )> /*enable_ok_button*/ //
-    )>;
+);
 
 template<typename ResultT>
 void ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( Opt<ResultT> )> on_result,
-    GetOkCancelSubjectViewFunc     get_view_fn ) {
+    function<void( Opt<ResultT> )>               on_result,
+    tl::function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_cancel_view = make_unique<OkCancelView>(
         /*on_ok=*/
@@ -486,7 +487,11 @@ void ok_cancel_window_builder(
             on_result( proposed );
             win->close_window();
           } else {
-            lg.debug( "{} is invalid.", proposed );
+            if constexpr( has_fmt<decltype( proposed )> ) {
+              lg.debug( "{} is invalid.", proposed );
+            } else {
+              lg.debug( "result is invalid." );
+            }
           }
         }, /*on_cancel=*/
         [win, on_result] {
@@ -498,9 +503,10 @@ void ok_cancel_window_builder(
     auto  enable_ok_button = [p_ok_button]( bool enable ) {
       p_ok_button->enable( enable );
     };
-    auto subject_view = get_view_fn(
+    UPtr<View> subject_view = get_view_fn(
         /*enable_ok_button=*/std::move( enable_ok_button ) //
     );
+    CHECK( subject_view != nullptr );
     Vec<UPtr<View>> view_vec;
     view_vec.emplace_back( std::move( subject_view ) );
     view_vec.emplace_back( std::move( ok_cancel_view ) );
@@ -511,17 +517,17 @@ void ok_cancel_window_builder(
   } );
 }
 
-using GetOkBoxSubjectViewFunc = function<UPtr<View>(
+using GetOkBoxSubjectViewFunc = UPtr<View>(
     function<void( bool )> /*enable_ok_button*/ //
-    )>;
+);
 
 template<typename ResultT>
 void ok_box_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( ResultT )> on_result,
-    GetOkBoxSubjectViewFunc   get_view_fn ) {
+    function<void( ResultT )>                 on_result,
+    tl::function_ref<GetOkBoxSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_button_view = make_unique<OkButtonView>(
         /*on_ok=*/
@@ -570,7 +576,7 @@ void ok_cancel( string_view                   msg,
 
   // We can capture by reference here because the function will
   // be called before this scope exits.
-  GetOkCancelSubjectViewFunc get_view_fn =
+  auto get_view_fn =
       [&]( function<void( bool )> /*enable_ok_button*/ ) {
         return std::move( view );
       };
@@ -581,7 +587,7 @@ void ok_cancel( string_view                   msg,
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
       /*on_result=*/std::move( on_ok_cancel_result ),
-      /*get_view_fn=*/std::move( get_view_fn ) //
+      /*get_view_fn=*/get_view_fn //
   );
 }
 
@@ -598,7 +604,7 @@ void ok_box( string_view msg, function<void()> on_closing ) {
 
   // We can capture by reference here because the function will
   // be called before this scope exits.
-  GetOkCancelSubjectViewFunc get_view_fn =
+  auto get_view_fn =
       [&]( function<void( bool )> /*enable_ok_button*/ ) {
         return std::move( view );
       };
@@ -609,7 +615,7 @@ void ok_box( string_view msg, function<void()> on_closing ) {
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
       /*on_result=*/std::move( on_ok_closing ),
-      /*get_view_fn=*/std::move( get_view_fn ) //
+      /*get_view_fn=*/get_view_fn //
   );
 }
 
@@ -629,7 +635,7 @@ void text_input_box( string_view title, string_view msg,
 
   // We can capture by reference here because the function will
   // be called before this scope exits.
-  GetOkCancelSubjectViewFunc get_view_fn{
+  auto get_view_fn =
       [&]( function<void( bool )> enable_ok_button ) {
         LineEditorView::OnChangeFunc on_change =
             [validator,
@@ -650,7 +656,7 @@ void text_input_box( string_view title, string_view msg,
         return make_unique<VerticalArrayView>(
             std::move( view_vec ),
             VerticalArrayView::align::center );
-      } };
+      };
 
   ok_cancel_window_builder<string>(
       /*title=*/title,
@@ -658,7 +664,7 @@ void text_input_box( string_view title, string_view msg,
       [p_le_view]() -> string { return p_le_view->text(); },
       /*validator=*/validator, // must be copied.
       /*on_result=*/std::move( on_result ),
-      /*get_view_fun=*/std::move( get_view_fn ) //
+      /*get_view_fun=*/get_view_fn //
   );
 }
 
@@ -666,49 +672,74 @@ sync_future<Opt<int>> int_input_box( std::string_view title,
                                      std::string_view msg,
                                      Opt<int>         min,
                                      Opt<int>         max ) {
-  using namespace util::infix;
   sync_promise<Opt<int>> s_promise;
-  sync_future<Opt<int>>  s_future = s_promise.get_future();
   text_input_box(
       title, msg, make_int_validator( min, max ),
-      [s_promise{ std::move( s_promise ) }](
-          Opt<string> result ) mutable {
+      [s_promise]( Opt<string> result ) mutable {
+        using namespace util::infix;
         s_promise.set_value( result |
                              fmap_join( L( util::stoi( _ ) ) ) );
       } );
-  return s_future;
+  return s_promise.get_future();
 }
 
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-string select_box( string_view title, Vec<Str> options ) {
+void select_box(
+    string_view title, Vec<Str> options,
+    std::function<void( std::string const& )> on_result ) {
   lg.info( "question: \"{}\"", title );
-
-  auto selector = make_unique<OptionSelectView>(
+  auto view = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
-  auto* selector_ptr = selector.get();
-  auto  finished     = [selector_ptr] {
-    return selector_ptr->confirmed();
+  auto* p_selector = view.get();
+
+  // p_selector->grow_to( win->inside_padding_rect().w );
+
+  auto on_result_prime = [on_result = std::move( on_result )](
+                             string const& result ) {
+    lg.info( "selected: {}", result );
+    on_result( result );
   };
 
-  UPtr<View> view( std::move( selector ) );
-  autopad( view, /*use_fancy=*/false );
+  auto get_view_fn =
+      [view = std::move( view )]( auto const& ) mutable {
+        return std::move( view );
+      };
 
-  auto* win = g_window_plane.wm.add_window( string( title ),
-                                            move( view ) );
-  selector_ptr->grow_to( win->inside_padding_rect().w );
-  NOT_IMPLEMENTED;
-  (void)finished;
-  // frame_loop( true, finished );
-  lg.info( "selected: {}", selector_ptr->get_selected() );
-  auto result = selector_ptr->get_selected();
-  win->close_window();
-  return result;
+  ok_box_window_builder<string>(
+      /*title=*/title,
+      /*get_result=*/
+      [p_selector] { return p_selector->get_selected(); },
+      /*validator=*/[]( auto const& ) { return true; }, // always
+                                                        // true.
+      /*on_result=*/std::move( on_result_prime ),
+      /*get_view_fn=*/get_view_fn //
+  );
 }
 
-e_confirm yes_no( string_view title ) {
-  return select_box_enum<e_confirm>( title );
+sync_future<std::string> select_box( std::string_view title,
+                                     Vec<Str>         options ) {
+  sync_promise<string> s_promise;
+  select_box( title, options,
+              [s_promise]( string const& result ) mutable {
+                s_promise.set_value( result );
+              } );
+  return s_promise.get_future();
+}
+
+void yes_no( std::string_view                 title,
+             std::function<void( e_confirm )> on_result ) {
+  return select_box_enum<e_confirm>( title,
+                                     std::move( on_result ) );
+}
+
+sync_future<e_confirm> yes_no( std::string_view title ) {
+  sync_promise<e_confirm> s_promise;
+  yes_no( title, [s_promise]( e_confirm result ) mutable {
+    s_promise.set_value( result );
+  } );
+  return s_promise.get_future();
 }
 
 sync_future<> message_box( string_view msg ) {
@@ -720,192 +751,57 @@ sync_future<> message_box( string_view msg ) {
 }
 
 sync_future<Vec<UnitSelection>> unit_selection_box(
-    Vec<UnitId> const& ids_, bool allow_activation ) {
-  /* First we assemble this structure:
-   *
-   * OkCancelAdapter
-   * +-VerticalScrollView // TODO
-   *   +-VerticalArrayView
-   *     |-...
-   *     |-HorizontalArrayView
-   *     | |-OneLineTextView
-   *     | +-AddSelectBorderView
-   *     |   +-ClickableView
-   *     |     +-FakeUnitView
-   *     |       +-SpriteView
-   *     +-...
-   */
-
-  auto cmp = []( UnitId l, UnitId r ) {
-    auto const& unit1 = unit_from_id( l ).desc();
-    auto const& unit2 = unit_from_id( r ).desc();
-    if( unit1.boat && !unit2.boat ) return true;
-    if( unit1.cargo_slots > unit2.cargo_slots ) return true;
-    if( unit1.attack_points > unit2.attack_points ) return true;
-    return false;
-  };
-
-  auto ids = ids_;
-  sort( ids.begin(), ids.end(), cmp );
-
-  Vec<UPtr<View>> units_vec;
-
-  // Holds the state of each unit in the window as the player is
-  // selecting them and cycling them through the states.
-  struct UnitInfo {
-    e_unit_orders original_orders;
-    e_unit_orders current_orders;
-    bool          is_activated;
-  };
-
-  absl::flat_hash_map<UnitId, UnitInfo> infos;
-  for( auto id : ids ) {
-    auto const& unit = unit_from_id( id );
-
-    UnitInfo info{ /*original_orders=*/unit.orders(),
-                   /*current_orders=*/unit.orders(),
-                   /*is_activated=*/false };
-    infos[id] = info;
-  }
-  CHECK( ids.size() == infos.size() );
-
-  /* Each click on a unit cycles it through one the following cy-
-   * cles depending on whether it initially had orders and
-   * whether or not it is the end of turn:
-   *
-   * Orders=Fortified:
-   *   Not End-of-turn:
-   *     Fortified --> No Orders --> No Orders+Prio --> ...
-   *   End-of-turn:
-   *     Fortified --> No Orders --> ...
-   * Orders=None:
-   *   Not End-of-turn:
-   *     No Orders --> No Orders+Prioritized --> ...
-   *   End-of-turn:
-   *     No Orders --> ...
-   */
-  auto on_click_unit = [&infos, allow_activation]( UnitId id ) {
-    CHECK( infos.contains( id ) );
-    UnitInfo& info = infos[id];
-    if( info.original_orders != e_unit_orders::none ) {
-      if( allow_activation ) {
-        // Orders --> No Orders --> No Orders+Prio --> ...
-        if( info.current_orders != e_unit_orders::none ) {
-          CHECK( !info.is_activated );
-          info.current_orders = e_unit_orders::none;
-        } else if( info.is_activated ) {
-          CHECK( info.current_orders == e_unit_orders::none );
-          info.current_orders = info.original_orders;
-          info.is_activated   = false;
-        } else {
-          CHECK( !info.is_activated );
-          info.is_activated = true;
-        }
-      } else {
-        // Orders --> No Orders --> ...
-        CHECK( !info.is_activated );
-        if( info.current_orders != e_unit_orders::none ) {
-          info.current_orders = e_unit_orders::none;
-        } else {
-          info.current_orders = info.original_orders;
-        }
-      }
-    } else {
-      if( allow_activation ) {
-        // No Orders --> No Orders+Prioritized --> ...
-        CHECK( info.original_orders == e_unit_orders::none );
-        CHECK( info.current_orders == e_unit_orders::none );
-        info.is_activated = !info.is_activated;
-      } else {
-        // No Orders --> ...
-        CHECK( info.original_orders == e_unit_orders::none );
-        CHECK( info.current_orders == e_unit_orders::none );
-        CHECK( !info.is_activated );
-      }
-    }
-  };
-
-  for( auto id : ids ) {
-    auto const& unit = unit_from_id( id );
-
-    auto fake_unit_view = make_unique<FakeUnitView>(
-        unit.desc().type, unit.nation(), unit.orders() );
-
-    auto* fake_unit_view_ptr = fake_unit_view.get();
-
-    auto border_view = make_unique<BorderView>(
-        std::move( fake_unit_view ), Color::white(),
-        /*padding=*/1,
-        /*on_initially=*/false );
-
-    auto* border_view_ptr = border_view.get();
-
-    auto clickable = make_unique<ClickableView>(
-        // Capture local variables by value.
-        std::move( border_view ),
-        [&infos, id, fake_unit_view_ptr, border_view_ptr,
-         &on_click_unit] {
-          lg.debug( "clicked on {}", debug_string( id ) );
-          on_click_unit( id );
-          CHECK( infos.contains( id ) );
-          auto& info = infos[id];
-          fake_unit_view_ptr->set_orders( info.current_orders );
-          border_view_ptr->on( info.is_activated );
-        } );
-
-    auto unit_label = make_unique<OneLineStringView>(
-        unit.desc().name, Color::banana(), /*shadow=*/true );
-
-    Vec<UPtr<View>> horizontal_vec;
-    horizontal_vec.emplace_back( std::move( clickable ) );
-    horizontal_vec.emplace_back( std::move( unit_label ) );
-    auto horizontal_view = make_unique<HorizontalArrayView>(
-        std::move( horizontal_vec ),
-        HorizontalArrayView::align::middle );
-
-    units_vec.emplace_back( std::move( horizontal_view ) );
-  }
-  auto arr_view = make_unique<VerticalArrayView>(
-      std::move( units_vec ), VerticalArrayView::align::left );
-
-  Opt<e_ok_cancel> state;
-
-  auto adapter = make_unique<OkCancelAdapterView>(
-      std::move( arr_view ),
-      [&state]( auto button ) { state = button; } );
-
-  UPtr<View> view( std::move( adapter ) );
-  autopad( view, /*use_fancy=*/false, 4 );
-
-  auto* win = g_window_plane.wm.add_window(
-      string( "Activate Units" ), move( view ) );
-
-  NOT_IMPLEMENTED;
-  (void)state;
-  // frame_loop( true, [&state] { return state != nullopt; } );
-  lg.info( "pressed `{}`.", state );
-
-  Vec<UnitSelection> res;
-
-  if( state == e_ok_cancel::ok ) {
-    for( auto const& [id, info] : infos ) {
-      if( info.is_activated ) {
-        CHECK( info.current_orders == e_unit_orders::none );
-        res.push_back( { id, e_unit_selection::activate } );
-      } else if( info.current_orders != info.original_orders ) {
-        CHECK( info.current_orders == e_unit_orders::none );
-        res.push_back( { id, e_unit_selection::clear_orders } );
-      }
-    }
-  }
-
-  win->close_window();
-
-  for( auto r : res )
-    lg.debug( "selection: {} --> {}", debug_string( r.id ),
-              r.what );
-
+    Vec<UnitId> const& ids, bool allow_activation ) {
   sync_promise<Vec<UnitSelection>> s_promise;
+
+  function<void( Opt<UnitActivationView::map_t> )> on_result =
+      [s_promise](
+          Opt<UnitActivationView::map_t> result ) mutable {
+        Vec<UnitSelection> selections;
+        if( result.has_value() ) {
+          for( auto const& [id, info] : *result ) {
+            if( info.is_activated ) {
+              CHECK( info.current_orders ==
+                     e_unit_orders::none );
+              selections.push_back(
+                  { id, e_unit_selection::activate } );
+            } else if( info.current_orders !=
+                       info.original_orders ) {
+              CHECK( info.current_orders ==
+                     e_unit_orders::none );
+              selections.push_back(
+                  { id, e_unit_selection::clear_orders } );
+            }
+          }
+        }
+        for( auto selection : selections )
+          lg.debug( "selection: {} --> {}",
+                    debug_string( selection.id ),
+                    selection.what );
+        s_promise.set_value( std::move( selections ) );
+      };
+
+  auto unit_activation_view =
+      UnitActivationView::Create( ids, allow_activation );
+  auto* p_unit_activation_view = unit_activation_view.get();
+
+  auto get_view_fn = [unit_activation_view =
+                          std::move( unit_activation_view )](
+                         function<void( bool )> ) mutable {
+    return std::move( unit_activation_view );
+  };
+
+  ok_cancel_window_builder<FlatMap<UnitId, UnitActivationInfo>>(
+      /*title=*/"Activate Units",
+      /*get_result=*/
+      [p_unit_activation_view]() {
+        return p_unit_activation_view->info_map();
+      },
+      /*validator=*/L( ( (void)_, true ) ), // always true.
+      /*on_result=*/std::move( on_result ),
+      /*get_view_fun=*/get_view_fn //
+  );
+
   return s_promise.get_future();
 }
 

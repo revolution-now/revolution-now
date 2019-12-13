@@ -1,0 +1,54 @@
+/****************************************************************
+**game-ui-views.hpp
+*
+* Project: Revolution Now
+*
+* Created by dsicilia on 2019-12-13.
+*
+* Description: Contains high-level game-specific UI Views.
+*
+*****************************************************************/
+#pragma once
+
+#include "core-config.hpp"
+
+// Revolution Now
+#include "aliases.hpp"
+#include "id.hpp"
+#include "macros.hpp"
+#include "unit.hpp"
+#include "views.hpp"
+
+namespace rn::ui {
+
+// Holds the state of each unit in the window as the player is
+// selecting them and cycling them through the states.
+struct UnitActivationInfo {
+  e_unit_orders original_orders;
+  e_unit_orders current_orders;
+  bool          is_activated;
+};
+
+class UnitActivationView final : public CompositeSingleView {
+public:
+  using map_t = FlatMap<UnitId, UnitActivationInfo>;
+
+  // Preferred way to create.
+  static UPtr<UnitActivationView> Create(
+      Vec<UnitId> const& ids_, bool allow_activation );
+
+  UnitActivationView( bool allow_activation );
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  map_t& info_map() { return info_map_; }
+
+private:
+  void on_click_unit( UnitId id );
+
+  bool  allow_activation_{};
+  map_t info_map_;
+};
+
+} // namespace rn::ui

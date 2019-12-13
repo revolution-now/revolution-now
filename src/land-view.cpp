@@ -180,7 +180,7 @@ fsm_class( LandView ) { //
   fsm_transition( LandView, none, slide_unit, ->,
                   sliding_unit ) {
     (void)cur;
-    ASSIGN_CHECK_OPT( coord, coord_for_unit( event.id ) );
+    auto coord = coord_for_unit_indirect( event.id );
     // FIXME: check if target is in world.
     auto target = coord.moved( event.direction );
     return {

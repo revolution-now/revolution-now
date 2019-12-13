@@ -154,6 +154,7 @@ private:
 
 class CompositeSingleView : public CompositeView {
 public:
+  CompositeSingleView() = default;
   CompositeSingleView( UPtr<View> view, Coord coord );
 
   // Implement CompositeView
@@ -168,6 +169,12 @@ public:
   }
   ObserverCPtr<View> single() const {
     return ObserverCPtr<View>( view_.get() );
+  }
+
+  void set_view( UPtr<View> view, Coord coord ) {
+    view_  = std::move( view );
+    coord_ = coord;
+    notify_children_updated();
   }
 
 private:
@@ -592,7 +599,6 @@ public:
   bool on_key( input::key_event_t const& event ) override;
 
   std::string const& get_selected() const;
-  bool               confirmed() const { return has_confirmed; }
 
   void grow_to( W w );
 
@@ -606,8 +612,7 @@ private:
   ObserverCPtr<OptionSelectItemView> get_view( int item ) const;
   void                               set_selected( int item );
 
-  int  selected_;
-  bool has_confirmed;
+  int selected_;
 };
 
 class FakeUnitView : public CompositeSingleView {

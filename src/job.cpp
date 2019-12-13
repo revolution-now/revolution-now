@@ -35,7 +35,8 @@ bool JobAnalysis::confirm_explain_() const {
     if( *val == e_unit_job_good::disband ) {
       auto q = fmt::format( "Really disband {}?",
                             unit_from_id( id ).desc().name );
-      return ui::yes_no( q ) == ui::e_confirm::yes;
+      NOT_IMPLEMENTED;
+      // return ui::yes_no( q ) == ui::e_confirm::yes;
     }
   }
   return true;
