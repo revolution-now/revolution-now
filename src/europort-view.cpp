@@ -2142,9 +2142,9 @@ struct EuropePlane : public Plane {
             /*msg=*/text,
             /*min=*/0,
             /*max=*/100 )
-            .consume( [&]( Opt<int> result ) {
+            .consume( [this]( Opt<int> result ) {
               lg.debug( "received quantity: {}", result );
-              drag_n_drop_.receive_quantity(
+              this->drag_n_drop_.receive_quantity(
                   result.value_or( 0 ) );
             } );
 

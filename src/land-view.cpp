@@ -696,8 +696,12 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
     s_future = ui::unit_selection_box( units, allow_activate );
   }
 
-  return s_future.then( LC( ClickTileActionsFromUnitSelections(
-      _, allow_activate ) ) );
+  return s_future.then(
+      [allow_activate](
+          Vec<ui::UnitSelection> const& selections ) {
+        return ClickTileActionsFromUnitSelections(
+            selections, allow_activate );
+      } );
 }
 
 // This function will handle all the actions that can happen as a
