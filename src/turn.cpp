@@ -87,13 +87,16 @@ bool animate_move( TravelAnalysis const& analysis ) {
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
-adt_rn_( UnitInputState,                                 //
-         ( none ),                                       //
-         ( processing ),                                 //
-         ( asking ),                                     //
+adt_rn_( UnitInputState, //
+         ( none ),       //
+         ( processing ), //
+         ( asking,       //
+           ( no_serial<sync_future<UnitInputResponse>>,
+             response ) ),                               //
          ( have_response,                                //
            ( no_serial<UnitInputResponse>, response ) ), //
          ( executing_orders,                             //
+           ( no_serial<sync_future<>>, animated ),       //
            ( orders_t, orders ),                         //
            ( bool, confirmed ) ),                        //
          ( executed,                                     //
@@ -129,6 +132,9 @@ fsm_transitions( UnitInput,
 fsm_class( UnitInput ) { //
   fsm_init( UnitInputState::none{} );
 
+  fsm_transition_( UnitInput, processing, ask, ->, asking ) {
+    return { /*response=*/{} };
+  }
   fsm_transition( UnitInput, processing, put_response, ->,
                   have_response ) {
     (void)cur;
@@ -143,7 +149,8 @@ fsm_class( UnitInput ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response->orders.has_value() );
-    return { /*orders=*/*cur.response->orders,
+    return { /*animated=*/sync_future<>{},
+             /*orders=*/*cur.response->orders,
              /*confirmed=*/false };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
@@ -216,18 +223,20 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
         break_;
       }
 
-      landview_ask_orders( id );
       fsm.send_event( UnitInputEvent::ask{} );
       break_;
     }
     case_( UnitInputState::asking ) {
-      auto maybe_response = unit_input_response();
-      if( maybe_response.has_value() )
-        fsm.send_event( UnitInputEvent::put_response{
-            /*response=*/std::move( *maybe_response ) } );
+      if( val.response->empty() )
+        val.response = landview_ask_orders( id );
+      if( val.response->ready() )
+        fsm.send_event(
+            UnitInputEvent::put_response{ /*response=*/std::move(
+                val.response->get_and_reset() ) } );
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
+      auto& executing_orders = val;
       // Proposal:
       //
       // val.confirmed :: ui_future<bool>;
@@ -323,14 +332,17 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
           break_;
         }
 
+        // Default future object that is born ready.
+        val.animated = make_sync_future<>();
+
         // Kick off animation if needed.
         switch_( *g_player_intent ) {
           case_( TravelAnalysis ) {
             if( !animate_move( val ) ) break_;
             ASSIGN_CHECK_OPT( d, val.move_src.direction_to(
                                      val.move_target ) );
-            landview_animate_move( id, d );
-            DCHECK( landview_is_animating() );
+            executing_orders.animated =
+                landview_animate_move( id, d );
           }
           case_( CombatAnalysis ) {
             auto attacker = id;
@@ -346,17 +358,16 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
                     : ( attacker_unit.desc().demoted.has_value()
                             ? e_depixelate_anim::demote
                             : e_depixelate_anim::death );
-            landview_animate_attack( attacker, defender,
-                                     stats.attacker_wins,
-                                     dp_anim );
-            CHECK( landview_is_animating() );
+            executing_orders.animated = landview_animate_attack(
+                attacker, defender, stats.attacker_wins,
+                dp_anim );
           }
           switch_non_exhaustive;
         }
         val.confirmed = true;
       }
 
-      if( landview_is_animating() ) { break_; }
+      if( !val.animated.o.ready() ) break_;
 
       // Animation (if any) is finished.
       CHECK( g_player_intent );

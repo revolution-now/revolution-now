@@ -44,6 +44,13 @@ struct shared_int_state
   Opt<int> maybe_int;
 };
 
+TEST_CASE( "[sync-future] future default construction" ) {
+  sync_future<> s_future;
+  REQUIRE( s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( !s_future.ready() );
+}
+
 TEST_CASE( "[sync-future] future api basic" ) {
   auto ss = make_shared<shared_int_state>();
 

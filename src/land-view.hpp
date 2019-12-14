@@ -20,6 +20,7 @@
 #include "id.hpp"
 #include "orders.hpp"
 #include "sg-macros.hpp"
+#include "sync-future.hpp"
 
 // Flatbuffers
 #include "fb/land-view_generated.h"
@@ -52,17 +53,15 @@ enum class e_( depixelate_anim, //
 SERIALIZABLE_ENUM( e_depixelate_anim );
 
 void landview_do_eot();
-// TODO: try returning sync_future here.
-void landview_ask_orders( UnitId id );
 void landview_ensure_unit_visible( UnitId id );
-void landview_animate_move( UnitId id, e_direction direction );
-void landview_animate_attack( UnitId attacker, UnitId defender,
-                              bool              attacker_wins,
-                              e_depixelate_anim dp_anim );
-bool landview_is_animating();
 
-// TODO: might be able to get rid of this if we use sync_futures.
-Opt<UnitInputResponse> unit_input_response();
+sync_future<UnitInputResponse> landview_ask_orders( UnitId id );
+
+sync_future<> landview_animate_move( UnitId      id,
+                                     e_direction direction );
+sync_future<> landview_animate_attack(
+    UnitId attacker, UnitId defender, bool attacker_wins,
+    e_depixelate_anim dp_anim );
 
 struct Plane;
 Plane* land_view_plane();

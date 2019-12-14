@@ -192,7 +192,7 @@ private:
 //   assert( s_future.get_and_reset() == 3 );
 //   assert( s_future.empty() );
 //
-template<typename T>
+template<typename T = std::monostate>
 class sync_promise {
   struct sync_shared_state
     : public internal::sync_shared_state_base<T> {
@@ -214,6 +214,14 @@ class sync_promise {
 
 public:
   sync_promise() : shared_state_( new sync_shared_state ) {}
+
+  bool operator==( sync_promise<T> const& rhs ) const {
+    return shared_state_.get() == rhs.shared_state_.get();
+  }
+
+  bool operator!=( sync_promise<T> const& rhs ) const {
+    return !( *this == rhs );
+  }
 
   bool has_value() const { return shared_state_->has_value(); }
 
@@ -255,7 +263,7 @@ void advance_fsm_ui_state( Fsm* fsm, sync_future<>* s_future ) {
 }
 
 // Returns a sync_future immediately containing the given value.
-template<typename T, typename... Args>
+template<typename T = std::monostate, typename... Args>
 sync_future<T> make_sync_future( Args&&... args ) {
   sync_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );

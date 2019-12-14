@@ -13,11 +13,10 @@ let s:stems = [
   \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/land-view',
-  \ 'src/europort-view',
   \ 'src/sync-future',
   \ 'src/render',
-  \ 'src/save-game',
   \ 'src/window',
+  \ 'src/game-ui-views',
   \ 'src/views',
 \]
 
