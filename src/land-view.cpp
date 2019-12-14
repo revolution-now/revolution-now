@@ -251,16 +251,16 @@ FSM_DEFINE_FORMAT_RN_( LandView );
 // Holds which animation we are currently in. A given animation
 // may involve multiple lower-level steps, each of which might be
 // represented by a different LandViewState.
-adt_s_rn_( LandViewAnim,
-           ( none ),                          //
-           ( move,                            //
-             ( UnitId, id ),                  //
-             ( e_direction, d ) ),            //
-           ( attack,                          //
-             ( UnitId, attacker ),            //
-             ( UnitId, defender ),            //
-             ( bool, attacker_wins ),         //
-             ( e_depixelate_anim, dp_anim ) ) //
+adt_rn_( LandViewAnim,
+         ( none ),                          //
+         ( move,                            //
+           ( UnitId, id ),                  //
+           ( e_direction, d ) ),            //
+         ( attack,                          //
+           ( UnitId, attacker ),            //
+           ( UnitId, defender ),            //
+           ( bool, attacker_wins ),         //
+           ( e_depixelate_anim, dp_anim ) ) //
 );
 
 /****************************************************************
@@ -272,11 +272,11 @@ struct SAVEGAME_STRUCT( LandView ) {
   // clang-format off
   SAVEGAME_MEMBERS( LandView,
   ( LandViewFsm,    mode ),
-  ( LandViewAnim_t, anim ),
   ( SmoothViewport, viewport ));
   // clang-format on
 
 public:
+  LandViewAnim_t anim;
   // Non-serialized fields.
 
 private:
