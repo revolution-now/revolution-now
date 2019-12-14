@@ -782,15 +782,6 @@ struct LandViewPlane : public Plane {
     return nullopt;
   }
   e_input_handled input( input::event_t const& event ) override {
-    bool hold = matcher_( SG().mode.state() ) {
-      case_( LandViewState::none ) { return false; }
-      case_( LandViewState::future ) { return false; }
-      case_( LandViewState::sliding_unit ) { return true; }
-      case_( LandViewState::depixelating_unit ) { return true; }
-      case_( LandViewState::blinking_unit ) { return false; }
-      matcher_exhaustive;
-    };
-    if( hold ) return e_input_handled::hold;
     auto handled = e_input_handled::no;
     switch_( event ) {
       case_( input::unknown_event_t ) {}
@@ -949,6 +940,8 @@ void landview_ensure_unit_visible( UnitId id ) {
 
 sync_future<UnitInputResponse> landview_ask_orders( UnitId id ) {
   landview_ensure_unit_visible( id );
+  // Sometimes this function must be called when already in the
+  // blinking_unit state, e.g. after deserializing a game.
   if( !SG().mode.holds<LandViewState::blinking_unit>() )
     SG().mode.send_event(
         LandViewEvent::blink_unit{ /*id=*/id } );

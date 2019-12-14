@@ -47,11 +47,11 @@ void log_state( std::string const& /*unused*/,
 
 void log_event( std::string const& /*unused*/,
                 std::string const& /*unused*/ ) {}
+#endif
 
 void log_st_change( std::string_view sv ) {
   lg.debug( "{}", sv );
 }
-#endif
 
 } // namespace internal
 
