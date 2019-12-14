@@ -86,15 +86,24 @@ auto creation_tuple( FBBuilder& fbb, tuple<Args...>* ) {
 //  return res;
 //}
 
-serial::BinaryBlob save_game_to_blob() {
+expect<serial::BinaryBlob> save_game_to_blob() {
   FBBuilder fbb;
   // This gets a tuple whose element types are the types
   // needed to be passed to the table creation method of
   // fb::SaveGame.
   using creation_types =
       serial::fb_creation_tuple_t<fb::SaveGame>;
-  auto tpl = creation_tuple(
-      fbb, static_cast<creation_types*>( nullptr ) );
+  auto serialize_components = [&] {
+    return creation_tuple(
+        fbb, static_cast<creation_types*>( nullptr ) );
+  };
+  decltype( serialize_components() ) tpl;
+  try {
+    tpl = creation_tuple(
+        fbb, static_cast<creation_types*>( nullptr ) );
+  } catch( rn::exception_with_bt const& e ) {
+    return UNEXPECTED( e.what() );
+  }
   auto to_apply = [&]( auto const&... args ) {
     return fb::CreateSaveGame( fbb, args... );
   };
@@ -128,13 +137,14 @@ expect<fs::path> save_game( int slot ) {
   constexpr int   trials = 10;
   util::StopWatch watch;
   watch.start( "save" );
-  auto blob = [&] {
+  auto serialize_to_blob = [&]() -> expect<serial::BinaryBlob> {
     for( int i = trials; i >= 1; --i ) {
-      auto blob = save_game_to_blob();
-      if( i == 1 ) return blob;
+      XP_OR_RETURN( blob, save_game_to_blob() );
+      if( i == 1 ) return std::move( blob );
     }
     UNREACHABLE_LOCATION;
-  }();
+  };
+  XP_OR_RETURN( blob, serialize_to_blob() );
   watch.stop( "save" );
   lg.info( "saving game ({} trials) took: {}", trials,
            watch.human( "save" ) );
