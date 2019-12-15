@@ -286,7 +286,10 @@ template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::optional<T> const& o,
                 serial::ADL ) {
   if( o.has_value() ) {
-    auto s_value = serialize<void>( builder, *o, serial::ADL{} );
+    using value_hint_t = fb_serialize_hint_t<decltype(
+        std::declval<Hint>().value() )>;
+    auto s_value =
+        serialize<value_hint_t>( builder, *o, serial::ADL{} );
     return ReturnValue{ Hint::Create(
         builder, /*has_value=*/true, s_value.get() ) };
   } else {

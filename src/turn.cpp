@@ -62,6 +62,10 @@ template<typename T = monostate>
 using SyncFutureSerial =
     no_serial<sync_future<T>, /*bFailOnSerialize=*/false>;
 
+template<typename T = monostate>
+using SyncFutureNoSerial =
+    no_serial<sync_future<T>, /*bFailOnSerialize=*/true>;
+
 // FIXME: Hack.
 Opt<PlayerIntent> g_player_intent;
 
@@ -125,20 +129,20 @@ sync_future<> kick_off_unit_animation(
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
-adt_rn_( UnitInputState, //
-         ( none ),       //
-         ( processing ), //
-         ( asking,       //
-           ( SyncFutureSerial<UnitInputResponse>,
-             response ) ),                               //
-         ( have_response,                                //
-           ( no_serial<UnitInputResponse>, response ) ), //
-         ( executing_orders,                             //
-           ( SyncFutureSerial<bool>, confirmed ),        //
-           ( SyncFutureSerial<>, animated ),             //
-           ( orders_t, orders ) ),                       //
-         ( executed,                                     //
-           ( Vec<UnitId>, add_to_front ) )               //
+adt_s_rn_( UnitInputState, //
+           ( none ),       //
+           ( processing ), //
+           ( asking,       //
+             ( SyncFutureSerial<UnitInputResponse>,
+               response ) ),                               //
+           ( have_response,                                //
+             ( no_serial<UnitInputResponse>, response ) ), //
+           ( executing_orders,                             //
+             ( SyncFutureNoSerial<bool>, confirmed ),      //
+             ( SyncFutureNoSerial<>, animated ),           //
+             ( orders_t, orders ) ),                       //
+           ( executed,                                     //
+             ( Vec<UnitId>, add_to_front ) )               //
 );
 
 adt_rn_( UnitInputEvent,                                 //
@@ -334,14 +338,14 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single turn for a single nation.
-adt_rn_( NationTurnState,                  //
-         ( starting ),                     //
-         ( doing_units,                    //
-           ( bool, need_eot ),             //
-           ( flat_deque<UnitId>, q ),      //
-           ( Opt<UnitInputFsm>, uturn ) ), //
-         ( ending,                         //
-           ( bool, need_eot ) )            //
+adt_s_rn_( NationTurnState,                  //
+           ( starting ),                     //
+           ( doing_units,                    //
+             ( bool, need_eot ),             //
+             ( flat_deque<UnitId>, q ),      //
+             ( Opt<UnitInputFsm>, uturn ) ), //
+           ( ending,                         //
+             ( bool, need_eot ) )            //
 );
 
 adt_rn_( NationTurnEvent, //
@@ -532,6 +536,7 @@ adt_s_rn_( TurnCycleState,                          //
            ( inside,                                //
              ( bool, need_eot ),                    //
              ( Opt<e_nation>, nation ),             //
+             ( NationTurnFsm, nation_turn ),        //
              ( flat_queue<e_nation>, remainder ) ), //
            ( ending,                                //
              ( bool, need_eot ) )                   //
@@ -555,9 +560,10 @@ fsm_class( TurnCycle ) { //
 
   fsm_transition_( TurnCycle, starting, next, ->, inside ) {
     TurnCycleState::inside res{
-        /*need_eot=*/true, //
-        /*nation=*/{},     //
-        /*remainder=*/{}   //
+        /*need_eot=*/true,  //
+        /*nation=*/{},      //
+        /*nation_turn=*/{}, //
+        /*remainder=*/{}    //
     };
     CHECK( g_turn_ordering.size() > 0 );
     for( auto nation : g_turn_ordering )
@@ -574,8 +580,7 @@ fsm_class( TurnCycle ) { //
 FSM_DEFINE_FORMAT_RN_( TurnCycle );
 
 // Will be called repeatedly until no more events added to fsm.
-void advance_turn_cycle_state( TurnCycleFsm&  fsm,
-                               NationTurnFsm& nation_turn_fsm ) {
+void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
   switch_( fsm.mutable_state() ) {
     case_( TurnCycleState::starting ) {
       map_units( []( Unit& unit ) { unit.new_turn(); } );
@@ -595,13 +600,13 @@ void advance_turn_cycle_state( TurnCycleFsm&  fsm,
         }
         val.nation = *val.remainder.front();
         val.remainder.pop();
-        nation_turn_fsm =
+        val.nation_turn =
             NationTurnFsm( NationTurnState::starting{} );
       }
-      fsm_auto_advance( nation_turn_fsm, "nation-turn",
+      fsm_auto_advance( val.nation_turn, "nation-turn",
                         { advance_nation_turn_state },
                         *val.nation );
-      if_v( nation_turn_fsm.state(), NationTurnState::ending,
+      if_v( val.nation_turn.state(), NationTurnState::ending,
             ending ) {
         val.nation = nullopt;
         val.need_eot &= ending->need_eot;
@@ -631,9 +636,6 @@ struct SAVEGAME_STRUCT( Turn ) {
   // clang-format on
 
 public:
-  NationTurnFsm nation_turn;
-
-public:
   // Fields that are derived from the serialized fields.
 
 private:
@@ -654,8 +656,7 @@ SAVEGAME_IMPL( Turn );
 *****************************************************************/
 void advance_turn_state() {
   fsm_auto_advance( SG().cycle_state, "turn-cycle",
-                    { advance_turn_cycle_state },
-                    SG().nation_turn );
+                    { advance_turn_cycle_state } );
 }
 
 } // namespace rn
