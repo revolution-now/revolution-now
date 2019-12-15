@@ -39,24 +39,24 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
   in  = "usta";
-  out = Vec<Str>{"ustate"};
+  out = Vec<Str>{ "ustate" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate";
-  out = Vec<Str>{"ustate."};
+  out = Vec<Str>{ "ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.";
-  out = Vec<Str>{"ustate.create_unit_on_map",
-                 "ustate.unit_from_id"};
+  out = Vec<Str>{ "ustate.create_unit_on_map",
+                  "ustate.unit_from_id" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
   in  = "ustate.unit_fr";
-  out = Vec<Str>{"ustate.unit_from_id"};
+  out = Vec<Str>{ "ustate.unit_from_id" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.unit_from_id";
-  out = Vec<Str>{"ustate.unit_from_id("};
+  out = Vec<Str>{ "ustate.unit_from_id(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in = "ustate.unit_from_id(";
@@ -66,35 +66,35 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
   in  = "ustate.unit_from_id( usta";
-  out = Vec<Str>{"ustate.unit_from_id( ustate"};
+  out = Vec<Str>{ "ustate.unit_from_id( ustate" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.unit_from_id( ustate";
-  out = Vec<Str>{"ustate.unit_from_id( ustate."};
+  out = Vec<Str>{ "ustate.unit_from_id( ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";
-  out = {"unit"};
+  out = { "unit" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "id";
-  out = {"id."};
+  out = { "id." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.";
-  out = {"e.nation", "e.unit_type", "e.unit_orders"};
+  out = { "e.nation", "e.unit_type", "e.unit_orders" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
   in  = "e.nat";
-  out = {"e.nation"};
+  out = { "e.nation" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation";
-  out = {"e.nation", "e.nation_from_string"};
+  out = { "e.nation", "e.nation_from_string" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation_from_string";
-  out = {"e.nation_from_string("};
+  out = { "e.nation_from_string(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation.";
@@ -107,11 +107,11 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation.engli";
-  out = {"e.nation.english"};
+  out = { "e.nation.english" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation.english";
-  out = {"e.nation.english"};
+  out = { "e.nation.english" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "e.nation.englishx";
@@ -142,23 +142,23 @@ TEST_CASE( "[terminal] autocomplete" ) {
            xp_success_t{} );
 
   in  = "my_t";
-  out = {"my_type"};
+  out = { "my_type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type";
-  out = {"my_type."};
+  out = { "my_type." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type.";
-  out = {"my_type.x", "my_type:get", "my_type:add"};
+  out = { "my_type.x", "my_type:get", "my_type:add" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
   in  = "my_type.x";
-  out = {"my_type.x"};
+  out = { "my_type.x" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type:x";
-  out = {"my_type.x"};
+  out = { "my_type.x" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type.xxx";
@@ -166,15 +166,15 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type.get";
-  out = {"my_type:get"};
+  out = { "my_type:get" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type.add";
-  out = {"my_type:add"};
+  out = { "my_type:add" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "my_type:add";
-  out = {"my_type:add("};
+  out = { "my_type:add(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "abcabc:";
@@ -201,43 +201,51 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
   in  = "usta";
-  out = Vec<Str>{"ustate."};
+  out = Vec<Str>{ "ustate." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "ustate.";
-  out = Vec<Str>{"ustate.create_unit_on_map",
-                 "ustate.unit_from_id"};
+  out = Vec<Str>{ "ustate.create_unit_on_map",
+                  "ustate.unit_from_id" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "ustate.unit_fr";
-  out = Vec<Str>{"ustate.unit_from_id("};
+  out = Vec<Str>{ "ustate.unit_from_id(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in = "ustate.unit_from_id(";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
   in  = "ustate.unit_from_id( usta";
-  out = Vec<Str>{"ustate.unit_from_id( ustate."};
+  out = Vec<Str>{ "ustate.unit_from_id( ustate." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "uni";
-  out = {"unit"};
+  out = { "unit" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "id";
-  out = {"id.last_unit_id("};
+  out = { "id.last_" };
+  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+
+  in  = "id.last_";
+  out = { "id.last_colony_id", "id.last_unit_id" };
+  REQUIRE_THAT( ac_i( in ), Equals( out ) );
+
+  in  = "id.last_u";
+  out = { "id.last_unit_id(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.";
-  out = {"e.nation", "e.unit_type", "e.unit_orders"};
+  out = { "e.nation", "e.unit_type", "e.unit_orders" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "e.nat";
-  out = {"e.nation"};
+  out = { "e.nation" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.nation_from_string";
-  out = {"e.nation_from_string("};
+  out = { "e.nation_from_string(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.nation.";
@@ -250,11 +258,11 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.nation.engli";
-  out = {"e.nation.english"};
+  out = { "e.nation.english" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.nation.english";
-  out = {"e.nation.english"};
+  out = { "e.nation.english" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "e.nation.englishx";
@@ -285,23 +293,23 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
            xp_success_t{} );
 
   in  = "my_t";
-  out = {"my_type"};
+  out = { "my_type" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type";
-  out = {"my_type.x", "my_type:get", "my_type:add"};
+  out = { "my_type.x", "my_type:get", "my_type:add" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "my_type.";
-  out = {"my_type.x", "my_type:get", "my_type:add"};
+  out = { "my_type.x", "my_type:get", "my_type:add" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "my_type.x";
-  out = {"my_type.x"};
+  out = { "my_type.x" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type:x";
-  out = {"my_type.x"};
+  out = { "my_type.x" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type.xxx";
@@ -309,15 +317,15 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type.get";
-  out = {"my_type:get("};
+  out = { "my_type:get(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type.add";
-  out = {"my_type:add("};
+  out = { "my_type:add(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "my_type:add";
-  out = {"my_type:add("};
+  out = { "my_type:add(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "abcabc:";

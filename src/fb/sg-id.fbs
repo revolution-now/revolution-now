@@ -11,5 +11,6 @@
 namespace fb;
 
 table SG_Id {
-  next_unit_id : int;
+  next_unit_id   : int;
+  next_colony_id : int;
 }

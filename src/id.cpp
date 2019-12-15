@@ -21,20 +21,28 @@ namespace rn {
 
 namespace {
 
-constexpr int kFirstUnitId = 1;
+constexpr int kFirstUnitId   = 1;
+constexpr int kFirstColonyId = 1;
 
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Id ) {
-  SG_Id() : next_unit_id{kFirstUnitId - 1} {}
+  SG_Id()
+    : next_unit_id{ kFirstUnitId - 1 },
+      next_colony_id{ kFirstColonyId - 1 } {}
 
   // This will be called after deserialization.
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
 
-  SAVEGAME_MEMBERS( Id, ( int, next_unit_id ) );
+  // clang-format off
+  SAVEGAME_MEMBERS( Id,
+    ( int, next_unit_id   ),
+    ( int, next_colony_id )
+  );
+  // clang-format on
 
 private:
   SAVEGAME_FRIENDS( Id );
@@ -53,12 +61,22 @@ SAVEGAME_IMPL( Id );
 *****************************************************************/
 UnitId next_unit_id() {
   ++SG().next_unit_id;
-  return UnitId{SG().next_unit_id};
+  return UnitId{ SG().next_unit_id };
+}
+
+ColonyId next_colony_id() {
+  ++SG().next_colony_id;
+  return ColonyId{ SG().next_colony_id };
 }
 
 UnitId last_unit_id() {
   CHECK( SG().next_unit_id >= 0, "no units yet created." );
-  return UnitId{SG().next_unit_id};
+  return UnitId{ SG().next_unit_id };
+}
+
+ColonyId last_colony_id() {
+  CHECK( SG().next_colony_id >= 0, "no colonies yet created." );
+  return ColonyId{ SG().next_colony_id };
 }
 
 /****************************************************************
@@ -66,7 +84,10 @@ UnitId last_unit_id() {
 *****************************************************************/
 namespace testing_only {
 // FIXME: get rid of this.
-void reset_unit_ids() { SG().next_unit_id = kFirstUnitId - 1; }
+void reset_all_ids() {
+  SG().next_unit_id   = kFirstUnitId - 1;
+  SG().next_colony_id = kFirstColonyId - 1;
+}
 } // namespace testing_only
 
 /****************************************************************
@@ -75,6 +96,7 @@ void reset_unit_ids() { SG().next_unit_id = kFirstUnitId - 1; }
 namespace {
 
 LUA_FN( last_unit_id, UnitId ) { return last_unit_id(); }
+LUA_FN( last_colony_id, ColonyId ) { return last_colony_id(); }
 
 } // namespace
 

@@ -444,7 +444,7 @@ namespace testing_only {
 
 void reset_unit_creation() {
   SG() = SG_Unit{};
-  reset_unit_ids();
+  reset_all_ids();
 }
 
 } // namespace testing_only

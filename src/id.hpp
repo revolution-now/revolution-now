@@ -16,22 +16,26 @@
 #include "sg-macros.hpp"
 #include "typed-int.hpp"
 
-TYPED_ID( UnitId ) // NOLINTNEXTLINE(hicpp-explicit-conversions)
+TYPED_ID( UnitId )
 UD_LITERAL( UnitId, id )
+
+TYPED_ID( ColonyId )
 
 namespace rn {
 
 DECLARE_SAVEGAME_SERIALIZERS( Id );
 
-ND UnitId next_unit_id();
+ND UnitId   next_unit_id();
+ND ColonyId next_colony_id();
 
-UnitId last_unit_id();
+UnitId   last_unit_id();
+ColonyId last_colony_id();
 
 /****************************************************************
 ** Testing
 *****************************************************************/
 namespace testing_only {
-void reset_unit_ids();
+void reset_all_ids();
 }
 
 } // namespace rn
@@ -39,5 +43,6 @@ void reset_unit_ids();
 namespace std {
 
 DEFINE_HASH_FOR_TYPED_INT( ::rn::UnitId )
+DEFINE_HASH_FOR_TYPED_INT( ::rn::ColonyId )
 
 } // namespace std

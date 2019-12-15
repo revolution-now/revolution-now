@@ -13,11 +13,7 @@ let s:stems = [
   \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/land-view',
-  \ 'src/sync-future',
   \ 'src/render',
-  \ 'src/window',
-  \ 'src/game-ui-views',
-  \ 'src/views',
 \]
 
   "\ 'src/adt.cpp',
