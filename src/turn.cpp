@@ -281,7 +281,7 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
-      if( !future_step<bool>(
+      if( !step_with_future<bool>(
               &val.confirmed.o,
               /*when_empty=*/
               [&] {
@@ -305,15 +305,13 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
               } ) )
         break_;
 
-      if( !future_step<monostate>(
+      if( !step_with_future<monostate>(
               &val.animated.o,
               /*when_empty=*/
               [&] {
                 return kick_off_unit_animation(
                     id, *g_player_intent );
-              },
-              /*when_ready=*/
-              []( auto const& ) { return /*move_on=*/true; } ) )
+              } ) )
         break_;
 
       // Animation (if any) is finished.

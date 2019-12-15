@@ -289,8 +289,8 @@ sync_future<T> make_sync_future( Args&&... args ) {
 
 // Returns `false` if the caller needs to wait for completion of
 // the step, true if the step is complete.
-template<typename T>
-bool future_step(
+template<typename T = std::monostate>
+bool step_with_future(
     sync_future<T>*                    s_future,
     tl::function_ref<sync_future<T>()> when_empty,
     tl::function_ref<bool( T const& )> when_ready ) {
@@ -300,6 +300,25 @@ bool future_step(
   }
   if( !s_future->ready() ) return false;
   if( !s_future->taken() ) return when_ready( s_future->get() );
+  return true;
+}
+
+// Same as above, but the `when_ready` function always returns
+// true.
+template<typename T = std::monostate>
+bool step_with_future(
+    sync_future<T>*                    s_future,
+    tl::function_ref<sync_future<T>()> when_empty ) {
+  if( s_future->empty() ) {
+    *s_future = when_empty();
+    // !! should fall through.
+  }
+  if( !s_future->ready() ) return false;
+  if( !s_future->taken() ) {
+    // Still need to run this in case it has side effects.
+    (void)s_future->get();
+    return true;
+  }
   return true;
 }
 
