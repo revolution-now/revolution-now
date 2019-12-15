@@ -61,7 +61,8 @@ Opt<PlayerIntent> player_intent( UnitId          id,
   return maybe_res;
 }
 
-bool confirm_explain( PlayerIntent const& analysis ) {
+sync_future<bool> confirm_explain(
+    PlayerIntent const& analysis ) {
   return util::visit( analysis, L( _.confirm_explain() ) );
 }
 

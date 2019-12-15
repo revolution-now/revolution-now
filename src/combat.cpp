@@ -220,8 +220,8 @@ Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId   id,
   return maybe_res;
 }
 
-bool CombatAnalysis::confirm_explain_() const {
-  if( !allowed() ) return false;
+sync_future<bool> CombatAnalysis::confirm_explain_() const {
+  if( !allowed() ) return make_sync_future<bool>( false );
   // The above should have checked that the variant holds the
   // e_attack_good type for us.
   // auto& kind = val_or_die<e_attack_good>( desc );
@@ -231,7 +231,7 @@ bool CombatAnalysis::confirm_explain_() const {
   //  case e_attack_good::ship:;
   //}
   // SHOULD_NOT_BE_HERE;
-  return true;
+  return make_sync_future<bool>( true );
 }
 
 void CombatAnalysis::affect_orders_() const {

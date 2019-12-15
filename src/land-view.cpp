@@ -615,12 +615,24 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
           ui::message_box( "The selected unit(s) have already "
                            "moved this turn." ) } );
     } else {
-      SG().mode.send_event( LandViewEvent::input_prioritize{
-          /*prioritize=*/prioritize } );
       if( curr_size < orig_size ) {
-        SG().mode.push( LandViewState::future{
-            ui::message_box( "Some of the selected units have "
-                             "already moved this turn." ) } );
+        // Here we need to not only display a message box to the
+        // user, but we need to make sure that we only send the
+        // resulting orders (i.e., input prioritization) when the
+        // message box closes in order to maintain integrity of
+        // the LandView state machine.
+        sync_future<> s_msg = ui::message_box(
+            "Some of the selected units have "
+            "already moved this turn." );
+        sync_future<> s_future = s_msg.consume( [prioritize](
+                                                    auto ) {
+          SG().mode.send_event( LandViewEvent::input_prioritize{
+              /*prioritize=*/prioritize } );
+        } );
+        SG().mode.push( LandViewState::future{ s_future } );
+      } else {
+        SG().mode.send_event( LandViewEvent::input_prioritize{
+            /*prioritize=*/prioritize } );
       }
     }
   }

@@ -29,17 +29,17 @@ bool JobAnalysis::allowed_() const {
   return holds<e_unit_job_good>( desc ) != nullptr;
 }
 
-bool JobAnalysis::confirm_explain_() const {
-  if( !allowed() ) return false;
+sync_future<bool> JobAnalysis::confirm_explain_() const {
+  if( !allowed() ) return make_sync_future<bool>( false );
   if_v( desc, e_unit_job_good, val ) {
     if( *val == e_unit_job_good::disband ) {
       auto q = fmt::format( "Really disband {}?",
                             unit_from_id( id ).desc().name );
-      NOT_IMPLEMENTED;
-      // return ui::yes_no( q ) == ui::e_confirm::yes;
+      return ui::yes_no( q ).then(
+          L( _ == ui::e_confirm::yes ) );
     }
   }
-  return true;
+  return make_sync_future<bool>( true );
 }
 
 void JobAnalysis::affect_orders_() const {

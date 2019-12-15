@@ -16,6 +16,7 @@
 #include "analysis.hpp"
 #include "fight.hpp"
 #include "macros.hpp"
+#include "sync-future.hpp"
 #include "unit.hpp"
 
 // C++ standard library
@@ -85,9 +86,9 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool allowed_() const;
-  bool confirm_explain_() const;
-  void affect_orders_() const;
+  bool              allowed_() const;
+  sync_future<bool> confirm_explain_() const;
+  void              affect_orders_() const;
 
   static Opt<CombatAnalysis> analyze_( UnitId   id,
                                        orders_t orders );

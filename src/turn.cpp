@@ -58,6 +58,10 @@ vector<e_nation> const g_turn_ordering{
     e_nation::spanish,
 };
 
+template<typename T = monostate>
+using SyncFutureSerial =
+    no_serial<sync_future<T>, /*bFailOnSerialize=*/false>;
+
 // FIXME: Hack.
 Opt<PlayerIntent> g_player_intent;
 
@@ -82,6 +86,40 @@ bool animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
+sync_future<> kick_off_unit_animation(
+    UnitId id, PlayerIntent const& intent ) {
+  // Default future object that is born ready.
+  sync_future<> res = make_sync_future<>();
+  // Kick off animation if needed.
+  switch_( intent ) {
+    case_( TravelAnalysis ) {
+      if( !animate_move( val ) ) break_;
+      ASSIGN_CHECK_OPT(
+          d, val.move_src.direction_to( val.move_target ) );
+      res = landview_animate_move( id, d );
+    }
+    case_( CombatAnalysis ) {
+      auto attacker = id;
+      ASSIGN_CHECK_OPT( defender, val.target_unit );
+      ASSIGN_CHECK_OPT( stats, val.fight_stats );
+      auto const&       defender_unit = unit_from_id( defender );
+      auto const&       attacker_unit = unit_from_id( attacker );
+      e_depixelate_anim dp_anim =
+          stats.attacker_wins
+              ? ( defender_unit.desc().demoted.has_value()
+                      ? e_depixelate_anim::demote
+                      : e_depixelate_anim::death )
+              : ( attacker_unit.desc().demoted.has_value()
+                      ? e_depixelate_anim::demote
+                      : e_depixelate_anim::death );
+      res = landview_animate_attack(
+          attacker, defender, stats.attacker_wins, dp_anim );
+    }
+    switch_non_exhaustive;
+  }
+  return res;
+}
+
 /****************************************************************
 ** Unit Turn FSM
 *****************************************************************/
@@ -91,14 +129,14 @@ adt_rn_( UnitInputState, //
          ( none ),       //
          ( processing ), //
          ( asking,       //
-           ( no_serial<sync_future<UnitInputResponse>>,
+           ( SyncFutureSerial<UnitInputResponse>,
              response ) ),                               //
          ( have_response,                                //
            ( no_serial<UnitInputResponse>, response ) ), //
          ( executing_orders,                             //
-           ( no_serial<sync_future<>>, animated ),       //
-           ( orders_t, orders ),                         //
-           ( bool, confirmed ) ),                        //
+           ( SyncFutureSerial<bool>, confirmed ),        //
+           ( SyncFutureSerial<>, animated ),             //
+           ( orders_t, orders ) ),                       //
          ( executed,                                     //
            ( Vec<UnitId>, add_to_front ) )               //
 );
@@ -149,9 +187,9 @@ fsm_class( UnitInput ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response->orders.has_value() );
-    return { /*animated=*/sync_future<>{},
-             /*orders=*/*cur.response->orders,
-             /*confirmed=*/false };
+    return { /*confirmed=*/sync_future<bool>{},
+             /*animated=*/sync_future<>{},
+             /*orders=*/*cur.response->orders };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
                   executed ) {
@@ -227,6 +265,9 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
       break_;
     }
     case_( UnitInputState::asking ) {
+      // sync_future could be empty in two situations: the first
+      // time we pass through this code and just after deserial-
+      // ization.
       if( val.response->empty() )
         val.response = landview_ask_orders( id );
       if( val.response->ready() )
@@ -236,140 +277,43 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
-      auto& executing_orders = val;
-      // Proposal:
-      //
-      // val.confirmed :: ui_future<bool>;
-      //
-      // if( val.confirmed.empty() ) {
-      //   CHECK( !g_player_intent.has_value() );
-      //   auto maybe_intent = player_intent( id, val.orders );
-      //   CHECK( maybe_intent.has_value(),
-      //         "no handler for orders {}", val.orders );
-      //   g_player_intent = std::move( *maybe_intent );
-      //   val.confirmed = confirm_explain( *g_player_intent );
-      // }
-      // if( val.confirmed.waiting() )
-      //   break_;
-      // if( !val.confirmed.taken() ) {
-      //   if( val.confirmed == true ) {
-      //     // kick off animation...
-      //   } else {
-      //     fsm.send_event( UnitInputEvent::cancel{} );
-      //     break_;
-      //   }
-      // }
-      //
+      if( !future_step<bool>(
+              &val.confirmed.o,
+              /*when_empty=*/
+              [&] {
+                CHECK( !g_player_intent.has_value() );
+                auto maybe_intent =
+                    player_intent( id, val.orders );
+                CHECK( maybe_intent.has_value(),
+                       "no handler for orders {}", val.orders );
+                g_player_intent = std::move( *maybe_intent );
+                return confirm_explain( *g_player_intent );
+              },
+              /*when_ready=*/
+              [&]( bool const& confirmed ) {
+                if( !confirmed ) {
+                  fsm.send_event( UnitInputEvent::cancel{} );
+                  g_player_intent = nullopt;
+                  return /*move_on=*/false;
+                }
+                // We're confirmed to execute.
+                return /*move_on=*/true;
+              } ) )
+        break_;
 
-      // Alternate 1
-
-      // val.confirmed :: Opt<e_ok_cancel>;
-      //
-      // if( !val.confirmed.has_value() ) {
-      //   CHECK( !g_player_intent.has_value() );
-      //   auto maybe_intent = player_intent( id, val.orders );
-      //   CHECK( maybe_intent.has_value(),
-      //          "no handler for orders {}", val.orders );
-      //   g_player_intent = std::move( *maybe_intent );
-      //   fsm.push( UnitInputState::future{
-      //       confirm_explain( *g_player_intent )
-      //           .store( &val.confirmed ) } );
-      //   break_;
-      // }
-      // if( val.confirmed == e_ok_cancel::ok ) {
-      //   // kick off animation...
-      // } else {
-      //   fsm.send_event( UnitInputEvent::cancel{} );
-      //   break_;
-      // }
-
-      // Alternate 2
-
-      // val.confirmed :: bool;
-      //
-      // if( !val.confirmed ) {
-      //   CHECK( !g_player_intent.has_value() );
-      //   auto maybe_intent = player_intent( id, val.orders );
-      //   CHECK( maybe_intent.has_value(),
-      //          "no handler for orders {}", val.orders );
-      //   g_player_intent = std::move( *maybe_intent );
-      //   auto uif =
-      //       confirm_explain( *g_player_intent )
-      //           .then( [&]( e_ok_cancel oc ) {
-      //             if( oc == e_ok_cancel::ok ) {
-      //               val.confirmed = true;
-      //               // kick off animation...
-      //             } else {
-      //               fsm.send_event( UnitInputEvent::cancel{}
-      //               );
-      //             }
-      //           } );
-      //   fsm.push( UnitInputState::future{ std::move( uif ) }
-      //   ); break_;
-      // }
-
-      // if( landview_is_animating() ) { break_; }
-      // Animation (if any) is finished.
-      // CHECK( g_player_intent );
-      // affect_orders( *g_player_intent );
-      // fsm.send_event( UnitInputEvent::end{
-      //     /*add_to_front=*/units_to_prioritize(
-      //          *g_player_intent ) } );
-      // g_player_intent = nullopt;
-      // !! Unit may no longer exist here.
-
-      if( !val.confirmed ) {
-        CHECK( !g_player_intent.has_value() );
-        auto maybe_intent = player_intent( id, val.orders );
-        CHECK( maybe_intent.has_value(),
-               "no handler for orders {}", val.orders );
-
-        g_player_intent = std::move( *maybe_intent );
-
-        if( !confirm_explain( *g_player_intent ) ) {
-          fsm.send_event( UnitInputEvent::cancel{} );
-          g_player_intent = nullopt;
-          break_;
-        }
-
-        // Default future object that is born ready.
-        val.animated = make_sync_future<>();
-
-        // Kick off animation if needed.
-        switch_( *g_player_intent ) {
-          case_( TravelAnalysis ) {
-            if( !animate_move( val ) ) break_;
-            ASSIGN_CHECK_OPT( d, val.move_src.direction_to(
-                                     val.move_target ) );
-            executing_orders.animated =
-                landview_animate_move( id, d );
-          }
-          case_( CombatAnalysis ) {
-            auto attacker = id;
-            ASSIGN_CHECK_OPT( defender, val.target_unit );
-            ASSIGN_CHECK_OPT( stats, val.fight_stats );
-            auto const& defender_unit = unit_from_id( defender );
-            auto const& attacker_unit = unit_from_id( attacker );
-            e_depixelate_anim dp_anim =
-                stats.attacker_wins
-                    ? ( defender_unit.desc().demoted.has_value()
-                            ? e_depixelate_anim::demote
-                            : e_depixelate_anim::death )
-                    : ( attacker_unit.desc().demoted.has_value()
-                            ? e_depixelate_anim::demote
-                            : e_depixelate_anim::death );
-            executing_orders.animated = landview_animate_attack(
-                attacker, defender, stats.attacker_wins,
-                dp_anim );
-          }
-          switch_non_exhaustive;
-        }
-        val.confirmed = true;
-      }
-
-      if( !val.animated.o.ready() ) break_;
+      if( !future_step<monostate>(
+              &val.animated.o,
+              /*when_empty=*/
+              [&] {
+                return kick_off_unit_animation(
+                    id, *g_player_intent );
+              },
+              /*when_ready=*/
+              []( auto const& ) { return /*move_on=*/true; } ) )
+        break_;
 
       // Animation (if any) is finished.
+
       CHECK( g_player_intent );
       affect_orders( *g_player_intent );
       fsm.send_event( UnitInputEvent::end{

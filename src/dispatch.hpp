@@ -17,6 +17,7 @@
 #include "combat.hpp"
 #include "job.hpp"
 #include "macros.hpp"
+#include "sync-future.hpp"
 #include "travel.hpp"
 
 // C++ standard library
@@ -39,7 +40,8 @@ NOTHROW_MOVE( PlayerIntent );
 Opt<PlayerIntent> player_intent( UnitId          id,
                                  orders_t const& orders );
 
-bool confirm_explain( PlayerIntent const& analysis );
+sync_future<bool> confirm_explain(
+    PlayerIntent const& analysis );
 
 void affect_orders( PlayerIntent const& analysis );
 

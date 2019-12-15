@@ -49,6 +49,7 @@ TEST_CASE( "[sync-future] future default construction" ) {
   REQUIRE( s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( !s_future.taken() );
 }
 
 TEST_CASE( "[sync-future] future api basic" ) {
@@ -59,16 +60,25 @@ TEST_CASE( "[sync-future] future api basic" ) {
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( !s_future.taken() );
 
   ss->maybe_int = 3;
   REQUIRE( !s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( s_future.ready() );
+  REQUIRE( !s_future.taken() );
+
+  REQUIRE( s_future.get() == 3 );
+  REQUIRE( !s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( s_future.ready() );
+  REQUIRE( s_future.taken() );
 
   REQUIRE( s_future.get_and_reset() == 3 );
   REQUIRE( s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( s_future.taken() );
 }
 
 TEST_CASE( "[sync-future] future api with continuation" ) {
@@ -79,6 +89,7 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( !s_future.taken() );
 
   auto s_future2 =
       s_future.then( []( int n ) { return n + 1; } );
@@ -86,10 +97,12 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( !s_future.taken() );
 
   REQUIRE( !s_future2.empty() );
   REQUIRE( s_future2.waiting() );
   REQUIRE( !s_future2.ready() );
+  REQUIRE( !s_future2.taken() );
 
   auto s_future3 = s_future2.then(
       []( int n ) { return std::to_string( n ); } );
@@ -97,10 +110,12 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( !s_future2.empty() );
   REQUIRE( s_future2.waiting() );
   REQUIRE( !s_future2.ready() );
+  REQUIRE( !s_future2.taken() );
 
   REQUIRE( !s_future3.empty() );
   REQUIRE( s_future3.waiting() );
   REQUIRE( !s_future3.ready() );
+  REQUIRE( !s_future3.taken() );
 
   ss->maybe_int = 3;
   REQUIRE( !s_future.empty() );
@@ -112,26 +127,41 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( s_future.ready() );
   REQUIRE( s_future2.ready() );
   REQUIRE( s_future3.ready() );
+  REQUIRE( !s_future.taken() );
+  REQUIRE( !s_future2.taken() );
+  REQUIRE( !s_future3.taken() );
 
+  REQUIRE( s_future3.get() == "4" );
+  REQUIRE( s_future3.taken() );
   auto res3 = s_future3.get_and_reset();
+  REQUIRE( s_future3.taken() );
   static_assert( std::is_same_v<decltype( res3 ), std::string> );
   REQUIRE( res3 == "4" );
+  REQUIRE( s_future2.get() == 4 );
+  REQUIRE( s_future2.taken() );
   auto res2 = s_future2.get_and_reset();
+  REQUIRE( s_future2.taken() );
   static_assert( std::is_same_v<decltype( res2 ), int> );
   REQUIRE( res2 == 4 );
+  REQUIRE( s_future.get() == 3 );
+  REQUIRE( s_future.taken() );
   auto res1 = s_future.get_and_reset();
+  REQUIRE( s_future.taken() );
   static_assert( std::is_same_v<decltype( res1 ), int> );
   REQUIRE( res1 == 3 );
 
   REQUIRE( s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( s_future.taken() );
   REQUIRE( s_future2.empty() );
   REQUIRE( !s_future2.waiting() );
   REQUIRE( !s_future2.ready() );
+  REQUIRE( s_future2.taken() );
   REQUIRE( s_future3.empty() );
   REQUIRE( !s_future3.waiting() );
   REQUIRE( !s_future3.ready() );
+  REQUIRE( s_future3.taken() );
 }
 
 TEST_CASE( "[sync-future] consume" ) {
@@ -156,6 +186,7 @@ TEST_CASE( "[sync-future] promise api basic api" ) {
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( !s_future.taken() );
 
   s_promise.set_value( 3 );
   REQUIRE( s_promise.has_value() );
@@ -163,11 +194,19 @@ TEST_CASE( "[sync-future] promise api basic api" ) {
   REQUIRE( !s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( s_future.ready() );
+  REQUIRE( !s_future.taken() );
+
+  REQUIRE( s_future.get() == 3 );
+  REQUIRE( !s_future.empty() );
+  REQUIRE( !s_future.waiting() );
+  REQUIRE( s_future.ready() );
+  REQUIRE( s_future.taken() );
 
   REQUIRE( s_future.get_and_reset() == 3 );
   REQUIRE( s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( s_future.taken() );
 }
 
 TEST_CASE( "[sync-future] stored" ) {
@@ -181,11 +220,13 @@ TEST_CASE( "[sync-future] stored" ) {
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( !s_future.taken() );
 
   s_promise.set_value( 3 );
   REQUIRE( !s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( s_future.ready() );
+  REQUIRE( !s_future.taken() );
 
   REQUIRE( result == 0 );
 
@@ -193,6 +234,7 @@ TEST_CASE( "[sync-future] stored" ) {
   REQUIRE( s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
+  REQUIRE( s_future.taken() );
 
   REQUIRE( result == 3 );
 }
@@ -207,6 +249,10 @@ TEST_CASE( "[sync-future] formatting" ) {
   s_promise.set_value( 3 );
   REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
   REQUIRE( fmt::format( "{}", s_future ) == "<ready>" );
+
+  REQUIRE( s_future.get() == 3 );
+  REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
+  REQUIRE( fmt::format( "{}", s_future ) == "<taken>" );
 
   REQUIRE( s_future.get_and_reset() == 3 );
   REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );

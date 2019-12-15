@@ -17,6 +17,9 @@
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 
+// function_ref
+#include "tl/function_ref.hpp"
+
 // C++ standard library
 #include <memory>
 
@@ -46,9 +49,9 @@ struct sync_shared_state_base {
 // It starts off in the `waiting` state upon construction (from a
 // sync_promise) then transitions to `ready` when the result be-
 // comes available. At this point, the value can be retrieved
-// once using the get_and_reset method, at which point it transi-
-// tions to the `empty` state. Once in the `empty` state the
-// sync_future is "dead" forever.
+// using the get or get_and_reset methods (the latter also causes
+// a transitions to the `empty` state). Once in the `empty` state
+// the sync_future is "dead" forever.
 //
 // Example usage:
 //
@@ -60,6 +63,7 @@ struct sync_shared_state_base {
 //
 //   s_promise.set_value( 3 );
 //
+//   assert( s_future1.get() == 3 );
 //   assert( s_future1.get_and_reset() == 3 );
 //   assert( s_future2.get_and_reset() == 4 );
 //
@@ -76,9 +80,10 @@ public:
 
   // This constructor should not be used by client code.
   explicit sync_future( SharedStatePtr shared_state )
-    : shared_state_{ shared_state } {}
+    : shared_state_{ shared_state }, taken_{ false } {}
 
   bool operator==( sync_future<T> const& rhs ) const {
+    // Not comparing `taken_`.
     return shared_state_.get() == rhs.shared_state_.get();
   }
 
@@ -98,16 +103,27 @@ public:
     return shared_state_->has_value();
   }
 
-  // Only this method is provided for getting the value out. This
-  // is to force the client to only call this method once, since
-  // it may have side effects (e.g., if this future was create
-  // from a continuation that has side effects).
+  bool taken() const { return taken_; }
+
+  // Gets the value (running any continuations) and returns the
+  // value, leaving the sync_future in the same state.
+  T get() {
+    CHECK( ready(),
+           "attempt to get value from sync_future when not in "
+           "`ready` state." );
+    taken_ = true;
+    return shared_state_->get();
+  }
+
+  // Gets the value (running any continuations) and resets the
+  // sync_future to empty state.
   T get_and_reset() {
     CHECK( ready(),
            "attempt to get value from sync_future when not in "
            "`ready` state." );
     T res = shared_state_->get();
     shared_state_.reset();
+    taken_ = true;
     return res;
   }
 
@@ -170,6 +186,7 @@ public:
 
 private:
   SharedStatePtr shared_state_;
+  bool           taken_ = false;
 };
 
 /****************************************************************
@@ -270,6 +287,22 @@ sync_future<T> make_sync_future( Args&&... args ) {
   return s_promise.get_future();
 }
 
+// Returns `false` if the caller needs to wait for completion of
+// the step, true if the step is complete.
+template<typename T>
+bool future_step(
+    sync_future<T>*                    s_future,
+    tl::function_ref<sync_future<T>()> when_empty,
+    tl::function_ref<bool( T const& )> when_ready ) {
+  if( s_future->empty() ) {
+    *s_future = when_empty();
+    // !! should fall through.
+  }
+  if( !s_future->ready() ) return false;
+  if( !s_future->taken() ) return when_ready( s_future->get() );
+  return true;
+}
+
 } // namespace rn
 
 /****************************************************************
@@ -288,8 +321,10 @@ struct formatter<::rn::sync_future<T>> : formatter_base {
       res = "<empty>";
     else if( o.waiting() )
       res = "<waiting>";
-    else if( o.ready() )
+    else if( o.ready() && !o.taken() )
       res = fmt::format( "<ready>" );
+    else if( o.taken() )
+      res = fmt::format( "<taken>" );
     return formatter_base::format( res, ctx );
   }
 };

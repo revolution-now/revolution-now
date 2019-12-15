@@ -15,6 +15,7 @@
 // Revolution Now
 #include "analysis.hpp"
 #include "macros.hpp"
+#include "sync-future.hpp"
 
 // C++ standard library
 #include <variant>
@@ -39,9 +40,9 @@ struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool allowed_() const;
-  bool confirm_explain_() const;
-  void affect_orders_() const;
+  bool              allowed_() const;
+  sync_future<bool> confirm_explain_() const;
+  void              affect_orders_() const;
 
   static Opt<JobAnalysis> analyze_( UnitId id, orders_t orders );
 };

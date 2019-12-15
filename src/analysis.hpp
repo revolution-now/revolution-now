@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "orders.hpp"
+#include "sync-future.hpp"
 
 namespace rn {
 
@@ -48,7 +49,7 @@ struct OrdersAnalysis {
   // be asked for any kind of confirmation. In addition, if the
   // order is not allowed, the player may be given an
   // explantation as to why.
-  bool confirm_explain() const {
+  sync_future<bool> confirm_explain() const {
     return child()->confirm_explain_();
   }
 
@@ -99,8 +100,10 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool allowed_() const { return true; }
-  bool confirm_explain_() const { return true; }
+  bool              allowed_() const { return true; }
+  sync_future<bool> confirm_explain_() const {
+    return make_sync_future<bool>( true );
+  }
   void affect_orders_() const;
 
   static Opt<MetaAnalysis> analyze_( UnitId   id,
