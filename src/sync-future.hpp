@@ -70,8 +70,11 @@ struct sync_shared_state_base {
 //   assert( s_future1.empty() );
 //   assert( s_future2.empty() );
 //
+// FIXME: Should be [[nodiscard]] but that has to wait until an
+// issue is resolved when compiling with gcc where a function_ref
+// that returns a [[nodiscard]] type generates a warning.
 template<typename T = std::monostate>
-class ND sync_future {
+class /*ND*/ sync_future {
   using SharedStatePtr =
       std::shared_ptr<internal::sync_shared_state_base<T>>;
 

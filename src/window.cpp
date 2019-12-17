@@ -69,8 +69,6 @@ namespace {
 enum class e_window_state { running, closed };
 struct Window {
   Window( std::string title_, Coord position_ );
-  Window( std::string title_, std::unique_ptr<View> view_,
-          Coord position_ );
 
   void set_view( UPtr<View> view_ ) {
     view = std::move( view_ );
@@ -90,8 +88,8 @@ struct Window {
   Coord inside_border() const;
   Rect  inside_border_rect() const;
   Coord inside_padding() const;
-  Rect  inside_padding_rect() const;
-  Rect  title_bar() const;
+  // Rect  inside_padding_rect() const;
+  Rect title_bar() const;
   // abs coord of upper-left corner of view.
   Coord view_pos() const;
 
@@ -139,13 +137,6 @@ public:
 
 public:
   Window* add_window( std::string title );
-
-  Window* add_window( std::string           title,
-                      std::unique_ptr<View> view );
-
-  Window* add_window( std::string           title,
-                      std::unique_ptr<View> view,
-                      Coord                 position );
 
   void remove_window( Window* p_win ) {
     windows_.remove_if( LC( &_ == p_win ) );
@@ -237,18 +228,6 @@ Delta const& window_padding() {
 /****************************************************************
 ** WindowManager
 *****************************************************************/
-Window::Window( string title_, unique_ptr<View> view_,
-                Coord position_ )
-  : window_state( e_window_state::running ),
-    title( move( title_ ) ),
-    view( move( view_ ) ),
-    title_view(),
-    position( position_ ) {
-  CHECK( view );
-  title_view = make_unique<OneLineStringView>(
-      title, config_palette.orange.sat1.lum11, /*shadow=*/true );
-}
-
 Window::Window( string title_, Coord position_ )
   : window_state( e_window_state::running ),
     title( move( title_ ) ),
@@ -304,18 +283,18 @@ Coord Window::inside_padding() const {
   return position + window_border() + window_padding();
 }
 
-Rect Window::inside_padding_rect() const {
-  auto res = rect();
-  res.x += window_border().w;
-  res.y += window_border().h;
-  res.w -= window_border().w * 2_sx;
-  res.h -= window_border().h * 2_sy;
-  res.x += window_padding().w;
-  res.y += window_padding().h;
-  res.w -= window_padding().w * 2_sx;
-  res.h -= window_padding().h * 2_sy;
-  return res;
-}
+// Rect Window::inside_padding_rect() const {
+//  auto res = rect();
+//  res.x += window_border().w;
+//  res.y += window_border().h;
+//  res.w -= window_border().w * 2_sx;
+//  res.h -= window_border().h * 2_sy;
+//  res.x += window_padding().w;
+//  res.y += window_padding().h;
+//  res.w -= window_padding().w * 2_sx;
+//  res.h -= window_padding().h * 2_sy;
+//  return res;
+//}
 
 Rect Window::title_bar() const {
   CHECK( view );
@@ -337,15 +316,6 @@ void WindowManager::remove_closed_windows() {
   // Don't use active_windows() here... would defeat the points.
   windows_.remove_if(
       L( _.window_state == e_window_state::closed ) );
-}
-
-Window* WindowManager::add_window( string           title_,
-                                   unique_ptr<View> view_ ) {
-  windows_.emplace_back( move( title_ ), move( view_ ),
-                         Coord{} );
-  auto& new_window = windows_.back();
-  new_window.center_window();
-  return &new_window;
 }
 
 Window* WindowManager::add_window( string title_ ) {

@@ -109,7 +109,7 @@ struct formatter<::rn::no_serial<T, bFailOnSerialize>>
     } else {
       return formatter_base::format(
           fmt::format( "no_serial<{}>",
-                       demangled_typename<T>() ),
+                       ::rn::demangled_typename<T>() ),
           ctx );
     }
   }
