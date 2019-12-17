@@ -13,7 +13,11 @@ let s:stems = [
   \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/land-view',
+  \ 'src/colony',
+  \ 'src/cstate',
   \ 'src/render',
+  \ 'src/tiles',
+  \ 'src/save-game',
 \]
 
   "\ 'src/adt.cpp',
