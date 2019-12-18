@@ -5,16 +5,17 @@
 let s:first = 'exe/main.cpp'
 
 let s:stems = [
-  \ 'src/frame',
-  \ 'src/app-state',
   \ 'src/plane-ctrl',
   \ 'src/plane',
-  \ 'src/main-menu',
   \ 'src/dispatch',
   \ 'src/turn',
   \ 'src/land-view',
   \ 'src/colony',
-  \ 'src/cstate',
+  \ 'src/colony-structures',
+  \ 'src/colony-state',
+  \ 'src/colony-land',
+  \ 'src/colony-view',
+  \ 'src/colony-mgr',
   \ 'src/render',
   \ 'src/tiles',
   \ 'src/save-game',

@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "colony-structures.hpp"
 #include "commodity.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
@@ -49,7 +50,10 @@ private:
   std::string                      name_;
   FlatMap<e_commodity, int>        commodities_;
   FlatMap<UnitId, e_job_in_colony> jobs_;
-  int                              hammers_;
+  int                              prod_hammers_;
+  int                              prod_tools_;
+  FlatSet<e_colony_building>       buildings_;
+  Opt<e_colony_building>           production_;
 };
 
 } // namespace rn
