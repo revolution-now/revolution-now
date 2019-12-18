@@ -1,27 +1,29 @@
 /****************************************************************
-**{{FILEE}}
+**colony-structures.cpp
 *
 * Project: Revolution Now
 *
-* Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+* Created by dsicilia on 2019-12-18.
 *
-* Description: [FILL ME IN]
+* Description: All things related to the buildings in colonies.
 *
 *****************************************************************/
-#pragma once
-
-#include "core-config.hpp"
+#include "colony-structures.hpp"
 
 // Revolution Now
 //#include "dummy.hpp"
 
+using namespace std;
+
 namespace rn {
 
+namespace {
 //
+} // namespace
 
 /****************************************************************
-** Testing
+** Public API
 *****************************************************************/
-void test_{{FILE}}();
+// ...
 
 } // namespace rn

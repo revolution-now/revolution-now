@@ -1,0 +1,44 @@
+Building               Prerequisite           Pop Hammers Tools       Level
+================================================================================
+Blacksmith's House     None                   1     0   0             0
+Carpenter's Shop       None                   1     0   0             0
+Fur Trader's House     None                   1     0   0             0
+Rum Distiller's House  None                   1     0   0             0
+Tobacconist's House    None                   1     0   0             0
+Town Hall              None                   1     0   0             0
+Weaver's House         None                   1     0   0             0
+
+Armory                 None                   1    52   0             1
+Docks                  None                   1    52   0             1*
+Printing Press         None                   1    52  20             1
+Schoolhouse            None                   4    64   0             1
+Stable                 None                   1    64   0             1
+Stockade               None                   3    64   0             1
+Warehouse              None                   1    80   0             1
+
+Blacksmith's Shop      Blacksmith's House     4    64  20             2
+Church                 None                   3    64   0             2
+College                Schoolhouse            8   160  50             2
+Drydock                Docks                  6    80  50             2
+Fort                   Stockade               4   120 100             2
+Fur Trading Post       Fur Trader's House     4    56  20             2
+Lumber Mill            Carpenter's Shop       3    52   0             2
+Magazine               Armory                 8   120  50             2
+Newspaper              Printing Press         4   120  50             2
+Rum Distillery         Rum Distiller's House  4    64  20             2
+Tobacconist's Shop     Tobacconist's House    4    64  20             2
+Warehouse Expansion    Warehouse              1    80  20             2
+Weaver's Shop          Weaver's House         4    64  20             2
+
+Arsenal                Magazine               8   240 100             3
+Cathedral              Church                 8   176 100             3
+Cigar Factory          Tobacconist's Shop     8   160 100             3
+Fortress               Fort                   8   320 200             3
+Fur Factory            Fur Trading Post       8   160 100             3
+Iron Works             Blacksmith's Shop      8   240 100             3
+Rum Factory            Rum Distillery         8   160 100             3
+Shipyard               Drydock                8   240 100             3
+Textile Mill           Weaver's Shop          8   160 100             3
+University             College                10  200 100             3
+
+Custom House           None                   1   160  50             1*
