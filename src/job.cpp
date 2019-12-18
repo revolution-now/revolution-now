@@ -30,16 +30,34 @@ bool JobAnalysis::allowed_() const {
 }
 
 sync_future<bool> JobAnalysis::confirm_explain_() const {
-  if( !allowed() ) return make_sync_future<bool>( false );
-  if_v( desc, e_unit_job_good, val ) {
-    if( *val == e_unit_job_good::disband ) {
-      auto q = fmt::format( "Really disband {}?",
-                            unit_from_id( id ).desc().name );
-      return ui::yes_no( q ).then(
-          L( _ == ui::e_confirm::yes ) );
+  return matcher_( desc, ->, sync_future<bool> ) {
+    case_( e_unit_job_good ) {
+      switch( val ) {
+        case e_unit_job_good::disband: {
+          auto q = fmt::format( "Really disband {}?",
+                                unit_from_id( id ).desc().name );
+          return ui::yes_no( q ).then(
+              L( _ == ui::e_confirm::yes ) );
+        }
+        case e_unit_job_good::fortify:
+        case e_unit_job_good::sentry:
+          return make_sync_future<bool>( true );
+      }
     }
+    case_( e_unit_job_error ) {
+      auto return_false = []( auto ) { return false; };
+      switch( val ) {
+        case e_unit_job_error::ship_cannot_fortify:
+          return ui::message_box( "Ships cannot be fortified." )
+              .then( return_false );
+        case e_unit_job_error::cannot_fortify_on_ship:
+          return ui::message_box(
+                     "Cannot fortify while on a ship." )
+              .then( return_false );
+      }
+    }
+    matcher_exhaustive;
   }
-  return make_sync_future<bool>( true );
 }
 
 void JobAnalysis::affect_orders_() const {
@@ -69,6 +87,8 @@ Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
     res = JobAnalysis( id, orders );
     if( unit.desc().boat )
       res->desc = e_unit_job_error::ship_cannot_fortify;
+    else if( is_unit_onboard( id ) )
+      res->desc = e_unit_job_error::cannot_fortify_on_ship;
     else
       res->desc = e_unit_job_good::fortify;
   } else if( holds<orders::sentry>( orders ) ) {

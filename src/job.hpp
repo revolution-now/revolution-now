@@ -24,7 +24,10 @@ namespace rn {
 
 enum class ND e_unit_job_good { fortify, sentry, disband };
 
-enum class ND e_unit_job_error { ship_cannot_fortify };
+enum class ND e_unit_job_error {
+  ship_cannot_fortify,
+  cannot_fortify_on_ship
+};
 
 using v_unit_job_desc =
     std::variant<e_unit_job_good, e_unit_job_error>;
