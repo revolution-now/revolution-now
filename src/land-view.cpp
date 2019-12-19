@@ -29,6 +29,7 @@
 #include "rand.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "sound.hpp"
 #include "tx.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
@@ -464,6 +465,7 @@ void advance_landview_anim_state() {
             /*id=*/val.id,      //
             /*direction=*/val.d //
         } );
+        play_sound_effect( e_sfx::move );
       }
       case_( LandViewAnim::attack ) {
         ASSIGN_CHECK_OPT( attacker_coord,
@@ -476,6 +478,7 @@ void advance_landview_anim_state() {
             /*id=*/val.attacker, //
             /*direction=*/d      //
         } );
+        play_sound_effect( e_sfx::move );
       }
       switch_exhaustive;
     }
@@ -525,6 +528,9 @@ void advance_landview_anim_state() {
                                          : val.attacker, //
                 /*demote=*/demote                        //
             } );
+            play_sound_effect( val.attacker_wins
+                                   ? e_sfx::attacker_won
+                                   : e_sfx::attacker_lost );
           }
         }
       }
