@@ -67,4 +67,17 @@ enum class e_( colony_building,
                custom_house //
 );
 
+enum class e_( inside_colony_job,
+               bells,   //
+               crosses, //
+               hammers, //
+               rum,     //
+               cigars,  //
+               cloth,   //
+               coats,   //
+               tools,   //
+               muskets, //
+               teacher  //
+);
+
 } // namespace rn

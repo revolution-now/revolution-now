@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "adt.hpp"
 #include "colony-structures.hpp"
 #include "commodity.hpp"
 #include "enum.hpp"
@@ -25,19 +26,11 @@
 
 namespace rn {
 
-enum class e_( job_in_colony,
-               // Land
-               land_nw, //
-               land_n,  //
-               land_ne, //
-               land_w,  //
-               land_e,  //
-               land_sw, //
-               land_s,  //
-               land_se, //
-
-               // In colony.
-               coats //
+adt_rn( ColonyJob,                            //
+        ( land,                               //
+          ( e_direction, d ) ),               //
+        ( building,                           //
+          ( e_inside_colony_job, building ) ) //
 );
 
 class Colony : public util::movable_only {
@@ -45,15 +38,26 @@ public:
   expect<> check_invariants_safe() const;
 
 private:
-  ColonyId                         id_;
-  e_nation                         nation_;
-  std::string                      name_;
-  FlatMap<e_commodity, int>        commodities_;
-  FlatMap<UnitId, e_job_in_colony> jobs_;
-  int                              prod_hammers_;
-  int                              prod_tools_;
-  FlatSet<e_colony_building>       buildings_;
-  Opt<e_colony_building>           production_;
+  // Basic info.
+  ColonyId    id_;
+  e_nation    nation_;
+  std::string name_;
+
+  // Commodities.
+  FlatMap<e_commodity, int> commodities_;
+
+  // Serves to both record the units in this colony as well as
+  // their occupations.
+  FlatMap<UnitId, ColonyJob_t> jobs_;
+  FlatSet<e_colony_building>   buildings_;
+
+  // Production
+  Opt<e_colony_building> production_;
+  int                    prod_hammers_;
+  int                    prod_tools_;
+
+  // Liberty sentiment: [0,100].
+  int sentiment_;
 };
 
 } // namespace rn
