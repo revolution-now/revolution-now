@@ -1,11 +1,12 @@
 /****************************************************************
-**colony-structures.hpp
+**colony-mfg.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-12-18.
 *
-* Description: All things related to the buildings in colonies.
+* Description: All things related to the jobs colonists can have
+*              by working in the buildings in the colony.
 *
 *****************************************************************/
 #pragma once
@@ -13,7 +14,12 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "aliases.hpp"
 #include "enum.hpp"
+#include "fb.hpp"
+
+// Flatbuffers
+#include "fb/colony-mfg_generated.h"
 
 namespace rn {
 
@@ -66,8 +72,9 @@ enum class e_( colony_building,
                // Special buildings.
                custom_house //
 );
+SERIALIZABLE_ENUM( e_colony_building );
 
-enum class e_( inside_colony_job,
+enum class e_( mfg_job,
                bells,   //
                crosses, //
                hammers, //
@@ -79,5 +86,6 @@ enum class e_( inside_colony_job,
                muskets, //
                teacher  //
 );
+SERIALIZABLE_ENUM( e_mfg_job );
 
 } // namespace rn

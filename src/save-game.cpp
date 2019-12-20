@@ -19,6 +19,7 @@
 #include "serial.hpp"
 
 // Revolution Now (save-state modules)
+#include "colony-state.hpp"
 #include "europort-view.hpp"
 #include "id.hpp"
 #include "land-view.hpp"
@@ -123,6 +124,7 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
   XP_OR_RETURN_( savegame_deserializer( root->plane_state() ) );
   XP_OR_RETURN_(
       savegame_deserializer( root->euroview_state() ) );
+  XP_OR_RETURN_( savegame_deserializer( root->colony_state() ) );
   XP_OR_RETURN_(
       savegame_deserializer( root->land_view_state() ) );
   return xp_success_t{};

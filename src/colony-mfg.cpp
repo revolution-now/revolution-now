@@ -1,17 +1,17 @@
 /****************************************************************
-**colony.cpp
+**colony-mfg.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2019-12-15.
+* Created by dsicilia on 2019-12-18.
 *
-* Description: Data structure representing a Colony.
+* Description: All things related to the jobs colonists can have
+*              by working in the buildings in the colony.
 *
 *****************************************************************/
-#include "colony.hpp"
+#include "colony-mfg.hpp"
 
 // Revolution Now
-#include "errors.hpp"
 #include "lua.hpp"
 
 using namespace std;
@@ -23,8 +23,7 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-
-string debug_string( Colony const& ) { NOT_IMPLEMENTED; }
+// ...
 
 } // namespace rn
 
@@ -33,18 +32,7 @@ string debug_string( Colony const& ) { NOT_IMPLEMENTED; }
 *****************************************************************/
 namespace {
 
-LUA_STARTUP( sol::state& st ) {
-  using C = ::rn::Colony;
-
-  sol::usertype<C> c =
-      st.new_usertype<C>( "Colony", sol::no_constructor );
-
-  // Getters.
-  c["id"]        = &C::id;
-  c["nation"]    = &C::nation;
-  c["name"]      = &C::name;
-  c["location"]  = &C::location;
-  c["sentiment"] = &C::sentiment;
-};
+LUA_ENUM( colony_building );
+LUA_ENUM( mfg_job );
 
 } // namespace

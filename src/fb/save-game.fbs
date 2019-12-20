@@ -8,6 +8,7 @@
 // Description: Top-level table for save-game files.
 //
 // **************************************************************
+include "sg-colony.fbs";
 include "sg-europort-view.fbs";
 include "sg-id.fbs";
 include "sg-land-view.fbs";
@@ -26,6 +27,7 @@ table SaveGame {
   turn_state      : SG_Turn;
   plane_state     : SG_Plane;
   euroview_state  : SG_EuroportView;
+  colony_state    : SG_Colony;
   land_view_state : SG_LandView;
   terrain_state   : SG_Terrain;
 }

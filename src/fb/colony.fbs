@@ -1,0 +1,56 @@
+// **************************************************************
+// colony.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-12-20.
+//
+// Description: Serializable types for the colony module.
+//
+// **************************************************************
+include "colony-mfg.fbs";
+include "commodity.fbs";
+include "coord.fbs";
+include "nation.fbs";
+
+namespace fb.ColonyJob;
+
+  table land {
+    d : e_direction;
+  }
+  table mfg {
+    mfg_job : e_mfg_job;
+  }
+
+  namespace fb;
+
+  table ColonyJob_t {
+    land : ColonyJob.land;
+    mfg  : ColonyJob.mfg;
+  }
+
+namespace fb;
+
+table Pair_e_commodity_int {
+  fst : e_commodity;
+  snd : int;
+}
+
+table Pair_int_ColonyJob_t {
+  fst : int;
+  snd : ColonyJob_t;
+}
+
+table Colony {
+  id_           : int;
+  nation_       : e_nation;
+  name_         : string;
+  location_     : Coord;
+  commodities_  : [Pair_e_commodity_int];
+  jobs_         : [Pair_int_ColonyJob_t];
+  buildings_    : [e_colony_building];
+  production_   : Opt_e_colony_building;
+  prod_hammers_ : int;
+  prod_tools_   : int;
+  sentiment_    : int;
+}

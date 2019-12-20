@@ -14,9 +14,6 @@
 #include "errors.hpp"
 #include "lua.hpp"
 
-// {fmt}
-#include "fmt/format.h"
-
 using namespace std;
 
 namespace rn {

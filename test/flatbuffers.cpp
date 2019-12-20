@@ -63,6 +63,7 @@ using namespace rn;
 
 using ::Catch::Contains;
 using ::Catch::Equals;
+using ::Catch::UnorderedEquals;
 using ::rn::serial::BinaryBlob;
 
 enum class e_( color, Red, Green, Blue );
@@ -156,7 +157,8 @@ struct Monster {
   ( map_vecs_t,      map_vecs       ),
   ( map_strs_t,      map_strs       ),
   ( map_wpns_t,      map_wpns       ),
-  ( list<string>,    mylist         ));
+  ( list<string>,    mylist         ),
+  ( FlatSet<string>, myset          ));
   // clang-format on
 };
 
@@ -235,10 +237,17 @@ BinaryBlob create_monster_blob() {
   mylist_v.push_back( builder.CreateString( "hello6" ) );
   auto fb_mylist = builder.CreateVector( mylist_v );
 
+  vector<FBOffset<flatbuffers::String>> myset_v;
+  myset_v.push_back( builder.CreateString( "hello7" ) );
+  myset_v.push_back( builder.CreateString( "hello8" ) );
+  myset_v.push_back( builder.CreateString( "hello9" ) );
+  auto fb_myset = builder.CreateVector( myset_v );
+
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, names, inventory,
       fb::e_color::Red, weapons, path, pair1, &pair2,
-      fb_map_vecs, fb_map_strs, fb_map_wpns, fb_mylist );
+      fb_map_vecs, fb_map_strs, fb_map_wpns, fb_mylist,
+      fb_myset );
 
   builder.Finish( orc );
 
@@ -355,6 +364,15 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( mylist->Get( 0 )->str() == "hello4" );
     REQUIRE( mylist->Get( 1 )->str() == "hello5" );
     REQUIRE( mylist->Get( 2 )->str() == "hello6" );
+
+    auto myset = monster.myset();
+    REQUIRE( myset != nullptr );
+    REQUIRE( myset->size() == 3 );
+    Vec<string> elems{ myset->Get( 0 )->str(),
+                       myset->Get( 1 )->str(),
+                       myset->Get( 2 )->str() };
+    REQUIRE_THAT( elems, UnorderedEquals( Vec<string>{
+                             "hello7", "hello8", "hello9" } ) );
   }
 
   SECTION( "deserialize to native" ) {
@@ -425,6 +443,12 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( *it++ == "hello5" );
     REQUIRE( *it++ == "hello6" );
     REQUIRE( it == mylist.end() );
+
+    auto& myset = monster.myset;
+    REQUIRE( myset.size() == 3 );
+    REQUIRE( myset.contains( "hello7" ) );
+    REQUIRE( myset.contains( "hello8" ) );
+    REQUIRE( myset.contains( "hello9" ) );
   }
 
   SECTION( "native to native roundtrip" ) {
@@ -453,6 +477,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.mylist.clear();
     monster.mylist.push_back( "l1" );
     monster.mylist.push_back( "l2" );
+    monster.myset.clear();
+    monster.myset.insert( "s1" );
+    monster.myset.insert( "s2" );
 
     auto blob = rn::serial::serialize_to_blob( monster );
     constexpr uint64_t kExpectedBlobSize = 492;
@@ -533,6 +560,11 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( *it++ == "l1" );
     REQUIRE( *it++ == "l2" );
     REQUIRE( it == mylist.end() );
+
+    auto& myset = monster_new.myset;
+    REQUIRE( myset.size() == 2 );
+    REQUIRE( myset.contains( "s1" ) );
+    REQUIRE( myset.contains( "s2" ) );
   }
 }
 

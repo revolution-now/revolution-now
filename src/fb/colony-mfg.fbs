@@ -1,0 +1,79 @@
+// **************************************************************
+// colony-mfg.fbs
+//
+// Project: Revolution Now
+//
+// Created by dsicilia on 2019-12-20.
+//
+// Description: Serializable types for the colony-mfg module.
+//
+// **************************************************************
+namespace fb;
+
+enum e_colony_building : short {
+  // Free buildings.
+  blacksmiths_house,
+  carpenters_shop,
+  fur_traders_house,
+  rum_distillers_house,
+  tobacconists_house,
+  town_hall,
+  weavers_house,
+
+  // Level 1 buildings.
+  armory,
+  docks,
+  printing_press,
+  schoolhouse,
+  stable,
+  stockade,
+  warehouse,
+
+  // Level 2 buildings.
+  blacksmiths_shop,
+  church,
+  college,
+  drydock,
+  fort,
+  fur_trading_post,
+  lumber_mill,
+  magazine,
+  newspaper,
+  rum_distillery,
+  tobacconists_shop,
+  warehouse_expansion,
+  weavers_shop,
+
+  // Level 3 buildings.
+  arsenal,
+  cathedral,
+  cigar_factory,
+  fortress,
+  fur_factory,
+  iron_works,
+  rum_factory,
+  shipyard,
+  textile_mill,
+  university,
+
+  // Special buildings.
+  custom_house
+}
+
+table Opt_e_colony_building {
+  has_value : bool;
+  value     : e_colony_building;
+}
+
+enum e_mfg_job : byte {
+  bells,
+  crosses,
+  hammers,
+  rum,
+  cigars,
+  cloth,
+  coats,
+  tools,
+  muskets,
+  teacher
+}

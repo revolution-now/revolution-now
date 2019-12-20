@@ -130,4 +130,5 @@ table Monster {
   map_strs  : [Pair_string_int];
   map_wpns  : [Pair_int_Weapon];
   mylist    : [string];
+  myset     : [string];
 }

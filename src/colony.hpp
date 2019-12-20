@@ -14,50 +14,92 @@
 
 // Revolution Now
 #include "adt.hpp"
-#include "colony-structures.hpp"
+#include "colony-mfg.hpp"
 #include "commodity.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
+#include "fb.hpp"
 #include "id.hpp"
 #include "nation.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
+// Flatbuffers
+#include "fb/colony_generated.h"
 
 namespace rn {
 
-adt_rn( ColonyJob,                            //
-        ( land,                               //
-          ( e_direction, d ) ),               //
-        ( building,                           //
-          ( e_inside_colony_job, building ) ) //
+adt_s_rn( ColonyJob,                 //
+          ( land,                    //
+            ( e_direction, d ) ),    //
+          ( mfg,                     //
+            ( e_mfg_job, mfg_job ) ) //
 );
 
-class Colony : public util::movable_only {
+class Colony {
 public:
-  expect<> check_invariants_safe() const;
+  Colony()  = default; // for serialization framework.
+  ~Colony() = default;
+  Colony( Colony const& ) = delete;
+  Colony( Colony&& )      = default;
+
+  Colony& operator=( Colony const& ) = delete;
+  Colony& operator=( Colony&& ) = default;
+
+  /************************* Getters ***************************/
+
+  ColonyId           id() const { return id_; }
+  e_nation           nation() const { return nation_; }
+  std::string const& name() const { return name_; }
+  Coord              location() const { return location_; }
+  int                sentiment() const { return sentiment_; }
+  int prod_hammers() const { return prod_hammers_; }
+  int prod_tools() const { return prod_tools_; }
+
+  /************************* Setters ***************************/
+
+  // This class itself is not equipped to check all of its own
+  // invariants, since many of them require other game state to
+  // validate.
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
 
 private:
+  friend expect<ColonyId> create_colony( e_nation         nation,
+                                         Coord const&     where,
+                                         std::string_view name );
+
+  using FlatMap_e_commodity_int = FlatMap<e_commodity, int>;
+  using FlatMap_UnitId_ColonyJob_t =
+      FlatMap<UnitId, ColonyJob_t>;
+  using FlatSet_e_colony_building = FlatSet<e_colony_building>;
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, Colony,
   // Basic info.
-  ColonyId    id_;
-  e_nation    nation_;
-  std::string name_;
+  ( ColonyId,                   id_           ),
+  ( e_nation,                   nation_       ),
+  ( std::string,                name_         ),
+  ( Coord,                      location_     ),
 
   // Commodities.
-  FlatMap<e_commodity, int> commodities_;
+  ( FlatMap_e_commodity_int,    commodities_  ),
 
   // Serves to both record the units in this colony as well as
   // their occupations.
-  FlatMap<UnitId, ColonyJob_t> jobs_;
-  FlatSet<e_colony_building>   buildings_;
+  ( FlatMap_UnitId_ColonyJob_t, jobs_         ),
+  ( FlatSet_e_colony_building,  buildings_    ),
 
   // Production
-  Opt<e_colony_building> production_;
-  int                    prod_hammers_;
-  int                    prod_tools_;
+  ( Opt<e_colony_building>,     production_   ),
+  ( int,                        prod_hammers_ ),
+  ( int,                        prod_tools_   ),
 
   // Liberty sentiment: [0,100].
-  int sentiment_;
+  ( int,                        sentiment_    ));
+  // clang-format on
 };
+NOTHROW_MOVE( Colony );
+
+std::string debug_string( Colony const& colony );
 
 } // namespace rn
