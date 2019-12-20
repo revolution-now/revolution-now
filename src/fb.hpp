@@ -374,6 +374,17 @@ auto serialize( FBBuilder& builder, FlatSet<T> const& s,
   return serialize<Hint>( builder, v, serial::ADL{} );
 }
 
+// For std::set. Make a vector of references to the elements and
+// just serialize that.
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, std::set<T> const& s,
+                serial::ADL ) {
+  std::vector<CRef<T>> v;
+  v.reserve( s.size() );
+  for( auto const& e : s ) v.emplace_back( e );
+  return serialize<Hint>( builder, v, serial::ADL{} );
+}
+
 // For map-like things.
 template<typename Hint,                        //
          typename T,                           //
@@ -565,6 +576,24 @@ expect<> deserialize( SrcT const* src, std::list<T>* dst,
 // For flat sets. Deserialize to vector first.
 template<typename SrcT, typename T>
 expect<> deserialize( SrcT const* src, FlatSet<T>* dst,
+                      serial::ADL ) {
+  // SrcT should be a flatbuffers::Vector.
+  if( src == nullptr || src->size() == 0 ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty map.
+    return xp_success_t{};
+  }
+  std::vector<T> v;
+  v.reserve( src->size() );
+  XP_OR_RETURN_( deserialize( src, &v, serial::ADL{} ) );
+  dst->clear();
+  for( auto& e : v ) dst->insert( std::move( e ) );
+  return xp_success_t{};
+}
+
+// For std::sets. Deserialize to vector first.
+template<typename SrcT, typename T>
+expect<> deserialize( SrcT const* src, std::set<T>* dst,
                       serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {

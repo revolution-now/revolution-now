@@ -62,6 +62,10 @@ table Pair_int_Weapon {
   snd : Weapon;
 }
 
+table SetTester {
+  set : [string];
+}
+
 table MapTester1 {
   map : [Pair_string_int];
 }

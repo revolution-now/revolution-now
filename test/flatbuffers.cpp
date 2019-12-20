@@ -158,7 +158,7 @@ struct Monster {
   ( map_strs_t,      map_strs       ),
   ( map_wpns_t,      map_wpns       ),
   ( list<string>,    mylist         ),
-  ( FlatSet<string>, myset          ));
+  ( set<string>,     myset          ));
   // clang-format on
 };
 
@@ -446,9 +446,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     auto& myset = monster.myset;
     REQUIRE( myset.size() == 3 );
-    REQUIRE( myset.contains( "hello7" ) );
-    REQUIRE( myset.contains( "hello8" ) );
-    REQUIRE( myset.contains( "hello9" ) );
+    REQUIRE( myset.find( "hello7" ) != myset.end() );
+    REQUIRE( myset.find( "hello8" ) != myset.end() );
+    REQUIRE( myset.find( "hello9" ) != myset.end() );
   }
 
   SECTION( "native to native roundtrip" ) {
@@ -563,8 +563,8 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     auto& myset = monster_new.myset;
     REQUIRE( myset.size() == 2 );
-    REQUIRE( myset.contains( "s1" ) );
-    REQUIRE( myset.contains( "s2" ) );
+    REQUIRE( myset.find( "s1" ) != myset.end() );
+    REQUIRE( myset.find( "s2" ) != myset.end() );
   }
 }
 
@@ -788,6 +788,17 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   }
 }
 
+struct SetTester {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+  using set_t = FlatSet<string>;
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, SetTester,
+  ( set_t,        set                ));
+  // clang-format on
+};
+
 struct MapTester1 {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
@@ -809,6 +820,19 @@ struct MapTester2 {
   ( map_t,        map                ));
   // clang-format on
 };
+
+TEST_CASE( "[flatbuffers] hash sets" ) {
+  using namespace ::rn::serial;
+
+  SetTester s1{ { "one", "two" } };
+
+  auto s1_blob = rn::serial::serialize_to_blob( s1 );
+
+  SetTester s1_new;
+  CHECK_XP( deserialize_from_blob( s1_blob, &s1_new ) );
+
+  REQUIRE( s1.set == s1_new.set );
+}
 
 TEST_CASE( "[flatbuffers] hash maps" ) {
   using namespace ::rn::serial;
