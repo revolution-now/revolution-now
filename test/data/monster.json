@@ -102,5 +102,10 @@
     "hello4",
     "hello5",
     "hello6"
+  ],
+  "myset": [
+    "hello7",
+    "hello8",
+    "hello9"
   ]
 }

@@ -21,6 +21,9 @@
 // Flatbuffers
 #include "fb/sg-colony_generated.h"
 
+// base-util
+#include "base-util/keyval.hpp"
+
 // C++ standard library
 #include <unordered_map>
 
@@ -68,7 +71,7 @@ SAVEGAME_IMPL( Colony );
 expect<ColonyId> create_colony( e_nation         nation,
                                 Coord const&     where,
                                 std::string_view name ) {
-  if( SG().colony_from_coord.contains( where ) )
+  if( bu::has_key( SG().colony_from_coord, where ) )
     return UNEXPECTED( "square {} already contains a colony.",
                        where );
 
@@ -88,7 +91,7 @@ expect<ColonyId> create_colony( e_nation         nation,
 }
 
 bool colony_exists( ColonyId id ) {
-  return SG().colonies.contains( id );
+  return bu::has_key( SG().colonies, id ).has_value();
 }
 
 Colony& colony_from_id( ColonyId id ) {

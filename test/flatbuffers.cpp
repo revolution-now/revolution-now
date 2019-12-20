@@ -256,7 +256,7 @@ BinaryBlob create_monster_blob() {
 
 TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 532;
+  constexpr uint64_t kExpectedBlobSize = 592;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
@@ -482,7 +482,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.myset.insert( "s2" );
 
     auto blob = rn::serial::serialize_to_blob( monster );
-    constexpr uint64_t kExpectedBlobSize = 492;
+    constexpr uint64_t kExpectedBlobSize = 528;
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::serialize_to_json( monster );
