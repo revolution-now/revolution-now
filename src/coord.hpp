@@ -371,21 +371,37 @@ struct ND Rect {
     using pointer           = Coord const*;
     using reference         = Coord const&;
 
-    Coord       it;
-    Rect const& rect;
+    const_iterator()                        = default;
+    const_iterator( const_iterator const& ) = default;
+    const_iterator( const_iterator&& )      = default;
+    const_iterator( Coord c, Rect const* r )
+      : it( c ), rect( r ) {}
+
+    const_iterator& operator=( const_iterator const& ) = default;
+    const_iterator& operator=( const_iterator&& ) = default;
+
     auto const& operator*() {
+      DCHECK( rect );
       // TODO: can remove this check eventually.
-      CHECK( it.is_inside( rect ) );
+      DCHECK( it.is_inside( *rect ) );
       return it;
     }
-    void operator++() {
+    const_iterator& operator++() {
+      DCHECK( rect );
       ++it.x;
-      if( it.x == rect.right_edge() ) {
-        it.x = rect.left_edge();
+      if( it.x == rect->right_edge() ) {
+        it.x = rect->left_edge();
         ++it.y;
       }
       // TODO: can remove this check eventually.
-      CHECK( it == rect.lower_left() || it.is_inside( rect ) );
+      DCHECK( it == rect->lower_left() ||
+              it.is_inside( *rect ) );
+      return *this;
+    }
+    const_iterator operator++( int ) {
+      auto res = *this;
+      ++( *this );
+      return res;
     }
     bool operator!=( const_iterator const& rhs ) const {
       return it != rhs.it;
@@ -393,18 +409,21 @@ struct ND Rect {
     bool operator==( const_iterator const& rhs ) const {
       return it == rhs.it;
     }
+
+    Coord       it;
+    Rect const* rect = nullptr;
   };
 
   const_iterator begin() const {
     if( w == 0_w || h == 0_h ) return end();
-    return { upper_left(), *this };
+    return const_iterator( upper_left(), this );
   }
   const_iterator end() const {
     // The "end" is the _start_ of the row that is one passed the
     // last row. This is because this will be the position of the
     // iterator after advancing it past the lower right corner of
     // the rectangle.
-    return { lower_left(), *this };
+    return const_iterator( lower_left(), this );
   }
 };
 NOTHROW_MOVE( Rect );
