@@ -58,191 +58,136 @@ Texture const& load_image( fs::path const& p ) {
   return g_images[p];
 }
 
-sprite create_sprite_32( Texture const& texture, Coord coord ) {
-  Rect rect{coord.x * 32_sx, coord.y * 32_sy, 32_w, 32_h};
-  return {&texture, rect, {32_sx, 32_sy}};
+sprite create_sprite( Texture const& texture, Coord coord,
+                      Delta size ) {
+  auto scale = size.to_scale();
+  Rect rect{ coord.x * scale.sx, coord.y * scale.sy, size.w,
+             size.h };
+  return { &texture, rect, scale };
 }
 
-sprite create_sprite_8( Texture const& texture, Coord coord ) {
-  Rect rect{coord.x * 8_sx, coord.y * 8_sy, 8_w, 8_h};
-  return {&texture, rect, {8_sx, 8_sy}};
-}
+#define SET_SPRITE( category, tile_name )         \
+  sprites[g_tile::tile_name] = create_sprite(     \
+      tile_set_texture,                           \
+      config_art.tiles.category.coords.tile_name, \
+      config_art.tiles.category.size );
 
-sprite create_sprite_16( Texture const& texture, Coord coord ) {
-  Rect rect{coord.x * 16_sx, coord.y * 16_sy, 16_w, 16_h};
-  return {&texture, rect, {16_sx, 16_sy}};
-}
-
-// sprite create_sprite_24( Texture const& texture, Coord coord )
-// {
-//  Rect rect{coord.x * 24_sx, coord.y * 24_sy, 24_w, 24_h};
-//  return {&texture, rect, {24_sx, 24_sy}};
-//}
-
-sprite create_sprite_128_64( Texture const& texture,
-                             Coord          coord ) {
-  Rect rect{coord.x * 128_sx, coord.y * 64_sy, 128_w, 64_h};
-  return {&texture, rect, {128_sx, 64_sy}};
-}
-
-sprite create_sprite_128_16( Texture const& texture,
-                             Coord          coord ) {
-  Rect rect{coord.x * 128_sx, coord.y * 16_sy, 128_w, 16_h};
-  return {&texture, rect, {128_sx, 16_sy}};
-}
-
-#define SET_SPRITE_WORLD( name )              \
-  sprites[g_tile::name] =                     \
-      create_sprite_32( tile_set_world_32_32, \
-                        config_art.tiles.world.coords.name )
-
-#define SET_SPRITE_UNITS( name )              \
-  sprites[g_tile::name] =                     \
-      create_sprite_32( tile_set_units_32_32, \
-                        config_art.tiles.units.coords.name )
-
-#define SET_SPRITE_MENU( name )            \
-  sprites[g_tile::name] = create_sprite_8( \
-      tile_set_menu_8_8, config_art.tiles.menu.coords.name )
-
-#define SET_SPRITE_MENU16( name )              \
-  sprites[g_tile::name] =                      \
-      create_sprite_16( tile_set_menu16_16_16, \
-                        config_art.tiles.menu16.coords.name )
-
-#define SET_SPRITE_WOOD( name )                 \
-  sprites[g_tile::name] = create_sprite_128_64( \
-      tile_set_wood_128_64, config_art.tiles.wood.coords.name )
-
-#define SET_SPRITE_MENU_SEL( name )             \
-  sprites[g_tile::name] = create_sprite_128_16( \
-      tile_set_menu_sel_128_16,                 \
-      config_art.tiles.menu_sel.coords.name )
-
-#define SET_SPRITE_BUTTON( name )           \
-  sprites[g_tile::name] =                   \
-      create_sprite_8( tile_set_button_8_8, \
-                       config_art.tiles.button.coords.name )
-
-#define SET_SPRITE_COMMODITIES( name )      \
-  sprites[g_tile::name] = create_sprite_16( \
-      tile_set_commodities_16_16,           \
-      config_art.tiles.commodities.coords.name )
-
-#define SET_SPRITE_TESTING( name )              \
-  sprites[g_tile::name] =                       \
-      create_sprite_32( tile_set_testing_32_32, \
-                        config_art.tiles.testing.coords.name )
-
-#define LOAD_SPRITES_IMPL( name, width, height, suffix, ... ) \
-  auto& tile_set_##name##_##width##_##height =                \
-      load_image( config_art.tiles.name.img );                \
-  PP_MAP_SEMI( SET_SPRITE_##suffix, __VA_ARGS__ )
+#define LOAD_SPRITES_IMPL( name, ... )                       \
+  {                                                          \
+    auto& tile_set_texture =                                 \
+        load_image( config_art.tiles.name.img );             \
+    PP_MAP_TUPLE( SET_SPRITE,                                \
+                  PP_MAP_PREPEND_TUPLE(                      \
+                      name, PP_MAP_COMMAS( SINGLETON_TUPLE,  \
+                                           __VA_ARGS__ ) ) ) \
+  }
 
 #define LOAD_SPRITES( ... ) \
   EVAL( LOAD_SPRITES_IMPL( __VA_ARGS__ ) )
 
 void init_sprites() {
-  LOAD_SPRITES( world, 32, 32, WORLD,
-                water,               //
-                land,                //
-                land_1_side,         //
-                land_2_sides,        //
-                land_3_sides,        //
-                land_4_sides,        //
-                land_corner,         //
-                fog,                 //
-                fog_1_side,          //
-                fog_corner,          //
-                terrain_grass,       //
-                panel,               //
-                panel_edge_left,     //
-                panel_slate,         //
-                panel_slate_1_side,  //
-                panel_slate_2_sides, //
+  // clang-format off
+  LOAD_SPRITES( world,
+    water,
+    land,
+    land_1_side,
+    land_2_sides,
+    land_3_sides,
+    land_4_sides,
+    land_corner,
+    fog,
+    fog_1_side,
+    fog_corner,
+    terrain_grass,
+    panel,
+    panel_edge_left,
+    panel_slate,
+    panel_slate_1_side,
+    panel_slate_2_sides,
   );
 
-  LOAD_SPRITES( wood, 128, 64, WOOD,
-                wood_middle,    //
-                wood_left_edge, //
+  LOAD_SPRITES( wood,
+    wood_middle,
+    wood_left_edge,
   );
 
-  LOAD_SPRITES( units, 32, 32, UNITS,
-                free_colonist,  //
-                privateer,      //
-                merchantman,    //
-                soldier,        //
-                large_treasure, //
-                small_treasure, //
+  LOAD_SPRITES( units,
+    free_colonist,
+    privateer,
+    merchantman,
+    soldier,
+    large_treasure,
+    small_treasure,
   );
 
-  LOAD_SPRITES( menu, 8, 8, MENU,
-                menu_top_left,     //
-                menu_body,         //
-                menu_top,          //
-                menu_left,         //
-                menu_bottom,       //
-                menu_bottom_left,  //
-                menu_right,        //
-                menu_top_right,    //
-                menu_bottom_right, //
+  LOAD_SPRITES( menu,
+    menu_top_left,
+    menu_body,
+    menu_top,
+    menu_left,
+    menu_bottom,
+    menu_bottom_left,
+    menu_right,
+    menu_top_right,
+    menu_bottom_right,
   );
 
-  LOAD_SPRITES( menu16, 16, 16, MENU16,
-                menu_bar_0, //
-                menu_bar_1, //
-                menu_bar_2, //
+  LOAD_SPRITES( menu16,
+    menu_bar_0,
+    menu_bar_1,
+    menu_bar_2,
   );
 
-  LOAD_SPRITES( menu_sel, 128, 16, MENU_SEL,
-                menu_item_sel_back, //
-                menu_hdr_sel_back,  //
+  LOAD_SPRITES( menu_sel,
+    menu_item_sel_back,
+    menu_hdr_sel_back,
   );
 
-  LOAD_SPRITES( button, 8, 8, BUTTON,
-                button_up_ul,   //
-                button_up_um,   //
-                button_up_ur,   //
-                button_up_ml,   //
-                button_up_mm,   //
-                button_up_mr,   //
-                button_up_ll,   //
-                button_up_lm,   //
-                button_up_lr,   //
-                button_down_ul, //
-                button_down_um, //
-                button_down_ur, //
-                button_down_ml, //
-                button_down_mm, //
-                button_down_mr, //
-                button_down_ll, //
-                button_down_lm, //
-                button_down_lr, //
+  LOAD_SPRITES( button,
+    button_up_ul,
+    button_up_um,
+    button_up_ur,
+    button_up_ml,
+    button_up_mm,
+    button_up_mr,
+    button_up_ll,
+    button_up_lm,
+    button_up_lr,
+    button_down_ul,
+    button_down_um,
+    button_down_ur,
+    button_down_ml,
+    button_down_mm,
+    button_down_mr,
+    button_down_ll,
+    button_down_lm,
+    button_down_lr,
   );
 
-  LOAD_SPRITES( commodities, 16, 16, COMMODITIES,
-                commodity_food,        //
-                commodity_sugar,       //
-                commodity_tobacco,     //
-                commodity_cotton,      //
-                commodity_fur,         //
-                commodity_lumber,      //
-                commodity_ore,         //
-                commodity_silver,      //
-                commodity_horses,      //
-                commodity_rum,         //
-                commodity_cigars,      //
-                commodity_cloth,       //
-                commodity_coats,       //
-                commodity_trade_goods, //
-                commodity_tools,       //
-                commodity_muskets,     //
+  LOAD_SPRITES( commodities,
+    commodity_food,
+    commodity_sugar,
+    commodity_tobacco,
+    commodity_cotton,
+    commodity_fur,
+    commodity_lumber,
+    commodity_ore,
+    commodity_silver,
+    commodity_horses,
+    commodity_rum,
+    commodity_cigars,
+    commodity_cloth,
+    commodity_coats,
+    commodity_trade_goods,
+    commodity_tools,
+    commodity_muskets,
   );
 
-  LOAD_SPRITES( testing, 32, 32, TESTING,
-                checkers,     //
-                checkers_inv, //
+  LOAD_SPRITES( testing,
+    checkers,
+    checkers_inv,
   );
+  // clang-format on
 }
 
 void cleanup_sprites() {
@@ -271,8 +216,8 @@ void render_sprite( Texture& tx, g_tile tile, Y pixel_row,
   Rect dst;
   dst.x = pixel_col;
   dst.y = pixel_row;
-  dst.w = W{1} * sp.scale.sx;
-  dst.h = H{1} * sp.scale.sy;
+  dst.w = W{ 1 } * sp.scale.sx;
+  dst.h = H{ 1 } * sp.scale.sy;
 
   constexpr double right_angle = 90.0; // degrees
 
@@ -335,7 +280,7 @@ void tile_sprite( Texture& tx, g_tile tile, Rect const& rect ) {
   if( mod.h == 0_h && rect.delta().h != 0_h )
     mod.h = 1_h * info.scale.sy;
   auto smaller_rect = Rect::from(
-      rect.upper_left(), rect.delta() - Delta{1_w, 1_h} );
+      rect.upper_left(), rect.delta() - Delta{ 1_w, 1_h } );
   for( auto coord :
        Rect::from( Coord{}, smaller_rect.delta() / info.scale ) )
     render_sprite( tx, tile,
@@ -383,8 +328,8 @@ void render_rect_of_sprites_with_border(
 ) {
   auto const& sprite_middle = lookup_sprite( middle );
   CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );
-  for( auto tile : {middle, top, bottom, left, right, top_left,
-                    top_right, bottom_left, bottom_right} ) {
+  for( auto tile : { middle, top, bottom, left, right, top_left,
+                     top_right, bottom_left, bottom_right } ) {
     CHECK( lookup_sprite( tile ).scale == sprite_middle.scale );
   }
 
@@ -403,40 +348,42 @@ void render_rect_of_sprites_with_border(
 
   for( X x = dst_tile_rect.x + 1_w;
        x < dst_tile_rect.right_edge() - 1_w; ++x )
-    render_sprite( dst, top, to_pixels( {0_y, x} ), 0, 0 );
+    render_sprite( dst, top, to_pixels( { 0_y, x } ), 0, 0 );
   for( X x = dst_tile_rect.x + 1_w;
        x < dst_tile_rect.right_edge() - 1_w; ++x )
     render_sprite(
         dst, bottom,
         to_pixels(
-            {0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x} ),
+            { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ), x } ),
         0, 0 );
   for( Y y = dst_tile_rect.y + 1_h;
        y < dst_tile_rect.bottom_edge() - 1_h; ++y )
-    render_sprite( dst, left, to_pixels( {y, 0_x} ), 0, 0 );
+    render_sprite( dst, left, to_pixels( { y, 0_x } ), 0, 0 );
   for( Y y = dst_tile_rect.y + 1_h;
        y < dst_tile_rect.bottom_edge() - 1_h; ++y )
     render_sprite(
         dst, right,
         to_pixels(
-            {y, 0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
+            { y, 0_x + ( dst_tile_rect.right_edge() - 1_w ) } ),
         0, 0 );
 
-  render_sprite( dst, top_left, to_pixels( {0_y, 0_x} ), 0, 0 );
+  render_sprite( dst, top_left, to_pixels( { 0_y, 0_x } ), 0,
+                 0 );
   render_sprite(
       dst, top_right,
       to_pixels(
-          {0_y, 0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
+          { 0_y, 0_x + ( dst_tile_rect.right_edge() - 1_w ) } ),
       0, 0 );
   render_sprite(
       dst, bottom_left,
       to_pixels(
-          {0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x} ),
+          { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ), 0_x } ),
       0, 0 );
   render_sprite(
       dst, bottom_right,
-      to_pixels( {0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
-                  0_x + ( dst_tile_rect.right_edge() - 1_w )} ),
+      to_pixels(
+          { 0_y + ( dst_tile_rect.bottom_edge() - 1_h ),
+            0_x + ( dst_tile_rect.right_edge() - 1_w ) } ),
       0, 0 );
 }
 

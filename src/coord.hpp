@@ -137,6 +137,10 @@ struct ND Delta {
   // Returns the length of the diagonal according to Pythagoras.
   double diagonal() const;
 
+  Scale to_scale() const {
+    return { SX{ w / 1_w }, SY{ h / 1_h } };
+  }
+
   Delta mirrored_vertically() const { return { w, -h }; }
   Delta mirrored_horizontally() const { return { -w, h }; }
 

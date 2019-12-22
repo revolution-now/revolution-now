@@ -139,8 +139,8 @@ void assign_link( T const* const& from, T const& to ) {
   struct __startup_##__name {                                \
     static void __load_##__name() {                          \
       config_files().push_back(                              \
-          {shadow_config_##__name##_t::cfg_name(),           \
-           shadow_config_##__name##_t::this_file()} );       \
+          { shadow_config_##__name##_t::cfg_name(),          \
+            shadow_config_##__name##_t::this_file() } );     \
     }                                                        \
     static inline int const __register_##__name = [] {       \
       load_functions().push_back( __load_##__name );         \
@@ -228,6 +228,7 @@ UCL_TYPE( bool,           UCL_BOOLEAN,   bool_value     )
 UCL_TYPE( double,         UCL_FLOAT,     number_value   )
 UCL_TYPE( string,         UCL_STRING,    string_value   )
 UCL_TYPE( Coord,          UCL_OBJECT,    type /*dummy*/ )
+UCL_TYPE( Delta,          UCL_OBJECT,    type /*dummy*/ )
 UCL_TYPE( Color,          UCL_STRING,    string_value   )
 UCL_TYPE( MvPoints,       UCL_INT,       int_value      )
 //UCL_TYPE( X,              UCL_INT,       int_value      )
@@ -487,6 +488,32 @@ void populate_config_field( ucl::Ucl obj, Coord& dest,
   dest.y = obj["y"].int_value();
   used_field_paths.insert( file + "." + dotted + ".x" );
   used_field_paths.insert( file + "." + dotted + ".y" );
+}
+
+// Delta
+template<>
+void populate_config_field( ucl::Ucl obj, Delta& dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
+  // Silence unused-variable warnings.
+  (void)ucl_type_of_v<Delta>;
+  (void)ucl_type_name_of_v<Delta>;
+  (void)ucl_getter_for_type_v<Delta>;
+  auto dotted = util::join( path, "." );
+  check_field_exists( obj, dotted, file );
+  check_field_type( obj, UCL_OBJECT, dotted, config_name,
+                    "a width/height pair object" );
+  check_field_type(
+      obj["w"], UCL_INT, dotted, config_name,
+      "a width/height pair with UCL_INT fields `w` and `h`" );
+  check_field_type(
+      obj["h"], UCL_INT, dotted, config_name,
+      "a width/height pair with UCL_INT fields `w` and `h`" );
+  dest.w = obj["w"].int_value();
+  dest.h = obj["h"].int_value();
+  used_field_paths.insert( file + "." + dotted + ".w" );
+  used_field_paths.insert( file + "." + dotted + ".h" );
 }
 
 #define TUNE_DIMENSION_TO_ENUM_PAIR( dim ) ( e_tune_##dim, dim )

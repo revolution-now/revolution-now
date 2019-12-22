@@ -6,6 +6,7 @@ tiles {
 
   world {
     img: assets/art/tiles/world.png
+    size: { w: 32, h: 32 }
     coords {
       water:               { y: 0, x: 0 }
       land:                { y: 0, x: 1 }
@@ -31,6 +32,7 @@ tiles {
 
   wood {
     img: assets/art/tiles/wood-128x64.png
+    size: { w: 128, h: 64 }
     coords {
       wood_middle          { y: 0, x: 0 }
       wood_left_edge       { y: 1, x: 0 }
@@ -39,6 +41,7 @@ tiles {
 
   units {
     img: assets/art/tiles/units.png
+    size: { w: 32, h: 32 }
     coords {
       merchantman:         { y: 0, x: 0 }
       privateer:           { y: 0, x: 1 }
@@ -51,6 +54,7 @@ tiles {
 
   menu {
     img: assets/art/tiles/menu.png
+    size: { w: 8, h: 8 }
     coords {
       menu_top_left:       { y: 0, x: 0 }
       menu_body:           { y: 0, x: 1 }
@@ -69,6 +73,7 @@ tiles {
 
   menu16 {
     img: assets/art/tiles/menu16.png
+    size: { w: 16, h: 16 }
     coords {
       menu_bar_0: { y: 0, x: 0 }
       menu_bar_1: { y: 0, x: 1 }
@@ -78,6 +83,7 @@ tiles {
 
   menu_sel {
     img: assets/art/tiles/menu-sel.png
+    size: { w: 128, h: 16 }
     coords {
       menu_item_sel_back: { y: 0, x: 0 }
       menu_hdr_sel_back:  { y: 1, x: 0 }
@@ -86,6 +92,7 @@ tiles {
 
   button {
     img: assets/art/tiles/button.png
+    size: { w: 8, h: 8 }
     coords {
       button_up_ul:   { y: 0, x: 0 }
       button_up_um:   { y: 0, x: 1 }
@@ -110,6 +117,7 @@ tiles {
 
   commodities {
     img: assets/art/tiles/commodities.png
+    size: { w: 16, h: 16 }
     coords {
       commodity_food:        { y: 0, x: 0  }
       commodity_sugar:       { y: 0, x: 1  }
@@ -132,6 +140,7 @@ tiles {
 
   testing {
     img: assets/art/tiles/testing.png
+    size: { w: 32, h: 32 }
     coords {
       checkers:     { y: 0, x: 0 }
       checkers_inv: { y: 0, x: 1 }

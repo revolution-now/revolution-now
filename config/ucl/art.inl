@@ -13,6 +13,7 @@ CFG( art,
   OBJ( tiles,
     OBJ( world,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, water )
         FLD( Coord, land )
@@ -34,6 +35,7 @@ CFG( art,
     )
     OBJ( wood,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, wood_middle )
         FLD( Coord, wood_left_edge )
@@ -41,6 +43,7 @@ CFG( art,
     )
     OBJ( units,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, merchantman )
         FLD( Coord, privateer )
@@ -52,6 +55,7 @@ CFG( art,
     )
     OBJ( menu,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, menu_top_left )
         FLD( Coord, menu_body )
@@ -69,6 +73,7 @@ CFG( art,
     )
     OBJ( menu16,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, menu_bar_0 )
         FLD( Coord, menu_bar_1 )
@@ -77,6 +82,7 @@ CFG( art,
     )
     OBJ( menu_sel,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, menu_item_sel_back )
         FLD( Coord, menu_hdr_sel_back )
@@ -84,6 +90,7 @@ CFG( art,
     )
     OBJ( button,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, button_up_ul )
         FLD( Coord, button_up_um )
@@ -107,6 +114,7 @@ CFG( art,
     )
     OBJ( commodities,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, commodity_food )
         FLD( Coord, commodity_sugar )
@@ -129,6 +137,7 @@ CFG( art,
 
     OBJ( testing,
       FLD( fs::path, img )
+      FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, checkers )
         FLD( Coord, checkers_inv )
