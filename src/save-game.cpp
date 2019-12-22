@@ -19,7 +19,7 @@
 #include "serial.hpp"
 
 // Revolution Now (save-state modules)
-#include "colony-state.hpp"
+#include "cstate.hpp"
 #include "europort-view.hpp"
 #include "id.hpp"
 #include "land-view.hpp"
@@ -46,6 +46,18 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using fb_sg_types = mp::type_list< //
+    fb::SG_Id,                     //
+    fb::SG_Unit,                   //
+    fb::SG_Player,                 //
+    fb::SG_Terrain,                //
+    fb::SG_Turn,                   //
+    fb::SG_Plane,                  //
+    fb::SG_EuroportView,           //
+    fb::SG_Colony,                 //
+    fb::SG_LandView                //
+    >;
 
 fs::path path_for_slot( int slot ) {
   CHECK( slot >= 0 );
@@ -187,6 +199,16 @@ expect<> reset_savegame_state() {
   auto blob =
       serial::BinaryBlob::from_builder( std::move( fbb ) );
   return load_from_blob( blob );
+}
+
+template<typename... fb_SG_types>
+void default_construct_savegame_state_impl(
+    mp::type_list<fb_SG_types...>* ) {
+  ( default_construct_savegame_state( (fb_SG_types*)0 ), ... );
+}
+
+void default_construct_savegame_state() {
+  default_construct_savegame_state_impl( (fb_sg_types*)0 );
 }
 
 /****************************************************************

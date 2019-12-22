@@ -17,6 +17,9 @@ namespace mp {
 template<int N>
 struct disambiguate;
 
+template<typename...>
+struct type_list;
+
 /****************************************************************
 ** reference_wrapper
 *****************************************************************/

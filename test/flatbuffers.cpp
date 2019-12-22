@@ -569,7 +569,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 }
 
 TEST_CASE( "deserialize json" ) {
-  testing_only::reset_unit_creation();
+  testing::default_construct_all_game_state();
 
   (void)create_unit( e_nation::english,
                      e_unit_type::merchantman );
@@ -610,7 +610,7 @@ TEST_CASE( "deserialize json" ) {
 }
 
 TEST_CASE( "[flatbuffers] serialize Unit" ) {
-  testing_only::reset_unit_creation();
+  testing::default_construct_all_game_state();
 
   auto ship =
       create_unit( e_nation::english, e_unit_type::merchantman );

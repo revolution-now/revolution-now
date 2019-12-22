@@ -11,7 +11,27 @@
 --]]-------------------------------------------------------------
 
 function Coord( arg )
-  return {x=arg.x, y=arg.y}
+  return setmetatable( {
+      x=arg.x,
+      y=arg.y,
+    }, {
+      __tostring = function( self )
+                     return "Coord{x=" .. tostring( self.x ) ..
+                                 ",y=" .. tostring( self.y ) ..
+                                 "}"
+                   end,
+      __eq = function( lhs, rhs )
+               return lhs.x == rhs.x and lhs.y == rhs.y
+             end
+    }
+  )
+end
+
+function assert_eq( lhs, rhs )
+  if lhs ~= rhs then
+    error( "assertion failed: " ..
+      tostring( lhs ) .. " != " .. tostring( rhs ) .. "." )
+  end
 end
 
 local function starts_with( str, start )

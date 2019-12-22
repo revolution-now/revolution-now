@@ -209,12 +209,22 @@ LUA_FN( coord_test, Coord, Coord const& coord ) {
 TEST_CASE( "[lua] Coord" ) {
   auto script = R"(
     local coord = Coord{x=2, y=2}
+    -- Test equality.
+    assert_eq( coord, Coord{x=2,y=2} )
+    -- Test tostring.
+    assert_eq( tostring( coord ), "Coord{x=2,y=2}" )
+
     coord = testing.coord_test( coord )
+    -- Test equality.
+    assert_eq( coord, Coord{x=3,y=3} )
+    -- Test tostring.
+    assert_eq( tostring( coord ), "Coord{x=3,y=3}" )
+
     coord.x = coord.x + 1
     coord.y = coord.y + 2
     return coord
   )";
-  REQUIRE( lua::run<Coord>( script ) == Coord{4_x, 5_y} );
+  REQUIRE( lua::run<Coord>( script ) == Coord{ 4_x, 5_y } );
 }
 
 LUA_FN( opt_test, Opt<string>, Opt<int> const& maybe_int ) {

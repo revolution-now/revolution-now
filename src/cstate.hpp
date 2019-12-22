@@ -1,5 +1,5 @@
 /****************************************************************
-**colony-state.hpp
+**cstate.hpp
 *
 * Project: Revolution Now
 *
@@ -41,13 +41,13 @@ Vec<ColonyId> colonies_all( Opt<e_nation> n = {} );
 // Apply a function to all colonies.
 void map_colonies( tl::function_ref<void( Colony& )> func );
 
-// Should not be holding any references to the colony after this.
+// DO NOT call this directly as it will not properly remove units
+// or check for errors. Should not be holding any references to
+// the colony after this.
 void destroy_colony( ColonyId id );
 
-/****************************************************************
-** Map Ownership
-*****************************************************************/
-FlatSet<ColonyId> const& colonies_from_coord( Coord const& c );
-Vec<ColonyId>            colonies_in_rect( Rect const& rect );
+Opt<ColonyId> colony_from_coord( Coord const& coord );
+Opt<ColonyId> colony_from_name( std::string_view name );
+Vec<ColonyId> colonies_in_rect( Rect const& rect );
 
 } // namespace rn

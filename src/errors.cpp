@@ -71,9 +71,19 @@ void print_stack_trace( StackTrace const& st_, int skip ) {
 }
 
 void die( char const* file, int line, std::string_view msg ) {
+  auto here = stack_trace_here();
+  // Uncomment this to print a stack trace when a particular
+  // error happens. This is useful during unit testing where
+  // stack traces are not printed on exceptions.
+  //
+  // if( util::contains( msg, "<insert-string-here>" ) ) {
+  //  backward::StackTrace const& st = *( here.st );
+  //  backward::Printer           p;
+  //  p.print( st, stderr );
+  //}
   throw exception_with_bt(
       fmt::format( "{} ({}:{})", msg, file, line ),
-      stack_trace_here() );
+      std::move( here ) );
 }
 
 namespace detail {

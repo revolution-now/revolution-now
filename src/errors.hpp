@@ -435,7 +435,8 @@ struct formatter<::rn::expect<T>> : formatter_base {
   template<typename FormatContext>
   auto format( ::rn::expect<T> const& o, FormatContext& ctx ) {
     return formatter_base::format(
-        fmt::format( o.has_value()
+        fmt::format( "{}",
+                     o.has_value()
                          ? fmt::format( "{}", *o )
                          : fmt::format( "<unexpected:{}:{}: {}>",
                                         o.error().file.stem(),

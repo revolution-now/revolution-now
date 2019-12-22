@@ -76,7 +76,7 @@ expect<Opt<T>> sol_opt_convert( sol::object const& o ) {
   auto xp_T = sol_obj_convert<T>( o );
   if( !xp_T.has_value() ) //
     return std::nullopt;
-  return Opt<T>{*xp_T};
+  return Opt<T>{ *xp_T };
 }
 
 template<typename Ret>
@@ -147,6 +147,14 @@ void register_fn( std::string_view    module_name,
 /****************************************************************
 ** Registration: Functions
 *****************************************************************/
+// This is only needed in modules that include only LUA_STARTUP
+// macros (which themselves won't register the module name),
+// though it shouldn't hurt to include it.
+#define LUA_MODULE()                                    \
+  LUA_STARTUP( sol::state& st ) {                       \
+    st[lua::module_name__].get_or_create<sol::table>(); \
+  };
+
 #define LUA_FN( ... ) PP_N_OR_MORE_ARGS_2( LUA_FN, __VA_ARGS__ )
 
 #define LUA_FN_STARTUP( name )                          \
@@ -189,7 +197,7 @@ void register_enum_impl( sol::state& st, std::string_view name,
       std::initializer_list<std::pair<std::string_view, Enum>>{
           std::pair{
               Enum::_from_index_nothrow( Indexes )->_to_string(),
-              *Enum::_from_index_nothrow( Indexes )}...} );
+              *Enum::_from_index_nothrow( Indexes ) }... } );
 }
 
 template<typename Enum>
@@ -268,7 +276,7 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
     int val =                                                 \
         int( sol::stack::get<double>( L, absolute_index ) );  \
     tracking.use( 1 ); /* use one stack slot. */              \
-    return name{val};                                         \
+    return name{ val };                                       \
   }                                                           \
   inline int sol_lua_push( sol::types<name>, lua_State* L,    \
                            name const& n ) {                  \
@@ -290,7 +298,7 @@ auto module_name__ =
     // Used by above macros when registering functions.
     absl::StrReplaceAll(
         fs::path( __BASE_FILE__ ).filename().stem().string(),
-        {{"-", "_"}} );
+        { { "-", "_" } } );
 #endif
 } // namespace
 

@@ -20,6 +20,7 @@
 #include "range/v3/numeric/accumulate.hpp"
 #include "range/v3/view/concat.hpp"
 #include "range/v3/view/drop_while.hpp"
+#include "range/v3/view/filter.hpp"
 #include "range/v3/view/intersperse.hpp"
 #include "range/v3/view/take.hpp"
 #include "range/v3/view/take_while.hpp"
@@ -115,7 +116,7 @@ inline auto maximum() {
     using Rng     = decltype( r );
     std::pair<bool, ResType> res( false, {} );
     for( auto const& elem : std::forward<Rng>( r ) )
-      if( !res.first || res.second < elem ) res = {true, elem};
+      if( !res.first || res.second < elem ) res = { true, elem };
     return res;
   } );
 }
@@ -133,5 +134,18 @@ auto head( Rng&& r )
   for( auto const& e : r ) return e;
   return std::nullopt;
 }
+
+// Given a range of optionals, returns a new range containing all
+// the values inside the optionals (that have them) and with all
+// nullopts removed.
+//
+//   cat_opts :: [Maybe a] -> [a]
+//
+inline auto cat_opts = ranges::make_pipeable( []( auto&& r ) {
+  using Rng = decltype( r );
+  return std::forward<Rng>( r )             //
+         | rv::filter( L( _.has_value() ) ) //
+         | rv::transform( L( *_ ) );
+} );
 
 } // namespace rn

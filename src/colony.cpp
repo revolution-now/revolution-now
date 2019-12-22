@@ -24,27 +24,36 @@ namespace {} // namespace
 ** Public API
 *****************************************************************/
 
-string debug_string( Colony const& ) { NOT_IMPLEMENTED; }
+int Colony::population() const { return units_.size(); }
+
+string Colony::to_string() const {
+  return fmt::format(
+      "Colony{{name=\"{}\",id={},nation={},coord={},population={"
+      "}}}",
+      name(), id(), nation(), location(), population() );
+}
 
 } // namespace rn
 
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/
+namespace rn {
 namespace {
 
-LUA_STARTUP( sol::state& st ) {
-  using C = ::rn::Colony;
+LUA_MODULE()
 
-  sol::usertype<C> c =
-      st.new_usertype<C>( "Colony", sol::no_constructor );
+LUA_STARTUP( sol::state& st ) {
+  sol::usertype<Colony> colony =
+      st.new_usertype<Colony>( "Colony", sol::no_constructor );
 
   // Getters.
-  c["id"]        = &C::id;
-  c["nation"]    = &C::nation;
-  c["name"]      = &C::name;
-  c["location"]  = &C::location;
-  c["sentiment"] = &C::sentiment;
+  colony["id"]        = &Colony::id;
+  colony["nation"]    = &Colony::nation;
+  colony["name"]      = &Colony::name;
+  colony["location"]  = &Colony::location;
+  colony["sentiment"] = &Colony::sentiment;
 };
 
 } // namespace
+} // namespace rn

@@ -24,6 +24,7 @@ LUA_TYPED_INT( ::rn::W );
 LUA_TYPED_INT( ::rn::H );
 
 LUA_TYPED_INT( ::rn::UnitId );
+LUA_TYPED_INT( ::rn::ColonyId );
 
 namespace rn {
 
@@ -51,7 +52,7 @@ inline ::rn::Coord sol_lua_get( sol::types<::rn::Coord>,
                                 sol::stack::record& tracking ) {
   int  absolute_index = lua_absindex( L, index );
   auto table = sol::stack::get<sol::table>( L, absolute_index );
-  ::rn::Coord coord{table["x"].get<X>(), table["y"].get<Y>()};
+  ::rn::Coord coord{ table["x"].get<X>(), table["y"].get<Y>() };
   tracking.use( 1 );
   return coord;
 }
@@ -63,6 +64,13 @@ inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
   auto table = sol::lua_value( st, {} ).as<sol::table>();
   table["x"] = coord.x;
   table["y"] = coord.y;
+  // Delegate to lua factory function. We could do this in C++
+  // but the native lua factory function will add in some meta
+  // methods and it's nice not to have to duplicate that here.
+  CHECK( st["Coord"] != sol::lua_nil,
+         "The native Lua Coord factory function must be defined "
+         "first before converting from C++ Coord to Lua." );
+  table      = st["Coord"]( table );
   int amount = sol::stack::push( L, table );
 
   /* amount will be 1: int pushes 1 item. */

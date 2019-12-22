@@ -438,18 +438,6 @@ void ustate_change_to_euro_port_view(
 }
 
 /****************************************************************
-** Testing
-*****************************************************************/
-namespace testing_only {
-
-void reset_unit_creation() {
-  SG() = SG_Unit{};
-  reset_all_ids();
-}
-
-} // namespace testing_only
-
-/****************************************************************
 ** Do not call directly
 *****************************************************************/
 namespace internal {
@@ -504,6 +492,15 @@ LUA_FN( create_unit_on_map, Unit const&, e_nation nation,
 
 LUA_FN( unit_from_id, Unit const&, UnitId id ) {
   return unit_from_id( id );
+}
+
+LUA_FN( coord_for_unit, Coord, UnitId id ) {
+  // FIXME: try to return Opt<Coord> here which would automati-
+  // cally convert to nil when the result is nullopt.
+  auto maybe_coord = coord_for_unit( id );
+  CHECK( maybe_coord.has_value(), "Unit {} is not on the map.",
+         id );
+  return *maybe_coord;
 }
 
 } // namespace

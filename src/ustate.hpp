@@ -64,6 +64,7 @@ ND FlatSet<UnitId> const& units_from_coord( Coord const& c );
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
 Vec<UnitId> units_from_coord_recursive( Coord coord );
 
+// FIXME: needs to take into account colonies.
 ND Opt<e_nation> nation_from_coord( Coord coord );
 
 // This is in the rare cases that we need to change a unit's po-
@@ -174,13 +175,6 @@ void ustate_change_to_euro_port_view(
 // listed as the `friend` of some classes.
 namespace internal {
 void ustate_disown_unit( UnitId id );
-}
-
-/****************************************************************
-** Testing
-*****************************************************************/
-namespace testing_only {
-void reset_unit_creation();
 }
 
 } // namespace rn

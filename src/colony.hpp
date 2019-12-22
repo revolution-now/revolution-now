@@ -19,6 +19,7 @@
 #include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
+#include "fmt-helper.hpp"
 #include "id.hpp"
 #include "nation.hpp"
 
@@ -54,7 +55,11 @@ public:
   int prod_hammers() const { return prod_hammers_; }
   int prod_tools() const { return prod_tools_; }
 
-  /************************* Setters ***************************/
+  /************************ Functions **************************/
+
+  int population() const;
+
+  std::string to_string() const;
 
   // This class itself is not equipped to check all of its own
   // invariants, since many of them require other game state to
@@ -86,7 +91,7 @@ private:
 
   // Serves to both record the units in this colony as well as
   // their occupations.
-  ( FlatMap_UnitId_ColonyJob_t, jobs_         ),
+  ( FlatMap_UnitId_ColonyJob_t, units_        ),
   ( FlatSet_e_colony_building,  buildings_    ),
 
   // Production
@@ -100,6 +105,6 @@ private:
 };
 NOTHROW_MOVE( Colony );
 
-std::string debug_string( Colony const& colony );
-
 } // namespace rn
+
+DEFINE_FORMAT( ::rn::Colony, "{}", o.to_string() );

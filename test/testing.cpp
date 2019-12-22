@@ -12,14 +12,26 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "lua.hpp"
+#include "save-game.hpp"
 
 using namespace std;
 
 namespace testing {
 
 fs::path const& data_dir() {
-  static fs::path data{"test/data"};
+  static fs::path data{ "test/data" };
   return data;
+}
+
+void reset_savegame_state() {
+  CHECK_XP( rn::reset_savegame_state() );
+  rn::lua::reload();
+}
+
+void default_construct_all_game_state() {
+  rn::default_construct_savegame_state();
+  rn::lua::reload();
 }
 
 } // namespace testing

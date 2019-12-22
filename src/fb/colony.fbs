@@ -47,7 +47,7 @@ table Colony {
   name_         : string;
   location_     : Coord;
   commodities_  : [Pair_e_commodity_int];
-  jobs_         : [Pair_int_ColonyJob_t];
+  units_        : [Pair_int_ColonyJob_t];
   buildings_    : [e_colony_building];
   production_   : Opt_e_colony_building;
   prod_hammers_ : int;

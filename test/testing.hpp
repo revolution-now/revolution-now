@@ -22,4 +22,9 @@ namespace testing {
 
 fs::path const& data_dir();
 
+// This literally default constructs all save-game data struc-
+// tures. The result will not be an officially valid game state,
+// but it may be ok for some unit tests.
+void default_construct_all_game_state();
+
 } // namespace testing

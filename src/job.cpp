@@ -11,6 +11,7 @@
 #include "job.hpp"
 
 // Revolution Now
+#include "macros.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 
@@ -43,6 +44,7 @@ sync_future<bool> JobAnalysis::confirm_explain_() const {
         case e_unit_job_good::sentry:
           return make_sync_future<bool>( true );
       }
+      UNREACHABLE_LOCATION;
     }
     case_( e_unit_job_error ) {
       auto return_false = []( auto ) { return false; };
@@ -55,6 +57,7 @@ sync_future<bool> JobAnalysis::confirm_explain_() const {
                      "Cannot fortify while on a ship." )
               .then( return_false );
       }
+      UNREACHABLE_LOCATION;
     }
     matcher_exhaustive;
   }
