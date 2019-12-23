@@ -126,6 +126,9 @@ enum class e_tile {
   commodity_tools,
   commodity_muskets,
 
+  // Colonies
+  colony_basic,
+
   // testing
   checkers,
   checkers_inv

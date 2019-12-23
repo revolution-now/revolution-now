@@ -138,6 +138,14 @@ tiles {
     }
   }
 
+  colony {
+    img: assets/art/tiles/colony.png
+    size: { w: 44, h: 44 }
+    coords {
+      colony_basic: { y: 0, x: 0  }
+    }
+  }
+
   testing {
     img: assets/art/tiles/testing.png
     size: { w: 32, h: 32 }

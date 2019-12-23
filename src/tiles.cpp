@@ -176,6 +176,9 @@ void init_sprites() {
        commodity_tools,
        commodity_muskets,
   ),
+  (  /*-------------------*/colony,/*-------------------*/
+       colony_basic,
+  ),
   (  /*-------------------*/testing,/*-------------------*/
        checkers,
        checkers_inv,

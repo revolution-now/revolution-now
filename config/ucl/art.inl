@@ -134,6 +134,13 @@ CFG( art,
         FLD( Coord, commodity_muskets )
       )
     )
+    OBJ( colony,
+      FLD( fs::path, img )
+      FLD( Delta, size )
+      OBJ( coords,
+        FLD( Coord, colony_basic )
+      )
+    )
 
     OBJ( testing,
       FLD( fs::path, img )
