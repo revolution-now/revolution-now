@@ -24,6 +24,9 @@
 #include "base-util/keyval.hpp"
 #include "base-util/pp.hpp"
 
+// magic_enum
+#include "magic_enum.hpp"
+
 // C++ standard library
 #include <string>
 #include <unordered_map>
@@ -49,7 +52,7 @@ NOTHROW_MOVE( tile_map );
 
 // Need pointer stability for these.
 unordered_map<fs::path, Texture>             g_images;
-unordered_map<e_tile, sprite, EnumClassHash> sprites;
+unordered_map<e_tile, sprite, EnumClassHash> g_sprites;
 unordered_map<std::string, tile_map>         tile_maps;
 
 Texture const& load_image( fs::path const& p ) {
@@ -67,7 +70,7 @@ sprite create_sprite( Texture const& texture, Coord coord,
 }
 
 #define SET_SPRITE( category, tile_name )         \
-  sprites[e_tile::tile_name] = create_sprite(     \
+  g_sprites[e_tile::tile_name] = create_sprite(   \
       tile_set_texture,                           \
       config_art.tiles.category.coords.tile_name, \
       config_art.tiles.category.size );
@@ -172,6 +175,16 @@ void init_sprites() {
   )
   ));
   // clang-format on
+
+  for( e_tile e : magic_enum::enum_values<e_tile>() ) {
+    CHECK( bu::has_key( g_sprites, e ),
+           "Tile `{}` has not been loaded.", e );
+  }
+  auto num_tiles        = magic_enum::enum_count<e_tile>();
+  auto num_tiles_loaded = g_sprites.size();
+  CHECK( num_tiles_loaded == num_tiles,
+         "There are {} tiles but {} were loaded.", num_tiles,
+         num_tiles_loaded );
 }
 
 void cleanup_sprites() {
@@ -184,16 +197,16 @@ void cleanup_sprites() {
 REGISTER_INIT_ROUTINE( sprites );
 
 sprite const& lookup_sprite( e_tile tile ) {
-  auto where = sprites.find( tile );
-  CHECK( where != sprites.end(), "failed to find sprite {}",
+  auto where = g_sprites.find( tile );
+  CHECK( where != g_sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
   return where->second;
 }
 
 void render_sprite( Texture& tx, e_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x ) {
-  auto where = sprites.find( tile );
-  CHECK( where != sprites.end(), "failed to find sprite {}",
+  auto where = g_sprites.find( tile );
+  CHECK( where != g_sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
   sprite const& sp = where->second;
 
@@ -215,8 +228,8 @@ void render_sprite( Texture& tx, e_tile tile, Y pixel_row,
 
 void render_sprite_clip( Texture& tx, e_tile tile,
                          Coord pixel_coord, Rect const& clip ) {
-  auto where = sprites.find( tile );
-  CHECK( where != sprites.end(), "failed to find sprite {}",
+  auto where = g_sprites.find( tile );
+  CHECK( where != g_sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
   sprite const& sp = where->second;
 
