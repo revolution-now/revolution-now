@@ -64,3 +64,6 @@
 [submodule "extern/flatbuffers"]
 	path = extern/flatbuffers
 	url = ../../dpacbach/flatbuffers.git
+[submodule "extern/magic_enum"]
+	path = extern/magic_enum
+	url = ../magic_enum.git

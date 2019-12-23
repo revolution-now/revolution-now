@@ -40,6 +40,7 @@ target_link_libraries(
     fmt::fmt
     function-ref
     lua::lua
+    magic_enum::magic_enum
     midifile
     observer-ptr::observer-ptr
     range-v3
@@ -105,6 +106,7 @@ target_compile_definitions(
   SOL_ALL_SAFETIES_ON=1
   SOL_EXCEPTIONS_ALWAYS_UNSAFE=1
   SOL_PRINT_ERRORS=0
+  MAGIC_ENUM_RANGE_MAX=512
   )
 
 clang_tidy( rn )

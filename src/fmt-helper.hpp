@@ -15,13 +15,16 @@
 // Revolution Now
 #include "aliases.hpp"
 
-// {fmt}
-#include "fmt/format.h"
-
 // base-util
 #include "base-util/misc.hpp"
 #include "base-util/pp.hpp"
 #include "base-util/string.hpp"
+
+// {fmt}
+#include "fmt/format.h"
+
+// magic_enum
+#include "magic_enum.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -371,34 +374,11 @@ struct formatter<std::chrono::duration<Rep, Period>>
   }
 };
 
-// This is a specialization (via SFINAE) for enums, though it
-// will actually only work for the smart enums that can be
-// converted to strings (and, in particular, the ones that come
-// from the better-enums library and have the ::_enumerated and
-// ::_to_string() members).
+// Specialization for BETTER_ENUMS.
 //
-// The {fmt} library should find this automatically.
-//
-// The SFINAE is done just by requiring that the type have an
-// _enumerated member, which in practice means that it is a
-// better-enum type. However, it could also have been done like
-// so, for example:
-//
-//   template<typename T>
-//   struct formatter<
-//     T,
-//     char,
-//     std::enable_if_t<
-//       std::is_enum_v<
-//         typename T::_enumerated
-//       >
-//     >
-//   > {
-//
-// though that is probably overkill. In any case, note that the
-// last type in the argument list must be the SFINAE and must
-// have the type void (as it is if we use void_t or enable_if)
-// because:
+// Note that the last type in the template argument list must be
+// the SFINAE and must have the type void (as it is if we use
+// void_t or enable_if) because:
 //
 //   1) The third template parameter in the base template
 //      declaration of formatter (in fmt/core.h) has a default
@@ -419,6 +399,17 @@ struct formatter<T, char, std::void_t<typename T::_enumerated>>
   auto format( T const &o, FormatContext &ctx ) {
     return formatter_base::format(
         fmt::format( "{}", o._to_string() ), ctx );
+  }
+};
+
+// Specialization for standard enums using magic_enum.
+template<typename T>
+struct formatter<T, char, std::enable_if_t<std::is_enum_v<T>>>
+  : formatter_base {
+  template<typename FormatContext>
+  auto format( T const &o, FormatContext &ctx ) {
+    return formatter_base::format(
+        fmt::format( "{}", magic_enum::enum_name( o ) ), ctx );
   }
 };
 
