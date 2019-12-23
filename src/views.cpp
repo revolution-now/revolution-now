@@ -266,35 +266,35 @@ void ButtonBaseView::render( string const& label,
 
   render_rect_of_sprites_with_border(
       unpressed_, Coord{}, size_in_blocks, //
-      g_tile::button_up_mm, g_tile::button_up_um,
-      g_tile::button_up_lm, g_tile::button_up_ml,
-      g_tile::button_up_mr, g_tile::button_up_ul,
-      g_tile::button_up_ur, g_tile::button_up_ll,
-      g_tile::button_up_lr );
+      e_tile::button_up_mm, e_tile::button_up_um,
+      e_tile::button_up_lm, e_tile::button_up_ml,
+      e_tile::button_up_mr, e_tile::button_up_ul,
+      e_tile::button_up_ur, e_tile::button_up_ll,
+      e_tile::button_up_lr );
 
   render_rect_of_sprites_with_border(
       hover_, Coord{}, size_in_blocks, //
-      g_tile::button_up_mm, g_tile::button_up_um,
-      g_tile::button_up_lm, g_tile::button_up_ml,
-      g_tile::button_up_mr, g_tile::button_up_ul,
-      g_tile::button_up_ur, g_tile::button_up_ll,
-      g_tile::button_up_lr );
+      e_tile::button_up_mm, e_tile::button_up_um,
+      e_tile::button_up_lm, e_tile::button_up_ml,
+      e_tile::button_up_mr, e_tile::button_up_ul,
+      e_tile::button_up_ur, e_tile::button_up_ll,
+      e_tile::button_up_lr );
 
   render_rect_of_sprites_with_border(
       disabled_, Coord{}, size_in_blocks, //
-      g_tile::button_up_mm, g_tile::button_up_um,
-      g_tile::button_up_lm, g_tile::button_up_ml,
-      g_tile::button_up_mr, g_tile::button_up_ul,
-      g_tile::button_up_ur, g_tile::button_up_ll,
-      g_tile::button_up_lr );
+      e_tile::button_up_mm, e_tile::button_up_um,
+      e_tile::button_up_lm, e_tile::button_up_ml,
+      e_tile::button_up_mr, e_tile::button_up_ul,
+      e_tile::button_up_ur, e_tile::button_up_ll,
+      e_tile::button_up_lr );
 
   render_rect_of_sprites_with_border(
       pressed_, Coord{}, size_in_blocks, //
-      g_tile::button_down_mm, g_tile::button_down_um,
-      g_tile::button_down_lm, g_tile::button_down_ml,
-      g_tile::button_down_mr, g_tile::button_down_ul,
-      g_tile::button_down_ur, g_tile::button_down_ll,
-      g_tile::button_down_lr );
+      e_tile::button_down_mm, e_tile::button_down_um,
+      e_tile::button_down_lm, e_tile::button_down_ml,
+      e_tile::button_down_mr, e_tile::button_down_ul,
+      e_tile::button_down_ur, e_tile::button_down_ll,
+      e_tile::button_down_lr );
 
   auto info_normal = TextMarkupInfo{ Color::wood().shaded( 3 ),
                                      /*highlight=*/{} };

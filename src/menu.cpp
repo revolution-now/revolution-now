@@ -672,11 +672,11 @@ Texture render_item_background( e_menu menu, bool active ) {
   CHECK( active );
   auto res = create_texture( menu_item_delta( menu ) );
   clear_texture_transparent( res );
-  render_sprite( res, g_tile::menu_item_sel_back, Coord{}, 0,
+  render_sprite( res, e_tile::menu_item_sel_back, Coord{}, 0,
                  0 );
   auto sprite_width =
-      lookup_sprite( g_tile::menu_item_sel_back ).size().w;
-  render_sprite( res, g_tile::menu_item_sel_back,
+      lookup_sprite( e_tile::menu_item_sel_back ).size().w;
+  render_sprite( res, e_tile::menu_item_sel_back,
                  Coord{} + sprite_width, 0, 0 );
   return res;
 }
@@ -689,10 +689,10 @@ Texture render_menu_header_background( e_menu menu, bool active,
   auto res = create_texture( menu_header_delta( menu ) );
   clear_texture_transparent( res );
   if( active )
-    render_sprite( res, g_tile::menu_item_sel_back, Coord{}, 0,
+    render_sprite( res, e_tile::menu_item_sel_back, Coord{}, 0,
                    0 );
   else
-    render_sprite( res, g_tile::menu_hdr_sel_back, Coord{}, 0,
+    render_sprite( res, e_tile::menu_hdr_sel_back, Coord{}, 0,
                    0 );
   return res;
 }
@@ -713,15 +713,15 @@ Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
       dst,                              //
       Coord{},                          //
       dst.size() / Scale{ 8_sx, 8_sy }, //
-      g_tile::menu_body,                //
-      g_tile::menu_top,                 //
-      g_tile::menu_bottom,              //
-      g_tile::menu_left,                //
-      g_tile::menu_right,               //
-      g_tile::menu_top_left,            //
-      g_tile::menu_top_right,           //
-      g_tile::menu_bottom_left,         //
-      g_tile::menu_bottom_right         //
+      e_tile::menu_body,                //
+      e_tile::menu_top,                 //
+      e_tile::menu_bottom,              //
+      e_tile::menu_left,                //
+      e_tile::menu_right,               //
+      e_tile::menu_top_left,            //
+      e_tile::menu_top_right,           //
+      e_tile::menu_bottom_left,         //
+      e_tile::menu_bottom_right         //
   );
 
   auto render = scelta::match(
@@ -802,15 +802,15 @@ void render_menu_bar( Texture& tx ) {
           .value_or( Rect{} )
           .upper_left();
   auto        bar_rect   = menu_bar_rect();
-  auto const& wood       = lookup_sprite( g_tile::wood_middle );
+  auto const& wood       = lookup_sprite( e_tile::wood_middle );
   Coord       start      = panel_upper_left - wood.size().h;
   auto        wood_width = wood.size().w;
   for( Coord c = start; c.x >= 0_x - wood_width;
        c -= wood_width )
-    render_sprite( tx, g_tile::wood_middle, c, 0, 0 );
+    render_sprite( tx, e_tile::wood_middle, c, 0, 0 );
   for( Coord c = start; c.x < bar_rect.right_edge();
        c += wood_width )
-    render_sprite( tx, g_tile::wood_middle, c, 0, 0 );
+    render_sprite( tx, e_tile::wood_middle, c, 0, 0 );
 
   for( auto menu : visible_menus() ) {
     CHECK( g_menu_rendered.contains( menu ),

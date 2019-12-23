@@ -49,7 +49,7 @@ NOTHROW_MOVE( tile_map );
 
 // Need pointer stability for these.
 unordered_map<fs::path, Texture>             g_images;
-unordered_map<g_tile, sprite, EnumClassHash> sprites;
+unordered_map<e_tile, sprite, EnumClassHash> sprites;
 unordered_map<std::string, tile_map>         tile_maps;
 
 Texture const& load_image( fs::path const& p ) {
@@ -67,12 +67,12 @@ sprite create_sprite( Texture const& texture, Coord coord,
 }
 
 #define SET_SPRITE( category, tile_name )         \
-  sprites[g_tile::tile_name] = create_sprite(     \
+  sprites[e_tile::tile_name] = create_sprite(     \
       tile_set_texture,                           \
       config_art.tiles.category.coords.tile_name, \
       config_art.tiles.category.size );
 
-#define LOAD_SPRITES_IMPL( name, ... )                       \
+#define LOAD_SPRITES( name, ... )                            \
   {                                                          \
     auto& tile_set_texture =                                 \
         load_image( config_art.tiles.name.img );             \
@@ -82,111 +82,95 @@ sprite create_sprite( Texture const& texture, Coord coord,
                                            __VA_ARGS__ ) ) ) \
   }
 
-#define LOAD_SPRITES( ... ) \
-  EVAL( LOAD_SPRITES_IMPL( __VA_ARGS__ ) )
-
 void init_sprites() {
-  // clang-format off
-  LOAD_SPRITES( world,
-    water,
-    land,
-    land_1_side,
-    land_2_sides,
-    land_3_sides,
-    land_4_sides,
-    land_corner,
-    fog,
-    fog_1_side,
-    fog_corner,
-    terrain_grass,
-    panel,
-    panel_edge_left,
-    panel_slate,
-    panel_slate_1_side,
-    panel_slate_2_sides,
-  );
-
-  LOAD_SPRITES( wood,
-    wood_middle,
-    wood_left_edge,
-  );
-
-  LOAD_SPRITES( units,
-    free_colonist,
-    privateer,
-    merchantman,
-    soldier,
-    large_treasure,
-    small_treasure,
-  );
-
-  LOAD_SPRITES( menu,
-    menu_top_left,
-    menu_body,
-    menu_top,
-    menu_left,
-    menu_bottom,
-    menu_bottom_left,
-    menu_right,
-    menu_top_right,
-    menu_bottom_right,
-  );
-
-  LOAD_SPRITES( menu16,
-    menu_bar_0,
-    menu_bar_1,
-    menu_bar_2,
-  );
-
-  LOAD_SPRITES( menu_sel,
-    menu_item_sel_back,
-    menu_hdr_sel_back,
-  );
-
-  LOAD_SPRITES( button,
-    button_up_ul,
-    button_up_um,
-    button_up_ur,
-    button_up_ml,
-    button_up_mm,
-    button_up_mr,
-    button_up_ll,
-    button_up_lm,
-    button_up_lr,
-    button_down_ul,
-    button_down_um,
-    button_down_ur,
-    button_down_ml,
-    button_down_mm,
-    button_down_mr,
-    button_down_ll,
-    button_down_lm,
-    button_down_lr,
-  );
-
-  LOAD_SPRITES( commodities,
-    commodity_food,
-    commodity_sugar,
-    commodity_tobacco,
-    commodity_cotton,
-    commodity_fur,
-    commodity_lumber,
-    commodity_ore,
-    commodity_silver,
-    commodity_horses,
-    commodity_rum,
-    commodity_cigars,
-    commodity_cloth,
-    commodity_coats,
-    commodity_trade_goods,
-    commodity_tools,
-    commodity_muskets,
-  );
-
-  LOAD_SPRITES( testing,
-    checkers,
-    checkers_inv,
-  );
+  EVAL( PP_MAP_TUPLE(
+      LOAD_SPRITES
+      // clang-format off
+   ,( /*-------------------*/world,/*-------------------*/
+        water,
+        land,
+        land_1_side,
+        land_2_sides,
+        land_3_sides,
+        land_4_sides,
+        land_corner,
+        fog,
+        fog_1_side,
+        fog_corner,
+        terrain_grass,
+        panel,
+        panel_edge_left,
+        panel_slate,
+        panel_slate_1_side,
+        panel_slate_2_sides,
+  ),( /*-------------------*/wood,/*-------------------*/
+        wood_middle,
+        wood_left_edge,
+  ),( /*-------------------*/units,/*-------------------*/
+        free_colonist,
+        privateer,
+        merchantman,
+        soldier,
+        large_treasure,
+        small_treasure,
+  ),( /*-------------------*/menu,/*-------------------*/
+        menu_top_left,
+        menu_body,
+        menu_top,
+        menu_left,
+        menu_bottom,
+        menu_bottom_left,
+        menu_right,
+        menu_top_right,
+        menu_bottom_right,
+  ),( /*-------------------*/menu16,/*-------------------*/
+        menu_bar_0,
+        menu_bar_1,
+        menu_bar_2,
+  ),( /*-------------------*/menu_sel,/*-------------------*/
+        menu_item_sel_back,
+        menu_hdr_sel_back,
+  ),( /*-------------------*/button,/*-------------------*/
+        button_up_ul,
+        button_up_um,
+        button_up_ur,
+        button_up_ml,
+        button_up_mm,
+        button_up_mr,
+        button_up_ll,
+        button_up_lm,
+        button_up_lr,
+        button_down_ul,
+        button_down_um,
+        button_down_ur,
+        button_down_ml,
+        button_down_mm,
+        button_down_mr,
+        button_down_ll,
+        button_down_lm,
+        button_down_lr,
+  ),( /*-------------------*/commodities,/*-------------------*/
+        commodity_food,
+        commodity_sugar,
+        commodity_tobacco,
+        commodity_cotton,
+        commodity_fur,
+        commodity_lumber,
+        commodity_ore,
+        commodity_silver,
+        commodity_horses,
+        commodity_rum,
+        commodity_cigars,
+        commodity_cloth,
+        commodity_coats,
+        commodity_trade_goods,
+        commodity_tools,
+        commodity_muskets,
+  ),( /*-------------------*/testing,/*-------------------*/
+        checkers,
+        checkers_inv,
+  )
+  ));
   // clang-format on
 }
 
@@ -199,14 +183,14 @@ void cleanup_sprites() {
 //
 REGISTER_INIT_ROUTINE( sprites );
 
-sprite const& lookup_sprite( g_tile tile ) {
+sprite const& lookup_sprite( e_tile tile ) {
   auto where = sprites.find( tile );
   CHECK( where != sprites.end(), "failed to find sprite {}",
          std::to_string( static_cast<int>( tile ) ) );
   return where->second;
 }
 
-void render_sprite( Texture& tx, g_tile tile, Y pixel_row,
+void render_sprite( Texture& tx, e_tile tile, Y pixel_row,
                     X pixel_col, int rot, int flip_x ) {
   auto where = sprites.find( tile );
   CHECK( where != sprites.end(), "failed to find sprite {}",
@@ -229,7 +213,7 @@ void render_sprite( Texture& tx, g_tile tile, Y pixel_row,
   sp.texture->copy_to( tx, sp.source, dst, angle, flip );
 }
 
-void render_sprite_clip( Texture& tx, g_tile tile,
+void render_sprite_clip( Texture& tx, e_tile tile,
                          Coord pixel_coord, Rect const& clip ) {
   auto where = sprites.find( tile );
   CHECK( where != sprites.end(), "failed to find sprite {}",
@@ -249,30 +233,30 @@ void render_sprite_clip( Texture& tx, g_tile tile,
   sp.texture->copy_to( tx, new_src, dst, 0.0, e_flip::none );
 }
 
-void render_sprite( Texture& tx, g_tile tile, Coord pixel_coord,
+void render_sprite( Texture& tx, e_tile tile, Coord pixel_coord,
                     int rot, int flip_x ) {
   render_sprite( tx, tile, pixel_coord.y, pixel_coord.x, rot,
                  flip_x );
 }
 
-void render_sprite( Texture& tx, g_tile tile,
+void render_sprite( Texture& tx, e_tile tile,
                     Coord pixel_coord ) {
   render_sprite( tx, tile, pixel_coord.y, pixel_coord.x, 0, 0 );
 }
 
-void render_sprite_grid( Texture& tx, g_tile tile, Y tile_row,
+void render_sprite_grid( Texture& tx, e_tile tile, Y tile_row,
                          X tile_col, int rot, int flip_x ) {
   auto const& sprite = lookup_sprite( tile );
   render_sprite( tx, tile, tile_row * sprite.scale.sy,
                  tile_col * sprite.scale.sx, rot, flip_x );
 }
 
-void render_sprite_grid( Texture& tx, g_tile tile, Coord coord,
+void render_sprite_grid( Texture& tx, e_tile tile, Coord coord,
                          int rot, int flip_x ) {
   render_sprite_grid( tx, tile, coord.y, coord.x, rot, flip_x );
 }
 
-void tile_sprite( Texture& tx, g_tile tile, Rect const& rect ) {
+void tile_sprite( Texture& tx, e_tile tile, Rect const& rect ) {
   auto& info = lookup_sprite( tile );
   auto  mod  = rect.delta() % info.scale;
   if( mod.w == 0_w && rect.delta().w != 0_w )
@@ -308,23 +292,23 @@ void tile_sprite( Texture& tx, g_tile tile, Rect const& rect ) {
                       Rect::from( Coord{}, mod ) );
 }
 
-g_tile index_to_tile( int index ) {
-  return static_cast<g_tile>( index );
+e_tile index_to_tile( int index ) {
+  return static_cast<e_tile>( index );
 }
 
 void render_rect_of_sprites_with_border(
     Texture& dst,         // where to draw it
     Coord    dest_origin, // pixel coord of upper left
     Delta    size_tiles,  // tile coords, including border
-    g_tile   middle,      //
-    g_tile   top,         //
-    g_tile   bottom,      //
-    g_tile   left,        //
-    g_tile   right,       //
-    g_tile   top_left,    //
-    g_tile   top_right,   //
-    g_tile   bottom_left, //
-    g_tile   bottom_right //
+    e_tile   middle,      //
+    e_tile   top,         //
+    e_tile   bottom,      //
+    e_tile   left,        //
+    e_tile   right,       //
+    e_tile   top_left,    //
+    e_tile   top_right,   //
+    e_tile   bottom_left, //
+    e_tile   bottom_right //
 ) {
   auto const& sprite_middle = lookup_sprite( middle );
   CHECK( sprite_middle.scale.sx._ == sprite_middle.scale.sy._ );

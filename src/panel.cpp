@@ -83,17 +83,17 @@ struct PanelPlane : public Plane {
     auto left_side =
         0_x + main_window_logical_size().w - panel_width();
 
-    auto const& wood = lookup_sprite( g_tile::wood_middle );
+    auto const& wood = lookup_sprite( e_tile::wood_middle );
     auto        wood_width  = wood.size().w;
     auto        wood_height = wood.size().h;
 
     for( Y i = rect().top_edge(); i < rect().bottom_edge();
          i += wood_height )
-      render_sprite( tx, g_tile::wood_middle, i,
+      render_sprite( tx, e_tile::wood_middle, i,
                      left_side + wood_width, 0, 0 );
     for( Y i = rect().top_edge(); i < rect().bottom_edge();
          i += wood_height )
-      render_sprite( tx, g_tile::wood_left_edge, i, left_side, 0,
+      render_sprite( tx, e_tile::wood_left_edge, i, left_side, 0,
                      0 );
 
     view->draw( tx, origin() );

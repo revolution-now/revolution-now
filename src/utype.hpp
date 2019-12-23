@@ -43,7 +43,7 @@ struct ND UnitDescriptor : util::movable_only {
   e_unit_type type{};
 
   // Rendering
-  g_tile      tile{};
+  e_tile      tile{};
   bool        nat_icon_front{};
   e_direction nat_icon_position{};
 

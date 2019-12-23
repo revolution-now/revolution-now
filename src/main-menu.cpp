@@ -56,7 +56,7 @@ struct MainMenuPlane : public Plane {
   MainMenuPlane() = default;
   bool covers_screen() const override { return true; }
   void draw( Texture& tx ) const override {
-    tile_sprite( tx, g_tile::wood_middle,
+    tile_sprite( tx, e_tile::wood_middle,
                  main_window_logical_rect() );
     auto screen    = main_window_logical_size();
     H    h         = screen.h / 2_sy;

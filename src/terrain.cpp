@@ -132,10 +132,10 @@ void generate_terrain() {
 void render_terrain_square( Texture& tx, Coord world_square,
                             Coord pixel_coord ) {
   auto   s = square_at( world_square );
-  g_tile tile =
-      s.crust == +e_crust::land ? g_tile::land : g_tile::water;
+  e_tile tile =
+      s.crust == +e_crust::land ? e_tile::land : e_tile::water;
   int rot = 0;
-  if( tile == g_tile::water || tile == g_tile::land )
+  if( tile == e_tile::water || tile == e_tile::land )
     rot = ( world_square.x._ + world_square.y._ ) % 4;
   render_sprite( tx, tile, pixel_coord, rot, 0 );
 }

@@ -347,7 +347,7 @@ private:
 
 class SpriteView : public View {
 public:
-  SpriteView( g_tile tile ) : tile_( tile ) {}
+  SpriteView( e_tile tile ) : tile_( tile ) {}
 
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
@@ -360,7 +360,7 @@ public:
   void children_under_coord( Coord, ObjectSet& ) override {}
 
 private:
-  g_tile tile_;
+  e_tile tile_;
 };
 
 class LineEditorView : public View {

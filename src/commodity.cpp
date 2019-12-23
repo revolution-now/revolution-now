@@ -31,11 +31,11 @@ namespace {
 
 #define TO_TILE( type )    \
   case +e_commodity::type: \
-    return PP_JOIN( g_tile::commodity_, type );
+    return PP_JOIN( e_tile::commodity_, type );
 
 #define TO_TILES( ... ) EVAL( PP_MAP( TO_TILE, __VA_ARGS__ ) )
 
-g_tile tile_for_commodity( e_commodity c ) {
+e_tile tile_for_commodity( e_commodity c ) {
   switch( c ) {
     TO_TILES( food,        //
               sugar,       //
@@ -61,8 +61,8 @@ g_tile tile_for_commodity( e_commodity c ) {
 Opt<CRef<Texture>> render_commodity_label( string_view label ) {
   Opt<CRef<Texture>> res;
   if( !label.empty() ) {
-    TextMarkupInfo info{/*normal=*/Color::white(),
-                        /*highlight=*/Color::green()};
+    TextMarkupInfo info{ /*normal=*/Color::white(),
+                         /*highlight=*/Color::green() };
     res = render_text_markup( font::small(), info, label );
   }
   return res;
@@ -259,7 +259,7 @@ void render_commodity_annotated( Texture&         tx,
                                  Coord            pixel_coord ) {
   render_commodity_annotated(
       tx, comm.type, pixel_coord,
-      CommodityLabel::quantity{comm.quantity} );
+      CommodityLabel::quantity{ comm.quantity } );
 }
 
 Texture render_commodity_create( e_commodity type ) {

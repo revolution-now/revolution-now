@@ -28,7 +28,7 @@ using namespace std;
       UnitDescriptor{/*util::movable_only=*/{},        \
                      config_units.u.name,              \
                      e_unit_type::u,                   \
-                     g_tile::u,                        \
+                     e_tile::u,                        \
                      config_units.u.nat_icon_front,    \
                      config_units.u.nat_icon_position, \
                      config_units.u.boat,              \
