@@ -68,7 +68,7 @@ using EnumNameFunc = char const* (*)( int );
 #define ENUM_TO_STR_FUNC( type ) \
   { type::_name(), &enum_to_str<type> }
 
-using EnumNameMap = FlatMap<char const*, EnumNameFunc>;
+using EnumNameMap = FlatMap<string, EnumNameFunc>;
 
 EnumNameMap& enum_display_names() {
   static auto m = [] {
