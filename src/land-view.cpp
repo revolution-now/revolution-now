@@ -16,6 +16,7 @@
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
+#include "cstate.hpp"
 #include "fb.hpp"
 #include "fsm.hpp"
 #include "gfx.hpp"
@@ -352,6 +353,16 @@ void render_land_view() {
           render_unit( g_texture_viewport, id, pixel_coord,
                        /*with_icon=*/true );
     }
+
+    // Next the colonies.
+
+    // FIXME: since colony icons spill over the usual 32x32 tile
+    // we need to render colonies that are beyond the `covered`
+    // rect.
+    if( auto col_id = colony_from_coord( coord );
+        col_id.has_value() )
+      render_colony( g_texture_viewport, *col_id,
+                     pixel_coord - Delta{ 6_w, 6_h } );
 
     // Now do a blinking unit, if any.
     if( blink_id && is_blink_square ) {

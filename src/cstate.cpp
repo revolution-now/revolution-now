@@ -90,8 +90,10 @@ expect<ColonyId> create_colony( e_nation         nation,
     return UNEXPECTED( "there is already a colony with name {}.",
                        name );
 
+  auto col_id = next_colony_id();
+
   Colony colony;
-  colony.id_           = next_colony_id();
+  colony.id_           = col_id;
   colony.nation_       = nation;
   colony.name_         = string( name );
   colony.location_     = where;
@@ -100,10 +102,10 @@ expect<ColonyId> create_colony( e_nation         nation,
   colony.prod_tools_   = 0;
   colony.sentiment_    = 0;
 
-  SG().colony_from_coord[where]         = colony.id_;
-  SG().colony_from_name[string( name )] = colony.id_;
-  SG().colonies[colony.id_]             = std::move( colony );
-  return colony.id_;
+  SG().colony_from_coord[where]         = col_id;
+  SG().colony_from_name[string( name )] = col_id;
+  SG().colonies[col_id]                 = std::move( colony );
+  return col_id;
 }
 
 bool colony_exists( ColonyId id ) {
@@ -164,6 +166,15 @@ namespace {
 
 LUA_FN( colony_from_id, Colony const&, ColonyId id ) {
   return colony_from_id( id );
+}
+
+// FIXME: temporary; this function should not be called directly
+// by users since it does not fully initialize a colony into a
+// valid state.
+LUA_FN( create_colony, void, e_nation nation, Coord where,
+        std::string const& name ) {
+  CHECK_XP( create_colony( nation, where, name ) );
+  lg.info( "created a colony on {}.", where );
 }
 
 } // namespace

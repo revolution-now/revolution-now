@@ -214,4 +214,8 @@ void render_unit( Texture& tx, e_unit_type unit_type,
   render_unit_no_icon( tx, unit_type, pixel_coord );
 }
 
+void render_colony( Texture& tx, ColonyId, Coord pixel_coord ) {
+  render_sprite( tx, e_tile::colony_basic, pixel_coord, 0, 0 );
+}
+
 } // namespace rn

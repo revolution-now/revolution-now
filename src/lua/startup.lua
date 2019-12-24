@@ -57,6 +57,11 @@ local function create_some_units_on_land( nation )
   unit:clear_orders();
 end
 
+local function create_some_colonies( nation )
+  coord = Coord{y=4, x=4}
+  cstate.create_colony( nation, coord, "New London" )
+end
+
 local function main()
   terrain.generate_terrain()
   player.set_players( {
@@ -67,6 +72,7 @@ local function main()
   } )
   create_some_units_in_europort( e.nation.dutch )
   create_some_units_on_land()
+  create_some_colonies( e.nation.dutch )
 end
 
 package_exports = {
