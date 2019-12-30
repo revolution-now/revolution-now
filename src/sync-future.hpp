@@ -28,13 +28,34 @@ namespace rn {
 namespace internal {
 
 template<typename T>
-struct sync_shared_state_base {
+class sync_shared_state_base {
+public:
+  sync_shared_state_base()          = default;
   virtual ~sync_shared_state_base() = default;
-  virtual bool has_value() const    = 0;
-  virtual T    get() const          = 0;
+
+  virtual bool has_value() const = 0;
+  virtual T    get() const       = 0;
+
+  using NotifyFunc = void( T const& );
+
+  // Accumulates callbacks in a list, then when the value eventu-
+  // ally becomes ready, it will call them all in order. Any
+  // callbacks added after the value is ready will be called im-
+  // mediately.
+  virtual void add_callback(
+      std::function<NotifyFunc> callback ) = 0;
 };
 
 } // namespace internal
+
+template<typename T>
+class sync_future;
+
+template<typename>
+inline constexpr bool is_sync_future_v = false;
+
+template<typename T>
+inline constexpr bool is_sync_future_v<sync_future<T>> = true;
 
 /****************************************************************
 ** sync_future
@@ -75,14 +96,17 @@ struct sync_shared_state_base {
 // that returns a [[nodiscard]] type generates a warning.
 template<typename T = std::monostate>
 class /*ND*/ sync_future {
+  template<typename U>
   using SharedStatePtr =
-      std::shared_ptr<internal::sync_shared_state_base<T>>;
+      std::shared_ptr<internal::sync_shared_state_base<U>>;
 
 public:
+  using value_t = T;
+
   sync_future() {}
 
   // This constructor should not be used by client code.
-  explicit sync_future( SharedStatePtr shared_state )
+  explicit sync_future( SharedStatePtr<T> shared_state )
     : shared_state_{ shared_state }, taken_{ false } {}
 
   bool operator==( sync_future<T> const& rhs ) const {
@@ -143,7 +167,8 @@ public:
       ~sync_shared_state_with_continuation() override = default;
 
       sync_shared_state_with_continuation(
-          SharedStatePtr old_shared_state, Func&& continuation )
+          SharedStatePtr<T> old_shared_state,
+          Func&&            continuation )
         : old_shared_state_( old_shared_state ),
           continuation_( std::forward<Func>( continuation ) ) {}
 
@@ -156,8 +181,21 @@ public:
         return continuation_( old_shared_state_->get() );
       }
 
-      SharedStatePtr old_shared_state_;
-      Func           continuation_;
+      void add_callback(
+          std::function<
+              typename internal::sync_shared_state_base<
+                  NewResult_t>::NotifyFunc>
+              callback ) override {
+        old_shared_state_->add_callback(
+            [this,
+             callback = std::move( callback )]( T const& val ) {
+              callback( this->continuation_( val ) );
+            } );
+      }
+
+      SharedStatePtr<T> old_shared_state_;
+      // continuation :: T -> NewResult_t
+      Func continuation_;
     };
 
     return sync_future<NewResult_t>(
@@ -187,9 +225,90 @@ public:
     } );
   }
 
+  template<typename Func>
+  auto bind( Func&& func ) -> std::invoke_result_t<Func, T> {
+    using new_future_t = std::invoke_result_t<Func, T>;
+    static_assert( is_sync_future_v<new_future_t>,
+                   "The function passed to `bind` must return a "
+                   "sync_future." );
+    CHECK( !empty(),
+           "attempting to bind to an empty sync_future." );
+    using new_value_t = typename new_future_t::value_t;
+
+    struct sync_shared_state_with_monadic_continuation
+      : public internal::sync_shared_state_base<new_value_t> {
+      using Base_t =
+          internal::sync_shared_state_base<new_value_t>;
+      ~sync_shared_state_with_monadic_continuation() override =
+          default;
+
+      sync_shared_state_with_monadic_continuation(
+          SharedStatePtr<T> old_shared_state,
+          Func&&            continuation )
+        : old_shared_state_( old_shared_state ),
+          new_shared_state_(),
+          continuation_( std::forward<Func>( continuation ) ) {
+        old_shared_state_->add_callback( [this]( T const& val ) {
+          this->new_shared_state_ =
+              this->continuation_( val ).shared_state();
+          for( auto& f : this->callbacks_ )
+            this->new_shared_state_->add_callback(
+                std::move( f ) );
+          this->callbacks_.clear();
+        } );
+      }
+
+      bool has_value() const override {
+        if( new_shared_state_ == nullptr ) return false;
+        return new_shared_state_->has_value();
+      }
+
+      new_value_t get() const override {
+        CHECK( has_value() );
+        return new_shared_state_->get();
+      }
+
+      using typename Base_t::NotifyFunc;
+
+      void add_callback(
+          std::function<NotifyFunc> callback ) override {
+        if( new_shared_state_ != nullptr ) {
+          new_shared_state_->add_callback(
+              std::move( callback ) );
+        } else {
+          callbacks_.push_back( std::move( callback ) );
+        }
+      }
+
+      SharedStatePtr<T>           old_shared_state_;
+      SharedStatePtr<new_value_t> new_shared_state_;
+      // This is to accumulate callbacks that are installed be-
+      // fore the continuation is called. Once the continuation
+      // is called then we are ready to properly install them.
+      Vec<std::function<NotifyFunc>> callbacks_;
+      // *continuation_ :: T -> sync_future<new_value_t>
+      Func continuation_;
+    };
+
+    return sync_future<new_value_t>(
+        std::make_shared<
+            sync_shared_state_with_monadic_continuation>(
+            shared_state_, std::forward<Func>( func ) ) );
+  }
+
+  template<typename Func>
+  auto operator>>=( Func&& func ) {
+    return bind( std::forward<Func>( func ) );
+  }
+
+  // We need this so that sync_future<T> can access the shared
+  // state of sync_future<U>. Haven't figured out a way to make
+  // them friends yet.
+  SharedStatePtr<T> shared_state() { return shared_state_; }
+
 private:
-  SharedStatePtr shared_state_;
-  bool           taken_ = false;
+  SharedStatePtr<T> shared_state_;
+  bool              taken_ = false;
 };
 
 /****************************************************************
@@ -216,6 +335,7 @@ template<typename T = std::monostate>
 class sync_promise {
   struct sync_shared_state
     : public internal::sync_shared_state_base<T> {
+    using Base_t = internal::sync_shared_state_base<T>;
     ~sync_shared_state() override = default;
 
     sync_shared_state() = default;
@@ -229,7 +349,24 @@ class sync_promise {
       return *maybe_value;
     }
 
-    Opt<T> maybe_value;
+    using typename Base_t::NotifyFunc;
+
+    void add_callback(
+        std::function<NotifyFunc> callback ) override {
+      if( has_value() )
+        callback( *maybe_value );
+      else
+        callbacks_.push_back( std::move( callback ) );
+    }
+
+    void do_callbacks() const {
+      CHECK( has_value() );
+      for( auto const& callback : callbacks_ )
+        callback( *maybe_value );
+    }
+
+    Opt<T>                                 maybe_value;
+    std::vector<std::function<NotifyFunc>> callbacks_;
   };
 
 public:
@@ -248,11 +385,13 @@ public:
   void set_value( T const& value ) {
     CHECK( !has_value() );
     shared_state_->maybe_value = value;
+    shared_state_->do_callbacks();
   }
 
   void set_value( T&& value ) {
     CHECK( !has_value() );
     shared_state_->maybe_value = std::move( value );
+    shared_state_->do_callbacks();
   }
 
   template<typename... Args>
@@ -260,6 +399,7 @@ public:
     CHECK( !has_value() );
     shared_state_->maybe_value.emplace(
         std::forward<Args>( args )... );
+    shared_state_->do_callbacks();
   }
 
   sync_future<T> get_future() const {
