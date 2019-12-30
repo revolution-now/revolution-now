@@ -365,7 +365,7 @@ sync_future<bool> TravelAnalysis::confirm_explain_() const {
   switch( kind ) {
     case e_unit_travel_good::land_fall: {
       return ui::yes_no( "Would you like to make landfall?" )
-          .then( L( _ == ui::e_confirm::yes ) );
+          .fmap( L( _ == ui::e_confirm::yes ) );
     }
     case e_unit_travel_good::map_to_map:
     case e_unit_travel_good::board_ship:

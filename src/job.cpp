@@ -27,34 +27,36 @@ namespace rn {
 
 namespace {
 
-sync_future<Opt<string>> ask_colony_name( monostate ) {
-  return ui::str_input_box( "Question", "Select a colony name:" )
-      .bind( []( Opt<string> const& maybe_name ) {
-        if( !maybe_name.has_value() )
-          return make_sync_future<Opt<string>>( nullopt );
-        else if( colony_from_name( *maybe_name ).has_value() ) {
-          return ui::message_box(
-                     "There is already a colony with that "
-                     "name!" )
-              .bind( ask_colony_name );
-        } else if( maybe_name->size() > 1 ) {
-          return make_sync_future<Opt<string>>( maybe_name );
-        } else {
-          return ui::message_box(
-                     "Name must be longer than one character!" )
-              .bind( ask_colony_name );
-        }
+sync_future<Opt<string>> ask_colony_name() {
+  return ui::str_input_box(
+             "Question",
+             "What shall this colony be named, your majesty?" )
+      .bind( []( Opt<string> const& maybe_name )
+                 -> sync_future<Opt<string>> {
+        if( !maybe_name.has_value() ) return { nullopt };
+
+        auto err_retry = [&]( string_view msg ) {
+          // Recursion by calling `ask_colony_name` again.
+          return ui::message_box( msg ).next( ask_colony_name );
+        };
+        if( colony_from_name( *maybe_name ).has_value() )
+          return err_retry(
+              "There is already a colony with that name!" );
+        if( maybe_name->size() <= 1 )
+          return err_retry(
+              "Name must be longer than one character!" );
+
+        return { maybe_name };
       } );
 }
 
 // Returns future of colony name, if player wants to proceed.
 sync_future<Opt<string>> build_colony_ui_routine() {
   return ui::yes_no( "Build colony here?" )
-      .bind( []( ui::e_confirm answer ) {
-        if( answer == ui::e_confirm::no )
-          return make_sync_future<Opt<string>>( nullopt );
-        else
-          return ask_colony_name( {} );
+      .bind( []( ui::e_confirm answer )
+                 -> sync_future<Opt<string>> {
+        if( answer == ui::e_confirm::no ) return { nullopt };
+        return ask_colony_name();
       } );
 }
 
@@ -71,21 +73,18 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
         case e_unit_job_good::disband: {
           auto q = fmt::format( "Really disband {}?",
                                 unit_from_id( id ).desc().name );
-          return ui::yes_no( q ).then(
+          return ui::yes_no( q ).fmap(
               L( _ == ui::e_confirm::yes ) );
         }
         case e_unit_job_good::fortify:
         case e_unit_job_good::sentry:
           return make_sync_future<bool>( true );
         case e_unit_job_good::build:
-          return build_colony_ui_routine().bind(
+          return build_colony_ui_routine().fmap(
               [this]( Opt<string> const& maybe_name ) {
-                if( maybe_name.has_value() ) {
+                if( maybe_name.has_value() )
                   colony_name = *maybe_name;
-                  return make_sync_future<bool>( true );
-                } else {
-                  return make_sync_future<bool>( false );
-                }
+                return maybe_name.has_value();
               } );
       }
       UNREACHABLE_LOCATION;
@@ -95,16 +94,16 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
       switch( val ) {
         case e_unit_job_error::ship_cannot_fortify:
           return ui::message_box( "Ships cannot be fortified." )
-              .then( return_false );
+              .fmap( return_false );
         case e_unit_job_error::cannot_fortify_on_ship:
           return ui::message_box(
                      "Cannot fortify while on a ship." )
-              .then( return_false );
+              .fmap( return_false );
         case e_unit_job_error::colony_already_here:
           return ui::message_box(
                      "There is already a colony on this "
                      "square." )
-              .then( return_false );
+              .fmap( return_false );
       }
       UNREACHABLE_LOCATION;
     }

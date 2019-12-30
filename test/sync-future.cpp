@@ -99,7 +99,7 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( !s_future.taken() );
 
   auto s_future2 =
-      s_future.then( []( int n ) { return n + 1; } );
+      s_future.fmap( []( int n ) { return n + 1; } );
 
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
@@ -111,7 +111,7 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( !s_future2.ready() );
   REQUIRE( !s_future2.taken() );
 
-  auto s_future3 = s_future2.then(
+  auto s_future3 = s_future2.fmap(
       []( int n ) { return std::to_string( n ); } );
 
   REQUIRE( !s_future2.empty() );

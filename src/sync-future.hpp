@@ -79,7 +79,7 @@ inline constexpr bool is_sync_future_v<sync_future<T>> = true;
 //   sync_promise<int> s_promise;
 //   sync_future<int>  s_future1 = s_promise.get_future();
 //
-//   sync_future<int> s_future2 = s_future1.then(
+//   sync_future<int> s_future2 = s_future1.fmap(
 //       []( int n ){ return n+1; } );
 //
 //   s_promise.set_value( 3 );
@@ -104,6 +104,10 @@ public:
   using value_t = T;
 
   sync_future() {}
+
+  sync_future( T const& ready_val ) {
+    *this = make_sync_future<T>( ready_val );
+  }
 
   // This constructor should not be used by client code.
   explicit sync_future( SharedStatePtr<T> shared_state )
@@ -155,7 +159,7 @@ public:
   }
 
   template<typename Func>
-  auto then( Func&& func ) {
+  auto fmap( Func&& func ) {
     CHECK( !empty(),
            "attempting to attach a continuation to an empty "
            "sync_future." );
@@ -205,7 +209,7 @@ public:
 
   template<typename Func>
   sync_future<> consume( Func&& func ) {
-    return then( [func = std::forward<Func>( func )](
+    return fmap( [func = std::forward<Func>( func )](
                      auto const& value ) {
       func( value );
       return std::monostate{};
@@ -294,6 +298,13 @@ public:
         std::make_shared<
             sync_shared_state_with_monadic_continuation>(
             shared_state_, std::forward<Func>( func ) ) );
+  }
+
+  // func takes no arguments.
+  template<typename Func>
+  auto next( Func&& func ) -> std::invoke_result_t<Func> {
+    return bind( [func = std::forward<Func>( func )](
+                     auto const& ) { return func(); } );
   }
 
   template<typename Func>

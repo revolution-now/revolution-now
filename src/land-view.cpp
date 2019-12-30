@@ -722,7 +722,7 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
     s_future = ui::unit_selection_box( units, allow_activate );
   }
 
-  return s_future.then(
+  return s_future.fmap(
       [allow_activate](
           Vec<ui::UnitSelection> const& selections ) {
         return ClickTileActionsFromUnitSelections(
