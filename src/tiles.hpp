@@ -128,6 +128,7 @@ enum class e_tile {
 
   // Colonies
   colony_basic,
+  colony_stockade,
 
   // testing
   checkers,

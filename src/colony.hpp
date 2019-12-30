@@ -54,6 +54,12 @@ public:
   int                sentiment() const { return sentiment_; }
   int prod_hammers() const { return prod_hammers_; }
   int prod_tools() const { return prod_tools_; }
+  FlatSet<e_colony_building> const& buildings() const {
+    return buildings_;
+  }
+
+  /************************ Modifiers **************************/
+  void add_building( e_colony_building building );
 
   /************************ Functions **************************/
 

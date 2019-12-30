@@ -178,6 +178,7 @@ void init_sprites() {
   ),
   (  /*-------------------*/colony,/*-------------------*/
        colony_basic,
+       colony_stockade,
   ),
   (  /*-------------------*/testing,/*-------------------*/
        checkers,

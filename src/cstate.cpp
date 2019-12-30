@@ -171,10 +171,11 @@ LUA_FN( colony_from_id, Colony const&, ColonyId id ) {
 // FIXME: temporary; this function should not be called directly
 // by users since it does not fully initialize a colony into a
 // valid state.
-LUA_FN( create_colony, void, e_nation nation, Coord where,
+LUA_FN( create_colony, ColonyId, e_nation nation, Coord where,
         std::string const& name ) {
-  CHECK_XP( create_colony( nation, where, name ) );
+  ASSIGN_CHECK_XP( id, create_colony( nation, where, name ) );
   lg.info( "created a colony on {}.", where );
+  return id;
 }
 
 } // namespace

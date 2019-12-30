@@ -33,6 +33,12 @@ string Colony::to_string() const {
       name(), id(), nation(), location(), population() );
 }
 
+void Colony::add_building( e_colony_building building ) {
+  CHECK( !buildings_.contains( building ),
+         "Colony already has a {}.", building );
+  buildings_.insert( building );
+}
+
 } // namespace rn
 
 /****************************************************************
@@ -53,6 +59,9 @@ LUA_STARTUP( sol::state& st ) {
   colony["name"]      = &Colony::name;
   colony["location"]  = &Colony::location;
   colony["sentiment"] = &Colony::sentiment;
+
+  // Modifiers.
+  colony["add_building"] = &Colony::add_building;
 };
 
 } // namespace

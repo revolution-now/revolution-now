@@ -139,6 +139,7 @@ CFG( art,
       FLD( Delta, size )
       OBJ( coords,
         FLD( Coord, colony_basic )
+        FLD( Coord, colony_stockade )
       )
     )
 

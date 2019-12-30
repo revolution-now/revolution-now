@@ -88,4 +88,6 @@ enum class e_( mfg_job,
 );
 SERIALIZABLE_ENUM( e_mfg_job );
 
+void linker_dont_discard_module_colony_mfg();
+
 } // namespace rn

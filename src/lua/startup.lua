@@ -58,8 +58,12 @@ local function create_some_units_on_land( nation )
 end
 
 local function create_some_colonies( nation )
+  coord = Coord{y=2, x=4}
+  col_id = cstate.create_colony( nation, coord, "New London" )
   coord = Coord{y=4, x=4}
-  cstate.create_colony( nation, coord, "New London" )
+  col_id = cstate.create_colony( nation, coord, "New London 2" )
+  cstate.colony_from_id( col_id )
+        :add_building( e.colony_building.stockade )
 end
 
 local function main()

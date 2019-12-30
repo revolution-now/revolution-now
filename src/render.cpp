@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "compositor.hpp"
+#include "cstate.hpp"
 #include "errors.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
@@ -214,8 +215,13 @@ void render_unit( Texture& tx, e_unit_type unit_type,
   render_unit_no_icon( tx, unit_type, pixel_coord );
 }
 
-void render_colony( Texture& tx, ColonyId, Coord pixel_coord ) {
-  render_sprite( tx, e_tile::colony_basic, pixel_coord, 0, 0 );
+void render_colony( Texture& tx, ColonyId id,
+                    Coord pixel_coord ) {
+  auto tile = colony_from_id( id ).buildings().contains(
+                  e_colony_building::stockade )
+                  ? e_tile::colony_stockade
+                  : e_tile::colony_basic;
+  render_sprite( tx, tile, pixel_coord, 0, 0 );
 }
 
 } // namespace rn
