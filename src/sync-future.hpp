@@ -307,8 +307,10 @@ public:
                      auto const& ) { return func(); } );
   }
 
+  // Need to use >> instead of >>= because >>= is right associa-
+  // tive.
   template<typename Func>
-  auto operator>>=( Func&& func ) {
+  auto operator>>( Func&& func ) {
     return bind( std::forward<Func>( func ) );
   }
 

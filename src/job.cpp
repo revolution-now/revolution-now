@@ -28,36 +28,36 @@ namespace rn {
 namespace {
 
 sync_future<Opt<string>> ask_colony_name() {
-  return ui::str_input_box(
-             "Question",
-             "What shall this colony be named, your majesty?" )
-      .bind( []( Opt<string> const& maybe_name )
-                 -> sync_future<Opt<string>> {
-        if( !maybe_name.has_value() ) return { nullopt };
+  auto q = ui::str_input_box(
+      "Question",
+      "What shall this colony be named, your majesty?" );
+  return q >> []( Opt<string> const& maybe_name ) {
+    if( !maybe_name.has_value() )
+      return make_sync_future<Opt<string>>();
 
-        auto err_retry = [&]( string_view msg ) {
-          // Recursion by calling `ask_colony_name` again.
-          return ui::message_box( msg ).next( ask_colony_name );
-        };
-        if( colony_from_name( *maybe_name ).has_value() )
-          return err_retry(
-              "There is already a colony with that name!" );
-        if( maybe_name->size() <= 1 )
-          return err_retry(
-              "Name must be longer than one character!" );
+    auto err_retry = [&]( string_view msg ) {
+      // Recursion by calling `ask_colony_name` again.
+      return ui::message_box( msg ).next( ask_colony_name );
+    };
+    if( colony_from_name( *maybe_name ).has_value() )
+      return err_retry(
+          "There is already a colony with that name!" );
+    if( maybe_name->size() <= 1 )
+      return err_retry(
+          "Name must be longer than one character!" );
 
-        return { maybe_name };
-      } );
+    return make_sync_future<Opt<string>>( maybe_name );
+  };
 }
 
 // Returns future of colony name, if player wants to proceed.
 sync_future<Opt<string>> build_colony_ui_routine() {
-  return ui::yes_no( "Build colony here?" )
-      .bind( []( ui::e_confirm answer )
-                 -> sync_future<Opt<string>> {
-        if( answer == ui::e_confirm::no ) return { nullopt };
-        return ask_colony_name();
-      } );
+  auto msg = ui::yes_no( "Build colony here?" );
+  return msg >> []( ui::e_confirm answer ) {
+    if( answer == ui::e_confirm::no )
+      return make_sync_future<Opt<string>>();
+    return ask_colony_name();
+  };
 }
 
 } // namespace

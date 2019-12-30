@@ -287,7 +287,7 @@ TEST_CASE( "[sync-future] bind testing statuses" ) {
   static_assert(
       is_same_v<decltype( s_future_2 ), sync_future<string>> );
 
-  auto s_future_3 = s_future_2 >>= []( string const& s ) {
+  auto s_future_3 = s_future_2 >> []( string const& s ) {
     if( s.size() > 1 )
       return make_sync_future<int>( 100 );
     else
@@ -470,29 +470,24 @@ TEST_CASE( "[sync-future] bind testing results" ) {
   Opt<sync_promise<string>> s_promise_2;
   Opt<sync_promise<string>> s_promise_3;
 
-  auto s_future =
-      s_promise_1.get_future()
-          .bind( [&]( int n ) {
-            if( n > 3 ) {
-              s_promise_2.emplace();
-              return s_promise_2->get_future();
-            } else {
-              s_promise_3.emplace();
-              return s_promise_3->get_future();
-            }
-          } )
-          .bind( []( string const& s ) {
-            if( s.size() > 1 )
-              return make_sync_future<int>( 100 );
-            else
-              return make_sync_future<int>( -100 );
-          } )
-          .bind( []( int m ) {
-            return make_sync_future<int>( m * 9 );
-          } )
-          .bind( []( int m ) {
-            return make_sync_future<string>( to_string( m ) );
-          } );
+  auto s_future = s_promise_1.get_future() >> [&]( int n ) {
+    if( n > 3 ) {
+      s_promise_2.emplace();
+      return s_promise_2->get_future();
+    } else {
+      s_promise_3.emplace();
+      return s_promise_3->get_future();
+    }
+  } >> []( string const& s ) {
+    if( s.size() > 1 )
+      return make_sync_future<int>( 100 );
+    else
+      return make_sync_future<int>( -100 );
+  } >> []( int m ) {
+    return make_sync_future<int>( m * 9 );
+  } >> []( int m ) {
+    return make_sync_future<string>( to_string( m ) );
+  };
 
   SECTION( "path 1" ) {
     REQUIRE( !s_future.ready() );
