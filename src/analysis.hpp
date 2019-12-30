@@ -49,7 +49,7 @@ struct OrdersAnalysis {
   // be asked for any kind of confirmation. In addition, if the
   // order is not allowed, the player may be given an
   // explantation as to why.
-  sync_future<bool> confirm_explain() const {
+  sync_future<bool> confirm_explain() {
     return child()->confirm_explain_();
   }
 

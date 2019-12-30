@@ -11,6 +11,7 @@
 #include "job.hpp"
 
 // Revolution Now
+#include "cstate.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
@@ -24,13 +25,46 @@ using util::holds;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+sync_future<Opt<string>> ask_colony_name( monostate ) {
+  return ui::str_input_box( "Question", "Select a colony name:" )
+      .bind( []( Opt<string> const& maybe_name ) {
+        if( !maybe_name.has_value() )
+          return make_sync_future<Opt<string>>( nullopt );
+        else if( colony_from_name( *maybe_name ).has_value() ) {
+          return ui::message_box(
+                     "There is already a colony with that "
+                     "name!" )
+              .bind( ask_colony_name );
+        } else if( maybe_name->size() > 1 ) {
+          return make_sync_future<Opt<string>>( maybe_name );
+        } else {
+          return ui::message_box(
+                     "Name must be longer than one character!" )
+              .bind( ask_colony_name );
+        }
+      } );
+}
+
+// Returns future of colony name, if player wants to proceed.
+sync_future<Opt<string>> build_colony_ui_routine() {
+  return ui::yes_no( "Build colony here?" )
+      .bind( []( ui::e_confirm answer ) {
+        if( answer == ui::e_confirm::no )
+          return make_sync_future<Opt<string>>( nullopt );
+        else
+          return ask_colony_name( {} );
+      } );
+}
+
+} // namespace
 
 bool JobAnalysis::allowed_() const {
   return holds<e_unit_job_good>( desc ) != nullptr;
 }
 
-sync_future<bool> JobAnalysis::confirm_explain_() const {
+sync_future<bool> JobAnalysis::confirm_explain_() {
   return matcher_( desc, ->, sync_future<bool> ) {
     case_( e_unit_job_good ) {
       switch( val ) {
@@ -43,6 +77,16 @@ sync_future<bool> JobAnalysis::confirm_explain_() const {
         case e_unit_job_good::fortify:
         case e_unit_job_good::sentry:
           return make_sync_future<bool>( true );
+        case e_unit_job_good::build:
+          return build_colony_ui_routine().bind(
+              [this]( Opt<string> const& maybe_name ) {
+                if( maybe_name.has_value() ) {
+                  colony_name = *maybe_name;
+                  return make_sync_future<bool>( true );
+                } else {
+                  return make_sync_future<bool>( false );
+                }
+              } );
       }
       UNREACHABLE_LOCATION;
     }
@@ -55,6 +99,11 @@ sync_future<bool> JobAnalysis::confirm_explain_() const {
         case e_unit_job_error::cannot_fortify_on_ship:
           return ui::message_box(
                      "Cannot fortify while on a ship." )
+              .then( return_false );
+        case e_unit_job_error::colony_already_here:
+          return ui::message_box(
+                     "There is already a colony on this "
+                     "square." )
               .then( return_false );
       }
       UNREACHABLE_LOCATION;
@@ -76,6 +125,12 @@ void JobAnalysis::affect_orders_() const {
       return;
     case e_unit_job_good::disband:
       destroy_unit( unit.id() );
+      return;
+    case e_unit_job_good::build:
+      // FIXME: temporary
+      CHECK_XP( create_colony( unit.nation(),
+                               coord_for_unit( id ).value(),
+                               colony_name ) );
       return;
   }
 }
@@ -100,6 +155,15 @@ Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
   } else if( holds<orders::disband>( orders ) ) {
     res       = JobAnalysis( id, orders );
     res->desc = e_unit_job_good::disband;
+  } else if( holds<orders::build>( orders ) ) {
+    res        = JobAnalysis( id, orders );
+    auto coord = coord_for_unit( id );
+    // FIXME
+    CHECK( coord.has_value() );
+    if( colony_from_coord( *coord ).has_value() )
+      res->desc = e_unit_job_error::colony_already_here;
+    else
+      res->desc = e_unit_job_good::build;
   }
 
   return res;

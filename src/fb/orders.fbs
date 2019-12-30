@@ -15,6 +15,7 @@ namespace fb;
 namespace fb.orders;
 
   table wait      {}
+  table build     {}
   table forfeight {}
   table fortify   {}
   table sentry    {}
@@ -27,6 +28,7 @@ namespace fb.orders;
 
   table orders_t {
     wait      : orders.wait;
+    build     : orders.build;
     forfeight : orders.forfeight;
     fortify   : orders.fortify;
     sentry    : orders.sentry;

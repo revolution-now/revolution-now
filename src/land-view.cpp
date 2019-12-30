@@ -866,6 +866,11 @@ struct LandViewPlane : public Plane {
                     LandViewEvent::input_orders{
                         /*orders=*/orders::fortify{} } );
                 break;
+              case ::SDLK_b:
+                SG().mode.send_event(
+                    LandViewEvent::input_orders{
+                        /*orders=*/orders::build{} } );
+                break;
               case ::SDLK_c:
                 SG().viewport.ensure_tile_visible(
                     coord_for_unit_indirect( blink_unit.id ),

@@ -61,9 +61,9 @@ Opt<PlayerIntent> player_intent( UnitId          id,
   return maybe_res;
 }
 
-sync_future<bool> confirm_explain(
-    PlayerIntent const& analysis ) {
-  return util::visit( analysis, L( _.confirm_explain() ) );
+sync_future<bool> confirm_explain( PlayerIntent* analysis ) {
+  return util::visit(
+      *analysis, []( auto& _ ) { return _.confirm_explain(); } );
 }
 
 void affect_orders( PlayerIntent const& analysis ) {

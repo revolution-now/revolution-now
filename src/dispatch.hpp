@@ -40,8 +40,7 @@ NOTHROW_MOVE( PlayerIntent );
 Opt<PlayerIntent> player_intent( UnitId          id,
                                  orders_t const& orders );
 
-sync_future<bool> confirm_explain(
-    PlayerIntent const& analysis );
+sync_future<bool> confirm_explain( PlayerIntent* analysis );
 
 void affect_orders( PlayerIntent const& analysis );
 

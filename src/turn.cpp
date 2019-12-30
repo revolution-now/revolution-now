@@ -291,7 +291,7 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
                 CHECK( maybe_intent.has_value(),
                        "no handler for orders {}", val.orders );
                 g_player_intent = std::move( *maybe_intent );
-                return confirm_explain( *g_player_intent );
+                return confirm_explain( &*g_player_intent );
               },
               /*when_ready=*/
               [&]( bool const& confirmed ) {

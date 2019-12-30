@@ -42,6 +42,7 @@ namespace rn {
 // lowed.
 adt_s_rn( orders,                //
           ( wait ),              //
+          ( build ),             //
           ( forfeight ),         //
           ( fortify ),           //
           ( sentry ),            //

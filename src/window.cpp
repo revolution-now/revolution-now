@@ -653,6 +653,17 @@ sync_future<Opt<int>> int_input_box( std::string_view title,
   return s_promise.get_future();
 }
 
+sync_future<Opt<string>> str_input_box( string_view title,
+                                        string_view msg ) {
+  sync_promise<Opt<string>> s_promise;
+  text_input_box( title, msg, L( _.size() > 0 ),
+                  [s_promise]( Opt<string> result ) mutable {
+                    using namespace util::infix;
+                    s_promise.set_value( result );
+                  } );
+  return s_promise.get_future();
+}
+
 /****************************************************************
 ** High-level Methods
 *****************************************************************/

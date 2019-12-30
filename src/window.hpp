@@ -82,6 +82,9 @@ sync_future<Opt<int>> int_input_box(
     std::string_view title, std::string_view msg,
     Opt<int> min = std::nullopt, Opt<int> max = std::nullopt );
 
+sync_future<Opt<std::string>> str_input_box(
+    std::string_view title, std::string_view msg );
+
 /****************************************************************
 ** Generic Option-Select Window
 *****************************************************************/
