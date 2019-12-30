@@ -148,6 +148,28 @@ sync_future<Enum> select_box_enum( std::string_view title ) {
 }
 
 /****************************************************************
+** Combinators
+*****************************************************************/
+// Repeatedly calls `to_repeat` to get a future. Each time the
+// future yields a value it will validate it using the
+// `get_error` function. If there is an error it will display it
+// and then keep calling `to_repeat` until a valid result ob-
+// tains.
+template<typename Ret>
+sync_future<Ret> repeat_until(
+    std::function<sync_future<Ret>()>     to_repeat,
+    std::function<expect<>( Ret const& )> get_error ) {
+  return to_repeat() >> [=]( Ret const& val ) {
+    if( auto xp = get_error( val ); !xp )
+      return message_box( xp.error().what ).next( [=] {
+        // Loop by recursion.
+        return repeat_until<Ret>( to_repeat, get_error );
+      } );
+    return make_sync_future<Ret>( val );
+  };
+}
+
+/****************************************************************
 ** Canned Option-Select Windows
 *****************************************************************/
 void yes_no( std::string_view                 title,

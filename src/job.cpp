@@ -27,36 +27,33 @@ namespace rn {
 
 namespace {
 
-sync_future<Opt<string>> ask_colony_name() {
-  auto q = ui::str_input_box(
-      "Question",
-      "What shall this colony be named, your majesty?" );
-  return q >> []( Opt<string> const& maybe_name ) {
-    if( !maybe_name.has_value() )
-      return make_sync_future<Opt<string>>();
-
-    auto err_retry = [&]( string_view msg ) {
-      // Recursion by calling `ask_colony_name` again.
-      return ui::message_box( msg ).next( ask_colony_name );
-    };
-    if( colony_from_name( *maybe_name ).has_value() )
-      return err_retry(
-          "There is already a colony with that name!" );
-    if( maybe_name->size() <= 1 )
-      return err_retry(
-          "Name must be longer than one character!" );
-
-    return make_sync_future<Opt<string>>( maybe_name );
-  };
+expect<> is_valid_colony_name_input(
+    Opt<string> const& proposed ) {
+  if( !proposed.has_value() ) return xp_success_t{};
+  if( colony_from_name( *proposed ).has_value() )
+    return UNEXPECTED(
+        "There is already a colony with that name!" );
+  if( proposed->size() <= 1 )
+    return UNEXPECTED(
+        "Name must be longer than one character!" );
+  return xp_success_t{};
 }
 
-// Returns future of colony name, if player wants to proceed.
+sync_future<Opt<string>> ask_colony_name() {
+  return ui::str_input_box(
+      "Question",
+      "What shall this colony be named, your majesty?" );
+}
+
+// Returns future of colony name, unless player clicks Cancel.
 sync_future<Opt<string>> build_colony_ui_routine() {
   auto msg = ui::yes_no( "Build colony here?" );
   return msg >> []( ui::e_confirm answer ) {
     if( answer == ui::e_confirm::no )
       return make_sync_future<Opt<string>>();
-    return ask_colony_name();
+    return ui::repeat_until<Opt<string>>(
+        /*to_repeat=*/ask_colony_name,
+        /*get_error=*/is_valid_colony_name_input );
   };
 }
 
