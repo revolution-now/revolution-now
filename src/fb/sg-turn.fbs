@@ -25,8 +25,7 @@ namespace fb.UnitInputState;
     response : no_serial;
   }
   table executing_orders {
-    confirmed : no_serial;
-    animated  : no_serial;
+    conf_anim : no_serial;
     orders    : orders_t;
   }
   table executed {

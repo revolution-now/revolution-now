@@ -138,8 +138,7 @@ adt_s_rn_( UnitInputState, //
            ( have_response,                                //
              ( no_serial<UnitInputResponse>, response ) ), //
            ( executing_orders,                             //
-             ( SyncFutureNoSerial<bool>, confirmed ),      //
-             ( SyncFutureNoSerial<>, animated ),           //
+             ( SyncFutureNoSerial<>, conf_anim ),          //
              ( orders_t, orders ) ),                       //
            ( executed,                                     //
              ( Vec<UnitId>, add_to_front ) )               //
@@ -191,8 +190,7 @@ fsm_class( UnitInput ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response->orders.has_value() );
-    return { /*confirmed=*/sync_future<bool>{},
-             /*animated=*/sync_future<>{},
+    return { /*conf_anim=*/sync_future<>{},
              /*orders=*/*cur.response->orders };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
@@ -281,41 +279,29 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
-      if( !step_with_future<bool>(
-              &val.confirmed.o,
-              /*when_empty=*/
-              [&] {
-                CHECK( !g_player_intent.has_value() );
-                auto maybe_intent =
-                    player_intent( id, val.orders );
-                CHECK( maybe_intent.has_value(),
-                       "no handler for orders {}", val.orders );
-                g_player_intent = std::move( *maybe_intent );
-                return confirm_explain( &*g_player_intent );
-              },
-              /*when_ready=*/
-              [&]( bool const& confirmed ) {
-                if( !confirmed ) {
-                  fsm.send_event( UnitInputEvent::cancel{} );
-                  g_player_intent = nullopt;
-                  return /*move_on=*/false;
-                }
-                // We're confirmed to execute.
-                return /*move_on=*/true;
-              } ) )
-        break_;
-
-      if( !step_with_future<monostate>(
-              &val.animated.o,
-              /*when_empty=*/
-              [&] {
-                return kick_off_unit_animation(
-                    id, *g_player_intent );
-              } ) )
-        break_;
+      bool proceed = step_with_future<monostate>(
+          &val.conf_anim.o,
+          /*init=*/[&] {
+            CHECK( !g_player_intent.has_value() );
+            auto maybe_intent = player_intent( id, val.orders );
+            CHECK( maybe_intent.has_value(),
+                   "no handler for orders {}", val.orders );
+            g_player_intent = std::move( *maybe_intent );
+            return confirm_explain( &*g_player_intent )
+                .bind( [id, &fsm]( bool confirmed ) {
+                  if( confirmed )
+                    return kick_off_unit_animation(
+                        id, *g_player_intent );
+                  else {
+                    fsm.send_event( UnitInputEvent::cancel{} );
+                    g_player_intent = nullopt;
+                    return make_sync_future<>();
+                  }
+                } );
+          } );
+      if( !proceed ) break_;
 
       // Animation (if any) is finished.
-
       CHECK( g_player_intent );
       affect_orders( *g_player_intent );
       fsm.send_event( UnitInputEvent::end{
