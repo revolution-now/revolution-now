@@ -138,7 +138,7 @@ adt_s_rn_( UnitInputState, //
            ( have_response,                                //
              ( no_serial<UnitInputResponse>, response ) ), //
            ( executing_orders,                             //
-             ( SyncFutureNoSerial<>, conf_anim ),          //
+             ( SyncFutureNoSerial<bool>, conf_anim ),      //
              ( orders_t, orders ) ),                       //
            ( executed,                                     //
              ( Vec<UnitId>, add_to_front ) )               //
@@ -190,7 +190,7 @@ fsm_class( UnitInput ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response->orders.has_value() );
-    return { /*conf_anim=*/sync_future<>{},
+    return { /*conf_anim=*/sync_future<bool>{},
              /*orders=*/*cur.response->orders };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
@@ -279,9 +279,10 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
-      bool proceed = step_with_future<monostate>(
+      bool proceed = step_with_future<bool>(
           &val.conf_anim.o,
-          /*init=*/[&] {
+          /*init=*/
+          [&] {
             CHECK( !g_player_intent.has_value() );
             auto maybe_intent = player_intent( id, val.orders );
             CHECK( maybe_intent.has_value(),
@@ -289,16 +290,20 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
             g_player_intent = std::move( *maybe_intent );
             return confirm_explain( &*g_player_intent )
                 .bind( [id, &fsm]( bool confirmed ) {
-                  if( confirmed )
-                    return kick_off_unit_animation(
+                  sync_future<monostate> s_future;
+                  if( confirmed ) {
+                    s_future = kick_off_unit_animation(
                         id, *g_player_intent );
-                  else {
+                  } else {
                     fsm.send_event( UnitInputEvent::cancel{} );
                     g_player_intent = nullopt;
-                    return make_sync_future<>();
+                    s_future        = make_sync_future<>();
                   }
+                  return s_future.fmap(
+                      [=]( auto ) { return confirmed; } );
                 } );
-          } );
+          },
+          /*when_ready=*/L( _ ) );
       if( !proceed ) break_;
 
       // Animation (if any) is finished.
