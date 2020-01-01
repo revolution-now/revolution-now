@@ -24,7 +24,6 @@ die() {
 
 run_for_flags() {
   flags="$@"
-  flags="$flags --generator=ninja"
   if (( print_only )); then
     echo "cmc $flags"
     return
@@ -56,6 +55,6 @@ done
 run_for_flags --clang --lld --release --lto
 
 # Restore to default devel flags.
-(( print_only )) || cmc --cached --clang --lld --generator=ninja
+(( print_only )) || cmc --cached --clang --lld --asan
 
 log "success."

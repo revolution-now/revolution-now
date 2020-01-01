@@ -448,10 +448,10 @@ sync_future<T> make_sync_future( Args&&... args ) {
 template<typename T = std::monostate>
 bool step_with_future(
     sync_future<T>*                    s_future,
-    tl::function_ref<sync_future<T>()> when_empty,
+    tl::function_ref<sync_future<T>()> init,
     tl::function_ref<bool( T const& )> when_ready ) {
   if( s_future->empty() ) {
-    *s_future = when_empty();
+    *s_future = init();
     // !! should fall through.
   }
   if( !s_future->ready() ) return false;
