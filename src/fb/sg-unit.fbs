@@ -17,6 +17,7 @@ namespace fb.UnitState;
   table world    { coord  : fb.Coord; }
   table cargo    { holder : int; }
   table europort { st : fb.UnitEuroPortViewState_t; }
+  table colony   { id : int; }
 
   namespace fb;
 
@@ -25,6 +26,7 @@ namespace fb.UnitState;
     world    : UnitState.world;
     cargo    : UnitState.cargo;
     europort : UnitState.europort;
+    colony   : UnitState.colony;
   }
 
 namespace fb;

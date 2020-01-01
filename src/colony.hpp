@@ -59,11 +59,15 @@ public:
   }
 
   /************************ Modifiers **************************/
+  // NOTE: these modifiers do not enforce invariants!
   void add_building( e_colony_building building );
+  void add_unit( UnitId id, ColonyJob_t const& job );
+  void remove_unit( UnitId id );
 
   /************************ Functions **************************/
-
-  int population() const;
+  // NOTE: these modifiers do not enforce invariants!
+  int  population() const;
+  bool has_unit( UnitId id ) const;
 
   std::string to_string() const;
 

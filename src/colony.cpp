@@ -39,6 +39,20 @@ void Colony::add_building( e_colony_building building ) {
   buildings_.insert( building );
 }
 
+void Colony::add_unit( UnitId id, ColonyJob_t const& job ) {
+  CHECK( !has_unit( id ), "Unit {} already in colony.", id );
+  units_[id] = job;
+}
+
+void Colony::remove_unit( UnitId id ) {
+  CHECK( has_unit( id ), "Unit {} is not in colony.", id );
+  units_.erase( id );
+}
+
+bool Colony::has_unit( UnitId id ) const {
+  return units_.contains( id );
+}
+
 } // namespace rn
 
 /****************************************************************

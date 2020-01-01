@@ -13,6 +13,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "colony.hpp"
+#include "cstate.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "logging.hpp"
@@ -36,14 +38,16 @@ namespace rn {
 
 namespace {
 
-adt_s_rn_( UnitState,                          //
-           ( free ),                           //
-           ( world,                            //
-             ( Coord, coord ) ),               //
-           ( cargo,                            //
-             ( UnitId, holder ) ),             //
-           ( europort,                         //
-             ( UnitEuroPortViewState_t, st ) ) //
+adt_s_rn_( UnitState,                           //
+           ( free ),                            //
+           ( world,                             //
+             ( Coord, coord ) ),                //
+           ( cargo,                             //
+             ( UnitId, holder ) ),              //
+           ( europort,                          //
+             ( UnitEuroPortViewState_t, st ) ), //
+           ( colony,                            //
+             ( ColonyId, id ) )                 //
 );
 
 /****************************************************************
@@ -75,6 +79,9 @@ public:
   // For units that are held as cargo.
   FlatMap</*held*/ UnitId, /*holder*/ UnitId> holder_from_held;
 
+  // For units that are held in a colony.
+  unordered_map<ColonyId, FlatSet<UnitId>> units_from_colony;
+
 private:
   SAVEGAME_FRIENDS( Unit );
   SAVEGAME_SYNC() {
@@ -93,6 +100,13 @@ private:
     for( auto const& [id, st] : states ) {
       if_v( st, UnitState::world, val ) {
         units_from_coords[val->coord].insert( id );
+      }
+    }
+
+    // Populate units_from_colony.
+    for( auto const& [id, st] : states ) {
+      if_v( st, UnitState::colony, val ) {
+        units_from_colony[val->id].insert( id );
       }
     }
 
@@ -121,6 +135,13 @@ private:
   }
 };
 SAVEGAME_IMPL( Unit );
+
+UnitState_t const& unit_state( UnitId id ) {
+  auto it = SG().states.find( id );
+  CHECK( it != SG().states.end(), "Unit {} does not exist.",
+         id );
+  return it->second;
+}
 
 } // namespace
 
@@ -227,6 +248,8 @@ Vec<UnitId> units_from_coord_recursive( Coord coord ) {
   return res;
 }
 
+// FIXME: Probably should move this: needs to take into account
+// colonies.
 Opt<e_nation> nation_from_coord( Coord coord ) {
   auto const& units = units_from_coord( coord );
   if( units.empty() ) return nullopt;
@@ -266,6 +289,9 @@ Opt<Coord> coord_for_unit( UnitId id ) {
     case_( UnitState::europort ) { //
       return nullopt;
     }
+    case_( UnitState::colony ) { //
+      return nullopt;
+    }
     matcher_exhaustive;
   };
 }
@@ -292,12 +318,27 @@ Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
     case_( UnitState::europort ) { //
       return nullopt;
     }
+    case_( UnitState::colony ) { //
+      return nullopt;
+    }
     matcher_exhaustive;
   };
 }
 
 bool is_unit_on_map_indirect( UnitId id ) {
   return coord_for_unit_indirect_safe( id ).has_value();
+}
+
+/****************************************************************
+** Colony Ownership
+*****************************************************************/
+FlatSet<UnitId> const& units_from_colony( ColonyId id ) {
+  CHECK( colony_exists( id ) );
+  return SG().units_from_colony[id];
+}
+
+bool is_unit_in_colony( UnitId id ) {
+  return util::holds<UnitState::colony>( unit_state( id ) );
 }
 
 /****************************************************************
@@ -437,6 +478,14 @@ void ustate_change_to_euro_port_view(
   SG().states[id] = UnitState::europort{ /*st=*/info };
 }
 
+void ustate_change_to_colony( UnitId id, ColonyId col_id,
+                              ColonyJob_t const& job ) {
+  internal::ustate_disown_unit( id );
+  SG().units_from_colony[col_id].insert( id );
+  SG().states[id] = UnitState::colony{ col_id };
+  colony_from_id( col_id ).add_unit( id, job );
+}
+
 /****************************************************************
 ** Do not call directly
 *****************************************************************/
@@ -469,6 +518,17 @@ void ustate_disown_unit( UnitId id ) {
       CHECK( unit_from_id( id )
                  .cargo()
                  .count_items_of_type<UnitId>() == 0 );
+    }
+    case_( UnitState::colony ) {
+      auto col_id = val.id;
+      ASSIGN_CHECK_OPT(
+          set_it,
+          bu::has_key( SG().units_from_colony, col_id ) );
+      auto& units_set = set_it->second;
+      units_set.erase( id );
+      if( units_set.empty() )
+        SG().units_from_colony.erase( set_it );
+      colony_from_id( col_id ).remove_unit( id );
     }
     switch_exhaustive;
   };

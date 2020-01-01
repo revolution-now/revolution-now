@@ -16,6 +16,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
+#include "colony.hpp"
 #include "errors.hpp"
 #include "sg-macros.hpp"
 #include "unit.hpp"
@@ -64,7 +65,8 @@ ND FlatSet<UnitId> const& units_from_coord( Coord const& c );
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
 Vec<UnitId> units_from_coord_recursive( Coord coord );
 
-// FIXME: needs to take into account colonies.
+// FIXME: Probably should move this: needs to take into account
+// colonies.
 ND Opt<e_nation> nation_from_coord( Coord coord );
 
 // This is in the rare cases that we need to change a unit's po-
@@ -89,6 +91,13 @@ ND Opt<Coord> coord_for_unit_indirect_safe( UnitId id );
 // These will return true for a unit if it is owned by the map or
 // if its owner is on the map.
 bool is_unit_on_map_indirect( UnitId id );
+
+/****************************************************************
+** Colony Ownership
+*****************************************************************/
+FlatSet<UnitId> const& units_from_colony( ColonyId id );
+
+bool is_unit_in_colony( UnitId id );
 
 /****************************************************************
 ** Cargo Ownership
@@ -135,6 +144,12 @@ Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
 Vec<UnitId> units_in_euro_port_view();
 
 /****************************************************************
+** Creation
+*****************************************************************/
+// Creates a unit with no ownership.
+UnitId create_unit( e_nation nation, e_unit_type type );
+
+/****************************************************************
 ** For Testing / Development Only
 *****************************************************************/
 // Do not call these in normal game code.
@@ -145,9 +160,6 @@ UnitId create_unit_in_euroview_port( e_nation    nation,
 
 UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
                              UnitId holder );
-
-// Creates a unit with no ownership.
-UnitId create_unit( e_nation nation, e_unit_type type );
 
 /****************************************************************
 ** Changing Unit Ownership
@@ -166,6 +178,9 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held,
 
 void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info );
+
+void ustate_change_to_colony( UnitId id, ColonyId col_id,
+                              ColonyJob_t const& job );
 
 /****************************************************************
 ** Do not call directly
