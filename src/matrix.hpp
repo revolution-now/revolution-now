@@ -119,8 +119,8 @@ auto serialize( FBBuilder& builder, Matrix<T> const& m,
       std::declval<Hint>().data() )>>( builder, data,
                                        serial::ADL{} );
 
-  return ReturnValue{
-      Hint::Create( builder, s_size.get(), s_data.get() ) };
+  return ReturnValue{ Hint::Traits::Create(
+      builder, s_size.get(), s_data.get() ) };
 }
 
 template<typename SrcT, typename T>

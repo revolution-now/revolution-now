@@ -128,7 +128,8 @@ struct fb_creation_tuple<Ret( FBBuilder&, Args... )> {
 
 template<typename FB>
 using fb_creation_tuple_t =
-    typename fb_creation_tuple<decltype( FB::Create )>::tuple;
+    typename fb_creation_tuple<std::remove_pointer_t<decltype(
+        FB::Traits::Create )>>::tuple;
 
 template<typename T>
 struct remove_fb_offset {
@@ -196,7 +197,8 @@ inline constexpr bool has_create_v = false;
 
 template<typename T>
 inline constexpr bool
-    has_create_v<T, std::void_t<decltype( T::Create )>> = true;
+    has_create_v<T, std::void_t<decltype( T::Traits::Create )>> =
+        true;
 
 } // namespace detail
 
@@ -290,11 +292,11 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
         std::declval<Hint>().value() )>;
     auto s_value =
         serialize<value_hint_t>( builder, *o, serial::ADL{} );
-    return ReturnValue{ Hint::Create(
+    return ReturnValue{ Hint::Traits::Create(
         builder, /*has_value=*/true, s_value.get() ) };
   } else {
-    return ReturnValue{
-        Hint::Create( builder, /*has_value=*/false, {} ) };
+    return ReturnValue{ Hint::Traits::Create(
+        builder, /*has_value=*/false, {} ) };
   }
 }
 
@@ -308,8 +310,8 @@ auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
   auto const& s_snd =
       serialize<void>( builder, o.second, serial::ADL{} );
   if constexpr( detail::has_create_v<Hint> )
-    return ReturnValue{
-        Hint::Create( builder, s_fst.get(), s_snd.get() ) };
+    return ReturnValue{ Hint::Traits::Create(
+        builder, s_fst.get(), s_snd.get() ) };
   else
     return ReturnAddress{
         Hint( detail::ptr_to_ref( s_fst.get() ),

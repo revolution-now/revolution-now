@@ -378,7 +378,7 @@ auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
           std::declval<Hint>().state_stack() )>>(
           builder, o.state_stack_, serial::ADL{} );
   return serial::ReturnValue{
-      Hint::Create( builder, s_state_stack.get() ) };
+      Hint::Traits::Create( builder, s_state_stack.get() ) };
 }
 
 template<typename SrcT,                     //

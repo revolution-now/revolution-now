@@ -18,6 +18,7 @@ foreach( fb ${fbs} )
     COMMENT "Building flatbuffer for ${name}"
     COMMAND flatc
     --cpp
+    --cpp-std c++17
     --lua
     --scoped-enums
     --reflect-types

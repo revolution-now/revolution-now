@@ -102,8 +102,8 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
       t, o, [&]( auto const& variant_elem, auto& tuple_elem ) {
         using elem_hint_t =
             fb_serialize_hint_t<decltype( tuple_elem )>;
-        auto res = serialize<elem_hint_t>(
-            builder, variant_elem, serial::ADL{} );
+        auto res = serialize<elem_hint_t>( builder, variant_elem,
+                                           serial::ADL{} );
         // FIXME: does not work for structs. For those, we need
         // also to have a tuple of Return*{} structs to hold the
         // struct results.
@@ -112,7 +112,7 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
       } );
   DCHECK( count == 1 );
   auto apply_with_builder = [&]( auto... ts ) {
-    return Hint::Create( builder, ts... );
+    return Hint::Traits::Create( builder, ts... );
   };
   return ReturnValue{ std::apply( apply_with_builder, t ) };
 }
@@ -120,8 +120,7 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
 template<typename fb_table_t, typename Variant>
 void test_serialize_variant( Variant const& v ) {
   FBBuilder fbb;
-  auto      res = serialize<fb_table_t>( fbb, v,
-                                    serial::ADL{} );
+  auto      res = serialize<fb_table_t>( fbb, v, serial::ADL{} );
   fbb.Finish( res.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
   auto json = blob.template to_json<fb_table_t>();
