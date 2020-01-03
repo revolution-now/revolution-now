@@ -635,6 +635,8 @@ private:
 
     return xp_success_t{};
   }
+  // Called after all modules are deserialized.
+  SAVEGAME_VALIDATE() { return xp_success_t{}; }
 };
 SAVEGAME_IMPL( Turn );
 

@@ -28,12 +28,13 @@
       FBBuilder&               builder,                       \
       FBOffset<fb::SG_##name>* out_offset );                  \
   expect<> savegame_deserializer( fb::SG_##name const* src ); \
+  expect<> savegame_post_validate( fb::SG_##name const* );    \
   void default_construct_savegame_state( fb::SG_##name const* );
 
 struct SaveGameComponentBase {
   ::rn::expect<> check_invariants_safe() const {
     // This function is not used in the top-level save-game com-
-    // ponents. Instead we use the `sync_and_validate` method.
+    // ponents. Instead we use the `sync` method.
     return ::rn::xp_success_t{};
   }
 };
@@ -69,12 +70,20 @@ struct SaveGameComponentBase {
     default_construct_savegame_state( src );                   \
     XP_OR_RETURN_(                                             \
         serial::deserialize( src, &SG(), serial::ADL{} ) );    \
-    return SG().sync_and_validate();                           \
+    return SG().sync();                                        \
+  }                                                            \
+  expect<> savegame_post_validate( fb::SG_##name const* ) {    \
+    return SG().validate();                                    \
   }                                                            \
   namespace {
 
-#define SAVEGAME_FRIENDS( name )             \
-  friend expect<> rn::savegame_deserializer( \
+#define SAVEGAME_FRIENDS( name )              \
+  friend expect<> rn::savegame_deserializer(  \
+      fb::SG_##name const* src );             \
+  friend expect<> rn::savegame_post_validate( \
       fb::SG_##name const* src )
 
-#define SAVEGAME_SYNC() expect<> sync_and_validate()
+// Called just after a given module is deserialized.
+#define SAVEGAME_SYNC() expect<> sync()
+// Called after all modules are deserialized.
+#define SAVEGAME_VALIDATE() expect<> validate()

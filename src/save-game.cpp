@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "cc-specific.hpp"
 #include "config-files.hpp"
 #include "fb.hpp"
 #include "logging.hpp"
@@ -125,6 +126,23 @@ expect<serial::BinaryBlob> save_game_to_blob() {
   return serial::BinaryBlob::from_builder( std::move( fbb ) );
 }
 
+template<typename... Ts>
+expect<> savegame_post_validate_impl( mp::type_list<Ts...>* ) {
+  expect<> res = xp_success_t{};
+
+  auto validate_one = [&]( auto* p ) {
+    // If we've already failed on a past step, don't run anymore.
+    if( !res ) return;
+    lg.debug( "running post-deserialization validation on {}.",
+              demangled_typename<
+                  std::remove_pointer<decltype( p )>>() );
+    res = savegame_post_validate( p );
+  };
+
+  ( validate_one( (Ts*)0 ), ... );
+  return res;
+}
+
 expect<> load_from_blob( serial::BinaryBlob const& blob ) {
   auto* root = blob.root<fb::SaveGame>();
   XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
@@ -139,6 +157,10 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
   XP_OR_RETURN_( savegame_deserializer( root->colony_state() ) );
   XP_OR_RETURN_(
       savegame_deserializer( root->land_view_state() ) );
+
+  // Post-deserialization validation.
+  XP_OR_RETURN_(
+      savegame_post_validate_impl( (fb_sg_types*)0 ) );
   return xp_success_t{};
 }
 

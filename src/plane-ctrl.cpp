@@ -66,6 +66,8 @@ private:
 
     return xp_success_t{};
   }
+  // Called after all modules are deserialized.
+  SAVEGAME_VALIDATE() { return xp_success_t{}; }
 };
 SAVEGAME_IMPL( Plane );
 
@@ -130,6 +132,7 @@ void set_plane_config( e_plane_config conf ) {
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
+
 // FIXME: these should be conditioned on some global serialized
 // state.
 MENU_ITEM_HANDLER(
