@@ -27,6 +27,9 @@
 #include "range/v3/view/iota.hpp"
 #include "range/v3/view/transform.hpp"
 
+// SDL
+#include "SDL.h"
+
 // C++ standard library
 #include <cmath>
 #include <optional>

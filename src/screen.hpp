@@ -19,9 +19,7 @@
 #include "errors.hpp"
 #include "tx.hpp"
 
-// SDL
-#include "SDL.h"       // FIXME: get rid of this.
-#include "SDL_image.h" // FIXME: get rid of this.
+struct SDL_Renderer;
 
 namespace rn {
 
@@ -45,9 +43,9 @@ void dec_resolution_scale();
 void set_optimal_resolution_scale();
 
 struct DisplayMode {
-  Delta  size;
-  Uint32 format;
-  int    refresh_rate;
+  Delta    size;
+  uint32_t format;
+  int      refresh_rate;
 };
 NOTHROW_MOVE( DisplayMode );
 

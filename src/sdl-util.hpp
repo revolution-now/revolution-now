@@ -18,7 +18,6 @@
 
 // SDL
 #include "SDL.h"
-//#include "SDL_image.h" // FIXME: do we need this?
 
 // C++ standard library
 #include <string_view>

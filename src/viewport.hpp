@@ -23,9 +23,6 @@
 // Flatbuffers
 #include "fb/viewport_generated.h"
 
-// SDL
-#include "SDL.h"
-
 namespace rn {
 
 // This viewport also knows where it is located on screen.

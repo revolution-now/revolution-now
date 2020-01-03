@@ -35,6 +35,7 @@
 
 // SDL
 #include "SDL.h"
+#include "SDL_image.h"
 
 // c++ standard library
 #include <algorithm>
@@ -83,7 +84,7 @@ array<char const*, hue_buckets> constexpr hue_names{
 static_assert( hue_names.size() == hue_buckets );
 
 // Only relevant for testing/displaying palettes.
-Coord const palette_render_origin{10_y, 10_x};
+Coord const palette_render_origin{ 10_y, 10_x };
 
 struct ColorHSL {
   double  h = 0; // hue [0..360]
@@ -231,11 +232,11 @@ void render_palette_segment( Texture&             tx,
   for( auto color : colors ) {
     X x = origin.x;
     Y y = origin.y;
-    x += X{( idx % row_size ) * block_size};
-    y += Y{( idx / row_size ) * block_size};
-    W w{block_size};
-    H h{block_size};
-    render_fill_rect( tx, color, {x, y, w, h} );
+    x += X{ ( idx % row_size ) * block_size };
+    y += Y{ ( idx / row_size ) * block_size };
+    W w{ block_size };
+    H h{ block_size };
+    render_fill_rect( tx, color, { x, y, w, h } );
     ++idx;
   }
 }
@@ -421,8 +422,8 @@ Color Color::random() {
   // Choose a random mean between 0 and 255
   uniform_int_distribution<uint8_t> uniform_dist( 0, 255 );
 
-  return {uniform_dist( e ), uniform_dist( e ),
-          uniform_dist( e ), 255};
+  return { uniform_dist( e ), uniform_dist( e ),
+           uniform_dist( e ), 255 };
 }
 
 Color Color::with_alpha( uint8_t a_new ) const {
@@ -678,8 +679,8 @@ void show_palette( Vec<Color> const& colors ) {
 void show_palette( Texture& tx, ColorBuckets const& colors ) {
   clear_texture_black( tx );
   Coord origin( palette_render_origin );
-  H     group_offset{10};
-  H     offset{10};
+  H     group_offset{ 10 };
+  H     offset{ 10 };
   for( auto const& hue : colors ) {
     for( auto const& sat : hue ) {
       auto no_null = util::cat_opts( sat );
@@ -701,7 +702,7 @@ void show_color_adjustment( Color center ) {
 }
 
 void write_palette_png( fs::path const& png_file ) {
-  auto        tx     = create_texture( Delta{W{500}, H{480}} );
+  auto        tx = create_texture( Delta{ W{ 500 }, H{ 480 } } );
   auto const& colors = g_palette();
   show_palette( tx, hsl_bucket( colors ) );
   tx.save_png( png_file );
@@ -709,7 +710,7 @@ void write_palette_png( fs::path const& png_file ) {
 
 void update_palette( fs::path const& where ) {
   // int constexpr coursen_to = 4096;
-  fs::path glob{where / "*.*"};
+  fs::path glob{ where / "*.*" };
   lg.info( "updating palettes from {}", glob.string() );
 
   auto colors = extract_palette( glob, nullopt );
@@ -725,9 +726,9 @@ void update_palette( fs::path const& where ) {
   }
   lg.info( "total bucketed colors: {}", size );
 
-  fs::path const inl_file{"config/palette.inl"};
-  fs::path const ucl_file{"config/palette.ucl"};
-  fs::path const pal_file{"assets/art/palette.png"};
+  fs::path const inl_file{ "config/palette.inl" };
+  fs::path const ucl_file{ "config/palette.ucl" };
+  fs::path const pal_file{ "assets/art/palette.png" };
   lg.info( "writing to {} and {}", inl_file.string(),
            ucl_file.string() );
   dump_palette( bucketed, inl_file, ucl_file );

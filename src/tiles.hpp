@@ -17,9 +17,6 @@
 #include "tx.hpp"
 #include "util.hpp"
 
-// SDL
-#include "SDL.h"
-
 // C++ standard library
 #include <string_view>
 
