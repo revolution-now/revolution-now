@@ -61,6 +61,9 @@ public:
     : Matrix( delta.w, delta.h, init ) {}
   Matrix() : Matrix( Delta{} ) {}
 
+  Matrix( Matrix&& ) = default;
+  Matrix& operator=( Matrix&& ) = default;
+
   bool operator==( Matrix<T> const& rhs ) const {
     return w_ == rhs.w_ && data_ == rhs.data_;
   }

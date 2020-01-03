@@ -17,6 +17,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "macros.hpp"
 #include "matrix.hpp"
 #include "tiles.hpp"
 
@@ -196,6 +197,32 @@ Square const& square_at( Coord coord ) {
   auto res = maybe_square_at( coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
+}
+
+bool terrain_is_land( Coord coord ) {
+  switch( square_at( coord ).crust ) {
+    case +e_crust::land: return true;
+    case +e_crust::water: return false;
+  }
+  UNREACHABLE_LOCATION;
+}
+
+/****************************************************************
+** Testing
+*****************************************************************/
+void generate_unittest_terrain() {
+  Square const L = Square{ e_crust::land };
+  Square const O = Square{ e_crust::water };
+
+  auto& world_map = SG().world_map;
+  world_map       = Matrix<Square>( 10_w, 10_h );
+
+  Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
+
+  for( auto const& coord : SG().world_map.rect() ) {
+    world_map[coord] = O;
+    if( coord.is_inside( land_rect ) ) world_map[coord] = L;
+  }
 }
 
 /****************************************************************

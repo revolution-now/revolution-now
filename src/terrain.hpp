@@ -58,6 +58,12 @@ bool square_exists( Coord coord );
 Square const&          square_at( Coord coord );
 Opt<Ref<Square const>> maybe_square_at( Coord coord );
 
+// Throws if coord is not on map.
+bool terrain_is_land( Coord coord );
+
+/****************************************************************
+** Rendering
+*****************************************************************/
 // This will fully render a lang square with no units or colonies
 // on it.
 void render_terrain_square( Texture& tx, Coord world_square,
@@ -70,5 +76,10 @@ void render_terrain_square( Texture& tx, Coord world_square,
 // implementation.
 void render_terrain( Rect src_tiles, Texture& dest,
                      Coord dest_pixel_coord );
+
+/****************************************************************
+** Testing
+*****************************************************************/
+void generate_unittest_terrain();
 
 } // namespace rn
