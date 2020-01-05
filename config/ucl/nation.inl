@@ -11,18 +11,26 @@ namespace rn {
 CFG( nation,
   OBJ( dutch,
     FLD( Str, country_name )
+    FLD( Str, adjective )
+    FLD( Str, article )
     LNK( flag_color, palette.orange.sat2.lum9 )
   )
   OBJ( french,
     FLD( Str, country_name )
+    FLD( Str, adjective )
+    FLD( Str, article )
     LNK( flag_color, palette.blue.sat2.lum6 )
   )
   OBJ( english,
     FLD( Str, country_name )
+    FLD( Str, adjective )
+    FLD( Str, article )
     LNK( flag_color, palette.red.sat2.lum7 )
   )
   OBJ( spanish,
     FLD( Str, country_name )
+    FLD( Str, adjective )
+    FLD( Str, article )
     LNK( flag_color, palette.yellow.sat2.lum13 )
   )
 )

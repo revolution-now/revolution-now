@@ -116,7 +116,8 @@ local function freeze_existing_globals()
     __pairs     = pairs_two_tables_override( _ENV, globals ),
     __newindex  = function( t, k, v )
                     if globals[k] ~= nil then
-                      error("attempt to modify a read-only global.")
+                      error("attempt to modify a read-only global "
+                            .. "(" .. tostring( k ) .. ")")
                     end
                     -- Allow setting new global variables.
                     rawset( t, k, v )

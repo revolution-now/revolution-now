@@ -1,15 +1,23 @@
 dutch {
   country_name: "The Netherlands"
+  adjective:    "Dutch"
+  article:      "a"
 }
 
 french {
   country_name: "France"
+  adjective:    "French"
+  article:      "a"
 }
 
 english {
   country_name: "England"
+  adjective:    "English"
+  article:      "an"
 }
 
 spanish {
   country_name: "Spain"
+  adjective:    "Spanish"
+  article:      "a"
 }

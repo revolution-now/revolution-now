@@ -35,6 +35,8 @@ SERIALIZABLE_ENUM( e_nation );
 struct NationDesc {
   std::string name_lowercase;
   std::string country_name;
+  std::string adjective;
+  std::string article;
   Color       flag_color;
 
   std::string name_proper() const;

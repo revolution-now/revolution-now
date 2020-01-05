@@ -141,13 +141,13 @@ TEST_CASE( "[lua] frozen globals" ) {
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT(
       xp.error().what,
-      Contains( "attempt to modify a read-only global." ) );
+      Contains( "attempt to modify a read-only global" ) );
 
   xp = lua::run<void>( "startup = 1" );
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT(
       xp.error().what,
-      Contains( "attempt to modify a read-only global." ) );
+      Contains( "attempt to modify a read-only global" ) );
 
   xp = lua::run<void>( "startup.x = 1" );
   REQUIRE( !xp.has_value() );
@@ -159,7 +159,7 @@ TEST_CASE( "[lua] frozen globals" ) {
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT(
       xp.error().what,
-      Contains( "attempt to modify a read-only global." ) );
+      Contains( "attempt to modify a read-only global" ) );
 
   xp = lua::run<void>( "id.x = 1" );
   REQUIRE( !xp.has_value() );

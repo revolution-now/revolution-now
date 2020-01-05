@@ -32,7 +32,8 @@ enum class ND e_unit_job_good {
 enum class ND e_unit_job_error {
   ship_cannot_fortify,
   cannot_fortify_on_ship,
-  colony_already_here
+  colony_exists_here,
+  no_water_colony
 };
 
 using v_unit_job_desc =

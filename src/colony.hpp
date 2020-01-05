@@ -79,9 +79,9 @@ public:
   }
 
 private:
-  friend expect<ColonyId> create_colony( e_nation         nation,
-                                         Coord const&     where,
-                                         std::string_view name );
+  friend expect<ColonyId> cstate_create_colony(
+      e_nation nation, Coord const& where,
+      std::string_view name );
 
   using FlatMap_e_commodity_int = FlatMap<e_commodity, int>;
   using FlatMap_UnitId_ColonyJob_t =

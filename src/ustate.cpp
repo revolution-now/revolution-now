@@ -399,24 +399,9 @@ Vec<UnitId> units_in_euro_port_view() {
 ** For Testing / Development Only
 *****************************************************************/
 UnitId create_unit_on_map( e_nation nation, e_unit_type type,
-                           Y y, X x ) {
+                           Coord coord ) {
   Unit& unit = unit_from_id( create_unit( nation, type ) );
-  ustate_change_to_map( unit.id(), { x, y } );
-  return unit.id();
-}
-
-UnitId create_unit_in_euroview_port( e_nation    nation,
-                                     e_unit_type type ) {
-  Unit& unit = unit_from_id( create_unit( nation, type ) );
-  ustate_change_to_euro_port_view(
-      unit.id(), UnitEuroPortViewState::in_port{} );
-  return unit.id();
-}
-
-UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
-                             UnitId holder ) {
-  Unit& unit = unit_from_id( create_unit( nation, type ) );
-  ustate_change_to_cargo( holder, unit.id() );
+  ustate_change_to_map( unit.id(), coord );
   return unit.id();
 }
 
@@ -482,6 +467,8 @@ void ustate_change_to_euro_port_view(
 
 void ustate_change_to_colony( UnitId id, ColonyId col_id,
                               ColonyJob_t const& job ) {
+  CHECK( unit_from_id( id ).nation() ==
+         colony_from_id( col_id ).nation() );
   internal::ustate_disown_unit( id );
   SG().units_from_colony[col_id].insert( id );
   SG().states[id] = UnitState::colony{ col_id };
@@ -546,7 +533,7 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit const&, e_nation nation,
         e_unit_type type, Coord const& coord ) {
-  auto id = create_unit_on_map( nation, type, coord.y, coord.x );
+  auto id = create_unit_on_map( nation, type, coord );
   lg.info( "created a {} on square {}.", unit_desc( type ).name,
            coord );
   return unit_from_id( id );

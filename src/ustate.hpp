@@ -150,18 +150,6 @@ Vec<UnitId> units_in_euro_port_view();
 UnitId create_unit( e_nation nation, e_unit_type type );
 
 /****************************************************************
-** For Testing / Development Only
-*****************************************************************/
-// Do not call these in normal game code.
-UnitId create_unit_on_map( e_nation nation, e_unit_type type,
-                           Y y, X x );
-UnitId create_unit_in_euroview_port( e_nation    nation,
-                                     e_unit_type type );
-
-UnitId create_unit_as_cargo( e_nation nation, e_unit_type type,
-                             UnitId holder );
-
-/****************************************************************
 ** Changing Unit Ownership
 *****************************************************************/
 // Changes a unit's ownership from whatever it is (map or other-
@@ -181,6 +169,13 @@ void ustate_change_to_euro_port_view(
 
 void ustate_change_to_colony( UnitId id, ColonyId col_id,
                               ColonyJob_t const& job );
+
+/****************************************************************
+** For Testing / Development Only
+*****************************************************************/
+// Do not call these in normal game code.
+UnitId create_unit_on_map( e_nation nation, e_unit_type type,
+                           Coord coord );
 
 /****************************************************************
 ** Do not call directly

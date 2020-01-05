@@ -58,12 +58,18 @@ local function create_some_units_on_land( nation )
 end
 
 local function create_some_colonies( nation )
-  coord = Coord{y=2, x=4}
-  col_id = cstate.create_colony( nation, coord, "New London" )
+  local coord = Coord{y=2, x=4}
+  local unit = ustate.create_unit_on_map(
+           nation, e.unit_type.free_colonist, coord )
+  local col_id = colony_mgr.found_colony(
+           unit:id(), coord, "New London" )
   coord = Coord{y=4, x=4}
-  col_id = cstate.create_colony( nation, coord, "New London 2" )
-  cstate.colony_from_id( col_id )
-        :add_building( e.colony_building.stockade )
+  unit = ustate.create_unit_on_map(
+           nation, e.unit_type.free_colonist, coord )
+  col_id = colony_mgr.found_colony(
+             unit:id(), coord, "New London 2" )
+  local colony = cstate.colony_from_id( col_id )
+  colony:add_building( e.colony_building.stockade )
 end
 
 local function main()

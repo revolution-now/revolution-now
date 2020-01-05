@@ -114,7 +114,7 @@ void unit_sail_to_old_world( UnitId id ) {
   // default (though it might get modified below based on the
   // current state of the unit).
   UnitEuroPortViewState_t target_state =
-      UnitEuroPortViewState::inbound{/*progress=*/0.0};
+      UnitEuroPortViewState::inbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
   if( maybe_state ) {
     switch_( maybe_state->get() ) {
@@ -126,7 +126,7 @@ void unit_sail_to_old_world( UnitId id ) {
         if( percent > 0.0 ) {
           // Unit must "turn around" and go the other way.
           target_state = UnitEuroPortViewState::inbound{
-              /*progress=*/( 1.0 - percent )};
+              /*progress=*/( 1.0 - percent ) };
         } else {
           // Unit has not yet made any progress, so we can imme-
           // diately move it to in_port.
@@ -156,7 +156,7 @@ void unit_sail_to_new_world( UnitId id ) {
   // default (though it might get modified below based on the
   // current state of the unit).
   UnitEuroPortViewState_t target_state =
-      UnitEuroPortViewState::outbound{/*progress=*/0.0};
+      UnitEuroPortViewState::outbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
   switch_( maybe_state->get() ) {
     case_( UnitEuroPortViewState::outbound ) {
@@ -167,7 +167,7 @@ void unit_sail_to_new_world( UnitId id ) {
       if( percent > 0.0 ) {
         // Unit must "turn around" and go the other way.
         target_state = UnitEuroPortViewState::outbound{
-            /*progress=*/( 1.0 - percent )};
+            /*progress=*/( 1.0 - percent ) };
       } else {
         NOT_IMPLEMENTED; // find a place on the map to move to.
       }
@@ -224,9 +224,12 @@ namespace {
 
 LUA_FN( create_unit_in_port, UnitId, e_nation nation,
         e_unit_type type ) {
-  auto id = create_unit_in_euroview_port( nation, type );
-  lg.info( "created a {} on {} dock.", unit_desc( type ).name,
-           nation );
+  auto id = create_unit( nation, type );
+  ustate_change_to_euro_port_view(
+      id, UnitEuroPortViewState::in_port{} );
+  lg.info( "created a {} in {} port/dock.",
+           unit_desc( type ).name,
+           nation_obj( nation ).adjective );
   return id;
 }
 

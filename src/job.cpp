@@ -11,6 +11,7 @@
 #include "job.hpp"
 
 // Revolution Now
+#include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
@@ -96,10 +97,14 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
           return ui::message_box(
                      "Cannot fortify while on a ship." )
               .fmap( return_false );
-        case e_unit_job_error::colony_already_here:
+        case e_unit_job_error::colony_exists_here:
           return ui::message_box(
                      "There is already a colony on this "
                      "square." )
+              .fmap( return_false );
+        case e_unit_job_error::no_water_colony:
+          return ui::message_box(
+                     "Cannot found a colony on water." )
               .fmap( return_false );
       }
       UNREACHABLE_LOCATION;
@@ -123,10 +128,8 @@ void JobAnalysis::affect_orders_() const {
       destroy_unit( unit.id() );
       return;
     case e_unit_job_good::build:
-      // FIXME: temporary
-      CHECK_XP( create_colony( unit.nation(),
-                               coord_for_unit( id ).value(),
-                               colony_name ) );
+      CHECK_XP( found_colony( id, coord_for_unit( id ).value(),
+                              colony_name ) );
       return;
   }
 }
@@ -153,13 +156,24 @@ Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
     res->desc = e_unit_job_good::disband;
   } else if( holds<orders::build>( orders ) ) {
     res        = JobAnalysis( id, orders );
-    auto coord = coord_for_unit( id );
-    // FIXME
-    CHECK( coord.has_value() );
-    if( colony_from_coord( *coord ).has_value() )
-      res->desc = e_unit_job_error::colony_already_here;
-    else
-      res->desc = e_unit_job_good::build;
+    auto coord = coord_for_unit_indirect( id );
+    switch( can_found_colony( id, coord ) ) {
+      case e_found_colony_result::colony_exists_here:
+        res->desc = e_unit_job_error::colony_exists_here;
+        break;
+      case e_found_colony_result::good:
+        res->desc = e_unit_job_good::build;
+        break;
+      case e_found_colony_result::no_water_colony:
+        res->desc = e_unit_job_error::no_water_colony;
+        break;
+      case e_found_colony_result::colonist_not_on_land:
+        res->desc = e_unit_job_error::no_water_colony;
+        break;
+      case e_found_colony_result::colonist_not_at_site:
+        SHOULD_NOT_BE_HERE;
+        break;
+    }
   }
 
   return res;

@@ -82,9 +82,9 @@ SAVEGAME_IMPL( Colony );
 /****************************************************************
 ** Public API
 *****************************************************************/
-expect<ColonyId> create_colony( e_nation         nation,
-                                Coord const&     where,
-                                std::string_view name ) {
+expect<ColonyId> cstate_create_colony( e_nation         nation,
+                                       Coord const&     where,
+                                       std::string_view name ) {
   if( bu::has_key( SG().colony_from_coord, where ) )
     return UNEXPECTED( "square {} already contains a colony.",
                        where );
@@ -136,7 +136,7 @@ void map_colonies( tl::function_ref<void( Colony& )> func ) {
 }
 
 // Should not be holding any references to the colony after this.
-void destroy_colony( ColonyId id ) {
+void cstate_destroy_colony( ColonyId id ) {
   Colony& colony = colony_from_id( id );
   CHECK(
       bu::has_key( SG().colony_from_coord, colony.location() ) );
@@ -168,16 +168,6 @@ namespace {
 
 LUA_FN( colony_from_id, Colony const&, ColonyId id ) {
   return colony_from_id( id );
-}
-
-// FIXME: temporary; this function should not be called directly
-// by users since it does not fully initialize a colony into a
-// valid state.
-LUA_FN( create_colony, ColonyId, e_nation nation, Coord where,
-        std::string const& name ) {
-  ASSIGN_CHECK_XP( id, create_colony( nation, where, name ) );
-  lg.info( "created a colony on {}.", where );
-  return id;
 }
 
 } // namespace
