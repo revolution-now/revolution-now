@@ -176,12 +176,32 @@ public:
 
   bool has_pending_events() const { return !events_.empty(); }
 
-  StateT const& state() const { return state_stack_.front(); }
+  void enforce_no_pending_events_before_getting_state() const {
+    // It is almost always an error to look at the state while
+    // there are pending events, because if you do, then you may
+    // make then make assumptions about what events can be sent
+    // to it, which could then crash the program by sending an
+    // invalid event after existing events are processed.
+    DCHECK(
+        !has_pending_events(),
+        "Should not observe state of FSM while it has pending "
+        "events, the first of which was pushed from {}.",
+        events_.front()->get().location );
+  }
+
+  StateT const& state() const {
+    enforce_no_pending_events_before_getting_state();
+    return state_stack_.front();
+  }
   // Do not use this to set the state directly; only use it in a
   // switch statement to get mutable references to an individual
   // state to change its members if needed.
-  StateT& mutable_state() { return state_stack_.front(); }
+  StateT& mutable_state() {
+    enforce_no_pending_events_before_getting_state();
+    return state_stack_.front();
+  }
 
+  // Do not call; used ONLY for unit testing.
   std::list<StateT> const& pushed_states() const {
     return state_stack_;
   }
@@ -190,6 +210,7 @@ public:
   //    calling another non-const method.
   template<typename T>
   Opt<CRef<T>> holds() const {
+    enforce_no_pending_events_before_getting_state();
     Opt<CRef<T>> res;
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
@@ -201,6 +222,7 @@ public:
   //    calling another non-const method.
   template<typename T>
   Opt<Ref<T>> holds() {
+    enforce_no_pending_events_before_getting_state();
     Opt<Ref<T>> res;
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )

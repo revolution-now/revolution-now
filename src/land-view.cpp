@@ -547,8 +547,8 @@ void advance_landview_anim_state() {
           }
         }
       }
-      if_v( SG().mode.state(), LandViewState::depixelating_unit,
-            val ) {
+      else if_v( SG().mode.state(),
+                 LandViewState::depixelating_unit, val ) {
         if( g_pixels.empty() ) {
           SG().mode.send_event( LandViewEvent::end{} );
           finished_anim = true;
@@ -759,10 +759,15 @@ struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
   void advance_state() override {
-    // Order matters here.
-    fsm_auto_advance( SG().mode, "land-view",
-                      { advance_landview_state } );
-    advance_landview_anim_state();
+    // Order matters here. We need the while loop because the
+    // land-view anim state update might end up adding events
+    // into the mode state fsm.
+    do {
+      fsm_auto_advance( SG().mode, "land-view",
+                        { advance_landview_state } );
+      // Note that the land-view anim state is not an FSM.
+      advance_landview_anim_state();
+    } while( SG().mode.has_pending_events() );
     advance_viewport_state();
   }
   void draw( Texture& tx ) const override {
