@@ -87,7 +87,6 @@ TEST_CASE( "[fsm] test color" ) {
 
   // Test push/pop.
   color.push( ColorState::blue{} );
-  REQUIRE( color.holds<ColorState::light_red>() );
   color.process_events();
   REQUIRE( color.holds<ColorState::blue>() );
   color.push( ColorState::yellow{} );
