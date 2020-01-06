@@ -62,12 +62,12 @@ local function create_some_colonies( nation )
   local unit = ustate.create_unit_on_map(
            nation, e.unit_type.free_colonist, coord )
   local col_id = colony_mgr.found_colony(
-           unit:id(), coord, "New London" )
+           unit:id(), "New London" )
   coord = Coord{y=4, x=4}
   unit = ustate.create_unit_on_map(
            nation, e.unit_type.free_colonist, coord )
   col_id = colony_mgr.found_colony(
-             unit:id(), coord, "New London 2" )
+             unit:id(), "New York" )
   local colony = cstate.colony_from_id( col_id )
   colony:add_building( e.colony_building.stockade )
 end

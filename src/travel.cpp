@@ -285,7 +285,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
         // the unit can board.
         for( auto ship_id : ships ) {
           auto const& ship_unit = unit_from_id( ship_id );
-          CHECK( ship_unit.desc().boat );
+          CHECK( ship_unit.desc().ship );
           if( auto const& cargo = ship_unit.cargo();
               cargo.fits_somewhere( id ) ) {
             return TravelAnalysis{
@@ -393,7 +393,7 @@ void TravelAnalysis::affect_orders_() const {
     case e_unit_travel_good::map_to_map:
       // If it's a ship then sentry all its units before it
       // moves.
-      if( unit.desc().boat ) {
+      if( unit.desc().ship ) {
         for( UnitId id : unit.cargo().items_of_type<UnitId>() ) {
           auto& cargo_unit = unit_from_id( id );
           cargo_unit.sentry();

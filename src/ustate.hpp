@@ -50,6 +50,25 @@ void map_units( tl::function_ref<void( Unit& )> func );
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id );
 
+enum class e_unit_state {
+  // The unit is on the map. This includes units that are sta-
+  // tioned in colonies (i.e., not units that are performing jobs
+  // in colonies).
+  world,
+  // The unit is being held as cargo of another unit.
+  cargo,
+  // This means that the unit will be visible when looking at the
+  // Old World view, e.g., it is sailing the high seas or on/in
+  // port.
+  europort,
+  // Unit is inside a colony; this means that it is actually
+  // doing a job in a colony, not just that it is on the map
+  // square coinciding with the colony location.
+  colony
+};
+
+e_unit_state state_for_unit( UnitId id );
+
 /****************************************************************
 ** Map Ownership
 *****************************************************************/

@@ -91,7 +91,7 @@ UPtr<UnitActivationView> UnitActivationView::Create(
   auto cmp = []( UnitId l, UnitId r ) {
     auto const& unit1 = unit_from_id( l ).desc();
     auto const& unit2 = unit_from_id( r ).desc();
-    if( unit1.boat && !unit2.boat ) return true;
+    if( unit1.ship && !unit2.ship ) return true;
     if( unit1.cargo_slots > unit2.cargo_slots ) return true;
     if( unit1.attack_points > unit2.attack_points ) return true;
     return false;

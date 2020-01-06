@@ -57,6 +57,12 @@ public:
   FlatSet<e_colony_building> const& buildings() const {
     return buildings_;
   }
+  FlatMap<e_commodity, int> const& commodities() const {
+    return commodities_;
+  }
+  FlatMap<UnitId, ColonyJob_t> const& units_jobs() const {
+    return units_;
+  }
 
   /************************ Modifiers **************************/
   // NOTE: these modifiers do not enforce invariants!

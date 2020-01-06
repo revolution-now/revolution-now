@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "colony-mgr.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "id.hpp"
@@ -73,7 +74,11 @@ private:
     return xp_success_t{};
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() {
+    for( auto const& [id, colony] : colonies )
+      XP_OR_RETURN_( check_colony_invariants_safe( id ) );
+    return xp_success_t{};
+  }
 };
 SAVEGAME_IMPL( Colony );
 

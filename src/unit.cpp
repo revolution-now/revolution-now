@@ -107,7 +107,7 @@ void Unit::consume_mv_points( MovementPoints points ) {
 }
 
 void Unit::fortify() {
-  CHECK( !desc().boat, "Only land units can be fortified." );
+  CHECK( !desc().ship, "Only land units can be fortified." );
   orders_ = e_unit_orders::fortified;
 }
 

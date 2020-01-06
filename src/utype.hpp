@@ -48,7 +48,7 @@ struct ND UnitDescriptor : util::movable_only {
   e_direction nat_icon_position{};
 
   // Movement
-  bool     boat{};
+  bool     ship{};
   int      visibility{};
   MvPoints movement_points{};
 

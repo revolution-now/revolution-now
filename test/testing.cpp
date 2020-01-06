@@ -17,7 +17,7 @@
 
 using namespace std;
 
-namespace testing {
+namespace rn::testing {
 
 fs::path const& data_dir() {
   static fs::path data{ "test/data" };
@@ -34,4 +34,4 @@ void default_construct_all_game_state() {
   rn::lua::reload();
 }
 
-} // namespace testing
+} // namespace rn::testing

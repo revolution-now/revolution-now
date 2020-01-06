@@ -147,6 +147,23 @@ UnitState_t const& unit_state( UnitId id ) {
 
 } // namespace
 
+e_unit_state state_for_unit( UnitId id ) {
+  auto states_it = SG().states.find( id );
+  CHECK( states_it != SG().states.end() );
+  return matcher_( states_it->second, ->, e_unit_state ) {
+    case_( UnitState::free ) {
+      // Normal units should never be in this state but in pass-
+      // ing, i.e., during creation or ownership transfer.
+      SHOULD_NOT_BE_HERE;
+    }
+    case_( UnitState::world ) return e_unit_state::world;
+    case_( UnitState::cargo ) return e_unit_state::cargo;
+    case_( UnitState::europort ) return e_unit_state::europort;
+    case_( UnitState::colony ) return e_unit_state::colony;
+    matcher_exhaustive;
+  }
+}
+
 string debug_string( UnitId id ) {
   return debug_string( unit_from_id( id ) );
 }

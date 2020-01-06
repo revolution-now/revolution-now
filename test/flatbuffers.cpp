@@ -55,7 +55,7 @@ adt_s_rn( MyAdt,                //
 );
 }
 
-namespace testing {
+namespace rn::testing {
 namespace {
 
 using namespace std;
@@ -569,7 +569,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 }
 
 TEST_CASE( "deserialize json" ) {
-  testing::default_construct_all_game_state();
+  default_construct_all_game_state();
 
   (void)create_unit( e_nation::english,
                      e_unit_type::merchantman );
@@ -610,7 +610,7 @@ TEST_CASE( "deserialize json" ) {
 }
 
 TEST_CASE( "[flatbuffers] serialize Unit" ) {
-  testing::default_construct_all_game_state();
+  default_construct_all_game_state();
 
   auto ship =
       create_unit( e_nation::english, e_unit_type::merchantman );
@@ -1022,7 +1022,7 @@ TEST_CASE( "[flatbuffers] matrix" ) {
 }
 
 } // namespace
-} // namespace testing
+} // namespace rn::testing
 
 namespace rn {
 namespace {
@@ -1066,7 +1066,7 @@ FSM_DEFINE_FORMAT_RN_( OnOff );
 } // namespace
 } // namespace rn
 
-namespace testing {
+namespace rn::testing {
 namespace {
 
 TEST_CASE( "[flatbuffers] fsm" ) {
@@ -1125,4 +1125,4 @@ TEST_CASE( "[flatbuffers] fsm" ) {
 }
 
 } // namespace
-} // namespace testing
+} // namespace rn::testing

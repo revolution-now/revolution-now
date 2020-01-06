@@ -44,7 +44,7 @@ int unit_arrival_id_throw( UnitId id ) {
 bool is_unit_on_dock( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
   return europort_status.has_value() &&
-         !unit_from_id( id ).desc().boat &&
+         !unit_from_id( id ).desc().ship &&
          util::holds<UnitEuroPortViewState::in_port>(
              europort_status->get() );
 }
@@ -54,7 +54,7 @@ bool is_unit_inbound( UnitId id ) {
   auto is_inbound      = europort_status.has_value() &&
                     util::holds<UnitEuroPortViewState::inbound>(
                         europort_status->get() );
-  if( is_inbound ) { CHECK( unit_from_id( id ).desc().boat ); }
+  if( is_inbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_inbound;
 }
 
@@ -64,14 +64,14 @@ bool is_unit_outbound( UnitId id ) {
       europort_status.has_value() &&
       util::holds<UnitEuroPortViewState::outbound>(
           europort_status->get() );
-  if( is_outbound ) { CHECK( unit_from_id( id ).desc().boat ); }
+  if( is_outbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_outbound;
 }
 
 bool is_unit_in_port( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
   return europort_status.has_value() &&
-         unit_from_id( id ).desc().boat &&
+         unit_from_id( id ).desc().ship &&
          util::holds<UnitEuroPortViewState::in_port>(
              europort_status->get() );
 }
@@ -109,7 +109,7 @@ Vec<UnitId> europort_units_outbound() {
 void unit_sail_to_old_world( UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
-  CHECK( unit_from_id( id ).desc().boat );
+  CHECK( unit_from_id( id ).desc().ship );
   // This is the state to which we will set the unit, at least by
   // default (though it might get modified below based on the
   // current state of the unit).
@@ -151,7 +151,7 @@ void unit_sail_to_old_world( UnitId id ) {
 void unit_sail_to_new_world( UnitId id ) {
   // FIXME: do other checks here, e.g., make sure that the
   //        ship is not damaged.
-  CHECK( unit_from_id( id ).desc().boat );
+  CHECK( unit_from_id( id ).desc().ship );
   // This is the state to which we will set the unit, at least by
   // default (though it might get modified below based on the
   // current state of the unit).

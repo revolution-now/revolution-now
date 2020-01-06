@@ -26,18 +26,17 @@ namespace rn {
 expect<> check_colony_invariants_safe( ColonyId id );
 void     check_colony_invariants_die( ColonyId id );
 
-enum class e_found_colony_result {
+enum class ND e_found_colony_result {
   good,
   colony_exists_here,
   no_water_colony,
-  colonist_not_on_land,
-  colonist_not_at_site
+  colonist_not_on_map,
+  ship_cannot_found_colony
 };
 
-e_found_colony_result can_found_colony( UnitId founder,
-                                        Coord  where );
+e_found_colony_result can_found_colony( UnitId founder );
 
-expect<ColonyId> found_colony( UnitId founder, Coord where,
+expect<ColonyId> found_colony( UnitId           founder,
                                std::string_view name );
 
 } // namespace rn

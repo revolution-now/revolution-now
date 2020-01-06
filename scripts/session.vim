@@ -16,6 +16,7 @@ let s:stems = [
   \ 'src/colony-land',
   \ 'src/colony-mgr',
   \ 'src/colony-view',
+  \ 'src/job',
   \ 'src/render',
   \ 'src/tiles',
   \ 'src/save-game',

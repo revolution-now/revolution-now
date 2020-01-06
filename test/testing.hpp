@@ -18,7 +18,7 @@
 #define REQUIRE_THROWS_AS_RN( ... ) \
   REQUIRE_THROWS_AS( __VA_ARGS__, ::rn::exception_with_bt )
 
-namespace testing {
+namespace rn::testing {
 
 fs::path const& data_dir();
 
@@ -27,4 +27,4 @@ fs::path const& data_dir();
 // but it may be ok for some unit tests.
 void default_construct_all_game_state();
 
-} // namespace testing
+} // namespace rn::testing

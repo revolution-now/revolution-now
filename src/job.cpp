@@ -106,6 +106,10 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
           return ui::message_box(
                      "Cannot found a colony on water." )
               .fmap( return_false );
+        case e_unit_job_error::ship_cannot_found_colony:
+          // No message box here since this should be obvious to
+          // the player.
+          return make_sync_future<bool>( false );
       }
       UNREACHABLE_LOCATION;
     }
@@ -128,8 +132,7 @@ void JobAnalysis::affect_orders_() const {
       destroy_unit( unit.id() );
       return;
     case e_unit_job_good::build:
-      CHECK_XP( found_colony( id, coord_for_unit( id ).value(),
-                              colony_name ) );
+      CHECK_XP( found_colony( id, colony_name ) );
       return;
   }
 }
@@ -142,7 +145,7 @@ Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
 
   if( holds<orders::fortify>( orders ) ) {
     res = JobAnalysis( id, orders );
-    if( unit.desc().boat )
+    if( unit.desc().ship )
       res->desc = e_unit_job_error::ship_cannot_fortify;
     else if( is_unit_onboard( id ) )
       res->desc = e_unit_job_error::cannot_fortify_on_ship;
@@ -155,24 +158,22 @@ Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
     res       = JobAnalysis( id, orders );
     res->desc = e_unit_job_good::disband;
   } else if( holds<orders::build>( orders ) ) {
-    res        = JobAnalysis( id, orders );
-    auto coord = coord_for_unit_indirect( id );
-    switch( can_found_colony( id, coord ) ) {
-      case e_found_colony_result::colony_exists_here:
-        res->desc = e_unit_job_error::colony_exists_here;
-        break;
+    res = JobAnalysis( id, orders );
+    switch( can_found_colony( id ) ) {
       case e_found_colony_result::good:
         res->desc = e_unit_job_good::build;
+        break;
+      case e_found_colony_result::colony_exists_here:
+        res->desc = e_unit_job_error::colony_exists_here;
         break;
       case e_found_colony_result::no_water_colony:
         res->desc = e_unit_job_error::no_water_colony;
         break;
-      case e_found_colony_result::colonist_not_on_land:
-        res->desc = e_unit_job_error::no_water_colony;
+      case e_found_colony_result::ship_cannot_found_colony:
+        res->desc = e_unit_job_error::ship_cannot_found_colony;
         break;
-      case e_found_colony_result::colonist_not_at_site:
+      case e_found_colony_result::colonist_not_on_map:
         SHOULD_NOT_BE_HERE;
-        break;
     }
   }
 

@@ -307,10 +307,10 @@ using xp_success_t = std::monostate;
 // All `expected` types should use this so that they have a
 // common error type. Create a new derived type so that we can
 // attach [[nodiscard]].
-template<typename T = xp_success_t>
-struct ND expect
-  : public ::nonstd::expected<T, ::rn::Unexpected> {
-  using Base = ::nonstd::expected<T, ::rn::Unexpected>;
+template<typename T = xp_success_t,
+         typename E = ::rn::Unexpected>
+struct ND expect : public ::nonstd::expected<T, E> {
+  using Base = ::nonstd::expected<T, E>;
 
   // Inherit constructors.
   using Base::Base;
@@ -319,8 +319,8 @@ struct ND expect
 template<typename>
 inline constexpr bool is_expect_v = false;
 
-template<typename T>
-inline constexpr bool is_expect_v<::rn::expect<T>> = true;
+template<typename T, typename E>
+inline constexpr bool is_expect_v<::rn::expect<T, E>> = true;
 
 // If there are >1 args then the 1st one must be a format string.
 #define UNEXPECTED( ... ) \

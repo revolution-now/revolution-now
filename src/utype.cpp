@@ -23,23 +23,23 @@
 
 using namespace std;
 
-#define LOAD_UNIT_DESC( u )                            \
-  desc_[e_unit_type::u] =                              \
-      UnitDescriptor{/*util::movable_only=*/{},        \
-                     config_units.u.name,              \
-                     e_unit_type::u,                   \
-                     e_tile::u,                        \
-                     config_units.u.nat_icon_front,    \
-                     config_units.u.nat_icon_position, \
-                     config_units.u.boat,              \
-                     config_units.u.visibility,        \
-                     config_units.u.movement_points,   \
-                     config_units.u.attack_points,     \
-                     config_units.u.defense_points,    \
-                     config_units.u.on_death,          \
-                     config_units.u.demoted,           \
-                     config_units.u.cargo_slots,       \
-                     config_units.u.cargo_slots_occupies};
+#define LOAD_UNIT_DESC( u )                             \
+  desc_[e_unit_type::u] =                               \
+      UnitDescriptor{ /*util::movable_only=*/{},        \
+                      config_units.u.name,              \
+                      e_unit_type::u,                   \
+                      e_tile::u,                        \
+                      config_units.u.nat_icon_front,    \
+                      config_units.u.nat_icon_position, \
+                      config_units.u.ship,              \
+                      config_units.u.visibility,        \
+                      config_units.u.movement_points,   \
+                      config_units.u.attack_points,     \
+                      config_units.u.defense_points,    \
+                      config_units.u.on_death,          \
+                      config_units.u.demoted,           \
+                      config_units.u.cargo_slots,       \
+                      config_units.u.cargo_slots_occupies };
 
 namespace rn {
 
@@ -109,7 +109,7 @@ void UnitDescriptor::check_invariants() const {
 
 BEHAVIOR_IMPL_START( land, foreign, unit ) {
   // Possible results: nothing, attack, bombard
-  if( desc.boat ) return res_t::no_bombard;
+  if( desc.ship ) return res_t::no_bombard;
   return desc.can_attack() ? res_t::attack : res_t::no_attack;
 }
 BEHAVIOR_IMPL_END()
@@ -128,13 +128,13 @@ BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( land, neutral, empty ) {
   // Possible results: never, always, unload
-  return desc.boat ? res_t::unload : res_t::always;
+  return desc.ship ? res_t::unload : res_t::always;
 }
 BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( land, friendly, unit ) {
   // Possible results: always, never, unload
-  return desc.boat ? res_t::unload : res_t::always;
+  return desc.ship ? res_t::unload : res_t::always;
 }
 BEHAVIOR_IMPL_END()
 
@@ -146,20 +146,20 @@ BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, foreign, unit ) {
   // Possible results: nothing, attack, bombard
-  if( !desc.boat ) return res_t::no_bombard;
+  if( !desc.ship ) return res_t::no_bombard;
   return desc.can_attack() ? res_t::attack : res_t::no_attack;
 }
 BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, neutral, empty ) {
   // Possible results: never, always
-  return desc.boat ? res_t::always : res_t::never;
+  return desc.ship ? res_t::always : res_t::never;
 }
 BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, friendly, unit ) {
   // Possible results: always, never, move_onto_ship
-  if( desc.boat ) return res_t::always;
+  if( desc.ship ) return res_t::always;
   return desc.cargo_slots_occupies.has_value()
              ? res_t::move_onto_ship
              : res_t::never;
@@ -190,7 +190,7 @@ LUA_STARTUP( sol::state& st ) {
   RO_FIELD( tile );
   RO_FIELD( nat_icon_front );
   RO_FIELD( nat_icon_position );
-  RO_FIELD( boat );
+  RO_FIELD( ship );
   RO_FIELD( visibility );
   RO_FIELD( movement_points );
   RO_FIELD( attack_points );
