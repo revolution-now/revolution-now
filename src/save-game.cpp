@@ -15,6 +15,7 @@
 #include "cc-specific.hpp"
 #include "config-files.hpp"
 #include "fb.hpp"
+#include "io.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
 #include "serial.hpp"
@@ -135,7 +136,7 @@ expect<> savegame_post_validate_impl( mp::type_list<Ts...>* ) {
     if( !res ) return;
     lg.debug( "running post-deserialization validation on {}.",
               demangled_typename<
-                  std::remove_pointer<decltype( p )>>() );
+                  std::remove_pointer_t<decltype( p )>>() );
     res = savegame_post_validate( p );
   };
 
@@ -185,32 +186,81 @@ expect<fs::path> save_game( int slot ) {
   lg.info( "saving game ({} trials) took: {}", trials,
            watch.human( "save" ) );
   auto p = path_for_slot( slot );
-  p.replace_extension( ".sav" );
-  lg.info( "saving game to {}.", p );
-  XP_OR_RETURN_( blob.write( p ) );
-  auto json = blob.to_json<fb::SaveGame>( /*quotes=*/false );
+
+  // Serialize to JSON. Must do this before binary for timestamp
+  // reasons.
   p.replace_extension( ".jsav" );
+  lg.info( "saving game to {}.", p );
   ofstream out( p );
   if( !out.good() )
     return UNEXPECTED( "failed to open {} for writing.", p );
-  out << json;
+  out << blob.to_json<fb::SaveGame>( /*quotes=*/false );
+
+  // Serialize to binary.
+  p.replace_extension( ".sav" );
+  lg.info( "saving game to {}.", p );
+  XP_OR_RETURN_( blob.write( p ) );
+
   p.replace_extension();
   return p;
 }
 
 expect<fs::path> load_game( int slot ) {
-  auto p = path_for_slot( slot );
-  p.replace_extension( ".sav" );
-  lg.info( "loading game from {}.", p );
-  XP_OR_RETURN( blob, serial::BinaryBlob::read( p ) );
+  auto json_path =
+      path_for_slot( slot ).replace_extension( ".jsav" );
+  auto blob_path =
+      path_for_slot( slot ).replace_extension( ".sav" );
+
+  bool json_exists = fs::exists( json_path );
+  bool blob_exists = fs::exists( blob_path );
+
+  if( !blob_exists && !json_exists )
+    return UNEXPECTED( "save files not found for slot {}.",
+                       slot );
+
+  // Determine whether to use JSON file or binary file.
+  bool use_json = false;
+  if( json_exists && !blob_exists ) {
+    lg.warn(
+        "loading game from JSON file {} since binary file does "
+        "not exist.",
+        json_path );
+    use_json = true;
+  } else if( !json_exists && blob_exists ) {
+    use_json = false;
+  } else {
+    // Both exist, so choose based on timestamps. Detect if JSON
+    // file has been edited; if so then we should probably prefer
+    // that one.
+    use_json = fs::last_write_time( json_path ) >
+               fs::last_write_time( blob_path );
+    if( use_json )
+      lg.warn(
+          "loading game from JSON file {} since it is newer.",
+          json_path );
+  }
+
+  if( use_json ) {
+    XP_OR_RETURN( json, read_file_as_string( json_path ) );
+    XP_OR_RETURN( blob, serial::BinaryBlob::from_json(
+                            /*schema_file_name=*/"save-game.fbs",
+                            /*json=*/json,
+                            /*root_type=*/"SaveGame" ) );
+    XP_OR_RETURN_( load_from_blob( blob ) );
+    return json_path;
+  } else {
+    lg.info( "loading game from {}.", blob_path );
+    XP_OR_RETURN( blob, serial::BinaryBlob::read( blob_path ) );
+    XP_OR_RETURN_( load_from_blob( blob ) );
+    return blob_path;
+  }
+
   // FIXME: needs to wait until we can access the getters via
   // types only.
   // using creation_types =
   //    serial::fb_creation_tuple_t<fb::SaveGame>;
   // XP_OR_RETURN_( deserialize_all(
   //    blob, static_cast<creation_types*>( nullptr ) ) );
-  XP_OR_RETURN_( load_from_blob( blob ) );
-  return p;
 }
 
 expect<> reset_savegame_state() {
