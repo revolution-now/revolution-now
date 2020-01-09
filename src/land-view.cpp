@@ -932,6 +932,7 @@ struct LandViewPlane : public Plane {
         if( auto maybe_tile =
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
+          lg.debug( "clicked on tile: {}.", *maybe_tile );
           SG().mode.push( LandViewState::future{
               click_on_world_tile( *maybe_tile )
                   .consume( ProcessClickTileActions ) } );
