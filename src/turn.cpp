@@ -288,32 +288,37 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
             CHECK( maybe_intent.has_value(),
                    "no handler for orders {}", val.orders );
             g_player_intent = std::move( *maybe_intent );
-            return confirm_explain( &*g_player_intent )
-                .bind( [id, &fsm]( bool confirmed ) {
-                  sync_future<monostate> s_future;
-                  if( confirmed ) {
-                    s_future = kick_off_unit_animation(
-                        id, *g_player_intent );
-                  } else {
-                    fsm.send_event( UnitInputEvent::cancel{} );
-                    g_player_intent = nullopt;
-                    s_future        = make_sync_future<>();
-                  }
-                  return s_future.fmap(
-                      [=]( auto ) { return confirmed; } );
-                } );
+            return confirm_explain( &*g_player_intent ) >>
+                   [id, &fsm]( bool confirmed ) {
+                     if( confirmed ) {
+                       return kick_off_unit_animation(
+                                  id, *g_player_intent ) >>
+                              [&fsm]( auto ) {
+                                // Animation (if any) is
+                                // finished.
+                                CHECK( g_player_intent );
+                                affect_orders(
+                                    *g_player_intent );
+                                fsm.send_event( UnitInputEvent::end{
+                                    .add_to_front =
+                                        units_to_prioritize(
+                                            *g_player_intent ) } );
+                                g_player_intent = nullopt;
+                                // !! Unit may no longer exist
+                                // here.
+                                return make_sync_future<bool>(
+                                    true );
+                              };
+                     } else {
+                       fsm.send_event(
+                           UnitInputEvent::cancel{} );
+                       g_player_intent = nullopt;
+                       return make_sync_future<bool>( false );
+                     }
+                   };
           },
           /*when_ready=*/L( _ ) );
       if( !proceed ) break_;
-
-      // Animation (if any) is finished.
-      CHECK( g_player_intent );
-      affect_orders( *g_player_intent );
-      fsm.send_event( UnitInputEvent::end{
-          /*add_to_front=*/units_to_prioritize(
-              *g_player_intent ) } );
-      g_player_intent = nullopt;
-      // !! Unit may no longer exist here.
     }
     case_( UnitInputState::executed ) {
       // !! Unit may no longer exist here.
