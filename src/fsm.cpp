@@ -41,17 +41,19 @@ void log_event( std::string const& child_name,
   lg.debug( "{} processing event: {}", tag( child_name ),
             tag( logged_event ) );
 }
+
+void log_st_change( std::string_view sv ) {
+  lg.debug( "{}", sv );
+}
 #else
 void log_state( std::string const& /*unused*/,
                 std::string const& /*unused*/ ) {}
 
 void log_event( std::string const& /*unused*/,
                 std::string const& /*unused*/ ) {}
-#endif
 
-void log_st_change( std::string_view sv ) {
-  lg.debug( "{}", sv );
-}
+void log_st_change( std::string_view ) {}
+#endif
 
 } // namespace internal
 
