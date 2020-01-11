@@ -142,6 +142,14 @@ CFG( art,
         FLD( Coord, colony_stockade )
       )
     )
+    OBJ( mouse,
+      FLD( fs::path, img )
+      FLD( Delta, size )
+      OBJ( coords,
+        FLD( Coord, mouse_planks )
+        FLD( Coord, mouse_musket )
+      )
+    )
 
     OBJ( testing,
       FLD( fs::path, img )

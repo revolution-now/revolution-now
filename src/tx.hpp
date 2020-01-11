@@ -149,7 +149,7 @@ public:
   void copy_to( Texture& to, Rect const& src, Rect const& dst,
                 double angle, e_flip flip ) const;
 
-  void fill( Color const& color );
+  void fill( Color const& color = { 0, 0, 0, 0 } );
 
   // Estimated memory size (in megabytes) of a texture with
   // given pixel dimensions.

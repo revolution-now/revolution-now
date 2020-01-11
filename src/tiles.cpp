@@ -180,6 +180,10 @@ void init_sprites() {
        colony_basic,
        colony_stockade,
   ),
+  (  /*-------------------*/mouse,/*-------------------*/
+       mouse_planks,
+       mouse_musket,
+  ),
   (  /*-------------------*/testing,/*-------------------*/
        checkers,
        checkers_inv,

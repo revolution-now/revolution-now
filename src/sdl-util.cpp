@@ -102,10 +102,12 @@ Rect from_SDL( ::SDL_Rect const& rect ) {
 void init_sdl() {
   CHECK( ::SDL_Init( SDL_INIT_EVERYTHING ) >= 0,
          "sdl could not initialize" );
+  ::SDL_ShowCursor( SDL_DISABLE );
 }
 
 void cleanup_sdl() { ::SDL_Quit(); }
 
+//
 REGISTER_INIT_ROUTINE( sdl );
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
@@ -142,11 +144,11 @@ REGISTER_INIT_ROUTINE( sdl );
 }
 
 ::SDL_Color to_SDL( Color color ) {
-  return {color.r, color.g, color.b, color.a};
+  return { color.r, color.g, color.b, color.a };
 }
 
 Color from_SDL( ::SDL_Color color ) {
-  return {color.r, color.g, color.b, color.a};
+  return { color.r, color.g, color.b, color.a };
 }
 
 } // namespace rn

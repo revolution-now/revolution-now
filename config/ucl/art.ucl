@@ -147,6 +147,15 @@ tiles {
     }
   }
 
+  mouse {
+    img: assets/art/tiles/mouse.png
+    size: { w: 40, h: 32 }
+    coords {
+      mouse_planks: { y: 0, x: 0  }
+      mouse_musket: { y: 0, x: 1  }
+    }
+  }
+
   testing {
     img: assets/art/tiles/testing.png
     size: { w: 32, h: 32 }

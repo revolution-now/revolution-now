@@ -27,6 +27,7 @@
 #include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "tiles.hpp"
 #include "window.hpp"
 
 // base-util
@@ -106,7 +107,11 @@ InactivePlane dummy;
 struct OmniPlane : public Plane {
   OmniPlane() = default;
   bool covers_screen() const override { return false; }
-  void draw( Texture& /*unused*/ ) const override {}
+  void draw( Texture& tx ) const override {
+    tx.fill();
+    render_sprite( tx, e_tile::mouse_musket,
+                   input::current_mouse_position() - 16_w );
+  }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
     switch_( event ) {

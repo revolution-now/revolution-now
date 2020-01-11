@@ -127,6 +127,10 @@ enum class e_tile {
   colony_basic,
   colony_stockade,
 
+  // Mouse
+  mouse_planks,
+  mouse_musket,
+
   // testing
   checkers,
   checkers_inv
