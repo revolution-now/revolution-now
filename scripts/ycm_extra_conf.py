@@ -67,7 +67,7 @@ def CompileSearchPathList():
                 all_paths.append( p )
     return all_paths
 
-def FlagsForFile( filename, **kwargs ):
+def Settings( filename, **kwargs ):
     try:
         result = flags[filename]
         result_dir = directories[filename]
