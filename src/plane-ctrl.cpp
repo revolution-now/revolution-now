@@ -130,8 +130,8 @@ void push_plane_config( e_plane_config conf ) {
     case +e_plane_config::colony:
       SG().plane_list_stack.push_back( PlaneList{ {
           e_plane::colony, //
-          e_plane::menu,   //
-          e_plane::window  //
+          // e_plane::menu,   //
+          e_plane::window //
       } } );
       break;
     case +e_plane_config::europe:

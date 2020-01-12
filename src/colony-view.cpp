@@ -11,6 +11,7 @@
 #include "colony-view.hpp"
 
 // Revolution Now
+#include "color.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "menu.hpp"
@@ -31,7 +32,7 @@ namespace {
 void exit_colony_view() { pop_plane_config(); }
 
 void draw_colony_view( Texture& tx, ColonyId id ) {
-  tx.fill( Color{ 255, 255, 255, 255 } );
+  tx.fill( Color::parse_from_hex( "f1cf81" ).value() );
 
   ASSIGN_CHECK_OPT( canvas,
                     compositor::section(
@@ -40,27 +41,6 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   auto& colony = colony_from_id( id );
 
   Coord pos = canvas.upper_left();
-
-  //( ColonyId,                   id_           ),
-  //( e_nation,                   nation_       ),
-  //( std::string,                name_         ),
-  //( Coord,                      location_     ),
-
-  //// Commodities.
-  //( FlatMap_e_commodity_int,    commodities_  ),
-
-  //// Serves to both record the units in this colony as well as
-  //// their occupations.
-  //( FlatMap_UnitId_ColonyJob_t, units_        ),
-  //( FlatSet_e_colony_building,  buildings_    ),
-
-  //// Production
-  //( Opt<e_colony_building>,     production_   ),
-  //( int,                        prod_hammers_ ),
-  //( int,                        prod_tools_   ),
-
-  //// Liberty sentiment: [0,100].
-  //( int,                        sentiment_    ));
 
   auto line = [&]( string_view fmt_str, auto&&... args ) {
     string text = fmt::format( fmt_str, args... );
