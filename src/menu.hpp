@@ -29,6 +29,7 @@ enum class e_( menu,
                game,     //
                view,     //
                orders,   //
+               colony,   //
                europort, //
                advisors, //
                music,    //
@@ -69,7 +70,8 @@ enum class e_( menu_item,
                founding_father_help, //
                toggle_console,       //
                europort_view,        //
-               europort_close        //
+               europort_close,       //
+               colony_view_close     //
 );
 
 #define MENU_ITEM_HANDLER( item, handler_func,              \

@@ -88,27 +88,26 @@ fsm_class( App ) { //
 
   // FIXME: this should be done in a fsm_on_change_to.
   fsm_transition_( App, leaving, ok, ->, main_no_game ) {
-    set_plane_config( e_plane_config::main_menu );
+    clear_plane_stack();
+    push_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::no_game );
     return {};
   }
 
   // FIXME: this should be done in a fsm_on_change_to.
   fsm_transition_( App, leaving, cancel, ->, main_in_game ) {
-    set_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::in_game );
     return {};
   }
 
   // FIXME: this should be done in a fsm_on_change_to.
   fsm_transition_( App, saving, to_main, ->, main_in_game ) {
-    set_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::in_game );
     return {};
   }
 
   fsm_transition_( App, in_game, to_main, ->, main_in_game ) {
-    set_plane_config( e_plane_config::main_menu );
+    push_plane_config( e_plane_config::main_menu );
     set_main_menu( e_main_menu_type::in_game );
     return {};
   }
@@ -124,6 +123,7 @@ fsm_class( App ) { //
   fsm_transition( App, main_in_game, leave, ->, leaving ) {
     (void)cur;
     if( event.dirty ) {
+      // FIXME: use sync_futures here.
       ui::ok_cancel(
           "Really leave game without saving?",
           []( ui::e_ok_cancel oc ) {
@@ -141,13 +141,14 @@ fsm_class( App ) { //
 
   // FIXME: this should be done in an on-leave function.
   fsm_transition_( App, main_in_game, to_game, ->, in_game ) {
-    set_plane_config( e_plane_config::play_game );
+    pop_plane_config();
     return {};
   }
 
   // FIXME: this should be done in an on-leave function.
   fsm_transition_( App, creating, to_game, ->, in_game ) {
-    set_plane_config( e_plane_config::terrain_view );
+    clear_plane_stack();
+    push_plane_config( e_plane_config::terrain );
     conductor::play_request(
         conductor::e_request::fife_drum_happy,
         conductor::e_request_probability::always );
@@ -156,7 +157,9 @@ fsm_class( App ) { //
 
   // FIXME: this should be done in an on-leave function.
   fsm_transition_( App, loading, to_game, ->, in_game ) {
-    set_plane_config( e_plane_config::play_game );
+    // FIXME: here we assume that the main menu was at the top of
+    // the stack when serialized (check this).
+    pop_plane_config();
     conductor::play_request(
         conductor::e_request::fife_drum_happy,
         conductor::e_request_probability::always );

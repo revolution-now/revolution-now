@@ -160,11 +160,15 @@ struct Plane : public util::non_copy_non_move {
       e_menu_item item ) const;
 };
 
+// This should NOT be called directly, only by plane-ctrl. In-
+// stead call set_plane_config.
+//
 // Last in the list becomes the top of the stack, and any planes
 // that are not in this list are disabled. The omni plane should
 // not be in this list, as it will always be enabled as the
 // front-most plane.
 void set_plane_list( Vec<e_plane> const& planes );
+
 bool is_plane_enabled( e_plane plane );
 
 void draw_all_planes( Texture& tx = Texture::screen() );

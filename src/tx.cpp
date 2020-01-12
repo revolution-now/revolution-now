@@ -319,6 +319,13 @@ void Texture::copy_to( Texture& to, Rect const& src,
                               to_SDL( flip ) ) );
 }
 
+void Texture::copy_to( Texture& to,
+                       Coord    target_location ) const {
+  to.set_render_target();
+  copy_to( to, rect(),
+           rect().with_new_upper_left( target_location ) );
+}
+
 // TODO: try rewriting this implementationn by calling the above
 // copy_to.
 void Texture::copy_to( Texture& to, Opt<Rect> src,

@@ -89,12 +89,16 @@ expect<> check_colony_invariants_safe( ColonyId id ) {
   }
 
   // 9.  Colony's building set is self-consistent.
+  // TODO
 
   // 10. Unit mfg jobs are self-consistent.
+  // TODO
 
   // 11. Unit land jobs are good.
+  // TODO
 
   // 12. Colony's production status is self-consistent.
+  // TODO
 
   return xp_success_t();
 }

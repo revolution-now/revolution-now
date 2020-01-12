@@ -144,6 +144,7 @@ public:
   Matrix<Color> pixels() const;
 
   void copy_to( Texture& to ) const;
+  void copy_to( Texture& to, Coord target_location ) const;
   void copy_to( Texture& to, Opt<Rect> src,
                 Opt<Rect> dst ) const;
   void copy_to( Texture& to, Rect const& src, Rect const& dst,

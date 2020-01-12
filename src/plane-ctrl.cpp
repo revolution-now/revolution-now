@@ -13,6 +13,7 @@
 // Revolution Now
 #include "fb.hpp"
 #include "init.hpp"
+#include "logging.hpp"
 #include "macros.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
@@ -26,17 +27,27 @@ namespace rn {
 
 namespace {
 
-vector<e_plane> const default_in_game_config{
-    e_plane::land_view, //
-    e_plane::panel,     //
-    e_plane::menu,      //
-    e_plane::window     //
+struct PlaneList {
+  expect<> check_invariants_safe() const {
+    return xp_success_t{};
+  }
+
+  bool operator==( PlaneList const& rhs ) const {
+    return plane_list == rhs.plane_list;
+  }
+
+  // clang-format off
+  SERIALIZABLE_TABLE_MEMBERS( fb, PlaneList,
+  ( vector<e_plane>, plane_list ));
+  // clang-format on
 };
 
-vector<e_plane> const g_main_menu_config{
+PlaneList const g_main_menu_config{ {
     e_plane::main_menu, //
     e_plane::window,    //
-};
+} };
+
+void set_planes();
 
 /****************************************************************
 ** Save-Game State
@@ -46,8 +57,7 @@ struct SAVEGAME_STRUCT( Plane ) {
 
   // clang-format off
   SAVEGAME_MEMBERS( Plane,
-  ( vector<e_plane>, planes         ),
-  ( vector<e_plane>, in_game_planes ));
+  ( vector<PlaneList>, plane_list_stack ));
   // clang-format on
 
 public:
@@ -59,11 +69,10 @@ private:
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
 
-    if( planes.empty() ) planes = g_main_menu_config;
+    if( plane_list_stack.empty() )
+      plane_list_stack.push_back( g_main_menu_config );
 
-    if( in_game_planes.empty() )
-      in_game_planes = default_in_game_config;
-
+    set_planes();
     return xp_success_t{};
   }
   // Called after all modules are deserialized.
@@ -75,7 +84,8 @@ SAVEGAME_IMPL( Plane );
 ** Helpers
 *****************************************************************/
 void set_planes() {
-  vector<e_plane> res = SG().planes;
+  CHECK( !SG().plane_list_stack.empty() );
+  vector<e_plane> res = SG().plane_list_stack.back().plane_list;
   // Should be last.
   res.push_back( e_plane::console );
   // This should be the only place where this is called.
@@ -86,12 +96,17 @@ void set_planes() {
 ** Init / Cleanup
 *****************************************************************/
 void init_plane_config() {
-  set_plane_config( e_plane_config::main_menu );
+  push_plane_config( e_plane_config::main_menu );
 }
 
-void cleanup_plane_config() {}
+void cleanup_plane_config() {
+  if( SG().plane_list_stack.size() > 5 )
+    lg.warn(
+        "cleaning up whilst there are {} plane lists still in "
+        "the stack.",
+        SG().plane_list_stack.size() );
+}
 
-//
 REGISTER_INIT_ROUTINE( plane_config );
 
 } // namespace
@@ -99,35 +114,44 @@ REGISTER_INIT_ROUTINE( plane_config );
 /****************************************************************
 ** Public API
 *****************************************************************/
-void set_plane_config( e_plane_config conf ) {
+void push_plane_config( e_plane_config conf ) {
   switch( conf ) {
     case +e_plane_config::main_menu:
-      SG().planes = g_main_menu_config;
+      SG().plane_list_stack.push_back( g_main_menu_config );
       break;
-    case +e_plane_config::play_game:
-      SG().planes = SG().in_game_planes;
-      break;
-    case +e_plane_config::terrain_view:
-      SG().in_game_planes = vector<e_plane>{
+    case +e_plane_config::terrain:
+      SG().plane_list_stack.push_back( PlaneList{ {
           e_plane::land_view, //
           e_plane::panel,     //
           e_plane::menu,      //
           e_plane::window     //
-      };
-      SG().planes = SG().in_game_planes;
+      } } );
+      break;
+    case +e_plane_config::colony:
+      SG().plane_list_stack.push_back( PlaneList{ {
+          e_plane::colony, //
+          e_plane::menu,   //
+          e_plane::window  //
+      } } );
       break;
     case +e_plane_config::europe:
-      SG().in_game_planes = vector<e_plane>{
+      SG().plane_list_stack.push_back( PlaneList{ {
           e_plane::europe, //
           e_plane::menu,   //
           e_plane::window  //
-      };
-      SG().planes = SG().in_game_planes;
+      } } );
       break;
   }
-  CHECK( !SG().planes.empty() );
   set_planes();
 }
+
+void pop_plane_config() {
+  CHECK( SG().plane_list_stack.size() > 1 );
+  SG().plane_list_stack.pop_back();
+  set_planes();
+}
+
+void clear_plane_stack() { SG().plane_list_stack.clear(); }
 
 /****************************************************************
 ** Menu Handlers
@@ -137,20 +161,11 @@ void set_plane_config( e_plane_config conf ) {
 // state.
 MENU_ITEM_HANDLER(
     e_menu_item::europort_view,
-    [] { set_plane_config( e_plane_config::europe ); },
+    [] { push_plane_config( e_plane_config::europe ); },
     [] { return !is_plane_enabled( e_plane::europe ); } )
 
-//
 MENU_ITEM_HANDLER(
-    e_menu_item::europort_close,
-    [] { set_plane_config( e_plane_config::terrain_view ); },
+    e_menu_item::europort_close, [] { pop_plane_config(); },
     [] { return is_plane_enabled( e_plane::europe ); } )
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_plane_ctrl() {
-  //
-}
 
 } // namespace rn

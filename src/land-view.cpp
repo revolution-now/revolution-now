@@ -13,6 +13,7 @@
 // Revolution Now
 #include "adt.hpp"
 #include "aliases.hpp"
+#include "colony-view.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
@@ -707,6 +708,13 @@ ClickTileActions ClickTileActionsFromUnitSelections(
 // and the allow_activate flag.
 sync_future<ClickTileActions> click_on_world_tile_impl(
     Coord coord, bool allow_activate ) {
+  // First check for colonies.
+  if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
+    show_colony_view( *maybe_id );
+    return make_sync_future<ClickTileActions>();
+  }
+
+  // Now check for units.
   auto const& units = units_from_coord_recursive( coord );
   if( units.size() == 0 )
     return make_sync_future<ClickTileActions>();

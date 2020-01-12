@@ -98,6 +98,7 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     { e_menu::game, { "Game", false, 'G' } },
     { e_menu::view, { "View", false, 'V' } },
     { e_menu::orders, { "Orders", false, 'O' } },
+    { e_menu::colony, { "Colony", false, 'C' } },
     { e_menu::europort, { "Europe", false, 'E' } },
     { e_menu::advisors, { "Advisors", false, 'A' } },
     { e_menu::music, { "Music", false, 'M' } },
@@ -160,6 +161,10 @@ absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
       {
           ITEM( sentry, "Sentry" ),  //
           ITEM( fortify, "Fortify" ) //
+      } },
+    { e_menu::colony,
+      {
+          ITEM( colony_view_close, "Close" ) //
       } },
     { e_menu::europort,
       {

@@ -12,7 +12,10 @@ include "plane.fbs";
 
 namespace fb;
 
+table PlaneList {
+  plane_list : [e_plane];
+}
+
 table SG_Plane {
-  planes         : [e_plane];
-  in_game_planes : [e_plane];
+  plane_list_stack : [PlaneList];
 }

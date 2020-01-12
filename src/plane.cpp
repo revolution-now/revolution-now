@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "app-state.hpp"
+#include "colony-view.hpp"
 #include "console.hpp"
 #include "europort-view.hpp"
 #include "frame.hpp"
@@ -139,12 +140,6 @@ struct OmniPlane : public Plane {
             if( key_event.mod.ctrl_down ) throw exception_exit{};
             handled = e_input_handled::no;
             break;
-          case ::SDLK_ESCAPE: //
-            // FIXME: this probably shouldn't be in the omni
-            // plane.
-            handled = back_to_main_menu() ? e_input_handled::yes
-                                          : e_input_handled::no;
-            break;
           default: //
             handled = e_input_handled::no;
             break;
@@ -209,7 +204,7 @@ void init_planes() {
   plane( e_plane::land_view ).reset( land_view_plane() );
   plane( e_plane::panel ).reset( panel_plane() );
   plane( e_plane::image ).reset( image_plane() );
-  // plane( e_plane::colony ).reset( colony_plane() );
+  plane( e_plane::colony ).reset( colony_plane() );
   plane( e_plane::europe ).reset( europe_plane() );
   plane( e_plane::window ).reset( window_plane() );
   plane( e_plane::menu ).reset( menu_plane() );
@@ -262,6 +257,27 @@ input::mouse_drag_event_t project_drag_event(
                      /*end=*/drag_event.pos,
                      /*along=*/along );
   return res;
+}
+
+bool input_catchall( input::event_t const& event ) {
+  bool handled = false;
+  switch_( event ) {
+    case_( input::quit_event_t ) { throw exception_exit{}; }
+    case_( input::key_event_t ) {
+      auto& key_event = val;
+      if( key_event.change != input::e_key_change::down ) break_;
+      switch( key_event.keycode ) {
+        case ::SDLK_ESCAPE: //
+          handled = true;
+          back_to_main_menu();
+          break;
+        default: //
+          break;
+      }
+    }
+    switch_non_exhaustive;
+  }
+  return handled;
 }
 
 } // namespace
@@ -508,6 +524,9 @@ Plane::e_input_handled send_input_to_planes(
         return Plane::e_input_handled::hold;
     }
   }
+
+  if( input_catchall( event ) )
+    return Plane::e_input_handled::yes;
 
   return Plane::e_input_handled::no;
 }
