@@ -25,6 +25,7 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
@@ -2047,11 +2048,25 @@ struct EuropePlane : public Plane {
         result_ e_input_handled::yes;
       }
       case_( input::mouse_button_event_t ) {
+        if( val.buttons !=
+            input::e_mouse_button_event::left_down )
+          result_ e_input_handled::yes;
+        auto shifted_pos =
+            val.pos + ( Coord{} - clip_rect().upper_left() );
+
+        // Exit button.
+        if( entities_.exit_label.has_value() ) {
+          if( shifted_pos.is_inside(
+                  entities_.exit_label->bounds() ) ) {
+            pop_plane_config();
+            result_ e_input_handled::yes;
+          }
+        }
+
+        // Unit selection.
         auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
           if( maybe_entity ) {
-            auto shifted_pos =
-                val.pos + ( Coord{} - clip_rect().upper_left() );
             if( auto maybe_pair = maybe_entity->obj_under_cursor(
                     shifted_pos );
                 maybe_pair ) {
@@ -2188,5 +2203,18 @@ REGISTER_INIT_ROUTINE( europort_view );
 ** Public API
 *****************************************************************/
 Plane* europe_plane() { return &g_europe_plane; }
+
+/****************************************************************
+** Menu Handlers
+*****************************************************************/
+
+MENU_ITEM_HANDLER(
+    e_menu_item::europort_view,
+    [] { push_plane_config( e_plane_config::europe ); },
+    [] { return !is_plane_enabled( e_plane::europe ); } )
+
+MENU_ITEM_HANDLER(
+    e_menu_item::europort_close, [] { pop_plane_config(); },
+    [] { return is_plane_enabled( e_plane::europe ); } )
 
 } // namespace rn
