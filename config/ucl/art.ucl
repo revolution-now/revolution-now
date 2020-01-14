@@ -153,6 +153,7 @@ tiles {
     coords {
       mouse_planks: { y: 0, x: 0  }
       mouse_musket: { y: 0, x: 1  }
+      mouse_arrow1: { y: 0, x: 2  }
     }
   }
 

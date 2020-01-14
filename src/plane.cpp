@@ -110,7 +110,7 @@ struct OmniPlane : public Plane {
   bool covers_screen() const override { return false; }
   void draw( Texture& tx ) const override {
     tx.fill();
-    render_sprite( tx, e_tile::mouse_musket,
+    render_sprite( tx, e_tile::mouse_arrow1,
                    input::current_mouse_position() - 16_w );
   }
   e_input_handled input( input::event_t const& event ) override {

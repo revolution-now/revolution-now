@@ -148,6 +148,7 @@ CFG( art,
       OBJ( coords,
         FLD( Coord, mouse_planks )
         FLD( Coord, mouse_musket )
+        FLD( Coord, mouse_arrow1 )
       )
     )
 

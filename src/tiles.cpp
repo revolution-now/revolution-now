@@ -183,6 +183,7 @@ void init_sprites() {
   (  /*-------------------*/mouse,/*-------------------*/
        mouse_planks,
        mouse_musket,
+       mouse_arrow1,
   ),
   (  /*-------------------*/testing,/*-------------------*/
        checkers,
