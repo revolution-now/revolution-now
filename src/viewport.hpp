@@ -117,8 +117,8 @@ private:
   friend bool are_tile_surroundings_as_fully_visible_as_can_be(
       SmoothViewport const& vp, Coord const& coords );
 
-  double width_pixels() const;
-  double height_pixels() const;
+  double x_world_pixels_in_viewport() const;
+  double y_world_pixels_in_viewport() const;
 
   // These are to avoid a direct dependency on the screen module
   // and its initialization code.
@@ -142,6 +142,8 @@ private:
 
   double width_tiles() const;
   double height_tiles() const;
+
+  double minimum_zoom_for_viewport();
 
   void scale_zoom( double factor );
   void pan( double down_up, double left_right, bool scale );

@@ -250,24 +250,37 @@ void SmoothViewport::stop_auto_panning() {
   smooth_center_y_target_ = std::nullopt;
 }
 
-double SmoothViewport::width_pixels() const {
+// Computes the critical zoom point below which (i.e., if you
+// were to zoom out a bit further) would be revealed space around
+// the map.
+double SmoothViewport::minimum_zoom_for_viewport() {
+  auto min_zoom_for_x =
+      double( viewport_rect_pixels_.delta().w ) /
+      double( ( world_size_tiles_ * g_tile_scale ).w );
+  auto min_zoom_for_y =
+      double( viewport_rect_pixels_.delta().h ) /
+      double( ( world_size_tiles_ * g_tile_scale ).h );
+  return std::max( min_zoom_for_x, min_zoom_for_y );
+}
+
+double SmoothViewport::x_world_pixels_in_viewport() const {
   return double( viewport_rect_pixels_.delta().w ) / zoom_;
 }
-double SmoothViewport::height_pixels() const {
+double SmoothViewport::y_world_pixels_in_viewport() const {
   return double( viewport_rect_pixels_.delta().h ) / zoom_;
 }
 
 double SmoothViewport::start_x() const {
-  return center_x_ - width_pixels() / 2;
+  return center_x_ - x_world_pixels_in_viewport() / 2;
 }
 double SmoothViewport::start_y() const {
-  return center_y_ - height_pixels() / 2;
+  return center_y_ - y_world_pixels_in_viewport() / 2;
 }
 double SmoothViewport::end_x() const {
-  return center_x_ + width_pixels() / 2;
+  return center_x_ + x_world_pixels_in_viewport() / 2;
 }
 double SmoothViewport::end_y() const {
-  return center_y_ + height_pixels() / 2;
+  return center_y_ + y_world_pixels_in_viewport() / 2;
 }
 X SmoothViewport::start_tile_x() const {
   return X( int( start_x() ) ) / g_tile_width;
@@ -278,8 +291,8 @@ Y SmoothViewport::start_tile_y() const {
 
 Rect SmoothViewport::get_bounds() const {
   return { X( int( start_x() ) ), Y( int( start_y() ) ),
-           W( int( width_pixels() ) ),
-           H( int( height_pixels() ) ) };
+           W( int( x_world_pixels_in_viewport() ) ),
+           H( int( y_world_pixels_in_viewport() ) ) };
 }
 
 Coord SmoothViewport::center_rounded() const {
@@ -322,8 +335,9 @@ Rect SmoothViewport::world_rect_tiles() const {
 }
 
 void SmoothViewport::enforce_invariants() {
-  if( zoom_ < config_rn.viewport.zoom_min )
-    zoom_ = config_rn.viewport.zoom_min;
+  zoom_ = std::max( zoom_, config_rn.viewport.zoom_min );
+  if( !config_rn.viewport.can_reveal_space_around_map )
+    zoom_ = std::max( zoom_, minimum_zoom_for_viewport() );
   auto [size_x, size_y] = world_size_tiles_;
   size_y *= g_tile_height;
   size_x *= g_tile_width;
@@ -335,20 +349,22 @@ void SmoothViewport::enforce_invariants() {
   // If on the other hand we are zoomed out far enough that the
   // entire world is visible (in the given dimension) then we
   // allow the edges of the viewport to go off of the world.
-  if( width_pixels() <= size_x ) {
-    if( start_x() < 0 ) center_x_ = width_pixels() / 2;
+  if( x_world_pixels_in_viewport() <= size_x ) {
+    if( start_x() < 0 )
+      center_x_ = x_world_pixels_in_viewport() / 2;
     if( end_x() > double( size_x ) )
-      center_x_ =
-          double( size_x ) - double( width_pixels() ) / 2;
+      center_x_ = double( size_x ) -
+                  double( x_world_pixels_in_viewport() ) / 2;
   } else {
     center_x_ =
         double( 0_x + this->world_size_pixels().w / 2_sx );
   }
-  if( height_pixels() <= size_y ) {
-    if( start_y() < 0 ) center_y_ = height_pixels() / 2;
+  if( y_world_pixels_in_viewport() <= size_y ) {
+    if( start_y() < 0 )
+      center_y_ = y_world_pixels_in_viewport() / 2;
     if( end_y() > double( size_y ) )
-      center_y_ =
-          double( size_y ) - double( height_pixels() ) / 2;
+      center_y_ = double( size_y ) -
+                  double( y_world_pixels_in_viewport() ) / 2;
   } else {
     center_y_ =
         double( 0_y + this->world_size_pixels().h / 2_sy );

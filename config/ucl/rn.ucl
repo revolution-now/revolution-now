@@ -18,6 +18,11 @@ viewport {
   zoom_accel_drag_coeff: 0.05
   pan_accel_init_coeff: 0.2
   pan_accel_drag_init_coeff: 0.1
+
+  # When zooming out, do we allow the player to keep zooming
+  # until there is space around the map revealed, or do we stop
+  # the zooming just when that is about to happen.
+  can_reveal_space_around_map: false
 }
 
 console {

@@ -27,6 +27,8 @@ CFG( rn,
     FLD( double, zoom_accel_drag_coeff )
     FLD( double, pan_accel_init_coeff )
     FLD( double, pan_accel_drag_init_coeff )
+
+    FLD( bool, can_reveal_space_around_map )
   )
 
   OBJ( console,
