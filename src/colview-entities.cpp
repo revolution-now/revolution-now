@@ -28,10 +28,19 @@ namespace rn {
 namespace {
 
 /****************************************************************
+** Constants
+*****************************************************************/
+constexpr Delta kCommodityTileSize  = Delta{ 16_w, 16_h };
+constexpr Scale kCommodityTileScale = Scale{ 16_sx, 16_sy };
+
+constexpr W kCommodityTileWidth = 16_w;
+
+/****************************************************************
 ** Globals
 *****************************************************************/
 struct ColViewComposited {
   ColonyId                                      id;
+  Delta                                         screen_size;
   UPtr<ui::View>                                top_level;
   FlatMap<e_colview_entity, ColViewEntityView*> entities;
 };
@@ -43,22 +52,20 @@ ColViewComposited g_composition;
 *****************************************************************/
 class MarketCommodities : public ColViewEntityView {
 public:
-  static constexpr W single_layer_blocks_width  = 16_w;
-  static constexpr H single_layer_blocks_height = 1_h;
-
-  // Commodities will be 24x24 + 8 pixels for text.
-  static constexpr auto sprite_scale = Scale{ 32 };
-
-  static constexpr W single_layer_width =
-      single_layer_blocks_width * sprite_scale.sx;
-  static constexpr H single_layer_height =
-      single_layer_blocks_height * sprite_scale.sy;
-
-  static constexpr Delta k_rendered_commodity_offset{ 8_w, 3_h };
-
-public:
   Delta delta() const override {
-    return Delta{ single_layer_width, single_layer_height };
+    return Delta{
+        block_width_ * SX{ values<e_commodity>.size() },
+        1_h * 32_sy };
+  }
+
+  // Offset within a block that the commodity icon should be dis-
+  // played.
+  Delta rendered_commodity_offset() const {
+    Delta res;
+    res.h = 3_h;
+    res.w = ( block_width_ - kCommodityTileWidth ) / 2_sx;
+    if( res.w < 0_w ) res.w = 0_w;
+    return res;
   }
 
   void draw( Texture& tx, Coord coord ) const override {
@@ -66,24 +73,21 @@ public:
     auto        label   = CommodityLabel::quantity{ 0 };
     Coord       pos     = coord;
     auto const& colony  = colony_from_id( id_ );
-    for( int i = 0; i < 16; ++i ) {
-      auto rect = Rect::from( pos, Delta{ 32_w, 32_h } );
+    for( int i = 0; i < kNumCommodityTypes; ++i ) {
+      auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       render_rect( tx, Color::black(), rect );
       label.value = colony.commodity_quantity( *comm_it );
       render_commodity_annotated(
           tx, *comm_it++,
-          rect.upper_left() + k_rendered_commodity_offset,
+          rect.upper_left() + rendered_commodity_offset(),
           label );
-      pos += 1_w * sprite_scale.sx;
+      pos += block_width_;
     }
   }
 
-  static Delta size_needed() {
-    return Delta{ single_layer_width, single_layer_height };
-  }
-
-  static UPtr<MarketCommodities> create( ColonyId id ) {
-    return make_unique<MarketCommodities>( id );
+  static UPtr<MarketCommodities> create( ColonyId id,
+                                         W        block_width ) {
+    return make_unique<MarketCommodities>( id, block_width );
   }
 
   e_colview_entity entity_id() const override {
@@ -93,6 +97,7 @@ public:
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nullopt;
+    auto sprite_scale = Scale{ SX{ block_width_._ }, SY{ 32 } };
     auto box_upper_left =
         ( coord / sprite_scale ) * sprite_scale;
     auto idx        = ( coord / sprite_scale - Coord{} ).w._;
@@ -102,32 +107,41 @@ public:
         .obj =
             ColViewDraggableObject::market_commodity{
                 .type = *maybe_type },
-        .bounds = Rect::from( box_upper_left +
-                                  k_rendered_commodity_offset,
-                              Delta{ 1_w, 1_h } * Scale{ 16 } )
-                      .as_if_origin_were( coord ) };
+        .bounds =
+            Rect::from(
+                box_upper_left + rendered_commodity_offset(),
+                Delta{ 1_w, 1_h } * kCommodityTileScale )
+                .as_if_origin_were( coord ) };
   }
 
+  MarketCommodities( ColonyId id, W block_width )
+    : ColViewEntityView( id ), block_width_( block_width ) {}
+
 private:
-  using ColViewEntityView::ColViewEntityView;
+  W block_width_;
 };
 
 /****************************************************************
 ** Compositing
 *****************************************************************/
-void recomposite( ColonyId id ) {
-  CHECK( g_composition.id != id );
+void recomposite( ColonyId id, Delta screen_size ) {
   CHECK( colony_exists( id ) );
-  g_composition.id = id;
+  g_composition.id          = id;
+  g_composition.screen_size = screen_size;
 
   g_composition.top_level = nullptr;
   g_composition.entities.clear();
   vector<ui::OwningPositionedView> views;
 
-  Rect  screen_rect = main_window_logical_rect();
+  Rect  screen_rect = Rect::from( Coord{}, screen_size );
   Coord pos;
 
-  auto market_commodities = MarketCommodities::create( id );
+  W comm_block_width =
+      screen_rect.delta().w / SX{ values<e_commodity>.size() };
+  comm_block_width =
+      std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
+  auto market_commodities =
+      MarketCommodities::create( id, comm_block_width );
   pos = centered_bottom( market_commodities->delta(),
                          screen_rect );
   views.push_back( ui::OwningPositionedView(
@@ -161,8 +175,12 @@ ui::View const* colview_top_level() {
 }
 
 void set_colview_colony( ColonyId id ) {
-  if( id == g_composition.id ) return;
-  recomposite( id );
+  auto old_id   = g_composition.id;
+  auto old_size = g_composition.screen_size;
+  auto new_id   = id;
+  auto new_size = main_window_logical_size();
+  if( new_id == old_id && new_size == old_size ) return;
+  recomposite( new_id, new_size );
 }
 
 } // namespace rn

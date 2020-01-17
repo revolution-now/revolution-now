@@ -58,6 +58,8 @@ enum class e_(commodity,
 // clang-format on
 SERIALIZABLE_ENUM( e_commodity );
 
+constexpr int kNumCommodityTypes = e_commodity::_size();
+
 // Index refers to the ordering in the enum above, starting at 0.
 Opt<e_commodity> commodity_from_index( int index );
 
