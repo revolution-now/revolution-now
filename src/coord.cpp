@@ -61,6 +61,10 @@ Rect Rect::with_border_added( int thickness ) const {
   return { x - wd, y - hd, w + wd + wd, h + hd + hd };
 }
 
+Rect Rect::as_if_origin_were( Coord const& coord ) const {
+  return this->shifted_by( -coord.distance_from_origin() );
+}
+
 Rect Rect::uni0n( Rect const& rhs ) const {
   // NOTE: be careful here with returning references; we should
   // only be using auto const& when the function will not return

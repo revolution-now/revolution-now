@@ -344,6 +344,8 @@ struct ND Rect {
     return Rect{ coord.x, coord.y, w, h };
   }
 
+  Rect as_if_origin_were( Coord const& coord ) const;
+
   Rect with_inc_size() const {
     return { x, y, w + 1_w, h + 1_h };
   }
