@@ -227,7 +227,7 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
       }
     }
     case_( AppState::creating ) {
-      CHECK_XP( reset_savegame_state() );
+      default_construct_savegame_state();
       lua::reload();
       lua::run_startup_main();
       fsm.send_event( AppEvent::to_game{} );
