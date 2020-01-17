@@ -23,17 +23,16 @@
 #include "ui.hpp"
 #include "unit.hpp"
 #include "utype.hpp"
+#include "view.hpp"
 
 namespace rn::ui {
 
-// NOTE: this header should only be directly included by
-// window.cpp.
+// NOTE: Don't put anymore views in here that are specific to
+// game logic.
 
 /****************************************************************
 ** Fundamental Views
 *****************************************************************/
-class View : public Object {};
-
 // This is a View coupled with a coordinate representing the po-
 // sition of the upper-left corner of the view. Note that the co-
 // ordinate is in the coordinate system of the parent view or

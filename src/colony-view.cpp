@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "color.hpp"
+#include "colview-entities.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "menu.hpp"
@@ -54,6 +55,8 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   line( "population: {}", colony.population() );
   line( "nation: {}", colony.nation() );
   line( "location: {}", colony.location() );
+
+  colview_top_level()->draw( tx, Coord{} );
 }
 
 bool handle_key_event( input::key_event_t const& key_event ) {
@@ -105,6 +108,7 @@ Plane* colony_plane() { return &g_colony_plane; }
 void show_colony_view( ColonyId id ) {
   CHECK( colony_exists( id ) );
   g_colony_plane.curr_colony_id = id;
+  set_colview_colony( id );
   push_plane_config( e_plane_config::colony );
 }
 

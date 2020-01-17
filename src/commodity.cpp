@@ -14,6 +14,7 @@
 #include "enum.hpp"
 #include "fmt-helper.hpp"
 #include "gfx.hpp"
+#include "lua.hpp"
 #include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -267,6 +268,15 @@ Texture render_commodity_create( e_commodity type ) {
       lookup_sprite( tile_for_commodity( type ) ).size() );
   render_commodity( tx, type, Coord{} );
   return tx;
+}
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_ENUM( commodity )
+
 }
 
 } // namespace rn

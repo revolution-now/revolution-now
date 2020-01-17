@@ -63,6 +63,9 @@ local function create_some_colonies( nation )
            nation, e.unit_type.free_colonist, coord )
   local col_id = colony_mgr.found_colony(
            unit:id(), "New London" )
+  local colony = cstate.colony_from_id( col_id )
+  colony:set_commodity_quantity( e.commodity.lumber, 100 )
+
   coord = Coord{y=4, x=4}
   unit = ustate.create_unit_on_map(
            nation, e.unit_type.free_colonist, coord )
@@ -70,6 +73,7 @@ local function create_some_colonies( nation )
              unit:id(), "New York" )
   local colony = cstate.colony_from_id( col_id )
   colony:add_building( e.colony_building.stockade )
+  colony:set_commodity_quantity( e.commodity.cloth, 93 )
 end
 
 local function main()

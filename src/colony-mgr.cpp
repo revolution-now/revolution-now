@@ -82,10 +82,9 @@ expect<> check_colony_invariants_safe( ColonyId id ) {
   }
 
   // 8.  Colony's commodity quantites in correct range.
-  for( auto [comm, quantity] : colony.commodities() ) {
-    if( quantity < 0 )
-      return UNEXPECTED( "Colony has negative quantity of {}.",
-                         comm );
+  for( auto comm : values<e_commodity> ) {
+    UNXP_CHECK( colony.commodity_quantity( comm ) >= 0,
+                "Colony has negative quantity of {}.", comm );
   }
 
   // 9.  Colony's building set is self-consistent.

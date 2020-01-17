@@ -54,11 +54,9 @@ public:
   int                sentiment() const { return sentiment_; }
   int prod_hammers() const { return prod_hammers_; }
   int prod_tools() const { return prod_tools_; }
+  int commodity_quantity( e_commodity commodity ) const;
   FlatSet<e_colony_building> const& buildings() const {
     return buildings_;
-  }
-  FlatMap<e_commodity, int> const& commodities() const {
-    return commodities_;
   }
   FlatMap<UnitId, ColonyJob_t> const& units_jobs() const {
     return units_;
@@ -69,6 +67,11 @@ public:
   void add_building( e_colony_building building );
   void add_unit( UnitId id, ColonyJob_t const& job );
   void remove_unit( UnitId id );
+  void set_commodity_quantity( e_commodity comm, int q );
+
+  FlatMap<e_commodity, int>& commodities() {
+    return commodities_;
+  }
 
   /************************ Functions **************************/
   // NOTE: these modifiers do not enforce invariants!
