@@ -26,6 +26,42 @@ namespace {
 using namespace std;
 using namespace rn;
 
+TEST_CASE( "[coord] centered*" ) {
+  Rect  rect;
+  Delta delta;
+  Coord expect;
+
+  rect   = Rect{ 1_x, 1_y, 0_w, 0_h };
+  delta  = Delta{ 4_w, 3_h };
+  expect = Coord{ -1_x, 0_y };
+  REQUIRE( centered( delta, rect ) == expect );
+
+  rect   = Rect{ 1_x, 2_y, 5_w, 6_h };
+  delta  = Delta{ 3_w, 4_h };
+  expect = Coord{ 2_x, 3_y };
+  REQUIRE( centered( delta, rect ) == expect );
+
+  rect   = Rect{ 1_x, 2_y, 5_w, 6_h };
+  delta  = Delta{ 3_w, 4_h };
+  expect = Coord{ 2_x, 4_y };
+  REQUIRE( centered_bottom( delta, rect ) == expect );
+
+  rect   = Rect{ 1_x, 2_y, 5_w, 6_h };
+  delta  = Delta{ 3_w, 4_h };
+  expect = Coord{ 2_x, 0_y };
+  REQUIRE( centered_top( delta, rect ) == expect );
+
+  rect   = Rect{ 1_x, 2_y, 5_w, 6_h };
+  delta  = Delta{ 3_w, 4_h };
+  expect = Coord{ 0_x, 3_y };
+  REQUIRE( centered_left( delta, rect ) == expect );
+
+  rect   = Rect{ 1_x, 2_y, 4_w, 6_h };
+  delta  = Delta{ 3_w, 4_h };
+  expect = Coord{ 2_x, 3_y };
+  REQUIRE( centered_right( delta, rect ) == expect );
+}
+
 TEST_CASE( "[coord] centered_on" ) {
   Coord coord;
   Rect  rect;

@@ -512,6 +512,13 @@ public:
 // rect.  Note that the coord returned may be negative.
 Coord centered( Delta const& delta, Rect const& rect );
 
+// Will return the upper-left coordinate of a rect obtained by
+// centering the delta along the given "wall" of the rect.
+Coord centered_bottom( Delta const& delta, Rect const& rect );
+Coord centered_top( Delta const& delta, Rect const& rect );
+Coord centered_left( Delta const& delta, Rect const& rect );
+Coord centered_right( Delta const& delta, Rect const& rect );
+
 // Takes the "dot product".
 int inner_product( Delta const& fst, Delta const& snd );
 
