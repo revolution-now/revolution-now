@@ -28,7 +28,8 @@ using namespace std;
 namespace rn {
 
 namespace {
-//
+
+using e_input_handled = Plane::e_input_handled;
 
 void exit_colony_view() { pop_plane_config(); }
 
@@ -58,24 +59,18 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   colview_top_level()->draw( tx, Coord{} );
 }
 
-bool handle_key_event( input::key_event_t const& key_event ) {
+e_input_handled handle_key_event(
+    input::key_event_t const& key_event ) {
   if( key_event.change != input::e_key_change::down )
-    return false;
+    return e_input_handled::no;
   switch( key_event.keycode ) {
     case ::SDLK_ESCAPE: //
       exit_colony_view();
-      return true;
+      return e_input_handled::yes;
     default: //
-      return false;
+      return e_input_handled::no;
   }
 }
-
-auto handle_input = variant_function( event, ->, bool ) {
-  case_( input::key_event_t ) {
-    return handle_key_event( event );
-  }
-  default_variant_function( return false );
-};
 
 /****************************************************************
 ** Colony Plane
@@ -87,8 +82,19 @@ struct ColonyPlane : public Plane {
     draw_colony_view( tx, curr_colony_id );
   }
   e_input_handled input( input::event_t const& event ) override {
-    return handle_input( event ) ? e_input_handled::yes
-                                 : e_input_handled::no;
+    return matcher_( event, ->, e_input_handled ) {
+      case_( input::key_event_t ) {
+        result_ handle_key_event( val );
+      }
+      case_( input::win_event_t ) {
+        if( val.type == input::e_win_event_type::resized )
+          set_colview_colony( curr_colony_id );
+        // Generally we should return no here because this is an
+        // event that we want all planes to see.
+        result_ e_input_handled::no;
+      }
+      default_matcher( return e_input_handled::no; );
+    }
   }
 
   ColonyId curr_colony_id;

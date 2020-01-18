@@ -13,7 +13,6 @@
 // Revolution Now
 #include "cargo.hpp"
 #include "commodity.hpp"
-#include "compositor.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "europort.hpp"
@@ -173,62 +172,6 @@ Texture draw_draggable_object(
 }
 
 /****************************************************************
-** The Clip Rect
-*****************************************************************/
-// Global State.
-Delta g_clip;
-
-Rect clip_rect() {
-  ASSIGN_CHECK_OPT( rect,
-                    compositor::section(
-                        compositor::e_section::non_menu_bar ) );
-  return Rect::from( centered( g_clip, rect ), g_clip );
-}
-
-Delta clip_rect_drag_region{ 4_w, 4_h };
-
-bool is_on_clip_rect_left_side( Coord const& coord ) {
-  Rect rect = clip_rect();
-  return coord.x > rect.x - clip_rect_drag_region.w &&
-         coord.x < rect.x + clip_rect_drag_region.w &&
-         coord.y > rect.y - clip_rect_drag_region.h &&
-         coord.y < rect.bottom_edge() + clip_rect_drag_region.h;
-}
-
-bool is_on_clip_rect_right_side( Coord const& coord ) {
-  Rect rect = clip_rect();
-  return coord.x > rect.right_edge() - clip_rect_drag_region.w &&
-         coord.x < rect.right_edge() + clip_rect_drag_region.w &&
-         coord.y > rect.y - clip_rect_drag_region.h &&
-         coord.y < rect.bottom_edge() + clip_rect_drag_region.h;
-}
-
-bool is_on_clip_rect_top_side( Coord const& coord ) {
-  Rect rect = clip_rect();
-  return coord.y > rect.y - clip_rect_drag_region.h &&
-         coord.y < rect.y + clip_rect_drag_region.h &&
-         coord.x > rect.x - clip_rect_drag_region.w &&
-         coord.x < rect.right_edge() + clip_rect_drag_region.w;
-}
-
-bool is_on_clip_rect_bottom_side( Coord const& coord ) {
-  Rect rect = clip_rect();
-  return coord.y >
-             rect.bottom_edge() - clip_rect_drag_region.h &&
-         coord.y <
-             rect.bottom_edge() + clip_rect_drag_region.h &&
-         coord.x > rect.x - clip_rect_drag_region.w &&
-         coord.x < rect.right_edge() + clip_rect_drag_region.w;
-}
-
-bool is_on_clip_rect( Coord const& coord ) {
-  return is_on_clip_rect_left_side( coord ) ||
-         is_on_clip_rect_right_side( coord ) ||
-         is_on_clip_rect_top_side( coord ) ||
-         is_on_clip_rect_bottom_side( coord );
-}
-
-/****************************************************************
 ** Helpers
 *****************************************************************/
 // Both rv::all and the lambda will take rect_proxy by reference
@@ -257,7 +200,7 @@ namespace entity {
 //
 //  void draw( Texture& tx, Delta offset ) const;
 //  Rect bounds() const;
-//  static Opt<EntityClass> create( Delta const& size, ... );
+//  static Opt<EntityClass> create( ... );
 //  Opt<pair<T,Rect>> obj_under_cursor( Coord const& );
 
 // This object represents the array of cargo items available for
@@ -1244,56 +1187,57 @@ NOTHROW_MOVE( Entities );
 
 void create_entities( Entities* entities ) {
   using namespace entity;
+  Delta clip                   = main_window_logical_size();
   entities->market_commodities = //
-      MarketCommodities::create( g_clip );
-  entities->active_cargo_box =        //
-      ActiveCargoBox::create( g_clip, //
+      MarketCommodities::create( clip );
+  entities->active_cargo_box =      //
+      ActiveCargoBox::create( clip, //
                               entities->market_commodities );
   entities->dock_anchor =                             //
-      DockAnchor::create( g_clip,                     //
+      DockAnchor::create( clip,                       //
                           entities->active_cargo_box, //
                           entities->market_commodities );
-  entities->backdrop =          //
-      Backdrop::create( g_clip, //
+  entities->backdrop =        //
+      Backdrop::create( clip, //
                         entities->dock_anchor );
   entities->in_port_box =                            //
-      InPortBox::create( g_clip,                     //
+      InPortBox::create( clip,                       //
                          entities->active_cargo_box, //
                          entities->market_commodities );
-  entities->inbound_box =         //
-      InboundBox::create( g_clip, //
+  entities->inbound_box =       //
+      InboundBox::create( clip, //
                           entities->in_port_box );
-  entities->outbound_box =         //
-      OutboundBox::create( g_clip, //
+  entities->outbound_box =       //
+      OutboundBox::create( clip, //
                            entities->inbound_box );
-  entities->exit_label =    //
-      Exit::create( g_clip, //
+  entities->exit_label =  //
+      Exit::create( clip, //
                     entities->market_commodities );
   entities->dock =                         //
-      Dock::create( g_clip,                //
+      Dock::create( clip,                  //
                     entities->dock_anchor, //
                     entities->in_port_box );
   entities->units_on_dock =                       //
-      UnitsOnDock::create( g_clip,                //
+      UnitsOnDock::create( clip,                  //
                            entities->dock_anchor, //
                            entities->dock );
-  entities->ships_in_port =        //
-      ShipsInPort::create( g_clip, //
+  entities->ships_in_port =      //
+      ShipsInPort::create( clip, //
                            entities->in_port_box );
-  entities->ships_inbound =         //
-      ShipsInbound::create( g_clip, //
+  entities->ships_inbound =       //
+      ShipsInbound::create( clip, //
                             entities->inbound_box );
-  entities->ships_outbound =         //
-      ShipsOutbound::create( g_clip, //
+  entities->ships_outbound =       //
+      ShipsOutbound::create( clip, //
                              entities->outbound_box );
   entities->active_cargo =                             //
-      ActiveCargo::create( g_clip,                     //
+      ActiveCargo::create( clip,                       //
                            entities->active_cargo_box, //
                            entities->ships_in_port );
 }
 
 void draw_entities( Texture& tx, Entities const& entities ) {
-  auto offset = clip_rect().upper_left().distance_from_origin();
+  auto offset = Delta{};
   if( entities.backdrop.has_value() )
     entities.backdrop->draw( tx, offset );
   if( entities.market_commodities.has_value() )
@@ -1442,11 +1386,8 @@ public:
   constexpr static auto const draw_dragged_item =
       L( draw_draggable_object( _ ) );
 
-  // Coord is relative to clip_rect for now.
-  Opt<DragSrcInfo> drag_src( Coord const& do_not_use ) const {
+  Opt<DragSrcInfo> drag_src( Coord const& coord ) const {
     using namespace entity;
-    auto coord =
-        do_not_use.with_new_origin( clip_rect().upper_left() );
     Opt<DragSrcInfo> res;
     if( entities_->units_on_dock.has_value() ) {
       if( auto maybe_pair =
@@ -1525,22 +1466,14 @@ public:
       }
     }
 
-    if( res ) {
-      auto& rect = res->rect;
-      rect       = rect.shifted_by(
-          clip_rect().upper_left().distance_from_origin() );
-    }
     return res;
   }
 
-  // Coord is relative to clip_rect for now. Important: in this
-  // function we should not return early; we should check all the
-  // entities (in order) to allow later ones to override earlier
-  // ones.
-  Opt<DragDst_t> drag_dst( Coord const& do_not_use ) const {
+  // Important: in this function we should not return early; we
+  // should check all the entities (in order) to allow later ones
+  // to override earlier ones.
+  Opt<DragDst_t> drag_dst( Coord const& coord ) const {
     using namespace entity;
-    auto coord =
-        do_not_use.with_new_origin( clip_rect().upper_left() );
     Opt<DragDst_t> res;
     if( entities_->active_cargo.has_value() ) {
       if( auto maybe_pair =
@@ -2024,7 +1957,6 @@ struct EuropePlane : public Plane {
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     draw_entities( tx, entities_ );
-    render_rect( tx, rect_color_, clip_rect() );
     // Should be last.
     drag_n_drop_.handle_draw( tx );
   }
@@ -2036,27 +1968,30 @@ struct EuropePlane : public Plane {
       case_( input::unknown_event_t )
           result_                          e_input_handled::no;
       case_( input::quit_event_t ) result_ e_input_handled::no;
-      case_( input::win_event_t ) result_  e_input_handled::no;
-      case_( input::key_event_t ) result_  e_input_handled::no;
+      case_( input::win_event_t ) {
+        // Note: we don't have to handle the window-resize event
+        // here because currently the europort-plane completely
+        // re-composites and re-draws itself every frame ac-
+        // cording to the current window size.
+        //
+        // Generally we should return no here because this is an
+        // event that we want all planes to see.
+        result_ e_input_handled::no;
+      }
+      case_( input::key_event_t ) result_ e_input_handled::no;
       case_( input::mouse_wheel_event_t )
           result_ e_input_handled::no;
       case_( input::mouse_move_event_t ) {
-        if( is_on_clip_rect( val.pos ) )
-          this->rect_color_ = Color::blue();
-        else
-          this->rect_color_ = Color::white();
         result_ e_input_handled::yes;
       }
       case_( input::mouse_button_event_t ) {
         if( val.buttons !=
             input::e_mouse_button_event::left_down )
           result_ e_input_handled::yes;
-        auto shifted_pos =
-            val.pos + ( Coord{} - clip_rect().upper_left() );
 
         // Exit button.
         if( entities_.exit_label.has_value() ) {
-          if( shifted_pos.is_inside(
+          if( val.pos.is_inside(
                   entities_.exit_label->bounds() ) ) {
             pop_plane_config();
             result_ e_input_handled::yes;
@@ -2067,8 +2002,8 @@ struct EuropePlane : public Plane {
         auto handled         = e_input_handled::no;
         auto try_select_unit = [&]( auto const& maybe_entity ) {
           if( maybe_entity ) {
-            if( auto maybe_pair = maybe_entity->obj_under_cursor(
-                    shifted_pos );
+            if( auto maybe_pair =
+                    maybe_entity->obj_under_cursor( val.pos );
                 maybe_pair ) {
               SG().selected_unit = maybe_pair->first;
               handled            = e_input_handled::yes;
@@ -2088,22 +2023,6 @@ struct EuropePlane : public Plane {
 
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    if( button == input::e_mouse_button::l &&
-        is_on_clip_rect( origin ) ) {
-      DragInfo res( Plane::e_accept_drag::yes );
-      bool     left   = is_on_clip_rect_left_side( origin );
-      bool     right  = is_on_clip_rect_right_side( origin );
-      bool     top    = is_on_clip_rect_top_side( origin );
-      bool     bottom = is_on_clip_rect_bottom_side( origin );
-      // test for corners.
-      if( ( left && top ) || ( left && bottom ) ||
-          ( right && top ) || ( right && bottom ) )
-        return res;
-      if( left || right ) res.projection = Delta{ 0_h, 1_w };
-      if( top || bottom ) res.projection = Delta{ 1_h, 0_w };
-      return res;
-    }
-
     // Should be last.
     if( button == input::e_mouse_button::l )
       return drag_n_drop_.handle_can_drag( origin );
@@ -2111,27 +2030,12 @@ struct EuropePlane : public Plane {
   }
 
   void on_drag( input::mod_keys const& mod,
-                input::e_mouse_button /*button*/, Coord origin,
-                Coord prev, Coord current ) override {
+                input::e_mouse_button /*button*/,
+                Coord /*origin*/, Coord /*prev*/,
+                Coord current ) override {
     CHECK( fsm_.holds<EuroviewState::normal>() );
-    if( drag_n_drop_.is_drag_in_progress() ) {
+    if( drag_n_drop_.is_drag_in_progress() )
       drag_n_drop_.handle_on_drag( mod, current );
-    } else {
-      auto delta = ( current - prev );
-      delta.h *= 2_sy;
-      delta.w *= 2_sx;
-      if( origin.x >= main_window_logical_rect().center().x )
-        g_clip.w += delta.w;
-      else
-        g_clip.w -= delta.w;
-      if( origin.y >= main_window_logical_rect().center().y )
-        g_clip.h += delta.h;
-      else
-        g_clip.h -= delta.h;
-      g_clip.w = g_clip.w < 0_w ? 0_w : g_clip.w;
-      g_clip.h = g_clip.h < 0_h ? 0_h : g_clip.h;
-      g_clip   = g_clip.clamp( main_window_logical_size() );
-    }
   }
 
   void on_drag_finished( input::mod_keys const& mod,
@@ -2171,7 +2075,6 @@ struct EuropePlane : public Plane {
   // ------------------------------------------------------------
   // Members
   // ------------------------------------------------------------
-  Color               rect_color_{ Color::white() };
   Entities            entities_{};
   EuroviewFsm         fsm_;
   EuroViewDragAndDrop drag_n_drop_{
@@ -2185,13 +2088,7 @@ EuropePlane g_europe_plane;
 /****************************************************************
 ** Initialization / Cleanup
 *****************************************************************/
-void init_europort_view() {
-  g_clip = main_window_logical_size() -
-           compositor::section( compositor::e_section::menu_bar )
-               .value_or( Rect{} )
-               .h +
-           Delta{ 2_w, 2_h };
-}
+void init_europort_view() {}
 
 void cleanup_europort_view() {}
 
