@@ -67,7 +67,7 @@ bool terrain_is_land( Coord coord );
 // This will fully render a lang square with no units or colonies
 // on it.
 void render_terrain_square( Texture& tx, Coord world_square,
-                            Coord texture_square );
+                            Coord pixel_coord );
 
 // This function will render the terrain in large blocks and so
 // it will in general overshoot the edges of the destination rec-

@@ -41,7 +41,7 @@ struct ColViewObjectUnderCursor {
   Rect bounds;
 };
 
-enum class e_colview_entity { commodities };
+enum class e_colview_entity { commodities, land };
 
 class ColViewEntityView : public ui::View {
 public:
@@ -57,13 +57,15 @@ public:
 
   virtual e_colview_entity entity_id() const = 0;
 
+  ColonyId colony_id() const { return id_; }
+
   // Coordinate will be relative to the upper-left of the view.
   // Should only be called if the coord is within the bounds of
   // the view.
   virtual Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const = 0;
 
-protected:
+private:
   ColonyId id_;
 };
 

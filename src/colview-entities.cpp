@@ -15,6 +15,7 @@
 #include "commodity.hpp"
 #include "cstate.hpp"
 #include "gfx.hpp"
+#include "render.hpp"
 #include "screen.hpp"
 #include "views.hpp"
 
@@ -72,7 +73,7 @@ public:
     auto        comm_it = values<e_commodity>.begin();
     auto        label   = CommodityLabel::quantity{ 0 };
     Coord       pos     = coord;
-    auto const& colony  = colony_from_id( id_ );
+    auto const& colony  = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       render_rect( tx, Color::black(), rect );
@@ -121,6 +122,111 @@ private:
   W block_width_;
 };
 
+class LandView : public ColViewEntityView {
+public:
+  enum class e_render_mode {
+    // Three tiles by three tiles, with unscaled tiles and
+    // colonists on the land files.
+    _3x3,
+    // Land is 3x3 with unscaled tiles, and there is a one-tile
+    // wood border around it where colonists stay.
+    _5x5,
+    // Land is 3x3 tiles by each tile is scaled by a factor of
+    // two to easily fit both colonists and commodities inline.
+    _6x6
+  };
+
+  static Delta size_needed( e_render_mode mode ) {
+    int side_length_in_squares = 3;
+    switch( mode ) {
+      case e_render_mode::_3x3:
+        side_length_in_squares = 3;
+        break;
+      case e_render_mode::_5x5:
+        side_length_in_squares = 5;
+        break;
+      case e_render_mode::_6x6:
+        side_length_in_squares = 6;
+        break;
+    }
+    return Delta{ 32_w, 32_h } * Scale{ side_length_in_squares };
+  }
+
+  Delta delta() const override { return size_needed( mode_ ); }
+
+  void draw_land_3x3( Texture& tx, Coord coord ) const {
+    auto const& colony       = colony_from_id( colony_id() );
+    Coord       world_square = colony.location();
+    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+      auto render_square = world_square +
+                           local_coord.distance_from_origin() -
+                           Delta{ 1_w, 1_h };
+      render_terrain_square( tx, render_square,
+                             ( local_coord * g_tile_scale )
+                                 .as_if_origin_were( coord ) );
+    }
+    for( auto local_coord : Rect{ 0_x, 0_y, 3_w, 3_h } ) {
+      auto render_square = world_square +
+                           local_coord.distance_from_origin() -
+                           Delta{ 1_w, 1_h };
+      auto maybe_col_id = colony_from_coord( render_square );
+      if( !maybe_col_id ) continue;
+      render_colony( tx, *maybe_col_id,
+                     ( local_coord * g_tile_scale )
+                             .as_if_origin_were( coord ) -
+                         Delta{ 6_w, 6_h } );
+    }
+  }
+
+  void draw_land_6x6( Texture& tx, Coord coord ) const {
+    land_tx_.fill();
+    draw_land_3x3( land_tx_, Coord{} );
+    auto dst_rect = Rect::from( coord, delta() );
+    land_tx_.copy_to( tx, /*src=*/nullopt, dst_rect );
+  }
+
+  void draw( Texture& tx, Coord coord ) const override {
+    switch( mode_ ) {
+      case e_render_mode::_3x3:
+        draw_land_3x3( tx, coord );
+        break;
+      case e_render_mode::_5x5:
+        render_fill_rect( tx, Color::wood(), rect( coord ) );
+        draw_land_3x3( tx, coord + g_tile_delta );
+        break;
+      case e_render_mode::_6x6:
+        draw_land_6x6( tx, coord );
+        break;
+    }
+  }
+
+  static UPtr<LandView> create( ColonyId      id,
+                                e_render_mode mode ) {
+    return make_unique<LandView>(
+        id, mode,
+        Texture::create( Delta{ 3_w, 3_h } * g_tile_scale ) );
+  }
+
+  e_colview_entity entity_id() const override {
+    return e_colview_entity::commodities;
+  }
+
+  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+      Coord coord ) const override {
+    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
+    return nullopt;
+  }
+
+  LandView( ColonyId id, e_render_mode mode, Texture land_tx )
+    : ColViewEntityView( id ),
+      mode_( mode ),
+      land_tx_( std::move( land_tx ) ) {}
+
+private:
+  e_render_mode   mode_;
+  mutable Texture land_tx_;
+};
+
 /****************************************************************
 ** Compositing
 *****************************************************************/
@@ -135,28 +241,53 @@ void recomposite( ColonyId id, Delta screen_size ) {
 
   Rect  screen_rect = Rect::from( Coord{}, screen_size );
   Coord pos;
+  Delta available;
 
+  // [MarketCommodities] ----------------------------------------
   W comm_block_width =
       screen_rect.delta().w / SX{ values<e_commodity>.size() };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =
       MarketCommodities::create( id, comm_block_width );
+  g_composition.entities[e_colview_entity::commodities] =
+      market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
                          screen_rect );
+  auto market_commodities_top = pos.y;
   views.push_back( ui::OwningPositionedView(
       std::move( market_commodities ), pos ) );
 
+  // [LandView] -------------------------------------------------
+  available =
+      Delta{ screen_size.w, market_commodities_top - 0_y };
+  H max_landview_height =
+      H{ int( double( available.h ) * .70 ) };
+  LandView::e_render_mode land_view_mode =
+      LandView::e_render_mode::_6x6;
+  if( LandView::size_needed( land_view_mode ).h >
+      max_landview_height )
+    land_view_mode = LandView::e_render_mode::_5x5;
+  if( LandView::size_needed( land_view_mode ).h >
+      max_landview_height )
+    land_view_mode = LandView::e_render_mode::_3x3;
+  auto land_view = LandView::create( id, land_view_mode );
+  g_composition.entities[e_colview_entity::land] =
+      land_view.get();
+  pos = screen_rect.upper_right() - land_view->delta().w;
+  views.push_back(
+      ui::OwningPositionedView( std::move( land_view ), pos ) );
+
+  // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<ui::InvisibleView>(
       screen_rect.delta(), std::move( views ) );
   invisible_view->set_delta( screen_rect.delta() );
   g_composition.top_level = std::move( invisible_view );
 
-  // for( auto e : magic_enum::enum_values<e_colview_entity>() )
-  // {
-  //  CHECK( g_composition.entities.contains( e ),
-  //         "colview entity {} is missing.", e );
-  //}
+  for( auto e : magic_enum::enum_values<e_colview_entity>() ) {
+    CHECK( g_composition.entities.contains( e ),
+           "colview entity {} is missing.", e );
+  }
 }
 
 } // namespace
