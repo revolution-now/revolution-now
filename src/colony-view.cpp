@@ -50,9 +50,8 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
     pos += 16_h;
   };
 
-  line( "name: {}", colony.name() );
+  line( "" );
   line( "id: {}", colony.id() );
-  line( "population: {}", colony.population() );
   line( "nation: {}", colony.nation() );
   line( "location: {}", colony.location() );
 

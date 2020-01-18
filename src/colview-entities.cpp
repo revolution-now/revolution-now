@@ -18,6 +18,7 @@
 #include "render.hpp"
 #include "screen.hpp"
 #include "text.hpp"
+#include "ustate.hpp"
 #include "views.hpp"
 
 // magic-enum
@@ -160,6 +161,112 @@ private:
   W block_width_;
 };
 
+class PopulationView : public ColViewEntityView {
+public:
+  Delta delta() const override { return size_; }
+
+  void draw( Texture& tx, Coord coord ) const override {
+    render_rect( tx, Color::black(),
+                 rect( coord ).with_inc_size() );
+    auto const& colony = colony_from_id( colony_id() );
+    FlatMap<UnitId, ColonyJob_t> const& units_jobs =
+        colony.units_jobs();
+    auto unit_pos = coord + 16_h;
+    for( auto const& [unit_id, job] : units_jobs ) {
+      render_unit( tx, unit_id, unit_pos, /*with_icon=*/false );
+      unit_pos += 24_w;
+    }
+  }
+
+  static UPtr<PopulationView> create( ColonyId id, Delta size ) {
+    return make_unique<PopulationView>( id, size );
+  }
+
+  e_colview_entity entity_id() const override {
+    return e_colview_entity::population;
+  }
+
+  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+      Coord coord ) const override {
+    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
+    return nullopt;
+  }
+
+  PopulationView( ColonyId id, Delta size )
+    : ColViewEntityView( id ), size_( size ) {}
+
+private:
+  Delta size_;
+};
+
+class CargoView : public ColViewEntityView {
+public:
+  Delta delta() const override { return size_; }
+
+  void draw( Texture& tx, Coord coord ) const override {
+    render_rect( tx, Color::black(),
+                 rect( coord ).with_inc_size() );
+    auto const& colony   = colony_from_id( colony_id() );
+    auto const& units    = units_from_coord( colony.location() );
+    auto        unit_pos = coord + 16_h;
+    for( auto unit_id : units ) {
+      render_unit( tx, unit_id, unit_pos, /*with_icon=*/true );
+      unit_pos += 32_w;
+    }
+    // TODO: Draw cargo.
+  }
+
+  static UPtr<CargoView> create( ColonyId id, Delta size ) {
+    return make_unique<CargoView>( id, size );
+  }
+
+  e_colview_entity entity_id() const override {
+    return e_colview_entity::cargo;
+  }
+
+  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+      Coord coord ) const override {
+    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
+    return nullopt;
+  }
+
+  CargoView( ColonyId id, Delta size )
+    : ColViewEntityView( id ), size_( size ) {}
+
+private:
+  Delta size_;
+};
+
+class ProductionView : public ColViewEntityView {
+public:
+  Delta delta() const override { return size_; }
+
+  void draw( Texture& tx, Coord coord ) const override {
+    render_rect( tx, Color::black(),
+                 rect( coord ).with_inc_size() );
+  }
+
+  static UPtr<ProductionView> create( ColonyId id, Delta size ) {
+    return make_unique<ProductionView>( id, size );
+  }
+
+  e_colview_entity entity_id() const override {
+    return e_colview_entity::production;
+  }
+
+  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+      Coord coord ) const override {
+    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
+    return nullopt;
+  }
+
+  ProductionView( ColonyId id, Delta size )
+    : ColViewEntityView( id ), size_( size ) {}
+
+private:
+  Delta size_;
+};
+
 class LandView : public ColViewEntityView {
 public:
   enum class e_render_mode {
@@ -286,8 +393,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
       TitleBar::create( id, Delta{ 10_h, screen_size.w } );
   g_composition.entities[e_colview_entity::title_bar] =
       title_bar.get();
-  pos                 = Coord{};
-  auto*   p_title_bar = title_bar.get();
+  pos = Coord{};
   Y const title_bar_bottom =
       title_bar->rect( pos ).bottom_edge();
   views.push_back(
@@ -308,11 +414,51 @@ void recomposite( ColonyId id, Delta screen_size ) {
   views.push_back( ui::OwningPositionedView(
       std::move( market_commodities ), pos ) );
 
+  // [Middle Strip] ---------------------------------------------
+  Delta   middle_strip_size{ screen_size.w, 32_h + 32_h + 16_h };
+  Y const middle_strip_top =
+      market_commodities_top - middle_strip_size.h;
+
+  // [Population] -----------------------------------------------
+  auto population_view = PopulationView::create(
+      id, middle_strip_size.with_width( middle_strip_size.w /
+                                        3_sx ) );
+  g_composition.entities[e_colview_entity::population] =
+      population_view.get();
+  pos = Coord{ 0_x, middle_strip_top };
+  X const population_right_edge =
+      population_view->rect( pos ).right_edge();
+  views.push_back( ui::OwningPositionedView(
+      std::move( population_view ), pos ) );
+
+  // [Cargo] ----------------------------------------------------
+  auto cargo_view =
+      CargoView::create( id, middle_strip_size.with_width(
+                                 middle_strip_size.w / 3_sx ) );
+  g_composition.entities[e_colview_entity::cargo] =
+      cargo_view.get();
+  pos = Coord{ population_right_edge, middle_strip_top };
+  X const cargo_right_edge =
+      cargo_view->rect( pos ).right_edge();
+  views.push_back(
+      ui::OwningPositionedView( std::move( cargo_view ), pos ) );
+
+  // [Production] -----------------------------------------------
+  auto production_view = ProductionView::create(
+      id, middle_strip_size.with_width( middle_strip_size.w /
+                                        3_sx ) );
+  g_composition.entities[e_colview_entity::production] =
+      production_view.get();
+  pos = Coord{ cargo_right_edge, middle_strip_top };
+  views.push_back( ui::OwningPositionedView(
+      std::move( production_view ), pos ) );
+
   // [LandView] -------------------------------------------------
   available = Delta{ screen_size.w,
-                     market_commodities_top - title_bar_bottom };
-  H max_landview_height =
-      H{ int( double( available.h ) * .70 ) };
+                     middle_strip_top - title_bar_bottom };
+
+  H max_landview_height = available.h;
+
   LandView::e_render_mode land_view_mode =
       LandView::e_render_mode::_6x6;
   if( LandView::size_needed( land_view_mode ).h >
@@ -324,7 +470,9 @@ void recomposite( ColonyId id, Delta screen_size ) {
   auto land_view = LandView::create( id, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
-  pos = p_title_bar->rect( Coord{} ).lower_right() -
+  pos = g_composition.entities[e_colview_entity::title_bar]
+            ->rect( Coord{} )
+            .lower_right() -
         land_view->delta().w;
   views.push_back(
       ui::OwningPositionedView( std::move( land_view ), pos ) );
