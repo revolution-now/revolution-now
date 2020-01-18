@@ -17,6 +17,7 @@
 #include "gfx.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "text.hpp"
 #include "views.hpp"
 
 // magic-enum
@@ -51,6 +52,43 @@ ColViewComposited g_composition;
 /****************************************************************
 ** Entities
 *****************************************************************/
+class TitleBar : public ColViewEntityView {
+public:
+  Delta delta() const override { return size_; }
+
+  string title() const {
+    auto const& colony = colony_from_id( colony_id() );
+    return fmt::format( "{}, population {}", colony.name(),
+                        colony.population() );
+  }
+
+  void draw( Texture& tx, Coord coord ) const override {
+    render_fill_rect( tx, Color::wood(), rect( coord ) );
+    Texture const& name = render_text(
+        font::standard(), Color::banana(), title() );
+    name.copy_to( tx, centered( name.size(), rect( coord ) ) );
+  }
+
+  static UPtr<TitleBar> create( ColonyId id, Delta size ) {
+    return make_unique<TitleBar>( id, size );
+  }
+
+  e_colview_entity entity_id() const override {
+    return e_colview_entity::title_bar;
+  }
+
+  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+      Coord ) const override {
+    return nullopt;
+  }
+
+  TitleBar( ColonyId id, Delta size )
+    : ColViewEntityView( id ), size_( size ) {}
+
+private:
+  Delta size_;
+};
+
 class MarketCommodities : public ColViewEntityView {
 public:
   Delta delta() const override {
@@ -208,7 +246,7 @@ public:
   }
 
   e_colview_entity entity_id() const override {
-    return e_colview_entity::commodities;
+    return e_colview_entity::land;
   }
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
@@ -243,6 +281,18 @@ void recomposite( ColonyId id, Delta screen_size ) {
   Coord pos;
   Delta available;
 
+  // [Title Bar] ------------------------------------------------
+  auto title_bar =
+      TitleBar::create( id, Delta{ 10_h, screen_size.w } );
+  g_composition.entities[e_colview_entity::title_bar] =
+      title_bar.get();
+  pos                 = Coord{};
+  auto*   p_title_bar = title_bar.get();
+  Y const title_bar_bottom =
+      title_bar->rect( pos ).bottom_edge();
+  views.push_back(
+      ui::OwningPositionedView( std::move( title_bar ), pos ) );
+
   // [MarketCommodities] ----------------------------------------
   W comm_block_width =
       screen_rect.delta().w / SX{ values<e_commodity>.size() };
@@ -254,13 +304,13 @@ void recomposite( ColonyId id, Delta screen_size ) {
       market_commodities.get();
   pos = centered_bottom( market_commodities->delta(),
                          screen_rect );
-  auto market_commodities_top = pos.y;
+  auto const market_commodities_top = pos.y;
   views.push_back( ui::OwningPositionedView(
       std::move( market_commodities ), pos ) );
 
   // [LandView] -------------------------------------------------
-  available =
-      Delta{ screen_size.w, market_commodities_top - 0_y };
+  available = Delta{ screen_size.w,
+                     market_commodities_top - title_bar_bottom };
   H max_landview_height =
       H{ int( double( available.h ) * .70 ) };
   LandView::e_render_mode land_view_mode =
@@ -274,7 +324,8 @@ void recomposite( ColonyId id, Delta screen_size ) {
   auto land_view = LandView::create( id, land_view_mode );
   g_composition.entities[e_colview_entity::land] =
       land_view.get();
-  pos = screen_rect.upper_right() - land_view->delta().w;
+  pos = p_title_bar->rect( Coord{} ).lower_right() -
+        land_view->delta().w;
   views.push_back(
       ui::OwningPositionedView( std::move( land_view ), pos ) );
 
