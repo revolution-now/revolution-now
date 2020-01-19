@@ -191,7 +191,7 @@ bool unit_exists( UnitId id ) {
 }
 
 Unit& unit_from_id( UnitId id ) {
-  CHECK( unit_exists( id ) );
+  CHECK( unit_exists( id ), "unit {} does not exist.", id );
   return val_or_die( SG().units, id );
 }
 
@@ -265,17 +265,6 @@ Vec<UnitId> units_from_coord_recursive( Coord coord ) {
     for( auto held_id : held_units ) res.push_back( held_id );
   }
   return res;
-}
-
-// FIXME: Probably should move this: needs to take into account
-// colonies.
-Opt<e_nation> nation_from_coord( Coord coord ) {
-  auto const& units = units_from_coord( coord );
-  if( units.empty() ) return nullopt;
-  e_nation first = unit_from_id( *units.begin() ).nation();
-  for( auto const& id : units )
-    CHECK( first == unit_from_id( id ).nation() );
-  return first;
 }
 
 void move_unit_from_map_to_map( UnitId id, Coord dest ) {
@@ -356,6 +345,14 @@ FlatSet<UnitId> const& units_from_colony( ColonyId id ) {
   return SG().units_from_colony[id];
 }
 
+Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
+  Opt<ColonyId> res;
+  if_v( unit_state( id ), UnitState::colony, colony_state ) {
+    return colony_state->id;
+  }
+  return res;
+}
+
 bool is_unit_in_colony( UnitId id ) {
   return util::holds<UnitState::colony>( unit_state( id ) );
 }
@@ -410,6 +407,18 @@ Vec<UnitId> units_in_euro_port_view() {
     }
   }
   return res;
+}
+
+/****************************************************************
+** Multi
+*****************************************************************/
+Opt<Coord> coord_for_unit_multi_ownership( UnitId id ) {
+  if( auto maybe_map = coord_for_unit_indirect_safe( id );
+      maybe_map )
+    return maybe_map;
+  if( auto maybe_colony = colony_for_unit_who_is_worker( id ) )
+    return colony_from_id( *maybe_colony ).location();
+  return nullopt;
 }
 
 /****************************************************************

@@ -84,10 +84,6 @@ ND FlatSet<UnitId> const& units_from_coord( Coord const& c );
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
 Vec<UnitId> units_from_coord_recursive( Coord coord );
 
-// FIXME: Probably should move this: needs to take into account
-// colonies.
-ND Opt<e_nation> nation_from_coord( Coord coord );
-
 // This is in the rare cases that we need to change a unit's po-
 // sition manually, such as when e.g. a colonist is captured in
 // combat.  Unit must be owned by the map for this!
@@ -114,7 +110,15 @@ bool is_unit_on_map_indirect( UnitId id );
 /****************************************************************
 ** Colony Ownership
 *****************************************************************/
+// This returns only those units who are workers within the
+// colony, and not units on the map at the location of the
+// colony.
 FlatSet<UnitId> const& units_from_colony( ColonyId id );
+
+// If the unit is working in the colony then this will return it;
+// however it will not return a ColonyId if the unit simply occu-
+// pies the same square as the colony.
+Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id );
 
 bool is_unit_in_colony( UnitId id );
 
@@ -167,6 +171,17 @@ Vec<UnitId> units_in_euro_port_view();
 *****************************************************************/
 // Creates a unit with no ownership.
 UnitId create_unit( e_nation nation, e_unit_type type );
+
+/****************************************************************
+** Multi
+*****************************************************************/
+// These functions apply to multiple types of ownership.
+
+// This will return the coordinate for the unit whenever it is
+// possible to map the unit to a coordinate, e.g., applies to map
+// ownership, cargo ownership (where holder is on map), colony
+// ownership.
+Opt<Coord> coord_for_unit_multi_ownership( UnitId id );
 
 /****************************************************************
 ** Changing Unit Ownership

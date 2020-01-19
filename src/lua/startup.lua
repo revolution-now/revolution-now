@@ -57,10 +57,10 @@ local function create_some_units_on_land( nation )
   unit:clear_orders();
 end
 
-local function create_some_colonies( nation )
+local function create_some_colonies()
   local coord = Coord{y=2, x=4}
   local unit = ustate.create_unit_on_map(
-           nation, e.unit_type.free_colonist, coord )
+           e.nation.spanish, e.unit_type.free_colonist, coord )
   local col_id = colony_mgr.found_colony(
            unit:id(), "New London" )
   local colony = cstate.colony_from_id( col_id )
@@ -68,7 +68,7 @@ local function create_some_colonies( nation )
 
   coord = Coord{y=4, x=4}
   unit = ustate.create_unit_on_map(
-           nation, e.unit_type.free_colonist, coord )
+           e.nation.english, e.unit_type.free_colonist, coord )
   col_id = colony_mgr.found_colony(
              unit:id(), "New York" )
   local colony = cstate.colony_from_id( col_id )
@@ -86,7 +86,7 @@ local function main()
   } )
   create_some_units_in_europort( e.nation.dutch )
   create_some_units_on_land()
-  create_some_colonies( e.nation.dutch )
+  create_some_colonies()
 end
 
 package_exports = {

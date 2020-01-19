@@ -403,8 +403,9 @@ void render_land_view() {
   if_v( state, LandViewState::depixelating_unit, dying ) {
     ::SDL_SetRenderDrawBlendMode( g_renderer,
                                   ::SDL_BLENDMODE_BLEND );
-    auto  covered = SG().viewport.covered_tiles();
-    Coord coords  = coord_for_unit_indirect( dying->id );
+    auto covered = SG().viewport.covered_tiles();
+    ASSIGN_CHECK_OPT(
+        coords, coord_for_unit_multi_ownership( dying->id ) );
     Coord pixel_coord =
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
@@ -484,8 +485,9 @@ void advance_landview_anim_state() {
       case_( LandViewAnim::attack ) {
         ASSIGN_CHECK_OPT( attacker_coord,
                           coord_for_unit( val.attacker ) );
-        ASSIGN_CHECK_OPT( defender_coord,
-                          coord_for_unit( val.defender ) );
+        ASSIGN_CHECK_OPT(
+            defender_coord,
+            coord_for_unit_multi_ownership( val.defender ) );
         ASSIGN_CHECK_OPT(
             d, attacker_coord.direction_to( defender_coord ) );
         SG().mode.send_event( LandViewEvent::slide_unit{

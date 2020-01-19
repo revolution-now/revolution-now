@@ -13,6 +13,8 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "coord.hpp"
+#include "nation.hpp"
 #include "orders.hpp"
 #include "sync-future.hpp"
 
@@ -110,5 +112,10 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
                                      orders_t orders );
 };
 NOTHROW_MOVE( MetaAnalysis );
+
+/****************************************************************
+** Helpers
+*****************************************************************/
+Opt<e_nation> nation_from_coord( Coord coord );
 
 } // namespace rn

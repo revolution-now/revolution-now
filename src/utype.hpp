@@ -56,6 +56,7 @@ struct ND UnitDescriptor : util::movable_only {
   int  attack_points{};
   int  defense_points{};
   bool can_attack() const { return attack_points > 0; }
+  bool is_military_unit() const { return can_attack(); }
 
   // FIXME: ideally these should be represented as an algebraic
   // data type in the config (and it should support loading
@@ -126,11 +127,11 @@ to_behaviors_t<target, relationship, entity> behavior(
 /****************************************************************/
 BEHAVIOR( land, foreign, unit, no_attack, attack, no_bombard,
           bombard );
-// BEHAVIOR( land, foreign, colony, unused );
+BEHAVIOR( land, foreign, colony, never, attack, trade );
 // BEHAVIOR( land, foreign, village, unused );
 BEHAVIOR( land, neutral, empty, never, always, unload );
 BEHAVIOR( land, friendly, unit, always, never, unload );
-// BEHAVIOR( land, friendly, colony, always, move_into_dock );
+BEHAVIOR( land, friendly, colony, always );
 BEHAVIOR( water, foreign, unit, no_attack, attack, no_bombard,
           bombard );
 BEHAVIOR( water, neutral, empty, never, always );

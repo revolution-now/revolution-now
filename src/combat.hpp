@@ -27,9 +27,10 @@ namespace rn {
 
 enum class ND e_attack_good {
   eu_land_unit,
-  ship
+  ship,
+  colony_defended,
+  colony_undefended,
   /*native_unit,
-  colony,
   village,
   on_privateer,
   with_privateer*/

@@ -11,8 +11,10 @@
 #include "combat.hpp"
 
 // Revolution Now
+#include "cstate.hpp"
 #include "logging.hpp"
 #include "ustate.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -67,8 +69,39 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   auto crust        = square.crust;
   auto relationship = e_unit_relationship::foreign;
   auto category     = e_entity_category::unit;
+  if( colony_from_coord( dst_coord ).has_value() )
+    category = e_entity_category::colony;
 
-  auto units_at_dst = units_from_coord( dst_coord );
+  auto const& units_at_dst_set = units_from_coord( dst_coord );
+  Vec<UnitId> units_at_dst( units_at_dst_set.begin(),
+                            units_at_dst_set.end() );
+  auto        colony_at_dst = colony_from_coord( dst_coord );
+
+  // If we have a colony then we only want to get units that are
+  // military units (and not ships), since we want the following
+  // behavior: attacking a colony first attacks all military
+  // units, then once those are gone, the next attack will attack
+  // a colonist working in the colony (and if the attack suc-
+  // ceeds, the colony is taken) even if there are free colonists
+  // on the colony map square.
+  if( colony_at_dst ) {
+    util::remove_if( units_at_dst,
+                     L( unit_from_id( _ ).desc().ship ) );
+    util::remove_if(
+        units_at_dst,
+        L( !unit_from_id( _ ).desc().is_military_unit() ) );
+  }
+
+  // If military units are exhausted then attack the colony.
+  if( colony_at_dst && units_at_dst.empty() ) {
+    auto const& colony = colony_from_id( *colony_at_dst );
+    Vec<UnitId> units_working_in_colony = colony.units();
+    CHECK( units_working_in_colony.size() > 0 );
+    // Sort since order is otherwise unspecified.
+    sort( units_working_in_colony.begin(),
+          units_working_in_colony.end() );
+    units_at_dst.push_back( units_working_in_colony[0] );
+  }
   CHECK( !units_at_dst.empty() );
   // Now let's find the unit with the highest defense points
   // among the units in the target square.
@@ -134,6 +167,50 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*fight_stats_=*/run_stats() };
     }
   }
+  // We are entering a land square containing a foreign unit.
+  IF_BEHAVIOR( land, foreign, colony ) {
+    using bh_t = decltype( bh );
+    switch( bh ) {
+      case +bh_t::never:
+        return CombatAnalysis{
+            /*id_=*/id,
+            /*orders_=*/orders,
+            /*units_to_prioritize_=*/{},
+            /*attack_src_=*/src_coord,
+            /*attack_target_=*/dst_coord,
+            /*desc_=*/e_attack_error::unit_cannot_attack,
+            /*target_unit_=*/{},
+            /*fight_stats_=*/{} };
+      case +bh_t::attack: {
+        e_attack_good which =
+            unit_from_id( highest_defense_unit )
+                    .desc()
+                    .is_military_unit()
+                ? e_attack_good::colony_defended
+                : e_attack_good::colony_undefended;
+        return CombatAnalysis{
+            /*id_=*/id,
+            /*orders_=*/orders,
+            /*units_to_prioritize_=*/{},
+            /*attack_src_=*/src_coord,
+            /*attack_target_=*/dst_coord,
+            /*desc_=*/which,
+            /*target_unit_=*/highest_defense_unit,
+            /*fight_stats_=*/run_stats() };
+      }
+      case +bh_t::trade:
+        // FIXME: implement trade.
+        return CombatAnalysis{
+            /*id_=*/id,
+            /*orders_=*/orders,
+            /*units_to_prioritize_=*/{},
+            /*attack_src_=*/src_coord,
+            /*attack_target_=*/dst_coord,
+            /*desc_=*/e_attack_error::unit_cannot_attack,
+            /*target_unit_=*/{},
+            /*fight_stats_=*/{} };
+    }
+  }
   // We are entering a water square containing a foreign unit.
   IF_BEHAVIOR( water, foreign, unit ) {
     using bh_t = decltype( bh );
@@ -188,7 +265,6 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   //      with that particular situation.
   //   3) Don't do #1 without doing #2
   //
-  STATIC_ASSERT_NO_BEHAVIOR( land, foreign, colony );
   STATIC_ASSERT_NO_BEHAVIOR( land, foreign, village );
 
   SHOULD_NOT_BE_HERE;
@@ -220,18 +296,56 @@ Opt<CombatAnalysis> CombatAnalysis::analyze_( UnitId   id,
   return maybe_res;
 }
 
-sync_future<bool> CombatAnalysis::confirm_explain_() const {
-  if( !allowed() ) return make_sync_future<bool>( false );
-  // The above should have checked that the variant holds the
-  // e_attack_good type for us.
-  // auto& kind = val_or_die<e_attack_good>( desc );
-
-  // switch( kind ) {
-  //  case e_attack_good::eu_land_unit:
-  //  case e_attack_good::ship:;
-  //}
-  // SHOULD_NOT_BE_HERE;
+sync_future<bool> confirm_explain_attack_good(
+    e_attack_good val ) {
+  switch( val ) {
+    case e_attack_good::eu_land_unit:
+    case e_attack_good::ship:
+    case e_attack_good::colony_defended:
+      return make_sync_future<bool>( true );
+    case e_attack_good::colony_undefended: {
+      auto q = fmt::format(
+          "This action may result in the capture of a colony, "
+          "which is not yet supported.  Therefore, this move is "
+          "cancelled." );
+      return ui::message_box( q ).fmap(
+          []( auto ) { return false; } );
+    }
+  }
+  UNREACHABLE_LOCATION;
   return make_sync_future<bool>( true );
+}
+
+sync_future<bool> confirm_explain_attack_error(
+    e_attack_error val ) {
+  auto return_false = []( auto ) { return false; };
+  switch( val ) {
+    case e_attack_error::unit_cannot_attack:
+      return ui::message_box( "This unit cannot attack." )
+          .fmap( return_false );
+    case e_attack_error::land_unit_attack_ship:
+      return ui::message_box( "Land units cannot attack ships." )
+          .fmap( return_false );
+    case e_attack_error::ship_attack_land_unit:
+      return ui::message_box( "Ships cannot attack land units." )
+          .fmap( return_false );
+    case e_attack_error::attack_from_ship:
+      return ui::message_box( "Cannot attack from a ship." )
+          .fmap( return_false );
+  }
+  UNREACHABLE_LOCATION;
+}
+
+sync_future<bool> CombatAnalysis::confirm_explain_() const {
+  return matcher_( desc, ->, sync_future<bool> ) {
+    case_( e_attack_good ) {
+      result_ confirm_explain_attack_good( val );
+    }
+    case_( e_attack_error ) {
+      result_ confirm_explain_attack_error( val );
+    }
+    matcher_exhaustive;
+  }
 }
 
 void CombatAnalysis::affect_orders_() const {
@@ -254,6 +368,14 @@ void CombatAnalysis::affect_orders_() const {
   attacker.consume_mv_points( MvPoints( 1 ) );
 
   switch( allowed_reason ) {
+    case e_attack_good::colony_undefended: {
+      if( winner.id() == attacker.id() ) {
+        TODO( "Capture the colony." );
+        return;
+      }
+      // !! Fallthrough.
+    }
+    case e_attack_good::colony_defended:
     case e_attack_good::eu_land_unit:
     case e_attack_good::ship:;
   }

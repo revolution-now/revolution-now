@@ -32,6 +32,16 @@ int Colony::commodity_quantity( e_commodity commodity ) const {
   return res->second;
 }
 
+Vec<UnitId> Colony::units() const {
+  Vec<UnitId> units_working_in_colony;
+  units_working_in_colony.reserve( units_jobs().size() );
+  for( auto const& [unit_id, job] : units_jobs() ) {
+    (void)job;
+    units_working_in_colony.push_back( unit_id );
+  }
+  return units_working_in_colony;
+}
+
 string Colony::to_string() const {
   return fmt::format(
       "Colony{{name=\"{}\",id={},nation={},coord={},population={"

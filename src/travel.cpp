@@ -12,6 +12,7 @@
 #include "travel.hpp"
 
 // Revolution Now
+#include "cstate.hpp"
 #include "errors.hpp"
 #include "id.hpp"
 #include "orders.hpp"
@@ -97,6 +98,9 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
 
   e_entity_category category = e_entity_category::empty;
   if( !units_at_dst.empty() ) category = e_entity_category::unit;
+  // This must override the above for units.
+  if( colony_from_coord( dst_coord ).has_value() )
+    category = e_entity_category::colony;
 
   // We are entering an empty land square.
   IF_BEHAVIOR( land, neutral, empty ) {
@@ -214,6 +218,22 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
       }
     }
   }
+  // We are entering a land square containing a friendly colony.
+  IF_BEHAVIOR( land, friendly, colony ) {
+    using bh_t = decltype( bh );
+    switch( bh ) {
+      case +bh_t::always:
+        return TravelAnalysis{
+            /*id_=*/id,
+            /*orders_=*/orders,
+            /*units_to_prioritize_=*/{},
+            /*unit_would_move_=*/true,
+            /*move_src_=*/src_coord,
+            /*move_target_=*/dst_coord,
+            /*desc_=*/e_unit_travel_good::map_to_map,
+            /*target_unit=*/{} };
+    }
+  }
   // We are entering an empty water square.
   IF_BEHAVIOR( water, neutral, empty ) {
     using bh_t = decltype( bh );
@@ -321,7 +341,6 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   //      with that particular situation.
   //   3) Don't do #1 without doing #2
   //
-  STATIC_ASSERT_NO_BEHAVIOR( land, friendly, colony );
   STATIC_ASSERT_NO_BEHAVIOR( land, friendly, empty );
   STATIC_ASSERT_NO_BEHAVIOR( land, friendly, village );
   STATIC_ASSERT_NO_BEHAVIOR( land, neutral, colony );

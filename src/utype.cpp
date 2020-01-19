@@ -114,11 +114,13 @@ BEHAVIOR_IMPL_START( land, foreign, unit ) {
 }
 BEHAVIOR_IMPL_END()
 
-// BEHAVIOR_IMPL_START( land, foreign, colony ) {
-//  // Possible results: unused
-//  (void)desc;
-//}
-// BEHAVIOR_IMPL_END()
+BEHAVIOR_IMPL_START( land, foreign, colony ) {
+  // Possible results: never, attack, trade.
+  if( desc.ship ) return res_t::trade;
+  if( desc.is_military_unit() ) return res_t::attack;
+  return res_t::never;
+}
+BEHAVIOR_IMPL_END()
 
 // BEHAVIOR_IMPL_START( land, foreign, village ) {
 //  // Possible results: unused
@@ -138,11 +140,12 @@ BEHAVIOR_IMPL_START( land, friendly, unit ) {
 }
 BEHAVIOR_IMPL_END()
 
-// BEHAVIOR_IMPL_START( land, friendly, colony ) {
-//  // Possible results: always, move_into_dock
-//  (void)desc;
-//}
-// BEHAVIOR_IMPL_END()
+BEHAVIOR_IMPL_START( land, friendly, colony ) {
+  // Possible results: always
+  (void)desc;
+  return res_t::always;
+}
+BEHAVIOR_IMPL_END()
 
 BEHAVIOR_IMPL_START( water, foreign, unit ) {
   // Possible results: nothing, attack, bombard

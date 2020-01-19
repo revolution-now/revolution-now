@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "cstate.hpp"
 #include "ustate.hpp"
 
 // base-util
@@ -37,6 +38,20 @@ Opt<MetaAnalysis> MetaAnalysis::analyze_( UnitId   id,
 void MetaAnalysis::affect_orders_() const {
   if( mv_points_forfeighted )
     unit_from_id( id ).forfeight_mv_points();
+}
+
+Opt<e_nation> nation_from_coord( Coord coord ) {
+  if( auto maybe_colony_id = colony_from_coord( coord );
+      maybe_colony_id )
+    return colony_from_id( *maybe_colony_id ).nation();
+
+  auto const& units = units_from_coord( coord );
+  if( units.empty() ) return nullopt;
+  e_nation first = unit_from_id( *units.begin() ).nation();
+  for( auto const& id : units ) {
+    DCHECK( first == unit_from_id( id ).nation() );
+  }
+  return first;
 }
 
 } // namespace rn

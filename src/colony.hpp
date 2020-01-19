@@ -55,6 +55,10 @@ public:
   int prod_hammers() const { return prod_hammers_; }
   int prod_tools() const { return prod_tools_; }
   int commodity_quantity( e_commodity commodity ) const;
+  // These units will be in unspecified order (order may depend
+  // on hash table iteration) so the caller should take care to
+  // not depend on the ordering returned by this function.
+  Vec<UnitId>                       units() const;
   FlatSet<e_colony_building> const& buildings() const {
     return buildings_;
   }
