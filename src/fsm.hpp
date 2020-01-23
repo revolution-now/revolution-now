@@ -185,8 +185,8 @@ public:
     DCHECK(
         !has_pending_events(),
         "Should not observe state of FSM while it has pending "
-        "events, the first of which was pushed from {}.",
-        events_.front()->get().location );
+        "events, the first of which was {}.",
+        fmt_event_obj( events_.front()->get() ) );
   }
 
   StateT const& state() const {
@@ -271,6 +271,21 @@ private:
     SourceLoc    location;
   };
   NOTHROW_MOVE( EventWithSource );
+
+  std::string fmt_event_obj( EventWithSource const& ews ) const {
+    switch( ews.type ) {
+      case e_event_type::event:
+        return fmt::format(
+            "[type=event, event={}, location={}]", ews.event,
+            ews.location );
+      case e_event_type::push:
+        return fmt::format( "[type=push, state={}, location={}]",
+                            ews.state, ews.location );
+      case e_event_type::pop:
+        return fmt::format( "[type=pop, state={}, location={}]",
+                            ews.state, ews.location );
+    }
+  }
 
   ChildT const& child() const {
     return *static_cast<ChildT const*>( this );
