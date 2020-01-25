@@ -39,4 +39,7 @@ e_found_colony_result can_found_colony( UnitId founder );
 expect<ColonyId> found_colony( UnitId           founder,
                                std::string_view name );
 
+// Evolve the colony by one turn.
+void evolve_colony_one_turn( ColonyId id );
+
 } // namespace rn

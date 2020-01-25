@@ -55,6 +55,9 @@ table Opt_UnitInputFsm {
 namespace fb.NationTurnState;
 
   table starting {}
+  table colonies {
+    q : [int];
+  }
   table doing_units {
     need_eot : bool;
     q        : [int];
@@ -68,6 +71,7 @@ namespace fb.NationTurnState;
 
   table NationTurnState_t {
     starting    : NationTurnState.starting;
+    colonies    : NationTurnState.colonies;
     doing_units : NationTurnState.doing_units;
     ending      : NationTurnState.ending;
   }

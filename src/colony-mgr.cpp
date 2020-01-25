@@ -15,6 +15,7 @@
 #include "cstate.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "rand.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
 
@@ -160,6 +161,21 @@ expect<ColonyId> found_colony( UnitId           founder,
   lg.info( "created {} {} colony at {}.", desc.article,
            desc.adjective, where );
   return col_id;
+}
+
+void evolve_colony_one_turn( ColonyId id ) {
+  auto& colony = colony_from_id( id );
+  lg.debug( "evolving colony: {}", colony );
+  auto& commodities = colony.commodities();
+  commodities[e_commodity::food] +=
+      rng::between( 10, 20, rng::e_interval::closed );
+  if( commodities[e_commodity::food] >= 200 ) {
+    commodities[e_commodity::food] -= 200;
+    auto unit_id = create_unit( colony.nation(),
+                                e_unit_type::free_colonist );
+    ustate_change_to_map( unit_id, colony.location() );
+  }
+  check_colony_invariants_die( id );
 }
 
 /****************************************************************
