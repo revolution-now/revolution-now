@@ -54,7 +54,9 @@ table Opt_UnitInputFsm {
 
 namespace fb.NationTurnState;
 
-  table starting {}
+  table starting {
+    nation : e_nation;
+  }
   table colonies {
     q : [int];
   }

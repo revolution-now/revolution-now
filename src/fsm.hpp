@@ -407,6 +407,11 @@ template<typename Hint,                  //
          typename T::IamFsm_t* = nullptr //
          >
 auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
+  static_assert(
+      sizeof( T ) == sizeof( typename T::Parent ),
+      "Derived FSM class should not have any data members since "
+      "they will not be properly serialized." );
+
   CHECK( !o.has_pending_events(),
          "cannot serialize a finite state machine with pending "
          "events." );

@@ -335,7 +335,8 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
 // This FSM represents the state across the processing of a
 // single turn for a single nation.
 adt_s_rn_( NationTurnState,                  //
-           ( starting ),                     //
+           ( starting,                       //
+             ( e_nation, nation ) ),         //
            ( colonies,                       //
              ( flat_queue<ColonyId>, q ) ),  //
            ( doing_units,                    //
@@ -360,16 +361,12 @@ fsm_transitions( NationTurn,
 // clang-format on
 
 fsm_class( NationTurn ) {
-  fsm_init( NationTurnState::starting{} );
+  fsm_init( NationTurnState::ending{} );
 
-  NationTurnFsm( e_nation nation, NationTurnState_t istate )
-    : NationTurnFsm( std::move( istate ) ) {
-    nation_ = nation;
-  }
-
-  fsm_transition_( NationTurn, starting, next, ->, colonies ) {
+  fsm_transition( NationTurn, starting, next, ->, colonies ) {
+    (void)event;
     flat_queue<ColonyId> q;
-    for( ColonyId colony_id : colonies_all( nation_ ) )
+    for( ColonyId colony_id : colonies_all( cur.nation ) )
       q.push( colony_id );
     return { /*q=*/std::move( q ) };
   }
@@ -385,14 +382,13 @@ fsm_class( NationTurn ) {
     (void)event;
     return { /*need_eot=*/cur.need_eot };
   }
-
-  e_nation nation_;
 };
 
 FSM_DEFINE_FORMAT_RN_( NationTurn );
 
 // Will be called repeatedly until no more events added to fsm.
-void advance_nation_turn_state( NationTurnFsm& fsm ) {
+void advance_nation_turn_state( NationTurnFsm& fsm,
+                                e_nation       nation ) {
   //  Iterate through the colonies, for each:
   //
   //    - advance state of the colony
@@ -419,11 +415,11 @@ void advance_nation_turn_state( NationTurnFsm& fsm ) {
   switch_( fsm.mutable_state() ) {
     case_( NationTurnState::starting ) {
       lg.info( "-------[ Starting turn for {} ]-------",
-               fsm.nation_ );
+               nation );
       fsm.send_event( NationTurnEvent::next{} );
     }
     case_( NationTurnState::colonies ) {
-      lg.info( "processing colonies for the {}.", fsm.nation_ );
+      lg.info( "processing colonies for the {}.", nation );
       while( !val.q.empty() ) {
         ColonyId colony_id = val.q.front()->get();
         val.q.pop();
@@ -438,7 +434,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm ) {
       };
       if( doing_units.q.empty() ) {
         CHECK( !doing_units.uturn.has_value() );
-        auto units = units_all( fsm.nation_ );
+        auto units = units_all( nation );
         util::sort_by_key( units,
                            []( auto id ) { return id._; } );
         units.erase(
@@ -618,11 +614,12 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
         auto nation = val.remainder.front()->get();
         val.nation  = nation;
         val.remainder.pop();
-        val.nation_turn =
-            NationTurnFsm( nation, NationTurnState::starting{} );
+        val.nation_turn = NationTurnFsm(
+            NationTurnState::starting{ .nation = *val.nation } );
       }
       fsm_auto_advance( val.nation_turn, "nation-turn",
-                        { advance_nation_turn_state } );
+                        { advance_nation_turn_state },
+                        *val.nation );
       if_v( val.nation_turn.state(), NationTurnState::ending,
             ending ) {
         val.nation = nullopt;
