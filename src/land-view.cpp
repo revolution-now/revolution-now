@@ -980,10 +980,6 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-void landview_do_eot() {
-  // nothing?
-}
-
 void landview_ensure_unit_visible( UnitId id ) {
   auto coords = coord_for_unit_indirect( id );
   SG().viewport.ensure_tile_visible( coords,

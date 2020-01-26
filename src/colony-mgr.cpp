@@ -165,7 +165,7 @@ expect<ColonyId> found_colony( UnitId           founder,
 
 void evolve_colony_one_turn( ColonyId id ) {
   auto& colony = colony_from_id( id );
-  lg.debug( "evolving colony: {}", colony );
+  lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
   commodities[e_commodity::food] +=
       rng::between( 10, 20, rng::e_interval::closed );

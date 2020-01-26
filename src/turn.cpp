@@ -423,7 +423,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm ) {
       fsm.send_event( NationTurnEvent::next{} );
     }
     case_( NationTurnState::colonies ) {
-      lg.info( "processing colonies for the {}", fsm.nation_ );
+      lg.info( "processing colonies for the {}.", fsm.nation_ );
       while( !val.q.empty() ) {
         ColonyId colony_id = val.q.front()->get();
         val.q.pop();
@@ -612,10 +612,6 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
       bool has_next   = val.remainder.front().has_value();
       if( !has_nation ) {
         if( !has_next ) {
-          if( val.need_eot ) {
-            mark_end_of_turn();
-            landview_do_eot();
-          }
           fsm.send_event( TurnCycleEvent::end{} );
           break_;
         }
@@ -639,6 +635,8 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
       } else {
         if( was_next_turn_button_clicked() )
           fsm.send_event( TurnCycleEvent::next{} );
+        else
+          mark_end_of_turn();
       }
     }
     switch_exhaustive;

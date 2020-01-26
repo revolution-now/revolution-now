@@ -52,7 +52,6 @@ enum class e_( depixelate_anim, //
 );
 SERIALIZABLE_ENUM( e_depixelate_anim );
 
-void landview_do_eot();
 void landview_ensure_unit_visible( UnitId id );
 
 sync_future<UnitInputResponse> landview_ask_orders( UnitId id );
