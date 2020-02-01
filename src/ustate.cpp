@@ -19,7 +19,6 @@
 #include "fb.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "terrain.hpp"
 
 // Flatbuffers
 #include "fb/sg-unit_generated.h"
@@ -250,8 +249,8 @@ UnitId create_unit( e_nation nation, e_unit_type type ) {
 ** Map Ownership
 *****************************************************************/
 FlatSet<UnitId> const& units_from_coord( Coord const& c ) {
-  static FlatSet<UnitId> empty = {};
-  CHECK( square_exists( c ) );
+  static FlatSet<UnitId> const empty = {};
+  // CHECK( square_exists( c ) );
   auto opt_set = bu::val_safe( SG().units_from_coords, c );
   return opt_set.value_or( empty );
 }

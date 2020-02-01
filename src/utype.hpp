@@ -17,8 +17,8 @@
 #include "coord.hpp"
 #include "enum.hpp"
 #include "fb.hpp"
+#include "land-square.hpp"
 #include "mv-points.hpp"
-#include "terrain.hpp"
 #include "tiles.hpp"
 
 // Flatbuffers
@@ -81,7 +81,7 @@ UnitDescriptor const& unit_desc( e_unit_type type );
 **Unit Movement Behaviors / Capabilities
 *****************************************************************/
 #define TEMPLATE_BEHAVIOR                                 \
-  template<e_crust::_enumerated             target,       \
+  template<e_crust                          target,       \
            e_unit_relationship::_enumerated relationship, \
            e_entity_category::_enumerated   entity>
 
@@ -151,7 +151,7 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship );
 #define IF_BEHAVIOR( crust_, relationship_, entity_ )        \
   if( auto bh =                                              \
           CALL_BEHAVIOR( crust_, relationship_, entity_ );   \
-      crust == +e_crust::crust_ &&                           \
+      crust == e_crust::crust_ &&                            \
       relationship == +e_unit_relationship::relationship_ && \
       category == +e_entity_category::entity_ )
 

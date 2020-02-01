@@ -32,6 +32,7 @@
 #include "render.hpp"
 #include "screen.hpp"
 #include "sound.hpp"
+#include "terrain.hpp"
 #include "tx.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"

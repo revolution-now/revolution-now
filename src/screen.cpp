@@ -17,7 +17,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
-#include "terrain.hpp"
+#include "terrain.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // Revolution Now (config)

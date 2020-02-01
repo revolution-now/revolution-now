@@ -13,6 +13,7 @@
 // Revolution Now
 #include "cstate.hpp"
 #include "logging.hpp"
+#include "terrain.hpp"
 #include "ustate.hpp"
 #include "window.hpp"
 

@@ -17,6 +17,7 @@
 #include "gfx.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "terrain.hpp"
 #include "text.hpp"
 #include "ustate.hpp"
 #include "views.hpp"

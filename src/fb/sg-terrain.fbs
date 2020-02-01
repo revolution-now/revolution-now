@@ -9,22 +9,22 @@
 //
 // **************************************************************
 include "coord.fbs";
-include "terrain.fbs";
+include "land-square.fbs";
 
 namespace fb;
 
-table Pair_Coord_Square {
+table Pair_Coord_LandSquare {
   fst : Coord;
-  snd : Square;
+  snd : LandSquare;
 }
 
-table Matrix_Square {
+table Matrix_LandSquare {
   size : Delta;
   // May change this in the future to remove the coords, since
   // they are not actually needed to deserialize the matrix.
-  data : [Pair_Coord_Square];
+  data : [Pair_Coord_LandSquare];
 }
 
 table SG_Terrain {
-  world_map : Matrix_Square;
+  world_map : Matrix_LandSquare;
 }

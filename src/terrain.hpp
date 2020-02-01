@@ -17,11 +17,9 @@
 #include "coord.hpp"
 #include "enum.hpp"
 #include "fb.hpp"
+#include "land-square.hpp"
 #include "sg-macros.hpp"
 #include "tx.hpp"
-
-// Flatbuffers
-#include "fb/terrain_generated.h"
 
 namespace rn {
 
@@ -32,21 +30,6 @@ DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 // FIXME: temporary.
 void generate_terrain();
 
-enum class e_( crust, water, land );
-SERIALIZABLE_BETTER_ENUM( e_crust );
-
-struct ND Square {
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
-  }
-
-  // clang-format off
-  SERIALIZABLE_TABLE_MEMBERS( fb, Square,
-  ( e_crust, crust ));
-  // clang-format on
-};
-NOTHROW_MOVE( Square );
-
 Delta world_size_tiles();
 Delta world_size_pixels();
 Rect  world_rect_tiles();
@@ -55,8 +38,8 @@ Rect  world_rect_pixels();
 bool square_exists( Y y, X x );
 bool square_exists( Coord coord );
 
-Square const&          square_at( Coord coord );
-Opt<Ref<Square const>> maybe_square_at( Coord coord );
+LandSquare const&          square_at( Coord coord );
+Opt<Ref<LandSquare const>> maybe_square_at( Coord coord );
 
 // Throws if coord is not on map.
 bool terrain_is_land( Coord coord );
@@ -64,7 +47,7 @@ bool terrain_is_land( Coord coord );
 /****************************************************************
 ** Rendering
 *****************************************************************/
-// This will fully render a lang square with no units or colonies
+// This will fully render a land square with no units or colonies
 // on it.
 void render_terrain_square( Texture& tx, Coord world_square,
                             Coord pixel_coord );

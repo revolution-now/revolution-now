@@ -37,7 +37,7 @@ struct SAVEGAME_STRUCT( Terrain ) {
   // Fields that are actually serialized.
   // clang-format off
   SAVEGAME_MEMBERS( Terrain,
-  ( Matrix<Square>, world_map ));
+  ( Matrix<LandSquare>, world_map ));
   // clang-format on
 
 public:
@@ -104,12 +104,12 @@ REGISTER_INIT_ROUTINE( terrain );
 } // namespace
 
 void generate_terrain() {
-  Square const L = Square{ e_crust::land };
-  Square const O = Square{ e_crust::water };
+  LandSquare const L = LandSquare{ e_crust::land };
+  LandSquare const O = LandSquare{ e_crust::water };
 
   auto& world_map = SG().world_map;
   // FIXME
-  world_map = Matrix<Square>( world_size );
+  world_map = Matrix<LandSquare>( world_size );
 
   for( auto const& coord : SG().world_map.rect() )
     world_map[coord] = O;
@@ -136,7 +136,7 @@ void render_terrain_square( Texture& tx, Coord world_square,
                             Coord pixel_coord ) {
   auto   s = square_at( world_square );
   e_tile tile =
-      s.crust == +e_crust::land ? e_tile::land : e_tile::water;
+      s.crust == e_crust::land ? e_tile::land : e_tile::water;
   render_sprite( tx, tile, pixel_coord, 0, 0 );
 }
 
@@ -187,12 +187,12 @@ bool square_exists( Coord coord ) {
   return square_exists( coord.y, coord.x );
 }
 
-Opt<Ref<Square const>> maybe_square_at( Coord coord ) {
+Opt<Ref<LandSquare const>> maybe_square_at( Coord coord ) {
   if( !square_exists( coord.y, coord.x ) ) return nullopt;
   return SG().world_map[coord.y][coord.x];
 }
 
-Square const& square_at( Coord coord ) {
+LandSquare const& square_at( Coord coord ) {
   auto res = maybe_square_at( coord );
   CHECK( res, "square {} does not exist!", coord );
   return *res;
@@ -200,8 +200,8 @@ Square const& square_at( Coord coord ) {
 
 bool terrain_is_land( Coord coord ) {
   switch( square_at( coord ).crust ) {
-    case +e_crust::land: return true;
-    case +e_crust::water: return false;
+    case e_crust::land: return true;
+    case e_crust::water: return false;
   }
   UNREACHABLE_LOCATION;
 }
@@ -210,11 +210,11 @@ bool terrain_is_land( Coord coord ) {
 ** Testing
 *****************************************************************/
 void generate_unittest_terrain() {
-  Square const L = Square{ e_crust::land };
-  Square const O = Square{ e_crust::water };
+  LandSquare const L = LandSquare{ e_crust::land };
+  LandSquare const O = LandSquare{ e_crust::water };
 
   auto& world_map = SG().world_map;
-  world_map       = Matrix<Square>( 10_w, 10_h );
+  world_map       = Matrix<LandSquare>( 10_w, 10_h );
 
   Rect land_rect{ 2_x, 2_y, 6_w, 6_h };
 

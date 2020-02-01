@@ -1,11 +1,11 @@
 // **************************************************************
-// terrain.fbs
+// land-square.fbs
 //
 // Project: Revolution Now
 //
-// Created by dsicilia on 2019-10-22.
+// Created by dsicilia on 2020-02-01.
 //
-// Description: Serializable types for the terrain module.
+// Description: Serializable types for the land-square module.
 //
 // **************************************************************
 namespace fb;
@@ -15,6 +15,6 @@ enum e_crust : byte {
   land
 }
 
-table Square {
+table LandSquare {
   crust : e_crust;
 }
