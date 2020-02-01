@@ -48,7 +48,7 @@ enum class e_( plane,
                /*******/  //
                omni // Always present, invisible, and first.
 );
-SERIALIZABLE_ENUM( e_plane );
+SERIALIZABLE_BETTER_ENUM( e_plane );
 
 struct Plane : public util::non_copy_non_move {
   virtual ~Plane() = default;

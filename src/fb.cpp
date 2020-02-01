@@ -81,7 +81,7 @@ enum class e_( color, //
                Green, //
                Blue   //
 );
-SERIALIZABLE_ENUM( e_color );
+SERIALIZABLE_BETTER_ENUM( e_color );
 
 using MyVariant = std::variant< //
     int,                        //

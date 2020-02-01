@@ -72,7 +72,7 @@ enum class e_( colony_building,
                // Special buildings.
                custom_house //
 );
-SERIALIZABLE_ENUM( e_colony_building );
+SERIALIZABLE_BETTER_ENUM( e_colony_building );
 
 enum class e_( mfg_job,
                bells,   //
@@ -86,7 +86,7 @@ enum class e_( mfg_job,
                muskets, //
                teacher  //
 );
-SERIALIZABLE_ENUM( e_mfg_job );
+SERIALIZABLE_BETTER_ENUM( e_mfg_job );
 
 void linker_dont_discard_module_colony_mfg();
 

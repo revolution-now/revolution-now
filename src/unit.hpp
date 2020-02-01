@@ -35,7 +35,7 @@ enum class e_( unit_orders, //
                sentry,      // includes units on ships
                fortified    //
 );
-SERIALIZABLE_ENUM( e_unit_orders );
+SERIALIZABLE_BETTER_ENUM( e_unit_orders );
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.

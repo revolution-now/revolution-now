@@ -33,7 +33,7 @@ DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 void generate_terrain();
 
 enum class e_( crust, water, land );
-SERIALIZABLE_ENUM( e_crust );
+SERIALIZABLE_BETTER_ENUM( e_crust );
 
 struct ND Square {
   expect<> check_invariants_safe() const {

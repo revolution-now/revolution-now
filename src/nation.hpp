@@ -30,7 +30,7 @@ namespace rn {
 enum class ND e_( nation, //
                   /*values*/
                   dutch, french, english, spanish );
-SERIALIZABLE_ENUM( e_nation );
+SERIALIZABLE_BETTER_ENUM( e_nation );
 
 struct NationDesc {
   std::string name_lowercase;

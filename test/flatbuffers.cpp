@@ -67,7 +67,7 @@ using ::Catch::UnorderedEquals;
 using ::rn::serial::BinaryBlob;
 
 enum class e_( color, Red, Green, Blue );
-SERIALIZABLE_ENUM( e_color );
+SERIALIZABLE_BETTER_ENUM( e_color );
 
 struct Weapon {
   expect<> check_invariants_safe() const {

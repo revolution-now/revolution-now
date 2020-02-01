@@ -56,7 +56,7 @@ enum class e_(commodity,
   muskets
 );
 // clang-format on
-SERIALIZABLE_ENUM( e_commodity );
+SERIALIZABLE_BETTER_ENUM( e_commodity );
 
 constexpr int kNumCommodityTypes = e_commodity::_size();
 

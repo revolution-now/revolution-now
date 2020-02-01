@@ -35,19 +35,19 @@
 /****************************************************************
 ** Enums
 *****************************************************************/
-// FIXME: in the deserialize_enum method below we need to take
-// and return a generic template type instead of (ideally) a
+// FIXME: in the deserialize_better_enum method below we need to
+// take and return a generic template type instead of (ideally) a
 // fb::name. See upstream flatbuffers issue #5285. After that
 // issue is resolved, remove the template and replace `T e` with
 // `fb::name`.
-#define SERIALIZABLE_ENUM( name )                              \
+#define SERIALIZABLE_BETTER_ENUM( name )                       \
   static_assert( static_cast<int>( fb::name::MIN ) == 0 );     \
   static_assert( name::_size() ==                              \
                  static_cast<size_t>( fb::name::MAX ) + 1 );   \
   static_assert(                                               \
       static_cast<int>(                                        \
           ( *std::begin( values<name> ) )._value ) == 0 );     \
-  inline fb::name serialize_enum( name e ) {                   \
+  inline fb::name serialize_better_enum( name e ) {            \
     auto from_idx = e._value;                                  \
     RN_CHECK( from_idx >= 0 &&                                 \
               from_idx <= static_cast<int>( fb::name::MAX ) ); \
@@ -58,7 +58,7 @@
     return fb::EnumValues##name()[from_idx];                   \
   }                                                            \
   template<typename T>                                         \
-  inline expect<> deserialize_enum( T e, name* dst ) {         \
+  inline expect<> deserialize_better_enum( T e, name* dst ) {  \
     auto from_idx = static_cast<int>( e );                     \
     if( from_idx < 0 ||                                        \
         from_idx > static_cast<int>( fb::name::MAX ) ) {       \
@@ -243,11 +243,11 @@ auto serialize( FBBuilder& builder, std::string const& o,
   return ReturnValue{ offset };
 }
 
-// For enums.
-template<
-    typename Hint, //
-    typename T,
-    decltype( serialize_enum( std::declval<T>() ) )* = nullptr>
+// For Better Enums (deprecated).
+template<typename Hint, //
+         typename T,
+         decltype( serialize_better_enum(
+             std::declval<T>() ) )* = nullptr>
 auto serialize( FBBuilder&, T const& o, serial::ADL ) {
   if constexpr( !std::is_same_v<Hint, void> )
     // FIXME: We use the Hint type here because the FB interface
@@ -256,9 +256,9 @@ auto serialize( FBBuilder&, T const& o, serial::ADL ) {
     // flatbuffers repo. After that is fixed then we should be
     // able to remove this branch.
     return ReturnValue{
-        static_cast<Hint>( serialize_enum( o ) ) };
+        static_cast<Hint>( serialize_better_enum( o ) ) };
   else
-    return ReturnValue{ serialize_enum( o ) };
+    return ReturnValue{ serialize_better_enum( o ) };
 }
 
 // For C++ classes/structs that get serialized as FB structs.
@@ -428,17 +428,17 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   return xp_success_t{};
 }
 
-// For enums.
+// For Better Enums (deprecated).
 template<
     typename SrcT, //
     typename DstT, //
-    decltype( deserialize_enum(
+    decltype( deserialize_better_enum(
         std::declval<SrcT>(),
         std::add_pointer_t<std::decay_t<DstT>>{} ) )* = nullptr>
 expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing enum." );
-  return deserialize_enum( *src, dst );
+  return deserialize_better_enum( *src, dst );
 }
 
 // For typed ints.

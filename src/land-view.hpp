@@ -50,7 +50,7 @@ enum class e_( depixelate_anim, //
                death,           //
                demote           //
 );
-SERIALIZABLE_ENUM( e_depixelate_anim );
+SERIALIZABLE_BETTER_ENUM( e_depixelate_anim );
 
 void landview_ensure_unit_visible( UnitId id );
 
