@@ -23,7 +23,6 @@
 namespace rn {
 
 enum class e_crust { water, land };
-SERIALIZABLE_ENUM( e_crust );
 
 struct LandSquare {
   expect<> check_invariants_safe() const;

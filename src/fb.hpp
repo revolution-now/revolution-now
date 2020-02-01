@@ -89,63 +89,6 @@
   }
 
 /****************************************************************
-** Enums (reflected via Magic Enums)
-*****************************************************************/
-// FIXME: in the deserialize_enum method below we need to take
-// and return a generic template type instead of (ideally) a
-// fb::name. See upstream flatbuffers issue #5285. After that
-// issue is resolved, remove the template and replace `T e` with
-// `fb::name`.
-#define SERIALIZABLE_ENUM( name )                              \
-  static_assert( static_cast<int>( fb::name::MIN ) == 0 );     \
-  static_assert( magic_enum::enum_count<name>() ==             \
-                 static_cast<size_t>( fb::name::MAX ) + 1 );   \
-  static_assert( magic_enum::enum_integer(                     \
-                     magic_enum::enum_values<name>()[0] ) ==   \
-                 0 );                                          \
-  inline fb::name serialize_magic_enum( name e ) {             \
-    using namespace magic_enum;                                \
-    auto from_idx = enum_integer( e );                         \
-    RN_CHECK( from_idx >= 0 &&                                 \
-              from_idx <= static_cast<int>( fb::name::MAX ) ); \
-    DCHECK( std::string( fb::EnumNames##name()[from_idx] ) ==  \
-                enum_name( e ),                                \
-            "{} != {}", fb::EnumNames##name()[from_idx],       \
-            enum_name( e ) );                                  \
-    return fb::EnumValues##name()[from_idx];                   \
-  }                                                            \
-  template<typename T>                                         \
-  inline expect<> deserialize_magic_enum( T e, name* dst ) {   \
-    using namespace magic_enum;                                \
-    auto from_idx = static_cast<int>( e );                     \
-    if( from_idx < 0 ||                                        \
-        from_idx > static_cast<int>( fb::name::MAX ) ) {       \
-      return UNEXPECTED(                                       \
-          "serialized enum of type fb::" #name                 \
-          " has index out of its own range (idx={})",          \
-          from_idx );                                          \
-    }                                                          \
-    auto res = enum_cast<name>( from_idx );                    \
-    if( !res ) {                                               \
-      return UNEXPECTED(                                       \
-          "serialized enum of type fb::" #name                 \
-          " has index that is outside the range of the "       \
-          "corresponding native type (idx={}).",               \
-          from_idx );                                          \
-    }                                                          \
-    auto        name1 = enum_name( *res );                     \
-    char const* name2 = fb::EnumNames##name()[from_idx];       \
-    if( name1 != name2 ) {                                     \
-      return UNEXPECTED(                                       \
-          "error while deserializing enum of type " #name      \
-          ": {} != {}",                                        \
-          name1, name2 );                                      \
-    }                                                          \
-    *dst = *res;                                               \
-    return xp_success_t{};                                     \
-  }
-
-/****************************************************************
 ** Uniform serialization interface.
 *****************************************************************/
 namespace rn::serial {
@@ -327,17 +270,28 @@ template<typename Hint, //
              std::is_enum_v<T>, //
              int> = 0           //
          >
-auto serialize( FBBuilder&, T const& o, serial::ADL ) {
-  if constexpr( !std::is_same_v<Hint, void> )
-    // FIXME: We use the Hint type here because the FB interface
-    // seems inconsistent with the type it uses for enums in
-    // getter return values. See issue #5285 in the upstream
-    // flatbuffers repo. After that is fixed then we should be
-    // able to remove this branch.
-    return ReturnValue{
-        static_cast<Hint>( serialize_magic_enum( o ) ) };
-  else
-    return ReturnValue{ serialize_magic_enum( o ) };
+auto serialize( FBBuilder&, T const& e, serial::ADL ) {
+  using namespace magic_enum;
+  // We can use magic_enum on both of these enums.
+  using fbs_enum_t = Hint;
+  using src_enum_t = T;
+  // FB enums have two additional members (MIN/MAX) but their in-
+  // dexes are repeated from previous values, so magic enum
+  // should compute the same element count for both.
+  static_assert( enum_count<src_enum_t>() ==
+                 enum_count<fbs_enum_t>() );
+  static_assert( enum_integer( enum_values<src_enum_t>()[0] ) ==
+                 0 );
+  static_assert( enum_integer( enum_values<fbs_enum_t>()[0] ) ==
+                 0 );
+  auto maybe_fbs_enum =
+      enum_cast<fbs_enum_t>( enum_integer( e ) );
+  RN_CHECK( maybe_fbs_enum.has_value(),
+            "failed to serialize enum value {}", e );
+  DCHECK( enum_name( *maybe_fbs_enum ) == enum_name( e ),
+          "{} != {}", enum_name( *maybe_fbs_enum ),
+          enum_name( e ) );
+  return ReturnValue{ *maybe_fbs_enum };
 }
 
 // For C++ classes/structs that get serialized as FB structs.
@@ -529,9 +483,31 @@ template<typename SrcT,            //
              int> = 0              //
          >
 expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
+  using namespace magic_enum;
+  // We can use magic_enum on both of these enums.
+  using fbs_enum_t = SrcT;
+  using dst_enum_t = DstT;
+  // FB enums have two additional members (MIN/MAX) but their in-
+  // dexes are repeated from previous values, so magic enum
+  // should compute the same element count for both.
+  static_assert( enum_count<dst_enum_t>() ==
+                 enum_count<fbs_enum_t>() );
+  static_assert( enum_integer( enum_values<dst_enum_t>()[0] ) ==
+                 0 );
+  static_assert( enum_integer( enum_values<fbs_enum_t>()[0] ) ==
+                 0 );
   CHECK( src != nullptr,
          "`src` is nullptr when deserializing enum." );
-  return deserialize_magic_enum( *src, dst );
+  auto maybe_dst_enum =
+      enum_cast<dst_enum_t>( enum_integer( *src ) );
+  if( !maybe_dst_enum.has_value() )
+    return UNEXPECTED( "failed to deserialize enum value {}",
+                       enum_name( *src ) );
+  DCHECK( enum_name( *maybe_dst_enum ) == enum_name( *src ),
+          "{} != {}", enum_name( *maybe_dst_enum ),
+          enum_name( *src ) );
+  *dst = *maybe_dst_enum;
+  return xp_success_t{};
 }
 
 // For typed ints.

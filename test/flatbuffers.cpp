@@ -70,7 +70,6 @@ enum class e_( color, Red, Green, Blue );
 SERIALIZABLE_BETTER_ENUM( e_color );
 
 enum class e_hand { Left, Right };
-SERIALIZABLE_ENUM( e_hand );
 
 struct Weapon {
   expect<> check_invariants_safe() const {

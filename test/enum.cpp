@@ -118,6 +118,50 @@ TEST_CASE( "[enum] magic_enum large enum." ) {
                  MAGIC_ENUM_RANGE_MAX + 1 );
 }
 
+// This simulates a flatbuffers enum. We want to make sure that
+// magic_enum handles it in the way we expect. The way it handles
+// it happens to be convenient for us, since it effectively
+// erases the MIN/MAX elements, which is exactly what we want
+// since we don't need them anyway when we are using magic_enum.
+enum class e_repeated {
+  red   = 0,
+  green = 1,
+  blue  = 2,
+  // Repeated values.
+  MIN = 0,
+  MAX = 2
+};
+
+TEST_CASE( "[enum] magic_enum repeated values." ) {
+  using namespace magic_enum;
+  // Value to name.
+  static_assert( enum_name( e_repeated::red ) == "red" );
+  static_assert( enum_name( e_repeated::green ) == "green" );
+  static_assert( enum_name( e_repeated::blue ) == "blue" );
+  static_assert( enum_name( e_repeated::MIN ) == "red" );
+  static_assert( enum_name( e_repeated::MAX ) == "blue" );
+
+  // Name to value.
+  static_assert( enum_cast<e_repeated>( "red" ) ==
+                 e_repeated::red );
+  static_assert( enum_cast<e_repeated>( "green" ) ==
+                 e_repeated::green );
+  static_assert( enum_cast<e_repeated>( "blue" ) ==
+                 e_repeated::blue );
+  static_assert( !enum_cast<e_repeated>( "MIN" ).has_value() );
+  static_assert( !enum_cast<e_repeated>( "MAX" ).has_value() );
+
+  // Values.
+  constexpr auto values = magic_enum::enum_values<e_repeated>();
+  static_assert( values.size() == 3 );
+  static_assert( values[0] == e_repeated::red );
+  static_assert( values[1] == e_repeated::green );
+  static_assert( values[2] == e_repeated::blue );
+
+  // Size.
+  static_assert( magic_enum::enum_count<e_repeated>() == 3 );
+}
+
 TEST_CASE( "[enum] fmt" ) {
   REQUIRE( fmt::format( "{}", e_test_enum::red ) == "red" );
   REQUIRE( fmt::format( "{}", e_test_enum::green ) == "green" );
