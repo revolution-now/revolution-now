@@ -28,11 +28,12 @@
 
 namespace rn {
 
-adt_s_rn( ColonyJob,                 //
-          ( land,                    //
-            ( e_direction, d ) ),    //
-          ( mfg,                     //
-            ( e_mfg_job, mfg_job ) ) //
+adt_s_rn( ColonyJob,                      //
+          ( land,                         //
+            ( e_direction, d ),           //
+            ( e_commodity, producing ) ), //
+          ( mfg,                          //
+            ( e_mfg_job, mfg_job ) )      //
 );
 
 class Colony {

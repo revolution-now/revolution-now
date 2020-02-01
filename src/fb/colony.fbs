@@ -16,7 +16,8 @@ include "nation.fbs";
 namespace fb.ColonyJob;
 
   table land {
-    d : e_direction;
+    d         : e_direction;
+    producing : e_commodity;
   }
   table mfg {
     mfg_job : e_mfg_job;
