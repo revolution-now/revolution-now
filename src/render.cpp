@@ -46,6 +46,14 @@ void render_unit_no_icon( Texture& tx, e_unit_type unit_type,
   render_sprite( tx, desc.tile, pixel_coord, 0, 0 );
 }
 
+void render_colony_flag( Texture& tx, Coord coord,
+                         Color color ) {
+  auto cloth_rect = Rect::from( coord, Delta{ 8_w, 6_h } );
+  render_fill_rect( tx, color, cloth_rect );
+  render_line( tx, Color::wood().shaded( 4 ),
+               cloth_rect.upper_right(), Delta{ 0_w, 12_h } );
+}
+
 } // namespace
 
 /****************************************************************
@@ -217,11 +225,15 @@ void render_unit( Texture& tx, e_unit_type unit_type,
 
 void render_colony( Texture& tx, ColonyId id,
                     Coord pixel_coord ) {
-  auto tile = colony_from_id( id ).buildings().contains(
+  auto const& colony = colony_from_id( id );
+  auto        tile   = colony_from_id( id ).buildings().contains(
                   e_colony_building::stockade )
                   ? e_tile::colony_stockade
                   : e_tile::colony_basic;
   render_sprite( tx, tile, pixel_coord, 0, 0 );
+  auto const& nation = nation_obj( colony.nation() );
+  render_colony_flag( tx, pixel_coord + Delta{ 8_w, 8_h },
+                      nation.flag_color );
 }
 
 } // namespace rn

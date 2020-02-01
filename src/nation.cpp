@@ -28,7 +28,7 @@
     TO_STRING( __name ), config_nation.__name.country_name, \
         config_nation.__name.adjective,                     \
         config_nation.__name.article,                       \
-        *config_nation.__name.flag_color                    \
+        config_nation.__name.flag_color                     \
   }
 
 using namespace std;

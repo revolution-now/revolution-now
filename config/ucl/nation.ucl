@@ -2,22 +2,26 @@ dutch {
   country_name: "The Netherlands"
   adjective:    "Dutch"
   article:      "a"
+  flag_color:   "#FF7100"
 }
 
 french {
   country_name: "France"
   adjective:    "French"
   article:      "a"
+  flag_color:   "#5555FF"
 }
 
 english {
   country_name: "England"
   adjective:    "English"
   article:      "an"
+  flag_color:   "#FF0000"
 }
 
 spanish {
   country_name: "Spain"
   adjective:    "Spanish"
   article:      "a"
+  flag_color:   "#FFFE54"
 }
