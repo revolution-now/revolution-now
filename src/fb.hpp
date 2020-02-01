@@ -15,6 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "cc-specific.hpp"
+#include "enum.hpp"
 #include "errors.hpp"
 #include "meta.hpp"
 
@@ -33,7 +34,7 @@
 #include <utility>
 
 /****************************************************************
-** Enums
+** Better Enums (deprecated)
 *****************************************************************/
 // FIXME: in the deserialize_better_enum method below we need to
 // take and return a generic template type instead of (ideally) a
@@ -78,6 +79,63 @@
     char const* name1 = ( *res )._to_string();                 \
     char const* name2 = fb::EnumNames##name()[from_idx];       \
     if( std::strcmp( name1, name2 ) != 0 ) {                   \
+      return UNEXPECTED(                                       \
+          "error while deserializing enum of type " #name      \
+          ": {} != {}",                                        \
+          name1, name2 );                                      \
+    }                                                          \
+    *dst = *res;                                               \
+    return xp_success_t{};                                     \
+  }
+
+/****************************************************************
+** Enums (reflected via Magic Enums)
+*****************************************************************/
+// FIXME: in the deserialize_enum method below we need to take
+// and return a generic template type instead of (ideally) a
+// fb::name. See upstream flatbuffers issue #5285. After that
+// issue is resolved, remove the template and replace `T e` with
+// `fb::name`.
+#define SERIALIZABLE_ENUM( name )                              \
+  static_assert( static_cast<int>( fb::name::MIN ) == 0 );     \
+  static_assert( magic_enum::enum_count<name>() ==             \
+                 static_cast<size_t>( fb::name::MAX ) + 1 );   \
+  static_assert( magic_enum::enum_integer(                     \
+                     magic_enum::enum_values<name>()[0] ) ==   \
+                 0 );                                          \
+  inline fb::name serialize_magic_enum( name e ) {             \
+    using namespace magic_enum;                                \
+    auto from_idx = enum_integer( e );                         \
+    RN_CHECK( from_idx >= 0 &&                                 \
+              from_idx <= static_cast<int>( fb::name::MAX ) ); \
+    DCHECK( std::string( fb::EnumNames##name()[from_idx] ) ==  \
+                enum_name( e ),                                \
+            "{} != {}", fb::EnumNames##name()[from_idx],       \
+            enum_name( e ) );                                  \
+    return fb::EnumValues##name()[from_idx];                   \
+  }                                                            \
+  template<typename T>                                         \
+  inline expect<> deserialize_magic_enum( T e, name* dst ) {   \
+    using namespace magic_enum;                                \
+    auto from_idx = static_cast<int>( e );                     \
+    if( from_idx < 0 ||                                        \
+        from_idx > static_cast<int>( fb::name::MAX ) ) {       \
+      return UNEXPECTED(                                       \
+          "serialized enum of type fb::" #name                 \
+          " has index out of its own range (idx={})",          \
+          from_idx );                                          \
+    }                                                          \
+    auto res = enum_cast<name>( from_idx );                    \
+    if( !res ) {                                               \
+      return UNEXPECTED(                                       \
+          "serialized enum of type fb::" #name                 \
+          " has index that is outside the range of the "       \
+          "corresponding native type (idx={}).",               \
+          from_idx );                                          \
+    }                                                          \
+    auto        name1 = enum_name( *res );                     \
+    char const* name2 = fb::EnumNames##name()[from_idx];       \
+    if( name1 != name2 ) {                                     \
       return UNEXPECTED(                                       \
           "error while deserializing enum of type " #name      \
           ": {} != {}",                                        \
@@ -214,11 +272,12 @@ inline constexpr bool
 // serialization.
 
 // For scalars (non-enums).
-template<typename Hint,           //
-         typename T,              //
-         std::enable_if_t<        //
-             std::is_scalar_v<T>, //
-             int> = 0             //
+template<typename Hint,              //
+         typename T,                 //
+         std::enable_if_t<           //
+             std::is_scalar_v<T> &&  //
+                 !std::is_enum_v<T>, //
+             int> = 0                //
          >
 auto serialize( FBBuilder&, T const& o, serial::ADL ) {
   return ReturnValue{ o };
@@ -259,6 +318,26 @@ auto serialize( FBBuilder&, T const& o, serial::ADL ) {
         static_cast<Hint>( serialize_better_enum( o ) ) };
   else
     return ReturnValue{ serialize_better_enum( o ) };
+}
+
+// For regular enums, reflected through magic-enum (preferred).
+template<typename Hint, //
+         typename T,
+         std::enable_if_t<      //
+             std::is_enum_v<T>, //
+             int> = 0           //
+         >
+auto serialize( FBBuilder&, T const& o, serial::ADL ) {
+  if constexpr( !std::is_same_v<Hint, void> )
+    // FIXME: We use the Hint type here because the FB interface
+    // seems inconsistent with the type it uses for enums in
+    // getter return values. See issue #5285 in the upstream
+    // flatbuffers repo. After that is fixed then we should be
+    // able to remove this branch.
+    return ReturnValue{
+        static_cast<Hint>( serialize_magic_enum( o ) ) };
+  else
+    return ReturnValue{ serialize_magic_enum( o ) };
 }
 
 // For C++ classes/structs that get serialized as FB structs.
@@ -417,6 +496,7 @@ template<typename SrcT,                    //
          std::enable_if_t<                 //
              std::is_scalar_v<SrcT> &&     //
                  std::is_scalar_v<DstT> && //
+                 !std::is_enum_v<DstT> &&  //
                  std::is_same_v<std::decay_t<SrcT>,
                                 std::decay_t<DstT>>, //
              int> = 0                                //
@@ -439,6 +519,19 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing enum." );
   return deserialize_better_enum( *src, dst );
+}
+
+// For regular enums, reflected through magic-enum (preferred).
+template<typename SrcT,            //
+         typename DstT,            //
+         std::enable_if_t<         //
+             std::is_enum_v<DstT>, //
+             int> = 0              //
+         >
+expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
+  CHECK( src != nullptr,
+         "`src` is nullptr when deserializing enum." );
+  return deserialize_magic_enum( *src, dst );
 }
 
 // For typed ints.

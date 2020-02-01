@@ -30,6 +30,11 @@ table MyAdt_t {
   more : MyAdt.more;
 }
 
+enum e_hand:byte {
+  Left,
+  Right
+}
+
 enum e_color:byte {
   Red,
   Green,
@@ -126,6 +131,7 @@ table Monster {
   friendly  : bool = false (deprecated);
   inventory : [ubyte];
   color     : e_color = Blue;
+  hand      : e_hand;
   weapons   : [Weapon];
   path      : [Vec3];
   pair1     : Pair_string_int;

@@ -69,6 +69,9 @@ using ::rn::serial::BinaryBlob;
 enum class e_( color, Red, Green, Blue );
 SERIALIZABLE_BETTER_ENUM( e_color );
 
+enum class e_hand { Left, Right };
+SERIALIZABLE_ENUM( e_hand );
+
 struct Weapon {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
@@ -150,6 +153,7 @@ struct Monster {
   ( vector<string>,  names          ),
   ( vector<uint8_t>, inventory      ),
   ( e_color,         color          ),
+  ( e_hand,          hand           ),
   ( vector<Weapon>,  weapons        ),
   ( vector<Vec3>,    path           ),
   ( pair_s_i_t,      pair1          ),
@@ -245,8 +249,8 @@ BinaryBlob create_monster_blob() {
 
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, names, inventory,
-      fb::e_color::Red, weapons, path, pair1, &pair2,
-      fb_map_vecs, fb_map_strs, fb_map_wpns, fb_mylist,
+      fb::e_color::Red, fb::e_hand::Right, weapons, path, pair1,
+      &pair2, fb_map_vecs, fb_map_strs, fb_map_wpns, fb_mylist,
       fb_myset );
 
   builder.Finish( orc );
@@ -460,6 +464,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.names     = { "A", "B" };
     monster.inventory = { 7, 6, 5, 4 };
     monster.color     = e_color::Red;
+    monster.hand      = e_hand::Right;
     monster.weapons   = Vec<Weapon>{
         Weapon{ "rock", 2 }, //
         Weapon{ "stone", 3 } //
@@ -514,6 +519,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( inv[3] == 4 );
 
     REQUIRE( monster_new.color == e_color::Red );
+    REQUIRE( monster_new.hand == e_hand::Right );
 
     auto const& weapons = monster_new.weapons;
     REQUIRE( weapons.size() == 2 );
