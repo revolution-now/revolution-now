@@ -30,8 +30,8 @@ namespace rn {
 
 namespace {
 
-#define TO_TILE( type )    \
-  case +e_commodity::type: \
+#define TO_TILE( type )   \
+  case e_commodity::type: \
     return PP_JOIN( e_tile::commodity_, type );
 
 #define TO_TILES( ... ) EVAL( PP_MAP( TO_TILE, __VA_ARGS__ ) )
@@ -111,12 +111,13 @@ expect<> Commodity::check_invariants_safe() const {
 *****************************************************************/
 Opt<e_commodity> commodity_from_index( int index ) {
   Opt<e_commodity> res;
-  if( index >= 0 && index < int( values<e_commodity>.size() ) )
-    res = values<e_commodity>[index];
+  if( index >= 0 &&
+      index < int( magic_enum::enum_count<e_commodity>() ) )
+    res = magic_enum::enum_values<e_commodity>()[index];
   return res;
 }
 
-char const* commodity_display_name( e_commodity type ) {
+string_view commodity_display_name( e_commodity type ) {
   return enum_to_display_name( type );
 }
 

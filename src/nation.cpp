@@ -44,7 +44,7 @@ NationDesc const& nation_obj( e_nation nation ) {
     MAKE_NATION( french );
     MAKE_NATION( english );
     MAKE_NATION( spanish );
-    CHECK( m.size() == e_nation::_size() );
+    CHECK( m.size() == magic_enum::enum_count<e_nation>() );
     return m;
   }();
   return nations[nation];

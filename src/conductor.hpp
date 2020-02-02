@@ -26,11 +26,7 @@ namespace rn {
 // NOTE: The ordering of these determines priority in the event
 // that the first and second choices (set in the config files)
 // are not available.
-enum class e_( music_player, //
-               midiseq,      //
-               ogg,          //
-               silent        //
-);
+enum class e_music_player { midiseq, ogg, silent };
 
 enum class e_( special_music_event, //
                fountain_of_youth,   //

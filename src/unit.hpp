@@ -30,12 +30,7 @@
 
 namespace rn {
 
-enum class e_( unit_orders, //
-               none,        //
-               sentry,      // includes units on ships
-               fortified    //
-);
-SERIALIZABLE_BETTER_ENUM( e_unit_orders );
+enum class e_unit_orders { none, sentry, fortified };
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.

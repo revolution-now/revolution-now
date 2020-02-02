@@ -23,14 +23,14 @@ enum class e_( main_menu_type, //
                in_game         //
 );
 
-enum class e_( main_menu_item, //
-               resume,         //
-               new_,           //
-               load,           //
-               save,           //
-               leave,          //
-               quit            //
-);
+enum class e_main_menu_item {
+  resume,
+  new_,
+  load,
+  save,
+  leave,
+  quit
+};
 
 void set_main_menu( e_main_menu_type type );
 

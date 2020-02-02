@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "enum.hpp"
-#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "input.hpp"
 #include "menu.hpp"
@@ -34,21 +33,19 @@
 
 namespace rn {
 
-enum class e_( plane,
-               /* values */
-               land_view, // land, units, colonies, etc.
-               panel,     // the info panel on the right
-               image,     // any of the fullscreen pics displayed
-               colony,    // colony view
-               europe,    // the old world
-               main_menu, // main menu.
-               console,   // the developer console
-               menu,      // the menus at the top of screen
-               window,    // the windows
-               /*******/  //
-               omni // Always present, invisible, and first.
-);
-SERIALIZABLE_BETTER_ENUM( e_plane );
+enum class e_plane {
+  land_view, // land, units, colonies, etc.
+  panel,     // the info panel on the right
+  image,     // any of the fullscreen pics displayed
+  colony,    // colony view
+  europe,    // the old world
+  main_menu, // main menu.
+  console,   // the developer console
+  menu,      // the menus at the top of screen
+  window,    // the windows
+  /*******/  //
+  omni       // Always present, invisible, and first.
+};
 
 struct Plane : public util::non_copy_non_move {
   virtual ~Plane() = default;

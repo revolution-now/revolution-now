@@ -95,7 +95,8 @@ class MarketCommodities : public ColViewEntityView {
 public:
   Delta delta() const override {
     return Delta{
-        block_width_ * SX{ values<e_commodity>.size() },
+        block_width_ *
+            SX{ magic_enum::enum_values<e_commodity>().size() },
         1_h * 32_sy };
   }
 
@@ -110,10 +111,11 @@ public:
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    auto        comm_it = values<e_commodity>.begin();
-    auto        label   = CommodityLabel::quantity{ 0 };
-    Coord       pos     = coord;
-    auto const& colony  = colony_from_id( colony_id() );
+    auto comm_it =
+        magic_enum::enum_values<e_commodity>().begin();
+    auto        label  = CommodityLabel::quantity{ 0 };
+    Coord       pos    = coord;
+    auto const& colony = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
       render_rect( tx, Color::black(), rect );
@@ -402,7 +404,8 @@ void recomposite( ColonyId id, Delta screen_size ) {
 
   // [MarketCommodities] ----------------------------------------
   W comm_block_width =
-      screen_rect.delta().w / SX{ values<e_commodity>.size() };
+      screen_rect.delta().w /
+      SX{ magic_enum::enum_values<e_commodity>().size() };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =

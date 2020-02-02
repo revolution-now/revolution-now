@@ -102,7 +102,8 @@ void select_box_enum( std::string_view            title,
   // map over member function?
   std::vector<std::string> words;
   for( auto option : options )
-    words.push_back( enum_to_display_name( option ) );
+    words.push_back(
+        std::string( enum_to_display_name( option ) ) );
   select_box(
       title, words,
       [on_result = std::move( on_result ),
@@ -132,8 +133,9 @@ template<typename Enum>
 void select_box_enum( std::string_view            title,
                       std::function<void( Enum )> on_result ) {
   Vec<Enum> options;
-  options.reserve( Enum::_size() );
-  for( auto val : values<Enum> ) options.push_back( val );
+  options.reserve( magic_enum::enum_count<Enum>() );
+  for( auto val : magic_enum::enum_values<Enum>() )
+    options.push_back( val );
   select_box_enum( title, options, std::move( on_result ) );
 }
 

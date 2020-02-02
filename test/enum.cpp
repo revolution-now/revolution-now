@@ -11,6 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "enum.hpp"
 #include "fmt-helper.hpp"
 
 // magic_enum
@@ -23,7 +24,6 @@ namespace rn {
 namespace {
 
 using namespace std;
-using namespace rn;
 
 enum class e_test_enum { red, green, blue };
 
@@ -171,6 +171,26 @@ TEST_CASE( "[enum] fmt" ) {
   REQUIRE( fmt::format( "{}", e_large_enum::e002 ) == "e002" );
   REQUIRE( fmt::format( "{}", e_large_enum::e512 ) == "e512" );
   REQUIRE( fmt::format( "{}", e_large_enum::e513 ) == "e513" );
+}
+
+#define TEST_NS( input, expected )                         \
+  {                                                        \
+    constexpr string_view sv = remove_namespaces( input ); \
+    static_assert( sv == expected );                       \
+  }
+
+TEST_CASE( "[mining] remove_namespaces" ) {
+  using internal::remove_namespaces;
+  TEST_NS( "", "" );
+  TEST_NS( "a", "a" );
+  TEST_NS( "aaa", "aaa" );
+  TEST_NS( "::", "" );
+  TEST_NS( "ab::", "" );
+  TEST_NS( "::ab", "ab" );
+  TEST_NS( "::ab::cd", "cd" );
+  TEST_NS( "ab::cd", "cd" );
+  TEST_NS( "ab::cd::", "" );
+  TEST_NS( "ab::cd::ef", "ef" );
 }
 
 } // namespace

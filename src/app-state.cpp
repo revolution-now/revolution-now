@@ -181,22 +181,22 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
       auto sel = main_menu_selection();
       if( !sel.has_value() ) break_;
       switch( *sel ) {
-        case +e_main_menu_item::resume: //
+        case e_main_menu_item::resume: //
           SHOULD_NOT_BE_HERE;
           break;
-        case +e_main_menu_item::new_: //
+        case e_main_menu_item::new_: //
           fsm.send_event( AppEvent::new_{} );
           break;
-        case +e_main_menu_item::load: //
+        case e_main_menu_item::load: //
           fsm.send_event( AppEvent::load{} );
           break;
-        case +e_main_menu_item::save: //
+        case e_main_menu_item::save: //
           SHOULD_NOT_BE_HERE;
           break;
-        case +e_main_menu_item::leave: //
+        case e_main_menu_item::leave: //
           SHOULD_NOT_BE_HERE;
           break;
-        case +e_main_menu_item::quit: //
+        case e_main_menu_item::quit: //
           fsm.send_event( AppEvent::quit{} );
           break;
       }
@@ -205,23 +205,23 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
       auto sel = main_menu_selection();
       if( !sel.has_value() ) break_;
       switch( *sel ) {
-        case +e_main_menu_item::resume: //
+        case e_main_menu_item::resume: //
           fsm.send_event( AppEvent::to_game{} );
           break;
-        case +e_main_menu_item::new_: //
+        case e_main_menu_item::new_: //
           SHOULD_NOT_BE_HERE;
           break;
-        case +e_main_menu_item::load: //
+        case e_main_menu_item::load: //
           SHOULD_NOT_BE_HERE;
           break;
-        case +e_main_menu_item::save: //
+        case e_main_menu_item::save: //
           fsm.send_event( AppEvent::save{} );
           break;
-        case +e_main_menu_item::leave: //
+        case e_main_menu_item::leave: //
           fsm.send_event(
               AppEvent::leave{ /*dirty=*/g_game_dirty_flag } );
           break;
-        case +e_main_menu_item::quit: //
+        case e_main_menu_item::quit: //
           SHOULD_NOT_BE_HERE;
           break;
       }

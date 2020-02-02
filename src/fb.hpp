@@ -337,11 +337,14 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
 template<typename Hint, typename F, typename S>
 auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
                 serial::ADL ) {
-  // Assume we don't need to supply hints for components.
+  using fst_hint_t = fb_serialize_hint_t<decltype(
+      std::declval<Hint>().fst() )>;
+  using snd_hint_t = fb_serialize_hint_t<decltype(
+      std::declval<Hint>().snd() )>;
   auto const& s_fst =
-      serialize<void>( builder, o.first, serial::ADL{} );
+      serialize<fst_hint_t>( builder, o.first, serial::ADL{} );
   auto const& s_snd =
-      serialize<void>( builder, o.second, serial::ADL{} );
+      serialize<snd_hint_t>( builder, o.second, serial::ADL{} );
   if constexpr( detail::has_create_v<Hint> )
     return ReturnValue{ Hint::Traits::Create(
         builder, s_fst.get(), s_snd.get() ) };

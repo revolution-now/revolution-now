@@ -52,11 +52,12 @@ namespace rn {
 namespace {
 
 constexpr auto num_planes =
-    static_cast<size_t>( e_plane::_size() );
+    static_cast<size_t>( magic_enum::enum_count<e_plane>() );
 
 // The `values` array should be a constexpr.
-vector<e_plane> g_plane_list{ values<e_plane>.begin(),
-                              values<e_plane>.end() };
+vector<e_plane> g_plane_list{
+    magic_enum::enum_values<e_plane>().begin(),
+    magic_enum::enum_values<e_plane>().end() };
 // When a new list of planes is set, it will be set here instead
 // of modifying the primary one. This is to guarantee that no one
 // can mutate the primary list at the wrong time (i.e., while it
@@ -73,13 +74,13 @@ array<ObserverPtr<Plane>, num_planes> planes;
 array<Texture, num_planes>            textures;
 
 ObserverPtr<Plane>& plane( e_plane plane ) {
-  auto idx = static_cast<size_t>( plane._value );
+  auto idx = magic_enum::enum_integer( plane );
   CHECK( idx < planes.size() );
   return planes[idx];
 }
 
 Texture& plane_tx( e_plane plane ) {
-  auto idx = static_cast<size_t>( plane._value );
+  auto idx = magic_enum::enum_integer( plane );
   CHECK( idx < planes.size() );
   return textures[idx];
 }
@@ -322,7 +323,7 @@ Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
 void set_plane_list( Vec<e_plane> const& arr ) {
   vector<e_plane>  res;
   FlatSet<e_plane> set;
-  res.reserve( e_plane::_size() );
+  res.reserve( magic_enum::enum_count<e_plane>() );
   for( auto plane : arr ) {
     CHECK( plane != e_plane::omni );
     CHECK( !set.contains( plane ),

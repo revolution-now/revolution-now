@@ -27,6 +27,7 @@
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
+#include "absl/strings/str_split.h"
 
 // C++ standard library
 #include <functional>
@@ -42,19 +43,19 @@ template<typename EnumType>
 char const* enum_to_str( int );
 
 #define ENUM_TO_STR_SINGLE( val, str ) \
-  case +enum_type::val:                \
+  case enum_type::val:                 \
     return str;
 
-#define ENUM_TO_STR_IMPL( type, ... )                      \
-  template<>                                               \
-  char const* enum_to_str<type>( int e ) {                 \
-    DCHECK( type::_is_valid( e ) );                        \
-    auto val        = type::_from_integral_unchecked( e ); \
-    using enum_type = type;                                \
-    switch( val ) {                                        \
-      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )      \
-    }                                                      \
-    UNREACHABLE_LOCATION;                                  \
+#define ENUM_TO_STR_IMPL( type, ... )                    \
+  template<>                                             \
+  char const* enum_to_str<type>( int e ) {               \
+    DCHECK( magic_enum::enum_cast<type>( e ) );          \
+    auto val        = *magic_enum::enum_cast<type>( e ); \
+    using enum_type = type;                              \
+    switch( val ) {                                      \
+      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )    \
+    }                                                    \
+    UNREACHABLE_LOCATION;                                \
   }
 
 #define TRANSLATION( type, ... ) \
@@ -66,9 +67,9 @@ char const* enum_to_str( int );
 using EnumNameFunc = char const* (*)( int );
 
 #define ENUM_TO_STR_FUNC( type ) \
-  { type::_name(), &enum_to_str<type> }
+  { internal::remove_namespaces( #type ), &enum_to_str<type> }
 
-using EnumNameMap = FlatMap<string, EnumNameFunc>;
+using EnumNameMap = FlatMap<string_view, EnumNameFunc>;
 
 EnumNameMap& enum_display_names() {
   static auto m = [] {
@@ -89,9 +90,9 @@ EnumNameMap& enum_display_names() {
 
 namespace internal {
 
-char const* enum_to_display_name( char const* type_name,
+string_view enum_to_display_name( string_view type_name,
                                   int         index,
-                                  char const* default_ ) {
+                                  string_view default_ ) {
   if( !enum_display_names().contains( type_name ) )
     return default_;
   return enum_display_names()[type_name]( index );

@@ -11,6 +11,7 @@
 #include "coord.hpp"
 
 // Revolution Now
+#include "enum.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 
@@ -224,22 +225,22 @@ Coord Coord::rounded_to_multiple_to_minus_inf(
 Coord Coord::moved( e_direction d ) const {
   // clang-format off
   switch( d ) {
-    case +e_direction::nw: return {y-1,x-1}; break;
-    case +e_direction::n:  return {y-1,x  }; break;
-    case +e_direction::ne: return {y-1,x+1}; break;
-    case +e_direction::w:  return {y,  x-1}; break;
-    case +e_direction::c:  return {y,  x  }; break;
-    case +e_direction::e:  return {y,  x+1}; break;
-    case +e_direction::sw: return {y+1,x-1}; break;
-    case +e_direction::s:  return {y+1,x  }; break;
-    case +e_direction::se: return {y+1,x+1}; break;
+    case e_direction::nw: return {y-1,x-1}; break;
+    case e_direction::n:  return {y-1,x  }; break;
+    case e_direction::ne: return {y-1,x+1}; break;
+    case e_direction::w:  return {y,  x-1}; break;
+    case e_direction::c:  return {y,  x  }; break;
+    case e_direction::e:  return {y,  x+1}; break;
+    case e_direction::sw: return {y+1,x-1}; break;
+    case e_direction::s:  return {y+1,x  }; break;
+    case e_direction::se: return {y+1,x+1}; break;
   };
   // clang-format on
   SHOULD_NOT_BE_HERE;
 }
 
 Opt<e_direction> Coord::direction_to( Coord dest ) const {
-  for( auto d : values<e_direction> )
+  for( auto d : magic_enum::enum_values<e_direction>() )
     if( moved( d ) == dest ) return d;
   return {};
 }
@@ -255,7 +256,7 @@ Coord Coord::as_if_origin_were( Coord const& coord ) const {
 bool Coord::is_adjacent_to( Coord other ) const {
   auto direction = direction_to( other );
   if( direction.has_value() &&
-      direction.value() != +e_direction::c )
+      direction.value() != e_direction::c )
     return true;
   return false;
 }

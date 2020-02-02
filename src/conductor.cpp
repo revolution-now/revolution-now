@@ -198,7 +198,8 @@ void init_conductor() {
   ADD_MUSIC_PLAYER( ogg, Ogg );
 
   // Check each music player for viability and populate info.
-  for( auto mplayer : values<e_music_player> ) {
+  for( auto mplayer :
+       magic_enum::enum_values<e_music_player>() ) {
     CHECK( g_mplayers.contains( mplayer ),
            "Music player `{}` not added to list.", mplayer );
     CHECK( g_mplayer_descs.contains( mplayer ),

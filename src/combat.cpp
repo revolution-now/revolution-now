@@ -382,13 +382,13 @@ void CombatAnalysis::affect_orders_() const {
   }
 
   switch( loser.desc().on_death ) {
-    case +e_unit_death::destroy: //
+    case e_unit_death::destroy: //
       destroy_unit( loser.id() );
       break;
-    case +e_unit_death::naval: //
+    case e_unit_death::naval: //
       destroy_unit( loser.id() );
       break;
-    case +e_unit_death::capture:
+    case e_unit_death::capture:
       // Capture only happens to defenders.
       if( loser.id() == defender.id() ) {
         loser.change_nation( winner.nation() );
@@ -400,16 +400,16 @@ void CombatAnalysis::affect_orders_() const {
         loser.clear_orders();
       }
       break;
-    case +e_unit_death::demote:
+    case e_unit_death::demote:
       CHECK( loser.desc().demoted.has_value() );
       loser.change_type( loser.desc().demoted.value() );
       break;
-    case +e_unit_death::maybe_demote:
+    case e_unit_death::maybe_demote:
       // This would be for units that only demote probabilisti-
       // cally.
       NOT_IMPLEMENTED;
       break;
-    case +e_unit_death::demote_and_capture:
+    case e_unit_death::demote_and_capture:
       CHECK( loser.desc().demoted.has_value() );
       loser.change_type( loser.desc().demoted.value() );
       // Capture only happens to defenders.

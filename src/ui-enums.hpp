@@ -12,19 +12,10 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "enum.hpp"
-
 namespace rn::ui {
 
-enum class e_( ok_cancel, //
-               ok,        //
-               cancel     //
-);
+enum class e_ok_cancel { ok, cancel };
 
-enum class e_( confirm, //
-               yes,     //
-               no       //
-);
+enum class e_confirm { yes, no };
 
 } // namespace rn::ui

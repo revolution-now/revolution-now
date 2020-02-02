@@ -10,7 +10,6 @@
 // **************************************************************
 include "color.fbs";
 include "coord.fbs";
-include "land-view.fbs";
 include "orders.fbs";
 include "physics.fbs";
 include "unit.fbs";

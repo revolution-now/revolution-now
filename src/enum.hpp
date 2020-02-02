@@ -27,6 +27,8 @@ public:                                          \
 // code base that we include this header.
 #include "better-enums/enum.h"
 
+#include "magic_enum.hpp"
+
 // This creates a reflected enum class.  Use it like this:
 //
 // enum class e_(color,
@@ -81,18 +83,28 @@ constexpr auto is_better_enum_v = is_better_enum<T>::value;
 *****************************************************************/
 namespace internal {
 
-char const* enum_to_display_name( char const* type_name,
-                                  int         index,
-                                  char const* default_ );
+std::string_view enum_to_display_name(
+    std::string_view type_name, int index,
+    std::string_view default_ );
 
+// NOTE: duplicated from util.hpp.
+inline constexpr std::string_view remove_namespaces(
+    std::string_view input ) {
+  auto pos = input.find_last_of( ':' );
+  if( pos == std::string_view::npos ) return input;
+  input.remove_prefix( pos + 1 );
+  return input;
 }
 
-template<typename ReflectedEnum>
-char const* enum_to_display_name( ReflectedEnum value ) {
+} // namespace internal
+
+template<typename Enum>
+std::string_view enum_to_display_name( Enum value ) {
   return internal::enum_to_display_name(
-      /*type_name=*/ReflectedEnum::_name(), //
-      /*index=*/value._to_index(),          //
-      /*default=*/value._to_string() );
+      /*type_name=*/internal::remove_namespaces(
+          magic_enum::enum_traits<Enum>::type_name ), //
+      /*index=*/magic_enum::enum_integer( value ),    //
+      /*default=*/magic_enum::enum_name( value ) );
 }
 
 } // namespace rn

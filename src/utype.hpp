@@ -29,12 +29,23 @@
 
 namespace rn {
 
-enum class ND e_( unit_type, free_colonist, soldier, merchantman,
-                  privateer, large_treasure, small_treasure );
-SERIALIZABLE_BETTER_ENUM( e_unit_type );
+enum class ND e_unit_type {
+  free_colonist,
+  soldier,
+  merchantman,
+  privateer,
+  large_treasure,
+  small_treasure
+};
 
-enum class ND e_( unit_death, destroy, naval, capture, demote,
-                  maybe_demote, demote_and_capture );
+enum class ND e_unit_death {
+  destroy,
+  naval,
+  capture,
+  demote,
+  maybe_demote,
+  demote_and_capture
+};
 
 // Static information describing classes of units. There will be
 // one of these for each type of unit.

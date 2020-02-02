@@ -14,16 +14,11 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
-#include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "orders.hpp"
 #include "sg-macros.hpp"
 #include "sync-future.hpp"
-
-// Flatbuffers
-#include "fb/land-view_generated.h"
 
 namespace rn {
 
@@ -45,12 +40,7 @@ struct UnitInputResponse {
   Vec<UnitId>   add_to_back;
 };
 
-enum class e_( depixelate_anim, //
-               none,            //
-               death,           //
-               demote           //
-);
-SERIALIZABLE_BETTER_ENUM( e_depixelate_anim );
+enum class e_depixelate_anim { none, death, demote };
 
 void landview_ensure_unit_visible( UnitId id );
 

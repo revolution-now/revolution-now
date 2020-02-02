@@ -33,8 +33,8 @@ Unit::Unit( e_nation nation, e_unit_type type )
 expect<> Unit::check_invariants_safe() const {
   // Check that only treasure units can have a worth.
   switch( type_ ) {
-    case +e_unit_type::large_treasure:
-    case +e_unit_type::small_treasure:
+    case e_unit_type::large_treasure:
+    case e_unit_type::small_treasure:
       UNXP_CHECK( worth_.has_value(),
                   "Treasure trains must have a `worth`." );
       break;

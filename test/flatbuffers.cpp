@@ -665,11 +665,11 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 
     REQUIRE( unit.id_() == ship._ );
     REQUIRE( static_cast<int>( unit.type_() ) ==
-             ship_unit.desc().type._value );
+             static_cast<int>( ship_unit.desc().type ) );
     REQUIRE( static_cast<int>( unit.orders_() ) ==
-             ship_unit.orders()._value );
+             static_cast<int>( ship_unit.orders() ) );
     REQUIRE( static_cast<int>( unit.nation_() ) ==
-             ship_unit.nation()._value );
+             static_cast<int>( ship_unit.nation() ) );
     REQUIRE( unit.worth_() != nullptr );
     REQUIRE( unit.worth_()->has_value() == false );
     // REQUIRE( unit.mv_pts() == ship_unit.movement_points() );

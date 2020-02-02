@@ -196,14 +196,17 @@ void register_enum_impl( sol::state& st, std::string_view name,
       name,
       std::initializer_list<std::pair<std::string_view, Enum>>{
           std::pair{
-              Enum::_from_index_nothrow( Indexes )->_to_string(),
-              *Enum::_from_index_nothrow( Indexes ) }... } );
+              magic_enum::enum_name(
+                  *magic_enum::enum_cast<Enum>( Indexes ) ),
+              *magic_enum::enum_cast<Enum>( Indexes ) }... } );
 }
 
 template<typename Enum>
 void register_enum( sol::state& st, std::string_view name ) {
   return register_enum_impl<Enum>(
-      st, name, std::make_index_sequence<Enum::_size()>() );
+      st, name,
+      std::make_index_sequence<
+          magic_enum::enum_count<Enum>()>() );
 }
 
 /*
@@ -240,6 +243,23 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
 } // namespace detail
 
 #define LUA_ENUM( what )                                       \
+  LUA_STARTUP( sol::state& st ) {                              \
+    ::rn::lua::detail::register_enum<::rn::e_##what>( st,      \
+                                                      #what ); \
+    st[::rn::lua::module_name__].get_or_create<sol::table>();  \
+    st["e"][#what "_from_string"] = []( char const* name ) {   \
+      auto maybe_val =                                         \
+          magic_enum::enum_cast<::rn::e_##what>( name );       \
+      CHECK(                                                   \
+          maybe_val,                                           \
+          "enum value `{}` is not a member of the enum `{}`",  \
+          name, #what );                                       \
+      return *maybe_val;                                       \
+    };                                                         \
+  };
+
+// Deprecated
+#define LUA_BETTER_ENUM( what )                                \
   LUA_STARTUP( sol::state& st ) {                              \
     ::rn::lua::detail::register_enum<::rn::e_##what>( st,      \
                                                       #what ); \

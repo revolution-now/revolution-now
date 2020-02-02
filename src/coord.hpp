@@ -60,13 +60,12 @@ struct ND Scale {
 NOTHROW_MOVE( Scale );
 
 // clang-format off
-enum class ND e_(direction,
+enum class ND e_direction {
   nw, n, ne,
    w, c,  e,
   sw, s, se
-);
+};
 // clang-format on
-SERIALIZABLE_BETTER_ENUM( e_direction );
 
 struct ND Delta {
   SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );

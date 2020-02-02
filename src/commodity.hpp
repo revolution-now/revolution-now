@@ -36,8 +36,7 @@ namespace rn {
 // Important: the ordering here matters, as it determines the
 // order in which the commodities are displayed in an array and
 // the order in which they are processed.
-// clang-format off
-enum class e_(commodity,
+enum class e_commodity {
   food,
   sugar,
   tobacco,
@@ -54,17 +53,16 @@ enum class e_(commodity,
   trade_goods,
   tools,
   muskets
-);
-// clang-format on
-SERIALIZABLE_BETTER_ENUM( e_commodity );
+};
 
-constexpr int kNumCommodityTypes = e_commodity::_size();
+constexpr int kNumCommodityTypes =
+    magic_enum::enum_count<e_commodity>();
 
 // Index refers to the ordering in the enum above, starting at 0.
 Opt<e_commodity> commodity_from_index( int index );
 
 // Gets a nice display name; may contain spaces.
-char const* commodity_display_name( e_commodity type );
+std::string_view commodity_display_name( e_commodity type );
 
 /****************************************************************
 ** Commodity Labels

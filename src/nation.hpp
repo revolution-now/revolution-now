@@ -27,10 +27,7 @@
 
 namespace rn {
 
-enum class ND e_( nation, //
-                  /*values*/
-                  dutch, french, english, spanish );
-SERIALIZABLE_BETTER_ENUM( e_nation );
+enum class ND e_nation { dutch, french, english, spanish };
 
 struct NationDesc {
   std::string name_lowercase;
@@ -45,16 +42,19 @@ NOTHROW_MOVE( NationDesc );
 
 NationDesc const& nation_obj( e_nation nation );
 
-constexpr std::array<e_nation, e_nation::_size()> all_nations() {
-  constexpr std::array<e_nation, e_nation::_size()> nations =
-      [] {
-        std::array<e_nation, e_nation::_size()> res{};
-        size_t                                  idx = 0;
-        for( auto nation : values<e_nation> )
+constexpr auto all_nations() {
+  constexpr std::array<e_nation,
+                       magic_enum::enum_count<e_nation>()>
+      nations = [] {
+        std::array<e_nation, magic_enum::enum_count<e_nation>()>
+               res{};
+        size_t idx = 0;
+        for( auto nation : magic_enum::enum_values<e_nation>() )
           res[idx++] = nation;
         return res;
       }();
-  static_assert( nations.size() == e_nation::_size() );
+  static_assert( nations.size() ==
+                 magic_enum::enum_count<e_nation>() );
   return nations;
 }
 

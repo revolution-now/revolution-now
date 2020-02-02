@@ -83,7 +83,7 @@ expect<> check_colony_invariants_safe( ColonyId id ) {
   }
 
   // 8.  Colony's commodity quantites in correct range.
-  for( auto comm : values<e_commodity> ) {
+  for( auto comm : magic_enum::enum_values<e_commodity>() ) {
     UNXP_CHECK( colony.commodity_quantity( comm ) >= 0,
                 "Colony has negative quantity of {}.", comm );
   }

@@ -159,16 +159,16 @@ void render_nationality_icon( Texture&              dest,
   // location specified in the unit descriptor.
   auto position = desc.nat_icon_position;
   switch( position ) {
-    case +e_direction::nw: break;
-    case +e_direction::ne:
+    case e_direction::nw: break;
+    case e_direction::ne:
       pixel_coord +=
           ( ( 1_w * g_tile_width ) - nationality_icon_size.w );
       break;
-    case +e_direction::se:
+    case e_direction::se:
       pixel_coord += ( ( Delta{ 1_w, 1_h } * g_tile_scale ) -
                        nationality_icon_size );
       break;
-    case +e_direction::sw:
+    case e_direction::sw:
       pixel_coord +=
           ( ( 1_h * g_tile_height ) - nationality_icon_size.h );
       break;
@@ -178,9 +178,9 @@ void render_nationality_icon( Texture&              dest,
 
   char c{ '-' }; // gcc seems to want us to initialize this
   switch( orders ) {
-    case +e_unit_orders::none: c = '-'; break;
-    case +e_unit_orders::sentry: c = 'S'; break;
-    case +e_unit_orders::fortified: c = 'F'; break;
+    case e_unit_orders::none: c = '-'; break;
+    case e_unit_orders::sentry: c = 'S'; break;
+    case e_unit_orders::fortified: c = 'F'; break;
   };
   auto const& nat_icon = render_nationality_icon( nation, c );
   copy_texture( nat_icon, dest, pixel_coord );

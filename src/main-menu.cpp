@@ -33,17 +33,17 @@ e_main_menu_item      g_curr_item{ e_main_menu_item::new_ };
 
 bool is_item_enabled( e_main_menu_item item ) {
   switch( item ) {
-    case +e_main_menu_item::resume:
+    case e_main_menu_item::resume:
       return g_type == e_main_menu_type::in_game;
-    case +e_main_menu_item::new_:
+    case e_main_menu_item::new_:
       return g_type == e_main_menu_type::no_game;
-    case +e_main_menu_item::load:
+    case e_main_menu_item::load:
       return g_type == e_main_menu_type::no_game;
-    case +e_main_menu_item::save:
+    case e_main_menu_item::save:
       return g_type == e_main_menu_type::in_game;
-    case +e_main_menu_item::leave:
+    case e_main_menu_item::leave:
       return g_type == e_main_menu_type::in_game;
-    case +e_main_menu_item::quit:
+    case e_main_menu_item::quit:
       return g_type == e_main_menu_type::no_game;
   }
   UNREACHABLE_LOCATION;
@@ -60,10 +60,10 @@ struct MainMenuPlane : public Plane {
                  main_window_logical_rect() );
     auto screen    = main_window_logical_size();
     H    h         = screen.h / 2_sy;
-    auto num_items = values<e_main_menu_item>.size();
+    auto num_items = magic_enum::enum_count<e_main_menu_item>();
     h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
-    for( auto e : values<e_main_menu_item> ) {
+    for( auto e : magic_enum::enum_values<e_main_menu_item>() ) {
       if( !is_item_enabled( e ) ) continue;
       Color       c       = Color::banana().shaded( 3 );
       auto const& text_tx = render_text(
@@ -91,7 +91,8 @@ struct MainMenuPlane : public Plane {
           case ::SDLK_KP_8:
             do {
               g_curr_item = util::find_previous_and_cycle(
-                  values<e_main_menu_item>, g_curr_item );
+                  magic_enum::enum_values<e_main_menu_item>(),
+                  g_curr_item );
             } while( !is_item_enabled( g_curr_item ) );
             handled = e_input_handled::yes;
             break;
@@ -99,7 +100,8 @@ struct MainMenuPlane : public Plane {
           case ::SDLK_KP_2:
             do {
               g_curr_item = util::find_subsequent_and_cycle(
-                  values<e_main_menu_item>, g_curr_item );
+                  magic_enum::enum_values<e_main_menu_item>(),
+                  g_curr_item );
             } while( !is_item_enabled( g_curr_item ) );
             handled = e_input_handled::yes;
             break;
@@ -138,7 +140,7 @@ void set_main_menu( e_main_menu_type type ) {
   if( !is_item_enabled( g_curr_item ) ) {
     // The currently selected item is no longer enabled, so find
     // the first enabled item.
-    for( auto e : values<e_main_menu_item> ) {
+    for( auto e : magic_enum::enum_values<e_main_menu_item>() ) {
       g_curr_item = e;
       if( is_item_enabled( e ) ) break;
     }

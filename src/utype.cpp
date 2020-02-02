@@ -74,18 +74,18 @@ void UnitDescriptor::check_invariants() const {
   // sent the on_death/demoted fields in a single abstract data
   // type.
   switch( on_death ) {
-    case +e_unit_death::destroy:
-    case +e_unit_death::naval:
-    case +e_unit_death::capture:
+    case e_unit_death::destroy:
+    case e_unit_death::naval:
+    case e_unit_death::capture:
       CHECK(
           !demoted.has_value(),
           "units of type `{}` are not marked for demotion upon "
           "losing a battle and so should have demoted=null",
           type );
       break;
-    case +e_unit_death::demote:
-    case +e_unit_death::maybe_demote:
-    case +e_unit_death::demote_and_capture:
+    case e_unit_death::demote:
+    case e_unit_death::maybe_demote:
+    case e_unit_death::demote_and_capture:
       CHECK( demoted.has_value(),
              "units of type `{}` are marked for demotion upon "
              "losing a battle and so must have a valid demoted "
