@@ -75,13 +75,13 @@ array<Texture, num_planes>            textures;
 
 ObserverPtr<Plane>& plane( e_plane plane ) {
   auto idx = magic_enum::enum_integer( plane );
-  CHECK( idx < planes.size() );
+  CHECK( idx < int( planes.size() ) );
   return planes[idx];
 }
 
 Texture& plane_tx( e_plane plane ) {
   auto idx = magic_enum::enum_integer( plane );
-  CHECK( idx < planes.size() );
+  CHECK( idx < int( planes.size() ) );
   return textures[idx];
 }
 
