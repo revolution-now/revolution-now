@@ -199,6 +199,9 @@ void register_enum_impl( sol::state& st, std::string_view name,
               magic_enum::enum_name(
                   *magic_enum::enum_cast<Enum>( Indexes ) ),
               *magic_enum::enum_cast<Enum>( Indexes ) }... } );
+  // FIXME: add in a "from string" method that allows converting
+  // from a string to the enum value, then re-enable the associ-
+  // ated unit test case that is now commented out.
 }
 
 template<typename Enum>
