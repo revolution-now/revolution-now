@@ -30,6 +30,8 @@ namespace rn {
 
 namespace {
 
+bool g_use_block_cache = false;
+
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
@@ -88,6 +90,8 @@ void invalidate_caches() {
 }
 
 void init_terrain() {
+  lg.debug( "terrain block cache is {}.",
+            g_use_block_cache ? "on" : "off" );
   for( auto coord : block_cache.rect() ) {
     TerrainBlockCache cache{
         /*needs_redraw=*/true, coord,
@@ -140,8 +144,18 @@ void render_terrain_square( Texture& tx, Coord world_square,
   render_sprite( tx, tile, pixel_coord, 0, 0 );
 }
 
-void render_terrain( Rect src_tiles, Texture& dest,
-                     Coord dest_pixel_coord ) {
+void render_terrain_nocache( Rect src_tiles, Texture& dest,
+                             Coord dest_pixel_coord ) {
+  for( auto square : src_tiles )
+    render_terrain_square(
+        dest, square,
+        dest_pixel_coord +
+            ( ( square - src_tiles.upper_left() ) *
+              g_tile_scale ) );
+}
+
+void render_terrain_cache( Rect src_tiles, Texture& dest,
+                           Coord dest_pixel_coord ) {
   Rect blocks = Rect::from(
       src_tiles.upper_left() / terrain_block_size,
       src_tiles.lower_right().rounded_to_multiple_to_plus_inf(
@@ -159,6 +173,13 @@ void render_terrain( Rect src_tiles, Texture& dest,
                                    g_tile_scale;
     copy_texture( cache.tx, dest, dest_coord );
   }
+}
+
+void render_terrain( Rect src_tiles, Texture& dest,
+                     Coord dest_pixel_coord ) {
+  auto f = g_use_block_cache ? render_terrain_cache
+                             : render_terrain_nocache;
+  f( src_tiles, dest, dest_pixel_coord );
 }
 
 Delta world_size_tiles() { return SG().world_map.size(); }
@@ -240,6 +261,12 @@ LUA_FN( toggle_crust, void, Coord const& coord ) {
 }
 
 LUA_FN( generate_terrain, void ) { generate_terrain(); }
+
+LUA_FN( toggle_block_cache, void ) {
+  g_use_block_cache = !g_use_block_cache;
+  lg.debug( "terrain block cache is {}.",
+            g_use_block_cache ? "on" : "off" );
+}
 
 } // namespace
 
