@@ -132,23 +132,33 @@ struct ConsolePlane : public Plane {
     // it doesn't cause a feedback loop that continually in-
     // creases the texture count. This is because rendering this
     // number, in general, causes a new texture to be created.
+    //
+    // Disabled by default since ttf_render_text_line_uncached is
+    // super slow.
+#if 0
     auto tx_count_tx = ttf_render_text_line_uncached(
         config_rn.console.font, stats_color, tx_count );
     copy_texture( tx_count_tx, tx,
                   info_start - tx_count_tx.size() );
     info_start -= tx_count_tx.size().h;
+#endif
 
-    auto text_tx_count =
-        fmt::format( "text cache size: {}", text_cache_size() );
     // This needs to use an uncached rendering function so that
     // it doesn't cause a feedback loop that continually in-
     // creases the texture count. This is because rendering this
     // number, in general, causes a new texture to be created.
+    //
+    // Disabled by default since ttf_render_text_line_uncached is
+    // super slow.
+#if 0
+    auto text_tx_count =
+        fmt::format( "text cache size: {}", text_cache_size() );
     auto text_tx_count_tx = ttf_render_text_line_uncached(
         config_rn.console.font, stats_color, text_tx_count );
     copy_texture( text_tx_count_tx, tx,
                   info_start - text_tx_count_tx.size() );
     info_start -= text_tx_count_tx.size().h;
+#endif
 
     // FIXME: better way to get this?
     auto text_height = frame_rate_tx.size().h;
