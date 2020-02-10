@@ -245,12 +245,17 @@ void find_pixel_scale_factor() {
              "Tile-Angular-Size", "Score" );
   auto bar = string( 86, '-' );
   lg.debug( bar );
+  auto fmt_dbl = []( double d ) {
+    return fmt::format( "{:.4}", d );
+  };
   for( auto const& info : scale_scores ) {
     string chosen =
         ( info.scale == optimal.scale ) ? "=> " : "   ";
-    table_row( chosen + to_string( info.scale ), info.resolution,
-               info.tile_size_on_screen_surface_inches,
-               info.tile_angular_size, scale_score( info ) );
+    table_row(
+        chosen + to_string( info.scale ), info.resolution,
+        fmt_dbl( info.tile_size_on_screen_surface_inches ),
+        fmt_dbl( info.tile_angular_size ),
+        fmt_dbl( scale_score( info ) ) );
   }
   lg.debug( bar );
   ///////////////////////////////////////////////////////////////
