@@ -5,6 +5,7 @@
 #include "linking.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "open-gl.hpp"
 #include "screen.hpp"
 
 #include "SDL.h"
@@ -24,11 +25,14 @@ int main( int /*unused*/, char** /*unused*/ ) {
   try {
     try {
       linker_dont_discard_me();
-      run_all_init_routines( e_log_level::debug );
+      run_all_init_routines(
+          e_log_level::debug,
+          { e_init_routine::screen, e_init_routine::lua } );
       lua::reload();
       lua::run_startup_main();
 
-      game();
+      // game();
+      test_open_gl();
 
     } catch( exception_exit const& ) {}
 

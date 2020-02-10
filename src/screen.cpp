@@ -395,6 +395,8 @@ void cleanup_renderer() {
 REGISTER_INIT_ROUTINE( screen );
 REGISTER_INIT_ROUTINE( renderer );
 
+void* get_SDL_main_window() { return (void*)g_window; }
+
 void inc_resolution_scale() {
   int scale     = g_resolution_scale_factor.sx._;
   int old_scale = scale;
