@@ -21,7 +21,14 @@
 // OpenGL
 #define GL3_PROTOTYPES 1
 #define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
+#ifdef __APPLE__
+#  define GL_SILENCE_DEPRECATION
+#  include <OpenGL/gl3.h>
+#  define RN_GL_VIEWPORT_MULTIPLIER 2
+#else
+#  include <GL/gl.h>
+#  define RN_GL_VIEWPORT_MULTIPLIER 1
+#endif
 
 using namespace std;
 
@@ -173,6 +180,8 @@ void test_open_gl() {
 
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK,
+                         SDL_GL_CONTEXT_PROFILE_CORE );
 
   /* Turn on double buffering with a 24bit Z buffer.
    * You may need to change this to 16 or 32 for your system */
@@ -184,6 +193,11 @@ void test_open_gl() {
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
 
+  // These next two lines are needed on macOS to get the window
+  // to appear (???).
+  ::SDL_PumpEvents();
+  ::SDL_SetWindowSize( window, 512, 512 );
+
   lg.info( "OpenGL loaded:" );
   lg.info( "  * Vendor:   {}.", glGetString( GL_VENDOR ) );
   lg.info( "  * Renderer: {}.", glGetString( GL_RENDERER ) );
@@ -194,13 +208,15 @@ void test_open_gl() {
   ::SDL_GL_SetSwapInterval( 1 );
 
   // Apparently needs to change when window is resized.
-  glViewport( 0, 0, 512, 512 );
+  glViewport( 0, 0, 512 * RN_GL_VIEWPORT_MULTIPLIER,
+              512 * RN_GL_VIEWPORT_MULTIPLIER );
 
   render_triangle( window );
 
   /* Delete our opengl context, destroy our window, and shutdown
    * SDL */
   ::SDL_GL_DeleteContext( opengl_context );
+  ::SDL_DestroyWindow( window );
 }
 
 } // namespace rn
