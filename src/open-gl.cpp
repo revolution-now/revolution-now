@@ -23,11 +23,10 @@
 #define GL_GLEXT_PROTOTYPES
 #ifdef __APPLE__
 #  define GL_SILENCE_DEPRECATION
+#  include <CoreFoundation/CoreFoundation.h>
 #  include <OpenGL/gl3.h>
-#  define RN_GL_VIEWPORT_MULTIPLIER 2
 #else
 #  include <GL/gl.h>
-#  define RN_GL_VIEWPORT_MULTIPLIER 1
 #endif
 
 using namespace std;
@@ -207,9 +206,16 @@ void test_open_gl() {
    * vertical refresh */
   ::SDL_GL_SetSwapInterval( 1 );
 
+  int viewport_scale = 1;
+
+#ifdef __APPLE__
+  // Ideally need to check if we are >= OSX 10.15 and set this to
+  // two.
+  viewport_scale = 1;
+#endif
+
   // Apparently needs to change when window is resized.
-  glViewport( 0, 0, 512 * RN_GL_VIEWPORT_MULTIPLIER,
-              512 * RN_GL_VIEWPORT_MULTIPLIER );
+  glViewport( 0, 0, 512 * viewport_scale, 512 * viewport_scale );
 
   render_triangle( window );
 
