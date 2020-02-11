@@ -177,26 +177,32 @@ namespace {
 auto __rn_module_name =
     fs::path( __BASE_FILE__ ).filename().stem().string();
 
+// Use pointers to std::shared_ptr in the below (instead of just
+// std::shared_ptr) to avoid global variables with non-trivial
+// destructors and associated issues with ASan.
+
 // Create one debug console logger for each translation unit.
 // This one will send logging to the in-game console only.
-auto dbg_console_logger =
-    detail::create_dbg_console_logger( __rn_module_name );
+auto* dbg_console_logger = new std::shared_ptr<spdlog::logger>(
+    detail::create_dbg_console_logger( __rn_module_name ) );
 
 // Create one stdout color terminal logger for each translation
 // unit.
-auto terminal_logger =
-    detail::create_terminal_logger( __rn_module_name );
+auto* terminal_logger = new std::shared_ptr<spdlog::logger>(
+    detail::create_terminal_logger( __rn_module_name ) );
 
 // Create one hybrid logger for each translation unit. This one
 // will send its logging to the sinks of both the terminal logger
 // and dbg console logger so that one logging statement can log
 // to both of those at once, which is the most common use case.
-auto hybrid_logger = detail::create_hybrid_logger(
-    __rn_module_name, terminal_logger, dbg_console_logger );
+auto* hybrid_logger = new std::shared_ptr<spdlog::logger>(
+    detail::create_hybrid_logger( __rn_module_name,
+                                  *terminal_logger,
+                                  *dbg_console_logger ) );
 
 // The game's default standard logger sends output to both the
 // terminal and the in-game console.
-auto& lg = *hybrid_logger;
+auto& lg = **hybrid_logger;
 
 } // namespace
 
