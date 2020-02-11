@@ -1,7 +1,7 @@
 import os, sys, json
 import subprocess as sp
 
-files = json.loads( file( '.builds/current/compile_commands.json', 'r' ).read() )
+files = json.loads( open( '.builds/current/compile_commands.json', 'r' ).read() )
 
 flags = {}
 directories = {}
@@ -22,7 +22,7 @@ def run_cmd( cmd ):
     (stdout, stderr) = p.communicate()
     assert p.returncode == 0, \
           'error running: %s\nerror: %s' % (cmd,stderr)
-    return stdout
+    return stdout.decode( "utf-8" )
 
 # Normally when calling a compiler it has a set of built-in
 # header search paths where it looks for its standard headers
@@ -91,7 +91,7 @@ def Settings( filename, **kwargs ):
                 abs_include = os.path.abspath( os.path.join( result_dir, include ) )
                 return '-I%s' % abs_include
             return i
-        result = map( fix, result )
+        result = [fix( e ) for e in result]
 
     if is_mac():
         isystems = CompileSearchPathList()
@@ -103,4 +103,4 @@ def Settings( filename, **kwargs ):
     return { 'flags': result }
 
 if __name__ == '__main__':
-    print FlagsForFile( os.path.realpath( sys.argv[1] ) )
+    print( Settings( os.path.realpath( sys.argv[1] ) ) )
