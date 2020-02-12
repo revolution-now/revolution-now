@@ -1,2 +1,3 @@
 leak:libX11
 leak:libGLX
+leak:libpulse
