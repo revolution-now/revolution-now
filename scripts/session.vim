@@ -5,6 +5,7 @@
 let s:first = 'exe/main.cpp'
 
 let s:stems = [
+  \ 'src/open-gl',
   \ 'src/plane-ctrl',
   \ 'src/turn',
   \ 'src/land-view',
