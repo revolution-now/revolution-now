@@ -13,13 +13,6 @@ find_sdl2_lib( SDL2_mixer )
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
-find_package( OpenGL REQUIRED )
-if( NOT OPENGL_FOUND )
-  message( FATAL_ERROR "Could not find OpenGL libraries." )
-endif()
-message( STATUS "Found OpenGL libraries: ${OPENGL_LIBRARIES}" )
-message( STATUS "Found OpenGL includes:  ${OPENGL_INCLUDE_DIR}" )
-
 file( GLOB sources "[a-zA-Z]*.cpp" )
 
 add_library(
@@ -46,11 +39,11 @@ target_link_libraries(
     flatbuffers
     fmt::fmt
     function-ref
+    glad::glad
     lua::lua
     magic_enum::magic_enum
     midifile
     observer-ptr::observer-ptr
-    OpenGL::GL
     range-v3
     rtmidi
     scelta::headers

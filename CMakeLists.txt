@@ -81,6 +81,7 @@ add_subdirectory( extern/lua-5.3.5     EXCLUDE_FROM_ALL )
 add_subdirectory( extern/sol2          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/flatbuffers   EXCLUDE_FROM_ALL )
 add_subdirectory( extern/magic_enum    EXCLUDE_FROM_ALL )
+add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
 
 set( BUILD_TESTING ON ) # Catch2 will actually do this as well.
 add_subdirectory( extern/Catch2        EXCLUDE_FROM_ALL )

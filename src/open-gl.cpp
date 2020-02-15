@@ -19,15 +19,18 @@
 #include "SDL.h"
 
 // OpenGL
-#define GL3_PROTOTYPES 1
-#define GL_GLEXT_PROTOTYPES
-#ifdef __APPLE__
-#  define GL_SILENCE_DEPRECATION
-#  include <CoreFoundation/CoreFoundation.h>
-#  include <OpenGL/gl3.h>
-#else
-#  include <GL/gl.h>
-#endif
+//#define GL3_PROTOTYPES 1
+//#define GL_GLEXT_PROTOTYPES
+//#ifdef __APPLE__
+//#  define GL_SILENCE_DEPRECATION
+//#  include <CoreFoundation/CoreFoundation.h>
+//#  include <OpenGL/gl3.h>
+//#else
+//#  include <GL/gl.h>
+//#endif
+
+// GLAD (OpenGL Loader)
+#include "glad/glad.h"
 
 using namespace std;
 
@@ -53,7 +56,7 @@ char const* fragment_shader_source = R"(
   }
 )";
 
-void render_triangle( ::SDL_Window* window ) {
+void render_triangle() {
   int              success;
   constexpr size_t error_length = 512;
   char             errors[error_length];
@@ -150,11 +153,6 @@ void render_triangle( ::SDL_Window* window ) {
   glDrawArrays( GL_TRIANGLES, 0, 3 );
   glBindVertexArray( 0 );
 
-  // == Present =================================================
-
-  ::SDL_GL_SwapWindow( window );
-  ::SDL_Delay( 3000 );
-
   // == Cleanup =================================================
 
   glDeleteVertexArrays( 1, &vertex_array_object );
@@ -171,12 +169,16 @@ void render_triangle( ::SDL_Window* window ) {
 ** Testing
 *****************************************************************/
 void test_open_gl() {
+  CHECK( ::SDL_GL_LoadLibrary( nullptr ) == 0,
+         "Failed to load OpenGL library." );
+
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_OPENGL;
 
   ::SDL_Window* window = ::SDL_CreateWindow(
       "OpenGL Test", SDL_WINDOWPOS_CENTERED,
       SDL_WINDOWPOS_CENTERED, 512, 512, flags );
 
+  ::SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK,
@@ -191,6 +193,11 @@ void test_open_gl() {
   ::SDL_GLContext opengl_context =
       ::SDL_GL_CreateContext( window );
   CHECK( opengl_context );
+
+  // Doing this any earlier in the process doesn't seem to work.
+  CHECK( gladLoadGLLoader(
+             ( GLADloadproc )::SDL_GL_GetProcAddress ),
+         "Failed to initialize GLAD." );
 
   // These next two lines are needed on macOS to get the window
   // to appear (???).
@@ -214,10 +221,20 @@ void test_open_gl() {
   viewport_scale = 1;
 #endif
 
-  // Apparently needs to change when window is resized.
+  // (0,0) is the lower-left of the rendering region. NOTE: This
+  // needs to be re-called when window is resized.
   glViewport( 0, 0, 512 * viewport_scale, 512 * viewport_scale );
 
-  render_triangle( window );
+  // == Render Some Stuff =======================================
+
+  render_triangle();
+
+  // == Present =================================================
+
+  ::SDL_GL_SwapWindow( window );
+  ::SDL_Delay( 3000 );
+
+  // == Cleanup =================================================
 
   /* Delete our opengl context, destroy our window, and shutdown
    * SDL */
