@@ -56,6 +56,22 @@ char const* fragment_shader_source = R"(
   }
 )";
 
+void check_gl_errors() {
+  GLenum err_code;
+  bool   error_found = false;
+  while( true ) {
+    err_code = glGetError();
+    if( err_code == GL_NO_ERROR ) break;
+    lg.error( "OpenGL error: {}", err_code );
+    error_found = true;
+  }
+  if( error_found ) {
+    FATAL(
+        "Terminating after one or more OpenGL errors "
+        "occurred." );
+  }
+}
+
 void render_triangle() {
   int              success;
   constexpr size_t error_length = 512;
@@ -199,6 +215,8 @@ void test_open_gl() {
              ( GLADloadproc )::SDL_GL_GetProcAddress ),
          "Failed to initialize GLAD." );
 
+  check_gl_errors();
+
   // These next two lines are needed on macOS to get the window
   // to appear (???).
   ::SDL_PumpEvents();
@@ -228,6 +246,7 @@ void test_open_gl() {
   // == Render Some Stuff =======================================
 
   render_triangle();
+  check_gl_errors();
 
   // == Present =================================================
 
