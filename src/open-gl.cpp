@@ -259,6 +259,7 @@ void test_open_gl() {
    * SDL */
   ::SDL_GL_DeleteContext( opengl_context );
   ::SDL_DestroyWindow( window );
+  ::SDL_GL_UnloadLibrary();
 }
 
 } // namespace rn
