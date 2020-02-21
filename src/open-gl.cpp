@@ -12,22 +12,12 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "io.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
 
 // SDL
 #include "SDL.h"
-
-// OpenGL
-//#define GL3_PROTOTYPES 1
-//#define GL_GLEXT_PROTOTYPES
-//#ifdef __APPLE__
-//#  define GL_SILENCE_DEPRECATION
-//#  include <CoreFoundation/CoreFoundation.h>
-//#  include <OpenGL/gl3.h>
-//#else
-//#  include <GL/gl.h>
-//#endif
 
 // GLAD (OpenGL Loader)
 #include "glad/glad.h"
@@ -37,24 +27,6 @@ using namespace std;
 namespace rn {
 
 namespace {
-
-char const* vertex_shader_source = R"(
-  #version 330 core
-  layout (location = 0) in vec3 aPos;
-
-  void main() {
-    gl_Position = vec4( aPos.x, aPos.y, aPos.z, 1.0 );
-  }
-)";
-
-char const* fragment_shader_source = R"(
-  #version 330 core
-  out vec4 FragColor;
-
-  void main() {
-    FragColor = vec4( 1.0f, 0.5f, 0.2f, 1.0f );
-  }
-)";
 
 void check_gl_errors() {
   GLenum err_code;
@@ -79,9 +51,13 @@ void render_triangle() {
 
   // == Vertex Shader ===========================================
 
-  unsigned int vertex_shader;
-  vertex_shader = glCreateShader( GL_VERTEX_SHADER );
-  glShaderSource( vertex_shader, 1, &vertex_shader_source,
+  GLuint vertex_shader = glCreateShader( GL_VERTEX_SHADER );
+  ASSIGN_CHECK_XP(
+      vertex_shader_source,
+      read_file_as_string( "src/shaders/experimental.vert" ) );
+  char const* p_vertex_shader_source =
+      vertex_shader_source.c_str();
+  glShaderSource( vertex_shader, 1, &p_vertex_shader_source,
                   nullptr );
   glCompileShader( vertex_shader ); // check errors?
   // Check for compiler errors.
@@ -94,9 +70,13 @@ void render_triangle() {
 
   // == Fragment Shader =========================================
 
-  unsigned int fragment_shader;
-  fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
-  glShaderSource( fragment_shader, 1, &fragment_shader_source,
+  GLuint fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
+  ASSIGN_CHECK_XP(
+      fragment_shader_source,
+      read_file_as_string( "src/shaders/experimental.frag" ) );
+  char const* p_fragment_shader_source =
+      fragment_shader_source.c_str();
+  glShaderSource( fragment_shader, 1, &p_fragment_shader_source,
                   nullptr );
   glCompileShader( fragment_shader ); // check errors?
   // Check for compiler errors.
@@ -109,8 +89,7 @@ void render_triangle() {
 
   // == Shader Program ==========================================
 
-  unsigned int shader_program;
-  shader_program = glCreateProgram();
+  GLuint shader_program = glCreateProgram();
 
   glAttachShader( shader_program, vertex_shader );
   glAttachShader( shader_program, fragment_shader );
@@ -120,7 +99,7 @@ void render_triangle() {
   if( !success ) {
     glGetProgramInfoLog( shader_program, error_length, NULL,
                          errors );
-    FATAL( "Fragment shader linking failed: {}", errors );
+    FATAL( "Shader program linking failed: {}", errors );
   }
 
   glDeleteShader( vertex_shader );
@@ -134,7 +113,7 @@ void render_triangle() {
       0.0f,  0.5f,  0.0f  //
   };
 
-  unsigned int vertex_array_object, vertex_buffer_object;
+  GLuint vertex_array_object, vertex_buffer_object;
   glGenVertexArrays( 1, &vertex_array_object );
   glGenBuffers( 1, &vertex_buffer_object );
 
@@ -146,7 +125,7 @@ void render_triangle() {
   // Describe to OpenGL how to interpret the bytes in our ver-
   // tices array for feeding into the vertex shader.
   glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
-                         3 * sizeof( float ), (void*)0 );
+                         3 * sizeof( float ), (void*)( 0 - 0 ) );
   glEnableVertexAttribArray( 0 );
 
   // Unbind. The call to glVertexAttribPointer registered VBO as
@@ -162,6 +141,7 @@ void render_triangle() {
 
   // == Render ==================================================
 
+  // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT );
   glUseProgram( shader_program );
