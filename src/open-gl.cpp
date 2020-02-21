@@ -202,10 +202,15 @@ void test_open_gl() {
   ::SDL_PumpEvents();
   ::SDL_SetWindowSize( window, 512, 512 );
 
+  int max_texture_size = 0;
+  glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size );
+
   lg.info( "OpenGL loaded:" );
-  lg.info( "  * Vendor:   {}.", glGetString( GL_VENDOR ) );
-  lg.info( "  * Renderer: {}.", glGetString( GL_RENDERER ) );
-  lg.info( "  * Version:  {}.", glGetString( GL_VERSION ) );
+  lg.info( "  * Vendor:      {}.", glGetString( GL_VENDOR ) );
+  lg.info( "  * Renderer:    {}.", glGetString( GL_RENDERER ) );
+  lg.info( "  * Version:     {}.", glGetString( GL_VERSION ) );
+  lg.info( "  * Max Tx Size: {}x{}.", max_texture_size,
+           max_texture_size );
 
   /* This makes our buffer swap syncronized with the monitor's
    * vertical refresh */
