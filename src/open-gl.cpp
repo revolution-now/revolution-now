@@ -108,9 +108,16 @@ void render_triangle() {
   // == Vertex Array Object =====================================
 
   float vertices[] = {
-      -0.5f, -0.5f, 0.0f, //
-      0.5f,  -0.5f, 0.0f, //
-      0.0f,  0.5f,  0.0f  //
+      // clang-format off
+      // Coord               Color
+     -0.5f, -0.5f,  0.1f,    1.0f, 0.0f, 0.0f,
+      0.5f, -0.5f,  0.1f,    1.0f, 0.0f, 1.0f,
+      0.0f,  0.5f,  0.1f,    1.0f, 1.0f, 0.0f,
+
+     -0.6f, -0.6f, -0.1f,    1.0f, 1.0f, 0.0f,
+      0.4f, -0.6f, -0.1f,    0.0f, 1.0f, 0.0f,
+     -0.1f,  0.4f, -0.1f,    1.0f, 0.0f, 0.0f,
+      // clang-format on
   };
 
   GLuint vertex_array_object, vertex_buffer_object;
@@ -125,8 +132,12 @@ void render_triangle() {
   // Describe to OpenGL how to interpret the bytes in our ver-
   // tices array for feeding into the vertex shader.
   glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
-                         3 * sizeof( float ), (void*)( 0 - 0 ) );
+                         6 * sizeof( float ), (void*)0 );
   glEnableVertexAttribArray( 0 );
+  glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE,
+                         6 * sizeof( float ),
+                         (void*)( sizeof( float ) * 3 ) );
+  glEnableVertexAttribArray( 1 );
 
   // Unbind. The call to glVertexAttribPointer registered VBO as
   // the vertex attribute's bound vertex buffer object so after-
@@ -143,10 +154,10 @@ void render_triangle() {
 
   // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
-  glClear( GL_COLOR_BUFFER_BIT );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glUseProgram( shader_program );
   glBindVertexArray( vertex_array_object );
-  glDrawArrays( GL_TRIANGLES, 0, 3 );
+  glDrawArrays( GL_TRIANGLES, 0, 6 );
   glBindVertexArray( 0 );
 
   // == Cleanup =================================================
@@ -211,6 +222,8 @@ void test_open_gl() {
   lg.info( "  * Version:     {}.", glGetString( GL_VERSION ) );
   lg.info( "  * Max Tx Size: {}x{}.", max_texture_size,
            max_texture_size );
+
+  glEnable( GL_DEPTH_TEST );
 
   /* This makes our buffer swap syncronized with the monitor's
    * vertical refresh */
