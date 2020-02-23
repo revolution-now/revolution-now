@@ -110,13 +110,17 @@ void render_triangle() {
   float vertices[] = {
       // clang-format off
       // Coord               Color
-     -0.5f, -0.5f,  0.1f,    1.0f, 0.0f, 0.0f,
-      0.5f, -0.5f,  0.1f,    1.0f, 0.0f, 1.0f,
-      0.0f,  0.5f,  0.1f,    1.0f, 1.0f, 0.0f,
+     -0.5f, -0.5f,  0.0f,    1.0f, 0.0f, 0.0f,
+      0.5f, -0.5f,  0.0f,    1.0f, 0.0f, 0.0f,
+      0.0f,  0.5f,  0.0f,    1.0f, 0.0f, 0.0f,
 
-     -0.6f, -0.6f, -0.1f,    1.0f, 1.0f, 0.0f,
-      0.4f, -0.6f, -0.1f,    0.0f, 1.0f, 0.0f,
-     -0.1f,  0.4f, -0.1f,    1.0f, 0.0f, 0.0f,
+     -0.6f, -0.6f,  0.0f,    0.0f, 1.0f, 0.0f,
+      0.4f, -0.6f,  0.0f,    0.0f, 1.0f, 0.0f,
+     -0.1f,  0.4f,  0.0f,    0.0f, 1.0f, 0.0f,
+
+     -0.7f, -0.7f,  0.0f,    0.0f, 0.0f, 1.0f,
+      0.3f, -0.7f,  0.0f,    0.0f, 0.0f, 1.0f,
+     -0.2f,  0.3f,  0.0f,    0.0f, 0.0f, 1.0f,
       // clang-format on
   };
 
@@ -157,7 +161,7 @@ void render_triangle() {
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glUseProgram( shader_program );
   glBindVertexArray( vertex_array_object );
-  glDrawArrays( GL_TRIANGLES, 0, 6 );
+  glDrawArrays( GL_TRIANGLES, 0, 9 );
   glBindVertexArray( 0 );
 
   // == Cleanup =================================================
@@ -224,6 +228,7 @@ void test_open_gl() {
            max_texture_size );
 
   glEnable( GL_DEPTH_TEST );
+  glDepthFunc( GL_LEQUAL );
 
   /* This makes our buffer swap syncronized with the monitor's
    * vertical refresh */
