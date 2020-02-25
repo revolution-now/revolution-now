@@ -63,6 +63,6 @@ void    set_fullscreen( bool fullscreen );
 bool toggle_fullscreen();
 void restore_window();
 
-void* get_SDL_main_window();
+void* main_os_window_handle();
 
 } // namespace rn

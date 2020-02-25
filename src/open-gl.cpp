@@ -46,6 +46,33 @@ void check_gl_errors() {
   }
 }
 
+GLuint load_texture( fs::path const& p ) {
+  auto           img = Surface::load_image( p.string().c_str() );
+  ::SDL_Surface* surface = ( ::SDL_Surface*)img.get();
+  // Make sure we have RGBA.
+  CHECK( surface->format->BytesPerPixel == 4 );
+
+  GLuint opengl_texture = 0;
+  glGenTextures( 1, &opengl_texture );
+  glBindTexture( GL_TEXTURE_2D, opengl_texture );
+
+  // Configure how OpenGL maps coordinate to texture pixel.
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                   GL_NEAREST );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                   GL_NEAREST );
+
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                   GL_CLAMP_TO_EDGE );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                   GL_CLAMP_TO_EDGE );
+
+  glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w,
+                surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                surface->pixels );
+  return opengl_texture;
+}
+
 void render_triangle() {
   int              success;
   constexpr size_t error_length = 512;
@@ -112,7 +139,7 @@ void render_triangle() {
   float vertices[] = {
       // clang-format off
       // Coord              Color                     Tx Coords
-     -0.4f, -0.4f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+     -0.4f, -1.0f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
       0.8f, -0.4f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
       0.2f,  0.6f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
 
@@ -172,29 +199,8 @@ void render_triangle() {
 
   // == Texture =================================================
 
-  auto img =
-      Surface::load_image( "assets/art/tiles/wood-128x64.png" );
-  ::SDL_Surface* surface = ( ::SDL_Surface*)img.get();
-  // Make sure we have RGBA.
-  CHECK( surface->format->BytesPerPixel == 4 );
-
-  constexpr auto tx_type = GL_TEXTURE_2D;
-
-  GLuint opengl_texture = 0;
-  glGenTextures( 1, &opengl_texture );
-  glBindTexture( tx_type, opengl_texture );
-
-  // Configure how OpenGL maps coordinate to texture pixel.
-  glTexParameteri( tx_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-  glTexParameteri( tx_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-
-  glTexParameteri( tx_type, GL_TEXTURE_WRAP_S,
-                   GL_CLAMP_TO_EDGE );
-  glTexParameteri( tx_type, GL_TEXTURE_WRAP_T,
-                   GL_CLAMP_TO_EDGE );
-
-  glTexImage2D( tx_type, 0, GL_RGBA, surface->w, surface->h, 0,
-                GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels );
+  GLuint opengl_texture =
+      load_texture( "assets/art/tiles/wood-128x64.png" );
 
   // == Render ==================================================
 
@@ -202,6 +208,7 @@ void render_triangle() {
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glUseProgram( shader_program );
+  glBindTexture( GL_TEXTURE_2D, opengl_texture );
   glBindVertexArray( vertex_array_object );
   glDrawArrays( GL_TRIANGLES, 0, num_rows );
   glBindVertexArray( 0 );
@@ -225,11 +232,9 @@ void test_open_gl() {
   CHECK( ::SDL_GL_LoadLibrary( nullptr ) == 0,
          "Failed to load OpenGL library." );
 
-  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_OPENGL;
-
-  ::SDL_Window* window = ::SDL_CreateWindow(
-      "OpenGL Test", SDL_WINDOWPOS_CENTERED,
-      SDL_WINDOWPOS_CENTERED, 512, 512, flags );
+  ::SDL_Window* window =
+      static_cast<::SDL_Window*>( main_os_window_handle() );
+  auto win_size = main_window_physical_size();
 
   ::SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
   ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
@@ -254,10 +259,12 @@ void test_open_gl() {
 
   check_gl_errors();
 
-  // These next two lines are needed on macOS to get the window
-  // to appear (???).
+  // These next lines are needed on macOS to get the window to
+  // appear (???).
   ::SDL_PumpEvents();
-  ::SDL_SetWindowSize( window, 512, 512 );
+  ::SDL_DisplayMode display_mode;
+  ::SDL_GetWindowDisplayMode( window, &display_mode );
+  ::SDL_SetWindowDisplayMode( window, &display_mode );
 
   int max_texture_size = 0;
   glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size );
@@ -290,7 +297,8 @@ void test_open_gl() {
 
   // (0,0) is the lower-left of the rendering region. NOTE: This
   // needs to be re-called when window is resized.
-  glViewport( 0, 0, 512 * viewport_scale, 512 * viewport_scale );
+  glViewport( 0, 0, win_size.w._ * viewport_scale,
+              win_size.h._ * viewport_scale );
 
   // == Render Some Stuff =======================================
 
@@ -307,7 +315,6 @@ void test_open_gl() {
   /* Delete our opengl context, destroy our window, and shutdown
    * SDL */
   ::SDL_GL_DeleteContext( opengl_context );
-  ::SDL_DestroyWindow( window );
   ::SDL_GL_UnloadLibrary();
 }
 

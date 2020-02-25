@@ -284,7 +284,8 @@ void init_screen() {
   find_pixel_scale_factor();
 
   auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
-               ::SDL_WINDOW_FULLSCREEN_DESKTOP;
+               ::SDL_WINDOW_FULLSCREEN_DESKTOP |
+               ::SDL_WINDOW_OPENGL;
 
   auto dm = current_display_mode().size;
 
@@ -400,7 +401,7 @@ void cleanup_renderer() {
 REGISTER_INIT_ROUTINE( screen );
 REGISTER_INIT_ROUTINE( renderer );
 
-void* get_SDL_main_window() { return (void*)g_window; }
+void* main_os_window_handle() { return (void*)g_window; }
 
 void inc_resolution_scale() {
   int scale     = g_resolution_scale_factor.sx._;
