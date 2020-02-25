@@ -178,19 +178,23 @@ void render_triangle() {
   // Make sure we have RGBA.
   CHECK( surface->format->BytesPerPixel == 4 );
 
+  constexpr auto tx_type = GL_TEXTURE_2D;
+
   GLuint opengl_texture = 0;
   glGenTextures( 1, &opengl_texture );
-  glBindTexture( GL_TEXTURE_2D, opengl_texture );
+  glBindTexture( tx_type, opengl_texture );
 
   // Configure how OpenGL maps coordinate to texture pixel.
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                   GL_NEAREST );
-  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                   GL_NEAREST );
+  glTexParameteri( tx_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+  glTexParameteri( tx_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 
-  glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w,
-                surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                surface->pixels );
+  glTexParameteri( tx_type, GL_TEXTURE_WRAP_S,
+                   GL_CLAMP_TO_EDGE );
+  glTexParameteri( tx_type, GL_TEXTURE_WRAP_T,
+                   GL_CLAMP_TO_EDGE );
+
+  glTexImage2D( tx_type, 0, GL_RGBA, surface->w, surface->h, 0,
+                GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels );
 
   // == Render ==================================================
 
