@@ -296,7 +296,7 @@ void test_open_gl() {
   // == Present =================================================
 
   ::SDL_GL_SwapWindow( window );
-  while( !input::is_any_key_down() ) {}
+  while( !input::is_any_key_down() ) { ::SDL_Delay( 100 ); }
 
   // == Cleanup =================================================
 
