@@ -10,9 +10,16 @@
 *****************************************************************/
 #version 330 core
 
-in  vec3 frag_color;
+in  vec4 frag_color;
+in  vec2 tx_coord;
+
+uniform sampler2D tx;
+
 out vec4 FragColor;
 
 void main() {
-  FragColor = vec4( frag_color, 1.0f );
+  if( frag_color == vec4( 0.0 ) )
+    FragColor = texture( tx, tx_coord );
+  else
+    FragColor = frag_color;
 }

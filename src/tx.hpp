@@ -53,6 +53,9 @@ public:
 
   ~Surface();
 
+  void const* get() const { return sf_; }
+  void*       get() { return sf_; }
+
   void free();
 
   // For convenience.
@@ -100,6 +103,9 @@ public:
   Texture& operator=( Texture&& rhs ) noexcept;
 
   ~Texture();
+
+  void const* get() const { return tx_; }
+  void*       get() { return tx_; }
 
   // NOTE: this will NOT compare the contents of the textures, it
   // will return `false` if the textures are different objects,

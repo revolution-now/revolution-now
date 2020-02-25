@@ -12,9 +12,11 @@
 
 // Revolution Now
 #include "errors.hpp"
+#include "input.hpp"
 #include "io.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
+#include "tx.hpp"
 
 // SDL
 #include "SDL.h"
@@ -109,20 +111,29 @@ void render_triangle() {
 
   float vertices[] = {
       // clang-format off
-      // Coord               Color
-     -0.5f, -0.5f,  0.0f,    1.0f, 0.0f, 0.0f,
-      0.5f, -0.5f,  0.0f,    1.0f, 0.0f, 0.0f,
-      0.0f,  0.5f,  0.0f,    1.0f, 0.0f, 0.0f,
+      // Coord              Color                     Tx Coords
+     -0.4f, -0.4f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+      0.8f, -0.4f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+      0.2f,  0.6f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
 
-     -0.6f, -0.6f,  0.0f,    0.0f, 1.0f, 0.0f,
-      0.4f, -0.6f,  0.0f,    0.0f, 1.0f, 0.0f,
-     -0.1f,  0.4f,  0.0f,    0.0f, 1.0f, 0.0f,
+     -0.6f, -0.5f,  0.0f,   0.0f, 0.0f, 0.0f, 0.0f,   0.0f, 0.5f,
+      0.6f, -0.5f,  0.0f,   0.0f, 0.0f, 0.0f, 0.0f,   1.0f, 0.5f,
+      0.0f,  0.5f,  0.0f,   0.0f, 0.0f, 0.0f, 0.0f,   0.5f, 1.0f,
 
-     -0.7f, -0.7f,  0.0f,    0.0f, 0.0f, 1.0f,
-      0.3f, -0.7f,  0.0f,    0.0f, 0.0f, 1.0f,
-     -0.2f,  0.3f,  0.0f,    0.0f, 0.0f, 1.0f,
+     -0.8f, -0.6f,  0.0f,   0.0f, 0.0f, 1.0f, 0.5f,   0.0f, 0.0f,
+      0.4f, -0.6f,  0.0f,   0.0f, 0.0f, 1.0f, 0.5f,   0.0f, 0.0f,
+     -0.2f,  0.4f,  0.0f,   0.0f, 0.0f, 1.0f, 0.5f,   0.0f, 0.0f,
       // clang-format on
   };
+
+  size_t num_columns = 9;
+  size_t num_rows    = 9;
+
+  // Flip y coordinates of textures for OpenGL.
+  for( size_t row = 0; row < num_rows; ++row ) {
+    float& tx_y = vertices[row * num_columns + 8];
+    tx_y        = 1.0f - tx_y;
+  }
 
   GLuint vertex_array_object, vertex_buffer_object;
   glGenVertexArrays( 1, &vertex_array_object );
@@ -136,12 +147,17 @@ void render_triangle() {
   // Describe to OpenGL how to interpret the bytes in our ver-
   // tices array for feeding into the vertex shader.
   glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
-                         6 * sizeof( float ), (void*)0 );
+                         num_columns * sizeof( float ),
+                         (void*)0 );
   glEnableVertexAttribArray( 0 );
-  glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE,
-                         6 * sizeof( float ),
+  glVertexAttribPointer( 1, 4, GL_FLOAT, GL_FALSE,
+                         num_columns * sizeof( float ),
                          (void*)( sizeof( float ) * 3 ) );
   glEnableVertexAttribArray( 1 );
+  glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE,
+                         num_columns * sizeof( float ),
+                         (void*)( sizeof( float ) * 7 ) );
+  glEnableVertexAttribArray( 2 );
 
   // Unbind. The call to glVertexAttribPointer registered VBO as
   // the vertex attribute's bound vertex buffer object so after-
@@ -154,6 +170,28 @@ void render_triangle() {
   // not directly necessary.
   glBindVertexArray( 0 );
 
+  // == Texture =================================================
+
+  auto img =
+      Surface::load_image( "assets/art/tiles/wood-128x64.png" );
+  ::SDL_Surface* surface = ( ::SDL_Surface*)img.get();
+  // Make sure we have RGBA.
+  CHECK( surface->format->BytesPerPixel == 4 );
+
+  GLuint opengl_texture = 0;
+  glGenTextures( 1, &opengl_texture );
+  glBindTexture( GL_TEXTURE_2D, opengl_texture );
+
+  // Configure how OpenGL maps coordinate to texture pixel.
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                   GL_NEAREST );
+  glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                   GL_NEAREST );
+
+  glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, surface->w,
+                surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                surface->pixels );
+
   // == Render ==================================================
 
   // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
@@ -161,7 +199,7 @@ void render_triangle() {
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glUseProgram( shader_program );
   glBindVertexArray( vertex_array_object );
-  glDrawArrays( GL_TRIANGLES, 0, 9 );
+  glDrawArrays( GL_TRIANGLES, 0, num_rows );
   glBindVertexArray( 0 );
 
   // == Cleanup =================================================
@@ -230,6 +268,10 @@ void test_open_gl() {
   glEnable( GL_DEPTH_TEST );
   glDepthFunc( GL_LEQUAL );
 
+  // Without this, alpha blending won't happen.
+  glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+  glEnable( GL_BLEND );
+
   /* This makes our buffer swap syncronized with the monitor's
    * vertical refresh */
   ::SDL_GL_SetSwapInterval( 1 );
@@ -254,7 +296,7 @@ void test_open_gl() {
   // == Present =================================================
 
   ::SDL_GL_SwapWindow( window );
-  ::SDL_Delay( 3000 );
+  while( !input::is_any_key_down() ) {}
 
   // == Cleanup =================================================
 
