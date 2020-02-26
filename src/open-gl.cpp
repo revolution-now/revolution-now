@@ -172,9 +172,6 @@ void draw_sprite( OpenGLObjects* gl_objects,
 
   constexpr size_t num_columns = 5;
 
-  glGenVertexArrays( 1, &gl_objects->vertex_array_object );
-  glGenBuffers( 1, &gl_objects->vertex_buffer_object );
-
   glBindVertexArray( gl_objects->vertex_array_object );
 
   glBindBuffer( GL_ARRAY_BUFFER,
@@ -220,19 +217,22 @@ void draw_sprite( OpenGLObjects* gl_objects,
 OpenGLObjects init_opengl() {
   fs::path shaders = "src/shaders";
 
-  OpenGLObjects res;
+  OpenGLObjects gl_objects;
 
-  res.shader_program =
+  gl_objects.shader_program =
       load_shader_pgrm( shaders / "experimental.vert",
                         shaders / "experimental.frag" );
 
-  res.screen_size_location =
-      glGetUniformLocation( res.shader_program, "screen_size" );
+  gl_objects.screen_size_location = glGetUniformLocation(
+      gl_objects.shader_program, "screen_size" );
 
-  res.opengl_texture =
+  gl_objects.opengl_texture =
       load_texture( "assets/art/tiles/world.png" );
 
-  return res;
+  glGenVertexArrays( 1, &gl_objects.vertex_array_object );
+  glGenBuffers( 1, &gl_objects.vertex_buffer_object );
+
+  return gl_objects;
 }
 
 } // namespace
