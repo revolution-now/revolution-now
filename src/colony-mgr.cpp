@@ -63,7 +63,7 @@ expect<> check_colony_invariants_safe( ColonyId id ) {
     auto unit_id = p.first;
     if( state_for_unit( unit_id ) != e_unit_state::colony )
       return UNEXPECTED(
-          "Unit {} in Colony {} is not owned by colony.",
+          "{} in Colony {} is not owned by colony.",
           debug_string( unit_id ), colony );
   }
 

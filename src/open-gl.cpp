@@ -332,6 +332,10 @@ void test_open_gl() {
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+  lg.info( "=================================================" );
+  lg.info( "OpenGL Performance Test" );
+  lg.info( "=================================================" );
+  lg.info( "running..." );
   auto start_time   = Clock_t::now();
   bool have_swapped = false;
   while( !input::is_q_down() ) {
@@ -343,6 +347,7 @@ void test_open_gl() {
     }
     //::SDL_Delay( 100 );
   }
+  lg.info( "=================================================" );
   auto end_time   = Clock_t::now();
   auto delta_time = end_time - start_time;
   lg.info( "Total time: {}.", delta_time );
@@ -352,6 +357,7 @@ void test_open_gl() {
   lg.info( "Max frame rate: {}.", max_fps );
   lg.info( "Allowed draw calls per 60Hz frame: {:.2f}.",
            max_fps / 60.0 );
+  lg.info( "=================================================" );
 
   // == Cleanup =================================================
 

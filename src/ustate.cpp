@@ -477,7 +477,7 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
       return;
     }
   }
-  FATAL( "Unit {} cannot be placed in unit {}'s cargo: {}",
+  FATAL( "{} cannot be placed in {}'s cargo: {}",
          debug_string( held ), debug_string( new_holder ),
          cargo );
 }

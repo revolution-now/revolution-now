@@ -142,7 +142,7 @@ void unit_sail_to_old_world( UnitId id ) {
   }
   if( maybe_state && target_state == maybe_state->get() ) //
     return;
-  lg.info( "setting unit {} to state {}", debug_string( id ),
+  lg.info( "setting {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a europort state here.
   ustate_change_to_euro_port_view( id, target_state );
@@ -179,7 +179,7 @@ void unit_sail_to_new_world( UnitId id ) {
   }
   if( maybe_state && target_state == maybe_state->get() ) //
     return;
-  lg.info( "setting unit {} to state {}", debug_string( id ),
+  lg.info( "setting {} to state {}", debug_string( id ),
            target_state );
   // Note: unit may already be in a europort state here.
   ustate_change_to_euro_port_view( id, target_state );
