@@ -73,7 +73,8 @@ GLuint load_texture( fs::path const& p ) {
   return opengl_texture;
 }
 
-void render_triangle() {
+GLuint load_shader_pgrm( fs::path const& vert,
+                         fs::path const& frag ) {
   int              success;
   constexpr size_t error_length = 512;
   char             errors[error_length];
@@ -81,9 +82,8 @@ void render_triangle() {
   // == Vertex Shader ===========================================
 
   GLuint vertex_shader = glCreateShader( GL_VERTEX_SHADER );
-  ASSIGN_CHECK_XP(
-      vertex_shader_source,
-      read_file_as_string( "src/shaders/experimental.vert" ) );
+  ASSIGN_CHECK_XP( vertex_shader_source,
+                   read_file_as_string( vert ) );
   char const* p_vertex_shader_source =
       vertex_shader_source.c_str();
   glShaderSource( vertex_shader, 1, &p_vertex_shader_source,
@@ -100,9 +100,8 @@ void render_triangle() {
   // == Fragment Shader =========================================
 
   GLuint fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
-  ASSIGN_CHECK_XP(
-      fragment_shader_source,
-      read_file_as_string( "src/shaders/experimental.frag" ) );
+  ASSIGN_CHECK_XP( fragment_shader_source,
+                   read_file_as_string( frag ) );
   char const* p_fragment_shader_source =
       fragment_shader_source.c_str();
   glShaderSource( fragment_shader, 1, &p_fragment_shader_source,
@@ -134,22 +133,37 @@ void render_triangle() {
   glDeleteShader( vertex_shader );
   glDeleteShader( fragment_shader );
 
+  return shader_program;
+}
+
+void init_opengl( Delta const& screen_delta ) {
+  fs::path shaders = "src/shaders";
+
+  auto shader_program =
+      load_shader_pgrm( shaders / "experimental.vert",
+                        shaders / "experimental.frag" );
+
+  // == Uniforms ================================================
+
+  GLuint screen_size_location =
+      glGetUniformLocation( shader_program, "screen_size" );
+
   // == Vertex Array Object =====================================
 
   float vertices[] = {
       // clang-format off
       // Coord              Color                     Tx Coords
-     -0.4f, -1.0f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-      0.8f, -0.4f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-      0.2f,  0.6f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+      100,  100,  0.0,   1.0, 0.0, 0.0, 1.0,   0.0, 0.0,
+       50,  200,  0.0,   1.0, 0.0, 0.0, 1.0,   0.0, 0.0,
+      150,  200,  0.0,   1.0, 0.0, 0.0, 1.0,   0.0, 0.0,
 
-     -0.6f, -0.5f,  0.0f,   0.0f, 0.0f, 0.0f, 0.0f,   0.0f, 0.5f,
-      0.6f, -0.5f,  0.0f,   0.0f, 0.0f, 0.0f, 0.0f,   1.0f, 0.5f,
-      0.0f,  0.5f,  0.0f,   0.0f, 0.0f, 0.0f, 0.0f,   0.5f, 1.0f,
+      100,  150,  0.0,   0.0, 0.0, 0.0, 0.0,   0.5, 1.0,
+       50,  250,  0.0,   0.0, 0.0, 0.0, 0.0,   1.0, 0.5,
+      150,  250,  0.0,   0.0, 0.0, 0.0, 0.0,   0.0, 0.5,
 
-     -0.8f, -0.6f,  0.0f,   0.0f, 0.0f, 1.0f, 0.5f,   0.0f, 0.0f,
-      0.4f, -0.6f,  0.0f,   0.0f, 0.0f, 1.0f, 0.5f,   0.0f, 0.0f,
-     -0.2f,  0.4f,  0.0f,   0.0f, 0.0f, 1.0f, 0.5f,   0.0f, 0.0f,
+      100,  200,  0.0,   0.0, 0.0, 1.0, 0.5,   0.0, 0.0,
+       50,  300,  0.0,   0.0, 0.0, 1.0, 0.5,   0.0, 0.0,
+      150,  300,  0.0,   0.0, 0.0, 1.0, 0.5,   0.0, 0.0,
       // clang-format on
   };
 
@@ -208,6 +222,8 @@ void render_triangle() {
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glUseProgram( shader_program );
+  glUniform2f( screen_size_location, float( screen_delta.w._ ),
+               float( screen_delta.h._ ) );
   glBindTexture( GL_TEXTURE_2D, opengl_texture );
   glBindVertexArray( vertex_array_object );
   glDrawArrays( GL_TRIANGLES, 0, num_rows );
@@ -302,7 +318,7 @@ void test_open_gl() {
 
   // == Render Some Stuff =======================================
 
-  render_triangle();
+  init_opengl( main_window_logical_size() );
   check_gl_errors();
 
   // == Present =================================================
