@@ -308,7 +308,7 @@ void test_open_gl() {
 #ifdef __APPLE__
   // Ideally need to check if we are >= OSX 10.15 and set this to
   // two.
-  viewport_scale = 1;
+  viewport_scale = 2;
 #endif
 
   // (0,0) is the lower-left of the rendering region. NOTE: This
