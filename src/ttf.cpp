@@ -105,7 +105,7 @@ void init_ttf() {
   ::SDL_version        compiled_version;
   ::SDL_version const* link_version = ::TTF_Linked_Version();
   SDL_TTF_VERSION( &compiled_version );
-  check_SDL_compile_link_version( "TTF", link_version,
+  check_SDL_compile_link_version( "TTF", *link_version,
                                   compiled_version );
 
   for( auto& font : loaded_fonts() ) {

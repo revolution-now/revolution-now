@@ -30,7 +30,7 @@ namespace rn {
 // minor version is different.
 void check_SDL_compile_link_version(
     std::string_view     module_name,
-    ::SDL_version const* link_version,
+    ::SDL_version const& link_version,
     ::SDL_version const& compiled_version );
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
