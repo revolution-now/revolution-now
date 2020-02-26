@@ -136,53 +136,49 @@ GLuint load_shader_pgrm( fs::path const& vert,
   return shader_program;
 }
 
-void init_opengl( Delta const& screen_delta ) {
-  fs::path shaders = "src/shaders";
+struct OpenGLObjects {
+  GLuint shader_program;
+  GLuint screen_size_location;
+  GLuint vertex_array_object;
+  GLuint vertex_buffer_object;
+  GLuint opengl_texture;
+};
 
-  auto shader_program =
-      load_shader_pgrm( shaders / "experimental.vert",
-                        shaders / "experimental.frag" );
+void draw_sprite( OpenGLObjects* gl_objects,
+                  Delta const&   screen_delta,
+                  Coord const&   coord ) {
+  float sheet_w = 256.0;
+  float sheet_h = 192.0;
 
-  // == Uniforms ================================================
+  float tx_ox = 0.0 / sheet_w;
+  float tx_oy = 32.0 * 4 / sheet_h;
+  float tx_dx = 32.0 / sheet_w;
+  float tx_dy = 32.0 / sheet_h;
 
-  GLuint screen_size_location =
-      glGetUniformLocation( shader_program, "screen_size" );
+  float z = 0.0;
 
-  // == Vertex Array Object =====================================
-
+  // clang-format off
   float vertices[] = {
-      // clang-format off
-      // Coord              Color                     Tx Coords
-      100,  100,  0.0,   1.0, 0.0, 0.0, 1.0,   0.0, 0.0,
-       50,  200,  0.0,   1.0, 0.0, 0.0, 1.0,   0.0, 0.0,
-      150,  200,  0.0,   1.0, 0.0, 0.0, 1.0,   0.0, 0.0,
+    // Coord                                             Tx Coords
+    float(coord.x._),       float(coord.y._),       z,   tx_ox,       tx_oy,
+    float(coord.x._)+32.0f, float(coord.y._),       z,   tx_ox+tx_dx, tx_oy,
+    float(coord.x._),       float(coord.y._)+32.0f, z,   tx_ox,       tx_oy+tx_dy,
 
-      100,  150,  0.0,   0.0, 0.0, 0.0, 0.0,   0.5, 1.0,
-       50,  250,  0.0,   0.0, 0.0, 0.0, 0.0,   1.0, 0.5,
-      150,  250,  0.0,   0.0, 0.0, 0.0, 0.0,   0.0, 0.5,
-
-      100,  200,  0.0,   0.0, 0.0, 1.0, 0.5,   0.0, 0.0,
-       50,  300,  0.0,   0.0, 0.0, 1.0, 0.5,   0.0, 0.0,
-      150,  300,  0.0,   0.0, 0.0, 1.0, 0.5,   0.0, 0.0,
-      // clang-format on
+    float(coord.x._)+32.0f, float(coord.y._),       z,   tx_ox+tx_dx, tx_oy,
+    float(coord.x._)+32.0f, float(coord.y._)+32.0f, z,   tx_ox+tx_dx, tx_oy+tx_dy,
+    float(coord.x._),       float(coord.y._)+32.0f, z,   tx_ox,       tx_oy+tx_dy,
   };
+  // clang-format on
 
-  size_t num_columns = 9;
-  size_t num_rows    = 9;
+  constexpr size_t num_columns = 5;
 
-  // Flip y coordinates of textures for OpenGL.
-  for( size_t row = 0; row < num_rows; ++row ) {
-    float& tx_y = vertices[row * num_columns + 8];
-    tx_y        = 1.0f - tx_y;
-  }
+  glGenVertexArrays( 1, &gl_objects->vertex_array_object );
+  glGenBuffers( 1, &gl_objects->vertex_buffer_object );
 
-  GLuint vertex_array_object, vertex_buffer_object;
-  glGenVertexArrays( 1, &vertex_array_object );
-  glGenBuffers( 1, &vertex_buffer_object );
+  glBindVertexArray( gl_objects->vertex_array_object );
 
-  glBindVertexArray( vertex_array_object );
-
-  glBindBuffer( GL_ARRAY_BUFFER, vertex_buffer_object );
+  glBindBuffer( GL_ARRAY_BUFFER,
+                gl_objects->vertex_buffer_object );
   glBufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices,
                 GL_STATIC_DRAW );
   // Describe to OpenGL how to interpret the bytes in our ver-
@@ -191,14 +187,10 @@ void init_opengl( Delta const& screen_delta ) {
                          num_columns * sizeof( float ),
                          (void*)0 );
   glEnableVertexAttribArray( 0 );
-  glVertexAttribPointer( 1, 4, GL_FLOAT, GL_FALSE,
+  glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE,
                          num_columns * sizeof( float ),
                          (void*)( sizeof( float ) * 3 ) );
   glEnableVertexAttribArray( 1 );
-  glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE,
-                         num_columns * sizeof( float ),
-                         (void*)( sizeof( float ) * 7 ) );
-  glEnableVertexAttribArray( 2 );
 
   // Unbind. The call to glVertexAttribPointer registered VBO as
   // the vertex attribute's bound vertex buffer object so after-
@@ -211,28 +203,36 @@ void init_opengl( Delta const& screen_delta ) {
   // not directly necessary.
   glBindVertexArray( 0 );
 
-  // == Texture =================================================
-
-  GLuint opengl_texture =
-      load_texture( "assets/art/tiles/wood-128x64.png" );
-
-  // == Render ==================================================
-
   // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-  glUseProgram( shader_program );
-  glUniform2f( screen_size_location, float( screen_delta.w._ ),
+  glUseProgram( gl_objects->shader_program );
+  glUniform2f( gl_objects->screen_size_location,
+               float( screen_delta.w._ ),
                float( screen_delta.h._ ) );
-  glBindTexture( GL_TEXTURE_2D, opengl_texture );
-  glBindVertexArray( vertex_array_object );
+  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
+  glBindVertexArray( gl_objects->vertex_array_object );
+  size_t num_rows = sizeof( vertices ) / num_columns;
   glDrawArrays( GL_TRIANGLES, 0, num_rows );
   glBindVertexArray( 0 );
+}
 
-  // == Cleanup =================================================
+OpenGLObjects init_opengl() {
+  fs::path shaders = "src/shaders";
 
-  glDeleteVertexArrays( 1, &vertex_array_object );
-  glDeleteBuffers( 1, &vertex_buffer_object );
+  OpenGLObjects res;
+
+  res.shader_program =
+      load_shader_pgrm( shaders / "experimental.vert",
+                        shaders / "experimental.frag" );
+
+  res.screen_size_location =
+      glGetUniformLocation( res.shader_program, "screen_size" );
+
+  res.opengl_texture =
+      load_texture( "assets/art/tiles/world.png" );
+
+  return res;
 }
 
 } // namespace
@@ -316,20 +316,43 @@ void test_open_gl() {
   glViewport( 0, 0, win_size.w._ * viewport_scale,
               win_size.h._ * viewport_scale );
 
+  // Disable wait-for-vsync (FIXME: only for testing).
+  CHECK( !::SDL_GL_SetSwapInterval( 0 ),
+         "setting swap interval is not supported." );
+
   // == Render Some Stuff =======================================
 
-  init_opengl( main_window_logical_size() );
+  OpenGLObjects gl_objects = init_opengl();
   check_gl_errors();
 
-  // == Present =================================================
+  // == Render ==================================================
 
-  ::SDL_GL_SwapWindow( window );
-  while( !input::is_any_key_down() ) { ::SDL_Delay( 100 ); }
+  auto screen_delta = main_window_logical_size();
+
+  long frames = 0;
+
+  auto start_time = Clock_t::now();
+  while( !input::is_q_down() ) {
+    draw_sprite( &gl_objects, screen_delta, { 0_x, 100_y } );
+    ::SDL_GL_SwapWindow( window );
+    ++frames;
+    //::SDL_Delay( 100 );
+  }
+  auto end_time   = Clock_t::now();
+  auto delta_time = end_time - start_time;
+  lg.info( "Total time: {}.", delta_time );
+  auto secs =
+      chrono::duration_cast<chrono::seconds>( delta_time );
+  lg.info( "Average frame rate: {}.",
+           frames / double( secs.count() ) );
 
   // == Cleanup =================================================
 
-  /* Delete our opengl context, destroy our window, and shutdown
-   * SDL */
+  glDeleteTextures( 1, &gl_objects.opengl_texture );
+  glDeleteVertexArrays( 1, &gl_objects.vertex_array_object );
+  glDeleteBuffers( 1, &gl_objects.vertex_buffer_object );
+  glDeleteProgram( gl_objects.shader_program );
+
   ::SDL_GL_DeleteContext( opengl_context );
   ::SDL_GL_UnloadLibrary();
 }

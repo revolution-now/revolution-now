@@ -345,20 +345,25 @@ auto to_string_colons(
   using namespace std::literals::chrono_literals;
   std::string res; // should use small-string optimization.
   auto        d = duration;
+
+  bool has_hour_or_minute = false;
   if( d > 1h ) {
     auto hrs = duration_cast<hours>( d );
     res += fmt::format( "{:0>2}", hrs.count() );
     res += ':';
     d -= hrs;
+    has_hour_or_minute = true;
   }
   if( d > 1min ) {
     auto mins = duration_cast<minutes>( d );
     res += fmt::format( "{:0>2}", mins.count() );
     res += ':';
     d -= mins;
+    has_hour_or_minute = true;
   }
   auto secs = duration_cast<seconds>( d );
   res += fmt::format( "{:0>2}", secs.count() );
+  if( !has_hour_or_minute ) res += 's';
   return res;
 }
 
