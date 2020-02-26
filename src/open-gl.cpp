@@ -201,8 +201,6 @@ void draw_sprite( OpenGLObjects* gl_objects,
   glBindVertexArray( 0 );
 
   // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-  glClearColor( 0.2, 0.3, 0.3, 1.0 );
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
   glUseProgram( gl_objects->shader_program );
   glUniform2f( gl_objects->screen_size_location,
                float( screen_delta.w._ ),
@@ -331,11 +329,18 @@ void test_open_gl() {
 
   long frames = 0;
 
-  auto start_time = Clock_t::now();
+  glClearColor( 0.2, 0.3, 0.3, 1.0 );
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  auto start_time   = Clock_t::now();
+  bool have_swapped = false;
   while( !input::is_q_down() ) {
-    draw_sprite( &gl_objects, screen_delta, { 0_x, 100_y } );
-    ::SDL_GL_SwapWindow( window );
     ++frames;
+    draw_sprite( &gl_objects, screen_delta, { 0_x, 100_y } );
+    if( !have_swapped ) {
+      ::SDL_GL_SwapWindow( window );
+      have_swapped = true;
+    }
     //::SDL_Delay( 100 );
   }
   auto end_time   = Clock_t::now();
@@ -343,8 +348,10 @@ void test_open_gl() {
   lg.info( "Total time: {}.", delta_time );
   auto secs =
       chrono::duration_cast<chrono::seconds>( delta_time );
-  lg.info( "Average frame rate: {}.",
-           frames / double( secs.count() ) );
+  double max_fps = frames / double( secs.count() );
+  lg.info( "Max frame rate: {}.", max_fps );
+  lg.info( "Allowed draw calls per 60Hz frame: {:.2f}.",
+           max_fps / 60.0 );
 
   // == Cleanup =================================================
 
