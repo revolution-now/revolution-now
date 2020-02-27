@@ -61,7 +61,7 @@ Lenovo:
   OS..............: Debian
   Release:                Debug:                  % (D/R)
     SDL...........: 48      SDL...........: 17    35.4
-    SDL opt.......:         SDL opt.......:
+    SDL opt.......: 57      SDL opt.......: 54
     OGL Batched...: 161     OGL Batched...: 53    32.9
     OGL Unbatched.: 10      OGL Unbatched.: 8     80.0
     -----------------------------------------------------
