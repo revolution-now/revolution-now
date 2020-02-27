@@ -22,18 +22,22 @@ void game() { frame_loop(); }
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) {
+  bool do_game = false;
   try {
     try {
       linker_dont_discard_me();
-      run_all_init_routines(
-          e_log_level::debug,
-          { e_init_routine::screen, e_init_routine::lua } );
-      // run_all_init_routines( e_log_level::debug );
-      lua::reload();
-      lua::run_startup_main();
 
-      // game();
-      test_open_gl();
+      if( do_game ) {
+        run_all_init_routines( e_log_level::debug );
+        lua::reload();
+        lua::run_startup_main();
+        game();
+      } else {
+        run_all_init_routines(
+            e_log_level::debug,
+            { e_init_routine::screen, e_init_routine::lua } );
+        test_open_gl();
+      }
 
     } catch( exception_exit const& ) {}
 
