@@ -1,0 +1,83 @@
+Leopard:
+  SDL Version.....: 2.0.8
+  OS..............: Mint 19.1
+  Release:
+    SDL...........: 227
+    OGL Batched...: 1154         <<
+    OGL Unbatched.: 56
+  Debug:
+    SDL...........: 30
+    OGL Batched...: 87           <<
+    OGL Unbatched.: 39
+
+Darter Pro:
+  SDL Version.....: 2.0.10
+  OS..............: Pop 19.3
+  Release:
+    SDL...........: 73
+    OGL Batched...: 630          <<
+    OGL Unbatched.: 12
+  Debug:
+    SDL...........: 16
+    OGL Batched...: 67           <<
+    OGL Unbatched.: 11
+
+MacBook:
+  SDL Version.....: 2.0.10
+  OS..............: OSX 10.15
+  Release:
+    SDL...........: 38
+    OGL Batched...: 185          <<
+    OGL Unbatched.: 42
+  Debug:
+    SDL...........: 12
+    OGL Batched...: 53           <<
+    OGL Unbatched.: 33
+
+Lenovo:
+  SDL Version.....: 2.0.10
+  OS..............: Debian
+  Release:
+    SDL...........: 48
+    OGL Batched...: 161          <<
+    OGL Unbatched.: 10
+  Debug:
+    SDL...........: 17
+    OGL Batched...: 53           <<
+    OGL Unbatched.: 8
+
+MacBook Pro:
+  SDL Version.....: 2.0.8
+  OS..............: Mint 19.3
+  Release:
+    SDL...........: 110
+    OGL Batched...: 762          <<
+    OGL Unbatched.: 52
+  Debug:
+    SDL...........: 22
+    OGL Batched...: 76           <<
+    OGL Unbatched.: 32
+
+iMac:
+  SDL Version.....: 2.0.10
+  OS..............: 10.14
+  Release:
+    SDL...........: 127
+    OGL Batched...: 1055         <<
+    OGL Unbatched.: 3
+  Debug:
+    SDL...........: 22
+    OGL Batched...: 53           <<
+    OGL Unbatched.: 3
+
+Office:
+  SDL Version.....:
+  OS..............: Debian
+  Release:
+    SDL...........:
+    OGL Batched...:
+    OGL Unbatched.:
+  Debug:
+    SDL...........:
+    OGL Batched...:
+    OGL Unbatched.:
