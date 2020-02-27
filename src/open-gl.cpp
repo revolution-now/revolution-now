@@ -144,25 +144,12 @@ struct OpenGLObjects {
   GLuint opengl_texture;
 };
 
-void draw_vertices( OpenGLObjects* gl_objects,
-                    Delta const& screen_delta, float* vertices,
-                    int array_size, int num_vertices ) {
-  glBindVertexArray( gl_objects->vertex_array_object );
-
-  glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects->vertex_buffer_object );
+void draw_vertices( OpenGLObjects*, Delta const&,
+                    float* vertices, int array_size,
+                    int num_vertices ) {
   glBufferData( GL_ARRAY_BUFFER, sizeof( float ) * array_size,
                 vertices, GL_STATIC_DRAW );
-
-  // glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-  glUseProgram( gl_objects->shader_program );
-  glUniform2f( gl_objects->screen_size_location,
-               float( screen_delta.w._ ),
-               float( screen_delta.h._ ) );
-  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
-  glBindVertexArray( gl_objects->vertex_array_object );
   glDrawArrays( GL_TRIANGLES, 0, num_vertices );
-  // glBindVertexArray( 0 );
 }
 
 void draw_sprite( OpenGLObjects* gl_objects,
@@ -201,6 +188,17 @@ void draw_sprite( OpenGLObjects* gl_objects,
 
 void draw_sprites_separate( OpenGLObjects* gl_objects,
                             Delta const&   screen_delta ) {
+  glBindVertexArray( gl_objects->vertex_array_object );
+
+  glBindBuffer( GL_ARRAY_BUFFER,
+                gl_objects->vertex_buffer_object );
+  glUseProgram( gl_objects->shader_program );
+  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
+
+  glUniform2f( gl_objects->screen_size_location,
+               float( screen_delta.w._ ),
+               float( screen_delta.h._ ) );
+
   auto rect  = Rect::from( {}, screen_delta );
   int  scale = 4;
   for( auto coord : rect.to_grid_noalign( Scale{ scale } ) )
@@ -209,6 +207,17 @@ void draw_sprites_separate( OpenGLObjects* gl_objects,
 
 void draw_sprites_batched( OpenGLObjects* gl_objects,
                            Delta const&   screen_delta ) {
+  glBindVertexArray( gl_objects->vertex_array_object );
+
+  glBindBuffer( GL_ARRAY_BUFFER,
+                gl_objects->vertex_buffer_object );
+  glUseProgram( gl_objects->shader_program );
+  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
+
+  glUniform2f( gl_objects->screen_size_location,
+               float( screen_delta.w._ ),
+               float( screen_delta.h._ ) );
+
   float sheet_w = 256.0;
   float sheet_h = 192.0;
 
@@ -295,7 +304,6 @@ OpenGLObjects init_opengl() {
   // ways so we generally don't unbind VAOs (nor VBOs) when it's
   // not directly necessary.
   glBindVertexArray( 0 );
-
   return gl_objects;
 }
 
@@ -363,10 +371,6 @@ void test_open_gl() {
   glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
   glEnable( GL_BLEND );
 
-  /* This makes our buffer swap syncronized with the monitor's
-   * vertical refresh */
-  ::SDL_GL_SetSwapInterval( 1 );
-
   int viewport_scale = 1;
 
 #ifdef __APPLE__
@@ -382,13 +386,10 @@ void test_open_gl() {
 
   bool wait_for_vsync = false;
 
-  if( !wait_for_vsync ) {
-    // Disable wait-for-vsync.
-    CHECK( !::SDL_GL_SetSwapInterval( 0 ),
-           "setting swap interval is not supported." );
-  }
+  CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
+         "setting swap interval is not supported." );
 
-  // == Render Some Stuff =======================================
+  // == Initialization ==========================================
 
   OpenGLObjects gl_objects = init_opengl();
   check_gl_errors();
@@ -402,8 +403,8 @@ void test_open_gl() {
   glClearColor( 0.2, 0.3, 0.3, 1.0 );
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-  // auto f_test = draw_sprites_batched;
-  auto f_test = draw_sprites_separate;
+  auto f_test = draw_sprites_batched;
+  // auto f_test = draw_sprites_separate;
 
   lg.info( "=================================================" );
   lg.info( "OpenGL Performance Test" );
@@ -411,6 +412,7 @@ void test_open_gl() {
   lg.info( "running..." );
   f_test( &gl_objects, screen_delta );
   ::SDL_GL_SwapWindow( window );
+  check_gl_errors();
   auto start_time = Clock_t::now();
   while( !input::is_q_down() ) {
     ++frames;
