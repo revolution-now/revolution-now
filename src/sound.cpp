@@ -74,7 +74,7 @@ void init_sound() {
   ::SDL_version      compiled_version;
   SDL_version const* link_version = ::Mix_Linked_Version();
   SDL_MIXER_VERSION( &compiled_version );
-  check_SDL_compile_link_version( "Mixer", link_version,
+  check_SDL_compile_link_version( "Mixer", *link_version,
                                   compiled_version );
 
   // Seemingly not needed?

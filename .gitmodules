@@ -15,7 +15,7 @@
 	url = ../../dpacbach/libucl.git
 [submodule "extern/backward-cpp"]
 	path = extern/backward-cpp
-	url = https://github.com/bombela/backward-cpp.git
+	url = ../../dpacbach/backward-cpp.git
 [submodule "extern/type_safe"]
 	path = extern/type_safe
 	url = https://github.com/foonathan/type_safe.git
