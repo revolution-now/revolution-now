@@ -28,6 +28,7 @@ int main( int /*unused*/, char** /*unused*/ ) {
       run_all_init_routines(
           e_log_level::debug,
           { e_init_routine::screen, e_init_routine::lua } );
+      // run_all_init_routines( e_log_level::debug );
       lua::reload();
       lua::run_startup_main();
 

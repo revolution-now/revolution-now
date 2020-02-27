@@ -57,7 +57,7 @@ private:
 };
 SAVEGAME_IMPL( Terrain );
 
-constexpr Scale terrain_block_size{ 30_sx, 30_sy };
+constexpr Scale terrain_block_size{ 50_sx, 50_sy };
 
 static_assert( world_size % terrain_block_size == Delta{} );
 

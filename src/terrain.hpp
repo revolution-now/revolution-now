@@ -23,7 +23,7 @@
 
 namespace rn {
 
-inline constexpr auto world_size = Delta{ 120_w, 60_h };
+inline constexpr auto world_size = Delta{ 200_w, 100_h };
 
 DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 
