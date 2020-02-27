@@ -218,6 +218,8 @@ void draw_sprites_batched( OpenGLObjects* gl_objects,
                float( screen_delta.w._ ),
                float( screen_delta.h._ ) );
 
+  int scale = 4;
+
   float sheet_w = 256.0;
   float sheet_h = 192.0;
 
@@ -229,12 +231,17 @@ void draw_sprites_batched( OpenGLObjects* gl_objects,
   constexpr size_t num_columns = 5;
   size_t           num_rows    = 0;
 
-  vector<float> vertices;
-  vertices.resize( 400000 * 6 * num_columns );
+  // Important: should only allocate this once, since allocating
+  // a large buffer is apparently expensive.
+  static vector<float> vertices;
+  int num_sprites = ( screen_delta.w._ + scale ) / scale *
+                    ( screen_delta.h._ + scale ) / scale;
+  int num_floats = num_sprites * 6 * num_columns;
+  if( int( vertices.size() ) < num_floats )
+    vertices.resize( num_floats );
 
-  auto rect  = Rect::from( {}, screen_delta );
-  int  i     = 0;
-  int  scale = 4;
+  auto rect = Rect::from( {}, screen_delta );
+  int  i    = 0;
   W    w{ scale };
   H    h{ scale };
   for( auto coord : rect.to_grid_noalign( Scale{ scale } ) ) {
