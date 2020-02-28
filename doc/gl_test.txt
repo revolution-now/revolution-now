@@ -93,8 +93,8 @@ Office:
   SDL Version.....:
   OS..............: Debian
   Release:                Debug:                  % (D/R)
-    SDL...........:         SDL...........:
-    SDL opt.......:         SDL opt.......:
-    OGL Batched...: OGL     Batched.......:
-    OGL Unbatched.: OGL     Unbatched.....:
+    SDL...........: 132     SDL...........: 28
+    SDL opt.......: 132     SDL opt.......: 96
+    OGL Batched...: 394     OGL Batched...: 59
+    OGL Unbatched.: 37      OGL Unbatched.: 29
     ------------------------------------------
