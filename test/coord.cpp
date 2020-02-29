@@ -113,6 +113,22 @@ TEST_CASE( "[coord] as_if_origin_were" ) {
   REQUIRE( rect.as_if_origin_were( coord ) == expect );
 }
 
+TEST_CASE( "[coord] Rect::normalized" ) {
+  Rect rect, expect;
+
+  rect   = Rect{ 5_x, 5_y, 0_w, 0_h };
+  expect = rect;
+  REQUIRE( rect.normalized() == expect );
+
+  rect   = Rect{ 5_x, 5_y, 7_w, 9_h };
+  expect = rect;
+  REQUIRE( rect.normalized() == expect );
+
+  rect   = Rect{ 5_x, 5_y, -2_w, -1_h };
+  expect = Rect{ 3_x, 4_y, 2_w, 1_h };
+  REQUIRE( rect.normalized() == expect );
+}
+
 TEST_CASE( "[coord] rounded_to_multiple_to_minus_inf" ) {
   Delta delta;
   Coord coord;

@@ -36,7 +36,7 @@ Rect Rect::from( Coord const& _1, Coord const& _2 ) {
 }
 
 Rect Rect::from( Coord const& coord, Delta const& delta ) {
-  return { coord.x, coord.y, delta.w, delta.h };
+  return from( coord, coord + delta );
 }
 
 // New coord equal to this one unit of edge trimmed off
@@ -64,6 +64,19 @@ Rect Rect::with_border_added( int thickness ) const {
 
 Rect Rect::as_if_origin_were( Coord const& coord ) const {
   return this->shifted_by( -coord.distance_from_origin() );
+}
+
+Rect Rect::normalized() const {
+  Rect res = *this;
+  if( res.w < 0 ) {
+    res.x += res.w;
+    res.w = -res.w;
+  }
+  if( res.h < 0 ) {
+    res.y += res.h;
+    res.h = -res.h;
+  }
+  return res;
 }
 
 Rect Rect::uni0n( Rect const& rhs ) const {

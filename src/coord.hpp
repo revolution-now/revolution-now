@@ -349,6 +349,10 @@ struct ND Rect {
     return { x, y, w + 1_w, h + 1_h };
   }
 
+  // Returns a rect that is equivalent to this one but where x
+  // and y represent the upper left corner of the rect.
+  Rect normalized() const;
+
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
   Rect uni0n( Rect const& rhs ) const;
