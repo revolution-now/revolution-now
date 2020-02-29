@@ -10,12 +10,13 @@
 *****************************************************************/
 #version 330 core
 
-in vec2 tx_coord;
+//in vec2 tx_coord;
+in vec4 color;
 
-uniform sampler2D tx;
+//uniform sampler2D tx;
 
 out vec4 frag_color;
 
 void main() {
-  frag_color = texture( tx, tx_coord );
+  frag_color = color; //texture( tx, tx_coord );
 }

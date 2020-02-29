@@ -144,129 +144,148 @@ struct OpenGLObjects {
   GLuint opengl_texture;
 };
 
-void draw_vertices( OpenGLObjects*, Delta const&,
-                    float* vertices, int array_size,
-                    int num_vertices ) {
-  glBufferData( GL_ARRAY_BUFFER, sizeof( float ) * array_size,
-                vertices, GL_STATIC_DRAW );
-  glDrawArrays( GL_TRIANGLES, 0, num_vertices );
-}
-
-void draw_sprite( OpenGLObjects* gl_objects,
-                  Delta const& screen_delta, int scale,
-                  Coord const& coord ) {
-  float sheet_w = 256.0;
-  float sheet_h = 192.0;
-
-  float tx_ox = 0.0 / sheet_w;
-  float tx_oy = 32.0 * 4 / sheet_h;
-  float tx_dx = 32.0 / sheet_w;
-  float tx_dy = 32.0 / sheet_h;
-
-  float z  = 0.0;
-  float sf = float( scale );
-
-  // clang-format off
-  float vertices[] = {
-    // Coord                                             Tx Coords
-    float(coord.x._),    float(coord.y._),    z,   tx_ox,       tx_oy,
-    float(coord.x._)+sf, float(coord.y._),    z,   tx_ox+tx_dx, tx_oy,
-    float(coord.x._),    float(coord.y._)+sf, z,   tx_ox,       tx_oy+tx_dy,
-
-    float(coord.x._)+sf, float(coord.y._),    z,   tx_ox+tx_dx, tx_oy,
-    float(coord.x._)+sf, float(coord.y._)+sf, z,   tx_ox+tx_dx, tx_oy+tx_dy,
-    float(coord.x._),    float(coord.y._)+sf, z,   tx_ox,       tx_oy+tx_dy,
+struct VertexData {
+  float x = 0.0f;
+  float y = 0.0f;
+  union {
+    float r = 0.0f;
+    float x_tx;
   };
-  // clang-format on
+  union {
+    float g = 0.0f;
+    float y_tx;
+  };
+  float b = 0.0f;
+  float a = 0.0f; // -1 means texture.
+};
+// Need to ensure this for proper data packing in array.
+static_assert( sizeof( VertexData ) == sizeof( float ) * 6 );
+// Seems sensible.
+static_assert( sizeof( VertexData ) % 8 == 0 );
 
-  constexpr size_t num_columns = 5;
-  constexpr size_t num_rows    = 6;
-
-  draw_vertices( gl_objects, screen_delta, vertices,
-                 num_columns * num_rows, num_rows );
+void draw_square_line( vector<VertexData>* vertices, Coord start,
+                       Coord end, Color c ) {
+  auto push_coord = [&]( Coord const& coord ) {
+    vertices->push_back( {
+        .x = float( coord.x._ ), //
+        .y = float( coord.y._ ), //
+        .r = float( c.r ),       //
+        .g = float( c.g ),       //
+        .b = float( c.b ),       //
+        .a = float( c.a ),       //
+    } );
+  };
+  if( start.y == end.y ) {
+    if( start.x > end.x ) std::swap( start.x, end.x );
+    // horizontal line.
+    push_coord( start );
+    push_coord( end );
+    push_coord( end + 1_h );
+    push_coord( start );
+    push_coord( start + 1_h );
+    push_coord( end + 1_h );
+    return;
+  } else if( start.x == end.x ) {
+    if( start.y > end.y ) std::swap( start.y, end.y );
+    // vertical line.
+    push_coord( start );
+    push_coord( end );
+    push_coord( end + 1_w );
+    push_coord( start );
+    push_coord( start + 1_w );
+    push_coord( end + 1_w );
+    return;
+  }
+  FATAL(
+      "Only horizontal and vertical lines supported (start={}, "
+      "end={}).",
+      start, end );
 }
 
-void draw_sprites_separate( OpenGLObjects* gl_objects,
-                            Delta const&   screen_delta ) {
-  glBindVertexArray( gl_objects->vertex_array_object );
+void draw_box( vector<VertexData>* vertices, Coord corner,
+               Coord opposite_corner, Color c ) {
+  auto rect = Rect::from( corner, opposite_corner );
+  draw_square_line( vertices, rect.upper_left(),
+                    rect.upper_right(), c );
+  draw_square_line( vertices, rect.upper_right(),
+                    rect.lower_right() + 1_h, c );
+  draw_square_line( vertices, rect.lower_left(),
+                    rect.lower_right() + 1_w, c );
+  draw_square_line( vertices, rect.upper_left(),
+                    rect.lower_left(), c );
+}
 
-  glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects->vertex_buffer_object );
-  glUseProgram( gl_objects->shader_program );
-  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
+void draw_box_inside( vector<VertexData>* vertices,
+                      Rect const& rect, Color c ) {
+  if( rect.w == 0_w || rect.h == 0_h ) return;
+  // Rect is expected to be normalized here.
+  draw_box( vertices, rect.upper_left(),
+            rect.lower_right() - 1_w - 1_h, c );
+}
 
+void draw_box_outside( vector<VertexData>* vertices,
+                       Rect const& rect, Color c ) {
+  auto upper_left  = rect.upper_left();
+  auto lower_right = rect.lower_right();
+  upper_left -= 1_w;
+  upper_left -= 1_h;
+  // if( rect.w > 0_w )
+  //  lower_right += 1_w;
+  // if( rect.h > 0_h )
+  //  lower_right += 1_h;
+  draw_box( vertices, upper_left, lower_right, c );
+}
+
+void draw_lines( OpenGLObjects* gl_objects,
+                 Delta const&   screen_delta ) {
   glUniform2f( gl_objects->screen_size_location,
                float( screen_delta.w._ ),
                float( screen_delta.h._ ) );
 
-  auto rect  = Rect::from( {}, screen_delta );
-  int  scale = 4;
-  for( auto coord : rect.to_grid_noalign( Scale{ scale } ) )
-    draw_sprite( gl_objects, screen_delta, scale, coord );
-}
+  vector<VertexData> vertices;
 
-void draw_sprites_batched( OpenGLObjects* gl_objects,
-                           Delta const&   screen_delta ) {
-  glBindVertexArray( gl_objects->vertex_array_object );
+  draw_box_outside( &vertices, { 100_x, 100_y, 0_w, 0_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 120_y, 1_w, 0_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 140_y, 0_w, 1_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 160_y, 1_w, 1_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 180_y, 2_w, 2_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 200_y, 3_w, 3_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 220_y, 4_w, 4_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 100_x, 240_y, 5_w, 5_h },
+                    Color::red() );
+  draw_box_outside( &vertices, { 200_x, 100_y, 50_w, 50_h },
+                    Color::red() );
 
-  glBindBuffer( GL_ARRAY_BUFFER,
-                gl_objects->vertex_buffer_object );
-  glUseProgram( gl_objects->shader_program );
-  glBindTexture( GL_TEXTURE_2D, gl_objects->opengl_texture );
+  draw_box_inside( &vertices, { 100_x, 100_y, 0_w, 0_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 120_y, 1_w, 0_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 140_y, 0_w, 1_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 160_y, 1_w, 1_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 180_y, 2_w, 2_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 200_y, 3_w, 3_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 220_y, 4_w, 4_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 100_x, 240_y, 5_w, 5_h },
+                   Color::white() );
+  draw_box_inside( &vertices, { 200_x, 100_y, 50_w, 50_h },
+                   Color::white() );
 
-  glUniform2f( gl_objects->screen_size_location,
-               float( screen_delta.w._ ),
-               float( screen_delta.h._ ) );
-
-  int scale = 4;
-
-  float sheet_w = 256.0;
-  float sheet_h = 192.0;
-
-  float tx_ox = 0.0 / sheet_w;
-  float tx_oy = 32.0 * 4 / sheet_h;
-  float tx_dx = 32.0 / sheet_w;
-  float tx_dy = 32.0 / sheet_h;
-
-  constexpr size_t num_columns = 5;
-  size_t           num_rows    = 0;
-
-  // Important: should only allocate this once, since allocating
-  // a large buffer is apparently expensive.
-  static vector<float> vertices;
-  int num_sprites = ( screen_delta.w._ + scale ) / scale *
-                    ( screen_delta.h._ + scale ) / scale;
-  int num_floats = num_sprites * 6 * num_columns;
-  if( int( vertices.size() ) < num_floats )
-    vertices.resize( num_floats );
-
-  auto rect = Rect::from( {}, screen_delta );
-  int  i    = 0;
-  W    w{ scale };
-  H    h{ scale };
-  for( auto coord : rect.to_grid_noalign( Scale{ scale } ) ) {
-    auto add_vertex = [&]( Coord const& c, float tx_x,
-                           float tx_y ) {
-      ++num_rows;
-      // Coords
-      vertices[i++] = float( c.x._ );
-      vertices[i++] = float( c.y._ );
-      vertices[i++] = 1.0f; // z
-      // Texture coords
-      vertices[i++] = tx_x;
-      vertices[i++] = tx_y;
-    };
-
-    add_vertex( coord, tx_ox, tx_oy );
-    add_vertex( coord + w, tx_ox + tx_dx, tx_oy );
-    add_vertex( coord + h, tx_ox, tx_oy + tx_dy );
-    add_vertex( coord + w, tx_ox + tx_dx, tx_oy );
-    add_vertex( coord + w + h, tx_ox + tx_dx, tx_oy + tx_dy );
-    add_vertex( coord + h, tx_ox, tx_oy + tx_dy );
-  };
-
-  draw_vertices( gl_objects, screen_delta, vertices.data(),
-                 num_columns * num_rows, num_rows );
+  glBufferData( GL_ARRAY_BUFFER,
+                sizeof( VertexData ) * vertices.size(),
+                vertices.data(), GL_STATIC_DRAW );
+  glDrawArrays( GL_TRIANGLES, 0, vertices.size() );
 }
 
 OpenGLObjects init_opengl() {
@@ -291,26 +310,17 @@ OpenGLObjects init_opengl() {
   glBindBuffer( GL_ARRAY_BUFFER,
                 gl_objects.vertex_buffer_object );
 
-  // Describe to OpenGL how to interpret the bytes in our ver-
-  // tices array for feeding into the vertex shader.
-  glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE,
-                         5 * sizeof( float ), (void*)0 );
-  glEnableVertexAttribArray( 0 );
-  glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE,
-                         5 * sizeof( float ),
-                         (void*)( sizeof( float ) * 3 ) );
-  glEnableVertexAttribArray( 1 );
+  int vtx_idx = 0;
+  glVertexAttribPointer( vtx_idx, 2, GL_FLOAT, GL_FALSE,
+                         sizeof( VertexData ), (void*)0 );
+  glEnableVertexAttribArray( vtx_idx++ );
+  glVertexAttribPointer( vtx_idx, 4, GL_FLOAT, GL_FALSE,
+                         sizeof( VertexData ),
+                         (void*)( 2 * sizeof( float ) ) );
+  glEnableVertexAttribArray( vtx_idx++ );
 
-  // Unbind. The call to glVertexAttribPointer registered VBO as
-  // the vertex attribute's bound vertex buffer object so after-
-  // wards we can safely unbind.
-  glBindBuffer( GL_ARRAY_BUFFER, 0 );
-  // You can unbind the VAO afterwards so other VAO calls won't
-  // accidentally modify this VAO, but this rarely happens. Modi-
-  // fying other VAOs requires a call to glBindVertexArray any-
-  // ways so we generally don't unbind VAOs (nor VBOs) when it's
-  // not directly necessary.
-  glBindVertexArray( 0 );
+  glUseProgram( gl_objects.shader_program );
+  glBindTexture( GL_TEXTURE_2D, gl_objects.opengl_texture );
   return gl_objects;
 }
 
@@ -391,7 +401,7 @@ void test_open_gl() {
   glViewport( 0, 0, win_size.w._ * viewport_scale,
               win_size.h._ * viewport_scale );
 
-  bool wait_for_vsync = false;
+  bool wait_for_vsync = true;
 
   CHECK( !::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ),
          "setting swap interval is not supported." );
@@ -403,40 +413,17 @@ void test_open_gl() {
 
   // == Render ==================================================
 
-  auto screen_delta = main_window_logical_size();
+  auto screen_delta = main_window_logical_size() / Scale{ 1 };
 
-  long frames = 0;
-
-  glClearColor( 0.2, 0.3, 0.3, 1.0 );
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-  auto f_test = draw_sprites_batched;
-  // auto f_test = draw_sprites_separate;
-
-  lg.info( "=================================================" );
-  lg.info( "OpenGL Performance Test" );
-  lg.info( "=================================================" );
-  lg.info( "running..." );
-  f_test( &gl_objects, screen_delta );
-  ::SDL_GL_SwapWindow( window );
   check_gl_errors();
-  auto start_time = Clock_t::now();
+
   while( !input::is_q_down() ) {
-    ++frames;
-    f_test( &gl_objects, screen_delta );
+    glClearColor( 0.2, 0.3, 0.3, 1.0 );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    draw_lines( &gl_objects, screen_delta );
     ::SDL_GL_SwapWindow( window );
+    ::SDL_Delay( 200 );
   }
-  lg.info( "=================================================" );
-  auto end_time   = Clock_t::now();
-  auto delta_time = end_time - start_time;
-  lg.info( "Total time: {}.", delta_time );
-  auto secs =
-      chrono::duration_cast<chrono::seconds>( delta_time );
-  double max_fps = frames / double( secs.count() );
-  lg.info( "Max frame rate: {}.", max_fps );
-  lg.info( "Allowed draw calls per 60Hz frame: {:.2f}.",
-           max_fps / 60.0 );
-  lg.info( "=================================================" );
 
   // == Cleanup =================================================
 
