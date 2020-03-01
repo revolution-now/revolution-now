@@ -97,9 +97,7 @@ namespace {
 // %l = log level (defined in logging.hpp, our header file)
 // %$ = end color
 // %v = message
-string const pattern() {
-  return "%Y-%m-%d %H:%M:%S.%e  %n | %^%l%$ %v";
-}
+string const pattern() { return "%M:%S.%e  %n | %^%l%$ %v"; }
 
 spdlog::sink_ptr default_dbg_console_sink() {
   static spdlog::sink_ptr p = [] {
