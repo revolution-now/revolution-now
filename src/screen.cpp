@@ -125,10 +125,8 @@ double const& viewer_distance_from_monitor() {
 void query_video_stats() {
   float ddpi, hdpi, vdpi;
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  lg.debug( "GetDisplayDPI:" );
-  lg.debug( "  ddpi: {}", ddpi );
-  lg.debug( "  hdpi: {}", hdpi );
-  lg.debug( "  vdpi: {}", vdpi );
+  lg.debug( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.",
+            ddpi, hdpi, vdpi );
 
   SDL_DisplayMode dm;
 
@@ -142,9 +140,8 @@ void query_video_stats() {
   lg.debug( "default game pixel format: {}",
             ::SDL_GetPixelFormatName( g_pixel_format ) );
 
-  lg.debug( "GetCurrentDisplayMode: " );
   SDL_GetCurrentDisplayMode( 0, &dm );
-  lg.debug( "  {}", dm_to_str() );
+  lg.debug( "GetCurrentDisplayMode: {}", dm_to_str() );
   if( g_pixel_format != dm.format ) {
     // g_pixel_format =
     //    static_cast<decltype( g_pixel_format )>( dm.format );
@@ -152,18 +149,15 @@ void query_video_stats() {
     //               ::SDL_GetPixelFormatName( dm.format ) );
   }
 
-  lg.debug( "GetDesktopDisplayMode: " );
   SDL_GetDesktopDisplayMode( 0, &dm );
-  lg.debug( "  {}", dm_to_str() );
+  lg.debug( "GetDesktopDisplayMode: {}", dm_to_str() );
 
-  lg.debug( "GetDisplayMode: " );
   SDL_GetDisplayMode( 0, 0, &dm );
-  lg.debug( "  {}", dm_to_str() );
+  lg.debug( "GetDisplayMode: {}", dm_to_str() );
 
   SDL_Rect r;
-  lg.debug( "GetDisplayBounds:" );
   SDL_GetDisplayBounds( 0, &r );
-  lg.debug( "  {}",
+  lg.debug( "GetDisplayBounds: {}",
             Rect{ X{ r.x }, Y{ r.y }, W{ r.w }, H{ r.h } } );
 
   lg.debug( "monitor diagonal length: {}in.", monitor_inches() );
@@ -233,6 +227,7 @@ void find_pixel_scale_factor() {
   // ----
 
   ///////////////////////////////////////////////////////////////
+#if 0
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
                        auto score ) {
@@ -258,14 +253,17 @@ void find_pixel_scale_factor() {
         fmt_dbl( scale_score( info ) ) );
   }
   lg.debug( bar );
+#endif
   ///////////////////////////////////////////////////////////////
 
   g_resolution_scale_factor         = Scale{ optimal.scale };
   g_optimal_resolution_scale_factor = Scale{ optimal.scale };
   g_screen_physical_size =
       optimal.resolution * g_resolution_scale_factor;
-  lg.debug( "screen physical size: {}", g_screen_physical_size );
-  lg.debug( "screen logical size: {}", screen_logical_size() );
+  lg.info( "screen physical resolution: {}",
+           g_screen_physical_size );
+  lg.info( "screen logical  resolution: {}",
+           screen_logical_size() );
 
   // If this is violated then we have non-integer scaling.
   CHECK( g_screen_physical_size % Scale{ optimal.scale } ==
