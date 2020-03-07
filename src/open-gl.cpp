@@ -422,7 +422,7 @@ void test_open_gl() {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     draw_lines( &gl_objects, screen_delta );
     ::SDL_GL_SwapWindow( window );
-    ::SDL_Delay( 200 );
+    ::SDL_Delay( 17 );
   }
 
   // == Cleanup =================================================
