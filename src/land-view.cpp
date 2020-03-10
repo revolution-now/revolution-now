@@ -23,6 +23,7 @@
 #include "gfx.hpp"
 #include "id.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
 #include "matrix.hpp"
 #include "no-serial.hpp"
 #include "orders.hpp"
@@ -1033,5 +1034,20 @@ sync_future<> landview_animate_attack(
 void test_land_view() {
   //
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( blinking_unit, sol::object ) {
+  if_v( SG().mode.state(), LandViewState::blinking_unit, val ) {
+    sol::lua_value result = val->id;
+    return result.as<sol::object>();
+  }
+  return sol::lua_nil;
+}
+
+} // namespace
 
 } // namespace rn
