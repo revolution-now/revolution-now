@@ -49,6 +49,7 @@ Opt<e_nation> nation_from_coord( Coord coord ) {
   if( units.empty() ) return nullopt;
   e_nation first = unit_from_id( *units.begin() ).nation();
   for( auto const& id : units ) {
+    (void)id; // for release builds.
     DCHECK( first == unit_from_id( id ).nation() );
   }
   return first;
