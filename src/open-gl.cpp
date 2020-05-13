@@ -165,6 +165,22 @@ static_assert( sizeof( VertexData ) % 8 == 0 );
 
 void draw_square_line( vector<VertexData>* vertices, Coord start,
                        Coord end, Color c ) {
+  if( start.x > end.x ) std::swap( start.x, end.x );
+  if( start.y > end.y ) std::swap( start.y, end.y );
+
+  Delta d;
+  if( start.y == end.y )
+    d = Delta{ 0_w, 1_h };
+  else if( start.x == end.x )
+    d = Delta{ 1_w, 0_h };
+  else {
+    FATAL(
+        "Only horizontal and vertical lines supported "
+        "(start={}, "
+        "end={}).",
+        start, end );
+  }
+
   auto push_coord = [&]( Coord const& coord ) {
     vertices->push_back( {
         .x = float( coord.x._ ), //
@@ -175,31 +191,12 @@ void draw_square_line( vector<VertexData>* vertices, Coord start,
         .a = float( c.a ),       //
     } );
   };
-  if( start.y == end.y ) {
-    if( start.x > end.x ) std::swap( start.x, end.x );
-    // horizontal line.
-    push_coord( start );
-    push_coord( end );
-    push_coord( end + 1_h );
-    push_coord( start );
-    push_coord( start + 1_h );
-    push_coord( end + 1_h );
-    return;
-  } else if( start.x == end.x ) {
-    if( start.y > end.y ) std::swap( start.y, end.y );
-    // vertical line.
-    push_coord( start );
-    push_coord( end );
-    push_coord( end + 1_w );
-    push_coord( start );
-    push_coord( start + 1_w );
-    push_coord( end + 1_w );
-    return;
-  }
-  FATAL(
-      "Only horizontal and vertical lines supported (start={}, "
-      "end={}).",
-      start, end );
+  push_coord( start );
+  push_coord( end );
+  push_coord( end + d );
+  push_coord( start );
+  push_coord( start + d );
+  push_coord( end + d );
 }
 
 void draw_box( vector<VertexData>* vertices, Coord corner,
