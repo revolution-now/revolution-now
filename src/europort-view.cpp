@@ -110,8 +110,8 @@ Opt<DraggableObject_t> g_dragging_object;
 Opt<DraggableObject_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
   return matcher_( slot, ->, Opt<DraggableObject_t> ) {
-    case_( CargoSlot::empty ) result_    nullopt;
-    case_( CargoSlot::overflow ) result_ nullopt;
+    case_( CargoSlot::empty ) resu1t    nullopt;
+    case_( CargoSlot::overflow ) resu1t nullopt;
     case_( CargoSlot::cargo, contents ) {
       return matcher_( contents, ->, DraggableObject_t ) {
         case_( UnitId ) {
@@ -1967,8 +1967,8 @@ struct EuropePlane : public Plane {
       return e_input_handled::yes;
     return matcher_( event ) {
       case_( input::unknown_event_t )
-          result_                          e_input_handled::no;
-      case_( input::quit_event_t ) result_ e_input_handled::no;
+          resu1t                          e_input_handled::no;
+      case_( input::quit_event_t ) resu1t e_input_handled::no;
       case_( input::win_event_t ) {
         // Note: we don't have to handle the window-resize event
         // here because currently the europort-plane completely
@@ -1977,25 +1977,25 @@ struct EuropePlane : public Plane {
         //
         // Generally we should return no here because this is an
         // event that we want all planes to see.
-        result_ e_input_handled::no;
+        resu1t e_input_handled::no;
       }
-      case_( input::key_event_t ) result_ e_input_handled::no;
+      case_( input::key_event_t ) resu1t e_input_handled::no;
       case_( input::mouse_wheel_event_t )
-          result_ e_input_handled::no;
+          resu1t e_input_handled::no;
       case_( input::mouse_move_event_t ) {
-        result_ e_input_handled::yes;
+        resu1t e_input_handled::yes;
       }
       case_( input::mouse_button_event_t ) {
         if( val.buttons !=
             input::e_mouse_button_event::left_down )
-          result_ e_input_handled::yes;
+          resu1t e_input_handled::yes;
 
         // Exit button.
         if( entities_.exit_label.has_value() ) {
           if( val.pos.is_inside(
                   entities_.exit_label->bounds() ) ) {
             pop_plane_config();
-            result_ e_input_handled::yes;
+            resu1t e_input_handled::yes;
           }
         }
 
@@ -2014,10 +2014,10 @@ struct EuropePlane : public Plane {
         try_select_unit( entities_.ships_in_port );
         try_select_unit( entities_.ships_inbound );
         try_select_unit( entities_.ships_outbound );
-        result_ handled;
+        resu1t handled;
       }
       case_( input::mouse_drag_event_t )
-          result_ e_input_handled::no;
+          resu1t e_input_handled::no;
       matcher_exhaustive;
     }
   }

@@ -161,9 +161,8 @@ Opt<ColonyId> colony_from_name( std::string_view name ) {
 }
 
 Vec<ColonyId> colonies_in_rect( Rect const& rect ) {
-  return rect                                 //
-         | rv::transform( colony_from_coord ) //
-         | cat_opts;
+  return rg::to<Vec<ColonyId>>(
+      rect | rv::transform( colony_from_coord ) | cat_opts );
 }
 
 /****************************************************************

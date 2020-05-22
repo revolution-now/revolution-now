@@ -114,11 +114,11 @@ using FBOffset = flatbuffers::Offset<T>;
 *****************************************************************/
 namespace ranges {
 inline namespace v3 {
-namespace view {}
+namespace views {}
 } // namespace v3
 } // namespace ranges
 
-namespace rv = ::ranges::view;
+namespace rv = ::ranges::views;
 namespace rg = ::ranges;
 
 /****************************************************************

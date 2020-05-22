@@ -75,8 +75,9 @@ void trim_text_cache() {
   // then cut it down to half size using the global Texture ID
   // (monotonically increasing) to decide which ones are the
   // oldest and remove them.
-  vector<int> ids = g_text_cache                           //
-                    | rv::transform( L( _.second.id() ) ); //
+  auto ids = rg::to<vector<int>>(
+      g_text_cache //
+      | rv::transform( L( _.second.id() ) ) );
   util::sort( ids );
   FlatSet<int> to_remove(
       ids.begin(), ids.begin() + ( k_max_text_cache_size / 2 ) );
@@ -93,12 +94,12 @@ void trim_text_cache() {
 Texture const& insert_into_text_cache( TextCacheKey&& key,
                                        Texture&&      tx ) {
   trim_text_cache();
-  auto it = g_text_cache.insert( {key, std::move( tx )} );
+  auto it = g_text_cache.insert( { key, std::move( tx ) } );
   return it.first->second;
 }
 
 #define RETURN_IF_CACHED( ... )                                  \
-  TextCacheKey cache_key{__VA_ARGS__};                           \
+  TextCacheKey cache_key{ __VA_ARGS__ };                         \
   auto         maybe_cached_tx = text_cache_lookup( cache_key ); \
   if( maybe_cached_tx ) return std::move( *maybe_cached_tx );
 
@@ -110,7 +111,7 @@ Texture const& insert_into_text_cache( TextCacheKey&& key,
 ** Markup Parsing
 *****************************************************************/
 struct MarkupStyle {
-  bool highlight{false};
+  bool highlight{ false };
 };
 NOTHROW_MOVE( MarkupStyle );
 
@@ -125,7 +126,7 @@ auto parse_markup( string_view sv ) -> Opt<MarkupStyle> {
   if( sv.size() != 1 ) return nullopt; // parsing failed
   switch( sv[0] ) {
     case '@': return MarkupStyle{};
-    case 'H': return MarkupStyle{/*highlight=*/true};
+    case 'H': return MarkupStyle{ /*highlight=*/true };
   }
   return nullopt; // parsing failed.
 }
@@ -143,8 +144,8 @@ Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
       auto at_sign = find( start, end, '@' );
       if( at_sign - start > 0 )
         line_mkup.push_back(
-            {string_view( start, at_sign - start ),
-             curr_style} );
+            { string_view( start, at_sign - start ),
+              curr_style } );
       if( at_sign == end ) break;
       CHECK( end - at_sign > 1, "internal parser error" );
       CHECK( *at_sign == '@', "internal parser error" );
@@ -193,17 +194,17 @@ Texture render_line_markup( e_font                      font,
   auto renderer = [&]( MarkedUpText const& mk ) {
     return render_markup( font, mk, info );
   };
-  vector<Texture> txs =
+  auto txs = rg::to<vector<Texture>>(
       mks                                        //
       | rv::remove_if( L( _.text.size() == 0 ) ) //
-      | rv::transform( renderer );
+      | rv::transform( renderer ) );
   CHECK( !txs.empty() );
   auto w = rg::accumulate(
       txs | rv::transform( L( _.size().w ) ), 0_w );
   auto [has_h, maybe_h] =
       txs | rv::transform( L( _.size().h ) ) | maximum();
   CHECK( has_h );
-  auto  res = create_texture_transparent( {w, maybe_h} );
+  auto  res = create_texture_transparent( { w, maybe_h } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -223,7 +224,7 @@ Texture render_lines( e_font font, Color fg,
   auto [has_w, maybe_w] =
       txs | rv::transform( L( _.size().w ) ) | maximum();
   CHECK( has_w );
-  auto  res = create_texture_transparent( {h, maybe_w} );
+  auto  res = create_texture_transparent( { h, maybe_w } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -244,7 +245,7 @@ Texture render_lines_markup(
   auto [has_w, maybe_w] =
       txs | rv::transform( L( _.size().w ) ) | maximum();
   CHECK( has_w );
-  auto  res = create_texture_transparent( {h, maybe_w} );
+  auto  res = create_texture_transparent( { h, maybe_w } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -458,17 +459,17 @@ void text_render_test() {
     function to distinguish menu items. @[H]@[H]
   )";
 
-  TextMarkupInfo info{Color::white(), Color::red()};
+  TextMarkupInfo info{ Color::white(), Color::red() };
 
   auto const& tx1 =
       render_text_markup( font::standard(), info, msg );
   // auto tx1 =
   //    render_text( font::standard(), Color::white(), msg );
-  copy_texture( tx1, Texture::screen(), {50_y, 100_x} );
+  copy_texture( tx1, Texture::screen(), { 50_y, 100_x } );
 
   auto const& tx2 = render_text_markup_reflow(
-      font::standard(), info, {50}, msg2 );
-  copy_texture( tx2, Texture::screen(), {200_y, 100_x} );
+      font::standard(), info, { 50 }, msg2 );
+  copy_texture( tx2, Texture::screen(), { 200_y, 100_x } );
 
   //::SDL_RenderPresent( g_renderer );
 

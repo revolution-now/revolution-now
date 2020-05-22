@@ -457,9 +457,10 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
   rng::reseed( sub_seed );
 
   SECTION( "roughly equal push and pop" ) {
-    vector<bool> bs = rv::generate_n( L0( rng::flip_coin() ),
-                                      realloc_size * 3 );
-    vector<int>  is = rv::ints( 0, realloc_size * 3 );
+    auto bs = rg::to<vector<bool>>( rv::generate_n(
+        L0( rng::flip_coin() ), realloc_size * 3 ) );
+    auto is =
+        rg::to<vector<int>>( rv::ints( 0, realloc_size * 3 ) );
     REQUIRE( is.size() == bs.size() );
 
     for( auto [action, n] : rv::zip( bs, is ) ) {
@@ -487,10 +488,10 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
   }
 
   SECTION( "biased to push" ) {
-    vector<int> bs = rv::generate_n(
+    auto bs = rg::to<vector<int>>( rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
-        10000 );
-    vector<int> is = rv::ints( 0, 10000 );
+        10000 ) );
+    auto is = rg::to<vector<int>>( rv::ints( 0, 10000 ) );
     REQUIRE( is.size() == bs.size() );
 
     for( auto [action, n] : rv::zip( bs, is ) ) {
@@ -520,10 +521,10 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
   }
 
   SECTION( "biased to pop" ) {
-    vector<int> bs = rv::generate_n(
+    auto bs = rg::to<vector<int>>( rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
-        10000 );
-    vector<int> is = rv::ints( 0, 10000 );
+        10000 ) );
+    auto is = rg::to<vector<int>>( rv::ints( 0, 10000 ) );
     REQUIRE( is.size() == bs.size() );
 
     for( auto [action, n] : rv::zip( bs, is ) ) {
@@ -572,10 +573,10 @@ TEST_CASE( "[flat-deque] std::deque comparison" ) {
   rng::reseed( sub_seed );
 
   SECTION( "roughly equal push and pop" ) {
-    vector<int> bs = rv::generate_n(
+    auto bs = rg::to<vector<int>>( rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
-        size );
-    vector<int> is = rv::ints( 0, size );
+        size ) );
+    auto is = rg::to<vector<int>>( rv::ints( 0, size ) );
     REQUIRE( is.size() == bs.size() );
 
     for( auto [action, n] : rv::zip( bs, is ) ) {
@@ -610,10 +611,10 @@ TEST_CASE( "[flat-deque] std::deque comparison" ) {
   }
 
   SECTION( "biased to push" ) {
-    vector<int> bs = rv::generate_n(
+    auto bs = rg::to<vector<int>>( rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
-        10000 );
-    vector<int> is = rv::ints( 0, 10000 );
+        10000 ) );
+    auto is = rg::to<vector<int>>( rv::ints( 0, 10000 ) );
     REQUIRE( is.size() == bs.size() );
 
     for( auto [action, n] : rv::zip( bs, is ) ) {
@@ -648,10 +649,10 @@ TEST_CASE( "[flat-deque] std::deque comparison" ) {
   }
 
   SECTION( "biased to pop" ) {
-    vector<int> bs = rv::generate_n(
+    auto bs = rg::to<vector<int>>( rv::generate_n(
         L0( rng::between( 0, 3, rng::e_interval::half_open ) ),
-        10000 );
-    vector<int> is = rv::ints( 0, 10000 );
+        10000 ) );
+    auto is = rg::to<vector<int>>( rv::ints( 0, 10000 ) );
     REQUIRE( is.size() == bs.size() );
 
     bool front_back = true;

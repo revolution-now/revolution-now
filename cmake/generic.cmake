@@ -16,10 +16,13 @@ endif()
 function( set_warning_options target )
     target_compile_options(
         ${target} PRIVATE
-        # clang/GCC warnings
-        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+        # clang
+        $<$<CXX_COMPILER_ID:Clang>:
             -Wall -Wextra -Wno-unused-local-typedef >
-        # MSVC warnings
+        # gcc
+        $<$<CXX_COMPILER_ID:GNU>:
+            -Wall -Wextra >
+        # msvc
         $<$<CXX_COMPILER_ID:MSVC>:
             /Wall /WX > )
 endfunction( set_warning_options )

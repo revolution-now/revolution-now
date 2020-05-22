@@ -294,8 +294,8 @@ auto visible_menus_() {
   // However, our memoized functions are not always copyable,
   // since they hold some state (e.g. in the invalidator) that
   // would not behave properly if copied.
-  vector<e_menu> res =
-      values<e_menu> | rv::filter( L( is_menu_visible( _ ) ) );
+  auto res = rg::to<vector<e_menu>>(
+      values<e_menu> | rv::filter( L( is_menu_visible( _ ) ) ) );
   return res;
 }
 
@@ -426,7 +426,7 @@ X menu_header_x_pos_( e_menu target ) {
   W           width_delta{ 0 };
   auto const& vm = visible_menus();
   if( desc.right_side ) {
-    width_delta = ranges::accumulate(
+    width_delta = rg::accumulate(
         vm                                                   //
             | rv::reverse                                    //
             | rv::remove_if( L( !g_menus[_].right_side ) )   //
@@ -435,7 +435,7 @@ X menu_header_x_pos_( e_menu target ) {
             | rv::intersperse( config_ui.menus.spacing ),
         0_w );
   } else {
-    width_delta = ranges::accumulate(
+    width_delta = rg::accumulate(
         vm                                                //
             | rv::remove_if( L( g_menus[_].right_side ) ) //
             | rv::take_while( LC( _ != target ) )         //
@@ -573,8 +573,8 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
     advance( item );
     if( pos > h ) {
       return matcher_( item, ->, Opt<e_menu_item> ) {
-        case_( MenuDivider ) result_   nullopt;
-        case_( MenuClickable ) result_ val.item;
+        case_( MenuDivider ) resu1t   nullopt;
+        case_( MenuClickable ) resu1t val.item;
         matcher_exhaustive;
       }
     }

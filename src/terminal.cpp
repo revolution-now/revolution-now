@@ -58,8 +58,8 @@ void trim() {
 ** Running Commands
 *****************************************************************/
 FlatMap<string, tl::function_ref<void()>> g_console_commands{
-    {"clear", clear},                        //
-    {"quit", [] { throw exception_exit{}; }} //
+    { "clear", clear },                        //
+    { "quit", [] { throw exception_exit{}; } } //
 };
 
 bool is_statement( string const& cmd ) {
@@ -162,16 +162,17 @@ Vec<Str> autocomplete( string_view fragment ) {
            ( c == '_' );
   };
   lg.trace( "fragment: {}", fragment );
-  string to_autocomplete =
-      fragment                                 //
-      | rv::reverse                            //
-      | rv::take_while( is_autocomplete_char ) //
-      | rv::reverse;
+  auto to_autocomplete =
+      rg::to<string>( fragment                                 //
+                      | rv::reverse                            //
+                      | rv::take_while( is_autocomplete_char ) //
+                      | rv::reverse );
   lg.trace( "to_autocomplete: {}", to_autocomplete );
-  string prefix = fragment                             //
-                  | rv::reverse                        //
-                  | rv::drop( to_autocomplete.size() ) //
-                  | rv::reverse;
+  auto prefix =
+      rg::to<string>( fragment                             //
+                      | rv::reverse                        //
+                      | rv::drop( to_autocomplete.size() ) //
+                      | rv::reverse );
   lg.trace( "prefix: {}", prefix );
   // Stop here otherwise we'll be looking through all globals.
   if( to_autocomplete.empty() ) return {};
@@ -269,7 +270,8 @@ Vec<Str> autocomplete( string_view fragment ) {
   }
   auto last = segments.back();
   lg.trace( "last: {}", last );
-  string   initial = initial_segments | rv::join( '.' );
+  auto initial =
+      rg::to<string>( initial_segments | rv::join( '.' ) );
   Vec<Str> res;
 
   auto add_keys = [&]( sol::object parent, auto kv ) {
@@ -300,23 +302,24 @@ Vec<Str> autocomplete( string_view fragment ) {
   lg.trace( "sorted; size: {}", res.size() );
 
   for( auto const& match : res ) {
-    auto match_dots = absl::StrReplaceAll( match, {{":", "."}} );
+    auto match_dots =
+        absl::StrReplaceAll( match, { { ":", "." } } );
     auto fragment_dots =
-        absl::StrReplaceAll( fragment, {{":", "."}} );
+        absl::StrReplaceAll( fragment, { { ":", "." } } );
     DCHECK( util::starts_with( match_dots, fragment_dots ),
             "`{}` does not start with `{}`", match_dots,
             fragment_dots );
   }
 
   if( res.size() == 0 ) {
-    lg.trace( "returning: {}", FmtJsonStyleList{res} );
+    lg.trace( "returning: {}", FmtJsonStyleList{ res } );
     return res;
   } else if( res.size() > 1 ) {
     // Try to find a common prefix.
     auto prefix = util::common_prefix( res );
     CHECK( prefix.has_value() );
-    if( prefix->size() > fragment.size() ) res = {*prefix};
-    lg.trace( "returning: {}", FmtJsonStyleList{res} );
+    if( prefix->size() > fragment.size() ) res = { *prefix };
+    lg.trace( "returning: {}", FmtJsonStyleList{ res } );
     return res;
   }
 
@@ -350,7 +353,7 @@ Vec<Str> autocomplete( string_view fragment ) {
       res[0] += '(';
     lg.trace( "final res[0]: {}", res[0] );
   }
-  lg.trace( "returning: {}", FmtJsonStyleList{res} );
+  lg.trace( "returning: {}", FmtJsonStyleList{ res } );
   return res;
 }
 
@@ -362,7 +365,7 @@ Vec<Str> autocomplete_iterative( string_view fragment ) {
     auto try_res = autocomplete( single_result );
     if( try_res.empty() ) break;
     res = std::move( try_res );
-    lg.trace( "  res: {}", FmtJsonStyleList{res} );
+    lg.trace( "  res: {}", FmtJsonStyleList{ res } );
     if( res.size() == 1 ) {
       lg.trace( "  size is 1" );
       if( single_result == res[0] ) break;
@@ -374,7 +377,7 @@ Vec<Str> autocomplete_iterative( string_view fragment ) {
     // Try to find a common prefix.
     auto prefix = util::common_prefix( res );
     CHECK( prefix.has_value() );
-    if( prefix->size() > fragment.size() ) res = {*prefix};
+    if( prefix->size() > fragment.size() ) res = { *prefix };
   }
   return res;
 }

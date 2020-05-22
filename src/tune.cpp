@@ -31,6 +31,7 @@
 
 // Range-v3
 #include "range/v3/algorithm/reverse.hpp"
+#include "range/v3/range/conversion.hpp"
 #include "range/v3/view/filter.hpp"
 #include "range/v3/view/take_while.hpp"
 #include "range/v3/view/transform.hpp"
@@ -109,20 +110,21 @@ void cleanup_tunes() {}
 //
 REGISTER_INIT_ROUTINE( tunes );
 
-#define OPT_TO_VEC( what )                                     \
-  {                                                            \
-    what.has_value()                                           \
-        ? Vec<std::decay_t<decltype( what.value() )>>{{*what}} \
-        : Vec<std::decay_t<decltype( what.value() )>> {}       \
+#define OPT_TO_VEC( what )                               \
+  {                                                      \
+    what.has_value()                                     \
+        ? Vec<std::decay_t<decltype(                     \
+              what.value() )>>{ { *what } }              \
+        : Vec<std::decay_t<decltype( what.value() )>> {} \
   }
 
 TuneVecDimensions TuneOptDimensions::to_vec_dims() const {
-  return {EVAL( PP_MAP_COMMAS( OPT_TO_VEC,
-                               EVAL( TUNE_DIMENSION_LIST ) ) )};
+  return { EVAL( PP_MAP_COMMAS(
+      OPT_TO_VEC, EVAL( TUNE_DIMENSION_LIST ) ) ) };
 }
 
 TuneOptDimensions TuneDimensions::to_opt_dims() const {
-  return {EVAL( TUNE_DIMENSION_LIST )};
+  return { EVAL( TUNE_DIMENSION_LIST ) };
 }
 
 void TunePlayerInfo::log() const {
@@ -135,7 +137,8 @@ void TunePlayerInfo::log() const {
 Vec<TuneId> const& all_tunes() {
   static Vec<TuneId> tunes;
   if( tunes.empty() )
-    tunes = g_tunes | rv::transform( L( _.first ) );
+    tunes = rg::to<Vec<TuneId>>( g_tunes |
+                                 rv::transform( L( _.first ) ) );
   return tunes;
 }
 
@@ -179,14 +182,16 @@ Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
 
     int target_score_for_non_fuzzy =
         not_like ? enabled_dimensions : 0;
-    scores = scores |
-             rv::filter(
-                 LC( _.second == target_score_for_non_fuzzy ) );
+    scores = rg::to<Vec<Pair<TuneId, int>>>(
+        scores |
+        rv::filter(
+            LC( _.second == target_score_for_non_fuzzy ) ) );
   }
 
   if( not_like ) rg::reverse( scores );
 
-  Vec<TuneId> res = scores | rv::transform( L( _.first ) );
+  auto res = rg::to<Vec<TuneId>>(
+      scores | rv::transform( L( _.first ) ) );
   if( fuzzy_match ) { DCHECK( !res.empty() ); }
   return res;
 }
@@ -230,9 +235,12 @@ TuneId random_tune() {
       tune_difference_scores( dims.to_vec_dims() );
   CHECK( !tunes_scores.empty() );
   auto first_score = tunes_scores[0].second;
-  tunes_scores     = tunes_scores |
-                 rv::take_while( LC( _.second == first_score ) );
-  return rng::pick_one( tunes_scores ).first;
+  auto same_distance =
+      tunes_scores |
+      rv::take_while( LC( _.second == first_score ) );
+  return rng::pick_one(
+             rg::to<Vec<Pair<TuneId, int>>>( same_distance ) )
+      .first;
 }
 
 } // namespace rn

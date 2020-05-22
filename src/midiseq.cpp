@@ -174,7 +174,7 @@ public:
 private:
   MidiIO() = default;
 
-  double             master_volume_{1.0};
+  double             master_volume_{ 1.0 };
   array<uint8_t, 16> midi_requested_volumes_{}; // init to zeros
 
   vector<unsigned char> last_message_;
@@ -262,7 +262,7 @@ private:
     try {
       auto num_ports = int( out_->getPortCount() );
       for( auto i = 0; i < num_ports; i++ )
-        res.push_back( {i, out_->getPortName( i )} );
+        res.push_back( { i, out_->getPortName( i ) } );
     } catch( RtMidiError& error ) { RTMIDI_WARN( error ); }
     return res;
   }
@@ -272,7 +272,9 @@ private:
       return absl::StrContains(
           absl::AsciiStrToLower( port_name ), n );
     };
-    return rg::any_of( {"fluid", "timidity"}, valid );
+    return rg::any_of(
+        initializer_list<char const*>{ "fluid", "timidity" },
+        valid );
   }
 
   Opt<int> find_midi_output_port() {
@@ -420,11 +422,11 @@ private:
   mutable mutex mutex_;
   // The midi thread holds its state here and updates this when-
   // ever it changes.
-  e_midiseq_state  state_{e_midiseq_state::stopped};
+  e_midiseq_state  state_{ e_midiseq_state::stopped };
   string           last_error_{};
   queue<command_t> commands_{};
   Opt<double>      progress_{};
-  bool             running_commands_{false};
+  bool             running_commands_{ false };
 };
 
 // Shared state between main thread and midi thread.
@@ -828,7 +830,7 @@ void test() {
            "assets/music/midi/*.mid", /*with_folders=*/false ) )
     midi_files.push_back( file );
   double vol = 0.5;
-  g_midi_comm.send_cmd( command::volume{vol} );
+  g_midi_comm.send_cmd( command::volume{ vol } );
   sleep( 500ms );
   while( true ) {
     if( g_midi_comm.state() == e_midiseq_state::failed ) {
@@ -845,7 +847,7 @@ void test() {
     sleep( milliseconds( 20 ) );
     if( in == "p" ) {
       if( midi_files.empty() ) break;
-      g_midi_comm.send_cmd( command::play{midi_files.back()} );
+      g_midi_comm.send_cmd( command::play{ midi_files.back() } );
       midi_files.pop_back();
       continue;
     }
@@ -864,14 +866,14 @@ void test() {
     if( in == "u" ) {
       vol += .1;
       vol = std::clamp( vol, 0.0, 1.0 );
-      g_midi_comm.send_cmd( command::volume{vol} );
+      g_midi_comm.send_cmd( command::volume{ vol } );
       lg.info( "volume: {}", vol );
       continue;
     }
     if( in == "d" ) {
       vol -= .1;
       vol = std::clamp( vol, 0.0, 1.0 );
-      g_midi_comm.send_cmd( command::volume{vol} );
+      g_midi_comm.send_cmd( command::volume{ vol } );
       lg.info( "volume: {}", vol );
       continue;
     }

@@ -84,14 +84,14 @@ struct ColonyPlane : public Plane {
   e_input_handled input( input::event_t const& event ) override {
     return matcher_( event, ->, e_input_handled ) {
       case_( input::key_event_t ) {
-        result_ handle_key_event( val );
+        resu1t handle_key_event( val );
       }
       case_( input::win_event_t ) {
         if( val.type == input::e_win_event_type::resized )
           set_colview_colony( curr_colony_id );
         // Generally we should return no here because this is an
         // event that we want all planes to see.
-        result_ e_input_handled::no;
+        resu1t e_input_handled::no;
       }
       default_matcher( return e_input_handled::no; );
     }

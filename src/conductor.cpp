@@ -31,7 +31,7 @@
 #include "base-util/algo.hpp"
 
 // Range-v3
-#include "range/v3/distance.hpp"
+#include "range/v3/iterator/operations.hpp"
 #include "range/v3/view/enumerate.hpp"
 #include "range/v3/view/filter.hpp"
 #include "range/v3/view/take.hpp"

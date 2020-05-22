@@ -340,10 +340,10 @@ sync_future<bool> confirm_explain_attack_error(
 sync_future<bool> CombatAnalysis::confirm_explain_() const {
   return matcher_( desc, ->, sync_future<bool> ) {
     case_( e_attack_good ) {
-      result_ confirm_explain_attack_good( val );
+      resu1t confirm_explain_attack_good( val );
     }
     case_( e_attack_error ) {
-      result_ confirm_explain_attack_error( val );
+      resu1t confirm_explain_attack_error( val );
     }
     matcher_exhaustive;
   }

@@ -20,21 +20,21 @@ namespace {} // namespace
 bool Object::input( input::event_t const& event ) {
   return matcher_( event ) {
     case_( input::unknown_event_t ) //
-        result_ false;
+        resu1t false;
     case_( input::quit_event_t ) //
-        result_ false;
+        resu1t false;
     case_( input::win_event_t ) //
-        result_ false;
+        resu1t false;
     case_( input::key_event_t ) //
-        result_ on_key( val );
+        resu1t on_key( val );
     case_( input::mouse_wheel_event_t ) //
-        result_ on_wheel( val );
+        resu1t on_wheel( val );
     case_( input::mouse_move_event_t ) //
-        result_ on_mouse_move( val );
+        resu1t on_mouse_move( val );
     case_( input::mouse_button_event_t ) //
-        result_ on_mouse_button( val );
+        resu1t on_mouse_button( val );
     case_( input::mouse_drag_event_t ) //
-        result_ false;
+        resu1t false;
     matcher_exhaustive;
   };
 }

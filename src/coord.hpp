@@ -389,7 +389,7 @@ struct ND Rect {
     const_iterator& operator=( const_iterator const& ) = default;
     const_iterator& operator=( const_iterator&& ) = default;
 
-    auto const& operator*() {
+    auto const& operator*() const {
       DCHECK( rect );
       // TODO: can remove this check eventually.
       DCHECK( it.is_inside( *rect ) );

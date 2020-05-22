@@ -18,6 +18,7 @@
 
 // range-v3
 #include "range/v3/numeric/accumulate.hpp"
+#include "range/v3/range/conversion.hpp"
 #include "range/v3/view/concat.hpp"
 #include "range/v3/view/drop_while.hpp"
 #include "range/v3/view/filter.hpp"
