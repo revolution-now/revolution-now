@@ -1,6 +1,7 @@
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Revolution|Now code editing startup script for vim.
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+set cmdheight=3
 
 let s:first = 'exe/main.cpp'
 
@@ -127,3 +128,5 @@ endfunction
 
 command! -nargs=1 PairOpen call s:OpenSourcePair( <f-args> )
 command! -nargs=1 LuaOpen  call OpenLua( <f-args> )
+
+set cmdheight=1
