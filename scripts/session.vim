@@ -5,23 +5,23 @@
 let s:first = 'exe/main.cpp'
 
 let s:stems = [
-  \ 'src/open-gl',
-  \ 'src/plane-ctrl',
-  \ 'src/turn',
-  \ 'src/land-view',
-  \ 'src/colony',
-  \ 'src/cstate',
-  \ 'src/colony-mfg',
-  \ 'src/mining',
-  \ 'src/land-square',
-  \ 'src/colony-mgr',
-  \ 'src/colony-view',
-  \ 'src/europort-view',
-  \ 'src/colview-entities',
-  \ 'src/views',
-  \ 'src/render',
-  \ 'src/tiles',
-  \ 'src/save-game',
+  \ 'open-gl',
+  \ 'plane-ctrl',
+  \ 'turn',
+  \ 'land-view',
+  \ 'colony',
+  \ 'cstate',
+  \ 'colony-mfg',
+  \ 'mining',
+  \ 'land-square',
+  \ 'colony-mgr',
+  \ 'colony-view',
+  \ 'europort-view',
+  \ 'colview-entities',
+  \ 'views',
+  \ 'render',
+  \ 'tiles',
+  \ 'save-game',
 \]
 
 "let s:pairs = [
@@ -67,6 +67,12 @@ function OpenPair( hpp, cpp )
     call OpenVSplit( a:hpp )
 endfunction
 
+function OpenTriple( hpp, cpp, test )
+    call OpenInTab( a:test )
+    call OpenVSplit( a:hpp )
+    call OpenVSplit( a:cpp )
+endfunction
+
 function OpenLua( lua )
     call OpenInTab( 'src/lua/' . a:lua . '.lua' )
     call OpenVSplit( 'src/lua/' . a:lua . '.lua' )
@@ -82,7 +88,7 @@ function OpenQuad( f1, f2, f3, f4 )
 endfunction
 
 function OpenCppPair( stem )
-    call OpenPair( a:stem . '.hpp', a:stem . '.cpp' )
+    call OpenTriple( 'src/' . a:stem . '.hpp', 'src/' . a:stem . '.cpp', 'test/' . a:stem . '.cpp' )
 endfunction
 
 " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
