@@ -29,6 +29,9 @@ public:                                          \
 
 #include "magic_enum.hpp"
 
+static_assert( magic_enum::is_magic_enum_supported,
+               "Magic Enum is not supported on this compiler." );
+
 // This creates a reflected enum class.  Use it like this:
 //
 // enum class e_(color,
