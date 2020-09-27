@@ -7,6 +7,7 @@
 #include "lua.hpp"
 #include "open-gl.hpp"
 #include "screen.hpp"
+#include "util.hpp"
 
 #include "SDL.h"
 #include "SDL_image.h"
@@ -22,7 +23,11 @@ void game() { frame_loop(); }
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) {
-  bool do_game = false;
+  bool do_game    = false;
+  auto maybe_cols = os_terminal_columns();
+  if( maybe_cols.has_value() ) {
+    fmt::print( "{:=^{}}", "[ Revolution | Now ]", *maybe_cols );
+  }
   try {
     try {
       linker_dont_discard_me();
