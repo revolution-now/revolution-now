@@ -24,16 +24,12 @@ using namespace std;
 
 namespace rn {
 
-namespace {
-
-Opt<string> environment_variable( char const* name ) {
-  Opt<string> res;
-  auto const* value = getenv( name );
+Opt<string_view> env_var( char const* name ) {
+  Opt<string_view> res;
+  auto const*      value = getenv( name );
   if( value != nullptr ) res = value;
   return res;
 }
-
-} // namespace
 
 int round_up_to_nearest_int_multiple( double d, int m ) {
   if( d < 0.0 )
@@ -50,8 +46,26 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
   return floor / m;
 }
 
-Opt<fs::path> user_home_folder() {
-  return environment_variable( "HOME" );
+Opt<fs::path> user_home_folder() { return env_var( "HOME" ); }
+
+Opt<int> os_terminal_columns() {
+  if( auto maybe_sv = env_var( "COLUMNS" );
+      maybe_sv.has_value() )
+    if( Opt<int> cols = util::stoi( std::string( *maybe_sv ) );
+        cols.has_value() )
+      return *cols;
+  return nullopt;
 }
+
+void set_env_var( char const* var_name, char const* value ) {
+  setenv( var_name, value, /*overwrite=*/true );
+}
+
+void set_env_var_if_not_set( char const* var_name,
+                             char const* value ) {
+  setenv( var_name, value, /*overwrite=*/false );
+}
+
+void unset_env_var( char const* name ) { unsetenv( name ); }
 
 } // namespace rn
