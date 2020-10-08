@@ -28,7 +28,7 @@ using namespace std;
 
 using Catch::Contains;
 
-TEST_CASE( "[mining] some test" ) {
+TEST_CASE( "[{{FILE}}] some test" ) {
   int x = 4;
   REQUIRE( x == 4 );
 
@@ -37,7 +37,7 @@ TEST_CASE( "[mining] some test" ) {
   SECTION( "non negative" ) { REQUIRE( x >= 0 ); }
 }
 
-TEST_CASE( "[mining] lua bindings" ) {
+TEST_CASE( "[{{FILE}}] lua bindings" ) {
   auto script = R"(
     local x = 5+6
   )";

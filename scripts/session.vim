@@ -32,12 +32,25 @@ let s:quads = [
 
 " ========================= Functions ===========================
 function s:Open3( stem )
+  echo '  - ' . a:stem
   exe 'silent tabnew src/' . a:stem . '.hpp'
   exe 'silent vsplit src/' . a:stem . '.cpp'
-  exe 'silent vsplit test/' . a:stem . '.cpp'
+  if filereadable( 'test/' . a:stem . '.cpp' )
+    exe 'silent vsplit test/' . a:stem . '.cpp'
+  else
+    " Turn off auto template initialization, create the file,
+    " then initailize it with the unit test template. If we don't
+    " do it this way then the file will be created and auto
+    " initialized with the regular cpp template.
+    let l:tmp = g:tmpl_auto_initialize
+    let g:tmpl_auto_initialize = 0
+    exe 'silent vnew test/' . a:stem . '.cpp'
+    let g:tmpl_auto_initialize = l:tmp
+    :TemplateInit cpptest
+    set nomodified
+  endif
   " Uncomment these to open Tagbar; slows things down.
   ":TagbarOpen
-  "wincmd =
   "3wincmd h
   2wincmd h
 endfunction
@@ -74,7 +87,8 @@ endfunction
 " ============================ Main =============================
 " This needs to be the number of message output (echo) otherwise
 " you will get 'Press ENTER to continue...'.
-set cmdheight=4
+let s:lines = 4 + len( s:stems )
+exe 'set cmdheight=' . s:lines
 
 " For convenience.
 command! -nargs=1 Open3 call s:Open3( <f-args> )
@@ -96,7 +110,7 @@ for q in s:quads
   call s:Open4( q[0], q[1], q[3], q[2] )
 endfor
 
-" Last
-tabnext
+tabdo set cmdheight=1
+tabdo wincmd =
 
-set cmdheight=1
+tabnext
