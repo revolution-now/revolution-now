@@ -1,10 +1,4 @@
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" Revolution|Now code editing startup script for vim.
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set cmdheight=3
-
-let s:first = 'exe/main.cpp'
-
+" =========================== Config ============================
 let s:stems = [
   \ 'open-gl',
   \ 'plane-ctrl',
@@ -25,10 +19,6 @@ let s:stems = [
   \ 'save-game',
 \]
 
-"let s:pairs = [
-"  \ ['x/y/z.ext', 'a/c/d.xyz']
-"\]
-
 let s:luas = [
   \ 'startup',
   \ 'meta',
@@ -40,93 +30,73 @@ let s:quads = [
   \  'doc/design.txt',     'doc/ideas.txt'],
 \]
 
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" Functions
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-function OpenSidePanels()
-    :NERDTreeToggle src
-    :TagbarOpen
+" ========================= Functions ===========================
+function s:Open3( stem )
+  exe 'silent tabnew src/' . a:stem . '.hpp'
+  exe 'silent vsplit src/' . a:stem . '.cpp'
+  exe 'silent vsplit test/' . a:stem . '.cpp'
+  " Uncomment these to open Tagbar; slows things down.
+  ":TagbarOpen
+  "wincmd =
+  "3wincmd h
+  2wincmd h
 endfunction
 
-function OpenFirst( name )
-    execute ':e ' . a:name
-    call OpenSidePanels()
+function s:Open4( upper_left, upper_right, lower_right, lower_left )
+  exe 'silent tabnew ' . a:upper_left
+  exe 'silent vsplit ' . a:upper_right
+  exe 'silent split '  . a:lower_right
+  wincmd h
+  exe 'silent split '  . a:lower_left
+  wincmd k
 endfunction
 
-function OpenInTab( name )
-    execute ':tabnew ' . a:name
-    call OpenSidePanels()
+function s:OpenVertList( list )
+  if !empty( a:list )
+    exe 'silent tabnew ' . a:list[0]
+    for i in range( 1, len( a:list )-1 )
+      exe 'silent vsplit ' . a:list[i]
+    endfor
+    for i in range( 1, len( a:list )-1 )
+      wincmd h
+    endfor
+  endif
 endfunction
 
-function OpenVSplit( name )
-    execute ':vsplit ' . a:name
+function s:OpenLuas( luas )
+  let l:luas2 = []
+  for lua in a:luas
+    call add( l:luas2, 'src/lua/' . lua . '.lua' )
+  endfor
+  call s:OpenVertList( l:luas2 )
 endfunction
 
-function OpenPair( hpp, cpp )
-    call OpenInTab( a:cpp )
-    call OpenVSplit( a:hpp )
-endfunction
+" ============================ Main =============================
+" This needs to be the number of message output (echo) otherwise
+" you will get 'Press ENTER to continue...'.
+set cmdheight=4
 
-function OpenTriple( hpp, cpp, test )
-    call OpenInTab( a:test )
-    call OpenVSplit( a:hpp )
-    call OpenVSplit( a:cpp )
-endfunction
+" For convenience.
+command! -nargs=1 Open3 call s:Open3( <f-args> )
+command! -nargs=1 PairOpen call s:Open3( <f-args> )
 
-function OpenLua( lua )
-    call OpenInTab( 'src/lua/' . a:lua . '.lua' )
-    call OpenVSplit( 'src/lua/' . a:lua . '.lua' )
-endfunction
+echo 'opening main...'
+silent edit exe/main.cpp
 
-function OpenQuad( f1, f2, f3, f4 )
-    call OpenPair( a:f1, a:f2 )
-    execute ':split ' . a:f3
-    :wincmd l
-    execute ':split ' . a:f4
-    :wincmd k
-    :wincmd h
-endfunction
+echo 'opening luas...'
+call s:OpenLuas( s:luas )
 
-function OpenCppPair( stem )
-    call OpenTriple( 'src/' . a:stem . '.hpp', 'src/' . a:stem . '.cpp', 'test/' . a:stem . '.cpp' )
-endfunction
+echo 'opening cpps...'
+for s in s:stems
+  call s:Open3( s )
+endfor
 
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" Do it
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+echo 'opening docs...'
+for q in s:quads
+  call s:Open4( q[0], q[1], q[3], q[2] )
+endfor
 
-call OpenFirst( s:first )
-"for p in s:pairs  | call OpenPair( p[0], p[1] )             | endfor
-"for l in s:luas   | call OpenLua( l )                       | endfor
-for s in s:stems  | call OpenCppPair( s )                   | endfor
-for q in s:quads  | call OpenQuad( q[0], q[1], q[2], q[3] ) | endfor
-
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" Finish up.
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-" Move back to first tab
-:tabn 1
-" Move cursor from main pane to TagBar, refresh it once (by tog-
-" gling on/off the help screen) then move back to main pane. This
-" is to work around a strange issue where the tagbar is empty in
-" the first tab.
-call feedkeys( "\<C-L>??\<C-H>" )
-" Open a terminal in a vsplit.
-"call feedkeys( ":vert term\<CR>\<C-W>h" )
-
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" Some user functions for later
-" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-function s:OpenSourcePair( name )
-  call OpenCppPair( 'src/' . a:name )
-  " Move the red tab selector to align with this new tab which
-  " will now be selected.
-  :TabProposedNext
-endfunction
-
-command! -nargs=1 PairOpen call s:OpenSourcePair( <f-args> )
-command! -nargs=1 LuaOpen  call OpenLua( <f-args> )
+" Last
+tabnext
 
 set cmdheight=1
