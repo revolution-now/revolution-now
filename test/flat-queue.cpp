@@ -483,7 +483,7 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
     }
 
     REQUIRE( !q.front().has_value() );
-    REQUIRE( q.size() == sq.size() );
+    REQUIRE( q.size() == (int)sq.size() );
     REQUIRE( q.size() == 0 );
   }
 
@@ -504,19 +504,19 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
         q.pop();
         sq.pop();
       }
-      REQUIRE( q.size() == sq.size() );
+      REQUIRE( q.size() == (int)sq.size() );
       if( !q.empty() ) { REQUIRE( q.front() == sq.front() ); }
     }
 
     while( q.size() > 0 ) {
       REQUIRE( q.front() == sq.front() );
-      REQUIRE( q.size() == sq.size() );
+      REQUIRE( q.size() == (int)sq.size() );
       q.pop();
       sq.pop();
     }
 
     REQUIRE( !q.front().has_value() );
-    REQUIRE( q.size() == sq.size() );
+    REQUIRE( q.size() == (int)sq.size() );
     REQUIRE( q.size() == 0 );
   }
 
@@ -537,19 +537,19 @@ TEST_CASE( "[flat-queue] std::queue comparison" ) {
         q.pop();
         sq.pop();
       }
-      REQUIRE( q.size() == sq.size() );
+      REQUIRE( q.size() == (int)sq.size() );
       if( !q.empty() ) { REQUIRE( q.front() == sq.front() ); }
     }
 
     while( q.size() > 0 ) {
-      REQUIRE( q.front() == sq.front() );
-      REQUIRE( q.size() == sq.size() );
+      REQUIRE( q.front() == (int)sq.front() );
+      REQUIRE( q.size() == (int)sq.size() );
       q.pop();
       sq.pop();
     }
 
     REQUIRE( !q.front().has_value() );
-    REQUIRE( q.size() == sq.size() );
+    REQUIRE( q.size() == (int)sq.size() );
     REQUIRE( q.size() == 0 );
   }
 }
@@ -672,7 +672,7 @@ TEST_CASE( "[flat-deque] std::deque comparison" ) {
         q.pop_back();
         sq.pop_back();
       }
-      REQUIRE( q.size() == sq.size() );
+      REQUIRE( q.size() == (int)sq.size() );
       if( !q.empty() ) { REQUIRE( q.front() == sq.front() ); }
       if( !q.empty() ) { REQUIRE( q.back() == sq.back() ); }
     }
