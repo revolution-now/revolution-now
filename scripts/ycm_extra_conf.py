@@ -73,7 +73,7 @@ def Settings( filename, **kwargs ):
         result_dir = directories[filename]
     except:
         # Try to find a file in the same folder and use those
-        for f,cmd in flags.iteritems():
+        for f,cmd in flags.items():
             if os.path.dirname( f ) == os.path.dirname( filename ):
                 result = cmd
                 result_dir = directories[f]
