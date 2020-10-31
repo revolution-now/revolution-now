@@ -13,6 +13,10 @@
 // Revolution Now
 #include "errors.hpp"
 
+// base-util
+#include "base-util/optional.hpp"
+#include "base-util/string.hpp"
+
 // C++ standard library.
 #include <cstdlib>
 #include <exception>
@@ -49,12 +53,9 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
 Opt<fs::path> user_home_folder() { return env_var( "HOME" ); }
 
 Opt<int> os_terminal_columns() {
-  if( auto maybe_sv = env_var( "COLUMNS" );
-      maybe_sv.has_value() )
-    if( Opt<int> cols = util::stoi( std::string( *maybe_sv ) );
-        cols.has_value() )
-      return *cols;
-  return nullopt;
+  using util::infix::fmap_join;
+  return env_var( "COLUMNS" ) |
+         fmap_join( L( util::from_chars<int>( _ ) ) );
 }
 
 void set_env_var( char const* var_name, char const* value ) {
