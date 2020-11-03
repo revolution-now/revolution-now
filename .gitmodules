@@ -67,3 +67,6 @@
 [submodule "extern/magic_enum"]
 	path = extern/magic_enum
 	url = ../magic_enum.git
+[submodule "extern/cpp-peglib"]
+	path = extern/cpp-peglib
+	url = ../../dpacbach/cpp-peglib

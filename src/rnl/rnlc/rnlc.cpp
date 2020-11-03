@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string_view>
 
+#include "peglib.h"
+
 int main( int argc, char** argv ) {
   if( argc != 3 ) {
     std::cerr << "usage: rnlc <rnl-file> <out-file>\n";
