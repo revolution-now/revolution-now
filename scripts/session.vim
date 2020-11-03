@@ -33,7 +33,12 @@ let s:quads = [
 " ========================= Functions ===========================
 function s:Open3( stem )
   echo '  - ' . a:stem
-  exe 'silent tabnew src/' . a:stem . '.hpp'
+  if filereadable( 'src/rnl/' . a:stem . '.rnl' )
+    exe 'silent tabnew src/rnl/' . a:stem . '.rnl'
+    exe 'silent vsplit src/' . a:stem . '.hpp'
+  else
+    exe 'silent tabnew src/' . a:stem . '.hpp'
+  endif
   exe 'silent vsplit src/' . a:stem . '.cpp'
   if filereadable( 'test/' . a:stem . '.cpp' )
     exe 'silent vsplit test/' . a:stem . '.cpp'

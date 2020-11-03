@@ -1,0 +1,53 @@
+# ===============================================================
+# {{FILEE}}
+#
+# Project: Revolution Now
+#
+# Created by {{NAME}} on {{YEAR}}-{{MONTH}}-{{DATE}}.
+#
+# Description: RNL definitions for the {{FILE}} module.
+#
+# ===============================================================
+import some_other_rnl_module;
+
+include some_other_hpp_header;
+
+namespace rn;
+
+namespace rn._;
+# Anonymous namespace;
+namespace rn;
+
+# Descriptive comment.
+sumtype MyVariant {
+  # List of features.
+  .features:
+    serializable
+    formattable
+
+  # Alternatives.
+  first:
+    int
+    char
+  second:
+  third:
+    string
+}
+
+# Descriptive comment.
+sumtype MyTemplateVariant {
+  .template: T U
+
+  # List of features.
+  features:
+    serializable
+    formattable
+
+  # Alternatives.
+  first:
+    T
+    char
+  second:
+  third:
+    U
+}

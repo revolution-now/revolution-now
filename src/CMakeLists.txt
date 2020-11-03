@@ -1,6 +1,7 @@
 # === subdirectories ==============================================
 
 add_subdirectory( fb )
+add_subdirectory( rnl )
 
 # === this directory ==============================================
 
@@ -56,8 +57,9 @@ target_link_libraries(
     ${SDL2_IMAGE_LIBRARY}
     ${SDL2_MIXER_LIBRARY} )
 
-add_dependencies( rn rn-flatbuf )
+add_dependencies( rn rn-flatbuf rn-rnls )
 get_target_property( FLATBUFF_INCLUDE_DIR rn-flatbuf INCLUDE_DIR )
+get_target_property( RNLS_INCLUDE_DIR rn-rnls INCLUDE_DIR )
 
 target_include_directories(
     rn
@@ -65,6 +67,7 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR} # top-level folder
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${FLATBUFF_INCLUDE_DIR}
+    ${RNLS_INCLUDE_DIR}
     ${SDL2_INCLUDE_DIR}
     ${SDL2_TTF_INCLUDE_DIR}
     ${SDL2_IMAGE_INCLUDE_DIR}
