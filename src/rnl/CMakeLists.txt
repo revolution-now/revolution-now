@@ -9,6 +9,8 @@ file( GLOB rnls "[a-z][a-z0-9-]*.rnl" )
 # Generate the include files parameters.
 set( generated_files "" )
 
+set( rnl_peg "${CMAKE_CURRENT_SOURCE_DIR}/rnl.peg" )
+
 # FIXME: this currently does not support proper incremental
 # builds in that it does not track dependencies among the rnl
 # files via their include statements. scripts/rnl-invalidator.sh
@@ -24,9 +26,10 @@ foreach( rnl ${rnls} )
     COMMAND rnlc
       ${rnl}
       ${generated_include}
+      ${rnl_peg}
       #-o ${CMAKE_CURRENT_BINARY_DIR}
       #-I ${CMAKE_CURRENT_SOURCE_DIR}
-    DEPENDS rnlc ${rnl}
+    DEPENDS rnlc ${rnl} ${rnl_peg}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
   list( APPEND generated_files ${generated_include} )

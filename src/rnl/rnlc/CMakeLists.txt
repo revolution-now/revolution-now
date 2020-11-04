@@ -11,6 +11,7 @@ set_warning_options( rnlc )
 target_link_libraries(
     rnlc
     PRIVATE
+    base-util
     cpp-peglib::cpp-peglib
 )
 
