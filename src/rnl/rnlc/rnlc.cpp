@@ -26,7 +26,7 @@ std::string remove_comments( std::string const& rnl ) {
   for( auto line : lines ) {
     auto n = line.find_first_of( '#' );
     if( n != line.npos )
-      line = std::string_view( line.begin(), line.begin() + n );
+      line = std::string_view( line.begin(), n );
     line = util::strip( line );
     if( line.empty() ) continue;
     res.push_back( std::string( line ) );
