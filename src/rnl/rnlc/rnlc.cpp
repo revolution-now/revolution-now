@@ -75,12 +75,28 @@ int main( int argc, char** argv ) {
     return 1;
   }
 
-  peg::parser parser( peg->c_str() );
-  if( !parser ) {
+  peg::parser parser;
+  parser.log = []( size_t line, size_t col,
+                   std::string const& msg ) {
+    std::cerr << "error parsing peg file:" << line << ":" << col
+              << ": " << msg << "\n";
+    return 1;
+  };
+
+  if( !parser.load_grammar( peg->c_str() ) ) {
     std::cerr << "error: failed to parse peg file.\n";
     return 1;
   }
   parser.enable_packrat_parsing();
+
+  // Change the logger since we are now attempting to parse the
+  // rnl file.
+  parser.log = []( size_t line, size_t col,
+                   std::string const& msg ) {
+    std::cerr << "error parsing rnl file:" << line << ":" << col
+              << ": " << msg << "\n";
+    return 1;
+  };
 
   // Remove comments.
   std::string rnl_no_comments = remove_comments( *rnl );
