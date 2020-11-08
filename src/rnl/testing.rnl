@@ -8,94 +8,89 @@
 # Description: RNL definitions for unit testing.
 #
 # ===============================================================
-a   # this is a test.
-#import some_other_rnl_module;
+import some_other_rnl_module;
 
-#include some_other_hpp_header;
+include "some_other_hpp_header";
 
-#namespace rn;
+namespace rn;
 
-#namespace rn._;
-## Anonymous namespace;
-#namespace rn;
+# Descriptive comment.
+sumtype Monostate {};
 
-## Descriptive comment.
-#sumtype Monostate {}
+# Descriptive comment.
+sumtype Maybe {
+  .template: T, U;
 
-## Descriptive comment.
-#sumtype Maybe {
-#  .template: T U;
+  nothing:
+  just:
+    T val;
+};
 
-#  nothing:
-#  just:
-#    T val;
-#}
+# Descriptive comment.
+sumtype MyVariant1 {
+  first_alternative:
+  second_alternative:
+    bool hello;
+  third_alternative:
+};
 
-## Descriptive comment.
-#sumtype MyVariant1 {
-#  first_alternative:
-#  second_alternative:
-#    bool hello;
-#  third_alternative:
-#}
+sumtype MyVariant2 {
+  .features:
+    formattable;
 
-#sumtype MyVariant2 {
-#  .features:
-#    formattable;
+  first_alternative:
+    std::string name;
+  second_alternative:
+    bool flag1;
+    bool flag2;
+  third_alternative:
+    int cost;
+};
 
-#  first_alternative:
-#    std::string name;
-#  second_alternative:
-#    bool flag1;
-#    bool flag2;
-#  third_alternative:
-#    int cost;
-#}
+sumtype MyVariant3 {
+  .features:
+    serializable;
 
-#sumtype MyVariant3 {
-#  .features:
-#    serializable;
+  first_alternative:
+    MyVariant1 var1;
+  second_alternative:
+    MyVariant1 var1;
+    MyVariant2 var2;
+  third_alternative:
+    char* ptr;
+};
 
-#  first_alternative:
-#    MyVariant1 var1;
-#  second_alternative:
-#    MyVariant1 var1;
-#    MyVariant2 var2;
-#  third_alternative:
-#    char* ptr;
-#}
+# Descriptive comment.
+sumtype MyVariant4 {
+  # List of features.
+  .features:
+    serializable,
+    formattable;
 
-## Descriptive comment.
-#sumtype MyVariant4 {
-#  # List of features.
-#  .features:
-#    serializable,
-#    formattable;
+  # Alternatives.
+  first_alternative:
+    int i;
+    char c;
+  second_alternative:
+  third_alternative:
+    string s;
+    MyVariant3 var3;
+};
 
-#  # Alternatives.
-#  first_alternative:
-#    int i;
-#    char c;
-#  second_alternative:
-#  third_alternative:
-#    string
-#    MyVariant3 var3;
-#}
+# Descriptive comment.
+sumtype TemplateTwoParams {
+  .template: T, U;
 
-## Descriptive comment.
-#sumtype TemplateTwoParams {
-#  .template: T U
+  # List of features.
+  .features:
+    serializable,
+    formattable;
 
-#  # List of features.
-#  .features:
-#    serializable,
-#    formattable;
-
-#  # Alternatives.
-#  first_alternative:
-#    T t;
-#    char c;
-#  second_alternative:
-#  third_alternative:
-#    U u;
-#}
+  # Alternatives.
+  first_alternative:
+    T t;
+    char c;
+  second_alternative:
+  third_alternative:
+    U u;
+};

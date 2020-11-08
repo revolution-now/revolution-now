@@ -20,20 +20,6 @@
 // C++ PEG-lib
 #include "peglib.h"
 
-std::string remove_comments( std::string const& rnl ) {
-  auto lines = util::split_strip_any( rnl, "\n\r" );
-  std::vector<std::string> res;
-  for( auto line : lines ) {
-    auto n = line.find_first_of( '#' );
-    if( n != line.npos )
-      line = std::string_view( line.begin(), n );
-    line = util::strip( line );
-    if( line.empty() ) continue;
-    res.push_back( std::string( line ) );
-  }
-  return util::join( res, "\n" );
-}
-
 int main( int argc, char** argv ) {
   if( argc != 4 ) {
     std::cerr << "usage: rnlc <rnl-file> <out-file>\n";
@@ -98,9 +84,7 @@ int main( int argc, char** argv ) {
     return 1;
   };
 
-  // Remove comments.
-  std::string rnl_no_comments = remove_comments( *rnl );
-  if( !parser.parse( rnl_no_comments.c_str() ) ) {
+  if( !parser.parse( rnl->c_str() ) ) {
     std::cerr << "error: failed to parse rnl file.\n";
     return 1;
   }
@@ -112,7 +96,7 @@ int main( int argc, char** argv ) {
   out << "// output file: "
       << std::filesystem::path( output_file ).stem() << ".\n";
 
-  for( auto s : util::split( rnl_no_comments, '\n' ) )
+  for( auto s : util::split( *rnl, '\n' ) )
     out << "// " << s << "\n";
 
   return 0;

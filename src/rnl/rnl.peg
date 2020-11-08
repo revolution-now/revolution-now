@@ -8,4 +8,64 @@
 # Description: PEG syntax for the RNL language.
 #
 # ===============================================================
-ROOT <- 'a'
+RNL            ← IMPORTS
+                 INCLUDES
+                 ITEMS
+
+STMT_END       ← ';'
+#
+# ===============================================================
+# Headers
+# ===============================================================
+IMPORTS        ← IMPORT*
+IMPORT         ← 'import' <MODULE_NAME> STMT_END
+MODULE_NAME    ← <[a-z][-a-z0-9_]*>
+
+INCLUDES       ← INCLUDE*
+INCLUDE        ← 'include' '"' <INCL_NAME> '"' STMT_END
+INCL_NAME      ← <[a-z][-a-z0-9_/.]*>
+
+# ===============================================================
+# RNL Items
+# ===============================================================
+ITEMS          ← ITEM*
+ITEM           ← NAMESPACE CONSTRUCTS
+CONSTRUCTS     ← CONSTRUCT*
+
+CONSTRUCT      ← SUMTYPE
+
+# ===============================================================
+# Namespaces
+# ===============================================================
+NAMESPACE      ← 'namespace' <NS_NAME> STMT_END
+NS_NAME        ← <[a-zA-Z_][a-zA-Z0-9_.]*>
+
+# ===============================================================
+# Identifiers
+# ===============================================================
+IDENT          ← <[a-zA-Z_][a-zA-Z0-9_]*>
+CPP_TYPE_NAME  ← <'::'? NS_COMPONENT ('::' NS_COMPONENT)*> '*'?
+NS_COMPONENT   ← <[a-zA-Z_][a-zA-Z0-9_<>]*>
+
+# ===============================================================
+# Whitespace / Comments
+# ===============================================================
+LINE_COMMENT   ←  '#' (!LINE_END .)* LINE_END
+LINE_END       ←  '\r\n' / '\r' / '\n' / !.
+%whitespace    ←  ([ \t\r\n]+ / LINE_COMMENT)*
+
+# ===============================================================
+# Sum Types
+# ===============================================================
+SUMTYPE        ← 'sumtype' IDENT '{' SUMTYPE_BODY '}' STMT_END
+SUMTYPE_BODY   ← TEMPLATES? FEATURES? ALTERNATIVE*
+
+FEATURES       ← '.features' ':'
+                    (FEATURE (',' FEATURE)*)? STMT_END
+FEATURE        ← 'formattable' / 'serializable'
+TEMPLATES      ← '.template' ':'
+                    (TMPL_PARAM (',' TMPL_PARAM)*) STMT_END
+TMPL_PARAM     ← <[A-Z][a-zA-Z0-9_]*>
+
+ALTERNATIVE    ← IDENT ':' ALT_VAR*
+ALT_VAR        ← CPP_TYPE_NAME IDENT STMT_END
