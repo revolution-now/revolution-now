@@ -7,8 +7,11 @@ set tabstop=2
 " 1: Get the absolute path of this script.
 " 2: Resolve all symbolic links.
 " 3: Get the folder of the resolved absolute file.
-"let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
+let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 "exec 'source ' . s:path . '/another.vim'
+
+" This is so that the RNL syntax file gets picked up.
+let &runtimepath .= ',' . s:path . '/../src/rnl'
 
 " This makes the design doc look nicer because it typically con-
 " tains snippets of code.

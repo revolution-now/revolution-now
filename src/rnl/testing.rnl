@@ -19,7 +19,7 @@ sumtype Monostate {};
 
 # Descriptive comment.
 sumtype Maybe {
-  .template: T, U
+  .template: T, U;
 
   nothing:
   just:
