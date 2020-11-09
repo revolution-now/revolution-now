@@ -13,31 +13,33 @@ RNL            ← IMPORTS
                  ITEMS
 
 STMT_END       ← ';'
-#
+
 # ===============================================================
 # Headers
 # ===============================================================
 IMPORTS        ← IMPORT*
-IMPORT         ← 'import' <MODULE_NAME> ~STMT_END
+IMPORT         ← 'import' MODULE_NAME ~STMT_END
 MODULE_NAME    ← <[a-z][-a-z0-9_]*>
 
+# The first double quotes are in brackets because if we put them
+# in single quotes then they'd cause whitespace to be eaten after
+# them; we should include all chars inside the double quotes.
 INCLUDES       ← INCLUDE*
-INCLUDE        ← 'include' '"' <INCL_NAME> '"' ~STMT_END
-INCL_NAME      ← <[a-z][-a-z0-9_/.]*>
+INCLUDE        ← 'include' ["] INCL_NAME '"' ~STMT_END
+INCL_NAME      ← [-a-z0-9_/. ]*
 
 # ===============================================================
 # RNL Items
 # ===============================================================
 ITEMS          ← ITEM*
-ITEM           ← NAMESPACE CONSTRUCTS
-CONSTRUCTS     ← CONSTRUCT*
+ITEM           ← NAMESPACE CONSTRUCT*
 
 CONSTRUCT      ← SUMTYPE
 
 # ===============================================================
 # Namespaces
 # ===============================================================
-NAMESPACE      ← 'namespace' <NS_NAME> ~STMT_END
+NAMESPACE      ← 'namespace' NS_NAME ~STMT_END
 NS_NAME        ← <[a-zA-Z_][a-zA-Z0-9_.]*>
 
 # ===============================================================

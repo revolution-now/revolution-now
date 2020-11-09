@@ -13,6 +13,7 @@ import some_other_rnl_module;
 include "some_other_hpp_header";
 
 namespace rn;
+namespace rn._;
 
 # Descriptive comment.
 sumtype Monostate {};
@@ -24,6 +25,13 @@ sumtype Maybe {
   nothing:
   just:
     T val;
+};
+
+sumtype MyVariant0 {
+  .features:
+    formattable;
+
+  # Comment on last line.
 };
 
 # Descriptive comment.
@@ -44,6 +52,8 @@ sumtype MyVariant2 {
   third_alternative:
     int cost;
 };
+
+namespace rn.util  ;
 
 sumtype MyVariant3 {
   .features:
