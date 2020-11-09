@@ -19,7 +19,7 @@ sumtype Monostate {};
 
 # Descriptive comment.
 sumtype Maybe {
-  .template: T, U;
+  .template: T, U
 
   nothing:
   just:
@@ -35,11 +35,9 @@ sumtype MyVariant1 {
 };
 
 sumtype MyVariant2 {
-  .features:
-    formattable;
+  .features: formattable;
 
-  first_alternative:
-    std::string name;
+  first_alternative: std::string name; bool b;
   second_alternative:
     bool flag1;
     bool flag2;
@@ -71,6 +69,7 @@ sumtype MyVariant4 {
   first_alternative:
     int i;
     char c;
+    MyClass<T>* hello;
   second_alternative:
   third_alternative:
     string s;
@@ -79,7 +78,8 @@ sumtype MyVariant4 {
 
 # Descriptive comment.
 sumtype TemplateTwoParams {
-  .template: T, U;
+  .template:
+    T, U;
 
   # List of features.
   .features:

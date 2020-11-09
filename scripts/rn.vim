@@ -15,6 +15,7 @@ set tabstop=2
 au BufNewFile,BufRead *design.txt set syntax=cpp11
 " jsav files are not yaml, but it seems to work nicely.
 au BufNewFile,BufRead *.jsav set syntax=yaml
+au BufNewFile,BufRead *.rnl set filetype=rnl
 
 "function! CloseTerminal()
 "		let s:term_buf_name = bufname( "*bin/fish*" )
