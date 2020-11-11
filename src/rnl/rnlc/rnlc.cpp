@@ -9,6 +9,7 @@
 *
 *****************************************************************/
 #include <cstdlib>
+#include <experimental/source_location>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -25,6 +26,31 @@
 #include "peglib.h"
 
 using namespace std;
+
+template<typename T>
+T safe_any_cast(
+    any const&                                v,
+    const std::experimental::source_location& location =
+        std::experimental::source_location::current() ) {
+  if( v.type() != typeid( T const ) ) {
+    throw runtime_error( fmt::format(
+        "bad safe_any_cast on line: {}.\n", location.line() ) );
+  }
+  return any_cast<T const>( v );
+}
+
+template<typename T>
+vector<T> cast_vec(
+    peg::SemanticValues const&                sv,
+    const std::experimental::source_location& location =
+        std::experimental::source_location::current() ) {
+  vector<T> res;
+  for( any const& v : sv )
+    res.push_back( safe_any_cast<T>( v, location ) );
+  return res;
+}
+
+namespace expr {
 
 struct AlternativeMember {
   string type;
@@ -58,18 +84,32 @@ string to_str( e_feature feature ) {
   }
 }
 
+e_feature from_str( string feature ) {
+  if( feature == "formattable" ) return e_feature::formattable;
+  if( feature == "serializable" ) return e_feature::serializable;
+  throw peg::parse_error(
+      fmt::format( "unrecognized feature: \"{}\".", feature )
+          .c_str() );
+}
+
+struct TemplateParam {
+  string param;
+};
+
 struct Sumtype {
-  string              name;
-  vector<string>      tmpl_params;
-  vector<e_feature>   features;
-  vector<Alternative> alternatives;
+  string                name;
+  vector<TemplateParam> tmpl_params;
+  vector<e_feature>     features;
+  vector<Alternative>   alternatives;
 
   string to_string( string_view spaces ) const {
     string res = fmt::format( "{}sumtype: {}\n", spaces, name );
-    for( string const& tmpl_param : tmpl_params )
-      res += fmt::format( "{}  templ: {}", tmpl_param );
+    for( TemplateParam const& tmpl_param : tmpl_params )
+      res += fmt::format( "{}  templ: {}\n", spaces,
+                          tmpl_param.param );
     for( e_feature feature : features )
-      res += fmt::format( "{}  feature: {}", to_str( feature ) );
+      res += fmt::format( "{}  feature: {}\n", spaces,
+                          to_str( feature ) );
     for( Alternative const& alt : alternatives )
       res += alt.to_string( string( spaces ) + "  " );
     return res;
@@ -81,9 +121,9 @@ struct Item {
   vector<Sumtype> sumtypes;
 
   string to_string( string_view spaces ) const {
-    string res = fmt::format( "{}namespace: {}", spaces, ns );
+    string res = fmt::format( "{}namespace: {}\n", spaces, ns );
     for( Sumtype const& st : sumtypes )
-      res += st.to_string( string( spaces ) + "  " );
+      res += "\n" + st.to_string( string( spaces ) + "  " );
     return res;
   }
 };
@@ -96,16 +136,18 @@ struct Rnl {
   string to_string() const {
     string res = fmt::format( "imports:\n" );
     for( string const& import : imports )
-      res += fmt::format( "  {}", import );
-    res += fmt::format( "includes:\n" );
+      res += fmt::format( "  {}\n", import );
+    res += fmt::format( "\nincludes:\n" );
     for( string const& include : includes )
-      res += fmt::format( "  {}", include );
-    res += fmt::format( "items:\n" );
+      res += fmt::format( "  {}\n", include );
+    res += fmt::format( "\nitems:\n" );
     for( Item const& item : items )
-      res += fmt::format( "  {}", item.to_string( "  " ) );
+      res += fmt::format( "{}\n", item.to_string( "  " ) );
     return res;
   }
 };
+
+} // namespace expr
 
 template<typename... Args>
 void error( string_view fmt, Args... args ) {
@@ -163,50 +205,115 @@ int main( int argc, char** argv ) {
   out << "// Parsed file: "
       << filesystem::path( output_file ).stem() << ".\n";
 
-  parser["IMPORTS"].enter = [&]( char const*, size_t, any& ) {
-    out << "\n// === Imports ================================\n";
-  };
-
-  parser["INCLUDES"].enter = [&]( char const*, size_t, any& ) {
-    out << "\n// === Includes ===============================\n";
-  };
-
-  parser["ITEMS"].enter = [&]( char const*, size_t, any& ) {
-    out << "\n// === Items ==================================\n";
-  };
-
-  parser["MODULE_NAME"] = [&]( peg::SemanticValues const& sv ) {
-    out << "// "
-        << fmt::format( "importing module \"{}\".\n",
-                        sv.token() );
-  };
-
-  parser["INCL_NAME"] = [&]( peg::SemanticValues const& sv ) {
-    out << "// "
-        << fmt::format( "including header \"{}\".\n",
-                        sv.token() );
-  };
-
-  parser["IDENT"] = [&]( peg::SemanticValues const& sv ) {
+  auto f_str_tok = []( peg::SemanticValues const& sv ) {
     return string( sv.token() );
   };
 
+  parser["IDENT"]         = f_str_tok;
+  parser["CPP_TYPE_NAME"] = f_str_tok;
+  parser["MODULE_NAME"]   = f_str_tok;
+  parser["INCL_NAME"]     = f_str_tok;
+  parser["NS_NAME"]       = f_str_tok;
+  parser["TMPL_PARAM"]    = f_str_tok;
+
+  parser["FEATURE"] = []( peg::SemanticValues const& sv ) {
+    return expr::from_str( safe_any_cast<string>( sv.token() ) );
+  };
+
+  parser["RNL"] = []( peg::SemanticValues const& sv ) {
+    return expr::Rnl{
+        .imports  = safe_any_cast<vector<string>>( sv[0] ),
+        .includes = safe_any_cast<vector<string>>( sv[1] ),
+        .items    = safe_any_cast<vector<expr::Item>>( sv[2] ),
+    };
+  };
+
+  parser["IMPORTS"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<string>( sv );
+  };
+
+  parser["INCLUDES"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<string>( sv );
+  };
+
+  parser["TEMPLATES"] = []( peg::SemanticValues const& sv ) {
+    vector<string> vs = cast_vec<string>( sv );
+
+    vector<expr::TemplateParam> res;
+    for( string const& s : vs )
+      res.push_back( expr::TemplateParam{ s } );
+    return res;
+  };
+
+  parser["FEATURES"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<expr::e_feature>( sv );
+  };
+
+  parser["ALT_VARS"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<expr::AlternativeMember>( sv );
+  };
+
+  parser["ALTERNATIVES"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<expr::Alternative>( sv );
+  };
+
+  parser["ITEMS"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<expr::Item>( sv );
+  };
+
+  parser["ITEM"] = []( peg::SemanticValues const& sv ) {
+    return expr::Item{
+        .ns = safe_any_cast<string>( sv[0] ),
+        .sumtypes =
+            safe_any_cast<vector<expr::Sumtype>>( sv[1] ) };
+  };
+
+  parser["CONSTRUCTS"] = []( peg::SemanticValues const& sv ) {
+    return cast_vec<expr::Sumtype>( sv );
+  };
+
+  parser["ALT_VAR"] = []( peg::SemanticValues const& sv ) {
+    return expr::AlternativeMember{
+        .type = safe_any_cast<string>( sv[0] ),
+        .var  = safe_any_cast<string>( sv[1] ),
+    };
+  };
+
+  parser["ALTERNATIVE"] = []( peg::SemanticValues const& sv ) {
+    return expr::Alternative{
+        .name = safe_any_cast<string>( sv[0] ),
+        .members =
+            safe_any_cast<vector<expr::AlternativeMember>>(
+                sv[1] ),
+    };
+  };
+
   parser["SUMTYPE"] = [&]( peg::SemanticValues const& sv ) {
-    if( sv.size() != 2 )
-      throw peg::parse_error(
-          "sumtype must contain name and body." );
-    out << "// "
-        << fmt::format( "sumtype: {}.\n",
-                        any_cast<string>( sv[0] ) );
+    expr::Sumtype res;
+    unsigned int  i = 0;
+    res.name        = safe_any_cast<string>( sv[i++] );
+    if( sv[i].type() == typeid( vector<expr::TemplateParam> ) )
+      res.tmpl_params =
+          safe_any_cast<vector<expr::TemplateParam>>( sv[i++] );
+    if( sv.size() == i )
+      throw peg::parse_error( "expected ALTERNATIVES." );
+    if( sv[i].type() == typeid( vector<expr::e_feature> ) )
+      res.features =
+          safe_any_cast<vector<expr::e_feature>>( sv[i++] );
+    if( sv.size() == i )
+      throw peg::parse_error( "expected ALTERNATIVES." );
+    res.alternatives =
+        safe_any_cast<vector<expr::Alternative>>( sv[i++] );
+    if( sv.size() == i ) return res;
+    throw peg::parse_error(
+        fmt::format( "exhausted elements of sumtype." )
+            .c_str() );
   };
 
-  parser["FEATURE"] = [&]( peg::SemanticValues const& sv ) {
-    out << "// "
-        << fmt::format( "  feature: {}.\n", sv.token() );
-  };
-
-  if( !parser.parse( rnl->c_str() ) )
+  expr::Rnl parsed_rnl;
+  if( !parser.parse( rnl->c_str(), parsed_rnl ) )
     error( "failed to parse rnl file." );
 
+  out << "/*\n\n" << parsed_rnl.to_string() << "\n\n*/";
   return 0;
 }

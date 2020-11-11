@@ -52,7 +52,8 @@ INCL_NAME      ← [-a-z0-9_/. ]*
 # RNL Items
 # ===============================================================
 ITEMS          ← ITEM*
-ITEM           ← NAMESPACE CONSTRUCT*
+ITEM           ← NAMESPACE CONSTRUCTS
+CONSTRUCTS     ← CONSTRUCT*
 
 CONSTRUCT      ← SUMTYPE
 
@@ -65,13 +66,18 @@ NS_NAME        ← <[a-zA-Z_][a-zA-Z0-9_.]*>
 # ===============================================================
 # Sum Types
 # ===============================================================
-SUMTYPE        ← 'sumtype' IDENT '{' SUMTYPE_BODY '}' ~STMT_END
-SUMTYPE_BODY   ← TEMPLATES? FEATURES? ALTERNATIVE*
+SUMTYPE        ← 'sumtype' IDENT '{'
+                    TEMPLATES?
+                    FEATURES?
+                    ALTERNATIVES
+                 '}' ~STMT_END
 
 FEATURES       ← '.features' ':' LIST( FEATURE, ',' ) ~STMT_END
 FEATURE        ← 'formattable' / 'serializable'
 TEMPLATES      ← '.template' ':' LIST1( TMPL_PARAM, ',' ) ~STMT_END
 TMPL_PARAM     ← <[A-Z][a-zA-Z0-9_]*>
 
-ALTERNATIVE    ← IDENT ':' ALT_VAR*
+ALTERNATIVES   ← ALTERNATIVE*
+ALTERNATIVE    ← IDENT ':' ALT_VARS
+ALT_VARS       ← ALT_VAR*
 ALT_VAR        ← CPP_TYPE_NAME IDENT ~STMT_END
