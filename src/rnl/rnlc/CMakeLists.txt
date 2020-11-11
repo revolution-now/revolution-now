@@ -13,6 +13,7 @@ target_link_libraries(
     PRIVATE
     base-util
     cpp-peglib::cpp-peglib
+    fmt::fmt
 )
 
 clang_tidy( rnlc )

@@ -56,7 +56,7 @@ hi def link  rnlSumtypeName Identifier
 hi def link  rnlSumtypeTemplate Keyword
 hi def link  rnlSumtypeTemplateParams Type
 hi def link  rnlSumtypeFeatures Keyword
-hi def link  rnlSumtypeFeaturesValues Function
-hi def link  rnlSumtypeAlternative Identifier
+hi def link  rnlSumtypeFeaturesValues Constant
+"hi def link  rnlSumtypeAlternative Identifier
 hi def link  rnlCppDeclType Type
 "hi def link rnlCppDeclVar Statement

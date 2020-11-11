@@ -14,6 +14,7 @@ include "some_other_hpp_header";
 
 namespace rn;
 namespace rn._;
+namespace rn;
 
 # Descriptive comment.
 sumtype Monostate {};
@@ -45,7 +46,9 @@ sumtype MyVariant1 {
 sumtype MyVariant2 {
   .features: formattable;
 
-  first_alternative: std::string name; bool b;
+  first_alternative:
+    std::string name;
+    bool b;
   second_alternative:
     bool flag1;
     bool flag2;
