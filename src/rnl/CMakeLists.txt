@@ -9,7 +9,7 @@ file( GLOB rnls "[a-z][a-z0-9-]*.rnl" )
 # Generate the include files parameters.
 set( generated_files "" )
 
-set( rnl_peg "${CMAKE_CURRENT_SOURCE_DIR}/rnl.peg" )
+set( rnl_peg "${CMAKE_CURRENT_SOURCE_DIR}/rnlc/rnl.peg" )
 
 # FIXME: this currently does not support proper incremental
 # builds in that it does not track dependencies among the rnl

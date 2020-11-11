@@ -2,7 +2,9 @@
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
-add_executable( rnlc rnlc.cpp )
+file( GLOB sources "[a-zA-Z0-9]*.cpp" )
+
+add_executable( rnlc ${sources} )
 
 target_compile_features( rnlc PUBLIC cxx_std_20 )
 set_target_properties( rnlc PROPERTIES CXX_EXTENSIONS OFF )

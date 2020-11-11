@@ -55,7 +55,7 @@ ITEMS          ← ITEM*
 ITEM           ← NAMESPACE CONSTRUCTS
 CONSTRUCTS     ← CONSTRUCT*
 
-CONSTRUCT      ← SUMTYPE
+CONSTRUCT      ← SUMTYPE # / add_more_here
 
 # ===============================================================
 # Namespaces
