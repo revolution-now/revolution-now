@@ -9,7 +9,7 @@ endif
 " ===============================================================
 " Comments / Stmt
 " ===============================================================
-"set commentstring=#\ %s
+set commentstring=#\ %s
 syn match    rnlLineComment '#.*$'
 syn match    rnlSemi ';'
 
@@ -22,7 +22,7 @@ syn keyword  rnlImportKeyword import nextgroup=rnlModuleName skipwhite
 syn match    rnlModuleName '[a-z][-a-zA-Z0-9_]*'
 
 syn keyword  rnlIncludeKeyword include nextgroup=rnlIncludeName skipwhite
-syn match    rnlIncludeName '"[-a-zA-Z0-9_/.]\+"'
+syn match    rnlIncludeName '[-a-zA-Z0-9<>"_/.]\+'
 
 syn keyword  rnlNamespaceKeyword namespace nextgroup=rnlNamespaceName skipwhite
 syn match    rnlNamespaceName /[a-z][a-zA-Z0-9_.]*/

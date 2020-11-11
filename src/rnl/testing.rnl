@@ -8,11 +8,13 @@
 # Description: RNL definitions for unit testing.
 #
 # ===============================================================
-import some_other_rnl_module;
+#import some_other_rnl_module;
 
-include "some_other_hpp_header";
+include <string>;
+include <variant>;
+include <vector>;
 
-namespace rn;
+namespace rnl_test;
 
 # Descriptive comment.
 sumtype Monostate {};
@@ -20,13 +22,13 @@ sumtype Monostate {};
 # Descriptive comment.
 sumtype Maybe {
   .template: T;
+  .features:
+    formattable;
 
   nothing:
   just:
     T val;
 };
-
-namespace _;
 
 sumtype MyVariant0 {
   .features:
@@ -35,41 +37,39 @@ sumtype MyVariant0 {
   # Comment on last line.
 };
 
-namespace rn._;
-
 # Descriptive comment.
 sumtype MyVariant1 {
-  first_alternative:
-  second_alternative:
+  happy:
+  sad:
     bool hello;
-  third_alternative:
+  excited:
 };
 
 sumtype MyVariant2 {
   .features: formattable;
 
-  first_alternative:
+  first:
     std::string name;
     bool b;
-  second_alternative:
+  second:
     bool flag1;
     bool flag2;
-  third_alternative:
+  third:
     int cost;
 };
 
-namespace rn.util  ;
+namespace rnl_test.util  ;
 
 sumtype MyVariant3 {
   .features:
     serializable;
 
-  first_alternative:
-    MyVariant1 var1;
-  second_alternative:
-    MyVariant1 var1;
-    MyVariant2 var2;
-  third_alternative:
+  a1:
+    MyVariant1_t var1;
+  a2:
+    MyVariant1_t var1;
+    MyVariant2_t var2;
+  a3:
     char* ptr;
 };
 
@@ -81,14 +81,13 @@ sumtype MyVariant4 {
     formattable;
 
   # Alternatives.
-  first_alternative:
+  first:
     int i;
     char c;
-    MyClass<T>* hello;
-  second_alternative:
-  third_alternative:
-    string s;
-    MyVariant3 var3;
+  _2nd:
+  third:
+    std::string s;
+    MyVariant3_t var3;
 };
 
 # Descriptive comment.
@@ -107,5 +106,6 @@ sumtype TemplateTwoParams {
     char c;
   second_alternative:
   third_alternative:
+    Maybe_t<T> hello;
     U u;
 };

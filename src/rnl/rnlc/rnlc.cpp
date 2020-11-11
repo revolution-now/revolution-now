@@ -16,10 +16,6 @@
 
 // base-util
 #include "base-util/io.hpp"
-#include "base-util/string.hpp"
-
-// {fmt}
-#include "fmt/format.h"
 
 // c++ standard library
 #include <filesystem>

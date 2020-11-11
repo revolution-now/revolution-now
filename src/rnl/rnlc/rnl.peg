@@ -45,8 +45,8 @@ MODULE_NAME    ← <[a-z][-a-z0-9_]*>
 # in single quotes then they'd cause whitespace to be eaten after
 # them; we should include all chars inside the double quotes.
 INCLUDES       ← INCLUDE*
-INCLUDE        ← 'include' ["] INCL_NAME '"' ~STMT_END
-INCL_NAME      ← [-a-z0-9_/. ]*
+INCLUDE        ← 'include' INCL_NAME ~STMT_END
+INCL_NAME      ← [-a-z0-9_<>"/. ]*
 
 # ===============================================================
 # RNL Items

@@ -13,6 +13,7 @@ set_warning_options( rnlc )
 target_link_libraries(
     rnlc
     PRIVATE
+    absl::strings
     base-util
     cpp-peglib::cpp-peglib
     fmt::fmt
