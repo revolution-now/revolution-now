@@ -47,7 +47,7 @@ syn match    rnlSumtypeFeatures '\.features:' contained nextgroup=rnlSumtypeFeat
 syn match    rnlSumtypeFeaturesValues /\(serializable\|formattable\)[,]\?/ contained nextgroup=rnlSumtypeFeaturesValues,rnlSemi skipwhite skipempty
 
 syn match    rnlSumtypeAlternative '[a-zA-Z][a-zA-Z0-9_]*:' contained nextgroup=rnlCppDeclType,rnlSumtypeAlternative skipwhite skipempty
-syn match    rnlCppDeclType '[a-zA-Z0-9:<>*]\+\s\+' contained nextgroup=rnlCppDeclVar skipwhite
+syn match    rnlCppDeclType '[a-zA-Z0-9:,_<>*]\+\s\+' contained nextgroup=rnlCppDeclVar skipwhite
 syn match    rnlCppDeclVar '[a-zA-Z][a-zA-Z0-9_]*;' contained nextgroup=rnlCppDeclType,rnlSumtypeAlternative skipwhite skipempty
 
 hi def link  rnlSumtypeKeyword Keyword

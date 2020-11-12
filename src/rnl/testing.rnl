@@ -14,10 +14,7 @@ include <string>;
 include <variant>;
 include <vector>;
 
-namespace rnl_test;
-
-# Descriptive comment.
-sumtype Monostate {};
+namespace rnltest;
 
 # Descriptive comment.
 sumtype Maybe {
@@ -30,6 +27,9 @@ sumtype Maybe {
     T val;
 };
 
+# Descriptive comment.
+sumtype Monostate {};
+
 sumtype MyVariant0 {
   .features:
     formattable;
@@ -40,8 +40,10 @@ sumtype MyVariant0 {
 # Descriptive comment.
 sumtype MyVariant1 {
   happy:
+    std::pair<char,int> p;
   sad:
     bool hello;
+    bool* ptr;
   excited:
 };
 
@@ -58,19 +60,20 @@ sumtype MyVariant2 {
     int cost;
 };
 
-namespace rnl_test.util  ;
+namespace rnltest.inner  ;
 
 sumtype MyVariant3 {
   .features:
-    serializable;
+    serializable,
+    formattable;
 
   a1:
-    MyVariant1_t var1;
+    MyVariant0_t var0;
   a2:
-    MyVariant1_t var1;
+    MyVariant0_t var1;
     MyVariant2_t var2;
   a3:
-    char* ptr;
+    char c;
 };
 
 # Descriptive comment.
@@ -84,6 +87,8 @@ sumtype MyVariant4 {
   first:
     int i;
     char c;
+    bool b;
+    std::optional<uint32_t> op;
   _2nd:
   third:
     std::string s;
@@ -108,4 +113,17 @@ sumtype TemplateTwoParams {
   third_alternative:
     Maybe_t<T> hello;
     U u;
+};
+
+# This one has two template parameters are references another
+# sumtype that also has two parameters.
+sumtype CompositeTemplateTwo {
+  .template: T, U;
+
+  .features:
+    formattable;
+
+  first:
+    rnltest::inner::TemplateTwoParams_t<T,U> ttp;
+  second:
 };

@@ -17,6 +17,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
 #include "base-util/string.hpp"
 
@@ -143,7 +144,7 @@ struct FmtTags<FirstTag, RestTags...> {
     CRef<T> ref;                                            \
   };                                                        \
   template<typename T>                                      \
-  name( T const & )->name<T>;
+  name( T const & ) -> name<T>;
 
 DEFINE_FMT_TAG( FmtRemoveTemplateArgs );
 DEFINE_FMT_TAG( FmtRemoveRnNamespace );
@@ -155,7 +156,7 @@ struct FmtJsonStyleList {
 
 // Deduction guide.
 template<typename T>
-FmtJsonStyleList( Vec<T> const & )->FmtJsonStyleList<T>;
+FmtJsonStyleList( Vec<T> const & ) -> FmtJsonStyleList<T>;
 
 } // namespace rn
 
@@ -258,9 +259,12 @@ struct formatter<std::chrono::time_point<Ts...>>
 };
 
 // {fmt} formatter for formatting variants whose constituent
-// types are all so formattable.
+// types are also formattable.
 template<typename... Ts>
-struct formatter<std::variant<Ts...>> : dynamic_formatter<> {
+struct formatter<
+    std::variant<Ts...>, char,
+    std::enable_if_t<mp::and_v<::rn::has_fmt<Ts>...>>>
+  : dynamic_formatter<> {
   using V = std::variant<Ts...>;
   using B = dynamic_formatter<>;
   template<typename Context>
