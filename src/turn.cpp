@@ -275,9 +275,8 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
       if( val.response->empty() )
         val.response = landview_ask_orders( id );
       if( val.response->ready() )
-        fsm.send_event(
-            UnitInputEvent::put_response{ /*response=*/std::move(
-                val.response->get_and_reset() ) } );
+        fsm.send_event( UnitInputEvent::put_response{
+            /*response=*/val.response->get_and_reset() } );
     }
     case_( UnitInputState::have_response ) {}
     case_( UnitInputState::executing_orders ) {
