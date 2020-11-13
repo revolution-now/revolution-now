@@ -13,6 +13,9 @@
 // rnlc
 #include "rnl-util.hpp"
 
+// base-util
+#include "base-util/misc.hpp"
+
 // {fmt}
 #include "fmt/format.h"
 
@@ -31,6 +34,17 @@ using namespace std;
 namespace rnl {
 
 namespace {
+
+template<typename Range, typename Projection>
+auto max_of( Range&& rng, Projection&& proj ) {
+  assert( !rng.empty() );
+  auto t = proj( *rng.begin() );
+  for( auto&& elem : forward<Range>( rng ) ) {
+    auto p = proj( elem );
+    if( p > t ) t = p;
+  }
+  return t;
+}
 
 string template_params( vector<expr::TemplateParam> const& tmpls,
                         bool put_typename, bool space = true ) {
@@ -308,9 +322,12 @@ struct CodeGenerator {
       line( "struct {} {{", alt.name );
       {
         auto cleanup = indent();
+        int  max_type_len =
+            max_of( alt.members, L( _.type.size() ) );
         for( expr::AlternativeMember const& alt_mem :
              alt.members )
-          line( "{} {};", alt_mem.type, alt_mem.var );
+          line( "{: <{}} {};", alt_mem.type, max_type_len,
+                alt_mem.var );
       }
       line( "}};" );
     }
