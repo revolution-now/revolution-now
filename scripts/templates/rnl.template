@@ -8,46 +8,43 @@
 # Description: RNL definitions for the {{FILE}} module.
 #
 # ===============================================================
-import some_other_rnl_module;
+include "some_other_hpp_header.hpp";
 
-include some_other_hpp_header;
+include <string>
 
-namespace rn;
-
-namespace rn._;
-# Anonymous namespace;
 namespace rn;
 
 # Descriptive comment.
 sumtype MyVariant {
   # List of features.
   .features:
-    serializable
-    formattable
+    serializable,
+    comparison,
+    formattable;
 
   # Alternatives.
   first:
-    int
-    char
+    int  i;
+    char c;
   second:
   third:
-    string
-}
+    string s;
+};
 
 # Descriptive comment.
 sumtype MyTemplateVariant {
-  .template: T U
+  .template: T, U;
 
   # List of features.
-  features:
-    serializable
-    formattable
+  .features:
+    serializable,
+    comparison,
+    formattable;
 
-  # Alternatives.
   first:
-    T
-    char
+    T    t;
+    char c;
   second:
   third:
-    U
-}
+    U u;
+};

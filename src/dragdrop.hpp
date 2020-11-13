@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "fsm.hpp"
@@ -25,6 +24,9 @@
 #include "tx.hpp"
 #include "variant.hpp"
 
+// Rnl
+#include "rnl/dragdrop.hpp"
+
 // base-util
 #include "base-util/variant.hpp"
 
@@ -32,63 +34,6 @@
 #include <variant>
 
 namespace rn {
-
-adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
-          DragState,                                //
-          ( none ),                                 //
-          ( in_progress,                            //
-            ( DragSrcT, src ),                      //
-            ( Opt<DragDstT>, dst ),                 //
-            ( Texture, tx ),                        //
-            ( input::mod_keys, mod_keys ),          //
-            ( Delta, click_offset ) ),              //
-          ( waiting_to_execute,                     //
-            ( DragArcT, arc ),                      //
-            ( Coord, mouse_released ),              //
-            ( Texture, tx ),                        //
-            ( Delta, click_offset ) ),              //
-          ( finalizing,                             //
-            ( DragArcT, arc ),                      //
-            ( Coord, drag_start ),                  //
-            ( Coord, mouse_released ),              //
-            ( Texture, tx ),                        //
-            ( input::mod_keys, mod_keys ),          //
-            ( Delta, click_offset ) ),              //
-          ( rubber_banding,                         //
-            ( Coord, current ),                     //
-            ( Coord, dest ),                        //
-            ( DragSrcT, src ),                      //
-            ( double, percent ),                    //
-            ( Texture, tx ) )                       //
-);
-
-adt_T_rn( template( DragSrcT, DragDstT, DragArcT ), //
-          DragEvent,                                //
-          ( start,                                  //
-            ( DragSrcT, src ),                      //
-            ( Opt<DragDstT>, dst ),                 //
-            ( Texture, tx ),                        //
-            ( Delta, click_offset ) ),              //
-          ( rubber_band,                            //
-            ( Coord, current ),                     //
-            ( Coord, dest ),                        //
-            ( DragSrcT, src ),                      //
-            ( double, percent ),                    //
-            ( Texture, tx ) ),                      //
-          ( finalize,                               //
-            ( DragArcT, arc ),                      //
-            ( Coord, drag_start ),                  //
-            ( Coord, mouse_released ),              //
-            ( Texture, tx ),                        //
-            ( input::mod_keys, mod_keys ),          //
-            ( Delta, click_offset ) ),              //
-          ( complete,                               //
-            ( DragArcT, arc ),                      //
-            ( Coord, mouse_released ),              //
-            ( Texture, tx ),                        //
-            ( Delta, click_offset ) ),              //
-          ( reset )                                 //
-);
 
 // clang-format off
 fsm_transitions_T( template( DragSrcT, DragDstT, DragArcT ), Drag,

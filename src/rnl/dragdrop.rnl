@@ -1,0 +1,82 @@
+# ===============================================================
+# dragdrop.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the dragdrop module.
+#
+# ===============================================================
+include "aliases.hpp";
+include "coord.hpp";
+include "gfx.hpp";
+include "input.hpp";
+include "tx.hpp";
+
+namespace rn;
+
+sumtype DragState {
+  .template: DragSrcT, DragDstT, DragArcT;
+
+  .features:
+    formattable;
+
+  none:
+  in_progress:
+    DragSrcT         src;
+    Opt<DragDstT>    dst;
+    Texture          tx;
+    input::mod_keys  mod_keys;
+    Delta            click_offset;
+  waiting_to_execute:
+    DragArcT         arc;
+    Coord            mouse_released;
+    Texture          tx;
+    Delta            click_offset;
+  finalizing:
+    DragArcT         arc;
+    Coord            drag_start;
+    Coord            mouse_released;
+    Texture          tx;
+    input::mod_keys  mod_keys;
+    Delta            click_offset;
+  rubber_banding:
+    Coord            current;
+    Coord            dest;
+    DragSrcT         src;
+    double           percent;
+    Texture          tx;
+};
+
+sumtype DragEvent {
+  .template: DragSrcT, DragDstT, DragArcT;
+
+  .features:
+    formattable;
+
+  start:
+    DragSrcT         src;
+    Opt<DragDstT>    dst;
+    Texture          tx;
+    Delta            click_offset;
+  rubber_band:
+    Coord            current;
+    Coord            dest;
+    DragSrcT         src;
+    double           percent;
+    Texture          tx;
+  finalize:
+    DragArcT         arc;
+    Coord            drag_start;
+    Coord            mouse_released;
+    Texture          tx;
+    input::mod_keys  mod_keys;
+    Delta            click_offset;
+  complete:
+    DragArcT         arc;
+    Coord            mouse_released;
+    Texture          tx;
+    Delta            click_offset;
+  reset:
+};

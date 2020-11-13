@@ -1,0 +1,28 @@
+# ===============================================================
+# colony.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the colony module.
+#
+# ===============================================================
+include "colony-mfg.hpp";
+include "commodity.hpp";
+include "coord.hpp";
+
+include "fb/colony_generated.h";
+
+namespace rn;
+
+sumtype ColonyJob {
+  .features:
+    serializable;
+
+  land:
+    e_direction d;
+    e_commodity producing;
+  mfg:
+    e_mfg_job mfg_job;
+};
