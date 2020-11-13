@@ -133,3 +133,42 @@ sumtype CompositeTemplateTwo {
     rnltest::inner::TemplateTwoParams_t<T,U> ttp;
   second:
 };
+
+namespace rn;
+
+sumtype MyAdt {
+  .features:
+    comparison,
+    formattable,
+    serializable;
+
+  none:
+  some:
+    std::string s;
+    int y;
+  more:
+    double d;
+};
+
+sumtype OnOffState {
+  .features:
+    comparison,
+    formattable,
+    serializable;
+
+  off:
+  on:
+    std::string user;
+  switching_on:
+    double percent;
+  switching_off:
+    double percent;
+};
+
+sumtype OnOffEvent {
+  .features:
+    formattable;
+
+  turn_off:
+  turn_on:
+};

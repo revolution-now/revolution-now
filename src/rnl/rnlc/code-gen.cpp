@@ -72,7 +72,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     (void)fb_root_type_name;
     using ::rn::serial::serialize;
     {members_serialization}
-    return fb::{sumtype_name}::Create{alt_name}( builder,
+    return fb::{sumtype_name}::Create{alt_name}( builder
         {members_s_get}
     );
   }}
@@ -80,6 +80,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
   static rn::expect<> deserialize_table(
       fb::{sumtype_name}::{alt_name} const& src,
       {alt_name}* dst ) {{
+    (void)src;
     DCHECK( dst );
     using ::rn::serial::deserialize;
     {members_deserialization}
@@ -504,14 +505,11 @@ struct CodeGenerator {
                 alt.name );
         }
         if( emit_serialization ) {
-          string      member_serials;
-          string      member_deserials;
-          string      members_s_get;
-          size_t      count = alt.members.size();
-          string_view sep   = ", ";
+          string member_serials;
+          string member_deserials;
+          string members_s_get;
           for( expr::AlternativeMember const& alt_mem :
                alt.members ) {
-            if( count-- == 1 ) sep = "";
             member_serials += fmt::format(
                 kSumtypeAlternativeMemberSerial,
                 fmt::arg( "member_var_name", alt_mem.var ) );
@@ -519,7 +517,7 @@ struct CodeGenerator {
                 kSumtypeAlternativeMemberDeserial,
                 fmt::arg( "member_var_name", alt_mem.var ) );
             members_s_get +=
-                fmt::format( "s_{}.get(){}", alt_mem.var, sep );
+                fmt::format( ", s_{}.get()", alt_mem.var );
           }
 
           emit_code_block(

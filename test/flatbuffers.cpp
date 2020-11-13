@@ -11,7 +11,6 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
@@ -25,6 +24,9 @@
 #include "serial.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
+
+// Rnl
+#include "rnl/testing.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -43,17 +45,6 @@
 FMT_TO_CATCH( ::rn::CargoSlot_t );
 FMT_TO_CATCH( ::rn::UnitId );
 FMT_TO_CATCH( ::rn::Commodity );
-
-namespace rn {
-adt_s_rn( MyAdt,                //
-          ( none ),             //
-          ( some,               //
-            ( std::string, s ), //
-            ( int, y ) ),       //
-          ( more,               //
-            ( double, d ) )     //
-);
-}
 
 namespace rn::testing {
 namespace {
@@ -1031,21 +1022,6 @@ TEST_CASE( "[flatbuffers] matrix" ) {
 
 namespace rn {
 namespace {
-
-adt_s_rn_( OnOffState,                //
-           ( off ),                   //
-           ( on,                      //
-             ( std::string, user ) ), //
-           ( switching_on,            //
-             ( double, percent ) ),   //
-           ( switching_off,           //
-             ( double, percent ) )    //
-);
-
-adt_rn_( OnOffEvent,   //
-         ( turn_off ), //
-         ( turn_on )   //
-);
 
 // clang-format off
 fsm_transitions( OnOff,
