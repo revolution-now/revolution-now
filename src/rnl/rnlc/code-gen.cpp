@@ -60,6 +60,13 @@ string template_params( vector<expr::TemplateParam> const& tmpls,
   return "<"s + absl::StrJoin( names, sep ) + ">";
 }
 
+string all_int_tmpl_params( int count ) {
+  vector<expr::TemplateParam> params(
+      count, expr::TemplateParam{ "int" } );
+  return template_params( params, /*put_typename=*/false,
+                          /*space=*/true );
+}
+
 string template_params_type_names(
     vector<expr::TemplateParam> const& tmpls ) {
   string params = template_params( tmpls, /*put_typename=*/false,
@@ -372,6 +379,10 @@ struct CodeGenerator {
                              /*put_typename=*/false ) ) );
       emit_vert_list( variants, "," );
       line( ">;" );
+      // Ensure that the variant is nothrow move'able since this
+      // makes code more efficient that uses it.
+      line( "NOTHROW_MOVE( {}_t{} );", sumtype.name,
+            all_int_tmpl_params( sumtype.tmpl_params.size() ) );
     }
     newline();
     close_ns( ns );
@@ -421,6 +432,7 @@ struct CodeGenerator {
     newline();
 
     line( "// Revolution Now" );
+    line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
     line( "" );
     line( "// base-util" );
