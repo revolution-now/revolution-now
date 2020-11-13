@@ -44,7 +44,7 @@ syn match    rnlSumtypeTemplate '\.template:' contained nextgroup=rnlSumtypeTemp
 syn match    rnlSumtypeTemplateParams '[a-zA-Z][a-zA-Z0-9_]*,\?' contained nextgroup=rnlSumtypeTemplateParams nextgroup=rnlSemi skipwhite
 
 syn match    rnlSumtypeFeatures '\.features:' contained nextgroup=rnlSumtypeFeaturesValues skipwhite skipempty
-syn match    rnlSumtypeFeaturesValues /\(serializable\|formattable\)[,]\?/ contained nextgroup=rnlSumtypeFeaturesValues,rnlSemi skipwhite skipempty
+syn match    rnlSumtypeFeaturesValues /\(serializable\|formattable\|comparison\)[,]\?/ contained nextgroup=rnlSumtypeFeaturesValues,rnlSemi skipwhite skipempty
 
 syn match    rnlSumtypeAlternative '[a-zA-Z][a-zA-Z0-9_]*:' contained nextgroup=rnlCppDeclType,rnlSumtypeAlternative skipwhite skipempty
 syn match    rnlCppDeclType '[a-zA-Z0-9:,_<>*]\+\s\+' contained nextgroup=rnlCppDeclVar skipwhite

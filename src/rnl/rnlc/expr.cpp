@@ -30,16 +30,21 @@ string Alternative::to_string( string_view spaces ) const {
   return res;
 }
 
-std::string to_str( e_feature feature ) {
+std::string to_str( e_sumtype_feature feature ) {
   switch( feature ) {
-    case e_feature::formattable: return "formattable";
-    case e_feature::serializable: return "serializable";
+    case e_sumtype_feature::formattable: return "formattable";
+    case e_sumtype_feature::serializable: return "serializable";
+    case e_sumtype_feature::comparison: return "comparison";
   }
 }
 
-optional<e_feature> from_str( std::string feature ) {
-  if( feature == "formattable" ) return e_feature::formattable;
-  if( feature == "serializable" ) return e_feature::serializable;
+optional<e_sumtype_feature> from_str( std::string feature ) {
+  if( feature == "formattable" )
+    return e_sumtype_feature::formattable;
+  if( feature == "serializable" )
+    return e_sumtype_feature::serializable;
+  if( feature == "comparison" )
+    return e_sumtype_feature::comparison;
   return nullopt;
 }
 
@@ -48,7 +53,7 @@ std::string Sumtype::to_string( std::string_view spaces ) const {
   for( TemplateParam const& tmpl_param : tmpl_params )
     res += fmt::format( "{}  templ: {}\n", spaces,
                         tmpl_param.param );
-  for( e_feature feature : features )
+  for( e_sumtype_feature feature : features )
     res += fmt::format( "{}  feature: {}\n", spaces,
                         to_str( feature ) );
   for( Alternative const& alt : alternatives )

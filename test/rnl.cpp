@@ -209,5 +209,31 @@ TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
       "u=9}}" );
 }
 
+TEST_CASE( "[rnl] Comparison" ) {
+  // Maybe_t
+  REQUIRE( Maybe::nothing<int>{} == Maybe::nothing<int>{} );
+  REQUIRE( Maybe::just<int>{ 5 } == Maybe::just<int>{ 5 } );
+  REQUIRE( Maybe::just<int>{ 5 } != Maybe::just<int>{ 6 } );
+  REQUIRE( Maybe::just<int>{ 5 } < Maybe::just<int>{ 6 } );
+  REQUIRE( Maybe::just<int>{ 6 } > Maybe::just<int>{ 5 } );
+  REQUIRE( Maybe::just<int>{ 5 } <= Maybe::just<int>{ 6 } );
+  REQUIRE( Maybe::just<int>{ 6 } >= Maybe::just<int>{ 5 } );
+  REQUIRE( ( Maybe::just<int>{ 5 } <=> Maybe::just<int>{ 5 } ) ==
+           strong_ordering::equal );
+
+  // TemplateTwoParams_t
+  using T =
+      inner::TemplateTwoParams::first_alternative<string, int>;
+  REQUIRE( T{ "a", 'c' } == T{ "a", 'c' } );
+  REQUIRE( T{ "a", 'b' } != T{ "a", 'c' } );
+  REQUIRE( T{ "b", 'a' } != T{ "c", 'a' } );
+  REQUIRE( T{ "a", 'b' } < T{ "a", 'c' } );
+  REQUIRE( T{ "a", 'd' } > T{ "a", 'c' } );
+  REQUIRE( T{ "a", 'b' } < T{ "b", 'c' } );
+  REQUIRE( T{ "a", 'd' } < T{ "b", 'c' } );
+  REQUIRE( T{ "b", 'b' } >= T{ "a", 'c' } );
+  REQUIRE( T{ "a", 'd' } >= T{ "a", 'c' } );
+}
+
 } // namespace
 } // namespace rn

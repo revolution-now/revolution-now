@@ -73,7 +73,7 @@ SUMTYPE        ← 'sumtype' IDENT '{'
                  '}' ~STMT_END
 
 FEATURES       ← '.features' ':' LIST( FEATURE, ',' ) ~STMT_END
-FEATURE        ← 'formattable' / 'serializable'
+FEATURE        ← 'formattable' / 'serializable' / 'comparison'
 TEMPLATES      ← '.template' ':' LIST1( TMPL_PARAM, ',' ) ~STMT_END
 TMPL_PARAM     ← <[A-Z][a-zA-Z0-9_]*>
 

@@ -85,7 +85,8 @@ optional<expr::Rnl> parse( string const& peg_grammar,
 
   parser["FEATURE"] = []( peg::SemanticValues const& sv ) {
     string token = safe_any_cast<string>( sv.token() );
-    optional<expr::e_feature> o = expr::from_str( token );
+    optional<expr::e_sumtype_feature> o =
+        expr::from_str( token );
     if( !o.has_value() )
       throw peg::parse_error(
           fmt::format( "unrecognized feature: \"{}\".", token )
@@ -119,7 +120,7 @@ optional<expr::Rnl> parse( string const& peg_grammar,
   };
 
   parser["FEATURES"] = []( peg::SemanticValues const& sv ) {
-    return safe_cast_vec<expr::e_feature>( sv );
+    return safe_cast_vec<expr::e_sumtype_feature>( sv );
   };
 
   parser["ALT_VARS"] = []( peg::SemanticValues const& sv ) {
@@ -177,9 +178,11 @@ optional<expr::Rnl> parse( string const& peg_grammar,
           safe_any_cast<vector<expr::TemplateParam>>( sv[i++] );
     if( sv.size() == i )
       throw peg::parse_error( "expected ALTERNATIVES." );
-    if( sv[i].type() == typeid( vector<expr::e_feature> ) )
+    if( sv[i].type() ==
+        typeid( vector<expr::e_sumtype_feature> ) )
       res.features =
-          safe_any_cast<vector<expr::e_feature>>( sv[i++] );
+          safe_any_cast<vector<expr::e_sumtype_feature>>(
+              sv[i++] );
     if( sv.size() == i )
       throw peg::parse_error( "expected ALTERNATIVES." );
     res.alternatives =

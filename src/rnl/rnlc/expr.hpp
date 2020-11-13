@@ -31,20 +31,24 @@ struct Alternative {
   std::string to_string( std::string_view spaces ) const;
 };
 
-enum class e_feature { formattable, serializable };
+enum class e_sumtype_feature {
+  formattable,
+  serializable,
+  comparison
+};
 
-std::string              to_str( e_feature feature );
-std::optional<e_feature> from_str( std::string feature );
+std::string to_str( e_sumtype_feature feature );
+std::optional<e_sumtype_feature> from_str( std::string feature );
 
 struct TemplateParam {
   std::string param;
 };
 
 struct Sumtype {
-  std::string                name;
-  std::vector<TemplateParam> tmpl_params;
-  std::vector<e_feature>     features;
-  std::vector<Alternative>   alternatives;
+  std::string                    name;
+  std::vector<TemplateParam>     tmpl_params;
+  std::vector<e_sumtype_feature> features;
+  std::vector<Alternative>       alternatives;
 
   std::string to_string( std::string_view spaces ) const;
 };

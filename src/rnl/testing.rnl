@@ -20,7 +20,8 @@ namespace rnltest;
 sumtype Maybe {
   .template: T;
   .features:
-    formattable;
+    formattable,
+    comparison;
 
   nothing:
   just:
@@ -39,6 +40,8 @@ sumtype MyVariant0 {
 
 # Descriptive comment.
 sumtype MyVariant1 {
+  .features: comparison;
+
   happy:
     std::pair<char,int> p;
   sad:
@@ -103,7 +106,8 @@ sumtype TemplateTwoParams {
   # List of features.
   .features:
     serializable,
-    formattable;
+    formattable,
+    comparison;
 
   # Alternatives.
   first_alternative:

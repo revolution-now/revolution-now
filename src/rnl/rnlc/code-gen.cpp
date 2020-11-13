@@ -35,9 +35,11 @@ namespace rnl {
 
 namespace {
 
-template<typename Range, typename Projection>
-auto max_of( Range&& rng, Projection&& proj ) {
-  assert( !rng.empty() );
+template<typename Range, typename Projection, typename Default>
+auto max_of( Range&& rng, Projection&& proj, Default value )
+    -> invoke_result_t<Projection,
+                       typename decay_t<Range>::value_type> {
+  if( rng.empty() ) return value;
   auto t = proj( *rng.begin() );
   for( auto&& elem : forward<Range>( rng ) ) {
     auto p = proj( elem );
@@ -65,8 +67,8 @@ string template_params_type_names(
   return "::rn::type_list_to_names"s + params + "()";
 }
 
-bool sumtype_has_feature( expr::Sumtype const& sumtype,
-                          expr::e_feature      feature ) {
+bool sumtype_has_feature( expr::Sumtype const&    sumtype,
+                          expr::e_sumtype_feature feature ) {
   for( auto type : sumtype.features ) {
     if( type == feature ) return true;
   }
@@ -314,20 +316,29 @@ struct CodeGenerator {
   }
 
   void emit( vector<expr::TemplateParam> const& tmpls,
-             expr::Alternative const&           alt ) {
+             expr::Alternative const&           alt,
+             bool emit_comparison ) {
     emit_template_decl( tmpls );
-    if( alt.members.empty() ) {
+    if( alt.members.empty() && !emit_comparison ) {
       line( "struct {} {{}};", alt.name );
     } else {
       line( "struct {} {{", alt.name );
       {
         auto cleanup = indent();
         int  max_type_len =
-            max_of( alt.members, L( _.type.size() ) );
+            max_of( alt.members, L( _.type.size() ), 0 );
         for( expr::AlternativeMember const& alt_mem :
              alt.members )
           line( "{: <{}} {};", alt_mem.type, max_type_len,
                 alt_mem.var );
+        if( emit_comparison ) {
+          comment( "{}",
+                   "This requires that the types of the member "
+                   "variables " );
+          comment( "{}", "also support comparison." );
+          line( "auto operator<=>( {} const& ) const = default;",
+                alt.name );
+        }
       }
       line( "}};" );
     }
@@ -340,7 +351,9 @@ struct CodeGenerator {
       open_ns( sumtype.name );
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
-        emit( sumtype.tmpl_params, alt );
+        bool emit_comparison = sumtype_has_feature(
+            sumtype, expr::e_sumtype_feature::comparison );
+        emit( sumtype.tmpl_params, alt, emit_comparison );
         newline();
       }
       close_ns( sumtype.name );
@@ -363,8 +376,8 @@ struct CodeGenerator {
     newline();
     close_ns( ns );
     // Global namespace.
-    if( sumtype_has_feature( sumtype,
-                             expr::e_feature::formattable ) ) {
+    if( sumtype_has_feature(
+            sumtype, expr::e_sumtype_feature::formattable ) ) {
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
         newline();
