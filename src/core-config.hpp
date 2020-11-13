@@ -30,9 +30,9 @@
       std::is_nothrow_move_constructible_v<__VA_ARGS__> ); \
   static_assert( std::is_nothrow_move_assignable_v<__VA_ARGS__> )
 
-namespace std::experimental::filesystem {}
+namespace std::filesystem {}
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 namespace rn {
 

@@ -11,7 +11,6 @@
 #include "app-state.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "conductor.hpp"
 #include "fsm.hpp"
@@ -22,6 +21,9 @@
 #include "save-game.hpp"
 #include "turn.hpp"
 #include "window.hpp"
+
+// Rnl
+#include "rnl/app-state.hpp"
 
 // base-util
 #include "base-util/variant.hpp"
@@ -37,32 +39,6 @@ bool g_game_dirty_flag = false;
 /****************************************************************
 ** FSMs
 *****************************************************************/
-adt_rn_( AppState,               //
-         ( main_no_game ),       //
-         ( main_in_game ),       //
-         ( creating ),           //
-         ( leaving ),            //
-         ( loading,              //
-           ( Opt<int>, slot ) ), //
-         ( saving,               //
-           ( Opt<int>, slot ) ), //
-         ( in_game ),            //
-         ( quitting )            //
-);
-
-adt_rn_( AppEvent,            //
-         ( ok ),              //
-         ( cancel ),          //
-         ( new_ ),            //
-         ( load ),            //
-         ( leave,             //
-           ( bool, dirty ) ), //
-         ( save ),            //
-         ( to_game ),         //
-         ( to_main ),         //
-         ( quit )             //
-);
-
 // clang-format off
 fsm_transitions( App
  ,(    (main_no_game, new_   ),  ->,  creating

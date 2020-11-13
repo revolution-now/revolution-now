@@ -1,0 +1,36 @@
+# ===============================================================
+# ustate-private.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the ustate-private module.
+#
+# ===============================================================
+include "coord.hpp";
+include "id.hpp";
+
+# Rnl
+include "rnl/ustate.hpp";
+
+# Flatbuffers
+include "fb/sg-unit_generated.h";
+
+namespace rn;
+
+sumtype UnitState {
+  .features:
+    formattable,
+    serializable;
+
+  free:
+  world:
+    Coord coord;
+  cargo:
+    UnitId holder;
+  europort:
+    UnitEuroPortViewState_t st;
+  colony:
+    ColonyId id;
+};

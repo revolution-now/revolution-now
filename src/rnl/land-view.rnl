@@ -1,0 +1,102 @@
+# ===============================================================
+# land-view.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the land-view module.
+#
+# ===============================================================
+include "aliases.hpp";
+include "coord.hpp";
+include "id.hpp";
+include "land-view.hpp";
+include "no-serial.hpp";
+include "physics.hpp";
+include "sync-future.hpp";
+include "utype.hpp";
+
+# Rnl
+include "rnl/orders.hpp";
+
+# Flatbuffers
+include "fb/sg-land-view_generated.h";
+
+namespace rn;
+
+# The land-view rendering states are not really states of the
+# world, they are mainly just animation or rendering states. Each
+# state is represented by a struct which may contain data mem-
+# bers. The data members of the struct's will be mutated in in
+# order to change/advance the state of animation, although the
+# rendering functions themselves will never mutate them.
+sumtype LandViewState {
+  .features:
+    formattable,
+    serializable;
+
+  none:
+  future:
+    no_serial<sync_future<>> s_future;
+  blinking_unit:
+    UnitId id;
+    # Units that the player has asked to add to the orders queue
+    # but at the end. This is useful if a unit that is sentry'd
+    # has already been removed from the queue (without asking for
+    # orders) and later in the same turn had its orders cleared
+    # by the player (but not prioritized), this will allow it to
+    # ask for orders this turn.
+    Vec<UnitId> add_to_back;
+  sliding_unit:
+    UnitId id;
+    Coord target;
+    double percent;
+    DissipativeVelocity percent_vel;
+  depixelating_unit:
+    UnitId id;
+    Opt<e_unit_type> demoted;
+};
+
+sumtype LandViewEvent {
+  .features:
+    formattable;
+
+  end:
+  blink_unit:
+    UnitId id;
+  add_to_back:
+    Vec<UnitId> ids;
+  input_orders:
+    orders_t orders;
+  input_prioritize:
+    Vec<UnitId> prioritize;
+  slide_unit:
+    UnitId id;
+    e_direction direction;
+  depixelate_unit:
+    UnitId id;
+    bool demote;
+};
+
+# Animation State.
+#
+# Holds which animation we are currently in. A given animation
+# may involve multiple lower-level steps, each of which might be
+# represented by a different LandViewState.
+sumtype LandViewAnim {
+  .features:
+    formattable;
+
+  none:
+  move:
+    sync_promise<> s_promise;
+    UnitId id;
+    e_direction d;
+  attack:
+    sync_promise<> s_promise;
+    UnitId attacker;
+    UnitId defender;
+    bool attacker_wins;
+    e_depixelate_anim dp_anim;
+};

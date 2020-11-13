@@ -1,0 +1,44 @@
+# ===============================================================
+# menu.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the menu module.
+#
+# ===============================================================
+include "aliases.hpp";
+include "menu.hpp";
+
+namespace rn;
+
+sumtype MenuState {
+  .features:
+    formattable;
+
+  menus_hidden:
+  menus_closed:
+    Opt<e_menu> hover;
+  menu_open:
+    e_menu menu;
+    Opt<e_menu_item> hover;
+  item_click:
+    e_menu_item item;
+    Time_t start;
+};
+
+sumtype MouseOver {
+  .features:
+    formattable;
+
+  header:
+    e_menu menu;
+  item:
+    e_menu_item item;
+  divider:
+    e_menu menu;
+  border:
+    e_menu menu;
+  bar:
+};

@@ -11,7 +11,6 @@
 #include "land-view.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "colony-view.hpp"
 #include "compositor.hpp"
@@ -40,6 +39,9 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// Rnl
+#include "rnl/land-view.hpp"
+
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
@@ -60,54 +62,6 @@ sync_promise<UnitInputResponse> g_unit_input_promise;
 /****************************************************************
 ** FSMs
 *****************************************************************/
-// The land-view rendering states are not really states of the
-// world, they are mainly just animation or rendering states.
-// Each state is represented by a struct which may contain data
-// members. The data members of the struct's will be mutated in
-// in order to change/advance the state of animation, although
-// the rendering functions themselves will never mutate them.
-adt_s_rn_(
-    LandViewState,                              //
-    ( none ),                                   //
-    ( future,                                   //
-      ( no_serial<sync_future<>>, s_future ) ), //
-    ( blinking_unit,                            //
-      ( UnitId, id ),                           //
-      // Units that the player has asked to add to the orders
-      // queue but at the end. This is useful if a unit that is
-      // sentry'd has already been removed from the queue
-      // (without asking for orders) and later in the same turn
-      // had its orders cleared by the player (but not priori-
-      // tized), this will allow it to ask for orders this turn.
-      ( Vec<UnitId>, add_to_back ) ),         //
-    ( sliding_unit,                           //
-      ( UnitId, id ),                         //
-      ( Coord, target ),                      //
-      ( double, percent ),                    //
-      ( DissipativeVelocity, percent_vel ) ), //
-    ( depixelating_unit,                      //
-      ( UnitId, id ),                         //
-      ( Opt<e_unit_type>, demoted ) )         //
-);
-
-adt_rn_( LandViewEvent,                   //
-         ( end ),                         //
-         ( blink_unit,                    //
-           ( UnitId, id ) ),              //
-         ( add_to_back,                   //
-           ( Vec<UnitId>, ids ) ),        //
-         ( input_orders,                  //
-           ( orders_t, orders ) ),        //
-         ( input_prioritize,              //
-           ( Vec<UnitId>, prioritize ) ), //
-         ( slide_unit,                    //
-           ( UnitId, id ),                //
-           ( e_direction, direction ) ),  //
-         ( depixelate_unit,               //
-           ( UnitId, id ),                //
-           ( bool, demote ) )             //
-);
-
 // clang-format off
 fsm_transitions( LandView,
   ((none, blink_unit      ),  ->,  blinking_unit       ),
@@ -236,26 +190,6 @@ fsm_class( LandView ) { //
 };
 
 FSM_DEFINE_FORMAT_RN_( LandView );
-
-/****************************************************************
-** Animation State
-*****************************************************************/
-// Holds which animation we are currently in. A given animation
-// may involve multiple lower-level steps, each of which might be
-// represented by a different LandViewState.
-adt_rn_( LandViewAnim,
-         ( none ),                          //
-         ( move,                            //
-           ( sync_promise<>, s_promise ),   //
-           ( UnitId, id ),                  //
-           ( e_direction, d ) ),            //
-         ( attack,                          //
-           ( sync_promise<>, s_promise ),   //
-           ( UnitId, attacker ),            //
-           ( UnitId, defender ),            //
-           ( bool, attacker_wins ),         //
-           ( e_depixelate_anim, dp_anim ) ) //
-);
 
 /****************************************************************
 ** Save-Game State
@@ -436,18 +370,14 @@ void advance_viewport_state() {
 
   if( state( ::SDL_SCANCODE_LSHIFT ) ) {
     SG().viewport.set_x_push(
-        state( ::SDL_SCANCODE_A )
-            ? e_push_direction::negative
-            : state( ::SDL_SCANCODE_D )
-                  ? e_push_direction::positive
-                  : e_push_direction::none );
+        state( ::SDL_SCANCODE_A )   ? e_push_direction::negative
+        : state( ::SDL_SCANCODE_D ) ? e_push_direction::positive
+                                    : e_push_direction::none );
     // y motion
     SG().viewport.set_y_push(
-        state( ::SDL_SCANCODE_W )
-            ? e_push_direction::negative
-            : state( ::SDL_SCANCODE_S )
-                  ? e_push_direction::positive
-                  : e_push_direction::none );
+        state( ::SDL_SCANCODE_W )   ? e_push_direction::negative
+        : state( ::SDL_SCANCODE_S ) ? e_push_direction::positive
+                                    : e_push_direction::none );
 
     if( state( ::SDL_SCANCODE_A ) || state( ::SDL_SCANCODE_D ) ||
         state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )

@@ -1,0 +1,23 @@
+# ===============================================================
+# commodity.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the commodity module.
+#
+# ===============================================================
+namespace rn;
+
+sumtype CommodityLabel {
+  .features:
+    formattable;
+
+  none:
+  quantity:
+    int value;
+  buy_sell:
+    int sell;
+    int buy;
+};

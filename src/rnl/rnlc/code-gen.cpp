@@ -49,7 +49,7 @@ constexpr string_view kSumtypeAlternativeMemberSerial = R"xyz(
 //   - member_var_name
 constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
     XP_OR_RETURN_( deserialize(
-        rn::serial::detail::to_const_ptr( src.{member_var_name}() ),
+        ::rn::serial::detail::to_const_ptr( src.{member_var_name}() ),
         &dst->{member_var_name}, ::rn::serial::ADL{{}} ) );
 )xyz";
 
@@ -77,7 +77,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     );
   }}
 
-  static rn::expect<> deserialize_table(
+  static ::rn::expect<> deserialize_table(
       fb::{sumtype_name}::{alt_name} const& src,
       {alt_name}* dst ) {{
     (void)src;
@@ -96,7 +96,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
   }}
 
   template<typename ParentSrcT, typename ParentDstT>
-  static rn::expect<bool> try_deserialize_me(
+  static ::rn::expect<bool> try_deserialize_me(
       ParentSrcT const* src,
       ParentDstT* dst ) {{
     if( src->{alt_name}() == nullptr ) return false;
@@ -107,7 +107,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     return true;
   }}
 
-  rn::expect<> check_invariants_safe() const {{
+  ::rn::expect<> check_invariants_safe() const {{
     return ::rn::xp_success_t{{}};
   }}
 )xyz";
@@ -655,11 +655,12 @@ struct CodeGenerator {
   void emit_includes( expr::Rnl const& rnl ) {
     if( rnl.includes.empty() ) return;
     section( "Includes" );
+    comment( "Includes specified in rnl file." );
     for( string const& include : rnl.includes )
       line( "#include {}", include );
     newline();
 
-    line( "// Revolution Now" );
+    comment( "Revolution Now" );
     line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
     if( rnl_needs_serial_header( rnl ) ) {
@@ -670,11 +671,14 @@ struct CodeGenerator {
       line( "#include \"fb.hpp\"" );
     }
     line( "" );
-    line( "// base-util" );
+    comment( "base-util" );
     line( "#include \"base-util/mp.hpp\"" );
     line( "" );
-    line( "// {{fmt}}" );
+    comment( "{{fmt}}" );
     line( "#include \"fmt/format.h\"" );
+    line( "" );
+    comment( "C++ standard library" );
+    line( "#include <variant>" );
   }
 
   void emit_rnl( expr::Rnl const& rnl ) {

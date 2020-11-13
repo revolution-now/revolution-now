@@ -1,0 +1,44 @@
+# ===============================================================
+# turn.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the turn module.
+#
+# ===============================================================
+include "aliases.hpp";
+include "flat-queue.hpp";
+include "nation.hpp";
+
+# Flatbuffers
+include "fb/sg-turn_generated.h";
+
+namespace rn;
+
+# This FSM represents state over an entire turn, where all na-
+# tions get processed (as well as anything else that needs to
+# happen each turn).
+sumtype TurnCycleState {
+  .features:
+    formattable,
+    serializable;
+
+  starting:
+  inside:
+    bool need_eot;
+    Opt<e_nation> nation;
+    NationTurnFsm nation_turn;
+    flat_queue<e_nation> remainder;
+  ending:
+    bool need_eot;
+};
+
+sumtype TurnCycleEvent {
+  .features:
+    formattable;
+
+  next:
+  end:
+};

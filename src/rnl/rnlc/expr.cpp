@@ -36,6 +36,15 @@ std::string to_str( e_sumtype_feature feature ) {
     case e_sumtype_feature::serializable: return "serializable";
     case e_sumtype_feature::comparison: return "comparison";
   }
+    // TODO: When C++20 comes change this to the new
+    // [[unreachable]].
+#ifndef _MSC_VER
+  // POSIX.
+  __builtin_unreachable();
+#else
+  // MSVC.
+  __assume( false );
+#endif
 }
 
 optional<e_sumtype_feature> from_str( std::string feature ) {

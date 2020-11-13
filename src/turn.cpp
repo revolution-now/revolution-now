@@ -68,6 +68,16 @@ template<typename T = monostate>
 using SyncFutureNoSerial =
     no_serial<sync_future<T>, /*bFailOnSerialize=*/true>;
 
+} // namespace
+} // namespace rn
+
+// Rnl
+#include "rnl/turn-unit.hpp"
+
+namespace rn {
+
+namespace {
+
 // FIXME: Hack.
 Opt<PlayerIntent> g_player_intent;
 
@@ -131,32 +141,6 @@ sync_future<> kick_off_unit_animation(
 *****************************************************************/
 // This FSM represents the state across the processing of a
 // single unit.
-adt_s_rn_( UnitInputState, //
-           ( none ),       //
-           ( processing ), //
-           ( asking,       //
-             ( SyncFutureSerial<UnitInputResponse>,
-               response ) ),                               //
-           ( have_response,                                //
-             ( no_serial<UnitInputResponse>, response ) ), //
-           ( executing_orders,                             //
-             ( SyncFutureNoSerial<bool>, conf_anim ),      //
-             ( orders_t, orders ) ),                       //
-           ( executed,                                     //
-             ( Vec<UnitId>, add_to_front ) )               //
-);
-
-adt_rn_( UnitInputEvent,                                 //
-         ( process ),                                    //
-         ( ask ),                                        //
-         ( put_response,                                 //
-           ( no_serial<UnitInputResponse>, response ) ), //
-         ( execute ),                                    //
-         ( cancel ),                                     //
-         ( end,                                          //
-           ( Vec<UnitId>, add_to_front ) )               //
-);
-
 // clang-format off
 fsm_transitions( UnitInput,
   ((none,             process     ),  ->,  processing       ),
@@ -331,25 +315,13 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
 /****************************************************************
 ** Nation Turn FSM
 *****************************************************************/
-// This FSM represents the state across the processing of a
-// single turn for a single nation.
-adt_s_rn_( NationTurnState,                  //
-           ( starting,                       //
-             ( e_nation, nation ) ),         //
-           ( colonies,                       //
-             ( flat_queue<ColonyId>, q ) ),  //
-           ( doing_units,                    //
-             ( bool, need_eot ),             //
-             ( flat_deque<UnitId>, q ),      //
-             ( Opt<UnitInputFsm>, uturn ) ), //
-           ( ending,                         //
-             ( bool, need_eot ) )            //
-);
+} // namespace
+} // namespace rn
 
-adt_rn_( NationTurnEvent, //
-         ( next ),        //
-         ( end )          //
-);
+#include "rnl/turn-nation.hpp"
+
+namespace rn {
+namespace {
 
 // clang-format off
 fsm_transitions( NationTurn,
@@ -544,24 +516,13 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
 /****************************************************************
 ** Turn Cycle FSM
 *****************************************************************/
-// This FSM represents state over an entire turn, where all na-
-// tions get processed (as well as anything else that needs to
-// happen each turn).
-adt_s_rn_( TurnCycleState,                          //
-           ( starting ),                            //
-           ( inside,                                //
-             ( bool, need_eot ),                    //
-             ( Opt<e_nation>, nation ),             //
-             ( NationTurnFsm, nation_turn ),        //
-             ( flat_queue<e_nation>, remainder ) ), //
-           ( ending,                                //
-             ( bool, need_eot ) )                   //
-);
+} // namespace
+} // namespace rn
 
-adt_rn_( TurnCycleEvent, //
-         ( next ),       //
-         ( end )         //
-);
+#include "rnl/turn.hpp"
+
+namespace rn {
+namespace {
 
 // clang-format off
 fsm_transitions( TurnCycle,

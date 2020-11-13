@@ -53,23 +53,28 @@ vector<T> safe_cast_vec(
 
 } // namespace
 
-optional<expr::Rnl> parse( string const& peg_grammar,
+optional<expr::Rnl> parse( string_view   peg_filename,
+                           string_view   src_filename,
+                           string const& peg_grammar,
                            string const& rnl_text ) {
   peg::parser parser;
-  parser.log = []( size_t line, size_t col, string const& msg ) {
-    error( "failed to parse peg file:{}:{}: {}", line, col,
-           msg );
+  parser.log = [&]( size_t line, size_t col,
+                    string const& msg ) {
+    error( peg_filename, line, col, "{}", msg );
   };
 
-  if( !parser.load_grammar( peg_grammar.c_str() ) )
-    error( "failed to parse peg file." );
+  if( !parser.load_grammar( peg_grammar.c_str() ) ) {
+    // Should not get here, since an error should call the above
+    // log callback which should abort.
+    exit( 1 );
+  }
   parser.enable_packrat_parsing();
 
   // Change the logger since we are now attempting to parse the
   // rnl file.
-  parser.log = []( size_t line, size_t col, string const& msg ) {
-    error( "failed to parse rnl file:{}:{}: {}", line, col,
-           msg );
+  parser.log = [&]( size_t line, size_t col,
+                    string const& msg ) {
+    error( src_filename, line, col, "{}", msg );
   };
 
   auto f_str_tok = []( peg::SemanticValues const& sv ) {
@@ -194,8 +199,11 @@ optional<expr::Rnl> parse( string const& peg_grammar,
   };
 
   expr::Rnl parsed_rnl;
-  if( !parser.parse( rnl_text.c_str(), parsed_rnl ) )
-    error( "failed to parse rnl file." );
+  if( !parser.parse( rnl_text.c_str(), parsed_rnl ) ) {
+    // Should not get here, since an error should call the above
+    // log callback which should abort.
+    exit( 1 );
+  }
 
   return parsed_rnl;
 }

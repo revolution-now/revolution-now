@@ -13,6 +13,9 @@
 // Revolution Now
 #include "fsm.hpp"
 
+// Rnl
+#include "rnl/fsm-test.hpp"
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -24,24 +27,6 @@ namespace {
 /****************************************************************
 ** Color
 *****************************************************************/
-adt_rn_( ColorState,       //
-         ( red ),          //
-         ( light_red ),    //
-         ( dark_red ),     //
-         ( blue ),         //
-         ( light_blue ),   //
-         ( dark_blue ),    //
-         ( yellow ),       //
-         ( light_yellow ), //
-         ( dark_yellow )   //
-);
-
-adt_rn_( ColorEvent, //
-         ( light ),  //
-         ( dark ),   //
-         ( rotate )  //
-);
-
 // clang-format off
 fsm_transitions( Color
  ,(    (red,          light ),  ->   ,light_red
@@ -129,28 +114,6 @@ TEST_CASE( "[fsm] test color" ) {
 /****************************************************************
 ** Templated Color
 *****************************************************************/
-adt_T_rn_( template( T, U ), //
-           TColorState,      //
-           ( red ),          //
-           ( light_red,      //
-             ( U, n ) ),     //
-           ( dark_red ),     //
-           ( blue ),         //
-           ( light_blue ),   //
-           ( dark_blue ),    //
-           ( yellow ),       //
-           ( light_yellow ), //
-           ( dark_yellow )   //
-);
-
-adt_T_rn_( template( T, U ), //
-           TColorEvent,      //
-           ( light,          //
-             ( U, n ) ),     //
-           ( dark ),         //
-           ( rotate )        //
-);
-
 // clang-format off
 fsm_transitions_T( template( T, U ), TColor
  ,(    (red,          light ),  ->   ,light_red
@@ -231,27 +194,6 @@ TEST_CASE( "[fsm] test templated color" ) {
 /****************************************************************
 ** Ball
 *****************************************************************/
-adt_rn_( BallState,           //
-         ( none ),            //
-         ( bouncing,          //
-           ( int, height ) ), //
-         ( rolling,           //
-           ( int, speed ) ),  //
-         ( spinning )         //
-);
-
-adt_rn_( BallEvent,           //
-         ( do_nothing ),      //
-         ( start_bouncing,    //
-           ( int, height ) ), //
-         ( stop_bouncing ),   //
-         ( start_rolling,     //
-           ( int, speed ) ),  //
-         ( stop_rolling ),    //
-         ( start_spinning ),  //
-         ( stop_spinning )    //
-);
-
 // clang-format off
 fsm_transitions( Ball
  ,(    (none,     do_nothing    ),  ->   ,none

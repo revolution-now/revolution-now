@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // C++ standard library
+#include <filesystem>
 #include <type_traits>
 
 #ifdef SPDLOG_ACTIVE_LEVEL

@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "cargo.hpp"
 #include "commodity.hpp"
@@ -22,18 +21,10 @@
 #include "tx.hpp"
 #include "view.hpp"
 
-namespace rn {
+// Rnl
+#include "rnl/colview-entities.hpp"
 
-adt_rn( ColViewDraggableObject,      //
-        ( unit,                      //
-          ( UnitId, id ) ),          //
-        ( market_commodity,          //
-          ( e_commodity, type ) ),   //
-        ( cargo_commodity,           //
-          ( UnitId, id ),            //
-          ( Commodity, comm ),       //
-          ( CargoSlotIndex, slot ) ) //
-);
+namespace rn {
 
 struct ColViewObjectUnderCursor {
   ColViewDraggableObject_t obj;

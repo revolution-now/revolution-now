@@ -20,6 +20,9 @@
 #include "logging.hpp"
 #include "lua.hpp"
 
+// Rnl
+#include "rnl/ustate-private.hpp"
+
 // Flatbuffers
 #include "fb/sg-unit_generated.h"
 
@@ -36,18 +39,6 @@ using namespace std;
 namespace rn {
 
 namespace {
-
-adt_s_rn_( UnitState,                           //
-           ( free ),                            //
-           ( world,                             //
-             ( Coord, coord ) ),                //
-           ( cargo,                             //
-             ( UnitId, holder ) ),              //
-           ( europort,                          //
-             ( UnitEuroPortViewState_t, st ) ), //
-           ( colony,                            //
-             ( ColonyId, id ) )                 //
-);
 
 /****************************************************************
 ** Save-Game State

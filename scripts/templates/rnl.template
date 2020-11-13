@@ -10,7 +10,7 @@
 # ===============================================================
 include "some_other_hpp_header.hpp";
 
-include <string>
+include <string>;
 
 namespace rn;
 

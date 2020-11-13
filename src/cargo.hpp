@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "commodity.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
@@ -32,6 +31,7 @@
 #include "base-util/variant.hpp"
 
 // C++ standard library
+#include <compare>
 #include <variant>
 #include <vector>
 
@@ -59,14 +59,16 @@ namespace rn {
 using Cargo = std::variant<UnitId, Commodity>;
 NOTHROW_MOVE( Cargo );
 
+std::strong_ordering operator<=>( Cargo const& lhs,
+                                  Cargo const& rhs );
+
 namespace serial {
 serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>>
 cargo_serialize( FBBuilder& builder, Cargo const& o );
 
 template<typename Hint>
 serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>> serialize(
-    FBBuilder& builder, Cargo const& o,
-    serial::ADL ) {
+    FBBuilder& builder, Cargo const& o, serial::ADL ) {
   return cargo_serialize( builder, o );
 }
 
@@ -74,29 +76,12 @@ expect<> deserialize( ::fb::CargoSlot::Cargo const* src,
                       Cargo* dst, serial::ADL );
 } // namespace serial
 
-// Here is an example of the way the cargo layout works:
-//
-// +------------------------------------------------------------+
-// |         |         |         |         |         |          |
-// |  Comm.  | UnitId  | Overfl. |  Empty  |  Empty  |  UnitId  |
-// |         |         |         |         |         |          |
-// +------------------------------------------------------------+
-//      1        2         3          4         5         6
-//
-// That means that the first slot is occupied by a commodity, the
-// second AND third slots are occupied by a single unit that
-// takes up two slots, the fourth slot is empty, the fifth slot
-// is empty, and the last slot is occupied by a unit (that takes
-// one slot).
-//
-// NOTE: the `empty` state must be first in the list so that it
-// it will be the default-constructed value.
-adt_s_rn( CargoSlot,              //
-          ( empty ),              //
-          ( overflow ),           //
-          ( cargo,                //
-            ( Cargo, contents ) ) //
-);
+} // namespace rn
+
+// Rnl
+#include "rnl/cargo.hpp"
+
+namespace rn {
 
 class ND CargoHold {
 public:

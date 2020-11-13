@@ -11,7 +11,6 @@
 #include "menu.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "color.hpp"
 #include "compositor.hpp"
@@ -28,6 +27,9 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "variant.hpp"
+
+// Rnl
+#include "rnl/menu.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
@@ -63,30 +65,6 @@ namespace {
 /****************************************************************
 ** Main Data Structures
 *****************************************************************/
-adt_rn_( MenuState,                       //
-         ( menus_hidden ),                //
-         ( menus_closed,                  //
-           ( Opt<e_menu>, hover ) ),      //
-         ( menu_open,                     //
-           ( e_menu, menu ),              //
-           ( Opt<e_menu_item>, hover ) ), //
-         ( item_click,                    //
-           ( e_menu_item, item ),         //
-           ( Time_t, start ) )            //
-);
-
-adt_rn_( MouseOver,
-         ( header,                  //
-           ( e_menu, menu ) ),      //
-         ( item,                    //
-           ( e_menu_item, item ) ), //
-         ( divider,                 //
-           ( e_menu, menu ) ),      //
-         ( border,                  //
-           ( e_menu, menu ) ),      //
-         ( bar )                    //
-);
-
 struct Menu {
   string name;
   bool   right_side;
@@ -779,9 +757,9 @@ Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
         } else {
           foreground = !is_menu_item_enabled( clickable.item )
                            ? &rendered.disabled
-                           : ( clickable.item == subject )
-                                 ? &rendered.highlighted
-                                 : &rendered.normal;
+                       : ( clickable.item == subject )
+                           ? &rendered.highlighted
+                           : &rendered.normal;
           if( clickable.item == subject )
             background = &textures.item_background_highlight;
         }

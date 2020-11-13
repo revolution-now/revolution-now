@@ -37,6 +37,9 @@
 #include "variant.hpp"
 #include "window.hpp"
 
+// Rnl
+#include "rnl/europort-view.hpp"
+
 // Flatbuffers
 #include "fb/sg-europort-view_generated.h"
 
@@ -92,16 +95,6 @@ SAVEGAME_IMPL( EuroportView );
 /****************************************************************
 ** Draggable Object
 *****************************************************************/
-adt_rn_( DraggableObject,             //
-         ( unit,                      //
-           ( UnitId, id ) ),          //
-         ( market_commodity,          //
-           ( e_commodity, type ) ),   //
-         ( cargo_commodity,           //
-           ( Commodity, comm ),       //
-           ( CargoSlotIndex, slot ) ) //
-);
-
 static_assert( std::is_copy_constructible_v<DraggableObject_t> );
 
 // Global State.
@@ -1272,74 +1265,6 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-adt_rn_( DragSrc,                    //
-         ( dock,                     //
-           ( UnitId, id ) ),         //
-         ( cargo,                    //
-           ( CargoSlotIndex, slot ), //
-           ( Opt<int>, quantity ) ), //
-         ( outbound,                 //
-           ( UnitId, id ) ),         //
-         ( inbound,                  //
-           ( UnitId, id ) ),         //
-         ( inport,                   //
-           ( UnitId, id ) ),         //
-         ( market,                   //
-           ( e_commodity, type ),    //
-           ( Opt<int>, quantity ) )  //
-);
-
-adt_rn_( DragDst,                      //
-         ( cargo,                      //
-           ( CargoSlotIndex, slot ) ), //
-         ( dock ),                     //
-         ( outbound ),                 //
-         ( inbound ),                  //
-         ( inport ),                   //
-         ( inport_ship,                //
-           ( UnitId, id ) ),           //
-         ( market )                    //
-);
-
-adt_rn_( DragArc,                           //
-         ( dock_to_cargo,                   //
-           ( DragSrc::dock, src ),          //
-           ( DragDst::cargo, dst ) ),       //
-         ( cargo_to_dock,                   //
-           ( DragSrc::cargo, src ),         //
-           ( DragDst::dock, dst ) ),        //
-         ( cargo_to_cargo,                  //
-           ( DragSrc::cargo, src ),         //
-           ( DragDst::cargo, dst ) ),       //
-         ( outbound_to_inbound,             //
-           ( DragSrc::outbound, src ),      //
-           ( DragDst::inbound, dst ) ),     //
-         ( outbound_to_inport,              //
-           ( DragSrc::outbound, src ),      //
-           ( DragDst::inport, dst ) ),      //
-         ( inbound_to_outbound,             //
-           ( DragSrc::inbound, src ),       //
-           ( DragDst::outbound, dst ) ),    //
-         ( inport_to_outbound,              //
-           ( DragSrc::inport, src ),        //
-           ( DragDst::outbound, dst ) ),    //
-         ( dock_to_inport_ship,             //
-           ( DragSrc::dock, src ),          //
-           ( DragDst::inport_ship, dst ) ), //
-         ( cargo_to_inport_ship,            //
-           ( DragSrc::cargo, src ),         //
-           ( DragDst::inport_ship, dst ) ), //
-         ( market_to_cargo,                 //
-           ( DragSrc::market, src ),        //
-           ( DragDst::cargo, dst ) ),       //
-         ( market_to_inport_ship,           //
-           ( DragSrc::market, src ),        //
-           ( DragDst::inport_ship, dst ) ), //
-         ( cargo_to_market,                 //
-           ( DragSrc::cargo, src ),         //
-           ( DragDst::market, dst ) ),      //
-);
-
 class EuroViewDragAndDrop
   : public DragAndDrop<EuroViewDragAndDrop, DraggableObject_t,
                        DragSrc_t, DragDst_t, DragArc_t> {
@@ -1906,16 +1831,6 @@ NOTHROW_MOVE( EuroViewDragAndDrop );
 /****************************************************************
 ** The Europe View State Machine
 *****************************************************************/
-adt_rn_( EuroviewState,                  //
-         ( normal ),                     //
-         ( future,                       //
-           ( sync_future<>, s_future ) ) //
-);
-
-adt_rn_( EuroviewEvent, //
-         ( none )       //
-);
-
 // clang-format off
 fsm_transitions( Euroview,
   ((normal, none ),  ->  ,normal),
@@ -1966,9 +1881,8 @@ struct EuropePlane : public Plane {
     if( drag_n_drop_.handle_input( event ) )
       return e_input_handled::yes;
     return matcher_( event ) {
-      case_( input::unknown_event_t )
-          resu1t                          e_input_handled::no;
-      case_( input::quit_event_t ) resu1t e_input_handled::no;
+      case_( input::unknown_event_t ) resu1t e_input_handled::no;
+      case_( input::quit_event_t ) resu1t    e_input_handled::no;
       case_( input::win_event_t ) {
         // Note: we don't have to handle the window-resize event
         // here because currently the europort-plane completely

@@ -11,12 +11,14 @@
 #include "input.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "config-files.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 #include "variant.hpp"
+
+// Rnl
+#include "rnl/input.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/input.inl"
@@ -32,29 +34,6 @@
 #include <array>
 
 using namespace std;
-
-// This type will keep track of the dragging state of a given
-// mouse button. When a drag is initiated is it represented as a
-// `maybe` state; in this state the drag event is not yet sent as
-// such to the consumers of input events. Instead, it will remain
-// in the `maybe` state until the mouse moves a certain number of
-// pixels away from the origin (buffer) to allow for a bit of
-// noise in mouse motion during normal clicks. When it leaves
-// this buffer region (just a few pixels wide) then it will be
-// converted to a `dragging` event and will be sent out as such
-// with origin equal to the original origin of the `maybe` state.
-// This aims to make clicking easier by preventing flaky behavior
-// where the user inadvertantly triggers a drag event by acciden-
-// tally moving the mouse a bit during a click (that would be bad
-// because it would not be sent as a click event).
-adt_( rn::input, drag_phase,      //
-      ( none ),                   //
-      ( maybe,                    //
-        ( Coord, origin ) ),      //
-      ( dragging,                 //
-        ( Coord, origin ),        //
-        ( e_drag_phase, phase ) ) //
-);
 
 namespace rn::input {
 
@@ -177,7 +156,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
                          ::SDL_WINDOWEVENT_SIZE_CHANGED )
                            ? e_win_event_type::resized
                            : e_win_event_type::other;
-      event = win_event;
+      event          = win_event;
       break;
     }
     case ::SDL_KEYDOWN: {

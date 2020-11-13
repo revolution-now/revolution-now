@@ -1,0 +1,55 @@
+# ===============================================================
+# turn-unit.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the turn-unit module.
+#
+# ===============================================================
+include "aliases.hpp";
+include "id.hpp";
+include "land-view.hpp";
+include "no-serial.hpp";
+
+# Rnl
+include "rnl/orders.hpp";
+
+# Flatbuffers
+include "fb/sg-turn_generated.h";
+
+namespace rn;
+
+sumtype UnitInputState {
+  .features:
+    formattable,
+    serializable;
+
+  none:
+  processing:
+  asking:
+    SyncFutureSerial<UnitInputResponse> response;
+  have_response:
+    no_serial<UnitInputResponse> response;
+  executing_orders:
+    SyncFutureNoSerial<bool> conf_anim;
+    orders_t orders;
+  executed:
+    Vec<UnitId> add_to_front;
+};
+
+sumtype UnitInputEvent {
+  .features:
+    formattable;
+
+  process:
+  ask:
+  put_response:
+    no_serial<UnitInputResponse> response;
+  execute:
+  cancel:
+  end:
+    Vec<UnitId> add_to_front;
+};
+

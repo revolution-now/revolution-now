@@ -51,16 +51,20 @@ void log_st_change( std::string_view sv );
 *****************************************************************/
 // Example:
 //
-//   adt_rn_( ColorState,
-//            ( red ),
-//            ( light_red ),
-//            ( dark_red )
-//   );
+//   sumtype ColorState {
+//     .features:
+//         formattable;
+//     red:
+//     light_red:
+//     dark_red:
+//   };
 //
-//   adt_rn_( ColorEvent,
-//            ( light ),
-//            ( dark )
-//   );
+//   sumtype ColorEvent {
+//     .features:
+//         formattable;
+//     light:
+//     dark:
+//   };
 //
 //   fsm_transitions( Color
 //    ,(   (red,       light),  ->   ,light_red
@@ -416,10 +420,9 @@ auto serialize( FBBuilder& builder, T const& o, serial::ADL ) {
   CHECK( !o.has_pending_events(),
          "cannot serialize a finite state machine with pending "
          "events." );
-  auto s_state_stack =
-      serialize<serial::fb_serialize_hint_t<decltype(
-          std::declval<Hint>().state_stack() )>>(
-          builder, o.state_stack_, serial::ADL{} );
+  auto s_state_stack = serialize<serial::fb_serialize_hint_t<
+      decltype( std::declval<Hint>().state_stack() )>>(
+      builder, o.state_stack_, serial::ADL{} );
   return serial::ReturnValue{
       Hint::Traits::Create( builder, s_state_stack.get() ) };
 }

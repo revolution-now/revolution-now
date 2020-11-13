@@ -27,44 +27,47 @@ using namespace std;
 
 int main( int argc, char** argv ) {
   if( argc != 4 )
-    rnl::error( "usage: rnlc <rnl-file> <out-file>" );
+    rnl::error_msg( "usage: rnlc <rnl-file> <out-file>" );
 
   string_view filename = argv[1];
   if( !filename.ends_with( ".rnl" ) )
-    rnl::error( "filename '{}' does not have a .rnl extension.",
-                filename );
+    rnl::error_msg(
+        "filename '{}' does not have a .rnl extension.",
+        filename );
 
   optional<string> rnl = util::read_file_as_string( filename );
   if( !rnl.has_value() )
-    rnl::error( "failed to open rnl file '{}'.", filename );
+    rnl::error_msg( "failed to open rnl file '{}'.", filename );
 
   string_view output_file = argv[2];
   if( !output_file.ends_with( ".hpp" ) )
-    rnl::error( "output file must end with '.hpp'." );
+    rnl::error_msg( "output file must end with '.hpp'." );
 
   string_view peg_file = argv[3];
   if( !peg_file.ends_with( ".peg" ) )
-    rnl::error( "peg file must end with '.peg'." );
+    rnl::error_msg( "peg file must end with '.peg'." );
 
   optional<string> peg = util::read_file_as_string( peg_file );
   if( !peg.has_value() )
-    rnl::error( "failed to open peg file '{}'.", peg_file );
+    rnl::error_msg( "failed to open peg file '{}'.", peg_file );
 
-  optional<rnl::expr::Rnl> maybe_rnl = rnl::parse( *peg, *rnl );
+  optional<rnl::expr::Rnl> maybe_rnl =
+      rnl::parse( peg_file, filename, *peg, *rnl );
   if( !maybe_rnl.has_value() )
-    rnl::error( "failed to parse RNL file '{}'.", filename );
+    rnl::error_msg( "failed to parse RNL file '{}'.", filename );
 
   vector<string> validation_errors = rnl::validate( *maybe_rnl );
   if( !validation_errors.empty() ) {
     for( string const& error : validation_errors )
-      rnl::error_no_exit( "{}", error );
-    rnl::error( "failed validation." );
+      rnl::error_no_exit_msg( "{}", error );
+    rnl::error_msg( "failed validation." );
   }
 
   optional<string> cpp_code = rnl::generate_code( *maybe_rnl );
   if( !cpp_code.has_value() )
-    rnl::error( "failed to generate C++ code for RNL file '{}'.",
-                filename );
+    rnl::error_msg(
+        "failed to generate C++ code for RNL file '{}'.",
+        filename );
 
   string_view stem = filename;
   stem.remove_suffix( 4 );

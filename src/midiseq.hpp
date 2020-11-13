@@ -13,47 +13,13 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "enum.hpp"
+
+// Rnl
+#include "rnl/midiseq.hpp"
 
 // C++ standard library.
 #include <string>
-
-// The possible commands that can be sent to the midi thread.
-// Generally, after receiving one of these commands the midi
-// thread will update its state.
-//
-//   play:   Start playing the given tune from the beginning,
-//           even if the player was paused.
-//
-//   stop:   Stop playing (if playing).  If playing, position in
-//           current tune will be lost.  Playing must be resumed
-//           with a `play` command.
-//
-//   pause:  Pause the player wherever it is, whether in the
-//           middle of a tune or in the middle of tracks.
-//
-//   pause:  Resume the player if it was paused.
-//
-//   off:    Tell the player to turn off.
-//
-//   volume: Set the master volume from 0.0 to 1.0.  The value
-//           1.0 corresponds to the value in the MIDI file, so
-//           therefore this can really only be used to lower
-//           the volume.  Gain beyond the standard volume would
-//           need to be done with the synthesizer.
-//
-adt_( /*namespace */ rn::midiseq, //
-      command,                    //
-      ( play,                     //
-        ( fs::path, file ) ),     //
-      ( stop ),                   //
-      ( pause ),                  //
-      ( resume ),                 //
-      ( off ),                    //
-      ( volume,                   //
-        ( double, value ) )       //
-);
 
 namespace rn::midiseq {
 

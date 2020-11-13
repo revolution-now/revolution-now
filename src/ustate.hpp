@@ -14,12 +14,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "colony.hpp"
 #include "errors.hpp"
 #include "sg-macros.hpp"
 #include "unit.hpp"
+
+// Rnl
+#include "rnl/ustate.hpp"
 
 // Flatbuffers
 #include "fb/unit_generated.h"
@@ -132,29 +134,6 @@ Opt<UnitId> is_unit_onboard( UnitId id );
 /****************************************************************
 ** EuroPort View Ownership
 *****************************************************************/
-// These pertain to units who are owned by either the high seas
-// or by europe view (e.g., in port, on the dock, etc.);
-adt_s_rn(
-    UnitEuroPortViewState,
-    // For ships that are venturing to europe. `percent` starts
-    // from 0 and goes to 1.0 at arrival. This means that the
-    // value should never actually assume a value of 1.0, because
-    // as soon as it does, the state is transitioned to in_port.
-    ( outbound,              //
-      ( double, percent ) ), //
-    // For ships that are traveling from europe to the new world.
-    // `percent` starts from 0 and goes to 1.0 at arrival. This
-    // means that the value should never actually assume a value
-    // of 1.0, because as soon as it does, the state is transi-
-    // tioned to the map.
-    ( inbound,               //
-      ( double, percent ) ), //
-    // If a ship is in this state then it is in port (shown in
-    // the "in port" box) whereas for land units this means that
-    // they are on the dock.
-    ( in_port ) //
-);
-
 expect<> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info );
 

@@ -18,7 +18,9 @@
 
 namespace rnl {
 
-std::optional<expr::Rnl> parse( std::string const& peg_grammar,
+std::optional<expr::Rnl> parse( std::string_view   peg_filename,
+                                std::string_view   src_filename,
+                                std::string const& peg_grammar,
                                 std::string const& rnl_text );
 
 }

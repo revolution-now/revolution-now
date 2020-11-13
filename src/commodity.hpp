@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "coord.hpp"
 #include "enum.hpp"
@@ -21,6 +20,9 @@
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "tx.hpp"
+
+// Rnl
+#include "rnl/commodity.hpp"
 
 // Flatbuffers
 #include "fb/commodity_generated.h"
@@ -67,15 +69,6 @@ std::string_view commodity_display_name( e_commodity type );
 /****************************************************************
 ** Commodity Labels
 *****************************************************************/
-adt_rn( CommodityLabel,     //
-        ( none ),           //
-        ( quantity,         //
-          ( int, value ) ), //
-        ( buy_sell,         //
-          ( int, sell ),    //
-          ( int, buy ) )    //
-);
-
 // Returns markup text representing the label.
 Opt<std::string> commodity_label_to_markup(
     CommodityLabel_t const& label );

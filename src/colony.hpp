@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "colony-mfg.hpp"
 #include "commodity.hpp"
 #include "enum.hpp"

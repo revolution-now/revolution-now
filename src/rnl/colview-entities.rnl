@@ -1,0 +1,29 @@
+# ===============================================================
+# colview-entities.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the colview-entities module.
+#
+# ===============================================================
+include "cargo.hpp";
+include "commodity.hpp";
+include "id.hpp";
+
+namespace rn;
+
+sumtype ColViewDraggableObject {
+  .features:
+    formattable;
+
+  unit:
+    UnitId id;
+  market_commodity:
+    e_commodity type;
+  cargo_commodity:
+    UnitId id;
+    Commodity comm;
+    CargoSlotIndex slot;
+};
