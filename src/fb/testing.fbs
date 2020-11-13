@@ -142,3 +142,25 @@ table Monster {
   mylist    : [string];
   myset     : [string];
 }
+
+namespace fb.MyVariant2;
+
+  table first  {
+    name  : string;
+    b     : bool;
+  }
+  table second {
+    flag1 : bool;
+    flag2 : bool;
+  }
+  table third {
+    cost  : int;
+  }
+
+  namespace fb;
+
+  table MyVariant2_t {
+    first  : MyVariant2.first;
+    second : MyVariant2.second;
+    third  : MyVariant2.third;
+  }

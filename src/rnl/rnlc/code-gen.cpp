@@ -15,6 +15,7 @@
 
 // base-util
 #include "base-util/misc.hpp"
+#include "base-util/variant.hpp"
 
 // {fmt}
 #include "fmt/format.h"
@@ -23,6 +24,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_replace.h"
+#include "absl/strings/str_split.h"
 
 // c++ standard library
 #include <iomanip>
@@ -34,6 +36,147 @@ using namespace std;
 namespace rnl {
 
 namespace {
+
+// Parameters:
+//   - member_var_name
+constexpr string_view kSumtypeAlternativeMemberSerial = R"xyz(
+    auto s_{member_var_name} = serialize<::rn::serial::fb_serialize_hint_t<
+        decltype( std::declval<fb_target_t>().{member_var_name}() )>>(
+        builder, {member_var_name}, ::rn::serial::ADL{{}} );
+)xyz";
+
+// Parameters:
+//   - member_var_name
+constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
+    XP_OR_RETURN_( deserialize(
+        rn::serial::detail::to_const_ptr( src.{member_var_name}() ),
+        &dst->{member_var_name}, ::rn::serial::ADL{{}} ) );
+)xyz";
+
+// Parameters:
+//   - sumtype_name
+//   - alt_name
+//   - members_serialization
+//   - members_deserialization
+//   - members_s_get:
+//       Vertical comma-separated list of "s_<member>.get()"
+constexpr string_view kSumtypeAlternativeSerial = R"xyz(
+  using fb_target_t = fb::{sumtype_name}::{alt_name};
+
+  static std::string fb_root_type_name() {{
+    return "fb.{sumtype_name}.{alt_name}";
+  }}
+
+  FBOffset<fb::{sumtype_name}::{alt_name}> serialize_table(
+      FBBuilder& builder ) const {{
+    (void)fb_root_type_name;
+    using ::rn::serial::serialize;
+    {members_serialization}
+    return fb::{sumtype_name}::Create{alt_name}( builder,
+        {members_s_get}
+    );
+  }}
+
+  static rn::expect<> deserialize_table(
+      fb::{sumtype_name}::{alt_name} const& src,
+      {alt_name}* dst ) {{
+    DCHECK( dst );
+    using ::rn::serial::deserialize;
+    {members_deserialization}
+    return ::rn::xp_success_t{{}};
+  }}
+
+  template<typename ParentBuilderT>
+  void builder_add_me( ParentBuilderT& builder,
+                       FBOffset<void>  offset ) const {{
+    FBOffset<::fb::{sumtype_name}::{alt_name}> typed_offset(
+        offset.o );
+    builder.add_{alt_name}( typed_offset );
+  }}
+
+  template<typename ParentSrcT, typename ParentDstT>
+  static rn::expect<bool> try_deserialize_me(
+      ParentSrcT const* src,
+      ParentDstT* dst ) {{
+    if( src->{alt_name}() == nullptr ) return false;
+    *dst = {alt_name}{{}};
+    XP_OR_RETURN_( deserialize(
+        src->{alt_name}(), std::get_if<{alt_name}>( dst ),
+        ::rn::serial::ADL{{}} ) );
+    return true;
+  }}
+
+  rn::expect<> check_invariants_safe() const {{
+    return ::rn::xp_success_t{{}};
+  }}
+)xyz";
+
+// Parameters:
+//   - sumtype_name: must include _t
+//   - sumtype_name_full_ns: must include _t
+constexpr string_view kSumtypeSerial = R"xyz(
+  template<typename Hint>
+  auto serialize( FBBuilder& fbb, {sumtype_name_full_ns} const& o,
+                  ::rn::serial::ADL ) {{
+    auto offset  = util::visit( o, [&]( auto const& v ) {{
+      // Call Union() to make the offset templated on type `void`
+      // instead of the type of this variant member so that we have
+      // a consistent return type.
+      return v.serialize_table( fbb ).Union();
+    }} );
+    auto builder = fb::{sumtype_name}Builder( fbb );
+    util::visit( o, [&]( auto const& v ) {{
+      v.builder_add_me( builder, offset );
+    }} );
+    return ::rn::serial::ReturnValue{{ builder.Finish() }};
+  }}
+
+  expect<> inline deserialize( fb::{sumtype_name} const* src,
+                               {sumtype_name_full_ns}* dst,
+                               ::rn::serial::ADL ) {{
+    if( src == nullptr ) return ::rn::xp_success_t{{}};
+    int            count  = 0;
+    ::rn::expect<> result = ::rn::xp_success_t{{}};
+    ::rn::try_deserialize_variant_types<{sumtype_name_full_ns}>(
+        [&]( auto const* p ) {{
+          if( !result ) return;
+          using type =
+              std::decay_t<std::remove_pointer_t<decltype( p )>>;
+          auto xp = type::try_deserialize_me( src, dst );
+          if( !xp ) {{
+            result = UNEXPECTED( "{{}}", xp.error().what );
+            return;
+          }}
+          auto deserialized = *xp;
+          if( deserialized ) ++count;
+        }} );
+    if( !result ) return result;
+    if( count != 1 )
+      return UNEXPECTED(
+          "failed to deserialized precisely one variant element "
+          "(found {{}})",
+          count );
+    return ::rn::xp_success_t{{}};
+  }}
+)xyz";
+
+void remove_common_space_prefix( vector<string>* lines ) {
+  if( lines->empty() ) return;
+  size_t min_spaces = 10000000;
+  for( string_view sv : *lines ) {
+    size_t first = sv.find_first_not_of( ' ' );
+    if( first == string_view::npos ) continue;
+    min_spaces = std::min( first, min_spaces );
+  }
+  for( string& s : *lines ) {
+    if( string_view( s ).find_first_not_of( ' ' ) ==
+        string_view::npos )
+      // Either empty or just spaces.
+      continue;
+    string new_s( s.begin() + min_spaces, s.end() );
+    s = std::move( new_s );
+  }
+}
 
 template<typename Range, typename Projection, typename Default>
 auto max_of( Range&& rng, Projection&& proj, Default value )
@@ -238,6 +381,18 @@ struct CodeGenerator {
     flush();
   }
 
+  template<typename... Args>
+  void emit_code_block( string_view fmt_str, Args... args ) {
+    string         formatted = fmt::format( fmt_str, args... );
+    vector<string> lines     = absl::StrSplit( formatted, "\n" );
+    remove_common_space_prefix( &lines );
+    if( lines.empty() ) return;
+    int i = 0;
+    // Remove the first line if it's empty.
+    if( lines[0].empty() ) i = 1;
+    for( ; i < ssize( lines ); ++i ) line( "{}", lines[i] );
+  }
+
   void emit_template_decl(
       vector<expr::TemplateParam> const& tmpls ) {
     if( tmpls.empty() ) return;
@@ -324,9 +479,11 @@ struct CodeGenerator {
 
   void emit( vector<expr::TemplateParam> const& tmpls,
              expr::Alternative const&           alt,
-             bool emit_comparison ) {
+             string_view sumtype_name, bool emit_comparison,
+             bool emit_serialization ) {
     emit_template_decl( tmpls );
-    if( alt.members.empty() && !emit_comparison ) {
+    if( alt.members.empty() && !emit_comparison &&
+        !emit_serialization ) {
       line( "struct {} {{}};", alt.name );
     } else {
       line( "struct {} {{", alt.name );
@@ -346,6 +503,35 @@ struct CodeGenerator {
           line( "auto operator<=>( {} const& ) const = default;",
                 alt.name );
         }
+        if( emit_serialization ) {
+          string      member_serials;
+          string      member_deserials;
+          string      members_s_get;
+          size_t      count = alt.members.size();
+          string_view sep   = ", ";
+          for( expr::AlternativeMember const& alt_mem :
+               alt.members ) {
+            if( count-- == 1 ) sep = "";
+            member_serials += fmt::format(
+                kSumtypeAlternativeMemberSerial,
+                fmt::arg( "member_var_name", alt_mem.var ) );
+            member_deserials += fmt::format(
+                kSumtypeAlternativeMemberDeserial,
+                fmt::arg( "member_var_name", alt_mem.var ) );
+            members_s_get +=
+                fmt::format( "s_{}.get(){}", alt_mem.var, sep );
+          }
+
+          emit_code_block(
+              kSumtypeAlternativeSerial,
+              fmt::arg( "sumtype_name", sumtype_name ),
+              fmt::arg( "alt_name", alt.name ),
+              fmt::arg( "members_serialization",
+                        member_serials ),
+              fmt::arg( "members_deserialization",
+                        member_deserials ),
+              fmt::arg( "members_s_get", members_s_get ) );
+        }
       }
       line( "}};" );
     }
@@ -360,7 +546,10 @@ struct CodeGenerator {
            sumtype.alternatives ) {
         bool emit_comparison = sumtype_has_feature(
             sumtype, expr::e_sumtype_feature::comparison );
-        emit( sumtype.tmpl_params, alt, emit_comparison );
+        bool emit_serialization = sumtype_has_feature(
+            sumtype, expr::e_sumtype_feature::serializable );
+        emit( sumtype.tmpl_params, alt, sumtype.name,
+              emit_comparison, emit_serialization );
         newline();
       }
       close_ns( sumtype.name );
@@ -399,6 +588,18 @@ struct CodeGenerator {
                                   sumtype.tmpl_params, alt );
       }
     }
+    if( sumtype_has_feature(
+            sumtype, expr::e_sumtype_feature::serializable ) ) {
+      newline();
+      open_ns( "rn", "serial" );
+      emit_code_block(
+          kSumtypeSerial,
+          fmt::arg( "sumtype_name", sumtype.name + "_t" ),
+          fmt::arg(
+              "sumtype_name_full_ns",
+              fmt::format( "::{}::{}_t", ns, sumtype.name ) ) );
+      close_ns( "rn", "serial" );
+    }
   }
 
   void emit( expr::Item const& item ) {
@@ -424,16 +625,47 @@ struct CodeGenerator {
     newline();
   }
 
-  void emit_includes( vector<string> const& includes ) {
-    if( includes.empty() ) return;
+  bool rnl_has_sumtype_feature(
+      expr::Rnl const&        rnl,
+      expr::e_sumtype_feature target_feature ) {
+    for( expr::Item const& item : rnl.items ) {
+      for( expr::Construct const& construct : item.constructs ) {
+        bool has_feature = matcher_( construct ) {
+          case_( expr::Sumtype ) {
+            for( auto feature : val.features )
+              if( feature == target_feature ) result_v true;
+            result_v false;
+          }
+          matcher_exhaustive;
+        }
+        if( has_feature ) return true;
+      }
+    }
+    return false;
+  }
+
+  bool rnl_needs_serial_header( expr::Rnl const& rnl ) {
+    return rnl_has_sumtype_feature(
+        rnl, expr::e_sumtype_feature::serializable );
+  }
+
+  void emit_includes( expr::Rnl const& rnl ) {
+    if( rnl.includes.empty() ) return;
     section( "Includes" );
-    for( string const& include : includes )
+    for( string const& include : rnl.includes )
       line( "#include {}", include );
     newline();
 
     line( "// Revolution Now" );
     line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
+    if( rnl_needs_serial_header( rnl ) ) {
+      comment(
+          "TODO: move functions from this header into fb.hpp." );
+      line( "#include \"adt.hpp\"" );
+      line( "#include \"errors.hpp\"" );
+      line( "#include \"fb.hpp\"" );
+    }
     line( "" );
     line( "// base-util" );
     line( "#include \"base-util/mp.hpp\"" );
@@ -445,7 +677,7 @@ struct CodeGenerator {
   void emit_rnl( expr::Rnl const& rnl ) {
     emit_preamble();
     emit_imports( rnl.imports );
-    emit_includes( rnl.includes );
+    emit_includes( rnl );
 
     for( expr::Item const& item : rnl.items ) emit( item );
   }

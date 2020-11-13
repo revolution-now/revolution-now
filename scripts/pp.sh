@@ -54,7 +54,7 @@ cat $stem.pp.cpp | sed '0,/marker_start/d; /marker_end/,$d' \
 
 clang-format -i ./$stem.pp.fmt.cpp
 
-bat ./$stem.pp.fmt.cpp
+bat --style=plain ./$stem.pp.fmt.cpp
 
 rm $stem.pp.cpp
 rm $stem.pp.fmt.cpp
