@@ -13,6 +13,7 @@
 #include "expr.hpp"
 #include "parser.hpp"
 #include "rnl-util.hpp"
+#include "validate.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -52,6 +53,13 @@ int main( int argc, char** argv ) {
   optional<rnl::expr::Rnl> maybe_rnl = rnl::parse( *peg, *rnl );
   if( !maybe_rnl.has_value() )
     rnl::error( "failed to parse RNL file '{}'.", filename );
+
+  vector<string> validation_errors = rnl::validate( *maybe_rnl );
+  if( !validation_errors.empty() ) {
+    for( string const& error : validation_errors )
+      rnl::error_no_exit( "{}", error );
+    rnl::error( "failed validation." );
+  }
 
   optional<string> cpp_code = rnl::generate_code( *maybe_rnl );
   if( !cpp_code.has_value() )

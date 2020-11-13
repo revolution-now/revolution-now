@@ -21,10 +21,15 @@
 namespace rnl {
 
 template<typename... Args>
-void error( std::string_view fmt, Args... args ) {
+void error_no_exit( std::string_view fmt, Args&&... args ) {
   std::cerr << "\033[31merror\033[00m: ";
   std::cerr << fmt::format( fmt, args... );
   std::cerr << "\n";
+}
+
+template<typename... Args>
+void error( std::string_view fmt, Args&&... args ) {
+  error_no_exit( fmt, std::forward<Args>( args )... );
   std::exit( 1 );
 }
 

@@ -308,13 +308,14 @@ struct CodeGenerator {
 
   // Format string should not contain any new lines in it. This
   // is the only function that should be using oss_.
-  template<typename... Args>
-  void line( string_view fmt_str, Args... args ) {
+  template<typename Arg1, typename... Args>
+  void line( string_view fmt_str, Arg1&& arg1, Args&&... args ) {
     assert( !curr_line_.has_value() );
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     string indent( options().indent_level * 2, ' ' );
     string to_print = trim_trailing_spaces(
-        fmt::format( fmt_str, forward<Args>( args )... ) );
+        fmt::format( fmt_str, forward<Arg1>( arg1 ),
+                     forward<Args>( args )... ) );
     // Only print empty strings if they are to be quoted.
     if( options().quotes )
       oss_ << indent << std::quoted( to_print );
@@ -323,8 +324,11 @@ struct CodeGenerator {
     oss_ << "\n";
   }
 
+  // Braces {} do NOT have to be escaped for this one.
+  void line( string_view l ) { line( "{}", l ); }
+
   template<typename... Args>
-  void frag( string_view fmt_str, Args... args ) {
+  void frag( string_view fmt_str, Args&&... args ) {
     assert( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
     curr_line_ = absl::StrCat(
@@ -336,13 +340,13 @@ struct CodeGenerator {
     if( !curr_line_.has_value() ) return;
     string to_write = move( *curr_line_ );
     curr_line_.reset();
-    line( "{}", to_write );
+    line( to_write );
   }
 
   void newline() { line( "" ); }
 
   template<typename... Args>
-  void comment( string_view fmt_str, Args... args ) {
+  void comment( string_view fmt_str, Args&&... args ) {
     frag( "// " );
     frag( fmt_str, forward<Args>( args )... );
     flush();
@@ -383,15 +387,16 @@ struct CodeGenerator {
   }
 
   template<typename... Args>
-  void emit_code_block( string_view fmt_str, Args... args ) {
-    string         formatted = fmt::format( fmt_str, args... );
-    vector<string> lines     = absl::StrSplit( formatted, "\n" );
+  void emit_code_block( string_view fmt_str, Args&&... args ) {
+    string formatted =
+        fmt::format( fmt_str, forward<Args>( args )... );
+    vector<string> lines = absl::StrSplit( formatted, "\n" );
     remove_common_space_prefix( &lines );
     if( lines.empty() ) return;
     int i = 0;
     // Remove the first line if it's empty.
     if( lines[0].empty() ) i = 1;
-    for( ; i < ssize( lines ); ++i ) line( "{}", lines[i] );
+    for( ; i < ssize( lines ); ++i ) line( lines[i] );
   }
 
   void emit_template_decl(
@@ -421,7 +426,7 @@ struct CodeGenerator {
         auto _ = indent();
         emit_vert_list( fmt_members, "," );
       }
-      line( "}}}}" );
+      line( "}}" );
     }
   }
 
@@ -454,7 +459,7 @@ struct CodeGenerator {
         flush();
       }
     }
-    line( "}}" );
+    line( "}" );
   }
 
   void emit_fmt_for_alternative(
@@ -471,11 +476,11 @@ struct CodeGenerator {
     line( "struct fmt::formatter<{}>", full_alt_name );
     {
       auto _ = indent();
-      line( ": formatter_base {{" );
+      line( ": formatter_base {" );
       emit_fmt_format_method( alt, full_alt_name, tmpls,
                               sumtype_name );
     }
-    line( "}};" );
+    line( "};" );
   }
 
   void emit( vector<expr::TemplateParam> const& tmpls,
@@ -531,7 +536,7 @@ struct CodeGenerator {
               fmt::arg( "members_s_get", members_s_get ) );
         }
       }
-      line( "}};" );
+      line( "};" );
     }
   }
 
