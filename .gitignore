@@ -42,6 +42,7 @@
 assets/art/*.tm
 /*.mid
 saves/slot*
+/*.pp.*
 
 # cmake
 /.builds
