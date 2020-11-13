@@ -13,6 +13,9 @@
 // Under test.
 #include "rnl/testing.hpp"
 
+// Revolution Now
+#include "fmt-helper.hpp"
+
 // base-util
 #include "base-util/variant.hpp"
 
@@ -20,6 +23,18 @@
 #include "catch-common.hpp"
 
 namespace rn {
+// Use a fake optional because the type name (which we need to
+// compute to test formatting) is platform-dependent due to in-
+// line namespaces.
+template<typename T>
+struct my_optional {
+  T t;
+};
+} // namespace rn
+DEFINE_FORMAT_T( ( T ), (::rn::my_optional<T>), "{}", o.t );
+
+namespace rn {
+
 namespace {
 
 using namespace std;
@@ -62,12 +77,12 @@ TEST_CASE( "[rnl] Maybe" ) {
     switch_exhaustive;
   }
 
-  Maybe_t<optional<char>> maybe_op_str;
+  Maybe_t<rn::my_optional<char>> maybe_op_str;
   REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "Maybe::nothing<std::optional<char>>" );
-  maybe_op_str = Maybe::just<optional<char>>{ { 'c' } };
+           "Maybe::nothing<rn::my_optional<char>>" );
+  maybe_op_str = Maybe::just<rn::my_optional<char>>{ { 'c' } };
   REQUIRE( fmt::format( "{}", maybe_op_str ) ==
-           "Maybe::just<std::optional<char>>{val=c}" );
+           "Maybe::just<rn::my_optional<char>>{val=c}" );
 }
 
 TEST_CASE( "[rnl] MyVariant1" ) {
@@ -178,19 +193,24 @@ TEST_CASE( "[rnl] MyVariant4" ) {
 }
 
 TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
-  using V = inner::CompositeTemplateTwo_t<optional<int>, short>;
+  using V =
+      inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
   static_assert( has_fmt<V> );
-  V v = inner::CompositeTemplateTwo::first<optional<int>, short>{
+  V v = inner::CompositeTemplateTwo::first<rn::my_optional<int>,
+                                           short>{
       .ttp = inner::TemplateTwoParams::third_alternative<
-          optional<int>, short>{
-          .hello = Maybe::just<optional<int>>{ optional<int>{
-              3 } }, //
-          .u     = 9 //
+          rn::my_optional<int>, short>{
+          .hello =
+              Maybe::just<rn::my_optional<int>>{
+                  rn::my_optional<int>{ 3 } }, //
+          .u = 9                               //
       } };
   using first_t =
-      inner::CompositeTemplateTwo::first<optional<int>, short>;
+      inner::CompositeTemplateTwo::first<rn::my_optional<int>,
+                                         short>;
   using second_t =
-      inner::CompositeTemplateTwo::second<optional<int>, short>;
+      inner::CompositeTemplateTwo::second<rn::my_optional<int>,
+                                          short>;
   switch_( v ) {
     case_( first_t ) {
       //
@@ -203,9 +223,10 @@ TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
   }
   REQUIRE(
       fmt::format( "{}", v ) ==
-      "CompositeTemplateTwo::first<std::optional<int>,short>{"
-      "ttp=TemplateTwoParams::third_alternative<std::optional<"
-      "int>,short>{hello=Maybe::just<std::optional<int>>{val=3},"
+      "CompositeTemplateTwo::first<rn::my_optional<int>,short>{"
+      "ttp=TemplateTwoParams::third_alternative<rn::my_optional<"
+      "int>,short>{hello=Maybe::just<rn::my_optional<int>>{val="
+      "3},"
       "u=9}}" );
 }
 
