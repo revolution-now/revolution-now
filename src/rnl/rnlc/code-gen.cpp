@@ -666,7 +666,7 @@ struct CodeGenerator {
     if( rnl_needs_serial_header( rnl ) ) {
       comment(
           "TODO: move functions from this header into fb.hpp." );
-      line( "#include \"adt.hpp\"" );
+      line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
       line( "#include \"errors.hpp\"" );
       line( "#include \"fb.hpp\"" );
     }

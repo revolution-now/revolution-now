@@ -861,13 +861,13 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
   REQUIRE_THAT( xp.error().what, Contains( "hello2" ) );
 }
 
-TEST_CASE( "[flatbuffers] ADTs" ) {
+TEST_CASE( "[flatbuffers] Sumtypes" ) {
   using namespace ::rn::serial;
-  MyAdt::none n;
-  MyAdt::some s{ "hello", 7 };
-  MyAdt::more m{ 5.5 };
+  MySumtype::none n;
+  MySumtype::some s{ "hello", 7 };
+  MySumtype::more m{ 5.5 };
 
-  MyAdt_t v;
+  MySumtype_t v;
 
   SECTION( "none" ) { v = n; }
   SECTION( "some" ) { v = s; }
@@ -876,14 +876,14 @@ TEST_CASE( "[flatbuffers] ADTs" ) {
   FBBuilder fbb;
 
   auto v_offset =
-      serialize<::fb::MyAdt_t>( fbb, v, ::rn::serial::ADL{} );
+      serialize<::fb::MySumtype_t>( fbb, v, ::rn::serial::ADL{} );
 
   fbb.Finish( v_offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
 
-  auto* root = flatbuffers::GetRoot<::fb::MyAdt_t>( blob.get() );
+  auto* root = flatbuffers::GetRoot<::fb::MySumtype_t>( blob.get() );
 
-  MyAdt_t d_v;
+  MySumtype_t d_v;
   REQUIRE( deserialize( root, &d_v, ::rn::serial::ADL{} ) ==
            rn::xp_success_t{} );
 
