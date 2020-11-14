@@ -136,7 +136,7 @@ sumtype CompositeTemplateTwo {
 
 namespace rn;
 
-sumtype MyAdt {
+sumtype MySumtype {
   .features:
     comparison,
     formattable,

@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "adt.hpp"
 #include "aliases.hpp"
 #include "cc-specific.hpp"
 #include "errors.hpp"
@@ -506,6 +505,8 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
 /****************************************************************
 ** Macros For Templated FSM
 *****************************************************************/
+#define EAT_template( ... ) ( __VA_ARGS__ )
+
 #define fsm_transitions_T( ts, ... ) \
   EVAL( FSM_TRANSITION_MAP_T_IMPL( EAT_##ts, __VA_ARGS__ ) )
 

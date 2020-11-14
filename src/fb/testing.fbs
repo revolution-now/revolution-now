@@ -11,7 +11,7 @@
 include "coord.fbs";
 include "vocab.fbs";
 
-namespace fb.MyAdt;
+namespace fb.MySumtype;
 
 table none {}
 table some {
@@ -24,10 +24,10 @@ table more {
 
 namespace fb;
 
-table MyAdt_t {
-  none : MyAdt.none;
-  some : MyAdt.some;
-  more : MyAdt.more;
+table MySumtype_t {
+  none : MySumtype.none;
+  some : MySumtype.some;
+  more : MySumtype.more;
 }
 
 enum e_hand:byte {
