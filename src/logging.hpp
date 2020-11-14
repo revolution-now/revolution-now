@@ -87,9 +87,6 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 // clang-format on
 
-// c++ standard library
-#include <experimental/filesystem>
-
 // Enabled if the log level is high enough
 #define LOG_DEBUG( ... ) \
   SPDLOG_LOGGER_DEBUG( logger, __VA_ARGS__ )
@@ -175,8 +172,10 @@ std::shared_ptr<spdlog::logger> create_hybrid_logger(
 *****************************************************************/
 namespace {
 
-auto __rn_module_name =
-    fs::path( __BASE_FILE__ ).filename().stem().string();
+auto __rn_module_name = std::filesystem::path( __BASE_FILE__ )
+                            .filename()
+                            .stem()
+                            .string();
 
 // Use pointers to std::shared_ptr in the below (instead of just
 // std::shared_ptr) to avoid global variables with non-trivial

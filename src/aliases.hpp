@@ -24,6 +24,7 @@
 
 // c++ standard library
 #include <chrono>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -112,9 +113,7 @@ using FBOffset = flatbuffers::Offset<T>;
 /****************************************************************
 ** Filesystem
 *****************************************************************/
-namespace std::filesystem {}
-
-namespace fs = ::std::filesystem;
+namespace fs = std::filesystem;
 
 /****************************************************************
 ** Ranges

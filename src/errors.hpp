@@ -24,6 +24,7 @@
 #include "nonstd/expected.hpp"
 
 // c++ standard library
+#include <compare>
 #include <memory>
 #include <stdexcept>
 #include <string_view>
@@ -302,7 +303,10 @@ struct Unexpected {
 };
 NOTHROW_MOVE( Unexpected );
 
-using xp_success_t = std::monostate;
+// A single-valued type.
+struct xp_success_t {
+  auto operator<=>( xp_success_t const& ) const = default;
+};
 
 // All `expected` types should use this so that they have a
 // common error type. Create a new derived type so that we can
@@ -312,8 +316,14 @@ template<typename T = xp_success_t,
 struct ND expect : public ::nonstd::expected<T, E> {
   using Base = ::nonstd::expected<T, E>;
 
+  operator Base&() { return static_cast<Base&>( *this ); }
+  operator Base const &() const {
+    return static_cast<Base const&>( *this );
+  }
+
   // Inherit constructors.
   using Base::Base;
+  using Base::operator=;
 };
 
 template<typename>
@@ -344,8 +354,8 @@ inline constexpr bool is_expect_v<::rn::expect<T, E>> = true;
   {                                                           \
     auto const& STRING_JOIN( __e, __LINE__ ) = ( e );         \
     static_assert(                                            \
-        !is_expect_v<std::decay_t<decltype(                   \
-            STRING_JOIN( __e, __LINE__ ) )>>,                 \
+        !is_expect_v<std::decay_t<decltype( STRING_JOIN(      \
+            __e, __LINE__ ) )>>,                              \
         "UNXP_CHECK is not to be used on `expect` types." );  \
     if( !STRING_JOIN( __e, __LINE__ ) ) {                     \
       return ::nonstd::make_unexpected( ::rn::Unexpected{     \
@@ -357,8 +367,8 @@ inline constexpr bool is_expect_v<::rn::expect<T, E>> = true;
   {                                                          \
     auto const& STRING_JOIN( __e, __LINE__ ) = ( e );        \
     static_assert(                                           \
-        !is_expect_v<std::decay_t<decltype(                  \
-            STRING_JOIN( __e, __LINE__ ) )>>,                \
+        !is_expect_v<std::decay_t<decltype( STRING_JOIN(     \
+            __e, __LINE__ ) )>>,                             \
         "UNXP_CHECK is not to be used on `expect` types." ); \
     if( !STRING_JOIN( __e, __LINE__ ) ) {                    \
       return ::nonstd::make_unexpected( ::rn::Unexpected{    \
@@ -447,3 +457,5 @@ struct formatter<::rn::expect<T>> : formatter_base {
 };
 
 } // namespace fmt
+
+DEFINE_FORMAT_( ::rn::xp_success_t, "xp_success_t" );

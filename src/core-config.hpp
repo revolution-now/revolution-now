@@ -6,7 +6,7 @@
 * Created by dsicilia on 2018-09-09.
 *
 * Description: Core declarations/macros/config for all code
-*files.
+*              files.
 *
 *****************************************************************/
 #pragma once
@@ -29,10 +29,6 @@
   static_assert(                                           \
       std::is_nothrow_move_constructible_v<__VA_ARGS__> ); \
   static_assert( std::is_nothrow_move_assignable_v<__VA_ARGS__> )
-
-namespace std::filesystem {}
-
-namespace fs = std::filesystem;
 
 namespace rn {
 

@@ -27,6 +27,7 @@
 #include "absl/strings/str_split.h"
 
 // c++ standard library
+#include <compare>
 #include <iomanip>
 #include <sstream>
 #include <stack>

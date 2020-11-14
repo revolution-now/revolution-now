@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "testing.hpp"
 
-// Under test.
-#include "rnl/testing.hpp"
-
 // Revolution Now
 #include "fmt-helper.hpp"
 
@@ -21,6 +18,35 @@
 
 // Must be last.
 #include "catch-common.hpp"
+
+#include <string>
+#include <utility>
+
+// FIXME: This is a hack, and should be removed after the
+// standard libraries catch up with C++20 and add <=> operators
+// to their classes.  Not sure if std::pair will ever get one;
+// if not, then maybe it should be removed from this unit test.
+// At the time of writing, these are only needed for libc++.
+namespace std {
+strong_ordering operator<=>( string const& l, string const& r ) {
+  switch( strcmp( l.c_str(), r.c_str() ) ) {
+    case 0: return std::strong_ordering::equal;
+    case -1: return std::strong_ordering::less;
+    case 1: return strong_ordering::greater;
+  }
+  throw runtime_error( "should not be here." );
+}
+template<typename T, typename U>
+strong_ordering operator<=>( pair<T, U> const& l,
+                             pair<T, U> const& r ) {
+  if( l.first != r.first ) return ( l.first <=> r.first );
+  return ( l.second <=> r.second );
+}
+} // namespace std
+// FIXME: remove -- hack alert.
+
+// Under test.
+#include "rnl/testing.hpp"
 
 namespace rn {
 // Use a fake optional because the type name (which we need to

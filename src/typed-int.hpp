@@ -16,6 +16,9 @@
 // Revolution Now
 #include "fmt-helper.hpp"
 
+// C++ standard library
+#include <compare>
+
 // This is a minimal wrapper around an T. It allows nothing ex-
 // cept for (explicit) construction from T, copying/assignment,
 // equality, ordering, and (explicit) conversion back to T.
