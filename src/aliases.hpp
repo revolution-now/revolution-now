@@ -128,27 +128,6 @@ namespace rv = ::ranges::views;
 namespace rg = ::ranges;
 
 /****************************************************************
-** Source Location
-*****************************************************************/
-// source_location (coming in C++20)
-#if __has_include( <experimental/source_location>)
-#  include <experimental/source_location>
-using SourceLoc = std::experimental::source_location;
-#else
-// Dummy to allow compilation to proceed; can be deleted after
-// all compilers supported support C++20.
-struct SourceLoc {
-  int         line() const { return 0; }
-  int         column() const { return 0; }
-  char const* file_name() const { return "unknown"; }
-  char const* function_name() const { return "unknown"; }
-
-  static SourceLoc current() { return SourceLoc{}; }
-};
-NOTHROW_MOVE( SourceLoc );
-#endif
-
-/****************************************************************
 ** Serialization ADL Helper
 *****************************************************************/
 namespace rn::serial {

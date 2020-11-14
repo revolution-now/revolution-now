@@ -21,6 +21,9 @@
 #include "fmt-helper.hpp"
 #include "macros.hpp"
 
+// base
+#include "base/source-loc.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
@@ -268,10 +271,10 @@ protected:
 private:
   enum class e_event_type { event, push, pop };
   struct EventWithSource {
-    e_event_type type;
-    StateT       state; // only for push/pop.
-    EventT       event; // only for events.
-    SourceLoc    location;
+    e_event_type    type;
+    StateT          state; // only for push/pop.
+    EventT          event; // only for events.
+    base::SourceLoc location;
   };
   NOTHROW_MOVE( EventWithSource );
 

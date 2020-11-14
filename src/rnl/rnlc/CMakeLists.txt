@@ -17,6 +17,13 @@ target_link_libraries(
     base-util
     cpp-peglib::cpp-peglib
     fmt::fmt
+    rn-base
+)
+
+target_include_directories(
+    rnlc
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
 )
 
 clang_tidy( rnlc )

@@ -26,7 +26,7 @@
 // the struct. Will static_assert that no fields have been left
 // out.
 #define MAKE_CACHE_KEY( name, ... )                            \
-  auto to_tuple() const { return std::tuple{__VA_ARGS__}; }    \
+  auto to_tuple() const { return std::tuple{ __VA_ARGS__ }; }  \
                                                                \
   template<typename H>                                         \
   friend H AbslHashValue( H h, name const& c ) {               \
@@ -50,4 +50,4 @@
 #endif
 
 #define CALLER_LOCATION( var ) \
-  const SourceLoc& var = SourceLoc::current()
+  const base::SourceLoc& var = base::SourceLoc::current()

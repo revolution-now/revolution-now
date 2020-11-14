@@ -507,7 +507,13 @@ struct CodeGenerator {
                    "This requires that the types of the member "
                    "variables " );
           comment( "{}", "also support comparison." );
-          line( "auto operator<=>( {} const& ) const = default;",
+          // TODO: when ready use spaceship.
+          // line( "auto operator<=>( {} const& ) const =
+          // default;",
+          //      alt.name );
+          line( "bool operator==( {} const& ) const = default;",
+                alt.name );
+          line( "bool operator!=( {} const& ) const = default;",
                 alt.name );
         }
         if( emit_serialization ) {

@@ -15,6 +15,9 @@
 // Revolution Now
 #include "aliases.hpp"
 
+// base
+#include "base/source-loc.hpp"
+
 // base-util
 #include "base-util/misc.hpp"
 #include "base-util/mp.hpp"
@@ -275,9 +278,9 @@ struct formatter<
 };
 
 template<>
-struct formatter<SourceLoc> : formatter_base {
+struct formatter<base::SourceLoc> : formatter_base {
   template<typename FormatContext>
-  auto format( SourceLoc const &o, FormatContext &ctx ) {
+  auto format( base::SourceLoc const &o, FormatContext &ctx ) {
     return formatter_base::format(
         fmt::format( "{}:{}:{}", o.file_name(), o.line(),
                      o.column() ),

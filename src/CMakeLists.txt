@@ -1,5 +1,6 @@
 # === subdirectories ==============================================
 
+add_subdirectory( base )
 add_subdirectory( fb )
 add_subdirectory( rnl )
 
@@ -46,6 +47,7 @@ target_link_libraries(
     midifile
     observer-ptr::observer-ptr
     range-v3
+    rn-base
     rtmidi
     scelta::headers
     sol2::sol2

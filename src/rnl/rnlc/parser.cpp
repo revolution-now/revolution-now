@@ -13,14 +13,14 @@
 // rnlc
 #include "rnl-util.hpp"
 
+// base
+#include "base/source-loc.hpp"
+
 // C++ PEG-lib
 #include "peglib.h"
 
 // {fmt}
 #include "fmt/format.h"
-
-// c++ standard library
-#include <experimental/source_location>
 
 using namespace std;
 
@@ -29,10 +29,8 @@ namespace rnl {
 namespace {
 
 template<typename T>
-T safe_any_cast(
-    any const&                                v,
-    const std::experimental::source_location& location =
-        std::experimental::source_location::current() ) {
+T safe_any_cast( any const& v, base::SourceLoc const& location =
+                                   base::SourceLoc::current() ) {
   if( v.type() != typeid( T const ) ) {
     throw runtime_error( fmt::format(
         "bad safe_any_cast on line: {}.\n", location.line() ) );
@@ -41,10 +39,9 @@ T safe_any_cast(
 }
 
 template<typename T>
-vector<T> safe_cast_vec(
-    peg::SemanticValues const&                sv,
-    const std::experimental::source_location& location =
-        std::experimental::source_location::current() ) {
+vector<T> safe_cast_vec( peg::SemanticValues const& sv,
+                         base::SourceLoc const&     location =
+                             base::SourceLoc::current() ) {
   vector<T> res;
   for( any const& v : sv )
     res.push_back( safe_any_cast<T>( v, location ) );
