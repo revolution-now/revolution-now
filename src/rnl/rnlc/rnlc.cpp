@@ -17,6 +17,10 @@
 
 // base-util
 #include "base-util/io.hpp"
+#include "base-util/string.hpp"
+
+// Abseil
+#include "absl/strings/str_cat.h"
 
 // c++ standard library
 #include <filesystem>
@@ -24,6 +28,7 @@
 #include <string_view>
 
 using namespace std;
+namespace fs = std::filesystem;
 
 int main( int argc, char** argv ) {
   if( argc != 4 )
@@ -69,13 +74,28 @@ int main( int argc, char** argv ) {
         "failed to generate C++ code for RNL file '{}'.",
         filename );
 
+  // Need to do this before we compare with existing_contents.
   string_view stem = filename;
   stem.remove_suffix( 4 );
+  cpp_code = absl::StrCat(
+      "// Auto-Generated file, do not modify! (",
+      filesystem::path( output_file ).stem().string(), ").\n",
+      *cpp_code );
+
+  optional<string> existing_contents =
+      util::read_file_as_string( output_file );
+  if( existing_contents.has_value() &&
+      ( util::strip( *cpp_code ) ==
+        util::strip( *existing_contents ) ) ) {
+    // Don't rewrite the file if its contents are already iden-
+    // tical to what we are about to write, that way we don't af-
+    // fect the timestamp on the file, since it won't need to
+    // trigger any rebuilding.
+    return 0;
+  }
+
   ofstream out;
   out.open( string( output_file ) );
-  out << "// Auto-Generated file, do not modify! ("
-      << filesystem::path( output_file ).stem() << ").\n";
-
   out << *cpp_code;
 
   return 0;
