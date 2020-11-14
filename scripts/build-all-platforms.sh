@@ -30,23 +30,47 @@ run_for_flags() {
   fi
   log "configuration: $flags"
   if ! cmc $flags; then
-    die "configure failed for flags: $flags"
+    error "configure failed for flags: $flags"
+    return 1
   fi
 
   if ! make all; then
-    die "build failed for flags: $flags"
+    error "build failed for flags: $flags"
+    return 1
   fi
 
   if ! make test; then
-    die "tests failed for flags: $flags"
+    error "tests failed for flags: $flags"
+    return 1
   fi
+  return 0
 }
 
-for cc in --clang --gcc=current; do
-  for opt in '' --release; do
-    for asan in '' --asan; do
-      [[ "$cc" =~ clang ]] && lld=$lld || lld=
-      run_for_flags $cc $opt $asan $lld
+logfile="/tmp/build-all.log"
+
+rm -f $logfile
+echo -n >$logfile
+
+prev_platform=
+
+for cc in --clang --gcc=system --gcc=current; do
+  for lib in '' --libstdcxx --libcxx; do
+    for opt in '' --release; do
+      for asan in '' --asan; do
+        [[ "$cc" =~ clang ]] && lld=$lld || lld=
+        platform="$(cmc st | awk '{print $2}')"
+        run_for_flags $cc $lib $opt $asan $lld     \
+            && status="${c_green}SUCCESS${c_norm}" \
+            || status="${c_red}FAILURE${c_norm}"
+        if [[ "$platform" == "$prev_platform" ]]; then
+          # failure
+          platform="$(echo unknown:$cc,$lib,$opt,$asan,$lld \
+            | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
+        else
+          prev_platform="$platform"
+        fi
+        echo "$platform $status" >> $logfile
+      done
     done
   done
 done
@@ -57,4 +81,14 @@ run_for_flags --clang --lld --release --lto
 # Restore to default devel flags.
 (( print_only )) || cmc --cached --clang --lld --asan
 
-log "success."
+print_table() {
+  {
+    echo "Configuration Result"
+    cat $logfile | sort
+  } | column -t
+}
+
+clear
+echo '--------------------------------------------------------------------------------------'
+echo -e "$(print_table)"
+echo '--------------------------------------------------------------------------------------'

@@ -82,6 +82,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
       fb::{sumtype_name}::{alt_name} const& src,
       {alt_name}* dst ) {{
     (void)src;
+    (void)dst;
     DCHECK( dst );
     using ::rn::serial::deserialize;
     {members_deserialization}
