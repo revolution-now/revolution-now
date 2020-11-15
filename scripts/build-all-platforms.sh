@@ -36,12 +36,12 @@ run_for_flags() {
 
   if ! make all; then
     error "build failed for flags: $flags"
-    return 1
+    return 2
   fi
 
   if ! make test; then
     error "tests failed for flags: $flags"
-    return 1
+    return 3
   fi
   return 0
 }
@@ -51,27 +51,53 @@ logfile="/tmp/build-all.log"
 rm -f $logfile
 echo -n >$logfile
 
-for cc in --clang --gcc=system --gcc=current; do
+# This function expects a bunch of variables to be set.
+run_for_args() {
+  [[ "$cc" =~ clang ]] && lld=$lld || lld=
+  run_for_flags $cc $lib $opt $asan $lld $lto
+  code=$?
+  if (( code == 0 )); then
+    # Success.
+    status="${c_green}SUCCESS${c_norm}"
+    platform="$(cmc st | awk '{print $2}')"
+  elif (( code == 1 )); then
+    # Configure failed.
+    status="${c_red}FAILURE:configuration${c_norm}"
+    # We need to craft our own platform string because
+    # `cmc` has presumably not done so for us since it
+    # failed.
+    platform="$(echo $cc,$lib,$opt,$asan,$lld \
+      | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
+  elif (( code == 2 )); then
+    # Build failed.
+    status="${c_red}FAILURE:build${c_norm}"
+    platform="$(cmc st | awk '{print $2}')"
+  elif (( code == 3 )); then
+    # Testing failed.
+    status="${c_red}FAILURE:test${c_norm}"
+    platform="$(cmc st | awk '{print $2}')"
+  else
+    status="${c_red}FAILURE:unknown${c_norm}"
+    platform="$(echo $cc,$lib,$opt,$asan,$lld \
+      | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
+  fi
+  echo "$platform $status" >> $logfile
+}
+
+#for cc in --clang --gcc=system --gcc=current; do
+for cc in --clang; do
   for lib in '' --libstdcxx --libcxx; do
     for opt in '' --release; do
       for asan in '' --asan; do
-        [[ "$cc" =~ clang ]] && lld=$lld || lld=
-        if run_for_flags $cc $lib $opt $asan $lld; then
-          status="${c_green}SUCCESS${c_norm}"
-          platform="$(cmc st | awk '{print $2}')"
-        else
-          status="${c_red}FAILURE${c_norm}"
-          platform="$(echo $cc,$lib,$opt,$asan,$lld \
-            | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
-        fi
-        echo "$platform $status" >> $logfile
+        run_for_args
       done
     done
   done
 done
 
 # Do --lto just once since it can take a really long time.
-run_for_flags --clang --lld --release --lto
+cc=--clang; lib=; opt=--release; asan=; lto=--lto
+run_for_args
 
 # Restore to default devel flags.
 (( print_only )) || cmc --cached --clang --lld --asan
