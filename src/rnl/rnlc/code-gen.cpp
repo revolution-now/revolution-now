@@ -398,7 +398,7 @@ struct CodeGenerator {
     int i = 0;
     // Remove the first line if it's empty.
     if( lines[0].empty() ) i = 1;
-    for( ; i < ssize( lines ); ++i ) line( lines[i] );
+    for( ; i < int( lines.size() ); ++i ) line( lines[i] );
   }
 
   void emit_template_decl(
