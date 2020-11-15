@@ -84,11 +84,11 @@ run_for_args() {
   echo "$platform $status" >> $logfile
 }
 
-#for cc in --clang --gcc=system --gcc=current; do
-for cc in --clang; do
+for cc in --clang --gcc=system --gcc=current; do
   for lib in '' --libstdcxx --libcxx; do
     for opt in '' --release; do
       for asan in '' --asan; do
+        [[ "$cc" =~ gcc && "$lib" =~ libcxx ]] && continue
         run_for_args
       done
     done
