@@ -51,23 +51,18 @@ logfile="/tmp/build-all.log"
 rm -f $logfile
 echo -n >$logfile
 
-prev_platform=
-
 for cc in --clang --gcc=system --gcc=current; do
   for lib in '' --libstdcxx --libcxx; do
     for opt in '' --release; do
       for asan in '' --asan; do
         [[ "$cc" =~ clang ]] && lld=$lld || lld=
-        platform="$(cmc st | awk '{print $2}')"
-        run_for_flags $cc $lib $opt $asan $lld     \
-            && status="${c_green}SUCCESS${c_norm}" \
-            || status="${c_red}FAILURE${c_norm}"
-        if [[ "$platform" == "$prev_platform" ]]; then
-          # failure
+        if run_for_flags $cc $lib $opt $asan $lld; then
+          status="${c_green}SUCCESS${c_norm}"
+          platform="$(cmc st | awk '{print $2}')"
+        else
+          status="${c_red}FAILURE${c_norm}"
           platform="$(echo unknown:$cc,$lib,$opt,$asan,$lld \
             | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
-        else
-          prev_platform="$platform"
         fi
         echo "$platform $status" >> $logfile
       done
@@ -84,7 +79,7 @@ run_for_flags --clang --lld --release --lto
 print_table() {
   {
     echo "Configuration Result"
-    cat $logfile | sort
+    cat $logfile
   } | column -t
 }
 
