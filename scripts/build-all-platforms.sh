@@ -61,7 +61,7 @@ for cc in --clang --gcc=system --gcc=current; do
           platform="$(cmc st | awk '{print $2}')"
         else
           status="${c_red}FAILURE${c_norm}"
-          platform="$(echo unknown:$cc,$lib,$opt,$asan,$lld \
+          platform="$(echo $cc,$lib,$opt,$asan,$lld \
             | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
         fi
         echo "$platform $status" >> $logfile

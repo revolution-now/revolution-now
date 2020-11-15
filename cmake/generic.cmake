@@ -18,7 +18,11 @@ function( set_warning_options target )
         ${target} PRIVATE
         # clang
         $<$<CXX_COMPILER_ID:Clang>:
-            -Wall -Wextra -Wno-unused-local-typedef >
+           -Wall
+           -Wextra
+           -Wno-unused-local-typedef
+           -Wno-unused-parameter
+         >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
             -Wall -Wextra >
