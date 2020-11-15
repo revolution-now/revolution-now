@@ -672,8 +672,6 @@ struct CodeGenerator {
     line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
     if( rnl_needs_serial_header( rnl ) ) {
-      comment(
-          "TODO: move functions from this header into fb.hpp." );
       line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
       line( "#include \"errors.hpp\"" );
       line( "#include \"fb.hpp\"" );
@@ -686,13 +684,33 @@ struct CodeGenerator {
     line( "#include \"fmt/format.h\"" );
     line( "" );
     comment( "C++ standard library" );
+    line( "#include <string_view>" );
     line( "#include <variant>" );
+    newline();
+  }
+
+  void emit_metadata( expr::Rnl const& rnl ) {
+    section( "Global Vars" );
+    string stem_to_var = absl::StrReplaceAll(
+        rnl.meta.module_name, { { "-", "_" } } );
+    open_ns( "rn" );
+    comment(
+        "This will be the naem of this header, not the file "
+        "that it" );
+    comment( "is include in." );
+    line(
+        "inline constexpr std::string_view rnl_{}_genfile = "
+        "__FILE__;",
+        stem_to_var );
+    newline();
+    close_ns( "rn" );
   }
 
   void emit_rnl( expr::Rnl const& rnl ) {
     emit_preamble();
     emit_imports( rnl.imports );
     emit_includes( rnl );
+    emit_metadata( rnl );
 
     for( expr::Item const& item : rnl.items ) emit( item );
   }

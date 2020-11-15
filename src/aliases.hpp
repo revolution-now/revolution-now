@@ -13,6 +13,9 @@
 
 #include "core-config.hpp"
 
+// base
+#include "base/fs.hpp"
+
 // obesrver-ptr
 #include "observer-ptr/observer-ptr.hpp"
 
@@ -24,7 +27,6 @@
 
 // c++ standard library
 #include <chrono>
-#include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -109,11 +111,6 @@ struct Offset;
 using FBBuilder = flatbuffers::FlatBufferBuilder;
 template<typename T>
 using FBOffset = flatbuffers::Offset<T>;
-
-/****************************************************************
-** Filesystem
-*****************************************************************/
-namespace fs = std::filesystem;
 
 /****************************************************************
 ** Ranges

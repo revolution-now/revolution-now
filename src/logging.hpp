@@ -12,8 +12,10 @@
 
 #include "core-config.hpp"
 
+// base
+#include "base/fs.hpp"
+
 // C++ standard library
-#include <filesystem>
 #include <type_traits>
 
 #ifdef SPDLOG_ACTIVE_LEVEL
@@ -172,10 +174,8 @@ std::shared_ptr<spdlog::logger> create_hybrid_logger(
 *****************************************************************/
 namespace {
 
-auto __rn_module_name = std::filesystem::path( __BASE_FILE__ )
-                            .filename()
-                            .stem()
-                            .string();
+auto __rn_module_name =
+    fs::path( __BASE_FILE__ ).filename().stem().string();
 
 // Use pointers to std::shared_ptr in the below (instead of just
 // std::shared_ptr) to avoid global variables with non-trivial

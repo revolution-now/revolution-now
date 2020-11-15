@@ -13,7 +13,6 @@
 // Revolution Now
 #include "core-config.hpp"
 #include "cc-specific.hpp"
-// TODO: move functions from this header into fb.hpp.
 #include "rnl/helper/sumtype-helper.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
@@ -25,7 +24,19 @@
 #include "fmt/format.h"
 
 // C++ standard library
+#include <string_view>
 #include <variant>
+
+/****************************************************************
+*                          Global Vars
+*****************************************************************/
+namespace rn {
+
+  // This will be the naem of this header, not the file that it
+  // is include in.
+  inline constexpr std::string_view rnl_testing_genfile = __FILE__;
+
+} // namespace rn
 
 /****************************************************************
 *                        Sum Type: Maybe

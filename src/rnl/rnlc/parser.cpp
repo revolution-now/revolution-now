@@ -14,6 +14,7 @@
 #include "rnl-util.hpp"
 
 // base
+#include "base/fs.hpp"
 #include "base/source-loc.hpp"
 
 // C++ PEG-lib
@@ -201,6 +202,10 @@ optional<expr::Rnl> parse( string_view   peg_filename,
     // log callback which should abort.
     exit( 1 );
   }
+
+  parsed_rnl.meta = expr::Metadata{
+      .module_name = fs::path( src_filename ).filename().stem(),
+  };
 
   return parsed_rnl;
 }

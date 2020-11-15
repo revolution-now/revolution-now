@@ -67,7 +67,13 @@ struct Item {
   std::string to_string( std::string_view spaces ) const;
 };
 
+struct Metadata {
+  // Module name should be stem of the input rnl file.
+  std::string module_name;
+};
+
 struct Rnl {
+  Metadata                 meta;
   std::vector<std::string> imports;
   std::vector<std::string> includes;
   std::vector<Item>        items;

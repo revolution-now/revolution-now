@@ -87,7 +87,9 @@ std::string Item::to_string( std::string_view spaces ) const {
 }
 
 std::string Rnl::to_string() const {
-  string res = fmt::format( "imports:\n" );
+  string res =
+      fmt::format( "module name: {}\n", meta.module_name );
+  res += fmt::format( "imports:\n" );
   for( string const& import : imports )
     res += fmt::format( "  {}\n", import );
   res += fmt::format( "\nincludes:\n" );

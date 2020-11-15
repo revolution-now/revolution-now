@@ -10,7 +10,8 @@
 # ===============================================================
 include "aliases.hpp";
 
-include <filesystem>;
+# base
+include "base/fs.hpp";
 
 namespace rn.midiseq;
 

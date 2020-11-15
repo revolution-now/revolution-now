@@ -10,13 +10,17 @@
 *****************************************************************/
 #include "testing.hpp"
 
-// Revolution Now
-#include "fmt-helper.hpp"
-
 // Under test.
 #include "rnl/testing.hpp"
 
+// Revolution Now
+#include "fmt-helper.hpp"
+
+// base
+#include "base/fs.hpp"
+
 // base-util
+#include "base-util/io.hpp"
 #include "base-util/variant.hpp"
 
 // Must be last.
@@ -260,6 +264,21 @@ TEST_CASE( "[rnl] Comparison" ) {
   // REQUIRE( T{ "a", 'd' } < T{ "b", 'c' } );
   // REQUIRE( T{ "b", 'b' } >= T{ "a", 'c' } );
   // REQUIRE( T{ "a", 'd' } >= T{ "a", 'c' } );
+}
+
+TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
+  Opt<Str> golden = util::read_file_as_string(
+      testing::data_dir() / "rnl-testing-golden.hpp" );
+  REQUIRE( golden.has_value() );
+  fs::path root      = TO_STRING( RN_BUILD_OUTPUT_ROOT_DIR );
+  Opt<Str> generated = util::read_file_as_string(
+      root / fs::path( rnl_testing_genfile ) );
+  REQUIRE( generated.has_value() );
+  // Do this comparison outside of the REQUIRE macro so that
+  // Catch2 doesn't try to print the values when they are not
+  // equal.
+  bool eq = ( generated == golden );
+  REQUIRE( eq );
 }
 
 } // namespace

@@ -15,6 +15,9 @@
 #include "rnl-util.hpp"
 #include "validate.hpp"
 
+// base
+#include "base/fs.hpp"
+
 // base-util
 #include "base-util/io.hpp"
 #include "base-util/string.hpp"
@@ -23,12 +26,10 @@
 #include "absl/strings/str_cat.h"
 
 // c++ standard library
-#include <filesystem>
 #include <fstream>
 #include <string_view>
 
 using namespace std;
-namespace fs = std::filesystem;
 
 int main( int argc, char** argv ) {
   if( argc != 4 )
@@ -77,10 +78,10 @@ int main( int argc, char** argv ) {
   // Need to do this before we compare with existing_contents.
   string_view stem = filename;
   stem.remove_suffix( 4 );
-  cpp_code = absl::StrCat(
-      "// Auto-Generated file, do not modify! (",
-      filesystem::path( output_file ).stem().string(), ").\n",
-      *cpp_code );
+  cpp_code =
+      absl::StrCat( "// Auto-Generated file, do not modify! (",
+                    fs::path( output_file ).stem().string(),
+                    ").\n", *cpp_code );
 
   optional<string> existing_contents =
       util::read_file_as_string( output_file );
