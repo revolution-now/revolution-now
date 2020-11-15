@@ -16,9 +16,6 @@
 // Revolution Now
 #include "fmt-helper.hpp"
 
-// C++ standard library
-#include <compare>
-
 // This is a minimal wrapper around an T. It allows nothing ex-
 // cept for (explicit) construction from T, copying/assignment,
 // equality, ordering, and (explicit) conversion back to T.
@@ -30,8 +27,14 @@ struct TypedNumMinimal {
   constexpr TypedNumMinimal() = default;
   ~TypedNumMinimal()          = default;
   constexpr explicit TypedNumMinimal( T n_ ) : _( n_ ) {}
-  auto operator<=>( TypedNumMinimal<T, Tag> const& ) const =
-      default;
+  constexpr bool operator==(
+      TypedNumMinimal<T, Tag> const rhs ) const {
+    return _ == rhs._;
+  }
+  constexpr bool operator!=(
+      TypedNumMinimal<T, Tag> const rhs ) const {
+    return _ != rhs._;
+  }
   constexpr explicit operator T() const { return _; }
 
   // Abseil hashing API.
@@ -60,6 +63,24 @@ struct TypedInt : public TypedIntMinimal<Tag> {
     : P( other._ ) {}
   constexpr TypedInt( TypedInt<Tag>&& other ) noexcept
     : P( other._ ) {}
+  constexpr bool operator==( TypedInt<Tag> const& rhs ) const {
+    return P::_ == rhs._;
+  }
+  constexpr bool operator!=( TypedInt<Tag> const& rhs ) const {
+    return P::_ != rhs._;
+  }
+  constexpr bool operator<( TypedInt<Tag> const& rhs ) const {
+    return P::_ < rhs._;
+  }
+  constexpr bool operator>( TypedInt<Tag> const& rhs ) const {
+    return P::_ > rhs._;
+  }
+  constexpr bool operator<=( TypedInt<Tag> const& rhs ) const {
+    return P::_ <= rhs._;
+  }
+  constexpr bool operator>=( TypedInt<Tag> const& rhs ) const {
+    return P::_ >= rhs._;
+  }
   TypedInt<Tag>& operator=( TypedInt<Tag> const& other ) {
     P::_ = other._;
     return *this;
@@ -386,36 +407,54 @@ inline constexpr bool operator>=( int           left,
 // the inherited member functions that refer to that base class;
 // e.g., it would allow two distinct typed num's to be added to-
 // gether.
-#define DERIVE_TYPED_NUM( t, a, b, suffix )          \
-  namespace rn {                                     \
-  struct a : public b<a> {                           \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    using P = b<a>; /* parent */                     \
-    constexpr a() : P( 0 ) {}                        \
-    constexpr a( a const& rhs ) = default;           \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    constexpr a( a&& rhs ) = default;                \
-    ~a()                   = default;                \
-    explicit constexpr a( t n_ ) : P( n_ ) {}        \
-    constexpr a( P const& ti ) : P( ti ) {}          \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( a const& other ) {                 \
-      _ = other._;                                   \
-      return *this;                                  \
-    }                                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( a&& other ) noexcept {             \
-      _ = other._;                                   \
-      return *this;                                  \
-    }                                                \
-    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */ \
-    a& operator=( t n ) {                            \
-      _ = n;                                         \
-      return *this;                                  \
-    }                                                \
-  };                                                 \
-  }                                                  \
-  DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );   \
+#define DERIVE_TYPED_NUM( t, a, b, suffix )           \
+  namespace rn {                                      \
+  struct a : public b<a> {                            \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    using P = b<a>; /* parent */                      \
+    constexpr a() : P( 0 ) {}                         \
+    constexpr a( a const& rhs ) = default;            \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    constexpr a( a&& rhs ) = default;                 \
+    ~a()                   = default;                 \
+    explicit constexpr a( t n_ ) : P( n_ ) {}         \
+    constexpr a( P const& ti ) : P( ti ) {}           \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    a& operator=( a const& other ) {                  \
+      _ = other._;                                    \
+      return *this;                                   \
+    }                                                 \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    a& operator=( a&& other ) noexcept {              \
+      _ = other._;                                    \
+      return *this;                                   \
+    }                                                 \
+    /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
+    a& operator=( t n ) {                             \
+      _ = n;                                          \
+      return *this;                                   \
+    }                                                 \
+    constexpr bool operator==( a const& rhs ) const { \
+      return P::_ == rhs._;                           \
+    }                                                 \
+    constexpr bool operator!=( a const& rhs ) const { \
+      return P::_ != rhs._;                           \
+    }                                                 \
+    constexpr bool operator<( a const& rhs ) const {  \
+      return P::_ < rhs._;                            \
+    }                                                 \
+    constexpr bool operator>( a const& rhs ) const {  \
+      return P::_ > rhs._;                            \
+    }                                                 \
+    constexpr bool operator<=( a const& rhs ) const { \
+      return P::_ <= rhs._;                           \
+    }                                                 \
+    constexpr bool operator>=( a const& rhs ) const { \
+      return P::_ >= rhs._;                           \
+    }                                                 \
+  };                                                  \
+  }                                                   \
+  DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );    \
   NOTHROW_MOVE( ::rn::a );
 
 // Typed nums that are to represent coordinates should use this

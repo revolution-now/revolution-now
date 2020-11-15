@@ -24,7 +24,6 @@
 #include "nonstd/expected.hpp"
 
 // c++ standard library
-#include <compare>
 #include <memory>
 #include <stdexcept>
 #include <string_view>
@@ -305,7 +304,8 @@ NOTHROW_MOVE( Unexpected );
 
 // A single-valued type.
 struct xp_success_t {
-  auto operator<=>( xp_success_t const& ) const = default;
+  bool operator==( xp_success_t const& ) const = default;
+  bool operator!=( xp_success_t const& ) const = default;
 };
 
 // All `expected` types should use this so that they have a

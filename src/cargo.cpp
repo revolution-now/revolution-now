@@ -49,21 +49,6 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 } // namespace
 
-strong_ordering operator<=>( Cargo const& lhs,
-                             Cargo const& rhs ) {
-  if( lhs.index() != rhs.index() )
-    return ( lhs.index() <=> rhs.index() );
-  auto visitor = []( auto const& l,
-                     auto const& r ) -> strong_ordering {
-    if constexpr( is_same_v<decltype( l ), decltype( r )> ) {
-      return l <=> r;
-    } else {
-      FATAL( "Should not be here." );
-    }
-  };
-  return visit( visitor, lhs, rhs );
-}
-
 namespace serial {
 serial::ReturnValue<FBOffset<fb::CargoSlot::Cargo>>
 cargo_serialize( FBBuilder& builder, Cargo const& o ) {

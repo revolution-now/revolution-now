@@ -31,7 +31,6 @@
 #include "base-util/variant.hpp"
 
 // C++ standard library
-#include <compare>
 #include <variant>
 #include <vector>
 
@@ -58,9 +57,6 @@ namespace rn {
 
 using Cargo = std::variant<UnitId, Commodity>;
 NOTHROW_MOVE( Cargo );
-
-std::strong_ordering operator<=>( Cargo const& lhs,
-                                  Cargo const& rhs );
 
 namespace serial {
 serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>>

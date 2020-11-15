@@ -27,7 +27,6 @@
 #include "absl/strings/str_split.h"
 
 // c++ standard library
-#include <compare>
 #include <iomanip>
 #include <sstream>
 #include <stack>
@@ -243,7 +242,8 @@ struct CodeGenerator {
     int  indent_level = 0;
     bool quotes       = false;
 
-    auto operator<=>( Options const& ) const = default;
+    bool operator==( Options const& ) const = default;
+    bool operator!=( Options const& ) const = default;
   };
 
   ostringstream    oss_;
