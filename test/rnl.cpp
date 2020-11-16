@@ -30,15 +30,24 @@
 #include <utility>
 
 namespace rn {
-// Use a fake optional because the type name (which we need to
-// compute to test formatting) is platform-dependent due to in-
-// line namespaces.
+// Use a fake optional and string because the type name (which we
+// need to compute to test formatting) would otherwise either be
+// platform-dependent (containing e.g. inline namespaces that we
+// can't predict) or would contain a bunch of extra stuff (like
+// allocator template arguments).
 template<typename T>
 struct my_optional {
   T t;
 };
+
+struct String {
+  String( char const* s ) : s_( s ) {}
+  std::string s_;
+};
 } // namespace rn
+
 DEFINE_FORMAT_T( ( T ), (::rn::my_optional<T>), "{}", o.t );
+DEFINE_FORMAT( ::rn::String, "{}", o.s_ );
 
 namespace rn {
 
@@ -279,6 +288,43 @@ TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
   // equal.
   bool eq = ( generated == golden );
   REQUIRE( eq );
+}
+
+TEST_CASE( "[rnl] Associated Enums" ) {
+  using namespace rnltest;
+  MyVariant2_t v =
+      MyVariant2::second{ .flag1 = false, .flag2 = true };
+  switch( enum_for( v ) ) {
+    case MyVariant2::e::first: //
+      REQUIRE( false );
+      break;
+    case MyVariant2::e::second: {
+      // Make sure that we can get a non-const reference.
+      MyVariant2::second& snd =
+          get_if_or_die<MyVariant2::second>( v );
+      REQUIRE( fmt::format( "{}", snd ) ==
+               "MyVariant2::second{flag1=false,flag2=true}" );
+      break;
+    }
+    case MyVariant2::e::third: //
+      REQUIRE( false );
+      break;
+  }
+
+  Maybe_t<String> maybe = Maybe::just<String>{ .val = "hello" };
+  switch( enum_for( maybe ) ) {
+    case Maybe::e::nothing: //
+      REQUIRE( false );
+      break;
+    case Maybe::e::just: {
+      // Make sure that we can get a non-const reference.
+      Maybe::just<String>& just =
+          get_if_or_die<Maybe::just<String>>( maybe );
+      REQUIRE( fmt::format( "{}", just ) ==
+               "Maybe::just<rn::String>{val=hello}" );
+      break;
+    }
+  }
 }
 
 } // namespace

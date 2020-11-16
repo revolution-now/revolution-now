@@ -548,6 +548,41 @@ struct CodeGenerator {
     }
   }
 
+  void emit_enum_for_sumtype(
+      vector<expr::Alternative> const& alternatives ) {
+    assert( !alternatives.empty() );
+    line( "enum class e {" );
+    {
+      auto _ = indent();
+      for( expr::Alternative const& alternative : alternatives )
+        line( "{},", alternative.name );
+    }
+    line( "};" );
+  }
+
+  void emit_SumtypeToEnum_specialization(
+      string_view ns, expr::Sumtype const& sumtype ) {
+    if( sumtype.alternatives.empty() ) return;
+    string full_sumtype_name =
+        fmt::format( "{}::{}_t{}", ns, sumtype.name,
+                     template_params( sumtype.tmpl_params,
+                                      /*put_typename=*/false ) );
+    newline();
+    comment(
+        "This gives us the enum to use in a switch "
+        "statement." );
+    if( sumtype.tmpl_params.empty() )
+      line( "template<>" );
+    else
+      emit_template_decl( sumtype.tmpl_params );
+    line( "struct rn::SumtypeToEnum<{}> {{", full_sumtype_name );
+    {
+      auto _ = indent();
+      line( "using type = {}::{}::e;", ns, sumtype.name );
+    }
+    line( "};" );
+  }
+
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
     section( "Sum Type: "s + sumtype.name );
     open_ns( ns );
@@ -563,6 +598,8 @@ struct CodeGenerator {
               emit_comparison, emit_serialization );
         newline();
       }
+      emit_enum_for_sumtype( sumtype.alternatives );
+      newline();
       close_ns( sumtype.name );
       newline();
     }
@@ -586,6 +623,7 @@ struct CodeGenerator {
     }
     newline();
     close_ns( ns );
+    emit_SumtypeToEnum_specialization( ns, sumtype );
     // Global namespace.
     if( sumtype_has_feature(
             sumtype, expr::e_sumtype_feature::formattable ) ) {
@@ -661,18 +699,19 @@ struct CodeGenerator {
   }
 
   void emit_includes( expr::Rnl const& rnl ) {
-    if( rnl.includes.empty() ) return;
     section( "Includes" );
-    comment( "Includes specified in rnl file." );
-    for( string const& include : rnl.includes )
-      line( "#include {}", include );
-    newline();
+    if( !rnl.includes.empty() ) {
+      comment( "Includes specified in rnl file." );
+      for( string const& include : rnl.includes )
+        line( "#include {}", include );
+      newline();
+    }
 
     comment( "Revolution Now" );
     line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
+    line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
     if( rnl_needs_serial_header( rnl ) ) {
-      line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
       line( "#include \"errors.hpp\"" );
       line( "#include \"fb.hpp\"" );
     }

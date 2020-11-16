@@ -62,6 +62,11 @@ namespace rnltest {
       bool operator!=( just const& ) const = default;
     };
 
+    enum class e {
+      nothing,
+      just,
+    };
+
   } // namespace Maybe
 
   template<typename T>
@@ -72,6 +77,12 @@ namespace rnltest {
   NOTHROW_MOVE( Maybe_t<int> );
 
 } // namespace rnltest
+
+// This gives us the enum to use in a switch statement.
+template<typename T>
+struct rn::SumtypeToEnum<rnltest::Maybe_t<T>> {
+  using type = rnltest::Maybe::e;
+};
 
 // rnltest::Maybe::nothing
 template<typename T>
@@ -148,6 +159,12 @@ namespace rnltest {
       bool operator!=( excited const& ) const = default;
     };
 
+    enum class e {
+      happy,
+      sad,
+      excited,
+    };
+
   } // namespace MyVariant1
 
   using MyVariant1_t = std::variant<
@@ -158,6 +175,12 @@ namespace rnltest {
   NOTHROW_MOVE( MyVariant1_t );
 
 } // namespace rnltest
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rnltest::MyVariant1_t> {
+  using type = rnltest::MyVariant1::e;
+};
 
 /****************************************************************
 *                     Sum Type: MyVariant2
@@ -373,6 +396,12 @@ namespace rnltest {
 
     };
 
+    enum class e {
+      first,
+      second,
+      third,
+    };
+
   } // namespace MyVariant2
 
   using MyVariant2_t = std::variant<
@@ -383,6 +412,12 @@ namespace rnltest {
   NOTHROW_MOVE( MyVariant2_t );
 
 } // namespace rnltest
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rnltest::MyVariant2_t> {
+  using type = rnltest::MyVariant2::e;
+};
 
 // rnltest::MyVariant2::first
 template<>
@@ -496,6 +531,12 @@ namespace rnltest::inner {
       char c;
     };
 
+    enum class e {
+      a1,
+      a2,
+      a3,
+    };
+
   } // namespace MyVariant3
 
   using MyVariant3_t = std::variant<
@@ -506,6 +547,12 @@ namespace rnltest::inner {
   NOTHROW_MOVE( MyVariant3_t );
 
 } // namespace rnltest::inner
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rnltest::inner::MyVariant3_t> {
+  using type = rnltest::inner::MyVariant3::e;
+};
 
 // rnltest::inner::MyVariant3::a1
 template<>
@@ -571,6 +618,12 @@ namespace rnltest::inner {
       MyVariant3_t var3;
     };
 
+    enum class e {
+      first,
+      _2nd,
+      third,
+    };
+
   } // namespace MyVariant4
 
   using MyVariant4_t = std::variant<
@@ -581,6 +634,12 @@ namespace rnltest::inner {
   NOTHROW_MOVE( MyVariant4_t );
 
 } // namespace rnltest::inner
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rnltest::inner::MyVariant4_t> {
+  using type = rnltest::inner::MyVariant4::e;
+};
 
 // rnltest::inner::MyVariant4::first
 template<>
@@ -661,6 +720,12 @@ namespace rnltest::inner {
       bool operator!=( third_alternative const& ) const = default;
     };
 
+    enum class e {
+      first_alternative,
+      second_alternative,
+      third_alternative,
+    };
+
   } // namespace TemplateTwoParams
 
   template<typename T, typename U>
@@ -672,6 +737,12 @@ namespace rnltest::inner {
   NOTHROW_MOVE( TemplateTwoParams_t<int, int> );
 
 } // namespace rnltest::inner
+
+// This gives us the enum to use in a switch statement.
+template<typename T, typename U>
+struct rn::SumtypeToEnum<rnltest::inner::TemplateTwoParams_t<T, U>> {
+  using type = rnltest::inner::TemplateTwoParams::e;
+};
 
 // rnltest::inner::TemplateTwoParams::first_alternative
 template<typename T, typename U>
@@ -730,6 +801,11 @@ namespace rnltest::inner {
     template<typename T, typename U>
     struct second {};
 
+    enum class e {
+      first,
+      second,
+    };
+
   } // namespace CompositeTemplateTwo
 
   template<typename T, typename U>
@@ -740,6 +816,12 @@ namespace rnltest::inner {
   NOTHROW_MOVE( CompositeTemplateTwo_t<int, int> );
 
 } // namespace rnltest::inner
+
+// This gives us the enum to use in a switch statement.
+template<typename T, typename U>
+struct rn::SumtypeToEnum<rnltest::inner::CompositeTemplateTwo_t<T, U>> {
+  using type = rnltest::inner::CompositeTemplateTwo::e;
+};
 
 // rnltest::inner::CompositeTemplateTwo::first
 template<typename T, typename U>
@@ -975,6 +1057,12 @@ namespace rn {
 
     };
 
+    enum class e {
+      none,
+      some,
+      more,
+    };
+
   } // namespace MySumtype
 
   using MySumtype_t = std::variant<
@@ -985,6 +1073,12 @@ namespace rn {
   NOTHROW_MOVE( MySumtype_t );
 
 } // namespace rn
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rn::MySumtype_t> {
+  using type = rn::MySumtype::e;
+};
 
 // rn::MySumtype::none
 template<>
@@ -1341,6 +1435,13 @@ namespace rn {
 
     };
 
+    enum class e {
+      off,
+      on,
+      switching_on,
+      switching_off,
+    };
+
   } // namespace OnOffState
 
   using OnOffState_t = std::variant<
@@ -1352,6 +1453,12 @@ namespace rn {
   NOTHROW_MOVE( OnOffState_t );
 
 } // namespace rn
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rn::OnOffState_t> {
+  using type = rn::OnOffState::e;
+};
 
 // rn::OnOffState::off
 template<>
@@ -1466,6 +1573,11 @@ namespace rn {
 
     struct turn_on {};
 
+    enum class e {
+      turn_off,
+      turn_on,
+    };
+
   } // namespace OnOffEvent
 
   using OnOffEvent_t = std::variant<
@@ -1475,6 +1587,12 @@ namespace rn {
   NOTHROW_MOVE( OnOffEvent_t );
 
 } // namespace rn
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct rn::SumtypeToEnum<rn::OnOffEvent_t> {
+  using type = rn::OnOffEvent::e;
+};
 
 // rn::OnOffEvent::turn_off
 template<>
