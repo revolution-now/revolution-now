@@ -20,8 +20,7 @@ include "fb/testing_generated.h";
 namespace rnltest;
 
 # Descriptive comment.
-sumtype Maybe {
-  .template: T;
+sumtype Maybe<T> {
   .features:
     formattable,
     comparison;
@@ -102,10 +101,7 @@ sumtype MyVariant4 {
 };
 
 # Descriptive comment.
-sumtype TemplateTwoParams {
-  .template:
-    T, U;
-
+sumtype TemplateTwoParams<T, U> {
   # List of features.
   .features:
     formattable,
@@ -123,9 +119,7 @@ sumtype TemplateTwoParams {
 
 # This one has two template parameters are references another
 # sumtype that also has two parameters.
-sumtype CompositeTemplateTwo {
-  .template: T, U;
-
+sumtype CompositeTemplateTwo<T, U> {
   .features:
     formattable;
 

@@ -317,9 +317,7 @@ TEST_CASE( "[rnl] Associated Enums" ) {
       REQUIRE( false );
       break;
     case Maybe::e::just: {
-      // Make sure that we can get a non-const reference.
-      Maybe::just<String>& just =
-          get_if_or_die<Maybe::just<String>>( maybe );
+      auto& just = get_if_or_die<Maybe::just<String>>( maybe );
       REQUIRE( fmt::format( "{}", just ) ==
                "Maybe::just<rn::String>{val=hello}" );
       break;

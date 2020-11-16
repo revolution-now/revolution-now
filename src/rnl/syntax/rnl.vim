@@ -37,10 +37,10 @@ hi def link  rnlIncludeName String
 " Sum type
 " ===============================================================
 syn keyword  rnlSumtypeKeyword sumtype nextgroup=rnlSumtypeName skipwhite
-syn match    rnlSumtypeName '[a-zA-Z][a-zA-Z0-9_]*' contained nextgroup=rnlSumtypeDescBlock
-syn region   rnlSumtypeDescBlock start="{" end="};" fold transparent contains=rnlSumtypeFeatures,rnlSumtypeTemplate,rnlSumtypeAlternative,rnlLineComment
+syn match    rnlSumtypeName '[a-zA-Z][a-zA-Z0-9_]*' contained nextgroup=rnlSumtypeTemplate,rnlSumtypeDescBlock
+syn region   rnlSumtypeDescBlock start="{" end="};" fold transparent contains=rnlSumtypeFeatures,rnlSumtypeAlternative,rnlLineComment
 
-syn match    rnlSumtypeTemplate '\.template:' contained nextgroup=rnlSumtypeTemplateParams skipwhite skipempty
+syn region   rnlSumtypeTemplate start="<" end=">" transparent contains=rnlSumtypeTemplateParams skipwhite
 syn match    rnlSumtypeTemplateParams '[a-zA-Z][a-zA-Z0-9_]*,\?' contained nextgroup=rnlSumtypeTemplateParams nextgroup=rnlSemi skipwhite
 
 syn match    rnlSumtypeFeatures '\.features:' contained nextgroup=rnlSumtypeFeaturesValues skipwhite skipempty
@@ -53,7 +53,7 @@ syn match    rnlCppDeclVar '[a-zA-Z][a-zA-Z0-9_]*;' contained nextgroup=rnlCppDe
 hi def link  rnlSumtypeKeyword Keyword
 hi def link  rnlSumtypeName Identifier
 "hi def link rnlSumtypeDescBlock Structure
-hi def link  rnlSumtypeTemplate Keyword
+"hi def link  rnlSumtypeTemplate Keyword
 hi def link  rnlSumtypeTemplateParams Type
 hi def link  rnlSumtypeFeatures Keyword
 hi def link  rnlSumtypeFeaturesValues Constant

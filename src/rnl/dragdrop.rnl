@@ -16,9 +16,7 @@ include "tx.hpp";
 
 namespace rn;
 
-sumtype DragState {
-  .template: DragSrcT, DragDstT, DragArcT;
-
+sumtype DragState<DragSrcT, DragDstT, DragArcT> {
   .features:
     formattable;
 
@@ -49,9 +47,7 @@ sumtype DragState {
     Texture          tx;
 };
 
-sumtype DragEvent {
-  .template: DragSrcT, DragDstT, DragArcT;
-
+sumtype DragEvent<DragSrcT, DragDstT, DragArcT> {
   .features:
     formattable;
 

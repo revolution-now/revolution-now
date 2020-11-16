@@ -35,9 +35,7 @@ sumtype ColorEvent {
   rotate:
 };
 
-sumtype TColorState {
-  .template: T, U;
-
+sumtype TColorState<T, U> {
   .features:
     comparison,
     formattable;
@@ -54,9 +52,7 @@ sumtype TColorState {
   dark_yellow:
 };
 
-sumtype TColorEvent {
-  .template: T, U;
-
+sumtype TColorEvent<T, U> {
   .features:
     formattable;
 
