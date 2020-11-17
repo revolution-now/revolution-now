@@ -84,13 +84,14 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     { e_menu::debug, { "Debug", true, 'D' } },
     { e_menu::pedia, { "Revolopedia", true, 'R' } } };
 
+} // namespace
+
 struct MenuCallbacks {
   function<void( void )> on_click;
   function<bool( void )> enabled;
 };
 NOTHROW_MOVE( MenuCallbacks );
 
-} // namespace
 } // namespace rn
 
 // Rnl

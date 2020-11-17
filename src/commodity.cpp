@@ -234,6 +234,7 @@ Opt<string> commodity_label_to_markup(
       return fmt::format( "{}/{}", sell / 100, buy / 100 );
     }
   };
+  UNREACHABLE_LOCATION;
 }
 
 Opt<CRef<Texture>> render_commodity_label(

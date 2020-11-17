@@ -19,6 +19,7 @@
 #include "fb.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "macros.hpp"
 
 // Rnl
 #include "rnl/ustate-impl.hpp"
@@ -150,6 +151,7 @@ e_unit_state state_for_unit( UnitId id ) {
     case UnitState::e::europort: return e_unit_state::europort;
     case UnitState::e::colony: return e_unit_state::colony;
   }
+  UNREACHABLE_LOCATION;
 }
 
 string debug_string( UnitId id ) {
@@ -285,6 +287,7 @@ Opt<Coord> coord_for_unit( UnitId id ) {
     case UnitState::e::colony: //
       return nullopt;
   };
+  UNREACHABLE_LOCATION;
 }
 
 Coord coord_for_unit_indirect( UnitId id ) {
@@ -312,6 +315,7 @@ Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
     case UnitState::e::colony: //
       return nullopt;
   };
+  UNREACHABLE_LOCATION;
 }
 
 bool is_unit_on_map_indirect( UnitId id ) {
@@ -372,6 +376,7 @@ expect<> check_europort_state_invariants(
     case UnitEuroPortViewState::e::in_port:
       return xp_success_t{};
   };
+  UNREACHABLE_LOCATION;
 }
 
 Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(

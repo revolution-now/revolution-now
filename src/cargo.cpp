@@ -13,6 +13,7 @@
 // Revolution Now
 #include "errors.hpp"
 #include "logging.hpp"
+#include "macros.hpp"
 #include "scope-exit.hpp"
 #include "ustate.hpp"
 #include "util.hpp"
@@ -337,6 +338,7 @@ int CargoHold::max_commodity_quantity_that_fits(
         }
       }
     }
+    UNREACHABLE_LOCATION;
   };
   return rg::accumulate( slots_ | rv::transform( one_slot ), 0 );
 }
@@ -393,6 +395,7 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
     }
     matcher_exhaustive;
   }
+  UNREACHABLE_LOCATION;
 }
 
 ND bool CargoHold::fits( Cargo const&   cargo,

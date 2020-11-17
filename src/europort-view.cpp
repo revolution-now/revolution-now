@@ -24,6 +24,7 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logging.hpp"
+#include "macros.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "ranges.hpp"
@@ -124,6 +125,7 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
       }
     }
   }
+  UNREACHABLE_LOCATION;
 }
 
 Opt<Cargo> draggable_to_cargo_object(
@@ -142,6 +144,7 @@ Opt<Cargo> draggable_to_cargo_object(
       return val.comm;
     }
   }
+  UNREACHABLE_LOCATION;
 }
 
 Opt<DraggableObject_t> draggable_in_cargo_slot(
@@ -181,6 +184,7 @@ Texture draw_draggable_object(
       return render_commodity_create( val.comm.type );
     }
   }
+  UNREACHABLE_LOCATION;
 }
 
 /****************************************************************
@@ -1337,6 +1341,7 @@ public:
         return DraggableObject::market_commodity{ val.type };
       }
     }
+    UNREACHABLE_LOCATION;
   }
 
   constexpr static auto const draw_dragged_item =
@@ -1622,6 +1627,7 @@ public:
             .has_value();
       }
     }
+    UNREACHABLE_LOCATION;
   }
 
   void finalize_drag( input::mod_keys const& mod,
@@ -2050,6 +2056,7 @@ struct EuropePlane : public Plane {
       case input::e_input_event::mouse_drag_event:
         return e_input_handled::no;
     }
+    UNREACHABLE_LOCATION;
   }
 
   Plane::DragInfo can_drag( input::e_mouse_button button,
