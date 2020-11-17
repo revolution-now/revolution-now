@@ -64,7 +64,6 @@ static_assert( is_same_v<::rnltest::inner::MyVariant3_t,
                          inner::MyVariant3_t> );
 
 TEST_CASE( "[rnl] Monostate" ) {
-  static_assert( is_same_v<Monostate_t, std::monostate> );
   static_assert( is_same_v<MyVariant0_t, std::monostate> );
   REQUIRE( fmt::format( "{}", MyVariant0_t{} ) == "monostate" );
 }

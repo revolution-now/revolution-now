@@ -48,8 +48,5 @@ sumtype UnitInputEvent {
   cancel:
   end:
     Vec<UnitId> add_to_front;
-
-  .features:
-    formattable;
 };
 

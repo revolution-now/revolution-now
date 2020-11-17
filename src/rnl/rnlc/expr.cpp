@@ -62,9 +62,11 @@ std::string Sumtype::to_string( std::string_view spaces ) const {
   for( TemplateParam const& tmpl_param : tmpl_params )
     res += fmt::format( "{}  templ: {}\n", spaces,
                         tmpl_param.param );
-  for( e_sumtype_feature feature : features )
-    res += fmt::format( "{}  feature: {}\n", spaces,
-                        to_str( feature ) );
+  if( features.has_value() ) {
+    for( e_sumtype_feature feature : *features )
+      res += fmt::format( "{}  feature: {}\n", spaces,
+                          to_str( feature ) );
+  }
   for( Alternative const& alt : alternatives )
     res += alt.to_string( string( spaces ) + "  " );
   return res;

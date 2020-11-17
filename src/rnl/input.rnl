@@ -33,7 +33,4 @@ sumtype drag_phase {
   dragging:
     Coord origin;
     e_drag_phase phase;
-
-  .features:
-    formattable;
 };

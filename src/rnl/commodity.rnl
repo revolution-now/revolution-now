@@ -17,7 +17,4 @@ sumtype CommodityLabel {
   buy_sell:
     int sell;
     int buy;
-
-  .features:
-    formattable;
 };

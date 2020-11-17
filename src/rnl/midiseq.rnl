@@ -48,4 +48,6 @@ sumtype command {
   off:
   volume:
     double value;
+
+  .features: ;
 };

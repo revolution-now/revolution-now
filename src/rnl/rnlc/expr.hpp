@@ -45,10 +45,12 @@ struct TemplateParam {
 };
 
 struct Sumtype {
-  std::string                    name;
-  std::vector<TemplateParam>     tmpl_params;
-  std::vector<e_sumtype_feature> features;
-  std::vector<Alternative>       alternatives;
+  std::string                name;
+  std::vector<TemplateParam> tmpl_params;
+  // A specified-but-empty feature list means something different
+  // from one that was not specified at all.
+  std::optional<std::vector<e_sumtype_feature>> features;
+  std::vector<Alternative>                      alternatives;
 
   std::string to_string( std::string_view spaces ) const;
 };

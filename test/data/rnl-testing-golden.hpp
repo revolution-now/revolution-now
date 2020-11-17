@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 #include "cc-specific.hpp"
 #include "rnl/helper/sumtype-helper.hpp"
+#include "fmt-helper.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 
@@ -49,8 +50,8 @@ namespace rnltest {
     struct nothing {
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( nothing const& ) const = default;
-      bool operator!=( nothing const& ) const = default;
+      bool operator==( struct nothing const& ) const = default;
+      bool operator!=( struct nothing const& ) const = default;
     };
 
     template<typename T>
@@ -58,8 +59,8 @@ namespace rnltest {
       T val;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( just const& ) const = default;
-      bool operator!=( just const& ) const = default;
+      bool operator==( struct just const& ) const = default;
+      bool operator!=( struct just const& ) const = default;
     };
 
     enum class e {
@@ -111,15 +112,6 @@ struct fmt::formatter<rnltest::Maybe::just<T>>
 };
 
 /****************************************************************
-*                      Sum Type: Monostate
-*****************************************************************/
-namespace rnltest {
-
-  using Monostate_t = std::monostate;
-
-} // namespace rnltest
-
-/****************************************************************
 *                     Sum Type: MyVariant0
 *****************************************************************/
 namespace rnltest {
@@ -139,8 +131,8 @@ namespace rnltest {
       std::pair<char,int> p;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( happy const& ) const = default;
-      bool operator!=( happy const& ) const = default;
+      bool operator==( struct happy const& ) const = default;
+      bool operator!=( struct happy const& ) const = default;
     };
 
     struct sad {
@@ -148,15 +140,15 @@ namespace rnltest {
       bool* ptr;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( sad const& ) const = default;
-      bool operator!=( sad const& ) const = default;
+      bool operator==( struct sad const& ) const = default;
+      bool operator!=( struct sad const& ) const = default;
     };
 
     struct excited {
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( excited const& ) const = default;
-      bool operator!=( excited const& ) const = default;
+      bool operator==( struct excited const& ) const = default;
+      bool operator!=( struct excited const& ) const = default;
     };
 
     enum class e {
@@ -520,15 +512,27 @@ namespace rnltest::inner {
 
     struct a1 {
       MyVariant0_t var0;
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct a1 const& ) const = default;
+      bool operator!=( struct a1 const& ) const = default;
     };
 
     struct a2 {
       MyVariant0_t var1;
       MyVariant2_t var2;
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct a2 const& ) const = default;
+      bool operator!=( struct a2 const& ) const = default;
     };
 
     struct a3 {
       char c;
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct a3 const& ) const = default;
+      bool operator!=( struct a3 const& ) const = default;
     };
 
     enum class e {
@@ -609,13 +613,26 @@ namespace rnltest::inner {
       char                    c;
       bool                    b;
       std::optional<uint32_t> op;
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct first const& ) const = default;
+      bool operator!=( struct first const& ) const = default;
     };
 
-    struct _2nd {};
+    struct _2nd {
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct _2nd const& ) const = default;
+      bool operator!=( struct _2nd const& ) const = default;
+    };
 
     struct third {
       std::string  s;
       MyVariant3_t var3;
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct third const& ) const = default;
+      bool operator!=( struct third const& ) const = default;
     };
 
     enum class e {
@@ -698,16 +715,16 @@ namespace rnltest::inner {
       char c;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( first_alternative const& ) const = default;
-      bool operator!=( first_alternative const& ) const = default;
+      bool operator==( struct first_alternative const& ) const = default;
+      bool operator!=( struct first_alternative const& ) const = default;
     };
 
     template<typename T, typename U>
     struct second_alternative {
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( second_alternative const& ) const = default;
-      bool operator!=( second_alternative const& ) const = default;
+      bool operator==( struct second_alternative const& ) const = default;
+      bool operator!=( struct second_alternative const& ) const = default;
     };
 
     template<typename T, typename U>
@@ -716,8 +733,8 @@ namespace rnltest::inner {
       U          u;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( third_alternative const& ) const = default;
-      bool operator!=( third_alternative const& ) const = default;
+      bool operator==( struct third_alternative const& ) const = default;
+      bool operator!=( struct third_alternative const& ) const = default;
     };
 
     enum class e {
@@ -796,10 +813,19 @@ namespace rnltest::inner {
     template<typename T, typename U>
     struct first {
       rnltest::inner::TemplateTwoParams_t<T,U> ttp;
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct first const& ) const = default;
+      bool operator!=( struct first const& ) const = default;
     };
 
     template<typename T, typename U>
-    struct second {};
+    struct second {
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct second const& ) const = default;
+      bool operator!=( struct second const& ) const = default;
+    };
 
     enum class e {
       first,
@@ -859,8 +885,8 @@ namespace rn {
     struct none {
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( none const& ) const = default;
-      bool operator!=( none const& ) const = default;
+      bool operator==( struct none const& ) const = default;
+      bool operator!=( struct none const& ) const = default;
       using fb_target_t = fb::MySumtype::none;
 
       static std::string fb_root_type_name() {
@@ -919,8 +945,8 @@ namespace rn {
       int         y;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( some const& ) const = default;
-      bool operator!=( some const& ) const = default;
+      bool operator==( struct some const& ) const = default;
+      bool operator!=( struct some const& ) const = default;
       using fb_target_t = fb::MySumtype::some;
 
       static std::string fb_root_type_name() {
@@ -994,8 +1020,8 @@ namespace rn {
       double d;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( more const& ) const = default;
-      bool operator!=( more const& ) const = default;
+      bool operator==( struct more const& ) const = default;
+      bool operator!=( struct more const& ) const = default;
       using fb_target_t = fb::MySumtype::more;
 
       static std::string fb_root_type_name() {
@@ -1179,8 +1205,8 @@ namespace rn {
     struct off {
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( off const& ) const = default;
-      bool operator!=( off const& ) const = default;
+      bool operator==( struct off const& ) const = default;
+      bool operator!=( struct off const& ) const = default;
       using fb_target_t = fb::OnOffState::off;
 
       static std::string fb_root_type_name() {
@@ -1238,8 +1264,8 @@ namespace rn {
       std::string user;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( on const& ) const = default;
-      bool operator!=( on const& ) const = default;
+      bool operator==( struct on const& ) const = default;
+      bool operator!=( struct on const& ) const = default;
       using fb_target_t = fb::OnOffState::on;
 
       static std::string fb_root_type_name() {
@@ -1305,8 +1331,8 @@ namespace rn {
       double percent;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( switching_on const& ) const = default;
-      bool operator!=( switching_on const& ) const = default;
+      bool operator==( struct switching_on const& ) const = default;
+      bool operator!=( struct switching_on const& ) const = default;
       using fb_target_t = fb::OnOffState::switching_on;
 
       static std::string fb_root_type_name() {
@@ -1372,8 +1398,8 @@ namespace rn {
       double percent;
       // This requires that the types of the member variables
       // also support comparison.
-      bool operator==( switching_off const& ) const = default;
-      bool operator!=( switching_off const& ) const = default;
+      bool operator==( struct switching_off const& ) const = default;
+      bool operator!=( struct switching_off const& ) const = default;
       using fb_target_t = fb::OnOffState::switching_off;
 
       static std::string fb_root_type_name() {
@@ -1569,9 +1595,19 @@ namespace rn {
 
   namespace OnOffEvent {
 
-    struct turn_off {};
+    struct turn_off {
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct turn_off const& ) const = default;
+      bool operator!=( struct turn_off const& ) const = default;
+    };
 
-    struct turn_on {};
+    struct turn_on {
+      // This requires that the types of the member variables
+      // also support comparison.
+      bool operator==( struct turn_on const& ) const = default;
+      bool operator!=( struct turn_on const& ) const = default;
+    };
 
     enum class e {
       turn_off,

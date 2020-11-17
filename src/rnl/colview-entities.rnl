@@ -23,7 +23,4 @@ sumtype ColViewDraggableObject {
     UnitId id;
     Commodity comm;
     CargoSlotIndex slot;
-
-  .features:
-    formattable;
 };

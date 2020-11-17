@@ -23,9 +23,6 @@ sumtype MenuState {
   item_click:
     e_menu_item item;
     Time_t start;
-
-  .features:
-    formattable;
 };
 
 sumtype MouseOver {
@@ -38,7 +35,4 @@ sumtype MouseOver {
   border:
     e_menu menu;
   bar:
-
-  .features:
-    formattable;
 };

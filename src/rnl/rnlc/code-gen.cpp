@@ -221,7 +221,8 @@ string template_params_type_names(
 
 bool sumtype_has_feature( expr::Sumtype const&    sumtype,
                           expr::e_sumtype_feature feature ) {
-  for( auto type : sumtype.features ) {
+  if( !sumtype.features.has_value() ) return false;
+  for( auto type : *sumtype.features ) {
     if( type == feature ) return true;
   }
   return false;
@@ -508,14 +509,18 @@ struct CodeGenerator {
                    "This requires that the types of the member "
                    "variables " );
           comment( "{}", "also support comparison." );
-          // TODO: when ready use spaceship.
-          // line( "auto operator<=>( {} const& ) const =
-          // default;",
-          //      alt.name );
-          line( "bool operator==( {} const& ) const = default;",
-                alt.name );
-          line( "bool operator!=( {} const& ) const = default;",
-                alt.name );
+          // We need the 'struct' keyword in fron of the
+          // alternative name to disambiguate in cases where
+          // there is an alternative member with the same name as
+          // the alternative.
+          line(
+              "bool operator==( struct {} const& ) const = "
+              "default;",
+              alt.name );
+          line(
+              "bool operator!=( struct {} const& ) const = "
+              "default;",
+              alt.name );
         }
         if( emit_serialization ) {
           string member_serials;
@@ -681,9 +686,7 @@ struct CodeGenerator {
       for( expr::Construct const& construct : item.constructs ) {
         bool has_feature = matcher_( construct ) {
           case_( expr::Sumtype ) {
-            for( auto feature : val.features )
-              if( feature == target_feature ) result_v true;
-            result_v false;
+            result_v sumtype_has_feature( val, target_feature );
           }
           matcher_exhaustive;
         }
@@ -696,6 +699,11 @@ struct CodeGenerator {
   bool rnl_needs_serial_header( expr::Rnl const& rnl ) {
     return rnl_has_sumtype_feature(
         rnl, expr::e_sumtype_feature::serializable );
+  }
+
+  bool rnl_needs_fmt_headers( expr::Rnl const& rnl ) {
+    return rnl_has_sumtype_feature(
+        rnl, expr::e_sumtype_feature::formattable );
   }
 
   void emit_includes( expr::Rnl const& rnl ) {
@@ -711,6 +719,8 @@ struct CodeGenerator {
     line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
     line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
+    if( rnl_needs_fmt_headers( rnl ) )
+      line( "#include \"fmt-helper.hpp\"" );
     if( rnl_needs_serial_header( rnl ) ) {
       line( "#include \"errors.hpp\"" );
       line( "#include \"fb.hpp\"" );
@@ -718,9 +728,11 @@ struct CodeGenerator {
     line( "" );
     comment( "base-util" );
     line( "#include \"base-util/mp.hpp\"" );
-    line( "" );
-    comment( "{{fmt}}" );
-    line( "#include \"fmt/format.h\"" );
+    if( rnl_needs_fmt_headers( rnl ) ) {
+      line( "" );
+      comment( "{{fmt}}" );
+      line( "#include \"fmt/format.h\"" );
+    }
     line( "" );
     comment( "C++ standard library" );
     line( "#include <string_view>" );

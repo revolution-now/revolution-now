@@ -38,7 +38,4 @@ sumtype TurnCycleState {
 sumtype TurnCycleEvent {
   next:
   end:
-
-  .features:
-    formattable;
 };

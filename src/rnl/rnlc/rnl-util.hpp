@@ -10,6 +10,15 @@
 *****************************************************************/
 #pragma once
 
+// rnlc
+#include "expr.hpp"
+
+// base-util
+#include "base-util/variant.hpp"
+
+// function_ref
+#include "tl/function_ref.hpp"
+
 // {fmt}
 #include "fmt/format.h"
 
@@ -49,5 +58,13 @@ void error_msg( string_view fmt, Args&&... args ) {
   error_no_exit_msg( fmt, forward<Args>( args )... );
   exit( 1 );
 }
+
+void perform_on_sumtypes(
+    expr::Rnl*                               rnl,
+    tl::function_ref<void( expr::Sumtype* )> func );
+
+void perform_on_sumtypes(
+    expr::Rnl const&                               rnl,
+    tl::function_ref<void( expr::Sumtype const& )> func );
 
 } // namespace rnl

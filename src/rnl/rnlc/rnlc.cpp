@@ -12,6 +12,7 @@
 #include "code-gen.hpp"
 #include "expr.hpp"
 #include "parser.hpp"
+#include "post-process.hpp"
 #include "rnl-util.hpp"
 #include "validate.hpp"
 
@@ -68,6 +69,9 @@ int main( int argc, char** argv ) {
       rnl::error_no_exit_msg( "{}", error );
     rnl::error_msg( "failed validation." );
   }
+
+  // Performs various transformations.
+  rnl::post_process( *maybe_rnl );
 
   optional<string> cpp_code = rnl::generate_code( *maybe_rnl );
   if( !cpp_code.has_value() )

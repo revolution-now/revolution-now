@@ -44,9 +44,6 @@ sumtype DragSrc {
   market:
     e_commodity type;
     Opt<int> quantity;
-
-  .features:
-    formattable;
 };
 
 sumtype DragDst {
@@ -59,9 +56,6 @@ sumtype DragDst {
   inport_ship:
     UnitId id;
   market:
-
-  .features:
-    formattable;
 };
 
 sumtype DragArc {
@@ -110,14 +104,8 @@ sumtype EuroviewState {
   normal:
   future:
     sync_future<> s_future;
-
-  .features:
-    formattable;
 };
 
 sumtype EuroviewEvent {
   none:
-
-  .features:
-    formattable;
 };

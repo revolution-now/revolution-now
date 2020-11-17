@@ -20,19 +20,12 @@ sumtype ColorState {
   yellow:
   light_yellow:
   dark_yellow:
-
-  .features:
-    comparison,
-    formattable;
 };
 
 sumtype ColorEvent {
   light:
   dark:
   rotate:
-
-  .features:
-    formattable;
 };
 
 sumtype TColorState<T, U> {
@@ -46,10 +39,6 @@ sumtype TColorState<T, U> {
   yellow:
   light_yellow:
   dark_yellow:
-
-  .features:
-    comparison,
-    formattable;
 };
 
 sumtype TColorEvent<T, U> {
@@ -57,9 +46,6 @@ sumtype TColorEvent<T, U> {
     U n;
   dark:
   rotate:
-
-  .features:
-    formattable;
 };
 
 sumtype BallState {
@@ -69,10 +55,6 @@ sumtype BallState {
   rolling:
     int speed;
   spinning:
-
-  .features:
-    comparison,
-    formattable;
 };
 
 sumtype BallEvent {
@@ -85,7 +67,4 @@ sumtype BallEvent {
   stop_rolling:
   start_spinning:
   stop_spinning:
-
-  .features:
-    formattable;
 };

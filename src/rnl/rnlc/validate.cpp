@@ -10,7 +10,11 @@
 *****************************************************************/
 #include "validate.hpp"
 
+// rnlc
+#include "rnl-util.hpp"
+
 // base-util
+#include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
 
 // {fmt}
@@ -41,30 +45,25 @@ struct Validator {
 
   void validate_sumtype( expr::Sumtype const& sumtype ) {
     using F = expr::e_sumtype_feature;
-    unordered_set<F> features( sumtype.features.begin(),
-                               sumtype.features.end() );
-    bool             has_tmpl = !sumtype.tmpl_params.empty();
+    if( sumtype.features.has_value() ) {
+      unordered_set<F> features( sumtype.features->begin(),
+                                 sumtype.features->end() );
+      bool             has_tmpl = !sumtype.tmpl_params.empty();
 
-    // If the sumtype is templated then we do not support serial-
-    // ization. This wouldn't make sense since there can only be
-    // one concrete type to which the variant is serialized to
-    // flatbuffers.
-    if( has_tmpl && features.contains( F::serializable ) )
-      error(
-          "The sumtype \"{}\" cannot be both templated and "
-          "serializable.",
-          sumtype.name );
+      // If the sumtype is templated then we do not support
+      // serialization. This wouldn't make sense since there
+      // can only be one concrete type to which the variant is
+      // serialized to flatbuffers.
+      if( has_tmpl && features.contains( F::serializable ) )
+        error(
+            "The sumtype \"{}\" cannot be both templated and "
+            "serializable.",
+            sumtype.name );
+    }
   }
 
   void validate_sumtypes( expr::Rnl const& rnl ) {
-    for( expr::Item const& item : rnl.items ) {
-      for( expr::Construct const& construct : item.constructs ) {
-        switch_( construct ) {
-          case_( expr::Sumtype ) { validate_sumtype( val ); }
-          switch_exhaustive;
-        }
-      }
-    }
+    perform_on_sumtypes( rnl, LC( validate_sumtype( _ ) ) );
   }
 };
 

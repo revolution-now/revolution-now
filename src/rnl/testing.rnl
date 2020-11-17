@@ -24,21 +24,9 @@ sumtype Maybe<T> {
   nothing:
   just:
     T val;
-
-  .features:
-    formattable,
-    comparison;
 };
 
-# Descriptive comment.
-sumtype Monostate {};
-
-sumtype MyVariant0 {
-  .features:
-    formattable;
-
-  # Comment on last line.
-};
+sumtype MyVariant0 {};
 
 # Descriptive comment.
 sumtype MyVariant1 {
@@ -77,9 +65,6 @@ sumtype MyVariant3 {
     MyVariant2_t var2;
   a3:
     char c;
-
-  .features:
-    formattable;
 };
 
 # Descriptive comment.
@@ -95,9 +80,6 @@ sumtype MyVariant4 {
   third:
     std::string s;
     MyVariant3_t var3;
-
-  .features:
-    formattable;
 };
 
 # Descriptive comment.
@@ -111,10 +93,6 @@ sumtype TemplateTwoParams<T, U> {
   third_alternative:
     Maybe_t<T> hello;
     U u;
-
-  .features:
-    formattable,
-    comparison;
 };
 
 # This one has two template parameters are references another
@@ -123,9 +101,6 @@ sumtype CompositeTemplateTwo<T, U> {
   first:
     rnltest::inner::TemplateTwoParams_t<T,U> ttp;
   second:
-
-  .features:
-    formattable;
 };
 
 namespace rn;
@@ -162,7 +137,4 @@ sumtype OnOffState {
 sumtype OnOffEvent {
   turn_off:
   turn_on:
-
-  .features:
-    formattable;
 };

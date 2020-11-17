@@ -41,7 +41,4 @@ sumtype NationTurnState {
 sumtype NationTurnEvent {
   next:
   end:
-
-  .features:
-    formattable;
 };

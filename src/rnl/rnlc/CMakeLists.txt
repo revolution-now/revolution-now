@@ -17,6 +17,7 @@ target_link_libraries(
     base-util
     cpp-peglib::cpp-peglib
     fmt::fmt
+    function-ref
     rn-base
 )
 

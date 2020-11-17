@@ -42,9 +42,6 @@ sumtype DragState<DragSrcT, DragDstT, DragArcT> {
     DragSrcT         src;
     double           percent;
     Texture          tx;
-
-  .features:
-    formattable;
 };
 
 sumtype DragEvent<DragSrcT, DragDstT, DragArcT> {
@@ -72,7 +69,4 @@ sumtype DragEvent<DragSrcT, DragDstT, DragArcT> {
     Texture          tx;
     Delta            click_offset;
   reset:
-
-  .features:
-    formattable;
 };
