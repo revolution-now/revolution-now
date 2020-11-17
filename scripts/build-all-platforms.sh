@@ -1,7 +1,7 @@
 #!/bin/bash
 [[ "$(uname)" == Darwin ]] && osx=1 || osx=0
 
-(( osx )) && lld= || lld='--lld'
+(( osx )) && lld_default= || lld_default='--lld'
 
 [[ "$1" == '--print-only' ]] && print_only=1
 
@@ -53,7 +53,7 @@ echo -n >$logfile
 
 # This function expects a bunch of variables to be set.
 run_for_args() {
-  [[ "$cc" =~ clang ]] && lld=$lld || lld=
+  [[ "$cc" =~ clang ]] && lld=$lld_default || lld=
   run_for_flags $cc $lib $opt $asan $lld $lto
   code=$?
   if (( code == 0 )); then
@@ -66,7 +66,7 @@ run_for_args() {
     # We need to craft our own platform string because
     # `cmc` has presumably not done so for us since it
     # failed.
-    platform="$(echo $cc,$lib,$opt,$asan,$lld \
+    platform="$(echo $cc,$lib,$opt,$asan,$lld,$lto \
       | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
   elif (( code == 2 )); then
     # Build failed.
@@ -78,7 +78,7 @@ run_for_args() {
     platform="$(cmc st | awk '{print $2}')"
   else
     status="${c_red}FAILURE:unknown${c_norm}"
-    platform="$(echo $cc,$lib,$opt,$asan,$lld \
+    platform="$(echo $cc,$lib,$opt,$asan,$lld,$lto \
       | sed -r 's/,+/,/g; s/(.*),$/\1/; s/--//g')"
   fi
   echo "$platform $status" >> $logfile
@@ -97,11 +97,7 @@ for cc in --clang '' --gcc=current; do
 done
 
 # Do --lto just once since it can take a really long time.
-cc=--clang
-lib=
-opt=--release
-asan=
-lto=--lto
+cc=--clang; lib=; opt=--release; asan=; lto=--lto;
 run_for_args
 
 # Restore to default devel flags.
