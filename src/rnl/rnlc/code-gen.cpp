@@ -488,10 +488,10 @@ struct CodeGenerator {
 
   void emit( vector<expr::TemplateParam> const& tmpls,
              expr::Alternative const&           alt,
-             string_view sumtype_name, bool emit_comparison,
+             string_view sumtype_name, bool emit_equality,
              bool emit_serialization ) {
     emit_template_decl( tmpls );
-    if( alt.members.empty() && !emit_comparison &&
+    if( alt.members.empty() && !emit_equality &&
         !emit_serialization ) {
       line( "struct {} {{}};", alt.name );
     } else {
@@ -504,11 +504,11 @@ struct CodeGenerator {
              alt.members )
           line( "{: <{}} {};", alt_mem.type, max_type_len,
                 alt_mem.var );
-        if( emit_comparison ) {
+        if( emit_equality ) {
           comment( "{}",
                    "This requires that the types of the member "
                    "variables " );
-          comment( "{}", "also support comparison." );
+          comment( "{}", "also support equality." );
           // We need the 'struct' keyword in fron of the
           // alternative name to disambiguate in cases where
           // there is an alternative member with the same name as
@@ -595,12 +595,12 @@ struct CodeGenerator {
       open_ns( sumtype.name );
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
-        bool emit_comparison = sumtype_has_feature(
-            sumtype, expr::e_sumtype_feature::comparison );
+        bool emit_equality = sumtype_has_feature(
+            sumtype, expr::e_sumtype_feature::equality );
         bool emit_serialization = sumtype_has_feature(
             sumtype, expr::e_sumtype_feature::serializable );
         emit( sumtype.tmpl_params, alt, sumtype.name,
-              emit_comparison, emit_serialization );
+              emit_equality, emit_serialization );
         newline();
       }
       emit_enum_for_sumtype( sumtype.alternatives );

@@ -34,7 +34,7 @@ struct Alternative {
 enum class e_sumtype_feature {
   formattable,
   serializable,
-  comparison
+  equality
 };
 
 std::string to_str( e_sumtype_feature feature );

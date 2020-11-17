@@ -37,7 +37,7 @@ sumtype MyVariant1 {
     bool* ptr;
   excited:
 
-  .features: comparison;
+  .features: equality;
 };
 
 sumtype MyVariant2 {
@@ -114,7 +114,7 @@ sumtype MySumtype {
     double d;
 
   .features:
-    comparison,
+    equality,
     formattable,
     serializable;
 };
@@ -129,7 +129,7 @@ sumtype OnOffState {
     double percent;
 
   .features:
-    comparison,
+    equality,
     formattable,
     serializable;
 };

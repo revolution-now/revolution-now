@@ -37,6 +37,6 @@ sumtype orders {
 
   .features:
     formattable,
-    comparison,
+    equality,
     serializable;
 };

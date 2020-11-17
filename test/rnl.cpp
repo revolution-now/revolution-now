@@ -245,19 +245,11 @@ TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
       "u=9}}" );
 }
 
-TEST_CASE( "[rnl] Comparison" ) {
+TEST_CASE( "[rnl] Equality" ) {
   // Maybe_t
   REQUIRE( Maybe::nothing<int>{} == Maybe::nothing<int>{} );
   REQUIRE( Maybe::just<int>{ 5 } == Maybe::just<int>{ 5 } );
   REQUIRE( Maybe::just<int>{ 5 } != Maybe::just<int>{ 6 } );
-  // TODO: when we have the spaceship operator.
-  // REQUIRE( Maybe::just<int>{ 5 } < Maybe::just<int>{ 6 } );
-  // REQUIRE( Maybe::just<int>{ 6 } > Maybe::just<int>{ 5 } );
-  // REQUIRE( Maybe::just<int>{ 5 } <= Maybe::just<int>{ 6 } );
-  // REQUIRE( Maybe::just<int>{ 6 } >= Maybe::just<int>{ 5 } );
-  // REQUIRE( ( Maybe::just<int>{ 5 } <=> Maybe::just<int>{ 5 } )
-  // ==
-  //         strong_ordering::equal );
 
   // TemplateTwoParams_t
   using T =
@@ -265,13 +257,6 @@ TEST_CASE( "[rnl] Comparison" ) {
   REQUIRE( T{ "a", 'c' } == T{ "a", 'c' } );
   REQUIRE( T{ "a", 'b' } != T{ "a", 'c' } );
   REQUIRE( T{ "b", 'a' } != T{ "c", 'a' } );
-  // TODO: when we have the spaceship operator.
-  // REQUIRE( T{ "a", 'b' } < T{ "a", 'c' } );
-  // REQUIRE( T{ "a", 'd' } > T{ "a", 'c' } );
-  // REQUIRE( T{ "a", 'b' } < T{ "b", 'c' } );
-  // REQUIRE( T{ "a", 'd' } < T{ "b", 'c' } );
-  // REQUIRE( T{ "b", 'b' } >= T{ "a", 'c' } );
-  // REQUIRE( T{ "a", 'd' } >= T{ "a", 'c' } );
 }
 
 TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {

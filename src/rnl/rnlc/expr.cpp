@@ -34,7 +34,7 @@ std::string to_str( e_sumtype_feature feature ) {
   switch( feature ) {
     case e_sumtype_feature::formattable: return "formattable";
     case e_sumtype_feature::serializable: return "serializable";
-    case e_sumtype_feature::comparison: return "comparison";
+    case e_sumtype_feature::equality: return "equality";
   }
     // TODO: When C++20 comes change this to the new
     // [[unreachable]].
@@ -52,8 +52,7 @@ optional<e_sumtype_feature> from_str( std::string feature ) {
     return e_sumtype_feature::formattable;
   if( feature == "serializable" )
     return e_sumtype_feature::serializable;
-  if( feature == "comparison" )
-    return e_sumtype_feature::comparison;
+  if( feature == "equality" ) return e_sumtype_feature::equality;
   return nullopt;
 }
 

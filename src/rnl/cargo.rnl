@@ -39,6 +39,6 @@ sumtype CargoSlot {
 
   .features:
     formattable,
-    comparison,
+    equality,
     serializable;
 };

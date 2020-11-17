@@ -37,5 +37,5 @@ sumtype UnitEuroPortViewState {
   .features:
     formattable,
     serializable,
-    comparison;
+    equality;
 };

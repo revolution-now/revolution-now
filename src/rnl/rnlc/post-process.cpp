@@ -31,7 +31,7 @@ void set_default_sumtype_features( expr::Rnl& rnl ) {
       sumtype->features->push_back(
           expr::e_sumtype_feature::formattable );
       sumtype->features->push_back(
-          expr::e_sumtype_feature::comparison );
+          expr::e_sumtype_feature::equality );
     }
   } );
 }
