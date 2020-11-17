@@ -21,10 +21,6 @@ namespace rn;
 # tions get processed (as well as anything else that needs to
 # happen each turn).
 sumtype TurnCycleState {
-  .features:
-    formattable,
-    serializable;
-
   starting:
   inside:
     bool need_eot;
@@ -33,12 +29,16 @@ sumtype TurnCycleState {
     flat_queue<e_nation> remainder;
   ending:
     bool need_eot;
+
+  .features:
+    formattable,
+    serializable;
 };
 
 sumtype TurnCycleEvent {
-  .features:
-    formattable;
-
   next:
   end:
+
+  .features:
+    formattable;
 };

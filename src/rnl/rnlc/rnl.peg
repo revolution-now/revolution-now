@@ -67,8 +67,8 @@ NS_NAME        ← <[a-zA-Z_][a-zA-Z0-9_.]*>
 # Sum Types
 # ===============================================================
 SUMTYPE        ← 'sumtype' IDENT TEMPLATES? '{'
-                    FEATURES?
                     ALTERNATIVES
+                    FEATURES?
                  '}' ~STMT_END
 
 FEATURES       ← '.features' ':' LIST( FEATURE, ',' ) ~STMT_END

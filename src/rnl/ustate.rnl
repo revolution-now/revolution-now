@@ -16,11 +16,6 @@ namespace rn;
 # These pertain to units who are owned by either the high seas or
 # by europe view (e.g., in port, on the dock, etc.);
 sumtype UnitEuroPortViewState {
-  .features:
-    formattable,
-    serializable,
-    comparison;
-
   # For ships that are venturing to europe. `percent` starts from
   # 0 and goes to 1.0 at arrival. This means that the value
   # should never actually assume a value of 1.0, because as soon
@@ -38,4 +33,9 @@ sumtype UnitEuroPortViewState {
   # "in port" box) whereas for land units this means that they
   # are on the dock.
   in_port:
+
+  .features:
+    formattable,
+    serializable,
+    comparison;
 };

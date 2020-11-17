@@ -11,13 +11,13 @@
 namespace rn;
 
 sumtype CommodityLabel {
-  .features:
-    formattable;
-
   none:
   quantity:
     int value;
   buy_sell:
     int sell;
     int buy;
+
+  .features:
+    formattable;
 };

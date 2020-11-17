@@ -32,10 +32,6 @@ namespace rn;
 # order to change/advance the state of animation, although the
 # rendering functions themselves will never mutate them.
 sumtype LandViewState {
-  .features:
-    formattable,
-    serializable;
-
   none:
   future:
     no_serial<sync_future<>> s_future;
@@ -56,12 +52,13 @@ sumtype LandViewState {
   depixelating_unit:
     UnitId id;
     Opt<e_unit_type> demoted;
+
+  .features:
+    formattable,
+    serializable;
 };
 
 sumtype LandViewEvent {
-  .features:
-    formattable;
-
   end:
   blink_unit:
     UnitId id;
@@ -77,6 +74,9 @@ sumtype LandViewEvent {
   depixelate_unit:
     UnitId id;
     bool demote;
+
+  .features:
+    formattable;
 };
 
 # Animation State.
@@ -85,9 +85,6 @@ sumtype LandViewEvent {
 # may involve multiple lower-level steps, each of which might be
 # represented by a different LandViewState.
 sumtype LandViewAnim {
-  .features:
-    formattable;
-
   none:
   move:
     sync_promise<> s_promise;
@@ -99,4 +96,7 @@ sumtype LandViewAnim {
     UnitId defender;
     bool attacker_wins;
     e_depixelate_anim dp_anim;
+
+  .features:
+    formattable;
 };

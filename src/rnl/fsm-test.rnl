@@ -11,10 +11,6 @@
 namespace rn;
 
 sumtype ColorState {
-  .features:
-    comparison,
-    formattable;
-
   red:
   light_red:
   dark_red:
@@ -24,22 +20,22 @@ sumtype ColorState {
   yellow:
   light_yellow:
   dark_yellow:
+
+  .features:
+    comparison,
+    formattable;
 };
 
 sumtype ColorEvent {
-  .features:
-    formattable;
-
   light:
   dark:
   rotate:
+
+  .features:
+    formattable;
 };
 
 sumtype TColorState<T, U> {
-  .features:
-    comparison,
-    formattable;
-
   red:
   light_red:
     U n;
@@ -50,35 +46,36 @@ sumtype TColorState<T, U> {
   yellow:
   light_yellow:
   dark_yellow:
+
+  .features:
+    comparison,
+    formattable;
 };
 
 sumtype TColorEvent<T, U> {
-  .features:
-    formattable;
-
   light:
     U n;
   dark:
   rotate:
+
+  .features:
+    formattable;
 };
 
 sumtype BallState {
-  .features:
-    comparison,
-    formattable;
-
   none:
   bouncing:
     int height;
   rolling:
     int speed;
   spinning:
+
+  .features:
+    comparison,
+    formattable;
 };
 
 sumtype BallEvent {
-  .features:
-    formattable;
-
   do_nothing:
   start_bouncing:
     int height;
@@ -88,4 +85,7 @@ sumtype BallEvent {
   stop_rolling:
   start_spinning:
   stop_spinning:
+
+  .features:
+    formattable;
 };

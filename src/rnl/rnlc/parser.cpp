@@ -181,19 +181,15 @@ optional<expr::Rnl> parse( string_view   peg_filename,
           safe_any_cast<vector<expr::TemplateParam>>( sv[i++] );
     if( sv.size() == i )
       throw peg::parse_error( "expected ALTERNATIVES." );
+    res.alternatives =
+        safe_any_cast<vector<expr::Alternative>>( sv[i++] );
+    if( sv.size() == i ) return res;
     if( sv[i].type() ==
         typeid( vector<expr::e_sumtype_feature> ) )
       res.features =
           safe_any_cast<vector<expr::e_sumtype_feature>>(
               sv[i++] );
-    if( sv.size() == i )
-      throw peg::parse_error( "expected ALTERNATIVES." );
-    res.alternatives =
-        safe_any_cast<vector<expr::Alternative>>( sv[i++] );
-    if( sv.size() == i ) return res;
-    throw peg::parse_error(
-        fmt::format( "exhausted elements of sumtype." )
-            .c_str() );
+    return res;
   };
 
   expr::Rnl parsed_rnl;

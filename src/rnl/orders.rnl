@@ -26,11 +26,6 @@ namespace rn;
 # unit to go into a sea square without a ship, which would not be
 # allowed. In that case, the orders are not allowed.
 sumtype orders {
-  .features:
-    formattable,
-    comparison,
-    serializable;
-
   wait:
   build:
   forfeight:
@@ -39,4 +34,9 @@ sumtype orders {
   disband:
   direction:
     e_direction d;
+
+  .features:
+    formattable,
+    comparison,
+    serializable;
 };

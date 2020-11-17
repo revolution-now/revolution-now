@@ -22,10 +22,6 @@ include "fb/sg-turn_generated.h";
 namespace rn;
 
 sumtype UnitInputState {
-  .features:
-    formattable,
-    serializable;
-
   none:
   processing:
   asking:
@@ -37,12 +33,13 @@ sumtype UnitInputState {
     orders_t orders;
   executed:
     Vec<UnitId> add_to_front;
+
+  .features:
+    formattable,
+    serializable;
 };
 
 sumtype UnitInputEvent {
-  .features:
-    formattable;
-
   process:
   ask:
   put_response:
@@ -51,5 +48,8 @@ sumtype UnitInputEvent {
   cancel:
   end:
     Vec<UnitId> add_to_front;
+
+  .features:
+    formattable;
 };
 

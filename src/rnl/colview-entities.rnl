@@ -15,9 +15,6 @@ include "id.hpp";
 namespace rn;
 
 sumtype ColViewDraggableObject {
-  .features:
-    formattable;
-
   unit:
     UnitId id;
   market_commodity:
@@ -26,4 +23,7 @@ sumtype ColViewDraggableObject {
     UnitId id;
     Commodity comm;
     CargoSlotIndex slot;
+
+  .features:
+    formattable;
 };

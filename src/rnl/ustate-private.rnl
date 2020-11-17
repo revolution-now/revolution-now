@@ -20,10 +20,6 @@ include "fb/sg-unit_generated.h";
 namespace rn;
 
 sumtype UnitState {
-  .features:
-    formattable,
-    serializable;
-
   free:
   world:
     Coord coord;
@@ -33,4 +29,8 @@ sumtype UnitState {
     UnitEuroPortViewState_t st;
   colony:
     ColonyId id;
+
+  .features:
+    formattable,
+    serializable;
 };

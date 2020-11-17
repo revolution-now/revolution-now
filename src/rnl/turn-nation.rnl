@@ -22,10 +22,6 @@ namespace rn;
 # This FSM represents the state across the processing of a single
 # turn for a single nation.
 sumtype NationTurnState {
-  .features:
-    formattable,
-    serializable;
-
   starting:
     e_nation nation;
   colonies:
@@ -36,12 +32,16 @@ sumtype NationTurnState {
     Opt<UnitInputFsm> uturn;
   ending:
     bool need_eot;
+
+  .features:
+    formattable,
+    serializable;
 };
 
 sumtype NationTurnEvent {
-  .features:
-    formattable;
-
   next:
   end:
+
+  .features:
+    formattable;
 };

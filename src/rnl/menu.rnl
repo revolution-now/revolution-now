@@ -14,9 +14,6 @@ include "menu.hpp";
 namespace rn;
 
 sumtype MenuState {
-  .features:
-    formattable;
-
   menus_hidden:
   menus_closed:
     Opt<e_menu> hover;
@@ -26,12 +23,12 @@ sumtype MenuState {
   item_click:
     e_menu_item item;
     Time_t start;
+
+  .features:
+    formattable;
 };
 
 sumtype MouseOver {
-  .features:
-    formattable;
-
   header:
     e_menu menu;
   item:
@@ -41,4 +38,7 @@ sumtype MouseOver {
   border:
     e_menu menu;
   bar:
+
+  .features:
+    formattable;
 };

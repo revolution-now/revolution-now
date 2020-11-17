@@ -16,10 +16,6 @@ include "sync-future.hpp";
 namespace rn;
 
 sumtype DraggableObject {
-  .features:
-    formattable,
-    comparison;
-
   unit:
     UnitId id;
   market_commodity:
@@ -27,12 +23,13 @@ sumtype DraggableObject {
   cargo_commodity:
     Commodity      comm;
     CargoSlotIndex slot;
+
+  .features:
+    formattable,
+    comparison;
 };
 
 sumtype DragSrc {
-  .features:
-    formattable;
-
   dock:
     UnitId id;
   cargo:
@@ -47,12 +44,12 @@ sumtype DragSrc {
   market:
     e_commodity type;
     Opt<int> quantity;
+
+  .features:
+    formattable;
 };
 
 sumtype DragDst {
-  .features:
-    formattable;
-
   cargo:
     CargoSlotIndex slot;
   dock:
@@ -62,12 +59,12 @@ sumtype DragDst {
   inport_ship:
     UnitId id;
   market:
+
+  .features:
+    formattable;
 };
 
 sumtype DragArc {
-  .features:
-    formattable;
-
   dock_to_cargo:
     DragSrc::dock src;
     DragDst::cargo dst;
@@ -104,21 +101,23 @@ sumtype DragArc {
   cargo_to_market:
     DragSrc::cargo src;
     DragDst::market dst;
+
+  .features:
+    formattable;
 };
 
 sumtype EuroviewState {
-  .features:
-    formattable;
-
   normal:
   future:
     sync_future<> s_future;
+
+  .features:
+    formattable;
 };
 
 sumtype EuroviewEvent {
+  none:
+
   .features:
     formattable;
-
-  none:
 };
-

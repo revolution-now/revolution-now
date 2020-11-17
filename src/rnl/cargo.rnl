@@ -32,13 +32,13 @@ namespace rn;
 # NOTE: the `empty` state must be first in the list so that it it
 # will be the default-constructed value.
 sumtype CargoSlot {
-  .features:
-    formattable,
-    comparison,
-    serializable;
-
   empty:
   overflow:
   cargo:
     Cargo contents;
+
+  .features:
+    formattable,
+    comparison,
+    serializable;
 };

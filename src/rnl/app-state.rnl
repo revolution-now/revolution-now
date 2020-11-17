@@ -13,9 +13,6 @@ include "aliases.hpp";
 namespace rn;
 
 sumtype AppState {
-  .features:
-    formattable;
-
   main_no_game:
   main_in_game:
   creating:
@@ -26,12 +23,12 @@ sumtype AppState {
     Opt<int> slot;
   in_game:
   quitting:
+
+  .features:
+    formattable;
 };
 
 sumtype AppEvent {
-  .features:
-    formattable;
-
   ok:
   cancel:
   new_:
@@ -42,4 +39,7 @@ sumtype AppEvent {
   to_game:
   to_main:
   quit:
+
+  .features:
+    formattable;
 };

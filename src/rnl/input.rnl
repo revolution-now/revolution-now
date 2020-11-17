@@ -27,13 +27,13 @@ namespace rn.input;
 # moving the mouse a bit during a click (that would be bad be-
 # cause it would not be sent as a click event).
 sumtype drag_phase {
-  .features:
-    formattable;
-
   none:
   maybe:
     Coord origin;
   dragging:
     Coord origin;
     e_drag_phase phase;
+
+  .features:
+    formattable;
 };

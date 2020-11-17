@@ -17,9 +17,6 @@ include "tx.hpp";
 namespace rn;
 
 sumtype DragState<DragSrcT, DragDstT, DragArcT> {
-  .features:
-    formattable;
-
   none:
   in_progress:
     DragSrcT         src;
@@ -45,12 +42,12 @@ sumtype DragState<DragSrcT, DragDstT, DragArcT> {
     DragSrcT         src;
     double           percent;
     Texture          tx;
+
+  .features:
+    formattable;
 };
 
 sumtype DragEvent<DragSrcT, DragDstT, DragArcT> {
-  .features:
-    formattable;
-
   start:
     DragSrcT         src;
     Opt<DragDstT>    dst;
@@ -75,4 +72,7 @@ sumtype DragEvent<DragSrcT, DragDstT, DragArcT> {
     Texture          tx;
     Delta            click_offset;
   reset:
+
+  .features:
+    formattable;
 };

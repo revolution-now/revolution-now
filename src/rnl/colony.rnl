@@ -17,12 +17,12 @@ include "fb/colony_generated.h";
 namespace rn;
 
 sumtype ColonyJob {
-  .features:
-    serializable;
-
   land:
     e_direction d;
     e_commodity producing;
   mfg:
     e_mfg_job mfg_job;
+
+  .features:
+    serializable;
 };
