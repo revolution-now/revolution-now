@@ -84,11 +84,12 @@ run_for_args() {
   echo "$platform $status" >> $logfile
 }
 
-for cc in --clang --gcc=system --gcc=current; do
+for cc in --clang '' --gcc=current; do
   for lib in '' --libstdcxx --libcxx; do
     for opt in '' --release; do
       for asan in '' --asan; do
         [[ "$cc" =~ gcc && "$lib" =~ libcxx ]] && continue
+        [[ "$cc" == ""  && "$lib" =~ libcxx ]] && continue
         run_for_args
       done
     done
@@ -96,7 +97,11 @@ for cc in --clang --gcc=system --gcc=current; do
 done
 
 # Do --lto just once since it can take a really long time.
-cc=--clang; lib=; opt=--release; asan=; lto=--lto
+cc=--clang
+lib=
+opt=--release
+asan=
+lto=--lto
 run_for_args
 
 # Restore to default devel flags.
