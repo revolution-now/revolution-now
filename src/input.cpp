@@ -13,6 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "logging.hpp"
+#include "meta.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 #include "variant.hpp"
@@ -29,6 +30,12 @@
 // Abseil
 #include "absl/container/flat_hash_map.h"
 
+// magic-enum
+#include "magic_enum.hpp"
+
+// function_ref
+#include "tl/function_ref.hpp"
+
 // C++ standard library
 #include <algorithm>
 #include <array>
@@ -38,6 +45,12 @@ using namespace std;
 namespace rn::input {
 
 namespace {
+
+static_assert( magic_enum::enum_count<e_input_event>() ==
+                   variant_size_v<event_t>,
+               "If you add an alternative to the input_event_t "
+               "variant then you need to add a corresponding "
+               "item to the e_input_event enum." );
 
 // This is used to hold the last "measured" mouse position, where
 // "measured" means the last time there was a mouse motion event
@@ -495,62 +508,33 @@ event_t move_mouse_origin_by( event_t const& event,
   // mouse event or not, and 2) to give us the mouse position.
 
   // First, move the current mouse position.
-  auto ptr = matcher_( new_event, ->, Coord* ) {
-    case_( unknown_event_t ) return nullptr;
-    case_( quit_event_t ) return nullptr;
-    case_( win_event_t ) return nullptr;
-    case_( key_event_t ) return nullptr;
-    case_( mouse_wheel_event_t ) return &val.pos;
-    case_( mouse_move_event_t ) return &val.pos;
-    case_( mouse_button_event_t ) return &val.pos;
-    case_( mouse_drag_event_t ) return &val.pos;
-    matcher_exhaustive;
-  };
-  if( ptr ) ( *ptr ) -= delta;
+  apply_to_alternatives_with_base(
+      new_event,
+      [&]( mouse_event_base_t& e ) { e.pos -= delta; } );
 
   // Second, if mouse move event, move the previous mouse
   // position.
-  ptr = matcher_( new_event, ->, Coord* ) {
-    case_( unknown_event_t ) return nullptr;
-    case_( quit_event_t ) return nullptr;
-    case_( win_event_t ) return nullptr;
-    case_( key_event_t ) return nullptr;
-    case_( mouse_wheel_event_t ) return nullptr;
-    case_( mouse_move_event_t ) return &val.prev;
-    case_( mouse_button_event_t ) return nullptr;
-    case_( mouse_drag_event_t ) return nullptr;
-    matcher_exhaustive;
-  };
-  if( ptr ) ( *ptr ) -= delta;
+  apply_to_alternatives_with_base(
+      new_event,
+      [&]( mouse_move_event_t& e ) { e.prev -= delta; } );
+
   return new_event;
 }
 
 bool is_mouse_event( event_t const& event ) {
-  return matcher_( event ) {
-    case_( unknown_event_t ) return false;
-    case_( quit_event_t ) return false;
-    case_( win_event_t ) return false;
-    case_( key_event_t ) return false;
-    case_( mouse_wheel_event_t ) return true;
-    case_( mouse_move_event_t ) return true;
-    case_( mouse_button_event_t ) return true;
-    case_( mouse_drag_event_t ) return true;
-    matcher_exhaustive;
-  }
+  // For any events that are mouse events it will return true,
+  // otherwise false.
+  return apply_to_alternatives_with_base(
+      event, false,
+      []( mouse_event_base_t const& ) { return true; } );
 }
 
 Opt<CRef<Coord>> mouse_position( event_t const& event ) {
-  return matcher_( event, ->, Opt<CRef<Coord>> ) {
-    case_( unknown_event_t ) return nullopt;
-    case_( quit_event_t ) return nullopt;
-    case_( win_event_t ) return nullopt;
-    case_( key_event_t ) return nullopt;
-    case_( mouse_wheel_event_t ) return val.pos;
-    case_( mouse_move_event_t ) return val.pos;
-    case_( mouse_button_event_t ) return val.pos;
-    case_( mouse_drag_event_t ) return val.pos;
-    matcher_exhaustive;
-  };
+  return apply_to_alternatives_with_base(
+      event, nullopt,
+      []( mouse_event_base_t const& e ) -> Opt<CRef<Coord>> {
+        return e.pos;
+      } );
 }
 
 Opt<mouse_button_event_t> drag_event_to_mouse_button_event(

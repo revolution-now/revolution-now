@@ -19,6 +19,7 @@
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
+#include "rnl/helper/sumtype-helper.hpp"
 
 // SDL
 // TODO: get rid of this
@@ -168,6 +169,17 @@ using event_t = std::variant<
 // clang-format on
 NOTHROW_MOVE( event_t );
 
+enum class e_input_event {
+  unknown_event,
+  quit_event,
+  key_event,
+  mouse_move_event,
+  mouse_button_event,
+  mouse_wheel_event,
+  mouse_drag_event,
+  win_event
+};
+
 // Grab all new events and put them into the queue.
 void pump_event_queue();
 
@@ -207,5 +219,14 @@ bool is_any_key_down();
 bool is_q_down();
 
 } // namespace rn::input
+
+namespace rn {
+
+template<>
+struct SumtypeToEnum<input::event_t> {
+  using type = input::e_input_event;
+};
+
+} // namespace rn
 
 DEFINE_FORMAT_( ::rn::input::mod_keys, "<mod_keys>" );

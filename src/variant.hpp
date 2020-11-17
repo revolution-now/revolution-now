@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "meta.hpp"
+
 // base-util
 #include "base-util/variant.hpp"
 
@@ -67,6 +70,60 @@ template<typename Ret, typename Visited, typename... Args>
 auto match( Visited&& visited, Args&&... args ) {
   return scelta::match<Ret>( std::forward<Args>( args )... )(
       std::forward<Visited>( visited ) );
+}
+
+// Non-mutating, just observes and returns something. For mutat-
+// ing. This will apply the given function (which must take one
+// argument and return void) and will apply it to the value of
+// the variant if the current value has a type with a base class
+// of the function argument type.
+template<typename Func, typename DefT, typename... Args>
+auto apply_to_alternatives_with_base(
+    std::variant<Args...> const& v, DefT&& def, Func&& f ) {
+  using Ret      = mp::callable_ret_type_t<Func>;
+  using ArgsList = mp::callable_arg_types_t<Func>; // type_list
+  static_assert( mp::type_list_size_v<ArgsList> == 1 );
+  using Base = std::decay_t<mp::head_t<ArgsList>>;
+  constexpr bool at_least_one = mp::any_v<
+      std::is_base_of_v<Base, std::remove_cvref_t<Args>>...>;
+  static_assert(
+      at_least_one,
+      "There are no variants with the given base class!" );
+  return std::visit(
+      [&]<typename T>( T const& alternative ) -> Ret {
+        if constexpr( std::is_base_of_v<Base,
+                                        std::remove_cvref_t<T>> )
+          return f( alternative );
+        else
+          return def;
+      },
+      v );
+}
+
+// For mutating. This will apply the given function (which must
+// take one argument and return void) and will apply it to the
+// value of the variant if the current value has a type with a
+// base class of the function argument type.
+template<typename Func, typename... Args>
+void apply_to_alternatives_with_base( std::variant<Args...>& v,
+                                      Func&& f ) {
+  using Ret = mp::callable_ret_type_t<Func>;
+  static_assert( std::is_same_v<Ret, void> );
+  using ArgsList = mp::callable_arg_types_t<Func>; // type_list
+  static_assert( mp::type_list_size_v<ArgsList> == 1 );
+  using Base = std::decay_t<mp::head_t<ArgsList>>;
+  constexpr bool at_least_one = mp::any_v<
+      std::is_base_of_v<Base, std::remove_cvref_t<Args>>...>;
+  static_assert(
+      at_least_one,
+      "There are no variants with the given base class!" );
+  std::visit(
+      [&]<typename T>( T&& alternative ) {
+        if constexpr( std::is_base_of_v<Base,
+                                        std::remove_cvref_t<T>> )
+          f( std::forward<T>( alternative ) );
+      },
+      v );
 }
 
 } // namespace rn

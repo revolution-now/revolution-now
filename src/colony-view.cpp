@@ -79,18 +79,20 @@ struct ColonyPlane : public Plane {
     draw_colony_view( tx, curr_colony_id );
   }
   e_input_handled input( input::event_t const& event ) override {
-    return matcher_( event, ->, e_input_handled ) {
-      case_( input::key_event_t ) {
+    switch( enum_for( event ) ) {
+      case input::e_input_event::key_event: {
+        auto&  val = get_if_or_die<input::key_event_t>( event );
         resu1t handle_key_event( val );
       }
-      case_( input::win_event_t ) {
+      case input::e_input_event::win_event: {
+        auto& val = get_if_or_die<input::win_event_t>( event );
         if( val.type == input::e_win_event_type::resized )
           set_colview_colony( curr_colony_id );
         // Generally we should return no here because this is an
         // event that we want all planes to see.
         resu1t e_input_handled::no;
       }
-      default_matcher( return e_input_handled::no; );
+      default: return e_input_handled::no;
     }
   }
 
@@ -118,6 +120,7 @@ void show_colony_view( ColonyId id ) {
 ** Menu Handlers
 *****************************************************************/
 
+//
 MENU_ITEM_HANDLER(
     e_menu_item::colony_view_close, [] { pop_plane_config(); },
     [] { return is_plane_enabled( e_plane::colony ); } )
