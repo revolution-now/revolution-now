@@ -162,11 +162,14 @@ void CargoHold::check_invariants() const {
   int occupied = 0;
   for( int i = 0; i < slots_total(); ++i ) {
     auto const& slot = slots_[i];
-    switch_( slot ) {
-      case_( CargoSlot::empty ) {}
-      case_( CargoSlot::overflow ) {}
-      case_( CargoSlot::cargo, contents ) {
-        switch_( contents ) {
+    switch( enum_for( slot ) ) {
+      case CargoSlot::e::empty: //
+        break;
+      case CargoSlot::e::overflow: //
+        break;
+      case CargoSlot::e::cargo: {
+        auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
+        switch_( cargo.contents ) {
           case_( UnitId ) {
             occupied += unit_from_id( val )
                             .desc()
@@ -175,8 +178,8 @@ void CargoHold::check_invariants() const {
           case_( Commodity ) { occupied++; }
           switch_exhaustive;
         }
+        break;
       }
-      switch_exhaustive;
     }
   }
   CHECK( occupied == slots_occupied() );
@@ -314,23 +317,26 @@ void CargoHold::compactify() {
 
 int CargoHold::max_commodity_quantity_that_fits(
     e_commodity type ) const {
-  auto one_slot = variant_function_c( slot, ->, int ) {
-    case_( CargoSlot::empty ) {
-      return k_max_commodity_cargo_per_slot;
-    }
-    case_( CargoSlot::overflow ) return 0;
-    case_( CargoSlot::cargo ) {
-      return matcher_( slot.contents ) {
-        case_( UnitId ) return 0;
-        case_( Commodity ) {
-          if( val.type == type )
-            return k_max_commodity_cargo_per_slot - val.quantity;
-          return 0;
+  auto one_slot = [&]( CargoSlot_t const& slot ) {
+    switch( enum_for( slot ) ) {
+      case CargoSlot::e::empty:
+        return k_max_commodity_cargo_per_slot;
+      case CargoSlot::e::overflow: //
+        return 0;
+      case CargoSlot::e::cargo: {
+        auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
+        return matcher_( cargo.contents ) {
+          case_( UnitId ) return 0;
+          case_( Commodity ) {
+            if( val.type == type )
+              return k_max_commodity_cargo_per_slot -
+                     val.quantity;
+            return 0;
+          }
+          matcher_exhaustive;
         }
-        matcher_exhaustive;
       }
     }
-    variant_function_exhaustive;
   };
   return rg::accumulate( slots_ | rv::transform( one_slot ), 0 );
 }
@@ -362,11 +368,16 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
         resu1t false;
       if( proposed.quantity == 0 ) //
         resu1t false;
-      resu1t matcher_( slots_[slot] ) {
-        case_( CargoSlot::overflow ) resu1t false;
-        case_( CargoSlot::empty ) resu1t true;
-        case_( CargoSlot::cargo ) {
-          resu1t matcher_( val.contents ) {
+      switch( auto& v = slots_[slot]; enum_for( v ) ) {
+        case CargoSlot::e::overflow: {
+          return false;
+        }
+        case CargoSlot::e::empty: {
+          return true;
+        }
+        case CargoSlot::e::cargo: {
+          auto&  cargo = get_if_or_die<CargoSlot::cargo>( v );
+          resu1t matcher_( cargo.contents ) {
             case_( UnitId ) resu1t false;
             case_( Commodity ) {
               if( proposed.type != val.type ) //
@@ -376,8 +387,8 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
             }
             matcher_exhaustive;
           }
+          break;
         }
-        matcher_exhaustive;
       }
     }
     matcher_exhaustive;
@@ -435,8 +446,8 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
       CHECK( commodity.quantity > 0 );
       for( int idx : slots ) {
         if( commodity.quantity == 0 ) break;
-        switch_( slots_[idx] ) {
-          case_( CargoSlot::empty ) {
+        switch( auto& v = slots_[idx]; enum_for( v ) ) {
+          case CargoSlot::e::empty: {
             auto quantity_to_add =
                 std::min( commodity.quantity,
                           k_max_commodity_cargo_per_slot );
@@ -449,10 +460,12 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
                    "failed to add commodity of type {} and "
                    "quantity {} to slot {}",
                    commodity.type, quantity_to_add, idx )
+            break;
           }
-          case_( CargoSlot::overflow ) {}
-          case_( CargoSlot::cargo ) {
-            if_v( val.contents, Commodity, comm_in_slot ) {
+          case CargoSlot::e::overflow: break;
+          case CargoSlot::e::cargo: {
+            auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+            if_v( cargo.contents, Commodity, comm_in_slot ) {
               if( comm_in_slot->type == commodity.type ) {
                 auto quantity_to_add =
                     std::min( commodity.quantity,
@@ -472,8 +485,8 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
                 }
               }
             }
+            break;
           }
-          switch_exhaustive;
         }
       }
       if( commodity.quantity == 0 )

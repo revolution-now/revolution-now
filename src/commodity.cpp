@@ -22,7 +22,6 @@
 
 // base-util
 #include "base-util/pp.hpp"
-#include "base-util/variant.hpp"
 
 using namespace std;
 
@@ -219,18 +218,21 @@ int move_commodity_as_much_as_possible(
 
 Opt<string> commodity_label_to_markup(
     CommodityLabel_t const& label ) {
-  return matcher_( label, ->, Opt<string> ) {
-    case_( CommodityLabel::none ) { //
+  switch( enum_for( label ) ) {
+    case CommodityLabel::e::none: {
       return nullopt;
     }
-    case_( CommodityLabel::quantity, value ) { //
+    case CommodityLabel::e::quantity: {
+      auto& [value] =
+          get_if_or_die<CommodityLabel::quantity>( label );
       return fmt::format( "{}",
                           commodity_number_to_markup( value ) );
     }
-    case_( CommodityLabel::buy_sell, sell, buy ) { //
+    case CommodityLabel::e::buy_sell: {
+      auto& [sell, buy] =
+          get_if_or_die<CommodityLabel::buy_sell>( label );
       return fmt::format( "{}/{}", sell / 100, buy / 100 );
     }
-    matcher_exhaustive;
   };
 }
 

@@ -84,41 +84,38 @@ absl::flat_hash_map<e_menu, Menu> g_menus{
     { e_menu::debug, { "Debug", true, 'D' } },
     { e_menu::pedia, { "Revolopedia", true, 'R' } } };
 
-struct MenuDivider {};
-
 struct MenuCallbacks {
   function<void( void )> on_click;
   function<bool( void )> enabled;
 };
 NOTHROW_MOVE( MenuCallbacks );
 
-// menu.cpp
-struct MenuClickable {
-  e_menu_item   item;
-  string        name;
-  MenuCallbacks callbacks;
-};
-NOTHROW_MOVE( MenuClickable );
+} // namespace
+} // namespace rn
 
-using MenuItem = variant<MenuDivider, MenuClickable>;
-NOTHROW_MOVE( MenuItem );
+// Rnl
+#include "rnl/menu-impl.hpp"
 
-flat_hash_map<e_menu_item, MenuClickable*> g_menu_items;
-flat_hash_map<e_menu_item, e_menu>         g_item_to_menu;
-flat_hash_map<e_menu, Vec<e_menu_item>>    g_items_from_menu;
+namespace rn {
+namespace {
+
+flat_hash_map<e_menu_item, MenuItem::menu_clickable*>
+                                        g_menu_items;
+flat_hash_map<e_menu_item, e_menu>      g_item_to_menu;
+flat_hash_map<e_menu, Vec<e_menu_item>> g_items_from_menu;
 
 #define ITEM( item, name )      \
-  MenuClickable {               \
+  MenuItem::menu_clickable {    \
     e_menu_item::item, name, {} \
   }
 
 #define DIVIDER \
-  MenuDivider {}
+  MenuItem::menu_divider {}
 
 /****************************************************************
 ** The Menus
 *****************************************************************/
-absl::flat_hash_map<e_menu, Vec<MenuItem>> g_menu_def{
+absl::flat_hash_map<e_menu, Vec<MenuItem_t>> g_menu_def{
     { e_menu::game,
       {
           ITEM( about, "About this Game" ),    //
@@ -467,8 +464,10 @@ H divider_height() { return max_text_height() / 2; }
 H menu_body_height_inner( e_menu menu ) {
   H    h{ 0 };
   auto add_height = scelta::match(
-      [&]( MenuDivider ) { h += divider_height(); },
-      [&]( MenuClickable ) { h += max_text_height(); } );
+      [&]( MenuItem::menu_divider ) { h += divider_height(); },
+      [&]( MenuItem::menu_clickable ) {
+        h += max_text_height();
+      } );
   CHECK( g_menu_def.contains( menu ) );
   for( auto const& item : g_menu_def[menu] ) add_height( item );
   // round up to nearest multiple of 8, since that is the menu
@@ -544,16 +543,22 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
   H pos{ 0 };
   for( auto const& item : g_menu_def[menu] ) {
     auto advance = scelta::match(
-        [&]( MenuDivider ) { pos += divider_height(); },
-        [&]( MenuClickable const& ) {
+        [&]( MenuItem::menu_divider ) {
+          pos += divider_height();
+        },
+        [&]( MenuItem::menu_clickable const& ) {
           pos += max_text_height();
         } );
     advance( item );
     if( pos > h ) {
-      return matcher_( item, ->, Opt<e_menu_item> ) {
-        case_( MenuDivider ) resu1t   nullopt;
-        case_( MenuClickable ) resu1t val.item;
-        matcher_exhaustive;
+      switch( enum_for( item ) ) {
+        case MenuItem::e::menu_divider: //
+          return nullopt;
+        case MenuItem::e::menu_clickable: {
+          auto& val =
+              get_if_or_die<MenuItem::menu_clickable>( item );
+          return val.item;
+        }
       }
     }
   }
@@ -708,11 +713,11 @@ Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
   );
 
   auto render = scelta::match(
-      [&]( MenuDivider ) {
+      [&]( MenuItem::menu_divider ) {
         copy_texture( textures.divider, dst, pos );
         pos += divider_height();
       },
-      [&]( MenuClickable const& clickable ) {
+      [&]( MenuItem::menu_clickable const& clickable ) {
         auto const& rendered =
             g_menu_item_rendered[clickable.item];
         Texture const* foreground{ nullptr };
@@ -984,9 +989,12 @@ void init_menus() {
   // Populate the e_menu_item maps and verify no duplicates.
   for( auto& [menu, items] : g_menu_def ) {
     for( auto& item_desc : items ) {
-      if( util::holds<MenuDivider>( item_desc ) ) continue;
-      CHECK( util::holds<MenuClickable>( item_desc ) );
-      auto& clickable = get<MenuClickable>( item_desc );
+      if( util::holds<MenuItem::menu_divider>( item_desc ) )
+        continue;
+      CHECK(
+          util::holds<MenuItem::menu_clickable>( item_desc ) );
+      auto& clickable =
+          get<MenuItem::menu_clickable>( item_desc );
       g_items_from_menu[menu].push_back( clickable.item );
       CHECK( !g_menu_items.contains( clickable.item ) );
       g_menu_items[clickable.item] = &clickable;
@@ -1467,15 +1475,22 @@ struct MenuPlane : public Plane {
 
 private:
   void click_menu_item( e_menu_item item ) {
-    switch_( g_menu_state ) {
-      case_( MenuState::item_click ) {
+    switch( enum_for( g_menu_state ) ) {
+      case MenuState::e::item_click: {
         // Already clicking, so do nothing. This can happen if a
         // menu item is clicked after it is already in the click
         // animation.
+        break;
       }
-      case_( MenuState::menus_closed ) { SHOULD_NOT_BE_HERE; }
-      case_( MenuState::menus_hidden ) { SHOULD_NOT_BE_HERE; }
-      case_( MenuState::menu_open ) {
+      case MenuState::e::menus_closed: {
+        SHOULD_NOT_BE_HERE;
+        break;
+      }
+      case MenuState::e::menus_hidden: {
+        SHOULD_NOT_BE_HERE;
+        break;
+      }
+      case MenuState::e::menu_open: {
         // This check is important even if the code in this
         // module is structured in such a way that this function
         // is only called when the menu item has responded as
@@ -1484,13 +1499,13 @@ private:
         // (within a frame) that the item is checked for
         // enablement and when this click is called. That's also
         // why we don't call the (memoized) is_menu_item_enabled.
-        if( !g_menu_items[item]->callbacks.enabled() ) break_;
+        if( !g_menu_items[item]->callbacks.enabled() ) break;
         lg.info( "selected menu item `{}`", item );
         g_menu_state = MenuState::item_click{
             item, chrono::system_clock::now() };
         log_menu_state();
+        break;
       }
-      switch_exhaustive;
     };
   }
 };

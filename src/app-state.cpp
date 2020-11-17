@@ -25,9 +25,6 @@
 // Rnl
 #include "rnl/app-state.hpp"
 
-// base-util
-#include "base-util/variant.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -152,10 +149,10 @@ AppFsm& g_app_state() {
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
-  switch_( fsm.state() ) {
-    case_( AppState::main_no_game ) {
+  switch( enum_for( fsm.state() ) ) {
+    case AppState::e::main_no_game: {
       auto sel = main_menu_selection();
-      if( !sel.has_value() ) break_;
+      if( !sel.has_value() ) break;
       switch( *sel ) {
         case e_main_menu_item::resume: //
           SHOULD_NOT_BE_HERE;
@@ -176,10 +173,11 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
           fsm.send_event( AppEvent::quit{} );
           break;
       }
+      break;
     }
-    case_( AppState::main_in_game ) {
+    case AppState::e::main_in_game: {
       auto sel = main_menu_selection();
-      if( !sel.has_value() ) break_;
+      if( !sel.has_value() ) break;
       switch( *sel ) {
         case e_main_menu_item::resume: //
           fsm.send_event( AppEvent::to_game{} );
@@ -201,35 +199,39 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
           SHOULD_NOT_BE_HERE;
           break;
       }
+      break;
     }
-    case_( AppState::creating ) {
+    case AppState::e::creating: {
       default_construct_savegame_state();
       lua::reload();
       lua::run_startup_main();
       fsm.send_event( AppEvent::to_game{} );
+      break;
     }
-    case_( AppState::leaving ) {
+    case AppState::e::leaving: {
       //
+      break;
     }
-    case_( AppState::loading, slot ) {
-      (void)slot; //
+    case AppState::e::loading: {
       CHECK_XP( load_game( 0 ) );
       fsm.send_event( AppEvent::to_game() );
+      break;
     }
-    case_( AppState::saving, slot ) {
-      (void)slot; //
+    case AppState::e::saving: {
       CHECK_XP( save_game( 0 ) );
       g_game_dirty_flag = false;
       fsm.send_event( AppEvent::to_main() );
+      break;
     }
-    case_( AppState::in_game ) {
+    case AppState::e::in_game: {
       g_game_dirty_flag = true;
       advance_turn_state(); //
+      break;
     }
-    case_( AppState::quitting ) {
+    case AppState::e::quitting: {
       *quit = true; //
+      break;
     }
-    switch_exhaustive;
   }
 }
 

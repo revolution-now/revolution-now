@@ -19,7 +19,6 @@
 #include "logging.hpp"
 #include "rand.hpp"
 #include "time.hpp"
-#include "variant.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -594,8 +593,10 @@ void midi_thread_impl() {
     g_midi_comm.set_running_commands(
         g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
-      switch_( cmd.value() ) {
-        case_( command::play, file ) {
+      switch( enum_for( cmd.value() ) ) {
+        case command::e::play: {
+          auto& [file] =
+              get_if_or_die<command::play>( cmd.value() );
           g_midi_comm.set_state( e_midiseq_state::playing );
           g_midi.value().all_notes_off();
           // ****************************************************
@@ -610,7 +611,7 @@ void midi_thread_impl() {
           if( !maybe_info ) {
             midi_thread_record_failure(
                 "failed to load midi file {}", file );
-            break_;
+            break;
           }
           // We've loaded the midi file. Now set all channel vol-
           // umes to maximum. This is because some MIDI files
@@ -620,8 +621,9 @@ void midi_thread_impl() {
           // we don't want.
           g_midi.value().reset_channel_volumes();
           stem = file.stem();
+          break;
         }
-        case_( command::stop ) {
+        case command::e::stop: {
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::stopped );
           if( stem.has_value() )
@@ -629,19 +631,21 @@ void midi_thread_impl() {
           maybe_info = nullopt;
           stem       = nullopt;
           g_midi_comm.set_progress( nullopt );
+          break;
         }
-        case_( command::pause ) {
+        case command::e::pause: {
           if( g_midi_comm.state() == e_midiseq_state::paused )
-            break_;
+            break;
           g_midi.value().all_notes_off();
           g_midi_comm.set_state( e_midiseq_state::paused );
           if( maybe_info.has_value() )
             maybe_info.value().last_pause_time = Clock_t::now();
+          break;
         }
-        case_( command::resume ) {
-          if( !maybe_info.has_value() ) break_;
+        case command::e::resume: {
+          if( !maybe_info.has_value() ) break;
           if( g_midi_comm.state() != e_midiseq_state::paused )
-            break_;
+            break;
           // We're paused playing a tune.
           g_midi_comm.set_state( e_midiseq_state::playing );
           // We need to add the "missing" time into the stoppage
@@ -653,16 +657,20 @@ void midi_thread_impl() {
                 Clock_t::now() - info.last_pause_time.value();
             info.last_pause_time = nullopt;
           }
+          break;
         }
-        case_( command::off ) {
+        case command::e::off: {
           g_midi_comm.set_progress( nullopt );
           time_to_go = true;
           stem       = nullopt;
+          break;
         }
-        case_( command::volume, value ) {
+        case command::e::volume: {
+          auto& [value] =
+              get_if_or_die<command::volume>( cmd.value() );
           g_midi.value().set_master_volume( value );
+          break;
         }
-        switch_exhaustive;
       }
     }
     if( time_to_go ) return;

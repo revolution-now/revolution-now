@@ -388,33 +388,41 @@ void advance_viewport_state() {
 void advance_landview_anim_state() {
   if( util::holds<LandViewAnim::none>( SG().anim ) ) {
     // We're not supposed to be animating anything.
-    switch_( SG().mode.state() ) {
-      case_( LandViewState::none ) {}
-      case_( LandViewState::future ) {}
-      case_( LandViewState::blinking_unit ) {}
-      case_( LandViewState::sliding_unit ) {
+    switch( enum_for( SG().mode.state() ) ) {
+      case LandViewState::e::none: //
+        break;
+      case LandViewState::e::future: //
+        break;
+      case LandViewState::e::blinking_unit: //
+        break;
+      case LandViewState::e::sliding_unit:
         SHOULD_NOT_BE_HERE;
-      }
-      case_( LandViewState::depixelating_unit ) {
+        break;
+      case LandViewState::e::depixelating_unit:
         SHOULD_NOT_BE_HERE;
-      }
-      switch_exhaustive;
+        break;
     }
     return;
   }
   // We're supposed to be animating something.
   if( SG().mode.holds<LandViewState::none>() ) {
     // Kick off the animation.
-    switch_( SG().anim ) {
-      case_( LandViewAnim::none ) { SHOULD_NOT_BE_HERE; }
-      case_( LandViewAnim::move ) {
+    switch( auto& v = SG().anim; enum_for( v ) ) {
+      case LandViewAnim::e::none: {
+        SHOULD_NOT_BE_HERE;
+        break;
+      }
+      case LandViewAnim::e::move: {
+        auto& val = get_if_or_die<LandViewAnim::move>( v );
         SG().mode.send_event( LandViewEvent::slide_unit{
             /*id=*/val.id,      //
             /*direction=*/val.d //
         } );
         play_sound_effect( e_sfx::move );
+        break;
       }
-      case_( LandViewAnim::attack ) {
+      case LandViewAnim::e::attack: {
+        auto& val = get_if_or_die<LandViewAnim::attack>( v );
         ASSIGN_CHECK_OPT( attacker_coord,
                           coord_for_unit( val.attacker ) );
         ASSIGN_CHECK_OPT(
@@ -427,24 +435,35 @@ void advance_landview_anim_state() {
             /*direction=*/d      //
         } );
         play_sound_effect( e_sfx::move );
+        break;
       }
-      switch_exhaustive;
     }
     return;
   }
   // We should already be animating something.
-  switch_( SG().mode.state() ) {
-    case_( LandViewState::none ) { SHOULD_NOT_BE_HERE; }
-    case_( LandViewState::future ) { SHOULD_NOT_BE_HERE; }
-    case_( LandViewState::blinking_unit ) { SHOULD_NOT_BE_HERE; }
-    case_( LandViewState::sliding_unit ) {}
-    case_( LandViewState::depixelating_unit ) {}
-    switch_exhaustive;
+  switch( enum_for( SG().mode.state() ) ) {
+    case LandViewState::e::none: //
+      SHOULD_NOT_BE_HERE;
+      break;
+    case LandViewState::e::future: //
+      SHOULD_NOT_BE_HERE;
+      break;
+    case LandViewState::e::blinking_unit: //
+      SHOULD_NOT_BE_HERE;
+      break;
+    case LandViewState::e::sliding_unit: //
+      break;
+    case LandViewState::e::depixelating_unit: //
+      break;
   }
   bool finished_anim = false;
-  switch_( SG().anim ) {
-    case_( LandViewAnim::none ) { SHOULD_NOT_BE_HERE; }
-    case_( LandViewAnim::move ) {
+  switch( auto& v = SG().anim; enum_for( v ) ) {
+    case LandViewAnim::e::none: {
+      SHOULD_NOT_BE_HERE;
+      break;
+    }
+    case LandViewAnim::e::move: {
+      auto& val = get_if_or_die<LandViewAnim::move>( v );
       ASSIGN_CHECK_OPT(
           sliding,
           SG().mode.holds<LandViewState::sliding_unit>() );
@@ -454,8 +473,10 @@ void advance_landview_anim_state() {
         SG().mode.send_event( LandViewEvent::end{} );
         val.s_promise.set_value_emplace();
       }
+      break;
     }
-    case_( LandViewAnim::attack ) {
+    case LandViewAnim::e::attack: {
+      auto& val    = get_if_or_die<LandViewAnim::attack>( v );
       auto& attack = val;
       CHECK( util::holds<LandViewState::sliding_unit>(
                  SG().mode.state() ) ||
@@ -490,30 +511,37 @@ void advance_landview_anim_state() {
           attack.s_promise.set_value_emplace();
         }
       }
+      break;
     }
-    switch_exhaustive;
   }
   if( finished_anim ) SG().anim = LandViewAnim::none{};
 }
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_landview_state( LandViewFsm& fsm ) {
-  switch_( fsm.mutable_state() ) {
-    case_( LandViewState::none ) {}
-    case_( LandViewState::future, s_future ) {
+  switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
+    case LandViewState::e::none: {
+      break;
+    }
+    case LandViewState::e::future: {
+      auto& [s_future] =
+          get_if_or_die<LandViewState::future>( v );
       advance_fsm_ui_state( &fsm, &s_future.o );
+      break;
     }
-    case_( LandViewState::blinking_unit ) {
+    case LandViewState::e::blinking_unit: {
       // FIXME: add blinking state here.
+      break;
     }
-    case_( LandViewState::sliding_unit ) {
+    case LandViewState::e::sliding_unit: {
       ASSIGN_CHECK_OPT(
           slide, fsm.holds<LandViewState::sliding_unit>() );
       slide.get().percent_vel.advance( e_push_direction::none );
       slide.get().percent += slide.get().percent_vel.to_double();
       if( slide.get().percent > 1.0 ) slide.get().percent = 1.0;
+      break;
     }
-    case_( LandViewState::depixelating_unit ) {
+    case LandViewState::e::depixelating_unit: {
       if( !g_pixels.empty() ) {
         int to_depixelate =
             std::min( config_rn.depixelate_pixels_per_frame,
@@ -536,8 +564,8 @@ void advance_landview_state( LandViewFsm& fsm ) {
                                  point.y._ );
         }
       }
+      break;
     }
-    switch_exhaustive;
   }
 }
 
@@ -682,17 +710,20 @@ sync_future<ClickTileActions> click_on_world_tile(
   auto s_future = make_sync_future<ClickTileActions>();
   if( !util::holds<LandViewAnim::none>( SG().anim ) )
     return s_future;
-  switch_( SG().mode.state() ) {
-    case_( LandViewState::none ) {
+  switch( enum_for( SG().mode.state() ) ) {
+    case LandViewState::e::none: {
       s_future = click_on_world_tile_impl(
           coord, /*allow_activate=*/false );
+      break;
     }
-    case_( LandViewState::blinking_unit ) {
+    case LandViewState::e::blinking_unit: {
       s_future =
           click_on_world_tile_impl( coord,
                                     /*allow_activate=*/true );
+      break;
     }
-    switch_non_exhaustive;
+    default: //
+      break;
   }
   return s_future;
 }
@@ -781,19 +812,28 @@ struct LandViewPlane : public Plane {
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
           break_;
-        switch_( SG().mode.state() ) {
-          case_( LandViewState::none ) {
+        switch( auto& v = SG().mode.state(); enum_for( v ) ) {
+          case LandViewState::e::none: {
             switch( key_event.keycode ) {
               case ::SDLK_z:
                 SG().viewport.smooth_zoom_target( 1.0 );
                 break;
               default: break;
             }
+            break;
           }
-          case_( LandViewState::future ) {}
-          case_( LandViewState::sliding_unit ) {}
-          case_( LandViewState::depixelating_unit ) {}
-          case_( LandViewState::blinking_unit ) {
+          case LandViewState::e::future: {
+            break;
+          }
+          case LandViewState::e::sliding_unit: {
+            break;
+          }
+          case LandViewState::e::depixelating_unit: {
+            break;
+          }
+          case LandViewState::e::blinking_unit: {
+            auto& val =
+                get_if_or_die<LandViewState::blinking_unit>( v );
             auto& blink_unit = val;
             handled          = e_input_handled::yes;
             switch( key_event.keycode ) {
@@ -847,8 +887,8 @@ struct LandViewPlane : public Plane {
                 }
                 break;
             }
+            break;
           }
-          switch_exhaustive;
         }
       }
       case_( input::mouse_wheel_event_t ) {

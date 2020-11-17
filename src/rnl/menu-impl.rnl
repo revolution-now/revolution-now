@@ -1,0 +1,21 @@
+# ===============================================================
+# menu-impl.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-16.
+#
+# Description: Private RNL definitions for the menu module.
+#
+# ===============================================================
+namespace rn;
+
+sumtype MenuItem {
+  menu_divider:
+  menu_clickable:
+    e_menu_item   item;
+    std::string   name;
+    MenuCallbacks callbacks;
+
+  .features:;
+};

@@ -188,12 +188,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
       auto update_drag = [&mouse]( auto button, auto& drag ) {
         if( button ) {
-          switch_( drag ) {
-            case_( drag_phase::none ) {
+          switch( enum_for( drag ) ) {
+            case drag_phase::e::none: {
               drag = drag_phase::maybe{
                   /*origin=*/g_prev_mouse_pos };
+              break;
             }
-            case_( drag_phase::maybe ) {
+            case drag_phase::e::maybe: {
               if_v( drag, drag_phase::maybe, val ) {
                 if( is_in_drag_zone( val->origin, mouse ) ) {
                   drag = drag_phase::dragging{
@@ -201,11 +202,14 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
                       /*phase=*/e_drag_phase::begin };
                 }
               }
+              break;
             }
-            case_( drag_phase::dragging ) {
+            case drag_phase::e::dragging: {
+              auto& val =
+                  get_if_or_die<drag_phase::dragging>( drag );
               CHECK( val.phase == +e_drag_phase::in_progress );
+              break;
             }
-            switch_exhaustive;
           }
         } else {
           // If we were initiating a drag (or in a drag) and re-
@@ -221,11 +225,17 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           // this event, so it should be current with it). There-
           // fore, there is no situation where we should have
           // (button up) + (mouse motion) + (`maybe`/`dragging`).
-          switch_( drag ) {
-            case_( drag_phase::none ) {}
-            case_( drag_phase::maybe ) { SHOULD_NOT_BE_HERE; }
-            case_( drag_phase::dragging ) { SHOULD_NOT_BE_HERE; }
-            switch_exhaustive;
+          switch( enum_for( drag ) ) {
+            case drag_phase::e::none: //
+              break;
+            case drag_phase::e::maybe: {
+              SHOULD_NOT_BE_HERE;
+              break;
+            }
+            case drag_phase::e::dragging: {
+              SHOULD_NOT_BE_HERE;
+              break;
+            }
           }
         }
       };

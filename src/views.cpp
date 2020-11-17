@@ -18,7 +18,6 @@
 #include "render.hpp"
 #include "text.hpp"
 #include "util.hpp"
-#include "variant.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
@@ -394,8 +393,8 @@ void LineEditorView::draw( Texture& tx, Coord coord ) const {
                               all_chars.begin() + rel_pos );
   auto   rel_cursor_pixels =
       rel_pos == 0
-          ? W{ 0 } // render_text might return 1_w in this case.
-          : render_text( font_, fg_, string_up_to_cursor )
+            ? W{ 0 } // render_text might return 1_w in this case.
+            : render_text( font_, fg_, string_up_to_cursor )
                 .size()
                 .w;
   Rect cursor{ coord.x + 1_w + rel_cursor_pixels, coord.y + 1_h,

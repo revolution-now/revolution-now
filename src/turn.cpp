@@ -190,9 +190,10 @@ FSM_DEFINE_FORMAT_RN_( UnitInput );
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
-  switch_( fsm.mutable_state() ) {
-    case_( UnitInputState::none ) {}
-    case_( UnitInputState::processing ) {
+  switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
+    case UnitInputState::e::none: //
+      break;
+    case UnitInputState::e::processing: {
       // - if it is it in `goto` mode focus on it and advance
       //   it
       //
@@ -221,21 +222,21 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
 
       if( unit.finished_turn() ) {
         fsm.send_event( UnitInputEvent::cancel{} );
-        break_;
+        break;
       }
 
       if( !is_unit_on_map_indirect( id ) ) {
         // TODO.
         unit.finish_turn();
         fsm.send_event( UnitInputEvent::cancel{} );
-        break_;
+        break;
       }
 
       if( !unit.orders_mean_input_required() ||
           unit.mv_pts_exhausted() ) {
         unit.finish_turn();
         fsm.send_event( UnitInputEvent::cancel{} );
-        break_;
+        break;
       }
 
       lg.debug( "asking orders for: {}", debug_string( id ) );
@@ -246,13 +247,14 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
         response.orders = *maybe_orders;
         fsm.send_event( UnitInputEvent::put_response{
             /*response=*/std::move( response ) } );
-        break_;
+        break;
       }
 
       fsm.send_event( UnitInputEvent::ask{} );
-      break_;
+      break;
     }
-    case_( UnitInputState::asking ) {
+    case UnitInputState::e::asking: {
+      auto& val = get_if_or_die<UnitInputState::asking>( v );
       // sync_future could be empty in two situations: the first
       // time we pass through this code and just after deserial-
       // ization.
@@ -261,9 +263,13 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
       if( val.response->ready() )
         fsm.send_event( UnitInputEvent::put_response{
             /*response=*/val.response->get_and_reset() } );
+      break;
     }
-    case_( UnitInputState::have_response ) {}
-    case_( UnitInputState::executing_orders ) {
+    case UnitInputState::e::have_response: //
+      break;
+    case UnitInputState::e::executing_orders: {
+      auto& val =
+          get_if_or_die<UnitInputState::executing_orders>( v );
       bool proceed = step_with_future<bool>(
           &val.conf_anim.o,
           /*init=*/
@@ -303,12 +309,13 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
                    };
           },
           /*when_ready=*/L( _ ) );
-      if( !proceed ) break_;
+      if( !proceed ) break;
+      ;
+      break;
     }
-    case_( UnitInputState::executed ) {
+    case UnitInputState::e::executed:
       // !! Unit may no longer exist here.
-    }
-    switch_exhaustive;
+      break;
   }
 }
 
@@ -383,13 +390,17 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
   //
   //  Advance the state of the old world, possibly displaying
   //  messages to the user where necessary. clang-format on
-  switch_( fsm.mutable_state() ) {
-    case_( NationTurnState::starting ) {
+  switch( auto& nation_state = fsm.mutable_state();
+          enum_for( nation_state ) ) {
+    case NationTurnState::e::starting: {
       lg.info( "-------[ Starting turn for {} ]-------",
                nation );
       fsm.send_event( NationTurnEvent::next{} );
+      break;
     }
-    case_( NationTurnState::colonies ) {
+    case NationTurnState::e::colonies: {
+      auto& val = get_if_or_die<NationTurnState::colonies>(
+          nation_state );
       lg.info( "processing colonies for the {}.", nation );
       while( !val.q.empty() ) {
         ColonyId colony_id = val.q.front()->get();
@@ -397,8 +408,11 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
         evolve_colony_one_turn( colony_id );
       }
       fsm.send_event( NationTurnEvent::next{} );
+      break;
     }
-    case_( NationTurnState::doing_units ) {
+    case NationTurnState::e::doing_units: {
+      auto& val = get_if_or_die<NationTurnState::doing_units>(
+          nation_state );
       auto& doing_units = val;
       auto  log_q       = [&] {
         lg.debug( "q: {}", doing_units.q.to_string( 3 ) );
@@ -437,20 +451,27 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
         DCHECK( doing_units.uturn.has_value() );
         fsm_auto_advance( *doing_units.uturn, "unit-turn",
                           { advance_unit_input_state }, id );
-        switch_( doing_units.uturn->state() ) {
-          case_( UnitInputState::none ) {
+        switch( auto& uturn_state = doing_units.uturn->state();
+                enum_for( uturn_state ) ) {
+          case UnitInputState::e::none: {
             // All unit turns should end here.
+            break;
           }
-          case_( UnitInputState::processing ) {
+          case UnitInputState::e::processing: {
             FATAL(
                 "should not be in this state after an advance "
                 "call." );
+            break;
           }
-          case_( UnitInputState::asking ) {
+          case UnitInputState::e::asking: {
             doing_units.need_eot = false;
             done_uturn           = true;
+            break;
           }
-          case_( UnitInputState::have_response ) {
+          case UnitInputState::e::have_response: {
+            auto& val =
+                get_if_or_die<UnitInputState::have_response>(
+                    uturn_state );
             for( auto id : val.response->add_to_back ) {
               doing_units.q.push_back( id );
               unit_from_id( id ).unfinish_turn();
@@ -472,7 +493,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
               // for orders).
               doing_units.uturn->send_event(
                   UnitInputEvent::process{} );
-              break_;
+              break;
             }
             ASSIGN_CHECK_OPT( orders, maybe_orders );
             if( util::holds<orders::wait>( orders ) ) {
@@ -484,11 +505,15 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
             log_q();
             doing_units.uturn->send_event(
                 UnitInputEvent::execute{} );
+            break;
           }
-          case_( UnitInputState::executing_orders ) {
+          case UnitInputState::e::executing_orders: {
             done_uturn = true;
+            break;
           }
-          case_( UnitInputState::executed ) {
+          case UnitInputState::e::executed: {
+            auto& val = get_if_or_die<UnitInputState::executed>(
+                uturn_state );
             for( auto id : val.add_to_front ) {
               doing_units.q.push_front( id );
               unit_from_id( id ).unfinish_turn();
@@ -496,8 +521,8 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
             log_q();
             doing_units.uturn->send_event(
                 UnitInputEvent::process{} );
+            break;
           }
-          switch_exhaustive;
         }
         // There may be no queue front at this point if there was
         // only one unit in the queue and it died.
@@ -507,9 +532,10 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
       }
       if( doing_units.q.empty() )
         fsm.send_event( NationTurnEvent::end{} );
+      break;
     }
-    case_( NationTurnState::ending ) {}
-    switch_exhaustive;
+    case NationTurnState::e::ending: //
+      break;
   }
 }
 
@@ -558,18 +584,21 @@ FSM_DEFINE_FORMAT_RN_( TurnCycle );
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
-  switch_( fsm.mutable_state() ) {
-    case_( TurnCycleState::starting ) {
+  switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
+    case TurnCycleState::e::starting: {
       map_units( []( Unit& unit ) { unit.new_turn(); } );
       fsm.send_event( TurnCycleEvent::next{} );
+      break;
     }
-    case_( TurnCycleState::inside ) {
-      bool has_nation = val.nation.has_value();
-      bool has_next   = val.remainder.front().has_value();
+    case TurnCycleState::e::inside: {
+      auto& val = get_if_or_die<TurnCycleState::inside>( v );
+      bool  has_nation = val.nation.has_value();
+      bool  has_next   = val.remainder.front().has_value();
       if( !has_nation ) {
         if( !has_next ) {
           fsm.send_event( TurnCycleEvent::end{} );
-          break_;
+          break;
+          ;
         }
         auto nation = val.remainder.front()->get();
         val.nation  = nation;
@@ -585,8 +614,10 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
         val.nation = nullopt;
         val.need_eot &= ending->need_eot;
       }
+      break;
     }
-    case_( TurnCycleState::ending ) {
+    case TurnCycleState::e::ending: {
+      auto& val = get_if_or_die<TurnCycleState::ending>( v );
       if( !val.need_eot ) {
         fsm.send_event( TurnCycleEvent::next{} );
       } else {
@@ -595,8 +626,8 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
         else
           mark_end_of_turn();
       }
+      break;
     }
-    switch_exhaustive;
   }
 }
 

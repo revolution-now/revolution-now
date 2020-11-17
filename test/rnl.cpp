@@ -21,7 +21,6 @@
 
 // base-util
 #include "base-util/io.hpp"
-#include "base-util/variant.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -81,15 +80,14 @@ TEST_CASE( "[rnl] Maybe" ) {
   REQUIRE( fmt::format( "{}", maybe ) ==
            "Maybe::just<int>{val=5}" );
 
-  switch_( maybe ) {
-    case_( Maybe::nothing<int> ) {
-      // Should not be here.
+  switch( enum_for( maybe ) ) {
+    case Maybe::e::nothing: //
       REQUIRE( false );
-    }
-    case_( Maybe::just<int> ) { //
+    case Maybe::e::just: {
+      auto& val = get_if_or_die<Maybe::just<int>>( maybe );
       REQUIRE( val.val == 5 );
+      break;
     }
-    switch_exhaustive;
   }
 
   Maybe_t<rn::my_optional<char>> maybe_op_str;
@@ -107,23 +105,21 @@ TEST_CASE( "[rnl] MyVariant1" ) {
   my1    = MyVariant1::excited{};
   bool b = true;
   my1    = MyVariant1::sad{ true, &b };
-  switch_( my1 ) {
-    case_( MyVariant1::happy ) {
+  switch( enum_for( my1 ) ) {
+    case MyVariant1::e::happy: //
       REQUIRE( false );
-      static_assert(
-          is_same_v<decltype( val.p ), pair<char, int>> );
-    }
-    case_( MyVariant1::excited ) {
+      break;
+    case MyVariant1::e::excited:
       REQUIRE( false );
       static_assert( sizeof( MyVariant1::excited ) == 1 );
-    }
-    case_( MyVariant1::sad ) {
+      break;
+    case MyVariant1::e::sad:
+      auto& val = get_if_or_die<MyVariant1::sad>( my1 );
       static_assert( is_same_v<decltype( val.hello ), bool> );
       static_assert( is_same_v<decltype( val.ptr ), bool*> );
       REQUIRE( val.hello == true );
       REQUIRE( *val.ptr == true );
-    }
-    switch_exhaustive;
+      break;
   }
 }
 
@@ -133,19 +129,24 @@ TEST_CASE( "[rnl] MyVariant2" ) {
   my2 = MyVariant2::first{ "hello", true };
   my2 = MyVariant2::second{ true, false };
   my2 = MyVariant2::third{ 7 };
-  switch_( my2 ) {
-    case_( MyVariant2::first ) {
+  switch( enum_for( my2 ) ) {
+    case MyVariant2::e::first: {
+      auto& val = get_if_or_die<MyVariant2::first>( my2 );
       static_assert( is_same_v<decltype( val.name ), string> );
       static_assert( is_same_v<decltype( val.b ), bool> );
+      break;
     }
-    case_( MyVariant2::second ) {
+    case MyVariant2::e::second: {
+      auto& val = get_if_or_die<MyVariant2::second>( my2 );
       static_assert( is_same_v<decltype( val.flag1 ), bool> );
       static_assert( is_same_v<decltype( val.flag2 ), bool> );
+      break;
     }
-    case_( MyVariant2::third ) {
+    case MyVariant2::e::third: {
+      auto& val = get_if_or_die<MyVariant2::third>( my2 );
       static_assert( is_same_v<decltype( val.cost ), int> );
+      break;
     }
-    switch_exhaustive;
   }
   REQUIRE( fmt::format( "{}", my2 ) ==
            "MyVariant2::third{cost=7}" );
@@ -157,21 +158,28 @@ TEST_CASE( "[rnl] MyVariant3" ) {
   my3 = inner::MyVariant3::a1{ MyVariant0_t{} };
   my3 = inner::MyVariant3::a2{ MyVariant0_t{}, MyVariant2_t{} };
   my3 = inner::MyVariant3::a3{ 'r' };
-  switch_( my3 ) {
-    case_( inner::MyVariant3::a1 ) {
+  switch( enum_for( my3 ) ) {
+    case inner::MyVariant3::e::a1: {
       REQUIRE( false );
+      auto& val = get_if_or_die<inner::MyVariant3::a1>( my3 );
       static_assert(
           is_same_v<decltype( val.var0 ), MyVariant0_t> );
+      break;
     }
-    case_( inner::MyVariant3::a2 ) {
+    case inner::MyVariant3::e::a2: {
+      auto& val = get_if_or_die<inner::MyVariant3::a2>( my3 );
       REQUIRE( false );
       static_assert(
           is_same_v<decltype( val.var1 ), MyVariant0_t> );
       static_assert(
           is_same_v<decltype( val.var2 ), MyVariant2_t> );
+      break;
     }
-    case_( inner::MyVariant3::a3 ) { REQUIRE( val.c == 'r' ); }
-    switch_exhaustive;
+    case inner::MyVariant3::e::a3: {
+      auto& val = get_if_or_die<inner::MyVariant3::a3>( my3 );
+      REQUIRE( val.c == 'r' );
+      break;
+    }
   }
 }
 
@@ -182,25 +190,39 @@ TEST_CASE( "[rnl] MyVariant4" ) {
   my4 = inner::MyVariant4::_2nd{};
   my4 = inner::MyVariant4::third{ "hello",
                                   inner::MyVariant3::a3{ 'e' } };
-  switch_( my4 ) {
-    case_( inner::MyVariant4::first ) {
+  switch( enum_for( my4 ) ) {
+    case inner::MyVariant4::e::first: {
       REQUIRE( false );
+      auto& val = get_if_or_die<inner::MyVariant4::first>( my4 );
       static_assert( is_same_v<decltype( val.op ),
                                std::optional<uint32_t>> );
+      break;
     }
-    case_( inner::MyVariant4::_2nd ) { REQUIRE( false ); }
-    case_( inner::MyVariant4::third ) {
+    case inner::MyVariant4::e::_2nd: {
+      REQUIRE( false );
+      break;
+    }
+    case inner::MyVariant4::e::third: {
+      auto& val = get_if_or_die<inner::MyVariant4::third>( my4 );
       REQUIRE( val.s == "hello" );
-      switch_( val.var3 ) {
-        case_( inner::MyVariant3::a1 ) { REQUIRE( false ); }
-        case_( inner::MyVariant3::a2 ) { REQUIRE( false ); }
-        case_( inner::MyVariant3::a3 ) {
-          REQUIRE( val.c == 'e' );
+      switch( enum_for( val.var3 ) ) {
+        case inner::MyVariant3::e::a1: {
+          REQUIRE( false );
+          break;
         }
-        switch_exhaustive;
+        case inner::MyVariant3::e::a2: {
+          REQUIRE( false );
+          break;
+        }
+        case inner::MyVariant3::e::a3: {
+          auto& val_inner =
+              get_if_or_die<inner::MyVariant3::a3>( val.var3 );
+          REQUIRE( val_inner.c == 'e' );
+          break;
+        }
       }
+      break;
     }
-    switch_exhaustive;
   }
   REQUIRE(
       fmt::format( "{}", my4 ) ==
@@ -210,6 +232,7 @@ TEST_CASE( "[rnl] MyVariant4" ) {
 TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
   using V =
       inner::CompositeTemplateTwo_t<rn::my_optional<int>, short>;
+  namespace V_ns = inner::CompositeTemplateTwo;
   static_assert( has_fmt<V> );
   V v = inner::CompositeTemplateTwo::first<rn::my_optional<int>,
                                            short>{
@@ -220,21 +243,16 @@ TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
                   rn::my_optional<int>{ 3 } }, //
           .u = 9                               //
       } };
-  using first_t =
-      inner::CompositeTemplateTwo::first<rn::my_optional<int>,
-                                         short>;
   using second_t =
       inner::CompositeTemplateTwo::second<rn::my_optional<int>,
                                           short>;
-  switch_( v ) {
-    case_( first_t ) {
-      //
-    }
-    case_( second_t ) {
+  static_assert( sizeof( second_t ) == 1 );
+  switch( enum_for( v ) ) {
+    case V_ns::e::first: //
+      break;
+    case V_ns::e::second: //
       REQUIRE( false );
-      static_assert( sizeof( second_t ) == 1 );
-    }
-    switch_exhaustive;
+      break;
   }
   REQUIRE(
       fmt::format( "{}", v ) ==

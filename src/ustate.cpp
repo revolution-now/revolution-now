@@ -21,7 +21,7 @@
 #include "lua.hpp"
 
 // Rnl
-#include "rnl/ustate-private.hpp"
+#include "rnl/ustate-impl.hpp"
 
 // Flatbuffers
 #include "fb/sg-unit_generated.h"
@@ -29,7 +29,6 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/keyval.hpp"
-#include "base-util/variant.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -140,17 +139,16 @@ UnitState_t const& unit_state( UnitId id ) {
 e_unit_state state_for_unit( UnitId id ) {
   auto states_it = SG().states.find( id );
   CHECK( states_it != SG().states.end() );
-  return matcher_( states_it->second, ->, e_unit_state ) {
-    case_( UnitState::free ) {
+  switch( enum_for( states_it->second ) ) {
+    case UnitState::e::free: {
       // Normal units should never be in this state but in pass-
       // ing, i.e., during creation or ownership transfer.
       SHOULD_NOT_BE_HERE;
     }
-    case_( UnitState::world ) return e_unit_state::world;
-    case_( UnitState::cargo ) return e_unit_state::cargo;
-    case_( UnitState::europort ) return e_unit_state::europort;
-    case_( UnitState::colony ) return e_unit_state::colony;
-    matcher_exhaustive;
+    case UnitState::e::world: return e_unit_state::world;
+    case UnitState::e::cargo: return e_unit_state::cargo;
+    case UnitState::e::europort: return e_unit_state::europort;
+    case UnitState::e::colony: return e_unit_state::colony;
   }
 }
 
@@ -274,23 +272,18 @@ Vec<UnitId> units_in_rect( Rect const& rect ) {
 
 Opt<Coord> coord_for_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
-  return matcher_( SG().states[id], ->, Opt<Coord> ) {
-    case_( UnitState::free ) {
+  switch( auto& v = SG().states[id]; enum_for( v ) ) {
+    case UnitState::e::free: {
       FATAL( "asking for coordinates of a free unit." );
     }
-    case_( UnitState::world, coord ) { //
+    case UnitState::e::world: {
+      auto& [coord] = get_if_or_die<UnitState::world>( v );
       return coord;
     }
-    case_( UnitState::cargo ) { //
+    case UnitState::e::cargo:
+    case UnitState::e::europort:
+    case UnitState::e::colony: //
       return nullopt;
-    }
-    case_( UnitState::europort ) { //
-      return nullopt;
-    }
-    case_( UnitState::colony ) { //
-      return nullopt;
-    }
-    matcher_exhaustive;
   };
 }
 
@@ -303,23 +296,21 @@ Coord coord_for_unit_indirect( UnitId id ) {
 // the _safe variant since this function should not throw.
 Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
   CHECK( unit_exists( id ) );
-  return matcher_( SG().states[id], ->, Opt<Coord> ) {
-    case_( UnitState::free ) {
+  switch( auto& v = SG().states[id]; enum_for( v ) ) {
+    case UnitState::e::free: {
       FATAL( "asking for coordinates of a free unit." );
     }
-    case_( UnitState::world, coord ) { //
+    case UnitState::e::world: {
+      auto& [coord] = get_if_or_die<UnitState::world>( v );
       return coord;
     }
-    case_( UnitState::cargo, holder ) { //
+    case UnitState::e::cargo: {
+      auto& [holder] = get_if_or_die<UnitState::cargo>( v );
       return coord_for_unit_indirect_safe( holder );
     }
-    case_( UnitState::europort ) { //
+    case UnitState::e::europort:
+    case UnitState::e::colony: //
       return nullopt;
-    }
-    case_( UnitState::colony ) { //
-      return nullopt;
-    }
-    matcher_exhaustive;
   };
 }
 
@@ -363,21 +354,23 @@ Opt<UnitId> is_unit_onboard( UnitId id ) {
 *****************************************************************/
 expect<> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info ) {
-  return matcher_( info, ->, expect<> ) {
-    case_( UnitEuroPortViewState::outbound, percent ) {
+  switch( enum_for( info ) ) {
+    case UnitEuroPortViewState::e::outbound: {
+      auto& [percent] =
+          get_if_or_die<UnitEuroPortViewState::outbound>( info );
       UNXP_CHECK( percent >= 0.0 );
       UNXP_CHECK( percent < 1.0 );
       return xp_success_t{};
     }
-    case_( UnitEuroPortViewState::inbound, percent ) {
+    case UnitEuroPortViewState::e::inbound: {
+      auto& [percent] =
+          get_if_or_die<UnitEuroPortViewState::inbound>( info );
       UNXP_CHECK( percent >= 0.0 );
       UNXP_CHECK( percent < 1.0 );
       return xp_success_t{};
     }
-    case_( UnitEuroPortViewState::in_port ) {
+    case UnitEuroPortViewState::e::in_port:
       return xp_success_t{};
-    }
-    matcher_exhaustive;
   };
 }
 
@@ -499,17 +492,20 @@ namespace internal {
 // This will erase any ownership that is had over the given unit
 // and mark it as free.
 void ustate_disown_unit( UnitId id ) {
-  switch_( SG().states[id] ) {
-    case_( UnitState::free ) {}
-    case_( UnitState::world, coord ) {
+  switch( auto& v = SG().states[id]; enum_for( v ) ) {
+    case UnitState::e::free: //
+      break;
+    case UnitState::e::world: {
+      auto& [coord] = get_if_or_die<UnitState::world>( v );
       ASSIGN_CHECK_OPT(
           set_it, bu::has_key( SG().units_from_coords, coord ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() )
         SG().units_from_coords.erase( set_it );
+      break;
     }
-    case_( UnitState::cargo ) {
+    case UnitState::e::cargo: {
       ASSIGN_CHECK_OPT(
           pair_it, bu::has_key( SG().holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
@@ -517,15 +513,18 @@ void ustate_disown_unit( UnitId id ) {
                         holder_unit.cargo().find_unit( id ) );
       holder_unit.cargo().remove( slot_idx );
       SG().holder_from_held.erase( pair_it );
+      break;
     }
-    case_( UnitState::europort ) {
+    case UnitState::e::europort: {
       // Ensure the unit has no units in its cargo.
       CHECK( unit_from_id( id )
                  .cargo()
                  .count_items_of_type<UnitId>() == 0 );
+      break;
     }
-    case_( UnitState::colony ) {
-      auto col_id = val.id;
+    case UnitState::e::colony: {
+      auto& val    = get_if_or_die<UnitState::colony>( v );
+      auto  col_id = val.id;
       ASSIGN_CHECK_OPT(
           set_it,
           bu::has_key( SG().units_from_colony, col_id ) );
@@ -534,8 +533,8 @@ void ustate_disown_unit( UnitId id ) {
       if( units_set.empty() )
         SG().units_from_colony.erase( set_it );
       colony_from_id( col_id ).remove_unit( id );
+      break;
     }
-    switch_exhaustive;
   };
   SG().states[id] = UnitState::free{};
 }

@@ -28,7 +28,6 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/non-copyable.hpp"
-#include "base-util/variant.hpp"
 
 // C++ standard library
 #include <variant>

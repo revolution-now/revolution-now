@@ -21,7 +21,6 @@
 #include "screen.hpp"
 #include "text.hpp"
 #include "ustate.hpp"
-#include "variant.hpp"
 #include "views.hpp"
 #include "window.hpp"
 
@@ -228,8 +227,8 @@ void render_colony( Texture& tx, ColonyId id,
   auto const& colony = colony_from_id( id );
   auto        tile   = colony_from_id( id ).buildings().contains(
                   e_colony_building::stockade )
-                  ? e_tile::colony_stockade
-                  : e_tile::colony_basic;
+                           ? e_tile::colony_stockade
+                           : e_tile::colony_basic;
   render_sprite( tx, tile, pixel_coord, 0, 0 );
   auto const& nation = nation_obj( colony.nation() );
   render_colony_flag( tx, pixel_coord + Delta{ 8_w, 8_h },

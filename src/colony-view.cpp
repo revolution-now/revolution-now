@@ -20,9 +20,6 @@
 #include "plane.hpp"
 #include "text.hpp"
 
-// base-util
-#include "base-util/variant.hpp"
-
 using namespace std;
 
 namespace rn {

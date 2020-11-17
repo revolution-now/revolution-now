@@ -39,7 +39,6 @@
 #include "base-util/misc.hpp"
 #include "base-util/optional.hpp"
 #include "base-util/string.hpp"
-#include "base-util/variant.hpp"
 
 // function_ref
 #include "tl/function_ref.hpp"

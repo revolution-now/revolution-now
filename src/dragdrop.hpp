@@ -27,9 +27,6 @@
 // Rnl
 #include "rnl/dragdrop.hpp"
 
-// base-util
-#include "base-util/variant.hpp"
-
 // C++ standard library
 #include <variant>
 
@@ -169,9 +166,10 @@ public:
   }
 
   void handle_draw( Texture& tx ) const {
-    switch_( fsm_.state() ) {
-      case_( InProgress_t ) {
-        auto mouse_pos = input::current_mouse_position();
+    switch( auto& v = fsm_.state(); enum_for( v ) ) {
+      case DragState::e::in_progress: {
+        auto& val       = get_if_or_die<InProgress_t>( v );
+        auto  mouse_pos = input::current_mouse_position();
         copy_texture( val.tx, tx,
                       mouse_pos - val.tx.size() / Scale{ 2 } -
                           val.click_offset );
@@ -207,8 +205,10 @@ public:
             break;
           }
         }
+        break;
       }
-      case_( RubberBanding_t ) {
+      case DragState::e::rubber_banding: {
+        auto& val   = get_if_or_die<RubberBanding_t>( v );
         auto  delta = val.dest - val.current;
         Coord pos;
         pos.x._ =
@@ -217,21 +217,26 @@ public:
             val.current.y._ + int( delta.h._ * val.percent );
         copy_texture( val.tx, tx,
                       pos - val.tx.size() / Scale{ 2 } );
+        break;
       }
-      case_( None_t ) break_;
-      case_( WaitingToExecute_t ) {
+      case DragState::e::none: //
+        break;
+      case DragState::e::waiting_to_execute: {
+        auto& val = get_if_or_die<WaitingToExecute_t>( v );
         copy_texture( val.tx, tx,
                       val.mouse_released -
                           val.tx.size() / Scale{ 2 } -
                           val.click_offset );
+        break;
       }
-      case_( Finalizing_t ) {
+      case DragState::e::finalizing: {
+        auto& val = get_if_or_die<Finalizing_t>( v );
         copy_texture( val.tx, tx,
                       val.mouse_released -
                           val.tx.size() / Scale{ 2 } -
                           val.click_offset );
+        break;
       }
-      switch_exhaustive;
     }
   }
 
@@ -339,21 +344,29 @@ public:
 
   Opt<DraggableObjectT> obj_being_dragged() const {
     Opt<DraggableObjectT> res;
-    switch_( fsm_.state() ) {
-      case_( None_t ) break_;
-      case_( RubberBanding_t ) {
-        res = child().draggable_from_src( val.src );
+    switch( auto& v = fsm_.state(); enum_for( v ) ) {
+      case DragState::e::none: //
+        break;
+      case DragState::e::rubber_banding: {
+        auto& val = get_if_or_die<RubberBanding_t>( v );
+        res       = child().draggable_from_src( val.src );
+        break;
       }
-      case_( InProgress_t ) {
-        res = child().draggable_from_src( val.src );
+      case DragState::e::in_progress: {
+        auto& val = get_if_or_die<InProgress_t>( v );
+        res       = child().draggable_from_src( val.src );
+        break;
       }
-      case_( WaitingToExecute_t ) { //
-        res = draggable_from_arc( val.arc );
+      case DragState::e::waiting_to_execute: {
+        auto& val = get_if_or_die<WaitingToExecute_t>( v );
+        res       = draggable_from_arc( val.arc );
+        break;
       }
-      case_( Finalizing_t ) { //
-        res = draggable_from_arc( val.arc );
+      case DragState::e::finalizing: {
+        auto& val = get_if_or_die<Finalizing_t>( v );
+        res       = draggable_from_arc( val.arc );
+        break;
       }
-      switch_exhaustive;
     }
     return res;
   }

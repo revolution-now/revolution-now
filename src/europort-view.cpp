@@ -102,11 +102,16 @@ Opt<DraggableObject_t> g_dragging_object;
 
 Opt<DraggableObject_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
-  return matcher_( slot, ->, Opt<DraggableObject_t> ) {
-    case_( CargoSlot::empty ) resu1t    nullopt;
-    case_( CargoSlot::overflow ) resu1t nullopt;
-    case_( CargoSlot::cargo, contents ) {
-      return matcher_( contents, ->, DraggableObject_t ) {
+  switch( enum_for( slot ) ) {
+    case CargoSlot::e::empty: {
+      return nullopt;
+    }
+    case CargoSlot::e::overflow: {
+      return nullopt;
+    }
+    case CargoSlot::e::cargo: {
+      auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
+      return matcher_( cargo.contents, ->, DraggableObject_t ) {
         case_( UnitId ) {
           return DraggableObject::unit{ /*id=*/val };
         }
@@ -118,17 +123,24 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
         matcher_exhaustive;
       }
     }
-    matcher_exhaustive;
   }
 }
 
 Opt<Cargo> draggable_to_cargo_object(
     DraggableObject_t const& draggable ) {
-  return matcher_( draggable, ->, Opt<Cargo> ) {
-    case_( DraggableObject::unit ) return val.id;
-    case_( DraggableObject::market_commodity ) return nullopt;
-    case_( DraggableObject::cargo_commodity ) return val.comm;
-    matcher_exhaustive;
+  switch( enum_for( draggable ) ) {
+    case DraggableObject::e::unit: {
+      auto& val =
+          get_if_or_die<DraggableObject::unit>( draggable );
+      return val.id;
+    }
+    case DraggableObject::e::market_commodity: return nullopt;
+    case DraggableObject::e::cargo_commodity: {
+      auto& val =
+          get_if_or_die<DraggableObject::cargo_commodity>(
+              draggable );
+      return val.comm;
+    }
   }
 }
 
@@ -146,21 +158,28 @@ Opt<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
 
 Texture draw_draggable_object(
     DraggableObject_t const& object ) {
-  return matcher_( object ) {
-    case_( DraggableObject::unit, id ) {
+  switch( enum_for( object ) ) {
+    case DraggableObject::e::unit: {
+      auto& [id] =
+          get_if_or_die<DraggableObject::unit>( object );
       auto tx = create_texture_transparent(
           lookup_sprite( unit_from_id( id ).desc().tile )
               .size() );
       render_unit( tx, id, Coord{}, /*with_icon=*/false );
       return tx;
     }
-    case_( DraggableObject::market_commodity, type ) {
+    case DraggableObject::e::market_commodity: {
+      auto& [type] =
+          get_if_or_die<DraggableObject::market_commodity>(
+              object );
       return render_commodity_create( type );
     }
-    case_( DraggableObject::cargo_commodity ) {
+    case DraggableObject::e::cargo_commodity: {
+      auto& val =
+          get_if_or_die<DraggableObject::cargo_commodity>(
+              object );
       return render_commodity_create( val.comm.type );
     }
-    matcher_exhaustive;
   }
 }
 
@@ -1037,11 +1056,16 @@ public:
         }
         auto dst_coord       = rect.upper_left() + offset;
         auto cargo_slot_copy = cargo_slot;
-        switch_( cargo_slot_copy ) {
-          case_( CargoSlot::empty ) {}
-          case_( CargoSlot::overflow ) {}
-          case_( CargoSlot::cargo ) {
-            switch_( val.contents ) {
+        switch( auto& v = cargo_slot_copy; enum_for( v ) ) {
+          case CargoSlot::e::empty: {
+            break;
+          }
+          case CargoSlot::e::overflow: {
+            break;
+          }
+          case CargoSlot::e::cargo: {
+            auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+            switch_( cargo.contents ) {
               case_( UnitId ) {
                 if( g_dragging_object !=
                     DraggableObject_t{
@@ -1056,8 +1080,8 @@ public:
               }
               switch_exhaustive;
             }
+            break;
           }
-          switch_exhaustive;
         }
       }
       for( auto [idx, rect] :
@@ -1281,11 +1305,13 @@ public:
 
   DraggableObject_t draggable_from_src(
       DragSrc_t const& drag_src ) const {
-    return matcher_( drag_src, ->, DraggableObject_t ) {
-      case_( DragSrc::dock, id ) {
+    switch( enum_for( drag_src ) ) {
+      case DragSrc::e::dock: {
+        auto& [id] = get_if_or_die<DragSrc::dock>( drag_src );
         return DraggableObject::unit{ id };
       }
-      case_( DragSrc::cargo ) {
+      case DragSrc::e::cargo: {
+        auto& val = get_if_or_die<DragSrc::cargo>( drag_src );
         // Not all cargo slots must have an item in them, but in
         // this case the slot should otherwise the DragSrc object
         // should never have been created.
@@ -1293,19 +1319,23 @@ public:
                           draggable_in_cargo_slot( val.slot ) );
         return object;
       }
-      case_( DragSrc::outbound, id ) {
+      case DragSrc::e::outbound: {
+        auto& [id] =
+            get_if_or_die<DragSrc::outbound>( drag_src );
         return DraggableObject::unit{ id };
       }
-      case_( DragSrc::inbound, id ) {
+      case DragSrc::e::inbound: {
+        auto& [id] = get_if_or_die<DragSrc::inbound>( drag_src );
         return DraggableObject::unit{ id };
       }
-      case_( DragSrc::inport, id ) {
+      case DragSrc::e::inport: {
+        auto& [id] = get_if_or_die<DragSrc::inport>( drag_src );
         return DraggableObject::unit{ id };
       }
-      case_( DragSrc::market ) {
+      case DragSrc::e::market: {
+        auto& val = get_if_or_die<DragSrc::market>( drag_src );
         return DraggableObject::market_commodity{ val.type };
       }
-      matcher_exhaustive;
     }
   }
 
@@ -1453,8 +1483,10 @@ public:
   }
 
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
-    return matcher_( drag_arc, ->, bool ) {
-      case_( DragArc::dock_to_cargo, src, dst ) {
+    switch( auto& v = drag_arc; enum_for( drag_arc ) ) {
+      case DragArc::e::dock_to_cargo: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::dock_to_cargo>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1462,11 +1494,15 @@ public:
         return unit_from_id( ship ).cargo().fits_somewhere(
             src.id, dst.slot._ );
       }
-      case_( DragArc::cargo_to_dock ) {
+      case DragArc::e::cargo_to_dock: {
+        auto& val = get_if_or_die<DragArc::cargo_to_dock>( v );
         return util::holds<DraggableObject::unit>(
             draggable_from_src( val.src ) );
       }
-      case_( DragArc::cargo_to_cargo, src, dst ) {
+      case DragArc::e::cargo_to_cargo: {
+        auto& c_to_c =
+            get_if_or_die<DragArc::cargo_to_cargo>( v );
+        auto& [src, dst] = c_to_c;
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1480,9 +1516,9 @@ public:
             return unit_from_id( ship )
                 .cargo()
                 .fits_with_item_removed(
-                    /*cargo=*/cargo_object,   //
-                    /*remove_slot=*/src.slot, //
-                    /*insert_slot=*/dst.slot  //
+                    /*cargo=*/cargo_object,          //
+                    /*remove_slot=*/c_to_c.src.slot, //
+                    /*insert_slot=*/c_to_c.dst.slot  //
                 );
           }
           case_( Commodity ) {
@@ -1493,26 +1529,32 @@ public:
             size_one.quantity = 1;
             return unit_from_id( ship ).cargo().fits(
                 /*cargo=*/size_one,
-                /*slot=*/dst.slot );
+                /*slot=*/c_to_c.dst.slot );
           }
           matcher_exhaustive;
         }
       }
-      case_( DragArc::outbound_to_inbound ) { return true; }
-      case_( DragArc::outbound_to_inport ) {
+      case DragArc::e::outbound_to_inbound: return true;
+      case DragArc::e::outbound_to_inport: {
+        auto& val =
+            get_if_or_die<DragArc::outbound_to_inport>( v );
         ASSIGN_CHECK_OPT(
             info, unit_euro_port_view_info( val.src.id ) );
         ASSIGN_CHECK_V( outbound, info.get(),
                         UnitEuroPortViewState::outbound );
         return outbound.percent == 0.0;
       }
-      case_( DragArc::inbound_to_outbound ) { return true; }
-      case_( DragArc::inport_to_outbound ) { return true; }
-      case_( DragArc::dock_to_inport_ship, src, dst ) {
+      case DragArc::e::inbound_to_outbound: return true;
+      case DragArc::e::inport_to_outbound: return true;
+      case DragArc::e::dock_to_inport_ship: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::dock_to_inport_ship>( v );
         return unit_from_id( dst.id ).cargo().fits_somewhere(
             src.id );
       }
-      case_( DragArc::cargo_to_inport_ship, src, dst ) {
+      case DragArc::e::cargo_to_inport_ship: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
         auto dst_ship = dst.id;
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
@@ -1537,7 +1579,9 @@ public:
           matcher_exhaustive;
         }
       }
-      case_( DragArc::market_to_cargo, src, dst ) {
+      case DragArc::e::market_to_cargo: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::market_to_cargo>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1552,7 +1596,9 @@ public:
         return unit_from_id( ship ).cargo().fits_somewhere(
             comm, dst.slot._ );
       }
-      case_( DragArc::market_to_inport_ship, src, dst ) {
+      case DragArc::e::market_to_inport_ship: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::market_to_inport_ship>( v );
         auto comm = Commodity{
             /*type=*/src.type, //
             // If the commodity can fit even with just one quan-
@@ -1563,7 +1609,8 @@ public:
         return unit_from_id( dst.id ).cargo().fits_somewhere(
             comm, /*starting_slot=*/0 );
       }
-      case_( DragArc::cargo_to_market ) {
+      case DragArc::e::cargo_to_market: {
+        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1574,7 +1621,6 @@ public:
                 val.src.slot._ )
             .has_value();
       }
-      matcher_exhaustive;
     }
   }
 
@@ -1586,16 +1632,22 @@ public:
       return;
     }
     // Shift is down.
-    switch_( drag_arc ) {
-      case_( DragArc::market_to_cargo ) {
+    switch( auto& v = drag_arc; enum_for( v ) ) {
+      case DragArc::e::market_to_cargo: {
+        auto& val = get_if_or_die<DragArc::market_to_cargo>( v );
         ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
+        break;
       }
-      case_( DragArc::market_to_inport_ship ) {
+      case DragArc::e::market_to_inport_ship: {
+        auto& val =
+            get_if_or_die<DragArc::market_to_inport_ship>( v );
         ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
+        break;
       }
-      case_( DragArc::cargo_to_market ) {
+      case DragArc::e::cargo_to_market: {
+        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1608,8 +1660,11 @@ public:
                     val.src.slot._ ) );
         ask_for_quantity_( commodity_ref.get().type, "sell" );
         stored_arc_ = drag_arc;
+        break;
       }
-      case_( DragArc::cargo_to_inport_ship ) {
+      case DragArc::e::cargo_to_inport_ship: {
+        auto& val =
+            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1627,10 +1682,11 @@ public:
                              "move" );
           stored_arc_ = drag_arc;
         }
+        break;
       }
-      default_switch( {
+      default:
         accept_finalized_drag( drag_arc ); //
-      } );
+        break;
     }
   }
 
@@ -1648,15 +1704,33 @@ public:
       DragArc_t new_arc    = DragArc_t{ new_val };
       accept_finalized_drag( new_arc );
     };
-    switch_( *stored_arc_ ) {
-      case_( DragArc::market_to_cargo ) set_it( val );
-      case_( DragArc::market_to_inport_ship ) set_it( val );
-      case_( DragArc::cargo_to_market ) set_it( val );
-      case_( DragArc::cargo_to_inport_ship ) set_it( val );
-      default_switch( {
+    switch( auto& v = *stored_arc_; enum_for( v ) ) {
+      case DragArc::e::market_to_cargo: {
+        auto& val = get_if_or_die<DragArc::market_to_cargo>( v );
+        set_it( val );
+        break;
+      }
+      case DragArc::e::market_to_inport_ship: {
+        auto& val =
+            get_if_or_die<DragArc::market_to_inport_ship>( v );
+        set_it( val );
+        break;
+      }
+      case DragArc::e::cargo_to_market: {
+        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
+        set_it( val );
+        break;
+      }
+      case DragArc::e::cargo_to_inport_ship: {
+        auto& val =
+            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
+        set_it( val );
+        break;
+      }
+      default:
         FATAL( "need to receive quantity for drag arc type {}",
                *stored_arc_ );
-      } );
+        break;
     }
   }
 
@@ -1672,8 +1746,10 @@ public:
     lg.debug( "performing drag: {}", drag_arc );
     // Beyond this point it is assumed that this drag is compat-
     // ible with game rules.
-    switch_( drag_arc ) {
-      case_( DragArc::dock_to_cargo, src, dst ) {
+    switch( auto& v = drag_arc; enum_for( v ) ) {
+      case DragArc::e::dock_to_cargo: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::dock_to_cargo>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1684,59 +1760,85 @@ public:
           ustate_change_to_cargo( ship, src.id, dst.slot._ );
         else
           ustate_change_to_cargo( ship, src.id );
+        break;
       }
-      case_( DragArc::cargo_to_dock ) {
+      case DragArc::e::cargo_to_dock: {
+        auto& val = get_if_or_die<DragArc::cargo_to_dock>( v );
         ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),
                         DraggableObject::unit );
         unit_move_to_europort_dock( unit.id );
+        break;
       }
-      case_( DragArc::cargo_to_cargo, src, dst ) {
+      case DragArc::e::cargo_to_cargo: {
+        auto& c_to_c =
+            get_if_or_die<DragArc::cargo_to_cargo>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
-        ASSIGN_CHECK_OPT( cargo_object,
-                          draggable_to_cargo_object(
-                              draggable_from_src( src ) ) );
+        ASSIGN_CHECK_OPT(
+            cargo_object,
+            draggable_to_cargo_object(
+                draggable_from_src( c_to_c.src ) ) );
         switch_( cargo_object ) {
           case_( UnitId ) {
             // Will first "disown" unit which will remove it from
             // the cargo.
-            ustate_change_to_cargo( ship, val, dst.slot._ );
+            ustate_change_to_cargo( ship, val,
+                                    c_to_c.dst.slot._ );
           }
           case_( Commodity ) {
             move_commodity_as_much_as_possible(
-                ship, src.slot._, ship, dst.slot._,
+                ship, c_to_c.src.slot._, ship, c_to_c.dst.slot._,
                 /*max_quantity=*/nullopt,
                 /*try_other_dst_slots=*/false );
           }
           switch_exhaustive;
         }
+        break;
       }
-      case_( DragArc::outbound_to_inbound ) {
+      case DragArc::e::outbound_to_inbound: {
+        auto& val =
+            get_if_or_die<DragArc::outbound_to_inbound>( v );
         unit_sail_to_old_world( val.src.id );
+        break;
       }
-      case_( DragArc::outbound_to_inport ) {
+      case DragArc::e::outbound_to_inport: {
+        auto& val =
+            get_if_or_die<DragArc::outbound_to_inport>( v );
         unit_sail_to_old_world( val.src.id );
+        break;
       }
-      case_( DragArc::inbound_to_outbound ) {
+      case DragArc::e::inbound_to_outbound: {
+        auto& val =
+            get_if_or_die<DragArc::inbound_to_outbound>( v );
         unit_sail_to_new_world( val.src.id );
+        break;
       }
-      case_( DragArc::inport_to_outbound ) {
+      case DragArc::e::inport_to_outbound: {
+        auto& val =
+            get_if_or_die<DragArc::inport_to_outbound>( v );
         unit_sail_to_new_world( val.src.id );
+        break;
       }
-      case_( DragArc::dock_to_inport_ship, src, dst ) {
+      case DragArc::e::dock_to_inport_ship: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::dock_to_inport_ship>( v );
         ustate_change_to_cargo( dst.id, src.id );
+        break;
       }
-      case_( DragArc::cargo_to_inport_ship, src, dst ) {
-        ASSIGN_CHECK_OPT( cargo_object,
-                          draggable_to_cargo_object(
-                              draggable_from_src( src ) ) );
+      case DragArc::e::cargo_to_inport_ship: {
+        auto& c_to_i_s =
+            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
+        ASSIGN_CHECK_OPT(
+            cargo_object,
+            draggable_to_cargo_object(
+                draggable_from_src( c_to_i_s.src ) ) );
         switch_( cargo_object ) {
           case_( UnitId ) {
-            CHECK( !src.quantity.has_value() );
+            CHECK( !c_to_i_s.src.quantity.has_value() );
             // Will first "disown" unit which will remove it from
             // the cargo.
-            ustate_change_to_cargo( dst.id, val );
+            ustate_change_to_cargo( c_to_i_s.dst.id, val );
           }
           case_( Commodity ) {
             ASSIGN_CHECK_OPT(
@@ -1744,15 +1846,19 @@ public:
                 entities_->active_cargo |
                     fmap_join( L( _.active_unit() ) ) );
             move_commodity_as_much_as_possible(
-                src_ship, src.slot._, /*dst_ship=*/dst.id,
+                src_ship, c_to_i_s.src.slot._,
+                /*dst_ship=*/c_to_i_s.dst.id,
                 /*dst_slot=*/0,
-                /*max_quantity=*/src.quantity,
+                /*max_quantity=*/c_to_i_s.src.quantity,
                 /*try_other_dst_slots=*/true );
           }
           switch_exhaustive;
         }
+        break;
       }
-      case_( DragArc::market_to_cargo, src, dst ) {
+      case DragArc::e::market_to_cargo: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::market_to_cargo>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1773,8 +1879,11 @@ public:
         add_commodity_to_cargo( comm, ship,
                                 /*slot=*/dst.slot._,
                                 /*try_other_slots=*/true );
+        break;
       }
-      case_( DragArc::market_to_inport_ship, src, dst ) {
+      case DragArc::e::market_to_inport_ship: {
+        auto& [src, dst] =
+            get_if_or_die<DragArc::market_to_inport_ship>( v );
         auto comm = Commodity{
             /*type=*/src.type, //
             /*quantity=*/src.quantity.value_or(
@@ -1791,8 +1900,10 @@ public:
         CHECK( comm.quantity > 0 );
         add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
                                 /*try_other_slots=*/true );
+        break;
       }
-      case_( DragArc::cargo_to_market ) {
+      case DragArc::e::cargo_to_market: {
+        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
         ASSIGN_CHECK_OPT(
             ship, entities_->active_cargo |
                       fmap_join( L( _.active_unit() ) ) );
@@ -1814,8 +1925,8 @@ public:
           add_commodity_to_cargo( new_comm, ship,
                                   /*slot=*/val.src.slot._,
                                   /*try_other_slots=*/false );
+        break;
       }
-      switch_exhaustive;
     }
   }
 
@@ -1845,12 +1956,15 @@ FSM_DEFINE_FORMAT_RN_( Euroview );
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_euroview_state( EuroviewFsm& fsm ) {
-  switch_( fsm.mutable_state() ) {
-    case_( EuroviewState::normal ) {}
-    case_( EuroviewState::future, s_future ) {
+  switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
+    case EuroviewState::e::normal: //
+      break;
+    case EuroviewState::e::future: {
+      auto& [s_future] =
+          get_if_or_die<EuroviewState::future>( v );
       advance_fsm_ui_state( &fsm, &s_future );
+      break;
     }
-    switch_exhaustive;
   }
 }
 

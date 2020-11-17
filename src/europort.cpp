@@ -19,7 +19,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/variant.hpp"
 
 // Range-v3
 #include "range/v3/action/sort.hpp"
@@ -122,12 +121,17 @@ void unit_sail_to_old_world( UnitId id ) {
       UnitEuroPortViewState::inbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
   if( maybe_state ) {
-    switch_( maybe_state->get() ) {
-      case_( UnitEuroPortViewState::inbound ) {
+    switch( auto& v = maybe_state->get(); enum_for( v ) ) {
+      case UnitEuroPortViewState::e::inbound: {
+        auto& val =
+            get_if_or_die<UnitEuroPortViewState::inbound>( v );
         // no-op, i.e., keep state the same.
         target_state = val;
+        break;
       }
-      case_( UnitEuroPortViewState::outbound, percent ) {
+      case UnitEuroPortViewState::e::outbound: {
+        auto& [percent] =
+            get_if_or_die<UnitEuroPortViewState::outbound>( v );
         if( percent > 0.0 ) {
           // Unit must "turn around" and go the other way.
           target_state = UnitEuroPortViewState::inbound{
@@ -137,12 +141,15 @@ void unit_sail_to_old_world( UnitId id ) {
           // diately move it to in_port.
           target_state = UnitEuroPortViewState::in_port{};
         }
+        break;
       }
-      case_( UnitEuroPortViewState::in_port ) {
+      case UnitEuroPortViewState::e::in_port: {
+        auto& val =
+            get_if_or_die<UnitEuroPortViewState::in_port>( v );
         // no-op, unit is already in port.
         target_state = val;
+        break;
       }
-      switch_exhaustive;
     }
   }
   if( maybe_state && target_state == maybe_state->get() ) //
@@ -163,12 +170,17 @@ void unit_sail_to_new_world( UnitId id ) {
   UnitEuroPortViewState_t target_state =
       UnitEuroPortViewState::outbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
-  switch_( maybe_state->get() ) {
-    case_( UnitEuroPortViewState::outbound ) {
+  switch( auto& v = maybe_state->get(); enum_for( v ) ) {
+    case UnitEuroPortViewState::e::outbound: {
+      auto& val =
+          get_if_or_die<UnitEuroPortViewState::outbound>( v );
       // no-op, i.e., keep state the same.
       target_state = val;
+      break;
     }
-    case_( UnitEuroPortViewState::inbound, percent ) {
+    case UnitEuroPortViewState::e::inbound: {
+      auto& [percent] =
+          get_if_or_die<UnitEuroPortViewState::inbound>( v );
       if( percent > 0.0 ) {
         // Unit must "turn around" and go the other way.
         target_state = UnitEuroPortViewState::outbound{
@@ -176,11 +188,12 @@ void unit_sail_to_new_world( UnitId id ) {
       } else {
         NOT_IMPLEMENTED; // find a place on the map to move to.
       }
+      break;
     }
-    case_( UnitEuroPortViewState::in_port ) {
+    case UnitEuroPortViewState::e::in_port: {
       // keep default target.
+      break;
     }
-    switch_exhaustive;
   }
   if( maybe_state && target_state == maybe_state->get() ) //
     return;
