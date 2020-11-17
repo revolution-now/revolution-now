@@ -1994,10 +1994,12 @@ struct EuropePlane : public Plane {
   e_input_handled input( input::event_t const& event ) override {
     if( drag_n_drop_.handle_input( event ) )
       return e_input_handled::yes;
-    return matcher_( event ) {
-      case_( input::unknown_event_t ) resu1t e_input_handled::no;
-      case_( input::quit_event_t ) resu1t    e_input_handled::no;
-      case_( input::win_event_t ) {
+    switch( enum_for( event ) ) {
+      case input::e_input_event::unknown_event:
+        return e_input_handled::no;
+      case input::e_input_event::quit_event:
+        return e_input_handled::no;
+      case input::e_input_event::win_event:
         // Note: we don't have to handle the window-resize event
         // here because currently the europort-plane completely
         // re-composites and re-draws itself every frame ac-
@@ -2005,15 +2007,16 @@ struct EuropePlane : public Plane {
         //
         // Generally we should return no here because this is an
         // event that we want all planes to see.
-        resu1t e_input_handled::no;
-      }
-      case_( input::key_event_t ) resu1t e_input_handled::no;
-      case_( input::mouse_wheel_event_t )
-          resu1t e_input_handled::no;
-      case_( input::mouse_move_event_t ) {
-        resu1t e_input_handled::yes;
-      }
-      case_( input::mouse_button_event_t ) {
+        return e_input_handled::no;
+      case input::e_input_event::key_event:
+        return e_input_handled::no;
+      case input::e_input_event::mouse_wheel_event:
+        return e_input_handled::no;
+      case input::e_input_event::mouse_move_event:
+        return e_input_handled::yes;
+      case input::e_input_event::mouse_button_event: {
+        auto& val =
+            get_if_or_die<input::mouse_button_event_t>( event );
         if( val.buttons !=
             input::e_mouse_button_event::left_down )
           resu1t e_input_handled::yes;
@@ -2042,11 +2045,10 @@ struct EuropePlane : public Plane {
         try_select_unit( entities_.ships_in_port );
         try_select_unit( entities_.ships_inbound );
         try_select_unit( entities_.ships_outbound );
-        resu1t handled;
+        return handled;
       }
-      case_( input::mouse_drag_event_t )
-          resu1t e_input_handled::no;
-      matcher_exhaustive;
+      case input::e_input_event::mouse_drag_event:
+        return e_input_handled::no;
     }
   }
 

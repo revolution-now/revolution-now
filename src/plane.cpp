@@ -116,13 +116,16 @@ struct OmniPlane : public Plane {
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch_( event ) {
-      case_( input::quit_event_t ) { throw exception_exit{}; }
-      case_( input::win_event_t ) {}
-      case_( input::key_event_t ) {
-        auto& key_event = val;
+    switch( enum_for( event ) ) {
+      case input::e_input_event::quit_event:
+        throw exception_exit{};
+      case input::e_input_event::win_event: //
+        break;
+      case input::e_input_event::key_event: {
+        auto& key_event =
+            get_if_or_die<input::key_event_t>( event );
         if( key_event.change != input::e_key_change::down )
-          break_;
+          break;
         handled = e_input_handled::yes;
         switch( key_event.keycode ) {
           case ::SDLK_F12:
@@ -145,8 +148,10 @@ struct OmniPlane : public Plane {
             handled = e_input_handled::no;
             break;
         }
+        break;
       }
-      switch_non_exhaustive;
+      default: //
+        break;
     }
     return handled;
   }
@@ -262,11 +267,13 @@ input::mouse_drag_event_t project_drag_event(
 
 bool input_catchall( input::event_t const& event ) {
   bool handled = false;
-  switch_( event ) {
-    case_( input::quit_event_t ) { throw exception_exit{}; }
-    case_( input::key_event_t ) {
-      auto& key_event = val;
-      if( key_event.change != input::e_key_change::down ) break_;
+  switch( enum_for( event ) ) {
+    case input::e_input_event::quit_event:
+      throw exception_exit{};
+    case input::e_input_event::key_event: {
+      auto& key_event =
+          get_if_or_die<input::key_event_t>( event );
+      if( key_event.change != input::e_key_change::down ) break;
       switch( key_event.keycode ) {
         case ::SDLK_ESCAPE: //
           handled = true;
@@ -275,8 +282,10 @@ bool input_catchall( input::event_t const& event ) {
         default: //
           break;
       }
+      break;
     }
-    switch_non_exhaustive;
+    default: //
+      break;
   }
   return handled;
 }

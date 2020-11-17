@@ -82,9 +82,10 @@ struct MainMenuPlane : public Plane {
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch_( event ) {
-      case_( input::key_event_t ) {
-        if( val.change != input::e_key_change::down ) break_;
+    switch( enum_for( event ) ) {
+      case input::e_input_event::key_event: {
+        auto& val = get_if_or_die<input::key_event_t>( event );
+        if( val.change != input::e_key_change::down ) break;
         // It's a key down.
         switch( val.keycode ) {
           case ::SDLK_UP:
@@ -120,9 +121,10 @@ struct MainMenuPlane : public Plane {
             break;
           default: break;
         }
-        break_;
+        break;
       }
-      switch_non_exhaustive;
+      default: //
+        break;
     }
     return handled;
   }

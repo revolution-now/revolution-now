@@ -792,11 +792,15 @@ struct LandViewPlane : public Plane {
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch_( event ) {
-      case_( input::unknown_event_t ) {}
-      case_( input::quit_event_t ) {}
-      case_( input::win_event_t ) {}
-      case_( input::key_event_t ) {
+    switch( enum_for( event ) ) {
+      case input::e_input_event::unknown_event: //
+        break;
+      case input::e_input_event::quit_event: //
+        break;
+      case input::e_input_event::win_event: //
+        break;
+      case input::e_input_event::key_event: {
+        auto& val = get_if_or_die<input::key_event_t>( event );
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
@@ -807,11 +811,11 @@ struct LandViewPlane : public Plane {
         // from lowercase.
         if( state( ::SDL_SCANCODE_LSHIFT ) ||
             state( ::SDL_SCANCODE_RSHIFT ) )
-          break_;
+          break;
 
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
-          break_;
+          break;
         switch( auto& v = SG().mode.state(); enum_for( v ) ) {
           case LandViewState::e::none: {
             switch( key_event.keycode ) {
@@ -890,8 +894,11 @@ struct LandViewPlane : public Plane {
             break;
           }
         }
+        break;
       }
-      case_( input::mouse_wheel_event_t ) {
+      case input::e_input_event::mouse_wheel_event: {
+        auto& val =
+            get_if_or_die<input::mouse_wheel_event_t>( event );
         // If the mouse is in the viewport and its a wheel
         // event then we are in business.
         if( SG().viewport.screen_coord_in_viewport( val.pos ) ) {
@@ -907,10 +914,13 @@ struct LandViewPlane : public Plane {
           SG().viewport.stop_auto_panning();
           handled = e_input_handled::yes;
         }
+        break;
       }
-      case_( input::mouse_button_event_t ) {
+      case input::e_input_event::mouse_button_event: {
+        auto& val =
+            get_if_or_die<input::mouse_button_event_t>( event );
         if( val.buttons != input::e_mouse_button_event::left_up )
-          break_;
+          break;
         if( auto maybe_tile =
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
@@ -920,8 +930,10 @@ struct LandViewPlane : public Plane {
                   .consume( ProcessClickTileActions ) } );
           handled = e_input_handled::yes;
         }
+        break;
       }
-      switch_non_exhaustive;
+      default: //
+        break;
     }
     return handled;
   }
