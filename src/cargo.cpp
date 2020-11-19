@@ -350,25 +350,25 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
             unit_from_id( id ).desc().cargo_slots_occupies;
         if( !maybe_occupied )
           // Unit cannot be held as cargo.
-          resu1t false;
+          return false;
         auto occupied = *maybe_occupied;
         // Check that all needed slots are `empty`.
         for( int i = slot; i < slot + occupied; ++i ) {
           if( i >= slots_total() )
             // Not enough slots left.
-            resu1t false;
+            return false;
           if( !holds<CargoSlot::empty>( slots_[i] ) )
             // Needed slots are not empty.
-            resu1t false;
+            return false;
         }
-        resu1t true;
+        return true;
       },
       [&]( Commodity const& c ) {
         auto const& proposed = c;
         if( proposed.quantity > k_max_commodity_cargo_per_slot )
-          resu1t false;
+          return false;
         if( proposed.quantity == 0 ) //
-          resu1t false;
+          return false;
         switch( auto& v = slots_[slot]; enum_for( v ) ) {
           case CargoSlot::e::overflow: {
             return false;
@@ -489,11 +489,11 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
           }
         }
         if( commodity.quantity == 0 )
-          resu1t true;
+          return true;
         else {
           // Couldn't make it work, so restore state.
           slots_ = old_slots;
-          resu1t false;
+          return false;
         }
       } );
 }
@@ -512,13 +512,13 @@ bool CargoHold::try_add( Cargo const& cargo, int slot ) {
       [&]( UnitId id ) {
         auto maybe_occupied =
             unit_from_id( id ).desc().cargo_slots_occupies;
-        if( !maybe_occupied ) resu1t false;
+        if( !maybe_occupied ) return false;
         auto occupied = *maybe_occupied;
         slots_[slot]  = CargoSlot::cargo{ /*contents=*/cargo };
         // Now handle overflow.
         while( slot++, occupied-- > 1 )
           slots_[slot] = CargoSlot::overflow{};
-        resu1t true;
+        return true;
       },
       [&]( Commodity const& c ) {
         if( holds<CargoSlot::empty>( slots_[slot] ) )
@@ -530,7 +530,7 @@ bool CargoHold::try_add( Cargo const& cargo, int slot ) {
           CHECK( comm.type == c.type );
           comm.quantity += c.quantity;
         }
-        resu1t true;
+        return true;
       } );
   check_invariants();
   return was_added;

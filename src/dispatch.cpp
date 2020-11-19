@@ -15,7 +15,6 @@
 
 // base-util
 #include "base-util/misc.hpp"
-#include "base-util/variant.hpp"
 
 // C++ standard library
 #include <functional>

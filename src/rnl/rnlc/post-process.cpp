@@ -13,9 +13,6 @@
 // rnlc
 #include "rnl-util.hpp"
 
-// base-util
-#include "base-util/variant.hpp"
-
 using namespace std;
 
 namespace rnl {

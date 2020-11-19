@@ -15,9 +15,6 @@
 // base
 #include "base/meta.hpp"
 
-// base-util
-#include "base-util/variant.hpp"
-
 // Scelta
 #include <scelta.hpp>
 

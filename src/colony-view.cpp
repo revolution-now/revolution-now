@@ -81,8 +81,8 @@ struct ColonyPlane : public Plane {
   e_input_handled input( input::event_t const& event ) override {
     switch( enum_for( event ) ) {
       case input::e_input_event::key_event: {
-        auto&  val = get_if_or_die<input::key_event_t>( event );
-        resu1t handle_key_event( val );
+        auto& val = get_if_or_die<input::key_event_t>( event );
+        return handle_key_event( val );
       }
       case input::e_input_event::win_event: {
         auto& val = get_if_or_die<input::win_event_t>( event );
@@ -90,7 +90,7 @@ struct ColonyPlane : public Plane {
           set_colview_colony( curr_colony_id );
         // Generally we should return no here because this is an
         // event that we want all planes to see.
-        resu1t e_input_handled::no;
+        return e_input_handled::no;
       }
       default: return e_input_handled::no;
     }

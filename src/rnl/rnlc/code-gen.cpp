@@ -18,7 +18,6 @@
 
 // base-util
 #include "base-util/misc.hpp"
-#include "base-util/variant.hpp"
 
 // {fmt}
 #include "fmt/format.h"
@@ -123,16 +122,16 @@ constexpr string_view kSumtypeSerial = R"xyz(
   template<typename Hint>
   auto serialize( FBBuilder& fbb, {sumtype_name_full_ns} const& o,
                   ::rn::serial::ADL ) {{
-    auto offset  = util::visit( o, [&]( auto const& v ) {{
+    auto offset  = std::visit( [&]( auto const& v ) {{
       // Call Union() to make the offset templated on type `void`
       // instead of the type of this variant member so that we have
       // a consistent return type.
       return v.serialize_table( fbb ).Union();
-    }} );
+    }}, o );
     auto builder = fb::{sumtype_name}Builder( fbb );
-    util::visit( o, [&]( auto const& v ) {{
+    std::visit( [&]( auto const& v ) {{
       v.builder_add_me( builder, offset );
-    }} );
+    }}, o );
     return ::rn::serial::ReturnValue{{ builder.Finish() }};
   }}
 

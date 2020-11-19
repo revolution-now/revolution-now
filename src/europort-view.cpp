@@ -2020,14 +2020,14 @@ struct EuropePlane : public Plane {
             get_if_or_die<input::mouse_button_event_t>( event );
         if( val.buttons !=
             input::e_mouse_button_event::left_down )
-          resu1t e_input_handled::yes;
+          return e_input_handled::yes;
 
         // Exit button.
         if( entities_.exit_label.has_value() ) {
           if( val.pos.is_inside(
                   entities_.exit_label->bounds() ) ) {
             pop_plane_config();
-            resu1t e_input_handled::yes;
+            return e_input_handled::yes;
           }
         }
 
