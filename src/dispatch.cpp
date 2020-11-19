@@ -62,17 +62,17 @@ Opt<PlayerIntent> player_intent( UnitId          id,
 }
 
 sync_future<bool> confirm_explain( PlayerIntent* analysis ) {
-  return util::visit(
-      *analysis, []( auto& _ ) { return _.confirm_explain(); } );
+  return std::visit(
+      []( auto& _ ) { return _.confirm_explain(); }, *analysis );
 }
 
 void affect_orders( PlayerIntent const& analysis ) {
-  util::visit( analysis, L( _.affect_orders() ) );
+  std::visit( L( _.affect_orders() ), analysis );
 }
 
 vector<UnitId> units_to_prioritize(
     PlayerIntent const& analysis ) {
-  return util::visit( analysis, L( _.units_to_prioritize ) );
+  return std::visit( L( _.units_to_prioritize ), analysis );
 }
 
 } // namespace rn

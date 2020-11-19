@@ -26,6 +26,20 @@ using namespace std;
 using namespace mp;
 
 /****************************************************************
+** Is Callable Overloaded
+*****************************************************************/
+struct foo_overloaded {
+  void operator()( int );
+  void operator()( char );
+};
+struct foo_non_overloaded {
+  void operator()( int );
+};
+
+static_assert( is_overloaded_v<foo_overloaded> == true );
+static_assert( is_overloaded_v<foo_non_overloaded> == false );
+
+/****************************************************************
 ** Callable Traits
 *****************************************************************/
 namespace callable_traits_test {

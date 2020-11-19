@@ -156,9 +156,8 @@ public:
   bool handle_input( input::event_t const& event ) {
     if( auto in_progress = fsm_.template holds<InProgress_t>();
         in_progress ) {
-      auto* base =
-          variant_base_ptr<input::event_base_t>( event );
-      in_progress->get().mod_keys = base->mod;
+      auto& base = variant_base<input::event_base_t>( event );
+      in_progress->get().mod_keys = base.mod;
     }
     // Currently, us handling some input doesn't require us
     // blocking anyone else from handling it.

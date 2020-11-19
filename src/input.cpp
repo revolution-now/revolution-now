@@ -391,18 +391,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   // this at the end because `event` is a variant and we don't
   // know at the start of this function which alternative will be
   // chosen.
-  auto* base = variant_base_ptr<event_base_t>( event );
-  CHECK( base );
+  auto& base = variant_base<event_base_t>( event );
 
   // TODO: is the keyboard_state as well as the key mod state
   // (obtained inside the query_mod_keys function) both current
   // with this event?
-  base->mod = query_mod_keys( keyboard_state );
+  base.mod = query_mod_keys( keyboard_state );
 
-  base->l_mouse_down =
-      bool( g_mouse_buttons & SDL_BUTTON_LMASK );
-  base->r_mouse_down =
-      bool( g_mouse_buttons & SDL_BUTTON_RMASK );
+  base.l_mouse_down = bool( g_mouse_buttons & SDL_BUTTON_LMASK );
+  base.r_mouse_down = bool( g_mouse_buttons & SDL_BUTTON_RMASK );
 
   return event;
 }

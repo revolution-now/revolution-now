@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // C++ standard library
+#include <experimental/type_traits>
 #include <type_traits>
 
 namespace mp {
@@ -30,15 +31,28 @@ struct type_list;
 struct Auto {};
 
 /****************************************************************
-** Callable Traits
+** Is Callable Overloaded
+*****************************************************************/
+namespace detail {
+template<typename T>
+using call_op_type = decltype( &T::operator() );
+} // namespace detail
+
+// This should only be used on callable types.
+template<typename T>
+inline constexpr bool is_overloaded_v =
+    !std::experimental::is_detected<detail::call_op_type,
+                                    T>::value;
+
+/****************************************************************
+** Get Callable Signature
 *****************************************************************/
 namespace detail {
 
-struct NotConstructibleFromAnything {};
-
+// This is kind of hacky and probably doesn't work in many cases.
 template<typename Callable>
 inline constexpr bool is_single_arg_generic_lambda_v =
-    std::is_invocable_v<Callable, NotConstructibleFromAnything>;
+    is_overloaded_v<Callable>;
 
 template<typename...>
 struct callable_traits_impl;
@@ -108,7 +122,11 @@ struct callable_traits<
 template<typename O>
 struct callable_traits<
     O, typename std::enable_if_t<
-           detail::is_single_arg_generic_lambda_v<O>>> {
+           !std::is_function_v<std::remove_cvref_t<O>> &&
+           !std::is_pointer_v<std::remove_cvref_t<O>> &&
+           detail::is_single_arg_generic_lambda_v<O> &&
+           !std::is_member_function_pointer_v<
+               std::remove_cvref_t<O>>>> {
   using arg_types = type_list<Auto>;
   /* no ret_type since we cannot know it. */
 };
