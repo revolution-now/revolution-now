@@ -126,4 +126,81 @@ void apply_to_alternatives_with_base( std::variant<Args...>& v,
       v );
 }
 
+// This is the famouse Overload Pattern. When constructed from a
+// list of callables, it will yield an object that is also
+// callable, but whose callable operator consists of an overload
+// set of all the given functions.
+template<typename... T>
+struct overload : T... {
+  using T::operator()...;
+};
+
+// Deduction guide: when C++20 fully drops, we should be able to
+// delete this.
+template<typename... T>
+overload( T... ) -> overload<T...>;
+
+namespace detail {
+
+// Will make sure that the Func takes an argument that is in the
+// (type list) of variant alternatives.
+template<typename Func, typename Alternatives>
+inline constexpr bool overload_is_alternative_or_auto_v =
+    std::is_same_v<mp::callable_arg_types_t<Func>,
+                   mp::type_list<mp::Auto>>
+        ? true
+        : mp::list_contains_v<
+              Alternatives,
+              std::decay_t<
+                  mp::head_t<mp::callable_arg_types_t<Func>>>>;
+
+} // namespace detail
+
+// Smart Variant Visitor
+//
+// Use like so:
+//
+//   struct A {}; struct B {}; struct C {}; struct D {};
+//
+//   using V = std::variant<A, B, C>;
+//   V v = B{};
+//
+//   visit( v,
+//     []( A const&    ) { fmt::print( "A"    ); },
+//     []( B const&    ) { fmt::print( "B"    ); },
+//     []( C const&    ) { fmt::print( "C"    ); },
+//     []( auto const& ) { fmt::print( "auto" ); }
+//   );
+//
+// Features:
+//
+//   * Duplicate overload causes error.
+//   * Default is supported via auto.
+//   * Multiple defaults cause error.
+//   * Missing overload with no default causes error.
+//   * Overload with incorrect type causes error.
+//   * All overloads present + default causes error since
+//     default is not needed.
+//
+template<typename... VarArgs, typename... Funcs>
+auto visit( std::variant<VarArgs...> const& v,
+            Funcs&&... funcs ) {
+  using V = std::variant<VarArgs...>;
+  constexpr bool all_overloads_are_variants =
+      mp::and_v<detail::overload_is_alternative_or_auto_v<
+          Funcs, mp::type_list<VarArgs...>>...>;
+  static_assert( all_overloads_are_variants );
+  static_assert( sizeof...( Funcs ) <= sizeof...( VarArgs ),
+                 "Number of visitor functions must be less or "
+                 "equal to number of alternatives in variant." );
+  constexpr bool invocable_for_all_variants =
+      mp::and_v<std::is_invocable_v<
+          decltype( overload{ std::declval<Funcs>()... } ),
+          VarArgs>...>;
+  static_assert( invocable_for_all_variants,
+                 "The visitor is missing at least one case!" );
+  return std::visit( overload{ std::forward<Funcs>( funcs )... },
+                     v );
+}
+
 } // namespace rn

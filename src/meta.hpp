@@ -23,10 +23,22 @@ struct disambiguate;
 template<typename...>
 struct type_list;
 
+// This is used to represent `auto` for meta functions that are
+// to return the type of function arguments; it is used when a
+// lambda with a generic argument is is given to such a meta
+// function.
+struct Auto {};
+
 /****************************************************************
 ** Callable Traits
 *****************************************************************/
 namespace detail {
+
+struct NotConstructibleFromAnything {};
+
+template<typename Callable>
+inline constexpr bool is_single_arg_generic_lambda_v =
+    std::is_invocable_v<Callable, NotConstructibleFromAnything>;
 
 template<typename...>
 struct callable_traits_impl;
@@ -86,10 +98,20 @@ struct callable_traits<
     O, typename std::enable_if_t<
            !std::is_function_v<std::remove_cvref_t<O>> &&
            !std::is_pointer_v<std::remove_cvref_t<O>> &&
+           !detail::is_single_arg_generic_lambda_v<O> &&
            !std::is_member_function_pointer_v<
                std::remove_cvref_t<O>>>>
   : public detail::callable_traits_impl<
         decltype( &O::operator() )> {};
+
+// Single Arg Generic Lambda.
+template<typename O>
+struct callable_traits<
+    O, typename std::enable_if_t<
+           detail::is_single_arg_generic_lambda_v<O>>> {
+  using arg_types = type_list<Auto>;
+  /* no ret_type since we cannot know it. */
+};
 
 template<typename F>
 using callable_ret_type_t =
@@ -98,6 +120,32 @@ using callable_ret_type_t =
 template<typename F>
 using callable_arg_types_t =
     typename callable_traits<F>::arg_types;
+
+/****************************************************************
+** List contains element
+*****************************************************************/
+namespace detail {
+
+template<typename...>
+struct list_contains_impl;
+
+template<typename T>
+struct list_contains_impl<mp::type_list<>, T> {
+  static constexpr bool value = false;
+};
+
+template<typename T, typename Arg1, typename... Args>
+struct list_contains_impl<mp::type_list<Arg1, Args...>, T> {
+  static constexpr bool value =
+      std::is_same_v<T, Arg1> ||
+      list_contains_impl<mp::type_list<Args...>, T>::value;
+};
+
+} // namespace detail
+
+template<typename List, typename T>
+inline constexpr bool list_contains_v =
+    detail::list_contains_impl<List, T>::value;
 
 /****************************************************************
 ** head

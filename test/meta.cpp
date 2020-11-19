@@ -48,6 +48,12 @@ inline constexpr auto lambda = []( C const& ) -> A* {
 };
 using F8 = decltype( lambda );
 
+// Generic lambdas.
+inline constexpr auto auto_lambda     = []( auto ) {};
+inline constexpr auto auto_lambda_ref = []( auto const& ) {};
+using F9                              = decltype( auto_lambda );
+using F10 = decltype( auto_lambda_ref );
+
 static_assert( std::is_same_v<A, callable_ret_type_t<F1>> );
 static_assert( std::is_same_v<void, callable_ret_type_t<F2>> );
 static_assert( std::is_same_v<A, callable_ret_type_t<F3>> );
@@ -74,8 +80,27 @@ static_assert(
     std::is_same_v<type_list<B>, callable_arg_types_t<F7>> );
 static_assert( std::is_same_v<type_list<C const&>,
                               callable_arg_types_t<F8>> );
+static_assert( std::is_same_v<type_list<mp::Auto>,
+                              callable_arg_types_t<F9>> );
+static_assert( std::is_same_v<type_list<mp::Auto>,
+                              callable_arg_types_t<F10>> );
 
 } // namespace callable_traits_test
+
+/****************************************************************
+** List contains element
+*****************************************************************/
+static_assert( list_contains_v<type_list<>, int> == false );
+static_assert( list_contains_v<type_list<void>, int> == false );
+static_assert( list_contains_v<type_list<int>, int> == true );
+static_assert( list_contains_v<type_list<char, int>, int> ==
+               true );
+static_assert( list_contains_v<type_list<char, char>, int> ==
+               false );
+static_assert(
+    list_contains_v<type_list<char, char, int>, int> == true );
+static_assert(
+    list_contains_v<type_list<char, char, void>, int> == false );
 
 /****************************************************************
 ** head
