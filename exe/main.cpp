@@ -23,7 +23,7 @@ void game() { frame_loop(); }
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) {
-  bool do_game    = false;
+  bool do_game    = true;
   auto maybe_cols = os_terminal_columns();
   if( maybe_cols.has_value() ) {
     fmt::print( "{:=^{}}", "[ Revolution | Now ]", *maybe_cols );
