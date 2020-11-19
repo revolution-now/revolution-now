@@ -15,6 +15,7 @@
 #include "cstate.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
+#include "variant.hpp"
 #include "window.hpp"
 
 // base-util
@@ -65,56 +66,57 @@ bool JobAnalysis::allowed_() const {
 }
 
 sync_future<bool> JobAnalysis::confirm_explain_() {
-  return matcher_( desc, ->, sync_future<bool> ) {
-    case_( e_unit_job_good ) {
-      switch( val ) {
-        case e_unit_job_good::disband: {
-          auto q = fmt::format( "Really disband {}?",
-                                unit_from_id( id ).desc().name );
-          return ui::yes_no( q ).fmap(
-              L( _ == ui::e_confirm::yes ) );
+  return overload_visit(
+      desc,
+      [&]( e_unit_job_good val ) {
+        switch( val ) {
+          case e_unit_job_good::disband: {
+            auto q =
+                fmt::format( "Really disband {}?",
+                             unit_from_id( id ).desc().name );
+            return ui::yes_no( q ).fmap(
+                L( _ == ui::e_confirm::yes ) );
+          }
+          case e_unit_job_good::fortify:
+          case e_unit_job_good::sentry:
+            return make_sync_future<bool>( true );
+          case e_unit_job_good::build:
+            return build_colony_ui_routine().fmap(
+                [this]( Opt<string> const& maybe_name ) {
+                  if( maybe_name.has_value() )
+                    colony_name = *maybe_name;
+                  return maybe_name.has_value();
+                } );
         }
-        case e_unit_job_good::fortify:
-        case e_unit_job_good::sentry:
-          return make_sync_future<bool>( true );
-        case e_unit_job_good::build:
-          return build_colony_ui_routine().fmap(
-              [this]( Opt<string> const& maybe_name ) {
-                if( maybe_name.has_value() )
-                  colony_name = *maybe_name;
-                return maybe_name.has_value();
-              } );
-      }
-      UNREACHABLE_LOCATION;
-    }
-    case_( e_unit_job_error ) {
-      auto return_false = []( auto ) { return false; };
-      switch( val ) {
-        case e_unit_job_error::ship_cannot_fortify:
-          return ui::message_box( "Ships cannot be fortified." )
-              .fmap( return_false );
-        case e_unit_job_error::cannot_fortify_on_ship:
-          return ui::message_box(
-                     "Cannot fortify while on a ship." )
-              .fmap( return_false );
-        case e_unit_job_error::colony_exists_here:
-          return ui::message_box(
-                     "There is already a colony on this "
-                     "square." )
-              .fmap( return_false );
-        case e_unit_job_error::no_water_colony:
-          return ui::message_box(
-                     "Cannot found a colony on water." )
-              .fmap( return_false );
-        case e_unit_job_error::ship_cannot_found_colony:
-          // No message box here since this should be obvious to
-          // the player.
-          return make_sync_future<bool>( false );
-      }
-      UNREACHABLE_LOCATION;
-    }
-    matcher_exhaustive;
-  }
+        UNREACHABLE_LOCATION;
+      },
+      []( e_unit_job_error val ) {
+        auto return_false = []( auto ) { return false; };
+        switch( val ) {
+          case e_unit_job_error::ship_cannot_fortify:
+            return ui::message_box(
+                       "Ships cannot be fortified." )
+                .fmap( return_false );
+          case e_unit_job_error::cannot_fortify_on_ship:
+            return ui::message_box(
+                       "Cannot fortify while on a ship." )
+                .fmap( return_false );
+          case e_unit_job_error::colony_exists_here:
+            return ui::message_box(
+                       "There is already a colony on this "
+                       "square." )
+                .fmap( return_false );
+          case e_unit_job_error::no_water_colony:
+            return ui::message_box(
+                       "Cannot found a colony on water." )
+                .fmap( return_false );
+          case e_unit_job_error::ship_cannot_found_colony:
+            // No message box here since this should be obvious
+            // to the player.
+            return make_sync_future<bool>( false );
+        }
+        UNREACHABLE_LOCATION;
+      } );
 }
 
 void JobAnalysis::affect_orders_() const {

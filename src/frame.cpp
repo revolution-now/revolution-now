@@ -21,6 +21,7 @@
 #include "render.hpp" // FIXME
 #include "scope-exit.hpp"
 #include "screen.hpp"
+#include "variant.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
@@ -69,25 +70,24 @@ vector<FrameSubscription>& subscriptions() {
 
 void notify_subscribers() {
   for( auto& sub : subscriptions() ) {
-    switch_( sub ) {
-      case_( FrameSubscriptionTick, interval, last_message,
-             func ) {
-        auto total = total_frame_count();
-        if( long( total ) - last_message > interval ) {
-          last_message = total;
-          func();
-        }
-      }
-      case_( FrameSubscriptionTime, interval, last_message,
-             func ) {
-        auto now = Clock_t::now();
-        if( now - last_message > interval ) {
-          last_message = now;
-          func();
-        }
-      }
-      switch_exhaustive;
-    }
+    overload_visit(
+        sub,
+        []( FrameSubscriptionTick& tick_sub ) {
+          auto& [interval, last_message, func] = tick_sub;
+          auto total = total_frame_count();
+          if( long( total ) - last_message > interval ) {
+            last_message = total;
+            func();
+          }
+        },
+        []( FrameSubscriptionTime& time_sub ) {
+          auto& [interval, last_message, func] = time_sub;
+          auto now                             = Clock_t::now();
+          if( now - last_message > interval ) {
+            last_message = now;
+            func();
+          }
+        } );
   }
 }
 

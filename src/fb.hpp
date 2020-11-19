@@ -17,7 +17,9 @@
 #include "cc-specific.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
-#include "meta.hpp"
+
+// base
+#include "base/meta.hpp"
 
 // Flatbuffers
 #include "flatbuffers/flatbuffers.h"
@@ -104,7 +106,7 @@ struct ReturnValue {
   SerializedT get() const { return o_; }
 };
 template<typename SerializedT>
-ReturnValue( SerializedT )->ReturnValue<SerializedT>;
+ReturnValue( SerializedT ) -> ReturnValue<SerializedT>;
 
 template<typename SerializedT>
 struct ReturnAddress {
@@ -113,7 +115,7 @@ struct ReturnAddress {
   SerializedT const* get() const& { return &o_; }
 };
 template<typename SerializedT>
-ReturnAddress( SerializedT )->ReturnAddress<SerializedT>;
+ReturnAddress( SerializedT ) -> ReturnAddress<SerializedT>;
 
 // Obtains a type list of the parameter types (after the builder)
 // that need to be passed to a table's Create method. FIXME: will
@@ -129,8 +131,8 @@ struct fb_creation_tuple<Ret( FBBuilder&, Args... )> {
 
 template<typename FB>
 using fb_creation_tuple_t =
-    typename fb_creation_tuple<std::remove_pointer_t<decltype(
-        FB::Traits::Create )>>::tuple;
+    typename fb_creation_tuple<std::remove_pointer_t<
+        decltype( FB::Traits::Create )>>::tuple;
 
 template<typename T>
 struct remove_fb_offset {
@@ -321,8 +323,8 @@ template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::optional<T> const& o,
                 serial::ADL ) {
   if( o.has_value() ) {
-    using value_hint_t = fb_serialize_hint_t<decltype(
-        std::declval<Hint>().value() )>;
+    using value_hint_t = fb_serialize_hint_t<
+        decltype( std::declval<Hint>().value() )>;
     auto s_value =
         serialize<value_hint_t>( builder, *o, serial::ADL{} );
     return ReturnValue{ Hint::Traits::Create(
@@ -337,10 +339,10 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
 template<typename Hint, typename F, typename S>
 auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
                 serial::ADL ) {
-  using fst_hint_t = fb_serialize_hint_t<decltype(
-      std::declval<Hint>().fst() )>;
-  using snd_hint_t = fb_serialize_hint_t<decltype(
-      std::declval<Hint>().snd() )>;
+  using fst_hint_t = fb_serialize_hint_t<
+      decltype( std::declval<Hint>().fst() )>;
+  using snd_hint_t = fb_serialize_hint_t<
+      decltype( std::declval<Hint>().snd() )>;
   auto const& s_fst =
       serialize<fst_hint_t>( builder, o.first, serial::ADL{} );
   auto const& s_snd =
@@ -736,10 +738,10 @@ expect<> deserialize( SrcT const* src, DstT* m, serial::ADL ) {
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )       \
-  auto PP_JOIN( s_, var ) =                                 \
-      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
-          std::declval<fb_target_t>().var() )>>(            \
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )      \
+  auto PP_JOIN( s_, var ) =                                \
+      serialize<::rn::serial::fb_serialize_hint_t<         \
+          decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
@@ -793,10 +795,10 @@ private:
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )   \
-  auto PP_JOIN( s_, var ) =                                 \
-      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
-          std::declval<fb_target_t>().var() )>>(            \
+#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )  \
+  auto PP_JOIN( s_, var ) =                                \
+      serialize<::rn::serial::fb_serialize_hint_t<         \
+          decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \

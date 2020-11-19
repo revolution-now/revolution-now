@@ -11,7 +11,7 @@
 #include "testing.hpp"
 
 // Under test.
-#include "src/meta.hpp"
+#include "base/meta.hpp"
 
 // Must be last.
 #include "catch-common.hpp"

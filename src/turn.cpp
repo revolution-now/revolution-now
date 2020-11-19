@@ -29,6 +29,7 @@
 #include "sound.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
+#include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
 
@@ -105,35 +106,34 @@ bool animate_move( TravelAnalysis const& analysis ) {
 sync_future<> kick_off_unit_animation(
     UnitId id, PlayerIntent const& intent ) {
   // Default future object that is born ready.
-  sync_future<> res = make_sync_future<>();
+  auto def = make_sync_future<>();
   // Kick off animation if needed.
-  switch_( intent ) {
-    case_( TravelAnalysis ) {
-      if( !animate_move( val ) ) break_;
-      ASSIGN_CHECK_OPT(
-          d, val.move_src.direction_to( val.move_target ) );
-      res = landview_animate_move( id, d );
-    }
-    case_( CombatAnalysis ) {
-      auto attacker = id;
-      ASSIGN_CHECK_OPT( defender, val.target_unit );
-      ASSIGN_CHECK_OPT( stats, val.fight_stats );
-      auto const&       defender_unit = unit_from_id( defender );
-      auto const&       attacker_unit = unit_from_id( attacker );
-      e_depixelate_anim dp_anim =
-          stats.attacker_wins
-              ? ( defender_unit.desc().demoted.has_value()
-                      ? e_depixelate_anim::demote
-                      : e_depixelate_anim::death )
-              : ( attacker_unit.desc().demoted.has_value()
-                      ? e_depixelate_anim::demote
-                      : e_depixelate_anim::death );
-      res = landview_animate_attack(
-          attacker, defender, stats.attacker_wins, dp_anim );
-    }
-    switch_non_exhaustive;
-  }
-  return res;
+  return overload_visit(
+      intent,
+      [&]( TravelAnalysis const& val ) {
+        if( !animate_move( val ) ) return def;
+        ASSIGN_CHECK_OPT(
+            d, val.move_src.direction_to( val.move_target ) );
+        return landview_animate_move( id, d );
+      },
+      [&]( CombatAnalysis const& val ) {
+        auto attacker = id;
+        ASSIGN_CHECK_OPT( defender, val.target_unit );
+        ASSIGN_CHECK_OPT( stats, val.fight_stats );
+        auto const& defender_unit = unit_from_id( defender );
+        auto const& attacker_unit = unit_from_id( attacker );
+        e_depixelate_anim dp_anim =
+            stats.attacker_wins
+                ? ( defender_unit.desc().demoted.has_value()
+                        ? e_depixelate_anim::demote
+                        : e_depixelate_anim::death )
+                : ( attacker_unit.desc().demoted.has_value()
+                        ? e_depixelate_anim::demote
+                        : e_depixelate_anim::death );
+        return landview_animate_attack(
+            attacker, defender, stats.attacker_wins, dp_anim );
+      },
+      [&]( auto const& ) { return def; } );
 }
 
 /****************************************************************

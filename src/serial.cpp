@@ -16,7 +16,9 @@
 #include "fmt-helper.hpp"
 #include "io.hpp"
 #include "logging.hpp"
-#include "meta.hpp"
+
+// base
+#include "base/meta.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
@@ -92,7 +94,7 @@ expect<BinaryBlob> BinaryBlob::from_json(
   // Store this as a string so that we can then pass C strings
   // safely to the Parser API.
   string include = config_rn.flatbuffers.include_path.string();
-  char const* c_includes[] = {include.c_str(), nullptr};
+  char const* c_includes[] = { include.c_str(), nullptr };
 
   auto schema_path =
       config_rn.flatbuffers.include_path / schema_file_name;

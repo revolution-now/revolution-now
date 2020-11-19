@@ -12,8 +12,8 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "meta.hpp"
+// base
+#include "base/meta.hpp"
 
 // base-util
 #include "base-util/variant.hpp"
@@ -163,15 +163,21 @@ struct visit_checks<mp::type_list<VarArgs...>,
         sizeof...( Funcs ) <= sizeof...( VarArgs ),
         "Number of visitor functions must be less or "
         "equal to number of alternatives in variant." );
-    // This check tends to fail for overloads containing an `au-
-    // to&` (generic l-value reference), probably because it
-    // can't bind to a temporary which is created during the test
-    // done by std::is_invocable. Hopefully that situation
-    // doesn't come up very often.
+    // We need to add an lvalue reference to the VarArgs so that
+    // when std::is_invocable calls declval on it it will produce
+    // an lvalue reference. is_invocable then adds an rvalue ref-
+    // erence to it, which will collapse back into an lvalue ref-
+    // erence. This will then allow any type of function argument
+    // (value, lvalue ref, rvalue ref) to bind to it. If we
+    // hadn't done this then overloads with lvalue ref parameters
+    // would appear to not be callable on our variants and this
+    // assertion would trigger unnecessarily, even though the
+    // overload could indeed bind to the variant.
+    // See https://stackoverflow.com/a/64883147 for more info.
     constexpr bool invocable_for_all_variants =
         mp::and_v<std::is_invocable_v<
             decltype( overload{ std::declval<Funcs>()... } ),
-            VarArgs>...>;
+            std::add_lvalue_reference_t<VarArgs>>...>;
     static_assert( invocable_for_all_variants,
                    "The visitor is missing at least one case!" );
   }
@@ -221,6 +227,26 @@ decltype( auto ) overload_visit( std::variant<VarArgs...>& v,
                        mp::type_list<Funcs...>>::go();
   return std::visit( overload{ std::forward<Funcs>( funcs )... },
                      v );
+}
+
+// Allows forcing return type.
+template<typename Ret, typename... VarArgs, typename... Funcs>
+decltype( auto ) overload_visit(
+    std::variant<VarArgs...> const& v, Funcs&&... funcs ) {
+  detail::visit_checks<mp::type_list<VarArgs...>,
+                       mp::type_list<Funcs...>>::go();
+  return std::visit<Ret>(
+      overload{ std::forward<Funcs>( funcs )... }, v );
+}
+
+// Allows forcing return type.
+template<typename Ret, typename... VarArgs, typename... Funcs>
+decltype( auto ) overload_visit( std::variant<VarArgs...>& v,
+                                 Funcs&&... funcs ) {
+  detail::visit_checks<mp::type_list<VarArgs...>,
+                       mp::type_list<Funcs...>>::go();
+  return std::visit<Ret>(
+      overload{ std::forward<Funcs>( funcs )... }, v );
 }
 
 // A wrapper around std::visit which allows taking the variant as

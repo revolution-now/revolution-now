@@ -13,6 +13,9 @@
 // rnlc
 #include "rnl-util.hpp"
 
+// base
+#include "base/meta.hpp"
+
 // base-util
 #include "base-util/misc.hpp"
 #include "base-util/variant.hpp"
@@ -684,12 +687,12 @@ struct CodeGenerator {
       expr::e_sumtype_feature target_feature ) {
     for( expr::Item const& item : rnl.items ) {
       for( expr::Construct const& construct : item.constructs ) {
-        bool has_feature = matcher_( construct ) {
-          case_( expr::Sumtype ) {
-            result_v sumtype_has_feature( val, target_feature );
-          }
-          matcher_exhaustive;
-        }
+        bool has_feature = visit(
+            mp::overload{ [&]( expr::Sumtype const& sumtype ) {
+              return sumtype_has_feature( sumtype,
+                                          target_feature );
+            } },
+            construct );
         if( has_feature ) return true;
       }
     }

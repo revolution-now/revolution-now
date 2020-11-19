@@ -112,17 +112,16 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
     }
     case CargoSlot::e::cargo: {
       auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
-      return matcher_( cargo.contents, ->, DraggableObject_t ) {
-        case_( UnitId ) {
-          return DraggableObject::unit{ /*id=*/val };
-        }
-        case_( Commodity ) {
-          return DraggableObject::cargo_commodity{
-              /*comm=*/val,
-              /*slot=*/slot_idx };
-        }
-        matcher_exhaustive;
-      }
+      return overload_visit<DraggableObject_t>(
+          cargo.contents,
+          []( UnitId id ) {
+            return DraggableObject::unit{ /*id=*/id };
+          },
+          [&]( Commodity const& c ) {
+            return DraggableObject::cargo_commodity{
+                /*comm=*/c,
+                /*slot=*/slot_idx };
+          } );
     }
   }
   UNREACHABLE_LOCATION;
@@ -1069,21 +1068,20 @@ public:
           }
           case CargoSlot::e::cargo: {
             auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
-            switch_( cargo.contents ) {
-              case_( UnitId ) {
-                if( g_dragging_object !=
-                    DraggableObject_t{
-                        DraggableObject::unit{ val } } )
-                  render_unit( tx, val, dst_coord,
-                               /*with_icon=*/false );
-              }
-              case_( Commodity ) {
-                render_commodity_annotated(
-                    tx, val,
-                    dst_coord + k_rendered_commodity_offset );
-              }
-              switch_exhaustive;
-            }
+            overload_visit(
+                cargo.contents,
+                [&]( UnitId id ) {
+                  if( g_dragging_object !=
+                      DraggableObject_t{
+                          DraggableObject::unit{ id } } )
+                    render_unit( tx, id, dst_coord,
+                                 /*with_icon=*/false );
+                },
+                [&]( Commodity const& c ) {
+                  render_commodity_annotated(
+                      tx, c,
+                      dst_coord + k_rendered_commodity_offset );
+                } );
             break;
           }
         }
@@ -1516,28 +1514,27 @@ public:
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
                               draggable_from_src( src ) ) );
-        return matcher_( cargo_object ) {
-          case_( UnitId ) {
-            return unit_from_id( ship )
-                .cargo()
-                .fits_with_item_removed(
-                    /*cargo=*/cargo_object,          //
-                    /*remove_slot=*/c_to_c.src.slot, //
-                    /*insert_slot=*/c_to_c.dst.slot  //
-                );
-          }
-          case_( Commodity ) {
-            // If at least one quantity of the commodity can be
-            // moved then we will allow (at least a partial
-            // transfer) to proceed.
-            auto size_one     = val;
-            size_one.quantity = 1;
-            return unit_from_id( ship ).cargo().fits(
-                /*cargo=*/size_one,
-                /*slot=*/c_to_c.dst.slot );
-          }
-          matcher_exhaustive;
-        }
+        return overload_visit(
+            cargo_object,
+            [&]( UnitId ) {
+              return unit_from_id( ship )
+                  .cargo()
+                  .fits_with_item_removed(
+                      /*cargo=*/cargo_object,          //
+                      /*remove_slot=*/c_to_c.src.slot, //
+                      /*insert_slot=*/c_to_c.dst.slot  //
+                  );
+            },
+            [&]( Commodity const& c ) {
+              // If at least one quantity of the commodity can be
+              // moved then we will allow (at least a partial
+              // transfer) to proceed.
+              auto size_one     = c;
+              size_one.quantity = 1;
+              return unit_from_id( ship ).cargo().fits(
+                  /*cargo=*/size_one,
+                  /*slot=*/c_to_c.dst.slot );
+            } );
       }
       case DragArc::e::outbound_to_inbound: return true;
       case DragArc::e::outbound_to_inport: {
@@ -1564,25 +1561,24 @@ public:
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
                               draggable_from_src( src ) ) );
-        return matcher_( cargo_object ) {
-          case_( UnitId ) {
-            if( is_unit_onboard( val ) == dst_ship )
-              return false;
-            return unit_from_id( dst_ship )
-                .cargo()
-                .fits_somewhere( val );
-          }
-          case_( Commodity ) {
-            // If even 1 quantity can fit then we can proceed
-            // with (at least) a partial transfer.
-            auto size_one     = val;
-            size_one.quantity = 1;
-            return unit_from_id( dst_ship )
-                .cargo()
-                .fits_somewhere( size_one );
-          }
-          matcher_exhaustive;
-        }
+        return overload_visit(
+            cargo_object,
+            [&]( UnitId id ) {
+              if( is_unit_onboard( id ) == dst_ship )
+                return false;
+              return unit_from_id( dst_ship )
+                  .cargo()
+                  .fits_somewhere( id );
+            },
+            [&]( Commodity const& c ) {
+              // If even 1 quantity can fit then we can proceed
+              // with (at least) a partial transfer.
+              auto size_one     = c;
+              size_one.quantity = 1;
+              return unit_from_id( dst_ship )
+                  .cargo()
+                  .fits_somewhere( size_one );
+            } );
       }
       case DragArc::e::market_to_cargo: {
         auto& [src, dst] =
@@ -1785,21 +1781,21 @@ public:
             cargo_object,
             draggable_to_cargo_object(
                 draggable_from_src( c_to_c.src ) ) );
-        switch_( cargo_object ) {
-          case_( UnitId ) {
-            // Will first "disown" unit which will remove it from
-            // the cargo.
-            ustate_change_to_cargo( ship, val,
-                                    c_to_c.dst.slot._ );
-          }
-          case_( Commodity ) {
-            move_commodity_as_much_as_possible(
-                ship, c_to_c.src.slot._, ship, c_to_c.dst.slot._,
-                /*max_quantity=*/nullopt,
-                /*try_other_dst_slots=*/false );
-          }
-          switch_exhaustive;
-        }
+        overload_visit(
+            cargo_object,
+            [&]( UnitId id ) {
+              // Will first "disown" unit which will remove it
+              // from the cargo.
+              ustate_change_to_cargo( ship, id,
+                                      c_to_c.dst.slot._ );
+            },
+            [&]( Commodity const& ) {
+              move_commodity_as_much_as_possible(
+                  ship, c_to_c.src.slot._, ship,
+                  c_to_c.dst.slot._,
+                  /*max_quantity=*/nullopt,
+                  /*try_other_dst_slots=*/false );
+            } );
         break;
       }
       case DragArc::e::outbound_to_inbound: {
@@ -1839,27 +1835,26 @@ public:
             cargo_object,
             draggable_to_cargo_object(
                 draggable_from_src( c_to_i_s.src ) ) );
-        switch_( cargo_object ) {
-          case_( UnitId ) {
-            CHECK( !c_to_i_s.src.quantity.has_value() );
-            // Will first "disown" unit which will remove it from
-            // the cargo.
-            ustate_change_to_cargo( c_to_i_s.dst.id, val );
-          }
-          case_( Commodity ) {
-            ASSIGN_CHECK_OPT(
-                src_ship,
-                entities_->active_cargo |
-                    fmap_join( L( _.active_unit() ) ) );
-            move_commodity_as_much_as_possible(
-                src_ship, c_to_i_s.src.slot._,
-                /*dst_ship=*/c_to_i_s.dst.id,
-                /*dst_slot=*/0,
-                /*max_quantity=*/c_to_i_s.src.quantity,
-                /*try_other_dst_slots=*/true );
-          }
-          switch_exhaustive;
-        }
+        overload_visit(
+            cargo_object,
+            [&]( UnitId id ) {
+              CHECK( !c_to_i_s.src.quantity.has_value() );
+              // Will first "disown" unit which will remove it
+              // from the cargo.
+              ustate_change_to_cargo( c_to_i_s.dst.id, id );
+            },
+            [&]( Commodity const& ) {
+              ASSIGN_CHECK_OPT(
+                  src_ship,
+                  entities_->active_cargo |
+                      fmap_join( L( _.active_unit() ) ) );
+              move_commodity_as_much_as_possible(
+                  src_ship, c_to_i_s.src.slot._,
+                  /*dst_ship=*/c_to_i_s.dst.id,
+                  /*dst_slot=*/0,
+                  /*max_quantity=*/c_to_i_s.src.quantity,
+                  /*try_other_dst_slots=*/true );
+            } );
         break;
       }
       case DragArc::e::market_to_cargo: {

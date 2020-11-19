@@ -17,6 +17,7 @@
 #include "scope-exit.hpp"
 #include "ustate.hpp"
 #include "util.hpp"
+#include "variant.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -59,17 +60,16 @@ cargo_serialize( FBBuilder& builder, Cargo const& o ) {
   // If this is not a commodity slot then just leave this as
   // nullptr so that it doesn't get serialized.
   fb::Commodity* p_commodity = nullptr;
-  switch_( o ) {
-    case_( UnitId ) {
-      unit_id = val._;
-      is_unit = true;
-    }
-    case_( Commodity ) {
-      commodity   = val.serialize_struct( builder );
-      p_commodity = &commodity;
-    }
-    switch_exhaustive;
-  }
+  overload_visit(
+      o, //
+      [&]( UnitId id ) {
+        unit_id = id._;
+        is_unit = true;
+      },
+      [&]( Commodity const& comm ) {
+        commodity   = comm.serialize_struct( builder );
+        p_commodity = &commodity;
+      } );
   return serial::ReturnValue{ fb::CargoSlot::CreateCargo(
       builder, is_unit, unit_id, p_commodity ) };
 }
@@ -170,15 +170,15 @@ void CargoHold::check_invariants() const {
         break;
       case CargoSlot::e::cargo: {
         auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
-        switch_( cargo.contents ) {
-          case_( UnitId ) {
-            occupied += unit_from_id( val )
-                            .desc()
-                            .cargo_slots_occupies.value_or( 0 );
-          }
-          case_( Commodity ) { occupied++; }
-          switch_exhaustive;
-        }
+        overload_visit(
+            cargo.contents,
+            [&]( UnitId id ) {
+              occupied +=
+                  unit_from_id( id )
+                      .desc()
+                      .cargo_slots_occupies.value_or( 0 );
+            },
+            [&]( Commodity const& ) { occupied++; } );
         break;
       }
     }
@@ -326,16 +326,14 @@ int CargoHold::max_commodity_quantity_that_fits(
         return 0;
       case CargoSlot::e::cargo: {
         auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
-        return matcher_( cargo.contents ) {
-          case_( UnitId ) return 0;
-          case_( Commodity ) {
-            if( val.type == type )
-              return k_max_commodity_cargo_per_slot -
-                     val.quantity;
-            return 0;
-          }
-          matcher_exhaustive;
-        }
+        return overload_visit(
+            cargo.contents, []( UnitId ) { return 0; },
+            [&]( Commodity const& c ) {
+              return ( c.type == type )
+                         ? ( k_max_commodity_cargo_per_slot -
+                             c.quantity )
+                         : 0;
+            } );
       }
     }
     UNREACHABLE_LOCATION;
@@ -345,56 +343,53 @@ int CargoHold::max_commodity_quantity_that_fits(
 
 bool CargoHold::fits( Cargo const& cargo, int slot ) const {
   CHECK( slot >= 0 && slot < int( slots_.size() ) );
-  return matcher_( cargo ) {
-    case_( UnitId ) {
-      auto maybe_occupied =
-          unit_from_id( val ).desc().cargo_slots_occupies;
-      if( !maybe_occupied )
-        // Unit cannot be held as cargo.
-        resu1t false;
-      auto occupied = *maybe_occupied;
-      // Check that all needed slots are `empty`.
-      for( int i = slot; i < slot + occupied; ++i ) {
-        if( i >= slots_total() )
-          // Not enough slots left.
+  return overload_visit(
+      cargo,
+      [&]( UnitId id ) {
+        auto maybe_occupied =
+            unit_from_id( id ).desc().cargo_slots_occupies;
+        if( !maybe_occupied )
+          // Unit cannot be held as cargo.
           resu1t false;
-        if( !holds<CargoSlot::empty>( slots_[i] ) )
-          // Needed slots are not empty.
+        auto occupied = *maybe_occupied;
+        // Check that all needed slots are `empty`.
+        for( int i = slot; i < slot + occupied; ++i ) {
+          if( i >= slots_total() )
+            // Not enough slots left.
+            resu1t false;
+          if( !holds<CargoSlot::empty>( slots_[i] ) )
+            // Needed slots are not empty.
+            resu1t false;
+        }
+        resu1t true;
+      },
+      [&]( Commodity const& c ) {
+        auto const& proposed = c;
+        if( proposed.quantity > k_max_commodity_cargo_per_slot )
           resu1t false;
-      }
-      resu1t true;
-    }
-    case_( Commodity ) {
-      auto const& proposed = val;
-      if( proposed.quantity > k_max_commodity_cargo_per_slot )
-        resu1t false;
-      if( proposed.quantity == 0 ) //
-        resu1t false;
-      switch( auto& v = slots_[slot]; enum_for( v ) ) {
-        case CargoSlot::e::overflow: {
-          return false;
-        }
-        case CargoSlot::e::empty: {
-          return true;
-        }
-        case CargoSlot::e::cargo: {
-          auto&  cargo = get_if_or_die<CargoSlot::cargo>( v );
-          resu1t matcher_( cargo.contents ) {
-            case_( UnitId ) resu1t false;
-            case_( Commodity ) {
-              if( proposed.type != val.type ) //
-                resu1t false;
-              resu1t( val.quantity + proposed.quantity <=
-                      k_max_commodity_cargo_per_slot );
-            }
-            matcher_exhaustive;
+        if( proposed.quantity == 0 ) //
+          resu1t false;
+        switch( auto& v = slots_[slot]; enum_for( v ) ) {
+          case CargoSlot::e::overflow: {
+            return false;
           }
-          break;
+          case CargoSlot::e::empty: {
+            return true;
+          }
+          case CargoSlot::e::cargo: {
+            auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+            return overload_visit(
+                cargo.contents, []( UnitId ) { return false; },
+                [&]( Commodity const& c ) {
+                  if( proposed.type != c.type ) //
+                    return false;
+                  return ( c.quantity + proposed.quantity <=
+                           k_max_commodity_cargo_per_slot );
+                } );
+            break;
+          }
         }
-      }
-    }
-    matcher_exhaustive;
-  }
+      } );
   UNREACHABLE_LOCATION;
 }
 
@@ -436,72 +431,71 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
                | rv::cycle                  //
                | rv::drop( starting_from )  //
                | rv::take( slots_total() );
-  return matcher_( cargo ) {
-    case_( UnitId ) {
-      for( int idx : slots )
-        if( try_add( val, idx ) ) //
-          return true;
-      return false;
-    }
-    case_( Commodity ) {
-      auto old_slots = slots_;
-      auto commodity = val; // make copy.
-      CHECK( commodity.quantity > 0 );
-      for( int idx : slots ) {
-        if( commodity.quantity == 0 ) break;
-        switch( auto& v = slots_[idx]; enum_for( v ) ) {
-          case CargoSlot::e::empty: {
-            auto quantity_to_add =
-                std::min( commodity.quantity,
-                          k_max_commodity_cargo_per_slot );
-            CHECK( quantity_to_add > 0 );
-            commodity.quantity -= quantity_to_add;
-            CHECK( try_add(
-                       Commodity{ /*type=*/commodity.type,
+  return overload_visit(
+      cargo,
+      [&]( UnitId id ) {
+        for( int idx : slots )
+          if( try_add( id, idx ) ) //
+            return true;
+        return false;
+      },
+      [&]( Commodity const& c ) {
+        auto old_slots = slots_;
+        auto commodity = c; // make copy.
+        CHECK( commodity.quantity > 0 );
+        for( int idx : slots ) {
+          if( commodity.quantity == 0 ) break;
+          switch( auto& v = slots_[idx]; enum_for( v ) ) {
+            case CargoSlot::e::empty: {
+              auto quantity_to_add =
+                  std::min( commodity.quantity,
+                            k_max_commodity_cargo_per_slot );
+              CHECK( quantity_to_add > 0 );
+              commodity.quantity -= quantity_to_add;
+              CHECK( try_add( Commodity{
+                                  /*type=*/commodity.type,
                                   /*quantity=*/quantity_to_add },
-                       idx ),
-                   "failed to add commodity of type {} and "
-                   "quantity {} to slot {}",
-                   commodity.type, quantity_to_add, idx )
-            break;
-          }
-          case CargoSlot::e::overflow: break;
-          case CargoSlot::e::cargo: {
-            auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
-            if_v( cargo.contents, Commodity, comm_in_slot ) {
-              if( comm_in_slot->type == commodity.type ) {
-                auto quantity_to_add =
-                    std::min( commodity.quantity,
-                              k_max_commodity_cargo_per_slot -
-                                  comm_in_slot->quantity );
-                commodity.quantity -= quantity_to_add;
-                if( quantity_to_add > 0 ) {
-                  CHECK(
-                      try_add(
-                          Commodity{
-                              /*type=*/commodity.type,
-                              /*quantity=*/quantity_to_add },
-                          idx ),
-                      "failed to add commodity of type {} and "
-                      "quantity {} to slot {}",
-                      commodity.type, quantity_to_add, idx )
+                              idx ),
+                     "failed to add commodity of type {} and "
+                     "quantity {} to slot {}",
+                     commodity.type, quantity_to_add, idx )
+              break;
+            }
+            case CargoSlot::e::overflow: break;
+            case CargoSlot::e::cargo: {
+              auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+              if_v( cargo.contents, Commodity, comm_in_slot ) {
+                if( comm_in_slot->type == commodity.type ) {
+                  auto quantity_to_add =
+                      std::min( commodity.quantity,
+                                k_max_commodity_cargo_per_slot -
+                                    comm_in_slot->quantity );
+                  commodity.quantity -= quantity_to_add;
+                  if( quantity_to_add > 0 ) {
+                    CHECK(
+                        try_add(
+                            Commodity{
+                                /*type=*/commodity.type,
+                                /*quantity=*/quantity_to_add },
+                            idx ),
+                        "failed to add commodity of type {} and "
+                        "quantity {} to slot {}",
+                        commodity.type, quantity_to_add, idx )
+                  }
                 }
               }
+              break;
             }
-            break;
           }
         }
-      }
-      if( commodity.quantity == 0 )
-        resu1t true;
-      else {
-        // Couldn't make it work, so restore state.
-        slots_ = old_slots;
-        resu1t false;
-      }
-    }
-    matcher_exhaustive;
-  }
+        if( commodity.quantity == 0 )
+          resu1t true;
+        else {
+          // Couldn't make it work, so restore state.
+          slots_ = old_slots;
+          resu1t false;
+        }
+      } );
 }
 
 bool CargoHold::try_add( Cargo const& cargo, int slot ) {
@@ -513,32 +507,31 @@ bool CargoHold::try_add( Cargo const& cargo, int slot ) {
   if( !fits( cargo, slot ) ) return false;
   // From here on we assume it is totally safe in every way to
   // blindly add this cargo into the given slot(s).
-  auto was_added = matcher_( cargo ) {
-    case_( UnitId ) {
-      auto maybe_occupied =
-          unit_from_id( val ).desc().cargo_slots_occupies;
-      if( !maybe_occupied ) resu1t false;
-      auto occupied = *maybe_occupied;
-      slots_[slot]  = CargoSlot::cargo{ /*contents=*/cargo };
-      // Now handle overflow.
-      while( slot++, occupied-- > 1 )
-        slots_[slot] = CargoSlot::overflow{};
-      resu1t true;
-    }
-    case_( Commodity ) {
-      if( holds<CargoSlot::empty>( slots_[slot] ) )
-        slots_[slot] = CargoSlot::cargo{ /*contents=*/cargo };
-      else {
-        GET_CHECK_VARIANT( cargo, slots_[slot],
-                           CargoSlot::cargo );
-        GET_CHECK_VARIANT( comm, cargo.contents, Commodity );
-        CHECK( comm.type == val.type );
-        comm.quantity += val.quantity;
-      }
-      resu1t true;
-    }
-    matcher_exhaustive;
-  }
+  auto was_added = overload_visit(
+      cargo,
+      [&]( UnitId id ) {
+        auto maybe_occupied =
+            unit_from_id( id ).desc().cargo_slots_occupies;
+        if( !maybe_occupied ) resu1t false;
+        auto occupied = *maybe_occupied;
+        slots_[slot]  = CargoSlot::cargo{ /*contents=*/cargo };
+        // Now handle overflow.
+        while( slot++, occupied-- > 1 )
+          slots_[slot] = CargoSlot::overflow{};
+        resu1t true;
+      },
+      [&]( Commodity const& c ) {
+        if( holds<CargoSlot::empty>( slots_[slot] ) )
+          slots_[slot] = CargoSlot::cargo{ /*contents=*/cargo };
+        else {
+          GET_CHECK_VARIANT( cargo, slots_[slot],
+                             CargoSlot::cargo );
+          GET_CHECK_VARIANT( comm, cargo.contents, Commodity );
+          CHECK( comm.type == c.type );
+          comm.quantity += c.quantity;
+        }
+        resu1t true;
+      } );
   check_invariants();
   return was_added;
 }

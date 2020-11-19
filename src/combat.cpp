@@ -15,6 +15,7 @@
 #include "logging.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
+#include "variant.hpp"
 #include "window.hpp"
 
 // base-util
@@ -338,15 +339,14 @@ sync_future<bool> confirm_explain_attack_error(
 }
 
 sync_future<bool> CombatAnalysis::confirm_explain_() const {
-  return matcher_( desc, ->, sync_future<bool> ) {
-    case_( e_attack_good ) {
-      resu1t confirm_explain_attack_good( val );
-    }
-    case_( e_attack_error ) {
-      resu1t confirm_explain_attack_error( val );
-    }
-    matcher_exhaustive;
-  }
+  return overload_visit<sync_future<bool>>(
+      desc,
+      []( e_attack_good val ) {
+        return confirm_explain_attack_good( val );
+      },
+      []( e_attack_error val ) {
+        return confirm_explain_attack_error( val );
+      } );
 }
 
 void CombatAnalysis::affect_orders_() const {

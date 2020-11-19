@@ -13,10 +13,12 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "logging.hpp"
-#include "meta.hpp"
 #include "screen.hpp"
 #include "util.hpp"
 #include "variant.hpp"
+
+// base
+#include "base/meta.hpp"
 
 // Rnl
 #include "rnl/input.hpp"
