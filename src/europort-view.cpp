@@ -112,12 +112,12 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
     }
     case CargoSlot::e::cargo: {
       auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
-      return overload_visit<DraggableObject_t>(
+      return overload_visit(
           cargo.contents,
-          []( UnitId id ) {
+          []( UnitId id ) -> DraggableObject_t {
             return DraggableObject::unit{ /*id=*/id };
           },
-          [&]( Commodity const& c ) {
+          [&]( Commodity const& c ) -> DraggableObject_t {
             return DraggableObject::cargo_commodity{
                 /*comm=*/c,
                 /*slot=*/slot_idx };

@@ -339,12 +339,12 @@ sync_future<bool> confirm_explain_attack_error(
 }
 
 sync_future<bool> CombatAnalysis::confirm_explain_() const {
-  return overload_visit<sync_future<bool>>(
+  return overload_visit(
       desc,
-      []( e_attack_good val ) {
+      []( e_attack_good val ) -> sync_future<bool> {
         return confirm_explain_attack_good( val );
       },
-      []( e_attack_error val ) {
+      []( e_attack_error val ) -> sync_future<bool> {
         return confirm_explain_attack_error( val );
       } );
 }
