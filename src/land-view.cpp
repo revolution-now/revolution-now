@@ -36,6 +36,7 @@
 #include "tx.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
+#include "variant.hpp"
 #include "viewport.hpp"
 #include "window.hpp"
 
@@ -256,7 +257,7 @@ void render_land_view() {
 
   Opt<Coord>  blink_coords;
   Opt<UnitId> blink_id;
-  // if( util::holds( state, LandViewState::blinking_unit
+  // if( holds( state, LandViewState::blinking_unit
   if_v( state, LandViewState::blinking_unit, blink ) {
     blink_coords = coord_for_unit_indirect( blink->id );
     blink_id     = blink->id;
@@ -386,7 +387,7 @@ void advance_viewport_state() {
 }
 
 void advance_landview_anim_state() {
-  if( util::holds<LandViewAnim::none>( SG().anim ) ) {
+  if( holds<LandViewAnim::none>( SG().anim ) ) {
     // We're not supposed to be animating anything.
     switch( enum_for( SG().mode.state() ) ) {
       case LandViewState::e::none: //
@@ -478,9 +479,9 @@ void advance_landview_anim_state() {
     case LandViewAnim::e::attack: {
       auto& val    = get_if_or_die<LandViewAnim::attack>( v );
       auto& attack = val;
-      CHECK( util::holds<LandViewState::sliding_unit>(
+      CHECK( holds<LandViewState::sliding_unit>(
                  SG().mode.state() ) ||
-             util::holds<LandViewState::depixelating_unit>(
+             holds<LandViewState::depixelating_unit>(
                  SG().mode.state() ) );
       if_v( SG().mode.state(), LandViewState::sliding_unit,
             sliding ) {
@@ -708,8 +709,7 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
 sync_future<ClickTileActions> click_on_world_tile(
     Coord coord ) {
   auto s_future = make_sync_future<ClickTileActions>();
-  if( !util::holds<LandViewAnim::none>( SG().anim ) )
-    return s_future;
+  if( !holds<LandViewAnim::none>( SG().anim ) ) return s_future;
   switch( enum_for( SG().mode.state() ) ) {
     case LandViewState::e::none: {
       s_future = click_on_world_tile_impl(
@@ -984,7 +984,7 @@ sync_future<UnitInputResponse> landview_ask_orders( UnitId id ) {
 sync_future<> landview_animate_move( UnitId      id,
                                      e_direction direction ) {
   landview_ensure_unit_visible( id );
-  CHECK( util::holds<LandViewAnim::none>( SG().anim ) );
+  CHECK( holds<LandViewAnim::none>( SG().anim ) );
   sync_promise<> s_promise;
   SG().anim = LandViewAnim::move{
       /*s_promise=*/s_promise, //
@@ -998,7 +998,7 @@ sync_future<> landview_animate_attack(
     UnitId attacker, UnitId defender, bool attacker_wins,
     e_depixelate_anim dp_anim ) {
   landview_ensure_unit_visible( attacker );
-  CHECK( util::holds<LandViewAnim::none>( SG().anim ) );
+  CHECK( holds<LandViewAnim::none>( SG().anim ) );
   sync_promise<> s_promise;
   SG().anim = LandViewAnim::attack{
       /*s_promise=*/s_promise,         //

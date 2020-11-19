@@ -26,9 +26,6 @@
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
-// base-util
-#include "base-util/variant.hpp"
-
 // Range-v3
 #include "range/v3/algorithm/any_of.hpp"
 

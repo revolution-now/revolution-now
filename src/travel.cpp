@@ -20,10 +20,8 @@
 #include "ustate.hpp"
 #include "util.hpp"
 #include "utype.hpp"
+#include "variant.hpp"
 #include "window.hpp"
-
-// base-util
-#include "base-util/variant.hpp"
 
 using namespace std;
 
@@ -32,7 +30,7 @@ namespace rn {
 namespace {} // namespace
 
 bool TravelAnalysis::allowed_() const {
-  return util::holds<e_unit_travel_good>( desc );
+  return holds<e_unit_travel_good>( desc );
 }
 
 void analyze_unload( Unit const&     unit,
@@ -60,7 +58,7 @@ void analyze_unload( Unit const&     unit,
 // this function is concerned about) and to flag it if that is
 // the case.
 Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
-  if( !util::holds<orders::direction>( orders ) ) return nullopt;
+  if( !holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
 
   auto src_coord = coord_for_unit_indirect( id );

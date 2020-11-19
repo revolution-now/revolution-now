@@ -14,9 +14,7 @@
 #include "aliases.hpp"
 #include "cstate.hpp"
 #include "ustate.hpp"
-
-// base-util
-#include "base-util/variant.hpp"
+#include "variant.hpp"
 
 using namespace std;
 
@@ -26,10 +24,10 @@ namespace {} // namespace
 
 Opt<MetaAnalysis> MetaAnalysis::analyze_( UnitId   id,
                                           orders_t orders ) {
-  if( util::holds<orders::wait>( orders ) )
+  if( holds<orders::wait>( orders ) )
     return MetaAnalysis( id, orders,
                          /*mv_points_forfeighted=*/false );
-  if( util::holds<orders::forfeight>( orders ) )
+  if( holds<orders::forfeight>( orders ) )
     return MetaAnalysis( id, orders,
                          /*mv_points_forfeighted=*/true );
   return nullopt;

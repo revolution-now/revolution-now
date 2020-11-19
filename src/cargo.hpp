@@ -258,11 +258,9 @@ template<typename T>
 std::vector<T> CargoHold::items_of_type() const {
   std::vector<T> res;
   for( auto const& slot : slots_ ) {
-    if_v( slot, CargoSlot::cargo, cargo ) {
-      if_v( cargo->contents, T, val ) { //
+    if( auto* cargo = std::get_if<CargoSlot::cargo>( &slot ) )
+      if( auto* val = std::get_if<T>( &( cargo->contents ) ) )
         res.emplace_back( *val );
-      }
-    }
   }
   return res;
 }
@@ -271,11 +269,9 @@ template<typename T>
 int CargoHold::count_items_of_type() const {
   int count = 0;
   for( auto const& slot : slots_ ) {
-    if_v( slot, CargoSlot::cargo, cargo ) {
-      if_v( cargo->contents, T, val ) { //
+    if( auto* cargo = std::get_if<CargoSlot::cargo>( &slot ) )
+      if( auto* val = std::get_if<T>( &( cargo->contents ) ) )
         ++count;
-      }
-    }
   }
   return count;
 }
@@ -284,11 +280,10 @@ template<typename T>
 Opt<CRef<T>> CargoHold::slot_holds_cargo_type( int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
   Opt<CRef<T>> res;
-  if_v( slots_[idx], CargoSlot::cargo, cargo ) {
-    if_v( cargo->contents, T, content ) { //
+  if( auto* cargo =
+          std::get_if<CargoSlot::cargo>( &slots_[idx] ) )
+    if( auto* content = std::get_if<T>( &( cargo->contents ) ) )
       res = *content;
-    }
-  }
   return res;
 }
 

@@ -1141,8 +1141,8 @@ public:
           auto scale = ActiveCargoBox::box_scale;
 
           using DraggableObject::cargo_commodity;
-          if( draggable_in_cargo_slot( *maybe_slot )           //
-              | fmap( L( util::holds<cargo_commodity>( _ ) ) ) //
+          if( draggable_in_cargo_slot( *maybe_slot )     //
+              | fmap( L( holds<cargo_commodity>( _ ) ) ) //
               | maybe_truish_to_bool ) {
             box_origin += k_rendered_commodity_offset;
             scale = Scale{ 16 };
@@ -1499,7 +1499,7 @@ public:
       }
       case DragArc::e::cargo_to_dock: {
         auto& val = get_if_or_die<DragArc::cargo_to_dock>( v );
-        return util::holds<DraggableObject::unit>(
+        return holds<DraggableObject::unit>(
             draggable_from_src( val.src ) );
       }
       case DragArc::e::cargo_to_cargo: {

@@ -330,7 +330,8 @@ Plane::e_input_handled WindowManager::input(
   auto  view_rect =
       Rect::from( win.view_pos(), win.view->delta() );
 
-  if_v( event, input::mouse_move_event_t, val ) {
+  if( auto* val =
+          std::get_if<input::mouse_move_event_t>( &event ) ) {
     auto new_pos = val->pos;
     auto old_pos = val->prev;
     if( new_pos.is_inside( view_rect ) &&

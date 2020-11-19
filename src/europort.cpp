@@ -16,6 +16,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
+#include "variant.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -45,14 +46,14 @@ bool is_unit_on_dock( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
   return europort_status.has_value() &&
          !unit_from_id( id ).desc().ship &&
-         util::holds<UnitEuroPortViewState::in_port>(
+         holds<UnitEuroPortViewState::in_port>(
              europort_status->get() );
 }
 
 bool is_unit_inbound( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
   auto is_inbound      = europort_status.has_value() &&
-                    util::holds<UnitEuroPortViewState::inbound>(
+                    holds<UnitEuroPortViewState::inbound>(
                         europort_status->get() );
   if( is_inbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_inbound;
@@ -60,10 +61,9 @@ bool is_unit_inbound( UnitId id ) {
 
 bool is_unit_outbound( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
-  auto is_outbound =
-      europort_status.has_value() &&
-      util::holds<UnitEuroPortViewState::outbound>(
-          europort_status->get() );
+  auto is_outbound     = europort_status.has_value() &&
+                     holds<UnitEuroPortViewState::outbound>(
+                         europort_status->get() );
   if( is_outbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_outbound;
 }
@@ -72,7 +72,7 @@ bool is_unit_in_port( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
   return europort_status.has_value() &&
          unit_from_id( id ).desc().ship &&
-         util::holds<UnitEuroPortViewState::in_port>(
+         holds<UnitEuroPortViewState::in_port>(
              europort_status->get() );
 }
 

@@ -13,9 +13,6 @@
 // rnlc
 #include "expr.hpp"
 
-// base-util
-#include "base-util/variant.hpp"
-
 // function_ref
 #include "tl/function_ref.hpp"
 

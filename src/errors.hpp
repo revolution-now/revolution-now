@@ -18,7 +18,6 @@
 // base-util
 #include "base-util/macros.hpp"
 #include "base-util/pp.hpp"
-#include "base-util/variant.hpp" // FIXME: remove this.
 
 // expected-lite
 #include "nonstd/expected.hpp"
@@ -27,6 +26,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string_view>
+#include <variant>
 
 // This is obviously a no-op but is an attempt to suppress some
 // compiler warnings about parenthesis around macro parameters
@@ -216,8 +216,8 @@ bool check_inline( bool b, char const* msg );
 #define GET_CHECK_VARIANT( dest, expression, type )         \
   auto&& STRING_JOIN( __x, __LINE__ ) = expression;         \
   RN_CHECK(                                                 \
-      ::util::holds<std::remove_cv_t<type>>(                \
-          STRING_JOIN( __x, __LINE__ ) ),                   \
+      std::get_if<std::remove_cv_t<type>>(                  \
+          &STRING_JOIN( __x, __LINE__ ) ) != nullptr,       \
       "variant expected to be holding type `{}` but it is " \
       "holding index {}",                                   \
       #type, STRING_JOIN( __x, __LINE__ ).index() )         \

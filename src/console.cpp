@@ -24,6 +24,7 @@
 #include "terminal.hpp"
 #include "text.hpp"
 #include "ttf.hpp"
+#include "variant.hpp"
 #include "views.hpp"
 
 // Revolution Now (config)
@@ -201,7 +202,7 @@ struct ConsolePlane : public Plane {
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    if( !util::holds<input::key_event_t>( event ) )
+    if( !holds<input::key_event_t>( event ) )
       return e_input_handled::no;
     auto const& key_event =
         *std::get_if<input::key_event_t>( &event );

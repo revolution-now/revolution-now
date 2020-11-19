@@ -21,7 +21,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/variant.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -42,8 +41,6 @@
 using namespace std;
 
 namespace rn {
-
-using util::holds;
 
 namespace {
 
@@ -124,16 +121,16 @@ void CargoHold::check_invariants() const {
       CHECK( !holds<CargoSlot::overflow>( slots_[i + 1] ) );
   // 3. There are no `overflow`s following `commodity`s.
   for( int i = 0; i < slots_total() - 1; ++i ) {
-    if_v( slots_[i], CargoSlot::cargo, cargo ) {
+    if( auto* cargo = get_if<CargoSlot::cargo>( &slots_[i] ) )
       if( holds<Commodity>( cargo->contents ) )
         CHECK( !holds<CargoSlot::overflow>( slots_[i + 1] ) );
-    }
   }
   // 4. Commodities don't exceed max quantity and are not zero
   // quantity.
   for( auto const& slot : slots_ ) {
-    if_v( slot, CargoSlot::cargo, cargo ) {
-      if_v( cargo->contents, Commodity, commodity ) {
+    if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) ) {
+      if( auto* commodity =
+              get_if<Commodity>( &( cargo->contents ) ) ) {
         CHECK( commodity->quantity <=
                k_max_commodity_cargo_per_slot );
         CHECK( commodity->quantity > 0 );
@@ -143,8 +140,9 @@ void CargoHold::check_invariants() const {
   // 5. Units with overflow are properly followed by `overflow`.
   for( int i = 0; i < slots_total(); ++i ) {
     auto const& slot = slots_[i];
-    if_v( slot, CargoSlot::cargo, cargo ) {
-      if_v( cargo->contents, UnitId, unit_id ) {
+    if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) ) {
+      if( auto* unit_id =
+              get_if<UnitId>( &( cargo->contents ) ) ) {
         auto const& unit = unit_from_id( *unit_id );
         auto        occupies =
             unit.desc().cargo_slots_occupies.value_or( 0 );
@@ -239,11 +237,10 @@ CargoSlot_t const& CargoHold::operator[](
 
 Opt<int> CargoHold::find_unit( UnitId id ) const {
   auto is_unit = [id]( CargoSlot_t const& slot ) {
-    if_v( slot, CargoSlot::cargo, cargo ) {
-      if_v( cargo->contents, UnitId, unit_id ) {
+    if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )
+      if( auto* unit_id =
+              get_if<UnitId>( &( cargo->contents ) ) )
         return id == *unit_id;
-      }
-    }
     return false;
   };
   return util::find_first_if( slots_, is_unit );
@@ -265,12 +262,11 @@ Vec<Pair<Commodity, int>> CargoHold::commodities(
   Vec<Pair<Commodity, int>> res;
 
   for( auto const& [idx, slot] : rv::enumerate( slots_ ) ) {
-    if_v( slot, CargoSlot::cargo, cargo ) {
-      if_v( cargo->contents, Commodity, commodity ) {
+    if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )
+      if( auto* commodity =
+              get_if<Commodity>( &( cargo->contents ) ) )
         if( !type || ( commodity->type == *type ) )
           res.emplace_back( *commodity, idx );
-      }
-    }
   }
   return res;
 }
@@ -464,7 +460,8 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
             case CargoSlot::e::overflow: break;
             case CargoSlot::e::cargo: {
               auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
-              if_v( cargo.contents, Commodity, comm_in_slot ) {
+              if( auto* comm_in_slot = get_if<Commodity>(
+                      &( cargo.contents ) ) ) {
                 if( comm_in_slot->type == commodity.type ) {
                   auto quantity_to_add =
                       std::min( commodity.quantity,
@@ -499,7 +496,7 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
 }
 
 bool CargoHold::try_add( Cargo const& cargo, int slot ) {
-  if_v( cargo, UnitId, id ) {
+  if( auto* id = get_if<UnitId>( &cargo ) ) {
     // Make sure that the unit is not already in this cargo.
     auto units = items_of_type<UnitId>();
     CHECK( util::count_if( units, LC( _ == *id ) ) == 0 );

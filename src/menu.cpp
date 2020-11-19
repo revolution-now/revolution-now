@@ -730,8 +730,7 @@ Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
           using namespace std::chrono;
           using namespace std::literals::chrono_literals;
           auto now = system_clock::now();
-          CHECK( util::holds<MenuState::item_click>(
-              g_menu_state ) );
+          CHECK( holds<MenuState::item_click>( g_menu_state ) );
           auto start =
               std::get<MenuState::item_click>( g_menu_state )
                   .start;
@@ -990,10 +989,8 @@ void init_menus() {
   // Populate the e_menu_item maps and verify no duplicates.
   for( auto& [menu, items] : g_menu_def ) {
     for( auto& item_desc : items ) {
-      if( util::holds<MenuItem::menu_divider>( item_desc ) )
-        continue;
-      CHECK(
-          util::holds<MenuItem::menu_clickable>( item_desc ) );
+      if( holds<MenuItem::menu_divider>( item_desc ) ) continue;
+      CHECK( holds<MenuItem::menu_clickable>( item_desc ) );
       auto& clickable =
           get<MenuItem::menu_clickable>( item_desc );
       g_items_from_menu[menu].push_back( clickable.item );
@@ -1181,8 +1178,7 @@ struct MenuPlane : public Plane {
         },
         []( input::win_event_t ) { return e_input_handled::no; },
         [&]( input::key_event_t const& key_event ) {
-          if( util::holds<MenuState::item_click>(
-                  g_menu_state ) )
+          if( holds<MenuState::item_click>( g_menu_state ) )
             // If we are in the middle of a click process then
             // let it finish before handling anymore keys.
             return e_input_handled::no;
@@ -1340,8 +1336,7 @@ struct MenuPlane : public Plane {
           // Remove menu-hover by default and enable it again
           // below if the mouse if over a menu and menus are
           // closed.
-          if( util::holds<MenuState::menus_closed>(
-                  g_menu_state ) )
+          if( holds<MenuState::menus_closed>( g_menu_state ) )
             g_menu_state = MenuState::menus_closed{};
           auto over_what = click_target( mv_event.pos );
           if( !over_what.has_value() )
@@ -1351,11 +1346,11 @@ struct MenuPlane : public Plane {
                 return e_input_handled::yes;
               },
               []( MouseOver::divider desc ) {
-                CHECK( util::holds<MenuState::menu_open>(
+                CHECK( holds<MenuState::menu_open>(
                            g_menu_state ) ||
-                       util::holds<MenuState::item_click>(
+                       holds<MenuState::item_click>(
                            g_menu_state ) );
-                if( util::holds<MenuState::menu_open>(
+                if( holds<MenuState::menu_open>(
                         g_menu_state ) ) {
                   g_menu_state = MenuState::menu_open{
                       desc.menu, /*hover=*/{} };
@@ -1363,22 +1358,21 @@ struct MenuPlane : public Plane {
                 return e_input_handled::yes;
               },
               []( MouseOver::header header ) {
-                if( util::holds<MenuState::menu_open>(
-                        g_menu_state ) )
+                if( holds<MenuState::menu_open>( g_menu_state ) )
                   g_menu_state = MenuState::menu_open{
                       header.menu, /*hover=*/{} };
-                if( util::holds<MenuState::menus_closed>(
+                if( holds<MenuState::menus_closed>(
                         g_menu_state ) )
                   g_menu_state = MenuState::menus_closed{
                       /*hover=*/header.menu };
                 return e_input_handled::yes;
               },
               []( MouseOver::item item ) {
-                CHECK( util::holds<MenuState::menu_open>(
+                CHECK( holds<MenuState::menu_open>(
                            g_menu_state ) ||
-                       util::holds<MenuState::item_click>(
+                       holds<MenuState::item_click>(
                            g_menu_state ) );
-                if( util::holds<MenuState::menu_open>(
+                if( holds<MenuState::menu_open>(
                         g_menu_state ) ) {
                   auto& o = std::get<MenuState::menu_open>(
                       g_menu_state );
@@ -1399,8 +1393,7 @@ struct MenuPlane : public Plane {
         [&]( input::mouse_button_event_t b_event ) {
           auto over_what = click_target( b_event.pos );
           if( !over_what.has_value() ) {
-            if( util::holds<MenuState::menu_open>(
-                    g_menu_state ) ) {
+            if( holds<MenuState::menu_open>( g_menu_state ) ) {
               g_menu_state = MenuState::menus_closed{ {} };
               log_menu_state();
               return e_input_handled::yes; // no click through

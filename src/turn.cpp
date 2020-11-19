@@ -39,7 +39,6 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/misc.hpp"
-#include "base-util/variant.hpp"
 
 // Range-v3
 #include "range/v3/view/take.hpp"
@@ -86,7 +85,7 @@ Opt<PlayerIntent> g_player_intent;
 ** Helpers
 *****************************************************************/
 bool animate_move( TravelAnalysis const& analysis ) {
-  CHECK( util::holds<e_unit_travel_good>( analysis.desc ) );
+  CHECK( holds<e_unit_travel_good>( analysis.desc ) );
   auto type = get<e_unit_travel_good>( analysis.desc );
   // TODO: in the case of board_ship we need to make sure that
   // the ship being borded gets rendered on top because there may
@@ -496,7 +495,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
               break;
             }
             ASSIGN_CHECK_OPT( orders, maybe_orders );
-            if( util::holds<orders::wait>( orders ) ) {
+            if( holds<orders::wait>( orders ) ) {
               doing_units.q.push_back( id );
               CHECK( doing_units.q.front()->get() == id );
               doing_units.q.pop_front();

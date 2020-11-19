@@ -258,10 +258,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       update_drag( l_button_down, l_drag );
       update_drag( r_button_down, r_drag );
 
-      auto l_dragging =
-          util::holds<drag_phase::dragging>( l_drag );
-      auto r_dragging =
-          util::holds<drag_phase::dragging>( r_drag );
+      auto l_dragging = holds<drag_phase::dragging>( l_drag );
+      auto r_dragging = holds<drag_phase::dragging>( r_drag );
 
       // Since we're in a mouse motion event, if any mouse button
       // dragging state is active then this is a dragging event.
@@ -329,7 +327,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
                             /*phase=*/val->phase };
           event = drag_event;
         }
-        else if( util::holds<drag_phase::maybe>( l_drag ) ) {
+        else if( holds<drag_phase::maybe>( l_drag ) ) {
           l_drag = drag_phase::none{};
           mouse_button_event_t button_event;
           button_event.pos     = mouse;
@@ -359,7 +357,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
                             /*phase=*/val->phase };
           event = drag_event;
         }
-        else if( util::holds<drag_phase::maybe>( r_drag ) ) {
+        else if( holds<drag_phase::maybe>( r_drag ) ) {
           r_drag = drag_phase::none{};
           mouse_button_event_t button_event;
           button_event.pos     = mouse;

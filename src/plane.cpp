@@ -34,7 +34,6 @@
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/misc.hpp"
-#include "base-util/variant.hpp"
 
 // Range-v3
 #include "range/v3/view/filter.hpp"
@@ -379,7 +378,8 @@ void advance_plane_state() {
 Plane::e_input_handled send_input_to_planes(
     input::event_t const& event ) {
   using namespace input;
-  if_v( event, input::mouse_drag_event_t, drag_event ) {
+  if( auto* drag_event =
+          std::get_if<input::mouse_drag_event_t>( &event ) ) {
     if( g_drag_state.plane ) {
       auto& plane = Plane::get( *g_drag_state.plane );
       // Drag should already be in progress.

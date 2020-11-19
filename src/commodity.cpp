@@ -19,6 +19,7 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ustate.hpp"
+#include "variant.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -181,8 +182,7 @@ int move_commodity_as_much_as_possible(
                     dst_cargo.max_commodity_per_cargo_slot() -
                         maybe_dst_comm->get().quantity );
     } else {
-      CHECK(
-          util::holds<CargoSlot::empty>( dst_cargo[dst_slot] ) );
+      CHECK( holds<CargoSlot::empty>( dst_cargo[dst_slot] ) );
       max_transfer_quantity =
           std::min( removed.quantity,
                     dst_cargo.max_commodity_per_cargo_slot() );

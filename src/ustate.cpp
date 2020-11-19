@@ -20,6 +20,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
+#include "variant.hpp"
 
 // Rnl
 #include "rnl/ustate-impl.hpp"
@@ -82,7 +83,7 @@ private:
 
     // Check for no free units.
     for( auto const& [id, st] : states ) {
-      UNXP_CHECK( !util::holds<UnitState::free>( st ),
+      UNXP_CHECK( !holds<UnitState::free>( st ),
                   "unit {} is in the `free` state.", id );
     }
 
@@ -259,7 +260,7 @@ Vec<UnitId> units_from_coord_recursive( Coord coord ) {
 
 void move_unit_from_map_to_map( UnitId id, Coord dest ) {
   CHECK( unit_exists( id ) );
-  CHECK( util::holds<UnitState::world>( SG().states[id] ) );
+  CHECK( holds<UnitState::world>( SG().states[id] ) );
   ustate_change_to_map( id, dest );
 }
 
@@ -339,7 +340,7 @@ Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
 }
 
 bool is_unit_in_colony( UnitId id ) {
-  return util::holds<UnitState::colony>( unit_state( id ) );
+  return holds<UnitState::colony>( unit_state( id ) );
 }
 
 /****************************************************************
@@ -474,7 +475,7 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
 void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
   CHECK_XP( check_europort_state_invariants( info ) );
-  if( !util::holds<UnitState::europort>( SG().states[id] ) )
+  if( !holds<UnitState::europort>( SG().states[id] ) )
     internal::ustate_disown_unit( id );
   SG().states[id] = UnitState::europort{ /*st=*/info };
 }

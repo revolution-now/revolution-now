@@ -28,7 +28,7 @@ namespace rn {
 namespace {} // namespace
 
 bool CombatAnalysis::allowed_() const {
-  return util::holds<e_attack_good>( desc );
+  return holds<e_attack_good>( desc );
 }
 
 // This function will allow the move by default, and so it is the
@@ -37,7 +37,7 @@ bool CombatAnalysis::allowed_() const {
 // this function is concerned about) and to flag it if that is
 // the case.
 Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
-  if( !util::holds<orders::direction>( orders ) ) return nullopt;
+  if( !holds<orders::direction>( orders ) ) return nullopt;
   auto [direction] = get<orders::direction>( orders );
 
   auto src_coord = coord_for_unit_indirect( id );
