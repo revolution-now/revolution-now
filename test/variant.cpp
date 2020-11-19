@@ -25,20 +25,27 @@ TEST_CASE( "[variant] holds" ) {
   variant<int, string> v1{ 5 };
   variant<int, string> v2{ "hello" };
 
+  REQUIRE( holds<int>( v1 ) );
+  REQUIRE( !holds<string>( v1 ) );
+  REQUIRE( holds<string>( v2 ) );
+  REQUIRE( !holds<int>( v2 ) );
   REQUIRE( holds( v1, 5 ) );
   REQUIRE( !holds( v1, 6 ) );
   REQUIRE( !holds( v1, string( "world" ) ) );
 }
 
-TEST_CASE( "[variant] get if" ) {
+TEST_CASE( "[variant] if_get" ) {
   variant<int, string> v1{ 5 };
   variant<int, string> v2{ "hello" };
 
   bool is_int = false;
-  GET_IF( v2, int, p ) { is_int = true; }
+  if_get( v2, int, p ) {
+    (void)p;
+    is_int = true;
+  }
   bool is_string = false;
-  GET_IF( v2, string, p ) {
-    REQUIRE( *p == "hello" );
+  if_get( v2, string, p ) {
+    REQUIRE( p == "hello" );
     is_string = true;
   }
 
