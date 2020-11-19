@@ -80,6 +80,44 @@ void apply_to_alternatives_with_base( std::variant<Args...>& v,
       v );
 }
 
+// Use this when all alternatives inherit from a common base
+// class and you need a base-class pointer to the active member.
+//
+// This will give a compiler error if at least one alternative
+// type does not inherit from the Base or does not do so
+// publicly.
+//
+// This should only be called on variants that have a unique type
+// list, although that is not enforced here (results will just
+// not be meaninful).
+//
+// The result should always be non-null assuming that the variant
+// is not in a valueless-by-exception state.
+template<typename Base, typename... Args>
+Base& variant_base( std::variant<Args...>& v ) {
+  return std::visit(
+      []<typename T>( T&& e ) -> Base& {
+        static_assert(
+            std::is_base_of_v<Base, std::decay_t<T>>,
+            "all types in the variant must inherit from Base" );
+        return e; //
+      },
+      v );
+}
+
+// And one for const.
+template<typename Base, typename... Args>
+Base const& variant_base( std::variant<Args...> const& v ) {
+  return std::visit(
+      []<typename T>( T const& e ) -> Base const& {
+        static_assert(
+            std::is_base_of_v<Base, T>,
+            "all types in the variant must inherit from Base" );
+        return e; //
+      },
+      v );
+}
+
 // This is the famouse Overload Pattern. When constructed from a
 // list of callables, it will yield an object that is also
 // callable, but whose callable operator consists of an overload
@@ -183,44 +221,6 @@ decltype( auto ) overload_visit( std::variant<VarArgs...>& v,
                        mp::type_list<Funcs...>>::go();
   return std::visit( overload{ std::forward<Funcs>( funcs )... },
                      v );
-}
-
-// Use this when all alternatives inherit from a common base
-// class and you need a base-class pointer to the active member.
-//
-// This will give a compiler error if at least one alternative
-// type does not inherit from the Base or does not do so
-// publicly.
-//
-// This should only be called on variants that have a unique type
-// list, although that is not enforced here (results will just
-// not be meaninful).
-//
-// The result should always be non-null assuming that the variant
-// is not in a valueless-by-exception state.
-template<typename Base, typename... Args>
-Base& variant_base( std::variant<Args...>& v ) {
-  return std::visit(
-      []<typename T>( T&& e ) -> Base& {
-        static_assert(
-            std::is_base_of_v<Base, std::decay_t<T>>,
-            "all types in the variant must inherit from Base" );
-        return e; //
-      },
-      v );
-}
-
-// And one for const.
-template<typename Base, typename... Args>
-Base const& variant_base( std::variant<Args...> const& v ) {
-  return std::visit(
-      []<typename T>( T const& e ) -> Base const& {
-        static_assert(
-            std::is_base_of_v<Base, T>,
-            "all types in the variant must inherit from Base" );
-        return e; //
-      },
-      v );
 }
 
 // A wrapper around std::visit which allows taking the variant as

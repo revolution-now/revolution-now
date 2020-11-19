@@ -31,6 +31,23 @@ struct type_list;
 struct Auto {};
 
 /****************************************************************
+** Overload Pattern
+*****************************************************************/
+// This is the famouse Overload Pattern. When constructed from a
+// list of callables, it will yield an object that is also
+// callable, but whose callable operator consists of an overload
+// set of all the given functions.
+template<typename... T>
+struct overload : T... {
+  using T::operator()...;
+};
+
+// Deduction guide: when C++20 fully drops, we should be able to
+// delete this.
+template<typename... T>
+overload( T... ) -> overload<T...>;
+
+/****************************************************************
 ** Is Callable Overloaded
 *****************************************************************/
 namespace detail {
