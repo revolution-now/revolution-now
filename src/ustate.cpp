@@ -89,30 +89,30 @@ private:
 
     // Populate units_from_coords.
     for( auto const& [id, st] : states ) {
-      if_v( st, UnitState::world, val ) {
-        units_from_coords[val->coord].insert( id );
+      if_get( st, UnitState::world, val ) {
+        units_from_coords[val.coord].insert( id );
       }
     }
 
     // Populate units_from_colony.
     for( auto const& [id, st] : states ) {
-      if_v( st, UnitState::colony, val ) {
-        units_from_colony[val->id].insert( id );
+      if_get( st, UnitState::colony, val ) {
+        units_from_colony[val.id].insert( id );
       }
     }
 
     // Populate holder_from_held.
     for( auto const& [id, st] : states ) {
-      if_v( st, UnitState::cargo, val ) {
-        holder_from_held[id] = val->holder;
+      if_get( st, UnitState::cargo, val ) {
+        holder_from_held[id] = val.holder;
       }
     }
 
     // Check europort states.
     for( auto const& [id, st] : states ) {
-      if_v( st, UnitState::europort, val ) {
+      if_get( st, UnitState::europort, val ) {
         XP_OR_RETURN_(
-            check_europort_state_invariants( val->st ) );
+            check_europort_state_invariants( val.st ) );
       }
     }
 
@@ -333,8 +333,8 @@ FlatSet<UnitId> const& units_from_colony( ColonyId id ) {
 
 Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
   Opt<ColonyId> res;
-  if_v( unit_state( id ), UnitState::colony, colony_state ) {
-    return colony_state->id;
+  if_get( unit_state( id ), UnitState::colony, colony_state ) {
+    return colony_state.id;
   }
   return res;
 }
@@ -382,8 +382,8 @@ expect<> check_europort_state_invariants(
 
 Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
     UnitId id ) {
-  if_v( SG().states[id], UnitState::europort, val ) {
-    return val->st;
+  if_get( SG().states[id], UnitState::europort, val ) {
+    return val.st;
   }
   return nullopt;
 }
@@ -391,9 +391,7 @@ Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
 Vec<UnitId> units_in_euro_port_view() {
   Vec<UnitId> res;
   for( auto const& [id, st] : SG().states ) {
-    if_v( st, UnitState::europort, val ) { //
-      res.push_back( id );
-    }
+    if( holds<UnitState::europort>( st ) ) res.push_back( id );
   }
   return res;
 }

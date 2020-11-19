@@ -1052,9 +1052,9 @@ public:
            rv::zip( rv::ints, cargo_slots,
                     range_of_rects( grid ) ) ) {
         if( g_dragging_object.has_value() ) {
-          if_v( *g_dragging_object,
-                DraggableObject::cargo_commodity, cc ) {
-            if( cc->slot._ == idx ) continue;
+          if_get( *g_dragging_object,
+                  DraggableObject::cargo_commodity, cc ) {
+            if( cc.slot._ == idx ) continue;
           }
         }
         auto dst_coord       = rect.upper_left() + offset;

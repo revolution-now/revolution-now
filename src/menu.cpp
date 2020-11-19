@@ -239,8 +239,8 @@ bool is_menu_open( e_menu menu ) {
 }
 
 Opt<e_menu> opened_menu() {
-  if_v( g_menu_state, MenuState::menu_open, val ) {
-    return val->menu;
+  if_get( g_menu_state, MenuState::menu_open, val ) {
+    return val.menu;
   }
   return {};
 }
@@ -1140,9 +1140,9 @@ struct MenuPlane : public Plane {
     }
   }
   void advance_state() override {
-    if_v( g_menu_state, MenuState::item_click, val ) {
-      auto item  = val->item;
-      auto start = val->start;
+    if_get( g_menu_state, MenuState::item_click, val ) {
+      auto item  = val.item;
+      auto start = val.start;
       if( chrono::system_clock::now() - start >=
           click_anim::total_duration ) {
         // FIXME
@@ -1245,9 +1245,10 @@ struct MenuPlane : public Plane {
               case ::SDLK_RETURN:
               case ::SDLK_KP_5:
               case ::SDLK_KP_ENTER:
-                if_v( g_menu_state, MenuState::menu_open, val ) {
-                  if( val->hover.has_value() ) {
-                    click_menu_item( val->hover.value() );
+                if_get( g_menu_state, MenuState::menu_open,
+                        val ) {
+                  if( val.hover.has_value() ) {
+                    click_menu_item( val.hover.value() );
                     log_menu_state();
                   }
                 }

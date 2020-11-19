@@ -21,26 +21,24 @@
 // C++ standard library
 #include <variant>
 
-// This is a helper for testing/extracting values from variants.
-// Commonly, we want to say: "if the variant holds a value of
-// type X then get a pointer to its value and then do something
-// with it. This macro allows us to do that:
+// If the variant holds a value of type X then get a reference to
+// its value and then do something with it.
 //
 //   variant<int, string> v = ...;
 //
-//   GET_IF( v, string, number ) {
+//   if_get( v, string, number ) {
 //     /* v holds type string and number
-//      * is a pointer to it. */
-//     cout << number->size();
+//      * is a reference to it. */
+//     cout << number.size();
 //   }
 //
-// Note that this macro must be placed inside an if statement and
-// that it requires C++17 because it declares the variable inside
-// the if statement.
-#define GET_IF( subject, type, var ) \
-  if( auto* var = std::get_if<type>( &subject ); var )
-
-#define if_v( subject, type, var ) GET_IF( subject, type, var )
+// In order to produce a reference we need to deference the value
+// of std::get_if before we know whether it is null. Not sure
+// whether this is undefined behavior. I think it should be fine
+// because we only actually use it when it is valid.
+#define if_get( subject, type, var )               \
+  if( auto&& var = *std::get_if<type>( &subject ); \
+      std::get_if<type>( &subject ) != nullptr )
 
 namespace rn {
 
@@ -50,7 +48,7 @@ namespace rn {
 template<typename T, typename... Vs>
 bool holds( std::variant<Vs...> const& v, T const& val ) {
   return std::holds_alternative<T>( v ) &&
-         std::get<T>( v ) == val;
+         *std::get_if<T>( &v ) == val;
 }
 
 // This is just to have consistent notation with the above in
@@ -59,13 +57,8 @@ bool holds( std::variant<Vs...> const& v, T const& val ) {
 // usually be used in the context of an if-statement, you are
 // advised to used the below macro instead.
 template<typename T, typename... Vs>
-auto const* holds( std::variant<Vs...> const& v ) {
-  return std::get_if<T>( &v );
-}
-
-template<typename T, typename... Vs>
-auto* holds( std::variant<Vs...>& v ) {
-  return std::get_if<T>( &v );
+bool holds( std::variant<Vs...> const& v ) {
+  return std::get_if<T>( &v ) != nullptr;
 }
 
 // Non-mutating, just observes and returns something. For mutat-

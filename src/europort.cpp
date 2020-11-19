@@ -218,16 +218,17 @@ void unit_move_to_europort_dock( UnitId id ) {
 void advance_unit_on_high_seas( UnitId id ) {
   ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
   constexpr double const advance = 0.2;
-  if_v( info.get(), UnitEuroPortViewState::outbound, outbound ) {
-    outbound->percent += advance;
-    if( outbound->percent >= 1.0 ) {
+  if_get( info.get(), UnitEuroPortViewState::outbound,
+          outbound ) {
+    outbound.percent += advance;
+    if( outbound.percent >= 1.0 ) {
       NOT_IMPLEMENTED; // find a place on the map to move to.
     }
     return;
   }
-  if_v( info.get(), UnitEuroPortViewState::inbound, inbound ) {
-    inbound->percent += advance;
-    if( inbound->percent >= 1.0 )
+  if_get( info.get(), UnitEuroPortViewState::inbound, inbound ) {
+    inbound.percent += advance;
+    if( inbound.percent >= 1.0 )
       ustate_change_to_euro_port_view(
           id, UnitEuroPortViewState::in_port{} );
     return;

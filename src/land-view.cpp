@@ -258,19 +258,19 @@ void render_land_view() {
   Opt<Coord>  blink_coords;
   Opt<UnitId> blink_id;
   // if( holds( state, LandViewState::blinking_unit
-  if_v( state, LandViewState::blinking_unit, blink ) {
-    blink_coords = coord_for_unit_indirect( blink->id );
-    blink_id     = blink->id;
+  if_get( state, LandViewState::blinking_unit, blink ) {
+    blink_coords = coord_for_unit_indirect( blink.id );
+    blink_id     = blink.id;
   }
 
   Opt<UnitId> slide_id;
-  if_v( state, LandViewState::sliding_unit, slide ) {
-    slide_id = slide->id;
+  if_get( state, LandViewState::sliding_unit, slide ) {
+    slide_id = slide.id;
   }
 
   Opt<UnitId> depixelate_id;
-  if_v( state, LandViewState::depixelating_unit, dying ) {
-    depixelate_id = dying->id;
+  if_get( state, LandViewState::depixelating_unit, dying ) {
+    depixelate_id = dying.id;
   }
 
   for( auto coord : covered ) {
@@ -318,31 +318,31 @@ void render_land_view() {
   }
 
   // Now do sliding, if any
-  if_v( state, LandViewState::sliding_unit, slide ) {
-    Coord coords = coord_for_unit_indirect( slide->id );
-    Delta delta  = slide->target - coords;
+  if_get( state, LandViewState::sliding_unit, slide ) {
+    Coord coords = coord_for_unit_indirect( slide.id );
+    Delta delta  = slide.target - coords;
     CHECK( -1 <= delta.w && delta.w <= 1 );
     CHECK( -1 <= delta.h && delta.h <= 1 );
     delta *= g_tile_scale;
-    Delta pixel_delta{ W( int( delta.w._ * slide->percent ) ),
-                       H( int( delta.h._ * slide->percent ) ) };
+    Delta pixel_delta{ W( int( delta.w._ * slide.percent ) ),
+                       H( int( delta.h._ * slide.percent ) ) };
 
     auto  covered = SG().viewport.covered_tiles();
     Coord pixel_coord =
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
     pixel_coord += pixel_delta;
-    render_unit( g_texture_viewport, slide->id, pixel_coord,
+    render_unit( g_texture_viewport, slide.id, pixel_coord,
                  /*with_icon=*/true );
   }
 
   // Now do depixelation, if any.
-  if_v( state, LandViewState::depixelating_unit, dying ) {
+  if_get( state, LandViewState::depixelating_unit, dying ) {
     ::SDL_SetRenderDrawBlendMode( g_renderer,
                                   ::SDL_BLENDMODE_BLEND );
     auto covered = SG().viewport.covered_tiles();
     ASSIGN_CHECK_OPT(
-        coords, coord_for_unit_multi_ownership( dying->id ) );
+        coords, coord_for_unit_multi_ownership( dying.id ) );
     Coord pixel_coord =
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
@@ -483,9 +483,9 @@ void advance_landview_anim_state() {
                  SG().mode.state() ) ||
              holds<LandViewState::depixelating_unit>(
                  SG().mode.state() ) );
-      if_v( SG().mode.state(), LandViewState::sliding_unit,
-            sliding ) {
-        if( sliding->percent >= 1.0 ) {
+      if_get( SG().mode.state(), LandViewState::sliding_unit,
+              sliding ) {
+        if( sliding.percent >= 1.0 ) {
           SG().mode.send_event( LandViewEvent::end{} );
           if( val.dp_anim == e_depixelate_anim::none ) {
             finished_anim = true;
@@ -504,8 +504,8 @@ void advance_landview_anim_state() {
           }
         }
       }
-      else if_v( SG().mode.state(),
-                 LandViewState::depixelating_unit, val ) {
+      else if( holds<LandViewState::depixelating_unit>(
+                   SG().mode.state() ) ) {
         if( g_pixels.empty() ) {
           SG().mode.send_event( LandViewEvent::end{} );
           finished_anim = true;
@@ -1023,8 +1023,9 @@ void test_land_view() {
 namespace {
 
 LUA_FN( blinking_unit, sol::object ) {
-  if_v( SG().mode.state(), LandViewState::blinking_unit, val ) {
-    sol::lua_value result = val->id;
+  if_get( SG().mode.state(), LandViewState::blinking_unit,
+          val ) {
+    sol::lua_value result = val.id;
     return result.as<sol::object>();
   }
   return sol::lua_nil;

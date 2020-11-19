@@ -138,21 +138,21 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   mouse.x /= g_resolution_scale_factor.sx;
   mouse.y /= g_resolution_scale_factor.sy;
 
-  if_v( l_drag, drag_phase::dragging, val ) {
-    if( val->phase == +e_drag_phase::begin )
-      val->phase = e_drag_phase::in_progress;
+  if_get( l_drag, drag_phase::dragging, val ) {
+    if( val.phase == +e_drag_phase::begin )
+      val.phase = e_drag_phase::in_progress;
   }
-  if_v( r_drag, drag_phase::dragging, val ) {
-    if( val->phase == +e_drag_phase::begin )
-      val->phase = e_drag_phase::in_progress;
+  if_get( r_drag, drag_phase::dragging, val ) {
+    if( val.phase == +e_drag_phase::begin )
+      val.phase = e_drag_phase::in_progress;
   }
 
-  if_v( l_drag, drag_phase::dragging, val ) {
-    if( val->phase == +e_drag_phase::end )
+  if_get( l_drag, drag_phase::dragging, val ) {
+    if( val.phase == +e_drag_phase::end )
       l_drag = drag_phase::none{};
   }
-  if_v( r_drag, drag_phase::dragging, val ) {
-    if( val->phase == +e_drag_phase::end )
+  if_get( r_drag, drag_phase::dragging, val ) {
+    if( val.phase == +e_drag_phase::end )
       r_drag = drag_phase::none{};
   }
 
@@ -210,10 +210,10 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
               break;
             }
             case drag_phase::e::maybe: {
-              if_v( drag, drag_phase::maybe, val ) {
-                if( is_in_drag_zone( val->origin, mouse ) ) {
+              if_get( drag, drag_phase::maybe, val ) {
+                if( is_in_drag_zone( val.origin, mouse ) ) {
                   drag = drag_phase::dragging{
-                      /*origin=*/val->origin,
+                      /*origin=*/val.origin,
                       /*phase=*/e_drag_phase::begin };
                 }
               }
@@ -313,19 +313,18 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     case ::SDL_MOUSEBUTTONUP: {
       g_mouse_buttons = sdl_event.button.state;
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
-        if_v( l_drag, drag_phase::dragging, val ) {
-          CHECK( val->phase != +e_drag_phase::end );
-          val->phase = e_drag_phase::end;
+        if_get( l_drag, drag_phase::dragging, val ) {
+          CHECK( val.phase != +e_drag_phase::end );
+          val.phase = e_drag_phase::end;
           mouse_drag_event_t drag_event;
           // Here we don't update the previous mouse position be-
           // cause this is not a mouse motion event.
           drag_event.prev   = mouse;
           drag_event.pos    = mouse;
           drag_event.button = e_mouse_button::l;
-          drag_event.state =
-              drag_state_t{ /*origin=*/val->origin,
-                            /*phase=*/val->phase };
-          event = drag_event;
+          drag_event.state = drag_state_t{ /*origin=*/val.origin,
+                                           /*phase=*/val.phase };
+          event            = drag_event;
         }
         else if( holds<drag_phase::maybe>( l_drag ) ) {
           l_drag = drag_phase::none{};
@@ -343,19 +342,18 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
         break;
       }
       if( sdl_event.button.button == SDL_BUTTON_RIGHT ) {
-        if_v( r_drag, drag_phase::dragging, val ) {
-          CHECK( val->phase != +e_drag_phase::end );
-          val->phase = e_drag_phase::end;
+        if_get( r_drag, drag_phase::dragging, val ) {
+          CHECK( val.phase != +e_drag_phase::end );
+          val.phase = e_drag_phase::end;
           mouse_drag_event_t drag_event;
           // Here we don't update the previous mouse position be-
           // cause this is not a mouse motion event.
           drag_event.prev   = mouse;
           drag_event.pos    = mouse;
           drag_event.button = e_mouse_button::r;
-          drag_event.state =
-              drag_state_t{ /*origin=*/val->origin,
-                            /*phase=*/val->phase };
-          event = drag_event;
+          drag_event.state = drag_state_t{ /*origin=*/val.origin,
+                                           /*phase=*/val.phase };
+          event            = drag_event;
         }
         else if( holds<drag_phase::maybe>( r_drag ) ) {
           r_drag = drag_phase::none{};

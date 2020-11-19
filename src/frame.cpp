@@ -160,8 +160,8 @@ void frame_loop() {
     input::pump_event_queue();
 
     auto is_win_resize = []( auto const& e ) {
-      if_v( e, input::win_event_t, val ) {
-        return val->type == input::e_win_event_type::resized;
+      if_get( e, input::win_event_t, val ) {
+        return val.type == input::e_win_event_type::resized;
       }
       return false;
     };

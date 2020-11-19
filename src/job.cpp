@@ -57,7 +57,7 @@ sync_future<Opt<string>> build_colony_ui_routine() {
 } // namespace
 
 bool JobAnalysis::allowed_() const {
-  return holds<e_unit_job_good>( desc ) != nullptr;
+  return holds<e_unit_job_good>( desc );
 }
 
 sync_future<bool> JobAnalysis::confirm_explain_() {

@@ -608,10 +608,10 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
       fsm_auto_advance( val.nation_turn, "nation-turn",
                         { advance_nation_turn_state },
                         *val.nation );
-      if_v( val.nation_turn.state(), NationTurnState::ending,
-            ending ) {
+      if_get( val.nation_turn.state(), NationTurnState::ending,
+              ending ) {
         val.nation = nullopt;
-        val.need_eot &= ending->need_eot;
+        val.need_eot &= ending.need_eot;
       }
       break;
     }
