@@ -33,12 +33,27 @@
 //   }
 //
 // In order to produce a reference we need to deference the value
-// of std::get_if before we know whether it is null. Not sure
-// whether this is undefined behavior. I think it should be fine
-// because we only actually use it when it is valid.
-#define if_get( subject, type, var )               \
-  if( auto&& var = *std::get_if<type>( &subject ); \
-      std::get_if<type>( &subject ) != nullptr )
+// of std::get_if. However, we can't do this in the top-level if
+// statement otherwise we would sometimes be deferencing a
+// nullptr which would be caught by sanitizers (-fsanitize=null
+// to be specific). So therefore we add another statement under
+// the top-level if that only gets executed when the pointer is
+// non-null and which declares the reference. This secondary
+// statement could either be another if statement or a switch
+// statement (both allow declaring variables before performing
+// their respective tests). However, if we use an if-statement
+// then the compiler will issue a warning when we have an `else`
+// statement below it, since it considers that an error-prone
+// situation (i.e., when an else statement follows two nested
+// if-statements without braces), since it could be considered
+// ambiguous to a reader what if statement is supposed ot match
+// with the else. So therefore we use a switch statement. This
+// looks a bit hacky, but it seems to work pretty well and should
+// be fine.
+#define if_get( v, type, var )                               \
+  if( auto* _##var##_ = std::get_if<type>( &v ); _##var##_ ) \
+    switch( auto& var = *_##var##_; 0 )                      \
+    default:
 
 namespace rn {
 

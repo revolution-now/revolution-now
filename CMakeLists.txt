@@ -21,7 +21,9 @@ include( cmake/generic.cmake )
 include( cmake/sdl2-helper.cmake )
 
 # If ENABLE_ADDRESS_SANITIZER is on then this function will do so.
-enable_address_sanitizer_if_requested()
+if( ENABLE_ADDRESS_SANITIZER )
+  enable_sanitizers()
+endif()
 
 # Just in case we are using Ninja (which will buffer the output of
 # compilers causing them to suppress color output) let's tell the
