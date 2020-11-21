@@ -20,6 +20,9 @@
 #include "macros.hpp"
 #include "serial.hpp"
 
+// base
+#include "base/meta.hpp"
+
 // Revolution Now (save-state modules)
 #include "cstate.hpp"
 #include "europort-view.hpp"
@@ -49,6 +52,7 @@ namespace rn {
 
 namespace {
 
+// FIXME: Get these with callable traits.
 using fb_sg_types = mp::type_list< //
     fb::SG_Id,                     //
     fb::SG_Unit,                   //
@@ -75,7 +79,7 @@ FBOffset<T> serialize_to_offset( FBBuilder& fbb ) {
 }
 
 template<typename... Args>
-auto creation_tuple( FBBuilder& fbb, tuple<Args...>* ) {
+auto creation_tuple( FBBuilder& fbb, mp::type_list<Args...>* ) {
   return tuple{
       serialize_to_offset<serial::remove_fb_offset_t<Args>>(
           fbb )... };

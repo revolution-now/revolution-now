@@ -118,21 +118,10 @@ template<typename SerializedT>
 ReturnAddress( SerializedT ) -> ReturnAddress<SerializedT>;
 
 // Obtains a type list of the parameter types (after the builder)
-// that need to be passed to a table's Create method. FIXME: will
-// need to be changed after upstreaming new changes to flat-
-// buffers.
-template<typename...>
-struct fb_creation_tuple;
-
-template<typename Ret, typename... Args>
-struct fb_creation_tuple<Ret( FBBuilder&, Args... )> {
-  using tuple = std::tuple<Args...>;
-};
-
+// that need to be passed to a table's Create method.
 template<typename FB>
-using fb_creation_tuple_t =
-    typename fb_creation_tuple<std::remove_pointer_t<
-        decltype( FB::Traits::Create )>>::tuple;
+using fb_creation_tuple_t = mp::tail_t<
+    mp::callable_arg_types_t<decltype( FB::Traits::Create )>>;
 
 template<typename T>
 struct remove_fb_offset {

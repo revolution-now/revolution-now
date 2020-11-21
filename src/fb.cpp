@@ -35,32 +35,41 @@ string ns_to_dots( string_view sv ) {
 /****************************************************************
 ** Testing
 *****************************************************************/
-template<size_t Idx, typename Tuple, typename Variant,
+template<size_t Idx, typename FbTypesTuple,
+         typename ReturnContainersTuple, typename Variant,
          typename Func>
-void visit_tuple_variant_elem( Tuple& t, Variant const& v,
-                               Func const& func ) {
+void visit_tuple_variant_elem( FbTypesTuple const&    t,
+                               ReturnContainersTuple& t_return,
+                               Variant const&         v,
+                               Func const&            func ) {
   auto* p = std::get_if<Idx>( &v );
   if( !p ) return;
-  func( *p, std::get<Idx>( t ) );
+  func( *p, std::get<Idx>( t ), std::get<Idx>( t_return ) );
 }
 
-template<typename Tuple, typename Variant, typename Func,
-         size_t... Indexes>
+template<typename FbTypesTuple, typename ReturnContainersTuple,
+         typename Variant, typename Func, size_t... Indexes>
 void visit_tuple_variant_impl(
-    Tuple& t, Variant const& v, Func const& func,
+    FbTypesTuple const& t, ReturnContainersTuple& t_return,
+    Variant const& v, Func const& func,
     std::index_sequence<Indexes...> ) {
-  ( visit_tuple_variant_elem<Indexes>( t, v, func ), ... );
+  ( visit_tuple_variant_elem<Indexes>( t, t_return, v, func ),
+    ... );
 }
 
-template<typename Tuple, typename Variant, typename Func>
-void visit_tuple_variant( Tuple& t, Variant const& v,
-                          Func const& f ) {
-  static_assert( std::tuple_size<Tuple>::value ==
+template<typename FbTypesTuple, typename ReturnContainersTuple,
+         typename Variant, typename Func>
+void visit_tuple_variant( FbTypesTuple const&    t,
+                          ReturnContainersTuple& t_return,
+                          Variant const& v, Func const& f ) {
+  static_assert( std::tuple_size<FbTypesTuple>::value ==
+                 std::variant_size_v<Variant> );
+  static_assert( std::tuple_size<ReturnContainersTuple>::value ==
                  std::variant_size_v<Variant> );
   visit_tuple_variant_impl(
-      t, v, f,
+      t, t_return, v, f,
       std::make_index_sequence<
-          std::tuple_size<Tuple>::value>() );
+          std::tuple_size<FbTypesTuple>::value>() );
 }
 
 struct Vec2 {
@@ -90,31 +99,57 @@ using MyVariant = std::variant< //
     e_color                     //
     >;
 
+template<typename FBType, typename SrcT>
+using serialize_return_container_t =
+    decltype( serialize<fb_serialize_hint_t<FBType>>(
+        std::declval<FBBuilder&>(), std::declval<SrcT const&>(),
+        serial::ADL{} ) );
+
+template<typename... FBTypes, typename... VarTypes>
+auto variant_serialize_return_containers_tuple(
+    mp::type_list<FBTypes...> const&,
+    mp::type_list<VarTypes...> const& )
+    -> mp::type_list<
+        serialize_return_container_t<FBTypes, VarTypes>...>;
+
+template<typename Hint, typename... VarTypes>
+using variant_serialize_return_container_tuple_t =
+    decltype( variant_serialize_return_containers_tuple(
+        std::declval<fb_creation_tuple_t<Hint> const&>(),
+        std::declval<mp::type_list<VarTypes...> const&>() ) );
+
 // For std::variant.
 template<typename Hint, typename... Ts>
 auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
                 serial::ADL ) {
-  using tuple_t = fb_creation_tuple_t<Hint>;
-  tuple_t t;
-  int     count = 0;
+  using fb_type_list = fb_creation_tuple_t<Hint>;
+  static_assert(
+      mp::type_list_size_v<fb_type_list> == sizeof...( Ts ),
+      "There is a mismatch between the number of fields in the "
+      "variant and the flatbuffers table." );
+  mp::to_tuple_t<fb_type_list> t;
+  using return_containers_tuple_t = mp::to_tuple_t<
+      variant_serialize_return_container_tuple_t<Hint, Ts...>>;
+  return_containers_tuple_t t_return;
+
+  int count = 0;
   // Set the relevant tuple field.
   visit_tuple_variant(
-      t, o, [&]( auto const& variant_elem, auto& tuple_elem ) {
+      t, t_return, o,
+      [&]( auto const& variant_elem, auto const& tuple_elem,
+           auto& return_container_tuple_elem ) {
         using elem_hint_t =
             fb_serialize_hint_t<decltype( tuple_elem )>;
-        auto res = serialize<elem_hint_t>( builder, variant_elem,
-                                           serial::ADL{} );
-        // FIXME: does not work for structs. For those, we need
-        // also to have a tuple of Return*{} structs to hold the
-        // struct results.
-        tuple_elem = res.get();
+        return_container_tuple_elem = serialize<elem_hint_t>(
+            builder, variant_elem, serial::ADL{} );
         count++;
       } );
   DCHECK( count == 1 );
   auto apply_with_builder = [&]( auto... ts ) {
-    return Hint::Traits::Create( builder, ts... );
+    return Hint::Traits::Create( builder, ts.get()... );
   };
-  return ReturnValue{ std::apply( apply_with_builder, t ) };
+  return ReturnValue{
+      std::apply( apply_with_builder, t_return ) };
 }
 
 template<typename fb_table_t, typename Variant>
@@ -141,7 +176,7 @@ void test_fb() {
   v = Weapon{ "hello", 3 };
   test_serialize_variant<fb_table_t>( v );
 
-  v = e_color::Red;
+  v.emplace<e_color>( e_color::Green );
   test_serialize_variant<fb_table_t>( v );
 }
 

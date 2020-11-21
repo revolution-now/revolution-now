@@ -14,6 +14,7 @@
 
 // C++ standard library
 #include <experimental/type_traits>
+#include <tuple>
 #include <type_traits>
 
 namespace mp {
@@ -86,9 +87,19 @@ template<typename T, typename R, typename... Arg>
 struct callable_traits_impl<R ( T::* )( Arg... ) const>
   : public callable_traits_impl<R( Arg... )> {};
 
+// Const Pointer to member-function.
+template<typename T, typename R, typename... Arg>
+struct callable_traits_impl<R ( T::*const )( Arg... ) const>
+  : public callable_traits_impl<R( Arg... )> {};
+
 // Function pointer.
 template<typename R, typename... Arg>
 struct callable_traits_impl<R ( * )( Arg... )>
+  : public callable_traits_impl<R( Arg... )> {};
+
+// Const Function pointer.
+template<typename R, typename... Arg>
+struct callable_traits_impl<R ( *const )( Arg... )>
   : public callable_traits_impl<R( Arg... )> {};
 
 // Function reference.
@@ -181,6 +192,31 @@ struct list_contains_impl<mp::type_list<Arg1, Args...>, T> {
 template<typename List, typename T>
 inline constexpr bool list_contains_v =
     detail::list_contains_impl<List, T>::value;
+
+/****************************************************************
+** type_list to tuple
+*****************************************************************/
+template<typename... Args>
+auto type_list_to_tuple_impl( type_list<Args...> const& )
+    -> std::tuple<Args...>;
+
+template<typename List>
+using to_tuple_t = decltype( type_list_to_tuple_impl(
+    std::declval<List const&>() ) );
+
+/****************************************************************
+** tail
+*****************************************************************/
+template<typename...>
+struct tail;
+
+template<typename Arg1, typename... Args>
+struct tail<type_list<Arg1, Args...>> {
+  using type = type_list<Args...>;
+};
+
+template<typename List>
+using tail_t = typename tail<List>::type;
 
 /****************************************************************
 ** head
