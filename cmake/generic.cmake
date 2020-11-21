@@ -76,13 +76,11 @@ set( SANITIZER_FLAGS
   -fno-sanitize-recover=all
   # ASan (Address Sanitizer).
   -fsanitize=address
-  # This option enables pointer checking. Particularly, the
-  # application built with this option turned on will issue an
-  # error message when it tries to dereference a NULL pointer, or
-  # if a reference (possibly an rvalue reference) is bound to a
-  # NULL pointer, or if a method is invoked on an object pointed
-  # by a NULL pointer.
-  -fsanitize=null
+  # This enables all of the UBSan (undefined behavior) checks.
+  -fsanitize=undefined
+  # FIXME: Re-enable this check when sol2 is fixed:
+  #   https://github.com/ThePhD/sol2/issues/1071.
+  -fno-sanitize=pointer-overflow
 )
 
 function( enable_sanitizers )
