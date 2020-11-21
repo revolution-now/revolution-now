@@ -8,43 +8,35 @@
 # Description: RNL definitions for the {{FILE}} module.
 #
 # ===============================================================
-include "some_other_hpp_header.hpp";
+# Revolution Now
+include "some_header.hpp";
 
+# C++ standard library
 include <string>;
 
 namespace rn;
 
-# Descriptive comment.
 sumtype MyVariant {
-  # List of features.
-  .features:
-    serializable,
-    comparison,
-    formattable;
-
-  # Alternatives.
   first:
     int  i;
     char c;
   second:
   third:
-    string s;
+    std::string s;
+
+  # No features listed defaults to 'formattable' and 'equality'.
 };
 
-# Descriptive comment.
-sumtype MyTemplateVariant {
-  .template: T, U;
-
-  # List of features.
-  .features:
-    serializable,
-    comparison,
-    formattable;
-
+sumtype MyTemplateVariant<T, U> {
   first:
     T    t;
     char c;
   second:
   third:
     U u;
+
+  .features:
+    serializable,
+    equality,
+    formattable;
 };
