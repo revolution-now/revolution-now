@@ -99,7 +99,7 @@ expect<> CargoHold::check_invariants_post_load() const {
   try {
     check_invariants();
     return xp_success_t{};
-  } catch( ::rn::exception_with_bt const& e ) {
+  } catch( exception const& e ) {
     return UNEXPECTED( "CargoHold invariants not upheld: {}",
                        e.what() );
   }

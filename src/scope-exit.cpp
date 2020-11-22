@@ -13,6 +13,7 @@
 // Revolution Now
 #include "errors.hpp"
 #include "logging.hpp"
+#include "stacktrace.hpp"
 
 namespace rn {
 

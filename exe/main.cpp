@@ -7,6 +7,7 @@
 #include "lua.hpp"
 #include "open-gl.hpp"
 #include "screen.hpp"
+#include "stacktrace.hpp"
 #include "util.hpp"
 
 #include "SDL.h"
