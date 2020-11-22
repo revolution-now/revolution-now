@@ -19,7 +19,7 @@ sfx {
   attacker_won:    "assets/sfx/explosion-2.wav"
 
   volume {
-    move:           75
+    move:           100
     attacker_lost:  100
     attacker_won:   64
   }
