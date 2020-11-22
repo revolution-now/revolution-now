@@ -124,7 +124,6 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
           } );
     }
   }
-  UNREACHABLE_LOCATION;
 }
 
 Opt<Cargo> draggable_to_cargo_object(
@@ -143,7 +142,6 @@ Opt<Cargo> draggable_to_cargo_object(
       return val.comm;
     }
   }
-  UNREACHABLE_LOCATION;
 }
 
 Opt<DraggableObject_t> draggable_in_cargo_slot(

@@ -328,7 +328,6 @@ int CargoHold::max_commodity_quantity_that_fits(
             } );
       }
     }
-    UNREACHABLE_LOCATION;
   };
   return rg::accumulate( slots_ | rv::transform( one_slot ), 0 );
 }
@@ -382,7 +381,6 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
           }
         }
       } );
-  UNREACHABLE_LOCATION;
 }
 
 ND bool CargoHold::fits( Cargo const&   cargo,

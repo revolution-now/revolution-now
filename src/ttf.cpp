@@ -74,7 +74,6 @@ Surface render_line_standard_surface( ::TTF_Font* font,
   }
   FATAL( "failed to render string within max texture size: {}",
          max_size );
-  UNREACHABLE_LOCATION;
 }
 
 Texture render_line_standard_impl( ::TTF_Font* font,

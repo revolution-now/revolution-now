@@ -314,7 +314,6 @@ sync_future<bool> confirm_explain_attack_good(
           []( auto ) { return false; } );
     }
   }
-  UNREACHABLE_LOCATION;
   return make_sync_future<bool>( true );
 }
 
@@ -335,7 +334,6 @@ sync_future<bool> confirm_explain_attack_error(
       return ui::message_box( "Cannot attack from a ship." )
           .fmap( return_false );
   }
-  UNREACHABLE_LOCATION;
 }
 
 sync_future<bool> CombatAnalysis::confirm_explain_() const {

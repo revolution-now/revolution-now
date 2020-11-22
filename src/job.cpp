@@ -83,7 +83,6 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
                   return maybe_name.has_value();
                 } );
         }
-        UNREACHABLE_LOCATION;
       },
       []( e_unit_job_error val ) {
         auto return_false = []( auto ) { return false; };
@@ -110,7 +109,6 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
             // to the player.
             return make_sync_future<bool>( false );
         }
-        UNREACHABLE_LOCATION;
       } );
 }
 

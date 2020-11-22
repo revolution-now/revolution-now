@@ -224,7 +224,6 @@ bool terrain_is_land( Coord coord ) {
     case e_crust::land: return true;
     case e_crust::water: return false;
   }
-  UNREACHABLE_LOCATION;
 }
 
 /****************************************************************

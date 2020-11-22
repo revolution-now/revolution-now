@@ -47,7 +47,6 @@ spdlog::level::level_enum to_spdlog_level( e_log_level level ) {
     case e_log_level::critical: return spdlog::level::critical;
     case e_log_level::off: return spdlog::level::off;
   }
-  UNREACHABLE_LOCATION;
 }
 
 // A "sink" that goes to the in-game console in a thread-safe

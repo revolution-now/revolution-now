@@ -44,7 +44,6 @@ bool Object::input( input::event_t const& event ) {
     case input::e_input_event::mouse_drag_event: //
       return false;
   }
-  UNREACHABLE_LOCATION;
 }
 
 bool Object::on_key( input::key_event_t const& /*unused*/ ) {

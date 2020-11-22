@@ -59,7 +59,6 @@ int g_current_render_target{ -1 };
     case e_flip::horizontal: return ::SDL_FLIP_HORIZONTAL;
     case e_flip::vertical: return ::SDL_FLIP_VERTICAL;
   }
-  UNREACHABLE_LOCATION;
 }
 
 ::SDL_BlendMode to_SDL( e_tx_blend_mode mode ) {
@@ -69,7 +68,6 @@ int g_current_render_target{ -1 };
     case e_tx_blend_mode::add: return SDL_BLENDMODE_ADD;
     case e_tx_blend_mode::mod: return SDL_BLENDMODE_MOD;
   }
-  UNREACHABLE_LOCATION;
 }
 
 } // namespace

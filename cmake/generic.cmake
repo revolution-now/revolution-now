@@ -26,7 +26,28 @@ function( set_warning_options target )
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
-            -Wall -Wextra >
+            -Wall
+            -Wextra
+            # For some reason gcc warns us when we reach the end
+            # of a function without a return statement even if it
+            # the function is guaranteed to return early due to
+            # covering all of the possibilities in a switch
+            # statement, each of which has a return statement.
+            # This seems a bit too aggressive (clang doesn't do
+            # it) so we will turn it off. Clang will warn us
+            # properly if we are realistically in danger of
+            # falling of the end of a function (assuming that a
+            # switch statement whose cases are comprehensive will
+            # indeed catch every case at runtime), so it is ok to
+            # turn this off for gcc. As background, it is techni-
+            # cally the case that e.g. an enum value can be as-
+            # signed any integer using casts, and so the compiler
+            # theoretically cannot guarantee that any switch
+            # statement will actually cover all cases at runtime.
+            # But in practice, as long as we don't violate the
+            # type system, this shouldn't be a concern.
+            -Wno-return-type
+         >
         # msvc
         $<$<CXX_COMPILER_ID:MSVC>:
             /Wall /WX > )

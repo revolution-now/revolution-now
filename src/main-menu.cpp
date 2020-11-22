@@ -46,7 +46,6 @@ bool is_item_enabled( e_main_menu_item item ) {
     case e_main_menu_item::quit:
       return g_type == e_main_menu_type::no_game;
   }
-  UNREACHABLE_LOCATION;
 }
 
 /****************************************************************

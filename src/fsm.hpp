@@ -291,7 +291,6 @@ private:
         return fmt::format( "[type=pop, state={}, location={}]",
                             ews.state, ews.location );
     }
-    UNREACHABLE_LOCATION;
   }
 
   ChildT const& child() const {
