@@ -875,13 +875,14 @@ TEST_CASE( "[flatbuffers] Sumtypes" ) {
 
   FBBuilder fbb;
 
-  auto v_offset =
-      serialize<::fb::MySumtype_t>( fbb, v, ::rn::serial::ADL{} );
+  auto v_offset = serialize<::fb::MySumtype_t>(
+      fbb, v, ::rn::serial::ADL{} );
 
   fbb.Finish( v_offset.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
 
-  auto* root = flatbuffers::GetRoot<::fb::MySumtype_t>( blob.get() );
+  auto* root =
+      flatbuffers::GetRoot<::fb::MySumtype_t>( blob.get() );
 
   MySumtype_t d_v;
   REQUIRE( deserialize( root, &d_v, ::rn::serial::ADL{} ) ==

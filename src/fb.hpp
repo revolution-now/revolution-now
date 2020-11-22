@@ -112,7 +112,22 @@ template<typename SerializedT>
 struct ReturnAddress {
   SerializedT        o_;
   SerializedT const* get() const&& = delete;
-  SerializedT const* get() const& { return &o_; }
+  SerializedT const* get() const& {
+    // Return the address of the object unless the object is
+    // equal to a default-constructed instance, in which case we
+    // return nullptr to indicate that the object should not be
+    // serialized (this really only applies when it is contained
+    // with a parent table wherein it can be optionally serial-
+    // ized). Unfortunately, the flatbuffers structs do not have
+    // operator== defined, so we have to compare using memcmp.
+    // This should work because structs are only suppoed to con-
+    // tain POD and inline data members.
+    static const auto rhs = SerializedT{};
+    auto&             lhs = o_;
+    if( std::memcmp( &lhs, &rhs, sizeof( SerializedT ) ) == 0 )
+      return nullptr;
+    return &o_;
+  }
 };
 template<typename SerializedT>
 ReturnAddress( SerializedT ) -> ReturnAddress<SerializedT>;
@@ -532,7 +547,15 @@ template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_struct )* = nullptr>
 expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
-  if( src == nullptr ) return xp_success_t{};
+  if( src == nullptr ) {
+    // An input value of nullptr for a struct means that the
+    // struct is not present within its parent (which is probably
+    // a table); "not present" means that it should assume its
+    // default value. Since the `dst` pointer is already assumed
+    // to point to a default-initialized value (by contract) we
+    // can just return here.
+    return xp_success_t{};
+  }
   if( auto xp = DstT::deserialize_struct( *src, dst ); !xp )
     return xp;
   return dst->check_invariants_safe();
@@ -580,12 +603,16 @@ template<typename SrcT, typename F, typename S>
 expect<> deserialize( SrcT const* src, std::pair<F, S>* dst,
                       serial::ADL ) {
   if constexpr( std::is_pointer_v<decltype( src->fst() )> ) {
-    if( src->fst() == nullptr )
-      return UNEXPECTED( "pair has no `fst` value." );
+    if( src->fst() == nullptr ) {
+      // Ok -- assumes default value.
+      // return UNEXPECTED( "pair has no `fst` value." );
+    }
   }
   if constexpr( std::is_pointer_v<decltype( src->snd() )> ) {
-    if( src->snd() == nullptr )
-      return UNEXPECTED( "pair has no `snd` value." );
+    if( src->snd() == nullptr ) {
+      // Ok -- assumes default value.
+      // return UNEXPECTED( "pair has no `snd` value." );
+    }
   }
   XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->fst() ),
                               &dst->first, serial::ADL{} ) );

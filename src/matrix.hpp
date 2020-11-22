@@ -111,16 +111,16 @@ template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, Matrix<T> const& m,
                 serial::ADL ) {
   auto size   = m.size();
-  auto s_size = serialize<fb_serialize_hint_t<decltype(
-      std::declval<Hint>().size() )>>( builder, size,
-                                       serial::ADL{} );
+  auto s_size = serialize<fb_serialize_hint_t<
+      decltype( std::declval<Hint>().size() )>>( builder, size,
+                                                 serial::ADL{} );
 
   std::vector<std::pair<Coord, T>> data;
   data.reserve( size_t( size.area() ) );
   for( auto const& c : m.rect() ) data.emplace_back( c, m[c] );
-  auto s_data = serialize<fb_serialize_hint_t<decltype(
-      std::declval<Hint>().data() )>>( builder, data,
-                                       serial::ADL{} );
+  auto s_data = serialize<fb_serialize_hint_t<
+      decltype( std::declval<Hint>().data() )>>( builder, data,
+                                                 serial::ADL{} );
 
   return ReturnValue{ Hint::Traits::Create(
       builder, s_size.get(), s_data.get() ) };
@@ -138,7 +138,6 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
     return xp_success_t{};
   }
 
-  UNXP_CHECK( src->size() != nullptr );
   UNXP_CHECK( src->data() != nullptr );
 
   Delta size;

@@ -51,24 +51,20 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 namespace serial {
 serial::ReturnValue<FBOffset<fb::CargoSlot::Cargo>>
 cargo_serialize( FBBuilder& builder, Cargo const& o ) {
-  bool          is_unit = false;
-  int32_t       unit_id = 0;
-  fb::Commodity commodity;
-  // If this is not a commodity slot then just leave this as
-  // nullptr so that it doesn't get serialized.
-  fb::Commodity* p_commodity = nullptr;
+  ReturnValue<bool>            is_unit = { false };
+  ReturnValue<int32_t>         unit_id{};
+  ReturnAddress<fb::Commodity> commodity{};
   overload_visit(
       o, //
       [&]( UnitId id ) {
-        unit_id = id._;
-        is_unit = true;
+        unit_id = { id._ };
+        is_unit = { true };
       },
       [&]( Commodity const& comm ) {
-        commodity   = comm.serialize_struct( builder );
-        p_commodity = &commodity;
+        commodity = { comm.serialize_struct( builder ) };
       } );
   return serial::ReturnValue{ fb::CargoSlot::CreateCargo(
-      builder, is_unit, unit_id, p_commodity ) };
+      builder, is_unit.get(), unit_id.get(), commodity.get() ) };
 }
 
 expect<> deserialize( fb::CargoSlot::Cargo const* src,

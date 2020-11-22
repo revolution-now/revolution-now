@@ -145,7 +145,7 @@ auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
         count++;
       } );
   DCHECK( count == 1 );
-  auto apply_with_builder = [&]( auto... ts ) {
+  auto apply_with_builder = [&]( auto&&... ts ) {
     return Hint::Traits::Create( builder, ts.get()... );
   };
   return ReturnValue{
@@ -158,7 +158,8 @@ void test_serialize_variant( Variant const& v ) {
   auto      res = serialize<fb_table_t>( fbb, v, serial::ADL{} );
   fbb.Finish( res.get() );
   auto blob = BinaryBlob::from_builder( std::move( fbb ) );
-  auto json = blob.template to_json<fb_table_t>();
+  auto json =
+      blob.template to_json<fb_table_t>( /*quotes=*/false );
   lg.info( "json:\n{}", json );
 }
 
