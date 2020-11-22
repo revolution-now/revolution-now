@@ -7,11 +7,14 @@ set tabstop=2
 " 1: Get the absolute path of this script.
 " 2: Resolve all symbolic links.
 " 3: Get the folder of the resolved absolute file.
-let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
-"exec 'source ' . s:path . '/another.vim'
+let s:this_path = fnamemodify( resolve( expand( '<sfile>:p' ) ), ':h' )
+" Get the folder in which this file resides.
+let s:this_folder = fnamemodify( resolve( expand( '<sfile>:p' ) ), ':h' )
+
+"exec 'source ' . s:this_path . '/another.vim'
 
 " This is so that the RNL syntax file gets picked up.
-let &runtimepath .= ',' . s:path . '/../src/rnl'
+let &runtimepath .= ',' . s:this_path . '/../src/rnl'
 
 " This makes the design doc look nicer because it typically con-
 " tains snippets of code.
@@ -92,18 +95,36 @@ endfunction
 
 set tabline=%!MyTabLine()
 
-" Automatically format the C++ source files just before saving.
-autocmd BufWritePre *.hpp,*.cpp call ClangFormatAll()
+" Only call clang format if we are under the src or test folders.
+function! MaybeClangFormat()
+  " Full path of file trying to be formatted.
+  let file_path = resolve( expand( '%:p' ) )
+  " Take the full resolved path of the folder containing this
+  " vimscript file, then go up one level to get the root folder
+  " of the RN source tree.
+  let rn_root = fnamemodify( s:this_path, ':h' )
+  let allowed_folders = [
+    \ 'src',
+    \ 'exe',
+    \ 'test',
+    \ ]
+  for folder in allowed_folders
+    if file_path =~ '^' . rn_root . '/'. folder
+      call ClangFormatAll()
+      return
+    endif
+  endfor
+endfunction
 
-" Get the folder in which this file resides.
-let s:path = expand( '<sfile>:p:h' )
+" Automatically format the C++ source files just before saving.
+autocmd BufWritePre *.hpp,*.cpp call MaybeClangFormat()
 
 " We set this ycm global variable to point YCM to the conf script.  The
 " reason we don't just put a .ycm_extra_conf.py in the root folder
 " (which YCM would then find on its own without our help) is that we
 " want to keep the folder structure organized with all scripts in the
 " scripts folder.
-let g:ycm_global_ycm_extra_conf = s:path . '/scripts/ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf = s:this_folder . '/scripts/ycm_extra_conf.py'
 
 " Tell the vim-templates function where to find the templates.
-let g:tmpl_search_paths = [s:path . '/scripts/templates']
+let g:tmpl_search_paths = [s:this_folder . '/scripts/templates']
