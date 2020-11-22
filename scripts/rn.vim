@@ -124,7 +124,7 @@ autocmd BufWritePre *.hpp,*.cpp call MaybeClangFormat()
 " (which YCM would then find on its own without our help) is that we
 " want to keep the folder structure organized with all scripts in the
 " scripts folder.
-let g:ycm_global_ycm_extra_conf = s:this_folder . '/scripts/ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf = s:this_folder . '/ycm_extra_conf.py'
 
 " Tell the vim-templates function where to find the templates.
-let g:tmpl_search_paths = [s:this_folder . '/scripts/templates']
+let g:tmpl_search_paths = [s:this_folder . '/templates']
