@@ -58,7 +58,11 @@ void trim() {
 ** Running Commands
 *****************************************************************/
 FlatMap<string, tl::function_ref<void()>> g_console_commands{
-    { "clear", clear },                        //
+    { "clear", clear }, //
+    { "abort",
+      [] {
+        FATAL( "aborting in response to terminal command." );
+      } },                                     //
     { "quit", [] { throw exception_exit{}; } } //
 };
 

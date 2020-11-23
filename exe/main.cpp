@@ -19,17 +19,39 @@ using namespace std;
 
 namespace rn {
 
-void game() { frame_loop(); }
+string fmt_bar( char c, string_view msg = "" ) {
+  auto maybe_cols = os_terminal_columns();
+  // If we're printing the width of the terminal then don't print
+  // a new line since we will automatically move to the next line
+  // by exhausting all columns.
+  string_view maybe_newline = maybe_cols.has_value() ? "" : "\n";
+  string fmt = fmt::format( "{{:{}^{{}}}}{}", c, maybe_newline );
+  return fmt::format( fmt, msg, maybe_cols.value_or( 65 ) );
+}
+
+void exception_cleanup( exception const& e ) {
+  hide_window();
+  lg.error( e.what() );
+  string sdl_error = SDL_GetError();
+  if( !sdl_error.empty() )
+    lg.error( "SDL error (may be a false positive): {}",
+              sdl_error );
+  cout << fmt_bar( '-', "[ Shutting Down ]" );
+  run_all_cleanup_routines();
+}
+
+void game() {
+  cout << fmt_bar( '-', "[ Starting Game ]" );
+  // The action.
+  frame_loop();
+}
 
 } // namespace rn
 
 int main( int /*unused*/, char** /*unused*/ ) {
-  bool do_game    = true;
-  auto maybe_cols = os_terminal_columns();
-  if( maybe_cols.has_value() ) {
-    fmt::print( "{:=^{}}", "[ Revolution | Now ]", *maybe_cols );
-  }
+  bool do_game = true;
   try {
+    cout << fmt_bar( '=', "[ Revolution | Now ]" );
     try {
       linker_dont_discard_me();
 
@@ -49,31 +71,17 @@ int main( int /*unused*/, char** /*unused*/ ) {
 
     hide_window();
 
+    cout << fmt_bar( '-', "[ Shutting Down ]" );
     run_all_cleanup_routines();
+    return 0;
   } catch( exception_with_bt const& e ) {
-    hide_window();
-    lg.error( e.what() );
-    string sdl_error = SDL_GetError();
-    if( !sdl_error.empty() )
-      lg.error( "SDL error (may be a false positive): {}",
-                sdl_error );
-    run_all_cleanup_routines();
-    cerr << "---------------------------------------------------"
-            "--------------\n";
+    exception_cleanup( e );
+    cerr << fmt_bar( '-', "[ Stack Trace ]" );
     print_stack_trace(
         e.st, StackTraceOptions{
                   .skip_frames = 4,
                   .frames = e_stack_trace_frames::rn_only } );
-    cerr << "---------------------------------------------------"
-            "--------------\n";
-    return 1;
-  } catch( exception const& e ) {
-    lg.error( e.what() );
-    string sdl_error = SDL_GetError();
-    if( !sdl_error.empty() )
-      lg.error( "SDL error (may be a false positive): {}",
-                sdl_error );
-    run_all_cleanup_routines();
-    return 1;
-  }
+    cerr << fmt_bar( '-' );
+  } catch( exception const& e ) { exception_cleanup( e ); }
+  return 1;
 }
