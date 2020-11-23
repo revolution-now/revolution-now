@@ -52,17 +52,13 @@ struct StackTracePrinter {
   FILE *print( ST &st, FILE *fp = stderr ) {
     bw::cfile_streambuf obuf( fp );
     std::ostream        os( &obuf );
-    bw::Colorize        colorize( os );
-    colorize.activate( color_mode, fp );
-    print_stacktrace( st, os, colorize );
+    print_stacktrace( st, os );
     return fp;
   }
 
   template<typename ST>
   std::ostream &print( ST &st, std::ostream &os ) {
-    bw::Colorize colorize( os );
-    colorize.activate( color_mode );
-    print_stacktrace( st, os, colorize );
+    print_stacktrace( st, os );
     return os;
   }
 
@@ -71,18 +67,14 @@ struct StackTracePrinter {
                size_t thread_id = 0 ) {
     bw::cfile_streambuf obuf( fp );
     std::ostream        os( &obuf );
-    bw::Colorize        colorize( os );
-    colorize.activate( color_mode, fp );
-    print_stacktrace( begin, end, os, thread_id, colorize );
+    print_stacktrace( begin, end, os, thread_id );
     return fp;
   }
 
   template<typename IT>
   std::ostream &print( IT begin, IT end, std::ostream &os,
                        size_t thread_id = 0 ) {
-    bw::Colorize colorize( os );
-    colorize.activate( color_mode );
-    print_stacktrace( begin, end, os, thread_id, colorize );
+    print_stacktrace( begin, end, os, thread_id );
     return os;
   }
 
@@ -93,25 +85,20 @@ private:
   bw::SnippetFactory _snippets;
 
   template<typename ST>
-  void print_stacktrace( ST &st, std::ostream &os,
-                         bw::Colorize &colorize ) {
+  void print_stacktrace( ST &st, std::ostream &os ) {
     print_header( os, st.thread_id() );
     _resolver.load_stacktrace( st );
     for( size_t trace_idx = st.size(); trace_idx > 0;
          --trace_idx ) {
-      print_trace( os, _resolver.resolve( st[trace_idx - 1] ),
-                   colorize );
+      print_trace( os, _resolver.resolve( st[trace_idx - 1] ) );
     }
   }
 
   template<typename IT>
   void print_stacktrace( IT begin, IT end, std::ostream &os,
-                         size_t        thread_id,
-                         bw::Colorize &colorize ) {
+                         size_t thread_id ) {
     print_header( os, thread_id );
-    for( ; begin != end; ++begin ) {
-      print_trace( os, *begin, colorize );
-    }
+    for( ; begin != end; ++begin ) { print_trace( os, *begin ); }
   }
 
   void print_header( std::ostream &os, size_t thread_id ) {
@@ -121,8 +108,7 @@ private:
   }
 
   void print_trace( std::ostream &           os,
-                    const bw::ResolvedTrace &trace,
-                    bw::Colorize &           colorize ) {
+                    const bw::ResolvedTrace &trace ) {
     if( include_frame_callback )
       if( trace.source.filename.size() )
         if( !include_frame_callback( trace.source.filename ) )

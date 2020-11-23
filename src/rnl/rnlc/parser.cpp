@@ -99,6 +99,7 @@ optional<expr::Rnl> parse( string_view   peg_filename,
 
   parser["RNL"] = []( peg::SemanticValues const& sv ) {
     return expr::Rnl{
+        .meta     = {},
         .imports  = safe_any_cast<vector<string>>( sv[0] ),
         .includes = safe_any_cast<vector<string>>( sv[1] ),
         .items    = safe_any_cast<vector<expr::Item>>( sv[2] ),

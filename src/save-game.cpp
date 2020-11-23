@@ -172,7 +172,7 @@ expect<fs::path> save_game( int slot ) {
   auto serialize_to_blob = [&]() -> expect<serial::BinaryBlob> {
     for( int i = trials; i >= 1; --i ) {
       serial::BinaryBlob blob = save_game_to_blob();
-      if( i == 1 ) return std::move( blob );
+      if( i == 1 ) return blob; // has to move
     }
     UNREACHABLE_LOCATION;
   };
