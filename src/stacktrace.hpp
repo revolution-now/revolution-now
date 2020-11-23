@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-//#include "dummy.hpp"
-
 // C++ standard library
 #include <exception>
 #include <memory>
@@ -87,6 +84,9 @@ struct StackTraceOptions {
   int                  skip_frames = 0;
   e_stack_trace_frames frames = e_stack_trace_frames::rn_only;
 };
+
+bool should_include_filepath_in_stacktrace(
+    std::string_view path, e_stack_trace_frames frames );
 
 // Print stack trace to stderr with sensible options and skip
 // the latest `skip` number of frames.  That is, if stack

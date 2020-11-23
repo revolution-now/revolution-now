@@ -17,6 +17,7 @@
 #include "fmt-helper.hpp"
 
 // base
+#include "base/build-properties.hpp"
 #include "base/fs.hpp"
 
 // base-util
@@ -281,7 +282,7 @@ TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
   Opt<Str> golden = util::read_file_as_string(
       testing::data_dir() / "rnl-testing-golden.hpp" );
   REQUIRE( golden.has_value() );
-  fs::path root      = TO_STRING( RN_BUILD_OUTPUT_ROOT_DIR );
+  fs::path root      = base::build_output_root();
   Opt<Str> generated = util::read_file_as_string(
       root / fs::path( rnl_testing_genfile ) );
   REQUIRE( generated.has_value() );

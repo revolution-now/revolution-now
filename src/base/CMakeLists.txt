@@ -28,4 +28,14 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_compile_definitions(
+  rn-base
+  PUBLIC
+  # To use these defines, they must be surrounded in a TOSTRING
+  # macro to stringify them. Also, they won't work if the path
+  # has spaces in it.
+  "RN_BUILD_OUTPUT_ROOT_DIR=${CMAKE_BINARY_DIR}"
+  "RN_SOURCE_TREE_ROOT=${CMAKE_SOURCE_DIR}"
+  )
+
 clang_tidy( rn-base )

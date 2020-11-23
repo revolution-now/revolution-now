@@ -10,15 +10,17 @@
 *****************************************************************/
 #include "stacktrace.hpp"
 
-// base
-#include "base/fs.hpp"
+// Revolution Now
+#include "aliases.hpp"
 
-// base-util
-#include "base-util/macros.hpp"
+// base
+#include "base/build-properties.hpp"
+#include "base/fs.hpp"
 
 // backward
 #ifdef STACK_TRACE_ON
 #  include "backward.hpp"
+#  include "stacktrace-printer.hpp"
 #endif
 
 // C++ standard library
@@ -30,21 +32,26 @@ namespace rn {
 
 namespace {
 
-fs::path const& source_tree_root() {
-  static const fs::path p = [] {
-    return TO_STRING( RN_SOURCE_TREE_ROOT );
-  }();
-  return p;
+Opt<fs::path> find_file( fs::path const& file ) {
+  if( file.is_absolute() )
+    return fs::exists( file ) ? file : Opt<fs::path>{};
+  if( auto p = base::source_tree_root() / file; fs::exists( p ) )
+    return p;
+  if( auto p = base::build_output_root() / file;
+      fs::exists( p ) )
+    return p;
+  return nullopt;
 }
 
 bool is_src_file_under_folder( string const& filepath,
                                string const& subfolder ) {
-  if( !fs::exists( filepath ) ) return false;
-  fs::path p = filepath;
+  auto maybe_path = find_file( filepath );
+  if( !maybe_path.has_value() ) return false;
+  fs::path& p = *maybe_path;
   if( !p.is_absolute() ) p = fs::absolute( p );
   p = fs::canonical( p );
 
-  fs::path dir = source_tree_root() / subfolder;
+  fs::path dir = base::source_tree_root() / subfolder;
 
   return string_view( p.string() ).starts_with( dir.string() );
 }
@@ -83,38 +90,31 @@ ND StackTrace stack_trace_here() {
 #endif
 }
 
+bool should_include_filepath_in_stacktrace(
+    std::string_view filepath, e_stack_trace_frames frames ) {
+  fs::path p = filepath;
+  switch( frames ) {
+    case e_stack_trace_frames::all: //
+      return true;
+    case e_stack_trace_frames::rn_and_extern_only:
+      return is_rn_source( p ) || is_extern_source( p );
+    case e_stack_trace_frames::rn_only: //
+      return is_rn_source( p );
+  }
+}
+
 void print_stack_trace( StackTrace const&        st_,
                         StackTraceOptions const& options ) {
 #ifdef STACK_TRACE_ON
   backward::StackTrace st = *( st_.st );
   // Skip uninteresting stack frames
   st.skip_n_firsts( options.skip_frames );
-  backward::Printer p;
-  // Enable this when backward-cpp gets support for user call-
-  // backs for filtering printing stack frames. See:
-  //   https://github.com/bombela/backward-cpp/issues/196
-#  if 0
-  switch( options.frames ) {
-    case e_stack_trace_frames::all:
-      p.set_skip_frame_callback(
-          []( string const& filepath ) { return false; } );
-      break;
-    case e_stack_trace_frames::rn_and_extern_only:
-      p.set_skip_frame_callback( []( string const& filepath ) {
-        return !is_rn_source( filepath ) &&
-               !is_extern_source( filepath );
-      } );
-      break;
-    case e_stack_trace_frames::rn_only:
-      p.set_skip_frame_callback( []( string const& filepath ) {
-        return !is_rn_source( filepath );
-      } );
-      break;
-  }
-#  else
-  (void)is_rn_source;
-  (void)is_extern_source;
-#  endif
+  rn::stacktrace::StackTracePrinter p;
+  p.include_frame_callback =
+      [frames = options.frames]( string const& filepath ) {
+        return should_include_filepath_in_stacktrace( filepath,
+                                                      frames );
+      };
   p.print( st, stderr );
 #else
   (void)st_;
