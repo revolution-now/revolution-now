@@ -72,9 +72,26 @@ struct exception_with_bt : public std::runtime_error {
 // will include the stack from inside this function.
 ND StackTrace stack_trace_here();
 
+// Controls which stack frames are printing based on where the
+// associated source code file lives. This is used for e.g. sup-
+// pressing stack frames from standard library code that is not
+// relevant.
+enum class e_stack_trace_frames {
+  all,
+  rn_only,
+  rn_and_extern_only
+};
+
+// Options for customizing how stack traces are printing.
+struct StackTraceOptions {
+  int                  skip_frames = 0;
+  e_stack_trace_frames frames = e_stack_trace_frames::rn_only;
+};
+
 // Print stack trace to stderr with sensible options and skip
 // the latest `skip` number of frames.  That is, if stack
 // traces have been enabled in the build.
-void print_stack_trace( StackTrace const& st, int skip = 0 );
+void print_stack_trace( StackTrace const&        st,
+                        StackTraceOptions const& options = {} );
 
 } // namespace rn

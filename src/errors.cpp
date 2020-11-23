@@ -14,19 +14,10 @@
 #include "fmt-helper.hpp"
 #include "stacktrace.hpp"
 
-// C++ standard library
-#include <string>
-
-// C standard library
-#include <stdio.h>
+using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
-
-/****************************************************************
-**Stack Trace Reporting
-*****************************************************************/
 void die( char const* file, int line, std::string_view msg ) {
   auto here = stack_trace_here();
   // Uncomment this to print a stack trace when a particular

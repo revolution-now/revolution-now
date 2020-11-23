@@ -113,10 +113,11 @@ target_compile_definitions(
   SOL_EXCEPTIONS_ALWAYS_UNSAFE=1
   SOL_PRINT_ERRORS=0
   MAGIC_ENUM_RANGE_MAX=512
-  # To use this define, it must be surrounded in a TOSTRING macro
-  # to stringify it. Also, it won't work if the path has spaces
-  # in it.
+  # To use these defines, they must be surrounded in a TOSTRING
+  # macro to stringify them. Also, they won't work if the path
+  # has spaces in it.
   "RN_BUILD_OUTPUT_ROOT_DIR=${CMAKE_BINARY_DIR}"
+  "RN_SOURCE_TREE_ROOT=${CMAKE_SOURCE_DIR}"
   )
 
 clang_tidy( rn )

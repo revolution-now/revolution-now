@@ -60,7 +60,10 @@ int main( int /*unused*/, char** /*unused*/ ) {
     run_all_cleanup_routines();
     cerr << "---------------------------------------------------"
             "--------------\n";
-    print_stack_trace( e.st, 4 );
+    print_stack_trace(
+        e.st, StackTraceOptions{
+                  .skip_frames = 4,
+                  .frames = e_stack_trace_frames::rn_only } );
     cerr << "---------------------------------------------------"
             "--------------\n";
     return 1;
