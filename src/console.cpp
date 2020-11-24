@@ -44,7 +44,7 @@ constexpr string_view prompt = "> ";
 /****************************************************************
 ** Console Plane
 *****************************************************************/
-constexpr uint8_t console_alpha = 180;
+constexpr uint8_t console_alpha = 60;
 constexpr uint8_t text_alpha    = 225;
 constexpr uint8_t cmds_alpha    = 240;
 constexpr uint8_t stats_alpha   = 255;
