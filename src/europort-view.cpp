@@ -2137,12 +2137,12 @@ Plane* europe_plane() { return &g_europe_plane; }
 *****************************************************************/
 
 MENU_ITEM_HANDLER(
-    e_menu_item::europort_view,
+    europort_view,
     [] { push_plane_config( e_plane_config::europe ); },
     [] { return !is_plane_enabled( e_plane::europe ); } )
 
 MENU_ITEM_HANDLER(
-    e_menu_item::europort_close, [] { pop_plane_config(); },
+    europort_close, [] { pop_plane_config(); },
     [] { return is_plane_enabled( e_plane::europe ); } )
 
 } // namespace rn

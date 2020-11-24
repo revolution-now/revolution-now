@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
@@ -675,17 +674,17 @@ void midi_thread_impl() {
     }
     if( time_to_go ) return;
     switch( g_midi_comm.state() ) {
-      case +e_midiseq_state::failed: return;
-      case +e_midiseq_state::off:
+      case e_midiseq_state::failed: return;
+      case e_midiseq_state::off:
         lg.critical(
             "programmer error: should not be here ({}:{})",
             __FILE__, __LINE__ );
         return;
-      case +e_midiseq_state::paused:
-      case +e_midiseq_state::stopped:
+      case e_midiseq_state::paused:
+      case e_midiseq_state::stopped:
         sleep( milliseconds( 100 ) );
         continue;
-      case +e_midiseq_state::playing: {
+      case e_midiseq_state::playing: {
         // maybe_info should have a value at this point.
         if( !maybe_info.has_value() ) {
           lg.critical(

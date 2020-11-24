@@ -127,7 +127,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( land, foreign, unit ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::no_attack:
+      case bh_t::no_attack:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -137,7 +137,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_error::unit_cannot_attack,
             /*target_unit_=*/{},
             /*fight_stats_=*/{} };
-      case +bh_t::attack:
+      case bh_t::attack:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -147,7 +147,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_good::eu_land_unit,
             /*target_unit_=*/highest_defense_unit,
             /*fight_stats_=*/run_stats() };
-      case +bh_t::no_bombard:
+      case bh_t::no_bombard:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -157,7 +157,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_error::ship_attack_land_unit,
             /*target_unit_=*/{},
             /*fight_stats_=*/{} };
-      case +bh_t::bombard:
+      case bh_t::bombard:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -173,7 +173,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( land, foreign, colony ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::never:
+      case bh_t::never:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -183,7 +183,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_error::unit_cannot_attack,
             /*target_unit_=*/{},
             /*fight_stats_=*/{} };
-      case +bh_t::attack: {
+      case bh_t::attack: {
         e_attack_good which =
             unit_from_id( highest_defense_unit )
                     .desc()
@@ -200,7 +200,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*target_unit_=*/highest_defense_unit,
             /*fight_stats_=*/run_stats() };
       }
-      case +bh_t::trade:
+      case bh_t::trade:
         // FIXME: implement trade.
         return CombatAnalysis{
             /*id_=*/id,
@@ -217,7 +217,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( water, foreign, unit ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::no_attack:
+      case bh_t::no_attack:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -227,7 +227,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_error::unit_cannot_attack,
             /*target_unit_=*/{},
             /*fight_stats_=*/{} };
-      case +bh_t::attack:
+      case bh_t::attack:
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -237,7 +237,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_good::ship,
             /*target_unit_=*/highest_defense_unit,
             /*fight_stats_=*/run_stats() };
-      case +bh_t::no_bombard:;
+      case bh_t::no_bombard:;
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -247,7 +247,7 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
             /*desc_=*/e_attack_error::land_unit_attack_ship,
             /*target_unit_=*/{},
             /*fight_stats_=*/{} };
-      case +bh_t::bombard:;
+      case bh_t::bombard:;
         return CombatAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,

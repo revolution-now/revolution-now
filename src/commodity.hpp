@@ -15,7 +15,6 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
-#include "enum.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
@@ -26,6 +25,9 @@
 
 // Flatbuffers
 #include "fb/commodity_generated.h"
+
+// magic enum
+#include "magic_enum.hpp"
 
 // C++ standard library
 #include <string>

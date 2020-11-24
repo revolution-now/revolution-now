@@ -104,7 +104,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( land, neutral, empty ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::never:
+      case bh_t::never:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -115,7 +115,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*desc_=*/
             e_unit_travel_error::land_forbidden,
             /*target_unit=*/{} };
-      case +bh_t::always:
+      case bh_t::always:
         // `holder` will be a valid value if the unit
         // is cargo of an- other unit; the holder's id
         // in that case will be *holder.
@@ -144,7 +144,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*desc_=*/e_unit_travel_good::map_to_map,
               /*target_unit=*/{} };
         }
-      case +bh_t::unload: {
+      case bh_t::unload: {
         auto res = TravelAnalysis{ /*id_=*/id,
                                    /*orders_=*/orders,
                                    /*units_to_prioritize_=*/{},
@@ -162,7 +162,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( land, friendly, unit ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::never:
+      case bh_t::never:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -173,7 +173,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*desc_=*/
             e_unit_travel_error::land_forbidden,
             /*target_unit=*/{} };
-      case +bh_t::always:
+      case bh_t::always:
         // `holder` will be a valid value if the unit
         // is cargo of an- other unit; the holder's id
         // in that case will be *holder.
@@ -202,7 +202,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
               /*desc_=*/e_unit_travel_good::map_to_map,
               /*target_unit=*/{} };
         }
-      case +bh_t::unload: {
+      case bh_t::unload: {
         auto res = TravelAnalysis{ /*id_=*/id,
                                    /*orders_=*/orders,
                                    /*units_to_prioritize_=*/{},
@@ -220,7 +220,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( land, friendly, colony ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::always:
+      case bh_t::always:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -236,7 +236,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( water, neutral, empty ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::never:
+      case bh_t::never:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -247,7 +247,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*desc_=*/
             e_unit_travel_error::water_forbidden,
             /*target_unit=*/{} };
-      case +bh_t::always:
+      case bh_t::always:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -263,7 +263,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   IF_BEHAVIOR( water, friendly, unit ) {
     using bh_t = decltype( bh );
     switch( bh ) {
-      case +bh_t::never:
+      case bh_t::never:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -274,7 +274,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*desc_=*/
             e_unit_travel_error::water_forbidden,
             /*target_unit=*/{} };
-      case +bh_t::always:
+      case bh_t::always:
         return TravelAnalysis{
             /*id_=*/id,
             /*orders_=*/orders,
@@ -284,7 +284,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
             /*move_target_=*/dst_coord,
             /*desc_=*/e_unit_travel_good::map_to_map,
             /*target_unit=*/{} };
-      case +bh_t::move_onto_ship: {
+      case bh_t::move_onto_ship: {
         auto const& ships = units_at_dst;
         if( ships.empty() ) {
           return TravelAnalysis{

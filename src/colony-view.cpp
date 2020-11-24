@@ -122,7 +122,7 @@ void show_colony_view( ColonyId id ) {
 
 //
 MENU_ITEM_HANDLER(
-    e_menu_item::colony_view_close, [] { pop_plane_config(); },
+    colony_view_close, [] { pop_plane_config(); },
     [] { return is_plane_enabled( e_plane::colony ); } )
 
 } // namespace rn

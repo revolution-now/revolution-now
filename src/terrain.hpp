@@ -15,7 +15,6 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
-#include "enum.hpp"
 #include "fb.hpp"
 #include "land-square.hpp"
 #include "sg-macros.hpp"

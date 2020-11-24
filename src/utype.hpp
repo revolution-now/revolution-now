@@ -15,7 +15,6 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
-#include "enum.hpp"
 #include "fb.hpp"
 #include "land-square.hpp"
 #include "mv-points.hpp"
@@ -91,10 +90,9 @@ UnitDescriptor const& unit_desc( e_unit_type type );
 /****************************************************************
 **Unit Movement Behaviors / Capabilities
 *****************************************************************/
-#define TEMPLATE_BEHAVIOR                                 \
-  template<e_crust                          target,       \
-           e_unit_relationship::_enumerated relationship, \
-           e_entity_category::_enumerated   entity>
+#define TEMPLATE_BEHAVIOR                                    \
+  template<e_crust target, e_unit_relationship relationship, \
+           e_entity_category entity>
 
 #define BEHAVIOR_VALUES( crust, relationship, entity ) \
   e_crust::crust, e_unit_relationship::relationship,   \
@@ -105,7 +103,7 @@ UnitDescriptor const& unit_desc( e_unit_type type );
 
 #define BEHAVIOR( c, r, e, ... )                    \
   namespace BEHAVIOR_NS( c, r, e ) {                \
-    enum class e_( vals, __VA_ARGS__ );             \
+    enum class e_vals { __VA_ARGS__ };              \
   }                                                 \
   template<>                                        \
   struct to_behaviors<BEHAVIOR_VALUES( c, r, e )> { \
@@ -116,8 +114,8 @@ UnitDescriptor const& unit_desc( e_unit_type type );
   behavior<BEHAVIOR_VALUES( c, r, e )>(             \
       UnitDescriptor const& desc )
 
-enum class e_( unit_relationship, neutral, friendly, foreign );
-enum class e_( entity_category, empty, unit, colony, village );
+enum class e_unit_relationship { neutral, friendly, foreign };
+enum class e_entity_category { empty, unit, colony, village };
 
 TEMPLATE_BEHAVIOR
 struct to_behaviors {
@@ -159,12 +157,12 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship );
 // statement. Here we are using it just to automate the calling
 // of the behavior function, not to test the result of the
 // behavior function.
-#define IF_BEHAVIOR( crust_, relationship_, entity_ )        \
-  if( auto bh =                                              \
-          CALL_BEHAVIOR( crust_, relationship_, entity_ );   \
-      crust == e_crust::crust_ &&                            \
-      relationship == +e_unit_relationship::relationship_ && \
-      category == +e_entity_category::entity_ )
+#define IF_BEHAVIOR( crust_, relationship_, entity_ )       \
+  if( auto bh =                                             \
+          CALL_BEHAVIOR( crust_, relationship_, entity_ );  \
+      crust == e_crust::crust_ &&                           \
+      relationship == e_unit_relationship::relationship_ && \
+      category == e_entity_category::entity_ )
 
 // This one is used to assert that there is no specialization for
 // the given combination of parameters. These can be used for all

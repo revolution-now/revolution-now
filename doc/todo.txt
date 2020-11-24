@@ -66,8 +66,6 @@ Infrastructure
   - Allow ADT to compare the variant type with a subttype using
     the == operator.
 
-  - Replace better enums with magic enums where possible.
-
   - Add a cache to the cache module that invalidates when the
     scaling is changed. This may not be necessary since, as of
     now, it seems possible to write code that will work and ad-

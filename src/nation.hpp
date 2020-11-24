@@ -15,12 +15,14 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "color.hpp"
-#include "enum.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
 // Flatbuffers
 #include "fb/nation_generated.h"
+
+// magic enum
+#include "magic_enum.hpp"
 
 // C++ standard library
 #include <string>

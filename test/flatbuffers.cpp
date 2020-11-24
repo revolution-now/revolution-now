@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "flat-deque.hpp"
@@ -57,8 +56,7 @@ using ::Catch::Equals;
 using ::Catch::UnorderedEquals;
 using ::rn::serial::BinaryBlob;
 
-enum class e_( color, Red, Green, Blue );
-SERIALIZABLE_BETTER_ENUM( e_color );
+enum class e_color { Red, Green, Blue };
 
 enum class e_hand { Left, Right };
 

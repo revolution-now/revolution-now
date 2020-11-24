@@ -14,8 +14,10 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
+
+// magic enum
+#include "magic_enum.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -45,12 +47,12 @@ int between( int lower, int upper, e_interval type );
 
 // Given a reflected enum type it will return a random value out
 // of all the possible values.
-template<typename ReflectedEnum>
-ReflectedEnum pick_one() {
-  constexpr auto count = ReflectedEnum::_size();
+template<typename Enum>
+Enum pick_one() {
+  constexpr auto count = magic_enum::enum_count<Enum>();
   static_assert( count > 0 );
   auto idx = between( 0, count, e_interval::half_open );
-  return ReflectedEnum::_values()[idx];
+  return magic_enum::enum_values<Enum>()[idx];
 }
 
 // Pick a random enum value out of a set of choices. Use like

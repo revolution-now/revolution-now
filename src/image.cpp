@@ -24,6 +24,9 @@
 // Revolution Now (config)
 #include "../config/ucl/art.inl"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // abseil
 #include "absl/container/flat_hash_map.h"
 
@@ -35,7 +38,7 @@ absl::flat_hash_map<e_image, Texture> g_images;
 
 fs::path const& image_file_path( e_image image ) {
   switch( image ) {
-    case +e_image::europe: return config_art.images.europe;
+    case e_image::europe: return config_art.images.europe;
   }
   SHOULD_NOT_BE_HERE;
 }
@@ -62,7 +65,7 @@ ImagePlane g_image_plane;
 // resulting textures will not be owned by this module, so there
 // is no need for a corresponding `release` function.
 void init_images() {
-  for( auto image : values<e_image> ) {
+  for( auto image : magic_enum::enum_values<e_image>() ) {
     g_images.insert( { image, Texture::load_image(
                                   image_file_path( image ) ) } );
   }

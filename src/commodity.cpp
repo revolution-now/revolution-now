@@ -24,6 +24,9 @@
 // base-util
 #include "base-util/pp.hpp"
 
+// magic enum
+#include "magic_enum.hpp"
+
 using namespace std;
 
 namespace rn {

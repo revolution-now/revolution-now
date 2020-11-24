@@ -11,7 +11,6 @@
 #include "fb.hpp"
 
 // Revolution Now
-#include "enum.hpp"
 #include "logging.hpp"
 #include "serial.hpp"
 
@@ -85,12 +84,11 @@ struct Weapon {
   );
 };
 
-enum class e_( color, //
-               Red,   //
-               Green, //
-               Blue   //
-);
-SERIALIZABLE_BETTER_ENUM( e_color );
+enum class e_color {
+  Red,   //
+  Green, //
+  Blue   //
+};
 
 using MyVariant = std::variant< //
     int,                        //

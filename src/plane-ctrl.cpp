@@ -116,10 +116,10 @@ REGISTER_INIT_ROUTINE( plane_config );
 *****************************************************************/
 void push_plane_config( e_plane_config conf ) {
   switch( conf ) {
-    case +e_plane_config::main_menu:
+    case e_plane_config::main_menu:
       SG().plane_list_stack.push_back( g_main_menu_config );
       break;
-    case +e_plane_config::terrain:
+    case e_plane_config::terrain:
       SG().plane_list_stack.push_back( PlaneList{ {
           e_plane::land_view, //
           e_plane::panel,     //
@@ -127,14 +127,14 @@ void push_plane_config( e_plane_config conf ) {
           e_plane::window     //
       } } );
       break;
-    case +e_plane_config::colony:
+    case e_plane_config::colony:
       SG().plane_list_stack.push_back( PlaneList{ {
           e_plane::colony, //
           // e_plane::menu,   //
           e_plane::window //
       } } );
       break;
-    case +e_plane_config::europe:
+    case e_plane_config::europe:
       SG().plane_list_stack.push_back( PlaneList{ {
           e_plane::europe, //
           e_plane::menu,   //

@@ -41,23 +41,23 @@ Opt<Rect> section( e_section section ) {
   auto      menu_height =
       is_plane_enabled( e_plane::menu ) ? g_menu_height : 0_h;
   switch( section ) {
-    case +e_section::menu_bar:
+    case e_section::menu_bar:
       if( is_plane_enabled( e_plane::menu ) )
         res = Rect{ 0_x, 0_y, screen_size.w, menu_height };
       // res is nullopt if menus are not visible.
       break;
-    case +e_section::non_menu_bar:
+    case e_section::non_menu_bar:
       res = Rect{ 0_x, 0_y + menu_height, screen_size.w,
                   screen_size.h - menu_height };
       break;
-    case +e_section::viewport:
+    case e_section::viewport:
       // At standard zoom; i.e., these are fixed with respect to
       // viewport state.
       res = Rect{ 0_x, 0_y + menu_height,
                   screen_size.w - g_panel_width,
                   screen_size.h - menu_height };
       break;
-    case +e_section::panel:
+    case e_section::panel:
       res = Rect{ 0_x + screen_size.w - g_panel_width,
                   0_y + menu_height, g_panel_width,
                   screen_size.h - menu_height };

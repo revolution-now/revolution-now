@@ -15,7 +15,6 @@
 // Revolution Now
 #include "colony-mfg.hpp"
 #include "commodity.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"

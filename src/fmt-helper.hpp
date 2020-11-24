@@ -386,34 +386,6 @@ struct formatter<std::chrono::duration<Rep, Period>>
   }
 };
 
-// Specialization for BETTER_ENUMS.
-//
-// Note that the last type in the template argument list must be
-// the SFINAE and must have the type void (as it is if we use
-// void_t or enable_if) because:
-//
-//   1) The third template parameter in the base template
-//      declaration of formatter (in fmt/core.h) has a default
-//      value of void, and
-//   2) https://stackoverflow.com/questions/18700558/
-//            default-template-parameter-partial-specialization
-//
-// Unfortunately, the fact that the below compiles and gets
-// selected (or not selected) at the desired times may depend on
-// implementation details of the fmt library, such as the precise
-// template arguments in the base template declaration of
-// formatter. So this could break at some point.
-//
-template<typename T>
-struct formatter<T, char, std::void_t<typename T::_enumerated>>
-  : formatter_base {
-  template<typename FormatContext>
-  auto format( T const &o, FormatContext &ctx ) {
-    return formatter_base::format(
-        fmt::format( "{}", o._to_string() ), ctx );
-  }
-};
-
 // Specialization for standard enums using magic_enum.
 template<typename T>
 struct formatter<T, char, std::enable_if_t<std::is_enum_v<T>>>

@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 #include "tune.hpp"
 
@@ -28,26 +27,26 @@ namespace rn {
 // are not available.
 enum class e_music_player { midiseq, ogg, silent };
 
-enum class e_( special_music_event, //
-               fountain_of_youth,   //
-               founding_father      //
-);
+enum class e_special_music_event {
+  fountain_of_youth, //
+  founding_father    //
+};
 
 } // namespace rn
 
 namespace rn::conductor {
 
 // Add more events here as they are needed.
-enum class e_conductor_event { //
-  volume_changed,              //
-  mplayer_changed              //
+enum class e_conductor_event {
+  volume_changed, //
+  mplayer_changed //
 };
 
-enum class e_( music_state, //
-               playing,     //
-               stopped,     //
-               paused       //
-);
+enum class e_music_state {
+  playing, //
+  stopped, //
+  paused   //
+};
 
 struct ConductorInfo {
   e_music_player      mplayer;
@@ -144,25 +143,25 @@ void playlist_generate();
 // then play it if requested. If the tune is played then the con-
 // ductor will return to autoplay when it is finished, if auto-
 // play is enabled.
-enum class e_( request,               //
-               won_battle_europeans,  //
-               won_battle_natives,    //
-               lost_battle_europeans, //
-               lost_battle_natives,   //
-               slow_sad,              //
-               happy_fast,            //
-               orchestrated,          //
-               fiddle_tune,           //
-               fife_drum_sad,         //
-               fife_drum_slow,        //
-               fife_drum_fast,        //
-               fife_drum_happy,       //
-               native_sad,            //
-               native_happy,          //
-               king_happy,            //
-               king_sad,              //
-               king_war               //
-);
+enum class e_request {
+  won_battle_europeans,
+  won_battle_natives,
+  lost_battle_europeans,
+  lost_battle_natives,
+  slow_sad,
+  happy_fast,
+  orchestrated,
+  fiddle_tune,
+  fife_drum_sad,
+  fife_drum_slow,
+  fife_drum_fast,
+  fife_drum_happy,
+  native_sad,
+  native_happy,
+  king_happy,
+  king_sad,
+  king_war
+};
 
 enum class e_request_probability { always, sometimes, rarely };
 

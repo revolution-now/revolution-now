@@ -375,25 +375,6 @@ void populate_config_field( ucl::Ucl obj, fs::path& dest,
   dest = move( file_path );
 }
 
-// This is for enums reflected with Better Enums (deprecated).
-template<typename Enum>
-void populate_config_field_better_enum(
-    ucl::Ucl obj, Enum& dest, vector<string> const& path,
-    string const& config_name, string const& file,
-    string const& type_name ) {
-  auto dotted = util::join( path, "." );
-  check_field_exists( obj, dotted, file );
-  check_field_type( obj, ::UCL_STRING, dotted, config_name,
-                    string( "item(s) of type " ) + type_name );
-  auto str_val = obj.string_value();
-  auto result =
-      Enum::_from_string_nocase_nothrow( str_val.c_str() );
-  CHECK( result,
-         "enum value `{}` is not a known value of the enum {}",
-         str_val, type_name );
-  dest = *result;
-}
-
 // This is for enums reflected with Magic Enum.
 template<typename Enum>
 void populate_config_field_magic_enum(
@@ -411,28 +392,6 @@ void populate_config_field_magic_enum(
          str_val, type_name );
   dest = *result;
 }
-
-// better enum (deprecated)
-#define SUPPORT_BETTER_ENUM( EnumType )                         \
-  template<>                                                    \
-  void populate_config_field(                                   \
-      ucl::Ucl obj, EnumType& dest, vector<string> const& path, \
-      string const& config_name, string const& file ) {         \
-    populate_config_field_better_enum( obj, dest, path,         \
-                                       config_name, file,       \
-                                       TO_STRING( EnumType ) ); \
-  }                                                             \
-  template<>                                                    \
-  struct ucl_type_of_t<EnumType> {                              \
-    static constexpr UclType_t value = UCL_STRING;              \
-    /* Need to use `value` to avoid unused var warning. */      \
-    ucl_type_of_t() { (void)value; }                            \
-  };                                                            \
-  template<>                                                    \
-  struct ucl_type_name_of_t<EnumType> {                         \
-    static constexpr char const* value = "UCL_STRING";          \
-    ucl_type_name_of_t() { (void)value; }                       \
-  };
 
 // magic enum
 #define SUPPORT_ENUM( EnumType )                                \
@@ -461,11 +420,11 @@ SUPPORT_ENUM( e_direction )
 SUPPORT_ENUM( e_unit_type )
 SUPPORT_ENUM( e_unit_death )
 SUPPORT_ENUM( e_music_player )
-SUPPORT_BETTER_ENUM( e_special_music_event )
-SUPPORT_BETTER_ENUM( e_font )
+SUPPORT_ENUM( e_special_music_event )
+SUPPORT_ENUM( e_font )
 
 #define TUNE_DIMENSION_SUPPORT_ENUM( dim ) \
-  SUPPORT_BETTER_ENUM( PP_JOIN( e_tune_, dim ) )
+  SUPPORT_ENUM( PP_JOIN( e_tune_, dim ) )
 
 EVAL( PP_MAP( TUNE_DIMENSION_SUPPORT_ENUM,
               TUNE_DIMENSION_LIST ) )

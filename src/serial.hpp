@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 
@@ -49,7 +48,7 @@ public:
   byte_t*       get() { return buf_.get(); }
 
 private:
-  int                       size_{0};
+  int                       size_{ 0 };
   std::unique_ptr<byte_t[]> buf_{};
 };
 

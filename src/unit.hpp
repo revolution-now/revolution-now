@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "cargo.hpp"
-#include "enum.hpp"
 #include "fb.hpp"
 #include "id.hpp"
 #include "mv-points.hpp"

@@ -628,14 +628,14 @@ ClickTileActions ClickTileActionsFromUnitSelections(
   for( auto const& selection : selections ) {
     auto& sel_unit = unit_from_id( selection.id );
     switch( selection.what ) {
-      case +ui::e_unit_selection::clear_orders:
+      case ui::e_unit_selection::clear_orders:
         lg.debug( "clearing orders for {}.",
                   debug_string( sel_unit ) );
         sel_unit.clear_orders();
         if( allow_activate )
           result.add_to_back.push_back( selection.id );
         break;
-      case +ui::e_unit_selection::activate:
+      case ui::e_unit_selection::activate:
         CHECK( allow_activate );
         lg.debug( "activating {}.", debug_string( sel_unit ) );
         // Activation implies also to clear orders if they're

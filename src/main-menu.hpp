@@ -14,14 +14,10 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 
 namespace rn {
 
-enum class e_( main_menu_type, //
-               no_game,        //
-               in_game         //
-);
+enum class e_main_menu_type { no_game, in_game };
 
 enum class e_main_menu_item {
   resume,

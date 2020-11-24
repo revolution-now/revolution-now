@@ -12,16 +12,13 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "enum.hpp"
-
 namespace rn {
 
-enum class e_( font,
-               _7_12_serif_16pt, //
-               _6x6,             //
-               habbo_15          //
-);
+enum class e_font {
+  _7_12_serif_16pt, //
+  _6x6,             //
+  habbo_15          //
+};
 
 namespace font {
 

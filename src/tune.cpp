@@ -110,12 +110,11 @@ void cleanup_tunes() {}
 //
 REGISTER_INIT_ROUTINE( tunes );
 
-#define OPT_TO_VEC( what )                               \
-  {                                                      \
-    what.has_value()                                     \
-        ? Vec<std::decay_t<decltype(                     \
-              what.value() )>>{ { *what } }              \
-        : Vec<std::decay_t<decltype( what.value() )>> {} \
+#define OPT_TO_VEC( what )                                     \
+  {                                                            \
+    what.has_value()                                           \
+        ? Vec<std::decay_t<decltype( what.value() )>>{ *what } \
+        : Vec<std::decay_t<decltype( what.value() )>> {}       \
   }
 
 TuneVecDimensions TuneOptDimensions::to_vec_dims() const {

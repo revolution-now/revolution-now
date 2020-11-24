@@ -24,6 +24,9 @@
 #include "../config/ucl/font.inl"
 #include "../config/ucl/palette.inl"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // SDL
 #include "SDL_ttf.h"
 
@@ -46,7 +49,7 @@ NOTHROW_MOVE( FontDesc );
 FlatMap<e_font, FontDesc>& loaded_fonts() {
   static FlatMap<e_font, FontDesc> m = [] {
     FlatMap<e_font, FontDesc> res;
-    for( auto font : values<e_font> ) {
+    for( auto font : magic_enum::enum_values<e_font>() ) {
       auto& path = val_or_die( config_font.paths, font );
       auto& size = val_or_die( config_font.sizes, font );
       auto& vert_offset =

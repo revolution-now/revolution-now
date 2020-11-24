@@ -24,6 +24,9 @@
 // abseil
 #include "absl/container/flat_hash_map.h"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // SDL
 #include "SDL.h"
 #include "SDL_mixer.h"
@@ -41,7 +44,7 @@ struct SfxDesc {
 NOTHROW_MOVE( SfxDesc );
 
 #define SFX_FILE( sound )                                   \
-  case +e_sfx::sound:                                       \
+  case e_sfx::sound:                                        \
     return {                                                \
       config_sound.sfx.sound, config_sound.sfx.volume.sound \
     }
@@ -116,7 +119,8 @@ void init_sound() {
   constexpr int default_volume{ 10 }; // [0, 128)
   ::Mix_Volume( -1 /*=all channels*/, default_volume );
 
-  for( auto sound : values<e_sfx> ) load_sfx( sound );
+  for( auto sound : magic_enum::enum_values<e_sfx>() )
+    load_sfx( sound );
 }
 
 void cleanup_sound() {

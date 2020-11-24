@@ -15,7 +15,6 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
-#include "enum.hpp"
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
@@ -49,9 +48,9 @@ struct mod_keys {
 // All event types must inherit either directly or indirectly
 // from this type.
 struct event_base_t {
-  mod_keys mod;
-  bool     l_mouse_down;
-  bool     r_mouse_down;
+  mod_keys mod          = {};
+  bool     l_mouse_down = false;
+  bool     r_mouse_down = false;
 };
 
 /****************************************************************
@@ -74,7 +73,8 @@ enum class e_mouse_button_event {
 
 class mouse_event_base_t : public event_base_t {
 public:
-  mouse_event_base_t( Coord pos_ ) : pos( pos_ ) {}
+  mouse_event_base_t( Coord pos_ )
+    : event_base_t{}, pos( pos_ ) {}
   Coord pos;
 
 protected:
@@ -109,12 +109,7 @@ Coord current_mouse_position();
 /****************************************************************
 ** Mouse Dragging
 *****************************************************************/
-enum class e_( drag_phase,
-               /* values */
-               begin,       // marks the start of a drag
-               in_progress, // middle of a drag
-               end          // this event marks the end of a drag
-);
+enum class e_drag_phase { begin, in_progress, end };
 
 struct drag_state_t {
   Coord        origin{};

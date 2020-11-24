@@ -29,6 +29,9 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_split.h"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // C++ standard library
 #include <functional>
 #include <typeinfo>

@@ -13,12 +13,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "enum.hpp"
 #include "plane.hpp"
 
 namespace rn {
 
-enum class e_( image, europe );
+enum class e_image { europe };
 
 Texture const& image( e_image which );
 

@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "enum.hpp"
-
 // Rnl
 #include "rnl/midiseq.hpp"
 
@@ -24,13 +21,13 @@
 namespace rn::midiseq {
 
 // State held by (and updated by) the midi thread.
-enum class e_( midiseq_state,
-               playing, //
-               paused,  //
-               stopped, //
-               failed,  //
-               off      //
-);
+enum class e_midiseq_state {
+  playing,
+  paused,
+  stopped,
+  failed,
+  off
+};
 
 bool midiseq_enabled();
 // We can get state, but not set it. To change the state of the

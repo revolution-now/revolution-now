@@ -11,6 +11,7 @@
 #include "main-menu.hpp"
 
 // Revolution Now
+#include "enum.hpp"
 #include "gfx.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
@@ -20,6 +21,9 @@
 
 // base-util
 #include "base-util/algo.hpp"
+
+// magic enum
+#include "magic_enum.hpp"
 
 using namespace std;
 

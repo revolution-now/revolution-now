@@ -14,17 +14,16 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 
 namespace rn {
 
-enum class e_( power_state,        //
-               unknown,            //
-               on_battery,         //
-               plugged_no_battery, //
-               plugged_charging,   //
-               plugged_charged     //
-);
+enum class e_power_state {
+  unknown,
+  on_battery,
+  plugged_no_battery,
+  plugged_charging,
+  plugged_charged
+};
 
 struct MachinePowerInfo {
   e_power_state power_state;

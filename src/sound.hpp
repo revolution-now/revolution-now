@@ -12,12 +12,9 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "enum.hpp"
-
 namespace rn {
 
-enum class e_( sfx, move, attacker_lost, attacker_won );
+enum class e_sfx { move, attacker_lost, attacker_won };
 
 void play_sound_effect( e_sfx sound );
 

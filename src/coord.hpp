@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"

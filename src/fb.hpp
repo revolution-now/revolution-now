@@ -15,7 +15,6 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "cc-specific.hpp"
-#include "enum.hpp"
 #include "errors.hpp"
 
 // base
@@ -30,65 +29,13 @@
 #include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // C++ standard library
 #include <list>
 #include <tuple>
 #include <utility>
-
-/****************************************************************
-** Better Enums (deprecated)
-*****************************************************************/
-// FIXME: in the deserialize_better_enum method below we need to
-// take and return a generic template type instead of (ideally) a
-// fb::name. See upstream flatbuffers issue #5285. After that
-// issue is resolved, remove the template and replace `T e` with
-// `fb::name`.
-#define SERIALIZABLE_BETTER_ENUM( name )                       \
-  static_assert( static_cast<int>( fb::name::MIN ) == 0 );     \
-  static_assert( name::_size() ==                              \
-                 static_cast<size_t>( fb::name::MAX ) + 1 );   \
-  static_assert(                                               \
-      static_cast<int>(                                        \
-          ( *std::begin( values<name> ) )._value ) == 0 );     \
-  inline fb::name serialize_better_enum( name e ) {            \
-    auto from_idx = e._value;                                  \
-    RN_CHECK( from_idx >= 0 &&                                 \
-              from_idx <= static_cast<int>( fb::name::MAX ) ); \
-    DCHECK( std::string( fb::EnumNames##name()[from_idx] ) ==  \
-                e._to_string(),                                \
-            "{} != {}", fb::EnumNames##name()[from_idx],       \
-            e._to_string() );                                  \
-    return fb::EnumValues##name()[from_idx];                   \
-  }                                                            \
-  template<typename T>                                         \
-  inline expect<> deserialize_better_enum( T e, name* dst ) {  \
-    auto from_idx = static_cast<int>( e );                     \
-    if( from_idx < 0 ||                                        \
-        from_idx > static_cast<int>( fb::name::MAX ) ) {       \
-      return UNEXPECTED(                                       \
-          "serialized enum of type fb::" #name                 \
-          " has index out of its own range (idx={})",          \
-          from_idx );                                          \
-    }                                                          \
-    auto res = name::_from_index_nothrow( from_idx );          \
-    if( !res ) {                                               \
-      return UNEXPECTED(                                       \
-          "serialized enum of type fb::" #name                 \
-          " has index that is outside the range of the "       \
-          "corresponding native type (idx={}).",               \
-          from_idx );                                          \
-    }                                                          \
-    char const* name1 = ( *res )._to_string();                 \
-    char const* name2 = fb::EnumNames##name()[from_idx];       \
-    if( std::strcmp( name1, name2 ) != 0 ) {                   \
-      return UNEXPECTED(                                       \
-          "error while deserializing enum of type " #name      \
-          ": {} != {}",                                        \
-          name1, name2 );                                      \
-    }                                                          \
-    *dst = *res;                                               \
-    return xp_success_t{};                                     \
-  }
 
 /****************************************************************
 ** Uniform serialization interface.
@@ -249,24 +196,6 @@ auto serialize( FBBuilder& builder, std::string const& o,
                 serial::ADL ) {
   auto offset = builder.CreateString( o );
   return ReturnValue{ offset };
-}
-
-// For Better Enums (deprecated).
-template<typename Hint, //
-         typename T,
-         decltype( serialize_better_enum(
-             std::declval<T>() ) )* = nullptr>
-auto serialize( FBBuilder&, T const& o, serial::ADL ) {
-  if constexpr( !std::is_same_v<Hint, void> )
-    // FIXME: We use the Hint type here because the FB interface
-    // seems inconsistent with the type it uses for enums in
-    // getter return values. See issue #5285 in the upstream
-    // flatbuffers repo. After that is fixed then we should be
-    // able to remove this branch.
-    return ReturnValue{
-        static_cast<Hint>( serialize_better_enum( o ) ) };
-  else
-    return ReturnValue{ serialize_better_enum( o ) };
 }
 
 // For regular enums, reflected through magic-enum (preferred).
@@ -469,19 +398,6 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
           "`src` is nullptr when deserializing scalar." );
   *dst = *src;
   return xp_success_t{};
-}
-
-// For Better Enums (deprecated).
-template<
-    typename SrcT, //
-    typename DstT, //
-    decltype( deserialize_better_enum(
-        std::declval<SrcT>(),
-        std::add_pointer_t<std::decay_t<DstT>>{} ) )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
-  DCHECK( src != nullptr,
-          "`src` is nullptr when deserializing enum." );
-  return deserialize_better_enum( *src, dst );
 }
 
 // For regular enums, reflected through magic-enum (preferred).

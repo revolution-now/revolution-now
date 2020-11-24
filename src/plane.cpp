@@ -383,7 +383,7 @@ Plane::e_input_handled send_input_to_planes(
     if( g_drag_state.plane ) {
       auto& plane = Plane::get( *g_drag_state.plane );
       // Drag should already be in progress.
-      CHECK( drag_event->state.phase != +e_drag_phase::begin );
+      CHECK( drag_event->state.phase != e_drag_phase::begin );
       if( g_drag_state.send_as_motion ) {
         // The plane wants to be sent this drag event as regular
         // mouse motion / click events, so we need to convert the
@@ -399,7 +399,7 @@ Plane::e_input_handled send_input_to_planes(
         // of a released button.
         (void)plane.input( motion );
         // If the drag is finished then send out that event.
-        if( drag_event->state.phase == +e_drag_phase::end ) {
+        if( drag_event->state.phase == e_drag_phase::end ) {
           // lg.debug( "finished `{}` drag motion event",
           //          *g_drag_state.plane );
           auto maybe_button =
@@ -429,7 +429,7 @@ Plane::e_input_handled send_input_to_planes(
         DCHECK( prj_drag_event.state.phase ==
                 drag_event->state.phase );
         // If the drag is finished then send out that event.
-        if( prj_drag_event.state.phase == +e_drag_phase::end ) {
+        if( prj_drag_event.state.phase == e_drag_phase::end ) {
           // lg.debug( "finished `{}` drag event",
           //          *g_drag_state.plane );
           plane.on_drag_finished(
@@ -444,7 +444,7 @@ Plane::e_input_handled send_input_to_planes(
     }
     // No drag plane registered to accept the event, so lets
     // send out the event but only if it's a `begin` event.
-    if( drag_event->state.phase == +e_drag_phase::begin ) {
+    if( drag_event->state.phase == e_drag_phase::begin ) {
       for( auto [e, plane] : relevant_planes() ) {
         // Note here we use the origin position of the mouse drag
         // as opposed to the current mouse position because that
@@ -569,12 +569,11 @@ void on_menu_item_clicked( e_menu_item item ) {
   SHOULD_NOT_BE_HERE;
 }
 
-#define MENU_ITEM_HANDLER_PLANE( item )                   \
-  MENU_ITEM_HANDLER(                                      \
-      e_menu_item::item,                                  \
-      [] { on_menu_item_clicked( e_menu_item::item ); },  \
-      [] {                                                \
-        return is_menu_item_enabled( e_menu_item::item ); \
+#define MENU_ITEM_HANDLER_PLANE( item )                        \
+  MENU_ITEM_HANDLER(                                           \
+      item, [] { on_menu_item_clicked( e_menu_item::item ); }, \
+      [] {                                                     \
+        return is_menu_item_enabled( e_menu_item::item );      \
       } )
 
 MENU_ITEM_HANDLER_PLANE( about );

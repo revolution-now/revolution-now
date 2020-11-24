@@ -36,7 +36,6 @@ target_link_libraries(
     absl::hash
     absl::strings
     base-util
-    better-enums::better-enums
     expected-lite
     flatbuffers
     fmt::fmt
@@ -103,7 +102,6 @@ target_compile_definitions(
   rn
   PUBLIC
   FMT_STRING_ALIAS=1
-  BETTER_ENUMS_STRICT_CONVERSION=1
   SCELTA_SUPPORT_VARIANT_BOOST_DISABLE
   SCELTA_SUPPORT_OPTIONAL_BOOST_DISABLE
   LUA_VERSION_NUM=503

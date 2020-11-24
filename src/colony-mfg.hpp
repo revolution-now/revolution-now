@@ -15,7 +15,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 
 // Flatbuffers
 #include "fb/colony-mfg_generated.h"

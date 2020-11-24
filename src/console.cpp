@@ -293,7 +293,7 @@ Plane* console_plane() { return &g_console_plane; }
 
 //
 MENU_ITEM_HANDLER(
-    e_menu_item::toggle_console,
+    toggle_console,
     [] { g_console_plane.show_ = !g_console_plane.show_; },
     [] { return true; } )
 

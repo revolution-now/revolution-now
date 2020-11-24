@@ -261,23 +261,6 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
     };                                                         \
   };
 
-// Deprecated
-#define LUA_BETTER_ENUM( what )                                \
-  LUA_STARTUP( sol::state& st ) {                              \
-    ::rn::lua::detail::register_enum<::rn::e_##what>( st,      \
-                                                      #what ); \
-    st[::rn::lua::module_name__].get_or_create<sol::table>();  \
-    st["e"][#what "_from_string"] = []( char const* name ) {   \
-      auto maybe_val =                                         \
-          ::rn::e_##what::_from_string_nothrow( name );        \
-      CHECK(                                                   \
-          maybe_val,                                           \
-          "enum value `{}` is not a member of the enum `{}`",  \
-          name, #what );                                       \
-      return *maybe_val;                                       \
-    };                                                         \
-  };
-
 /****************************************************************
 ** Registration: Typed Int
 *****************************************************************/

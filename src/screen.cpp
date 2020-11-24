@@ -298,23 +298,22 @@ void cleanup_screen() {
 }
 
 MENU_ITEM_HANDLER(
-    e_menu_item::scale_up, [] { inc_resolution_scale(); },
+    scale_up, [] { inc_resolution_scale(); },
     L0( g_resolution_scale_factor !=
         Scale{ max_scale_factor } ) )
 
 MENU_ITEM_HANDLER(
-    e_menu_item::scale_down, [] { dec_resolution_scale(); },
+    scale_down, [] { dec_resolution_scale(); },
     L0( g_resolution_scale_factor !=
         Scale{ min_scale_factor } ) )
 
 MENU_ITEM_HANDLER(
-    e_menu_item::scale_optimal,
-    [] { set_optimal_resolution_scale(); },
+    scale_optimal, [] { set_optimal_resolution_scale(); },
     L0( g_resolution_scale_factor !=
         g_optimal_resolution_scale_factor ) )
 
 MENU_ITEM_HANDLER(
-    e_menu_item::toggle_fullscreen,
+    toggle_fullscreen,
     [] {
       auto is_fullscreen = toggle_fullscreen();
       if( !is_fullscreen ) restore_window();
@@ -322,7 +321,7 @@ MENU_ITEM_HANDLER(
     L0( true ) )
 
 MENU_ITEM_HANDLER(
-    e_menu_item::restore_window,
+    restore_window,
     [] {
       if( is_window_fullscreen() ) {
         toggle_fullscreen();

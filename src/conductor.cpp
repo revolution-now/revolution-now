@@ -30,6 +30,9 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // Range-v3
 #include "range/v3/iterator/operations.hpp"
 #include "range/v3/view/enumerate.hpp"
@@ -171,7 +174,7 @@ FlatMap<e_request, TuneVecDimensions>& dimensions_for_request() {
 
 void register_requests() {
 #include "../config/c++/tune-requests.inl"
-  for( auto req : values<e_request> ) {
+  for( auto req : magic_enum::enum_values<e_request>() ) {
     CHECK( dimensions_for_request().contains( req ),
            "The Conductor request category `{}` has not been "
            "given a definition.",
@@ -258,7 +261,8 @@ void init_conductor() {
   // Now check that there is a tune assigned to each special
   // music event. That is defined as a game event where there
   // should always be the tune played.
-  for( auto event : values<e_special_music_event> ) {
+  for( auto event :
+       magic_enum::enum_values<e_special_music_event>() ) {
     CHECK( m.contains( event ),
            "There is no tune set to be played for the special "
            "event `{}`.",
@@ -283,8 +287,10 @@ void init_conductor() {
            stem, event );
   }
 
-  CHECK( int( g_special_tunes.size() ) ==
-         rg::distance( values<e_special_music_event> ) );
+  CHECK(
+      int( g_special_tunes.size() ) ==
+      rg::distance(
+          magic_enum::enum_values<e_special_music_event>() ) );
 
   // This will set the music player if possible, make sure all
   // music is stopped, etc.
@@ -474,13 +480,13 @@ void play() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
-    case +e_music_state::playing: //
+    case e_music_state::playing: //
       // We're already playing, so do nothing.
       break;
-    case +e_music_state::paused: //
+    case e_music_state::paused: //
       mplayer->resume();
       break;
-    case +e_music_state::stopped: //
+    case e_music_state::stopped: //
       play_impl( current_tune_in_playlist() );
       break;
   }
@@ -517,7 +523,7 @@ void prev() {
     id = ( *info.playing_now ).id;
   }
   switch( info.music_state ) {
-    case +e_music_state::playing: {
+    case e_music_state::playing: {
       DCHECK( id );
       if( progress_time >
           config_music.threshold_previous_tune_secs )
@@ -526,13 +532,13 @@ void prev() {
         play_impl( prev_tune_in_playlist() );
       break;
     }
-    case +e_music_state::paused: {
+    case e_music_state::paused: {
       DCHECK( id );
       stop();
       prev_tune_in_playlist();
       break;
     }
-    case +e_music_state::stopped: //
+    case e_music_state::stopped: //
       prev_tune_in_playlist();
       break;
   }
@@ -541,15 +547,15 @@ void prev() {
 void next() {
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
-    case +e_music_state::playing: {
+    case e_music_state::playing: {
       play_impl( next_tune_in_playlist() );
       break;
     }
-    case +e_music_state::paused: {
+    case e_music_state::paused: {
       play_impl( next_tune_in_playlist() );
       break;
     }
-    case +e_music_state::stopped: //
+    case e_music_state::stopped: //
       next_tune_in_playlist();
       break;
   }
@@ -570,14 +576,14 @@ void pause() {
   }
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
-    case +e_music_state::playing: {
+    case e_music_state::playing: {
       mplayer->pause();
       break;
     }
-    case +e_music_state::paused: {
+    case e_music_state::paused: {
       break;
     }
-    case +e_music_state::stopped: //
+    case e_music_state::stopped: //
       break;
   }
 }
@@ -592,14 +598,14 @@ void resume() {
   }
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
-    case +e_music_state::playing: {
+    case e_music_state::playing: {
       break;
     }
-    case +e_music_state::paused: {
+    case e_music_state::paused: {
       mplayer->resume();
       break;
     }
-    case +e_music_state::stopped: //
+    case e_music_state::stopped: //
       break;
   }
 }
@@ -631,15 +637,15 @@ void seek( double pos ) {
   }
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
-    case +e_music_state::playing: {
+    case e_music_state::playing: {
       mplayer->seek( pos );
       break;
     }
-    case +e_music_state::paused: {
+    case e_music_state::paused: {
       mplayer->seek( pos );
       break;
     }
-    case +e_music_state::stopped: //
+    case e_music_state::stopped: //
       break;
   }
 }

@@ -15,19 +15,17 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "coord.hpp"
-#include "enum.hpp"
 
 namespace rn::compositor {
 
 // In general, these sections may overlap.
-enum class e_(
-    section,  // e_section
-    menu_bar, //
-    // All parts of the screen except for the menu bar.
-    non_menu_bar, //
-    viewport,     //
-    panel         //
-);
+enum class e_section {
+  menu_bar,
+  // All parts of the screen except for the menu bar.
+  non_menu_bar,
+  viewport,
+  panel
+};
 
 // If the section is visible it will return bounds.
 Opt<Rect> section( e_section section );

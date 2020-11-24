@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "enum.hpp"
 #include "fmt-helper.hpp"
 #include "input.hpp"
 #include "menu.hpp"

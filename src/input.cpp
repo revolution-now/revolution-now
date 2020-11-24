@@ -139,20 +139,20 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   mouse.y /= g_resolution_scale_factor.sy;
 
   if_get( l_drag, drag_phase::dragging, val ) {
-    if( val.phase == +e_drag_phase::begin )
+    if( val.phase == e_drag_phase::begin )
       val.phase = e_drag_phase::in_progress;
   }
   if_get( r_drag, drag_phase::dragging, val ) {
-    if( val.phase == +e_drag_phase::begin )
+    if( val.phase == e_drag_phase::begin )
       val.phase = e_drag_phase::in_progress;
   }
 
   if_get( l_drag, drag_phase::dragging, val ) {
-    if( val.phase == +e_drag_phase::end )
+    if( val.phase == e_drag_phase::end )
       l_drag = drag_phase::none{};
   }
   if_get( r_drag, drag_phase::dragging, val ) {
-    if( val.phase == +e_drag_phase::end )
+    if( val.phase == e_drag_phase::end )
       r_drag = drag_phase::none{};
   }
 
@@ -222,7 +222,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
             case drag_phase::e::dragging: {
               auto& val =
                   get_if_or_die<drag_phase::dragging>( drag );
-              CHECK( val.phase == +e_drag_phase::in_progress );
+              CHECK( val.phase == e_drag_phase::in_progress );
               break;
             }
           }
@@ -314,7 +314,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       g_mouse_buttons = sdl_event.button.state;
       if( sdl_event.button.button == SDL_BUTTON_LEFT ) {
         if_get( l_drag, drag_phase::dragging, val ) {
-          CHECK( val.phase != +e_drag_phase::end );
+          CHECK( val.phase != e_drag_phase::end );
           val.phase = e_drag_phase::end;
           mouse_drag_event_t drag_event;
           // Here we don't update the previous mouse position be-
@@ -343,7 +343,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
       }
       if( sdl_event.button.button == SDL_BUTTON_RIGHT ) {
         if_get( r_drag, drag_phase::dragging, val ) {
-          CHECK( val.phase != +e_drag_phase::end );
+          CHECK( val.phase != e_drag_phase::end );
           val.phase = e_drag_phase::end;
           mouse_drag_event_t drag_event;
           // Here we don't update the previous mouse position be-

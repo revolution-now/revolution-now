@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 #include "typed-int.hpp"
 
 // base-util
@@ -38,13 +37,13 @@ namespace rn {
 // clang-format on
 
 #define TUNE_DIMENSION_ENUM( name, ... ) \
-  enum class e_( tune_##name, __VA_ARGS__ );
+  enum class e_tune_##name{ __VA_ARGS__ };
 
 // Create a reflected enum for each of the dimensions. These need
 // to be reflected enums for deserialization from the config
 // files. E.g., for the `tempo` dimension this will generate:
 //
-//   enum class e_( tune_##tempo, fast, medium, slow );
+//   enum class e_tune_##tempo { fast, medium, slow };
 //
 // which of course is itself a macro.
 EVAL( PP_MAP_TUPLE( TUNE_DIMENSION_ENUM,

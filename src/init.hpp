@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "aliases.hpp"
-#include "enum.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -29,31 +28,30 @@
 namespace rn {
 
 // Ordering of these enum values does not matter.
-enum class e_( init_routine,
-               /************/
-               compositor,    //
-               conductor,     //
-               configs,       //
-               europort_view, //
-               lua,           //
-               images,        //
-               menus,         //
-               midiplayer,    //
-               midiseq,       //
-               oggplayer,     //
-               planes,        //
-               plane_config,  //
-               renderer,      //
-               rng,           //
-               screen,        //
-               sdl,           //
-               sound,         //
-               sprites,       //
-               terrain,       //
-               text,          //
-               ttf,           //
-               tunes          //
-);
+enum class e_init_routine {
+  compositor,
+  conductor,
+  configs,
+  europort_view,
+  lua,
+  images,
+  menus,
+  midiplayer,
+  midiseq,
+  oggplayer,
+  planes,
+  plane_config,
+  renderer,
+  rng,
+  screen,
+  sdl,
+  sound,
+  sprites,
+  terrain,
+  text,
+  ttf,
+  tunes
+};
 
 using InitFunction = std::function<void( void )>;
 

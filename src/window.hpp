@@ -20,6 +20,9 @@
 #include "sync-future.hpp"
 #include "ui-enums.hpp"
 
+// magic enum
+#include "magic_enum.hpp"
+
 // c++ standard library
 #include <string_view>
 #include <vector>
@@ -42,10 +45,10 @@ sync_future<> message_box( std::string_view msg,
       fmt::format( msg, std::forward<Args>( args )... ) );
 }
 
-enum class e_( unit_selection, //
-               clear_orders,   //
-               activate        // implies clear_orders
-);
+enum class e_unit_selection {
+  clear_orders,
+  activate // implies clear_orders
+};
 
 struct UnitSelection {
   UnitId           id;

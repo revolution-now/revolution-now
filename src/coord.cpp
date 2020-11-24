@@ -11,9 +11,11 @@
 #include "coord.hpp"
 
 // Revolution Now
-#include "enum.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
+
+// magic enum
+#include "magic_enum.hpp"
 
 // c++ standard library
 #include <algorithm>
