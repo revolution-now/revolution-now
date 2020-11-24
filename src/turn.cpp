@@ -585,6 +585,7 @@ FSM_DEFINE_FORMAT_RN_( TurnCycle );
 void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
   switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
     case TurnCycleState::e::starting: {
+      print_bar( '=', "[ Starting Turn ]" );
       map_units( []( Unit& unit ) { unit.new_turn(); } );
       fsm.send_event( TurnCycleEvent::next{} );
       break;

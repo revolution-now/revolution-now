@@ -17,6 +17,7 @@
 #include "fmt-helper.hpp"
 #include "macros.hpp"
 #include "terminal.hpp"
+#include "util.hpp"
 
 // C++ standard library
 #include <mutex>
@@ -189,5 +190,19 @@ shared_ptr<spdlog::logger> create_hybrid_logger(
 }
 
 } // namespace detail
+
+string fmt_bar( char c, string_view msg ) {
+  auto maybe_cols = os_terminal_columns();
+  // If we're printing the width of the terminal then don't print
+  // a new line since we will automatically move to the next line
+  // by exhausting all columns.
+  string_view maybe_newline = maybe_cols.has_value() ? "" : "\n";
+  string fmt = fmt::format( "{{:{}^{{}}}}{}", c, maybe_newline );
+  return fmt::format( fmt, msg, maybe_cols.value_or( 65 ) );
+}
+
+void print_bar( char c, string_view msg ) {
+  fmt::print( "{}", fmt_bar( c, msg ) );
+}
 
 } // namespace rn

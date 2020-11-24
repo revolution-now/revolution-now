@@ -109,11 +109,11 @@
 // Will call a callable each time the variable changes. This
 // involves copying, so should probably only be used while
 // debugging.
-#define WHEN_CHANGE_DO( var, func )                      \
+#define WHEN_CHANGE_DO( var, ... )                       \
   {                                                      \
     static std::remove_cv_t<decltype( var )> __cached{}; \
     if( __cached != var ) {                              \
-      func();                                            \
+      __VA_ARGS__();                                     \
       __cached = var;                                    \
     }                                                    \
   }
@@ -210,5 +210,8 @@ auto& lg = **hybrid_logger;
 // specified then one will be chosen according to the build type.
 void init_logging(
     std::optional<spdlog::level::level_enum> level );
+
+std::string fmt_bar( char c, std::string_view msg = "" );
+void        print_bar( char c, std::string_view msg = "" );
 
 } // namespace rn

@@ -121,8 +121,13 @@ struct PanelPlane : public Plane {
     next_turn_button().enable( /*enabled=*/true );
     next_turn_clicked = false;
   }
-  bool was_next_turn_button_clicked() const {
-    return next_turn_clicked;
+  bool was_next_turn_button_clicked() {
+    // FIXME: this mechanism kind of sucks, find beter way.
+    if( next_turn_clicked ) {
+      next_turn_clicked = false;
+      return true;
+    }
+    return false;
   }
 
   UPtr<ui::InvisibleView> view;
