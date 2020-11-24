@@ -37,6 +37,12 @@ using namespace std::literals::string_literals;
 
 namespace rn {
 
+static_assert(
+    magic_enum::enum_count<e_tile>() < MAGIC_ENUM_RANGE_MAX,
+    "The e_tile enum has gotten larger than magic-enum can "
+    "handle.  Either increase the max size that magic-enum can "
+    "handle or switch to a generated enum." );
+
 namespace {
 
 struct tile_map {
