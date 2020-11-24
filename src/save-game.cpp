@@ -166,7 +166,8 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
 ** Public API
 *****************************************************************/
 expect<fs::path> save_game( int slot ) {
-  constexpr int   trials = 10;
+  // Increase this to get more accurate reading on save times.
+  constexpr int   trials = 1;
   util::StopWatch watch;
   watch.start( "save" );
   auto serialize_to_blob = [&]() -> expect<serial::BinaryBlob> {

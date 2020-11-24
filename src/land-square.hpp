@@ -27,6 +27,8 @@ enum class e_crust { water, land };
 struct LandSquare {
   expect<> check_invariants_safe() const;
 
+  bool operator==( LandSquare const& ) const = default;
+
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, LandSquare,
   ( e_crust, crust ));

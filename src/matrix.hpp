@@ -117,7 +117,12 @@ auto serialize( FBBuilder& builder, Matrix<T> const& m,
 
   std::vector<std::pair<Coord, T>> data;
   data.reserve( size_t( size.area() ) );
-  for( auto const& c : m.rect() ) data.emplace_back( c, m[c] );
+  for( auto const& c : m.rect() ) {
+    T const&       elem = m[c];
+    static const T def{};
+    if( elem == def ) continue;
+    data.emplace_back( c, elem );
+  }
   auto s_data = serialize<fb_serialize_hint_t<
       decltype( std::declval<Hint>().data() )>>( builder, data,
                                                  serial::ADL{} );
@@ -154,15 +159,8 @@ expect<> deserialize( SrcT const* src, Matrix<T>* m,
       deserialize( src->data(), &data, serial::ADL{} ) );
 
   *m = Matrix<T>( size );
-  FlatSet<Coord> seen;
-  seen.reserve( size.area() );
-  for( auto& [coord, elem] : data ) {
+  for( auto& [coord, elem] : data )
     ( *m )[coord] = std::move( elem );
-    seen.insert( coord );
-  }
-
-  // Make sure we got all unique coords.
-  UNXP_CHECK( int( seen.size() ) == size.area() );
 
   return xp_success_t{};
 }
