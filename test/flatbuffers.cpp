@@ -134,6 +134,7 @@ struct Monster {
   ( short,           mana           ),
   ( short,           hp             ),
   ( string,          name           ),
+  ( string,          noname         ),
   ( vector<string>,  names          ),
   ( vector<uint8_t>, inventory      ),
   ( e_color,         color          ),
@@ -168,6 +169,8 @@ BinaryBlob create_monster_blob() {
                                weapon_two_damage );
 
   auto name = builder.CreateString( "Orc" );
+  // Null offset (empty string).
+  auto noname = decltype( name ){};
 
   vector<FBOffset<flatbuffers::String>> names_v;
   names_v.push_back( builder.CreateString( "hello1" ) );
@@ -249,10 +252,11 @@ BinaryBlob create_monster_blob() {
                                      /*value=*/5 );
 
   auto orc = fb::CreateMonster(
-      builder, &position, mana, hp, name, names, inventory,
-      fb::e_color::Red, fb::e_hand::Right, elbow, weapons, path,
-      pair1, &pair2, fb_map_vecs, fb_map_strs, fb_map_wpns,
-      fb_mylist, fb_myset, opt_int1, opt_int2, opt_int3 );
+      builder, &position, mana, hp, name, noname, names,
+      inventory, fb::e_color::Red, fb::e_hand::Right, elbow,
+      weapons, path, pair1, &pair2, fb_map_vecs, fb_map_strs,
+      fb_map_wpns, fb_mylist, fb_myset, opt_int1, opt_int2,
+      opt_int3 );
 
   builder.Finish( orc );
 
@@ -261,7 +265,7 @@ BinaryBlob create_monster_blob() {
 
 TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 644;
+  constexpr uint64_t kExpectedBlobSize = 648;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
@@ -295,6 +299,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     REQUIRE( monster.name() != nullptr );
     REQUIRE( monster.name()->str() == "Orc" );
+    REQUIRE( monster.noname() == nullptr );
 
     REQUIRE( monster.names() != nullptr );
     REQUIRE( monster.names()->Get( 0 )->str() == "hello1" );
@@ -403,6 +408,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( monster.mana == 150 );
 
     REQUIRE( monster.name == "Orc" );
+    REQUIRE( monster.noname == "" );
 
     REQUIRE( monster.names.size() == 3 );
     REQUIRE( monster.names[0] == "hello1" );
@@ -485,6 +491,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.mana      = 9;
     monster.hp        = 200;
     monster.name      = "mon";
+    monster.noname    = "";
     monster.names     = { "A", "B" };
     monster.inventory = { 7, 6, 5, 4 };
     monster.color     = e_color::Red;
@@ -515,7 +522,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.opt_int3 = 5;
 
     auto blob = rn::serial::serialize_to_blob( monster );
-    constexpr uint64_t kExpectedBlobSize = 580;
+    constexpr uint64_t kExpectedBlobSize = 584;
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::serialize_to_json( monster );
@@ -535,6 +542,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( monster_new.mana == 9 );
     REQUIRE( monster_new.hp == 200 );
     REQUIRE( monster_new.name == "mon" );
+    REQUIRE( monster_new.noname == "" );
     REQUIRE( monster_new.names.size() == 2 );
     REQUIRE( monster_new.names[0] == "A" );
     REQUIRE( monster_new.names[1] == "B" );

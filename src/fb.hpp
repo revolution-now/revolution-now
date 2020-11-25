@@ -194,6 +194,10 @@ auto serialize( FBBuilder&, T const& o, serial::ADL ) {
 template<typename Hint>
 auto serialize( FBBuilder& builder, std::string const& o,
                 serial::ADL ) {
+  // If the string is empty, do not serialize it, as that that it
+  // is "not present" and will be deserialized into an empty
+  // string without taking any space in the serialized data.
+  if( o.empty() ) return ReturnValue{ FBOffset<Hint>{} };
   auto offset = builder.CreateString( o );
   return ReturnValue{ offset };
 }

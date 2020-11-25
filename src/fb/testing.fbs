@@ -127,6 +127,7 @@ table Monster {
   mana      : short = 150;
   hp        : short = 100;
   name      : string;
+  noname    : string;
   names     : [string];
   friendly  : bool = false (deprecated);
   inventory : [ubyte];
