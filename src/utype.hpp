@@ -23,9 +23,6 @@
 // Flatbuffers
 #include "fb/utype_generated.h"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 namespace rn {
 
 enum class ND e_unit_type {
@@ -46,9 +43,19 @@ enum class ND e_unit_death {
   demote_and_capture
 };
 
+// We need this for some weird reason -- if we dont' have it and
+// we put the MOVABLE_ONLY in the UnitDescriptor class then we
+// lose the aggregate constructor that we need in the cpp file.
+// This allows us to be movable only but retain the aggregate
+// constructor.
+struct UnitDescriptorBase {
+  UnitDescriptorBase() = default;
+  MOVABLE_ONLY( UnitDescriptorBase );
+};
+
 // Static information describing classes of units. There will be
 // one of these for each type of unit.
-struct ND UnitDescriptor : util::movable_only {
+struct ND UnitDescriptor : public UnitDescriptorBase {
   std::string name{};
   e_unit_type type{};
 

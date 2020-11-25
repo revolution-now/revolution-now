@@ -25,7 +25,7 @@ using namespace std;
 
 #define LOAD_UNIT_DESC( u )                             \
   desc_[e_unit_type::u] =                               \
-      UnitDescriptor{ /*util::movable_only=*/{},        \
+      UnitDescriptor{ /*UnitDescriptorBase=*/{},        \
                       config_units.u.name,              \
                       e_unit_type::u,                   \
                       e_tile::u,                        \

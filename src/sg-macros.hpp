@@ -32,6 +32,8 @@
   void default_construct_savegame_state( fb::SG_##name const* );
 
 struct SaveGameComponentBase {
+  bool operator==( SaveGameComponentBase const& ) const =
+      default;
   ::rn::expect<> check_invariants_safe() const {
     // This function is not used in the top-level save-game com-
     // ponents. Instead we use the `sync` method.
@@ -77,10 +79,12 @@ struct SaveGameComponentBase {
   }                                                            \
   namespace {
 
-#define SAVEGAME_FRIENDS( name )              \
-  friend expect<> rn::savegame_deserializer(  \
-      fb::SG_##name const* src );             \
-  friend expect<> rn::savegame_post_validate( \
+#define SAVEGAME_FRIENDS( name )                       \
+  bool operator==( SG_##name const& ) const = default; \
+                                                       \
+  friend expect<> rn::savegame_deserializer(           \
+      fb::SG_##name const* src );                      \
+  friend expect<> rn::savegame_post_validate(          \
       fb::SG_##name const* src )
 
 // Called just after a given module is deserialized.

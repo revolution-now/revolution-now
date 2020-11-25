@@ -24,9 +24,6 @@
 // Flatbuffers
 #include "fb/unit_generated.h"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 namespace rn {
 
 enum class e_unit_orders { none, sentry, fortified };
@@ -35,15 +32,14 @@ enum class e_unit_orders { none, sentry, fortified };
 // of a unit that is intrinsic to the unit apart from location.
 // We don't allow copying (since their should never be two unit
 // objects alive with the same ID) but moving is fine.
-class ND Unit : public util::movable_only {
+class ND Unit {
 public:
-  Unit()              = default; // for serialization framework.
-  ~Unit()             = default;
-  Unit( Unit const& ) = delete;
-  Unit( Unit&& )      = default;
+  Unit()  = default; // for serialization framework.
+  ~Unit() = default;
 
-  Unit& operator=( Unit const& ) = delete;
-  Unit& operator=( Unit&& ) = default;
+  MOVABLE_ONLY( Unit );
+
+  bool operator==( Unit const& ) const = default;
 
   /************************* Getters ***************************/
 

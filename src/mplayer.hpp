@@ -17,9 +17,6 @@
 #include "errors.hpp"
 #include "tune.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 namespace rn {
 
 class MusicPlayer;
@@ -45,12 +42,12 @@ struct MusicPlayerState {
 struct MusicPlayerCapabilities {
   void log() const;
 
-  bool can_pause{false};  // implies that it can also resume
-  bool has_volume{false}; // means that volume is settable,
-                          // though not necessarily readable.
-  bool has_progress{false};
-  bool has_tune_duration{false};
-  bool can_seek{false};
+  bool can_pause{ false };  // implies that it can also resume
+  bool has_volume{ false }; // means that volume is settable,
+                            // though not necessarily readable.
+  bool has_progress{ false };
+  bool has_tune_duration{ false };
+  bool can_seek{ false };
 };
 
 // Needs to have a default constructor, so can't use ref.
@@ -69,8 +66,11 @@ using MaybeMusicPlayer = expect<MusicPlayer*>;
 // will cause the calling thread to block until all previous com-
 // mands sent to the music player have been processed. It also
 // accepts a timeout to avoid hanging if something goes wrong.
-class MusicPlayer : public util::movable_only {
+class MusicPlayer {
 public:
+  MusicPlayer() = default;
+  MOVABLE_ONLY( MusicPlayer );
+
   // All subclasses must have one of these.
   /* static pair<MusicPlayerDesc, MaybeMusicPlayer> player(); */
 
@@ -206,7 +206,7 @@ public:
 private:
   SilentMusicPlayer() = default;
 
-  bool        is_paused_{false};
+  bool        is_paused_{ false };
   Opt<TuneId> id_{};
 };
 

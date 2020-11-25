@@ -13,9 +13,6 @@
 // Revolution Now
 #include "core-config.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // Abseil
 #include "absl/container/node_hash_map.h"
 

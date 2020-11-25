@@ -27,7 +27,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/non-copyable.hpp"
 
 // C++ standard library
 #include <variant>
@@ -95,6 +94,8 @@ public:
   // can be moved.
   CargoHold( CargoHold&& ) = default;
   CargoHold& operator=( CargoHold&& ) = default;
+
+  bool operator==( CargoHold const& ) const = default;
 
   int slots_occupied() const;
   int slots_remaining() const;

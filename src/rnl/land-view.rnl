@@ -55,7 +55,8 @@ sumtype LandViewState {
 
   .features:
     formattable,
-    serializable;
+    serializable,
+    equality;
 };
 
 sumtype LandViewEvent {

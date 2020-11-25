@@ -106,5 +106,12 @@
   "myset": [
     "s1",
     "s2"
-  ]
+  ],
+  "opt_int2": {
+    "has_value": true
+  },
+  "opt_int3": {
+    "has_value": true,
+    "value": 5
+  }
 }

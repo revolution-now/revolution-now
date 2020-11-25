@@ -21,9 +21,6 @@
 #include "fmt-helper.hpp"
 #include "matrix.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 namespace rn {
 
 class Texture;
@@ -45,11 +42,13 @@ enum class e_tx_blend_mode {
 };
 
 // RAII wrapper and type eraser for SDL Surface.
-class Surface : public util::movable_only {
+class Surface {
 public:
   explicit Surface( void* sf );
   Surface( Surface&& sf ) noexcept;
   Surface& operator=( Surface&& rhs ) noexcept;
+
+  NON_COPYABLE( Surface );
 
   ~Surface();
 
@@ -95,12 +94,14 @@ private:
 NOTHROW_MOVE( Surface );
 
 // RAII wrapper and type eraser for SDL Texture.
-class Texture : public util::movable_only {
+class Texture {
 public:
   Texture() = default; // try to get rid of this.
   explicit Texture( void* tx );
   Texture( Texture&& tx ) noexcept;
   Texture& operator=( Texture&& rhs ) noexcept;
+
+  NON_COPYABLE( Texture );
 
   ~Texture();
 

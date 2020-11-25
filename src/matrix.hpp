@@ -20,9 +20,6 @@
 #include "fmt-helper.hpp"
 #include "strong-span.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // C++ standard library
 #include <vector>
 
@@ -33,7 +30,7 @@ namespace rn {
 // span that can only be indexed by X; indexing that span will
 // return a value.
 template<typename T>
-class Matrix : public util::movable_only {
+class Matrix {
   W      w_ = 0_w;
   Vec<T> data_{};
 
@@ -61,8 +58,7 @@ public:
     : Matrix( delta.w, delta.h, init ) {}
   Matrix() : Matrix( Delta{} ) {}
 
-  Matrix( Matrix&& ) = default;
-  Matrix& operator=( Matrix&& ) = default;
+  MOVABLE_ONLY( Matrix );
 
   bool operator==( Matrix<T> const& rhs ) const {
     return w_ == rhs.w_ && data_ == rhs.data_;

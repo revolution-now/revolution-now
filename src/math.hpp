@@ -15,9 +15,6 @@
 // Revolution Now
 #include "aliases.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // Range-v3 (FIXME: get this out of the interface)
 #include "range/v3/view/cycle.hpp"
 #include "range/v3/view/reverse.hpp"
@@ -60,19 +57,20 @@ T modulus( T a, T b ) {
 // to also reinitailize the range view members since they'd be
 // referring to data members of the copied-from object.
 template<int BucketLengthSeconds>
-class MovingAverage : public util::non_copy_non_move {
+class MovingAverage {
+  NO_COPY_NO_MOVE( MovingAverage );
   using nanoseconds = std::chrono::nanoseconds;
   using seconds     = std::chrono::seconds;
 
-  constexpr static seconds bucket_length{BucketLengthSeconds};
+  constexpr static seconds bucket_length{ BucketLengthSeconds };
   constexpr static nanoseconds bucket_spacing =
-      nanoseconds{bucket_length} / 30;
+      nanoseconds{ bucket_length } / 30;
   constexpr static auto num_buckets =
       bucket_length / bucket_spacing;
 
-  static_assert( bucket_length > nanoseconds{30} );
+  static_assert( bucket_length > nanoseconds{ 30 } );
   static_assert( bucket_length % bucket_spacing ==
-                 nanoseconds{0} );
+                 nanoseconds{ 0 } );
   static_assert( num_buckets > 1 );
 
 public:
@@ -137,10 +135,10 @@ private:
   using Buckets = std::array<uint64_t, num_buckets>;
 
   Buckets     buckets_;
-  uint64_t    ticks_{0};
+  uint64_t    ticks_{ 0 };
   Time_t      last_tick_{};
-  nanoseconds clock_{0};
-  double      average_{0.0};
+  nanoseconds clock_{ 0 };
+  double      average_{ 0.0 };
 
   // This window encompases multiple buckets.
   using SlideView   = decltype( buckets_    //

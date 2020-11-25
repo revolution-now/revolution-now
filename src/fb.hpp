@@ -263,8 +263,10 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
     return ReturnValue{ Hint::Traits::Create(
         builder, /*has_value=*/true, s_value.get() ) };
   } else {
-    return ReturnValue{ Hint::Traits::Create(
-        builder, /*has_value=*/false, {} ) };
+    // The optionals are stored as tables, which can only be held
+    // by other tables. Therefore, when they are nullopt, we can
+    // just return null for them so they are not serialized.
+    return ReturnValue{ FBOffset<Hint>{} };
   }
 }
 
@@ -683,7 +685,7 @@ expect<> deserialize( SrcT const* src, DstT* m, serial::ADL ) {
   PP_JOIN( s_, var ).get()
 #define SERIAL_GET_SERIALIZED( p ) SERIAL_GET_SERIALIZED_IMPL p
 
-#define SERIAL_DECLARE_VAR_TABLE( type, var ) type var;
+#define SERIAL_DECLARE_VAR_TABLE( type, var ) type var{};
 
 #define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var )        \
   XP_OR_RETURN_(                                              \
@@ -703,6 +705,10 @@ public:                                                      \
   FBOffset<ns::name> serialize_table( FBBuilder& builder )   \
       const {                                                \
     (void)fb_root_type_name;                                 \
+    static const name def_val{};                             \
+    /* If the table has its fully default value then */      \
+    /* do not serialize it, return null offset. */           \
+    if( *this == def_val ) return {};                        \
     using ::rn::serial::serialize;                           \
     PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_TABLE, __VA_ARGS__ )  \
     return ns::Create##name(                                 \

@@ -35,7 +35,8 @@ sumtype NationTurnState {
 
   .features:
     formattable,
-    serializable;
+    serializable,
+    equality;
 };
 
 sumtype NationTurnEvent {

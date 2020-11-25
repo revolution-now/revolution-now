@@ -132,6 +132,7 @@ table Monster {
   inventory : [ubyte];
   color     : e_color = Blue;
   hand      : e_hand;
+  elbow     : Weapon;
   weapons   : [Weapon];
   path      : [Vec3];
   pair1     : Pair_string_int;
@@ -141,6 +142,9 @@ table Monster {
   map_wpns  : [Pair_int_Weapon];
   mylist    : [string];
   myset     : [string];
+  opt_int1  : Opt_int;
+  opt_int2  : Opt_int;
+  opt_int3  : Opt_int;
 }
 
 namespace fb.MyVariant2;

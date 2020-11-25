@@ -74,6 +74,9 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     (void)fb_root_type_name;
     using ::rn::serial::serialize;
     {members_serialization}
+    // We must always serialize this table even if it is
+    // empty/default-valued because, for variants, its presence
+    // indicates that it is the active alternative.
     return fb::{sumtype_name}::Create{alt_name}( builder
         {members_s_get}
     );

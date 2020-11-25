@@ -19,9 +19,6 @@
 // Revolution Now (config)
 #include "../config/ucl/music.inl"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // SDL
 #include "SDL.h"
 #include "SDL_mixer.h"
@@ -35,8 +32,10 @@ namespace rn {
 
 namespace {
 
-class OggTune : public util::movable_only {
+class OggTune {
 public:
+  NON_COPYABLE( OggTune );
+
   OggTune( TuneId id, ::Mix_Music* music )
     : ptr_( music ), id_( id ) {
     DCHECK( music );
@@ -52,7 +51,7 @@ public:
     id_  = std::exchange( rhs.id_, 0 );
   }
 
-  OggTune& operator=( OggTune rhs ) noexcept {
+  OggTune& operator=( OggTune&& rhs ) noexcept {
     rhs.swap( *this );
     return *this;
   }
@@ -88,7 +87,7 @@ Opt<OggTune>        g_current_music{};
 // playing on its own (but before the next one is played). If
 // this turns out to be a problem then we would either need to
 // hook into some callback from SDL Mixer or poll for it.
-e_ogg_state g_state{e_ogg_state::stopped};
+e_ogg_state g_state{ e_ogg_state::stopped };
 
 /****************************************************************
 ** Impl Functions
@@ -215,9 +214,9 @@ Opt<TunePlayerInfo> OggMusicPlayer::can_play_tune( TuneId id ) {
   auto ogg = load_tune( id );
   if( !ogg ) return nullopt;
 
-  return TunePlayerInfo{/*id=*/id,
-                        /*length=*/( *ogg ).duration(),
-                        /*progress=*/nullopt};
+  return TunePlayerInfo{ /*id=*/id,
+                         /*length=*/( *ogg ).duration(),
+                         /*progress=*/nullopt };
 }
 
 bool OggMusicPlayer::play( TuneId id ) {
@@ -252,8 +251,8 @@ MusicPlayerState OggMusicPlayer::state() const {
         /*progress=*/nullopt,
     };
   }
-  return {/*tune_info=*/maybe_tune_info,
-          /*is_paused=*/is_paused};
+  return { /*tune_info=*/maybe_tune_info,
+           /*is_paused=*/is_paused };
 }
 
 MusicPlayerCapabilities OggMusicPlayer::capabilities() const {

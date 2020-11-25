@@ -202,6 +202,9 @@ namespace rnltest {
             decltype( std::declval<fb_target_t>().b() )>>(
             builder, b, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::MyVariant2::Createfirst( builder
             , s_name.get(), s_b.get()
         );
@@ -274,6 +277,9 @@ namespace rnltest {
             decltype( std::declval<fb_target_t>().flag2() )>>(
             builder, flag2, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::MyVariant2::Createsecond( builder
             , s_flag1.get(), s_flag2.get()
         );
@@ -341,6 +347,9 @@ namespace rnltest {
             decltype( std::declval<fb_target_t>().cost() )>>(
             builder, cost, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::MyVariant2::Createthird( builder
             , s_cost.get()
         );
@@ -897,6 +906,9 @@ namespace rn {
         (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::MySumtype::Createnone( builder
               
         );
@@ -965,6 +977,9 @@ namespace rn {
             decltype( std::declval<fb_target_t>().y() )>>(
             builder, y, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::MySumtype::Createsome( builder
             , s_s.get(), s_y.get()
         );
@@ -1036,6 +1051,9 @@ namespace rn {
             decltype( std::declval<fb_target_t>().d() )>>(
             builder, d, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::MySumtype::Createmore( builder
             , s_d.get()
         );
@@ -1217,6 +1235,9 @@ namespace rn {
         (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::OnOffState::Createoff( builder
               
         );
@@ -1280,6 +1301,9 @@ namespace rn {
             decltype( std::declval<fb_target_t>().user() )>>(
             builder, user, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::OnOffState::Createon( builder
             , s_user.get()
         );
@@ -1347,6 +1371,9 @@ namespace rn {
             decltype( std::declval<fb_target_t>().percent() )>>(
             builder, percent, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::OnOffState::Createswitching_on( builder
             , s_percent.get()
         );
@@ -1414,6 +1441,9 @@ namespace rn {
             decltype( std::declval<fb_target_t>().percent() )>>(
             builder, percent, ::rn::serial::ADL{} );
 
+        // We must always serialize this table even if it is
+        // empty/default-valued because, for variants, its presence
+        // indicates that it is the active alternative.
         return fb::OnOffState::Createswitching_off( builder
             , s_percent.get()
         );

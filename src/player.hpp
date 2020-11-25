@@ -21,9 +21,6 @@
 // Flatbuffers
 #include "fb/player_generated.h"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // Abseil
 #include "absl/types/span.h"
 
@@ -31,10 +28,12 @@ namespace rn {
 
 DECLARE_SAVEGAME_SERIALIZERS( Player );
 
-class Player : public util::movable_only {
+class Player {
 public:
   Player() = default; // for serialization framework.
   Player( e_nation nation, bool is_human, int money );
+  MOVABLE_ONLY( Player );
+  bool     operator==( Player const& ) const = default;
   e_nation nation() const { return nation_; }
   int      money() const { return money_; }
   bool     is_human() const { return human_; }

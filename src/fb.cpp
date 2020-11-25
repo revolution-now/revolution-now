@@ -78,6 +78,7 @@ struct Vec2 {
   );
 };
 struct Weapon {
+  bool operator==( Weapon const& ) const = default;
   SERIALIZABLE_TABLE_MEMBERS( fb, Weapon,       //
                               ( string, name ), //
                               ( short, damage ) //

@@ -21,9 +21,6 @@
 // Flatbuffers
 #include "fb/plane_generated.h"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // function_ref
 #include "tl/function_ref.hpp"
 
@@ -46,7 +43,10 @@ enum class e_plane {
   omni       // Always present, invisible, and first.
 };
 
-struct Plane : public util::non_copy_non_move {
+struct Plane {
+  NO_COPY_NO_MOVE( Plane );
+
+  Plane()          = default;
   virtual ~Plane() = default;
 
   static Plane& get( e_plane plane );

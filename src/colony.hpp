@@ -39,6 +39,8 @@ public:
   Colony& operator=( Colony const& ) = delete;
   Colony& operator=( Colony&& ) = default;
 
+  bool operator==( Colony const& ) const = default;
+
   /************************* Getters ***************************/
 
   ColonyId           id() const { return id_; }

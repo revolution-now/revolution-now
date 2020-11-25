@@ -32,5 +32,6 @@ sumtype UnitState {
 
   .features:
     formattable,
-    serializable;
+    serializable,
+    equality;
 };

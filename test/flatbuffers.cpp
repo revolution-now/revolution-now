@@ -65,9 +65,7 @@ struct Weapon {
     return xp_success_t{};
   }
 
-  bool operator==( Weapon const& rhs ) const {
-    return name == rhs.name && damage == rhs.damage;
-  }
+  bool operator==( Weapon const& ) const = default;
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, Weapon,
@@ -87,9 +85,7 @@ struct Vec2 {
     return y < rhs.y;
   }
 
-  bool operator==( Vec2 const& rhs ) const {
-    return x == rhs.x && y == rhs.y;
-  }
+  bool operator==( Vec2 const& ) const = default;
 
   // Abseil hashing API.
   template<typename H>
@@ -109,9 +105,7 @@ struct Vec3 {
     return xp_success_t{};
   }
 
-  bool operator==( Vec3 const& rhs ) const {
-    return x == rhs.x && y == rhs.y && z == rhs.z;
-  }
+  bool operator==( Vec3 const& ) const = default;
 
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Vec3,
@@ -125,6 +119,8 @@ struct Monster {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
+
+  bool operator==( Monster const& ) const = default;
 
   using pair_s_i_t = pair<string, int>;
   using pair_v_i_t = pair<Vec2, int>;
@@ -142,6 +138,7 @@ struct Monster {
   ( vector<uint8_t>, inventory      ),
   ( e_color,         color          ),
   ( e_hand,          hand           ),
+  ( Weapon,          elbow          ),
   ( vector<Weapon>,  weapons        ),
   ( vector<Vec3>,    path           ),
   ( pair_s_i_t,      pair1          ),
@@ -150,7 +147,10 @@ struct Monster {
   ( map_strs_t,      map_strs       ),
   ( map_wpns_t,      map_wpns       ),
   ( list<string>,    mylist         ),
-  ( set<string>,     myset          ));
+  ( set<string>,     myset          ),
+  ( Opt<int>,        opt_int1       ),
+  ( Opt<int>,        opt_int2       ),
+  ( Opt<int>,        opt_int3       ));
   // clang-format on
 };
 
@@ -177,6 +177,13 @@ BinaryBlob create_monster_blob() {
 
   unsigned char treasure[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   auto          inventory = builder.CreateVector( treasure, 10 );
+
+  // This is null on purpose and is used to verify that tables
+  // whose members all have their default values don't get seri-
+  // alized. This is ok because when they are deserialized a null
+  // pointer will yield and and the rn object will be
+  // default-constructed.
+  FBOffset<fb::Weapon> elbow{}; // null
 
   vector<FBOffset<fb::Weapon>> weapons_vector;
   weapons_vector.push_back( sword );
@@ -235,11 +242,17 @@ BinaryBlob create_monster_blob() {
   myset_v.push_back( builder.CreateString( "hello9" ) );
   auto fb_myset = builder.CreateVector( myset_v );
 
+  auto opt_int1 = FBOffset<fb::Opt_int>{}; // null/empty/default
+  auto opt_int2 = fb::CreateOpt_int( builder, /*has_value=*/true,
+                                     /*value=*/0 );
+  auto opt_int3 = fb::CreateOpt_int( builder, /*has_value=*/true,
+                                     /*value=*/5 );
+
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, names, inventory,
-      fb::e_color::Red, fb::e_hand::Right, weapons, path, pair1,
-      &pair2, fb_map_vecs, fb_map_strs, fb_map_wpns, fb_mylist,
-      fb_myset );
+      fb::e_color::Red, fb::e_hand::Right, elbow, weapons, path,
+      pair1, &pair2, fb_map_vecs, fb_map_strs, fb_map_wpns,
+      fb_mylist, fb_myset, opt_int1, opt_int2, opt_int3 );
 
   builder.Finish( orc );
 
@@ -248,7 +261,7 @@ BinaryBlob create_monster_blob() {
 
 TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 592;
+  constexpr uint64_t kExpectedBlobSize = 644;
   auto               json_file = data_dir() / "monster.json";
 
   SECTION( "create/serialize" ) {
@@ -365,6 +378,17 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
                        myset->Get( 2 )->str() };
     REQUIRE_THAT( elems, UnorderedEquals( Vec<string>{
                              "hello7", "hello8", "hello9" } ) );
+
+    auto opt_int1 = monster.opt_int1();
+    REQUIRE( opt_int1 == nullptr );
+    auto opt_int2 = monster.opt_int2();
+    REQUIRE( opt_int2 != nullptr );
+    REQUIRE( opt_int2->has_value() );
+    REQUIRE( opt_int2->value() == 0 );
+    auto opt_int3 = monster.opt_int3();
+    REQUIRE( opt_int3 != nullptr );
+    REQUIRE( opt_int3->has_value() );
+    REQUIRE( opt_int3->value() == 5 );
   }
 
   SECTION( "deserialize to native" ) {
@@ -401,6 +425,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( pair2.first.x == 7.0 );
     REQUIRE( pair2.first.y == 8.0 );
     REQUIRE( pair2.second == 43 );
+
+    auto const& elbow = monster.elbow;
+    REQUIRE( elbow == Weapon{} );
 
     auto const& weapons = monster.weapons;
     REQUIRE( weapons.size() == 2 );
@@ -441,6 +468,15 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( myset.find( "hello7" ) != myset.end() );
     REQUIRE( myset.find( "hello8" ) != myset.end() );
     REQUIRE( myset.find( "hello9" ) != myset.end() );
+
+    auto& opt_int1 = monster.opt_int1;
+    REQUIRE_FALSE( opt_int1.has_value() );
+    auto& opt_int2 = monster.opt_int2;
+    REQUIRE( opt_int2.has_value() );
+    REQUIRE( *opt_int2 == 0 );
+    auto& opt_int3 = monster.opt_int3;
+    REQUIRE( opt_int3.has_value() );
+    REQUIRE( *opt_int3 == 5 );
   }
 
   SECTION( "native to native roundtrip" ) {
@@ -453,6 +489,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.inventory = { 7, 6, 5, 4 };
     monster.color     = e_color::Red;
     monster.hand      = e_hand::Right;
+    monster.elbow     = Weapon{};
     monster.weapons   = Vec<Weapon>{
         Weapon{ "rock", 2 }, //
         Weapon{ "stone", 3 } //
@@ -473,9 +510,12 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.myset.clear();
     monster.myset.insert( "s1" );
     monster.myset.insert( "s2" );
+    monster.opt_int1 = {};
+    monster.opt_int2 = 0;
+    monster.opt_int3 = 5;
 
     auto blob = rn::serial::serialize_to_blob( monster );
-    constexpr uint64_t kExpectedBlobSize = 528;
+    constexpr uint64_t kExpectedBlobSize = 580;
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::serialize_to_json( monster );
@@ -508,6 +548,8 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
 
     REQUIRE( monster_new.color == e_color::Red );
     REQUIRE( monster_new.hand == e_hand::Right );
+
+    REQUIRE( monster_new.elbow == Weapon{} );
 
     auto const& weapons = monster_new.weapons;
     REQUIRE( weapons.size() == 2 );
@@ -559,6 +601,15 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( myset.size() == 2 );
     REQUIRE( myset.find( "s1" ) != myset.end() );
     REQUIRE( myset.find( "s2" ) != myset.end() );
+
+    auto& opt_int1 = monster_new.opt_int1;
+    auto& opt_int2 = monster_new.opt_int2;
+    auto& opt_int3 = monster_new.opt_int3;
+    REQUIRE_FALSE( opt_int1.has_value() );
+    REQUIRE( opt_int2.has_value() );
+    REQUIRE( opt_int3.has_value() );
+    REQUIRE( *opt_int2 == 0 );
+    REQUIRE( *opt_int3 == 5 );
   }
 }
 
@@ -621,7 +672,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   rn::ustate_change_to_cargo( ship, unit_id3, 2 );
 
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 240;
+  constexpr uint64_t kExpectedBlobSize = 232;
   auto               json_file = data_dir() / "unit.json";
 
   SECTION( "create/serialize" ) {
@@ -659,8 +710,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
              static_cast<int>( ship_unit.orders() ) );
     REQUIRE( static_cast<int>( unit.nation_() ) ==
              static_cast<int>( ship_unit.nation() ) );
-    REQUIRE( unit.worth_() != nullptr );
-    REQUIRE( unit.worth_()->has_value() == false );
+    REQUIRE( unit.worth_() == nullptr );
     // REQUIRE( unit.mv_pts() == ship_unit.movement_points() );
     REQUIRE( unit.finished_turn_() ==
              ship_unit.finished_turn() );
@@ -783,6 +833,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 }
 
 struct SetTester {
+  bool     operator==( SetTester const& ) const = default;
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
@@ -794,6 +845,7 @@ struct SetTester {
 };
 
 struct MapTester1 {
+  bool     operator==( MapTester1 const& ) const = default;
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
@@ -805,6 +857,7 @@ struct MapTester1 {
 };
 
 struct MapTester2 {
+  bool     operator==( MapTester2 const& ) const = default;
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
@@ -890,6 +943,7 @@ TEST_CASE( "[flatbuffers] Sumtypes" ) {
 }
 
 struct MyFlatQueues {
+  bool     operator==( MyFlatQueues const& ) const = default;
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }

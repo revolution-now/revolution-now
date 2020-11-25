@@ -32,7 +32,8 @@ sumtype TurnCycleState {
 
   .features:
     formattable,
-    serializable;
+    serializable,
+    equality;
 };
 
 sumtype TurnCycleEvent {

@@ -21,7 +21,6 @@
 
 // base-util
 #include "base-util/io.hpp"
-#include "base-util/non-copyable.hpp"
 
 // midifile (FIXME)
 #include "../extern/midifile/include/MidiFile.h"
@@ -68,13 +67,15 @@ void rtmidi_error_callback( RtMidiError::Type,
 // This object can only be created with the static `create`
 // method. If said method succeeds to return a MidiIO object then
 // that means that MIDI music can and should be playable.
-class MidiIO : public util::movable_only {
+class MidiIO {
 public:
+  NON_COPYABLE( MidiIO );
+
   MidiIO( MidiIO&& rhs ) noexcept {
     out_ = std::exchange( rhs.out_, nullptr );
   }
 
-  MidiIO& operator=( MidiIO rhs ) noexcept {
+  MidiIO& operator=( MidiIO&& rhs ) noexcept {
     rhs.swap( *this );
     return *this;
   }
@@ -339,9 +340,10 @@ Opt<thread> g_midi_thread;
 // safe way. Note that the methods here return things by copy for
 // thread safety (we don't want the caller to have a reference to
 // any data inside this class).
-class MidiCommunication : public util::non_copy_non_move {
+class MidiCommunication {
 public:
   MidiCommunication() = default;
+  NO_COPY_NO_MOVE( MidiCommunication );
 
   // ************************************************************
   // Interface for Any Thread

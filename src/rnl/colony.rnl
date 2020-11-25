@@ -24,5 +24,6 @@ sumtype ColonyJob {
     e_mfg_job mfg_job;
 
   .features:
-    serializable;
+    serializable,
+    equality;
 };

@@ -28,6 +28,8 @@ namespace rn {
 // This viewport also knows where it is located on screen.
 class SmoothViewport {
 public:
+  bool operator==( SmoothViewport const& ) const = default;
+
   // Note: this constructor will not itself put the object in a
   // state that is ready to be used. After construction, but be-
   // fore using the object, you must call `advance_state` on it

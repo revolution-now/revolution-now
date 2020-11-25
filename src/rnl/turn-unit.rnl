@@ -36,7 +36,8 @@ sumtype UnitInputState {
 
   .features:
     formattable,
-    serializable;
+    serializable,
+    equality;
 };
 
 sumtype UnitInputEvent {

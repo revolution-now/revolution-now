@@ -15,9 +15,6 @@
 #include "core-config.hpp"
 #include "math.hpp"
 
-// base-util
-#include "base-util/non-copyable.hpp"
-
 // Abseil
 #include "absl/container/node_hash_map.h"
 
@@ -60,7 +57,10 @@ EventCountMap& event_counts();
 // as range-v3) will copy it and call it multiple times within a
 // frame and hence it may end up return `true` more than once per
 // frame, thus causing unnecessary calls to the wrapped function.
-struct PerFrameInvalidator : public util::movable_only {
+struct PerFrameInvalidator {
+  PerFrameInvalidator() = default;
+  MOVABLE_ONLY( PerFrameInvalidator );
+
   uint64_t curr_frame{ 0 };
   bool     operator()() {
     auto real_frame = total_frame_count();
