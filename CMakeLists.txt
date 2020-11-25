@@ -14,8 +14,7 @@ project(
 )
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-    "${CMAKE_SOURCE_DIR}/cmake/"
-    "${CMAKE_SOURCE_DIR}/extern/vrm_cmake/cmake" )
+    "${CMAKE_SOURCE_DIR}/cmake/" )
 
 include( cmake/generic.cmake )
 include( cmake/sdl2-helper.cmake )
@@ -73,9 +72,7 @@ add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/libucl        EXCLUDE_FROM_ALL )
-add_subdirectory( extern/debug_assert  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/observer-ptr  EXCLUDE_FROM_ALL )
-add_subdirectory( extern/scelta        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/range-v3      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )

@@ -48,7 +48,6 @@ target_link_libraries(
     range-v3
     rn-base
     rtmidi
-    scelta::headers
     sol2::sol2
     spdlog::spdlog
     Threads::Threads
@@ -102,8 +101,6 @@ target_compile_definitions(
   rn
   PUBLIC
   FMT_STRING_ALIAS=1
-  SCELTA_SUPPORT_VARIANT_BOOST_DISABLE
-  SCELTA_SUPPORT_OPTIONAL_BOOST_DISABLE
   LUA_VERSION_NUM=503
   SOL_USING_CXX_LUA=1
   SOL_CXX17_FEATURES=1  # won't need this in future versions.

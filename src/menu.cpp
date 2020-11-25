@@ -230,15 +230,25 @@ void log_menu_state() {
 ** Querying State
 *****************************************************************/
 bool is_menu_open( e_menu menu ) {
-  auto matcher = scelta::match(
-      []( MenuState::menus_hidden ) { return false; },
-      []( MenuState::menus_closed ) { return false; },
-      [&]( MenuState::item_click click ) {
-        CHECK( g_item_to_menu.contains( click.item ) );
-        return g_item_to_menu[click.item] == menu;
-      },
-      [&]( MenuState::menu_open o ) { return o.menu == menu; } );
-  return matcher( g_menu_state );
+  switch( enum_for( g_menu_state ) ) {
+    case MenuState::e::menus_hidden: {
+      return false;
+    }
+    case MenuState::e::menus_closed: {
+      return false;
+    }
+    case MenuState::e::item_click: {
+      auto& click =
+          get_if_or_die<MenuState::item_click>( g_menu_state );
+      CHECK( g_item_to_menu.contains( click.item ) );
+      return g_item_to_menu[click.item] == menu;
+    }
+    case MenuState::e::menu_open: {
+      auto& o =
+          get_if_or_die<MenuState::menu_open>( g_menu_state );
+      return o.menu == menu;
+    }
+  }
 }
 
 Opt<e_menu> opened_menu() {
@@ -468,14 +478,18 @@ H divider_height() { return max_text_height() / 2; }
 // This is the width of the menu body not including the borders,
 // which themselves occupy part of a tile.
 H menu_body_height_inner( e_menu menu ) {
-  H    h{ 0 };
-  auto add_height = scelta::match(
-      [&]( MenuItem::menu_divider ) { h += divider_height(); },
-      [&]( MenuItem::menu_clickable ) {
-        h += max_text_height();
-      } );
+  H h{ 0 };
   CHECK( g_menu_def.contains( menu ) );
-  for( auto const& item : g_menu_def[menu] ) add_height( item );
+  for( auto const& item : g_menu_def[menu] ) {
+    overload_visit(
+        item,
+        [&]( MenuItem::menu_divider const& ) {
+          h += divider_height();
+        },
+        [&]( MenuItem::menu_clickable const& ) {
+          h += max_text_height();
+        } );
+  }
   // round up to nearest multiple of 8, since that is the menu
   // tile width.
   if( h % 8_sy != 0_h ) h += ( 8_h - ( h % 8_sy ) );
@@ -548,14 +562,14 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
   CHECK( g_menu_def.contains( menu ) );
   H pos{ 0 };
   for( auto const& item : g_menu_def[menu] ) {
-    auto advance = scelta::match(
-        [&]( MenuItem::menu_divider ) {
+    overload_visit(
+        item,
+        [&]( MenuItem::menu_divider const& ) {
           pos += divider_height();
         },
         [&]( MenuItem::menu_clickable const& ) {
           pos += max_text_height();
         } );
-    advance( item );
     if( pos > h ) {
       switch( enum_for( item ) ) {
         case MenuItem::e::menu_divider: //
@@ -718,69 +732,71 @@ Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
       e_tile::menu_bottom_right         //
   );
 
-  auto render = scelta::match(
-      [&]( MenuItem::menu_divider ) {
-        copy_texture( textures.divider, dst, pos );
-        pos += divider_height();
-      },
-      [&]( MenuItem::menu_clickable const& clickable ) {
-        auto const& rendered =
-            g_menu_item_rendered[clickable.item];
-        Texture const* foreground{ nullptr };
-        Texture const* background{ nullptr };
-        if( clicking && clickable.item == subject ) {
-          /**********************************************
-          ** Click Animation
-          ***********************************************/
-          using namespace std::chrono;
-          using namespace std::literals::chrono_literals;
-          auto now = system_clock::now();
-          CHECK( holds<MenuState::item_click>( g_menu_state ) );
-          auto start =
-              std::get<MenuState::item_click>( g_menu_state )
-                  .start;
-          auto elapsed = now - start;
-          using namespace click_anim;
-          if( elapsed >= total_duration - fade_time ) {
-            // We're in the fade, in which case we should be
-            // highlighted, because it seems to make a better
-            // UX when the selected item is highlighted as
-            // the fading happens.
-            foreground = &rendered.highlighted;
-            background = &textures.item_background_highlight;
-          } else if( elapsed >= total_duration - fade_time -
-                                    post_off_time ) {
-            // We're in a period between the blinking and
-            // fading when the highlight is off, although
-            // this period may have zero length.
-            foreground = &rendered.normal;
+  for( auto const& item : g_menu_def[menu] ) {
+    overload_visit(
+        item,
+        [&]( MenuItem::menu_divider ) {
+          copy_texture( textures.divider, dst, pos );
+          pos += divider_height();
+        },
+        [&]( MenuItem::menu_clickable const& clickable ) {
+          auto const& rendered =
+              g_menu_item_rendered[clickable.item];
+          Texture const* foreground{ nullptr };
+          Texture const* background{ nullptr };
+          if( clicking && clickable.item == subject ) {
+            /**********************************************
+            ** Click Animation
+            ***********************************************/
+            using namespace std::chrono;
+            using namespace std::literals::chrono_literals;
+            auto now = system_clock::now();
+            CHECK(
+                holds<MenuState::item_click>( g_menu_state ) );
+            auto start =
+                std::get<MenuState::item_click>( g_menu_state )
+                    .start;
+            auto elapsed = now - start;
+            using namespace click_anim;
+            if( elapsed >= total_duration - fade_time ) {
+              // We're in the fade, in which case we should be
+              // highlighted, because it seems to make a better
+              // UX when the selected item is highlighted as
+              // the fading happens.
+              foreground = &rendered.highlighted;
+              background = &textures.item_background_highlight;
+            } else if( elapsed >= total_duration - fade_time -
+                                      post_off_time ) {
+              // We're in a period between the blinking and
+              // fading when the highlight is off, although
+              // this period may have zero length.
+              foreground = &rendered.normal;
 
-          } else if( ( elapsed % period > half_period ) ^
-                     start_on ) {
-            // Blink on
-            foreground = &rendered.highlighted;
-            background = &textures.item_background_highlight;
+            } else if( ( elapsed % period > half_period ) ^
+                       start_on ) {
+              // Blink on
+              foreground = &rendered.highlighted;
+              background = &textures.item_background_highlight;
+            } else {
+              // Blink off
+              foreground = &rendered.normal;
+            }
           } else {
-            // Blink off
-            foreground = &rendered.normal;
+            foreground = !is_menu_item_enabled( clickable.item )
+                             ? &rendered.disabled
+                         : ( clickable.item == subject )
+                             ? &rendered.highlighted
+                             : &rendered.normal;
+            if( clickable.item == subject )
+              background = &textures.item_background_highlight;
           }
-        } else {
-          foreground = !is_menu_item_enabled( clickable.item )
-                           ? &rendered.disabled
-                       : ( clickable.item == subject )
-                           ? &rendered.highlighted
-                           : &rendered.normal;
-          if( clickable.item == subject )
-            background = &textures.item_background_highlight;
-        }
-        if( background ) copy_texture( *background, dst, pos );
-        CHECK( foreground );
-        copy_texture( *foreground, dst,
-                      pos + config_ui.menus.padding - 1_h );
-        pos += max_text_height();
-      } );
-
-  for( auto const& item : g_menu_def[menu] ) render( item );
+          if( background ) copy_texture( *background, dst, pos );
+          CHECK( foreground );
+          copy_texture( *foreground, dst,
+                        pos + config_ui.menus.padding - 1_h );
+          pos += max_text_height();
+        } );
+  }
   return dst;
 }
 
@@ -813,32 +829,39 @@ void render_menu_bar( Texture& tx ) {
     using Txs = Opt<pair<Texture const*, Texture const*>>;
     // Given `menu`, this matcher visits the global menu state
     // and returns a foreground/background texture pair for that
-    // menu.
-    auto matcher = scelta::match<Txs>(
-        []( MenuState::menus_hidden ) { return Txs{}; },
-        [&]( MenuState::menus_closed closed ) {
-          if( menu == closed.hover )
-            return Txs{
-                pair{ &textures.name.normal,
-                      &textures.menu_background_hover } };
-          return Txs{ pair{ &textures.name.normal, nullptr } };
-        } )( //
-        [&]( auto self, MenuState::item_click const& ic ) {
-          // Just forward this to the MenuState::menu_open.
-          CHECK( g_item_to_menu.contains( ic.item ) );
-          return self( MenuState_t{ MenuState::menu_open{
-              g_item_to_menu[ic.item], /*hover=*/{} } } );
-        },
-        [&]( auto self, MenuState::menu_open const& o ) {
-          if( o.menu == menu ) {
-            return Txs{
-                pair{ &textures.name.highlighted,
-                      &textures.menu_background_highlight } };
-          } else
-            return self(
-                MenuState_t{ MenuState::menus_closed{} } );
-        } );
-    if( auto p = matcher( g_menu_state ); p.has_value() ) {
+    // menu. Use a struct to visit so that we can get recursive
+    // visitation.
+    struct {
+      // These would be the "lambda captures".
+      e_menu const&       menu;
+      MenuTextures const& textures;
+
+      Txs operator()( MenuState::menus_hidden ) const {
+        return Txs{};
+      }
+      Txs operator()( MenuState::menus_closed closed ) const {
+        if( menu == closed.hover )
+          return Txs{ pair{ &textures.name.normal,
+                            &textures.menu_background_hover } };
+        return Txs{ pair{ &textures.name.normal, nullptr } };
+      }
+      Txs operator()( MenuState::item_click const& ic ) const {
+        // Just forward this to the MenuState::menu_open.
+        CHECK( g_item_to_menu.contains( ic.item ) );
+        return ( *this )( MenuState::menu_open{
+            g_item_to_menu[ic.item], /*hover=*/{} } );
+      }
+      Txs operator()( MenuState::menu_open const& o ) const {
+        if( o.menu == menu ) {
+          return Txs{
+              pair{ &textures.name.highlighted,
+                    &textures.menu_background_highlight } };
+        } else
+          return ( *this )( MenuState::menus_closed{} );
+      }
+    } matcher{ menu, textures };
+    if( auto p = std::visit( matcher, g_menu_state );
+        p.has_value() ) {
       auto rect = menu_header_rect( menu );
       if( ( *p ).second )
         copy_texture( *( ( *p ).second ), tx,
@@ -855,45 +878,51 @@ void render_menu_bar( Texture& tx ) {
 ** Input Implementation
 *****************************************************************/
 Opt<MouseOver_t> click_target( Coord screen_coord ) {
-  using res_t  = Opt<MouseOver_t>;
-  auto matcher = scelta::match<res_t>(
-      []( MenuState::menus_hidden ) { return res_t{}; },
-      [&]( MenuState::menus_closed ) {
-        for( auto menu : visible_menus() )
-          if( screen_coord.is_inside(
-                  menu_header_rect( menu ) ) )
-            return res_t{ MouseOver::header{ menu } };
-        if( screen_coord.is_inside( menu_bar_rect() ) )
-          return res_t{ MouseOver::bar{} };
+  using res_t = Opt<MouseOver_t>;
+  // menu. Use a struct to visit so that we can get recursive
+  // visitation.
+  struct {
+    // These would be the "lambda captures".
+    Coord const& screen_coord;
+
+    res_t operator()( MenuState::menus_hidden ) const {
+      return res_t{};
+    }
+    res_t operator()( MenuState::menus_closed ) const {
+      for( auto menu : visible_menus() )
+        if( screen_coord.is_inside( menu_header_rect( menu ) ) )
+          return res_t{ MouseOver::header{ menu } };
+      if( screen_coord.is_inside( menu_bar_rect() ) )
+        return res_t{ MouseOver::bar{} };
+      return res_t( nullopt );
+    }
+    res_t operator()( MenuState::item_click const& ic ) const {
+      // Just forward this to the MenuState::menu_open.
+      CHECK( g_item_to_menu.contains( ic.item ) );
+      return ( *this )( MenuState::menu_open{
+          g_item_to_menu[ic.item], /*hover=*/{} } );
+    }
+    res_t operator()( MenuState::menu_open const& o ) const {
+      auto closed = ( *this )( MenuState::menus_closed{} );
+      if( closed ) return res_t{ closed };
+      if( !screen_coord.is_inside(
+              menu_body_clickable_area( o.menu ) ) )
         return res_t( nullopt );
-      } )( //
-      [&]( auto self, MenuState::item_click const& ic ) {
-        // Just forward this to the MenuState::menu_open.
-        CHECK( g_item_to_menu.contains( ic.item ) );
-        return self( MenuState_t{ MenuState::menu_open{
-            g_item_to_menu[ic.item], /*hover=*/{} } } );
-      },
-      [&]( auto self, MenuState::menu_open const& o ) {
-        auto closed =
-            self( MenuState_t{ MenuState::menus_closed{} } );
-        if( closed ) return res_t{ closed };
-        if( !screen_coord.is_inside(
-                menu_body_clickable_area( o.menu ) ) )
-          return res_t( nullopt );
-        // The cursor is over a non-transparent part of the open
-        // menu.
-        if( !screen_coord.is_inside(
-                menu_body_rect_inner( o.menu ) ) )
-          return res_t{ MouseOver::border{ o.menu } };
-        // The cursor is over the inner menu body, so at this
-        // point its either over an item or a divider.
-        auto maybe_item = cursor_to_item( o.menu, screen_coord );
-        if( !maybe_item.has_value() )
-          return res_t{ MouseOver::divider{ o.menu } };
-        // Finally, we are over an item.
-        return res_t{ MouseOver::item{ *maybe_item } };
-      } );
-  return matcher( g_menu_state );
+      // The cursor is over a non-transparent part of the open
+      // menu.
+      if( !screen_coord.is_inside(
+              menu_body_rect_inner( o.menu ) ) )
+        return res_t{ MouseOver::border{ o.menu } };
+      // The cursor is over the inner menu body, so at this
+      // point its either over an item or a divider.
+      auto maybe_item = cursor_to_item( o.menu, screen_coord );
+      if( !maybe_item.has_value() )
+        return res_t{ MouseOver::divider{ o.menu } };
+      // Finally, we are over an item.
+      return res_t{ MouseOver::item{ *maybe_item } };
+    }
+  } matcher{ screen_coord };
+  return std::visit( matcher, g_menu_state );
 }
 
 /****************************************************************
@@ -901,9 +930,10 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
 *****************************************************************/
 void render_menus( Texture& tx ) {
   render_menu_bar( tx );
-  auto maybe_render_open_menu = scelta::match(
-      []( MenuState::menus_hidden ) {},  //
-      [&]( MenuState::menus_closed ) {}, //
+  // maybe render open menu.
+  overload_visit(
+      g_menu_state, []( MenuState::menus_hidden ) {},
+      [&]( MenuState::menus_closed ) {},
       [&]( MenuState::item_click const& ic ) {
         auto  menu   = g_item_to_menu[ic.item];
         auto& shadow = g_menu_rendered[menu].menu_body_shadow;
@@ -961,7 +991,6 @@ void render_menus( Texture& tx ) {
         pos = menu_body_rect( o.menu ).upper_left();
         copy_texture( open_tx, tx, pos );
       } );
-  maybe_render_open_menu( g_menu_state );
 }
 
 /****************************************************************
@@ -1175,7 +1204,8 @@ struct MenuPlane : public Plane {
     render_menus( tx );
   }
   e_input_handled input( input::event_t const& event ) override {
-    auto matcher = scelta::match(
+    return overload_visit(
+        event,
         []( input::unknown_event_t ) {
           return e_input_handled::no;
         },
@@ -1348,54 +1378,54 @@ struct MenuPlane : public Plane {
           auto over_what = click_target( mv_event.pos );
           if( !over_what.has_value() )
             return e_input_handled::no;
-          auto matcher = scelta::match<e_input_handled>(
-              []( MouseOver::bar ) {
-                return e_input_handled::yes;
-              },
-              []( MouseOver::divider desc ) {
-                CHECK( holds<MenuState::menu_open>(
-                           g_menu_state ) ||
-                       holds<MenuState::item_click>(
-                           g_menu_state ) );
-                if( holds<MenuState::menu_open>(
-                        g_menu_state ) ) {
-                  g_menu_state = MenuState::menu_open{
-                      desc.menu, /*hover=*/{} };
-                }
-                return e_input_handled::yes;
-              },
-              []( MouseOver::header header ) {
-                if( holds<MenuState::menu_open>( g_menu_state ) )
-                  g_menu_state = MenuState::menu_open{
-                      header.menu, /*hover=*/{} };
-                if( holds<MenuState::menus_closed>(
-                        g_menu_state ) )
-                  g_menu_state = MenuState::menus_closed{
-                      /*hover=*/header.menu };
-                return e_input_handled::yes;
-              },
-              []( MouseOver::item item ) {
-                CHECK( holds<MenuState::menu_open>(
-                           g_menu_state ) ||
-                       holds<MenuState::item_click>(
-                           g_menu_state ) );
-                if( holds<MenuState::menu_open>(
-                        g_menu_state ) ) {
-                  auto& o = std::get<MenuState::menu_open>(
-                      g_menu_state );
-                  CHECK( o.menu == g_item_to_menu[item.item] );
-                  o.hover = {};
-                  if( is_menu_item_enabled( item.item ) )
-                    o.hover = item.item;
-                }
-                return e_input_handled::yes;
-              } )( //
-              []( auto self, MouseOver::border border ) {
-                // Delegate to the divider handler for now.
-                return self( MouseOver_t{
-                    MouseOver::divider{ border.menu } } );
-              } );
-          return matcher( *over_what );
+          struct {
+            e_input_handled operator()( MouseOver::bar ) {
+              return e_input_handled::yes;
+            }
+            e_input_handled operator()(
+                MouseOver::divider desc ) {
+              CHECK(
+                  holds<MenuState::menu_open>( g_menu_state ) ||
+                  holds<MenuState::item_click>( g_menu_state ) );
+              if( holds<MenuState::menu_open>( g_menu_state ) ) {
+                g_menu_state = MenuState::menu_open{
+                    desc.menu, /*hover=*/{} };
+              }
+              return e_input_handled::yes;
+            }
+            e_input_handled operator()(
+                MouseOver::header header ) {
+              if( holds<MenuState::menu_open>( g_menu_state ) )
+                g_menu_state = MenuState::menu_open{
+                    header.menu, /*hover=*/{} };
+              if( holds<MenuState::menus_closed>(
+                      g_menu_state ) )
+                g_menu_state = MenuState::menus_closed{
+                    /*hover=*/header.menu };
+              return e_input_handled::yes;
+            }
+            e_input_handled operator()( MouseOver::item item ) {
+              CHECK(
+                  holds<MenuState::menu_open>( g_menu_state ) ||
+                  holds<MenuState::item_click>( g_menu_state ) );
+              if( holds<MenuState::menu_open>( g_menu_state ) ) {
+                auto& o = std::get<MenuState::menu_open>(
+                    g_menu_state );
+                CHECK( o.menu == g_item_to_menu[item.item] );
+                o.hover = {};
+                if( is_menu_item_enabled( item.item ) )
+                  o.hover = item.item;
+              }
+              return e_input_handled::yes;
+            }
+            e_input_handled operator()(
+                MouseOver::border border ) {
+              // Delegate to the divider handler for now.
+              return ( *this )(
+                  MouseOver::divider{ border.menu } );
+            }
+          } matcher;
+          return std::visit( matcher, *over_what );
         },
         [&]( input::mouse_button_event_t b_event ) {
           auto over_what = click_target( b_event.pos );
@@ -1409,7 +1439,8 @@ struct MenuPlane : public Plane {
           }
           if( b_event.buttons ==
               input::e_mouse_button_event::left_down ) {
-            auto matcher = scelta::match(
+            return overload_visit(
+                *over_what,
                 []( MouseOver::bar ) {
                   g_menu_state = MenuState::menus_closed{ {} };
                   log_menu_state();
@@ -1434,11 +1465,11 @@ struct MenuPlane : public Plane {
                 []( MouseOver::item ) {
                   return e_input_handled::yes;
                 } );
-            return matcher( *over_what );
           }
           if( b_event.buttons ==
               input::e_mouse_button_event::left_up ) {
-            auto matcher = scelta::match(
+            return overload_visit(
+                *over_what,
                 []( MouseOver::bar ) {
                   g_menu_state = MenuState::menus_closed{ {} };
                   log_menu_state();
@@ -1457,7 +1488,6 @@ struct MenuPlane : public Plane {
                   click_menu_item( item.item );
                   return e_input_handled::yes;
                 } );
-            return matcher( *over_what );
           }
           // `true` here because the mouse is over some menu ui
           // element (and that in turn is because
@@ -1471,7 +1501,6 @@ struct MenuPlane : public Plane {
           SHOULD_NOT_BE_HERE;
           return e_input_handled::no;
         } );
-    return matcher( event );
   }
 
 private:

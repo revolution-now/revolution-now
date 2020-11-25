@@ -15,9 +15,6 @@
 // base
 #include "base/meta.hpp"
 
-// Scelta
-#include <scelta.hpp>
-
 // C++ standard library
 #include <variant>
 
@@ -174,6 +171,19 @@ Base const& variant_base( std::variant<Args...> const& v ) {
 // set of all the given functions.
 template<typename... T>
 struct overload : T... {
+  // This constructor is optional, but according to SuperV it is
+  // good because it allows perfect forwarding of the function
+  // objects. Not sure if that would happen without this. We need
+  // new (separate) template arguments here (not T...) because if
+  // we did T&& it would force it to be an rvalue reference to T,
+  // whereas we want a /forwarding/ reference.
+  template<typename... TFwds>
+  overload( TFwds&&... args )
+    : T{ std::forward<TFwds>( args ) }... {}
+
+  // Need this in order to bring all the call operators into this
+  // scope; this is because the compiler does name resolution be-
+  // fore it does overload resolution, or so says SuperV.
   using T::operator()...;
 };
 
