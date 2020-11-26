@@ -407,8 +407,8 @@ inline constexpr bool operator>=( int           left,
 // the inherited member functions that refer to that base class;
 // e.g., it would allow two distinct typed num's to be added to-
 // gether.
-#define DERIVE_TYPED_NUM( t, a, b, suffix )           \
-  namespace rn {                                      \
+#define DERIVE_TYPED_NUM_NS( ns, t, a, b, suffix )    \
+  namespace ns {                                      \
   struct a : public b<a> {                            \
     /* NOLINTNEXTLINE(bugprone-macro-parentheses) */  \
     using P = b<a>; /* parent */                      \
@@ -454,8 +454,11 @@ inline constexpr bool operator>=( int           left,
     }                                                 \
   };                                                  \
   }                                                   \
-  DEFINE_FORMAT( ::rn::a, "{}_{}", o._, #suffix );    \
-  NOTHROW_MOVE( ::rn::a );
+  DEFINE_FORMAT( ::ns::a, "{}_{}", o._, #suffix );    \
+  NOTHROW_MOVE( ::ns::a );
+
+#define DERIVE_TYPED_NUM( ... ) \
+  DERIVE_TYPED_NUM_NS( rn, __VA_ARGS__ )
 
 // Typed nums that are to represent coordinates should use this
 // macro. It will ensure that they have types that allow the nec-
@@ -467,8 +470,10 @@ inline constexpr bool operator>=( int           left,
 // will create a type which is int-like except that one cannot
 // perform any arithmetic operations on it, since those would not
 // make sense for an ID.
-#define TYPED_ID( a ) \
-  DERIVE_TYPED_NUM( int, a, TypedIntMinimal, id )
+#define TYPED_ID_NS( ns, a ) \
+  DERIVE_TYPED_NUM_NS( ns, int, a, TypedIntMinimal, id )
+
+#define TYPED_ID( a ) TYPED_ID_NS( rn, a )
 
 #define TYPED_INDEX( a ) \
   DERIVE_TYPED_NUM( int, a, TypedInt, idx )
