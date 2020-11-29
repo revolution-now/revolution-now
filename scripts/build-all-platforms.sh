@@ -86,8 +86,8 @@ run_for_args() {
 
 for cc in --clang '' --gcc=current; do
   for lib in '' --libstdcxx --libcxx; do
-    for opt in '' --release; do
-      for asan in '' --asan; do
+    for opt in ''; do # --release; do
+      for asan in ''; do # --asan; do
         [[ "$cc" =~ gcc && "$lib" =~ libcxx ]] && continue
         [[ "$cc" == ""  && "$lib" =~ libcxx ]] && continue
         run_for_args
@@ -98,7 +98,7 @@ done
 
 # Do --lto just once since it can take a really long time.
 cc=--clang; lib=; opt=--release; asan=; lto=--lto;
-run_for_args
+# run_for_args
 
 # Restore to default devel flags.
 (( print_only )) || cmc --cached --clang --lld --asan

@@ -62,13 +62,15 @@ namespace base {
 // cv-qualified) tag types std::nullopt_t or std::in_place_t.
 template<typename T>
 class maybe {
-public:
   /**************************************************************
   ** Destruction
   ***************************************************************/
 private:
   void destroy() {
     if( active_ ) val_.~T();
+    // Don't set active_ to false here. That is the purpose of
+    // this function. If you want to destroy+deactivate then call
+    // the public reset() function.
   }
 
 public:
@@ -77,19 +79,22 @@ public:
   /**************************************************************
   ** Default Constructor
   ***************************************************************/
-  maybe() {}
+  // This does not initialize the val_ member.
+  constexpr maybe() : active_{ false } {}
 
   /**************************************************************
   ** Value Constructors
   ***************************************************************/
   maybe( T const& val ) noexcept(
-      std::is_nothrow_copy_constructible_v<T> )
+      std::is_nothrow_copy_constructible_v<
+          T> ) requires( std::is_copy_constructible_v<T> )
     : active_{ true } {
     new( &val_ ) T( val );
   }
 
   maybe( T&& val ) noexcept(
-      std::is_nothrow_move_constructible_v<T> )
+      std::is_nothrow_move_constructible_v<
+          T> ) requires( std::is_move_constructible_v<T> )
     : active_{ true } {
     new( &val_ ) T( std::move( val ) );
   }
@@ -98,7 +103,7 @@ public:
   ** Converting Value Constructor
   ***************************************************************/
   template<typename U, typename = std::enable_if_t<
-                           std::is_convertible_v<U, T>, void> >
+                           std::is_convertible_v<U, T>, void>>
   maybe( U&& val ) noexcept(
       std::is_nothrow_convertible_v<U, T> )
     : active_{ true } {
@@ -118,10 +123,9 @@ public:
   ** Move Constructors
   ***************************************************************/
   maybe( maybe<T>&& other ) noexcept(
-      std::is_nothrow_move_constructible_v<T> ) {
-    active_ = other.active_;
-    if( active_ ) new( &val_ ) T( std::move( other.val_ ) );
-    other.reset();
+      std::is_nothrow_move_constructible_v<T> )
+    : active_{ false } {
+    swap( other );
   }
 
   /**************************************************************
@@ -137,11 +141,10 @@ public:
   /**************************************************************
   ** Move Assignment
   ***************************************************************/
-  maybe<T>& operator=( maybe<T>&& rhs ) & {
-    destroy();
-    active_ = rhs.active_;
-    if( rhs.active_ ) new( &val_ ) T( std::move( rhs.val_ ) );
-    rhs.reset();
+  maybe<T>& operator=( maybe<T>&& rhs ) & noexcept(
+      noexcept( swap( rhs ) ) ) {
+    reset();
+    swap( rhs );
     return *this;
   }
 
@@ -166,7 +169,7 @@ public:
   ** Converting Value Assignment
   ***************************************************************/
   template<typename U, typename = std::enable_if_t<
-                           std::is_convertible_v<U, T>, void> >
+                           std::is_convertible_v<U, T>>>
   maybe<T>& operator=( U&& rhs ) & noexcept(
       std::is_nothrow_convertible_v<U, T> ) {
     destroy();
@@ -176,21 +179,35 @@ public:
   }
 
   /**************************************************************
-  **
+  ** Swap
   ***************************************************************/
-  void reset() {
-    destroy();
-    active_ = false;
+  void swap( maybe<T>& other ) noexcept(
+      std::is_nothrow_move_constructible_v<T>&&
+          std::is_nothrow_swappable_v<
+              T> ) requires( std::is_move_constructible_v<T>&&
+                                 std::is_swappable_v<T> ) {
+    if( !active_ && !other.active_ ) return;
+    if( active_ && other.active_ ) {
+      using std::swap;
+      swap( val_, other.val_ );
+      return;
+    }
+    // From cppreference: if only one of *this and other contains
+    // a value (let's call this object in and the other un), the
+    // contained value of un is direct-initialized from std::-
+    // move(*in), followed by destruction of the contained value
+    // of in as if by in->T::~T(). After this call, in does not
+    // contain a value; un contains a value.
+    maybe<T>& in = active_ ? *this : other;
+    maybe<T>& un = active_ ? other : *this;
+    new( &un.val_ ) T( std::move( *in ) );
+    in.reset();
+    un.active_ = true;
   }
 
-  bool has_value() const noexcept { return active_; }
-
-  T&       operator*() noexcept { return val_; }
-  T const& operator*() const noexcept { return val_; }
-
-  T*       operator->() noexcept { return &val_; }
-  T const* operator->() const noexcept { return &val_; }
-
+  /**************************************************************
+  ** value (TODO: to be removed)
+  ***************************************************************/
   T& value() {
     if( !active_ )
       throw std::runtime_error(
@@ -202,6 +219,86 @@ public:
     if( !active_ )
       throw std::runtime_error(
           "value() called on inactive-maybe." );
+    return val_;
+  }
+
+  /**************************************************************
+  ** value_or
+  ***************************************************************/
+  template<typename U>
+  // clang-format off
+  requires (std::is_convertible_v<U&&, T> &&
+            std::is_copy_constructible_v<T>)
+  constexpr T value_or( U&& def ) const& {
+    // clang-format on
+    return has_value()
+               ? **this
+               : static_cast<T>( std::forward<U>( def ) );
+  }
+
+  template<typename U>
+  // clang-format off
+  requires (std::is_convertible_v<U&&, T> &&
+            std::is_move_constructible_v<T>)
+  constexpr T value_or( U&& def ) && {
+    // clang-format on
+    return has_value()
+               ? std::move( **this )
+               : static_cast<T>( std::forward<U>( def ) );
+  }
+
+  /**************************************************************
+  ** reset
+  ***************************************************************/
+  void reset() noexcept {
+    destroy();
+    active_ = false;
+  }
+
+  /**************************************************************
+  ** has_value
+  ***************************************************************/
+  bool has_value() const noexcept { return active_; }
+
+  operator bool() const noexcept { return active_; }
+
+  /**************************************************************
+  ** Deference operators
+  ***************************************************************/
+  T&       operator*() noexcept { return val_; }
+  T const& operator*() const noexcept { return val_; }
+
+  T*       operator->() noexcept { return &val_; }
+  T const* operator->() const noexcept { return &val_; }
+
+  /**************************************************************
+  ** emplace
+  ***************************************************************/
+  template<typename... Args>
+  auto emplace( Args&&... args ) noexcept(
+      std::is_nothrow_constructible_v<T, Args...> )
+      -> std::enable_if_t<std::is_constructible_v<T, Args...>,
+                          T&> {
+    destroy();
+    active_ = true;
+    new( &val_ ) T( std::forward<Args>( args )... );
+    return val_;
+  }
+
+  // clang-format off
+  template<typename U, typename... Args>
+  auto emplace( std::initializer_list<U> ilist, Args&&... args )
+      noexcept( std::is_nothrow_constructible_v<T,
+                  std::initializer_list<U>, Args...> )
+      -> std::enable_if_t<
+           std::is_constructible_v<
+               T, std::initializer_list<U>, Args...>,
+           T&>
+  // clang-format on
+  {
+    destroy();
+    active_ = true;
+    new( &val_ ) T( ilist, std::forward<Args>( args )... );
     return val_;
   }
 
