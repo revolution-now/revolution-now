@@ -172,19 +172,8 @@ void frame_loop() {
       ASSIGN_CHECK_OPT( event_ref, q.front() );
       auto const& event = event_ref.get();
       if( is_win_resize( event ) ) on_main_window_resized();
-      bool hold = false;
-      switch( send_input_to_planes( event ) ) {
-        case Plane::e_input_handled::yes: //
-          q.pop();
-          break;
-        case Plane::e_input_handled::no: //
-          q.pop();
-          break;
-        case Plane::e_input_handled::hold: //
-          hold = true;
-          break;
-      }
-      if( hold ) break;
+      (void)send_input_to_planes( event );
+      q.pop();
     }
 
     // ----------------------------------------------------------

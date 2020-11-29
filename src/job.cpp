@@ -24,13 +24,11 @@ namespace rn {
 
 namespace {
 
-expect<> is_valid_colony_name_input(
-    Opt<string> const& proposed ) {
-  if( !proposed.has_value() ) return xp_success_t{};
-  if( colony_from_name( *proposed ).has_value() )
+expect<> is_valid_colony_name_input( string const& proposed ) {
+  if( colony_from_name( proposed ).has_value() )
     return UNEXPECTED(
         "There is already a colony with that name!" );
-  if( proposed->size() <= 1 )
+  if( proposed.size() <= 1 )
     return UNEXPECTED(
         "Name must be longer than one character!" );
   return xp_success_t{};
@@ -48,7 +46,7 @@ sync_future<Opt<string>> build_colony_ui_routine() {
   return msg >> []( ui::e_confirm answer ) {
     if( answer == ui::e_confirm::no )
       return make_sync_future<Opt<string>>();
-    return ui::repeat_until<Opt<string>>(
+    return ui::repeat_until_or_cancel<string>(
         /*to_repeat=*/ask_colony_name,
         /*get_error=*/is_valid_colony_name_input );
   };

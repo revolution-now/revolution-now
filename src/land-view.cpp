@@ -46,6 +46,9 @@
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
+// base-util
+#include "base-util/optional.hpp"
+
 // Flatbuffers
 #include "fb/sg-land-view_generated.h"
 
@@ -1022,13 +1025,10 @@ void test_land_view() {
 *****************************************************************/
 namespace {
 
-LUA_FN( blinking_unit, sol::object ) {
-  if_get( SG().mode.state(), LandViewState::blinking_unit,
-          val ) {
-    sol::lua_value result = val.id;
-    return result.as<sol::object>();
-  }
-  return sol::lua_nil;
+LUA_FN( blinking_unit, Opt<UnitId> ) {
+  return util::fmap(
+      L( _.get().id ),
+      SG().mode.holds<LandViewState::blinking_unit>() );
 }
 
 } // namespace

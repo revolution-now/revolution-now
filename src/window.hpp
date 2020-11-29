@@ -135,10 +135,10 @@ sync_future<Enum> select_box_enum( std::string_view title,
 template<typename Enum>
 void select_box_enum( std::string_view            title,
                       std::function<void( Enum )> on_result ) {
-  Vec<Enum> options;
-  options.reserve( magic_enum::enum_count<Enum>() );
-  for( auto val : magic_enum::enum_values<Enum>() )
-    options.push_back( val );
+  static const Vec<Enum> options = [] {
+    return Vec<Enum>( magic_enum::enum_values<Enum>().begin(),
+                      magic_enum::enum_values<Enum>().end() );
+  }();
   select_box_enum( title, options, std::move( on_result ) );
 }
 
@@ -171,6 +171,25 @@ sync_future<Ret> repeat_until(
         return repeat_until<Ret>( to_repeat, get_error );
       } );
     return make_sync_future<Ret>( val );
+  };
+}
+
+// Similar to above, but the function being repeated can return a
+// nullopt, basically meaning that the operation is cancelled.
+template<typename Ret>
+sync_future<Opt<Ret>> repeat_until_or_cancel(
+    std::function<sync_future<Opt<Ret>>()> to_repeat,
+    std::function<expect<>( Ret const& )>  get_error ) {
+  return to_repeat() >> [=]( Opt<Ret> const& maybe_val ) {
+    if( !maybe_val.has_value() )
+      return make_sync_future<Opt<Ret>>( std::nullopt );
+    if( auto xp = get_error( *maybe_val ); !xp )
+      return message_box( xp.error().what ).next( [=] {
+        // Loop by recursion.
+        return repeat_until_or_cancel<Ret>( to_repeat,
+                                            get_error );
+      } );
+    return make_sync_future<Opt<Ret>>( *maybe_val );
   };
 }
 

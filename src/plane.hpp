@@ -75,9 +75,7 @@ struct Plane {
 
   // yes:     Will not be given to any other planes.
   // no:      Will try the next plane.
-  // hold:    Stop processing input this frame and leave events
-  //          in queue.  Defers input processing til next frame.
-  enum class e_input_handled { yes, no, hold };
+  enum class e_input_handled { yes, no };
 
   // Accept input; returns true/false depending on whether the
   // input was handled or not.  If it was handled (true) then

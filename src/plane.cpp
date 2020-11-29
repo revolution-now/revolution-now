@@ -530,8 +530,6 @@ Plane::e_input_handled send_input_to_planes(
         return Plane::e_input_handled::yes;
       case Plane::e_input_handled::no: //
         break;
-      case Plane::e_input_handled::hold:
-        return Plane::e_input_handled::hold;
     }
   }
 

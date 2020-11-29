@@ -716,11 +716,7 @@ void yes_no( std::string_view                 title,
 }
 
 sync_future<e_confirm> yes_no( std::string_view title ) {
-  sync_promise<e_confirm> s_promise;
-  yes_no( title, [s_promise]( e_confirm result ) mutable {
-    s_promise.set_value( result );
-  } );
-  return s_promise.get_future();
+  return select_box_enum<e_confirm>( title );
 }
 
 sync_future<> message_box( string_view msg ) {
