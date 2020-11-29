@@ -1,5 +1,5 @@
 /****************************************************************
-**optional.hpp
+**maybe.hpp
 *
 * Project: Revolution Now
 *
@@ -11,9 +11,8 @@
 *****************************************************************/
 #pragma once
 
-// C++ standard library
-#include <concepts>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 namespace base {
@@ -62,7 +61,7 @@ namespace base {
 // ill-formed if it instantiates an optional with the (possibly
 // cv-qualified) tag types std::nullopt_t or std::in_place_t.
 template<typename T>
-requires std::destructible<T> class optional {
+class maybe {
 public:
   /**************************************************************
   ** Destruction
@@ -73,23 +72,23 @@ private:
   }
 
 public:
-  ~optional() { destroy(); }
+  ~maybe() { destroy(); }
 
   /**************************************************************
   ** Default Constructor
   ***************************************************************/
-  optional() {}
+  maybe() {}
 
   /**************************************************************
   ** Value Constructors
   ***************************************************************/
-  optional( T const& val ) noexcept(
+  maybe( T const& val ) noexcept(
       std::is_nothrow_copy_constructible_v<T> )
     : active_{ true } {
     new( &val_ ) T( val );
   }
 
-  optional( T&& val ) noexcept(
+  maybe( T&& val ) noexcept(
       std::is_nothrow_move_constructible_v<T> )
     : active_{ true } {
     new( &val_ ) T( std::move( val ) );
@@ -98,9 +97,10 @@ public:
   /**************************************************************
   ** Converting Value Constructor
   ***************************************************************/
-  template<typename U>
-  requires std::is_convertible_v<U, T> optional(
-      U&& val ) noexcept( std::is_nothrow_convertible_v<U, T> )
+  template<typename U, typename = std::enable_if_t<
+                           std::is_convertible_v<U, T>, void> >
+  maybe( U&& val ) noexcept(
+      std::is_nothrow_convertible_v<U, T> )
     : active_{ true } {
     new( &val_ ) T( std::forward<U>( val ) );
   }
@@ -108,7 +108,7 @@ public:
   /**************************************************************
   ** Copy Constructors
   ***************************************************************/
-  optional( optional<T> const& other ) noexcept(
+  maybe( maybe<T> const& other ) noexcept(
       std::is_nothrow_copy_constructible_v<T> ) {
     active_ = other.active_;
     if( active_ ) new( &val_ ) T( other.val_ );
@@ -117,7 +117,7 @@ public:
   /**************************************************************
   ** Move Constructors
   ***************************************************************/
-  optional( optional<T>&& other ) noexcept(
+  maybe( maybe<T>&& other ) noexcept(
       std::is_nothrow_move_constructible_v<T> ) {
     active_ = other.active_;
     if( active_ ) new( &val_ ) T( std::move( other.val_ ) );
@@ -127,7 +127,7 @@ public:
   /**************************************************************
   ** Copy Assignment
   ***************************************************************/
-  optional<T>& operator=( optional<T> const& rhs ) & {
+  maybe<T>& operator=( maybe<T> const& rhs ) & {
     destroy();
     active_ = rhs.active_;
     if( rhs.active_ ) new( &val_ ) T( rhs.val_ );
@@ -137,7 +137,7 @@ public:
   /**************************************************************
   ** Move Assignment
   ***************************************************************/
-  optional<T>& operator=( optional<T>&& rhs ) & {
+  maybe<T>& operator=( maybe<T>&& rhs ) & {
     destroy();
     active_ = rhs.active_;
     if( rhs.active_ ) new( &val_ ) T( std::move( rhs.val_ ) );
@@ -148,14 +148,16 @@ public:
   /**************************************************************
   ** Converting Assignment
   ***************************************************************/
-  // template<typename U>
-  // requires std::is_convertible_v<U, T> optional<T>&
-  // operator=( optional<U>&& rhs ) & noexcept(
+  // template<typename U, typename = std::enable_if_t<
+  //                          std::is_convertible_v<U, T>,
+  //                          void> >
+  // maybe<T>&
+  // operator=( maybe<U>&& rhs ) & noexcept(
   //     std::is_nothrow_convertible_v<U, T> ) {
   //   destroy();
   //   active_ = rhs.active_;
   //   if( rhs.active_ )
-  //     new( &val_ ) T( std::forward<optional<U>>( rhs ).val_ );
+  //     new( &val_ ) T( std::forward<maybe<U>>( rhs ).val_ );
   //   rhs.reset();
   //   return *this;
   // }
@@ -163,9 +165,9 @@ public:
   /**************************************************************
   ** Converting Value Assignment
   ***************************************************************/
-  template<typename U>
-  requires std::is_convertible_v<U, T> optional<T>&
-  operator=( U&& rhs ) & noexcept(
+  template<typename U, typename = std::enable_if_t<
+                           std::is_convertible_v<U, T>, void> >
+  maybe<T>& operator=( U&& rhs ) & noexcept(
       std::is_nothrow_convertible_v<U, T> ) {
     destroy();
     active_ = true;
@@ -192,14 +194,14 @@ public:
   T& value() {
     if( !active_ )
       throw std::runtime_error(
-          "value() called on inactive-optional." );
+          "value() called on inactive-maybe." );
     return val_;
   }
 
   T const& value() const {
     if( !active_ )
       throw std::runtime_error(
-          "value() called on inactive-optional." );
+          "value() called on inactive-maybe." );
     return val_;
   }
 
