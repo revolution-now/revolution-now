@@ -27,15 +27,16 @@ using namespace std;
 
 using ::Catch::Equals;
 using ::Catch::Matchers::Contains;
+using ::std::experimental::is_detected_v;
 
 template<typename T>
 using M = ::base::maybe<T>;
 
 /****************************************************************
-** TructionTracker
+** Tracker
 *****************************************************************/
 // Tracks number of constructions and destructions.
-struct TructionTracker {
+struct Tracker {
   static int  constructed;
   static int  destructed;
   static int  copied;
@@ -46,24 +47,22 @@ struct TructionTracker {
         0;
   }
 
-  TructionTracker() noexcept { ++constructed; }
-  TructionTracker( TructionTracker const& ) noexcept {
-    ++copied;
-  }
-  TructionTracker( TructionTracker&& ) noexcept { ++moved; }
-  ~TructionTracker() noexcept { ++destructed; }
+  Tracker() noexcept { ++constructed; }
+  Tracker( Tracker const& ) noexcept { ++copied; }
+  Tracker( Tracker&& ) noexcept { ++moved; }
+  ~Tracker() noexcept { ++destructed; }
 
-  TructionTracker& operator=( TructionTracker const& ) = delete;
-  TructionTracker& operator=( TructionTracker&& ) noexcept {
+  Tracker& operator=( Tracker const& ) = delete;
+  Tracker& operator                    =( Tracker&& ) noexcept {
     ++move_assigned;
     return *this;
   }
 };
-int TructionTracker::constructed   = 0;
-int TructionTracker::destructed    = 0;
-int TructionTracker::copied        = 0;
-int TructionTracker::moved         = 0;
-int TructionTracker::move_assigned = 0;
+int Tracker::constructed   = 0;
+int Tracker::destructed    = 0;
+int Tracker::copied        = 0;
+int Tracker::moved         = 0;
+int Tracker::move_assigned = 0;
 
 /****************************************************************
 ** Non-Copyable
@@ -100,11 +99,76 @@ static_assert( !is_copy_assignable_v<NoCopyNoMove> );
 static_assert( !is_move_assignable_v<NoCopyNoMove> );
 
 /****************************************************************
+** Thrower
+*****************************************************************/
+struct Throws {
+  Throws() noexcept( false );
+  Throws( Throws const& ) noexcept( false );
+  Throws( Throws&& ) noexcept( false );
+  Throws& operator=( Throws const& ) noexcept( false );
+  Throws& operator=( Throws&& ) noexcept( false );
+};
+
+/****************************************************************
+** [static] Invalid value types.
+*****************************************************************/
+static_assert( is_detected_v<maybe, int> );
+static_assert( is_detected_v<maybe, string> );
+static_assert( is_detected_v<maybe, NoCopy> );
+static_assert( is_detected_v<maybe, NoCopyNoMove> );
+static_assert( is_detected_v<maybe, double> );
+static_assert( !is_detected_v<maybe, std::in_place_t> );
+static_assert( !is_detected_v<maybe, std::in_place_t&> );
+static_assert( !is_detected_v<maybe, std::in_place_t const&> );
+static_assert( !is_detected_v<maybe, nothing_t> );
+static_assert( !is_detected_v<maybe, nothing_t&> );
+static_assert( !is_detected_v<maybe, nothing_t const&> );
+
+/****************************************************************
+** [static] Propagation of noexcept.
+*****************************************************************/
+// `int` should always be nothrow.
+static_assert( is_nothrow_default_constructible_v<maybe<int>> );
+static_assert( is_nothrow_constructible_v<maybe<int>> );
+static_assert( is_nothrow_constructible_v<maybe<int>, int> );
+static_assert(
+    is_nothrow_constructible_v<maybe<int>, nothing_t> );
+static_assert( is_nothrow_move_constructible_v<maybe<int>> );
+static_assert( is_nothrow_move_assignable_v<maybe<int>> );
+static_assert( is_nothrow_copy_constructible_v<maybe<int>> );
+static_assert( is_nothrow_copy_assignable_v<maybe<int>> );
+
+// `string` should only throw on copies.
+static_assert(
+    is_nothrow_default_constructible_v<maybe<string>> );
+static_assert( is_nothrow_constructible_v<maybe<string>> );
+static_assert(
+    is_nothrow_constructible_v<maybe<string>, string> );
+static_assert(
+    is_nothrow_constructible_v<maybe<string>, nothing_t> );
+static_assert( is_nothrow_move_constructible_v<maybe<string>> );
+static_assert( is_nothrow_move_assignable_v<maybe<string>> );
+static_assert( !is_nothrow_copy_constructible_v<maybe<string>> );
+static_assert( !is_nothrow_copy_assignable_v<maybe<string>> );
+
+// Always throws except on default construction or equivalent.
+static_assert(
+    is_nothrow_default_constructible_v<maybe<Throws>> );
+static_assert(
+    is_nothrow_constructible_v<maybe<Throws>, nothing_t> );
+static_assert(
+    !is_nothrow_constructible_v<maybe<Throws>, Throws> );
+static_assert( !is_nothrow_move_constructible_v<maybe<Throws>> );
+static_assert( !is_nothrow_move_assignable_v<maybe<Throws>> );
+static_assert( !is_nothrow_copy_constructible_v<maybe<Throws>> );
+static_assert( !is_nothrow_copy_assignable_v<maybe<Throws>> );
+
+/****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[maybe] default construction" ) {
   SECTION( "int" ) {
-    TructionTracker::reset();
+    Tracker::reset();
     {
       M<int> m;
       REQUIRE( !m.has_value() );
@@ -113,17 +177,17 @@ TEST_CASE( "[maybe] default construction" ) {
 
       // Verify that the value type does not get instantiated
       // upon default construction of the maybe.
-      M<TructionTracker> construction_tracker;
-      REQUIRE( TructionTracker::constructed == 0 );
-      REQUIRE( TructionTracker::destructed == 0 );
-      construction_tracker = TructionTracker{};
-      REQUIRE( TructionTracker::constructed == 1 );
-      REQUIRE( TructionTracker::destructed == 1 );
-      REQUIRE( TructionTracker::copied == 0 );
-      REQUIRE( TructionTracker::moved == 1 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      M<Tracker> construction_tracker;
+      REQUIRE( Tracker::constructed == 0 );
+      REQUIRE( Tracker::destructed == 0 );
+      construction_tracker = Tracker{};
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 1 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::moved == 1 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 2 );
+    REQUIRE( Tracker::destructed == 2 );
   }
 }
 
@@ -137,6 +201,12 @@ TEST_CASE( "[maybe] has_value/bool" ) {
   m1.reset();
   REQUIRE( !m1.has_value() );
   REQUIRE( !bool( m1 ) );
+
+  if( m1 ) {
+    REQUIRE( false );
+  } else {
+    REQUIRE( true );
+  }
 }
 
 TEST_CASE( "[maybe] reset" ) {
@@ -153,9 +223,9 @@ TEST_CASE( "[maybe] reset" ) {
     REQUIRE( !m.has_value() );
   }
   SECTION( "TruckionTracker" ) {
-    TructionTracker::reset();
+    Tracker::reset();
     {
-      M<TructionTracker> m;
+      M<Tracker> m;
       REQUIRE( !m.has_value() );
       m.reset();
       REQUIRE( !m.has_value() );
@@ -165,13 +235,13 @@ TEST_CASE( "[maybe] reset" ) {
       REQUIRE( !m.has_value() );
       m.reset();
       REQUIRE( !m.has_value() );
-      REQUIRE( TructionTracker::constructed == 1 );
-      REQUIRE( TructionTracker::destructed == 1 );
-      REQUIRE( TructionTracker::copied == 0 );
-      REQUIRE( TructionTracker::moved == 0 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 1 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::moved == 0 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 1 );
+    REQUIRE( Tracker::destructed == 1 );
   }
 }
 
@@ -582,18 +652,18 @@ TEST_CASE( "[maybe] emplace" ) {
     REQUIRE_THAT( *m, Equals( vector<int>{ 5, 5, 5, 5 } ) );
     REQUIRE( m->size() == 4 );
   }
-  SECTION( "TructionTracker" ) {
-    TructionTracker::reset();
+  SECTION( "Tracker" ) {
+    Tracker::reset();
     {
-      M<TructionTracker> m;
+      M<Tracker> m;
       m.emplace();
-      REQUIRE( TructionTracker::constructed == 1 );
-      REQUIRE( TructionTracker::destructed == 0 );
-      REQUIRE( TructionTracker::copied == 0 );
-      REQUIRE( TructionTracker::moved == 0 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 0 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::moved == 0 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 1 );
+    REQUIRE( Tracker::destructed == 1 );
   }
 }
 
@@ -730,52 +800,52 @@ TEST_CASE( "[maybe] swap" ) {
       REQUIRE( *m2 == NoCopy{ 'w' } );
     }
   }
-  SECTION( "TructionTracker" ) {
-    TructionTracker::reset();
+  SECTION( "Tracker" ) {
+    Tracker::reset();
     SECTION( "both empty" ) {
       {
-        M<TructionTracker> m1;
-        M<TructionTracker> m2;
+        M<Tracker> m1;
+        M<Tracker> m2;
         m1.swap( m2 );
-        REQUIRE( TructionTracker::constructed == 0 );
-        REQUIRE( TructionTracker::destructed == 0 );
-        REQUIRE( TructionTracker::copied == 0 );
-        REQUIRE( TructionTracker::moved == 0 );
-        REQUIRE( TructionTracker::move_assigned == 0 );
+        REQUIRE( Tracker::constructed == 0 );
+        REQUIRE( Tracker::destructed == 0 );
+        REQUIRE( Tracker::copied == 0 );
+        REQUIRE( Tracker::moved == 0 );
+        REQUIRE( Tracker::move_assigned == 0 );
       }
-      REQUIRE( TructionTracker::destructed == 0 );
+      REQUIRE( Tracker::destructed == 0 );
     }
     SECTION( "both have values" ) {
       {
-        M<TructionTracker> m1;
-        M<TructionTracker> m2;
+        M<Tracker> m1;
+        M<Tracker> m2;
         m1.emplace();
         m2.emplace();
         m1.swap( m2 );
         m2.swap( m1 );
-        REQUIRE( TructionTracker::constructed == 2 );
-        REQUIRE( TructionTracker::destructed == 2 );
-        REQUIRE( TructionTracker::copied == 0 );
+        REQUIRE( Tracker::constructed == 2 );
+        REQUIRE( Tracker::destructed == 2 );
+        REQUIRE( Tracker::copied == 0 );
         // Should call std::swap.
-        REQUIRE( TructionTracker::moved == 2 );
-        REQUIRE( TructionTracker::move_assigned == 4 );
+        REQUIRE( Tracker::moved == 2 );
+        REQUIRE( Tracker::move_assigned == 4 );
       }
-      REQUIRE( TructionTracker::destructed == 4 );
+      REQUIRE( Tracker::destructed == 4 );
     }
     SECTION( "one has value" ) {
       {
-        M<TructionTracker> m1;
-        M<TructionTracker> m2;
+        M<Tracker> m1;
+        M<Tracker> m2;
         m2.emplace();
         m1.swap( m2 );
         m2.swap( m1 );
-        REQUIRE( TructionTracker::constructed == 1 );
-        REQUIRE( TructionTracker::destructed == 2 );
-        REQUIRE( TructionTracker::copied == 0 );
-        REQUIRE( TructionTracker::moved == 2 );
-        REQUIRE( TructionTracker::move_assigned == 0 );
+        REQUIRE( Tracker::constructed == 1 );
+        REQUIRE( Tracker::destructed == 2 );
+        REQUIRE( Tracker::copied == 0 );
+        REQUIRE( Tracker::moved == 2 );
+        REQUIRE( Tracker::move_assigned == 0 );
       }
-      REQUIRE( TructionTracker::destructed == 3 );
+      REQUIRE( Tracker::destructed == 3 );
     }
   }
 }
@@ -805,56 +875,61 @@ TEST_CASE( "[maybe] value_or" ) {
   SECTION( "NoCopy" ) {
     //
   }
-  SECTION( "TructionTracker" ) {
+  SECTION( "Tracker" ) {
     {
-      TructionTracker::reset();
-      M<TructionTracker> m;
-      m.value_or( TructionTracker{} );
-      REQUIRE( TructionTracker::constructed == 1 );
-      REQUIRE( TructionTracker::destructed == 2 );
-      REQUIRE( TructionTracker::copied == 0 );
-      REQUIRE( TructionTracker::moved == 1 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      Tracker::reset();
+      M<Tracker> m;
+      m.value_or( Tracker{} );
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 2 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::moved == 1 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 2 );
+    REQUIRE( Tracker::destructed == 2 );
     {
-      TructionTracker::reset();
-      M<TructionTracker> m;
+      Tracker::reset();
+      M<Tracker> m;
       m.emplace();
-      m.value_or( TructionTracker{} );
-      REQUIRE( TructionTracker::constructed == 2 );
-      REQUIRE( TructionTracker::destructed == 2 );
-      REQUIRE( TructionTracker::copied == 1 );
-      REQUIRE( TructionTracker::moved == 0 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      m.value_or( Tracker{} );
+      REQUIRE( Tracker::constructed == 2 );
+      REQUIRE( Tracker::destructed == 2 );
+      REQUIRE( Tracker::copied == 1 );
+      REQUIRE( Tracker::moved == 0 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 3 );
+    REQUIRE( Tracker::destructed == 3 );
     {
-      TructionTracker::reset();
-      M<TructionTracker>{}.value_or( TructionTracker{} );
-      REQUIRE( TructionTracker::constructed == 1 );
-      REQUIRE( TructionTracker::destructed == 2 );
-      REQUIRE( TructionTracker::copied == 0 );
-      REQUIRE( TructionTracker::moved == 1 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      Tracker::reset();
+      M<Tracker>{}.value_or( Tracker{} );
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 2 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::moved == 1 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 2 );
+    REQUIRE( Tracker::destructed == 2 );
     {
-      TructionTracker::reset();
-      M<TructionTracker>{ TructionTracker{} }.value_or(
-          TructionTracker{} );
-      REQUIRE( TructionTracker::constructed == 2 );
-      REQUIRE( TructionTracker::destructed == 4 );
-      REQUIRE( TructionTracker::copied == 0 );
-      REQUIRE( TructionTracker::moved == 2 );
-      REQUIRE( TructionTracker::move_assigned == 0 );
+      Tracker::reset();
+      M<Tracker>{ Tracker{} }.value_or( Tracker{} );
+      REQUIRE( Tracker::constructed == 2 );
+      REQUIRE( Tracker::destructed == 4 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::moved == 2 );
+      REQUIRE( Tracker::move_assigned == 0 );
     }
-    REQUIRE( TructionTracker::destructed == 4 );
+    REQUIRE( Tracker::destructed == 4 );
   }
 }
 
 TEST_CASE( "[maybe] non-copyable non-movable T" ) {
   M<NoCopyNoMove> m;
+  REQUIRE( !m.has_value() );
+  m = 'c';
+  REQUIRE( m.has_value() );
+  REQUIRE( *m == NoCopyNoMove{ 'c' } );
+  m.reset();
+  REQUIRE( !m.has_value() );
 }
 
 TEST_CASE( "[maybe] deduction guides" ) {

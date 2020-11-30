@@ -51,10 +51,25 @@ struct bad_maybe_access : public std::exception {
 };
 
 /****************************************************************
+** Requirements on maybe::value_type
+*****************************************************************/
+// Normally it wouldn't make sense to turn these into a concept,
+// since they're just a random list of requiremnets, but it is
+// convenient because they need to be kept in sync between the
+// class declaration and the deduction guide.
+template<typename T>
+concept MaybeTypeRequirements = requires {
+  requires(
+      !std::is_same_v<std::remove_cvref_t<T>, std::in_place_t> &&
+      !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
+};
+
+/****************************************************************
 ** maybe
 *****************************************************************/
 template<typename T>
-class maybe {
+requires MaybeTypeRequirements<T> /* clang-format off */
+class maybe { /* clang-format on */
 public:
   /**************************************************************
   ** Types
@@ -62,12 +77,20 @@ public:
   using value_type = T;
 
   /**************************************************************
+  ** Default Constructor
+  ***************************************************************/
+  // This does not initialize the union member.
+  constexpr maybe() noexcept : active_{ false } {}
+
+  constexpr maybe( nothing_t ) noexcept : maybe() {}
+
+  /**************************************************************
   ** Destruction
   ***************************************************************/
 private:
   void destroy() {
     if constexpr( !std::is_trivially_destructible_v<T> ) {
-      if( active_ ) val_.~T();
+      if( active_ ) val().~T();
       // Don't set active_ to false here. That is the purpose of
       // this function. If you want to destroy+deactivate then
       // call the public reset() function.
@@ -86,26 +109,20 @@ public:
   ~maybe() { destroy(); }
 
   /**************************************************************
-  ** Default Constructor
-  ***************************************************************/
-  // This does not initialize the val_ member.
-  constexpr maybe() : active_{ false } {}
-
-  /**************************************************************
   ** Value Constructors
   ***************************************************************/
   maybe( T const& val ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
       requires( std::is_copy_constructible_v<T> )
     : active_{ true } /* clang-format on */ {
-    new( &val_ ) T( val );
+    new_val( val );
   }
 
   maybe( T&& val ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<T> )
       requires( std::is_move_constructible_v<T> )
     : active_{ true } /* clang-format on */ {
-    new( &val_ ) T( std::move( val ) );
+    new_val( std::move( val ) );
   }
 
   /**************************************************************
@@ -122,16 +139,16 @@ public:
       maybe( U&& val ) noexcept(
           std::is_nothrow_convertible_v<U, T> )
     : active_{ true } {
-    new( &val_ ) T( std::forward<U>( val ) );
+    new_val( std::forward<U>( val ) );
   }
 
   /**************************************************************
   ** Copy Constructors
   ***************************************************************/
-  maybe( maybe<T> const& other ) noexcept(
+  constexpr maybe( maybe<T> const& other ) noexcept(
       std::is_nothrow_copy_constructible_v<T> ) {
     active_ = other.active_;
-    if( active_ ) new( &val_ ) T( other.val_ );
+    if( active_ ) new_val( *other );
   }
 
   /**************************************************************
@@ -144,18 +161,13 @@ public:
   }
 
   /**************************************************************
-  ** nothing constructor
-  ***************************************************************/
-  maybe( nothing_t ) noexcept : maybe() {}
-
-  /**************************************************************
   ** In-place construction
   ***************************************************************/
   template<typename... Args> /* clang-format off */
   constexpr explicit maybe( std::in_place_t, Args&&... args )
       requires( std::is_constructible_v<T, Args...> )
     : active_{ true } /* clang-format on */ {
-    new( &val_ ) T( std::forward<Args>( args )... );
+    new_val( std::forward<Args>( args )... );
   }
 
   template<typename U, typename... Args> /* clang-format off */
@@ -168,16 +180,19 @@ public:
                     Args...
                 > )
     : active_{ true } /* clang-format on */ {
-    new( &val_ ) T( ilist, std::forward<Args>( args )... );
+    new_val( ilist, std::forward<Args>( args )... );
   }
 
   /**************************************************************
   ** Copy Assignment
   ***************************************************************/
-  constexpr maybe<T>& operator=( maybe<T> const& rhs ) & {
+  /* clang-format off */
+  constexpr maybe<T>& operator=( maybe<T> const& rhs ) &
+      noexcept( noexcept( new_val( *rhs ) ) ) {
+    /* clang-format on */
     destroy();
     active_ = rhs.active_;
-    if( rhs.active_ ) new( &val_ ) T( rhs.val_ );
+    if( rhs.active_ ) new_val( *rhs );
     return *this;
   }
 
@@ -185,7 +200,7 @@ public:
   ** Move Assignment
   ***************************************************************/
   constexpr maybe<T>& operator=( maybe<T>&& rhs ) & noexcept(
-      noexcept( swap( rhs ) ) ) {
+      noexcept( this->swap( rhs ) ) ) {
     reset();
     this->swap( rhs );
     return *this;
@@ -202,7 +217,7 @@ public:
       std::is_nothrow_convertible_v<U&&, T> ) {
     destroy();
     active_ = rhs.active_;
-    if( active_ ) new( &val_ ) T( std::move( rhs.val_ ) );
+    if( active_ ) new_val( std::move( *rhs ) );
     // Note: this reference goes against what cppreference says,
     // since it says that a moved-from optional still has a
     // value. But for the `maybe` type we will deviate from that
@@ -220,7 +235,7 @@ public:
       std::is_nothrow_convertible_v<U const&, T> ) {
     destroy();
     active_ = rhs.has_value();
-    if( active_ ) new( &val_ ) T( *rhs );
+    if( active_ ) new_val( *rhs );
     return *this;
   }
 
@@ -233,7 +248,7 @@ public:
       std::is_nothrow_convertible_v<U, T> ) {
     destroy();
     active_ = true;
-    if( active_ ) new( &val_ ) T( std::forward<U>( rhs ) );
+    if( active_ ) new_val( std::forward<U>( rhs ) );
     return *this;
   }
 
@@ -256,7 +271,7 @@ public:
     if( !active_ && !other.active_ ) return;
     if( active_ && other.active_ ) {
       using std::swap;
-      swap( val_, other.val_ );
+      swap( **this, *other );
       return;
     }
     // From cppreference: if only one of *this and other contains
@@ -267,7 +282,7 @@ public:
     // contain a value; un contains a value.
     maybe<T>& in = active_ ? *this : other;
     maybe<T>& un = active_ ? other : *this;
-    new( &un.val_ ) T( std::move( *in ) );
+    new_val( std::move( *in ) );
     in.reset();
     un.active_ = true;
   }
@@ -277,12 +292,12 @@ public:
   ***************************************************************/
   T& value( SourceLoc loc = SourceLoc{} ) {
     if( !active_ ) throw bad_maybe_access{ loc };
-    return val_;
+    return **this;
   }
 
   T const& value( SourceLoc loc = SourceLoc{} ) const {
     if( !active_ ) throw bad_maybe_access{ loc };
-    return val_;
+    return **this;
   }
 
   /**************************************************************
@@ -328,13 +343,13 @@ public:
   /**************************************************************
   ** Deference operators
   ***************************************************************/
-  T&       operator*() & noexcept { return val_; }
-  T const& operator*() const& noexcept { return val_; }
+  T&       operator*() & noexcept { return val(); }
+  T const& operator*() const& noexcept { return val(); }
 
-  T&& operator*() && noexcept { return std::move( val_ ); }
+  T&& operator*() && noexcept { return std::move( val() ); }
 
-  T*       operator->() & noexcept { return &val_; }
-  T const* operator->() const& noexcept { return &val_; }
+  T*       operator->() & noexcept { return &**this; }
+  T const* operator->() const& noexcept { return &**this; }
 
   /**************************************************************
   ** emplace
@@ -346,8 +361,8 @@ public:
                           T&> {
     destroy();
     active_ = true;
-    new( &val_ ) T( std::forward<Args>( args )... );
-    return val_;
+    new_val( std::forward<Args>( args )... );
+    return **this;
   }
 
   // clang-format off
@@ -363,14 +378,23 @@ public:
   {
     destroy();
     active_ = true;
-    new( &val_ ) T( ilist, std::forward<Args>( args )... );
-    return val_;
+    new_val( ilist, std::forward<Args>( args )... );
+    return **this;
   }
 
   /**************************************************************
   ** Storage
   ***************************************************************/
 private:
+  T const& val() const noexcept { return val_; }
+  T&       val() noexcept { return val_; }
+
+  template<typename... Vs>
+  void new_val( Vs&&... v ) noexcept(
+      noexcept( new( &val() ) T( std::forward<Vs>( v )... ) ) ) {
+    new( &val() ) T( std::forward<Vs>( v )... );
+  }
+
   bool active_ = false;
   union {
     T val_;
@@ -383,9 +407,10 @@ private:
 // From cppreference: One deduction guide is provided to account
 // for the edge cases missed by the implicit deduction guides, in
 // particular, non-copyable arguments and array to pointer con-
-// version
+// version.
 template<class T>
-maybe( T ) -> maybe<T>;
+requires MaybeTypeRequirements<T> /* clang-format off */
+maybe( T ) -> maybe<T>; /* clang-format on */
 
 /****************************************************************
 ** make_maybe
