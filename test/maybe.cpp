@@ -26,6 +26,7 @@ namespace {
 using namespace std;
 
 using ::Catch::Equals;
+using ::Catch::Matchers::Contains;
 
 template<typename T>
 using M = ::base::maybe<T>;
@@ -68,7 +69,7 @@ int TructionTracker::move_assigned = 0;
 ** Non-Copyable
 *****************************************************************/
 struct NoCopy {
-  NoCopy( char c_ ) : c( c_ ) {}
+  explicit NoCopy( char c_ ) : c( c_ ) {}
   NoCopy( NoCopy const& ) = delete;
   NoCopy( NoCopy&& )      = default;
   NoCopy& operator=( NoCopy const& ) = delete;
@@ -76,10 +77,10 @@ struct NoCopy {
   bool    operator==( NoCopy const& ) const& = default;
   char    c;
 };
-static_assert( !std::is_copy_constructible_v<NoCopy> );
-static_assert( std::is_move_constructible_v<NoCopy> );
-static_assert( !std::is_copy_assignable_v<NoCopy> );
-static_assert( std::is_move_assignable_v<NoCopy> );
+static_assert( !is_copy_constructible_v<NoCopy> );
+static_assert( is_move_constructible_v<NoCopy> );
+static_assert( !is_copy_assignable_v<NoCopy> );
+static_assert( is_move_assignable_v<NoCopy> );
 
 /****************************************************************
 ** Non-Copyable, Non-Movable
@@ -93,20 +94,23 @@ struct NoCopyNoMove {
   bool operator==( NoCopyNoMove const& ) const& = default;
   char c;
 };
-static_assert( !std::is_copy_constructible_v<NoCopyNoMove> );
-static_assert( !std::is_move_constructible_v<NoCopyNoMove> );
-static_assert( !std::is_copy_assignable_v<NoCopyNoMove> );
-static_assert( !std::is_move_assignable_v<NoCopyNoMove> );
+static_assert( !is_copy_constructible_v<NoCopyNoMove> );
+static_assert( !is_move_constructible_v<NoCopyNoMove> );
+static_assert( !is_copy_assignable_v<NoCopyNoMove> );
+static_assert( !is_move_assignable_v<NoCopyNoMove> );
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[maybe] default construction" ) {
-  TructionTracker::reset();
   SECTION( "int" ) {
+    TructionTracker::reset();
     {
       M<int> m;
       REQUIRE( !m.has_value() );
+      M<int> m2 = {};
+      REQUIRE( !m2.has_value() );
+
       // Verify that the value type does not get instantiated
       // upon default construction of the maybe.
       M<TructionTracker> construction_tracker;
@@ -123,8 +127,19 @@ TEST_CASE( "[maybe] default construction" ) {
   }
 }
 
+TEST_CASE( "[maybe] has_value/bool" ) {
+  M<int> m1;
+  REQUIRE( !m1.has_value() );
+  REQUIRE( !bool( m1 ) );
+  m1 = 5;
+  REQUIRE( m1.has_value() );
+  REQUIRE( bool( m1 ) );
+  m1.reset();
+  REQUIRE( !m1.has_value() );
+  REQUIRE( !bool( m1 ) );
+}
+
 TEST_CASE( "[maybe] reset" ) {
-  TructionTracker::reset();
   SECTION( "int" ) {
     M<int> m;
     REQUIRE( !m.has_value() );
@@ -138,6 +153,7 @@ TEST_CASE( "[maybe] reset" ) {
     REQUIRE( !m.has_value() );
   }
   SECTION( "TruckionTracker" ) {
+    TructionTracker::reset();
     {
       M<TructionTracker> m;
       REQUIRE( !m.has_value() );
@@ -178,11 +194,38 @@ TEST_CASE( "[maybe] T with no default constructor" ) {
 }
 
 TEST_CASE( "[maybe] value construction" ) {
-  //
+  M<int> m( 5 );
+  REQUIRE( m.has_value() );
+  REQUIRE( *m == 5 );
+
+  M<string> m2( "hello" );
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m2 == "hello" );
+
+  M<string> m3( string( "hello" ) );
+  REQUIRE( m3.has_value() );
+  REQUIRE( *m3 == "hello" );
+
+  M<NoCopy> m4( NoCopy( 'h' ) );
+  REQUIRE( m4.has_value() );
+  REQUIRE( *m4 == NoCopy{ 'h' } );
 }
 
 TEST_CASE( "[maybe] converting value construction" ) {
-  //
+  struct A {
+    A() = default;
+    operator int() const { return 7; }
+  };
+
+  A a;
+
+  M<int> m1{ a };
+  REQUIRE( m1.has_value() );
+  REQUIRE( *m1 == 7 );
+
+  M<int> m2{ A{} };
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m2 == 7 );
 }
 
 TEST_CASE( "[maybe] copy construction" ) {
@@ -232,6 +275,22 @@ TEST_CASE( "[maybe] copy construction" ) {
     M<string> m5( m4 );
     REQUIRE( !m5.has_value() );
   }
+}
+
+TEST_CASE( "[maybe] state after move" ) {
+  M<int> m;
+  REQUIRE( !m.has_value() );
+
+  M<int> m2 = std::move( m );
+  REQUIRE( !m2.has_value() );
+  REQUIRE( !m.has_value() );
+
+  m = 5;
+  REQUIRE( m.has_value() );
+
+  M<int> m3{ std::move( m ) };
+  REQUIRE( m3.has_value() );
+  REQUIRE( !m.has_value() );
 }
 
 TEST_CASE( "[maybe] move construction" ) {
@@ -289,6 +348,32 @@ TEST_CASE( "[maybe] move construction" ) {
     REQUIRE( m6.has_value() );
     REQUIRE( *m6 == "hello" );
   }
+}
+
+TEST_CASE( "[maybe] in place construction" ) {
+  struct A {
+    A( int n_, string s_, double d_ )
+      : n( n_ ), s( s_ ), d( d_ ) {}
+    int    n;
+    string s;
+    double d;
+  };
+
+  M<A> m( in_place, 5, "hello", 4.5 );
+  REQUIRE( m.has_value() );
+  REQUIRE( m->n == 5 );
+  REQUIRE( m->s == "hello" );
+  REQUIRE( m->d == 4.5 );
+
+  M<vector<int>> m2( in_place, { 4, 5 } );
+  REQUIRE( m2.has_value() );
+  REQUIRE_THAT( *m2, Equals( vector<int>{ 4, 5 } ) );
+  REQUIRE( m2->size() == 2 );
+
+  M<vector<int>> m3( in_place, 4, 5 );
+  REQUIRE( m3.has_value() );
+  REQUIRE_THAT( *m3, Equals( vector<int>{ 5, 5, 5, 5 } ) );
+  REQUIRE( m3->size() == 4 );
 }
 
 TEST_CASE( "[maybe] copy assignment" ) {
@@ -373,38 +458,68 @@ TEST_CASE( "[maybe] move assignment" ) {
   }
 }
 
-// TEST_CASE( "[maybe] converting assignments" ) {
-//   M<int> m = 5;
-//   REQUIRE( m.has_value() );
-//   REQUIRE( *m == 5 );
-//
-//   struct A {
-//     A() = default;
-//     A( int m ) : n( m ) {}
-//         operator int() const { return n; }
-//     int n = {};
-//   };
-//
-//   A a{ 7 };
-//   m = a;
-//   REQUIRE( m.has_value() );
-//   REQUIRE( *m == 7 );
-//
-//   m = A{ 9 };
-//   REQUIRE( m.has_value() );
-//   REQUIRE( *m == 9 );
-//
-//   M<A> m2;
-//   REQUIRE( !m2.has_value() );
-//   m2 = A{3};
-//
-//   m = m2;
-//   REQUIRE( m2.has_value() );
-//   REQUIRE( *m2 == 9 );
-// }
+TEST_CASE( "[maybe] converting assignments" ) {
+  M<int> m = 5;
+  REQUIRE( m.has_value() );
+  REQUIRE( *m == 5 );
+
+  struct A {
+    A() = default;
+    A( int m ) : n( m ) {}
+        operator int() const { return n; }
+    int n = {};
+  };
+
+  A a{ 7 };
+  m = a;
+  REQUIRE( m.has_value() );
+  REQUIRE( *m == 7 );
+
+  m = A{ 9 };
+  REQUIRE( m.has_value() );
+  REQUIRE( *m == 9 );
+
+  M<A> m2;
+  REQUIRE( !m2.has_value() );
+  m2 = A{ 3 };
+
+  m = m2;
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m2 == 3 );
+}
+
+TEST_CASE( "[maybe] dereference" ) {
+  M<int> m1 = 5;
+  REQUIRE( m1.has_value() );
+  REQUIRE( *m1 == 5 );
+
+  static_assert( is_same_v<decltype( *m1 ), int&> );
+  static_assert(
+      is_same_v<decltype( as_const( *m1 ) ), int const&> );
+
+  static_assert( is_same_v<decltype( *M<int>{} ), int&&> );
+
+  M<NoCopy> m2{ 'c' };
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m2 == NoCopy{ 'c' } );
+  REQUIRE( m2->c == 'c' );
+
+  static_assert( is_same_v<decltype( *m2 ), NoCopy&> );
+  static_assert(
+      is_same_v<decltype( as_const( *m2 ) ), NoCopy const&> );
+
+  static_assert( is_same_v<decltype( *M<NoCopy>{} ), NoCopy&&> );
+
+  static_assert( is_same_v<decltype( m2->c ), char> );
+  static_assert(
+      is_same_v<decltype( as_const( m2 )->c ), char> );
+
+  static_assert( is_same_v<decltype( &m2->c ), char*> );
+  static_assert(
+      is_same_v<decltype( &as_const( m2 )->c ), char const*> );
+}
 
 TEST_CASE( "[maybe] emplace" ) {
-  TructionTracker::reset();
   SECTION( "int" ) {
     M<int> m;
     REQUIRE( !m.has_value() );
@@ -424,7 +539,7 @@ TEST_CASE( "[maybe] emplace" ) {
     m.emplace( "hello2" );
     REQUIRE( m.has_value() );
     REQUIRE( *m == "hello2" );
-    m.emplace( std::string_view( "hello3" ) );
+    m.emplace( string_view( "hello3" ) );
     REQUIRE( m.has_value() );
     REQUIRE( *m == "hello3" );
     m.emplace();
@@ -468,6 +583,7 @@ TEST_CASE( "[maybe] emplace" ) {
     REQUIRE( m->size() == 4 );
   }
   SECTION( "TructionTracker" ) {
+    TructionTracker::reset();
     {
       M<TructionTracker> m;
       m.emplace();
@@ -581,37 +697,37 @@ TEST_CASE( "[maybe] swap" ) {
       REQUIRE( !m2.has_value() );
     }
     SECTION( "both have values" ) {
-      M<NoCopy> m1 = 'h';
-      M<NoCopy> m2 = 'w';
+      M<NoCopy> m1 = NoCopy{ 'h' };
+      M<NoCopy> m2 = NoCopy{ 'w' };
       REQUIRE( m1.has_value() );
       REQUIRE( m2.has_value() );
-      REQUIRE( *m1 == 'h' );
-      REQUIRE( *m2 == 'w' );
+      REQUIRE( *m1 == NoCopy{ 'h' } );
+      REQUIRE( *m2 == NoCopy{ 'w' } );
       m1.swap( m2 );
       REQUIRE( m1.has_value() );
       REQUIRE( m2.has_value() );
-      REQUIRE( *m1 == 'w' );
-      REQUIRE( *m2 == 'h' );
+      REQUIRE( *m1 == NoCopy{ 'w' } );
+      REQUIRE( *m2 == NoCopy{ 'h' } );
       m2.swap( m1 );
       REQUIRE( m1.has_value() );
       REQUIRE( m2.has_value() );
-      REQUIRE( *m1 == 'h' );
-      REQUIRE( *m2 == 'w' );
+      REQUIRE( *m1 == NoCopy{ 'h' } );
+      REQUIRE( *m2 == NoCopy{ 'w' } );
     }
     SECTION( "one has value" ) {
       M<NoCopy> m1;
-      M<NoCopy> m2 = 'w';
+      M<NoCopy> m2 = NoCopy{ 'w' };
       REQUIRE( !m1.has_value() );
       REQUIRE( m2.has_value() );
-      REQUIRE( *m2 == 'w' );
+      REQUIRE( *m2 == NoCopy{ 'w' } );
       m1.swap( m2 );
       REQUIRE( m1.has_value() );
       REQUIRE( !m2.has_value() );
-      REQUIRE( *m1 == 'w' );
+      REQUIRE( *m1 == NoCopy{ 'w' } );
       m2.swap( m1 );
       REQUIRE( !m1.has_value() );
       REQUIRE( m2.has_value() );
-      REQUIRE( *m2 == 'w' );
+      REQUIRE( *m2 == NoCopy{ 'w' } );
     }
   }
   SECTION( "TructionTracker" ) {
@@ -739,6 +855,173 @@ TEST_CASE( "[maybe] value_or" ) {
 
 TEST_CASE( "[maybe] non-copyable non-movable T" ) {
   M<NoCopyNoMove> m;
+}
+
+TEST_CASE( "[maybe] deduction guides" ) {
+  SECTION( "implicit" ) {
+    auto m1 = maybe{ 5 };
+    static_assert( is_same_v<decltype( m1 ), M<int>> );
+    auto m2 = maybe{ string( "hello" ) };
+    static_assert( is_same_v<decltype( m2 ), M<string>> );
+  }
+  // These would fail if we didn't have the explicit deduction
+  // guide.
+  SECTION( "explicit" ) {
+    int  arr[6];
+    auto m1 = maybe{ arr };
+    static_assert( is_same_v<decltype( m1 ), M<int*>> );
+    auto m2 = maybe{ "hello" };
+    static_assert( is_same_v<decltype( m2 ), M<char const*>> );
+  }
+}
+
+TEST_CASE( "[maybe] std::swap overload" ) {
+  M<int> m1;
+  M<int> m2 = 5;
+  REQUIRE( !m1.has_value() );
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m2 == 5 );
+
+  std::swap( m1, m2 );
+
+  REQUIRE( m1.has_value() );
+  REQUIRE( !m2.has_value() );
+  REQUIRE( *m1 == 5 );
+}
+
+TEST_CASE( "[maybe] make_maybe" ) {
+  auto m1 = make_maybe( 5 );
+  static_assert( is_same_v<decltype( m1 ), M<int>> );
+  REQUIRE( m1.has_value() );
+  REQUIRE( *m1 == 5 );
+  auto m2 = make_maybe( NoCopy{ 'c' } );
+  static_assert( is_same_v<decltype( m2 ), M<NoCopy>> );
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m2 == NoCopy( 'c' ) );
+
+  auto m3 = make_maybe<NoCopy>( 'c' );
+  REQUIRE( m3.has_value() );
+  REQUIRE( *m3 == NoCopy{ 'c' } );
+
+  auto m4 = make_maybe<vector<int>>( { 4, 5 } );
+  REQUIRE( m4.has_value() );
+  REQUIRE( m4->size() == 2 );
+  REQUIRE_THAT( *m4, Equals( vector<int>{ 4, 5 } ) );
+
+  auto m5 = make_maybe<vector<int>>( 4, 5 );
+  REQUIRE( m5.has_value() );
+  REQUIRE( m5->size() == 4 );
+  REQUIRE_THAT( *m5, Equals( vector<int>{ 5, 5, 5, 5 } ) );
+}
+
+TEST_CASE( "[maybe] equality" ) {
+  SECTION( "int" ) {
+    M<int> m1;
+    M<int> m2;
+    M<int> m3 = 5;
+    M<int> m4 = 7;
+    M<int> m5 = 5;
+
+    REQUIRE( m1 == m1 );
+    REQUIRE( m1 == m2 );
+    REQUIRE( m1 != m3 );
+    REQUIRE( m1 != m4 );
+    REQUIRE( m1 != m5 );
+
+    REQUIRE( m2 == m1 );
+    REQUIRE( m2 == m2 );
+    REQUIRE( m2 != m3 );
+    REQUIRE( m2 != m4 );
+    REQUIRE( m2 != m5 );
+
+    REQUIRE( m3 != m1 );
+    REQUIRE( m3 != m2 );
+    REQUIRE( m3 == m3 );
+    REQUIRE( m3 != m4 );
+    REQUIRE( m3 == m5 );
+
+    REQUIRE( m4 != m1 );
+    REQUIRE( m4 != m2 );
+    REQUIRE( m4 != m3 );
+    REQUIRE( m4 == m4 );
+    REQUIRE( m4 != m5 );
+
+    REQUIRE( m5 != m1 );
+    REQUIRE( m5 != m2 );
+    REQUIRE( m5 == m3 );
+    REQUIRE( m5 != m4 );
+    REQUIRE( m5 == m5 );
+  }
+  SECTION( "string" ) {
+    M<string> m1;
+    M<string> m2;
+    M<string> m3 = "hello";
+    M<string> m4 = "world";
+    M<string> m5 = "hello";
+
+    REQUIRE( m1 == m1 );
+    REQUIRE( m1 == m2 );
+    REQUIRE( m1 != m3 );
+    REQUIRE( m1 != m4 );
+    REQUIRE( m1 != m5 );
+
+    REQUIRE( m2 == m1 );
+    REQUIRE( m2 == m2 );
+    REQUIRE( m2 != m3 );
+    REQUIRE( m2 != m4 );
+    REQUIRE( m2 != m5 );
+
+    REQUIRE( m3 != m1 );
+    REQUIRE( m3 != m2 );
+    REQUIRE( m3 == m3 );
+    REQUIRE( m3 != m4 );
+    REQUIRE( m3 == m5 );
+
+    REQUIRE( m4 != m1 );
+    REQUIRE( m4 != m2 );
+    REQUIRE( m4 != m3 );
+    REQUIRE( m4 == m4 );
+    REQUIRE( m4 != m5 );
+
+    REQUIRE( m5 != m1 );
+    REQUIRE( m5 != m2 );
+    REQUIRE( m5 == m3 );
+    REQUIRE( m5 != m4 );
+    REQUIRE( m5 == m5 );
+  }
+}
+
+TEST_CASE( "[maybe] value()" ) {
+  M<int> m1;
+  try {
+    m1.value();
+    // Should not be here.
+    REQUIRE( false );
+  } catch( bad_maybe_access const& e ) {
+    REQUIRE_THAT(
+        e.what(),
+        Contains( "value() called on an inactive maybe" ) );
+  }
+
+  m1 = 5;
+  REQUIRE( m1.value() == 5 );
+  const M<int> m2 = 5;
+  REQUIRE( m2.value() == 5 );
+}
+
+TEST_CASE( "[maybe] nothing_t" ) {
+  M<int> m1( nothing );
+  REQUIRE( m1 == nothing );
+  REQUIRE( !m1.has_value() );
+
+  m1 = 5;
+  REQUIRE( m1.has_value() );
+  REQUIRE( m1 != nothing );
+  REQUIRE( *m1 == 5 );
+
+  m1 = nothing;
+  REQUIRE( !m1.has_value() );
+  REQUIRE( m1 == nothing );
 }
 
 } // namespace

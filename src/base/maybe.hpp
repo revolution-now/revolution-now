@@ -11,69 +11,78 @@
 *****************************************************************/
 #pragma once
 
+// base
+#include "source-loc.hpp"
+
+// C++ standard library
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <utility>
 
 namespace base {
 
-// The class template std::optional manages an optional contained
-// value, i.e. a value that may or may not be present.
-//
-// A common use case for optional is the return value of a func-
-// tion that may fail. As opposed to other approaches, such as
-// std::pair<T,bool>, optional handles expensive-to-construct ob-
-// jects well and is more readable, as the intent is expressed
-// explicitly.
-//
-// Any instance of optional<T> at any given point in time either
-// contains a value or does not contain a value.
-//
-// If an optional<T> contains a value, the value is guaranteed to
-// be allocated as part of the optional object footprint, i.e. no
-// dynamic memory allocation ever takes place. Thus, an optional
-// object models an object, not a pointer, even though opera-
-// tor*() and operator->() are defined.
-//
-// When an object of type optional<T> is contextually converted
-// to bool, the conversion returns true if the object contains a
-// value and false if it does not contain a value.
-//
-// The optional object contains a value in the following condi-
-// tions:
-//
-// - The object is initialized with/assigned from a value of type
-//   T or another optional that contains a value.
-//
-// The object does not contain a value in the following condi-
-// tions:
-//
-// - The object is default-initialized.
-// - The object is initialized with/assigned from a value of type
-//   std::nullopt_t or an optional object that does not contain a
-//   value.
-// - The member function reset() is called.
-//
-// There are no optional references; a program is ill-formed if
-// it instantiates an optional with a reference type. Alterna-
-// tively, an optional of a std::reference_wrapper of type T may
-// be used to hold a reference. In addition, a program is
-// ill-formed if it instantiates an optional with the (possibly
-// cv-qualified) tag types std::nullopt_t or std::in_place_t.
+/****************************************************************
+** nothing_t
+*****************************************************************/
+struct nothing_t {
+  constexpr bool operator==( nothing_t const& ) const = default;
+};
+
+inline constexpr nothing_t nothing;
+
+/****************************************************************
+** bad_maybe_access exception
+*****************************************************************/
+struct bad_maybe_access : public std::exception {
+  bad_maybe_access( SourceLoc loc = SourceLoc{} )
+    : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
+    error_msg_ = loc_.file_name();
+    error_msg_ += ":" + std::to_string( loc_.line() ) + ": ";
+    error_msg_ += "value() called on an inactive maybe.";
+  }
+
+  char const* what() const noexcept override {
+    return error_msg_.c_str();
+  }
+
+  SourceLoc   loc_;
+  std::string error_msg_;
+};
+
+/****************************************************************
+** maybe
+*****************************************************************/
 template<typename T>
 class maybe {
+public:
+  /**************************************************************
+  ** Types
+  ***************************************************************/
+  using value_type = T;
+
   /**************************************************************
   ** Destruction
   ***************************************************************/
 private:
   void destroy() {
-    if( active_ ) val_.~T();
-    // Don't set active_ to false here. That is the purpose of
-    // this function. If you want to destroy+deactivate then call
-    // the public reset() function.
+    if constexpr( !std::is_trivially_destructible_v<T> ) {
+      if( active_ ) val_.~T();
+      // Don't set active_ to false here. That is the purpose of
+      // this function. If you want to destroy+deactivate then
+      // call the public reset() function.
+    }
   }
 
 public:
+  // FIXME: If T is trivially destructible then this destructor
+  // should also be trivial, making optional<T> also trivially
+  // destructible. This is not simple to do currently; it re-
+  // quires tricky conditional base classes. But the following
+  // proposal, if accepted, would make it easy:
+  //
+  //   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0848r3.html
+  //
   ~maybe() { destroy(); }
 
   /**************************************************************
@@ -85,27 +94,33 @@ public:
   /**************************************************************
   ** Value Constructors
   ***************************************************************/
-  maybe( T const& val ) noexcept(
-      std::is_nothrow_copy_constructible_v<
-          T> ) requires( std::is_copy_constructible_v<T> )
-    : active_{ true } {
+  maybe( T const& val ) /* clang-format off */
+      noexcept( std::is_nothrow_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> )
+    : active_{ true } /* clang-format on */ {
     new( &val_ ) T( val );
   }
 
-  maybe( T&& val ) noexcept(
-      std::is_nothrow_move_constructible_v<
-          T> ) requires( std::is_move_constructible_v<T> )
-    : active_{ true } {
+  maybe( T&& val ) /* clang-format off */
+      noexcept( std::is_nothrow_move_constructible_v<T> )
+      requires( std::is_move_constructible_v<T> )
+    : active_{ true } /* clang-format on */ {
     new( &val_ ) T( std::move( val ) );
   }
 
   /**************************************************************
   ** Converting Value Constructor
   ***************************************************************/
-  template<typename U, typename = std::enable_if_t<
-                           std::is_convertible_v<U, T>, void>>
-  maybe( U&& val ) noexcept(
-      std::is_nothrow_convertible_v<U, T> )
+  template<
+      typename U,
+      typename = std::enable_if_t<
+          std::is_constructible_v<T, U&&> &&
+          !std::is_same_v<std::remove_cvref_t<U>,
+                          std::in_place_t> &&
+          !std::is_same_v<std::remove_cvref_t<U>, maybe<T>>>>
+  explicit( !std::is_convertible_v<U&&, T> ) //
+      maybe( U&& val ) noexcept(
+          std::is_nothrow_convertible_v<U, T> )
     : active_{ true } {
     new( &val_ ) T( std::forward<U>( val ) );
   }
@@ -125,13 +140,41 @@ public:
   maybe( maybe<T>&& other ) noexcept(
       std::is_nothrow_move_constructible_v<T> )
     : active_{ false } {
-    swap( other );
+    this->swap( other );
+  }
+
+  /**************************************************************
+  ** nothing constructor
+  ***************************************************************/
+  maybe( nothing_t ) noexcept : maybe() {}
+
+  /**************************************************************
+  ** In-place construction
+  ***************************************************************/
+  template<typename... Args> /* clang-format off */
+  constexpr explicit maybe( std::in_place_t, Args&&... args )
+      requires( std::is_constructible_v<T, Args...> )
+    : active_{ true } /* clang-format on */ {
+    new( &val_ ) T( std::forward<Args>( args )... );
+  }
+
+  template<typename U, typename... Args> /* clang-format off */
+  constexpr explicit maybe( std::in_place_t,
+                            std::initializer_list<U> ilist,
+                            Args&&... args )
+      requires( std::is_constructible_v<
+                    T,
+                    std::initializer_list<U>&,
+                    Args...
+                > )
+    : active_{ true } /* clang-format on */ {
+    new( &val_ ) T( ilist, std::forward<Args>( args )... );
   }
 
   /**************************************************************
   ** Copy Assignment
   ***************************************************************/
-  maybe<T>& operator=( maybe<T> const& rhs ) & {
+  constexpr maybe<T>& operator=( maybe<T> const& rhs ) & {
     destroy();
     active_ = rhs.active_;
     if( rhs.active_ ) new( &val_ ) T( rhs.val_ );
@@ -141,29 +184,45 @@ public:
   /**************************************************************
   ** Move Assignment
   ***************************************************************/
-  maybe<T>& operator=( maybe<T>&& rhs ) & noexcept(
+  constexpr maybe<T>& operator=( maybe<T>&& rhs ) & noexcept(
       noexcept( swap( rhs ) ) ) {
     reset();
-    swap( rhs );
+    this->swap( rhs );
     return *this;
   }
 
   /**************************************************************
   ** Converting Assignment
   ***************************************************************/
-  // template<typename U, typename = std::enable_if_t<
-  //                          std::is_convertible_v<U, T>,
-  //                          void> >
-  // maybe<T>&
-  // operator=( maybe<U>&& rhs ) & noexcept(
-  //     std::is_nothrow_convertible_v<U, T> ) {
-  //   destroy();
-  //   active_ = rhs.active_;
-  //   if( rhs.active_ )
-  //     new( &val_ ) T( std::forward<maybe<U>>( rhs ).val_ );
-  //   rhs.reset();
-  //   return *this;
-  // }
+  template<typename U, typename = std::enable_if_t<
+                           std::is_convertible_v<U&&, T>, void>
+           // TODO: a lot more conditions need to be added here.
+           >
+  maybe<T>& operator=( maybe<U>&& rhs ) & noexcept(
+      std::is_nothrow_convertible_v<U&&, T> ) {
+    destroy();
+    active_ = rhs.active_;
+    if( active_ ) new( &val_ ) T( std::move( rhs.val_ ) );
+    // Note: this reference goes against what cppreference says,
+    // since it says that a moved-from optional still has a
+    // value. But for the `maybe` type we will deviate from that
+    // because it just doesn't sound right.
+    rhs.reset();
+    return *this;
+  }
+
+  template<typename U,
+           typename = std::enable_if_t<
+               std::is_convertible_v<U const&, T>, void>
+           // TODO: a lot more conditions need to be added here.
+           >
+  maybe<T>& operator=( maybe<U> const& rhs ) & noexcept(
+      std::is_nothrow_convertible_v<U const&, T> ) {
+    destroy();
+    active_ = rhs.has_value();
+    if( active_ ) new( &val_ ) T( *rhs );
+    return *this;
+  }
 
   /**************************************************************
   ** Converting Value Assignment
@@ -175,6 +234,14 @@ public:
     destroy();
     active_ = true;
     if( active_ ) new( &val_ ) T( std::forward<U>( rhs ) );
+    return *this;
+  }
+
+  /**************************************************************
+  ** nothing assignment
+  ***************************************************************/
+  maybe<T>& operator=( nothing_t ) & noexcept {
+    reset();
     return *this;
   }
 
@@ -208,17 +275,13 @@ public:
   /**************************************************************
   ** value (TODO: to be removed)
   ***************************************************************/
-  T& value() {
-    if( !active_ )
-      throw std::runtime_error(
-          "value() called on inactive-maybe." );
+  T& value( SourceLoc loc = SourceLoc{} ) {
+    if( !active_ ) throw bad_maybe_access{};
     return val_;
   }
 
-  T const& value() const {
-    if( !active_ )
-      throw std::runtime_error(
-          "value() called on inactive-maybe." );
+  T const& value( SourceLoc loc = SourceLoc{} ) const {
+    if( !active_ ) throw bad_maybe_access{};
     return val_;
   }
 
@@ -256,20 +319,22 @@ public:
   }
 
   /**************************************************************
-  ** has_value
+  ** has_value/bool
   ***************************************************************/
   bool has_value() const noexcept { return active_; }
 
-  operator bool() const noexcept { return active_; }
+  explicit operator bool() const noexcept { return active_; }
 
   /**************************************************************
   ** Deference operators
   ***************************************************************/
-  T&       operator*() noexcept { return val_; }
-  T const& operator*() const noexcept { return val_; }
+  T&       operator*() & noexcept { return val_; }
+  T const& operator*() const& noexcept { return val_; }
 
-  T*       operator->() noexcept { return &val_; }
-  T const* operator->() const noexcept { return &val_; }
+  T&& operator*() && noexcept { return std::move( val_ ); }
+
+  T*       operator->() & noexcept { return &val_; }
+  T const* operator->() const& noexcept { return &val_; }
 
   /**************************************************************
   ** emplace
@@ -302,6 +367,9 @@ public:
     return val_;
   }
 
+  /**************************************************************
+  ** Storage
+  ***************************************************************/
 private:
   bool active_ = false;
   union {
@@ -309,4 +377,96 @@ private:
   };
 };
 
+/****************************************************************
+** Deduction Guide
+*****************************************************************/
+// From cppreference: One deduction guide is provided to account
+// for the edge cases missed by the implicit deduction guides, in
+// particular, non-copyable arguments and array to pointer con-
+// version
+template<class T>
+maybe( T ) -> maybe<T>;
+
+/****************************************************************
+** make_maybe
+*****************************************************************/
+template<typename T>
+constexpr maybe<std::decay_t<T>> make_maybe( T&& val ) {
+  return maybe<std::decay_t<T>>( std::forward<T>( val ) );
+}
+
+template<typename T, typename... Args>
+constexpr maybe<T> make_maybe( Args&&... args ) {
+  return maybe<T>( std::in_place,
+                   std::forward<Args>( args )... );
+}
+
+template<typename T, typename U, typename... Args>
+constexpr maybe<T> make_optional( std::initializer_list<U> ilist,
+                                  Args&&... args ) {
+  return maybe<T>( std::in_place, ilist,
+                   std::forward<Args>( args )... );
+}
+
+/****************************************************************
+** Equality
+*****************************************************************/
+template<typename T, typename U,
+         typename = std::void_t<decltype( std::declval<T>() ==
+                                          std::declval<U>() )>>
+bool operator==( maybe<T> const& lhs, maybe<U> const& rhs ) //
+    noexcept( noexcept( *lhs == *rhs ) ) {
+  bool l = lhs.has_value();
+  bool r = rhs.has_value();
+  return ( l != r ) ? false : l ? ( *lhs == *rhs ) : true;
+}
+
+template<
+    typename T, typename U,
+    typename = std::void_t<decltype( std::declval<maybe<T>>() ==
+                                     std::declval<maybe<U>>() )>>
+bool operator!=( maybe<T> const& lhs, maybe<U> const& rhs ) //
+    noexcept( noexcept( lhs == rhs ) ) {
+  return !( lhs == rhs );
+}
+
+template<typename T>
+bool operator==( maybe<T> const& lhs, nothing_t ) noexcept {
+  return !lhs.has_value();
+}
+
+template<typename T>
+bool operator!=( maybe<T> const& lhs, nothing_t ) noexcept {
+  return lhs.has_value();
+}
+
+template<typename T>
+bool operator==( nothing_t, maybe<T> const& rhs ) noexcept {
+  return !rhs.has_value();
+}
+
+template<typename T>
+bool operator!=( nothing_t, maybe<T> const& rhs ) noexcept {
+  return rhs.has_value();
+}
+
 } // namespace base
+
+/****************************************************************
+** std::swap
+*****************************************************************/
+namespace std {
+
+// As usual, if this version is not selected to be part of the
+// overload set then a generic std::swap will be used; either way
+// std::swap should work so long as std::swap<T> would work.
+template<typename T> /* clang-format off */
+auto swap( ::base::maybe<T>& lhs,
+           ::base::maybe<T>& rhs )
+       noexcept( noexcept( lhs.swap( rhs ) ) )
+    -> enable_if_t<is_move_constructible_v<T> &&
+                   is_swappable_v<T>> /* clang-format on*/ {
+  lhs.swap( rhs );
+}
+
+} // namespace std
