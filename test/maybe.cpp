@@ -14,11 +14,12 @@
 // Under test.
 #include "base/maybe.hpp"
 
-// C++ standard library
-#include <experimental/type_traits>
-
 // Must be last.
 #include "catch-common.hpp"
+
+// C++ standard library
+#include <experimental/type_traits>
+#include <functional>
 
 namespace base {
 namespace {
@@ -32,6 +33,9 @@ using ::std::experimental::is_detected_v;
 template<typename T>
 using M = ::base::maybe<T>;
 
+template<typename T>
+using RR = ::std::reference_wrapper<T>;
+
 /****************************************************************
 ** Tracker
 *****************************************************************/
@@ -40,16 +44,16 @@ struct Tracker {
   static int  constructed;
   static int  destructed;
   static int  copied;
-  static int  moved;
+  static int  move_constructed;
   static int  move_assigned;
   static void reset() {
-    constructed = destructed = copied = moved = move_assigned =
-        0;
+    constructed = destructed = copied = move_constructed =
+        move_assigned                 = 0;
   }
 
   Tracker() noexcept { ++constructed; }
   Tracker( Tracker const& ) noexcept { ++copied; }
-  Tracker( Tracker&& ) noexcept { ++moved; }
+  Tracker( Tracker&& ) noexcept { ++move_constructed; }
   ~Tracker() noexcept { ++destructed; }
 
   Tracker& operator=( Tracker const& ) = delete;
@@ -58,11 +62,11 @@ struct Tracker {
     return *this;
   }
 };
-int Tracker::constructed   = 0;
-int Tracker::destructed    = 0;
-int Tracker::copied        = 0;
-int Tracker::moved         = 0;
-int Tracker::move_assigned = 0;
+int Tracker::constructed      = 0;
+int Tracker::destructed       = 0;
+int Tracker::copied           = 0;
+int Tracker::move_constructed = 0;
+int Tracker::move_assigned    = 0;
 
 /****************************************************************
 ** Constexpr type
@@ -104,7 +108,11 @@ struct NoCopyNoMove {
   NoCopyNoMove( NoCopyNoMove const& ) = delete;
   NoCopyNoMove( NoCopyNoMove&& )      = delete;
   NoCopyNoMove& operator=( NoCopyNoMove const& ) = delete;
-  NoCopyNoMove& operator=( NoCopyNoMove&& )     = delete;
+  NoCopyNoMove& operator=( NoCopyNoMove&& ) = delete;
+  NoCopyNoMove& operator=( char c_ ) noexcept {
+    c = c_;
+    return *this;
+  }
   bool operator==( NoCopyNoMove const& ) const& = default;
   char c;
 };
@@ -117,11 +125,22 @@ static_assert( !is_move_assignable_v<NoCopyNoMove> );
 ** Thrower
 *****************************************************************/
 struct Throws {
-  Throws() noexcept( false );
-  Throws( Throws const& ) noexcept( false );
-  Throws( Throws&& ) noexcept( false );
-  Throws& operator=( Throws const& ) noexcept( false );
-  Throws& operator=( Throws&& ) noexcept( false );
+  Throws( bool should_throw = true ) {
+    if( should_throw )
+      throw runtime_error( "default construction" );
+  }
+  Throws( Throws const& ) {
+    throw runtime_error( "copy construction" );
+  }
+  Throws( Throws&& ) {
+    throw runtime_error( "move construction" );
+  }
+  Throws& operator=( Throws const& ) {
+    throw runtime_error( "copy assignment" );
+  }
+  Throws& operator=( Throws&& ) {
+    throw runtime_error( "move assignment" );
+  }
 };
 
 /****************************************************************
@@ -159,6 +178,12 @@ struct Stringable {
   // clang-format on
   string s = {};
 };
+
+/****************************************************************
+** [static] nothing_t
+*****************************************************************/
+constexpr nothing_t n0thing( 0 );
+static_assert( sizeof( decltype( n0thing ) ) == 1 );
 
 /****************************************************************
 ** [static] Invalid value types.
@@ -254,7 +279,7 @@ TEST_CASE( "[maybe] default construction" ) {
       REQUIRE( Tracker::constructed == 1 );
       REQUIRE( Tracker::destructed == 1 );
       REQUIRE( Tracker::copied == 0 );
-      REQUIRE( Tracker::moved == 1 );
+      REQUIRE( Tracker::move_constructed == 1 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 2 );
@@ -308,7 +333,7 @@ TEST_CASE( "[maybe] reset" ) {
       REQUIRE( Tracker::constructed == 1 );
       REQUIRE( Tracker::destructed == 1 );
       REQUIRE( Tracker::copied == 0 );
-      REQUIRE( Tracker::moved == 0 );
+      REQUIRE( Tracker::move_constructed == 0 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 1 );
@@ -650,6 +675,60 @@ TEST_CASE( "[maybe] move assignment" ) {
     REQUIRE( *m3 == "hello" );
     REQUIRE( m2.has_value() );
   }
+  SECTION( "Tracker" ) {
+    {
+      Tracker::reset();
+      M<Tracker> m1;
+      M<Tracker> m2;
+      m1 = std::move( m2 );
+      REQUIRE( Tracker::constructed == 0 );
+      REQUIRE( Tracker::destructed == 0 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::move_constructed == 0 );
+      REQUIRE( Tracker::move_assigned == 0 );
+    }
+    REQUIRE( Tracker::destructed == 0 );
+    {
+      Tracker::reset();
+      M<Tracker> m1;
+      m1.emplace();
+      M<Tracker> m2;
+      m1 = std::move( m2 );
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 1 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::move_constructed == 0 );
+      REQUIRE( Tracker::move_assigned == 0 );
+    }
+    REQUIRE( Tracker::destructed == 1 );
+    {
+      Tracker::reset();
+      M<Tracker> m1;
+      M<Tracker> m2;
+      m2.emplace();
+      m1 = std::move( m2 );
+      REQUIRE( Tracker::constructed == 1 );
+      REQUIRE( Tracker::destructed == 0 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::move_constructed == 1 );
+      REQUIRE( Tracker::move_assigned == 0 );
+    }
+    REQUIRE( Tracker::destructed == 2 );
+    {
+      Tracker::reset();
+      M<Tracker> m1;
+      m1.emplace();
+      M<Tracker> m2;
+      m2.emplace();
+      m1 = std::move( m2 );
+      REQUIRE( Tracker::constructed == 2 );
+      REQUIRE( Tracker::destructed == 0 );
+      REQUIRE( Tracker::copied == 0 );
+      REQUIRE( Tracker::move_constructed == 0 );
+      REQUIRE( Tracker::move_assigned == 1 );
+    }
+    REQUIRE( Tracker::destructed == 2 );
+  }
 }
 
 TEST_CASE( "[maybe] converting assignments" ) {
@@ -657,29 +736,27 @@ TEST_CASE( "[maybe] converting assignments" ) {
   REQUIRE( m.has_value() );
   REQUIRE( *m == 5 );
 
-  struct A {
-    A() = default;
-    A( int m ) : n( m ) {}
-        operator int() const { return n; }
-    int n = {};
-  };
-
-  A a{ 7 };
+  Intable a{ 7 };
   m = a;
   REQUIRE( m.has_value() );
   REQUIRE( *m == 7 );
 
-  m = A{ 9 };
+  m = Intable{ 9 };
   REQUIRE( m.has_value() );
   REQUIRE( *m == 9 );
 
-  M<A> m2;
+  M<Intable> m2;
   REQUIRE( !m2.has_value() );
-  m2 = A{ 3 };
+  m2 = Intable{ 3 };
 
   m = m2;
   REQUIRE( m2.has_value() );
   REQUIRE( *m2 == 3 );
+
+  m = std::move( m2 );
+  REQUIRE( m.has_value() );
+  REQUIRE( m2.has_value() );
+  REQUIRE( *m == 3 );
 }
 
 TEST_CASE( "[maybe] dereference" ) {
@@ -784,10 +861,27 @@ TEST_CASE( "[maybe] emplace" ) {
       REQUIRE( Tracker::constructed == 1 );
       REQUIRE( Tracker::destructed == 0 );
       REQUIRE( Tracker::copied == 0 );
-      REQUIRE( Tracker::moved == 0 );
+      REQUIRE( Tracker::move_constructed == 0 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 1 );
+  }
+  SECTION( "exception safety" ) {
+    // The exception safety says that if the constructor throws
+    // during emplace that the object will be left without an ob-
+    // ject.
+    M<Throws> m;
+    m.emplace( /*should_throw=*/false );
+    REQUIRE( m.has_value() );
+    try {
+      m.emplace( /*should_throw=*/true );
+      // Should not be here.
+      REQUIRE( false );
+    } catch( std::runtime_error const& e ) {
+      REQUIRE( e.what() == "default construction"s );
+    }
+    // The test.
+    REQUIRE( !m.has_value() );
   }
 }
 
@@ -934,7 +1028,7 @@ TEST_CASE( "[maybe] swap" ) {
         REQUIRE( Tracker::constructed == 0 );
         REQUIRE( Tracker::destructed == 0 );
         REQUIRE( Tracker::copied == 0 );
-        REQUIRE( Tracker::moved == 0 );
+        REQUIRE( Tracker::move_constructed == 0 );
         REQUIRE( Tracker::move_assigned == 0 );
       }
       REQUIRE( Tracker::destructed == 0 );
@@ -951,7 +1045,7 @@ TEST_CASE( "[maybe] swap" ) {
         REQUIRE( Tracker::destructed == 2 );
         REQUIRE( Tracker::copied == 0 );
         // Should call std::swap.
-        REQUIRE( Tracker::moved == 2 );
+        REQUIRE( Tracker::move_constructed == 2 );
         REQUIRE( Tracker::move_assigned == 4 );
       }
       REQUIRE( Tracker::destructed == 4 );
@@ -966,7 +1060,22 @@ TEST_CASE( "[maybe] swap" ) {
         REQUIRE( Tracker::constructed == 1 );
         REQUIRE( Tracker::destructed == 2 );
         REQUIRE( Tracker::copied == 0 );
-        REQUIRE( Tracker::moved == 2 );
+        REQUIRE( Tracker::move_constructed == 2 );
+        REQUIRE( Tracker::move_assigned == 0 );
+      }
+      REQUIRE( Tracker::destructed == 3 );
+    }
+    SECTION( "other one has value" ) {
+      {
+        M<Tracker> m1;
+        M<Tracker> m2;
+        m1.emplace();
+        m1.swap( m2 );
+        m2.swap( m1 );
+        REQUIRE( Tracker::constructed == 1 );
+        REQUIRE( Tracker::destructed == 2 );
+        REQUIRE( Tracker::copied == 0 );
+        REQUIRE( Tracker::move_constructed == 2 );
         REQUIRE( Tracker::move_assigned == 0 );
       }
       REQUIRE( Tracker::destructed == 3 );
@@ -997,17 +1106,20 @@ TEST_CASE( "[maybe] value_or" ) {
     REQUIRE( M<string>{}.value_or( "world" ) == "world" );
   }
   SECTION( "NoCopy" ) {
-    //
+    REQUIRE( M<NoCopy>{ 'c' }.value_or( NoCopy{ 'v' } ) ==
+             NoCopy{ 'c' } );
+    REQUIRE( M<NoCopy>{}.value_or( NoCopy{ 'v' } ) ==
+             NoCopy{ 'v' } );
   }
   SECTION( "Tracker" ) {
     {
       Tracker::reset();
       M<Tracker> m;
-      m.value_or( Tracker{} );
+      (void)m.value_or( Tracker{} );
       REQUIRE( Tracker::constructed == 1 );
       REQUIRE( Tracker::destructed == 2 );
       REQUIRE( Tracker::copied == 0 );
-      REQUIRE( Tracker::moved == 1 );
+      REQUIRE( Tracker::move_constructed == 1 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 2 );
@@ -1015,31 +1127,31 @@ TEST_CASE( "[maybe] value_or" ) {
       Tracker::reset();
       M<Tracker> m;
       m.emplace();
-      m.value_or( Tracker{} );
+      (void)m.value_or( Tracker{} );
       REQUIRE( Tracker::constructed == 2 );
       REQUIRE( Tracker::destructed == 2 );
       REQUIRE( Tracker::copied == 1 );
-      REQUIRE( Tracker::moved == 0 );
+      REQUIRE( Tracker::move_constructed == 0 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 3 );
     {
       Tracker::reset();
-      M<Tracker>{}.value_or( Tracker{} );
+      (void)M<Tracker>{}.value_or( Tracker{} );
       REQUIRE( Tracker::constructed == 1 );
       REQUIRE( Tracker::destructed == 2 );
       REQUIRE( Tracker::copied == 0 );
-      REQUIRE( Tracker::moved == 1 );
+      REQUIRE( Tracker::move_constructed == 1 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 2 );
     {
       Tracker::reset();
-      M<Tracker>{ Tracker{} }.value_or( Tracker{} );
+      (void)M<Tracker>{ Tracker{} }.value_or( Tracker{} );
       REQUIRE( Tracker::constructed == 2 );
       REQUIRE( Tracker::destructed == 4 );
       REQUIRE( Tracker::copied == 0 );
-      REQUIRE( Tracker::moved == 2 );
+      REQUIRE( Tracker::move_constructed == 2 );
       REQUIRE( Tracker::move_assigned == 0 );
     }
     REQUIRE( Tracker::destructed == 4 );
@@ -1111,6 +1223,11 @@ TEST_CASE( "[maybe] make_maybe" ) {
   REQUIRE( m5.has_value() );
   REQUIRE( m5->size() == 4 );
   REQUIRE_THAT( *m5, Equals( vector<int>{ 5, 5, 5, 5 } ) );
+
+  // T need not be movable due to guaranteed copy elision.
+  auto m6 = make_maybe<NoCopyNoMove>( 'd' );
+  REQUIRE( m6.has_value() );
+  REQUIRE( m6->c == 'd' );
 }
 
 TEST_CASE( "[maybe] equality" ) {
@@ -1120,6 +1237,12 @@ TEST_CASE( "[maybe] equality" ) {
     M<int> m3 = 5;
     M<int> m4 = 7;
     M<int> m5 = 5;
+
+    REQUIRE( m1 == nothing );
+    REQUIRE( m2 == nothing );
+    REQUIRE( m3 != nothing );
+    REQUIRE( m4 != nothing );
+    REQUIRE( m5 != nothing );
 
     REQUIRE( m1 == m1 );
     REQUIRE( m1 == m2 );
@@ -1158,6 +1281,12 @@ TEST_CASE( "[maybe] equality" ) {
     M<string> m4 = "world";
     M<string> m5 = "hello";
 
+    REQUIRE( nothing == m1 );
+    REQUIRE( nothing == m2 );
+    REQUIRE( nothing != m3 );
+    REQUIRE( nothing != m4 );
+    REQUIRE( nothing != m5 );
+
     REQUIRE( m1 == m1 );
     REQUIRE( m1 == m2 );
     REQUIRE( m1 != m3 );
@@ -1190,22 +1319,46 @@ TEST_CASE( "[maybe] equality" ) {
   }
 }
 
-TEST_CASE( "[maybe] value()" ) {
-  M<int> m1;
-  try {
-    m1.value();
-    // Should not be here.
-    REQUIRE( false );
-  } catch( bad_maybe_access const& e ) {
-    REQUIRE_THAT(
-        e.what(),
-        Contains( "value() called on an inactive maybe" ) );
-  }
+TEST_CASE( "[maybe] comparison with value" ) {
+  M<string> m;
+  REQUIRE( m != string( "hello" ) );
+  REQUIRE( m != "hello" );
+  REQUIRE( string( "hello" ) != m );
+  REQUIRE( "hello" != m );
+  m = "hello";
+  REQUIRE( m == string( "hello" ) );
+  REQUIRE( m == "hello" );
+  REQUIRE( string( "hello" ) == m );
+  REQUIRE( "hello" == m );
+}
 
-  m1 = 5;
-  REQUIRE( m1.value() == 5 );
-  const M<int> m2 = 5;
-  REQUIRE( m2.value() == 5 );
+TEST_CASE( "[maybe] value()" ) {
+  SECTION( "int" ) {
+    M<int> m1;
+    try {
+      (void)m1.value( SourceLoc{} );
+      // Should not be here.
+      REQUIRE( false );
+    } catch( bad_maybe_access const& e ) {
+      REQUIRE_THAT( e.what(), Contains( fmt::format(
+                                  "unknown:0: value() called on "
+                                  "an inactive maybe" ) ) );
+    }
+
+    m1 = 5;
+    REQUIRE( m1.value() == 5 );
+    const M<int> m2 = 5;
+    REQUIRE( m2.value() == 5 );
+  }
+  SECTION( "NoCopy" ) {
+    M<NoCopy> m;
+    m.emplace( 'a' );
+    REQUIRE( m.has_value() );
+    REQUIRE( m->c == 'a' );
+
+    NoCopy nc = std::move( m ).value();
+    REQUIRE( nc.c == 'a' );
+  }
 }
 
 TEST_CASE( "[maybe] nothing_t" ) {
@@ -1303,6 +1456,43 @@ TEST_CASE( "[maybe] consteexpr" ) {
     static_assert( res8 );
     static_assert( res8->n == 5 );
   }
+}
+
+TEST_CASE( "[maybe] reference_wrapper" ) {
+  int        a = 5;
+  int        b = 7;
+  M<RR<int>> m;
+  REQUIRE( !m.has_value() );
+  m = a;
+  REQUIRE( m.has_value() );
+  REQUIRE( m->get() == 5 );
+  m = b;
+  REQUIRE( a == 5 );
+  REQUIRE( m.has_value() );
+  REQUIRE( m->get() == 7 );
+
+  REQUIRE( a == 5 );
+  REQUIRE( b == 7 );
+
+  M<RR<int>> m2 = m;
+  REQUIRE( m2.has_value() );
+}
+
+TEST_CASE( "[maybe] nothing_t constructors" ) {
+  M<int> m = 5;
+  REQUIRE( m.has_value() );
+  REQUIRE( m == 5 );
+  // This syntax for disengaging the maybe relies on nothing_t
+  // having the right constructor properties, otherwise it would
+  // be ambiguous.
+  m = {};
+  REQUIRE( !m.has_value() );
+
+  m = 5;
+  REQUIRE( m.has_value() );
+  REQUIRE( m == 5 );
+  m = nothing;
+  REQUIRE( !m.has_value() );
 }
 
 } // namespace
