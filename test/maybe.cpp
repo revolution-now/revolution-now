@@ -65,6 +65,21 @@ int Tracker::moved         = 0;
 int Tracker::move_assigned = 0;
 
 /****************************************************************
+** Constexpr type
+*****************************************************************/
+struct Constexpr {
+  constexpr Constexpr() = default;
+  constexpr Constexpr( int n_ ) noexcept : n( n_ ) {}
+  constexpr Constexpr( Constexpr const& ) = default;
+  constexpr Constexpr( Constexpr&& )      = default;
+  constexpr Constexpr& operator=( Constexpr const& ) = default;
+  constexpr Constexpr& operator=( Constexpr&& )       = default;
+  constexpr bool operator==( Constexpr const& ) const = default;
+
+  int n;
+};
+
+/****************************************************************
 ** Non-Copyable
 *****************************************************************/
 struct NoCopy {
@@ -1097,6 +1112,88 @@ TEST_CASE( "[maybe] nothing_t" ) {
   m1 = nothing;
   REQUIRE( !m1.has_value() );
   REQUIRE( m1 == nothing );
+}
+
+consteval M<int> Calculate1( M<int> num, M<int> den ) {
+  if( !num ) return nothing;
+  if( !den ) return nothing;
+  if( *den == 0 ) return nothing;
+  return ( *num ) / ( *den );
+}
+
+consteval M<Constexpr> Calculate2( M<Constexpr> num,
+                                   M<Constexpr> den ) {
+  if( !num ) return nothing;
+  if( !den ) return nothing;
+  if( den->n == 0 ) return nothing;
+  return Constexpr( num->n / den->n );
+}
+
+TEST_CASE( "[maybe] consteexpr" ) {
+  SECTION( "int" ) {
+    constexpr M<int> res1 = Calculate1( 8, 4 );
+    static_assert( res1 );
+    static_assert( *res1 == 2 );
+    constexpr M<int> res2 = Calculate1( nothing, 4 );
+    static_assert( res2 == nothing );
+    static_assert( !res2 );
+    constexpr M<int> res3 = Calculate1( 8, nothing );
+    static_assert( res3 == nothing );
+    static_assert( !res3 );
+    constexpr M<int> res4 = Calculate1( nothing, nothing );
+    static_assert( res4 == nothing );
+    static_assert( !res4 );
+    constexpr M<int> res5 = Calculate1( 8, 0 );
+    static_assert( res5 == nothing );
+    static_assert( !res5 );
+    constexpr M<int> res6 = Calculate1( 9, 4 );
+    static_assert( res6 );
+    static_assert( *res6 == 2 );
+
+    constexpr M<int> res7 = res6;
+    static_assert( res7 );
+    static_assert( *res7 == 2 );
+
+    static_assert( res7 == res6 );
+
+    constexpr M<int> res8 = M<int>{ 5 };
+    static_assert( res8 );
+    static_assert( *res8 == 5 );
+  }
+  SECTION( "Constexpr type" ) {
+    constexpr M<Constexpr> res1 =
+        Calculate2( Constexpr{ 8 }, Constexpr{ 4 } );
+    static_assert( res1 );
+    static_assert( res1->n == 2 );
+    constexpr M<Constexpr> res2 =
+        Calculate2( nothing, Constexpr{ 4 } );
+    static_assert( res2 == nothing );
+    static_assert( !res2 );
+    constexpr M<Constexpr> res3 =
+        Calculate2( Constexpr{ 8 }, nothing );
+    static_assert( res3 == nothing );
+    static_assert( !res3 );
+    constexpr M<Constexpr> res4 = Calculate2( nothing, nothing );
+    static_assert( res4 == nothing );
+    static_assert( !res4 );
+    constexpr M<Constexpr> res5 =
+        Calculate2( Constexpr{ 8 }, Constexpr{ 0 } );
+    static_assert( res5 == nothing );
+    static_assert( !res5 );
+    constexpr M<Constexpr> res6 =
+        Calculate2( Constexpr{ 9 }, Constexpr{ 4 } );
+    static_assert( res6->n == 2 );
+
+    constexpr M<Constexpr> res7 = res6;
+    static_assert( res7 );
+    static_assert( res7->n == 2 );
+
+    static_assert( res7 == res6 );
+
+    constexpr M<Constexpr> res8 = M<Constexpr>{ Constexpr{ 5 } };
+    static_assert( res8 );
+    static_assert( res8->n == 5 );
+  }
 }
 
 } // namespace

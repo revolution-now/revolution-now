@@ -67,6 +67,13 @@ concept MaybeTypeRequirements = requires {
 /****************************************************************
 ** maybe
 *****************************************************************/
+// Differences from std::optional:
+//
+//   - A moved-from maybe<T> will not have a value. This is in
+//     contrast with std::optional where a moved-from optional
+//     that had a value will still have a value, just that the
+//     value will be moved from.
+//
 template<typename T>
 requires MaybeTypeRequirements<T> /* clang-format off */
 class maybe { /* clang-format on */
@@ -80,7 +87,11 @@ public:
   ** Default Constructor
   ***************************************************************/
   // This does not initialize the union member.
-  constexpr maybe() noexcept : active_{ false } {}
+  constexpr maybe() noexcept requires(
+      std::is_trivially_default_constructible_v<T> ) = default;
+  constexpr maybe() noexcept
+      requires( !std::is_trivially_default_constructible_v<T> )
+    : active_{ false } {}
 
   constexpr maybe( nothing_t ) noexcept : maybe() {}
 
@@ -88,7 +99,7 @@ public:
   ** Destruction
   ***************************************************************/
 private:
-  void destroy() {
+  constexpr void destroy() {
     if constexpr( !std::is_trivially_destructible_v<T> ) {
       if( active_ ) val().~T();
       // Don't set active_ to false here. That is the purpose of
@@ -106,57 +117,118 @@ public:
   //
   //   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0848r3.html
   //
-  ~maybe() { destroy(); }
+  constexpr ~maybe() { destroy(); }
 
   /**************************************************************
   ** Value Constructors
   ***************************************************************/
-  maybe( T const& val ) /* clang-format off */
+  // For each one there are two copies, one for trivially default
+  // constructible and one not. This is to support constexpr. It
+  // seems that, in order for a non primitive type to be initial-
+  // ized with a value in a constexpr constext (i.e., by as-
+  // signing to it and not using placement new) it must already
+  // have been initialized, otherwise you cannot call its assign-
+  // ment operator. So these variations will ensure that the
+  // trivially default constructible ones will get initialized
+  // before calling new_val on them.  Not sure if this is the
+  // right way to go about this...
+  constexpr maybe( T const& val ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
-      requires( std::is_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> &&
+               !std::is_trivially_default_constructible_v<T>)
     : active_{ true } /* clang-format on */ {
     new_val( val );
   }
 
-  maybe( T&& val ) /* clang-format off */
+  constexpr maybe( T const& val ) /* clang-format off */
+      noexcept( std::is_nothrow_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> &&
+                std::is_trivially_default_constructible_v<T>)
+    : active_{ true }, val_{} /* clang-format on */ {
+    new_val( val );
+  }
+
+  constexpr maybe( T&& val ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<T> )
-      requires( std::is_move_constructible_v<T> )
+      requires( std::is_move_constructible_v<T> &&
+               !std::is_trivially_default_constructible_v<T> )
     : active_{ true } /* clang-format on */ {
+    new_val( std::move( val ) );
+  }
+
+  constexpr maybe( T&& val ) /* clang-format off */
+      noexcept( std::is_nothrow_move_constructible_v<T> )
+      requires( std::is_move_constructible_v<T> &&
+                std::is_trivially_default_constructible_v<T>)
+    : active_{ true }, val_{} /* clang-format on */ {
     new_val( std::move( val ) );
   }
 
   /**************************************************************
   ** Converting Value Constructor
   ***************************************************************/
-  template<
-      typename U,
-      typename = std::enable_if_t<
-          std::is_constructible_v<T, U&&> &&
-          !std::is_same_v<std::remove_cvref_t<U>,
-                          std::in_place_t> &&
-          !std::is_same_v<std::remove_cvref_t<U>, maybe<T>>>>
-  explicit( !std::is_convertible_v<U&&, T> ) //
-      maybe( U&& val ) noexcept(
-          std::is_nothrow_convertible_v<U, T> )
-    : active_{ true } {
+  template<typename U> /* clang-format off */
+  explicit( !std::is_convertible_v<U&&, T> )
+  constexpr maybe( U&& val )
+      noexcept( std::is_nothrow_convertible_v<U, T> )
+      requires(
+         std::is_constructible_v<T, U&&> &&
+        !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
+        !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
+        !std::is_trivially_default_constructible_v<T> )
+    : active_{ true } { /* clang-format on */
+    new_val( std::forward<U>( val ) );
+  }
+
+  template<typename U> /* clang-format off */
+  explicit( !std::is_convertible_v<U&&, T> )
+  constexpr maybe( U&& val )
+      noexcept( std::is_nothrow_convertible_v<U, T> )
+      requires(
+         std::is_constructible_v<T, U&&> &&
+        !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
+        !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
+         std::is_trivially_default_constructible_v<T> )
+    : active_{ true }, val_{} { /* clang-format on */
     new_val( std::forward<U>( val ) );
   }
 
   /**************************************************************
   ** Copy Constructors
   ***************************************************************/
-  constexpr maybe( maybe<T> const& other ) noexcept(
-      std::is_nothrow_copy_constructible_v<T> ) {
+  // FIXME: this constructor should be trivial if T is trivially
+  // copy constructible.
+  constexpr maybe( maybe<T> const& other ) /* clang-format off */
+      noexcept( std::is_nothrow_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> &&
+               !std::is_trivially_default_constructible_v<T> )
+    : active_{ other.active_ } /* clang-format on */ {
     active_ = other.active_;
+    if( active_ ) new_val( *other );
+  }
+
+  constexpr maybe( maybe<T> const& other ) /* clang-format off */
+      noexcept( std::is_nothrow_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> &&
+                std::is_trivially_default_constructible_v<T> )
+    : active_{ other.active_ }, val_{} /* clang-format on */ {
     if( active_ ) new_val( *other );
   }
 
   /**************************************************************
   ** Move Constructors
   ***************************************************************/
-  maybe( maybe<T>&& other ) noexcept(
-      std::is_nothrow_move_constructible_v<T> )
-    : active_{ false } {
+  // FIXME: this constructor should be trivial if T is trivially
+  // move constructible.
+  constexpr maybe( maybe<T>&& other ) /* clang-format off */
+    noexcept( std::is_nothrow_move_constructible_v<T> )
+    requires( std::is_move_constructible_v<T> )
+    : active_{ false } /* clang-format on */ {
+    // NOTE: this goes against what cppreference says; it says
+    // that a moved-from optional (which had a value) should
+    // still have a value (just that the value is moved from).
+    // We depart from that here -- a moved-from maybe will not
+    // have a value.
     this->swap( other );
   }
 
@@ -188,7 +260,7 @@ public:
   ***************************************************************/
   /* clang-format off */
   constexpr maybe<T>& operator=( maybe<T> const& rhs ) &
-      noexcept( noexcept( new_val( *rhs ) ) ) {
+      noexcept( noexcept( this->new_val( *rhs ) ) ) {
     /* clang-format on */
     destroy();
     active_ = rhs.active_;
@@ -213,7 +285,7 @@ public:
                            std::is_convertible_v<U&&, T>, void>
            // TODO: a lot more conditions need to be added here.
            >
-  maybe<T>& operator=( maybe<U>&& rhs ) & noexcept(
+  constexpr maybe<T>& operator=( maybe<U>&& rhs ) & noexcept(
       std::is_nothrow_convertible_v<U&&, T> ) {
     destroy();
     active_ = rhs.active_;
@@ -231,7 +303,8 @@ public:
                std::is_convertible_v<U const&, T>, void>
            // TODO: a lot more conditions need to be added here.
            >
-  maybe<T>& operator=( maybe<U> const& rhs ) & noexcept(
+  constexpr maybe<T>&
+  operator=( maybe<U> const& rhs ) & noexcept(
       std::is_nothrow_convertible_v<U const&, T> ) {
     destroy();
     active_ = rhs.has_value();
@@ -244,7 +317,7 @@ public:
   ***************************************************************/
   template<typename U, typename = std::enable_if_t<
                            std::is_convertible_v<U, T>>>
-  maybe<T>& operator=( U&& rhs ) & noexcept(
+  constexpr maybe<T>& operator=( U&& rhs ) & noexcept(
       std::is_nothrow_convertible_v<U, T> ) {
     destroy();
     active_ = true;
@@ -255,7 +328,7 @@ public:
   /**************************************************************
   ** nothing assignment
   ***************************************************************/
-  maybe<T>& operator=( nothing_t ) & noexcept {
+  constexpr maybe<T>& operator=( nothing_t ) & noexcept {
     reset();
     return *this;
   }
@@ -263,7 +336,7 @@ public:
   /**************************************************************
   ** Swap
   ***************************************************************/
-  void swap( maybe<T>& other ) noexcept(
+  constexpr void swap( maybe<T>& other ) noexcept(
       std::is_nothrow_move_constructible_v<T>&&
           std::is_nothrow_swappable_v<
               T> ) requires( std::is_move_constructible_v<T>&&
@@ -328,7 +401,7 @@ public:
   /**************************************************************
   ** reset
   ***************************************************************/
-  void reset() noexcept {
+  constexpr void reset() noexcept {
     destroy();
     active_ = false;
   }
@@ -336,26 +409,34 @@ public:
   /**************************************************************
   ** has_value/bool
   ***************************************************************/
-  bool has_value() const noexcept { return active_; }
+  constexpr bool has_value() const noexcept { return active_; }
 
-  explicit operator bool() const noexcept { return active_; }
+  explicit constexpr operator bool() const noexcept {
+    return active_;
+  }
 
   /**************************************************************
   ** Deference operators
   ***************************************************************/
-  T&       operator*() & noexcept { return val(); }
-  T const& operator*() const& noexcept { return val(); }
+  constexpr T&       operator*() & noexcept { return val(); }
+  constexpr T const& operator*() const& noexcept {
+    return val();
+  }
 
-  T&& operator*() && noexcept { return std::move( val() ); }
+  constexpr T&& operator*() && noexcept {
+    return std::move( val() );
+  }
 
-  T*       operator->() & noexcept { return &**this; }
-  T const* operator->() const& noexcept { return &**this; }
+  constexpr T*       operator->() & noexcept { return &**this; }
+  constexpr T const* operator->() const& noexcept {
+    return &**this;
+  }
 
   /**************************************************************
   ** emplace
   ***************************************************************/
   template<typename... Args>
-  auto emplace( Args&&... args ) noexcept(
+  constexpr auto emplace( Args&&... args ) noexcept(
       std::is_nothrow_constructible_v<T, Args...> )
       -> std::enable_if_t<std::is_constructible_v<T, Args...>,
                           T&> {
@@ -367,7 +448,7 @@ public:
 
   // clang-format off
   template<typename U, typename... Args>
-  auto emplace( std::initializer_list<U> ilist, Args&&... args )
+  constexpr auto emplace( std::initializer_list<U> ilist, Args&&... args )
       noexcept( std::is_nothrow_constructible_v<T,
                   std::initializer_list<U>, Args...> )
       -> std::enable_if_t<
@@ -386,13 +467,19 @@ public:
   ** Storage
   ***************************************************************/
 private:
-  T const& val() const noexcept { return val_; }
-  T&       val() noexcept { return val_; }
+  constexpr T const& val() const noexcept { return val_; }
+  constexpr T&       val() noexcept { return val_; }
 
   template<typename... Vs>
-  void new_val( Vs&&... v ) noexcept(
+  constexpr void new_val( Vs&&... v ) noexcept(
       noexcept( new( &val() ) T( std::forward<Vs>( v )... ) ) ) {
-    new( &val() ) T( std::forward<Vs>( v )... );
+    if constexpr( std::is_trivially_constructible_v<
+                      T, decltype( std::forward<Vs>( v ) )...> &&
+                  std::is_trivially_move_assignable_v<T> ) {
+      val() = T( std::forward<Vs>( v )... );
+    } else {
+      new( &val() ) T( std::forward<Vs>( v )... );
+    }
   }
 
   bool active_ = false;
@@ -439,7 +526,8 @@ constexpr maybe<T> make_optional( std::initializer_list<U> ilist,
 template<typename T, typename U,
          typename = std::void_t<decltype( std::declval<T>() ==
                                           std::declval<U>() )>>
-bool operator==( maybe<T> const& lhs, maybe<U> const& rhs ) //
+constexpr bool operator==( maybe<T> const& lhs,
+                           maybe<U> const& rhs ) //
     noexcept( noexcept( *lhs == *rhs ) ) {
   bool l = lhs.has_value();
   bool r = rhs.has_value();
@@ -450,28 +538,33 @@ template<
     typename T, typename U,
     typename = std::void_t<decltype( std::declval<maybe<T>>() ==
                                      std::declval<maybe<U>>() )>>
-bool operator!=( maybe<T> const& lhs, maybe<U> const& rhs ) //
+constexpr bool operator!=( maybe<T> const& lhs,
+                           maybe<U> const& rhs ) //
     noexcept( noexcept( lhs == rhs ) ) {
   return !( lhs == rhs );
 }
 
 template<typename T>
-bool operator==( maybe<T> const& lhs, nothing_t ) noexcept {
+constexpr bool operator==( maybe<T> const& lhs,
+                           nothing_t ) noexcept {
   return !lhs.has_value();
 }
 
 template<typename T>
-bool operator!=( maybe<T> const& lhs, nothing_t ) noexcept {
+constexpr bool operator!=( maybe<T> const& lhs,
+                           nothing_t ) noexcept {
   return lhs.has_value();
 }
 
 template<typename T>
-bool operator==( nothing_t, maybe<T> const& rhs ) noexcept {
+constexpr bool operator==( nothing_t,
+                           maybe<T> const& rhs ) noexcept {
   return !rhs.has_value();
 }
 
 template<typename T>
-bool operator!=( nothing_t, maybe<T> const& rhs ) noexcept {
+constexpr bool operator!=( nothing_t,
+                           maybe<T> const& rhs ) noexcept {
   return rhs.has_value();
 }
 
@@ -486,7 +579,7 @@ namespace std {
 // overload set then a generic std::swap will be used; either way
 // std::swap should work so long as std::swap<T> would work.
 template<typename T> /* clang-format off */
-auto swap( ::base::maybe<T>& lhs,
+constexpr auto swap( ::base::maybe<T>& lhs,
            ::base::maybe<T>& rhs )
        noexcept( noexcept( lhs.swap( rhs ) ) )
     -> enable_if_t<is_move_constructible_v<T> &&
