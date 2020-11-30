@@ -273,15 +273,15 @@ public:
   }
 
   /**************************************************************
-  ** value (TODO: to be removed)
+  ** value
   ***************************************************************/
   T& value( SourceLoc loc = SourceLoc{} ) {
-    if( !active_ ) throw bad_maybe_access{};
+    if( !active_ ) throw bad_maybe_access{ loc };
     return val_;
   }
 
   T const& value( SourceLoc loc = SourceLoc{} ) const {
-    if( !active_ ) throw bad_maybe_access{};
+    if( !active_ ) throw bad_maybe_access{ loc };
     return val_;
   }
 
