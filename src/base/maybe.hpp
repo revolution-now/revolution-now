@@ -20,6 +20,12 @@
 #include <type_traits>
 #include <utility>
 
+// When clang gets this C++20 feature (p0848r3) then this guard
+// can be removed.
+#ifndef __clang__
+#  define HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
+#endif
+
 namespace base {
 
 /****************************************************************
@@ -67,13 +73,6 @@ concept MaybeTypeRequirements = requires {
 /****************************************************************
 ** maybe
 *****************************************************************/
-// Differences from std::optional:
-//
-//   - A moved-from maybe<T> will not have a value. This is in
-//     contrast with std::optional where a moved-from optional
-//     that had a value will still have a value, just that the
-//     value will be moved from.
-//
 template<typename T>
 requires MaybeTypeRequirements<T> /* clang-format off */
 class maybe { /* clang-format on */
@@ -86,12 +85,18 @@ public:
   /**************************************************************
   ** Default Constructor
   ***************************************************************/
-  // This does not initialize the union member.
-  constexpr maybe() noexcept requires(
+#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
+  constexpr maybe() requires(
       std::is_trivially_default_constructible_v<T> ) = default;
+#endif
+
+  // This does not initialize the union member.
   constexpr maybe() noexcept
+#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
       requires( !std::is_trivially_default_constructible_v<T> )
-    : active_{ false } {}
+#endif
+    : active_{ false } {
+  }
 
   constexpr maybe( nothing_t ) noexcept : maybe() {}
 
@@ -109,15 +114,16 @@ private:
   }
 
 public:
-  // FIXME: If T is trivially destructible then this destructor
-  // should also be trivial, making optional<T> also trivially
-  // destructible. This is not simple to do currently; it re-
-  // quires tricky conditional base classes. But the following
-  // proposal, if accepted, would make it easy:
-  //
-  //   http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0848r3.html
-  //
-  constexpr ~maybe() { destroy(); }
+#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
+  constexpr ~maybe() noexcept
+      requires( std::is_trivially_destructible_v<T> ) = default;
+  constexpr ~maybe() noexcept
+      requires( !std::is_trivially_destructible_v<T> ) {
+    destroy();
+  }
+#else
+  constexpr ~maybe() noexcept { destroy(); }
+#endif
 
   /**************************************************************
   ** Value Constructors
@@ -167,7 +173,7 @@ public:
   /**************************************************************
   ** Converting Value Constructor
   ***************************************************************/
-  template<typename U> /* clang-format off */
+  template<typename U = T> /* clang-format off */
   explicit( !std::is_convertible_v<U&&, T> )
   constexpr maybe( U&& val )
       noexcept( std::is_nothrow_convertible_v<U, T> )
@@ -180,7 +186,7 @@ public:
     new_val( std::forward<U>( val ) );
   }
 
-  template<typename U> /* clang-format off */
+  template<typename U = T> /* clang-format off */
   explicit( !std::is_convertible_v<U&&, T> )
   constexpr maybe( U&& val )
       noexcept( std::is_nothrow_convertible_v<U, T> )
@@ -196,40 +202,78 @@ public:
   /**************************************************************
   ** Copy Constructors
   ***************************************************************/
-  // FIXME: this constructor should be trivial if T is trivially
-  // copy constructible.
   constexpr maybe( maybe<T> const& other ) /* clang-format off */
-      noexcept( std::is_nothrow_copy_constructible_v<T> )
+      noexcept( noexcept( this->new_val( *other ) ) )
       requires( std::is_copy_constructible_v<T> &&
                !std::is_trivially_default_constructible_v<T> )
     : active_{ other.active_ } /* clang-format on */ {
-    active_ = other.active_;
     if( active_ ) new_val( *other );
   }
 
   constexpr maybe( maybe<T> const& other ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
-      requires( std::is_copy_constructible_v<T> &&
-                std::is_trivially_default_constructible_v<T> )
-    : active_{ other.active_ }, val_{} /* clang-format on */ {
+      requires( std::is_trivially_copy_constructible_v<T> )
+    = default; /* clang-format on */
+
+  /**************************************************************
+  ** Converting Copy Constructors
+  ***************************************************************/
+  template<typename U> /* clang-format off */
+  explicit( !std::is_convertible_v<U const&, T> )
+  constexpr maybe( maybe<U> const& other )
+      noexcept( noexcept( this->new_val( *other ) ) )
+      requires( std::is_constructible_v<T, const U&>         &&
+               !std::is_constructible_v<T, maybe<U>&>        &&
+               !std::is_constructible_v<T, maybe<U> const&>  &&
+               !std::is_constructible_v<T, maybe<U>&&>       &&
+               !std::is_constructible_v<T, maybe<U> const&&> &&
+               !std::is_convertible_v<maybe<U>&, T>          &&
+               !std::is_convertible_v<maybe<U> const&, T>    &&
+               !std::is_convertible_v<maybe<U>&&, T>         &&
+               !std::is_convertible_v<maybe<U> const&&, T> )
+    : active_{ other.has_value() } /* clang-format on */ {
     if( active_ ) new_val( *other );
   }
 
   /**************************************************************
   ** Move Constructors
   ***************************************************************/
-  // FIXME: this constructor should be trivial if T is trivially
-  // move constructible.
   constexpr maybe( maybe<T>&& other ) /* clang-format off */
-    noexcept( std::is_nothrow_move_constructible_v<T> )
-    requires( std::is_move_constructible_v<T> )
-    : active_{ false } /* clang-format on */ {
-    // NOTE: this goes against what cppreference says; it says
-    // that a moved-from optional (which had a value) should
-    // still have a value (just that the value is moved from).
-    // We depart from that here -- a moved-from maybe will not
-    // have a value.
-    this->swap( other );
+    noexcept( noexcept( this->new_val( std::move( *other ) ) ) )
+    requires( std::is_move_constructible_v<T> &&
+             !std::is_trivially_move_constructible_v<T> )
+    : active_{ other.active_ } /* clang-format on */ {
+    if( active_ ) new_val( std::move( *other ) );
+    // cppreference says that the noexcept spec for this function
+    // should be is_nothrow_move_constructible_v<T>, so as a
+    // sanity check, compare it with what we have.
+    static_assert(
+        std::is_nothrow_move_constructible_v<T> ==
+        noexcept( this->new_val( std::move( *other ) ) ) );
+  }
+
+  constexpr maybe( maybe<T>&& other ) /* clang-format off */
+      requires( std::is_trivially_move_constructible_v<T> )
+    = default; /* clang-format on */
+
+  /**************************************************************
+  ** Converting Move Constructors
+  ***************************************************************/
+  template<typename U> /* clang-format off */
+  explicit( !std::is_convertible_v<U&&, T> )
+  constexpr maybe( maybe<U>&& other )
+      noexcept( noexcept( this->new_val( *other ) ) )
+      requires( std::is_constructible_v<T, U&&>              &&
+               !std::is_constructible_v<T, maybe<U>&>        &&
+               !std::is_constructible_v<T, maybe<U> const&>  &&
+               !std::is_constructible_v<T, maybe<U>&&>       &&
+               !std::is_constructible_v<T, maybe<U> const&&> &&
+               !std::is_convertible_v<maybe<U>&, T>          &&
+               !std::is_convertible_v<maybe<U> const&, T>    &&
+               !std::is_convertible_v<maybe<U>&&, T>         &&
+               !std::is_convertible_v<maybe<U> const&&, T> )
+    : active_{ other.has_value() } /* clang-format on */ {
+    if( active_ ) new_val( std::move( *other ) );
   }
 
   /**************************************************************
@@ -249,7 +293,7 @@ public:
       requires( std::is_constructible_v<
                     T,
                     std::initializer_list<U>&,
-                    Args...
+                    Args&&...
                 > )
     : active_{ true } /* clang-format on */ {
     new_val( ilist, std::forward<Args>( args )... );
@@ -260,7 +304,8 @@ public:
   ***************************************************************/
   /* clang-format off */
   constexpr maybe<T>& operator=( maybe<T> const& rhs ) &
-      noexcept( noexcept( this->new_val( *rhs ) ) ) {
+      noexcept( noexcept( this->new_val( *rhs ) ) )
+      requires( !std::is_trivially_copy_assignable_v<T> ) {
     /* clang-format on */
     destroy();
     active_ = rhs.active_;
@@ -268,15 +313,34 @@ public:
     return *this;
   }
 
+  /* clang-format off */
+  constexpr maybe<T>& operator=( maybe<T> const& rhs ) &
+    noexcept( noexcept( this->new_val( *rhs ) ) )
+    requires( std::is_trivially_copy_assignable_v<T> )
+    = default; /* clang-format on */
+
   /**************************************************************
   ** Move Assignment
   ***************************************************************/
-  constexpr maybe<T>& operator=( maybe<T>&& rhs ) & noexcept(
-      noexcept( this->swap( rhs ) ) ) {
-    reset();
-    this->swap( rhs );
+  /* clang-format off */
+  constexpr maybe<T>& operator=( maybe<T>&& rhs ) &
+    noexcept( std::is_nothrow_move_assignable_v<T> )
+    requires( !std::is_trivially_move_assignable_v<T> ) {
+    /* clang-format on */
+    if( !rhs.has_value() ) {
+      if( has_value() ) reset();
+      return *this;
+    }
+    active_ = true;
+    new_val( std::move( rhs.val() ) );
     return *this;
   }
+
+  /* clang-format off */
+  constexpr maybe<T>& operator=( maybe<T>&& rhs ) &
+    noexcept( std::is_nothrow_move_assignable_v<T> )
+    requires( std::is_trivially_move_assignable_v<T> )
+    = default; /* clang-format on */
 
   /**************************************************************
   ** Converting Assignment
@@ -470,9 +534,15 @@ private:
   constexpr T const& val() const noexcept { return val_; }
   constexpr T&       val() noexcept { return val_; }
 
-  template<typename... Vs>
-  constexpr void new_val( Vs&&... v ) noexcept(
-      noexcept( new( &val() ) T( std::forward<Vs>( v )... ) ) ) {
+  template<typename... Vs> /* clang-format off */
+  constexpr void new_val( Vs&&... v )
+    noexcept(
+      (std::is_trivially_constructible_v<
+            T, decltype( std::forward<Vs>( v ) )...> &&
+       std::is_trivially_move_assignable_v<T>)
+      ||
+      noexcept( new( &val() ) T( std::forward<Vs>( v )... ) )
+    ) { /* clang-format on */
     if constexpr( std::is_trivially_constructible_v<
                       T, decltype( std::forward<Vs>( v ) )...> &&
                   std::is_trivially_move_assignable_v<T> ) {

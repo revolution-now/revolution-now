@@ -125,58 +125,113 @@ struct Throws {
 };
 
 /****************************************************************
+** Trivial Everything
+*****************************************************************/
+struct Trivial {
+  Trivial()                 = default;
+  ~Trivial()                = default;
+  Trivial( Trivial const& ) = default;
+  Trivial( Trivial&& )      = default;
+  Trivial& operator=( Trivial const& ) = default;
+  Trivial& operator=( Trivial&& ) = default;
+
+  double d;
+  int    n;
+};
+
+/****************************************************************
+** Convertibles
+*****************************************************************/
+struct Intable {
+  Intable() = default;
+  Intable( int m ) : n( m ) {}
+  // clang-format off
+  operator int() const { return n; }
+  // clang-format on
+  int n = {};
+};
+
+struct Stringable {
+  Stringable() = default;
+  Stringable( string s_ ) : s( s_ ) {}
+  // clang-format off
+  operator string() const { return s; }
+  // clang-format on
+  string s = {};
+};
+
+/****************************************************************
 ** [static] Invalid value types.
 *****************************************************************/
-static_assert( is_detected_v<maybe, int> );
-static_assert( is_detected_v<maybe, string> );
-static_assert( is_detected_v<maybe, NoCopy> );
-static_assert( is_detected_v<maybe, NoCopyNoMove> );
-static_assert( is_detected_v<maybe, double> );
-static_assert( !is_detected_v<maybe, std::in_place_t> );
-static_assert( !is_detected_v<maybe, std::in_place_t&> );
-static_assert( !is_detected_v<maybe, std::in_place_t const&> );
-static_assert( !is_detected_v<maybe, nothing_t> );
-static_assert( !is_detected_v<maybe, nothing_t&> );
-static_assert( !is_detected_v<maybe, nothing_t const&> );
+static_assert( is_detected_v<M, int> );
+static_assert( is_detected_v<M, string> );
+static_assert( is_detected_v<M, NoCopy> );
+static_assert( is_detected_v<M, NoCopyNoMove> );
+static_assert( is_detected_v<M, double> );
+static_assert( !is_detected_v<M, std::in_place_t> );
+static_assert( !is_detected_v<M, std::in_place_t&> );
+static_assert( !is_detected_v<M, std::in_place_t const&> );
+static_assert( !is_detected_v<M, nothing_t> );
+static_assert( !is_detected_v<M, nothing_t&> );
+static_assert( !is_detected_v<M, nothing_t const&> );
 
 /****************************************************************
 ** [static] Propagation of noexcept.
 *****************************************************************/
 // `int` should always be nothrow.
-static_assert( is_nothrow_default_constructible_v<maybe<int>> );
-static_assert( is_nothrow_constructible_v<maybe<int>> );
-static_assert( is_nothrow_constructible_v<maybe<int>, int> );
-static_assert(
-    is_nothrow_constructible_v<maybe<int>, nothing_t> );
-static_assert( is_nothrow_move_constructible_v<maybe<int>> );
-static_assert( is_nothrow_move_assignable_v<maybe<int>> );
-static_assert( is_nothrow_copy_constructible_v<maybe<int>> );
-static_assert( is_nothrow_copy_assignable_v<maybe<int>> );
+static_assert( is_nothrow_default_constructible_v<M<int>> );
+static_assert( is_nothrow_constructible_v<M<int>> );
+static_assert( is_nothrow_constructible_v<M<int>, int> );
+static_assert( is_nothrow_constructible_v<M<int>, nothing_t> );
+static_assert( is_nothrow_move_constructible_v<M<int>> );
+static_assert( is_nothrow_move_assignable_v<M<int>> );
+static_assert( is_nothrow_copy_constructible_v<M<int>> );
+static_assert( is_nothrow_copy_assignable_v<M<int>> );
 
 // `string` should only throw on copies.
+static_assert( is_nothrow_default_constructible_v<M<string>> );
+static_assert( is_nothrow_constructible_v<M<string>> );
+static_assert( is_nothrow_constructible_v<M<string>, string> );
 static_assert(
-    is_nothrow_default_constructible_v<maybe<string>> );
-static_assert( is_nothrow_constructible_v<maybe<string>> );
-static_assert(
-    is_nothrow_constructible_v<maybe<string>, string> );
-static_assert(
-    is_nothrow_constructible_v<maybe<string>, nothing_t> );
-static_assert( is_nothrow_move_constructible_v<maybe<string>> );
-static_assert( is_nothrow_move_assignable_v<maybe<string>> );
-static_assert( !is_nothrow_copy_constructible_v<maybe<string>> );
-static_assert( !is_nothrow_copy_assignable_v<maybe<string>> );
+    is_nothrow_constructible_v<M<string>, nothing_t> );
+static_assert( is_nothrow_move_constructible_v<M<string>> );
+static_assert( is_nothrow_move_assignable_v<M<string>> );
+static_assert( !is_nothrow_copy_constructible_v<M<string>> );
+static_assert( !is_nothrow_copy_assignable_v<M<string>> );
 
 // Always throws except on default construction or equivalent.
+static_assert( is_nothrow_default_constructible_v<M<Throws>> );
 static_assert(
-    is_nothrow_default_constructible_v<maybe<Throws>> );
-static_assert(
-    is_nothrow_constructible_v<maybe<Throws>, nothing_t> );
-static_assert(
-    !is_nothrow_constructible_v<maybe<Throws>, Throws> );
-static_assert( !is_nothrow_move_constructible_v<maybe<Throws>> );
-static_assert( !is_nothrow_move_assignable_v<maybe<Throws>> );
-static_assert( !is_nothrow_copy_constructible_v<maybe<Throws>> );
-static_assert( !is_nothrow_copy_assignable_v<maybe<Throws>> );
+    is_nothrow_constructible_v<M<Throws>, nothing_t> );
+static_assert( !is_nothrow_constructible_v<M<Throws>, Throws> );
+static_assert( !is_nothrow_move_constructible_v<M<Throws>> );
+static_assert( !is_nothrow_move_assignable_v<M<Throws>> );
+static_assert( !is_nothrow_copy_constructible_v<M<Throws>> );
+static_assert( !is_nothrow_copy_assignable_v<M<Throws>> );
+
+/****************************************************************
+** [static] Propagation of triviality.
+*****************************************************************/
+// p0848r3.html
+#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
+static_assert( is_trivially_copy_constructible_v<M<int>> );
+static_assert( is_trivially_move_constructible_v<M<int>> );
+static_assert( is_trivially_copy_assignable_v<M<int>> );
+static_assert( is_trivially_move_assignable_v<M<int>> );
+static_assert( is_trivially_destructible_v<M<int>> );
+
+static_assert( is_trivially_copy_constructible_v<M<Trivial>> );
+static_assert( is_trivially_move_constructible_v<M<Trivial>> );
+static_assert( is_trivially_copy_assignable_v<M<Trivial>> );
+static_assert( is_trivially_move_assignable_v<M<Trivial>> );
+static_assert( is_trivially_destructible_v<M<Trivial>> );
+
+static_assert( !is_trivially_copy_constructible_v<M<string>> );
+static_assert( !is_trivially_move_constructible_v<M<string>> );
+static_assert( !is_trivially_copy_assignable_v<M<string>> );
+static_assert( !is_trivially_move_assignable_v<M<string>> );
+static_assert( !is_trivially_destructible_v<M<string>> );
+#endif
 
 /****************************************************************
 ** Test Cases
@@ -362,6 +417,29 @@ TEST_CASE( "[maybe] copy construction" ) {
   }
 }
 
+TEST_CASE( "[maybe] converting copy construction" ) {
+  SECTION( "int" ) {
+    M<Intable> m1;
+    M<int>     m2( m1 );
+    REQUIRE( !m2.has_value() );
+
+    M<Intable> m3 = Intable{ 5 };
+    M<int>     m4( m3 );
+    REQUIRE( m4.has_value() );
+    REQUIRE( *m4 == 5 );
+  }
+  SECTION( "string" ) {
+    M<Stringable> m1;
+    M<string>     m2( m1 );
+    REQUIRE( !m2.has_value() );
+
+    M<Stringable> m3 = Stringable{ "hello" };
+    M<string>     m4( m3 );
+    REQUIRE( m4.has_value() );
+    REQUIRE( *m4 == "hello" );
+  }
+}
+
 TEST_CASE( "[maybe] state after move" ) {
   M<int> m;
   REQUIRE( !m.has_value() );
@@ -375,7 +453,9 @@ TEST_CASE( "[maybe] state after move" ) {
 
   M<int> m3{ std::move( m ) };
   REQUIRE( m3.has_value() );
-  REQUIRE( !m.has_value() );
+  // `maybe`s (like `optional`s) with values that are moved from
+  // still have values.
+  REQUIRE( m.has_value() );
 }
 
 TEST_CASE( "[maybe] move construction" ) {
@@ -387,7 +467,9 @@ TEST_CASE( "[maybe] move construction" ) {
     M<int> m2( std::move( m ) );
     REQUIRE( m2.has_value() );
     REQUIRE( *m2 == 4 );
-    REQUIRE( !m.has_value() );
+    // `maybe`s (like `optional`s) with values that are moved
+    // from still have values.
+    REQUIRE( m.has_value() );
 
     M<int> m3( M<int>{} );
     REQUIRE( !m3.has_value() );
@@ -397,12 +479,14 @@ TEST_CASE( "[maybe] move construction" ) {
     REQUIRE( *m4 == 0 );
 
     M<int> m5( std::move( m4 ) );
-    REQUIRE( !m4.has_value() );
+    // `maybe`s (like `optional`s) with values that are moved
+    // from still have values.
+    REQUIRE( m4.has_value() );
     REQUIRE( m5.has_value() );
     REQUIRE( *m5 == 0 );
 
     M<int> m6{ std::move( m2 ) };
-    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.has_value() );
     REQUIRE( m6.has_value() );
     REQUIRE( *m6 == 4 );
   }
@@ -414,7 +498,7 @@ TEST_CASE( "[maybe] move construction" ) {
     M<string> m2( std::move( m ) );
     REQUIRE( m2.has_value() );
     REQUIRE( *m2 == "hello" );
-    REQUIRE( !m.has_value() );
+    REQUIRE( m.has_value() );
 
     M<string> m3( M<string>{} );
     REQUIRE( !m3.has_value() );
@@ -424,14 +508,37 @@ TEST_CASE( "[maybe] move construction" ) {
     REQUIRE( *m4 == "hellm2" );
 
     M<string> m5( std::move( m4 ) );
-    REQUIRE( !m4.has_value() );
+    REQUIRE( m4.has_value() );
     REQUIRE( m5.has_value() );
     REQUIRE( *m5 == "hellm2" );
 
     M<string> m6{ std::move( m2 ) };
-    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.has_value() );
     REQUIRE( m6.has_value() );
     REQUIRE( *m6 == "hello" );
+  }
+}
+
+TEST_CASE( "[maybe] converting move construction" ) {
+  SECTION( "int" ) {
+    M<Intable> m1;
+    M<int>     m2( std::move( m1 ) );
+    REQUIRE( !m2.has_value() );
+
+    M<Intable> m3 = Intable{ 5 };
+    M<int>     m4( std::move( m3 ) );
+    REQUIRE( m4.has_value() );
+    REQUIRE( *m4 == 5 );
+  }
+  SECTION( "string" ) {
+    M<Stringable> m1;
+    M<string>     m2( std::move( m1 ) );
+    REQUIRE( !m2.has_value() );
+
+    M<Stringable> m3 = Stringable{ "hello" };
+    M<string>     m4( std::move( m3 ) );
+    REQUIRE( m4.has_value() );
+    REQUIRE( *m4 == "hello" );
   }
 }
 
@@ -512,7 +619,9 @@ TEST_CASE( "[maybe] move assignment" ) {
     m2 = std::move( m );
     REQUIRE( m2.has_value() );
     REQUIRE( *m2 == 4 );
-    REQUIRE( !m.has_value() );
+    // `maybe`s (like `optional`s) with values that are moved
+    // from still have values.
+    REQUIRE( m.has_value() );
 
     M<int> m3( 5 );
     REQUIRE( m3.has_value() );
@@ -520,7 +629,7 @@ TEST_CASE( "[maybe] move assignment" ) {
     m3 = std::move( m2 );
     REQUIRE( m3.has_value() );
     REQUIRE( *m3 == 4 );
-    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.has_value() );
   }
   SECTION( "string" ) {
     M<string> m{ "hello" };
@@ -531,7 +640,7 @@ TEST_CASE( "[maybe] move assignment" ) {
     m2 = std::move( m );
     REQUIRE( m2.has_value() );
     REQUIRE( *m2 == "hello" );
-    REQUIRE( !m.has_value() );
+    REQUIRE( m.has_value() );
 
     M<string> m3( "yes" );
     REQUIRE( m3.has_value() );
@@ -539,7 +648,7 @@ TEST_CASE( "[maybe] move assignment" ) {
     m3 = std::move( m2 );
     REQUIRE( m3.has_value() );
     REQUIRE( *m3 == "hello" );
-    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.has_value() );
   }
 }
 
