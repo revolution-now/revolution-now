@@ -69,9 +69,18 @@ int Tracker::copied           = 0;
 int Tracker::move_constructed = 0;
 int Tracker::move_assigned    = 0;
 
+} // namespace
+} // namespace base
+
+DEFINE_FORMAT( base::Tracker, "Tracker" );
+FMT_TO_CATCH( base::Tracker );
+
 /****************************************************************
 ** Constexpr type
 *****************************************************************/
+namespace base {
+namespace {
+
 struct Constexpr {
   constexpr Constexpr() = default;
   constexpr Constexpr( int n_ ) noexcept : n( n_ ) {}
@@ -101,9 +110,18 @@ static_assert( is_move_constructible_v<NoCopy> );
 static_assert( !is_copy_assignable_v<NoCopy> );
 static_assert( is_move_assignable_v<NoCopy> );
 
+} // namespace
+} // namespace base
+
+DEFINE_FORMAT( base::NoCopy, "NoCopy{{c={}}}", o.c );
+FMT_TO_CATCH( base::NoCopy );
+
 /****************************************************************
 ** Non-Copyable, Non-Movable
 *****************************************************************/
+namespace base {
+namespace {
+
 struct NoCopyNoMove {
   NoCopyNoMove( char c_ ) : c( c_ ) {}
   NoCopyNoMove( NoCopyNoMove const& ) = delete;
@@ -1535,6 +1553,257 @@ TEST_CASE( "[maybe] cat_maybes" ) {
                   Equals( vector<string>{ "5", "4", "3" } ) );
     REQUIRE_THAT( cat_maybes( std::move( v ) ),
                   Equals( vector<string>{ "5", "4", "3" } ) );
+  }
+}
+
+TEST_CASE( "[maybe] fmap" ) {
+  SECTION( "int" ) {
+    auto   f = []( int n ) { return n + 1; };
+    M<int> m;
+    REQUIRE( m.fmap( f ) == nothing );
+    m = 7;
+    REQUIRE( m.fmap( f ) == 8 );
+    REQUIRE( M<int>{}.fmap( f ) == nothing );
+    REQUIRE( M<int>{ 3 }.fmap( f ) == 4 );
+  }
+  SECTION( "string" ) {
+    auto      f = []( string s ) { return s + s; };
+    M<string> m;
+    REQUIRE( m.fmap( f ) == nothing );
+    m = "7";
+    REQUIRE( m.fmap( f ) == "77" );
+    REQUIRE( M<string>{}.fmap( f ) == nothing );
+    REQUIRE( M<string>{ "xy" }.fmap( f ) == "xyxy" );
+  }
+  SECTION( "NoCopy" ) {
+    auto f = []( NoCopy const& nc ) {
+      return NoCopy{ char( nc.c + 1 ) };
+    };
+    M<NoCopy> m;
+    REQUIRE( m.fmap( f ) == nothing );
+    m = NoCopy{ 'R' };
+    REQUIRE( m.fmap( f ) == NoCopy{ 'S' } );
+    REQUIRE( M<NoCopy>{}.fmap( f ) == nothing );
+    REQUIRE( M<NoCopy>{ 'y' }.fmap( f ) == NoCopy{ 'z' } );
+  }
+  SECTION( "Tracker" ) {
+    Tracker::reset();
+    auto       f = []( Tracker const& nc ) { return nc; };
+    M<Tracker> m;
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( m.fmap( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    m.emplace();
+    REQUIRE( m.fmap( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 3 );
+    REQUIRE( Tracker::copied == 1 );
+    REQUIRE( Tracker::move_constructed == 2 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>{}.fmap( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>( in_place ).fmap( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 4 );
+    REQUIRE( Tracker::copied == 1 );
+    REQUIRE( Tracker::move_constructed == 2 );
+    REQUIRE( Tracker::move_assigned == 0 );
+  }
+  SECTION( "Tracker auto" ) {
+    Tracker::reset();
+    auto f = []<typename T>( T&& nc ) {
+      return std::forward<T>( nc );
+    };
+    M<Tracker> m;
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( m.fmap( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    m.emplace();
+    REQUIRE( m.fmap( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 3 );
+    REQUIRE( Tracker::copied == 1 );
+    REQUIRE( Tracker::move_constructed == 2 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>{}.fmap( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>( in_place ).fmap( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 4 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 3 );
+    REQUIRE( Tracker::move_assigned == 0 );
+  }
+}
+
+TEST_CASE( "[maybe] bind" ) {
+  SECTION( "int" ) {
+    auto f = []( int n ) {
+      return ( n > 5 ) ? M<int>{ n } : nothing;
+    };
+    M<int> m;
+    REQUIRE( m.bind( f ) == nothing );
+    m = 4;
+    REQUIRE( m.bind( f ) == nothing );
+    m = 6;
+    REQUIRE( m.bind( f ) == 6 );
+    REQUIRE( M<int>{}.bind( f ) == nothing );
+    REQUIRE( M<int>{ 3 }.bind( f ) == nothing );
+    REQUIRE( M<int>{ 7 }.bind( f ) == 7 );
+  }
+  SECTION( "string" ) {
+    auto f = []( string s ) {
+      return ( s.size() > 2 ) ? M<string>{ s } : nothing;
+    };
+    M<string> m;
+    REQUIRE( m.bind( f ) == nothing );
+    m = "a";
+    REQUIRE( m.bind( f ) == nothing );
+    m = "aaaa";
+    REQUIRE( m.bind( f ) == "aaaa" );
+    REQUIRE( M<string>{}.bind( f ) == nothing );
+    REQUIRE( M<string>{ "a" }.bind( f ) == nothing );
+    REQUIRE( M<string>{ "aaa" }.bind( f ) == "aaa" );
+  }
+  SECTION( "NoCopy" ) {
+    auto f = []( NoCopy nc ) {
+      return ( nc.c == 'g' ) ? M<NoCopy>{ std::move( nc ) }
+                             : nothing;
+    };
+    M<NoCopy> m;
+    REQUIRE( M<NoCopy>{}.bind( f ) == nothing );
+    REQUIRE( M<NoCopy>{ 'a' }.bind( f ) == nothing );
+    REQUIRE( M<NoCopy>{ 'g' }.bind( f ) == NoCopy{ 'g' } );
+  }
+  SECTION( "Tracker" ) {
+    Tracker::reset();
+    auto f = []( Tracker const& nc ) {
+      return M<Tracker>{ nc };
+    };
+    M<Tracker> m;
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( m.bind( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    m.emplace();
+    REQUIRE( m.bind( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 1 );
+    REQUIRE( Tracker::copied == 1 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>{}.bind( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>( in_place ).bind( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 2 );
+    REQUIRE( Tracker::copied == 1 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+  }
+  SECTION( "Tracker auto" ) {
+    Tracker::reset();
+    auto f = []<typename T>( T&& nc ) {
+      return M<Tracker>{ std::forward<T>( nc ) };
+    };
+    M<Tracker> m;
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( m.bind( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    m.emplace();
+    REQUIRE( m.bind( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 1 );
+    REQUIRE( Tracker::copied == 1 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>{}.bind( f ) == nothing );
+    REQUIRE( Tracker::constructed == 0 );
+    REQUIRE( Tracker::destructed == 0 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_assigned == 0 );
+
+    Tracker::reset();
+    REQUIRE( M<Tracker>( in_place ).bind( f ) != nothing );
+    REQUIRE( Tracker::constructed == 1 );
+    REQUIRE( Tracker::destructed == 2 );
+    REQUIRE( Tracker::copied == 0 );
+    REQUIRE( Tracker::move_constructed == 1 );
+    REQUIRE( Tracker::move_assigned == 0 );
   }
 }
 

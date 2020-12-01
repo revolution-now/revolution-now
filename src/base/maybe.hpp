@@ -657,6 +657,58 @@ public:
   }
 
   /**************************************************************
+  ** Monadic Interface: fmap
+  ***************************************************************/
+  template<typename Func>
+  auto fmap( Func&& func ) const& //
+      requires( std::is_invocable_v<Func, T const&> ) {
+    using res_t = maybe<std::invoke_result_t<Func, T>>;
+    res_t res;
+    if( has_value() ) res = std::forward<Func>( func )( **this );
+    return res;
+  }
+
+  template<typename Func> /* clang-format off */
+  auto fmap( Func&& func ) &&
+      requires( std::is_invocable_v<Func, T> ) {
+                          /* clang-format on */
+    using res_t = maybe<std::invoke_result_t<Func, T>>;
+    res_t res;
+    if( has_value() )
+      res = std::forward<Func>( func )( std::move( **this ) );
+    return res;
+  }
+
+  /**************************************************************
+  ** Monadic Interface: bind
+  ***************************************************************/
+  template<typename Func>
+  auto bind( Func&& func ) const& requires(
+      std::is_same_v<maybe<typename std::invoke_result_t<
+                         Func, T const&>::value_type>,
+                     std::invoke_result_t<Func, T const&>> ) {
+    using res_t = std::invoke_result_t<Func, T>;
+    res_t res;
+    if( has_value() )
+      return std::forward<Func>( func )( **this );
+    return res;
+  }
+
+  template<typename Func> /* clang-format off */
+  auto bind( Func&& func ) &&
+      requires( std::is_same_v<
+                  maybe<typename
+                    std::invoke_result_t<Func, T>::value_type>,
+                  std::invoke_result_t<Func, T>
+                > ) { /* clang-format on */
+    using res_t = std::invoke_result_t<Func, T>;
+    res_t res;
+    if( has_value() )
+      return std::forward<Func>( func )( std::move( **this ) );
+    return res;
+  }
+
+  /**************************************************************
   ** Storage
   ***************************************************************/
 private:

@@ -14,8 +14,8 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
 #include "fmt-helper.hpp"
+#include "maybe.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -63,4 +63,5 @@ namespace rn {} // namespace rn
 FMT_TO_CATCH_T( ( T, U ), ::std::pair );
 FMT_TO_CATCH_T( ( T ), ::std::reference_wrapper );
 FMT_TO_CATCH_T( ( T ), ::std::optional );
+FMT_TO_CATCH_T( ( T ), ::base::maybe );
 FMT_TO_CATCH_T( ( T ), ::rn::expect );
