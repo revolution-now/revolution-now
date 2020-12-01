@@ -10,12 +10,18 @@
 *****************************************************************/
 #include "expr.hpp"
 
+// base
+#include "base/maybe.hpp"
+
 // {fmt}
 #include "fmt/format.h"
 
 using namespace std;
 
 namespace rnl::expr {
+
+using ::base::maybe;
+using ::base::nothing;
 
 string AlternativeMember::to_string( string_view spaces ) const {
   string res =
@@ -47,13 +53,13 @@ std::string to_str( e_sumtype_feature feature ) {
 #endif
 }
 
-optional<e_sumtype_feature> from_str( std::string feature ) {
+maybe<e_sumtype_feature> from_str( std::string feature ) {
   if( feature == "formattable" )
     return e_sumtype_feature::formattable;
   if( feature == "serializable" )
     return e_sumtype_feature::serializable;
   if( feature == "equality" ) return e_sumtype_feature::equality;
-  return nullopt;
+  return nothing;
 }
 
 std::string Sumtype::to_string( std::string_view spaces ) const {

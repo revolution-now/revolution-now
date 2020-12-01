@@ -158,7 +158,7 @@ string debug_string( UnitId id ) {
   return debug_string( unit_from_id( id ) );
 }
 
-Vec<UnitId> units_all( optional<e_nation> nation ) {
+Vec<UnitId> units_all( maybe<e_nation> nation ) {
   vector<UnitId> res;
   res.reserve( SG().units.size() );
   if( nation ) {
@@ -285,7 +285,7 @@ Opt<Coord> coord_for_unit( UnitId id ) {
     case UnitState::e::cargo:
     case UnitState::e::europort:
     case UnitState::e::colony: //
-      return nullopt;
+      return nothing;
   };
 }
 
@@ -312,7 +312,7 @@ Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
     }
     case UnitState::e::europort:
     case UnitState::e::colony: //
-      return nullopt;
+      return nothing;
   };
 }
 
@@ -344,11 +344,11 @@ bool is_unit_in_colony( UnitId id ) {
 ** Cargo Ownership
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
-// of the unit that is holding it; nullopt otherwise.
+// of the unit that is holding it; nothing otherwise.
 Opt<UnitId> is_unit_onboard( UnitId id ) {
   auto opt_iter = bu::has_key( SG().holder_from_held, id );
-  return opt_iter ? optional<UnitId>( ( **opt_iter ).second )
-                  : nullopt;
+  return opt_iter ? maybe<UnitId>( ( **opt_iter ).second )
+                  : nothing;
 }
 
 /****************************************************************
@@ -381,7 +381,7 @@ Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
   if_get( SG().states[id], UnitState::europort, val ) {
     return val.st;
   }
-  return nullopt;
+  return nothing;
 }
 
 Vec<UnitId> units_in_euro_port_view() {
@@ -401,7 +401,7 @@ Opt<Coord> coord_for_unit_multi_ownership( UnitId id ) {
     return maybe_map;
   if( auto maybe_colony = colony_for_unit_who_is_worker( id ) )
     return colony_from_id( *maybe_colony ).location();
-  return nullopt;
+  return nothing;
 }
 
 /****************************************************************
@@ -558,13 +558,8 @@ LUA_FN( unit_from_id, Unit const&, UnitId id ) {
   return unit_from_id( id );
 }
 
-LUA_FN( coord_for_unit, Coord, UnitId id ) {
-  // FIXME: try to return Opt<Coord> here which would automati-
-  // cally convert to nil when the result is nullopt.
-  auto maybe_coord = coord_for_unit( id );
-  CHECK( maybe_coord.has_value(), "Unit {} is not on the map.",
-         id );
-  return *maybe_coord;
+LUA_FN( coord_for_unit, Opt<Coord>, UnitId id ) {
+  return coord_for_unit( id );
 }
 
 } // namespace

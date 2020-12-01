@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "maybe.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -66,11 +67,11 @@ void register_init_routine( e_init_routine      routine,
   }
 
 // Will run initialization routines in order of dependencies. If
-// `only` is not nullopt then just it and its dependencies will
+// `level` is not nothing then just it and its dependencies will
 // be run. Otherwise all routines will be run in order of depen-
 // dencies.
 void run_all_init_routines(
-    Opt<e_log_level>                 level,
+    maybe<e_log_level>               level,
     absl::Span<e_init_routine const> top_level = {} );
 // This will run the corresponding cleanup routine for each
 // initialization routine that was successfully run, and will do

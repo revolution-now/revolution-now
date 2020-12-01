@@ -111,7 +111,7 @@ struct TunePlayerInfo {
   Opt<Duration_t> length;
   // If the player is currently playing a tune then it will re-
   // turn a number in [0,1.0] representing the progress through
-  // the tune. Returns `nullopt` if no tune is playing or if the
+  // the tune. Returns `nothing` if no tune is playing or if the
   // most recent tune has finished.
   Opt<double> progress;
 
@@ -150,9 +150,9 @@ TuneDimensions const& tune_dimensions( TuneId id );
 // tunes, but sorted in the order of how closely they meet the
 // given criteria (again, either matching or not matching de-
 // pending on the value of `not_like`). If a parameter is om-
-// mitted (nullopt or empty vector) then it acts as a wildcard,
+// mitted (nothing or empty vector) then it acts as a wildcard,
 // i.e., any value for that field will match the given one.
-// Therefore, the more parameters that are left as `nullopt` or
+// Therefore, the more parameters that are left as `nothing` or
 // empty, the more values there will be for a `not_like == false`
 // scenario and the fewer values there will be for a
 // `not_like=true` scenario. The criteria for matching depends on

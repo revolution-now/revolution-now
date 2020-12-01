@@ -37,7 +37,7 @@ bool CombatAnalysis::allowed_() const {
 // this function is concerned about) and to flag it if that is
 // the case.
 Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
-  if( !holds<orders::direction>( orders ) ) return nullopt;
+  if( !holds<orders::direction>( orders ) ) return nothing;
   auto [direction] = get<orders::direction>( orders );
 
   auto src_coord = coord_for_unit_indirect( id );
@@ -61,10 +61,10 @@ Opt<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   // there can be no combat.
   auto dst_nation = nation_from_coord( dst_coord );
   if( !dst_nation.has_value() || *dst_nation == unit.nation() )
-    return nullopt;
+    return nothing;
 
   if( !dst_coord.is_inside( world_rect_tiles() ) )
-    return nullopt;
+    return nothing;
 
   auto& square = square_at( dst_coord );
 

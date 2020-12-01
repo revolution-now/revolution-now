@@ -66,9 +66,9 @@ public:
 
   /************************ Functions **************************/
 
-  // Returns nullopt if this unit cannot hold cargo. If it can
+  // Returns nothing if this unit cannot hold cargo. If it can
   // hold cargo then returns the list of units it holds, which
-  // may be empty. To emphasize, nullopt will only be returned
+  // may be empty. To emphasize, nothing will only be returned
   // when this unit is unable to hold cargo.
   Opt<Vec<UnitId>> units_in_cargo() const;
 

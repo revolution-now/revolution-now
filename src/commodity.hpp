@@ -76,7 +76,7 @@ Opt<std::string> commodity_label_to_markup(
     CommodityLabel_t const& label );
 
 // Will be rendered as a one-line text string with transparent
-// background. Could return nullopt if label is `none`.
+// background. Could return nothing if label is `none`.
 Opt<CRef<Texture>> render_commodity_label(
     CommodityLabel_t const& label );
 

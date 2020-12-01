@@ -15,6 +15,7 @@
 
 // base
 #include "base/fs.hpp"
+#include "base/maybe.hpp"
 #include "base/source-loc.hpp"
 
 // C++ PEG-lib
@@ -28,6 +29,8 @@ using namespace std;
 namespace rnl {
 
 namespace {
+
+using ::base::maybe;
 
 template<typename T>
 T safe_any_cast( any const& v, base::SourceLoc const& location =
@@ -51,10 +54,10 @@ vector<T> safe_cast_vec( peg::SemanticValues const& sv,
 
 } // namespace
 
-optional<expr::Rnl> parse( string_view   peg_filename,
-                           string_view   src_filename,
-                           string const& peg_grammar,
-                           string const& rnl_text ) {
+maybe<expr::Rnl> parse( string_view   peg_filename,
+                        string_view   src_filename,
+                        string const& peg_grammar,
+                        string const& rnl_text ) {
   peg::parser parser;
   parser.log = [&]( size_t line, size_t col,
                     string const& msg ) {
@@ -88,8 +91,7 @@ optional<expr::Rnl> parse( string_view   peg_filename,
 
   parser["FEATURE"] = []( peg::SemanticValues const& sv ) {
     string token = safe_any_cast<string>( sv.token() );
-    optional<expr::e_sumtype_feature> o =
-        expr::from_str( token );
+    maybe<expr::e_sumtype_feature> o = expr::from_str( token );
     if( !o.has_value() )
       throw peg::parse_error(
           fmt::format( "unrecognized feature: \"{}\".", token )

@@ -62,7 +62,7 @@ struct OrdersAnalysis {
     child()->affect_orders_();
   }
 
-  // Analyzes the move and returns nullopt if it is
+  // Analyzes the move and returns nothing if it is
   // non-applicable or returns this data structure (populated) if
   // it is applicable (though may still be disallowed).
   static Opt<Child> analyze( UnitId id, orders_t orders ) {

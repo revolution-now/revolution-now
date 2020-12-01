@@ -81,9 +81,10 @@ void text_input_box(
     ValidatorFunc                           validator,
     std::function<void( Opt<std::string> )> on_result );
 
-sync_future<Opt<int>> int_input_box(
-    std::string_view title, std::string_view msg,
-    Opt<int> min = std::nullopt, Opt<int> max = std::nullopt );
+sync_future<Opt<int>> int_input_box( std::string_view title,
+                                     std::string_view msg,
+                                     Opt<int> min = nothing,
+                                     Opt<int> max = nothing );
 
 sync_future<Opt<std::string>> str_input_box(
     std::string_view title, std::string_view msg );
@@ -175,14 +176,14 @@ sync_future<Ret> repeat_until(
 }
 
 // Similar to above, but the function being repeated can return a
-// nullopt, basically meaning that the operation is cancelled.
+// nothing, basically meaning that the operation is cancelled.
 template<typename Ret>
 sync_future<Opt<Ret>> repeat_until_or_cancel(
     std::function<sync_future<Opt<Ret>>()> to_repeat,
     std::function<expect<>( Ret const& )>  get_error ) {
   return to_repeat() >> [=]( Opt<Ret> const& maybe_val ) {
     if( !maybe_val.has_value() )
-      return make_sync_future<Opt<Ret>>( std::nullopt );
+      return make_sync_future<Opt<Ret>>( nothing );
     if( auto xp = get_error( *maybe_val ); !xp )
       return message_box( xp.error().what ).next( [=] {
         // Loop by recursion.

@@ -222,7 +222,7 @@ Opt<string> commodity_label_to_markup(
     CommodityLabel_t const& label ) {
   switch( enum_for( label ) ) {
     case CommodityLabel::e::none: {
-      return nullopt;
+      return nothing;
     }
     case CommodityLabel::e::quantity: {
       auto& [value] =
@@ -249,7 +249,7 @@ Opt<CRef<Texture>> render_commodity_label(
 void render_commodity( Texture& tx, e_commodity type,
                        Coord pixel_coord ) {
   render_commodity_impl( tx, type, pixel_coord,
-                         /*label=*/nullopt );
+                         /*label=*/nothing );
 }
 
 void render_commodity_annotated(

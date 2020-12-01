@@ -14,6 +14,7 @@
 #include "rnl-util.hpp"
 
 // base
+#include "base/maybe.hpp"
 #include "base/meta.hpp"
 
 // base-util
@@ -38,6 +39,8 @@ using namespace std;
 namespace rnl {
 
 namespace {
+
+using ::base::maybe;
 
 // Parameters:
 //   - member_var_name
@@ -252,9 +255,9 @@ struct CodeGenerator {
     bool operator!=( Options const& ) const = default;
   };
 
-  ostringstream    oss_;
-  optional<string> curr_line_;
-  Options          default_options_ = {};
+  ostringstream oss_;
+  maybe<string> curr_line_;
+  Options       default_options_ = {};
 
   stack<Options> options_;
 
@@ -774,7 +777,7 @@ struct CodeGenerator {
 
 } // namespace
 
-optional<string> generate_code( expr::Rnl const& rnl ) {
+maybe<string> generate_code( expr::Rnl const& rnl ) {
   CodeGenerator gen;
   gen.emit_rnl( rnl );
   return gen.result();

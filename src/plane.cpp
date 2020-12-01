@@ -167,15 +167,15 @@ struct DragState {
   explicit DragState() { reset(); }
 
   // This is the plan that is currently receiving mouse dragging
-  // events (nullopt if there is not dragging event happening).
+  // events (nothing if there is not dragging event happening).
   Opt<e_plane> plane{};
   bool         send_as_motion{ false };
   Opt<Delta>   projection{};
 
   void reset() {
-    plane          = nullopt;
+    plane          = nothing;
     send_as_motion = false;
-    projection     = nullopt;
+    projection     = nothing;
   }
 };
 NOTHROW_MOVE( DragState );
@@ -322,7 +322,7 @@ void Plane::on_drag_finished( input::mod_keys const& /*unused*/,
 
 Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
     e_menu_item /*unused*/ ) const {
-  return nullopt;
+  return nothing;
 }
 
 /****************************************************************
@@ -370,7 +370,7 @@ void draw_all_planes( Texture& tx ) {
 void advance_plane_state() {
   if( g_plane_list_next.has_value() ) {
     g_plane_list      = std::move( *g_plane_list_next );
-    g_plane_list_next = nullopt;
+    g_plane_list_next = nothing;
   }
   for( auto [e, ptr] : relevant_planes() ) ptr->advance_state();
 }

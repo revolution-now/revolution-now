@@ -140,11 +140,11 @@ struct Plane {
   using MenuClickHandler = tl::function_ref<void()>;
 
   // Asks the plane if it can handler a particular menu item. If
-  // it returns nullopt that means "no." Otherwise it means
+  // it returns nothing that means "no." Otherwise it means
   // "yes," and it must return reference to a handler function
   // which will be called when them item is clicked assuming that
   // the menu item is enabled and if there are no higher planes
-  // that also handle it. Default implementation returns nullopt.
+  // that also handle it. Default implementation returns nothing.
   //
   // IMPORTANT: Being that this is returning a function_ref, it
   // is important that function returned outlive the function

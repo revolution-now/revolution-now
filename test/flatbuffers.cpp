@@ -641,7 +641,7 @@ TEST_CASE( "deserialize json" ) {
   REQUIRE( unit.desc().type == rn::e_unit_type::merchantman );
   REQUIRE( unit.orders() == rn::e_unit_orders::none );
   REQUIRE( unit.nation() == rn::e_nation::english );
-  REQUIRE( unit.worth() == nullopt );
+  REQUIRE( unit.worth() == nothing );
   REQUIRE( unit.movement_points() == rn::MovementPoints( 5 ) );
   REQUIRE( unit.finished_turn() == false );
 

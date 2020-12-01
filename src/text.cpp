@@ -66,7 +66,8 @@ NodeMap<TextCacheKey, Texture> g_text_cache;
 constexpr int const            k_max_text_cache_size = 2000;
 
 Opt<CRef<Texture>> text_cache_lookup( TextCacheKey const& key ) {
-  return bu::val_safe( g_text_cache, key );
+  return base::optional_to_maybe(
+      bu::val_safe( g_text_cache, key ) );
 }
 
 void trim_text_cache() {
@@ -123,12 +124,12 @@ NOTHROW_MOVE( MarkedUpText );
 
 auto parse_markup( string_view sv ) -> Opt<MarkupStyle> {
   if( sv.size() == 0 ) return MarkupStyle{};
-  if( sv.size() != 1 ) return nullopt; // parsing failed
+  if( sv.size() != 1 ) return nothing; // parsing failed
   switch( sv[0] ) {
     case '@': return MarkupStyle{};
     case 'H': return MarkupStyle{ /*highlight=*/true };
   }
-  return nullopt; // parsing failed.
+  return nothing; // parsing failed.
 }
 
 Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
@@ -391,7 +392,7 @@ Texture const& render_text_markup( e_font                font,
       /*font=*/font,
       /*color=*/info.normal,
       /*markup_info=*/info,
-      /*reflow_info=*/nullopt //
+      /*reflow_info=*/nothing //
   );
   auto res =
       render_lines_markup( font, parse_text( text ), info );
@@ -404,8 +405,8 @@ Texture const& render_text( e_font font, Color color,
       /*text=*/string( text ),
       /*font=*/font,
       /*color=*/color,
-      /*markup_info=*/nullopt,
-      /*reflow_info=*/nullopt //
+      /*markup_info=*/nothing,
+      /*reflow_info=*/nothing //
   );
   auto res =
       render_lines( font, color, absl::StrSplit( text, '\n' ) );

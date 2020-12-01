@@ -56,7 +56,7 @@ void copy_texture_alpha( Texture& from, Texture& to,
   to.set_blend_mode( e_tx_blend_mode::blend );
   from.set_alpha_mod( alpha );
   auto rect = Rect::from( dst_coord, from.size() );
-  from.copy_to( to, /*src=*/nullopt, /*dest=*/rect );
+  from.copy_to( to, /*src=*/nothing, /*dest=*/rect );
   // Restore texture's alpha because that is what most actions
   // will need it to be, and we don't set it before every texture
   // copying action in this module.
@@ -69,7 +69,7 @@ void copy_texture( Texture const& from, Texture& to,
   // from.set_blend_mode( e_tx_blend_mode::blend );
   to.set_blend_mode( e_tx_blend_mode::blend );
   auto rect = Rect::from( dst_coord, from.size() );
-  from.copy_to( to, /*src=*/nullopt, /*dest=*/rect );
+  from.copy_to( to, /*src=*/nothing, /*dest=*/rect );
 }
 
 void copy_texture_to_main( Texture const& from ) {

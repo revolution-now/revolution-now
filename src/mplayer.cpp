@@ -37,9 +37,9 @@ bool SilentMusicPlayer::good() const { return true; }
 // Implement MusicPlayer
 Opt<TunePlayerInfo> SilentMusicPlayer::can_play_tune(
     TuneId id ) {
-  return TunePlayerInfo{/*id=*/id,
-                        /*length=*/chrono::minutes( 1 ),
-                        /*progress=*/nullopt};
+  return TunePlayerInfo{ /*id=*/id,
+                         /*length=*/chrono::minutes( 1 ),
+                         /*progress=*/nothing };
 }
 
 // Implement MusicPlayer
@@ -51,7 +51,7 @@ bool SilentMusicPlayer::play( TuneId id ) {
 }
 
 // Implement MusicPlayer
-void SilentMusicPlayer::stop() { id_ = nullopt; }
+void SilentMusicPlayer::stop() { id_ = nothing; }
 
 MusicPlayerDesc SilentMusicPlayer::info() const {
   return SilentMusicPlayer::player().first;
@@ -62,12 +62,12 @@ MusicPlayerState SilentMusicPlayer::state() const {
   Opt<TunePlayerInfo> maybe_tune_info;
   if( id_.has_value() ) {
     maybe_tune_info =
-        TunePlayerInfo{/*id=*/*id_,
-                       /*length=*/chrono::minutes( 1 ),
-                       /*progress=*/.5};
+        TunePlayerInfo{ /*id=*/*id_,
+                        /*length=*/chrono::minutes( 1 ),
+                        /*progress=*/.5 };
   }
-  return {/*tune_info=*/maybe_tune_info,
-          /*is_paused=*/is_paused_};
+  return { /*tune_info=*/maybe_tune_info,
+           /*is_paused=*/is_paused_ };
 }
 
 // Implement MusicPlayer

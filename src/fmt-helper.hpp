@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/source-loc.hpp"
@@ -306,6 +307,19 @@ struct formatter<std::optional<T>> : formatter_base {
     static const std::string nullopt_str( "nullopt" );
     return formatter_base::format(
         o.has_value() ? fmt::format( "{}", *o ) : nullopt_str,
+        ctx );
+  }
+};
+
+// {fmt} formatter for formatting maybes whose contained
+// type is formattable.
+template<typename T>
+struct formatter<base::maybe<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( base::maybe<T> const &o, FormatContext &ctx ) {
+    static const std::string nothing_str( "nothing" );
+    return formatter_base::format(
+        o.has_value() ? fmt::format( "{}", *o ) : nothing_str,
         ctx );
   }
 };

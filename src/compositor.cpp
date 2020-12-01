@@ -44,7 +44,7 @@ Opt<Rect> section( e_section section ) {
     case e_section::menu_bar:
       if( is_plane_enabled( e_plane::menu ) )
         res = Rect{ 0_x, 0_y, screen_size.w, menu_height };
-      // res is nullopt if menus are not visible.
+      // res is nothing if menus are not visible.
       break;
     case e_section::non_menu_bar:
       res = Rect{ 0_x, 0_y + menu_height, screen_size.w,

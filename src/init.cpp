@@ -14,6 +14,7 @@
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
+#include "maybe.hpp"
 
 // base-util
 #include "base-util/graph.hpp"
@@ -194,11 +195,12 @@ void register_init_routine( e_init_routine      routine,
 }
 
 void run_all_init_routines(
-    Opt<e_log_level>                 level,
+    maybe<e_log_level>               level,
     absl::Span<e_init_routine const> top_level ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
-  init_logging( util::fmap( to_spdlog_level, level ) );
+  init_logging( base::optional_to_maybe( util::fmap(
+      to_spdlog_level, base::maybe_to_optional( level ) ) ) );
   lg.debug( "initializing: logging" );
 
   // A list of init routines that are unregistered.

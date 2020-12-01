@@ -81,7 +81,7 @@ public:
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord ) const override {
-    return nullopt;
+    return nothing;
   }
 
   TitleBar( ColonyId id, Delta size )
@@ -139,13 +139,13 @@ public:
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
+    if( !coord.is_inside( rect( {} ) ) ) return nothing;
     auto sprite_scale = Scale{ SX{ block_width_._ }, SY{ 32 } };
     auto box_upper_left =
         ( coord / sprite_scale ) * sprite_scale;
     auto idx        = ( coord / sprite_scale - Coord{} ).w._;
     auto maybe_type = commodity_from_index( idx );
-    if( !maybe_type ) return nullopt;
+    if( !maybe_type ) return nothing;
     return ColViewObjectUnderCursor{
         .obj =
             ColViewDraggableObject::market_commodity{
@@ -191,8 +191,8 @@ public:
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
-    return nullopt;
+    if( !coord.is_inside( rect( {} ) ) ) return nothing;
+    return nothing;
   }
 
   PopulationView( ColonyId id, Delta size )
@@ -229,8 +229,8 @@ public:
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
-    return nullopt;
+    if( !coord.is_inside( rect( {} ) ) ) return nothing;
+    return nothing;
   }
 
   CargoView( ColonyId id, Delta size )
@@ -259,8 +259,8 @@ public:
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
-    return nullopt;
+    if( !coord.is_inside( rect( {} ) ) ) return nothing;
+    return nothing;
   }
 
   ProductionView( ColonyId id, Delta size )
@@ -330,7 +330,7 @@ public:
     land_tx_.fill();
     draw_land_3x3( land_tx_, Coord{} );
     auto dst_rect = Rect::from( coord, delta() );
-    land_tx_.copy_to( tx, /*src=*/nullopt, dst_rect );
+    land_tx_.copy_to( tx, /*src=*/nothing, dst_rect );
   }
 
   void draw( Texture& tx, Coord coord ) const override {
@@ -361,8 +361,8 @@ public:
 
   Opt<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nullopt;
-    return nullopt;
+    if( !coord.is_inside( rect( {} ) ) ) return nothing;
+    return nothing;
   }
 
   LandView( ColonyId id, e_render_mode mode, Texture land_tx )

@@ -404,7 +404,7 @@ public:
   // specified, it will always be clamped to the bounds of the
   // new string.
   void set( std::string_view new_string,
-            Opt<int>         cursor_pos = std::nullopt );
+            Opt<int>         cursor_pos = nothing );
 
 private:
   void render_background( Delta const& size );

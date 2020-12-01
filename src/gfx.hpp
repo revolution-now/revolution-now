@@ -32,7 +32,7 @@ void copy_texture( Texture const& from, Texture& to,
                    double angle, e_flip flip );
 
 // Copies one texture to another at the destination point without
-// scaling. Destination texture can be nullopt for default
+// scaling. Destination texture can be nothing for default
 // rendering target.
 void copy_texture( Texture const& from, Texture& to,
                    Coord const& dst_coord );

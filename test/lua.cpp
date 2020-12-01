@@ -231,29 +231,48 @@ TEST_CASE( "[lua] Coord" ) {
 }
 
 LUA_FN( opt_test, Opt<string>, Opt<int> const& maybe_int ) {
-  if( !maybe_int ) return "got nullopt";
+  if( !maybe_int ) return "got nothing";
   int n = *maybe_int;
-  if( n < 5 ) return nullopt;
+  if( n < 5 ) return nothing;
   if( n < 10 ) return "less than 10";
   return to_string( n );
 }
 
+LUA_FN( opt_test2, Opt<Coord>, Opt<Coord> const& maybe_coord ) {
+  if( !maybe_coord ) return Coord{ 5_x, 7_y };
+  return Coord{ maybe_coord->x + 1_w, maybe_coord->y + 1_y };
+}
+
 TEST_CASE( "[lua] optional" ) {
+  // string/int
   auto script = R"(
-    assert( testing.opt_test( nil ) == "got nullopt" )
-    assert( testing.opt_test( 0 ) == nil )
-    assert( testing.opt_test( 4 ) == nil )
-    assert( testing.opt_test( 5 ) == "less than 10" )
-    assert( testing.opt_test( 9 ) == "less than 10" )
-    assert( testing.opt_test( 10 ) == "10" )
-    assert( testing.opt_test( 100 ) == "100" )
+    assert( testing.opt_test( nil ) == "got nothing"  )
+    assert( testing.opt_test( 0   ) ==  nil           )
+    assert( testing.opt_test( 4   ) ==  nil           )
+    assert( testing.opt_test( 5   ) == "less than 10" )
+    assert( testing.opt_test( 9   ) == "less than 10" )
+    assert( testing.opt_test( 10  ) == "10"           )
+    assert( testing.opt_test( 100 ) == "100"          )
   )";
   REQUIRE( lua::run<void>( script ) == xp_success_t{} );
 
-  REQUIRE( lua::run<Opt<string>>( "return nil" ) == nullopt );
+  REQUIRE( lua::run<Opt<string>>( "return nil" ) == nothing );
   REQUIRE( lua::run<Opt<string>>( "return 'hello'" ) ==
            "hello" );
-  REQUIRE( lua::run<Opt<int>>( "return 'hello'" ) == nullopt );
+  REQUIRE( lua::run<Opt<int>>( "return 'hello'" ) == nothing );
+
+  // Coord
+  auto script2 = R"(
+    assert( testing.opt_test2( nil            ) == Coord{x=5,y=7} )
+    assert( testing.opt_test2( Coord{x=2,y=3} ) == Coord{x=3,y=4} )
+  )";
+  REQUIRE( lua::run<void>( script2 ) == xp_success_t{} );
+
+  REQUIRE( lua::run<Opt<Coord>>( "return nil" ) == nothing );
+  REQUIRE( lua::run<Opt<Coord>>( "return Coord{x=9, y=8}" ) ==
+           Coord{ 9_x, 8_y } );
+  REQUIRE( lua::run<Opt<Coord>>( "return 'hello'" ) == nothing );
+  REQUIRE( lua::run<Opt<Coord>>( "return 5" ) == nothing );
 }
 
 TEST_CASE( "[lua] new_usertype" ) {

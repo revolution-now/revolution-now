@@ -10,7 +10,10 @@
 *****************************************************************/
 #pragma once
 
-#include <optional>
+// base
+#include "base/maybe.hpp"
+
+// C++ standard library
 #include <string>
 #include <variant>
 #include <vector>
@@ -38,7 +41,7 @@ enum class e_sumtype_feature {
 };
 
 std::string to_str( e_sumtype_feature feature );
-std::optional<e_sumtype_feature> from_str( std::string feature );
+base::maybe<e_sumtype_feature> from_str( std::string feature );
 
 struct TemplateParam {
   std::string param;
@@ -49,8 +52,8 @@ struct Sumtype {
   std::vector<TemplateParam> tmpl_params;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
-  std::optional<std::vector<e_sumtype_feature>> features;
-  std::vector<Alternative>                      alternatives;
+  base::maybe<std::vector<e_sumtype_feature>> features;
+  std::vector<Alternative>                    alternatives;
 
   std::string to_string( std::string_view spaces ) const;
 };

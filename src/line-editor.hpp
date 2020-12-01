@@ -45,7 +45,7 @@ public:
   // specified, it will always be clamped to the bounds of the
   // new string.
   void set( std::string_view new_buffer,
-            Opt<int>         maybe_pos = std::nullopt );
+            Opt<int>         maybe_pos = nothing );
 
   void clear();
 
@@ -68,7 +68,7 @@ NOTHROW_MOVE( LineEditor );
 // rience that a user would expect when a string is navigated by
 // moving a cursor along a line.
 class LineEditorInputView {
-  int start_pos_{0};
+  int start_pos_{ 0 };
   // Size of the window.
   int width_;
 

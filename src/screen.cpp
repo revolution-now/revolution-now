@@ -53,7 +53,7 @@ auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 constexpr int min_scale_factor = 1;
 constexpr int max_scale_factor = 10;
 
-// Cache is invalidated by setting to nullopt.
+// Cache is invalidated by setting to nothing.
 Opt<Delta> main_window_physical_size_cache;
 
 /*
@@ -334,7 +334,7 @@ MENU_ITEM_HANDLER(
 
 void on_logical_resolution_changed() {
   // Invalidate cache.
-  main_window_physical_size_cache = nullopt;
+  main_window_physical_size_cache = nothing;
 
   auto logical_size = main_window_logical_size();
   ::SDL_RenderSetLogicalSize( g_renderer, logical_size.w._,

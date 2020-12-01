@@ -466,7 +466,7 @@ void ok_cancel_window_builder(
         }, /*on_cancel=*/
         [win, on_result] {
           lg.trace( "selected cancel." );
-          on_result( nullopt );
+          on_result( nothing );
           win->close_window();
         } );
     auto* p_ok_button      = ok_cancel_view->ok_button();
@@ -643,13 +643,13 @@ sync_future<Opt<int>> int_input_box( std::string_view title,
                                      Opt<int>         min,
                                      Opt<int>         max ) {
   sync_promise<Opt<int>> s_promise;
-  text_input_box(
-      title, msg, make_int_validator( min, max ),
-      [s_promise]( Opt<string> result ) mutable {
-        using namespace util::infix;
-        s_promise.set_value( result |
-                             fmap_join( L( util::stoi( _ ) ) ) );
-      } );
+  text_input_box( title, msg, make_int_validator( min, max ),
+                  [s_promise]( Opt<string> result ) mutable {
+                    using namespace util::infix;
+                    s_promise.set_value( base::optional_to_maybe(
+                        base::maybe_to_optional( result ) |
+                        fmap_join( L( util::stoi( _ ) ) ) ) );
+                  } );
   return s_promise.get_future();
 }
 

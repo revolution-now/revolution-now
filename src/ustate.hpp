@@ -31,7 +31,6 @@
 
 // C++ standard library
 #include <functional>
-#include <optional>
 #include <unordered_set>
 
 namespace rn {
@@ -42,8 +41,7 @@ std::string debug_string( UnitId id );
 
 ND bool unit_exists( UnitId id );
 ND Unit&    unit_from_id( UnitId id );
-Vec<UnitId> units_all(
-    std::optional<e_nation> n = std::nullopt );
+Vec<UnitId> units_all( maybe<e_nation> n = nothing );
 // Apply a function to all units. The function may mutate the
 // units. NOTE: here, the word "map" is meant in the functional
 // programming sense, and not in the sense of the game world map.
@@ -128,7 +126,7 @@ bool is_unit_in_colony( UnitId id );
 ** Cargo Ownership
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
-// of the unit that is holding it; nullopt otherwise.
+// of the unit that is holding it; nothing otherwise.
 Opt<UnitId> is_unit_onboard( UnitId id );
 
 /****************************************************************

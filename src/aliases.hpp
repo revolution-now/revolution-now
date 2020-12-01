@@ -15,6 +15,7 @@
 
 // base
 #include "base/fs.hpp"
+#include "base/maybe.hpp"
 
 // obesrver-ptr
 #include "observer-ptr/observer-ptr.hpp"
@@ -29,7 +30,6 @@
 #include <chrono>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -62,7 +62,7 @@ template<typename T>
 using Vec = ::std::vector<T>;
 
 template<typename T>
-using Opt = ::std::optional<T>;
+using Opt = ::base::maybe<T>;
 
 template<typename T>
 using OptRef = Opt<::std::reference_wrapper<T>>;

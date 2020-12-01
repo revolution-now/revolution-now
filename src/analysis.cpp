@@ -30,7 +30,7 @@ Opt<MetaAnalysis> MetaAnalysis::analyze_( UnitId   id,
   if( holds<orders::forfeight>( orders ) )
     return MetaAnalysis( id, orders,
                          /*mv_points_forfeighted=*/true );
-  return nullopt;
+  return nothing;
 }
 
 void MetaAnalysis::affect_orders_() const {
@@ -44,7 +44,7 @@ Opt<e_nation> nation_from_coord( Coord coord ) {
     return colony_from_id( *maybe_colony_id ).nation();
 
   auto const& units = units_from_coord( coord );
-  if( units.empty() ) return nullopt;
+  if( units.empty() ) return nothing;
   e_nation first = unit_from_id( *units.begin() ).nation();
   for( auto const& id : units ) {
     (void)id; // for release builds.

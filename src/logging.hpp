@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // base
 #include "base/fs.hpp"
 
@@ -208,8 +211,7 @@ auto& lg = **hybrid_logger;
 
 // This will initialize the log level.  If a level is not
 // specified then one will be chosen according to the build type.
-void init_logging(
-    std::optional<spdlog::level::level_enum> level );
+void init_logging( maybe<spdlog::level::level_enum> level );
 
 std::string fmt_bar( char c, std::string_view msg = "" );
 void        print_bar( char c, std::string_view msg = "" );

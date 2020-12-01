@@ -122,7 +122,7 @@ public:
   // It also accepts a timeout to avoid hanging if something goes
   // wrong. If a timeout occurs then the function returns false,
   // otherwise true.
-  virtual bool fence( Opt<Duration_t> timeout = std::nullopt );
+  virtual bool fence( Opt<Duration_t> timeout = nothing );
 
   // This one is a more passive aid in making sure that music
   // player commands are well-ordered. It simply returns true the

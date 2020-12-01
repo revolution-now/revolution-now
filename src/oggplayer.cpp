@@ -63,7 +63,7 @@ public:
   // anything in its API to get the duration of music, so it may
   // be necessary to add libogg directly as a dependency to find
   // the length.
-  Opt<chrono::milliseconds> duration() { return nullopt; }
+  Opt<chrono::milliseconds> duration() { return nothing; }
 
   void swap( OggTune& rhs ) noexcept {
     ::std::swap( ptr_, rhs.ptr_ );
@@ -141,7 +141,7 @@ Opt<OggTune> load_tune( TuneId id ) {
         "Mix_LoadMUS error: {}",
         file.string(), tune_stem_from_id( id ),
         ::SDL_GetError() );
-    return nullopt;
+    return nothing;
   }
   return OggTune( id, music );
 }
@@ -212,11 +212,11 @@ Opt<TunePlayerInfo> OggMusicPlayer::can_play_tune( TuneId id ) {
   if( !good() ) return {};
 
   auto ogg = load_tune( id );
-  if( !ogg ) return nullopt;
+  if( !ogg ) return nothing;
 
   return TunePlayerInfo{ /*id=*/id,
                          /*length=*/( *ogg ).duration(),
-                         /*progress=*/nullopt };
+                         /*progress=*/nothing };
 }
 
 bool OggMusicPlayer::play( TuneId id ) {
@@ -248,7 +248,7 @@ MusicPlayerState OggMusicPlayer::state() const {
     maybe_tune_info = TunePlayerInfo{
         /*id=*/g_current_music->id(),
         /*length=*/g_current_music->duration(),
-        /*progress=*/nullopt,
+        /*progress=*/nothing,
     };
   }
   return { /*tune_info=*/maybe_tune_info,

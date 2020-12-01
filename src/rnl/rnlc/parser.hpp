@@ -13,14 +13,14 @@
 // rnlc
 #include "expr.hpp"
 
-// c++ standard library
-#include <optional>
+// base
+#include "base/maybe.hpp"
 
 namespace rnl {
 
-std::optional<expr::Rnl> parse( std::string_view   peg_filename,
-                                std::string_view   src_filename,
-                                std::string const& peg_grammar,
-                                std::string const& rnl_text );
+base::maybe<expr::Rnl> parse( std::string_view   peg_filename,
+                              std::string_view   src_filename,
+                              std::string const& peg_grammar,
+                              std::string const& rnl_text );
 
 }

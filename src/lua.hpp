@@ -15,8 +15,14 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "cc-specific.hpp"
+#include "coord.hpp"
 #include "errors.hpp"
+#include "id.hpp"
 #include "sol.hpp"
+#include "typed-int.hpp"
+
+// base
+#include "base/maybe-util.hpp"
 
 // base-util
 #include "base-util/macros.hpp"
@@ -72,10 +78,10 @@ expect<Ret> sol_obj_convert( sol::object const& o ) {
 template<typename T>
 expect<Opt<T>> sol_opt_convert( sol::object const& o ) {
   if( o.is<sol::lua_nil_t>() ) //
-    return std::nullopt;
+    return nothing;
   auto xp_T = sol_obj_convert<T>( o );
   if( !xp_T.has_value() ) //
-    return std::nullopt;
+    return nothing;
   return Opt<T>{ *xp_T };
 }
 
@@ -89,7 +95,7 @@ expect<Ret> lua_script( std::string_view script ) {
   }
   if constexpr( std::is_same_v<Ret, xp_success_t> )
     return xp_success_t{};
-  else if constexpr( mp::is_optional_v<Ret> )
+  else if constexpr( base::is_maybe_v<Ret> )
     return sol_opt_convert<typename Ret::value_type>(
         result.get<sol::object>() );
   else
@@ -320,4 +326,116 @@ void reset_state();
 /****************************************************************
 ** Customizations
 *****************************************************************/
-#include "lua-ext.hpp"
+LUA_TYPED_INT( ::rn::X );
+LUA_TYPED_INT( ::rn::Y );
+LUA_TYPED_INT( ::rn::W );
+LUA_TYPED_INT( ::rn::H );
+
+LUA_TYPED_INT( ::rn::UnitId );
+LUA_TYPED_INT( ::rn::ColonyId );
+
+/****************************************************************
+** Coord
+*****************************************************************/
+namespace rn {
+
+template<typename Handler>
+inline bool sol_lua_check( sol::types<::rn::Coord>, lua_State* L,
+                           int index, Handler&& handler,
+                           sol::stack::record& tracking ) {
+  int  absolute_index = lua_absindex( L, index );
+  bool success        = sol::stack::check<sol::table>(
+      L, absolute_index, handler );
+  tracking.use( 1 );
+  if( !success ) return false;
+  auto table = sol::stack::get<sol::table>( L, absolute_index );
+  success    = ( table["x"].get_type() == sol::type::number ) &&
+            ( table["y"].get_type() == sol::type::number );
+  if( !success ) return false;
+  return success;
+}
+
+inline ::rn::Coord sol_lua_get( sol::types<::rn::Coord>,
+                                lua_State* L, int index,
+                                sol::stack::record& tracking ) {
+  int  absolute_index = lua_absindex( L, index );
+  auto table = sol::stack::get<sol::table>( L, absolute_index );
+  ::rn::Coord coord{ table["x"].get<X>(), table["y"].get<Y>() };
+  tracking.use( 1 );
+  return coord;
+}
+
+inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
+                         ::rn::Coord const& coord ) {
+  sol::state_view st( L );
+
+  auto table = sol::lua_value( st, {} ).as<sol::table>();
+  table["x"] = coord.x;
+  table["y"] = coord.y;
+  // Delegate to lua factory function. We could do this in C++
+  // but the native lua factory function will add in some meta
+  // methods and it's nice not to have to duplicate that here.
+  CHECK( st["Coord"] != sol::lua_nil,
+         "The native Lua Coord factory function must be defined "
+         "first before converting from C++ Coord to Lua." );
+  table      = st["Coord"]( table );
+  int amount = sol::stack::push( L, table );
+
+  /* amount will be 1: int pushes 1 item. */
+  return amount;
+}
+
+} // namespace rn
+
+/****************************************************************
+** maybe
+*****************************************************************/
+namespace base {
+
+template<typename Handler, typename T>
+inline bool sol_lua_check( sol::types<::rn::maybe<T>>,
+                           lua_State* L, int index,
+                           Handler&&           handler,
+                           sol::stack::record& tracking ) {
+  int  absolute_index = lua_absindex( L, index );
+  bool success        = sol::stack::check<sol::object>(
+      L, absolute_index, handler );
+  tracking.use( 1 );
+  if( !success ) return false;
+  auto o = sol::stack::get<sol::object>( L, absolute_index );
+  if( o == sol::lua_nil ) return true;
+  sol::lua_value v = o;
+  success          = v.is<T>();
+  return success;
+}
+
+template<typename T>
+inline ::rn::maybe<T> sol_lua_get(
+    sol::types<::rn::maybe<T>>, lua_State* L, int index,
+    sol::stack::record& tracking ) {
+  int  absolute_index = lua_absindex( L, index );
+  auto o = sol::stack::get<sol::object>( L, absolute_index );
+  ::rn::maybe<T> m;
+  if( o == sol::lua_nil ) return m;
+  sol::lua_value v = o;
+  RN_CHECK(
+      v.is<T>(),
+      "something went wrong when extracting a maybe<T> from "
+      "lua." );
+  m = v.as<T>();
+  tracking.use( 1 );
+  return m;
+}
+
+template<typename T>
+inline int sol_lua_push( sol::types<::rn::maybe<T>>,
+                         lua_State*            L,
+                         ::rn::maybe<T> const& m ) {
+  sol::state_view st( L );
+  sol::lua_value  v = sol::lua_nil;
+  if( m.has_value() ) v = *m;
+  int amount = sol::stack::push( L, v );
+  return amount;
+}
+
+} // namespace base

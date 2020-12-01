@@ -5,6 +5,7 @@
 *                           Includes
 *****************************************************************/
 // Includes specified in rnl file.
+#include "maybe.hpp"
 #include <string>
 #include <vector>
 #include "fb/testing_generated.h"
@@ -617,10 +618,10 @@ namespace rnltest::inner {
   namespace MyVariant4 {
 
     struct first {
-      int                     i;
-      char                    c;
-      bool                    b;
-      std::optional<uint32_t> op;
+      int                 i;
+      char                c;
+      bool                b;
+      rn::maybe<uint32_t> op;
       // This requires that the types of the member variables
       // also support equality.
       bool operator==( struct first const& ) const = default;

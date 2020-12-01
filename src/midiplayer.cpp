@@ -43,8 +43,7 @@ fs::path mid_file_from_id( TuneId id ) {
 // to be to instantiate it.
 void init_midiplayer() {
   if( midiseq::midiseq_enabled() ) {
-    lg.info(
-        "MIDI Sequencer Enabled: enabling Music Player." );
+    lg.info( "MIDI Sequencer Enabled: enabling Music Player." );
     g_midiseq_player = MidiSeqMusicPlayer();
   } else {
     lg.info(
@@ -91,12 +90,12 @@ Opt<TunePlayerInfo> MidiSeqMusicPlayer::can_play_tune(
   // for the midi files).
   auto maybe_duration =
       midiseq::can_play_tune( mid_file_from_id( id ) );
-  if( !maybe_duration.has_value() ) return nullopt;
+  if( !maybe_duration.has_value() ) return nothing;
   if( !( *maybe_duration > chrono::seconds( 0 ) ) )
-    return nullopt;
-  return TunePlayerInfo{/*id=*/id,
-                        /*length=*/*maybe_duration,
-                        /*progress=*/nullopt};
+    return nothing;
+  return TunePlayerInfo{ /*id=*/id,
+                         /*length=*/*maybe_duration,
+                         /*progress=*/nothing };
 }
 
 bool MidiSeqMusicPlayer::play( TuneId id ) {
@@ -104,9 +103,9 @@ bool MidiSeqMusicPlayer::play( TuneId id ) {
   auto maybe_info = can_play_tune( id );
   if( !maybe_info.has_value() ) return false;
   lg.debug( "MidiSeqMusicPlayer: playing tune `{}`",
-                 tune_display_name_from_id( id ) );
+            tune_display_name_from_id( id ) );
   midiseq::send_command(
-      midiseq::command::play{mid_file_from_id( id )} );
+      midiseq::command::play{ mid_file_from_id( id ) } );
   last_played_tune_info_ = maybe_info;
   return true;
 }
@@ -131,8 +130,8 @@ MusicPlayerState MidiSeqMusicPlayer::state() const {
     // Need to update the progress since it would be stale.
     maybe_tune_info->progress = midiseq::progress();
   }
-  return {/*tune_info=*/maybe_tune_info,
-          /*is_paused=*/is_paused};
+  return { /*tune_info=*/maybe_tune_info,
+           /*is_paused=*/is_paused };
 }
 
 MusicPlayerCapabilities MidiSeqMusicPlayer::capabilities()
@@ -151,7 +150,7 @@ bool MidiSeqMusicPlayer::fence( Opt<Duration_t> timeout ) {
   auto start_time   = Clock_t::now();
   auto keep_waiting = [&] {
     if( timeout.has_value() )
-      return Clock_t::now() - start_time < timeout;
+      return Clock_t::now() - start_time < *timeout;
     else
       return true;
   };
@@ -181,7 +180,7 @@ void MidiSeqMusicPlayer::resume() {
 
 void MidiSeqMusicPlayer::set_volume( double volume ) {
   if( !good() ) return;
-  midiseq::send_command( midiseq::command::volume{volume} );
+  midiseq::send_command( midiseq::command::volume{ volume } );
 }
 
 } // namespace rn

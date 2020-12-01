@@ -12,12 +12,12 @@
 
 // Revolution Now
 #include "core-config.hpp"
+#include "maybe.hpp"
 
 // Abseil
 #include "absl/container/node_hash_map.h"
 
 // C++ standard library
-#include <optional>
 #include <utility>
 
 namespace rn {
@@ -75,7 +75,7 @@ class memoizer_t;
 template<typename Invalidator, typename Return>
 class memoizer_t<Invalidator, Return ( * )()> {
   using Func      = Return ( * )();
-  using CacheType = std::optional<Return>;
+  using CacheType = maybe<Return>;
 
   Func        generator_;
   Invalidator invalidator_;

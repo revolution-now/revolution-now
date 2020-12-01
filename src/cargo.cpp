@@ -207,7 +207,7 @@ int CargoHold::count_items() const {
 }
 
 Opt<CRef<CargoSlot_t>> CargoHold::at( int slot ) const {
-  if( slot < 0 || slot >= slots_total() ) return nullopt;
+  if( slot < 0 || slot >= slots_total() ) return nothing;
   return ( *this )[slot];
 }
 
@@ -239,7 +239,8 @@ Opt<int> CargoHold::find_unit( UnitId id ) const {
         return id == *unit_id;
     return false;
   };
-  return util::find_first_if( slots_, is_unit );
+  return base::optional_to_maybe(
+      util::find_first_if( slots_, is_unit ) );
 }
 
 // Returns all units in the cargo.

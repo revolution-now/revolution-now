@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/build-properties.hpp"
@@ -40,7 +41,7 @@ Opt<fs::path> find_file( fs::path const& file ) {
   if( auto p = base::build_output_root() / file;
       fs::exists( p ) )
     return p;
-  return nullopt;
+  return nothing;
 }
 
 bool is_src_file_under_folder( string const& filepath,

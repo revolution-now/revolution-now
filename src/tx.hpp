@@ -128,8 +128,7 @@ public:
 
   void set_render_target() const;
 
-  Surface to_surface(
-      Opt<Delta> override_size = std::nullopt ) const;
+  Surface to_surface( Opt<Delta> override_size = nothing ) const;
 
   // Texture that is a proxy for the screen.
   static Texture& screen();

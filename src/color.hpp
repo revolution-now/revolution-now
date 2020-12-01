@@ -149,7 +149,7 @@ using ColorBuckets = Vec<Vec<Vec<Opt<Color>>>>;
 // resulting colors will be fewer than the input if the input
 // contains multiple colors that all fall into the same bucket.
 // If there are no colors for a bucket then that bucket will be
-// nullopt.
+// nothing.
 ColorBuckets hsl_bucket( Vec<Color> const& colors );
 
 // Load the image file(s) and scan every pixel and compile a list
@@ -160,7 +160,7 @@ ColorBuckets hsl_bucket( Vec<Color> const& colors );
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
 Vec<Color> extract_palette( fs::path const& glob,
-                            Opt<int> target = std::nullopt );
+                            Opt<int>        target = nothing );
 
 // Will remove colors that are redundant or approximately
 // redunant in order to meet the target count. It will always

@@ -573,7 +573,7 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
     if( pos > h ) {
       switch( enum_for( item ) ) {
         case MenuItem::e::menu_divider: //
-          return nullopt;
+          return nothing;
         case MenuItem::e::menu_clickable: {
           auto& val =
               get_if_or_die<MenuItem::menu_clickable>( item );
@@ -598,7 +598,7 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
 *****************************************************************/
 // For either a menu header or item.
 ItemTextures render_menu_element( string_view const text,
-                                  optional<char>    shortcut,
+                                  maybe<char>       shortcut,
                                   Color inactive_color,
                                   Color active_color,
                                   Color disabled_color ) {
@@ -647,17 +647,17 @@ ItemTextures render_menu_element( string_view const text,
 }
 
 // For either a menu header or item.
-ItemTextures render_menu_item_element(
-    string const& text, optional<char> /*unused*/ ) {
+ItemTextures render_menu_item_element( string const& text,
+                                       maybe<char> /*unused*/ ) {
   return render_menu_element(
-      text, nullopt, //
+      text, nothing, //
       menu_theme_color1, menu_theme_color2,
       color::item::foreground::disabled() );
 }
 
 // For either a menu header or item.
-ItemTextures render_menu_header_element(
-    string const& text, optional<char> shortcut ) {
+ItemTextures render_menu_header_element( string const& text,
+                                         maybe<char> shortcut ) {
   return render_menu_element(
       text, shortcut, menu_theme_color1, menu_theme_color2,
       color::menu::foreground::disabled );
@@ -894,7 +894,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
           return res_t{ MouseOver::header{ menu } };
       if( screen_coord.is_inside( menu_bar_rect() ) )
         return res_t{ MouseOver::bar{} };
-      return res_t( nullopt );
+      return res_t( nothing );
     }
     res_t operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
@@ -907,7 +907,7 @@ Opt<MouseOver_t> click_target( Coord screen_coord ) {
       if( closed ) return res_t{ closed };
       if( !screen_coord.is_inside(
               menu_body_clickable_area( o.menu ) ) )
-        return res_t( nullopt );
+        return res_t( nothing );
       // The cursor is over a non-transparent part of the open
       // menu.
       if( !screen_coord.is_inside(
@@ -1132,7 +1132,7 @@ struct MenuPlane : public Plane {
     for( auto menu_item :
          magic_enum::enum_values<e_menu_item>() )
       g_menu_item_rendered[menu_item] = render_menu_item_element(
-          g_menu_items[menu_item]->name, nullopt );
+          g_menu_items[menu_item]->name, nothing );
     for( auto menu : magic_enum::enum_values<e_menu>() ) {
       g_menu_rendered[menu]      = {};
       g_menu_rendered[menu].name = render_menu_header_element(
@@ -1169,7 +1169,7 @@ struct MenuPlane : public Plane {
       // even as the open menu body changes (i.e., items are
       // highlighted).
       auto const& to_be_shadowed =
-          render_open_menu( menu, nullopt, false );
+          render_open_menu( menu, nothing, false );
       g_menu_rendered[menu].menu_body_shadow =
           create_shadow_texture( to_be_shadowed );
     }

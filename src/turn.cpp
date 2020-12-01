@@ -293,7 +293,7 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
                                     .add_to_front =
                                         units_to_prioritize(
                                             *g_player_intent ) } );
-                                g_player_intent = nullopt;
+                                g_player_intent = nothing;
                                 // !! Unit may no longer exist
                                 // here.
                                 return make_sync_future<bool>(
@@ -302,7 +302,7 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
                      } else {
                        fsm.send_event(
                            UnitInputEvent::cancel{} );
-                       g_player_intent = nullopt;
+                       g_player_intent = nothing;
                        return make_sync_future<bool>( false );
                      }
                    };
@@ -438,7 +438,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
             unit_from_id( id ).finished_turn() ) {
           doing_units.q.pop_front();
           log_q();
-          doing_units.uturn = nullopt;
+          doing_units.uturn = nothing;
           continue;
         }
         // We have a unit that has not finished its turn.
@@ -527,7 +527,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
         // only one unit in the queue and it died.
         if( !doing_units.q.front().has_value() ||
             doing_units.q.front()->get() != id )
-          doing_units.uturn = nullopt;
+          doing_units.uturn = nothing;
       }
       if( doing_units.q.empty() )
         fsm.send_event( NationTurnEvent::end{} );
@@ -611,7 +611,7 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
                         *val.nation );
       if_get( val.nation_turn.state(), NationTurnState::ending,
               ending ) {
-        val.nation = nullopt;
+        val.nation = nothing;
         val.need_eot &= ending.need_eot;
       }
       break;

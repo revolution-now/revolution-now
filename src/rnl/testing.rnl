@@ -8,8 +8,11 @@
 # Description: RNL definitions for unit testing.
 #
 # ===============================================================
-#import some_other_rnl_module;
 
+# Revolution Now
+include "maybe.hpp";
+
+# C++ standard library
 include <string>;
 include <vector>;
 
@@ -74,7 +77,7 @@ sumtype MyVariant4 {
     int i;
     char c;
     bool b;
-    std::optional<uint32_t> op;
+    rn::maybe<uint32_t> op;
   _2nd:
   third:
     std::string s;

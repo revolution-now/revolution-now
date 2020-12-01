@@ -254,7 +254,7 @@ public:
         child().draggable_from_src( maybe_drag_src_info->src );
     fsm_.send_event( Start_t{
         /*src=*/maybe_drag_src_info->src,
-        /*dst=*/std::nullopt,
+        /*dst=*/nothing,
         /*tx=*/child().draw_dragged_item( draggable ),
         /*click_offset=*/origin -
             maybe_drag_src_info->rect.center(),

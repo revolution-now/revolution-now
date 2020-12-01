@@ -185,7 +185,7 @@ void advance_target_seeking( Opt<T>& maybe_target, double& val,
     // normalizing process. This avoid oscillations.
     val = target;
     vel.hit_wall();
-    maybe_target = nullopt;
+    maybe_target = nothing;
   }
 }
 
@@ -229,7 +229,7 @@ void SmoothViewport::set_zoom_push(
     e_push_direction push, Opt<Coord> maybe_seek_screen_coord ) {
   zoom_push_ = push;
 
-  zoom_point_seek_ = nullopt;
+  zoom_point_seek_ = nothing;
   // If the caller has specified a coordinate and if that
   // coordinate is in the viewport then record it so that the
   // viewport center can tend to that point as the zoom happens.
@@ -242,12 +242,12 @@ void SmoothViewport::smooth_zoom_target( double target ) {
   smooth_zoom_target_ = target;
 }
 void SmoothViewport::stop_auto_zoom() {
-  smooth_zoom_target_ = std::nullopt;
+  smooth_zoom_target_ = nothing;
 }
 
 void SmoothViewport::stop_auto_panning() {
-  smooth_center_x_target_ = std::nullopt;
-  smooth_center_y_target_ = std::nullopt;
+  smooth_center_x_target_ = nothing;
+  smooth_center_y_target_ = nothing;
 }
 
 // Computes the critical zoom point below which (i.e., if you
@@ -431,11 +431,11 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
       pixel_coord - visible_on_screen.upper_left();
   if( from_visible_start.w < 0_w ||
       from_visible_start.h < 0_h ) {
-    return nullopt;
+    return nothing;
   }
   if( from_visible_start.w >= visible_on_screen.w ||
       from_visible_start.h >= visible_on_screen.h ) {
-    return nullopt;
+    return nothing;
   }
 
   double percent_x =

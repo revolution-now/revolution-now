@@ -54,8 +54,9 @@ Opt<fs::path> user_home_folder() { return env_var( "HOME" ); }
 
 Opt<int> os_terminal_columns() {
   using util::infix::fmap_join;
-  return env_var( "COLUMNS" ) |
-         fmap_join( L( util::from_chars<int>( _ ) ) );
+  return base::optional_to_maybe(
+      base::maybe_to_optional( env_var( "COLUMNS" ) ) |
+      fmap_join( L( util::from_chars<int>( _ ) ) ) );
 }
 
 void set_env_var( char const* var_name, char const* value ) {

@@ -15,11 +15,15 @@
 #include "errors.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
+#include "maybe.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
+
+// base
+#include "base/maybe-util.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -379,13 +383,13 @@ double Color::luminosity() const {
 // [0-9a-fA-F]. The optional two digits at the end represent al-
 // pha. If these are omitted then alpha will be set to 255.
 Opt<Color> Color::parse_from_hex( string_view hex ) {
-  if( hex.size() != 6 && hex.size() != 8 ) return nullopt;
+  if( hex.size() != 6 && hex.size() != 8 ) return nothing;
   auto is_valid = []( char c ) {
     return ( c >= '0' && c <= '9' ) ||
            ( c >= 'a' && c <= 'f' ) || ( c >= 'A' && c <= 'F' );
   };
   if( !all_of( hex.begin(), hex.end(), is_valid ) )
-    return nullopt;
+    return nothing;
   auto to_num = []( char c ) {
     // c must already have been validated as a hex digit!
     if( c >= '0' && c <= '9' )
@@ -553,7 +557,7 @@ ColorBuckets hsl_bucket( Vec<Color> const& colors ) {
   hsl_bucketed_sort( sorted );
   vector<vector<vector<Opt<Color>>>> bucketed;
 
-  // First build out the full structure with nullopt's
+  // First build out the full structure with nothing's
   // everywhere.
   for( int hue = 0; hue < hue_buckets; ++hue ) {
     bucketed.emplace_back();
@@ -562,7 +566,7 @@ ColorBuckets hsl_bucket( Vec<Color> const& colors ) {
       sat_vec.emplace_back();
       auto& lum_vec = sat_vec.back();
       for( int lum = 0; lum < luminosity_buckets; ++lum ) {
-        lum_vec.emplace_back(); // nullopt
+        lum_vec.emplace_back(); // nothing
       }
     }
   }
@@ -683,7 +687,7 @@ void show_palette( Texture& tx, ColorBuckets const& colors ) {
   H     offset{ 10 };
   for( auto const& hue : colors ) {
     for( auto const& sat : hue ) {
-      auto no_null = util::cat_opts( sat );
+      auto no_null = base::cat_maybes( sat );
       render_palette_segment( tx, no_null, origin );
       origin.y += offset;
     }
@@ -713,14 +717,14 @@ void update_palette( fs::path const& where ) {
   fs::path glob{ where / "*.*" };
   lg.info( "updating palettes from {}", glob.string() );
 
-  auto colors = extract_palette( glob, nullopt );
+  auto colors = extract_palette( glob, nothing );
   remove_greys( colors ); // we will add greys back in later
   auto bucketed = hsl_bucket( colors );
 
   size_t size = 0;
   for( auto const& hue : bucketed ) {
     for( auto const& sat : hue ) {
-      auto no_null = util::cat_opts( sat );
+      auto no_null = base::cat_maybes( sat );
       size += no_null.size();
     }
   }

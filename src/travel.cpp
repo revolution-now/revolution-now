@@ -58,7 +58,7 @@ void analyze_unload( Unit const&     unit,
 // this function is concerned about) and to flag it if that is
 // the case.
 Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
-  if( !holds<orders::direction>( orders ) ) return nullopt;
+  if( !holds<orders::direction>( orders ) ) return nothing;
   auto [direction] = get<orders::direction>( orders );
 
   auto src_coord = coord_for_unit_indirect( id );
@@ -89,7 +89,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
     if( *dst_nation == unit.nation() )
       relationship = e_unit_relationship::friendly;
     else
-      return nullopt;
+      return nothing;
   }
 
   auto units_at_dst = units_from_coord( dst_coord );

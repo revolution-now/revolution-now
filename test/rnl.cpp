@@ -195,8 +195,8 @@ TEST_CASE( "[rnl] MyVariant4" ) {
     case inner::MyVariant4::e::first: {
       REQUIRE( false );
       auto& val = get_if_or_die<inner::MyVariant4::first>( my4 );
-      static_assert( is_same_v<decltype( val.op ),
-                               std::optional<uint32_t>> );
+      static_assert(
+          is_same_v<decltype( val.op ), maybe<uint32_t>> );
       break;
     }
     case inner::MyVariant4::e::_2nd: {
@@ -279,12 +279,14 @@ TEST_CASE( "[rnl] Equality" ) {
 }
 
 TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
-  Opt<Str> golden = util::read_file_as_string(
-      testing::data_dir() / "rnl-testing-golden.hpp" );
+  Opt<Str> golden =
+      base::optional_to_maybe( util::read_file_as_string(
+          testing::data_dir() / "rnl-testing-golden.hpp" ) );
   REQUIRE( golden.has_value() );
-  fs::path root      = base::build_output_root();
-  Opt<Str> generated = util::read_file_as_string(
-      root / fs::path( rnl_testing_genfile ) );
+  fs::path root = base::build_output_root();
+  Opt<Str> generated =
+      base::optional_to_maybe( util::read_file_as_string(
+          root / fs::path( rnl_testing_genfile ) ) );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
   // Catch2 doesn't try to print the values when they are not

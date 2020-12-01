@@ -92,10 +92,10 @@ public:
       res.out_.reset( new RtMidiOut() );
     } catch( RtMidiError const& error ) {
       RTMIDI_WARN( error );
-      return nullopt;
+      return nothing;
     }
     auto maybe_port = res.find_midi_output_port();
-    if( !maybe_port ) return nullopt;
+    if( !maybe_port ) return nothing;
     // This may be called from the midi thread.
     res.out_->setErrorCallback( rtmidi_error_callback,
                                 /*userdata=*/nullptr );
@@ -105,7 +105,7 @@ public:
     } catch( RtMidiError const& error ) {
       RTMIDI_WARN( error );
       lg.warn( "failed to open MIDI output port {}." );
-      return nullopt;
+      return nothing;
     }
     lg.info( "using MIDI output port #{}", *maybe_port );
     return res;
@@ -290,7 +290,7 @@ private:
       else
         lg.warn(
             "failed to find recognizable midi output port." );
-      return nullopt;
+      return nothing;
     }
     return res;
   }
@@ -306,7 +306,7 @@ private:
 };
 NOTHROW_MOVE( MidiIO );
 
-// This will be nullopt if midi music cannot be played for any
+// This will be nothing if midi music cannot be played for any
 // reason.
 Opt<MidiIO> g_midi;
 
@@ -332,7 +332,7 @@ void rtmidi_error_callback( RtMidiError::Type,
 /****************************************************************
 ** Midi Thread
 *****************************************************************/
-// Will be left as nullopt if the midi subsystem fails to ini-
+// Will be left as nothing if the midi subsystem fails to ini-
 // tialize. Music errors are generally not fatal for the game.
 Opt<thread> g_midi_thread;
 
@@ -415,7 +415,7 @@ public:
       commands_.pop();
       return ret;
     }
-    return nullopt;
+    return nothing;
   }
 
 private:
@@ -456,7 +456,7 @@ struct MidiPlayInfo {
 Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   MidiPlayInfo info;
   // TODO: check if midifile.read() is thread safe.
-  if( !info.midifile.read( file ) ) return nullopt;
+  if( !info.midifile.read( file ) ) return nothing;
   // This will cause the MidiEvent::seconds fields to be popu-
   // lated with the time at which an event should be sent to the
   // synth. And it does take into account meta events that cause
@@ -473,7 +473,7 @@ Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   info.current_event   = 0;
   info.track           = 0;
   info.start_time      = Clock_t::now();
-  info.last_pause_time = nullopt;
+  info.last_pause_time = nothing;
   info.stoppage        = 0us;
   lg.info( "loaded midi file: {} ({})", file,
            info.tune_duration );
@@ -629,9 +629,9 @@ void midi_thread_impl() {
           g_midi_comm.set_state( e_midiseq_state::stopped );
           if( stem.has_value() )
             lg.info( "midi file {} has been stopped.", stem );
-          maybe_info = nullopt;
-          stem       = nullopt;
-          g_midi_comm.set_progress( nullopt );
+          maybe_info = nothing;
+          stem       = nothing;
+          g_midi_comm.set_progress( nothing );
           break;
         }
         case command::e::pause: {
@@ -656,14 +656,14 @@ void midi_thread_impl() {
           if( info.last_pause_time.has_value() ) {
             info.stoppage +=
                 Clock_t::now() - info.last_pause_time.value();
-            info.last_pause_time = nullopt;
+            info.last_pause_time = nothing;
           }
           break;
         }
         case command::e::off: {
-          g_midi_comm.set_progress( nullopt );
+          g_midi_comm.set_progress( nothing );
           time_to_go = true;
-          stem       = nullopt;
+          stem       = nothing;
           break;
         }
         case command::e::volume: {
@@ -717,8 +717,8 @@ void midi_thread_impl() {
             info.midifile[info.track].size() ) {
           lg.info( "midi file {} has finished.", stem );
           g_midi->all_notes_off();
-          maybe_info = nullopt;
-          g_midi_comm.set_progress( nullopt );
+          maybe_info = nothing;
+          g_midi_comm.set_progress( nothing );
           g_midi_comm.set_state( e_midiseq_state::stopped );
         }
         break;
@@ -824,7 +824,7 @@ void send_command( command_t cmd ) {
 Opt<Duration_t> can_play_tune( fs::path const& path ) {
   auto info = load_midi_file( path.string() );
   if( info.has_value() ) return info->tune_duration;
-  return nullopt;
+  return nothing;
 }
 
 Opt<double> progress() { return g_midi_comm.progress(); }

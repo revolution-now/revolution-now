@@ -336,12 +336,12 @@ void check_field_type( ucl::Ucl obj, UclType_t type,
       ucl::Ucl obj, type& dest, vector<string> const& path, \
       string const& config_name, string const& file );
 
-// Forward declare so that e.g. vector and optional variants
+// Forward declare so that e.g. vector and maybe variants
 // can access each other if we have a nested type and are not
 // always able to declare the containing type after the
 // contained type.
 DECLARE_POPULATE( vector<T> )
-DECLARE_POPULATE( optional<T> )
+DECLARE_POPULATE( maybe<T> )
 
 // T (catch-all)
 template<typename T>
@@ -595,9 +595,9 @@ void populate_config_field( ucl::Ucl obj, Color& dest,
   dest = *parsed;
 }
 
-// optional<T>
+// maybe<T>
 template<typename T>
-void populate_config_field( ucl::Ucl obj, optional<T>& dest,
+void populate_config_field( ucl::Ucl obj, maybe<T>& dest,
                             vector<string> const& path,
                             string const&         config_name,
                             string const&         file ) {
@@ -606,7 +606,7 @@ void populate_config_field( ucl::Ucl obj, optional<T>& dest,
     populate_config_field( obj, dest.value(), path, config_name,
                            file );
   } else {
-    dest = nullopt;
+    dest = nothing;
   }
 }
 

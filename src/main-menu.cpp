@@ -73,7 +73,7 @@ struct MainMenuPlane : public Plane {
           font::main_menu(), c, enum_to_display_name( e ) );
       auto w   = screen.w / 2_sx - text_tx.size().w / 2_sx;
       auto dst = text_tx.rect().shifted_by( Delta{ w, h } );
-      text_tx.copy_to( tx, /*src=*/nullopt,
+      text_tx.copy_to( tx, /*src=*/nothing,
                        /*dst=*/dst );
       dst = dst.with_border_added( 2 );
       dst.x -= 3_w;
@@ -158,7 +158,7 @@ void set_main_menu( e_main_menu_type type ) {
 // so another call immediately after will yield no result.
 Opt<e_main_menu_item> main_menu_selection() {
   auto res = g_item_sel;
-  if( res.has_value() ) g_item_sel = nullopt;
+  if( res.has_value() ) g_item_sel = nothing;
   return res;
 }
 

@@ -221,7 +221,7 @@ public:
 
   Coord moved( e_direction d ) const;
   // Find the direction from this coord to `dest`. If dest is not
-  // equal or adjacent to this coord then nullopt will be re-
+  // equal or adjacent to this coord then nothing will be re-
   // turned.
   Opt<e_direction> direction_to( Coord dest ) const;
 

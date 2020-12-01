@@ -104,7 +104,7 @@ expect<ColonyId> cstate_create_colony( e_nation         nation,
   colony.nation_       = nation;
   colony.name_         = string( name );
   colony.location_     = where;
-  colony.production_   = nullopt;
+  colony.production_   = nothing;
   colony.prod_hammers_ = 0;
   colony.prod_tools_   = 0;
   colony.sentiment_    = 0;
@@ -153,11 +153,13 @@ void cstate_destroy_colony( ColonyId id ) {
 }
 
 Opt<ColonyId> colony_from_coord( Coord const& coord ) {
-  return bu::val_safe( SG().colony_from_coord, coord );
+  return base::optional_to_maybe(
+      bu::val_safe( SG().colony_from_coord, coord ) );
 }
 
 Opt<ColonyId> colony_from_name( std::string_view name ) {
-  return bu::val_safe( SG().colony_from_name, string( name ) );
+  return base::optional_to_maybe(
+      bu::val_safe( SG().colony_from_name, string( name ) ) );
 }
 
 Vec<ColonyId> colonies_in_rect( Rect const& rect ) {

@@ -61,7 +61,7 @@ template<typename Rng, typename Func>
 auto accumulate_monoid( Rng&& rng, Func&& func )
     -> Opt<std::decay_t<decltype( func( *rng.begin(),
                                         *rng.begin() ) )>> {
-  if( rng.begin() == rng.end() ) return std::nullopt;
+  if( rng.begin() == rng.end() ) return nothing;
   auto start = std::begin( std::forward<Rng>( rng ) );
   start++;
   return std::accumulate( start,
@@ -133,12 +133,12 @@ template<typename Rng>
 auto head( Rng&& r )
     -> Opt<std::decay_t<decltype( *r.begin() )>> {
   for( auto const& e : r ) return e;
-  return std::nullopt;
+  return nothing;
 }
 
 // Given a range of optionals, returns a new range containing all
 // the values inside the optionals (that have them) and with all
-// nullopts removed.
+// nothings removed.
 //
 //   cat_opts :: [Maybe a] -> [a]
 //

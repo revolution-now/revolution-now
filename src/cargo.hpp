@@ -135,7 +135,7 @@ public:
   // less a specific type is specified in which case it will be
   // limited to those.
   Vec<Pair<Commodity, int>> commodities(
-      Opt<e_commodity> type = std::nullopt ) const;
+      Opt<e_commodity> type = nothing ) const;
 
   // Find the maximum quantity of the commodity of the given type
   // that can fit in the entire cargo hold (given its current

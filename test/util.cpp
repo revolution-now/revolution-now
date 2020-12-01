@@ -24,7 +24,7 @@ using namespace std;
 using Catch::Contains;
 
 TEST_CASE( "[env] Set/Get env var" ) {
-  REQUIRE( env_var( "abcdefghi" ) == nullopt );
+  REQUIRE( env_var( "abcdefghi" ) == nothing );
   set_env_var( "abcdefghi", "hello" );
   REQUIRE( env_var( "abcdefghi" ) == "hello" );
   set_env_var_if_not_set( "abcdefghi", "world" );
@@ -32,14 +32,14 @@ TEST_CASE( "[env] Set/Get env var" ) {
   set_env_var( "abcdefghi", "world" );
   REQUIRE( env_var( "abcdefghi" ) == "world" );
   unset_env_var( "abcdefghi" );
-  REQUIRE( env_var( "abcdefghi" ) == nullopt );
+  REQUIRE( env_var( "abcdefghi" ) == nothing );
 
   unset_env_var( "COLUMNS" );
-  REQUIRE( os_terminal_columns() == nullopt );
+  REQUIRE( os_terminal_columns() == nothing );
   set_env_var( "COLUMNS", "67" );
   REQUIRE( os_terminal_columns() == 67 );
   unset_env_var( "COLUMNS" );
-  REQUIRE( os_terminal_columns() == nullopt );
+  REQUIRE( os_terminal_columns() == nothing );
 }
 
 } // namespace

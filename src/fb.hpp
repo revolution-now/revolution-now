@@ -16,6 +16,7 @@
 #include "aliases.hpp"
 #include "cc-specific.hpp"
 #include "errors.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/meta.hpp"
@@ -274,6 +275,25 @@ auto serialize( FBBuilder& builder, std::optional<T> const& o,
   }
 }
 
+// For maybe.
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, maybe<T> const& o,
+                serial::ADL ) {
+  if( o.has_value() ) {
+    using value_hint_t = fb_serialize_hint_t<
+        decltype( std::declval<Hint>().value() )>;
+    auto s_value =
+        serialize<value_hint_t>( builder, *o, serial::ADL{} );
+    return ReturnValue{ Hint::Traits::Create(
+        builder, /*has_value=*/true, s_value.get() ) };
+  } else {
+    // The maybes are stored as tables, which can only be held by
+    // other tables. Therefore, when they are nothing, we can
+    // just return null for them so they are not serialized.
+    return ReturnValue{ FBOffset<Hint>{} };
+  }
+}
+
 // For pairs.
 template<typename Hint, typename F, typename S>
 auto serialize( FBBuilder& builder, std::pair<F, S> const& o,
@@ -507,6 +527,26 @@ expect<> deserialize( SrcT const* src, std::optional<T>* dst,
     if( src->value() == nullptr )
       return UNEXPECTED(
           "optional has no `value` but has `has_value` == "
+          "true." );
+  }
+  dst->emplace(); // default construct the value.
+  return deserialize( detail::to_const_ptr( src->value() ),
+                      std::addressof( **dst ), serial::ADL{} );
+}
+
+// For maybe.
+template<typename SrcT, typename T>
+expect<> deserialize( SrcT const* src, maybe<T>* dst,
+                      serial::ADL ) {
+  if( src == nullptr || !src->has_value() ) {
+    // `dst` should be in its default-constructed state, which is
+    // nothing if it's a maybe.
+    return xp_success_t{};
+  }
+  if constexpr( std::is_pointer_v<decltype( src->value() )> ) {
+    if( src->value() == nullptr )
+      return UNEXPECTED(
+          "maybe has no `value` but has `has_value` == "
           "true." );
   }
   dst->emplace(); // default construct the value.

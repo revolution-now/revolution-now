@@ -26,7 +26,7 @@ Unit::Unit( e_nation nation, e_unit_type type )
     orders_( e_unit_orders::none ),
     cargo_( unit_desc( type ).cargo_slots ),
     nation_( nation ),
-    worth_( nullopt ),
+    worth_( nothing ),
     mv_pts_( unit_desc( type ).movement_points ),
     finished_turn_( false ) {}
 
@@ -77,7 +77,7 @@ void Unit::finish_turn() {
 void Unit::unfinish_turn() { finished_turn_ = false; }
 
 Opt<Vec<UnitId>> Unit::units_in_cargo() const {
-  if( desc().cargo_slots == 0 ) return nullopt;
+  if( desc().cargo_slots == 0 ) return nothing;
   return cargo_.items_of_type<UnitId>();
 }
 

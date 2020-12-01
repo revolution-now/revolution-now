@@ -120,7 +120,7 @@ spdlog::sink_ptr default_terminal_sink() {
 
 } // namespace
 
-void init_logging( optional<level::level_enum> level ) {
+void init_logging( maybe<level::level_enum> level ) {
   if( !level.has_value() ) {
 #ifdef RN_TRACE
     level = level::trace;

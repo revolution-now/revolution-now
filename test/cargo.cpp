@@ -77,9 +77,9 @@ TEST_CASE( "CargoHold slot bounds six" ) {
   REQUIRE( ch[5] == CargoSlot_t{ CargoSlot::empty{} } );
   REQUIRE( ch[0] == CargoSlot_t{ CargoSlot::empty{} } );
 
-  REQUIRE( ch.at( -1 ) == nullopt );
-  REQUIRE( ch.at( 6 ) == nullopt );
-  REQUIRE( ch.at( 7 ) == nullopt );
+  REQUIRE( ch.at( -1 ) == nothing );
+  REQUIRE( ch.at( 6 ) == nothing );
+  REQUIRE( ch.at( 7 ) == nothing );
   REQUIRE( ch.at( 5 ).has_value() );
   REQUIRE( ch.at( 0 ).has_value() );
   REQUIRE( ch.at( 5 )->get() ==
@@ -2049,21 +2049,21 @@ TEST_CASE( "CargoHold find_unit" ) {
   auto unit_id3 =
       create_unit( e_nation::english, e_unit_type::soldier );
 
-  REQUIRE( ch.find_unit( unit_id1 ) == nullopt );
-  REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
-  REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
+  REQUIRE( ch.find_unit( unit_id1 ) == nothing );
+  REQUIRE( ch.find_unit( unit_id2 ) == nothing );
+  REQUIRE( ch.find_unit( unit_id3 ) == nothing );
 
   REQUIRE( ch.try_add_somewhere( unit_id1 ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
-  REQUIRE( ch.find_unit( unit_id2 ) == nullopt );
-  REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
+  REQUIRE( ch.find_unit( unit_id2 ) == nothing );
+  REQUIRE( ch.find_unit( unit_id3 ) == nothing );
 
   REQUIRE( ch.try_add_somewhere( unit_id2 ) );
 
   REQUIRE( ch.find_unit( unit_id1 ) == 0 );
   REQUIRE( ch.find_unit( unit_id2 ) == 1 );
-  REQUIRE( ch.find_unit( unit_id3 ) == nullopt );
+  REQUIRE( ch.find_unit( unit_id3 ) == nothing );
 
   REQUIRE( ch.try_add_somewhere( unit_id3 ) );
 

@@ -176,21 +176,21 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     }
     case ::SDL_KEYDOWN: {
       key_event_t key_event;
-      key_event.change   = e_key_change::down;
-      key_event.keycode  = sdl_event.key.keysym.sym;
-      key_event.scancode = sdl_event.key.keysym.scancode;
-      key_event.direction =
-          bu::val_safe( nav_keys, sdl_event.key.keysym.sym );
+      key_event.change    = e_key_change::down;
+      key_event.keycode   = sdl_event.key.keysym.sym;
+      key_event.scancode  = sdl_event.key.keysym.scancode;
+      key_event.direction = base::optional_to_maybe(
+          bu::val_safe( nav_keys, sdl_event.key.keysym.sym ) );
       event = key_event;
       break;
     }
     case ::SDL_KEYUP: {
       key_event_t key_event;
-      key_event.change   = e_key_change::up;
-      key_event.keycode  = sdl_event.key.keysym.sym;
-      key_event.scancode = sdl_event.key.keysym.scancode;
-      key_event.direction =
-          bu::val_safe( nav_keys, sdl_event.key.keysym.sym );
+      key_event.change    = e_key_change::up;
+      key_event.keycode   = sdl_event.key.keysym.sym;
+      key_event.scancode  = sdl_event.key.keysym.scancode;
+      key_event.direction = base::optional_to_maybe(
+          bu::val_safe( nav_keys, sdl_event.key.keysym.sym ) );
       event = key_event;
       break;
     }
@@ -445,7 +445,7 @@ Opt<::SDL_Event> next_sdl_event() {
   ::SDL_PumpEvents();
   ::SDL_Event event;
   if( ::SDL_PollEvent( &event ) != 0 ) return event;
-  return nullopt;
+  return nothing;
 }
 
 Opt<event_t> next_event() {
@@ -453,7 +453,7 @@ Opt<event_t> next_event() {
     if( !is_relevant_event_type( event->type ) ) continue;
     return from_SDL( *event );
   }
-  return nullopt;
+  return nothing;
 }
 
 constexpr int       kMaxEventQueueSize = 10000;
@@ -526,7 +526,7 @@ bool is_mouse_event( event_t const& event ) {
 
 Opt<CRef<Coord>> mouse_position( event_t const& event ) {
   return apply_to_alternatives_with_base(
-      event, nullopt,
+      event, nothing,
       []( mouse_event_base_t const& e ) -> Opt<CRef<Coord>> {
         return e.pos;
       } );
@@ -538,7 +538,7 @@ Opt<mouse_button_event_t> drag_event_to_mouse_button_event(
   // have been preceded with a normal mouse-down event, so the
   // only mouse button event there is to extract from a drag
   // event is the mouse-up that happens when the drag finishes.
-  if( event.state.phase != e_drag_phase::end ) return nullopt;
+  if( event.state.phase != e_drag_phase::end ) return nothing;
   mouse_button_event_t res;
   // Copy the base object.
   copy_common_base_object<mouse_event_base_t>( /*from=*/event,

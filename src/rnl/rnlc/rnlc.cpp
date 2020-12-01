@@ -18,6 +18,7 @@
 
 // base
 #include "base/fs.hpp"
+#include "base/maybe.hpp"
 
 // base-util
 #include "base-util/io.hpp"
@@ -32,6 +33,8 @@
 
 using namespace std;
 
+using ::base::maybe;
+
 int main( int argc, char** argv ) {
   if( argc != 4 )
     rnl::error_msg( "usage: rnlc <rnl-file> <out-file>" );
@@ -42,7 +45,8 @@ int main( int argc, char** argv ) {
         "filename '{}' does not have a .rnl extension.",
         filename );
 
-  optional<string> rnl = util::read_file_as_string( filename );
+  maybe<string> rnl = base::optional_to_maybe(
+      util::read_file_as_string( filename ) );
   if( !rnl.has_value() )
     rnl::error_msg( "failed to open rnl file '{}'.", filename );
 
@@ -54,11 +58,12 @@ int main( int argc, char** argv ) {
   if( !peg_file.ends_with( ".peg" ) )
     rnl::error_msg( "peg file must end with '.peg'." );
 
-  optional<string> peg = util::read_file_as_string( peg_file );
+  maybe<string> peg = base::optional_to_maybe(
+      util::read_file_as_string( peg_file ) );
   if( !peg.has_value() )
     rnl::error_msg( "failed to open peg file '{}'.", peg_file );
 
-  optional<rnl::expr::Rnl> maybe_rnl =
+  maybe<rnl::expr::Rnl> maybe_rnl =
       rnl::parse( peg_file, filename, *peg, *rnl );
   if( !maybe_rnl.has_value() )
     rnl::error_msg( "failed to parse RNL file '{}'.", filename );
@@ -73,7 +78,7 @@ int main( int argc, char** argv ) {
   // Performs various transformations.
   rnl::post_process( *maybe_rnl );
 
-  optional<string> cpp_code = rnl::generate_code( *maybe_rnl );
+  maybe<string> cpp_code = rnl::generate_code( *maybe_rnl );
   if( !cpp_code.has_value() )
     rnl::error_msg(
         "failed to generate C++ code for RNL file '{}'.",
@@ -87,8 +92,8 @@ int main( int argc, char** argv ) {
                     fs::path( output_file ).stem().string(),
                     ").\n", *cpp_code );
 
-  optional<string> existing_contents =
-      util::read_file_as_string( output_file );
+  maybe<string> existing_contents = base::optional_to_maybe(
+      util::read_file_as_string( output_file ) );
   if( existing_contents.has_value() &&
       ( util::strip( *cpp_code ) ==
         util::strip( *existing_contents ) ) ) {

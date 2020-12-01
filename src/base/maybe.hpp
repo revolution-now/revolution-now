@@ -15,6 +15,7 @@
 #include "source-loc.hpp"
 
 // C++ standard library
+#include <optional> // FIXME: remove after migration.
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -647,6 +648,15 @@ public:
   }
 
   /**************************************************************
+  ** Abseil hashing API.
+  ***************************************************************/
+  template<typename H>
+  friend H AbslHashValue( H h, maybe<T> const& m ) {
+    if( !m ) return H::combine( std::move( h ), false );
+    return H::combine( std::move( h ), *m );
+  }
+
+  /**************************************************************
   ** Storage
   ***************************************************************/
 private:
@@ -799,3 +809,42 @@ void swap( ::base::maybe<T>& lhs, ::base::maybe<T>& rhs )
 }
 
 } // namespace std
+
+/****************************************************************
+** Temporary conversion to optional for migraion.
+*****************************************************************/
+namespace base {
+
+// FIXME: remove after migration is finished.
+template<typename T>
+maybe<T> optional_to_maybe( std::optional<T> const& o ) {
+  if( !o.has_value() )
+    return {};
+  return maybe<T>{*o};
+}
+
+// FIXME: remove after migration is finished.
+template<typename T>
+maybe<T> optional_to_maybe( std::optional<T>&& o ) {
+  if( !o.has_value() )
+    return {};
+  return maybe<T>{std::move(*o)};
+}
+
+// FIXME: remove after migration is finished.
+template<typename T>
+std::optional<T> maybe_to_optional( maybe<T> const& o ) {
+  if( !o.has_value() )
+    return {};
+  return std::optional<T>{*o};
+}
+
+// FIXME: remove after migration is finished.
+template<typename T>
+std::optional<T> maybe_to_optional( maybe<T>&& o ) {
+  if( !o.has_value() )
+    return {};
+  return std::optional<T>{std::move(*o)};
+}
+
+}

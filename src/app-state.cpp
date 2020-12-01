@@ -86,11 +86,11 @@ fsm_class( App ) { //
   }
 
   fsm_transition_( App, main_no_game, load, ->, loading ) {
-    return { /*slot=*/nullopt };
+    return { /*slot=*/nothing };
   }
 
   fsm_transition_( App, main_in_game, save, ->, saving ) {
-    return { /*slot=*/nullopt };
+    return { /*slot=*/nothing };
   }
 
   fsm_transition( App, main_in_game, leave, ->, leaving ) {

@@ -12,6 +12,7 @@
 #include "testing.hpp"
 
 // Under test.
+#include "base/maybe-util.hpp"
 #include "base/maybe.hpp"
 
 // Must be last.
@@ -1493,6 +1494,48 @@ TEST_CASE( "[maybe] nothing_t constructors" ) {
   REQUIRE( m == 5 );
   m = nothing;
   REQUIRE( !m.has_value() );
+}
+
+// FIXME: remove after migration is finished.
+TEST_CASE( "[maybe] conversion from optional" ) {
+  {
+    optional<int> o;
+    M<int>        m = optional_to_maybe( o );
+    REQUIRE( !m.has_value() );
+  }
+  {
+    optional<int> o = 5;
+    M<int>        m = optional_to_maybe( o );
+    REQUIRE( m.has_value() );
+    REQUIRE( *m == 5 );
+  }
+  {
+    M<NoCopy> m = optional_to_maybe( optional<NoCopy>( 'c' ) );
+    REQUIRE( m.has_value() );
+    REQUIRE( m->c == 'c' );
+  }
+}
+
+TEST_CASE( "[maybe] cat_maybes" ) {
+  SECTION( "int" ) {
+    vector<M<int>> v{ M<int>{},    M<int>{ 5 }, M<int>{},
+                      M<int>{ 4 }, M<int>{},    M<int>{ 3 } };
+
+    REQUIRE_THAT( cat_maybes( v ),
+                  Equals( vector<int>{ 5, 4, 3 } ) );
+    REQUIRE_THAT( cat_maybes( std::move( v ) ),
+                  Equals( vector<int>{ 5, 4, 3 } ) );
+  }
+  SECTION( "string" ) {
+    vector<M<string>> v{ M<string>{}, M<string>{ "5" },
+                         M<string>{}, M<string>{ "4" },
+                         M<string>{}, M<string>{ "3" } };
+
+    REQUIRE_THAT( cat_maybes( v ),
+                  Equals( vector<string>{ "5", "4", "3" } ) );
+    REQUIRE_THAT( cat_maybes( std::move( v ) ),
+                  Equals( vector<string>{ "5", "4", "3" } ) );
+  }
 }
 
 } // namespace

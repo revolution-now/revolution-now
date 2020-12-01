@@ -99,7 +99,7 @@ fsm_class( LandView ) { //
     CHECK( !g_unit_input_promise.has_value() );
     g_unit_input_promise.set_value_emplace( UnitInputResponse{
         /*id=*/cur.id,                     //
-        /*orders=*/nullopt,                //
+        /*orders=*/nothing,                //
         /*add_to_front=*/event.prioritize, //
         /*add_to_back=*/cur.add_to_back    //
     } );
@@ -785,13 +785,13 @@ struct LandViewPlane : public Plane {
       return handler;
     }
     if( item == e_menu_item::restore_zoom ) {
-      if( SG().viewport.get_zoom() == 1.0 ) return nullopt;
+      if( SG().viewport.get_zoom() == 1.0 ) return nothing;
       static Plane::MenuClickHandler handler = [] {
         SG().viewport.smooth_zoom_target( 1.0 );
       };
       return handler;
     }
-    return nullopt;
+    return nothing;
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
@@ -907,7 +907,7 @@ struct LandViewPlane : public Plane {
         if( SG().viewport.screen_coord_in_viewport( val.pos ) ) {
           if( val.wheel_delta < 0 )
             SG().viewport.set_zoom_push(
-                e_push_direction::negative, nullopt );
+                e_push_direction::negative, nothing );
           if( val.wheel_delta > 0 )
             SG().viewport.set_zoom_push(
                 e_push_direction::positive, val.pos );
@@ -1026,9 +1026,10 @@ void test_land_view() {
 namespace {
 
 LUA_FN( blinking_unit, Opt<UnitId> ) {
-  return util::fmap(
+  return base::optional_to_maybe( util::fmap(
       L( _.get().id ),
-      SG().mode.holds<LandViewState::blinking_unit>() );
+      base::maybe_to_optional(
+          SG().mode.holds<LandViewState::blinking_unit>() ) ) );
 }
 
 } // namespace

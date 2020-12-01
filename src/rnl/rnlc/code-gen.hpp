@@ -13,12 +13,14 @@
 // rnlc
 #include "expr.hpp"
 
+// base
+#include "base/maybe.hpp"
+
 // c++ standard library
-#include <optional>
 #include <string>
 
 namespace rnl {
 
-std::optional<std::string> generate_code( expr::Rnl const& rnl );
+base::maybe<std::string> generate_code( expr::Rnl const& rnl );
 
 } // namespace rnl

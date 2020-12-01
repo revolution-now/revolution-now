@@ -111,7 +111,7 @@ Opt<Rect> Rect::overlap_with( Rect const& rhs ) const {
   auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
   Opt<Rect>   res    = Rect::from( Coord{ new_x1, new_y1 },
                               Coord{ new_x2, new_y2 } );
-  if( res->area() == 0 ) res = nullopt;
+  if( res->area() == 0 ) res = nothing;
   return res;
 }
 
@@ -144,7 +144,7 @@ Rect Rect::centered_on( Coord coord ) const {
 }
 
 Opt<int> Rect::rasterize( Coord coord ) {
-  if( !coord.is_inside( *this ) ) return nullopt;
+  if( !coord.is_inside( *this ) ) return nothing;
   return ( coord.y - y )._ * w._ + ( coord.x - x )._;
 }
 
