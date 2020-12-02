@@ -20,12 +20,12 @@
 #include "sync-future.hpp"
 #include "travel.hpp"
 
-// C++ standard library
-#include <variant>
+// base
+#include "base/variant.hpp"
 
 namespace rn {
 
-using PlayerIntent = std::variant<
+using PlayerIntent = base::variant<
     // Orders about orders
     MetaAnalysis,
     // Jobs performed without moving, such as fortify, sentry,

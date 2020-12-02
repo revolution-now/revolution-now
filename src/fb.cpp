@@ -14,6 +14,9 @@
 #include "logging.hpp"
 #include "serial.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // Flatbuffers
 #include "fb/testing_generated.h"
 
@@ -91,11 +94,11 @@ enum class e_color {
   Blue   //
 };
 
-using MyVariant = std::variant< //
-    int,                        //
-    Vec2,                       //
-    Weapon,                     //
-    e_color                     //
+using MyVariant = base::variant< //
+    int,                         //
+    Vec2,                        //
+    Weapon,                      //
+    e_color                      //
     >;
 
 template<typename FBType, typename SrcT>
@@ -117,10 +120,10 @@ using variant_serialize_return_container_tuple_t =
         std::declval<fb_creation_tuple_t<Hint> const&>(),
         std::declval<mp::type_list<VarTypes...> const&>() ) );
 
-// For std::variant.
+// For base::variant.
 template<typename Hint, typename... Ts>
-auto serialize( FBBuilder& builder, std::variant<Ts...> const& o,
-                serial::ADL ) {
+auto serialize( FBBuilder&                  builder,
+                base::variant<Ts...> const& o, serial::ADL ) {
   using fb_type_list = fb_creation_tuple_t<Hint>;
   static_assert(
       mp::type_list_size_v<fb_type_list> == sizeof...( Ts ),

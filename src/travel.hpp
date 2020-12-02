@@ -18,6 +18,9 @@
 #include "sync-future.hpp"
 #include "unit.hpp"
 
+// base
+#include "base/variant.hpp"
+
 namespace rn {
 
 // The following two enums describe the possible categories of a
@@ -52,7 +55,7 @@ enum class ND e_unit_travel_error {
 };
 
 using unit_travel_verdict =
-    std::variant<e_unit_travel_good, e_unit_travel_error>;
+    base::variant<e_unit_travel_good, e_unit_travel_error>;
 NOTHROW_MOVE( unit_travel_verdict );
 
 struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {

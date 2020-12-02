@@ -19,6 +19,9 @@
 #include "sync-future.hpp"
 #include "unit.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // C++ standard library
 #include <variant>
 #include <vector>
@@ -44,7 +47,7 @@ enum class ND e_attack_error {
 };
 
 using unit_combat_verdict =
-    std::variant<e_attack_good, e_attack_error>;
+    base::variant<e_attack_good, e_attack_error>;
 NOTHROW_MOVE( unit_combat_verdict );
 
 struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {

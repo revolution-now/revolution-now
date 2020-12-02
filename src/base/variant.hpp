@@ -112,7 +112,7 @@ template<typename Visitor, typename... Variants>
 /* clang-format off */
   requires( std::conjunction_v<::base::is_base_variant<
               std::remove_cvref_t<Variants>>...> ) //
-auto visit( Visitor&& visitor, Variants&&... variants ) {
+decltype( auto ) visit( Visitor&& visitor, Variants&&... variants ) {
   /* clang-format on */
   return ::std::visit(
       std::forward<Visitor>( visitor ),
@@ -125,7 +125,7 @@ template<typename T, typename Visitor, typename... Variants>
 /* clang-format off */
   requires( std::conjunction_v<::base::is_base_variant<
               std::remove_cvref_t<Variants>>...> ) //
-auto visit( Visitor&& visitor, Variants&&... variants ) -> T {
+T visit( Visitor&& visitor, Variants&&... variants ) {
   /* clang-format on */
   return ::std::visit<T>(
       std::forward<Visitor>( visitor ),

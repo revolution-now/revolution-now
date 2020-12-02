@@ -16,6 +16,9 @@
 #include "aliases.hpp"
 #include "errors.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // C++ standard library
 #include <algorithm>
 #include <string_view>
@@ -38,13 +41,13 @@ ND auto& val_or_die( MapT&& m, KeyT const& k ) {
 }
 
 template<typename T, typename... Vs>
-auto const& val_or_die( std::variant<Vs...> const& v ) {
+auto const& val_or_die( base::variant<Vs...> const& v ) {
   CHECK( std::holds_alternative<T>( v ) );
   return std::get<T>( v );
 }
 
 template<typename T, typename... Vs>
-auto& val_or_die( std::variant<Vs...>& v ) {
+auto& val_or_die( base::variant<Vs...>& v ) {
   CHECK( std::holds_alternative<T>( v ) );
   return std::get<T>( v );
 }

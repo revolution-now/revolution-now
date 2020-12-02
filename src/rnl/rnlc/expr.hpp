@@ -12,10 +12,10 @@
 
 // base
 #include "base/maybe.hpp"
+#include "base/variant.hpp"
 
 // C++ standard library
 #include <string>
-#include <variant>
 #include <vector>
 
 namespace rnl::expr {
@@ -58,8 +58,8 @@ struct Sumtype {
   std::string to_string( std::string_view spaces ) const;
 };
 
-using Construct = std::variant< //
-    Sumtype                     //
+using Construct = base::variant< //
+    Sumtype                      //
     >;
 
 std::string to_str( Construct const& construct,

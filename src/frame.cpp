@@ -26,6 +26,9 @@
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
+// base
+#include "base/variant.hpp"
+
 // Range-v3
 #include "range/v3/algorithm/any_of.hpp"
 
@@ -57,7 +60,7 @@ struct FrameSubscriptionTime {
 NOTHROW_MOVE( FrameSubscriptionTime );
 
 using FrameSubscription =
-    variant<FrameSubscriptionTick, FrameSubscriptionTime>;
+    base::variant<FrameSubscriptionTick, FrameSubscriptionTime>;
 NOTHROW_MOVE( FrameSubscription );
 
 vector<FrameSubscription>& subscriptions() {

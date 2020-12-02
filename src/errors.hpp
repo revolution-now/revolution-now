@@ -174,7 +174,7 @@ bool check_inline( bool b, char const* msg );
 
 // This takes care to only evaluate `v_expr` once, since it may
 // be e.g. a function call. The function will evaluate `v_expr`
-// which is expected to result in a std::variant. It will then
+// which is expected to result in a base::variant. It will then
 // keep the resulting variant alive by assign it to a reference.
 // Finally it will check that the variant is of the right type
 // and, if so, it will assign it to a local reference of the
@@ -183,7 +183,7 @@ bool check_inline( bool b, char const* msg );
 //
 // Example:
 //
-//   std::variant<Object, int> v = ...;
+//   base::variant<Object, int> v = ...;
 //
 //   ASSIGN_CHECK_V( obj, v, Object );
 //   obj.method();

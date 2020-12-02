@@ -17,6 +17,9 @@
 #include "macros.hpp"
 #include "sync-future.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // C++ standard library
 #include <variant>
 
@@ -38,7 +41,7 @@ enum class ND e_unit_job_error {
 };
 
 using v_unit_job_desc =
-    std::variant<e_unit_job_good, e_unit_job_error>;
+    base::variant<e_unit_job_good, e_unit_job_error>;
 NOTHROW_MOVE( v_unit_job_desc );
 
 struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
