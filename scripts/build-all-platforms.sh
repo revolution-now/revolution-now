@@ -87,7 +87,7 @@ run_for_args() {
 # for cc in --clang '' --gcc=current; do
 for cc in --clang --gcc=current; do
   for lib in '' --libstdcxx --libcxx; do
-    for opt in '' --release; do
+    for opt in ''; do # --release; do
       for asan in ''; do # --asan; do
         [[ "$cc" =~ gcc && "$lib" =~ libcxx ]] && continue
         [[ "$cc" == ""  && "$lib" =~ libcxx ]] && continue
