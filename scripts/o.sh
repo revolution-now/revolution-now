@@ -3,13 +3,13 @@ set -e
 set -o pipefail
 
 (( $# != 1 )) && {
-  echo "Usage: build-o.sh path/to/file.cpp"
+  echo "Usage: $0 path/to/file.cpp"
   echo
   echo "  examples:"
   echo
-  echo "    build-o.sh src/cargo.cpp"
-  echo "    build-o.sh src/rnl/rnlc/parser.cpp"
-  echo "    build-o.sh test/cargo.cpp"
+  echo "    $0 src/cargo.cpp"
+  echo "    $0 src/rnl/rnlc/parser.cpp"
+  echo "    $0 test/cargo.cpp"
   echo
   exit 1
 }
