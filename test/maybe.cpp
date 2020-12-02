@@ -211,6 +211,12 @@ struct Stringable {
 };
 
 /****************************************************************
+** Base/Derived
+*****************************************************************/
+struct BaseClass {};
+struct DerivedClass : BaseClass {};
+
+/****************************************************************
 ** [static] nothing_t
 *****************************************************************/
 constexpr nothing_t n0thing( 0 );
@@ -266,6 +272,28 @@ static_assert( !is_nothrow_copy_constructible_v<M<Throws>> );
 static_assert( !is_nothrow_copy_assignable_v<M<Throws>> );
 
 /****************************************************************
+** [static] Constructability.
+*****************************************************************/
+static_assert( is_constructible_v<M<int>, int> );
+static_assert( is_constructible_v<M<int>, char> );
+static_assert( is_constructible_v<M<int>, long> );
+static_assert( is_constructible_v<M<int>, int&> );
+static_assert( is_constructible_v<M<int>, char&> );
+static_assert( is_constructible_v<M<int>, long&> );
+static_assert( is_constructible_v<M<char>, int> );
+static_assert( is_constructible_v<M<char>, double> );
+static_assert( !is_constructible_v<M<char*>, long> );
+static_assert( !is_constructible_v<M<long>, char*> );
+
+static_assert( is_constructible_v<M<BaseClass>, BaseClass> );
+static_assert( is_constructible_v<M<BaseClass>, DerivedClass> );
+// Fails on gcc !?
+// static_assert( !is_constructible_v<M<DerivedClass>, BaseClass>
+// );
+static_assert(
+    is_constructible_v<M<DerivedClass>, DerivedClass> );
+
+/****************************************************************
 ** [static] Propagation of triviality.
 *****************************************************************/
 // p0848r3.html
@@ -290,6 +318,13 @@ static_assert( !is_trivially_destructible_v<M<string>> );
 #endif
 
 /****************************************************************
+** [static] Avoiding bool ambiguity.
+*****************************************************************/
+static_assert( !is_constructible_v<bool, M<bool>> );
+static_assert( is_constructible_v<bool, M<int>> );
+static_assert( is_constructible_v<bool, M<string>> );
+
+/****************************************************************
 ** [static] is_value_truish.
 *****************************************************************/
 template<typename T>
@@ -300,6 +335,57 @@ static_assert( !is_detected_v<is_value_truish_t, string> );
 static_assert( is_detected_v<is_value_truish_t, Boolable> );
 static_assert( is_detected_v<is_value_truish_t, Intable> );
 static_assert( !is_detected_v<is_value_truish_t, Stringable> );
+
+/****************************************************************
+** [static] maybe-of-reference.
+*****************************************************************/
+static_assert( is_same_v<M<int&>::value_type, int&> );
+static_assert(
+    is_same_v<M<int const&>::value_type, int const&> );
+
+static_assert( !is_constructible_v<M<int&>, int> );
+static_assert( is_constructible_v<M<int&>, int&> );
+static_assert( !is_constructible_v<M<int&>, int&&> );
+static_assert( !is_constructible_v<M<int&>, int const&> );
+
+static_assert( !is_constructible_v<M<int const&>, int> );
+static_assert( is_constructible_v<M<int const&>, int&> );
+static_assert( !is_constructible_v<M<int const&>, int&&> );
+static_assert( is_constructible_v<M<int const&>, int const&> );
+
+static_assert( !is_assignable_v<M<int&>, int> );
+static_assert( !is_assignable_v<M<int&>, int&> );
+static_assert( !is_assignable_v<M<int&>, int const&> );
+static_assert( !is_assignable_v<M<int&>, int&&> );
+
+static_assert( !is_assignable_v<M<int const&>, int> );
+static_assert( !is_assignable_v<M<int const&>, int&> );
+static_assert( !is_assignable_v<M<int const&>, int const&> );
+static_assert( !is_assignable_v<M<int const&>, int&&> );
+
+static_assert( !is_constructible_v<M<int&>, char&> );
+static_assert( !is_constructible_v<M<int&>, long&> );
+
+static_assert( !is_convertible_v<M<int&>, int&> );
+
+static_assert( is_constructible_v<bool, M<int&>> );
+static_assert( !is_constructible_v<bool, M<bool&>> );
+
+static_assert( is_constructible_v<M<BaseClass&>, BaseClass&> );
+static_assert(
+    is_constructible_v<M<BaseClass&>, DerivedClass&> );
+static_assert(
+    !is_constructible_v<M<DerivedClass&>, BaseClass&> );
+static_assert(
+    is_constructible_v<M<DerivedClass&>, DerivedClass&> );
+
+// Make sure that we can't invoke just_ref on an rvalue.
+static_assert( !is_invocable_v<decltype( just_ref<int> ), int> );
+static_assert( is_invocable_v<decltype( just_ref<int> ), int&> );
+static_assert(
+    !is_invocable_v<decltype( just_ref<int> ), int const&> );
+static_assert( is_invocable_v<decltype( just_ref<int const> ),
+                              int const&> );
 
 /****************************************************************
 ** Test Cases
@@ -1902,6 +1988,550 @@ TEST_CASE( "[maybe] is_value_truish" ) {
     REQUIRE( !m.is_value_truish() );
     m = true;
     REQUIRE( m.is_value_truish() );
+  }
+}
+
+TEST_CASE( "[maybe-ref] construction" ) {
+  SECTION( "non-const" ) {
+    int m = 9;
+
+    M<int&> m0 = nothing;
+    REQUIRE( !m0.has_value() );
+    REQUIRE( !bool( m0 ) );
+    try {
+      (void)m0.value();
+      // Should not be here.
+      REQUIRE( false );
+    } catch( bad_maybe_access const& ) {}
+    REQUIRE( m0.value_or( m ) == 9 );
+
+    M<int&> m1;
+    REQUIRE( !m1.has_value() );
+    REQUIRE( !bool( m1 ) );
+    REQUIRE( !m1.is_value_truish() );
+
+    int     n  = 5;
+    M<int&> m3 = n;
+    REQUIRE( m3.has_value() );
+    REQUIRE( *m3 == 5 );
+    REQUIRE( m3 == 5 );
+    REQUIRE( m3.value() == 5 );
+    REQUIRE( m3.value_or( m ) == 5 );
+    REQUIRE( bool( m3 ) );
+    REQUIRE( m3.is_value_truish() );
+
+    struct B {
+      int n = 2;
+    };
+    struct A : B {
+      int m = 3;
+    };
+
+    A a;
+    B b;
+
+    M<B&> m4 = b;
+    REQUIRE( m4.has_value() );
+    REQUIRE( m4->n == 2 );
+    M<B&> m5 = a;
+    REQUIRE( m5.has_value() );
+    REQUIRE( m5->n == 2 );
+    REQUIRE( bool( m5 ) );
+
+    M<A&> m6 = a;
+    REQUIRE( m6.has_value() );
+    REQUIRE( m6->n == 2 );
+    REQUIRE( m6->m == 3 );
+    REQUIRE( m6.value().n == 2 );
+    REQUIRE( m6.value().m == 3 );
+    REQUIRE( bool( m6 ) );
+
+    M<bool&> m7;
+    REQUIRE( !m7.has_value() );
+
+    int     z  = 0;
+    M<int&> m8 = z;
+    REQUIRE( m8 == 0 );
+    REQUIRE( !m8.is_value_truish() );
+    z = 2;
+    REQUIRE( m8 == 2 );
+    REQUIRE( m8.is_value_truish() );
+
+    NoCopyNoMove     ncnm{ 'a' };
+    M<NoCopyNoMove&> m9 = ncnm;
+    REQUIRE( m9.has_value() );
+    REQUIRE( m9->c == 'a' );
+
+    string     s   = "hello";
+    M<string&> m10 = s;
+    REQUIRE( m10.has_value() );
+    REQUIRE( m10 == "hello" );
+    s = "world";
+    REQUIRE( m10 == "world" );
+  }
+  SECTION( "non-const" ) {
+    int m = 9;
+
+    M<int const&> m0 = nothing;
+    REQUIRE( !m0.has_value() );
+    REQUIRE( !bool( m0 ) );
+    try {
+      (void)m0.value();
+      // Should not be here.
+      REQUIRE( false );
+    } catch( bad_maybe_access const& ) {}
+    REQUIRE( m0.value_or( m ) == 9 );
+
+    M<int const&> m1;
+    REQUIRE( !m1.has_value() );
+    REQUIRE( !bool( m1 ) );
+    REQUIRE( !m1.is_value_truish() );
+
+    int           n  = 5;
+    M<int const&> m3 = n;
+    REQUIRE( m3.has_value() );
+    REQUIRE( *m3 == 5 );
+    REQUIRE( m3 == 5 );
+    REQUIRE( m3.value() == 5 );
+    REQUIRE( m3.value_or( m ) == 5 );
+    REQUIRE( bool( m3 ) );
+    REQUIRE( m3.is_value_truish() );
+
+    struct B {
+      int n = 2;
+    };
+    struct A : B {
+      int m = 3;
+    };
+
+    A a;
+    B b;
+
+    M<B const&> m4 = b;
+    REQUIRE( m4.has_value() );
+    REQUIRE( m4->n == 2 );
+    M<B const&> m5 = a;
+    REQUIRE( m5.has_value() );
+    REQUIRE( m5->n == 2 );
+    REQUIRE( bool( m5 ) );
+
+    M<A const&> m6 = a;
+    REQUIRE( m6.has_value() );
+    REQUIRE( m6->n == 2 );
+    REQUIRE( m6->m == 3 );
+    REQUIRE( m6.value().n == 2 );
+    REQUIRE( m6.value().m == 3 );
+    REQUIRE( bool( m6 ) );
+
+    M<bool const&> m7;
+    REQUIRE( !m7.has_value() );
+
+    int           z  = 0;
+    M<int const&> m8 = z;
+    REQUIRE( m8 == 0 );
+    REQUIRE( !m8.is_value_truish() );
+    z = 2;
+    REQUIRE( m8 == 2 );
+    REQUIRE( m8.is_value_truish() );
+
+    NoCopyNoMove           ncnm{ 'a' };
+    M<NoCopyNoMove const&> m9 = ncnm;
+    REQUIRE( m9.has_value() );
+    REQUIRE( m9->c == 'a' );
+
+    string           s   = "hello";
+    M<string const&> m10 = s;
+    REQUIRE( m10.has_value() );
+    REQUIRE( m10 == "hello" );
+    s = "world";
+    REQUIRE( m10 == "world" );
+  }
+}
+
+TEST_CASE( "[maybe-ref] fmap" ) {
+  SECTION( "ref to value, int" ) {
+    int     n  = 5;
+    M<int&> m1 = n;
+
+    auto inc = []( int m ) { return m + 1; };
+
+    auto m2 = m1.fmap( inc );
+    ASSERT_VAR_TYPE( m2, maybe<int> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 6 );
+  }
+  SECTION( "ref to value, string" ) {
+    string     n  = "hello";
+    M<string&> m1 = n;
+
+    auto inc = []( string const& s ) { return s + s; };
+
+    auto m2 = m1.fmap( inc );
+    ASSERT_VAR_TYPE( m2, maybe<string> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "hellohello" );
+  }
+  SECTION( "ref to ref, int" ) {
+    int     n  = 5;
+    M<int&> m1 = n;
+
+    auto inc = []( int ) -> int& {
+      static int x = 8;
+      return x;
+    };
+
+    auto m2 = m1.fmap( inc );
+    ASSERT_VAR_TYPE( m2, maybe<int&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 8 );
+  }
+  SECTION( "ref to ref, string" ) {
+    string     n  = "hello";
+    M<string&> m1 = n;
+
+    auto inc = []( string const& ) -> string const& {
+      static const string s = "world";
+      return s;
+    };
+
+    auto m2 = m1.fmap( inc );
+    ASSERT_VAR_TYPE( m2, maybe<string const&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "world" );
+  }
+  SECTION( "value to ref, int" ) {
+    M<int> m1 = 5;
+
+    auto inc = []( int ) -> int& {
+      static int x = 8;
+      return x;
+    };
+
+    auto m2 = m1.fmap( inc );
+    ASSERT_VAR_TYPE( m2, maybe<int&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 8 );
+  }
+  SECTION( "value to ref, string" ) {
+    M<string> m1 = "hello";
+
+    auto inc = []( string const& ) -> string const& {
+      static const string s = "world";
+      return s;
+    };
+
+    auto m2 = m1.fmap( inc );
+    ASSERT_VAR_TYPE( m2, maybe<string const&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "world" );
+  }
+}
+
+TEST_CASE( "[maybe-ref] bind" ) {
+  SECTION( "ref to value, int" ) {
+    int     n  = 5;
+    M<int&> m1 = n;
+
+    auto inc = []( int m ) -> maybe<int> {
+      if( m < 5 ) return nothing;
+      return m + 1;
+    };
+
+    auto m2 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m2, maybe<int> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 6 );
+
+    n       = 3;
+    auto m3 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m3, maybe<int> );
+    REQUIRE( !m3.has_value() );
+    REQUIRE( m3 == nothing );
+  }
+  SECTION( "ref to value, string" ) {
+    string     n  = "hello";
+    M<string&> m1 = n;
+
+    auto inc = []( string const& m ) -> maybe<string> {
+      if( m != "hello" ) return nothing;
+      return "world";
+    };
+
+    auto m2 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m2, maybe<string> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "world" );
+
+    n       = "world";
+    auto m3 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m3, maybe<string> );
+    REQUIRE( !m3.has_value() );
+    REQUIRE( m3 == nothing );
+  }
+  SECTION( "ref to ref, int" ) {
+    int     n  = 5;
+    M<int&> m1 = n;
+
+    auto inc = []( int m ) -> maybe<int const&> {
+      static const int x = 3;
+      if( m < 5 ) return nothing;
+      return x;
+    };
+
+    auto const& m2 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m2, maybe<int const&> const& );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 3 );
+    REQUIRE( *m2 == 3 );
+
+    n       = 3;
+    auto m3 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m3, maybe<int const&> );
+    REQUIRE( !m3.has_value() );
+    REQUIRE( m3 == nothing );
+  }
+  SECTION( "ref to ref, string" ) {
+    string     n  = "hello";
+    M<string&> m1 = n;
+
+    auto inc = []( string const& m ) -> maybe<string&> {
+      static string x = "world";
+      if( m != "hello" ) return nothing;
+      return x;
+    };
+
+    auto const& m2 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m2, maybe<string&> const& );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "world" );
+    REQUIRE( *m2 == "world" );
+
+    n       = "world";
+    auto m3 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m3, maybe<string&> );
+    REQUIRE( !m3.has_value() );
+    REQUIRE( m3 == nothing );
+  }
+  SECTION( "value to ref, int" ) {
+    M<int> m1 = 5;
+
+    auto inc = []( int m ) -> maybe<int const&> {
+      static const int x = 3;
+      if( m < 5 ) return nothing;
+      return x;
+    };
+
+    auto m2 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m2, maybe<int const&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 3 );
+    REQUIRE( *m2 == 3 );
+
+    m1      = 3;
+    auto m3 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m3, maybe<int const&> );
+    REQUIRE( !m3.has_value() );
+    REQUIRE( m3 == nothing );
+  }
+  SECTION( "value to ref, string" ) {
+    M<string> m1 = "hello";
+
+    auto inc = []( string const& m ) -> maybe<string&> {
+      static string x = "world";
+      if( m != "hello" ) return nothing;
+      return x;
+    };
+
+    auto m2 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m2, maybe<string&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "world" );
+    REQUIRE( *m2 == "world" );
+
+    m1      = "world";
+    auto m3 = m1.bind( inc );
+    ASSERT_VAR_TYPE( m3, maybe<string&> );
+    REQUIRE( !m3.has_value() );
+    REQUIRE( m3 == nothing );
+  }
+}
+
+TEST_CASE( "[maybe-ref] just-ref" ) {
+  SECTION( "int" ) {
+    int  n  = 5;
+    auto m1 = just_ref( n );
+    ASSERT_VAR_TYPE( m1, maybe<int&> );
+    REQUIRE( m1.has_value() );
+    REQUIRE( m1 == 5 );
+    REQUIRE( *m1 == 5 );
+    REQUIRE( m1 != nothing );
+
+    int const m  = 5;
+    auto      m2 = just_ref( m );
+    ASSERT_VAR_TYPE( m2, maybe<int const&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 5 );
+    REQUIRE( *m2 == 5 );
+  }
+  SECTION( "string" ) {
+    string s  = "hello";
+    auto   m1 = just_ref( s );
+    ASSERT_VAR_TYPE( m1, maybe<string&> );
+    REQUIRE( m1.has_value() );
+    REQUIRE( m1 == "hello" );
+    REQUIRE( *m1 == "hello" );
+    REQUIRE( m1 != nothing );
+
+    string const m  = "world";
+    auto         m2 = just_ref( m );
+    ASSERT_VAR_TYPE( m2, maybe<string const&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == "world" );
+    REQUIRE( *m2 == "world" );
+  }
+}
+
+TEST_CASE( "[maybe-ref] comparison" ) {
+  SECTION( "int" ) {
+    int           n  = 5;
+    M<int&>       m1 = n;
+    int           m  = 6;
+    M<int const&> m2 = m;
+
+    REQUIRE( m1.has_value() );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m1 != nothing );
+    REQUIRE( m2 != nothing );
+
+    REQUIRE( m1 != m2 );
+    m = 5;
+    REQUIRE( m1 == m2 );
+  }
+  SECTION( "string" ) {
+    string     n  = "hello";
+    M<string&> m1 = n;
+    string     m  = "world";
+    M<string&> m2 = m;
+
+    REQUIRE( m1.has_value() );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m1 != nothing );
+    REQUIRE( m2 != nothing );
+
+    REQUIRE( m1 != m2 );
+    m = "hello";
+    REQUIRE( m1 == m2 );
+  }
+}
+
+TEST_CASE( "[maybe] ref to member" ) {
+  SECTION( "val to ref, fmap" ) {
+    struct A {
+      int n;
+    };
+
+    M<A> m = A{ 4 };
+
+    auto m2 = m.fmap( &A::n );
+    ASSERT_VAR_TYPE( m2, maybe<int&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 4 );
+    REQUIRE( *m2 == 4 );
+
+    // Assign through.
+    *m2 = 3;
+
+    auto m3 = as_const( m ).fmap( &A::n );
+    ASSERT_VAR_TYPE( m3, maybe<int const&> );
+    REQUIRE( m3.has_value() );
+    REQUIRE( m3 == 3 );
+    REQUIRE( *m3 == 3 );
+  }
+  SECTION( "ref to ref, fmap" ) {
+    struct A {
+      int n;
+    };
+
+    A     a{ 4 };
+    M<A&> m = a;
+
+    auto m2 = m.fmap( &A::n );
+    ASSERT_VAR_TYPE( m2, maybe<int&> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 4 );
+    REQUIRE( *m2 == 4 );
+
+    // Assign through.
+    *m2 = 3;
+
+    auto m3 = as_const( m ).fmap( &A::n );
+    ASSERT_VAR_TYPE( m3, maybe<int&> );
+    REQUIRE( m3.has_value() );
+    REQUIRE( m3 == 3 );
+    REQUIRE( *m3 == 3 );
+
+    // Test const.
+    M<A const&> m4 = a;
+
+    auto m5 = m4.fmap( &A::n );
+    ASSERT_VAR_TYPE( m5, maybe<int const&> );
+    REQUIRE( m5.has_value() );
+    REQUIRE( m5 == 3 );
+    REQUIRE( *m5 == 3 );
+  }
+  SECTION( "val to ref, bind" ) {
+    struct A {
+      maybe<int> n;
+    };
+
+    M<A> m = A{ 4 };
+
+    auto m2 = m.bind( &A::n );
+    ASSERT_VAR_TYPE( m2, maybe<int> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 4 );
+    REQUIRE( *m2 == 4 );
+
+    // Assign through.
+    m->n = 3;
+
+    auto m3 = as_const( m ).bind( &A::n );
+    ASSERT_VAR_TYPE( m3, maybe<int> );
+    REQUIRE( m3.has_value() );
+    REQUIRE( m3 == 3 );
+    REQUIRE( *m3 == 3 );
+  }
+  SECTION( "ref to ref, bind" ) {
+    struct A {
+      maybe<int> n;
+    };
+
+    A     a{ 4 };
+    M<A&> m = a;
+
+    auto m2 = m.bind( &A::n );
+    ASSERT_VAR_TYPE( m2, maybe<int> );
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 4 );
+    REQUIRE( *m2 == 4 );
+
+    // Assign through.
+    m->n = 3;
+
+    auto m3 = as_const( m ).bind( &A::n );
+    ASSERT_VAR_TYPE( m3, maybe<int> );
+    REQUIRE( m3.has_value() );
+    REQUIRE( m3 == 3 );
+    REQUIRE( *m3 == 3 );
+
+    // Test const.
+    M<A const&> m4 = a;
+
+    auto m5 = m4.bind( &A::n );
+    ASSERT_VAR_TYPE( m5, maybe<int> );
+    REQUIRE( m5.has_value() );
+    REQUIRE( m5 == 3 );
+    REQUIRE( *m5 == 3 );
   }
 }
 
