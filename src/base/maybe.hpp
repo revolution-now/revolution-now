@@ -14,6 +14,9 @@
 // base
 #include "source-loc.hpp"
 
+// base-util
+#include "base-util/mp.hpp"
+
 // C++ standard library
 #include <functional>
 #include <optional> // FIXME: remove after migration.
@@ -707,12 +710,92 @@ public:
   }
 
   /**************************************************************
+  ** Monadic Interface: member
+  ***************************************************************/
+  template<typename Func>
+  auto member( Func&& func ) const& /* clang-format off */
+    -> maybe<std::invoke_result_t<Func, T const&>>
+    requires( std::is_invocable_v<Func, T const&> &&
+              std::is_member_object_pointer_v<Func> &&
+             !is_maybe_v<std::remove_cvref_t<
+               std::invoke_result_t<Func,T const&>>> ) {
+    /* clang-format on */
+    using res_t = maybe<std::invoke_result_t<Func, T const&>>;
+    res_t res;
+    if( has_value() )
+      res.assign(
+          std::invoke( std::forward<Func>( func ), **this ) );
+    return res;
+  }
+
+  template<typename Func>
+  auto member( Func&& func ) & /* clang-format off */
+    -> maybe<std::invoke_result_t<Func, T&>>
+    requires( std::is_invocable_v<Func, T&> &&
+              std::is_member_object_pointer_v<Func> &&
+             !is_maybe_v<std::remove_cvref_t<
+               std::invoke_result_t<Func,T&>>> ) {
+    /* clang-format on */
+    using res_t = maybe<std::invoke_result_t<Func, T&>>;
+    res_t res;
+    if( has_value() )
+      res.assign(
+          std::invoke( std::forward<Func>( func ), **this ) );
+    return res;
+  }
+
+  /**************************************************************
+  ** Monadic Interface: optional member
+  ***************************************************************/
+  template<typename Func>
+  auto maybe_member( Func&& func ) const& /* clang-format off */
+    -> maybe<typename std::remove_cvref_t<
+                        std::invoke_result_t<Func, T const&>
+                      >::value_type const&>
+    requires( std::is_member_object_pointer_v<Func> &&
+              is_maybe_v<std::remove_cvref_t<
+                std::invoke_result_t<Func, T const&>>> ) {
+    /* clang-format on */
+    using res_t = maybe<
+        typename std::remove_reference_t<std::invoke_result_t<
+            Func, T const&>>::value_type const&>;
+    res_t res;
+    if( has_value() ) {
+      decltype( auto ) maybe_field =
+          std::invoke( std::forward<Func>( func ), **this );
+      if( maybe_field.has_value() ) res.assign( *maybe_field );
+    }
+    return res;
+  }
+
+  template<typename Func>
+  auto maybe_member( Func&& func ) & /* clang-format off */
+    -> maybe<typename std::remove_cvref_t<
+                        std::invoke_result_t<Func, T&>
+                      >::value_type&>
+    requires( std::is_member_object_pointer_v<Func> &&
+              is_maybe_v<std::remove_cvref_t<
+                std::invoke_result_t<Func, T&>>> ) {
+    /* clang-format on */
+    using res_t = maybe<typename std::remove_reference_t<
+        std::invoke_result_t<Func, T&>>::value_type&>;
+    res_t res;
+    if( has_value() ) {
+      decltype( auto ) maybe_field =
+          std::invoke( std::forward<Func>( func ), **this );
+      if( maybe_field.has_value() ) res.assign( *maybe_field );
+    }
+    return res;
+  }
+
+  /**************************************************************
   ** Monadic Interface: fmap
   ***************************************************************/
   template<typename Func>
   auto fmap( Func&& func ) const& /* clang-format off */
     -> maybe<std::invoke_result_t<Func, T const&>>
     requires( std::is_invocable_v<Func, T const&> &&
+             !std::is_member_object_pointer_v<Func> &&
              !is_maybe_v<std::remove_cvref_t<
                std::invoke_result_t<Func,T const&>>> ) {
     /* clang-format on */
@@ -728,6 +811,7 @@ public:
   auto fmap( Func&& func ) & /* clang-format off */
     -> maybe<std::invoke_result_t<Func, T&>>
     requires( std::is_invocable_v<Func, T&> &&
+             !std::is_member_object_pointer_v<Func> &&
              !is_maybe_v<std::remove_cvref_t<
                std::invoke_result_t<Func,T&>>> ) {
     /* clang-format on */
@@ -743,6 +827,7 @@ public:
   auto fmap( Func&& func ) &&
        -> maybe<std::invoke_result_t<Func, T>>
        requires( std::is_invocable_v<Func, T> &&
+                !std::is_member_object_pointer_v<Func> &&
                 !is_maybe_v<std::remove_cvref_t<
                   std::invoke_result_t<Func, T>>> ) {
     /* clang-format on */
@@ -760,8 +845,9 @@ public:
   template<typename Func>
   auto bind( Func&& func ) const& /* clang-format off */
     -> std::remove_cvref_t<std::invoke_result_t<Func, T const&>>
-    requires( is_maybe_v<std::remove_cvref_t<
-                std::invoke_result_t<Func,T const&>>> ) {
+    requires( !std::is_member_object_pointer_v<Func> &&
+               is_maybe_v<std::remove_cvref_t<
+                 std::invoke_result_t<Func,T const&>>> ) {
     /* clang-format on */
     using res_t = std::remove_cvref_t<
         std::invoke_result_t<Func, T const&>>;
@@ -775,8 +861,9 @@ public:
   template<typename Func> /* clang-format off */
   auto bind( Func&& func ) &&
     -> std::remove_cvref_t<std::invoke_result_t<Func, T>>
-    requires( is_maybe_v<std::remove_cvref_t<
-                std::invoke_result_t<Func, T>>> ) {
+    requires( !std::is_member_object_pointer_v<Func> &&
+               is_maybe_v<std::remove_cvref_t<
+                 std::invoke_result_t<Func, T>>> ) {
     /* clang-format on */
     using res_t =
         std::remove_cvref_t<std::invoke_result_t<Func, T>>;
@@ -955,12 +1042,64 @@ public:
   }
 
   /**************************************************************
+  ** Monadic Interface: member
+  ***************************************************************/
+  template<typename Func>
+  auto member( Func&& func ) const& /* clang-format off */
+    -> maybe<std::invoke_result_t<Func, T&>>
+    requires( std::is_invocable_v<Func, T&> &&
+              std::is_member_object_pointer_v<Func> &&
+             !is_maybe_v<std::remove_cvref_t<
+               std::invoke_result_t<Func,T&>>> ) {
+    /* clang-format on */
+    using res_t = maybe<std::invoke_result_t<Func, T&>>;
+    res_t res;
+    if( has_value() )
+      res.assign(
+          std::invoke( std::forward<Func>( func ), **this ) );
+    return res;
+  }
+
+  /**************************************************************
+  ** Monadic Interface: maybe_member
+  ***************************************************************/
+  template<typename Func>
+  auto maybe_member( Func&& func ) const /* clang-format off */
+    -> maybe<typename mp::const_if_t<
+                        typename std::remove_cvref_t<
+                          std::invoke_result_t<Func, T&>
+                        >::value_type,
+                        std::is_const_v<T>
+                      >&
+                    >
+    requires( std::is_member_object_pointer_v<Func> &&
+              is_maybe_v<std::remove_cvref_t<
+                std::invoke_result_t<Func,T&>>> ) {
+    using res_t = maybe<typename mp::const_if_t<
+                                  typename std::remove_cvref_t<
+                                    std::invoke_result_t<Func, T&>
+                                  >::value_type,
+                                  std::is_const_v<T>
+                                >&
+                              >;
+    /* clang-format on */
+    res_t res;
+    if( has_value() ) {
+      decltype( auto ) maybe_field =
+          std::invoke( std::forward<Func>( func ), **this );
+      if( maybe_field.has_value() ) res.assign( *maybe_field );
+    }
+    return res;
+  }
+
+  /**************************************************************
   ** Monadic Interface: fmap
   ***************************************************************/
   template<typename Func>
   auto fmap( Func&& func ) const /* clang-format off */
     -> maybe<std::invoke_result_t<Func, T&>>
     requires( std::is_invocable_v<Func, T&> &&
+             !std::is_member_object_pointer_v<Func> &&
              !is_maybe_v<std::remove_cvref_t<
                 std::invoke_result_t<Func,T&>>> ) {
     /* clang-format on */
@@ -978,7 +1117,8 @@ public:
   template<typename Func>
   auto bind( Func&& func ) const /* clang-format off */
     -> std::remove_cvref_t<std::invoke_result_t<Func, T&>>
-    requires( is_maybe_v<std::remove_cvref_t<
+    requires( !std::is_member_object_pointer_v<Func> &&
+              is_maybe_v<std::remove_cvref_t<
                 std::invoke_result_t<Func,T&>>> ) {
     /* clang-format on */
     using res_t =

@@ -2425,14 +2425,14 @@ TEST_CASE( "[maybe-ref] comparison" ) {
 }
 
 TEST_CASE( "[maybe] ref to member" ) {
-  SECTION( "val to ref, fmap" ) {
+  SECTION( "val to ref, member" ) {
     struct A {
       int n;
     };
 
     M<A> m = A{ 4 };
 
-    auto m2 = m.fmap( &A::n );
+    auto m2 = m.member( &A::n );
     ASSERT_VAR_TYPE( m2, maybe<int&> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == 4 );
@@ -2441,13 +2441,13 @@ TEST_CASE( "[maybe] ref to member" ) {
     // Assign through.
     *m2 = 3;
 
-    auto m3 = as_const( m ).fmap( &A::n );
+    auto m3 = as_const( m ).member( &A::n );
     ASSERT_VAR_TYPE( m3, maybe<int const&> );
     REQUIRE( m3.has_value() );
     REQUIRE( m3 == 3 );
     REQUIRE( *m3 == 3 );
   }
-  SECTION( "ref to ref, fmap" ) {
+  SECTION( "ref to ref, member" ) {
     struct A {
       int n;
     };
@@ -2455,7 +2455,7 @@ TEST_CASE( "[maybe] ref to member" ) {
     A     a{ 4 };
     M<A&> m = a;
 
-    auto m2 = m.fmap( &A::n );
+    auto m2 = m.member( &A::n );
     ASSERT_VAR_TYPE( m2, maybe<int&> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == 4 );
@@ -2464,7 +2464,7 @@ TEST_CASE( "[maybe] ref to member" ) {
     // Assign through.
     *m2 = 3;
 
-    auto m3 = as_const( m ).fmap( &A::n );
+    auto m3 = as_const( m ).member( &A::n );
     ASSERT_VAR_TYPE( m3, maybe<int&> );
     REQUIRE( m3.has_value() );
     REQUIRE( m3 == 3 );
@@ -2473,62 +2473,80 @@ TEST_CASE( "[maybe] ref to member" ) {
     // Test const.
     M<A const&> m4 = a;
 
-    auto m5 = m4.fmap( &A::n );
+    auto m5 = m4.member( &A::n );
     ASSERT_VAR_TYPE( m5, maybe<int const&> );
     REQUIRE( m5.has_value() );
     REQUIRE( m5 == 3 );
     REQUIRE( *m5 == 3 );
   }
-  SECTION( "val to ref, bind" ) {
+  SECTION( "val to ref, maybe_member" ) {
     struct A {
       maybe<int> n;
     };
 
     M<A> m = A{ 4 };
 
-    auto m2 = m.bind( &A::n );
-    ASSERT_VAR_TYPE( m2, maybe<int> );
+    auto m2 = m.maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m2, maybe<int&> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == 4 );
     REQUIRE( *m2 == 4 );
 
     // Assign through.
-    m->n = 3;
+    *m2 = 3;
 
-    auto m3 = as_const( m ).bind( &A::n );
-    ASSERT_VAR_TYPE( m3, maybe<int> );
+    auto m3 = as_const( m ).maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m3, maybe<int const&> );
     REQUIRE( m3.has_value() );
     REQUIRE( m3 == 3 );
     REQUIRE( *m3 == 3 );
+
+    *m2 = 4;
+
+    // We can't have a maybe<T&&>, so that means that when we
+    // reference a temporary we use T const&.
+    auto m4 = std::move( m ).maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m4, maybe<int const&> );
+    REQUIRE( m4.has_value() );
+    REQUIRE( m4 == 4 );
+    REQUIRE( *m4 == 4 );
   }
-  SECTION( "ref to ref, bind" ) {
+  SECTION( "ref to ref, maybe_member" ) {
     struct A {
       maybe<int> n;
     };
 
-    A     a{ 4 };
+    A     a{};
     M<A&> m = a;
 
-    auto m2 = m.bind( &A::n );
-    ASSERT_VAR_TYPE( m2, maybe<int> );
+    auto m1 = m.maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m1, maybe<int&> );
+    REQUIRE( !m1.has_value() );
+    REQUIRE( m1 == nothing );
+
+    a.n = 4;
+
+    auto m2 = m.maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m2, maybe<int&> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == 4 );
     REQUIRE( *m2 == 4 );
 
     // Assign through.
-    m->n = 3;
+    *m2 = 3;
 
-    auto m3 = as_const( m ).bind( &A::n );
-    ASSERT_VAR_TYPE( m3, maybe<int> );
+    // consting the maybe object does nothing.
+    auto m3 = as_const( m ).maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m3, maybe<int&> );
     REQUIRE( m3.has_value() );
     REQUIRE( m3 == 3 );
     REQUIRE( *m3 == 3 );
 
-    // Test const.
+    // consting the inner object does something.
     M<A const&> m4 = a;
 
-    auto m5 = m4.bind( &A::n );
-    ASSERT_VAR_TYPE( m5, maybe<int> );
+    auto m5 = m4.maybe_member( &A::n );
+    ASSERT_VAR_TYPE( m5, maybe<int const&> );
     REQUIRE( m5.has_value() );
     REQUIRE( m5 == 3 );
     REQUIRE( *m5 == 3 );
