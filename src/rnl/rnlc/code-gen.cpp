@@ -620,7 +620,7 @@ struct CodeGenerator {
     if( sumtype.alternatives.empty() ) {
       line( "using {}_t = std::monostate;", sumtype.name );
     } else {
-      line( "using {}_t = std::variant<", sumtype.name );
+      line( "using {}_t = base::variant<", sumtype.name );
       vector<string> variants;
       for( expr::Alternative const& alt : sumtype.alternatives )
         variants.push_back( absl::StrCat(
@@ -734,6 +734,9 @@ struct CodeGenerator {
       line( "#include \"fb.hpp\"" );
     }
     line( "" );
+    comment( "base" );
+    line( "#include \"base/variant.hpp\"" );
+    line( "" );
     comment( "base-util" );
     line( "#include \"base-util/mp.hpp\"" );
     if( rnl_needs_fmt_headers( rnl ) ) {
@@ -744,7 +747,6 @@ struct CodeGenerator {
     line( "" );
     comment( "C++ standard library" );
     line( "#include <string_view>" );
-    line( "#include <variant>" );
     newline();
   }
 

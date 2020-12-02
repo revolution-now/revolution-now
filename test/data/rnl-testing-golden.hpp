@@ -18,6 +18,9 @@
 #include "errors.hpp"
 #include "fb.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // base-util
 #include "base-util/mp.hpp"
 
@@ -26,7 +29,6 @@
 
 // C++ standard library
 #include <string_view>
-#include <variant>
 
 /****************************************************************
 *                          Global Vars
@@ -71,7 +73,7 @@ namespace rnltest {
   } // namespace Maybe
 
   template<typename T>
-  using Maybe_t = std::variant<
+  using Maybe_t = base::variant<
     Maybe::nothing<T>,
     Maybe::just<T>
   >;
@@ -159,7 +161,7 @@ namespace rnltest {
 
   } // namespace MyVariant1
 
-  using MyVariant1_t = std::variant<
+  using MyVariant1_t = base::variant<
     MyVariant1::happy,
     MyVariant1::sad,
     MyVariant1::excited
@@ -405,7 +407,7 @@ namespace rnltest {
 
   } // namespace MyVariant2
 
-  using MyVariant2_t = std::variant<
+  using MyVariant2_t = base::variant<
     MyVariant2::first,
     MyVariant2::second,
     MyVariant2::third
@@ -552,7 +554,7 @@ namespace rnltest::inner {
 
   } // namespace MyVariant3
 
-  using MyVariant3_t = std::variant<
+  using MyVariant3_t = base::variant<
     MyVariant3::a1,
     MyVariant3::a2,
     MyVariant3::a3
@@ -652,7 +654,7 @@ namespace rnltest::inner {
 
   } // namespace MyVariant4
 
-  using MyVariant4_t = std::variant<
+  using MyVariant4_t = base::variant<
     MyVariant4::first,
     MyVariant4::_2nd,
     MyVariant4::third
@@ -755,7 +757,7 @@ namespace rnltest::inner {
   } // namespace TemplateTwoParams
 
   template<typename T, typename U>
-  using TemplateTwoParams_t = std::variant<
+  using TemplateTwoParams_t = base::variant<
     TemplateTwoParams::first_alternative<T, U>,
     TemplateTwoParams::second_alternative<T, U>,
     TemplateTwoParams::third_alternative<T, U>
@@ -844,7 +846,7 @@ namespace rnltest::inner {
   } // namespace CompositeTemplateTwo
 
   template<typename T, typename U>
-  using CompositeTemplateTwo_t = std::variant<
+  using CompositeTemplateTwo_t = base::variant<
     CompositeTemplateTwo::first<T, U>,
     CompositeTemplateTwo::second<T, U>
   >;
@@ -1109,7 +1111,7 @@ namespace rn {
 
   } // namespace MySumtype
 
-  using MySumtype_t = std::variant<
+  using MySumtype_t = base::variant<
     MySumtype::none,
     MySumtype::some,
     MySumtype::more
@@ -1500,7 +1502,7 @@ namespace rn {
 
   } // namespace OnOffState
 
-  using OnOffState_t = std::variant<
+  using OnOffState_t = base::variant<
     OnOffState::off,
     OnOffState::on,
     OnOffState::switching_on,
@@ -1646,7 +1648,7 @@ namespace rn {
 
   } // namespace OnOffEvent
 
-  using OnOffEvent_t = std::variant<
+  using OnOffEvent_t = base::variant<
     OnOffEvent::turn_off,
     OnOffEvent::turn_on
   >;

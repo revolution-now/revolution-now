@@ -21,6 +21,9 @@
 #include "maybe.hpp"
 #include "rnl/helper/sumtype-helper.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // SDL
 // TODO: get rid of this
 #include "SDL.h"
@@ -152,7 +155,7 @@ struct win_event_t : public event_base_t {
 ** Input Events
 *****************************************************************/
 // clang-format off
-using event_t = std::variant<
+using event_t = base::variant<
   unknown_event_t, // non-relevant events
   quit_event_t,    // signal from OS to quit, e.g. x-out window
   key_event_t,

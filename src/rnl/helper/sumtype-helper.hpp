@@ -15,6 +15,9 @@
 // Revolution Now
 #include "errors.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // C++ standard library
 #include <variant>
 
@@ -43,8 +46,8 @@ template<typename V>
 using SumtypeToEnum_v = typename SumtypeToEnum<V>::type;
 
 template<typename... Args>
-auto enum_for( std::variant<Args...> const& v ) {
-  return static_cast<SumtypeToEnum_v<std::variant<Args...>>>(
+auto enum_for( base::variant<Args...> const& v ) {
+  return static_cast<SumtypeToEnum_v<base::variant<Args...>>>(
       v.index() );
 }
 

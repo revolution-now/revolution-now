@@ -262,19 +262,22 @@ struct formatter<std::chrono::time_point<Ts...>>
   }
 };
 
-// {fmt} formatter for formatting variants whose constituent
-// types are also formattable.
-template<typename... Ts>
-struct formatter<
-    std::variant<Ts...>, char,
-    std::enable_if_t<mp::and_v<::rn::has_fmt<Ts>...>>>
+// {fmt} formatter for formatting variant-like things whose
+// constituent types are also formattable.
+template<template<typename...> typename V, typename... Ts>
+/* clang-format off */
+    requires( std::is_convertible_v<V<Ts...>&,
+                std::variant<Ts...>&> &&
+              mp::and_v<::rn::has_fmt<Ts>...> )
+struct formatter<V<Ts...>>
+  /* clang-format on */
   : dynamic_formatter<> {
-  using V = std::variant<Ts...>;
   using B = dynamic_formatter<>;
   template<typename Context>
-  auto format( V const &v, Context &ctx ) {
+  auto format( V<Ts...> const &v, Context &ctx ) {
     return std::visit(
-        LC( B::format( fmt::format( "{}", _ ), ctx ) ), v );
+        LC( B::format( fmt::format( "{}", _ ), ctx ) ),
+        static_cast<std::variant<Ts...> const &>( v ) );
   }
 };
 

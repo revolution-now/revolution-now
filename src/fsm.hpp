@@ -23,6 +23,7 @@
 
 // base
 #include "base/source-loc.hpp"
+#include "base/variant.hpp"
 
 // base-util
 #include "base-util/pp.hpp"

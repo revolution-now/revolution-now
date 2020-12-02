@@ -23,6 +23,9 @@
 #include "util.hpp"
 #include "variant.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // Flatbuffers
 #include "fb/cargo_generated.h"
 
@@ -30,7 +33,6 @@
 #include "base-util/algo.hpp"
 
 // C++ standard library
-#include <variant>
 #include <vector>
 
 TYPED_INDEX( CargoSlotIndex );
@@ -54,7 +56,7 @@ void ustate_disown_unit( UnitId id );
 
 namespace rn {
 
-using Cargo = std::variant<UnitId, Commodity>;
+using Cargo = base::variant<UnitId, Commodity>;
 NOTHROW_MOVE( Cargo );
 
 namespace serial {
@@ -282,9 +284,10 @@ template<typename T>
 maybe<T const&> CargoHold::slot_holds_cargo_type(
     int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
-  return holds<CargoSlot::cargo>( slots_[idx] )
+  return slots_[idx]
+      .get_if<CargoSlot::cargo>()
       .member( &CargoSlot::cargo::contents )
-      .bind( L( holds<T>( _ ) ) );
+      .bind( L( _.template get_if<T>() ) );
 }
 
 } // namespace rn
