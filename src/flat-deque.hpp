@@ -54,8 +54,8 @@ public:
   bool empty() const { return size() == 0; }
 
   // !! Ref returned is not stable.
-  Opt<CRef<T>> front() const {
-    Opt<CRef<T>> res;
+  OptCRef<T> front() const {
+    OptCRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( front_ ) );
       auto it = map_.find( front_ );
@@ -66,8 +66,8 @@ public:
   }
 
   // !! Ref returned is not stable.
-  Opt<Ref<T>> front() {
-    Opt<Ref<T>> res;
+  OptRef<T> front() {
+    OptRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( front_ ) );
       res = map_[front_];
@@ -77,8 +77,8 @@ public:
   }
 
   // !! Ref returned is not stable.
-  Opt<CRef<T>> back() const {
-    Opt<CRef<T>> res;
+  OptCRef<T> back() const {
+    OptCRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( back_ - 1 ) );
       auto it = map_.find( back_ - 1 );
@@ -89,8 +89,8 @@ public:
   }
 
   // !! Ref returned is not stable.
-  Opt<Ref<T>> back() {
-    Opt<Ref<T>> res;
+  OptRef<T> back() {
+    OptRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( back_ - 1 ) );
       res = map_[back_ - 1];

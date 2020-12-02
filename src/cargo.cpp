@@ -206,12 +206,12 @@ int CargoHold::count_items() const {
                          L( holds<CargoSlot::cargo>( _ ) ) );
 }
 
-Opt<CRef<CargoSlot_t>> CargoHold::at( int slot ) const {
+OptCRef<CargoSlot_t> CargoHold::at( int slot ) const {
   if( slot < 0 || slot >= slots_total() ) return nothing;
   return ( *this )[slot];
 }
 
-Opt<CRef<CargoSlot_t>> CargoHold::at(
+OptCRef<CargoSlot_t> CargoHold::at(
     CargoSlotIndex slot ) const {
   return this->at( slot._ );
 }

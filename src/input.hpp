@@ -197,7 +197,7 @@ event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta );
 
 bool             is_mouse_event( event_t const& event );
-Opt<CRef<Coord>> mouse_position( event_t const& event );
+OptCRef<Coord> mouse_position( event_t const& event );
 
 // These are useful if a client of the input events wants to
 // treat dragging as normal mouse motion/click events.

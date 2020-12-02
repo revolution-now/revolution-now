@@ -215,9 +215,9 @@ public:
   // !! No pointer stability here; state could change after
   //    calling another non-const method.
   template<typename T>
-  Opt<CRef<T>> holds() const {
+  OptCRef<T> holds() const {
     enforce_no_pending_events_before_getting_state();
-    Opt<CRef<T>> res;
+    OptCRef<T> res;
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
       res = *s;
@@ -227,9 +227,9 @@ public:
   // !! No pointer stability here; state could change after
   //    calling another non-const method.
   template<typename T>
-  Opt<Ref<T>> holds() {
+  OptRef<T> holds() {
     enforce_no_pending_events_before_getting_state();
-    Opt<Ref<T>> res;
+    OptRef<T> res;
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
       res = *s;

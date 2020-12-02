@@ -65,7 +65,7 @@ NOTHROW_MOVE( TextCacheKey );
 NodeMap<TextCacheKey, Texture> g_text_cache;
 constexpr int const            k_max_text_cache_size = 2000;
 
-Opt<CRef<Texture>> text_cache_lookup( TextCacheKey const& key ) {
+OptCRef<Texture> text_cache_lookup( TextCacheKey const& key ) {
   return base::optional_to_maybe(
       bu::val_safe( g_text_cache, key ) );
 }

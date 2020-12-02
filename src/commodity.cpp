@@ -61,8 +61,8 @@ e_tile tile_for_commodity( e_commodity c ) {
   }
 }
 
-Opt<CRef<Texture>> render_commodity_label( string_view label ) {
-  Opt<CRef<Texture>> res;
+OptCRef<Texture> render_commodity_label( string_view label ) {
+  OptCRef<Texture> res;
   if( !label.empty() ) {
     TextMarkupInfo info{ /*normal=*/Color::white(),
                          /*highlight=*/Color::green() };
@@ -73,7 +73,7 @@ Opt<CRef<Texture>> render_commodity_label( string_view label ) {
 
 void render_commodity_impl( Texture& tx, e_commodity type,
                             Coord              pixel_coord,
-                            Opt<CRef<Texture>> label ) {
+                            OptCRef<Texture> label ) {
   auto tile = tile_for_commodity( type );
   render_sprite( tx, tile, pixel_coord );
   if( label ) {
@@ -238,9 +238,9 @@ Opt<string> commodity_label_to_markup(
   };
 }
 
-Opt<CRef<Texture>> render_commodity_label(
+OptCRef<Texture> render_commodity_label(
     CommodityLabel_t const& label ) {
-  Opt<CRef<Texture>> res;
+  OptCRef<Texture> res;
   auto maybe_text = commodity_label_to_markup( label );
   if( maybe_text ) res = render_commodity_label( *maybe_text );
   return res;

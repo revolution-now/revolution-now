@@ -146,15 +146,15 @@ expect<> run_cmd( string const& cmd ) {
   return run_cmd_impl( cmd );
 }
 
-Opt<CRef<string>> line( int idx ) {
-  Opt<CRef<string>> res;
+OptCRef<string> line( int idx ) {
+  OptCRef<string> res;
   if( idx < int( g_buffer.size() ) )
     res = g_buffer[g_buffer.size() - 1 - idx];
   return res;
 }
 
-Opt<CRef<string>> history( int idx ) {
-  Opt<CRef<string>> res;
+OptCRef<string> history( int idx ) {
+  OptCRef<string> res;
   if( idx < int( g_history.size() ) )
     res = g_history[g_history.size() - 1 - idx];
   return res;

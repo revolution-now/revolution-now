@@ -376,7 +376,7 @@ expect<> check_europort_state_invariants(
   };
 }
 
-Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
+OptRef<UnitEuroPortViewState_t> unit_euro_port_view_info(
     UnitId id ) {
   if_get( SG().states[id], UnitState::europort, val ) {
     return val.st;

@@ -1160,7 +1160,7 @@ public:
     return res;
   }
 
-  // Opt<CRef<CargoSlot_t>> cargo_slot_from_coord(
+  // OptCRef<CargoSlot_t>> cargo_slot_from_coord(
   //    Coord coord ) const {
   //  // Lambda will only be called if a valid index is returned,
   //  // in which case there is guaranteed to be an active unit.

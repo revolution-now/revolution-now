@@ -314,7 +314,7 @@ public:
   }
 
   void accept_finalized_drag(
-      Opt<CRef<DragArcT>> maybe_drag_arc ) {
+      OptCRef<DragArcT> maybe_drag_arc ) {
     ASSIGN_CHECK_OPT( finalized_ref,
                       fsm_.template holds<Finalizing_t>() );
     auto& finalized = finalized_ref.get();

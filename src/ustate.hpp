@@ -136,7 +136,7 @@ expect<> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info );
 
 // If unit is owned by euro-port-view then this will return info.
-Opt<Ref<UnitEuroPortViewState_t>> unit_euro_port_view_info(
+OptRef<UnitEuroPortViewState_t> unit_euro_port_view_info(
     UnitId id );
 
 // Get a set of all units owned by the euro-port-view.

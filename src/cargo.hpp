@@ -117,15 +117,15 @@ public:
   auto begin() const { return slots_.begin(); }
   auto end() const { return slots_.end(); }
 
-  Opt<CRef<CargoSlot_t>> at( int slot ) const;
-  Opt<CRef<CargoSlot_t>> at( CargoSlotIndex slot ) const;
+  OptCRef<CargoSlot_t> at( int slot ) const;
+  OptCRef<CargoSlot_t> at( CargoSlotIndex slot ) const;
 
   CargoSlot_t const&      operator[]( int idx ) const;
   CargoSlot_t const&      operator[]( CargoSlotIndex idx ) const;
   Vec<CargoSlot_t> const& slots() const { return slots_; }
 
   template<typename T>
-  Opt<CRef<T>> slot_holds_cargo_type( int idx ) const;
+  OptCRef<T> slot_holds_cargo_type( int idx ) const;
 
   // If unit is in cargo, returns its slot index.
   Opt<int> find_unit( UnitId id ) const;
@@ -278,9 +278,9 @@ int CargoHold::count_items_of_type() const {
 }
 
 template<typename T>
-Opt<CRef<T>> CargoHold::slot_holds_cargo_type( int idx ) const {
+OptCRef<T> CargoHold::slot_holds_cargo_type( int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
-  Opt<CRef<T>> res;
+  OptCRef<T> res;
   if( auto* cargo =
           std::get_if<CargoSlot::cargo>( &slots_[idx] ) )
     if( auto* content = std::get_if<T>( &( cargo->contents ) ) )

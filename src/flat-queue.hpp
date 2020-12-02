@@ -77,15 +77,15 @@ public:
   bool empty() const { return size() == 0; }
 
   // !! Ref returned is not stable.
-  Opt<CRef<T>> front() const {
-    Opt<CRef<T>> res;
+  OptCRef<T> front() const {
+    OptCRef<T> res;
     if( front_ != int( queue_.size() ) ) res = queue_[front_];
     return res;
   }
 
   // !! Ref returned is not stable.
-  Opt<Ref<T>> front() {
-    Opt<Ref<T>> res;
+  OptRef<T> front() {
+    OptRef<T> res;
     if( front_ != int( queue_.size() ) ) res = queue_[front_];
     check_invariants();
     return res;
