@@ -2,6 +2,11 @@
 set -e
 set -o pipefail
 
+[[ -d .builds/current ]] || {
+  echo "Must be run from root of rn directory."
+  exit 1
+}
+
 (( $# != 1 )) && {
   echo "Usage: $0 path/to/file.cpp"
   echo
