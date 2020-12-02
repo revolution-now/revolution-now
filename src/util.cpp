@@ -14,7 +14,6 @@
 #include "errors.hpp"
 
 // base-util
-#include "base-util/optional.hpp"
 #include "base-util/string.hpp"
 
 // C++ standard library.
@@ -53,10 +52,9 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
 Opt<fs::path> user_home_folder() { return env_var( "HOME" ); }
 
 Opt<int> os_terminal_columns() {
-  using util::infix::fmap_join;
-  return base::optional_to_maybe(
-      base::maybe_to_optional( env_var( "COLUMNS" ) ) |
-      fmap_join( L( util::from_chars<int>( _ ) ) ) );
+  return env_var( "COLUMNS" )
+      .bind( L( base::optional_to_maybe(
+          util::from_chars<int>( _ ) ) ) );
 }
 
 void set_env_var( char const* var_name, char const* value ) {

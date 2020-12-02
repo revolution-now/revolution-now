@@ -15,6 +15,7 @@
 #include "source-loc.hpp"
 
 // C++ standard library
+#include <functional>
 #include <optional> // FIXME: remove after migration.
 #include <stdexcept>
 #include <string>
@@ -42,6 +43,27 @@ struct nothing_t {
 inline constexpr nothing_t nothing( 0 );
 
 /****************************************************************
+** Requirements on maybe::value_type
+*****************************************************************/
+// Normally it wouldn't make sense to turn these into a concept,
+// since they're just a random list of requiremnets, but it is
+// convenient because they need to be kept in sync between the
+// class declaration, the deduction guide, and the friend decla-
+// ration.
+template<typename T>
+concept MaybeTypeRequirements = requires {
+  requires(
+      !std::is_same_v<std::remove_cvref_t<T>, std::in_place_t> &&
+      !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
+};
+
+/****************************************************************
+** Forward Declaration
+*****************************************************************/
+template<typename T>
+requires MaybeTypeRequirements<T> class [[nodiscard]] maybe;
+
+/****************************************************************
 ** bad_maybe_access exception
 *****************************************************************/
 struct bad_maybe_access : public std::exception {
@@ -64,18 +86,17 @@ struct bad_maybe_access : public std::exception {
 };
 
 /****************************************************************
-** Requirements on maybe::value_type
+** Basic metaprogramming helpers.
 *****************************************************************/
-// Normally it wouldn't make sense to turn these into a concept,
-// since they're just a random list of requiremnets, but it is
-// convenient because they need to be kept in sync between the
-// class declaration and the deduction guide.
 template<typename T>
-concept MaybeTypeRequirements = requires {
-  requires(
-      !std::is_same_v<std::remove_cvref_t<T>, std::in_place_t> &&
-      !std::is_same_v<std::remove_cvref_t<T>, nothing_t> );
-};
+constexpr bool is_maybe_v = false;
+template<typename T>
+constexpr bool is_maybe_v<maybe<T>> = true;
+
+template<typename T>
+constexpr bool is_nothing_v = false;
+template<>
+inline constexpr bool is_nothing_v<nothing_t> = true;
 
 /****************************************************************
 ** maybe
@@ -657,25 +678,44 @@ public:
   }
 
   /**************************************************************
+  ** Mapping to Bool
+  ***************************************************************/
+  // Returns true only if the maybe is active and contains a
+  // value that, when converted to bool, yields true.
+  bool is_value_truish() const /* clang-format off */
+      noexcept( std::is_nothrow_convertible_v<T, bool> )
+      requires( std::is_convertible_v<T, bool> ) {
+                               /* clang-format on */
+    return has_value() && static_cast<bool>( **this );
+  }
+
+  /**************************************************************
   ** Monadic Interface: fmap
   ***************************************************************/
   template<typename Func>
-  auto fmap( Func&& func ) const& //
-      requires( std::is_invocable_v<Func, T const&> ) {
-    using res_t = maybe<std::invoke_result_t<Func, T>>;
+  auto fmap( Func&& func ) const& /* clang-format off */
+    -> maybe<std::invoke_result_t<Func, T const&>>
+    requires( std::is_invocable_v<Func, T const&> &&
+             !is_maybe_v<std::invoke_result_t<Func,T const&>> ) {
+    /* clang-format on */
+    using res_t = maybe<std::invoke_result_t<Func, T const&>>;
     res_t res;
-    if( has_value() ) res = std::forward<Func>( func )( **this );
+    if( has_value() )
+      res = std::invoke( std::forward<Func>( func ), **this );
     return res;
   }
 
   template<typename Func> /* clang-format off */
   auto fmap( Func&& func ) &&
-      requires( std::is_invocable_v<Func, T> ) {
-                          /* clang-format on */
+       -> maybe<std::invoke_result_t<Func, T>>
+       requires( std::is_invocable_v<Func, T> &&
+                !is_maybe_v<std::invoke_result_t<Func, T>> ) {
+    /* clang-format on */
     using res_t = maybe<std::invoke_result_t<Func, T>>;
     res_t res;
     if( has_value() )
-      res = std::forward<Func>( func )( std::move( **this ) );
+      res = std::invoke( std::forward<Func>( func ),
+                         std::move( **this ) );
     return res;
   }
 
@@ -683,28 +723,27 @@ public:
   ** Monadic Interface: bind
   ***************************************************************/
   template<typename Func>
-  auto bind( Func&& func ) const& requires(
-      std::is_same_v<maybe<typename std::invoke_result_t<
-                         Func, T const&>::value_type>,
-                     std::invoke_result_t<Func, T const&>> ) {
-    using res_t = std::invoke_result_t<Func, T>;
+  auto bind( Func&& func ) const& /* clang-format off */
+    -> std::invoke_result_t<Func, T const&>
+    requires( is_maybe_v<std::invoke_result_t<Func,T const&>> ) {
+    /* clang-format on */
+    using res_t = std::invoke_result_t<Func, T const&>;
     res_t res;
     if( has_value() )
-      return std::forward<Func>( func )( **this );
+      res = std::invoke( std::forward<Func>( func ), **this );
     return res;
   }
 
   template<typename Func> /* clang-format off */
   auto bind( Func&& func ) &&
-      requires( std::is_same_v<
-                  maybe<typename
-                    std::invoke_result_t<Func, T>::value_type>,
-                  std::invoke_result_t<Func, T>
-                > ) { /* clang-format on */
+    -> std::invoke_result_t<Func, T>
+    requires( is_maybe_v<std::invoke_result_t<Func, T>> ) {
+    /* clang-format on */
     using res_t = std::invoke_result_t<Func, T>;
     res_t res;
     if( has_value() )
-      return std::forward<Func>( func )( std::move( **this ) );
+      res = std::invoke( std::forward<Func>( func ),
+                         std::move( **this ) );
     return res;
   }
 
@@ -712,6 +751,10 @@ public:
   ** Storage
   ***************************************************************/
 private:
+  // This allows maybe<T> to access private members of maybe<U>.
+  template<typename U>
+  requires MaybeTypeRequirements<U> friend class maybe;
+
   template<typename... Vs> /* clang-format off */
   constexpr void new_val( Vs&&... v )
     noexcept(
@@ -856,7 +899,7 @@ template<typename T> /* clang-format off */
 void swap( ::base::maybe<T>& lhs, ::base::maybe<T>& rhs )
     noexcept( noexcept( lhs.swap( rhs ) ) )
     requires( is_move_constructible_v<T> &&
-              is_swappable_v<T> ) /* clang-format on*/ {
+              is_swappable_v<T> ) /* clang-format on */ {
   lhs.swap( rhs );
 }
 
@@ -870,33 +913,47 @@ namespace base {
 // FIXME: remove after migration is finished.
 template<typename T>
 maybe<T> optional_to_maybe( std::optional<T> const& o ) {
-  if( !o.has_value() )
-    return {};
-  return maybe<T>{*o};
+  if( !o.has_value() ) return {};
+  return maybe<T>{ *o };
 }
 
 // FIXME: remove after migration is finished.
 template<typename T>
 maybe<T> optional_to_maybe( std::optional<T>&& o ) {
-  if( !o.has_value() )
-    return {};
-  return maybe<T>{std::move(*o)};
+  if( !o.has_value() ) return {};
+  return maybe<T>{ std::move( *o ) };
 }
 
 // FIXME: remove after migration is finished.
 template<typename T>
 std::optional<T> maybe_to_optional( maybe<T> const& o ) {
-  if( !o.has_value() )
-    return {};
-  return std::optional<T>{*o};
+  if( !o.has_value() ) return {};
+  return std::optional<T>{ *o };
 }
 
 // FIXME: remove after migration is finished.
 template<typename T>
 std::optional<T> maybe_to_optional( maybe<T>&& o ) {
-  if( !o.has_value() )
-    return {};
-  return std::optional<T>{std::move(*o)};
+  if( !o.has_value() ) return {};
+  return std::optional<T>{ std::move( *o ) };
 }
 
+/****************************************************************
+** just
+*****************************************************************/
+// Will infer T.
+template<typename T>
+auto just( T&& arg ) requires(
+    !is_maybe_v<std::remove_cvref_t<T>> &&
+    !is_nothing_v<std::remove_cvref_t<T>> ) {
+  return maybe{ std::forward<T>( arg ) };
 }
+
+// Requires specifying T explicitly.
+template<typename T, typename... Args>
+auto just( std::in_place_t, Args&&... args ) {
+  return maybe<T>( std::in_place,
+                   std::forward<Args>( args )... );
+}
+
+} // namespace base

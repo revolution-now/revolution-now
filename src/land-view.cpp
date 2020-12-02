@@ -46,9 +46,6 @@
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
-// base-util
-#include "base-util/optional.hpp"
-
 // Flatbuffers
 #include "fb/sg-land-view_generated.h"
 
@@ -1026,10 +1023,13 @@ void test_land_view() {
 namespace {
 
 LUA_FN( blinking_unit, Opt<UnitId> ) {
-  return base::optional_to_maybe( util::fmap(
-      L( _.get().id ),
-      base::maybe_to_optional(
-          SG().mode.holds<LandViewState::blinking_unit>() ) ) );
+  // FIXME(migration): try introducing a method that can access a
+  // member of the stored value. This may have to wait for refer-
+  // ences to be available otherwise it would just copy the mem-
+  // ber, which is not ideal since the member is already hanging
+  // around in the expression.
+  return SG().mode.holds<LandViewState::blinking_unit>().fmap(
+      L( _.get().id ) );
 }
 
 } // namespace

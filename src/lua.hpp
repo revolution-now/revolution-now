@@ -21,12 +21,8 @@
 #include "sol.hpp"
 #include "typed-int.hpp"
 
-// base
-#include "base/maybe-util.hpp"
-
 // base-util
 #include "base-util/macros.hpp"
-#include "base-util/optional.hpp"
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
 

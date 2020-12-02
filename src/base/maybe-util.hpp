@@ -18,11 +18,6 @@
 
 namespace base {
 
-template<typename T>
-constexpr bool is_maybe_v = false;
-template<typename T>
-constexpr bool is_maybe_v<maybe<T>> = true;
-
 // This will take the vectors of maybes and will gather all of
 // them that are not nullopt and move their values into a vector
 // and return it.

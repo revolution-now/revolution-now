@@ -44,9 +44,6 @@
 // Flatbuffers
 #include "fb/sg-europort-view_generated.h"
 
-// base-util
-#include "base-util/optional.hpp"
-
 // Range-v3
 #include "range/v3/view/all.hpp"
 #include "range/v3/view/iota.hpp"
@@ -54,7 +51,6 @@
 #include "range/v3/view/zip.hpp"
 
 using namespace std;
-using namespace util::infix;
 
 namespace rn {
 
@@ -146,13 +142,12 @@ Opt<Cargo> draggable_to_cargo_object(
 
 Opt<DraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
-  return base::optional_to_maybe(
-      base::maybe_to_optional( SG().selected_unit ) //
-      | fmap( unit_from_id )                        //
-      | fmap_join( LC( base::maybe_to_optional(
-            _.get().cargo().at( slot ) ) ) ) //
-      | fmap_join( LC( base::maybe_to_optional(
-            cargo_slot_to_draggable( slot, _ ) ) ) ) );
+  return SG()
+      .selected_unit //
+      // FIXME(migration): remove reference_wrapper
+      .fmap( L( std::ref( unit_from_id( _ ) ) ) )
+      .bind( LC( _.get().cargo().at( slot ) ) )
+      .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
 Opt<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
@@ -301,11 +296,11 @@ public:
       auto boxes =
           bounds().with_new_upper_left( Coord{} ) / sprite_scale;
       auto maybe_type =
-          base::maybe_to_optional( boxes.rasterize(
-              coord.with_new_origin( bounds().upper_left() ) /
-              sprite_scale ) ) //
-          | fmap_join( L( maybe_to_optional(
-                commodity_from_index( _ ) ) ) );
+          boxes
+              .rasterize( coord.with_new_origin(
+                              bounds().upper_left() ) /
+                          sprite_scale )
+              .bind( L( commodity_from_index( _ ) ) );
       if( maybe_type ) {
         auto box_origin =
             coord.with_new_origin( bounds().upper_left() )
@@ -1113,6 +1108,9 @@ public:
       res = ActiveCargo{
           /*maybe_active_unit_=*/SG().selected_unit,
           /*bounds_=*/maybe_active_cargo_box->bounds() };
+      // FIXME: if we are inside the active cargo box, and the
+      // active cargo box exists, do we need the following
+      // checks?
       auto lr_delta =
           ( res->bounds().lower_right() - Delta{ 1_w, 1_h } ) -
           Coord{};
@@ -1143,10 +1141,9 @@ public:
           auto scale = ActiveCargoBox::box_scale;
 
           using DraggableObject::cargo_commodity;
-          if( base::maybe_to_optional(
-                  draggable_in_cargo_slot( *maybe_slot ) ) //
-              | fmap( L( holds<cargo_commodity>( _ ) ) )   //
-              | maybe_truish_to_bool ) {
+          if( draggable_in_cargo_slot( *maybe_slot )
+                  .fmap( L( holds<cargo_commodity>( _ ) ) )
+                  .is_value_truish() ) {
             box_origin += k_rendered_commodity_offset;
             scale = Scale{ 16 };
           }
@@ -1168,7 +1165,7 @@ public:
   //  // Lambda will only be called if a valid index is returned,
   //  // in which case there is guaranteed to be an active unit.
   //  return slot_idx_from_coord( coord ) //
-  //         | fmap( LC( unit_from_id( *maybe_active_unit_ )
+  //         .fmap( LC( unit_from_id( *maybe_active_unit_ )
   //                         .cargo()[_] ) );
   //}
 
@@ -1363,18 +1360,14 @@ public:
     }
     if( entities_->active_cargo.has_value() ) {
       auto const& active_cargo = *entities_->active_cargo;
-      auto        in_port      = base::maybe_to_optional(
-                         active_cargo.active_unit() ) //
-                     | fmap( is_unit_in_port ) //
-                     | maybe_truish_to_bool;
-      auto maybe_pair =
-          util::just( coord ) |
-          fmap_join( LC( base::maybe_to_optional(
-              active_cargo.obj_under_cursor( _ ) ) ) );
+      auto        in_port      = active_cargo.active_unit()
+                         .fmap( is_unit_in_port )
+                         .is_value_truish();
+      auto maybe_pair = base::just( coord ).bind(
+          LC( active_cargo.obj_under_cursor( _ ) ) );
       if( in_port &&
-          maybe_pair | fmap( L( _.first ) ) |
-              fmap_join( L( base::maybe_to_optional(
-                  draggable_in_cargo_slot( _ ) ) ) ) ) {
+          maybe_pair.fmap( L( _.first ) )
+              .bind( L( draggable_in_cargo_slot( _ ) ) ) ) {
         auto const& [slot, rect] = *maybe_pair;
 
         res = DragSrcInfo{
@@ -1491,6 +1484,11 @@ public:
     return res;
   }
 
+  maybe<UnitId> active_cargo_ship() const {
+    return entities_->active_cargo.bind(
+        &entity::ActiveCargo::active_unit );
+  }
+
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
     switch( auto& v = drag_arc; enum_for( drag_arc ) ) {
       case DragArc::e::dock_to_cargo: {
@@ -1498,10 +1496,7 @@ public:
             get_if_or_die<DragArc::dock_to_cargo>( v );
         maybe<reference_wrapper<entity::ActiveCargo const>> m =
             entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship ).cargo().fits_somewhere(
             src.id, dst.slot._ );
@@ -1515,12 +1510,7 @@ public:
         auto& c_to_c =
             get_if_or_die<DragArc::cargo_to_cargo>( v );
         auto& [src, dst] = c_to_c;
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         if( src.slot == dst.slot ) return true;
         ASSIGN_CHECK_OPT( cargo_object,
@@ -1595,12 +1585,7 @@ public:
       case DragArc::e::market_to_cargo: {
         auto& [src, dst] =
             get_if_or_die<DragArc::market_to_cargo>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         auto comm = Commodity{
             /*type=*/src.type, //
@@ -1627,12 +1612,7 @@ public:
       }
       case DragArc::e::cargo_to_market: {
         auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship )
             .cargo()
@@ -1668,12 +1648,7 @@ public:
       }
       case DragArc::e::cargo_to_market: {
         auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         CHECK( is_unit_in_port( ship ) );
         ASSIGN_CHECK_OPT(
             commodity_ref,
@@ -1688,12 +1663,7 @@ public:
       case DragArc::e::cargo_to_inport_ship: {
         auto& val =
             get_if_or_die<DragArc::cargo_to_inport_ship>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         CHECK( is_unit_in_port( ship ) );
         auto maybe_commodity_ref =
             unit_from_id( ship )
@@ -1776,12 +1746,7 @@ public:
       case DragArc::e::dock_to_cargo: {
         auto& [src, dst] =
             get_if_or_die<DragArc::dock_to_cargo>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         // First try to respect the destination slot chosen by
         // the player,
         if( unit_from_id( ship ).cargo().fits( src.id,
@@ -1801,12 +1766,7 @@ public:
       case DragArc::e::cargo_to_cargo: {
         auto& c_to_c =
             get_if_or_die<DragArc::cargo_to_cargo>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         ASSIGN_CHECK_OPT(
             cargo_object,
             draggable_to_cargo_object(
@@ -1876,11 +1836,7 @@ public:
             [&]( Commodity const& ) {
               maybe<reference_wrapper<entity::ActiveCargo const>>
                   m = entities_->active_cargo;
-              ASSIGN_CHECK_OPT(
-                  src_ship,
-                  base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+              ASSIGN_CHECK_OPT( src_ship, active_cargo_ship() );
               move_commodity_as_much_as_possible(
                   src_ship, c_to_i_s.src.slot._,
                   /*dst_ship=*/c_to_i_s.dst.id,
@@ -1893,12 +1849,7 @@ public:
       case DragArc::e::market_to_cargo: {
         auto& [src, dst] =
             get_if_or_die<DragArc::market_to_cargo>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         auto comm = Commodity{
             /*type=*/src.type, //
             /*quantity=*/src.quantity.value_or(
@@ -1941,12 +1892,7 @@ public:
       }
       case DragArc::e::cargo_to_market: {
         auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
-        ASSIGN_CHECK_OPT(
-            ship, base::maybe_to_optional( m ) |
-                      fmap_join( L( base::maybe_to_optional(
-                          _.get().active_unit() ) ) ) );
+        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         ASSIGN_CHECK_OPT(
             commodity_ref,
             unit_from_id( ship )

@@ -18,7 +18,6 @@
 
 // base-util
 #include "base-util/graph.hpp"
-#include "base-util/optional.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
@@ -199,8 +198,7 @@ void run_all_init_routines(
     absl::Span<e_init_routine const> top_level ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
-  init_logging( base::optional_to_maybe( util::fmap(
-      to_spdlog_level, base::maybe_to_optional( level ) ) ) );
+  init_logging( level.fmap( to_spdlog_level ) );
   lg.debug( "initializing: logging" );
 
   // A list of init routines that are unregistered.

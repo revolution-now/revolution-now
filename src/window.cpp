@@ -37,7 +37,6 @@
 
 // base-util
 #include "base-util/misc.hpp"
-#include "base-util/optional.hpp"
 #include "base-util/string.hpp"
 
 // function_ref
@@ -643,13 +642,12 @@ sync_future<Opt<int>> int_input_box( std::string_view title,
                                      Opt<int>         min,
                                      Opt<int>         max ) {
   sync_promise<Opt<int>> s_promise;
-  text_input_box( title, msg, make_int_validator( min, max ),
-                  [s_promise]( Opt<string> result ) mutable {
-                    using namespace util::infix;
-                    s_promise.set_value( base::optional_to_maybe(
-                        base::maybe_to_optional( result ) |
-                        fmap_join( L( util::stoi( _ ) ) ) ) );
-                  } );
+  text_input_box(
+      title, msg, make_int_validator( min, max ),
+      [s_promise]( Opt<string> result ) mutable {
+        s_promise.set_value( result.bind(
+            L( base::optional_to_maybe( util::stoi( _ ) ) ) ) );
+      } );
   return s_promise.get_future();
 }
 
@@ -658,7 +656,6 @@ sync_future<Opt<string>> str_input_box( string_view title,
   sync_promise<Opt<string>> s_promise;
   text_input_box( title, msg, L( _.size() > 0 ),
                   [s_promise]( Opt<string> result ) mutable {
-                    using namespace util::infix;
                     s_promise.set_value( result );
                   } );
   return s_promise.get_future();

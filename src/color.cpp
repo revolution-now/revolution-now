@@ -29,7 +29,6 @@
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
 #include "base-util/misc.hpp"
-#include "base-util/optional.hpp"
 
 // {fmt}
 #include "fmt/format.h"

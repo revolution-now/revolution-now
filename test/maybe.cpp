@@ -22,6 +22,9 @@
 #include <experimental/type_traits>
 #include <functional>
 
+#define ASSERT_VAR_TYPE( var, ... ) \
+  static_assert( std::is_same_v<decltype( var ), __VA_ARGS__> )
+
 namespace base {
 namespace {
 
@@ -72,7 +75,7 @@ int Tracker::move_assigned    = 0;
 } // namespace
 } // namespace base
 
-DEFINE_FORMAT( base::Tracker, "Tracker" );
+DEFINE_FORMAT_( base::Tracker, "Tracker" );
 FMT_TO_CATCH( base::Tracker );
 
 /****************************************************************
@@ -180,6 +183,15 @@ struct Trivial {
 /****************************************************************
 ** Convertibles
 *****************************************************************/
+struct Boolable {
+  Boolable() = default;
+  Boolable( bool m ) : n( m ) {}
+  // clang-format off
+  operator bool() const { return n; }
+  // clang-format on
+  bool n = {};
+};
+
 struct Intable {
   Intable() = default;
   Intable( int m ) : n( m ) {}
@@ -276,6 +288,18 @@ static_assert( !is_trivially_copy_assignable_v<M<string>> );
 static_assert( !is_trivially_move_assignable_v<M<string>> );
 static_assert( !is_trivially_destructible_v<M<string>> );
 #endif
+
+/****************************************************************
+** [static] is_value_truish.
+*****************************************************************/
+template<typename T>
+using is_value_truish_t = decltype( &M<T>::is_value_truish );
+
+static_assert( is_detected_v<is_value_truish_t, int> );
+static_assert( !is_detected_v<is_value_truish_t, string> );
+static_assert( is_detected_v<is_value_truish_t, Boolable> );
+static_assert( is_detected_v<is_value_truish_t, Intable> );
+static_assert( !is_detected_v<is_value_truish_t, Stringable> );
 
 /****************************************************************
 ** Test Cases
@@ -783,30 +807,26 @@ TEST_CASE( "[maybe] dereference" ) {
   REQUIRE( m1.has_value() );
   REQUIRE( *m1 == 5 );
 
-  static_assert( is_same_v<decltype( *m1 ), int&> );
-  static_assert(
-      is_same_v<decltype( as_const( *m1 ) ), int const&> );
+  ASSERT_VAR_TYPE( *m1, int& );
+  ASSERT_VAR_TYPE( as_const( *m1 ), int const& );
 
-  static_assert( is_same_v<decltype( *M<int>{} ), int&&> );
+  ASSERT_VAR_TYPE( *M<int>{}, int&& );
 
   M<NoCopy> m2{ 'c' };
   REQUIRE( m2.has_value() );
   REQUIRE( *m2 == NoCopy{ 'c' } );
   REQUIRE( m2->c == 'c' );
 
-  static_assert( is_same_v<decltype( *m2 ), NoCopy&> );
-  static_assert(
-      is_same_v<decltype( as_const( *m2 ) ), NoCopy const&> );
+  ASSERT_VAR_TYPE( *m2, NoCopy& );
+  ASSERT_VAR_TYPE( as_const( *m2 ), NoCopy const& );
 
-  static_assert( is_same_v<decltype( *M<NoCopy>{} ), NoCopy&&> );
+  ASSERT_VAR_TYPE( *M<NoCopy>{}, NoCopy && );
 
-  static_assert( is_same_v<decltype( m2->c ), char> );
-  static_assert(
-      is_same_v<decltype( as_const( m2 )->c ), char> );
+  ASSERT_VAR_TYPE( m2->c, char );
+  ASSERT_VAR_TYPE( as_const( m2 )->c, char );
 
-  static_assert( is_same_v<decltype( &m2->c ), char*> );
-  static_assert(
-      is_same_v<decltype( &as_const( m2 )->c ), char const*> );
+  ASSERT_VAR_TYPE( &m2->c, char* );
+  ASSERT_VAR_TYPE( &as_const( m2->c ), char const* );
 }
 
 TEST_CASE( "[maybe] emplace" ) {
@@ -1190,18 +1210,18 @@ TEST_CASE( "[maybe] non-copyable non-movable T" ) {
 TEST_CASE( "[maybe] deduction guides" ) {
   SECTION( "implicit" ) {
     auto m1 = maybe{ 5 };
-    static_assert( is_same_v<decltype( m1 ), M<int>> );
+    ASSERT_VAR_TYPE( m1, M<int> );
     auto m2 = maybe{ string( "hello" ) };
-    static_assert( is_same_v<decltype( m2 ), M<string>> );
+    ASSERT_VAR_TYPE( m2, M<string> );
   }
   // These would fail if we didn't have the explicit deduction
   // guide.
   SECTION( "explicit" ) {
     int  arr[6];
     auto m1 = maybe{ arr };
-    static_assert( is_same_v<decltype( m1 ), M<int*>> );
+    ASSERT_VAR_TYPE( m1, M<int*> );
     auto m2 = maybe{ "hello" };
-    static_assert( is_same_v<decltype( m2 ), M<char const*>> );
+    ASSERT_VAR_TYPE( m2, M<char const*> );
   }
 }
 
@@ -1221,11 +1241,11 @@ TEST_CASE( "[maybe] std::swap overload" ) {
 
 TEST_CASE( "[maybe] make_maybe" ) {
   auto m1 = make_maybe( 5 );
-  static_assert( is_same_v<decltype( m1 ), M<int>> );
+  ASSERT_VAR_TYPE( m1, M<int> );
   REQUIRE( m1.has_value() );
   REQUIRE( *m1 == 5 );
   auto m2 = make_maybe( NoCopy{ 'c' } );
-  static_assert( is_same_v<decltype( m2 ), M<NoCopy>> );
+  ASSERT_VAR_TYPE( m2, M<NoCopy> );
   REQUIRE( m2.has_value() );
   REQUIRE( *m2 == NoCopy( 'c' ) );
 
@@ -1608,9 +1628,9 @@ TEST_CASE( "[maybe] fmap" ) {
     m.emplace();
     REQUIRE( m.fmap( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 3 );
+    REQUIRE( Tracker::destructed == 2 );
     REQUIRE( Tracker::copied == 1 );
-    REQUIRE( Tracker::move_constructed == 2 );
+    REQUIRE( Tracker::move_constructed == 1 );
     REQUIRE( Tracker::move_assigned == 0 );
 
     Tracker::reset();
@@ -1624,9 +1644,9 @@ TEST_CASE( "[maybe] fmap" ) {
     Tracker::reset();
     REQUIRE( M<Tracker>( in_place ).fmap( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 4 );
+    REQUIRE( Tracker::destructed == 3 );
     REQUIRE( Tracker::copied == 1 );
-    REQUIRE( Tracker::move_constructed == 2 );
+    REQUIRE( Tracker::move_constructed == 1 );
     REQUIRE( Tracker::move_assigned == 0 );
   }
   SECTION( "Tracker auto" ) {
@@ -1653,9 +1673,9 @@ TEST_CASE( "[maybe] fmap" ) {
     m.emplace();
     REQUIRE( m.fmap( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 3 );
+    REQUIRE( Tracker::destructed == 2 );
     REQUIRE( Tracker::copied == 1 );
-    REQUIRE( Tracker::move_constructed == 2 );
+    REQUIRE( Tracker::move_constructed == 1 );
     REQUIRE( Tracker::move_assigned == 0 );
 
     Tracker::reset();
@@ -1669,10 +1689,33 @@ TEST_CASE( "[maybe] fmap" ) {
     Tracker::reset();
     REQUIRE( M<Tracker>( in_place ).fmap( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 4 );
+    REQUIRE( Tracker::destructed == 3 );
     REQUIRE( Tracker::copied == 0 );
-    REQUIRE( Tracker::move_constructed == 3 );
+    REQUIRE( Tracker::move_constructed == 2 );
     REQUIRE( Tracker::move_assigned == 0 );
+  }
+  SECTION( "pointer to member" ) {
+    struct A {
+      A( int m ) : n( m ) {}
+      int        get_n() const { return n + 1; }
+      maybe<int> maybe_get_n() const {
+        return ( n > 5 ) ? just( n ) : nothing;
+      }
+      int n;
+    };
+    M<A> m;
+    REQUIRE( m.fmap( &A::get_n ) == nothing );
+    m = 2;
+    REQUIRE( m.fmap( &A::get_n ) == 3 );
+    REQUIRE( M<A>{ 2 }.fmap( &A::get_n ) == 3 );
+
+    m.reset();
+    REQUIRE( m.bind( &A::maybe_get_n ) == nothing );
+    m = 2;
+    REQUIRE( m.bind( &A::maybe_get_n ) == nothing );
+    m = 6;
+    REQUIRE( m.bind( &A::maybe_get_n ) == 6 );
+    REQUIRE( M<A>{ 6 }.bind( &A::maybe_get_n ) == 6 );
   }
 }
 
@@ -1739,9 +1782,9 @@ TEST_CASE( "[maybe] bind" ) {
     m.emplace();
     REQUIRE( m.bind( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 1 );
+    REQUIRE( Tracker::destructed == 2 );
     REQUIRE( Tracker::copied == 1 );
-    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_constructed == 1 );
     REQUIRE( Tracker::move_assigned == 0 );
 
     Tracker::reset();
@@ -1755,9 +1798,9 @@ TEST_CASE( "[maybe] bind" ) {
     Tracker::reset();
     REQUIRE( M<Tracker>( in_place ).bind( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 2 );
+    REQUIRE( Tracker::destructed == 3 );
     REQUIRE( Tracker::copied == 1 );
-    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_constructed == 1 );
     REQUIRE( Tracker::move_assigned == 0 );
   }
   SECTION( "Tracker auto" ) {
@@ -1784,9 +1827,9 @@ TEST_CASE( "[maybe] bind" ) {
     m.emplace();
     REQUIRE( m.bind( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 1 );
+    REQUIRE( Tracker::destructed == 2 );
     REQUIRE( Tracker::copied == 1 );
-    REQUIRE( Tracker::move_constructed == 0 );
+    REQUIRE( Tracker::move_constructed == 1 );
     REQUIRE( Tracker::move_assigned == 0 );
 
     Tracker::reset();
@@ -1800,10 +1843,65 @@ TEST_CASE( "[maybe] bind" ) {
     Tracker::reset();
     REQUIRE( M<Tracker>( in_place ).bind( f ) != nothing );
     REQUIRE( Tracker::constructed == 1 );
-    REQUIRE( Tracker::destructed == 2 );
+    REQUIRE( Tracker::destructed == 3 );
     REQUIRE( Tracker::copied == 0 );
-    REQUIRE( Tracker::move_constructed == 1 );
+    REQUIRE( Tracker::move_constructed == 2 );
     REQUIRE( Tracker::move_assigned == 0 );
+  }
+}
+
+TEST_CASE( "[maybe] just" ) {
+  auto m1 = just( 5 );
+  ASSERT_VAR_TYPE( m1, maybe<int> );
+
+  auto m2 = just( "hello" );
+  ASSERT_VAR_TYPE( m2, maybe<char const*> );
+
+  auto m3 = just( "hello"s );
+  ASSERT_VAR_TYPE( m3, maybe<string> );
+
+  string const& s1 = "hello";
+  auto          m4 = just( s1 );
+  ASSERT_VAR_TYPE( m4, maybe<string> );
+
+  auto m5 = just( NoCopy{ 'a' } );
+  ASSERT_VAR_TYPE( m5, maybe<NoCopy> );
+
+  auto m6 = just<NoCopyNoMove>( in_place, 'a' );
+  ASSERT_VAR_TYPE( m6, maybe<NoCopyNoMove> );
+
+  auto m7 = just<string>( std::in_place );
+  ASSERT_VAR_TYPE( m7, maybe<string> );
+}
+
+TEST_CASE( "[maybe] is_value_truish" ) {
+  SECTION( "int" ) {
+    M<int> m;
+    REQUIRE( !m.is_value_truish() );
+    m = 0;
+    REQUIRE( !m.is_value_truish() );
+    m = 1;
+    REQUIRE( m.is_value_truish() );
+    m = 2;
+    REQUIRE( m.is_value_truish() );
+    m = -2;
+    REQUIRE( m.is_value_truish() );
+  }
+  SECTION( "bool" ) {
+    M<bool> m;
+    REQUIRE( !m.is_value_truish() );
+    m = false;
+    REQUIRE( !m.is_value_truish() );
+    m = true;
+    REQUIRE( m.is_value_truish() );
+  }
+  SECTION( "Boolable" ) {
+    M<Boolable> m;
+    REQUIRE( !m.is_value_truish() );
+    m = false;
+    REQUIRE( !m.is_value_truish() );
+    m = true;
+    REQUIRE( m.is_value_truish() );
   }
 }
 
