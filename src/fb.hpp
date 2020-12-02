@@ -393,7 +393,9 @@ template<typename Hint,                        //
              int> = 0                          //
          >
 auto serialize( FBBuilder& builder, T const& m, serial::ADL ) {
-  std::vector<CRef<typename T::value_type>> v;
+  std::vector<
+      std::reference_wrapper<typename T::value_type const>>
+      v;
   v.reserve( m.size() );
   for( auto const& p : m ) v.emplace_back( p );
   // This sorting adds overhead, but avoids non-determinism in-

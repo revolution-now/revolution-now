@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // base
 #include "base/meta.hpp"
 
@@ -63,14 +66,20 @@ bool holds( std::variant<Vs...> const& v, T const& val ) {
          *std::get_if<T>( &v ) == val;
 }
 
-// This is just to have consistent notation with the above in
-// the case when we just want to test if it holds a type and
-// get a pointer to the value.  That said, since this would
-// usually be used in the context of an if-statement, you are
-// advised to used the below macro instead.
+// This is just to have consistent notation with the above in the
+// case when we just want to test if it holds a type and get a
+// reference to the value.
 template<typename T, typename... Vs>
-bool holds( std::variant<Vs...> const& v ) {
-  return std::get_if<T>( &v ) != nullptr;
+maybe<T&> holds( std::variant<Vs...>& v ) {
+  T* p = std::get_if<T>( &v );
+  return p ? maybe<T&>( *p ) : nothing;
+}
+
+// For const access to the variant.
+template<typename T, typename... Vs>
+maybe<T const&> holds( std::variant<Vs...> const& v ) {
+  T const* p = std::get_if<T>( &v );
+  return p ? maybe<T const&>( *p ) : nothing;
 }
 
 // Non-mutating, just observes and returns something. For mutat-

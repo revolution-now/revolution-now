@@ -28,7 +28,7 @@ namespace rn {
 namespace {} // namespace
 
 bool CombatAnalysis::allowed_() const {
-  return holds<e_attack_good>( desc );
+  return holds<e_attack_good>( desc ).has_value();
 }
 
 // This function will allow the move by default, and so it is the

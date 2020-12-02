@@ -337,7 +337,8 @@ Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
 }
 
 bool is_unit_in_colony( UnitId id ) {
-  return holds<UnitState::colony>( unit_state( id ) );
+  return holds<UnitState::colony>( unit_state( id ) )
+      .has_value();
 }
 
 /****************************************************************

@@ -78,17 +78,19 @@ public:
 
   // !! Ref returned is not stable.
   OptCRef<T> front() const {
-    OptCRef<T> res;
-    if( front_ != int( queue_.size() ) ) res = queue_[front_];
-    return res;
+    if( front_ != int( queue_.size() ) ) return queue_[front_];
+    return nothing;
   }
 
   // !! Ref returned is not stable.
   OptRef<T> front() {
-    OptRef<T> res;
-    if( front_ != int( queue_.size() ) ) res = queue_[front_];
+    if( front_ != int( queue_.size() ) ) {
+      OptRef<T> res = queue_[front_];
+      check_invariants();
+      return res;
+    }
     check_invariants();
-    return res;
+    return nothing;
   }
 
   void push( T const& item ) {
@@ -170,7 +172,7 @@ auto serialize( FBBuilder& builder, ::rn::flat_queue<T> const& m,
   data.reserve( size_t( m.size() ) );
   auto m_copy = m;
   while( m_copy.front() ) {
-    data.emplace_back( m_copy.front()->get() );
+    data.emplace_back( *m_copy.front() );
     m_copy.pop();
   }
   return serialize<Hint>( builder, data, serial::ADL{} );

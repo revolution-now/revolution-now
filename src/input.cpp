@@ -524,10 +524,10 @@ bool is_mouse_event( event_t const& event ) {
       []( mouse_event_base_t const& ) { return true; } );
 }
 
-OptCRef<Coord> mouse_position( event_t const& event ) {
+maybe<Coord const&> mouse_position( event_t const& event ) {
   return apply_to_alternatives_with_base(
       event, nothing,
-      []( mouse_event_base_t const& e ) -> OptCRef<Coord> {
+      []( mouse_event_base_t const& e ) -> maybe<Coord const&> {
         return e.pos;
       } );
 }

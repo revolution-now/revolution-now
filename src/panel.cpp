@@ -103,9 +103,8 @@ struct PanelPlane : public Plane {
     // FIXME: we need a window manager in the panel to avoid du-
     // plicating logic between here and the window module.
     if( input::is_mouse_event( event ) ) {
-      auto maybe_pos = input::mouse_position( event );
-      CHECK( maybe_pos.has_value() );
-      if( maybe_pos.value().get().is_inside( rect() ) ) {
+      ASSIGN_CHECK_OPT( pos, input::mouse_position( event ) );
+      if( pos.is_inside( rect() ) ) {
         auto new_event =
             move_mouse_origin_by( event, origin() - Coord{} );
         (void)view->input( new_event );

@@ -54,10 +54,9 @@ Delta CompositeView::delta() const {
 
 bool CompositeView::dispatch_mouse_event(
     input::event_t const& event ) {
-  auto maybe_pos = input::mouse_position( event );
-  CHECK( maybe_pos.has_value() );
+  ASSIGN_CHECK_OPT( pos, input::mouse_position( event ) );
   for( auto p_view : *this ) {
-    if( maybe_pos.value().get().is_inside( p_view.rect() ) ) {
+    if( pos.is_inside( p_view.rect() ) ) {
       auto new_event =
           move_mouse_origin_by( event, p_view.coord - Coord{} );
       if( p_view.view->input( new_event ) ) //

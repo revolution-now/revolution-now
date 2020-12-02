@@ -349,7 +349,7 @@ Plane::e_input_handled WindowManager::input(
     // Only send the event if the mouse position is within the
     // view. And, when we send it, we make the mouse position
     // relative to the upper left corner of the view.
-    if( maybe_pos.value().get().is_inside( view_rect ) ) {
+    if( maybe_pos->is_inside( view_rect ) ) {
       auto new_event = input::move_mouse_origin_by(
           event, win.view_pos() - Coord{} );
       (void)win.view->input( new_event );

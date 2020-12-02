@@ -189,10 +189,10 @@ struct ConsolePlane : public Plane {
       auto maybe_line = term::line( i );
       if( !maybe_line ) break;
       auto color = text_color;
-      if( util::starts_with( maybe_line->get(), prompt ) )
+      if( util::starts_with( *maybe_line, prompt ) )
         color = color.highlighted( 5 ).with_alpha( cmds_alpha );
-      auto const& src_tx = render_text(
-          config_rn.console.font, color, maybe_line->get() );
+      auto const& src_tx = render_text( config_rn.console.font,
+                                        color, *maybe_line );
       copy_texture( src_tx, tx, log_px_start );
       log_px_start -= src_tx.size().h;
     }
@@ -245,7 +245,7 @@ struct ConsolePlane : public Plane {
       auto maybe_item_ref = term::history( history_index_ + 1 );
       if( !maybe_item_ref ) return e_input_handled::yes;
       history_index_++;
-      le_view_.get().set( maybe_item_ref->get(),
+      le_view_.get().set( *maybe_item_ref,
                           /*cursor_pos=*/-1 );
       return e_input_handled::yes;
     }
@@ -256,7 +256,7 @@ struct ConsolePlane : public Plane {
       if( history_index_ == -1 ) return e_input_handled::yes;
       auto maybe_item_ref = term::history( history_index_ );
       if( !maybe_item_ref ) return e_input_handled::yes;
-      le_view_.get().set( maybe_item_ref->get(),
+      le_view_.get().set( *maybe_item_ref,
                           /*cursor_pos=*/-1 );
       return e_input_handled::yes;
     }

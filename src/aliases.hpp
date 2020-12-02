@@ -65,10 +65,10 @@ template<typename T>
 using Opt = ::base::maybe<T>;
 
 template<typename T>
-using OptRef = Opt<::std::reference_wrapper<T>>;
+using OptRef = ::base::maybe<T&>;
 
 template<typename T>
-using OptCRef = OptRef<T const>;
+using OptCRef = ::base::maybe<T const&>;
 
 template<typename T>
 using ObserverPtr = ::nonstd::observer_ptr<T>;

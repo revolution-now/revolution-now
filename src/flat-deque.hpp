@@ -55,48 +55,46 @@ public:
 
   // !! Ref returned is not stable.
   OptCRef<T> front() const {
-    OptCRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( front_ ) );
       auto it = map_.find( front_ );
       DCHECK( it != map_.end() );
-      res = it->second;
+      return it->second;
     }
-    return res;
+    return nothing;
   }
 
   // !! Ref returned is not stable.
   OptRef<T> front() {
-    OptRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( front_ ) );
-      res = map_[front_];
+      check_invariants();
+      return map_[front_];
     }
     check_invariants();
-    return res;
+    return nothing;
   }
 
   // !! Ref returned is not stable.
   OptCRef<T> back() const {
-    OptCRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( back_ - 1 ) );
       auto it = map_.find( back_ - 1 );
       DCHECK( it != map_.end() );
-      res = it->second;
+      return it->second;
     }
-    return res;
+    return nothing;
   }
 
   // !! Ref returned is not stable.
   OptRef<T> back() {
-    OptRef<T> res;
     if( size() > 0 ) {
       DCHECK( map_.contains( back_ - 1 ) );
-      res = map_[back_ - 1];
+      check_invariants();
+      return map_[back_ - 1];
     }
     check_invariants();
-    return res;
+    return nothing;
   }
 
   void push_back( T const& item ) {
@@ -202,7 +200,7 @@ void deduplicate_deque( flat_deque<T>* q ) {
   absl::flat_hash_set<T> s;
   s.reserve( q->size() );
   while( q->size() > 0 ) {
-    auto item = q->front()->get();
+    auto& item = *q->front();
     q->pop_front();
     if( s.contains( item ) ) continue;
     s.insert( item );
@@ -220,7 +218,7 @@ auto serialize( FBBuilder& builder, ::rn::flat_deque<T> const& m,
   data.reserve( size_t( m.size() ) );
   auto m_copy = m;
   while( m_copy.front() ) {
-    data.emplace_back( m_copy.front()->get() );
+    data.emplace_back( *m_copy.front() );
     m_copy.pop_front();
   }
   return serialize<Hint>( builder, data, serial::ADL{} );

@@ -410,7 +410,7 @@ TEST_CASE( "[flat-queue] non-copyable, non-def-constructible" ) {
   q.push_emplace( A{ 5 } );
   REQUIRE( q.size() == 1 );
   REQUIRE( q.front().has_value() );
-  REQUIRE( q.front().value().get().x_ == 5 );
+  REQUIRE( q.front().value().x_ == 5 );
   q.pop();
   REQUIRE( q.size() == 0 );
 }
@@ -432,7 +432,7 @@ TEST_CASE( "[flat-deque] non-copyable" ) {
   q.push_back_emplace( A{ 5 } );
   REQUIRE( q.size() == 1 );
   REQUIRE( q.front().has_value() );
-  REQUIRE( q.front().value().get().x_ == 5 );
+  REQUIRE( q.front().value().x_ == 5 );
   q.pop_front();
   REQUIRE( q.size() == 0 );
 }

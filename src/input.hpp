@@ -18,6 +18,7 @@
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
+#include "maybe.hpp"
 #include "rnl/helper/sumtype-helper.hpp"
 
 // SDL
@@ -196,8 +197,8 @@ Opt<char> ascii_char_for_event( key_event_t const& event );
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta );
 
-bool             is_mouse_event( event_t const& event );
-OptCRef<Coord> mouse_position( event_t const& event );
+bool                is_mouse_event( event_t const& event );
+maybe<Coord const&> mouse_position( event_t const& event );
 
 // These are useful if a client of the input events wants to
 // treat dragging as normal mouse motion/click events.

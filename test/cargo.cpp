@@ -82,10 +82,8 @@ TEST_CASE( "CargoHold slot bounds six" ) {
   REQUIRE( ch.at( 7 ) == nothing );
   REQUIRE( ch.at( 5 ).has_value() );
   REQUIRE( ch.at( 0 ).has_value() );
-  REQUIRE( ch.at( 5 )->get() ==
-           CargoSlot_t{ CargoSlot::empty{} } );
-  REQUIRE( ch.at( 0 )->get() ==
-           CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.at( 5 ) == CargoSlot_t{ CargoSlot::empty{} } );
+  REQUIRE( ch.at( 0 ) == CargoSlot_t{ CargoSlot::empty{} } );
 
   ch.clear();
 }
@@ -2260,7 +2258,7 @@ TEST_CASE( "CargoHold slot_holds_cargo_type" ) {
 
   REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 0 ) );
   REQUIRE( ch.slot_holds_cargo_type<UnitId>( 2 ) );
-  REQUIRE( ch.slot_holds_cargo_type<UnitId>( 2 ).value().get() ==
+  REQUIRE( ch.slot_holds_cargo_type<UnitId>( 2 ).value() ==
            unit_id );
   REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 1 ) );
   REQUIRE_FALSE( ch.slot_holds_cargo_type<UnitId>( 6 ) );
@@ -2268,9 +2266,8 @@ TEST_CASE( "CargoHold slot_holds_cargo_type" ) {
 
   REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 0 ) );
   REQUIRE( ch.slot_holds_cargo_type<Commodity>( 1 ) );
-  REQUIRE(
-      ch.slot_holds_cargo_type<Commodity>( 1 ).value().get() ==
-      food );
+  REQUIRE( ch.slot_holds_cargo_type<Commodity>( 1 ).value() ==
+           food );
   REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 2 ) );
   REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 3 ) );
   REQUIRE_FALSE( ch.slot_holds_cargo_type<Commodity>( 4 ) );

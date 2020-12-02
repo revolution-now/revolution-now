@@ -1601,6 +1601,25 @@ TEST_CASE( "[maybe] reference_wrapper" ) {
 
   M<RR<int>> m2 = m;
   REQUIRE( m2.has_value() );
+
+  // Test implicit conversion.
+  M<RR<int>> m3 = a;
+  M<int&>    m4 = m3;
+  REQUIRE( m4.has_value() );
+  REQUIRE( m4 == 5 );
+  ++a;
+  REQUIRE( m4 == 6 );
+
+  M<RR<int const>> m5 = a;
+  M<int const&>    m6 = m5;
+  REQUIRE( m6.has_value() );
+  REQUIRE( m6 == 6 );
+  ++a;
+  REQUIRE( m6 == 7 );
+
+  M<RR<string>> m7 = nothing;
+  M<string&>    m8 = m7;
+  REQUIRE( !m8.has_value() );
 }
 
 TEST_CASE( "[maybe] nothing_t constructors" ) {

@@ -12,6 +12,7 @@
 #pragma once
 
 // base
+#include "meta.hpp"
 #include "source-loc.hpp"
 
 // base-util
@@ -344,6 +345,18 @@ public:
                 > )
     : active_{ true } /* clang-format on */ {
     new_val( ilist, std::forward<Args>( args )... );
+  }
+
+  /**************************************************************
+  ** Implicit Conversions
+  ***************************************************************/
+  // If T is a reference_wrapper then allow implicit conversions
+  // to maybe<T::value_type&>.
+  template<typename U>
+  constexpr operator maybe<U&>() const noexcept
+      requires( mp::is_reference_wrapper_v<T> ) {
+    if( !has_value() ) return nothing;
+    return ( **this ).get();
   }
 
   /**************************************************************

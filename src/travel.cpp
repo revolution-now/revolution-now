@@ -30,7 +30,7 @@ namespace rn {
 namespace {} // namespace
 
 bool TravelAnalysis::allowed_() const {
-  return holds<e_unit_travel_good>( desc );
+  return holds<e_unit_travel_good>( desc ).has_value();
 }
 
 void analyze_unload( Unit const&     unit,

@@ -138,15 +138,15 @@ public:
   void advance_state() {
     if( auto arc = fsm_.template holds<WaitingToExecute_t>();
         arc ) {
-      child().perform_drag( arc->get().arc );
+      child().perform_drag( arc->arc );
       fsm_.send_event( Reset_t{} );
       fsm_.process_events();
       return;
     }
     if( auto rband = fsm_.template holds<RubberBanding_t>();
         rband ) {
-      rband->get().percent += 0.15;
-      if( rband->get().percent > 1.0 ) {
+      rband->percent += 0.15;
+      if( rband->percent > 1.0 ) {
         fsm_.send_event( Reset_t{} );
         fsm_.process_events();
       }
@@ -157,7 +157,7 @@ public:
     if( auto in_progress = fsm_.template holds<InProgress_t>();
         in_progress ) {
       auto& base = variant_base<input::event_base_t>( event );
-      in_progress->get().mod_keys = base.mod;
+      in_progress->mod_keys = base.mod;
     }
     // Currently, us handling some input doesn't require us
     // blocking anyone else from handling it.
@@ -267,8 +267,8 @@ public:
                        Coord                  current ) {
     if( auto in_progress = fsm_.template holds<InProgress_t>();
         in_progress ) {
-      in_progress->get().dst      = child().drag_dst( current );
-      in_progress->get().mod_keys = mod;
+      in_progress->dst      = child().drag_dst( current );
+      in_progress->mod_keys = mod;
     }
   }
 
@@ -278,7 +278,7 @@ public:
     if( auto in_progress_ref =
             fsm_.template holds<InProgress_t>();
         in_progress_ref ) {
-      auto& in_progress = in_progress_ref->get();
+      auto& in_progress = *in_progress_ref;
       if( in_progress.dst ) {
         // Must save these before we change state.
         auto mod_keys = in_progress.mod_keys;
@@ -315,9 +315,8 @@ public:
 
   void accept_finalized_drag(
       OptCRef<DragArcT> maybe_drag_arc ) {
-    ASSIGN_CHECK_OPT( finalized_ref,
+    ASSIGN_CHECK_OPT( finalized,
                       fsm_.template holds<Finalizing_t>() );
-    auto& finalized = finalized_ref.get();
     if( !maybe_drag_arc ) {
       // Caller has told us to cancel the drag.
       fsm_.send_event( RubberBand_t{

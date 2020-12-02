@@ -170,8 +170,8 @@ public:
     while( auto maybe_event_ref = events_.front() ) {
       internal::log_event(
           demangled_typename<ChildT>(),
-          fmt::format( "{}", maybe_event_ref->get().event ) );
-      process_event( maybe_event_ref->get() );
+          fmt::format( "{}", maybe_event_ref->event ) );
+      process_event( *maybe_event_ref );
       internal::log_state(
           demangled_typename<ChildT>(),
           fmt::format( "{}", state_stack_.front() ) );
@@ -192,7 +192,7 @@ public:
         !has_pending_events(),
         "Should not observe state of FSM while it has pending "
         "events, the first of which was {}.",
-        fmt_event_obj( events_.front()->get() ) );
+        fmt_event_obj( *events_.front() ) );
   }
 
   StateT const& state() const {
@@ -217,11 +217,10 @@ public:
   template<typename T>
   OptCRef<T> holds() const {
     enforce_no_pending_events_before_getting_state();
-    OptCRef<T> res;
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
-      res = *s;
-    return res;
+      return *s;
+    return nothing;
   }
 
   // !! No pointer stability here; state could change after
@@ -229,11 +228,10 @@ public:
   template<typename T>
   OptRef<T> holds() {
     enforce_no_pending_events_before_getting_state();
-    OptRef<T> res;
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
-      res = *s;
-    return res;
+      return *s;
+    return nothing;
   }
 
   // NOTE: we're not comparing the event queue here or any states

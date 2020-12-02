@@ -469,7 +469,7 @@ void advance_landview_anim_state() {
           sliding,
           SG().mode.holds<LandViewState::sliding_unit>() );
       // Are we finished?
-      if( sliding.get().percent >= 1.0 ) {
+      if( sliding.percent >= 1.0 ) {
         finished_anim = true;
         SG().mode.send_event( LandViewEvent::end{} );
         val.s_promise.set_value_emplace();
@@ -537,9 +537,9 @@ void advance_landview_state( LandViewFsm& fsm ) {
     case LandViewState::e::sliding_unit: {
       ASSIGN_CHECK_OPT(
           slide, fsm.holds<LandViewState::sliding_unit>() );
-      slide.get().percent_vel.advance( e_push_direction::none );
-      slide.get().percent += slide.get().percent_vel.to_double();
-      if( slide.get().percent > 1.0 ) slide.get().percent = 1.0;
+      slide.percent_vel.advance( e_push_direction::none );
+      slide.percent += slide.percent_vel.to_double();
+      if( slide.percent > 1.0 ) slide.percent = 1.0;
       break;
     }
     case LandViewState::e::depixelating_unit: {
@@ -1023,13 +1023,8 @@ void test_land_view() {
 namespace {
 
 LUA_FN( blinking_unit, Opt<UnitId> ) {
-  // FIXME(migration): try introducing a method that can access a
-  // member of the stored value. This may have to wait for refer-
-  // ences to be available otherwise it would just copy the mem-
-  // ber, which is not ideal since the member is already hanging
-  // around in the expression.
-  return SG().mode.holds<LandViewState::blinking_unit>().fmap(
-      L( _.get().id ) );
+  using blinker = LandViewState::blinking_unit;
+  return SG().mode.holds<blinker>().member( &blinker::id );
 }
 
 } // namespace

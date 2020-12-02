@@ -146,18 +146,16 @@ expect<> run_cmd( string const& cmd ) {
   return run_cmd_impl( cmd );
 }
 
-OptCRef<string> line( int idx ) {
-  OptCRef<string> res;
+maybe<string const&> line( int idx ) {
   if( idx < int( g_buffer.size() ) )
-    res = g_buffer[g_buffer.size() - 1 - idx];
-  return res;
+    return g_buffer[g_buffer.size() - 1 - idx];
+  return nothing;
 }
 
-OptCRef<string> history( int idx ) {
-  OptCRef<string> res;
+maybe<string const&> history( int idx ) {
   if( idx < int( g_history.size() ) )
-    res = g_history[g_history.size() - 1 - idx];
-  return res;
+    g_history[g_history.size() - 1 - idx];
+  return nothing;
 }
 
 Vec<Str> autocomplete( string_view fragment ) {

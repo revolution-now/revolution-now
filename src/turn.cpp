@@ -402,7 +402,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
           nation_state );
       lg.info( "processing colonies for the {}.", nation );
       while( !val.q.empty() ) {
-        ColonyId colony_id = val.q.front()->get();
+        ColonyId colony_id = *val.q.front();
         val.q.pop();
         evolve_colony_one_turn( colony_id );
       }
@@ -431,7 +431,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
       bool done_uturn = false;
       while( !done_uturn ) {
         if( doing_units.q.empty() ) break;
-        auto id = doing_units.q.front()->get();
+        auto id = *doing_units.q.front();
         // We need this check because units can be added into
         // the queue in this loop by user input.
         if( !unit_exists( id ) ||
@@ -497,7 +497,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
             ASSIGN_CHECK_OPT( orders, maybe_orders );
             if( holds<orders::wait>( orders ) ) {
               doing_units.q.push_back( id );
-              CHECK( doing_units.q.front()->get() == id );
+              CHECK( doing_units.q.front() == id );
               doing_units.q.pop_front();
               // fallthrough.
             }
@@ -526,7 +526,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
         // There may be no queue front at this point if there was
         // only one unit in the queue and it died.
         if( !doing_units.q.front().has_value() ||
-            doing_units.q.front()->get() != id )
+            doing_units.q.front() != id )
           doing_units.uturn = nothing;
       }
       if( doing_units.q.empty() )
@@ -600,7 +600,7 @@ void advance_turn_cycle_state( TurnCycleFsm& fsm ) {
           break;
           ;
         }
-        auto nation = val.remainder.front()->get();
+        auto nation = val.remainder.front();
         val.nation  = nation;
         val.remainder.pop();
         val.nation_turn = NationTurnFsm(

@@ -1000,25 +1000,25 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
   REQUIRE( qs.q2.size() == 3 );
   REQUIRE( qs.dq.size() == 3 );
 
-  REQUIRE( qs.q1.front()->get() == 1 );
+  REQUIRE( qs.q1.front() == 1 );
   qs.q1.pop();
-  REQUIRE( qs.q1.front()->get() == 2 );
+  REQUIRE( qs.q1.front() == 2 );
   qs.q1.pop();
-  REQUIRE( qs.q1.front()->get() == 3 );
+  REQUIRE( qs.q1.front() == 3 );
   qs.q1.pop();
 
-  REQUIRE( qs.q2.front()->get() == "one" );
+  REQUIRE( qs.q2.front() == "one" );
   qs.q2.pop();
-  REQUIRE( qs.q2.front()->get() == "two" );
+  REQUIRE( qs.q2.front() == "two" );
   qs.q2.pop();
-  REQUIRE( qs.q2.front()->get() == "three" );
+  REQUIRE( qs.q2.front() == "three" );
   qs.q2.pop();
 
-  REQUIRE( qs.dq.front()->get() == 3 );
+  REQUIRE( qs.dq.front() == 3 );
   qs.dq.pop_front();
-  REQUIRE( qs.dq.front()->get() == 1 );
+  REQUIRE( qs.dq.front() == 1 );
   qs.dq.pop_front();
-  REQUIRE( qs.dq.front()->get() == 2 );
+  REQUIRE( qs.dq.front() == 2 );
   qs.dq.pop_front();
 
   REQUIRE( qs.q1.size() == 0 );

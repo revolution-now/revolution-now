@@ -143,10 +143,8 @@ Opt<Cargo> draggable_to_cargo_object(
 Opt<DraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
   return SG()
-      .selected_unit //
-      // FIXME(migration): remove reference_wrapper
-      .fmap( L( std::ref( unit_from_id( _ ) ) ) )
-      .bind( LC( _.get().cargo().at( slot ) ) )
+      .selected_unit.fmap( unit_from_id )
+      .bind( LC( _.cargo().at( slot ) ) )
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
@@ -1142,8 +1140,7 @@ public:
 
           using DraggableObject::cargo_commodity;
           if( draggable_in_cargo_slot( *maybe_slot )
-                  .fmap( L( holds<cargo_commodity>( _ ) ) )
-                  .is_value_truish() ) {
+                  .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
             box_origin += k_rendered_commodity_offset;
             scale = Scale{ 16 };
           }
@@ -1494,8 +1491,6 @@ public:
       case DragArc::e::dock_to_cargo: {
         auto& [src, dst] =
             get_if_or_die<DragArc::dock_to_cargo>( v );
-        maybe<reference_wrapper<entity::ActiveCargo const>> m =
-            entities_->active_cargo;
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship ).cargo().fits_somewhere(
@@ -1504,7 +1499,8 @@ public:
       case DragArc::e::cargo_to_dock: {
         auto& val = get_if_or_die<DragArc::cargo_to_dock>( v );
         return holds<DraggableObject::unit>(
-            draggable_from_src( val.src ) );
+                   draggable_from_src( val.src ) )
+            .has_value();
       }
       case DragArc::e::cargo_to_cargo: {
         auto& c_to_c =
@@ -1544,7 +1540,7 @@ public:
             get_if_or_die<DragArc::outbound_to_inport>( v );
         ASSIGN_CHECK_OPT(
             info, unit_euro_port_view_info( val.src.id ) );
-        ASSIGN_CHECK_V( outbound, info.get(),
+        ASSIGN_CHECK_V( outbound, info,
                         UnitEuroPortViewState::outbound );
         return outbound.percent == 0.0;
       }
@@ -1656,7 +1652,7 @@ public:
                 .cargo()
                 .template slot_holds_cargo_type<Commodity>(
                     val.src.slot._ ) );
-        ask_for_quantity_( commodity_ref.get().type, "sell" );
+        ask_for_quantity_( commodity_ref.type, "sell" );
         stored_arc_ = drag_arc;
         break;
       }
@@ -1674,8 +1670,7 @@ public:
           // It's a unit.
           accept_finalized_drag( drag_arc );
         } else {
-          ask_for_quantity_( maybe_commodity_ref->get().type,
-                             "move" );
+          ask_for_quantity_( maybe_commodity_ref->type, "move" );
           stored_arc_ = drag_arc;
         }
         break;
@@ -1834,8 +1829,6 @@ public:
               ustate_change_to_cargo( c_to_i_s.dst.id, id );
             },
             [&]( Commodity const& ) {
-              maybe<reference_wrapper<entity::ActiveCargo const>>
-                  m = entities_->active_cargo;
               ASSIGN_CHECK_OPT( src_ship, active_cargo_ship() );
               move_commodity_as_much_as_possible(
                   src_ship, c_to_i_s.src.slot._,
@@ -1899,12 +1892,11 @@ public:
                 .cargo()
                 .template slot_holds_cargo_type<Commodity>(
                     val.src.slot._ ) );
-        auto quantity_wants_to_sell = val.src.quantity.value_or(
-            commodity_ref.get().quantity );
-        int amount_to_sell =
-            std::min( quantity_wants_to_sell,
-                      commodity_ref.get().quantity );
-        Commodity new_comm = commodity_ref.get();
+        auto quantity_wants_to_sell =
+            val.src.quantity.value_or( commodity_ref.quantity );
+        int amount_to_sell = std::min( quantity_wants_to_sell,
+                                       commodity_ref.quantity );
+        Commodity new_comm = commodity_ref;
         new_comm.quantity -= amount_to_sell;
         rm_commodity_from_cargo( ship, val.src.slot._ );
         if( new_comm.quantity > 0 )

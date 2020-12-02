@@ -62,27 +62,26 @@ e_tile tile_for_commodity( e_commodity c ) {
 }
 
 OptCRef<Texture> render_commodity_label( string_view label ) {
-  OptCRef<Texture> res;
   if( !label.empty() ) {
     TextMarkupInfo info{ /*normal=*/Color::white(),
                          /*highlight=*/Color::green() };
-    res = render_text_markup( font::small(), info, label );
+    return render_text_markup( font::small(), info, label );
   }
-  return res;
+  return nothing;
 }
 
 void render_commodity_impl( Texture& tx, e_commodity type,
-                            Coord              pixel_coord,
+                            Coord            pixel_coord,
                             OptCRef<Texture> label ) {
   auto tile = tile_for_commodity( type );
   render_sprite( tx, tile, pixel_coord );
   if( label ) {
     // Place text below commodity, but centered horizontally.
     auto comm_size  = lookup_sprite( tile ).size();
-    auto label_size = label->get().size();
+    auto label_size = label->size();
     auto origin     = pixel_coord + comm_size.h + 2_h -
                   ( label_size.w - comm_size.w ) / 2_sx;
-    copy_texture( label->get(), tx, origin );
+    copy_texture( *label, tx, origin );
   }
 }
 
@@ -161,9 +160,9 @@ int move_commodity_as_much_as_possible(
       dst_cargo.slot_holds_cargo_type<Commodity>( dst_slot );
   if( maybe_dst_comm.has_value() && !try_other_dst_slots ) {
     CHECK(
-        maybe_dst_comm->get().type == maybe_src_comm->get().type,
+        maybe_dst_comm->type == maybe_src_comm->type,
         "src and dst have different commodity types: {} vs {}",
-        maybe_src_comm->get(), maybe_dst_comm->get() );
+        maybe_src_comm, maybe_dst_comm );
   }
 
   // Need to remove first in case src/dst are the same unit.
@@ -182,7 +181,7 @@ int move_commodity_as_much_as_possible(
       max_transfer_quantity =
           std::min( removed.quantity,
                     dst_cargo.max_commodity_per_cargo_slot() -
-                        maybe_dst_comm->get().quantity );
+                        maybe_dst_comm->quantity );
     } else {
       CHECK( holds<CargoSlot::empty>( dst_cargo[dst_slot] ) );
       max_transfer_quantity =
@@ -240,10 +239,9 @@ Opt<string> commodity_label_to_markup(
 
 OptCRef<Texture> render_commodity_label(
     CommodityLabel_t const& label ) {
-  OptCRef<Texture> res;
   auto maybe_text = commodity_label_to_markup( label );
-  if( maybe_text ) res = render_commodity_label( *maybe_text );
-  return res;
+  if( maybe_text ) return render_commodity_label( *maybe_text );
+  return nothing;
 }
 
 void render_commodity( Texture& tx, e_commodity type,

@@ -26,10 +26,10 @@ ND expect<> run_cmd( std::string const& cmd );
 void clear();
 
 // idx zero is most recent.
-OptCRef<Str> line( int idx );
+maybe<Str const&> line( int idx );
 
 // idx zero is most recent.
-OptCRef<Str> history( int idx );
+maybe<Str const&> history( int idx );
 
 // Given a fragment of Lua this will return a vector of all pos-
 // sible (immediate) completions. If it returns an empty vector

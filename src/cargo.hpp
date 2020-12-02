@@ -21,6 +21,7 @@
 #include "macros.hpp"
 #include "typed-int.hpp"
 #include "util.hpp"
+#include "variant.hpp"
 
 // Flatbuffers
 #include "fb/cargo_generated.h"
@@ -125,7 +126,7 @@ public:
   Vec<CargoSlot_t> const& slots() const { return slots_; }
 
   template<typename T>
-  OptCRef<T> slot_holds_cargo_type( int idx ) const;
+  maybe<T const&> slot_holds_cargo_type( int idx ) const;
 
   // If unit is in cargo, returns its slot index.
   Opt<int> find_unit( UnitId id ) const;
@@ -278,14 +279,12 @@ int CargoHold::count_items_of_type() const {
 }
 
 template<typename T>
-OptCRef<T> CargoHold::slot_holds_cargo_type( int idx ) const {
+maybe<T const&> CargoHold::slot_holds_cargo_type(
+    int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
-  OptCRef<T> res;
-  if( auto* cargo =
-          std::get_if<CargoSlot::cargo>( &slots_[idx] ) )
-    if( auto* content = std::get_if<T>( &( cargo->contents ) ) )
-      res = *content;
-  return res;
+  return holds<CargoSlot::cargo>( slots_[idx] )
+      .member( &CargoSlot::cargo::contents )
+      .bind( L( holds<T>( _ ) ) );
 }
 
 } // namespace rn

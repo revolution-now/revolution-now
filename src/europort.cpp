@@ -47,23 +47,23 @@ bool is_unit_on_dock( UnitId id ) {
   return europort_status.has_value() &&
          !unit_from_id( id ).desc().ship &&
          holds<UnitEuroPortViewState::in_port>(
-             europort_status->get() );
+             *europort_status );
 }
 
 bool is_unit_inbound( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
-  auto is_inbound      = europort_status.has_value() &&
-                    holds<UnitEuroPortViewState::inbound>(
-                        europort_status->get() );
+  auto is_inbound =
+      europort_status.has_value() &&
+      holds<UnitEuroPortViewState::inbound>( *europort_status );
   if( is_inbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_inbound;
 }
 
 bool is_unit_outbound( UnitId id ) {
   auto europort_status = unit_euro_port_view_info( id );
-  auto is_outbound     = europort_status.has_value() &&
-                     holds<UnitEuroPortViewState::outbound>(
-                         europort_status->get() );
+  auto is_outbound =
+      europort_status.has_value() &&
+      holds<UnitEuroPortViewState::outbound>( *europort_status );
   if( is_outbound ) { CHECK( unit_from_id( id ).desc().ship ); }
   return is_outbound;
 }
@@ -73,7 +73,7 @@ bool is_unit_in_port( UnitId id ) {
   return europort_status.has_value() &&
          unit_from_id( id ).desc().ship &&
          holds<UnitEuroPortViewState::in_port>(
-             europort_status->get() );
+             *europort_status );
 }
 
 Vec<UnitId> europort_units_on_dock() {
@@ -121,7 +121,7 @@ void unit_sail_to_old_world( UnitId id ) {
       UnitEuroPortViewState::inbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
   if( maybe_state ) {
-    switch( auto& v = maybe_state->get(); enum_for( v ) ) {
+    switch( auto& v = *maybe_state; enum_for( v ) ) {
       case UnitEuroPortViewState::e::inbound: {
         auto& val =
             get_if_or_die<UnitEuroPortViewState::inbound>( v );
@@ -152,7 +152,7 @@ void unit_sail_to_old_world( UnitId id ) {
       }
     }
   }
-  if( maybe_state && target_state == maybe_state->get() ) //
+  if( target_state == maybe_state ) //
     return;
   lg.info( "setting {} to state {}", debug_string( id ),
            target_state );
@@ -170,7 +170,8 @@ void unit_sail_to_new_world( UnitId id ) {
   UnitEuroPortViewState_t target_state =
       UnitEuroPortViewState::outbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
-  switch( auto& v = maybe_state->get(); enum_for( v ) ) {
+  CHECK( maybe_state );
+  switch( auto& v = *maybe_state; enum_for( v ) ) {
     case UnitEuroPortViewState::e::outbound: {
       auto& val =
           get_if_or_die<UnitEuroPortViewState::outbound>( v );
@@ -195,7 +196,7 @@ void unit_sail_to_new_world( UnitId id ) {
       break;
     }
   }
-  if( maybe_state && target_state == maybe_state->get() ) //
+  if( target_state == maybe_state ) //
     return;
   lg.info( "setting {} to state {}", debug_string( id ),
            target_state );
@@ -218,15 +219,14 @@ void unit_move_to_europort_dock( UnitId id ) {
 void advance_unit_on_high_seas( UnitId id ) {
   ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
   constexpr double const advance = 0.2;
-  if_get( info.get(), UnitEuroPortViewState::outbound,
-          outbound ) {
+  if_get( info, UnitEuroPortViewState::outbound, outbound ) {
     outbound.percent += advance;
     if( outbound.percent >= 1.0 ) {
       NOT_IMPLEMENTED; // find a place on the map to move to.
     }
     return;
   }
-  if_get( info.get(), UnitEuroPortViewState::inbound, inbound ) {
+  if_get( info, UnitEuroPortViewState::inbound, inbound ) {
     inbound.percent += advance;
     if( inbound.percent >= 1.0 )
       ustate_change_to_euro_port_view(
