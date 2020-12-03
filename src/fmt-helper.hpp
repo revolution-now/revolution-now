@@ -33,7 +33,6 @@
 
 // C++ standard library
 #include <chrono>
-#include <optional>
 #include <string>
 #include <type_traits>
 #include <variant>
@@ -298,19 +297,6 @@ struct formatter<fs::path> : formatter_base {
   auto format( fs::path const &o, FormatContext &ctx ) {
     return formatter_base::format( fmt::format( o.string() ),
                                    ctx );
-  }
-};
-
-// {fmt} formatter for formatting optionals whose contained
-// type is formattable.
-template<typename T>
-struct formatter<std::optional<T>> : formatter_base {
-  template<typename FormatContext>
-  auto format( std::optional<T> const &o, FormatContext &ctx ) {
-    static const std::string nullopt_str( "nullopt" );
-    return formatter_base::format(
-        o.has_value() ? fmt::format( "{}", *o ) : nullopt_str,
-        ctx );
   }
 };
 

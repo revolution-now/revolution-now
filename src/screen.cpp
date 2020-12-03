@@ -32,7 +32,6 @@
 
 // C++ standard library
 #include <cmath>
-#include <optional>
 
 using namespace std;
 

@@ -28,10 +28,6 @@
 // TODO: get rid of this
 #include "SDL.h"
 
-// c++ standard library
-#include <optional>
-#include <variant>
-
 namespace rn::input {
 
 /****************************************************************
