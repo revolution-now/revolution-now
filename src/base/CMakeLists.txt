@@ -20,6 +20,7 @@ target_link_libraries(
     rn-base
     PUBLIC
     base-util
+    function-ref
 )
 
 target_include_directories(

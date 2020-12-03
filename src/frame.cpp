@@ -19,7 +19,6 @@
 #include "math.hpp"
 #include "plane.hpp"
 #include "render.hpp" // FIXME
-#include "scope-exit.hpp"
 #include "screen.hpp"
 #include "variant.hpp"
 
@@ -27,6 +26,7 @@
 #include "../config/ucl/rn.inl"
 
 // base
+#include "base/scope-exit.hpp"
 #include "base/variant.hpp"
 
 // Range-v3

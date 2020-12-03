@@ -14,10 +14,12 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
-#include "scope-exit.hpp"
 #include "ustate.hpp"
 #include "util.hpp"
 #include "variant.hpp"
+
+// base
+#include "base/scope-exit.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"

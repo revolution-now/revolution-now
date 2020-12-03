@@ -10,15 +10,13 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // function_ref
 #include "tl/function_ref.hpp"
 
 // C++ standard library
 #include <exception>
 
-namespace rn {
+namespace base {
 
 // Run some code at scope exit.  Example usage:
 //
@@ -46,9 +44,9 @@ namespace rn {
 //
 // Exceptions: it is generally OK to throw exceptions from inside
 // the code snippet; see below for details.
-#define SCOPE_EXIT( code )                                      \
-  ScopeExit STRING_JOIN( exit_, __LINE__ )( __FILE__, __LINE__, \
-                                            [&] { code; } )
+#define SCOPE_EXIT( code )                        \
+  base::ScopeExit STRING_JOIN( exit_, __LINE__ )( \
+      __FILE__, __LINE__, [&] { code; } )
 
 namespace detail {
 
@@ -61,11 +59,14 @@ void run_func_noexcept( char const* file, int line,
 // scope exit.
 template<typename T>
 struct ScopeExit {
-  ScopeExit( char const* file, int line, T const& func )
+  ScopeExit( char const* file, int line, T&& func )
     : file_( file ),
       line_( line ),
-      func_( func ),
-      exceptions_in_flight_( std::uncaught_exceptions() ) {}
+      func_( std::forward<T>( func ) ),
+      exceptions_in_flight_( std::uncaught_exceptions() ) {
+    static_assert( std::is_rvalue_reference_v<
+                   decltype( std::forward<T>( func ) )> );
+  }
 
   ~ScopeExit() noexcept( false ) {
     // Exceptions: The func_ code snippet is being run inside the
@@ -105,4 +106,4 @@ struct ScopeExit {
   int         exceptions_in_flight_{};
 };
 
-} // namespace rn
+} // namespace base

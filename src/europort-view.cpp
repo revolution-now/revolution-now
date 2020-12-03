@@ -29,7 +29,6 @@
 #include "plane.hpp"
 #include "ranges.hpp"
 #include "render.hpp"
-#include "scope-exit.hpp"
 #include "screen.hpp"
 #include "sync-future.hpp"
 #include "text.hpp"
@@ -37,6 +36,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "window.hpp"
+
+// base
+#include "base/scope-exit.hpp"
 
 // Rnl
 #include "rnl/europort-view.hpp"
