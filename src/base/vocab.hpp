@@ -28,10 +28,6 @@ struct NoCopy {
   NoCopy() requires( std::is_default_constructible_v<T> ) =
       default;
 
-  template<typename... Args>
-  NoCopy( Args&&... args )
-    : val( std::forward<Args>( args )... ) {}
-
   NoCopy( T&& val_ ) : val( std::move( val_ ) ) {}
 
   NoCopy( NoCopy&& ) requires(

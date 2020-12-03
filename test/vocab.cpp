@@ -64,7 +64,7 @@ TEST_CASE( "[vocab] NoCopy string" ) {
 }
 
 TEST_CASE( "[vocab] NoCopy NoCopy" ) {
-  NoCopy<NoCopy<string>> nc( "5" );
+  NoCopy<NoCopy<string>> nc( string( "5" ) );
   REQUIRE( nc == "5" );
   // NoCopy<NoCopy<string>> nc2 = nc;
   static_assert(

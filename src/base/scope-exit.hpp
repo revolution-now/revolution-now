@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// base
+#include "macros.hpp"
+
 // function_ref
 #include "tl/function_ref.hpp"
 
