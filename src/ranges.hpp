@@ -16,6 +16,9 @@
 #include "aliases.hpp"
 #include "fmt-helper.hpp"
 
+// base
+#include "base/maybe.hpp"
+
 // range-v3
 #include "range/v3/numeric/accumulate.hpp"
 #include "range/v3/range/conversion.hpp"
@@ -90,8 +93,8 @@ auto min_by_key( Func f ) {
     using ResType = decltype( *r.begin() );
     using KeyType = decltype( f( *r.begin() ) );
     using Rng     = decltype( r );
-    std::optional<ResType> res{};
-    std::optional<KeyType> min_key{};
+    base::maybe<ResType> res{};
+    base::maybe<KeyType> min_key{};
     for( auto const& [elem, key] :
          std::forward<Rng>( r ) | transform_pair( f ) ) {
       if( !min_key.has_value() || key < *min_key ) {
@@ -103,21 +106,14 @@ auto min_by_key( Func f ) {
   } );
 }
 
-// Returns the maximum of a range, by value, if one exists. NOTE:
-// unfortunately, due to a strange issue where clang doesn't
-// agree with libstdc++'s implementation of std::optional we
-// return a std::pair here with the first element indicating the
-// presence of the return value (we would have liked to use
-// std::optional). See:
-// https://stackoverflow.com/questions/51379597/
-//   should-you-be-able-move-from-stdoptionalt-where-t-has-non-trivial-constructo
+// Returns the maximum of a range, by value, if one exists.
 inline auto maximum() {
   return ranges::make_pipeable( [=]( auto&& r ) {
     using ResType = decltype( *r.begin() );
     using Rng     = decltype( r );
-    std::pair<bool, ResType> res( false, {} );
+    base::maybe<ResType> res;
     for( auto const& elem : std::forward<Rng>( r ) )
-      if( !res.first || res.second < elem ) res = { true, elem };
+      if( !res || *res < elem ) res = elem;
     return res;
   } );
 }

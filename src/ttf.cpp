@@ -18,11 +18,13 @@
 #include "macros.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
-#include "util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/font.inl"
 #include "../config/ucl/palette.inl"
+
+// base
+#include "base/keyval.hpp"
 
 // magic enum
 #include "magic_enum.hpp"
@@ -50,10 +52,13 @@ FlatMap<e_font, FontDesc>& loaded_fonts() {
   static FlatMap<e_font, FontDesc> m = [] {
     FlatMap<e_font, FontDesc> res;
     for( auto font : magic_enum::enum_values<e_font>() ) {
-      auto& path = val_or_die( config_font.paths, font );
-      auto& size = val_or_die( config_font.sizes, font );
-      auto& vert_offset =
-          val_or_die( config_font.offsets, font );
+      ASSIGN_CHECK_OPT(
+          path, base::lookup( config_font.paths, font ) );
+      ASSIGN_CHECK_OPT(
+          size, base::lookup( config_font.sizes, font ) );
+      ASSIGN_CHECK_OPT(
+          vert_offset,
+          base::lookup( config_font.offsets, font ) );
       res[font] = FontDesc{ path, size, vert_offset, nullptr };
     }
     return res;

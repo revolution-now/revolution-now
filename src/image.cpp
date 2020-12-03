@@ -19,10 +19,12 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
-#include "util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/art.inl"
+
+// base
+#include "base/keyval.hpp"
 
 // magic enum
 #include "magic_enum.hpp"
@@ -49,10 +51,11 @@ struct ImagePlane : public Plane {
   // Implement Plane
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
-    auto& image_tx    = val_or_die( g_images, *image );
-    auto  image_delta = image_tx.size();
-    auto  win_rect    = main_window_logical_rect();
-    auto  dest_coord  = centered( image_delta, win_rect );
+    ASSIGN_CHECK_OPT( image_tx,
+                      base::lookup( g_images, *image ) );
+    auto image_delta = image_tx.size();
+    auto win_rect    = main_window_logical_rect();
+    auto dest_coord  = centered( image_delta, win_rect );
     copy_texture( image_tx, tx, dest_coord );
   }
 
@@ -90,7 +93,8 @@ void image_plane_set( e_image image ) {
 }
 
 Texture const& image( e_image which ) {
-  return val_or_die( g_images, which );
+  ASSIGN_CHECK_OPT( tx, base::lookup( g_images, which ) );
+  return tx;
 }
 
 } // namespace rn

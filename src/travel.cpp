@@ -18,10 +18,12 @@
 #include "orders.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
-#include "util.hpp"
 #include "utype.hpp"
 #include "variant.hpp"
 #include "window.hpp"
+
+// base
+#include "base/keyval.hpp"
 
 using namespace std;
 
@@ -377,7 +379,7 @@ sync_future<bool> TravelAnalysis::confirm_explain_() const {
   if( !allowed() ) return make_sync_future<bool>( false );
   // The above should have checked that the variant holds the
   // e_unit_travel_good type for us.
-  auto& kind = val_or_die<e_unit_travel_good>( desc );
+  ASSIGN_CHECK_OPT( kind, desc.get_if<e_unit_travel_good>() );
 
   switch( kind ) {
     case e_unit_travel_good::land_fall: {

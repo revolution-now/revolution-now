@@ -30,40 +30,6 @@ namespace rn {
 ND int round_up_to_nearest_int_multiple( double d, int m );
 ND int round_down_to_nearest_int_multiple( double d, int m );
 
-// Gave up trying to make variadic templates work inside a
-// templatized template parameter, so just use auto for the
-// return value.
-template<typename MapT, typename KeyT>
-ND auto& val_or_die( MapT&& m, KeyT const& k ) {
-  auto found = FWD( m ).find( k );
-  CHECK( found != FWD( m ).end() );
-  return found->second;
-}
-
-template<typename T, typename... Vs>
-auto const& val_or_die( base::variant<Vs...> const& v ) {
-  CHECK( std::holds_alternative<T>( v ) );
-  return std::get<T>( v );
-}
-
-template<typename T, typename... Vs>
-auto& val_or_die( base::variant<Vs...>& v ) {
-  CHECK( std::holds_alternative<T>( v ) );
-  return std::get<T>( v );
-}
-
-template<typename T>
-auto const& val_or_die( std::optional<T> const& o ) {
-  CHECK( o.has_value() );
-  return o.value();
-}
-
-template<typename T>
-auto& val_or_die( std::optional<T>& o ) {
-  CHECK( o.has_value() );
-  return o.value();
-}
-
 // FIXME: move to base-util.
 template<typename ContainerT, typename ElemT>
 ND int count( ContainerT&& c, ElemT&& e ) {

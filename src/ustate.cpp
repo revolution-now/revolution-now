@@ -183,8 +183,9 @@ bool unit_exists( UnitId id ) {
 }
 
 Unit& unit_from_id( UnitId id ) {
-  CHECK( unit_exists( id ), "unit {} does not exist.", id );
-  return val_or_die( SG().units, id );
+  auto maybe_id = base::lookup( SG().units, id );
+  CHECK( maybe_id, "unit {} does not exist.", id );
+  return *maybe_id;
 }
 
 // Apply a function to all units. The function may mutate the

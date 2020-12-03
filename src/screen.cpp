@@ -17,6 +17,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
+#include "ranges.hpp"
 #include "terrain.hpp" // FIXME: remove
 #include "tiles.hpp"
 
@@ -207,23 +208,8 @@ void find_pixel_scale_factor() {
       rv::iota( min_scale_factor, max_scale_factor + 1 ) //
       | rv::transform( scale_info );
 
-  // What we would like to do is use the following macro, but
-  // this currently causes a compiler crash for GCC inside the
-  // ranges library. Try again at a later time to use it.
-  // ----
-  // ASSIGN_CHECK_OPT( optimal,
-  //                  scale_scores | min_by_key( scale_score ) );
-  // ----
-  // and delete this:
-  optional<ScaleInfo> maybe_optimal;
-  for( auto info : scale_scores ) {
-    if( !maybe_optimal.has_value() ) maybe_optimal = info;
-    if( scale_score( info ) < scale_score( *maybe_optimal ) )
-      maybe_optimal = info;
-  }
-  CHECK( maybe_optimal.has_value() );
-  auto optimal = *maybe_optimal;
-  // ----
+  ASSIGN_CHECK_OPT( optimal,
+                    scale_scores | min_by_key( scale_score ) );
 
   ///////////////////////////////////////////////////////////////
 #if 0

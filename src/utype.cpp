@@ -13,7 +13,9 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "lua.hpp"
-#include "util.hpp"
+
+// base
+#include "base/keyval.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/units.inl"
@@ -64,7 +66,9 @@ unit_desc() {
 } // namespace
 
 UnitDescriptor const& unit_desc( e_unit_type type ) {
-  return val_or_die( unit_desc(), type );
+  auto maybe_desc = base::lookup( unit_desc(), type );
+  CHECK( maybe_desc );
+  return *maybe_desc;
 }
 
 void UnitDescriptor::check_invariants() const {

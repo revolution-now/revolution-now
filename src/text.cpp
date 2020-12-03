@@ -203,10 +203,10 @@ Texture render_line_markup( e_font                      font,
   CHECK( !txs.empty() );
   auto w = rg::accumulate(
       txs | rv::transform( L( _.size().w ) ), 0_w );
-  auto [has_h, maybe_h] =
+  auto maybe_h =
       txs | rv::transform( L( _.size().h ) ) | maximum();
-  CHECK( has_h );
-  auto  res = create_texture_transparent( { w, maybe_h } );
+  CHECK( maybe_h );
+  auto  res = create_texture_transparent( { w, *maybe_h } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -223,10 +223,10 @@ Texture render_lines( e_font font, Color fg,
   auto txs = util::map( renderer, txt );
   auto h   = rg::accumulate(
       txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto [has_w, maybe_w] =
+  auto maybe_w =
       txs | rv::transform( L( _.size().w ) ) | maximum();
-  CHECK( has_w );
-  auto  res = create_texture_transparent( { h, maybe_w } );
+  CHECK( maybe_w );
+  auto  res = create_texture_transparent( { h, *maybe_w } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
@@ -244,10 +244,10 @@ Texture render_lines_markup(
   auto txs = util::map( renderer, mk_text );
   auto h   = rg::accumulate(
       txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto [has_w, maybe_w] =
+  auto maybe_w =
       txs | rv::transform( L( _.size().w ) ) | maximum();
-  CHECK( has_w );
-  auto  res = create_texture_transparent( { h, maybe_w } );
+  CHECK( maybe_w );
+  auto  res = create_texture_transparent( { h, *maybe_w } );
   Coord where{};
   for( auto const& tx : txs ) {
     copy_texture( tx, res, where );
