@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // C++ standard library
 #include <experimental/type_traits>
 #include <tuple>

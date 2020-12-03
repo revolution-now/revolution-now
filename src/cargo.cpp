@@ -19,9 +19,6 @@
 #include "util.hpp"
 #include "variant.hpp"
 
-// base-util
-#include "base-util/algo.hpp"
-
 // Abseil
 #include "absl/strings/str_replace.h"
 
@@ -231,15 +228,10 @@ CargoSlot_t const& CargoHold::operator[](
 }
 
 Opt<int> CargoHold::find_unit( UnitId id ) const {
-  auto is_unit = [id]( CargoSlot_t const& slot ) {
-    if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )
-      if( auto* unit_id =
-              get_if<UnitId>( &( cargo->contents ) ) )
-        return id == *unit_id;
-    return false;
-  };
-  return base::optional_to_maybe(
-      util::find_first_if( slots_, is_unit ) );
+  for( size_t idx = 0; idx < slots_.size(); ++idx )
+    if( slot_holds_cargo_type<UnitId>( idx ) == id ) //
+      return idx;
+  return nothing;
 }
 
 // Returns all units in the cargo.

@@ -35,9 +35,11 @@
 #include "../config/ucl/palette.inl"
 #include "../config/ucl/ui.inl"
 
+// base
+#include "base/conv.hpp"
+
 // base-util
 #include "base-util/misc.hpp"
-#include "base-util/string.hpp"
 
 // function_ref
 #include "tl/function_ref.hpp"
@@ -413,7 +415,7 @@ Window& WindowManager::focused() {
 
 ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max ) {
   return [min, max]( std::string const& proposed ) {
-    auto maybe_int = util::stoi( proposed );
+    auto maybe_int = base::stoi( proposed );
     if( !maybe_int.has_value() ) return false;
     if( min.has_value() && *maybe_int < *min ) return false;
     if( max.has_value() && *maybe_int > *max ) return false;
@@ -642,12 +644,11 @@ sync_future<Opt<int>> int_input_box( std::string_view title,
                                      Opt<int>         min,
                                      Opt<int>         max ) {
   sync_promise<Opt<int>> s_promise;
-  text_input_box(
-      title, msg, make_int_validator( min, max ),
-      [s_promise]( Opt<string> result ) mutable {
-        s_promise.set_value( result.bind(
-            L( base::optional_to_maybe( util::stoi( _ ) ) ) ) );
-      } );
+  text_input_box( title, msg, make_int_validator( min, max ),
+                  [s_promise]( Opt<string> result ) mutable {
+                    s_promise.set_value(
+                        result.bind( L( base::stoi( _ ) ) ) );
+                  } );
   return s_promise.get_future();
 }
 

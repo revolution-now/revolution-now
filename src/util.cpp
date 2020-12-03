@@ -13,8 +13,8 @@
 // Revolution Now
 #include "errors.hpp"
 
-// base-util
-#include "base-util/string.hpp"
+// base
+#include "base/conv.hpp"
 
 // C++ standard library.
 #include <cstdlib>
@@ -53,8 +53,7 @@ Opt<fs::path> user_home_folder() { return env_var( "HOME" ); }
 
 Opt<int> os_terminal_columns() {
   return env_var( "COLUMNS" )
-      .bind( L( base::optional_to_maybe(
-          util::from_chars<int>( _ ) ) ) );
+      .bind( L( base::from_chars<int>( _ ) ) );
 }
 
 void set_env_var( char const* var_name, char const* value ) {
