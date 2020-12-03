@@ -18,6 +18,7 @@
 #include "variant.hpp"
 
 // base
+#include "base/keyval.hpp"
 #include "base/meta.hpp"
 
 // Rnl
@@ -25,9 +26,6 @@
 
 // Revolution Now (config)
 #include "../config/ucl/input.inl"
-
-// base-util
-#include "base-util/keyval.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
@@ -176,21 +174,21 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     }
     case ::SDL_KEYDOWN: {
       key_event_t key_event;
-      key_event.change    = e_key_change::down;
-      key_event.keycode   = sdl_event.key.keysym.sym;
-      key_event.scancode  = sdl_event.key.keysym.scancode;
-      key_event.direction = base::optional_to_maybe(
-          bu::val_safe( nav_keys, sdl_event.key.keysym.sym ) );
+      key_event.change   = e_key_change::down;
+      key_event.keycode  = sdl_event.key.keysym.sym;
+      key_event.scancode = sdl_event.key.keysym.scancode;
+      key_event.direction =
+          base::lookup( nav_keys, sdl_event.key.keysym.sym );
       event = key_event;
       break;
     }
     case ::SDL_KEYUP: {
       key_event_t key_event;
-      key_event.change    = e_key_change::up;
-      key_event.keycode   = sdl_event.key.keysym.sym;
-      key_event.scancode  = sdl_event.key.keysym.scancode;
-      key_event.direction = base::optional_to_maybe(
-          bu::val_safe( nav_keys, sdl_event.key.keysym.sym ) );
+      key_event.change   = e_key_change::up;
+      key_event.keycode  = sdl_event.key.keysym.sym;
+      key_event.scancode = sdl_event.key.keysym.scancode;
+      key_event.direction =
+          base::lookup( nav_keys, sdl_event.key.keysym.sym );
       event = key_event;
       break;
     }

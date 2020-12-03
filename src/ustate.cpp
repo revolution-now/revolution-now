@@ -22,6 +22,9 @@
 #include "macros.hpp"
 #include "variant.hpp"
 
+// base
+#include "base/keyval.hpp"
+
 // Rnl
 #include "rnl/ustate-impl.hpp"
 
@@ -30,7 +33,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/keyval.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -172,8 +174,8 @@ Vec<UnitId> units_all( maybe<e_nation> nation ) {
 }
 
 bool unit_exists( UnitId id ) {
-  bool exists  = bu::has_key( SG().units, id ).has_value();
-  bool deleted = bu::has_key( SG().deleted, id ).has_value();
+  bool exists  = SG().units.contains( id );
+  bool deleted = SG().deleted.contains( id );
   if( exists )
     CHECK( !deleted, "{}: exists: {}, deleted: {}.",
            /*no debug_string*/ id, exists, deleted );
@@ -226,8 +228,8 @@ void destroy_unit( UnitId id ) {
 UnitId create_unit( e_nation nation, e_unit_type type ) {
   Unit unit( nation, type );
   auto id = unit.id_;
-  CHECK( !bu::has_key( SG().units, id ) );
-  CHECK( !bu::has_key( SG().states, id ) );
+  CHECK( !SG().units.contains( id ) );
+  CHECK( !SG().states.contains( id ) );
   CHECK( !SG().deleted.contains( id ) );
 
   SG().units[id]  = move( unit );
@@ -242,8 +244,8 @@ UnitId create_unit( e_nation nation, e_unit_type type ) {
 FlatSet<UnitId> const& units_from_coord( Coord const& c ) {
   static FlatSet<UnitId> const empty = {};
   // CHECK( square_exists( c ) );
-  auto opt_set = bu::val_safe( SG().units_from_coords, c );
-  return opt_set.value_or( empty );
+  return base::lookup( as_const( SG().units_from_coords ), c )
+      .value_or( empty );
 }
 
 Vec<UnitId> units_from_coord_recursive( Coord coord ) {
@@ -347,9 +349,7 @@ bool is_unit_in_colony( UnitId id ) {
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
 Opt<UnitId> is_unit_onboard( UnitId id ) {
-  auto opt_iter = bu::has_key( SG().holder_from_held, id );
-  return opt_iter ? maybe<UnitId>( ( **opt_iter ).second )
-                  : nothing;
+  return base::lookup( SG().holder_from_held, id );
 }
 
 /****************************************************************
@@ -499,7 +499,7 @@ void ustate_disown_unit( UnitId id ) {
     case UnitState::e::world: {
       auto& [coord] = v.get<UnitState::world>();
       ASSIGN_CHECK_OPT(
-          set_it, bu::has_key( SG().units_from_coords, coord ) );
+          set_it, base::find( SG().units_from_coords, coord ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() )
@@ -508,7 +508,7 @@ void ustate_disown_unit( UnitId id ) {
     }
     case UnitState::e::cargo: {
       ASSIGN_CHECK_OPT(
-          pair_it, bu::has_key( SG().holder_from_held, id ) );
+          pair_it, base::find( SG().holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
       ASSIGN_CHECK_OPT( slot_idx,
                         holder_unit.cargo().find_unit( id ) );
@@ -527,8 +527,7 @@ void ustate_disown_unit( UnitId id ) {
       auto& val    = v.get<UnitState::colony>();
       auto  col_id = val.id;
       ASSIGN_CHECK_OPT(
-          set_it,
-          bu::has_key( SG().units_from_colony, col_id ) );
+          set_it, base::find( SG().units_from_colony, col_id ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() )

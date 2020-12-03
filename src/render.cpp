@@ -24,8 +24,8 @@
 #include "views.hpp"
 #include "window.hpp"
 
-// base-util
-#include "base-util/keyval.hpp"
+// base
+#include "base/keyval.hpp"
 
 // C++ standard library
 #include <vector>
@@ -141,9 +141,9 @@ Texture const& render_nationality_icon( e_nation nation,
 
   NatIconRenderDesc desc{ nation, c };
 
-  if( auto maybe_cached = bu::val_safe( nat_icon_cache, desc );
+  if( auto maybe_cached = base::lookup( nat_icon_cache, desc );
       maybe_cached.has_value() )
-    return maybe_cached.value().get();
+    return *maybe_cached;
 
   nat_icon_cache.emplace( desc, do_render() );
   return nat_icon_cache[desc];

@@ -16,8 +16,9 @@
 #include "lua.hpp"
 #include "ranges.hpp"
 
-// base-util
-#include "base-util/keyval.hpp"
+// base
+#include "base/keyval.hpp"
+
 // Abseil
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
@@ -117,9 +118,9 @@ expect<> run_lua_cmd( string const& cmd ) {
 expect<> run_cmd_impl( string const& cmd ) {
   g_history.push_back( cmd );
   log( "> "s + cmd );
-  auto maybe_fn = bu::val_safe( g_console_commands, cmd );
+  auto maybe_fn = base::lookup( g_console_commands, cmd );
   if( maybe_fn.has_value() ) {
-    maybe_fn->get()();
+    ( *maybe_fn )();
     return xp_success_t{};
   }
   return run_lua_cmd( cmd );

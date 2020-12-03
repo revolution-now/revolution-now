@@ -20,11 +20,11 @@
 #include "lua.hpp"
 #include "ranges.hpp"
 
+// base
+#include "base/keyval.hpp"
+
 // Flatbuffers
 #include "fb/sg-colony_generated.h"
-
-// base-util
-#include "base-util/keyval.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -62,11 +62,11 @@ private:
     // Populate colony_from_*.
     for( auto const& [id, colony] : colonies ) {
       Coord where = colony.location();
-      UNXP_CHECK( !bu::has_key( colony_from_coord, where ),
+      UNXP_CHECK( !colony_from_coord.contains( where ),
                   "multiples colonies on tile {}.", where );
       colony_from_coord[where] = id;
       string name              = colony.name();
-      UNXP_CHECK( !bu::has_key( colony_from_name, name ),
+      UNXP_CHECK( !colony_from_name.contains( name ),
                   "multiples colonies have name {}.", name );
       colony_from_name[name] = id;
     }
@@ -90,10 +90,10 @@ SAVEGAME_IMPL( Colony );
 expect<ColonyId> cstate_create_colony( e_nation         nation,
                                        Coord const&     where,
                                        std::string_view name ) {
-  if( bu::has_key( SG().colony_from_coord, where ) )
+  if( SG().colony_from_coord.contains( where ) )
     return UNEXPECTED( "square {} already contains a colony.",
                        where );
-  if( bu::has_key( SG().colony_from_name, string( name ) ) )
+  if( SG().colony_from_name.contains( string( name ) ) )
     return UNEXPECTED( "there is already a colony with name {}.",
                        name );
 
@@ -116,7 +116,7 @@ expect<ColonyId> cstate_create_colony( e_nation         nation,
 }
 
 bool colony_exists( ColonyId id ) {
-  return bu::has_key( SG().colonies, id ).has_value();
+  return SG().colonies.contains( id );
 }
 
 Colony& colony_from_id( ColonyId id ) {
@@ -143,23 +143,20 @@ void map_colonies( tl::function_ref<void( Colony& )> func ) {
 // Should not be holding any references to the colony after this.
 void cstate_destroy_colony( ColonyId id ) {
   Colony& colony = colony_from_id( id );
-  CHECK(
-      bu::has_key( SG().colony_from_coord, colony.location() ) );
+  CHECK( SG().colony_from_coord.contains( colony.location() ) );
   SG().colony_from_coord.erase( colony.location() );
-  CHECK( bu::has_key( SG().colony_from_name, colony.name() ) );
+  CHECK( SG().colony_from_name.contains( colony.name() ) );
   SG().colony_from_name.erase( colony.name() );
   // Should be last.
   SG().colonies.erase( id );
 }
 
 Opt<ColonyId> colony_from_coord( Coord const& coord ) {
-  return base::optional_to_maybe(
-      bu::val_safe( SG().colony_from_coord, coord ) );
+  return base::lookup( SG().colony_from_coord, coord );
 }
 
 Opt<ColonyId> colony_from_name( std::string_view name ) {
-  return base::optional_to_maybe(
-      bu::val_safe( SG().colony_from_name, string( name ) ) );
+  return base::lookup( SG().colony_from_name, string( name ) );
 }
 
 Vec<ColonyId> colonies_in_rect( Rect const& rect ) {

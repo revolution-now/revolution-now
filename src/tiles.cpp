@@ -21,7 +21,6 @@
 
 // base-util
 #include "base-util/fs.hpp"
-#include "base-util/keyval.hpp"
 #include "base-util/pp.hpp"
 
 // magic_enum
@@ -62,7 +61,7 @@ unordered_map<e_tile, sprite, EnumClassHash> g_sprites;
 unordered_map<std::string, tile_map>         tile_maps;
 
 Texture const& load_image( fs::path const& p ) {
-  if( !bu::has_key( g_images, p ) )
+  if( !g_images.contains( p ) )
     g_images.emplace( p, Texture::load_image( p ) );
   return g_images[p];
 }
@@ -199,7 +198,7 @@ void init_sprites() {
   // clang-format on
 
   for( e_tile e : magic_enum::enum_values<e_tile>() ) {
-    CHECK( bu::has_key( g_sprites, e ),
+    CHECK( g_sprites.contains( e ),
            "Tile `{}` has not been loaded.", e );
   }
   auto num_tiles        = magic_enum::enum_count<e_tile>();

@@ -20,9 +20,11 @@
 #include "ranges.hpp"
 #include "ttf.hpp"
 
+// base
+#include "base/keyval.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/keyval.hpp"
 #include "base-util/string.hpp"
 
 // Abseil
@@ -66,8 +68,7 @@ NodeMap<TextCacheKey, Texture> g_text_cache;
 constexpr int const            k_max_text_cache_size = 2000;
 
 OptCRef<Texture> text_cache_lookup( TextCacheKey const& key ) {
-  return base::optional_to_maybe(
-      bu::val_safe( g_text_cache, key ) );
+  return base::lookup( g_text_cache, key );
 }
 
 void trim_text_cache() {

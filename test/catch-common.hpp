@@ -18,6 +18,7 @@
 #include "maybe.hpp"
 
 // base-util
+#include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
 
 // Catch2
@@ -39,15 +40,19 @@
   };                                                         \
   }
 
-#define FMT_TO_CATCH_T_IMPL( t_args, type )                 \
-  namespace Catch {                                         \
-  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )> \
-  struct StringMaker<type<EXPAND t_args>> {                 \
-    static std::string convert(                             \
-        type<EXPAND t_args> const& value ) {                \
-      return fmt::format( "{}", value );                    \
-    }                                                       \
-  };                                                        \
+#define RN_HAS_FMT_FORMAT( type ) ::rn::has_fmt<type>
+
+#define FMT_TO_CATCH_T_IMPL( t_args, type )                    \
+  namespace Catch {                                            \
+  template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>    \
+  requires( mp::and_v<PP_MAP_COMMAS( RN_HAS_FMT_FORMAT,        \
+                                     EXPAND t_args )> ) struct \
+      StringMaker<type<EXPAND t_args>> {                       \
+    static std::string convert(                                \
+        type<EXPAND t_args> const& value ) {                   \
+      return fmt::format( "{}", value );                       \
+    }                                                          \
+  };                                                           \
   }
 
 // Use this to teach Catch2 how to convert types to strings that
