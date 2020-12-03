@@ -32,10 +32,10 @@ TEST_CASE( "[vocab] NoCopy int" ) {
   NoCopy<int> nc2 = std::move( nc );
   REQUIRE( nc2 == 5 );
   // int x = nc2;
-  static_assert( !is_convertible_v<NoCopy<int> const&, int> );
-  static_assert( !is_convertible_v<NoCopy<int>&, int> );
-  static_assert( !is_convertible_v<NoCopy<int> const, int> );
-  static_assert( !is_convertible_v<NoCopy<int> const&&, int> );
+  static_assert( is_convertible_v<NoCopy<int> const&, int> );
+  static_assert( is_convertible_v<NoCopy<int>&, int> );
+  static_assert( is_convertible_v<NoCopy<int> const, int> );
+  static_assert( is_convertible_v<NoCopy<int> const&&, int> );
   int x = std::move( nc2 );
   static_assert( is_convertible_v<NoCopy<int>, int> );
   static_assert( is_convertible_v<NoCopy<int>&&, int> );
@@ -51,12 +51,12 @@ TEST_CASE( "[vocab] NoCopy string" ) {
   REQUIRE( nc2 == "5" );
   // string x = nc2;
   static_assert(
-      !is_convertible_v<NoCopy<string> const&, string> );
-  static_assert( !is_convertible_v<NoCopy<string>&, string> );
+      is_convertible_v<NoCopy<string> const&, string> );
+  static_assert( is_convertible_v<NoCopy<string>&, string> );
   static_assert(
-      !is_convertible_v<NoCopy<string> const, string> );
+      is_convertible_v<NoCopy<string> const, string> );
   static_assert(
-      !is_convertible_v<NoCopy<string> const&&, string> );
+      is_convertible_v<NoCopy<string> const&&, string> );
   string x = std::move( nc2 );
   static_assert( is_convertible_v<NoCopy<string>, string> );
   static_assert( is_convertible_v<NoCopy<string>&&, string> );

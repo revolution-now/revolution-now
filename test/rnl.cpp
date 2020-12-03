@@ -19,9 +19,7 @@
 // base
 #include "base/build-properties.hpp"
 #include "base/fs.hpp"
-
-// base-util
-#include "base-util/io.hpp"
+#include "base/io.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -279,14 +277,12 @@ TEST_CASE( "[rnl] Equality" ) {
 }
 
 TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
-  Opt<Str> golden =
-      base::optional_to_maybe( util::read_file_as_string(
-          testing::data_dir() / "rnl-testing-golden.hpp" ) );
+  Opt<Str> golden = base::read_text_file_as_string(
+      testing::data_dir() / "rnl-testing-golden.hpp" );
   REQUIRE( golden.has_value() );
-  fs::path root = base::build_output_root();
-  Opt<Str> generated =
-      base::optional_to_maybe( util::read_file_as_string(
-          root / fs::path( rnl_testing_genfile ) ) );
+  fs::path root      = base::build_output_root();
+  Opt<Str> generated = base::read_text_file_as_string(
+      root / fs::path( rnl_testing_genfile ) );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
   // Catch2 doesn't try to print the values when they are not

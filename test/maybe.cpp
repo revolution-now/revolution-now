@@ -1639,26 +1639,6 @@ TEST_CASE( "[maybe] nothing_t constructors" ) {
   REQUIRE( !m.has_value() );
 }
 
-// FIXME: remove after migration is finished.
-TEST_CASE( "[maybe] conversion from optional" ) {
-  {
-    optional<int> o;
-    M<int>        m = optional_to_maybe( o );
-    REQUIRE( !m.has_value() );
-  }
-  {
-    optional<int> o = 5;
-    M<int>        m = optional_to_maybe( o );
-    REQUIRE( m.has_value() );
-    REQUIRE( *m == 5 );
-  }
-  {
-    M<NoCopy> m = optional_to_maybe( optional<NoCopy>( 'c' ) );
-    REQUIRE( m.has_value() );
-    REQUIRE( m->c == 'c' );
-  }
-}
-
 TEST_CASE( "[maybe] cat_maybes" ) {
   SECTION( "int" ) {
     vector<M<int>> v{ M<int>{},    M<int>{ 5 }, M<int>{},

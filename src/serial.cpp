@@ -14,10 +14,10 @@
 #include "config-files.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
-#include "io.hpp"
 #include "logging.hpp"
 
 // base
+#include "base/io.hpp"
 #include "base/meta.hpp"
 
 // Revolution Now (config)
@@ -98,8 +98,12 @@ expect<BinaryBlob> BinaryBlob::from_json(
 
   auto schema_path =
       config_rn.flatbuffers.include_path / schema_file_name;
-  XP_OR_RETURN( schema, rn::read_file_as_string( schema_path ) );
-  if( !parser.Parse( schema.c_str(), c_includes ) )
+  auto maybe_schema = base::read_text_file( schema_path );
+  if( !maybe_schema )
+    return UNEXPECTED( "failed to read schema file: {}",
+                       schema_path );
+  char const* schema = maybe_schema->get();
+  if( !parser.Parse( schema, c_includes ) )
     return UNEXPECTED( "failed to parse schema file `{}`: {}",
                        schema_path, parser.error_ );
 

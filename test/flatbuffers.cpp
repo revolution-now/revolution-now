@@ -17,7 +17,6 @@
 #include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "fsm.hpp"
-#include "io.hpp"
 #include "logging.hpp"
 #include "matrix.hpp"
 #include "serial.hpp"
@@ -27,8 +26,8 @@
 // Rnl
 #include "rnl/testing.hpp"
 
-// base-util
-#include "base-util/io.hpp"
+// base
+#include "base/io.hpp"
 
 // Flatbuffers
 #include "fb/testing_generated.h"
@@ -273,8 +272,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::blob_to_json<Monster>( blob );
-    ASSIGN_CHECK_XP( json_golden,
-                     rn::read_file_as_string( json_file ) );
+    ASSIGN_CHECK_OPT(
+        json_golden,
+        base::read_text_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
 
     CHECK_XP( blob.write( tmp_file.c_str() ) );
@@ -286,8 +286,9 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = blob.to_json<fb::Monster>();
-    ASSIGN_CHECK_XP( json_golden,
-                     rn::read_file_as_string( json_file ) );
+    ASSIGN_CHECK_OPT(
+        json_golden,
+        base::read_text_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
 
     // Get a pointer to the root object inside the buffer.
@@ -526,10 +527,10 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::serialize_to_json( monster );
-    ASSIGN_CHECK_XP(
+    ASSIGN_CHECK_OPT(
         json_golden,
-        rn::read_file_as_string( data_dir() /
-                                 "monster-round-trip.json" ) );
+        base::read_text_file_as_string(
+            data_dir() / "monster-round-trip.json" ) );
     REQUIRE( json == json_golden );
 
     Monster monster_new;
@@ -630,8 +631,8 @@ TEST_CASE( "deserialize json" ) {
                      e_unit_type::free_colonist );
   (void)create_unit( e_nation::english, e_unit_type::soldier );
 
-  ASSIGN_CHECK_XP( json, rn::read_file_as_string(
-                             data_dir() / "unit.json" ) );
+  ASSIGN_CHECK_OPT( json, base::read_text_file_as_string(
+                              data_dir() / "unit.json" ) );
   Unit unit;
   CHECK_XP( rn::serial::deserialize_from_json(
       /*schema_name=*/"unit",
@@ -693,8 +694,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = blob.to_json<fb::Unit>();
-    ASSIGN_CHECK_XP( json_golden,
-                     rn::read_file_as_string( json_file ) );
+    ASSIGN_CHECK_OPT(
+        json_golden,
+        base::read_text_file_as_string( json_file ) );
     INFO( json );
     REQUIRE( json == json_golden );
 
@@ -780,8 +782,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   SECTION( "deserialize unit to json" ) {
     ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
     auto json = blob.to_json<fb::Unit>();
-    ASSIGN_CHECK_XP( json_golden,
-                     rn::read_file_as_string( json_file ) );
+    ASSIGN_CHECK_OPT(
+        json_golden,
+        base::read_text_file_as_string( json_file ) );
     INFO( json );
     REQUIRE( json == json_golden );
   }
@@ -909,8 +912,9 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
   // Make sure that deserializing a map with duplicate keys re-
   // sults in an error.
   MapTester1 m_dup;
-  ASSIGN_CHECK_XP( json, rn::read_file_as_string(
-                             data_dir() / "map-dup-key.json" ) );
+  ASSIGN_CHECK_OPT( json,
+                    base::read_text_file_as_string(
+                        data_dir() / "map-dup-key.json" ) );
   auto xp = rn::serial::deserialize_from_json(
       /*schema_name=*/"testing",
       /*json=*/json, /*out=*/&m_dup );

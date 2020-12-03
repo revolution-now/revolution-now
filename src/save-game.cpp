@@ -15,12 +15,12 @@
 #include "cc-specific.hpp"
 #include "config-files.hpp"
 #include "fb.hpp"
-#include "io.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
 #include "serial.hpp"
 
 // base
+#include "base/io.hpp"
 #include "base/meta.hpp"
 
 // Revolution Now (save-state modules)
@@ -237,10 +237,13 @@ expect<fs::path> load_game( int slot ) {
   }
 
   if( use_json ) {
-    XP_OR_RETURN( json, read_file_as_string( json_path ) );
+    auto maybe_json =
+        base::read_text_file_as_string( json_path );
+    if( !maybe_json )
+      return UNEXPECTED( "failed to read json file" );
     XP_OR_RETURN( blob, serial::BinaryBlob::from_json(
                             /*schema_file_name=*/"save-game.fbs",
-                            /*json=*/json,
+                            /*json=*/*maybe_json,
                             /*root_type=*/"SaveGame" ) );
     XP_OR_RETURN_( load_from_blob( blob ) );
     return json_path;

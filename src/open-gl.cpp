@@ -13,10 +13,12 @@
 // Revolution Now
 #include "errors.hpp"
 #include "input.hpp"
-#include "io.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
 #include "tx.hpp"
+
+// base
+#include "base/io.hpp"
 
 // SDL
 #include "SDL.h"
@@ -48,7 +50,7 @@ void check_gl_errors() {
 
 GLuint load_texture( fs::path const& p ) {
   auto           img = Surface::load_image( p.string().c_str() );
-  ::SDL_Surface* surface = ( ::SDL_Surface*)img.get();
+  ::SDL_Surface* surface = (::SDL_Surface*)img.get();
   // Make sure we have RGBA.
   CHECK( surface->format->BytesPerPixel == 4 );
 
@@ -82,10 +84,10 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // == Vertex Shader ===========================================
 
   GLuint vertex_shader = glCreateShader( GL_VERTEX_SHADER );
-  ASSIGN_CHECK_XP( vertex_shader_source,
-                   read_file_as_string( vert ) );
+  ASSIGN_CHECK_OPT( vertex_shader_source,
+                    base::read_text_file_as_string( vert ) );
   char const* p_vertex_shader_source =
-      vertex_shader_source.c_str();
+      vertex_shader_source->c_str();
   glShaderSource( vertex_shader, 1, &p_vertex_shader_source,
                   nullptr );
   glCompileShader( vertex_shader ); // check errors?
@@ -100,10 +102,10 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // == Fragment Shader =========================================
 
   GLuint fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
-  ASSIGN_CHECK_XP( fragment_shader_source,
-                   read_file_as_string( frag ) );
+  ASSIGN_CHECK_OPT( fragment_shader_source,
+                    base::read_text_file_as_string( frag ) );
   char const* p_fragment_shader_source =
-      fragment_shader_source.c_str();
+      fragment_shader_source->c_str();
   glShaderSource( fragment_shader, 1, &p_fragment_shader_source,
                   nullptr );
   glCompileShader( fragment_shader ); // check errors?

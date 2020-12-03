@@ -18,10 +18,10 @@
 
 // base
 #include "base/fs.hpp"
+#include "base/io.hpp"
 #include "base/maybe.hpp"
 
 // base-util
-#include "base-util/io.hpp"
 #include "base-util/string.hpp"
 
 // Abseil
@@ -45,8 +45,7 @@ int main( int argc, char** argv ) {
         "filename '{}' does not have a .rnl extension.",
         filename );
 
-  maybe<string> rnl = base::optional_to_maybe(
-      util::read_file_as_string( filename ) );
+  auto rnl = base::read_text_file_as_string( filename );
   if( !rnl.has_value() )
     rnl::error_msg( "failed to open rnl file '{}'.", filename );
 
@@ -58,8 +57,7 @@ int main( int argc, char** argv ) {
   if( !peg_file.ends_with( ".peg" ) )
     rnl::error_msg( "peg file must end with '.peg'." );
 
-  maybe<string> peg = base::optional_to_maybe(
-      util::read_file_as_string( peg_file ) );
+  auto peg = base::read_text_file_as_string( peg_file );
   if( !peg.has_value() )
     rnl::error_msg( "failed to open peg file '{}'.", peg_file );
 
@@ -92,11 +90,12 @@ int main( int argc, char** argv ) {
                     fs::path( output_file ).stem().string(),
                     ").\n", *cpp_code );
 
-  maybe<string> existing_contents = base::optional_to_maybe(
-      util::read_file_as_string( output_file ) );
+  auto existing_contents =
+      base::read_text_file_as_string( output_file );
   if( existing_contents.has_value() &&
       ( util::strip( *cpp_code ) ==
-        util::strip( *existing_contents ) ) ) {
+        util::strip( static_cast<string const&>(
+            *existing_contents ) ) ) ) {
     // Don't rewrite the file if its contents are already iden-
     // tical to what we are about to write, that way we don't af-
     // fect the timestamp on the file, since it won't need to
