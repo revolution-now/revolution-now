@@ -287,7 +287,7 @@ maybe<T const&> CargoHold::slot_holds_cargo_type(
   return slots_[idx]
       .get_if<CargoSlot::cargo>()
       .member( &CargoSlot::cargo::contents )
-      .bind( L( _.template get_if<T>() ) );
+      .get_if<T>();
 }
 
 } // namespace rn

@@ -14,6 +14,7 @@
 // Under test.
 #include "base/maybe-util.hpp"
 #include "base/maybe.hpp"
+#include "base/variant.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -2549,6 +2550,100 @@ TEST_CASE( "[maybe] ref to member" ) {
     REQUIRE( m5.has_value() );
     REQUIRE( m5 == 3 );
     REQUIRE( *m5 == 3 );
+  }
+}
+
+TEST_CASE( "[maybe] get_if" ) {
+  SECTION( "value, std::variant" ) {
+    using V = std::variant<int, string, double>;
+    M<V> m;
+    REQUIRE( m.get_if<double>() == nothing );
+    SECTION( "int" ) {
+      m        = 3;
+      auto res = m.get_if<int>();
+      ASSERT_VAR_TYPE( res, maybe<int&> );
+      REQUIRE( res.has_value() );
+      *res = 4;
+      REQUIRE( m == V{ 4 } );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+    SECTION( "string" ) {
+      m        = "hello";
+      auto res = as_const( m ).get_if<string>();
+      ASSERT_VAR_TYPE( res, maybe<string const&> );
+      REQUIRE( res.has_value() );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+  }
+  SECTION( "value, base::variant" ) {
+    using V = base::variant<int, string, double>;
+    M<V> m;
+    REQUIRE( m.get_if<string>() == nothing );
+    SECTION( "int" ) {
+      m        = 3;
+      auto res = m.get_if<int>();
+      ASSERT_VAR_TYPE( res, maybe<int&> );
+      REQUIRE( res.has_value() );
+      *res = 4;
+      REQUIRE( m == V{ 4 } );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+    SECTION( "string" ) {
+      m        = "hello";
+      auto res = m.get_if<string>();
+      ASSERT_VAR_TYPE( res, maybe<string&> );
+      REQUIRE( res.has_value() );
+      REQUIRE( m.get_if<double>() == nothing );
+      m = "world";
+      REQUIRE( m == V{ "world" } );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+  }
+  SECTION( "ref, std::variant" ) {
+    using V = std::variant<int, string, double>;
+    SECTION( "nothing" ) {
+      M<V&> m = nothing;
+      REQUIRE( m.get_if<string>() == nothing );
+    }
+    SECTION( "int" ) {
+      V     v   = 3;
+      M<V&> m   = v;
+      auto  res = m.get_if<int>();
+      ASSERT_VAR_TYPE( res, maybe<int&> );
+      REQUIRE( res.has_value() );
+      *res = 4;
+      REQUIRE( m == V{ 4 } );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+    SECTION( "string" ) {
+      V     v   = "hello";
+      M<V&> m   = v;
+      auto  res = m.get_if<string>();
+      ASSERT_VAR_TYPE( res, maybe<string&> );
+      REQUIRE( res.has_value() );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+  }
+  SECTION( "ref, base::variant" ) {
+    using V = base::variant<int, string, double>;
+    SECTION( "int" ) {
+      V     v   = 3;
+      M<V&> m   = v;
+      auto  res = m.get_if<int>();
+      ASSERT_VAR_TYPE( res, maybe<int&> );
+      REQUIRE( res.has_value() );
+      *res = 4;
+      REQUIRE( m == V{ 4 } );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
+    SECTION( "string" ) {
+      V const     v   = "hello";
+      M<V const&> m   = v;
+      auto        res = m.get_if<string>();
+      ASSERT_VAR_TYPE( res, maybe<string const&> );
+      REQUIRE( res.has_value() );
+      REQUIRE( m.get_if<double>() == nothing );
+    }
   }
 }
 
