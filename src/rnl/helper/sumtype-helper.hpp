@@ -39,23 +39,4 @@ void try_deserialize_variant_types( Func&& f ) {
       std::make_index_sequence<std::variant_size_v<Variant>>() );
 }
 
-template<typename V>
-struct SumtypeToEnum;
-
-template<typename V>
-using SumtypeToEnum_v = typename SumtypeToEnum<V>::type;
-
-template<typename... Args>
-auto enum_for( base::variant<Args...> const& v ) {
-  return static_cast<SumtypeToEnum_v<base::variant<Args...>>>(
-      v.index() );
-}
-
-template<typename T, typename V>
-auto& get_if_or_die( V& v ) {
-  auto* res = std::get_if<T>( &v );
-  DCHECK( res != nullptr );
-  return *res;
-}
-
 } // namespace rn

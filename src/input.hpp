@@ -219,13 +219,13 @@ bool is_q_down();
 
 } // namespace rn::input
 
-namespace rn {
+namespace base {
 
 template<>
-struct SumtypeToEnum<input::event_t> {
-  using type = input::e_input_event;
+struct variant_to_enum<::rn::input::event_t> {
+  using type = ::rn::input::e_input_event;
 };
 
-} // namespace rn
+} // namespace base
 
 DEFINE_FORMAT_( ::rn::input::mod_keys, "<mod_keys>" );

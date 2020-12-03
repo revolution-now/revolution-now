@@ -203,7 +203,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 
       auto update_drag = [&mouse]( auto button, auto& drag ) {
         if( button ) {
-          switch( enum_for( drag ) ) {
+          switch( drag.to_enum() ) {
             case drag_phase::e::none: {
               drag = drag_phase::maybe{
                   /*origin=*/g_prev_mouse_pos };
@@ -221,7 +221,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
             }
             case drag_phase::e::dragging: {
               auto& val =
-                  get_if_or_die<drag_phase::dragging>( drag );
+                  drag.template get<drag_phase::dragging>();
               CHECK( val.phase == e_drag_phase::in_progress );
               break;
             }
@@ -240,7 +240,7 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           // this event, so it should be current with it). There-
           // fore, there is no situation where we should have
           // (button up) + (mouse motion) + (`maybe`/`dragging`).
-          switch( enum_for( drag ) ) {
+          switch( drag.to_enum() ) {
             case drag_phase::e::none: //
               break;
             case drag_phase::e::maybe: {

@@ -389,7 +389,7 @@ void advance_viewport_state() {
 void advance_landview_anim_state() {
   if( holds<LandViewAnim::none>( SG().anim ) ) {
     // We're not supposed to be animating anything.
-    switch( enum_for( SG().mode.state() ) ) {
+    switch( SG().mode.state().to_enum() ) {
       case LandViewState::e::none: //
         break;
       case LandViewState::e::future: //
@@ -408,13 +408,13 @@ void advance_landview_anim_state() {
   // We're supposed to be animating something.
   if( SG().mode.holds<LandViewState::none>() ) {
     // Kick off the animation.
-    switch( auto& v = SG().anim; enum_for( v ) ) {
+    switch( auto& v = SG().anim; v.to_enum() ) {
       case LandViewAnim::e::none: {
         SHOULD_NOT_BE_HERE;
         break;
       }
       case LandViewAnim::e::move: {
-        auto& val = get_if_or_die<LandViewAnim::move>( v );
+        auto& val = v.get<LandViewAnim::move>();
         SG().mode.send_event( LandViewEvent::slide_unit{
             /*id=*/val.id,      //
             /*direction=*/val.d //
@@ -423,7 +423,7 @@ void advance_landview_anim_state() {
         break;
       }
       case LandViewAnim::e::attack: {
-        auto& val = get_if_or_die<LandViewAnim::attack>( v );
+        auto& val = v.get<LandViewAnim::attack>();
         ASSIGN_CHECK_OPT( attacker_coord,
                           coord_for_unit( val.attacker ) );
         ASSIGN_CHECK_OPT(
@@ -442,7 +442,7 @@ void advance_landview_anim_state() {
     return;
   }
   // We should already be animating something.
-  switch( enum_for( SG().mode.state() ) ) {
+  switch( SG().mode.state().to_enum() ) {
     case LandViewState::e::none: //
       SHOULD_NOT_BE_HERE;
       break;
@@ -458,13 +458,13 @@ void advance_landview_anim_state() {
       break;
   }
   bool finished_anim = false;
-  switch( auto& v = SG().anim; enum_for( v ) ) {
+  switch( auto& v = SG().anim; v.to_enum() ) {
     case LandViewAnim::e::none: {
       SHOULD_NOT_BE_HERE;
       break;
     }
     case LandViewAnim::e::move: {
-      auto& val = get_if_or_die<LandViewAnim::move>( v );
+      auto& val = v.get<LandViewAnim::move>();
       ASSIGN_CHECK_OPT(
           sliding,
           SG().mode.holds<LandViewState::sliding_unit>() );
@@ -477,7 +477,7 @@ void advance_landview_anim_state() {
       break;
     }
     case LandViewAnim::e::attack: {
-      auto& val    = get_if_or_die<LandViewAnim::attack>( v );
+      auto& val    = v.get<LandViewAnim::attack>();
       auto& attack = val;
       CHECK( holds<LandViewState::sliding_unit>(
                  SG().mode.state() ) ||
@@ -520,13 +520,12 @@ void advance_landview_anim_state() {
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_landview_state( LandViewFsm& fsm ) {
-  switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
+  switch( auto& v = fsm.mutable_state(); v.to_enum() ) {
     case LandViewState::e::none: {
       break;
     }
     case LandViewState::e::future: {
-      auto& [s_future] =
-          get_if_or_die<LandViewState::future>( v );
+      auto& [s_future] = v.get<LandViewState::future>();
       advance_fsm_ui_state( &fsm, &s_future.o );
       break;
     }
@@ -710,7 +709,7 @@ sync_future<ClickTileActions> click_on_world_tile(
     Coord coord ) {
   auto s_future = make_sync_future<ClickTileActions>();
   if( !holds<LandViewAnim::none>( SG().anim ) ) return s_future;
-  switch( enum_for( SG().mode.state() ) ) {
+  switch( SG().mode.state().to_enum() ) {
     case LandViewState::e::none: {
       s_future = click_on_world_tile_impl(
           coord, /*allow_activate=*/false );
@@ -792,7 +791,7 @@ struct LandViewPlane : public Plane {
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch( enum_for( event ) ) {
+    switch( event.to_enum() ) {
       case input::e_input_event::unknown_event: //
         break;
       case input::e_input_event::quit_event: //
@@ -800,7 +799,7 @@ struct LandViewPlane : public Plane {
       case input::e_input_event::win_event: //
         break;
       case input::e_input_event::key_event: {
-        auto& val = get_if_or_die<input::key_event_t>( event );
+        auto& val = event.get<input::key_event_t>();
         // TODO: Need to put this in the input module.
         auto const* __state = ::SDL_GetKeyboardState( nullptr );
         auto        state   = [__state]( ::SDL_Scancode code ) {
@@ -816,7 +815,7 @@ struct LandViewPlane : public Plane {
         auto& key_event = val;
         if( key_event.change != input::e_key_change::down )
           break;
-        switch( auto& v = SG().mode.state(); enum_for( v ) ) {
+        switch( auto& v = SG().mode.state(); v.to_enum() ) {
           case LandViewState::e::none: {
             switch( key_event.keycode ) {
               case ::SDLK_z:
@@ -836,8 +835,7 @@ struct LandViewPlane : public Plane {
             break;
           }
           case LandViewState::e::blinking_unit: {
-            auto& val =
-                get_if_or_die<LandViewState::blinking_unit>( v );
+            auto& val = v.get<LandViewState::blinking_unit>();
             auto& blink_unit = val;
             handled          = e_input_handled::yes;
             switch( key_event.keycode ) {
@@ -897,8 +895,7 @@ struct LandViewPlane : public Plane {
         break;
       }
       case input::e_input_event::mouse_wheel_event: {
-        auto& val =
-            get_if_or_die<input::mouse_wheel_event_t>( event );
+        auto& val = event.get<input::mouse_wheel_event_t>();
         // If the mouse is in the viewport and its a wheel
         // event then we are in business.
         if( SG().viewport.screen_coord_in_viewport( val.pos ) ) {
@@ -917,8 +914,7 @@ struct LandViewPlane : public Plane {
         break;
       }
       case input::e_input_event::mouse_button_event: {
-        auto& val =
-            get_if_or_die<input::mouse_button_event_t>( event );
+        auto& val = event.get<input::mouse_button_event_t>();
         if( val.buttons != input::e_mouse_button_event::left_up )
           break;
         if( auto maybe_tile =

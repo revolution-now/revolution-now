@@ -219,19 +219,17 @@ int move_commodity_as_much_as_possible(
 
 Opt<string> commodity_label_to_markup(
     CommodityLabel_t const& label ) {
-  switch( enum_for( label ) ) {
+  switch( label.to_enum() ) {
     case CommodityLabel::e::none: {
       return nothing;
     }
     case CommodityLabel::e::quantity: {
-      auto& [value] =
-          get_if_or_die<CommodityLabel::quantity>( label );
+      auto& [value] = label.get<CommodityLabel::quantity>();
       return fmt::format( "{}",
                           commodity_number_to_markup( value ) );
     }
     case CommodityLabel::e::buy_sell: {
-      auto& [sell, buy] =
-          get_if_or_die<CommodityLabel::buy_sell>( label );
+      auto& [sell, buy] = label.get<CommodityLabel::buy_sell>();
       return fmt::format( "{}/{}", sell / 100, buy / 100 );
     }
   };

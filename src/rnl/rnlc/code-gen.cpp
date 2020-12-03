@@ -573,7 +573,7 @@ struct CodeGenerator {
     line( "};" );
   }
 
-  void emit_SumtypeToEnum_specialization(
+  void emit_variant_to_enum_specialization(
       string_view ns, expr::Sumtype const& sumtype ) {
     if( sumtype.alternatives.empty() ) return;
     string full_sumtype_name =
@@ -588,7 +588,8 @@ struct CodeGenerator {
       line( "template<>" );
     else
       emit_template_decl( sumtype.tmpl_params );
-    line( "struct rn::SumtypeToEnum<{}> {{", full_sumtype_name );
+    line( "struct base::variant_to_enum<{}> {{",
+          full_sumtype_name );
     {
       auto _ = indent();
       line( "using type = {}::{}::e;", ns, sumtype.name );
@@ -636,7 +637,7 @@ struct CodeGenerator {
     }
     newline();
     close_ns( ns );
-    emit_SumtypeToEnum_specialization( ns, sumtype );
+    emit_variant_to_enum_specialization( ns, sumtype );
     // Global namespace.
     if( sumtype_has_feature(
             sumtype, expr::e_sumtype_feature::formattable ) ) {

@@ -83,7 +83,7 @@ namespace rnltest {
 
 // This gives us the enum to use in a switch statement.
 template<typename T>
-struct rn::SumtypeToEnum<rnltest::Maybe_t<T>> {
+struct base::variant_to_enum<rnltest::Maybe_t<T>> {
   using type = rnltest::Maybe::e;
 };
 
@@ -172,7 +172,7 @@ namespace rnltest {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rnltest::MyVariant1_t> {
+struct base::variant_to_enum<rnltest::MyVariant1_t> {
   using type = rnltest::MyVariant1::e;
 };
 
@@ -418,7 +418,7 @@ namespace rnltest {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rnltest::MyVariant2_t> {
+struct base::variant_to_enum<rnltest::MyVariant2_t> {
   using type = rnltest::MyVariant2::e;
 };
 
@@ -565,7 +565,7 @@ namespace rnltest::inner {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rnltest::inner::MyVariant3_t> {
+struct base::variant_to_enum<rnltest::inner::MyVariant3_t> {
   using type = rnltest::inner::MyVariant3::e;
 };
 
@@ -665,7 +665,7 @@ namespace rnltest::inner {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rnltest::inner::MyVariant4_t> {
+struct base::variant_to_enum<rnltest::inner::MyVariant4_t> {
   using type = rnltest::inner::MyVariant4::e;
 };
 
@@ -768,7 +768,7 @@ namespace rnltest::inner {
 
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
-struct rn::SumtypeToEnum<rnltest::inner::TemplateTwoParams_t<T, U>> {
+struct base::variant_to_enum<rnltest::inner::TemplateTwoParams_t<T, U>> {
   using type = rnltest::inner::TemplateTwoParams::e;
 };
 
@@ -856,7 +856,7 @@ namespace rnltest::inner {
 
 // This gives us the enum to use in a switch statement.
 template<typename T, typename U>
-struct rn::SumtypeToEnum<rnltest::inner::CompositeTemplateTwo_t<T, U>> {
+struct base::variant_to_enum<rnltest::inner::CompositeTemplateTwo_t<T, U>> {
   using type = rnltest::inner::CompositeTemplateTwo::e;
 };
 
@@ -1122,7 +1122,7 @@ namespace rn {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rn::MySumtype_t> {
+struct base::variant_to_enum<rn::MySumtype_t> {
   using type = rn::MySumtype::e;
 };
 
@@ -1514,7 +1514,7 @@ namespace rn {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rn::OnOffState_t> {
+struct base::variant_to_enum<rn::OnOffState_t> {
   using type = rn::OnOffState::e;
 };
 
@@ -1658,7 +1658,7 @@ namespace rn {
 
 // This gives us the enum to use in a switch statement.
 template<>
-struct rn::SumtypeToEnum<rn::OnOffEvent_t> {
+struct base::variant_to_enum<rn::OnOffEvent_t> {
   using type = rn::OnOffEvent::e;
 };
 

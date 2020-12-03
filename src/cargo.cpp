@@ -157,13 +157,13 @@ void CargoHold::check_invariants() const {
   int occupied = 0;
   for( int i = 0; i < slots_total(); ++i ) {
     auto const& slot = slots_[i];
-    switch( enum_for( slot ) ) {
+    switch( slot.to_enum() ) {
       case CargoSlot::e::empty: //
         break;
       case CargoSlot::e::overflow: //
         break;
       case CargoSlot::e::cargo: {
-        auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
+        auto& cargo = slot.get<CargoSlot::cargo>();
         overload_visit(
             cargo.contents,
             [&]( UnitId id ) {
@@ -211,8 +211,7 @@ OptCRef<CargoSlot_t> CargoHold::at( int slot ) const {
   return ( *this )[slot];
 }
 
-OptCRef<CargoSlot_t> CargoHold::at(
-    CargoSlotIndex slot ) const {
+OptCRef<CargoSlot_t> CargoHold::at( CargoSlotIndex slot ) const {
   return this->at( slot._ );
 }
 
@@ -312,13 +311,13 @@ void CargoHold::compactify() {
 int CargoHold::max_commodity_quantity_that_fits(
     e_commodity type ) const {
   auto one_slot = [&]( CargoSlot_t const& slot ) {
-    switch( enum_for( slot ) ) {
+    switch( slot.to_enum() ) {
       case CargoSlot::e::empty:
         return k_max_commodity_cargo_per_slot;
       case CargoSlot::e::overflow: //
         return 0;
       case CargoSlot::e::cargo: {
-        auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
+        auto& cargo = slot.get<CargoSlot::cargo>();
         return overload_visit(
             cargo.contents, []( UnitId ) { return 0; },
             [&]( Commodity const& c ) {
@@ -361,7 +360,7 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
           return false;
         if( proposed.quantity == 0 ) //
           return false;
-        switch( auto& v = slots_[slot]; enum_for( v ) ) {
+        switch( auto& v = slots_[slot]; v.to_enum() ) {
           case CargoSlot::e::overflow: {
             return false;
           }
@@ -369,7 +368,7 @@ bool CargoHold::fits( Cargo const& cargo, int slot ) const {
             return true;
           }
           case CargoSlot::e::cargo: {
-            auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+            auto& cargo = v.get<CargoSlot::cargo>();
             return overload_visit(
                 cargo.contents, []( UnitId ) { return false; },
                 [&]( Commodity const& c ) {
@@ -436,7 +435,7 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
         CHECK( commodity.quantity > 0 );
         for( int idx : slots ) {
           if( commodity.quantity == 0 ) break;
-          switch( auto& v = slots_[idx]; enum_for( v ) ) {
+          switch( auto& v = slots_[idx]; v.to_enum() ) {
             case CargoSlot::e::empty: {
               auto quantity_to_add =
                   std::min( commodity.quantity,
@@ -454,7 +453,7 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
             }
             case CargoSlot::e::overflow: break;
             case CargoSlot::e::cargo: {
-              auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+              auto& cargo = v.get<CargoSlot::cargo>();
               if( auto* comm_in_slot = get_if<Commodity>(
                       &( cargo.contents ) ) ) {
                 if( comm_in_slot->type == commodity.type ) {

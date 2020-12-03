@@ -17,7 +17,7 @@
 // Must be last.
 #include "catch-common.hpp"
 
-namespace rn {
+namespace base {
 namespace {
 
 using namespace std;
@@ -61,13 +61,13 @@ TEST_CASE( "[variant] holds" ) {
   V<int, string> v1{ 5 };
   V<int, string> v2{ "hello" };
 
-  REQUIRE( holds<int>( v1 ) );
-  REQUIRE( !holds<string>( v1 ) );
-  REQUIRE( holds<string>( v2 ) );
-  REQUIRE( !holds<int>( v2 ) );
-  REQUIRE( holds( v1, 5 ) );
-  REQUIRE( !holds( v1, 6 ) );
-  REQUIRE( !holds( v1, string( "world" ) ) );
+  REQUIRE( ::rn::holds<int>( v1 ) );
+  REQUIRE( !::rn::holds<string>( v1 ) );
+  REQUIRE( ::rn::holds<string>( v2 ) );
+  REQUIRE( !::rn::holds<int>( v2 ) );
+  REQUIRE( ::rn::holds( v1, 5 ) );
+  REQUIRE( !::rn::holds( v1, 6 ) );
+  REQUIRE( !::rn::holds( v1, string( "world" ) ) );
 }
 
 TEST_CASE( "[variant] if_get" ) {
@@ -89,5 +89,36 @@ TEST_CASE( "[variant] if_get" ) {
   REQUIRE( is_string );
 }
 
+enum class e_test_enum { one, two, three };
+
 } // namespace
-} // namespace rn
+
+template<>
+struct variant_to_enum<V<int, float, string>> {
+  using type = e_test_enum;
+};
+
+namespace {
+
+TEST_CASE( "[variant] to_enum" ) {
+  V<int, float, std::string> v;
+  static_assert(
+      is_same_v<decltype( v.to_enum() ), e_test_enum> );
+  v = "hello";
+  REQUIRE( v.to_enum() == e_test_enum::three );
+  v = 3.3f;
+  REQUIRE( v.to_enum() == e_test_enum::two );
+}
+
+TEST_CASE( "[variant] get" ) {
+  V<int, float, std::string> v;
+  v = 3;
+  REQUIRE( v.get<int>() == 3 );
+  v = 3.3f;
+  REQUIRE( v.get<float>() == 3.3f );
+  v = "hello"s;
+  REQUIRE( v.get<string>() == "hello" );
+}
+
+} // namespace
+} // namespace base

@@ -165,9 +165,9 @@ public:
   }
 
   void handle_draw( Texture& tx ) const {
-    switch( auto& v = fsm_.state(); enum_for( v ) ) {
+    switch( auto& v = fsm_.state(); v.to_enum() ) {
       case DragState::e::in_progress: {
-        auto& val       = get_if_or_die<InProgress_t>( v );
+        auto& val       = v.template get<InProgress_t>();
         auto  mouse_pos = input::current_mouse_position();
         copy_texture( val.tx, tx,
                       mouse_pos - val.tx.size() / Scale{ 2 } -
@@ -207,7 +207,7 @@ public:
         break;
       }
       case DragState::e::rubber_banding: {
-        auto& val   = get_if_or_die<RubberBanding_t>( v );
+        auto& val   = v.template get<RubberBanding_t>();
         auto  delta = val.dest - val.current;
         Coord pos;
         pos.x._ =
@@ -221,7 +221,7 @@ public:
       case DragState::e::none: //
         break;
       case DragState::e::waiting_to_execute: {
-        auto& val = get_if_or_die<WaitingToExecute_t>( v );
+        auto& val = v.template get<WaitingToExecute_t>();
         copy_texture( val.tx, tx,
                       val.mouse_released -
                           val.tx.size() / Scale{ 2 } -
@@ -229,7 +229,7 @@ public:
         break;
       }
       case DragState::e::finalizing: {
-        auto& val = get_if_or_die<Finalizing_t>( v );
+        auto& val = v.template get<Finalizing_t>();
         copy_texture( val.tx, tx,
                       val.mouse_released -
                           val.tx.size() / Scale{ 2 } -
@@ -342,26 +342,26 @@ public:
 
   Opt<DraggableObjectT> obj_being_dragged() const {
     Opt<DraggableObjectT> res;
-    switch( auto& v = fsm_.state(); enum_for( v ) ) {
+    switch( auto& v = fsm_.state(); v.to_enum() ) {
       case DragState::e::none: //
         break;
       case DragState::e::rubber_banding: {
-        auto& val = get_if_or_die<RubberBanding_t>( v );
+        auto& val = v.template get<RubberBanding_t>();
         res       = child().draggable_from_src( val.src );
         break;
       }
       case DragState::e::in_progress: {
-        auto& val = get_if_or_die<InProgress_t>( v );
+        auto& val = v.template get<InProgress_t>();
         res       = child().draggable_from_src( val.src );
         break;
       }
       case DragState::e::waiting_to_execute: {
-        auto& val = get_if_or_die<WaitingToExecute_t>( v );
+        auto& val = v.template get<WaitingToExecute_t>();
         res       = draggable_from_arc( val.arc );
         break;
       }
       case DragState::e::finalizing: {
-        auto& val = get_if_or_die<Finalizing_t>( v );
+        auto& val = v.template get<Finalizing_t>();
         res       = draggable_from_arc( val.arc );
         break;
       }

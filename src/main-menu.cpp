@@ -85,9 +85,9 @@ struct MainMenuPlane : public Plane {
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch( enum_for( event ) ) {
+    switch( event.to_enum() ) {
       case input::e_input_event::key_event: {
-        auto& val = get_if_or_die<input::key_event_t>( event );
+        auto& val = event.get<input::key_event_t>();
         if( val.change != input::e_key_change::down ) break;
         // It's a key down.
         switch( val.keycode ) {

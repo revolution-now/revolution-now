@@ -594,10 +594,9 @@ void midi_thread_impl() {
     g_midi_comm.set_running_commands(
         g_midi_comm.has_commands() );
     while( ( cmd = g_midi_comm.pop_cmd() ).has_value() ) {
-      switch( enum_for( cmd.value() ) ) {
+      switch( cmd.value().to_enum() ) {
         case command::e::play: {
-          auto& [file] =
-              get_if_or_die<command::play>( cmd.value() );
+          auto& [file] = cmd.value().get<command::play>();
           g_midi_comm.set_state( e_midiseq_state::playing );
           g_midi.value().all_notes_off();
           // ****************************************************
@@ -667,8 +666,7 @@ void midi_thread_impl() {
           break;
         }
         case command::e::volume: {
-          auto& [value] =
-              get_if_or_die<command::volume>( cmd.value() );
+          auto& [value] = cmd.value().get<command::volume>();
           g_midi.value().set_master_volume( value );
           break;
         }

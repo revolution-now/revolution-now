@@ -230,7 +230,7 @@ void log_menu_state() {
 ** Querying State
 *****************************************************************/
 bool is_menu_open( e_menu menu ) {
-  switch( enum_for( g_menu_state ) ) {
+  switch( g_menu_state.to_enum() ) {
     case MenuState::e::menus_hidden: {
       return false;
     }
@@ -238,14 +238,12 @@ bool is_menu_open( e_menu menu ) {
       return false;
     }
     case MenuState::e::item_click: {
-      auto& click =
-          get_if_or_die<MenuState::item_click>( g_menu_state );
+      auto& click = g_menu_state.get<MenuState::item_click>();
       CHECK( g_item_to_menu.contains( click.item ) );
       return g_item_to_menu[click.item] == menu;
     }
     case MenuState::e::menu_open: {
-      auto& o =
-          get_if_or_die<MenuState::menu_open>( g_menu_state );
+      auto& o = g_menu_state.get<MenuState::menu_open>();
       return o.menu == menu;
     }
   }
@@ -571,12 +569,11 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
           pos += max_text_height();
         } );
     if( pos > h ) {
-      switch( enum_for( item ) ) {
+      switch( item.to_enum() ) {
         case MenuItem::e::menu_divider: //
           return nothing;
         case MenuItem::e::menu_clickable: {
-          auto& val =
-              get_if_or_die<MenuItem::menu_clickable>( item );
+          auto& val = item.get<MenuItem::menu_clickable>();
           return val.item;
         }
       }
@@ -1505,7 +1502,7 @@ struct MenuPlane : public Plane {
 
 private:
   void click_menu_item( e_menu_item item ) {
-    switch( enum_for( g_menu_state ) ) {
+    switch( g_menu_state.to_enum() ) {
       case MenuState::e::item_click: {
         // Already clicking, so do nothing. This can happen if a
         // menu item is clicked after it is already in the click

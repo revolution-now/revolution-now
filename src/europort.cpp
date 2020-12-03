@@ -121,17 +121,16 @@ void unit_sail_to_old_world( UnitId id ) {
       UnitEuroPortViewState::inbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
   if( maybe_state ) {
-    switch( auto& v = *maybe_state; enum_for( v ) ) {
+    switch( auto& v = *maybe_state; v.to_enum() ) {
       case UnitEuroPortViewState::e::inbound: {
-        auto& val =
-            get_if_or_die<UnitEuroPortViewState::inbound>( v );
+        auto& val = v.get<UnitEuroPortViewState::inbound>();
         // no-op, i.e., keep state the same.
         target_state = val;
         break;
       }
       case UnitEuroPortViewState::e::outbound: {
         auto& [percent] =
-            get_if_or_die<UnitEuroPortViewState::outbound>( v );
+            v.get<UnitEuroPortViewState::outbound>();
         if( percent > 0.0 ) {
           // Unit must "turn around" and go the other way.
           target_state = UnitEuroPortViewState::inbound{
@@ -144,8 +143,7 @@ void unit_sail_to_old_world( UnitId id ) {
         break;
       }
       case UnitEuroPortViewState::e::in_port: {
-        auto& val =
-            get_if_or_die<UnitEuroPortViewState::in_port>( v );
+        auto& val = v.get<UnitEuroPortViewState::in_port>();
         // no-op, unit is already in port.
         target_state = val;
         break;
@@ -171,17 +169,15 @@ void unit_sail_to_new_world( UnitId id ) {
       UnitEuroPortViewState::outbound{ /*progress=*/0.0 };
   auto maybe_state = unit_euro_port_view_info( id );
   CHECK( maybe_state );
-  switch( auto& v = *maybe_state; enum_for( v ) ) {
+  switch( auto& v = *maybe_state; v.to_enum() ) {
     case UnitEuroPortViewState::e::outbound: {
-      auto& val =
-          get_if_or_die<UnitEuroPortViewState::outbound>( v );
+      auto& val = v.get<UnitEuroPortViewState::outbound>();
       // no-op, i.e., keep state the same.
       target_state = val;
       break;
     }
     case UnitEuroPortViewState::e::inbound: {
-      auto& [percent] =
-          get_if_or_die<UnitEuroPortViewState::inbound>( v );
+      auto& [percent] = v.get<UnitEuroPortViewState::inbound>();
       if( percent > 0.0 ) {
         // Unit must "turn around" and go the other way.
         target_state = UnitEuroPortViewState::outbound{

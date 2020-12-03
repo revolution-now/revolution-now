@@ -141,7 +141,7 @@ UnitState_t const& unit_state( UnitId id ) {
 e_unit_state state_for_unit( UnitId id ) {
   auto states_it = SG().states.find( id );
   CHECK( states_it != SG().states.end() );
-  switch( enum_for( states_it->second ) ) {
+  switch( states_it->second.to_enum() ) {
     case UnitState::e::free: {
       // Normal units should never be in this state but in pass-
       // ing, i.e., during creation or ownership transfer.
@@ -274,12 +274,12 @@ Vec<UnitId> units_in_rect( Rect const& rect ) {
 
 Opt<Coord> coord_for_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
-  switch( auto& v = SG().states[id]; enum_for( v ) ) {
+  switch( auto& v = SG().states[id]; v.to_enum() ) {
     case UnitState::e::free: {
       FATAL( "asking for coordinates of a free unit." );
     }
     case UnitState::e::world: {
-      auto& [coord] = get_if_or_die<UnitState::world>( v );
+      auto& [coord] = v.get<UnitState::world>();
       return coord;
     }
     case UnitState::e::cargo:
@@ -298,16 +298,16 @@ Coord coord_for_unit_indirect( UnitId id ) {
 // the _safe variant since this function should not throw.
 Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
   CHECK( unit_exists( id ) );
-  switch( auto& v = SG().states[id]; enum_for( v ) ) {
+  switch( auto& v = SG().states[id]; v.to_enum() ) {
     case UnitState::e::free: {
       FATAL( "asking for coordinates of a free unit." );
     }
     case UnitState::e::world: {
-      auto& [coord] = get_if_or_die<UnitState::world>( v );
+      auto& [coord] = v.get<UnitState::world>();
       return coord;
     }
     case UnitState::e::cargo: {
-      auto& [holder] = get_if_or_die<UnitState::cargo>( v );
+      auto& [holder] = v.get<UnitState::cargo>();
       return coord_for_unit_indirect_safe( holder );
     }
     case UnitState::e::europort:
@@ -357,17 +357,17 @@ Opt<UnitId> is_unit_onboard( UnitId id ) {
 *****************************************************************/
 expect<> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info ) {
-  switch( enum_for( info ) ) {
+  switch( info.to_enum() ) {
     case UnitEuroPortViewState::e::outbound: {
       auto& [percent] =
-          get_if_or_die<UnitEuroPortViewState::outbound>( info );
+          info.get<UnitEuroPortViewState::outbound>();
       UNXP_CHECK( percent >= 0.0 );
       UNXP_CHECK( percent < 1.0 );
       return xp_success_t{};
     }
     case UnitEuroPortViewState::e::inbound: {
       auto& [percent] =
-          get_if_or_die<UnitEuroPortViewState::inbound>( info );
+          info.get<UnitEuroPortViewState::inbound>();
       UNXP_CHECK( percent >= 0.0 );
       UNXP_CHECK( percent < 1.0 );
       return xp_success_t{};
@@ -493,11 +493,11 @@ namespace internal {
 // This will erase any ownership that is had over the given unit
 // and mark it as free.
 void ustate_disown_unit( UnitId id ) {
-  switch( auto& v = SG().states[id]; enum_for( v ) ) {
+  switch( auto& v = SG().states[id]; v.to_enum() ) {
     case UnitState::e::free: //
       break;
     case UnitState::e::world: {
-      auto& [coord] = get_if_or_die<UnitState::world>( v );
+      auto& [coord] = v.get<UnitState::world>();
       ASSIGN_CHECK_OPT(
           set_it, bu::has_key( SG().units_from_coords, coord ) );
       auto& units_set = set_it->second;
@@ -524,7 +524,7 @@ void ustate_disown_unit( UnitId id ) {
       break;
     }
     case UnitState::e::colony: {
-      auto& val    = get_if_or_die<UnitState::colony>( v );
+      auto& val    = v.get<UnitState::colony>();
       auto  col_id = val.id;
       ASSIGN_CHECK_OPT(
           set_it,

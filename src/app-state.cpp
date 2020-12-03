@@ -149,7 +149,7 @@ AppFsm& g_app_state() {
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
-  switch( enum_for( fsm.state() ) ) {
+  switch( fsm.state().to_enum() ) {
     case AppState::e::main_no_game: {
       auto sel = main_menu_selection();
       if( !sel.has_value() ) break;

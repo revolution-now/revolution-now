@@ -115,14 +115,13 @@ struct OmniPlane : public Plane {
   }
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch( enum_for( event ) ) {
+    switch( event.to_enum() ) {
       case input::e_input_event::quit_event:
         throw exception_exit{};
       case input::e_input_event::win_event: //
         break;
       case input::e_input_event::key_event: {
-        auto& key_event =
-            get_if_or_die<input::key_event_t>( event );
+        auto& key_event = event.get<input::key_event_t>();
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
@@ -266,12 +265,11 @@ input::mouse_drag_event_t project_drag_event(
 
 bool input_catchall( input::event_t const& event ) {
   bool handled = false;
-  switch( enum_for( event ) ) {
+  switch( event.to_enum() ) {
     case input::e_input_event::quit_event:
       throw exception_exit{};
     case input::e_input_event::key_event: {
-      auto& key_event =
-          get_if_or_die<input::key_event_t>( event );
+      auto& key_event = event.get<input::key_event_t>();
       if( key_event.change != input::e_key_change::down ) break;
       switch( key_event.keycode ) {
         case ::SDLK_ESCAPE: //

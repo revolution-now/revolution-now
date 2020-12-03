@@ -99,7 +99,7 @@ Opt<DraggableObject_t> g_dragging_object;
 
 Opt<DraggableObject_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
-  switch( enum_for( slot ) ) {
+  switch( slot.to_enum() ) {
     case CargoSlot::e::empty: {
       return nothing;
     }
@@ -107,7 +107,7 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
       return nothing;
     }
     case CargoSlot::e::cargo: {
-      auto& cargo = get_if_or_die<CargoSlot::cargo>( slot );
+      auto& cargo = slot.get<CargoSlot::cargo>();
       return overload_visit(
           cargo.contents,
           []( UnitId id ) -> DraggableObject_t {
@@ -124,17 +124,15 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
 
 Opt<Cargo> draggable_to_cargo_object(
     DraggableObject_t const& draggable ) {
-  switch( enum_for( draggable ) ) {
+  switch( draggable.to_enum() ) {
     case DraggableObject::e::unit: {
-      auto& val =
-          get_if_or_die<DraggableObject::unit>( draggable );
+      auto& val = draggable.get<DraggableObject::unit>();
       return val.id;
     }
     case DraggableObject::e::market_commodity: return nothing;
     case DraggableObject::e::cargo_commodity: {
       auto& val =
-          get_if_or_die<DraggableObject::cargo_commodity>(
-              draggable );
+          draggable.get<DraggableObject::cargo_commodity>();
       return val.comm;
     }
   }
@@ -154,11 +152,10 @@ Opt<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
 
 Texture draw_draggable_object(
     DraggableObject_t const& object ) {
-  switch( enum_for( object ) ) {
+  switch( object.to_enum() ) {
     case DraggableObject::e::unit: {
-      auto& [id] =
-          get_if_or_die<DraggableObject::unit>( object );
-      auto tx = create_texture_transparent(
+      auto& [id] = object.get<DraggableObject::unit>();
+      auto tx    = create_texture_transparent(
           lookup_sprite( unit_from_id( id ).desc().tile )
               .size() );
       render_unit( tx, id, Coord{}, /*with_icon=*/false );
@@ -166,14 +163,11 @@ Texture draw_draggable_object(
     }
     case DraggableObject::e::market_commodity: {
       auto& [type] =
-          get_if_or_die<DraggableObject::market_commodity>(
-              object );
+          object.get<DraggableObject::market_commodity>();
       return render_commodity_create( type );
     }
     case DraggableObject::e::cargo_commodity: {
-      auto& val =
-          get_if_or_die<DraggableObject::cargo_commodity>(
-              object );
+      auto& val = object.get<DraggableObject::cargo_commodity>();
       return render_commodity_create( val.comm.type );
     }
   }
@@ -1054,7 +1048,7 @@ public:
         }
         auto dst_coord       = rect.upper_left() + offset;
         auto cargo_slot_copy = cargo_slot;
-        switch( auto& v = cargo_slot_copy; enum_for( v ) ) {
+        switch( auto& v = cargo_slot_copy; v.to_enum() ) {
           case CargoSlot::e::empty: {
             break;
           }
@@ -1062,7 +1056,7 @@ public:
             break;
           }
           case CargoSlot::e::cargo: {
-            auto& cargo = get_if_or_die<CargoSlot::cargo>( v );
+            auto& cargo = v.get<CargoSlot::cargo>();
             overload_visit(
                 cargo.contents,
                 [&]( UnitId id ) {
@@ -1304,13 +1298,13 @@ public:
 
   DraggableObject_t draggable_from_src(
       DragSrc_t const& drag_src ) const {
-    switch( enum_for( drag_src ) ) {
+    switch( drag_src.to_enum() ) {
       case DragSrc::e::dock: {
-        auto& [id] = get_if_or_die<DragSrc::dock>( drag_src );
+        auto& [id] = drag_src.get<DragSrc::dock>();
         return DraggableObject::unit{ id };
       }
       case DragSrc::e::cargo: {
-        auto& val = get_if_or_die<DragSrc::cargo>( drag_src );
+        auto& val = drag_src.get<DragSrc::cargo>();
         // Not all cargo slots must have an item in them, but in
         // this case the slot should otherwise the DragSrc object
         // should never have been created.
@@ -1319,20 +1313,19 @@ public:
         return object;
       }
       case DragSrc::e::outbound: {
-        auto& [id] =
-            get_if_or_die<DragSrc::outbound>( drag_src );
+        auto& [id] = drag_src.get<DragSrc::outbound>();
         return DraggableObject::unit{ id };
       }
       case DragSrc::e::inbound: {
-        auto& [id] = get_if_or_die<DragSrc::inbound>( drag_src );
+        auto& [id] = drag_src.get<DragSrc::inbound>();
         return DraggableObject::unit{ id };
       }
       case DragSrc::e::inport: {
-        auto& [id] = get_if_or_die<DragSrc::inport>( drag_src );
+        auto& [id] = drag_src.get<DragSrc::inport>();
         return DraggableObject::unit{ id };
       }
       case DragSrc::e::market: {
-        auto& val = get_if_or_die<DragSrc::market>( drag_src );
+        auto& val = drag_src.get<DragSrc::market>();
         return DraggableObject::market_commodity{ val.type };
       }
     }
@@ -1487,24 +1480,22 @@ public:
   }
 
   bool can_perform_drag( DragArc_t const& drag_arc ) const {
-    switch( auto& v = drag_arc; enum_for( drag_arc ) ) {
+    switch( auto& v = drag_arc; drag_arc.to_enum() ) {
       case DragArc::e::dock_to_cargo: {
-        auto& [src, dst] =
-            get_if_or_die<DragArc::dock_to_cargo>( v );
+        auto& [src, dst] = v.get<DragArc::dock_to_cargo>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship ).cargo().fits_somewhere(
             src.id, dst.slot._ );
       }
       case DragArc::e::cargo_to_dock: {
-        auto& val = get_if_or_die<DragArc::cargo_to_dock>( v );
+        auto& val = v.get<DragArc::cargo_to_dock>();
         return holds<DraggableObject::unit>(
                    draggable_from_src( val.src ) )
             .has_value();
       }
       case DragArc::e::cargo_to_cargo: {
-        auto& c_to_c =
-            get_if_or_die<DragArc::cargo_to_cargo>( v );
+        auto& c_to_c     = v.get<DragArc::cargo_to_cargo>();
         auto& [src, dst] = c_to_c;
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
@@ -1536,8 +1527,7 @@ public:
       }
       case DragArc::e::outbound_to_inbound: return true;
       case DragArc::e::outbound_to_inport: {
-        auto& val =
-            get_if_or_die<DragArc::outbound_to_inport>( v );
+        auto& val = v.get<DragArc::outbound_to_inport>();
         ASSIGN_CHECK_OPT(
             info, unit_euro_port_view_info( val.src.id ) );
         ASSIGN_CHECK_V( outbound, info,
@@ -1547,14 +1537,13 @@ public:
       case DragArc::e::inbound_to_outbound: return true;
       case DragArc::e::inport_to_outbound: return true;
       case DragArc::e::dock_to_inport_ship: {
-        auto& [src, dst] =
-            get_if_or_die<DragArc::dock_to_inport_ship>( v );
+        auto& [src, dst] = v.get<DragArc::dock_to_inport_ship>();
         return unit_from_id( dst.id ).cargo().fits_somewhere(
             src.id );
       }
       case DragArc::e::cargo_to_inport_ship: {
         auto& [src, dst] =
-            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
+            v.get<DragArc::cargo_to_inport_ship>();
         auto dst_ship = dst.id;
         ASSIGN_CHECK_OPT( cargo_object,
                           draggable_to_cargo_object(
@@ -1579,8 +1568,7 @@ public:
             } );
       }
       case DragArc::e::market_to_cargo: {
-        auto& [src, dst] =
-            get_if_or_die<DragArc::market_to_cargo>( v );
+        auto& [src, dst] = v.get<DragArc::market_to_cargo>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         auto comm = Commodity{
@@ -1595,7 +1583,7 @@ public:
       }
       case DragArc::e::market_to_inport_ship: {
         auto& [src, dst] =
-            get_if_or_die<DragArc::market_to_inport_ship>( v );
+            v.get<DragArc::market_to_inport_ship>();
         auto comm = Commodity{
             /*type=*/src.type, //
             // If the commodity can fit even with just one quan-
@@ -1607,7 +1595,7 @@ public:
             comm, /*starting_slot=*/0 );
       }
       case DragArc::e::cargo_to_market: {
-        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
+        auto& val = v.get<DragArc::cargo_to_market>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship )
@@ -1628,22 +1616,21 @@ public:
       return;
     }
     // Shift is down.
-    switch( auto& v = drag_arc; enum_for( v ) ) {
+    switch( auto& v = drag_arc; v.to_enum() ) {
       case DragArc::e::market_to_cargo: {
-        auto& val = get_if_or_die<DragArc::market_to_cargo>( v );
+        auto& val = v.get<DragArc::market_to_cargo>();
         ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
         break;
       }
       case DragArc::e::market_to_inport_ship: {
-        auto& val =
-            get_if_or_die<DragArc::market_to_inport_ship>( v );
+        auto& val = v.get<DragArc::market_to_inport_ship>();
         ask_for_quantity_( val.src.type, "buy" );
         stored_arc_ = drag_arc;
         break;
       }
       case DragArc::e::cargo_to_market: {
-        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
+        auto& val = v.get<DragArc::cargo_to_market>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         CHECK( is_unit_in_port( ship ) );
         ASSIGN_CHECK_OPT(
@@ -1657,8 +1644,7 @@ public:
         break;
       }
       case DragArc::e::cargo_to_inport_ship: {
-        auto& val =
-            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
+        auto& val = v.get<DragArc::cargo_to_inport_ship>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         CHECK( is_unit_in_port( ship ) );
         auto maybe_commodity_ref =
@@ -1695,26 +1681,24 @@ public:
       DragArc_t new_arc    = DragArc_t{ new_val };
       accept_finalized_drag( new_arc );
     };
-    switch( auto& v = *stored_arc_; enum_for( v ) ) {
+    switch( auto& v = *stored_arc_; v.to_enum() ) {
       case DragArc::e::market_to_cargo: {
-        auto& val = get_if_or_die<DragArc::market_to_cargo>( v );
+        auto& val = v.get<DragArc::market_to_cargo>();
         set_it( val );
         break;
       }
       case DragArc::e::market_to_inport_ship: {
-        auto& val =
-            get_if_or_die<DragArc::market_to_inport_ship>( v );
+        auto& val = v.get<DragArc::market_to_inport_ship>();
         set_it( val );
         break;
       }
       case DragArc::e::cargo_to_market: {
-        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
+        auto& val = v.get<DragArc::cargo_to_market>();
         set_it( val );
         break;
       }
       case DragArc::e::cargo_to_inport_ship: {
-        auto& val =
-            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
+        auto& val = v.get<DragArc::cargo_to_inport_ship>();
         set_it( val );
         break;
       }
@@ -1737,10 +1721,9 @@ public:
     lg.debug( "performing drag: {}", drag_arc );
     // Beyond this point it is assumed that this drag is compat-
     // ible with game rules.
-    switch( auto& v = drag_arc; enum_for( v ) ) {
+    switch( auto& v = drag_arc; v.to_enum() ) {
       case DragArc::e::dock_to_cargo: {
-        auto& [src, dst] =
-            get_if_or_die<DragArc::dock_to_cargo>( v );
+        auto& [src, dst] = v.get<DragArc::dock_to_cargo>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         // First try to respect the destination slot chosen by
         // the player,
@@ -1752,15 +1735,14 @@ public:
         break;
       }
       case DragArc::e::cargo_to_dock: {
-        auto& val = get_if_or_die<DragArc::cargo_to_dock>( v );
+        auto& val = v.get<DragArc::cargo_to_dock>();
         ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),
                         DraggableObject::unit );
         unit_move_to_europort_dock( unit.id );
         break;
       }
       case DragArc::e::cargo_to_cargo: {
-        auto& c_to_c =
-            get_if_or_die<DragArc::cargo_to_cargo>( v );
+        auto& c_to_c = v.get<DragArc::cargo_to_cargo>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         ASSIGN_CHECK_OPT(
             cargo_object,
@@ -1784,38 +1766,32 @@ public:
         break;
       }
       case DragArc::e::outbound_to_inbound: {
-        auto& val =
-            get_if_or_die<DragArc::outbound_to_inbound>( v );
+        auto& val = v.get<DragArc::outbound_to_inbound>();
         unit_sail_to_old_world( val.src.id );
         break;
       }
       case DragArc::e::outbound_to_inport: {
-        auto& val =
-            get_if_or_die<DragArc::outbound_to_inport>( v );
+        auto& val = v.get<DragArc::outbound_to_inport>();
         unit_sail_to_old_world( val.src.id );
         break;
       }
       case DragArc::e::inbound_to_outbound: {
-        auto& val =
-            get_if_or_die<DragArc::inbound_to_outbound>( v );
+        auto& val = v.get<DragArc::inbound_to_outbound>();
         unit_sail_to_new_world( val.src.id );
         break;
       }
       case DragArc::e::inport_to_outbound: {
-        auto& val =
-            get_if_or_die<DragArc::inport_to_outbound>( v );
+        auto& val = v.get<DragArc::inport_to_outbound>();
         unit_sail_to_new_world( val.src.id );
         break;
       }
       case DragArc::e::dock_to_inport_ship: {
-        auto& [src, dst] =
-            get_if_or_die<DragArc::dock_to_inport_ship>( v );
+        auto& [src, dst] = v.get<DragArc::dock_to_inport_ship>();
         ustate_change_to_cargo( dst.id, src.id );
         break;
       }
       case DragArc::e::cargo_to_inport_ship: {
-        auto& c_to_i_s =
-            get_if_or_die<DragArc::cargo_to_inport_ship>( v );
+        auto& c_to_i_s = v.get<DragArc::cargo_to_inport_ship>();
         ASSIGN_CHECK_OPT(
             cargo_object,
             draggable_to_cargo_object(
@@ -1840,8 +1816,7 @@ public:
         break;
       }
       case DragArc::e::market_to_cargo: {
-        auto& [src, dst] =
-            get_if_or_die<DragArc::market_to_cargo>( v );
+        auto& [src, dst] = v.get<DragArc::market_to_cargo>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         auto comm = Commodity{
             /*type=*/src.type, //
@@ -1864,7 +1839,7 @@ public:
       }
       case DragArc::e::market_to_inport_ship: {
         auto& [src, dst] =
-            get_if_or_die<DragArc::market_to_inport_ship>( v );
+            v.get<DragArc::market_to_inport_ship>();
         auto comm = Commodity{
             /*type=*/src.type, //
             /*quantity=*/src.quantity.value_or(
@@ -1884,7 +1859,7 @@ public:
         break;
       }
       case DragArc::e::cargo_to_market: {
-        auto& val = get_if_or_die<DragArc::cargo_to_market>( v );
+        auto& val = v.get<DragArc::cargo_to_market>();
         ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
         ASSIGN_CHECK_OPT(
             commodity_ref,
@@ -1934,12 +1909,11 @@ FSM_DEFINE_FORMAT_RN_( Euroview );
 
 // Will be called repeatedly until no more events added to fsm.
 void advance_euroview_state( EuroviewFsm& fsm ) {
-  switch( auto& v = fsm.mutable_state(); enum_for( v ) ) {
+  switch( auto& v = fsm.mutable_state(); v.to_enum() ) {
     case EuroviewState::e::normal: //
       break;
     case EuroviewState::e::future: {
-      auto& [s_future] =
-          get_if_or_die<EuroviewState::future>( v );
+      auto& [s_future] = v.get<EuroviewState::future>();
       advance_fsm_ui_state( &fsm, &s_future );
       break;
     }
@@ -1972,7 +1946,7 @@ struct EuropePlane : public Plane {
   e_input_handled input( input::event_t const& event ) override {
     if( drag_n_drop_.handle_input( event ) )
       return e_input_handled::yes;
-    switch( enum_for( event ) ) {
+    switch( event.to_enum() ) {
       case input::e_input_event::unknown_event:
         return e_input_handled::no;
       case input::e_input_event::quit_event:
@@ -1993,8 +1967,7 @@ struct EuropePlane : public Plane {
       case input::e_input_event::mouse_move_event:
         return e_input_handled::yes;
       case input::e_input_event::mouse_button_event: {
-        auto& val =
-            get_if_or_die<input::mouse_button_event_t>( event );
+        auto& val = event.get<input::mouse_button_event_t>();
         if( val.buttons !=
             input::e_mouse_button_event::left_down )
           return e_input_handled::yes;

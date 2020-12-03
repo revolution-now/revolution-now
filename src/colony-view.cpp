@@ -79,13 +79,13 @@ struct ColonyPlane : public Plane {
     draw_colony_view( tx, curr_colony_id );
   }
   e_input_handled input( input::event_t const& event ) override {
-    switch( enum_for( event ) ) {
+    switch( event.to_enum() ) {
       case input::e_input_event::key_event: {
-        auto& val = get_if_or_die<input::key_event_t>( event );
+        auto& val = event.get<input::key_event_t>();
         return handle_key_event( val );
       }
       case input::e_input_event::win_event: {
-        auto& val = get_if_or_die<input::win_event_t>( event );
+        auto& val = event.get<input::win_event_t>();
         if( val.type == input::e_win_event_type::resized )
           set_colview_colony( curr_colony_id );
         // Generally we should return no here because this is an

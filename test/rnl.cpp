@@ -81,11 +81,11 @@ TEST_CASE( "[rnl] Maybe" ) {
   REQUIRE( fmt::format( "{}", maybe ) ==
            "Maybe::just<int>{val=5}" );
 
-  switch( enum_for( maybe ) ) {
+  switch( maybe.to_enum() ) {
     case Maybe::e::nothing: //
       REQUIRE( false );
     case Maybe::e::just: {
-      auto& val = get_if_or_die<Maybe::just<int>>( maybe );
+      auto& val = maybe.get<Maybe::just<int>>();
       REQUIRE( val.val == 5 );
       break;
     }
@@ -106,7 +106,7 @@ TEST_CASE( "[rnl] MyVariant1" ) {
   my1    = MyVariant1::excited{};
   bool b = true;
   my1    = MyVariant1::sad{ true, &b };
-  switch( enum_for( my1 ) ) {
+  switch( my1.to_enum() ) {
     case MyVariant1::e::happy: //
       REQUIRE( false );
       break;
@@ -115,7 +115,7 @@ TEST_CASE( "[rnl] MyVariant1" ) {
       static_assert( sizeof( MyVariant1::excited ) == 1 );
       break;
     case MyVariant1::e::sad:
-      auto& val = get_if_or_die<MyVariant1::sad>( my1 );
+      auto& val = my1.get<MyVariant1::sad>();
       static_assert( is_same_v<decltype( val.hello ), bool> );
       static_assert( is_same_v<decltype( val.ptr ), bool*> );
       REQUIRE( val.hello == true );
@@ -130,21 +130,21 @@ TEST_CASE( "[rnl] MyVariant2" ) {
   my2 = MyVariant2::first{ "hello", true };
   my2 = MyVariant2::second{ true, false };
   my2 = MyVariant2::third{ 7 };
-  switch( enum_for( my2 ) ) {
+  switch( my2.to_enum() ) {
     case MyVariant2::e::first: {
-      auto& val = get_if_or_die<MyVariant2::first>( my2 );
+      auto& val = my2.get<MyVariant2::first>();
       static_assert( is_same_v<decltype( val.name ), string> );
       static_assert( is_same_v<decltype( val.b ), bool> );
       break;
     }
     case MyVariant2::e::second: {
-      auto& val = get_if_or_die<MyVariant2::second>( my2 );
+      auto& val = my2.get<MyVariant2::second>();
       static_assert( is_same_v<decltype( val.flag1 ), bool> );
       static_assert( is_same_v<decltype( val.flag2 ), bool> );
       break;
     }
     case MyVariant2::e::third: {
-      auto& val = get_if_or_die<MyVariant2::third>( my2 );
+      auto& val = my2.get<MyVariant2::third>();
       static_assert( is_same_v<decltype( val.cost ), int> );
       break;
     }
@@ -159,16 +159,16 @@ TEST_CASE( "[rnl] MyVariant3" ) {
   my3 = inner::MyVariant3::a1{ MyVariant0_t{} };
   my3 = inner::MyVariant3::a2{ MyVariant0_t{}, MyVariant2_t{} };
   my3 = inner::MyVariant3::a3{ 'r' };
-  switch( enum_for( my3 ) ) {
+  switch( my3.to_enum() ) {
     case inner::MyVariant3::e::a1: {
       REQUIRE( false );
-      auto& val = get_if_or_die<inner::MyVariant3::a1>( my3 );
+      auto& val = my3.get<inner::MyVariant3::a1>();
       static_assert(
           is_same_v<decltype( val.var0 ), MyVariant0_t> );
       break;
     }
     case inner::MyVariant3::e::a2: {
-      auto& val = get_if_or_die<inner::MyVariant3::a2>( my3 );
+      auto& val = my3.get<inner::MyVariant3::a2>();
       REQUIRE( false );
       static_assert(
           is_same_v<decltype( val.var1 ), MyVariant0_t> );
@@ -177,7 +177,7 @@ TEST_CASE( "[rnl] MyVariant3" ) {
       break;
     }
     case inner::MyVariant3::e::a3: {
-      auto& val = get_if_or_die<inner::MyVariant3::a3>( my3 );
+      auto& val = my3.get<inner::MyVariant3::a3>();
       REQUIRE( val.c == 'r' );
       break;
     }
@@ -191,10 +191,10 @@ TEST_CASE( "[rnl] MyVariant4" ) {
   my4 = inner::MyVariant4::_2nd{};
   my4 = inner::MyVariant4::third{ "hello",
                                   inner::MyVariant3::a3{ 'e' } };
-  switch( enum_for( my4 ) ) {
+  switch( my4.to_enum() ) {
     case inner::MyVariant4::e::first: {
       REQUIRE( false );
-      auto& val = get_if_or_die<inner::MyVariant4::first>( my4 );
+      auto& val = my4.get<inner::MyVariant4::first>();
       static_assert(
           is_same_v<decltype( val.op ), maybe<uint32_t>> );
       break;
@@ -204,9 +204,9 @@ TEST_CASE( "[rnl] MyVariant4" ) {
       break;
     }
     case inner::MyVariant4::e::third: {
-      auto& val = get_if_or_die<inner::MyVariant4::third>( my4 );
+      auto& val = my4.get<inner::MyVariant4::third>();
       REQUIRE( val.s == "hello" );
-      switch( enum_for( val.var3 ) ) {
+      switch( val.var3.to_enum() ) {
         case inner::MyVariant3::e::a1: {
           REQUIRE( false );
           break;
@@ -217,7 +217,7 @@ TEST_CASE( "[rnl] MyVariant4" ) {
         }
         case inner::MyVariant3::e::a3: {
           auto& val_inner =
-              get_if_or_die<inner::MyVariant3::a3>( val.var3 );
+              val.var3.get<inner::MyVariant3::a3>();
           REQUIRE( val_inner.c == 'e' );
           break;
         }
@@ -248,7 +248,7 @@ TEST_CASE( "[rnl] CompositeTemplateTwo" ) {
       inner::CompositeTemplateTwo::second<rn::my_optional<int>,
                                           short>;
   static_assert( sizeof( second_t ) == 1 );
-  switch( enum_for( v ) ) {
+  switch( v.to_enum() ) {
     case V_ns::e::first: //
       break;
     case V_ns::e::second: //
@@ -299,14 +299,13 @@ TEST_CASE( "[rnl] Associated Enums" ) {
   using namespace rnltest;
   MyVariant2_t v =
       MyVariant2::second{ .flag1 = false, .flag2 = true };
-  switch( enum_for( v ) ) {
+  switch( v.to_enum() ) {
     case MyVariant2::e::first: //
       REQUIRE( false );
       break;
     case MyVariant2::e::second: {
       // Make sure that we can get a non-const reference.
-      MyVariant2::second& snd =
-          get_if_or_die<MyVariant2::second>( v );
+      MyVariant2::second& snd = v.get<MyVariant2::second>();
       REQUIRE( fmt::format( "{}", snd ) ==
                "MyVariant2::second{flag1=false,flag2=true}" );
       break;
@@ -317,12 +316,12 @@ TEST_CASE( "[rnl] Associated Enums" ) {
   }
 
   Maybe_t<String> maybe = Maybe::just<String>{ .val = "hello" };
-  switch( enum_for( maybe ) ) {
+  switch( maybe.to_enum() ) {
     case Maybe::e::nothing: //
       REQUIRE( false );
       break;
     case Maybe::e::just: {
-      auto& just = get_if_or_die<Maybe::just<String>>( maybe );
+      auto& just = maybe.get<Maybe::just<String>>();
       REQUIRE( fmt::format( "{}", just ) ==
                "Maybe::just<rn::String>{val=hello}" );
       break;
