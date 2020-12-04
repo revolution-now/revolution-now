@@ -185,32 +185,40 @@ public:
       noexcept( std::is_nothrow_copy_constructible_v<T> )
       requires( std::is_copy_constructible_v<T> &&
                !std::is_trivially_default_constructible_v<T>)
-    : active_{ true } /* clang-format on */ {
+    : active_{ false } /* clang-format on */ {
     new_val( val );
+    // Now set to true after no exception has happened.
+    active_ = true;
   }
 
   constexpr maybe( T const& val ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
       requires( std::is_copy_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T>)
-    : active_{ true }, val_{} /* clang-format on */ {
+    : active_{ false }, val_{} /* clang-format on */ {
     new_val( val );
+    // Now set to true after no exception has happened.
+    active_ = true;
   }
 
   constexpr maybe( T&& val ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<T> )
       requires( std::is_move_constructible_v<T> &&
                !std::is_trivially_default_constructible_v<T> )
-    : active_{ true } /* clang-format on */ {
+    : active_{ false } /* clang-format on */ {
     new_val( std::move( val ) );
+    // Now set to true after no exception has happened.
+    active_ = true;
   }
 
   constexpr maybe( T&& val ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<T> )
       requires( std::is_move_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T>)
-    : active_{ true }, val_{} /* clang-format on */ {
+    : active_{ false }, val_{} /* clang-format on */ {
     new_val( std::move( val ) );
+    // Now set to true after no exception has happened.
+    active_ = true;
   }
 
   /**************************************************************
@@ -225,8 +233,10 @@ public:
         !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
         !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
         !std::is_trivially_default_constructible_v<T> )
-    : active_{ true } { /* clang-format on */
+    : active_{ false } { /* clang-format on */
     new_val( std::forward<U>( val ) );
+    // Now set to true after no exception has happened.
+    active_ = true;
   }
 
   template<typename U = T> /* clang-format off */
@@ -238,8 +248,10 @@ public:
         !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
         !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
          std::is_trivially_default_constructible_v<T> )
-    : active_{ true }, val_{} { /* clang-format on */
+    : active_{ false }, val_{} { /* clang-format on */
     new_val( std::forward<U>( val ) );
+    // Now set to true after no exception has happened.
+    active_ = true;
   }
 
   /**************************************************************
@@ -249,8 +261,10 @@ public:
       noexcept( noexcept( this->new_val( *other ) ) )
       requires( std::is_copy_constructible_v<T> &&
                !std::is_trivially_copy_constructible_v<T> )
-    : active_{ other.active_ } /* clang-format on */ {
-    if( active_ ) new_val( *other );
+    : active_{ false } /* clang-format on */ {
+    if( other.has_value() ) new_val( *other );
+    // Now set after no exception has happened.
+    active_ = other.has_value();
   }
 
   constexpr maybe( maybe<T> const& other ) /* clang-format off */
@@ -274,8 +288,10 @@ public:
                !std::is_convertible_v<maybe<U> const&, T>    &&
                !std::is_convertible_v<maybe<U>&&, T>         &&
                !std::is_convertible_v<maybe<U> const&&, T> )
-    : active_{ other.has_value() } /* clang-format on */ {
-    if( active_ ) new_val( *other );
+    : active_{ false } /* clang-format on */ {
+    if( other.has_value() ) new_val( *other );
+    // Now set after no exception has happened.
+    active_ = other.has_value();
   }
 
   /**************************************************************
@@ -285,8 +301,10 @@ public:
     noexcept( noexcept( this->new_val( std::move( *other ) ) ) )
     requires( std::is_move_constructible_v<T> &&
              !std::is_trivially_move_constructible_v<T> )
-    : active_{ other.active_ } /* clang-format on */ {
-    if( active_ ) new_val( std::move( *other ) );
+    : active_{ false } /* clang-format on */ {
+    if( other.has_value() ) new_val( std::move( *other ) );
+    // Now set after no exception has happened.
+    active_ = other.has_value();
     // cppreference says that the noexcept spec for this function
     // should be is_nothrow_move_constructible_v<T>, so as a
     // sanity check, compare it with what we have.
@@ -316,8 +334,10 @@ public:
                !std::is_convertible_v<maybe<U> const&, T>    &&
                !std::is_convertible_v<maybe<U>&&, T>         &&
                !std::is_convertible_v<maybe<U> const&&, T> )
-    : active_{ other.has_value() } /* clang-format on */ {
-    if( active_ ) new_val( std::move( *other ) );
+    : active_{ false } /* clang-format on */ {
+    if( other.has_value() ) new_val( std::move( *other ) );
+    // Now set after no exception has happened.
+    active_ = other.has_value();
   }
 
   /**************************************************************
@@ -328,8 +348,10 @@ public:
       noexcept( noexcept(
             this->new_val( std::forward<Args>( args )... )) )
       requires( std::is_constructible_v<T, Args...> )
-    : active_{ true } /* clang-format on */ {
+    : active_{ false } /* clang-format on */ {
     new_val( std::forward<Args>( args )... );
+    // Now set after no exception has happened.
+    active_ = true;
   }
 
   template<typename U, typename... Args> /* clang-format off */
@@ -343,8 +365,10 @@ public:
                     std::initializer_list<U>&,
                     Args&&...
                 > )
-    : active_{ true } /* clang-format on */ {
+    : active_{ false } /* clang-format on */ {
     new_val( ilist, std::forward<Args>( args )... );
+    // Now set after no exception has happened.
+    active_ = true;
   }
 
   /**************************************************************
@@ -380,8 +404,9 @@ public:
     }
     // rhs has a value.
     if( !has_value() ) {
-      active_ = true;
       new_val( *rhs );
+      // Now set after no exception has happened.
+      active_ = true;
       return *this;
     }
     // both have values.
@@ -426,8 +451,9 @@ public:
     }
     // rhs has a value.
     if( !has_value() ) {
-      active_ = true;
       new_val( std::move( *rhs ) );
+      // Now set after no exception has happened.
+      active_ = true;
       return *this;
     }
     // both have values.
@@ -471,8 +497,9 @@ public:
     }
     // rhs has a value.
     if( !has_value() ) {
-      active_ = true;
       new_val( *rhs );
+      // Now set after no exception has happened.
+      active_ = true;
       return *this;
     }
     // both have values.
@@ -505,8 +532,9 @@ public:
     }
     // rhs has a value.
     if( !has_value() ) {
-      active_ = true;
       new_val( std::move( *rhs ) );
+      // Now set after no exception has happened.
+      active_ = true;
       return *this;
     }
     // both have values.
@@ -527,8 +555,9 @@ public:
                  !std::is_same_v<std::decay_t<U>, T>) )
   /* clang-format on */ {
     if( !has_value() ) {
-      active_ = true;
       new_val( std::forward<U>( rhs ) );
+      // Now set after no exception has happened.
+      active_ = true;
       return *this;
     }
     // both have values.
@@ -552,8 +581,8 @@ public:
               std::is_nothrow_swappable_v<T> )
     requires( std::is_move_constructible_v<T> &&
               std::is_swappable_v<T> ) { /* clang-format on */
-    if( !active_ && !other.active_ ) return;
-    if( active_ && other.active_ ) {
+    if( !active_ && !other.has_value() ) return;
+    if( active_ && other.has_value() ) {
       using std::swap;
       swap( **this, *other );
       return;
@@ -561,8 +590,9 @@ public:
     // One is active and the other is not.
     maybe<T>& active   = has_value() ? *this : other;
     maybe<T>& inactive = has_value() ? other : *this;
-    inactive.active_   = true;
     inactive.new_val( std::move( *active ) );
+    // Now set after no exception has happened.
+    inactive.active_ = true;
     active.reset();
   }
 
