@@ -29,6 +29,9 @@
 #include "base/scope-exit.hpp"
 #include "base/variant.hpp"
 
+// Abseil
+#include "absl/functional/function_ref.h"
+
 // Range-v3
 #include "range/v3/algorithm/any_of.hpp"
 
@@ -91,9 +94,9 @@ void notify_subscribers() {
   }
 }
 
-using InputReceivedFunc = tl::function_ref<void()>;
+using InputReceivedFunc = absl::FunctionRef<void()>;
 using FrameLoopBodyFunc =
-    tl::function_ref<bool( InputReceivedFunc )>;
+    absl::FunctionRef<bool( InputReceivedFunc )>;
 
 void frame_loop_impl( FrameLoopBodyFunc body ) {
   // FIXME: temporary.

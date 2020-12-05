@@ -13,8 +13,8 @@
 // base
 #include "macros.hpp"
 
-// function_ref
-#include "tl/function_ref.hpp"
+// Abseil
+#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <exception>
@@ -53,8 +53,9 @@ namespace base {
 
 namespace detail {
 
-void run_func_noexcept( char const* file, int line,
-                        tl::function_ref<void()> func ) noexcept;
+void run_func_noexcept(
+    char const* file, int line,
+    absl::FunctionRef<void()> func ) noexcept;
 
 }
 

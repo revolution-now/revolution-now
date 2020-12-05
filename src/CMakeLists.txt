@@ -33,13 +33,13 @@ target_link_libraries(
     absl::container
     absl::flat_hash_map
     absl::flat_hash_set
+    absl::function_ref
     absl::hash
     absl::strings
     base-util
     expected-lite
     flatbuffers
     fmt::fmt
-    function-ref
     glad::glad
     lua::lua
     magic_enum::magic_enum

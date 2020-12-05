@@ -19,8 +19,8 @@ set_warning_options( rn-base )
 target_link_libraries(
     rn-base
     PUBLIC
+    absl::function_ref
     base-util
-    function-ref
 )
 
 target_include_directories(

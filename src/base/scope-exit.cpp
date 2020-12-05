@@ -19,7 +19,7 @@ namespace detail {
 
 void run_func_noexcept(
     char const* file, int line,
-    tl::function_ref<void()> func ) noexcept {
+    absl::FunctionRef<void()> func ) noexcept {
   try {
     func();
   } catch( std::exception const& e ) {

@@ -29,8 +29,8 @@
 #include "range/v3/view/reverse.hpp"
 #include "range/v3/view/take_while.hpp"
 
-// function_ref
-#include "tl/function_ref.hpp"
+// Abseil
+#include "absl/functional/function_ref.h"
 
 using namespace std;
 
@@ -58,7 +58,7 @@ void trim() {
 /****************************************************************
 ** Running Commands
 *****************************************************************/
-FlatMap<string, tl::function_ref<void()>> g_console_commands{
+FlatMap<string, absl::FunctionRef<void()>> g_console_commands{
     { "clear", clear }, //
     { "abort",
       [] {

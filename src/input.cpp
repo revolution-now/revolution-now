@@ -33,9 +33,6 @@
 // magic-enum
 #include "magic_enum.hpp"
 
-// function_ref
-#include "tl/function_ref.hpp"
-
 // C++ standard library
 #include <algorithm>
 #include <array>

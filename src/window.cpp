@@ -41,11 +41,9 @@
 // base-util
 #include "base-util/misc.hpp"
 
-// function_ref
-#include "tl/function_ref.hpp"
-
 // Abseil
 #include "absl/container/flat_hash_map.h"
+#include "absl/functional/function_ref.h"
 
 // range-v3
 #include "range/v3/view/filter.hpp"
@@ -427,8 +425,8 @@ ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max ) {
 ** Windows
 *****************************************************************/
 void async_window_builder(
-    std::string_view                        title,
-    tl::function_ref<UPtr<View>( Window* )> get_view_fn ) {
+    std::string_view                         title,
+    absl::FunctionRef<UPtr<View>( Window* )> get_view_fn ) {
   auto* win  = g_window_plane.wm.add_window( string( title ) );
   auto  view = get_view_fn( win );
   autopad( view, /*use_fancy=*/false );
@@ -445,8 +443,8 @@ void ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( Opt<ResultT> )>               on_result,
-    tl::function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
+    function<void( Opt<ResultT> )>                on_result,
+    absl::FunctionRef<GetOkCancelSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_cancel_view = make_unique<OkCancelView>(
         /*on_ok=*/
@@ -497,8 +495,8 @@ void ok_box_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( ResultT )>                 on_result,
-    tl::function_ref<GetOkBoxSubjectViewFunc> get_view_fn ) {
+    function<void( ResultT )>                  on_result,
+    absl::FunctionRef<GetOkBoxSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_button_view = make_unique<OkButtonView>(
         /*on_ok=*/
@@ -681,8 +679,10 @@ void select_box(
     on_result( result );
   };
 
+  // We can capture by reference here because the function will
+  // be called before this scope exits.
   auto get_view_fn =
-      [view = std::move( view )]( auto const& ) mutable {
+      [&]( function<void( bool )> /*enable_ok_button*/ ) {
         return std::move( view );
       };
 
@@ -760,11 +760,12 @@ sync_future<Vec<UnitSelection>> unit_selection_box(
       UnitActivationView::Create( ids, allow_activation );
   auto* p_unit_activation_view = unit_activation_view.get();
 
-  auto get_view_fn = [unit_activation_view =
-                          std::move( unit_activation_view )](
-                         function<void( bool )> ) mutable {
-    return std::move( unit_activation_view );
-  };
+  // We can capture by reference here because the function will
+  // be called before this scope exits.
+  auto get_view_fn =
+      [&]( function<void( bool )> /*enable_ok_button*/ ) {
+        return std::move( unit_activation_view );
+      };
 
   ok_cancel_window_builder<FlatMap<UnitId, UnitActivationInfo>>(
       /*title=*/"Activate Units",

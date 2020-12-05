@@ -23,6 +23,9 @@
 // base
 #include "base/keyval.hpp"
 
+// Abseil
+#include "absl/functional/function_ref.h"
+
 // Flatbuffers
 #include "fb/sg-colony_generated.h"
 
@@ -136,7 +139,7 @@ Vec<ColonyId> colonies_all( Opt<e_nation> n ) {
 }
 
 // Apply a function to all colonies.
-void map_colonies( tl::function_ref<void( Colony& )> func ) {
+void map_colonies( absl::FunctionRef<void( Colony& )> func ) {
   for( auto& p : SG().colonies ) func( p.second );
 }
 

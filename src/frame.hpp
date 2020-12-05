@@ -18,9 +18,6 @@
 // Abseil
 #include "absl/container/node_hash_map.h"
 
-// function_ref
-#include "tl/function_ref.hpp"
-
 // C++ standard library
 #include <chrono>
 #include <functional>

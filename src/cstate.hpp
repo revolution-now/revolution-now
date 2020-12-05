@@ -18,8 +18,8 @@
 #include "errors.hpp"
 #include "sg-macros.hpp"
 
-// function_ref
-#include "tl/function_ref.hpp"
+// Abseil
+#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <vector>
@@ -33,7 +33,7 @@ Colony&       colony_from_id( ColonyId id );
 Vec<ColonyId> colonies_all( Opt<e_nation> n = {} );
 
 // Apply a function to all colonies.
-void map_colonies( tl::function_ref<void( Colony& )> func );
+void map_colonies( absl::FunctionRef<void( Colony& )> func );
 
 // DO NOT call this directly as it will return a Colony that is
 // not yet fully valid, e.g., it will have no units or buildings
