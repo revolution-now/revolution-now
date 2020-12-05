@@ -15,6 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "maybe.hpp"
 #include "tune.hpp"
 
 // C++ standard library
@@ -79,7 +80,7 @@ bool set_music_player( e_music_player mplayer );
 
 // Get the current state of the conductor. If no music players
 // are available then we get an `unexpected`.
-expect<ConductorInfo> state();
+maybe<ConductorInfo> state();
 
 using ConductorEventFunc = std::function<void( void )>;
 

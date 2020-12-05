@@ -24,14 +24,18 @@ namespace rn {
 
 namespace {
 
-expect<> is_valid_colony_name_input( string const& proposed ) {
-  if( colony_from_name( proposed ).has_value() )
-    return UNEXPECTED(
-        "There is already a colony with that name!" );
-  if( proposed.size() <= 1 )
-    return UNEXPECTED(
-        "Name must be longer than one character!" );
-  return xp_success_t{};
+valid_or<string> is_valid_colony_name_msg(
+    std::string_view name ) {
+  auto res = is_valid_new_colony_name( name );
+  if( res ) return valid;
+  switch( res.error() ) {
+    case e_new_colony_name_err::already_exists:
+      return invalid(
+          "There is already a colony with that name!" );
+    case e_new_colony_name_err::name_too_short:
+      return invalid(
+          "Name must be longer than one character!" );
+  }
 }
 
 sync_future<Opt<string>> ask_colony_name() {
@@ -48,7 +52,7 @@ sync_future<Opt<string>> build_colony_ui_routine() {
       return make_sync_future<Opt<string>>();
     return ui::repeat_until_or_cancel<string>(
         /*to_repeat=*/ask_colony_name,
-        /*get_error=*/is_valid_colony_name_input );
+        /*get_error=*/is_valid_colony_name_msg );
   };
 }
 
@@ -125,7 +129,7 @@ void JobAnalysis::affect_orders_() const {
       destroy_unit( unit.id() );
       return;
     case e_unit_job_good::build:
-      CHECK_XP( found_colony( id, colony_name ) );
+      found_colony_unsafe( id, colony_name );
       return;
   }
 }
@@ -152,21 +156,22 @@ Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
     res->desc = e_unit_job_good::disband;
   } else if( holds<orders::build>( orders ) ) {
     res = JobAnalysis( id, orders );
-    switch( can_found_colony( id ) ) {
-      case e_found_colony_result::good:
-        res->desc = e_unit_job_good::build;
-        break;
-      case e_found_colony_result::colony_exists_here:
-        res->desc = e_unit_job_error::colony_exists_here;
-        break;
-      case e_found_colony_result::no_water_colony:
-        res->desc = e_unit_job_error::no_water_colony;
-        break;
-      case e_found_colony_result::ship_cannot_found_colony:
-        res->desc = e_unit_job_error::ship_cannot_found_colony;
-        break;
-      case e_found_colony_result::colonist_not_on_map:
-        SHOULD_NOT_BE_HERE;
+    if( auto valid = unit_can_found_colony( id ); valid )
+      res->desc = e_unit_job_good::build;
+    else {
+      switch( valid.error() ) {
+        case e_found_colony_err::colony_exists_here:
+          res->desc = e_unit_job_error::colony_exists_here;
+          break;
+        case e_found_colony_err::no_water_colony:
+          res->desc = e_unit_job_error::no_water_colony;
+          break;
+        case e_found_colony_err::ship_cannot_found_colony:
+          res->desc = e_unit_job_error::ship_cannot_found_colony;
+          break;
+        case e_found_colony_err::colonist_not_on_map:
+          SHOULD_NOT_BE_HERE;
+      }
     }
   }
 

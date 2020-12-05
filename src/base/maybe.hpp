@@ -383,6 +383,23 @@ public:
     return ( **this ).get();
   }
 
+  // Always allow implici conversions to maybe<T&>.
+  template<typename U>
+  constexpr operator maybe<U const&>() const noexcept
+      requires( !mp::is_reference_wrapper_v<T> &&
+                std::is_convertible_v<T const&, U const&> ) {
+    if( !has_value() ) return nothing;
+    return **this;
+  }
+
+  template<typename U>
+  constexpr operator maybe<U&>() noexcept
+      requires( !mp::is_reference_wrapper_v<T> &&
+                std::is_convertible_v<T&, U&> ) {
+    if( !has_value() ) return nothing;
+    return **this;
+  }
+
   /**************************************************************
   ** Copy Assignment
   ***************************************************************/

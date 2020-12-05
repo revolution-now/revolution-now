@@ -192,13 +192,10 @@ OggMusicPlayer::player() {
   if( g_ogg_player.has_value() ) {
     return {
         desc,
-        &( *g_ogg_player ),
+        g_ogg_player,
     };
   } else {
-    return {
-        desc,
-        UNEXPECTED( "OGG player failed to initialize" ),
-    };
+    return { desc, nothing };
   }
 }
 

@@ -15,6 +15,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "maybe.hpp"
 #include "tune.hpp"
 
 namespace rn {
@@ -50,8 +51,10 @@ struct MusicPlayerCapabilities {
   bool can_seek{ false };
 };
 
-// Needs to have a default constructor, so can't use ref.
-using MaybeMusicPlayer = expect<MusicPlayer*>;
+// FIXME: use expect<MusicPlayer&> when that is supported, since
+// we want to propagate reasons for a music player having failed
+// to initialize.
+using MaybeMusicPlayer = maybe<MusicPlayer&>;
 
 // It is important to note when using this class that, in gen-
 // eral, calling the member functions may not cause instantaneous

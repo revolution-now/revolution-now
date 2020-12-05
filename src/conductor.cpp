@@ -66,15 +66,18 @@ bool g_autoplay{ true };
 
 double g_master_volume{ 1.0 };
 
-#define ADD_MUSIC_PLAYER( enum, prefix )           \
-  std::tie( g_mplayer_descs[e_music_player::enum], \
-            g_mplayers[e_music_player::enum] ) =   \
-      prefix##MusicPlayer::player()
+#define ADD_MUSIC_PLAYER( enum, prefix )    \
+  g_mplayer_descs[e_music_player::enum] =   \
+      prefix##MusicPlayer::player().first;  \
+  g_mplayers.emplace( e_music_player::enum, \
+                      prefix##MusicPlayer::player().second );
 
 auto enabled_mplayers_ptrs() {
   return g_mplayers                                            //
          | rv::filter( L( g_mplayer_infos[_.first].enabled ) ) //
-         | rv::transform( L( *( _.second ) ) );
+         | rv::transform( []( auto& pair ) -> decltype( auto ) {
+             return *( pair.second );
+           } );
 }
 
 auto enabled_mplayers_enums() {
@@ -106,8 +109,8 @@ TuneId prev_tune_in_playlist() {
   if( !g_active_mplayer.has_value() ) return;                 \
   auto const& expect_mplayer = g_mplayers[*g_active_mplayer]; \
   DCHECK( expect_mplayer.has_value() );                       \
-  auto var = *expect_mplayer;                                 \
-  if( !var->good() ) return
+  auto& var = *expect_mplayer;                                \
+  if( !var.good() ) return
 
 #define CONDUCTOR_INFO_OR_RETURN( var )  \
   auto expect_info = state();            \
@@ -122,7 +125,7 @@ TuneId prev_tune_in_playlist() {
 void play_impl( TuneId id ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
   lg.info( "playing \"{}\".", tune_display_name_from_id( id ) );
-  mplayer->play( id );
+  mplayer.play( id );
 }
 
 // This will get called roughly once per second and, if autoplay
@@ -215,13 +218,13 @@ void init_conductor() {
     // reference to it and if it is capable of playing all tunes.
     if( !g_mplayers[mplayer].has_value() ) {
       enable_mplayer = false;
-      reason         = g_mplayers[mplayer].error().what;
+      // FIXME: put the error message here when switching to
+      // expect<>.
+      reason = "not enabled.";
     } else {
       // We have been given a reference to the music player. So
       // now check that it is in good health.
-      MusicPlayer* ptr = *g_mplayers[mplayer];
-      CHECK( ptr != nullptr );
-      MusicPlayer& pl = *ptr;
+      MusicPlayer& pl = *g_mplayers[mplayer];
       if( !pl.good() ) {
         enable_mplayer = false;
         reason         = "encountered internal error.";
@@ -319,11 +322,11 @@ void send_notifications( e_conductor_event event ) {
 
 void silence_all_music_players() {
   // Need fence() here?  Don't think so...
-  for( auto* mplayer : enabled_mplayers_ptrs() ) {
-    mplayer->stop();
-    auto capabilities = mplayer->capabilities();
+  for( auto& mplayer : enabled_mplayers_ptrs() ) {
+    mplayer.stop();
+    auto capabilities = mplayer.capabilities();
     if( capabilities.has_volume )
-      mplayer->set_volume( g_master_volume );
+      mplayer.set_volume( g_master_volume );
   }
 }
 
@@ -401,13 +404,12 @@ bool set_music_player( e_music_player mplayer ) {
   return true;
 }
 
-expect<ConductorInfo> state() {
-  if( !g_active_mplayer.has_value() )
-    return UNEXPECTED( "no viable music players available." );
+maybe<ConductorInfo> state() {
+  if( !g_active_mplayer.has_value() ) return nothing;
   auto const& expect_mplayer = g_mplayers[*g_active_mplayer];
   DCHECK( expect_mplayer.has_value() );
-  auto          mplayer  = *expect_mplayer;
-  auto          mp_state = mplayer->state();
+  auto&         mplayer  = *expect_mplayer;
+  auto          mp_state = mplayer.state();
   e_music_state st       = e_music_state::stopped;
   if( mp_state.tune_info.has_value() ) {
     if( mp_state.is_paused )
@@ -484,7 +486,7 @@ void play() {
       // We're already playing, so do nothing.
       break;
     case e_music_state::paused: //
-      mplayer->resume();
+      mplayer.resume();
       break;
     case e_music_state::stopped: //
       play_impl( current_tune_in_playlist() );
@@ -563,21 +565,21 @@ void next() {
 
 void stop() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  mplayer->stop();
+  mplayer.stop();
 }
 
 void pause() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  auto capabilities = mplayer->capabilities();
+  auto capabilities = mplayer.capabilities();
   if( !capabilities.can_pause ) {
     lg.warn( "music player `{}` does not support pausing.",
-             mplayer->info().name );
+             mplayer.info().name );
     return;
   }
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
     case e_music_state::playing: {
-      mplayer->pause();
+      mplayer.pause();
       break;
     }
     case e_music_state::paused: {
@@ -590,10 +592,10 @@ void pause() {
 
 void resume() {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  auto capabilities = mplayer->capabilities();
+  auto capabilities = mplayer.capabilities();
   if( !capabilities.can_pause ) {
     lg.warn( "music player `{}` does not support pausing.",
-             mplayer->info().name );
+             mplayer.info().name );
     return;
   }
   CONDUCTOR_INFO_OR_RETURN( info );
@@ -602,7 +604,7 @@ void resume() {
       break;
     }
     case e_music_state::paused: {
-      mplayer->resume();
+      mplayer.resume();
       break;
     }
     case e_music_state::stopped: //
@@ -617,32 +619,32 @@ void set_volume( double vol ) {
   g_master_volume = vol;
   send_notifications( e_conductor_event::volume_changed );
 
-  auto capabilities = mplayer->capabilities();
+  auto capabilities = mplayer.capabilities();
   if( !capabilities.has_volume ) {
     lg.warn(
         "Music player `{}` does not support setting volume.",
-        mplayer->info().name );
+        mplayer.info().name );
     return;
   }
-  mplayer->set_volume( vol );
+  mplayer.set_volume( vol );
 }
 
 void seek( double pos ) {
   ACTIVE_MUSIC_PLAYER_OR_RETURN( mplayer );
-  auto capabilities = mplayer->capabilities();
+  auto capabilities = mplayer.capabilities();
   if( !capabilities.can_seek ) {
     lg.warn( "music player `{}` does not support seeking.",
-             mplayer->info().name );
+             mplayer.info().name );
     return;
   }
   CONDUCTOR_INFO_OR_RETURN( info );
   switch( info.music_state ) {
     case e_music_state::playing: {
-      mplayer->seek( pos );
+      mplayer.seek( pos );
       break;
     }
     case e_music_state::paused: {
-      mplayer->seek( pos );
+      mplayer.seek( pos );
       break;
     }
     case e_music_state::stopped: //
@@ -824,7 +826,7 @@ void test() {
 
   while( true ) {
     // Wait for music player to consume commands.
-    mplayer->fence();
+    mplayer.fence();
     auto st = state();
     if( !st ) break;
     st.value().log();

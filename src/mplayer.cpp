@@ -29,7 +29,7 @@ SilentMusicPlayer::player() {
           /*description=*/"For testing; does not play music",
           /*how_it_works=*/"It doesn't.",
       },
-      /*player=*/&player );
+      /*player=*/player );
 }
 
 bool SilentMusicPlayer::good() const { return true; }

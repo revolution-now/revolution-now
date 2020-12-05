@@ -55,9 +55,8 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist( coord );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::good );
-  REQUIRE( found_colony( id, "colony" ) );
+  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE_NOTHROW( found_colony_unsafe( id, "colony" ) );
 }
 
 TEST_CASE(
@@ -66,14 +65,13 @@ TEST_CASE(
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist( coord );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::good );
-  REQUIRE( found_colony( id, "colony 1" ) );
+  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE_NOTHROW( found_colony_unsafe( id, "colony 1" ) );
 
   id = create_colonist( coord );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::colony_exists_here );
-  REQUIRE( !found_colony( id, "colony 2" ) );
+  REQUIRE( unit_can_found_colony( id ) ==
+           invalid( e_found_colony_err::colony_exists_here ) );
+  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony 2" ) );
 }
 
 TEST_CASE(
@@ -82,15 +80,13 @@ TEST_CASE(
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist( coord );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::good );
-  REQUIRE( found_colony( id, "colony" ) );
+  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE_NOTHROW( found_colony_unsafe( id, "colony" ) );
 
   coord += 1_w;
   id = create_colonist( coord );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::good );
-  REQUIRE( !found_colony( id, "colony" ) );
+  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony" ) );
 }
 
 TEST_CASE( "[colony-mgr] create colony in water fails" ) {
@@ -100,9 +96,10 @@ TEST_CASE( "[colony-mgr] create colony in water fails" ) {
   auto  ship_id = create_ship( coord );
   auto  unit_id = create_colonist();
   ustate_change_to_cargo( ship_id, unit_id );
-  REQUIRE( can_found_colony( unit_id ) ==
-           e_found_colony_result::no_water_colony );
-  REQUIRE( !found_colony( unit_id, "colony" ) );
+  REQUIRE( unit_can_found_colony( unit_id ) ==
+           invalid( e_found_colony_err::no_water_colony ) );
+  REQUIRE_THROWS_AS_RN(
+      found_colony_unsafe( unit_id, "colony" ) );
 }
 
 TEST_CASE(
@@ -112,9 +109,9 @@ TEST_CASE(
   auto id = create_colonist();
   ustate_change_to_euro_port_view(
       id, UnitEuroPortViewState::in_port{} );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::colonist_not_on_map );
-  REQUIRE( !found_colony( id, "colony" ) );
+  REQUIRE( unit_can_found_colony( id ) ==
+           invalid( e_found_colony_err::colonist_not_on_map ) );
+  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony" ) );
 }
 
 TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
@@ -122,9 +119,10 @@ TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
 
   Coord coord = { 1_x, 1_y };
   auto  id    = create_ship( coord );
-  REQUIRE( can_found_colony( id ) ==
-           e_found_colony_result::ship_cannot_found_colony );
-  REQUIRE( !found_colony( id, "colony" ) );
+  REQUIRE(
+      unit_can_found_colony( id ) ==
+      invalid( e_found_colony_err::ship_cannot_found_colony ) );
+  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony" ) );
 }
 
 TEST_CASE( "[colony-mgr] lua" ) {
@@ -137,6 +135,7 @@ TEST_CASE( "[colony-mgr] lua" ) {
              coord )
     col_id = colony_mgr.found_colony(
                unit_:id(), "New York" )
+    assert( col_id )
     local colony = cstate.colony_from_id( col_id )
     assert_eq( colony:id(), 1 )
     assert_eq( colony:name(), "New York" )

@@ -436,11 +436,12 @@ template<typename T>
 inline ::rn::maybe<T> sol_lua_get(
     sol::types<::rn::maybe<T>>, lua_State* L, int index,
     sol::stack::record& tracking ) {
+  static_assert( !std::is_reference_v<T> );
   int absolute_index = lua_absindex( L, index );
   tracking.use( 1 );
   ::rn::maybe<T> m;
-  sol::lua_value v =
-      sol::stack::get<sol::object>( L, absolute_index );
+  auto o = sol::stack::get<sol::object>( L, absolute_index );
+  sol::lua_value v( L, o );
   if( !v.is<T>() ) return m;
   m = v.as<T>();
   return m;

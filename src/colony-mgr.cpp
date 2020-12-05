@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony.hpp"
 #include "cstate.hpp"
+#include "enum.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 #include "rand.hpp"
@@ -107,39 +108,55 @@ void check_colony_invariants_die( ColonyId id ) {
   CHECK_XP( check_colony_invariants_safe( id ) );
 }
 
-e_found_colony_result can_found_colony( UnitId founder ) {
-  using Res_t = e_found_colony_result;
+valid_or<e_new_colony_name_err> is_valid_new_colony_name(
+    std::string_view name ) {
+  if( colony_from_name( name ).has_value() )
+    return invalid( e_new_colony_name_err::already_exists );
+  if( name.size() <= 1 )
+    return invalid( e_new_colony_name_err::name_too_short );
+  return valid;
+}
+
+valid_or<e_found_colony_err> unit_can_found_colony(
+    UnitId founder ) {
+  using Res_t = e_found_colony_err;
   auto& unit  = unit_from_id( founder );
 
-  if( unit.desc().ship ) return Res_t::ship_cannot_found_colony;
+  if( unit.desc().ship )
+    return invalid( Res_t::ship_cannot_found_colony );
 
   auto maybe_coord = coord_for_unit_indirect_safe( founder );
   if( !maybe_coord.has_value() )
-    return Res_t::colonist_not_on_map;
+    return invalid( Res_t::colonist_not_on_map );
 
   if( colony_from_coord( *maybe_coord ) )
-    return Res_t::colony_exists_here;
+    return invalid( Res_t::colony_exists_here );
 
   if( !terrain_is_land( *maybe_coord ) )
-    return Res_t::no_water_colony;
+    return invalid( Res_t::no_water_colony );
 
-  return Res_t::good;
+  return valid;
 }
 
-expect<ColonyId> found_colony( UnitId           founder,
-                               std::string_view name ) {
-  if( auto res = can_found_colony( founder );
-      res != e_found_colony_result::good )
-    return UNEXPECTED( "Cannot found colony, error code: {}.",
-                       magic_enum::enum_name( res ) );
+ColonyId found_colony_unsafe( UnitId           founder,
+                              std::string_view name ) {
+  if( auto res = is_valid_new_colony_name( name ); !res )
+    // FIXME: improve error message generation.
+    FATAL( "Cannot found colony, error code: {}.",
+           magic_enum::enum_name( res.error() ) );
+
+  if( auto res = unit_can_found_colony( founder ); !res )
+    // FIXME: improve error message generation.
+    FATAL( "Cannot found colony, error code: {}.",
+           magic_enum::enum_name( res.error() ) );
 
   auto nation = unit_from_id( founder ).nation();
   ASSIGN_CHECK_OPT( where,
                     coord_for_unit_indirect_safe( founder ) );
 
   // 1. Create colony object.
-  XP_OR_RETURN( col_id,
-                cstate_create_colony( nation, where, name ) );
+  ASSIGN_CHECK_XP( col_id,
+                   cstate_create_colony( nation, where, name ) );
 
   // 2. Find initial job for founder. (TODO)
   ColonyJob_t job =
@@ -183,10 +200,29 @@ void evolve_colony_one_turn( ColonyId id ) {
 *****************************************************************/
 namespace {
 
-LUA_FN( found_colony, ColonyId, UnitId founder,
+// FIXME: calling this function on the blinking unit will cause
+// errors or check-fails in the game; the proper way to do this
+// is to have a mechanism by which we can inject player commands
+// as if the player had pressed 'b' so that the game can process
+// the fact that the unit in question is now in a colony.
+//
+// This function is also currently used to setup some colonies
+// from Lua at startup, where it works fine. The safer way to do
+// that would be to have a single function that both creates a
+// unit and the colony together.
+LUA_FN( found_colony, maybe<ColonyId>, UnitId founder,
         std::string const& name ) {
-  ASSIGN_CHECK_XP( id, found_colony( founder, name ) );
-  return id;
+  if( auto res = is_valid_new_colony_name( name ); !res ) {
+    // FIXME: improve error message generation.
+    lg.error( "cannot found colony here: {}.",
+              enum_to_display_name( res.error() ) );
+    return nothing;
+  }
+  if( auto res = unit_can_found_colony( founder ); !res ) {
+    lg.error( "cannot found colony here." );
+    return nothing;
+  }
+  return found_colony_unsafe( founder, name );
 }
 
 } // namespace

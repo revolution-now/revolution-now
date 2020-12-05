@@ -305,8 +305,8 @@ inline constexpr bool is_expect_v<::rn::expect<T, E>> = true;
   {                                                           \
     auto const& STRING_JOIN( __e, __LINE__ ) = ( e );         \
     static_assert(                                            \
-        !is_expect_v<std::decay_t<decltype( STRING_JOIN(      \
-            __e, __LINE__ ) )>>,                              \
+        !is_expect_v<std::decay_t<decltype(                   \
+            STRING_JOIN( __e, __LINE__ ) )>>,                 \
         "UNXP_CHECK is not to be used on `expect` types." );  \
     if( !STRING_JOIN( __e, __LINE__ ) ) {                     \
       return ::nonstd::make_unexpected( ::rn::Unexpected{     \
@@ -318,8 +318,8 @@ inline constexpr bool is_expect_v<::rn::expect<T, E>> = true;
   {                                                          \
     auto const& STRING_JOIN( __e, __LINE__ ) = ( e );        \
     static_assert(                                           \
-        !is_expect_v<std::decay_t<decltype( STRING_JOIN(     \
-            __e, __LINE__ ) )>>,                             \
+        !is_expect_v<std::decay_t<decltype(                  \
+            STRING_JOIN( __e, __LINE__ ) )>>,                \
         "UNXP_CHECK is not to be used on `expect` types." ); \
     if( !STRING_JOIN( __e, __LINE__ ) ) {                    \
       return ::nonstd::make_unexpected( ::rn::Unexpected{    \
@@ -384,6 +384,23 @@ auto propagate_unexpected( ::rn::expect<T> const& e ) {
     if( auto xp__ = __VA_ARGS__; !xp__.has_value() ) \
       return propagate_unexpected( xp__ );           \
   }
+
+/****************************************************************
+** valid
+*****************************************************************/
+// This type is used as the return type of functions that perform
+// validation, i.e., if validation passes then nothing needs to
+// be returned, but if it fails, then some error type needs to be
+// returned.
+template<typename T>
+using valid_or = ::rn::expect<xp_success_t, T>;
+
+template<typename T>
+inline constexpr auto invalid( T&& val ) {
+  return ::nonstd::make_unexpected( std::forward<T>( val ) );
+}
+
+inline constexpr auto valid = xp_success_t{};
 
 } // namespace rn
 
