@@ -313,6 +313,16 @@ struct formatter<base::maybe<T>> : formatter_base {
   }
 };
 
+// {fmt} formatter for formatting nothing_t.
+template<>
+struct formatter<base::nothing_t> : formatter_base {
+  template<typename FormatContext>
+  auto format( base::nothing_t const &o, FormatContext &ctx ) {
+    static const std::string nothing_str( "nothing" );
+    return formatter_base::format( nothing_str, ctx );
+  }
+};
+
 // {fmt} formatter for formatting vectors whose contained
 // type is formattable.
 template<typename T>

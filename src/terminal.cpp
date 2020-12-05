@@ -153,7 +153,7 @@ maybe<string const&> line( int idx ) {
 
 maybe<string const&> history( int idx ) {
   if( idx < int( g_history.size() ) )
-    g_history[g_history.size() - 1 - idx];
+    return g_history[g_history.size() - 1 - idx];
   return nothing;
 }
 

@@ -70,3 +70,4 @@ FMT_TO_CATCH_T( ( T ), ::std::reference_wrapper );
 FMT_TO_CATCH_T( ( T ), ::std::optional );
 FMT_TO_CATCH_T( ( T ), ::base::maybe );
 FMT_TO_CATCH_T( ( T ), ::rn::expect );
+FMT_TO_CATCH( ::base::nothing_t );

@@ -275,6 +275,34 @@ TEST_CASE( "[lua] optional" ) {
   REQUIRE( lua::run<Opt<Coord>>( "return 5" ) == nothing );
 }
 
+// Test the o.as<maybe<?>>() constructs. This tests the custom
+// handlers that we've defined for maybe<>.
+TEST_CASE( "[lua] get as maybe" ) {
+  sol::state st{};
+  st["func"] = []( sol::object o ) -> string {
+    if( o == sol::lua_nil ) return "nil";
+    if( auto maybe_string = o.as<maybe<string>>();
+        maybe_string.has_value() ) {
+      return *maybe_string + "!";
+    } else if( auto maybe_bool = o.as<maybe<bool>>();
+               maybe_bool.has_value() ) {
+      return fmt::format( "a bool: {}", *maybe_bool );
+    } else if( auto maybe_double = o.as<maybe<double>>();
+               maybe_double.has_value() ) {
+      return fmt::format( "a double: {}", *maybe_double );
+    } else {
+      return "?";
+    }
+  };
+  REQUIRE( st["func"]( "hello" ).get<string>() == "hello!" );
+  REQUIRE( st["func"]( 5 ).get<string>() == "a double: 5.0" );
+  REQUIRE( st["func"]( true ).get<string>() == "a bool: true" );
+
+  REQUIRE( st["func"]( false ).get<maybe<string>>() ==
+           "a bool: false" );
+  REQUIRE( st["func"]( true ).get<maybe<int>>() == nothing );
+}
+
 TEST_CASE( "[lua] new_usertype" ) {
   auto script = R"(
     u = MyType.new()

@@ -386,6 +386,34 @@ inline int sol_lua_push( sol::types<::rn::Coord>, lua_State* L,
 /****************************************************************
 ** maybe
 *****************************************************************/
+// The `maybe<T>` type is treated specially when it comes to in-
+// teracting with Lua. As one would expect, when a maybe<T> is
+// converted to Lua, it is given a value of `nil` when it is
+// `nothing` and a value of T when it is a T. However, when con-
+// verting from Lua to C++, any Lua value will be accepted; if it
+// happens to be a T then it will convert to a `maybe<T>` with
+// value. If it is `nil` then it will convert to `nothing`. How-
+// ever, if it is any other type, it will not be an error, in-
+// stead it will be converted to an empty `maybe<T>` type (noth-
+// ing). So in other words, any Lua value of any type can be de-
+// serialized to a `maybe<T>` for any type T!
+//
+// The reason for this behavior is that it allows the user to re-
+// trieve a value (say, of type U) from Lua either as a U di-
+// rectly (if they are sure that it is a U) or as a `maybe<U>` if
+// they are unsure it is a `U` and the conversion will succeed
+// from Lua's point of view, giving the user a (possibly empty)
+// `maybe<U>` value that they can then check for success. This
+// means that the user cannot distinguish between a Lua value of
+// `nil` and an "incorrect type" when converting a `maybe<U>`
+// type from Lua to C++, That is just a tradeoff that is made for
+// the benefit of using `maybe<U>` as a failsafe.
+//
+// Actually, sol2 does the same thing (automatically) with
+// std::optional, so it is only consistent to do the same with
+// base::maybe. The thing is, we have to implement this ourselves
+// since sol2 doesn't know what a base::maybe is. That is the
+// purpose of the three functions below.
 namespace base {
 
 template<typename Handler, typename T>
@@ -393,15 +421,14 @@ inline bool sol_lua_check( sol::types<::rn::maybe<T>>,
                            lua_State* L, int index,
                            Handler&&           handler,
                            sol::stack::record& tracking ) {
+  // I think we just have to check that there is any object at
+  // all on the stack, then return true, since, as stated above,
+  // any Lua value of any type can be converted to a `maybe<T>`
+  // for any type T.
   int  absolute_index = lua_absindex( L, index );
   bool success        = sol::stack::check<sol::object>(
       L, absolute_index, handler );
   tracking.use( 1 );
-  if( !success ) return false;
-  auto o = sol::stack::get<sol::object>( L, absolute_index );
-  if( o == sol::lua_nil ) return true;
-  sol::lua_value v = o;
-  success          = v.is<T>();
   return success;
 }
 
@@ -409,17 +436,13 @@ template<typename T>
 inline ::rn::maybe<T> sol_lua_get(
     sol::types<::rn::maybe<T>>, lua_State* L, int index,
     sol::stack::record& tracking ) {
-  int  absolute_index = lua_absindex( L, index );
-  auto o = sol::stack::get<sol::object>( L, absolute_index );
-  ::rn::maybe<T> m;
-  if( o == sol::lua_nil ) return m;
-  sol::lua_value v = o;
-  RN_CHECK(
-      v.is<T>(),
-      "something went wrong when extracting a maybe<T> from "
-      "lua." );
-  m = v.as<T>();
+  int absolute_index = lua_absindex( L, index );
   tracking.use( 1 );
+  ::rn::maybe<T> m;
+  sol::lua_value v =
+      sol::stack::get<sol::object>( L, absolute_index );
+  if( !v.is<T>() ) return m;
+  m = v.as<T>();
   return m;
 }
 
@@ -427,8 +450,7 @@ template<typename T>
 inline int sol_lua_push( sol::types<::rn::maybe<T>>,
                          lua_State*            L,
                          ::rn::maybe<T> const& m ) {
-  sol::state_view st( L );
-  sol::lua_value  v = sol::lua_nil;
+  sol::lua_value v = sol::lua_nil;
   if( m.has_value() ) v = *m;
   int amount = sol::stack::push( L, v );
   return amount;
