@@ -20,14 +20,14 @@
 #include "sg-macros.hpp"
 #include "unit.hpp"
 
+// base
+#include "base/function-ref.hpp"
+
 // Rnl
 #include "rnl/ustate.hpp"
 
 // Flatbuffers
 #include "fb/unit_generated.h"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <functional>
@@ -45,7 +45,7 @@ Vec<UnitId> units_all( maybe<e_nation> n = nothing );
 // Apply a function to all units. The function may mutate the
 // units. NOTE: here, the word "map" is meant in the functional
 // programming sense, and not in the sense of the game world map.
-void map_units( absl::FunctionRef<void( Unit& )> func );
+void map_units( function_ref<void( Unit& )> func );
 
 // Should not be holding any references to the unit after this.
 void destroy_unit( UnitId id );

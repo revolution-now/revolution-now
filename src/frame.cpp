@@ -26,11 +26,9 @@
 #include "../config/ucl/rn.inl"
 
 // base
+#include "base/function-ref.hpp"
 #include "base/scope-exit.hpp"
 #include "base/variant.hpp"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // Range-v3
 #include "range/v3/algorithm/any_of.hpp"
@@ -94,9 +92,9 @@ void notify_subscribers() {
   }
 }
 
-using InputReceivedFunc = absl::FunctionRef<void()>;
+using InputReceivedFunc = function_ref<void()>;
 using FrameLoopBodyFunc =
-    absl::FunctionRef<bool( InputReceivedFunc )>;
+    function_ref<bool( InputReceivedFunc )>;
 
 void frame_loop_impl( FrameLoopBodyFunc body ) {
   // FIXME: temporary.

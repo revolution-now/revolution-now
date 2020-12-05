@@ -18,11 +18,11 @@
 #include "menu.hpp"
 #include "tx.hpp"
 
+// base
+#include "base/function-ref.hpp"
+
 // Flatbuffers
 #include "fb/plane_generated.h"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <array>
@@ -137,7 +137,7 @@ struct Plane {
   // be error-prone in that it may end up receiving a request to
   // handle an item that it does not actually handle, which would
   // then require a check failure, which we want to avoid.
-  using MenuClickHandler = absl::FunctionRef<void()>;
+  using MenuClickHandler = function_ref<void()>;
 
   // Asks the plane if it can handler a particular menu item. If
   // it returns nothing that means "no." Otherwise it means

@@ -10,11 +10,11 @@
 *****************************************************************/
 #pragma once
 
+// base
+#include "base/function-ref.hpp"
+
 // rnlc
 #include "expr.hpp"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // {fmt}
 #include "fmt/format.h"
@@ -57,11 +57,11 @@ void error_msg( string_view fmt, Args&&... args ) {
 }
 
 void perform_on_sumtypes(
-    expr::Rnl*                                rnl,
-    absl::FunctionRef<void( expr::Sumtype* )> func );
+    expr::Rnl*                                 rnl,
+    base::function_ref<void( expr::Sumtype* )> func );
 
 void perform_on_sumtypes(
-    expr::Rnl const&                                rnl,
-    absl::FunctionRef<void( expr::Sumtype const& )> func );
+    expr::Rnl const&                                 rnl,
+    base::function_ref<void( expr::Sumtype const& )> func );
 
 } // namespace rnl

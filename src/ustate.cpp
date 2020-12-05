@@ -23,6 +23,7 @@
 #include "variant.hpp"
 
 // base
+#include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 
 // Rnl
@@ -33,9 +34,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <unordered_map>
@@ -193,7 +191,7 @@ Unit& unit_from_id( UnitId id ) {
 
 // Apply a function to all units. The function may mutate the
 // units.
-void map_units( absl::FunctionRef<void( Unit& )> func ) {
+void map_units( function_ref<void( Unit& )> func ) {
   for( auto& p : SG().units ) func( p.second );
 }
 

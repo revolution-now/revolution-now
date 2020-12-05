@@ -37,13 +37,13 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/function-ref.hpp"
 
 // base-util
 #include "base-util/misc.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
-#include "absl/functional/function_ref.h"
 
 // range-v3
 #include "range/v3/view/filter.hpp"
@@ -425,8 +425,8 @@ ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max ) {
 ** Windows
 *****************************************************************/
 void async_window_builder(
-    std::string_view                         title,
-    absl::FunctionRef<UPtr<View>( Window* )> get_view_fn ) {
+    std::string_view                    title,
+    function_ref<UPtr<View>( Window* )> get_view_fn ) {
   auto* win  = g_window_plane.wm.add_window( string( title ) );
   auto  view = get_view_fn( win );
   autopad( view, /*use_fancy=*/false );
@@ -443,8 +443,8 @@ void ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( Opt<ResultT> )>                on_result,
-    absl::FunctionRef<GetOkCancelSubjectViewFunc> get_view_fn ) {
+    function<void( Opt<ResultT> )>           on_result,
+    function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_cancel_view = make_unique<OkCancelView>(
         /*on_ok=*/
@@ -495,8 +495,8 @@ void ok_box_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( ResultT )>                  on_result,
-    absl::FunctionRef<GetOkBoxSubjectViewFunc> get_view_fn ) {
+    function<void( ResultT )>             on_result,
+    function_ref<GetOkBoxSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_button_view = make_unique<OkButtonView>(
         /*on_ok=*/

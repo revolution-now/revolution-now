@@ -22,15 +22,13 @@
 #include "macros.hpp"
 
 // base
+#include "base/function-ref.hpp"
 #include "base/source-loc.hpp"
 #include "base/variant.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
 #include "base-util/type-map.hpp"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <variant>
@@ -383,9 +381,9 @@ private:
 *****************************************************************/
 template<typename FsmT, typename... Args>
 void fsm_auto_advance(
-    FsmT&                                       fsm,   //
-    std::string_view                            label, //
-    absl::FunctionRef<void( FsmT&, Args&&... )> adv,
+    FsmT&                                  fsm,   //
+    std::string_view                       label, //
+    function_ref<void( FsmT&, Args&&... )> adv,
     Args&&... args ) {
   do {
     // internal::log_st_change(

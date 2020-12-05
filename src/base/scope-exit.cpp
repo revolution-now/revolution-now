@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "scope-exit.hpp"
 
+// base
+#include "function-ref.hpp"
+
 // C++ standard library.
 #include <iostream>
 
@@ -17,9 +20,8 @@ namespace base {
 
 namespace detail {
 
-void run_func_noexcept(
-    char const* file, int line,
-    absl::FunctionRef<void()> func ) noexcept {
+void run_func_noexcept( char const* file, int line,
+                        function_ref<void()> func ) noexcept {
   try {
     func();
   } catch( std::exception const& e ) {

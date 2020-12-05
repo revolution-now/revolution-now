@@ -17,8 +17,8 @@
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 
-// Abseil
-#include "absl/functional/function_ref.h"
+// base
+#include "base/function-ref.hpp"
 
 // C++ standard library
 #include <memory>
@@ -447,9 +447,9 @@ sync_future<T> make_sync_future( Args&&... args ) {
 // the step, true if the step is complete.
 template<typename T = std::monostate>
 bool step_with_future(
-    sync_future<T>*                     s_future,
-    absl::FunctionRef<sync_future<T>()> init,
-    absl::FunctionRef<bool( T const& )> when_ready ) {
+    sync_future<T>*                s_future,
+    function_ref<sync_future<T>()> init,
+    function_ref<bool( T const& )> when_ready ) {
   if( s_future->empty() ) {
     *s_future = init();
     // !! should fall through.
@@ -462,9 +462,8 @@ bool step_with_future(
 // Same as above, but the `when_ready` function always returns
 // true.
 template<typename T = std::monostate>
-bool step_with_future(
-    sync_future<T>*                     s_future,
-    absl::FunctionRef<sync_future<T>()> init ) {
+bool step_with_future( sync_future<T>*                s_future,
+                       function_ref<sync_future<T>()> init ) {
   if( s_future->empty() ) {
     *s_future = init();
     // !! should fall through.

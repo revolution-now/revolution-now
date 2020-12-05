@@ -17,6 +17,7 @@
 #include "ranges.hpp"
 
 // base
+#include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 
 // Abseil
@@ -28,9 +29,6 @@
 #include "range/v3/view/join.hpp"
 #include "range/v3/view/reverse.hpp"
 #include "range/v3/view/take_while.hpp"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 using namespace std;
 
@@ -58,7 +56,7 @@ void trim() {
 /****************************************************************
 ** Running Commands
 *****************************************************************/
-FlatMap<string, absl::FunctionRef<void()>> g_console_commands{
+FlatMap<string, function_ref<void()>> g_console_commands{
     { "clear", clear }, //
     { "abort",
       [] {

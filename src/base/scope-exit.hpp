@@ -11,10 +11,8 @@
 #pragma once
 
 // base
+#include "function-ref.hpp"
 #include "macros.hpp"
-
-// Abseil
-#include "absl/functional/function_ref.h"
 
 // C++ standard library
 #include <exception>
@@ -53,9 +51,8 @@ namespace base {
 
 namespace detail {
 
-void run_func_noexcept(
-    char const* file, int line,
-    absl::FunctionRef<void()> func ) noexcept;
+void run_func_noexcept( char const* file, int line,
+                        function_ref<void()> func ) noexcept;
 
 }
 
