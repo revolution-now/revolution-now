@@ -128,3 +128,29 @@ let g:ycm_global_ycm_extra_conf = s:this_folder . '/ycm_extra_conf.py'
 
 " Tell the vim-templates function where to find the templates.
 let g:tmpl_search_paths = [s:this_folder . '/templates']
+
+" function! BuildO()
+"   " :!~/dev/rn/scripts/o.sh %
+"   let cmd = ":silent !tmux split-window -f -p 10 -vb "
+"   let cmd = cmd . '/home/dsicilia/dev/rn/scripts/vim-build.sh o ' . %
+"   exec cmd
+"   :silent !tmux select-pane -D
+" endfunction
+"
+function! TmuxBuild( target )
+  let module = ''
+  if a:target == 'o'
+    let module = @%
+  endif
+  let cmd = ":silent !tmux split-window -f -p 10 -vb "
+  let cmd = cmd . '/home/dsicilia/dev/rn/scripts/vim-build.sh ' . a:target
+  let cmd = cmd . ' ' . module
+  exec cmd
+  :silent !tmux select-pane -D
+endfunction
+
+" Build command
+nnoremap <F5>  :silent call TmuxBuild( 'run' )<CR>
+nnoremap <F6>  :silent call TmuxBuild( 'all' )<CR>
+nnoremap <F9>  :silent call TmuxBuild( 'test' )<CR>
+nnoremap <F10> :silent call TmuxBuild( 'o' )<CR>
