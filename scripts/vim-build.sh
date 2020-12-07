@@ -10,10 +10,10 @@ target=$1
                               || d=~/dev/rn
 cd $d
 
-cmd="make $target"
+cmd="make $target NINJA_STATUS_PRINT_MODE=singleline"
 [[ "$target" == o ]] && cmd="scripts/o.sh $2"
 
-pane_size=6
+pane_size=1
 
 tmux resize-pane -y $pane_size
 
@@ -31,7 +31,8 @@ tmux select-pane -U
 
 # Build has failed.
 
-# tmux resize-pane -y 30 # so that we can see the error.
+expanded_pane_size=30
+tmux resize-pane -y $expanded_pane_size # so that we can see the error.
 
 # Go to the top of the buffer and search for the first
 # instance of "error:" to show the first error.
@@ -40,8 +41,8 @@ tmux send-keys -X top-line
 tmux send-keys -X search-forward "error:"
 
 # Move the "error:" line to the top line in the pane.
-for (( i=1; i < $pane_size; i++ )); do tmux send-keys -X scroll-down; done
-for (( i=1; i < $pane_size; i++ )); do tmux send-keys -X cursor-up; done
+for (( i=1; i < $expanded_pane_size; i++ )); do tmux send-keys -X scroll-down; done
+for (( i=1; i < $expanded_pane_size; i++ )); do tmux send-keys -X cursor-up; done
 
 # Move cursor so that it is not over the first letter of "er-
 # ror:".
