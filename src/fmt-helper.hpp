@@ -317,7 +317,7 @@ struct formatter<base::maybe<T>> : formatter_base {
 template<>
 struct formatter<base::nothing_t> : formatter_base {
   template<typename FormatContext>
-  auto format( base::nothing_t const &o, FormatContext &ctx ) {
+  auto format( base::nothing_t const &, FormatContext &ctx ) {
     static const std::string nothing_str( "nothing" );
     return formatter_base::format( nothing_str, ctx );
   }
