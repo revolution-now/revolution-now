@@ -2657,15 +2657,6 @@ TEST_CASE( "[maybe] implicit conversion to maybe-ref" ) {
     static_assert( is_convertible_v<M<int>, M<int&>> );
   }
   {
-    M<int const>  m1;
-    M<int const&> m2 = m1;
-    M<int const&> m3 = static_cast<M<int const&>>( m1 );
-    (void)m2;
-    (void)m3;
-    static_assert(
-        is_convertible_v<M<int const>, M<int const&>> );
-  }
-  {
     // Not allowed.
     // M<int&> m2 = as_const( m1 );
     // M<int&> m3 = static_cast<M<int&>>( as_const( m1 ) );
