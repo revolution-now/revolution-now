@@ -212,6 +212,8 @@ struct Stringable {
   Stringable( string s_ ) : s( s_ ) {}
   // clang-format off
   operator string() const { return s; }
+  bool operator==( Stringable const& ) const = default;
+  bool operator==( string const& s_ ) const { return s_ == s; }
   // clang-format on
   string s = {};
 };
@@ -1877,6 +1879,114 @@ TEST_CASE( "[expected] error()" ) {
 
     NoCopy nc = std::move( m ).error();
     REQUIRE( nc.c == 'a' );
+  }
+}
+
+TEST_CASE( "[expected] implicit conversion with same E" ) {
+  static_assert( is_constructible_v<int, Intable> );
+  static_assert( is_constructible_v<Intable, int> );
+  static_assert( is_convertible_v<int, Intable> );
+  static_assert( is_convertible_v<Intable, int> );
+  SECTION( "int to Intable" ) {
+    E<int, string> m1 = 4;
+
+    E<Intable, string> m2 = m1;
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 4 );
+
+    m1 = 3;
+    m2 = m1;
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 3 );
+  }
+  SECTION( "Intable to int" ) {
+    E<Intable, string> m1 = Intable{ 4 };
+
+    E<int, string> m2 = m1;
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 4 );
+
+    m1 = Intable{ 3 };
+    m2 = m1;
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2 == 3 );
+  }
+}
+
+TEST_CASE( "[expected] implicit conversion with same T" ) {
+  static_assert( is_constructible_v<int, Intable> );
+  static_assert( is_constructible_v<Intable, int> );
+  static_assert( is_convertible_v<int, Intable> );
+  static_assert( is_convertible_v<Intable, int> );
+  SECTION( "int to Intable" ) {
+    E<string, int> m1 = 4;
+
+    E<string, Intable> m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 4 );
+
+    m1 = 3;
+    m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 3 );
+  }
+  SECTION( "Intable to int" ) {
+    E<string, Intable> m1 = Intable{ 4 };
+
+    E<string, int> m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 4 );
+
+    m1 = Intable{ 3 };
+    m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 3 );
+  }
+}
+
+TEST_CASE( "[expected] implicit conv. with different T/E" ) {
+  static_assert( is_constructible_v<int, Intable> );
+  static_assert( is_constructible_v<Intable, int> );
+  static_assert( is_convertible_v<int, Intable> );
+  static_assert( is_convertible_v<Intable, int> );
+  static_assert( is_constructible_v<string, Stringable> );
+  static_assert( is_constructible_v<Stringable, string> );
+  static_assert( is_convertible_v<string, Stringable> );
+  static_assert( is_convertible_v<Stringable, string> );
+  SECTION( "int to Intable" ) {
+    E<string, int> m1 = 4;
+
+    E<Stringable, Intable> m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 4 );
+
+    m1 = 3;
+    m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 3 );
+
+    m1 = "hello";
+
+    m2 = m1;
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2.value() == "hello" );
+
+    m1 = "world";
+    m2 = m1;
+    REQUIRE( m2.has_value() );
+    REQUIRE( m2.value() == "world" );
+  }
+  SECTION( "Intable to int" ) {
+    E<Stringable, Intable> m1 = Intable{ 4 };
+
+    E<string, int> m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 4 );
+
+    m1 = Intable{ 3 };
+    m2 = m1;
+    REQUIRE( !m2.has_value() );
+    REQUIRE( m2.error() == 3 );
   }
 }
 
