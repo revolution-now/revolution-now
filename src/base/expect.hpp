@@ -33,6 +33,7 @@ namespace base {
 template<typename T, typename E>
 concept ExpectTypeRequirements = requires {
   requires(
+      !std::is_reference_v<E> &&
       !std::is_same_v<std::remove_cvref_t<T>, std::in_place_t> &&
       !std::is_same_v<std::remove_cvref_t<E>, std::in_place_t> &&
       !std::is_same_v<std::remove_cvref_t<T>, nothing_t> &&
@@ -54,11 +55,14 @@ struct bad_expect_access : public std::exception {
   // Don't give a default value to loc because we want that to be
   // supplied by someone further up the call chain in order to
   // produce a more helpful location to the user.
-  bad_expect_access( SourceLoc loc )
+  bad_expect_access( SourceLoc loc, bool error )
     : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
     error_msg_ = loc_.file_name();
     error_msg_ += ":" + std::to_string( loc_.line() ) + ": ";
-    error_msg_ += "value() called on an inactive expect.";
+    if( !error )
+      error_msg_ += "value() called on an inactive expect.";
+    else
+      error_msg_ += "error() called on an active expect.";
   }
 
   char const* what() const noexcept override {
@@ -80,6 +84,10 @@ constexpr bool is_expect_v<expect<T, E>> = true;
 /****************************************************************
 ** expect
 *****************************************************************/
+// Warning: this class is not exception safe. That means that
+// constructors of type T or E should preferably not throw during
+// construction, otherwise the expect object will be left in an
+// indeterminate state.
 template<typename T, typename E>
 requires ExpectTypeRequirements<T, E> /* clang-format off */
 class [[nodiscard]] expect { /* clang-format on */
@@ -124,7 +132,17 @@ public:
   ***************************************************************/
   constexpr expect( T const& val ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
-      requires( std::is_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> &&
+                std::is_trivially_default_constructible_v<T> )
+    : good_{ false }, val_{} /* clang-format on */ {
+    new_val( val );
+    good_ = true;
+  }
+
+  constexpr expect( T const& val ) /* clang-format off */
+      noexcept( std::is_nothrow_copy_constructible_v<T> )
+      requires( std::is_copy_constructible_v<T> &&
+               !std::is_trivially_default_constructible_v<T> )
     : good_{ false } /* clang-format on */ {
     new_val( val );
     good_ = true;
@@ -132,7 +150,17 @@ public:
 
   constexpr expect( T&& val ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<T> )
-      requires( std::is_move_constructible_v<T> )
+      requires( std::is_move_constructible_v<T> &&
+                std::is_trivially_default_constructible_v<T> )
+    : good_{ false }, val_{} /* clang-format on */ {
+    new_val( std::move( val ) );
+    good_ = true;
+  }
+
+  constexpr expect( T&& val ) /* clang-format off */
+      noexcept( std::is_nothrow_move_constructible_v<T> )
+      requires( std::is_move_constructible_v<T> &&
+               !std::is_trivially_default_constructible_v<T> )
     : good_{ false } /* clang-format on */ {
     new_val( std::move( val ) );
     good_ = true;
@@ -140,7 +168,17 @@ public:
 
   constexpr expect( E const& err ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<E> )
-      requires( std::is_copy_constructible_v<E> )
+      requires( std::is_copy_constructible_v<E> &&
+                std::is_trivially_default_constructible_v<E> )
+    : good_{ false }, err_{} /* clang-format on */ {
+    new_err( err );
+    good_ = false;
+  }
+
+  constexpr expect( E const& err ) /* clang-format off */
+      noexcept( std::is_nothrow_copy_constructible_v<E> )
+      requires( std::is_copy_constructible_v<E> &&
+               !std::is_trivially_default_constructible_v<E> )
     : good_{ false } /* clang-format on */ {
     new_err( err );
     good_ = false;
@@ -148,7 +186,17 @@ public:
 
   constexpr expect( E&& err ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<E> )
-      requires( std::is_move_constructible_v<E> )
+      requires( std::is_move_constructible_v<E> &&
+                std::is_trivially_default_constructible_v<E> )
+    : good_{ false }, err_{} /* clang-format on */ {
+    new_err( std::move( err ) );
+    good_ = false;
+  }
+
+  constexpr expect( E&& err ) /* clang-format off */
+      noexcept( std::is_nothrow_move_constructible_v<E> )
+      requires( std::is_move_constructible_v<E> &&
+               !std::is_trivially_default_constructible_v<E> )
     : good_{ false } /* clang-format on */ {
     new_err( std::move( err ) );
     good_ = false;
@@ -169,8 +217,21 @@ public:
         !std::is_same_v<std::remove_cvref_t<U>, expect<T,E>> )
     : good_{ false } { /* clang-format on */
     new_val( std::forward<U>( val ) );
-    // Now set to true after no exception has happened.
     good_ = true;
+  }
+
+  template<typename V> /* clang-format off */
+  explicit( !std::is_convertible_v<V&&, E> )
+  constexpr expect( V&& err )
+      noexcept( std::is_nothrow_convertible_v<V, E> )
+      requires(
+         std::is_constructible_v<E, V&&> &&
+        !std::is_same_v<std::remove_cvref_t<V>, T> &&
+        !std::is_same_v<std::remove_cvref_t<V>, E> &&
+        !std::is_same_v<std::remove_cvref_t<V>, std::in_place_t> &&
+        !std::is_same_v<std::remove_cvref_t<V>, expect<T,E>> )
+    : good_{ false } { /* clang-format on */
+    new_err( std::forward<V>( err ) );
   }
 
   /**************************************************************
@@ -181,13 +242,28 @@ public:
       noexcept( noexcept( this->new_val( other.val_ ) ) &&
                 noexcept( this->new_err( other.err_ ) ) )
       requires( std::is_copy_constructible_v<T> &&
-                std::is_copy_constructible_v<E> )
+                std::is_copy_constructible_v<E> &&
+                std::is_trivially_default_constructible_v<T> )
+    : good_{ false }, val_{} /* clang-format on */ {
+    if( other.has_value() )
+      new_val( other.val_ );
+    else
+      new_err( other.err_ );
+    good_ = other.good_;
+  }
+
+  constexpr expect(
+      expect<T, E> const& other ) /* clang-format off */
+      noexcept( noexcept( this->new_val( other.val_ ) ) &&
+                noexcept( this->new_err( other.err_ ) ) )
+      requires( std::is_copy_constructible_v<T> &&
+                std::is_copy_constructible_v<E> &&
+               !std::is_trivially_default_constructible_v<T> )
     : good_{ false } /* clang-format on */ {
     if( other.has_value() )
       new_val( other.val_ );
     else
       new_err( other.err_ );
-    // Now set after no exception has happened.
     good_ = other.good_;
   }
 
@@ -223,7 +299,6 @@ public:
       new_val( other.val_ );
     else
       new_err( other.err_ );
-    // Now set after no exception has happened.
     good_ = other.good_;
   }
 
@@ -240,7 +315,6 @@ public:
       new_val( std::move( other.val_ ) );
     else
       new_err( std::move( other.err_ ) );
-    // Now set after no exception has happened.
     good_ = other.good_;
     static_assert(
         std::is_nothrow_move_constructible_v<T> ==
@@ -259,7 +333,7 @@ public:
   constexpr expect( expect<U, V>&& other )
       noexcept(
           noexcept( this->new_val( std::move( other.val_ ) ) ) &&
-          noexcept( this->new_val( std::move( other.err_ ) ) ) )
+          noexcept( this->new_err( std::move( other.err_ ) ) ) )
       requires( std::is_constructible_v<T, U&&>                 &&
                 std::is_constructible_v<E, V&&>                 &&
                !std::is_constructible_v<T, expect<U,V>&>        &&
@@ -283,7 +357,6 @@ public:
       new_val( std::move( other.val_ ) );
     else
       new_err( std::move( other.err_ ) );
-    // Now set after no exception has happened.
     good_ = other.good_;
   }
 
@@ -297,7 +370,6 @@ public:
       requires( std::is_constructible_v<T, Args...> )
     : good_{ false } /* clang-format on */ {
     new_val( std::forward<Args>( args )... );
-    // Now set after no exception has happened.
     good_ = true;
   }
 
@@ -314,7 +386,6 @@ public:
                 > )
     : good_{ false } /* clang-format on */ {
     new_val( ilist, std::forward<Args>( args )... );
-    // Now set after no exception has happened.
     good_ = true;
   }
 
@@ -379,7 +450,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( rhs.val_ );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -430,7 +500,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( std::move( rhs.val_ ) );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -492,7 +561,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( rhs.val_ );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -551,7 +619,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( std::move( rhs.val_ ) );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -573,7 +640,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( val );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -608,7 +674,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( std::move( val ) );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -652,7 +717,6 @@ public:
     if( !good_ ) {
       destroy();
       new_val( std::forward<U>( val ) );
-      // Now set after no exception has happened.
       good_ = true;
       return *this;
     }
@@ -677,7 +741,6 @@ public:
     if( good_ ) {
       destroy();
       new_err( std::forward<U>( err ) );
-      // Now set after no exception has happened.
       good_ = false;
       return *this;
     }
@@ -689,8 +752,8 @@ public:
   /**************************************************************
   ** Swap
   ***************************************************************/
-  constexpr void swap(
-      expect<T, E>& other ) /* clang-format off */
+  /* clang-format off */
+  constexpr void swap( expect<T, E>& other )
     noexcept( std::is_nothrow_move_constructible_v<T> &&
               std::is_nothrow_swappable_v<T>          &&
               std::is_nothrow_move_constructible_v<E> &&
@@ -712,13 +775,18 @@ public:
     // One is good and the other is not.
     expect<T, E>& good     = good_ ? *this : other;
     expect<T, E>& not_good = good_ ? other : *this;
-    not_good.new_val( std::move( good.val_ ) );
-    good.new_err( std::move( not_good.err_ ) );
+
+    T tmp_val( std::move( good.val_ ) );
+    E tmp_err( std::move( not_good.err_ ) );
     good.destroy_val();
     not_good.destroy_err();
-    // Now set after no exception has happened.
-    not_good.good_ = true;
     good.good_     = false;
+    not_good.good_ = false;
+
+    not_good.new_val( std::move( tmp_val ) );
+    good.new_err( std::move( tmp_err ) );
+
+    not_good.good_ = true;
   }
 
   /**************************************************************
@@ -726,24 +794,49 @@ public:
   ***************************************************************/
   [[nodiscard]] constexpr T const& value(
       SourceLoc loc = SourceLoc::current() ) const& {
-    if( !good_ ) throw bad_expect_access{ loc };
+    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return **this;
   }
   [[nodiscard]] constexpr T& value(
       SourceLoc loc = SourceLoc::current() ) & {
-    if( !good_ ) throw bad_expect_access{ loc };
+    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return **this;
   }
 
   [[nodiscard]] constexpr T const&& value(
       SourceLoc loc = SourceLoc::current() ) const&& {
-    if( !good_ ) throw bad_expect_access{ loc };
+    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return std::move( **this );
   }
   [[nodiscard]] constexpr T&& value(
       SourceLoc loc = SourceLoc::current() ) && {
-    if( !good_ ) throw bad_expect_access{ loc };
+    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
     return std::move( **this );
+  }
+
+  /**************************************************************
+  ** error
+  ***************************************************************/
+  [[nodiscard]] constexpr E const& error(
+      SourceLoc loc = SourceLoc::current() ) const& {
+    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+    return err_;
+  }
+  [[nodiscard]] constexpr E& error(
+      SourceLoc loc = SourceLoc::current() ) & {
+    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+    return err_;
+  }
+
+  [[nodiscard]] constexpr E const&& error(
+      SourceLoc loc = SourceLoc::current() ) const&& {
+    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+    return std::move( err_ );
+  }
+  [[nodiscard]] constexpr E&& error(
+      SourceLoc loc = SourceLoc::current() ) && {
+    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+    return std::move( err_ );
   }
 
   /**************************************************************
@@ -825,8 +918,8 @@ public:
     requires( std::is_constructible_v<T, Args...> ) {
     /* clang-format on */
     destroy();
-    new_val( std::forward<Args>( args )... );
     good_ = true;
+    new_val( std::forward<Args>( args )... );
     return **this;
   }
 
@@ -838,8 +931,8 @@ public:
                   std::initializer_list<U>, Args...> ) {
                                          /* clang-format on */
     destroy();
-    new_val( ilist, std::forward<Args>( args )... );
     good_ = true;
+    new_val( ilist, std::forward<Args>( args )... );
     return **this;
   }
 
@@ -893,8 +986,6 @@ public:
              !is_expect_v<std::remove_cvref_t<
                std::invoke_result_t<Func,T const&>>> ) {
     /* clang-format on */
-    using res_t =
-        expect<std::invoke_result_t<Func, T const&>, E>;
     if( !good_ ) return err_;
     return std::invoke( std::forward<Func>( func ), **this );
   }
@@ -908,7 +999,6 @@ public:
              !is_expect_v<std::remove_cvref_t<
                std::invoke_result_t<Func,T&>>> ) {
     /* clang-format on */
-    using res_t = expect<std::invoke_result_t<Func, T&>, E>;
     if( !good_ ) return err_;
     return std::invoke( std::forward<Func>( func ), **this );
   }
@@ -934,8 +1024,9 @@ public:
     if( !has_value() ) return err_;
     decltype( auto ) maybe_field =
         std::invoke( std::forward<Func>( func ), **this );
-    if( !maybe_field ) return res_t::value_type( nothing );
-    return res_t::value_type( std::move( *maybe_field ) );
+    if( !maybe_field )
+      return typename res_t::value_type( nothing );
+    return typename res_t::value_type( *maybe_field );
   }
 
   template<typename Func>
@@ -955,8 +1046,9 @@ public:
     if( !has_value() ) return err_;
     decltype( auto ) maybe_field =
         std::invoke( std::forward<Func>( func ), **this );
-    if( !maybe_field ) return res_t::value_type( nothing );
-    return res_t::value_type( std::move( *maybe_field ) );
+    if( !maybe_field )
+      return typename res_t::value_type( nothing );
+    return typename res_t::value_type( *maybe_field );
   }
 
   /**************************************************************
@@ -1146,7 +1238,7 @@ public:
   constexpr expect( E&& err ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<E> )
       requires( std::is_move_constructible_v<E> )
-    : p_{ false } /* clang-format on */ {
+    : p_{ nullptr } /* clang-format on */ {
     new_err( std::move( err ) );
   }
 
@@ -1162,6 +1254,20 @@ public:
       !is_expect_v<std::remove_cvref_t<U>> ) {
     /* clang-format on */
     p_ = static_cast<T*>( &ref );
+  }
+
+  template<typename V> /* clang-format off */
+  explicit( !std::is_convertible_v<V&&, E> )
+  constexpr expect( V&& err )
+      noexcept( std::is_nothrow_convertible_v<V, E> )
+      requires(
+         std::is_constructible_v<E, V&&> &&
+        !std::is_same_v<std::remove_cvref_t<V>, T> &&
+        !std::is_same_v<std::remove_cvref_t<V>, E> &&
+        !std::is_same_v<std::remove_cvref_t<V>, std::in_place_t> &&
+        !std::is_same_v<std::remove_cvref_t<V>, expect<T,E>> )
+    : p_{ nullptr } { /* clang-format on */
+    new_err( std::forward<V>( err ) );
   }
 
   /**************************************************************
@@ -1264,8 +1370,26 @@ public:
   ***************************************************************/
   [[nodiscard]] constexpr T& value(
       SourceLoc loc = SourceLoc::current() ) const {
-    if( !has_value() ) throw bad_expect_access{ loc };
+    if( !has_value() )
+      throw bad_expect_access{ loc, /*error=*/false };
     return **this;
+  }
+
+  /**************************************************************
+  ** error
+  ***************************************************************/
+  [[nodiscard]] constexpr E& error(
+      SourceLoc loc = SourceLoc::current() ) {
+    if( has_value() )
+      throw bad_expect_access{ loc, /*error=*/true };
+    return err_;
+  }
+
+  [[nodiscard]] constexpr E const& error(
+      SourceLoc loc = SourceLoc::current() ) const {
+    if( has_value() )
+      throw bad_expect_access{ loc, /*error=*/false };
+    return err_;
   }
 
   /**************************************************************
@@ -1382,8 +1506,9 @@ public:
     if( !has_value() ) return err_;
     decltype( auto ) maybe_field =
         std::invoke( std::forward<Func>( func ), **this );
-    if( !maybe_field ) return res_t::value_type( nothing );
-    return res_t::value_type( std::move( *maybe_field ) );
+    if( !maybe_field )
+      return typename res_t::value_type( nothing );
+    return typename res_t::value_type( *maybe_field );
   }
 
   /**************************************************************
@@ -1433,16 +1558,16 @@ private:
   constexpr void new_err( Vs&&... v )
     noexcept(
       (std::is_trivially_constructible_v<
-            T, decltype( std::forward<Vs>( v ) )...> &&
-       std::is_trivially_move_assignable_v<T>) ||
-      noexcept( new( &this->err_ ) T( std::forward<Vs>( v )... ) )
+            E, decltype( std::forward<Vs>( v ) )...> &&
+       std::is_trivially_move_assignable_v<E>) ||
+      noexcept( new( &this->err_ ) E( std::forward<Vs>( v )... ) )
     ) { /* clang-format on */
     if constexpr( std::is_trivially_constructible_v<
-                      T, decltype( std::forward<Vs>( v ) )...> &&
-                  std::is_trivially_move_assignable_v<T> ) {
-      err_ = T( std::forward<Vs>( v )... );
+                      E, decltype( std::forward<Vs>( v ) )...> &&
+                  std::is_trivially_move_assignable_v<E> ) {
+      err_ = E( std::forward<Vs>( v )... );
     } else {
-      new( &err_ ) T( std::forward<Vs>( v )... );
+      new( &err_ ) E( std::forward<Vs>( v )... );
     }
   }
 
@@ -1455,4 +1580,157 @@ private:
   };
 };
 
+/****************************************************************
+** expected
+*****************************************************************/
+// Will infer T, requires specifying E explicitly.
+template<typename E, typename T>
+expect<std::decay_t<T>, E> expected( T&& arg ) requires(
+    !is_expect_v<std::remove_cvref_t<T>> ) {
+  return expect<std::decay_t<T>, E>( std::forward<T>( arg ) );
+}
+
+// Requires specifying T and E explicitly.
+template<typename T, typename E, typename... Args>
+expect<T, E> expected( std::in_place_t, Args&&... args ) {
+  return expect<T, E>( std::in_place,
+                       std::forward<Args>( args )... );
+}
+
+// Will infer T, requires specifying E explicitly.
+template<typename E, typename T>
+expect<T&, E> expected_ref( T& arg ) requires(
+    !is_expect_v<std::remove_cvref_t<T>> ) {
+  return expect<T&, E>( arg );
+}
+
+// Will infer E, requires specifying T explicitly.
+template<typename T, typename E>
+expect<T, std::decay_t<E>> unexpected( E&& arg ) requires(
+    !is_expect_v<std::remove_cvref_t<E>> ) {
+  return expect<T, std::decay_t<E>>( std::forward<T>( arg ) );
+}
+
+/****************************************************************
+** Equality with expect
+*****************************************************************/
+template<typename T, typename E, typename U>
+[[nodiscard]] constexpr bool operator==(
+    expect<T, E> const& lhs, expect<U, E> const& rhs ) //
+    noexcept( noexcept( *lhs == *rhs ) ) {
+  bool l = lhs.has_value();
+  bool r = rhs.has_value();
+  return ( l == r ) ? l ? ( *lhs == *rhs )
+                        : ( lhs.error() == rhs.error() )
+                    : false;
+}
+
+// Delegate to the above.
+template<typename T, typename E, typename U>
+[[nodiscard]] constexpr bool operator!=(
+    expect<T, E> const& lhs, expect<U, E> const& rhs ) //
+    noexcept( noexcept( /*don't dereference*/ lhs == rhs ) ) {
+  return !( lhs == rhs );
+}
+
+/****************************************************************
+** Equality with value
+*****************************************************************/
+/* clang-format off */
+template<typename T, typename E, typename U>
+[[nodiscard]] constexpr bool operator==( expect<T, E> const& opt,
+                                         U const&            val )
+    noexcept( noexcept( *opt == val ) )
+    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
+  /* clang-format on */
+  if( !opt.has_value() ) return false;
+  return ( *opt == val );
+}
+
+/* clang-format off */
+template<typename T, typename E, typename U>
+[[nodiscard]] constexpr bool operator==( U const&            val,
+                                         expect<T, E> const& opt )
+    noexcept( noexcept( val == *opt ) )
+    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
+  /* clang-format on */
+  return ( opt == val );
+}
+
+/* clang-format off */
+template<typename T, typename E>
+[[nodiscard]] constexpr bool operator==( expect<T, E> const& opt,
+                                         E const&            err )
+    noexcept( noexcept( opt.error() == err ) ) {
+  /* clang-format on */
+  if( opt.has_value() ) return false;
+  return ( opt.error() == err );
+}
+
+/* clang-format off */
+template<typename T, typename E>
+[[nodiscard]] constexpr bool operator==( E const&            err,
+                                         expect<T, E> const& opt )
+    noexcept( noexcept( err == opt.error() ) ) {
+  /* clang-format on */
+  return ( opt == err );
+}
+
+/* clang-format off */
+template<typename T, typename E, typename U>
+[[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
+                                         U const&            val )
+    noexcept( noexcept( opt == val ) )
+    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
+  /* clang-format on */
+  return !( opt == val );
+}
+
+template<typename T, typename E,
+         typename U> /* clang-format off */
+[[nodiscard]] constexpr bool operator!=( U const&            val,
+                                         expect<T, E> const& opt )
+    noexcept( noexcept( val == opt ) )
+    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
+  /* clang-format on */
+  return !( val == opt );
+}
+
+/* clang-format off */
+template<typename T, typename E>
+[[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
+                                         E const&            err )
+    noexcept( noexcept( opt == err ) ) {
+  return !( opt == err );
+}
+
+/* clang-format off */
+template<typename T, typename E>
+[[nodiscard]] constexpr bool operator!=( E const&            err,
+                                         expect<T, E> const& opt )
+    noexcept( noexcept( err == opt ) ) {
+  /* clang-format on */
+  return !( err == opt );
+}
+
 } // namespace base
+
+/****************************************************************
+** std::swap
+*****************************************************************/
+namespace std {
+
+// As usual, if this version is not selected to be part of the
+// overload set then a generic std::swap will be used; either way
+// std::swap should work so long as std::swap<T> would work.
+template<typename T, typename E> /* clang-format off */
+void swap( ::base::expect<T, E>& lhs, ::base::expect<T, E>& rhs )
+    noexcept( noexcept( lhs.swap( rhs ) ) )
+    requires( is_move_constructible_v<T> &&
+              is_swappable_v<T>          &&
+              is_move_constructible_v<E> &&
+              is_swappable_v<E> ) { /* clang-format on */
+  lhs.swap( rhs );
+}
+
+} // namespace std
