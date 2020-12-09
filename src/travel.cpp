@@ -24,6 +24,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/lambda.hpp"
 
 using namespace std;
 

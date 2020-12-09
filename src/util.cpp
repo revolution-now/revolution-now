@@ -15,6 +15,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/lambda.hpp"
 
 // C++ standard library.
 #include <cstdlib>

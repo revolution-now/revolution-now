@@ -20,7 +20,6 @@
 #include "base/source-loc.hpp"
 
 // base-util
-#include "base-util/misc.hpp"
 #include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
 #include "base-util/string.hpp"
@@ -275,7 +274,9 @@ struct formatter<V<Ts...>>
   template<typename Context>
   auto format( V<Ts...> const &v, Context &ctx ) {
     return std::visit(
-        LC( B::format( fmt::format( "{}", _ ), ctx ) ),
+        [&]( auto const &_ ) {
+          return B::format( fmt::format( "{}", _ ), ctx );
+        },
         static_cast<std::variant<Ts...> const &>( v ) );
   }
 };

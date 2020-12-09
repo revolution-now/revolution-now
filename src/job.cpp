@@ -18,6 +18,9 @@
 #include "variant.hpp"
 #include "window.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 using namespace std;
 
 namespace rn {

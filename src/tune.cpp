@@ -21,9 +21,11 @@
 // Revolution Now (config)
 #include "../config/ucl/music.inl"
 
+// base
+#include "base/lambda.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/misc.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"

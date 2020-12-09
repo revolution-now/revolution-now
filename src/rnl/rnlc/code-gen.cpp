@@ -14,11 +14,9 @@
 #include "rnl-util.hpp"
 
 // base
+#include "base/lambda.hpp"
 #include "base/maybe.hpp"
 #include "base/meta.hpp"
-
-// base-util
-#include "base-util/misc.hpp"
 
 // {fmt}
 #include "fmt/format.h"

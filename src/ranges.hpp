@@ -17,6 +17,7 @@
 #include "fmt-helper.hpp"
 
 // base
+#include "base/lambda.hpp"
 #include "base/maybe.hpp"
 
 // range-v3

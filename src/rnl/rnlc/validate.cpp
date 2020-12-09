@@ -13,8 +13,8 @@
 // rnlc
 #include "rnl-util.hpp"
 
-// base-util
-#include "base-util/misc.hpp"
+// base
+#include "base/lambda.hpp"
 
 // {fmt}
 #include "fmt/format.h"

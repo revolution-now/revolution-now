@@ -13,8 +13,8 @@
 // Revolution Now
 #include "ustate.hpp"
 
-// base-util
-#include "base-util/misc.hpp"
+// base
+#include "base/lambda.hpp"
 
 // C++ standard library
 #include <functional>

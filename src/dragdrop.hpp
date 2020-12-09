@@ -27,6 +27,9 @@
 // Rnl
 #include "rnl/dragdrop.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 // C++ standard library
 #include <variant>
 

@@ -40,6 +40,9 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 // Rnl
 #include "rnl/land-view.hpp"
 

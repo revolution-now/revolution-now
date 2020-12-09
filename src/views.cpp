@@ -22,8 +22,8 @@
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
 
-// base-util
-#include "base-util/misc.hpp"
+// base
+#include "base/lambda.hpp"
 
 // C++ standard library
 #include <chrono>

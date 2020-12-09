@@ -19,6 +19,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/lambda.hpp"
 #include "base/meta.hpp"
 
 // Rnl

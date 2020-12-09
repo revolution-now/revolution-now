@@ -31,9 +31,11 @@
 #include "tiles.hpp"
 #include "window.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/misc.hpp"
 
 // Range-v3
 #include "range/v3/view/filter.hpp"

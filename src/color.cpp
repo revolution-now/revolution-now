@@ -23,12 +23,12 @@
 #include "../config/ucl/palette.inl"
 
 // base
+#include "base/lambda.hpp"
 #include "base/maybe-util.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
 #include "base-util/io.hpp"
-#include "base-util/misc.hpp"
 
 // {fmt}
 #include "fmt/format.h"

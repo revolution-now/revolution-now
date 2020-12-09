@@ -16,6 +16,9 @@
 #include "logging.hpp"
 #include "maybe.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 // base-util
 #include "base-util/graph.hpp"
 

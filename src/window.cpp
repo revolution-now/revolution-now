@@ -38,9 +38,7 @@
 // base
 #include "base/conv.hpp"
 #include "base/function-ref.hpp"
-
-// base-util
-#include "base-util/misc.hpp"
+#include "base/lambda.hpp"
 
 // Abseil
 #include "absl/container/flat_hash_map.h"

@@ -19,6 +19,7 @@
 #include "variant.hpp"
 
 // base
+#include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 
 // Abseil

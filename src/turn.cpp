@@ -33,12 +33,14 @@
 #include "viewport.hpp"
 #include "window.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 // Flatbuffers
 #include "fb/sg-turn_generated.h"
 
 // base-util
 #include "base-util/algo.hpp"
-#include "base-util/misc.hpp"
 
 // Range-v3
 #include "range/v3/view/take.hpp"
