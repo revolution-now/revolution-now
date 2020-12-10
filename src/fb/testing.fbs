@@ -79,6 +79,9 @@ table MapTester2 {
   map : [Pair_int_int];
 }
 
+table Empty {
+}
+
 table MyVariant {
   one   : int;
   two   : Vec2;

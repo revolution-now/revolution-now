@@ -27,6 +27,8 @@
 #include "rnl/testing.hpp"
 
 // base
+#include "base/build-properties.hpp"
+#include "base/fs.hpp"
 #include "base/io.hpp"
 
 // Flatbuffers
@@ -1168,6 +1170,21 @@ TEST_CASE( "[flatbuffers] fsm" ) {
   REQUIRE( on_off_ds.pushed_states().size() ==
            on_off.pushed_states().size() );
   REQUIRE( on_off.pushed_states() == on_off_ds.pushed_states() );
+}
+
+TEST_CASE( "[flatbuffers] Golden Comparison" ) {
+  Opt<Str> golden = base::read_text_file_as_string(
+      testing::data_dir() / "fb-testing-golden.h" );
+  REQUIRE( golden.has_value() );
+  fs::path root      = base::build_output_root();
+  Opt<Str> generated = base::read_text_file_as_string(
+      root / "src/fb/testing_generated.h" );
+  REQUIRE( generated.has_value() );
+  // Do this comparison outside of the REQUIRE macro so that
+  // Catch2 doesn't try to print the values when they are not
+  // equal.
+  bool eq = ( generated == golden );
+  REQUIRE( eq );
 }
 
 } // namespace
