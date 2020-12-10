@@ -1111,10 +1111,7 @@ public:
   ***************************************************************/
   constexpr T& operator*() const noexcept { return *p_; }
 
-  constexpr std::remove_reference_t<T>* operator->()
-      const noexcept {
-    return &**this;
-  }
+  constexpr T* operator->() const noexcept { return &**this; }
 
   /**************************************************************
   ** Mapping to Bool
