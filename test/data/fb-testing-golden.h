@@ -4,6 +4,8 @@
 #ifndef FLATBUFFERS_GENERATED_TESTING_FB_H_
 #define FLATBUFFERS_GENERATED_TESTING_FB_H_
 
+#include <tuple>
+
 #include "flatbuffers/flatbuffers.h"
 
 #include "fb/coord_generated.h"
@@ -240,6 +242,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2 FLATBUFFERS_FINAL_CLASS {
   float y_;
 
  public:
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec2TypeTable();
   }
@@ -257,8 +260,27 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2 FLATBUFFERS_FINAL_CLASS {
   float y() const {
     return flatbuffers::EndianScalar(y_);
   }
+  using FieldTypes = std::tuple<
+    float,
+    float
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      x(),
+      y()
+    };
+  }
 };
 FLATBUFFERS_STRUCT_END(Vec2, 8);
+
+struct Vec2::Traits {
+  using type = Vec2;
+  static constexpr auto name = "Vec2";
+  static constexpr std::array<const char *, 2> field_names = {
+    "x",
+    "y"
+  };
+};
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
  private:
@@ -267,6 +289,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   float z_;
 
  public:
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Vec3TypeTable();
   }
@@ -289,8 +312,30 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   float z() const {
     return flatbuffers::EndianScalar(z_);
   }
+  using FieldTypes = std::tuple<
+    float,
+    float,
+    float
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      x(),
+      y(),
+      z()
+    };
+  }
 };
 FLATBUFFERS_STRUCT_END(Vec3, 12);
+
+struct Vec3::Traits {
+  using type = Vec3;
+  static constexpr auto name = "Vec3";
+  static constexpr std::array<const char *, 3> field_names = {
+    "x",
+    "y",
+    "z"
+  };
+};
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Pair_Vec2_int FLATBUFFERS_FINAL_CLASS {
  private:
@@ -298,6 +343,7 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Pair_Vec2_int FLATBUFFERS_FINAL_CLASS {
   int32_t snd_;
 
  public:
+  struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return Pair_Vec2_intTypeTable();
   }
@@ -315,8 +361,27 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Pair_Vec2_int FLATBUFFERS_FINAL_CLASS {
   int32_t snd() const {
     return flatbuffers::EndianScalar(snd_);
   }
+  using FieldTypes = std::tuple<
+    const fb::Vec2 &,
+    int32_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      fst(),
+      snd()
+    };
+  }
 };
 FLATBUFFERS_STRUCT_END(Pair_Vec2_int, 12);
+
+struct Pair_Vec2_int::Traits {
+  using type = Pair_Vec2_int;
+  static constexpr auto name = "Pair_Vec2_int";
+  static constexpr std::array<const char *, 2> field_names = {
+    "fst",
+    "snd"
+  };
+};
 
 namespace MySumtype {
 
@@ -325,6 +390,10 @@ struct none FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return noneTypeTable();
+  }
+  using FieldTypes = std::tuple<>;
+  FieldTypes fields_pack() const {
+    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -356,6 +425,8 @@ inline flatbuffers::Offset<none> Createnone(
 struct none::Traits {
   using type = none;
   static auto constexpr Create = Createnone;
+  static constexpr auto name = "none";
+  static constexpr std::array<const char *, 0> field_names = {};
 };
 
 struct some FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -373,6 +444,16 @@ struct some FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   int32_t y() const {
     return GetField<int32_t>(VT_Y, 0);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::String *,
+    int32_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      s(),
+      y()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -417,6 +498,11 @@ inline flatbuffers::Offset<some> Createsome(
 struct some::Traits {
   using type = some;
   static auto constexpr Create = Createsome;
+  static constexpr auto name = "some";
+  static constexpr std::array<const char *, 2> field_names = {
+    "s",
+    "y"
+  };
 };
 
 inline flatbuffers::Offset<some> CreatesomeDirect(
@@ -441,6 +527,14 @@ struct more FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   double d() const {
     return GetField<double>(VT_D, 0.0);
+  }
+  using FieldTypes = std::tuple<
+    double
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      d()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -478,6 +572,10 @@ inline flatbuffers::Offset<more> Createmore(
 struct more::Traits {
   using type = more;
   static auto constexpr Create = Createmore;
+  static constexpr auto name = "more";
+  static constexpr std::array<const char *, 1> field_names = {
+    "d"
+  };
 };
 
 }  // namespace MySumtype
@@ -501,6 +599,18 @@ struct MySumtype_t FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const fb::MySumtype::more *more() const {
     return GetPointer<const fb::MySumtype::more *>(VT_MORE);
+  }
+  using FieldTypes = std::tuple<
+    const fb::MySumtype::none *,
+    const fb::MySumtype::some *,
+    const fb::MySumtype::more *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      none(),
+      some(),
+      more()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -553,6 +663,12 @@ inline flatbuffers::Offset<MySumtype_t> CreateMySumtype_t(
 struct MySumtype_t::Traits {
   using type = MySumtype_t;
   static auto constexpr Create = CreateMySumtype_t;
+  static constexpr auto name = "MySumtype_t";
+  static constexpr std::array<const char *, 3> field_names = {
+    "none",
+    "some",
+    "more"
+  };
 };
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -570,6 +686,16 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   int16_t damage() const {
     return GetField<int16_t>(VT_DAMAGE, 0);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::String *,
+    int16_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      name(),
+      damage()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -614,6 +740,11 @@ inline flatbuffers::Offset<Weapon> CreateWeapon(
 struct Weapon::Traits {
   using type = Weapon;
   static auto constexpr Create = CreateWeapon;
+  static constexpr auto name = "Weapon";
+  static constexpr std::array<const char *, 2> field_names = {
+    "name",
+    "damage"
+  };
 };
 
 inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
@@ -642,6 +773,16 @@ struct Pair_int_Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const fb::Weapon *snd() const {
     return GetPointer<const fb::Weapon *>(VT_SND);
+  }
+  using FieldTypes = std::tuple<
+    int32_t,
+    const fb::Weapon *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      fst(),
+      snd()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -686,6 +827,11 @@ inline flatbuffers::Offset<Pair_int_Weapon> CreatePair_int_Weapon(
 struct Pair_int_Weapon::Traits {
   using type = Pair_int_Weapon;
   static auto constexpr Create = CreatePair_int_Weapon;
+  static constexpr auto name = "Pair_int_Weapon";
+  static constexpr std::array<const char *, 2> field_names = {
+    "fst",
+    "snd"
+  };
 };
 
 struct SetTester FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -699,6 +845,14 @@ struct SetTester FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *set() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_SET);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      set()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -738,6 +892,10 @@ inline flatbuffers::Offset<SetTester> CreateSetTester(
 struct SetTester::Traits {
   using type = SetTester;
   static auto constexpr Create = CreateSetTester;
+  static constexpr auto name = "SetTester";
+  static constexpr std::array<const char *, 1> field_names = {
+    "set"
+  };
 };
 
 inline flatbuffers::Offset<SetTester> CreateSetTesterDirect(
@@ -760,6 +918,14 @@ struct MapTester1 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *map() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *>(VT_MAP);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      map()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -799,6 +965,10 @@ inline flatbuffers::Offset<MapTester1> CreateMapTester1(
 struct MapTester1::Traits {
   using type = MapTester1;
   static auto constexpr Create = CreateMapTester1;
+  static constexpr auto name = "MapTester1";
+  static constexpr std::array<const char *, 1> field_names = {
+    "map"
+  };
 };
 
 inline flatbuffers::Offset<MapTester1> CreateMapTester1Direct(
@@ -821,6 +991,14 @@ struct MapTester2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_int>> *map() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_int>> *>(VT_MAP);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_int>> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      map()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -860,6 +1038,10 @@ inline flatbuffers::Offset<MapTester2> CreateMapTester2(
 struct MapTester2::Traits {
   using type = MapTester2;
   static auto constexpr Create = CreateMapTester2;
+  static constexpr auto name = "MapTester2";
+  static constexpr std::array<const char *, 1> field_names = {
+    "map"
+  };
 };
 
 inline flatbuffers::Offset<MapTester2> CreateMapTester2Direct(
@@ -876,6 +1058,10 @@ struct Empty FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return EmptyTypeTable();
+  }
+  using FieldTypes = std::tuple<>;
+  FieldTypes fields_pack() const {
+    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -907,6 +1093,8 @@ inline flatbuffers::Offset<Empty> CreateEmpty(
 struct Empty::Traits {
   using type = Empty;
   static auto constexpr Create = CreateEmpty;
+  static constexpr auto name = "Empty";
+  static constexpr std::array<const char *, 0> field_names = {};
 };
 
 struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -932,6 +1120,20 @@ struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   fb::e_color four() const {
     return static_cast<fb::e_color>(GetField<int8_t>(VT_FOUR, 0));
+  }
+  using FieldTypes = std::tuple<
+    int32_t,
+    const fb::Vec2 *,
+    const fb::Weapon *,
+    fb::e_color
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      one(),
+      two(),
+      three(),
+      four()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -988,6 +1190,13 @@ inline flatbuffers::Offset<MyVariant> CreateMyVariant(
 struct MyVariant::Traits {
   using type = MyVariant;
   static auto constexpr Create = CreateMyVariant;
+  static constexpr auto name = "MyVariant";
+  static constexpr std::array<const char *, 4> field_names = {
+    "one",
+    "two",
+    "three",
+    "four"
+  };
 };
 
 struct MyFlatQueues FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1009,6 +1218,18 @@ struct MyFlatQueues FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const flatbuffers::Vector<int32_t> *dq() const {
     return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_DQ);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::Vector<int32_t> *,
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
+    const flatbuffers::Vector<int32_t> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      q1(),
+      q2(),
+      dq()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1062,6 +1283,12 @@ inline flatbuffers::Offset<MyFlatQueues> CreateMyFlatQueues(
 struct MyFlatQueues::Traits {
   using type = MyFlatQueues;
   static auto constexpr Create = CreateMyFlatQueues;
+  static constexpr auto name = "MyFlatQueues";
+  static constexpr std::array<const char *, 3> field_names = {
+    "q1",
+    "q2",
+    "dq"
+  };
 };
 
 inline flatbuffers::Offset<MyFlatQueues> CreateMyFlatQueuesDirect(
@@ -1094,6 +1321,16 @@ struct Pair_Coord_String FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const flatbuffers::String *snd() const {
     return GetPointer<const flatbuffers::String *>(VT_SND);
+  }
+  using FieldTypes = std::tuple<
+    const fb::Coord *,
+    const flatbuffers::String *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      fst(),
+      snd()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1138,6 +1375,11 @@ inline flatbuffers::Offset<Pair_Coord_String> CreatePair_Coord_String(
 struct Pair_Coord_String::Traits {
   using type = Pair_Coord_String;
   static auto constexpr Create = CreatePair_Coord_String;
+  static constexpr auto name = "Pair_Coord_String";
+  static constexpr std::array<const char *, 2> field_names = {
+    "fst",
+    "snd"
+  };
 };
 
 inline flatbuffers::Offset<Pair_Coord_String> CreatePair_Coord_StringDirect(
@@ -1166,6 +1408,16 @@ struct Matrix_String FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_Coord_String>> *data() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_Coord_String>> *>(VT_DATA);
+  }
+  using FieldTypes = std::tuple<
+    const fb::Delta *,
+    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_Coord_String>> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      size(),
+      data()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1211,6 +1463,11 @@ inline flatbuffers::Offset<Matrix_String> CreateMatrix_String(
 struct Matrix_String::Traits {
   using type = Matrix_String;
   static auto constexpr Create = CreateMatrix_String;
+  static constexpr auto name = "Matrix_String";
+  static constexpr std::array<const char *, 2> field_names = {
+    "size",
+    "data"
+  };
 };
 
 inline flatbuffers::Offset<Matrix_String> CreateMatrix_StringDirect(
@@ -1231,6 +1488,10 @@ struct off FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return offTypeTable();
+  }
+  using FieldTypes = std::tuple<>;
+  FieldTypes fields_pack() const {
+    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1262,6 +1523,8 @@ inline flatbuffers::Offset<off> Createoff(
 struct off::Traits {
   using type = off;
   static auto constexpr Create = Createoff;
+  static constexpr auto name = "off";
+  static constexpr std::array<const char *, 0> field_names = {};
 };
 
 struct on FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1275,6 +1538,14 @@ struct on FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   const flatbuffers::String *user() const {
     return GetPointer<const flatbuffers::String *>(VT_USER);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::String *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      user()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1313,6 +1584,10 @@ inline flatbuffers::Offset<on> Createon(
 struct on::Traits {
   using type = on;
   static auto constexpr Create = Createon;
+  static constexpr auto name = "on";
+  static constexpr std::array<const char *, 1> field_names = {
+    "user"
+  };
 };
 
 inline flatbuffers::Offset<on> CreateonDirect(
@@ -1335,6 +1610,14 @@ struct switching_on FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   double percent() const {
     return GetField<double>(VT_PERCENT, 0.0);
+  }
+  using FieldTypes = std::tuple<
+    double
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      percent()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1372,6 +1655,10 @@ inline flatbuffers::Offset<switching_on> Createswitching_on(
 struct switching_on::Traits {
   using type = switching_on;
   static auto constexpr Create = Createswitching_on;
+  static constexpr auto name = "switching_on";
+  static constexpr std::array<const char *, 1> field_names = {
+    "percent"
+  };
 };
 
 struct switching_off FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1385,6 +1672,14 @@ struct switching_off FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   double percent() const {
     return GetField<double>(VT_PERCENT, 0.0);
+  }
+  using FieldTypes = std::tuple<
+    double
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      percent()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1422,6 +1717,10 @@ inline flatbuffers::Offset<switching_off> Createswitching_off(
 struct switching_off::Traits {
   using type = switching_off;
   static auto constexpr Create = Createswitching_off;
+  static constexpr auto name = "switching_off";
+  static constexpr std::array<const char *, 1> field_names = {
+    "percent"
+  };
 };
 
 }  // namespace OnOffState
@@ -1449,6 +1748,20 @@ struct OnOffState_t FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const fb::OnOffState::switching_off *switching_off() const {
     return GetPointer<const fb::OnOffState::switching_off *>(VT_SWITCHING_OFF);
+  }
+  using FieldTypes = std::tuple<
+    const fb::OnOffState::off *,
+    const fb::OnOffState::on *,
+    const fb::OnOffState::switching_on *,
+    const fb::OnOffState::switching_off *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      off(),
+      on(),
+      switching_on(),
+      switching_off()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1508,6 +1821,13 @@ inline flatbuffers::Offset<OnOffState_t> CreateOnOffState_t(
 struct OnOffState_t::Traits {
   using type = OnOffState_t;
   static auto constexpr Create = CreateOnOffState_t;
+  static constexpr auto name = "OnOffState_t";
+  static constexpr std::array<const char *, 4> field_names = {
+    "off",
+    "on",
+    "switching_on",
+    "switching_off"
+  };
 };
 
 struct OnOffFsm FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1521,6 +1841,14 @@ struct OnOffFsm FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *state_stack() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *>(VT_STATE_STACK);
+  }
+  using FieldTypes = std::tuple<
+    const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      state_stack()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1560,6 +1888,10 @@ inline flatbuffers::Offset<OnOffFsm> CreateOnOffFsm(
 struct OnOffFsm::Traits {
   using type = OnOffFsm;
   static auto constexpr Create = CreateOnOffFsm;
+  static constexpr auto name = "OnOffFsm";
+  static constexpr std::array<const char *, 1> field_names = {
+    "state_stack"
+  };
 };
 
 inline flatbuffers::Offset<OnOffFsm> CreateOnOffFsmDirect(
@@ -1666,6 +1998,56 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const fb::Opt_int *opt_int3() const {
     return GetPointer<const fb::Opt_int *>(VT_OPT_INT3);
+  }
+  using FieldTypes = std::tuple<
+    const fb::Vec3 *,
+    int16_t,
+    int16_t,
+    const flatbuffers::String *,
+    const flatbuffers::String *,
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
+    const flatbuffers::Vector<uint8_t> *,
+    fb::e_color,
+    fb::e_hand,
+    const fb::Weapon *,
+    const flatbuffers::Vector<flatbuffers::Offset<fb::Weapon>> *,
+    const flatbuffers::Vector<const fb::Vec3 *> *,
+    const fb::Pair_string_int *,
+    const fb::Pair_Vec2_int *,
+    const flatbuffers::Vector<const fb::Pair_Vec2_int *> *,
+    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *,
+    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_Weapon>> *,
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
+    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
+    const fb::Opt_int *,
+    const fb::Opt_int *,
+    const fb::Opt_int *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      pos(),
+      mana(),
+      hp(),
+      name(),
+      noname(),
+      names(),
+      inventory(),
+      color(),
+      hand(),
+      elbow(),
+      weapons(),
+      path(),
+      pair1(),
+      pair2(),
+      map_vecs(),
+      map_strs(),
+      map_wpns(),
+      mylist(),
+      myset(),
+      opt_int1(),
+      opt_int2(),
+      opt_int3()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1851,6 +2233,31 @@ inline flatbuffers::Offset<Monster> CreateMonster(
 struct Monster::Traits {
   using type = Monster;
   static auto constexpr Create = CreateMonster;
+  static constexpr auto name = "Monster";
+  static constexpr std::array<const char *, 22> field_names = {
+    "pos",
+    "mana",
+    "hp",
+    "name",
+    "noname",
+    "names",
+    "inventory",
+    "color",
+    "hand",
+    "elbow",
+    "weapons",
+    "path",
+    "pair1",
+    "pair2",
+    "map_vecs",
+    "map_strs",
+    "map_wpns",
+    "mylist",
+    "myset",
+    "opt_int1",
+    "opt_int2",
+    "opt_int3"
+  };
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -1932,6 +2339,16 @@ struct first FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool b() const {
     return GetField<uint8_t>(VT_B, 0) != 0;
   }
+  using FieldTypes = std::tuple<
+    const flatbuffers::String *,
+    bool
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      name(),
+      b()
+    };
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_NAME) &&
@@ -1975,6 +2392,11 @@ inline flatbuffers::Offset<first> Createfirst(
 struct first::Traits {
   using type = first;
   static auto constexpr Create = Createfirst;
+  static constexpr auto name = "first";
+  static constexpr std::array<const char *, 2> field_names = {
+    "name",
+    "b"
+  };
 };
 
 inline flatbuffers::Offset<first> CreatefirstDirect(
@@ -2003,6 +2425,16 @@ struct second FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool flag2() const {
     return GetField<uint8_t>(VT_FLAG2, 0) != 0;
+  }
+  using FieldTypes = std::tuple<
+    bool,
+    bool
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      flag1(),
+      flag2()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2046,6 +2478,11 @@ inline flatbuffers::Offset<second> Createsecond(
 struct second::Traits {
   using type = second;
   static auto constexpr Create = Createsecond;
+  static constexpr auto name = "second";
+  static constexpr std::array<const char *, 2> field_names = {
+    "flag1",
+    "flag2"
+  };
 };
 
 struct third FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -2059,6 +2496,14 @@ struct third FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   };
   int32_t cost() const {
     return GetField<int32_t>(VT_COST, 0);
+  }
+  using FieldTypes = std::tuple<
+    int32_t
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      cost()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2096,6 +2541,10 @@ inline flatbuffers::Offset<third> Createthird(
 struct third::Traits {
   using type = third;
   static auto constexpr Create = Createthird;
+  static constexpr auto name = "third";
+  static constexpr std::array<const char *, 1> field_names = {
+    "cost"
+  };
 };
 
 }  // namespace MyVariant2
@@ -2119,6 +2568,18 @@ struct MyVariant2_t FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   const fb::MyVariant2::third *third() const {
     return GetPointer<const fb::MyVariant2::third *>(VT_THIRD);
+  }
+  using FieldTypes = std::tuple<
+    const fb::MyVariant2::first *,
+    const fb::MyVariant2::second *,
+    const fb::MyVariant2::third *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      first(),
+      second(),
+      third()
+    };
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2171,6 +2632,12 @@ inline flatbuffers::Offset<MyVariant2_t> CreateMyVariant2_t(
 struct MyVariant2_t::Traits {
   using type = MyVariant2_t;
   static auto constexpr Create = CreateMyVariant2_t;
+  static constexpr auto name = "MyVariant2_t";
+  static constexpr std::array<const char *, 3> field_names = {
+    "first",
+    "second",
+    "third"
+  };
 };
 
 namespace MySumtype {
