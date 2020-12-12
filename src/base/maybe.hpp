@@ -641,7 +641,7 @@ public:
   /**************************************************************
   ** value_or
   ***************************************************************/
-  template<typename U>
+  template<typename U = T>
   // clang-format off
   [[nodiscard]] constexpr T value_or( U&& def ) const&
     noexcept( std::is_nothrow_convertible_v<U&&, T> &&
@@ -654,7 +654,7 @@ public:
                : static_cast<T>( std::forward<U>( def ) );
   }
 
-  template<typename U>
+  template<typename U = T>
   // clang-format off
   [[nodiscard]] constexpr T value_or( U&& def ) &&
     noexcept( std::is_nothrow_convertible_v<U&&, T> &&

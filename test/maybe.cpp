@@ -1282,6 +1282,12 @@ TEST_CASE( "[maybe] value_or" ) {
     }
     REQUIRE( Tracker::destructed == 4 );
   }
+  SECTION( "default type" ) {
+    M<int> m1;
+    REQUIRE( m1.value_or( {} ) == 0 );
+    M<string> m2;
+    REQUIRE( m2.value_or( {} ) == "" );
+  }
 }
 
 TEST_CASE( "[maybe] non-copyable non-movable T" ) {
