@@ -55,6 +55,12 @@ struct EmptyBuilder;
 struct MyVariant;
 struct MyVariantBuilder;
 
+struct MyVariantNoIndex;
+struct MyVariantNoIndexBuilder;
+
+struct MyFloatVariant;
+struct MyFloatVariantBuilder;
+
 struct MyFlatQueues;
 struct MyFlatQueuesBuilder;
 
@@ -136,6 +142,10 @@ inline const flatbuffers::TypeTable *MapTester2TypeTable();
 inline const flatbuffers::TypeTable *EmptyTypeTable();
 
 inline const flatbuffers::TypeTable *MyVariantTypeTable();
+
+inline const flatbuffers::TypeTable *MyVariantNoIndexTypeTable();
+
+inline const flatbuffers::TypeTable *MyFloatVariantTypeTable();
 
 inline const flatbuffers::TypeTable *MyFlatQueuesTypeTable();
 
@@ -1117,11 +1127,15 @@ struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     return MyVariantTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_ONE = 4,
-    VT_TWO = 6,
-    VT_THREE = 8,
-    VT_FOUR = 10
+    VT_ACTIVE_INDEX = 4,
+    VT_ONE = 6,
+    VT_TWO = 8,
+    VT_THREE = 10,
+    VT_FOUR = 12
   };
+  int32_t active_index() const {
+    return GetField<int32_t>(VT_ACTIVE_INDEX, 0);
+  }
   int32_t one() const {
     return GetField<int32_t>(VT_ONE, 0);
   }
@@ -1136,12 +1150,14 @@ struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   using FieldTypes = std::tuple<
     int32_t,
+    int32_t,
     const fb::Vec2 *,
     const fb::Weapon *,
     fb::e_color
     >;
   FieldTypes fields_pack() const {
     return {
+      active_index(),
       one(),
       two(),
       three(),
@@ -1150,6 +1166,7 @@ struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_ACTIVE_INDEX) &&
            VerifyField<int32_t>(verifier, VT_ONE) &&
            VerifyField<fb::Vec2>(verifier, VT_TWO) &&
            VerifyOffset(verifier, VT_THREE) &&
@@ -1163,6 +1180,9 @@ struct MyVariantBuilder {
   typedef MyVariant Table;
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
+  void add_active_index(int32_t active_index) {
+    fbb_.AddElement<int32_t>(MyVariant::VT_ACTIVE_INDEX, active_index, 0);
+  }
   void add_one(int32_t one) {
     fbb_.AddElement<int32_t>(MyVariant::VT_ONE, one, 0);
   }
@@ -1188,6 +1208,7 @@ struct MyVariantBuilder {
 
 inline flatbuffers::Offset<MyVariant> CreateMyVariant(
     flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t active_index = 0,
     int32_t one = 0,
     const fb::Vec2 *two = 0,
     flatbuffers::Offset<fb::Weapon> three = 0,
@@ -1196,6 +1217,7 @@ inline flatbuffers::Offset<MyVariant> CreateMyVariant(
   builder_.add_three(three);
   builder_.add_two(two);
   builder_.add_one(one);
+  builder_.add_active_index(active_index);
   builder_.add_four(four);
   return builder_.Finish();
 }
@@ -1205,7 +1227,214 @@ struct MyVariant::Traits {
   static auto constexpr Create = CreateMyVariant;
   static constexpr auto name = "MyVariant";
   static constexpr auto fully_qualified_name = "fb.MyVariant";
-  static constexpr std::array<const char *, 4> field_names = {
+  static constexpr std::array<const char *, 5> field_names = {
+    "active_index",
+    "one",
+    "two",
+    "three",
+    "four"
+  };
+};
+
+struct MyVariantNoIndex FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MyVariantNoIndexBuilder Builder;
+  struct Traits;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MyVariantNoIndexTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_TWO = 4,
+    VT_THREE = 6,
+    VT_FOUR = 8
+  };
+  const fb::Vec2 *two() const {
+    return GetStruct<const fb::Vec2 *>(VT_TWO);
+  }
+  const fb::Weapon *three() const {
+    return GetPointer<const fb::Weapon *>(VT_THREE);
+  }
+  const fb::Weapon *four() const {
+    return GetPointer<const fb::Weapon *>(VT_FOUR);
+  }
+  using FieldTypes = std::tuple<
+    const fb::Vec2 *,
+    const fb::Weapon *,
+    const fb::Weapon *
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      two(),
+      three(),
+      four()
+    };
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<fb::Vec2>(verifier, VT_TWO) &&
+           VerifyOffset(verifier, VT_THREE) &&
+           verifier.VerifyTable(three()) &&
+           VerifyOffset(verifier, VT_FOUR) &&
+           verifier.VerifyTable(four()) &&
+           verifier.EndTable();
+  }
+};
+
+struct MyVariantNoIndexBuilder {
+  typedef MyVariantNoIndex Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_two(const fb::Vec2 *two) {
+    fbb_.AddStruct(MyVariantNoIndex::VT_TWO, two);
+  }
+  void add_three(flatbuffers::Offset<fb::Weapon> three) {
+    fbb_.AddOffset(MyVariantNoIndex::VT_THREE, three);
+  }
+  void add_four(flatbuffers::Offset<fb::Weapon> four) {
+    fbb_.AddOffset(MyVariantNoIndex::VT_FOUR, four);
+  }
+  explicit MyVariantNoIndexBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<MyVariantNoIndex> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<MyVariantNoIndex>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<MyVariantNoIndex> CreateMyVariantNoIndex(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const fb::Vec2 *two = 0,
+    flatbuffers::Offset<fb::Weapon> three = 0,
+    flatbuffers::Offset<fb::Weapon> four = 0) {
+  MyVariantNoIndexBuilder builder_(_fbb);
+  builder_.add_four(four);
+  builder_.add_three(three);
+  builder_.add_two(two);
+  return builder_.Finish();
+}
+
+struct MyVariantNoIndex::Traits {
+  using type = MyVariantNoIndex;
+  static auto constexpr Create = CreateMyVariantNoIndex;
+  static constexpr auto name = "MyVariantNoIndex";
+  static constexpr auto fully_qualified_name = "fb.MyVariantNoIndex";
+  static constexpr std::array<const char *, 3> field_names = {
+    "two",
+    "three",
+    "four"
+  };
+};
+
+struct MyFloatVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef MyFloatVariantBuilder Builder;
+  struct Traits;
+  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
+    return MyFloatVariantTypeTable();
+  }
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_ACTIVE_INDEX = 4,
+    VT_ONE = 6,
+    VT_TWO = 8,
+    VT_THREE = 10,
+    VT_FOUR = 12
+  };
+  int32_t active_index() const {
+    return GetField<int32_t>(VT_ACTIVE_INDEX, 0);
+  }
+  float one() const {
+    return GetField<float>(VT_ONE, 0.0f);
+  }
+  float two() const {
+    return GetField<float>(VT_TWO, 0.0f);
+  }
+  float three() const {
+    return GetField<float>(VT_THREE, 0.0f);
+  }
+  float four() const {
+    return GetField<float>(VT_FOUR, 0.0f);
+  }
+  using FieldTypes = std::tuple<
+    int32_t,
+    float,
+    float,
+    float,
+    float
+    >;
+  FieldTypes fields_pack() const {
+    return {
+      active_index(),
+      one(),
+      two(),
+      three(),
+      four()
+    };
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_ACTIVE_INDEX) &&
+           VerifyField<float>(verifier, VT_ONE) &&
+           VerifyField<float>(verifier, VT_TWO) &&
+           VerifyField<float>(verifier, VT_THREE) &&
+           VerifyField<float>(verifier, VT_FOUR) &&
+           verifier.EndTable();
+  }
+};
+
+struct MyFloatVariantBuilder {
+  typedef MyFloatVariant Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_active_index(int32_t active_index) {
+    fbb_.AddElement<int32_t>(MyFloatVariant::VT_ACTIVE_INDEX, active_index, 0);
+  }
+  void add_one(float one) {
+    fbb_.AddElement<float>(MyFloatVariant::VT_ONE, one, 0.0f);
+  }
+  void add_two(float two) {
+    fbb_.AddElement<float>(MyFloatVariant::VT_TWO, two, 0.0f);
+  }
+  void add_three(float three) {
+    fbb_.AddElement<float>(MyFloatVariant::VT_THREE, three, 0.0f);
+  }
+  void add_four(float four) {
+    fbb_.AddElement<float>(MyFloatVariant::VT_FOUR, four, 0.0f);
+  }
+  explicit MyFloatVariantBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<MyFloatVariant> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<MyFloatVariant>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<MyFloatVariant> CreateMyFloatVariant(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t active_index = 0,
+    float one = 0.0f,
+    float two = 0.0f,
+    float three = 0.0f,
+    float four = 0.0f) {
+  MyFloatVariantBuilder builder_(_fbb);
+  builder_.add_four(four);
+  builder_.add_three(three);
+  builder_.add_two(two);
+  builder_.add_one(one);
+  builder_.add_active_index(active_index);
+  return builder_.Finish();
+}
+
+struct MyFloatVariant::Traits {
+  using type = MyFloatVariant;
+  static auto constexpr Create = CreateMyFloatVariant;
+  static constexpr auto name = "MyFloatVariant";
+  static constexpr auto fully_qualified_name = "fb.MyFloatVariant";
+  static constexpr std::array<const char *, 5> field_names = {
+    "active_index",
     "one",
     "two",
     "three",
@@ -2920,6 +3149,7 @@ inline const flatbuffers::TypeTable *EmptyTypeTable() {
 inline const flatbuffers::TypeTable *MyVariantTypeTable() {
   static const flatbuffers::TypeCode type_codes[] = {
     { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_INT, 0, -1 },
     { flatbuffers::ET_SEQUENCE, 0, 0 },
     { flatbuffers::ET_SEQUENCE, 0, 1 },
     { flatbuffers::ET_CHAR, 0, 2 }
@@ -2930,13 +3160,56 @@ inline const flatbuffers::TypeTable *MyVariantTypeTable() {
     fb::e_colorTypeTable
   };
   static const char * const names[] = {
+    "active_index",
     "one",
     "two",
     "three",
     "four"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 5, type_codes, type_refs, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *MyVariantNoIndexTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_SEQUENCE, 0, 0 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 },
+    { flatbuffers::ET_SEQUENCE, 0, 1 }
+  };
+  static const flatbuffers::TypeFunction type_refs[] = {
+    fb::Vec2TypeTable,
+    fb::WeaponTypeTable
+  };
+  static const char * const names[] = {
+    "two",
+    "three",
+    "four"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, nullptr, names
+  };
+  return &tt;
+}
+
+inline const flatbuffers::TypeTable *MyFloatVariantTypeTable() {
+  static const flatbuffers::TypeCode type_codes[] = {
+    { flatbuffers::ET_INT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 },
+    { flatbuffers::ET_FLOAT, 0, -1 }
+  };
+  static const char * const names[] = {
+    "active_index",
+    "one",
+    "two",
+    "three",
+    "four"
+  };
+  static const flatbuffers::TypeTable tt = {
+    flatbuffers::ST_TABLE, 5, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }

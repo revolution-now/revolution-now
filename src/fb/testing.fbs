@@ -79,14 +79,28 @@ table MapTester2 {
   map : [Pair_int_int];
 }
 
-table Empty {
-}
+table Empty {}
 
 table MyVariant {
-  one   : int;
-  two   : Vec2;
-  three : Weapon;
-  four  : e_color;
+  active_index : int;
+  one          : int;
+  two          : Vec2;
+  three        : Weapon;
+  four         : e_color;
+}
+
+table MyVariantNoIndex {
+  two          : Vec2;
+  three        : Weapon;
+  four         : Weapon;
+}
+
+table MyFloatVariant {
+  active_index : int;
+  one          : float;
+  two          : float;
+  three        : float;
+  four         : float;
 }
 
 table MyFlatQueues {
