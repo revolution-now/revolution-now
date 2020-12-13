@@ -276,6 +276,7 @@ FLATBUFFERS_STRUCT_END(Vec2, 8);
 struct Vec2::Traits {
   using type = Vec2;
   static constexpr auto name = "Vec2";
+  static constexpr auto fully_qualified_name = "fb.Vec2";
   static constexpr std::array<const char *, 2> field_names = {
     "x",
     "y"
@@ -330,6 +331,7 @@ FLATBUFFERS_STRUCT_END(Vec3, 12);
 struct Vec3::Traits {
   using type = Vec3;
   static constexpr auto name = "Vec3";
+  static constexpr auto fully_qualified_name = "fb.Vec3";
   static constexpr std::array<const char *, 3> field_names = {
     "x",
     "y",
@@ -377,6 +379,7 @@ FLATBUFFERS_STRUCT_END(Pair_Vec2_int, 12);
 struct Pair_Vec2_int::Traits {
   using type = Pair_Vec2_int;
   static constexpr auto name = "Pair_Vec2_int";
+  static constexpr auto fully_qualified_name = "fb.Pair_Vec2_int";
   static constexpr std::array<const char *, 2> field_names = {
     "fst",
     "snd"
@@ -426,6 +429,7 @@ struct none::Traits {
   using type = none;
   static auto constexpr Create = Createnone;
   static constexpr auto name = "none";
+  static constexpr auto fully_qualified_name = "fb.MySumtype.none";
   static constexpr std::array<const char *, 0> field_names = {};
 };
 
@@ -499,6 +503,7 @@ struct some::Traits {
   using type = some;
   static auto constexpr Create = Createsome;
   static constexpr auto name = "some";
+  static constexpr auto fully_qualified_name = "fb.MySumtype.some";
   static constexpr std::array<const char *, 2> field_names = {
     "s",
     "y"
@@ -573,6 +578,7 @@ struct more::Traits {
   using type = more;
   static auto constexpr Create = Createmore;
   static constexpr auto name = "more";
+  static constexpr auto fully_qualified_name = "fb.MySumtype.more";
   static constexpr std::array<const char *, 1> field_names = {
     "d"
   };
@@ -664,6 +670,7 @@ struct MySumtype_t::Traits {
   using type = MySumtype_t;
   static auto constexpr Create = CreateMySumtype_t;
   static constexpr auto name = "MySumtype_t";
+  static constexpr auto fully_qualified_name = "fb.MySumtype_t";
   static constexpr std::array<const char *, 3> field_names = {
     "none",
     "some",
@@ -741,6 +748,7 @@ struct Weapon::Traits {
   using type = Weapon;
   static auto constexpr Create = CreateWeapon;
   static constexpr auto name = "Weapon";
+  static constexpr auto fully_qualified_name = "fb.Weapon";
   static constexpr std::array<const char *, 2> field_names = {
     "name",
     "damage"
@@ -828,6 +836,7 @@ struct Pair_int_Weapon::Traits {
   using type = Pair_int_Weapon;
   static auto constexpr Create = CreatePair_int_Weapon;
   static constexpr auto name = "Pair_int_Weapon";
+  static constexpr auto fully_qualified_name = "fb.Pair_int_Weapon";
   static constexpr std::array<const char *, 2> field_names = {
     "fst",
     "snd"
@@ -893,6 +902,7 @@ struct SetTester::Traits {
   using type = SetTester;
   static auto constexpr Create = CreateSetTester;
   static constexpr auto name = "SetTester";
+  static constexpr auto fully_qualified_name = "fb.SetTester";
   static constexpr std::array<const char *, 1> field_names = {
     "set"
   };
@@ -966,6 +976,7 @@ struct MapTester1::Traits {
   using type = MapTester1;
   static auto constexpr Create = CreateMapTester1;
   static constexpr auto name = "MapTester1";
+  static constexpr auto fully_qualified_name = "fb.MapTester1";
   static constexpr std::array<const char *, 1> field_names = {
     "map"
   };
@@ -1039,6 +1050,7 @@ struct MapTester2::Traits {
   using type = MapTester2;
   static auto constexpr Create = CreateMapTester2;
   static constexpr auto name = "MapTester2";
+  static constexpr auto fully_qualified_name = "fb.MapTester2";
   static constexpr std::array<const char *, 1> field_names = {
     "map"
   };
@@ -1094,6 +1106,7 @@ struct Empty::Traits {
   using type = Empty;
   static auto constexpr Create = CreateEmpty;
   static constexpr auto name = "Empty";
+  static constexpr auto fully_qualified_name = "fb.Empty";
   static constexpr std::array<const char *, 0> field_names = {};
 };
 
@@ -1191,6 +1204,7 @@ struct MyVariant::Traits {
   using type = MyVariant;
   static auto constexpr Create = CreateMyVariant;
   static constexpr auto name = "MyVariant";
+  static constexpr auto fully_qualified_name = "fb.MyVariant";
   static constexpr std::array<const char *, 4> field_names = {
     "one",
     "two",
@@ -1284,6 +1298,7 @@ struct MyFlatQueues::Traits {
   using type = MyFlatQueues;
   static auto constexpr Create = CreateMyFlatQueues;
   static constexpr auto name = "MyFlatQueues";
+  static constexpr auto fully_qualified_name = "fb.MyFlatQueues";
   static constexpr std::array<const char *, 3> field_names = {
     "q1",
     "q2",
@@ -1376,6 +1391,7 @@ struct Pair_Coord_String::Traits {
   using type = Pair_Coord_String;
   static auto constexpr Create = CreatePair_Coord_String;
   static constexpr auto name = "Pair_Coord_String";
+  static constexpr auto fully_qualified_name = "fb.Pair_Coord_String";
   static constexpr std::array<const char *, 2> field_names = {
     "fst",
     "snd"
@@ -1464,6 +1480,7 @@ struct Matrix_String::Traits {
   using type = Matrix_String;
   static auto constexpr Create = CreateMatrix_String;
   static constexpr auto name = "Matrix_String";
+  static constexpr auto fully_qualified_name = "fb.Matrix_String";
   static constexpr std::array<const char *, 2> field_names = {
     "size",
     "data"
@@ -1524,6 +1541,7 @@ struct off::Traits {
   using type = off;
   static auto constexpr Create = Createoff;
   static constexpr auto name = "off";
+  static constexpr auto fully_qualified_name = "fb.OnOffState.off";
   static constexpr std::array<const char *, 0> field_names = {};
 };
 
@@ -1585,6 +1603,7 @@ struct on::Traits {
   using type = on;
   static auto constexpr Create = Createon;
   static constexpr auto name = "on";
+  static constexpr auto fully_qualified_name = "fb.OnOffState.on";
   static constexpr std::array<const char *, 1> field_names = {
     "user"
   };
@@ -1656,6 +1675,7 @@ struct switching_on::Traits {
   using type = switching_on;
   static auto constexpr Create = Createswitching_on;
   static constexpr auto name = "switching_on";
+  static constexpr auto fully_qualified_name = "fb.OnOffState.switching_on";
   static constexpr std::array<const char *, 1> field_names = {
     "percent"
   };
@@ -1718,6 +1738,7 @@ struct switching_off::Traits {
   using type = switching_off;
   static auto constexpr Create = Createswitching_off;
   static constexpr auto name = "switching_off";
+  static constexpr auto fully_qualified_name = "fb.OnOffState.switching_off";
   static constexpr std::array<const char *, 1> field_names = {
     "percent"
   };
@@ -1822,6 +1843,7 @@ struct OnOffState_t::Traits {
   using type = OnOffState_t;
   static auto constexpr Create = CreateOnOffState_t;
   static constexpr auto name = "OnOffState_t";
+  static constexpr auto fully_qualified_name = "fb.OnOffState_t";
   static constexpr std::array<const char *, 4> field_names = {
     "off",
     "on",
@@ -1889,6 +1911,7 @@ struct OnOffFsm::Traits {
   using type = OnOffFsm;
   static auto constexpr Create = CreateOnOffFsm;
   static constexpr auto name = "OnOffFsm";
+  static constexpr auto fully_qualified_name = "fb.OnOffFsm";
   static constexpr std::array<const char *, 1> field_names = {
     "state_stack"
   };
@@ -2234,6 +2257,7 @@ struct Monster::Traits {
   using type = Monster;
   static auto constexpr Create = CreateMonster;
   static constexpr auto name = "Monster";
+  static constexpr auto fully_qualified_name = "fb.Monster";
   static constexpr std::array<const char *, 22> field_names = {
     "pos",
     "mana",
@@ -2393,6 +2417,7 @@ struct first::Traits {
   using type = first;
   static auto constexpr Create = Createfirst;
   static constexpr auto name = "first";
+  static constexpr auto fully_qualified_name = "fb.MyVariant2.first";
   static constexpr std::array<const char *, 2> field_names = {
     "name",
     "b"
@@ -2479,6 +2504,7 @@ struct second::Traits {
   using type = second;
   static auto constexpr Create = Createsecond;
   static constexpr auto name = "second";
+  static constexpr auto fully_qualified_name = "fb.MyVariant2.second";
   static constexpr std::array<const char *, 2> field_names = {
     "flag1",
     "flag2"
@@ -2542,6 +2568,7 @@ struct third::Traits {
   using type = third;
   static auto constexpr Create = Createthird;
   static constexpr auto name = "third";
+  static constexpr auto fully_qualified_name = "fb.MyVariant2.third";
   static constexpr std::array<const char *, 1> field_names = {
     "cost"
   };
@@ -2633,6 +2660,7 @@ struct MyVariant2_t::Traits {
   using type = MyVariant2_t;
   static auto constexpr Create = CreateMyVariant2_t;
   static constexpr auto name = "MyVariant2_t";
+  static constexpr auto fully_qualified_name = "fb.MyVariant2_t";
   static constexpr std::array<const char *, 3> field_names = {
     "first",
     "second",
