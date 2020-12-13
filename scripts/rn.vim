@@ -142,7 +142,7 @@ function! TmuxBuild( target )
 endfunction
 
 " Build command
-nnoremap <F5>  :silent call TmuxBuild( 'run' )<CR>
+" nnoremap <F5>  :silent call TmuxBuild( 'run' )<CR>
 nnoremap <F6>  :silent call TmuxBuild( 'all' )<CR>
 nnoremap <F9>  :silent call TmuxBuild( 'test' )<CR>
 nnoremap <F10> :silent call TmuxBuild( 'o' )<CR>
