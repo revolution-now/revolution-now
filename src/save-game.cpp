@@ -140,7 +140,9 @@ expect<> savegame_post_validate_impl( mp::type_list<Ts...>* ) {
 }
 
 expect<> load_from_blob( serial::BinaryBlob const& blob ) {
-  auto* root = blob.root<fb::SaveGame>();
+  auto*           root = blob.root<fb::SaveGame>();
+  util::StopWatch watch;
+  watch.start( "load" );
   XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
   XP_OR_RETURN_( savegame_deserializer( root->player_state() ) );
@@ -153,10 +155,16 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
   XP_OR_RETURN_( savegame_deserializer( root->colony_state() ) );
   XP_OR_RETURN_(
       savegame_deserializer( root->land_view_state() ) );
+  watch.stop( "load" );
 
   // Post-deserialization validation.
+  watch.start( "validate" );
   XP_OR_RETURN_(
       savegame_post_validate_impl( (fb_sg_types*)0 ) );
+  watch.stop( "validate" );
+
+  lg.info( "loading game took: {}, validation took: {}.",
+           watch.human( "load" ), watch.human( "validate" ) );
   return xp_success_t{};
 }
 
