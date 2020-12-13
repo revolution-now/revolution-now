@@ -1026,6 +1026,18 @@ LUA_FN( blinking_unit, Opt<UnitId> ) {
   return SG().mode.holds<blinker>().member( &blinker::id );
 }
 
+LUA_FN( center_on_blinking_unit, void ) {
+  auto blinking_unit =
+      SG().mode.state().get_if<LandViewState::blinking_unit>();
+  if( !blinking_unit ) {
+    lg.warn( "There are no units currently asking for orders." );
+    return;
+  }
+  SG().viewport.ensure_tile_visible(
+      coord_for_unit_indirect( blinking_unit->id ),
+      /*smooth=*/true );
+}
+
 } // namespace
 
 } // namespace rn
