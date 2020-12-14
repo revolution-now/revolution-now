@@ -29,10 +29,6 @@ namespace fb.LandViewState;
     id          : int;
     add_to_back : [int];
   }
-  table input_ready {
-    consumed : bool;
-    response : no_serial;
-  }
   table sliding_unit {
     id          : int;
     target      : Coord;
@@ -50,7 +46,6 @@ namespace fb.LandViewState;
     none              : LandViewState.none;
     future            : LandViewState.future;
     blinking_unit     : LandViewState.blinking_unit;
-    input_ready       : LandViewState.input_ready;
     sliding_unit      : LandViewState.sliding_unit;
     depixelating_unit : LandViewState.depixelating_unit;
   }

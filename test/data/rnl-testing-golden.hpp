@@ -188,13 +188,8 @@ namespace rnltest {
       bool        b;
       using fb_target_t = fb::MyVariant2::first;
 
-      static std::string fb_root_type_name() {
-        return "fb.MyVariant2.first";
-      }
-
       FBOffset<fb::MyVariant2::first> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_name = serialize<::rn::serial::fb_serialize_hint_t<
@@ -232,26 +227,6 @@ namespace rnltest {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::MyVariant2::first> typed_offset(
-            offset.o );
-        builder.add_first( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->first() == nullptr ) return false;
-        *dst = first{};
-        XP_OR_RETURN_( deserialize(
-            src->first(), std::get_if<first>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -263,13 +238,8 @@ namespace rnltest {
       bool flag2;
       using fb_target_t = fb::MyVariant2::second;
 
-      static std::string fb_root_type_name() {
-        return "fb.MyVariant2.second";
-      }
-
       FBOffset<fb::MyVariant2::second> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_flag1 = serialize<::rn::serial::fb_serialize_hint_t<
@@ -307,26 +277,6 @@ namespace rnltest {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::MyVariant2::second> typed_offset(
-            offset.o );
-        builder.add_second( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->second() == nullptr ) return false;
-        *dst = second{};
-        XP_OR_RETURN_( deserialize(
-            src->second(), std::get_if<second>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -337,13 +287,8 @@ namespace rnltest {
       int cost;
       using fb_target_t = fb::MyVariant2::third;
 
-      static std::string fb_root_type_name() {
-        return "fb.MyVariant2.third";
-      }
-
       FBOffset<fb::MyVariant2::third> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_cost = serialize<::rn::serial::fb_serialize_hint_t<
@@ -371,26 +316,6 @@ namespace rnltest {
             &dst->cost, ::rn::serial::ADL{} ) );
 
         return ::rn::xp_success_t{};
-      }
-
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::MyVariant2::third> typed_offset(
-            offset.o );
-        builder.add_third( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->third() == nullptr ) return false;
-        *dst = third{};
-        XP_OR_RETURN_( deserialize(
-            src->third(), std::get_if<third>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
       }
 
       ::rn::expect<> check_invariants_safe() const {
@@ -465,54 +390,6 @@ struct fmt::formatter<rnltest::MyVariant2::third>
       , o.cost ), ctx );
   }
 };
-
-namespace rn::serial {
-
-  template<typename Hint>
-  auto serialize( FBBuilder& fbb, ::rnltest::MyVariant2_t const& o,
-                  ::rn::serial::ADL ) {
-    auto offset  = std::visit( [&]( auto const& v ) {
-      // Call Union() to make the offset templated on type `void`
-      // instead of the type of this variant member so that we have
-      // a consistent return type.
-      return v.serialize_table( fbb ).Union();
-    }, o );
-    auto builder = fb::MyVariant2_tBuilder( fbb );
-    std::visit( [&]( auto const& v ) {
-      v.builder_add_me( builder, offset );
-    }, o );
-    return ::rn::serial::ReturnValue{ builder.Finish() };
-  }
-
-  expect<> inline deserialize( fb::MyVariant2_t const* src,
-                               ::rnltest::MyVariant2_t* dst,
-                               ::rn::serial::ADL ) {
-    if( src == nullptr ) return ::rn::xp_success_t{};
-    int            count  = 0;
-    ::rn::expect<> result = ::rn::xp_success_t{};
-    ::rn::try_deserialize_variant_types<::rnltest::MyVariant2_t>(
-        [&]( auto const* p ) {
-          if( !result ) return;
-          using type =
-              std::decay_t<std::remove_pointer_t<decltype( p )>>;
-          auto xp = type::try_deserialize_me( src, dst );
-          if( !xp ) {
-            result = UNEXPECTED( "{}", xp.error().what );
-            return;
-          }
-          auto deserialized = *xp;
-          if( deserialized ) ++count;
-        } );
-    if( !result ) return result;
-    if( count != 1 )
-      return UNEXPECTED(
-          "failed to deserialized precisely one variant element "
-          "(found {})",
-          count );
-    return ::rn::xp_success_t{};
-  }
-
-} // namespace rn::serial
 
 /****************************************************************
 *                     Sum Type: MyVariant3
@@ -900,13 +777,8 @@ namespace rn {
       bool operator!=( struct none const& ) const = default;
       using fb_target_t = fb::MySumtype::none;
 
-      static std::string fb_root_type_name() {
-        return "fb.MySumtype.none";
-      }
-
       FBOffset<fb::MySumtype::none> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         // We must always serialize this table even if it is
@@ -928,26 +800,6 @@ namespace rn {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::MySumtype::none> typed_offset(
-            offset.o );
-        builder.add_none( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->none() == nullptr ) return false;
-        *dst = none{};
-        XP_OR_RETURN_( deserialize(
-            src->none(), std::get_if<none>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -963,13 +815,8 @@ namespace rn {
       bool operator!=( struct some const& ) const = default;
       using fb_target_t = fb::MySumtype::some;
 
-      static std::string fb_root_type_name() {
-        return "fb.MySumtype.some";
-      }
-
       FBOffset<fb::MySumtype::some> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_s = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1007,26 +854,6 @@ namespace rn {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::MySumtype::some> typed_offset(
-            offset.o );
-        builder.add_some( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->some() == nullptr ) return false;
-        *dst = some{};
-        XP_OR_RETURN_( deserialize(
-            src->some(), std::get_if<some>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -1041,13 +868,8 @@ namespace rn {
       bool operator!=( struct more const& ) const = default;
       using fb_target_t = fb::MySumtype::more;
 
-      static std::string fb_root_type_name() {
-        return "fb.MySumtype.more";
-      }
-
       FBOffset<fb::MySumtype::more> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_d = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1075,26 +897,6 @@ namespace rn {
             &dst->d, ::rn::serial::ADL{} ) );
 
         return ::rn::xp_success_t{};
-      }
-
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::MySumtype::more> typed_offset(
-            offset.o );
-        builder.add_more( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->more() == nullptr ) return false;
-        *dst = more{};
-        XP_OR_RETURN_( deserialize(
-            src->more(), std::get_if<more>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
       }
 
       ::rn::expect<> check_invariants_safe() const {
@@ -1167,54 +969,6 @@ struct fmt::formatter<rn::MySumtype::more>
   }
 };
 
-namespace rn::serial {
-
-  template<typename Hint>
-  auto serialize( FBBuilder& fbb, ::rn::MySumtype_t const& o,
-                  ::rn::serial::ADL ) {
-    auto offset  = std::visit( [&]( auto const& v ) {
-      // Call Union() to make the offset templated on type `void`
-      // instead of the type of this variant member so that we have
-      // a consistent return type.
-      return v.serialize_table( fbb ).Union();
-    }, o );
-    auto builder = fb::MySumtype_tBuilder( fbb );
-    std::visit( [&]( auto const& v ) {
-      v.builder_add_me( builder, offset );
-    }, o );
-    return ::rn::serial::ReturnValue{ builder.Finish() };
-  }
-
-  expect<> inline deserialize( fb::MySumtype_t const* src,
-                               ::rn::MySumtype_t* dst,
-                               ::rn::serial::ADL ) {
-    if( src == nullptr ) return ::rn::xp_success_t{};
-    int            count  = 0;
-    ::rn::expect<> result = ::rn::xp_success_t{};
-    ::rn::try_deserialize_variant_types<::rn::MySumtype_t>(
-        [&]( auto const* p ) {
-          if( !result ) return;
-          using type =
-              std::decay_t<std::remove_pointer_t<decltype( p )>>;
-          auto xp = type::try_deserialize_me( src, dst );
-          if( !xp ) {
-            result = UNEXPECTED( "{}", xp.error().what );
-            return;
-          }
-          auto deserialized = *xp;
-          if( deserialized ) ++count;
-        } );
-    if( !result ) return result;
-    if( count != 1 )
-      return UNEXPECTED(
-          "failed to deserialized precisely one variant element "
-          "(found {})",
-          count );
-    return ::rn::xp_success_t{};
-  }
-
-} // namespace rn::serial
-
 /****************************************************************
 *                     Sum Type: OnOffState
 *****************************************************************/
@@ -1229,13 +983,8 @@ namespace rn {
       bool operator!=( struct off const& ) const = default;
       using fb_target_t = fb::OnOffState::off;
 
-      static std::string fb_root_type_name() {
-        return "fb.OnOffState.off";
-      }
-
       FBOffset<fb::OnOffState::off> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         // We must always serialize this table even if it is
@@ -1257,26 +1006,6 @@ namespace rn {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::OnOffState::off> typed_offset(
-            offset.o );
-        builder.add_off( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->off() == nullptr ) return false;
-        *dst = off{};
-        XP_OR_RETURN_( deserialize(
-            src->off(), std::get_if<off>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -1291,13 +1020,8 @@ namespace rn {
       bool operator!=( struct on const& ) const = default;
       using fb_target_t = fb::OnOffState::on;
 
-      static std::string fb_root_type_name() {
-        return "fb.OnOffState.on";
-      }
-
       FBOffset<fb::OnOffState::on> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_user = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1327,26 +1051,6 @@ namespace rn {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::OnOffState::on> typed_offset(
-            offset.o );
-        builder.add_on( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->on() == nullptr ) return false;
-        *dst = on{};
-        XP_OR_RETURN_( deserialize(
-            src->on(), std::get_if<on>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -1361,13 +1065,8 @@ namespace rn {
       bool operator!=( struct switching_on const& ) const = default;
       using fb_target_t = fb::OnOffState::switching_on;
 
-      static std::string fb_root_type_name() {
-        return "fb.OnOffState.switching_on";
-      }
-
       FBOffset<fb::OnOffState::switching_on> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_percent = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1397,26 +1096,6 @@ namespace rn {
         return ::rn::xp_success_t{};
       }
 
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::OnOffState::switching_on> typed_offset(
-            offset.o );
-        builder.add_switching_on( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->switching_on() == nullptr ) return false;
-        *dst = switching_on{};
-        XP_OR_RETURN_( deserialize(
-            src->switching_on(), std::get_if<switching_on>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
-      }
-
       ::rn::expect<> check_invariants_safe() const {
         return ::rn::xp_success_t{};
       }
@@ -1431,13 +1110,8 @@ namespace rn {
       bool operator!=( struct switching_off const& ) const = default;
       using fb_target_t = fb::OnOffState::switching_off;
 
-      static std::string fb_root_type_name() {
-        return "fb.OnOffState.switching_off";
-      }
-
       FBOffset<fb::OnOffState::switching_off> serialize_table(
           FBBuilder& builder ) const {
-        (void)fb_root_type_name;
         using ::rn::serial::serialize;
           
         auto s_percent = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1465,26 +1139,6 @@ namespace rn {
             &dst->percent, ::rn::serial::ADL{} ) );
 
         return ::rn::xp_success_t{};
-      }
-
-      template<typename ParentBuilderT>
-      void builder_add_me( ParentBuilderT& builder,
-                           FBOffset<void>  offset ) const {
-        FBOffset<::fb::OnOffState::switching_off> typed_offset(
-            offset.o );
-        builder.add_switching_off( typed_offset );
-      }
-
-      template<typename ParentSrcT, typename ParentDstT>
-      static ::rn::expect<bool> try_deserialize_me(
-          ParentSrcT const* src,
-          ParentDstT* dst ) {
-        if( src->switching_off() == nullptr ) return false;
-        *dst = switching_off{};
-        XP_OR_RETURN_( deserialize(
-            src->switching_off(), std::get_if<switching_off>( dst ),
-            ::rn::serial::ADL{} ) );
-        return true;
       }
 
       ::rn::expect<> check_invariants_safe() const {
@@ -1571,54 +1225,6 @@ struct fmt::formatter<rn::OnOffState::switching_off>
       , o.percent ), ctx );
   }
 };
-
-namespace rn::serial {
-
-  template<typename Hint>
-  auto serialize( FBBuilder& fbb, ::rn::OnOffState_t const& o,
-                  ::rn::serial::ADL ) {
-    auto offset  = std::visit( [&]( auto const& v ) {
-      // Call Union() to make the offset templated on type `void`
-      // instead of the type of this variant member so that we have
-      // a consistent return type.
-      return v.serialize_table( fbb ).Union();
-    }, o );
-    auto builder = fb::OnOffState_tBuilder( fbb );
-    std::visit( [&]( auto const& v ) {
-      v.builder_add_me( builder, offset );
-    }, o );
-    return ::rn::serial::ReturnValue{ builder.Finish() };
-  }
-
-  expect<> inline deserialize( fb::OnOffState_t const* src,
-                               ::rn::OnOffState_t* dst,
-                               ::rn::serial::ADL ) {
-    if( src == nullptr ) return ::rn::xp_success_t{};
-    int            count  = 0;
-    ::rn::expect<> result = ::rn::xp_success_t{};
-    ::rn::try_deserialize_variant_types<::rn::OnOffState_t>(
-        [&]( auto const* p ) {
-          if( !result ) return;
-          using type =
-              std::decay_t<std::remove_pointer_t<decltype( p )>>;
-          auto xp = type::try_deserialize_me( src, dst );
-          if( !xp ) {
-            result = UNEXPECTED( "{}", xp.error().what );
-            return;
-          }
-          auto deserialized = *xp;
-          if( deserialized ) ++count;
-        } );
-    if( !result ) return result;
-    if( count != 1 )
-      return UNEXPECTED(
-          "failed to deserialized precisely one variant element "
-          "(found {})",
-          count );
-    return ::rn::xp_success_t{};
-  }
-
-} // namespace rn::serial
 
 /****************************************************************
 *                     Sum Type: OnOffEvent

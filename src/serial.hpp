@@ -135,11 +135,12 @@ template<typename T>
 expect<> deserialize_from_json( std::string const& schema_name,
                                 std::string const& json,
                                 T*                 out ) {
-  XP_OR_RETURN( blob,
-                BinaryBlob::from_json(
-                    /*schema_file_name=*/schema_name + ".fbs",
-                    /*json=*/json,
-                    /*root_type=*/T::fb_root_type_name() ) );
+  XP_OR_RETURN(
+      blob, BinaryBlob::from_json(
+                /*schema_file_name=*/schema_name + ".fbs",
+                /*json=*/json,
+                /*root_type=*/
+                T::fb_target_t::Traits::fully_qualified_name ) );
   auto* fb = blob.template root<typename T::fb_target_t>();
   return deserialize( fb, out, serial::ADL{} );
 }

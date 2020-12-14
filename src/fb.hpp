@@ -968,12 +968,8 @@ expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )      \
 public:                                                      \
   using fb_target_t = ns::name;                              \
-  static std::string fb_root_type_name() {                   \
-    return ::rn::serial::ns_to_dots( #ns "::" #name );       \
-  }                                                          \
   FBOffset<ns::name> serialize_table( FBBuilder& builder )   \
       const {                                                \
-    (void)fb_root_type_name;                                 \
     static const name def_val{};                             \
     /* If the table has its fully default value then */      \
     /* do not serialize it, return null offset. */           \

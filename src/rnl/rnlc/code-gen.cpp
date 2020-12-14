@@ -66,13 +66,8 @@ constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
 constexpr string_view kSumtypeAlternativeSerial = R"xyz(
   using fb_target_t = fb::{sumtype_name}::{alt_name};
 
-  static std::string fb_root_type_name() {{
-    return "fb.{sumtype_name}.{alt_name}";
-  }}
-
   FBOffset<fb::{sumtype_name}::{alt_name}> serialize_table(
       FBBuilder& builder ) const {{
-    (void)fb_root_type_name;
     using ::rn::serial::serialize;
     {members_serialization}
     // We must always serialize this table even if it is
@@ -94,76 +89,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     return ::rn::xp_success_t{{}};
   }}
 
-  template<typename ParentBuilderT>
-  void builder_add_me( ParentBuilderT& builder,
-                       FBOffset<void>  offset ) const {{
-    FBOffset<::fb::{sumtype_name}::{alt_name}> typed_offset(
-        offset.o );
-    builder.add_{alt_name}( typed_offset );
-  }}
-
-  template<typename ParentSrcT, typename ParentDstT>
-  static ::rn::expect<bool> try_deserialize_me(
-      ParentSrcT const* src,
-      ParentDstT* dst ) {{
-    if( src->{alt_name}() == nullptr ) return false;
-    *dst = {alt_name}{{}};
-    XP_OR_RETURN_( deserialize(
-        src->{alt_name}(), std::get_if<{alt_name}>( dst ),
-        ::rn::serial::ADL{{}} ) );
-    return true;
-  }}
-
   ::rn::expect<> check_invariants_safe() const {{
-    return ::rn::xp_success_t{{}};
-  }}
-)xyz";
-
-// Parameters:
-//   - sumtype_name: must include _t
-//   - sumtype_name_full_ns: must include _t
-constexpr string_view kSumtypeSerial = R"xyz(
-  template<typename Hint>
-  auto serialize( FBBuilder& fbb, {sumtype_name_full_ns} const& o,
-                  ::rn::serial::ADL ) {{
-    auto offset  = std::visit( [&]( auto const& v ) {{
-      // Call Union() to make the offset templated on type `void`
-      // instead of the type of this variant member so that we have
-      // a consistent return type.
-      return v.serialize_table( fbb ).Union();
-    }}, o );
-    auto builder = fb::{sumtype_name}Builder( fbb );
-    std::visit( [&]( auto const& v ) {{
-      v.builder_add_me( builder, offset );
-    }}, o );
-    return ::rn::serial::ReturnValue{{ builder.Finish() }};
-  }}
-
-  expect<> inline deserialize( fb::{sumtype_name} const* src,
-                               {sumtype_name_full_ns}* dst,
-                               ::rn::serial::ADL ) {{
-    if( src == nullptr ) return ::rn::xp_success_t{{}};
-    int            count  = 0;
-    ::rn::expect<> result = ::rn::xp_success_t{{}};
-    ::rn::try_deserialize_variant_types<{sumtype_name_full_ns}>(
-        [&]( auto const* p ) {{
-          if( !result ) return;
-          using type =
-              std::decay_t<std::remove_pointer_t<decltype( p )>>;
-          auto xp = type::try_deserialize_me( src, dst );
-          if( !xp ) {{
-            result = UNEXPECTED( "{{}}", xp.error().what );
-            return;
-          }}
-          auto deserialized = *xp;
-          if( deserialized ) ++count;
-        }} );
-    if( !result ) return result;
-    if( count != 1 )
-      return UNEXPECTED(
-          "failed to deserialized precisely one variant element "
-          "(found {{}})",
-          count );
     return ::rn::xp_success_t{{}};
   }}
 )xyz";
@@ -648,18 +574,6 @@ struct CodeGenerator {
         emit_fmt_for_alternative( ns, sumtype.name,
                                   sumtype.tmpl_params, alt );
       }
-    }
-    if( sumtype_has_feature(
-            sumtype, expr::e_sumtype_feature::serializable ) ) {
-      newline();
-      open_ns( "rn", "serial" );
-      emit_code_block(
-          kSumtypeSerial,
-          fmt::arg( "sumtype_name", sumtype.name + "_t" ),
-          fmt::arg(
-              "sumtype_name_full_ns",
-              fmt::format( "::{}::{}_t", ns, sumtype.name ) ) );
-      close_ns( "rn", "serial" );
     }
   }
 
