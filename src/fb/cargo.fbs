@@ -13,9 +13,9 @@ include "commodity.fbs";
 namespace fb.CargoSlot;
 
 table Cargo {
-  is_unit   : bool;
-  unit_id   : int;
-  commodity : Commodity;
+  active_index : int;
+  unit_id      : int;
+  commodity    : Commodity;
 }
 
 table empty    {}

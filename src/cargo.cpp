@@ -48,47 +48,6 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 } // namespace
 
-namespace serial {
-serial::ReturnValue<FBOffset<fb::CargoSlot::Cargo>>
-cargo_serialize( FBBuilder& builder, Cargo const& o ) {
-  ReturnValue<bool>            is_unit = { false };
-  ReturnValue<int32_t>         unit_id{};
-  ReturnAddress<fb::Commodity> commodity{};
-  overload_visit(
-      o, //
-      [&]( UnitId id ) {
-        unit_id = { id._ };
-        is_unit = { true };
-      },
-      [&]( Commodity const& comm ) {
-        commodity = { comm.serialize_struct( builder ) };
-      } );
-  return serial::ReturnValue{ fb::CargoSlot::CreateCargo(
-      builder, is_unit.get(), unit_id.get(), commodity.get() ) };
-}
-
-expect<> deserialize( fb::CargoSlot::Cargo const* src,
-                      Cargo* dst, serial::ADL ) {
-  DCHECK( dst );
-  if( src == nullptr ) return xp_success_t{};
-  using ::rn::serial::deserialize;
-  if( src->is_unit() ) {
-    UnitId unit_id{ 0 };
-    XP_OR_RETURN_( deserialize(
-        serial::detail::to_const_ptr( src->unit_id() ), &unit_id,
-        serial::ADL{} ) );
-    *dst = unit_id;
-  } else {
-    Commodity commodity{};
-    XP_OR_RETURN_( deserialize(
-        serial::detail::to_const_ptr( src->commodity() ),
-        &commodity, serial::ADL{} ) );
-    *dst = commodity;
-  }
-  return xp_success_t{};
-}
-} // namespace serial
-
 string CargoHold::debug_string() const {
   return absl::StrReplaceAll(
       fmt::format( "{}", FmtJsonStyleList{ slots_ } ),

@@ -37,10 +37,6 @@
 
 TYPED_INDEX( CargoSlotIndex );
 
-namespace fb {
-struct CargoHold;
-}
-
 // Friends.
 namespace rn {
 void      ustate_change_to_cargo( UnitId new_holder, UnitId held,
@@ -58,20 +54,6 @@ namespace rn {
 
 using Cargo = base::variant<UnitId, Commodity>;
 NOTHROW_MOVE( Cargo );
-
-namespace serial {
-serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>>
-cargo_serialize( FBBuilder& builder, Cargo const& o );
-
-template<typename Hint>
-serial::ReturnValue<FBOffset<::fb::CargoSlot::Cargo>> serialize(
-    FBBuilder& builder, Cargo const& o, serial::ADL ) {
-  return cargo_serialize( builder, o );
-}
-
-expect<> deserialize( ::fb::CargoSlot::Cargo const* src,
-                      Cargo* dst, serial::ADL );
-} // namespace serial
 
 } // namespace rn
 

@@ -699,7 +699,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   rn::ustate_change_to_cargo( ship, unit_id3, 2 );
 
   auto tmp_file = fs::temp_directory_path() / "flatbuffers.out";
-  constexpr uint64_t kExpectedBlobSize = 232;
+  constexpr uint64_t kExpectedBlobSize = 228;
   auto               json_file = data_dir() / "unit.json";
 
   SECTION( "create/serialize" ) {
@@ -765,7 +765,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     auto c  = slots->Get( 1 )->cargo();
     auto cc = c->contents();
     REQUIRE( cc != nullptr );
-    REQUIRE( cc->is_unit() );
+    REQUIRE( cc->active_index() == 0 );
     REQUIRE( cc->unit_id() == 2 );
     REQUIRE( cc->commodity() == nullptr );
 
@@ -776,7 +776,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     c  = slots->Get( 2 )->cargo();
     cc = c->contents();
     REQUIRE( cc != nullptr );
-    REQUIRE( cc->is_unit() );
+    REQUIRE( cc->active_index() == 0 );
     REQUIRE( cc->unit_id() == 3 );
     REQUIRE( cc->commodity() == nullptr );
 
@@ -787,7 +787,7 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     c  = slots->Get( 3 )->cargo();
     cc = c->contents();
     REQUIRE( cc != nullptr );
-    REQUIRE_FALSE( cc->is_unit() );
+    REQUIRE( cc->active_index() == 1 );
     REQUIRE( cc->unit_id() == 0 );
     REQUIRE( cc->commodity() != nullptr );
 
