@@ -52,18 +52,9 @@ namespace rn {
 
 namespace {
 
-// FIXME: Get these with callable traits.
-using fb_sg_types = mp::type_list< //
-    fb::SG_Id,                     //
-    fb::SG_Unit,                   //
-    fb::SG_Player,                 //
-    fb::SG_Terrain,                //
-    fb::SG_Turn,                   //
-    fb::SG_Plane,                  //
-    fb::SG_EuroportView,           //
-    fb::SG_Colony,                 //
-    fb::SG_LandView                //
-    >;
+using fb_sg_types = mp::to_type_list_t<fb::SaveGame::FieldTypes>;
+constexpr size_t num_savegame_modules =
+    std::tuple_size_v<fb::SaveGame::FieldTypes>;
 
 fs::path path_for_slot( int slot ) {
   CHECK( slot >= 0 );
@@ -84,26 +75,6 @@ auto creation_tuple( FBBuilder& fbb, mp::type_list<Args...>* ) {
       serialize_to_offset<serial::remove_fb_offset_t<Args>>(
           fbb )... };
 }
-
-// FIXME: needs to wait until we can access the getters via types
-// only.
-// template<typename... Args>
-// expect<> deserialize_all( serial::BinaryBlob const& blob,
-//                          tuple<Args...>* ) {
-//  expect<> res;
-
-//  auto single = [&]( auto* root ) {
-//    // If we already have an error than return.
-//    if( !res ) return;
-//    res = savegame_deserializer( root );
-//  };
-
-//  ( single(
-//        blob.template root<serial::remove_fb_offset_t<Args>>()
-//        ),
-//    ... );
-//  return res;
-//}
 
 serial::BinaryBlob save_game_to_blob() {
   FBBuilder fbb;
@@ -135,7 +106,7 @@ expect<> savegame_post_validate_impl( mp::type_list<Ts...>* ) {
     res = savegame_post_validate( p );
   };
 
-  ( validate_one( (Ts*)0 ), ... );
+  ( validate_one( Ts{ nullptr } ), ... );
   return res;
 }
 
@@ -143,18 +114,16 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
   auto*           root = blob.root<fb::SaveGame>();
   util::StopWatch watch;
   watch.start( "load" );
-  XP_OR_RETURN_( savegame_deserializer( root->id_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->unit_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->player_state() ) );
-  XP_OR_RETURN_(
-      savegame_deserializer( root->terrain_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->turn_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->plane_state() ) );
-  XP_OR_RETURN_(
-      savegame_deserializer( root->euroview_state() ) );
-  XP_OR_RETURN_( savegame_deserializer( root->colony_state() ) );
-  XP_OR_RETURN_(
-      savegame_deserializer( root->land_view_state() ) );
+  auto     fields_pack = root->fields_pack();
+  expect<> res         = xp_success_t{};
+  mp::for_index_seq<num_savegame_modules>(
+      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+        res = savegame_deserializer(
+            std::get<Idx>( fields_pack ) );
+        if( !res ) return true;
+        return false;
+      } );
+  if( !res ) return res;
   watch.stop( "load" );
 
   // Post-deserialization validation.
@@ -261,13 +230,6 @@ expect<fs::path> load_game( int slot ) {
     XP_OR_RETURN_( load_from_blob( blob ) );
     return blob_path;
   }
-
-  // FIXME: needs to wait until we can access the getters via
-  // types only.
-  // using creation_types =
-  //    serial::fb_creation_tuple_t<fb::SaveGame>;
-  // XP_OR_RETURN_( deserialize_all(
-  //    blob, static_cast<creation_types*>( nullptr ) ) );
 }
 
 expect<> reset_savegame_state() {
@@ -283,7 +245,8 @@ expect<> reset_savegame_state() {
 template<typename... fb_SG_types>
 void default_construct_savegame_state_impl(
     mp::type_list<fb_SG_types...>* ) {
-  ( default_construct_savegame_state( (fb_SG_types*)0 ), ... );
+  ( default_construct_savegame_state( fb_SG_types{ nullptr } ),
+    ... );
 }
 
 void default_construct_savegame_state() {
