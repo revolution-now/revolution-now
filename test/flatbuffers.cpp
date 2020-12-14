@@ -13,6 +13,7 @@
 // Revolution Now
 #include "aliases.hpp"
 #include "errors.hpp"
+#include "fb-variant.hpp"
 #include "fb.hpp"
 #include "flat-deque.hpp"
 #include "flat-queue.hpp"
@@ -63,6 +64,8 @@ enum class e_hand { Left, Right };
 
 struct Weapon {
   expect<> check_invariants_safe() const {
+    if( name.empty() )
+      return UNEXPECTED( "Weapon name cannot be empty." );
     return xp_success_t{};
   }
 
@@ -155,6 +158,20 @@ struct Monster {
   ( Opt<int>,        opt_int3       ));
   // clang-format on
 };
+
+} // namespace
+} // namespace rn::testing
+
+DEFINE_FORMAT( ::rn::testing::Vec2, "Vec2{{x={},y={}}}", o.x,
+               o.y );
+DEFINE_FORMAT( ::rn::testing::Weapon,
+               "Weapon{{name={},damage={}}}", o.name, o.damage );
+
+FMT_TO_CATCH( ::rn::testing::Vec2 );
+FMT_TO_CATCH( ::rn::testing::Weapon );
+
+namespace rn::testing {
+namespace {
 
 BinaryBlob create_monster_blob() {
   FBBuilder builder;
@@ -1185,6 +1202,126 @@ TEST_CASE( "[flatbuffers] Golden Comparison" ) {
   // equal.
   bool eq = ( generated == golden );
   REQUIRE( eq );
+}
+
+/****************************************************************
+** Variants
+*****************************************************************/
+using MyVariant = base::variant< //
+    int,                         //
+    Vec2,                        //
+    Weapon,                      //
+    e_color                      //
+    >;
+
+using MyVariantNoIndex = base::variant< //
+    Vec2,                               //
+    Weapon,                             //
+    Weapon                              //
+    >;
+
+using MyFloatVariant = base::variant< //
+    float,                            //
+    float,                            //
+    float,                            //
+    float                             //
+    >;
+
+template<typename fb_table_t, typename Variant>
+auto variant_roundtrip( Variant const& v,
+                        bool expect_fail_validation = false ) {
+  using ::rn::serial::deserialize;
+  FBBuilder fbb;
+  fbb.Finish(
+      serialize<fb_table_t>( fbb, v, serial::ADL{} ).get() );
+  auto    blob   = BinaryBlob::from_builder( std::move( fbb ) );
+  auto    fb_var = blob.root<fb_table_t>();
+  Variant new_v;
+  if( expect_fail_validation ) {
+    REQUIRE( deserialize( fb_var, &new_v, rn::serial::ADL{} ) !=
+             xp_success_t{} );
+  } else {
+    REQUIRE( deserialize( fb_var, &new_v, rn::serial::ADL{} ) ==
+             xp_success_t{} );
+  }
+  return new_v;
+}
+
+TEST_CASE( "[flatbuffers] variant with active_index" ) {
+  using fb_table_t = ::fb::MyVariant;
+
+  MyVariant v;
+  MyVariant new_v;
+
+  v     = 5;
+  new_v = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == MyVariant( 5 ) );
+
+  v     = Vec2{ 4.4, 6.6 };
+  new_v = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == MyVariant( Vec2{ 4.4, 6.6 } ) );
+
+  v     = Weapon{ "hello", 3 };
+  new_v = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == MyVariant( Weapon{ "hello", 3 } ) );
+
+  v.emplace<e_color>( e_color::Green );
+  new_v = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == MyVariant( e_color::Green ) );
+}
+
+TEST_CASE( "[flatbuffers] variant without active_index" ) {
+  using fb_table_t = ::fb::MyVariantNoIndex;
+
+  MyVariantNoIndex v;
+  MyVariantNoIndex new_v;
+
+  v     = Vec2{ 4.4, 6.6 };
+  new_v = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == v );
+
+  v.emplace<1>() = Weapon{ "hello", 3 };
+  new_v          = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( std::get<1>( new_v ) == Weapon{ "hello", 3 } );
+
+  v.emplace<2>() = Weapon{ "", 4 };
+  new_v          = variant_roundtrip<fb_table_t>(
+      v, /*expect_fail_validation=*/true );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == v );
+}
+
+TEST_CASE( "[flatbuffers] variant with all primitive types" ) {
+  using fb_table_t = ::fb::MyFloatVariant;
+
+  MyFloatVariant v;
+  MyFloatVariant new_v;
+
+  v.emplace<0>() = 5.5f;
+  new_v          = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == v );
+
+  v.emplace<1>() = 0.0f;
+  new_v          = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == v );
+
+  v.emplace<2>() = 6.6f;
+  new_v          = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == v );
+
+  v.emplace<3>() = 7.7f;
+  new_v          = variant_roundtrip<fb_table_t>( v );
+  REQUIRE( new_v.index() == v.index() );
+  REQUIRE( new_v == v );
 }
 
 } // namespace

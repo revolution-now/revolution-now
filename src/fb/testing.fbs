@@ -13,14 +13,14 @@ include "vocab.fbs";
 
 namespace fb.MySumtype;
 
-table none {}
-table some {
-  s : string;
-  y : int;
-}
-table more {
-  d : double;
-}
+  table none {}
+  table some {
+    s : string;
+    y : int;
+  }
+  table more {
+    d : double;
+  }
 
 namespace fb;
 
