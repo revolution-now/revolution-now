@@ -12,12 +12,7 @@
 
 #include "core-config.hpp"
 
-// Flatbuffers
-#include "sg-macros.hpp"
-
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( EuroportView );
 
 struct Plane;
 Plane* europe_plane();

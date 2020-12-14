@@ -31,6 +31,7 @@
 #include "rand.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "sg-macros.hpp"
 #include "sound.hpp"
 #include "terrain.hpp"
 #include "tx.hpp"
@@ -55,6 +56,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 namespace {
 

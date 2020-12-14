@@ -15,6 +15,7 @@
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "sg-macros.hpp"
 #include "util.hpp"
 
 // Flatbuffers
@@ -25,6 +26,8 @@
 
 using namespace std;
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Player );
 
 namespace {
 

@@ -12,12 +12,7 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "sg-macros.hpp"
-
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Plane );
 
 enum class e_plane_config {
   main_menu, //

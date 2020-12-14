@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "sg-macros.hpp"
 #include "typed-int.hpp"
 
 TYPED_ID( UnitId )
@@ -22,8 +21,6 @@ UD_LITERAL( UnitId, id )
 TYPED_ID( ColonyId )
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Id );
 
 ND UnitId   next_unit_id();
 ND ColonyId next_colony_id();

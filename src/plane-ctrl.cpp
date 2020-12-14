@@ -17,6 +17,7 @@
 #include "macros.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
+#include "sg-macros.hpp"
 
 // Flatbuffers
 #include "fb/sg-plane_generated.h"
@@ -24,6 +25,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Plane );
 
 namespace {
 

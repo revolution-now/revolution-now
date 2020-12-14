@@ -17,14 +17,11 @@
 #include "coord.hpp"
 #include "fb.hpp"
 #include "land-square.hpp"
-#include "sg-macros.hpp"
 #include "tx.hpp"
 
 namespace rn {
 
 inline constexpr auto world_size = Delta{ 200_w, 100_h };
-
-DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 
 // FIXME: temporary.
 void generate_terrain();
@@ -37,7 +34,7 @@ Rect  world_rect_pixels();
 bool square_exists( Y y, X x );
 bool square_exists( Coord coord );
 
-LandSquare const&          square_at( Coord coord );
+LandSquare const&        square_at( Coord coord );
 OptRef<LandSquare const> maybe_square_at( Coord coord );
 
 // Throws if coord is not on map.

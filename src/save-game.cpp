@@ -23,17 +23,6 @@
 #include "base/io.hpp"
 #include "base/meta.hpp"
 
-// Revolution Now (save-state modules)
-#include "cstate.hpp"
-#include "europort-view.hpp"
-#include "id.hpp"
-#include "land-view.hpp"
-#include "plane-ctrl.hpp"
-#include "player.hpp"
-#include "terrain.hpp"
-#include "turn.hpp"
-#include "ustate.hpp"
-
 // Revolution Now (config)
 #include "../config/ucl/savegame.inl"
 
@@ -49,6 +38,32 @@
 using namespace std;
 
 namespace rn {
+
+/****************************************************************
+** Save-game module hooks.
+*****************************************************************/
+// These function templates are being forward declared here;
+// there must be one of these defined for each module that is
+// saved. However, we don't include any headers that declare
+// their specializations in order to reduce header dependencies.
+// We just rely on the linker to find each of them for us. If one
+// is missing, we'll get a compiler error, so there should be no
+// possibility for error. When these functions are called in code
+// further below, the compiler can deduce their only template ar-
+// guments, and so then there is no need for the function bodies
+// to be available in headers, and the compiler is happy to just
+// wait for the linker to find them. This is convenient for us
+// because it allows us to not include headers from all of the
+// save game modules in this translation unit.
+template<typename T>
+void savegame_serializer( FBBuilder&   builder,
+                          FBOffset<T>* out_offset );
+template<typename T>
+expect<> savegame_deserializer( T const* src );
+template<typename T>
+expect<> savegame_post_validate( T const* );
+template<typename T>
+void default_construct_savegame_state( T const* );
 
 namespace {
 

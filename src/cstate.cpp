@@ -19,6 +19,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "ranges.hpp"
+#include "sg-macros.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -33,6 +34,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Colony );
 
 namespace {
 

@@ -17,7 +17,6 @@
 #include "aliases.hpp"
 #include "colony.hpp"
 #include "errors.hpp"
-#include "sg-macros.hpp"
 #include "unit.hpp"
 
 // base
@@ -34,8 +33,6 @@
 #include <unordered_set>
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Unit );
 
 std::string debug_string( UnitId id );
 

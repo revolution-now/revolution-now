@@ -26,6 +26,7 @@
 #include "panel.hpp" // FIXME
 #include "ranges.hpp"
 #include "render.hpp"
+#include "sg-macros.hpp"
 #include "sound.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
@@ -52,6 +53,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Turn );
 
 namespace {
 

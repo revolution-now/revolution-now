@@ -30,6 +30,7 @@
 #include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "sg-macros.hpp"
 #include "sync-future.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -55,6 +56,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( EuroportView );
 
 namespace {
 

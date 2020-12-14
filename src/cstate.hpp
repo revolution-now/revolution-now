@@ -16,7 +16,6 @@
 #include "aliases.hpp"
 #include "colony.hpp"
 #include "errors.hpp"
-#include "sg-macros.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -25,8 +24,6 @@
 #include <vector>
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Colony );
 
 bool          colony_exists( ColonyId id );
 Colony&       colony_from_id( ColonyId id );

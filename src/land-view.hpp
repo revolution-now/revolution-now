@@ -17,12 +17,9 @@
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "orders.hpp"
-#include "sg-macros.hpp"
 #include "sync-future.hpp"
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 struct UnitInputResponse {
   bool operator==( UnitInputResponse const& rhs ) const {

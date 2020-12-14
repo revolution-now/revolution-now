@@ -20,6 +20,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "macros.hpp"
+#include "sg-macros.hpp"
 #include "variant.hpp"
 
 // base
@@ -41,6 +42,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Unit );
 
 namespace {
 

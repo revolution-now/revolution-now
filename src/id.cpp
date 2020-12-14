@@ -13,11 +13,14 @@
 // Revolution Now
 #include "fb.hpp"
 #include "lua.hpp"
+#include "sg-macros.hpp"
 
 // Flatbuffers
 #include "fb/sg-id_generated.h"
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Id );
 
 namespace {
 

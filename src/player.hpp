@@ -16,7 +16,6 @@
 #include "aliases.hpp"
 #include "fb.hpp"
 #include "nation.hpp"
-#include "sg-macros.hpp"
 
 // Flatbuffers
 #include "fb/player_generated.h"
@@ -25,8 +24,6 @@
 #include "absl/types/span.h"
 
 namespace rn {
-
-DECLARE_SAVEGAME_SERIALIZERS( Player );
 
 class Player {
 public:

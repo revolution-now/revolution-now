@@ -19,6 +19,7 @@
 #include "lua.hpp"
 #include "macros.hpp"
 #include "matrix.hpp"
+#include "sg-macros.hpp"
 #include "tiles.hpp"
 
 // Flatbuffers
@@ -27,6 +28,8 @@
 using namespace std;
 
 namespace rn {
+
+DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 
 namespace {
 
