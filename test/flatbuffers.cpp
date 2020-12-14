@@ -1230,18 +1230,22 @@ template<typename fb_table_t, typename Variant>
 auto variant_roundtrip( Variant const& v,
                         bool expect_fail_validation = false ) {
   using ::rn::serial::deserialize;
+  using ::rn::serial::serialize;
   FBBuilder fbb;
   fbb.Finish(
-      serialize<fb_table_t>( fbb, v, serial::ADL{} ).get() );
+      serialize<fb_table_t>( fbb, v, ::rn::serial::ADL{} )
+          .get() );
   auto    blob   = BinaryBlob::from_builder( std::move( fbb ) );
   auto    fb_var = blob.root<fb_table_t>();
   Variant new_v;
   if( expect_fail_validation ) {
-    REQUIRE( deserialize( fb_var, &new_v, rn::serial::ADL{} ) !=
-             xp_success_t{} );
+    REQUIRE(
+        deserialize( fb_var, &new_v, ::rn::serial::ADL{} ) !=
+        xp_success_t{} );
   } else {
-    REQUIRE( deserialize( fb_var, &new_v, rn::serial::ADL{} ) ==
-             xp_success_t{} );
+    REQUIRE(
+        deserialize( fb_var, &new_v, ::rn::serial::ADL{} ) ==
+        xp_success_t{} );
   }
   return new_v;
 }
