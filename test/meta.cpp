@@ -36,6 +36,17 @@ static_assert( is_same_v<to_tuple_t<tl1>, tuple<int>> );
 static_assert( is_same_v<to_tuple_t<tl2>, tuple<int, char>> );
 
 /****************************************************************
+** tuple to type_list
+*****************************************************************/
+using tu0 = std::tuple<>;
+using tu1 = std::tuple<int>;
+using tu2 = std::tuple<int, char>;
+static_assert( is_same_v<to_type_list_t<tu0>, type_list<>> );
+static_assert( is_same_v<to_type_list_t<tu1>, type_list<int>> );
+static_assert(
+    is_same_v<to_type_list_t<tu2>, type_list<int, char>> );
+
+/****************************************************************
 ** Is Callable Overloaded
 *****************************************************************/
 struct foo_overloaded {
@@ -186,6 +197,86 @@ static_assert( any_v<false, false> == false );
 static_assert( any_v<true, true, true> == true );
 static_assert( any_v<true, true, false> == true );
 static_assert( any_v<false, true, false> == true );
+
+/****************************************************************
+** for_index_seq
+*****************************************************************/
+TEST_CASE( "[meta] for_index_seq" ) {
+  SECTION( "zero" ) {
+    for_index_seq<0>(
+        [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+          static_assert( Idx != Idx, "should not be here" );
+        } );
+  }
+  SECTION( "non-stop" ) {
+    std::tuple<int, int, int, int, int> t{};
+
+    REQUIRE( std::get<0>( t ) == 0 );
+    REQUIRE( std::get<1>( t ) == 0 );
+    REQUIRE( std::get<2>( t ) == 0 );
+    REQUIRE( std::get<3>( t ) == 0 );
+    REQUIRE( std::get<4>( t ) == 0 );
+
+    for_index_seq<5>(
+        [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+          std::get<Idx>( t ) = Idx;
+        } );
+
+    REQUIRE( std::get<0>( t ) == 0 );
+    REQUIRE( std::get<1>( t ) == 1 );
+    REQUIRE( std::get<2>( t ) == 2 );
+    REQUIRE( std::get<3>( t ) == 3 );
+    REQUIRE( std::get<4>( t ) == 4 );
+  }
+  SECTION( "stop early" ) {
+    std::tuple<int, int, int, int, int> t{};
+
+    REQUIRE( std::get<0>( t ) == 0 );
+    REQUIRE( std::get<1>( t ) == 0 );
+    REQUIRE( std::get<2>( t ) == 0 );
+    REQUIRE( std::get<3>( t ) == 0 );
+    REQUIRE( std::get<4>( t ) == 0 );
+
+    for_index_seq<5>(
+        [&]<size_t Idx>(
+            std::integral_constant<size_t, Idx> ) -> bool {
+          std::get<Idx>( t ) = Idx;
+          if( Idx == 2 ) return true;
+          return false;
+        } );
+
+    REQUIRE( std::get<0>( t ) == 0 );
+    REQUIRE( std::get<1>( t ) == 1 );
+    REQUIRE( std::get<2>( t ) == 2 );
+    REQUIRE( std::get<3>( t ) == 0 );
+    REQUIRE( std::get<4>( t ) == 0 );
+  }
+}
+
+/****************************************************************
+** tuple_tail
+*****************************************************************/
+TEST_CASE( "[meta] tuple_tail" ) {
+  std::tuple<int, string, double, float, int> t1{ 5, "hello",
+                                                  4.5, 5.6f, 3 };
+
+  auto t2 = mp::tuple_tail( t1 );
+  REQUIRE( t2 == std::tuple<string, double, float, int>{
+                     "hello", 4.5, 5.6f, 3 } );
+
+  auto t3 = mp::tuple_tail( t2 );
+  REQUIRE( t3 ==
+           std::tuple<double, float, int>{ 4.5, 5.6f, 3 } );
+
+  auto t4 = mp::tuple_tail( t3 );
+  REQUIRE( t4 == std::tuple<float, int>{ 5.6f, 3 } );
+
+  auto t5 = mp::tuple_tail( t4 );
+  REQUIRE( t5 == std::tuple<int>{ 3 } );
+
+  auto t6 = mp::tuple_tail( t5 );
+  REQUIRE( t6 == std::tuple<>{} );
+}
 
 } // namespace
 } // namespace rn

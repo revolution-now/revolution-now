@@ -203,6 +203,17 @@ using to_tuple_t = decltype( type_list_to_tuple_impl(
     std::declval<List const&>() ) );
 
 /****************************************************************
+** tuple to type_list
+*****************************************************************/
+template<typename... Args>
+auto tuple_to_type_list_impl( std::tuple<Args...> const& )
+    -> type_list<Args...>;
+
+template<typename Tuple>
+using to_type_list_t = decltype( tuple_to_type_list_impl(
+    std::declval<Tuple const&>() ) );
+
+/****************************************************************
 ** tail
 *****************************************************************/
 template<typename...>
@@ -320,5 +331,86 @@ template<class T>
 inline constexpr bool has_reserve_method<
     T, std::void_t<decltype( std::declval<T>().reserve( 0 ) )>> =
     true;
+
+/****************************************************************
+** for_index_seq
+*****************************************************************/
+// Do a compile-time iteration from [0, Index) and call the given
+// lambda function once for each, passing the index to the lambda
+// function by way of an integral constant. Example:
+//
+//   auto func =
+//     [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+//       ... Do some work...
+//       ... with Idx available as a compile-time constant...
+//     } );
+//
+//   for_index_seq<5>( func );
+//
+// `func` will be called 5 times with Idx = 0, 1, 2, 3, 4. Op-
+// tionally, the function can return a bool. If it does, then the
+// bool will be checked and the iteration will stop when true is
+// returned or the iterations are finished.
+//
+template<size_t Index, typename Func>
+constexpr auto for_index_seq( Func&& func ) {
+  if constexpr( Index == 0 ) {
+    // Zero iterations. We have to bail early here because other-
+    // wise we'd try to determine the return type of the function
+    // by calling it with an integral constant of 0 which it
+    // might not be expecting, since an Index == 0 implies to the
+    // caller that the Func will never get called (or instanti-
+    // ated if it is a template lambda).
+    return;
+  } else {
+    bool finished_early = false;
+    using ret_t =
+        decltype( std::declval<decltype( std::forward<Func>(
+                      func ) )>()(
+            std::integral_constant<size_t, 0>{} ) );
+    constexpr bool returns_bool = std::is_same_v<bool, ret_t>;
+    if constexpr( !returns_bool ) {
+      static_assert(
+          std::is_same_v<ret_t, void>,
+          "Either the callback should return bool (indicating "
+          "when to stop iterating) or return nothing at all." );
+    }
+    auto done_checker =
+        [&]<size_t Idx>(
+            std::integral_constant<size_t, Idx> i ) {
+          if constexpr( returns_bool ) {
+            if( !finished_early )
+              finished_early = std::forward<Func>( func )( i );
+          } else {
+            (void)finished_early;
+            std::forward<Func>( func )( i );
+          }
+        };
+    auto for_index_seq_impl = [&]<size_t... Idxs>(
+        std::index_sequence<Idxs...> ) {
+      ( done_checker( std::integral_constant<size_t, Idxs>{} ),
+        ... );
+    };
+    for_index_seq_impl( std::make_index_sequence<Index>() );
+  }
+}
+
+/****************************************************************
+** tuple_tail
+*****************************************************************/
+// Given a tuple, return a new tuple containing the same values
+// but without the first element.
+template<typename... Ts>
+constexpr auto tuple_tail( std::tuple<Ts...> const input ) {
+  using tuple_tail_t =
+      to_tuple_t<tail_t<to_type_list_t<std::tuple<Ts...>>>>;
+  tuple_tail_t smaller_tuple;
+  for_index_seq<std::tuple_size_v<tuple_tail_t>>(
+      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+        std::get<Idx>( smaller_tuple ) =
+            std::get<Idx + 1>( input );
+      } );
+  return smaller_tuple;
+}
 
 } // namespace mp

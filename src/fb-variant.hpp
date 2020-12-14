@@ -16,12 +16,13 @@
 #include "fb.hpp"
 
 // base
+#include "base/meta.hpp"
 #include "base/variant.hpp"
 
 namespace rn::serial {
 
 /****************************************************************
-** Determine if FB table needs active_index field.
+** Perform validation related to the active_index.
 *****************************************************************/
 namespace detail {
 
@@ -35,10 +36,51 @@ struct fb_variant_table_needs_alternative_index<
       !mp::and_v<std::is_pointer_v<Ts>...>;
 };
 
+// Determine if FB table needs active_index field.
 template<typename Tuple>
 inline constexpr bool
     fb_variant_table_needs_alternative_index_v =
         fb_variant_table_needs_alternative_index<Tuple>::value;
+
+template<typename FBVariant, typename Variant>
+constexpr auto validate_variant_active_index() {
+  using FieldTypes = typename FBVariant::FieldTypes;
+  constexpr bool has_active_index =
+      detail::fb_variant_table_needs_alternative_index_v<
+          FieldTypes>;
+  using fb_type_list = std::conditional_t<
+      has_active_index,
+      mp::tail_t<fb_creation_tuple_t<FBVariant>>,
+      fb_creation_tuple_t<FBVariant>>;
+  if constexpr( has_active_index ) {
+    using first_field_t = std::tuple_element_t<0, FieldTypes>;
+    constexpr std::string_view first_field_name =
+        FBVariant::Traits::field_names[0];
+    static_assert(
+        first_field_name == "active_index",
+        "A Flatbuffers table representing a variant containing "
+        "at least one primitive type must have a field called "
+        "'active_index' as its first element of type 'int'." );
+    static_assert(
+        std::is_same_v<first_field_t, int32_t>,
+        "A Flatbuffers table representing a variant containing "
+        "at least one primitive type must have a field called "
+        "'active_index' as its first element of type 'int'." );
+    static_assert(
+        std::tuple_size_v<FieldTypes> >= 2,
+        "A Flatbuffers table representing a variant containing "
+        "at least one primitive type must have at least two "
+        "fields, one the 'active_index' and then one other." );
+  }
+  static_assert(
+      mp::type_list_size_v<fb_type_list> ==
+          std::variant_size_v<Variant>,
+      "There is a mismatch between the number of fields in the "
+      "variant and the flatbuffers table." );
+
+  using res_t = std::pair<fb_type_list*, bool>;
+  return res_t{ {}, has_active_index };
+}
 
 } // namespace detail
 
@@ -46,43 +88,6 @@ inline constexpr bool
 ** Serialization of Variants
 *****************************************************************/
 namespace detail {
-
-template<size_t Idx, typename FbTypesTuple,
-         typename ReturnContainersTuple, typename Variant,
-         typename Func>
-void visit_tuple_variant_elem( FbTypesTuple const&    t,
-                               ReturnContainersTuple& t_return,
-                               Variant const&         v,
-                               Func const&            func ) {
-  auto* p = std::get_if<Idx>( &v );
-  if( !p ) return;
-  func( *p, std::get<Idx>( t ), std::get<Idx>( t_return ) );
-}
-
-template<typename FbTypesTuple, typename ReturnContainersTuple,
-         typename Variant, typename Func, size_t... Indexes>
-void visit_tuple_variant_impl(
-    FbTypesTuple const& t, ReturnContainersTuple& t_return,
-    Variant const& v, Func const& func,
-    std::index_sequence<Indexes...> ) {
-  ( visit_tuple_variant_elem<Indexes>( t, t_return, v, func ),
-    ... );
-}
-
-template<typename FbTypesTuple, typename ReturnContainersTuple,
-         typename Variant, typename Func>
-void visit_tuple_variant_serialize(
-    FbTypesTuple const& t, ReturnContainersTuple& t_return,
-    Variant const& v, Func const& f ) {
-  static_assert( std::tuple_size<FbTypesTuple>::value ==
-                 std::variant_size_v<Variant> );
-  static_assert( std::tuple_size<ReturnContainersTuple>::value ==
-                 std::variant_size_v<Variant> );
-  visit_tuple_variant_impl(
-      t, t_return, v, f,
-      std::make_index_sequence<
-          std::tuple_size<FbTypesTuple>::value>() );
-}
 
 template<typename FBType, typename SrcT>
 using serialize_return_container_t =
@@ -118,66 +123,51 @@ auto variant_serialize_return_container_tuple() {
   }
 }
 
+template<bool HasActiveIndex, typename Hint,
+         typename... VarTypes>
+using variant_serialize_return_container_tuple_t =
+    std::remove_pointer_t<
+        decltype( variant_serialize_return_container_tuple<
+                  HasActiveIndex, Hint, VarTypes...>() )>;
+
 } // namespace detail
 
 // For base::variant.
 template<typename Hint, typename... Ts>
 auto serialize( FBBuilder&                  builder,
                 base::variant<Ts...> const& o, serial::ADL ) {
-  using FBVariant  = Hint;
-  using FieldTypes = typename FBVariant::FieldTypes;
-  constexpr bool has_active_index =
-      detail::fb_variant_table_needs_alternative_index_v<
-          FieldTypes>;
-  using fb_type_list = std::conditional_t<
-      has_active_index,
-      mp::tail_t<fb_creation_tuple_t<FBVariant>>,
-      fb_creation_tuple_t<FBVariant>>;
-  if constexpr( has_active_index ) {
-    using first_field_t = std::tuple_element_t<0, FieldTypes>;
-    constexpr std::string_view first_field_name =
-        FBVariant::Traits::field_names[0];
-    static_assert(
-        first_field_name == "active_index",
-        "A Flatbuffers table representing a variant containing "
-        "at least one primitive type must have a field called "
-        "'active_index' as its first element of type 'int'." );
-    static_assert(
-        std::is_same_v<first_field_t, int32_t>,
-        "A Flatbuffers table representing a variant containing "
-        "at least one primitive type must have a field called "
-        "'active_index' as its first element of type 'int'." );
-    static_assert(
-        std::tuple_size_v<FieldTypes> >= 2,
-        "A Flatbuffers table representing a variant containing "
-        "at least one primitive type must have at least two "
-        "fields, one the 'active_index' and then one other." );
-  }
-  static_assert(
-      mp::type_list_size_v<fb_type_list> == sizeof...( Ts ),
-      "There is a mismatch between the number of fields in the "
-      "variant and the flatbuffers table." );
+  constexpr auto info = detail::validate_variant_active_index<
+      Hint, base::variant<Ts...>>();
+  using fb_type_list = std::remove_pointer_t<
+      typename decltype( info )::first_type>;
+  constexpr bool has_active_index = info.second;
+
   mp::to_tuple_t<fb_type_list> t;
-  using return_containers_tuple_t =
-      mp::to_tuple_t<std::remove_pointer_t<
-          decltype( detail::
-                        variant_serialize_return_container_tuple<
-                            has_active_index, Hint, Ts...>() )>>;
+  using return_containers_tuple_t = mp::to_tuple_t<
+      detail::variant_serialize_return_container_tuple_t<
+          has_active_index, Hint, Ts...>>;
   return_containers_tuple_t t_return;
 
   int count = 0;
-  // Set the relevant tuple field.
-  detail::visit_tuple_variant_serialize(
-      t, t_return, o,
-      [&]( auto const& variant_elem, auto const& tuple_elem,
-           auto& return_container_tuple_elem ) {
+
+  mp::for_index_seq<sizeof...( Ts )>(
+      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+        auto* p = std::get_if<Idx>( &o );
+        if( !p ) return;
+        auto& tuple_elem = std::get<Idx>( t );
+        auto& return_container_tuple_elem =
+            std::get<Idx>( t_return );
         using elem_hint_t =
             fb_serialize_hint_t<decltype( tuple_elem )>;
-        return_container_tuple_elem = serialize<elem_hint_t>(
-            builder, variant_elem, serial::ADL{} );
+        return_container_tuple_elem =
+            serialize<elem_hint_t>( builder, *p, serial::ADL{} );
         count++;
       } );
-  DCHECK( count == 1 );
+
+  CHECK( count == 1,
+         "Failed to find one active variant state to serialize. "
+         " This could happen if the variant is in the "
+         "valueless_by_exception state." );
   int32_t active_index       = static_cast<int32_t>( o.index() );
   auto    apply_with_builder = [&]( auto&&... ts ) {
     if constexpr( has_active_index ) {
@@ -197,89 +187,67 @@ auto serialize( FBBuilder&                  builder,
 *****************************************************************/
 namespace detail {
 
-template<size_t Idx, typename Variant, typename T>
-bool try_deserialize_alternative( expect<>& err,
-                                  int active_index, Variant& dst,
-                                  T&& field_value ) {
-  if( !err )
-    // There's already been an error.
-    return false;
-  if( active_index != Idx )
-    // This alternative is not active.
-    return false;
-  auto& alternative = dst.template emplace<Idx>();
-  err = deserialize( detail::to_const_ptr( field_value ),
-                     &alternative, ADL{} );
-  return true;
-}
-
-template<bool HasActiveIndex, typename Tuple, typename Variant,
-         size_t... Indexes>
+// Extract the `active_index` field from the fields pack and put
+// it into the corresponding alternative in the variant. This
+// function takes an `active_index`, but it works and is used
+// also for tables that don't have an `active_index` field. Ei-
+// ther way, the index of the active member is computed and given
+// to this function, so it doesn't care how it is computed.
+template<typename Tuple, typename Variant>
 expect<> visit_tuple_variant_deserialize(
-    int active_index, Tuple const& fields_pack, Variant& dst,
-    std::index_sequence<Indexes...> ) {
-  constexpr bool skip_active_index = HasActiveIndex ? 1 : 0;
-
-  int      count = 0;
+    Tuple const& fields_pack, Variant& dst, int active_index ) {
   expect<> err   = xp_success_t{};
-  ( ( count +=
-      try_deserialize_alternative<Indexes>(
-          // +1 to skip active_index field.
-          err, active_index, dst,
-          std::get<Indexes + skip_active_index>( fields_pack ) )
-          ? 1
-          : 0 ),
-    ... );
+  bool     found = false;
+  mp::for_index_seq<std::variant_size_v<Variant>>(
+      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+        // Return true means we will stop iterating.
+        if( active_index != Idx ) return false;
+        err = deserialize(
+            detail::to_const_ptr( std::get<Idx>( fields_pack ) ),
+            &dst.template emplace<Idx>(), ADL{} );
+        if( !err ) return true;
+        found = true;
+        return true; // stop iterating early.
+      } );
   if( !err ) return err;
-  if( count != 1 )
+  if( !found )
     return UNEXPECTED(
         "failed to deserialize precisely one active alternative "
-        "in variant; instead deserialized {}.",
-        count );
+        "in variant." );
   return xp_success_t{};
 }
 
-template<size_t Index, typename Tuple>
-void check_tuple_field_active( Tuple const& tp, int& count,
-                               maybe<int>& active_index ) {
-  static_assert(
-      std::is_pointer_v<std::remove_reference_t<
-          decltype( std::get<Index>( tp ) )>>,
-      "expected fields_pack tuple to have all pointer types "
-      "since this is supposed to be an FB variant with no "
-      "active_index." );
-  auto* p = std::get<Index>( tp );
-  if( p != nullptr ) {
-    ++count;
-    active_index = Index;
-  }
-}
-
-template<typename Tuple, size_t... Indexes>
-expect<int> find_active_index_in_tuple(
-    Tuple const& tp, std::index_sequence<Indexes...> ) {
+// Given a tuple representing the field types of a Flatbuffer
+// table that is supposed to hold only pointer members (and thus
+// does not need/have an active_index member) this will iterate
+// through the fields to find the (hopefully only) one that is
+// non-null, meaning active.
+template<typename Tuple>
+expect<int> find_active_index_in_tuple( Tuple const& tp ) {
   int        count = 0;
   maybe<int> active_index;
-  ( check_tuple_field_active<Indexes>( tp, count, active_index ),
-    ... );
+  mp::for_index_seq<std::tuple_size_v<
+      Tuple>>( [&]<size_t Idx>(
+                   std::integral_constant<size_t, Idx> ) {
+    static_assert(
+        std::is_pointer_v<std::remove_reference_t<
+            decltype( std::get<Idx>( tp ) )>>,
+        "expected fields_pack tuple to have all pointer types "
+        "since this is supposed to be an FB variant with no "
+        "active_index." );
+    auto* p = std::get<Idx>( tp );
+    if( p != nullptr ) {
+      ++count;
+      active_index = Idx;
+    }
+  } );
   if( count != 1 )
     return UNEXPECTED(
         "failed to find precisely one active alternative in FB "
         "table representing variant with no active_index; "
         "instead found {}.",
         count );
-  if( !active_index )
-    return UNEXPECTED(
-        "invalid result obtained when deterining active_index "
-        "of FB variant table with no active_index as a first "
-        "member; obtained nothing.",
-        active_index );
-  if( *active_index > int( sizeof...( Indexes ) ) )
-    return UNEXPECTED(
-        "invalid result obtained when deterining active_index "
-        "of FB variant table with no active_index as a first "
-        "member; obtained {}.",
-        *active_index );
+  DCHECK( *active_index < int( std::tuple_size_v<Tuple> ) );
   return *active_index;
 }
 
@@ -289,41 +257,9 @@ expect<int> find_active_index_in_tuple(
 template<typename SrcT, typename... Vs>
 expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
                       serial::ADL ) {
-  using FBVariant  = SrcT;
-  using FieldTypes = typename FBVariant::FieldTypes;
-  constexpr bool needs_index =
-      detail::fb_variant_table_needs_alternative_index_v<
-          FieldTypes>;
-  using fb_type_list = std::conditional_t<
-      needs_index, mp::tail_t<fb_creation_tuple_t<FBVariant>>,
-      fb_creation_tuple_t<FBVariant>>;
-  // =========
-  if constexpr( needs_index ) {
-    using first_field_t = std::tuple_element_t<0, FieldTypes>;
-    constexpr std::string_view first_field_name =
-        FBVariant::Traits::field_names[0];
-    static_assert(
-        first_field_name == "active_index",
-        "A Flatbuffers table representing a variant containing "
-        "at least one primitive type must have a field called "
-        "'active_index' as its first element of type 'int'." );
-    static_assert(
-        std::is_same_v<first_field_t, int32_t>,
-        "A Flatbuffers table representing a variant containing "
-        "at least one primitive type must have a field called "
-        "'active_index' as its first element of type 'int'." );
-    static_assert(
-        std::tuple_size_v<FieldTypes> >= 2,
-        "A Flatbuffers table representing a variant containing "
-        "at least one primitive type must have at least two "
-        "fields, one the 'active_index' and then one other." );
-  }
-  static_assert(
-      mp::type_list_size_v<fb_type_list> == sizeof...( Vs ),
-      "There is a mismatch between the number of fields in the "
-      "variant and the flatbuffers table." );
-  // Rename this for readability now that we've checked it.
-  constexpr bool has_active_index = needs_index;
+  constexpr auto info = detail::validate_variant_active_index<
+      SrcT, base::variant<Vs...>>();
+  constexpr bool has_active_index = info.second;
   if( src == nullptr ) {
     // `dst` should be in its default-constructed state, which
     // would be the first alternative in a default-constructed
@@ -334,21 +270,14 @@ expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
   auto fields_pack = src->fields_pack();
   if constexpr( has_active_index ) {
     int32_t active_index = std::get<0>( fields_pack );
-    XP_OR_RETURN_( detail::visit_tuple_variant_deserialize<
-                   has_active_index>(
-        active_index, fields_pack, *dst,
-        std::make_index_sequence<sizeof...( Vs )>() ) );
+    XP_OR_RETURN_( detail::visit_tuple_variant_deserialize(
+        mp::tuple_tail( fields_pack ), *dst, active_index ) );
   } else {
-    expect<int> active_index =
-        detail::find_active_index_in_tuple(
-            fields_pack, std::make_index_sequence<
-                             std::tuple_size_v<FieldTypes>>() );
-    if( !active_index )
-      return propagate_unexpected( active_index );
-    XP_OR_RETURN_( detail::visit_tuple_variant_deserialize<
-                   has_active_index>(
-        *active_index, fields_pack, *dst,
-        std::make_index_sequence<sizeof...( Vs )>() ) );
+    XP_OR_RETURN(
+        active_index,
+        detail::find_active_index_in_tuple( fields_pack ) );
+    XP_OR_RETURN_( detail::visit_tuple_variant_deserialize(
+        fields_pack, *dst, active_index ) );
   }
   return xp_success_t{};
 }
