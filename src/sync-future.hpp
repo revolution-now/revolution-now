@@ -90,11 +90,8 @@ inline constexpr bool is_sync_future_v<sync_future<T>> = true;
 //   assert( s_future1.empty() );
 //   assert( s_future2.empty() );
 //
-// FIXME: Should be [[nodiscard]] but that has to wait until an
-// issue is resolved when compiling with gcc where a function_ref
-// that returns a [[nodiscard]] type generates a warning.
 template<typename T = std::monostate>
-class /*ND*/ sync_future {
+class [[nodiscard]] sync_future {
   template<typename U>
   using SharedStatePtr =
       std::shared_ptr<internal::sync_shared_state_base<U>>;
@@ -377,7 +374,7 @@ class sync_promise {
         callback( *maybe_value );
     }
 
-    maybe<T>                                 maybe_value;
+    maybe<T>                               maybe_value;
     std::vector<std::function<NotifyFunc>> callbacks_;
   };
 
