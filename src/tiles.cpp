@@ -13,7 +13,6 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "errors.hpp"
-#include "hash.hpp"
 #include "init.hpp"
 
 // Revolution Now (config)
@@ -56,9 +55,9 @@ struct tile_map {
 NOTHROW_MOVE( tile_map );
 
 // Need pointer stability for these.
-unordered_map<fs::path, Texture>             g_images;
-unordered_map<e_tile, sprite, EnumClassHash> g_sprites;
-unordered_map<std::string, tile_map>         tile_maps;
+unordered_map<fs::path, Texture>     g_images;
+unordered_map<e_tile, sprite>        g_sprites;
+unordered_map<std::string, tile_map> tile_maps;
 
 Texture const& load_image( fs::path const& p ) {
   if( !g_images.contains( p ) )
