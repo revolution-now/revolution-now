@@ -35,6 +35,10 @@
 #include "fb/testing_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 // C++ standard library
 #include <fstream>
 #include <map>
@@ -56,6 +60,8 @@ using ::Catch::Contains;
 using ::Catch::Equals;
 using ::Catch::UnorderedEquals;
 using ::rn::serial::BinaryBlob;
+using ::rn::serial::FBBuilder;
+using ::rn::serial::FBOffset;
 
 enum class e_color { Red, Green, Blue };
 
@@ -152,9 +158,9 @@ struct Monster {
   ( map_wpns_t,      map_wpns       ),
   ( list<string>,    mylist         ),
   ( set<string>,     myset          ),
-  ( Opt<int>,        opt_int1       ),
-  ( Opt<int>,        opt_int2       ),
-  ( Opt<int>,        opt_int3       ));
+  ( maybe<int>,        opt_int1       ),
+  ( maybe<int>,        opt_int2       ),
+  ( maybe<int>,        opt_int3       ));
   // clang-format on
 };
 
@@ -866,7 +872,7 @@ struct SetTester {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
-  using set_t = FlatSet<string>;
+  using set_t = absl::flat_hash_set<string>;
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, SetTester,
   ( set_t,        set                ));
@@ -878,7 +884,7 @@ struct MapTester1 {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
-  using map_t = FlatMap<string, int>;
+  using map_t = absl::flat_hash_map<string, int>;
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, MapTester1,
   ( map_t,        map                ));
@@ -1189,11 +1195,11 @@ TEST_CASE( "[flatbuffers] fsm" ) {
 }
 
 TEST_CASE( "[flatbuffers] Golden Comparison" ) {
-  Opt<Str> golden = base::read_text_file_as_string(
+  maybe<Str> golden = base::read_text_file_as_string(
       testing::data_dir() / "fb-testing-golden.h" );
   REQUIRE( golden.has_value() );
-  fs::path root      = base::build_output_root();
-  Opt<Str> generated = base::read_text_file_as_string(
+  fs::path   root      = base::build_output_root();
+  maybe<Str> generated = base::read_text_file_as_string(
       root / "src/fb/testing_generated.h" );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that

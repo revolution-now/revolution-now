@@ -437,14 +437,14 @@ bool is_relevant_event_type( ::Uint32 type ) {
   return is_relevant_event_type( ::SDL_EventType( type ) );
 }
 
-Opt<::SDL_Event> next_sdl_event() {
+maybe<::SDL_Event> next_sdl_event() {
   ::SDL_PumpEvents();
   ::SDL_Event event;
   if( ::SDL_PollEvent( &event ) != 0 ) return event;
   return nothing;
 }
 
-Opt<event_t> next_event() {
+maybe<event_t> next_event() {
   while( auto event = next_sdl_event() ) {
     if( !is_relevant_event_type( event->type ) ) continue;
     return from_SDL( *event );
@@ -468,8 +468,8 @@ flat_queue<event_t>& event_queue() { return g_event_queue; }
 /****************************************************************
 ** Utilities
 *****************************************************************/
-Opt<char> ascii_char_for_event( key_event_t const& event ) {
-  static FlatMap<char, char> shift_map{
+maybe<char> ascii_char_for_event( key_event_t const& event ) {
+  static absl::flat_hash_map<char, char> shift_map{
       { '`', '~' },  { '1', '!' },  { '2', '@' }, { '3', '#' },
       { '4', '$' },  { '5', '%' },  { '6', '^' }, { '7', '&' },
       { '8', '*' },  { '9', '(' },  { '0', ')' }, { '-', '_' },
@@ -482,7 +482,7 @@ Opt<char> ascii_char_for_event( key_event_t const& event ) {
       { '\'', '"' }, { 'z', 'Z' },  { 'x', 'X' }, { 'c', 'C' },
       { 'v', 'V' },  { 'b', 'B' },  { 'n', 'N' }, { 'm', 'M' },
       { ',', '<' },  { '.', '>' },  { '/', '?' } };
-  Opt<char> res;
+  maybe<char> res;
   if( event.keycode < 128 ) {
     char keychar = char( event.keycode );
     res          = keychar;
@@ -528,7 +528,7 @@ maybe<Coord const&> mouse_position( event_t const& event ) {
       } );
 }
 
-Opt<mouse_button_event_t> drag_event_to_mouse_button_event(
+maybe<mouse_button_event_t> drag_event_to_mouse_button_event(
     mouse_drag_event_t const& event ) {
   // This works because an e_drag_phase::begin event will always
   // have been preceded with a normal mouse-down event, so the

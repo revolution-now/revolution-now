@@ -14,6 +14,7 @@
 #include "logging.hpp"
 #include "screen.hpp"
 #include "sdl-util.hpp"
+#include "time.hpp"
 #include "util.hpp"
 
 // Abseil

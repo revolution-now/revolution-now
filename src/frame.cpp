@@ -20,6 +20,7 @@
 #include "plane.hpp"
 #include "render.hpp" // FIXME
 #include "screen.hpp"
+#include "time.hpp"
 #include "variant.hpp"
 
 // Revolution Now (config)

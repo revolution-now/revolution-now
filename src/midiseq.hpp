@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "time.hpp"
+
 // Rnl
 #include "rnl/midiseq.hpp"
 
@@ -35,11 +38,11 @@ bool midiseq_enabled();
 e_midiseq_state state();
 
 // If playing a tune, returns [0,1.0] progress.
-Opt<double> progress();
+maybe<double> progress();
 
 bool is_processing_commands();
 
-Opt<Duration_t> can_play_tune( fs::path const& path );
+maybe<Duration_t> can_play_tune( fs::path const& path );
 
 void send_command( command_t cmd );
 

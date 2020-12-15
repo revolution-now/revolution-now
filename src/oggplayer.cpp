@@ -63,7 +63,7 @@ public:
   // anything in its API to get the duration of music, so it may
   // be necessary to add libogg directly as a dependency to find
   // the length.
-  Opt<chrono::milliseconds> duration() { return nothing; }
+  maybe<chrono::milliseconds> duration() { return nothing; }
 
   void swap( OggTune& rhs ) noexcept {
     ::std::swap( ptr_, rhs.ptr_ );
@@ -81,8 +81,8 @@ enum class e_ogg_state { playing, paused, stopped };
 /****************************************************************
 ** Global State
 *****************************************************************/
-Opt<OggMusicPlayer> g_ogg_player{};
-Opt<OggTune>        g_current_music{};
+maybe<OggMusicPlayer> g_ogg_player{};
+maybe<OggTune>        g_current_music{};
 // Note that this state may not be updated when a tune stops
 // playing on its own (but before the next one is played). If
 // this turns out to be a problem then we would either need to
@@ -131,7 +131,7 @@ ND bool play_impl( OggTune&& music ) {
   return true;
 }
 
-Opt<OggTune> load_tune( TuneId id ) {
+maybe<OggTune> load_tune( TuneId id ) {
   auto file = config_music.ogg_folder /
               fs::path( tune_stem_from_id( id ) + ".ogg" );
   auto* music = ::Mix_LoadMUS( file.string().c_str() );
@@ -205,7 +205,7 @@ bool OggMusicPlayer::good() const {
   return g_ogg_player.has_value();
 }
 
-Opt<TunePlayerInfo> OggMusicPlayer::can_play_tune( TuneId id ) {
+maybe<TunePlayerInfo> OggMusicPlayer::can_play_tune( TuneId id ) {
   if( !good() ) return {};
 
   auto ogg = load_tune( id );
@@ -235,7 +235,7 @@ MusicPlayerDesc OggMusicPlayer::info() const {
 }
 
 MusicPlayerState OggMusicPlayer::state() const {
-  Opt<TunePlayerInfo> maybe_tune_info;
+  maybe<TunePlayerInfo> maybe_tune_info;
   update_state_if_stopped();
   bool is_playing = ( g_state == e_ogg_state::playing );
   bool is_paused  = ( g_state == e_ogg_state::paused );
@@ -262,7 +262,7 @@ MusicPlayerCapabilities OggMusicPlayer::capabilities() const {
   };
 }
 
-bool OggMusicPlayer::fence( Opt<Duration_t> /*unused*/ ) {
+bool OggMusicPlayer::fence( maybe<Duration_t> /*unused*/ ) {
   if( !good() ) return true;
   // Since this music player is synchronous the `fence` operation
   // is a no-op.

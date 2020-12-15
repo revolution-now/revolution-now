@@ -61,7 +61,8 @@ e_tile tile_for_commodity( e_commodity c ) {
   }
 }
 
-OptCRef<Texture> render_commodity_label( string_view label ) {
+maybe<Texture const&> render_commodity_label(
+    string_view label ) {
   if( !label.empty() ) {
     TextMarkupInfo info{ /*normal=*/Color::white(),
                          /*highlight=*/Color::green() };
@@ -71,8 +72,8 @@ OptCRef<Texture> render_commodity_label( string_view label ) {
 }
 
 void render_commodity_impl( Texture& tx, e_commodity type,
-                            Coord            pixel_coord,
-                            OptCRef<Texture> label ) {
+                            Coord                 pixel_coord,
+                            maybe<Texture const&> label ) {
   auto tile = tile_for_commodity( type );
   render_sprite( tx, tile, pixel_coord );
   if( label ) {
@@ -110,8 +111,8 @@ expect<> Commodity::check_invariants_safe() const {
 /****************************************************************
 ** Public API
 *****************************************************************/
-Opt<e_commodity> commodity_from_index( int index ) {
-  Opt<e_commodity> res;
+maybe<e_commodity> commodity_from_index( int index ) {
+  maybe<e_commodity> res;
   if( index >= 0 &&
       index < int( magic_enum::enum_count<e_commodity>() ) )
     res = magic_enum::enum_values<e_commodity>()[index];
@@ -149,7 +150,7 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
 
 int move_commodity_as_much_as_possible(
     UnitId src, int src_slot, UnitId dst, int dst_slot,
-    Opt<int> max_quantity, bool try_other_dst_slots ) {
+    maybe<int> max_quantity, bool try_other_dst_slots ) {
   auto const& src_cargo = unit_from_id( src ).cargo();
   auto        maybe_src_comm =
       src_cargo.slot_holds_cargo_type<Commodity>( src_slot );
@@ -217,7 +218,7 @@ int move_commodity_as_much_as_possible(
   return max_transfer_quantity;
 }
 
-Opt<string> commodity_label_to_markup(
+maybe<string> commodity_label_to_markup(
     CommodityLabel_t const& label ) {
   switch( label.to_enum() ) {
     case CommodityLabel::e::none: {
@@ -235,7 +236,7 @@ Opt<string> commodity_label_to_markup(
   };
 }
 
-OptCRef<Texture> render_commodity_label(
+maybe<Texture const&> render_commodity_label(
     CommodityLabel_t const& label ) {
   auto maybe_text = commodity_label_to_markup( label );
   if( maybe_text ) return render_commodity_label( *maybe_text );

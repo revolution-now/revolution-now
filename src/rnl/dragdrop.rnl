@@ -20,7 +20,7 @@ sumtype DragState<DragSrcT, DragDstT, DragArcT> {
   none:
   in_progress:
     DragSrcT         src;
-    Opt<DragDstT>    dst;
+    maybe<DragDstT>    dst;
     Texture          tx;
     input::mod_keys  mod_keys;
     Delta            click_offset;
@@ -47,7 +47,7 @@ sumtype DragState<DragSrcT, DragDstT, DragArcT> {
 sumtype DragEvent<DragSrcT, DragDstT, DragArcT> {
   start:
     DragSrcT         src;
-    Opt<DragDstT>    dst;
+    maybe<DragDstT>    dst;
     Texture          tx;
     Delta            click_offset;
   rubber_band:

@@ -60,7 +60,7 @@ public:
   // Coordinate will be relative to the upper-left of the view.
   // Should only be called if the coord is within the bounds of
   // the view.
-  virtual Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  virtual maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const = 0;
 
 private:

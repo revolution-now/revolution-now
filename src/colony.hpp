@@ -27,6 +27,10 @@
 // Flatbuffers
 #include "fb/colony_generated.h"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 namespace rn {
 
 class Colony {
@@ -54,11 +58,13 @@ public:
   // These units will be in unspecified order (order may depend
   // on hash table iteration) so the caller should take care to
   // not depend on the ordering returned by this function.
-  Vec<UnitId>                       units() const;
-  FlatSet<e_colony_building> const& buildings() const {
+  Vec<UnitId>                                   units() const;
+  absl::flat_hash_set<e_colony_building> const& buildings()
+      const {
     return buildings_;
   }
-  FlatMap<UnitId, ColonyJob_t> const& units_jobs() const {
+  absl::flat_hash_map<UnitId, ColonyJob_t> const& units_jobs()
+      const {
     return units_;
   }
 
@@ -69,7 +75,7 @@ public:
   void remove_unit( UnitId id );
   void set_commodity_quantity( e_commodity comm, int q );
 
-  FlatMap<e_commodity, int>& commodities() {
+  absl::flat_hash_map<e_commodity, int>& commodities() {
     return commodities_;
   }
 
@@ -92,10 +98,12 @@ private:
       e_nation nation, Coord const& where,
       std::string_view name );
 
-  using FlatMap_e_commodity_int = FlatMap<e_commodity, int>;
+  using FlatMap_e_commodity_int =
+      absl::flat_hash_map<e_commodity, int>;
   using FlatMap_UnitId_ColonyJob_t =
-      FlatMap<UnitId, ColonyJob_t>;
-  using FlatSet_e_colony_building = FlatSet<e_colony_building>;
+      absl::flat_hash_map<UnitId, ColonyJob_t>;
+  using FlatSet_e_colony_building =
+      absl::flat_hash_set<e_colony_building>;
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, Colony,
@@ -114,7 +122,7 @@ private:
   ( FlatSet_e_colony_building,  buildings_    ),
 
   // Production
-  ( Opt<e_colony_building>,     production_   ),
+  ( maybe<e_colony_building>,     production_   ),
   ( int,                        prod_hammers_ ),
   ( int,                        prod_tools_   ),
 

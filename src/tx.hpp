@@ -128,7 +128,7 @@ public:
 
   void set_render_target() const;
 
-  Surface to_surface( Opt<Delta> override_size = nothing ) const;
+  Surface to_surface( maybe<Delta> override_size = nothing ) const;
 
   // Texture that is a proxy for the screen.
   static Texture& screen();
@@ -151,8 +151,8 @@ public:
 
   void copy_to( Texture& to ) const;
   void copy_to( Texture& to, Coord target_location ) const;
-  void copy_to( Texture& to, Opt<Rect> src,
-                Opt<Rect> dst ) const;
+  void copy_to( Texture& to, maybe<Rect> src,
+                maybe<Rect> dst ) const;
   void copy_to( Texture& to, Rect const& src, Rect const& dst,
                 double angle, e_flip flip ) const;
 

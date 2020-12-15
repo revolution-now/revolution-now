@@ -34,8 +34,8 @@ REGISTER_INIT_ROUTINE( compositor );
 /****************************************************************
 ** Public API
 *****************************************************************/
-Opt<Rect> section( e_section section ) {
-  Opt<Rect> res;
+maybe<Rect> section( e_section section ) {
+  maybe<Rect> res;
   auto      screen_rect = main_window_logical_rect();
   auto      screen_size = screen_rect.delta();
   auto      menu_height =

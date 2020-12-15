@@ -29,7 +29,7 @@ sumtype NationTurnState {
   doing_units:
     bool need_eot;
     flat_deque<UnitId> q;
-    Opt<UnitInputFsm> uturn;
+    maybe<UnitInputFsm> uturn;
   ending:
     bool need_eot;
 

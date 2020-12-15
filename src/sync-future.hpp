@@ -378,7 +378,7 @@ class sync_promise {
         callback( *maybe_value );
     }
 
-    Opt<T>                                 maybe_value;
+    maybe<T>                                 maybe_value;
     std::vector<std::function<NotifyFunc>> callbacks_;
   };
 

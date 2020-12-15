@@ -37,7 +37,7 @@ using PlayerIntent = base::variant<
     CombatAnalysis>;
 NOTHROW_MOVE( PlayerIntent );
 
-Opt<PlayerIntent> player_intent( UnitId          id,
+maybe<PlayerIntent> player_intent( UnitId          id,
                                  orders_t const& orders );
 
 sync_future<bool> confirm_explain( PlayerIntent* analysis );

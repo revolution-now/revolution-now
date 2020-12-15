@@ -44,7 +44,6 @@ target_link_libraries(
     lua::lua
     magic_enum::magic_enum
     midifile
-    observer-ptr::observer-ptr
     range-v3
     rn-base
     rtmidi

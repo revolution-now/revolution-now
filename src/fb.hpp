@@ -27,6 +27,10 @@
 #include "flatbuffers/idl.h"
 #include "flatbuffers/minireflect.h"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 // base-util
 #include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
@@ -43,6 +47,50 @@
 ** Uniform serialization interface.
 *****************************************************************/
 namespace rn::serial {
+
+using FBBuilder = ::flatbuffers::FlatBufferBuilder;
+template<typename T>
+using FBOffset = ::flatbuffers::Offset<T>;
+
+/****************************************************************
+** Serialization ADL Helper
+*****************************************************************/
+// In general, a serialize / deserialize method (say, for a
+// container) will need to call another serialize / deserialize
+// method on the contained type, and this contained type depends
+// on a template parameter which is not known until the point of
+// instantiation. This can sometimes be a problem because the
+// serialize / deserialize method for the contained type might
+// have been declared after the one for the container type; this
+// is because these methods are scattered about the code base and
+// it is hard and/or undesirable to either forward declare or to
+// precisely control the order. In those cases, the serialize /
+// deserialize method for the contained type will not be found in
+// phase I of the Two-Phase-Lookup mechanism; it can only be
+// found in phase II, which is ADL-only.
+//
+// However, sometimes a serialize / deserialize method for a
+// contained type (e.g., std::variant) will not contain any
+// parameters whose types are defined in the rn::serial
+// namespace, and so therefore even ADL will fail to find the
+// serialize / deserialize method.
+//
+// To resolve this, we introduce the following tag (dummy)
+// parameter to all serialize / deserialize calls so that we
+// are guaranteed to always have at least one argument of a type
+// defined in the rn::serial namespace. This allows the compiler
+// to always be able to find the serialize / deserialize function
+// (at least) using ADL.
+//
+// From a C++ expert:
+//
+//   For an unqualified name to be found in a template
+//   instantiation, it must either have been declared before the
+//   place where the template was defined, or it must be the name
+//   of a function (in a function call expression) that is
+//   declared in a namespace associated with one of its
+//   arguments.
+struct ADL {};
 
 /****************************************************************
 ** Helpers
@@ -401,7 +449,7 @@ auto serialize( FBBuilder& builder, std::vector<T> const& o,
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::list<T> const& l,
                 serial::ADL ) {
-  std::vector<CRef<T>> v;
+  std::vector<std::reference_wrapper<T const>> v;
   v.reserve( l.size() );
   for( auto const& e : l ) v.emplace_back( e );
   return serialize<Hint>( builder, v, serial::ADL{} );
@@ -410,9 +458,9 @@ auto serialize( FBBuilder& builder, std::list<T> const& l,
 // For flat set. Make a vector of references to the elements and
 // just serialize that.
 template<typename Hint, typename T>
-auto serialize( FBBuilder& builder, FlatSet<T> const& s,
-                serial::ADL ) {
-  std::vector<CRef<T>> v;
+auto serialize( FBBuilder&                    builder,
+                absl::flat_hash_set<T> const& s, serial::ADL ) {
+  std::vector<std::reference_wrapper<T const>> v;
   v.reserve( s.size() );
   for( auto const& e : s ) v.emplace_back( e );
   return serialize<Hint>( builder, v, serial::ADL{} );
@@ -423,7 +471,7 @@ auto serialize( FBBuilder& builder, FlatSet<T> const& s,
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::set<T> const& s,
                 serial::ADL ) {
-  std::vector<CRef<T>> v;
+  std::vector<std::reference_wrapper<T const>> v;
   v.reserve( s.size() );
   for( auto const& e : s ) v.emplace_back( e );
   return serialize<Hint>( builder, v, serial::ADL{} );
@@ -754,7 +802,8 @@ expect<> deserialize( SrcT const* src, std::list<T>* dst,
 
 // For flat sets. Deserialize to vector first.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, FlatSet<T>* dst,
+expect<> deserialize( SrcT const*             src,
+                      absl::flat_hash_set<T>* dst,
                       serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
@@ -968,8 +1017,8 @@ expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_TABLE, __VA_ARGS__ )      \
 public:                                                      \
   using fb_target_t = ns::name;                              \
-  FBOffset<ns::name> serialize_table( FBBuilder& builder )   \
-      const {                                                \
+  serial::FBOffset<ns::name> serialize_table(                \
+      serial::FBBuilder& builder ) const {                   \
     static const name def_val{};                             \
     /* If the table has its fully default value then */      \
     /* do not serialize it, return null offset. */           \
@@ -1021,7 +1070,8 @@ private:
   PP_MAP_TUPLE( SERIAL_DECLARE_VAR_STRUCT, __VA_ARGS__ )       \
 public:                                                        \
   using fb_target_t = fb::name;                                \
-  fb::name serialize_struct( FBBuilder& builder ) const {      \
+  fb::name serialize_struct( serial::FBBuilder& builder )      \
+      const {                                                  \
     using ::rn::serial::serialize;                             \
     PP_MAP_SEMI( SERIAL_CALL_SERIALIZE_STRUCT, __VA_ARGS__ )   \
     return fb::name(                                           \

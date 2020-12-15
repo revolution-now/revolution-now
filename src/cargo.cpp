@@ -165,12 +165,13 @@ int CargoHold::count_items() const {
                          L( holds<CargoSlot::cargo>( _ ) ) );
 }
 
-OptCRef<CargoSlot_t> CargoHold::at( int slot ) const {
+maybe<CargoSlot_t const&> CargoHold::at( int slot ) const {
   if( slot < 0 || slot >= slots_total() ) return nothing;
   return ( *this )[slot];
 }
 
-OptCRef<CargoSlot_t> CargoHold::at( CargoSlotIndex slot ) const {
+maybe<CargoSlot_t const&> CargoHold::at(
+    CargoSlotIndex slot ) const {
   return this->at( slot._ );
 }
 
@@ -189,7 +190,7 @@ CargoSlot_t const& CargoHold::operator[](
   return this->operator[]( idx._ );
 }
 
-Opt<int> CargoHold::find_unit( UnitId id ) const {
+maybe<int> CargoHold::find_unit( UnitId id ) const {
   for( size_t idx = 0; idx < slots_.size(); ++idx )
     if( slot_holds_cargo_type<UnitId>( idx ) == id ) //
       return idx;
@@ -207,9 +208,9 @@ Vec<UnitId> CargoHold::units() const {
 // Returns all commodities (and slot indices) in the cargo un-
 // less a specific type is specified in which case it will be
 // limited to those.
-Vec<Pair<Commodity, int>> CargoHold::commodities(
-    Opt<e_commodity> type ) const {
-  Vec<Pair<Commodity, int>> res;
+Vec<pair<Commodity, int>> CargoHold::commodities(
+    maybe<e_commodity> type ) const {
+  Vec<pair<Commodity, int>> res;
 
   for( auto const& [idx, slot] : rv::enumerate( slots_ ) ) {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )

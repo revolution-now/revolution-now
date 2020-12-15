@@ -34,7 +34,7 @@ sumtype DragSrc {
     UnitId id;
   cargo:
     CargoSlotIndex slot;
-    Opt<int> quantity;
+    maybe<int> quantity;
   outbound:
     UnitId id;
   inbound:
@@ -43,7 +43,7 @@ sumtype DragSrc {
     UnitId id;
   market:
     e_commodity type;
-    Opt<int> quantity;
+    maybe<int> quantity;
 };
 
 sumtype DragDst {

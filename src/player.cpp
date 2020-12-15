@@ -35,7 +35,7 @@ namespace {
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Player ) {
-  using PlayerMap_t = NodeMap<e_nation, Player>;
+  using PlayerMap_t = absl::node_hash_map<e_nation, Player>;
 
   // Fields that are actually serialized.
 

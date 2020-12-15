@@ -32,7 +32,7 @@ struct UnitInputResponse {
   }
 
   UnitId        id;
-  Opt<orders_t> orders;
+  maybe<orders_t> orders;
   Vec<UnitId>   add_to_front;
   Vec<UnitId>   add_to_back;
 };

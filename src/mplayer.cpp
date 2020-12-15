@@ -35,7 +35,7 @@ SilentMusicPlayer::player() {
 bool SilentMusicPlayer::good() const { return true; }
 
 // Implement MusicPlayer
-Opt<TunePlayerInfo> SilentMusicPlayer::can_play_tune(
+maybe<TunePlayerInfo> SilentMusicPlayer::can_play_tune(
     TuneId id ) {
   return TunePlayerInfo{ /*id=*/id,
                          /*length=*/chrono::minutes( 1 ),
@@ -59,7 +59,7 @@ MusicPlayerDesc SilentMusicPlayer::info() const {
 
 // Implement MusicPlayer
 MusicPlayerState SilentMusicPlayer::state() const {
-  Opt<TunePlayerInfo> maybe_tune_info;
+  maybe<TunePlayerInfo> maybe_tune_info;
   if( id_.has_value() ) {
     maybe_tune_info =
         TunePlayerInfo{ /*id=*/*id_,
@@ -82,7 +82,7 @@ MusicPlayerCapabilities SilentMusicPlayer::capabilities() const {
 }
 
 // Implement MusicPlayer
-bool SilentMusicPlayer::fence( Opt<Duration_t> /*unused*/ ) {
+bool SilentMusicPlayer::fence( maybe<Duration_t> /*unused*/ ) {
   return true;
 }
 
@@ -121,7 +121,7 @@ void MusicPlayerCapabilities::log() const {
   lg.debug( "  can_seek:          {}", can_seek );
 }
 
-bool MusicPlayer::fence( Opt<Duration_t> /*unused*/ ) {
+bool MusicPlayer::fence( maybe<Duration_t> /*unused*/ ) {
   return true;
 }
 

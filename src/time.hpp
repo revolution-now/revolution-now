@@ -19,6 +19,13 @@
 
 namespace rn {
 
+using Clock_t    = ::std::chrono::system_clock;
+using Time_t     = decltype( Clock_t::now() );
+using Duration_t = ::std::chrono::nanoseconds;
+using Seconds    = ::std::chrono::seconds;
+
+namespace chrono_literals = ::std::literals::chrono_literals;
+
 template<class Rep, class Period>
 void sleep(
     std::chrono::duration<Rep, Period> const& duration ) {

@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
+#include "maybe.hpp"
 
 namespace rn {
 
@@ -32,7 +32,7 @@ void set_main_menu( e_main_menu_type type );
 
 // When this function returns a value, that value will be reset,
 // so another call immediately after will yield no result.
-Opt<e_main_menu_item> main_menu_selection();
+maybe<e_main_menu_item> main_menu_selection();
 
 struct Plane;
 Plane* main_menu_plane();

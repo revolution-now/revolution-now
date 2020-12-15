@@ -48,7 +48,7 @@ struct shared_int_state
     SHOULD_NOT_BE_HERE;
   }
 
-  Opt<int> maybe_int;
+  maybe<int> maybe_int;
 };
 
 TEST_CASE( "[sync-future] future default construction" ) {
@@ -273,8 +273,8 @@ TEST_CASE( "[sync-future] bind testing statuses" ) {
   static_assert(
       is_same_v<decltype( s_future_1 ), sync_future<int>> );
 
-  Opt<sync_promise<string>> s_promise_2;
-  Opt<sync_promise<string>> s_promise_3;
+  maybe<sync_promise<string>> s_promise_2;
+  maybe<sync_promise<string>> s_promise_3;
   auto s_future_2 = s_future_1.bind( [&]( int n ) {
     if( n > 3 ) {
       s_promise_2.emplace();
@@ -467,8 +467,8 @@ TEST_CASE( "[sync-future] bind testing statuses" ) {
 
 TEST_CASE( "[sync-future] bind testing results" ) {
   sync_promise<int>         s_promise_1;
-  Opt<sync_promise<string>> s_promise_2;
-  Opt<sync_promise<string>> s_promise_3;
+  maybe<sync_promise<string>> s_promise_2;
+  maybe<sync_promise<string>> s_promise_3;
 
   auto s_future = s_promise_1.get_future() >> [&]( int n ) {
     if( n > 3 ) {

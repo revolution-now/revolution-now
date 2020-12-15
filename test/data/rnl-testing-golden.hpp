@@ -188,8 +188,8 @@ namespace rnltest {
       bool        b;
       using fb_target_t = fb::MyVariant2::first;
 
-      FBOffset<fb::MyVariant2::first> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::MyVariant2::first> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_name = serialize<::rn::serial::fb_serialize_hint_t<
@@ -238,8 +238,8 @@ namespace rnltest {
       bool flag2;
       using fb_target_t = fb::MyVariant2::second;
 
-      FBOffset<fb::MyVariant2::second> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::MyVariant2::second> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_flag1 = serialize<::rn::serial::fb_serialize_hint_t<
@@ -287,8 +287,8 @@ namespace rnltest {
       int cost;
       using fb_target_t = fb::MyVariant2::third;
 
-      FBOffset<fb::MyVariant2::third> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::MyVariant2::third> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_cost = serialize<::rn::serial::fb_serialize_hint_t<
@@ -777,8 +777,8 @@ namespace rn {
       bool operator!=( struct none const& ) const = default;
       using fb_target_t = fb::MySumtype::none;
 
-      FBOffset<fb::MySumtype::none> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::MySumtype::none> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         // We must always serialize this table even if it is
@@ -815,8 +815,8 @@ namespace rn {
       bool operator!=( struct some const& ) const = default;
       using fb_target_t = fb::MySumtype::some;
 
-      FBOffset<fb::MySumtype::some> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::MySumtype::some> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_s = serialize<::rn::serial::fb_serialize_hint_t<
@@ -868,8 +868,8 @@ namespace rn {
       bool operator!=( struct more const& ) const = default;
       using fb_target_t = fb::MySumtype::more;
 
-      FBOffset<fb::MySumtype::more> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::MySumtype::more> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_d = serialize<::rn::serial::fb_serialize_hint_t<
@@ -983,8 +983,8 @@ namespace rn {
       bool operator!=( struct off const& ) const = default;
       using fb_target_t = fb::OnOffState::off;
 
-      FBOffset<fb::OnOffState::off> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::OnOffState::off> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         // We must always serialize this table even if it is
@@ -1020,8 +1020,8 @@ namespace rn {
       bool operator!=( struct on const& ) const = default;
       using fb_target_t = fb::OnOffState::on;
 
-      FBOffset<fb::OnOffState::on> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::OnOffState::on> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_user = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1065,8 +1065,8 @@ namespace rn {
       bool operator!=( struct switching_on const& ) const = default;
       using fb_target_t = fb::OnOffState::switching_on;
 
-      FBOffset<fb::OnOffState::switching_on> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::OnOffState::switching_on> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_percent = serialize<::rn::serial::fb_serialize_hint_t<
@@ -1110,8 +1110,8 @@ namespace rn {
       bool operator!=( struct switching_off const& ) const = default;
       using fb_target_t = fb::OnOffState::switching_off;
 
-      FBOffset<fb::OnOffState::switching_off> serialize_table(
-          FBBuilder& builder ) const {
+      rn::serial::FBOffset<fb::OnOffState::switching_off> serialize_table(
+          rn::serial::FBBuilder& builder ) const {
         using ::rn::serial::serialize;
           
         auto s_percent = serialize<::rn::serial::fb_serialize_hint_t<

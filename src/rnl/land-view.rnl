@@ -51,7 +51,7 @@ sumtype LandViewState {
     DissipativeVelocity percent_vel;
   depixelating_unit:
     UnitId id;
-    Opt<e_unit_type> demoted;
+    maybe<e_unit_type> demoted;
 
   .features:
     formattable,

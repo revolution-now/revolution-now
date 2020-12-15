@@ -76,7 +76,7 @@ void Unit::finish_turn() {
 
 void Unit::unfinish_turn() { finished_turn_ = false; }
 
-Opt<Vec<UnitId>> Unit::units_in_cargo() const {
+maybe<Vec<UnitId>> Unit::units_in_cargo() const {
   if( desc().cargo_slots == 0 ) return nothing;
   return cargo_.items_of_type<UnitId>();
 }
@@ -164,7 +164,7 @@ LUA_STARTUP( sol::state& st ) {
   u["movement_points"] = &U::movement_points;
   // u["cargo"] = &U::cargo;
   // CargoHold&     cargo() { return cargo_; }
-  // Opt<Vec<UnitId>> units_in_cargo() const;
+  // maybe<Vec<UnitId>> units_in_cargo() const;
 
   // Actions.
   u["change_nation"] = &U::change_nation;

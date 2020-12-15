@@ -221,7 +221,7 @@ void inc_sizes( block& b ) {
   b.size += Delta{ 1_w, 1_h };
 }
 
-block derive_blocks_impl( ObserverCPtr<ui::View> view );
+block derive_blocks_impl( ui::View const* view );
 
 block derive_blocks_impl_composite(
     ui::CompositeView const& view ) {
@@ -236,7 +236,7 @@ block derive_blocks_impl_composite(
   return res;
 }
 
-block derive_blocks_impl( ObserverCPtr<ui::View> view ) {
+block derive_blocks_impl( ui::View const* view ) {
   if( auto maybe_composite_view =
           view->cast_safe<ui::CompositeView>();
       maybe_composite_view.has_value() ) {
@@ -249,8 +249,7 @@ block derive_blocks_impl( ObserverCPtr<ui::View> view ) {
 // This will traverse the view (tree ) hierarchy and construct a
 // block tree structure that mirrors the view structure.
 block derive_blocks( UPtr<ui::View>& view ) {
-  auto block =
-      derive_blocks_impl( ObserverCPtr<ui::View>( view.get() ) );
+  auto block = derive_blocks_impl( view.get() );
 
   // inc_sizes will increment the size of each block by one. This
   // is because the compute_merged_padding algorithm requires

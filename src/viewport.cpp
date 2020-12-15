@@ -165,7 +165,7 @@ constexpr TargetingRates zoom_seeking_parameters{
 // this function will signal (through the output parameters) that
 // the movement can stop.
 template<typename T>
-void advance_target_seeking( Opt<T>& maybe_target, double& val,
+void advance_target_seeking( maybe<T>& maybe_target, double& val,
                              DissipativeVelocity&  vel,
                              TargetingRates const& params ) {
   if( !maybe_target.has_value() ) return;
@@ -226,7 +226,7 @@ void SmoothViewport::set_y_push( e_push_direction push ) {
 }
 
 void SmoothViewport::set_zoom_push(
-    e_push_direction push, Opt<Coord> maybe_seek_screen_coord ) {
+    e_push_direction push, maybe<Coord> maybe_seek_screen_coord ) {
   zoom_push_ = push;
 
   zoom_point_seek_ = nothing;
@@ -424,7 +424,7 @@ Rect SmoothViewport::rendering_dest_rect() const {
   return dest;
 }
 
-Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
+maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
     Coord pixel_coord ) const {
   Rect visible_on_screen = rendering_dest_rect();
   auto from_visible_start =
@@ -459,7 +459,7 @@ Opt<Coord> SmoothViewport::screen_pixel_to_world_pixel(
   return res;
 }
 
-Opt<Coord> SmoothViewport::screen_pixel_to_world_tile(
+maybe<Coord> SmoothViewport::screen_pixel_to_world_tile(
     Coord pixel_coord ) const {
   auto maybe_pixel = screen_pixel_to_world_pixel( pixel_coord );
   if( !maybe_pixel.has_value() ) return {};

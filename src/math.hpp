@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "time.hpp"
 
 // Range-v3 (FIXME: get this out of the interface)
 #include "range/v3/view/cycle.hpp"

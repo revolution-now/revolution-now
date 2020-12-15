@@ -35,7 +35,7 @@ struct MusicPlayerState {
   void log() const;
 
   // TunePlayerInfo struct for currently playing tune, if any.
-  Opt<TunePlayerInfo> tune_info;
+  maybe<TunePlayerInfo> tune_info;
   // If the player is paused in the middle of a tune.
   bool is_paused;
 };
@@ -89,7 +89,7 @@ public:
   // opened. If successfull then it will return a TunePlayerInfo
   // (so this means that it actually has to load and parse the
   // file).
-  virtual Opt<TunePlayerInfo> can_play_tune( TuneId id ) = 0;
+  virtual maybe<TunePlayerInfo> can_play_tune( TuneId id ) = 0;
 
   // Start playing the given tune from the beginning. When the
   // tune finishes it stops playing until it is given another
@@ -125,7 +125,7 @@ public:
   // It also accepts a timeout to avoid hanging if something goes
   // wrong. If a timeout occurs then the function returns false,
   // otherwise true.
-  virtual bool fence( Opt<Duration_t> timeout = nothing );
+  virtual bool fence( maybe<Duration_t> timeout = nothing );
 
   // This one is a more passive aid in making sure that music
   // player commands are well-ordered. It simply returns true the
@@ -178,7 +178,7 @@ public:
   bool good() const override;
 
   // Implement MusicPlayer
-  Opt<TunePlayerInfo> can_play_tune( TuneId id ) override;
+  maybe<TunePlayerInfo> can_play_tune( TuneId id ) override;
 
   // Implement MusicPlayer
   bool play( TuneId id ) override;
@@ -195,7 +195,7 @@ public:
   MusicPlayerCapabilities capabilities() const override;
 
   // Implement MusicPlayer
-  bool fence( Opt<Duration_t> /*unused*/ ) override;
+  bool fence( maybe<Duration_t> /*unused*/ ) override;
 
   // Implement MusicPlayer
   bool is_processing() const override;
@@ -210,7 +210,7 @@ private:
   SilentMusicPlayer() = default;
 
   bool        is_paused_{ false };
-  Opt<TuneId> id_{};
+  maybe<TuneId> id_{};
 };
 
 /****************************************************************

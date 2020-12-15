@@ -27,7 +27,7 @@ namespace rn {
 
 bool          colony_exists( ColonyId id );
 Colony&       colony_from_id( ColonyId id );
-Vec<ColonyId> colonies_all( Opt<e_nation> n = {} );
+Vec<ColonyId> colonies_all( maybe<e_nation> n = {} );
 
 // Apply a function to all colonies.
 void map_colonies( function_ref<void( Colony& )> func );
@@ -44,8 +44,8 @@ expect<ColonyId> cstate_create_colony( e_nation         nation,
 // the colony after this.
 void cstate_destroy_colony( ColonyId id );
 
-Opt<ColonyId> colony_from_coord( Coord const& coord );
-Opt<ColonyId> colony_from_name( std::string_view name );
+maybe<ColonyId> colony_from_coord( Coord const& coord );
+maybe<ColonyId> colony_from_name( std::string_view name );
 Vec<ColonyId> colonies_in_rect( Rect const& rect );
 
 } // namespace rn

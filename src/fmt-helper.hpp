@@ -142,8 +142,8 @@ struct FmtTags<FirstTag, RestTags...> {
     name( T const &o ) : maybe_o{}, ref( o ) {}             \
     name( T &&o )                                           \
       : maybe_o( std::forward<T>( o ) ), ref( *maybe_o ) {} \
-    Opt<T>  maybe_o;                                        \
-    CRef<T> ref;                                            \
+    maybe<T>                        maybe_o;                \
+    std::reference_wrapper<T const> ref;                    \
   };                                                        \
   template<typename T>                                      \
   name( T const & ) -> name<T>;
@@ -153,7 +153,7 @@ DEFINE_FMT_TAG( FmtRemoveRnNamespace );
 
 template<typename T>
 struct FmtJsonStyleList {
-  CRef<Vec<T>> vec;
+  std::reference_wrapper<Vec<T> const> vec;
 };
 
 // Deduction guide.

@@ -68,12 +68,12 @@ public:
 
   // Given a screen pixel coordinate this will return the world
   // coordinate.
-  Opt<Coord> screen_pixel_to_world_pixel(
+  maybe<Coord> screen_pixel_to_world_pixel(
       Coord pixel_coord ) const;
 
   // Given a screen pixel coordinate this will return the world
   // tile coordinate.
-  Opt<Coord> screen_pixel_to_world_tile(
+  maybe<Coord> screen_pixel_to_world_tile(
       Coord pixel_coord ) const;
 
   // Given a screen pixel coordinate this will determine whether
@@ -88,7 +88,7 @@ public:
   // allows the user to zoom into a particular point by zooming
   // while the mouse cursor is over that point.
   void set_zoom_push( e_push_direction,
-                      Opt<Coord> maybe_seek_screen_coord );
+                      maybe<Coord> maybe_seek_screen_coord );
 
   void smooth_zoom_target( double target );
   void stop_auto_zoom();
@@ -165,13 +165,13 @@ private:
 
   // If these have values then the viewport will attempt to move
   // the values to them smoothly.
-  Opt<double> smooth_zoom_target_{};
-  Opt<XD>     smooth_center_x_target_{};
-  Opt<YD>     smooth_center_y_target_{};
+  maybe<double> smooth_zoom_target_{};
+  maybe<XD>     smooth_center_x_target_{};
+  maybe<YD>     smooth_center_y_target_{};
 
   // Coord in world pixel coordinates indicating the point toward
   // which we should focus as we zoom.
-  Opt<Coord> zoom_point_seek_{};
+  maybe<Coord> zoom_point_seek_{};
 
   Rect  viewport_rect_pixels_{};
   Delta world_size_tiles_{};

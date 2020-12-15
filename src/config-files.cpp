@@ -445,16 +445,17 @@ void populate_config_field( ucl::Ucl obj, pair<K, V>& dest,
   COLLECT_NESTED_FIELD( dest.second, V, val );
 }
 
-// FlatMap. For this we make the user input a list of pairs, each
-// of which has it's elements referenced by "key" and "val". We
-// don't use a native UCL dictionary (object) because they can
-// only have strings as keys.
+// absl::flat_hash_map. For this we make the user input a list of
+// pairs, each of which has it's elements referenced by "key" and
+// "val". We don't use a native UCL dictionary (object) because
+// they can only have strings as keys.
 template<typename K, typename V>
-void populate_config_field( ucl::Ucl obj, FlatMap<K, V>& dest,
-                            vector<string> const& path,
-                            string const&         config_name,
-                            string const&         file ) {
-  Vec<Pair<K, V>> assoc_list;
+void populate_config_field( ucl::Ucl                   obj,
+                            absl::flat_hash_map<K, V>& dest,
+                            vector<string> const&      path,
+                            string const& config_name,
+                            string const& file ) {
+  Vec<pair<K, V>> assoc_list;
 
   populate_config_field( obj, assoc_list, path, config_name,
                          file );

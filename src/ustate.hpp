@@ -28,6 +28,9 @@
 // Flatbuffers
 #include "fb/unit_generated.h"
 
+// Abseil
+#include "absl/container/flat_hash_set.h"
+
 // C++ standard library
 #include <functional>
 #include <unordered_set>
@@ -72,7 +75,8 @@ e_unit_state state_for_unit( UnitId id );
 // Function for mapping between units and coordinates on the map.
 // These will only give the units that are owned immediately by
 // the map; it will not give units who are cargo of those units.
-ND FlatSet<UnitId> const& units_from_coord( Coord const& c );
+ND absl::flat_hash_set<UnitId> const& units_from_coord(
+    Coord const& c );
 
 // This will give all units that are on a square or are cargo of
 // units on that square. This should not recurse more than one
@@ -91,14 +95,14 @@ ND Vec<UnitId> units_in_rect( Rect const& rect );
 // Returns the map coordinates for the unit if it is on the map
 // (which does NOT include being cargo of a unit on the map; for
 // that, see `coord_for_unit_indirect`).
-Opt<Coord> coord_for_unit( UnitId id );
+maybe<Coord> coord_for_unit( UnitId id );
 
 // These will return the coordinates for a unit if it is owned by
 // the map or the coordinates of its owner if it is ultimately
 // owned by something that is on the map. This would fail to re-
 // turn a value if e.g. the unit is not yet in the new world.
 ND Coord coord_for_unit_indirect( UnitId id );
-ND Opt<Coord> coord_for_unit_indirect_safe( UnitId id );
+ND maybe<Coord> coord_for_unit_indirect_safe( UnitId id );
 
 // These will return true for a unit if it is owned by the map or
 // if its owner is on the map.
@@ -110,12 +114,13 @@ bool is_unit_on_map_indirect( UnitId id );
 // This returns only those units who are workers within the
 // colony, and not units on the map at the location of the
 // colony.
-FlatSet<UnitId> const& units_from_colony( ColonyId id );
+absl::flat_hash_set<UnitId> const& units_from_colony(
+    ColonyId id );
 
 // If the unit is working in the colony then this will return it;
 // however it will not return a ColonyId if the unit simply occu-
 // pies the same square as the colony.
-Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id );
+maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id );
 
 bool is_unit_in_colony( UnitId id );
 
@@ -124,7 +129,7 @@ bool is_unit_in_colony( UnitId id );
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
-Opt<UnitId> is_unit_onboard( UnitId id );
+maybe<UnitId> is_unit_onboard( UnitId id );
 
 /****************************************************************
 ** EuroPort View Ownership
@@ -133,7 +138,7 @@ expect<> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info );
 
 // If unit is owned by euro-port-view then this will return info.
-OptRef<UnitEuroPortViewState_t> unit_euro_port_view_info(
+maybe<UnitEuroPortViewState_t&> unit_euro_port_view_info(
     UnitId id );
 
 // Get a set of all units owned by the euro-port-view.
@@ -155,7 +160,7 @@ UnitId create_unit( e_nation nation, e_unit_type type );
 // possible to map the unit to a coordinate, e.g., applies to map
 // ownership, cargo ownership (where holder is on map), colony
 // ownership.
-Opt<Coord> coord_for_unit_multi_ownership( UnitId id );
+maybe<Coord> coord_for_unit_multi_ownership( UnitId id );
 
 /****************************************************************
 ** Changing Unit Ownership

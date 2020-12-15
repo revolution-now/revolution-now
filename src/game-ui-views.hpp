@@ -19,6 +19,9 @@
 #include "unit.hpp"
 #include "views.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
 namespace rn::ui {
 
 // Holds the state of each unit in the window as the player is
@@ -31,7 +34,7 @@ struct UnitActivationInfo {
 
 class UnitActivationView final : public CompositeSingleView {
 public:
-  using map_t = FlatMap<UnitId, UnitActivationInfo>;
+  using map_t = absl::flat_hash_map<UnitId, UnitActivationInfo>;
 
   // Preferred way to create.
   static UPtr<UnitActivationView> Create(

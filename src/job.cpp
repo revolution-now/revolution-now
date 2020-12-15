@@ -41,18 +41,18 @@ valid_or<string> is_valid_colony_name_msg(
   }
 }
 
-sync_future<Opt<string>> ask_colony_name() {
+sync_future<maybe<string>> ask_colony_name() {
   return ui::str_input_box(
       "Question",
       "What shall this colony be named, your majesty?" );
 }
 
 // Returns future of colony name, unless player clicks Cancel.
-sync_future<Opt<string>> build_colony_ui_routine() {
+sync_future<maybe<string>> build_colony_ui_routine() {
   auto msg = ui::yes_no( "Build colony here?" );
   return msg >> []( ui::e_confirm answer ) {
     if( answer == ui::e_confirm::no )
-      return make_sync_future<Opt<string>>();
+      return make_sync_future<maybe<string>>();
     return ui::repeat_until_or_cancel<string>(
         /*to_repeat=*/ask_colony_name,
         /*get_error=*/is_valid_colony_name_msg );
@@ -82,7 +82,7 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
             return make_sync_future<bool>( true );
           case e_unit_job_good::build:
             return build_colony_ui_routine().fmap(
-                [this]( Opt<string> const& maybe_name ) {
+                [this]( maybe<string> const& maybe_name ) {
                   if( maybe_name.has_value() )
                     colony_name = *maybe_name;
                   return maybe_name.has_value();
@@ -137,9 +137,9 @@ void JobAnalysis::affect_orders_() const {
   }
 }
 
-Opt<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
+maybe<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
                                         orders_t orders ) {
-  Opt<JobAnalysis> res{};
+  maybe<JobAnalysis> res{};
 
   auto& unit = unit_from_id( id );
 

@@ -60,7 +60,7 @@ void analyze_unload( Unit const&     unit,
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
+maybe<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
   if( !holds<orders::direction>( orders ) ) return nothing;
   auto [direction] = get<orders::direction>( orders );
 
@@ -359,7 +359,7 @@ Opt<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-Opt<TravelAnalysis> TravelAnalysis::analyze_( UnitId   id,
+maybe<TravelAnalysis> TravelAnalysis::analyze_( UnitId   id,
                                               orders_t orders ) {
   auto maybe_res = analyze_impl( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;

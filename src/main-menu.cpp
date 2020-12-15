@@ -31,7 +31,7 @@ namespace rn {
 
 namespace {
 
-Opt<e_main_menu_item> g_item_sel;
+maybe<e_main_menu_item> g_item_sel;
 e_main_menu_type      g_type{ e_main_menu_type::no_game };
 e_main_menu_item      g_curr_item{ e_main_menu_item::new_ };
 
@@ -156,7 +156,7 @@ void set_main_menu( e_main_menu_type type ) {
 
 // When this function returns a value, that value will be reset,
 // so another call immediately after will yield no result.
-Opt<e_main_menu_item> main_menu_selection() {
+maybe<e_main_menu_item> main_menu_selection() {
   auto res = g_item_sel;
   if( res.has_value() ) g_item_sel = nothing;
   return res;

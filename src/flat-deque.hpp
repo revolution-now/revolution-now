@@ -17,6 +17,10 @@
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 namespace rn {
 
 template<typename T>
@@ -54,7 +58,7 @@ public:
   bool empty() const { return size() == 0; }
 
   // !! Ref returned is not stable.
-  OptCRef<T> front() const {
+  maybe<T const&> front() const {
     if( size() > 0 ) {
       DCHECK( map_.contains( front_ ) );
       auto it = map_.find( front_ );
@@ -65,7 +69,7 @@ public:
   }
 
   // !! Ref returned is not stable.
-  OptRef<T> front() {
+  maybe<T&> front() {
     if( size() > 0 ) {
       DCHECK( map_.contains( front_ ) );
       check_invariants();
@@ -76,7 +80,7 @@ public:
   }
 
   // !! Ref returned is not stable.
-  OptCRef<T> back() const {
+  maybe<T const&> back() const {
     if( size() > 0 ) {
       DCHECK( map_.contains( back_ - 1 ) );
       auto it = map_.find( back_ - 1 );
@@ -87,7 +91,7 @@ public:
   }
 
   // !! Ref returned is not stable.
-  OptRef<T> back() {
+  maybe<T&> back() {
     if( size() > 0 ) {
       DCHECK( map_.contains( back_ - 1 ) );
       check_invariants();
@@ -187,9 +191,9 @@ private:
     CHECK( map_.size() == ( back_ - front_ ) );
   }
 
-  FlatMap<uint64_t, T> map_;
-  uint64_t             front_;
-  uint64_t             back_;
+  absl::flat_hash_map<uint64_t, T> map_;
+  uint64_t                         front_;
+  uint64_t                         back_;
   NOTHROW_MOVE( T );
 };
 

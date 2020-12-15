@@ -211,7 +211,7 @@ bool square_exists( Coord coord ) {
   return square_exists( coord.y, coord.x );
 }
 
-OptRef<LandSquare const> maybe_square_at( Coord coord ) {
+maybe<LandSquare const&> maybe_square_at( Coord coord ) {
   if( !square_exists( coord.y, coord.x ) ) return nothing;
   return SG().world_map[coord.y][coord.x];
 }

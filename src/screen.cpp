@@ -54,7 +54,7 @@ constexpr int min_scale_factor = 1;
 constexpr int max_scale_factor = 10;
 
 // Cache is invalidated by setting to nothing.
-Opt<Delta> main_window_physical_size_cache;
+maybe<Delta> main_window_physical_size_cache;
 
 /*
  *::SDL_DisplayMode find_fullscreen_mode() {

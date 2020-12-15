@@ -84,7 +84,7 @@ namespace rn {
 namespace {
 
 // FIXME: Hack.
-Opt<PlayerIntent> g_player_intent;
+maybe<PlayerIntent> g_player_intent;
 
 /****************************************************************
 ** Helpers

@@ -6,6 +6,7 @@
 
 #include "../../src/font.hpp"
 #include "../../src/nation.hpp"
+#include "../../src/time.hpp"
 
 namespace rn {
 

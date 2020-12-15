@@ -45,7 +45,7 @@ public:
   // specified, it will always be clamped to the bounds of the
   // new string.
   void set( std::string_view new_buffer,
-            Opt<int>         maybe_pos = nothing );
+            maybe<int>         maybe_pos = nothing );
 
   void clear();
 

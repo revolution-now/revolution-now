@@ -63,7 +63,7 @@ struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
                   Vec<UnitId> units_to_prioritize_,
                   bool unit_would_move_, Coord move_src_,
                   Coord move_target_, unit_travel_verdict desc_,
-                  Opt<UnitId> target_unit_ )
+                  maybe<UnitId> target_unit_ )
     : parent_t( id_, orders_,
                 std::move( units_to_prioritize_ ) ),
       unit_would_move( unit_would_move_ ),
@@ -99,7 +99,7 @@ struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
 
   // Unit that is the target of an action, e.g., ship to be
   // boarded, etc. Not relevant in all contexts.
-  Opt<UnitId> target_unit{};
+  maybe<UnitId> target_unit{};
 
   // ---------------- "Virtual" Methods ------------------------
 
@@ -107,7 +107,7 @@ struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
   sync_future<bool> confirm_explain_() const;
   void              affect_orders_() const;
 
-  static Opt<TravelAnalysis> analyze_( UnitId   id,
+  static maybe<TravelAnalysis> analyze_( UnitId   id,
                                        orders_t orders );
 };
 NOTHROW_MOVE( TravelAnalysis );

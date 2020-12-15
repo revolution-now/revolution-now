@@ -35,7 +35,7 @@ bool square_exists( Y y, X x );
 bool square_exists( Coord coord );
 
 LandSquare const&        square_at( Coord coord );
-OptRef<LandSquare const> maybe_square_at( Coord coord );
+maybe<LandSquare const&> maybe_square_at( Coord coord );
 
 // Throws if coord is not on map.
 bool terrain_is_land( Coord coord );

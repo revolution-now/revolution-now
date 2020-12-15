@@ -63,7 +63,7 @@ std::string rng_to_string( Rng&& rng ) {
 
 template<typename Rng, typename Func>
 auto accumulate_monoid( Rng&& rng, Func&& func )
-    -> Opt<std::decay_t<decltype( func( *rng.begin(),
+    -> maybe<std::decay_t<decltype( func( *rng.begin(),
                                         *rng.begin() ) )>> {
   if( rng.begin() == rng.end() ) return nothing;
   auto start = std::begin( std::forward<Rng>( rng ) );
@@ -128,7 +128,7 @@ inline auto maximum() {
 // don't want to copy the vector.
 template<typename Rng>
 auto head( Rng&& r )
-    -> Opt<std::decay_t<decltype( *r.begin() )>> {
+    -> maybe<std::decay_t<decltype( *r.begin() )>> {
   for( auto const& e : r ) return e;
   return nothing;
 }

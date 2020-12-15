@@ -135,7 +135,7 @@ struct key_event_t : public event_base_t {
   // directional motion then this will be populated. It will be
   // populated both for key-up and key-down. It may not be useful
   // in many cases.
-  Opt<e_direction> direction{};
+  maybe<e_direction> direction{};
 };
 
 /****************************************************************
@@ -188,7 +188,7 @@ flat_queue<event_t>& event_queue();
 // scan codes do not. FIXME: this is only a temporary solution
 // until a more proper method is employed based on SDL's
 // SDL_TextInputEvent events.
-Opt<char> ascii_char_for_event( key_event_t const& event );
+maybe<char> ascii_char_for_event( key_event_t const& event );
 
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-
@@ -201,7 +201,7 @@ maybe<Coord const&> mouse_position( event_t const& event );
 
 // These are useful if a client of the input events wants to
 // treat dragging as normal mouse motion/click events.
-Opt<mouse_button_event_t> drag_event_to_mouse_button_event(
+maybe<mouse_button_event_t> drag_event_to_mouse_button_event(
     mouse_drag_event_t const& event );
 mouse_move_event_t drag_event_to_mouse_motion_event(
     mouse_drag_event_t const& event );

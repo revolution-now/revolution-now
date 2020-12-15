@@ -33,9 +33,9 @@ namespace rn {
 
 namespace {
 
-Opt<fs::path> find_file( fs::path const& file ) {
+maybe<fs::path> find_file( fs::path const& file ) {
   if( file.is_absolute() )
-    return fs::exists( file ) ? file : Opt<fs::path>{};
+    return fs::exists( file ) ? file : maybe<fs::path>{};
   if( auto p = base::source_tree_root() / file; fs::exists( p ) )
     return p;
   if( auto p = base::build_output_root() / file;

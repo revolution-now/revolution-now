@@ -49,14 +49,14 @@ public:
   }
 
   template<typename T>
-  Opt<T*> cast_safe() {
+  maybe<T*> cast_safe() {
     auto* casted = dynamic_cast<T*>( this );
     if( !casted ) return nothing;
     return casted;
   }
 
   template<typename T>
-  Opt<T const*> cast_safe() const {
+  maybe<T const*> cast_safe() const {
     auto* casted = dynamic_cast<T const*>( this );
     if( !casted ) return nothing;
     return casted;

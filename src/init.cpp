@@ -24,11 +24,15 @@
 
 // Abseil
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 
 // Range-v3
 #include "range/v3/algorithm/find.hpp"
 #include "range/v3/algorithm/for_each.hpp"
 #include "range/v3/view/reverse.hpp"
+
+// C++ standard library
+#include <span>
 
 using namespace std;
 
@@ -197,8 +201,8 @@ void register_init_routine( e_init_routine      routine,
 }
 
 void run_all_init_routines(
-    maybe<e_log_level>               level,
-    absl::Span<e_init_routine const> top_level ) {
+    maybe<e_log_level>                    level,
+    std::initializer_list<e_init_routine> top_level ) {
   // Logging must be initialized first, since we actually need it
   // in this function itself.
   init_logging( level.fmap( to_spdlog_level ) );
@@ -246,13 +250,13 @@ void run_all_init_routines(
 
   auto sorted = dag.sorted();
 
-  FlatSet<e_init_routine> reachable;
+  absl::flat_hash_set<e_init_routine> reachable;
 
   // By default initialize all elements from the dag, unless the
   // caller has specified some items to represent the top level
   // of the dependency graph; in that case, only initialize those
   // and their dependencies.
-  if( !top_level.empty() ) {
+  if( top_level.size() > 0 ) {
     for( auto routine : top_level ) {
       rg::for_each(
           dag.accessible( routine, /*with_self=*/true ),

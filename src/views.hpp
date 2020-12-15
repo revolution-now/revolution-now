@@ -39,15 +39,15 @@ namespace rn::ui {
 // window (whose position in turn will not be know by this
 // struct).
 struct PositionedView {
-  ObserverPtr<View> view;
-  Coord             coord;
+  View* view;
+  Coord coord;
 
   Rect rect() const { return view->rect( coord ); }
 };
 NOTHROW_MOVE( PositionedView );
 struct PositionedViewConst {
-  ObserverCPtr<View> view;
-  Coord              coord;
+  View const* view;
+  Coord       coord;
 
   Rect rect() const { return view->rect( coord ); }
 };
@@ -60,12 +60,8 @@ public:
                         Coord const&          coord )
     : view_( std::move( view ) ), coord_( coord ) {}
 
-  ObserverCPtr<View> view() const {
-    return ObserverCPtr<View>( view_.get() );
-  }
-  ObserverPtr<View> view() {
-    return ObserverPtr<View>( view_.get() );
-  }
+  View* view() const { return view_.get(); }
+  View* view() { return view_.get(); }
 
   UPtr<View>& mutable_view() { return view_; }
 
@@ -163,12 +159,8 @@ public:
   // Implement CompositeView
   int count() const override { return 1; }
 
-  ObserverPtr<View> single() {
-    return ObserverPtr<View>( view_.get() );
-  }
-  ObserverCPtr<View> single() const {
-    return ObserverCPtr<View>( view_.get() );
-  }
+  View*       single() { return view_.get(); }
+  View const* single() const { return view_.get(); }
 
   void set_view( UPtr<View> view, Coord coord ) {
     view_  = std::move( view );
@@ -404,7 +396,7 @@ public:
   // specified, it will always be clamped to the bounds of the
   // new string.
   void set( std::string_view new_string,
-            Opt<int>         cursor_pos = nothing );
+            maybe<int>       cursor_pos = nothing );
 
 private:
   void render_background( Delta const& size );
@@ -607,9 +599,9 @@ public:
   bool needs_padding() const override { return true; }
 
 private:
-  ObserverPtr<OptionSelectItemView>  get_view( int item );
-  ObserverCPtr<OptionSelectItemView> get_view( int item ) const;
-  void                               set_selected( int item );
+  OptionSelectItemView*       get_view( int item );
+  OptionSelectItemView const* get_view( int item ) const;
+  void                        set_selected( int item );
 
   int selected_;
 };

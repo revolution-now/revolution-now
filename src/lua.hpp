@@ -72,13 +72,13 @@ expect<Ret> sol_obj_convert( sol::object const& o ) {
 }
 
 template<typename T>
-expect<Opt<T>> sol_opt_convert( sol::object const& o ) {
+expect<maybe<T>> sol_opt_convert( sol::object const& o ) {
   if( o.is<sol::lua_nil_t>() ) //
     return nothing;
   auto xp_T = sol_obj_convert<T>( o );
   if( !xp_T.has_value() ) //
     return nothing;
-  return Opt<T>{ *xp_T };
+  return maybe<T>{ *xp_T };
 }
 
 template<typename Ret>

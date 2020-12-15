@@ -102,8 +102,8 @@ public:
   auto begin() const { return slots_.begin(); }
   auto end() const { return slots_.end(); }
 
-  OptCRef<CargoSlot_t> at( int slot ) const;
-  OptCRef<CargoSlot_t> at( CargoSlotIndex slot ) const;
+  maybe<CargoSlot_t const&> at( int slot ) const;
+  maybe<CargoSlot_t const&> at( CargoSlotIndex slot ) const;
 
   CargoSlot_t const&      operator[]( int idx ) const;
   CargoSlot_t const&      operator[]( CargoSlotIndex idx ) const;
@@ -113,14 +113,14 @@ public:
   maybe<T const&> slot_holds_cargo_type( int idx ) const;
 
   // If unit is in cargo, returns its slot index.
-  Opt<int> find_unit( UnitId id ) const;
+  maybe<int> find_unit( UnitId id ) const;
   // Returns all units in the cargo.
   Vec<UnitId> units() const;
   // Returns all commodities (and slot indices) in the cargo un-
   // less a specific type is specified in which case it will be
   // limited to those.
-  Vec<Pair<Commodity, int>> commodities(
-      Opt<e_commodity> type = nothing ) const;
+  Vec<std::pair<Commodity, int>> commodities(
+      maybe<e_commodity> type = nothing ) const;
 
   // Find the maximum quantity of the commodity of the given type
   // that can fit in the entire cargo hold (given its current

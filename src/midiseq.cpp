@@ -86,7 +86,7 @@ public:
     if( out_ ) out_->closePort();
   }
 
-  static Opt<MidiIO> create() {
+  static maybe<MidiIO> create() {
     MidiIO res;
     try {
       res.out_.reset( new RtMidiOut() );
@@ -276,10 +276,10 @@ private:
         valid );
   }
 
-  Opt<int> find_midi_output_port() {
+  maybe<int> find_midi_output_port() {
     auto ports = scan_midi_output_ports();
     lg.info( "found {} midi output ports.", ports.size() );
-    Opt<int> res;
+    maybe<int> res;
     for( auto const& [port, name] : ports ) {
       lg.info( "  MIDI output port #{}: {}", port, name );
       if( !res && is_valid_output_port_name( name ) ) res = port;
@@ -308,7 +308,7 @@ NOTHROW_MOVE( MidiIO );
 
 // This will be nothing if midi music cannot be played for any
 // reason.
-Opt<MidiIO> g_midi;
+maybe<MidiIO> g_midi;
 
 void rtmidi_error_callback( RtMidiError::Type,
                             string const& error_text,
@@ -334,7 +334,7 @@ void rtmidi_error_callback( RtMidiError::Type,
 *****************************************************************/
 // Will be left as nothing if the midi subsystem fails to ini-
 // tialize. Music errors are generally not fatal for the game.
-Opt<thread> g_midi_thread;
+maybe<thread> g_midi_thread;
 
 // Class used for communicating with the midi thread in a thread
 // safe way. Note that the methods here return things by copy for
@@ -375,7 +375,7 @@ public:
 
   // If in a tune, it will return a double in [0,1] indicating
   // how far it is through the tune.
-  Opt<double> progress() const {
+  maybe<double> progress() const {
     lock_guard<mutex> lock( mutex_ );
     return progress_;
   }
@@ -403,12 +403,12 @@ public:
     last_error_ = std::move( error );
   }
 
-  void set_progress( Opt<double> progress ) {
+  void set_progress( maybe<double> progress ) {
     lock_guard<mutex> lock( mutex_ );
     progress_ = progress;
   }
 
-  Opt<command_t> pop_cmd() {
+  maybe<command_t> pop_cmd() {
     lock_guard<mutex> lock( mutex_ );
     if( !commands_.empty() ) {
       auto ret = commands_.front();
@@ -425,7 +425,7 @@ private:
   e_midiseq_state  state_{ e_midiseq_state::stopped };
   string           last_error_{};
   queue<command_t> commands_{};
-  Opt<double>      progress_{};
+  maybe<double>    progress_{};
   bool             running_commands_{ false };
 };
 
@@ -444,7 +444,7 @@ struct MidiPlayInfo {
   int           current_event;
   int           track;
   Time_t        start_time;
-  Opt<Time_t>   last_pause_time;
+  maybe<Time_t> last_pause_time;
   Duration_t    stoppage;
   milliseconds  tune_duration;
 };
@@ -453,7 +453,7 @@ struct MidiPlayInfo {
 // from both the main thread and the MIDI thread simultaneously,
 // so it should not change any state of the world apart from log-
 // ging.
-Opt<MidiPlayInfo> load_midi_file( fs::path const& file ) {
+maybe<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   MidiPlayInfo info;
   // TODO: check if midifile.read() is thread safe.
   if( !info.midifile.read( file ) ) return nothing;
@@ -576,10 +576,10 @@ void midi_thread_record_failure( Args... args ) {
 // The MIDI thread will just hang in this function for its entire
 // lifetime until it is terminated.
 void midi_thread_impl() {
-  Opt<MidiPlayInfo> maybe_info;
-  Opt<command_t>    cmd;
-  Opt<fs::path>     stem;
-  bool              time_to_go = false;
+  maybe<MidiPlayInfo> maybe_info;
+  maybe<command_t>    cmd;
+  maybe<fs::path>     stem;
+  bool                time_to_go = false;
   while( true ) {
     // If there are commands to process then mark that we are
     // running commands. Need to do this before entering into the
@@ -819,13 +819,13 @@ void send_command( command_t cmd ) {
         "received." );
 }
 
-Opt<Duration_t> can_play_tune( fs::path const& path ) {
+maybe<Duration_t> can_play_tune( fs::path const& path ) {
   auto info = load_midi_file( path.string() );
   if( info.has_value() ) return info->tune_duration;
   return nothing;
 }
 
-Opt<double> progress() { return g_midi_comm.progress(); }
+maybe<double> progress() { return g_midi_comm.progress(); }
 
 /****************************************************************
 ** Testing

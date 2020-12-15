@@ -66,8 +66,8 @@ constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
 constexpr string_view kSumtypeAlternativeSerial = R"xyz(
   using fb_target_t = fb::{sumtype_name}::{alt_name};
 
-  FBOffset<fb::{sumtype_name}::{alt_name}> serialize_table(
-      FBBuilder& builder ) const {{
+  rn::serial::FBOffset<fb::{sumtype_name}::{alt_name}> serialize_table(
+      rn::serial::FBBuilder& builder ) const {{
     using ::rn::serial::serialize;
     {members_serialization}
     // We must always serialize this table even if it is

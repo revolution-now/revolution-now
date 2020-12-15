@@ -317,7 +317,7 @@ public:
   }
 
   void accept_finalized_drag(
-      OptCRef<DragArcT> maybe_drag_arc ) {
+      maybe<DragArcT const&> maybe_drag_arc ) {
     ASSIGN_CHECK_OPT( finalized,
                       fsm_.template holds<Finalizing_t>() );
     if( !maybe_drag_arc ) {
@@ -343,8 +343,8 @@ public:
     fsm_.process_events();
   }
 
-  Opt<DraggableObjectT> obj_being_dragged() const {
-    Opt<DraggableObjectT> res;
+  maybe<DraggableObjectT> obj_being_dragged() const {
+    maybe<DraggableObjectT> res;
     switch( auto& v = fsm_.state(); v.to_enum() ) {
       case DragState::e::none: //
         break;
@@ -417,9 +417,9 @@ private:
   }
 
   template<size_t ArcTypeIndex>
-  static void try_set_arc_impl( Opt<DragArcT>*  arc,
-                                DragSrcT const& src,
-                                DragDstT const& dst ) {
+  static void try_set_arc_impl( maybe<DragArcT>* arc,
+                                DragSrcT const&  src,
+                                DragDstT const&  dst ) {
     CHECK( arc );
     using ArcSubType =
         std::variant_alternative_t<ArcTypeIndex, DragArcT>;
@@ -445,16 +445,16 @@ private:
   // patible; the above helper function will check-fail if more
   // than one is found.
   template<size_t... Indexes>
-  static void try_set_arc( Opt<DragArcT>*  arc,
-                           DragSrcT const& src,
-                           DragDstT const& dst,
+  static void try_set_arc( maybe<DragArcT>* arc,
+                           DragSrcT const&  src,
+                           DragDstT const&  dst,
                            std::index_sequence<Indexes...> ) {
     ( try_set_arc_impl<Indexes>( arc, src, dst ), ... );
   }
 
-  static Opt<DragArcT> drag_arc( DragSrcT const& src,
-                                 DragDstT const& dst ) {
-    Opt<DragArcT> res;
+  static maybe<DragArcT> drag_arc( DragSrcT const& src,
+                                   DragDstT const& dst ) {
+    maybe<DragArcT> res;
     try_set_arc( &res, src, dst,
                  std::make_index_sequence<
                      std::variant_size_v<DragArcT>>() );

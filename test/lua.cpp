@@ -230,7 +230,7 @@ TEST_CASE( "[lua] Coord" ) {
   REQUIRE( lua::run<Coord>( script ) == Coord{ 4_x, 5_y } );
 }
 
-LUA_FN( opt_test, Opt<string>, Opt<int> const& maybe_int ) {
+LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
   if( !maybe_int ) return "got nothing";
   int n = *maybe_int;
   if( n < 5 ) return nothing;
@@ -238,7 +238,7 @@ LUA_FN( opt_test, Opt<string>, Opt<int> const& maybe_int ) {
   return to_string( n );
 }
 
-LUA_FN( opt_test2, Opt<Coord>, Opt<Coord> const& maybe_coord ) {
+LUA_FN( opt_test2, maybe<Coord>, maybe<Coord> const& maybe_coord ) {
   if( !maybe_coord ) return Coord{ 5_x, 7_y };
   return Coord{ maybe_coord->x + 1_w, maybe_coord->y + 1_y };
 }
@@ -256,10 +256,10 @@ TEST_CASE( "[lua] optional" ) {
   )";
   REQUIRE( lua::run<void>( script ) == xp_success_t{} );
 
-  REQUIRE( lua::run<Opt<string>>( "return nil" ) == nothing );
-  REQUIRE( lua::run<Opt<string>>( "return 'hello'" ) ==
+  REQUIRE( lua::run<maybe<string>>( "return nil" ) == nothing );
+  REQUIRE( lua::run<maybe<string>>( "return 'hello'" ) ==
            "hello" );
-  REQUIRE( lua::run<Opt<int>>( "return 'hello'" ) == nothing );
+  REQUIRE( lua::run<maybe<int>>( "return 'hello'" ) == nothing );
 
   // Coord
   auto script2 = R"(
@@ -268,11 +268,11 @@ TEST_CASE( "[lua] optional" ) {
   )";
   REQUIRE( lua::run<void>( script2 ) == xp_success_t{} );
 
-  REQUIRE( lua::run<Opt<Coord>>( "return nil" ) == nothing );
-  REQUIRE( lua::run<Opt<Coord>>( "return Coord{x=9, y=8}" ) ==
+  REQUIRE( lua::run<maybe<Coord>>( "return nil" ) == nothing );
+  REQUIRE( lua::run<maybe<Coord>>( "return Coord{x=9, y=8}" ) ==
            Coord{ 9_x, 8_y } );
-  REQUIRE( lua::run<Opt<Coord>>( "return 'hello'" ) == nothing );
-  REQUIRE( lua::run<Opt<Coord>>( "return 5" ) == nothing );
+  REQUIRE( lua::run<maybe<Coord>>( "return 'hello'" ) == nothing );
+  REQUIRE( lua::run<maybe<Coord>>( "return 5" ) == nothing );
 }
 
 // Test the o.as<maybe<?>>() constructs. This tests the custom

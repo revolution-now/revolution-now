@@ -27,7 +27,7 @@ namespace rn {
 
 namespace {
 
-Opt<MidiSeqMusicPlayer> g_midiseq_player;
+maybe<MidiSeqMusicPlayer> g_midiseq_player;
 
 void cleanup_midiplayer() {}
 
@@ -79,7 +79,7 @@ bool MidiSeqMusicPlayer::good() const {
   return midiseq::midiseq_enabled();
 }
 
-Opt<TunePlayerInfo> MidiSeqMusicPlayer::can_play_tune(
+maybe<TunePlayerInfo> MidiSeqMusicPlayer::can_play_tune(
     TuneId id ) {
   if( !good() ) return {};
   // Return value serves two purposes: determine if tune can be
@@ -118,7 +118,7 @@ MusicPlayerDesc MidiSeqMusicPlayer::info() const {
 }
 
 MusicPlayerState MidiSeqMusicPlayer::state() const {
-  Opt<TunePlayerInfo> maybe_tune_info;
+  maybe<TunePlayerInfo> maybe_tune_info;
   bool                is_paused =
       ( midiseq::state() == midiseq::e_midiseq_state::paused );
   if( midiseq::state() == midiseq::e_midiseq_state::playing ||
@@ -142,7 +142,7 @@ MusicPlayerCapabilities MidiSeqMusicPlayer::capabilities()
   };
 }
 
-bool MidiSeqMusicPlayer::fence( Opt<Duration_t> timeout ) {
+bool MidiSeqMusicPlayer::fence( maybe<Duration_t> timeout ) {
   if( !good() ) return true;
   auto start_time   = Clock_t::now();
   auto keep_waiting = [&] {

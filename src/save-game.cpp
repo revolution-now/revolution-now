@@ -39,6 +39,9 @@ using namespace std;
 
 namespace rn {
 
+using ::rn::serial::FBBuilder;
+using ::rn::serial::FBOffset;
+
 /****************************************************************
 ** Save-game module hooks.
 *****************************************************************/

@@ -14,6 +14,8 @@
 
 // Revolution Now
 #include "aliases.hpp"
+#include "maybe.hpp"
+#include "time.hpp"
 #include "typed-int.hpp"
 
 // base-util
@@ -64,7 +66,7 @@ struct TuneVecDimensions {
 NOTHROW_MOVE( TuneVecDimensions );
 
 #define TUNE_OPT_DIMENSION( name ) \
-  Opt<PP_JOIN( e_tune_, name )> name;
+  maybe<PP_JOIN( e_tune_, name )> name;
 
 struct TuneOptDimensions {
   EVAL( PP_MAP( TUNE_OPT_DIMENSION, TUNE_DIMENSION_LIST ) )
@@ -90,7 +92,8 @@ constexpr size_t k_num_dimensions = K_NUM_DIMENSIONS;
 static_assert( sizeof( TuneDimensions ) ==
                k_num_dimensions * sizeof( e_tune_tempo ) );
 static_assert( sizeof( TuneOptDimensions ) ==
-               k_num_dimensions * sizeof( Opt<e_tune_tempo> ) );
+               k_num_dimensions *
+                   sizeof( maybe<e_tune_tempo> ) );
 
 // Client code is not supposed to get access to this struct di-
 // rectly, it is just in the header to allow deserialization from
@@ -107,13 +110,13 @@ NOTHROW_MOVE( Tune );
 
 // This can only be populated by a music player.
 struct TunePlayerInfo {
-  TuneId          id;
-  Opt<Duration_t> length;
+  TuneId            id;
+  maybe<Duration_t> length;
   // If the player is currently playing a tune then it will re-
   // turn a number in [0,1.0] representing the progress through
   // the tune. Returns `nothing` if no tune is playing or if the
   // most recent tune has finished.
-  Opt<double> progress;
+  maybe<double> progress;
 
   void log() const;
 };

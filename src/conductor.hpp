@@ -52,8 +52,8 @@ enum class e_music_state {
 struct ConductorInfo {
   e_music_player      mplayer;
   e_music_state       music_state;
-  Opt<TunePlayerInfo> playing_now;
-  Opt<double>         volume;
+  maybe<TunePlayerInfo> playing_now;
+  maybe<double>         volume;
   bool                autoplay;
 
   void log() const;

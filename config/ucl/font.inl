@@ -8,9 +8,9 @@
 
 namespace rn {
 
-using FontPathMap       = FlatMap<e_font, fs::path>;
-using FontSizeMap       = FlatMap<e_font, int>;
-using FontVertOffsetMap = FlatMap<e_font, Y>;
+using FontPathMap       = absl::flat_hash_map<e_font, fs::path>;
+using FontSizeMap       = absl::flat_hash_map<e_font, int>;
+using FontVertOffsetMap = absl::flat_hash_map<e_font, Y>;
 
 CFG( font,
   FLD( e_font, game_default )

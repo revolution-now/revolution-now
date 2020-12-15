@@ -55,8 +55,8 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
                   Vec<UnitId> units_to_prioritize_,
                   Coord attack_src_, Coord attack_target_,
                   unit_combat_verdict  desc_,
-                  Opt<UnitId>          target_unit_,
-                  Opt<FightStatistics> fight_stats_ )
+                  maybe<UnitId>          target_unit_,
+                  maybe<FightStatistics> fight_stats_ )
     : parent_t( id_, orders_,
                 std::move( units_to_prioritize_ ) ),
       attack_src( attack_src_ ),
@@ -81,12 +81,12 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   unit_combat_verdict desc{};
 
   // Unit being attacked.
-  Opt<UnitId> target_unit{};
+  maybe<UnitId> target_unit{};
 
   // If the fight is allowed then this will hold the numerical
   // breakdown of the statistics contributing to the final proba-
   // bilities.
-  Opt<FightStatistics> fight_stats{};
+  maybe<FightStatistics> fight_stats{};
 
   // ---------------- "Virtual" Methods ------------------------
 
@@ -94,7 +94,7 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   sync_future<bool> confirm_explain_() const;
   void              affect_orders_() const;
 
-  static Opt<CombatAnalysis> analyze_( UnitId   id,
+  static maybe<CombatAnalysis> analyze_( UnitId   id,
                                        orders_t orders );
 };
 NOTHROW_MOVE( CombatAnalysis );

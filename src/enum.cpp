@@ -71,7 +71,8 @@ using EnumNameFunc = char const* (*)( int );
 #define ENUM_TO_STR_FUNC( type ) \
   { internal::remove_namespaces( #type ), &enum_to_str<type> }
 
-using EnumNameMap = FlatMap<string_view, EnumNameFunc>;
+using EnumNameMap =
+    absl::flat_hash_map<string_view, EnumNameFunc>;
 
 EnumNameMap& enum_display_names() {
   static auto m = [] {

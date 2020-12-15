@@ -214,7 +214,7 @@ public:
   // !! No pointer stability here; state could change after
   //    calling another non-const method.
   template<typename T>
-  OptCRef<T> holds() const {
+  maybe<T const&> holds() const {
     enforce_no_pending_events_before_getting_state();
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
@@ -225,7 +225,7 @@ public:
   // !! No pointer stability here; state could change after
   //    calling another non-const method.
   template<typename T>
-  OptRef<T> holds() {
+  maybe<T&> holds() {
     enforce_no_pending_events_before_getting_state();
     if( auto* s = std::get_if<T>( &state_stack_.front() );
         s != nullptr )
@@ -362,8 +362,8 @@ private:
   }
 
   template<typename Hint, typename T, typename T::IamFsm_t*>
-  friend auto serial::serialize( FBBuilder& builder, T const& o,
-                                 serial::ADL );
+  friend auto serial::serialize( serial::FBBuilder& builder,
+                                 T const& o, serial::ADL );
   template<typename SrcT, typename DstT,
            typename DstT::IamFsm_t*>
   friend expect<> serial::deserialize( SrcT const* src,

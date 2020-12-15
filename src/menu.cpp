@@ -249,7 +249,7 @@ bool is_menu_open( e_menu menu ) {
   }
 }
 
-Opt<e_menu> opened_menu() {
+maybe<e_menu> opened_menu() {
   if_get( g_menu_state, MenuState::menu_open, val ) {
     return val.menu;
   }
@@ -300,7 +300,7 @@ bool have_some_visible_menus() {
                      L( is_menu_visible( _ ) ) );
 }
 
-Opt<e_menu> first_visible_menu() {
+maybe<e_menu> first_visible_menu() {
   return head( visible_menus() );
 }
 
@@ -556,7 +556,7 @@ Rect menu_body_clickable_area( e_menu menu ) {
 }
 
 // `h` is the vertical position from the top of the menu body.
-Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
+maybe<e_menu_item> cursor_to_item( e_menu menu, H h ) {
   CHECK( g_menu_def.contains( menu ) );
   H pos{ 0 };
   for( auto const& item : g_menu_def[menu] ) {
@@ -583,7 +583,7 @@ Opt<e_menu_item> cursor_to_item( e_menu menu, H h ) {
 }
 
 // `cursor` is the screen position of the mouse cursor.
-Opt<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
+maybe<e_menu_item> cursor_to_item( e_menu menu, Coord cursor ) {
   if( !cursor.is_inside( menu_body_rect_inner( menu ) ) )
     return {};
   return cursor_to_item(
@@ -702,7 +702,7 @@ Texture render_menu_header_background( e_menu menu, bool active,
   return res;
 }
 
-Texture& render_open_menu( e_menu menu, Opt<e_menu_item> subject,
+Texture& render_open_menu( e_menu menu, maybe<e_menu_item> subject,
                            bool clicking ) {
   CHECK( g_menu_rendered.contains( menu ) );
   if( subject.has_value() ) {
@@ -823,7 +823,7 @@ void render_menu_bar( Texture& tx ) {
            "g_menu_rendered.size(): {}",
            g_menu_rendered.size() );
     auto const& textures = g_menu_rendered[menu];
-    using Txs = Opt<pair<Texture const*, Texture const*>>;
+    using Txs = maybe<pair<Texture const*, Texture const*>>;
     // Given `menu`, this matcher visits the global menu state
     // and returns a foreground/background texture pair for that
     // menu. Use a struct to visit so that we can get recursive
@@ -874,8 +874,8 @@ void render_menu_bar( Texture& tx ) {
 /****************************************************************
 ** Input Implementation
 *****************************************************************/
-Opt<MouseOver_t> click_target( Coord screen_coord ) {
-  using res_t = Opt<MouseOver_t>;
+maybe<MouseOver_t> click_target( Coord screen_coord ) {
+  using res_t = maybe<MouseOver_t>;
   // menu. Use a struct to visit so that we can get recursive
   // visitation.
   struct {

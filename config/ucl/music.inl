@@ -9,7 +9,8 @@
 namespace rn {
 
 // This is to avoid commas in macro arguments.
-using SpecialMusicEventMap = FlatMap<e_special_music_event, Str>;
+using SpecialMusicEventMap =
+    absl::flat_hash_map<e_special_music_event, Str>;
 
 CFG( music,
   FLD( fs::path, midi_folder )

@@ -31,8 +31,8 @@ void push_unit_orders( UnitId id, orders_t const& orders ) {
   g_orders_queue[id].push( orders );
 }
 
-Opt<orders_t> pop_unit_orders( UnitId id ) {
-  Opt<orders_t> res{};
+maybe<orders_t> pop_unit_orders( UnitId id ) {
+  maybe<orders_t> res{};
   if( g_orders_queue.contains( id ) ) {
     auto& q = g_orders_queue[id];
     if( !q.empty() ) {

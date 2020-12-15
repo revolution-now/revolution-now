@@ -27,6 +27,9 @@
 // base
 #include "base/keyval.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
 // C++ standard library
 #include <vector>
 
@@ -131,7 +134,7 @@ struct NatIconRenderDesc {
 };
 NOTHROW_MOVE( NatIconRenderDesc );
 
-FlatMap<NatIconRenderDesc, Texture> nat_icon_cache;
+absl::flat_hash_map<NatIconRenderDesc, Texture> nat_icon_cache;
 
 Texture const& render_nationality_icon( e_nation nation,
                                         char     c ) {

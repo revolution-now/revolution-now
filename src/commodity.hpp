@@ -63,7 +63,7 @@ constexpr int kNumCommodityTypes =
     magic_enum::enum_count<e_commodity>();
 
 // Index refers to the ordering in the enum above, starting at 0.
-Opt<e_commodity> commodity_from_index( int index );
+maybe<e_commodity> commodity_from_index( int index );
 
 // Gets a nice display name; may contain spaces.
 std::string_view commodity_display_name( e_commodity type );
@@ -72,12 +72,12 @@ std::string_view commodity_display_name( e_commodity type );
 ** Commodity Labels
 *****************************************************************/
 // Returns markup text representing the label.
-Opt<std::string> commodity_label_to_markup(
+maybe<std::string> commodity_label_to_markup(
     CommodityLabel_t const& label );
 
 // Will be rendered as a one-line text string with transparent
 // background. Could return nothing if label is `none`.
-OptCRef<Texture> render_commodity_label(
+maybe<Texture const&> render_commodity_label(
     CommodityLabel_t const& label );
 
 /****************************************************************
@@ -129,7 +129,7 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 // same (and then even if the src/dst slots are the same).
 int move_commodity_as_much_as_possible(
     UnitId src, int src_slot, UnitId dst, int dst_slot,
-    Opt<int> max_quantity, bool try_other_dst_slots );
+    maybe<int> max_quantity, bool try_other_dst_slots );
 
 /****************************************************************
 ** Commodity Renderers

@@ -106,7 +106,7 @@ struct Plane {
     DragInfo( e_accept_drag accept_ ) : accept( accept_ ) {}
     e_accept_drag accept{};
     // This field is relevant if accept == yes.
-    Opt<Delta> projection{};
+    maybe<Delta> projection{};
   };
   NOTHROW_MOVE( DragInfo );
 
@@ -150,7 +150,7 @@ struct Plane {
   // is important that function returned outlive the function
   // call. So e.g. returning a non-static lambda with captures
   // would probably not be good.
-  virtual Opt<MenuClickHandler> menu_click_handler(
+  virtual maybe<MenuClickHandler> menu_click_handler(
       e_menu_item item ) const;
 };
 

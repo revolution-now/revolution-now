@@ -15,8 +15,8 @@
 // Revolution Now
 #include "errors.hpp"
 
-// Abseil
-#include "absl/types/span.h"
+// C++ standard library
+#include <span>
 
 namespace rn {
 
@@ -24,7 +24,7 @@ namespace rn {
 // only be indexed with a particular type.
 template<typename T, typename Idx, typename Length>
 class strong_span {
-  absl::Span<T> span_;
+  std::span<T> span_;
 
 public:
   strong_span( T* data, Length size ) : span_( data, size._ ) {}

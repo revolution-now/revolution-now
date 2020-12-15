@@ -409,7 +409,8 @@ Window& WindowManager::focused() {
 *****************************************************************/
 // These should probably be moved elsewhere.
 
-ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max ) {
+ValidatorFunc make_int_validator( maybe<int> min,
+                                  maybe<int> max ) {
   return [min, max]( std::string const& proposed ) {
     auto maybe_int = base::stoi( proposed );
     if( !maybe_int.has_value() ) return false;
@@ -441,7 +442,7 @@ void ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( Opt<ResultT> )>           on_result,
+    function<void( maybe<ResultT> )>         on_result,
     function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
   async_window_builder( title, [=]( auto* win ) {
     auto ok_cancel_view = make_unique<OkCancelView>(
@@ -529,7 +530,7 @@ void ok_box_window_builder(
 void ok_cancel( string_view                   msg,
                 function<void( e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
-      [on_result{ std::move( on_result ) }]( Opt<int> o ) {
+      [on_result{ std::move( on_result ) }]( maybe<int> o ) {
         if( o.has_value() ) return on_result( e_ok_cancel::ok );
         on_result( e_ok_cancel::cancel );
       };
@@ -586,9 +587,9 @@ void ok_box( string_view msg, function<void()> on_closing ) {
   );
 }
 
-void text_input_box( string_view title, string_view msg,
-                     ValidatorFunc                 validator,
-                     function<void( Opt<string> )> on_result ) {
+void text_input_box(
+    string_view title, string_view msg, ValidatorFunc validator,
+    function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
       /*highlight=*/config_ui.dialog_text.highlighted };
@@ -635,24 +636,24 @@ void text_input_box( string_view title, string_view msg,
   );
 }
 
-sync_future<Opt<int>> int_input_box( std::string_view title,
-                                     std::string_view msg,
-                                     Opt<int>         min,
-                                     Opt<int>         max ) {
-  sync_promise<Opt<int>> s_promise;
+sync_future<maybe<int>> int_input_box( std::string_view title,
+                                       std::string_view msg,
+                                       maybe<int>       min,
+                                       maybe<int>       max ) {
+  sync_promise<maybe<int>> s_promise;
   text_input_box( title, msg, make_int_validator( min, max ),
-                  [s_promise]( Opt<string> result ) mutable {
+                  [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value(
                         result.bind( L( base::stoi( _ ) ) ) );
                   } );
   return s_promise.get_future();
 }
 
-sync_future<Opt<string>> str_input_box( string_view title,
-                                        string_view msg ) {
-  sync_promise<Opt<string>> s_promise;
+sync_future<maybe<string>> str_input_box( string_view title,
+                                          string_view msg ) {
+  sync_promise<maybe<string>> s_promise;
   text_input_box( title, msg, L( _.size() > 0 ),
-                  [s_promise]( Opt<string> result ) mutable {
+                  [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value( result );
                   } );
   return s_promise.get_future();
@@ -727,9 +728,9 @@ sync_future<Vec<UnitSelection>> unit_selection_box(
     Vec<UnitId> const& ids, bool allow_activation ) {
   sync_promise<Vec<UnitSelection>> s_promise;
 
-  function<void( Opt<UnitActivationView::map_t> )> on_result =
+  function<void( maybe<UnitActivationView::map_t> )> on_result =
       [s_promise](
-          Opt<UnitActivationView::map_t> result ) mutable {
+          maybe<UnitActivationView::map_t> result ) mutable {
         Vec<UnitSelection> selections;
         if( result.has_value() ) {
           for( auto const& [id, info] : *result ) {
@@ -765,7 +766,8 @@ sync_future<Vec<UnitSelection>> unit_selection_box(
         return std::move( unit_activation_view );
       };
 
-  ok_cancel_window_builder<FlatMap<UnitId, UnitActivationInfo>>(
+  ok_cancel_window_builder<
+      absl::flat_hash_map<UnitId, UnitActivationInfo>>(
       /*title=*/"Activate Units",
       /*get_result=*/
       [p_unit_activation_view]() {

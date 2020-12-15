@@ -59,7 +59,7 @@ struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
   sync_future<bool> confirm_explain_();
   void              affect_orders_() const;
 
-  static Opt<JobAnalysis> analyze_( UnitId id, orders_t orders );
+  static maybe<JobAnalysis> analyze_( UnitId id, orders_t orders );
 };
 NOTHROW_MOVE( JobAnalysis );
 

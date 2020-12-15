@@ -21,6 +21,7 @@
 #include "base/keyval.hpp"
 
 // Abseil
+#include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 
@@ -56,14 +57,15 @@ void trim() {
 /****************************************************************
 ** Running Commands
 *****************************************************************/
-FlatMap<string, function_ref<void()>> g_console_commands{
-    { "clear", clear }, //
-    { "abort",
-      [] {
-        FATAL( "aborting in response to terminal command." );
-      } },                                     //
-    { "quit", [] { throw exception_exit{}; } } //
-};
+absl::flat_hash_map<string, function_ref<void()>>
+    g_console_commands{
+        { "clear", clear }, //
+        { "abort",
+          [] {
+            FATAL( "aborting in response to terminal command." );
+          } },                                     //
+        { "quit", [] { throw exception_exit{}; } } //
+    };
 
 bool is_statement( string const& cmd ) {
   return util::contains( cmd, "=" ) ||
@@ -211,7 +213,7 @@ Vec<Str> autocomplete( string_view fragment ) {
   };
 
   auto table_for_object = []( sol::object o ) {
-    Opt<sol::table> res;
+    maybe<sol::table> res;
     if( o.get_type() == sol::type::table )
       res = o.as<sol::table>();
     if( o.get_type() == sol::type::userdata )

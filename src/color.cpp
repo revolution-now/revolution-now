@@ -381,7 +381,7 @@ double Color::luminosity() const {
 // Parses a string of the form 'NNNNNN[NN]' where N is:
 // [0-9a-fA-F]. The optional two digits at the end represent al-
 // pha. If these are omitted then alpha will be set to 255.
-Opt<Color> Color::parse_from_hex( string_view hex ) {
+maybe<Color> Color::parse_from_hex( string_view hex ) {
   if( hex.size() != 6 && hex.size() != 8 ) return nothing;
   auto is_valid = []( char c ) {
     return ( c >= '0' && c <= '9' ) ||
@@ -472,7 +472,7 @@ void hsl_bucketed_sort( Vec<Color>& colors ) {
 }
 
 vector<Color> extract_palette( fs::path const& glob,
-                               Opt<int>        target ) {
+                               maybe<int>        target ) {
   /* Extracting color components from a 32-bit color value */
   auto files = util::wildcard( glob, false );
   CHECK( !files.empty(), "need at least one file" );
@@ -554,7 +554,7 @@ vector<Color> extract_palette( fs::path const& glob,
 ColorBuckets hsl_bucket( Vec<Color> const& colors ) {
   auto sorted = colors;
   hsl_bucketed_sort( sorted );
-  vector<vector<vector<Opt<Color>>>> bucketed;
+  vector<vector<vector<maybe<Color>>>> bucketed;
 
   // First build out the full structure with nothing's
   // everywhere.

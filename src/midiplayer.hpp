@@ -26,7 +26,7 @@ public:
   bool good() const override;
 
   // Implement MusicPlayer
-  Opt<TunePlayerInfo> can_play_tune( TuneId id ) override;
+  maybe<TunePlayerInfo> can_play_tune( TuneId id ) override;
 
   // Implement MusicPlayer
   bool play( TuneId id ) override;
@@ -43,7 +43,7 @@ public:
   MusicPlayerCapabilities capabilities() const override;
 
   // Implement MusicPlayer
-  bool fence( Opt<Duration_t> /*unused*/ ) override;
+  bool fence( maybe<Duration_t> /*unused*/ ) override;
 
   // Implement MusicPlayer
   bool is_processing() const override;
@@ -60,7 +60,7 @@ public:
 private:
   MidiSeqMusicPlayer() = default;
   friend void         init_midiplayer();
-  Opt<TunePlayerInfo> last_played_tune_info_;
+  maybe<TunePlayerInfo> last_played_tune_info_;
 };
 
 } // namespace rn

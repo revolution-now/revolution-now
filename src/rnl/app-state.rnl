@@ -18,9 +18,9 @@ sumtype AppState {
   creating:
   leaving:
   loading:
-    Opt<int> slot;
+    maybe<int> slot;
   saving:
-    Opt<int> slot;
+    maybe<int> slot;
   in_game:
   quitting:
 };

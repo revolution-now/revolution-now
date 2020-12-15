@@ -59,7 +59,7 @@ struct ImagePlane : public Plane {
     copy_texture( image_tx, tx, dest_coord );
   }
 
-  Opt<e_image> image{};
+  maybe<e_image> image{};
 };
 
 ImagePlane g_image_plane;

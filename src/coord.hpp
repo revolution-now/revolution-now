@@ -223,7 +223,7 @@ public:
   // Find the direction from this coord to `dest`. If dest is not
   // equal or adjacent to this coord then nothing will be re-
   // turned.
-  Opt<e_direction> direction_to( Coord dest ) const;
+  maybe<e_direction> direction_to( Coord dest ) const;
 
   // Returns this coordinate with respect to a new origin.
   Coord with_new_origin( Coord new_origin ) const;
@@ -311,7 +311,7 @@ struct ND Rect {
 
   // Returns true if any part of the two rects overlap, which
   // does not include the borders touching.
-  Opt<Rect> overlap_with( Rect const& rhs ) const;
+  maybe<Rect> overlap_with( Rect const& rhs ) const;
 
   // Returns a rect that is adjusted (without respecting
   // proportions) so that it fits inside the given rect.
@@ -357,7 +357,7 @@ struct ND Rect {
   Rect uni0n( Rect const& rhs ) const;
 
   // Will return y*w + x if the coord is in the rect.
-  Opt<int> rasterize( Coord coord );
+  maybe<int> rasterize( Coord coord );
 
   int area() const { return delta().area(); }
 

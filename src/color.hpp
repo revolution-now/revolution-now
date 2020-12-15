@@ -63,7 +63,7 @@ struct Color {
   // Parses a string of the form 'NNNNNN[NN]' where N is:
   // [0-9a-fA-F]. The optional two digits at the end represent
   // alpha. If these are omitted then alpha will be set to 255.
-  static Opt<Color> parse_from_hex( std::string_view hex );
+  static maybe<Color> parse_from_hex( std::string_view hex );
 
   // A random color.
   static Color random();
@@ -140,7 +140,7 @@ void remove_greys( Vec<Color>& colors );
 
 // For holding a list of colors that are bucketed first by hue,
 // then by saturation, then by luminosity.
-using ColorBuckets = Vec<Vec<Vec<Opt<Color>>>>;
+using ColorBuckets = Vec<Vec<Vec<maybe<Color>>>>;
 
 // This will iterate through the colors and place each one into a
 // bucket depending on its values of hue, saturation, and
@@ -160,7 +160,7 @@ ColorBuckets hsl_bucket( Vec<Color> const& colors );
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
 Vec<Color> extract_palette( fs::path const& glob,
-                            Opt<int>        target = nothing );
+                            maybe<int>        target = nothing );
 
 // Will remove colors that are redundant or approximately
 // redunant in order to meet the target count. It will always

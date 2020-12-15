@@ -36,6 +36,10 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 // C++ standard library
 #include <unordered_map>
 
@@ -68,16 +72,19 @@ public:
   // be resurrected and their IDs will never be reused). Holding
   // the IDs here is technically redundant, but this is on pur-
   // pose in the hope that it might catch a bug.
-  FlatSet<UnitId> deleted;
+  absl::flat_hash_set<UnitId> deleted;
 
   // For units that are on (owned by) the world (map).
-  unordered_map<Coord, FlatSet<UnitId>> units_from_coords;
+  unordered_map<Coord, absl::flat_hash_set<UnitId>>
+      units_from_coords;
 
   // For units that are held as cargo.
-  FlatMap</*held*/ UnitId, /*holder*/ UnitId> holder_from_held;
+  absl::flat_hash_map</*held*/ UnitId, /*holder*/ UnitId>
+      holder_from_held;
 
   // For units that are held in a colony.
-  unordered_map<ColonyId, FlatSet<UnitId>> units_from_colony;
+  unordered_map<ColonyId, absl::flat_hash_set<UnitId>>
+      units_from_colony;
 
 private:
   SAVEGAME_FRIENDS( Unit );
@@ -246,8 +253,9 @@ UnitId create_unit( e_nation nation, e_unit_type type ) {
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-FlatSet<UnitId> const& units_from_coord( Coord const& c ) {
-  static FlatSet<UnitId> const empty = {};
+absl::flat_hash_set<UnitId> const& units_from_coord(
+    Coord const& c ) {
+  static absl::flat_hash_set<UnitId> const empty = {};
   // CHECK( square_exists( c ) );
   return base::lookup( as_const( SG().units_from_coords ), c )
       .value_or( empty );
@@ -279,7 +287,7 @@ Vec<UnitId> units_in_rect( Rect const& rect ) {
   return res;
 }
 
-Opt<Coord> coord_for_unit( UnitId id ) {
+maybe<Coord> coord_for_unit( UnitId id ) {
   CHECK( unit_exists( id ) );
   switch( auto& v = SG().states[id]; v.to_enum() ) {
     case UnitState::e::free: {
@@ -303,7 +311,7 @@ Coord coord_for_unit_indirect( UnitId id ) {
 
 // If this function makes recursive calls it should always call
 // the _safe variant since this function should not throw.
-Opt<Coord> coord_for_unit_indirect_safe( UnitId id ) {
+maybe<Coord> coord_for_unit_indirect_safe( UnitId id ) {
   CHECK( unit_exists( id ) );
   switch( auto& v = SG().states[id]; v.to_enum() ) {
     case UnitState::e::free: {
@@ -330,13 +338,14 @@ bool is_unit_on_map_indirect( UnitId id ) {
 /****************************************************************
 ** Colony Ownership
 *****************************************************************/
-FlatSet<UnitId> const& units_from_colony( ColonyId id ) {
+absl::flat_hash_set<UnitId> const& units_from_colony(
+    ColonyId id ) {
   CHECK( colony_exists( id ) );
   return SG().units_from_colony[id];
 }
 
-Opt<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
-  Opt<ColonyId> res;
+maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
+  maybe<ColonyId> res;
   if_get( unit_state( id ), UnitState::colony, colony_state ) {
     return colony_state.id;
   }
@@ -353,7 +362,7 @@ bool is_unit_in_colony( UnitId id ) {
 *****************************************************************/
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
-Opt<UnitId> is_unit_onboard( UnitId id ) {
+maybe<UnitId> is_unit_onboard( UnitId id ) {
   return base::lookup( SG().holder_from_held, id );
 }
 
@@ -382,7 +391,7 @@ expect<> check_europort_state_invariants(
   };
 }
 
-OptRef<UnitEuroPortViewState_t> unit_euro_port_view_info(
+maybe<UnitEuroPortViewState_t&> unit_euro_port_view_info(
     UnitId id ) {
   if_get( SG().states[id], UnitState::europort, val ) {
     return val.st;
@@ -401,7 +410,7 @@ Vec<UnitId> units_in_euro_port_view() {
 /****************************************************************
 ** Multi
 *****************************************************************/
-Opt<Coord> coord_for_unit_multi_ownership( UnitId id ) {
+maybe<Coord> coord_for_unit_multi_ownership( UnitId id ) {
   if( auto maybe_map = coord_for_unit_indirect_safe( id );
       maybe_map )
     return maybe_map;
@@ -563,7 +572,7 @@ LUA_FN( unit_from_id, Unit const&, UnitId id ) {
   return unit_from_id( id );
 }
 
-LUA_FN( coord_for_unit, Opt<Coord>, UnitId id ) {
+LUA_FN( coord_for_unit, maybe<Coord>, UnitId id ) {
   return coord_for_unit( id );
 }
 

@@ -154,7 +154,7 @@ fsm_class( LandView ) { //
   fsm_transition( LandView, none, depixelate_unit, ->,
                   depixelating_unit ) {
     (void)cur;
-    Opt<e_unit_type> maybe_demoted;
+    maybe<e_unit_type> maybe_demoted;
     if( event.demote ) {
       maybe_demoted = unit_from_id( event.id ).desc().demoted;
       CHECK( maybe_demoted.has_value(),
@@ -261,20 +261,20 @@ void render_land_view() {
 
   render_terrain( covered, g_texture_viewport, Coord{} );
 
-  Opt<Coord>  blink_coords;
-  Opt<UnitId> blink_id;
+  maybe<Coord>  blink_coords;
+  maybe<UnitId> blink_id;
   // if( holds( state, LandViewState::blinking_unit
   if_get( state, LandViewState::blinking_unit, blink ) {
     blink_coords = coord_for_unit_indirect( blink.id );
     blink_id     = blink.id;
   }
 
-  Opt<UnitId> slide_id;
+  maybe<UnitId> slide_id;
   if_get( state, LandViewState::sliding_unit, slide ) {
     slide_id = slide.id;
   }
 
-  Opt<UnitId> depixelate_id;
+  maybe<UnitId> depixelate_id;
   if_get( state, LandViewState::depixelating_unit, dying ) {
     depixelate_id = dying.id;
   }
@@ -755,7 +755,7 @@ struct LandViewPlane : public Plane {
                           SG().viewport.rendering_src_rect(),
                           SG().viewport.rendering_dest_rect() );
   }
-  Opt<Plane::MenuClickHandler> menu_click_handler(
+  maybe<Plane::MenuClickHandler> menu_click_handler(
       e_menu_item item ) const override {
     // These are factors by which the zoom will be scaled when
     // zooming in/out with the menus.
@@ -1024,7 +1024,7 @@ void test_land_view() {
 *****************************************************************/
 namespace {
 
-LUA_FN( blinking_unit, Opt<UnitId> ) {
+LUA_FN( blinking_unit, maybe<UnitId> ) {
   using blinker = LandViewState::blinking_unit;
   return SG().mode.holds<blinker>().member( &blinker::id );
 }

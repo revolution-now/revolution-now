@@ -75,7 +75,7 @@ struct SAVEGAME_STRUCT( EuroportView ) {
 
   // clang-format off
   SAVEGAME_MEMBERS( EuroportView,
-  ( Opt<UnitId>, selected_unit ));
+  ( maybe<UnitId>, selected_unit ));
   // clang-format on
 
 public:
@@ -100,9 +100,9 @@ SAVEGAME_IMPL( EuroportView );
 static_assert( std::is_copy_constructible_v<DraggableObject_t> );
 
 // Global State.
-Opt<DraggableObject_t> g_dragging_object;
+maybe<DraggableObject_t> g_dragging_object;
 
-Opt<DraggableObject_t> cargo_slot_to_draggable(
+maybe<DraggableObject_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
   switch( slot.to_enum() ) {
     case CargoSlot::e::empty: {
@@ -127,7 +127,7 @@ Opt<DraggableObject_t> cargo_slot_to_draggable(
   }
 }
 
-Opt<Cargo> draggable_to_cargo_object(
+maybe<Cargo> draggable_to_cargo_object(
     DraggableObject_t const& draggable ) {
   switch( draggable.to_enum() ) {
     case DraggableObject::e::unit: {
@@ -143,7 +143,7 @@ Opt<Cargo> draggable_to_cargo_object(
   }
 }
 
-Opt<DraggableObject_t> draggable_in_cargo_slot(
+maybe<DraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
   return SG()
       .selected_unit.fmap( unit_from_id )
@@ -151,7 +151,7 @@ Opt<DraggableObject_t> draggable_in_cargo_slot(
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
-Opt<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
+maybe<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
   return draggable_in_cargo_slot( CargoSlotIndex{ slot } );
 }
 
@@ -208,8 +208,8 @@ namespace entity {
 //
 //  void draw( Texture& tx, Delta offset ) const;
 //  Rect bounds() const;
-//  static Opt<EntityClass> create( ... );
-//  Opt<pair<T,Rect>> obj_under_cursor( Coord const& );
+//  static maybe<EntityClass> create( ... );
+//  maybe<pair<T,Rect>> obj_under_cursor( Coord const& );
 
 // This object represents the array of cargo items available for
 // trade in europe and which is show at the bottom of the screen.
@@ -262,9 +262,9 @@ public:
   MarketCommodities( MarketCommodities&& ) = default;
   MarketCommodities& operator=( MarketCommodities&& ) = default;
 
-  static Opt<MarketCommodities> create( Delta const& size ) {
-    Opt<MarketCommodities> res;
-    auto                   rect = Rect::from( Coord{}, size );
+  static maybe<MarketCommodities> create( Delta const& size ) {
+    maybe<MarketCommodities> res;
+    auto                     rect = Rect::from( Coord{}, size );
     if( size.w >= single_layer_width &&
         size.h >= single_layer_height ) {
       res = MarketCommodities{
@@ -286,9 +286,9 @@ public:
     return res;
   }
 
-  Opt<pair<e_commodity, Rect>> obj_under_cursor(
+  maybe<pair<e_commodity, Rect>> obj_under_cursor(
       Coord const& coord ) const {
-    Opt<pair<e_commodity, Rect>> res;
+    maybe<pair<e_commodity, Rect>> res;
     if( coord.is_inside( bounds() ) ) {
       auto boxes =
           bounds().with_new_upper_left( Coord{} ) / sprite_scale;
@@ -346,11 +346,11 @@ public:
   ActiveCargoBox( ActiveCargoBox&& ) = default;
   ActiveCargoBox& operator=( ActiveCargoBox&& ) = default;
 
-  static Opt<ActiveCargoBox> create(
-      Delta const&                  size,
-      Opt<MarketCommodities> const& maybe_market_commodities ) {
-    Opt<ActiveCargoBox> res;
-    auto                rect = Rect::from( Coord{}, size );
+  static maybe<ActiveCargoBox> create(
+      Delta const& size, maybe<MarketCommodities> const&
+                             maybe_market_commodities ) {
+    maybe<ActiveCargoBox> res;
+    auto                  rect = Rect::from( Coord{}, size );
     if( size.w < size_pixels.w || size.h < size_pixels.h )
       return res;
     if( maybe_market_commodities.has_value() ) {
@@ -408,11 +408,12 @@ public:
   DockAnchor( DockAnchor&& ) = default;
   DockAnchor& operator=( DockAnchor&& ) = default;
 
-  static Opt<DockAnchor> create(
-      Delta const&                  size,
-      Opt<ActiveCargoBox> const&    maybe_active_cargo_box,
-      Opt<MarketCommodities> const& maybe_market_commodities ) {
-    Opt<DockAnchor> res;
+  static maybe<DockAnchor> create(
+      Delta const&                 size,
+      maybe<ActiveCargoBox> const& maybe_active_cargo_box,
+      maybe<MarketCommodities> const&
+          maybe_market_commodities ) {
+    maybe<DockAnchor> res;
     if( maybe_active_cargo_box && maybe_market_commodities ) {
       auto active_cargo_box_top =
           maybe_active_cargo_box->bounds().top_edge();
@@ -458,10 +459,10 @@ public:
   Backdrop( Backdrop&& ) = default;
   Backdrop& operator=( Backdrop&& ) = default;
 
-  static Opt<Backdrop> create(
-      Delta const&           size,
-      Opt<DockAnchor> const& maybe_dock_anchor ) {
-    Opt<Backdrop> res;
+  static maybe<Backdrop> create(
+      Delta const&             size,
+      maybe<DockAnchor> const& maybe_dock_anchor ) {
+    maybe<Backdrop> res;
     if( maybe_dock_anchor ) {
       res =
           Backdrop{ -( maybe_dock_anchor->bounds().upper_left() -
@@ -505,11 +506,12 @@ public:
   InPortBox( InPortBox&& ) = default;
   InPortBox& operator=( InPortBox&& ) = default;
 
-  static Opt<InPortBox> create(
-      Delta const&                  size,
-      Opt<ActiveCargoBox> const&    maybe_active_cargo_box,
-      Opt<MarketCommodities> const& maybe_market_commodities ) {
-    Opt<InPortBox> res;
+  static maybe<InPortBox> create(
+      Delta const&                 size,
+      maybe<ActiveCargoBox> const& maybe_active_cargo_box,
+      maybe<MarketCommodities> const&
+          maybe_market_commodities ) {
+    maybe<InPortBox> res;
     if( maybe_active_cargo_box && maybe_market_commodities ) {
       bool  is_wide = !maybe_market_commodities->doubled_;
       Scale size_in_blocks;
@@ -565,10 +567,10 @@ public:
   InboundBox( InboundBox&& ) = default;
   InboundBox& operator=( InboundBox&& ) = default;
 
-  static Opt<InboundBox> create(
-      Delta const&          size,
-      Opt<InPortBox> const& maybe_in_port_box ) {
-    Opt<InboundBox> res;
+  static maybe<InboundBox> create(
+      Delta const&            size,
+      maybe<InPortBox> const& maybe_in_port_box ) {
+    maybe<InboundBox> res;
     if( maybe_in_port_box ) {
       bool  is_wide = maybe_in_port_box->is_wide_;
       Scale size_in_blocks;
@@ -632,10 +634,10 @@ public:
   OutboundBox( OutboundBox&& ) = default;
   OutboundBox& operator=( OutboundBox&& ) = default;
 
-  static Opt<OutboundBox> create(
-      Delta const&           size,
-      Opt<InboundBox> const& maybe_inbound_box ) {
-    Opt<OutboundBox> res;
+  static maybe<OutboundBox> create(
+      Delta const&             size,
+      maybe<InboundBox> const& maybe_inbound_box ) {
+    maybe<OutboundBox> res;
     if( maybe_inbound_box ) {
       bool  is_wide = maybe_inbound_box->is_wide();
       Scale size_in_blocks;
@@ -700,10 +702,10 @@ public:
   Exit( Exit&& ) = default;
   Exit& operator=( Exit&& ) = default;
 
-  static Opt<Exit> create(
-      Delta const&                  size,
-      Opt<MarketCommodities> const& maybe_market_commodities ) {
-    Opt<Exit> res;
+  static maybe<Exit> create( Delta const& size,
+                             maybe<MarketCommodities> const&
+                                 maybe_market_commodities ) {
+    maybe<Exit> res;
     if( maybe_market_commodities ) {
       auto origin =
           maybe_market_commodities->bounds().lower_right() -
@@ -754,11 +756,11 @@ public:
   Dock( Dock&& ) = default;
   Dock& operator=( Dock&& ) = default;
 
-  static Opt<Dock> create(
-      Delta const&           size,
-      Opt<DockAnchor> const& maybe_dock_anchor,
-      Opt<InPortBox> const&  maybe_in_port_box ) {
-    Opt<Dock> res;
+  static maybe<Dock> create(
+      Delta const&             size,
+      maybe<DockAnchor> const& maybe_dock_anchor,
+      maybe<InPortBox> const&  maybe_in_port_box ) {
+    maybe<Dock> res;
     if( maybe_dock_anchor && maybe_in_port_box ) {
       auto available = maybe_dock_anchor->bounds().left_edge() -
                        maybe_in_port_box->bounds().right_edge();
@@ -824,9 +826,9 @@ public:
     }
   }
 
-  Opt<pair<UnitId, Rect>> obj_under_cursor(
+  maybe<pair<UnitId, Rect>> obj_under_cursor(
       Coord const& pos ) const {
-    Opt<pair<UnitId, Rect>> res;
+    maybe<pair<UnitId, Rect>> res;
     for( auto [id, coord] : units_ ) {
       auto rect = Rect::from( coord, g_tile_delta );
       if( pos.is_inside( rect ) ) {
@@ -861,11 +863,11 @@ public:
   UnitsOnDock( UnitsOnDock&& ) = default;
   UnitsOnDock& operator=( UnitsOnDock&& ) = default;
 
-  static Opt<UnitsOnDock> create(
-      Delta const&           size,
-      Opt<DockAnchor> const& maybe_dock_anchor,
-      Opt<Dock> const&       maybe_dock ) {
-    Opt<UnitsOnDock> res;
+  static maybe<UnitsOnDock> create(
+      Delta const&             size,
+      maybe<DockAnchor> const& maybe_dock_anchor,
+      maybe<Dock> const&       maybe_dock ) {
+    maybe<UnitsOnDock> res;
     if( maybe_dock_anchor && maybe_dock ) {
       vector<UnitWithPosition> units;
       Coord                    coord =
@@ -906,10 +908,10 @@ public:
   ShipsInPort( ShipsInPort&& ) = default;
   ShipsInPort& operator=( ShipsInPort&& ) = default;
 
-  static Opt<ShipsInPort> create(
-      Delta const&          size,
-      Opt<InPortBox> const& maybe_in_port_box ) {
-    Opt<ShipsInPort> res;
+  static maybe<ShipsInPort> create(
+      Delta const&            size,
+      maybe<InPortBox> const& maybe_in_port_box ) {
+    maybe<ShipsInPort> res;
     if( maybe_in_port_box ) {
       vector<UnitWithPosition> units;
       auto  in_port_bds = maybe_in_port_box->bounds();
@@ -950,10 +952,10 @@ public:
   ShipsInbound( ShipsInbound&& ) = default;
   ShipsInbound& operator=( ShipsInbound&& ) = default;
 
-  static Opt<ShipsInbound> create(
-      Delta const&           size,
-      Opt<InboundBox> const& maybe_inbound_box ) {
-    Opt<ShipsInbound> res;
+  static maybe<ShipsInbound> create(
+      Delta const&             size,
+      maybe<InboundBox> const& maybe_inbound_box ) {
+    maybe<ShipsInbound> res;
     if( maybe_inbound_box ) {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_inbound_box->bounds();
@@ -993,10 +995,10 @@ public:
   ShipsOutbound( ShipsOutbound&& ) = default;
   ShipsOutbound& operator=( ShipsOutbound&& ) = default;
 
-  static Opt<ShipsOutbound> create(
-      Delta const&            size,
-      Opt<OutboundBox> const& maybe_outbound_box ) {
-    Opt<ShipsOutbound> res;
+  static maybe<ShipsOutbound> create(
+      Delta const&              size,
+      maybe<OutboundBox> const& maybe_outbound_box ) {
+    maybe<ShipsOutbound> res;
     if( maybe_outbound_box ) {
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_outbound_box->bounds();
@@ -1096,11 +1098,11 @@ public:
   ActiveCargo( ActiveCargo&& ) = default;
   ActiveCargo& operator=( ActiveCargo&& ) = default;
 
-  static Opt<ActiveCargo> create(
-      Delta const&               size,
-      Opt<ActiveCargoBox> const& maybe_active_cargo_box,
-      Opt<ShipsInPort> const&    maybe_ships_in_port ) {
-    Opt<ActiveCargo> res;
+  static maybe<ActiveCargo> create(
+      Delta const&                 size,
+      maybe<ActiveCargoBox> const& maybe_active_cargo_box,
+      maybe<ShipsInPort> const&    maybe_ships_in_port ) {
+    maybe<ActiveCargo> res;
     if( maybe_active_cargo_box && maybe_ships_in_port ) {
       res = ActiveCargo{
           /*maybe_active_unit_=*/SG().selected_unit,
@@ -1119,9 +1121,9 @@ public:
     return res;
   }
 
-  Opt<pair<CargoSlotIndex, Rect>> obj_under_cursor(
+  maybe<pair<CargoSlotIndex, Rect>> obj_under_cursor(
       Coord const& coord ) const {
-    Opt<pair<CargoSlotIndex, Rect>> res;
+    maybe<pair<CargoSlotIndex, Rect>> res;
     if( maybe_active_unit_ ) {
       if( coord.is_inside( bounds_ ) ) {
         auto boxes = bounds_.with_new_upper_left( Coord{} ) /
@@ -1156,7 +1158,7 @@ public:
     return res;
   }
 
-  // OptCRef<CargoSlot_t>> cargo_slot_from_coord(
+  // maybe<CargoSlot_t const&>> cargo_slot_from_coord(
   //    Coord coord ) const {
   //  // Lambda will only be called if a valid index is returned,
   //  // in which case there is guaranteed to be an active unit.
@@ -1165,15 +1167,17 @@ public:
   //                         .cargo()[_] ) );
   //}
 
-  Opt<UnitId> active_unit() const { return maybe_active_unit_; }
+  maybe<UnitId> active_unit() const {
+    return maybe_active_unit_;
+  }
 
 private:
   ActiveCargo() = default;
-  ActiveCargo( Opt<UnitId> maybe_active_unit, Rect bounds )
+  ActiveCargo( maybe<UnitId> maybe_active_unit, Rect bounds )
     : maybe_active_unit_( maybe_active_unit ),
       bounds_( bounds ) {}
-  Opt<UnitId> maybe_active_unit_;
-  Rect        bounds_;
+  maybe<UnitId> maybe_active_unit_;
+  Rect          bounds_;
 };
 NOTHROW_MOVE( ActiveCargo );
 
@@ -1184,20 +1188,20 @@ NOTHROW_MOVE( ActiveCargo );
 //- Stats area (money, tax rate, etc.)
 
 struct Entities {
-  Opt<entity::MarketCommodities> market_commodities;
-  Opt<entity::ActiveCargoBox>    active_cargo_box;
-  Opt<entity::DockAnchor>        dock_anchor;
-  Opt<entity::Backdrop>          backdrop;
-  Opt<entity::InPortBox>         in_port_box;
-  Opt<entity::InboundBox>        inbound_box;
-  Opt<entity::OutboundBox>       outbound_box;
-  Opt<entity::Exit>              exit_label;
-  Opt<entity::Dock>              dock;
-  Opt<entity::UnitsOnDock>       units_on_dock;
-  Opt<entity::ShipsInPort>       ships_in_port;
-  Opt<entity::ShipsInbound>      ships_inbound;
-  Opt<entity::ShipsOutbound>     ships_outbound;
-  Opt<entity::ActiveCargo>       active_cargo;
+  maybe<entity::MarketCommodities> market_commodities;
+  maybe<entity::ActiveCargoBox>    active_cargo_box;
+  maybe<entity::DockAnchor>        dock_anchor;
+  maybe<entity::Backdrop>          backdrop;
+  maybe<entity::InPortBox>         in_port_box;
+  maybe<entity::InboundBox>        inbound_box;
+  maybe<entity::OutboundBox>       outbound_box;
+  maybe<entity::Exit>              exit_label;
+  maybe<entity::Dock>              dock;
+  maybe<entity::UnitsOnDock>       units_on_dock;
+  maybe<entity::ShipsInPort>       ships_in_port;
+  maybe<entity::ShipsInbound>      ships_inbound;
+  maybe<entity::ShipsOutbound>     ships_outbound;
+  maybe<entity::ActiveCargo>       active_cargo;
 };
 NOTHROW_MOVE( Entities );
 
@@ -1340,9 +1344,9 @@ public:
   constexpr static auto const draw_dragged_item =
       L( draw_draggable_object( _ ) );
 
-  Opt<DragSrcInfo> drag_src( Coord const& coord ) const {
+  maybe<DragSrcInfo> drag_src( Coord const& coord ) const {
     using namespace entity;
-    Opt<DragSrcInfo> res;
+    maybe<DragSrcInfo> res;
     if( entities_->units_on_dock.has_value() ) {
       if( auto maybe_pair =
               entities_->units_on_dock->obj_under_cursor(
@@ -1425,9 +1429,9 @@ public:
   // Important: in this function we should not return early; we
   // should check all the entities (in order) to allow later ones
   // to override earlier ones.
-  Opt<DragDst_t> drag_dst( Coord const& coord ) const {
+  maybe<DragDst_t> drag_dst( Coord const& coord ) const {
     using namespace entity;
-    Opt<DragDst_t> res;
+    maybe<DragDst_t> res;
     if( entities_->active_cargo.has_value() ) {
       if( auto maybe_pair =
               entities_->active_cargo->obj_under_cursor( coord );
@@ -1890,8 +1894,8 @@ public:
 
   // This class cannot change the entities, but note that the en-
   // tities will be changed on each frame.
-  Entities const* entities_;
-  Opt<DragArc_t>  stored_arc_;
+  Entities const*  entities_;
+  maybe<DragArc_t> stored_arc_;
   function<void( e_commodity, std::string const& )>
       ask_for_quantity_;
 };
@@ -2051,7 +2055,7 @@ struct EuropePlane : public Plane {
             /*msg=*/text,
             /*min=*/0,
             /*max=*/100 )
-            .consume( [this]( Opt<int> result ) {
+            .consume( [this]( maybe<int> result ) {
               lg.debug( "received quantity: {}", result );
               this->drag_n_drop_.receive_quantity(
                   result.value_or( 0 ) );

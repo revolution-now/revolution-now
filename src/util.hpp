@@ -55,10 +55,10 @@ auto params_to_vector( T&&... ts ) {
 }
 
 // If the HOME environment variable is set then return it.
-Opt<fs::path> user_home_folder();
+maybe<fs::path> user_home_folder();
 
 // Get the value of an environment variable, if available.
-Opt<std::string_view> env_var( char const* name );
+maybe<std::string_view> env_var( char const* name );
 
 // Set an environment variable, always overwriting.
 void set_env_var( char const* var_name, char const* value );
@@ -69,6 +69,6 @@ void unset_env_var( char const* name );
 
 // Get the number of columns in the terminal from which the pro-
 // gram was launched, if available.
-Opt<int> os_terminal_columns();
+maybe<int> os_terminal_columns();
 
 } // namespace rn

@@ -31,6 +31,6 @@
 namespace rn {
 
 void push_unit_orders( UnitId id, orders_t const& orders );
-Opt<orders_t> pop_unit_orders( UnitId id );
+maybe<orders_t> pop_unit_orders( UnitId id );
 
 } // namespace rn

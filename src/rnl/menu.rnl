@@ -16,10 +16,10 @@ namespace rn;
 sumtype MenuState {
   menus_hidden:
   menus_closed:
-    Opt<e_menu> hover;
+    maybe<e_menu> hover;
   menu_open:
     e_menu menu;
-    Opt<e_menu_item> hover;
+    maybe<e_menu_item> hover;
   item_click:
     e_menu_item item;
     Time_t start;

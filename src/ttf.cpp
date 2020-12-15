@@ -26,6 +26,9 @@
 // base
 #include "base/keyval.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
 // magic enum
 #include "magic_enum.hpp"
 
@@ -38,7 +41,7 @@ namespace rn {
 
 namespace {
 
-FlatMap<e_font, FontTTFInfo> g_font_ttf_info;
+absl::flat_hash_map<e_font, FontTTFInfo> g_font_ttf_info;
 
 struct FontDesc {
   fs::path    file_name;
@@ -48,9 +51,9 @@ struct FontDesc {
 };
 NOTHROW_MOVE( FontDesc );
 
-FlatMap<e_font, FontDesc>& loaded_fonts() {
-  static FlatMap<e_font, FontDesc> m = [] {
-    FlatMap<e_font, FontDesc> res;
+absl::flat_hash_map<e_font, FontDesc>& loaded_fonts() {
+  static absl::flat_hash_map<e_font, FontDesc> m = [] {
+    absl::flat_hash_map<e_font, FontDesc> res;
     for( auto font : magic_enum::enum_values<e_font>() ) {
       ASSIGN_CHECK_OPT(
           path, base::lookup( config_font.paths, font ) );

@@ -196,7 +196,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<Pair<Commodity, int>>{
+                    UnorderedEquals( Vec<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -226,7 +226,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<Pair<Commodity, int>>{
+                    UnorderedEquals( Vec<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -279,7 +279,7 @@ TEST_CASE(
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<Pair<Commodity, int>>{
+                    UnorderedEquals( Vec<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -306,7 +306,7 @@ TEST_CASE(
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<Pair<Commodity, int>>{
+                    UnorderedEquals( Vec<pair<Commodity, int>>{
                         { *comm, 3 } } ) );
       REQUIRE( ch.debug_string() ==
                "[empty,empty,empty,cargo{contents=Commodity{"
@@ -335,7 +335,7 @@ TEST_CASE(
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<Pair<Commodity, int>>{
+                    UnorderedEquals( Vec<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -2028,7 +2028,7 @@ TEST_CASE(
                                 unit_id4, unit_id5 } ) );
 
   REQUIRE_THAT( ch.commodities(),
-                UnorderedEquals( Vec<Pair<Commodity, int>>{
+                UnorderedEquals( Vec<pair<Commodity, int>>{
                     { food_full, 16 },
                     { food_full, 17 },
                     { food_overflow, 18 },

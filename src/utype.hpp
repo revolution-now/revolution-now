@@ -82,11 +82,11 @@ struct ND UnitDescriptor : public UnitDescriptorBase {
   // When the unit loses a battle, what should happen?
   e_unit_death on_death{};
   // If the unit is to be demoted, what unit should it become?
-  Opt<e_unit_type> demoted;
+  maybe<e_unit_type> demoted;
 
   // Cargo
   int      cargo_slots{};
-  Opt<int> cargo_slots_occupies{}; // slots occupied by this unit
+  maybe<int> cargo_slots_occupies{}; // slots occupied by this unit
 
   void check_invariants() const;
 };

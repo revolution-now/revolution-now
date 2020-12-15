@@ -65,7 +65,7 @@ struct OrdersAnalysis {
   // Analyzes the move and returns nothing if it is
   // non-applicable or returns this data structure (populated) if
   // it is applicable (though may still be disallowed).
-  static Opt<Child> analyze( UnitId id, orders_t orders ) {
+  static maybe<Child> analyze( UnitId id, orders_t orders ) {
     return Child::analyze_( id, orders );
   }
 
@@ -108,7 +108,7 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
   }
   void affect_orders_() const;
 
-  static Opt<MetaAnalysis> analyze_( UnitId   id,
+  static maybe<MetaAnalysis> analyze_( UnitId   id,
                                      orders_t orders );
 };
 NOTHROW_MOVE( MetaAnalysis );
@@ -116,6 +116,6 @@ NOTHROW_MOVE( MetaAnalysis );
 /****************************************************************
 ** Helpers
 *****************************************************************/
-Opt<e_nation> nation_from_coord( Coord coord );
+maybe<e_nation> nation_from_coord( Coord coord );
 
 } // namespace rn

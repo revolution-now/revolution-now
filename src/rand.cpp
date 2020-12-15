@@ -32,7 +32,7 @@ bernoulli_distribution coin( 0.5 );
 // to prevent anyone from using the engine before it has been
 // seeded.
 auto& maybe_engine() {
-  static Opt<default_random_engine> engine;
+  static maybe<default_random_engine> engine;
   return engine;
 }
 
@@ -85,7 +85,7 @@ namespace {
 // dom_device.
 void init_rng() {
   // Change this to get a fixed seed.
-  Opt<uint32_t> maybe_seed = nothing;
+  maybe<uint32_t> maybe_seed = nothing;
   auto          seed =
       maybe_seed.value_or( uint32_t( random_device{}() ) );
   rng::maybe_engine() = default_random_engine( seed );

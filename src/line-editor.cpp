@@ -114,7 +114,7 @@ void LineEditor::clear() {
 }
 
 void LineEditor::set( std::string_view new_buffer,
-                      Opt<int>         maybe_pos ) {
+                      maybe<int>         maybe_pos ) {
   int  requested_cursor_pos = maybe_pos.value_or( pos_ );
   auto new_cursor_closed_upper_bound = int( new_buffer.size() );
   auto new_cursor_closed_lower_bound =

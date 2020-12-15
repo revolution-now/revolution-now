@@ -28,6 +28,8 @@
 #include "base-util/string.hpp"
 
 // Abseil
+#include "absl/container/flat_hash_set.h"
+#include "absl/container/node_hash_map.h"
 #include "absl/hash/hash.h"
 #include "absl/strings/str_split.h"
 
@@ -54,9 +56,9 @@ struct TextCacheKey {
   e_font font;
   Color  color;
   // If this is active then we are in markup mode.
-  Opt<TextMarkupInfo> markup_info;
+  maybe<TextMarkupInfo> markup_info;
   // If this is active then we are in reflow mode.
-  Opt<TextReflowInfo> reflow_info;
+  maybe<TextReflowInfo> reflow_info;
 
   // Adds some member functions to make this struct a cache key.
   MAKE_CACHE_KEY( TextCacheKey, text, font, color, markup_info,
@@ -64,10 +66,11 @@ struct TextCacheKey {
 };
 NOTHROW_MOVE( TextCacheKey );
 
-NodeMap<TextCacheKey, Texture> g_text_cache;
-constexpr int const            k_max_text_cache_size = 2000;
+absl::node_hash_map<TextCacheKey, Texture> g_text_cache;
+constexpr int const k_max_text_cache_size = 2000;
 
-OptCRef<Texture> text_cache_lookup( TextCacheKey const& key ) {
+maybe<Texture const&> text_cache_lookup(
+    TextCacheKey const& key ) {
   return base::lookup( g_text_cache, key );
 }
 
@@ -81,7 +84,7 @@ void trim_text_cache() {
       g_text_cache //
       | rv::transform( L( _.second.id() ) ) );
   util::sort( ids );
-  FlatSet<int> to_remove(
+  absl::flat_hash_set<int> to_remove(
       ids.begin(), ids.begin() + ( k_max_text_cache_size / 2 ) );
   vector<TextCacheKey const*> keys_to_remove;
   keys_to_remove.reserve( to_remove.size() );
@@ -123,7 +126,7 @@ struct MarkedUpText {
 };
 NOTHROW_MOVE( MarkedUpText );
 
-auto parse_markup( string_view sv ) -> Opt<MarkupStyle> {
+auto parse_markup( string_view sv ) -> maybe<MarkupStyle> {
   if( sv.size() == 0 ) return MarkupStyle{};
   if( sv.size() != 1 ) return nothing; // parsing failed
   switch( sv[0] ) {

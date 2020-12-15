@@ -22,7 +22,7 @@ namespace rn {
 
 namespace {} // namespace
 
-Opt<MetaAnalysis> MetaAnalysis::analyze_( UnitId   id,
+maybe<MetaAnalysis> MetaAnalysis::analyze_( UnitId   id,
                                           orders_t orders ) {
   if( holds<orders::wait>( orders ) )
     return MetaAnalysis( id, orders,
@@ -38,7 +38,7 @@ void MetaAnalysis::affect_orders_() const {
     unit_from_id( id ).forfeight_mv_points();
 }
 
-Opt<e_nation> nation_from_coord( Coord coord ) {
+maybe<e_nation> nation_from_coord( Coord coord ) {
   if( auto maybe_colony_id = colony_from_coord( coord );
       maybe_colony_id )
     return colony_from_id( *maybe_colony_id ).nation();

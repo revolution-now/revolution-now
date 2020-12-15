@@ -72,7 +72,7 @@ public:
   }
 
 private:
-  Opt<T> val_;
+  maybe<T> val_;
 };
 
 } // namespace rn

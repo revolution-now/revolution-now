@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
+#include "maybe.hpp"
 
 namespace rn {
 
@@ -28,7 +28,7 @@ enum class e_power_state {
 struct MachinePowerInfo {
   e_power_state power_state;
   // If known, this will be populated; [0, 100].
-  Opt<int> battery_percentage{};
+  maybe<int> battery_percentage{};
 };
 NOTHROW_MOVE( MachinePowerInfo );
 

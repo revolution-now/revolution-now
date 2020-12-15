@@ -183,7 +183,7 @@ Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
 
     int target_score_for_non_fuzzy =
         not_like ? enabled_dimensions : 0;
-    scores = rg::to<Vec<Pair<TuneId, int>>>(
+    scores = rg::to<Vec<pair<TuneId, int>>>(
         scores |
         rv::filter(
             LC( _.second == target_score_for_non_fuzzy ) ) );
@@ -240,7 +240,7 @@ TuneId random_tune() {
       tunes_scores |
       rv::take_while( LC( _.second == first_score ) );
   return rng::pick_one(
-             rg::to<Vec<Pair<TuneId, int>>>( same_distance ) )
+             rg::to<Vec<pair<TuneId, int>>>( same_distance ) )
       .first;
 }
 

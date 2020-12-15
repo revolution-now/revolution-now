@@ -106,7 +106,7 @@ void CompositeView::children_under_coord( Coord      where,
                                           ObjectSet& objects ) {
   for( auto p_view : *this ) {
     if( where.is_inside( p_view.rect() ) ) {
-      objects.insert( p_view.view.get() );
+      objects.insert( p_view.view );
       p_view.view->children_under_coord(
           where.with_new_origin( p_view.rect().upper_left() ),
           objects );
@@ -129,14 +129,13 @@ void CompositeView::on_mouse_enter( Coord to ) {
 }
 
 PositionedView CompositeView::at( int idx ) {
-  ObserverPtr<View> view{
-      const_cast<View*>( mutable_at( idx ).get() ) };
+  View* view{ const_cast<View*>( mutable_at( idx ).get() ) };
   return { view, pos_of( idx ) };
 }
 
 PositionedViewConst CompositeView::at( int idx ) const {
-  auto*              this_ = const_cast<CompositeView*>( this );
-  ObserverCPtr<View> view{ this_->mutable_at( idx ).get() };
+  auto*       this_ = const_cast<CompositeView*>( this );
+  View const* view{ this_->mutable_at( idx ).get() };
   return { view, pos_of( idx ) };
 }
 
@@ -425,7 +424,7 @@ void LineEditorView::clear() {
 }
 
 void LineEditorView::set( std::string_view new_string,
-                          Opt<int>         cursor_pos ) {
+                          maybe<int>       cursor_pos ) {
   line_editor_.set( new_string, cursor_pos );
   update_visible_string();
 }
@@ -572,7 +571,7 @@ OkButtonView::OkButtonView( ButtonView::OnClickFunc on_ok )
                              "OK", ok_cancel_button_size_blocks,
                              std::move( on_ok ) ),
                          Coord{} ) {
-  ok_ref_ = single().get()->cast<ButtonView>();
+  ok_ref_ = single()->cast<ButtonView>();
 }
 
 VerticalArrayView::VerticalArrayView(
@@ -758,23 +757,22 @@ OptionSelectView::OptionSelectView( Vec<Str> const& options,
   set_selected( selected_ );
 }
 
-ObserverPtr<OptionSelectItemView> OptionSelectView::get_view(
-    int item ) {
+OptionSelectItemView* OptionSelectView::get_view( int item ) {
   CHECK( item >= 0 && item < count(),
          "item '{}' is out of bounds", item );
-  auto* view    = at( item ).view.get();
+  auto* view    = at( item ).view;
   auto* o_s_i_v = view->cast<OptionSelectItemView>();
-  return ObserverPtr<OptionSelectItemView>{ o_s_i_v };
+  return o_s_i_v;
 }
 
 // TODO: duplication
-ObserverCPtr<OptionSelectItemView> OptionSelectView::get_view(
+OptionSelectItemView const* OptionSelectView::get_view(
     int item ) const {
   CHECK( item >= 0 && item < count(),
          "item '{}' is out of bounds", item );
-  auto* view    = at( item ).view.get();
+  auto* view    = at( item ).view;
   auto* o_s_i_v = view->cast<OptionSelectItemView>();
-  return ObserverCPtr<OptionSelectItemView>{ o_s_i_v };
+  return o_s_i_v;
 }
 
 void OptionSelectView::set_selected( int item ) {
@@ -785,7 +783,7 @@ void OptionSelectView::set_selected( int item ) {
 
 void OptionSelectView::grow_to( W w ) {
   for( auto p_view : *this ) {
-    auto* view    = p_view.view.get();
+    auto* view    = p_view.view;
     auto* o_s_i_v = view->cast<OptionSelectItemView>();
     o_s_i_v->grow_to( w );
   }

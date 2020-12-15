@@ -28,6 +28,6 @@ enum class e_section {
 };
 
 // If the section is visible it will return bounds.
-Opt<Rect> section( e_section section );
+maybe<Rect> section( e_section section );
 
 } // namespace rn::compositor

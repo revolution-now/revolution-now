@@ -22,6 +22,9 @@
 #include "ustate.hpp"
 #include "views.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+
 // magic-enum
 #include "magic_enum.hpp"
 
@@ -43,10 +46,11 @@ constexpr W kCommodityTileWidth = 16_w;
 ** Globals
 *****************************************************************/
 struct ColViewComposited {
-  ColonyId                                      id;
-  Delta                                         screen_size;
-  UPtr<ui::View>                                top_level;
-  FlatMap<e_colview_entity, ColViewEntityView*> entities;
+  ColonyId       id;
+  Delta          screen_size;
+  UPtr<ui::View> top_level;
+  absl::flat_hash_map<e_colview_entity, ColViewEntityView*>
+      entities;
 };
 
 ColViewComposited g_composition;
@@ -79,7 +83,7 @@ public:
     return e_colview_entity::title_bar;
   }
 
-  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord ) const override {
     return nothing;
   }
@@ -137,7 +141,7 @@ public:
     return e_colview_entity::commodities;
   }
 
-  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     auto sprite_scale = Scale{ SX{ block_width_._ }, SY{ 32 } };
@@ -172,7 +176,7 @@ public:
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
     auto const& colony = colony_from_id( colony_id() );
-    FlatMap<UnitId, ColonyJob_t> const& units_jobs =
+    absl::flat_hash_map<UnitId, ColonyJob_t> const& units_jobs =
         colony.units_jobs();
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {
@@ -189,7 +193,7 @@ public:
     return e_colview_entity::population;
   }
 
-  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     return nothing;
@@ -227,7 +231,7 @@ public:
     return e_colview_entity::cargo;
   }
 
-  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     return nothing;
@@ -257,7 +261,7 @@ public:
     return e_colview_entity::production;
   }
 
-  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     return nothing;
@@ -359,7 +363,7 @@ public:
     return e_colview_entity::land;
   }
 
-  Opt<ColViewObjectUnderCursor> obj_under_cursor(
+  maybe<ColViewObjectUnderCursor> obj_under_cursor(
       Coord coord ) const override {
     if( !coord.is_inside( rect( {} ) ) ) return nothing;
     return nothing;

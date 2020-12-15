@@ -130,7 +130,7 @@ Colony& colony_from_id( ColonyId id ) {
   return it->second;
 }
 
-Vec<ColonyId> colonies_all( Opt<e_nation> n ) {
+Vec<ColonyId> colonies_all( maybe<e_nation> n ) {
   Vec<ColonyId> res;
   for( auto const& [id, colony] : SG().colonies ) {
     if( !n.has_value() || n == colony.nation() )
@@ -155,11 +155,11 @@ void cstate_destroy_colony( ColonyId id ) {
   SG().colonies.erase( id );
 }
 
-Opt<ColonyId> colony_from_coord( Coord const& coord ) {
+maybe<ColonyId> colony_from_coord( Coord const& coord ) {
   return base::lookup( SG().colony_from_coord, coord );
 }
 
-Opt<ColonyId> colony_from_name( std::string_view name ) {
+maybe<ColonyId> colony_from_name( std::string_view name ) {
   return base::lookup( SG().colony_from_name, string( name ) );
 }
 

@@ -30,6 +30,10 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
+
 // magic enum
 #include "magic_enum.hpp"
 
@@ -50,14 +54,17 @@ namespace {
 // ization and will never change, even if a music player fails.
 // If a music player fails then will mark it as disable in the
 // associated MusicPlayerInfo struct.
-FlatMap<e_music_player, MaybeMusicPlayer> g_mplayers;
+absl::flat_hash_map<e_music_player, MaybeMusicPlayer> g_mplayers;
 
-FlatMap<e_music_player, MusicPlayerDesc> g_mplayer_descs;
-FlatMap<e_music_player, MusicPlayerInfo> g_mplayer_infos;
+absl::flat_hash_map<e_music_player, MusicPlayerDesc>
+    g_mplayer_descs;
+absl::flat_hash_map<e_music_player, MusicPlayerInfo>
+    g_mplayer_infos;
 
-FlatMap<e_special_music_event, TuneId> g_special_tunes;
+absl::flat_hash_map<e_special_music_event, TuneId>
+    g_special_tunes;
 
-Opt<e_music_player> g_active_mplayer;
+maybe<e_music_player> g_active_mplayer;
 
 size_t      g_playlist_pos{};
 Vec<TuneId> g_playlist;
@@ -157,8 +164,9 @@ void play( TuneId id ) { play_impl( id ); }
 ** Requests
 *****************************************************************/
 
-FlatMap<e_request, TuneVecDimensions>& dimensions_for_request() {
-  static FlatMap<e_request, TuneVecDimensions> m;
+absl::flat_hash_map<e_request, TuneVecDimensions>&
+dimensions_for_request() {
+  static absl::flat_hash_map<e_request, TuneVecDimensions> m;
   return m;
 }
 
@@ -259,7 +267,7 @@ void init_conductor() {
   // Copy this so that we can use the operator[].
   auto m = config_music.special_event_tunes;
 
-  FlatSet<string> used_stems;
+  absl::flat_hash_set<string> used_stems;
 
   // Now check that there is a tune assigned to each special
   // music event. That is defined as a game event where there
@@ -309,9 +317,11 @@ void cleanup_conductor() {
   g_mplayers.clear();
 }
 
-FlatMap<e_conductor_event, vector<ConductorEventFunc>>&
+absl::flat_hash_map<e_conductor_event,
+                    vector<ConductorEventFunc>>&
 subscriptions() {
-  static FlatMap<e_conductor_event, vector<ConductorEventFunc>>
+  static absl::flat_hash_map<e_conductor_event,
+                             vector<ConductorEventFunc>>
       subs;
   return subs;
 }
@@ -504,8 +514,8 @@ void prev() {
   CONDUCTOR_INFO_OR_RETURN( info );
   // If progress and/or duration are not available then behave as
   // if it is zero.
-  Duration_t  progress_time = 0s;
-  Opt<TuneId> id;
+  Duration_t    progress_time = 0s;
+  maybe<TuneId> id;
   if( info.playing_now.has_value() ) {
     if( ( *info.playing_now ).progress.has_value() ) {
       double progress = *( *info.playing_now ).progress;

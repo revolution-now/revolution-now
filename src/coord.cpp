@@ -101,7 +101,7 @@ bool Rect::is_inside( Rect const& rect ) const {
              .is_inside( rect );
 }
 
-Opt<Rect> Rect::overlap_with( Rect const& rhs ) const {
+maybe<Rect> Rect::overlap_with( Rect const& rhs ) const {
   // NOTE: be careful here with returning references; we should
   // only be using auto const& when the function will not return
   // a reference to a temporary.
@@ -109,7 +109,7 @@ Opt<Rect> Rect::overlap_with( Rect const& rhs ) const {
   auto const& new_y1 = std::max( y, rhs.y );
   auto /*!!*/ new_x2 = std::min( x + w, rhs.x + rhs.w );
   auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
-  Opt<Rect>   res    = Rect::from( Coord{ new_x1, new_y1 },
+  maybe<Rect>   res    = Rect::from( Coord{ new_x1, new_y1 },
                               Coord{ new_x2, new_y2 } );
   if( res->area() == 0 ) res = nothing;
   return res;
@@ -143,7 +143,7 @@ Rect Rect::centered_on( Coord coord ) const {
                      this->delta() );
 }
 
-Opt<int> Rect::rasterize( Coord coord ) {
+maybe<int> Rect::rasterize( Coord coord ) {
   if( !coord.is_inside( *this ) ) return nothing;
   return ( coord.y - y )._ * w._ + ( coord.x - x )._;
 }
@@ -254,7 +254,7 @@ Coord Coord::moved( e_direction d ) const {
   SHOULD_NOT_BE_HERE;
 }
 
-Opt<e_direction> Coord::direction_to( Coord dest ) const {
+maybe<e_direction> Coord::direction_to( Coord dest ) const {
   for( auto d : magic_enum::enum_values<e_direction>() )
     if( moved( d ) == dest ) return d;
   return {};

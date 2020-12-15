@@ -247,7 +247,7 @@ void Texture::set_render_target() const {
   event_counts()["set-render-target"].tick();
 }
 
-Surface Texture::to_surface( Opt<Delta> override_size ) const {
+Surface Texture::to_surface( maybe<Delta> override_size ) const {
   Delta delta       = override_size.value_or( size() );
   auto  surface     = Surface::create( delta );
   auto* sdl_surface = to_SDL_Surface( surface.sf_ );
@@ -326,8 +326,8 @@ void Texture::copy_to( Texture& to,
 
 // TODO: try rewriting this implementationn by calling the above
 // copy_to.
-void Texture::copy_to( Texture& to, Opt<Rect> src,
-                       Opt<Rect> dest ) const {
+void Texture::copy_to( Texture& to, maybe<Rect> src,
+                       maybe<Rect> dest ) const {
   ::SDL_Rect  sdl_src{};
   ::SDL_Rect  sdl_dst{};
   ::SDL_Rect* p_sdl_src = nullptr;

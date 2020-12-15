@@ -68,7 +68,7 @@ using ValidatorFunc = std::function<bool( std::string const& )>;
 
 // Makes a validator that enforces that the input be parsable
 // into an integer and that (optionally) it is within [min, max].
-ValidatorFunc make_int_validator( Opt<int> min, Opt<int> max );
+ValidatorFunc make_int_validator( maybe<int> min, maybe<int> max );
 
 /****************************************************************
 ** Windows
@@ -79,14 +79,14 @@ void ok_cancel( std::string_view                   msg,
 void text_input_box(
     std::string_view title, std::string_view msg,
     ValidatorFunc                           validator,
-    std::function<void( Opt<std::string> )> on_result );
+    std::function<void( maybe<std::string> )> on_result );
 
-sync_future<Opt<int>> int_input_box( std::string_view title,
+sync_future<maybe<int>> int_input_box( std::string_view title,
                                      std::string_view msg,
-                                     Opt<int> min = nothing,
-                                     Opt<int> max = nothing );
+                                     maybe<int> min = nothing,
+                                     maybe<int> max = nothing );
 
-sync_future<Opt<std::string>> str_input_box(
+sync_future<maybe<std::string>> str_input_box(
     std::string_view title, std::string_view msg );
 
 /****************************************************************
@@ -179,20 +179,20 @@ sync_future<Ret> repeat_until(
 // Similar to above, but the function being repeated can return a
 // nothing, basically meaning that the operation is cancelled.
 template<typename Ret>
-sync_future<Opt<Ret>> repeat_until_or_cancel(
-    std::function<sync_future<Opt<Ret>>()> to_repeat,
+sync_future<maybe<Ret>> repeat_until_or_cancel(
+    std::function<sync_future<maybe<Ret>>()> to_repeat,
     std::function<valid_or<std::string>( Ret const& )>
         get_error ) {
-  return to_repeat() >> [=]( Opt<Ret> const& maybe_val ) {
+  return to_repeat() >> [=]( maybe<Ret> const& maybe_val ) {
     if( !maybe_val.has_value() )
-      return make_sync_future<Opt<Ret>>( nothing );
+      return make_sync_future<maybe<Ret>>( nothing );
     if( auto xp = get_error( *maybe_val ); !xp )
       return message_box( xp.error() ).next( [=] {
         // Loop by recursion.
         return repeat_until_or_cancel<Ret>( to_repeat,
                                             get_error );
       } );
-    return make_sync_future<Opt<Ret>>( *maybe_val );
+    return make_sync_future<maybe<Ret>>( *maybe_val );
   };
 }
 

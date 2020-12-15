@@ -37,6 +37,9 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// Abseil
+#include "absl/container/flat_hash_set.h"
+
 // Range-v3
 #include "range/v3/view/filter.hpp"
 #include "range/v3/view/reverse.hpp"
@@ -65,16 +68,16 @@ vector<e_plane> g_plane_list{
 // is being iterated over). Only at the start of each frame will
 // the contents of this vector (if present) be moved into the
 // primary one above.
-Opt<vector<e_plane>> g_plane_list_next;
+maybe<vector<e_plane>> g_plane_list_next;
 
 /****************************************************************
 ** Plane Textures
 *****************************************************************/
 // Planes are rendered from 0 --> count.
-array<ObserverPtr<Plane>, num_planes> planes;
-array<Texture, num_planes>            textures;
+array<Plane*, num_planes>  planes;
+array<Texture, num_planes> textures;
 
-ObserverPtr<Plane>& plane( e_plane plane ) {
+Plane*& plane( e_plane plane ) {
   auto idx = magic_enum::enum_integer( plane );
   CHECK( idx < int( planes.size() ) );
   return planes[idx];
@@ -169,9 +172,9 @@ struct DragState {
 
   // This is the plan that is currently receiving mouse dragging
   // events (nothing if there is not dragging event happening).
-  Opt<e_plane> plane{};
-  bool         send_as_motion{ false };
-  Opt<Delta>   projection{};
+  maybe<e_plane> plane{};
+  bool           send_as_motion{ false };
+  maybe<Delta>   projection{};
 
   void reset() {
     plane          = nothing;
@@ -204,18 +207,18 @@ auto planes_to_draw() { return relevant_planes() | rv::reverse; }
 void init_planes() {
   // By default, all planes are dummies, unless we provide an
   // object below.
-  planes.fill( ObserverPtr<Plane>( &dummy ) );
+  planes.fill( &dummy );
 
-  plane( e_plane::main_menu ).reset( main_menu_plane() );
-  plane( e_plane::land_view ).reset( land_view_plane() );
-  plane( e_plane::panel ).reset( panel_plane() );
-  plane( e_plane::image ).reset( image_plane() );
-  plane( e_plane::colony ).reset( colony_plane() );
-  plane( e_plane::europe ).reset( europe_plane() );
-  plane( e_plane::window ).reset( window_plane() );
-  plane( e_plane::menu ).reset( menu_plane() );
-  plane( e_plane::console ).reset( console_plane() );
-  plane( e_plane::omni ).reset( omni_plane() );
+  plane( e_plane::main_menu ) = main_menu_plane();
+  plane( e_plane::land_view ) = land_view_plane();
+  plane( e_plane::panel )     = panel_plane();
+  plane( e_plane::image )     = image_plane();
+  plane( e_plane::colony )    = colony_plane();
+  plane( e_plane::europe )    = europe_plane();
+  plane( e_plane::window )    = window_plane();
+  plane( e_plane::menu )      = menu_plane();
+  plane( e_plane::console )   = console_plane();
+  plane( e_plane::omni )      = omni_plane();
 
   // No plane must be null, they must all point to a valid Plane
   // object even if it is the dummy above.
@@ -320,7 +323,7 @@ void Plane::on_drag_finished( input::mod_keys const& /*unused*/,
                               Coord /*unused*/,
                               Coord /*unused*/ ) {}
 
-Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
+maybe<Plane::MenuClickHandler> Plane::menu_click_handler(
     e_menu_item /*unused*/ ) const {
   return nothing;
 }
@@ -329,8 +332,8 @@ Opt<Plane::MenuClickHandler> Plane::menu_click_handler(
 ** External API
 *****************************************************************/
 void set_plane_list( Vec<e_plane> const& arr ) {
-  vector<e_plane>  res;
-  FlatSet<e_plane> set;
+  vector<e_plane>              res;
+  absl::flat_hash_set<e_plane> set;
   res.reserve( magic_enum::enum_count<e_plane>() );
   for( auto plane : arr ) {
     CHECK( plane != e_plane::omni );

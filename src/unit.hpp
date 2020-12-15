@@ -52,7 +52,7 @@ public:
   // doesn't really depend on any private Unit data.
   CargoHold&     cargo() { return cargo_; }
   e_nation       nation() const { return nation_; }
-  Opt<int>       worth() const { return worth_; }
+  maybe<int>       worth() const { return worth_; }
   MovementPoints movement_points() const { return mv_pts_; }
 
   /************************* Setters ***************************/
@@ -70,7 +70,7 @@ public:
   // hold cargo then returns the list of units it holds, which
   // may be empty. To emphasize, nothing will only be returned
   // when this unit is unable to hold cargo.
-  Opt<Vec<UnitId>> units_in_cargo() const;
+  maybe<Vec<UnitId>> units_in_cargo() const;
 
   // Has the unit been fully processed this turn. This concept is
   // distinct from that of having used all movement points. For
@@ -138,7 +138,7 @@ private:
   ( e_unit_orders,    orders_        ),
   ( CargoHold,        cargo_         ),
   ( e_nation,         nation_        ),
-  ( Opt<int>,         worth_         ),
+  ( maybe<int>,         worth_         ),
   ( MovementPoints,   mv_pts_        ),
   ( bool,             finished_turn_ ));
   // clang-format on

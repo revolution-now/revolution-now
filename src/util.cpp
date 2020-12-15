@@ -28,8 +28,8 @@ using namespace std;
 
 namespace rn {
 
-Opt<string_view> env_var( char const* name ) {
-  Opt<string_view> res;
+maybe<string_view> env_var( char const* name ) {
+  maybe<string_view> res;
   auto const*      value = getenv( name );
   if( value != nullptr ) res = value;
   return res;
@@ -50,9 +50,9 @@ int round_down_to_nearest_int_multiple( double d, int m ) {
   return floor / m;
 }
 
-Opt<fs::path> user_home_folder() { return env_var( "HOME" ); }
+maybe<fs::path> user_home_folder() { return env_var( "HOME" ); }
 
-Opt<int> os_terminal_columns() {
+maybe<int> os_terminal_columns() {
   return env_var( "COLUMNS" )
       .bind( L( base::from_chars<int>( _ ) ) );
 }

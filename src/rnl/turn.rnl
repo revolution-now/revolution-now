@@ -24,7 +24,7 @@ sumtype TurnCycleState {
   starting:
   inside:
     bool need_eot;
-    Opt<e_nation> nation;
+    maybe<e_nation> nation;
     NationTurnFsm nation_turn;
     flat_queue<e_nation> remainder;
   ending:
