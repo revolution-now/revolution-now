@@ -11,7 +11,6 @@
 #include "save-game.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "cc-specific.hpp"
 #include "config-files.hpp"
 #include "fb.hpp"

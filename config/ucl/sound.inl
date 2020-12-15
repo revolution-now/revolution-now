@@ -13,9 +13,9 @@ CFG( sound,
     FLD( int, chunk_size )
   )
   OBJ( sfx,
-    FLD( Str, move )
-    FLD( Str, attacker_lost )
-    FLD( Str, attacker_won )
+    FLD( std::string, move )
+    FLD( std::string, attacker_lost )
+    FLD( std::string, attacker_won )
 
     OBJ( volume,
       FLD( int, move )

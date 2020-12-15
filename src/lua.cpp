@@ -11,7 +11,6 @@
 #include "lua.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
@@ -175,8 +174,8 @@ void reload() {
   CHECK_XP( run<void>( "meta.freeze_all()" ) );
 }
 
-Vec<Str> format_lua_error_msg( Str const& msg ) {
-  Vec<Str> res;
+vector<string> format_lua_error_msg( string const& msg ) {
+  vector<string> res;
   for( auto const& line : util::split_on_any( msg, "\n\r" ) )
     if( !line.empty() ) //
       res.push_back(

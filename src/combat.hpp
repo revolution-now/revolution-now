@@ -52,7 +52,7 @@ NOTHROW_MOVE( unit_combat_verdict );
 
 struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   CombatAnalysis( UnitId id_, orders_t orders_,
-                  Vec<UnitId> units_to_prioritize_,
+                  std::vector<UnitId> units_to_prioritize_,
                   Coord attack_src_, Coord attack_target_,
                   unit_combat_verdict  desc_,
                   maybe<UnitId>          target_unit_,

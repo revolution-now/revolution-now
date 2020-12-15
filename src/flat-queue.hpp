@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
@@ -136,8 +135,8 @@ public:
 
   std::string to_string(
       int max_elems = std::numeric_limits<int>::max() ) const {
-    Str res  = "[front:";
-    int back = front_ + std::min( max_elems, size() );
+    std::string res  = "[front:";
+    int         back = front_ + std::min( max_elems, size() );
     for( int i = front_; i < back; ++i ) {
       res += fmt::format( "{}", queue_[i] );
       if( i != back - 1 ) res += ',';
@@ -157,9 +156,9 @@ private:
     CHECK( front_ < reallocation_size_ );
   }
 
-  Vec<T> queue_;
-  int    front_; // no iterator; would be invalidated.
-  int    reallocation_size_;
+  std::vector<T> queue_;
+  int            front_; // no iterator; would be invalidated.
+  int            reallocation_size_;
   NOTHROW_MOVE( T );
 };
 

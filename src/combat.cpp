@@ -78,7 +78,7 @@ maybe<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
     category = e_entity_category::colony;
 
   auto const& units_at_dst_set = units_from_coord( dst_coord );
-  Vec<UnitId> units_at_dst( units_at_dst_set.begin(),
+  vector<UnitId> units_at_dst( units_at_dst_set.begin(),
                             units_at_dst_set.end() );
   auto        colony_at_dst = colony_from_coord( dst_coord );
 
@@ -100,7 +100,7 @@ maybe<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   // If military units are exhausted then attack the colony.
   if( colony_at_dst && units_at_dst.empty() ) {
     auto const& colony = colony_from_id( *colony_at_dst );
-    Vec<UnitId> units_working_in_colony = colony.units();
+    vector<UnitId> units_working_in_colony = colony.units();
     CHECK( units_working_in_colony.size() > 0 );
     // Sort since order is otherwise unspecified.
     sort( units_working_in_colony.begin(),

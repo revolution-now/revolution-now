@@ -14,7 +14,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "colony.hpp"
 #include "errors.hpp"
 #include "unit.hpp"
@@ -41,7 +40,7 @@ std::string debug_string( UnitId id );
 
 ND bool unit_exists( UnitId id );
 ND Unit&    unit_from_id( UnitId id );
-Vec<UnitId> units_all( maybe<e_nation> n = nothing );
+std::vector<UnitId> units_all( maybe<e_nation> n = nothing );
 // Apply a function to all units. The function may mutate the
 // units. NOTE: here, the word "map" is meant in the functional
 // programming sense, and not in the sense of the game world map.
@@ -83,14 +82,14 @@ ND absl::flat_hash_set<UnitId> const& units_from_coord(
 // level deep (beyond the first) because it is a game rule that a
 // unit cannot be held as cargo if it itself if capable of
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
-Vec<UnitId> units_from_coord_recursive( Coord coord );
+std::vector<UnitId> units_from_coord_recursive( Coord coord );
 
 // This is in the rare cases that we need to change a unit's po-
 // sition manually, such as when e.g. a colonist is captured in
 // combat.  Unit must be owned by the map for this!
 void move_unit_from_map_to_map( UnitId id, Coord dest );
 
-ND Vec<UnitId> units_in_rect( Rect const& rect );
+ND std::vector<UnitId> units_in_rect( Rect const& rect );
 
 // Returns the map coordinates for the unit if it is on the map
 // (which does NOT include being cargo of a unit on the map; for
@@ -143,7 +142,7 @@ maybe<UnitEuroPortViewState_t&> unit_euro_port_view_info(
 
 // Get a set of all units owned by the euro-port-view.
 // FIXME: needs to be nation-specific.
-Vec<UnitId> units_in_euro_port_view();
+std::vector<UnitId> units_in_euro_port_view();
 
 /****************************************************************
 ** Creation

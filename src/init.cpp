@@ -15,6 +15,7 @@
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "maybe.hpp"
+#include "ranges-fwd.hpp"
 
 // base
 #include "base/lambda.hpp"

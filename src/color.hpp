@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "coord.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
@@ -133,14 +132,14 @@ static_assert( sizeof( Color ) == 4 );
 std::string bucket_path( Color c );
 
 // Sorts colors in a quasi-human way.
-void hsl_bucketed_sort( Vec<Color>& colors );
+void hsl_bucketed_sort( std::vector<Color>& colors );
 
 // Removes colors with a saturation below a threshold.
-void remove_greys( Vec<Color>& colors );
+void remove_greys( std::vector<Color>& colors );
 
 // For holding a list of colors that are bucketed first by hue,
 // then by saturation, then by luminosity.
-using ColorBuckets = Vec<Vec<Vec<maybe<Color>>>>;
+using ColorBuckets = std::vector<std::vector<std::vector<maybe<Color>>>>;
 
 // This will iterate through the colors and place each one into a
 // bucket depending on its values of hue, saturation, and
@@ -150,7 +149,7 @@ using ColorBuckets = Vec<Vec<Vec<maybe<Color>>>>;
 // contains multiple colors that all fall into the same bucket.
 // If there are no colors for a bucket then that bucket will be
 // nothing.
-ColorBuckets hsl_bucket( Vec<Color> const& colors );
+ColorBuckets hsl_bucket( std::vector<Color> const& colors );
 
 // Load the image file(s) and scan every pixel and compile a list
 // of unique colors. Then, if a target number of colors is
@@ -159,14 +158,14 @@ ColorBuckets hsl_bucket( Vec<Color> const& colors );
 // best to achieve this number, but typically the set of returned
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
-Vec<Color> extract_palette( fs::path const& glob,
+std::vector<Color> extract_palette( fs::path const& glob,
                             maybe<int>        target = nothing );
 
 // Will remove colors that are redundant or approximately
 // redunant in order to meet the target count. It will always
 // return a number of colors that is >= min_count so long as
 // there are at least that many to begin with.
-Vec<Color> coursen( Vec<Color> const& colors, int min_count );
+std::vector<Color> coursen( std::vector<Color> const& colors, int min_count );
 
 // Will look in the `where` folder and will load all files
 // (assuming they are image files) and will load/scan each one of
@@ -196,7 +195,7 @@ void dump_palette( ColorBuckets const& colors,
                    fs::path const& schema, fs::path const& ucl );
 
 // Display an array of colors.
-void show_palette( Vec<Color> const& colors );
+void show_palette( std::vector<Color> const& colors );
 
 // Preview color shading and highlighting.  This will render
 // a color gradient to the screen.

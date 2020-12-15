@@ -731,7 +731,7 @@ void OptionSelectItemView::grow_to( W w ) {
       new_delta );
 }
 
-OptionSelectView::OptionSelectView( Vec<Str> const& options,
+OptionSelectView::OptionSelectView( vector<string> const& options,
                                     int initial_selection )
   : selected_{ initial_selection } {
   CHECK( options.size() > 0 );

@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "maybe.hpp"
 #include "time.hpp"
 #include "typed-int.hpp"
@@ -58,7 +57,7 @@ EVAL( PP_MAP_TUPLE( TUNE_DIMENSION_ENUM,
   PP_MAP_COMMAS( HEAD_TUPLE, TUNE_DIMENSIONS_DEFINITIONS )
 
 #define TUNE_VEC_DIMENSION( name ) \
-  Vec<PP_JOIN( e_tune_, name )> name;
+  std::vector<PP_JOIN( e_tune_, name )> name;
 
 struct TuneVecDimensions {
   EVAL( PP_MAP( TUNE_VEC_DIMENSION, TUNE_DIMENSION_LIST ) )
@@ -136,7 +135,7 @@ NOTHROW_MOVE( TunePlayerInfo );
 
 // Return list of stems of all tunes. The IDs themselves are not
 // useful to client code other than to iterate over the tunes.
-Vec<TuneId> const& all_tunes();
+std::vector<TuneId> const& all_tunes();
 
 // Get Tune object for tune stem/id.
 std::string const& tune_display_name_from_id( TuneId id );
@@ -163,23 +162,23 @@ TuneDimensions const& tune_dimensions( TuneId id );
 // specified dimension must match a tune's dimension exactly; for
 // TuneVecDimensions it mush match any of the possibilities in
 // the vector associated to that dimension.
-Vec<TuneId> find_tunes( TuneOptDimensions dimensions,
+std::vector<TuneId> find_tunes( TuneOptDimensions dimensions,
                         bool              fuzzy_match = true,
                         bool              not_like    = false );
 // Matches any of the possibilities for each dimension.
-Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
+std::vector<TuneId> find_tunes( TuneVecDimensions dimensions,
                         bool              fuzzy_match = true,
                         bool              not_like    = false );
 
 // List tunes like given tune. Actually it will return a list of
 // all tunes, sorted so that tunes that are most similar to the
 // given one appear earlier in the list.
-Vec<TuneId> tunes_like( TuneId id );
+std::vector<TuneId> tunes_like( TuneId id );
 
 // List tunes not like given tune. Actually it will return a list
 // of all tunes, sorted so that tunes that are most different to
 // the given one appear earlier in the list.
-Vec<TuneId> tunes_not_like( TuneId id );
+std::vector<TuneId> tunes_not_like( TuneId id );
 
 // This will generate a random tune by using the classification
 // attributes as random variables, thus yielding an stream of

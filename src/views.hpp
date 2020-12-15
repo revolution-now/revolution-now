@@ -25,10 +25,16 @@
 #include "utype.hpp"
 #include "view.hpp"
 
+// C++ standard library
+#include <memory>
+
 namespace rn::ui {
 
 // NOTE: Don't put anymore views in here that are specific to
 // game logic.
+
+template<typename T>
+using UPtr = ::std::unique_ptr<T>;
 
 /****************************************************************
 ** Fundamental Views
@@ -581,8 +587,8 @@ private:
 
 class OptionSelectView : public VectorView {
 public:
-  OptionSelectView( Vec<Str> const& options,
-                    int             initial_selection );
+  OptionSelectView( std::vector<std::string> const& options,
+                    int                     initial_selection );
 
   // Implement CompositeView
   void notify_children_updated() override {}

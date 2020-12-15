@@ -11,7 +11,6 @@
 #include "image.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
 #include "errors.hpp"

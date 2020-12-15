@@ -27,10 +27,10 @@ using Catch::Equals;
 TEST_CASE( "[terminal] autocomplete" ) {
   using term::autocomplete;
 
-  auto empty = Vec<Str>{};
+  auto empty = vector<string>{};
 
   string   in;
-  Vec<Str> out;
+  vector<string> out;
 
   in = "";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
@@ -39,24 +39,24 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
   in  = "usta";
-  out = Vec<Str>{ "ustate" };
+  out = vector<string>{ "ustate" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate";
-  out = Vec<Str>{ "ustate." };
+  out = vector<string>{ "ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.";
-  out = Vec<Str>{ "ustate.create_unit_on_map",
+  out = vector<string>{ "ustate.create_unit_on_map",
                   "ustate.unit_from_id" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
   in  = "ustate.unit_fr";
-  out = Vec<Str>{ "ustate.unit_from_id" };
+  out = vector<string>{ "ustate.unit_from_id" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.unit_from_id";
-  out = Vec<Str>{ "ustate.unit_from_id(" };
+  out = vector<string>{ "ustate.unit_from_id(" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in = "ustate.unit_from_id(";
@@ -66,11 +66,11 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
 
   in  = "ustate.unit_from_id( usta";
-  out = Vec<Str>{ "ustate.unit_from_id( ustate" };
+  out = vector<string>{ "ustate.unit_from_id( ustate" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ustate.unit_from_id( ustate";
-  out = Vec<Str>{ "ustate.unit_from_id( ustate." };
+  out = vector<string>{ "ustate.unit_from_id( ustate." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "uni";
@@ -185,10 +185,10 @@ TEST_CASE( "[terminal] autocomplete" ) {
 TEST_CASE( "[terminal] autocomplete_iterative" ) {
   using term::autocomplete_iterative;
 
-  auto empty = Vec<Str>{};
+  auto empty = vector<string>{};
 
   string   in;
-  Vec<Str> out;
+  vector<string> out;
 
   auto ac_i = []( auto& in ) {
     return autocomplete_iterative( in );
@@ -201,23 +201,23 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
   in  = "usta";
-  out = Vec<Str>{ "ustate." };
+  out = vector<string>{ "ustate." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "ustate.";
-  out = Vec<Str>{ "ustate.create_unit_on_map",
+  out = vector<string>{ "ustate.create_unit_on_map",
                   "ustate.unit_from_id" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "ustate.unit_fr";
-  out = Vec<Str>{ "ustate.unit_from_id(" };
+  out = vector<string>{ "ustate.unit_from_id(" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in = "ustate.unit_from_id(";
   REQUIRE_THAT( ac_i( in ), Equals( empty ) );
 
   in  = "ustate.unit_from_id( usta";
-  out = Vec<Str>{ "ustate.unit_from_id( ustate." };
+  out = vector<string>{ "ustate.unit_from_id( ustate." };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "uni";

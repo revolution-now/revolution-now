@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "cc-specific.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
@@ -101,7 +100,7 @@ expect<Ret> lua_script( std::string_view script ) {
 } // namespace detail
 
 template<typename Ret>
-ND auto run( Str const& script ) {
+ND auto run( std::string const& script ) {
   return detail::lua_script<Get<detail::LuaRetMap, Ret, Ret>>(
       script );
 }
@@ -296,7 +295,8 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
 /****************************************************************
 ** Utilites
 *****************************************************************/
-Vec<Str> format_lua_error_msg( Str const& msg );
+std::vector<std::string> format_lua_error_msg(
+    std::string const& msg );
 
 namespace {
 auto module_name__ =

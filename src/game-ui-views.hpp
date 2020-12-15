@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "id.hpp"
 #include "macros.hpp"
 #include "unit.hpp"
@@ -37,8 +36,8 @@ public:
   using map_t = absl::flat_hash_map<UnitId, UnitActivationInfo>;
 
   // Preferred way to create.
-  static UPtr<UnitActivationView> Create(
-      Vec<UnitId> const& ids_, bool allow_activation );
+  static std::unique_ptr<UnitActivationView> Create(
+      std::vector<UnitId> const& ids_, bool allow_activation );
 
   UnitActivationView( bool allow_activation );
 

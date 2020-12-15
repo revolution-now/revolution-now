@@ -11,7 +11,6 @@
 #include "window.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "auto-pad.hpp"
 #include "config-files.hpp"
 #include "errors.hpp"
@@ -66,7 +65,7 @@ enum class e_window_state { running, closed };
 struct Window {
   Window( std::string title_, Coord position_ );
 
-  void set_view( UPtr<View> view_ ) {
+  void set_view( unique_ptr<View> view_ ) {
     view = std::move( view_ );
   }
 
@@ -424,8 +423,8 @@ ValidatorFunc make_int_validator( maybe<int> min,
 ** Windows
 *****************************************************************/
 void async_window_builder(
-    std::string_view                    title,
-    function_ref<UPtr<View>( Window* )> get_view_fn ) {
+    std::string_view                          title,
+    function_ref<unique_ptr<View>( Window* )> get_view_fn ) {
   auto* win  = g_window_plane.wm.add_window( string( title ) );
   auto  view = get_view_fn( win );
   autopad( view, /*use_fancy=*/false );
@@ -433,7 +432,7 @@ void async_window_builder(
   win->center_window();
 }
 
-using GetOkCancelSubjectViewFunc = UPtr<View>(
+using GetOkCancelSubjectViewFunc = unique_ptr<View>(
     function<void( bool )> /*enable_ok_button*/ //
 );
 
@@ -471,11 +470,11 @@ void ok_cancel_window_builder(
     auto  enable_ok_button = [p_ok_button]( bool enable ) {
       p_ok_button->enable( enable );
     };
-    UPtr<View> subject_view = get_view_fn(
+    unique_ptr<View> subject_view = get_view_fn(
         /*enable_ok_button=*/std::move( enable_ok_button ) //
     );
     CHECK( subject_view != nullptr );
-    Vec<UPtr<View>> view_vec;
+    vector<unique_ptr<View>> view_vec;
     view_vec.emplace_back( std::move( subject_view ) );
     view_vec.emplace_back( std::move( ok_cancel_view ) );
     auto view = make_unique<VerticalArrayView>(
@@ -485,7 +484,7 @@ void ok_cancel_window_builder(
   } );
 }
 
-using GetOkBoxSubjectViewFunc = UPtr<View>(
+using GetOkBoxSubjectViewFunc = unique_ptr<View>(
     function<void( bool )> /*enable_ok_button*/ //
 );
 
@@ -517,7 +516,7 @@ void ok_box_window_builder(
     auto subject_view = get_view_fn(
         /*enable_ok_button=*/std::move( enable_ok_button ) //
     );
-    Vec<UPtr<View>> view_vec;
+    vector<unique_ptr<View>> view_vec;
     view_vec.emplace_back( std::move( subject_view ) );
     view_vec.emplace_back( std::move( ok_button_view ) );
     auto view = make_unique<VerticalArrayView>(
@@ -618,7 +617,7 @@ void text_input_box(
         // initial validation result.
         on_change( le_view->text() );
         le_view->set_on_change_fn( std::move( on_change ) );
-        Vec<UPtr<View>> view_vec;
+        vector<unique_ptr<View>> view_vec;
         view_vec.emplace_back( std::move( text ) );
         view_vec.emplace_back( std::move( le_view ) );
         return make_unique<VerticalArrayView>(
@@ -663,7 +662,7 @@ sync_future<maybe<string>> str_input_box( string_view title,
 ** High-level Methods
 *****************************************************************/
 void select_box(
-    string_view title, Vec<Str> options,
+    string_view title, vector<string> options,
     std::function<void( std::string const& )> on_result ) {
   lg.info( "question: \"{}\"", title );
   auto view = make_unique<OptionSelectView>(
@@ -697,7 +696,7 @@ void select_box(
 }
 
 sync_future<std::string> select_box( std::string_view title,
-                                     Vec<Str>         options ) {
+                                     vector<string>      options ) {
   sync_promise<string> s_promise;
   select_box( title, options,
               [s_promise]( string const& result ) mutable {
@@ -724,14 +723,14 @@ sync_future<> message_box( string_view msg ) {
   return s_promise.get_future();
 }
 
-sync_future<Vec<UnitSelection>> unit_selection_box(
-    Vec<UnitId> const& ids, bool allow_activation ) {
-  sync_promise<Vec<UnitSelection>> s_promise;
+sync_future<vector<UnitSelection>> unit_selection_box(
+    vector<UnitId> const& ids, bool allow_activation ) {
+  sync_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
       [s_promise](
           maybe<UnitActivationView::map_t> result ) mutable {
-        Vec<UnitSelection> selections;
+        vector<UnitSelection> selections;
         if( result.has_value() ) {
           for( auto const& [id, info] : *result ) {
             if( info.is_activated ) {

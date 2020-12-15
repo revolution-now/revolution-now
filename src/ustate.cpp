@@ -12,7 +12,6 @@
 #include "ustate.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "errors.hpp"
@@ -171,7 +170,7 @@ string debug_string( UnitId id ) {
   return debug_string( unit_from_id( id ) );
 }
 
-Vec<UnitId> units_all( maybe<e_nation> nation ) {
+vector<UnitId> units_all( maybe<e_nation> nation ) {
   vector<UnitId> res;
   res.reserve( SG().units.size() );
   if( nation ) {
@@ -261,8 +260,8 @@ absl::flat_hash_set<UnitId> const& units_from_coord(
       .value_or( empty );
 }
 
-Vec<UnitId> units_from_coord_recursive( Coord coord ) {
-  Vec<UnitId> res;
+vector<UnitId> units_from_coord_recursive( Coord coord ) {
+  vector<UnitId> res;
   for( auto id : units_from_coord( coord ) ) {
     res.push_back( id );
     auto held_units =
@@ -278,8 +277,8 @@ void move_unit_from_map_to_map( UnitId id, Coord dest ) {
   ustate_change_to_map( id, dest );
 }
 
-Vec<UnitId> units_in_rect( Rect const& rect ) {
-  Vec<UnitId> res;
+vector<UnitId> units_in_rect( Rect const& rect ) {
+  vector<UnitId> res;
   for( Y i = rect.y; i < rect.y + rect.h; ++i )
     for( X j = rect.x; j < rect.x + rect.w; ++j )
       for( auto id : units_from_coord( Coord{ i, j } ) )
@@ -399,8 +398,8 @@ maybe<UnitEuroPortViewState_t&> unit_euro_port_view_info(
   return nothing;
 }
 
-Vec<UnitId> units_in_euro_port_view() {
-  Vec<UnitId> res;
+vector<UnitId> units_in_euro_port_view() {
+  vector<UnitId> res;
   for( auto const& [id, st] : SG().states ) {
     if( holds<UnitState::europort>( st ) ) res.push_back( id );
   }

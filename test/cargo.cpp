@@ -189,14 +189,14 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     if( auto* unit_id = get_if<UnitId>( &( cargo.contents ) ) ) {
       REQUIRE( ch.find_unit( *unit_id ) == 0 );
       REQUIRE_THAT( ch.units(),
-                    UnorderedEquals( Vec<UnitId>{ *unit_id } ) );
+                    UnorderedEquals( vector<UnitId>{ *unit_id } ) );
       REQUIRE(
           ch.debug_string() ==
           fmt::format( "[cargo{{contents={}}}]", *unit_id ) );
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<pair<Commodity, int>>{
+                    UnorderedEquals( vector<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -219,14 +219,14 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
     if( auto* unit_id = get_if<UnitId>( &( cargo.contents ) ) ) {
       REQUIRE( ch.find_unit( *unit_id ) == 0 );
       REQUIRE_THAT( ch.units(),
-                    UnorderedEquals( Vec<UnitId>{ *unit_id } ) );
+                    UnorderedEquals( vector<UnitId>{ *unit_id } ) );
       REQUIRE(
           ch.debug_string() ==
           fmt::format( "[cargo{{contents={}}}]", *unit_id ) );
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<pair<Commodity, int>>{
+                    UnorderedEquals( vector<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -271,7 +271,7 @@ TEST_CASE(
     if( auto* unit_id = get_if<UnitId>( &( cargo.contents ) ) ) {
       REQUIRE( ch.find_unit( *unit_id ) == 0 );
       REQUIRE_THAT( ch.units(),
-                    UnorderedEquals( Vec<UnitId>{ *unit_id } ) );
+                    UnorderedEquals( vector<UnitId>{ *unit_id } ) );
       REQUIRE( ch.debug_string() ==
                fmt::format( "[cargo{{contents={}}},empty,empty,"
                             "empty,empty,empty]",
@@ -279,7 +279,7 @@ TEST_CASE(
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<pair<Commodity, int>>{
+                    UnorderedEquals( vector<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -298,7 +298,7 @@ TEST_CASE(
     if( auto* unit_id = get_if<UnitId>( &( cargo.contents ) ) ) {
       REQUIRE( ch.find_unit( *unit_id ) == 3 );
       REQUIRE_THAT( ch.units(),
-                    UnorderedEquals( Vec<UnitId>{ *unit_id } ) );
+                    UnorderedEquals( vector<UnitId>{ *unit_id } ) );
       REQUIRE( ch.debug_string() ==
                fmt::format( "[empty,empty,empty,cargo{{contents="
                             "{}}},empty,empty]",
@@ -306,7 +306,7 @@ TEST_CASE(
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<pair<Commodity, int>>{
+                    UnorderedEquals( vector<pair<Commodity, int>>{
                         { *comm, 3 } } ) );
       REQUIRE( ch.debug_string() ==
                "[empty,empty,empty,cargo{contents=Commodity{"
@@ -327,7 +327,7 @@ TEST_CASE(
     if( auto* unit_id = get_if<UnitId>( &( cargo.contents ) ) ) {
       REQUIRE( ch.find_unit( *unit_id ) == 0 );
       REQUIRE_THAT( ch.units(),
-                    UnorderedEquals( Vec<UnitId>{ *unit_id } ) );
+                    UnorderedEquals( vector<UnitId>{ *unit_id } ) );
       REQUIRE( ch.debug_string() ==
                fmt::format( "[cargo{{contents={}}},empty,empty,"
                             "empty,empty,empty]",
@@ -335,7 +335,7 @@ TEST_CASE(
     }
     if( auto* comm = get_if<Commodity>( &( cargo.contents ) ) ) {
       REQUIRE_THAT( ch.commodities(),
-                    UnorderedEquals( Vec<pair<Commodity, int>>{
+                    UnorderedEquals( vector<pair<Commodity, int>>{
                         { *comm, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Commodity{type=food,quantity="
@@ -386,7 +386,7 @@ TEST_CASE(
     REQUIRE( ch.slots_[5] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.find_unit( unit_id ) == 1 );
     REQUIRE_THAT( ch.units(),
-                  UnorderedEquals( Vec<UnitId>{ unit_id } ) );
+                  UnorderedEquals( vector<UnitId>{ unit_id } ) );
     REQUIRE( ch.commodities().empty() );
     REQUIRE( ch.debug_string() ==
              fmt::format( "[empty,cargo{{contents={}}},overflow,"
@@ -416,7 +416,7 @@ TEST_CASE(
     REQUIRE( ch.slots_[5] == CargoSlot_t{ CargoSlot::empty{} } );
     REQUIRE( ch.find_unit( unit_id ) == 0 );
     REQUIRE_THAT( ch.units(),
-                  UnorderedEquals( Vec<UnitId>{ unit_id } ) );
+                  UnorderedEquals( vector<UnitId>{ unit_id } ) );
     REQUIRE( ch.commodities().empty() );
     REQUIRE( ch.debug_string() ==
              fmt::format( "[cargo{{contents={}}},overflow,"
@@ -516,27 +516,27 @@ TEST_CASE( "CargoHold add multiple units" ) {
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.count_items_of_type<UnitId>() == 1 );
   REQUIRE_THAT( ch.units(),
-                UnorderedEquals( Vec<UnitId>{ unit_id1 } ) );
+                UnorderedEquals( vector<UnitId>{ unit_id1 } ) );
   REQUIRE_THAT( ch.items_of_type<UnitId>(),
-                UnorderedEquals( Vec<UnitId>{ unit_id1 } ) );
+                UnorderedEquals( vector<UnitId>{ unit_id1 } ) );
   REQUIRE( ch.fits_somewhere( unit_id2 ) );
   REQUIRE( ch.try_add_somewhere( unit_id2 ) );
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.count_items_of_type<UnitId>() == 2 );
-  REQUIRE_THAT( ch.units(), UnorderedEquals( Vec<UnitId>{
+  REQUIRE_THAT( ch.units(), UnorderedEquals( vector<UnitId>{
                                 unit_id1, unit_id2 } ) );
   REQUIRE_THAT(
       ch.items_of_type<UnitId>(),
-      UnorderedEquals( Vec<UnitId>{ unit_id1, unit_id2 } ) );
+      UnorderedEquals( vector<UnitId>{ unit_id1, unit_id2 } ) );
   REQUIRE( ch.fits_somewhere( unit_id3 ) );
   REQUIRE( ch.try_add_somewhere( unit_id3 ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.count_items_of_type<UnitId>() == 3 );
   REQUIRE_THAT( ch.units(),
-                UnorderedEquals( Vec<UnitId>{ unit_id1, unit_id2,
+                UnorderedEquals( vector<UnitId>{ unit_id1, unit_id2,
                                               unit_id3 } ) );
   REQUIRE_THAT( ch.items_of_type<UnitId>(),
-                UnorderedEquals( Vec<UnitId>{ unit_id1, unit_id2,
+                UnorderedEquals( vector<UnitId>{ unit_id1, unit_id2,
                                               unit_id3 } ) );
   REQUIRE( ch.slots_occupied() == 6 );
   REQUIRE( ch.slots_remaining() == 0 );
@@ -689,7 +689,7 @@ TEST_CASE(
   auto unit_id5 =
       create_unit( e_nation::english, e_unit_type::soldier );
 
-  Vec<CargoSlot_t> cmp_slots( 12 );
+  vector<CargoSlot_t> cmp_slots( 12 );
 
   REQUIRE( ch.fits_somewhere( unit_id1 ) );
   REQUIRE( ch.try_add_somewhere( unit_id1 ) );
@@ -766,7 +766,7 @@ TEST_CASE(
   auto unit_id9 =
       create_unit( e_nation::english, e_unit_type::soldier );
 
-  Vec<CargoSlot_t> cmp_slots( 12 );
+  vector<CargoSlot_t> cmp_slots( 12 );
 
   REQUIRE( ch.fits_somewhere( unit_id1, /*starting_slot=*/2 ) );
   REQUIRE(
@@ -880,7 +880,7 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
     unit_ids[i] = create_unit( e_nation::english,
                                e_unit_type::free_colonist );
 
-  Vec<CargoSlot_t> cmp_slots( 6 );
+  vector<CargoSlot_t> cmp_slots( 6 );
 
   for( auto i = 0; i < 6; ++i ) {
     REQUIRE( ch.fits_somewhere( unit_ids[i],
@@ -1949,7 +1949,7 @@ TEST_CASE(
   INFO( fmt::format( "sub_seed: {}", sub_seed ) );
   rng::reseed( sub_seed );
 
-  Vec<Cargo> shuffled( begin( cargos ), end( cargos ) );
+  vector<Cargo> shuffled( begin( cargos ), end( cargos ) );
   rng::shuffle( shuffled );
 
   for( auto const& cargo : shuffled ) {
@@ -2023,12 +2023,12 @@ TEST_CASE(
   REQUIRE( ch[22] == CargoSlot_t{ CargoSlot::empty{} } );
   REQUIRE( ch[23] == CargoSlot_t{ CargoSlot::empty{} } );
 
-  REQUIRE_THAT( ch.units(), UnorderedEquals( Vec<UnitId>{
+  REQUIRE_THAT( ch.units(), UnorderedEquals( vector<UnitId>{
                                 unit_id1, unit_id2, unit_id3,
                                 unit_id4, unit_id5 } ) );
 
   REQUIRE_THAT( ch.commodities(),
-                UnorderedEquals( Vec<pair<Commodity, int>>{
+                UnorderedEquals( vector<pair<Commodity, int>>{
                     { food_full, 16 },
                     { food_full, 17 },
                     { food_overflow, 18 },
@@ -2070,7 +2070,7 @@ TEST_CASE( "CargoHold find_unit" ) {
   REQUIRE( ch.find_unit( unit_id3 ) == 5 );
 
   REQUIRE_THAT( ch.units(),
-                UnorderedEquals( Vec<UnitId>{ unit_id1, unit_id2,
+                UnorderedEquals( vector<UnitId>{ unit_id1, unit_id2,
                                               unit_id3 } ) );
 
   ch.clear();

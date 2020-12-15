@@ -14,7 +14,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 
 // Flatbuffers
 #include "fb/colony-mfg_generated.h"

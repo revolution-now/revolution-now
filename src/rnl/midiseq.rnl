@@ -8,7 +8,6 @@
 # Description: RNL definitions for the midiseq module.
 #
 # ===============================================================
-include "aliases.hpp";
 
 # base
 include "base/fs.hpp";

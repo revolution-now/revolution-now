@@ -11,7 +11,6 @@
 #include "config-files.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "color.hpp"
 #include "conductor.hpp"
 #include "coord.hpp"
@@ -455,7 +454,7 @@ void populate_config_field( ucl::Ucl                   obj,
                             vector<string> const&      path,
                             string const& config_name,
                             string const& file ) {
-  Vec<pair<K, V>> assoc_list;
+  vector<pair<K, V>> assoc_list;
 
   populate_config_field( obj, assoc_list, path, config_name,
                          file );
@@ -700,9 +699,9 @@ REGISTER_INIT_ROUTINE( configs );
 
 namespace rn {
 
-Vec<Color> const& g_palette() {
-  static Vec<Color> colors = [] {
-    Vec<Color> res;
+vector<Color> const& g_palette() {
+  static vector<Color> colors = [] {
+    vector<Color> res;
     string     file = "config/ucl/palette.ucl";
 
     string errors;

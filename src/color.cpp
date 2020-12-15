@@ -248,7 +248,7 @@ void render_palette_segment( Texture&             tx,
 // approximate redundancy.  A color is considered redundant if we
 // already have a color whose r/g/b components are all within the
 // same chunk.
-Vec<Color> coursen_impl( Vec<Color> const& colors,
+vector<Color> coursen_impl( vector<Color> const& colors,
                          uint8_t           chunk ) {
   // Do this in a dedicated function so that we don't have any
   // issues with the fact that a) we're using unsigned numbers
@@ -465,7 +465,7 @@ Color mix( Color first, Color second ) {
   };
 }
 
-void hsl_bucketed_sort( Vec<Color>& colors ) {
+void hsl_bucketed_sort( vector<Color>& colors ) {
   util::sort_by_key( colors, L( _.luminosity() ) );
   util::stable_sort_by_key( colors, sat_bucket_key );
   util::stable_sort_by_key( colors, hue_bucket_key );
@@ -551,7 +551,7 @@ vector<Color> extract_palette( fs::path const& glob,
   return res;
 }
 
-ColorBuckets hsl_bucket( Vec<Color> const& colors ) {
+ColorBuckets hsl_bucket( vector<Color> const& colors ) {
   auto sorted = colors;
   hsl_bucketed_sort( sorted );
   vector<vector<vector<maybe<Color>>>> bucketed;
@@ -637,17 +637,17 @@ void dump_palette( ColorBuckets const& bucketed,
   inl_out << ")\n";
 }
 
-Vec<Vec<Color>> partition_by_hue( Vec<Color> const& colors ) {
+vector<vector<Color>> partition_by_hue( vector<Color> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, hue_bucket_key ) );
 }
 
-Vec<Vec<Color>> partition_by_sat( Vec<Color> const& colors ) {
+vector<vector<Color>> partition_by_sat( vector<Color> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, sat_bucket_key ) );
 }
 
-void remove_greys( Vec<Color>& colors ) {
+void remove_greys( vector<Color>& colors ) {
   auto is_greyscale = []( Color c ) {
     auto hsl = to_HSL( c );
     return hsl.s < greyscale_max_saturation;
@@ -658,24 +658,24 @@ void remove_greys( Vec<Color>& colors ) {
   lg.info( "removed {} greys", init - final );
 }
 
-Vec<Color> coursen( Vec<Color> const& colors, int min_count ) {
+vector<Color> coursen( vector<Color> const& colors, int min_count ) {
   uint8_t chunk = 64;
   while( chunk > 1 ) {
     chunk--;
-    Vec<Color> res = coursen_impl( colors, chunk );
+    vector<Color> res = coursen_impl( colors, chunk );
     if( int( res.size() ) >= min_count ) return res;
   }
   return colors;
 }
 
-void show_palette( Texture& tx, Vec<Color> const& colors ) {
+void show_palette( Texture& tx, vector<Color> const& colors ) {
   clear_texture_black( tx );
   render_palette_segment( tx, colors, palette_render_origin,
                           64 );
   ::SDL_RenderPresent( g_renderer );
 }
 
-void show_palette( Vec<Color> const& colors ) {
+void show_palette( vector<Color> const& colors ) {
   show_palette( Texture::screen(), colors );
 }
 
@@ -696,7 +696,7 @@ void show_palette( Texture& tx, ColorBuckets const& colors ) {
 }
 
 void show_color_adjustment( Color center ) {
-  Vec<Color> colors;
+  vector<Color> colors;
   for( int i = 10; i >= 0; --i )
     colors.push_back( center.shaded( i ) );
   for( int i = 0; i <= 10; ++i )

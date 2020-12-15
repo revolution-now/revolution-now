@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"

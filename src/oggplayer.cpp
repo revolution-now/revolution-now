@@ -11,7 +11,6 @@
 #include "oggplayer.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "config-files.hpp"
 #include "init.hpp"
 #include "logging.hpp"

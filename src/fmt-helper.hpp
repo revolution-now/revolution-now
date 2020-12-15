@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "maybe.hpp"
 
 // base
@@ -153,12 +152,12 @@ DEFINE_FMT_TAG( FmtRemoveRnNamespace );
 
 template<typename T>
 struct FmtJsonStyleList {
-  std::reference_wrapper<Vec<T> const> vec;
+  std::reference_wrapper<std::vector<T> const> vec;
 };
 
 // Deduction guide.
 template<typename T>
-FmtJsonStyleList( Vec<T> const & ) -> FmtJsonStyleList<T>;
+FmtJsonStyleList( std::vector<T> const & ) -> FmtJsonStyleList<T>;
 
 } // namespace rn
 

@@ -16,6 +16,7 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "rand.hpp"
+#include "ranges-fwd.hpp"
 #include "time.hpp"
 
 // Revolution Now (config)
@@ -58,7 +59,7 @@ absl::flat_hash_map<TuneId, Tune const*> g_tunes;
 // and each pair gives the tune ID and the score representing how
 // different it is (distance) from the given set of dimensions.
 // The result will be sorted from most similar to most different.
-Vec<pair<TuneId, int>> tune_difference_scores(
+vector<pair<TuneId, int>> tune_difference_scores(
     TuneVecDimensions dims ) {
   vector<pair<TuneId, int /*score*/>> scores;
   for( auto const& [id, tune_ptr] : g_tunes ) {
@@ -115,8 +116,9 @@ REGISTER_INIT_ROUTINE( tunes );
 #define OPT_TO_VEC( what )                                     \
   {                                                            \
     what.has_value()                                           \
-        ? Vec<std::decay_t<decltype( what.value() )>>{ *what } \
-        : Vec<std::decay_t<decltype( what.value() )>> {}       \
+        ? vector<                                              \
+              std::decay_t<decltype( what.value() )>>{ *what } \
+        : vector<std::decay_t<decltype( what.value() )>> {}    \
   }
 
 TuneVecDimensions TuneOptDimensions::to_vec_dims() const {
@@ -135,11 +137,11 @@ void TunePlayerInfo::log() const {
   lg.debug( "  progress: {}", progress );
 }
 
-Vec<TuneId> const& all_tunes() {
-  static Vec<TuneId> tunes;
+vector<TuneId> const& all_tunes() {
+  static vector<TuneId> tunes;
   if( tunes.empty() )
-    tunes = rg::to<Vec<TuneId>>( g_tunes |
-                                 rv::transform( L( _.first ) ) );
+    tunes = rg::to<vector<TuneId>>(
+        g_tunes | rv::transform( L( _.first ) ) );
   return tunes;
 }
 
@@ -163,16 +165,16 @@ TuneDimensions const& tune_dimensions( TuneId id ) {
   return g_tunes[id]->dimensions;
 }
 
-Vec<TuneId> find_tunes( TuneOptDimensions dims, bool fuzzy_match,
-                        bool not_like ) {
+vector<TuneId> find_tunes( TuneOptDimensions dims,
+                           bool fuzzy_match, bool not_like ) {
   return find_tunes( dims.to_vec_dims(), fuzzy_match, not_like );
 }
 
 #define TUNE_DIMENSION_COUNT_IF_ENABLED( dim ) \
   ( !dimensions.dim.empty() ? 1 : 0 )
 
-Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
-                        bool fuzzy_match, bool not_like ) {
+vector<TuneId> find_tunes( TuneVecDimensions dimensions,
+                           bool fuzzy_match, bool not_like ) {
   auto scores = tune_difference_scores( dimensions );
 
   if( !fuzzy_match ) {
@@ -183,7 +185,7 @@ Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
 
     int target_score_for_non_fuzzy =
         not_like ? enabled_dimensions : 0;
-    scores = rg::to<Vec<pair<TuneId, int>>>(
+    scores = rg::to<vector<pair<TuneId, int>>>(
         scores |
         rv::filter(
             LC( _.second == target_score_for_non_fuzzy ) ) );
@@ -191,13 +193,13 @@ Vec<TuneId> find_tunes( TuneVecDimensions dimensions,
 
   if( not_like ) rg::reverse( scores );
 
-  auto res = rg::to<Vec<TuneId>>(
+  auto res = rg::to<vector<TuneId>>(
       scores | rv::transform( L( _.first ) ) );
   if( fuzzy_match ) { DCHECK( !res.empty() ); }
   return res;
 }
 
-Vec<TuneId> tunes_like( TuneId id ) {
+vector<TuneId> tunes_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
   return find_tunes( tune.dimensions.to_opt_dims(), //
@@ -206,7 +208,7 @@ Vec<TuneId> tunes_like( TuneId id ) {
   );
 }
 
-Vec<TuneId> tunes_not_like( TuneId id ) {
+vector<TuneId> tunes_not_like( TuneId id ) {
   CHECK( g_tunes.contains( id ) );
   auto const& tune = *g_tunes[id];
   return find_tunes( tune.dimensions.to_opt_dims(), //
@@ -240,7 +242,7 @@ TuneId random_tune() {
       tunes_scores |
       rv::take_while( LC( _.second == first_score ) );
   return rng::pick_one(
-             rg::to<Vec<pair<TuneId, int>>>( same_distance ) )
+             rg::to<vector<pair<TuneId, int>>>( same_distance ) )
       .first;
 }
 

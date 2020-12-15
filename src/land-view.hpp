@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "orders.hpp"
@@ -33,8 +32,8 @@ struct UnitInputResponse {
 
   UnitId        id;
   maybe<orders_t> orders;
-  Vec<UnitId>   add_to_front;
-  Vec<UnitId>   add_to_back;
+  std::vector<UnitId>   add_to_front;
+  std::vector<UnitId>   add_to_back;
 };
 
 enum class e_depixelate_anim { none, death, demote };

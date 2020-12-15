@@ -11,7 +11,6 @@
 #include "sdl-util.hpp"
 
 // Revolution Now
-//#include "aliases.hpp"
 #include "errors.hpp"
 //#include "fmt-helper.hpp"
 //#include "frame.hpp"
@@ -121,6 +120,7 @@ void init_sdl() {
 
 void cleanup_sdl() { ::SDL_Quit(); }
 
+//
 //
 REGISTER_INIT_ROUTINE( sdl );
 

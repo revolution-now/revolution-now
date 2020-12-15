@@ -32,8 +32,8 @@ int Colony::commodity_quantity( e_commodity commodity ) const {
   return res->second;
 }
 
-Vec<UnitId> Colony::units() const {
-  Vec<UnitId> units_working_in_colony;
+vector<UnitId> Colony::units() const {
+  vector<UnitId> units_working_in_colony;
   units_working_in_colony.reserve( units_jobs().size() );
   for( auto const& [unit_id, job] : units_jobs() ) {
     (void)job;

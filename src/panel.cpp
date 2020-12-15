@@ -11,7 +11,6 @@
 #include "panel.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "compositor.hpp"
 #include "errors.hpp"
 #include "gfx.hpp"
@@ -129,8 +128,8 @@ struct PanelPlane : public Plane {
     return false;
   }
 
-  UPtr<ui::InvisibleView> view;
-  bool                    next_turn_clicked{ false };
+  unique_ptr<ui::InvisibleView> view;
+  bool                          next_turn_clicked{ false };
 };
 
 PanelPlane g_panel_plane;

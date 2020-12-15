@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "fmt-helper.hpp"
 
@@ -289,7 +288,7 @@ public:
       // This is to accumulate callbacks that are installed be-
       // fore the continuation is called. Once the continuation
       // is called then we are ready to properly install them.
-      Vec<std::function<NotifyFunc>> callbacks_;
+      std::vector<std::function<NotifyFunc>> callbacks_;
       // *continuation_ :: T -> sync_future<new_value_t>
       Func continuation_;
     };

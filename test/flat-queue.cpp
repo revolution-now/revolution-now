@@ -250,7 +250,7 @@ TEST_CASE( "[flat-queue] min size" ) {
   int const push_size = 10 * 5;
   REQUIRE( push_size > 10 );
 
-  Vec<int> pushed;
+  vector<int> pushed;
   for( int i = 0; i < push_size; ++i ) {
     auto value = i * 2;
     pushed.push_back( value );

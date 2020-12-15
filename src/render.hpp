@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "id.hpp"
 #include "orders.hpp"
 #include "unit.hpp"

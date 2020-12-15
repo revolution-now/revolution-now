@@ -8,7 +8,6 @@
 # Description: RNL definitions for the menu module.
 #
 # ===============================================================
-include "aliases.hpp";
 include "menu.hpp";
 
 namespace rn;

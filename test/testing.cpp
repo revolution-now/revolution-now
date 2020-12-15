@@ -11,7 +11,6 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "lua.hpp"
 #include "save-game.hpp"
 

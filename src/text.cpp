@@ -12,7 +12,6 @@
 #include "text.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
@@ -136,7 +135,7 @@ auto parse_markup( string_view sv ) -> maybe<MarkupStyle> {
   return nothing; // parsing failed.
 }
 
-Vec<Vec<MarkedUpText>> parse_text( string_view text ) {
+vector<vector<MarkedUpText>> parse_text( string_view text ) {
   vector<string_view> lines = absl::StrSplit( text, '\n' );
   vector<vector<MarkedUpText>> line_frags;
   line_frags.reserve( lines.size() );
@@ -219,7 +218,7 @@ Texture render_line_markup( e_font                      font,
 }
 
 Texture render_lines( e_font font, Color fg,
-                      Vec<Str> const& txt ) {
+                      vector<string> const& txt ) {
   auto renderer = [&]( string_view line ) {
     return render_line( font, fg, line );
   };
@@ -239,7 +238,7 @@ Texture render_lines( e_font font, Color fg,
 }
 
 Texture render_lines_markup(
-    e_font font, Vec<Vec<MarkedUpText>> const& mk_text,
+    e_font font, vector<vector<MarkedUpText>> const& mk_text,
     TextMarkupInfo const& info ) {
   auto renderer = [&]( auto const& mks ) {
     return render_line_markup( font, mks, info );
@@ -273,13 +272,13 @@ Texture render_lines_markup(
 //   Steps:
 //     1) Split text into words and strip each one of all spaces
 //     2) Join words into one long line separated by spaces
-//     3) Parse long line for markup, yielding Vec<MarkedUpText>
+//     3) Parse long line for markup, yielding vector<MarkedUpText>
 //     4) Extract text from markup results.  This should be the
 //        line from #2 but without any markup.
 //     5) Wrap the line from #4
 //     6) Re-flow the marked up line from #3 into lines of length
 //        corresponding to the wrapped lines from #5, resulting
-//        in a Vec<Vec<MarkedUpText>>.
+//        in a vector<vector<MarkedUpText>>.
 //     7) Render marked up lines.
 
 Texture render_text_markup_reflow_impl(

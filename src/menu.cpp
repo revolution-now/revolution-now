@@ -11,7 +11,6 @@
 #include "menu.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "color.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
@@ -106,7 +105,7 @@ namespace {
 flat_hash_map<e_menu_item, MenuItem::menu_clickable*>
                                         g_menu_items;
 flat_hash_map<e_menu_item, e_menu>      g_item_to_menu;
-flat_hash_map<e_menu, Vec<e_menu_item>> g_items_from_menu;
+flat_hash_map<e_menu, vector<e_menu_item>> g_items_from_menu;
 
 #define ITEM( item, name )      \
   MenuItem::menu_clickable {    \
@@ -119,7 +118,7 @@ flat_hash_map<e_menu, Vec<e_menu_item>> g_items_from_menu;
 /****************************************************************
 ** The Menus
 *****************************************************************/
-absl::flat_hash_map<e_menu, Vec<MenuItem_t>> g_menu_def{
+absl::flat_hash_map<e_menu, vector<MenuItem_t>> g_menu_def{
     { e_menu::game,
       {
           ITEM( about, "About this Game" ),    //

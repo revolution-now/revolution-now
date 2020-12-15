@@ -46,9 +46,9 @@ constexpr W kCommodityTileWidth = 16_w;
 ** Globals
 *****************************************************************/
 struct ColViewComposited {
-  ColonyId       id;
-  Delta          screen_size;
-  UPtr<ui::View> top_level;
+  ColonyId             id;
+  Delta                screen_size;
+  unique_ptr<ui::View> top_level;
   absl::flat_hash_map<e_colview_entity, ColViewEntityView*>
       entities;
 };
@@ -75,7 +75,7 @@ public:
     name.copy_to( tx, centered( name.size(), rect( coord ) ) );
   }
 
-  static UPtr<TitleBar> create( ColonyId id, Delta size ) {
+  static unique_ptr<TitleBar> create( ColonyId id, Delta size ) {
     return make_unique<TitleBar>( id, size );
   }
 
@@ -132,8 +132,8 @@ public:
     }
   }
 
-  static UPtr<MarketCommodities> create( ColonyId id,
-                                         W        block_width ) {
+  static unique_ptr<MarketCommodities> create( ColonyId id,
+                                               W block_width ) {
     return make_unique<MarketCommodities>( id, block_width );
   }
 
@@ -185,7 +185,8 @@ public:
     }
   }
 
-  static UPtr<PopulationView> create( ColonyId id, Delta size ) {
+  static unique_ptr<PopulationView> create( ColonyId id,
+                                            Delta    size ) {
     return make_unique<PopulationView>( id, size );
   }
 
@@ -223,7 +224,8 @@ public:
     // TODO: Draw cargo.
   }
 
-  static UPtr<CargoView> create( ColonyId id, Delta size ) {
+  static unique_ptr<CargoView> create( ColonyId id,
+                                       Delta    size ) {
     return make_unique<CargoView>( id, size );
   }
 
@@ -253,7 +255,8 @@ public:
                  rect( coord ).with_inc_size() );
   }
 
-  static UPtr<ProductionView> create( ColonyId id, Delta size ) {
+  static unique_ptr<ProductionView> create( ColonyId id,
+                                            Delta    size ) {
     return make_unique<ProductionView>( id, size );
   }
 
@@ -352,8 +355,8 @@ public:
     }
   }
 
-  static UPtr<LandView> create( ColonyId      id,
-                                e_render_mode mode ) {
+  static unique_ptr<LandView> create( ColonyId      id,
+                                      e_render_mode mode ) {
     return make_unique<LandView>(
         id, mode,
         Texture::create( Delta{ 3_w, 3_h } * g_tile_scale ) );

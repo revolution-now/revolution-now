@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "colony.hpp"
 #include "errors.hpp"
 
@@ -27,7 +26,7 @@ namespace rn {
 
 bool          colony_exists( ColonyId id );
 Colony&       colony_from_id( ColonyId id );
-Vec<ColonyId> colonies_all( maybe<e_nation> n = {} );
+std::vector<ColonyId> colonies_all( maybe<e_nation> n = {} );
 
 // Apply a function to all colonies.
 void map_colonies( function_ref<void( Colony& )> func );
@@ -46,6 +45,6 @@ void cstate_destroy_colony( ColonyId id );
 
 maybe<ColonyId> colony_from_coord( Coord const& coord );
 maybe<ColonyId> colony_from_name( std::string_view name );
-Vec<ColonyId> colonies_in_rect( Rect const& rect );
+std::vector<ColonyId> colonies_in_rect( Rect const& rect );
 
 } // namespace rn

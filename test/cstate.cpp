@@ -48,30 +48,30 @@ TEST_CASE( "[cstate] create, query, destroy" ) {
       e_nation::dutch, Coord{ 1_x, 3_y }, "my second colony" );
   REQUIRE( xp2 == ColonyId{ 2 } );
   REQUIRE_THAT( colonies_all(),
-                UnorderedEquals( Vec<ColonyId>{
+                UnorderedEquals( vector<ColonyId>{
                     ColonyId{ 1 }, ColonyId{ 2 } } ) );
   REQUIRE_THAT(
       colonies_all( e_nation::dutch ),
-      UnorderedEquals( Vec<ColonyId>{ ColonyId{ 2 } } ) );
+      UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
   REQUIRE_THAT(
       colonies_all( e_nation::english ),
-      UnorderedEquals( Vec<ColonyId>{ ColonyId{ 1 } } ) );
+      UnorderedEquals( vector<ColonyId>{ ColonyId{ 1 } } ) );
   REQUIRE_THAT( colonies_all( e_nation::french ),
-                UnorderedEquals( Vec<ColonyId>{} ) );
+                UnorderedEquals( vector<ColonyId>{} ) );
 
   cstate_destroy_colony( ColonyId{ 1 } );
   REQUIRE_THAT(
       colonies_all(),
-      UnorderedEquals( Vec<ColonyId>{ ColonyId{ 2 } } ) );
+      UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
 
   cstate_destroy_colony( ColonyId{ 2 } );
   REQUIRE_THAT( colonies_all(),
-                UnorderedEquals( Vec<ColonyId>{} ) );
+                UnorderedEquals( vector<ColonyId>{} ) );
 }
 
 TEST_CASE( "[cstate] colonies_in_rect" ) {
   default_construct_all_game_state();
-  Vec<Coord> coords{
+  vector<Coord> coords{
       { 1_x, 2_y }, // 1
       { 1_x, 5_y }, // 2
       { 1_x, 8_y }, // 3
@@ -92,16 +92,16 @@ TEST_CASE( "[cstate] colonies_in_rect" ) {
     REQUIRE( xp == ColonyId{ i } );
   }
   REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 3_y, 0_w, 0_h } ),
-                UnorderedEquals( Vec<ColonyId>{} ) );
+                UnorderedEquals( vector<ColonyId>{} ) );
   REQUIRE_THAT(
       colonies_in_rect( Rect{ 3_x, 3_y, 1_w, 1_h } ),
-      UnorderedEquals( Vec<ColonyId>{ ColonyId{ 11 } } ) );
+      UnorderedEquals( vector<ColonyId>{ ColonyId{ 11 } } ) );
   REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 3_y, 3_w, 3_h } ),
-                UnorderedEquals( Vec<ColonyId>{
+                UnorderedEquals( vector<ColonyId>{
                     ColonyId{ 4 }, ColonyId{ 5 }, ColonyId{ 6 },
                     ColonyId{ 9 }, ColonyId{ 11 } } ) );
   REQUIRE_THAT( colonies_in_rect( Rect{ 3_x, 1_y, 2_w, 8_h } ),
-                UnorderedEquals( Vec<ColonyId>{
+                UnorderedEquals( vector<ColonyId>{
                     ColonyId{ 4 },
                     ColonyId{ 5 },
                     ColonyId{ 7 },

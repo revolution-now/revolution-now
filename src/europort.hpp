@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "id.hpp"
 
 namespace rn {
@@ -24,10 +23,10 @@ bool is_unit_outbound( UnitId id );
 bool is_unit_in_port( UnitId id );
 
 // FIXME: needs to be nation-specific.
-Vec<UnitId> europort_units_on_dock();  // Sorted by arrival.
-Vec<UnitId> europort_units_in_port();  // Sorted by arrival.
-Vec<UnitId> europort_units_inbound();  // to old world
-Vec<UnitId> europort_units_outbound(); // to new world
+std::vector<UnitId> europort_units_on_dock();  // Sorted by arrival.
+std::vector<UnitId> europort_units_in_port();  // Sorted by arrival.
+std::vector<UnitId> europort_units_inbound();  // to old world
+std::vector<UnitId> europort_units_outbound(); // to new world
 
 // These will take a ship and make it old (new) world-bound (must
 // be a ship). If it is already in this state then this is a

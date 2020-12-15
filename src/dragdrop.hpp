@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "coord.hpp"
 #include "fsm.hpp"
 #include "gfx.hpp"

@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "coord.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
@@ -32,7 +31,7 @@ namespace rn {
 template<typename T>
 class Matrix {
   W      w_ = 0_w;
-  Vec<T> data_{};
+  std::vector<T> data_{};
 
 public:
   Matrix( W w, H h ) : w_( w ) {

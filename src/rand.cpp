@@ -11,7 +11,6 @@
 #include "rand.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "init.hpp"
 

@@ -11,7 +11,6 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
 #include "flat-deque.hpp"
@@ -230,9 +229,9 @@ BinaryBlob create_monster_blob() {
 
   auto pair2 = fb::Pair_Vec2_int( fb::Vec2( 7.0, 8.0 ), 43 );
 
-  Vec<fb::Pair_Vec2_int>             map_vecs;
-  Vec<FBOffset<fb::Pair_string_int>> map_strs;
-  Vec<FBOffset<fb::Pair_int_Weapon>> map_wpns;
+  vector<fb::Pair_Vec2_int>             map_vecs;
+  vector<FBOffset<fb::Pair_string_int>> map_strs;
+  vector<FBOffset<fb::Pair_int_Weapon>> map_wpns;
 
   map_vecs.push_back(
       fb::Pair_Vec2_int( fb::Vec2( 8.0, 9.0 ), 10 ) );
@@ -403,10 +402,10 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     auto myset = monster.myset();
     REQUIRE( myset != nullptr );
     REQUIRE( myset->size() == 3 );
-    Vec<string> elems{ myset->Get( 0 )->str(),
-                       myset->Get( 1 )->str(),
-                       myset->Get( 2 )->str() };
-    REQUIRE_THAT( elems, UnorderedEquals( Vec<string>{
+    vector<string> elems{ myset->Get( 0 )->str(),
+                          myset->Get( 1 )->str(),
+                          myset->Get( 2 )->str() };
+    REQUIRE_THAT( elems, UnorderedEquals( vector<string>{
                              "hello7", "hello8", "hello9" } ) );
 
     auto opt_int1 = monster.opt_int1();
@@ -522,7 +521,7 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.color     = e_color::Red;
     monster.hand      = e_hand::Right;
     monster.elbow     = Weapon{};
-    monster.weapons   = Vec<Weapon>{
+    monster.weapons   = vector<Weapon>{
         Weapon{ "rock", 2 }, //
         Weapon{ "stone", 3 } //
     };
@@ -1195,11 +1194,11 @@ TEST_CASE( "[flatbuffers] fsm" ) {
 }
 
 TEST_CASE( "[flatbuffers] Golden Comparison" ) {
-  maybe<Str> golden = base::read_text_file_as_string(
+  maybe<string> golden = base::read_text_file_as_string(
       testing::data_dir() / "fb-testing-golden.h" );
   REQUIRE( golden.has_value() );
-  fs::path   root      = base::build_output_root();
-  maybe<Str> generated = base::read_text_file_as_string(
+  fs::path      root      = base::build_output_root();
+  maybe<string> generated = base::read_text_file_as_string(
       root / "src/fb/testing_generated.h" );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that

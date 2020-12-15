@@ -159,7 +159,7 @@ maybe<string const&> history( int idx ) {
   return nothing;
 }
 
-Vec<Str> autocomplete( string_view fragment ) {
+vector<string> autocomplete( string_view fragment ) {
   auto is_autocomplete_char = []( char c ) {
     return std::isalnum( c ) || ( c == ':' ) || ( c == '.' ) ||
            ( c == '_' );
@@ -181,7 +181,7 @@ Vec<Str> autocomplete( string_view fragment ) {
   if( to_autocomplete.empty() ) return {};
   // range-v3 split doesn't do the right thing here if the string
   // ends in a dot.
-  Vec<Str> segments =
+  vector<string> segments =
       absl::StrSplit( to_autocomplete, absl::ByAnyChar( ".:" ) );
   CHECK( segments.size() > 0 );
   lg.trace( "segments.size(): {}", segments.size() );
@@ -275,7 +275,7 @@ Vec<Str> autocomplete( string_view fragment ) {
   lg.trace( "last: {}", last );
   auto initial =
       rg::to<string>( initial_segments | rv::join( '.' ) );
-  Vec<Str> res;
+  vector<string> res;
 
   auto add_keys = [&]( sol::object parent, auto kv ) {
     sol::object o = kv.first;
@@ -360,8 +360,8 @@ Vec<Str> autocomplete( string_view fragment ) {
   return res;
 }
 
-Vec<Str> autocomplete_iterative( string_view fragment ) {
-  Vec<Str> res;
+vector<string> autocomplete_iterative( string_view fragment ) {
+  vector<string> res;
   string   single_result( fragment );
   do {
     lg.trace( "single_result: {}", single_result );

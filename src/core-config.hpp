@@ -11,9 +11,6 @@
 *****************************************************************/
 #pragma once
 
-// C++ standard library
-#include <type_traits>
-
 #define ND [[nodiscard]]
 
 // The DEBUG_RELEASE macro will evalutate to the first argument

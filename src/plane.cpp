@@ -11,7 +11,6 @@
 #include "plane.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "app-state.hpp"
 #include "colony-view.hpp"
 #include "console.hpp"
@@ -331,7 +330,7 @@ maybe<Plane::MenuClickHandler> Plane::menu_click_handler(
 /****************************************************************
 ** External API
 *****************************************************************/
-void set_plane_list( Vec<e_plane> const& arr ) {
+void set_plane_list( vector<e_plane> const& arr ) {
   vector<e_plane>              res;
   absl::flat_hash_set<e_plane> set;
   res.reserve( magic_enum::enum_count<e_plane>() );

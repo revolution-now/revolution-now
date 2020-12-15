@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "cc-specific.hpp"
 #include "errors.hpp"
 #include "maybe.hpp"

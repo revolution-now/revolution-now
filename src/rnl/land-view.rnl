@@ -8,7 +8,6 @@
 # Description: RNL definitions for the land-view module.
 #
 # ===============================================================
-include "aliases.hpp";
 include "coord.hpp";
 include "id.hpp";
 include "land-view.hpp";
@@ -43,7 +42,7 @@ sumtype LandViewState {
     # orders) and later in the same turn had its orders cleared
     # by the player (but not prioritized), this will allow it to
     # ask for orders this turn.
-    Vec<UnitId> add_to_back;
+    std::vector<UnitId> add_to_back;
   sliding_unit:
     UnitId id;
     Coord target;
@@ -64,11 +63,11 @@ sumtype LandViewEvent {
   blink_unit:
     UnitId id;
   add_to_back:
-    Vec<UnitId> ids;
+    std::vector<UnitId> ids;
   input_orders:
     orders_t orders;
   input_prioritize:
-    Vec<UnitId> prioritize;
+    std::vector<UnitId> prioritize;
   slide_unit:
     UnitId id;
     e_direction direction;

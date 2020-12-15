@@ -8,7 +8,6 @@
 # Description: RNL definitions for the turn-nation module.
 #
 # ===============================================================
-include "aliases.hpp";
 include "id.hpp";
 include "nation.hpp";
 include "flat-queue.hpp";

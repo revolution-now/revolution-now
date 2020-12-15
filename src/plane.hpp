@@ -161,7 +161,7 @@ struct Plane {
 // that are not in this list are disabled. The omni plane should
 // not be in this list, as it will always be enabled as the
 // front-most plane.
-void set_plane_list( Vec<e_plane> const& planes );
+void set_plane_list( std::vector<e_plane> const& planes );
 
 bool is_plane_enabled( e_plane plane );
 

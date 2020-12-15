@@ -70,7 +70,7 @@ public:
   // hold cargo then returns the list of units it holds, which
   // may be empty. To emphasize, nothing will only be returned
   // when this unit is unable to hold cargo.
-  maybe<Vec<UnitId>> units_in_cargo() const;
+  maybe<std::vector<UnitId>> units_in_cargo() const;
 
   // Has the unit been fully processed this turn. This concept is
   // distinct from that of having used all movement points. For

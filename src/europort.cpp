@@ -11,10 +11,10 @@
 #include "europort.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "errors.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
+#include "ranges-fwd.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 
@@ -76,9 +76,9 @@ bool is_unit_in_port( UnitId id ) {
              *europort_status );
 }
 
-Vec<UnitId> europort_units_on_dock() {
+vector<UnitId> europort_units_on_dock() {
   auto in_euroview = units_in_euro_port_view();
-  auto res         = rg::to<Vec<UnitId>>(
+  auto res         = rg::to<vector<UnitId>>(
       in_euroview | rv::filter( is_unit_on_dock ) );
   // Now we must order the units by their arrival time in port
   // (or on dock).
@@ -86,9 +86,9 @@ Vec<UnitId> europort_units_on_dock() {
   return res;
 }
 
-Vec<UnitId> europort_units_in_port() {
+vector<UnitId> europort_units_in_port() {
   auto in_euroview = units_in_euro_port_view();
-  auto res         = rg::to<Vec<UnitId>>(
+  auto res         = rg::to<vector<UnitId>>(
       in_euroview | rv::filter( is_unit_in_port ) );
   // Now we must order the units by their arrival time in port
   // (or on dock).
@@ -97,17 +97,17 @@ Vec<UnitId> europort_units_in_port() {
 }
 
 // To old world.
-Vec<UnitId> europort_units_inbound() {
+vector<UnitId> europort_units_inbound() {
   auto in_euroview = units_in_euro_port_view();
-  return rg::to<Vec<UnitId>>( in_euroview |
-                              rv::filter( is_unit_inbound ) );
+  return rg::to<vector<UnitId>>( in_euroview |
+                                 rv::filter( is_unit_inbound ) );
 }
 
 // To new world.
-Vec<UnitId> europort_units_outbound() {
+vector<UnitId> europort_units_outbound() {
   auto in_euroview = units_in_euro_port_view();
-  return rg::to<Vec<UnitId>>( in_euroview |
-                              rv::filter( is_unit_outbound ) );
+  return rg::to<vector<UnitId>>(
+      in_euroview | rv::filter( is_unit_outbound ) );
 }
 
 void unit_sail_to_old_world( UnitId id ) {

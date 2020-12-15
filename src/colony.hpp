@@ -58,7 +58,7 @@ public:
   // These units will be in unspecified order (order may depend
   // on hash table iteration) so the caller should take care to
   // not depend on the ordering returned by this function.
-  Vec<UnitId>                                   units() const;
+  std::vector<UnitId>                                   units() const;
   absl::flat_hash_set<e_colony_building> const& buildings()
       const {
     return buildings_;

@@ -107,7 +107,7 @@ public:
 
   CargoSlot_t const&      operator[]( int idx ) const;
   CargoSlot_t const&      operator[]( CargoSlotIndex idx ) const;
-  Vec<CargoSlot_t> const& slots() const { return slots_; }
+  std::vector<CargoSlot_t> const& slots() const { return slots_; }
 
   template<typename T>
   maybe<T const&> slot_holds_cargo_type( int idx ) const;
@@ -115,11 +115,11 @@ public:
   // If unit is in cargo, returns its slot index.
   maybe<int> find_unit( UnitId id ) const;
   // Returns all units in the cargo.
-  Vec<UnitId> units() const;
+  std::vector<UnitId> units() const;
   // Returns all commodities (and slot indices) in the cargo un-
   // less a specific type is specified in which case it will be
   // limited to those.
-  Vec<std::pair<Commodity, int>> commodities(
+  std::vector<std::pair<Commodity, int>> commodities(
       maybe<e_commodity> type = nothing ) const;
 
   // Find the maximum quantity of the commodity of the given type

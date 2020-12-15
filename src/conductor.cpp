@@ -67,7 +67,7 @@ absl::flat_hash_map<e_special_music_event, TuneId>
 maybe<e_music_player> g_active_mplayer;
 
 size_t      g_playlist_pos{};
-Vec<TuneId> g_playlist;
+vector<TuneId> g_playlist;
 
 bool g_autoplay{ true };
 

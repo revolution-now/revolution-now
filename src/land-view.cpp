@@ -11,7 +11,6 @@
 #include "land-view.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "colony-view.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
@@ -62,7 +61,7 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 namespace {
 
 Texture                         g_tx_depixelate_from;
-Vec<Coord>                      g_pixels;
+vector<Coord>                      g_pixels;
 Matrix<Color>                   g_demoted_pixels;
 sync_promise<UnitInputResponse> g_unit_input_promise;
 
@@ -111,7 +110,7 @@ fsm_class( LandView ) { //
 
   fsm_transition( LandView, blinking_unit, add_to_back, ->,
                   blinking_unit ) {
-    Vec<UnitId> new_ids;
+    vector<UnitId> new_ids;
     new_ids.reserve( cur.add_to_back.size() + event.ids.size() );
     for( auto id : cur.add_to_back ) new_ids.push_back( id );
     for( auto id : event.ids ) new_ids.push_back( id );
@@ -581,8 +580,8 @@ void advance_landview_state( LandViewFsm& fsm ) {
 // If this is default constructed then it should represent "no
 // actions need to be taken."
 struct ClickTileActions {
-  Vec<UnitId> bring_to_front{};
-  Vec<UnitId> add_to_back{};
+  vector<UnitId> bring_to_front{};
+  vector<UnitId> add_to_back{};
 };
 NOTHROW_MOVE( ClickTileActions );
 
@@ -627,7 +626,7 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
 }
 
 ClickTileActions ClickTileActionsFromUnitSelections(
-    Vec<ui::UnitSelection> const& selections,
+    vector<ui::UnitSelection> const& selections,
     bool                          allow_activate ) {
   ClickTileActions result{};
   for( auto const& selection : selections ) {
@@ -687,14 +686,14 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
   if( units.size() == 0 )
     return make_sync_future<ClickTileActions>();
 
-  sync_future<Vec<ui::UnitSelection>> s_future;
+  sync_future<vector<ui::UnitSelection>> s_future;
   if( units.size() == 1 ) {
     auto              id = *units.begin();
     ui::UnitSelection selection{
         id, ui::e_unit_selection::clear_orders };
     if( !unit_from_id( id ).has_orders() && allow_activate )
       selection.what = ui::e_unit_selection::activate;
-    s_future = make_sync_future<Vec<ui::UnitSelection>>(
+    s_future = make_sync_future<vector<ui::UnitSelection>>(
         vector{ selection } );
   } else {
     s_future = ui::unit_selection_box( units, allow_activate );
@@ -702,7 +701,7 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
 
   return s_future.fmap(
       [allow_activate](
-          Vec<ui::UnitSelection> const& selections ) {
+          vector<ui::UnitSelection> const& selections ) {
         return ClickTileActionsFromUnitSelections(
             selections, allow_activate );
       } );

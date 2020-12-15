@@ -8,7 +8,6 @@
 # Description: RNL definitions for the turn-unit module.
 #
 # ===============================================================
-include "aliases.hpp";
 include "id.hpp";
 include "land-view.hpp";
 include "no-serial.hpp";
@@ -32,7 +31,7 @@ sumtype UnitInputState {
     SyncFutureNoSerial<bool> conf_anim;
     orders_t orders;
   executed:
-    Vec<UnitId> add_to_front;
+    std::vector<UnitId> add_to_front;
 
   .features:
     formattable,
@@ -48,6 +47,6 @@ sumtype UnitInputEvent {
   execute:
   cancel:
   end:
-    Vec<UnitId> add_to_front;
+    std::vector<UnitId> add_to_front;
 };
 

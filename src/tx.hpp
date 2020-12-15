@@ -15,7 +15,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "color.hpp"
 #include "coord.hpp"
 #include "fmt-helper.hpp"

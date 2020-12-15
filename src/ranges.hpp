@@ -13,8 +13,8 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "fmt-helper.hpp"
+#include "ranges-fwd.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -33,6 +33,7 @@
 #include "range/v3/view/zip.hpp"
 
 // C++ standard library
+#include <numeric>
 #include <utility>
 
 namespace rn {
@@ -64,7 +65,7 @@ std::string rng_to_string( Rng&& rng ) {
 template<typename Rng, typename Func>
 auto accumulate_monoid( Rng&& rng, Func&& func )
     -> maybe<std::decay_t<decltype( func( *rng.begin(),
-                                        *rng.begin() ) )>> {
+                                          *rng.begin() ) )>> {
   if( rng.begin() == rng.end() ) return nothing;
   auto start = std::begin( std::forward<Rng>( rng ) );
   start++;

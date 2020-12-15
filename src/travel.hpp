@@ -60,7 +60,7 @@ NOTHROW_MOVE( unit_travel_verdict );
 
 struct TravelAnalysis : public OrdersAnalysis<TravelAnalysis> {
   TravelAnalysis( UnitId id_, orders_t orders_,
-                  Vec<UnitId> units_to_prioritize_,
+                  std::vector<UnitId> units_to_prioritize_,
                   bool unit_would_move_, Coord move_src_,
                   Coord move_target_, unit_travel_verdict desc_,
                   maybe<UnitId> target_unit_ )

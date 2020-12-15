@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "enum.hpp"
 #include "errors.hpp"
 #include "id.hpp"
@@ -56,8 +55,8 @@ struct UnitSelection {
 };
 NOTHROW_MOVE( UnitSelection );
 
-sync_future<Vec<UnitSelection>> unit_selection_box(
-    Vec<UnitId> const& ids_, bool allow_activation );
+sync_future<std::vector<UnitSelection>> unit_selection_box(
+    std::vector<UnitId> const& ids_, bool allow_activation );
 
 /****************************************************************
 ** Validators
@@ -93,15 +92,15 @@ sync_future<maybe<std::string>> str_input_box(
 ** Generic Option-Select Window
 *****************************************************************/
 void select_box(
-    std::string_view title, Vec<Str> options,
+    std::string_view title, std::vector<std::string> options,
     std::function<void( std::string const& )> on_result );
 
 sync_future<std::string> select_box( std::string_view title,
-                                     Vec<Str>         options );
+                                     std::vector<std::string>         options );
 
 template<typename Enum>
 void select_box_enum( std::string_view            title,
-                      Vec<Enum> const&            options,
+                      std::vector<Enum> const&            options,
                       std::function<void( Enum )> on_result ) {
   // map over member function?
   std::vector<std::string> words;
@@ -124,7 +123,7 @@ void select_box_enum( std::string_view            title,
 
 template<typename Enum>
 sync_future<Enum> select_box_enum( std::string_view title,
-                                   Vec<Enum> const& options ) {
+                                   std::vector<Enum> const& options ) {
   sync_promise<Enum> s_promise;
   select_box_enum<Enum>( title, options,
                          [s_promise]( Enum result ) mutable {
@@ -136,8 +135,8 @@ sync_future<Enum> select_box_enum( std::string_view title,
 template<typename Enum>
 void select_box_enum( std::string_view            title,
                       std::function<void( Enum )> on_result ) {
-  static const Vec<Enum> options = [] {
-    return Vec<Enum>( magic_enum::enum_values<Enum>().begin(),
+  static const std::vector<Enum> options = [] {
+    return std::vector<Enum>( magic_enum::enum_values<Enum>().begin(),
                       magic_enum::enum_values<Enum>().end() );
   }();
   select_box_enum( title, options, std::move( on_result ) );

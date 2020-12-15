@@ -11,7 +11,6 @@
 #include "app-state.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "conductor.hpp"
 #include "fsm.hpp"
 #include "logging.hpp"

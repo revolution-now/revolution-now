@@ -17,7 +17,7 @@ CFG( rn,
   FLD( double,   ideal_tile_angular_size )
 
   OBJ( main_window,
-    FLD( Str, title )
+    FLD( std::string, title )
   )
 
   OBJ( viewport,

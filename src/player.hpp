@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "fb.hpp"
 #include "nation.hpp"
 
@@ -50,7 +49,7 @@ private:
 
 Player& player_for_nation( e_nation nation );
 
-void set_players( Vec<e_nation> const& nations );
+void set_players( std::vector<e_nation> const& nations );
 
 void linker_dont_discard_module_player();
 

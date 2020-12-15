@@ -8,7 +8,6 @@
 # Description: RNL definitions for the app-state module.
 #
 # ===============================================================
-include "aliases.hpp";
 
 namespace rn;
 

@@ -11,7 +11,6 @@
 #include "player.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
@@ -82,7 +81,7 @@ Player& player_for_nation( e_nation nation ) {
   return SG().players[nation];
 }
 
-void set_players( Vec<e_nation> const& nations ) {
+void set_players( vector<e_nation> const& nations ) {
   SG().players.clear();
   for( auto nation : nations ) {
     SG().players.emplace( nation, Player(
@@ -101,7 +100,7 @@ void linker_dont_discard_module_player() {}
 namespace {
 
 LUA_FN( set_players, void,
-        sol::as_table_t<Vec<e_nation>> const& nations ) {
+        sol::as_table_t<vector<e_nation>> const& nations ) {
   auto const& vec = nations.value();
   lg.info( "enabling nations: {}", FmtJsonStyleList{ vec } );
   set_players( vec );

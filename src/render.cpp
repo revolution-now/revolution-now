@@ -11,7 +11,6 @@
 #include "render.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "errors.hpp"

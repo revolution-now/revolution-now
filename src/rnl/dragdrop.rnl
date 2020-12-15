@@ -8,7 +8,6 @@
 # Description: RNL definitions for the dragdrop module.
 #
 # ===============================================================
-include "aliases.hpp";
 include "coord.hpp";
 include "gfx.hpp";
 include "input.hpp";

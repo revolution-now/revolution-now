@@ -82,8 +82,8 @@ void UnitActivationView::on_click_unit( UnitId id ) {
  *     |       +-SpriteView
  *     +-...
  */
-UPtr<UnitActivationView> UnitActivationView::Create(
-    Vec<UnitId> const& ids_, bool allow_activation ) {
+unique_ptr<UnitActivationView> UnitActivationView::Create(
+    vector<UnitId> const& ids_, bool allow_activation ) {
   auto unit_activation_view =
       std::make_unique<UnitActivationView>( allow_activation );
   auto* p_unit_activation_view = unit_activation_view.get();
@@ -100,7 +100,7 @@ UPtr<UnitActivationView> UnitActivationView::Create(
   auto ids = ids_;
   sort( ids.begin(), ids.end(), cmp );
 
-  Vec<UPtr<View>> units_vec;
+  vector<unique_ptr<View>> units_vec;
 
   auto& infos = unit_activation_view->info_map();
   for( auto id : ids ) {
@@ -157,7 +157,7 @@ UPtr<UnitActivationView> UnitActivationView::Create(
     auto unit_label = make_unique<OneLineStringView>(
         unit.desc().name, Color::banana(), /*shadow=*/true );
 
-    Vec<UPtr<View>> horizontal_vec;
+    vector<unique_ptr<View>> horizontal_vec;
     horizontal_vec.emplace_back( std::move( clickable ) );
     horizontal_vec.emplace_back( std::move( unit_label ) );
     auto horizontal_view = make_unique<HorizontalArrayView>(

@@ -14,6 +14,7 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
+#include "ranges-fwd.hpp"
 #include "ustate.hpp"
 #include "util.hpp"
 #include "variant.hpp"
@@ -198,8 +199,8 @@ maybe<int> CargoHold::find_unit( UnitId id ) const {
 }
 
 // Returns all units in the cargo.
-Vec<UnitId> CargoHold::units() const {
-  Vec<UnitId> res;
+vector<UnitId> CargoHold::units() const {
+  vector<UnitId> res;
   for( auto unit_id : items_of_type<UnitId>() )
     res.push_back( unit_id );
   return res;
@@ -208,9 +209,9 @@ Vec<UnitId> CargoHold::units() const {
 // Returns all commodities (and slot indices) in the cargo un-
 // less a specific type is specified in which case it will be
 // limited to those.
-Vec<pair<Commodity, int>> CargoHold::commodities(
+vector<pair<Commodity, int>> CargoHold::commodities(
     maybe<e_commodity> type ) const {
-  Vec<pair<Commodity, int>> res;
+  vector<pair<Commodity, int>> res;
 
   for( auto const& [idx, slot] : rv::enumerate( slots_ ) ) {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )
@@ -225,7 +226,8 @@ Vec<pair<Commodity, int>> CargoHold::commodities(
 void CargoHold::compactify() {
   auto unit_ids    = units();
   auto comms_pairs = commodities();
-  auto comms = rg::to<Vec<Commodity>>( comms_pairs | rv::keys );
+  auto comms =
+      rg::to<vector<Commodity>>( comms_pairs | rv::keys );
   // First sort by ID, then do a stable sort on slot occupancy to
   // get "deterministic" results.
   util::sort_by_key( unit_ids, []( auto id ) { return id._; } );
@@ -241,8 +243,8 @@ void CargoHold::compactify() {
   auto like_types =
       comms | rv::group_by( L2( _1.type == _2.type ) );
   for( auto group : like_types ) {
-    auto           type = group.begin()->type;
-    Vec<Commodity> new_comms;
+    auto              type = group.begin()->type;
+    vector<Commodity> new_comms;
     new_comms.push_back(
         Commodity{ /*type=*/type, /*quantity=*/0 } );
     for( Commodity const& comm : group ) {

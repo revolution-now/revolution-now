@@ -8,7 +8,7 @@ namespace rn {
 
 #define UNIT_SCHEMA( __unit )                         \
   OBJ( __unit,                                        \
-    FLD( Str,                name                   ) \
+    FLD( std::string,        name                   ) \
     FLD( bool,               ship                   ) \
     FLD( bool,               nat_icon_front         ) \
     FLD( e_direction,        nat_icon_position      ) \

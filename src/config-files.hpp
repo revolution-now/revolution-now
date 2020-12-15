@@ -12,7 +12,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "color.hpp"
 
 // C++ standard library

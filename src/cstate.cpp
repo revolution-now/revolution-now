@@ -11,7 +11,6 @@
 #include "cstate.hpp"
 
 // Revolution Now
-#include "aliases.hpp"
 #include "colony-mgr.hpp"
 #include "errors.hpp"
 #include "fb.hpp"
@@ -130,8 +129,8 @@ Colony& colony_from_id( ColonyId id ) {
   return it->second;
 }
 
-Vec<ColonyId> colonies_all( maybe<e_nation> n ) {
-  Vec<ColonyId> res;
+vector<ColonyId> colonies_all( maybe<e_nation> n ) {
+  vector<ColonyId> res;
   for( auto const& [id, colony] : SG().colonies ) {
     if( !n.has_value() || n == colony.nation() )
       res.push_back( id );
@@ -163,8 +162,8 @@ maybe<ColonyId> colony_from_name( std::string_view name ) {
   return base::lookup( SG().colony_from_name, string( name ) );
 }
 
-Vec<ColonyId> colonies_in_rect( Rect const& rect ) {
-  return rg::to<Vec<ColonyId>>(
+vector<ColonyId> colonies_in_rect( Rect const& rect ) {
+  return rg::to<vector<ColonyId>>(
       rect | rv::transform( colony_from_coord ) | cat_opts );
 }
 
