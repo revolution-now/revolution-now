@@ -26,9 +26,6 @@
 // base
 #include "base/keyval.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // C++ standard library
 #include <vector>
 
@@ -120,12 +117,6 @@ struct NatIconRenderDesc {
 
   auto to_tuple() const { return tuple{ nation, c }; }
 
-  // Abseil hashing API.
-  template<typename H>
-  friend H AbslHashValue( H h, NatIconRenderDesc const& c ) {
-    return H::combine( std::move( h ), c.to_tuple() );
-  }
-
   friend bool operator==( NatIconRenderDesc const& lhs,
                           NatIconRenderDesc const& rhs ) {
     return lhs.to_tuple() == rhs.to_tuple();
@@ -133,7 +124,27 @@ struct NatIconRenderDesc {
 };
 NOTHROW_MOVE( NatIconRenderDesc );
 
-absl::flat_hash_map<NatIconRenderDesc, Texture> nat_icon_cache;
+} // namespace rn
+
+namespace std {
+
+template<>
+struct hash<::rn::NatIconRenderDesc> {
+  auto operator()(
+      ::rn::NatIconRenderDesc const& o ) const noexcept {
+    uint32_t i = 0;
+    i += o.c;
+    i <<= 8;
+    i += static_cast<uint32_t>( o.nation );
+    return hash<uint32_t>{}( i );
+  }
+};
+
+} // namespace std
+
+namespace rn {
+
+unordered_map<NatIconRenderDesc, Texture> nat_icon_cache;
 
 Texture const& render_nationality_icon( e_nation nation,
                                         char     c ) {

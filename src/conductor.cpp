@@ -30,10 +30,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // magic enum
 #include "magic_enum.hpp"
 
@@ -54,19 +50,16 @@ namespace {
 // ization and will never change, even if a music player fails.
 // If a music player fails then will mark it as disable in the
 // associated MusicPlayerInfo struct.
-absl::flat_hash_map<e_music_player, MaybeMusicPlayer> g_mplayers;
+unordered_map<e_music_player, MaybeMusicPlayer> g_mplayers;
 
-absl::flat_hash_map<e_music_player, MusicPlayerDesc>
-    g_mplayer_descs;
-absl::flat_hash_map<e_music_player, MusicPlayerInfo>
-    g_mplayer_infos;
+unordered_map<e_music_player, MusicPlayerDesc> g_mplayer_descs;
+unordered_map<e_music_player, MusicPlayerInfo> g_mplayer_infos;
 
-absl::flat_hash_map<e_special_music_event, TuneId>
-    g_special_tunes;
+unordered_map<e_special_music_event, TuneId> g_special_tunes;
 
 maybe<e_music_player> g_active_mplayer;
 
-size_t      g_playlist_pos{};
+size_t         g_playlist_pos{};
 vector<TuneId> g_playlist;
 
 bool g_autoplay{ true };
@@ -164,9 +157,9 @@ void play( TuneId id ) { play_impl( id ); }
 ** Requests
 *****************************************************************/
 
-absl::flat_hash_map<e_request, TuneVecDimensions>&
+unordered_map<e_request, TuneVecDimensions>&
 dimensions_for_request() {
-  static absl::flat_hash_map<e_request, TuneVecDimensions> m;
+  static unordered_map<e_request, TuneVecDimensions> m;
   return m;
 }
 
@@ -267,7 +260,7 @@ void init_conductor() {
   // Copy this so that we can use the operator[].
   auto m = config_music.special_event_tunes;
 
-  absl::flat_hash_set<string> used_stems;
+  unordered_set<string> used_stems;
 
   // Now check that there is a tune assigned to each special
   // music event. That is defined as a game event where there
@@ -317,11 +310,10 @@ void cleanup_conductor() {
   g_mplayers.clear();
 }
 
-absl::flat_hash_map<e_conductor_event,
-                    vector<ConductorEventFunc>>&
+unordered_map<e_conductor_event, vector<ConductorEventFunc>>&
 subscriptions() {
-  static absl::flat_hash_map<e_conductor_event,
-                             vector<ConductorEventFunc>>
+  static unordered_map<e_conductor_event,
+                       vector<ConductorEventFunc>>
       subs;
   return subs;
 }

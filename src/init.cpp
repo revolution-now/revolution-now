@@ -23,10 +23,6 @@
 // base-util
 #include "base-util/graph.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // Range-v3
 #include "range/v3/algorithm/find.hpp"
 #include "range/v3/algorithm/for_each.hpp"
@@ -34,6 +30,7 @@
 
 // C++ standard library
 #include <span>
+#include <unordered_set>
 
 using namespace std;
 
@@ -44,20 +41,19 @@ namespace {
 bool g_init_finished{ false };
 
 auto& init_functions() {
-  static absl::flat_hash_map<e_init_routine, InitFunction>
+  static unordered_map<e_init_routine, InitFunction>
       s_init_functions;
   return s_init_functions;
 }
 
 auto& cleanup_functions() {
-  static absl::flat_hash_map<e_init_routine, InitFunction>
+  static unordered_map<e_init_routine, InitFunction>
       s_cleanup_functions;
   return s_cleanup_functions;
 }
 
 auto& init_routine_run_map() {
-  static absl::flat_hash_map<e_init_routine, bool>
-      s_init_routine_run;
+  static unordered_map<e_init_routine, bool> s_init_routine_run;
   return s_init_routine_run;
 }
 
@@ -66,7 +62,7 @@ auto& init_routine_run_map() {
 // be done at all (to avoid causing further errors).
 bool g_init_has_started{ false };
 
-absl::flat_hash_map<e_init_routine, vector<e_init_routine>>
+unordered_map<e_init_routine, vector<e_init_routine>>
     g_init_deps{
         { e_init_routine::configs, {} },
         { e_init_routine::rng,
@@ -251,7 +247,7 @@ void run_all_init_routines(
 
   auto sorted = dag.sorted();
 
-  absl::flat_hash_set<e_init_routine> reachable;
+  unordered_set<e_init_routine> reachable;
 
   // By default initialize all elements from the dag, unless the
   // caller has specified some items to represent the top level

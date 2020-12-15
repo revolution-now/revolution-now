@@ -28,10 +28,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // Range-v3
 #include "range/v3/algorithm/reverse.hpp"
 #include "range/v3/range/conversion.hpp"
@@ -50,7 +46,7 @@ namespace rn {
 
 namespace {
 
-absl::flat_hash_map<TuneId, Tune const*> g_tunes;
+unordered_map<TuneId, Tune const*> g_tunes;
 
 #define TUNE_DIMENSION_ADD_IF_DIFFERENT( dim ) \
   if( !util::contains( dims.dim, tune.dimensions.dim ) ) score++
@@ -84,7 +80,7 @@ void init_tunes() {
     lg.error( "tune list is empty." );
     return;
   }
-  absl::flat_hash_set<string> stems;
+  unordered_set<string> stems;
 
   int    idx = 0;
   string rx  = "[a-z0-9-]*";

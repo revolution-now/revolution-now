@@ -17,9 +17,6 @@
 // Revolution Now (config)
 #include "../config/ucl/nation.inl"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // C++ standard library
 #include <cctype>
 
@@ -38,8 +35,8 @@ namespace rn {
 namespace {} // namespace
 
 NationDesc const& nation_obj( e_nation nation ) {
-  static absl::flat_hash_map<e_nation, NationDesc> nations = [] {
-    absl::flat_hash_map<e_nation, NationDesc> m;
+  static unordered_map<e_nation, NationDesc> nations = [] {
+    unordered_map<e_nation, NationDesc> m;
     MAKE_NATION( dutch );
     MAKE_NATION( french );
     MAKE_NATION( english );

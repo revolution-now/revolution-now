@@ -10,7 +10,7 @@ namespace rn {
 
 // This is to avoid commas in macro arguments.
 using SpecialMusicEventMap =
-    absl::flat_hash_map<e_special_music_event, std::string>;
+    std::unordered_map<e_special_music_event, std::string>;
 
 CFG( music,
   FLD( fs::path, midi_folder )

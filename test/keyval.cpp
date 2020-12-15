@@ -13,9 +13,6 @@
 // Under test.
 #include "base/keyval.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // Must be last.
 #include "catch-common.hpp"
 
@@ -28,7 +25,7 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[keyval] lookup" ) {
-  absl::flat_hash_map<string, int> m1{
+  unordered_map<string, int> m1{
       { "hello", 3 },
       { "world", 7 },
       { "happy", 8 },
@@ -66,7 +63,7 @@ TEST_CASE( "[keyval] lookup" ) {
 }
 
 TEST_CASE( "[keyval] find" ) {
-  absl::flat_hash_map<string, int> m1{
+  unordered_map<string, int> m1{
       { "hello", 3 },
       { "world", 7 },
       { "happy", 8 },
@@ -74,13 +71,12 @@ TEST_CASE( "[keyval] find" ) {
   };
 
   static_assert(
-      is_same_v<
-          decltype( ::base::find( m1, "" ) ),
-          maybe<absl::flat_hash_map<string, int>::iterator>> );
+      is_same_v<decltype( ::base::find( m1, "" ) ),
+                maybe<unordered_map<string, int>::iterator>> );
   static_assert(
-      is_same_v<decltype( ::base::find( as_const( m1 ), "" ) ),
-                maybe<absl::flat_hash_map<
-                    string, int>::const_iterator>> );
+      is_same_v<
+          decltype( ::base::find( as_const( m1 ), "" ) ),
+          maybe<unordered_map<string, int>::const_iterator>> );
 
   REQUIRE( ::base::find( m1, "123" ) == nothing );
   REQUIRE( ::base::find( m1, "world" ).has_value() );

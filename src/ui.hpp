@@ -15,9 +15,6 @@
 // Revolution Now
 #include "input.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_set.h"
-
 namespace rn {
 class Texture;
 }
@@ -77,7 +74,7 @@ public:
   // the view will not be sent to this function.
   ND virtual bool input( input::event_t const& e );
 
-  using ObjectSet = absl::flat_hash_set<ui::Object*>;
+  using ObjectSet = std::unordered_set<ui::Object*>;
   // This method is not const because it needs to insert
   // non-const pointers to child objects into the set, which in
   // turn is needed because we may need to call non-const methods

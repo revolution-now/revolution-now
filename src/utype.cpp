@@ -20,9 +20,6 @@
 // Revolution Now (config)
 #include "../config/ucl/units.inl"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 using namespace std;
 
 #define LOAD_UNIT_DESC( u )                             \
@@ -47,10 +44,9 @@ namespace rn {
 
 namespace {
 
-absl::flat_hash_map<e_unit_type, UnitDescriptor> const&
-unit_desc() {
+unordered_map<e_unit_type, UnitDescriptor> const& unit_desc() {
   static auto const desc = [] {
-    absl::flat_hash_map<e_unit_type, UnitDescriptor> desc_;
+    unordered_map<e_unit_type, UnitDescriptor> desc_;
     LOAD_UNIT_DESC( merchantman );
     LOAD_UNIT_DESC( privateer );
     LOAD_UNIT_DESC( free_colonist );

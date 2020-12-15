@@ -236,14 +236,6 @@ public:
 
   // True if e.g. x is in [x,x+w).
   bool is_on_border_of( Rect const& rect ) const;
-
-  auto to_tuple() const { return std::tuple( y, x ); }
-
-  // Abseil hashing API.
-  template<typename H>
-  friend H AbslHashValue( H h, Coord const& c ) {
-    return H::combine( std::move( h ), c.to_tuple() );
-  }
 };
 NOTHROW_MOVE( Coord );
 

@@ -30,11 +30,7 @@ set_warning_options( rn )
 target_link_libraries(
     rn
     PUBLIC
-    absl::container
-    absl::flat_hash_map
-    absl::flat_hash_set
     absl::function_ref
-    absl::hash
     absl::strings
     base-util
     expected-lite

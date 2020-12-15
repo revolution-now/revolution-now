@@ -15,9 +15,6 @@
 #include "core-config.hpp"
 #include "math.hpp"
 
-// Abseil
-#include "absl/container/node_hash_map.h"
-
 // C++ standard library
 #include <chrono>
 #include <functional>
@@ -40,11 +37,9 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc f, int n );
 void subscribe_to_frame_tick( FrameSubscriptionFunc,
                               std::chrono::milliseconds n );
 
-// Use node_hash_map because MovingAverage objects are
-// non-copyable and non-movable.
 using EventCountMap =
-    absl::node_hash_map<std::string_view,
-                        MovingAverage<3 /*seconds*/>>;
+    std::unordered_map<std::string_view,
+                       MovingAverage<3 /*seconds*/>>;
 
 EventCountMap& event_counts();
 

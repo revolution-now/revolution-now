@@ -22,9 +22,6 @@
 #include "ustate.hpp"
 #include "views.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // magic-enum
 #include "magic_enum.hpp"
 
@@ -49,8 +46,7 @@ struct ColViewComposited {
   ColonyId             id;
   Delta                screen_size;
   unique_ptr<ui::View> top_level;
-  absl::flat_hash_map<e_colview_entity, ColViewEntityView*>
-      entities;
+  unordered_map<e_colview_entity, ColViewEntityView*> entities;
 };
 
 ColViewComposited g_composition;
@@ -176,7 +172,7 @@ public:
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
     auto const& colony = colony_from_id( colony_id() );
-    absl::flat_hash_map<UnitId, ColonyJob_t> const& units_jobs =
+    unordered_map<UnitId, ColonyJob_t> const& units_jobs =
         colony.units_jobs();
     auto unit_pos = coord + 16_h;
     for( auto const& [unit_id, job] : units_jobs ) {

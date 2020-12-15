@@ -34,10 +34,6 @@
 #include "fb/testing_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // C++ standard library
 #include <fstream>
 #include <map>
@@ -871,7 +867,7 @@ struct SetTester {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
-  using set_t = absl::flat_hash_set<string>;
+  using set_t = unordered_set<string>;
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, SetTester,
   ( set_t,        set                ));
@@ -883,7 +879,7 @@ struct MapTester1 {
   expect<> check_invariants_safe() const {
     return xp_success_t{};
   }
-  using map_t = absl::flat_hash_map<string, int>;
+  using map_t = unordered_map<string, int>;
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, MapTester1,
   ( map_t,        map                ));

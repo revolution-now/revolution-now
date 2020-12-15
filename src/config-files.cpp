@@ -37,10 +37,6 @@
 // libucl: only include this in this cpp module.
 #include "ucl++.h"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // c++ standard library
 #include <string>
 #include <typeinfo>
@@ -168,9 +164,9 @@ namespace {
 // List of field paths from the config that were found in the
 // schema. This is used to warn the user of config variables
 // on the config file but not in the schema.
-absl::flat_hash_set<string> used_field_paths;
+unordered_set<string> used_field_paths;
 
-absl::flat_hash_map<string, ucl::Ucl> ucl_configs;
+unordered_map<string, ucl::Ucl> ucl_configs;
 
 ucl::Ucl ucl_from_path( string const& name,
                         string const& dotted ) {
@@ -444,16 +440,16 @@ void populate_config_field( ucl::Ucl obj, pair<K, V>& dest,
   COLLECT_NESTED_FIELD( dest.second, V, val );
 }
 
-// absl::flat_hash_map. For this we make the user input a list of
+// unordered_map. For this we make the user input a list of
 // pairs, each of which has it's elements referenced by "key" and
 // "val". We don't use a native UCL dictionary (object) because
 // they can only have strings as keys.
 template<typename K, typename V>
-void populate_config_field( ucl::Ucl                   obj,
-                            absl::flat_hash_map<K, V>& dest,
-                            vector<string> const&      path,
-                            string const& config_name,
-                            string const& file ) {
+void populate_config_field( ucl::Ucl              obj,
+                            unordered_map<K, V>&  dest,
+                            vector<string> const& path,
+                            string const&         config_name,
+                            string const&         file ) {
   vector<pair<K, V>> assoc_list;
 
   populate_config_field( obj, assoc_list, path, config_name,
@@ -702,7 +698,7 @@ namespace rn {
 vector<Color> const& g_palette() {
   static vector<Color> colors = [] {
     vector<Color> res;
-    string     file = "config/ucl/palette.ucl";
+    string        file = "config/ucl/palette.ucl";
 
     string errors;
     auto   ucl_obj = ucl::Ucl::parse_from_file( file, errors );

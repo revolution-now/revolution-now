@@ -19,9 +19,6 @@
 // Revolution Now (config)
 #include "../config/ucl/ui.inl"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 using namespace std;
 
 namespace rn {
@@ -140,8 +137,8 @@ void compute_merged_padding_impl( block& b ) {
   for( auto& [_, sub_block] : b.subdivisions )
     compute_merged_padding_impl( sub_block );
   // These ranges are inclusive.
-  absl::flat_hash_map<X, vector<pair<Y, Y>>> vertical_edges;
-  absl::flat_hash_map<Y, vector<pair<X, X>>> horizontal_edges;
+  unordered_map<X, vector<pair<Y, Y>>> vertical_edges;
+  unordered_map<Y, vector<pair<X, X>>> horizontal_edges;
   for( auto& [coord, sub_block] : b.subdivisions ) {
     auto rect = Rect::from( coord, sub_block.size );
     // Handle each side of the sub-block so long as it is not

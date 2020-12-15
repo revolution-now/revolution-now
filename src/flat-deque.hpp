@@ -16,9 +16,8 @@
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
+// C++ standard library
+#include <unordered_map>
 
 namespace rn {
 
@@ -190,17 +189,17 @@ private:
     CHECK( map_.size() == ( back_ - front_ ) );
   }
 
-  absl::flat_hash_map<uint64_t, T> map_;
-  uint64_t                         front_;
-  uint64_t                         back_;
+  std::unordered_map<uint64_t, T> map_;
+  uint64_t                        front_;
+  uint64_t                        back_;
   NOTHROW_MOVE( T );
 };
 
 // TODO: needs unit test.
 template<typename T>
 void deduplicate_deque( flat_deque<T>* q ) {
-  flat_deque<T>          new_q;
-  absl::flat_hash_set<T> s;
+  flat_deque<T>         new_q;
+  std::unordered_set<T> s;
   s.reserve( q->size() );
   while( q->size() > 0 ) {
     auto& item = *q->front();

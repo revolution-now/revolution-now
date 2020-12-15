@@ -4,13 +4,17 @@
 #ifndef FONT_INL
 #define FONT_INL
 
+// Revolution Now
 #include "../../src/font.hpp"
+
+// C++ standard library
+#include <unordered_map>
 
 namespace rn {
 
-using FontPathMap       = absl::flat_hash_map<e_font, fs::path>;
-using FontSizeMap       = absl::flat_hash_map<e_font, int>;
-using FontVertOffsetMap = absl::flat_hash_map<e_font, Y>;
+using FontPathMap       = std::unordered_map<e_font, fs::path>;
+using FontSizeMap       = std::unordered_map<e_font, int>;
+using FontVertOffsetMap = std::unordered_map<e_font, Y>;
 
 CFG( font,
   FLD( e_font, game_default )

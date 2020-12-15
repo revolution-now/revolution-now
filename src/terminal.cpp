@@ -21,7 +21,6 @@
 #include "base/keyval.hpp"
 
 // Abseil
-#include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 
@@ -57,15 +56,14 @@ void trim() {
 /****************************************************************
 ** Running Commands
 *****************************************************************/
-absl::flat_hash_map<string, function_ref<void()>>
-    g_console_commands{
-        { "clear", clear }, //
-        { "abort",
-          [] {
-            FATAL( "aborting in response to terminal command." );
-          } },                                     //
-        { "quit", [] { throw exception_exit{}; } } //
-    };
+unordered_map<string, function_ref<void()>> g_console_commands{
+    { "clear", clear }, //
+    { "abort",
+      [] {
+        FATAL( "aborting in response to terminal command." );
+      } },                                     //
+    { "quit", [] { throw exception_exit{}; } } //
+};
 
 bool is_statement( string const& cmd ) {
   return util::contains( cmd, "=" ) ||
@@ -362,7 +360,7 @@ vector<string> autocomplete( string_view fragment ) {
 
 vector<string> autocomplete_iterative( string_view fragment ) {
   vector<string> res;
-  string   single_result( fragment );
+  string         single_result( fragment );
   do {
     lg.trace( "single_result: {}", single_result );
     auto try_res = autocomplete( single_result );

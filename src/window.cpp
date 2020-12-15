@@ -39,9 +39,6 @@
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // range-v3
 #include "range/v3/view/filter.hpp"
 
@@ -696,7 +693,7 @@ void select_box(
 }
 
 sync_future<std::string> select_box( std::string_view title,
-                                     vector<string>      options ) {
+                                     vector<string>   options ) {
   sync_promise<string> s_promise;
   select_box( title, options,
               [s_promise]( string const& result ) mutable {
@@ -766,7 +763,7 @@ sync_future<vector<UnitSelection>> unit_selection_box(
       };
 
   ok_cancel_window_builder<
-      absl::flat_hash_map<UnitId, UnitActivationInfo>>(
+      unordered_map<UnitId, UnitActivationInfo>>(
       /*title=*/"Activate Units",
       /*get_result=*/
       [p_unit_activation_view]() {

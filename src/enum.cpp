@@ -25,7 +25,6 @@
 #include "base-util/pp.hpp"
 
 // Abseil
-#include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_split.h"
 
 // magic enum
@@ -34,6 +33,7 @@
 // C++ standard library
 #include <functional>
 #include <typeinfo>
+#include <unordered_map>
 
 using namespace std;
 
@@ -70,8 +70,7 @@ using EnumNameFunc = char const* (*)( int );
 #define ENUM_TO_STR_FUNC( type ) \
   { internal::remove_namespaces( #type ), &enum_to_str<type> }
 
-using EnumNameMap =
-    absl::flat_hash_map<string_view, EnumNameFunc>;
+using EnumNameMap = unordered_map<string_view, EnumNameFunc>;
 
 EnumNameMap& enum_display_names() {
   static auto m = [] {

@@ -21,9 +21,6 @@
 // Revolution Now (config)
 #include "../config/ucl/sound.inl"
 
-// abseil
-#include "absl/container/flat_hash_map.h"
-
 // magic enum
 #include "magic_enum.hpp"
 
@@ -58,7 +55,7 @@ SfxDesc sfx_file_for( e_sfx sound ) {
   SHOULD_NOT_BE_HERE;
 }
 
-absl::flat_hash_map<e_sfx, ::Mix_Chunk*> loaded_sfx;
+unordered_map<e_sfx, ::Mix_Chunk*> loaded_sfx;
 
 auto* load_sfx( e_sfx sound ) {
   if( !loaded_sfx.contains( sound ) ) {

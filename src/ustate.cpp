@@ -35,10 +35,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // C++ standard library
 #include <unordered_map>
 
@@ -71,18 +67,17 @@ public:
   // be resurrected and their IDs will never be reused). Holding
   // the IDs here is technically redundant, but this is on pur-
   // pose in the hope that it might catch a bug.
-  absl::flat_hash_set<UnitId> deleted;
+  unordered_set<UnitId> deleted;
 
   // For units that are on (owned by) the world (map).
-  unordered_map<Coord, absl::flat_hash_set<UnitId>>
-      units_from_coords;
+  unordered_map<Coord, unordered_set<UnitId>> units_from_coords;
 
   // For units that are held as cargo.
-  absl::flat_hash_map</*held*/ UnitId, /*holder*/ UnitId>
+  unordered_map</*held*/ UnitId, /*holder*/ UnitId>
       holder_from_held;
 
   // For units that are held in a colony.
-  unordered_map<ColonyId, absl::flat_hash_set<UnitId>>
+  unordered_map<ColonyId, unordered_set<UnitId>>
       units_from_colony;
 
 private:
@@ -252,9 +247,8 @@ UnitId create_unit( e_nation nation, e_unit_type type ) {
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
-absl::flat_hash_set<UnitId> const& units_from_coord(
-    Coord const& c ) {
-  static absl::flat_hash_set<UnitId> const empty = {};
+unordered_set<UnitId> const& units_from_coord( Coord const& c ) {
+  static unordered_set<UnitId> const empty = {};
   // CHECK( square_exists( c ) );
   return base::lookup( as_const( SG().units_from_coords ), c )
       .value_or( empty );
@@ -337,8 +331,7 @@ bool is_unit_on_map_indirect( UnitId id ) {
 /****************************************************************
 ** Colony Ownership
 *****************************************************************/
-absl::flat_hash_set<UnitId> const& units_from_colony(
-    ColonyId id ) {
+unordered_set<UnitId> const& units_from_colony( ColonyId id ) {
   CHECK( colony_exists( id ) );
   return SG().units_from_colony[id];
 }

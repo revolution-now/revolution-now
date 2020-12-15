@@ -20,9 +20,6 @@
 // Flatbuffers
 #include "fb/sg-player_generated.h"
 
-// Abseil
-#include "absl/container/node_hash_map.h"
-
 using namespace std;
 namespace rn {
 
@@ -34,7 +31,7 @@ namespace {
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( Player ) {
-  using PlayerMap_t = absl::node_hash_map<e_nation, Player>;
+  using PlayerMap_t = unordered_map<e_nation, Player>;
 
   // Fields that are actually serialized.
 

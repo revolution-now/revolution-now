@@ -33,9 +33,6 @@
 // {fmt}
 #include "fmt/format.h"
 
-// Abseil
-#include "absl/container/flat_hash_set.h"
-
 // SDL
 #include "SDL.h"
 #include "SDL_image.h"
@@ -249,7 +246,7 @@ void render_palette_segment( Texture&             tx,
 // already have a color whose r/g/b components are all within the
 // same chunk.
 vector<Color> coursen_impl( vector<Color> const& colors,
-                         uint8_t           chunk ) {
+                            uint8_t              chunk ) {
   // Do this in a dedicated function so that we don't have any
   // issues with the fact that a) we're using unsigned numbers
   // and b) their are only 8 bit.  This may not be necessary, but
@@ -415,6 +412,17 @@ maybe<Color> Color::parse_from_hex( string_view hex ) {
   return color;
 }
 
+uint32_t Color::to_uint32() const {
+  uint32_t i = r;
+  i <<= 8;
+  i += g;
+  i <<= 8;
+  i += b;
+  i <<= 8;
+  i += a;
+  return i;
+}
+
 // A random color.
 Color Color::random() {
   MUST_IMPROVE_IMPLEMENTATION_BEFORE_USE;
@@ -472,12 +480,12 @@ void hsl_bucketed_sort( vector<Color>& colors ) {
 }
 
 vector<Color> extract_palette( fs::path const& glob,
-                               maybe<int>        target ) {
+                               maybe<int>      target ) {
   /* Extracting color components from a 32-bit color value */
   auto files = util::wildcard( glob, false );
   CHECK( !files.empty(), "need at least one file" );
 
-  absl::flat_hash_set<Color> colors;
+  unordered_set<Color> colors;
 
   for( auto const& file : files ) {
     ::SDL_Surface* surface = ::IMG_Load( file.c_str() );
@@ -532,12 +540,6 @@ vector<Color> extract_palette( fs::path const& glob,
   CHECK( !colors.empty(), "found no colors" );
 
   auto res = vector<Color>( colors.begin(), colors.end() );
-  // Do a default RGB sort of these colors. This is not very
-  // useful, but will counter the randomness (actual
-  // non-determinism) of the ordering of the elements in the
-  // flat_hash_set (wherein real randomness is injected to
-  // prevent implicit dependence on internal ordering which is
-  // not permitted by the API).
   util::sort( res );
 
   lg.info( "found {} colors", res.size() );
@@ -637,12 +639,14 @@ void dump_palette( ColorBuckets const& bucketed,
   inl_out << ")\n";
 }
 
-vector<vector<Color>> partition_by_hue( vector<Color> const& colors ) {
+vector<vector<Color>> partition_by_hue(
+    vector<Color> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, hue_bucket_key ) );
 }
 
-vector<vector<Color>> partition_by_sat( vector<Color> const& colors ) {
+vector<vector<Color>> partition_by_sat(
+    vector<Color> const& colors ) {
   return util::split_on_idxs(
       colors, util::group_by_key( colors, sat_bucket_key ) );
 }
@@ -658,7 +662,8 @@ void remove_greys( vector<Color>& colors ) {
   lg.info( "removed {} greys", init - final );
 }
 
-vector<Color> coursen( vector<Color> const& colors, int min_count ) {
+vector<Color> coursen( vector<Color> const& colors,
+                       int                  min_count ) {
   uint8_t chunk = 64;
   while( chunk > 1 ) {
     chunk--;

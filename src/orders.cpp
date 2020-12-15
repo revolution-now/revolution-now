@@ -11,11 +11,9 @@
 *****************************************************************/
 #include "orders.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // C++ standard library
 #include <queue>
+#include <unordered_map>
 
 using namespace std;
 
@@ -23,7 +21,7 @@ namespace rn {
 
 namespace {
 
-absl::flat_hash_map<UnitId, queue<orders_t>> g_orders_queue;
+unordered_map<UnitId, queue<orders_t>> g_orders_queue;
 
 } // namespace
 

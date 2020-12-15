@@ -18,8 +18,8 @@
 #include "unit.hpp"
 #include "views.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
+// C++ standard library
+#include <unordered_map>
 
 namespace rn::ui {
 
@@ -33,7 +33,7 @@ struct UnitActivationInfo {
 
 class UnitActivationView final : public CompositeSingleView {
 public:
-  using map_t = absl::flat_hash_map<UnitId, UnitActivationInfo>;
+  using map_t = std::unordered_map<UnitId, UnitActivationInfo>;
 
   // Preferred way to create.
   static std::unique_ptr<UnitActivationView> Create(

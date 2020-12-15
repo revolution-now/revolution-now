@@ -163,12 +163,12 @@ TuneDimensions const& tune_dimensions( TuneId id );
 // TuneVecDimensions it mush match any of the possibilities in
 // the vector associated to that dimension.
 std::vector<TuneId> find_tunes( TuneOptDimensions dimensions,
-                        bool              fuzzy_match = true,
-                        bool              not_like    = false );
+                                bool fuzzy_match = true,
+                                bool not_like    = false );
 // Matches any of the possibilities for each dimension.
 std::vector<TuneId> find_tunes( TuneVecDimensions dimensions,
-                        bool              fuzzy_match = true,
-                        bool              not_like    = false );
+                                bool fuzzy_match = true,
+                                bool not_like    = false );
 
 // List tunes like given tune. Actually it will return a list of
 // all tunes, sorted so that tunes that are most similar to the
@@ -192,3 +192,9 @@ std::vector<TuneId> tunes_not_like( TuneId id );
 TuneId random_tune();
 
 } // namespace rn
+
+namespace std {
+
+DEFINE_HASH_FOR_TYPED_INT( ::rn::TuneId )
+
+} // namespace std

@@ -28,14 +28,16 @@
 // magic enum
 #include "magic_enum.hpp"
 
-// abseil
-#include "absl/container/flat_hash_map.h"
+// C++ standard library
+#include <unordered_map>
 
 namespace rn {
 
+using namespace std;
+
 namespace {
 
-absl::flat_hash_map<e_image, Texture> g_images;
+unordered_map<e_image, Texture> g_images;
 
 fs::path const& image_file_path( e_image image ) {
   switch( image ) {

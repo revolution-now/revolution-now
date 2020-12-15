@@ -27,9 +27,6 @@
 // Flatbuffers
 #include "fb/unit_generated.h"
 
-// Abseil
-#include "absl/container/flat_hash_set.h"
-
 // C++ standard library
 #include <functional>
 #include <unordered_set>
@@ -39,7 +36,7 @@ namespace rn {
 std::string debug_string( UnitId id );
 
 ND bool unit_exists( UnitId id );
-ND Unit&    unit_from_id( UnitId id );
+ND Unit&            unit_from_id( UnitId id );
 std::vector<UnitId> units_all( maybe<e_nation> n = nothing );
 // Apply a function to all units. The function may mutate the
 // units. NOTE: here, the word "map" is meant in the functional
@@ -74,7 +71,7 @@ e_unit_state state_for_unit( UnitId id );
 // Function for mapping between units and coordinates on the map.
 // These will only give the units that are owned immediately by
 // the map; it will not give units who are cargo of those units.
-ND absl::flat_hash_set<UnitId> const& units_from_coord(
+ND std::unordered_set<UnitId> const& units_from_coord(
     Coord const& c );
 
 // This will give all units that are on a square or are cargo of
@@ -113,7 +110,7 @@ bool is_unit_on_map_indirect( UnitId id );
 // This returns only those units who are workers within the
 // colony, and not units on the map at the location of the
 // colony.
-absl::flat_hash_set<UnitId> const& units_from_colony(
+std::unordered_set<UnitId> const& units_from_colony(
     ColonyId id );
 
 // If the unit is working in the colony then this will return it;

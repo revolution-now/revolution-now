@@ -36,9 +36,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_set.h"
-
 // Range-v3
 #include "range/v3/view/filter.hpp"
 #include "range/v3/view/reverse.hpp"
@@ -331,8 +328,8 @@ maybe<Plane::MenuClickHandler> Plane::menu_click_handler(
 ** External API
 *****************************************************************/
 void set_plane_list( vector<e_plane> const& arr ) {
-  vector<e_plane>              res;
-  absl::flat_hash_set<e_plane> set;
+  vector<e_plane>        res;
+  unordered_set<e_plane> set;
   res.reserve( magic_enum::enum_count<e_plane>() );
   for( auto plane : arr ) {
     CHECK( plane != e_plane::omni );

@@ -14,10 +14,8 @@
 #include "core-config.hpp"
 #include "maybe.hpp"
 
-// Abseil
-#include "absl/container/node_hash_map.h"
-
 // C++ standard library
+#include <unordered_map>
 #include <utility>
 
 namespace rn {
@@ -102,11 +100,10 @@ template<typename Invalidator, typename Return, typename Arg>
 class memoizer_1_arg_base_t {
 public:
   using Func = Return ( * )( Arg );
-  // Use node_hash_map because we want pointer stability because
-  // our operator() function returns references. WARNING: this
-  // still does not guarantee pointer stability after the cache
-  // is invalidated.
-  using CacheType = absl::node_hash_map<Arg, Return>;
+  // Note we need pointer stability because our operator()
+  // function returns references. WARNING: this still does not
+  // guarantee pointer stability after the cache is invalidated.
+  using CacheType = std::unordered_map<Arg, Return>;
 
   Func        generator_;
   Invalidator invalidator_;

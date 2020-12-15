@@ -20,6 +20,7 @@
 #include "ttf.hpp"
 
 // base
+#include "base/hash.hpp"
 #include "base/keyval.hpp"
 
 // base-util
@@ -27,9 +28,6 @@
 #include "base-util/string.hpp"
 
 // Abseil
-#include "absl/container/flat_hash_set.h"
-#include "absl/container/node_hash_map.h"
-#include "absl/hash/hash.h"
 #include "absl/strings/str_split.h"
 
 // Range-v3
@@ -37,6 +35,9 @@
 #include "range/v3/view/remove_if.hpp"
 #include "range/v3/view/transform.hpp"
 #include "range/v3/view/zip.hpp"
+
+// C++ standard library
+#include <unordered_map>
 
 using namespace std;
 
@@ -58,6 +59,7 @@ struct TextCacheKey {
   maybe<TextMarkupInfo> markup_info;
   // If this is active then we are in reflow mode.
   maybe<TextReflowInfo> reflow_info;
+  // !! Update std::hash below when adding new fields.
 
   // Adds some member functions to make this struct a cache key.
   MAKE_CACHE_KEY( TextCacheKey, text, font, color, markup_info,
@@ -65,7 +67,30 @@ struct TextCacheKey {
 };
 NOTHROW_MOVE( TextCacheKey );
 
-absl::node_hash_map<TextCacheKey, Texture> g_text_cache;
+} // namespace
+} // namespace rn
+
+namespace std {
+
+template<>
+struct hash<::rn::TextCacheKey> {
+  auto operator()( ::rn::TextCacheKey const& o ) const noexcept {
+    size_t h = hash<string>{}( o.text );
+    base::hash_combine( h, o.font );
+    base::hash_combine( h, o.color );
+    base::hash_combine( h, o.markup_info );
+    base::hash_combine( h, o.reflow_info );
+    return h;
+  }
+};
+
+} // namespace std
+
+namespace rn {
+namespace {
+
+// Need pointer stability in this map.
+unordered_map<TextCacheKey, Texture> g_text_cache;
 constexpr int const k_max_text_cache_size = 2000;
 
 maybe<Texture const&> text_cache_lookup(
@@ -83,7 +108,7 @@ void trim_text_cache() {
       g_text_cache //
       | rv::transform( L( _.second.id() ) ) );
   util::sort( ids );
-  absl::flat_hash_set<int> to_remove(
+  unordered_set<int> to_remove(
       ids.begin(), ids.begin() + ( k_max_text_cache_size / 2 ) );
   vector<TextCacheKey const*> keys_to_remove;
   keys_to_remove.reserve( to_remove.size() );
@@ -272,8 +297,9 @@ Texture render_lines_markup(
 //   Steps:
 //     1) Split text into words and strip each one of all spaces
 //     2) Join words into one long line separated by spaces
-//     3) Parse long line for markup, yielding vector<MarkedUpText>
-//     4) Extract text from markup results.  This should be the
+//     3) Parse long line for markup, yielding
+//     vector<MarkedUpText> 4) Extract text from markup results.
+//     This should be the
 //        line from #2 but without any markup.
 //     5) Wrap the line from #4
 //     6) Re-flow the marked up line from #3 into lines of length

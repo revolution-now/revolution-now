@@ -37,10 +37,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-
 // magic enum
 #include "magic_enum.hpp"
 
@@ -58,8 +54,6 @@
 
 using namespace std;
 
-using absl::flat_hash_map;
-
 namespace rn {
 
 namespace {
@@ -74,7 +68,7 @@ struct Menu {
 };
 NOTHROW_MOVE( Menu );
 
-absl::flat_hash_map<e_menu, Menu> g_menus{
+unordered_map<e_menu, Menu> g_menus{
     { e_menu::game, { "Game", false, 'G' } },
     { e_menu::view, { "View", false, 'V' } },
     { e_menu::orders, { "Orders", false, 'O' } },
@@ -102,10 +96,10 @@ NOTHROW_MOVE( MenuCallbacks );
 namespace rn {
 namespace {
 
-flat_hash_map<e_menu_item, MenuItem::menu_clickable*>
-                                        g_menu_items;
-flat_hash_map<e_menu_item, e_menu>      g_item_to_menu;
-flat_hash_map<e_menu, vector<e_menu_item>> g_items_from_menu;
+unordered_map<e_menu_item, MenuItem::menu_clickable*>
+                                           g_menu_items;
+unordered_map<e_menu_item, e_menu>         g_item_to_menu;
+unordered_map<e_menu, vector<e_menu_item>> g_items_from_menu;
 
 #define ITEM( item, name )      \
   MenuItem::menu_clickable {    \
@@ -118,7 +112,7 @@ flat_hash_map<e_menu, vector<e_menu_item>> g_items_from_menu;
 /****************************************************************
 ** The Menus
 *****************************************************************/
-absl::flat_hash_map<e_menu, vector<MenuItem_t>> g_menu_def{
+unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
     { e_menu::game,
       {
           ITEM( about, "About this Game" ),    //
@@ -334,7 +328,7 @@ struct ItemTextures {
 };
 NOTHROW_MOVE( ItemTextures );
 
-flat_hash_map<e_menu_item, ItemTextures> g_menu_item_rendered;
+unordered_map<e_menu_item, ItemTextures> g_menu_item_rendered;
 
 struct MenuTextures {
   // Each menu may have a different width depending on the sizes
@@ -352,7 +346,7 @@ struct MenuTextures {
 };
 NOTHROW_MOVE( MenuTextures );
 
-absl::flat_hash_map<e_menu, MenuTextures> g_menu_rendered;
+unordered_map<e_menu, MenuTextures> g_menu_rendered;
 
 // Must be called after all textures are rendered. It will it-
 // erate through all the rendered text textures (both menu
@@ -701,8 +695,9 @@ Texture render_menu_header_background( e_menu menu, bool active,
   return res;
 }
 
-Texture& render_open_menu( e_menu menu, maybe<e_menu_item> subject,
-                           bool clicking ) {
+Texture& render_open_menu( e_menu             menu,
+                           maybe<e_menu_item> subject,
+                           bool               clicking ) {
   CHECK( g_menu_rendered.contains( menu ) );
   if( subject.has_value() ) {
     CHECK( g_item_to_menu[*subject] == menu );
@@ -993,15 +988,13 @@ void render_menus( Texture& tx ) {
 ** Registration
 *****************************************************************/
 auto& on_click_handlers() {
-  static absl::flat_hash_map<e_menu_item,
-                             std::function<void( void )>>
+  static unordered_map<e_menu_item, std::function<void( void )>>
       m;
   return m;
 }
 
 auto& is_enabled_handlers() {
-  static absl::flat_hash_map<e_menu_item,
-                             std::function<bool( void )>>
+  static unordered_map<e_menu_item, std::function<bool( void )>>
       m;
   return m;
 }
@@ -1044,7 +1037,7 @@ void init_menus() {
   // Check that all menus have unique shortcut keys and that the
   // menu header name contains the shortcut key (in either
   // uppercase or lowercase.
-  absl::flat_hash_set<char> keys;
+  unordered_set<char> keys;
   for( auto menu : magic_enum::enum_values<e_menu>() ) {
     char key = tolower( g_menus[menu].shortcut );
     CHECK( !keys.contains( key ),

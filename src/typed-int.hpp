@@ -37,13 +37,6 @@ struct TypedNumMinimal {
   }
   constexpr explicit operator T() const { return _; }
 
-  // Abseil hashing API.
-  template<typename H>
-  friend H AbslHashValue( H                              h,
-                          TypedNumMinimal<T, Tag> const& c ) {
-    return H::combine( std::move( h ), c._ );
-  }
-
   T _{ 0 };
 };
 
@@ -709,3 +702,12 @@ inline constexpr void operator/=( WD& w, SXD sx ) { w._ /= sx._; }
 inline constexpr void operator/=( HD& h, SYD sy ) { h._ /= sy._; }
 // clang-format on
 } // namespace rn
+
+namespace std {
+
+DEFINE_HASH_FOR_TYPED_INT( ::rn::X );
+DEFINE_HASH_FOR_TYPED_INT( ::rn::Y );
+DEFINE_HASH_FOR_TYPED_INT( ::rn::W );
+DEFINE_HASH_FOR_TYPED_INT( ::rn::H );
+
+} // namespace std

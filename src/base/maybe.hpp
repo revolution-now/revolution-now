@@ -749,15 +749,6 @@ public:
   }
 
   /**************************************************************
-  ** Abseil hashing API.
-  ***************************************************************/
-  template<typename H>
-  friend H AbslHashValue( H h, maybe<T> const& m ) {
-    if( !m ) return H::combine( std::move( h ), false );
-    return H::combine( std::move( h ), *m );
-  }
-
-  /**************************************************************
   ** Mapping to Bool
   ***************************************************************/
   // Returns true only if the maybe is active and contains a
@@ -1429,5 +1420,13 @@ void swap( ::base::maybe<T>& lhs, ::base::maybe<T>& rhs )
               is_swappable_v<T> ) /* clang-format on */ {
   lhs.swap( rhs );
 }
+
+template<typename T>
+struct hash<::base::maybe<T>> {
+  auto operator()( ::base::maybe<T> const& m ) const noexcept {
+    if( !m ) return hash<bool>{}( false );
+    return hash<T>{}( *m );
+  }
+};
 
 } // namespace std

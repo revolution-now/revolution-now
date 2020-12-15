@@ -28,9 +28,6 @@
 // Revolution Now (config)
 #include "../config/ucl/input.inl"
 
-// Abseil
-#include "absl/container/flat_hash_map.h"
-
 // magic-enum
 #include "magic_enum.hpp"
 
@@ -65,7 +62,7 @@ mouse_button_state_t g_mouse_buttons{};
 drag_phase_t l_drag{ drag_phase::none{} };
 drag_phase_t r_drag{ drag_phase::none{} };
 
-absl::flat_hash_map<::SDL_Keycode, e_direction> nav_keys{
+unordered_map<::SDL_Keycode, e_direction> nav_keys{
     { ::SDLK_LEFT, e_direction::w },
     { ::SDLK_RIGHT, e_direction::e },
     { ::SDLK_DOWN, e_direction::s },
@@ -469,7 +466,7 @@ flat_queue<event_t>& event_queue() { return g_event_queue; }
 ** Utilities
 *****************************************************************/
 maybe<char> ascii_char_for_event( key_event_t const& event ) {
-  static absl::flat_hash_map<char, char> shift_map{
+  static unordered_map<char, char> shift_map{
       { '`', '~' },  { '1', '!' },  { '2', '@' }, { '3', '#' },
       { '4', '$' },  { '5', '%' },  { '6', '^' }, { '7', '&' },
       { '8', '*' },  { '9', '(' },  { '0', ')' }, { '-', '_' },

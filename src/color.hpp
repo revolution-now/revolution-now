@@ -55,6 +55,8 @@ struct Color {
 
   auto to_tuple() const { return std::tuple( r, g, b, a ); }
 
+  uint32_t to_uint32() const;
+
   // #NNNNNN with N in [0-9A-F] and optionally #NNNNNNNN
   // if with_alpha = true;
   std::string to_string( bool with_alpha = false ) const;
@@ -85,12 +87,6 @@ struct Color {
   // TODO: these need to cache results.
   Color highlighted( int iterations = 1 ) const;
   Color shaded( int iterations = 1 ) const;
-
-  // Abseil hashing API.
-  template<typename H>
-  friend H AbslHashValue( H h, Color const& c ) {
-    return H::combine( std::move( h ), c.to_tuple() );
-  }
 
   bool operator<( Color const& rhs ) const {
     return to_tuple() < rhs.to_tuple();
@@ -139,7 +135,8 @@ void remove_greys( std::vector<Color>& colors );
 
 // For holding a list of colors that are bucketed first by hue,
 // then by saturation, then by luminosity.
-using ColorBuckets = std::vector<std::vector<std::vector<maybe<Color>>>>;
+using ColorBuckets =
+    std::vector<std::vector<std::vector<maybe<Color>>>>;
 
 // This will iterate through the colors and place each one into a
 // bucket depending on its values of hue, saturation, and
@@ -158,14 +155,15 @@ ColorBuckets hsl_bucket( std::vector<Color> const& colors );
 // best to achieve this number, but typically the set of returned
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
-std::vector<Color> extract_palette( fs::path const& glob,
-                            maybe<int>        target = nothing );
+std::vector<Color> extract_palette(
+    fs::path const& glob, maybe<int> target = nothing );
 
 // Will remove colors that are redundant or approximately
 // redunant in order to meet the target count. It will always
 // return a number of colors that is >= min_count so long as
 // there are at least that many to begin with.
-std::vector<Color> coursen( std::vector<Color> const& colors, int min_count );
+std::vector<Color> coursen( std::vector<Color> const& colors,
+                            int min_count );
 
 // Will look in the `where` folder and will load all files
 // (assuming they are image files) and will load/scan each one of
@@ -205,3 +203,14 @@ void show_color_adjustment( Color center );
 
 DEFINE_FORMAT( ::rn::Color, "{}",
                o.to_string( /*with_alpha=*/true ) );
+
+namespace std {
+
+template<>
+struct hash<::rn::Color> {
+  auto operator()( ::rn::Color const& c ) const noexcept {
+    return hash<uint32_t>{}( c.to_uint32() );
+  }
+};
+
+} // namespace std
