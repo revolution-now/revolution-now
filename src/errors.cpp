@@ -14,6 +14,9 @@
 #include "fmt-helper.hpp"
 #include "stacktrace.hpp"
 
+// base
+#include "base/stack-trace.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -50,3 +53,12 @@ bool check_inline( bool b, char const* msg ) {
 } // namespace detail
 
 } // namespace rn
+
+namespace base {
+
+// See description in base/stack-trace.hpp for what this is.
+void abort_with_backtrace_here( SourceLoc loc ) {
+  ::rn::die( loc.file_name(), loc.line(), "internal error" );
+}
+
+} // namespace base
