@@ -15,18 +15,12 @@
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "maybe.hpp"
-#include "ranges-fwd.hpp"
 
 // base
 #include "base/lambda.hpp"
 
 // base-util
 #include "base-util/graph.hpp"
-
-// Range-v3
-#include "range/v3/algorithm/find.hpp"
-#include "range/v3/algorithm/for_each.hpp"
-#include "range/v3/view/reverse.hpp"
 
 // C++ standard library
 #include <span>
@@ -254,17 +248,20 @@ void run_all_init_routines(
   // of the dependency graph; in that case, only initialize those
   // and their dependencies.
   if( top_level.size() > 0 ) {
-    for( auto routine : top_level ) {
-      rg::for_each(
-          dag.accessible( routine, /*with_self=*/true ),
-          LC( reachable.insert( _ ) ) );
+    for( e_init_routine routine : top_level ) {
+      auto accessible =
+          dag.accessible( routine, /*with_self=*/true );
+      for( e_init_routine node : accessible )
+        reachable.insert( node );
     }
   } else {
-    rg::for_each( sorted, LC( reachable.insert( _ ) ) );
+    for( e_init_routine routine : sorted )
+      reachable.insert( routine );
   }
 
   for( auto routine : sorted ) {
-    if( rg::find( reachable, routine ) != reachable.end() ) {
+    if( find( reachable.begin(), reachable.end(), routine ) !=
+        reachable.end() ) {
       lg.debug( "initializing: {}", routine );
       init_functions()[routine]();
       init_routine_run_map()[routine] = true;
@@ -284,7 +281,8 @@ void run_all_cleanup_routines() {
   auto ordered = dag.sorted();
 
   // We must cleanup in the reverse order that we initialized.
-  for( auto routine : ordered | rv::reverse ) {
+  reverse( ordered.begin(), ordered.end() );
+  for( auto routine : ordered ) {
     if( init_routine_run_map()[routine] ) {
       lg.debug( "cleaning: {}", routine );
       cleanup_functions()[routine]();

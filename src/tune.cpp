@@ -134,10 +134,11 @@ void TunePlayerInfo::log() const {
 }
 
 vector<TuneId> const& all_tunes() {
-  static vector<TuneId> tunes;
-  if( tunes.empty() )
-    tunes = rg::to<vector<TuneId>>(
-        g_tunes | rv::transform( L( _.first ) ) );
+  static vector<TuneId> tunes = [] {
+    vector<TuneId> res;
+    for( auto& p : g_tunes ) res.push_back( p.first );
+    return res;
+  }();
   return tunes;
 }
 
@@ -181,13 +182,11 @@ vector<TuneId> find_tunes( TuneVecDimensions dimensions,
 
     int target_score_for_non_fuzzy =
         not_like ? enabled_dimensions : 0;
-    scores = rg::to<vector<pair<TuneId, int>>>(
-        scores |
-        rv::filter(
-            LC( _.second == target_score_for_non_fuzzy ) ) );
+    erase_if( scores,
+              LC( _.second != target_score_for_non_fuzzy ) );
   }
 
-  if( not_like ) rg::reverse( scores );
+  if( not_like ) reverse( scores.begin(), scores.end() );
 
   auto res = rg::to<vector<TuneId>>(
       scores | rv::transform( L( _.first ) ) );

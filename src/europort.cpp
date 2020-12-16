@@ -14,17 +14,14 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "ranges-fwd.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// base
+#include "base/lambda.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
-
-// Range-v3
-#include "range/v3/action/sort.hpp"
-#include "range/v3/range/conversion.hpp"
-#include "range/v3/view/filter.hpp"
 
 using namespace std;
 
@@ -32,9 +29,11 @@ namespace rn {
 
 namespace {
 
-int unit_arrival_id_throw( UnitId id ) {
-  // Until a better method is found to organize units in port.
-  return id._;
+template<typename Func>
+vector<UnitId> units_in_europort_filtered( Func&& func ) {
+  vector<UnitId> res = units_in_euro_port_view();
+  erase_if( res, not_fn( std::forward<Func>( func ) ) );
+  return res;
 }
 
 } // namespace
@@ -77,37 +76,31 @@ bool is_unit_in_port( UnitId id ) {
 }
 
 vector<UnitId> europort_units_on_dock() {
-  auto in_euroview = units_in_euro_port_view();
-  auto res         = rg::to<vector<UnitId>>(
-      in_euroview | rv::filter( is_unit_on_dock ) );
+  vector<UnitId> res =
+      units_in_europort_filtered( is_unit_on_dock );
   // Now we must order the units by their arrival time in port
   // (or on dock).
-  res |= rg::actions::sort( std::less{}, unit_arrival_id_throw );
+  sort( res.begin(), res.end() );
   return res;
 }
 
 vector<UnitId> europort_units_in_port() {
-  auto in_euroview = units_in_euro_port_view();
-  auto res         = rg::to<vector<UnitId>>(
-      in_euroview | rv::filter( is_unit_in_port ) );
+  vector<UnitId> res =
+      units_in_europort_filtered( is_unit_in_port );
   // Now we must order the units by their arrival time in port
   // (or on dock).
-  res |= rg::actions::sort( std::less{}, unit_arrival_id_throw );
+  sort( res.begin(), res.end() );
   return res;
 }
 
 // To old world.
 vector<UnitId> europort_units_inbound() {
-  auto in_euroview = units_in_euro_port_view();
-  return rg::to<vector<UnitId>>( in_euroview |
-                                 rv::filter( is_unit_inbound ) );
+  return units_in_europort_filtered( is_unit_inbound );
 }
 
 // To new world.
 vector<UnitId> europort_units_outbound() {
-  auto in_euroview = units_in_euro_port_view();
-  return rg::to<vector<UnitId>>(
-      in_euroview | rv::filter( is_unit_outbound ) );
+  return units_in_europort_filtered( is_unit_outbound );
 }
 
 void unit_sail_to_old_world( UnitId id ) {

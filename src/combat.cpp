@@ -21,9 +21,6 @@
 // base
 #include "base/lambda.hpp"
 
-// base-util
-#include "base-util/algo.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -79,8 +76,8 @@ maybe<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
 
   auto const& units_at_dst_set = units_from_coord( dst_coord );
   vector<UnitId> units_at_dst( units_at_dst_set.begin(),
-                            units_at_dst_set.end() );
-  auto        colony_at_dst = colony_from_coord( dst_coord );
+                               units_at_dst_set.end() );
+  auto           colony_at_dst = colony_from_coord( dst_coord );
 
   // If we have a colony then we only want to get units that are
   // military units (and not ships), since we want the following
@@ -90,16 +87,15 @@ maybe<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
   // ceeds, the colony is taken) even if there are free colonists
   // on the colony map square.
   if( colony_at_dst ) {
-    util::remove_if( units_at_dst,
-                     L( unit_from_id( _ ).desc().ship ) );
-    util::remove_if(
+    erase_if( units_at_dst, L( unit_from_id( _ ).desc().ship ) );
+    erase_if(
         units_at_dst,
         L( !unit_from_id( _ ).desc().is_military_unit() ) );
   }
 
   // If military units are exhausted then attack the colony.
   if( colony_at_dst && units_at_dst.empty() ) {
-    auto const& colony = colony_from_id( *colony_at_dst );
+    auto const&    colony = colony_from_id( *colony_at_dst );
     vector<UnitId> units_working_in_colony = colony.units();
     CHECK( units_working_in_colony.size() > 0 );
     // Sort since order is otherwise unspecified.
@@ -278,8 +274,8 @@ maybe<CombatAnalysis> combat_impl( UnitId id, orders_t orders ) {
 // This is the entry point; calls the implementation then checks
 // invariants. Finally computes the combat statistics if the at-
 // tack is allowed.
-maybe<CombatAnalysis> CombatAnalysis::analyze_( UnitId   id,
-                                              orders_t orders ) {
+maybe<CombatAnalysis> CombatAnalysis::analyze_(
+    UnitId id, orders_t orders ) {
   auto maybe_res = combat_impl( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;

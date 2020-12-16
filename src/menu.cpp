@@ -34,6 +34,9 @@
 #include "../config/ucl/palette.inl"
 #include "../config/ucl/ui.inl"
 
+// base
+#include "base/lambda.hpp"
+
 // base-util
 #include "base-util/algo.hpp"
 
@@ -41,8 +44,6 @@
 #include "magic_enum.hpp"
 
 // Range-v3
-#include "range/v3/algorithm/any_of.hpp"
-#include "range/v3/view/filter.hpp"
 #include "range/v3/view/intersperse.hpp"
 #include "range/v3/view/remove_if.hpp"
 #include "range/v3/view/reverse.hpp"
@@ -258,39 +259,30 @@ auto is_menu_item_enabled =
     per_frame_memoize( is_menu_item_enabled_ );
 
 bool is_menu_visible_( e_menu menu ) {
-  return rg::any_of( g_items_from_menu[menu],
-                     L( is_menu_item_enabled( _ ) ) );
+  auto& items = g_items_from_menu[menu];
+  return any_of( items.begin(), items.end(),
+                 L( is_menu_item_enabled( _ ) ) );
 }
 
 auto is_menu_visible = per_frame_memoize( is_menu_visible_ );
 
 auto visible_menus_() {
-  // Note: `is_menu_visible` will be called twice for each ele-
-  // ment due to the way the vector range constructor works.
-  //
-  // Also, we need to wrap the is_menu_visible in a lambda
-  // because range-v3 requires that the predicate satisfy the
-  // IndirectPredicate concept which requires copyability.
-  // However, our memoized functions are not always copyable,
-  // since they hold some state (e.g. in the invalidator) that
-  // would not behave properly if copied.
-  auto res = rg::to<vector<e_menu>>(
-      magic_enum::enum_values<e_menu>() |
-      rv::filter( L( is_menu_visible( _ ) ) ) );
+  auto& values = magic_enum::enum_values<e_menu>();
+
+  vector<e_menu> res;
+  res.reserve( values.size() );
+  for( e_menu v : values )
+    if( is_menu_visible( v ) ) //
+      res.push_back( v );
   return res;
 }
 
 auto visible_menus = per_frame_memoize( visible_menus_ );
 
 bool have_some_visible_menus() {
-  // We need to wrap the is_menu_visible in a lambda because
-  // range-v3 requires that the predicate satisfy the
-  // IndirectPredicate concept which requires copyability.
-  // However, our memoized functions are not always copyable,
-  // since they hold some state (e.g. in the invalidator) that
-  // would not behave properly if copied.
-  return rg::any_of( magic_enum::enum_values<e_menu>(),
-                     L( is_menu_visible( _ ) ) );
+  auto& values = magic_enum::enum_values<e_menu>();
+  return any_of( values.begin(), values.end(),
+                 L( is_menu_visible( _ ) ) );
 }
 
 maybe<e_menu> first_visible_menu() {
@@ -426,7 +418,7 @@ X menu_header_x_pos_( e_menu target ) {
         0_w );
   }
   width_delta += config_ui.menus.first_menu_start;
-  CHECK( width_delta != 0_w );
+  CHECK( width_delta >= 0_w );
   return 0_x + ( !desc.right_side
                      ? width_delta
                      : menu_bar_rect().w - width_delta );

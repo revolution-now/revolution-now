@@ -17,7 +17,6 @@
 #include "id.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "ranges.hpp"
 #include "sg-macros.hpp"
 
 // base
@@ -163,8 +162,11 @@ maybe<ColonyId> colony_from_name( std::string_view name ) {
 }
 
 vector<ColonyId> colonies_in_rect( Rect const& rect ) {
-  return rg::to<vector<ColonyId>>(
-      rect | rv::transform( colony_from_coord ) | cat_opts );
+  vector<ColonyId> res;
+  for( auto coord : rect )
+    if( auto colony = colony_from_coord( coord ); colony )
+      res.push_back( *colony );
+  return res;
 }
 
 /****************************************************************

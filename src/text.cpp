@@ -22,6 +22,7 @@
 // base
 #include "base/hash.hpp"
 #include "base/keyval.hpp"
+#include "base/lambda.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -104,9 +105,10 @@ void trim_text_cache() {
   // then cut it down to half size using the global Texture ID
   // (monotonically increasing) to decide which ones are the
   // oldest and remove them.
-  auto ids = rg::to<vector<int>>(
-      g_text_cache //
-      | rv::transform( L( _.second.id() ) ) );
+  vector<int> ids;
+  ids.reserve( g_text_cache.size() );
+  for( auto const& p : g_text_cache )
+    ids.push_back( p.second.id() );
   util::sort( ids );
   unordered_set<int> to_remove(
       ids.begin(), ids.begin() + ( k_max_text_cache_size / 2 ) );
@@ -297,9 +299,8 @@ Texture render_lines_markup(
 //   Steps:
 //     1) Split text into words and strip each one of all spaces
 //     2) Join words into one long line separated by spaces
-//     3) Parse long line for markup, yielding
-//     vector<MarkedUpText> 4) Extract text from markup results.
-//     This should be the
+//     3) Parse long line for markup, yielding Vec<MarkedUpText>
+//     4) Extract text from markup results.  This should be the
 //        line from #2 but without any markup.
 //     5) Wrap the line from #4
 //     6) Re-flow the marked up line from #3 into lines of length
@@ -501,7 +502,7 @@ void text_render_test() {
       font::standard(), info, { 50 }, msg2 );
   copy_texture( tx2, Texture::screen(), { 200_y, 100_x } );
 
-  //::SDL_RenderPresent( g_renderer );
+  // ::SDL_RenderPresent( g_renderer );
 
   // input::wait_for_q();
 }

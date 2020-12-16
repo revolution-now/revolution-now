@@ -1934,7 +1934,7 @@ void advance_euroview_state( EuroviewFsm& fsm ) {
 *****************************************************************/
 struct EuropePlane : public Plane {
   EuropePlane() = default;
-  bool covers_screen() const override { return false; }
+  bool covers_screen() const override { return true; }
 
   void advance_state() override {
     fsm_auto_advance( fsm_, "euroview",

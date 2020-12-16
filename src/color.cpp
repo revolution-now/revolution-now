@@ -657,7 +657,7 @@ void remove_greys( vector<Color>& colors ) {
     return hsl.s < greyscale_max_saturation;
   };
   auto init = colors.size();
-  util::remove_if( colors, is_greyscale );
+  erase_if( colors, is_greyscale );
   auto final = colors.size();
   lg.info( "removed {} greys", init - final );
 }

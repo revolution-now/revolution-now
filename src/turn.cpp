@@ -424,10 +424,8 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
         auto units = units_all( nation );
         util::sort_by_key( units,
                            []( auto id ) { return id._; } );
-        units.erase(
-            remove_if( units.begin(), units.end(),
-                       L( unit_from_id( _ ).finished_turn() ) ),
-            units.end() );
+        erase_if( units,
+                  L( unit_from_id( _ ).finished_turn() ) );
         for( auto id : units ) doing_units.q.push_back( id );
         log_q();
       }

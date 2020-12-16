@@ -61,7 +61,7 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 namespace {
 
 Texture                         g_tx_depixelate_from;
-vector<Coord>                      g_pixels;
+vector<Coord>                   g_pixels;
 Matrix<Color>                   g_demoted_pixels;
 sync_promise<UnitInputResponse> g_unit_input_promise;
 
@@ -592,8 +592,8 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
   }
   if( !actions.bring_to_front.empty() ) {
     auto prioritize = actions.bring_to_front;
-    util::remove_if( prioritize,
-                     L( unit_from_id( _ ).mv_pts_exhausted() ) );
+    erase_if( prioritize,
+              L( unit_from_id( _ ).mv_pts_exhausted() ) );
     auto orig_size = actions.bring_to_front.size();
     auto curr_size = prioritize.size();
     CHECK( curr_size <= orig_size );
@@ -627,7 +627,7 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
 
 ClickTileActions ClickTileActionsFromUnitSelections(
     vector<ui::UnitSelection> const& selections,
-    bool                          allow_activate ) {
+    bool                             allow_activate ) {
   ClickTileActions result{};
   for( auto const& selection : selections ) {
     auto& sel_unit = unit_from_id( selection.id );
