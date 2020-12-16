@@ -214,48 +214,86 @@ public:
   }
 
   /**************************************************************
+  ** CursorBase
+  ***************************************************************/
+private:
+  // Used to remove some redundancy from Cursors.
+  struct CursorBase {
+    using iterator   = typename View::iterator;
+    using value_type = typename View::value_type;
+
+    CursorBase() = default;
+
+    void init( View& input ) { it_ = input.begin(); }
+
+    value_type const& get( View const& ) const { return *it_; }
+
+    void next( View const& input ) {
+      rl_assert( !end( input ) );
+      ++it_;
+    }
+
+    bool end( View const& input ) const {
+      return it_ == input.end();
+    }
+
+    // The type that this returns doesn't really matter, it just
+    // has to be a unique value for each iteration of the cursor.
+    iterator pos( View const& ) const { return it_; }
+
+    iterator it_;
+  };
+
+  /**************************************************************
+  ** Chain Maker
+  ***************************************************************/
+private:
+  template<typename NewCursor, typename... Args>
+  auto make_chain( Args&&... args ) {
+    using NewView = View<View<InputView, Cursor>, NewCursor>;
+    return NewView( std::move( *this ),
+                    NewCursor( std::forward<Args>( args )... ) );
+  }
+
+public:
+  /**************************************************************
   ** Keep
   ***************************************************************/
   template<typename Func>
   auto keep( Func&& func ) && {
-    struct KeepCursor {
-      using input_view_t = View;
-      using iterator     = typename input_view_t::iterator;
-      using value_type   = typename input_view_t::value_type;
+    struct KeepCursor : public CursorBase {
+      using CursorBase::it_;
 #ifdef __clang__ // C++20
       KeepCursor() requires(
           std::is_default_constructible_v<Func> ) = default;
 #endif
       KeepCursor( Func&& f ) : func_( std::move( f ) ) {}
-      void init( input_view_t& input ) {
-        it = input.begin();
+
+      void init( View& input ) {
+        it_ = input.begin();
         do {
           if( end( input ) ) break;
-          if( func_( *it ) ) break;
-          ++it;
+          if( func_( *it_ ) ) break;
+          ++it_;
         } while( true );
       }
-      value_type const& get( input_view_t const& ) const {
-        return *it;
-      }
-      void next( input_view_t const& input ) {
+
+      void next( View const& input ) {
         rl_assert( !end( input ) );
         do {
-          ++it;
+          ++it_;
           if( end( input ) ) break;
-          if( func_( *it ) ) break;
+          if( func_( *it_ ) ) break;
         } while( true );
       }
-      bool end( input_view_t const& input ) const {
-        return it == input.end();
-      }
-      iterator pos( input_view_t const& ) const { return it; }
-      iterator it;
-      Func     func_;
+
+      using CursorBase::end;
+      using CursorBase::get;
+      using CursorBase::pos;
+
+      Func func_;
     };
-    using NewView = View<View<InputView, Cursor>, KeepCursor>;
-    return NewView( std::move( *this ),
-                    KeepCursor( std::move( func ) ) );
+    return make_chain<KeepCursor>( std::forward<Func>( func ) );
   }
 
   /**************************************************************
@@ -274,9 +312,9 @@ public:
   ***************************************************************/
   template<typename Func>
   auto map( Func&& func ) && {
-    struct MapCursor {
-      using input_view_t = View;
-      using iterator     = typename input_view_t::iterator;
+    struct MapCursor : public CursorBase {
+      using CursorBase::it_;
+      using typename CursorBase::iterator;
       using value_type =
           std::invoke_result_t<Func,
                                typename iterator::value_type>;
@@ -285,29 +323,29 @@ public:
           std::is_default_constructible_v<Func> ) = default;
 #endif
       MapCursor( Func&& f ) : func_( std::move( f ) ) {}
-      void init( input_view_t& input ) {
-        it = input.begin();
-        if( !end( input ) ) cache = func_( *it );
+
+      void init( View& input ) {
+        it_ = input.begin();
+        if( !end( input ) ) cache = func_( *it_ );
       }
-      value_type const& get( input_view_t const& ) const {
+
+      value_type const& get( View const& ) const {
         return cache;
       }
-      void next( input_view_t const& input ) {
+
+      void next( View const& input ) {
         rl_assert( !end( input ) );
-        ++it;
-        if( !end( input ) ) cache = func_( *it );
+        ++it_;
+        if( !end( input ) ) cache = func_( *it_ );
       }
-      bool end( input_view_t const& input ) const {
-        return it == input.end();
-      }
-      iterator   pos( input_view_t const& ) const { return it; }
-      iterator   it;
+
+      using CursorBase::end;
+      using CursorBase::pos;
+
       Func       func_;
       value_type cache;
     };
-    using NewView = View<View<InputView, Cursor>, MapCursor>;
-    return NewView( std::move( *this ),
-                    MapCursor( std::move( func ) ) );
+    return make_chain<MapCursor>( std::forward<Func>( func ) );
   }
 
   /**************************************************************
@@ -315,45 +353,44 @@ public:
   ***************************************************************/
   template<typename Func>
   auto take_while( Func&& func ) && {
-    struct TakeWhileCursor {
-      using input_view_t = View;
-      using iterator     = typename input_view_t::iterator;
-      using value_type   = typename input_view_t::value_type;
+    struct TakeWhileCursor : public CursorBase {
+      using CursorBase::it_;
+      using typename CursorBase::iterator;
 #ifdef __clang__ // C++20
       TakeWhileCursor() requires(
           std::is_default_constructible_v<Func> ) = default;
 #endif
       TakeWhileCursor( Func&& f )
         : func_( std::move( f ) ), finished_{ false } {}
-      void init( input_view_t& input ) {
-        it = input.begin();
-        if( it == input.end() || !func_( *it ) )
+
+      void init( View& input ) {
+        it_ = input.begin();
+        if( it_ == input.end() || !func_( *it_ ) )
           finished_ = true;
       }
-      value_type const& get( input_view_t const& ) const {
+
+      using CursorBase::get;
+
+      void next( View const& input ) {
         rl_assert( !finished_ );
-        return *it;
-      }
-      void next( input_view_t const& input ) {
-        rl_assert( !finished_ );
-        rl_assert( it != input.end() );
-        ++it;
-        if( it == input.end() || !func_( *it ) )
+        rl_assert( it_ != input.end() );
+        ++it_;
+        if( it_ == input.end() || !func_( *it_ ) )
           finished_ = true;
       }
-      bool end( input_view_t const& ) const { return finished_; }
-      iterator pos( input_view_t const& input ) const {
+
+      bool end( View const& ) const { return finished_; }
+
+      iterator pos( View const& input ) const {
         if( finished_ ) return input.end();
-        return it;
+        return it_;
       }
-      iterator it;
-      Func     func_;
-      bool     finished_;
+
+      Func func_;
+      bool finished_;
     };
-    using NewView =
-        View<View<InputView, Cursor>, TakeWhileCursor>;
-    return NewView( std::move( *this ),
-                    TakeWhileCursor( std::move( func ) ) );
+    return make_chain<TakeWhileCursor>(
+        std::forward<Func>( func ) );
   }
 };
 
