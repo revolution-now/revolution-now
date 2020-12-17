@@ -28,25 +28,28 @@ namespace base::rl {
 #  define rl_assert( ... ) \
     if( !( __VA_ARGS__ ) ) abort_with_backtrace_here();
 #else
-#  define rl_assert( ... )
+// Use the argument in case there are any variables in there that
+// would otherwise be unused in a release build and trigger warn-
+// ings.
+#  define rl_assert( ... ) \
+    (void)( ( decltype( __VA_ARGS__ )* ){} );
 #endif
 
 /****************************************************************
 ** TODO list
 *****************************************************************/
 //
-//      2 rv::sliding
+//      1 rv::drop_while
+//
+//      1 rv::drop_last
 //      2 rv::intersperse
 //
-//      1 rv::keys
-//      1 rv::join
-//      1 rv::iota
 //      1 rv::group_by
-//      1 rv::drop_while
-//      1 rv::drop_last
-//      1 rv::concat
-//      1 rg::distance
-//      1 rg::any_of
+//      1 rv::sliding
+//
+//      1 rv::join
+//
+//      0 rv::zip_with
 
 /****************************************************************
 ** Forward Declarations
@@ -101,10 +104,10 @@ template<typename InputView>
 struct IdentityCursor {
   using iterator   = typename InputView::iterator;
   using value_type = typename iterator::value_type;
-  void init( InputView& input ) { it = input.begin(); }
-  value_type const& get( InputView const& ) const { return *it; }
-  void              next( InputView const& ) { ++it; }
-  bool              end( InputView const& input ) const {
+  void  init( InputView& input ) { it = input.begin(); }
+  auto& get( InputView const& ) { return *it; }
+  void  next( InputView const& ) { ++it; }
+  bool  end( InputView const& input ) const {
     return it == input.end();
   }
   iterator pos( InputView const& ) const { return it; }
@@ -115,10 +118,10 @@ template<typename InputView>
 struct ReverseIdentityCursor {
   using iterator   = typename InputView::reverse_iterator;
   using value_type = typename iterator::value_type;
-  void init( InputView& input ) { it = input.rbegin(); }
-  value_type const& get( InputView const& ) const { return *it; }
-  void              next( InputView const& ) { ++it; }
-  bool              end( InputView const& input ) const {
+  void  init( InputView& input ) { it = input.rbegin(); }
+  auto& get( InputView const& ) { return *it; }
+  void  next( InputView const& ) { ++it; }
+  bool  end( InputView const& input ) const {
     return it == input.rend();
   }
   iterator pos( InputView const& ) const { return it; }
@@ -143,7 +146,7 @@ public:
   struct iterator {
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
-    using value_type        = int;
+    using value_type        = int const;
     using pointer           = value_type const*;
     using reference         = value_type const&;
 
@@ -231,17 +234,17 @@ public:
   }
 
   /**************************************************************
-  ** Iterator
+  ** iterator
   ***************************************************************/
-  struct Iterator {
+  struct iterator {
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
     using value_type        = View::value_type;
-    using pointer           = value_type const*;
-    using reference         = value_type const&;
+    using pointer           = value_type*;
+    using reference         = value_type&;
 
-    Iterator() = default;
-    Iterator( View* view ) : view_( view ) {
+    iterator() = default;
+    iterator( View* view ) : view_( view ) {
       view_->cursor_.init( view_->input_ );
       clear_if_end();
     }
@@ -250,42 +253,41 @@ public:
       if( view_->cursor_.end( view_->input_ ) ) view_ = nullptr;
     }
 
-    auto const& operator*() const {
+    auto& operator*() const {
       rl_assert( view_ != nullptr );
       return view_->cursor_.get( view_->input_ );
     }
 
-    Iterator& operator++() {
+    iterator& operator++() {
       rl_assert( view_ != nullptr );
       view_->cursor_.next( view_->input_ );
       clear_if_end();
       return *this;
     }
 
-    Iterator operator++( int ) {
+    iterator operator++( int ) {
       auto res = *this;
       ++( *this );
       return res;
     }
 
-    bool operator==( Iterator const& rhs ) const {
+    bool operator==( iterator const& rhs ) const {
       if( view_ != nullptr && rhs.view_ != nullptr )
         return view_->cursor_.pos( view_->input_ ) ==
                rhs.view_->cursor_.pos( rhs.view_->input_ );
       return view_ == rhs.view_;
     }
 
-    bool operator!=( Iterator const& rhs ) const {
+    bool operator!=( iterator const& rhs ) const {
       return !( *this == rhs );
     }
 
     View* view_ = nullptr;
   };
 
-  using const_iterator = Iterator;
-  using iterator       = Iterator;
-  Iterator begin() { return Iterator( this ); }
-  Iterator end() const { return Iterator(); }
+  using const_iterator = iterator;
+  iterator begin() { return iterator( this ); }
+  iterator end() const { return iterator(); }
 
   View copy() const { return *this; }
 
@@ -315,8 +317,8 @@ public:
   /**************************************************************
   ** Head
   ***************************************************************/
-  maybe<value_type> head() {
-    maybe<value_type> res;
+  auto head() {
+    maybe<std::decay_t<value_type>> res;
 
     auto it = begin();
     if( it != end() ) res = *it;
@@ -341,7 +343,7 @@ private:
 
     void init( View& input ) { it_ = input.begin(); }
 
-    value_type const& get( View const& input ) const {
+    auto& get( View const& input ) {
       rl_assert( !derived()->end( input ) );
       return *it_;
     }
@@ -444,6 +446,14 @@ public:
   }
 
   /**************************************************************
+  ** Keys
+  ***************************************************************/
+  auto keys() && {
+    return std::move( *this ).map(
+        []( auto&& p ) { return p.first; } );
+  }
+
+  /**************************************************************
   ** Map
   ***************************************************************/
   template<typename Func>
@@ -452,9 +462,8 @@ public:
       using Base = CursorBase<MapCursor>;
       using Base::it_;
       using typename Base::iterator;
-      using value_type =
-          std::invoke_result_t<Func,
-                               typename iterator::value_type>;
+      using value_type = std::invoke_result_t<
+          Func, typename iterator::value_type> const;
 #ifdef __clang__ // C++20
       MapCursor() requires(
           std::is_default_constructible_v<Func> ) = default;
@@ -466,25 +475,25 @@ public:
 
       void init( View& input ) {
         it_ = input.begin();
-        if( !end( input ) ) cache = func_( *it_ );
+        if( !end( input ) ) cache_ = func_( *it_ );
       }
 
-      value_type const& get( View const& input ) const {
+      auto& get( View const& input ) const {
         rl_assert( !end( input ) );
-        return cache;
+        return cache_;
       }
 
       void next( View const& input ) {
         rl_assert( !end( input ) );
         ++it_;
-        if( !end( input ) ) cache = func_( *it_ );
+        if( !end( input ) ) cache_ = func_( *it_ );
       }
 
       using Base::end;
       using Base::pos;
 
-      std::remove_reference_t<Func> func_;
-      value_type                    cache;
+      std::remove_reference_t<Func>   func_;
+      std::remove_const_t<value_type> cache_;
     };
     return make_chain<MapCursor>( std::forward<Func>( func ) );
   }
@@ -612,7 +621,7 @@ public:
     struct ZipCursor : public CursorBase<ZipCursor> {
       using Base = CursorBase<ZipCursor>;
       using Base::it_;
-      using iterator2 = typename std::decay_t<SndView>::Iterator;
+      using iterator2 = typename std::decay_t<SndView>::iterator;
       using value_type1 = typename View::value_type;
       using value_type2 =
           typename std::decay_t<SndView>::value_type;
@@ -633,7 +642,7 @@ public:
         update_cache( input );
       }
 
-      value_type const& get( View const& input ) const {
+      auto const& get( View const& input ) const {
         rl_assert( !end( input ) );
         return cache_;
       }
@@ -790,7 +799,7 @@ auto view( InputView&& input ) {
   if constexpr( is_rl_view_v<std::decay_t<InputView>> ) {
     return std::forward<InputView>( input );
   } else {
-    using initial_view_t = std::span<T const>;
+    using initial_view_t = std::span<T>;
     return View( initial_view_t( input ),
                  IdentityCursor<initial_view_t>{} );
   }
@@ -806,13 +815,13 @@ auto zip( LeftView&& left_view, RightView&& right_view ) {
 template<typename InputView,
          typename T = typename std::remove_reference_t<
              InputView>::value_type>
-auto rview( InputView const& input ) {
+auto rview( InputView&& input ) {
   if constexpr( is_rl_view_v<std::decay_t<InputView>> ) {
     static_assert(
         sizeof( InputView ) != sizeof( InputView ),
         "rl::View does not support reverse iteration." );
   } else {
-    using initial_view_t = std::span<T const>;
+    using initial_view_t = std::span<T>;
     return View( initial_view_t( input ),
                  ReverseIdentityCursor<initial_view_t>{} );
   }

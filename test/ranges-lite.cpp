@@ -472,5 +472,34 @@ TEST_CASE( "[ranges-lite] free-standing zip" ) {
   }
 }
 
+TEST_CASE( "[ranges-lite] mutation" ) {
+  vector<int> input{ 1, 2, 3, 4, 5 };
+
+  auto view = rl::view( input ).cycle().drop( 2 ).take( 4 );
+
+  for( int& i : view ) i *= 10;
+
+  auto expected = vector<int>{ 10, 2, 30, 40, 50 };
+  REQUIRE_THAT( input, Equals( expected ) );
+}
+
+TEST_CASE( "[ranges-lite] keys" ) {
+  vector<pair<string, int>> input{
+      { "hello", 3 },
+      { "world", 2 },
+      { "again", 1 },
+  };
+
+  auto vec =
+      rl::view( input ).cycle().keys().take( 6 ).to_vector();
+
+  vector<string> expected{
+      { "hello" }, { "world" }, { "again" },
+      { "hello" }, { "world" }, { "again" },
+  };
+
+  REQUIRE_THAT( vec, Equals( expected ) );
+}
+
 } // namespace
 } // namespace base
