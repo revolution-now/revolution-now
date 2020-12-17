@@ -54,8 +54,10 @@ namespace base::rl {
 /****************************************************************
 ** Forward Declarations
 *****************************************************************/
+class IntsView;
+
 template<typename InputView, typename Cursor>
-class View;
+class ChainView;
 
 /****************************************************************
 ** Metaprogramming helpers.
@@ -79,7 +81,8 @@ template<typename T>
 struct is_rl_view : std::false_type {};
 
 template<typename InputView, typename Cursor>
-struct is_rl_view<View<InputView, Cursor>> : std::true_type {};
+struct is_rl_view<ChainView<InputView, Cursor>>
+  : std::true_type {};
 
 template<typename T>
 constexpr bool is_rl_view_v = is_rl_view<T>::value;
@@ -102,10 +105,13 @@ constexpr bool is_rl_view_v = is_rl_view<T>::value;
 *****************************************************************/
 template<typename InputView>
 struct IdentityCursor {
+  struct Data {};
   using iterator   = typename InputView::iterator;
   using value_type = typename iterator::value_type;
-  void  init( InputView& input ) { it = input.begin(); }
-  auto& get( InputView const& ) { return *it; }
+  IdentityCursor() = default;
+  IdentityCursor( Data const& ) {}
+  void  init( InputView const& input ) { it = input.begin(); }
+  auto& get( InputView const& ) const { return *it; }
   void  next( InputView const& ) { ++it; }
   bool  end( InputView const& input ) const {
     return it == input.end();
@@ -116,10 +122,13 @@ struct IdentityCursor {
 
 template<typename InputView>
 struct ReverseIdentityCursor {
-  using iterator   = typename InputView::reverse_iterator;
-  using value_type = typename iterator::value_type;
-  void  init( InputView& input ) { it = input.rbegin(); }
-  auto& get( InputView const& ) { return *it; }
+  struct Data {};
+  using iterator          = typename InputView::reverse_iterator;
+  using value_type        = typename iterator::value_type;
+  ReverseIdentityCursor() = default;
+  ReverseIdentityCursor( Data const& ) {}
+  void  init( InputView const& input ) { it = input.rbegin(); }
+  auto& get( InputView const& ) const { return *it; }
   void  next( InputView const& ) { ++it; }
   bool  end( InputView const& input ) const {
     return it == input.rend();
@@ -134,12 +143,11 @@ struct ReverseIdentityCursor {
 class IntsView {
   const int start_;
   const int end_;
-  int       cursor_;
 
 public:
   IntsView( int start = 0,
             int end   = std::numeric_limits<int>::max() )
-    : start_( start ), end_( end ), cursor_( start ) {
+    : start_( start ), end_( end ) {
     rl_assert( start <= end );
   }
 
@@ -151,23 +159,27 @@ public:
     using reference         = value_type const&;
 
     iterator() = default;
-    iterator( IntsView* view ) : view_( view ) {
-      view_->cursor_ = view_->start_;
+    iterator( IntsView const* view )
+      : view_( view ), cursor_( view_->start_ ) {
       clear_if_end();
     }
 
     void clear_if_end() {
-      if( view_->cursor_ >= view_->end_ ) view_ = nullptr;
+      if( cursor_ >= view_->end_ ) view_ = nullptr;
     }
 
     auto const& operator*() const {
-      rl_assert( view_->cursor_ < view_->end_ );
-      return view_->cursor_;
+      rl_assert( cursor_ < view_->end_ );
+      return cursor_;
+    }
+
+    auto const* operator->() const {
+      return std::addressof( this->operator*() );
     }
 
     iterator& operator++() {
-      rl_assert( view_->cursor_ < view_->end_ );
-      view_->cursor_++;
+      rl_assert( cursor_ < view_->end_ );
+      cursor_++;
       clear_if_end();
       return *this;
     }
@@ -180,7 +192,7 @@ public:
 
     bool operator==( iterator const& rhs ) const {
       if( view_ != nullptr && rhs.view_ != nullptr )
-        return view_->cursor_ == rhs.view_->cursor_;
+        return cursor_ == rhs.cursor_;
       return view_ == rhs.view_;
     }
 
@@ -188,26 +200,28 @@ public:
       return !( *this == rhs );
     }
 
-    IntsView* view_ = nullptr;
+    IntsView const* view_ = nullptr;
+    int             cursor_;
   };
 
   using const_iterator = iterator;
-  iterator begin() { return iterator( this ); }
+  iterator begin() const { return iterator( this ); }
   iterator end() const { return iterator(); }
 };
 
 /****************************************************************
-** View
+** ChainView
 *****************************************************************/
 template<typename InputView, typename Cursor>
-class View {
+class ChainView {
+  using data_t = typename Cursor::Data;
+
   InputView input_;
-  Cursor    cursor_;
+  data_t    data_;
 
 public:
-  View( InputView&& input, Cursor&& cursor )
-    : input_( std::move( input ) ),
-      cursor_( std::move( cursor ) ) {}
+  ChainView( InputView&& input, data_t&& data )
+    : input_( std::move( input ) ), data_( std::move( data ) ) {}
 
   using value_type =
       std::decay_t<decltype( std::declval<Cursor>().get(
@@ -216,20 +230,29 @@ public:
   using ultimate_view_t = ultimate_view_or_self_t<InputView>;
 
   static auto create( ultimate_view_t const& input ) {
-    if constexpr( std::is_default_constructible_v<Cursor> ) {
+    if constexpr( std::is_default_constructible_v<data_t> ) {
       if constexpr( std::is_same_v<ultimate_view_t,
                                    InputView> ) {
-        return View{ InputView( input ), Cursor{} };
+        return ChainView{ InputView( input ), data_t{} };
       } else {
-        return View{ InputView::create( input ), Cursor{} };
+        return ChainView{ InputView::create( input ), data_t{} };
       }
     } else {
-      // After C++20 stateless lambdas should be default con-
-      // structible, which will make this feature usable more of-
-      // ten. Until then, you must use regular functions (or
-      // function pointers) instead of lambdas.
-      struct CanOnlyUseThisWithDefaultConstructibleLambdas {};
-      return CanOnlyUseThisWithDefaultConstructibleLambdas{};
+      // If you get an error here it is because one of the views
+      // in the pipeline has a Data member struct that is not de-
+      // fault constructible. Cursor Data structs should only be
+      // default constructible if it would make sense to use the
+      // view/cursor with those values default constructed. For
+      // example, the view `take( 5 )` needs to hold the number 5
+      // in its Data, and thus its Data should not be default
+      // constructible, otherwise that number would just default
+      // to zero, and thus would not reconstruct whatever view
+      // was used to get the type that is trying to be con-
+      // structed here. On the other hand, a Data that only takes
+      // a stateless lambda can be default constructed and so
+      // that shouldn't be a problem.
+      struct YouCannotUseStaticCreateHere {};
+      return YouCannotUseStaticCreateHere{};
     }
   }
 
@@ -239,28 +262,33 @@ public:
   struct iterator {
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
-    using value_type        = View::value_type;
+    using value_type        = ChainView::value_type;
     using pointer           = value_type*;
     using reference         = value_type&;
 
     iterator() = default;
-    iterator( View* view ) : view_( view ) {
-      view_->cursor_.init( view_->input_ );
+    iterator( ChainView const* view )
+      : view_( view ), cursor_( view->data_ ) {
+      cursor_.init( view_->input_ );
       clear_if_end();
     }
 
     void clear_if_end() {
-      if( view_->cursor_.end( view_->input_ ) ) view_ = nullptr;
+      if( cursor_.end( view_->input_ ) ) view_ = nullptr;
     }
 
     auto& operator*() const {
       rl_assert( view_ != nullptr );
-      return view_->cursor_.get( view_->input_ );
+      return cursor_.get( view_->input_ );
+    }
+
+    auto* operator->() const {
+      return std::addressof( this->operator*() );
     }
 
     iterator& operator++() {
       rl_assert( view_ != nullptr );
-      view_->cursor_.next( view_->input_ );
+      cursor_.next( view_->input_ );
       clear_if_end();
       return *this;
     }
@@ -273,8 +301,8 @@ public:
 
     bool operator==( iterator const& rhs ) const {
       if( view_ != nullptr && rhs.view_ != nullptr )
-        return view_->cursor_.pos( view_->input_ ) ==
-               rhs.view_->cursor_.pos( rhs.view_->input_ );
+        return cursor_.pos( view_->input_ ) ==
+               rhs.cursor_.pos( rhs.view_->input_ );
       return view_ == rhs.view_;
     }
 
@@ -282,14 +310,13 @@ public:
       return !( *this == rhs );
     }
 
-    View* view_ = nullptr;
+    ChainView const* view_ = nullptr;
+    Cursor           cursor_;
   };
 
   using const_iterator = iterator;
-  iterator begin() { return iterator( this ); }
+  iterator begin() const { return iterator( this ); }
   iterator end() const { return iterator(); }
-
-  View copy() const { return *this; }
 
   /**************************************************************
   ** Materialization
@@ -332,8 +359,8 @@ private:
   // Used to remove some redundancy from Cursors.
   template<typename Derived>
   struct CursorBase {
-    using iterator   = typename View::iterator;
-    using value_type = typename View::value_type;
+    using iterator   = typename ChainView::iterator;
+    using value_type = typename ChainView::value_type;
 
     CursorBase() = default;
 
@@ -341,25 +368,25 @@ private:
       return static_cast<Derived const*>( this );
     }
 
-    void init( View& input ) { it_ = input.begin(); }
+    void init( ChainView const& input ) { it_ = input.begin(); }
 
-    auto& get( View const& input ) {
+    auto& get( ChainView const& input ) const {
       rl_assert( !derived()->end( input ) );
       return *it_;
     }
 
-    void next( View const& input ) {
+    void next( ChainView const& input ) {
       rl_assert( !derived()->end( input ) );
       ++it_;
     }
 
-    bool end( View const& input ) const {
+    bool end( ChainView const& input ) const {
       return it_ == input.end();
     }
 
     // The type that this returns doesn't really matter, it just
     // has to be a unique value for each iteration of the cursor.
-    iterator pos( View const& ) const { return it_; }
+    iterator pos( ChainView const& ) const { return it_; }
 
     iterator it_;
   };
@@ -370,9 +397,11 @@ private:
 private:
   template<typename NewCursor, typename... Args>
   auto make_chain( Args&&... args ) {
-    using NewView = View<View<InputView, Cursor>, NewCursor>;
-    return NewView( std::move( *this ),
-                    NewCursor( std::forward<Args>( args )... ) );
+    using NewChainView =
+        ChainView<ChainView<InputView, Cursor>, NewCursor>;
+    using Data = typename NewCursor::Data;
+    return NewChainView( std::move( *this ),
+                         Data( std::forward<Args>( args )... ) );
   }
 
 public:
@@ -382,32 +411,33 @@ public:
   template<typename Func>
   auto keep( Func&& func ) && {
     struct KeepCursor : public CursorBase<KeepCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
       using Base = CursorBase<KeepCursor>;
       using Base::it_;
-#ifdef __clang__ // C++20
-      KeepCursor() requires(
-          std::is_default_constructible_v<Func> ) = default;
-#endif
-      KeepCursor( std::remove_reference_t<Func> const& f )
-        : func_( f ) {}
-      KeepCursor( std::remove_reference_t<Func>&& f )
-        : func_( std::move( f ) ) {}
+      KeepCursor() = default;
+      KeepCursor( Data const& data ) : func_( &data.func_ ) {}
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_ = input.begin();
         do {
           if( end( input ) ) break;
-          if( func_( *it_ ) ) break;
+          if( ( *func_ )( *it_ ) ) break;
           ++it_;
         } while( true );
       }
 
-      void next( View const& input ) {
+      void next( ChainView const& input ) {
         rl_assert( !end( input ) );
         do {
           ++it_;
           if( end( input ) ) break;
-          if( func_( *it_ ) ) break;
+          if( ( *func_ )( *it_ ) ) break;
         } while( true );
       }
 
@@ -415,7 +445,7 @@ public:
       using Base::get;
       using Base::pos;
 
-      std::remove_reference_t<Func> func_;
+      func_t const* func_;
     };
     return make_chain<KeepCursor>( std::forward<Func>( func ) );
   }
@@ -437,20 +467,78 @@ public:
   // FIXME: make this more efficient with a specialized Cursor.
   auto enumerate( int start = 0 ) && {
     using IntsCursor = IdentityCursor<IntsView>;
+    using Data       = typename IntsCursor::Data;
     return std::move( *this )
-        .zip( View<IntsView, IntsCursor>( IntsView( start ),
-                                          IntsCursor{} ) )
+        .zip( ChainView<IntsView, IntsCursor>( IntsView( start ),
+                                               Data{} ) )
         .map( []( auto&& p ) {
           return std::pair{ p.second, p.first };
         } );
   }
 
   /**************************************************************
+  ** Lense
+  ***************************************************************/
+  template<typename Func>
+  auto lense( Func&& func ) && {
+    struct KeysCursor : public CursorBase<KeysCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
+      using Base = CursorBase<KeysCursor>;
+      using Base::it_;
+      using typename Base::iterator;
+      KeysCursor() = default;
+      KeysCursor( Data const& data ) : func_( &data.func_ ) {}
+
+      auto& get( ChainView const& input ) const {
+        rl_assert( !end( input ) );
+        // These checks are an effort to ensure that we don't
+        // call a lense on a temporary, and that the lense re-
+        // turns a reference. The idea is that lenses are used to
+        // produce references into the original data being
+        // viewed, and not to intermediate values produced
+        // through the pipeline.
+        static_assert(
+            std::is_reference_v<std::invoke_result_t<
+                Func, std::add_lvalue_reference_t<
+                          ChainView::value_type>>>,
+            "In order to use a lense, the callable must return "
+            "a reference (into existing data). If you are using "
+            "a lambda that is supposed to return a reference, "
+            "then you might need to use -> decltype( auto )." );
+        static_assert(
+            std::is_lvalue_reference_v<decltype( *it_ )> );
+        static_assert(
+            !std::is_const_v<
+                std::remove_reference_t<decltype( *it_ )>> );
+        return ( *func_ )( *it_ );
+      }
+
+      using Base::end;
+      using Base::init;
+      using Base::next;
+      using Base::pos;
+
+      func_t const* func_;
+    };
+    return make_chain<KeysCursor>( std::forward<Func>( func ) );
+  }
+
+  /**************************************************************
   ** Keys
   ***************************************************************/
   auto keys() && {
-    return std::move( *this ).map(
-        []( auto&& p ) { return p.first; } );
+    return std::move( *this ).lense(
+        []( auto&& p ) -> decltype( auto ) {
+          // use get<0> instead of p.first because the latter
+          // does not yield a reference, which is what we want.
+          return std::get<0>( p );
+        } );
   }
 
   /**************************************************************
@@ -459,40 +547,41 @@ public:
   template<typename Func>
   auto map( Func&& func ) && {
     struct MapCursor : public CursorBase<MapCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
       using Base = CursorBase<MapCursor>;
       using Base::it_;
       using typename Base::iterator;
       using value_type = std::invoke_result_t<
           Func, typename iterator::value_type> const;
-#ifdef __clang__ // C++20
-      MapCursor() requires(
-          std::is_default_constructible_v<Func> ) = default;
-#endif
-      MapCursor( std::remove_reference_t<Func> const& f )
-        : func_( f ) {}
-      MapCursor( std::remove_reference_t<Func>&& f )
-        : func_( std::move( f ) ) {}
+      MapCursor() = default;
+      MapCursor( Data const& data ) : func_( &data.func_ ) {}
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_ = input.begin();
-        if( !end( input ) ) cache_ = func_( *it_ );
+        if( !end( input ) ) cache_ = ( *func_ )( *it_ );
       }
 
-      auto& get( View const& input ) const {
+      auto& get( ChainView const& input ) const {
         rl_assert( !end( input ) );
         return cache_;
       }
 
-      void next( View const& input ) {
+      void next( ChainView const& input ) {
         rl_assert( !end( input ) );
         ++it_;
-        if( !end( input ) ) cache_ = func_( *it_ );
+        if( !end( input ) ) cache_ = ( *func_ )( *it_ );
       }
 
       using Base::end;
       using Base::pos;
 
-      std::remove_reference_t<Func>   func_;
+      func_t const*                   func_;
       std::remove_const_t<value_type> cache_;
     };
     return make_chain<MapCursor>( std::forward<Func>( func ) );
@@ -504,43 +593,45 @@ public:
   template<typename Func>
   auto take_while( Func&& func ) && {
     struct TakeWhileCursor : public CursorBase<TakeWhileCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
       using Base = CursorBase<TakeWhileCursor>;
       using Base::it_;
       using typename Base::iterator;
-#ifdef __clang__ // C++20
-      TakeWhileCursor() requires(
-          std::is_default_constructible_v<Func> ) = default;
-#endif
-      TakeWhileCursor( std::remove_reference_t<Func> const& f )
-        : func_( f ), finished_{ false } {}
-      TakeWhileCursor( std::remove_reference_t<Func>&& f )
-        : func_( std::move( f ) ), finished_{ false } {}
+      TakeWhileCursor() = default;
+      TakeWhileCursor( Data const& data )
+        : func_( &data.func_ ), finished_{ false } {}
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_ = input.begin();
-        if( it_ == input.end() || !func_( *it_ ) )
+        if( it_ == input.end() || !( *func_ )( *it_ ) )
           finished_ = true;
       }
 
       using Base::get;
 
-      void next( View const& input ) {
+      void next( ChainView const& input ) {
         rl_assert( !finished_ );
         rl_assert( it_ != input.end() );
         ++it_;
-        if( it_ == input.end() || !func_( *it_ ) )
+        if( it_ == input.end() || !( *func_ )( *it_ ) )
           finished_ = true;
       }
 
-      bool end( View const& ) const { return finished_; }
+      bool end( ChainView const& ) const { return finished_; }
 
-      iterator pos( View const& input ) const {
+      iterator pos( ChainView const& input ) const {
         if( finished_ ) return input.end();
         return it_;
       }
 
-      std::remove_reference_t<Func> func_;
-      bool                          finished_;
+      func_t const* func_;
+      bool          finished_;
     };
     return make_chain<TakeWhileCursor>(
         std::forward<Func>( func ) );
@@ -555,31 +646,32 @@ public:
   auto take_while_incl( Func&& func ) && {
     struct TakeWhileInclCursor
       : public CursorBase<TakeWhileInclCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
       using Base = CursorBase<TakeWhileInclCursor>;
       using Base::it_;
       using typename Base::iterator;
-#ifdef __clang__ // C++20
-      TakeWhileInclCursor() requires(
-          std::is_default_constructible_v<Func> ) = default;
-#endif
-      TakeWhileInclCursor(
-          std::remove_reference_t<Func> const& f )
-        : func_( f ), state_{ e_state::taking } {}
-      TakeWhileInclCursor( std::remove_reference_t<Func>&& f )
-        : func_( std::move( f ) ), state_{ e_state::taking } {}
+      TakeWhileInclCursor() = default;
+      TakeWhileInclCursor( Data const& data )
+        : func_( &data.func_ ), state_{ e_state::taking } {}
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_ = input.begin();
         if( it_ == input.end() ) {
           state_ = e_state::finished;
           return;
         }
-        if( !func_( *it_ ) ) state_ = e_state::last;
+        if( !( *func_ )( *it_ ) ) state_ = e_state::last;
       }
 
       using Base::get;
 
-      void next( View const& input ) {
+      void next( ChainView const& input ) {
         rl_assert( !end( input ) );
         if( state_ == e_state::last ) {
           state_ = e_state::finished;
@@ -590,22 +682,22 @@ public:
           state_ = e_state::finished;
           return;
         }
-        if( !func_( *it_ ) ) {
+        if( !( *func_ )( *it_ ) ) {
           state_ = e_state::last;
           return;
         }
       }
 
-      bool end( View const& ) const {
+      bool end( ChainView const& ) const {
         return ( state_ == e_state::finished );
       }
 
-      iterator pos( View const& input ) const {
+      iterator pos( ChainView const& input ) const {
         if( state_ == e_state::finished ) return input.end();
         return it_;
       }
 
-      std::remove_reference_t<Func> func_;
+      func_t const* func_;
       enum class e_state { taking, last, finished };
       e_state state_;
     };
@@ -619,51 +711,54 @@ public:
   template<typename SndView>
   auto zip( SndView&& snd_view ) && {
     struct ZipCursor : public CursorBase<ZipCursor> {
+      struct Data {
+        Data( SndView&& snd_view ) // not happy with this sig.
+          : snd_view_( std::move( snd_view ) ) {}
+        std::decay_t<SndView> snd_view_;
+      };
       using Base = CursorBase<ZipCursor>;
       using Base::it_;
       using iterator2 = typename std::decay_t<SndView>::iterator;
-      using value_type1 = typename View::value_type;
+      using value_type1 = typename ChainView::value_type;
       using value_type2 =
           typename std::decay_t<SndView>::value_type;
       using value_type = std::pair<value_type1, value_type2>;
-#ifdef __clang__ // C++20
-      ZipCursor() /* requires? */ = default;
-#endif
-      ZipCursor( SndView&& snd_view )
-        : snd_view_( std::move( snd_view ) ) {}
+      ZipCursor()      = default;
+      ZipCursor( Data const& data )
+        : snd_view_( &data.snd_view_ ) {}
 
-      void update_cache( View const& input ) {
+      void update_cache( ChainView const& input ) {
         if( !end( input ) ) cache_ = { *it_, *it2_ };
       }
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_  = input.begin();
-        it2_ = snd_view_.begin();
+        it2_ = snd_view_->begin();
         update_cache( input );
       }
 
-      auto const& get( View const& input ) const {
+      auto const& get( ChainView const& input ) const {
         rl_assert( !end( input ) );
         return cache_;
       }
 
-      void next( View const& input ) {
+      void next( ChainView const& input ) {
         rl_assert( !end( input ) );
         ++it_;
         ++it2_;
         update_cache( input );
       }
 
-      bool end( View const& input ) const {
+      bool end( ChainView const& input ) const {
         return ( it_ == input.end() ) ||
-               ( it2_ == snd_view_.end() );
+               ( it2_ == snd_view_->end() );
       }
 
       using Base::pos;
 
-      iterator2             it2_;
-      std::decay_t<SndView> snd_view_;
-      value_type            cache_;
+      std::decay_t<SndView> const* snd_view_;
+      iterator2                    it2_   = {};
+      value_type                   cache_ = {};
     };
     return make_chain<ZipCursor>(
         std::forward<SndView>( snd_view ) );
@@ -674,27 +769,31 @@ public:
   ***************************************************************/
   auto take( int n ) && {
     struct TakeCursor : public CursorBase<TakeCursor> {
+      struct Data {
+        Data( int m ) : n( m ) {}
+        int n;
+      };
       using Base = CursorBase<TakeCursor>;
       using Base::it_;
       using typename Base::iterator;
       TakeCursor() = default;
-      TakeCursor( int n ) : n_( n ) {}
+      TakeCursor( Data const& data ) : n_( data.n ) {}
 
       using Base::get;
       using Base::init;
 
-      void next( View const& input ) {
+      void next( ChainView const& input ) {
         rl_assert( !end( input ) );
         ++it_;
         --n_;
         rl_assert( n_ >= 0 );
       }
 
-      bool end( View const& input ) const {
+      bool end( ChainView const& input ) const {
         return ( it_ == input.end() ) || n_ == 0;
       }
 
-      iterator pos( View const& input ) const {
+      iterator pos( ChainView const& input ) const {
         if( n_ == 0 ) return input.end();
         return it_;
       }
@@ -709,13 +808,17 @@ public:
   ***************************************************************/
   auto drop( int n ) && {
     struct DropCursor : public CursorBase<DropCursor> {
+      struct Data {
+        Data( int m ) : n( m ) {}
+        int n;
+      };
       using Base = CursorBase<DropCursor>;
       using Base::it_;
       using typename Base::iterator;
       DropCursor() = default;
-      DropCursor( int n ) : n_( n ) {}
+      DropCursor( Data const& data ) : n_( data.n ) {}
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_ = input.begin();
         while( it_ != input.end() && n_ > 0 ) {
           ++it_;
@@ -738,16 +841,14 @@ public:
   ***************************************************************/
   auto cycle() && {
     struct CycleCursor : public CursorBase<CycleCursor> {
+      struct Data {};
       using Base = CursorBase<CycleCursor>;
       using Base::it_;
       using typename Base::iterator;
-#ifdef __clang__ // C++20
-      CycleCursor() /* requires? */ = default;
-#endif
-      CycleCursor( View* input_view )
-        : view_pristine_( *input_view ) {}
+      CycleCursor() = default;
+      CycleCursor( Data const& ) {}
 
-      void init( View& input ) {
+      void init( ChainView const& input ) {
         it_ = input.begin();
         // We need to have at least one element!
         rl_assert( it_ != input.end() );
@@ -755,30 +856,23 @@ public:
 
       using Base::get;
 
-      void next( View& input ) {
+      void next( ChainView const& input ) {
         ++it_;
         if( it_ == input.end() ) {
           ++cycles_;
-          input = view_pristine_;
-          init( input );
+          it_ = input.begin();
         }
         rl_assert( it_ != input.end() );
       }
 
-      bool end( View const& ) const { return false; }
-      auto pos( View const& ) const {
+      bool end( ChainView const& ) const { return false; }
+      auto pos( ChainView const& ) const {
         return std::pair{ cycles_, it_ };
       }
 
-      View          view_pristine_;
       std::intmax_t cycles_ = 0;
     };
-    // Careful here... this function will move *this, but the
-    // `this` pointer being passed to it should be used to con-
-    // struct the CycleCursor before that happens, and the Cycle-
-    // Cursor will not retain the pointer itself but will make a
-    // copy of the View, so everything should be fine.
-    return make_chain<CycleCursor>( this );
+    return make_chain<CycleCursor>();
   }
 };
 
@@ -788,8 +882,9 @@ public:
 auto ints( int start = 0,
            int end   = std::numeric_limits<int>::max() ) {
   using Cursor = IdentityCursor<IntsView>;
-  return View<IntsView, Cursor>( IntsView( start, end ),
-                                 Cursor{} );
+  using Data   = typename Cursor::Data;
+  return ChainView<IntsView, Cursor>( IntsView( start, end ),
+                                      Data{} );
 }
 
 template<typename InputView,
@@ -800,8 +895,10 @@ auto view( InputView&& input ) {
     return std::forward<InputView>( input );
   } else {
     using initial_view_t = std::span<T>;
-    return View( initial_view_t( input ),
-                 IdentityCursor<initial_view_t>{} );
+    using Data = typename IdentityCursor<initial_view_t>::Data;
+    return ChainView<initial_view_t,
+                     IdentityCursor<initial_view_t>>(
+        initial_view_t( input ), Data{} );
   }
 }
 
@@ -819,11 +916,14 @@ auto rview( InputView&& input ) {
   if constexpr( is_rl_view_v<std::decay_t<InputView>> ) {
     static_assert(
         sizeof( InputView ) != sizeof( InputView ),
-        "rl::View does not support reverse iteration." );
+        "rl::ChainView does not support reverse iteration." );
   } else {
     using initial_view_t = std::span<T>;
-    return View( initial_view_t( input ),
-                 ReverseIdentityCursor<initial_view_t>{} );
+    using Data =
+        typename ReverseIdentityCursor<initial_view_t>::Data;
+    return ChainView<initial_view_t,
+                     ReverseIdentityCursor<initial_view_t>>(
+        initial_view_t( input ), Data{} );
   }
 }
 

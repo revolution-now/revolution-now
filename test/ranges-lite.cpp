@@ -40,6 +40,18 @@ namespace {
 
 using ::Catch::Equals;
 
+TEST_CASE( "[ranges-lite] double traverse" ) {
+  vector<int> input{ 1, 2, 3 };
+
+  auto view = rl::view( input ).cycle().take( 4 );
+
+  auto vec1 = view.to_vector();
+  REQUIRE_THAT( vec1, Equals( vector<int>{ 1, 2, 3, 1 } ) );
+
+  auto vec2 = view.to_vector();
+  REQUIRE_THAT( vec2, Equals( vector<int>{ 1, 2, 3, 1 } ) );
+}
+
 TEST_CASE( "[ranges-lite] non-materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -49,7 +61,7 @@ TEST_CASE( "[ranges-lite] non-materialized" ) {
                  .map( L( _ + 1 ) )
                  .take_while( L( _ < 27 ) );
 
-  static_assert( sizeof( decltype( vec ) ) == 88 );
+  static_assert( sizeof( decltype( vec ) ) == 56 );
 }
 
 TEST_CASE( "[ranges-lite] materialized" ) {
@@ -78,19 +90,17 @@ TEST_CASE( "[ranges-lite] lambdas with capture" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 6, 10, 14, 18 } ) );
 }
 
-#ifdef __clang__ // C++20
 TEST_CASE( "[ranges-lite] static create" ) {
   using type = decltype( GetCompoundViewType() );
-  static_assert( sizeof( type ) == 88 );
+  static_assert( sizeof( type ) == 56 );
 
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   auto        view = type::create( input );
-  static_assert( sizeof( decltype( view ) ) == 88 );
+  static_assert( sizeof( decltype( view ) ) == 56 );
 
   REQUIRE_THAT( view.to_vector(),
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
-#endif
 
 TEST_CASE( "[ranges-lite] rview" ) {
   vector<int> input{ 9, 8, 7, 6, 5, 4, 3, 2, 1 };
@@ -376,7 +386,7 @@ TEST_CASE( "[ranges-lite] cycle" ) {
     vector<int> input{ 1, 2 };
 
     int n = 3;
-    // Need to use a std::function because lambdas are no copy-
+    // Need to use a std::function because lambdas are no copy -
     // able, and the cycle needs to keep a copy.
     function<int( int )> f = LC( _ + n );
 
@@ -499,6 +509,42 @@ TEST_CASE( "[ranges-lite] keys" ) {
   };
 
   REQUIRE_THAT( vec, Equals( expected ) );
+}
+
+TEST_CASE( "[ranges-lite] lense" ) {
+  vector<string> input{ "hello", "world", "again" };
+
+  auto view = rl::view( input ).lense(
+      []( string& s ) -> decltype( auto ) {
+        return s.data()[1];
+      } );
+
+  for( auto& c : view ) ++c;
+
+  vector<string> expected{ "hfllo", "wprld", "ahain" };
+
+  REQUIRE_THAT( input, Equals( expected ) );
+}
+
+TEST_CASE( "[ranges-lite] keys mutation" ) {
+  vector<pair<string, int>> input{
+      { "hello", 3 },
+      { "world", 2 },
+      { "again", 1 },
+  };
+
+  auto view =
+      rl::view( input ).cycle().keys().drop( 1 ).take( 2 );
+
+  for( auto& key : view ) key = key + key;
+
+  vector<pair<string, int>> expected{
+      { "hello", 3 },
+      { "worldworld", 2 },
+      { "againagain", 1 },
+  };
+
+  REQUIRE_THAT( input, Equals( expected ) );
 }
 
 } // namespace
