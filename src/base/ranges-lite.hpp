@@ -38,13 +38,13 @@ namespace base::rl {
 ** TODO list
 *****************************************************************/
 //
-//      1 rv::drop_last
-//      2 rv::intersperse
+//      rv::sliding
 //
-//      1 rv::group_by
-//      1 rv::sliding
+//      rv::drop_last
 //
-//      1 rv::join
+//      rv::intersperse
+//
+//      rv::join
 
 /****************************************************************
 ** Forward Declarations
@@ -88,13 +88,12 @@ constexpr bool is_rl_view_v = is_rl_view<T>::value;
 #define RL_LAMBDA( name, ... ) \
   name( [&]( auto&& _ ) { return __VA_ARGS__; } )
 
-// FIXME: rename this with a suffix instead of prefix.
-#define rl_keep( ... ) RL_LAMBDA( keep, __VA_ARGS__ )
-#define rl_remove( ... ) RL_LAMBDA( remove, __VA_ARGS__ )
-#define rl_map( ... ) RL_LAMBDA( map, __VA_ARGS__ )
-#define rl_take_while( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
-#define rl_drop_while( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
-#define rl_take_while_incl( ... ) \
+#define keep_rl( ... ) RL_LAMBDA( keep, __VA_ARGS__ )
+#define remove_rl( ... ) RL_LAMBDA( remove, __VA_ARGS__ )
+#define map_rl( ... ) RL_LAMBDA( map, __VA_ARGS__ )
+#define take_while_rl( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
+#define drop_while_rl( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
+#define take_while_incl_rl( ... ) \
   RL_LAMBDA( take_while_incl, __VA_ARGS__ )
 
 /****************************************************************
@@ -107,10 +106,10 @@ struct IdentityCursor {
   using value_type = typename iterator::value_type;
   IdentityCursor() = default;
   IdentityCursor( Data const& ) {}
-  void  init( InputView const& input ) { it = input.begin(); }
-  auto& get( InputView const& ) const { return *it; }
-  void  next( InputView const& ) { ++it; }
-  bool  end( InputView const& input ) const {
+  void init( InputView const& input ) { it = input.begin(); }
+  value_type& get( InputView const& ) const { return *it; }
+  void        next( InputView const& ) { ++it; }
+  bool        end( InputView const& input ) const {
     return it == input.end();
   }
   iterator pos( InputView const& ) const { return it; }
@@ -124,10 +123,10 @@ struct ReverseIdentityCursor {
   using value_type        = typename iterator::value_type;
   ReverseIdentityCursor() = default;
   ReverseIdentityCursor( Data const& ) {}
-  void  init( InputView const& input ) { it = input.rbegin(); }
-  auto& get( InputView const& ) const { return *it; }
-  void  next( InputView const& ) { ++it; }
-  bool  end( InputView const& input ) const {
+  void init( InputView const& input ) { it = input.rbegin(); }
+  value_type& get( InputView const& ) const { return *it; }
+  void        next( InputView const& ) { ++it; }
+  bool        end( InputView const& input ) const {
     return it == input.rend();
   }
   iterator pos( InputView const& ) const { return it; }
@@ -221,8 +220,8 @@ public:
     : input_( std::move( input ) ), data_( std::move( data ) ) {}
 
   using value_type =
-      std::decay_t<decltype( std::declval<Cursor>().get(
-          std::declval<InputView>() ) )>;
+      std::decay_t<std::invoke_result_t<decltype( &Cursor::get ),
+                                        Cursor*, InputView>>;
 
   using ultimate_view_t = ultimate_view_or_self_t<InputView>;
 
@@ -318,7 +317,7 @@ public:
   /**************************************************************
   ** Materialization
   ***************************************************************/
-  std::vector<value_type> to_vector() {
+  std::vector<value_type> to_vector() const {
     return std::vector<value_type>( this->begin(), this->end() );
   }
 
@@ -356,8 +355,7 @@ private:
   // Used to remove some redundancy from Cursors.
   template<typename Derived>
   struct CursorBase {
-    using iterator   = typename ChainView::iterator;
-    using value_type = typename ChainView::value_type;
+    using iterator = typename ChainView::iterator;
 
     CursorBase() = default;
 
@@ -508,17 +506,10 @@ public:
             "a reference (into existing data). If you are using "
             "a lambda that is supposed to return a reference, "
             "then you might need to use -> decltype( auto )." );
+        // If you fail here then you are probably trying to lense
+        // something that is producing a temporary.
         static_assert(
             std::is_lvalue_reference_v<decltype( *it_ )> );
-        // If you get an error on this static assert it probably
-        // means that you are trying to lense a value produced by
-        // e.g. map(), which is a temporary value. We're using
-        // is_const_v to detect that, which is not perfect in
-        // that it produces some false positives, but there
-        // should be no false negatives.
-        static_assert(
-            !std::is_const_v<
-                std::remove_reference_t<decltype( *it_ )>> );
         return ( *func_ )( *it_ );
       }
 
@@ -558,6 +549,11 @@ public:
         // erence for p.first (decltype(auto) will not).
         []( auto&& p ) -> auto&& { return p.first; } );
   }
+
+  /**************************************************************
+  ** Tail
+  ***************************************************************/
+  auto tail() && { return std::move( *this ).drop( 1 ); }
 
   /**************************************************************
   ** Map
@@ -904,6 +900,153 @@ public:
       std::intmax_t cycles_ = 0;
     };
     return make_chain<CycleCursor>();
+  }
+
+  /**************************************************************
+  ** GroupBy
+  ***************************************************************/
+  template<typename ValueType, typename GroupByCursor>
+  struct GroupByView {
+    struct iterator {
+      using iterator_category = std::input_iterator_tag;
+      using difference_type   = int;
+      using value_type        = ValueType;
+      using pointer           = value_type*;
+      using reference         = value_type&;
+
+      iterator() = default;
+      iterator( GroupByView const* view ) : view_( view ) {
+        clear_if_end();
+      }
+
+      void clear_if_end() {
+        if( view_->that_->is_group_done() ) view_ = nullptr;
+      }
+
+      auto& operator*() const {
+        return view_->that_->group_get();
+      }
+
+      auto* operator->() const {
+        return std::addressof( this->operator*() );
+      }
+
+      iterator& operator++() {
+        view_->that_->group_advance();
+        clear_if_end();
+        return *this;
+      }
+
+      iterator operator++( int ) {
+        auto res = *this;
+        ++( *this );
+        return res;
+      }
+
+      bool operator==( iterator const& rhs ) const {
+        // Cannot compare two iterators that are in the middle of
+        // a range, since it would introduce too much complica-
+        // tion into this implementation and it probably is not
+        // necessary anyway.
+        rl_assert( view_ == nullptr || rhs.view_ == nullptr );
+        return view_ == rhs.view_;
+      }
+
+      bool operator!=( iterator const& rhs ) const {
+        return !( *this == rhs );
+      }
+
+      GroupByView const* view_ = nullptr;
+    };
+
+    GroupByView() = default;
+    GroupByView( GroupByCursor* that ) : that_( that ) {}
+    auto begin() const { return iterator{ this }; }
+    auto end() const { return iterator{}; }
+
+    GroupByCursor* that_;
+  };
+
+  template<typename Func>
+  auto group_by( Func&& func ) && {
+    struct GroupByCursor : public CursorBase<GroupByCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
+      using Base = CursorBase<GroupByCursor>;
+      using Base::it_;
+      using typename Base::iterator;
+      using IncomingValueType = typename ChainView::value_type;
+      using ChainGroupView    = ChainView<
+          GroupByView<IncomingValueType, GroupByCursor>,
+          IdentityCursor<
+              GroupByView<IncomingValueType, GroupByCursor>>>;
+      using ChainGroupViewCursor = IdentityCursor<
+          GroupByView<IncomingValueType, GroupByCursor>>;
+      // using value_type = ChainGroupView;
+      GroupByCursor() = default;
+      GroupByCursor( Data const& data )
+        : func_( &data.func_ ),
+          input_{},
+          finished_group_{ true },
+          cache_{} {}
+
+      void init( ChainView const& input ) {
+        input_ = &input;
+        it_    = input.begin();
+        if( it_ == input.end() ) return;
+        finished_group_ = false;
+        cache_          = *it_;
+      }
+
+      auto get( ChainView const& input ) const {
+        rl_assert( !end( input ) );
+        return ChainGroupView(
+            GroupByView<IncomingValueType, GroupByCursor>{
+                const_cast<GroupByCursor*>( this ) },
+            typename ChainGroupViewCursor::Data{} );
+      }
+
+      void next( ChainView const& input ) {
+        rl_assert( finished_group_ );
+        if( it_ == input.end() ) return;
+        finished_group_ = false;
+        cache_          = *it_;
+      }
+
+      bool end( ChainView const& input ) const {
+        return ( it_ == input.end() );
+      }
+
+      iterator pos( ChainView const& ) const { return it_; }
+
+      // === Functions for Working with Single Group View ===
+
+      bool is_group_done() const { return finished_group_; }
+
+      auto& group_get() const {
+        rl_assert( !finished_group_ );
+        return *it_;
+      }
+
+      void group_advance() {
+        rl_assert( !finished_group_ );
+        ++it_;
+        if( it_ == input_->end() || !( *func_ )( cache_, *it_ ) )
+          finished_group_ = true;
+      }
+
+      func_t const*                  func_;
+      ChainView const*               input_;
+      bool                           finished_group_;
+      typename ChainView::value_type cache_;
+    };
+    return make_chain<GroupByCursor>(
+        std::forward<Func>( func ) );
   }
 };
 
