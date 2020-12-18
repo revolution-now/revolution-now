@@ -1,0 +1,7 @@
+ranges-lite                                  range-v3
+=========================================    ====================================
+Headers                   = 1.5 sec          Headers                   = 1.7 sec
+Instantiate               = 3.5 sec          Instantiate               = 7.1 sec    (x 2)
+Compile when instantiated = 2.3 sec          Compile when instantiated = 9.5 sec    (x 4)
+-----------------------------------------    ------------------------------------
+Total                     = 7.3 sec          Total                     = 18.3 sec   (x 2.5)

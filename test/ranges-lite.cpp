@@ -187,7 +187,7 @@ TEST_CASE( "[ranges-lite] accumulate" ) {
   auto res3 =
       rl::view( input ).map_rl( to_string( _ ) ).accumulate();
 
-  REQUIRE( res2 == 2 * 10 * 26 * 50 * 82 );
+  REQUIRE( res3 == "123456789" );
 }
 
 TEST_CASE( "[ranges-lite] mixing" ) {
@@ -767,6 +767,10 @@ TEST_CASE( "[ranges-lite] group_by complicated" ) {
   REQUIRE_THAT(
       std::move( view ).map_rl( _.to_vector() ).to_vector(),
       Equals( expected ) );
+
+  for( auto [l, r] : rl::zip( view, expected ) ) {
+    REQUIRE_THAT( l.to_vector(), Equals( r ) );
+  }
 }
 
 } // namespace
