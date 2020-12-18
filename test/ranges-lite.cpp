@@ -547,5 +547,115 @@ TEST_CASE( "[ranges-lite] keys mutation" ) {
   REQUIRE_THAT( input, Equals( expected ) );
 }
 
+TEST_CASE( "[ranges-lite] take_while" ) {
+  SECTION( "empty" ) {
+    vector<int> input{};
+
+    auto vec = rl::view( input )
+                   .rl_take_while( _ < 5 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{} ) );
+  }
+  SECTION( "take all" ) {
+    vector<int> input{ 1, 2, 3, 4 };
+
+    auto vec = rl::view( input )
+                   .rl_take_while( _ < 5 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 4 } ) );
+  }
+  SECTION( "take none" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    auto vec = rl::view( input )
+                   .rl_take_while( _ < 0 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{} ) );
+  }
+  SECTION( "take some" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    auto vec = rl::view( input )
+                   .rl_take_while( _ < 5 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 4 } ) );
+  }
+}
+
+TEST_CASE( "[ranges-lite] drop_while" ) {
+  SECTION( "empty" ) {
+    vector<int> input{};
+
+    auto vec = rl::view( input )
+                   .rl_drop_while( _ < 5 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{} ) );
+  }
+  SECTION( "drop all" ) {
+    vector<int> input{ 1, 2, 3, 4 };
+
+    auto vec = rl::view( input )
+                   .rl_drop_while( _ < 5 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{} ) );
+  }
+  SECTION( "drop none" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    auto vec = rl::view( input )
+                   .rl_drop_while( _ < 0 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 4, 5, 6, 7,
+                                            8, 9 } ) );
+  }
+  SECTION( "drop some" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    auto vec = rl::view( input )
+                   .rl_drop_while( _ < 5 ) // 2,10,26
+                   .to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 5, 6, 7, 8, 9 } ) );
+  }
+}
+
+TEST_CASE( "[ranges-lite] dereference" ) {
+  vector<maybe<int>> input{ { 1 }, { 2 }, { 3 }, { 4 }, { 5 } };
+
+  auto view = rl::view( input ).dereference();
+
+  for( int& i : view ) i *= 10;
+
+  auto expected = vector<maybe<int>>{
+      { 10 }, { 20 }, { 30 }, { 40 }, { 50 } };
+  REQUIRE_THAT( input, Equals( expected ) );
+
+  REQUIRE_THAT( view.to_vector(),
+                Equals( vector<int>{ 10, 20, 30, 40, 50 } ) );
+}
+
+TEST_CASE( "[ranges-lite] cat_maybes" ) {
+  vector<maybe<int>> input{
+      { 1 }, nothing, { 3 }, nothing, { 5 } };
+
+  auto view = rl::view( input ).cat_maybes();
+
+  for( int& i : view ) i *= 10;
+
+  auto expected = vector<maybe<int>>{
+      { 10 }, nothing, { 30 }, nothing, { 50 } };
+  REQUIRE_THAT( input, Equals( expected ) );
+
+  REQUIRE_THAT( view.to_vector(),
+                Equals( vector<int>{ 10, 30, 50 } ) );
+}
+
 } // namespace
 } // namespace base

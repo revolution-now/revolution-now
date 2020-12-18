@@ -11,7 +11,6 @@
 #pragma once
 
 // base
-#include "lambda.hpp"
 #include "maybe.hpp"
 #include "stack-trace.hpp"
 
@@ -39,8 +38,6 @@ namespace base::rl {
 ** TODO list
 *****************************************************************/
 //
-//      1 rv::drop_while
-//
 //      1 rv::drop_last
 //      2 rv::intersperse
 //
@@ -48,8 +45,6 @@ namespace base::rl {
 //      1 rv::sliding
 //
 //      1 rv::join
-//
-//      0 rv::zip_with
 
 /****************************************************************
 ** Forward Declarations
@@ -90,13 +85,15 @@ constexpr bool is_rl_view_v = is_rl_view<T>::value;
 /****************************************************************
 ** Macros
 *****************************************************************/
-#define RL_LAMBDA( name, ... ) name( LC( __VA_ARGS__ ) )
+#define RL_LAMBDA( name, ... ) \
+  name( [&]( auto&& _ ) { return __VA_ARGS__; } )
 
 // FIXME: rename this with a suffix instead of prefix.
 #define rl_keep( ... ) RL_LAMBDA( keep, __VA_ARGS__ )
 #define rl_remove( ... ) RL_LAMBDA( remove, __VA_ARGS__ )
 #define rl_map( ... ) RL_LAMBDA( map, __VA_ARGS__ )
 #define rl_take_while( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
+#define rl_drop_while( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
 #define rl_take_while_incl( ... ) \
   RL_LAMBDA( take_while_incl, __VA_ARGS__ )
 
@@ -277,7 +274,7 @@ public:
       if( cursor_.end( view_->input_ ) ) view_ = nullptr;
     }
 
-    auto& operator*() const {
+    decltype( auto ) operator*() const {
       rl_assert( view_ != nullptr );
       return cursor_.get( view_->input_ );
     }
@@ -370,7 +367,7 @@ private:
 
     void init( ChainView const& input ) { it_ = input.begin(); }
 
-    auto& get( ChainView const& input ) const {
+    decltype( auto ) get( ChainView const& input ) const {
       rl_assert( !derived()->end( input ) );
       return *it_;
     }
@@ -513,6 +510,12 @@ public:
             "then you might need to use -> decltype( auto )." );
         static_assert(
             std::is_lvalue_reference_v<decltype( *it_ )> );
+        // If you get an error on this static assert it probably
+        // means that you are trying to lense a value produced by
+        // e.g. map(), which is a temporary value. We're using
+        // is_const_v to detect that, which is not perfect in
+        // that it produces some false positives, but there
+        // should be no false negatives.
         static_assert(
             !std::is_const_v<
                 std::remove_reference_t<decltype( *it_ )>> );
@@ -530,15 +533,30 @@ public:
   }
 
   /**************************************************************
+  ** Dereference
+  ***************************************************************/
+  auto dereference() && {
+    return std::move( *this ).lense(
+        []( auto&& arg ) -> decltype( auto ) { return *arg; } );
+  }
+
+  /**************************************************************
+  ** CatMaybes
+  ***************************************************************/
+  auto cat_maybes() && {
+    return std::move( *this )
+        .remove( []( auto&& arg ) { return arg == nothing; } )
+        .dereference();
+  }
+
+  /**************************************************************
   ** Keys
   ***************************************************************/
   auto keys() && {
     return std::move( *this ).lense(
-        []( auto&& p ) -> decltype( auto ) {
-          // use get<0> instead of p.first because the latter
-          // does not yield a reference, which is what we want.
-          return std::get<0>( p );
-        } );
+        // Need auto&& return type so that it will deduce a ref-
+        // erence for p.first (decltype(auto) will not).
+        []( auto&& p ) -> auto&& { return p.first; } );
   }
 
   /**************************************************************
@@ -557,32 +575,20 @@ public:
       using Base = CursorBase<MapCursor>;
       using Base::it_;
       using typename Base::iterator;
-      using value_type = std::invoke_result_t<
-          Func, typename iterator::value_type> const;
       MapCursor() = default;
       MapCursor( Data const& data ) : func_( &data.func_ ) {}
 
-      void init( ChainView const& input ) {
-        it_ = input.begin();
-        if( !end( input ) ) cache_ = ( *func_ )( *it_ );
-      }
-
-      auto& get( ChainView const& input ) const {
+      auto get( ChainView const& input ) const {
         rl_assert( !end( input ) );
-        return cache_;
-      }
-
-      void next( ChainView const& input ) {
-        rl_assert( !end( input ) );
-        ++it_;
-        if( !end( input ) ) cache_ = ( *func_ )( *it_ );
+        return ( *func_ )( *it_ );
       }
 
       using Base::end;
+      using Base::init;
+      using Base::next;
       using Base::pos;
 
-      func_t const*                   func_;
-      std::remove_const_t<value_type> cache_;
+      func_t const* func_;
     };
     return make_chain<MapCursor>( std::forward<Func>( func ) );
   }
@@ -634,6 +640,42 @@ public:
       bool          finished_;
     };
     return make_chain<TakeWhileCursor>(
+        std::forward<Func>( func ) );
+  }
+
+  /**************************************************************
+  ** DropWhile
+  ***************************************************************/
+  template<typename Func>
+  auto drop_while( Func&& func ) && {
+    struct DropWhileCursor : public CursorBase<DropWhileCursor> {
+      using func_t = std::remove_reference_t<Func>;
+      struct Data {
+        Data() = default;
+        Data( func_t const& f ) : func_( f ) {}
+        Data( func_t&& f ) : func_( std::move( f ) ) {}
+        func_t func_;
+      };
+      using Base = CursorBase<DropWhileCursor>;
+      using Base::it_;
+      using typename Base::iterator;
+      DropWhileCursor() = default;
+      DropWhileCursor( Data const& data )
+        : func_( &data.func_ ) {}
+
+      void init( ChainView const& input ) {
+        it_ = input.begin();
+        while( it_ != input.end() && ( *func_ )( *it_ ) ) ++it_;
+      }
+
+      using Base::end;
+      using Base::get;
+      using Base::next;
+      using Base::pos;
+
+      func_t const* func_;
+    };
+    return make_chain<DropWhileCursor>(
         std::forward<Func>( func ) );
   }
 
@@ -719,34 +761,24 @@ public:
       using Base = CursorBase<ZipCursor>;
       using Base::it_;
       using iterator2 = typename std::decay_t<SndView>::iterator;
-      using value_type1 = typename ChainView::value_type;
-      using value_type2 =
-          typename std::decay_t<SndView>::value_type;
-      using value_type = std::pair<value_type1, value_type2>;
-      ZipCursor()      = default;
+      ZipCursor()     = default;
       ZipCursor( Data const& data )
         : snd_view_( &data.snd_view_ ) {}
-
-      void update_cache( ChainView const& input ) {
-        if( !end( input ) ) cache_ = { *it_, *it2_ };
-      }
 
       void init( ChainView const& input ) {
         it_  = input.begin();
         it2_ = snd_view_->begin();
-        update_cache( input );
       }
 
-      auto const& get( ChainView const& input ) const {
+      auto get( ChainView const& input ) const {
         rl_assert( !end( input ) );
-        return cache_;
+        return std::pair{ *it_, *it2_ };
       }
 
       void next( ChainView const& input ) {
         rl_assert( !end( input ) );
         ++it_;
         ++it2_;
-        update_cache( input );
       }
 
       bool end( ChainView const& input ) const {
@@ -757,8 +789,7 @@ public:
       using Base::pos;
 
       std::decay_t<SndView> const* snd_view_;
-      iterator2                    it2_   = {};
-      value_type                   cache_ = {};
+      iterator2                    it2_ = {};
     };
     return make_chain<ZipCursor>(
         std::forward<SndView>( snd_view ) );
