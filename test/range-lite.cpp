@@ -312,6 +312,7 @@ TEST_CASE( "[range-lite] func calls in reverse map" ) {
                 Equals( vector<int>{ 9, 4, 1 } ) );
   REQUIRE( func_calls == 3 );
 }
+
 TEST_CASE( "[range-lite] macros" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -323,6 +324,15 @@ TEST_CASE( "[range-lite] macros" ) {
                  .to_vector();
 
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
+}
+
+TEST_CASE( "[range-lite] string_view" ) {
+  string_view sv = "hello world";
+
+  auto view =
+      rl::all( sv ).reverse().map_L( _ == ' ' ? '-' : _ );
+
+  REQUIRE( view.to<string>() == "dlrow-olleh" );
 }
 
 TEST_CASE( "[range-lite] head" ) {

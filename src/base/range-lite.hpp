@@ -104,6 +104,20 @@ template<typename T>
 constexpr bool cursor_supports_reverse_v =
     cursor_supports_reverse<T>::value;
 
+template<typename It>
+struct it_type_to_value_type {
+  using type = typename It::value_type;
+};
+
+template<typename P>
+struct it_type_to_value_type<P*> {
+  using type = P;
+};
+
+template<typename It>
+using it_type_to_value_type_t =
+    typename it_type_to_value_type<It>::type;
+
 /****************************************************************
 ** Identity Cursor
 *****************************************************************/
@@ -111,7 +125,7 @@ template<typename InputView>
 struct IdentityCursor {
   struct Data {};
   using iterator = decltype( std::declval<InputView>().begin() );
-  using value_type = typename iterator::value_type;
+  using value_type = it_type_to_value_type_t<iterator>;
   IdentityCursor() = default;
   IdentityCursor( Data const& ) {}
   void init( InputView const& input ) { it_ = input.begin(); }
@@ -130,7 +144,7 @@ struct BidirectionalIdentityCursor {
   using iterator = decltype( std::declval<InputView>().begin() );
   using riterator =
       decltype( std::declval<InputView>().rbegin() );
-  using value_type              = typename iterator::value_type;
+  using value_type = it_type_to_value_type_t<iterator>;
   BidirectionalIdentityCursor() = default;
   BidirectionalIdentityCursor( Data const& ) {}
 
