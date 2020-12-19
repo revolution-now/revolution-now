@@ -862,9 +862,6 @@ TEST_CASE( "[range-lite] group_by complicated" ) {
                   .group_by_L( _1.size() == _2.size() )
                   .take( 6 );
 
-  // See how fat the iterator is.
-  static_assert( sizeof( decltype( view.begin() ) ) == 112 );
-
   vector<vector<string>> expected{ { "hello", "world" },
                                    { "four" },
                                    { "seven" },
