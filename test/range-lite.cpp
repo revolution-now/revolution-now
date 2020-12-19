@@ -421,6 +421,32 @@ TEST_CASE( "[range-lite] accumulate" ) {
   REQUIRE( res3 == "123456789" );
 }
 
+TEST_CASE( "[range-lite] accumulate_monoid" ) {
+  SECTION( "empty" ) {
+    vector<int> input{};
+    auto        res = rl::all( input ).accumulate_monoid();
+    REQUIRE( res == nothing );
+  }
+  SECTION( "single" ) {
+    vector<int> input{ 10 };
+    auto        res = rl::all( input ).accumulate_monoid();
+    REQUIRE( res == 10 );
+  }
+  SECTION( "multiple" ) {
+    vector<int> input{ 1, 2, 3, 4, 5 };
+    auto        res =
+        rl::all( input ).accumulate_monoid( std::multiplies{} );
+    REQUIRE( res == 1 * 2 * 3 * 4 * 5 );
+  }
+  SECTION( "string" ) {
+    vector<int> input{ 1, 2, 3, 4, 5 };
+    auto        res = rl::all( input )
+                   .map_L( to_string( _ ) )
+                   .accumulate_monoid();
+    REQUIRE( res == "12345" );
+  }
+}
+
 TEST_CASE( "[range-lite] mixing" ) {
   vector<int> input{ 1, 22, 333, 4444, 55555, 666666, 7777777 };
 
@@ -431,6 +457,65 @@ TEST_CASE( "[range-lite] mixing" ) {
                  .to_vector();
 
   REQUIRE_THAT( res, Equals( vector<size_t>{ 1, 3, 5, 7 } ) );
+}
+
+TEST_CASE( "[range-lite] min_by" ) {
+  struct A {
+    bool operator==( A const& ) const = default;
+    int  n;
+  };
+  vector<A> input{ { 5 }, { 4 }, { 3 }, { 10 } };
+
+  auto res = rl::all( input ).min_by_L( _.n );
+  static_assert( is_same_v<decltype( res ), maybe<A>> );
+
+  REQUIRE( res == A{ 3 } );
+}
+
+TEST_CASE( "[range-lite] max_by" ) {
+  struct A {
+    bool operator==( A const& ) const = default;
+    int  n;
+  };
+  vector<A> input{ { 5 }, { 4 }, { 3 }, { 10 }, { 8 } };
+
+  auto res = rl::all( input ).max_by_L( _.n );
+  static_assert( is_same_v<decltype( res ), maybe<A>> );
+
+  REQUIRE( res == A{ 10 } );
+}
+
+TEST_CASE( "[range-lite] min" ) {
+  vector<int> input{ 5, 4, 3, 10 };
+  auto        res = rl::all( input ).min();
+  REQUIRE( res == 3 );
+}
+
+TEST_CASE( "[range-lite] max" ) {
+  vector<int> input{ 5, 4, 3, 10, 8 };
+  auto        res = rl::all( input ).max();
+  REQUIRE( res == 10 );
+}
+
+TEST_CASE( "[range-lite] map2val" ) {
+  SECTION( "int" ) {
+    vector<int> input{ 1, 2, 3 };
+
+    auto res = rl::all( input ).map2val_L( _ * _ ).to_vector();
+
+    REQUIRE_THAT( res, Equals( vector<pair<int, int>>{
+                           { 1, 1 }, { 2, 4 }, { 3, 9 } } ) );
+  }
+  SECTION( "string" ) {
+    vector<int> input{ 1, 2, 3 };
+
+    auto res =
+        rl::all( input ).map2val_L( to_string( _ ) ).to_vector();
+
+    REQUIRE_THAT( res,
+                  Equals( vector<pair<int, string>>{
+                      { 1, "1" }, { 2, "2" }, { 3, "3" } } ) );
+  }
 }
 
 TEST_CASE( "[range-lite] zip" ) {
@@ -823,6 +908,45 @@ TEST_CASE( "[range-lite] drop_while" ) {
         rl::all( input ).drop_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 5, 6, 7, 8, 9 } ) );
+  }
+}
+
+TEST_CASE( "[range-lite] intersperse" ) {
+  SECTION( "empty" ) {
+    vector<int> input{};
+
+    auto vec = rl::all( input ).intersperse( 3 ).to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{} ) );
+  }
+  SECTION( "one" ) {
+    vector<int> input{ 1 };
+
+    auto vec = rl::all( input ).intersperse( 5 ).to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 1 } ) );
+  }
+  SECTION( "two" ) {
+    vector<int> input{ 1, 2 };
+
+    auto vec = rl::all( input ).intersperse( 5 ).to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 1, 5, 2 } ) );
+  }
+  SECTION( "three" ) {
+    vector<int> input{ 1, 2, 3 };
+
+    auto vec = rl::all( input ).intersperse( 5 ).to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<int>{ 1, 5, 2, 5, 3 } ) );
+  }
+  SECTION( "many" ) {
+    vector<string> input{ "1", "2", "3" };
+
+    auto vec = rl::all( input ).intersperse( "5" ).to_vector();
+
+    REQUIRE_THAT( vec, Equals( vector<string>{ "1", "5", "2",
+                                               "5", "3" } ) );
   }
 }
 

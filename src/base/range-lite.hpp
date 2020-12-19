@@ -14,15 +14,8 @@
 #include "maybe.hpp"
 #include "stack-trace.hpp"
 
-// rl stands for "ranges lite".
+// rl stands for "range lite".
 namespace base::rl {
-
-/****************************************************************
-** TODO list
-*****************************************************************/
-// functions in ranges.hpp
-//
-// sliding, drop_last, intersperse, join, remove, keep
 
 /****************************************************************
 ** Macros
@@ -34,10 +27,13 @@ namespace base::rl {
   name( [&]( auto&& _1, auto&& _2 ) { return __VA_ARGS__; } )
 
 #define keep_if_L( ... ) RL_LAMBDA( keep_if, __VA_ARGS__ )
+#define min_by_L( ... ) RL_LAMBDA( min_by, __VA_ARGS__ )
+#define max_by_L( ... ) RL_LAMBDA( max_by, __VA_ARGS__ )
 #define filter_L( ... ) RL_LAMBDA( filter, __VA_ARGS__ )
 #define group_by_L( ... ) RL_LAMBDA2( group_by, __VA_ARGS__ )
 #define remove_if_L( ... ) RL_LAMBDA( remove_if, __VA_ARGS__ )
 #define map_L( ... ) RL_LAMBDA( map, __VA_ARGS__ )
+#define map2val_L( ... ) RL_LAMBDA( map2val, __VA_ARGS__ )
 #define take_while_L( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
 #define drop_while_L( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
 #define take_while_incl_L( ... ) \
@@ -606,6 +602,57 @@ public:
   }
 
   /**************************************************************
+  ** MinBy/MaxBy
+  ***************************************************************/
+  // These functions apply `f` to each element in the range to
+  // derive keys, then they find the min/max key, and return the
+  // range value corresponding to that key.
+  template<typename Func>
+  auto min_by( Func&& f ) const {
+    using KeyType = std::invoke_result_t<Func, ValueType>;
+    maybe<ValueType> res{};
+    maybe<KeyType>   min_key{};
+    for( auto const& elem : *this ) {
+      auto key = f( elem );
+      if( !min_key.has_value() || key < *min_key ) {
+        min_key = key;
+        res     = elem;
+      }
+    }
+    return res;
+  }
+
+  template<typename Func>
+  auto max_by( Func&& f ) const {
+    using KeyType = std::invoke_result_t<Func, ValueType>;
+    maybe<ValueType> res{};
+    maybe<KeyType>   max_key{};
+    for( auto const& elem : *this ) {
+      auto key = f( elem );
+      if( !max_key.has_value() || key > *max_key ) {
+        max_key = key;
+        res     = elem;
+      }
+    }
+    return res;
+  }
+
+  /**************************************************************
+  ** Min/Max
+  ***************************************************************/
+  auto min() const {
+    return min_by( []<typename T>( T&& _ ) {
+      return std::forward<T>( _ );
+    } );
+  }
+
+  auto max() const {
+    return max_by( []<typename T>( T&& _ ) {
+      return std::forward<T>( _ );
+    } );
+  }
+
+  /**************************************************************
   ** Accumulate
   ***************************************************************/
   template<typename Op = std::plus<>>
@@ -613,6 +660,21 @@ public:
     value_type res = init;
     for( auto const& e : *this )
       res = std::invoke( std::forward<Op>( op ), res, e );
+    return res;
+  }
+
+  /**************************************************************
+  ** Accumulate Monoid
+  ***************************************************************/
+  template<typename Op = std::plus<>>
+  maybe<value_type> accumulate_monoid( Op&& op = {} ) {
+    maybe<value_type> res;
+    auto              it = this->begin();
+    if( it == this->end() ) return res;
+    res = *it;
+    ++it;
+    for( ; it != this->end(); ++it )
+      *res = std::invoke( std::forward<Op>( op ), *res, *it );
     return res;
   }
 
@@ -745,24 +807,20 @@ public:
       void init( ChainView const& input ) {
         it_ = input.begin();
         do {
-          if( end( input ) ) break;
+          if( this->end( input ) ) break;
           if( ( *func_ )( *it_ ) ) break;
           ++it_;
         } while( true );
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !end( input ) );
+        assert_bt( !this->end( input ) );
         do {
           ++it_;
-          if( end( input ) ) break;
+          if( this->end( input ) ) break;
           if( ( *func_ )( *it_ ) ) break;
         } while( true );
       }
-
-      using Base::end;
-      using Base::get;
-      using Base::pos;
 
       func_t const* func_;
     };
@@ -783,6 +841,7 @@ public:
       func_t func_;
     };
     using Base = CursorBase<MapCursor>;
+    using Base::it_;
     using typename Base::iterator;
     MapCursor() = default;
     MapCursor( Data const& data ) : func_( &data.func_ ) {
@@ -795,13 +854,13 @@ public:
         // re- turn a reference to a temporary that was
         // produced by an earlier view in the pipeline.
         static_assert(
-            std::is_lvalue_reference_v<decltype( *this->it_ )> );
+            std::is_lvalue_reference_v<decltype( *it_ )> );
       }
     }
 
     decltype( auto ) get( ChainView const& input ) const {
       assert_bt( !this->end( input ) );
-      return ( *func_ )( *this->it_ );
+      return ( *func_ )( *it_ );
     }
 
     func_t const* func_;
@@ -855,8 +914,6 @@ public:
           finished_ = true;
       }
 
-      using Base::get;
-
       void next( ChainView const& input ) {
         assert_bt( !finished_ );
         assert_bt( it_ != input.end() );
@@ -904,11 +961,6 @@ public:
         while( it_ != input.end() && ( *func_ )( *it_ ) ) ++it_;
       }
 
-      using Base::end;
-      using Base::get;
-      using Base::next;
-      using Base::pos;
-
       func_t const* func_;
     };
     return make_chain<DropWhileCursor>(
@@ -946,8 +998,6 @@ public:
         }
         if( !( *func_ )( *it_ ) ) state_ = e_state::last;
       }
-
-      using Base::get;
 
       void next( ChainView const& input ) {
         assert_bt( !end( input ) );
@@ -1023,8 +1073,6 @@ public:
                ( it2_ == snd_view_->end() );
       }
 
-      using Base::pos;
-
       std::decay_t<SndView> const* snd_view_;
       iterator2                    it2_ = {};
     };
@@ -1046,9 +1094,6 @@ public:
       using typename Base::iterator;
       TakeCursor() = default;
       TakeCursor( Data const& data ) : n_( data.n ) {}
-
-      using Base::get;
-      using Base::init;
 
       void next( ChainView const& input ) {
         assert_bt( !end( input ) );
@@ -1094,14 +1139,51 @@ public:
         }
       }
 
-      using Base::end;
-      using Base::get;
-      using Base::next;
-      using Base::pos;
-
       int n_ = 0;
     };
     return make_chain<DropCursor>( n );
+  }
+
+  /**************************************************************
+  ** Intersperse
+  ***************************************************************/
+  auto intersperse( ValueType val ) && {
+    struct IntersperseCursor
+      : public CursorBase<IntersperseCursor> {
+      struct Data {
+        Data( ValueType val ) : val_( std::move( val ) ) {}
+        ValueType val_;
+      };
+      using Base = CursorBase<IntersperseCursor>;
+      using Base::it_;
+      using typename Base::iterator;
+      IntersperseCursor() = default;
+      IntersperseCursor( Data const& data )
+        : val_( data.val_ ), should_give_val_{ false } {}
+
+      // Note: return type of get() should always be decltype-
+      // (auto) unless it always returns by value.
+      ValueType get( ChainView const& input ) const {
+        assert_bt( !this->end( input ) );
+        if( should_give_val_ ) return val_;
+        return *it_;
+      }
+
+      void next( ChainView const& input ) {
+        assert_bt( !this->end( input ) );
+        if( should_give_val_ ) {
+          should_give_val_ = false;
+          return;
+        }
+        ++it_;
+        if( it_ == input.end() ) return;
+        should_give_val_ = true;
+      }
+
+      ValueType val_;
+      bool      should_give_val_;
+    };
+    return make_chain<IntersperseCursor>( std::move( val ) );
   }
 
   /**************************************************************
@@ -1113,10 +1195,8 @@ public:
       struct Data {};
       using FBase = CursorBase<ReverseCursor>;
       using RBase = ReverseCursorBase<ReverseCursor>;
-      // using Base::it_;
-      // using typename Base::iterator;
-      // DropCursor() = default;
-      // DropCursor( Data const& data ) : n_( data.n ) {}
+      using FBase::it_;
+      using RBase::rit_;
 
       ReverseCursor() = default;
       ReverseCursor( Data const& ) {}
@@ -1149,26 +1229,24 @@ public:
       // === Reverse ===
 
       void rinit( ChainView const& input ) {
-        this->it_ = input.begin();
+        it_ = input.begin();
       }
 
       decltype( auto ) rget( ChainView const& input ) const {
         assert_bt( !this->rend( input ) );
-        return *this->it_;
+        return *it_;
       }
 
       void rnext( ChainView const& input ) {
         assert_bt( !this->rend( input ) );
-        ++this->it_;
+        ++it_;
       }
 
       bool rend( ChainView const& input ) const {
-        return this->it_ == input.end();
+        return it_ == input.end();
       }
 
-      riterator rpos( ChainView const& ) const {
-        return this->it_;
-      }
+      riterator rpos( ChainView const& ) const { return it_; }
     };
     return make_chain<ReverseCursor>();
   }
@@ -1190,8 +1268,6 @@ public:
         // We need to have at least one element!
         assert_bt( it_ != input.end() );
       }
-
-      using Base::get;
 
       void next( ChainView const& input ) {
         ++it_;
@@ -1307,6 +1383,20 @@ public:
   // It should be easier to verify their correctness by in-
   // specting their implementation, but they might be slower than
   // if they have been custom written like the ones above.
+
+  /**************************************************************
+  ** Map2Val
+  ***************************************************************/
+  // Takes a range and a function and returns a range of pairs
+  // where the second field of the pair is generated by applying
+  // the function to each input value. [a] -> [(a, f(a))].
+  template<typename Func>
+  auto map2val( Func&& func ) && {
+    return std::move( *this ).map(
+        [func = std::forward<Func>( func )]( auto&& arg ) {
+          return std::pair{ arg, func( arg ) };
+        } );
+  }
 
   /**************************************************************
   ** RemoveIf
