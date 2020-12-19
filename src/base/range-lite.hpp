@@ -14,18 +14,12 @@
 #include "maybe.hpp"
 #include "stack-trace.hpp"
 
-// C++ standard library
-#include <cassert>
-#include <iterator>
-
 // rl stands for "ranges lite".
 namespace base::rl {
 
 /****************************************************************
 ** TODO list
 *****************************************************************/
-// reverse
-//
 // functions in ranges.hpp
 //
 // sliding, drop_last, intersperse, join, remove, keep
@@ -83,6 +77,33 @@ struct is_chain_view<ChainView<InputView, Cursor, ValueType>>
 template<typename T>
 constexpr bool is_chain_view_v = is_chain_view<T>::value;
 
+template<typename T, typename = void>
+struct view_supports_reverse : std::false_type {};
+
+template<typename T>
+struct view_supports_reverse<
+    T, std::enable_if_t<
+           !std::is_same_v<
+               decltype( std::declval<T>().rbegin() ), void>,
+           void>> : std::true_type {};
+
+template<typename T>
+constexpr bool view_supports_reverse_v =
+    view_supports_reverse<T>::value;
+
+template<typename T, typename = void>
+struct cursor_supports_reverse : std::false_type {};
+
+template<typename T>
+struct cursor_supports_reverse<
+    T,
+    std::void_t<decltype( std::declval<typename T::riterator>().
+                          operator++() )>> : std::true_type {};
+
+template<typename T>
+constexpr bool cursor_supports_reverse_v =
+    cursor_supports_reverse<T>::value;
+
 /****************************************************************
 ** Identity Cursor
 *****************************************************************/
@@ -101,6 +122,40 @@ struct IdentityCursor {
   }
   iterator pos( InputView const& ) const { return it_; }
   iterator it_;
+};
+
+template<typename InputView>
+struct BidirectionalIdentityCursor {
+  struct Data {};
+  using iterator = decltype( std::declval<InputView>().begin() );
+  using riterator =
+      decltype( std::declval<InputView>().rbegin() );
+  using value_type              = typename iterator::value_type;
+  BidirectionalIdentityCursor() = default;
+  BidirectionalIdentityCursor( Data const& ) {}
+
+  // Forward
+  void init( InputView const& input ) { it_ = input.begin(); }
+  decltype( auto ) get( InputView const& ) const { return *it_; }
+  void             next( InputView const& ) { ++it_; }
+  bool             end( InputView const& input ) const {
+    return it_ == input.end();
+  }
+  iterator pos( InputView const& ) const { return it_; }
+
+  // Backward
+  void rinit( InputView const& input ) { rit_ = input.rbegin(); }
+  decltype( auto ) rget( InputView const& ) const {
+    return *rit_;
+  }
+  void rnext( InputView const& ) { ++rit_; }
+  bool rend( InputView const& input ) const {
+    return rit_ == input.rend();
+  }
+  riterator rpos( InputView const& ) const { return rit_; }
+
+  iterator  it_;
+  riterator rit_;
 };
 
 /****************************************************************
@@ -128,9 +183,18 @@ public:
   auto end() const { return view_->end(); }
   auto cbegin() const { return view_->cbegin(); }
   auto cend() const { return view_->cend(); }
+
+  using riterator =
+      decltype( std::declval<InputView>().rbegin() );
+
+  auto rbegin() const { return view_->rbegin(); }
+  auto rend() const { return view_->rend(); }
+  auto crbegin() const { return view_->crbegin(); }
+  auto crend() const { return view_->crend(); }
 };
 
-// Takes any range and yields a view of all elements in it.
+// Takes any range and yields a view of all elements in it
+// in reverse.
 template<typename InputView>
 class ReverseAllView {
   InputView* view_;
@@ -427,10 +491,86 @@ public:
     }
   };
 
+  /**************************************************************
+  ** reverse iterator
+  ***************************************************************/
+  template<typename Defer = void>
+  class riterator_defer {
+    ChainView const* view_ = nullptr;
+    Cursor           cursor_;
+
+    void clear_if_end() {
+      if( cursor_.rend( view_->input_ ) ) view_ = nullptr;
+    }
+
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using difference_type   = int;
+    using value_type        = ChainView::value_type;
+    using pointer           = value_type*;
+    using reference         = value_type&;
+
+    riterator_defer() = default;
+    riterator_defer( ChainView const* view )
+      : view_( view ), cursor_( view->data_ ) {
+      cursor_.rinit( view_->input_ );
+      clear_if_end();
+    }
+
+    decltype( auto ) operator*() const {
+      assert_bt( view_ != nullptr );
+      return cursor_.rget( view_->input_ );
+    }
+
+    auto* operator->() const {
+      return std::addressof( this->operator*() );
+    }
+
+    riterator_defer& operator++() {
+      assert_bt( view_ != nullptr );
+      cursor_.rnext( view_->input_ );
+      clear_if_end();
+      return *this;
+    }
+
+    riterator_defer operator++( int ) {
+      auto res = *this;
+      ++( *this );
+      return res;
+    }
+
+    bool operator==( riterator_defer const& rhs ) const {
+      if( view_ != nullptr && rhs.view_ != nullptr )
+        return cursor_.rpos( view_->input_ ) ==
+               rhs.cursor_.rpos( rhs.view_->input_ );
+      return view_ == rhs.view_;
+    }
+
+    bool operator!=( riterator_defer const& rhs ) const {
+      return !( *this == rhs );
+    }
+  };
+
+  static constexpr auto make_riterator(
+      ChainView const* view = nullptr ) {
+    if constexpr( cursor_supports_reverse_v<Cursor> ) {
+      return view ? riterator_defer<>( view )
+                  : riterator_defer<>();
+    }
+  }
+
+  using riterator =
+      decltype( make_riterator( std::declval<ChainView*>() ) );
+
   iterator begin() const { return iterator( this ); }
   iterator end() const { return iterator(); }
   iterator cbegin() const { return iterator( this ); }
   iterator cend() const { return iterator(); }
+
+  auto rbegin() const { return make_riterator( this ); }
+  auto rend() const { return make_riterator(); }
+  auto crbegin() const { return make_riterator( this ); }
+  auto crend() const { return make_riterator(); }
 
   /**************************************************************
   ** Materialization
@@ -515,6 +655,46 @@ private:
     iterator it_;
   };
 
+  template<typename Derived>
+  class ReverseCursorBase {
+    Derived const* derived() const {
+      return static_cast<Derived const*>( this );
+    }
+
+  public:
+    using riterator = typename ChainView::riterator;
+
+    ReverseCursorBase() = default;
+
+    void rinit( ChainView const& input ) {
+      rit_ = input.rbegin();
+    }
+
+    decltype( auto ) rget( ChainView const& input ) const {
+      assert_bt( !derived()->rend( input ) );
+      return *rit_;
+    }
+
+    void rnext( ChainView const& input ) {
+      assert_bt( !derived()->rend( input ) );
+      ++rit_;
+    }
+
+    bool rend( ChainView const& input ) const {
+      return rit_ == input.rend();
+    }
+
+    // The type that this returns doesn't really matter, it
+    // just has to be a unique value for each iteration of
+    // the cursor.
+    riterator rpos( ChainView const& ) const { return rit_; }
+
+    // If you get an error on this line about riterator being an
+    // incomplete type then that means that this view (likely one
+    // in your pipelien) does not support reverse iteration.
+    riterator rit_;
+  };
+
   /**************************************************************
   ** Chain Maker
   ***************************************************************/
@@ -580,45 +760,59 @@ public:
   ** Map
   ***************************************************************/
   template<typename Func>
-  auto map( Func&& func ) && {
-    constexpr bool func_returns_ref =
-        std::is_reference_v<std::invoke_result_t<
-            Func,
-            std::add_lvalue_reference_t<ChainView::value_type>>>;
-    struct MapCursor : public CursorBase<MapCursor> {
-      using func_t = std::remove_reference_t<Func>;
-      struct Data {
-        Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
-      };
-      using Base = CursorBase<MapCursor>;
-      using Base::it_;
-      using typename Base::iterator;
-      MapCursor() = default;
-      MapCursor( Data const& data ) : func_( &data.func_ ) {}
-
-      decltype( auto ) get( ChainView const& input ) const {
-        if constexpr( func_returns_ref ) {
-          // If you fail here then you are probably trying to re-
-          // turn a reference to a temporary that was produced by
-          // an earlier view in the pipeline.
-          static_assert(
-              std::is_lvalue_reference_v<decltype( *it_ )> );
-        }
-        assert_bt( !end( input ) );
-        return ( *func_ )( *it_ );
-      }
-
-      using Base::end;
-      using Base::init;
-      using Base::next;
-      using Base::pos;
-
-      func_t const* func_;
+  struct MapCursor : public CursorBase<MapCursor<Func>> {
+    using func_t = std::remove_reference_t<Func>;
+    struct Data {
+      Data() = default;
+      Data( func_t const& f ) : func_( f ) {}
+      Data( func_t&& f ) : func_( std::move( f ) ) {}
+      func_t func_;
     };
-    return make_chain<MapCursor>( std::forward<Func>( func ) );
+    using Base = CursorBase<MapCursor>;
+    using typename Base::iterator;
+    MapCursor() = default;
+    MapCursor( Data const& data ) : func_( &data.func_ ) {
+      constexpr bool func_returns_ref =
+          std::is_reference_v<std::invoke_result_t<
+              Func, std::add_lvalue_reference_t<
+                        ChainView::value_type>>>;
+      if constexpr( func_returns_ref ) {
+        // If you fail here then you are probably trying to
+        // re- turn a reference to a temporary that was
+        // produced by an earlier view in the pipeline.
+        static_assert(
+            std::is_lvalue_reference_v<decltype( *this->it_ )> );
+      }
+    }
+
+    decltype( auto ) get( ChainView const& input ) const {
+      assert_bt( !this->end( input ) );
+      return ( *func_ )( *this->it_ );
+    }
+
+    func_t const* func_;
+  };
+
+  template<typename Func>
+  struct BidirectionalMapCursor
+    : public MapCursor<Func>,
+      public ReverseCursorBase<BidirectionalMapCursor<Func>> {
+    using MapCursor<Func>::MapCursor;
+    decltype( auto ) rget( ChainView const& input ) const {
+      assert_bt( !this->rend( input ) );
+      return ( *this->func_ )( *this->rit_ );
+    }
+  };
+
+  template<typename Func>
+  auto map( Func&& func ) && {
+    if constexpr( cursor_supports_reverse_v<Cursor> ) {
+      return make_chain<BidirectionalMapCursor<Func>>(
+          std::forward<Func>( func ) );
+    } else {
+      return make_chain<MapCursor<Func>>(
+          std::forward<Func>( func ) );
+    }
   }
 
   /**************************************************************
@@ -897,6 +1091,75 @@ public:
   }
 
   /**************************************************************
+  ** Reverse
+  ***************************************************************/
+  auto reverse() && {
+    struct ReverseCursor : public CursorBase<ReverseCursor>,
+                           ReverseCursorBase<ReverseCursor> {
+      struct Data {};
+      using FBase = CursorBase<ReverseCursor>;
+      using RBase = ReverseCursorBase<ReverseCursor>;
+      // using Base::it_;
+      // using typename Base::iterator;
+      // DropCursor() = default;
+      // DropCursor( Data const& data ) : n_( data.n ) {}
+
+      ReverseCursor() = default;
+      ReverseCursor( Data const& ) {}
+
+      using iterator  = typename RBase::riterator;
+      using riterator = typename FBase::iterator;
+
+      void init( ChainView const& input ) {
+        this->rit_ = input.rbegin();
+      }
+
+      decltype( auto ) get( ChainView const& input ) const {
+        assert_bt( !this->end( input ) );
+        return *this->rit_;
+      }
+
+      void next( ChainView const& input ) {
+        assert_bt( !this->end( input ) );
+        ++this->rit_;
+      }
+
+      bool end( ChainView const& input ) const {
+        return this->rit_ == input.rend();
+      }
+
+      iterator pos( ChainView const& ) const {
+        return this->rit_;
+      }
+
+      // === Reverse ===
+
+      void rinit( ChainView const& input ) {
+        this->it_ = input.begin();
+      }
+
+      decltype( auto ) rget( ChainView const& input ) const {
+        assert_bt( !this->rend( input ) );
+        return *this->it_;
+      }
+
+      void rnext( ChainView const& input ) {
+        assert_bt( !this->rend( input ) );
+        ++this->it_;
+      }
+
+      bool rend( ChainView const& input ) const {
+        return this->it_ == input.end();
+      }
+
+      riterator rpos( ChainView const& ) const {
+        return this->it_;
+      }
+    };
+    return make_chain<ReverseCursor>();
+  }
+
+  /**************************************************************
   ** Cycle
   ***************************************************************/
   auto cycle() && {
@@ -1118,10 +1381,19 @@ auto all( InputView&& input ) {
   } else {
     using initial_view_t =
         AllView<std::remove_reference_t<InputView>>;
-    using Data = typename IdentityCursor<initial_view_t>::Data;
-    return ChainView<initial_view_t,
-                     IdentityCursor<initial_view_t>>(
-        initial_view_t( &input ), Data{} );
+    if constexpr( view_supports_reverse_v<InputView> ) {
+      using Data = typename BidirectionalIdentityCursor<
+          initial_view_t>::Data;
+      return ChainView<
+          initial_view_t,
+          BidirectionalIdentityCursor<initial_view_t>>(
+          initial_view_t( &input ), Data{} );
+    } else {
+      using Data = typename IdentityCursor<initial_view_t>::Data;
+      return ChainView<initial_view_t,
+                       IdentityCursor<initial_view_t>>(
+          initial_view_t( &input ), Data{} );
+    }
   }
 }
 
@@ -1130,18 +1402,12 @@ template<typename InputView,
          typename T = typename std::remove_reference_t<
              InputView>::value_type>
 auto rall( InputView&& input ) {
-  if constexpr( is_chain_view_v<std::decay_t<InputView>> ) {
-    static_assert(
-        sizeof( InputView ) != sizeof( InputView ),
-        "rl::ChainView does not support reverse iteration." );
-  } else {
-    using initial_view_t =
-        ReverseAllView<std::remove_reference_t<InputView>>;
-    using Data = typename IdentityCursor<initial_view_t>::Data;
-    return ChainView<initial_view_t,
-                     IdentityCursor<initial_view_t>>(
-        initial_view_t( &input ), Data{} );
-  }
+  using initial_view_t =
+      ReverseAllView<std::remove_reference_t<InputView>>;
+  using Data = typename IdentityCursor<initial_view_t>::Data;
+  return ChainView<initial_view_t,
+                   IdentityCursor<initial_view_t>>(
+      initial_view_t( &input ), Data{} );
 }
 
 // This one is kind of like `all` except it doesn't take a con-
