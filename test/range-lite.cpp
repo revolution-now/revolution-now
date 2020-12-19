@@ -1,17 +1,17 @@
 /****************************************************************
-**ranges-lite.cpp
+**range-lite.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2020-12-16.
 *
-* Description: Unit tests for the src/base/ranges-lite.* module.
+* Description: Unit tests for the src/base/range-lite.* module.
 *
 *****************************************************************/
 #include "testing.hpp"
 
 // Under test.
-#include "src/base/ranges-lite.hpp"
+#include "src/base/range-lite.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -40,7 +40,7 @@ namespace {
 
 using ::Catch::Equals;
 
-TEST_CASE( "[ranges-lite] double traverse" ) {
+TEST_CASE( "[range-lite] double traverse" ) {
   vector<int> input{ 1, 2, 3 };
 
   auto view = rl::view( input ).cycle().take( 4 );
@@ -52,7 +52,7 @@ TEST_CASE( "[ranges-lite] double traverse" ) {
   REQUIRE_THAT( vec2, Equals( vector<int>{ 1, 2, 3, 1 } ) );
 }
 
-TEST_CASE( "[ranges-lite] non-materialized" ) {
+TEST_CASE( "[range-lite] non-materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = rl::view( input )
@@ -64,7 +64,7 @@ TEST_CASE( "[ranges-lite] non-materialized" ) {
   static_assert( sizeof( decltype( vec ) ) == 56 );
 }
 
-TEST_CASE( "[ranges-lite] long-range" ) {
+TEST_CASE( "[range-lite] long-range" ) {
   vector<int> input;
   input.reserve( 10000 );
   for( int s = 0; s < 10000; ++s ) input.push_back( s );
@@ -77,7 +77,7 @@ TEST_CASE( "[ranges-lite] long-range" ) {
   REQUIRE_THAT( vec.to_vector(), Equals( input ) );
 }
 
-TEST_CASE( "[ranges-lite] move-only" ) {
+TEST_CASE( "[range-lite] move-only" ) {
   struct A {
     A( int m ) : n( m ) {}
     A( A const& a ) = delete;
@@ -107,7 +107,7 @@ TEST_CASE( "[ranges-lite] move-only" ) {
   REQUIRE_THAT( view.to_vector(), Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-lite] move-over-copy" ) {
+TEST_CASE( "[range-lite] move-over-copy" ) {
   static bool copied = false;
   static bool moved  = false;
   struct A {
@@ -144,7 +144,7 @@ TEST_CASE( "[ranges-lite] move-over-copy" ) {
   REQUIRE_FALSE( copied );
 }
 
-TEST_CASE( "[ranges-lite] materialized" ) {
+TEST_CASE( "[range-lite] materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = rl::view( input )
@@ -157,7 +157,7 @@ TEST_CASE( "[ranges-lite] materialized" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-lite] lambdas with capture" ) {
+TEST_CASE( "[range-lite] lambdas with capture" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   int n = 2;
@@ -170,7 +170,7 @@ TEST_CASE( "[ranges-lite] lambdas with capture" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 6, 10, 14, 18 } ) );
 }
 
-TEST_CASE( "[ranges-lite] static create" ) {
+TEST_CASE( "[range-lite] static create" ) {
   using type = decltype( GetCompoundViewType() );
   static_assert( sizeof( type ) == 56 );
 
@@ -182,7 +182,7 @@ TEST_CASE( "[ranges-lite] static create" ) {
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-lite] rview" ) {
+TEST_CASE( "[range-lite] rview" ) {
   vector<int> input{ 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
   auto vec = rl::rview( input )
@@ -195,7 +195,7 @@ TEST_CASE( "[ranges-lite] rview" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-lite] macros" ) {
+TEST_CASE( "[range-lite] macros" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = rl::view( input )
@@ -208,7 +208,7 @@ TEST_CASE( "[ranges-lite] macros" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-lite] head" ) {
+TEST_CASE( "[range-lite] head" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto res = rl::view( input )
@@ -225,7 +225,7 @@ TEST_CASE( "[ranges-lite] head" ) {
   REQUIRE( res2 == nothing );
 }
 
-TEST_CASE( "[ranges-lite] remove" ) {
+TEST_CASE( "[range-lite] remove" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto odd = L( _ % 2 == 1 );
@@ -235,7 +235,7 @@ TEST_CASE( "[ranges-lite] remove" ) {
   REQUIRE_THAT( res, Equals( vector<int>{ 2, 4, 6, 8 } ) );
 }
 
-TEST_CASE( "[ranges-lite] to" ) {
+TEST_CASE( "[range-lite] to" ) {
   string msg = "1hello 123 with 345 numbers44";
 
   auto is_num = L( _ >= '0' && _ <= '9' );
@@ -245,7 +245,7 @@ TEST_CASE( "[ranges-lite] to" ) {
   REQUIRE( res == "hello  with  numbers" );
 }
 
-TEST_CASE( "[ranges-lite] accumulate" ) {
+TEST_CASE( "[range-lite] accumulate" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto res = rl::view( input )
@@ -270,7 +270,7 @@ TEST_CASE( "[ranges-lite] accumulate" ) {
   REQUIRE( res3 == "123456789" );
 }
 
-TEST_CASE( "[ranges-lite] mixing" ) {
+TEST_CASE( "[range-lite] mixing" ) {
   vector<int> input{ 1, 22, 333, 4444, 55555, 666666, 7777777 };
 
   auto res = rl::view( input )
@@ -282,7 +282,7 @@ TEST_CASE( "[ranges-lite] mixing" ) {
   REQUIRE_THAT( res, Equals( vector<size_t>{ 1, 3, 5, 7 } ) );
 }
 
-TEST_CASE( "[ranges-lite] zip" ) {
+TEST_CASE( "[range-lite] zip" ) {
   SECTION( "zip: int, int" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -335,7 +335,7 @@ TEST_CASE( "[ranges-lite] zip" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] take_while_incl" ) {
+TEST_CASE( "[range-lite] take_while_incl" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = rl::view( input )
@@ -359,7 +359,7 @@ TEST_CASE( "[ranges-lite] take_while_incl" ) {
   REQUIRE_THAT( vec3, Equals( vector<int>{ 1 } ) );
 }
 
-TEST_CASE( "[ranges-lite] take" ) {
+TEST_CASE( "[range-lite] take" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = rl::view( input )
@@ -386,7 +386,7 @@ TEST_CASE( "[ranges-lite] take" ) {
   REQUIRE_THAT( vec3, Equals( vector<int>{} ) );
 }
 
-TEST_CASE( "[ranges-lite] drop" ) {
+TEST_CASE( "[range-lite] drop" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = rl::view( input )
@@ -426,7 +426,7 @@ TEST_CASE( "[ranges-lite] drop" ) {
   REQUIRE_THAT( vec5, Equals( vector<int>{} ) );
 }
 
-TEST_CASE( "[ranges-lite] cycle" ) {
+TEST_CASE( "[range-lite] cycle" ) {
   SECTION( "cycle: basic" ) {
     vector<int> input{ 1, 2, 3 };
 
@@ -485,7 +485,7 @@ TEST_CASE( "[ranges-lite] cycle" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] ints" ) {
+TEST_CASE( "[range-lite] ints" ) {
   SECTION( "ints: 0, ..." ) {
     auto vec = rl::ints().take( 10 ).to_vector();
 
@@ -507,7 +507,7 @@ TEST_CASE( "[ranges-lite] ints" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] enumerate" ) {
+TEST_CASE( "[range-lite] enumerate" ) {
   vector<string> input{ "hello", "world", "one", "two" };
 
   auto vec = rl::view( input )
@@ -523,7 +523,7 @@ TEST_CASE( "[ranges-lite] enumerate" ) {
   REQUIRE_THAT( vec, Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-lite] free-standing zip" ) {
+TEST_CASE( "[range-lite] free-standing zip" ) {
   SECTION( "free-zip: vectors" ) {
     vector<string> input1{ "hello", "world", "one", "two" };
     vector<int>    input2{ 4, 6, 2, 7, 3 };
@@ -544,7 +544,7 @@ TEST_CASE( "[ranges-lite] free-standing zip" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] mutation" ) {
+TEST_CASE( "[range-lite] mutation" ) {
   vector<int> input{ 1, 2, 3, 4, 5 };
 
   auto view = rl::view( input ).cycle().drop( 2 ).take( 4 );
@@ -555,7 +555,7 @@ TEST_CASE( "[ranges-lite] mutation" ) {
   REQUIRE_THAT( input, Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-lite] keys" ) {
+TEST_CASE( "[range-lite] keys" ) {
   vector<pair<string, int>> input{
       { "hello", 3 },
       { "world", 2 },
@@ -573,7 +573,7 @@ TEST_CASE( "[ranges-lite] keys" ) {
   REQUIRE_THAT( vec, Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-lite] mutable through map" ) {
+TEST_CASE( "[range-lite] mutable through map" ) {
   vector<string> input{ "dropped", "hello", "world", "again" };
 
   auto view = rl::view( input )
@@ -595,7 +595,7 @@ TEST_CASE( "[ranges-lite] mutable through map" ) {
   REQUIRE_THAT( input, Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-lite] keys mutation" ) {
+TEST_CASE( "[range-lite] keys mutation" ) {
   vector<pair<string, int>> input{
       { "hello", 3 },
       { "world", 2 },
@@ -616,7 +616,7 @@ TEST_CASE( "[ranges-lite] keys mutation" ) {
   REQUIRE_THAT( input, Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-lite] take_while" ) {
+TEST_CASE( "[range-lite] take_while" ) {
   SECTION( "take_while: empty" ) {
     vector<int> input{};
 
@@ -651,7 +651,7 @@ TEST_CASE( "[ranges-lite] take_while" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] drop_while" ) {
+TEST_CASE( "[range-lite] drop_while" ) {
   SECTION( "drop_while: empty" ) {
     vector<int> input{};
 
@@ -687,7 +687,7 @@ TEST_CASE( "[ranges-lite] drop_while" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] dereference" ) {
+TEST_CASE( "[range-lite] dereference" ) {
   vector<maybe<int>> input{ { 1 }, { 2 }, { 3 }, { 4 }, { 5 } };
 
   auto view = rl::view( input ).dereference();
@@ -702,7 +702,7 @@ TEST_CASE( "[ranges-lite] dereference" ) {
                 Equals( vector<int>{ 10, 20, 30, 40, 50 } ) );
 }
 
-TEST_CASE( "[ranges-lite] cat_maybes" ) {
+TEST_CASE( "[range-lite] cat_maybes" ) {
   vector<maybe<int>> input{
       { 1 }, nothing, { 3 }, nothing, { 5 } };
 
@@ -718,7 +718,7 @@ TEST_CASE( "[ranges-lite] cat_maybes" ) {
                 Equals( vector<int>{ 10, 30, 50 } ) );
 }
 
-TEST_CASE( "[ranges-lite] tail" ) {
+TEST_CASE( "[range-lite] tail" ) {
   SECTION( "tail: some" ) {
     vector<int> input{ 1, 2, 3, 4 };
     auto        vec = rl::view( input ).tail().to_vector();
@@ -731,7 +731,7 @@ TEST_CASE( "[ranges-lite] tail" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] group_by" ) {
+TEST_CASE( "[range-lite] group_by" ) {
   SECTION( "group_by: empty" ) {
     vector<int> input{};
 
@@ -810,7 +810,7 @@ TEST_CASE( "[ranges-lite] group_by" ) {
   }
 }
 
-TEST_CASE( "[ranges-lite] group_by complicated" ) {
+TEST_CASE( "[range-lite] group_by complicated" ) {
   vector<string> input{ "hello", "world", "four", "seven",
                         "six",   "two",   "three" };
 

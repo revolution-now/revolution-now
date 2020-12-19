@@ -1,11 +1,11 @@
 /****************************************************************
-**ranges-heavy.cpp
+**range-v3.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2020-12-18.
 *
-* Description: Unit tests for the ranges-v3 module.
+* Description: Unit tests for the ranges-v3 library.
 *
 *****************************************************************/
 #if 0 // disabled because compile time is 19 secs on its own.
@@ -50,7 +50,7 @@ using namespace std;
 
 using ::Catch::Equals;
 
-TEST_CASE( "[ranges-heavy] double traverse" ) {
+TEST_CASE( "[range-v3] double traverse" ) {
   vector<int> input{ 1, 2, 3 };
 
   auto view = input | rv::cycle | rv::take( 4 );
@@ -63,7 +63,7 @@ TEST_CASE( "[ranges-heavy] double traverse" ) {
                 Equals( vector<int>{ 1, 2, 3, 1 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] non-materialized" ) {
+TEST_CASE( "[range-v3] non-materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = input | rv::filter( L( _ % 2 == 1 ) ) |
@@ -75,7 +75,7 @@ TEST_CASE( "[ranges-heavy] non-materialized" ) {
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] long-range" ) {
+TEST_CASE( "[range-v3] long-range" ) {
   vector<int> input;
   input.reserve( 10000 );
   for( int s = 0; s < 10000; ++s ) input.push_back( s );
@@ -88,7 +88,7 @@ TEST_CASE( "[ranges-heavy] long-range" ) {
   REQUIRE_THAT( rg::to<vector<int>>( vec ), Equals( input ) );
 }
 
-TEST_CASE( "[ranges-heavy] materialized" ) {
+TEST_CASE( "[range-v3] materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = input | rv::filter( L( _ % 2 == 1 ) ) |
@@ -100,7 +100,7 @@ TEST_CASE( "[ranges-heavy] materialized" ) {
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] lambdas with capture" ) {
+TEST_CASE( "[range-v3] lambdas with capture" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   int n = 2;
@@ -112,7 +112,7 @@ TEST_CASE( "[ranges-heavy] lambdas with capture" ) {
                 Equals( vector<int>{ 2, 6, 10, 14, 18 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] rview" ) {
+TEST_CASE( "[range-v3] rview" ) {
   vector<int> input{ 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
   auto vec =
@@ -124,7 +124,7 @@ TEST_CASE( "[ranges-heavy] rview" ) {
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] macros" ) {
+TEST_CASE( "[range-v3] macros" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = input | rv::filter( L( _ % 2 == 1 ) ) |
@@ -136,7 +136,7 @@ TEST_CASE( "[ranges-heavy] macros" ) {
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] head" ) {
+TEST_CASE( "[range-v3] head" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto res = input | rv::filter( L( _ % 2 == 1 ) ) |
@@ -151,7 +151,7 @@ TEST_CASE( "[ranges-heavy] head" ) {
   REQUIRE( res2.begin() == res2.end() );
 }
 
-TEST_CASE( "[ranges-heavy] remove" ) {
+TEST_CASE( "[range-v3] remove" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto odd = L( _ % 2 == 1 );
@@ -162,7 +162,7 @@ TEST_CASE( "[ranges-heavy] remove" ) {
                 Equals( vector<int>{ 2, 4, 6, 8 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] accumulate" ) {
+TEST_CASE( "[range-v3] accumulate" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto res =
@@ -188,7 +188,7 @@ TEST_CASE( "[ranges-heavy] accumulate" ) {
   REQUIRE( res3 == "123456789" );
 }
 
-TEST_CASE( "[ranges-heavy] mixing" ) {
+TEST_CASE( "[range-v3] mixing" ) {
   vector<int> input{ 1, 22, 333, 4444, 55555, 666666, 7777777 };
 
   auto res = input | rv::filter( L( _ % 2 == 1 ) ) |
@@ -199,7 +199,7 @@ TEST_CASE( "[ranges-heavy] mixing" ) {
                 Equals( vector<size_t>{ 1, 3, 5, 7 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] zip" ) {
+TEST_CASE( "[range-v3] zip" ) {
   SECTION( "zip: int, int" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -249,7 +249,7 @@ TEST_CASE( "[ranges-heavy] zip" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] take" ) {
+TEST_CASE( "[range-v3] take" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = input | rv::take_while( L( _ < 5 ) ) |
@@ -271,7 +271,7 @@ TEST_CASE( "[ranges-heavy] take" ) {
                 Equals( vector<int>{} ) );
 }
 
-TEST_CASE( "[ranges-heavy] drop" ) {
+TEST_CASE( "[range-v3] drop" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   auto vec = input | rv::take( 7 ) // 1,2,3,4,5,6,7
@@ -313,7 +313,7 @@ TEST_CASE( "[ranges-heavy] drop" ) {
                 Equals( vector<int>{} ) );
 }
 
-TEST_CASE( "[ranges-heavy] cycle" ) {
+TEST_CASE( "[range-v3] cycle" ) {
   SECTION( "cycle: basic" ) {
     vector<int> input{ 1, 2, 3 };
 
@@ -373,7 +373,7 @@ TEST_CASE( "[ranges-heavy] cycle" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] ints" ) {
+TEST_CASE( "[range-v3] ints" ) {
   SECTION( "ints: 0, ..." ) {
     auto vec = rv::ints // 0, 1, 2, 3, 4...
                | rv::take( 10 );
@@ -398,7 +398,7 @@ TEST_CASE( "[ranges-heavy] ints" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] enumerate" ) {
+TEST_CASE( "[range-v3] enumerate" ) {
   vector<string> input{ "hello", "world", "one", "two" };
 
   auto vec = input | rv::cycle | rv::enumerate | rv::take( 8 );
@@ -411,7 +411,7 @@ TEST_CASE( "[ranges-heavy] enumerate" ) {
                 Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-heavy] free-standing zip" ) {
+TEST_CASE( "[range-v3] free-standing zip" ) {
   SECTION( "zip: vectors" ) {
     vector<string> input1{ "hello", "world", "one", "two" };
     vector<int>    input2{ 4, 6, 2, 7, 3 };
@@ -435,7 +435,7 @@ TEST_CASE( "[ranges-heavy] free-standing zip" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] mutation" ) {
+TEST_CASE( "[range-v3] mutation" ) {
   vector<int> input{ 1, 2, 3, 4, 5 };
 
   auto view = input | rv::cycle | rv::drop( 2 ) | rv::take( 4 );
@@ -447,7 +447,7 @@ TEST_CASE( "[ranges-heavy] mutation" ) {
                 Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-heavy] keys" ) {
+TEST_CASE( "[range-v3] keys" ) {
   vector<pair<string, int>> input{
       { "hello", 3 },
       { "world", 2 },
@@ -465,7 +465,7 @@ TEST_CASE( "[ranges-heavy] keys" ) {
                 Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-heavy] lense" ) {
+TEST_CASE( "[range-v3] lense" ) {
   vector<string> input{ "hello", "world", "again" };
 
   auto view = input | rv::transform(
@@ -481,7 +481,7 @@ TEST_CASE( "[ranges-heavy] lense" ) {
                 Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-heavy] keys mutation" ) {
+TEST_CASE( "[range-v3] keys mutation" ) {
   vector<pair<string, int>> input{
       { "hello", 3 },
       { "world", 2 },
@@ -503,7 +503,7 @@ TEST_CASE( "[ranges-heavy] keys mutation" ) {
                 Equals( expected ) );
 }
 
-TEST_CASE( "[ranges-heavy] take_while" ) {
+TEST_CASE( "[range-v3] take_while" ) {
   SECTION( "take_while: empty" ) {
     vector<int> input{};
 
@@ -542,7 +542,7 @@ TEST_CASE( "[ranges-heavy] take_while" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] drop_while" ) {
+TEST_CASE( "[range-v3] drop_while" ) {
   SECTION( "take_while: empty" ) {
     vector<int> input{};
 
@@ -582,7 +582,7 @@ TEST_CASE( "[ranges-heavy] drop_while" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] dereference" ) {
+TEST_CASE( "[range-v3] dereference" ) {
   int          n1 = 1;
   int          n2 = 2;
   int          n3 = 3;
@@ -598,7 +598,7 @@ TEST_CASE( "[ranges-heavy] dereference" ) {
                 Equals( vector<int>{ 10, 20, 30, 40, 50 } ) );
 }
 
-TEST_CASE( "[ranges-heavy] cat_maybes" ) {
+TEST_CASE( "[range-v3] cat_maybes" ) {
   vector<std::optional<int>> input{
       { 1 }, nullopt, { 3 }, nullopt, { 5 } };
 
@@ -609,7 +609,7 @@ TEST_CASE( "[ranges-heavy] cat_maybes" ) {
   REQUIRE( equal );
 }
 
-TEST_CASE( "[ranges-heavy] tail" ) {
+TEST_CASE( "[range-v3] tail" ) {
   SECTION( "tail: some" ) {
     vector<int> input{ 1, 2, 3, 4 };
     auto        vec = input | rv::tail;
@@ -624,7 +624,7 @@ TEST_CASE( "[ranges-heavy] tail" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] group_by" ) {
+TEST_CASE( "[range-v3] group_by" ) {
   SECTION( "group_by: empty" ) {
     vector<int> input{};
 
@@ -686,7 +686,7 @@ TEST_CASE( "[ranges-heavy] group_by" ) {
   }
 }
 
-TEST_CASE( "[ranges-heavy] group_by complicated" ) {
+TEST_CASE( "[range-v3] group_by complicated" ) {
   vector<string> input{ "hello", "world", "four", "seven",
                         "six",   "two",   "three" };
 
