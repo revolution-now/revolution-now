@@ -57,8 +57,11 @@ bool check_inline( bool b, char const* msg ) {
 namespace base {
 
 // See description in base/stack-trace.hpp for what this is.
-void abort_with_backtrace_here( SourceLoc loc ) {
-  ::rn::die( loc.file_name(), loc.line(), "internal error" );
+void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
+  auto here = ::rn::stack_trace_here();
+  print_stack_trace(
+      here, ::rn::StackTraceOptions{ .skip_frames = 4 } );
+  std::abort();
 }
 
 } // namespace base

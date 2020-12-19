@@ -1,5 +1,5 @@
 /****************************************************************
-**ranges-lite.hpp
+**range-lite.hpp
 *
 * Project: Revolution Now
 *
@@ -17,160 +17,41 @@
 // C++ standard library
 #include <cassert>
 #include <iterator>
-#include <span>
 
 // rl stands for "ranges lite".
 namespace base::rl {
 
-// FIXME: move this out of here.
-#ifndef NDEBUG
-#  define rl_assert( ... ) \
-    if( !( __VA_ARGS__ ) ) abort_with_backtrace_here();
-#else
-// Use the argument in case there are any variables in there that
-// would otherwise be unused in a release build and trigger warn-
-// ings.
-#  define rl_assert( ... ) \
-    (void)( ( decltype( __VA_ARGS__ )* ){} );
-#endif
-
 /****************************************************************
 ** TODO list
 *****************************************************************/
-// rv::sliding
+// reverse
 //
-// rv::drop_last
+// functions in ranges.hpp
 //
-// rv::intersperse
-//
-// rv::join
-//
-// views::all:          Return a range containing all the ele-
-//                      ments in the source. Useful for con-
-//                      verting containers to ranges.
-//
-// views::chunk         Given a source range and an integer N,
-//                      produce a range of contiguous ranges
-//                      where each inner range has N contiguous
-//                      elements. The final range may have fewer
-//                      than N elements.
-//
-// views::concat        Given N source ranges, produce a result
-//                      range that is the concatenation of all
-//                      of them.
-//
-// views::drop_last     Given a source range and an integral
-//                      count, return a range consisting of all
-//                      but the last count elements from the
-//                      source range, or an empty range if it
-//                      has fewer elements.
-//
-// views::empty         Create an empty range with a given value
-//                      type.
-//
-// views::intersperse   Given a source range and a value, return
-//                      a new range where the value is inserted
-//                      between contiguous elements from the
-//                      source.
-//
-// views::iota          A generalization of views::ints that
-//                      generates a sequence of monotonically
-//                      increasing values of any incrementable
-//                      type. When specified with a single argu-
-//                      ment, the result is an infinite range
-//                      beginning at the specified value. With
-//                      two arguments, the values are assumed to
-//                      denote a half-open range.
-//
-// views::join          Given a range of ranges, join them into
-//                      a flattened sequence of elements. Op-
-//                      tionally, you can specify a value or a
-//                      range to be inserted between each source
-//                      range.
-//
-// views::partial_sum   Given a range and a binary function, re-
-//                      turn a new range where the Nth element
-//                      is the result of applying the function
-//                      to the Nth element from the source range
-//                      and the (N-1)th element from the result
-//                      range.
-//
-// views::remove_if     Given a source range and a unary predi-
-//                      cate, filter out those elements that do
-//                      not satisfy the predicate. (For users of
-//                      Boost.Range, this is like the filter
-//                      adaptor with the predicate negated.)
-//
-// views::repeat        Given a value, create a range that is
-//                      that value repeated infinitely.
-//
-// views::repeat_n      Given a value and a count, create a
-//                      range that is that value repeated count
-//                      number of times.
-//
-// views::replace       Given a source range, a source value and
-//                      a target value, create a new range where
-//                      all elements equal to the source value
-//                      are replaced with the target value.
-//
-// views::replace_if    Given a source range, a unary predicate
-//                      and a target value, create a new range
-//                      where all elements that satisfy the
-//                      predicate are replaced with the target
-//                      value.
-//
-// views::single        Given a value, create a range with ex-
-//                      actly one element.
-//
-// views::slice         Give a source range a lower bound (in-
-//                      clusive) and an upper bound (exclusive),
-//                      create a new range that begins and ends
-//                      at the specified offsets. Both the begin
-//                      and the end can be integers relative to
-//                      the front, or relative to the end with
-//                      "`end-2`" syntax.
-//
-// views::sliding       Given a range and a count n, place a
-//                      window over the first n elements of the
-//                      underlying range. Return the contents of
-//                      that window as the first element of the
-//                      adapted range, then slide the window
-//                      forward one element at a time until hit-
-//                      ting the end of the underlying range.
-//
-// views::split         Given a source range and a delimiter
-//                      specifier, split the source range into a
-//                      range of ranges using the delimiter
-//                      specifier to find the boundaries. The
-//                      delimiter specifier can be an element or
-//                      a range of elements. The elements
-//                      matching the delimiter are excluded from
-//                      the resulting range of ranges.
-//
-// views::take_last     Given a source range and an integral
-//                      count, return a range consisting of the
-//                      last count elements from the source
-//                      range. The source range must be a
-//                      sized_range. If the source range does
-//                      not have at least count elements, the
-//                      full range is returned.
-//
-// views::unique        Given a range, return a new range where
-//                      all consecutive elements that compare
-//                      equal save the first have been filtered
-//                      out.
-//
-// views::values        Given a range of pairs (like a
-//                      std::map), return a new range consisting
-//                      of just the second element of the pair.
-//
-// views::zip_with
+// sliding, drop_last, intersperse, join, remove, keep
+
+/****************************************************************
+** Macros
+*****************************************************************/
+#define RL_LAMBDA( name, ... ) \
+  name( [&]( auto&& _ ) { return __VA_ARGS__; } )
+
+#define RL_LAMBDA2( name, ... ) \
+  name( [&]( auto&& _1, auto&& _2 ) { return __VA_ARGS__; } )
+
+#define keep_if_L( ... ) RL_LAMBDA( keep_if, __VA_ARGS__ )
+#define filter_L( ... ) RL_LAMBDA( filter, __VA_ARGS__ )
+#define group_by_L( ... ) RL_LAMBDA2( group_by, __VA_ARGS__ )
+#define remove_if_L( ... ) RL_LAMBDA( remove_if, __VA_ARGS__ )
+#define map_L( ... ) RL_LAMBDA( map, __VA_ARGS__ )
+#define take_while_L( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
+#define drop_while_L( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
+#define take_while_incl_L( ... ) \
+  RL_LAMBDA( take_while_incl, __VA_ARGS__ )
 
 /****************************************************************
 ** Forward Declarations
 *****************************************************************/
-class IntsView;
-
 template<typename InputView, typename Cursor, typename ValueType>
 class ChainView;
 
@@ -193,28 +74,14 @@ using ultimate_view_or_self_t =
     typename ultimate_view_or_self<T>::type;
 
 template<typename T>
-struct is_rl_view : std::false_type {};
+struct is_chain_view : std::false_type {};
 
 template<typename InputView, typename Cursor, typename ValueType>
-struct is_rl_view<ChainView<InputView, Cursor, ValueType>>
+struct is_chain_view<ChainView<InputView, Cursor, ValueType>>
   : std::true_type {};
 
 template<typename T>
-constexpr bool is_rl_view_v = is_rl_view<T>::value;
-
-/****************************************************************
-** Macros
-*****************************************************************/
-#define RL_LAMBDA( name, ... ) \
-  name( [&]( auto&& _ ) { return __VA_ARGS__; } )
-
-#define keep_rl( ... ) RL_LAMBDA( keep, __VA_ARGS__ )
-#define remove_rl( ... ) RL_LAMBDA( remove, __VA_ARGS__ )
-#define map_rl( ... ) RL_LAMBDA( map, __VA_ARGS__ )
-#define take_while_rl( ... ) RL_LAMBDA( take_while, __VA_ARGS__ )
-#define drop_while_rl( ... ) RL_LAMBDA( drop_while, __VA_ARGS__ )
-#define take_while_incl_rl( ... ) \
-  RL_LAMBDA( take_while_incl, __VA_ARGS__ )
+constexpr bool is_chain_view_v = is_chain_view<T>::value;
 
 /****************************************************************
 ** Identity Cursor
@@ -222,40 +89,76 @@ constexpr bool is_rl_view_v = is_rl_view<T>::value;
 template<typename InputView>
 struct IdentityCursor {
   struct Data {};
-  using iterator   = typename InputView::iterator;
+  using iterator = decltype( std::declval<InputView>().begin() );
   using value_type = typename iterator::value_type;
   IdentityCursor() = default;
   IdentityCursor( Data const& ) {}
-  void init( InputView const& input ) { it = input.begin(); }
-  decltype( auto ) get( InputView const& ) const { return *it; }
-  void             next( InputView const& ) { ++it; }
+  void init( InputView const& input ) { it_ = input.begin(); }
+  decltype( auto ) get( InputView const& ) const { return *it_; }
+  void             next( InputView const& ) { ++it_; }
   bool             end( InputView const& input ) const {
-    return it == input.end();
+    return it_ == input.end();
   }
-  iterator pos( InputView const& ) const { return it; }
-  iterator it;
+  iterator pos( InputView const& ) const { return it_; }
+  iterator it_;
 };
 
+/****************************************************************
+** AllView
+*****************************************************************/
+// Takes any range and yields a view of all elements in it.
 template<typename InputView>
-struct ReverseIdentityCursor {
-  struct Data {};
-  using iterator          = typename InputView::reverse_iterator;
-  using value_type        = typename iterator::value_type;
-  ReverseIdentityCursor() = default;
-  ReverseIdentityCursor( Data const& ) {}
-  void init( InputView const& input ) { it = input.rbegin(); }
-  decltype( auto ) get( InputView const& ) const { return *it; }
-  void             next( InputView const& ) { ++it; }
-  bool             end( InputView const& input ) const {
-    return it == input.rend();
+class AllView {
+  InputView* view_;
+
+public:
+  AllView( InputView* view ) : view_( view ) {}
+
+  using ultimate_view_t = InputView;
+
+  void attach( ultimate_view_t& input ) & { view_ = &input; }
+
+  static auto create( ultimate_view_t& input ) {
+    return AllView( &input );
   }
-  iterator pos( InputView const& ) const { return it; }
-  iterator it;
+
+  using iterator = decltype( std::declval<InputView>().begin() );
+
+  auto begin() const { return view_->begin(); }
+  auto end() const { return view_->end(); }
+  auto cbegin() const { return view_->cbegin(); }
+  auto cend() const { return view_->cend(); }
+};
+
+// Takes any range and yields a view of all elements in it.
+template<typename InputView>
+class ReverseAllView {
+  InputView* view_;
+
+public:
+  ReverseAllView( InputView* view ) : view_( view ) {
+    assert_bt( view_ != nullptr );
+  }
+
+  using ultimate_view_t = InputView;
+
+  static auto create( ultimate_view_t& input ) {
+    return AllView( &input );
+  }
+
+  using iterator =
+      decltype( std::declval<InputView>().rbegin() );
+
+  auto begin() const { return view_->rbegin(); }
+  auto end() const { return view_->rend(); }
+  auto cbegin() const { return view_->crbegin(); }
+  auto cend() const { return view_->crend(); }
 };
 
 /****************************************************************
 ** IntsView
 *****************************************************************/
+// A fundamental view that just produces increasing ints.
 class IntsView {
   const int start_;
   const int end_;
@@ -264,7 +167,7 @@ public:
   IntsView( int start = 0,
             int end   = std::numeric_limits<int>::max() )
     : start_( start ), end_( end ) {
-    rl_assert( start <= end );
+    assert_bt( start <= end );
   }
 
   struct iterator {
@@ -285,12 +188,12 @@ public:
     }
 
     decltype( auto ) operator*() const {
-      rl_assert( cursor_ < view_->end_ );
+      assert_bt( cursor_ < view_->end_ );
       return cursor_;
     }
 
     iterator& operator++() {
-      rl_assert( cursor_ < view_->end_ );
+      assert_bt( cursor_ < view_->end_ );
       cursor_++;
       clear_if_end();
       return *this;
@@ -316,17 +219,19 @@ public:
     int             cursor_;
   };
 
-  using const_iterator = iterator;
   iterator begin() const { return iterator( this ); }
   iterator end() const { return iterator(); }
+  iterator cbegin() const { return iterator( this ); }
+  iterator cend() const { return iterator(); }
 };
 
 /****************************************************************
 ** ChildView
 *****************************************************************/
-// This view is used by views that need to produce other views
-// as their value type, e.g. group_by.
-template<typename ValueType, typename GroupByCursor>
+// This view is used by views that need to produce other views as
+// their value type, e.g. group_by. `Cursor` is the type of the
+// Cursor that produces this view as its value type.
+template<typename ValueType, typename Cursor>
 struct ChildView {
   struct iterator {
     using iterator_category = std::input_iterator_tag;
@@ -369,7 +274,7 @@ struct ChildView {
       // a range, since it would introduce too much complica-
       // tion into this implementation and it probably is not
       // necessary anyway.
-      rl_assert( view_ == nullptr || rhs.view_ == nullptr );
+      assert_bt( view_ == nullptr || rhs.view_ == nullptr );
       return view_ == rhs.view_;
     }
 
@@ -381,11 +286,11 @@ struct ChildView {
   };
 
   ChildView() = default;
-  ChildView( GroupByCursor* that ) : that_( that ) {}
+  ChildView( Cursor* that ) : that_( that ) {}
   auto begin() const { return iterator{ this }; }
   auto end() const { return iterator{}; }
 
-  GroupByCursor* that_;
+  Cursor* that_;
 };
 
 /****************************************************************
@@ -412,9 +317,26 @@ public:
 
   using value_type = ValueType;
 
+  // This gives us the most upstream range/container from which
+  // we are ultimately reading data to be fed down the chain.
   using ultimate_view_t = ultimate_view_or_self_t<InputView>;
 
-  static auto create( ultimate_view_t const& input ) {
+  /**************************************************************
+  ** Attach
+  ***************************************************************/
+  void attach( ultimate_view_t& input ) & {
+    input_.attach( input );
+  }
+
+  /**************************************************************
+  ** Reconstitution
+  ***************************************************************/
+  // The machinery in this section will allow creating and/or re-
+  // constituting a view pipeline from the type only. This is
+  // only possible when none of the views in the pipeline contain
+  // state (i.e., data that would not make sense to just default
+  // construct). Stateless lambdas, however, are ok.
+  static auto create( ultimate_view_t& input ) {
     if constexpr( std::is_default_constructible_v<data_t> ) {
       if constexpr( std::is_same_v<ultimate_view_t,
                                    InputView> ) {
@@ -436,6 +358,11 @@ public:
       // structed here. On the other hand, a Data that only takes
       // a stateless lambda can be default constructed and so
       // that shouldn't be a problem.
+      static_assert(
+          sizeof( data_t ) != sizeof( data_t ),
+          "You cannot use static create here because one of the "
+          "views in the chain has state that cannot be "
+          "reconstituted through default-construction." );
       struct YouCannotUseStaticCreateHere {};
       return YouCannotUseStaticCreateHere{};
     }
@@ -444,7 +371,15 @@ public:
   /**************************************************************
   ** iterator
   ***************************************************************/
-  struct iterator {
+  class iterator {
+    ChainView const* view_ = nullptr;
+    Cursor           cursor_;
+
+    void clear_if_end() {
+      if( cursor_.end( view_->input_ ) ) view_ = nullptr;
+    }
+
+  public:
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
     using value_type        = ChainView::value_type;
@@ -458,12 +393,8 @@ public:
       clear_if_end();
     }
 
-    void clear_if_end() {
-      if( cursor_.end( view_->input_ ) ) view_ = nullptr;
-    }
-
     decltype( auto ) operator*() const {
-      rl_assert( view_ != nullptr );
+      assert_bt( view_ != nullptr );
       return cursor_.get( view_->input_ );
     }
 
@@ -472,7 +403,7 @@ public:
     }
 
     iterator& operator++() {
-      rl_assert( view_ != nullptr );
+      assert_bt( view_ != nullptr );
       cursor_.next( view_->input_ );
       clear_if_end();
       return *this;
@@ -494,14 +425,12 @@ public:
     bool operator!=( iterator const& rhs ) const {
       return !( *this == rhs );
     }
-
-    ChainView const* view_ = nullptr;
-    Cursor           cursor_;
   };
 
-  using const_iterator = iterator;
   iterator begin() const { return iterator( this ); }
   iterator end() const { return iterator(); }
+  iterator cbegin() const { return iterator( this ); }
+  iterator cend() const { return iterator(); }
 
   /**************************************************************
   ** Materialization
@@ -511,14 +440,14 @@ public:
 
     auto it = this->begin();
     if( it == this->end() ) return res;
-
     res.reserve( 10 ); // heuristic.
     for( ; it != this->end(); ++it ) res.push_back( *it );
     return res;
   }
 
+  // For std::vector use `to_vector` instead.
   template<typename T>
-  T to() {
+  T to() const {
     return T( this->begin(), this->end() );
   }
 
@@ -536,38 +465,42 @@ public:
   /**************************************************************
   ** Head
   ***************************************************************/
-  auto head() {
-    maybe<std::decay_t<value_type>> res;
-
-    auto it = begin();
-    if( it != end() ) res = *it;
-    return res;
+  // Will return a maybe. The type inside the maybe depends on
+  // the value category of the value being produced by this view.
+  // It could be a reference, or a value. It will only be a ref-
+  // erence if this view is producing a reference.
+  auto head() const {
+    auto it     = begin();
+    using res_t = maybe<decltype( *it )>;
+    if( it == end() ) return res_t{};
+    return res_t( *it );
   }
 
   /**************************************************************
   ** CursorBase
   ***************************************************************/
 private:
-  // Used to remove some redundancy from Cursors.
+  // Used to remove some redundancy from Cursors.  Uses CRTP.
   template<typename Derived>
-  struct CursorBase {
-    using iterator = typename ChainView::iterator;
-
-    CursorBase() = default;
-
+  class CursorBase {
     Derived const* derived() const {
       return static_cast<Derived const*>( this );
     }
 
+  public:
+    using iterator = typename ChainView::iterator;
+
+    CursorBase() = default;
+
     void init( ChainView const& input ) { it_ = input.begin(); }
 
     decltype( auto ) get( ChainView const& input ) const {
-      rl_assert( !derived()->end( input ) );
+      assert_bt( !derived()->end( input ) );
       return *it_;
     }
 
     void next( ChainView const& input ) {
-      rl_assert( !derived()->end( input ) );
+      assert_bt( !derived()->end( input ) );
       ++it_;
     }
 
@@ -586,6 +519,7 @@ private:
   ** Chain Maker
   ***************************************************************/
 private:
+  // Add another element to the chain.
   template<typename NewCursor, typename... Args>
   auto make_chain( Args&&... args ) {
     using NewChainView =
@@ -597,11 +531,11 @@ private:
 
 public:
   /**************************************************************
-  ** Keep
+  ** KeepIf
   ***************************************************************/
   template<typename Func>
-  auto keep( Func&& func ) && {
-    struct KeepCursor : public CursorBase<KeepCursor> {
+  auto keep_if( Func&& func ) && {
+    struct KeepIfCursor : public CursorBase<KeepIfCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
@@ -609,10 +543,10 @@ public:
         Data( func_t&& f ) : func_( std::move( f ) ) {}
         func_t func_;
       };
-      using Base = CursorBase<KeepCursor>;
+      using Base = CursorBase<KeepIfCursor>;
       using Base::it_;
-      KeepCursor() = default;
-      KeepCursor( Data const& data ) : func_( &data.func_ ) {}
+      KeepIfCursor() = default;
+      KeepIfCursor( Data const& data ) : func_( &data.func_ ) {}
 
       void init( ChainView const& input ) {
         it_ = input.begin();
@@ -624,7 +558,7 @@ public:
       }
 
       void next( ChainView const& input ) {
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         do {
           ++it_;
           if( end( input ) ) break;
@@ -638,66 +572,9 @@ public:
 
       func_t const* func_;
     };
-    return make_chain<KeepCursor>( std::forward<Func>( func ) );
+    return make_chain<KeepIfCursor>(
+        std::forward<Func>( func ) );
   }
-
-  /**************************************************************
-  ** Remove
-  ***************************************************************/
-  template<typename Func>
-  auto remove( Func&& func ) && {
-    return std::move( *this ).keep(
-        [func = std::forward<Func>( func )]( auto&& arg ) {
-          return !func( arg );
-        } );
-  }
-
-  /**************************************************************
-  ** Enumerate
-  ***************************************************************/
-  // FIXME: make this more efficient with a specialized Cursor.
-  auto enumerate( int start = 0 ) && {
-    using IntsCursor = IdentityCursor<IntsView>;
-    using Data       = typename IntsCursor::Data;
-    return std::move( *this )
-        .zip( ChainView<IntsView, IntsCursor>( IntsView( start ),
-                                               Data{} ) )
-        .map( []( auto&& p ) {
-          return std::pair{ p.second, p.first };
-        } );
-  }
-
-  /**************************************************************
-  ** Dereference
-  ***************************************************************/
-  auto dereference() && {
-    return std::move( *this ).map(
-        []( auto&& arg ) -> decltype( auto ) { return *arg; } );
-  }
-
-  /**************************************************************
-  ** CatMaybes
-  ***************************************************************/
-  auto cat_maybes() && {
-    return std::move( *this )
-        .remove( []( auto&& arg ) { return arg == nothing; } )
-        .dereference();
-  }
-
-  /**************************************************************
-  ** Keys
-  ***************************************************************/
-  auto keys() && {
-    return std::move( *this ).map(
-        // Need auto&& return type so that it will deduce a ref-
-        // erence for p.first (decltype(auto) will not).
-        []( auto&& p ) -> auto&& { return p.first; } );
-  }
-
-  /**************************************************************
-  ** Tail
-  ***************************************************************/
-  auto tail() && { return std::move( *this ).drop( 1 ); }
 
   /**************************************************************
   ** Map
@@ -725,11 +602,12 @@ public:
       decltype( auto ) get( ChainView const& input ) const {
         if constexpr( func_returns_ref ) {
           // If you fail here then you are probably trying to re-
-          // turn a reference to a temporary.
+          // turn a reference to a temporary that was produced by
+          // an earlier view in the pipeline.
           static_assert(
               std::is_lvalue_reference_v<decltype( *it_ )> );
         }
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         return ( *func_ )( *it_ );
       }
 
@@ -772,8 +650,8 @@ public:
       using Base::get;
 
       void next( ChainView const& input ) {
-        rl_assert( !finished_ );
-        rl_assert( it_ != input.end() );
+        assert_bt( !finished_ );
+        assert_bt( it_ != input.end() );
         ++it_;
         if( it_ == input.end() || !( *func_ )( *it_ ) )
           finished_ = true;
@@ -864,7 +742,7 @@ public:
       using Base::get;
 
       void next( ChainView const& input ) {
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         if( state_ == e_state::last ) {
           state_ = e_state::finished;
           return;
@@ -910,8 +788,9 @@ public:
       };
       using Base = CursorBase<ZipCursor>;
       using Base::it_;
-      using iterator2 = typename std::decay_t<SndView>::iterator;
-      ZipCursor()     = default;
+      using iterator2 =
+          decltype( std::declval<SndView>().begin() );
+      ZipCursor() = default;
       ZipCursor( Data const& data )
         : snd_view_( &data.snd_view_ ) {}
 
@@ -921,12 +800,12 @@ public:
       }
 
       decltype( auto ) get( ChainView const& input ) const {
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         return std::pair{ *it_, *it2_ };
       }
 
       void next( ChainView const& input ) {
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         ++it_;
         ++it2_;
       }
@@ -964,10 +843,10 @@ public:
       using Base::init;
 
       void next( ChainView const& input ) {
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         ++it_;
         --n_;
-        rl_assert( n_ >= 0 );
+        assert_bt( n_ >= 0 );
       }
 
       bool end( ChainView const& input ) const {
@@ -1032,7 +911,7 @@ public:
       void init( ChainView const& input ) {
         it_ = input.begin();
         // We need to have at least one element!
-        rl_assert( it_ != input.end() );
+        assert_bt( it_ != input.end() );
       }
 
       using Base::get;
@@ -1043,7 +922,7 @@ public:
           ++cycles_;
           it_ = input.begin();
         }
-        rl_assert( it_ != input.end() );
+        assert_bt( it_ != input.end() );
       }
 
       bool end( ChainView const& ) const { return false; }
@@ -1097,7 +976,7 @@ public:
       }
 
       decltype( auto ) get( ChainView const& input ) const {
-        rl_assert( !end( input ) );
+        assert_bt( !end( input ) );
         return ChainGroupView(
             ChildView<IncomingValueType, GroupByCursor>{
                 const_cast<GroupByCursor*>( this ) },
@@ -1105,7 +984,7 @@ public:
       }
 
       void next( ChainView const& input ) {
-        rl_assert( finished_group_ );
+        assert_bt( finished_group_ );
         // This is not an error because the subview iteration
         // will have moved it to the end.
         if( it_ == input.end() ) return;
@@ -1124,12 +1003,12 @@ public:
       bool child_view_done() const { return finished_group_; }
 
       auto& child_view_get() const {
-        rl_assert( !finished_group_ );
+        assert_bt( !finished_group_ );
         return *it_;
       }
 
       void child_view_advance() {
-        rl_assert( !finished_group_ );
+        assert_bt( !finished_group_ );
         ++it_;
         if( it_ == input_->end() || !( *func_ )( cache_, *it_ ) )
           finished_group_ = true;
@@ -1143,10 +1022,150 @@ public:
     return make_chain<GroupByCursor>(
         std::forward<Func>( func ) );
   }
+
+  /**************************************************************
+  ** Combinator Creations
+  ***************************************************************/
+  // The views below are implemented in terms of the ones above.
+  // It should be easier to verify their correctness by in-
+  // specting their implementation, but they might be slower than
+  // if they have been custom written like the ones above.
+
+  /**************************************************************
+  ** RemoveIf
+  ***************************************************************/
+  template<typename Func>
+  auto remove_if( Func&& func ) && {
+    return std::move( *this ).keep_if(
+        [func = std::forward<Func>( func )]( auto&& arg ) {
+          return !func( arg );
+        } );
+  }
+
+  /**************************************************************
+  ** Enumerate
+  ***************************************************************/
+  // FIXME: make this more efficient with a specialized Cursor.
+  auto enumerate( int start = 0 ) && {
+    using IntsCursor = IdentityCursor<IntsView>;
+    using Data       = typename IntsCursor::Data;
+    return std::move( *this )
+        .zip( ChainView<IntsView, IntsCursor>( IntsView( start ),
+                                               Data{} ) )
+        .map( []( auto&& p ) {
+          return std::pair{ p.second, p.first };
+        } );
+  }
+
+  /**************************************************************
+  ** Dereference
+  ***************************************************************/
+  auto dereference() && {
+    return std::move( *this ).map(
+        []( auto&& arg ) -> decltype( auto ) { return *arg; } );
+  }
+
+  /**************************************************************
+  ** CatMaybes
+  ***************************************************************/
+  auto cat_maybes() && {
+    return std::move( *this )
+        .remove_if( []( auto&& arg ) { return arg == nothing; } )
+        .dereference();
+  }
+
+  /**************************************************************
+  ** Keys
+  ***************************************************************/
+  auto keys() && {
+    return std::move( *this ).map(
+        // Need auto&& return type so that it will deduce a ref-
+        // erence for p.first (decltype(auto) will not).
+        []( auto&& p ) -> auto&& { return p.first; } );
+  }
+
+  /**************************************************************
+  ** Tail
+  ***************************************************************/
+  auto tail() && { return std::move( *this ).drop( 1 ); }
+
+  /**************************************************************
+  ** Filter
+  ***************************************************************/
+  // Just for compatibility with range-v3.
+  template<typename Func>
+  auto filter( Func&& func ) && {
+    return std::move( *this ).keep_if(
+        std::forward<Func>( func ) );
+  }
 };
 
 /****************************************************************
-** Free-standing view factories.
+** ChainView Makers
+*****************************************************************/
+// Contrary to the name, this doesn't actually make an AllView,
+// since that on its own would not be of much use, since it is
+// not chainable. So this will actually wrap the input in an Al-
+// lView (which just holds a pointer) and then will wrap the Al-
+// lView in a ChainView. However, if the input is already a Chain
+// view then it will just forward it.
+template<typename InputView,
+         typename T = typename std::remove_reference_t<
+             InputView>::value_type>
+auto all( InputView&& input ) {
+  if constexpr( is_chain_view_v<std::decay_t<InputView>> ) {
+    return std::forward<InputView>( input );
+  } else {
+    using initial_view_t =
+        AllView<std::remove_reference_t<InputView>>;
+    using Data = typename IdentityCursor<initial_view_t>::Data;
+    return ChainView<initial_view_t,
+                     IdentityCursor<initial_view_t>>(
+        initial_view_t( &input ), Data{} );
+  }
+}
+
+// Same above but creates a reverse view.
+template<typename InputView,
+         typename T = typename std::remove_reference_t<
+             InputView>::value_type>
+auto rall( InputView&& input ) {
+  if constexpr( is_chain_view_v<std::decay_t<InputView>> ) {
+    static_assert(
+        sizeof( InputView ) != sizeof( InputView ),
+        "rl::ChainView does not support reverse iteration." );
+  } else {
+    using initial_view_t =
+        ReverseAllView<std::remove_reference_t<InputView>>;
+    using Data = typename IdentityCursor<initial_view_t>::Data;
+    return ChainView<initial_view_t,
+                     IdentityCursor<initial_view_t>>(
+        initial_view_t( &input ), Data{} );
+  }
+}
+
+// This one is kind of like `all` except it doesn't take a con-
+// tainer, it only takes the type of a container (which must be
+// specified explicitly as the first template parameter). So this
+// function is meant to represent/produce a placeholder that says
+// "this is the beginning of a chain that takes `InputView` as
+// input." This is useful for building view chains for later use
+// on multiple containers.
+template<typename InputView,
+         typename T = typename std::remove_reference_t<
+             InputView>::value_type>
+auto input() {
+  static_assert( !is_chain_view_v<std::decay_t<InputView>> );
+  using initial_view_t =
+      AllView<std::remove_reference_t<InputView>>;
+  using Data = typename IdentityCursor<initial_view_t>::Data;
+  return ChainView<initial_view_t,
+                   IdentityCursor<initial_view_t>>(
+      initial_view_t( nullptr ), Data{} );
+}
+
+/****************************************************************
+** ints
 *****************************************************************/
 auto ints( int start = 0,
            int end   = std::numeric_limits<int>::max() ) {
@@ -1156,50 +1175,13 @@ auto ints( int start = 0,
                                       Data{} );
 }
 
-template<typename InputView,
-         typename T = typename std::remove_reference_t<
-             InputView>::value_type>
-auto view( InputView&& input ) {
-  if constexpr( is_rl_view_v<std::decay_t<InputView>> ) {
-    return std::forward<InputView>( input );
-  } else {
-    using initial_view_t = std::span<T>;
-    using Data = typename IdentityCursor<initial_view_t>::Data;
-    return ChainView<initial_view_t,
-                     IdentityCursor<initial_view_t>>(
-        initial_view_t( input ), Data{} );
-  }
-}
-
+/****************************************************************
+** zip
+*****************************************************************/
 template<typename LeftView, typename RightView>
 auto zip( LeftView&& left_view, RightView&& right_view ) {
-  return view( std::forward<LeftView>( left_view ) )
-      .zip( view( std::forward<RightView>( right_view ) ) );
+  return all( std::forward<LeftView>( left_view ) )
+      .zip( all( std::forward<RightView>( right_view ) ) );
 }
-
-// Reverse view.
-template<typename InputView,
-         typename T = typename std::remove_reference_t<
-             InputView>::value_type>
-auto rview( InputView&& input ) {
-  if constexpr( is_rl_view_v<std::decay_t<InputView>> ) {
-    static_assert(
-        sizeof( InputView ) != sizeof( InputView ),
-        "rl::ChainView does not support reverse iteration." );
-  } else {
-    using initial_view_t = std::span<T>;
-    using Data =
-        typename ReverseIdentityCursor<initial_view_t>::Data;
-    return ChainView<initial_view_t,
-                     ReverseIdentityCursor<initial_view_t>>(
-        initial_view_t( input ), Data{} );
-  }
-}
-
-template<typename InputView>
-auto rview( InputView&& input ) -> std::enable_if_t<
-    std::is_rvalue_reference_v<
-        decltype( std::forward<InputView>( input ) )>,
-    void> = delete;
 
 } // namespace base::rl

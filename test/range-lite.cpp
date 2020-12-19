@@ -29,11 +29,15 @@ using namespace std;
 // FIXME: can get rid of this once clang gets support for the
 // C++20 feature called "lambdas in unevaluated contexts".
 auto GetCompoundViewType() {
-  return rl::view( vector<int>{} )
-      .keep( L( _ % 2 == 1 ) )
+  return rl::all( vector<int>{} )
+      .keep_if( L( _ % 2 == 1 ) )
       .map( L( _ * _ ) )
       .map( L( _ + 1 ) )
       .take_while( L( _ < 27 ) );
+}
+
+auto GetCompoundViewOfRefs() {
+  return rl::all( vector<int>{} ).keep_if( L( _ % 2 == 1 ) );
 }
 
 namespace {
@@ -43,7 +47,7 @@ using ::Catch::Equals;
 TEST_CASE( "[range-lite] double traverse" ) {
   vector<int> input{ 1, 2, 3 };
 
-  auto view = rl::view( input ).cycle().take( 4 );
+  auto view = rl::all( input ).cycle().take( 4 );
 
   auto vec1 = view.to_vector();
   REQUIRE_THAT( vec1, Equals( vector<int>{ 1, 2, 3, 1 } ) );
@@ -55,21 +59,21 @@ TEST_CASE( "[range-lite] double traverse" ) {
 TEST_CASE( "[range-lite] non-materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto vec = rl::view( input )
-                 .keep( L( _ % 2 == 1 ) )
+  auto vec = rl::all( input )
+                 .keep_if( L( _ % 2 == 1 ) )
                  .map( L( _ * _ ) )
                  .map( L( _ + 1 ) )
                  .take_while( L( _ < 27 ) );
 
-  static_assert( sizeof( decltype( vec ) ) == 56 );
+  static_assert( sizeof( decltype( vec ) ) == 48 );
 }
 
 TEST_CASE( "[range-lite] long-range" ) {
   vector<int> input;
   input.reserve( 10000 );
   for( int s = 0; s < 10000; ++s ) input.push_back( s );
-  auto vec = rl::view( input )
-                 .keep( L( _ < 100000 ) )
+  auto vec = rl::all( input )
+                 .keep_if( L( _ < 100000 ) )
                  .map( L( _ * 2 ) )
                  .map( L( _ / 2 ) )
                  .take_while( L( _ >= 0 ) );
@@ -92,9 +96,8 @@ TEST_CASE( "[range-lite] move-only" ) {
   };
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto view =
-      rl::view( input ).map_rl( A{ _ } ).drop( 3 ).map_rl(
-          A{ _.n } );
+  auto view = rl::all( input ).map_L( A{ _ } ).drop( 3 ).map_L(
+      A{ _.n } );
 
   vector<A> expected;
   expected.emplace_back( 4 );
@@ -132,8 +135,7 @@ TEST_CASE( "[range-lite] move-over-copy" ) {
   };
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto view =
-      rl::view( input ).map_rl( A{ _ } ).map_rl( A{ _.n } );
+  auto view = rl::all( input ).map_L( A{ _ } ).map_L( A{ _.n } );
 
   vector<A> expected{ { 1 }, { 2 }, { 3 }, { 4 }, { 5 },
                       { 6 }, { 7 }, { 8 }, { 9 } };
@@ -147,8 +149,8 @@ TEST_CASE( "[range-lite] move-over-copy" ) {
 TEST_CASE( "[range-lite] materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto vec = rl::view( input )
-                 .keep( L( _ % 2 == 1 ) )
+  auto vec = rl::all( input )
+                 .keep_if( L( _ % 2 == 1 ) )
                  .map( L( _ * _ ) )
                  .map( L( _ + 1 ) )
                  .take_while( L( _ < 27 ) )
@@ -162,8 +164,8 @@ TEST_CASE( "[range-lite] lambdas with capture" ) {
 
   int n = 2;
 
-  auto vec = rl::view( input )
-                 .keep( LC( _ % n == 1 ) )
+  auto vec = rl::all( input )
+                 .keep_if( LC( _ % n == 1 ) )
                  .map( LC( _ * n ) )
                  .to_vector();
 
@@ -171,22 +173,51 @@ TEST_CASE( "[range-lite] lambdas with capture" ) {
 }
 
 TEST_CASE( "[range-lite] static create" ) {
-  using type = decltype( GetCompoundViewType() );
-  static_assert( sizeof( type ) == 56 );
+  SECTION( "one" ) {
+    using type = decltype( GetCompoundViewType() );
+    static_assert( sizeof( type ) == 48 );
 
-  vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-  auto        view = type::create( input );
-  static_assert( sizeof( decltype( view ) ) == 56 );
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    auto        view = type::create( input );
+    static_assert( sizeof( decltype( view ) ) == 48 );
+
+    REQUIRE_THAT( view.to_vector(),
+                  Equals( vector<int>{ 2, 10, 26 } ) );
+  }
+  SECTION( "two" ) {
+    using type = decltype( GetCompoundViewOfRefs() );
+    static_assert( sizeof( type ) == 24 );
+
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    auto        view = type::create( input );
+    static_assert( sizeof( decltype( view ) ) == 24 );
+
+    for( int& i : view ) i *= 10;
+    REQUIRE_THAT( input, Equals( vector<int>{ 10, 2, 30, 4, 50,
+                                              6, 70, 8, 90 } ) );
+  }
+}
+
+TEST_CASE( "[range-lite] input/attach" ) {
+  auto view = rl::input<vector<int>>()
+                  .drop( 4 )
+                  .cycle()
+                  .take( 5 )
+                  .map_L( to_string( _ ) )
+                  .remove_if_L( _ == "2" );
+
+  vector<int> input{ 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+  view.attach( input );
 
   REQUIRE_THAT( view.to_vector(),
-                Equals( vector<int>{ 2, 10, 26 } ) );
+                Equals( vector<string>{ "5", "4", "3", "1" } ) );
 }
 
 TEST_CASE( "[range-lite] rview" ) {
   vector<int> input{ 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
-  auto vec = rl::rview( input )
-                 .keep( L( _ % 2 == 1 ) )
+  auto vec = rl::rall( input )
+                 .keep_if( L( _ % 2 == 1 ) )
                  .map( L( _ * _ ) )
                  .map( L( _ + 1 ) )
                  .take_while( L( _ < 27 ) )
@@ -198,11 +229,11 @@ TEST_CASE( "[range-lite] rview" ) {
 TEST_CASE( "[range-lite] macros" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto vec = rl::view( input )
-                 .keep_rl( _ % 2 == 1 )
-                 .map_rl( _ * _ )
-                 .map_rl( _ + 1 )
-                 .take_while_rl( _ < 27 )
+  auto vec = rl::all( input )
+                 .keep_if_L( _ % 2 == 1 )
+                 .map_L( _ * _ )
+                 .map_L( _ + 1 )
+                 .take_while_L( _ < 27 )
                  .to_vector();
 
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
@@ -211,8 +242,8 @@ TEST_CASE( "[range-lite] macros" ) {
 TEST_CASE( "[range-lite] head" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto res = rl::view( input )
-                 .keep( L( _ % 2 == 1 ) )
+  auto res = rl::all( input )
+                 .keep_if( L( _ % 2 == 1 ) )
                  .map( L( _ * _ ) )
                  .map( L( _ + 1 ) )
                  .take_while( L( _ < 27 ) )
@@ -220,9 +251,33 @@ TEST_CASE( "[range-lite] head" ) {
 
   REQUIRE( res == 2 );
 
-  auto res2 = rl::view( input ).take_while_rl( _ > 100 ).head();
+  auto res2 = rl::all( input ).take_while_L( _ > 100 ).head();
 
   REQUIRE( res2 == nothing );
+}
+
+TEST_CASE( "[range-lite] write-through head" ) {
+  SECTION( "non-const ref" ) {
+    vector<int> input{ 1, 2, 3 };
+
+    auto res = rl::all( input ).head();
+    static_assert( is_same_v<decltype( res ), maybe<int&>> );
+    REQUIRE( res.has_value() );
+    REQUIRE( res == 1 );
+
+    *res += 1; // write through into `input`.
+
+    REQUIRE_THAT( input, Equals( vector<int>{ 2, 2, 3 } ) );
+  }
+  SECTION( "const ref" ) {
+    vector<int> const input{ 1, 2, 3 };
+
+    auto res = rl::all( input ).head();
+    REQUIRE( res.has_value() );
+    REQUIRE( res == 1 );
+    static_assert(
+        is_same_v<decltype( res ), maybe<int const&>> );
+  }
 }
 
 TEST_CASE( "[range-lite] remove" ) {
@@ -230,7 +285,7 @@ TEST_CASE( "[range-lite] remove" ) {
 
   auto odd = L( _ % 2 == 1 );
 
-  auto res = rl::view( input ).remove( odd ).to_vector();
+  auto res = rl::all( input ).remove_if( odd ).to_vector();
 
   REQUIRE_THAT( res, Equals( vector<int>{ 2, 4, 6, 8 } ) );
 }
@@ -240,7 +295,7 @@ TEST_CASE( "[range-lite] to" ) {
 
   auto is_num = L( _ >= '0' && _ <= '9' );
 
-  auto res = rl::view( msg ).remove( is_num ).to<string>();
+  auto res = rl::all( msg ).remove_if( is_num ).to<string>();
 
   REQUIRE( res == "hello  with  numbers" );
 }
@@ -248,16 +303,16 @@ TEST_CASE( "[range-lite] to" ) {
 TEST_CASE( "[range-lite] accumulate" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto res = rl::view( input )
-                 .keep( L( _ % 2 == 1 ) )
+  auto res = rl::all( input )
+                 .keep_if( L( _ % 2 == 1 ) )
                  .map( L( _ * _ ) )
                  .map( L( _ + 1 ) )
                  .accumulate();
 
   REQUIRE( res == 2 + 10 + 26 + 50 + 82 );
 
-  auto res2 = rl::view( input )
-                  .keep( L( _ % 2 == 1 ) )
+  auto res2 = rl::all( input )
+                  .keep_if( L( _ % 2 == 1 ) )
                   .map( L( _ * _ ) )
                   .map( L( _ + 1 ) )
                   .accumulate( std::multiplies{}, 1 );
@@ -265,7 +320,7 @@ TEST_CASE( "[range-lite] accumulate" ) {
   REQUIRE( res2 == 2 * 10 * 26 * 50 * 82 );
 
   auto res3 =
-      rl::view( input ).map_rl( to_string( _ ) ).accumulate();
+      rl::all( input ).map_L( to_string( _ ) ).accumulate();
 
   REQUIRE( res3 == "123456789" );
 }
@@ -273,10 +328,10 @@ TEST_CASE( "[range-lite] accumulate" ) {
 TEST_CASE( "[range-lite] mixing" ) {
   vector<int> input{ 1, 22, 333, 4444, 55555, 666666, 7777777 };
 
-  auto res = rl::view( input )
-                 .keep( L( _ % 2 == 1 ) )
-                 .map_rl( to_string( _ ) )
-                 .map_rl( _.size() )
+  auto res = rl::all( input )
+                 .keep_if( L( _ % 2 == 1 ) )
+                 .map_L( to_string( _ ) )
+                 .map_L( _.size() )
                  .to_vector();
 
   REQUIRE_THAT( res, Equals( vector<size_t>{ 1, 3, 5, 7 } ) );
@@ -286,10 +341,10 @@ TEST_CASE( "[range-lite] zip" ) {
   SECTION( "zip: int, int" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    auto view_odd = rl::view( input ).keep( L( _ % 2 == 1 ) );
+    auto view_odd = rl::all( input ).keep_if( L( _ % 2 == 1 ) );
 
-    auto vec = rl::view( input )
-                   .keep( L( _ % 2 == 0 ) )
+    auto vec = rl::all( input )
+                   .keep_if( L( _ % 2 == 0 ) )
                    .zip( view_odd )
                    .take_while( L( _.second < 8 ) )
                    .to_vector();
@@ -305,10 +360,10 @@ TEST_CASE( "[range-lite] zip" ) {
   SECTION( "zip: int, string" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    auto view_str = rl::view( input ).map( L( to_string( _ ) ) );
+    auto view_str = rl::all( input ).map( L( to_string( _ ) ) );
 
-    auto vec = rl::view( input )
-                   .keep( L( _ % 2 == 0 ) )
+    auto vec = rl::all( input )
+                   .keep_if( L( _ % 2 == 0 ) )
                    .zip( view_str )
                    .to_vector();
 
@@ -323,10 +378,10 @@ TEST_CASE( "[range-lite] zip" ) {
   SECTION( "zip: empty" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    auto view_str = rl::view( input ).map( L( to_string( _ ) ) );
+    auto view_str = rl::all( input ).map( L( to_string( _ ) ) );
 
-    auto vec = rl::view( input )
-                   .keep( L( _ > 200 ) )
+    auto vec = rl::all( input )
+                   .keep_if( L( _ > 200 ) )
                    .zip( view_str )
                    .to_vector();
 
@@ -338,23 +393,23 @@ TEST_CASE( "[range-lite] zip" ) {
 TEST_CASE( "[range-lite] take_while_incl" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto vec = rl::view( input )
-                 .take_while_incl_rl( _ < 5 )
-                 .map_rl( _ + 1 )
+  auto vec = rl::all( input )
+                 .take_while_incl_L( _ < 5 )
+                 .map_L( _ + 1 )
                  .to_vector();
 
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 3, 4, 5, 6 } ) );
 
-  auto vec2 = rl::view( input )
-                  .take_while_incl_rl( _ < 50 )
-                  .map_rl( _ + 1 )
+  auto vec2 = rl::all( input )
+                  .take_while_incl_L( _ < 50 )
+                  .map_L( _ + 1 )
                   .to_vector();
 
   REQUIRE_THAT( vec2, Equals( vector<int>{ 2, 3, 4, 5, 6, 7, 8,
                                            9, 10 } ) );
 
   auto vec3 =
-      rl::view( input ).take_while_incl_rl( _ < 0 ).to_vector();
+      rl::all( input ).take_while_incl_L( _ < 0 ).to_vector();
 
   REQUIRE_THAT( vec3, Equals( vector<int>{ 1 } ) );
 }
@@ -362,24 +417,24 @@ TEST_CASE( "[range-lite] take_while_incl" ) {
 TEST_CASE( "[range-lite] take" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto vec = rl::view( input )
-                 .take_while_incl_rl( _ < 5 )
+  auto vec = rl::all( input )
+                 .take_while_incl_L( _ < 5 )
                  .take( 2 )
-                 .map_rl( _ + 1 )
+                 .map_L( _ + 1 )
                  .to_vector();
 
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 3 } ) );
 
-  auto vec2 = rl::view( input )
-                  .take_while_incl_rl( _ < 50 )
+  auto vec2 = rl::all( input )
+                  .take_while_incl_L( _ < 50 )
                   .take( 0 )
-                  .map_rl( _ + 1 )
+                  .map_L( _ + 1 )
                   .to_vector();
 
   REQUIRE_THAT( vec2, Equals( vector<int>{} ) );
 
-  auto vec3 = rl::view( input )
-                  .take_while_rl( _ < 0 )
+  auto vec3 = rl::all( input )
+                  .take_while_L( _ < 0 )
                   .take( 5 )
                   .to_vector();
 
@@ -389,31 +444,22 @@ TEST_CASE( "[range-lite] take" ) {
 TEST_CASE( "[range-lite] drop" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto vec = rl::view( input )
-                 .take( 7 )
-                 .drop( 2 )
-                 .take( 3 )
-                 .to_vector();
+  auto vec =
+      rl::all( input ).take( 7 ).drop( 2 ).take( 3 ).to_vector();
 
   REQUIRE_THAT( vec, Equals( vector<int>{ 3, 4, 5 } ) );
 
-  auto vec2 = rl::view( input )
-                  .take( 7 )
-                  .drop( 0 )
-                  .take( 3 )
-                  .to_vector();
+  auto vec2 =
+      rl::all( input ).take( 7 ).drop( 0 ).take( 3 ).to_vector();
 
   REQUIRE_THAT( vec2, Equals( vector<int>{ 1, 2, 3 } ) );
 
-  auto vec3 = rl::view( input )
-                  .take( 7 )
-                  .drop( 7 )
-                  .take( 3 )
-                  .to_vector();
+  auto vec3 =
+      rl::all( input ).take( 7 ).drop( 7 ).take( 3 ).to_vector();
 
   REQUIRE_THAT( vec3, Equals( vector<int>{} ) );
 
-  auto vec4 = rl::view( input )
+  auto vec4 = rl::all( input )
                   .take( 7 )
                   .drop( 10 )
                   .take( 3 )
@@ -421,7 +467,7 @@ TEST_CASE( "[range-lite] drop" ) {
 
   REQUIRE_THAT( vec4, Equals( vector<int>{} ) );
 
-  auto vec5 = rl::view( input ).take( 0 ).drop( 2 ).to_vector();
+  auto vec5 = rl::all( input ).take( 0 ).drop( 2 ).to_vector();
 
   REQUIRE_THAT( vec5, Equals( vector<int>{} ) );
 }
@@ -430,7 +476,7 @@ TEST_CASE( "[range-lite] cycle" ) {
   SECTION( "cycle: basic" ) {
     vector<int> input{ 1, 2, 3 };
 
-    auto vec = rl::view( input ).cycle().take( 10 ).to_vector();
+    auto vec = rl::all( input ).cycle().take( 10 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 1, 2, 3, 1,
                                             2, 3, 1 } ) );
@@ -438,14 +484,14 @@ TEST_CASE( "[range-lite] cycle" ) {
   SECTION( "cycle: single" ) {
     vector<int> input{ 1 };
 
-    auto vec = rl::view( input ).cycle().take( 5 ).to_vector();
+    auto vec = rl::all( input ).cycle().take( 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 1, 1, 1, 1, 1 } ) );
   }
   SECTION( "cycle: double" ) {
     vector<int> input{ 1, 2 };
 
-    auto vec = rl::view( input ).cycle().take( 5 ).to_vector();
+    auto vec = rl::all( input ).cycle().take( 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 1, 2, 1 } ) );
   }
@@ -456,7 +502,7 @@ TEST_CASE( "[range-lite] cycle" ) {
 
     function<int( int )> f = LC( _ + n );
 
-    auto vec = rl::view( input )
+    auto vec = rl::all( input )
                    .cycle()
                    .take( 3 )
                    .map( std::move( f ) )
@@ -472,7 +518,7 @@ TEST_CASE( "[range-lite] cycle" ) {
 
     auto* f = +[]( int n ) { return n + 3; };
 
-    auto vec = rl::view( input )
+    auto vec = rl::all( input )
                    .cycle()
                    .take( 3 )
                    .map( f )
@@ -510,11 +556,8 @@ TEST_CASE( "[range-lite] ints" ) {
 TEST_CASE( "[range-lite] enumerate" ) {
   vector<string> input{ "hello", "world", "one", "two" };
 
-  auto vec = rl::view( input )
-                 .cycle()
-                 .enumerate()
-                 .take( 8 )
-                 .to_vector();
+  auto vec =
+      rl::all( input ).cycle().enumerate().take( 8 ).to_vector();
 
   auto expected = vector<pair<int, string>>{
       { 0, "hello" }, { 1, "world" }, { 2, "one" }, { 3, "two" },
@@ -547,7 +590,7 @@ TEST_CASE( "[range-lite] free-standing zip" ) {
 TEST_CASE( "[range-lite] mutation" ) {
   vector<int> input{ 1, 2, 3, 4, 5 };
 
-  auto view = rl::view( input ).cycle().drop( 2 ).take( 4 );
+  auto view = rl::all( input ).cycle().drop( 2 ).take( 4 );
 
   for( int& i : view ) i *= 10;
 
@@ -563,7 +606,7 @@ TEST_CASE( "[range-lite] keys" ) {
   };
 
   auto vec =
-      rl::view( input ).cycle().keys().take( 6 ).to_vector();
+      rl::all( input ).cycle().keys().take( 6 ).to_vector();
 
   vector<string> expected{
       { "hello" }, { "world" }, { "again" },
@@ -576,7 +619,7 @@ TEST_CASE( "[range-lite] keys" ) {
 TEST_CASE( "[range-lite] mutable through map" ) {
   vector<string> input{ "dropped", "hello", "world", "again" };
 
-  auto view = rl::view( input )
+  auto view = rl::all( input )
                   // Get reference to second char.
                   .map( []( string& s ) -> decltype( auto ) {
                     return s.data()[1];
@@ -603,7 +646,7 @@ TEST_CASE( "[range-lite] keys mutation" ) {
   };
 
   auto view =
-      rl::view( input ).cycle().keys().drop( 1 ).take( 2 );
+      rl::all( input ).cycle().keys().drop( 1 ).take( 2 );
 
   for( auto& key : view ) key = key + key;
 
@@ -621,7 +664,7 @@ TEST_CASE( "[range-lite] take_while" ) {
     vector<int> input{};
 
     auto vec =
-        rl::view( input ).take_while_rl( _ < 5 ).to_vector();
+        rl::all( input ).take_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
@@ -629,7 +672,7 @@ TEST_CASE( "[range-lite] take_while" ) {
     vector<int> input{ 1, 2, 3, 4 };
 
     auto vec =
-        rl::view( input ).take_while_rl( _ < 5 ).to_vector();
+        rl::all( input ).take_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 4 } ) );
   }
@@ -637,7 +680,7 @@ TEST_CASE( "[range-lite] take_while" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec =
-        rl::view( input ).take_while_rl( _ < 0 ).to_vector();
+        rl::all( input ).take_while_L( _ < 0 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
@@ -645,7 +688,7 @@ TEST_CASE( "[range-lite] take_while" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec =
-        rl::view( input ).take_while_rl( _ < 5 ).to_vector();
+        rl::all( input ).take_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 4 } ) );
   }
@@ -656,7 +699,7 @@ TEST_CASE( "[range-lite] drop_while" ) {
     vector<int> input{};
 
     auto vec =
-        rl::view( input ).drop_while_rl( _ < 5 ).to_vector();
+        rl::all( input ).drop_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
@@ -664,7 +707,7 @@ TEST_CASE( "[range-lite] drop_while" ) {
     vector<int> input{ 1, 2, 3, 4 };
 
     auto vec =
-        rl::view( input ).drop_while_rl( _ < 5 ).to_vector();
+        rl::all( input ).drop_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
@@ -672,7 +715,7 @@ TEST_CASE( "[range-lite] drop_while" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec =
-        rl::view( input ).drop_while_rl( _ < 0 ).to_vector();
+        rl::all( input ).drop_while_L( _ < 0 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 1, 2, 3, 4, 5, 6, 7,
                                             8, 9 } ) );
@@ -681,7 +724,7 @@ TEST_CASE( "[range-lite] drop_while" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec =
-        rl::view( input ).drop_while_rl( _ < 5 ).to_vector();
+        rl::all( input ).drop_while_L( _ < 5 ).to_vector();
 
     REQUIRE_THAT( vec, Equals( vector<int>{ 5, 6, 7, 8, 9 } ) );
   }
@@ -690,7 +733,7 @@ TEST_CASE( "[range-lite] drop_while" ) {
 TEST_CASE( "[range-lite] dereference" ) {
   vector<maybe<int>> input{ { 1 }, { 2 }, { 3 }, { 4 }, { 5 } };
 
-  auto view = rl::view( input ).dereference();
+  auto view = rl::all( input ).dereference();
 
   for( int& i : view ) i *= 10;
 
@@ -706,7 +749,7 @@ TEST_CASE( "[range-lite] cat_maybes" ) {
   vector<maybe<int>> input{
       { 1 }, nothing, { 3 }, nothing, { 5 } };
 
-  auto view = rl::view( input ).cat_maybes();
+  auto view = rl::all( input ).cat_maybes();
 
   for( int& i : view ) i *= 10;
 
@@ -721,12 +764,12 @@ TEST_CASE( "[range-lite] cat_maybes" ) {
 TEST_CASE( "[range-lite] tail" ) {
   SECTION( "tail: some" ) {
     vector<int> input{ 1, 2, 3, 4 };
-    auto        vec = rl::view( input ).tail().to_vector();
+    auto        vec = rl::all( input ).tail().to_vector();
     REQUIRE_THAT( vec, Equals( vector<int>{ 2, 3, 4 } ) );
   }
   SECTION( "tail: empty" ) {
     vector<int> input{};
-    auto        vec = rl::view( input ).tail().to_vector();
+    auto        vec = rl::all( input ).tail().to_vector();
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
 }
@@ -735,20 +778,20 @@ TEST_CASE( "[range-lite] group_by" ) {
   SECTION( "group_by: empty" ) {
     vector<int> input{};
 
-    auto view = rl::view( input ).group_by( L2( _1 == _2 ) );
+    auto view = rl::all( input ).group_by( L2( _1 == _2 ) );
 
     auto it = view.begin();
     REQUIRE( it == view.end() );
 
     vector<vector<int>> expected{};
     REQUIRE_THAT(
-        std::move( view ).map_rl( _.to_vector() ).to_vector(),
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
         Equals( expected ) );
   }
   SECTION( "group_by: single" ) {
     vector<int> input{ 1 };
 
-    auto view = rl::view( input ).group_by( L2( _1 == _2 ) );
+    auto view = rl::all( input ).group_by( L2( _1 == _2 ) );
 
     auto it = view.begin();
     REQUIRE( it != view.end() );
@@ -760,13 +803,13 @@ TEST_CASE( "[range-lite] group_by" ) {
 
     vector<vector<int>> expected{ { 1 } };
     REQUIRE_THAT(
-        std::move( view ).map_rl( _.to_vector() ).to_vector(),
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
         Equals( expected ) );
   }
   SECTION( "group_by: many" ) {
     vector<int> input{ 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 };
 
-    auto view = rl::view( input ).group_by( L2( _1 == _2 ) );
+    auto view = rl::all( input ).group_by( L2( _1 == _2 ) );
 
     auto it = view.begin();
     REQUIRE( it != view.end() );
@@ -805,7 +848,7 @@ TEST_CASE( "[range-lite] group_by" ) {
                                   { 3, 3 },       { 4 },
                                   { 5, 5, 5, 5 }, { 6 } };
     REQUIRE_THAT(
-        std::move( view ).map_rl( _.to_vector() ).to_vector(),
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
         Equals( expected ) );
   }
 }
@@ -814,10 +857,13 @@ TEST_CASE( "[range-lite] group_by complicated" ) {
   vector<string> input{ "hello", "world", "four", "seven",
                         "six",   "two",   "three" };
 
-  auto view = rl::view( input )
+  auto view = rl::all( input )
                   .cycle()
-                  .group_by( L2( _1.size() == _2.size() ) )
+                  .group_by_L( _1.size() == _2.size() )
                   .take( 6 );
+
+  // See how fat the iterator is.
+  static_assert( sizeof( decltype( view.begin() ) ) == 112 );
 
   vector<vector<string>> expected{ { "hello", "world" },
                                    { "four" },
@@ -827,12 +873,22 @@ TEST_CASE( "[range-lite] group_by complicated" ) {
                                    { "four" } };
   auto                   view2 = view;
   REQUIRE_THAT(
-      std::move( view2 ).map_rl( _.to_vector() ).to_vector(),
+      std::move( view2 ).map_L( _.to_vector() ).to_vector(),
       Equals( expected ) );
 
   for( auto [l, r] : rl::zip( view, expected ) ) {
     REQUIRE_THAT( l.to_vector(), Equals( r ) );
   }
+}
+
+TEST_CASE( "[range-lite] filter alias" ) {
+  vector<string> input{ "hello", "world", "four", "seven",
+                        "six",   "two",   "three" };
+
+  auto view = rl::all( input ).filter_L( _.size() == 3 );
+
+  vector<string> expected{ "six", "two" };
+  REQUIRE_THAT( view.to_vector(), Equals( expected ) );
 }
 
 } // namespace

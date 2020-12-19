@@ -27,7 +27,6 @@ Run time:
   mixing                ranges-lite   0.107     0.158      1.47664
   free-standing-zip     range-v3      0.066     0.095      1.43939
   remove                ranges-lite   0.058     0.080      1.37931
-  dereference           range-v3      0.063     0.082      1.30159
   keys-mutation         ranges-lite   0.079     0.101      1.27848
   enumerate             ranges-lite   0.243     0.301      1.23868
   mutation              range-v3      0.055     0.065      1.18182
