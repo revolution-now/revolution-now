@@ -8,7 +8,7 @@
 * Description: Unit tests for the ranges-v3 module.
 *
 *****************************************************************/
-#if 0 // Disabled because compile time is 19 sec by itself.
+#if 0 // disabled because compile time is 19 secs on its own.
 #  include "testing.hpp"
 
 // Under test.
@@ -75,6 +75,19 @@ TEST_CASE( "[ranges-heavy] non-materialized" ) {
                 Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
+TEST_CASE( "[ranges-heavy] long-range" ) {
+  vector<int> input;
+  input.reserve( 10000 );
+  for( int s = 0; s < 10000; ++s ) input.push_back( s );
+  auto vec = input                           //
+             | rv::filter( L( _ < 100000 ) ) //
+             | rv::transform( L( _ * 2 ) )   //
+             | rv::transform( L( _ / 2 ) )   //
+             | rv::take_while( L( _ >= 0 ) );
+
+  REQUIRE_THAT( rg::to<vector<int>>( vec ), Equals( input ) );
+}
+
 TEST_CASE( "[ranges-heavy] materialized" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -132,6 +145,10 @@ TEST_CASE( "[ranges-heavy] head" ) {
              rv::take_while( L( _ < 27 ) ) | rv::take( 1 );
 
   REQUIRE( *res.begin() == 2 );
+
+  auto res2 = res | rv::take_while( L( _ > 100 ) );
+
+  REQUIRE( res2.begin() == res2.end() );
 }
 
 TEST_CASE( "[ranges-heavy] remove" ) {
@@ -183,7 +200,7 @@ TEST_CASE( "[ranges-heavy] mixing" ) {
 }
 
 TEST_CASE( "[ranges-heavy] zip" ) {
-  SECTION( "int, int" ) {
+  SECTION( "zip: int, int" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto view_odd = input | rv::filter( L( _ % 2 == 1 ) );
@@ -201,7 +218,7 @@ TEST_CASE( "[ranges-heavy] zip" ) {
     REQUIRE_THAT( ( rg::to<vector<pair<int, int>>>( vec ) ),
                   Equals( expected ) );
   }
-  SECTION( "int, string" ) {
+  SECTION( "zip: int, string" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto view_str = input | rv::transform( L( to_string( _ ) ) );
@@ -218,7 +235,7 @@ TEST_CASE( "[ranges-heavy] zip" ) {
     REQUIRE_THAT( ( rg::to<vector<pair<int, string>>>( vec ) ),
                   Equals( expected ) );
   }
-  SECTION( "empty" ) {
+  SECTION( "zip: empty" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto view_str = input | rv::transform( L( to_string( _ ) ) );
@@ -227,44 +244,6 @@ TEST_CASE( "[ranges-heavy] zip" ) {
         rv::zip( input | rv::filter( L( _ > 200 ) ), view_str );
 
     auto expected = vector<pair<int, string>>{};
-    REQUIRE_THAT( ( rg::to<vector<pair<int, string>>>( vec ) ),
-                  Equals( expected ) );
-  }
-}
-
-TEST_CASE( "[ranges-heavy] zip2" ) {
-  SECTION( "int, int" ) {
-    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-    auto view_odd = input | rv::filter( L( _ % 2 == 1 ) );
-
-    auto vec = rv::zip( input | rv::filter( L( _ % 2 == 0 ) ),
-                        view_odd ) |
-               rv::take_while( L( _.second < 8 ) );
-
-    auto expected = vector<pair<int, int>>{
-        { 2, 1 },
-        { 4, 3 },
-        { 6, 5 },
-        { 8, 7 },
-    };
-    REQUIRE_THAT( ( rg::to<vector<pair<int, int>>>( vec ) ),
-                  Equals( expected ) );
-  }
-  SECTION( "int, string" ) {
-    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-    auto view_str = input | rv::transform( L( to_string( _ ) ) );
-
-    auto vec = rv::zip( input | rv::filter( L( _ % 2 == 0 ) ),
-                        view_str );
-
-    auto expected = vector<pair<int, string>>{
-        { 2, "1" },
-        { 4, "2" },
-        { 6, "3" },
-        { 8, "4" },
-    };
     REQUIRE_THAT( ( rg::to<vector<pair<int, string>>>( vec ) ),
                   Equals( expected ) );
   }
@@ -335,7 +314,7 @@ TEST_CASE( "[ranges-heavy] drop" ) {
 }
 
 TEST_CASE( "[ranges-heavy] cycle" ) {
-  SECTION( "basic" ) {
+  SECTION( "cycle: basic" ) {
     vector<int> input{ 1, 2, 3 };
 
     auto vec = input | rv::cycle | rv::take( 10 );
@@ -344,7 +323,7 @@ TEST_CASE( "[ranges-heavy] cycle" ) {
         rg::to<vector<int>>( vec ),
         Equals( vector<int>{ 1, 2, 3, 1, 2, 3, 1, 2, 3, 1 } ) );
   }
-  SECTION( "single" ) {
+  SECTION( "cycle: single" ) {
     vector<int> input{ 1 };
 
     auto vec = input | rv::cycle | rv::take( 5 ) // 1,1,1,1,1
@@ -353,7 +332,7 @@ TEST_CASE( "[ranges-heavy] cycle" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{ 1, 1, 1, 1, 1 } ) );
   }
-  SECTION( "double" ) {
+  SECTION( "cycle: double" ) {
     vector<int> input{ 1, 2 };
 
     auto vec = input | rv::cycle | rv::take( 5 ) // 1,2,1,2,1
@@ -362,7 +341,7 @@ TEST_CASE( "[ranges-heavy] cycle" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{ 1, 2, 1, 2, 1 } ) );
   }
-  SECTION( "with stateful function" ) {
+  SECTION( "cycle: with stateful function" ) {
     vector<int> input{ 1, 2 };
 
     int                  n = 3;
@@ -377,7 +356,7 @@ TEST_CASE( "[ranges-heavy] cycle" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{ 4, 5, 4, 4, 5, 4, 4 } ) );
   }
-  SECTION( "with decayed lambda" ) {
+  SECTION( "cycle: with decayed lambda" ) {
     vector<int> input{ 1, 2 };
 
     auto* f = +[]( int n ) { return n + 3; };
@@ -395,7 +374,7 @@ TEST_CASE( "[ranges-heavy] cycle" ) {
 }
 
 TEST_CASE( "[ranges-heavy] ints" ) {
-  SECTION( "0, ..." ) {
+  SECTION( "ints: 0, ..." ) {
     auto vec = rv::ints // 0, 1, 2, 3, 4...
                | rv::take( 10 );
 
@@ -403,14 +382,14 @@ TEST_CASE( "[ranges-heavy] ints" ) {
         rg::to<vector<int>>( vec ),
         Equals( vector<int>{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 } ) );
   }
-  SECTION( "-5, ..." ) {
+  SECTION( "ints: -5, ..." ) {
     auto vec = rv::ints( -5, rg::unreachable ) | rv::take( 10 );
 
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{ -5, -4, -3, -2, -1, 0, 1,
                                        2, 3, 4 } ) );
   }
-  SECTION( "8, 20" ) {
+  SECTION( "ints: 8, 20" ) {
     auto vec = rv::ints( 8, 20 );
 
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
@@ -433,7 +412,7 @@ TEST_CASE( "[ranges-heavy] enumerate" ) {
 }
 
 TEST_CASE( "[ranges-heavy] free-standing zip" ) {
-  SECTION( "vectors" ) {
+  SECTION( "zip: vectors" ) {
     vector<string> input1{ "hello", "world", "one", "two" };
     vector<int>    input2{ 4, 6, 2, 7, 3 };
 
@@ -444,7 +423,7 @@ TEST_CASE( "[ranges-heavy] free-standing zip" ) {
     REQUIRE_THAT( ( rg::to<vector<pair<string, int>>>( view ) ),
                   Equals( expected ) );
   }
-  SECTION( "Views" ) {
+  SECTION( "zip: Views" ) {
     auto view = rv::zip( rv::ints( 5, rg::unreachable ),
                          rv::ints( 7, rg::unreachable ) ) |
                 rv::take( 3 );
@@ -525,7 +504,7 @@ TEST_CASE( "[ranges-heavy] keys mutation" ) {
 }
 
 TEST_CASE( "[ranges-heavy] take_while" ) {
-  SECTION( "empty" ) {
+  SECTION( "take_while: empty" ) {
     vector<int> input{};
 
     auto vec = input | rv::take_while( L( _ < 5 ) ) // 2,10,26
@@ -534,7 +513,7 @@ TEST_CASE( "[ranges-heavy] take_while" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{} ) );
   }
-  SECTION( "take all" ) {
+  SECTION( "take_while: take all" ) {
     vector<int> input{ 1, 2, 3, 4 };
 
     auto vec = input | rv::take_while( L( _ < 5 ) ) // 2,10,26
@@ -543,7 +522,7 @@ TEST_CASE( "[ranges-heavy] take_while" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{ 1, 2, 3, 4 } ) );
   }
-  SECTION( "take none" ) {
+  SECTION( "take_while: take none" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec = input | rv::take_while( L( _ < 0 ) ) // 2,10,26
@@ -552,7 +531,7 @@ TEST_CASE( "[ranges-heavy] take_while" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{} ) );
   }
-  SECTION( "take some" ) {
+  SECTION( "take_while: take some" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec = input | rv::take_while( L( _ < 5 ) ) // 2,10,26
@@ -564,7 +543,7 @@ TEST_CASE( "[ranges-heavy] take_while" ) {
 }
 
 TEST_CASE( "[ranges-heavy] drop_while" ) {
-  SECTION( "empty" ) {
+  SECTION( "take_while: empty" ) {
     vector<int> input{};
 
     auto vec = input | rv::drop_while( L( _ < 5 ) ) // 2,10,26
@@ -573,7 +552,7 @@ TEST_CASE( "[ranges-heavy] drop_while" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{} ) );
   }
-  SECTION( "drop all" ) {
+  SECTION( "take_while: drop all" ) {
     vector<int> input{ 1, 2, 3, 4 };
 
     auto vec = input | rv::drop_while( L( _ < 5 ) ) // 2,10,26
@@ -582,7 +561,7 @@ TEST_CASE( "[ranges-heavy] drop_while" ) {
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{} ) );
   }
-  SECTION( "drop none" ) {
+  SECTION( "take_while: drop none" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec = input | rv::drop_while( L( _ < 0 ) ) // 2,10,26
@@ -592,7 +571,7 @@ TEST_CASE( "[ranges-heavy] drop_while" ) {
         rg::to<vector<int>>( vec ),
         Equals( vector<int>{ 1, 2, 3, 4, 5, 6, 7, 8, 9 } ) );
   }
-  SECTION( "drop some" ) {
+  SECTION( "take_while: drop some" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     auto vec = input | rv::drop_while( L( _ < 5 ) ) // 2,10,26
@@ -631,13 +610,13 @@ TEST_CASE( "[ranges-heavy] cat_maybes" ) {
 }
 
 TEST_CASE( "[ranges-heavy] tail" ) {
-  SECTION( "some" ) {
+  SECTION( "tail: some" ) {
     vector<int> input{ 1, 2, 3, 4 };
     auto        vec = input | rv::tail;
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
                   Equals( vector<int>{ 2, 3, 4 } ) );
   }
-  SECTION( "empty" ) {
+  SECTION( "tail: empty" ) {
     vector<int> input{};
     auto        vec = input | rv::tail;
     REQUIRE_THAT( rg::to<vector<int>>( vec ),
@@ -646,7 +625,7 @@ TEST_CASE( "[ranges-heavy] tail" ) {
 }
 
 TEST_CASE( "[ranges-heavy] group_by" ) {
-  SECTION( "empty" ) {
+  SECTION( "group_by: empty" ) {
     vector<int> input{};
 
     auto view = input | rv::group_by( L2( _1 == _2 ) );
@@ -654,7 +633,7 @@ TEST_CASE( "[ranges-heavy] group_by" ) {
     auto it = view.begin();
     REQUIRE( it == view.end() );
   }
-  SECTION( "single" ) {
+  SECTION( "group_by: single" ) {
     vector<int> input{ 1 };
 
     auto view = input | rv::group_by( L2( _1 == _2 ) );
@@ -667,7 +646,7 @@ TEST_CASE( "[ranges-heavy] group_by" ) {
     ++it;
     REQUIRE( it == view.end() );
   }
-  SECTION( "many" ) {
+  SECTION( "group_by: many" ) {
     vector<int> input{ 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 };
 
     auto view = input | rv::group_by( L2( _1 == _2 ) );
@@ -721,6 +700,10 @@ TEST_CASE( "[ranges-heavy] group_by complicated" ) {
                                    { "six", "two" },
                                    { "three", "hello", "world" },
                                    { "four" } };
+  REQUIRE_THAT( rg::to<vector<vector<string>>>(
+                    view | rv::transform( L(
+                               rg::to<vector<string>>( _ ) ) ) ),
+                Equals( expected ) );
 
   for( auto [l, r] : rv::zip( view, expected ) ) {
     REQUIRE_THAT( rg::to<vector<string>>( l ), Equals( r ) );

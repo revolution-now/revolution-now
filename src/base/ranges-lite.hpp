@@ -37,21 +37,141 @@ namespace base::rl {
 /****************************************************************
 ** TODO list
 *****************************************************************/
+// rv::sliding
 //
-//      rv::sliding
+// rv::drop_last
 //
-//      rv::drop_last
+// rv::intersperse
 //
-//      rv::intersperse
+// rv::join
 //
-//      rv::join
+// views::all:          Return a range containing all the ele-
+//                      ments in the source. Useful for con-
+//                      verting containers to ranges.
+//
+// views::chunk         Given a source range and an integer N,
+//                      produce a range of contiguous ranges
+//                      where each inner range has N contiguous
+//                      elements. The final range may have fewer
+//                      than N elements.
+//
+// views::concat        Given N source ranges, produce a result
+//                      range that is the concatenation of all
+//                      of them.
+//
+// views::drop_last     Given a source range and an integral
+//                      count, return a range consisting of all
+//                      but the last count elements from the
+//                      source range, or an empty range if it
+//                      has fewer elements.
+//
+// views::empty         Create an empty range with a given value
+//                      type.
+//
+// views::intersperse   Given a source range and a value, return
+//                      a new range where the value is inserted
+//                      between contiguous elements from the
+//                      source.
+//
+// views::iota          A generalization of views::ints that
+//                      generates a sequence of monotonically
+//                      increasing values of any incrementable
+//                      type. When specified with a single argu-
+//                      ment, the result is an infinite range
+//                      beginning at the specified value. With
+//                      two arguments, the values are assumed to
+//                      denote a half-open range.
+//
+// views::join          Given a range of ranges, join them into
+//                      a flattened sequence of elements. Op-
+//                      tionally, you can specify a value or a
+//                      range to be inserted between each source
+//                      range.
+//
+// views::partial_sum   Given a range and a binary function, re-
+//                      turn a new range where the Nth element
+//                      is the result of applying the function
+//                      to the Nth element from the source range
+//                      and the (N-1)th element from the result
+//                      range.
+//
+// views::remove_if     Given a source range and a unary predi-
+//                      cate, filter out those elements that do
+//                      not satisfy the predicate. (For users of
+//                      Boost.Range, this is like the filter
+//                      adaptor with the predicate negated.)
+//
+// views::repeat        Given a value, create a range that is
+//                      that value repeated infinitely.
+//
+// views::repeat_n      Given a value and a count, create a
+//                      range that is that value repeated count
+//                      number of times.
+//
+// views::replace       Given a source range, a source value and
+//                      a target value, create a new range where
+//                      all elements equal to the source value
+//                      are replaced with the target value.
+//
+// views::replace_if    Given a source range, a unary predicate
+//                      and a target value, create a new range
+//                      where all elements that satisfy the
+//                      predicate are replaced with the target
+//                      value.
+//
+// views::single        Given a value, create a range with ex-
+//                      actly one element.
+//
+// views::slice         Give a source range a lower bound (in-
+//                      clusive) and an upper bound (exclusive),
+//                      create a new range that begins and ends
+//                      at the specified offsets. Both the begin
+//                      and the end can be integers relative to
+//                      the front, or relative to the end with
+//                      "`end-2`" syntax.
+//
+// views::sliding       Given a range and a count n, place a
+//                      window over the first n elements of the
+//                      underlying range. Return the contents of
+//                      that window as the first element of the
+//                      adapted range, then slide the window
+//                      forward one element at a time until hit-
+//                      ting the end of the underlying range.
+//
+// views::split         Given a source range and a delimiter
+//                      specifier, split the source range into a
+//                      range of ranges using the delimiter
+//                      specifier to find the boundaries. The
+//                      delimiter specifier can be an element or
+//                      a range of elements. The elements
+//                      matching the delimiter are excluded from
+//                      the resulting range of ranges.
+//
+// views::take_last     Given a source range and an integral
+//                      count, return a range consisting of the
+//                      last count elements from the source
+//                      range. The source range must be a
+//                      sized_range. If the source range does
+//                      not have at least count elements, the
+//                      full range is returned.
+//
+// views::unique        Given a range, return a new range where
+//                      all consecutive elements that compare
+//                      equal save the first have been filtered
+//                      out.
+//
+// views::values        Given a range of pairs (like a
+//                      std::map), return a new range consisting
+//                      of just the second element of the pair.
+//
+// views::zip_with
 
 /****************************************************************
 ** Forward Declarations
 *****************************************************************/
 class IntsView;
 
-template<typename InputView, typename Cursor>
+template<typename InputView, typename Cursor, typename ValueType>
 class ChainView;
 
 /****************************************************************
@@ -75,8 +195,8 @@ using ultimate_view_or_self_t =
 template<typename T>
 struct is_rl_view : std::false_type {};
 
-template<typename InputView, typename Cursor>
-struct is_rl_view<ChainView<InputView, Cursor>>
+template<typename InputView, typename Cursor, typename ValueType>
+struct is_rl_view<ChainView<InputView, Cursor, ValueType>>
   : std::true_type {};
 
 template<typename T>
@@ -107,9 +227,9 @@ struct IdentityCursor {
   IdentityCursor() = default;
   IdentityCursor( Data const& ) {}
   void init( InputView const& input ) { it = input.begin(); }
-  value_type& get( InputView const& ) const { return *it; }
-  void        next( InputView const& ) { ++it; }
-  bool        end( InputView const& input ) const {
+  decltype( auto ) get( InputView const& ) const { return *it; }
+  void             next( InputView const& ) { ++it; }
+  bool             end( InputView const& input ) const {
     return it == input.end();
   }
   iterator pos( InputView const& ) const { return it; }
@@ -124,9 +244,9 @@ struct ReverseIdentityCursor {
   ReverseIdentityCursor() = default;
   ReverseIdentityCursor( Data const& ) {}
   void init( InputView const& input ) { it = input.rbegin(); }
-  value_type& get( InputView const& ) const { return *it; }
-  void        next( InputView const& ) { ++it; }
-  bool        end( InputView const& input ) const {
+  decltype( auto ) get( InputView const& ) const { return *it; }
+  void             next( InputView const& ) { ++it; }
+  bool             end( InputView const& input ) const {
     return it == input.rend();
   }
   iterator pos( InputView const& ) const { return it; }
@@ -164,13 +284,9 @@ public:
       if( cursor_ >= view_->end_ ) view_ = nullptr;
     }
 
-    auto const& operator*() const {
+    decltype( auto ) operator*() const {
       rl_assert( cursor_ < view_->end_ );
       return cursor_;
-    }
-
-    auto const* operator->() const {
-      return std::addressof( this->operator*() );
     }
 
     iterator& operator++() {
@@ -206,9 +322,84 @@ public:
 };
 
 /****************************************************************
+** ChildView
+*****************************************************************/
+// This view is used by views that need to produce other views
+// as their value type, e.g. group_by.
+template<typename ValueType, typename GroupByCursor>
+struct ChildView {
+  struct iterator {
+    using iterator_category = std::input_iterator_tag;
+    using difference_type   = int;
+    using value_type        = ValueType;
+    using pointer           = value_type*;
+    using reference         = value_type&;
+
+    iterator() = default;
+    iterator( ChildView const* view ) : view_( view ) {
+      clear_if_end();
+    }
+
+    void clear_if_end() {
+      if( view_->that_->child_view_done() ) view_ = nullptr;
+    }
+
+    decltype( auto ) operator*() const {
+      return view_->that_->child_view_get();
+    }
+
+    auto* operator->() const {
+      return std::addressof( this->operator*() );
+    }
+
+    iterator& operator++() {
+      view_->that_->child_view_advance();
+      clear_if_end();
+      return *this;
+    }
+
+    iterator operator++( int ) {
+      auto res = *this;
+      ++( *this );
+      return res;
+    }
+
+    bool operator==( iterator const& rhs ) const {
+      // Cannot compare two iterators that are in the middle of
+      // a range, since it would introduce too much complica-
+      // tion into this implementation and it probably is not
+      // necessary anyway.
+      rl_assert( view_ == nullptr || rhs.view_ == nullptr );
+      return view_ == rhs.view_;
+    }
+
+    bool operator!=( iterator const& rhs ) const {
+      return !( *this == rhs );
+    }
+
+    ChildView const* view_ = nullptr;
+  };
+
+  ChildView() = default;
+  ChildView( GroupByCursor* that ) : that_( that ) {}
+  auto begin() const { return iterator{ this }; }
+  auto end() const { return iterator{}; }
+
+  GroupByCursor* that_;
+};
+
+/****************************************************************
 ** ChainView
 *****************************************************************/
-template<typename InputView, typename Cursor>
+template<typename InputView, typename Cursor,
+         // The vast majority of the time you don't have to
+         // specify ValueType explicitly -- just let it assume
+         // its default value. There are a few strange cases
+         // where specifying it is needed in order to break infi-
+         // nite (cyclic) template lookups of value type (e.g. in
+         // group_by).
+         typename ValueType = std::decay_t<std::invoke_result_t<
+             decltype( &Cursor::get ), Cursor*, InputView>>>
 class ChainView {
   using data_t = typename Cursor::Data;
 
@@ -219,9 +410,7 @@ public:
   ChainView( InputView&& input, data_t&& data )
     : input_( std::move( input ) ), data_( std::move( data ) ) {}
 
-  using value_type =
-      std::decay_t<std::invoke_result_t<decltype( &Cursor::get ),
-                                        Cursor*, InputView>>;
+  using value_type = ValueType;
 
   using ultimate_view_t = ultimate_view_or_self_t<InputView>;
 
@@ -318,7 +507,14 @@ public:
   ** Materialization
   ***************************************************************/
   std::vector<value_type> to_vector() const {
-    return std::vector<value_type>( this->begin(), this->end() );
+    std::vector<value_type> res;
+
+    auto it = this->begin();
+    if( it == this->end() ) return res;
+
+    res.reserve( 10 ); // heuristic.
+    for( ; it != this->end(); ++it ) res.push_back( *it );
+    return res;
   }
 
   template<typename T>
@@ -472,62 +668,10 @@ public:
   }
 
   /**************************************************************
-  ** Lense
-  ***************************************************************/
-  template<typename Func>
-  auto lense( Func&& func ) && {
-    struct KeysCursor : public CursorBase<KeysCursor> {
-      using func_t = std::remove_reference_t<Func>;
-      struct Data {
-        Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
-      };
-      using Base = CursorBase<KeysCursor>;
-      using Base::it_;
-      using typename Base::iterator;
-      KeysCursor() = default;
-      KeysCursor( Data const& data ) : func_( &data.func_ ) {}
-
-      auto& get( ChainView const& input ) const {
-        rl_assert( !end( input ) );
-        // These checks are an effort to ensure that we don't
-        // call a lense on a temporary, and that the lense re-
-        // turns a reference. The idea is that lenses are used to
-        // produce references into the original data being
-        // viewed, and not to intermediate values produced
-        // through the pipeline.
-        static_assert(
-            std::is_reference_v<std::invoke_result_t<
-                Func, std::add_lvalue_reference_t<
-                          ChainView::value_type>>>,
-            "In order to use a lense, the callable must return "
-            "a reference (into existing data). If you are using "
-            "a lambda that is supposed to return a reference, "
-            "then you might need to use -> decltype( auto )." );
-        // If you fail here then you are probably trying to lense
-        // something that is producing a temporary.
-        static_assert(
-            std::is_lvalue_reference_v<decltype( *it_ )> );
-        return ( *func_ )( *it_ );
-      }
-
-      using Base::end;
-      using Base::init;
-      using Base::next;
-      using Base::pos;
-
-      func_t const* func_;
-    };
-    return make_chain<KeysCursor>( std::forward<Func>( func ) );
-  }
-
-  /**************************************************************
   ** Dereference
   ***************************************************************/
   auto dereference() && {
-    return std::move( *this ).lense(
+    return std::move( *this ).map(
         []( auto&& arg ) -> decltype( auto ) { return *arg; } );
   }
 
@@ -544,7 +688,7 @@ public:
   ** Keys
   ***************************************************************/
   auto keys() && {
-    return std::move( *this ).lense(
+    return std::move( *this ).map(
         // Need auto&& return type so that it will deduce a ref-
         // erence for p.first (decltype(auto) will not).
         []( auto&& p ) -> auto&& { return p.first; } );
@@ -560,6 +704,10 @@ public:
   ***************************************************************/
   template<typename Func>
   auto map( Func&& func ) && {
+    constexpr bool func_returns_ref =
+        std::is_reference_v<std::invoke_result_t<
+            Func,
+            std::add_lvalue_reference_t<ChainView::value_type>>>;
     struct MapCursor : public CursorBase<MapCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
@@ -574,7 +722,13 @@ public:
       MapCursor() = default;
       MapCursor( Data const& data ) : func_( &data.func_ ) {}
 
-      auto get( ChainView const& input ) const {
+      decltype( auto ) get( ChainView const& input ) const {
+        if constexpr( func_returns_ref ) {
+          // If you fail here then you are probably trying to re-
+          // turn a reference to a temporary.
+          static_assert(
+              std::is_lvalue_reference_v<decltype( *it_ )> );
+        }
         rl_assert( !end( input ) );
         return ( *func_ )( *it_ );
       }
@@ -766,7 +920,7 @@ public:
         it2_ = snd_view_->begin();
       }
 
-      auto get( ChainView const& input ) const {
+      decltype( auto ) get( ChainView const& input ) const {
         rl_assert( !end( input ) );
         return std::pair{ *it_, *it2_ };
       }
@@ -905,68 +1059,6 @@ public:
   /**************************************************************
   ** GroupBy
   ***************************************************************/
-  template<typename ValueType, typename GroupByCursor>
-  struct GroupByView {
-    struct iterator {
-      using iterator_category = std::input_iterator_tag;
-      using difference_type   = int;
-      using value_type        = ValueType;
-      using pointer           = value_type*;
-      using reference         = value_type&;
-
-      iterator() = default;
-      iterator( GroupByView const* view ) : view_( view ) {
-        clear_if_end();
-      }
-
-      void clear_if_end() {
-        if( view_->that_->is_group_done() ) view_ = nullptr;
-      }
-
-      auto& operator*() const {
-        return view_->that_->group_get();
-      }
-
-      auto* operator->() const {
-        return std::addressof( this->operator*() );
-      }
-
-      iterator& operator++() {
-        view_->that_->group_advance();
-        clear_if_end();
-        return *this;
-      }
-
-      iterator operator++( int ) {
-        auto res = *this;
-        ++( *this );
-        return res;
-      }
-
-      bool operator==( iterator const& rhs ) const {
-        // Cannot compare two iterators that are in the middle of
-        // a range, since it would introduce too much complica-
-        // tion into this implementation and it probably is not
-        // necessary anyway.
-        rl_assert( view_ == nullptr || rhs.view_ == nullptr );
-        return view_ == rhs.view_;
-      }
-
-      bool operator!=( iterator const& rhs ) const {
-        return !( *this == rhs );
-      }
-
-      GroupByView const* view_ = nullptr;
-    };
-
-    GroupByView() = default;
-    GroupByView( GroupByCursor* that ) : that_( that ) {}
-    auto begin() const { return iterator{ this }; }
-    auto end() const { return iterator{}; }
-
-    GroupByCursor* that_;
-  };
-
   template<typename Func>
   auto group_by( Func&& func ) && {
     struct GroupByCursor : public CursorBase<GroupByCursor> {
@@ -981,12 +1073,13 @@ public:
       using Base::it_;
       using typename Base::iterator;
       using IncomingValueType = typename ChainView::value_type;
-      using ChainGroupView    = ChainView<
-          GroupByView<IncomingValueType, GroupByCursor>,
-          IdentityCursor<
-              GroupByView<IncomingValueType, GroupByCursor>>>;
+      using ChainGroupView =
+          ChainView<ChildView<IncomingValueType, GroupByCursor>,
+                    IdentityCursor<ChildView<IncomingValueType,
+                                             GroupByCursor>>,
+                    IncomingValueType>;
       using ChainGroupViewCursor = IdentityCursor<
-          GroupByView<IncomingValueType, GroupByCursor>>;
+          ChildView<IncomingValueType, GroupByCursor>>;
       // using value_type = ChainGroupView;
       GroupByCursor() = default;
       GroupByCursor( Data const& data )
@@ -1003,16 +1096,18 @@ public:
         cache_          = *it_;
       }
 
-      auto get( ChainView const& input ) const {
+      decltype( auto ) get( ChainView const& input ) const {
         rl_assert( !end( input ) );
         return ChainGroupView(
-            GroupByView<IncomingValueType, GroupByCursor>{
+            ChildView<IncomingValueType, GroupByCursor>{
                 const_cast<GroupByCursor*>( this ) },
             typename ChainGroupViewCursor::Data{} );
       }
 
       void next( ChainView const& input ) {
         rl_assert( finished_group_ );
+        // This is not an error because the subview iteration
+        // will have moved it to the end.
         if( it_ == input.end() ) return;
         finished_group_ = false;
         cache_          = *it_;
@@ -1024,16 +1119,16 @@ public:
 
       iterator pos( ChainView const& ) const { return it_; }
 
-      // === Functions for Working with Single Group View ===
+      // ======== ChildView hooks ========
 
-      bool is_group_done() const { return finished_group_; }
+      bool child_view_done() const { return finished_group_; }
 
-      auto& group_get() const {
+      auto& child_view_get() const {
         rl_assert( !finished_group_ );
         return *it_;
       }
 
-      void group_advance() {
+      void child_view_advance() {
         rl_assert( !finished_group_ );
         ++it_;
         if( it_ == input_->end() || !( *func_ )( cache_, *it_ ) )
