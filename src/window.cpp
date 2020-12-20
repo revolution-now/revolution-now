@@ -20,7 +20,6 @@
 #include "input.hpp"
 #include "logging.hpp"
 #include "plane.hpp"
-#include "ranges.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
 #include "typed-int.hpp"
@@ -38,9 +37,7 @@
 #include "base/conv.hpp"
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"
-
-// range-v3
-#include "range/v3/view/filter.hpp"
+#include "base/range-lite.hpp"
 
 // c++ standard library
 #include <algorithm>
@@ -52,6 +49,8 @@
 using namespace std;
 
 namespace rn::ui {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -109,15 +108,13 @@ public:
                            Coord prev, Coord current );
 
   auto active_windows() {
-    return rv::all( windows_ ) //
-           | rv::filter(
-                 L( _.window_state != e_window_state::closed ) );
+    return rl::all( windows_ )
+        .keep_if_L( _.window_state != e_window_state::closed );
   }
 
   auto active_windows() const {
-    return rv::all( windows_ ) //
-           | rv::filter(
-                 L( _.window_state != e_window_state::closed ) );
+    return rl::all( windows_ )
+        .keep_if_L( _.window_state != e_window_state::closed );
   }
 
   int num_windows() const {

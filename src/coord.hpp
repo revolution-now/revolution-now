@@ -498,6 +498,8 @@ public:
     // point.
     return { rect.lower_left(), this };
   }
+
+  using iterator = const_iterator;
 };
 
 // Will take the delta and center it with respect to the rect and

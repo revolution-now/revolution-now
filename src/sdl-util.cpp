@@ -24,10 +24,6 @@
 //#include "base-util/algo.hpp"
 //#include "base-util/string.hpp"
 
-// Range-v3
-//#include "range/v3/view/group_by.hpp"
-//#include "range/v3/view/transform.hpp"
-
 // C++ standard library
 //#include <cmath>
 //#include <iomanip>

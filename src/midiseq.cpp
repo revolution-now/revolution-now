@@ -32,9 +32,6 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 
-// Range-v3
-#include "range/v3/algorithm/any_of.hpp"
-
 // C++ standard library
 #include <algorithm>
 #include <queue>
@@ -271,9 +268,7 @@ private:
       return absl::StrContains(
           absl::AsciiStrToLower( port_name ), n );
     };
-    return rg::any_of(
-        initializer_list<char const*>{ "fluid", "timidity" },
-        valid );
+    return valid( "fluid" ) || valid( "timidity" );
   }
 
   maybe<int> find_midi_output_port() {

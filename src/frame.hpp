@@ -13,7 +13,7 @@
 // Revolution Now
 #include "cache.hpp"
 #include "core-config.hpp"
-#include "math.hpp"
+#include "moving-avg.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -39,7 +39,7 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc,
 
 using EventCountMap =
     std::unordered_map<std::string_view,
-                       MovingAverage<3 /*seconds*/>>;
+                       MovingAverageTyped</*seconds=*/3>>;
 
 EventCountMap& event_counts();
 

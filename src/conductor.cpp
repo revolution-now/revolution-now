@@ -20,12 +20,14 @@
 #include "mplayer.hpp"
 #include "oggplayer.hpp"
 #include "rand.hpp"
-#include "ranges.hpp"
 #include "time.hpp"
 #include "window.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/music.inl"
+
+// base
+#include "base/range-lite.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -33,16 +35,11 @@
 // magic enum
 #include "magic_enum.hpp"
 
-// Range-v3
-#include "range/v3/iterator/operations.hpp"
-#include "range/v3/view/enumerate.hpp"
-#include "range/v3/view/filter.hpp"
-#include "range/v3/view/take.hpp"
-#include "range/v3/view/transform.hpp"
-
 using namespace std;
 
 namespace rn::conductor {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -73,17 +70,17 @@ double g_master_volume{ 1.0 };
                       prefix##MusicPlayer::player().second );
 
 auto enabled_mplayers_ptrs() {
-  return g_mplayers                                            //
-         | rv::filter( L( g_mplayer_infos[_.first].enabled ) ) //
-         | rv::transform( []( auto& pair ) -> decltype( auto ) {
-             return *( pair.second );
-           } );
+  return rl::all( g_mplayers )
+      .keep_if_L( g_mplayer_infos[_.first].enabled )
+      .map( []( auto& pair ) -> decltype( auto ) {
+        return *pair.second;
+      } );
 }
 
 auto enabled_mplayers_enums() {
-  return g_mplayers                                            //
-         | rv::filter( L( g_mplayer_infos[_.first].enabled ) ) //
-         | rv::transform( L( _.first ) );
+  return rl::all( g_mplayers )
+      .keep_if_L( g_mplayer_infos[_.first].enabled )
+      .map_L( _.first );
 }
 
 TuneId next_tune_in_playlist() {
@@ -291,10 +288,8 @@ void init_conductor() {
            stem, event );
   }
 
-  CHECK(
-      int( g_special_tunes.size() ) ==
-      rg::distance(
-          magic_enum::enum_values<e_special_music_event>() ) );
+  CHECK( g_special_tunes.size() ==
+         magic_enum::enum_count<e_special_music_event>() );
 
   // This will set the music player if possible, make sure all
   // music is stopped, etc.
@@ -455,7 +450,7 @@ void reset() {
         g_active_mplayer );
   } else {
     if( auto maybe_first_available =
-            head( enabled_mplayers_enums() );
+            enabled_mplayers_enums().head();
         maybe_first_available.has_value() ) {
       g_active_mplayer = *maybe_first_available;
       lg.info(
@@ -670,7 +665,7 @@ void playlist_generate() {
       ( num_tunes > 5 ) ? 5 : ( num_tunes - 1 );
   CHECK( no_overlap_size < 100000 ); // sanity check
   vector<TuneId> last_n;
-  for( auto id : all_tunes() | rv::take( no_overlap_size ) )
+  for( auto id : rl::all( all_tunes() ).take( no_overlap_size ) )
     last_n.push_back( id );
   CHECK( last_n.size() == no_overlap_size );
   auto overlaps = [&]( TuneId id ) {
@@ -700,7 +695,7 @@ void playlist_generate() {
     }
   }
   lg.trace( "playlist:" );
-  for( auto [idx, id] : res | rv::enumerate )
+  for( auto [idx, id] : rl::all( res ).enumerate() )
     lg.trace( " {: >4}. {}", idx + 1,
               tune_display_name_from_id( id ) );
   CHECK( res.size() > 0 );

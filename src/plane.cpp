@@ -24,7 +24,6 @@
 #include "main-menu.hpp"
 #include "menu.hpp"
 #include "panel.hpp"
-#include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -32,14 +31,10 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/range-lite.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
-
-// Range-v3
-#include "range/v3/view/filter.hpp"
-#include "range/v3/view/reverse.hpp"
-#include "range/v3/view/zip.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -48,6 +43,8 @@
 using namespace std;
 
 namespace rn {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -188,14 +185,17 @@ DragState g_drag_state;
 auto relevant_planes() {
   static auto not_covers_screen =
       L( !_.second->covers_screen() );
-  auto plane_ptrs =
-      g_plane_list | rv::transform( L( plane( _ ) ) );
-  return rv::zip( g_plane_list, plane_ptrs ) //
-         | rv::reverse                       //
-         | take_while_inclusive( not_covers_screen );
+  // Use as_const because the view mechanism naturally will prop-
+  // agate references to the contents of that vector and so we
+  // want them to be const to avoid any unintended mutation,
+  // which can easily happen because the references will be in-
+  // side std::pairs, which will happily assign through to the
+  // references on assignment.
+  auto r_plane_list = rl::rall( as_const( g_plane_list ) );
+  auto r_plane_ptrs = r_plane_list.copy().map_L( plane( _ ) );
+  return rl::zip( r_plane_list, r_plane_ptrs )
+      .take_while_incl( not_covers_screen );
 }
-
-auto planes_to_draw() { return relevant_planes() | rv::reverse; }
 
 /****************************************************************
 ** Initialization
@@ -354,12 +354,15 @@ bool is_plane_enabled( e_plane plane ) {
 void draw_all_planes( Texture& tx ) {
   clear_texture_black( tx );
 
+  auto reverse_planes_to_draw = relevant_planes().to_vector();
+  auto planes_to_draw = rl::rall( reverse_planes_to_draw );
+
   // This will find the last plane that will render (opaquely)
   // over every pixel. If one is found then we will not render
   // any planes before it. This is technically not necessary, but
   // saves rendering work by avoiding to render things that would
   // go unseen anyway.
-  for( auto [e, ptr] : planes_to_draw() ) {
+  for( auto [e, ptr] : planes_to_draw ) {
     plane_tx( e ).set_render_target();
     ptr->draw( plane_tx( e ) );
     copy_texture( plane_tx( e ), tx );

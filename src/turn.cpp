@@ -24,7 +24,6 @@
 #include "logging.hpp"
 #include "no-serial.hpp"
 #include "panel.hpp" // FIXME
-#include "ranges.hpp"
 #include "render.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
@@ -42,9 +41,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-
-// Range-v3
-#include "range/v3/view/take.hpp"
 
 // C++ standard library
 #include <algorithm>

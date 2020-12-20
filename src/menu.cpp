@@ -21,7 +21,6 @@
 #include "logging.hpp"
 #include "macros.hpp"
 #include "plane.hpp"
-#include "ranges.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -36,6 +35,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/range-lite.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -43,19 +43,14 @@
 // magic enum
 #include "magic_enum.hpp"
 
-// Range-v3
-#include "range/v3/view/intersperse.hpp"
-#include "range/v3/view/remove_if.hpp"
-#include "range/v3/view/reverse.hpp"
-#include "range/v3/view/take_while.hpp"
-#include "range/v3/view/transform.hpp"
-
 // C++ standard library
 #include <chrono>
 
 using namespace std;
 
 namespace rn {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -286,7 +281,7 @@ bool have_some_visible_menus() {
 }
 
 maybe<e_menu> first_visible_menu() {
-  return head( visible_menus() );
+  return rl::all( visible_menus() ).head();
 }
 
 /****************************************************************
@@ -400,22 +395,20 @@ X menu_header_x_pos_( e_menu target ) {
   W           width_delta{ 0 };
   auto const& vm = visible_menus();
   if( desc.right_side ) {
-    width_delta = rg::accumulate(
-        vm                                                   //
-            | rv::reverse                                    //
-            | rv::remove_if( L( !g_menus[_].right_side ) )   //
-            | take_while_inclusive( LC( _ != target ) )      //
-            | rv::transform( L( menu_header_delta( _ ).w ) ) //
-            | rv::intersperse( config_ui.menus.spacing ),
-        0_w );
+    width_delta = rl::all( vm )
+                      .reverse()
+                      .remove_if_L( !g_menus[_].right_side )
+                      .take_while_incl_L( _ != target )
+                      .map_L( menu_header_delta( _ ).w )
+                      .intersperse( config_ui.menus.spacing )
+                      .accumulate();
   } else {
-    width_delta = rg::accumulate(
-        vm                                                //
-            | rv::remove_if( L( g_menus[_].right_side ) ) //
-            | rv::take_while( LC( _ != target ) )         //
-            | rv::transform( L( menu_header_delta( _ ).w +
-                                config_ui.menus.spacing ) ),
-        0_w );
+    width_delta = rl::all( vm )
+                      .remove_if_L( g_menus[_].right_side )
+                      .take_while_L( _ != target )
+                      .map_L( menu_header_delta( _ ).w +
+                              config_ui.menus.spacing )
+                      .accumulate();
   }
   width_delta += config_ui.menus.first_menu_start;
   CHECK( width_delta >= 0_w );

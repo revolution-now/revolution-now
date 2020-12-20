@@ -14,27 +14,17 @@
 #include "errors.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
-#include "ranges-fwd.hpp"
 #include "ustate.hpp"
 #include "util.hpp"
 #include "variant.hpp"
 
 // base
 #include "base/lambda.hpp"
+#include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
-
-// Range-v3
-#include "range/v3/numeric/accumulate.hpp"
-#include "range/v3/view/cycle.hpp"
-#include "range/v3/view/drop.hpp"
-#include "range/v3/view/enumerate.hpp"
-#include "range/v3/view/group_by.hpp"
-#include "range/v3/view/iota.hpp"
-#include "range/v3/view/map.hpp"
-#include "range/v3/view/take.hpp"
 
 // C++ standard library
 #include <type_traits>
@@ -42,6 +32,8 @@
 using namespace std;
 
 namespace rn {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -213,7 +205,8 @@ vector<pair<Commodity, int>> CargoHold::commodities(
     maybe<e_commodity> type ) const {
   vector<pair<Commodity, int>> res;
 
-  for( auto const& [idx, slot] : rv::enumerate( slots_ ) ) {
+  for( auto const& [idx, slot] :
+       rl::all( slots_ ).enumerate() ) {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) )
       if( auto* commodity =
               get_if<Commodity>( &( cargo->contents ) ) )
@@ -226,8 +219,7 @@ vector<pair<Commodity, int>> CargoHold::commodities(
 void CargoHold::compactify() {
   auto unit_ids    = units();
   auto comms_pairs = commodities();
-  auto comms =
-      rg::to<vector<Commodity>>( comms_pairs | rv::keys );
+  auto comms       = rl::all( comms_pairs ).keys().to_vector();
   // First sort by ID, then do a stable sort on slot occupancy to
   // get "deterministic" results.
   util::sort_by_key( unit_ids, []( auto id ) { return id._; } );
@@ -241,7 +233,7 @@ void CargoHold::compactify() {
   check_invariants();
   for( UnitId id : unit_ids ) CHECK( try_add_somewhere( id ) );
   auto like_types =
-      comms | rv::group_by( L2( _1.type == _2.type ) );
+      rl::all( comms ).group_by_L( _1.type == _2.type );
   for( auto group : like_types ) {
     auto              type = group.begin()->type;
     vector<Commodity> new_comms;
@@ -286,7 +278,7 @@ int CargoHold::max_commodity_quantity_that_fits(
       }
     }
   };
-  return rg::accumulate( slots_ | rv::transform( one_slot ), 0 );
+  return rl::all( slots_ ).map( one_slot ).accumulate();
 }
 
 bool CargoHold::fits( Cargo const& cargo, int slot ) const {
@@ -374,10 +366,10 @@ bool CargoHold::try_add_somewhere( Cargo const& cargo,
                                    int          starting_from ) {
   if( slots_total() == 0 ) return false;
   CHECK( starting_from >= 0 && starting_from < slots_total() );
-  auto slots = rv::ints( 0, slots_total() ) //
-               | rv::cycle                  //
-               | rv::drop( starting_from )  //
-               | rv::take( slots_total() );
+  auto slots = rl::ints( 0, slots_total() )
+                   .cycle()
+                   .drop( starting_from )
+                   .take( slots_total() );
   return overload_visit(
       cargo,
       [&]( UnitId id ) {

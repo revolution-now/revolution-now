@@ -16,7 +16,7 @@
 #include "config-files.hpp"
 #include "input.hpp"
 #include "macros.hpp"
-#include "math.hpp"
+#include "moving-avg.hpp"
 #include "plane.hpp"
 #include "render.hpp" // FIXME
 #include "screen.hpp"
@@ -31,9 +31,6 @@
 #include "base/scope-exit.hpp"
 #include "base/variant.hpp"
 
-// Range-v3
-#include "range/v3/algorithm/any_of.hpp"
-
 // C++ standard library
 #include <thread>
 
@@ -43,7 +40,7 @@ namespace rn {
 
 namespace {
 
-MovingAverage<3 /*seconds*/> frame_rate;
+MovingAverage frame_rate( chrono::seconds( 3 ) );
 
 EventCountMap g_event_counts;
 

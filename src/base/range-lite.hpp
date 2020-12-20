@@ -14,6 +14,9 @@
 #include "maybe.hpp"
 #include "stack-trace.hpp"
 
+// C++ standard library
+#include <tuple>
+
 // rl stands for "range lite".
 namespace base::rl {
 
@@ -193,6 +196,30 @@ public:
   auto end() const { return view_->end(); }
   auto cbegin() const { return view_->cbegin(); }
   auto cend() const { return view_->cend(); }
+};
+
+// Takes any range and yields a view of all elements in it.
+template<typename InputView>
+class BidirectionalAllView {
+  InputView* view_;
+
+public:
+  BidirectionalAllView( InputView* view ) : view_( view ) {}
+
+  using ultimate_view_t = InputView;
+
+  void attach( ultimate_view_t& input ) & { view_ = &input; }
+
+  static auto create( ultimate_view_t& input ) {
+    return BidirectionalAllView( &input );
+  }
+
+  using iterator = decltype( std::declval<InputView>().begin() );
+
+  auto begin() const { return view_->begin(); }
+  auto end() const { return view_->end(); }
+  auto cbegin() const { return view_->cbegin(); }
+  auto cend() const { return view_->cend(); }
 
   using riterator =
       decltype( std::declval<InputView>().rbegin() );
@@ -300,6 +327,88 @@ public:
 };
 
 /****************************************************************
+** GenerateView
+*****************************************************************/
+// Given  a nullary function and a count, return a range that
+// gen- erates  the  requested  number of elements by calling the
+// func- tion.
+template<typename Func>
+class GenerateView {
+  Func      func_;
+  const int count_;
+
+public:
+  template<typename T>
+  GenerateView( T&& func, int count )
+    : func_( std::forward<T>( func ) ), count_( count ) {}
+
+  class iterator {
+    void clear_if_end() {
+      if( n_to_go_ <= 0 ) view_ = nullptr;
+    }
+
+    void populate() { cache_ = view_->func_(); }
+
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using difference_type   = int;
+    using value_type        = std::invoke_result_t<Func>;
+    using pointer           = value_type const*;
+    using reference         = value_type const&;
+
+    iterator() = default;
+    iterator( GenerateView const* view )
+      : view_( view ), n_to_go_( view->count_ ), cache_{} {
+      clear_if_end();
+      if( view_ == nullptr ) return;
+      populate();
+    }
+
+    decltype( auto ) operator*() const {
+      assert_bt( view_ != nullptr );
+      return cache_;
+    }
+
+    iterator& operator++() {
+      assert_bt( view_ != nullptr );
+      assert_bt( n_to_go_ > 0 );
+      --n_to_go_;
+      clear_if_end();
+      if( view_ != nullptr ) populate();
+      return *this;
+    }
+
+    iterator operator++( int ) {
+      auto res = *this;
+      ++( *this );
+      return res;
+    }
+
+    bool operator==( iterator const& rhs ) const {
+      // Cannot compare two iterators that are in the middle of a
+      // range, since it would introduce  too  much  complication
+      // into this implementation and  it  probably  is not
+      // neces- sary anyway.
+      assert_bt( view_ == nullptr || rhs.view_ == nullptr );
+      return view_ == rhs.view_;
+    }
+
+    bool operator!=( iterator const& rhs ) const {
+      return !( *this == rhs );
+    }
+
+    GenerateView const* view_    = nullptr;
+    int                 n_to_go_ = 0;
+    value_type          cache_   = {};
+  };
+
+  iterator begin() const { return iterator( this ); }
+  iterator end() const { return iterator(); }
+  iterator cbegin() const { return iterator( this ); }
+  iterator cend() const { return iterator(); }
+};
+
+/****************************************************************
 ** ChildView
 *****************************************************************/
 // This view is used by views that need to produce other views as
@@ -344,10 +453,10 @@ struct ChildView {
     }
 
     bool operator==( iterator const& rhs ) const {
-      // Cannot compare two iterators that are in the middle of
-      // a range, since it would introduce too much complica-
-      // tion into this implementation and it probably is not
-      // necessary anyway.
+      // Cannot compare two iterators that are in the middle of a
+      // range, since it would introduce  too  much  complication
+      // into this implementation and  it  probably  is not
+      // neces- sary anyway.
       assert_bt( view_ == nullptr || rhs.view_ == nullptr );
       return view_ == rhs.view_;
     }
@@ -583,6 +692,11 @@ public:
   auto crend() const { return make_riterator(); }
 
   /**************************************************************
+  ** Copy
+  ***************************************************************/
+  auto copy() const { return *this; }
+
+  /**************************************************************
   ** Materialization
   ***************************************************************/
   std::vector<value_type> to_vector() const {
@@ -655,8 +769,9 @@ public:
   /**************************************************************
   ** Accumulate
   ***************************************************************/
-  template<typename Op = std::plus<>>
-  value_type accumulate( Op&& op = {}, value_type init = {} ) {
+  template<typename Op    = std::plus<>,
+           typename InitT = value_type>
+  auto accumulate( Op&& op = {}, InitT init = {} ) {
     value_type res = init;
     for( auto const& e : *this )
       res = std::invoke( std::forward<Op>( op ), res, e );
@@ -785,6 +900,19 @@ private:
                          Data( std::forward<Args>( args )... ) );
   }
 
+  template<typename T>
+  constexpr static auto check_fn_ptr( T&& f ) {
+    if constexpr( std::is_function_v<
+                      std::remove_reference_t<T>> )
+      return &f;
+    else
+      return std::forward<T>( f );
+  }
+
+  template<typename T>
+  using func_storage_t =
+      decltype( check_fn_ptr( std::declval<T>() ) );
+
 public:
   /**************************************************************
   ** KeepIf
@@ -795,9 +923,10 @@ public:
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
+        Data( func_t const& f ) : func_( check_fn_ptr( f ) ) {}
+        Data( func_t&& f )
+          : func_( std::move( check_fn_ptr( f ) ) ) {}
+        func_storage_t<Func> func_;
       };
       using Base = CursorBase<KeepIfCursor>;
       using Base::it_;
@@ -822,7 +951,7 @@ public:
         } while( true );
       }
 
-      func_t const* func_;
+      func_storage_t<Func> const* func_;
     };
     return make_chain<KeepIfCursor>(
         std::forward<Func>( func ) );
@@ -836,9 +965,10 @@ public:
     using func_t = std::remove_reference_t<Func>;
     struct Data {
       Data() = default;
-      Data( func_t const& f ) : func_( f ) {}
-      Data( func_t&& f ) : func_( std::move( f ) ) {}
-      func_t func_;
+      Data( func_t const& f ) : func_( check_fn_ptr( f ) ) {}
+      Data( func_t&& f )
+        : func_( std::move( check_fn_ptr( f ) ) ) {}
+      func_storage_t<Func> func_;
     };
     using Base = CursorBase<MapCursor>;
     using Base::it_;
@@ -846,9 +976,7 @@ public:
     MapCursor() = default;
     MapCursor( Data const& data ) : func_( &data.func_ ) {
       constexpr bool func_returns_ref =
-          std::is_reference_v<std::invoke_result_t<
-              Func, std::add_lvalue_reference_t<
-                        ChainView::value_type>>>;
+          std::is_reference_v<decltype( ( *func_ )( *it_ ) )>;
       if constexpr( func_returns_ref ) {
         // If you fail here then you are probably trying to
         // re- turn a reference to a temporary that was
@@ -863,7 +991,7 @@ public:
       return ( *func_ )( *it_ );
     }
 
-    func_t const* func_;
+    func_storage_t<Func> const* func_;
   };
 
   template<typename Func>
@@ -897,9 +1025,10 @@ public:
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
+        Data( func_t const& f ) : func_( check_fn_ptr( f ) ) {}
+        Data( func_t&& f )
+          : func_( std::move( check_fn_ptr( f ) ) ) {}
+        func_storage_t<Func> func_;
       };
       using Base = CursorBase<TakeWhileCursor>;
       using Base::it_;
@@ -929,8 +1058,8 @@ public:
         return it_;
       }
 
-      func_t const* func_;
-      bool          finished_;
+      func_storage_t<Func> const* func_;
+      bool                        finished_;
     };
     return make_chain<TakeWhileCursor>(
         std::forward<Func>( func ) );
@@ -945,9 +1074,10 @@ public:
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
+        Data( func_t const& f ) : func_( check_fn_ptr( f ) ) {}
+        Data( func_t&& f )
+          : func_( std::move( check_fn_ptr( f ) ) ) {}
+        func_storage_t<Func> func_;
       };
       using Base = CursorBase<DropWhileCursor>;
       using Base::it_;
@@ -961,7 +1091,7 @@ public:
         while( it_ != input.end() && ( *func_ )( *it_ ) ) ++it_;
       }
 
-      func_t const* func_;
+      func_storage_t<Func> const* func_;
     };
     return make_chain<DropWhileCursor>(
         std::forward<Func>( func ) );
@@ -979,9 +1109,10 @@ public:
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
+        Data( func_t const& f ) : func_( check_fn_ptr( f ) ) {}
+        Data( func_t&& f )
+          : func_( std::move( check_fn_ptr( f ) ) ) {}
+        func_storage_t<Func> func_;
       };
       using Base = CursorBase<TakeWhileInclCursor>;
       using Base::it_;
@@ -1025,7 +1156,7 @@ public:
         return it_;
       }
 
-      func_t const* func_;
+      func_storage_t<Func> const* func_;
       enum class e_state { taking, last, finished };
       e_state state_;
     };
@@ -1059,7 +1190,8 @@ public:
 
       decltype( auto ) get( ChainView const& input ) const {
         assert_bt( !end( input ) );
-        return std::pair{ *it_, *it2_ };
+        return std::pair<decltype( *it_ ), decltype( *it2_ )>{
+            *it_, *it2_ };
       }
 
       void next( ChainView const& input ) {
@@ -1147,7 +1279,8 @@ public:
   /**************************************************************
   ** Intersperse
   ***************************************************************/
-  auto intersperse( ValueType val ) && {
+  template<typename T = ValueType>
+  auto intersperse( T&& val ) && {
     struct IntersperseCursor
       : public CursorBase<IntersperseCursor> {
       struct Data {
@@ -1183,7 +1316,8 @@ public:
       ValueType val_;
       bool      should_give_val_;
     };
-    return make_chain<IntersperseCursor>( std::move( val ) );
+    return make_chain<IntersperseCursor>(
+        std::forward<T>( val ) );
   }
 
   /**************************************************************
@@ -1297,9 +1431,10 @@ public:
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
-        Data( func_t const& f ) : func_( f ) {}
-        Data( func_t&& f ) : func_( std::move( f ) ) {}
-        func_t func_;
+        Data( func_t const& f ) : func_( check_fn_ptr( f ) ) {}
+        Data( func_t&& f )
+          : func_( std::move( check_fn_ptr( f ) ) ) {}
+        func_storage_t<Func> func_;
       };
       using Base = CursorBase<GroupByCursor>;
       using Base::it_;
@@ -1367,7 +1502,7 @@ public:
           finished_group_ = true;
       }
 
-      func_t const*                  func_;
+      func_storage_t<Func> const*    func_;
       ChainView const*               input_;
       bool                           finished_group_;
       typename ChainView::value_type cache_;
@@ -1392,10 +1527,11 @@ public:
   // the function to each input value. [a] -> [(a, f(a))].
   template<typename Func>
   auto map2val( Func&& func ) && {
-    return std::move( *this ).map(
-        [func = std::forward<Func>( func )]( auto&& arg ) {
-          return std::pair{ arg, func( arg ) };
-        } );
+    return std::move( *this ).map( [func = std::forward<Func>(
+                                        func )]( auto&& arg ) {
+      return std::pair<decltype( arg ), decltype( func( arg ) )>{
+          arg, func( arg ) };
+    } );
   }
 
   /**************************************************************
@@ -1420,7 +1556,9 @@ public:
         .zip( ChainView<IntsView, IntsCursor>( IntsView( start ),
                                                Data{} ) )
         .map( []( auto&& p ) {
-          return std::pair{ p.second, p.first };
+          return std::pair<decltype( p.second ),
+                           decltype( p.first )>{ p.second,
+                                                 p.first };
         } );
   }
 
@@ -1457,6 +1595,31 @@ public:
   auto tail() && { return std::move( *this ).drop( 1 ); }
 
   /**************************************************************
+  ** Zip3
+  ***************************************************************/
+  // FIXME: Make this more efficient, probably needs a dedicated
+  // cursor. Also it should ideally yield references into the un-
+  // derlying views where appropriate.
+  template<typename View2, typename View3>
+  auto zip3( View2&& view2, View3&& view3 ) && {
+    using value_t_1 = value_type;
+    using value_t_2 =
+        it_type_to_value_type_t<typename View2::iterator>;
+    using value_t_3 =
+        it_type_to_value_type_t<typename View3::iterator>;
+    using first_pair  = std::pair<value_t_1, value_t_2>;
+    using outter_pair = std::pair<first_pair, value_t_3>;
+    return std::move( *this )
+        .zip( std::forward<View2>( view2 ) )
+        .zip( std::forward<View3>( view3 ) )
+        .map( []( outter_pair&& p ) {
+          return std::tuple{ std::move( p.first.first ),
+                             std::move( p.first.second ),
+                             std::move( p.second ) };
+        } );
+  }
+
+  /**************************************************************
   ** Filter
   ***************************************************************/
   // Just for compatibility with range-v3.
@@ -1476,16 +1639,17 @@ public:
 // lView (which just holds a pointer) and then will wrap the Al-
 // lView in a ChainView. However, if the input is already a Chain
 // view then it will just forward it.
-template<typename InputView,
-         typename T = typename std::remove_reference_t<
-             InputView>::value_type>
+template<
+    typename InputView,
+    typename T = it_type_to_value_type_t<
+        typename std::remove_reference_t<InputView>::iterator>>
 auto all( InputView&& input ) {
   if constexpr( is_chain_view_v<std::decay_t<InputView>> ) {
     return std::forward<InputView>( input );
   } else {
-    using initial_view_t =
-        AllView<std::remove_reference_t<InputView>>;
     if constexpr( view_supports_reverse_v<InputView> ) {
+      using initial_view_t = BidirectionalAllView<
+          std::remove_reference_t<InputView>>;
       using Data = typename BidirectionalIdentityCursor<
           initial_view_t>::Data;
       return ChainView<
@@ -1493,6 +1657,8 @@ auto all( InputView&& input ) {
           BidirectionalIdentityCursor<initial_view_t>>(
           initial_view_t( &input ), Data{} );
     } else {
+      using initial_view_t =
+          AllView<std::remove_reference_t<InputView>>;
       using Data = typename IdentityCursor<initial_view_t>::Data;
       return ChainView<initial_view_t,
                        IdentityCursor<initial_view_t>>(
@@ -1502,9 +1668,10 @@ auto all( InputView&& input ) {
 }
 
 // Same above but creates a reverse view.
-template<typename InputView,
-         typename T = typename std::remove_reference_t<
-             InputView>::value_type>
+template<
+    typename InputView,
+    typename T = it_type_to_value_type_t<
+        typename std::remove_reference_t<InputView>::iterator>>
 auto rall( InputView&& input ) {
   using initial_view_t =
       ReverseAllView<std::remove_reference_t<InputView>>;
@@ -1521,28 +1688,51 @@ auto rall( InputView&& input ) {
 // "this is the beginning of a chain that takes `InputView` as
 // input." This is useful for building view chains for later use
 // on multiple containers.
-template<typename InputView,
-         typename T = typename std::remove_reference_t<
-             InputView>::value_type>
+template<
+    typename InputView,
+    typename T = it_type_to_value_type_t<
+        typename std::remove_reference_t<InputView>::iterator>>
 auto input() {
   static_assert( !is_chain_view_v<std::decay_t<InputView>> );
-  using initial_view_t =
-      AllView<std::remove_reference_t<InputView>>;
-  using Data = typename IdentityCursor<initial_view_t>::Data;
-  return ChainView<initial_view_t,
-                   IdentityCursor<initial_view_t>>(
-      initial_view_t( nullptr ), Data{} );
+  if constexpr( view_supports_reverse_v<InputView> ) {
+    using initial_view_t =
+        BidirectionalAllView<std::remove_reference_t<InputView>>;
+    using Data = typename BidirectionalIdentityCursor<
+        initial_view_t>::Data;
+    return ChainView<initial_view_t, BidirectionalIdentityCursor<
+                                         initial_view_t>>(
+        initial_view_t( nullptr ), Data{} );
+  } else {
+    using initial_view_t =
+        AllView<std::remove_reference_t<InputView>>;
+    using Data = typename IdentityCursor<initial_view_t>::Data;
+    return ChainView<initial_view_t,
+                     IdentityCursor<initial_view_t>>(
+        initial_view_t( nullptr ), Data{} );
+  }
 }
 
 /****************************************************************
 ** ints
 *****************************************************************/
-auto ints( int start = 0,
-           int end   = std::numeric_limits<int>::max() ) {
+inline auto ints( int start = 0,
+                  int end   = std::numeric_limits<int>::max() ) {
   using Cursor = IdentityCursor<IntsView>;
   using Data   = typename Cursor::Data;
   return ChainView<IntsView, Cursor>( IntsView( start, end ),
                                       Data{} );
+}
+
+/****************************************************************
+** generate_n
+*****************************************************************/
+template<typename Func>
+auto generate_n( Func&& func, int count ) {
+  using Cursor = IdentityCursor<GenerateView<Func>>;
+  using Data   = typename Cursor::Data;
+  return ChainView<GenerateView<Func>, Cursor>(
+      GenerateView<Func>( std::forward<Func>( func ), count ),
+      Data{} );
 }
 
 /****************************************************************
@@ -1552,6 +1742,15 @@ template<typename LeftView, typename RightView>
 auto zip( LeftView&& left_view, RightView&& right_view ) {
   return all( std::forward<LeftView>( left_view ) )
       .zip( all( std::forward<RightView>( right_view ) ) );
+}
+
+template<typename FirstView, typename SecondView,
+         typename ThirdView>
+auto zip( FirstView&& first, SecondView&& second,
+          ThirdView&& third ) {
+  return all( std::forward<FirstView>( first ) )
+      .zip3( all( std::forward<SecondView>( second ) ),
+             all( std::forward<ThirdView>( third ) ) );
 }
 
 } // namespace base::rl

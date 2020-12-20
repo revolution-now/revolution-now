@@ -8,31 +8,32 @@
 * Description: Backend for lua terminal.
 *
 *****************************************************************/
+// We  need to define this first because a preprocessor symbol
+// de- fined by the {fmt}  library  ("fmt")  conflicts with
+// something inside str_join.
+#include "absl/strings/str_join.h"
+
 #include "terminal.hpp"
 
 // Revolution Now
 #include "errors.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "ranges.hpp"
 
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
+#include "base/range-lite.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
 #include "absl/strings/str_split.h"
 
-// Range-v3
-#include "range/v3/view/drop.hpp"
-#include "range/v3/view/join.hpp"
-#include "range/v3/view/reverse.hpp"
-#include "range/v3/view/take_while.hpp"
-
 using namespace std;
 
 namespace rn::term {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -163,17 +164,17 @@ vector<string> autocomplete( string_view fragment ) {
            ( c == '_' );
   };
   lg.trace( "fragment: {}", fragment );
-  auto to_autocomplete =
-      rg::to<string>( fragment                                 //
-                      | rv::reverse                            //
-                      | rv::take_while( is_autocomplete_char ) //
-                      | rv::reverse );
+  auto to_autocomplete = rl::all( fragment )
+                             .reverse()
+                             .take_while( is_autocomplete_char )
+                             .to<string>();
+  reverse( to_autocomplete.begin(), to_autocomplete.end() );
   lg.trace( "to_autocomplete: {}", to_autocomplete );
-  auto prefix =
-      rg::to<string>( fragment                             //
-                      | rv::reverse                        //
-                      | rv::drop( to_autocomplete.size() ) //
-                      | rv::reverse );
+  auto prefix = rl::all( fragment )
+                    .reverse()
+                    .drop( to_autocomplete.size() )
+                    .to<string>();
+  reverse( prefix.begin(), prefix.end() );
   lg.trace( "prefix: {}", prefix );
   // Stop here otherwise we'll be looking through all globals.
   if( to_autocomplete.empty() ) return {};
@@ -183,12 +184,10 @@ vector<string> autocomplete( string_view fragment ) {
       absl::StrSplit( to_autocomplete, absl::ByAnyChar( ".:" ) );
   CHECK( segments.size() > 0 );
   lg.trace( "segments.size(): {}", segments.size() );
-  // FIXME: after upgrading range-v3, use rv::drop_last here.
-  auto initial_segments = segments        //
-                          | rv::reverse   //
-                          | rv::drop( 1 ) //
-                          | rv::reverse;
-
+  // This is a "drop last".
+  vector<string> initial_segments(
+      segments.begin(),
+      segments.empty() ? segments.end() : segments.end() - 1 );
   auto lua_type_string = []( sol::object   parent,
                              string const& key ) {
     // FIXME: this shouldn't be needed, but it seems that sol2
@@ -271,8 +270,7 @@ vector<string> autocomplete( string_view fragment ) {
   }
   auto last = segments.back();
   lg.trace( "last: {}", last );
-  auto initial =
-      rg::to<string>( initial_segments | rv::join( '.' ) );
+  string initial = absl::StrJoin( initial_segments, "." );
   vector<string> res;
 
   auto add_keys = [&]( sol::object parent, auto kv ) {

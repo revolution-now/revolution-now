@@ -27,7 +27,6 @@
 #include "macros.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
-#include "ranges.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "sg-macros.hpp"
@@ -39,6 +38,7 @@
 #include "window.hpp"
 
 // base
+#include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 
 // Rnl
@@ -47,15 +47,11 @@
 // Flatbuffers
 #include "fb/sg-europort-view_generated.h"
 
-// Range-v3
-#include "range/v3/view/all.hpp"
-#include "range/v3/view/iota.hpp"
-#include "range/v3/view/transform.hpp"
-#include "range/v3/view/zip.hpp"
-
 using namespace std;
 
 namespace rn {
+
+namespace rl = ::base::rl;
 
 DECLARE_SAVEGAME_SERIALIZERS( EuroportView );
 
@@ -182,18 +178,18 @@ Texture draw_draggable_object(
 /****************************************************************
 ** Helpers
 *****************************************************************/
-// Both rv::all and the lambda will take rect_proxy by reference
+// Both rl::all and the lambda will take rect_proxy by reference
 // so we therefore must have this function take a reference to a
 // rect_proxy that outlives the use of the returned range. And of
 // course the Rect referred to by the rect_proxy must outlive
 // everything.
 auto range_of_rects(
     RectGridProxyIteratorHelper const& rect_proxy ) {
-  return rv::all( rect_proxy ) |
-         rv::transform( [&rect_proxy]( Coord coord ) {
-           return Rect::from(
-               coord, Delta{ 1_w, 1_h } * rect_proxy.scale() );
-         } );
+  return rl::all( rect_proxy )
+      .map( [&rect_proxy]( Coord coord ) {
+        return Rect::from(
+            coord, Delta{ 1_w, 1_h } * rect_proxy.scale() );
+      } );
 }
 
 auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
@@ -795,11 +791,12 @@ NOTHROW_MOVE( Dock );
 class UnitCollection {
 public:
   Rect bounds() const {
-    auto uni0n = L2( _1.uni0n( _2 ) );
+    auto Union = L2( _1.uni0n( _2 ) );
     auto to_rect =
         L( Rect::from( _.pixel_coord, g_tile_delta ) );
-    auto maybe_rect = accumulate_monoid(
-        units_ | rv::transform( to_rect ), uni0n );
+    auto maybe_rect =
+        rl::all( units_ ).map( to_rect ).accumulate_monoid(
+            Union );
     return maybe_rect.value_or( bounds_when_no_units_ );
   }
 
@@ -1045,7 +1042,7 @@ public:
       auto&       unit = unit_from_id( *maybe_active_unit_ );
       auto const& cargo_slots = unit.cargo().slots();
       for( auto const& [idx, cargo_slot, rect] :
-           rv::zip( rv::ints, cargo_slots,
+           rl::zip( rl::ints(), cargo_slots,
                     range_of_rects( grid ) ) ) {
         if( g_dragging_object.has_value() ) {
           if_get( *g_dragging_object,
@@ -1083,7 +1080,7 @@ public:
         }
       }
       for( auto [idx, rect] :
-           rv::zip( rv::ints, range_of_rects( grid ) ) ) {
+           rl::zip( rl::ints(), range_of_rects( grid ) ) ) {
         if( idx >= unit.cargo().slots_total() )
           render_fill_rect( tx, Color::white(),
                             rect.shifted_by( offset ) );

@@ -17,16 +17,15 @@
 #include "init.hpp"
 #include "logging.hpp"
 #include "menu.hpp"
-#include "ranges.hpp"
 #include "terrain.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
 
-// Range-v3
-#include "range/v3/view/iota.hpp"
-#include "range/v3/view/transform.hpp"
+// base
+#include "base/lambda.hpp"
+#include "base/range-lite.hpp"
 
 // SDL
 #include "SDL.h"
@@ -45,6 +44,8 @@ Texture         g_texture_viewport;
 Scale g_resolution_scale_factor{ 0 };
 Scale g_optimal_resolution_scale_factor{ 0 };
 Delta g_screen_physical_size{};
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -204,12 +205,11 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
-  auto scale_scores =
-      rv::iota( min_scale_factor, max_scale_factor + 1 ) //
-      | rv::transform( scale_info );
-
-  ASSIGN_CHECK_OPT( optimal,
-                    scale_scores | min_by_key( scale_score ) );
+  static_assert( std::is_function_v<decltype( scale_info )> );
+  ASSIGN_CHECK_OPT(
+      optimal, rl::ints( min_scale_factor, max_scale_factor + 1 )
+                   .map( scale_info )
+                   .min_by( scale_score ) );
 
   ///////////////////////////////////////////////////////////////
 #if 0

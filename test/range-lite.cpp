@@ -502,9 +502,12 @@ TEST_CASE( "[range-lite] map2val" ) {
     vector<int> input{ 1, 2, 3 };
 
     auto res = rl::all( input ).map2val_L( _ * _ ).to_vector();
+    static_assert(
+        is_same_v<decltype( res ), vector<pair<int&, int>>> );
 
-    REQUIRE_THAT( res, Equals( vector<pair<int, int>>{
-                           { 1, 1 }, { 2, 4 }, { 3, 9 } } ) );
+    int n1 = 1, n2 = 2, n3 = 3;
+    REQUIRE_THAT( res, Equals( vector<pair<int&, int>>{
+                           { n1, 1 }, { n2, 4 }, { n3, 9 } } ) );
   }
   SECTION( "string" ) {
     vector<int> input{ 1, 2, 3 };
@@ -512,9 +515,10 @@ TEST_CASE( "[range-lite] map2val" ) {
     auto res =
         rl::all( input ).map2val_L( to_string( _ ) ).to_vector();
 
-    REQUIRE_THAT( res,
-                  Equals( vector<pair<int, string>>{
-                      { 1, "1" }, { 2, "2" }, { 3, "3" } } ) );
+    int n1 = 1, n2 = 2, n3 = 3;
+    REQUIRE_THAT(
+        res, Equals( vector<pair<int&, string>>{
+                 { n1, "1" }, { n2, "2" }, { n3, "3" } } ) );
   }
 }
 
@@ -530,13 +534,27 @@ TEST_CASE( "[range-lite] zip" ) {
                    .take_while( L( _.second < 8 ) )
                    .to_vector();
 
-    auto expected = vector<pair<int, int>>{
-        { 2, 1 },
-        { 4, 3 },
-        { 6, 5 },
-        { 8, 7 },
-    };
-    REQUIRE_THAT( vec, Equals( expected ) );
+    REQUIRE( vec.size() == 4 );
+    int n, m;
+
+    // `vec` is a vector of pairs of references, which are a pain
+    // to compare.
+    n = 2;
+    m = 1;
+    REQUIRE( vec[0].first == n );
+    REQUIRE( vec[0].second == m );
+    n = 4;
+    m = 3;
+    REQUIRE( vec[1].first == n );
+    REQUIRE( vec[1].second == m );
+    n = 6;
+    m = 5;
+    REQUIRE( vec[2].first == n );
+    REQUIRE( vec[2].second == m );
+    n = 8;
+    m = 7;
+    REQUIRE( vec[3].first == n );
+    REQUIRE( vec[3].second == m );
   }
   SECTION( "zip: int, string" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -548,13 +566,28 @@ TEST_CASE( "[range-lite] zip" ) {
                    .zip( view_str )
                    .to_vector();
 
-    auto expected = vector<pair<int, string>>{
-        { 2, "1" },
-        { 4, "2" },
-        { 6, "3" },
-        { 8, "4" },
-    };
-    REQUIRE_THAT( vec, Equals( expected ) );
+    REQUIRE( vec.size() == 4 );
+    int    n;
+    string m;
+
+    // `vec` is a vector of pairs of references, which are a pain
+    // to compare.
+    n = 2;
+    m = "1";
+    REQUIRE( vec[0].first == n );
+    REQUIRE( vec[0].second == m );
+    n = 4;
+    m = "2";
+    REQUIRE( vec[1].first == n );
+    REQUIRE( vec[1].second == m );
+    n = 6;
+    m = "3";
+    REQUIRE( vec[2].first == n );
+    REQUIRE( vec[2].second == m );
+    n = 8;
+    m = "4";
+    REQUIRE( vec[3].first == n );
+    REQUIRE( vec[3].second == m );
   }
   SECTION( "zip: empty" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -566,9 +599,62 @@ TEST_CASE( "[range-lite] zip" ) {
                    .zip( view_str )
                    .to_vector();
 
-    auto expected = vector<pair<int, string>>{};
-    REQUIRE_THAT( vec, Equals( expected ) );
+    REQUIRE( vec.empty() );
   }
+}
+
+TEST_CASE( "[range-lite] zip write-through" ) {
+  SECTION( "both refs" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    auto view = rl::zip( input, rl::rall( input ) );
+
+    auto it        = view.begin();
+    ( *it ).first  = 100;
+    ( *it ).second = 200;
+
+    ++it;
+    ( *it ).first  = 300;
+    ( *it ).second = 400;
+
+    auto expected =
+        vector<int>{ 100, 300, 3, 4, 5, 6, 7, 400, 200 };
+    REQUIRE_THAT( input, Equals( expected ) );
+  }
+  SECTION( "one ref" ) {
+    vector<int> input1{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    vector<int> input2{ 1, 2, 3, 4, 5 };
+
+    auto view = rl::zip( rl::all( input1 ).map_L( _ ), input2 )
+                    .to_vector();
+    static_assert(
+        is_same_v<decltype( view ), vector<pair<int, int&>>> );
+
+    auto it        = view.begin();
+    ( *it ).first  = 100;
+    ( *it ).second = 200;
+
+    ++it;
+    ( *it ).first  = 300;
+    ( *it ).second = 400;
+
+    auto expected = vector<int>{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    REQUIRE_THAT( input1, Equals( expected ) );
+    expected = vector<int>{ 200, 400, 3, 4, 5 };
+    REQUIRE_THAT( input2, Equals( expected ) );
+  }
+}
+
+TEST_CASE( "[range-lite] zip3" ) {
+  vector<int> input1{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  vector<int> input2{ 4, 5, 6, 7 };
+  vector<int> input3{ 8, 9, 0 };
+
+  auto vec = rl::zip( input1, input2, input3 ).to_vector();
+
+  auto expected = vector<tuple<int, int, int>>{
+      { 1, 4, 8 }, { 2, 5, 9 }, { 3, 6, 0 } };
+  REQUIRE_THAT( vec, Equals( expected ) );
 }
 
 TEST_CASE( "[range-lite] take_while_incl" ) {
@@ -734,17 +820,44 @@ TEST_CASE( "[range-lite] ints" ) {
   }
 }
 
+TEST_CASE( "[range-lite] generate_n" ) {
+  int  n = 9;
+  auto f = [&] { return n--; };
+
+  REQUIRE_THAT( rl::generate_n( f, 0 ).to_vector(),
+                Equals( vector<int>{} ) );
+
+  REQUIRE_THAT( rl::generate_n( f, 1 ).to_vector(),
+                Equals( vector<int>{ 9 } ) );
+
+  auto vec = rl::generate_n( f, 5 ).to_vector();
+
+  REQUIRE_THAT( vec, Equals( vector<int>{ 8, 7, 6, 5, 4 } ) );
+}
+
 TEST_CASE( "[range-lite] enumerate" ) {
   vector<string> input{ "hello", "world", "one", "two" };
 
   auto vec =
       rl::all( input ).cycle().enumerate().take( 8 ).to_vector();
 
-  auto expected = vector<pair<int, string>>{
-      { 0, "hello" }, { 1, "world" }, { 2, "one" }, { 3, "two" },
-      { 4, "hello" }, { 5, "world" }, { 6, "one" }, { 7, "two" },
-  };
-  REQUIRE_THAT( vec, Equals( expected ) );
+  REQUIRE( vec.size() == 8 );
+  REQUIRE( vec[0].first == 0 );
+  REQUIRE( vec[0].second == "hello" );
+  REQUIRE( vec[1].first == 1 );
+  REQUIRE( vec[1].second == "world" );
+  REQUIRE( vec[2].first == 2 );
+  REQUIRE( vec[2].second == "one" );
+  REQUIRE( vec[3].first == 3 );
+  REQUIRE( vec[3].second == "two" );
+  REQUIRE( vec[4].first == 4 );
+  REQUIRE( vec[4].second == "hello" );
+  REQUIRE( vec[5].first == 5 );
+  REQUIRE( vec[5].second == "world" );
+  REQUIRE( vec[6].first == 6 );
+  REQUIRE( vec[6].second == "one" );
+  REQUIRE( vec[7].first == 7 );
+  REQUIRE( vec[7].second == "two" );
 }
 
 TEST_CASE( "[range-lite] free-standing zip" ) {
@@ -752,19 +865,26 @@ TEST_CASE( "[range-lite] free-standing zip" ) {
     vector<string> input1{ "hello", "world", "one", "two" };
     vector<int>    input2{ 4, 6, 2, 7, 3 };
 
-    auto view = rl::zip( input1, input2 ).take( 3 );
+    auto vec = rl::zip( input1, input2 ).take( 3 ).to_vector();
 
-    auto expected = vector<pair<string, int>>{
-        { "hello", 4 }, { "world", 6 }, { "one", 2 } };
-    REQUIRE_THAT( view.to_vector(), Equals( expected ) );
+    REQUIRE( vec.size() == 3 );
+    REQUIRE( vec[0].first == "hello" );
+    REQUIRE( vec[0].second == 4 );
+    REQUIRE( vec[1].first == "world" );
+    REQUIRE( vec[1].second == 6 );
+    REQUIRE( vec[2].first == "one" );
+    REQUIRE( vec[2].second == 2 );
   }
   SECTION( "free-zip: Views" ) {
-    auto view =
-        rl::zip( rl::ints( 5 ), rl::ints( 7 ) ).take( 3 );
+    auto vec = rl::zip( rl::ints( 5 ), rl::ints( 7 ) )
+                   .take( 3 )
+                   .to_vector();
+    static_assert(
+        is_same_v<decltype( vec ), vector<pair<int, int>>> );
 
     auto expected =
         vector<pair<int, int>>{ { 5, 7 }, { 6, 8 }, { 7, 9 } };
-    REQUIRE_THAT( view.to_vector(), Equals( expected ) );
+    REQUIRE_THAT( vec, Equals( expected ) );
   }
 }
 

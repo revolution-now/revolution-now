@@ -16,13 +16,13 @@
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
-#include "ranges.hpp"
 #include "ttf.hpp"
 
 // base
 #include "base/hash.hpp"
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
+#include "base/range-lite.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -31,18 +31,14 @@
 // Abseil
 #include "absl/strings/str_split.h"
 
-// Range-v3
-#include "range/v3/numeric/accumulate.hpp"
-#include "range/v3/view/remove_if.hpp"
-#include "range/v3/view/transform.hpp"
-#include "range/v3/view/zip.hpp"
-
 // C++ standard library
 #include <unordered_map>
 
 using namespace std;
 
 namespace rn {
+
+namespace rl = ::base::rl;
 
 namespace {
 
@@ -225,15 +221,14 @@ Texture render_line_markup( e_font                      font,
   auto renderer = [&]( MarkedUpText const& mk ) {
     return render_markup( font, mk, info );
   };
-  auto txs = rg::to<vector<Texture>>(
-      mks                                        //
-      | rv::remove_if( L( _.text.size() == 0 ) ) //
-      | rv::transform( renderer ) );
+  auto txs = rl::all( mks )
+                 .remove_if_L( _.text.size() == 0 )
+                 .map( renderer )
+                 .to_vector();
+
   CHECK( !txs.empty() );
-  auto w = rg::accumulate(
-      txs | rv::transform( L( _.size().w ) ), 0_w );
-  auto maybe_h =
-      txs | rv::transform( L( _.size().h ) ) | maximum();
+  auto w       = rl::all( txs ).map_L( _.size().w ).accumulate();
+  auto maybe_h = rl::all( txs ).map_L( _.size().h ).max();
   CHECK( maybe_h );
   auto  res = create_texture_transparent( { w, *maybe_h } );
   Coord where{};
@@ -249,11 +244,9 @@ Texture render_lines( e_font font, Color fg,
   auto renderer = [&]( string_view line ) {
     return render_line( font, fg, line );
   };
-  auto txs = util::map( renderer, txt );
-  auto h   = rg::accumulate(
-      txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto maybe_w =
-      txs | rv::transform( L( _.size().w ) ) | maximum();
+  auto txs     = util::map( renderer, txt );
+  auto h       = rl::all( txs ).map_L( _.size().h ).accumulate();
+  auto maybe_w = rl::all( txs ).map_L( _.size().w ).max();
   CHECK( maybe_w );
   auto  res = create_texture_transparent( { h, *maybe_w } );
   Coord where{};
@@ -270,11 +263,9 @@ Texture render_lines_markup(
   auto renderer = [&]( auto const& mks ) {
     return render_line_markup( font, mks, info );
   };
-  auto txs = util::map( renderer, mk_text );
-  auto h   = rg::accumulate(
-      txs | rv::transform( L( _.size().h ) ), 0_h );
-  auto maybe_w =
-      txs | rv::transform( L( _.size().w ) ) | maximum();
+  auto txs     = util::map( renderer, mk_text );
+  auto h       = rl::all( txs ).map_L( _.size().h ).accumulate();
+  auto maybe_w = rl::all( txs ).map_L( _.size().w ).max();
   CHECK( maybe_w );
   auto  res = create_texture_transparent( { h, *maybe_w } );
   Coord where{};
@@ -323,9 +314,8 @@ Texture render_text_markup_reflow_impl(
   auto mk_text = std::move( mk_texts[0] );
 
   // (4)
-  auto non_mk_text = rg::accumulate(
-      mk_text | rv::transform( L( string( _.text ) ) ),
-      string( "" ) );
+  auto non_mk_text =
+      rl::all( mk_text ).map_L( string( _.text ) ).accumulate();
 
   // (5)
   auto wrapped =
@@ -339,7 +329,7 @@ Texture render_text_markup_reflow_impl(
   // We will advance these numbers as we move through the charac-
   // ters of the wrapped lines.
   int mk_pos = 0, mk_char_pos = 0;
-  for( auto p : rv::zip( wrapped, reflowed ) ) {
+  for( auto p : rl::zip( wrapped, reflowed ) ) {
     auto& [line, reflowed_line] = p;
     int target_size             = int( line.size() );
     // Keep using up MarkedUpText elements (or parts of them)
