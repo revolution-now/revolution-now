@@ -22,9 +22,6 @@
 [submodule "assets/art"]
 	path = assets/art
 	url = ../../dpacbach/rn-art.git
-[submodule "extern/range-v3"]
-	path = extern/range-v3
-	url = ../../dpacbach/range-v3.git
 [submodule "extern/midifile"]
 	path = extern/midifile
 	url = ../../dpacbach/midifile.git

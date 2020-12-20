@@ -40,7 +40,6 @@ target_link_libraries(
     lua::lua
     magic_enum::magic_enum
     midifile
-    range-v3
     rn-base
     rtmidi
     sol2::sol2

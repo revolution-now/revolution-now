@@ -47,11 +47,8 @@ add_subdirectory( test )
 
 # These should not be necessary, but some subdirectories' cmake
 # files are not playing nicely and just setting
-# CMAKE_CXX_STANDARD, so we have to set it here. Then, if we set
-# that one, range-v3 complains if we don't also set its STD vari-
-# able to the same thing.
+# CMAKE_CXX_STANDARD, so we have to set it here.
 set( CMAKE_CXX_STANDARD 20 )
-set( RANGES_CXX_STD     20 )
 
 # We don't want this variable set when we import the externs be-
 # cause it will cause trouble; it may be enabled from the pre-
@@ -72,7 +69,6 @@ add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/spdlog        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/libucl        EXCLUDE_FROM_ALL )
-add_subdirectory( extern/range-v3      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
