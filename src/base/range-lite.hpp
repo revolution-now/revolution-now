@@ -933,8 +933,7 @@ public:
       KeepIfCursor() = default;
       KeepIfCursor( Data const& data ) : func_( &data.func_ ) {}
 
-      void init( ChainView const& input ) {
-        it_ = input.begin();
+      void find( ChainView const& input ) {
         do {
           if( this->end( input ) ) break;
           if( ( *func_ )( *it_ ) ) break;
@@ -942,13 +941,15 @@ public:
         } while( true );
       }
 
+      void init( ChainView const& input ) {
+        it_ = input.begin();
+        find( input );
+      }
+
       void next( ChainView const& input ) {
         assert_bt( !this->end( input ) );
-        do {
-          ++it_;
-          if( this->end( input ) ) break;
-          if( ( *func_ )( *it_ ) ) break;
-        } while( true );
+        ++it_;
+        find( input );
       }
 
       func_storage_t<Func> const* func_;
@@ -1239,7 +1240,6 @@ public:
       }
 
       iterator pos( ChainView const& input ) const {
-        if( n_ == 0 ) return input.end();
         return it_;
       }
 
@@ -1383,6 +1383,46 @@ public:
       riterator rpos( ChainView const& ) const { return it_; }
     };
     return make_chain<ReverseCursor>();
+  }
+
+  /**************************************************************
+  ** Cache1
+  ***************************************************************/
+  // Caches the single most recent value so that multiple reads
+  // from the iterator won't cause redundant work.
+  auto cache1() && {
+    struct CacheCursor : public CursorBase<CacheCursor> {
+      struct Data {};
+      using Base = CursorBase<CacheCursor>;
+      using Base::it_;
+      using typename Base::iterator;
+      CacheCursor() = default;
+      CacheCursor( Data const& ) {}
+
+      void load( ChainView const& input ) {
+        if( it_ == input.end() ) return;
+        cache_ = *it_;
+      }
+
+      void init( ChainView const& input ) {
+        it_ = input.begin();
+        load( input );
+      }
+
+      void next( ChainView const& input ) {
+        assert_bt( !this->end( input ) );
+        ++it_;
+        load( input );
+      }
+
+      decltype( auto ) get( ChainView const& input ) const {
+        assert_bt( !this->end( input ) );
+        return std::as_const( cache_ );
+      }
+
+      value_type cache_;
+    };
+    return make_chain<CacheCursor>();
   }
 
   /**************************************************************

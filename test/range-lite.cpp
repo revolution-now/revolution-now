@@ -326,6 +326,38 @@ TEST_CASE( "[range-lite] macros" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
+TEST_CASE( "[range-lite] cache1" ) {
+  vector<int> input{ 1, 2, 3, 4 };
+
+  int count = 0;
+
+  auto f = [&]( int m ) {
+    ++count;
+    return m;
+  };
+
+  auto view = rl::all( input ).map( f );
+
+  // First without cache1 as sanity check.
+  for( auto it = view.begin(); it != view.end(); ++it ) {
+    *it;
+    *it;
+    *it;
+  }
+  REQUIRE( count == 3 * 4 );
+
+  count = 0;
+
+  // Now with cache.
+  auto cached = std::move( view ).cache1().map_L( _ );
+  for( auto it = cached.begin(); it != cached.end(); ++it ) {
+    *it;
+    *it;
+    *it;
+  }
+  REQUIRE( count == 4 );
+}
+
 TEST_CASE( "[range-lite] string_view" ) {
   string_view sv = "hello world";
 
