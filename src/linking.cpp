@@ -25,4 +25,8 @@ void linker_dont_discard_me() {
   // Add more here as needed.
 }
 
+void dont_optimize_me( void* ) {
+  // Do nothing.
+}
+
 } // namespace rn

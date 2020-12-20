@@ -1239,9 +1239,7 @@ public:
         return ( it_ == input.end() ) || n_ == 0;
       }
 
-      iterator pos( ChainView const& input ) const {
-        return it_;
-      }
+      iterator pos( ChainView const& ) const { return it_; }
 
       int n_ = 0;
     };

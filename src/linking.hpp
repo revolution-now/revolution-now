@@ -23,4 +23,9 @@ namespace rn {
 // to run for the game to load properly.
 void linker_dont_discard_me();
 
+// Pass a pointer to an object to this function, which will do
+// nothing with it, but should prevent the compiler from opti-
+// mizing something away. This is useful for benchmarking.
+void dont_optimize_me( void* p );
+
 } // namespace rn
