@@ -205,7 +205,6 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
-  static_assert( std::is_function_v<decltype( scale_info )> );
   ASSIGN_CHECK_OPT(
       optimal, rl::ints( min_scale_factor, max_scale_factor + 1 )
                    .map( scale_info )
