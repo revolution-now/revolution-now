@@ -133,7 +133,7 @@ struct IdentityCursor {
   bool             end( InputView const& input ) const {
     return it_ == input.end();
   }
-  iterator pos( InputView const& ) const { return it_; }
+  iterator pos() const { return it_; }
   iterator it_;
 };
 
@@ -154,7 +154,7 @@ struct BidirectionalIdentityCursor {
   bool             end( InputView const& input ) const {
     return it_ == input.end();
   }
-  iterator pos( InputView const& ) const { return it_; }
+  iterator pos() const { return it_; }
 
   // Backward
   void rinit( InputView const& input ) { rit_ = input.rbegin(); }
@@ -165,7 +165,7 @@ struct BidirectionalIdentityCursor {
   bool rend( InputView const& input ) const {
     return rit_ == input.rend();
   }
-  riterator rpos( InputView const& ) const { return rit_; }
+  riterator rpos() const { return rit_; }
 
   iterator  it_;
   riterator rit_;
@@ -600,8 +600,7 @@ public:
 
     bool operator==( iterator const& rhs ) const {
       if( view_ != nullptr && rhs.view_ != nullptr )
-        return cursor_.pos( view_->input_ ) ==
-               rhs.cursor_.pos( rhs.view_->input_ );
+        return cursor_.pos() == rhs.cursor_.pos();
       return view_ == rhs.view_;
     }
 
@@ -660,8 +659,7 @@ public:
 
     bool operator==( riterator_defer const& rhs ) const {
       if( view_ != nullptr && rhs.view_ != nullptr )
-        return cursor_.rpos( view_->input_ ) ==
-               rhs.cursor_.rpos( rhs.view_->input_ );
+        return cursor_.rpos() == rhs.cursor_.rpos();
       return view_ == rhs.view_;
     }
 
@@ -841,7 +839,7 @@ private:
 
     // The type that this returns doesn't really matter, it just
     // has to be a unique value for each iteration of the cursor.
-    iterator pos( ChainView const& ) const { return it_; }
+    iterator pos() const { return it_; }
 
     iterator it_;
   };
@@ -878,7 +876,7 @@ private:
     // The type that this returns doesn't really matter, it
     // just has to be a unique value for each iteration of
     // the cursor.
-    riterator rpos( ChainView const& ) const { return rit_; }
+    riterator rpos() const { return rit_; }
 
     // If you get an error on this line about riterator being an
     // incomplete type then that means that this view (likely one
@@ -1054,10 +1052,7 @@ public:
 
       bool end( ChainView const& ) const { return finished_; }
 
-      iterator pos( ChainView const& input ) const {
-        if( finished_ ) return input.end();
-        return it_;
-      }
+      iterator pos() const { return it_; }
 
       func_storage_t<Func> const* func_;
       bool                        finished_;
@@ -1152,10 +1147,7 @@ public:
         return ( state_ == e_state::finished );
       }
 
-      iterator pos( ChainView const& input ) const {
-        if( state_ == e_state::finished ) return input.end();
-        return it_;
-      }
+      iterator pos() const { return it_; }
 
       func_storage_t<Func> const* func_;
       enum class e_state { taking, last, finished };
@@ -1239,7 +1231,7 @@ public:
         return ( it_ == input.end() ) || n_ == 0;
       }
 
-      iterator pos( ChainView const& ) const { return it_; }
+      iterator pos() const { return it_; }
 
       int n_ = 0;
     };
@@ -1354,9 +1346,7 @@ public:
         return this->rit_ == input.rend();
       }
 
-      iterator pos( ChainView const& ) const {
-        return this->rit_;
-      }
+      iterator pos() const { return this->rit_; }
 
       // === Reverse ===
 
@@ -1378,7 +1368,7 @@ public:
         return it_ == input.end();
       }
 
-      riterator rpos( ChainView const& ) const { return it_; }
+      riterator rpos() const { return it_; }
     };
     return make_chain<ReverseCursor>();
   }
@@ -1451,9 +1441,7 @@ public:
       }
 
       bool end( ChainView const& ) const { return false; }
-      auto pos( ChainView const& ) const {
-        return std::pair{ cycles_, it_ };
-      }
+      auto pos() const { return std::pair{ cycles_, it_ }; }
 
       std::intmax_t cycles_ = 0;
     };
@@ -1522,7 +1510,7 @@ public:
         return ( it_ == input.end() );
       }
 
-      iterator pos( ChainView const& ) const { return it_; }
+      iterator pos() const { return it_; }
 
       // ======== ChildView hooks ========
 
