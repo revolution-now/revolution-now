@@ -390,7 +390,7 @@ TEST_CASE( "[range-lite] string_view" ) {
   auto view =
       rl::all( sv ).reverse().map_L( _ == ' ' ? '-' : _ );
 
-  REQUIRE( view.to<string>() == "dlrow-olleh" );
+  REQUIRE( view.to_string() == "dlrow-olleh" );
 }
 
 TEST_CASE( "[range-lite] to_string" ) {
@@ -458,7 +458,7 @@ TEST_CASE( "[range-lite] to" ) {
 
   auto is_num = L( _ >= '0' && _ <= '9' );
 
-  auto res = rl::all( msg ).remove_if( is_num ).to<string>();
+  auto res = rl::all( msg ).remove_if( is_num ).to_string();
 
   REQUIRE( res == "hello  with  numbers" );
 }
@@ -1181,6 +1181,15 @@ TEST_CASE( "[range-lite] tail" ) {
   }
 }
 
+TEST_CASE( "[range-lite] distance" ) {
+  vector<int> input0{};
+  REQUIRE( rl::all( input0 ).distance() == 0 );
+  vector<int> input1{ 1 };
+  REQUIRE( rl::all( input1 ).distance() == 1 );
+  vector<int> input2{ 1, 2, 3, 4 };
+  REQUIRE( rl::all( input2 ).distance() == 4 );
+}
+
 TEST_CASE( "[range-lite] group_on" ) {
   std::string s = "123.212.323.498.hello.321";
 
@@ -1189,11 +1198,10 @@ TEST_CASE( "[range-lite] group_on" ) {
                  .remove_if_L( *_.begin() == '.' )
                  .map_L( _.to_string() )
                  .map( LIFT( base::stoi ) )
-                 .cat_maybes()
                  .to_vector();
 
-  REQUIRE_THAT(
-      vec, Equals( vector<int>{ 123, 212, 323, 498, 321 } ) );
+  REQUIRE_THAT( vec, Equals( vector<maybe<int>>{
+                         123, 212, 323, 498, nothing, 321 } ) );
 }
 
 TEST_CASE( "[range-lite] group_by" ) {

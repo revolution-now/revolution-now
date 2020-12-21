@@ -559,13 +559,11 @@ public:
   /**************************************************************
   ** iterator
   ***************************************************************/
+  class iterator_sentinel {};
+
   class iterator {
     ChainView const* view_ = nullptr;
     Cursor           cursor_;
-
-    void clear_if_end() {
-      if( cursor_.end( view_->input_ ) ) view_ = nullptr;
-    }
 
   public:
     using iterator_category = std::input_iterator_tag;
@@ -578,11 +576,9 @@ public:
     iterator( ChainView const* view )
       : view_( view ), cursor_( view->data_ ) {
       cursor_.init( view_->input_ );
-      clear_if_end();
     }
 
     decltype( auto ) operator*() const {
-      assert_bt( view_ != nullptr );
       return cursor_.get( view_->input_ );
     }
 
@@ -591,9 +587,7 @@ public:
     }
 
     iterator& operator++() {
-      assert_bt( view_ != nullptr );
       cursor_.next( view_->input_ );
-      clear_if_end();
       return *this;
     }
 
@@ -604,12 +598,18 @@ public:
     }
 
     bool operator==( iterator const& rhs ) const {
-      if( view_ != nullptr && rhs.view_ != nullptr )
-        return cursor_.pos() == rhs.cursor_.pos();
-      return view_ == rhs.view_;
+      return cursor_.pos() == rhs.cursor_.pos();
+    }
+
+    bool operator==( iterator_sentinel const& ) const {
+      return cursor_.end( view_->input_ );
     }
 
     bool operator!=( iterator const& rhs ) const {
+      return !( *this == rhs );
+    }
+
+    bool operator!=( iterator_sentinel const& rhs ) const {
       return !( *this == rhs );
     }
   };
@@ -617,14 +617,12 @@ public:
   /**************************************************************
   ** reverse iterator
   ***************************************************************/
+  class riterator_sentinel {};
+
   template<typename Defer = void>
   class riterator_defer {
     ChainView const* view_ = nullptr;
     Cursor           cursor_;
-
-    void clear_if_end() {
-      if( cursor_.rend( view_->input_ ) ) view_ = nullptr;
-    }
 
   public:
     using iterator_category = std::input_iterator_tag;
@@ -637,11 +635,9 @@ public:
     riterator_defer( ChainView const* view )
       : view_( view ), cursor_( view->data_ ) {
       cursor_.rinit( view_->input_ );
-      clear_if_end();
     }
 
     decltype( auto ) operator*() const {
-      assert_bt( view_ != nullptr );
       return cursor_.rget( view_->input_ );
     }
 
@@ -650,9 +646,7 @@ public:
     }
 
     riterator_defer& operator++() {
-      assert_bt( view_ != nullptr );
       cursor_.rnext( view_->input_ );
-      clear_if_end();
       return *this;
     }
 
@@ -663,36 +657,40 @@ public:
     }
 
     bool operator==( riterator_defer const& rhs ) const {
-      if( view_ != nullptr && rhs.view_ != nullptr )
-        return cursor_.rpos() == rhs.cursor_.rpos();
-      return view_ == rhs.view_;
+      return cursor_.rpos() == rhs.cursor_.rpos();
     }
 
     bool operator!=( riterator_defer const& rhs ) const {
       return !( *this == rhs );
     }
+
+    bool operator==( riterator_sentinel const& ) const {
+      return cursor_.rend( view_->input_ );
+    }
+
+    bool operator!=( riterator_sentinel const& rhs ) const {
+      return !( *this == rhs );
+    }
   };
 
-  static constexpr auto make_riterator(
-      ChainView const* view = nullptr ) {
+  static constexpr auto make_riterator( ChainView const* view ) {
     if constexpr( cursor_supports_reverse_v<Cursor> ) {
-      return view ? riterator_defer<>( view )
-                  : riterator_defer<>();
+      return riterator_defer<>( view );
     }
   }
 
   using riterator =
       decltype( make_riterator( std::declval<ChainView*>() ) );
 
-  iterator begin() const { return iterator( this ); }
-  iterator end() const { return iterator(); }
-  iterator cbegin() const { return iterator( this ); }
-  iterator cend() const { return iterator(); }
+  auto begin() const { return iterator( this ); }
+  auto end() const { return iterator_sentinel{}; }
+  auto cbegin() const { return iterator( this ); }
+  auto cend() const { return iterator_sentinel{}; }
 
   auto rbegin() const { return make_riterator( this ); }
-  auto rend() const { return make_riterator(); }
+  auto rend() const { return riterator_sentinel{}; }
   auto crbegin() const { return make_riterator( this ); }
-  auto crend() const { return make_riterator(); }
+  auto crend() const { return riterator_sentinel{}; }
 
   /**************************************************************
   ** Copy/Move this view
@@ -716,14 +714,29 @@ public:
 
   std::string to_string() const
       requires( std::is_convertible_v<value_type, char> ) {
-    return std::string( this->begin(), this->end() );
+    std::string res;
+    for( char c : *this ) res.push_back( c );
+    return res;
   }
 
   // For std::vector or std::string use `to_vector`/`to_string`
-  // instead.
+  // instead. NOTE: this may cause problems for containers that
+  // cannot accept iterators with different types for begin/end.
   template<typename T>
   T to() const {
     return T( this->begin(), this->end() );
+  }
+
+  /**************************************************************
+  ** Distance (NOT O(1))
+  ***************************************************************/
+  int distance() const {
+    int distance = 0;
+    for( auto&& e : *this ) {
+      (void)e;
+      ++distance;
+    }
+    return distance;
   }
 
   /**************************************************************
@@ -1615,8 +1628,8 @@ public:
   ***************************************************************/
   auto dereference() && {
     return std::move( *this ).map(
-        []( auto&& arg ) -> decltype( auto ) {
-          return *std::forward<decltype( arg )>( arg );
+        []<typename T>( T&& arg ) -> decltype( auto ) {
+          return *std::forward<T>( arg );
         } );
   }
 

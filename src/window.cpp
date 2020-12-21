@@ -117,10 +117,7 @@ public:
         .keep_if_L( _.window_state != e_window_state::closed );
   }
 
-  int num_windows() const {
-    auto aw = active_windows();
-    return std::distance( aw.begin(), aw.end() );
-  }
+  int num_windows() const { return active_windows().distance(); }
 
   void remove_closed_windows();
 

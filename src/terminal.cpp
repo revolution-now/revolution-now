@@ -167,13 +167,13 @@ vector<string> autocomplete( string_view fragment ) {
   auto to_autocomplete = rl::all( fragment )
                              .reverse()
                              .take_while( is_autocomplete_char )
-                             .to<string>();
+                             .to_string();
   reverse( to_autocomplete.begin(), to_autocomplete.end() );
   lg.trace( "to_autocomplete: {}", to_autocomplete );
   auto prefix = rl::all( fragment )
                     .reverse()
                     .drop( to_autocomplete.size() )
-                    .to<string>();
+                    .to_string();
   reverse( prefix.begin(), prefix.end() );
   lg.trace( "prefix: {}", prefix );
   // Stop here otherwise we'll be looking through all globals.
