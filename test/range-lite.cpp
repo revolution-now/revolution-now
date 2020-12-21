@@ -14,6 +14,7 @@
 #include "src/base/range-lite.hpp"
 
 // base
+#include "base/conv.hpp"
 #include "base/lambda.hpp"
 
 // Must be last.
@@ -358,6 +359,31 @@ TEST_CASE( "[range-lite] cache1" ) {
   REQUIRE( count == 4 );
 }
 
+TEST_CASE( "[range-lite] cache1 no ref" ) {
+  vector<int> input{ 1, 2, 3, 4 };
+
+  auto non_cached = rl::all( input ).take( 4 );
+  static_assert(
+      is_same_v<decltype( *non_cached.begin() ), int&> );
+
+  auto cached1 = rl::all( input ).cache1().take( 4 );
+  static_assert( is_same_v<decltype( *cached1.begin() ), int> );
+
+  auto cached2 = rl::all( input ).take( 4 ).cache1();
+  static_assert( is_same_v<decltype( *cached2.begin() ), int> );
+
+  auto cached3 = rl::all( input ).cache1().map(
+      []<typename T>( T&& _ ) { return std::forward<T>( _ ); } );
+  static_assert( is_same_v<decltype( *cached3.begin() ), int> );
+
+  auto cached4 = rl::all( input )
+                     .map( []( auto&& _ ) -> decltype( auto ) {
+                       return _;
+                     } )
+                     .cache1();
+  static_assert( is_same_v<decltype( *cached4.begin() ), int> );
+}
+
 TEST_CASE( "[range-lite] string_view" ) {
   string_view sv = "hello world";
 
@@ -365,6 +391,15 @@ TEST_CASE( "[range-lite] string_view" ) {
       rl::all( sv ).reverse().map_L( _ == ' ' ? '-' : _ );
 
   REQUIRE( view.to<string>() == "dlrow-olleh" );
+}
+
+TEST_CASE( "[range-lite] to_string" ) {
+  string_view sv = "hello world";
+
+  auto view =
+      rl::all( sv ).reverse().map_L( _ == ' ' ? '-' : _ );
+
+  REQUIRE( view.to_string() == "dlrow-olleh" );
 }
 
 TEST_CASE( "[range-lite] head" ) {
@@ -1144,6 +1179,21 @@ TEST_CASE( "[range-lite] tail" ) {
     auto        vec = rl::all( input ).tail().to_vector();
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
+}
+
+TEST_CASE( "[range-lite] group_on" ) {
+  std::string s = "123.212.323.498.hello.321";
+
+  auto vec = rl::all( s )
+                 .group_on_L( _ == '.' )
+                 .remove_if_L( *_.begin() == '.' )
+                 .map_L( _.to_string() )
+                 .map( LIFT( base::stoi ) )
+                 .cat_maybes()
+                 .to_vector();
+
+  REQUIRE_THAT(
+      vec, Equals( vector<int>{ 123, 212, 323, 498, 321 } ) );
 }
 
 TEST_CASE( "[range-lite] group_by" ) {

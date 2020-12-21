@@ -34,6 +34,7 @@ namespace base::rl {
 #define max_by_L( ... ) RL_LAMBDA( max_by, __VA_ARGS__ )
 #define filter_L( ... ) RL_LAMBDA( filter, __VA_ARGS__ )
 #define group_by_L( ... ) RL_LAMBDA2( group_by, __VA_ARGS__ )
+#define group_on_L( ... ) RL_LAMBDA( group_on, __VA_ARGS__ )
 #define remove_if_L( ... ) RL_LAMBDA( remove_if, __VA_ARGS__ )
 #define map_L( ... ) RL_LAMBDA( map, __VA_ARGS__ )
 #define map2val_L( ... ) RL_LAMBDA( map2val, __VA_ARGS__ )
@@ -424,16 +425,18 @@ struct ChildView {
     using reference         = value_type&;
 
     iterator() = default;
-    iterator( ChildView const* view ) : view_( view ) {
+    iterator( Cursor cursor ) : cursor_( std::move( cursor ) ) {
+      finished_ = false;
       clear_if_end();
     }
 
     void clear_if_end() {
-      if( view_->that_->child_view_done() ) view_ = nullptr;
+      if( cursor_.child_view_done() ) finished_ = true;
     }
 
     decltype( auto ) operator*() const {
-      return view_->that_->child_view_get();
+      assert_bt( !finished_ );
+      return cursor_.child_view_get();
     }
 
     auto* operator->() const {
@@ -441,7 +444,8 @@ struct ChildView {
     }
 
     iterator& operator++() {
-      view_->that_->child_view_advance();
+      assert_bt( !finished_ );
+      cursor_.child_view_advance();
       clear_if_end();
       return *this;
     }
@@ -457,23 +461,24 @@ struct ChildView {
       // range, since it would introduce  too  much  complication
       // into this implementation and  it  probably  is not
       // neces- sary anyway.
-      assert_bt( view_ == nullptr || rhs.view_ == nullptr );
-      return view_ == rhs.view_;
+      assert_bt( finished_ == true || rhs.finished_ == true );
+      return finished_ == rhs.finished_;
     }
 
     bool operator!=( iterator const& rhs ) const {
       return !( *this == rhs );
     }
 
-    ChildView const* view_ = nullptr;
+    Cursor cursor_;
+    bool   finished_ = true;
   };
 
   ChildView() = default;
-  ChildView( Cursor* that ) : that_( that ) {}
-  auto begin() const { return iterator{ this }; }
+  ChildView( Cursor const* that ) : that_( that ) {}
+  auto begin() const { return iterator{ *that_ }; }
   auto end() const { return iterator{}; }
 
-  Cursor* that_;
+  Cursor const* that_;
 };
 
 /****************************************************************
@@ -690,9 +695,11 @@ public:
   auto crend() const { return make_riterator(); }
 
   /**************************************************************
-  ** Copy
+  ** Copy/Move this view
   ***************************************************************/
-  auto copy() const { return *this; }
+  auto copy_me() const { return *this; }
+
+  auto&& move_me() { return std::move( *this ); }
 
   /**************************************************************
   ** Materialization
@@ -707,7 +714,13 @@ public:
     return res;
   }
 
-  // For std::vector use `to_vector` instead.
+  std::string to_string() const
+      requires( std::is_convertible_v<value_type, char> ) {
+    return std::string( this->begin(), this->end() );
+  }
+
+  // For std::vector or std::string use `to_vector`/`to_string`
+  // instead.
   template<typename T>
   T to() const {
     return T( this->begin(), this->end() );
@@ -975,11 +988,12 @@ public:
     MapCursor() = default;
     MapCursor( Data const& data ) : func_( &data.func_ ) {
       constexpr bool func_returns_ref =
-          std::is_reference_v<decltype( ( *func_ )( *it_ ) )>;
+          std::is_lvalue_reference_v<decltype( ( *func_ )(
+              *it_ ) )>;
       if constexpr( func_returns_ref ) {
-        // If you fail here then you are probably trying to
-        // re- turn a reference to a temporary that was
-        // produced by an earlier view in the pipeline.
+        // If you fail here then you are probably trying to re-
+        // turn a reference to a temporary that was produced by
+        // an earlier view in the pipeline.
         static_assert(
             std::is_lvalue_reference_v<decltype( *it_ )> );
       }
@@ -1403,9 +1417,9 @@ public:
         load( input );
       }
 
-      decltype( auto ) get( ChainView const& input ) const {
+      value_type get( ChainView const& input ) const {
         assert_bt( !this->end( input ) );
-        return std::as_const( cache_ );
+        return cache_;
       }
 
       value_type cache_;
@@ -1476,34 +1490,29 @@ public:
       // using value_type = ChainGroupView;
       GroupByCursor() = default;
       GroupByCursor( Data const& data )
-        : func_( &data.func_ ),
-          input_{},
-          finished_group_{ true },
-          cache_{} {}
+        : func_( &data.func_ ), input_{}, cache_{} {}
 
       void init( ChainView const& input ) {
         input_ = &input;
         it_    = input.begin();
         if( it_ == input.end() ) return;
-        finished_group_ = false;
-        cache_          = *it_;
+        cache_ = *it_;
       }
 
       decltype( auto ) get( ChainView const& input ) const {
         assert_bt( !end( input ) );
         return ChainGroupView(
-            ChildView<IncomingValueType, GroupByCursor>{
-                const_cast<GroupByCursor*>( this ) },
+            ChildView<IncomingValueType, GroupByCursor>( this ),
             typename ChainGroupViewCursor::Data{} );
       }
 
       void next( ChainView const& input ) {
-        assert_bt( finished_group_ );
-        // This is not an error because the subview iteration
-        // will have moved it to the end.
-        if( it_ == input.end() ) return;
-        finished_group_ = false;
-        cache_          = *it_;
+        assert_bt( !end( input ) );
+        do {
+          ++it_;
+          if( it_ == input.end() ) return;
+        } while( ( *func_ )( cache_, *it_ ) );
+        cache_ = *it_;
       }
 
       bool end( ChainView const& input ) const {
@@ -1530,7 +1539,7 @@ public:
 
       func_storage_t<Func> const*    func_;
       ChainView const*               input_;
-      bool                           finished_group_;
+      bool                           finished_group_ = false;
       typename ChainView::value_type cache_;
     };
     return make_chain<GroupByCursor>(
@@ -1572,6 +1581,19 @@ public:
   }
 
   /**************************************************************
+  ** GroupOn (a.k.a. group-by-key)
+  ***************************************************************/
+  template<typename Func>
+  auto group_on( Func&& func ) && {
+    return std::move( *this ).group_by(
+        [func = std::forward<Func>(
+             func )]<typename L, typename R>( L&& l, R&& r ) {
+          return func( std::forward<L>( l ) ) ==
+                 func( std::forward<R>( r ) );
+        } );
+  }
+
+  /**************************************************************
   ** Enumerate
   ***************************************************************/
   // FIXME: make this more efficient with a specialized Cursor.
@@ -1593,7 +1615,9 @@ public:
   ***************************************************************/
   auto dereference() && {
     return std::move( *this ).map(
-        []( auto&& arg ) -> decltype( auto ) { return *arg; } );
+        []( auto&& arg ) -> decltype( auto ) {
+          return *std::forward<decltype( arg )>( arg );
+        } );
   }
 
   /**************************************************************

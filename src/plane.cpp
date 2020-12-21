@@ -192,7 +192,7 @@ auto relevant_planes() {
   // side std::pairs, which will happily assign through to the
   // references on assignment.
   auto r_plane_list = rl::rall( as_const( g_plane_list ) );
-  auto r_plane_ptrs = r_plane_list.copy().map_L( plane( _ ) );
+  auto r_plane_ptrs = r_plane_list.copy_me().map_L( plane( _ ) );
   return rl::zip( r_plane_list, r_plane_ptrs )
       .take_while_incl( not_covers_screen );
 }
