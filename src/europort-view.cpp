@@ -2067,8 +2067,8 @@ struct EuropePlane : public Plane {
   Entities            entities_{};
   EuroviewFsm         fsm_;
   EuroViewDragAndDrop drag_n_drop_{
-      &entities_,                        //
-      LC2_( ask_for_quantity( _1, _2 ) ) //
+      &entities_,                            //
+      [this] λ( ask_for_quantity( _1, _2 ) ) //
   };
 };
 

@@ -45,3 +45,51 @@
 
 #define LC0( a ) [&] { return a; }
 #define LC0_( a ) [&] { a; }
+
+namespace base::detail {
+
+struct not_a_parameter {};
+
+template<int N, typename T, typename... Ts>
+constexpr decltype( auto ) nth_impl( T&& t, Ts&&... ts ) {
+  if constexpr( N == 0 ) {
+    return std::forward<T>( t );
+  } else {
+    return nth_impl<N - 1>( std::forward<Ts>( ts )... );
+  }
+}
+
+template<int N, typename... Ts>
+constexpr decltype( auto ) nth( Ts&&... ts ) {
+  if constexpr( N < sizeof...( Ts ) ) {
+    return nth_impl<N>( std::forward<Ts>( ts )... );
+  } else {
+    return not_a_parameter{};
+  }
+}
+
+} // namespace base::detail
+
+// This one you can use like this:
+//
+//   auto f = [&] λ( _1 + _2 );
+//
+//   auto g = [=] λ( _ * 2 );
+//
+#define λ( ... )                                               \
+  <typename... T>( T && ... _args )->decltype( auto ) {        \
+    [[maybe_unused]] auto&& _ =                                \
+        ::base::detail::nth<0>( std::forward<T>( _args )... ); \
+    [[maybe_unused]] auto&& _1 =                               \
+        ::base::detail::nth<0>( std::forward<T>( _args )... ); \
+    [[maybe_unused]] auto&& _2 =                               \
+        ::base::detail::nth<1>( std::forward<T>( _args )... ); \
+    [[maybe_unused]] auto&& _3 =                               \
+        ::base::detail::nth<2>( std::forward<T>( _args )... ); \
+    [[maybe_unused]] auto&& _4 =                               \
+        ::base::detail::nth<3>( std::forward<T>( _args )... ); \
+    return __VA_ARGS__;                                        \
+  }
+
+// prevent weird gcc warning ("backslash-newline at end of file")
+#define XYZXYZXYZ
