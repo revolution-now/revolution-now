@@ -1137,7 +1137,32 @@ TEST_CASE( "[range-lite] intersperse" ) {
   }
 }
 
-TEST_CASE( "[range-lite] dereference" ) {
+TEST_CASE( "[range-lite] dereference pointer" ) {
+  SECTION( "just dereference" ) {
+    vector<int>  v{ 1, 2, 3, 4, 5 };
+    vector<int*> v_ptr{ &v[0], &v[1], &v[2], &v[3], &v[4] };
+
+    auto view = rl::all( v_ptr ).dereference();
+    static_assert( is_same_v<decltype( *view.begin() ), int&> );
+
+    for( int& i : view ) i += 1;
+
+    REQUIRE_THAT( v, Equals( vector<int>{ 2, 3, 4, 5, 6 } ) );
+  }
+  SECTION( "dereference ptr after map" ) {
+    vector<int>  v{ 1, 2, 3, 4, 5 };
+    vector<int*> v_ptr{ &v[0], &v[1], &v[2], &v[3], &v[4] };
+
+    auto view = rl::all( v_ptr ).map_L( _ ).dereference();
+    static_assert( is_same_v<decltype( *view.begin() ), int&> );
+
+    for( int& i : view ) i += 1;
+
+    REQUIRE_THAT( v, Equals( vector<int>{ 2, 3, 4, 5, 6 } ) );
+  }
+}
+
+TEST_CASE( "[range-lite] dereference maybe" ) {
   vector<maybe<int>> input{ { 1 }, { 2 }, { 3 }, { 4 }, { 5 } };
 
   auto view = rl::all( input ).dereference();
@@ -1198,10 +1223,11 @@ TEST_CASE( "[range-lite] group_on" ) {
                  .remove_if_L( *_.begin() == '.' )
                  .map_L( _.to_string() )
                  .map( LIFT( base::stoi ) )
+                 .cat_maybes()
                  .to_vector();
 
-  REQUIRE_THAT( vec, Equals( vector<maybe<int>>{
-                         123, 212, 323, 498, nothing, 321 } ) );
+  REQUIRE_THAT(
+      vec, Equals( vector<int>{ 123, 212, 323, 498, 321 } ) );
 }
 
 TEST_CASE( "[range-lite] group_by" ) {

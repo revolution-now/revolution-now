@@ -1001,13 +1001,28 @@ public:
     MapCursor() = default;
     MapCursor( Data const& data ) : func_( &data.func_ ) {
       constexpr bool func_returns_ref =
-          std::is_lvalue_reference_v<decltype( ( *func_ )(
-              *it_ ) )>;
+          std::is_reference_v<decltype( ( *func_ )( *it_ ) )>;
       if constexpr( func_returns_ref ) {
+        // Normally, if the function returns a reference, we re-
+        // quire that the input value is an lvalue reference (to
+        // avoid producing a dangling reference). However, there
+        // is one exception to that, if the input as a pointer
+        // temporary and the function returns a reference to its
+        // pointed-to type. That likely means that the function
+        // func_ is simply dereferencing a pointer, and in that
+        // case it is ok if the pointer itself is an rvalue.
+        constexpr bool is_ptr_dereference =
+            std::is_pointer_v<std::decay_t<decltype( *it_ )>> &&
+            std::is_same_v<
+                std::decay_t<decltype( ( *func_ )( *it_ ) )>,
+                std::decay_t<std::remove_pointer_t<
+                    std::decay_t<decltype( *it_ )>>>>;
         // If you fail here then you are probably trying to re-
-        // turn a reference to a temporary that was produced by
-        // an earlier view in the pipeline.
+        // turn a reference to a temporary (or to something in-
+        // side a temporary) that was produced by an earlier view
+        // in the pipeline.
         static_assert(
+            is_ptr_dereference ||
             std::is_lvalue_reference_v<decltype( *it_ )> );
       }
     }
@@ -1629,7 +1644,32 @@ public:
   auto dereference() && {
     return std::move( *this ).map(
         []<typename T>( T&& arg ) -> decltype( auto ) {
-          return *std::forward<T>( arg );
+          using deref_t = decltype( *std::forward<T>( arg ) );
+          // The reasoning here is that if we dereference some-
+          // thing and get an rvalue reference then that probably
+          // (?) means that it is an rvalue reference pointing
+          // inside a temporary from earlier in the pipeline.
+          // However, when `map` computes this temporary by
+          // dereferencing the previous iterator, that temporary
+          // will disappear before map returns, causing the re-
+          // sulting rvalue referenced produced by the derefer-
+          // ence operation to be dangling. So for this reason,
+          // in that case, we just copy (actually, move) the ob-
+          // ject and yield a temporary by value from the `map`.
+          // As a concrete example, this was proven to be neces-
+          // sary to fix ASan exceptions that were triggered by
+          // calling .dereference() on a previous view that was
+          // generating temporary maybe<> objects (maybe<> ob-
+          // jects, when dereferenced as rvalues, produce rvalue
+          // references).
+          if constexpr( std::is_rvalue_reference_v<deref_t> )
+            return std::remove_reference_t<deref_t>(
+                *std::forward<T>( arg ) );
+          // Otherwise, it is safe return whatever the derefer-
+          // ence operator returns, be it a value, or an lvalue
+          // reference.
+          else
+            return *std::forward<T>( arg );
         } );
   }
 
