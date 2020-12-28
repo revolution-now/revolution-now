@@ -60,7 +60,8 @@ void analyze_unload( Unit const&     unit,
 // way that the move is *not* allowed (among the situations that
 // this function is concerned about) and to flag it if that is
 // the case.
-maybe<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
+maybe<TravelAnalysis> analyze_impl( UnitId   id,
+                                    orders_t orders ) {
   if( !holds<orders::direction>( orders ) ) return nothing;
   auto [direction] = get<orders::direction>( orders );
 
@@ -359,8 +360,8 @@ maybe<TravelAnalysis> analyze_impl( UnitId id, orders_t orders ) {
 
 // This is the entry point; calls the implementation then checks
 // invariants.
-maybe<TravelAnalysis> TravelAnalysis::analyze_( UnitId   id,
-                                              orders_t orders ) {
+maybe<TravelAnalysis> TravelAnalysis::analyze_(
+    UnitId id, orders_t orders ) {
   auto maybe_res = analyze_impl( id, orders );
   if( !maybe_res.has_value() ) return maybe_res;
   auto const& res = *maybe_res;
@@ -377,7 +378,20 @@ maybe<TravelAnalysis> TravelAnalysis::analyze_( UnitId   id,
 }
 
 sync_future<bool> TravelAnalysis::confirm_explain_() const {
-  if( !allowed() ) return make_sync_future<bool>( false );
+  if( !allowed() ) {
+    auto return_false = []( auto ) { return false; };
+    switch( desc.get<e_unit_travel_error>() ) {
+      case e_unit_travel_error::map_edge:
+      case e_unit_travel_error::land_forbidden:
+      case e_unit_travel_error::water_forbidden:
+        return make_sync_future<bool>( false );
+      case e_unit_travel_error::board_ship_full:
+        return ui::message_box(
+                   "None of the ships on this square have "
+                   "enough free space to hold this unit!" )
+            .fmap( return_false );
+    }
+  }
   // The above should have checked that the variant holds the
   // e_unit_travel_good type for us.
   ASSIGN_CHECK_OPT( kind, desc.get_if<e_unit_travel_good>() );
