@@ -23,6 +23,7 @@ function( set_warning_options target )
            -Wno-unused-local-typedef
            -Wno-unused-parameter
            -Wno-unused-command-line-argument
+           -fcoroutines-ts
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
@@ -47,6 +48,7 @@ function( set_warning_options target )
             # But in practice, as long as we don't violate the
             # type system, this shouldn't be a concern.
             -Wno-return-type
+            -fcoroutines
          >
         # msvc
         $<$<CXX_COMPILER_ID:MSVC>:
