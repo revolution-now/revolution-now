@@ -112,10 +112,9 @@ public:
       return coro::suspend_never{};
     }
 
-    waitable<T> return_value( T val ) {
+    void return_value( T val ) {
       trace( "waitable::promise::return value.\n" );
       set( val );
-      return get_future();
     }
 
     waitable<T> get_return_object() {
