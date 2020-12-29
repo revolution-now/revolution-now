@@ -15,6 +15,9 @@
 #include "fmt-helper.hpp"
 #include "maybe.hpp"
 
+// base
+#include "base/coro-compat.hpp"
+
 // C++ standard library
 #include <functional>
 #include <memory>
@@ -23,20 +26,7 @@
 #include <variant>
 #include <vector>
 
-// Currently only works with gcc and clang+libstdcxx. When clang
-// fixes this then this guard can be removed.
-#if !defined( __clang__ ) || defined( _LIBCPP_VERSION )
-
-#  if defined( _LIBCPP_VERSION )
-#    include <experimental/coroutine>
-namespace coro = ::std::experimental;
-#  else // gcc
-#    include <coroutine>
-namespace coro = ::std;
-#  endif
-
 namespace rn {
-
 namespace {
 
 using namespace std;
@@ -92,66 +82,70 @@ public:
 
   bool ready() const { return sstate_->ready(); }
 
-  struct promise {
-    promise() {
-      trace( "waitable::promise::promise.\n" );
-      sstate_ = make_shared<shared_state>();
-    }
-    waitable<T> get_future() { return waitable<T>( sstate_ ); }
-    void        set( T val ) {
-      trace( "waitable::promise::set.\n" );
-      sstate_->set( val );
-    }
-
-    bool ready() const { return sstate_->ready(); }
-
-    auto initial_suspend() const {
-      return coro::suspend_never{};
-    }
-    auto final_suspend() const noexcept {
-      return coro::suspend_never{};
-    }
-
-    void return_value( T val ) {
-      trace( "waitable::promise::return value.\n" );
-      set( val );
-    }
-
-    waitable<T> get_return_object() {
-      trace( "waitable::promise::get_return_object.\n" );
-      return get_future();
-    }
-
-    void unhandled_exception() {
-      trace( "Unhandled exception.\n" );
-    }
-
-    shared_ptr<shared_state> sstate_;
-  };
-
+  struct promise;
   using promise_type = promise;
+
+  struct awaitable;
 
   auto operator co_await() {
     trace( "waitable::operator co_await.\n" );
-    struct awaitable {
-      shared_ptr<shared_state> sstate_;
-      bool await_ready() { return sstate_->ready(); }
-      void await_suspend( coro::coroutine_handle<> h ) {
-        trace( "waitable::awaitable::await_suspend.\n" );
-        sstate_->resumes_.push_back( [h]() mutable {
-          trace( "waitable::awaitable::(resume lambda).\n" );
-          h.resume();
-        } );
-      }
-      T await_resume() {
-        trace( "waitable::awaitable::await_resume.\n" );
-        return sstate_->get();
-      }
-    };
     return awaitable{ sstate_ };
   }
 
 private:
+  shared_ptr<shared_state> sstate_;
+};
+
+template<typename T>
+struct waitable<T>::awaitable {
+  shared_ptr<shared_state> sstate_;
+  bool await_ready() { return sstate_->ready(); }
+  void await_suspend( coro::coroutine_handle<> h ) {
+    trace( "waitable::awaitable::await_suspend.\n" );
+    sstate_->resumes_.push_back( [h]() mutable {
+      trace( "waitable::awaitable::(resume lambda).\n" );
+      h.resume();
+    } );
+  }
+  T await_resume() {
+    trace( "waitable::awaitable::await_resume.\n" );
+    return sstate_->get();
+  }
+};
+
+template<typename T>
+struct waitable<T>::promise {
+  promise() {
+    trace( "waitable::promise::promise.\n" );
+    sstate_ = make_shared<shared_state>();
+  }
+  waitable<T> get_future() { return waitable<T>( sstate_ ); }
+  void        set( T val ) {
+    trace( "waitable::promise::set.\n" );
+    sstate_->set( val );
+  }
+
+  bool ready() const { return sstate_->ready(); }
+
+  auto initial_suspend() const { return base::suspend_never{}; }
+  auto final_suspend() const noexcept {
+    return base::suspend_never{};
+  }
+
+  void return_value( T val ) {
+    trace( "waitable::promise::return value.\n" );
+    set( val );
+  }
+
+  waitable<T> get_return_object() {
+    trace( "waitable::promise::get_return_object.\n" );
+    return get_future();
+  }
+
+  void unhandled_exception() {
+    trace( "Unhandled exception.\n" );
+  }
+
   shared_ptr<shared_state> sstate_;
 };
 
@@ -241,16 +235,3 @@ std::string test_waitable( bool logging ) {
 }
 
 } // namespace rn
-
-#else
-
-/****************************************************************
-** Use this dummy until clang+libstdc++ supports coroutines.
-*****************************************************************/
-namespace rn {
-
-std::string test_waitable( bool ) { return "3-8.800000"; }
-
-} // namespace rn
-
-#endif
