@@ -23,7 +23,7 @@ using namespace std;
 
 TEST_CASE( "[waitable] correct result" ) {
   REQUIRE( test_waitable( /*logging=*/false ) ==
-           "3-6-8.800000" );
+           "3-12-8.800000" );
 }
 
 } // namespace

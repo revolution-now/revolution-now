@@ -228,10 +228,18 @@ waitable<string> waitable_string() {
   for( int i = 0; i < m; ++i ) //
     d += co_await waitable_double();
   trace( "Sum waitable_string.\n" );
+  // Demonstrate lifting.
   int sum = co_await co_lift{ std::plus<>{} }( waitable_sum(),
                                                waitable_sum() );
+  // Demonstrate a lambda coroutine.
+  auto f = [&]() -> waitable<int> {
+    double o   = co_await waitable_double();
+    int    res = n * int( o );
+    co_return res;
+  };
+  int z = co_await f() + sum;
   trace( "End waitable_string.\n" );
-  co_return to_string( n ) + "-" + to_string( sum ) + "-" +
+  co_return to_string( n ) + "-" + to_string( z ) + "-" +
       to_string( d );
 }
 
