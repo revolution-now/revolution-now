@@ -67,6 +67,8 @@ class waitable {
   };
 
 public:
+  using value_type = T;
+
   waitable( T val ) {
     sstate_ = make_shared<shared_state>();
     sstate_->set( val );
@@ -198,6 +200,24 @@ waitable<int> waitable_sum() {
       co_await waitable_int();
 }
 
+template<typename Func, typename... Args>
+auto co_invoke( Func&& func, Args&&... args )
+    -> waitable<decltype( std::forward<Func>( func )(
+        std::declval<typename Args::value_type>()... ) )> {
+  co_return std::forward<Func>( func )( ( co_await args )... );
+}
+
+template<typename Func>
+struct co_lift {
+  Func func_;
+  co_lift( Func&& func ) : func_( std::move( func ) ) {}
+  co_lift( Func const& func ) : func_( func ) {}
+  template<typename... Args>
+  auto operator()( Args... args ) {
+    return co_invoke( func_, std::forward<Args>( args )... );
+  }
+};
+
 waitable<string> waitable_string() {
   trace( "Start waitable_string.\n" );
   int n = co_await waitable_sum();
@@ -207,8 +227,12 @@ waitable<string> waitable_string() {
   int m = co_await waitable_sum();
   for( int i = 0; i < m; ++i ) //
     d += co_await waitable_double();
+  trace( "Sum waitable_string.\n" );
+  int sum = co_await co_lift{ std::plus<>{} }( waitable_sum(),
+                                               waitable_sum() );
   trace( "End waitable_string.\n" );
-  co_return to_string( n ) + "-" + to_string( d );
+  co_return to_string( n ) + "-" + to_string( sum ) + "-" +
+      to_string( d );
 }
 
 } // namespace
