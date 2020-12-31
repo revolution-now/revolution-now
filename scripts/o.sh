@@ -40,6 +40,7 @@ target="$(cat "$cmake" | sed -rn 's/set_warning_options\( (.*) \)/\1/p')"
 obj="$dir/CMakeFiles/$target.dir/$file.o"
 
 cd .builds/current
+[[ -f "env-vars.mk" ]] && eval "$(cat env-vars.mk | sed 's/ = /=/')"
 export DSICILIA_NINJA_STATUS_PRINT_MODE=singleline
 export DSICILIA_NINJA_REFORMAT_MODE=pretty
 ninja "$obj"
