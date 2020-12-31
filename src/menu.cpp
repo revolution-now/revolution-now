@@ -395,8 +395,7 @@ X menu_header_x_pos_( e_menu target ) {
   W           width_delta{ 0 };
   auto const& vm = visible_menus();
   if( desc.right_side ) {
-    width_delta = rl::all( vm )
-                      .reverse()
+    width_delta = rl::rall( vm )
                       .remove_if_L( !g_menus[_].right_side )
                       .take_while_incl_L( _ != target )
                       .map_L( menu_header_delta( _ ).w )

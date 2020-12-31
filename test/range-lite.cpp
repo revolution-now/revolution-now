@@ -227,93 +227,6 @@ TEST_CASE( "[range-lite] rall" ) {
   REQUIRE_THAT( vec, Equals( vector<int>{ 2, 10, 26 } ) );
 }
 
-TEST_CASE( "[range-lite] rall after map" ) {
-  vector<int> input{ 1, 2, 3 };
-
-  auto view1 = rl::all( input ).map_L( _ * _ );
-
-  auto rev_view = rl::rall( view1 );
-
-  REQUIRE_THAT( rev_view.to_vector(),
-                Equals( vector<int>{ 9, 4, 1 } ) );
-}
-
-TEST_CASE( "[range-lite] multiple reverses" ) {
-  SECTION( "one reverse after" ) {
-    vector<int> input{ 1, 2, 3 };
-
-    auto view = rl::all( input ).map_L( _ * _ ).reverse();
-
-    REQUIRE_THAT( view.to_vector(),
-                  Equals( vector<int>{ 9, 4, 1 } ) );
-  }
-  SECTION( "one reverse before" ) {
-    vector<int> input{ 1, 2, 3 };
-
-    auto view = rl::all( input ).reverse().map_L( _ * _ );
-
-    REQUIRE_THAT( view.to_vector(),
-                  Equals( vector<int>{ 9, 4, 1 } ) );
-  }
-  SECTION( "two reverse" ) {
-    vector<int> input{ 1, 2, 3 };
-
-    auto view =
-        rl::all( input ).reverse().map_L( _ * _ ).reverse();
-
-    REQUIRE_THAT( view.to_vector(),
-                  Equals( vector<int>{ 1, 4, 9 } ) );
-  }
-  SECTION( "three reverse" ) {
-    vector<int> input{ 1, 2, 3 };
-
-    auto view = rl::all( input )
-                    .reverse()
-                    .map_L( _ * _ )
-                    .reverse()
-                    .reverse();
-
-    REQUIRE_THAT( view.to_vector(),
-                  Equals( vector<int>{ 9, 4, 1 } ) );
-  }
-}
-
-TEST_CASE( "[range-lite] reverse one or empty" ) {
-  SECTION( "empty" ) {
-    vector<int> input{};
-    auto        view = rl::all( input ).map_L( _ * _ ).reverse();
-    REQUIRE_THAT( view.to_vector(), Equals( vector<int>{} ) );
-  }
-  SECTION( "one reverse before" ) {
-    vector<int> input{ 2 };
-    auto        view = rl::all( input ).reverse().map_L( _ * _ );
-    REQUIRE_THAT( view.to_vector(), Equals( vector<int>{ 4 } ) );
-  }
-}
-
-TEST_CASE( "[range-lite] func calls in reverse map" ) {
-  vector<int> input{ 1, 2, 3 };
-
-  int func_calls = 0;
-
-  auto f = [&]( int n ) {
-    ++func_calls;
-    return n * n;
-  };
-
-  auto view = rl::all( input )
-                  .map( f )
-                  .reverse()
-                  .reverse()
-                  .reverse()
-                  .reverse()
-                  .reverse();
-
-  REQUIRE_THAT( view.to_vector(),
-                Equals( vector<int>{ 9, 4, 1 } ) );
-  REQUIRE( func_calls == 3 );
-}
-
 TEST_CASE( "[range-lite] macros" ) {
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -387,8 +300,7 @@ TEST_CASE( "[range-lite] cache1 no ref" ) {
 TEST_CASE( "[range-lite] string_view" ) {
   string_view sv = "hello world";
 
-  auto view =
-      rl::all( sv ).reverse().map_L( _ == ' ' ? '-' : _ );
+  auto view = rl::rall( sv ).map_L( _ == ' ' ? '-' : _ );
 
   REQUIRE( view.to_string() == "dlrow-olleh" );
 }
@@ -396,8 +308,7 @@ TEST_CASE( "[range-lite] string_view" ) {
 TEST_CASE( "[range-lite] to_string" ) {
   string_view sv = "hello world";
 
-  auto view =
-      rl::all( sv ).reverse().map_L( _ == ' ' ? '-' : _ );
+  auto view = rl::rall( sv ).map_L( _ == ' ' ? '-' : _ );
 
   REQUIRE( view.to_string() == "dlrow-olleh" );
 }

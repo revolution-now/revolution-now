@@ -881,120 +881,10 @@ private:
     iterator pos() const { return derived()->it_; }
   };
 
-  template<typename Derived>
-  class ReverseCursorBase {
-    Derived const* derived() const {
-      return static_cast<Derived const*>( this );
-    }
-
-    Derived* derived() { return static_cast<Derived*>( this ); }
-
-  public:
-    using riterator = typename ChainView::riterator;
-
-    ReverseCursorBase() = default;
-
-    void rinit( ChainView const& input ) {
-      derived()->rit_ = input.rbegin();
-    }
-
-    decltype( auto ) rget( ChainView const& input ) const {
-      assert_bt( !derived()->rend( input ) );
-      return *derived()->rit_;
-    }
-
-    void rnext( ChainView const& input ) {
-      assert_bt( !derived()->rend( input ) );
-      ++derived()->rit_;
-    }
-
-    bool rend( ChainView const& input ) const {
-      return derived()->rit_ == input.rend();
-    }
-
-    // The type that this returns doesn't really matter, it
-    // just has to be a unique value for each iteration of
-    // the cursor.
-    riterator rpos() const { return derived()->rit_; }
-  };
-
   struct CursorStorage {
     using iterator = typename ChainView::iterator;
     iterator it_;
   };
-
-  static constexpr auto GetBidirectionalCursorStorageType() {
-    if constexpr( cursor_supports_reverse_v<Cursor> ) {
-      struct BidirectionalCursorStorage {
-        using iterator  = typename ChainView::iterator;
-        using riterator = typename ChainView::riterator;
-
-        void destroy() {
-          if( is_reverse )
-            rit_.~riterator();
-          else
-            it_.~iterator();
-        }
-
-        BidirectionalCursorStorage()
-          : is_reverse{ false }, it_{} {};
-        ~BidirectionalCursorStorage() noexcept { destroy(); }
-
-        BidirectionalCursorStorage(
-            BidirectionalCursorStorage const& other )
-          : is_reverse{ other.is_reverse } {
-          if( is_reverse )
-            new( &rit_ ) riterator( other.rit_ );
-          else
-            new( &it_ ) iterator( other.it_ );
-        }
-
-        BidirectionalCursorStorage(
-            BidirectionalCursorStorage&& other )
-          : is_reverse{ other.is_reverse } {
-          if( is_reverse )
-            new( &rit_ ) riterator( std::move( other.rit_ ) );
-          else
-            new( &it_ ) iterator( std::move( other.it_ ) );
-        }
-
-        BidirectionalCursorStorage& operator=(
-            BidirectionalCursorStorage const& other ) {
-          destroy();
-          is_reverse = other.is_reverse;
-          if( is_reverse )
-            rit_ = other.rit_;
-          else
-            it_ = other.it_;
-          return *this;
-        }
-
-        BidirectionalCursorStorage& operator=(
-            BidirectionalCursorStorage&& other ) {
-          destroy();
-          is_reverse = other.is_reverse;
-          if( is_reverse )
-            rit_ = std::move( other.rit_ );
-          else
-            it_ = std::move( other.it_ );
-          return *this;
-        }
-
-        bool is_reverse = false;
-        union {
-          iterator it_;
-          // If you get an error on this line about riterator
-          // being an incomplete type then that means that this
-          // view (likely one in your pipelien) does not support
-          // reverse iteration.
-          riterator rit_;
-        };
-      };
-      return BidirectionalCursorStorage{};
-    }
-  }
-  using BidirectionalCursorStorage =
-      decltype( GetBidirectionalCursorStorageType() );
 
   /**************************************************************
   ** Chain Maker
@@ -1138,28 +1028,8 @@ public:
 
   template<typename Func>
   auto map( Func&& func ) && {
-    if constexpr( cursor_supports_reverse_v<Cursor> ) {
-      struct BidirectionalMapCursor
-        : public BidirectionalCursorStorage,
-          public MapCursorBase<Func, BidirectionalMapCursor>,
-          public ReverseCursorBase<BidirectionalMapCursor> {
-        using MapCursorBase<
-            Func, BidirectionalMapCursor>::MapCursorBase;
-        using typename MapCursorBase<
-            Func, BidirectionalMapCursor>::iterator;
-        using typename ReverseCursorBase<
-            BidirectionalMapCursor>::riterator;
-        decltype( auto ) rget( ChainView const& input ) const {
-          assert_bt( !this->rend( input ) );
-          return ( *this->func_ )( *this->rit_ );
-        }
-      };
-      return make_chain<BidirectionalMapCursor>(
-          std::forward<Func>( func ) );
-    } else {
-      return make_chain<MapCursor<Func>>(
-          std::forward<Func>( func ) );
-    }
+    return make_chain<MapCursor<Func>>(
+        std::forward<Func>( func ) );
   }
 
   /**************************************************************
@@ -1461,71 +1331,6 @@ public:
     };
     return make_chain<IntersperseCursor>(
         std::forward<T>( val ) );
-  }
-
-  /**************************************************************
-  ** Reverse
-  ***************************************************************/
-  auto reverse() && {
-    struct ReverseCursor
-      : public BidirectionalCursorStorage,
-        public CursorBase<ReverseCursor>,
-        public ReverseCursorBase<ReverseCursor> {
-      struct Data {};
-      using FBase = CursorBase<ReverseCursor>;
-      using RBase = ReverseCursorBase<ReverseCursor>;
-      using BidirectionalCursorStorage::it_;
-      using BidirectionalCursorStorage::rit_;
-
-      ReverseCursor() = default;
-      ReverseCursor( Data const& ) {}
-
-      using iterator  = typename RBase::riterator;
-      using riterator = typename FBase::iterator;
-
-      void init( ChainView const& input ) {
-        rit_ = input.rbegin();
-      }
-
-      decltype( auto ) get( ChainView const& input ) const {
-        assert_bt( !this->end( input ) );
-        return *rit_;
-      }
-
-      void next( ChainView const& input ) {
-        assert_bt( !this->end( input ) );
-        ++rit_;
-      }
-
-      bool end( ChainView const& input ) const {
-        return rit_ == input.rend();
-      }
-
-      iterator pos() const { return rit_; }
-
-      // === Reverse ===
-
-      void rinit( ChainView const& input ) {
-        it_ = input.begin();
-      }
-
-      decltype( auto ) rget( ChainView const& input ) const {
-        assert_bt( !this->rend( input ) );
-        return *it_;
-      }
-
-      void rnext( ChainView const& input ) {
-        assert_bt( !this->rend( input ) );
-        ++it_;
-      }
-
-      bool rend( ChainView const& input ) const {
-        return it_ == input.end();
-      }
-
-      riterator rpos() const { return it_; }
-    };
-    return make_chain<ReverseCursor>();
   }
 
   /**************************************************************

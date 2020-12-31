@@ -164,14 +164,12 @@ vector<string> autocomplete( string_view fragment ) {
            ( c == '_' );
   };
   lg.trace( "fragment: {}", fragment );
-  auto to_autocomplete = rl::all( fragment )
-                             .reverse()
+  auto to_autocomplete = rl::rall( fragment )
                              .take_while( is_autocomplete_char )
                              .to_string();
   reverse( to_autocomplete.begin(), to_autocomplete.end() );
   lg.trace( "to_autocomplete: {}", to_autocomplete );
-  auto prefix = rl::all( fragment )
-                    .reverse()
+  auto prefix = rl::rall( fragment )
                     .drop( to_autocomplete.size() )
                     .to_string();
   reverse( prefix.begin(), prefix.end() );
