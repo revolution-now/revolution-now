@@ -849,6 +849,8 @@ private:
       return static_cast<Derived const*>( this );
     }
 
+    Derived* derived() { return static_cast<Derived*>( this ); }
+
   public:
     using View = ChainView;
 
@@ -856,27 +858,27 @@ private:
 
     CursorBase() = default;
 
-    void init( ChainView const& input ) { it_ = input.begin(); }
+    void init( ChainView const& input ) {
+      derived()->it_ = input.begin();
+    }
 
     decltype( auto ) get( ChainView const& input ) const {
       assert_bt( !derived()->end( input ) );
-      return *it_;
+      return *derived()->it_;
     }
 
     void next( ChainView const& input ) {
       assert_bt( !derived()->end( input ) );
-      ++it_;
+      ++derived()->it_;
     }
 
     bool end( ChainView const& input ) const {
-      return it_ == input.end();
+      return derived()->it_ == input.end();
     }
 
     // The type that this returns doesn't really matter, it just
     // has to be a unique value for each iteration of the cursor.
-    iterator pos() const { return it_; }
-
-    iterator it_;
+    iterator pos() const { return derived()->it_; }
   };
 
   template<typename Derived>
@@ -885,39 +887,114 @@ private:
       return static_cast<Derived const*>( this );
     }
 
+    Derived* derived() { return static_cast<Derived*>( this ); }
+
   public:
     using riterator = typename ChainView::riterator;
 
     ReverseCursorBase() = default;
 
     void rinit( ChainView const& input ) {
-      rit_ = input.rbegin();
+      derived()->rit_ = input.rbegin();
     }
 
     decltype( auto ) rget( ChainView const& input ) const {
       assert_bt( !derived()->rend( input ) );
-      return *rit_;
+      return *derived()->rit_;
     }
 
     void rnext( ChainView const& input ) {
       assert_bt( !derived()->rend( input ) );
-      ++rit_;
+      ++derived()->rit_;
     }
 
     bool rend( ChainView const& input ) const {
-      return rit_ == input.rend();
+      return derived()->rit_ == input.rend();
     }
 
     // The type that this returns doesn't really matter, it
     // just has to be a unique value for each iteration of
     // the cursor.
-    riterator rpos() const { return rit_; }
-
-    // If you get an error on this line about riterator being an
-    // incomplete type then that means that this view (likely one
-    // in your pipelien) does not support reverse iteration.
-    riterator rit_;
+    riterator rpos() const { return derived()->rit_; }
   };
+
+  struct CursorStorage {
+    using iterator = typename ChainView::iterator;
+    iterator it_;
+  };
+
+  static constexpr auto GetBidirectionalCursorStorageType() {
+    if constexpr( cursor_supports_reverse_v<Cursor> ) {
+      struct BidirectionalCursorStorage {
+        using iterator  = typename ChainView::iterator;
+        using riterator = typename ChainView::riterator;
+
+        void destroy() {
+          if( is_reverse )
+            rit_.~riterator();
+          else
+            it_.~iterator();
+        }
+
+        BidirectionalCursorStorage()
+          : is_reverse{ false }, it_{} {};
+        ~BidirectionalCursorStorage() noexcept { destroy(); }
+
+        BidirectionalCursorStorage(
+            BidirectionalCursorStorage const& other )
+          : is_reverse{ other.is_reverse } {
+          if( is_reverse )
+            new( &rit_ ) riterator( other.rit_ );
+          else
+            new( &it_ ) iterator( other.it_ );
+        }
+
+        BidirectionalCursorStorage(
+            BidirectionalCursorStorage&& other )
+          : is_reverse{ other.is_reverse } {
+          if( is_reverse )
+            new( &rit_ ) riterator( std::move( other.rit_ ) );
+          else
+            new( &it_ ) iterator( std::move( other.it_ ) );
+        }
+
+        BidirectionalCursorStorage& operator=(
+            BidirectionalCursorStorage const& other ) {
+          destroy();
+          is_reverse = other.is_reverse;
+          if( is_reverse )
+            rit_ = other.rit_;
+          else
+            it_ = other.it_;
+          return *this;
+        }
+
+        BidirectionalCursorStorage& operator=(
+            BidirectionalCursorStorage&& other ) {
+          destroy();
+          is_reverse = other.is_reverse;
+          if( is_reverse )
+            rit_ = std::move( other.rit_ );
+          else
+            it_ = std::move( other.it_ );
+          return *this;
+        }
+
+        bool is_reverse = false;
+        union {
+          iterator it_;
+          // If you get an error on this line about riterator
+          // being an incomplete type then that means that this
+          // view (likely one in your pipelien) does not support
+          // reverse iteration.
+          riterator rit_;
+        };
+      };
+      return BidirectionalCursorStorage{};
+    }
+  }
+  using BidirectionalCursorStorage =
+      decltype( GetBidirectionalCursorStorageType() );
 
   /**************************************************************
   ** Chain Maker
@@ -951,7 +1028,8 @@ public:
   ***************************************************************/
   template<typename Func>
   auto keep_if( Func&& func ) && {
-    struct KeepIfCursor : public CursorBase<KeepIfCursor> {
+    struct KeepIfCursor : public CursorStorage,
+                          public CursorBase<KeepIfCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
@@ -960,8 +1038,7 @@ public:
           : func_( std::move( check_fn_ptr( f ) ) ) {}
         func_storage_t<Func> func_;
       };
-      using Base = CursorBase<KeepIfCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       KeepIfCursor() = default;
       KeepIfCursor( Data const& data ) : func_( &data.func_ ) {}
 
@@ -993,8 +1070,15 @@ public:
   /**************************************************************
   ** Map
   ***************************************************************/
-  template<typename Func>
-  struct MapCursor : public CursorBase<MapCursor<Func>> {
+  template<typename Func, typename Derived>
+  class MapCursorBase : public CursorBase<Derived> {
+    Derived const* derived() const {
+      return static_cast<Derived const*>( this );
+    }
+
+    Derived* derived() { return static_cast<Derived*>( this ); }
+
+  public:
     using func_t = std::remove_reference_t<Func>;
     struct Data {
       Data() = default;
@@ -1003,13 +1087,13 @@ public:
         : func_( std::move( check_fn_ptr( f ) ) ) {}
       func_storage_t<Func> func_;
     };
-    using Base = CursorBase<MapCursor>;
-    using Base::it_;
+    using Base = CursorBase<Derived>;
     using typename Base::iterator;
-    MapCursor() = default;
-    MapCursor( Data const& data ) : func_( &data.func_ ) {
+    MapCursorBase() = default;
+    MapCursorBase( Data const& data ) : func_( &data.func_ ) {
       constexpr bool func_returns_ref =
-          std::is_reference_v<decltype( ( *func_ )( *it_ ) )>;
+          std::is_reference_v<decltype( ( *func_ )(
+              *derived()->it_ ) )>;
       if constexpr( func_returns_ref ) {
         // Normally, if the function returns a reference, we re-
         // quire that the input value is an lvalue reference (to
@@ -1020,44 +1104,57 @@ public:
         // func_ is simply dereferencing a pointer, and in that
         // case it is ok if the pointer itself is an rvalue.
         constexpr bool is_ptr_dereference =
-            std::is_pointer_v<std::decay_t<decltype( *it_ )>> &&
+            std::is_pointer_v<
+                std::decay_t<decltype( *derived()->it_ )>> &&
             std::is_same_v<
-                std::decay_t<decltype( ( *func_ )( *it_ ) )>,
+                std::decay_t<decltype( ( *func_ )(
+                    *derived()->it_ ) )>,
                 std::decay_t<std::remove_pointer_t<
-                    std::decay_t<decltype( *it_ )>>>>;
+                    std::decay_t<decltype( *derived()->it_ )>>>>;
         // If you fail here then you are probably trying to re-
         // turn a reference to a temporary (or to something in-
         // side a temporary) that was produced by an earlier view
         // in the pipeline.
-        static_assert(
-            is_ptr_dereference ||
-            std::is_lvalue_reference_v<decltype( *it_ )> );
+        static_assert( is_ptr_dereference ||
+                       std::is_lvalue_reference_v<
+                           decltype( *derived()->it_ )> );
       }
     }
 
     decltype( auto ) get( ChainView const& input ) const {
       assert_bt( !this->end( input ) );
-      return ( *func_ )( *it_ );
+      return ( *func_ )( *derived()->it_ );
     }
 
     func_storage_t<Func> const* func_;
   };
 
   template<typename Func>
-  struct BidirectionalMapCursor
-    : public MapCursor<Func>,
-      public ReverseCursorBase<BidirectionalMapCursor<Func>> {
-    using MapCursor<Func>::MapCursor;
-    decltype( auto ) rget( ChainView const& input ) const {
-      assert_bt( !this->rend( input ) );
-      return ( *this->func_ )( *this->rit_ );
-    }
+  struct MapCursor
+    : public CursorStorage,
+      public MapCursorBase<Func, MapCursor<Func>> {
+    using MapCursorBase<Func, MapCursor<Func>>::MapCursorBase;
   };
 
   template<typename Func>
   auto map( Func&& func ) && {
     if constexpr( cursor_supports_reverse_v<Cursor> ) {
-      return make_chain<BidirectionalMapCursor<Func>>(
+      struct BidirectionalMapCursor
+        : public BidirectionalCursorStorage,
+          public MapCursorBase<Func, BidirectionalMapCursor>,
+          public ReverseCursorBase<BidirectionalMapCursor> {
+        using MapCursorBase<
+            Func, BidirectionalMapCursor>::MapCursorBase;
+        using typename MapCursorBase<
+            Func, BidirectionalMapCursor>::iterator;
+        using typename ReverseCursorBase<
+            BidirectionalMapCursor>::riterator;
+        decltype( auto ) rget( ChainView const& input ) const {
+          assert_bt( !this->rend( input ) );
+          return ( *this->func_ )( *this->rit_ );
+        }
+      };
+      return make_chain<BidirectionalMapCursor>(
           std::forward<Func>( func ) );
     } else {
       return make_chain<MapCursor<Func>>(
@@ -1070,7 +1167,8 @@ public:
   ***************************************************************/
   template<typename Func>
   auto take_while( Func&& func ) && {
-    struct TakeWhileCursor : public CursorBase<TakeWhileCursor> {
+    struct TakeWhileCursor : public CursorStorage,
+                             public CursorBase<TakeWhileCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
@@ -1080,7 +1178,7 @@ public:
         func_storage_t<Func> func_;
       };
       using Base = CursorBase<TakeWhileCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       TakeWhileCursor() = default;
       TakeWhileCursor( Data const& data )
@@ -1116,7 +1214,8 @@ public:
   ***************************************************************/
   template<typename Func>
   auto drop_while( Func&& func ) && {
-    struct DropWhileCursor : public CursorBase<DropWhileCursor> {
+    struct DropWhileCursor : public CursorStorage,
+                             public CursorBase<DropWhileCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
@@ -1126,7 +1225,7 @@ public:
         func_storage_t<Func> func_;
       };
       using Base = CursorBase<DropWhileCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       DropWhileCursor() = default;
       DropWhileCursor( Data const& data )
@@ -1151,7 +1250,8 @@ public:
   template<typename Func>
   auto take_while_incl( Func&& func ) && {
     struct TakeWhileInclCursor
-      : public CursorBase<TakeWhileInclCursor> {
+      : public CursorStorage,
+        public CursorBase<TakeWhileInclCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
@@ -1161,7 +1261,7 @@ public:
         func_storage_t<Func> func_;
       };
       using Base = CursorBase<TakeWhileInclCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       TakeWhileInclCursor() = default;
       TakeWhileInclCursor( Data const& data )
@@ -1212,14 +1312,14 @@ public:
   ***************************************************************/
   template<typename SndView>
   auto zip( SndView&& snd_view ) && {
-    struct ZipCursor : public CursorBase<ZipCursor> {
+    struct ZipCursor : public CursorStorage,
+                       public CursorBase<ZipCursor> {
       struct Data {
         Data( SndView&& snd_view ) // not happy with this sig.
           : snd_view_( std::move( snd_view ) ) {}
         std::decay_t<SndView> snd_view_;
       };
-      using Base = CursorBase<ZipCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using iterator2 =
           decltype( std::declval<SndView>().begin() );
       ZipCursor() = default;
@@ -1259,13 +1359,14 @@ public:
   ** Take
   ***************************************************************/
   auto take( int n ) && {
-    struct TakeCursor : public CursorBase<TakeCursor> {
+    struct TakeCursor : public CursorStorage,
+                        public CursorBase<TakeCursor> {
       struct Data {
         Data( int m ) : n( m ) {}
         int n;
       };
       using Base = CursorBase<TakeCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       TakeCursor() = default;
       TakeCursor( Data const& data ) : n_( data.n ) {}
@@ -1292,13 +1393,14 @@ public:
   ** Drop
   ***************************************************************/
   auto drop( int n ) && {
-    struct DropCursor : public CursorBase<DropCursor> {
+    struct DropCursor : public CursorStorage,
+                        public CursorBase<DropCursor> {
       struct Data {
         Data( int m ) : n( m ) {}
         int n;
       };
       using Base = CursorBase<DropCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       DropCursor() = default;
       DropCursor( Data const& data ) : n_( data.n ) {}
@@ -1322,13 +1424,14 @@ public:
   template<typename T = ValueType>
   auto intersperse( T&& val ) && {
     struct IntersperseCursor
-      : public CursorBase<IntersperseCursor> {
+      : public CursorStorage,
+        public CursorBase<IntersperseCursor> {
       struct Data {
         Data( ValueType val ) : val_( std::move( val ) ) {}
         ValueType val_;
       };
       using Base = CursorBase<IntersperseCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       IntersperseCursor() = default;
       IntersperseCursor( Data const& data )
@@ -1364,13 +1467,15 @@ public:
   ** Reverse
   ***************************************************************/
   auto reverse() && {
-    struct ReverseCursor : public CursorBase<ReverseCursor>,
-                           ReverseCursorBase<ReverseCursor> {
+    struct ReverseCursor
+      : public BidirectionalCursorStorage,
+        public CursorBase<ReverseCursor>,
+        public ReverseCursorBase<ReverseCursor> {
       struct Data {};
       using FBase = CursorBase<ReverseCursor>;
       using RBase = ReverseCursorBase<ReverseCursor>;
-      using FBase::it_;
-      using RBase::rit_;
+      using BidirectionalCursorStorage::it_;
+      using BidirectionalCursorStorage::rit_;
 
       ReverseCursor() = default;
       ReverseCursor( Data const& ) {}
@@ -1379,24 +1484,24 @@ public:
       using riterator = typename FBase::iterator;
 
       void init( ChainView const& input ) {
-        this->rit_ = input.rbegin();
+        rit_ = input.rbegin();
       }
 
       decltype( auto ) get( ChainView const& input ) const {
         assert_bt( !this->end( input ) );
-        return *this->rit_;
+        return *rit_;
       }
 
       void next( ChainView const& input ) {
         assert_bt( !this->end( input ) );
-        ++this->rit_;
+        ++rit_;
       }
 
       bool end( ChainView const& input ) const {
-        return this->rit_ == input.rend();
+        return rit_ == input.rend();
       }
 
-      iterator pos() const { return this->rit_; }
+      iterator pos() const { return rit_; }
 
       // === Reverse ===
 
@@ -1429,10 +1534,11 @@ public:
   // Caches the single most recent value so that multiple reads
   // from the iterator won't cause redundant work.
   auto cache1() && {
-    struct CacheCursor : public CursorBase<CacheCursor> {
+    struct CacheCursor : public CursorStorage,
+                         public CursorBase<CacheCursor> {
       struct Data {};
       using Base = CursorBase<CacheCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       CacheCursor() = default;
       CacheCursor( Data const& ) {}
@@ -1467,10 +1573,11 @@ public:
   ** Cycle
   ***************************************************************/
   auto cycle() && {
-    struct CycleCursor : public CursorBase<CycleCursor> {
+    struct CycleCursor : public CursorStorage,
+                         public CursorBase<CycleCursor> {
       struct Data {};
       using Base = CursorBase<CycleCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       CycleCursor() = default;
       CycleCursor( Data const& ) {}
@@ -1503,7 +1610,8 @@ public:
   ***************************************************************/
   template<typename Func>
   auto group_by( Func&& func ) && {
-    struct GroupByCursor : public CursorBase<GroupByCursor> {
+    struct GroupByCursor : public CursorStorage,
+                           public CursorBase<GroupByCursor> {
       using func_t = std::remove_reference_t<Func>;
       struct Data {
         Data() = default;
@@ -1513,7 +1621,7 @@ public:
         func_storage_t<Func> func_;
       };
       using Base = CursorBase<GroupByCursor>;
-      using Base::it_;
+      using CursorStorage::it_;
       using typename Base::iterator;
       using IncomingValueType = typename ChainView::value_type;
       using ChainGroupView =
