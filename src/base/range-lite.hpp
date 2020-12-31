@@ -46,7 +46,7 @@ namespace base::rl {
 /****************************************************************
 ** Forward Declarations
 *****************************************************************/
-template<typename InputView, typename Cursor, typename ValueType>
+template<typename Cursor, typename ValueType>
 class ChainView;
 
 /****************************************************************
@@ -70,8 +70,8 @@ using ultimate_view_or_self_t =
 template<typename T>
 struct is_chain_view : std::false_type {};
 
-template<typename InputView, typename Cursor, typename ValueType>
-struct is_chain_view<ChainView<InputView, Cursor, ValueType>>
+template<typename Cursor, typename ValueType>
+struct is_chain_view<ChainView<Cursor, ValueType>>
   : std::true_type {};
 
 template<typename T>
@@ -126,6 +126,7 @@ struct IdentityCursor {
   struct Data {};
   using iterator = decltype( std::declval<InputView>().begin() );
   using value_type = it_type_to_value_type_t<iterator>;
+  using View       = InputView;
   IdentityCursor() = default;
   IdentityCursor( Data const& ) {}
   void init( InputView const& input ) { it_ = input.begin(); }
@@ -145,6 +146,7 @@ struct BidirectionalIdentityCursor {
   using riterator =
       decltype( std::declval<InputView>().rbegin() );
   using value_type = it_type_to_value_type_t<iterator>;
+  using View       = InputView;
   BidirectionalIdentityCursor() = default;
   BidirectionalIdentityCursor( Data const& ) {}
 
@@ -484,7 +486,7 @@ struct ChildView {
 /****************************************************************
 ** ChainView
 *****************************************************************/
-template<typename InputView, typename Cursor,
+template<typename Cursor,
          // The vast majority of the time you don't have to
          // specify ValueType explicitly -- just let it assume
          // its default value. There are a few strange cases
@@ -492,8 +494,13 @@ template<typename InputView, typename Cursor,
          // nite (cyclic) template lookups of value type (e.g. in
          // group_by).
          typename ValueType = std::decay_t<std::invoke_result_t<
-             decltype( &Cursor::get ), Cursor*, InputView>>>
+             decltype( &Cursor::get ), Cursor*,
+             typename Cursor::View>>>
 class ChainView {
+public:
+  using InputView = typename Cursor::View;
+
+private:
   using data_t = typename Cursor::Data;
 
   InputView input_;
@@ -843,6 +850,8 @@ private:
     }
 
   public:
+    using View = ChainView;
+
     using iterator = typename ChainView::iterator;
 
     CursorBase() = default;
@@ -917,9 +926,8 @@ private:
   // Add another element to the chain.
   template<typename NewCursor, typename... Args>
   auto make_chain( Args&&... args ) {
-    using NewChainView =
-        ChainView<ChainView<InputView, Cursor>, NewCursor>;
-    using Data = typename NewCursor::Data;
+    using NewChainView = ChainView<NewCursor>;
+    using Data         = typename NewCursor::Data;
     return NewChainView( std::move( *this ),
                          Data( std::forward<Args>( args )... ) );
   }
@@ -1509,8 +1517,7 @@ public:
       using typename Base::iterator;
       using IncomingValueType = typename ChainView::value_type;
       using ChainGroupView =
-          ChainView<ChildView<IncomingValueType, GroupByCursor>,
-                    IdentityCursor<ChildView<IncomingValueType,
+          ChainView<IdentityCursor<ChildView<IncomingValueType,
                                              GroupByCursor>>,
                     IncomingValueType>;
       using ChainGroupViewCursor = IdentityCursor<
@@ -1629,8 +1636,8 @@ public:
     using IntsCursor = IdentityCursor<IntsView>;
     using Data       = typename IntsCursor::Data;
     return std::move( *this )
-        .zip( ChainView<IntsView, IntsCursor>( IntsView( start ),
-                                               Data{} ) )
+        .zip(
+            ChainView<IntsCursor>( IntsView( start ), Data{} ) )
         .map( []( auto&& p ) {
           return std::pair<decltype( p.second ),
                            decltype( p.first )>{ p.second,
@@ -1756,15 +1763,13 @@ auto all( InputView&& input ) {
       using Data = typename BidirectionalIdentityCursor<
           initial_view_t>::Data;
       return ChainView<
-          initial_view_t,
           BidirectionalIdentityCursor<initial_view_t>>(
           initial_view_t( &input ), Data{} );
     } else {
       using initial_view_t =
           AllView<std::remove_reference_t<InputView>>;
       using Data = typename IdentityCursor<initial_view_t>::Data;
-      return ChainView<initial_view_t,
-                       IdentityCursor<initial_view_t>>(
+      return ChainView<IdentityCursor<initial_view_t>>(
           initial_view_t( &input ), Data{} );
     }
   }
@@ -1779,8 +1784,7 @@ auto rall( InputView&& input ) {
   using initial_view_t =
       ReverseAllView<std::remove_reference_t<InputView>>;
   using Data = typename IdentityCursor<initial_view_t>::Data;
-  return ChainView<initial_view_t,
-                   IdentityCursor<initial_view_t>>(
+  return ChainView<IdentityCursor<initial_view_t>>(
       initial_view_t( &input ), Data{} );
 }
 
@@ -1802,15 +1806,14 @@ auto input() {
         BidirectionalAllView<std::remove_reference_t<InputView>>;
     using Data = typename BidirectionalIdentityCursor<
         initial_view_t>::Data;
-    return ChainView<initial_view_t, BidirectionalIdentityCursor<
-                                         initial_view_t>>(
+    return ChainView<
+        BidirectionalIdentityCursor<initial_view_t>>(
         initial_view_t( nullptr ), Data{} );
   } else {
     using initial_view_t =
         AllView<std::remove_reference_t<InputView>>;
     using Data = typename IdentityCursor<initial_view_t>::Data;
-    return ChainView<initial_view_t,
-                     IdentityCursor<initial_view_t>>(
+    return ChainView<IdentityCursor<initial_view_t>>(
         initial_view_t( nullptr ), Data{} );
   }
 }
@@ -1822,8 +1825,7 @@ inline auto ints( int start = 0,
                   int end   = std::numeric_limits<int>::max() ) {
   using Cursor = IdentityCursor<IntsView>;
   using Data   = typename Cursor::Data;
-  return ChainView<IntsView, Cursor>( IntsView( start, end ),
-                                      Data{} );
+  return ChainView<Cursor>( IntsView( start, end ), Data{} );
 }
 
 /****************************************************************
@@ -1833,7 +1835,7 @@ template<typename Func>
 auto generate_n( Func&& func, int count ) {
   using Cursor = IdentityCursor<GenerateView<Func>>;
   using Data   = typename Cursor::Data;
-  return ChainView<GenerateView<Func>, Cursor>(
+  return ChainView<Cursor>(
       GenerateView<Func>( std::forward<Func>( func ), count ),
       Data{} );
 }
