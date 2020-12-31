@@ -16,7 +16,7 @@
 #include "maybe.hpp"
 
 // base
-#include "base/coro-compat.hpp"
+#include "base/co-compat.hpp"
 
 // C++ standard library
 #include <functional>

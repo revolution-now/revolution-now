@@ -42,10 +42,12 @@
 // FIXME: remove this when libc++ moves the coroutine library out
 // of experimental.
 #if defined( _LIBCPP_VERSION )
-namespace coro = ::std::experimental; // libc++
+#  define CORO_NS std::experimental // libc++
 #else
-namespace coro = ::std; // libstdc++
+#  define CORO_NS std // libstdc++
 #endif
+
+namespace coro = ::CORO_NS;
 
 /****************************************************************
 ** Fix coroutine_handle::from_address not being noexcept.

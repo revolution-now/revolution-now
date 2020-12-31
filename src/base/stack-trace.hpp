@@ -17,7 +17,7 @@
 // the base library.
 #ifndef NDEBUG
 #  define assert_bt( ... ) \
-    if( !( __VA_ARGS__ ) ) abort_with_backtrace_here();
+    if( !( __VA_ARGS__ ) ) ::base::abort_with_backtrace_here();
 #else
 // This is in case there are any variables in there that would
 // otherwise be unused in a release build and trigger warnings.
