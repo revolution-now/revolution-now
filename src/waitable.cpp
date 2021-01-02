@@ -31,14 +31,6 @@ namespace {
 
 using namespace std;
 
-bool do_logging = false;
-
-template<typename... Args>
-void trace( string_view sv, Args&&... args ) {
-  if( !do_logging ) return;
-  fmt::print( sv, std::forward<Args>( args )... );
-}
-
 /****************************************************************
 ** waitable (like a "future")
 *****************************************************************/
@@ -50,19 +42,14 @@ class waitable {
   public:
     vector<function<void()>> resumes_;
 
-    T get() const {
-      trace( "shared_state::get.\n" );
-      return val_.value();
-    }
+    T get() const { return val_.value(); }
 
     bool ready() const { return val_.has_value(); }
 
     void set( T val ) {
-      trace( "shared_state::set (start).\n" );
       CHECK( !val_.has_value() );
       val_ = val;
       for( auto& f : resumes_ ) f();
-      trace( "shared_state::set (end).\n" );
     }
   };
 
@@ -74,13 +61,8 @@ public:
     sstate_->set( val );
   }
   waitable( shared_ptr<shared_state> sstate )
-    : sstate_( sstate ) {
-    trace( "waitable::waitable.\n" );
-  }
-  T get() const {
-    trace( "waitable::get.\n" );
-    return sstate_->get();
-  }
+    : sstate_( sstate ) {}
+  T get() const { return sstate_->get(); }
 
   bool ready() const { return sstate_->ready(); }
 
@@ -89,10 +71,7 @@ public:
 
   struct awaitable;
 
-  auto operator co_await() {
-    trace( "waitable::operator co_await.\n" );
-    return awaitable{ sstate_ };
-  }
+  auto operator co_await() { return awaitable{ sstate_ }; }
 
 private:
   shared_ptr<shared_state> sstate_;
@@ -103,29 +82,16 @@ struct waitable<T>::awaitable {
   shared_ptr<shared_state> sstate_;
   bool await_ready() { return sstate_->ready(); }
   void await_suspend( coro::coroutine_handle<> h ) {
-    trace( "waitable::awaitable::await_suspend.\n" );
-    sstate_->resumes_.push_back( [h]() mutable {
-      trace( "waitable::awaitable::(resume lambda).\n" );
-      h.resume();
-    } );
+    sstate_->resumes_.push_back( [h]() mutable { h.resume(); } );
   }
-  T await_resume() {
-    trace( "waitable::awaitable::await_resume.\n" );
-    return sstate_->get();
-  }
+  T await_resume() { return sstate_->get(); }
 };
 
 template<typename T>
 struct waitable<T>::promise {
-  promise() {
-    trace( "waitable::promise::promise.\n" );
-    sstate_ = make_shared<shared_state>();
-  }
+  promise() { sstate_ = make_shared<shared_state>(); }
   waitable<T> get_future() { return waitable<T>( sstate_ ); }
-  void        set( T val ) {
-    trace( "waitable::promise::set.\n" );
-    sstate_->set( val );
-  }
+  void        set( T val ) { sstate_->set( val ); }
 
   bool ready() const { return sstate_->ready(); }
 
@@ -134,19 +100,11 @@ struct waitable<T>::promise {
     return base::suspend_never{};
   }
 
-  void return_value( T val ) {
-    trace( "waitable::promise::return value.\n" );
-    set( val );
-  }
+  void return_value( T val ) { set( val ); }
 
-  waitable<T> get_return_object() {
-    trace( "waitable::promise::get_return_object.\n" );
-    return get_future();
-  }
+  waitable<T> get_return_object() { return get_future(); }
 
-  void unhandled_exception() {
-    trace( "Unhandled exception.\n" );
-  }
+  void unhandled_exception() { SHOULD_NOT_BE_HERE; }
 
   shared_ptr<shared_state> sstate_;
 };
@@ -157,15 +115,13 @@ struct waitable<T>::promise {
 queue<variant<waitable<int>::promise, waitable<double>::promise>>
     g_promises;
 
-struct Setter {
-  void operator()( waitable<int>::promise& p ) { p.set( 1 ); }
-  void operator()( waitable<double>::promise& p ) {
-    p.set( 2.2 );
-  }
-};
-
-void deliver_promise( int i ) {
-  trace( "{}. Delivering promise.\n", i );
+void deliver_promise() {
+  struct Setter {
+    void operator()( waitable<int>::promise& p ) { p.set( 1 ); }
+    void operator()( waitable<double>::promise& p ) {
+      p.set( 2.2 );
+    }
+  };
   if( !g_promises.empty() ) {
     visit( Setter{}, g_promises.front() );
     g_promises.pop();
@@ -176,14 +132,12 @@ void deliver_promise( int i ) {
 ** Create some waitables.
 *****************************************************************/
 waitable<int> waitable_int() {
-  trace( "Inside waitable_int.\n" );
   waitable<int>::promise p;
   g_promises.emplace( p );
   return p.get_future();
 }
 
 waitable<double> waitable_double() {
-  trace( "Inside waitable_double.\n" );
   waitable<double>::promise p;
   g_promises.emplace( p );
   return p.get_future();
@@ -193,7 +147,6 @@ waitable<double> waitable_double() {
 ** The Coroutines!
 *****************************************************************/
 waitable<int> waitable_sum() {
-  trace( "Inside waitable_sum.\n" );
   co_return                     //
       co_await waitable_int() + //
       co_await waitable_int() + //
@@ -219,26 +172,23 @@ struct co_lift {
 };
 
 waitable<string> waitable_string() {
-  trace( "Start waitable_string.\n" );
-  int n = co_await waitable_sum();
-  trace( "Middle waitable_string.\n" );
+  int    n = co_await waitable_sum();
   double d = co_await waitable_double();
-  // FIXME: gcc ICE when we put this co_await in the for-loop.
+
   int m = co_await waitable_sum();
   for( int i = 0; i < m; ++i ) //
     d += co_await waitable_double();
-  trace( "Sum waitable_string.\n" );
-  // Demonstrate lifting.
-  auto lifted = co_lift{ std::plus<>{} };
-  int  sum = co_await lifted( waitable_sum(), waitable_sum() );
-  // Demonstrate a lambda coroutine.
+
+  int sum = co_await co_lift{ std::plus<>{} }( waitable_sum(),
+                                               waitable_sum() );
+
   auto f = [&]() -> waitable<int> {
-    double o   = co_await waitable_double();
-    int    res = n * int( o );
+    int res = co_await waitable_sum() *
+              int( co_await waitable_double() );
     co_return res;
   };
   int z = co_await f() + sum;
-  trace( "End waitable_string.\n" );
+
   co_return to_string( n ) + "-" + to_string( z ) + "-" +
       to_string( d );
 }
@@ -248,22 +198,10 @@ waitable<string> waitable_string() {
 /****************************************************************
 ** Testing
 *****************************************************************/
-std::string test_waitable( bool logging ) {
-  using namespace ::std::literals::string_literals;
-  do_logging           = logging;
+std::string test_waitable() {
   waitable<string> sfs = waitable_string();
-  int              i   = 1;
-  // Simulation of event loop, populating promises in response to
-  // user input.
-  while( !sfs.ready() ) {
-    trace( "---------------------------------------\n" );
-    deliver_promise( i++ );
-  }
-  trace( "---------------------------------------\n" );
-  string res = sfs.get();
-  trace( "---------------------------------------\n" );
-  trace( "Result: {}\n", res );
-  return res;
+  while( !sfs.ready() ) deliver_promise();
+  return sfs.get();
 }
 
 } // namespace rn

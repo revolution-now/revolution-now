@@ -24,6 +24,6 @@ namespace rn {
 /****************************************************************
 ** Testing
 *****************************************************************/
-std::string test_waitable( bool logging = true );
+std::string test_waitable();
 
 } // namespace rn
