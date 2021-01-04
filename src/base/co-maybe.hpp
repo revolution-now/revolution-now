@@ -54,9 +54,8 @@ namespace detail {
 // the coroutine.
 template<typename T, typename PromiseT>
 struct maybe_holder {
-  maybe<T>  o_;
-  PromiseT* p_;
-  maybe_holder( PromiseT* p ) : p_( p ) { p_->o_ = &o_; }
+  maybe<T> o_;
+  maybe_holder( PromiseT* p ) { p->o_ = &o_; }
   maybe_holder( maybe_holder&& )      = delete;
   maybe_holder( maybe_holder const& ) = delete;
   operator maybe<T>() const noexcept { return std::move( o_ ); }
