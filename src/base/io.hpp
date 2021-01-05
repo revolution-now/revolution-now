@@ -11,15 +11,22 @@
 #pragma once
 
 // base
+#include "expect.hpp"
 #include "fs.hpp"
 #include "maybe.hpp"
-#include "vocab.hpp"
 
 // C++ standard library
 #include <memory>
 #include <string>
 
 namespace base {
+
+enum class e_error_read_text_file {
+  file_does_not_exist,
+  alloc_failure, // failed to allocate memory for buffer.
+  open_file_failure,
+  incomplete_read // failed to read all bytes in file.
+};
 
 /****************************************************************
 ** Read ASCII text file to null-terminated C string.
@@ -40,23 +47,23 @@ namespace base {
 // end, so can be used as a C string, but the size returned will
 // not include this zero.
 //
-// If the return `maybe` has a value, then the unique_ptr will be
-// non-null, and its result can be extracted as a null-terminated
-// C string like so:
+// If the return `expect` has a value, then the unique_ptr will
+// be non-null, and its result can be extracted as a
+// null-terminated C string like so:
 //
 //   size_t size;
 //   auto data = read_text_file( "/a/b/c.txt", size );
 //   CHECK( data.has_value() );
 //   char const* c_string = data->get();
 //
-// If the returned value has no value then the size output para-
+// If the returned value is an error then the size output para-
 // meter will not be changed.
 //
-// FIXME: this should return expect<>.
-maybe<std::unique_ptr<char[]>> read_text_file(
-    fs::path const& p, maybe<size_t&> o_size = nothing );
+expect<std::unique_ptr<char[]>, e_error_read_text_file>
+read_text_file( fs::path const& p,
+                maybe<size_t&>  o_size = nothing );
 
-maybe<NoCopy<std::string>> read_text_file_as_string(
-    fs::path const& p );
+expect<std::string, e_error_read_text_file>
+read_text_file_as_string( fs::path const& p );
 
 } // namespace base

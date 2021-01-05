@@ -1190,11 +1190,11 @@ TEST_CASE( "[flatbuffers] fsm" ) {
 }
 
 TEST_CASE( "[flatbuffers] Golden Comparison" ) {
-  maybe<string> golden = base::read_text_file_as_string(
+  auto golden = base::read_text_file_as_string(
       testing::data_dir() / "fb-testing-golden.h" );
   REQUIRE( golden.has_value() );
-  fs::path      root      = base::build_output_root();
-  maybe<string> generated = base::read_text_file_as_string(
+  fs::path root      = base::build_output_root();
+  auto     generated = base::read_text_file_as_string(
       root / "src/fb/testing_generated.h" );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that

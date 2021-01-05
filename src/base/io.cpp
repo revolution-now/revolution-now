@@ -15,24 +15,31 @@
 
 // C++ standard library
 #include <cstring>
+#include <exception>
 
 using namespace std;
 
 namespace base {
 
-maybe<unique_ptr<char[]>> read_text_file(
-    fs::path const& file, maybe<size_t&> o_size ) {
-  if( !fs::exists( file ) ) return nothing;
+expect<std::unique_ptr<char[]>, e_error_read_text_file>
+read_text_file( fs::path const& file, maybe<size_t&> o_size ) {
+  if( !fs::exists( file ) )
+    return e_error_read_text_file::file_does_not_exist;
   size_t file_size = fs::file_size( file );
 
   // Add one for null zero at the end, although the null zero
   // might not actually end up in that last byte if any windows
   // line endings are converted (and hence the length shortened).
-  unique_ptr<char[]> buffer( new char[file_size + 1] );
-  if( buffer == nullptr ) return nothing;
+  unique_ptr<char[]> buffer;
+  try {
+    buffer.reset( new char[file_size + 1] );
+  } catch( std::bad_alloc const& ) {
+    return e_error_read_text_file::alloc_failure;
+  }
 
   FILE* fp = ::fopen( file.string().c_str(), "rb" );
-  if( fp == nullptr ) return nothing;
+  if( fp == nullptr )
+    return e_error_read_text_file::open_file_failure;
   SCOPE_EXIT( ::fclose( fp ) );
 
   size_t binary_size_read = 0;
@@ -56,9 +63,8 @@ maybe<unique_ptr<char[]>> read_text_file(
 
   size_t c_string_size = p - buffer.get();
 
-  // FIXME: put a better error message here when we can return an
-  // expect<> type.
-  if( binary_size_read != file_size ) { return nothing; }
+  if( binary_size_read != file_size )
+    return e_error_read_text_file::incomplete_read;
 
   if( o_size ) *o_size = c_string_size;
 
@@ -68,17 +74,22 @@ maybe<unique_ptr<char[]>> read_text_file(
   return buffer;
 }
 
-maybe<NoCopy<string>> read_text_file_as_string(
-    fs::path const& p ) {
+expect<std::string, e_error_read_text_file>
+read_text_file_as_string( fs::path const& p ) {
+  // We want NRVO here.
+  expect<std::string, e_error_read_text_file> res = "";
+
   size_t size;
   auto   buf = read_text_file( p, size );
-  if( !buf ) return nothing;
-  char const* src = buf->get();
-  string      s;
-  s.resize( size, ' ' );
-  memcpy( s.data(), src, size );
-  maybe<NoCopy<string>> res(
-      ( NoCopy<string>( std::move( s ) ) ) );
+  if( !buf ) {
+    res = buf.error();
+  } else {
+    char const* src = buf->get();
+    string      s;
+    s.resize( size, ' ' );
+    memcpy( s.data(), src, size );
+    res.emplace( std::move( s ) );
+  }
   return res;
 }
 

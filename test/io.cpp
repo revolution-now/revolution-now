@@ -27,7 +27,7 @@ fs::path text_path( fs::path const& p ) {
 
 TEST_CASE( "[io] non-existent" ) {
   auto res = read_text_file( "/a/b/c.txt" );
-  REQUIRE( res == nothing );
+  REQUIRE( res == e_error_read_text_file::file_does_not_exist );
 }
 
 TEST_CASE( "[io] empty" ) {

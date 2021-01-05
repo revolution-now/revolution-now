@@ -56,7 +56,9 @@ struct NoCopy {
   ***************************************************************/
   operator T const &() const& noexcept { return val; }
   operator T&() & noexcept { return val; }
-  operator T const &&() const&& noexcept { return val; }
+  operator T const &&() const&& noexcept {
+    return std::move( val );
+  }
   operator T&&() && noexcept { return std::move( val ); }
 
   T const* operator->() const noexcept { return &val; }

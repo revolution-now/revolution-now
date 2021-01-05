@@ -277,11 +277,11 @@ TEST_CASE( "[rnl] Equality" ) {
 }
 
 TEST_CASE( "[rnl] Rnl File Golden Comparison" ) {
-  maybe<string> golden = base::read_text_file_as_string(
+  auto golden = base::read_text_file_as_string(
       testing::data_dir() / "rnl-testing-golden.hpp" );
   REQUIRE( golden.has_value() );
   fs::path root      = base::build_output_root();
-  maybe<string> generated = base::read_text_file_as_string(
+  auto     generated = base::read_text_file_as_string(
       root / fs::path( rnl_testing_genfile ) );
   REQUIRE( generated.has_value() );
   // Do this comparison outside of the REQUIRE macro so that
