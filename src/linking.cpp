@@ -12,9 +12,13 @@
 
 // Revolution Now
 #include "colony-mfg.hpp"
+#include "error.hpp"
 #include "player.hpp"
 #include "sound.hpp"
 #include "turn.hpp"
+
+// base
+#include "base/stack-trace.hpp"
 
 namespace rn {
 
@@ -22,6 +26,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_player();
   linker_dont_discard_module_sound();
   linker_dont_discard_module_colony_mfg();
+  linker_dont_discard_module_error();
   // Add more here as needed.
 }
 

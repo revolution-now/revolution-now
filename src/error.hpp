@@ -18,23 +18,21 @@
 // C++ standard library
 #include <stdexcept>
 
+namespace rn {
+
 /****************************************************************
 **Death
 *****************************************************************/
-namespace rn {
-
 // An exception to throw when you just want to exit. Mainly just
 // for use during development.
 struct exception_exit : public std::exception {};
 
-} // namespace rn
-
 /****************************************************************
 ** Inject some things from base.
 *****************************************************************/
-namespace rn {
-
 using ::base::generic_err;
 using ::base::GenericError;
+
+void linker_dont_discard_module_error();
 
 } // namespace rn

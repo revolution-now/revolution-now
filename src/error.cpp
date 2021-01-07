@@ -33,6 +33,9 @@ void print_SDL_error() {
 }
 
 } // namespace
+
+void linker_dont_discard_module_error() {}
+
 } // namespace rn
 
 namespace base {
