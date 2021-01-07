@@ -83,10 +83,10 @@ private:
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
 
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( EuroportView );
 
@@ -1314,8 +1314,8 @@ public:
         // Not all cargo slots must have an item in them, but in
         // this case the slot should otherwise the DragSrc object
         // should never have been created.
-        ASSIGN_CHECK_OPT( object,
-                          draggable_in_cargo_slot( val.slot ) );
+        UNWRAP_CHECK( object,
+                      draggable_in_cargo_slot( val.slot ) );
         return object;
       }
       case DragSrc::e::outbound: {
@@ -1489,7 +1489,7 @@ public:
     switch( auto& v = drag_arc; drag_arc.to_enum() ) {
       case DragArc::e::dock_to_cargo: {
         auto& [src, dst] = v.get<DragArc::dock_to_cargo>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship ).cargo().fits_somewhere(
             src.id, dst.slot._ );
@@ -1503,12 +1503,12 @@ public:
       case DragArc::e::cargo_to_cargo: {
         auto& c_to_c     = v.get<DragArc::cargo_to_cargo>();
         auto& [src, dst] = c_to_c;
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         if( src.slot == dst.slot ) return true;
-        ASSIGN_CHECK_OPT( cargo_object,
-                          draggable_to_cargo_object(
-                              draggable_from_src( src ) ) );
+        UNWRAP_CHECK( cargo_object,
+                      draggable_to_cargo_object(
+                          draggable_from_src( src ) ) );
         return overload_visit(
             cargo_object,
             [&]( UnitId ) {
@@ -1534,8 +1534,8 @@ public:
       case DragArc::e::outbound_to_inbound: return true;
       case DragArc::e::outbound_to_inport: {
         auto& val = v.get<DragArc::outbound_to_inport>();
-        ASSIGN_CHECK_OPT(
-            info, unit_euro_port_view_info( val.src.id ) );
+        UNWRAP_CHECK( info,
+                      unit_euro_port_view_info( val.src.id ) );
         ASSIGN_CHECK_V( outbound, info,
                         UnitEuroPortViewState::outbound );
         return outbound.percent == 0.0;
@@ -1551,9 +1551,9 @@ public:
         auto& [src, dst] =
             v.get<DragArc::cargo_to_inport_ship>();
         auto dst_ship = dst.id;
-        ASSIGN_CHECK_OPT( cargo_object,
-                          draggable_to_cargo_object(
-                              draggable_from_src( src ) ) );
+        UNWRAP_CHECK( cargo_object,
+                      draggable_to_cargo_object(
+                          draggable_from_src( src ) ) );
         return overload_visit(
             cargo_object,
             [&]( UnitId id ) {
@@ -1575,7 +1575,7 @@ public:
       }
       case DragArc::e::market_to_cargo: {
         auto& [src, dst] = v.get<DragArc::market_to_cargo>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         auto comm = Commodity{
             /*type=*/src.type, //
@@ -1602,7 +1602,7 @@ public:
       }
       case DragArc::e::cargo_to_market: {
         auto& val = v.get<DragArc::cargo_to_market>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         if( !is_unit_in_port( ship ) ) return false;
         return unit_from_id( ship )
             .cargo()
@@ -1637,9 +1637,9 @@ public:
       }
       case DragArc::e::cargo_to_market: {
         auto& val = v.get<DragArc::cargo_to_market>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         CHECK( is_unit_in_port( ship ) );
-        ASSIGN_CHECK_OPT(
+        UNWRAP_CHECK(
             commodity_ref,
             unit_from_id( ship )
                 .cargo()
@@ -1651,7 +1651,7 @@ public:
       }
       case DragArc::e::cargo_to_inport_ship: {
         auto& val = v.get<DragArc::cargo_to_inport_ship>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         CHECK( is_unit_in_port( ship ) );
         auto maybe_commodity_ref =
             unit_from_id( ship )
@@ -1730,7 +1730,7 @@ public:
     switch( auto& v = drag_arc; v.to_enum() ) {
       case DragArc::e::dock_to_cargo: {
         auto& [src, dst] = v.get<DragArc::dock_to_cargo>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         // First try to respect the destination slot chosen by
         // the player,
         if( unit_from_id( ship ).cargo().fits( src.id,
@@ -1749,11 +1749,10 @@ public:
       }
       case DragArc::e::cargo_to_cargo: {
         auto& c_to_c = v.get<DragArc::cargo_to_cargo>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
-        ASSIGN_CHECK_OPT(
-            cargo_object,
-            draggable_to_cargo_object(
-                draggable_from_src( c_to_c.src ) ) );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
+        UNWRAP_CHECK( cargo_object,
+                      draggable_to_cargo_object(
+                          draggable_from_src( c_to_c.src ) ) );
         overload_visit(
             cargo_object,
             [&]( UnitId id ) {
@@ -1798,10 +1797,9 @@ public:
       }
       case DragArc::e::cargo_to_inport_ship: {
         auto& c_to_i_s = v.get<DragArc::cargo_to_inport_ship>();
-        ASSIGN_CHECK_OPT(
-            cargo_object,
-            draggable_to_cargo_object(
-                draggable_from_src( c_to_i_s.src ) ) );
+        UNWRAP_CHECK( cargo_object,
+                      draggable_to_cargo_object(
+                          draggable_from_src( c_to_i_s.src ) ) );
         overload_visit(
             cargo_object,
             [&]( UnitId id ) {
@@ -1811,7 +1809,7 @@ public:
               ustate_change_to_cargo( c_to_i_s.dst.id, id );
             },
             [&]( Commodity const& ) {
-              ASSIGN_CHECK_OPT( src_ship, active_cargo_ship() );
+              UNWRAP_CHECK( src_ship, active_cargo_ship() );
               move_commodity_as_much_as_possible(
                   src_ship, c_to_i_s.src.slot._,
                   /*dst_ship=*/c_to_i_s.dst.id,
@@ -1823,7 +1821,7 @@ public:
       }
       case DragArc::e::market_to_cargo: {
         auto& [src, dst] = v.get<DragArc::market_to_cargo>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
+        UNWRAP_CHECK( ship, active_cargo_ship() );
         auto comm = Commodity{
             /*type=*/src.type, //
             /*quantity=*/src.quantity.value_or(
@@ -1866,8 +1864,8 @@ public:
       }
       case DragArc::e::cargo_to_market: {
         auto& val = v.get<DragArc::cargo_to_market>();
-        ASSIGN_CHECK_OPT( ship, active_cargo_ship() );
-        ASSIGN_CHECK_OPT(
+        UNWRAP_CHECK( ship, active_cargo_ship() );
+        UNWRAP_CHECK(
             commodity_ref,
             unit_from_id( ship )
                 .cargo()

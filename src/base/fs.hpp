@@ -10,6 +10,16 @@
 *****************************************************************/
 #pragma once
 
+// C++ standard library
 #include <filesystem>
+#include <string>
 
 namespace fs = ::std::filesystem;
+
+namespace std::filesystem {
+
+inline void to_str( path const& p, std::string& out ) {
+  out += p.string();
+}
+
+} // namespace std::filesystem

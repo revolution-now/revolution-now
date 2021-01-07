@@ -13,14 +13,15 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "expect.hpp"
+#include "maybe.hpp"
 
 namespace rn::term {
 
 void log( std::string const& msg );
 void log( std::string&& msg );
 
-ND expect<> run_cmd( std::string const& cmd );
+valid_or<std::string> run_cmd( std::string const& cmd );
 
 void clear();
 

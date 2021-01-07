@@ -52,7 +52,7 @@ public:
   // doesn't really depend on any private Unit data.
   CargoHold&     cargo() { return cargo_; }
   e_nation       nation() const { return nation_; }
-  maybe<int>       worth() const { return worth_; }
+  maybe<int>     worth() const { return worth_; }
   MovementPoints movement_points() const { return mv_pts_; }
 
   /************************* Setters ***************************/
@@ -122,7 +122,7 @@ public:
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { orders_ = e_unit_orders::none; }
 
-  expect<> check_invariants_safe() const;
+  valid_deserial_t check_invariants_safe() const;
 
 private:
   friend UnitId create_unit( e_nation nation, e_unit_type type );

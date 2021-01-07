@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "compositor.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
 #include "plane.hpp"
@@ -33,8 +33,8 @@ struct PanelPlane : public Plane {
   bool covers_screen() const override { return false; }
 
   static auto rect() {
-    ASSIGN_CHECK_OPT( res, compositor::section(
-                               compositor::e_section::panel ) );
+    UNWRAP_CHECK( res, compositor::section(
+                           compositor::e_section::panel ) );
     return res;
   }
   static W panel_width() { return rect().w; }
@@ -102,7 +102,7 @@ struct PanelPlane : public Plane {
     // FIXME: we need a window manager in the panel to avoid du-
     // plicating logic between here and the window module.
     if( input::is_mouse_event( event ) ) {
-      ASSIGN_CHECK_OPT( pos, input::mouse_position( event ) );
+      UNWRAP_CHECK( pos, input::mouse_position( event ) );
       if( pos.is_inside( rect() ) ) {
         auto new_event =
             move_mouse_origin_by( event, origin() - Coord{} );

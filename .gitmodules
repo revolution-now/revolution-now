@@ -34,9 +34,6 @@
 [submodule "extern/rg-2-midi"]
 	path = extern/rg-2-midi
 	url = ../../dpacbach/rg-2-midi
-[submodule "extern/expected-lite"]
-	path = extern/expected-lite
-	url = https://github.com/martinmoene/expected-lite
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = ../Catch2.git

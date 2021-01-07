@@ -3180,5 +3180,25 @@ TEST_CASE( "[expected] implicit conversion to expected-ref" ) {
   }
 }
 
+TEST_CASE( "[expected] stringification" ) {
+  E<int, string>  e1 = 5;
+  E<int, string>  e2 = "hello";
+  int             n  = 3;
+  E<int&, string> e3 = n;
+
+  REQUIRE( fmt::format( "{}", e1 ) == "5" );
+  REQUIRE( fmt::format( "{}", e2 ) == "unexpected{hello}" );
+  REQUIRE( fmt::format( "{}", e3 ) == "3" );
+
+  string out1, out2, out3;
+  to_str( e1, out1 );
+  to_str( e2, out2 );
+  to_str( e3, out3 );
+
+  REQUIRE( out1 == "5" );
+  REQUIRE( out2 == "unexpected{hello}" );
+  REQUIRE( out3 == "3" );
+}
+
 } // namespace
 } // namespace base

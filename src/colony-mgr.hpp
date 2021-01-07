@@ -14,7 +14,8 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "errors.hpp"
+#include "error.hpp"
+#include "expect.hpp"
 #include "id.hpp"
 #include "nation.hpp"
 
@@ -23,8 +24,9 @@
 
 namespace rn {
 
-expect<> check_colony_invariants_safe( ColonyId id );
-void     check_colony_invariants_die( ColonyId id );
+valid_or<generic_err> check_colony_invariants_safe(
+    ColonyId id );
+void check_colony_invariants_die( ColonyId id );
 
 enum class ND e_found_colony_err {
   colony_exists_here,

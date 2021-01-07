@@ -13,7 +13,7 @@
 // Revolution Now
 #include "ansi.hpp"
 #include "console.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
 #include "terminal.hpp"

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
 #include "macros.hpp"
@@ -52,13 +52,12 @@ unordered_map<e_font, FontDesc>& loaded_fonts() {
   static unordered_map<e_font, FontDesc> m = [] {
     unordered_map<e_font, FontDesc> res;
     for( auto font : magic_enum::enum_values<e_font>() ) {
-      ASSIGN_CHECK_OPT(
-          path, base::lookup( config_font.paths, font ) );
-      ASSIGN_CHECK_OPT(
-          size, base::lookup( config_font.sizes, font ) );
-      ASSIGN_CHECK_OPT(
-          vert_offset,
-          base::lookup( config_font.offsets, font ) );
+      UNWRAP_CHECK( path,
+                    base::lookup( config_font.paths, font ) );
+      UNWRAP_CHECK( size,
+                    base::lookup( config_font.sizes, font ) );
+      UNWRAP_CHECK( vert_offset,
+                    base::lookup( config_font.offsets, font ) );
       res[font] = FontDesc{ path, size, vert_offset, nullptr };
     }
     return res;
@@ -119,8 +118,8 @@ void init_ttf() {
     auto& font_desc = font.second;
     int   pt_size   = font_desc.pt_size;
     auto  font_file = font_desc.file_name.string();
-    ASSIGN_CHECK( ttf_font,
-                  ::TTF_OpenFont( font_file.c_str(), pt_size ) );
+    auto ttf_font = ::TTF_OpenFont( font_file.c_str(), pt_size );
+    CHECK( ttf_font );
     // Check style first before setting this.
     ::TTF_SetFontStyle( ttf_font, TTF_STYLE_NORMAL );
     int outline = 0;
@@ -190,7 +189,8 @@ void font_size_spectrum( char const* msg,
       // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
       14, 15, 16, 17, 18, 19, 20, 21, 22, 23 };
   for( auto ptsize : sizes ) {
-    ASSIGN_CHECK( font, ::TTF_OpenFont( font_file, ptsize ) );
+    auto font = ::TTF_OpenFont( font_file, ptsize );
+    CHECK( font );
     std::string num_msg = std::to_string( ptsize ) + ": " + msg;
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     ::SDL_Color fg{ 255, 255, 255, 255 };

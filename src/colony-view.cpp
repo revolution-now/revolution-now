@@ -33,9 +33,9 @@ void exit_colony_view() { pop_plane_config(); }
 void draw_colony_view( Texture& tx, ColonyId id ) {
   tx.fill( Color::parse_from_hex( "f1cf81" ).value() );
 
-  ASSIGN_CHECK_OPT( canvas,
-                    compositor::section(
-                        compositor::e_section::non_menu_bar ) );
+  UNWRAP_CHECK( canvas,
+                compositor::section(
+                    compositor::e_section::non_menu_bar ) );
 
   auto& colony = colony_from_id( id );
 

@@ -31,8 +31,8 @@ DECLARE_SAVEGAME_SERIALIZERS( Plane );
 namespace {
 
 struct PlaneList {
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   bool operator==( PlaneList const& rhs ) const {
@@ -76,10 +76,10 @@ private:
       plane_list_stack.push_back( g_main_menu_config );
 
     set_planes();
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( Plane );
 

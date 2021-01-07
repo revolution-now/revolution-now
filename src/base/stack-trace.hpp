@@ -34,7 +34,7 @@ namespace base {
 // necessarily print a stack trace if that is not available. But
 // it should either call std::abort, or throw an exception, what-
 // ever is most appropriate for the binary.
-void abort_with_backtrace_here(
+[[noreturn]] void abort_with_backtrace_here(
     SourceLoc loc = SourceLoc::current() );
 
 } // namespace base

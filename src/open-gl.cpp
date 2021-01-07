@@ -11,7 +11,7 @@
 #include "open-gl.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "input.hpp"
 #include "logging.hpp"
 #include "screen.hpp"
@@ -84,8 +84,8 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // == Vertex Shader ===========================================
 
   GLuint vertex_shader = glCreateShader( GL_VERTEX_SHADER );
-  ASSIGN_CHECK_OPT( vertex_shader_source,
-                    base::read_text_file_as_string( vert ) );
+  UNWRAP_CHECK( vertex_shader_source,
+                base::read_text_file_as_string( vert ) );
   char const* p_vertex_shader_source =
       vertex_shader_source.c_str();
   glShaderSource( vertex_shader, 1, &p_vertex_shader_source,
@@ -102,8 +102,8 @@ GLuint load_shader_pgrm( fs::path const& vert,
   // == Fragment Shader =========================================
 
   GLuint fragment_shader = glCreateShader( GL_FRAGMENT_SHADER );
-  ASSIGN_CHECK_OPT( fragment_shader_source,
-                    base::read_text_file_as_string( frag ) );
+  UNWRAP_CHECK( fragment_shader_source,
+                base::read_text_file_as_string( frag ) );
   char const* p_fragment_shader_source =
       fragment_shader_source.c_str();
   glShaderSource( fragment_shader, 1, &p_fragment_shader_source,

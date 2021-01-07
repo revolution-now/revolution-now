@@ -11,10 +11,12 @@
 #include "util.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/conv.hpp"
+#include "base/fs.hpp"
 #include "base/lambda.hpp"
 
 // C++ standard library.
@@ -30,7 +32,7 @@ namespace rn {
 
 maybe<string_view> env_var( char const* name ) {
   maybe<string_view> res;
-  auto const*      value = getenv( name );
+  auto const*        value = getenv( name );
   if( value != nullptr ) res = value;
   return res;
 }

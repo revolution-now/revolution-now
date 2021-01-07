@@ -43,24 +43,12 @@ TEST_CASE(
   SECTION( "throws" ) {
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              0 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 0, ship, 0, /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 0, ship, 1, /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 10, ship, 0, /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              0 );
     add_commodity_to_cargo( food_full, ship, 0,
                             /*try_other_slots=*/false );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              1 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 0, ship, 10, /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              1 );
     REQUIRE( move_commodity_as_much_as_possible(
@@ -84,9 +72,6 @@ TEST_CASE(
                  /*try_other_dst_slots=*/false ) == 30 );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              1 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 0, ship, 1, /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              1 );
     REQUIRE( move_commodity_as_much_as_possible(
@@ -95,9 +80,6 @@ TEST_CASE(
                  /*try_other_dst_slots=*/false ) == 30 );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              1 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 1, ship, 0, /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              1 );
     add_commodity_to_cargo( food_part, ship, 1,
@@ -187,14 +169,6 @@ TEST_CASE(
                             /*try_other_slots=*/false );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              2 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 0, ship, 1,
-        /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 1, ship, 0,
-        /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              2 );
     REQUIRE( move_commodity_as_much_as_possible(
@@ -209,10 +183,6 @@ TEST_CASE(
                  /*try_other_dst_slots=*/true ) == 30 );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              2 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship, 2, ship, 3,
-        /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship ).cargo().slots_occupied() ==
              2 );
     REQUIRE( move_commodity_as_much_as_possible(
@@ -345,14 +315,6 @@ TEST_CASE(
              1 );
     REQUIRE( unit_from_id( ship2 ).cargo().slots_occupied() ==
              1 );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship1, 1, ship2, 0,
-        /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
-    REQUIRE_THROWS_AS_RN( move_commodity_as_much_as_possible(
-        ship1, 1, ship2, 0,
-        /*max_quantity=*/nothing,
-        /*try_other_dst_slots=*/false ) );
     REQUIRE( unit_from_id( ship1 ).cargo().slots_occupied() ==
              1 );
     REQUIRE( unit_from_id( ship2 ).cargo().slots_occupied() ==

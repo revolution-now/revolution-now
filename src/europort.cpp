@@ -11,7 +11,7 @@
 #include "europort.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 #include "ustate.hpp"
@@ -206,7 +206,7 @@ void unit_move_to_europort_dock( UnitId id ) {
 }
 
 void advance_unit_on_high_seas( UnitId id ) {
-  ASSIGN_CHECK_OPT( info, unit_euro_port_view_info( id ) );
+  UNWRAP_CHECK( info, unit_euro_port_view_info( id ) );
   constexpr double const advance = 0.2;
   if_get( info, UnitEuroPortViewState::outbound, outbound ) {
     outbound.percent += advance;

@@ -11,7 +11,7 @@
 #include "compositor.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "init.hpp"
 #include "plane.hpp"
 #include "screen.hpp"

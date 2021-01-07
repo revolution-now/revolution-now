@@ -14,7 +14,7 @@
 // Revolution Now
 #include "colony.hpp"
 #include "cstate.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
@@ -86,12 +86,13 @@ private:
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
 
-    UNXP_CHECK( units.size() == states.size() );
+    TRUE_OR_RETURN_GENERIC_ERR( units.size() == states.size() );
 
     // Check for no free units.
     for( auto const& [id, st] : states ) {
-      UNXP_CHECK( !holds<UnitState::free>( st ),
-                  "unit {} is in the `free` state.", id );
+      TRUE_OR_RETURN_GENERIC_ERR(
+          !holds<UnitState::free>( st ),
+          "unit {} is in the `free` state.", id );
     }
 
     // Populate units_from_coords.
@@ -118,7 +119,7 @@ private:
     // Check europort states.
     for( auto const& [id, st] : states ) {
       if_get( st, UnitState::europort, val ) {
-        XP_OR_RETURN_(
+        HAS_VALUE_OR_RET(
             check_europort_state_invariants( val.st ) );
       }
     }
@@ -126,13 +127,13 @@ private:
     // Validate all unit cargos. We can only do this now after
     // all units have been loaded.
     for( auto const& p : units )
-      XP_OR_RETURN_(
+      HAS_VALUE_OR_RET(
           p.second.cargo().check_invariants_post_load() );
 
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( Unit );
 
@@ -298,7 +299,7 @@ maybe<Coord> coord_for_unit( UnitId id ) {
 }
 
 Coord coord_for_unit_indirect( UnitId id ) {
-  ASSIGN_CHECK_OPT( res, coord_for_unit_indirect_safe( id ) );
+  UNWRAP_CHECK( res, coord_for_unit_indirect_safe( id ) );
   return res;
 }
 
@@ -361,25 +362,24 @@ maybe<UnitId> is_unit_onboard( UnitId id ) {
 /****************************************************************
 ** EuroPort View Ownership
 *****************************************************************/
-expect<> check_europort_state_invariants(
+valid_or<generic_err> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info ) {
   switch( info.to_enum() ) {
     case UnitEuroPortViewState::e::outbound: {
       auto& [percent] =
           info.get<UnitEuroPortViewState::outbound>();
-      UNXP_CHECK( percent >= 0.0 );
-      UNXP_CHECK( percent < 1.0 );
-      return xp_success_t{};
+      TRUE_OR_RETURN_GENERIC_ERR( percent >= 0.0 );
+      TRUE_OR_RETURN_GENERIC_ERR( percent < 1.0 );
+      return valid;
     }
     case UnitEuroPortViewState::e::inbound: {
       auto& [percent] =
           info.get<UnitEuroPortViewState::inbound>();
-      UNXP_CHECK( percent >= 0.0 );
-      UNXP_CHECK( percent < 1.0 );
-      return xp_success_t{};
+      TRUE_OR_RETURN_GENERIC_ERR( percent >= 0.0 );
+      TRUE_OR_RETURN_GENERIC_ERR( percent < 1.0 );
+      return valid;
     }
-    case UnitEuroPortViewState::e::in_port:
-      return xp_success_t{};
+    case UnitEuroPortViewState::e::in_port: return valid;
   };
 }
 
@@ -475,7 +475,7 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
 
 void ustate_change_to_euro_port_view(
     UnitId id, UnitEuroPortViewState_t info ) {
-  CHECK_XP( check_europort_state_invariants( info ) );
+  CHECK_HAS_VALUE( check_europort_state_invariants( info ) );
   if( !holds<UnitState::europort>( SG().states[id] ) )
     internal::ustate_disown_unit( id );
   SG().states[id] = UnitState::europort{ /*st=*/info };
@@ -504,7 +504,7 @@ void ustate_disown_unit( UnitId id ) {
       break;
     case UnitState::e::world: {
       auto& [coord] = v.get<UnitState::world>();
-      ASSIGN_CHECK_OPT(
+      UNWRAP_CHECK(
           set_it, base::find( SG().units_from_coords, coord ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
@@ -513,11 +513,11 @@ void ustate_disown_unit( UnitId id ) {
       break;
     }
     case UnitState::e::cargo: {
-      ASSIGN_CHECK_OPT(
-          pair_it, base::find( SG().holder_from_held, id ) );
+      UNWRAP_CHECK( pair_it,
+                    base::find( SG().holder_from_held, id ) );
       auto& holder_unit = unit_from_id( pair_it->second );
-      ASSIGN_CHECK_OPT( slot_idx,
-                        holder_unit.cargo().find_unit( id ) );
+      UNWRAP_CHECK( slot_idx,
+                    holder_unit.cargo().find_unit( id ) );
       holder_unit.cargo().remove( slot_idx );
       SG().holder_from_held.erase( pair_it );
       break;
@@ -532,7 +532,7 @@ void ustate_disown_unit( UnitId id ) {
     case UnitState::e::colony: {
       auto& val    = v.get<UnitState::colony>();
       auto  col_id = val.id;
-      ASSIGN_CHECK_OPT(
+      UNWRAP_CHECK(
           set_it, base::find( SG().units_from_colony, col_id ) );
       auto& units_set = set_it->second;
       units_set.erase( id );

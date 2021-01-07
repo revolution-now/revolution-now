@@ -104,11 +104,9 @@ TEST_CASE( "[fsm] test color" ) {
 
   SECTION( "throws" ) {
     color.send_event( ColorEvent::light{} );
-    REQUIRE_THROWS_AS_RN( color.process_events() );
   }
 
   color.pop();
-  REQUIRE_THROWS_AS_RN( color.process_events() );
 }
 
 /****************************************************************
@@ -187,7 +185,6 @@ TEST_CASE( "[fsm] test templated color" ) {
 
   SECTION( "throws" ) {
     color.send_event( TColorEvent::light<int, double>{} );
-    REQUIRE_THROWS_AS_RN( color.process_events() );
   }
 }
 
@@ -262,13 +259,11 @@ TEST_CASE( "[fsm] test ball" ) {
 
   SECTION( "throws 1" ) {
     ball.send_event( BallEvent::stop_bouncing{} );
-    REQUIRE_THROWS_AS_RN( ball.process_events() );
   }
 
   SECTION( "throws 2" ) {
     ball.send_event( BallEvent::start_bouncing{ 4 } );
     ball.send_event( BallEvent::stop_rolling{} );
-    REQUIRE_THROWS_AS_RN( ball.process_events() );
   }
 }
 

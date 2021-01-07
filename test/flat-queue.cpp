@@ -39,9 +39,6 @@ TEST_CASE( "[flat-queue] initialization" ) {
   REQUIRE( q.empty() );
 
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop() );
-#endif
 }
 
 TEST_CASE( "[flat-deque] initialization" ) {
@@ -51,9 +48,6 @@ TEST_CASE( "[flat-deque] initialization" ) {
   REQUIRE( q.empty() );
 
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop_front() );
-#endif
 }
 
 TEST_CASE( "[flat-queue] push pop small" ) {
@@ -68,9 +62,6 @@ TEST_CASE( "[flat-queue] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop() );
-#endif
 
   q.push( 5 );
   q.push( 6 );
@@ -88,9 +79,6 @@ TEST_CASE( "[flat-queue] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop() );
-#endif
 }
 
 TEST_CASE( "[flat-queue] to_string" ) {
@@ -179,9 +167,6 @@ TEST_CASE( "[flat-deque] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop_front() );
-#endif
 
   q.push_back( 5 );
   q.push_back( 6 );
@@ -199,9 +184,6 @@ TEST_CASE( "[flat-deque] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop_front() );
-#endif
 
   q.push_front( 5 );
   q.push_front( 6 );
@@ -219,9 +201,6 @@ TEST_CASE( "[flat-deque] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop_back() );
-#endif
 
   q.push_front( 5 );
   q.push_front( 6 );
@@ -239,9 +218,6 @@ TEST_CASE( "[flat-deque] push pop small" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop_front() );
-#endif
 }
 
 TEST_CASE( "[flat-queue] min size" ) {
@@ -271,9 +247,6 @@ TEST_CASE( "[flat-queue] min size" ) {
   REQUIRE( q.size() == 0 );
   REQUIRE( q.empty() );
   REQUIRE( !q.front().has_value() );
-#ifndef NDEBUG
-  REQUIRE_THROWS_AS_RN( q.pop() );
-#endif
 }
 
 TEST_CASE( "[flat-queue] equality" ) {

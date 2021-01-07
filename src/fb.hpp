@@ -14,7 +14,9 @@
 
 // Revolution Now
 #include "cc-specific.hpp"
-#include "errors.hpp"
+#include "error.hpp"
+#include "expect.hpp"
+#include "fmt-helper.hpp"
 #include "maybe.hpp"
 
 // base
@@ -38,6 +40,40 @@
 #include <tuple>
 #include <unordered_set>
 #include <utility>
+
+namespace rn {
+
+/****************************************************************
+** Result of Deserialization Routines.
+*****************************************************************/
+using DeserialError = ::base::generic_err;
+
+using valid_deserial_t = valid_or<DeserialError>;
+
+template<typename... Args>
+valid_deserial_t invalid_deserial(
+    std::string_view msg,
+    base::SourceLoc  loc = base::SourceLoc::current() ) {
+  return ::base::GenericError::create( msg, loc );
+}
+
+template<typename... Args>
+valid_deserial_t check_deserial(
+    bool cond, std::string_view msg,
+    base::SourceLoc loc = base::SourceLoc::current() ) {
+  if( !cond ) return invalid_deserial( msg, loc );
+  return valid;
+}
+
+inline valid_deserial_t check_deserial(
+    bool            cond,
+    base::SourceLoc loc = base::SourceLoc::current() ) {
+  if( !cond )
+    return invalid_deserial( "(condition failed)", loc );
+  return valid;
+}
+
+} // namespace rn
 
 /****************************************************************
 ** Uniform serialization interface.
@@ -334,8 +370,8 @@ auto serialize( FBBuilder&, T const& e, serial::ADL ) {
                  0 );
   auto maybe_fbs_enum =
       enum_cast<fbs_enum_t>( enum_integer( e ) );
-  RN_CHECK( maybe_fbs_enum.has_value(),
-            "failed to serialize enum value {}", e );
+  BASE_CHECK( maybe_fbs_enum.has_value(),
+              "failed to serialize enum value {}", e );
   DCHECK( enum_name( *maybe_fbs_enum ) == enum_name( e ),
           "{} != {}", enum_name( *maybe_fbs_enum ),
           enum_name( e ) );
@@ -608,11 +644,12 @@ template<typename SrcT,                    //
                                 std::decay_t<DstT>>, //
              int> = 0                                //
          >
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, DstT* dst,
+                              serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing scalar." );
   *dst = *src;
-  return xp_success_t{};
+  return valid;
 }
 
 // For regular enums, reflected through magic-enum (preferred).
@@ -622,7 +659,8 @@ template<typename SrcT,            //
              std::is_enum_v<DstT>, //
              int> = 0              //
          >
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, DstT* dst,
+                              serial::ADL ) {
   using namespace magic_enum;
   // We can use magic_enum on both of these enums.
   using fbs_enum_t = SrcT;
@@ -641,13 +679,14 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
   auto maybe_dst_enum =
       enum_cast<dst_enum_t>( enum_integer( *src ) );
   if( !maybe_dst_enum.has_value() )
-    return UNEXPECTED( "failed to deserialize enum value {}",
-                       enum_name( *src ) );
+    return invalid_deserial(
+        fmt::format( "failed to deserialize enum value {}",
+                     enum_name( *src ) ) );
   DCHECK( enum_name( *maybe_dst_enum ) == enum_name( *src ),
           "{} != {}", enum_name( *maybe_dst_enum ),
           enum_name( *src ) );
   *dst = *maybe_dst_enum;
-  return xp_success_t{};
+  return valid;
 }
 
 // For typed ints.
@@ -657,27 +696,29 @@ template<typename SrcT,                                //
              std::is_same_v<int, decltype( DstT::_ )>, //
              int> = 0                                  //
          >
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, DstT* dst,
+                              serial::ADL ) {
   DCHECK( src != nullptr,
           "`src` is nullptr when deserializing typed int." );
   *dst = DstT{ *src };
-  return xp_success_t{};
+  return valid;
 }
 
 // For strings.
 template<typename SrcT>
-expect<> deserialize( SrcT const* src, std::string* dst,
-                      serial::ADL ) {
-  if( src == nullptr ) return xp_success_t{};
+valid_deserial_t deserialize( SrcT const* src, std::string* dst,
+                              serial::ADL ) {
+  if( src == nullptr ) return valid;
   *dst = src->str();
-  return xp_success_t{};
+  return valid;
 }
 
 // For C++ classes/structs that get serialized as FB structs.
 template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_struct )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, DstT* dst,
+                              serial::ADL ) {
   if( src == nullptr ) {
     // An input value of nullptr for a struct means that the
     // struct is not present within its parent (which is probably
@@ -685,7 +726,7 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
     // default value. Since the `dst` pointer is already assumed
     // to point to a default-initialized value (by contract) we
     // can just return here.
-    return xp_success_t{};
+    return valid;
   }
   if( auto xp = DstT::deserialize_struct( *src, dst ); !xp )
     return xp;
@@ -696,8 +737,9 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
 template<typename SrcT, //
          typename DstT, //
          decltype( &DstT::deserialize_table )* = nullptr>
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
-  if( src == nullptr ) return xp_success_t{};
+valid_deserial_t deserialize( SrcT const* src, DstT* dst,
+                              serial::ADL ) {
+  if( src == nullptr ) return valid;
   if( auto xp = DstT::deserialize_table( *src, dst ); !xp )
     return xp;
   return dst->check_invariants_safe();
@@ -705,16 +747,16 @@ expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
 
 // For maybe.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, maybe<T>* dst,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, maybe<T>* dst,
+                              serial::ADL ) {
   if( src == nullptr || !src->has_value() ) {
     // `dst` should be in its default-constructed state, which is
     // nothing if it's a maybe.
-    return xp_success_t{};
+    return valid;
   }
   if constexpr( std::is_pointer_v<decltype( src->value() )> ) {
     if( src->value() == nullptr )
-      return UNEXPECTED(
+      return invalid_deserial(
           "maybe has no `value` but has `has_value` == "
           "true." );
   }
@@ -725,111 +767,116 @@ expect<> deserialize( SrcT const* src, maybe<T>* dst,
 
 // For std::reference_wrapper.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const*                src,
-                      std::reference_wrapper<T>* dst,
-                      serial::ADL ) = delete;
+valid_deserial_t deserialize( SrcT const*                src,
+                              std::reference_wrapper<T>* dst,
+                              serial::ADL ) = delete;
 
 // For pairs.
 template<typename SrcT, typename F, typename S>
-expect<> deserialize( SrcT const* src, std::pair<F, S>* dst,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const*      src,
+                              std::pair<F, S>* dst,
+                              serial::ADL ) {
   if constexpr( std::is_pointer_v<decltype( src->fst() )> ) {
     if( src->fst() == nullptr ) {
       // Ok -- assumes default value.
-      // return UNEXPECTED( "pair has no `fst` value." );
+      // return invalid_deserial( "pair has no `fst` value." );
     }
   }
   if constexpr( std::is_pointer_v<decltype( src->snd() )> ) {
     if( src->snd() == nullptr ) {
       // Ok -- assumes default value.
-      // return UNEXPECTED( "pair has no `snd` value." );
+      // return invalid_deserial( "pair has no `snd` value." );
     }
   }
-  XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->fst() ),
-                              &dst->first, serial::ADL{} ) );
-  XP_OR_RETURN_( deserialize( detail::to_const_ptr( src->snd() ),
-                              &dst->second, serial::ADL{} ) );
-  return xp_success_t{};
+  HAS_VALUE_OR_RET(
+      deserialize( detail::to_const_ptr( src->fst() ),
+                   &dst->first, serial::ADL{} ) );
+  HAS_VALUE_OR_RET(
+      deserialize( detail::to_const_ptr( src->snd() ),
+                   &dst->second, serial::ADL{} ) );
+  return valid;
 }
 
 // For vectors.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, std::vector<T>* dst,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const*     src,
+                              std::vector<T>* dst,
+                              serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
     // an empty vector.
-    return xp_success_t{};
+    return valid;
   }
   dst->resize( src->size() );
   using iter_t = decltype( src->size() );
   for( iter_t i = 0; i < src->size(); ++i ) {
     // This should be a value (scalar) or a pointer.
     auto elem = src->Get( i );
-    XP_OR_RETURN_(
+    HAS_VALUE_OR_RET(
         deserialize( detail::to_const_ptr( elem ),
                      std::addressof( dst->operator[]( i ) ),
                      serial::ADL{} ) );
   }
-  return xp_success_t{};
+  return valid;
 }
 
 // For lists. Deserialize to vector first.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, std::list<T>* dst,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, std::list<T>* dst,
+                              serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
     // an empty map.
-    return xp_success_t{};
+    return valid;
   }
   std::vector<T> v;
   v.reserve( src->size() );
-  XP_OR_RETURN_( deserialize( src, &v, serial::ADL{} ) );
+  HAS_VALUE_OR_RET( deserialize( src, &v, serial::ADL{} ) );
   // The list may have elements in it if it is the member of an
   // object (such as fsm) that initializes it to always have at
   // least one element.
   dst->clear();
   for( auto& e : v ) dst->push_back( std::move( e ) );
-  return xp_success_t{};
+  return valid;
 }
 
 // For unordered_set. Deserialize to vector first.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const*            src,
-                      std::unordered_set<T>* dst, serial::ADL ) {
+valid_deserial_t deserialize( SrcT const*            src,
+                              std::unordered_set<T>* dst,
+                              serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
     // an empty map.
-    return xp_success_t{};
+    return valid;
   }
   std::vector<T> v;
   v.reserve( src->size() );
-  XP_OR_RETURN_( deserialize( src, &v, serial::ADL{} ) );
+  HAS_VALUE_OR_RET( deserialize( src, &v, serial::ADL{} ) );
   dst->clear();
   for( auto& e : v ) dst->insert( std::move( e ) );
-  return xp_success_t{};
+  return valid;
 }
 
 // For std::sets. Deserialize to vector first.
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, std::set<T>* dst,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, std::set<T>* dst,
+                              serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
     // an empty map.
-    return xp_success_t{};
+    return valid;
   }
   std::vector<T> v;
   v.reserve( src->size() );
-  XP_OR_RETURN_( deserialize( src, &v, serial::ADL{} ) );
+  HAS_VALUE_OR_RET( deserialize( src, &v, serial::ADL{} ) );
   dst->clear();
   for( auto& e : v ) dst->insert( std::move( e ) );
-  return xp_success_t{};
+  return valid;
 }
 
 // For map-like things.
@@ -840,12 +887,13 @@ template<typename SrcT,                        //
                  detail::is_fb_vector_v<SrcT>, //
              int> = 0                          //
          >
-expect<> deserialize( SrcT const* src, DstT* m, serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, DstT* m,
+                              serial::ADL ) {
   // SrcT should be a flatbuffers::Vector.
   if( src == nullptr || src->size() == 0 ) {
     // `dst` should be in its default-constructed state, which is
     // an empty map.
-    return xp_success_t{};
+    return valid;
   }
   using iter_t = decltype( src->size() );
   using key_t  = typename DstT::key_type;
@@ -855,29 +903,29 @@ expect<> deserialize( SrcT const* src, DstT* m, serial::ADL ) {
   for( iter_t i = 0; i < src->size(); ++i ) {
     auto* elem = src->Get( i );
     key_t key{};
-    XP_OR_RETURN_(
+    HAS_VALUE_OR_RET(
         deserialize( detail::to_const_ptr( elem->fst() ), &key,
                      serial::ADL{} ) );
 
     if constexpr( has_fmt<key_t> ) {
       if( m->find( key ) != m->end() )
-        return UNEXPECTED(
+        return invalid_deserial( fmt::format(
             "duplicate key ({}) found when deserializing map.",
-            key );
+            key ) );
     } else {
       if( m->find( key ) != m->end() )
-        return UNEXPECTED(
+        return invalid_deserial( fmt::format(
             "duplicate key (type {}) found when deserializing "
             "map.",
-            ::rn::demangled_typename<key_t>() );
+            ::rn::demangled_typename<key_t>() ) );
     }
 
-    XP_OR_RETURN_(
+    HAS_VALUE_OR_RET(
         deserialize( detail::to_const_ptr( elem->snd() ),
                      std::addressof( m->operator[]( key ) ),
                      serial::ADL{} ) );
   }
-  return xp_success_t{};
+  return valid;
 }
 
 /****************************************************************
@@ -892,10 +940,10 @@ namespace detail {
 // ther way, the index of the active member is computed and given
 // to this function, so it doesn't care how it is computed.
 template<typename Tuple, typename Variant>
-expect<> visit_tuple_variant_deserialize(
+valid_deserial_t visit_tuple_variant_deserialize(
     Tuple const& fields_pack, Variant& dst, int active_index ) {
-  expect<> err   = xp_success_t{};
-  bool     found = false;
+  valid_deserial_t err   = valid;
+  bool             found = false;
   mp::for_index_seq<std::variant_size_v<Variant>>(
       [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
         // Return true means we will stop iterating.
@@ -909,10 +957,10 @@ expect<> visit_tuple_variant_deserialize(
       } );
   if( !err ) return err;
   if( !found )
-    return UNEXPECTED(
+    return invalid_deserial(
         "failed to deserialize precisely one active alternative "
         "in variant." );
-  return xp_success_t{};
+  return valid;
 }
 
 // Given a tuple representing the field types of a Flatbuffer
@@ -921,7 +969,8 @@ expect<> visit_tuple_variant_deserialize(
 // through the fields to find the (hopefully only) one that is
 // non-null, meaning active.
 template<typename Tuple>
-expect<int> find_active_index_in_tuple( Tuple const& tp ) {
+expect<int, DeserialError> find_active_index_in_tuple(
+    Tuple const& tp ) {
   int        count = 0;
   maybe<int> active_index;
   mp::for_index_seq<std::tuple_size_v<
@@ -940,11 +989,14 @@ expect<int> find_active_index_in_tuple( Tuple const& tp ) {
     }
   } );
   if( count != 1 )
-    return UNEXPECTED(
-        "failed to find precisely one active alternative in FB "
-        "table representing variant with no active_index; "
-        "instead found {}.",
-        count );
+    return invalid_deserial(
+               fmt::format(
+                   "failed to find precisely one active "
+                   "alternative "
+                   "in FB table representing variant with no "
+                   "active_index; instead found {}.",
+                   count ) )
+        .error();
   DCHECK( *active_index < int( std::tuple_size_v<Tuple> ) );
   return *active_index;
 }
@@ -953,8 +1005,9 @@ expect<int> find_active_index_in_tuple( Tuple const& tp ) {
 
 // For base::variant.
 template<typename SrcT, typename... Vs>
-expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const*           src,
+                              base::variant<Vs...>* dst,
+                              serial::ADL ) {
   constexpr auto info = detail::validate_variant_active_index<
       SrcT, base::variant<Vs...>>();
   constexpr bool has_active_index = info.second;
@@ -963,21 +1016,21 @@ expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
     // would be the first alternative in a default-constructed
     // state. If there is an active_index then it will be zero
     // which is consistent with this.
-    return xp_success_t{};
+    return valid;
   }
   auto fields_pack = src->fields_pack();
   if constexpr( has_active_index ) {
     int32_t active_index = std::get<0>( fields_pack );
-    XP_OR_RETURN_( detail::visit_tuple_variant_deserialize(
+    HAS_VALUE_OR_RET( detail::visit_tuple_variant_deserialize(
         mp::tuple_tail( fields_pack ), *dst, active_index ) );
   } else {
-    XP_OR_RETURN(
+    UNWRAP_RETURN(
         active_index,
         detail::find_active_index_in_tuple( fields_pack ) );
-    XP_OR_RETURN_( detail::visit_tuple_variant_deserialize(
+    HAS_VALUE_OR_RET( detail::visit_tuple_variant_deserialize(
         fields_pack, *dst, active_index ) );
   }
-  return xp_success_t{};
+  return valid;
 }
 
 } // namespace rn::serial
@@ -985,10 +1038,10 @@ expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )      \
-  auto PP_JOIN( s_, var ) =                                \
-      serialize<::rn::serial::fb_serialize_hint_t<         \
-          decltype( std::declval<fb_target_t>().var() )>>( \
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )       \
+  auto PP_JOIN( s_, var ) =                                 \
+      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
+          std::declval<fb_target_t>().var() )>>(            \
           builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
@@ -1001,7 +1054,7 @@ expect<> deserialize( SrcT const* src, base::variant<Vs...>* dst,
 #define SERIAL_DECLARE_VAR_TABLE( type, var ) type var{};
 
 #define SERIAL_DESERIALIZE_VAR_TABLE_IMPL( type, var )        \
-  XP_OR_RETURN_(                                              \
+  HAS_VALUE_OR_RET(                                           \
       deserialize( serial::detail::to_const_ptr( src.var() ), \
                    &dst->var, serial::ADL{} ) );
 
@@ -1024,14 +1077,14 @@ public:                                                      \
         builder __VA_OPT__(, ) PP_MAP_COMMAS(                \
             SERIAL_GET_SERIALIZED, __VA_ARGS__ ) );          \
   }                                                          \
-  static expect<> deserialize_table( ns::name const& src,    \
-                                     name*           dst ) {           \
+  static valid_deserial_t deserialize_table(                 \
+      ns::name const& src, name* dst ) {                     \
     DCHECK( dst );                                           \
     (void)src;                                               \
     (void)dst;                                               \
     using ::rn::serial::deserialize;                         \
     PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_TABLE, __VA_ARGS__ ) \
-    return xp_success_t{};                                   \
+    return valid;                                            \
   }                                                          \
                                                              \
 private:
@@ -1042,10 +1095,10 @@ private:
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )  \
-  auto PP_JOIN( s_, var ) =                                \
-      serialize<::rn::serial::fb_serialize_hint_t<         \
-          decltype( std::declval<fb_target_t>().var() )>>( \
+#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )   \
+  auto PP_JOIN( s_, var ) =                                 \
+      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
+          std::declval<fb_target_t>().var() )>>(            \
           builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \
@@ -1054,7 +1107,7 @@ private:
 #define SERIAL_DECLARE_VAR_STRUCT( type, var ) type var{};
 
 #define SERIAL_DESERIALIZE_VAR_STRUCT_IMPL( type, var )       \
-  XP_OR_RETURN_(                                              \
+  HAS_VALUE_OR_RET(                                           \
       deserialize( serial::detail::to_const_ptr( src.var() ), \
                    &dst->var, serial::ADL{} ) );
 
@@ -1072,12 +1125,12 @@ public:                                                        \
     return fb::name(                                           \
         PP_MAP_COMMAS( SERIAL_GET_SERIALIZED, __VA_ARGS__ ) ); \
   }                                                            \
-  static expect<> deserialize_struct( fb::name const& src,     \
-                                      name*           dst ) {            \
+  static valid_deserial_t deserialize_struct(                  \
+      fb::name const& src, name* dst ) {                       \
     DCHECK( dst );                                             \
     using ::rn::serial::deserialize;                           \
     PP_MAP_SEMI( SERIAL_DESERIALIZE_VAR_STRUCT, __VA_ARGS__ )  \
-    return xp_success_t{};                                     \
+    return valid;                                              \
   }
 
 #define SERIALIZABLE_STRUCT_MEMBERS( ... ) \

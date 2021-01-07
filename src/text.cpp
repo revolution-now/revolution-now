@@ -12,7 +12,7 @@
 #include "text.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"

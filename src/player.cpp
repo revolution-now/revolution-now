@@ -52,13 +52,13 @@ private:
     // Check that players have the correct nation relative to
     // their key in the map.
     for( auto const& [nation, player] : players )
-      UNXP_CHECK( player.nation() == nation,
-                  "mismatch in player nations." );
+      check_deserial( player.nation() == nation,
+                      "mismatch in player nations." );
 
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( Player );
 

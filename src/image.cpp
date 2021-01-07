@@ -13,7 +13,7 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "coord.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -52,8 +52,7 @@ struct ImagePlane : public Plane {
   // Implement Plane
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
-    ASSIGN_CHECK_OPT( image_tx,
-                      base::lookup( g_images, *image ) );
+    UNWRAP_CHECK( image_tx, base::lookup( g_images, *image ) );
     auto image_delta = image_tx.size();
     auto win_rect    = main_window_logical_rect();
     auto dest_coord  = centered( image_delta, win_rect );
@@ -94,7 +93,7 @@ void image_plane_set( e_image image ) {
 }
 
 Texture const& image( e_image which ) {
-  ASSIGN_CHECK_OPT( tx, base::lookup( g_images, which ) );
+  UNWRAP_CHECK( tx, base::lookup( g_images, which ) );
   return tx;
 }
 

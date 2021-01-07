@@ -13,7 +13,7 @@
 // Revolution Now
 #include "compositor.hpp"
 #include "cstate.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
 #include "plane.hpp"

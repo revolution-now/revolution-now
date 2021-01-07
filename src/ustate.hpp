@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "colony.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "unit.hpp"
 
 // base
@@ -130,7 +130,7 @@ maybe<UnitId> is_unit_onboard( UnitId id );
 /****************************************************************
 ** EuroPort View Ownership
 *****************************************************************/
-expect<> check_europort_state_invariants(
+valid_or<generic_err> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info );
 
 // If unit is owned by euro-port-view then this will return info.

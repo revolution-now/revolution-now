@@ -61,9 +61,9 @@ template<typename T>
 void savegame_serializer( FBBuilder&   builder,
                           FBOffset<T>* out_offset );
 template<typename T>
-expect<> savegame_deserializer( T const* src );
+valid_deserial_t savegame_deserializer( T const* src );
 template<typename T>
-expect<> savegame_post_validate( T const* );
+valid_deserial_t savegame_post_validate( T const* );
 template<typename T>
 void default_construct_savegame_state( T const* );
 
@@ -111,8 +111,9 @@ serial::BinaryBlob save_game_to_blob() {
 }
 
 template<typename... Ts>
-expect<> savegame_post_validate_impl( mp::type_list<Ts...>* ) {
-  expect<> res = xp_success_t{};
+valid_deserial_t savegame_post_validate_impl(
+    mp::type_list<Ts...>* ) {
+  valid_deserial_t res = valid;
 
   auto validate_one = [&]( auto* p ) {
     // If we've already failed on a past step, don't run anymore.
@@ -127,12 +128,13 @@ expect<> savegame_post_validate_impl( mp::type_list<Ts...>* ) {
   return res;
 }
 
-expect<> load_from_blob( serial::BinaryBlob const& blob ) {
+valid_deserial_t load_from_blob(
+    serial::BinaryBlob const& blob ) {
   auto*           root = blob.root<fb::SaveGame>();
   util::StopWatch watch;
   watch.start( "load" );
-  auto     fields_pack = root->fields_pack();
-  expect<> res         = xp_success_t{};
+  auto             fields_pack = root->fields_pack();
+  valid_deserial_t res         = valid;
   mp::for_index_seq<num_savegame_modules>(
       [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
         res = savegame_deserializer(
@@ -145,13 +147,13 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
 
   // Post-deserialization validation.
   watch.start( "validate" );
-  XP_OR_RETURN_(
+  HAS_VALUE_OR_RET(
       savegame_post_validate_impl( (fb_sg_types*)0 ) );
   watch.stop( "validate" );
 
   lg.info( "loading game took: {}, validation took: {}.",
            watch.human( "load" ), watch.human( "validate" ) );
-  return xp_success_t{};
+  return valid;
 }
 
 } // namespace
@@ -159,19 +161,19 @@ expect<> load_from_blob( serial::BinaryBlob const& blob ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-expect<fs::path> save_game( int slot ) {
+expect<fs::path, generic_err> save_game( int slot ) {
   // Increase this to get more accurate reading on save times.
   constexpr int   trials = 1;
   util::StopWatch watch;
   watch.start( "save" );
-  auto serialize_to_blob = [&]() -> expect<serial::BinaryBlob> {
+  auto serialize_to_blob = [&]() -> serial::BinaryBlob {
     for( int i = trials; i >= 1; --i ) {
       serial::BinaryBlob blob = save_game_to_blob();
       if( i == 1 ) return blob; // has to move
     }
     UNREACHABLE_LOCATION;
   };
-  XP_OR_RETURN( blob, serialize_to_blob() );
+  auto blob = serialize_to_blob();
   watch.stop( "save" );
   lg.info( "saving game ({} trials) took: {}", trials,
            watch.human( "save" ) );
@@ -183,19 +185,19 @@ expect<fs::path> save_game( int slot ) {
   lg.info( "saving game to {}.", p );
   ofstream out( p );
   if( !out.good() )
-    return UNEXPECTED( "failed to open {} for writing.", p );
+    return GENERIC_ERROR( "failed to open {} for writing.", p );
   out << blob.to_json<fb::SaveGame>( /*quotes=*/false );
 
   // Serialize to binary.
   p.replace_extension( ".sav" );
   lg.info( "saving game to {}.", p );
-  XP_OR_RETURN_( blob.write( p ) );
+  HAS_VALUE_OR_RET( blob.write( p ) );
 
   p.replace_extension();
   return p;
 }
 
-expect<fs::path> load_game( int slot ) {
+expect<fs::path, generic_err> load_game( int slot ) {
   auto json_path =
       path_for_slot( slot ).replace_extension( ".jsav" );
   auto blob_path =
@@ -205,8 +207,8 @@ expect<fs::path> load_game( int slot ) {
   bool blob_exists = fs::exists( blob_path );
 
   if( !blob_exists && !json_exists )
-    return UNEXPECTED( "save files not found for slot {}.",
-                       slot );
+    return GENERIC_ERROR( "save files not found for slot {}.",
+                          slot );
 
   // Determine whether to use JSON file or binary file.
   bool use_json = false;
@@ -234,22 +236,23 @@ expect<fs::path> load_game( int slot ) {
     auto maybe_json =
         base::read_text_file_as_string( json_path );
     if( !maybe_json )
-      return UNEXPECTED( "failed to read json file" );
-    XP_OR_RETURN( blob, serial::BinaryBlob::from_json(
-                            /*schema_file_name=*/"save-game.fbs",
-                            /*json=*/*maybe_json,
-                            /*root_type=*/"SaveGame" ) );
-    XP_OR_RETURN_( load_from_blob( blob ) );
+      return GENERIC_ERROR( "failed to read json file" );
+    UNWRAP_RETURN( blob,
+                   serial::BinaryBlob::from_json(
+                       /*schema_file_name=*/"save-game.fbs",
+                       /*json=*/*maybe_json,
+                       /*root_type=*/"SaveGame" ) );
+    HAS_VALUE_OR_RET( load_from_blob( blob ) );
     return json_path;
   } else {
     lg.info( "loading game from {}.", blob_path );
-    XP_OR_RETURN( blob, serial::BinaryBlob::read( blob_path ) );
-    XP_OR_RETURN_( load_from_blob( blob ) );
+    UNWRAP_RETURN( blob, serial::BinaryBlob::read( blob_path ) );
+    HAS_VALUE_OR_RET( load_from_blob( blob ) );
     return blob_path;
   }
 }
 
-expect<> reset_savegame_state() {
+valid_deserial_t reset_savegame_state() {
   FBBuilder fbb;
   auto      builder = fb::SaveGameBuilder( fbb );
   auto      sg      = builder.Finish();

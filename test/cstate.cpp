@@ -123,7 +123,7 @@ TEST_CASE( "[cstate] lua" ) {
     assert_eq( colony:nation(), e.nation.english )
     assert_eq( colony:location(), Coord{x=1,y=2} )
   )";
-  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
+  REQUIRE( lua::run<void>( script ) == valid );
 
   auto xp2 = lua::run<void>( "cstate.colony_from_id( 2 )" );
   REQUIRE( !xp2.has_value() );

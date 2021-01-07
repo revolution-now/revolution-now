@@ -14,6 +14,7 @@
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "enum.hpp"
+#include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 #include "rand.hpp"
@@ -35,35 +36,38 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-expect<> check_colony_invariants_safe( ColonyId id ) {
+valid_or<generic_err> check_colony_invariants_safe(
+    ColonyId id ) {
   // 0.  Colony is reported as existing.
   if( !colony_exists( id ) )
-    return UNEXPECTED( "Colony does not exist." );
+    return GENERIC_ERROR( "Colony does not exist." );
 
   auto const& colony = colony_from_id( id );
 
   // 1.  Colony location matches coord.
   auto coord = colony.location();
   if( colony_from_coord( coord ) != id )
-    return UNEXPECTED( "Inconsistent colony map coordinate." );
+    return GENERIC_ERROR(
+        "Inconsistent colony map coordinate." );
 
   // 2.  Colony is on land.
   if( !terrain_is_land( coord ) )
-    return UNEXPECTED( "Colony is not on land." );
+    return GENERIC_ERROR( "Colony is not on land." );
 
   // 3.  Colony has non-empty stripped name.
   if( util::strip( colony.name() ).empty() )
-    return UNEXPECTED( "Colony name is empty (when stripped)." );
+    return GENERIC_ERROR(
+        "Colony name is empty (when stripped)." );
 
   // 4.  Colony has at least one colonist.
   if( colony.units_jobs().size() == 0 )
-    return UNEXPECTED( "Colony {} has no units.", colony );
+    return GENERIC_ERROR( "Colony {} has no units.", colony );
 
   // 5.  All colony's units owned by colony.
   for( auto const& p : colony.units_jobs() ) {
     auto unit_id = p.first;
     if( state_for_unit( unit_id ) != e_unit_state::colony )
-      return UNEXPECTED(
+      return GENERIC_ERROR(
           "{} in Colony {} is not owned by colony.",
           debug_string( unit_id ), colony );
   }
@@ -78,15 +82,16 @@ expect<> check_colony_invariants_safe( ColonyId id ) {
   for( auto const& p : colony.units_jobs() ) {
     auto nation = unit_from_id( p.first ).nation();
     if( colony.nation() != unit_from_id( p.first ).nation() )
-      return UNEXPECTED(
+      return GENERIC_ERROR(
           "Colony has nation {} but unit has nation {}.",
           colony.nation(), nation );
   }
 
   // 8.  Colony's commodity quantites in correct range.
   for( auto comm : magic_enum::enum_values<e_commodity>() ) {
-    UNXP_CHECK( colony.commodity_quantity( comm ) >= 0,
-                "Colony has negative quantity of {}.", comm );
+    if( colony.commodity_quantity( comm ) < 0 )
+      return GENERIC_ERROR(
+          "Colony has negative quantity of {}.", comm );
   }
 
   // 9.  Colony's building set is self-consistent.
@@ -101,11 +106,11 @@ expect<> check_colony_invariants_safe( ColonyId id ) {
   // 12. Colony's production status is self-consistent.
   // TODO
 
-  return xp_success_t();
+  return valid;
 }
 
 void check_colony_invariants_die( ColonyId id ) {
-  CHECK_XP( check_colony_invariants_safe( id ) );
+  CHECK_HAS_VALUE( check_colony_invariants_safe( id ) );
 }
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
@@ -151,12 +156,11 @@ ColonyId found_colony_unsafe( UnitId           founder,
            magic_enum::enum_name( res.error() ) );
 
   auto nation = unit_from_id( founder ).nation();
-  ASSIGN_CHECK_OPT( where,
-                    coord_for_unit_indirect_safe( founder ) );
+  UNWRAP_CHECK( where, coord_for_unit_indirect_safe( founder ) );
 
   // 1. Create colony object.
-  ASSIGN_CHECK_XP( col_id,
-                   cstate_create_colony( nation, where, name ) );
+  UNWRAP_CHECK( col_id,
+                cstate_create_colony( nation, where, name ) );
 
   // 2. Find initial job for founder. (TODO)
   ColonyJob_t job =
@@ -171,7 +175,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
   // 4. Check colony invariants. Need to abort here if the in-
   // variants are violated because we have already created the
   // colony, and so this should never happen.
-  CHECK_XP( check_colony_invariants_safe( col_id ) );
+  CHECK_HAS_VALUE( check_colony_invariants_safe( col_id ) );
 
   // 5. Done.
   auto& desc = nation_obj( nation );

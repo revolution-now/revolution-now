@@ -15,7 +15,8 @@
 // Revolution Now
 #include "cc-specific.hpp"
 #include "coord.hpp"
-#include "errors.hpp"
+#include "error.hpp"
+#include "expect.hpp"
 #include "id.hpp"
 #include "sol.hpp"
 #include "typed-int.hpp"
@@ -35,6 +36,25 @@
 namespace rn::lua {
 
 /****************************************************************
+** Error handling.
+*****************************************************************/
+struct LuaError {
+  std::string what;
+};
+
+// An exception to throw when user input into a C++ Lua extension
+// function is invalid.
+struct lua_error : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
+// This should only be used from within the C++ code that is im-
+// mediately called by Lua, i.e., not part of normal game code.
+// Only the C++ extension functions.
+#define THROW_LUA_ERROR( ... ) \
+  { throw ::rn::lua::lua_error( fmt::format( __VA_ARGS__ ) ); }
+
+/****************************************************************
 ** Lua (Sol2) State
 *****************************************************************/
 sol::state& global_state();
@@ -45,7 +65,7 @@ sol::state& global_state();
 namespace detail {
 
 using LuaRetMap = TypeMap< //
-    KV<void, xp_success_t> //
+    KV<void, valid_t>      //
     >;
 
 using IntermediateCppTypeMap = TypeMap< //
@@ -53,7 +73,7 @@ using IntermediateCppTypeMap = TypeMap< //
     >;
 
 template<typename Ret>
-expect<Ret> sol_obj_convert( sol::object const& o ) {
+expect<Ret, LuaError> sol_obj_convert( sol::object const& o ) {
   using intermediate_t = Get<IntermediateCppTypeMap, Ret, Ret>;
   if( !o.is<intermediate_t>() ) {
     std::string via =
@@ -61,17 +81,18 @@ expect<Ret> sol_obj_convert( sol::object const& o ) {
             ? ""
             : ( std::string( " (via `" ) +
                 demangled_typename<intermediate_t>() + "`)" );
-    return UNEXPECTED(
+    return unexpected<Ret>( LuaError{
         fmt::format( "expected type `{}`{} but got `{}`.",
                      demangled_typename<Ret>(), via,
                      sol::type_name( global_state().lua_state(),
-                                     o.get_type() ) ) );
+                                     o.get_type() ) ) } );
   }
   return static_cast<Ret>( o.as<intermediate_t>() );
 }
 
 template<typename T>
-expect<maybe<T>> sol_opt_convert( sol::object const& o ) {
+expect<maybe<T>, LuaError> sol_opt_convert(
+    sol::object const& o ) {
   if( o.is<sol::lua_nil_t>() ) //
     return nothing;
   auto xp_T = sol_obj_convert<T>( o );
@@ -81,15 +102,15 @@ expect<maybe<T>> sol_opt_convert( sol::object const& o ) {
 }
 
 template<typename Ret>
-expect<Ret> lua_script( std::string_view script ) {
+expect<Ret, LuaError> lua_script( std::string_view script ) {
   auto result = global_state().safe_script(
       script, sol::script_pass_on_error );
   if( !result.valid() ) {
     sol::error err = result;
-    return UNEXPECTED( err.what() );
+    return LuaError{ err.what() };
   }
-  if constexpr( std::is_same_v<Ret, xp_success_t> )
-    return xp_success_t{};
+  if constexpr( std::is_same_v<Ret, valid_t> )
+    return valid;
   else if constexpr( base::is_maybe_v<Ret> )
     return sol_opt_convert<typename Ret::value_type>(
         result.get<sol::object>() );
@@ -458,3 +479,5 @@ inline int sol_lua_push( sol::types<::rn::maybe<T>>,
 }
 
 } // namespace base
+
+DEFINE_FORMAT( ::rn::lua::LuaError, "{}", o.what );

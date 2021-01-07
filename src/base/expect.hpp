@@ -14,6 +14,10 @@
 #include "maybe.hpp"
 #include "meta.hpp"
 #include "source-loc.hpp"
+#include "to-str.hpp"
+
+// {fmt}
+#include "fmt/format.h"
 
 // C++ standard library
 #include <stdexcept>
@@ -1608,7 +1612,7 @@ expect<T&, E> expected_ref( T& arg ) requires(
 template<typename T, typename E>
 expect<T, std::decay_t<E>> unexpected( E&& arg ) requires(
     !is_expect_v<std::remove_cvref_t<E>> ) {
-  return expect<T, std::decay_t<E>>( std::forward<T>( arg ) );
+  return expect<T, std::decay_t<E>>( std::forward<E>( arg ) );
 }
 
 /****************************************************************
@@ -1648,16 +1652,6 @@ template<typename T, typename E, typename U>
 }
 
 /* clang-format off */
-template<typename T, typename E, typename U>
-[[nodiscard]] constexpr bool operator==( U const&            val,
-                                         expect<T, E> const& opt )
-    noexcept( noexcept( val == *opt ) )
-    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
-  /* clang-format on */
-  return ( opt == val );
-}
-
-/* clang-format off */
 template<typename T, typename E>
 [[nodiscard]] constexpr bool operator==( expect<T, E> const& opt,
                                          E const&            err )
@@ -1665,15 +1659,6 @@ template<typename T, typename E>
   /* clang-format on */
   if( opt.has_value() ) return false;
   return ( opt.error() == err );
-}
-
-/* clang-format off */
-template<typename T, typename E>
-[[nodiscard]] constexpr bool operator==( E const&            err,
-                                         expect<T, E> const& opt )
-    noexcept( noexcept( err == opt.error() ) ) {
-  /* clang-format on */
-  return ( opt == err );
 }
 
 /* clang-format off */
@@ -1686,16 +1671,6 @@ template<typename T, typename E, typename U>
   return !( opt == val );
 }
 
-template<typename T, typename E,
-         typename U> /* clang-format off */
-[[nodiscard]] constexpr bool operator!=( U const&            val,
-                                         expect<T, E> const& opt )
-    noexcept( noexcept( val == opt ) )
-    requires( !std::is_same_v<std::remove_cvref_t<U>, E> ) {
-  /* clang-format on */
-  return !( val == opt );
-}
-
 /* clang-format off */
 template<typename T, typename E>
 [[nodiscard]] constexpr bool operator!=( expect<T, E> const& opt,
@@ -1704,13 +1679,18 @@ template<typename T, typename E>
   return !( opt == err );
 }
 
-/* clang-format off */
+/****************************************************************
+** to_str
+*****************************************************************/
 template<typename T, typename E>
-[[nodiscard]] constexpr bool operator!=( E const&            err,
-                                         expect<T, E> const& opt )
-    noexcept( noexcept( err == opt ) ) {
-  /* clang-format on */
-  return !( err == opt );
+void to_str( expect<T, E> const& e, std::string& out ) {
+  if( e.has_value() )
+    to_str( *e, out );
+  else {
+    out += "unexpected{";
+    to_str( e.error(), out );
+    out += "}";
+  }
 }
 
 } // namespace base
@@ -1734,3 +1714,24 @@ void swap( ::base::expect<T, E>& lhs, ::base::expect<T, E>& rhs )
 }
 
 } // namespace std
+
+/****************************************************************
+** {fmt}
+*****************************************************************/
+// {fmt} formatter for formatting expect's whose contained types
+// are formattable.
+template<typename T, typename E>
+struct fmt::formatter<base::expect<T, E>>
+  : fmt::formatter<std::string> {
+  using formatter_base = fmt::formatter<std::string>;
+  template<typename FormatContext>
+  auto format( base::expect<T, E> const& e,
+               FormatContext&            ctx ) {
+    if( e.has_value() )
+      return formatter_base::format( fmt::format( "{}", *e ),
+                                     ctx );
+    else
+      return formatter_base::format(
+          fmt::format( "unexpected{{{}}}", e.error() ), ctx );
+  }
+};

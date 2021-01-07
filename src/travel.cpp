@@ -13,7 +13,7 @@
 
 // Revolution Now
 #include "cstate.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "id.hpp"
 #include "orders.hpp"
 #include "terrain.hpp"
@@ -394,7 +394,7 @@ sync_future<bool> TravelAnalysis::confirm_explain_() const {
   }
   // The above should have checked that the variant holds the
   // e_unit_travel_good type for us.
-  ASSIGN_CHECK_OPT( kind, desc.get_if<e_unit_travel_good>() );
+  UNWRAP_CHECK( kind, desc.get_if<e_unit_travel_good>() );
 
   switch( kind ) {
     case e_unit_travel_good::land_fall: {

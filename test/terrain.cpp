@@ -59,8 +59,6 @@ TEST_CASE( "[terrain] generate unit testing land" ) {
   REQUIRE( square_at( { 7_x, 7_y } ).crust == e_crust::land );
   REQUIRE( square_at( { 5_x, 6_y } ).crust == e_crust::land );
 
-  REQUIRE_THROWS_AS_RN( square_at( { 10_x, 10_y } ) );
-
   REQUIRE_FALSE( terrain_is_land( { 0_x, 0_y } ) );
   REQUIRE_FALSE( terrain_is_land( { 1_x, 0_y } ) );
   REQUIRE_FALSE( terrain_is_land( { 1_x, 1_y } ) );

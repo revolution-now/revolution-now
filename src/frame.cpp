@@ -171,7 +171,7 @@ void frame_loop() {
     auto& q = input::event_queue();
     while( q.size() > 0 ) {
       input_received();
-      ASSIGN_CHECK_OPT( event, q.front() );
+      UNWRAP_CHECK( event, q.front() );
       if( is_win_resize( event ) ) on_main_window_resized();
       (void)send_input_to_planes( event );
       q.pop();

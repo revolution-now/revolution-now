@@ -13,9 +13,11 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
+#include "maybe.hpp"
 
 // base
+#include "base/fs.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library

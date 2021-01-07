@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "macros.hpp"
 
 // Revolution Now (for importing enum types)

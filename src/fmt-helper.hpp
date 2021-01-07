@@ -61,7 +61,7 @@ constexpr bool has_fmt =
   template<>                                           \
   struct fmt::formatter<type> : formatter_base {       \
     template<typename FormatContext>                   \
-    auto format( type const &o, FormatContext &ctx ) { \
+    auto format( type const& o, FormatContext& ctx ) { \
       use_param return formatter_base::format(         \
           fmt::format( __VA_ARGS__ ), ctx );           \
     }                                                  \
@@ -72,7 +72,7 @@ constexpr bool has_fmt =
   template<PP_MAP_COMMAS( PP_ADD_TYPENAME, EXPAND t_args )>   \
   struct fmt::formatter<EXPAND type> : formatter_base {       \
     template<typename FormatContext>                          \
-    auto format( EXPAND type const &o, FormatContext &ctx ) { \
+    auto format( EXPAND type const& o, FormatContext& ctx ) { \
       use_param return formatter_base::format(                \
           fmt::format( __VA_ARGS__ ), ctx );                  \
     }                                                         \
@@ -116,7 +116,7 @@ struct FmtTags;
 template<template<typename U> typename Tag>
 struct FmtTags<Tag> {
   template<typename T>
-  auto operator()( T &&o ) {
+  auto operator()( T&& o ) {
     return Tag{ std::forward<T>( o ) };
   }
 };
@@ -125,7 +125,7 @@ template<template<typename U> typename FirstTag,
          template<typename Z> typename... RestTags>
 struct FmtTags<FirstTag, RestTags...> {
   template<typename T>
-  auto operator()( T &&o ) const {
+  auto operator()( T&& o ) const {
     return FirstTag{
         FmtTags<RestTags...>{}( std::forward<T>( o ) ) };
   }
@@ -138,14 +138,14 @@ struct FmtTags<FirstTag, RestTags...> {
 #define DEFINE_FMT_TAG( name )                              \
   template<typename T>                                      \
   struct name {                                             \
-    name( T const &o ) : maybe_o{}, ref( o ) {}             \
-    name( T &&o )                                           \
+    name( T const& o ) : maybe_o{}, ref( o ) {}             \
+    name( T&& o )                                           \
       : maybe_o( std::forward<T>( o ) ), ref( *maybe_o ) {} \
     maybe<T>                        maybe_o;                \
     std::reference_wrapper<T const> ref;                    \
   };                                                        \
   template<typename T>                                      \
-  name( T const & ) -> name<T>;
+  name( T const& ) -> name<T>;
 
 DEFINE_FMT_TAG( FmtRemoveTemplateArgs );
 DEFINE_FMT_TAG( FmtRemoveRnNamespace );
@@ -157,7 +157,7 @@ struct FmtJsonStyleList {
 
 // Deduction guide.
 template<typename T>
-FmtJsonStyleList( std::vector<T> const & ) -> FmtJsonStyleList<T>;
+FmtJsonStyleList( std::vector<T> const& ) -> FmtJsonStyleList<T>;
 
 } // namespace rn
 
@@ -171,8 +171,8 @@ template<typename T>
 struct formatter<::rn::FmtRemoveTemplateArgs<T>>
   : formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::FmtRemoveTemplateArgs<T> const &o,
-               FormatContext &                       ctx ) {
+  auto format( ::rn::FmtRemoveTemplateArgs<T> const& o,
+               FormatContext&                        ctx ) {
     std::string inner = fmt::format( "{}", o.ref.get() );
     std::string reduced;
     reduced.reserve( inner.size() );
@@ -200,8 +200,8 @@ template<typename T>
 struct formatter<::rn::FmtRemoveRnNamespace<T>>
   : formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::FmtRemoveRnNamespace<T> const &o,
-               FormatContext &                      ctx ) {
+  auto format( ::rn::FmtRemoveRnNamespace<T> const& o,
+               FormatContext&                       ctx ) {
     std::string with_namespaces =
         fmt::format( "{}", o.ref.get() );
     std::string_view sv = with_namespaces;
@@ -220,12 +220,12 @@ struct formatter<::rn::FmtRemoveRnNamespace<T>>
 template<typename T>
 struct formatter<::rn::FmtJsonStyleList<T>> : formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::FmtJsonStyleList<T> const &o,
-               FormatContext &                  ctx ) {
-    std::vector<T> const &   vec = o.vec.get();
+  auto format( ::rn::FmtJsonStyleList<T> const& o,
+               FormatContext&                   ctx ) {
+    std::vector<T> const&    vec = o.vec.get();
     std::vector<std::string> items;
     items.reserve( vec.size() );
-    for( auto const &item : vec )
+    for( auto const& item : vec )
       items.push_back( fmt::format( "{}", item ) );
     return formatter_base::format(
         std::string( "[" ) + util::join( items, "," ) + "]",
@@ -243,7 +243,7 @@ namespace fmt {
 template<>
 struct formatter<std::monostate> : formatter_base {
   template<typename FormatContext>
-  auto format( std::monostate const &, FormatContext &ctx ) {
+  auto format( std::monostate const&, FormatContext& ctx ) {
     return formatter_base::format( "monostate", ctx );
   }
 };
@@ -252,8 +252,8 @@ template<typename... Ts>
 struct formatter<std::chrono::time_point<Ts...>>
   : formatter_base {
   template<typename FormatContext>
-  auto format( std::chrono::time_point<Ts...> const &o,
-               FormatContext &                       ctx ) {
+  auto format( std::chrono::time_point<Ts...> const& o,
+               FormatContext&                        ctx ) {
     auto str = "\"" + util::to_string( o ) + "\"";
     return formatter_base::format( str, ctx );
   }
@@ -271,19 +271,19 @@ struct formatter<V<Ts...>>
   : dynamic_formatter<> {
   using B = dynamic_formatter<>;
   template<typename Context>
-  auto format( V<Ts...> const &v, Context &ctx ) {
+  auto format( V<Ts...> const& v, Context& ctx ) {
     return std::visit(
-        [&]( auto const &_ ) {
+        [&]( auto const& _ ) {
           return B::format( fmt::format( "{}", _ ), ctx );
         },
-        static_cast<std::variant<Ts...> const &>( v ) );
+        static_cast<std::variant<Ts...> const&>( v ) );
   }
 };
 
 template<>
 struct formatter<base::SourceLoc> : formatter_base {
   template<typename FormatContext>
-  auto format( base::SourceLoc const &o, FormatContext &ctx ) {
+  auto format( base::SourceLoc const& o, FormatContext& ctx ) {
     return formatter_base::format(
         fmt::format( "{}:{}:{}", o.file_name(), o.line(),
                      o.column() ),
@@ -294,32 +294,9 @@ struct formatter<base::SourceLoc> : formatter_base {
 template<>
 struct formatter<fs::path> : formatter_base {
   template<typename FormatContext>
-  auto format( fs::path const &o, FormatContext &ctx ) {
+  auto format( fs::path const& o, FormatContext& ctx ) {
     return formatter_base::format( fmt::format( o.string() ),
                                    ctx );
-  }
-};
-
-// {fmt} formatter for formatting maybes whose contained
-// type is formattable.
-template<typename T>
-struct formatter<base::maybe<T>> : formatter_base {
-  template<typename FormatContext>
-  auto format( base::maybe<T> const &o, FormatContext &ctx ) {
-    static const std::string nothing_str( "nothing" );
-    return formatter_base::format(
-        o.has_value() ? fmt::format( "{}", *o ) : nothing_str,
-        ctx );
-  }
-};
-
-// {fmt} formatter for formatting nothing_t.
-template<>
-struct formatter<base::nothing_t> : formatter_base {
-  template<typename FormatContext>
-  auto format( base::nothing_t const &, FormatContext &ctx ) {
-    static const std::string nothing_str( "nothing" );
-    return formatter_base::format( nothing_str, ctx );
   }
 };
 
@@ -328,7 +305,7 @@ struct formatter<base::nothing_t> : formatter_base {
 template<typename T>
 struct formatter<std::vector<T>> : formatter_base {
   template<typename FormatContext>
-  auto format( std::vector<T> const &o, FormatContext &ctx ) {
+  auto format( std::vector<T> const& o, FormatContext& ctx ) {
     return formatter_base::format(
         fmt::format( "{}", ::rn::FmtJsonStyleList{ o } ), ctx );
   }
@@ -339,8 +316,8 @@ struct formatter<std::vector<T>> : formatter_base {
 template<typename T>
 struct formatter<std::reference_wrapper<T>> : formatter_base {
   template<typename FormatContext>
-  auto format( std::reference_wrapper<T> const &o,
-               FormatContext &                  ctx ) {
+  auto format( std::reference_wrapper<T> const& o,
+               FormatContext&                   ctx ) {
     return formatter_base::format( fmt::format( "{}", o.get() ),
                                    ctx );
   }
@@ -351,7 +328,7 @@ struct formatter<std::reference_wrapper<T>> : formatter_base {
 template<typename T, typename U>
 struct formatter<std::pair<T, U>> : formatter_base {
   template<typename FormatContext>
-  auto format( std::pair<T, U> const &o, FormatContext &ctx ) {
+  auto format( std::pair<T, U> const& o, FormatContext& ctx ) {
     return formatter_base::format(
         fmt::format( "({},{})", o.first, o.second ), ctx );
   }
@@ -360,7 +337,7 @@ struct formatter<std::pair<T, U>> : formatter_base {
 // FIXME: move this somewhere else and improve it.
 template<class Rep, class Period>
 auto to_string_colons(
-    std::chrono::duration<Rep, Period> const &duration ) {
+    std::chrono::duration<Rep, Period> const& duration ) {
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
   std::string res; // should use small-string optimization.
@@ -392,8 +369,8 @@ template<class Rep, class Period>
 struct formatter<std::chrono::duration<Rep, Period>>
   : formatter_base {
   template<typename FormatContext>
-  auto format( std::chrono::duration<Rep, Period> const &o,
-               FormatContext &                           ctx ) {
+  auto format( std::chrono::duration<Rep, Period> const& o,
+               FormatContext&                            ctx ) {
     return formatter_base::format(
         fmt::format( "{}", to_string_colons( o ) ), ctx );
   }
@@ -404,7 +381,7 @@ template<typename T>
 struct formatter<T, char, std::enable_if_t<std::is_enum_v<T>>>
   : formatter_base {
   template<typename FormatContext>
-  auto format( T const &o, FormatContext &ctx ) {
+  auto format( T const& o, FormatContext& ctx ) {
     return formatter_base::format(
         fmt::format( "{}", magic_enum::enum_name( o ) ), ctx );
   }

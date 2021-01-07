@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "physics.hpp"
 
@@ -108,7 +108,7 @@ public:
   // and this is a normal part of the behavior of this class.
   void enforce_invariants();
 
-  expect<> check_invariants_safe() const;
+  valid_deserial_t check_invariants_safe() const;
 
 private:
   void advance( e_push_direction x_push, e_push_direction y_push,

@@ -11,7 +11,7 @@
 #include "cargo.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
 #include "ustate.hpp"
@@ -47,31 +47,39 @@ string CargoHold::debug_string() const {
       { { "CargoSlot::", "" } } );
 }
 
-expect<> CargoHold::check_invariants_post_load() const {
+valid_deserial_t CargoHold::check_invariants_post_load() const {
   try {
-    check_invariants();
-    return xp_success_t{};
+    check_invariants_or_abort();
+    return valid;
   } catch( exception const& e ) {
-    return UNEXPECTED( "CargoHold invariants not upheld: {}",
-                       e.what() );
+    return invalid_deserial( fmt::format(
+        "CargoHold invariants not upheld: {}", e.what() ) );
   }
 }
 
-void CargoHold::check_invariants() const {
+void CargoHold::check_invariants_or_abort() const {
+  CHECK_HAS_VALUE( check_invariants() );
+}
+
+valid_or<generic_err> CargoHold::check_invariants() const {
   // 0. Accurate reporting of number of slots.
-  CHECK( slots_total() == int( slots_.size() ) );
+  TRUE_OR_RETURN_GENERIC_ERR( slots_total() ==
+                              int( slots_.size() ) );
   // 1. First slot is not an `overflow`.
   if( slots_.size() > 0 )
-    CHECK( !holds<CargoSlot::overflow>( slots_[0] ) );
+    TRUE_OR_RETURN_GENERIC_ERR(
+        !holds<CargoSlot::overflow>( slots_[0] ) );
   // 2. There are no `overflow`s following `empty`s.
   for( int i = 0; i < slots_total() - 1; ++i )
     if( holds<CargoSlot::empty>( slots_[i] ) )
-      CHECK( !holds<CargoSlot::overflow>( slots_[i + 1] ) );
+      TRUE_OR_RETURN_GENERIC_ERR(
+          !holds<CargoSlot::overflow>( slots_[i + 1] ) );
   // 3. There are no `overflow`s following `commodity`s.
   for( int i = 0; i < slots_total() - 1; ++i ) {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slots_[i] ) )
       if( holds<Commodity>( cargo->contents ) )
-        CHECK( !holds<CargoSlot::overflow>( slots_[i + 1] ) );
+        TRUE_OR_RETURN_GENERIC_ERR(
+            !holds<CargoSlot::overflow>( slots_[i + 1] ) );
   }
   // 4. Commodities don't exceed max quantity and are not zero
   // quantity.
@@ -79,9 +87,10 @@ void CargoHold::check_invariants() const {
     if( auto* cargo = get_if<CargoSlot::cargo>( &slot ) ) {
       if( auto* commodity =
               get_if<Commodity>( &( cargo->contents ) ) ) {
-        CHECK( commodity->quantity <=
-               k_max_commodity_cargo_per_slot );
-        CHECK( commodity->quantity > 0 );
+        TRUE_OR_RETURN_GENERIC_ERR(
+            commodity->quantity <=
+            k_max_commodity_cargo_per_slot );
+        TRUE_OR_RETURN_GENERIC_ERR( commodity->quantity > 0 );
       }
     }
   }
@@ -94,13 +103,14 @@ void CargoHold::check_invariants() const {
         auto const& unit = unit_from_id( *unit_id );
         auto        occupies =
             unit.desc().cargo_slots_occupies.value_or( 0 );
-        CHECK( occupies > 0 );
+        TRUE_OR_RETURN_GENERIC_ERR( occupies > 0 );
         // Check for overflow slots.
         while( occupies > 1 ) {
           --occupies;
           ++i;
-          CHECK( i < slots_total() );
-          CHECK( holds<CargoSlot::overflow>( slots_[i] ) );
+          TRUE_OR_RETURN_GENERIC_ERR( i < slots_total() );
+          TRUE_OR_RETURN_GENERIC_ERR(
+              holds<CargoSlot::overflow>( slots_[i] ) );
         }
       }
     }
@@ -129,7 +139,8 @@ void CargoHold::check_invariants() const {
       }
     }
   }
-  CHECK( occupied == slots_occupied() );
+  TRUE_OR_RETURN_GENERIC_ERR( occupied == slots_occupied() );
+  return valid;
 }
 
 CargoHold::~CargoHold() {
@@ -230,7 +241,7 @@ void CargoHold::compactify() {
           0 ) ) );
   util::sort_by_key( comms, L( _.type ) );
   clear();
-  check_invariants();
+  check_invariants_or_abort();
   for( UnitId id : unit_ids ) CHECK( try_add_somewhere( id ) );
   auto like_types =
       rl::all( comms ).group_by_L( _1.type == _2.type );
@@ -254,7 +265,7 @@ void CargoHold::compactify() {
     for( auto const& comm : new_comms )
       CHECK( try_add_somewhere( comm ) );
   }
-  check_invariants();
+  check_invariants_or_abort();
 }
 
 int CargoHold::max_commodity_quantity_that_fits(
@@ -442,7 +453,9 @@ bool CargoHold::try_add( Cargo const& cargo, int slot ) {
   if( auto* id = get_if<UnitId>( &cargo ) ) {
     // Make sure that the unit is not already in this cargo.
     auto units = items_of_type<UnitId>();
-    CHECK( util::count_if( units, LC( _ == *id ) ) == 0 );
+    auto this_unit_in_cargo =
+        util::count_if( units, LC( _ == *id ) );
+    CHECK( this_unit_in_cargo == 0 );
   }
   if( !fits( cargo, slot ) ) return false;
   // From here on we assume it is totally safe in every way to
@@ -464,15 +477,15 @@ bool CargoHold::try_add( Cargo const& cargo, int slot ) {
         if( holds<CargoSlot::empty>( slots_[slot] ) )
           slots_[slot] = CargoSlot::cargo{ /*contents=*/cargo };
         else {
-          GET_CHECK_VARIANT( cargo, slots_[slot],
-                             CargoSlot::cargo );
-          GET_CHECK_VARIANT( comm, cargo.contents, Commodity );
+          ASSIGN_CHECK_V( cargo, slots_[slot],
+                          CargoSlot::cargo );
+          ASSIGN_CHECK_V( comm, cargo.contents, Commodity );
           CHECK( comm.type == c.type );
           comm.quantity += c.quantity;
         }
         return true;
       } );
-  check_invariants();
+  check_invariants_or_abort();
   return was_added;
 }
 
@@ -486,13 +499,13 @@ void CargoHold::remove( int slot ) {
     slots_[slot] = CargoSlot::empty{};
     ++slot;
   }
-  check_invariants();
+  check_invariants_or_abort();
 }
 
 void CargoHold::clear() {
   for( auto& slot : slots_ ) //
     slot = CargoSlot::empty{};
-  check_invariants();
+  check_invariants_or_abort();
 }
 
 } // namespace rn

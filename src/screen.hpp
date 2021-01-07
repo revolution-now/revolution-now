@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "tx.hpp"
 
 struct SDL_Renderer;

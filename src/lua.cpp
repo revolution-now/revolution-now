@@ -11,7 +11,7 @@
 #include "lua.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -42,7 +42,7 @@ bool is_valid_lua_identifier( string_view name ) {
          !util::contains( name, "." );
 }
 
-expect<> load_module( string const& name ) {
+valid_or<string> load_module( string const& name ) {
   lg.info( "loading lua module \"{}\".", name );
   CHECK( is_valid_lua_identifier( name ),
          "module name `{}` is not a valid lua identifier.",
@@ -56,7 +56,7 @@ expect<> load_module( string const& name ) {
       []( auto*, auto pfr ) { return pfr; } );
   if( !pf_result.valid() ) {
     sol::error err = pf_result;
-    return UNEXPECTED( err.what() );
+    return err.what();
   }
   CHECK( g_lua["package_exports"] != sol::lua_nil,
          "module `{}` does not have package exports.", name );
@@ -67,7 +67,7 @@ expect<> load_module( string const& name ) {
   for( auto [k, v] : old_table ) g_lua[name][k] = v;
 
   g_lua["package_exports"] = sol::lua_nil;
-  return xp_success_t{};
+  return valid;
 }
 
 void reset_sol_state() {
@@ -157,13 +157,13 @@ void load_modules() {
   auto modules = g_lua["modules"].get_or_create<sol::table>();
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) ) {
     string stem = path.stem();
-    CHECK_XP( load_module( stem ) );
+    CHECK_HAS_VALUE( load_module( stem ) );
     modules[stem] = "module";
   }
 }
 
 void run_startup_main() {
-  CHECK_XP( lua::run<void>( "startup.main()" ) );
+  CHECK_HAS_VALUE( lua::run<void>( "startup.main()" ) );
 }
 
 void reload() {
@@ -171,7 +171,7 @@ void reload() {
   run_startup_routines();
   load_modules();
   // Freeze all existing global variables and tables.
-  CHECK_XP( run<void>( "meta.freeze_all()" ) );
+  CHECK_HAS_VALUE( run<void>( "meta.freeze_all()" ) );
 }
 
 vector<string> format_lua_error_msg( string const& msg ) {

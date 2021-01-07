@@ -11,7 +11,7 @@
 #pragma once
 
 // Revolution Now
-#include "errors.hpp"
+#include "fb.hpp"
 
 // C++ standard library
 #include <type_traits>
@@ -27,19 +27,19 @@
   void savegame_serializer( serial::FBBuilder&   builder,      \
                             serial::FBOffset<T>* out_offset ); \
   template<typename T>                                         \
-  expect<> savegame_deserializer( T const* src );              \
+  valid_deserial_t savegame_deserializer( T const* src );      \
   template<typename T>                                         \
-  expect<> savegame_post_validate( T const* );                 \
+  valid_deserial_t savegame_post_validate( T const* );         \
   template<typename T>                                         \
   void default_construct_savegame_state( T const* );
 
 struct SaveGameComponentBase {
   bool operator==( SaveGameComponentBase const& ) const =
       default;
-  ::rn::expect<> check_invariants_safe() const {
+  ::rn::valid_deserial_t check_invariants_safe() const {
     // This function is not used in the top-level save-game com-
     // ponents. Instead we use the `sync` method.
-    return ::rn::xp_success_t{};
+    return ::base::valid;
   }
 };
 
@@ -74,29 +74,31 @@ struct SaveGameComponentBase {
     SG() = SG_##name{};                                     \
   }                                                         \
   template<>                                                \
-  expect<> savegame_deserializer<fb::SG_##name>(            \
+  valid_deserial_t savegame_deserializer<fb::SG_##name>(    \
       fb::SG_##name const* src ) {                          \
     default_construct_savegame_state( src );                \
-    XP_OR_RETURN_(                                          \
+    HAS_VALUE_OR_RET(                                       \
         serial::deserialize( src, &SG(), serial::ADL{} ) ); \
     return SG().sync();                                     \
   }                                                         \
   template<>                                                \
-  expect<> savegame_post_validate<fb::SG_##name>(           \
+  valid_deserial_t savegame_post_validate<fb::SG_##name>(   \
       fb::SG_##name const* ) {                              \
     return SG().validate();                                 \
   }                                                         \
   namespace {
 
-#define SAVEGAME_FRIENDS( name )                             \
-  bool operator==( SG_##name const& ) const = default;       \
-                                                             \
-  friend expect<> rn::savegame_deserializer<fb::SG_##name>(  \
-      fb::SG_##name const* src );                            \
-  friend expect<> rn::savegame_post_validate<fb::SG_##name>( \
+#define SAVEGAME_FRIENDS( name )                       \
+  bool operator==( SG_##name const& ) const = default; \
+                                                       \
+  friend valid_deserial_t                              \
+  rn::savegame_deserializer<fb::SG_##name>(            \
+      fb::SG_##name const* src );                      \
+  friend valid_deserial_t                              \
+  rn::savegame_post_validate<fb::SG_##name>(           \
       fb::SG_##name const* src )
 
 // Called just after a given module is deserialized.
-#define SAVEGAME_SYNC() expect<> sync()
+#define SAVEGAME_SYNC() valid_deserial_t sync()
 // Called after all modules are deserialized.
-#define SAVEGAME_VALIDATE() expect<> validate()
+#define SAVEGAME_VALIDATE() valid_deserial_t validate()

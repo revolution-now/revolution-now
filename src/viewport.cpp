@@ -13,7 +13,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "tiles.hpp"
 #include "util.hpp"
 
@@ -75,12 +75,12 @@ SmoothViewport::SmoothViewport()
   // object in a ready state.
 }
 
-expect<> SmoothViewport::check_invariants_safe() const {
-  UNXP_CHECK( zoom_ >= 0.0 );
-  UNXP_CHECK( zoom_ <= 1.0 );
-  UNXP_CHECK( center_x_ >= 0.0 );
-  UNXP_CHECK( center_y_ >= 0.0 );
-  return xp_success_t{};
+valid_deserial_t SmoothViewport::check_invariants_safe() const {
+  check_deserial( zoom_ >= 0.0 );
+  check_deserial( zoom_ <= 1.0 );
+  check_deserial( center_x_ >= 0.0 );
+  check_deserial( center_y_ >= 0.0 );
+  return valid;
 }
 
 void SmoothViewport::advance( e_push_direction x_push,
@@ -226,7 +226,8 @@ void SmoothViewport::set_y_push( e_push_direction push ) {
 }
 
 void SmoothViewport::set_zoom_push(
-    e_push_direction push, maybe<Coord> maybe_seek_screen_coord ) {
+    e_push_direction push,
+    maybe<Coord>     maybe_seek_screen_coord ) {
   zoom_push_ = push;
 
   zoom_point_seek_ = nothing;

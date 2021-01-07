@@ -317,8 +317,8 @@ public:
 
   void accept_finalized_drag(
       maybe<DragArcT const&> maybe_drag_arc ) {
-    ASSIGN_CHECK_OPT( finalized,
-                      fsm_.template holds<Finalizing_t>() );
+    UNWRAP_CHECK( finalized,
+                  fsm_.template holds<Finalizing_t>() );
     if( !maybe_drag_arc ) {
       // Caller has told us to cancel the drag.
       fsm_.send_event( RubberBand_t{

@@ -24,7 +24,7 @@ fs::path const& data_dir() {
 }
 
 void reset_savegame_state() {
-  CHECK_XP( rn::reset_savegame_state() );
+  CHECK_HAS_VALUE( rn::reset_savegame_state() );
   rn::lua::reload();
 }
 

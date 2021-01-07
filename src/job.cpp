@@ -33,10 +33,10 @@ valid_or<string> is_valid_colony_name_msg(
   if( res ) return valid;
   switch( res.error() ) {
     case e_new_colony_name_err::already_exists:
-      return invalid(
+      return invalid<string>(
           "There is already a colony with that name!" );
     case e_new_colony_name_err::name_too_short:
-      return invalid(
+      return invalid<string>(
           "Name must be longer than one character!" );
   }
 }
@@ -138,7 +138,7 @@ void JobAnalysis::affect_orders_() const {
 }
 
 maybe<JobAnalysis> JobAnalysis::analyze_( UnitId   id,
-                                        orders_t orders ) {
+                                          orders_t orders ) {
   maybe<JobAnalysis> res{};
 
   auto& unit = unit_from_id( id );

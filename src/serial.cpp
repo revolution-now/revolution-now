@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "errors.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 
@@ -44,40 +43,43 @@ namespace {} // namespace
 /****************************************************************
 ** Binary Blobs
 *****************************************************************/
-expect<ByteBuffer> ByteBuffer::read( fs::path const& file ) {
+expect<ByteBuffer, string> ByteBuffer::read(
+    fs::path const& file ) {
   if( !fs::exists( file ) )
-    return UNEXPECTED( "file `{}` does not exist.", file );
+    return fmt::format( "file `{}` does not exist.", file );
   auto size = fs::file_size( file );
 
   auto fp = ::fopen( string( file ).c_str(), "rb" );
   if( !fp )
-    return UNEXPECTED( "failed to open file `{}`", file );
+    return fmt::format( "failed to open file `{}`", file );
 
   ByteBuffer buffer( new uint8_t[size], size );
   if( ::fread( buffer.get(), 1, size, fp ) != size_t( size ) )
-    return UNEXPECTED( "failed to read entire file: {}", file );
+    return fmt::format( "failed to read entire file: {}", file );
   return buffer;
 }
 
-expect<BinaryBlob> BinaryBlob::read( fs::path const& path ) {
-  XP_OR_RETURN( byte_buffer, ByteBuffer::read( path ) );
+expect<BinaryBlob, string> BinaryBlob::read(
+    fs::path const& path ) {
+  UNWRAP_RETURN( byte_buffer, ByteBuffer::read( path ) );
   return std::move( byte_buffer );
 }
 
-expect<> BinaryBlob::write( fs::path const& file ) const {
+valid_or<string> BinaryBlob::write(
+    fs::path const& file ) const {
   // !! Must not access members directly in this function,
   // should call the member functions.
   auto fp = ::fopen( file.c_str(), "wb" );
   if( !fp )
-    return UNEXPECTED( "failed to open file `{}`.", file );
+    return fmt::format( "failed to open file `{}`.", file );
   // This must be called after `Finish()`.
   auto wrote = ::fwrite( get(), 1, size(), fp );
   ::fclose( fp );
   if( wrote != size_t( size() ) )
-    return UNEXPECTED(
+    return fmt::format(
         "failed to write {} bytes to file {}; wrote only {}.",
         size(), file, wrote );
-  return xp_success_t{};
+  return valid;
 }
 
 BinaryBlob BinaryBlob::from_builder(
@@ -87,7 +89,7 @@ BinaryBlob BinaryBlob::from_builder(
   return BinaryBlob( buf, int( out_size ), int( out_offset ) );
 }
 
-expect<BinaryBlob> BinaryBlob::from_json(
+expect<BinaryBlob, generic_err> BinaryBlob::from_json(
     fs::path const& schema_file_name, string const& json,
     string_view root_type ) {
   flatbuffers::Parser parser;
@@ -100,19 +102,19 @@ expect<BinaryBlob> BinaryBlob::from_json(
       config_rn.flatbuffers.include_path / schema_file_name;
   auto maybe_schema = base::read_text_file( schema_path );
   if( !maybe_schema )
-    return UNEXPECTED( "failed to read schema file: {}",
-                       schema_path );
+    return GENERIC_ERROR( "failed to read schema file: {}",
+                          schema_path );
   char const* schema = maybe_schema->get();
   if( !parser.Parse( schema, c_includes ) )
-    return UNEXPECTED( "failed to parse schema file `{}`: {}",
-                       schema_path, parser.error_ );
+    return GENERIC_ERROR( "failed to parse schema file `{}`: {}",
+                          schema_path, parser.error_ );
 
   if( !parser.SetRootType( string( root_type ).c_str() ) )
-    return UNEXPECTED( "failed to set root type: `{}`.",
-                       root_type );
+    return GENERIC_ERROR( "failed to set root type: `{}`.",
+                          root_type );
 
   if( !parser.Parse( json.c_str() ) )
-    return UNEXPECTED(
+    return GENERIC_ERROR(
         "failed to parse JSON flatbuffers data: {}",
         parser.error_ );
 

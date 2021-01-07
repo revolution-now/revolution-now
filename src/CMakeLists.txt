@@ -33,9 +33,7 @@ target_link_libraries(
     absl::function_ref
     absl::strings
     base-util
-    expected-lite
     flatbuffers
-    fmt::fmt
     glad::glad
     lua::lua
     magic_enum::magic_enum
@@ -94,7 +92,6 @@ endif()
 target_compile_definitions(
   rn
   PUBLIC
-  FMT_STRING_ALIAS=1
   LUA_VERSION_NUM=503
   SOL_USING_CXX_LUA=1
   SOL_CXX17_FEATURES=1  # won't need this in future versions.

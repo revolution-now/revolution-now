@@ -2680,5 +2680,21 @@ TEST_CASE( "[maybe] implicit conversion to maybe-ref" ) {
   }
 }
 
+TEST_CASE( "[maybe] stringification" ) {
+  int     n  = 3;
+  M<int>  m1 = 5;
+  M<int&> m2 = n;
+
+  REQUIRE( fmt::format( "{}", m1 ) == "5" );
+  REQUIRE( fmt::format( "{}", m2 ) == "3" );
+
+  string out1, out2;
+  to_str( m1, out1 );
+  to_str( m2, out2 );
+
+  REQUIRE( out1 == "5" );
+  REQUIRE( out2 == "3" );
+}
+
 } // namespace
 } // namespace base

@@ -34,8 +34,8 @@ public:
   int      money() const { return money_; }
   bool     is_human() const { return human_; }
 
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
 private:

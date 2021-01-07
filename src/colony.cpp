@@ -11,7 +11,7 @@
 #include "colony.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "lua.hpp"
 
 using namespace std;

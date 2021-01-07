@@ -11,7 +11,7 @@
 #include "terrain.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
@@ -53,10 +53,10 @@ private:
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( Terrain );
 

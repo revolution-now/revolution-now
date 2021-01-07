@@ -11,7 +11,7 @@
 #include "rand.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "init.hpp"
 
 // C++ standard library
@@ -85,7 +85,7 @@ namespace {
 void init_rng() {
   // Change this to get a fixed seed.
   maybe<uint32_t> maybe_seed = nothing;
-  auto          seed =
+  auto            seed =
       maybe_seed.value_or( uint32_t( random_device{}() ) );
   rng::maybe_engine() = default_random_engine( seed );
 }

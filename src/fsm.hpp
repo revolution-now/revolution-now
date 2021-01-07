@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "cc-specific.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "flat-queue.hpp"
 #include "fmt-helper.hpp"
@@ -365,8 +365,9 @@ private:
                                  T const& o, serial::ADL );
   template<typename SrcT, typename DstT,
            typename DstT::IamFsm_t*>
-  friend expect<> serial::deserialize( SrcT const* src,
-                                       DstT* dst, serial::ADL );
+  friend valid_deserial_t serial::deserialize( SrcT const* src,
+                                               DstT*       dst,
+                                               serial::ADL );
 
   // states_.front() is current state. We use a list because we
   // need pointer stability.
@@ -428,13 +429,14 @@ template<typename SrcT,                     //
          typename DstT,                     //
          typename DstT::IamFsm_t* = nullptr //
          >
-expect<> deserialize( SrcT const* src, DstT* dst, serial::ADL ) {
-  if( src == nullptr ) return xp_success_t{};
-  UNXP_CHECK( src->state_stack() != nullptr );
-  XP_OR_RETURN_( deserialize(
+valid_deserial_t deserialize( SrcT const* src, DstT* dst,
+                              serial::ADL ) {
+  if( src == nullptr ) return valid;
+  check_deserial( src->state_stack() != nullptr );
+  HAS_VALUE_OR_RET( deserialize(
       src->state_stack(), &dst->state_stack_, serial::ADL{} ) );
   CHECK( dst->events_.size() == 0 );
-  return xp_success_t{};
+  return valid;
 }
 
 } // namespace serial

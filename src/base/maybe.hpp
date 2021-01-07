@@ -14,9 +14,13 @@
 // base
 #include "meta.hpp"
 #include "source-loc.hpp"
+#include "to-str.hpp"
 
 // base-util
 #include "base-util/mp.hpp"
+
+// {fmt}
+#include "fmt/format.h"
 
 // C++ standard library
 #include <functional>
@@ -29,7 +33,7 @@
 // When clang gets this C++20 feature (p0848r3) then this guard
 // can be removed. When this is defined, it will ensure that the
 // maybe<T> has trivial special member functions when T does.
-#ifndef __clang__
+#if !defined( __clang__ )
 #  define HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
 #endif
 
@@ -638,6 +642,13 @@ public:
     return std::move( **this );
   }
 
+  // Just to give a uniform interface with expect<>.
+  constexpr nothing_t error(
+      SourceLoc loc = SourceLoc::current() ) const {
+    if( active_ ) throw bad_maybe_access{ loc };
+    return nothing;
+  }
+
   /**************************************************************
   ** value_or
   ***************************************************************/
@@ -1068,6 +1079,13 @@ public:
     return **this;
   }
 
+  // Just to give a uniform interface with expect<>.
+  constexpr nothing_t error(
+      SourceLoc loc = SourceLoc::current() ) const {
+    if( has_value() ) throw bad_maybe_access{ loc };
+    return nothing;
+  }
+
   /**************************************************************
   ** value_or
   ***************************************************************/
@@ -1403,6 +1421,21 @@ template<typename T, typename U> /* clang-format off */
   return !( val == opt );
 }
 
+/****************************************************************
+** to_str
+*****************************************************************/
+template<typename T>
+void to_str( maybe<T> const& m, std::string& out ) {
+  if( m.has_value() )
+    to_str( *m, out );
+  else
+    out += "nothing";
+}
+
+inline void to_str( nothing_t const&, std::string& out ) {
+  out += "nothing";
+}
+
 } // namespace base
 
 /****************************************************************
@@ -1430,3 +1463,33 @@ struct hash<::base::maybe<T>> {
 };
 
 } // namespace std
+
+/****************************************************************
+** {fmt}
+*****************************************************************/
+// {fmt} formatter for formatting maybes whose contained
+// type is formattable.
+template<typename T>
+struct fmt::formatter<base::maybe<T>>
+  : fmt::formatter<std::string> {
+  using formatter_base = fmt::formatter<std::string>;
+  template<typename FormatContext>
+  auto format( base::maybe<T> const& o, FormatContext& ctx ) {
+    static const std::string nothing_str( "nothing" );
+    return formatter_base::format(
+        o.has_value() ? fmt::format( "{}", *o ) : nothing_str,
+        ctx );
+  }
+};
+
+// {fmt} formatter for formatting nothing_t.
+template<>
+struct fmt::formatter<base::nothing_t>
+  : fmt::formatter<std::string> {
+  using formatter_base = fmt::formatter<std::string>;
+  template<typename FormatContext>
+  auto format( base::nothing_t const&, FormatContext& ctx ) {
+    static const std::string nothing_str( "nothing" );
+    return formatter_base::format( nothing_str, ctx );
+  }
+};

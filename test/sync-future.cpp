@@ -197,7 +197,6 @@ TEST_CASE( "[sync-future] promise api basic api" ) {
 
   s_promise.set_value( 3 );
   REQUIRE( s_promise.has_value() );
-  REQUIRE_THROWS_AS_RN( s_promise.set_value( 4 ) );
   REQUIRE( !s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( s_future.ready() );
@@ -466,7 +465,7 @@ TEST_CASE( "[sync-future] bind testing statuses" ) {
 }
 
 TEST_CASE( "[sync-future] bind testing results" ) {
-  sync_promise<int>         s_promise_1;
+  sync_promise<int>           s_promise_1;
   maybe<sync_promise<string>> s_promise_2;
   maybe<sync_promise<string>> s_promise_3;
 

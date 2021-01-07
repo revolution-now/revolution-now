@@ -11,7 +11,7 @@
 #include "midiseq.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fmt-helper.hpp"
 #include "init.hpp"
 #include "logging.hpp"

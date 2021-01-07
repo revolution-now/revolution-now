@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
 #include "maybe.hpp"
 #include "tune.hpp"
 
@@ -49,11 +48,11 @@ enum class e_music_state {
 };
 
 struct ConductorInfo {
-  e_music_player      mplayer;
-  e_music_state       music_state;
+  e_music_player        mplayer;
+  e_music_state         music_state;
   maybe<TunePlayerInfo> playing_now;
   maybe<double>         volume;
-  bool                autoplay;
+  bool                  autoplay;
 
   void log() const;
 };

@@ -225,7 +225,7 @@ private:
     g_tx_depixelate_from = create_texture( g_tile_delta );
     clear_texture_transparent( g_tx_depixelate_from );
 
-    ASSIGN_CHECK_OPT(
+    UNWRAP_CHECK(
         viewport_rect_pixels,
         compositor::section( compositor::e_section::viewport ) );
     // This call is needed after construction to initialize the
@@ -242,10 +242,10 @@ private:
     g_tx_depixelate_from = {};
     g_unit_input_promise = {};
 
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( LandView );
 
@@ -346,8 +346,8 @@ void render_land_view() {
     ::SDL_SetRenderDrawBlendMode( g_renderer,
                                   ::SDL_BLENDMODE_BLEND );
     auto covered = SG().viewport.covered_tiles();
-    ASSIGN_CHECK_OPT(
-        coords, coord_for_unit_multi_ownership( dying.id ) );
+    UNWRAP_CHECK( coords,
+                  coord_for_unit_multi_ownership( dying.id ) );
     Coord pixel_coord =
         Coord{} + ( coords - covered.upper_left() );
     pixel_coord *= g_tile_scale;
@@ -357,7 +357,7 @@ void render_land_view() {
 }
 
 void advance_viewport_state() {
-  ASSIGN_CHECK_OPT(
+  UNWRAP_CHECK(
       viewport_rect_pixels,
       compositor::section( compositor::e_section::viewport ) );
 
@@ -429,12 +429,12 @@ void advance_landview_anim_state() {
       }
       case LandViewAnim::e::attack: {
         auto& val = v.get<LandViewAnim::attack>();
-        ASSIGN_CHECK_OPT( attacker_coord,
-                          coord_for_unit( val.attacker ) );
-        ASSIGN_CHECK_OPT(
+        UNWRAP_CHECK( attacker_coord,
+                      coord_for_unit( val.attacker ) );
+        UNWRAP_CHECK(
             defender_coord,
             coord_for_unit_multi_ownership( val.defender ) );
-        ASSIGN_CHECK_OPT(
+        UNWRAP_CHECK(
             d, attacker_coord.direction_to( defender_coord ) );
         SG().mode.send_event( LandViewEvent::slide_unit{
             /*id=*/val.attacker, //
@@ -470,7 +470,7 @@ void advance_landview_anim_state() {
     }
     case LandViewAnim::e::move: {
       auto& val = v.get<LandViewAnim::move>();
-      ASSIGN_CHECK_OPT(
+      UNWRAP_CHECK(
           sliding,
           SG().mode.holds<LandViewState::sliding_unit>() );
       // Are we finished?
@@ -539,8 +539,8 @@ void advance_landview_state( LandViewFsm& fsm ) {
       break;
     }
     case LandViewState::e::sliding_unit: {
-      ASSIGN_CHECK_OPT(
-          slide, fsm.holds<LandViewState::sliding_unit>() );
+      UNWRAP_CHECK( slide,
+                    fsm.holds<LandViewState::sliding_unit>() );
       slide.percent_vel.advance( e_push_direction::none );
       slide.percent += slide.percent_vel.to_double();
       if( slide.percent > 1.0 ) slide.percent = 1.0;

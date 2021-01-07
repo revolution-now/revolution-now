@@ -14,7 +14,7 @@
 #include "tx.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -202,9 +202,9 @@ Texture::~Texture() { free(); }
 Texture Texture::from_surface( Surface const& surface ) {
   // auto* optimized =
   //    optimize_surface( surface, [>release_input=<]false );
-  ASSIGN_CHECK(
-      texture, ::SDL_CreateTextureFromSurface(
-                   g_renderer, to_SDL_Surface( surface.sf_ ) ) );
+  auto texture = ::SDL_CreateTextureFromSurface(
+      g_renderer, to_SDL_Surface( surface.sf_ ) );
+  CHECK( texture );
   return Texture( texture );
 }
 
@@ -294,7 +294,7 @@ Matrix<Color> Texture::pixels() const {
 
   auto rect = Rect::from( Coord{}, delta );
   for( auto coord : rect ) {
-    ASSIGN_CHECK_OPT( idx, rect.rasterize( coord ) );
+    UNWRAP_CHECK( idx, rect.rasterize( coord ) );
     Uint32 pixel =
         ( (Uint32*)to_SDL_Surface( surface.sf_ )->pixels )[idx];
     res[coord] = from_SDL( color_from_pixel( fmt, pixel ) );

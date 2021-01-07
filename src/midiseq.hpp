@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "maybe.hpp"
 #include "time.hpp"
 
 // Rnl

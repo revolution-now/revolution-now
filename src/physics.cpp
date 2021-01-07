@@ -12,7 +12,7 @@
 #include "physics.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "util.hpp"
 
 // C++ standard library
@@ -87,8 +87,9 @@ double DissipativeVelocity::advance(
 
 void DissipativeVelocity::hit_wall() { velocity_ = 0; }
 
-expect<> DissipativeVelocity::check_invariants_safe() const {
-  return xp_success_t{};
+valid_deserial_t DissipativeVelocity::check_invariants_safe()
+    const {
+  return valid;
 }
 
 } // namespace rn

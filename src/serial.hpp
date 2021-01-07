@@ -13,7 +13,8 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
+#include "expect.hpp"
 #include "fb.hpp"
 
 // base-util
@@ -39,7 +40,8 @@ public:
   ByteBuffer( byte_t* buf, int size )
     : size_( size ), buf_( buf ) {}
 
-  static expect<ByteBuffer> read( fs::path const& file );
+  static expect<ByteBuffer, std::string> read(
+      fs::path const& file );
 
   int size() const { return size_; }
 
@@ -59,9 +61,10 @@ public:
   BinaryBlob( ByteBuffer&& buf )
     : buf_( std::move( buf ) ), offset_( 0 ) {}
 
-  static expect<BinaryBlob> read( fs::path const& path );
+  static expect<BinaryBlob, std::string> read(
+      fs::path const& path );
 
-  expect<> write( fs::path const& path ) const;
+  valid_or<std::string> write( fs::path const& path ) const;
 
   template<typename FB>
   auto* root() const {
@@ -72,7 +75,7 @@ public:
   static BinaryBlob from_builder(
       flatbuffers::FlatBufferBuilder builder );
 
-  static expect<BinaryBlob> from_json(
+  static expect<BinaryBlob, generic_err> from_json(
       fs::path const& schema_file_name, std::string const& json,
       std::string_view root_type );
 
@@ -111,8 +114,8 @@ BinaryBlob serialize_to_blob( T const& o ) {
 }
 
 template<typename T>
-expect<> deserialize_from_blob( BinaryBlob const& blob,
-                                T*                out ) {
+valid_deserial_t deserialize_from_blob( BinaryBlob const& blob,
+                                        T*                out ) {
   auto* fb = blob.template root<typename T::fb_target_t>();
   return deserialize( fb, out, serial::ADL{} );
 }
@@ -131,10 +134,10 @@ std::string serialize_to_json( T const& o, bool quotes = true ) {
 }
 
 template<typename T>
-expect<> deserialize_from_json( std::string const& schema_name,
-                                std::string const& json,
-                                T*                 out ) {
-  XP_OR_RETURN(
+valid_deserial_t deserialize_from_json(
+    std::string const& schema_name, std::string const& json,
+    T* out ) {
+  UNWRAP_RETURN(
       blob, BinaryBlob::from_json(
                 /*schema_file_name=*/schema_name + ".fbs",
                 /*json=*/json,

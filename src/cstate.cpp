@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "id.hpp"
 #include "logging.hpp"
@@ -64,22 +64,26 @@ private:
     // Populate colony_from_*.
     for( auto const& [id, colony] : colonies ) {
       Coord where = colony.location();
-      UNXP_CHECK( !colony_from_coord.contains( where ),
-                  "multiples colonies on tile {}.", where );
+      check_deserial(
+          !colony_from_coord.contains( where ),
+          fmt::format( "multiples colonies on tile {}.",
+                       where ) );
       colony_from_coord[where] = id;
       string name              = colony.name();
-      UNXP_CHECK( !colony_from_name.contains( name ),
-                  "multiples colonies have name {}.", name );
+      check_deserial(
+          !colony_from_name.contains( name ),
+          fmt::format( "multiples colonies have name {}.",
+                       name ) );
       colony_from_name[name] = id;
     }
 
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
   SAVEGAME_VALIDATE() {
     for( auto const& [id, colony] : colonies )
-      XP_OR_RETURN_( check_colony_invariants_safe( id ) );
-    return xp_success_t{};
+      HAS_VALUE_OR_RET( check_colony_invariants_safe( id ) );
+    return valid;
   }
 };
 SAVEGAME_IMPL( Colony );
@@ -89,15 +93,15 @@ SAVEGAME_IMPL( Colony );
 /****************************************************************
 ** Public API
 *****************************************************************/
-expect<ColonyId> cstate_create_colony( e_nation         nation,
-                                       Coord const&     where,
-                                       std::string_view name ) {
+expect<ColonyId, string> cstate_create_colony(
+    e_nation nation, Coord const& where,
+    std::string_view name ) {
   if( SG().colony_from_coord.contains( where ) )
-    return UNEXPECTED( "square {} already contains a colony.",
-                       where );
+    return fmt::format( "square {} already contains a colony.",
+                        where );
   if( SG().colony_from_name.contains( string( name ) ) )
-    return UNEXPECTED( "there is already a colony with name {}.",
-                       name );
+    return fmt::format(
+        "there is already a colony with name {}.", name );
 
   auto col_id = next_colony_id();
 
@@ -175,6 +179,8 @@ vector<ColonyId> colonies_in_rect( Rect const& rect ) {
 namespace {
 
 LUA_FN( colony_from_id, Colony const&, ColonyId id ) {
+  if( !colony_exists( id ) )
+    THROW_LUA_ERROR( "colony {} does not exist.", id );
   return colony_from_id( id );
 }
 

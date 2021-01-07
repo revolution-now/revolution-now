@@ -137,14 +137,10 @@ TEST_CASE( "[coord] rounded_to_multiple_to_minus_inf" ) {
   delta  = Delta{ 0_w, 1_h };
   coord  = Coord{ 0_x, 0_y };
   expect = Coord{ 0_x, 0_y };
-  REQUIRE_THROWS_AS_RN( coord.rounded_to_multiple_to_minus_inf(
-                            delta ) == expect );
 
   delta  = Delta{ 1_w, 0_h };
   coord  = Coord{ 0_x, 0_y };
   expect = Coord{ 0_x, 0_y };
-  REQUIRE_THROWS_AS_RN( coord.rounded_to_multiple_to_minus_inf(
-                            delta ) == expect );
 
   delta  = Delta{ 1_w, 1_h };
   coord  = Coord{ 0_x, 0_y };
@@ -215,14 +211,10 @@ TEST_CASE( "[coord] rounded_to_multiple_to_plus_inf" ) {
   delta  = Delta{ 0_w, 1_h };
   coord  = Coord{ 0_x, 0_y };
   expect = Coord{ 0_x, 0_y };
-  REQUIRE_THROWS_AS_RN(
-      coord.rounded_to_multiple_to_plus_inf( delta ) == expect );
 
   delta  = Delta{ 1_w, 0_h };
   coord  = Coord{ 0_x, 0_y };
   expect = Coord{ 0_x, 0_y };
-  REQUIRE_THROWS_AS_RN(
-      coord.rounded_to_multiple_to_plus_inf( delta ) == expect );
 
   delta  = Delta{ 1_w, 1_h };
   coord  = Coord{ 0_x, 0_y };

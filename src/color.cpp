@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
 #include "maybe.hpp"

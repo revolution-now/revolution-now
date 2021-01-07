@@ -55,7 +55,7 @@ TEST_CASE( "[colony-mgr] create colony on land successful" ) {
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist( coord );
-  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE( unit_can_found_colony( id ).valid() );
   REQUIRE_NOTHROW( found_colony_unsafe( id, "colony" ) );
 }
 
@@ -65,13 +65,12 @@ TEST_CASE(
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist( coord );
-  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE( unit_can_found_colony( id ).valid() );
   REQUIRE_NOTHROW( found_colony_unsafe( id, "colony 1" ) );
 
   id = create_colonist( coord );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colony_exists_here ) );
-  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony 2" ) );
 }
 
 TEST_CASE(
@@ -80,13 +79,12 @@ TEST_CASE(
 
   Coord coord = { 2_x, 2_y };
   auto  id    = create_colonist( coord );
-  REQUIRE( unit_can_found_colony( id ) == valid );
+  REQUIRE( unit_can_found_colony( id ).valid() );
   REQUIRE_NOTHROW( found_colony_unsafe( id, "colony" ) );
 
   coord += 1_w;
   id = create_colonist( coord );
-  REQUIRE( unit_can_found_colony( id ) == valid );
-  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony" ) );
+  REQUIRE( unit_can_found_colony( id ).valid() );
 }
 
 TEST_CASE( "[colony-mgr] create colony in water fails" ) {
@@ -98,8 +96,6 @@ TEST_CASE( "[colony-mgr] create colony in water fails" ) {
   ustate_change_to_cargo( ship_id, unit_id );
   REQUIRE( unit_can_found_colony( unit_id ) ==
            invalid( e_found_colony_err::no_water_colony ) );
-  REQUIRE_THROWS_AS_RN(
-      found_colony_unsafe( unit_id, "colony" ) );
 }
 
 TEST_CASE(
@@ -111,7 +107,6 @@ TEST_CASE(
       id, UnitEuroPortViewState::in_port{} );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
-  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony" ) );
 }
 
 TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
@@ -122,7 +117,6 @@ TEST_CASE( "[colony-mgr] found colony by ship fails" ) {
   REQUIRE(
       unit_can_found_colony( id ) ==
       invalid( e_found_colony_err::ship_cannot_found_colony ) );
-  REQUIRE_THROWS_AS_RN( found_colony_unsafe( id, "colony" ) );
 }
 
 TEST_CASE( "[colony-mgr] lua" ) {

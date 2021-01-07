@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "strong-span.hpp"
@@ -30,7 +30,7 @@ namespace rn {
 // return a value.
 template<typename T>
 class Matrix {
-  W      w_ = 0_w;
+  W              w_ = 0_w;
   std::vector<T> data_{};
 
 public:
@@ -127,37 +127,37 @@ auto serialize( FBBuilder& builder, Matrix<T> const& m,
 }
 
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, Matrix<T>* m,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const* src, Matrix<T>* m,
+                              serial::ADL ) {
   // SrcT should be a table with a `size` field of type Delta and
   // a `data` field which is a flatbuffers Vector of a pair-like
   // object containing a Coord and the matrix element itself.
   if( src == nullptr ) {
     // `dst` should be in its default-constructed state, which is
     // an empty map.
-    return xp_success_t{};
+    return valid;
   }
 
-  UNXP_CHECK( src->data() != nullptr );
+  check_deserial( src->data() != nullptr );
 
   Delta size;
-  XP_OR_RETURN_(
+  HAS_VALUE_OR_RET(
       deserialize( src->size(), &size, serial::ADL{} ) );
 
-  UNXP_CHECK( ( size.area() == 0 ) ==
-              ( src->data()->size() == 0 ) );
+  check_deserial( ( size.area() == 0 ) ==
+                  ( src->data()->size() == 0 ) );
 
-  if( size.area() == 0 ) return xp_success_t{};
+  if( size.area() == 0 ) return valid;
 
   std::vector<std::pair<Coord, T>> data;
-  XP_OR_RETURN_(
+  HAS_VALUE_OR_RET(
       deserialize( src->data(), &data, serial::ADL{} ) );
 
   *m = Matrix<T>( size );
   for( auto& [coord, elem] : data )
     ( *m )[coord] = std::move( elem );
 
-  return xp_success_t{};
+  return valid;
 }
 
 } // namespace serial

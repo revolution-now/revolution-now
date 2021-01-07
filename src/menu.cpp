@@ -14,7 +14,7 @@
 #include "color.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
@@ -374,8 +374,8 @@ H const& max_text_height() {
 // The long, thin rectangle around the menu bar. This does not
 // include the space that would be occupied by open menu bodies.
 Rect menu_bar_rect() {
-  ASSIGN_CHECK_OPT( res, compositor::section(
-                             compositor::e_section::menu_bar ) );
+  UNWRAP_CHECK( res, compositor::section(
+                         compositor::e_section::menu_bar ) );
   return res;
 }
 

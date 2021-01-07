@@ -16,7 +16,7 @@
 #include "terminal.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 
@@ -78,8 +78,8 @@ bool is_placeholder( string const& cmd ) {
          cmd[1] <= '9';
 }
 
-expect<> run_lua_cmd( string const& cmd ) {
-  expect<> expected;
+valid_or<lua::LuaError> run_lua_cmd( string const& cmd ) {
+  valid_or<lua::LuaError> result = valid;
   // Wrap the command if it's an expression.
   auto cmd_wrapper = cmd;
   if( !is_statement( cmd ) ) {
@@ -93,8 +93,10 @@ expect<> run_lua_cmd( string const& cmd ) {
     else
       cmd_wrapper = fmt::format( "util.print_passthrough(({}))",
                                  cmd_wrapper );
-    expected = lua::run<void>( cmd_wrapper );
-    if( !is_placeholder( cmd ) && expected ) {
+    if( auto run_result = lua::run<void>( cmd_wrapper );
+        !run_result )
+      result = run_result.error();
+    if( !is_placeholder( cmd ) && result ) {
       st["_5"] = st["_4"];
       st["_4"] = st["_3"];
       st["_3"] = st["_2"];
@@ -103,24 +105,26 @@ expect<> run_lua_cmd( string const& cmd ) {
       st["_1"] = st["_"];
     }
   } else {
-    expected = lua::run<void>( cmd_wrapper );
+    if( auto run_result = lua::run<void>( cmd_wrapper );
+        !run_result )
+      result = run_result.error();
   }
-  if( !expected.has_value() ) {
+  if( !result ) {
     log( "lua command failed:" );
     for( auto const& line :
-         lua::format_lua_error_msg( expected.error().what ) )
+         lua::format_lua_error_msg( result.error().what ) )
       log( "  "s + line );
   }
-  return expected;
+  return result;
 }
 
-expect<> run_cmd_impl( string const& cmd ) {
+valid_or<lua::LuaError> run_cmd_impl( string const& cmd ) {
   g_history.push_back( cmd );
   log( "> "s + cmd );
   auto maybe_fn = base::lookup( g_console_commands, cmd );
   if( maybe_fn.has_value() ) {
     ( *maybe_fn )();
-    return xp_success_t{};
+    return valid;
   }
   return run_lua_cmd( cmd );
 }
@@ -142,8 +146,10 @@ void log( std::string&& msg ) {
   trim();
 }
 
-expect<> run_cmd( string const& cmd ) {
-  return run_cmd_impl( cmd );
+valid_or<string> run_cmd( string const& cmd ) {
+  if( auto res = run_cmd_impl( cmd ); !res )
+    return res.error().what;
+  return valid;
 }
 
 maybe<string const&> line( int idx ) {
@@ -326,13 +332,13 @@ vector<string> autocomplete( string_view fragment ) {
     sol::object o = curr_table[last];
     DCHECK( o != sol::lua_nil );
     if( o.get_type() == sol::type::table ) {
-      ASSIGN_CHECK_OPT( t, table_for_object( o ) );
+      UNWRAP_CHECK( t, table_for_object( o ) );
       auto size = table_size_non_meta( t );
       lg.trace( "table size: {}", size );
       if( size > 0 ) res[0] += '.';
     }
     if( o.get_type() == sol::type::userdata ) {
-      ASSIGN_CHECK_OPT( t, table_for_object( o ) );
+      UNWRAP_CHECK( t, table_for_object( o ) );
       auto fn_count = table_fn_members_non_meta( t );
       auto size     = table_size_non_meta( t );
       lg.trace( "table size: {}", size );

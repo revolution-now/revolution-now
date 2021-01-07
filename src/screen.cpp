@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
@@ -205,7 +205,7 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
-  ASSIGN_CHECK_OPT(
+  UNWRAP_CHECK(
       optimal, rl::ints( min_scale_factor, max_scale_factor + 1 )
                    .map( scale_info )
                    .min_by( scale_score ) );

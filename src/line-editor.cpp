@@ -11,7 +11,7 @@
 #include "line-editor.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "math.hpp"
 
 // SDL
@@ -29,7 +29,7 @@ namespace {
 bool is_char_allowed( char c ) {
   static string_view const cs{
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "0123456789 +-*/^._,()[]!@#$%&={}|?<>`~;'\""};
+      "0123456789 +-*/^._,()[]!@#$%&={}|?<>`~;'\"" };
   return find( begin( cs ), end( cs ), c ) != end( cs );
 }
 
@@ -61,8 +61,7 @@ bool LineEditor::input( input::key_event_t const& event ) {
   //}
 
   if( pressed < 128 && is_char_allowed( char( pressed ) ) ) {
-    ASSIGN_CHECK_OPT( ascii,
-                      input::ascii_char_for_event( event ) );
+    UNWRAP_CHECK( ascii, input::ascii_char_for_event( event ) );
     buffer_.insert( pos_, 1, char( ascii ) );
     ++pos_;
     LE_ASSERT_INVARIANTS;
@@ -114,7 +113,7 @@ void LineEditor::clear() {
 }
 
 void LineEditor::set( std::string_view new_buffer,
-                      maybe<int>         maybe_pos ) {
+                      maybe<int>       maybe_pos ) {
   int  requested_cursor_pos = maybe_pos.value_or( pos_ );
   auto new_cursor_closed_upper_bound = int( new_buffer.size() );
   auto new_cursor_closed_lower_bound =

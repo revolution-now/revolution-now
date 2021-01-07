@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
 #include "fb.hpp"
 
 // Flatbuffers
@@ -24,7 +23,7 @@ namespace rn {
 enum class e_crust { water, land };
 
 struct LandSquare {
-  expect<> check_invariants_safe() const;
+  valid_deserial_t check_invariants_safe() const;
 
   bool operator==( LandSquare const& ) const = default;
 

@@ -15,7 +15,7 @@
 #include "cc-specific.hpp"
 #include "rnl/helper/sumtype-helper.hpp"
 #include "fmt-helper.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 
 // base
@@ -208,7 +208,7 @@ namespace rnltest {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::MyVariant2::first const& src,
           first* dst ) {
         (void)src;
@@ -216,19 +216,19 @@ namespace rnltest {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.name() ),
             &dst->name, ::rn::serial::ADL{} ) );
 
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.b() ),
             &dst->b, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -258,7 +258,7 @@ namespace rnltest {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::MyVariant2::second const& src,
           second* dst ) {
         (void)src;
@@ -266,19 +266,19 @@ namespace rnltest {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.flag1() ),
             &dst->flag1, ::rn::serial::ADL{} ) );
 
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.flag2() ),
             &dst->flag2, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -303,7 +303,7 @@ namespace rnltest {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::MyVariant2::third const& src,
           third* dst ) {
         (void)src;
@@ -311,15 +311,15 @@ namespace rnltest {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.cost() ),
             &dst->cost, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -789,7 +789,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::MySumtype::none const& src,
           none* dst ) {
         (void)src;
@@ -797,11 +797,11 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -835,7 +835,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::MySumtype::some const& src,
           some* dst ) {
         (void)src;
@@ -843,19 +843,19 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.s() ),
             &dst->s, ::rn::serial::ADL{} ) );
 
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.y() ),
             &dst->y, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -884,7 +884,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::MySumtype::more const& src,
           more* dst ) {
         (void)src;
@@ -892,15 +892,15 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.d() ),
             &dst->d, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -995,7 +995,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::OnOffState::off const& src,
           off* dst ) {
         (void)src;
@@ -1003,11 +1003,11 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -1036,7 +1036,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::OnOffState::on const& src,
           on* dst ) {
         (void)src;
@@ -1044,15 +1044,15 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.user() ),
             &dst->user, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -1081,7 +1081,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::OnOffState::switching_on const& src,
           switching_on* dst ) {
         (void)src;
@@ -1089,15 +1089,15 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.percent() ),
             &dst->percent, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };
@@ -1126,7 +1126,7 @@ namespace rn {
         );
       }
 
-      static ::rn::expect<> deserialize_table(
+      static ::rn::valid_deserial_t deserialize_table(
           fb::OnOffState::switching_off const& src,
           switching_off* dst ) {
         (void)src;
@@ -1134,15 +1134,15 @@ namespace rn {
         DCHECK( dst );
         using ::rn::serial::deserialize;
           
-        XP_OR_RETURN_( deserialize(
+        HAS_VALUE_OR_RET( deserialize(
             ::rn::serial::detail::to_const_ptr( src.percent() ),
             &dst->percent, ::rn::serial::ADL{} ) );
 
-        return ::rn::xp_success_t{};
+        return ::rn::valid;
       }
 
-      ::rn::expect<> check_invariants_safe() const {
-        return ::rn::xp_success_t{};
+      ::rn::valid_deserial_t check_invariants_safe() const {
+        return ::rn::valid;
       }
 
     };

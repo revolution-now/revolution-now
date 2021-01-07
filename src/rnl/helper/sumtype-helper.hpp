@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "errors.hpp"
-
 // base
 #include "base/variant.hpp"
 

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "config-files.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "init.hpp"
 #include "logging.hpp"
 #include "sdl-util.hpp"

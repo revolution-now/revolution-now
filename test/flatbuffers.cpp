@@ -11,7 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "flat-deque.hpp"
 #include "flat-queue.hpp"
@@ -63,10 +63,10 @@ enum class e_color { Red, Green, Blue };
 enum class e_hand { Left, Right };
 
 struct Weapon {
-  expect<> check_invariants_safe() const {
+  valid_deserial_t check_invariants_safe() const {
     if( name.empty() )
-      return UNEXPECTED( "Weapon name cannot be empty." );
-    return xp_success_t{};
+      return invalid_deserial( "Weapon name cannot be empty." );
+    return valid;
   }
 
   bool operator==( Weapon const& ) const = default;
@@ -79,8 +79,8 @@ struct Weapon {
 };
 
 struct Vec2 {
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   bool operator<( Vec2 const& rhs ) const {
@@ -105,8 +105,8 @@ struct Vec2 {
 };
 
 struct Vec3 {
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   bool operator==( Vec3 const& ) const = default;
@@ -120,8 +120,8 @@ struct Vec3 {
 };
 
 struct Monster {
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   bool operator==( Monster const& ) const = default;
@@ -291,23 +291,21 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::blob_to_json<Monster>( blob );
-    ASSIGN_CHECK_OPT(
-        json_golden,
-        base::read_text_file_as_string( json_file ) );
+    UNWRAP_CHECK( json_golden,
+                  base::read_text_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
 
-    CHECK_XP( blob.write( tmp_file.c_str() ) );
+    CHECK_HAS_VALUE( blob.write( tmp_file.c_str() ) );
     REQUIRE( fs::file_size( tmp_file ) == kExpectedBlobSize );
   }
 
   SECTION( "deserialize to flatbuffer" ) {
-    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    UNWRAP_CHECK( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = blob.to_json<fb::Monster>();
-    ASSIGN_CHECK_OPT(
-        json_golden,
-        base::read_text_file_as_string( json_file ) );
+    UNWRAP_CHECK( json_golden,
+                  base::read_text_file_as_string( json_file ) );
     REQUIRE( json == json_golden );
 
     // Get a pointer to the root object inside the buffer.
@@ -417,11 +415,11 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
   }
 
   SECTION( "deserialize to native" ) {
-    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    UNWRAP_CHECK( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     Monster monster;
-    CHECK_XP(
+    CHECK_HAS_VALUE(
         rn::serial::deserialize_from_blob( blob, &monster ) );
 
     REQUIRE( monster.hp == 300 );
@@ -546,14 +544,13 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = rn::serial::serialize_to_json( monster );
-    ASSIGN_CHECK_OPT(
-        json_golden,
-        base::read_text_file_as_string(
-            data_dir() / "monster-round-trip.json" ) );
+    UNWRAP_CHECK( json_golden,
+                  base::read_text_file_as_string(
+                      data_dir() / "monster-round-trip.json" ) );
     REQUIRE( json == json_golden );
 
     Monster monster_new;
-    CHECK_XP( rn::serial::deserialize_from_blob(
+    CHECK_HAS_VALUE( rn::serial::deserialize_from_blob(
         blob, &monster_new ) );
 
     REQUIRE( monster_new.pos.x == 2.25 );
@@ -650,10 +647,10 @@ TEST_CASE( "deserialize json" ) {
                      e_unit_type::free_colonist );
   (void)create_unit( e_nation::english, e_unit_type::soldier );
 
-  ASSIGN_CHECK_OPT( json, base::read_text_file_as_string(
-                              data_dir() / "unit.json" ) );
+  UNWRAP_CHECK( json, base::read_text_file_as_string(
+                          data_dir() / "unit.json" ) );
   Unit unit;
-  CHECK_XP( rn::serial::deserialize_from_json(
+  CHECK_HAS_VALUE( rn::serial::deserialize_from_json(
       /*schema_name=*/"unit",
       /*json=*/json, /*out=*/&unit ) );
 
@@ -713,18 +710,17 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     auto json = blob.to_json<fb::Unit>();
-    ASSIGN_CHECK_OPT(
-        json_golden,
-        base::read_text_file_as_string( json_file ) );
+    UNWRAP_CHECK( json_golden,
+                  base::read_text_file_as_string( json_file ) );
     INFO( json );
     REQUIRE( json == json_golden );
 
-    CHECK_XP( blob.write( tmp_file.c_str() ) );
+    CHECK_HAS_VALUE( blob.write( tmp_file.c_str() ) );
     REQUIRE( fs::file_size( tmp_file ) == kExpectedBlobSize );
   }
 
   SECTION( "read from blob" ) {
-    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    UNWRAP_CHECK( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     // Get a pointer to the root object inside the buffer.
@@ -799,21 +795,21 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
   }
 
   SECTION( "deserialize unit to json" ) {
-    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    UNWRAP_CHECK( blob, BinaryBlob::read( tmp_file ) );
     auto json = blob.to_json<fb::Unit>();
-    ASSIGN_CHECK_OPT(
-        json_golden,
-        base::read_text_file_as_string( json_file ) );
+    UNWRAP_CHECK( json_golden,
+                  base::read_text_file_as_string( json_file ) );
     INFO( json );
     REQUIRE( json == json_golden );
   }
 
   SECTION( "deserialize unit" ) {
-    ASSIGN_CHECK_XP( blob, BinaryBlob::read( tmp_file ) );
+    UNWRAP_CHECK( blob, BinaryBlob::read( tmp_file ) );
     REQUIRE( blob.size() == kExpectedBlobSize );
 
     Unit unit;
-    CHECK_XP( rn::serial::deserialize_from_blob( blob, &unit ) );
+    CHECK_HAS_VALUE(
+        rn::serial::deserialize_from_blob( blob, &unit ) );
 
     auto const& orig = rn::unit_from_id( ship );
 
@@ -863,9 +859,9 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
 }
 
 struct SetTester {
-  bool     operator==( SetTester const& ) const = default;
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  bool operator==( SetTester const& ) const = default;
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
   using set_t = unordered_set<string>;
   // clang-format off
@@ -875,9 +871,9 @@ struct SetTester {
 };
 
 struct MapTester1 {
-  bool     operator==( MapTester1 const& ) const = default;
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  bool operator==( MapTester1 const& ) const = default;
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
   using map_t = unordered_map<string, int>;
   // clang-format off
@@ -887,9 +883,9 @@ struct MapTester1 {
 };
 
 struct MapTester2 {
-  bool     operator==( MapTester2 const& ) const = default;
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  bool operator==( MapTester2 const& ) const = default;
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
   using map_t = unordered_map<int, int>;
   // clang-format off
@@ -906,7 +902,7 @@ TEST_CASE( "[flatbuffers] hash sets" ) {
   auto s1_blob = rn::serial::serialize_to_blob( s1 );
 
   SetTester s1_new;
-  CHECK_XP( deserialize_from_blob( s1_blob, &s1_new ) );
+  CHECK_HAS_VALUE( deserialize_from_blob( s1_blob, &s1_new ) );
 
   REQUIRE( s1.set == s1_new.set );
 }
@@ -921,9 +917,9 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
   auto m2_blob = rn::serial::serialize_to_blob( m2 );
 
   MapTester1 m1_new;
-  CHECK_XP( deserialize_from_blob( m1_blob, &m1_new ) );
+  CHECK_HAS_VALUE( deserialize_from_blob( m1_blob, &m1_new ) );
   MapTester2 m2_new;
-  CHECK_XP( deserialize_from_blob( m2_blob, &m2_new ) );
+  CHECK_HAS_VALUE( deserialize_from_blob( m2_blob, &m2_new ) );
 
   REQUIRE( m1.map == m1_new.map );
   REQUIRE( m2.map == m2_new.map );
@@ -931,16 +927,15 @@ TEST_CASE( "[flatbuffers] hash maps" ) {
   // Make sure that deserializing a map with duplicate keys re-
   // sults in an error.
   MapTester1 m_dup;
-  ASSIGN_CHECK_OPT( json,
-                    base::read_text_file_as_string(
-                        data_dir() / "map-dup-key.json" ) );
+  UNWRAP_CHECK( json, base::read_text_file_as_string(
+                          data_dir() / "map-dup-key.json" ) );
   auto xp = rn::serial::deserialize_from_json(
       /*schema_name=*/"testing",
       /*json=*/json, /*out=*/&m_dup );
 
-  REQUIRE( !xp.has_value() );
-  REQUIRE_THAT( xp.error().what, Contains( "duplicate key" ) );
-  REQUIRE_THAT( xp.error().what, Contains( "hello2" ) );
+  REQUIRE( !xp.valid() );
+  REQUIRE_THAT( xp.error()->what, Contains( "duplicate key" ) );
+  REQUIRE_THAT( xp.error()->what, Contains( "hello2" ) );
 }
 
 TEST_CASE( "[flatbuffers] Sumtypes" ) {
@@ -967,16 +962,16 @@ TEST_CASE( "[flatbuffers] Sumtypes" ) {
       flatbuffers::GetRoot<::fb::MySumtype_t>( blob.get() );
 
   MySumtype_t d_v;
-  REQUIRE( deserialize( root, &d_v, ::rn::serial::ADL{} ) ==
-           rn::xp_success_t{} );
+  REQUIRE(
+      deserialize( root, &d_v, ::rn::serial::ADL{} ).valid() );
 
   REQUIRE( v == d_v );
 }
 
 struct MyFlatQueues {
-  bool     operator==( MyFlatQueues const& ) const = default;
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  bool operator==( MyFlatQueues const& ) const = default;
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, MyFlatQueues,
@@ -1016,8 +1011,8 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
       flatbuffers::GetRoot<::fb::MyFlatQueues>( blob.get() );
 
   MyFlatQueues qs;
-  REQUIRE( deserialize( root, &qs, ::rn::serial::ADL{} ) ==
-           rn::xp_success_t{} );
+  REQUIRE(
+      deserialize( root, &qs, ::rn::serial::ADL{} ).valid() );
 
   REQUIRE( qs.q1.size() == 3 );
   REQUIRE( qs.q2.size() == 3 );
@@ -1091,8 +1086,8 @@ TEST_CASE( "[flatbuffers] matrix" ) {
       flatbuffers::GetRoot<::fb::Matrix_String>( blob.get() );
 
   rn::Matrix<string> m_ds;
-  REQUIRE( deserialize( root, &m_ds, ::rn::serial::ADL{} ) ==
-           rn::xp_success_t{} );
+  REQUIRE(
+      deserialize( root, &m_ds, ::rn::serial::ADL{} ).valid() );
 
   REQUIRE( m.size() == m_ds.size() );
 
@@ -1177,9 +1172,8 @@ TEST_CASE( "[flatbuffers] fsm" ) {
       flatbuffers::GetRoot<::fb::OnOffFsm>( blob.get() );
 
   rn::OnOffFsm on_off_ds;
-  REQUIRE(
-      deserialize( root, &on_off_ds, ::rn::serial::ADL{} ) ==
-      rn::xp_success_t{} );
+  REQUIRE( deserialize( root, &on_off_ds, ::rn::serial::ADL{} )
+               .valid() );
 
   REQUIRE_FALSE( on_off_ds.has_pending_events() );
 
@@ -1240,13 +1234,11 @@ auto variant_roundtrip( Variant const& v,
   auto    fb_var = blob.root<fb_table_t>();
   Variant new_v;
   if( expect_fail_validation ) {
-    REQUIRE(
-        deserialize( fb_var, &new_v, ::rn::serial::ADL{} ) !=
-        xp_success_t{} );
+    REQUIRE( !deserialize( fb_var, &new_v, ::rn::serial::ADL{} )
+                  .valid() );
   } else {
-    REQUIRE(
-        deserialize( fb_var, &new_v, ::rn::serial::ADL{} ) ==
-        xp_success_t{} );
+    REQUIRE( deserialize( fb_var, &new_v, ::rn::serial::ADL{} )
+                 .valid() );
   }
   return new_v;
 }

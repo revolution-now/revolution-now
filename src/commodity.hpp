@@ -93,7 +93,7 @@ struct Commodity {
     return !( *this == rhs );
   }
 
-  expect<> check_invariants_safe() const;
+  valid_deserial_t check_invariants_safe() const;
 
   // clang-format off
   SERIALIZABLE_STRUCT_MEMBERS( Commodity,

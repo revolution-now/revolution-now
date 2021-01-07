@@ -21,6 +21,7 @@ target_link_libraries(
     PUBLIC
     absl::function_ref
     base-util
+    fmt::fmt
 )
 
 target_include_directories(

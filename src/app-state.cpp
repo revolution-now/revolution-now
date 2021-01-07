@@ -212,12 +212,12 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
       break;
     }
     case AppState::e::loading: {
-      CHECK_XP( load_game( 0 ) );
+      CHECK_HAS_VALUE( load_game( 0 ) );
       fsm.send_event( AppEvent::to_game() );
       break;
     }
     case AppState::e::saving: {
-      CHECK_XP( save_game( 0 ) );
+      CHECK_HAS_VALUE( save_game( 0 ) );
       g_game_dirty_flag = false;
       fsm.send_event( AppEvent::to_main() );
       break;

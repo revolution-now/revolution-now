@@ -54,7 +54,7 @@ Delta CompositeView::delta() const {
 
 bool CompositeView::dispatch_mouse_event(
     input::event_t const& event ) {
-  ASSIGN_CHECK_OPT( pos, input::mouse_position( event ) );
+  UNWRAP_CHECK( pos, input::mouse_position( event ) );
   for( auto p_view : *this ) {
     if( pos.is_inside( p_view.rect() ) ) {
       auto new_event =
@@ -731,8 +731,8 @@ void OptionSelectItemView::grow_to( W w ) {
       new_delta );
 }
 
-OptionSelectView::OptionSelectView( vector<string> const& options,
-                                    int initial_selection )
+OptionSelectView::OptionSelectView(
+    vector<string> const& options, int initial_selection )
   : selected_{ initial_selection } {
   CHECK( options.size() > 0 );
   CHECK( selected_ >= 0 && selected_ < int( options.size() ) );

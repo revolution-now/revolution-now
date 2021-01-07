@@ -14,7 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
@@ -68,7 +68,7 @@ public:
            ( drag_accel_ == rhs.drag_accel_ );
   }
 
-  expect<> check_invariants_safe() const;
+  valid_deserial_t check_invariants_safe() const;
 
 private:
   // clang-format off

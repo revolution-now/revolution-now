@@ -117,7 +117,7 @@ public:
 
   std::string to_string() const;
 
-  expect<> check_invariants_safe() const;
+  valid_deserial_t check_invariants_safe() const;
 
 private:
   // atoms can be > 2

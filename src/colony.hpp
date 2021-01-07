@@ -15,7 +15,7 @@
 // Revolution Now
 #include "colony-mfg.hpp"
 #include "commodity.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
@@ -89,12 +89,12 @@ public:
   // This class itself is not equipped to check all of its own
   // invariants, since many of them require other game state to
   // validate.
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
 private:
-  friend expect<ColonyId> cstate_create_colony(
+  friend expect<ColonyId, std::string> cstate_create_colony(
       e_nation nation, Coord const& where,
       std::string_view name );
 

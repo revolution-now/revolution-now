@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "typed-int.hpp"
@@ -68,8 +68,8 @@ enum class ND e_direction {
 struct ND Delta {
   SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );
 
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   constexpr Delta() = default;
@@ -165,8 +165,8 @@ struct ND Coord {
   SERIALIZABLE_STRUCT_MEMBERS( Coord, ( Y, y ), ( X, x ) );
 
 public:
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   Coord() = default;
@@ -245,8 +245,8 @@ struct ND Rect {
   SERIALIZABLE_STRUCT_MEMBERS( Rect, ( X, x ), ( Y, y ),
                                ( W, w ), ( H, h ) );
 
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   static Rect from( Coord const& _1, Coord const& _2 );

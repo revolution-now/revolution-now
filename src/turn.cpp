@@ -112,14 +112,14 @@ sync_future<> kick_off_unit_animation(
       intent,
       [&]( TravelAnalysis const& val ) {
         if( !animate_move( val ) ) return def;
-        ASSIGN_CHECK_OPT(
+        UNWRAP_CHECK(
             d, val.move_src.direction_to( val.move_target ) );
         return landview_animate_move( id, d );
       },
       [&]( CombatAnalysis const& val ) {
         auto attacker = id;
-        ASSIGN_CHECK_OPT( defender, val.target_unit );
-        ASSIGN_CHECK_OPT( stats, val.fight_stats );
+        UNWRAP_CHECK( defender, val.target_unit );
+        UNWRAP_CHECK( stats, val.fight_stats );
         auto const& defender_unit = unit_from_id( defender );
         auto const& attacker_unit = unit_from_id( attacker );
         e_depixelate_anim dp_anim =
@@ -392,8 +392,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
   switch( auto& nation_state = fsm.mutable_state();
           nation_state.to_enum() ) {
     case NationTurnState::e::starting: {
-      lg.info( "-------[ Starting turn for {} ]-------",
-               nation );
+      print_bar( '-', fmt::format( "[ {} ]", nation ) );
       fsm.send_event( NationTurnEvent::next{} );
       break;
     }
@@ -490,7 +489,7 @@ void advance_nation_turn_state( NationTurnFsm& fsm,
                   UnitInputEvent::process{} );
               break;
             }
-            ASSIGN_CHECK_OPT( orders, maybe_orders );
+            UNWRAP_CHECK( orders, maybe_orders );
             if( holds<orders::wait>( orders ) ) {
               doing_units.q.push_back( id );
               CHECK( doing_units.q.front() == id );
@@ -647,10 +646,10 @@ private:
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
 
-    return xp_success_t{};
+    return valid;
   }
   // Called after all modules are deserialized.
-  SAVEGAME_VALIDATE() { return xp_success_t{}; }
+  SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( Turn );
 

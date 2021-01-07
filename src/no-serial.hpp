@@ -41,9 +41,9 @@ struct no_serial {
     : o( std::forward<Args>( args )... ) {}
 
   // Implicit conversion.
-  operator T const&() const& { return o; }
+  operator T const &() const& { return o; }
   operator T&() & { return o; }
-  operator T &&() && { return std::move( o ); }
+  operator T&&() && { return std::move( o ); }
 
   T const* operator->() const& { return &o; }
   T*       operator->() & { return &o; }
@@ -78,16 +78,16 @@ auto serialize( FBBuilder&,
 }
 
 template<typename SrcT, typename T, bool bFailOnSerialize>
-expect<> deserialize( SrcT const*,
-                      ::rn::no_serial<T, bFailOnSerialize>*,
-                      serial::ADL ) {
+valid_deserial_t deserialize(
+    SrcT const*, ::rn::no_serial<T, bFailOnSerialize>*,
+    serial::ADL ) {
   if constexpr( bFailOnSerialize ) {
     FATAL(
         "Should not deserialize a `no_serial` object (contains "
         "type {}).",
         demangled_typename<T>() );
   }
-  return ::rn::xp_success_t{};
+  return valid;
 }
 
 } // namespace serial

@@ -21,6 +21,9 @@
 #include "ustate.hpp"
 #include "variant.hpp"
 
+// base
+#include "base/variant.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 
@@ -101,11 +104,11 @@ string commodity_number_to_markup( int value ) {
 /****************************************************************
 ** Commodity Cargo
 *****************************************************************/
-expect<> Commodity::check_invariants_safe() const {
+valid_deserial_t Commodity::check_invariants_safe() const {
   if( quantity <= 0 )
-    return UNEXPECTED( "Commodity quantity <= 0 ({})",
-                       quantity );
-  return xp_success_t{};
+    return invalid_deserial( fmt::format(
+        "Commodity quantity <= 0 ({})", quantity ) );
+  return valid;
 }
 
 /****************************************************************
@@ -143,8 +146,8 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot ) {
   ASSIGN_CHECK_V( comm, cargo_item.contents, Commodity );
 
   Commodity res = std::move( comm );
-  cargo[slot]   = CargoSlot::empty{};
-  cargo.check_invariants();
+  cargo[slot]   = CargoSlot_t{ CargoSlot::empty{} };
+  cargo.check_invariants_or_abort();
   return res;
 }
 

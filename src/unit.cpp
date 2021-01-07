@@ -11,7 +11,7 @@
 #include "unit.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "lua.hpp"
 
 using namespace std;
@@ -30,22 +30,22 @@ Unit::Unit( e_nation nation, e_unit_type type )
     mv_pts_( unit_desc( type ).movement_points ),
     finished_turn_( false ) {}
 
-expect<> Unit::check_invariants_safe() const {
+valid_deserial_t Unit::check_invariants_safe() const {
   // Check that only treasure units can have a worth.
   switch( type_ ) {
     case e_unit_type::large_treasure:
     case e_unit_type::small_treasure:
-      UNXP_CHECK( worth_.has_value(),
-                  "Treasure trains must have a `worth`." );
+      check_deserial( worth_.has_value(),
+                      "Treasure trains must have a `worth`." );
       break;
     default: //
-      UNXP_CHECK(
+      check_deserial(
           !worth_.has_value(),
           "Non-treasure trains must not have a `worth`." );
       break;
   };
-  UNXP_CHECK( cargo().slots_total() == desc().cargo_slots );
-  return xp_success_t{};
+  check_deserial( cargo().slots_total() == desc().cargo_slots );
+  return valid;
 }
 
 UnitDescriptor const& Unit::desc() const {
@@ -58,20 +58,20 @@ void Unit::forfeight_mv_points() {
   // checking this, but it may end up catching some problems.
   CHECK( !mv_pts_exhausted() );
   mv_pts_ = 0;
-  CHECK_XP( check_invariants_safe() );
+  CHECK_HAS_VALUE( check_invariants_safe() );
 }
 
 // Marks unit as not having moved this turn.
 void Unit::new_turn() {
   mv_pts_        = desc().movement_points;
   finished_turn_ = false;
-  CHECK_XP( check_invariants_safe() );
+  CHECK_HAS_VALUE( check_invariants_safe() );
 }
 
 // Marks unit as having finished processing this turn.
 void Unit::finish_turn() {
   finished_turn_ = true;
-  CHECK_XP( check_invariants_safe() );
+  CHECK_HAS_VALUE( check_invariants_safe() );
 }
 
 void Unit::unfinish_turn() { finished_turn_ = false; }
@@ -103,7 +103,7 @@ bool Unit::orders_mean_input_required() const {
 void Unit::consume_mv_points( MovementPoints points ) {
   mv_pts_ -= points;
   CHECK( mv_pts_ >= 0 );
-  CHECK_XP( check_invariants_safe() );
+  CHECK_HAS_VALUE( check_invariants_safe() );
 }
 
 void Unit::fortify() {

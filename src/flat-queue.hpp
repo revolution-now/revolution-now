@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
@@ -178,17 +178,18 @@ auto serialize( FBBuilder& builder, ::rn::flat_queue<T> const& m,
 }
 
 template<typename SrcT, typename T>
-expect<> deserialize( SrcT const* src, ::rn::flat_queue<T>* m,
-                      serial::ADL ) {
+valid_deserial_t deserialize( SrcT const*          src,
+                              ::rn::flat_queue<T>* m,
+                              serial::ADL ) {
   if( src == nullptr ) {
     // `dst` should be in its default-constructed state, which is
     // an empty queue.
-    return xp_success_t{};
+    return valid;
   }
   std::vector<T> data;
-  XP_OR_RETURN_( deserialize( src, &data, serial::ADL{} ) );
+  HAS_VALUE_OR_RET( deserialize( src, &data, serial::ADL{} ) );
   for( auto& e : data ) m->push_emplace( std::move( e ) );
-  return xp_success_t{};
+  return valid;
 }
 
 } // namespace serial

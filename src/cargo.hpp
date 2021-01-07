@@ -14,7 +14,7 @@
 
 // Revolution Now
 #include "commodity.hpp"
-#include "errors.hpp"
+#include "error.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
@@ -105,9 +105,11 @@ public:
   maybe<CargoSlot_t const&> at( int slot ) const;
   maybe<CargoSlot_t const&> at( CargoSlotIndex slot ) const;
 
-  CargoSlot_t const&      operator[]( int idx ) const;
-  CargoSlot_t const&      operator[]( CargoSlotIndex idx ) const;
-  std::vector<CargoSlot_t> const& slots() const { return slots_; }
+  CargoSlot_t const& operator[]( int idx ) const;
+  CargoSlot_t const& operator[]( CargoSlotIndex idx ) const;
+  std::vector<CargoSlot_t> const& slots() const {
+    return slots_;
+  }
 
   template<typename T>
   maybe<T const&> slot_holds_cargo_type( int idx ) const;
@@ -169,15 +171,16 @@ public:
   // We can only validate fully after all units are loaded, so
   // just return success here, and then expect that the unit
   // state validation checks all of these.
-  expect<> check_invariants_safe() const {
-    return xp_success_t{};
+  valid_deserial_t check_invariants_safe() const {
+    return valid;
   }
 
   // FIXME: fix naming of these functions.
-  expect<> check_invariants_post_load() const;
+  valid_deserial_t check_invariants_post_load() const;
 
 protected:
-  void check_invariants() const;
+  valid_or<generic_err> check_invariants() const;
+  void                  check_invariants_or_abort() const;
 
   // ------------------------------------------------------------
   // These are the only functions that should be allowed to add

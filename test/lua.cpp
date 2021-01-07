@@ -30,7 +30,7 @@ TEST_CASE( "[lua] run trivial script" ) {
   auto script = R"(
     local x = 5+6
   )";
-  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
+  REQUIRE( lua::run<void>( script ) == valid );
 }
 
 TEST_CASE( "[lua] syntax error" ) {
@@ -182,19 +182,21 @@ TEST_CASE( "[lua] has modules" ) {
     assert( modules['meta']    ~= nil )
     assert( modules['utype']   ~= nil )
   )lua";
-  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
+  REQUIRE( lua::run<void>( script ) == valid );
 }
 
-LUA_FN( check_failure, int, int x ) {
-  RN_CHECK( x < 10, "x (which is {}) must be less than 10.", x );
+LUA_FN( throwing, int, int x ) {
+  if( x >= 10 )
+    THROW_LUA_ERROR( "x (which is {}) must be less than 10.",
+                     x );
   return x + 1;
 };
 
-TEST_CASE( "[lua] check-failure" ) {
-  auto script = "return testing.check_failure( 5 )";
+TEST_CASE( "[lua] throwing" ) {
+  auto script = "return testing.throwing( 5 )";
   REQUIRE( lua::run<int>( script ) == 6 );
 
-  script  = "return testing.check_failure( 11 )";
+  script  = "return testing.throwing( 11 )";
   auto xp = lua::run<int>( script );
   REQUIRE( !xp.has_value() );
   REQUIRE_THAT(
@@ -238,7 +240,8 @@ LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
   return to_string( n );
 }
 
-LUA_FN( opt_test2, maybe<Coord>, maybe<Coord> const& maybe_coord ) {
+LUA_FN( opt_test2, maybe<Coord>,
+        maybe<Coord> const& maybe_coord ) {
   if( !maybe_coord ) return Coord{ 5_x, 7_y };
   return Coord{ maybe_coord->x + 1_w, maybe_coord->y + 1_y };
 }
@@ -254,7 +257,7 @@ TEST_CASE( "[lua] optional" ) {
     assert( testing.opt_test( 10  ) == "10"           )
     assert( testing.opt_test( 100 ) == "100"          )
   )";
-  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
+  REQUIRE( lua::run<void>( script ) == valid );
 
   REQUIRE( lua::run<maybe<string>>( "return nil" ) == nothing );
   REQUIRE( lua::run<maybe<string>>( "return 'hello'" ) ==
@@ -266,12 +269,13 @@ TEST_CASE( "[lua] optional" ) {
     assert( testing.opt_test2( nil            ) == Coord{x=5,y=7} )
     assert( testing.opt_test2( Coord{x=2,y=3} ) == Coord{x=3,y=4} )
   )";
-  REQUIRE( lua::run<void>( script2 ) == xp_success_t{} );
+  REQUIRE( lua::run<void>( script2 ) == valid );
 
   REQUIRE( lua::run<maybe<Coord>>( "return nil" ) == nothing );
   REQUIRE( lua::run<maybe<Coord>>( "return Coord{x=9, y=8}" ) ==
            Coord{ 9_x, 8_y } );
-  REQUIRE( lua::run<maybe<Coord>>( "return 'hello'" ) == nothing );
+  REQUIRE( lua::run<maybe<Coord>>( "return 'hello'" ) ==
+           nothing );
   REQUIRE( lua::run<maybe<Coord>>( "return 5" ) == nothing );
 }
 
@@ -310,7 +314,7 @@ TEST_CASE( "[lua] new_usertype" ) {
     assert( u:get() == "c" )
     assert( u:add( 4, 5 ) == 9 )
   )";
-  REQUIRE( lua::run<void>( script ) == xp_success_t{} );
+  REQUIRE( lua::run<void>( script ) == valid );
 }
 
 } // namespace

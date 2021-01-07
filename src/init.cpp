@@ -11,7 +11,7 @@
 #include "init.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
 #include "maybe.hpp"

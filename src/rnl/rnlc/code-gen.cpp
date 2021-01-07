@@ -51,7 +51,7 @@ constexpr string_view kSumtypeAlternativeMemberSerial = R"xyz(
 // Parameters:
 //   - member_var_name
 constexpr string_view kSumtypeAlternativeMemberDeserial = R"xyz(
-    XP_OR_RETURN_( deserialize(
+    HAS_VALUE_OR_RET( deserialize(
         ::rn::serial::detail::to_const_ptr( src.{member_var_name}() ),
         &dst->{member_var_name}, ::rn::serial::ADL{{}} ) );
 )xyz";
@@ -78,7 +78,7 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     );
   }}
 
-  static ::rn::expect<> deserialize_table(
+  static ::rn::valid_deserial_t deserialize_table(
       fb::{sumtype_name}::{alt_name} const& src,
       {alt_name}* dst ) {{
     (void)src;
@@ -86,11 +86,11 @@ constexpr string_view kSumtypeAlternativeSerial = R"xyz(
     DCHECK( dst );
     using ::rn::serial::deserialize;
     {members_deserialization}
-    return ::rn::xp_success_t{{}};
+    return ::rn::valid;
   }}
 
-  ::rn::expect<> check_invariants_safe() const {{
-    return ::rn::xp_success_t{{}};
+  ::rn::valid_deserial_t check_invariants_safe() const {{
+    return ::rn::valid;
   }}
 )xyz";
 
@@ -643,7 +643,7 @@ struct CodeGenerator {
     if( rnl_needs_fmt_headers( rnl ) )
       line( "#include \"fmt-helper.hpp\"" );
     if( rnl_needs_serial_header( rnl ) ) {
-      line( "#include \"errors.hpp\"" );
+      line( "#include \"error.hpp\"" );
       line( "#include \"fb.hpp\"" );
     }
     line( "" );

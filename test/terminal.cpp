@@ -29,7 +29,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
 
   auto empty = vector<string>{};
 
-  string   in;
+  string         in;
   vector<string> out;
 
   in = "";
@@ -48,7 +48,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
 
   in  = "ustate.";
   out = vector<string>{ "ustate.create_unit_on_map",
-                  "ustate.unit_from_id" };
+                        "ustate.unit_from_id" };
   REQUIRE_THAT( autocomplete( in ), Contains( out ) );
 
   in  = "ustate.unit_fr";
@@ -138,8 +138,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
   out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  REQUIRE( term::run_cmd( "my_type = MyType.new()" ) ==
-           xp_success_t{} );
+  REQUIRE( term::run_cmd( "my_type = MyType.new()" ).valid() );
 
   in  = "my_t";
   out = { "my_type" };
@@ -187,7 +186,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
 
   auto empty = vector<string>{};
 
-  string   in;
+  string         in;
   vector<string> out;
 
   auto ac_i = []( auto& in ) {
@@ -206,7 +205,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
 
   in  = "ustate.";
   out = vector<string>{ "ustate.create_unit_on_map",
-                  "ustate.unit_from_id" };
+                        "ustate.unit_from_id" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "ustate.unit_fr";
@@ -289,8 +288,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   out = {};
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
-  REQUIRE( term::run_cmd( "my_type = MyType.new()" ) ==
-           xp_success_t{} );
+  REQUIRE( term::run_cmd( "my_type = MyType.new()" ).valid() );
 
   in  = "my_t";
   out = { "my_type" };

@@ -12,7 +12,7 @@
 #include "moving-avg.hpp"
 
 // Revolution Now
-#include "errors.hpp"
+#include "error.hpp"
 #include "math.hpp"
 
 namespace rn {

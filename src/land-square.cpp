@@ -10,24 +10,12 @@
 *****************************************************************/
 #include "land-square.hpp"
 
-// Revolution Now
-//#include "dummy.hpp"
-
 using namespace std;
 
 namespace rn {
 
-namespace {
-//
-} // namespace
-
-expect<> LandSquare::check_invariants_safe() const {
-  return xp_success_t{};
+valid_deserial_t LandSquare::check_invariants_safe() const {
+  return valid;
 }
-
-/****************************************************************
-** Public API
-*****************************************************************/
-// ...
 
 } // namespace rn
