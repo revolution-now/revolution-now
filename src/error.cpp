@@ -11,6 +11,7 @@
 #include "error.hpp"
 
 // Revolution Now
+#include "init.hpp"
 #include "logging.hpp"
 #include "stacktrace.hpp"
 
@@ -44,6 +45,7 @@ namespace base {
 void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();
+  rn::run_all_cleanup_routines();
   print_stack_trace(
       here, ::rn::StackTraceOptions{ .skip_frames = 4 } );
   std::abort();

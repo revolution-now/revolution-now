@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "expect.hpp"
 #include "maybe.hpp"
 #include "tune.hpp"
 
@@ -50,10 +51,7 @@ struct MusicPlayerCapabilities {
   bool can_seek{ false };
 };
 
-// FIXME: use expect<MusicPlayer&> when that is supported, since
-// we want to propagate reasons for a music player having failed
-// to initialize.
-using MaybeMusicPlayer = maybe<MusicPlayer&>;
+using MaybeMusicPlayer = expect<MusicPlayer&, std::string>;
 
 // It is important to note when using this class that, in gen-
 // eral, calling the member functions may not cause instantaneous
@@ -208,7 +206,7 @@ public:
 private:
   SilentMusicPlayer() = default;
 
-  bool        is_paused_{ false };
+  bool          is_paused_{ false };
   maybe<TuneId> id_{};
 };
 

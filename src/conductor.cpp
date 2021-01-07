@@ -27,6 +27,7 @@
 #include "../config/ucl/music.inl"
 
 // base
+#include "base/keyval.hpp"
 #include "base/range-lite.hpp"
 
 // base-util
@@ -62,6 +63,13 @@ vector<TuneId> g_playlist;
 bool g_autoplay{ true };
 
 double g_master_volume{ 1.0 };
+
+MaybeMusicPlayer& lookup_mplayer_or_die(
+    e_music_player player ) {
+  UNWRAP_CHECK( expect_mplayer,
+                base::lookup( g_mplayers, player ) );
+  return expect_mplayer;
+}
 
 #define ADD_MUSIC_PLAYER( enum, prefix )    \
   g_mplayer_descs[e_music_player::enum] =   \
@@ -102,11 +110,12 @@ TuneId prev_tune_in_playlist() {
   return g_playlist[g_playlist_pos];
 }
 
-#define ACTIVE_MUSIC_PLAYER_OR_RETURN( var )                  \
-  if( !g_active_mplayer.has_value() ) return;                 \
-  auto const& expect_mplayer = g_mplayers[*g_active_mplayer]; \
-  DCHECK( expect_mplayer.has_value() );                       \
-  auto& var = *expect_mplayer;                                \
+#define ACTIVE_MUSIC_PLAYER_OR_RETURN( var )      \
+  if( !g_active_mplayer.has_value() ) return;     \
+  auto const& expect_mplayer =                    \
+      lookup_mplayer_or_die( *g_active_mplayer ); \
+  DCHECK( expect_mplayer.has_value() );           \
+  auto& var = *expect_mplayer;                    \
   if( !var.good() ) return
 
 #define CONDUCTOR_INFO_OR_RETURN( var )  \
@@ -212,17 +221,18 @@ void init_conductor() {
     bool   enable_mplayer = true;
     string reason;
 
+    MaybeMusicPlayer& expect_mplayer_obj =
+        lookup_mplayer_or_die( mplayer );
+
     // The music player will be enabled if we have been given a
     // reference to it and if it is capable of playing all tunes.
-    if( !g_mplayers[mplayer].has_value() ) {
+    if( !expect_mplayer_obj.has_value() ) {
       enable_mplayer = false;
-      // FIXME: put the error message here when switching to
-      // expect<>.
-      reason = "not enabled.";
+      reason         = expect_mplayer_obj.error();
     } else {
       // We have been given a reference to the music player. So
       // now check that it is in good health.
-      MusicPlayer& pl = *g_mplayers[mplayer];
+      MusicPlayer& pl = *expect_mplayer_obj;
       if( !pl.good() ) {
         enable_mplayer = false;
         reason         = "encountered internal error.";
@@ -241,12 +251,14 @@ void init_conductor() {
       }
     }
 
+    valid_or<string> enabled = valid;
     if( !enable_mplayer ) {
+      enabled = reason; // disabled.
       lg.warn( "music player `{}` not enabled: {}.",
                g_mplayer_descs[mplayer].name, reason );
     }
     MusicPlayerInfo info{
-        /*enabled=*/enable_mplayer,
+        /*enabled=*/enabled,
         g_mplayer_descs[mplayer].name,
         g_mplayer_descs[mplayer].description,
         g_mplayer_descs[mplayer].how_it_works,
@@ -368,7 +380,8 @@ void ConductorInfo::log() const {
 
 void MusicPlayerInfo::log() const {
   lg.debug( "MusicPlayerInfo:" );
-  lg.debug( "  enabled:      {}", enabled );
+  lg.debug( "  enabled:      {}",
+            enabled ? string( "yes" ) : enabled.error() );
   lg.debug( "  name:         {}", name );
   lg.debug( "  description:  {}", description );
   lg.debug( "  how_it_works: {}", how_it_works );
@@ -403,7 +416,8 @@ bool set_music_player( e_music_player mplayer ) {
 
 maybe<ConductorInfo> state() {
   if( !g_active_mplayer.has_value() ) return nothing;
-  auto const& expect_mplayer = g_mplayers[*g_active_mplayer];
+  auto const& expect_mplayer =
+      lookup_mplayer_or_die( *g_active_mplayer );
   DCHECK( expect_mplayer.has_value() );
   auto&         mplayer  = *expect_mplayer;
   auto          mp_state = mplayer.state();
@@ -785,8 +799,9 @@ void menu_music_set_player() {
       /*on_result=*/[]( e_music_player result ) {
         if( !set_music_player( result ) )
           (void)ui::message_box(
-              "The \"{}\" music player is not available.",
-              result );
+              "The \"{}\" music player is not available. "
+              "Reason: {}",
+              result, g_mplayer_infos[result].enabled.error() );
       } );
 }
 bool menu_music_set_player_enabled() {

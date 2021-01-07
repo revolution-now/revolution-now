@@ -27,7 +27,8 @@ namespace rn {
 
 namespace {
 
-maybe<MidiSeqMusicPlayer> g_midiseq_player;
+expect<MidiSeqMusicPlayer, string> g_midiseq_player =
+    "uninitialized";
 
 void cleanup_midiplayer() {}
 
@@ -43,11 +44,15 @@ fs::path mid_file_from_id( TuneId id ) {
 // to be to instantiate it.
 void init_midiplayer() {
   if( midiseq::midiseq_enabled() ) {
-    lg.info( "MIDI Sequencer Enabled: enabling Music Player." );
+    lg.info(
+        "MIDI Sequencer Enabled: enabling MIDI Music Player." );
     g_midiseq_player = MidiSeqMusicPlayer();
   } else {
-    lg.info(
-        "MIDI Sequencer Disabled: not enabling Music Player." );
+    static const string msg =
+        "MIDI Sequencer Disabled: not enabling MIDI Music "
+        "Player.";
+    lg.warn( msg );
+    g_midiseq_player = msg;
   }
 }
 
@@ -65,14 +70,10 @@ MidiSeqMusicPlayer::player() {
       /*how_it_works=*/how_it_works,
   };
 
-  if( g_midiseq_player.has_value() ) {
-    return {
-        desc,
-        g_midiseq_player,
-    };
-  } else {
-    return { desc, nothing };
-  }
+  return {
+      desc,
+      g_midiseq_player,
+  };
 }
 
 bool MidiSeqMusicPlayer::good() const {

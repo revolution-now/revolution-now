@@ -80,8 +80,8 @@ enum class e_ogg_state { playing, paused, stopped };
 /****************************************************************
 ** Global State
 *****************************************************************/
-maybe<OggMusicPlayer> g_ogg_player{};
-maybe<OggTune>        g_current_music{};
+expect<OggMusicPlayer, string> g_ogg_player = "uninitialized";
+maybe<OggTune>                 g_current_music{};
 // Note that this state may not be updated when a tune stops
 // playing on its own (but before the next one is played). If
 // this turns out to be a problem then we would either need to
@@ -159,9 +159,10 @@ void init_oggplayer() {
   g_state    = e_ogg_state::stopped;
   auto flags = ::Mix_Init( MIX_INIT_OGG );
   if( !( flags & MIX_INIT_OGG ) ) {
-    lg.warn(
-        "Failed to initialize SDL Mixer with OGG support; OGG "
-        "player will not be enabled." );
+    static const string msg =
+        "Failed to initialize SDL Mixer with OGG support";
+    lg.warn( "{}; OGG player will not be enabled.", msg );
+    g_ogg_player = msg;
     return;
   }
 
@@ -188,14 +189,10 @@ OggMusicPlayer::player() {
       /*how_it_works=*/how_it_works,
   };
 
-  if( g_ogg_player.has_value() ) {
-    return {
-        desc,
-        g_ogg_player,
-    };
-  } else {
-    return { desc, nothing };
-  }
+  return {
+      desc,
+      g_ogg_player,
+  };
 }
 
 bool OggMusicPlayer::good() const {
@@ -204,7 +201,8 @@ bool OggMusicPlayer::good() const {
   return g_ogg_player.has_value();
 }
 
-maybe<TunePlayerInfo> OggMusicPlayer::can_play_tune( TuneId id ) {
+maybe<TunePlayerInfo> OggMusicPlayer::can_play_tune(
+    TuneId id ) {
   if( !good() ) return {};
 
   auto ogg = load_tune( id );

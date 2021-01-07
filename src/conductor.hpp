@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "expect.hpp"
 #include "maybe.hpp"
 #include "tune.hpp"
 
@@ -59,10 +60,10 @@ struct ConductorInfo {
 NOTHROW_MOVE( ConductorInfo );
 
 struct MusicPlayerInfo {
-  bool        enabled;
-  std::string name;
-  std::string description;
-  std::string how_it_works;
+  valid_or<std::string> enabled = "uninitialized";
+  std::string           name;
+  std::string           description;
+  std::string           how_it_works;
 
   void log() const;
 };
