@@ -11,10 +11,14 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "sync-future-coro.hpp"
 #include "sync-future.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
+
+// C++ standard library
+#include <queue>
 
 FMT_TO_CATCH_T( ( T ), ::rn::sync_future );
 FMT_TO_CATCH_T( ( T ), ::rn::sync_promise );
@@ -514,6 +518,96 @@ TEST_CASE( "[sync-future] bind testing results" ) {
     REQUIRE( s_future.ready() );
     REQUIRE( s_future.get() == "-900" );
   }
+}
+
+template<typename T>
+using sf_coro_promise = typename coro::coroutine_traits<
+    sync_future<T>>::promise_type;
+
+queue<variant<sf_coro_promise<int>, sf_coro_promise<double>>>
+    g_promises;
+
+void deliver_promise() {
+  struct Setter {
+    void operator()( sf_coro_promise<int>& p ) { p.set( 1 ); }
+    void operator()( sf_coro_promise<double>& p ) {
+      p.set( 2.2 );
+    }
+  };
+  if( !g_promises.empty() ) {
+    visit( Setter{}, g_promises.front() );
+    g_promises.pop();
+  }
+}
+
+sync_future<int> sync_future_int() {
+  sf_coro_promise<int> p;
+  g_promises.emplace( p );
+  return p.get_future();
+}
+
+sync_future<double> sync_future_double() {
+  sf_coro_promise<double> p;
+  g_promises.emplace( p );
+  return p.get_future();
+}
+
+sync_future<int> sync_future_sum() {
+  co_return                        //
+      co_await sync_future_int() + //
+      co_await sync_future_int() + //
+      co_await sync_future_int();
+}
+
+template<typename Func, typename... Args>
+auto co_invoke( Func&& func, Args... args )
+    -> sync_future<decltype( std::forward<Func>( func )(
+        std::declval<typename Args::value_t>()... ) )> {
+  co_return std::forward<Func>( func )( ( co_await args )... );
+}
+
+template<typename Func>
+struct co_lift {
+  Func func_;
+  co_lift( Func&& func ) : func_( std::move( func ) ) {}
+  co_lift( Func const& func ) : func_( func ) {}
+  template<typename... Args>
+  auto operator()( Args... args ) {
+    return co_invoke( func_, args... );
+  }
+};
+
+sync_future<string> sync_future_string() {
+  int    n = co_await sync_future_sum();
+  double d = co_await sync_future_double();
+
+  int m = co_await sync_future_sum();
+  for( int i = 0; i < m; ++i ) //
+    d += co_await sync_future_double();
+
+  int sum = co_await co_lift{ std::plus<>{} }(
+      sync_future_sum(), sync_future_sum() );
+
+  auto f = [&]() -> sync_future<int> {
+    int res = co_await sync_future_sum() *
+              int( co_await sync_future_double() );
+    co_return res;
+  };
+  int z = co_await f() + sum;
+
+  co_return to_string( n ) + "-" + to_string( z ) + "-" +
+      to_string( d );
+}
+
+TEST_CASE( "[sync-future] coro" ) {
+  sync_future<string> sfs = sync_future_string();
+  int                 i   = 0;
+  while( !sfs.ready() ) {
+    ++i;
+    deliver_promise();
+  }
+  REQUIRE( sfs.get() == "3-12-8.800000" );
+  REQUIRE( i == 20 );
 }
 
 } // namespace
