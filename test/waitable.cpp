@@ -11,6 +11,7 @@
 #include "testing.hpp"
 
 // Revolution Now
+#include "co-registry.hpp"
 #include "waitable-coro.hpp"
 #include "waitable.hpp"
 
@@ -30,8 +31,7 @@ using namespace std;
 using namespace rn;
 
 // Unit test for waitable's default template parameter.
-static_assert(
-    is_same_v<waitable<>, waitable<monostate>> );
+static_assert( is_same_v<waitable<>, waitable<monostate>> );
 
 struct shared_int_state
   : public internal::sync_shared_state_base<int> {
@@ -240,8 +240,8 @@ TEST_CASE( "[waitable] formatting" ) {
 }
 
 template<typename T>
-using sf_coro_promise = typename coro::coroutine_traits<
-    waitable<T>>::promise_type;
+using sf_coro_promise =
+    typename coro::coroutine_traits<waitable<T>>::promise_type;
 
 queue<variant<sf_coro_promise<int>, sf_coro_promise<double>>>
     g_promises;
@@ -272,7 +272,7 @@ waitable<double> waitable_double() {
 }
 
 waitable<int> waitable_sum() {
-  co_return                        //
+  co_return                     //
       co_await waitable_int() + //
       co_await waitable_int() + //
       co_await waitable_int();
@@ -304,8 +304,8 @@ waitable<string> waitable_string() {
   for( int i = 0; i < m; ++i ) //
     d += co_await waitable_double();
 
-  int sum = co_await co_lift{ std::plus<>{} }(
-      waitable_sum(), waitable_sum() );
+  int sum = co_await co_lift{ std::plus<>{} }( waitable_sum(),
+                                               waitable_sum() );
 
   auto f = [&]() -> waitable<int> {
     int res = co_await waitable_sum() *
@@ -320,10 +320,11 @@ waitable<string> waitable_string() {
 
 TEST_CASE( "[waitable] coro" ) {
   waitable<string> sfs = waitable_string();
-  int                 i   = 0;
+  int              i   = 0;
   while( !sfs.ready() ) {
     ++i;
     deliver_promise();
+    run_all_coroutines();
   }
   REQUIRE( sfs.get() == "3-12-8.800000" );
   REQUIRE( i == 20 );

@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "app-state.hpp"
+#include "co-registry.hpp"
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
 #include "input.hpp"
@@ -94,8 +95,7 @@ using InputReceivedFunc = function_ref<void()>;
 using FrameLoopBodyFunc =
     function_ref<bool( InputReceivedFunc )>;
 
-void frame_loop_impl( FrameLoopBodyFunc body ) {
-  // FIXME: temporary.
+void frame_loop_timer( FrameLoopBodyFunc body ) {
   static bool guard = false;
   CHECK( !guard, "cannot re-enter frame_loop function." );
   guard = true;
@@ -129,6 +129,61 @@ void frame_loop_impl( FrameLoopBodyFunc body ) {
   }
 }
 
+bool advance_all_state() {
+  if( advance_app_state() ) return true;
+  advance_plane_state();
+  return false;
+}
+
+// Called once per frame.
+bool frame_loop_body( InputReceivedFunc input_received ) {
+  // ----------------------------------------------------------
+  // 1. Get Input.
+  input::pump_event_queue();
+
+  auto is_win_resize = []( auto const& e ) {
+    if_get( e, input::win_event_t, val ) {
+      return val.type == input::e_win_event_type::resized;
+    }
+    return false;
+  };
+
+  auto& q = input::event_queue();
+  while( q.size() > 0 ) {
+    input_received();
+    UNWRAP_CHECK( event, q.front() );
+    if( is_win_resize( event ) ) on_main_window_resized();
+    (void)send_input_to_planes( event );
+    q.pop();
+  }
+
+  run_all_coroutines();
+
+  // ----------------------------------------------------------
+  // 2. Update State.
+  if( advance_all_state() ) return true;
+
+  run_all_coroutines();
+
+  // This invokes (synchronous/blocking) callbacks to any sub-
+  // scribers that want to be notified at regular tick or time
+  // intervals.
+  notify_subscribers();
+
+  // Keep the state of the moving averages up to date even when
+  // there are no ticks happening on them. Specifically, if there
+  // are no ticks happening, then this will slowly cause the av-
+  // erage to drop.
+  for( auto& p : g_event_counts ) p.second.update();
+
+  // ----------------------------------------------------------
+  // 3. Draw.
+  draw_all_planes();
+  ::SDL_RenderPresent( g_renderer );
+
+  return false;
+};
+
 } // namespace
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc func,
@@ -149,56 +204,6 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-bool advance_all_state() {
-  if( advance_app_state() ) return true;
-  advance_plane_state();
-  return false;
-}
-
-void frame_loop() {
-  frame_loop_impl( []( InputReceivedFunc input_received ) {
-    // ----------------------------------------------------------
-    // 1. Get Input.
-    input::pump_event_queue();
-
-    auto is_win_resize = []( auto const& e ) {
-      if_get( e, input::win_event_t, val ) {
-        return val.type == input::e_win_event_type::resized;
-      }
-      return false;
-    };
-
-    auto& q = input::event_queue();
-    while( q.size() > 0 ) {
-      input_received();
-      UNWRAP_CHECK( event, q.front() );
-      if( is_win_resize( event ) ) on_main_window_resized();
-      (void)send_input_to_planes( event );
-      q.pop();
-    }
-
-    // ----------------------------------------------------------
-    // 2. Update State.
-    if( advance_all_state() ) return true;
-
-    // This invokes (synchronous/blocking) callbacks to any sub-
-    // scribers that want to be notified at regular tick or time
-    // intervals.
-    notify_subscribers();
-
-    // Keep the state of the moving averages up to date even when
-    // there are no ticks happening on them. Specifically, if
-    // there are no ticks happening, then this will slowly cause
-    // the average to drop.
-    for( auto& p : g_event_counts ) p.second.update();
-
-    // ----------------------------------------------------------
-    // 3. Draw.
-    draw_all_planes();
-    ::SDL_RenderPresent( g_renderer );
-
-    return false;
-  } );
-}
+void frame_loop() { frame_loop_timer( frame_loop_body ); }
 
 } // namespace rn

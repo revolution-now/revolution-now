@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "co-registry.hpp"
 #include "waitable.hpp"
 
 // base
@@ -24,10 +25,10 @@ template<typename T>
 auto operator co_await( waitable<T> const& sf ) {
   struct awaitable {
     waitable<T> sf_;
-    bool           await_ready() noexcept { return sf_.ready(); }
+    bool        await_ready() noexcept { return sf_.ready(); }
     void await_suspend( coro::coroutine_handle<> h ) noexcept {
       sf_.shared_state()->add_callback(
-          [h]( T const& ) mutable { h.resume(); } );
+          [h]( T const& ) { queue_coroutine_handle( h ); } );
     }
     T await_resume() noexcept { return sf_.get_and_reset(); }
   };
