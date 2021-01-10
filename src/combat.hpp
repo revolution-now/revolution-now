@@ -16,8 +16,8 @@
 #include "analysis.hpp"
 #include "fight.hpp"
 #include "macros.hpp"
-#include "sync-future.hpp"
 #include "unit.hpp"
+#include "waitable.hpp"
 
 // base
 #include "base/variant.hpp"
@@ -54,7 +54,7 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
   CombatAnalysis( UnitId id_, orders_t orders_,
                   std::vector<UnitId> units_to_prioritize_,
                   Coord attack_src_, Coord attack_target_,
-                  unit_combat_verdict  desc_,
+                  unit_combat_verdict    desc_,
                   maybe<UnitId>          target_unit_,
                   maybe<FightStatistics> fight_stats_ )
     : parent_t( id_, orders_,
@@ -90,12 +90,12 @@ struct CombatAnalysis : public OrdersAnalysis<CombatAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool              allowed_() const;
-  sync_future<bool> confirm_explain_() const;
-  void              affect_orders_() const;
+  bool           allowed_() const;
+  waitable<bool> confirm_explain_() const;
+  void           affect_orders_() const;
 
   static maybe<CombatAnalysis> analyze_( UnitId   id,
-                                       orders_t orders );
+                                         orders_t orders );
 };
 NOTHROW_MOVE( CombatAnalysis );
 

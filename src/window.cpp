@@ -626,11 +626,11 @@ void text_input_box(
   );
 }
 
-sync_future<maybe<int>> int_input_box( std::string_view title,
-                                       std::string_view msg,
-                                       maybe<int>       min,
-                                       maybe<int>       max ) {
-  sync_promise<maybe<int>> s_promise;
+waitable<maybe<int>> int_input_box( std::string_view title,
+                                    std::string_view msg,
+                                    maybe<int>       min,
+                                    maybe<int>       max ) {
+  waitable_promise<maybe<int>> s_promise;
   text_input_box( title, msg, make_int_validator( min, max ),
                   [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value(
@@ -639,9 +639,9 @@ sync_future<maybe<int>> int_input_box( std::string_view title,
   return s_promise.get_future();
 }
 
-sync_future<maybe<string>> str_input_box( string_view title,
-                                          string_view msg ) {
-  sync_promise<maybe<string>> s_promise;
+waitable<maybe<string>> str_input_box( string_view title,
+                                       string_view msg ) {
+  waitable_promise<maybe<string>> s_promise;
   text_input_box( title, msg, L( _.size() > 0 ),
                   [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value( result );
@@ -686,9 +686,9 @@ void select_box(
   );
 }
 
-sync_future<std::string> select_box( std::string_view title,
-                                     vector<string>   options ) {
-  sync_promise<string> s_promise;
+waitable<std::string> select_box( std::string_view title,
+                                  vector<string>   options ) {
+  waitable_promise<string> s_promise;
   select_box( title, options,
               [s_promise]( string const& result ) mutable {
                 s_promise.set_value( result );
@@ -702,21 +702,21 @@ void yes_no( std::string_view                 title,
                                      std::move( on_result ) );
 }
 
-sync_future<e_confirm> yes_no( std::string_view title ) {
+waitable<e_confirm> yes_no( std::string_view title ) {
   return select_box_enum<e_confirm>( title );
 }
 
-sync_future<> message_box( string_view msg ) {
-  sync_promise<monostate> s_promise;
+waitable<> message_box( string_view msg ) {
+  waitable_promise<monostate> s_promise;
   ok_box( msg, /*on_closing=*/[s_promise]() mutable {
     s_promise.set_value( monostate{} );
   } );
   return s_promise.get_future();
 }
 
-sync_future<vector<UnitSelection>> unit_selection_box(
+waitable<vector<UnitSelection>> unit_selection_box(
     vector<UnitId> const& ids, bool allow_activation ) {
-  sync_promise<vector<UnitSelection>> s_promise;
+  waitable_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
       [s_promise](

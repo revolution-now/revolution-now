@@ -16,7 +16,7 @@
 #include "fmt-helper.hpp"
 #include "id.hpp"
 #include "orders.hpp"
-#include "sync-future.hpp"
+#include "waitable.hpp"
 
 namespace rn {
 
@@ -30,23 +30,24 @@ struct UnitInputResponse {
     return !( *this == rhs );
   }
 
-  UnitId        id;
-  maybe<orders_t> orders;
-  std::vector<UnitId>   add_to_front;
-  std::vector<UnitId>   add_to_back;
+  UnitId              id;
+  maybe<orders_t>     orders;
+  std::vector<UnitId> add_to_front;
+  std::vector<UnitId> add_to_back;
 };
 
 enum class e_depixelate_anim { none, death, demote };
 
 void landview_ensure_unit_visible( UnitId id );
 
-sync_future<UnitInputResponse> landview_ask_orders( UnitId id );
+waitable<UnitInputResponse> landview_ask_orders( UnitId id );
 
-sync_future<> landview_animate_move( UnitId      id,
-                                     e_direction direction );
-sync_future<> landview_animate_attack(
-    UnitId attacker, UnitId defender, bool attacker_wins,
-    e_depixelate_anim dp_anim );
+waitable<> landview_animate_move( UnitId      id,
+                                  e_direction direction );
+waitable<> landview_animate_attack( UnitId attacker,
+                                    UnitId defender,
+                                    bool   attacker_wins,
+                                    e_depixelate_anim dp_anim );
 
 struct Plane;
 Plane* land_view_plane();

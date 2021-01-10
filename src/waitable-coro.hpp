@@ -1,11 +1,11 @@
 /****************************************************************
-**sync-future-coro.hpp
+**waitable-coro.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2021-01-09.
 *
-* Description: Enable sync_future to work with coroutines.
+* Description: Enable waitable to work with coroutines.
 *
 *****************************************************************/
 #pragma once
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "sync-future.hpp"
+#include "waitable.hpp"
 
 // base
 #include "base/co-compat.hpp"
@@ -21,9 +21,9 @@
 namespace rn {
 
 template<typename T>
-auto operator co_await( sync_future<T> const& sf ) {
+auto operator co_await( waitable<T> const& sf ) {
   struct awaitable {
-    sync_future<T> sf_;
+    waitable<T> sf_;
     bool           await_ready() noexcept { return sf_.ready(); }
     void await_suspend( coro::coroutine_handle<> h ) noexcept {
       sf_.shared_state()->add_callback(
@@ -39,7 +39,7 @@ auto operator co_await( sync_future<T> const& sf ) {
 namespace CORO_NS {
 
 template<typename T, typename... Args>
-struct coroutine_traits<::rn::sync_future<T>, Args...> {
+struct coroutine_traits<::rn::waitable<T>, Args...> {
   struct promise_type {
     promise_type() = default;
 
@@ -67,7 +67,7 @@ struct coroutine_traits<::rn::sync_future<T>, Args...> {
 
     void unhandled_exception() { SHOULD_NOT_BE_HERE; }
 
-    rn::sync_promise<T> s_promise_{};
+    rn::waitable_promise<T> s_promise_{};
   };
 };
 

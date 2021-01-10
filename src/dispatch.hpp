@@ -17,8 +17,8 @@
 #include "combat.hpp"
 #include "job.hpp"
 #include "macros.hpp"
-#include "sync-future.hpp"
 #include "travel.hpp"
+#include "waitable.hpp"
 
 // base
 #include "base/variant.hpp"
@@ -38,9 +38,9 @@ using PlayerIntent = base::variant<
 NOTHROW_MOVE( PlayerIntent );
 
 maybe<PlayerIntent> player_intent( UnitId          id,
-                                 orders_t const& orders );
+                                   orders_t const& orders );
 
-sync_future<bool> confirm_explain( PlayerIntent* analysis );
+waitable<bool> confirm_explain( PlayerIntent* analysis );
 
 void affect_orders( PlayerIntent const& analysis );
 

@@ -14,9 +14,9 @@
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "macros.hpp"
-#include "sync-future-coro.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base
@@ -43,7 +43,7 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 // Returns future of colony name, unless player clicks Cancel.
-sync_future<maybe<string>> build_colony_ui_routine() {
+waitable<maybe<string>> build_colony_ui_routine() {
   ui::e_confirm proceed =
       co_await ui::yes_no( "Build colony here?" );
   if( proceed == ui::e_confirm::no ) co_return nothing;
@@ -64,10 +64,10 @@ bool JobAnalysis::allowed_() const {
   return holds<e_unit_job_good>( desc ).has_value();
 }
 
-sync_future<bool> JobAnalysis::confirm_explain_() {
+waitable<bool> JobAnalysis::confirm_explain_() {
   return overload_visit(
       desc,
-      [&]( e_unit_job_good val ) -> sync_future<bool> {
+      [&]( e_unit_job_good val ) -> waitable<bool> {
         switch( val ) {
           case e_unit_job_good::disband: {
             auto q =
@@ -84,7 +84,7 @@ sync_future<bool> JobAnalysis::confirm_explain_() {
             co_return !colony_name.empty();
         }
       },
-      []( e_unit_job_error val ) -> sync_future<bool> {
+      []( e_unit_job_error val ) -> waitable<bool> {
         switch( val ) {
           case e_unit_job_error::ship_cannot_fortify:
             co_await ui::message_box(

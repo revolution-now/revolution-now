@@ -15,7 +15,7 @@
 // Revolution Now
 #include "analysis.hpp"
 #include "macros.hpp"
-#include "sync-future.hpp"
+#include "waitable.hpp"
 
 // base
 #include "base/variant.hpp"
@@ -55,11 +55,12 @@ struct JobAnalysis : public OrdersAnalysis<JobAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool              allowed_() const;
-  sync_future<bool> confirm_explain_();
-  void              affect_orders_() const;
+  bool           allowed_() const;
+  waitable<bool> confirm_explain_();
+  void           affect_orders_() const;
 
-  static maybe<JobAnalysis> analyze_( UnitId id, orders_t orders );
+  static maybe<JobAnalysis> analyze_( UnitId   id,
+                                      orders_t orders );
 };
 NOTHROW_MOVE( JobAnalysis );
 

@@ -13,7 +13,7 @@ include "id.hpp";
 include "land-view.hpp";
 include "no-serial.hpp";
 include "physics.hpp";
-include "sync-future.hpp";
+include "waitable.hpp";
 include "utype.hpp";
 
 # Rnl
@@ -33,7 +33,7 @@ namespace rn;
 sumtype LandViewState {
   none:
   future:
-    no_serial<sync_future<>> s_future;
+    no_serial<waitable<>> s_future;
   blinking_unit:
     UnitId id;
     # Units that the player has asked to add to the orders queue
@@ -84,11 +84,11 @@ sumtype LandViewEvent {
 sumtype LandViewAnim {
   none:
   move:
-    sync_promise<> s_promise;
+    waitable_promise<> s_promise;
     UnitId id;
     e_direction d;
   attack:
-    sync_promise<> s_promise;
+    waitable_promise<> s_promise;
     UnitId attacker;
     UnitId defender;
     bool attacker_wins;

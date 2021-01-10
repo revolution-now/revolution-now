@@ -95,7 +95,7 @@ fsm_class( App ) { //
   fsm_transition( App, main_in_game, leave, ->, leaving ) {
     (void)cur;
     if( event.dirty ) {
-      // FIXME: use sync_futures here.
+      // FIXME: use waitables here.
       ui::ok_cancel(
           "Really leave game without saving?",
           []( ui::e_ok_cancel oc ) {

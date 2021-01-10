@@ -28,7 +28,7 @@ namespace {
 
 template<typename T>
 maybe<PlayerIntent> try_dispatch( UnitId          id,
-                                orders_t const& orders ) {
+                                  orders_t const& orders ) {
   return T::analyze( id, orders );
 }
 
@@ -44,7 +44,7 @@ vector<function<maybe<PlayerIntent>( UnitId, orders_t const& )>>
 } // namespace
 
 maybe<PlayerIntent> player_intent( UnitId          id,
-                                 orders_t const& orders ) {
+                                   orders_t const& orders ) {
   maybe<PlayerIntent> maybe_res;
 
   auto const& unit = unit_from_id( id );
@@ -60,7 +60,7 @@ maybe<PlayerIntent> player_intent( UnitId          id,
   return maybe_res;
 }
 
-sync_future<bool> confirm_explain( PlayerIntent* analysis ) {
+waitable<bool> confirm_explain( PlayerIntent* analysis ) {
   return std::visit(
       []( auto& _ ) { return _.confirm_explain(); }, *analysis );
 }

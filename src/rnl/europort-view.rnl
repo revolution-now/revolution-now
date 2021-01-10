@@ -11,7 +11,7 @@
 include "cargo.hpp";
 include "commodity.hpp";
 include "id.hpp";
-include "sync-future.hpp";
+include "waitable.hpp";
 
 namespace rn;
 
@@ -103,7 +103,7 @@ sumtype DragArc {
 sumtype EuroviewState {
   normal:
   future:
-    sync_future<> s_future;
+    waitable<> s_future;
 };
 
 sumtype EuroviewEvent {

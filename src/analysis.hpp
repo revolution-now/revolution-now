@@ -16,7 +16,7 @@
 #include "coord.hpp"
 #include "nation.hpp"
 #include "orders.hpp"
-#include "sync-future.hpp"
+#include "waitable.hpp"
 
 namespace rn {
 
@@ -51,7 +51,7 @@ struct OrdersAnalysis {
   // be asked for any kind of confirmation. In addition, if the
   // order is not allowed, the player may be given an
   // explantation as to why.
-  sync_future<bool> confirm_explain() {
+  waitable<bool> confirm_explain() {
     return child()->confirm_explain_();
   }
 
@@ -102,14 +102,14 @@ struct MetaAnalysis : public OrdersAnalysis<MetaAnalysis> {
 
   // ---------------- "Virtual" Methods ------------------------
 
-  bool              allowed_() const { return true; }
-  sync_future<bool> confirm_explain_() const {
-    return make_sync_future<bool>( true );
+  bool           allowed_() const { return true; }
+  waitable<bool> confirm_explain_() const {
+    return make_waitable<bool>( true );
   }
   void affect_orders_() const;
 
   static maybe<MetaAnalysis> analyze_( UnitId   id,
-                                     orders_t orders );
+                                       orders_t orders );
 };
 NOTHROW_MOVE( MetaAnalysis );
 

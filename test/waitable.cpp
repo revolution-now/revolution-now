@@ -1,18 +1,18 @@
 /****************************************************************
-**sync-future.cpp
+**waitable.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-12-08.
 *
-* Description: Unit tests for the sync-future module.
+* Description: Unit tests for the waitable module.
 *
 *****************************************************************/
 #include "testing.hpp"
 
 // Revolution Now
-#include "sync-future-coro.hpp"
-#include "sync-future.hpp"
+#include "waitable-coro.hpp"
+#include "waitable.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -20,8 +20,8 @@
 // C++ standard library
 #include <queue>
 
-FMT_TO_CATCH_T( ( T ), ::rn::sync_future );
-FMT_TO_CATCH_T( ( T ), ::rn::sync_promise );
+FMT_TO_CATCH_T( ( T ), ::rn::waitable );
+FMT_TO_CATCH_T( ( T ), ::rn::waitable_promise );
 
 namespace rn {
 namespace {
@@ -29,9 +29,9 @@ namespace {
 using namespace std;
 using namespace rn;
 
-// Unit test for sync_future's default template parameter.
+// Unit test for waitable's default template parameter.
 static_assert(
-    is_same_v<sync_future<>, sync_future<monostate>> );
+    is_same_v<waitable<>, waitable<monostate>> );
 
 struct shared_int_state
   : public internal::sync_shared_state_base<int> {
@@ -55,18 +55,18 @@ struct shared_int_state
   maybe<int> maybe_int;
 };
 
-TEST_CASE( "[sync-future] future default construction" ) {
-  sync_future<> s_future;
+TEST_CASE( "[waitable] future default construction" ) {
+  waitable<> s_future;
   REQUIRE( s_future.empty() );
   REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
   REQUIRE( !s_future.taken() );
 }
 
-TEST_CASE( "[sync-future] future api basic" ) {
+TEST_CASE( "[waitable] future api basic" ) {
   auto ss = make_shared<shared_int_state>();
 
-  sync_future<int> s_future( ss );
+  waitable<int> s_future( ss );
 
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
@@ -92,10 +92,10 @@ TEST_CASE( "[sync-future] future api basic" ) {
   REQUIRE( s_future.taken() );
 }
 
-TEST_CASE( "[sync-future] future api with continuation" ) {
+TEST_CASE( "[waitable] future api with continuation" ) {
   auto ss = make_shared<shared_int_state>();
 
-  sync_future<int> s_future( ss );
+  waitable<int> s_future( ss );
 
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
@@ -175,25 +175,25 @@ TEST_CASE( "[sync-future] future api with continuation" ) {
   REQUIRE( s_future3.taken() );
 }
 
-TEST_CASE( "[sync-future] consume" ) {
+TEST_CASE( "[waitable] consume" ) {
   bool run = false;
 
-  auto s_future = make_sync_future<int>( 5 ).consume(
+  auto s_future = make_waitable<int>( 5 ).consume(
       [&]( int ) { run = true; } );
 
   static_assert(
-      std::is_same_v<decltype( s_future ), sync_future<>> );
+      std::is_same_v<decltype( s_future ), waitable<>> );
 
   REQUIRE( run == false );
   s_future.get_and_reset();
   REQUIRE( run == true );
 }
 
-TEST_CASE( "[sync-future] promise api basic api" ) {
-  sync_promise<int> s_promise;
+TEST_CASE( "[waitable] promise api basic api" ) {
+  waitable_promise<int> s_promise;
   REQUIRE( !s_promise.has_value() );
 
-  sync_future<int> s_future = s_promise.get_future();
+  waitable<int> s_future = s_promise.get_future();
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
@@ -219,11 +219,11 @@ TEST_CASE( "[sync-future] promise api basic api" ) {
   REQUIRE( s_future.taken() );
 }
 
-TEST_CASE( "[sync-future] formatting" ) {
-  sync_promise<int> s_promise;
+TEST_CASE( "[waitable] formatting" ) {
+  waitable_promise<int> s_promise;
   REQUIRE( fmt::format( "{}", s_promise ) == "<empty>" );
 
-  sync_future<int> s_future = s_promise.get_future();
+  waitable<int> s_future = s_promise.get_future();
   REQUIRE( fmt::format( "{}", s_future ) == "<waiting>" );
 
   s_promise.set_value( 3 );
@@ -241,7 +241,7 @@ TEST_CASE( "[sync-future] formatting" ) {
 
 template<typename T>
 using sf_coro_promise = typename coro::coroutine_traits<
-    sync_future<T>>::promise_type;
+    waitable<T>>::promise_type;
 
 queue<variant<sf_coro_promise<int>, sf_coro_promise<double>>>
     g_promises;
@@ -259,28 +259,28 @@ void deliver_promise() {
   }
 }
 
-sync_future<int> sync_future_int() {
+waitable<int> waitable_int() {
   sf_coro_promise<int> p;
   g_promises.emplace( p );
   return p.get_future();
 }
 
-sync_future<double> sync_future_double() {
+waitable<double> waitable_double() {
   sf_coro_promise<double> p;
   g_promises.emplace( p );
   return p.get_future();
 }
 
-sync_future<int> sync_future_sum() {
+waitable<int> waitable_sum() {
   co_return                        //
-      co_await sync_future_int() + //
-      co_await sync_future_int() + //
-      co_await sync_future_int();
+      co_await waitable_int() + //
+      co_await waitable_int() + //
+      co_await waitable_int();
 }
 
 template<typename Func, typename... Args>
 auto co_invoke( Func&& func, Args... args )
-    -> sync_future<decltype( std::forward<Func>( func )(
+    -> waitable<decltype( std::forward<Func>( func )(
         std::declval<typename Args::value_t>()... ) )> {
   co_return std::forward<Func>( func )( ( co_await args )... );
 }
@@ -296,20 +296,20 @@ struct co_lift {
   }
 };
 
-sync_future<string> sync_future_string() {
-  int    n = co_await sync_future_sum();
-  double d = co_await sync_future_double();
+waitable<string> waitable_string() {
+  int    n = co_await waitable_sum();
+  double d = co_await waitable_double();
 
-  int m = co_await sync_future_sum();
+  int m = co_await waitable_sum();
   for( int i = 0; i < m; ++i ) //
-    d += co_await sync_future_double();
+    d += co_await waitable_double();
 
   int sum = co_await co_lift{ std::plus<>{} }(
-      sync_future_sum(), sync_future_sum() );
+      waitable_sum(), waitable_sum() );
 
-  auto f = [&]() -> sync_future<int> {
-    int res = co_await sync_future_sum() *
-              int( co_await sync_future_double() );
+  auto f = [&]() -> waitable<int> {
+    int res = co_await waitable_sum() *
+              int( co_await waitable_double() );
     co_return res;
   };
   int z = co_await f() + sum;
@@ -318,8 +318,8 @@ sync_future<string> sync_future_string() {
       to_string( d );
 }
 
-TEST_CASE( "[sync-future] coro" ) {
-  sync_future<string> sfs = sync_future_string();
+TEST_CASE( "[waitable] coro" ) {
+  waitable<string> sfs = waitable_string();
   int                 i   = 0;
   while( !sfs.ready() ) {
     ++i;

@@ -27,11 +27,11 @@
 #include "render.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
-#include "sync-future-coro.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
+#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base
@@ -64,11 +64,11 @@ vector<e_nation> const g_turn_ordering{
 
 template<typename T = monostate>
 using SyncFutureSerial =
-    no_serial<sync_future<T>, /*bFailOnSerialize=*/false>;
+    no_serial<waitable<T>, /*bFailOnSerialize=*/false>;
 
 template<typename T = monostate>
 using SyncFutureNoSerial =
-    no_serial<sync_future<T>, /*bFailOnSerialize=*/true>;
+    no_serial<waitable<T>, /*bFailOnSerialize=*/true>;
 
 } // namespace
 } // namespace rn
@@ -104,10 +104,10 @@ bool animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
-sync_future<> kick_off_unit_animation(
+waitable<> kick_off_unit_animation(
     UnitId id, PlayerIntent const& intent ) {
   // Default future object that is born ready.
-  auto def = make_sync_future<>();
+  auto def = make_waitable<>();
   // Kick off animation if needed.
   return overload_visit(
       intent,
@@ -177,7 +177,7 @@ fsm_class( UnitInput ) { //
                   executing_orders ) {
     (void)event;
     CHECK( cur.response->orders.has_value() );
-    return { /*conf_anim=*/sync_future<bool>{},
+    return { /*conf_anim=*/waitable<bool>{},
              /*orders=*/*cur.response->orders };
   }
   fsm_transition( UnitInput, executing_orders, end, ->,
@@ -189,7 +189,7 @@ fsm_class( UnitInput ) { //
 
 FSM_DEFINE_FORMAT_RN_( UnitInput );
 
-sync_future<bool> execute_orders(
+waitable<bool> execute_orders(
     UnitId id, maybe<PlayerIntent>& player_intent,
     UnitInputFsm& fsm ) {
   CHECK( player_intent );
@@ -276,7 +276,7 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
     }
     case UnitInputState::e::asking: {
       auto& val = v.get<UnitInputState::asking>();
-      // sync_future could be empty in two situations: the first
+      // waitable could be empty in two situations: the first
       // time we pass through this code and just after deserial-
       // ization.
       if( val.response->empty() )

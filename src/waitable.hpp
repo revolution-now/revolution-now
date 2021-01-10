@@ -1,5 +1,5 @@
 /****************************************************************
-**sync-future.hpp
+**waitable.hpp
 *
 * Project: Revolution Now
 *
@@ -48,37 +48,37 @@ public:
 } // namespace internal
 
 template<typename T>
-class sync_future;
+class waitable;
 
 template<typename>
-inline constexpr bool is_sync_future_v = false;
+inline constexpr bool is_waitable_v = false;
 
 template<typename T>
-inline constexpr bool is_sync_future_v<sync_future<T>> = true;
+inline constexpr bool is_waitable_v<waitable<T>> = true;
 
 /****************************************************************
-** sync_future
+** waitable
 *****************************************************************/
 // Single-threaded "future" object: represents a value that will
 // become available in the future by the same thread.
 //
-// The sync_future has three states:
+// The waitable has three states:
 //
 //   waiting --> ready --> empty
 //
 // It starts off in the `waiting` state upon construction (from a
-// sync_promise) then transitions to `ready` when the result be-
-// comes available. At this point, the value can be retrieved
+// waitable_promise) then transitions to `ready` when the result
+// becomes available. At this point, the value can be retrieved
 // using the get or get_and_reset methods (the latter also causes
 // a transitions to the `empty` state). Once in the `empty` state
-// the sync_future is "dead" forever.
+// the waitable is "dead" forever.
 //
 // Example usage:
 //
-//   sync_promise<int> s_promise;
-//   sync_future<int>  s_future1 = s_promise.get_future();
+//   waitable_promise<int> s_promise;
+//   waitable<int>  s_future1 = s_promise.get_future();
 //
-//   sync_future<int> s_future2 = s_future1.fmap(
+//   waitable<int> s_future2 = s_future1.fmap(
 //       []( int n ){ return n+1; } );
 //
 //   s_promise.set_value( 3 );
@@ -91,7 +91,7 @@ inline constexpr bool is_sync_future_v<sync_future<T>> = true;
 //   assert( s_future2.empty() );
 //
 template<typename T = std::monostate>
-class [[nodiscard]] sync_future {
+class [[nodiscard]] waitable {
   template<typename U>
   using SharedStatePtr =
       std::shared_ptr<internal::sync_shared_state_base<U>>;
@@ -99,22 +99,22 @@ class [[nodiscard]] sync_future {
 public:
   using value_t = T;
 
-  sync_future() {}
+  waitable() {}
 
-  sync_future( T const& ready_val ) {
-    *this = make_sync_future<T>( ready_val );
+  waitable( T const& ready_val ) {
+    *this = make_waitable<T>( ready_val );
   }
 
   // This constructor should not be used by client code.
-  explicit sync_future( SharedStatePtr<T> shared_state )
+  explicit waitable( SharedStatePtr<T> shared_state )
     : shared_state_{ shared_state }, taken_{ false } {}
 
-  bool operator==( sync_future<T> const& rhs ) const {
+  bool operator==( waitable<T> const& rhs ) const {
     // Not comparing `taken_`.
     return shared_state_.get() == rhs.shared_state_.get();
   }
 
-  bool operator!=( sync_future<T> const& rhs ) const {
+  bool operator!=( waitable<T> const& rhs ) const {
     return !( *this == rhs );
   }
 
@@ -133,20 +133,20 @@ public:
   bool taken() const { return taken_; }
 
   // Gets the value (running any continuations) and returns the
-  // value, leaving the sync_future in the same state.
+  // value, leaving the waitable in the same state.
   T get() {
     CHECK( ready(),
-           "attempt to get value from sync_future when not in "
+           "attempt to get value from waitable when not in "
            "`ready` state." );
     taken_ = true;
     return shared_state_->get();
   }
 
   // Gets the value (running any continuations) and resets the
-  // sync_future to empty state.
+  // waitable to empty state.
   T get_and_reset() {
     CHECK( ready(),
-           "attempt to get value from sync_future when not in "
+           "attempt to get value from waitable when not in "
            "`ready` state." );
     T res = shared_state_->get();
     shared_state_.reset();
@@ -158,7 +158,7 @@ public:
   auto fmap( Func&& func ) {
     CHECK( !empty(),
            "attempting to attach a continuation to an empty "
-           "sync_future." );
+           "waitable." );
     using NewResult_t =
         std::decay_t<std::invoke_result_t<Func, T>>;
 
@@ -198,13 +198,13 @@ public:
       Func continuation_;
     };
 
-    return sync_future<NewResult_t>(
+    return waitable<NewResult_t>(
         std::make_shared<sync_shared_state_with_continuation>(
             shared_state_, std::forward<Func>( func ) ) );
   }
 
   template<typename Func>
-  sync_future<> consume( Func&& func ) {
+  waitable<> consume( Func&& func ) {
     return fmap( [func = std::forward<Func>( func )](
                      auto const& value ) {
       func( value );
@@ -212,8 +212,8 @@ public:
     } );
   }
 
-  // We need this so that sync_future<T> can access the shared
-  // state of sync_future<U>. Haven't figured out a way to make
+  // We need this so that waitable<T> can access the shared
+  // state of waitable<U>. Haven't figured out a way to make
   // them friends yet.
   SharedStatePtr<T> shared_state() { return shared_state_; }
 
@@ -223,16 +223,16 @@ private:
 };
 
 /****************************************************************
-** sync_promise
+** waitable_promise
 *****************************************************************/
 // Single-threaded "promise" object: allows creating futures and
 // sending values to them in the same thread.
 //
 // Example usage:
 //
-//   sync_promise<int> s_promise;
+//   waitable_promise<int> s_promise;
 //
-//   sync_future<int> s_future = s_promise.get_future();
+//   waitable<int> s_future = s_promise.get_future();
 //   assert( s_future.waiting() );
 //
 //   s_promise.set_value( 3 );
@@ -243,7 +243,7 @@ private:
 //   assert( s_future.empty() );
 //
 template<typename T = std::monostate>
-class sync_promise {
+class waitable_promise {
   struct sync_shared_state
     : public internal::sync_shared_state_base<T> {
     using Base_t = internal::sync_shared_state_base<T>;
@@ -281,13 +281,13 @@ class sync_promise {
   };
 
 public:
-  sync_promise() : shared_state_( new sync_shared_state ) {}
+  waitable_promise() : shared_state_( new sync_shared_state ) {}
 
-  bool operator==( sync_promise<T> const& rhs ) const {
+  bool operator==( waitable_promise<T> const& rhs ) const {
     return shared_state_.get() == rhs.shared_state_.get();
   }
 
-  bool operator!=( sync_promise<T> const& rhs ) const {
+  bool operator!=( waitable_promise<T> const& rhs ) const {
     return !( *this == rhs );
   }
 
@@ -313,8 +313,8 @@ public:
     shared_state_->do_callbacks();
   }
 
-  sync_future<T> get_future() const {
-    return sync_future<T>( shared_state_ );
+  waitable<T> get_future() const {
+    return waitable<T>( shared_state_ );
   }
 
 private:
@@ -325,7 +325,7 @@ private:
 ** Helpers
 *****************************************************************/
 template<typename Fsm>
-void advance_fsm_ui_state( Fsm* fsm, sync_future<>* s_future ) {
+void advance_fsm_ui_state( Fsm* fsm, waitable<>* s_future ) {
   CHECK( !s_future->empty() );
   if( s_future->ready() ) {
     fsm->pop();
@@ -333,10 +333,10 @@ void advance_fsm_ui_state( Fsm* fsm, sync_future<>* s_future ) {
   }
 }
 
-// Returns a sync_future immediately containing the given value.
+// Returns a waitable immediately containing the given value.
 template<typename T = std::monostate, typename... Args>
-sync_future<T> make_sync_future( Args&&... args ) {
-  sync_promise<T> s_promise;
+waitable<T> make_waitable( Args&&... args ) {
+  waitable_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
   return s_promise.get_future();
 }
@@ -345,8 +345,7 @@ sync_future<T> make_sync_future( Args&&... args ) {
 // the step, true if the step is complete.
 template<typename T = std::monostate>
 bool step_with_future(
-    sync_future<T>*                s_future,
-    function_ref<sync_future<T>()> init,
+    waitable<T>* s_future, function_ref<waitable<T>()> init,
     function_ref<bool( T const& )> when_ready ) {
   if( s_future->empty() ) {
     *s_future = init();
@@ -360,8 +359,8 @@ bool step_with_future(
 // Same as above, but the `when_ready` function always returns
 // true.
 template<typename T = std::monostate>
-bool step_with_future( sync_future<T>*                s_future,
-                       function_ref<sync_future<T>()> init ) {
+bool step_with_future( waitable<T>*                s_future,
+                       function_ref<waitable<T>()> init ) {
   if( s_future->empty() ) {
     *s_future = init();
     // !! should fall through.
@@ -384,10 +383,9 @@ namespace fmt {
 // {fmt} formatters.
 
 template<typename T>
-struct formatter<::rn::sync_future<T>> : formatter_base {
+struct formatter<::rn::waitable<T>> : formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::sync_future<T> const& o,
-               FormatContext&              ctx ) {
+  auto format( ::rn::waitable<T> const& o, FormatContext& ctx ) {
     std::string res;
     if( o.empty() )
       res = "<empty>";
@@ -402,10 +400,10 @@ struct formatter<::rn::sync_future<T>> : formatter_base {
 };
 
 template<typename T>
-struct formatter<::rn::sync_promise<T>> : formatter_base {
+struct formatter<::rn::waitable_promise<T>> : formatter_base {
   template<typename FormatContext>
-  auto format( ::rn::sync_promise<T> const& o,
-               FormatContext&               ctx ) {
+  auto format( ::rn::waitable_promise<T> const& o,
+               FormatContext&                   ctx ) {
     std::string res;
     if( !o.has_value() )
       res = "<empty>";

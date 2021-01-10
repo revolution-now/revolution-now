@@ -30,12 +30,12 @@
 #include "render.hpp"
 #include "screen.hpp"
 #include "sg-macros.hpp"
-#include "sync-future-coro.hpp"
-#include "sync-future.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+#include "waitable-coro.hpp"
+#include "waitable.hpp"
 #include "window.hpp"
 
 // base
@@ -2045,8 +2045,8 @@ struct EuropePlane : public Plane {
         "{}? (0-100):",
         commodity_display_name( type ), verb );
 
-    sync_future<> s_future =
-        [this, text = std::move( text )]() -> sync_future<> {
+    waitable<> s_future =
+        [this, text = std::move( text )]() -> waitable<> {
       maybe<int> result = co_await ui::int_input_box(
           /*title=*/"Choose Quantity",
           /*msg=*/text,

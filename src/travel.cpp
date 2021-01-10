@@ -16,11 +16,11 @@
 #include "error.hpp"
 #include "id.hpp"
 #include "orders.hpp"
-#include "sync-future-coro.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "variant.hpp"
+#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base
@@ -378,7 +378,7 @@ maybe<TravelAnalysis> TravelAnalysis::analyze_(
   return maybe_res;
 }
 
-sync_future<bool> TravelAnalysis::confirm_explain_() const {
+waitable<bool> TravelAnalysis::confirm_explain_() const {
   if( !allowed() ) {
     switch( desc.get<e_unit_travel_error>() ) {
       case e_unit_travel_error::map_edge:

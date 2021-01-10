@@ -13,10 +13,10 @@
 // Revolution Now
 #include "cstate.hpp"
 #include "logging.hpp"
-#include "sync-future-coro.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
+#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base
@@ -298,8 +298,7 @@ maybe<CombatAnalysis> CombatAnalysis::analyze_(
   return maybe_res;
 }
 
-sync_future<bool> confirm_explain_attack_good(
-    e_attack_good val ) {
+waitable<bool> confirm_explain_attack_good( e_attack_good val ) {
   switch( val ) {
     case e_attack_good::eu_land_unit:
     case e_attack_good::ship:
@@ -316,7 +315,7 @@ sync_future<bool> confirm_explain_attack_good(
   co_return true;
 }
 
-sync_future<bool> confirm_explain_attack_error(
+waitable<bool> confirm_explain_attack_error(
     e_attack_error val ) {
   switch( val ) {
     case e_attack_error::unit_cannot_attack: {
@@ -340,13 +339,13 @@ sync_future<bool> confirm_explain_attack_error(
   }
 }
 
-sync_future<bool> CombatAnalysis::confirm_explain_() const {
+waitable<bool> CombatAnalysis::confirm_explain_() const {
   return overload_visit(
       desc,
-      []( e_attack_good val ) -> sync_future<bool> {
+      []( e_attack_good val ) -> waitable<bool> {
         return confirm_explain_attack_good( val );
       },
-      []( e_attack_error val ) -> sync_future<bool> {
+      []( e_attack_error val ) -> waitable<bool> {
         return confirm_explain_attack_error( val );
       } );
 }

@@ -32,13 +32,13 @@
 #include "screen.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
-#include "sync-future-coro.hpp"
 #include "terrain.hpp"
 #include "tx.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
 #include "variant.hpp"
 #include "viewport.hpp"
+#include "waitable-coro.hpp"
 #include "window.hpp"
 
 // base
@@ -61,10 +61,10 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 namespace {
 
-Texture                         g_tx_depixelate_from;
-vector<Coord>                   g_pixels;
-Matrix<Color>                   g_demoted_pixels;
-sync_promise<UnitInputResponse> g_unit_input_promise;
+Texture                             g_tx_depixelate_from;
+vector<Coord>                       g_pixels;
+Matrix<Color>                       g_demoted_pixels;
+waitable_promise<UnitInputResponse> g_unit_input_promise;
 
 /****************************************************************
 ** FSMs
@@ -609,7 +609,7 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
         // resulting orders (i.e., input prioritization) when the
         // message box closes in order to maintain integrity of
         // the LandView state machine.
-        sync_future<> s_msg = ui::message_box(
+        waitable<> s_msg = ui::message_box(
             "Some of the selected units have "
             "already moved this turn." );
         // FIXME: this can't yet be migrated to coroutines be-
@@ -627,8 +627,8 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
         // face where the latter sometimes only runs its continu-
         // ations when you call get, whereas the former will run
         // them more eagerly.
-        sync_future<> s_future = s_msg.consume( [prioritize](
-                                                    auto ) {
+        waitable<> s_future = s_msg.consume( [prioritize](
+                                                 auto ) {
           SG().mode.send_event( LandViewEvent::input_prioritize{
               /*prioritize=*/prioritize } );
         } );
@@ -689,7 +689,7 @@ ClickTileActions ClickTileActionsFromUnitSelections(
 // them, with the results for each unit behaving in a similar way
 // to the single-unit case described above with respect to orders
 // and the allow_activate flag.
-sync_future<ClickTileActions> click_on_world_tile_impl(
+waitable<ClickTileActions> click_on_world_tile_impl(
     Coord coord, bool allow_activate ) {
   // First check for colonies.
   if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
@@ -721,9 +721,8 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
 // This function will handle all the actions that can happen as a
 // result of the player "clicking" on a world tile. This can in-
 // clude activiting units, popping up windows, etc.
-sync_future<ClickTileActions> click_on_world_tile(
-    Coord coord ) {
-  auto s_future = make_sync_future<ClickTileActions>();
+waitable<ClickTileActions> click_on_world_tile( Coord coord ) {
+  auto s_future = make_waitable<ClickTileActions>();
   if( !holds<LandViewAnim::none>( SG().anim ) ) return s_future;
   switch( SG().mode.state().to_enum() ) {
     case LandViewState::e::none: {
@@ -997,7 +996,7 @@ void landview_ensure_unit_visible( UnitId id ) {
                                      /*smooth=*/true );
 }
 
-sync_future<UnitInputResponse> landview_ask_orders( UnitId id ) {
+waitable<UnitInputResponse> landview_ask_orders( UnitId id ) {
   landview_ensure_unit_visible( id );
   // Sometimes this function must be called when already in the
   // blinking_unit state, e.g. after deserializing a game.
@@ -1008,11 +1007,11 @@ sync_future<UnitInputResponse> landview_ask_orders( UnitId id ) {
   return g_unit_input_promise.get_future();
 }
 
-sync_future<> landview_animate_move( UnitId      id,
-                                     e_direction direction ) {
+waitable<> landview_animate_move( UnitId      id,
+                                  e_direction direction ) {
   landview_ensure_unit_visible( id );
   CHECK( holds<LandViewAnim::none>( SG().anim ) );
-  sync_promise<> s_promise;
+  waitable_promise<> s_promise;
   SG().anim = LandViewAnim::move{
       /*s_promise=*/s_promise, //
       /*id=*/id,               //
@@ -1021,12 +1020,13 @@ sync_future<> landview_animate_move( UnitId      id,
   return s_promise.get_future();
 }
 
-sync_future<> landview_animate_attack(
-    UnitId attacker, UnitId defender, bool attacker_wins,
-    e_depixelate_anim dp_anim ) {
+waitable<> landview_animate_attack( UnitId attacker,
+                                    UnitId defender,
+                                    bool   attacker_wins,
+                                    e_depixelate_anim dp_anim ) {
   landview_ensure_unit_visible( attacker );
   CHECK( holds<LandViewAnim::none>( SG().anim ) );
-  sync_promise<> s_promise;
+  waitable_promise<> s_promise;
   SG().anim = LandViewAnim::attack{
       /*s_promise=*/s_promise,         //
       /*attacker=*/attacker,           //
