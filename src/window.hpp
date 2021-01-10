@@ -155,49 +155,6 @@ sync_future<Enum> select_box_enum( std::string_view title ) {
 }
 
 /****************************************************************
-** Combinators
-*****************************************************************/
-// Repeatedly calls `to_repeat` to get a future. Each time the
-// future yields a value it will validate it using the
-// `get_error` function. If there is an error it will display it
-// and then keep calling `to_repeat` until a valid result ob-
-// tains.
-template<typename Ret>
-sync_future<Ret> repeat_until(
-    std::function<sync_future<Ret>()> to_repeat,
-    std::function<valid_or<std::string>( Ret const& )>
-        get_error ) {
-  return to_repeat() >> [=]( Ret const& val ) {
-    if( auto xp = get_error( val ); !xp )
-      return message_box( xp.error() ).next( [=] {
-        // Loop by recursion.
-        return repeat_until<Ret>( to_repeat, get_error );
-      } );
-    return make_sync_future<Ret>( val );
-  };
-}
-
-// Similar to above, but the function being repeated can return a
-// nothing, basically meaning that the operation is cancelled.
-template<typename Ret>
-sync_future<maybe<Ret>> repeat_until_or_cancel(
-    std::function<sync_future<maybe<Ret>>()> to_repeat,
-    std::function<valid_or<std::string>( Ret const& )>
-        get_error ) {
-  return to_repeat() >> [=]( maybe<Ret> const& maybe_val ) {
-    if( !maybe_val.has_value() )
-      return make_sync_future<maybe<Ret>>( nothing );
-    if( auto xp = get_error( *maybe_val ); !xp )
-      return message_box( xp.error() ).next( [=] {
-        // Loop by recursion.
-        return repeat_until_or_cancel<Ret>( to_repeat,
-                                            get_error );
-      } );
-    return make_sync_future<maybe<Ret>>( *maybe_val );
-  };
-}
-
-/****************************************************************
 ** Canned Option-Select Windows
 *****************************************************************/
 void yes_no( std::string_view                 title,

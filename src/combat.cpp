@@ -13,6 +13,7 @@
 // Revolution Now
 #include "cstate.hpp"
 #include "logging.hpp"
+#include "sync-future-coro.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
@@ -302,36 +303,40 @@ sync_future<bool> confirm_explain_attack_good(
   switch( val ) {
     case e_attack_good::eu_land_unit:
     case e_attack_good::ship:
-    case e_attack_good::colony_defended:
-      return make_sync_future<bool>( true );
+    case e_attack_good::colony_defended: co_return true;
     case e_attack_good::colony_undefended: {
       auto q = fmt::format(
           "This action may result in the capture of a colony, "
           "which is not yet supported.  Therefore, this move is "
           "cancelled." );
-      return ui::message_box( q ).fmap(
-          []( auto ) { return false; } );
+      co_await ui::message_box( q );
+      co_return false;
     }
   }
-  return make_sync_future<bool>( true );
+  co_return true;
 }
 
 sync_future<bool> confirm_explain_attack_error(
     e_attack_error val ) {
-  auto return_false = []( auto ) { return false; };
   switch( val ) {
-    case e_attack_error::unit_cannot_attack:
-      return ui::message_box( "This unit cannot attack." )
-          .fmap( return_false );
-    case e_attack_error::land_unit_attack_ship:
-      return ui::message_box( "Land units cannot attack ships." )
-          .fmap( return_false );
-    case e_attack_error::ship_attack_land_unit:
-      return ui::message_box( "Ships cannot attack land units." )
-          .fmap( return_false );
-    case e_attack_error::attack_from_ship:
-      return ui::message_box( "Cannot attack from a ship." )
-          .fmap( return_false );
+    case e_attack_error::unit_cannot_attack: {
+      co_await ui::message_box( "This unit cannot attack." );
+      co_return false;
+    }
+    case e_attack_error::land_unit_attack_ship: {
+      co_await ui::message_box(
+          "Land units cannot attack ships." );
+      co_return false;
+    }
+    case e_attack_error::ship_attack_land_unit: {
+      co_await ui::message_box(
+          "Ships cannot attack land units." );
+      co_return false;
+    }
+    case e_attack_error::attack_from_ship: {
+      co_await ui::message_box( "Cannot attack from a ship." );
+      co_return false;
+    }
   }
 }
 

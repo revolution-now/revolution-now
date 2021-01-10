@@ -14,6 +14,7 @@
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "macros.hpp"
+#include "sync-future-coro.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
 #include "window.hpp"
@@ -41,22 +42,20 @@ valid_or<string> is_valid_colony_name_msg(
   }
 }
 
-sync_future<maybe<string>> ask_colony_name() {
-  return ui::str_input_box(
-      "Question",
-      "What shall this colony be named, your majesty?" );
-}
-
 // Returns future of colony name, unless player clicks Cancel.
 sync_future<maybe<string>> build_colony_ui_routine() {
-  auto msg = ui::yes_no( "Build colony here?" );
-  return msg >> []( ui::e_confirm answer ) {
-    if( answer == ui::e_confirm::no )
-      return make_sync_future<maybe<string>>();
-    return ui::repeat_until_or_cancel<string>(
-        /*to_repeat=*/ask_colony_name,
-        /*get_error=*/is_valid_colony_name_msg );
-  };
+  ui::e_confirm proceed =
+      co_await ui::yes_no( "Build colony here?" );
+  if( proceed == ui::e_confirm::no ) co_return nothing;
+  while( true ) {
+    maybe<string> colony_name = co_await ui::str_input_box(
+        "Question",
+        "What shall this colony be named, your majesty?" );
+    if( !colony_name.has_value() ) co_return nothing; // cancel
+    auto is_valid = is_valid_colony_name_msg( *colony_name );
+    if( is_valid ) co_return *colony_name;
+    co_await ui::message_box( is_valid.error() );
+  }
 }
 
 } // namespace
@@ -68,51 +67,46 @@ bool JobAnalysis::allowed_() const {
 sync_future<bool> JobAnalysis::confirm_explain_() {
   return overload_visit(
       desc,
-      [&]( e_unit_job_good val ) {
+      [&]( e_unit_job_good val ) -> sync_future<bool> {
         switch( val ) {
           case e_unit_job_good::disband: {
             auto q =
                 fmt::format( "Really disband {}?",
                              unit_from_id( id ).desc().name );
-            return ui::yes_no( q ).fmap(
-                L( _ == ui::e_confirm::yes ) );
+            ui::e_confirm answer = co_await ui::yes_no( q );
+            co_return answer == ui::e_confirm::yes;
           }
           case e_unit_job_good::fortify:
-          case e_unit_job_good::sentry:
-            return make_sync_future<bool>( true );
+          case e_unit_job_good::sentry: co_return true;
           case e_unit_job_good::build:
-            return build_colony_ui_routine().fmap(
-                [this]( maybe<string> const& maybe_name ) {
-                  if( maybe_name.has_value() )
-                    colony_name = *maybe_name;
-                  return maybe_name.has_value();
-                } );
+            colony_name = ( co_await build_colony_ui_routine() )
+                              .value_or( string{} );
+            co_return !colony_name.empty();
         }
       },
-      []( e_unit_job_error val ) {
-        auto return_false = []( auto ) { return false; };
+      []( e_unit_job_error val ) -> sync_future<bool> {
         switch( val ) {
           case e_unit_job_error::ship_cannot_fortify:
-            return ui::message_box(
-                       "Ships cannot be fortified." )
-                .fmap( return_false );
+            co_await ui::message_box(
+                "Ships cannot be fortified." );
+            co_return false;
           case e_unit_job_error::cannot_fortify_on_ship:
-            return ui::message_box(
-                       "Cannot fortify while on a ship." )
-                .fmap( return_false );
+            co_await ui::message_box(
+                "Cannot fortify while on a ship." );
+            co_return false;
           case e_unit_job_error::colony_exists_here:
-            return ui::message_box(
-                       "There is already a colony on this "
-                       "square." )
-                .fmap( return_false );
+            co_await ui::message_box(
+                "There is already a colony on this "
+                "square." );
+            co_return false;
           case e_unit_job_error::no_water_colony:
-            return ui::message_box(
-                       "Cannot found a colony on water." )
-                .fmap( return_false );
+            co_await ui::message_box(
+                "Cannot found a colony on water." );
+            co_return false;
           case e_unit_job_error::ship_cannot_found_colony:
             // No message box here since this should be obvious
             // to the player.
-            return make_sync_future<bool>( false );
+            co_return false;
         }
       } );
 }

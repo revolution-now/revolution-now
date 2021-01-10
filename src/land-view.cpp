@@ -32,6 +32,7 @@
 #include "screen.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
+#include "sync-future-coro.hpp"
 #include "terrain.hpp"
 #include "tx.hpp"
 #include "ustate.hpp"
@@ -611,6 +612,21 @@ void ProcessClickTileActions( ClickTileActions const& actions ) {
         sync_future<> s_msg = ui::message_box(
             "Some of the selected units have "
             "already moved this turn." );
+        // FIXME: this can't yet be migrated to coroutines be-
+        // cause there appears to be a clang bug with capturing
+        // the vector. That can be worked around by factoring
+        // this into its own function. However, even when that is
+        // done, we run into another problem which is that the
+        // continuation (which calls send_event) will then be run
+        // before the future state is popped from the state ma-
+        // chine, and will cause a runtime error in the fsm. Cur-
+        // rently, the advance_fsm_ui_state function will first
+        // pop the state, then call get_and_reset, which will run
+        // the continuation. In otherwords, this is a difference
+        // between conroutines and the existing fmap/bind inter-
+        // face where the latter sometimes only runs its continu-
+        // ations when you call get, whereas the former will run
+        // them more eagerly.
         sync_future<> s_future = s_msg.consume( [prioritize](
                                                     auto ) {
           SG().mode.send_event( LandViewEvent::input_prioritize{
@@ -678,33 +694,28 @@ sync_future<ClickTileActions> click_on_world_tile_impl(
   // First check for colonies.
   if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
     show_colony_view( *maybe_id );
-    return make_sync_future<ClickTileActions>();
+    co_return {};
   }
 
   // Now check for units.
   auto const& units = units_from_coord_recursive( coord );
-  if( units.size() == 0 )
-    return make_sync_future<ClickTileActions>();
+  if( units.size() == 0 ) co_return {};
 
-  sync_future<vector<ui::UnitSelection>> s_future;
+  vector<ui::UnitSelection> selections;
   if( units.size() == 1 ) {
     auto              id = *units.begin();
     ui::UnitSelection selection{
         id, ui::e_unit_selection::clear_orders };
     if( !unit_from_id( id ).has_orders() && allow_activate )
       selection.what = ui::e_unit_selection::activate;
-    s_future = make_sync_future<vector<ui::UnitSelection>>(
-        vector{ selection } );
+    selections = vector{ selection };
   } else {
-    s_future = ui::unit_selection_box( units, allow_activate );
+    selections =
+        co_await ui::unit_selection_box( units, allow_activate );
   }
 
-  return s_future.fmap(
-      [allow_activate](
-          vector<ui::UnitSelection> const& selections ) {
-        return ClickTileActionsFromUnitSelections(
-            selections, allow_activate );
-      } );
+  co_return ClickTileActionsFromUnitSelections( selections,
+                                                allow_activate );
 }
 
 // This function will handle all the actions that can happen as a
@@ -926,6 +937,21 @@ struct LandViewPlane : public Plane {
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
           lg.debug( "clicked on tile: {}.", *maybe_tile );
+          // FIXME: this can't yet be migrated to coroutines be-
+          // cause there appears to be a clang bug with capturing
+          // the vector. That can be worked around by factoring
+          // this into its own function. However, even when that
+          // is done, we run into another problem which is that
+          // the continuation (which calls send_event) will then
+          // be run before the future state is popped from the
+          // state machine, and will cause a runtime error in the
+          // fsm. Currently, the advance_fsm_ui_state function
+          // will first pop the state, then call get_and_reset,
+          // which will run the continuation. In otherwords, this
+          // is a difference between conroutines and the existing
+          // fmap/bind interface where the latter sometimes only
+          // runs its continuations when you call get, whereas
+          // the former will run them more eagerly.
           SG().mode.push( LandViewState::future{
               click_on_world_tile( *maybe_tile )
                   .consume( ProcessClickTileActions ) } );

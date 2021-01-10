@@ -30,6 +30,7 @@
 #include "render.hpp"
 #include "screen.hpp"
 #include "sg-macros.hpp"
+#include "sync-future-coro.hpp"
 #include "sync-future.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -2045,16 +2046,17 @@ struct EuropePlane : public Plane {
         commodity_display_name( type ), verb );
 
     sync_future<> s_future =
-        ui::int_input_box(
-            /*title=*/"Choose Quantity",
-            /*msg=*/text,
-            /*min=*/0,
-            /*max=*/100 )
-            .consume( [this]( maybe<int> result ) {
-              lg.debug( "received quantity: {}", result );
-              this->drag_n_drop_.receive_quantity(
-                  result.value_or( 0 ) );
-            } );
+        [this, text = std::move( text )]() -> sync_future<> {
+      maybe<int> result = co_await ui::int_input_box(
+          /*title=*/"Choose Quantity",
+          /*msg=*/text,
+          /*min=*/0,
+          /*max=*/100 );
+      lg.debug( "received quantity: {}", result );
+      this->drag_n_drop_.receive_quantity(
+          result.value_or( 0 ) );
+      co_return {};
+    }();
 
     fsm_.push( EuroviewState::future{ s_future } );
   }

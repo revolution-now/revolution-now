@@ -27,6 +27,7 @@
 #include "render.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
+#include "sync-future-coro.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
 #include "variant.hpp"
@@ -188,6 +189,26 @@ fsm_class( UnitInput ) { //
 
 FSM_DEFINE_FORMAT_RN_( UnitInput );
 
+sync_future<bool> execute_orders(
+    UnitId id, maybe<PlayerIntent>& player_intent,
+    UnitInputFsm& fsm ) {
+  CHECK( player_intent );
+  bool confirmed = co_await confirm_explain( &*player_intent );
+  if( !confirmed ) {
+    fsm.send_event( UnitInputEvent::cancel{} );
+    player_intent = nothing;
+    co_return false;
+  }
+  co_await kick_off_unit_animation( id, *player_intent );
+  // Animation (if any) is finished.
+  affect_orders( *player_intent );
+  fsm.send_event( UnitInputEvent::end{
+      .add_to_front = units_to_prioritize( *player_intent ) } );
+  player_intent = nothing;
+  // !! Unit may no longer exist here.
+  co_return true;
+}
+
 // Will be called repeatedly until no more events added to fsm.
 void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
   switch( auto& v = fsm.mutable_state(); v.to_enum() ) {
@@ -278,38 +299,10 @@ void advance_unit_input_state( UnitInputFsm& fsm, UnitId id ) {
             CHECK( maybe_intent.has_value(),
                    "no handler for orders {}", val.orders );
             g_player_intent = std::move( *maybe_intent );
-            return confirm_explain( &*g_player_intent ) >>
-                   [id, &fsm]( bool confirmed ) {
-                     if( confirmed ) {
-                       return kick_off_unit_animation(
-                                  id, *g_player_intent ) >>
-                              [&fsm]( auto ) {
-                                // Animation (if any) is
-                                // finished.
-                                CHECK( g_player_intent );
-                                affect_orders(
-                                    *g_player_intent );
-                                fsm.send_event( UnitInputEvent::end{
-                                    .add_to_front =
-                                        units_to_prioritize(
-                                            *g_player_intent ) } );
-                                g_player_intent = nothing;
-                                // !! Unit may no longer exist
-                                // here.
-                                return make_sync_future<bool>(
-                                    true );
-                              };
-                     } else {
-                       fsm.send_event(
-                           UnitInputEvent::cancel{} );
-                       g_player_intent = nothing;
-                       return make_sync_future<bool>( false );
-                     }
-                   };
+            return execute_orders( id, g_player_intent, fsm );
           },
           /*when_ready=*/L( _ ) );
       if( !proceed ) break;
-      ;
       break;
     }
     case UnitInputState::e::executed:

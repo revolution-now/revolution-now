@@ -16,6 +16,7 @@
 #include "error.hpp"
 #include "id.hpp"
 #include "orders.hpp"
+#include "sync-future-coro.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
@@ -379,17 +380,15 @@ maybe<TravelAnalysis> TravelAnalysis::analyze_(
 
 sync_future<bool> TravelAnalysis::confirm_explain_() const {
   if( !allowed() ) {
-    auto return_false = []( auto ) { return false; };
     switch( desc.get<e_unit_travel_error>() ) {
       case e_unit_travel_error::map_edge:
       case e_unit_travel_error::land_forbidden:
-      case e_unit_travel_error::water_forbidden:
-        return make_sync_future<bool>( false );
+      case e_unit_travel_error::water_forbidden: co_return false;
       case e_unit_travel_error::board_ship_full:
-        return ui::message_box(
-                   "None of the ships on this square have "
-                   "enough free space to hold this unit!" )
-            .fmap( return_false );
+        co_await ui::message_box(
+            "None of the ships on this square have "
+            "enough free space to hold this unit!" );
+        co_return false;
     }
   }
   // The above should have checked that the variant holds the
@@ -398,14 +397,15 @@ sync_future<bool> TravelAnalysis::confirm_explain_() const {
 
   switch( kind ) {
     case e_unit_travel_good::land_fall: {
-      return ui::yes_no( "Would you like to make landfall?" )
-          .fmap( L( _ == ui::e_confirm::yes ) );
+      ui::e_confirm answer = co_await ui::yes_no(
+          "Would you like to make landfall?" );
+      co_return answer == ui::e_confirm::yes;
     }
     case e_unit_travel_good::map_to_map:
     case e_unit_travel_good::board_ship:
     case e_unit_travel_good::offboard_ship:
       // Nothing to ask here, just allow the move.
-      return make_sync_future<bool>( true );
+      co_return true;
   }
   SHOULD_NOT_BE_HERE;
 }
