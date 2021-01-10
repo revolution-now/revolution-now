@@ -13,6 +13,10 @@
 *****************************************************************/
 #pragma once
 
+// Need to include at least one cpp header to ensure that we get
+// the _LIBCPP_VERSION macro.
+#include <cctype>
+
 /****************************************************************
 ** Fix CLI flag inconsistency.
 *****************************************************************/
