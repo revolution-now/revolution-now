@@ -366,33 +366,17 @@ waitable<> do_next_turn_impl() {
   }
 
   // Body.
-  lg.debug( "1. nat: {}, remainder: {}", SG().turn.nation,
-            SG().turn.remainder );
   if( st.nation.has_value() ) {
     co_await do_nation_turn();
-    lg.debug( "2. nat: {}, remainder: {}", SG().turn.nation,
-              SG().turn.remainder );
     st.nation.reset();
-    lg.debug( "3. nat: {}, remainder: {}", SG().turn.nation,
-              SG().turn.remainder );
   }
 
   while( !st.remainder.empty() ) {
-    lg.debug( "4. nat: {}, remainder: {}", SG().turn.nation,
-              SG().turn.remainder );
     st.nation = NationState( *st.remainder.front() );
-    lg.debug( "5. nat: {}, remainder: {}", SG().turn.nation,
-              SG().turn.remainder );
     st.remainder.pop();
-    lg.debug( "6. nat: {}, remainder: {}", SG().turn.nation,
-              SG().turn.remainder );
     co_await do_nation_turn();
-    lg.debug( "7. nat: {}, remainder: {}", SG().turn.nation,
-              SG().turn.remainder );
     st.nation.reset();
   }
-  lg.debug( "8. nat: {}, remainder: {}", SG().turn.nation,
-            SG().turn.remainder );
 
   // Ending.
   if( st.need_eot ) co_await user_hits_eot_button();
