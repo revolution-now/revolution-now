@@ -76,7 +76,7 @@ inline constexpr bool is_waitable_v<waitable<T>> = true;
 // Example usage:
 //
 //   waitable_promise<int> s_promise;
-//   waitable<int>  s_future1 = s_promise.get_future();
+//   waitable<int>  s_future1 = s_promise.get_waitable();
 //
 //   waitable<int> s_future2 = s_future1.fmap(
 //       []( int n ){ return n+1; } );
@@ -232,7 +232,7 @@ private:
 //
 //   waitable_promise<int> s_promise;
 //
-//   waitable<int> s_future = s_promise.get_future();
+//   waitable<int> s_future = s_promise.get_waitable();
 //   assert( s_future.waiting() );
 //
 //   s_promise.set_value( 3 );
@@ -313,7 +313,7 @@ public:
     shared_state_->do_callbacks();
   }
 
-  waitable<T> get_future() const {
+  waitable<T> get_waitable() const {
     return waitable<T>( shared_state_ );
   }
 
@@ -338,7 +338,7 @@ template<typename T = std::monostate, typename... Args>
 waitable<T> make_waitable( Args&&... args ) {
   waitable_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 // Returns `false` if the caller needs to wait for completion of

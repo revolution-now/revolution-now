@@ -32,6 +32,8 @@ namespace {
 
 bool g_game_dirty_flag = false;
 
+waitable<> g_turn;
+
 /****************************************************************
 ** FSMs
 *****************************************************************/
@@ -202,6 +204,7 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
     }
     case AppState::e::creating: {
       default_construct_savegame_state();
+      g_turn = {};
       lua::reload();
       lua::run_startup_main();
       fsm.send_event( AppEvent::to_game{} );
@@ -212,6 +215,7 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
       break;
     }
     case AppState::e::loading: {
+      g_turn = {};
       CHECK_HAS_VALUE( load_game( 0 ) );
       fsm.send_event( AppEvent::to_game() );
       break;
@@ -224,7 +228,8 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
     }
     case AppState::e::in_game: {
       g_game_dirty_flag = true;
-      advance_turn_state(); //
+      if( g_turn.ready() ) g_turn.get_and_reset();
+      if( g_turn.empty() ) g_turn = do_next_turn();
       break;
     }
     case AppState::e::quitting: {

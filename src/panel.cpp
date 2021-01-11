@@ -56,7 +56,7 @@ struct PanelPlane : public Plane {
     auto button_view =
         make_unique<ui::ButtonView>( "Next Turn", [this] {
           lg.debug( "on to next turn." );
-          this->next_turn_clicked = true;
+          w_promise.set_value( {} );
           // Disable the button as soon as it is clicked.
           this->next_turn_button().enable( /*enabled=*/false );
         } );
@@ -115,21 +115,14 @@ struct PanelPlane : public Plane {
                                   : e_input_handled::no;
   }
 
-  void mark_end_of_turn() {
+  waitable<> user_hits_eot_button() {
     next_turn_button().enable( /*enabled=*/true );
-    next_turn_clicked = false;
-  }
-  bool was_next_turn_button_clicked() {
-    // FIXME: this mechanism kind of sucks, find beter way.
-    if( next_turn_clicked ) {
-      next_turn_clicked = false;
-      return true;
-    }
-    return false;
+    w_promise = {};
+    return w_promise.get_waitable();
   }
 
   unique_ptr<ui::InvisibleView> view;
-  bool                          next_turn_clicked{ false };
+  waitable_promise<>            w_promise;
 };
 
 PanelPlane g_panel_plane;
@@ -141,10 +134,8 @@ PanelPlane g_panel_plane;
 *****************************************************************/
 Plane* panel_plane() { return &g_panel_plane; }
 
-void mark_end_of_turn() { g_panel_plane.mark_end_of_turn(); }
-
-bool was_next_turn_button_clicked() {
-  return g_panel_plane.was_next_turn_button_clicked();
+waitable<> user_hits_eot_button() {
+  return g_panel_plane.user_hits_eot_button();
 }
 
 /****************************************************************

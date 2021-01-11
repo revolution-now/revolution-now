@@ -163,8 +163,6 @@ bool frame_loop_body( InputReceivedFunc input_received ) {
   // 2. Update State.
   if( advance_all_state() ) return true;
 
-  run_all_coroutines();
-
   // This invokes (synchronous/blocking) callbacks to any sub-
   // scribers that want to be notified at regular tick or time
   // intervals.

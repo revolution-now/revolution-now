@@ -14,12 +14,15 @@
 
 // Revolution Now
 #include "nation.hpp"
+#include "waitable.hpp"
 
 namespace rn {
 
 enum class ND e_turn_result { orders_taken, no_orders_taken };
 
 void advance_turn_state();
+
+waitable<> do_next_turn();
 
 // Do a turn, start to finish, one nations.
 ND e_turn_result turn( e_nation nation );

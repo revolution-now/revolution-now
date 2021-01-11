@@ -636,7 +636,7 @@ waitable<maybe<int>> int_input_box( std::string_view title,
                     s_promise.set_value(
                         result.bind( L( base::stoi( _ ) ) ) );
                   } );
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 waitable<maybe<string>> str_input_box( string_view title,
@@ -646,7 +646,7 @@ waitable<maybe<string>> str_input_box( string_view title,
                   [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value( result );
                   } );
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 /****************************************************************
@@ -693,7 +693,7 @@ waitable<std::string> select_box( std::string_view title,
               [s_promise]( string const& result ) mutable {
                 s_promise.set_value( result );
               } );
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 void yes_no( std::string_view                 title,
@@ -711,7 +711,7 @@ waitable<> message_box( string_view msg ) {
   ok_box( msg, /*on_closing=*/[s_promise]() mutable {
     s_promise.set_value( monostate{} );
   } );
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 waitable<vector<UnitSelection>> unit_selection_box(
@@ -768,7 +768,7 @@ waitable<vector<UnitSelection>> unit_selection_box(
       /*get_view_fun=*/get_view_fn //
   );
 
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 /****************************************************************

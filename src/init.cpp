@@ -11,6 +11,7 @@
 #include "init.hpp"
 
 // Revolution Now
+#include "co-registry.hpp"
 #include "error.hpp"
 #include "fmt-helper.hpp"
 #include "logging.hpp"
@@ -288,6 +289,8 @@ void run_all_cleanup_routines() {
       cleanup_functions()[routine]();
     }
   }
+
+  destroy_all_coroutines();
 }
 
 bool has_init_finished() { return g_init_finished; }

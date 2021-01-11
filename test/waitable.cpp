@@ -193,7 +193,7 @@ TEST_CASE( "[waitable] promise api basic api" ) {
   waitable_promise<int> s_promise;
   REQUIRE( !s_promise.has_value() );
 
-  waitable<int> s_future = s_promise.get_future();
+  waitable<int> s_future = s_promise.get_waitable();
   REQUIRE( !s_future.empty() );
   REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
@@ -223,7 +223,7 @@ TEST_CASE( "[waitable] formatting" ) {
   waitable_promise<int> s_promise;
   REQUIRE( fmt::format( "{}", s_promise ) == "<empty>" );
 
-  waitable<int> s_future = s_promise.get_future();
+  waitable<int> s_future = s_promise.get_waitable();
   REQUIRE( fmt::format( "{}", s_future ) == "<waiting>" );
 
   s_promise.set_value( 3 );
@@ -262,13 +262,13 @@ void deliver_promise() {
 waitable<int> waitable_int() {
   sf_coro_promise<int> p;
   g_promises.emplace( p );
-  return p.get_future();
+  return p.get_return_object();
 }
 
 waitable<double> waitable_double() {
   sf_coro_promise<double> p;
   g_promises.emplace( p );
-  return p.get_future();
+  return p.get_return_object();
 }
 
 waitable<int> waitable_sum() {

@@ -1004,7 +1004,7 @@ waitable<UnitInputResponse> landview_ask_orders( UnitId id ) {
     SG().mode.send_event(
         LandViewEvent::blink_unit{ /*id=*/id } );
   g_unit_input_promise = {};
-  return g_unit_input_promise.get_future();
+  return g_unit_input_promise.get_waitable();
 }
 
 waitable<> landview_animate_move( UnitId      id,
@@ -1017,7 +1017,7 @@ waitable<> landview_animate_move( UnitId      id,
       /*id=*/id,               //
       /*d=*/direction          //
   };
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 waitable<> landview_animate_attack( UnitId attacker,
@@ -1034,7 +1034,7 @@ waitable<> landview_animate_attack( UnitId attacker,
       /*attacker_wins=*/attacker_wins, //
       /*dp_anim=*/dp_anim              //
   };
-  return s_promise.get_future();
+  return s_promise.get_waitable();
 }
 
 /****************************************************************

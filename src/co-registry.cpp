@@ -17,6 +17,7 @@
 
 // C++ standard library
 #include <queue>
+#include <vector>
 
 using namespace std;
 
@@ -24,43 +25,73 @@ namespace rn {
 
 namespace {
 
-queue<coro::coroutine_handle<>> g_coros;
+queue<coro::coroutine_handle<>> g_coros_to_resume;
+
+vector<coro::coroutine_handle<>> g_coros_registered;
 
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
+void register_coroutine_handle( coro::coroutine_handle<> h ) {
+  g_coros_registered.push_back( h );
+}
+
 void queue_coroutine_handle( coro::coroutine_handle<> h ) {
   CHECK( h );
   CHECK( !h.done() );
-  g_coros.push( h );
+  g_coros_to_resume.push( h );
 }
 
-int coroutines_in_queue() { return g_coros.size(); }
+int num_coroutines_in_queue() {
+  return g_coros_to_resume.size();
+}
 
 void run_next_coroutine_handle() {
-  auto h = g_coros.front();
-  g_coros.pop();
+  auto h = g_coros_to_resume.front();
+  g_coros_to_resume.pop();
   CHECK( h );
   CHECK( !h.done() );
+  // We can unregister this one now because we are running it.
+  // And when we run it, one of two things will happen: 1) either
+  // it will finish and destroy itself (in which case it doesn't
+  // need to be registered anymore) or 2) it will suspend again
+  // and in doing so register itself again.
+  erase_if( g_coros_registered,
+            [&]( coro::coroutine_handle<> h_ ) {
+              return h.address() == h_.address();
+            } );
   lg.trace( "running coroutine continuation." );
   h();
   lg.trace( "finished running coroutine continuation." );
 }
 
 void run_all_coroutines() {
-  while( coroutines_in_queue() > 0 ) run_next_coroutine_handle();
+  while( num_coroutines_in_queue() > 0 )
+    run_next_coroutine_handle();
 }
 
 void destroy_all_coroutines() {
-  while( !g_coros.empty() ) {
-    auto& h = g_coros.front();
+  while( !g_coros_to_resume.empty() ) {
+    auto& h = g_coros_to_resume.front();
     h.destroy();
     CHECK( h );
     CHECK( !h.done() );
-    g_coros.pop();
+    g_coros_to_resume.pop();
   }
+  if( g_coros_registered.size() > 0 ) {
+    lg.warn(
+        "destroying {} registered coroutines that have not "
+        "finished running.",
+        g_coros_registered.size() );
+  }
+  for( auto h : g_coros_registered ) {
+    CHECK( h );
+    CHECK( !h.done() );
+    h.destroy();
+  }
+  g_coros_registered.clear();
 }
 
 } // namespace rn

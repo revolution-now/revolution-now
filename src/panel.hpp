@@ -12,14 +12,15 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "waitable.hpp"
+
 namespace rn {
 
 struct Plane;
 Plane* panel_plane();
 
-// FIXME: temporary.
-void mark_end_of_turn();
-bool was_next_turn_button_clicked();
+waitable<> user_hits_eot_button();
 
 /****************************************************************
 ** Testing

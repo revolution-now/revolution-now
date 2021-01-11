@@ -18,9 +18,16 @@
 
 namespace rn {
 
+// Any coroutine that is stored somewhere should be registered
+// here so that, if it is still alive upon program termination,
+// it can be freed to avoid ASan reporting memory leaks. This
+// will not cause the coroutine to be resumed.
+void register_coroutine_handle( coro::coroutine_handle<> h );
+
+// Add the coroutine to the queue to be resumed.
 void queue_coroutine_handle( coro::coroutine_handle<> h );
 
-int coroutines_in_queue();
+int num_coroutines_in_queue();
 
 void run_next_coroutine_handle();
 

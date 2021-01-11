@@ -27,6 +27,7 @@ auto operator co_await( waitable<T> const& sf ) {
     waitable<T> sf_;
     bool        await_ready() noexcept { return sf_.ready(); }
     void await_suspend( coro::coroutine_handle<> h ) noexcept {
+      register_coroutine_handle( h );
       sf_.shared_state()->add_callback(
           [h]( T const& ) { queue_coroutine_handle( h ); } );
     }
@@ -44,7 +45,6 @@ struct coroutine_traits<::rn::waitable<T>, Args...> {
   struct promise_type {
     promise_type() = default;
 
-    auto get_future() { return get_return_object(); }
     void set( T const& val ) { s_promise_.set_value( val ); }
     void set( T&& val ) {
       s_promise_.set_value( std::move( val ) );
@@ -64,7 +64,9 @@ struct coroutine_traits<::rn::waitable<T>, Args...> {
       s_promise_.set_value( std::move( val ) );
     }
 
-    auto get_return_object() { return s_promise_.get_future(); }
+    auto get_return_object() {
+      return s_promise_.get_waitable();
+    }
 
     void unhandled_exception() { SHOULD_NOT_BE_HERE; }
 

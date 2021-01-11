@@ -8,105 +8,29 @@
 // Description: Serializable types for the turn module.
 //
 // **************************************************************
-include "orders.fbs";
 include "nation.fbs";
-include "vocab.fbs";
 
 namespace fb;
 
-namespace fb.UnitInputState;
-
-  table none {}
-  table processing {}
-  table asking {
-    response : no_serial;
-  }
-  table have_response {
-    response : no_serial;
-  }
-  table executing_orders {
-    conf_anim : no_serial;
-    orders    : orders_t;
-  }
-  table executed {
-    add_to_front : [int];
-  }
-
-  namespace fb;
-
-  table UnitInputState_t {
-    none             : UnitInputState.none;
-    processing       : UnitInputState.processing;
-    asking           : UnitInputState.asking;
-    have_response    : UnitInputState.have_response;
-    executing_orders : UnitInputState.executing_orders;
-    executed         : UnitInputState.executed;
-  }
-
-table UnitInputFsm {
-  state_stack : [UnitInputState_t];
+table NationState {
+  nation    : e_nation;
+  started   : bool;
+  did_units : bool;
+  units     : [int];
 }
 
-table Opt_UnitInputFsm {
+table Maybe_NationState {
   has_value : bool;
-  value     : UnitInputFsm;
+  value     : NationState;
 }
 
-namespace fb.NationTurnState;
-
-  table starting {
-    nation : e_nation;
-  }
-  table colonies {
-    q : [int];
-  }
-  table doing_units {
-    need_eot : bool;
-    q        : [int];
-    uturn    : Opt_UnitInputFsm;
-  }
-  table ending {
-    need_eot : bool;
-  }
-
-  namespace fb;
-
-  table NationTurnState_t {
-    starting    : NationTurnState.starting;
-    colonies    : NationTurnState.colonies;
-    doing_units : NationTurnState.doing_units;
-    ending      : NationTurnState.ending;
-  }
-
-table NationTurnFsm {
-  state_stack : [NationTurnState_t];
-}
-
-namespace fb.TurnCycleState;
-
-  table starting {}
-  table ending {
-    need_eot  : bool;
-  }
-  table inside {
-    need_eot    : bool;
-    nation      : Opt_e_nation;
-    nation_turn : NationTurnFsm;
-    remainder   : [e_nation];
-  }
-
-  namespace fb;
-
-  table TurnCycleState_t {
-    starting : TurnCycleState.starting;
-    inside   : TurnCycleState.inside;
-    ending   : TurnCycleState.ending;
-  }
-
-table TurnCycleFsm {
-  state_stack : [TurnCycleState_t];
+table TurnState {
+  started   : bool;
+  need_eot  : bool;
+  nation    : Maybe_NationState;
+  remainder : [e_nation];
 }
 
 table SG_Turn {
-  cycle_state : TurnCycleFsm;
+  turn : TurnState;
 }

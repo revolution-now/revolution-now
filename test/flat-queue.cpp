@@ -50,6 +50,44 @@ TEST_CASE( "[flat-deque] initialization" ) {
   REQUIRE( !q.front().has_value() );
 }
 
+TEST_CASE( "[flat-queue] initialization init-list" ) {
+  flat_queue<int> q = { 1, 2, 3, 4 };
+
+  REQUIRE( q.size() == 4 );
+  REQUIRE( q.front() == 1 );
+  q.pop();
+  REQUIRE( q.front() == 2 );
+  q.pop();
+  REQUIRE( q.front() == 3 );
+  q.pop();
+  REQUIRE( q.front() == 4 );
+  q.pop();
+
+  REQUIRE( q.empty() );
+  REQUIRE( !q.front().has_value() );
+}
+
+TEST_CASE( "[flat-queue] initialization vector" ) {
+  vector<int>     v{ 1, 2, 3, 4 };
+  flat_queue<int> q( std::move( v ) );
+  // Make sure that it moved the vector into its own storage in-
+  // stead of copying.
+  REQUIRE( v.empty() );
+
+  REQUIRE( q.size() == 4 );
+  REQUIRE( q.front() == 1 );
+  q.pop();
+  REQUIRE( q.front() == 2 );
+  q.pop();
+  REQUIRE( q.front() == 3 );
+  q.pop();
+  REQUIRE( q.front() == 4 );
+  q.pop();
+
+  REQUIRE( q.empty() );
+  REQUIRE( !q.front().has_value() );
+}
+
 TEST_CASE( "[flat-queue] push pop small" ) {
   flat_queue<int> q;
 

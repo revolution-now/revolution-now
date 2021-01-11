@@ -55,6 +55,15 @@ public:
   flat_queue( flat_queue<T> const& ) = default;
   flat_queue( flat_queue<T>&& )      = default;
 
+  flat_queue( std::initializer_list<T> il ) : flat_queue() {
+    for( T const& e : il ) push( e );
+  }
+
+  flat_queue( std::vector<T>&& vec ) : flat_queue() {
+    queue_ = std::move( vec );
+    check_invariants();
+  }
+
   flat_queue<T>& operator=( flat_queue<T>&& rhs ) noexcept {
     flat_queue<T> moved( std::move( rhs ) );
     moved.swap( *this );
@@ -188,6 +197,7 @@ valid_deserial_t deserialize( SrcT const*          src,
   }
   std::vector<T> data;
   HAS_VALUE_OR_RET( deserialize( src, &data, serial::ADL{} ) );
+  DCHECK( m->empty() );
   for( auto& e : data ) m->push_emplace( std::move( e ) );
   return valid;
 }
