@@ -58,11 +58,7 @@ namespace {
 ** Coroutine turn state.
 *****************************************************************/
 struct NationState {
-  NationState()
-    : nation( e_nation::english ),
-      started{ false },
-      did_units{ false },
-      units{} {}
+  NationState() = default;
   NationState( e_nation nat ) : NationState() { nation = nat; }
   valid_deserial_t check_invariants_safe() { return valid; }
 
@@ -76,15 +72,6 @@ struct NationState {
   ( flat_deque<UnitId>, units     ));
   // clang-format on
 };
-
-} // namespace
-} // namespace rn
-
-DEFINE_FORMAT( ::rn::NationState, "NationState{{nation={}}}",
-               o.nation );
-
-namespace rn {
-namespace {
 
 struct TurnState {
   TurnState() = default;
