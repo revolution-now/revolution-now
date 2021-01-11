@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
-#include "conductor.hpp"
 #include "cstate.hpp"
 #include "dispatch.hpp"
 #include "fb.hpp"
@@ -21,14 +20,11 @@
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
-#include "no-serial.hpp"
 #include "panel.hpp" // FIXME
-#include "render.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
 #include "unit.hpp"
 #include "ustate.hpp"
-#include "variant.hpp"
 #include "viewport.hpp"
 #include "waitable-coro.hpp"
 #include "window.hpp"
@@ -44,7 +40,6 @@
 
 // C++ standard library
 #include <algorithm>
-#include <deque>
 
 using namespace std;
 
