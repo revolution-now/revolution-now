@@ -61,10 +61,11 @@ struct NationState {
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, NationState,
-  ( e_nation,           nation    ),
-  ( bool,               started   ),
-  ( bool,               did_units ),
-  ( flat_deque<UnitId>, units     ));
+  ( e_nation,           nation       ),
+  ( bool,               started      ),
+  ( bool,               did_colonies ),
+  ( bool,               did_units    ),
+  ( flat_deque<UnitId>, units        ));
   // clang-format on
 };
 
@@ -301,7 +302,7 @@ waitable<> do_units_turn() {
   co_return {};
 }
 
-waitable<> do_colonies_turn() {
+void do_colonies_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -311,7 +312,6 @@ waitable<> do_colonies_turn() {
     colonies.pop();
     /*co_await*/ evolve_colony_one_turn( colony_id );
   }
-  co_return {};
 }
 
 waitable<> do_nation_turn() {
@@ -325,7 +325,10 @@ waitable<> do_nation_turn() {
   }
 
   // Colonies.
-  co_await do_colonies_turn();
+  if( !st.did_colonies ) {
+    do_colonies_turn();
+    st.did_colonies = true;
+  }
 
   if( !st.did_units ) {
     co_await do_units_turn();

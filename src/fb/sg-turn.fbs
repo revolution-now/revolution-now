@@ -13,10 +13,11 @@ include "nation.fbs";
 namespace fb;
 
 table NationState {
-  nation    : e_nation;
-  started   : bool;
-  did_units : bool;
-  units     : [int];
+  nation       : e_nation;
+  started      : bool;
+  did_colonies : bool;
+  did_units    : bool;
+  units        : [int];
 }
 
 table Maybe_NationState {
