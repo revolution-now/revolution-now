@@ -41,7 +41,8 @@ enum class e_sumtype_feature {
 };
 
 std::string to_str( e_sumtype_feature feature );
-base::maybe<e_sumtype_feature> from_str( std::string feature );
+base::maybe<e_sumtype_feature> feature_from_str(
+    std::string_view feature );
 
 struct TemplateParam {
   std::string param;

@@ -36,8 +36,11 @@ template<typename T>
 T safe_any_cast( any const& v, base::SourceLoc const& location =
                                    base::SourceLoc::current() ) {
   if( v.type() != typeid( T const ) ) {
-    throw runtime_error( fmt::format(
-        "bad safe_any_cast on line: {}.\n", location.line() ) );
+    throw runtime_error(
+        fmt::format( "bad safe_any_cast on line: {}.  Requested "
+                     "type: {}, found type: {}.\n",
+                     location.line(), typeid( T const ).name(),
+                     v.type().name() ) );
   }
   return any_cast<T const>( v );
 }
@@ -90,11 +93,12 @@ maybe<expr::Rnl> parse( string_view   peg_filename,
   parser["TMPL_PARAM"]    = f_str_tok;
 
   parser["FEATURE"] = []( peg::SemanticValues const& sv ) {
-    string token = safe_any_cast<string>( sv.token() );
-    maybe<expr::e_sumtype_feature> o = expr::from_str( token );
+    maybe<expr::e_sumtype_feature> o =
+        expr::feature_from_str( sv.token() );
     if( !o.has_value() )
       throw peg::parse_error(
-          fmt::format( "unrecognized feature: \"{}\".", token )
+          fmt::format( "unrecognized feature: \"{}\".",
+                       sv.token() )
               .c_str() );
     return *o;
   };
