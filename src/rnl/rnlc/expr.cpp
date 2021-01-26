@@ -53,7 +53,8 @@ std::string to_str( e_sumtype_feature feature ) {
 #endif
 }
 
-maybe<e_sumtype_feature> from_str( std::string feature ) {
+maybe<e_sumtype_feature> feature_from_str(
+    std::string_view feature ) {
   if( feature == "formattable" )
     return e_sumtype_feature::formattable;
   if( feature == "serializable" )
