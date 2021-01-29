@@ -95,6 +95,18 @@ local function freeze_table_members( tbl )
   end
 end
 
+local real_rawset = rawset
+
+-- Redefine the global builtin function rawset since the real
+-- version is unsafe.  Only allows use on non globals.
+function rawset( table, k, v )
+  if table == _ENV then
+    table[k] = v
+  else
+    real_rawset( table, k, v )
+  end
+end
+
 -- In this case "freeze" means that one cannot change what a
 -- global variable name points to; it does not make the global
 -- variable contents (i.e., if it is a table) readonly.
@@ -120,7 +132,7 @@ local function freeze_existing_globals()
                             .. "(" .. tostring( k ) .. ")")
                     end
                     -- Allow setting new global variables.
-                    rawset( t, k, v )
+                    real_rawset( t, k, v )
                   end,
     __metatable = false
   } )

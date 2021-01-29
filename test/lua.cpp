@@ -175,6 +175,19 @@ TEST_CASE( "[lua] frozen globals" ) {
   REQUIRE( lua::run<int>( "d = {}; d.x = 1; return d.x" ) == 1 );
 }
 
+TEST_CASE( "[lua] rawset is locked down" ) {
+  auto xp = lua::run<void>( "rawset( _ENV, 'xxx', 3 )" );
+  REQUIRE( xp );
+  REQUIRE( lua::run<int>( "return xxx" ) == 3 );
+
+  // `id` is locked down.
+  xp = lua::run<void>( "rawset( _ENV, 'id', 3 )" );
+  REQUIRE( !xp.has_value() );
+  REQUIRE_THAT(
+      xp.error().what,
+      Contains( "attempt to modify a read-only global" ) );
+}
+
 TEST_CASE( "[lua] has modules" ) {
   auto script = R"lua(
     assert( modules['startup'] ~= nil )
