@@ -107,18 +107,18 @@ local function freeze_existing_globals()
   log.debug( "freezing existing globals." )
   local globals = {}
   -- First save all globals.
-  for k, v in pairs( _ENV ) do globals[k] = v end
-  -- After clearing out all of _ENV's values then any read/write
-  -- to it will always come to these metamethods for the first
-  -- time when referring to a variable. That allows us to inter-
-  -- cept it. We reject writes to variables that already existed
-  -- prior to the freezing. However, we allow writing to new
-  -- global variables (and reassigning to them).
-  setmetatable( _ENV, {
+  for k, v in pairs( _G ) do globals[k] = v end
+  -- After clearing out all of _G's values then any read/write to
+  -- it will always come to these metamethods for the first time
+  -- when referring to a variable. That allows us to intercept
+  -- it. We reject writes to variables that already existed prior
+  -- to the freezing. However, we allow writing to new global
+  -- variables (and reassigning to them).
+  setmetatable( _G, {
     __index     = function( t, k )
                     return globals[k]
                   end,
-    __pairs     = pairs_two_tables_override( _ENV, globals ),
+    __pairs     = pairs_two_tables_override( _G, globals ),
     __newindex  = function( t, k, v )
                     if globals[k] ~= nil then
                       error("attempt to modify a read-only global "
@@ -130,7 +130,7 @@ local function freeze_existing_globals()
     __metatable = false
   } )
   -- Now delete all globals from accessible environment.
-  for k, v in pairs( globals ) do _ENV[k] = nil end
+  for k, v in pairs( globals ) do _G[k] = nil end
 end
 
 local function freeze_all()
