@@ -95,17 +95,10 @@ local function freeze_table_members( tbl )
   end
 end
 
-local real_rawset = rawset
-
 -- Redefine the global builtin function rawset since the real
--- version is unsafe.  Only allows use on non globals.
-function rawset( table, k, v )
-  if table == _ENV then
-    table[k] = v
-  else
-    real_rawset( table, k, v )
-  end
-end
+-- version is unsafe.
+local real_rawset = rawset
+rawset = nil
 
 -- In this case "freeze" means that one cannot change what a
 -- global variable name points to; it does not make the global
