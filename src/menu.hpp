@@ -39,6 +39,7 @@ enum class e_menu {
 
 enum class e_menu_item {
   about,
+  save,
   revolution,
   retire,
   exit,

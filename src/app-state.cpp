@@ -11,18 +11,20 @@
 #include "app-state.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "conductor.hpp"
-#include "fsm.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 #include "main-menu.hpp"
+#include "menu.hpp"
 #include "plane-ctrl.hpp"
 #include "save-game.hpp"
 #include "turn.hpp"
+#include "waitable-coro.hpp"
 #include "window.hpp"
 
-// Rnl
-#include "rnl/app-state.hpp"
+// base
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
@@ -30,211 +32,115 @@ namespace rn {
 
 namespace {
 
-bool g_game_dirty_flag = false;
-
-waitable<> g_turn;
+/****************************************************************
+** Global State
+*****************************************************************/
+waitable_promise<> g_game_exit_clicked;
 
 /****************************************************************
-** FSMs
+** Saving / Loading
 *****************************************************************/
-// clang-format off
-fsm_transitions( App
- ,(    (main_no_game, new_   ),  ->,  creating
-),(    (main_no_game, load   ),  ->,  loading
-),(    (main_no_game, quit   ),  ->,  quitting
-),(    (main_in_game, leave  ),  ->,  leaving
-),(    (main_in_game, save   ),  ->,  saving
-),(    (main_in_game, to_game),  ->,  in_game
-),(    (creating,     to_game),  ->,  in_game
-),(    (leaving,      ok     ),  ->,  main_no_game
-),(    (leaving,      cancel ),  ->,  main_in_game
-),(    (loading,      to_game),  ->,  in_game
-),(    (saving,       to_main),  ->,  main_in_game
-),(    (in_game,      to_main),  ->,  main_in_game
-) );
-// clang-format on
+void main_menu_load() { CHECK_HAS_VALUE( load_game( 0 ) ); }
 
-struct AppFsm;
-AppFsm& g_app_state();
-
-fsm_class( App ) { //
-  fsm_init( AppState::main_no_game{} );
-
-  // FIXME: this should be done in a fsm_on_change_to.
-  fsm_transition_( App, leaving, ok, ->, main_no_game ) {
-    clear_plane_stack();
-    push_plane_config( e_plane_config::main_menu );
-    set_main_menu( e_main_menu_type::no_game );
-    return {};
+waitable<> menu_save_handler() {
+  if( auto res = save_game( 0 ); !res ) {
+    co_await ui::message_box(
+        "There was a problem saving the game." );
+    lg.error( "failed to save game: {}", res.error() );
+  } else {
+    co_await ui::message_box(
+        fmt::format( "Successfully saved game to {}.", res ) );
+    lg.info( "saved game to {}.", res );
   }
-
-  // FIXME: this should be done in a fsm_on_change_to.
-  fsm_transition_( App, leaving, cancel, ->, main_in_game ) {
-    set_main_menu( e_main_menu_type::in_game );
-    return {};
-  }
-
-  // FIXME: this should be done in a fsm_on_change_to.
-  fsm_transition_( App, saving, to_main, ->, main_in_game ) {
-    set_main_menu( e_main_menu_type::in_game );
-    return {};
-  }
-
-  fsm_transition_( App, in_game, to_main, ->, main_in_game ) {
-    push_plane_config( e_plane_config::main_menu );
-    set_main_menu( e_main_menu_type::in_game );
-    return {};
-  }
-
-  fsm_transition_( App, main_no_game, load, ->, loading ) {
-    return { /*slot=*/nothing };
-  }
-
-  fsm_transition_( App, main_in_game, save, ->, saving ) {
-    return { /*slot=*/nothing };
-  }
-
-  fsm_transition( App, main_in_game, leave, ->, leaving ) {
-    (void)cur;
-    if( event.dirty ) {
-      // FIXME: use waitables here.
-      ui::ok_cancel(
-          "Really leave game without saving?",
-          []( ui::e_ok_cancel oc ) {
-            if( oc == ui::e_ok_cancel::ok )
-              g_app_state().send_event( AppEvent::ok{} );
-            else
-              g_app_state().send_event( AppEvent::cancel{} );
-          } );
-      return {};
-    } else {
-      g_app_state().send_event( AppEvent::ok{} );
-      return {};
-    }
-  }
-
-  // FIXME: this should be done in an on-leave function.
-  fsm_transition_( App, main_in_game, to_game, ->, in_game ) {
-    pop_plane_config();
-    return {};
-  }
-
-  // FIXME: this should be done in an on-leave function.
-  fsm_transition_( App, creating, to_game, ->, in_game ) {
-    clear_plane_stack();
-    push_plane_config( e_plane_config::terrain );
-    conductor::play_request(
-        conductor::e_request::fife_drum_happy,
-        conductor::e_request_probability::always );
-    return {};
-  }
-
-  // FIXME: this should be done in an on-leave function.
-  fsm_transition_( App, loading, to_game, ->, in_game ) {
-    // FIXME: here we assume that the main menu was at the top of
-    // the stack when serialized (check this).
-    pop_plane_config();
-    conductor::play_request(
-        conductor::e_request::fife_drum_happy,
-        conductor::e_request_probability::always );
-    return {};
-  }
-};
-
-FSM_DEFINE_FORMAT_RN_( App );
-
-AppFsm& g_app_state() {
-  static AppFsm fsm;
-  return fsm;
 }
 
-// Will be called repeatedly until no more events added to fsm.
-void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
-  switch( fsm.state().to_enum() ) {
-    case AppState::e::main_no_game: {
-      auto sel = main_menu_selection();
-      if( !sel.has_value() ) break;
-      switch( *sel ) {
-        case e_main_menu_item::resume: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case e_main_menu_item::new_: //
-          fsm.send_event( AppEvent::new_{} );
-          break;
-        case e_main_menu_item::load: //
-          fsm.send_event( AppEvent::load{} );
-          break;
-        case e_main_menu_item::save: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case e_main_menu_item::leave: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case e_main_menu_item::quit: //
-          fsm.send_event( AppEvent::quit{} );
-          break;
-      }
-      break;
-    }
-    case AppState::e::main_in_game: {
-      auto sel = main_menu_selection();
-      if( !sel.has_value() ) break;
-      switch( *sel ) {
-        case e_main_menu_item::resume: //
-          fsm.send_event( AppEvent::to_game{} );
-          break;
-        case e_main_menu_item::new_: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case e_main_menu_item::load: //
-          SHOULD_NOT_BE_HERE;
-          break;
-        case e_main_menu_item::save: //
-          fsm.send_event( AppEvent::save{} );
-          break;
-        case e_main_menu_item::leave: //
-          fsm.send_event(
-              AppEvent::leave{ /*dirty=*/g_game_dirty_flag } );
-          break;
-        case e_main_menu_item::quit: //
-          SHOULD_NOT_BE_HERE;
-          break;
-      }
-      break;
-    }
-    case AppState::e::creating: {
-      default_construct_savegame_state();
-      g_turn = {};
-      lua::reload();
-      lua::run_startup_main();
-      fsm.send_event( AppEvent::to_game{} );
-      break;
-    }
-    case AppState::e::leaving: {
-      //
-      break;
-    }
-    case AppState::e::loading: {
-      g_turn = {};
-      CHECK_HAS_VALUE( load_game( 0 ) );
-      fsm.send_event( AppEvent::to_game() );
-      break;
-    }
-    case AppState::e::saving: {
-      CHECK_HAS_VALUE( save_game( 0 ) );
-      g_game_dirty_flag = false;
-      fsm.send_event( AppEvent::to_main() );
-      break;
-    }
-    case AppState::e::in_game: {
-      g_game_dirty_flag = true;
-      if( g_turn.ready() ) g_turn.get_and_reset();
-      if( g_turn.empty() ) g_turn = do_next_turn();
-      break;
-    }
-    case AppState::e::quitting: {
-      *quit = true; //
-      break;
+MENU_ITEM_HANDLER(
+    save, []() -> waitable<> { co_await menu_save_handler(); },
+    [] { return true; } );
+
+/****************************************************************
+** Exiting
+*****************************************************************/
+function<bool( void )> quit_handler = [] {
+  g_game_exit_clicked.set_value_emplace();
+  return false;
+};
+
+MENU_ITEM_HANDLER( exit, quit_handler, [] { return true; } );
+
+waitable<> exit_waiter() {
+  while( true ) {
+    g_game_exit_clicked = waitable_promise<>{};
+    co_await g_game_exit_clicked.get_waitable();
+    // Game => Exit has been selected.
+    // if( !dirty ) co_return;
+    auto res = co_await ui::ok_cancel(
+        "Really leave game without saving?" );
+    if( res == ui::e_ok_cancel::ok ) break;
+  }
+}
+
+/****************************************************************
+** In the Game
+*****************************************************************/
+waitable<> play_game() {
+  push_plane_config( e_plane_config::terrain );
+  SCOPE_EXIT( pop_plane_config() );
+  conductor::play_request(
+      conductor::e_request::fife_drum_happy,
+      conductor::e_request_probability::always );
+  waitable<> exit_game = exit_waiter();
+  waitable<> next_turn;
+  while( !exit_game ) {
+    // We must clear the callbacks before reusing this object as
+    // dictated by the when_any contract.
+    exit_game.cancel();
+    next_turn = do_next_turn();
+    co_await when_any( next_turn, exit_game );
+  }
+  // If we're here then the exit_game coroutine has finished and
+  // been destroyed, so all that we need to is check if we were
+  // in the middle of a turn when the exit was done (likely) and
+  // destroy that coroutine to avoid leaking it.
+  if( next_turn ) next_turn.cancel();
+}
+
+/****************************************************************
+** New Game
+*****************************************************************/
+void main_menu_new_game() {
+  default_construct_savegame_state();
+  // FIXME: temporary, since default constructing the save game
+  // state resets the plane state.
+  push_plane_config( e_plane_config::main_menu );
+  lua::reload();
+  lua::run_startup_main();
+}
+
+/****************************************************************
+** Main Menu
+*****************************************************************/
+waitable<> main_menu() {
+  while( true ) {
+    clear_plane_stack();
+    push_plane_config( e_plane_config::main_menu );
+    switch( co_await next_main_menu_item() ) {
+      case e_main_menu_item::new_:
+        main_menu_new_game();
+        co_await play_game();
+        break;
+      case e_main_menu_item::load:
+        main_menu_load();
+        co_await play_game();
+        break;
+      case e_main_menu_item::quit: //
+        co_return;
+      case e_main_menu_item::settings_graphics:
+        co_await ui::message_box( "No graphics settings yet." );
+        break;
+      case e_main_menu_item::settings_sound:
+        co_await ui::message_box( "No sound settings yet." );
+        break;
     }
   }
 }
@@ -242,30 +148,8 @@ void advance_app_state_fsm( AppFsm& fsm, bool* quit ) {
 } // namespace
 
 /****************************************************************
-** Public API
+** Top-Level Application Flow.
 *****************************************************************/
-bool back_to_main_menu() {
-  // FIXME: find a better way to handle this.
-  if( g_app_state().holds<AppState::in_game>() &&
-      !g_app_state().has_pending_events() ) {
-    g_app_state().send_event( AppEvent::to_main{} );
-    return true;
-  }
-  return false;
-}
-
-bool advance_app_state() {
-  bool quit = false;
-  fsm_auto_advance( g_app_state(), "app-state",
-                    { advance_app_state_fsm }, &quit );
-  return quit;
-}
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_app_state() {
-  //
-}
+waitable<> revolution_now() { co_await main_menu(); }
 
 } // namespace rn

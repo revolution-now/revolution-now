@@ -113,6 +113,8 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
       {
           ITEM( about, "About this Game" ),    //
           /***********/ DIVIDER, /***********/ //
+          ITEM( save, "Save Game" ),           //
+          /***********/ DIVIDER, /***********/ //
           ITEM( revolution, "REVOLUTION!" ),   //
           /***********/ DIVIDER, /***********/ //
           ITEM( retire, "Retire" ),            //
@@ -823,7 +825,7 @@ void render_menu_bar( Texture& tx ) {
       Txs operator()( MenuState::item_click const& ic ) const {
         // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        return ( *this )( MenuState::menu_open{
+        return (*this)( MenuState::menu_open{
             g_item_to_menu[ic.item], /*hover=*/{} } );
       }
       Txs operator()( MenuState::menu_open const& o ) const {
@@ -832,7 +834,7 @@ void render_menu_bar( Texture& tx ) {
               pair{ &textures.name.highlighted,
                     &textures.menu_background_highlight } };
         } else
-          return ( *this )( MenuState::menus_closed{} );
+          return (*this)( MenuState::menus_closed{} );
       }
     } matcher{ menu, textures };
     if( auto p = std::visit( matcher, g_menu_state );
@@ -874,11 +876,11 @@ maybe<MouseOver_t> click_target( Coord screen_coord ) {
     res_t operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
       CHECK( g_item_to_menu.contains( ic.item ) );
-      return ( *this )( MenuState::menu_open{
+      return (*this)( MenuState::menu_open{
           g_item_to_menu[ic.item], /*hover=*/{} } );
     }
     res_t operator()( MenuState::menu_open const& o ) const {
-      auto closed = ( *this )( MenuState::menus_closed{} );
+      auto closed = (*this)( MenuState::menus_closed{} );
       if( closed ) return res_t{ closed };
       if( !screen_coord.is_inside(
               menu_body_clickable_area( o.menu ) ) )
@@ -1071,19 +1073,6 @@ void cleanup_menus() {
 }
 
 REGISTER_INIT_ROUTINE( menus );
-
-/****************************************************************
-** Handlers (temporary)
-*****************************************************************/
-function<void( void )> empty_handler = [] {};
-function<bool( void )> enabled_true  = [] { return true; };
-function<bool( void )> enabled_false = [] { return false; };
-function<bool( void )> quit_handler  = [] {
-  throw exception_exit{};
-  return false;
-};
-
-MENU_ITEM_HANDLER( exit, quit_handler, enabled_true );
 
 /****************************************************************
 ** The Menu Plane
@@ -1394,8 +1383,8 @@ struct MenuPlane : public Plane {
             e_input_handled operator()(
                 MouseOver::border border ) {
               // Delegate to the divider handler for now.
-              return ( *this )(
-                  MouseOver::divider{ border.menu } );
+              return (
+                  *this)( MouseOver::divider{ border.menu } );
             }
           } matcher;
           return std::visit( matcher, *over_what );

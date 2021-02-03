@@ -889,4 +889,6 @@ void test() {
   }
 }
 
+void linker_dont_discard_module_conductor() {}
+
 } // namespace rn::conductor

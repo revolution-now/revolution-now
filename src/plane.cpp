@@ -268,20 +268,8 @@ bool input_catchall( input::event_t const& event ) {
   bool handled = false;
   switch( event.to_enum() ) {
     case input::e_input_event::quit_event:
-      throw exception_exit{};
-    case input::e_input_event::key_event: {
-      auto& key_event = event.get<input::key_event_t>();
-      if( key_event.change != input::e_key_change::down ) break;
-      switch( key_event.keycode ) {
-        case ::SDLK_ESCAPE: //
-          handled = true;
-          back_to_main_menu();
-          break;
-        default: //
-          break;
-      }
+      // throw exception_exit{};
       break;
-    }
     default: //
       break;
   }

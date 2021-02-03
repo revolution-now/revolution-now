@@ -43,6 +43,11 @@ public:
   // mediately.
   virtual void add_callback(
       std::function<NotifyFunc> callback ) = 0;
+
+  // Removes callbacks, so that when a value is set, nothing hap-
+  // pens. This probably has no effect if the value has already
+  // been set.
+  virtual void cancel() = 0;
 };
 
 } // namespace internal
@@ -62,16 +67,14 @@ inline constexpr bool is_waitable_v<waitable<T>> = true;
 // Single-threaded "future" object: represents a value that will
 // become available in the future by the same thread.
 //
-// The waitable has three states:
+// The waitable has two states:
 //
-//   waiting --> ready --> empty
+//   waiting --> ready
 //
 // It starts off in the `waiting` state upon construction (from a
 // waitable_promise) then transitions to `ready` when the result
 // becomes available. At this point, the value can be retrieved
-// using the get or get_and_reset methods (the latter also causes
-// a transitions to the `empty` state). Once in the `empty` state
-// the waitable is "dead" forever.
+// using the get method
 //
 // Example usage:
 //
@@ -84,11 +87,7 @@ inline constexpr bool is_waitable_v<waitable<T>> = true;
 //   s_promise.set_value( 3 );
 //
 //   assert( s_future1.get() == 3 );
-//   assert( s_future1.get_and_reset() == 3 );
-//   assert( s_future2.get_and_reset() == 4 );
-//
-//   assert( s_future1.empty() );
-//   assert( s_future2.empty() );
+//   assert( s_future2.get() == 4 );
 //
 template<typename T = std::monostate>
 class [[nodiscard]] waitable {
@@ -97,7 +96,7 @@ class [[nodiscard]] waitable {
       std::shared_ptr<internal::sync_shared_state_base<U>>;
 
 public:
-  using value_t = T;
+  using value_type = T;
 
   waitable() {}
 
@@ -107,10 +106,9 @@ public:
 
   // This constructor should not be used by client code.
   explicit waitable( SharedStatePtr<T> shared_state )
-    : shared_state_{ shared_state }, taken_{ false } {}
+    : shared_state_{ shared_state } {}
 
   bool operator==( waitable<T> const& rhs ) const {
-    // Not comparing `taken_`.
     return shared_state_.get() == rhs.shared_state_.get();
   }
 
@@ -118,19 +116,13 @@ public:
     return !( *this == rhs );
   }
 
-  bool empty() const { return shared_state_ == nullptr; }
-
-  bool waiting() const {
-    if( empty() ) return false;
-    return !shared_state_->has_value();
-  }
-
   bool ready() const {
-    if( empty() ) return false;
-    return shared_state_->has_value();
+    return shared_state_ && shared_state_->has_value();
   }
 
-  bool taken() const { return taken_; }
+  operator bool() const { return ready(); }
+
+  void cancel() { shared_state_->cancel(); }
 
   // Gets the value (running any continuations) and returns the
   // value, leaving the waitable in the same state.
@@ -138,27 +130,12 @@ public:
     CHECK( ready(),
            "attempt to get value from waitable when not in "
            "`ready` state." );
-    taken_ = true;
     return shared_state_->get();
   }
 
-  // Gets the value (running any continuations) and resets the
-  // waitable to empty state.
-  T get_and_reset() {
-    CHECK( ready(),
-           "attempt to get value from waitable when not in "
-           "`ready` state." );
-    T res = shared_state_->get();
-    shared_state_.reset();
-    taken_ = true;
-    return res;
-  }
-
+  // FIXME: remove and replace with coroutines.
   template<typename Func>
   auto fmap( Func&& func ) {
-    CHECK( !empty(),
-           "attempting to attach a continuation to an empty "
-           "waitable." );
     using NewResult_t =
         std::decay_t<std::invoke_result_t<Func, T>>;
 
@@ -193,6 +170,8 @@ public:
             } );
       }
 
+      void cancel() override { old_shared_state_->cancel(); }
+
       SharedStatePtr<T> old_shared_state_;
       // continuation :: T -> NewResult_t
       Func continuation_;
@@ -203,6 +182,7 @@ public:
             shared_state_, std::forward<Func>( func ) ) );
   }
 
+  // FIXME: remove and replace with coroutines.
   template<typename Func>
   waitable<> consume( Func&& func ) {
     return fmap( [func = std::forward<Func>( func )](
@@ -219,7 +199,6 @@ public:
 
 private:
   SharedStatePtr<T> shared_state_;
-  bool              taken_ = false;
 };
 
 /****************************************************************
@@ -233,14 +212,11 @@ private:
 //   waitable_promise<int> s_promise;
 //
 //   waitable<int> s_future = s_promise.get_waitable();
-//   assert( s_future.waiting() );
+//   assert( !s_future.ready() );
 //
 //   s_promise.set_value( 3 );
 //
 //   assert( s_future.get() == 3 );
-//
-//   assert( s_future.get_and_reset() == 3 );
-//   assert( s_future.empty() );
 //
 template<typename T = std::monostate>
 class waitable_promise {
@@ -269,6 +245,8 @@ class waitable_promise {
       else
         callbacks_.push_back( std::move( callback ) );
     }
+
+    void cancel() override { callbacks_.clear(); }
 
     void do_callbacks() const {
       CHECK( has_value() );
@@ -326,10 +304,9 @@ private:
 *****************************************************************/
 template<typename Fsm>
 void advance_fsm_ui_state( Fsm* fsm, waitable<>* s_future ) {
-  CHECK( !s_future->empty() );
   if( s_future->ready() ) {
     fsm->pop();
-    s_future->get_and_reset();
+    s_future->get();
   }
 }
 
@@ -339,39 +316,6 @@ waitable<T> make_waitable( Args&&... args ) {
   waitable_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
   return s_promise.get_waitable();
-}
-
-// Returns `false` if the caller needs to wait for completion of
-// the step, true if the step is complete.
-template<typename T = std::monostate>
-bool step_with_future(
-    waitable<T>* s_future, function_ref<waitable<T>()> init,
-    function_ref<bool( T const& )> when_ready ) {
-  if( s_future->empty() ) {
-    *s_future = init();
-    // !! should fall through.
-  }
-  if( !s_future->ready() ) return false;
-  if( !s_future->taken() ) return when_ready( s_future->get() );
-  return true;
-}
-
-// Same as above, but the `when_ready` function always returns
-// true.
-template<typename T = std::monostate>
-bool step_with_future( waitable<T>*                s_future,
-                       function_ref<waitable<T>()> init ) {
-  if( s_future->empty() ) {
-    *s_future = init();
-    // !! should fall through.
-  }
-  if( !s_future->ready() ) return false;
-  if( !s_future->taken() ) {
-    // Still need to run this in case it has side effects.
-    (void)s_future->get();
-    return true;
-  }
-  return true;
 }
 
 } // namespace rn
@@ -387,14 +331,10 @@ struct formatter<::rn::waitable<T>> : formatter_base {
   template<typename FormatContext>
   auto format( ::rn::waitable<T> const& o, FormatContext& ctx ) {
     std::string res;
-    if( o.empty() )
-      res = "<empty>";
-    else if( o.waiting() )
+    if( !o.ready() )
       res = "<waiting>";
-    else if( o.ready() && !o.taken() )
+    else if( o.ready() )
       res = fmt::format( "<ready>" );
-    else if( o.taken() )
-      res = fmt::format( "<taken>" );
     return formatter_base::format( res, ctx );
   }
 };

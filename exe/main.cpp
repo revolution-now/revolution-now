@@ -1,3 +1,4 @@
+#include "app-state.hpp"
 #include "fmt-helper.hpp"
 #include "frame.hpp"
 #include "init.hpp"
@@ -23,7 +24,7 @@ int main( int /*unused*/, char** /*unused*/ ) {
       lua::run_startup_main();
       print_bar( '-', "[ Starting Game ]" );
       // The action.
-      frame_loop();
+      frame_loop( revolution_now() );
     } else {
       run_all_init_routines(
           e_log_level::debug,

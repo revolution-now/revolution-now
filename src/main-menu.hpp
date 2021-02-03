@@ -13,33 +13,23 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "maybe.hpp"
+#include "waitable.hpp"
 
 namespace rn {
 
-enum class e_main_menu_type { no_game, in_game };
-
 enum class e_main_menu_item {
-  resume,
   new_,
   load,
-  save,
-  leave,
-  quit
+  settings_graphics,
+  settings_sound,
+  quit,
 };
-
-void set_main_menu( e_main_menu_type type );
 
 // When this function returns a value, that value will be reset,
 // so another call immediately after will yield no result.
-maybe<e_main_menu_item> main_menu_selection();
+waitable<e_main_menu_item> next_main_menu_item();
 
 struct Plane;
 Plane* main_menu_plane();
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_main_menu();
 
 } // namespace rn

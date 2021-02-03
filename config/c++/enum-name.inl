@@ -32,9 +32,8 @@ TRANSLATION( e_commodity,
 
 TRANSLATION( e_main_menu_item,
 
-  ( resume,          "Resume Game"     ),
-  ( new_,            "New Game"        ),
-  ( load,            "Load Game"       ),
-  ( save,            "Save Game"       ),
-  ( leave,           "Leave Game"      ),
-  ( quit,            "Quit"            ))
+  ( new_,              "New Game"          ),
+  ( load,              "Load Game"         ),
+  ( settings_graphics, "Graphics Settings" ),
+  ( settings_sound,    "Sound Settings"    ),
+  ( quit,              "Quit"              ))

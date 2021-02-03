@@ -52,15 +52,14 @@ struct shared_int_state
     SHOULD_NOT_BE_HERE;
   }
 
+  void cancel() override {}
+
   maybe<int> maybe_int;
 };
 
 TEST_CASE( "[waitable] future default construction" ) {
   waitable<> s_future;
-  REQUIRE( s_future.empty() );
-  REQUIRE( !s_future.waiting() );
   REQUIRE( !s_future.ready() );
-  REQUIRE( !s_future.taken() );
 }
 
 TEST_CASE( "[waitable] future api basic" ) {
@@ -68,28 +67,11 @@ TEST_CASE( "[waitable] future api basic" ) {
 
   waitable<int> s_future( ss );
 
-  REQUIRE( !s_future.empty() );
-  REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
-  REQUIRE( !s_future.taken() );
 
   ss->maybe_int = 3;
-  REQUIRE( !s_future.empty() );
-  REQUIRE( !s_future.waiting() );
   REQUIRE( s_future.ready() );
-  REQUIRE( !s_future.taken() );
-
   REQUIRE( s_future.get() == 3 );
-  REQUIRE( !s_future.empty() );
-  REQUIRE( !s_future.waiting() );
-  REQUIRE( s_future.ready() );
-  REQUIRE( s_future.taken() );
-
-  REQUIRE( s_future.get_and_reset() == 3 );
-  REQUIRE( s_future.empty() );
-  REQUIRE( !s_future.waiting() );
-  REQUIRE( !s_future.ready() );
-  REQUIRE( s_future.taken() );
 }
 
 TEST_CASE( "[waitable] future api with continuation" ) {
@@ -97,82 +79,43 @@ TEST_CASE( "[waitable] future api with continuation" ) {
 
   waitable<int> s_future( ss );
 
-  REQUIRE( !s_future.empty() );
-  REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
-  REQUIRE( !s_future.taken() );
 
   auto s_future2 =
       s_future.fmap( []( int n ) { return n + 1; } );
 
-  REQUIRE( !s_future.empty() );
-  REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
-  REQUIRE( !s_future.taken() );
 
-  REQUIRE( !s_future2.empty() );
-  REQUIRE( s_future2.waiting() );
   REQUIRE( !s_future2.ready() );
-  REQUIRE( !s_future2.taken() );
 
   auto s_future3 = s_future2.fmap(
       []( int n ) { return std::to_string( n ); } );
 
-  REQUIRE( !s_future2.empty() );
-  REQUIRE( s_future2.waiting() );
   REQUIRE( !s_future2.ready() );
-  REQUIRE( !s_future2.taken() );
 
-  REQUIRE( !s_future3.empty() );
-  REQUIRE( s_future3.waiting() );
   REQUIRE( !s_future3.ready() );
-  REQUIRE( !s_future3.taken() );
 
   ss->maybe_int = 3;
-  REQUIRE( !s_future.empty() );
-  REQUIRE( !s_future2.empty() );
-  REQUIRE( !s_future3.empty() );
-  REQUIRE( !s_future.waiting() );
-  REQUIRE( !s_future2.waiting() );
-  REQUIRE( !s_future3.waiting() );
   REQUIRE( s_future.ready() );
   REQUIRE( s_future2.ready() );
   REQUIRE( s_future3.ready() );
-  REQUIRE( !s_future.taken() );
-  REQUIRE( !s_future2.taken() );
-  REQUIRE( !s_future3.taken() );
 
   REQUIRE( s_future3.get() == "4" );
-  REQUIRE( s_future3.taken() );
-  auto res3 = s_future3.get_and_reset();
-  REQUIRE( s_future3.taken() );
+  auto res3 = s_future3.get();
   static_assert( std::is_same_v<decltype( res3 ), std::string> );
   REQUIRE( res3 == "4" );
   REQUIRE( s_future2.get() == 4 );
-  REQUIRE( s_future2.taken() );
-  auto res2 = s_future2.get_and_reset();
-  REQUIRE( s_future2.taken() );
+  auto res2 = s_future2.get();
   static_assert( std::is_same_v<decltype( res2 ), int> );
   REQUIRE( res2 == 4 );
   REQUIRE( s_future.get() == 3 );
-  REQUIRE( s_future.taken() );
-  auto res1 = s_future.get_and_reset();
-  REQUIRE( s_future.taken() );
+  auto res1 = s_future.get();
   static_assert( std::is_same_v<decltype( res1 ), int> );
   REQUIRE( res1 == 3 );
 
-  REQUIRE( s_future.empty() );
-  REQUIRE( !s_future.waiting() );
-  REQUIRE( !s_future.ready() );
-  REQUIRE( s_future.taken() );
-  REQUIRE( s_future2.empty() );
-  REQUIRE( !s_future2.waiting() );
-  REQUIRE( !s_future2.ready() );
-  REQUIRE( s_future2.taken() );
-  REQUIRE( s_future3.empty() );
-  REQUIRE( !s_future3.waiting() );
-  REQUIRE( !s_future3.ready() );
-  REQUIRE( s_future3.taken() );
+  REQUIRE( s_future.ready() );
+  REQUIRE( s_future2.ready() );
+  REQUIRE( s_future3.ready() );
 }
 
 TEST_CASE( "[waitable] consume" ) {
@@ -185,7 +128,7 @@ TEST_CASE( "[waitable] consume" ) {
       std::is_same_v<decltype( s_future ), waitable<>> );
 
   REQUIRE( run == false );
-  s_future.get_and_reset();
+  s_future.get();
   REQUIRE( run == true );
 }
 
@@ -194,29 +137,12 @@ TEST_CASE( "[waitable] promise api basic api" ) {
   REQUIRE( !s_promise.has_value() );
 
   waitable<int> s_future = s_promise.get_waitable();
-  REQUIRE( !s_future.empty() );
-  REQUIRE( s_future.waiting() );
   REQUIRE( !s_future.ready() );
-  REQUIRE( !s_future.taken() );
 
   s_promise.set_value( 3 );
   REQUIRE( s_promise.has_value() );
-  REQUIRE( !s_future.empty() );
-  REQUIRE( !s_future.waiting() );
   REQUIRE( s_future.ready() );
-  REQUIRE( !s_future.taken() );
-
   REQUIRE( s_future.get() == 3 );
-  REQUIRE( !s_future.empty() );
-  REQUIRE( !s_future.waiting() );
-  REQUIRE( s_future.ready() );
-  REQUIRE( s_future.taken() );
-
-  REQUIRE( s_future.get_and_reset() == 3 );
-  REQUIRE( s_future.empty() );
-  REQUIRE( !s_future.waiting() );
-  REQUIRE( !s_future.ready() );
-  REQUIRE( s_future.taken() );
 }
 
 TEST_CASE( "[waitable] formatting" ) {
@@ -232,24 +158,19 @@ TEST_CASE( "[waitable] formatting" ) {
 
   REQUIRE( s_future.get() == 3 );
   REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
-  REQUIRE( fmt::format( "{}", s_future ) == "<taken>" );
-
-  REQUIRE( s_future.get_and_reset() == 3 );
-  REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
-  REQUIRE( fmt::format( "{}", s_future ) == "<empty>" );
 }
 
 template<typename T>
-using sf_coro_promise =
+using w_coro_promise =
     typename coro::coroutine_traits<waitable<T>>::promise_type;
 
-queue<variant<sf_coro_promise<int>, sf_coro_promise<double>>>
+queue<variant<w_coro_promise<int>, w_coro_promise<double>>>
     g_promises;
 
 void deliver_promise() {
   struct Setter {
-    void operator()( sf_coro_promise<int>& p ) { p.set( 1 ); }
-    void operator()( sf_coro_promise<double>& p ) {
+    void operator()( w_coro_promise<int>& p ) { p.set( 1 ); }
+    void operator()( w_coro_promise<double>& p ) {
       p.set( 2.2 );
     }
   };
@@ -260,13 +181,13 @@ void deliver_promise() {
 }
 
 waitable<int> waitable_int() {
-  sf_coro_promise<int> p;
+  w_coro_promise<int> p;
   g_promises.emplace( p );
   return p.get_return_object();
 }
 
 waitable<double> waitable_double() {
-  sf_coro_promise<double> p;
+  w_coro_promise<double> p;
   g_promises.emplace( p );
   return p.get_return_object();
 }
@@ -281,7 +202,7 @@ waitable<int> waitable_sum() {
 template<typename Func, typename... Args>
 auto co_invoke( Func&& func, Args... args )
     -> waitable<decltype( std::forward<Func>( func )(
-        std::declval<typename Args::value_t>()... ) )> {
+        std::declval<typename Args::value_type>()... ) )> {
   co_return std::forward<Func>( func )( ( co_await args )... );
 }
 
@@ -319,14 +240,14 @@ waitable<string> waitable_string() {
 }
 
 TEST_CASE( "[waitable] coro" ) {
-  waitable<string> sfs = waitable_string();
-  int              i   = 0;
-  while( !sfs.ready() ) {
+  waitable<string> ws = waitable_string();
+  int              i  = 0;
+  while( !ws.ready() ) {
     ++i;
     deliver_promise();
     run_all_coroutines();
   }
-  REQUIRE( sfs.get() == "3-12-8.800000" );
+  REQUIRE( ws.get() == "3-12-8.800000" );
   REQUIRE( i == 20 );
 }
 

@@ -13,17 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
-//#include "dummy.hpp"
+#include "waitable.hpp"
 
 namespace rn {
 
-ND bool advance_app_state();
-
-bool back_to_main_menu();
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_app_state();
+// This is the top-level coroutine in the program which calls
+// into all of the other coroutines. Overall, one can think of
+// this program as an event loop that spins, taking user input,
+// until this top-level awaitable is finished.
+waitable<> revolution_now();
 
 } // namespace rn

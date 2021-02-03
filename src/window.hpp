@@ -76,6 +76,8 @@ ValidatorFunc make_int_validator( maybe<int> min,
 void ok_cancel( std::string_view                   msg,
                 std::function<void( e_ok_cancel )> on_result );
 
+waitable<e_ok_cancel> ok_cancel( std::string_view msg );
+
 void text_input_box(
     std::string_view title, std::string_view msg,
     ValidatorFunc                             validator,

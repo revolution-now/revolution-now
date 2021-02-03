@@ -299,7 +299,6 @@ waitable<> do_units_turn() {
       unit_from_id( id ).unfinish_turn();
     }
   }
-  co_return {};
 }
 
 void do_colonies_turn() {
@@ -335,8 +334,6 @@ waitable<> do_nation_turn() {
     st.did_units = true;
   }
   CHECK( st.units.empty() );
-
-  co_return {};
 }
 
 waitable<> do_next_turn_impl() {
@@ -367,7 +364,6 @@ waitable<> do_next_turn_impl() {
   if( st.need_eot ) co_await user_hits_eot_button();
 
   st.new_turn();
-  co_return {};
 }
 
 } // namespace

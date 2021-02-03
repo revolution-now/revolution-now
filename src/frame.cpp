@@ -11,7 +11,6 @@
 #include "frame.hpp"
 
 // Revolution Now
-#include "app-state.hpp"
 #include "co-registry.hpp"
 #include "compositor.hpp" // FIXME: temporary
 #include "config-files.hpp"
@@ -93,9 +92,10 @@ void notify_subscribers() {
 
 using InputReceivedFunc = function_ref<void()>;
 using FrameLoopBodyFunc =
-    function_ref<bool( InputReceivedFunc )>;
+    function_ref<void( InputReceivedFunc )>;
 
-void frame_loop_timer( FrameLoopBodyFunc body ) {
+void frame_loop_scheduler( waitable<> const& what,
+                           FrameLoopBodyFunc body ) {
   static bool guard = false;
   CHECK( !guard, "cannot re-enter frame_loop function." );
   guard = true;
@@ -109,7 +109,7 @@ void frame_loop_timer( FrameLoopBodyFunc body ) {
 
   static auto time_of_last_input = Clock_t::now();
 
-  while( true ) {
+  while( !what ) {
     // If we go more than the configured time without any user
     // input then slow down the frame rate to save battery.
     auto frame_length = ( Clock_t::now() - time_of_last_input >
@@ -121,7 +121,7 @@ void frame_loop_timer( FrameLoopBodyFunc body ) {
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    if( body( on_input ) ) return;
+    body( on_input );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -129,14 +129,8 @@ void frame_loop_timer( FrameLoopBodyFunc body ) {
   }
 }
 
-bool advance_all_state() {
-  if( advance_app_state() ) return true;
-  advance_plane_state();
-  return false;
-}
-
 // Called once per frame.
-bool frame_loop_body( InputReceivedFunc input_received ) {
+void frame_loop_body( InputReceivedFunc input_received ) {
   // ----------------------------------------------------------
   // 1. Get Input.
   input::pump_event_queue();
@@ -161,7 +155,7 @@ bool frame_loop_body( InputReceivedFunc input_received ) {
 
   // ----------------------------------------------------------
   // 2. Update State.
-  if( advance_all_state() ) return true;
+  advance_plane_state();
 
   // This invokes (synchronous/blocking) callbacks to any sub-
   // scribers that want to be notified at regular tick or time
@@ -178,8 +172,6 @@ bool frame_loop_body( InputReceivedFunc input_received ) {
   // 3. Draw.
   draw_all_planes();
   ::SDL_RenderPresent( g_renderer );
-
-  return false;
 };
 
 } // namespace
@@ -202,6 +194,8 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double   avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop() { frame_loop_timer( frame_loop_body ); }
+void frame_loop( waitable<> const& what ) {
+  frame_loop_scheduler( what, frame_loop_body );
+}
 
 } // namespace rn

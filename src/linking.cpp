@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "colony-mfg.hpp"
+#include "conductor.hpp"
 #include "error.hpp"
 #include "player.hpp"
 #include "sound.hpp"
@@ -27,6 +28,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_sound();
   linker_dont_discard_module_colony_mfg();
   linker_dont_discard_module_error();
+  conductor::linker_dont_discard_module_conductor();
   // Add more here as needed.
 }
 

@@ -549,6 +549,14 @@ void ok_cancel( string_view                   msg,
   );
 }
 
+waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
+  waitable_promise<e_ok_cancel> s_promise;
+  ok_cancel( msg, [s_promise]( e_ok_cancel oc ) mutable {
+    s_promise.set_value( oc );
+  } );
+  return s_promise.get_waitable();
+}
+
 void ok_box( string_view msg, function<void()> on_closing ) {
   auto on_ok_closing = [on_closing{ std::move( on_closing ) }](
                            int ) { on_closing(); };

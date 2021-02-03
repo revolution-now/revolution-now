@@ -98,9 +98,7 @@ void set_planes() {
 /****************************************************************
 ** Init / Cleanup
 *****************************************************************/
-void init_plane_config() {
-  push_plane_config( e_plane_config::main_menu );
-}
+void init_plane_config() {}
 
 void cleanup_plane_config() {
   if( SG().plane_list_stack.size() > 5 )

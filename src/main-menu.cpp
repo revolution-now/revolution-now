@@ -31,26 +31,8 @@ namespace rn {
 
 namespace {
 
-maybe<e_main_menu_item> g_item_sel;
-e_main_menu_type      g_type{ e_main_menu_type::no_game };
-e_main_menu_item      g_curr_item{ e_main_menu_item::new_ };
-
-bool is_item_enabled( e_main_menu_item item ) {
-  switch( item ) {
-    case e_main_menu_item::resume:
-      return g_type == e_main_menu_type::in_game;
-    case e_main_menu_item::new_:
-      return g_type == e_main_menu_type::no_game;
-    case e_main_menu_item::load:
-      return g_type == e_main_menu_type::no_game;
-    case e_main_menu_item::save:
-      return g_type == e_main_menu_type::in_game;
-    case e_main_menu_item::leave:
-      return g_type == e_main_menu_type::in_game;
-    case e_main_menu_item::quit:
-      return g_type == e_main_menu_type::no_game;
-  }
-}
+e_main_menu_item                   g_curr_item;
+waitable_promise<e_main_menu_item> g_promise;
 
 /****************************************************************
 ** Plane
@@ -67,7 +49,6 @@ struct MainMenuPlane : public Plane {
     h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
     for( auto e : magic_enum::enum_values<e_main_menu_item>() ) {
-      if( !is_item_enabled( e ) ) continue;
       Color       c       = Color::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
@@ -93,33 +74,24 @@ struct MainMenuPlane : public Plane {
         switch( val.keycode ) {
           case ::SDLK_UP:
           case ::SDLK_KP_8:
-            do {
-              g_curr_item = util::find_previous_and_cycle(
-                  magic_enum::enum_values<e_main_menu_item>(),
-                  g_curr_item );
-            } while( !is_item_enabled( g_curr_item ) );
+            g_curr_item = util::find_previous_and_cycle(
+                magic_enum::enum_values<e_main_menu_item>(),
+                g_curr_item );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_DOWN:
           case ::SDLK_KP_2:
-            do {
-              g_curr_item = util::find_subsequent_and_cycle(
-                  magic_enum::enum_values<e_main_menu_item>(),
-                  g_curr_item );
-            } while( !is_item_enabled( g_curr_item ) );
+            g_curr_item = util::find_subsequent_and_cycle(
+                magic_enum::enum_values<e_main_menu_item>(),
+                g_curr_item );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_RETURN:
           case ::SDLK_KP_ENTER:
             // FIXME: this can check-fail if there are two
             // consecutive ENTERs in the input queue.
-            CHECK( !g_item_sel.has_value() );
-            g_item_sel = g_curr_item;
-            handled    = e_input_handled::yes;
-            break;
-          case ::SDLK_ESCAPE: //
-            if( g_type == e_main_menu_type::in_game )
-              g_item_sel = e_main_menu_item::resume;
+            CHECK( !g_promise.has_value() );
+            g_promise.set_value( g_curr_item );
             handled = e_input_handled::yes;
             break;
           default: break;
@@ -142,31 +114,9 @@ Plane* main_menu_plane() { return &g_main_menu_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-void set_main_menu( e_main_menu_type type ) {
-  g_type = type;
-  if( !is_item_enabled( g_curr_item ) ) {
-    // The currently selected item is no longer enabled, so find
-    // the first enabled item.
-    for( auto e : magic_enum::enum_values<e_main_menu_item>() ) {
-      g_curr_item = e;
-      if( is_item_enabled( e ) ) break;
-    }
-  }
-}
-
-// When this function returns a value, that value will be reset,
-// so another call immediately after will yield no result.
-maybe<e_main_menu_item> main_menu_selection() {
-  auto res = g_item_sel;
-  if( res.has_value() ) g_item_sel = nothing;
-  return res;
-}
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_main_menu() {
-  //
+waitable<e_main_menu_item> next_main_menu_item() {
+  g_promise = waitable_promise<e_main_menu_item>{};
+  return g_promise.get_waitable();
 }
 
 } // namespace rn

@@ -14,6 +14,7 @@
 #include "cache.hpp"
 #include "core-config.hpp"
 #include "moving-avg.hpp"
+#include "src/waitable.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -23,7 +24,8 @@ namespace rn {
 
 using Frames = std::chrono::duration<int, std::ratio<1, 60>>;
 
-void frame_loop();
+// Will spin until the waitable is ready.
+void frame_loop( waitable<> const& what );
 
 double avg_frame_rate();
 

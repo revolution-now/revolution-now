@@ -2055,7 +2055,6 @@ struct EuropePlane : public Plane {
       lg.debug( "received quantity: {}", result );
       this->drag_n_drop_.receive_quantity(
           result.value_or( 0 ) );
-      co_return {};
     }();
 
     fsm_.push( EuroviewState::future{ s_future } );
