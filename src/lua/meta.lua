@@ -115,9 +115,7 @@ local function freeze_existing_globals()
   -- to the freezing. However, we allow writing to new global
   -- variables (and reassigning to them).
   setmetatable( _G, {
-    __index     = function( t, k )
-                    return globals[k]
-                  end,
+    __index     = globals,
     __pairs     = pairs_two_tables_override( _G, globals ),
     __newindex  = function( t, k, v )
                     if globals[k] ~= nil then
