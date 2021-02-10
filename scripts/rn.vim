@@ -95,8 +95,8 @@ endfunction
 
 set tabline=%!MyTabLine()
 
-" Only call clang format if we are under the src or test folders.
-function! MaybeClangFormat()
+" Only call format if we are under the src or test folders.
+function! MaybeFormat( func )
   " Full path of file trying to be formatted.
   let file_path = resolve( expand( '%:p' ) )
   " Take the full resolved path of the folder containing this
@@ -110,14 +110,16 @@ function! MaybeClangFormat()
     \ ]
   for folder in allowed_folders
     if file_path =~ '^' . rn_root . '/'. folder
-      call ClangFormatAll()
+      exec 'call ' . a:func . '()'
       return
     endif
   endfor
 endfunction
 
 " Automatically format the C++ source files just before saving.
-autocmd BufWritePre *.hpp,*.cpp call MaybeClangFormat()
+autocmd BufWritePre *.hpp,*.cpp :silent! call MaybeFormat( 'ClangFormatAll' )
+" Automatically format the Lua source files just before saving.
+autocmd BufWritePre *.lua       :silent! call MaybeFormat( 'LuaFormatAll' )
 
 " We set this ycm global variable to point YCM to the conf script.  The
 " reason we don't just put a .ycm_extra_conf.py in the root folder
