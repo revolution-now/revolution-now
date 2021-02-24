@@ -1720,9 +1720,13 @@ void swap( ::base::expect<T, E>& lhs, ::base::expect<T, E>& rhs )
 *****************************************************************/
 // {fmt} formatter for formatting expect's whose contained types
 // are formattable.
-template<typename T, typename E>
+template<typename T, typename E> /* clang-format off */
+requires( bool( ::fmt::has_formatter<
+             std::remove_cvref_t<T>, ::fmt::format_context>() )
+       && bool( ::fmt::has_formatter<
+             std::remove_cvref_t<E>, ::fmt::format_context>() ) )
 struct fmt::formatter<base::expect<T, E>>
-  : fmt::formatter<std::string> {
+  : fmt::formatter<std::string> /* clang-format on */ {
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
   auto format( base::expect<T, E> const& e,

@@ -1469,9 +1469,12 @@ struct hash<::base::maybe<T>> {
 *****************************************************************/
 // {fmt} formatter for formatting maybes whose contained
 // type is formattable.
-template<typename T>
-struct fmt::formatter<base::maybe<T>>
-  : fmt::formatter<std::string> {
+template<typename T> /* clang-format off */
+requires( bool( ::fmt::has_formatter<
+        std::remove_cvref_t<T>, ::fmt::format_context>() ) )
+struct fmt::
+    formatter<base::maybe<T>> : fmt::formatter<std::string> {
+  /* clang-format on */
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
   auto format( base::maybe<T> const& o, FormatContext& ctx ) {
