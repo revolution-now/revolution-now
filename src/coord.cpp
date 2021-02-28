@@ -14,9 +14,6 @@
 #include "error.hpp"
 #include "fmt-helper.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // c++ standard library
 #include <algorithm>
 #include <cmath>
@@ -109,8 +106,8 @@ maybe<Rect> Rect::overlap_with( Rect const& rhs ) const {
   auto const& new_y1 = std::max( y, rhs.y );
   auto /*!!*/ new_x2 = std::min( x + w, rhs.x + rhs.w );
   auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
-  maybe<Rect>   res    = Rect::from( Coord{ new_x1, new_y1 },
-                              Coord{ new_x2, new_y2 } );
+  maybe<Rect> res    = Rect::from( Coord{ new_x1, new_y1 },
+                                Coord{ new_x2, new_y2 } );
   if( res->area() == 0 ) res = nothing;
   return res;
 }
@@ -255,7 +252,7 @@ Coord Coord::moved( e_direction d ) const {
 }
 
 maybe<e_direction> Coord::direction_to( Coord dest ) const {
-  for( auto d : magic_enum::enum_values<e_direction>() )
+  for( auto d : enum_traits<e_direction>::values )
     if( moved( d ) == dest ) return d;
   return {};
 }

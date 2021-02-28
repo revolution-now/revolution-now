@@ -14,6 +14,15 @@ include "id.hpp";
 
 namespace rn;
 
+enum e_colview_entity {
+  commodities,
+  land,
+  title_bar,
+  population,
+  cargo,
+  production
+};
+
 sumtype ColViewDraggableObject {
   unit:
     UnitId id;

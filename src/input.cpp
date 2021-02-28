@@ -28,9 +28,6 @@
 // Revolution Now (config)
 #include "../config/ucl/input.inl"
 
-// magic-enum
-#include "magic_enum.hpp"
-
 // C++ standard library
 #include <algorithm>
 #include <array>
@@ -40,12 +37,6 @@ using namespace std;
 namespace rn::input {
 
 namespace {
-
-static_assert( magic_enum::enum_count<e_input_event>() ==
-                   variant_size_v<event_t>,
-               "If you add an alternative to the input_event_t "
-               "variant then you need to add a corresponding "
-               "item to the e_input_event enum." );
 
 // This is used to hold the last "measured" mouse position, where
 // "measured" means the last time there was a mouse motion event

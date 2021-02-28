@@ -25,9 +25,6 @@
 // base
 #include "base/keyval.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // C++ standard library
 #include <unordered_map>
 
@@ -68,7 +65,7 @@ ImagePlane g_image_plane;
 // resulting textures will not be owned by this module, so there
 // is no need for a corresponding `release` function.
 void init_images() {
-  for( auto image : magic_enum::enum_values<e_image>() ) {
+  for( auto image : enum_traits<e_image>::values ) {
     g_images.insert( { image, Texture::load_image(
                                   image_file_path( image ) ) } );
   }

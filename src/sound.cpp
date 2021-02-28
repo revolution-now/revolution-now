@@ -21,9 +21,6 @@
 // Revolution Now (config)
 #include "../config/ucl/sound.inl"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // SDL
 #include "SDL.h"
 #include "SDL_mixer.h"
@@ -116,7 +113,7 @@ void init_sound() {
   constexpr int default_volume{ 10 }; // [0, 128)
   ::Mix_Volume( -1 /*=all channels*/, default_volume );
 
-  for( auto sound : magic_enum::enum_values<e_sfx>() )
+  for( auto sound : enum_traits<e_sfx>::values )
     load_sfx( sound );
 }
 

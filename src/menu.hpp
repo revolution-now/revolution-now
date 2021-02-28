@@ -15,6 +15,9 @@
 // Revolution Now
 #include "typed-int.hpp"
 
+// Rnl
+#include "rnl/menu.hpp"
+
 // base-util
 #include "base-util/macros.hpp"
 
@@ -23,56 +26,6 @@
 #include <string>
 
 namespace rn {
-
-enum class e_menu {
-  game,
-  view,
-  orders,
-  colony,
-  europort,
-  advisors,
-  music,
-  window,
-  debug,
-  pedia
-};
-
-enum class e_menu_item {
-  about,
-  save,
-  revolution,
-  retire,
-  exit,
-  zoom_in,
-  zoom_out,
-  restore_zoom,
-  music_play,
-  music_stop,
-  music_pause,
-  music_resume,
-  music_next,
-  music_prev,
-  music_vol_up,
-  music_vol_down,
-  music_set_player,
-  toggle_fullscreen,
-  restore_window,
-  scale_up,
-  scale_down,
-  scale_optimal,
-  sentry,
-  fortify,
-  military_advisor,
-  economics_advisor,
-  european_advisor,
-  units_help,
-  terrain_help,
-  founding_father_help,
-  toggle_console,
-  europort_view,
-  europort_close,
-  colony_view_close
-};
 
 #define MENU_ITEM_HANDLER( item, handler_func,              \
                            is_enabled_func )                \

@@ -22,9 +22,6 @@
 #include "ustate.hpp"
 #include "views.hpp"
 
-// magic-enum
-#include "magic_enum.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -95,8 +92,7 @@ class MarketCommodities : public ColViewEntityView {
 public:
   Delta delta() const override {
     return Delta{
-        block_width_ *
-            SX{ magic_enum::enum_values<e_commodity>().size() },
+        block_width_ * SX{ enum_traits<e_commodity>::count },
         1_h * 32_sy };
   }
 
@@ -111,10 +107,9 @@ public:
   }
 
   void draw( Texture& tx, Coord coord ) const override {
-    auto comm_it =
-        magic_enum::enum_values<e_commodity>().begin();
-    auto        label  = CommodityLabel::quantity{ 0 };
-    Coord       pos    = coord;
+    auto  comm_it = enum_traits<e_commodity>::values.begin();
+    auto  label   = CommodityLabel::quantity{ 0 };
+    Coord pos     = coord;
     auto const& colony = colony_from_id( colony_id() );
     for( int i = 0; i < kNumCommodityTypes; ++i ) {
       auto rect = Rect::from( pos, Delta{ 32_h, block_width_ } );
@@ -406,9 +401,8 @@ void recomposite( ColonyId id, Delta screen_size ) {
       ui::OwningPositionedView( std::move( title_bar ), pos ) );
 
   // [MarketCommodities] ----------------------------------------
-  W comm_block_width =
-      screen_rect.delta().w /
-      SX{ magic_enum::enum_values<e_commodity>().size() };
+  W comm_block_width = screen_rect.delta().w /
+                       SX{ enum_traits<e_commodity>::count };
   comm_block_width =
       std::clamp( comm_block_width, kCommodityTileSize.w, 32_w );
   auto market_commodities =
@@ -490,7 +484,7 @@ void recomposite( ColonyId id, Delta screen_size ) {
   invisible_view->set_delta( screen_rect.delta() );
   g_composition.top_level = std::move( invisible_view );
 
-  for( auto e : magic_enum::enum_values<e_colview_entity>() ) {
+  for( auto e : enum_traits<e_colview_entity>::values ) {
     CHECK( g_composition.entities.contains( e ),
            "colview entity {} is missing.", e );
   }

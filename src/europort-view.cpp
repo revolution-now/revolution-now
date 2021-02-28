@@ -238,11 +238,10 @@ public:
   }
 
   void draw( Texture& tx, Delta offset ) const {
-    auto bds  = bounds();
-    auto grid = bds.to_grid_noalign( sprite_scale );
-    auto comm_it =
-        magic_enum::enum_values<e_commodity>().begin();
-    auto label = CommodityLabel::buy_sell{ 100, 200 };
+    auto bds     = bounds();
+    auto grid    = bds.to_grid_noalign( sprite_scale );
+    auto comm_it = enum_traits<e_commodity>::values.begin();
+    auto label   = CommodityLabel::buy_sell{ 100, 200 };
     for( auto rect : range_of_rects( grid ) ) {
       render_rect( tx, Color::white(),
                    rect.shifted_by( offset ) );

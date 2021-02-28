@@ -12,13 +12,10 @@
 
 #include "core-config.hpp"
 
-namespace rn {
+// Rnl
+#include "rnl/font.hpp"
 
-enum class e_font {
-  _7_12_serif_16pt, //
-  _6x6,             //
-  habbo_15          //
-};
+namespace rn {
 
 namespace font {
 

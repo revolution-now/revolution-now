@@ -15,9 +15,10 @@
 // Revolution Now
 #include "plane.hpp"
 
-namespace rn {
+// Rnl
+#include "rnl/image.hpp"
 
-enum class e_image { europe };
+namespace rn {
 
 Texture const& image( e_image which );
 

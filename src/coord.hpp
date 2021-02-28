@@ -18,6 +18,9 @@
 #include "fmt-helper.hpp"
 #include "typed-int.hpp"
 
+// Rnl
+#include "rnl/coord.hpp"
+
 // Flatbuffers
 #include "fb/coord_generated.h"
 
@@ -56,14 +59,6 @@ struct ND Scale {
   }
 };
 NOTHROW_MOVE( Scale );
-
-// clang-format off
-enum class ND e_direction {
-  nw, n, ne,
-   w, c,  e,
-  sw, s, se
-};
-// clang-format on
 
 struct ND Delta {
   SERIALIZABLE_STRUCT_MEMBERS( Delta, ( W, w ), ( H, h ) );

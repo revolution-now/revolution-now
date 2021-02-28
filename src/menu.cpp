@@ -26,9 +26,6 @@
 #include "tiles.hpp"
 #include "variant.hpp"
 
-// Rnl
-#include "rnl/menu.hpp"
-
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
 #include "../config/ucl/ui.inl"
@@ -39,9 +36,6 @@
 
 // base-util
 #include "base-util/algo.hpp"
-
-// magic enum
-#include "magic_enum.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -264,7 +258,7 @@ bool is_menu_visible_( e_menu menu ) {
 auto is_menu_visible = per_frame_memoize( is_menu_visible_ );
 
 auto visible_menus_() {
-  auto& values = magic_enum::enum_values<e_menu>();
+  auto& values = enum_traits<e_menu>::values;
 
   vector<e_menu> res;
   res.reserve( values.size() );
@@ -277,7 +271,7 @@ auto visible_menus_() {
 auto visible_menus = per_frame_memoize( visible_menus_ );
 
 bool have_some_visible_menus() {
-  auto& values = magic_enum::enum_values<e_menu>();
+  auto& values = enum_traits<e_menu>::values;
   return any_of( values.begin(), values.end(),
                  L( is_menu_visible( _ ) ) );
 }
@@ -348,7 +342,7 @@ unordered_map<e_menu, MenuTextures> g_menu_rendered;
 H const& max_text_height() {
   static H max_height = [] {
     H res{ 0 };
-    for( auto menu : magic_enum::enum_values<e_menu>() ) {
+    for( auto menu : enum_traits<e_menu>::values ) {
       CHECK( g_menu_rendered.contains( menu ) );
       auto const& textures = g_menu_rendered[menu];
       res = std::max( res, textures.name.normal.size().h );
@@ -990,7 +984,7 @@ auto& is_enabled_handlers() {
 *****************************************************************/
 void init_menus() {
   // Check that all menus have descriptors.
-  for( auto menu : magic_enum::enum_values<e_menu>() ) {
+  for( auto menu : enum_traits<e_menu>::values ) {
     CHECK( g_menus.contains( menu ) );
     CHECK( g_menu_def.contains( menu ) );
   }
@@ -1011,12 +1005,12 @@ void init_menus() {
   }
 
   // Check that g_items_from_menu is populated.
-  for( auto menu : magic_enum::enum_values<e_menu>() ) {
+  for( auto menu : enum_traits<e_menu>::values ) {
     CHECK( g_items_from_menu.contains( menu ) );
   }
 
   // Check that all menus have at least one item.
-  for( auto menu : magic_enum::enum_values<e_menu>() ) {
+  for( auto menu : enum_traits<e_menu>::values ) {
     CHECK( g_items_from_menu[menu].size() > 0 );
   }
 
@@ -1024,7 +1018,7 @@ void init_menus() {
   // menu header name contains the shortcut key (in either
   // uppercase or lowercase.
   unordered_set<char> keys;
-  for( auto menu : magic_enum::enum_values<e_menu>() ) {
+  for( auto menu : enum_traits<e_menu>::values ) {
     char key = tolower( g_menus[menu].shortcut );
     CHECK( !keys.contains( key ),
            "multiple menus have `{}` as a shortcut key", key );
@@ -1037,7 +1031,7 @@ void init_menus() {
   }
 
   // Check that all e_menu_items are in a menu.
-  for( auto item : magic_enum::enum_values<e_menu_item>() ) {
+  for( auto item : enum_traits<e_menu_item>::values ) {
     CHECK( g_menu_items.contains( item ) );
     CHECK( g_menu_items[item] != nullptr );
     CHECK( g_item_to_menu.contains( item ) );
@@ -1054,7 +1048,7 @@ void init_menus() {
   }
 
   // Check that all e_menu_items have registered handlers.
-  for( auto item : magic_enum::enum_values<e_menu_item>() ) {
+  for( auto item : enum_traits<e_menu_item>::values ) {
     auto const& desc = *g_menu_items[item];
     CHECK( item == desc.item );
     CHECK( desc.name.size() > 0 );
@@ -1091,17 +1085,16 @@ struct MenuPlane : public Plane {
     // Render Menu and Menu-item names. These have to be done
     // first because other things need to be calculated from the
     // sizes of the rendered text.
-    for( auto menu_item :
-         magic_enum::enum_values<e_menu_item>() )
+    for( auto menu_item : enum_traits<e_menu_item>::values )
       g_menu_item_rendered[menu_item] = render_menu_item_element(
           g_menu_items[menu_item]->name, nothing );
-    for( auto menu : magic_enum::enum_values<e_menu>() ) {
+    for( auto menu : enum_traits<e_menu>::values ) {
       g_menu_rendered[menu]      = {};
       g_menu_rendered[menu].name = render_menu_header_element(
           g_menus[menu].name, g_menus[menu].shortcut );
     }
 
-    for( auto menu : magic_enum::enum_values<e_menu>() ) {
+    for( auto menu : enum_traits<e_menu>::values ) {
       // The order in which these are done matters,
       // unfortunately, because some of the functions below rely
       // on results from the previous ones.
@@ -1260,7 +1253,7 @@ struct MenuPlane : public Plane {
                 CHECK( have_some_visible_menus() );
                 do {
                   menu = util::find_previous_and_cycle(
-                      magic_enum::enum_values<e_menu>(), *menu );
+                      enum_traits<e_menu>::values, *menu );
                 } while( !is_menu_visible( *menu ) );
                 CHECK( menu );
                 g_menu_state =
@@ -1273,7 +1266,7 @@ struct MenuPlane : public Plane {
                 CHECK( have_some_visible_menus() );
                 do {
                   menu = util::find_subsequent_and_cycle(
-                      magic_enum::enum_values<e_menu>(), *menu );
+                      enum_traits<e_menu>::values, *menu );
                 } while( !is_menu_visible( *menu ) );
                 CHECK( menu );
                 g_menu_state =

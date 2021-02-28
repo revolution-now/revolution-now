@@ -15,6 +15,9 @@
 // Revolution Now
 #include "maybe.hpp"
 
+// Rnl
+#include "rnl/init.hpp"
+
 // base-util
 #include "base-util/macros.hpp"
 
@@ -23,32 +26,6 @@
 #include <vector>
 
 namespace rn {
-
-// Ordering of these enum values does not matter.
-enum class e_init_routine {
-  compositor,
-  conductor,
-  configs,
-  europort_view,
-  lua,
-  images,
-  menus,
-  midiplayer,
-  midiseq,
-  oggplayer,
-  planes,
-  plane_config,
-  renderer,
-  rng,
-  screen,
-  sdl,
-  sound,
-  sprites,
-  terrain,
-  text,
-  ttf,
-  tunes
-};
 
 using InitFunction = std::function<void( void )>;
 

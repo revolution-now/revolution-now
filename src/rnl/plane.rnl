@@ -1,0 +1,25 @@
+# ===============================================================
+# plane.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RNL definitions for the plane module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_plane {
+  land_view, # land, units, colonies, etc.
+  panel,     # the info panel on the right
+  image,     # any of the fullscreen pics displayed
+  colony,    # colony view
+  europe,    # the old world
+  main_menu, # main menu.
+  console,   # the developer console
+  menu,      # the menus at the top of screen
+  window,    # the windows
+  # ================================================
+  omni       # Always present, invisible, and first.
+};

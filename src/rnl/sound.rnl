@@ -1,0 +1,17 @@
+# ===============================================================
+# sound.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RNL definitions for the sound module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_sfx {
+  move,
+  attacker_lost,
+  attacker_won
+};

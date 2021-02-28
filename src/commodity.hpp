@@ -25,9 +25,6 @@
 // Flatbuffers
 #include "fb/commodity_generated.h"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // C++ standard library
 #include <string>
 
@@ -36,30 +33,8 @@ namespace rn {
 /****************************************************************
 ** Commodity List
 *****************************************************************/
-// Important: the ordering here matters, as it determines the
-// order in which the commodities are displayed in an array and
-// the order in which they are processed.
-enum class e_commodity {
-  food,
-  sugar,
-  tobacco,
-  cotton,
-  fur,
-  lumber,
-  ore,
-  silver,
-  horses,
-  rum,
-  cigars,
-  cloth,
-  coats,
-  trade_goods,
-  tools,
-  muskets
-};
-
 constexpr int kNumCommodityTypes =
-    magic_enum::enum_count<e_commodity>();
+    enum_traits<e_commodity>::count;
 
 // Index refers to the ordering in the enum above, starting at 0.
 maybe<e_commodity> commodity_from_index( int index );

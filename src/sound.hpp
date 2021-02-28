@@ -12,9 +12,10 @@
 
 #include "core-config.hpp"
 
-namespace rn {
+// Rnl
+#include "rnl/sound.hpp"
 
-enum class e_sfx { move, attacker_lost, attacker_won };
+namespace rn {
 
 void play_sound_effect( e_sfx sound );
 

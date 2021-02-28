@@ -18,6 +18,9 @@
 #include "menu.hpp"
 #include "tx.hpp"
 
+// Rnl
+#include "rnl/plane.hpp"
+
 // base
 #include "base/function-ref.hpp"
 
@@ -28,20 +31,6 @@
 #include <array>
 
 namespace rn {
-
-enum class e_plane {
-  land_view, // land, units, colonies, etc.
-  panel,     // the info panel on the right
-  image,     // any of the fullscreen pics displayed
-  colony,    // colony view
-  europe,    // the old world
-  main_menu, // main menu.
-  console,   // the developer console
-  menu,      // the menus at the top of screen
-  window,    // the windows
-  /*******/  //
-  omni       // Always present, invisible, and first.
-};
 
 struct Plane {
   NO_COPY_NO_MOVE( Plane );

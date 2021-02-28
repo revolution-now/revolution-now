@@ -26,9 +26,6 @@
 // base
 #include "base/keyval.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // SDL
 #include "SDL_ttf.h"
 
@@ -51,7 +48,7 @@ NOTHROW_MOVE( FontDesc );
 unordered_map<e_font, FontDesc>& loaded_fonts() {
   static unordered_map<e_font, FontDesc> m = [] {
     unordered_map<e_font, FontDesc> res;
-    for( auto font : magic_enum::enum_values<e_font>() ) {
+    for( auto font : enum_traits<e_font>::values ) {
       UNWRAP_CHECK( path,
                     base::lookup( config_font.paths, font ) );
       UNWRAP_CHECK( size,

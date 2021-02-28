@@ -31,15 +31,6 @@ struct ColViewObjectUnderCursor {
   Rect bounds;
 };
 
-enum class e_colview_entity {
-  commodities,
-  land,
-  title_bar,
-  population,
-  cargo,
-  production
-};
-
 class ColViewEntityView : public ui::View {
 public:
   ColViewEntityView( ColonyId id ) : id_( id ) {}
