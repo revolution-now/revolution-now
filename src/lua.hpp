@@ -21,6 +21,9 @@
 #include "sol.hpp"
 #include "typed-int.hpp"
 
+// Rnl
+#include "rnl/helper/enum.hpp"
+
 // base-util
 #include "base-util/macros.hpp"
 #include "base-util/pp.hpp"
@@ -226,12 +229,44 @@ void register_enum_impl( sol::state& st, std::string_view name,
   // ated unit test case that is now commented out.
 }
 
+template<typename Enum, size_t... Indexes>
+void register_enum_impl_no_magic(
+    sol::state& st, std::string_view name,
+    std::index_sequence<Indexes...> ) {
+  auto e = st["e"].get_or_create<sol::table>();
+  CHECK( e[name] == sol::lua_nil,
+         "symbol named `{}` has already been registered.",
+         name );
+  // Somehow making it read-only prevents iteration over the
+  // values (sol bug?). In any case, we will manually make it
+  // readonly later with lua code.
+  e.new_enum<Enum, /*read_only=*/false>(
+      name,
+      std::initializer_list<std::pair<std::string_view, Enum>>{
+          std::pair{
+              enum_traits<Enum>::value_name(
+                  *enum_traits<Enum>::from_integral( Indexes ) ),
+              *enum_traits<Enum>::from_integral(
+                  Indexes ) }... } );
+  // FIXME: add in a "from string" method that allows converting
+  // from a string to the enum value, then re-enable the associ-
+  // ated unit test case that is now commented out.
+}
+
 template<typename Enum>
 void register_enum( sol::state& st, std::string_view name ) {
   return register_enum_impl<Enum>(
       st, name,
       std::make_index_sequence<
           magic_enum::enum_count<Enum>()>() );
+}
+
+template<typename Enum>
+void register_enum_no_magic( sol::state&      st,
+                             std::string_view name ) {
+  return register_enum_impl_no_magic<Enum>(
+      st, name,
+      std::make_index_sequence<enum_traits<Enum>::count>() );
 }
 
 /*
@@ -275,6 +310,23 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
     st["e"][#what "_from_string"] = []( char const* name ) {   \
       auto maybe_val =                                         \
           magic_enum::enum_cast<::rn::e_##what>( name );       \
+      CHECK(                                                   \
+          maybe_val,                                           \
+          "enum value `{}` is not a member of the enum `{}`",  \
+          name, #what );                                       \
+      return *maybe_val;                                       \
+    };                                                         \
+  };
+
+#define LUA_ENUM_NO_MAGIC( what )                              \
+  LUA_STARTUP( sol::state& st ) {                              \
+    ::rn::lua::detail::register_enum_no_magic<::rn::e_##what>( \
+        st, #what );                                           \
+    st[::rn::lua::module_name__].get_or_create<sol::table>();  \
+    st["e"][#what "_from_string"] = []( char const* name ) {   \
+      auto maybe_val =                                         \
+          ::rn::enum_traits<::rn::e_##what>::from_string(      \
+              name );                                          \
       CHECK(                                                   \
           maybe_val,                                           \
           "enum value `{}` is not a member of the enum `{}`",  \

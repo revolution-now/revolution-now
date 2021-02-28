@@ -78,6 +78,13 @@ std::string Sumtype::to_string( std::string_view spaces ) const {
   return res;
 }
 
+std::string Enum::to_string( std::string_view spaces ) const {
+  string res = fmt::format( "{}enum: {}\n", spaces, name );
+  for( std::string const& val : values )
+    res += string( spaces ) + "  " + val + "\n";
+  return res;
+}
+
 std::string to_str( Construct const& construct,
                     std::string_view spaces ) {
   // TODO: use `overload`.

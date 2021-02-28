@@ -55,13 +55,23 @@ ITEMS          ← ITEM*
 ITEM           ← NAMESPACE CONSTRUCTS
 CONSTRUCTS     ← CONSTRUCT*
 
-CONSTRUCT      ← SUMTYPE # / add_more_here
+CONSTRUCT      ← SUMTYPE / ENUM # / add_more_here
 
 # ===============================================================
 # Namespaces
 # ===============================================================
 NAMESPACE      ← 'namespace' NS_NAME ~STMT_END
 NS_NAME        ← <[a-zA-Z_][a-zA-Z0-9_.]*>
+
+# ===============================================================
+# Enums
+# ===============================================================
+ENUM           ← 'enum' IDENT '{'
+                    ENUM_VALUES
+                 '}' ~STMT_END
+
+ENUM_VALUES    ← LIST( ENUM_VALUE, ',' )
+ENUM_VALUE     ← IDENT
 
 # ===============================================================
 # Sum Types

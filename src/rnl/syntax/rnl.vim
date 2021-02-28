@@ -34,6 +34,14 @@ hi def link  rnlNamespaceKeyword Keyword
 hi def link  rnlIncludeName String
 "
 " ===============================================================
+" Enum
+" ===============================================================
+syn keyword  rnlEnumKeyword enum nextgroup=rnlEnumName skipwhite
+syn match    rnlEnumName '[a-zA-Z][a-zA-Z0-9_]*' nextgroup=rnlEnumDescBlock
+syn region   rnlEnumDescBlock start="{" end="};" fold contains=rnlEnumAlternative,rnlLineComment
+syn match    rnlEnumAlternative '.*' contained skipwhite skipempty
+"
+" ===============================================================
 " Sum type
 " ===============================================================
 syn keyword  rnlSumtypeKeyword sumtype nextgroup=rnlSumtypeName skipwhite
@@ -50,6 +58,9 @@ syn match    rnlSumtypeAlternative '[a-zA-Z][a-zA-Z0-9_]*:' contained nextgroup=
 syn match    rnlCppDeclType '[a-zA-Z0-9:,_<>*]\+\s\+' contained nextgroup=rnlCppDeclVar skipwhite
 syn match    rnlCppDeclVar '[a-zA-Z][a-zA-Z0-9_]*;' contained nextgroup=rnlCppDeclType,rnlSumtypeAlternative skipwhite skipempty
 
+hi def link  rnlEnumKeyword Keyword
+hi def link  rnlEnumName Type
+hi def link  rnlEnumAlternative Constant
 hi def link  rnlSumtypeKeyword Keyword
 hi def link  rnlSumtypeName Identifier
 "hi def link rnlSumtypeDescBlock Structure

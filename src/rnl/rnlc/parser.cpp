@@ -137,6 +137,10 @@ maybe<expr::Rnl> parse( string_view   peg_filename,
     return safe_cast_vec<expr::AlternativeMember>( sv );
   };
 
+  parser["ENUM_VALUES"] = []( peg::SemanticValues const& sv ) {
+    return safe_cast_vec<std::string>( sv );
+  };
+
   parser["ALTERNATIVES"] = []( peg::SemanticValues const& sv ) {
     return safe_cast_vec<expr::Alternative>( sv );
   };
@@ -160,6 +164,9 @@ maybe<expr::Rnl> parse( string_view   peg_filename,
     if( sv[0].type() == typeid( expr::Sumtype const ) )
       return expr::Construct{
           safe_any_cast<expr::Sumtype>( sv[0] ) };
+    if( sv[0].type() == typeid( expr::Enum const ) )
+      return expr::Construct{
+          safe_any_cast<expr::Enum>( sv[0] ) };
     throw peg::parse_error( "Unhandled construct type." );
   };
 
@@ -177,6 +184,12 @@ maybe<expr::Rnl> parse( string_view   peg_filename,
             safe_any_cast<vector<expr::AlternativeMember>>(
                 sv[1] ),
     };
+  };
+
+  parser["ENUM"] = [&]( peg::SemanticValues const& sv ) {
+    return expr::Enum{
+        .name   = safe_any_cast<string>( sv[0] ),
+        .values = safe_any_cast<vector<string>>( sv[1] ) };
   };
 
   parser["SUMTYPE"] = [&]( peg::SemanticValues const& sv ) {

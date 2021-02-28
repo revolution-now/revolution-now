@@ -41,7 +41,7 @@ NationDesc const& nation_obj( e_nation nation ) {
     MAKE_NATION( french );
     MAKE_NATION( english );
     MAKE_NATION( spanish );
-    CHECK( m.size() == magic_enum::enum_count<e_nation>() );
+    CHECK( m.size() == enum_traits<e_nation>::count );
     return m;
   }();
   return nations[nation];
@@ -61,6 +61,6 @@ string NationDesc::name_proper() const {
 *****************************************************************/
 namespace {
 
-LUA_ENUM( nation );
+LUA_ENUM_NO_MAGIC( nation );
 
 }

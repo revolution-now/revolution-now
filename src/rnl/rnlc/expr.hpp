@@ -59,7 +59,15 @@ struct Sumtype {
   std::string to_string( std::string_view spaces ) const;
 };
 
+struct Enum {
+  std::string              name;
+  std::vector<std::string> values;
+
+  std::string to_string( std::string_view spaces ) const;
+};
+
 using Construct = base::variant< //
+    Enum,                        //
     Sumtype                      //
     >;
 

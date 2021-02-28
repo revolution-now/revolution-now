@@ -521,6 +521,89 @@ struct CodeGenerator {
     line( "};" );
   }
 
+  void emit( string_view ns, expr::Enum const& e ) {
+    section( "Enum: "s + e.name );
+    open_ns( ns );
+    line( "enum class {} {{", e.name );
+    {
+      auto _ = indent();
+      emit_vert_list( e.values, "," );
+    }
+    line( "};" );
+    // Emit the traits.
+    newline();
+    comment( "Reflection info for enum {}.", e.name );
+    line( "template<>" );
+    line( "struct enum_traits<{}> {{", e.name );
+    {
+      auto _ = indent();
+      line( "static constexpr int count = {};",
+            e.values.size() );
+      line(
+          "static constexpr std::string_view type_name = "
+          "\"{}\";",
+          e.name );
+      line( "static constexpr std::array<{}, {}> values{{",
+            e.name, e.values.size() );
+      {
+        auto           _       = indent();
+        vector<string> with_ns = e.values;
+        for( string& s : with_ns ) s = e.name + "::" + s;
+        emit_vert_list( with_ns, "," );
+      }
+      line( "};" );
+      line(
+          "static constexpr std::string_view value_name( {} val "
+          ") {{",
+          e.name );
+      {
+        auto _ = indent();
+        line( "switch( val ) {" );
+        {
+          auto _ = indent();
+          for( string const& s : e.values )
+            line( "case {}::{}: return \"{}\";", e.name, s, s );
+        }
+        line( "}" );
+      }
+      line( "}" );
+      line( "template<typename Int>" );
+      line(
+          "static constexpr maybe<{}> from_integral( Int val ) "
+          "{{",
+          e.name );
+      {
+        auto _ = indent();
+        line( "maybe<{}> res;", e.name );
+        line( "int intval = static_cast<int>( val );" );
+        line( "if( intval < 0 || intval >= {} ) return res;",
+              e.values.size() );
+        line( "res = static_cast<{}>( intval );", e.name );
+        line( "return res;" );
+      }
+      line( "}" );
+      line(
+          "static constexpr maybe<{}> from_string( "
+          "std::string_view name ) {{",
+          e.name );
+      {
+        auto _ = indent();
+        line( "return" );
+        {
+          auto _ = indent();
+          for( string const& val : e.values )
+            line( "name == \"{}\" ? maybe<{}>( {}::{} ) :", val,
+                  e.name, e.name, val );
+          line( "maybe<{}>{{}};", e.name );
+        }
+      }
+      line( "}" );
+    }
+    line( "};" );
+    newline();
+    close_ns( ns );
+  }
+
   void emit( string_view ns, expr::Sumtype const& sumtype ) {
     section( "Sum Type: "s + sumtype.name );
     open_ns( ns );
@@ -607,11 +690,40 @@ struct CodeGenerator {
       for( expr::Construct const& construct : item.constructs ) {
         bool has_feature = visit(
             mp::overload{ [&]( expr::Sumtype const& sumtype ) {
-              return sumtype_has_feature( sumtype,
-                                          target_feature );
-            } },
+                           return sumtype_has_feature(
+                               sumtype, target_feature );
+                         },
+                          []( auto const& ) { return false; } },
             construct );
         if( has_feature ) return true;
+      }
+    }
+    return false;
+  }
+
+  bool rnl_has_sumtype( expr::Rnl const& rnl ) {
+    for( expr::Item const& item : rnl.items ) {
+      for( expr::Construct const& construct : item.constructs ) {
+        bool has_sumtype = visit(
+            mp::overload{
+                [&]( expr::Sumtype const& ) { return true; },
+                []( auto const& ) { return false; } },
+            construct );
+        if( has_sumtype ) return true;
+      }
+    }
+    return false;
+  }
+
+  bool rnl_has_enum( expr::Rnl const& rnl ) {
+    for( expr::Item const& item : rnl.items ) {
+      for( expr::Construct const& construct : item.constructs ) {
+        bool has_enum =
+            visit( mp::overload{
+                       [&]( expr::Enum const& ) { return true; },
+                       []( auto const& ) { return false; } },
+                   construct );
+        if( has_enum ) return true;
       }
     }
     return false;
@@ -639,13 +751,17 @@ struct CodeGenerator {
     comment( "Revolution Now" );
     line( "#include \"core-config.hpp\"" );
     line( "#include \"cc-specific.hpp\"" );
-    line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
+    if( rnl_has_sumtype( rnl ) )
+      line( "#include \"rnl/helper/sumtype-helper.hpp\"" );
+    if( rnl_has_enum( rnl ) )
+      line( "#include \"rnl/helper/enum.hpp\"" );
     if( rnl_needs_fmt_headers( rnl ) )
       line( "#include \"fmt-helper.hpp\"" );
     if( rnl_needs_serial_header( rnl ) ) {
       line( "#include \"error.hpp\"" );
       line( "#include \"fb.hpp\"" );
     }
+    if( rnl_has_enum( rnl ) ) line( "#include \"maybe.hpp\"" );
     line( "" );
     comment( "base" );
     line( "#include \"base/variant.hpp\"" );
@@ -659,6 +775,7 @@ struct CodeGenerator {
     }
     line( "" );
     comment( "C++ standard library" );
+    if( rnl_has_enum( rnl ) ) line( "#include <array>" );
     line( "#include <string_view>" );
     newline();
   }

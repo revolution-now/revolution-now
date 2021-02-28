@@ -17,18 +17,16 @@
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 
+// Rnl
+#include "rnl/nation.hpp"
+
 // Flatbuffers
 #include "fb/nation_generated.h"
-
-// magic enum
-#include "magic_enum.hpp"
 
 // C++ standard library
 #include <string>
 
 namespace rn {
-
-enum class ND e_nation { dutch, french, english, spanish };
 
 struct NationDesc {
   std::string name_lowercase;
@@ -45,17 +43,17 @@ NationDesc const& nation_obj( e_nation nation );
 
 constexpr auto all_nations() {
   constexpr std::array<e_nation,
-                       magic_enum::enum_count<e_nation>()>
+                       enum_traits<e_nation>::count>
       nations = [] {
-        std::array<e_nation, magic_enum::enum_count<e_nation>()>
+        std::array<e_nation, enum_traits<e_nation>::count>
                res{};
         size_t idx = 0;
-        for( auto nation : magic_enum::enum_values<e_nation>() )
+        for( auto nation : enum_traits<e_nation>::values )
           res[idx++] = nation;
         return res;
       }();
   static_assert( nations.size() ==
-                 magic_enum::enum_count<e_nation>() );
+                 enum_traits<e_nation>::count );
   return nations;
 }
 
