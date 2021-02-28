@@ -22,6 +22,8 @@
 // base
 #include "base/lambda.hpp"
 
+// base-util
+#include "base-util/string.hpp"
 using namespace std;
 
 namespace rn {
@@ -30,6 +32,9 @@ namespace {
 
 valid_or<string> is_valid_colony_name_msg(
     std::string_view name ) {
+  if( util::strip( name ) != name )
+    return invalid<string>(
+        "Colony name must not start or end with spaces." );
   auto res = is_valid_new_colony_name( name );
   if( res ) return valid;
   switch( res.error() ) {
