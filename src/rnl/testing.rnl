@@ -140,3 +140,20 @@ sumtype OnOffEvent {
   turn_off:
   turn_on:
 };
+
+enum e_empty {};
+
+enum e_single {
+  hello
+};
+
+enum e_two {
+  hello,
+  world
+};
+
+enum e_color {
+  red,
+  green,
+  blue
+};

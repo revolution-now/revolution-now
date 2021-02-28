@@ -14,9 +14,11 @@
 #include "core-config.hpp"
 #include "cc-specific.hpp"
 #include "rnl/helper/sumtype-helper.hpp"
+#include "rnl/helper/enum.hpp"
 #include "fmt-helper.hpp"
 #include "error.hpp"
 #include "fb.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/variant.hpp"
@@ -28,6 +30,7 @@
 #include "fmt/format.h"
 
 // C++ standard library
+#include <array>
 #include <string_view>
 
 /****************************************************************
@@ -1291,3 +1294,160 @@ struct fmt::formatter<rn::OnOffEvent::turn_on>
        ), ctx );
   }
 };
+
+/****************************************************************
+*                         Enum: e_empty
+*****************************************************************/
+namespace rn {
+
+  enum class e_empty {
+  };
+
+  // Reflection info for enum e_empty.
+  template<>
+  struct enum_traits<e_empty> {
+    static constexpr int count = 0;
+    static constexpr std::string_view type_name = "e_empty";
+    static constexpr std::array<e_empty, 0> values{
+    };
+    template<typename Int>
+    static constexpr maybe<e_empty> from_integral( Int val ) {
+      maybe<e_empty> res;
+      return res;
+    }
+    static constexpr maybe<e_empty> from_string( std::string_view name ) {
+      return
+        maybe<e_empty>{};
+    }
+  };
+
+} // namespace rn
+
+/****************************************************************
+*                        Enum: e_single
+*****************************************************************/
+namespace rn {
+
+  enum class e_single {
+    hello
+  };
+
+  // Reflection info for enum e_single.
+  template<>
+  struct enum_traits<e_single> {
+    static constexpr int count = 1;
+    static constexpr std::string_view type_name = "e_single";
+    static constexpr std::array<e_single, 1> values{
+      e_single::hello
+    };
+    static constexpr std::string_view value_name( e_single val ) {
+      switch( val ) {
+        case e_single::hello: return "hello";
+      }
+    }
+    template<typename Int>
+    static constexpr maybe<e_single> from_integral( Int val ) {
+      maybe<e_single> res;
+      int intval = static_cast<int>( val );
+      if( intval < 0 || intval >= 1 ) return res;
+      res = static_cast<e_single>( intval );
+      return res;
+    }
+    static constexpr maybe<e_single> from_string( std::string_view name ) {
+      return
+        name == "hello" ? maybe<e_single>( e_single::hello ) :
+        maybe<e_single>{};
+    }
+  };
+
+} // namespace rn
+
+/****************************************************************
+*                          Enum: e_two
+*****************************************************************/
+namespace rn {
+
+  enum class e_two {
+    hello,
+    world
+  };
+
+  // Reflection info for enum e_two.
+  template<>
+  struct enum_traits<e_two> {
+    static constexpr int count = 2;
+    static constexpr std::string_view type_name = "e_two";
+    static constexpr std::array<e_two, 2> values{
+      e_two::hello,
+      e_two::world
+    };
+    static constexpr std::string_view value_name( e_two val ) {
+      switch( val ) {
+        case e_two::hello: return "hello";
+        case e_two::world: return "world";
+      }
+    }
+    template<typename Int>
+    static constexpr maybe<e_two> from_integral( Int val ) {
+      maybe<e_two> res;
+      int intval = static_cast<int>( val );
+      if( intval < 0 || intval >= 2 ) return res;
+      res = static_cast<e_two>( intval );
+      return res;
+    }
+    static constexpr maybe<e_two> from_string( std::string_view name ) {
+      return
+        name == "hello" ? maybe<e_two>( e_two::hello ) :
+        name == "world" ? maybe<e_two>( e_two::world ) :
+        maybe<e_two>{};
+    }
+  };
+
+} // namespace rn
+
+/****************************************************************
+*                         Enum: e_color
+*****************************************************************/
+namespace rn {
+
+  enum class e_color {
+    red,
+    green,
+    blue
+  };
+
+  // Reflection info for enum e_color.
+  template<>
+  struct enum_traits<e_color> {
+    static constexpr int count = 3;
+    static constexpr std::string_view type_name = "e_color";
+    static constexpr std::array<e_color, 3> values{
+      e_color::red,
+      e_color::green,
+      e_color::blue
+    };
+    static constexpr std::string_view value_name( e_color val ) {
+      switch( val ) {
+        case e_color::red: return "red";
+        case e_color::green: return "green";
+        case e_color::blue: return "blue";
+      }
+    }
+    template<typename Int>
+    static constexpr maybe<e_color> from_integral( Int val ) {
+      maybe<e_color> res;
+      int intval = static_cast<int>( val );
+      if( intval < 0 || intval >= 3 ) return res;
+      res = static_cast<e_color>( intval );
+      return res;
+    }
+    static constexpr maybe<e_color> from_string( std::string_view name ) {
+      return
+        name == "red" ? maybe<e_color>( e_color::red ) :
+        name == "green" ? maybe<e_color>( e_color::green ) :
+        name == "blue" ? maybe<e_color>( e_color::blue ) :
+        maybe<e_color>{};
+    }
+  };
+
+} // namespace rn

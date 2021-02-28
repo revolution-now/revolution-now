@@ -552,21 +552,25 @@ struct CodeGenerator {
         emit_vert_list( with_ns, "," );
       }
       line( "};" );
-      line(
-          "static constexpr std::string_view value_name( {} val "
-          ") {{",
-          e.name );
-      {
-        auto _ = indent();
-        line( "switch( val ) {" );
+      if( !e.values.empty() ) {
+        line(
+            "static constexpr std::string_view value_name( {} "
+            "val "
+            ") {{",
+            e.name );
         {
           auto _ = indent();
-          for( string const& s : e.values )
-            line( "case {}::{}: return \"{}\";", e.name, s, s );
+          line( "switch( val ) {" );
+          {
+            auto _ = indent();
+            for( string const& s : e.values )
+              line( "case {}::{}: return \"{}\";", e.name, s,
+                    s );
+          }
+          line( "}" );
         }
         line( "}" );
       }
-      line( "}" );
       line( "template<typename Int>" );
       line(
           "static constexpr maybe<{}> from_integral( Int val ) "
@@ -575,10 +579,12 @@ struct CodeGenerator {
       {
         auto _ = indent();
         line( "maybe<{}> res;", e.name );
-        line( "int intval = static_cast<int>( val );" );
-        line( "if( intval < 0 || intval >= {} ) return res;",
-              e.values.size() );
-        line( "res = static_cast<{}>( intval );", e.name );
+        if( !e.values.empty() ) {
+          line( "int intval = static_cast<int>( val );" );
+          line( "if( intval < 0 || intval >= {} ) return res;",
+                e.values.size() );
+          line( "res = static_cast<{}>( intval );", e.name );
+        }
         line( "return res;" );
       }
       line( "}" );

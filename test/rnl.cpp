@@ -325,5 +325,88 @@ TEST_CASE( "[rnl] Associated Enums" ) {
   }
 }
 
+TEST_CASE( "[rnl] enums" ) {
+  // e_empty
+  static_assert( enum_traits<e_empty>::count == 0 );
+  static_assert( enum_traits<e_empty>::type_name == "e_empty" );
+  static_assert( enum_traits<e_empty>::values.size() == 0 );
+  static_assert( enum_traits<e_empty>::from_integral( 0 ) ==
+                 nothing );
+  static_assert( enum_traits<e_empty>::from_integral( 1 ) ==
+                 nothing );
+  static_assert( enum_traits<e_empty>::from_string( "" ) ==
+                 nothing );
+  static_assert( enum_traits<e_empty>::from_string( "hello" ) ==
+                 nothing );
+
+  // e_single
+  static_assert( enum_traits<e_single>::count == 1 );
+  static_assert( enum_traits<e_single>::type_name ==
+                 "e_single" );
+  static_assert( enum_traits<e_single>::values.size() == 1 );
+  static_assert( enum_traits<e_single>::value_name(
+                     e_single::hello ) == "hello" );
+  static_assert( enum_traits<e_single>::from_integral( 0 ) ==
+                 e_single::hello );
+  static_assert( enum_traits<e_single>::from_integral( 1 ) ==
+                 nothing );
+  static_assert( enum_traits<e_single>::from_string( "" ) ==
+                 nothing );
+  static_assert( enum_traits<e_single>::from_string( "hello" ) ==
+                 e_single::hello );
+  static_assert( enum_traits<e_single>::from_string(
+                     "hellox" ) == nothing );
+
+  // e_two
+  static_assert( enum_traits<e_two>::count == 2 );
+  static_assert( enum_traits<e_two>::type_name == "e_two" );
+  static_assert( enum_traits<e_two>::values.size() == 2 );
+  static_assert( enum_traits<e_two>::value_name(
+                     e_two::hello ) == "hello" );
+  static_assert( enum_traits<e_two>::value_name(
+                     e_two::world ) == "world" );
+  static_assert( enum_traits<e_two>::from_integral( 0 ) ==
+                 e_two::hello );
+  static_assert( enum_traits<e_two>::from_integral( 1 ) ==
+                 e_two::world );
+  static_assert( enum_traits<e_two>::from_integral( 2 ) ==
+                 nothing );
+  static_assert( enum_traits<e_two>::from_integral( 10 ) ==
+                 nothing );
+  static_assert( enum_traits<e_two>::from_string( "" ) ==
+                 nothing );
+  static_assert( enum_traits<e_two>::from_string( "hello" ) ==
+                 e_two::hello );
+  static_assert( enum_traits<e_two>::from_string( "hellox" ) ==
+                 nothing );
+  static_assert( enum_traits<e_two>::from_string( "world" ) ==
+                 e_two::world );
+
+  // e_color
+  static_assert( enum_traits<e_color>::count == 3 );
+  static_assert( enum_traits<e_color>::type_name == "e_color" );
+  static_assert( enum_traits<e_color>::values.size() == 3 );
+  static_assert( enum_traits<e_color>::value_name(
+                     e_color::red ) == "red" );
+  static_assert( enum_traits<e_color>::value_name(
+                     e_color::blue ) == "blue" );
+  static_assert( enum_traits<e_color>::from_integral( 0 ) ==
+                 e_color::red );
+  static_assert( enum_traits<e_color>::from_integral( 1 ) ==
+                 e_color::green );
+  static_assert( enum_traits<e_color>::from_integral( 2 ) ==
+                 e_color::blue );
+  static_assert( enum_traits<e_color>::from_integral( 3 ) ==
+                 nothing );
+  static_assert( enum_traits<e_color>::from_integral( 10 ) ==
+                 nothing );
+  static_assert( enum_traits<e_color>::from_string( "" ) ==
+                 nothing );
+  static_assert( enum_traits<e_color>::from_string( "hello" ) ==
+                 nothing );
+  static_assert( enum_traits<e_color>::from_string( "green" ) ==
+                 e_color::green );
+}
+
 } // namespace
 } // namespace rn
