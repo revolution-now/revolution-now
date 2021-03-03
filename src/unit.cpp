@@ -147,7 +147,7 @@ string debug_string( Unit const& unit ) {
 *****************************************************************/
 namespace {
 
-LUA_ENUM( unit_orders );
+LUA_ENUM_NO_MAGIC( unit_orders );
 
 LUA_STARTUP( sol::state& st ) {
   using U = ::rn::Unit;

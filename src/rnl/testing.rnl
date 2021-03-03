@@ -157,3 +157,8 @@ enum e_color {
   green,
   blue
 };
+
+enum e_hand {
+  left,
+  right
+};

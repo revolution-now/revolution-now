@@ -22,9 +22,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -45,10 +42,10 @@ struct MainMenuPlane : public Plane {
                  main_window_logical_rect() );
     auto screen    = main_window_logical_size();
     H    h         = screen.h / 2_sy;
-    auto num_items = magic_enum::enum_count<e_main_menu_item>();
+    auto num_items = enum_traits<e_main_menu_item>::count;
     h -= ttf_get_font_info( font::main_menu() ).height *
          SY{ int( num_items ) } / 2_sy;
-    for( auto e : magic_enum::enum_values<e_main_menu_item>() ) {
+    for( auto e : enum_traits<e_main_menu_item>::values ) {
       Color       c       = Color::banana().shaded( 3 );
       auto const& text_tx = render_text(
           font::main_menu(), c, enum_to_display_name( e ) );
@@ -75,14 +72,14 @@ struct MainMenuPlane : public Plane {
           case ::SDLK_UP:
           case ::SDLK_KP_8:
             g_curr_item = util::find_previous_and_cycle(
-                magic_enum::enum_values<e_main_menu_item>(),
+                enum_traits<e_main_menu_item>::values,
                 g_curr_item );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_DOWN:
           case ::SDLK_KP_2:
             g_curr_item = util::find_subsequent_and_cycle(
-                magic_enum::enum_values<e_main_menu_item>(),
+                enum_traits<e_main_menu_item>::values,
                 g_curr_item );
             handled = e_input_handled::yes;
             break;

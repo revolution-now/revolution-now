@@ -17,6 +17,9 @@
 #include "time.hpp"
 #include "typed-int.hpp"
 
+// Rnl
+#include "rnl/tune.hpp"
+
 // base-util
 #include "base-util/pp.hpp"
 
@@ -24,37 +27,12 @@ TYPED_ID( TuneId )
 
 namespace rn {
 
-// clang-format off
-#define TUNE_DIMENSIONS_DEFINITIONS                               \
-  ( tempo,     fast, medium, slow ),                              \
-  ( genre,     trad, classical ),                                 \
-  ( culture,   native, new_world, old_world ),                    \
-  ( inst,      fife_and_drum, fiddle, percussive, orchestrated ), \
-  ( sentiment, happy, sad, war_triumph, war_lost ),               \
-  ( key,       a, bb, b, c, cs, d, eb, e, f, fs, g, ab ),         \
-  ( tonality,  major, minor ),                                    \
-  ( epoch,     standard, post_revolution ),                       \
-  ( purpose,   standard, special_event )
-// clang-format on
-
-#define TUNE_DIMENSION_ENUM( name, ... ) \
-  enum class e_tune_##name{ __VA_ARGS__ };
-
-// Create a reflected enum for each of the dimensions. These need
-// to be reflected enums for deserialization from the config
-// files. E.g., for the `tempo` dimension this will generate:
-//
-//   enum class e_tune_##tempo { fast, medium, slow };
-//
-// which of course is itself a macro.
-EVAL( PP_MAP_TUPLE( TUNE_DIMENSION_ENUM,
-                    TUNE_DIMENSIONS_DEFINITIONS ) )
-
 // Take the first element of each tuple in the dimension
 // definitions list; this yields a comma-separated list of
 // dimension names.
-#define TUNE_DIMENSION_LIST \
-  PP_MAP_COMMAS( HEAD_TUPLE, TUNE_DIMENSIONS_DEFINITIONS )
+#define TUNE_DIMENSION_LIST                                     \
+  tempo, genre, culture, inst, sentiment, key, tonality, epoch, \
+      purpose
 
 #define TUNE_VEC_DIMENSION( name ) \
   std::vector<PP_JOIN( e_tune_, name )> name;
@@ -81,9 +59,8 @@ struct TuneDimensions {
 };
 NOTHROW_MOVE( TuneDimensions );
 
-#define K_NUM_DIMENSIONS           \
-  EVAL( PP_MAP_PLUS( PP_CONST_ONE, \
-                     TUNE_DIMENSIONS_DEFINITIONS ) )
+#define K_NUM_DIMENSIONS \
+  EVAL( PP_MAP_PLUS( PP_CONST_ONE, TUNE_DIMENSION_LIST ) )
 
 constexpr size_t k_num_dimensions = K_NUM_DIMENSIONS;
 

@@ -1,0 +1,19 @@
+# ===============================================================
+# main-menu.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RNL definitions for the main-menu module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_main_menu_item {
+  new_,
+  load,
+  settings_graphics,
+  settings_sound,
+  quit
+};

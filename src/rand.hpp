@@ -15,8 +15,8 @@
 // Revolution Now
 #include "error.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
+// Rnl
+#include "rnl/helper/enum.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -48,10 +48,10 @@ int between( int lower, int upper, e_interval type );
 // of all the possible values.
 template<typename Enum>
 Enum pick_one() {
-  constexpr auto count = magic_enum::enum_count<Enum>();
+  constexpr auto count = enum_traits<Enum>::count;
   static_assert( count > 0 );
   auto idx = between( 0, count, e_interval::half_open );
-  return magic_enum::enum_values<Enum>()[idx];
+  return enum_traits<Enum>::values[idx];
 }
 
 // Pick a random enum value out of a set of choices. Use like

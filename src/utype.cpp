@@ -177,7 +177,7 @@ BEHAVIOR_IMPL_END()
 namespace rn {
 namespace {
 
-LUA_ENUM( unit_type );
+LUA_ENUM_NO_MAGIC( unit_type );
 
 #define RO_FIELD( n ) \
   utype[#n] = sol::readonly( &rn::UnitDescriptor::n )

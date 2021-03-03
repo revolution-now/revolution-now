@@ -21,12 +21,13 @@
 #include "util.hpp"
 #include "utype.hpp"
 
+// Rnl
+#include "rnl/unit.hpp"
+
 // Flatbuffers
 #include "fb/unit_generated.h"
 
 namespace rn {
-
-enum class e_unit_orders { none, sentry, fortified };
 
 // Mutable.  This holds information about a specific instance
 // of a unit that is intrinsic to the unit apart from location.

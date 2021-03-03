@@ -15,15 +15,10 @@
 // Revolution Now
 #include "waitable.hpp"
 
-namespace rn {
+// Rnl
+#include "rnl/main-menu.hpp"
 
-enum class e_main_menu_item {
-  new_,
-  load,
-  settings_graphics,
-  settings_sound,
-  quit,
-};
+namespace rn {
 
 // When this function returns a value, that value will be reset,
 // so another call immediately after will yield no result.

@@ -19,28 +19,13 @@
 #include "mv-points.hpp"
 #include "tiles.hpp"
 
+// Rnl
+#include "rnl/utype.hpp"
+
 // Flatbuffers
 #include "fb/utype_generated.h"
 
 namespace rn {
-
-enum class ND e_unit_type {
-  free_colonist,
-  soldier,
-  merchantman,
-  privateer,
-  large_treasure,
-  small_treasure
-};
-
-enum class ND e_unit_death {
-  destroy,
-  naval,
-  capture,
-  demote,
-  maybe_demote,
-  demote_and_capture
-};
 
 // We need this for some weird reason -- if we dont' have it and
 // we put the MOVABLE_ONLY in the UnitDescriptor class then we
@@ -84,8 +69,9 @@ struct ND UnitDescriptor : public UnitDescriptorBase {
   maybe<e_unit_type> demoted;
 
   // Cargo
-  int      cargo_slots{};
-  maybe<int> cargo_slots_occupies{}; // slots occupied by this unit
+  int cargo_slots{};
+  maybe<int>
+      cargo_slots_occupies{}; // slots occupied by this unit
 
   void check_invariants() const;
 };

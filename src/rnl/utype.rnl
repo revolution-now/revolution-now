@@ -1,0 +1,29 @@
+# ===============================================================
+# utype.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RNL definitions for the utype module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_unit_type {
+  free_colonist,
+  soldier,
+  merchantman,
+  privateer,
+  large_treasure,
+  small_treasure
+};
+
+enum e_unit_death {
+  destroy,
+  naval,
+  capture,
+  demote,
+  maybe_demote,
+  demote_and_capture
+};

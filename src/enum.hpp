@@ -12,11 +12,8 @@
 
 #include "core-config.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
-static_assert( magic_enum::is_magic_enum_supported,
-               "Magic Enum is not supported on this compiler." );
+// Rnl
+#include "rnl/helper/enum.hpp"
 
 namespace rn {
 
@@ -44,9 +41,9 @@ template<typename Enum>
 std::string_view enum_to_display_name( Enum value ) {
   return internal::enum_to_display_name(
       /*type_name=*/internal::remove_namespaces(
-          magic_enum::enum_type_name<Enum>() ),    //
-      /*index=*/magic_enum::enum_integer( value ), //
-      /*default=*/magic_enum::enum_name( value ) );
+          enum_traits<Enum>::type_name ),  //
+      /*index=*/static_cast<int>( value ), //
+      /*default=*/enum_name( value ) );
 }
 
 } // namespace rn

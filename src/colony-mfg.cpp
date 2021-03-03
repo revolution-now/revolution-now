@@ -34,7 +34,7 @@ void linker_dont_discard_module_colony_mfg() {}
 *****************************************************************/
 namespace {
 
-LUA_ENUM( colony_building );
-LUA_ENUM( mfg_job );
+LUA_ENUM_NO_MAGIC( colony_building );
+LUA_ENUM_NO_MAGIC( mfg_job );
 
 } // namespace

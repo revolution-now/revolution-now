@@ -23,8 +23,8 @@
     8,
     9
   ],
-  "color": "Red",
-  "hand": "Right",
+  "color": "red",
+  "hand": "right",
   "weapons": [
     {
       "name": "Sword",

@@ -15,12 +15,13 @@
 // Revolution Now
 #include "fb.hpp"
 
+// Rnl
+#include "rnl/land-square.hpp"
+
 // Flatbuffers
 #include "fb/land-square_generated.h"
 
 namespace rn {
-
-enum class e_crust { water, land };
 
 struct LandSquare {
   valid_deserial_t check_invariants_safe() const;

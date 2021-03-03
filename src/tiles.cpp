@@ -22,9 +22,6 @@
 #include "base-util/fs.hpp"
 #include "base-util/pp.hpp"
 
-// magic_enum
-#include "magic_enum.hpp"
-
 // C++ standard library
 #include <string>
 #include <unordered_map>
@@ -34,12 +31,6 @@ using namespace std;
 using namespace std::literals::string_literals;
 
 namespace rn {
-
-static_assert(
-    magic_enum::enum_count<e_tile>() < MAGIC_ENUM_RANGE_MAX,
-    "The e_tile enum has gotten larger than magic-enum can "
-    "handle.  Either increase the max size that magic-enum can "
-    "handle or switch to a generated enum." );
 
 namespace {
 
@@ -196,13 +187,13 @@ void init_sprites() {
   ));
   // clang-format on
 
-  for( e_tile e : magic_enum::enum_values<e_tile>() ) {
+  for( e_tile e : enum_traits<e_tile>::values ) {
     CHECK( g_sprites.contains( e ),
            "Tile `{}` has not been loaded.", e );
   }
-  auto num_tiles        = magic_enum::enum_count<e_tile>();
+  auto num_tiles        = enum_traits<e_tile>::count;
   auto num_tiles_loaded = g_sprites.size();
-  CHECK( num_tiles_loaded == num_tiles,
+  CHECK( int( num_tiles_loaded ) == num_tiles,
          "There are {} tiles but {} were loaded.", num_tiles,
          num_tiles_loaded );
 }

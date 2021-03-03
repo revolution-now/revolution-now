@@ -19,6 +19,9 @@
 #include "id.hpp"
 #include "nation.hpp"
 
+// Rnl
+#include "rnl/colony-mgr.hpp"
+
 // C++ standard library
 #include <string_view>
 
@@ -27,18 +30,6 @@ namespace rn {
 valid_or<generic_err> check_colony_invariants_safe(
     ColonyId id );
 void check_colony_invariants_die( ColonyId id );
-
-enum class ND e_found_colony_err {
-  colony_exists_here,
-  no_water_colony,
-  colonist_not_on_map,
-  ship_cannot_found_colony
-};
-
-enum class e_new_colony_name_err {
-  already_exists,
-  name_too_short
-};
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     std::string_view name );

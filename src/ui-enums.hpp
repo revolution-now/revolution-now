@@ -12,10 +12,11 @@
 
 #include "core-config.hpp"
 
+// Rnl
+#include "rnl/ui-enums.hpp"
+
 namespace rn::ui {
 
-enum class e_ok_cancel { ok, cancel };
-
-enum class e_confirm { yes, no };
+//
 
 } // namespace rn::ui

@@ -233,7 +233,7 @@ UCL_TYPE( TuneDimensions, UCL_OBJECT,    type /*dummy*/ )
 UCL_TYPE( seconds,        UCL_INT,       int_value      )
 UCL_TYPE( Y,              UCL_INT,       int_value      )
 //UCL_TYPE( H,              UCL_INT,       int_value      )
-// clang-format on
+//  clang-format on
 
 template<typename T>
 auto ucl_getter_for_type_v = ucl_getter_for_type_t<T>::getter;
@@ -369,33 +369,33 @@ void populate_config_field( ucl::Ucl obj, fs::path& dest,
   dest = move( file_path );
 }
 
-// This is for enums reflected with Magic Enum.
+// This is for reflected enums.
 template<typename Enum>
-void populate_config_field_magic_enum(
-    ucl::Ucl obj, Enum& dest, vector<string> const& path,
-    string const& config_name, string const& file,
-    string const& type_name ) {
+void populate_config_field_enum( ucl::Ucl obj, Enum& dest,
+                                 vector<string> const& path,
+                                 string const& config_name,
+                                 string const& file,
+                                 string const& type_name ) {
   auto dotted = util::join( path, "." );
   check_field_exists( obj, dotted, file );
   check_field_type( obj, ::UCL_STRING, dotted, config_name,
                     string( "item(s) of type " ) + type_name );
   auto str_val = obj.string_value();
-  auto result  = magic_enum::enum_cast<Enum>( str_val.c_str() );
+  auto result =
+      enum_traits<Enum>::from_string( str_val.c_str() );
   CHECK( result,
          "enum value `{}` is not a known value of the enum {}",
          str_val, type_name );
   dest = *result;
 }
 
-// magic enum
 #define SUPPORT_ENUM( EnumType )                                \
   template<>                                                    \
   void populate_config_field(                                   \
       ucl::Ucl obj, EnumType& dest, vector<string> const& path, \
       string const& config_name, string const& file ) {         \
-    populate_config_field_magic_enum( obj, dest, path,          \
-                                      config_name, file,        \
-                                      TO_STRING( EnumType ) );  \
+    populate_config_field_enum( obj, dest, path, config_name,   \
+                                file, TO_STRING( EnumType ) );  \
   }                                                             \
   template<>                                                    \
   struct ucl_type_of_t<EnumType> {                              \

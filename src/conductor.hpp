@@ -17,22 +17,11 @@
 #include "maybe.hpp"
 #include "tune.hpp"
 
+// Rnl
+#include "rnl/conductor.hpp"
+
 // C++ standard library
 #include <functional>
-
-namespace rn {
-
-// NOTE: The ordering of these determines priority in the event
-// that the first and second choices (set in the config files)
-// are not available.
-enum class e_music_player { midiseq, ogg, silent };
-
-enum class e_special_music_event {
-  fountain_of_youth, //
-  founding_father    //
-};
-
-} // namespace rn
 
 namespace rn::conductor {
 
@@ -137,31 +126,6 @@ void seek( double pos );
 // ated (we will not merely shuffle here because the playlist
 // must satisfy some invariants).
 void playlist_generate();
-
-// Tune Selection. Each of these methods will search through
-// available tunes and select one that meets the criteria and
-// then play it if requested. If the tune is played then the con-
-// ductor will return to autoplay when it is finished, if auto-
-// play is enabled.
-enum class e_request {
-  won_battle_europeans,
-  won_battle_natives,
-  lost_battle_europeans,
-  lost_battle_natives,
-  slow_sad,
-  happy_fast,
-  orchestrated,
-  fiddle_tune,
-  fife_drum_sad,
-  fife_drum_slow,
-  fife_drum_fast,
-  fife_drum_happy,
-  native_sad,
-  native_happy,
-  king_happy,
-  king_sad,
-  king_war
-};
 
 enum class e_request_probability { always, sometimes, rarely };
 

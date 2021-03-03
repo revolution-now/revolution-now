@@ -532,40 +532,41 @@ struct CodeGenerator {
     line( "};" );
     // Emit the traits.
     newline();
+    close_ns( ns );
+    newline();
+    open_ns( "rn" );
     comment( "Reflection info for enum {}.", e.name );
     line( "template<>" );
-    line( "struct enum_traits<{}> {{", e.name );
+    line( "struct enum_traits<{}::{}> {{", ns, e.name );
     {
       auto _ = indent();
+      line( "using type = {}::{};", ns, e.name );
       line( "static constexpr int count = {};",
             e.values.size() );
       line(
           "static constexpr std::string_view type_name = "
           "\"{}\";",
           e.name );
-      line( "static constexpr std::array<{}, {}> values{{",
-            e.name, e.values.size() );
+      line( "static constexpr std::array<type, {}> values{{",
+            e.values.size() );
       {
         auto           _       = indent();
         vector<string> with_ns = e.values;
-        for( string& s : with_ns ) s = e.name + "::" + s;
+        for( string& s : with_ns ) s = "type::" + s;
         emit_vert_list( with_ns, "," );
       }
       line( "};" );
       if( !e.values.empty() ) {
         line(
-            "static constexpr std::string_view value_name( {} "
-            "val "
-            ") {{",
-            e.name );
+            "static constexpr std::string_view value_name( type "
+            "val ) {" );
         {
           auto _ = indent();
           line( "switch( val ) {" );
           {
             auto _ = indent();
             for( string const& s : e.values )
-              line( "case {}::{}: return \"{}\";", e.name, s,
-                    s );
+              line( "case type::{}: return \"{}\";", s, s );
           }
           line( "}" );
         }
@@ -573,41 +574,39 @@ struct CodeGenerator {
       }
       line( "template<typename Int>" );
       line(
-          "static constexpr maybe<{}> from_integral( Int val ) "
-          "{{",
-          e.name );
+          "static constexpr maybe<type> from_integral( Int val "
+          ") {" );
       {
         auto _ = indent();
-        line( "maybe<{}> res;", e.name );
+        line( "maybe<type> res;" );
         if( !e.values.empty() ) {
           line( "int intval = static_cast<int>( val );" );
           line( "if( intval < 0 || intval >= {} ) return res;",
                 e.values.size() );
-          line( "res = static_cast<{}>( intval );", e.name );
+          line( "res = static_cast<type>( intval );" );
         }
         line( "return res;" );
       }
       line( "}" );
       line(
-          "static constexpr maybe<{}> from_string( "
-          "std::string_view name ) {{",
-          e.name );
+          "static constexpr maybe<type> from_string( "
+          "std::string_view name ) {" );
       {
         auto _ = indent();
         line( "return" );
         {
           auto _ = indent();
           for( string const& val : e.values )
-            line( "name == \"{}\" ? maybe<{}>( {}::{} ) :", val,
-                  e.name, e.name, val );
-          line( "maybe<{}>{{}};", e.name );
+            line( "name == \"{}\" ? maybe<type>( type::{} ) :",
+                  val, val );
+          line( "maybe<type>{};" );
         }
       }
       line( "}" );
     }
     line( "};" );
     newline();
-    close_ns( ns );
+    close_ns( "rn" );
   }
 
   void emit( string_view ns, expr::Sumtype const& sumtype ) {

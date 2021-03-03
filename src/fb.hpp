@@ -19,6 +19,9 @@
 #include "fmt-helper.hpp"
 #include "maybe.hpp"
 
+// Rnl
+#include "rnl/helper/enum.hpp"
+
 // base
 #include "base/meta.hpp"
 #include "base/variant.hpp"
@@ -31,9 +34,6 @@
 // base-util
 #include "base-util/mp.hpp"
 #include "base-util/pp.hpp"
-
-// magic enum
-#include "magic_enum.hpp"
 
 // C++ standard library
 #include <list>
@@ -347,7 +347,7 @@ auto serialize( FBBuilder& builder, std::string const& o,
   return ReturnValue{ offset };
 }
 
-// For regular enums, reflected through magic-enum (preferred).
+// For reflected enums.
 template<typename Hint, //
          typename T,
          std::enable_if_t<      //
@@ -355,27 +355,25 @@ template<typename Hint, //
              int> = 0           //
          >
 auto serialize( FBBuilder&, T const& e, serial::ADL ) {
-  using namespace magic_enum;
-  // We can use magic_enum on both of these enums.
+  // Both of these must be reflected enums.
   using fbs_enum_t = Hint;
   using src_enum_t = T;
   // FB enums have two additional members (MIN/MAX) but their in-
-  // dexes are repeated from previous values, so magic enum
-  // should compute the same element count for both.
-  static_assert( enum_count<src_enum_t>() ==
-                 enum_count<fbs_enum_t>() );
-  static_assert( enum_integer( enum_values<src_enum_t>()[0] ) ==
-                 0 );
-  static_assert( enum_integer( enum_values<fbs_enum_t>()[0] ) ==
-                 0 );
-  auto maybe_fbs_enum =
-      enum_cast<fbs_enum_t>( enum_integer( e ) );
-  BASE_CHECK( maybe_fbs_enum.has_value(),
-              "failed to serialize enum value {}", e );
-  DCHECK( enum_name( *maybe_fbs_enum ) == enum_name( e ),
-          "{} != {}", enum_name( *maybe_fbs_enum ),
-          enum_name( e ) );
-  return ReturnValue{ *maybe_fbs_enum };
+  // dexes are repeated from previous values.
+  static_assert( enum_traits<src_enum_t>::count ==
+                 static_cast<int>( fbs_enum_t::MAX ) + 1 );
+  static_assert( static_cast<int>(
+                     enum_traits<src_enum_t>::values[0] ) == 0 );
+  static_assert( static_cast<int>( fbs_enum_t::MIN ) == 0 );
+  auto fbs_enum =
+      static_cast<fbs_enum_t>( static_cast<int>( e ) );
+  // FIXME: improve below after FB enums get static reflection.
+  // BASE_CHECK( maybe_fbs_enum.has_value(),
+  //             "failed to serialize enum value {}", e );
+  // DCHECK( enum_name( *maybe_fbs_enum ) == enum_name( e ),
+  //         "{} != {}", enum_name( *maybe_fbs_enum ),
+  //         enum_name( e ) );
+  return ReturnValue{ fbs_enum };
 }
 
 // For C++ classes/structs that get serialized as FB structs.
@@ -652,7 +650,7 @@ valid_deserial_t deserialize( SrcT const* src, DstT* dst,
   return valid;
 }
 
-// For regular enums, reflected through magic-enum (preferred).
+// For reflected enums.
 template<typename SrcT,            //
          typename DstT,            //
          std::enable_if_t<         //
@@ -661,31 +659,30 @@ template<typename SrcT,            //
          >
 valid_deserial_t deserialize( SrcT const* src, DstT* dst,
                               serial::ADL ) {
-  using namespace magic_enum;
-  // We can use magic_enum on both of these enums.
+  // Both of these must be reflected enums.
   using fbs_enum_t = SrcT;
   using dst_enum_t = DstT;
   // FB enums have two additional members (MIN/MAX) but their in-
-  // dexes are repeated from previous values, so magic enum
-  // should compute the same element count for both.
-  static_assert( enum_count<dst_enum_t>() ==
-                 enum_count<fbs_enum_t>() );
-  static_assert( enum_integer( enum_values<dst_enum_t>()[0] ) ==
-                 0 );
-  static_assert( enum_integer( enum_values<fbs_enum_t>()[0] ) ==
-                 0 );
+  // dexes are repeated from previous values.
+  static_assert( enum_traits<dst_enum_t>::count ==
+                 static_cast<int>( fbs_enum_t::MAX ) + 1 );
+  static_assert( static_cast<int>(
+                     enum_traits<dst_enum_t>::values[0] ) == 0 );
+  static_assert( static_cast<int>( fbs_enum_t::MIN ) == 0 );
   CHECK( src != nullptr,
          "`src` is nullptr when deserializing enum." );
-  auto maybe_dst_enum =
-      enum_cast<dst_enum_t>( enum_integer( *src ) );
-  if( !maybe_dst_enum.has_value() )
-    return invalid_deserial(
-        fmt::format( "failed to deserialize enum value {}",
-                     enum_name( *src ) ) );
-  DCHECK( enum_name( *maybe_dst_enum ) == enum_name( *src ),
-          "{} != {}", enum_name( *maybe_dst_enum ),
-          enum_name( *src ) );
-  *dst = *maybe_dst_enum;
+  // FIXME: improve the below after FB enums get static
+  // reflection.
+  auto dst_enum =
+      static_cast<dst_enum_t>( static_cast<int>( *src ) );
+  // if( !maybe_dst_enum.has_value() )
+  //   return invalid_deserial(
+  //       fmt::format( "failed to deserialize enum value {}",
+  //                    enum_name( *src ) ) );
+  // DCHECK( enum_name( *maybe_dst_enum ) == enum_name( *src ),
+  //         "{} != {}", enum_name( *maybe_dst_enum ),
+  //         enum_name( *src ) );
+  *dst = dst_enum;
   return valid;
 }
 
@@ -1038,10 +1035,10 @@ valid_deserial_t deserialize( SrcT const*           src,
 /****************************************************************
 ** Table Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )       \
-  auto PP_JOIN( s_, var ) =                                 \
-      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
-          std::declval<fb_target_t>().var() )>>(            \
+#define SERIAL_CALL_SERIALIZE_TABLE_IMPL( type, var )      \
+  auto PP_JOIN( s_, var ) =                                \
+      serialize<::rn::serial::fb_serialize_hint_t<         \
+          decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_TABLE( p ) \
@@ -1095,10 +1092,10 @@ private:
 /****************************************************************
 ** Struct Macros
 *****************************************************************/
-#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )   \
-  auto PP_JOIN( s_, var ) =                                 \
-      serialize<::rn::serial::fb_serialize_hint_t<decltype( \
-          std::declval<fb_target_t>().var() )>>(            \
+#define SERIAL_CALL_SERIALIZE_STRUCT_NO_EVAL( type, var )  \
+  auto PP_JOIN( s_, var ) =                                \
+      serialize<::rn::serial::fb_serialize_hint_t<         \
+          decltype( std::declval<fb_target_t>().var() )>>( \
           builder, var, serial::ADL{} )
 
 #define SERIAL_CALL_SERIALIZE_STRUCT( p ) \

@@ -26,9 +26,6 @@
 // Abseil
 #include "absl/strings/str_split.h"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // C++ standard library
 #include <functional>
 #include <typeinfo>
@@ -47,15 +44,15 @@ char const* enum_to_str( int );
   case enum_type::val:                 \
     return str;
 
-#define ENUM_TO_STR_IMPL( type, ... )                    \
-  template<>                                             \
-  char const* enum_to_str<type>( int e ) {               \
-    DCHECK( magic_enum::enum_cast<type>( e ) );          \
-    auto val        = *magic_enum::enum_cast<type>( e ); \
-    using enum_type = type;                              \
-    switch( val ) {                                      \
-      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )    \
-    }                                                    \
+#define ENUM_TO_STR_IMPL( type, ... )                         \
+  template<>                                                  \
+  char const* enum_to_str<type>( int e ) {                    \
+    DCHECK( enum_traits<type>::from_integral( e ) );          \
+    auto val        = *enum_traits<type>::from_integral( e ); \
+    using enum_type = type;                                   \
+    switch( val ) {                                           \
+      PP_MAP_TUPLE( ENUM_TO_STR_SINGLE, __VA_ARGS__ )         \
+    }                                                         \
   }
 
 #define TRANSLATION( type, ... ) \

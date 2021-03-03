@@ -13,75 +13,13 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
+// Rnl
+#include "rnl/colony-mfg.hpp"
 
 // Flatbuffers
 #include "fb/colony-mfg_generated.h"
 
 namespace rn {
-
-enum class e_colony_building {
-  // Free buildings.
-  blacksmiths_house,    //
-  carpenters_shop,      //
-  fur_traders_house,    //
-  rum_distillers_house, //
-  tobacconists_house,   //
-  town_hall,            //
-  weavers_house,        //
-
-  // Level 1 buildings.
-  armory,         //
-  docks,          //
-  printing_press, //
-  schoolhouse,    //
-  stable,         //
-  stockade,       //
-  warehouse,      //
-
-  // Level 2 buildings.
-  blacksmiths_shop,    //
-  church,              //
-  college,             //
-  drydock,             //
-  fort,                //
-  fur_trading_post,    //
-  lumber_mill,         //
-  magazine,            //
-  newspaper,           //
-  rum_distillery,      //
-  tobacconists_shop,   //
-  warehouse_expansion, //
-  weavers_shop,        //
-
-  // Level 3 buildings.
-  arsenal,       //
-  cathedral,     //
-  cigar_factory, //
-  fortress,      //
-  fur_factory,   //
-  iron_works,    //
-  rum_factory,   //
-  shipyard,      //
-  textile_mill,  //
-  university,    //
-
-  // Special buildings.
-  custom_house //
-};
-
-enum class e_mfg_job {
-  bells,
-  crosses,
-  hammers,
-  rum,
-  cigars,
-  cloth,
-  coats,
-  tools,
-  muskets,
-  teacher
-};
 
 void linker_dont_discard_module_colony_mfg();
 

@@ -24,9 +24,6 @@
 // base-util
 #include "base-util/string.hpp"
 
-// magic_enum
-#include "magic_enum.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -88,7 +85,7 @@ valid_or<generic_err> check_colony_invariants_safe(
   }
 
   // 8.  Colony's commodity quantites in correct range.
-  for( auto comm : magic_enum::enum_values<e_commodity>() ) {
+  for( auto comm : enum_traits<e_commodity>::values ) {
     if( colony.commodity_quantity( comm ) < 0 )
       return GENERIC_ERROR(
           "Colony has negative quantity of {}.", comm );
@@ -148,12 +145,12 @@ ColonyId found_colony_unsafe( UnitId           founder,
   if( auto res = is_valid_new_colony_name( name ); !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
-           magic_enum::enum_name( res.error() ) );
+           enum_name( res.error() ) );
 
   if( auto res = unit_can_found_colony( founder ); !res )
     // FIXME: improve error message generation.
     FATAL( "Cannot found colony, error code: {}.",
-           magic_enum::enum_name( res.error() ) );
+           enum_name( res.error() ) );
 
   auto nation = unit_from_id( founder ).nation();
   UNWRAP_CHECK( where, coord_for_unit_indirect_safe( founder ) );

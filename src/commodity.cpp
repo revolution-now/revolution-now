@@ -27,9 +27,6 @@
 // base-util
 #include "base-util/pp.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -117,8 +114,8 @@ valid_deserial_t Commodity::check_invariants_safe() const {
 maybe<e_commodity> commodity_from_index( int index ) {
   maybe<e_commodity> res;
   if( index >= 0 &&
-      index < int( magic_enum::enum_count<e_commodity>() ) )
-    res = magic_enum::enum_values<e_commodity>()[index];
+      index < int( enum_traits<e_commodity>::count ) )
+    res = enum_traits<e_commodity>::values[index];
   return res;
 }
 
@@ -280,7 +277,7 @@ Texture render_commodity_create( e_commodity type ) {
 *****************************************************************/
 namespace {
 
-LUA_ENUM( commodity )
+LUA_ENUM_NO_MAGIC( commodity )
 
 }
 

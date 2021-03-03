@@ -33,9 +33,6 @@
 // base-util
 #include "base-util/algo.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 using namespace std;
 
 namespace rn::conductor {
@@ -184,7 +181,7 @@ dimensions_for_request() {
 
 void register_requests() {
 #include "../config/c++/tune-requests.inl"
-  for( auto req : magic_enum::enum_values<e_request>() ) {
+  for( auto req : enum_traits<e_request>::values ) {
     CHECK( dimensions_for_request().contains( req ),
            "The Conductor request category `{}` has not been "
            "given a definition.",
@@ -211,8 +208,7 @@ void init_conductor() {
   ADD_MUSIC_PLAYER( ogg, Ogg );
 
   // Check each music player for viability and populate info.
-  for( auto mplayer :
-       magic_enum::enum_values<e_music_player>() ) {
+  for( auto mplayer : enum_traits<e_music_player>::values ) {
     CHECK( g_mplayers.contains( mplayer ),
            "Music player `{}` not added to list.", mplayer );
     CHECK( g_mplayer_descs.contains( mplayer ),
@@ -275,7 +271,7 @@ void init_conductor() {
   // music event. That is defined as a game event where there
   // should always be the tune played.
   for( auto event :
-       magic_enum::enum_values<e_special_music_event>() ) {
+       enum_traits<e_special_music_event>::values ) {
     CHECK( m.contains( event ),
            "There is no tune set to be played for the special "
            "event `{}`.",
@@ -301,7 +297,7 @@ void init_conductor() {
   }
 
   CHECK( g_special_tunes.size() ==
-         magic_enum::enum_count<e_special_music_event>() );
+         enum_traits<e_special_music_event>::count );
 
   // This will set the music player if possible, make sure all
   // music is stopped, etc.

@@ -1,0 +1,17 @@
+# ===============================================================
+# unit.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-02-28.
+#
+# Description: RNL definitions for the unit module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_unit_orders {
+  none,
+  sentry,
+  fortified
+};

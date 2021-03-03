@@ -184,64 +184,64 @@ inline const flatbuffers::TypeTable *thirdTypeTable();
 inline const flatbuffers::TypeTable *MyVariant2_tTypeTable();
 
 enum class e_hand : int8_t {
-  Left = 0,
-  Right = 1,
-  MIN = Left,
-  MAX = Right
+  left = 0,
+  right = 1,
+  MIN = left,
+  MAX = right
 };
 
 inline const e_hand (&EnumValuese_hand())[2] {
   static const e_hand values[] = {
-    e_hand::Left,
-    e_hand::Right
+    e_hand::left,
+    e_hand::right
   };
   return values;
 }
 
 inline const char * const *EnumNamese_hand() {
   static const char * const names[3] = {
-    "Left",
-    "Right",
+    "left",
+    "right",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNamee_hand(e_hand e) {
-  if (flatbuffers::IsOutRange(e, e_hand::Left, e_hand::Right)) return "";
+  if (flatbuffers::IsOutRange(e, e_hand::left, e_hand::right)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamese_hand()[index];
 }
 
 enum class e_color : int8_t {
-  Red = 0,
-  Green = 1,
-  Blue = 2,
-  MIN = Red,
-  MAX = Blue
+  red = 0,
+  green = 1,
+  blue = 2,
+  MIN = red,
+  MAX = blue
 };
 
 inline const e_color (&EnumValuese_color())[3] {
   static const e_color values[] = {
-    e_color::Red,
-    e_color::Green,
-    e_color::Blue
+    e_color::red,
+    e_color::green,
+    e_color::blue
   };
   return values;
 }
 
 inline const char * const *EnumNamese_color() {
   static const char * const names[4] = {
-    "Red",
-    "Green",
-    "Blue",
+    "red",
+    "green",
+    "blue",
     nullptr
   };
   return names;
 }
 
 inline const char *EnumNamee_color(e_color e) {
-  if (flatbuffers::IsOutRange(e, e_color::Red, e_color::Blue)) return "";
+  if (flatbuffers::IsOutRange(e, e_color::red, e_color::blue)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamese_color()[index];
 }
@@ -1212,7 +1212,7 @@ inline flatbuffers::Offset<MyVariant> CreateMyVariant(
     int32_t one = 0,
     const fb::Vec2 *two = 0,
     flatbuffers::Offset<fb::Weapon> three = 0,
-    fb::e_color four = fb::e_color::Red) {
+    fb::e_color four = fb::e_color::red) {
   MyVariantBuilder builder_(_fbb);
   builder_.add_three(three);
   builder_.add_two(two);
@@ -2441,8 +2441,8 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<flatbuffers::String> noname = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>>> names = 0,
     flatbuffers::Offset<flatbuffers::Vector<uint8_t>> inventory = 0,
-    fb::e_color color = fb::e_color::Blue,
-    fb::e_hand hand = fb::e_hand::Left,
+    fb::e_color color = fb::e_color::blue,
+    fb::e_hand hand = fb::e_hand::left,
     flatbuffers::Offset<fb::Weapon> elbow = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<fb::Weapon>>> weapons = 0,
     flatbuffers::Offset<flatbuffers::Vector<const fb::Vec3 *>> path = 0,
@@ -2522,8 +2522,8 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     const char *noname = nullptr,
     const std::vector<flatbuffers::Offset<flatbuffers::String>> *names = nullptr,
     const std::vector<uint8_t> *inventory = nullptr,
-    fb::e_color color = fb::e_color::Blue,
-    fb::e_hand hand = fb::e_hand::Left,
+    fb::e_color color = fb::e_color::blue,
+    fb::e_hand hand = fb::e_hand::left,
     flatbuffers::Offset<fb::Weapon> elbow = 0,
     const std::vector<flatbuffers::Offset<fb::Weapon>> *weapons = nullptr,
     const std::vector<fb::Vec3> *path = nullptr,
@@ -2918,8 +2918,8 @@ inline const flatbuffers::TypeTable *e_handTypeTable() {
     fb::e_handTypeTable
   };
   static const char * const names[] = {
-    "Left",
-    "Right"
+    "left",
+    "right"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 2, type_codes, type_refs, nullptr, nullptr, names
@@ -2937,9 +2937,9 @@ inline const flatbuffers::TypeTable *e_colorTypeTable() {
     fb::e_colorTypeTable
   };
   static const char * const names[] = {
-    "Red",
-    "Green",
-    "Blue"
+    "red",
+    "green",
+    "blue"
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_ENUM, 3, type_codes, type_refs, nullptr, nullptr, names

@@ -20,9 +20,6 @@
 #include "ui-enums.hpp"
 #include "waitable.hpp"
 
-// magic enum
-#include "magic_enum.hpp"
-
 // c++ standard library
 #include <string_view>
 #include <vector>
@@ -139,9 +136,8 @@ template<typename Enum>
 void select_box_enum( std::string_view            title,
                       std::function<void( Enum )> on_result ) {
   static const std::vector<Enum> options = [] {
-    return std::vector<Enum>(
-        magic_enum::enum_values<Enum>().begin(),
-        magic_enum::enum_values<Enum>().end() );
+    return std::vector<Enum>( enum_traits<Enum>::values.begin(),
+                              enum_traits<Enum>::values.end() );
   }();
   select_box_enum( title, options, std::move( on_result ) );
 }

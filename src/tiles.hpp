@@ -17,6 +17,9 @@
 #include "tx.hpp"
 #include "util.hpp"
 
+// Rnl
+#include "rnl/tiles.hpp"
+
 // C++ standard library
 #include <string_view>
 
@@ -36,106 +39,6 @@ inline Rect g_tile_rect = Rect::from(
 
 inline Delta g_tile_delta =
     Delta{ W{ 1 } * g_tile_width, H{ 1 } * g_tile_height };
-
-// This is to be used with magic enum.
-enum class e_tile {
-  water,
-  land,
-  land_1_side,
-  land_2_sides,
-  land_3_sides,
-  land_4_sides,
-  land_corner,
-
-  fog,
-  fog_1_side,
-  fog_corner,
-
-  terrain_grass,
-
-  panel,
-  panel_edge_left,
-  panel_slate,
-  panel_slate_1_side,
-  panel_slate_2_sides,
-
-  wood_middle,
-  wood_left_edge,
-
-  free_colonist,
-  privateer,
-  merchantman,
-  soldier,
-  large_treasure,
-  small_treasure,
-
-  menu_top_left,
-  menu_body,
-  menu_top,
-  menu_left,
-  menu_bottom,
-  menu_bottom_left,
-  menu_right,
-  menu_top_right,
-  menu_bottom_right,
-
-  menu_item_sel_back,
-  menu_hdr_sel_back,
-
-  menu_bar_0,
-  menu_bar_1,
-  menu_bar_2,
-
-  button_up_ul,
-  button_up_um,
-  button_up_ur,
-  button_up_ml,
-  button_up_mm,
-  button_up_mr,
-  button_up_ll,
-  button_up_lm,
-  button_up_lr,
-  button_down_ul,
-  button_down_um,
-  button_down_ur,
-  button_down_ml,
-  button_down_mm,
-  button_down_mr,
-  button_down_ll,
-  button_down_lm,
-  button_down_lr,
-
-  // Commodities
-  commodity_food,
-  commodity_sugar,
-  commodity_tobacco,
-  commodity_cotton,
-  commodity_fur,
-  commodity_lumber,
-  commodity_ore,
-  commodity_silver,
-  commodity_horses,
-  commodity_rum,
-  commodity_cigars,
-  commodity_cloth,
-  commodity_coats,
-  commodity_trade_goods,
-  commodity_tools,
-  commodity_muskets,
-
-  // Colonies
-  colony_basic,
-  colony_stockade,
-
-  // Mouse
-  mouse_planks,
-  mouse_musket,
-  mouse_arrow1,
-
-  // testing
-  checkers,
-  checkers_inv
-};
 
 struct ND sprite {
   Delta size() const { return source.delta(); }

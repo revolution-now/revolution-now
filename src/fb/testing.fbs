@@ -31,14 +31,14 @@ table MySumtype_t {
 }
 
 enum e_hand:byte {
-  Left,
-  Right
+  left,
+  right
 }
 
 enum e_color:byte {
-  Red,
-  Green,
-  Blue
+  red,
+  green,
+  blue
 }
 
 table Weapon {
@@ -148,7 +148,7 @@ table Monster {
   names     : [string];
   friendly  : bool = false (deprecated);
   inventory : [ubyte];
-  color     : e_color = Blue;
+  color     : e_color = blue;
   hand      : e_hand;
   elbow     : Weapon;
   weapons   : [Weapon];

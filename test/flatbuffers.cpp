@@ -58,10 +58,6 @@ using ::rn::serial::BinaryBlob;
 using ::rn::serial::FBBuilder;
 using ::rn::serial::FBOffset;
 
-enum class e_color { Red, Green, Blue };
-
-enum class e_hand { Left, Right };
-
 struct Weapon {
   valid_deserial_t check_invariants_safe() const {
     if( name.empty() )
@@ -271,7 +267,7 @@ BinaryBlob create_monster_blob() {
 
   auto orc = fb::CreateMonster(
       builder, &position, mana, hp, name, noname, names,
-      inventory, fb::e_color::Red, fb::e_hand::Right, elbow,
+      inventory, fb::e_color::red, fb::e_hand::right, elbow,
       weapons, path, pair1, &pair2, fb_map_vecs, fb_map_strs,
       fb_map_wpns, fb_mylist, fb_myset, opt_int1, opt_int2,
       opt_int3 );
@@ -512,8 +508,8 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     monster.noname    = "";
     monster.names     = { "A", "B" };
     monster.inventory = { 7, 6, 5, 4 };
-    monster.color     = e_color::Red;
-    monster.hand      = e_hand::Right;
+    monster.color     = e_color::red;
+    monster.hand      = e_hand::right;
     monster.elbow     = Weapon{};
     monster.weapons   = vector<Weapon>{
         Weapon{ "rock", 2 }, //
@@ -571,8 +567,8 @@ TEST_CASE( "[flatbuffers] monster: serialize to blob" ) {
     REQUIRE( inv[2] == 5 );
     REQUIRE( inv[3] == 4 );
 
-    REQUIRE( monster_new.color == e_color::Red );
-    REQUIRE( monster_new.hand == e_hand::Right );
+    REQUIRE( monster_new.color == e_color::red );
+    REQUIRE( monster_new.hand == e_hand::right );
 
     REQUIRE( monster_new.elbow == Weapon{} );
 
@@ -1264,10 +1260,10 @@ TEST_CASE( "[flatbuffers] variant with active_index" ) {
   REQUIRE( new_v.index() == v.index() );
   REQUIRE( new_v == MyVariant( Weapon{ "hello", 3 } ) );
 
-  v.emplace<e_color>( e_color::Green );
+  v.emplace<e_color>( e_color::green );
   new_v = variant_roundtrip<fb_table_t>( v );
   REQUIRE( new_v.index() == v.index() );
-  REQUIRE( new_v == MyVariant( e_color::Green ) );
+  REQUIRE( new_v == MyVariant( e_color::green ) );
 }
 
 TEST_CASE( "[flatbuffers] variant without active_index" ) {

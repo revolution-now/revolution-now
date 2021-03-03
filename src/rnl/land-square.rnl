@@ -1,0 +1,16 @@
+# ===============================================================
+# land-square.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-03-02.
+#
+# Description: RNL definitions for the land-square module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_crust {
+  water,
+  land
+};
