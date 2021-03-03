@@ -15,6 +15,9 @@
 // Revolution Now
 #include "maybe.hpp"
 
+// Rnl
+#include "rnl/helper/enum.hpp"
+
 // base
 #include "base/source-loc.hpp"
 
@@ -25,9 +28,6 @@
 
 // {fmt}
 #include "fmt/format.h"
-
-// magic_enum
-#include "magic_enum.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -376,14 +376,15 @@ struct formatter<std::chrono::duration<Rep, Period>>
   }
 };
 
-// Specialization for standard enums using magic_enum.
+// Specialization for standard enums (they must be reflected).
 template<typename T>
-struct formatter<T, char, std::enable_if_t<std::is_enum_v<T>>>
+struct formatter<
+    T, char, std::void_t<typename ::rn::enum_traits<T>::type>>
   : formatter_base {
   template<typename FormatContext>
   auto format( T const& o, FormatContext& ctx ) {
     return formatter_base::format(
-        fmt::format( "{}", magic_enum::enum_name( o ) ), ctx );
+        fmt::format( "{}", ::rn::enum_name( o ) ), ctx );
   }
 };
 

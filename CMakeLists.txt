@@ -75,7 +75,6 @@ add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/lua-5.3.5     EXCLUDE_FROM_ALL )
 add_subdirectory( extern/sol2          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/flatbuffers   EXCLUDE_FROM_ALL )
-add_subdirectory( extern/magic_enum    EXCLUDE_FROM_ALL )
 add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/cpp-peglib    EXCLUDE_FROM_ALL )
 

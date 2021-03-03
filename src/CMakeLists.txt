@@ -36,7 +36,6 @@ target_link_libraries(
     flatbuffers
     glad::glad
     lua::lua
-    magic_enum::magic_enum
     midifile
     rn-base
     rtmidi
@@ -98,7 +97,6 @@ target_compile_definitions(
   SOL_ALL_SAFETIES_ON=1
   SOL_EXCEPTIONS_ALWAYS_UNSAFE=1
   SOL_PRINT_ERRORS=0
-  MAGIC_ENUM_RANGE_MAX=128
   )
 
 clang_tidy( rn )

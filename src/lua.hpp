@@ -208,9 +208,8 @@ void register_fn( std::string_view    module_name,
 namespace detail {
 
 template<typename Enum, size_t... Indexes>
-void register_enum_impl_no_magic(
-    sol::state& st, std::string_view name,
-    std::index_sequence<Indexes...> ) {
+void register_enum_impl( sol::state& st, std::string_view name,
+                         std::index_sequence<Indexes...> ) {
   auto e = st["e"].get_or_create<sol::table>();
   CHECK( e[name] == sol::lua_nil,
          "symbol named `{}` has already been registered.",
@@ -232,9 +231,8 @@ void register_enum_impl_no_magic(
 }
 
 template<typename Enum>
-void register_enum_no_magic( sol::state&      st,
-                             std::string_view name ) {
-  return register_enum_impl_no_magic<Enum>(
+void register_enum( sol::state& st, std::string_view name ) {
+  return register_enum_impl<Enum>(
       st, name,
       std::make_index_sequence<enum_traits<Enum>::count>() );
 }
@@ -272,10 +270,10 @@ sol::variadic_results mt_pairs_enum( sol::table tbl ) {
 
 } // namespace detail
 
-#define LUA_ENUM_NO_MAGIC( what )                              \
+#define LUA_ENUM( what )                                       \
   LUA_STARTUP( sol::state& st ) {                              \
-    ::rn::lua::detail::register_enum_no_magic<::rn::e_##what>( \
-        st, #what );                                           \
+    ::rn::lua::detail::register_enum<::rn::e_##what>( st,      \
+                                                      #what ); \
     st[::rn::lua::module_name__].get_or_create<sol::table>();  \
     st["e"][#what "_from_string"] = []( char const* name ) {   \
       auto maybe_val =                                         \

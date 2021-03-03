@@ -31,12 +31,6 @@ enum class e_conductor_event {
   mplayer_changed //
 };
 
-enum class e_music_state {
-  playing, //
-  stopped, //
-  paused   //
-};
-
 struct ConductorInfo {
   e_music_player        mplayer;
   e_music_state         music_state;

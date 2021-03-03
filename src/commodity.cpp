@@ -277,7 +277,7 @@ Texture render_commodity_create( e_commodity type ) {
 *****************************************************************/
 namespace {
 
-LUA_ENUM_NO_MAGIC( commodity )
+LUA_ENUM( commodity )
 
 }
 

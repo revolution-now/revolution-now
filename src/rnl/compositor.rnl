@@ -1,0 +1,20 @@
+# ===============================================================
+# compositor.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-03-02.
+#
+# Description: RNL definitions for the compositor module.
+#
+# ===============================================================
+namespace rn.compositor;
+
+# In general, these sections may overlap.
+enum e_section {
+  menu_bar,
+  # All parts of the screen except for the menu bar.
+  non_menu_bar,
+  viewport,
+  panel
+};

@@ -50,3 +50,9 @@ enum e_request {
   king_sad,
   king_war
 };
+
+enum e_music_state {
+  playing,
+  stopped,
+  paused
+};

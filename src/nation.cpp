@@ -61,6 +61,6 @@ string NationDesc::name_proper() const {
 *****************************************************************/
 namespace {
 
-LUA_ENUM_NO_MAGIC( nation );
+LUA_ENUM( nation );
 
 }

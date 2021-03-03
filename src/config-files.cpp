@@ -233,7 +233,8 @@ UCL_TYPE( TuneDimensions, UCL_OBJECT,    type /*dummy*/ )
 UCL_TYPE( seconds,        UCL_INT,       int_value      )
 UCL_TYPE( Y,              UCL_INT,       int_value      )
 //UCL_TYPE( H,              UCL_INT,       int_value      )
-//  clang-format on
+
+// clang-format on
 
 template<typename T>
 auto ucl_getter_for_type_v = ucl_getter_for_type_t<T>::getter;
@@ -258,7 +259,8 @@ void check_field_type( ucl::Ucl obj, UclType_t type,
   CHECK( obj.type() == type,
          "expected `{}.{}` to contain {}; instead contains type "
          "`{}`.",
-         config_name, dotted, desc, obj.type() );
+         config_name, dotted, desc,
+         static_cast<int>( obj.type() ) );
 }
 
 #define COLLECT_NESTED_FIELD( dest, type_, name_ )              \
