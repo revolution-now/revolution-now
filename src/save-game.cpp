@@ -69,9 +69,8 @@ void default_construct_savegame_state( T const* );
 
 namespace {
 
-using fb_sg_types = mp::to_type_list_t<fb::SaveGame::FieldTypes>;
-constexpr size_t num_savegame_modules =
-    std::tuple_size_v<fb::SaveGame::FieldTypes>;
+constexpr size_t kNumSavegameModules =
+    fb::SaveGame::Traits::fields_number;
 
 fs::path path_for_slot( int slot ) {
   CHECK( slot >= 0 );
@@ -110,21 +109,22 @@ serial::BinaryBlob save_game_to_blob() {
   return serial::BinaryBlob::from_builder( std::move( fbb ) );
 }
 
-template<typename... Ts>
+template<size_t... Idxs>
 valid_deserial_t savegame_post_validate_impl(
-    mp::type_list<Ts...>* ) {
+    std::index_sequence<Idxs...> ) {
   valid_deserial_t res = valid;
 
-  auto validate_one = [&]( auto* p ) {
+  auto validate_one = [&]<typename T>( T* p ) {
     // If we've already failed on a past step, don't run anymore.
     if( !res ) return;
     lg.debug( "running post-deserialization validation on {}.",
-              demangled_typename<
-                  std::remove_pointer_t<decltype( p )>>() );
+              demangled_typename<T>() );
     res = savegame_post_validate( p );
   };
 
-  ( validate_one( Ts{ nullptr } ), ... );
+  ( validate_one(
+        fb::SaveGame::Traits::FieldType<Idxs>{ nullptr } ),
+    ... );
   return res;
 }
 
@@ -133,12 +133,10 @@ valid_deserial_t load_from_blob(
   auto*           root = blob.root<fb::SaveGame>();
   util::StopWatch watch;
   watch.start( "load" );
-  auto             fields_pack = root->fields_pack();
-  valid_deserial_t res         = valid;
-  mp::for_index_seq<num_savegame_modules>(
+  valid_deserial_t res = valid;
+  mp::for_index_seq<kNumSavegameModules>(
       [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-        res = savegame_deserializer(
-            std::get<Idx>( fields_pack ) );
+        res = savegame_deserializer( root->get_field<Idx>() );
         if( !res ) return true;
         return false;
       } );
@@ -147,8 +145,8 @@ valid_deserial_t load_from_blob(
 
   // Post-deserialization validation.
   watch.start( "validate" );
-  HAS_VALUE_OR_RET(
-      savegame_post_validate_impl( (fb_sg_types*)0 ) );
+  HAS_VALUE_OR_RET( savegame_post_validate_impl(
+      std::make_index_sequence<kNumSavegameModules>() ) );
   watch.stop( "validate" );
 
   lg.info( "loading game took: {}, validation took: {}.",
@@ -262,15 +260,17 @@ valid_deserial_t reset_savegame_state() {
   return load_from_blob( blob );
 }
 
-template<typename... fb_SG_types>
+template<size_t... Idxs>
 void default_construct_savegame_state_impl(
-    mp::type_list<fb_SG_types...>* ) {
-  ( default_construct_savegame_state( fb_SG_types{ nullptr } ),
+    std::index_sequence<Idxs...> ) {
+  ( default_construct_savegame_state(
+        fb::SaveGame::Traits::FieldType<Idxs>{ nullptr } ),
     ... );
 }
 
 void default_construct_savegame_state() {
-  default_construct_savegame_state_impl( (fb_sg_types*)0 );
+  default_construct_savegame_state_impl(
+      std::make_index_sequence<kNumSavegameModules>() );
 }
 
 /****************************************************************

@@ -243,34 +243,27 @@ inline constexpr bool
 *****************************************************************/
 namespace detail {
 
-template<typename FBTable>
-struct fb_variant_table_needs_alternative_index;
-
-template<typename... Ts>
-struct fb_variant_table_needs_alternative_index<
-    std::tuple<Ts...>> {
-  static constexpr bool value =
-      !mp::and_v<std::is_pointer_v<Ts>...>;
-};
-
 // Determine if FB table needs active_index field.
-template<typename Tuple>
-inline constexpr bool
-    fb_variant_table_needs_alternative_index_v =
-        fb_variant_table_needs_alternative_index<Tuple>::value;
+template<typename SrcT, size_t... Idxs>
+constexpr bool fb_variant_table_needs_alternative_index(
+    std::index_sequence<Idxs...> ) {
+  return !mp::and_v<std::is_pointer_v<
+      typename SrcT::Traits::template FieldType<Idxs>>...>;
+}
 
 template<typename FBVariant, typename Variant>
 constexpr auto validate_variant_active_index() {
-  using FieldTypes = typename FBVariant::FieldTypes;
   constexpr bool has_active_index =
-      detail::fb_variant_table_needs_alternative_index_v<
-          FieldTypes>;
+      detail::fb_variant_table_needs_alternative_index<
+          FBVariant>( std::make_index_sequence<
+                      FBVariant::Traits::fields_number>() );
   using fb_type_list = std::conditional_t<
       has_active_index,
       mp::tail_t<fb_creation_tuple_t<FBVariant>>,
       fb_creation_tuple_t<FBVariant>>;
   if constexpr( has_active_index ) {
-    using first_field_t = std::tuple_element_t<0, FieldTypes>;
+    using first_field_t =
+        typename FBVariant::Traits::template FieldType<0>;
     constexpr std::string_view first_field_name =
         FBVariant::Traits::field_names[0];
     static_assert(
@@ -284,7 +277,7 @@ constexpr auto validate_variant_active_index() {
         "at least one primitive type must have a field called "
         "'active_index' as its first element of type 'int'." );
     static_assert(
-        std::tuple_size_v<FieldTypes> >= 2,
+        FBVariant::Traits::fields_number >= 2,
         "A Flatbuffers table representing a variant containing "
         "at least one primitive type must have at least two "
         "fields, one the 'active_index' and then one other." );
@@ -930,15 +923,17 @@ valid_deserial_t deserialize( SrcT const* src, DstT* m,
 *****************************************************************/
 namespace detail {
 
-// Extract the `active_index` field from the fields pack and put
+// Extract the `active_index` field from the fields list and put
 // it into the corresponding alternative in the variant. This
 // function takes an `active_index`, but it works and is used
 // also for tables that don't have an `active_index` field. Ei-
 // ther way, the index of the active member is computed and given
-// to this function, so it doesn't care how it is computed.
-template<typename Tuple, typename Variant>
+// to this function, so it doesn't care how it is computed. The
+// `Offset` is 1 for types have have an active_index field and is
+// used to skip over it.
+template<size_t Offset, typename SrcT, typename Variant>
 valid_deserial_t visit_tuple_variant_deserialize(
-    Tuple const& fields_pack, Variant& dst, int active_index ) {
+    SrcT const* src, Variant& dst, int active_index ) {
   valid_deserial_t err   = valid;
   bool             found = false;
   mp::for_index_seq<std::variant_size_v<Variant>>(
@@ -946,7 +941,8 @@ valid_deserial_t visit_tuple_variant_deserialize(
         // Return true means we will stop iterating.
         if( active_index != Idx ) return false;
         err = deserialize(
-            detail::to_const_ptr( std::get<Idx>( fields_pack ) ),
+            detail::to_const_ptr(
+                src->template get_field<Idx + Offset>() ),
             &dst.template emplace<Idx>(), ADL{} );
         if( !err ) return true;
         found = true;
@@ -965,36 +961,35 @@ valid_deserial_t visit_tuple_variant_deserialize(
 // does not need/have an active_index member) this will iterate
 // through the fields to find the (hopefully only) one that is
 // non-null, meaning active.
-template<typename Tuple>
-expect<int, DeserialError> find_active_index_in_tuple(
-    Tuple const& tp ) {
-  int        count = 0;
-  maybe<int> active_index;
-  mp::for_index_seq<std::tuple_size_v<
-      Tuple>>( [&]<size_t Idx>(
-                   std::integral_constant<size_t, Idx> ) {
-    static_assert(
-        std::is_pointer_v<std::remove_reference_t<
-            decltype( std::get<Idx>( tp ) )>>,
-        "expected fields_pack tuple to have all pointer types "
-        "since this is supposed to be an FB variant with no "
-        "active_index." );
-    auto* p = std::get<Idx>( tp );
-    if( p != nullptr ) {
-      ++count;
-      active_index = Idx;
-    }
-  } );
+template<typename SrcT>
+expect<int, DeserialError> find_active_index_in_fb(
+    SrcT const* src ) {
+  int              count = 0;
+  maybe<int>       active_index;
+  constexpr size_t field_count = SrcT::Traits::fields_number;
+  mp::for_index_seq<field_count>(
+      [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
+        static_assert(
+            std::is_pointer_v<std::remove_reference_t<
+                decltype( src->template get_field<Idx>() )>>,
+            "expected get_field to have all pointer types since "
+            "this is supposed to be an FB variant with no "
+            "active_index." );
+        auto* p = src->template get_field<Idx>();
+        if( p != nullptr ) {
+          ++count;
+          active_index = Idx;
+        }
+      } );
   if( count != 1 )
     return invalid_deserial(
-               fmt::format(
-                   "failed to find precisely one active "
-                   "alternative "
-                   "in FB table representing variant with no "
-                   "active_index; instead found {}.",
-                   count ) )
+               fmt::format( "failed to find precisely one "
+                            "active alternative in FB table "
+                            "representing variant with no "
+                            "active_index; instead found {}.",
+                            count ) )
         .error();
-  DCHECK( *active_index < int( std::tuple_size_v<Tuple> ) );
+  DCHECK( *active_index < int( field_count ) );
   return *active_index;
 }
 
@@ -1015,17 +1010,15 @@ valid_deserial_t deserialize( SrcT const*           src,
     // which is consistent with this.
     return valid;
   }
-  auto fields_pack = src->fields_pack();
   if constexpr( has_active_index ) {
-    int32_t active_index = std::get<0>( fields_pack );
-    HAS_VALUE_OR_RET( detail::visit_tuple_variant_deserialize(
-        mp::tuple_tail( fields_pack ), *dst, active_index ) );
+    int32_t active_index = src->template get_field<0>();
+    HAS_VALUE_OR_RET( detail::visit_tuple_variant_deserialize<1>(
+        src, *dst, active_index ) );
   } else {
-    UNWRAP_RETURN(
-        active_index,
-        detail::find_active_index_in_tuple( fields_pack ) );
-    HAS_VALUE_OR_RET( detail::visit_tuple_variant_deserialize(
-        fields_pack, *dst, active_index ) );
+    UNWRAP_RETURN( active_index,
+                   detail::find_active_index_in_fb( src ) );
+    HAS_VALUE_OR_RET( detail::visit_tuple_variant_deserialize<0>(
+        src, *dst, active_index ) );
   }
   return valid;
 }

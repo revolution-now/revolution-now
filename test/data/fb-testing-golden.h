@@ -4,12 +4,10 @@
 #ifndef FLATBUFFERS_GENERATED_TESTING_FB_H_
 #define FLATBUFFERS_GENERATED_TESTING_FB_H_
 
-#include <tuple>
-
 #include "flatbuffers/flatbuffers.h"
 
-#include "fb/coord_generated.h"
 #include "fb/vocab_generated.h"
+#include "fb/coord_generated.h"
 
 namespace fb {
 namespace MySumtype {
@@ -270,15 +268,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec2 FLATBUFFERS_FINAL_CLASS {
   float y() const {
     return flatbuffers::EndianScalar(y_);
   }
-  using FieldTypes = std::tuple<
-    float,
-    float
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      x(),
-      y()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return x();
+    else if constexpr (Index == 1) return y();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Vec2, 8);
@@ -291,6 +285,9 @@ struct Vec2::Traits {
     "x",
     "y"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
@@ -323,17 +320,12 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Vec3 FLATBUFFERS_FINAL_CLASS {
   float z() const {
     return flatbuffers::EndianScalar(z_);
   }
-  using FieldTypes = std::tuple<
-    float,
-    float,
-    float
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      x(),
-      y(),
-      z()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return x();
+    else if constexpr (Index == 1) return y();
+    else if constexpr (Index == 2) return z();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Vec3, 12);
@@ -347,6 +339,9 @@ struct Vec3::Traits {
     "y",
     "z"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Pair_Vec2_int FLATBUFFERS_FINAL_CLASS {
@@ -373,15 +368,11 @@ FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) Pair_Vec2_int FLATBUFFERS_FINAL_CLASS {
   int32_t snd() const {
     return flatbuffers::EndianScalar(snd_);
   }
-  using FieldTypes = std::tuple<
-    const fb::Vec2 &,
-    int32_t
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      fst(),
-      snd()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return fst();
+    else if constexpr (Index == 1) return snd();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
 };
 FLATBUFFERS_STRUCT_END(Pair_Vec2_int, 12);
@@ -394,6 +385,9 @@ struct Pair_Vec2_int::Traits {
     "fst",
     "snd"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 namespace MySumtype {
@@ -403,10 +397,6 @@ struct none FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return noneTypeTable();
-  }
-  using FieldTypes = std::tuple<>;
-  FieldTypes fields_pack() const {
-    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -441,6 +431,7 @@ struct none::Traits {
   static constexpr auto name = "none";
   static constexpr auto fully_qualified_name = "fb.MySumtype.none";
   static constexpr std::array<const char *, 0> field_names = {};
+  static constexpr size_t fields_number = 0;
 };
 
 struct some FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -459,15 +450,11 @@ struct some FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t y() const {
     return GetField<int32_t>(VT_Y, 0);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::String *,
-    int32_t
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      s(),
-      y()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return s();
+    else if constexpr (Index == 1) return y();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -518,6 +505,9 @@ struct some::Traits {
     "s",
     "y"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 inline flatbuffers::Offset<some> CreatesomeDirect(
@@ -543,13 +533,10 @@ struct more FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   double d() const {
     return GetField<double>(VT_D, 0.0);
   }
-  using FieldTypes = std::tuple<
-    double
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      d()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return d();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -592,6 +579,9 @@ struct more::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "d"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 }  // namespace MySumtype
@@ -616,17 +606,12 @@ struct MySumtype_t FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const fb::MySumtype::more *more() const {
     return GetPointer<const fb::MySumtype::more *>(VT_MORE);
   }
-  using FieldTypes = std::tuple<
-    const fb::MySumtype::none *,
-    const fb::MySumtype::some *,
-    const fb::MySumtype::more *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      none(),
-      some(),
-      more()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return none();
+    else if constexpr (Index == 1) return some();
+    else if constexpr (Index == 2) return more();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -686,6 +671,9 @@ struct MySumtype_t::Traits {
     "some",
     "more"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -704,15 +692,11 @@ struct Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int16_t damage() const {
     return GetField<int16_t>(VT_DAMAGE, 0);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::String *,
-    int16_t
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      name(),
-      damage()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return name();
+    else if constexpr (Index == 1) return damage();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -763,6 +747,9 @@ struct Weapon::Traits {
     "name",
     "damage"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 inline flatbuffers::Offset<Weapon> CreateWeaponDirect(
@@ -792,15 +779,11 @@ struct Pair_int_Weapon FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const fb::Weapon *snd() const {
     return GetPointer<const fb::Weapon *>(VT_SND);
   }
-  using FieldTypes = std::tuple<
-    int32_t,
-    const fb::Weapon *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      fst(),
-      snd()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return fst();
+    else if constexpr (Index == 1) return snd();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -851,6 +834,9 @@ struct Pair_int_Weapon::Traits {
     "fst",
     "snd"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 struct SetTester FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -865,13 +851,10 @@ struct SetTester FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *set() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *>(VT_SET);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      set()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return set();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -916,6 +899,9 @@ struct SetTester::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "set"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 inline flatbuffers::Offset<SetTester> CreateSetTesterDirect(
@@ -939,13 +925,10 @@ struct MapTester1 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *map() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *>(VT_MAP);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      map()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return map();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -990,6 +973,9 @@ struct MapTester1::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "map"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 inline flatbuffers::Offset<MapTester1> CreateMapTester1Direct(
@@ -1013,13 +999,10 @@ struct MapTester2 FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_int>> *map() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_int>> *>(VT_MAP);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_int>> *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      map()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return map();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1064,6 +1047,9 @@ struct MapTester2::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "map"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 inline flatbuffers::Offset<MapTester2> CreateMapTester2Direct(
@@ -1080,10 +1066,6 @@ struct Empty FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return EmptyTypeTable();
-  }
-  using FieldTypes = std::tuple<>;
-  FieldTypes fields_pack() const {
-    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1118,6 +1100,7 @@ struct Empty::Traits {
   static constexpr auto name = "Empty";
   static constexpr auto fully_qualified_name = "fb.Empty";
   static constexpr std::array<const char *, 0> field_names = {};
+  static constexpr size_t fields_number = 0;
 };
 
 struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1148,21 +1131,14 @@ struct MyVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   fb::e_color four() const {
     return static_cast<fb::e_color>(GetField<int8_t>(VT_FOUR, 0));
   }
-  using FieldTypes = std::tuple<
-    int32_t,
-    int32_t,
-    const fb::Vec2 *,
-    const fb::Weapon *,
-    fb::e_color
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      active_index(),
-      one(),
-      two(),
-      three(),
-      four()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return active_index();
+    else if constexpr (Index == 1) return one();
+    else if constexpr (Index == 2) return two();
+    else if constexpr (Index == 3) return three();
+    else if constexpr (Index == 4) return four();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1234,6 +1210,9 @@ struct MyVariant::Traits {
     "three",
     "four"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 5;
 };
 
 struct MyVariantNoIndex FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1256,17 +1235,12 @@ struct MyVariantNoIndex FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const fb::Weapon *four() const {
     return GetPointer<const fb::Weapon *>(VT_FOUR);
   }
-  using FieldTypes = std::tuple<
-    const fb::Vec2 *,
-    const fb::Weapon *,
-    const fb::Weapon *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      two(),
-      three(),
-      four()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return two();
+    else if constexpr (Index == 1) return three();
+    else if constexpr (Index == 2) return four();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1325,6 +1299,9 @@ struct MyVariantNoIndex::Traits {
     "three",
     "four"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 struct MyFloatVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1355,21 +1332,14 @@ struct MyFloatVariant FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   float four() const {
     return GetField<float>(VT_FOUR, 0.0f);
   }
-  using FieldTypes = std::tuple<
-    int32_t,
-    float,
-    float,
-    float,
-    float
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      active_index(),
-      one(),
-      two(),
-      three(),
-      four()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return active_index();
+    else if constexpr (Index == 1) return one();
+    else if constexpr (Index == 2) return two();
+    else if constexpr (Index == 3) return three();
+    else if constexpr (Index == 4) return four();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1440,6 +1410,9 @@ struct MyFloatVariant::Traits {
     "three",
     "four"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 5;
 };
 
 struct MyFlatQueues FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1462,17 +1435,12 @@ struct MyFlatQueues FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<int32_t> *dq() const {
     return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_DQ);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::Vector<int32_t> *,
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
-    const flatbuffers::Vector<int32_t> *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      q1(),
-      q2(),
-      dq()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return q1();
+    else if constexpr (Index == 1) return q2();
+    else if constexpr (Index == 2) return dq();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1533,6 +1501,9 @@ struct MyFlatQueues::Traits {
     "q2",
     "dq"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 inline flatbuffers::Offset<MyFlatQueues> CreateMyFlatQueuesDirect(
@@ -1566,15 +1537,11 @@ struct Pair_Coord_String FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *snd() const {
     return GetPointer<const flatbuffers::String *>(VT_SND);
   }
-  using FieldTypes = std::tuple<
-    const fb::Coord *,
-    const flatbuffers::String *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      fst(),
-      snd()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return fst();
+    else if constexpr (Index == 1) return snd();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1625,6 +1592,9 @@ struct Pair_Coord_String::Traits {
     "fst",
     "snd"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 inline flatbuffers::Offset<Pair_Coord_String> CreatePair_Coord_StringDirect(
@@ -1654,15 +1624,11 @@ struct Matrix_String FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_Coord_String>> *data() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_Coord_String>> *>(VT_DATA);
   }
-  using FieldTypes = std::tuple<
-    const fb::Delta *,
-    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_Coord_String>> *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      size(),
-      data()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return size();
+    else if constexpr (Index == 1) return data();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1714,6 +1680,9 @@ struct Matrix_String::Traits {
     "size",
     "data"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 inline flatbuffers::Offset<Matrix_String> CreateMatrix_StringDirect(
@@ -1734,10 +1703,6 @@ struct off FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   struct Traits;
   static const flatbuffers::TypeTable *MiniReflectTypeTable() {
     return offTypeTable();
-  }
-  using FieldTypes = std::tuple<>;
-  FieldTypes fields_pack() const {
-    return {};
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1772,6 +1737,7 @@ struct off::Traits {
   static constexpr auto name = "off";
   static constexpr auto fully_qualified_name = "fb.OnOffState.off";
   static constexpr std::array<const char *, 0> field_names = {};
+  static constexpr size_t fields_number = 0;
 };
 
 struct on FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1786,13 +1752,10 @@ struct on FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *user() const {
     return GetPointer<const flatbuffers::String *>(VT_USER);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::String *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      user()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return user();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1836,6 +1799,9 @@ struct on::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "user"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 inline flatbuffers::Offset<on> CreateonDirect(
@@ -1859,13 +1825,10 @@ struct switching_on FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   double percent() const {
     return GetField<double>(VT_PERCENT, 0.0);
   }
-  using FieldTypes = std::tuple<
-    double
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      percent()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return percent();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1908,6 +1871,9 @@ struct switching_on::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "percent"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 struct switching_off FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -1922,13 +1888,10 @@ struct switching_off FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   double percent() const {
     return GetField<double>(VT_PERCENT, 0.0);
   }
-  using FieldTypes = std::tuple<
-    double
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      percent()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return percent();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -1971,6 +1934,9 @@ struct switching_off::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "percent"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 }  // namespace OnOffState
@@ -1999,19 +1965,13 @@ struct OnOffState_t FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const fb::OnOffState::switching_off *switching_off() const {
     return GetPointer<const fb::OnOffState::switching_off *>(VT_SWITCHING_OFF);
   }
-  using FieldTypes = std::tuple<
-    const fb::OnOffState::off *,
-    const fb::OnOffState::on *,
-    const fb::OnOffState::switching_on *,
-    const fb::OnOffState::switching_off *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      off(),
-      on(),
-      switching_on(),
-      switching_off()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return off();
+    else if constexpr (Index == 1) return on();
+    else if constexpr (Index == 2) return switching_on();
+    else if constexpr (Index == 3) return switching_off();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2079,6 +2039,9 @@ struct OnOffState_t::Traits {
     "switching_on",
     "switching_off"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 4;
 };
 
 struct OnOffFsm FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -2093,13 +2056,10 @@ struct OnOffFsm FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *state_stack() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *>(VT_STATE_STACK);
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      state_stack()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return state_stack();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2144,6 +2104,9 @@ struct OnOffFsm::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "state_stack"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 inline flatbuffers::Offset<OnOffFsm> CreateOnOffFsmDirect(
@@ -2251,55 +2214,31 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const fb::Opt_int *opt_int3() const {
     return GetPointer<const fb::Opt_int *>(VT_OPT_INT3);
   }
-  using FieldTypes = std::tuple<
-    const fb::Vec3 *,
-    int16_t,
-    int16_t,
-    const flatbuffers::String *,
-    const flatbuffers::String *,
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
-    const flatbuffers::Vector<uint8_t> *,
-    fb::e_color,
-    fb::e_hand,
-    const fb::Weapon *,
-    const flatbuffers::Vector<flatbuffers::Offset<fb::Weapon>> *,
-    const flatbuffers::Vector<const fb::Vec3 *> *,
-    const fb::Pair_string_int *,
-    const fb::Pair_Vec2_int *,
-    const flatbuffers::Vector<const fb::Pair_Vec2_int *> *,
-    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_string_int>> *,
-    const flatbuffers::Vector<flatbuffers::Offset<fb::Pair_int_Weapon>> *,
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
-    const flatbuffers::Vector<flatbuffers::Offset<flatbuffers::String>> *,
-    const fb::Opt_int *,
-    const fb::Opt_int *,
-    const fb::Opt_int *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      pos(),
-      mana(),
-      hp(),
-      name(),
-      noname(),
-      names(),
-      inventory(),
-      color(),
-      hand(),
-      elbow(),
-      weapons(),
-      path(),
-      pair1(),
-      pair2(),
-      map_vecs(),
-      map_strs(),
-      map_wpns(),
-      mylist(),
-      myset(),
-      opt_int1(),
-      opt_int2(),
-      opt_int3()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return pos();
+    else if constexpr (Index == 1) return mana();
+    else if constexpr (Index == 2) return hp();
+    else if constexpr (Index == 3) return name();
+    else if constexpr (Index == 4) return noname();
+    else if constexpr (Index == 5) return names();
+    else if constexpr (Index == 6) return inventory();
+    else if constexpr (Index == 7) return color();
+    else if constexpr (Index == 8) return hand();
+    else if constexpr (Index == 9) return elbow();
+    else if constexpr (Index == 10) return weapons();
+    else if constexpr (Index == 11) return path();
+    else if constexpr (Index == 12) return pair1();
+    else if constexpr (Index == 13) return pair2();
+    else if constexpr (Index == 14) return map_vecs();
+    else if constexpr (Index == 15) return map_strs();
+    else if constexpr (Index == 16) return map_wpns();
+    else if constexpr (Index == 17) return mylist();
+    else if constexpr (Index == 18) return myset();
+    else if constexpr (Index == 19) return opt_int1();
+    else if constexpr (Index == 20) return opt_int2();
+    else if constexpr (Index == 21) return opt_int3();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2511,6 +2450,9 @@ struct Monster::Traits {
     "opt_int2",
     "opt_int3"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 22;
 };
 
 inline flatbuffers::Offset<Monster> CreateMonsterDirect(
@@ -2592,15 +2534,11 @@ struct first FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool b() const {
     return GetField<uint8_t>(VT_B, 0) != 0;
   }
-  using FieldTypes = std::tuple<
-    const flatbuffers::String *,
-    bool
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      name(),
-      b()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return name();
+    else if constexpr (Index == 1) return b();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2651,6 +2589,9 @@ struct first::Traits {
     "name",
     "b"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 inline flatbuffers::Offset<first> CreatefirstDirect(
@@ -2680,15 +2621,11 @@ struct second FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool flag2() const {
     return GetField<uint8_t>(VT_FLAG2, 0) != 0;
   }
-  using FieldTypes = std::tuple<
-    bool,
-    bool
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      flag1(),
-      flag2()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return flag1();
+    else if constexpr (Index == 1) return flag2();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2738,6 +2675,9 @@ struct second::Traits {
     "flag1",
     "flag2"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 2;
 };
 
 struct third FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -2752,13 +2692,10 @@ struct third FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int32_t cost() const {
     return GetField<int32_t>(VT_COST, 0);
   }
-  using FieldTypes = std::tuple<
-    int32_t
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      cost()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return cost();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2801,6 +2738,9 @@ struct third::Traits {
   static constexpr std::array<const char *, 1> field_names = {
     "cost"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 1;
 };
 
 }  // namespace MyVariant2
@@ -2825,17 +2765,12 @@ struct MyVariant2_t FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const fb::MyVariant2::third *third() const {
     return GetPointer<const fb::MyVariant2::third *>(VT_THIRD);
   }
-  using FieldTypes = std::tuple<
-    const fb::MyVariant2::first *,
-    const fb::MyVariant2::second *,
-    const fb::MyVariant2::third *
-    >;
-  FieldTypes fields_pack() const {
-    return {
-      first(),
-      second(),
-      third()
-    };
+  template<size_t Index>
+  auto get_field() const {
+         if constexpr (Index == 0) return first();
+    else if constexpr (Index == 1) return second();
+    else if constexpr (Index == 2) return third();
+    else static_assert(Index != Index, "Invalid Field Index");
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -2895,6 +2830,9 @@ struct MyVariant2_t::Traits {
     "second",
     "third"
   };
+  template<size_t Index>
+  using FieldType = decltype(std::declval<type>().get_field<Index>());
+  static constexpr size_t fields_number = 3;
 };
 
 namespace MySumtype {

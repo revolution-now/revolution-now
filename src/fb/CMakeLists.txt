@@ -19,6 +19,7 @@ foreach( fb ${fbs} )
     COMMAND flatc
     --cpp
     --cpp-std c++17
+    --cpp-static-reflection
     --lua
     --scoped-enums
     --reflect-types
