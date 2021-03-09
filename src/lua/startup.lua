@@ -37,11 +37,8 @@ local function create_some_units_on_land( nation1, nation2 )
   unit:sentry();
 
   coord = Coord{ y=6, x=6 }
-  -- FIXME FIXME FIXME LuaFormatter bug below; no space after
-  -- paren. This is due to a bug that probably only happens when
-  -- the `spaces-inside_functioncall_parens` is enabled and the
-  -- line is ~ the line length.
-  ustate.create_unit_on_map(nation1, e.unit_type.privateer, coord )
+  ustate.create_unit_on_map( nation1, e.unit_type.privateer,
+                             coord )
 
   coord = Coord{ y=7, x=2 }
   unit = ustate.create_unit_on_map( nation2, e.unit_type.soldier,
