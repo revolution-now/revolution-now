@@ -64,31 +64,6 @@ inline constexpr bool is_waitable_v<waitable<T>> = true;
 /****************************************************************
 ** waitable
 *****************************************************************/
-// Single-threaded "future" object: represents a value that will
-// become available in the future by the same thread.
-//
-// The waitable has two states:
-//
-//   waiting --> ready
-//
-// It starts off in the `waiting` state upon construction (from a
-// waitable_promise) then transitions to `ready` when the result
-// becomes available. At this point, the value can be retrieved
-// using the get method
-//
-// Example usage:
-//
-//   waitable_promise<int> s_promise;
-//   waitable<int>  s_future1 = s_promise.get_waitable();
-//
-//   waitable<int> s_future2 = s_future1.fmap(
-//       []( int n ){ return n+1; } );
-//
-//   s_promise.set_value( 3 );
-//
-//   assert( s_future1.get() == 3 );
-//   assert( s_future2.get() == 4 );
-//
 template<typename T = std::monostate>
 class [[nodiscard]] waitable {
   template<typename U>
@@ -98,11 +73,10 @@ class [[nodiscard]] waitable {
 public:
   using value_type = T;
 
-  waitable() {}
+  // FIXME: remove after land-view is fixed.
+  waitable();
 
-  waitable( T const& ready_val ) {
-    *this = make_waitable<T>( ready_val );
-  }
+  waitable( T const& ready_val );
 
   // This constructor should not be used by client code.
   explicit waitable( SharedStatePtr<T> shared_state )
@@ -134,6 +108,7 @@ public:
   }
 
   // FIXME: remove and replace with coroutines.
+  // FIXME
   template<typename Func>
   auto fmap( Func&& func ) {
     using NewResult_t =
@@ -204,20 +179,6 @@ private:
 /****************************************************************
 ** waitable_promise
 *****************************************************************/
-// Single-threaded "promise" object: allows creating futures and
-// sending values to them in the same thread.
-//
-// Example usage:
-//
-//   waitable_promise<int> s_promise;
-//
-//   waitable<int> s_future = s_promise.get_waitable();
-//   assert( !s_future.ready() );
-//
-//   s_promise.set_value( 3 );
-//
-//   assert( s_future.get() == 3 );
-//
 template<typename T = std::monostate>
 class waitable_promise {
   struct sync_shared_state
@@ -271,6 +232,13 @@ public:
 
   bool has_value() const { return shared_state_->has_value(); }
 
+  waitable<T> get_waitable() const {
+    return waitable<T>( shared_state_ );
+  }
+
+  /**************************************************************
+  ** set_value
+  ***************************************************************/
   void set_value( T const& value ) {
     CHECK( !has_value() );
     shared_state_->maybe_value = value;
@@ -291,8 +259,23 @@ public:
     shared_state_->do_callbacks();
   }
 
-  waitable<T> get_waitable() const {
-    return waitable<T>( shared_state_ );
+  /**************************************************************
+  ** set_value_if_not_set
+  ***************************************************************/
+  void set_value_if_not_set( T const& value ) {
+    if( has_value() ) return;
+    set_value( value );
+  }
+
+  void set_value_if_not_set( T&& value ) {
+    if( has_value() ) return;
+    set_value( std::move( value ) );
+  }
+
+  template<typename... Args>
+  void set_value_emplace_if_not_set( Args&&... args ) {
+    if( has_value() ) return;
+    set_value_emplace( std::forward<Args>( args )... );
   }
 
 private:
@@ -316,6 +299,15 @@ waitable<T> make_waitable( Args&&... args ) {
   waitable_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
   return s_promise.get_waitable();
+}
+
+// FIXME: remove when land-view is fixed.
+template<typename T>
+waitable<T>::waitable() : waitable( T{} ) {}
+
+template<typename T>
+waitable<T>::waitable( T const& ready_val ) {
+  *this = make_waitable<T>( ready_val );
 }
 
 } // namespace rn

@@ -28,6 +28,7 @@ auto operator co_await( waitable<T> const& w ) {
     bool        await_ready() noexcept { return w_.ready(); }
     void await_suspend( coro::coroutine_handle<> h ) noexcept {
       register_coroutine_handle( h );
+      CHECK( w_.shared_state() );
       w_.shared_state()->add_callback(
           [h]( T const& ) { queue_coroutine_handle( h ); } );
     }

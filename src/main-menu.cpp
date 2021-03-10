@@ -85,10 +85,7 @@ struct MainMenuPlane : public Plane {
             break;
           case ::SDLK_RETURN:
           case ::SDLK_KP_ENTER:
-            // FIXME: this can check-fail if there are two
-            // consecutive ENTERs in the input queue.
-            CHECK( !g_promise.has_value() );
-            g_promise.set_value( g_curr_item );
+            g_promise.set_value_if_not_set( g_curr_item );
             handled = e_input_handled::yes;
             break;
           default: break;

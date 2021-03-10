@@ -59,7 +59,7 @@ struct shared_int_state
 
 TEST_CASE( "[waitable] future default construction" ) {
   waitable<> s_future;
-  REQUIRE( !s_future.ready() );
+  REQUIRE( s_future.ready() );
 }
 
 TEST_CASE( "[waitable] future api basic" ) {
@@ -140,6 +140,7 @@ TEST_CASE( "[waitable] promise api basic api" ) {
   REQUIRE( !s_future.ready() );
 
   s_promise.set_value( 3 );
+  s_promise.set_value_if_not_set( 4 );
   REQUIRE( s_promise.has_value() );
   REQUIRE( s_future.ready() );
   REQUIRE( s_future.get() == 3 );
@@ -152,7 +153,7 @@ TEST_CASE( "[waitable] formatting" ) {
   waitable<int> s_future = s_promise.get_waitable();
   REQUIRE( fmt::format( "{}", s_future ) == "<waiting>" );
 
-  s_promise.set_value( 3 );
+  s_promise.set_value_if_not_set( 3 );
   REQUIRE( fmt::format( "{}", s_promise ) == "<ready>" );
   REQUIRE( fmt::format( "{}", s_future ) == "<ready>" );
 

@@ -62,8 +62,7 @@ SmoothViewport::SmoothViewport()
         config_rn.viewport.zoom_accel_drag_coeff *
             config_rn.viewport.zoom_speed ),
     smooth_zoom_target_{},
-    smooth_center_x_target_{},
-    smooth_center_y_target_{},
+    smooth_center_{},
     zoom_point_seek_{},
     viewport_rect_pixels_{},
     world_size_tiles_{},
@@ -158,19 +157,18 @@ constexpr TargetingRates zoom_seeking_parameters{
     /*shift=*/.001,
     /*linear_window=*/.015 };
 
-// This function will take a numerical value that is being
-// gradually moved to a target value (in a somewhat asymptotic
-// manner in that the movement slows as the target nears) and
-// will advance it by one "frame". When it has reached the target
-// this function will signal (through the output parameters) that
-// the movement can stop.
+// This function will take a numerical value that is being gradu-
+// ally moved to a target value (in a somewhat asymptotic manner
+// in that the movement slows as the target nears) and will ad-
+// vance it by one "frame". When it has reached the target this
+// function will signal (by returning true) that the movement can
+// stop.
 template<typename T>
-void advance_target_seeking( maybe<T>& maybe_target, double& val,
+bool advance_target_seeking( T target_T, double& val,
                              DissipativeVelocity&  vel,
                              TargetingRates const& params ) {
-  if( !maybe_target.has_value() ) return;
-  double target = double( *maybe_target );
-  if( val == target ) return;
+  double target = double( target_T );
+  if( val == target ) return true;
   auto old_val = val;
 
   if( fabs( val - target ) < params.linear_window )
@@ -185,8 +183,9 @@ void advance_target_seeking( maybe<T>& maybe_target, double& val,
     // normalizing process. This avoid oscillations.
     val = target;
     vel.hit_wall();
-    maybe_target = nothing;
+    return true;
   }
+  return false;
 }
 
 void SmoothViewport::advance_state(
@@ -202,14 +201,23 @@ void SmoothViewport::advance_state(
 
   advance( x_push_, y_push_, zoom_push_ );
 
-  advance_target_seeking( smooth_center_x_target_, center_x_,
-                          x_vel_,
-                          translation_seeking_parameters );
-  advance_target_seeking( smooth_center_y_target_, center_y_,
-                          y_vel_,
-                          translation_seeking_parameters );
-  advance_target_seeking( smooth_zoom_target_, zoom_, zoom_vel_,
-                          zoom_seeking_parameters );
+  if( smooth_center_ ) {
+    advance_target_seeking( smooth_center_->x_target, center_x_,
+                            x_vel_,
+                            translation_seeking_parameters );
+    advance_target_seeking( smooth_center_->y_target, center_y_,
+                            y_vel_,
+                            translation_seeking_parameters );
+    if( is_tile_fully_visible( smooth_center_->tile_target ) )
+      smooth_center_->promise.set_value_emplace_if_not_set();
+  }
+
+  if( smooth_zoom_target_ ) {
+    if( advance_target_seeking( *smooth_zoom_target_, zoom_,
+                                zoom_vel_,
+                                zoom_seeking_parameters ) )
+      smooth_zoom_target_ = nothing;
+  }
 
   x_push_    = e_push_direction::none;
   y_push_    = e_push_direction::none;
@@ -247,8 +255,9 @@ void SmoothViewport::stop_auto_zoom() {
 }
 
 void SmoothViewport::stop_auto_panning() {
-  smooth_center_x_target_ = nothing;
-  smooth_center_y_target_ = nothing;
+  if( !smooth_center_ ) return;
+  smooth_center_->promise.set_value_emplace_if_not_set();
+  smooth_center_ = nothing;
 }
 
 // Computes the critical zoom point below which (i.e., if you
@@ -573,8 +582,8 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
   return false;
 }
 
-void SmoothViewport::ensure_tile_visible( Coord const& coord,
-                                          bool         smooth ) {
+bool SmoothViewport::need_to_scroll_to_reveal_tile(
+    Coord const& coord ) const {
   // Our approach here is to say the following: if the location
   // of the coord in a given dimension (either X or Y) is such
   // that its position (plus two surrounding squares) could be
@@ -583,20 +592,30 @@ void SmoothViewport::ensure_tile_visible( Coord const& coord,
   // unit. Panning both coordinates together makes for more
   // natural panning behavior when a unit is close to the corner
   // of the viewport.
-  if( !are_tile_surroundings_as_fully_visible_as_can_be<X>(
-          *this, coord ) ||
-      !are_tile_surroundings_as_fully_visible_as_can_be<Y>(
-          *this, coord ) ) {
-    if( smooth ) {
-      smooth_center_x_target_ =
-          XD{ double( ( coord.x * g_tile_width )._ ) };
-      smooth_center_y_target_ =
-          YD{ double( ( coord.y * g_tile_height )._ ) };
-    } else {
-      center_on_tile_x( coord );
-      center_on_tile_y( coord );
-    }
-  }
+  return !are_tile_surroundings_as_fully_visible_as_can_be<X>(
+             *this, coord ) ||
+         !are_tile_surroundings_as_fully_visible_as_can_be<Y>(
+             *this, coord );
+}
+
+void SmoothViewport::ensure_tile_visible( Coord const& coord ) {
+  stop_auto_panning();
+  if( !need_to_scroll_to_reveal_tile( coord ) ) return;
+  center_on_tile_x( coord );
+  center_on_tile_y( coord );
+}
+
+waitable<> SmoothViewport::ensure_tile_visible_smooth(
+    Coord const& coord ) {
+  stop_auto_panning();
+  if( !need_to_scroll_to_reveal_tile( coord ) )
+    return make_waitable<>();
+  smooth_center_ = SmoothCenter{
+      .x_target = XD{ double( ( coord.x * g_tile_width )._ ) },
+      .y_target = YD{ double( ( coord.y * g_tile_height )._ ) },
+      .tile_target = coord,
+      .promise     = {} };
+  return smooth_center_->promise.get_waitable();
 }
 
 } // namespace rn
