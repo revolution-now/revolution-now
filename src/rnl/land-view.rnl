@@ -24,6 +24,26 @@ include "fb/sg-land-view_generated.h";
 
 namespace rn;
 
+# sumtype LandViewCommand {
+#   ask_orders:
+#     UnitId id;
+#     # Units that the player has asked to add to the orders queue
+#     # but at the end. This is useful if a unit that is sentry'd
+#     # has already been removed from the queue (without asking for
+#     # orders) and later in the same turn had its orders cleared
+#     # by the player (but not prioritized), this will allow it to
+#     # ask for orders this turn.
+#     std::vector<UnitId> add_to_back;
+#   animate_move:
+#     UnitId id;
+#     e_direction d;
+#   animate_attack:
+#     UnitId attacker;
+#     UnitId defender;
+#     bool attacker_wins;
+#     e_depixelate_anim dp_anim;
+# };
+
 # The land-view rendering states are not really states of the
 # world, they are mainly just animation or rendering states. Each
 # state is represented by a struct which may contain data mem-
@@ -93,4 +113,16 @@ sumtype LandViewAnim {
     UnitId defender;
     bool attacker_wins;
     e_depixelate_anim dp_anim;
+};
+
+sumtype UnitAnimation {
+  blink:
+  move:
+    Coord target;
+    double percent;
+    DissipativeVelocity percent_vel;
+  depixelate:
+    Texture           tx_depixelate_from;
+    vector<Coord>     pixels;
+    Matrix<Color>     demoted_pixels;
 };

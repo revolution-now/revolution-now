@@ -1,22 +1,17 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'open-gl',
-  \ 'plane-ctrl',
-  \ 'turn',
+  \ 'app-state',
   \ 'land-view',
-  \ 'colony',
-  \ 'cstate',
-  \ 'colony-mfg',
-  \ 'mining',
-  \ 'land-square',
-  \ 'colony-mgr',
-  \ 'colony-view',
-  \ 'europort-view',
-  \ 'colview-entities',
-  \ 'views',
-  \ 'render',
-  \ 'tiles',
-  \ 'save-game',
+  \ 'viewport',
+  \ 'turn',
+  \ 'plane-ctrl',
+  \ 'menu',
+  \ 'main-menu',
+  \ 'frame',
+  \ 'co-registry',
+  \ 'waitable',
+  \ 'waitable-coro',
+  \ 'co-combinator',
 \]
 
 let s:luas = [
