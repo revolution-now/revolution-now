@@ -44,7 +44,7 @@ constexpr bool is_valid_or_v<valid_or<E>> = true;
 ** valid_or
 *****************************************************************/
 template<typename E>
-class valid_or : expect<valid_t, E> {
+class [[nodiscard]] valid_or : expect<valid_t, E> {
   using Base = expect<valid_t, E>;
   Base const&  as_expect() const& { return *this; }
   Base&        as_expect() & { return *this; }

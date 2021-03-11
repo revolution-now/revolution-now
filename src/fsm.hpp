@@ -432,7 +432,8 @@ template<typename SrcT,                     //
 valid_deserial_t deserialize( SrcT const* src, DstT* dst,
                               serial::ADL ) {
   if( src == nullptr ) return valid;
-  check_deserial( src->state_stack() != nullptr );
+  VERIFY_DESERIAL( src->state_stack() != nullptr,
+                   "no state stack" );
   HAS_VALUE_OR_RET( deserialize(
       src->state_stack(), &dst->state_stack_, serial::ADL{} ) );
   CHECK( dst->events_.size() == 0 );
