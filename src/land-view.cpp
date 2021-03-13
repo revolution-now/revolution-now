@@ -66,6 +66,8 @@ vector<Coord>                       g_pixels;
 Matrix<Color>                       g_demoted_pixels;
 waitable_promise<UnitInputResponse> g_unit_input_promise;
 
+unordered_map<UnitId, UnitAnimation_t> g_unit_animations;
+
 /****************************************************************
 ** FSMs
 *****************************************************************/
@@ -237,6 +239,8 @@ private:
                             world_size_tiles() );
 
     // Initialize general global data.
+    g_unit_animations.clear();
+
     anim = LandViewAnim::none{};
     g_pixels.clear();
     g_demoted_pixels.clear();
@@ -390,6 +394,43 @@ void advance_viewport_state() {
         state( ::SDL_SCANCODE_W ) || state( ::SDL_SCANCODE_S ) )
       SG().viewport.stop_auto_panning();
   }
+}
+
+waitable<> animate_depixelation( UnitId            id,
+                                 e_depixelate_anim dp_anim ) {
+  switch( dp_anim ) {
+    case e_depixelate_anim::none: co_return;
+    case e_depixelate_anim::death: {
+      //
+    }
+    case e_depixelate_anim::demote: {
+      auto maybe_demoted = unit_from_id( id ).desc().demoted;
+      CHECK( maybe_demoted.has_value(),
+             "cannot demote {} because it is not demotable.",
+             debug_string( id ) );
+    }
+  }
+}
+
+waitable<> animate_move( UnitId id, e_direction ) {
+  //
+}
+
+waitable<> animate_attack( UnitId attacker, UnitId defender,
+                           bool              attacker_wins,
+                           e_depixelate_anim dp_anim ) {
+  UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
+  UNWRAP_CHECK( defender_coord,
+                coord_for_unit_multi_ownership( defender ) );
+  UNWRAP_CHECK( d,
+                attacker_coord.direction_to( defender_coord ) );
+  play_sound_effect( e_sfx::move );
+  co_await animate_move( attacker, d );
+
+  play_sound_effect( attacker_wins ? e_sfx::attacker_won
+                                   : e_sfx::attacker_lost );
+  co_await animate_depixelation(
+      attacker_wins ? defender : attacker, dp_anim );
 }
 
 void advance_landview_anim_state() {
