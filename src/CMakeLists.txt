@@ -2,6 +2,7 @@
 
 add_subdirectory( base )
 add_subdirectory( fb )
+add_subdirectory( cpp-lua )
 add_subdirectory( rnl )
 
 # === this directory ==============================================

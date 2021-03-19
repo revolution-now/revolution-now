@@ -84,13 +84,11 @@ waitable<> exit_waiter() {
 ** In the Game
 *****************************************************************/
 waitable<> play_game() {
-  push_plane_config( e_plane_config::terrain );
-  SCOPE_EXIT( pop_plane_config() );
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
   waitable<> exit_game = exit_waiter();
-  waitable<> next_turn;
+  auto       next_turn = make_waitable<>();
   while( !exit_game ) {
     // We must clear the callbacks before reusing this object as
     // dictated by the when_any contract.
@@ -113,6 +111,7 @@ void main_menu_new_game() {
   // FIXME: temporary, since default constructing the save game
   // state resets the plane state.
   push_plane_config( e_plane_config::main_menu );
+  push_plane_config( e_plane_config::terrain );
   lua::reload();
   lua::run_startup_main();
 }

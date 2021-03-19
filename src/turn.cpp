@@ -144,8 +144,8 @@ bool should_animate_move( TravelAnalysis const& analysis ) {
   SHOULD_NOT_BE_HERE;
 }
 
-waitable<> kick_off_unit_animation(
-    UnitId id, PlayerIntent const& intent ) {
+waitable<> do_unit_animation( UnitId              id,
+                              PlayerIntent const& intent ) {
   // Default future object that is born ready.
   auto def = make_waitable<>();
   // Kick off animation if needed.
@@ -291,7 +291,7 @@ waitable<> do_units_turn() {
     UNWRAP_CHECK( intent, player_intent( id, orders ) );
     if( !co_await confirm_explain( &intent ) ) continue;
 
-    co_await kick_off_unit_animation( id, intent );
+    co_await do_unit_animation( id, intent );
     affect_orders( intent );
 
     for( auto id : units_to_prioritize( intent ) ) {

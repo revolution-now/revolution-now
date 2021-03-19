@@ -35,16 +35,17 @@ valid_deserial_t Unit::check_invariants_safe() const {
   switch( type_ ) {
     case e_unit_type::large_treasure:
     case e_unit_type::small_treasure:
-      check_deserial( worth_.has_value(),
-                      "Treasure trains must have a `worth`." );
+      VERIFY_DESERIAL( worth_.has_value(),
+                       "Treasure trains must have a `worth`." );
       break;
     default: //
-      check_deserial(
+      VERIFY_DESERIAL(
           !worth_.has_value(),
           "Non-treasure trains must not have a `worth`." );
       break;
   };
-  check_deserial( cargo().slots_total() == desc().cargo_slots );
+  VERIFY_DESERIAL( cargo().slots_total() == desc().cargo_slots,
+                   "inconsistent number of cargo slots" );
   return valid;
 }
 

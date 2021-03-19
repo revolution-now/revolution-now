@@ -742,6 +742,11 @@ waitable<ClickTileActions> click_on_world_tile( Coord coord ) {
   return s_future;
 }
 
+waitable<> landview_ensure_unit_visible( UnitId id ) {
+  auto coords = coord_for_unit_indirect( id );
+  return SG().viewport.ensure_tile_visible_smooth( coords );
+}
+
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
@@ -878,9 +883,8 @@ struct LandViewPlane : public Plane {
                         /*orders=*/orders::build{} } );
                 break;
               case ::SDLK_c:
-                SG().viewport.ensure_tile_visible(
-                    coord_for_unit_indirect( blink_unit.id ),
-                    /*smooth=*/true );
+                (void)SG().viewport.ensure_tile_visible_smooth(
+                    coord_for_unit_indirect( blink_unit.id ) );
                 break;
               case ::SDLK_d:
                 SG().mode.send_event(
@@ -990,26 +994,21 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-void landview_ensure_unit_visible( UnitId id ) {
-  auto coords = coord_for_unit_indirect( id );
-  SG().viewport.ensure_tile_visible( coords,
-                                     /*smooth=*/true );
-}
-
 waitable<UnitInputResponse> landview_ask_orders( UnitId id ) {
-  landview_ensure_unit_visible( id );
+  co_await landview_ensure_unit_visible( id );
   // Sometimes this function must be called when already in the
   // blinking_unit state, e.g. after deserializing a game.
   if( !SG().mode.holds<LandViewState::blinking_unit>() )
     SG().mode.send_event(
         LandViewEvent::blink_unit{ /*id=*/id } );
   g_unit_input_promise = {};
-  return g_unit_input_promise.get_waitable();
+  auto response = co_await g_unit_input_promise.get_waitable();
+  co_return response;
 }
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction ) {
-  landview_ensure_unit_visible( id );
+  co_await landview_ensure_unit_visible( id );
   CHECK( holds<LandViewAnim::none>( SG().anim ) );
   waitable_promise<> s_promise;
   SG().anim = LandViewAnim::move{
@@ -1017,14 +1016,14 @@ waitable<> landview_animate_move( UnitId      id,
       /*id=*/id,               //
       /*d=*/direction          //
   };
-  return s_promise.get_waitable();
+  co_await s_promise.get_waitable();
 }
 
 waitable<> landview_animate_attack( UnitId attacker,
                                     UnitId defender,
                                     bool   attacker_wins,
                                     e_depixelate_anim dp_anim ) {
-  landview_ensure_unit_visible( attacker );
+  co_await landview_ensure_unit_visible( attacker );
   CHECK( holds<LandViewAnim::none>( SG().anim ) );
   waitable_promise<> s_promise;
   SG().anim = LandViewAnim::attack{
@@ -1034,14 +1033,7 @@ waitable<> landview_animate_attack( UnitId attacker,
       /*attacker_wins=*/attacker_wins, //
       /*dp_anim=*/dp_anim              //
   };
-  return s_promise.get_waitable();
-}
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_land_view() {
-  //
+  co_await s_promise.get_waitable();
 }
 
 /****************************************************************
@@ -1061,9 +1053,8 @@ LUA_FN( center_on_blinking_unit, void ) {
     lg.warn( "There are no units currently asking for orders." );
     return;
   }
-  SG().viewport.ensure_tile_visible(
-      coord_for_unit_indirect( blinking_unit->id ),
-      /*smooth=*/true );
+  (void)SG().viewport.ensure_tile_visible_smooth(
+      coord_for_unit_indirect( blinking_unit->id ) );
 }
 
 } // namespace

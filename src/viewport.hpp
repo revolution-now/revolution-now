@@ -18,6 +18,7 @@
 #include "error.hpp"
 #include "fb.hpp"
 #include "physics.hpp"
+#include "waitable.hpp"
 
 // Flatbuffers
 #include "fb/viewport_generated.h"
@@ -47,9 +48,13 @@ public:
 
   // This function will shift the viewport to make the tile
   // coordinate visible, but will avoid shifting if it is already
-  // visible. If smooth == true then it will animate the motion
-  // as opposed to a sudden shift.
-  void ensure_tile_visible( Coord const& coord, bool smooth );
+  // visible.
+  void ensure_tile_visible( Coord const& coord );
+  // Same as above but will animate the motion as opposed to a
+  // sudden shift. The waitable will be fulfilled when the given
+  // tile becomes visible, but the scrolling may continue for a
+  // bit after that.
+  waitable<> ensure_tile_visible_smooth( Coord const& coord );
 
   // This function will compute the rectangle in the source
   // viewport texture that should be rendered to the screen.
@@ -118,6 +123,8 @@ private:
   friend bool are_tile_surroundings_as_fully_visible_as_can_be(
       SmoothViewport const& vp, Coord const& coords );
 
+  bool need_to_scroll_to_reveal_tile( Coord const& coord ) const;
+
   double x_world_pixels_in_viewport() const;
   double y_world_pixels_in_viewport() const;
 
@@ -162,11 +169,23 @@ private:
   e_push_direction y_push_{ e_push_direction::none };
   e_push_direction zoom_push_{ e_push_direction::none };
 
-  // If these have values then the viewport will attempt to move
-  // the values to them smoothly.
+  // If this has a value then the viewport will attempt to zoom
+  // to match it.
   maybe<double> smooth_zoom_target_{};
-  maybe<XD>     smooth_center_x_target_{};
-  maybe<YD>     smooth_center_y_target_{};
+
+  struct SmoothCenter {
+    XD    x_target{};
+    YD    y_target{};
+    Coord tile_target{};
+    // This promise will be fulfilled when the above tile becomes
+    // visible, even if there is a bit more scrolling left to do;
+    // the scrolling will still continue though.
+    waitable_promise<> promise{};
+    bool operator==( SmoothCenter const& ) const = default;
+  };
+  // If this has a value then the viewport will attempt to scroll
+  // to match it.
+  maybe<SmoothCenter> smooth_center_{};
 
   // Coord in world pixel coordinates indicating the point toward
   // which we should focus as we zoom.

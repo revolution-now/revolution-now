@@ -21,14 +21,10 @@
 namespace rn {
 
 struct UnitInputResponse {
-  bool operator==( UnitInputResponse const& rhs ) const {
-    return id == rhs.id && orders == rhs.orders &&
-           add_to_front == rhs.add_to_front &&
-           add_to_back == rhs.add_to_back;
-  }
-  bool operator!=( UnitInputResponse const& rhs ) const {
-    return !( *this == rhs );
-  }
+  bool operator==( UnitInputResponse const& rhs ) const =
+      default;
+  bool operator!=( UnitInputResponse const& rhs ) const =
+      default;
 
   UnitId              id;
   maybe<orders_t>     orders;
@@ -37,8 +33,6 @@ struct UnitInputResponse {
 };
 
 enum class e_depixelate_anim { none, death, demote };
-
-void landview_ensure_unit_visible( UnitId id );
 
 waitable<UnitInputResponse> landview_ask_orders( UnitId id );
 
@@ -51,11 +45,6 @@ waitable<> landview_animate_attack( UnitId attacker,
 
 struct Plane;
 Plane* land_view_plane();
-
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_land_view();
 
 } // namespace rn
 
