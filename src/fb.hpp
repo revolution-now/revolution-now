@@ -50,28 +50,15 @@ using DeserialError = ::base::generic_err;
 
 using valid_deserial_t = valid_or<DeserialError>;
 
-template<typename... Args>
-valid_deserial_t invalid_deserial(
+inline valid_deserial_t invalid_deserial(
     std::string_view msg,
     base::SourceLoc  loc = base::SourceLoc::current() ) {
   return ::base::GenericError::create( msg, loc );
 }
 
-template<typename... Args>
-valid_deserial_t check_deserial(
-    bool cond, std::string_view msg,
-    base::SourceLoc loc = base::SourceLoc::current() ) {
-  if( !cond ) return invalid_deserial( msg, loc );
-  return valid;
-}
-
-inline valid_deserial_t check_deserial(
-    bool            cond,
-    base::SourceLoc loc = base::SourceLoc::current() ) {
-  if( !cond )
-    return invalid_deserial( "(condition failed)", loc );
-  return valid;
-}
+#define VERIFY_DESERIAL( cond, msg ) \
+  if( !( cond ) )                    \
+    return invalid_deserial( msg, base::SourceLoc::current() );
 
 } // namespace rn
 

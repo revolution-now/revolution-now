@@ -75,10 +75,13 @@ SmoothViewport::SmoothViewport()
 }
 
 valid_deserial_t SmoothViewport::check_invariants_safe() const {
-  check_deserial( zoom_ >= 0.0 );
-  check_deserial( zoom_ <= 1.0 );
-  check_deserial( center_x_ >= 0.0 );
-  check_deserial( center_y_ >= 0.0 );
+  VERIFY_DESERIAL( zoom_ >= 0.0,
+                   "zoom must be larger than zero" );
+  VERIFY_DESERIAL( zoom_ <= 1.0, "zoom must be less than one" );
+  VERIFY_DESERIAL( center_x_ >= 0.0,
+                   "x center must be larger than 0" );
+  VERIFY_DESERIAL( center_y_ >= 0.0,
+                   "y center must be larger than 0" );
   return valid;
 }
 

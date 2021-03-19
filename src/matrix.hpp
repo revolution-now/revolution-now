@@ -138,14 +138,15 @@ valid_deserial_t deserialize( SrcT const* src, Matrix<T>* m,
     return valid;
   }
 
-  check_deserial( src->data() != nullptr );
+  VERIFY_DESERIAL( src->data() != nullptr, "data is null" );
 
   Delta size;
   HAS_VALUE_OR_RET(
       deserialize( src->size(), &size, serial::ADL{} ) );
 
-  check_deserial( ( size.area() == 0 ) ==
-                  ( src->data()->size() == 0 ) );
+  VERIFY_DESERIAL(
+      ( size.area() == 0 ) == ( src->data()->size() == 0 ),
+      "inconsistent sizes" );
 
   if( size.area() == 0 ) return valid;
 

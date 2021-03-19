@@ -57,7 +57,7 @@ struct ConsolePlane : public Plane {
     le_view_.emplace(
         config_rn.console.font, main_window_logical_size().w,
         []( string const& ) {}, Color::banana(), Color::wood(),
-        prompt );
+        prompt, /*initial_text=*/"" );
   }
   void advance_state() override {
     show_percent_ += show_ ? .1 : -.1;

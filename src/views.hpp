@@ -364,11 +364,14 @@ class LineEditorView : public View {
 public:
   using OnChangeFunc = std::function<void( std::string const& )>;
 
-  LineEditorView( int chars_wide );
-  LineEditorView( int chars_wide, OnChangeFunc on_change );
+  LineEditorView( int              chars_wide,
+                  std::string_view initial_text );
+  LineEditorView( int chars_wide, std::string_view initial_text,
+                  OnChangeFunc on_change );
   LineEditorView( e_font font, W pixels_wide,
                   OnChangeFunc on_change, Color fg, Color bg,
-                  std::string_view prompt );
+                  std::string_view prompt,
+                  std::string_view initial_text );
 
   // Implement Object
   void draw( Texture& tx, Coord coord ) const override;
@@ -588,7 +591,7 @@ private:
 class OptionSelectView : public VectorView {
 public:
   OptionSelectView( std::vector<std::string> const& options,
-                    int                     initial_selection );
+                    int initial_selection );
 
   // Implement CompositeView
   void notify_children_updated() override {}

@@ -52,8 +52,8 @@ private:
     // Check that players have the correct nation relative to
     // their key in the map.
     for( auto const& [nation, player] : players )
-      check_deserial( player.nation() == nation,
-                      "mismatch in player nations." );
+      VERIFY_DESERIAL( player.nation() == nation,
+                       "mismatch in player nations." );
 
     return valid;
   }

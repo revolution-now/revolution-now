@@ -64,13 +64,13 @@ private:
     // Populate colony_from_*.
     for( auto const& [id, colony] : colonies ) {
       Coord where = colony.location();
-      check_deserial(
+      VERIFY_DESERIAL(
           !colony_from_coord.contains( where ),
           fmt::format( "multiples colonies on tile {}.",
                        where ) );
       colony_from_coord[where] = id;
       string name              = colony.name();
-      check_deserial(
+      VERIFY_DESERIAL(
           !colony_from_name.contains( name ),
           fmt::format( "multiples colonies have name {}.",
                        name ) );

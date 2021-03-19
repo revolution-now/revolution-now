@@ -66,7 +66,7 @@ class ND CargoHold {
 public:
   CargoHold() = default; // for serialization framework.
   explicit CargoHold( int num_slots ) : slots_( num_slots ) {
-    check_invariants();
+    check_invariants_or_abort();
   }
 
   // TODO: eventually we should change this to noexcept(false)

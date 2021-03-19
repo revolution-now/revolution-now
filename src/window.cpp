@@ -586,7 +586,8 @@ void ok_box( string_view msg, function<void()> on_closing ) {
 }
 
 void text_input_box(
-    string_view title, string_view msg, ValidatorFunc validator,
+    string_view title, string_view msg, string_view initial_text,
+    ValidatorFunc                   validator,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -595,8 +596,8 @@ void text_input_box(
       /*max_cols=*/config_ui.dialog_text.columns };
   auto text =
       make_unique<TextView>( string( msg ), m_info, r_info );
-  auto le_view =
-      make_unique<LineEditorView>( /*chars_wide=*/20 );
+  auto le_view = make_unique<LineEditorView>( /*chars_wide=*/20,
+                                              initial_text );
   LineEditorView* p_le_view = le_view.get();
 
   // We can capture by reference here because the function will
@@ -639,7 +640,8 @@ waitable<maybe<int>> int_input_box( std::string_view title,
                                     maybe<int>       min,
                                     maybe<int>       max ) {
   waitable_promise<maybe<int>> s_promise;
-  text_input_box( title, msg, make_int_validator( min, max ),
+  text_input_box( title, msg, /*initial_text=*/"",
+                  make_int_validator( min, max ),
                   [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value(
                         result.bind( L( base::stoi( _ ) ) ) );
@@ -647,10 +649,11 @@ waitable<maybe<int>> int_input_box( std::string_view title,
   return s_promise.get_waitable();
 }
 
-waitable<maybe<string>> str_input_box( string_view title,
-                                       string_view msg ) {
+waitable<maybe<string>> str_input_box(
+    string_view title, string_view msg,
+    string_view initial_text ) {
   waitable_promise<maybe<string>> s_promise;
-  text_input_box( title, msg, L( _.size() > 0 ),
+  text_input_box( title, msg, initial_text, L( _.size() > 0 ),
                   [s_promise]( maybe<string> result ) mutable {
                     s_promise.set_value( result );
                   } );

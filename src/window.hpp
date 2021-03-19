@@ -86,7 +86,8 @@ waitable<maybe<int>> int_input_box( std::string_view title,
                                     maybe<int> max = nothing );
 
 waitable<maybe<std::string>> str_input_box(
-    std::string_view title, std::string_view msg );
+    std::string_view title, std::string_view msg,
+    std::string_view initial_text );
 
 /****************************************************************
 ** Generic Option-Select Window
