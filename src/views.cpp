@@ -329,13 +329,14 @@ void SpriteView::draw( Texture& tx, Coord coord ) const {
 
 LineEditorView::LineEditorView( e_font font, W pixels_wide,
                                 OnChangeFunc on_change, Color fg,
-                                Color bg, string_view prompt )
+                                Color bg, string_view prompt,
+                                string_view initial_text )
   : prompt_{ prompt },
     fg_{ fg },
     bg_{ bg },
     font_{ font },
     on_change_{ std::move( on_change ) },
-    line_editor_{},
+    line_editor_( string( initial_text ), initial_text.size() ),
     input_view_{ 1 },
     background_{},
     current_rendering_{},
@@ -347,6 +348,7 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
 }
 
 LineEditorView::LineEditorView( int          chars_wide,
+                                string_view  initial_text,
                                 OnChangeFunc on_change )
   : LineEditorView( font::standard(),
                     render_text( font::standard(), Color::wood(),
@@ -354,10 +356,13 @@ LineEditorView::LineEditorView( int          chars_wide,
                         .size()
                         .w,
                     std::move( on_change ), Color::wood(),
-                    Color::banana(), "" ) {}
+                    Color::banana(), /*prompt=*/"",
+                    initial_text ) {}
 
-LineEditorView::LineEditorView( int chars_wide )
-  : LineEditorView( chars_wide, []( auto const& ) {} ) {}
+LineEditorView::LineEditorView( int         chars_wide,
+                                string_view initial_text )
+  : LineEditorView( chars_wide, initial_text,
+                    []( auto const& ) {} ) {}
 
 void LineEditorView::set_pixel_size( Delta const& size ) {
   render_background( size );

@@ -52,13 +52,15 @@ waitable<maybe<string>> build_colony_ui_routine() {
   ui::e_confirm proceed =
       co_await ui::yes_no( "Build colony here?" );
   if( proceed == ui::e_confirm::no ) co_return nothing;
+  maybe<string> colony_name;
   while( true ) {
-    maybe<string> colony_name = co_await ui::str_input_box(
+    colony_name = co_await ui::str_input_box(
         "Question",
-        "What shall this colony be named, your majesty?" );
+        "What shall this colony be named, your majesty?",
+        /*initial_text=*/colony_name.value_or( "" ) );
     if( !colony_name.has_value() ) co_return nothing; // cancel
     auto is_valid = is_valid_colony_name_msg( *colony_name );
-    if( is_valid ) co_return *colony_name;
+    if( is_valid ) co_return( *colony_name );
     co_await ui::message_box( is_valid.error() );
   }
 }
