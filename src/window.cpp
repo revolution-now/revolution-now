@@ -551,7 +551,7 @@ void ok_cancel( string_view                   msg,
 
 waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
   waitable_promise<e_ok_cancel> s_promise;
-  ok_cancel( msg, [s_promise]( e_ok_cancel oc ) mutable {
+  ok_cancel( msg, [s_promise]( e_ok_cancel oc ) {
     s_promise.set_value( oc );
   } );
   return s_promise.get_waitable();
@@ -642,7 +642,7 @@ waitable<maybe<int>> int_input_box( std::string_view title,
   waitable_promise<maybe<int>> s_promise;
   text_input_box( title, msg, /*initial_text=*/"",
                   make_int_validator( min, max ),
-                  [s_promise]( maybe<string> result ) mutable {
+                  [s_promise]( maybe<string> result ) {
                     s_promise.set_value(
                         result.bind( L( base::stoi( _ ) ) ) );
                   } );
@@ -654,7 +654,7 @@ waitable<maybe<string>> str_input_box(
     string_view initial_text ) {
   waitable_promise<maybe<string>> s_promise;
   text_input_box( title, msg, initial_text, L( _.size() > 0 ),
-                  [s_promise]( maybe<string> result ) mutable {
+                  [s_promise]( maybe<string> result ) {
                     s_promise.set_value( result );
                   } );
   return s_promise.get_waitable();
@@ -701,7 +701,7 @@ waitable<std::string> select_box( std::string_view title,
                                   vector<string>   options ) {
   waitable_promise<string> s_promise;
   select_box( title, options,
-              [s_promise]( string const& result ) mutable {
+              [s_promise]( string const& result ) {
                 s_promise.set_value( result );
               } );
   return s_promise.get_waitable();
@@ -719,7 +719,7 @@ waitable<e_confirm> yes_no( std::string_view title ) {
 
 waitable<> message_box( string_view msg ) {
   waitable_promise<monostate> s_promise;
-  ok_box( msg, /*on_closing=*/[s_promise]() mutable {
+  ok_box( msg, /*on_closing=*/[s_promise]() {
     s_promise.set_value( monostate{} );
   } );
   return s_promise.get_waitable();
@@ -730,8 +730,7 @@ waitable<vector<UnitSelection>> unit_selection_box(
   waitable_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
-      [s_promise](
-          maybe<UnitActivationView::map_t> result ) mutable {
+      [s_promise]( maybe<UnitActivationView::map_t> result ) {
         vector<UnitSelection> selections;
         if( result.has_value() ) {
           for( auto const& [id, info] : *result ) {

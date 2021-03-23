@@ -92,15 +92,10 @@ waitable<> play_game() {
   while( !exit_game ) {
     // We must clear the callbacks before reusing this object as
     // dictated by the when_any contract.
-    exit_game.cancel();
+    exit_game.clear_callbacks();
     next_turn = do_next_turn();
     co_await when_any( next_turn, exit_game );
   }
-  // If we're here then the exit_game coroutine has finished and
-  // been destroyed, so all that we need to is check if we were
-  // in the middle of a turn when the exit was done (likely) and
-  // destroy that coroutine to avoid leaking it.
-  if( next_turn ) next_turn.cancel();
 }
 
 /****************************************************************

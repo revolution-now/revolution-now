@@ -13,26 +13,31 @@
 
 #include "core-config.hpp"
 
-// base
-#include "base/co-compat.hpp"
+// Revolution Now
+#include "co-handle.hpp"
 
 namespace rn {
 
-// Any coroutine that is stored somewhere should be registered
-// here so that, if it is still alive upon program termination,
-// it can be freed to avoid ASan reporting memory leaks. This
-// will not cause the coroutine to be resumed.
-void register_coroutine_handle( coro::coroutine_handle<> h );
-
 // Add the coroutine to the queue to be resumed.
-void queue_coroutine_handle( coro::coroutine_handle<> h );
+void queue_coroutine_handle( unique_coro h );
 
-int num_coroutines_in_queue();
-
-void run_next_coroutine_handle();
-
+// This will run all coroutines including the new coroutines that
+// are queued in the process of running other coroutines.
 void run_all_coroutines();
 
+// Since the coroutines are held in RAII wrappers, this would
+// happen automatically on program termination, but this function
+// is used to control more precisely when it happens during shut-
+// down, since destroying a coroutine could potentially call the
+// destructors of many other things and so it should probably
+// happen before all the other systems are shut down.
+//
+// Actually, in practice, this will probably only result in a
+// handful of coroutines getting freed, or possibly none at all,
+// since all queued coroutines are run (and removed from the
+// queue) each frame. So the only coroutines that would be de-
+// stroyed here would be any new ones that were added in the
+// frame just before program exit.
 void destroy_all_coroutines();
 
 } // namespace rn

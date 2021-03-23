@@ -48,11 +48,17 @@ struct shared_int_state
     return *maybe_int;
   }
 
-  void add_callback( std::function<NotifyFunc> ) override {
+  void add_copyable_callback(
+      std::function<NotifyFunc> ) override {
     SHOULD_NOT_BE_HERE;
   }
 
-  void cancel() override {}
+  void add_movable_callback(
+      base::unique_func<NotifyFunc> ) override {
+    SHOULD_NOT_BE_HERE;
+  }
+
+  void clear_callbacks() override {}
 
   maybe<int> maybe_int;
 };
@@ -250,6 +256,52 @@ TEST_CASE( "[waitable] coro" ) {
   }
   REQUIRE( ws.get() == "3-12-8.800000" );
   REQUIRE( i == 20 );
+}
+
+struct LogDestruction {
+  LogDestruction( bool& b_ ) : b( b_ ) {}
+  ~LogDestruction() { b = true; }
+  bool& b;
+};
+
+// Test that when the number of promises that refer to a shared
+// state go to zero that the callbacks get released.
+TEST_CASE( "[waitable] promise ref count" ) {
+  bool callbacks_released = false;
+  auto callback = [_ = LogDestruction( callbacks_released )](
+                      monostate const& ) {};
+  waitable_promise<> p;
+  auto               p2 = p;
+  auto               p3 = p;
+  waitable<>         w  = p.get_waitable();
+  w.shared_state()->add_callback( std::move( callback ) );
+  CHECK( !callbacks_released );
+  p = {};
+  CHECK( !callbacks_released );
+  p2 = {};
+  CHECK( !callbacks_released );
+  p3 = {};
+  CHECK( callbacks_released );
+}
+
+// Test that the callbacks get released as soon as a promise is
+// fulfilled.
+TEST_CASE( "[waitable] set value clears callbacks" ) {
+  bool callbacks_released = false;
+  auto callback = [_ = LogDestruction( callbacks_released )](
+                      monostate const& ) {};
+  waitable_promise<> p;
+  auto               p2 = p;
+  auto               p3 = p;
+  waitable<>         w  = p.get_waitable();
+  w.shared_state()->add_callback( std::move( callback ) );
+  CHECK( !callbacks_released );
+  p.set_value_emplace();
+  CHECK( callbacks_released );
+  p2 = {};
+  CHECK( callbacks_released );
+  p3 = {};
+  CHECK( callbacks_released );
 }
 
 } // namespace
