@@ -272,6 +272,22 @@ void run_all_init_routines(
 }
 
 void run_all_cleanup_routines() {
+  // Here we want to destroy any remaining coroutines because de-
+  // stroying them can cause local variables to be destroyed
+  // which can rely on mechanisms that require initialization. So
+  // i.e., we should do this before de-initialization. Actually,
+  //
+  // Actually, in practice, this will probably only result in a
+  // handful of coroutines getting freed, or possibly none at
+  // all, since all queued coroutines are run (and removed from
+  // the queue) each frame. So the only coroutines that would be
+  // destroyed here would be any new ones that were added in the
+  // frame just before program exit. Furthermore, not all live
+  // coroutines will be destroyed here; some are being kept alive
+  // by global promise objects, and so they will not be deleted
+  // until static deinitialization, although that should probably
+  // be fixed at some point.
+  destroy_all_coroutines();
   if( !g_init_has_started ) {
     cerr << "skipping cleanup entirely as we did not even make "
             "it into subsystem initialization.\n";
@@ -288,8 +304,6 @@ void run_all_cleanup_routines() {
       cleanup_functions()[routine]();
     }
   }
-
-  destroy_all_coroutines();
 }
 
 bool has_init_finished() { return g_init_finished; }
