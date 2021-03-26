@@ -8,55 +8,10 @@
 // Description: Serializable types for the sg-land-view module.
 //
 // **************************************************************
-include "color.fbs";
-include "coord.fbs";
-include "orders.fbs";
-include "physics.fbs";
-include "unit.fbs";
-include "utype.fbs";
 include "viewport.fbs";
-include "vocab.fbs";
 
 namespace fb;
-
-namespace fb.LandViewState;
-
-  table none {}
-  table future {
-    s_future : no_serial;
-  }
-  table blinking_unit {
-    id          : int;
-    add_to_back : [int];
-  }
-  table sliding_unit {
-    id          : int;
-    target      : Coord;
-    percent     : double;
-    percent_vel : DissipativeVelocity;
-  }
-  table depixelating_unit {
-    id             : int;
-    demoted        : Opt_e_unit_type;
-  }
-
-  namespace fb;
-
-  table LandViewState_t {
-    none              : LandViewState.none;
-    future            : LandViewState.future;
-    blinking_unit     : LandViewState.blinking_unit;
-    sliding_unit      : LandViewState.sliding_unit;
-    depixelating_unit : LandViewState.depixelating_unit;
-  }
-
-namespace fb;
-
-table LandViewFsm {
-  state_stack : [LandViewState_t];
-}
 
 table SG_LandView {
-  mode     : LandViewFsm;
   viewport : SmoothViewport;
 }

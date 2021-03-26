@@ -1,16 +1,15 @@
 " =========================== Config ============================
 let s:stems = [
   \ 'app-state',
+  \ 'main-menu',
+  \ 'frame',
   \ 'land-view',
-  \ 'viewport',
   \ 'turn',
   \ 'plane-ctrl',
   \ 'menu',
-  \ 'main-menu',
-  \ 'frame',
-  \ 'co-registry',
   \ 'waitable',
   \ 'waitable-coro',
+  \ 'co-registry',
   \ 'co-combinator',
 \]
 
@@ -98,7 +97,7 @@ echo 'opening main...'
 silent edit exe/main.cpp
 
 echo 'opening luas...'
-call s:OpenLuas( s:luas )
+" call s:OpenLuas( s:luas )
 
 echo 'opening cpps...'
 for s in s:stems
@@ -106,9 +105,9 @@ for s in s:stems
 endfor
 
 echo 'opening docs...'
-for q in s:quads
-  call s:Open4( q[0], q[1], q[3], q[2] )
-endfor
+" for q in s:quads
+"   call s:Open4( q[0], q[1], q[3], q[2] )
+" endfor
 
 tabdo set cmdheight=1
 tabdo wincmd =

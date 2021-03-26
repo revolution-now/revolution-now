@@ -1,0 +1,41 @@
+# ===============================================================
+# land-view-impl.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the land-view module.
+#
+# ===============================================================
+include "coord.hpp";
+include "id.hpp";
+include "physics.hpp";
+
+# Rnl
+include "rnl/orders.hpp";
+
+namespace rn;
+
+sumtype LandViewRawInput {
+  orders:
+    orders_t orders;
+  tile_click:
+    Coord coord;
+};
+
+# These are animation primitives. A unit "move" is a slide, and a
+# unit attack sequence is constructed from a slide + depixela-
+# tion.
+sumtype UnitAnimation {
+  blink:
+    bool visible;
+  slide:
+    Coord target;
+    double percent;
+    DissipativeVelocity percent_vel;
+  depixelate:
+    Texture            tx_depixelate_from;
+    std::vector<Coord> pixels;
+    Matrix<Color>      demoted_pixels;
+};

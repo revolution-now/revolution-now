@@ -67,27 +67,36 @@ vector<FrameSubscription>& subscriptions() {
   return subs;
 }
 
+vector<FrameSubscription>& subscriptions_oneoff() {
+  static vector<FrameSubscription> subs;
+  return subs;
+}
+
 void notify_subscribers() {
-  for( auto& sub : subscriptions() ) {
-    overload_visit(
-        sub,
-        []( FrameSubscriptionTick& tick_sub ) {
-          auto& [interval, last_message, func] = tick_sub;
-          auto total = total_frame_count();
-          if( long( total ) - last_message > interval ) {
-            last_message = total;
-            func();
-          }
-        },
-        []( FrameSubscriptionTime& time_sub ) {
-          auto& [interval, last_message, func] = time_sub;
-          auto now                             = Clock_t::now();
-          if( now - last_message > interval ) {
-            last_message = now;
-            func();
-          }
-        } );
+  for( auto subs_list :
+       { subscriptions, subscriptions_oneoff } ) {
+    for( auto& sub : subs_list() ) {
+      overload_visit(
+          sub,
+          []( FrameSubscriptionTick& tick_sub ) {
+            auto& [interval, last_message, func] = tick_sub;
+            auto total = total_frame_count();
+            if( long( total ) - last_message > interval ) {
+              last_message = total;
+              func();
+            }
+          },
+          []( FrameSubscriptionTime& time_sub ) {
+            auto& [interval, last_message, func] = time_sub;
+            auto now = Clock_t::now();
+            if( now - last_message > interval ) {
+              last_message = now;
+              func();
+            }
+          } );
+    }
   }
+  subscriptions_oneoff().clear();
 }
 
 using InputReceivedFunc = function_ref<void()>;
@@ -176,17 +185,34 @@ void frame_loop_body( InputReceivedFunc input_received ) {
 
 } // namespace
 
-void subscribe_to_frame_tick( FrameSubscriptionFunc func,
-                              int                   n ) {
-  subscriptions().push_back( FrameSubscriptionTick{
-      /*interval=*/n, /*last_message=*/0, /*func=*/func } );
+void subscribe_to_frame_tick( FrameSubscriptionFunc func, int n,
+                              bool repeating ) {
+  ( repeating ? subscriptions : subscriptions_oneoff )()
+      .push_back( FrameSubscriptionTick{
+          /*interval=*/n, /*last_message=*/0, /*func=*/func } );
 }
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc     func,
-                              std::chrono::milliseconds n ) {
-  subscriptions().push_back( FrameSubscriptionTime{
-      /*interval=*/n, /*last_message=*/Clock_t::now(),
-      /*func=*/func } );
+                              std::chrono::milliseconds n,
+                              bool repeating ) {
+  ( repeating ? subscriptions : subscriptions_oneoff )()
+      .push_back( FrameSubscriptionTime{
+          /*interval=*/n, /*last_message=*/Clock_t::now(),
+          /*func=*/func } );
+}
+
+waitable<> wait_n_frames( int n ) {
+  waitable_promise<> p;
+  auto after_ticks = [p]() mutable { p.set_value_emplace(); };
+  subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );
+  return p.get_waitable();
+}
+
+waitable<> wait_for_duration( std::chrono::milliseconds ms ) {
+  waitable_promise<> p;
+  auto after_time = [p]() mutable { p.set_value_emplace(); };
+  subscribe_to_frame_tick( after_time, ms, /*repeating=*/false );
+  return p.get_waitable();
 }
 
 EventCountMap& event_counts() { return g_event_counts; }

@@ -18,26 +18,20 @@
 #include "orders.hpp"
 #include "waitable.hpp"
 
+// Rnl
+#include "rnl/land-view.hpp"
+
 namespace rn {
 
-struct UnitInputResponse {
-  bool operator==( UnitInputResponse const& rhs ) const =
-      default;
-  bool operator!=( UnitInputResponse const& rhs ) const =
-      default;
+waitable<LandViewPlayerInput_t> landview_get_next_input();
 
-  UnitId              id;
-  maybe<orders_t>     orders;
-  std::vector<UnitId> add_to_front;
-  std::vector<UnitId> add_to_back;
-};
-
-enum class e_depixelate_anim { none, death, demote };
-
-waitable<UnitInputResponse> landview_ask_orders( UnitId id );
+void landview_set_state( LandViewState_t state );
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction );
+
+enum class e_depixelate_anim { none, death, demote };
+
 waitable<> landview_animate_attack( UnitId attacker,
                                     UnitId defender,
                                     bool   attacker_wins,
@@ -47,10 +41,3 @@ struct Plane;
 Plane* land_view_plane();
 
 } // namespace rn
-
-DEFINE_FORMAT( rn::UnitInputResponse,
-               "UnitInputResponse{{id={},orders={},add_to_front="
-               "{},add_to_back={}}}",
-               o.id, o.orders,
-               rn::FmtJsonStyleList{ o.add_to_front },
-               rn::FmtJsonStyleList{ o.add_to_back } );

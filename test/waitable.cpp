@@ -63,11 +63,6 @@ struct shared_int_state
   maybe<int> maybe_int;
 };
 
-TEST_CASE( "[waitable] future default construction" ) {
-  waitable<> s_future;
-  REQUIRE( s_future.ready() );
-}
-
 TEST_CASE( "[waitable] future api basic" ) {
   auto ss = make_shared<shared_int_state>();
 
@@ -78,64 +73,6 @@ TEST_CASE( "[waitable] future api basic" ) {
   ss->maybe_int = 3;
   REQUIRE( s_future.ready() );
   REQUIRE( s_future.get() == 3 );
-}
-
-TEST_CASE( "[waitable] future api with continuation" ) {
-  auto ss = make_shared<shared_int_state>();
-
-  waitable<int> s_future( ss );
-
-  REQUIRE( !s_future.ready() );
-
-  auto s_future2 =
-      s_future.fmap( []( int n ) { return n + 1; } );
-
-  REQUIRE( !s_future.ready() );
-
-  REQUIRE( !s_future2.ready() );
-
-  auto s_future3 = s_future2.fmap(
-      []( int n ) { return std::to_string( n ); } );
-
-  REQUIRE( !s_future2.ready() );
-
-  REQUIRE( !s_future3.ready() );
-
-  ss->maybe_int = 3;
-  REQUIRE( s_future.ready() );
-  REQUIRE( s_future2.ready() );
-  REQUIRE( s_future3.ready() );
-
-  REQUIRE( s_future3.get() == "4" );
-  auto res3 = s_future3.get();
-  static_assert( std::is_same_v<decltype( res3 ), std::string> );
-  REQUIRE( res3 == "4" );
-  REQUIRE( s_future2.get() == 4 );
-  auto res2 = s_future2.get();
-  static_assert( std::is_same_v<decltype( res2 ), int> );
-  REQUIRE( res2 == 4 );
-  REQUIRE( s_future.get() == 3 );
-  auto res1 = s_future.get();
-  static_assert( std::is_same_v<decltype( res1 ), int> );
-  REQUIRE( res1 == 3 );
-
-  REQUIRE( s_future.ready() );
-  REQUIRE( s_future2.ready() );
-  REQUIRE( s_future3.ready() );
-}
-
-TEST_CASE( "[waitable] consume" ) {
-  bool run = false;
-
-  auto s_future = make_waitable<int>( 5 ).consume(
-      [&]( int ) { run = true; } );
-
-  static_assert(
-      std::is_same_v<decltype( s_future ), waitable<>> );
-
-  REQUIRE( run == false );
-  s_future.get();
-  REQUIRE( run == true );
 }
 
 TEST_CASE( "[waitable] promise api basic api" ) {

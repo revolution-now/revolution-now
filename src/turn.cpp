@@ -216,15 +216,59 @@ bool advance_unit( UnitId id ) {
   return true;
 }
 
-waitable<UnitInputResponse> unit_input_response( UnitId id ) {
+waitable<> do_next_player_input( UnitId              id,
+                                 flat_deque<UnitId>* q ) {
+  LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
-    UnitInputResponse response;
-    response.orders = *maybe_orders;
-    return response;
+    response = LandViewPlayerInput::give_orders{
+        .orders = *maybe_orders };
+  } else {
+    lg.debug( "asking orders for: {}", debug_string( id ) );
+    SG().turn.need_eot = false;
+    landview_set_state(
+        LandViewState::unit_input{ .unit_id = id } );
+    response = co_await landview_get_next_input();
+    landview_set_state( LandViewState::none{} );
   }
-  lg.debug( "asking orders for: {}", debug_string( id ) );
-  SG().turn.need_eot = false;
-  return landview_ask_orders( id );
+  switch( response.to_enum() ) {
+    using namespace LandViewPlayerInput;
+    case e::change_orders: {
+      auto& val = response.get<change_orders>();
+      // Move some units to the front of the queue.
+      for( auto id_to_add : val.add_to_front ) {
+        q->push_front( id_to_add );
+        unit_from_id( id_to_add ).unfinish_turn();
+      }
+      // Move some units to the back of the queue.
+      for( UnitId id_to_add : val.add_to_back ) {
+        q->push_back( id_to_add );
+        unit_from_id( id_to_add ).unfinish_turn();
+      }
+      break;
+    }
+    // We have some orders for the current unit.
+    case e::give_orders: {
+      auto& orders = response.get<give_orders>().orders;
+      if( orders.holds<orders::wait>() ) {
+        q->push_back( id );
+        CHECK( q->front() == id );
+        q->pop_front();
+        break;
+      }
+
+      UNWRAP_CHECK( intent, player_intent( id, orders ) );
+      if( !co_await confirm_explain( &intent ) ) break;
+
+      co_await do_unit_animation( id, intent );
+      affect_orders( intent );
+
+      for( auto id : units_to_prioritize( intent ) ) {
+        q->push_front( id );
+        unit_from_id( id ).unfinish_turn();
+      }
+      break;
+    }
+  }
 }
 
 waitable<> do_units_turn() {
@@ -258,46 +302,16 @@ waitable<> do_units_turn() {
       continue;
     }
 
-    // We have a unit that needs to ask the user for orders.
-    UnitInputResponse response =
-        co_await unit_input_response( id );
-
-    // Handle response.
-    for( UnitId id_to_add : response.add_to_back ) {
-      q.push_back( id_to_add );
-      unit_from_id( id_to_add ).unfinish_turn();
-    }
-    maybe<orders_t> const& maybe_orders = response.orders;
-    auto const&            add_to_front = response.add_to_front;
-    // Can only have one or the other.
-    CHECK( maybe_orders.has_value() == add_to_front.empty() );
-    if( !add_to_front.empty() ) {
-      for( auto id_to_add : add_to_front ) {
-        q.push_front( id_to_add );
-        unit_from_id( id_to_add ).unfinish_turn();
-      }
-      continue;
-    }
-
-    // We have orders to execute.
-    UNWRAP_CHECK( orders, maybe_orders );
-    if( holds<orders::wait>( orders ) ) {
-      q.push_back( id );
-      CHECK( q.front() == id );
-      q.pop_front();
-      continue;
-    }
-
-    UNWRAP_CHECK( intent, player_intent( id, orders ) );
-    if( !co_await confirm_explain( &intent ) ) continue;
-
-    co_await do_unit_animation( id, intent );
-    affect_orders( intent );
-
-    for( auto id : units_to_prioritize( intent ) ) {
-      q.push_front( id );
-      unit_from_id( id ).unfinish_turn();
-    }
+    // We have a unit that needs to ask the user for orders. This
+    // will open things up to player input not only to the unit
+    // that needs orders, but to all units on the map, and will
+    // update the queue with any changes that result. This func-
+    // tion will return on any player input (e.g. clearing the
+    // orders of another unit) and so we might need to circle
+    // back to this line a few times in this while loop until we
+    // get the order for the unit in question (unless the player
+    // activates another unit).
+    co_await do_next_player_input( id, &q );
   }
 }
 

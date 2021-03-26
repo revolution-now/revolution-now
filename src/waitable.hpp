@@ -129,9 +129,6 @@ class [[nodiscard]] waitable {
 public:
   using value_type = T;
 
-  // FIXME: remove after land-view is fixed.
-  waitable();
-
   waitable( T const& ready_val );
 
   // This constructor should not be used by client code.
@@ -161,80 +158,6 @@ public:
            "attempt to get value from waitable when not in "
            "`ready` state." );
     return shared_state_->get();
-  }
-
-  // FIXME: remove and replace with coroutines.
-  // FIXME
-  template<typename Func>
-  auto fmap( Func&& func ) {
-    using NewResult_t =
-        std::decay_t<std::invoke_result_t<Func, T>>;
-
-    struct sync_shared_state_with_continuation
-      : public internal::sync_shared_state_base<NewResult_t> {
-      ~sync_shared_state_with_continuation() override = default;
-
-      sync_shared_state_with_continuation(
-          SharedStatePtr<T> old_shared_state,
-          Func&&            continuation )
-        : old_shared_state_( old_shared_state ),
-          continuation_( std::forward<Func>( continuation ) ) {}
-
-      bool has_value() const override {
-        return old_shared_state_->has_value();
-      }
-
-      NewResult_t get() const override {
-        CHECK( has_value() );
-        return continuation_( old_shared_state_->get() );
-      }
-
-      void add_copyable_callback(
-          std::function<
-              typename internal::sync_shared_state_base<
-                  NewResult_t>::NotifyFunc>
-              callback ) override {
-        old_shared_state_->add_callback(
-            [this,
-             callback = std::move( callback )]( T const& val ) {
-              callback( this->continuation_( val ) );
-            } );
-      }
-
-      void add_movable_callback(
-          base::unique_func<
-              typename internal::sync_shared_state_base<
-                  NewResult_t>::NotifyFunc>
-              callback ) override {
-        old_shared_state_->add_callback(
-            [this, callback = std::move( callback )](
-                T const& val ) mutable {
-              callback( this->continuation_( val ) );
-            } );
-      }
-
-      void clear_callbacks() override {
-        old_shared_state_->clear_callbacks();
-      }
-
-      SharedStatePtr<T> old_shared_state_;
-      // continuation :: T -> NewResult_t
-      Func continuation_;
-    };
-
-    return waitable<NewResult_t>(
-        std::make_shared<sync_shared_state_with_continuation>(
-            shared_state_, std::forward<Func>( func ) ) );
-  }
-
-  // FIXME: remove and replace with coroutines.
-  template<typename Func>
-  waitable<> consume( Func&& func ) {
-    return fmap( [func = std::forward<Func>( func )](
-                     auto const& value ) {
-      func( value );
-      return std::monostate{};
-    } );
   }
 
   // We need this so that waitable<T> can access the shared
@@ -437,10 +360,6 @@ waitable<T> make_waitable( Args&&... args ) {
   s_promise.set_value_emplace( std::forward<Args>( args )... );
   return s_promise.get_waitable();
 }
-
-// FIXME: remove when land-view is fixed.
-template<typename T>
-waitable<T>::waitable() : waitable( T{} ) {}
 
 template<typename T>
 waitable<T>::waitable( T const& ready_val ) {

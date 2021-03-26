@@ -33,11 +33,22 @@ uint64_t total_frame_count();
 
 using FrameSubscriptionFunc = std::function<void( void )>;
 
-// Subscribe to receive a notification every n ticks.
-void subscribe_to_frame_tick( FrameSubscriptionFunc f, int n );
-// Subscribe to receive a notification every n milliseconds.
+// Subscribe to receive a notification after n ticks, or every n
+// ticks if repeating == true.
+void subscribe_to_frame_tick( FrameSubscriptionFunc f, int n,
+                              bool repeating = true );
+// Subscribe to receive a notification after n milliseconds, or
+// every n milliseconds if repeating == true.
 void subscribe_to_frame_tick( FrameSubscriptionFunc,
-                              std::chrono::milliseconds n );
+                              std::chrono::milliseconds n,
+                              bool repeating = true );
+
+// The returned waitable becomes ready after `n` frames have
+// passed.
+waitable<> wait_n_frames( int n );
+// The returned waitable becomes ready after the given duration
+// has passed.
+waitable<> wait_for_duration( std::chrono::milliseconds ms );
 
 using EventCountMap =
     std::unordered_map<std::string_view,
