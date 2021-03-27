@@ -23,9 +23,8 @@
 
 namespace rn {
 
-waitable<LandViewPlayerInput_t> landview_get_next_input();
-
-void landview_set_state( LandViewState_t state );
+waitable<LandViewPlayerInput_t> landview_get_next_input(
+    UnitId id );
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction );

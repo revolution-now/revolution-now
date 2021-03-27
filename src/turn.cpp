@@ -225,10 +225,8 @@ waitable<> do_next_player_input( UnitId              id,
   } else {
     lg.debug( "asking orders for: {}", debug_string( id ) );
     SG().turn.need_eot = false;
-    landview_set_state(
-        LandViewState::unit_input{ .unit_id = id } );
-    response = co_await landview_get_next_input();
-    landview_set_state( LandViewState::none{} );
+
+    response = co_await landview_get_next_input( id );
   }
   switch( response.to_enum() ) {
     using namespace LandViewPlayerInput;

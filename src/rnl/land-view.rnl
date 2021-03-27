@@ -15,12 +15,6 @@ include "rnl/orders.hpp";
 
 namespace rn;
 
-sumtype LandViewState {
-  none:
-  unit_input:
-    UnitId unit_id;
-};
-
 sumtype LandViewPlayerInput {
   give_orders:
     orders_t orders;

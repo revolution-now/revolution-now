@@ -17,6 +17,18 @@ include "rnl/orders.hpp";
 
 namespace rn;
 
+sumtype LandViewState {
+  none:
+  unit_input:
+    UnitId unit_id;
+  unit_move:
+    UnitId unit_id;
+  unit_attack:
+    UnitId attacker;
+    UnitId defender;
+    bool attacker_wins;
+};
+
 sumtype LandViewRawInput {
   orders:
     orders_t orders;
