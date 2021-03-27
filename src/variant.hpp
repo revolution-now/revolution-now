@@ -53,6 +53,19 @@
 // with the else. So therefore we use a switch statement. This
 // looks a bit hacky, but it seems to work pretty well and should
 // be fine.
+//
+// WARNING: You cannot use `break` from within the body of this
+//          if_get. E.g., the following will not do what you ex-
+//          pect:
+//
+//          if_get( xxx, yyy, zzz ) {
+//            ...
+//            break;
+//          }
+//
+//          because the break will simply break out of the
+//          `switch` statement that we're using to implement
+//          this.
 #define if_get( v, type, var )                               \
   if( auto* _##var##_ = std::get_if<type>( &v ); _##var##_ ) \
     switch( auto& var = *_##var##_; 0 )                      \

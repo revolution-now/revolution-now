@@ -522,8 +522,9 @@ void SmoothViewport::center_on_tile( Coord const& coords ) {
 }
 
 bool SmoothViewport::is_tile_fully_visible(
-    Coord const& coords ) const {
-  return coords.is_inside( covered_tiles().edges_removed() );
+    Coord const& coord ) const {
+  Rect box = Rect::from( coord * g_tile_scale, g_tile_delta );
+  return box.is_inside( get_bounds() );
 }
 
 // Determines if the square is fully visible in the viewport with
@@ -551,11 +552,16 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
            coords.coordinate<C>() < end;
   };
 
-  bool visible_in_viewport       = is_in( vp.covered_tiles() );
+  bool visible_in_viewport = is_in( vp.covered_tiles() );
+  // Two edges_removed calls to make sure that we first get rid
+  // of any partial squares, then one more, so that if the tile
+  // is in the rect that remains, we know that its surroundings
+  // are fully visible.
   bool visible_in_inner_viewport = is_in(
       vp.covered_tiles().edges_removed().edges_removed() );
-  bool in_inner_world = is_in(
-      vp.world_rect_tiles().edges_removed().edges_removed() );
+  // Only one edges_removed call here just to remove the border.
+  bool in_inner_world =
+      is_in( vp.world_rect_tiles().edges_removed() );
 
   // If the unit is not at all visible to the player then
   // obviously we must return true.

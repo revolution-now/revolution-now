@@ -67,15 +67,6 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 namespace {
 
 /****************************************************************
-** Global State (non-serialized)
-*****************************************************************/
-// Note: requires pointer stability.
-unordered_map<UnitId, UnitAnimation_t> g_unit_animations;
-LandViewState_t g_landview_state = LandViewState::none{};
-waitable_promise<LandViewRawInput_t> g_unit_raw_input_promise;
-queue<LandViewRawInput_t>            g_raw_input_queue;
-
-/****************************************************************
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( LandView ) {
@@ -88,6 +79,11 @@ struct SAVEGAME_STRUCT( LandView ) {
 
 public:
   // Non-serialized fields.
+  unordered_map<UnitId, UnitAnimation_t> unit_animations;
+  LandViewState_t landview_state = LandViewState::none{};
+  waitable_promise<LandViewRawInput_t> unit_raw_input_promise;
+  queue<LandViewRawInput_t>            raw_input_queue;
+  maybe<UnitId>                        last_unit_input;
 
 private:
   SAVEGAME_FRIENDS( LandView );
@@ -106,10 +102,11 @@ private:
                             world_size_tiles() );
 
     // Initialize general global data.
-    g_unit_animations.clear();
-    g_landview_state         = LandViewState::none{};
-    g_unit_raw_input_promise = {};
-    g_raw_input_queue        = {};
+    unit_animations.clear();
+    landview_state         = LandViewState::none{};
+    unit_raw_input_promise = {};
+    raw_input_queue        = {};
+    last_unit_input        = nothing;
 
     return valid;
   }
@@ -182,12 +179,17 @@ void render_units_during_slide(
   for( auto coord : covered ) {
     bool has_colony = colony_from_coord( coord ).has_value();
     if( has_colony && coord != target_unit_coord ) continue;
-    render_units_on_square(
-        covered, coord, /*skip=*/[&]( UnitId id ) {
-          if( has_colony && id != target_unit ) return true;
-          if( id == mover_id ) return true;
-          return false;
-        } );
+    auto skip = [&]( UnitId id ) {
+      // Always draw the target unit, if any.
+      if( id == target_unit ) return false;
+      // On the square containing the unit being attacked, only
+      // draw the unit being attacked (if any).
+      if( coord == target_unit_coord ) return true;
+      if( has_colony ) return true;
+      if( id == mover_id ) return true;
+      return false;
+    };
+    render_units_on_square( covered, coord, skip );
   }
   // Now render the sliding unit.
   Delta delta = slide.target - mover_coord;
@@ -205,9 +207,15 @@ void render_units_during_slide(
 void render_units_during_depixelate(
     Rect const& covered, UnitId depixelate_id,
     UnitAnimation::depixelate const& dp_anim ) {
+  // Need the multi_ownership version because we could be depixe-
+  // lating a colonist that is owned by a colony, which happens
+  // when the colony is captured.
+  UNWRAP_CHECK( depixelate_coord, coord_for_unit_multi_ownership(
+                                      depixelate_id ) );
   // First render all units other than the depixelating unit and
   // other than units on colony squares.
   for( auto coord : covered ) {
+    if( coord == depixelate_coord ) continue;
     if( colony_from_coord( coord ).has_value() ) continue;
     render_units_on_square( covered, coord,
                             /*skip=*/[&]( UnitId id ) {
@@ -217,11 +225,6 @@ void render_units_during_depixelate(
   // Now render the depixelating unit.
   ::SDL_SetRenderDrawBlendMode( g_renderer,
                                 ::SDL_BLENDMODE_BLEND );
-  // Need the multi_ownership version because we could be depixe-
-  // lating a colonist that is owned by a colony, which happens
-  // when the colony is captured.
-  UNWRAP_CHECK( depixelate_coord, coord_for_unit_multi_ownership(
-                                      depixelate_id ) );
   Coord pixel_coord =
       to_pixel_coord( covered, depixelate_coord );
   copy_texture( dp_anim.tx_depixelate_from, g_texture_viewport,
@@ -241,25 +244,31 @@ void render_colonies( Rect const& covered ) {
   }
 }
 
-void render_land_view() {
-  g_texture_viewport.set_render_target();
-  auto covered = SG().viewport.covered_tiles();
-  render_terrain( covered, g_texture_viewport, Coord{} );
-  render_colonies( covered );
+// Units (rendering strategy depends on land view state).
+void render_units( Rect const& covered ) {
+  // The land view state should be set first, then the animation
+  // state; though occasionally we are in a frame where the land
+  // view state has changed but the animation state has not been
+  // set yet.
+  if( SG().unit_animations.empty() ) {
+    render_units_default( covered );
+    return;
+  }
 
-  // Units (rendering strategy depends on land view state).
-  switch( g_landview_state.to_enum() ) {
+  switch( SG().landview_state.to_enum() ) {
     using namespace LandViewState;
     case e::none: {
-      CHECK( g_unit_animations.size() == 0 );
-      render_units_default( covered );
-      break;
+      // In this case the global unit animations should always be
+      // empty, in which case the if statement above should have
+      // caught it.
+      SHOULD_NOT_BE_HERE;
     }
     case e::unit_input: {
-      auto& o = g_landview_state.get<unit_input>();
-      CHECK( g_unit_animations.size() == 1 );
-      UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
-                                             o.unit_id ) );
+      auto& o = SG().landview_state.get<unit_input>();
+      CHECK( SG().unit_animations.size() == 1 );
+      UNWRAP_CHECK(
+          animation,
+          base::lookup( SG().unit_animations, o.unit_id ) );
       ASSIGN_CHECK_V( blink_anim, animation,
                       UnitAnimation::blink );
       render_units_blink( covered, o.unit_id,
@@ -267,10 +276,11 @@ void render_land_view() {
       break;
     }
     case e::unit_move: {
-      auto& o = g_landview_state.get<unit_move>();
-      CHECK( g_unit_animations.size() == 1 );
-      UNWRAP_CHECK( animation, base::lookup( g_unit_animations,
-                                             o.unit_id ) );
+      auto& o = SG().landview_state.get<unit_move>();
+      CHECK( SG().unit_animations.size() == 1 );
+      UNWRAP_CHECK(
+          animation,
+          base::lookup( SG().unit_animations, o.unit_id ) );
       ASSIGN_CHECK_V( slide_anim, animation,
                       UnitAnimation::slide );
       render_units_during_slide( covered, o.unit_id,
@@ -279,20 +289,22 @@ void render_land_view() {
       break;
     }
     case e::unit_attack: {
-      auto& o = g_landview_state.get<unit_attack>();
-      CHECK( g_unit_animations.size() == 1 );
-      UnitId anim_id = g_unit_animations.begin()->first;
+      auto& o = SG().landview_state.get<unit_attack>();
+      CHECK( SG().unit_animations.size() == 1 );
+      UnitId anim_id = SG().unit_animations.begin()->first;
       UnitAnimation_t const& animation =
-          g_unit_animations.begin()->second;
-      if_get( animation, UnitAnimation::slide, slide_anim ) {
+          SG().unit_animations.begin()->second;
+      if( auto slide_anim =
+              animation.get_if<UnitAnimation::slide>() ) {
         CHECK( anim_id == o.attacker );
         render_units_during_slide( covered, o.attacker,
-                                   o.defender, slide_anim );
+                                   o.defender, *slide_anim );
         break;
       }
-      if_get( animation, UnitAnimation::depixelate, dp_anim ) {
+      if( auto dp_anim =
+              animation.get_if<UnitAnimation::depixelate>() ) {
         render_units_during_depixelate( covered, anim_id,
-                                        dp_anim );
+                                        *dp_anim );
         break;
       }
       FATAL(
@@ -303,14 +315,23 @@ void render_land_view() {
   }
 }
 
+void render_land_view() {
+  g_texture_viewport.set_render_target();
+  auto covered = SG().viewport.covered_tiles();
+  render_terrain( covered, g_texture_viewport, Coord{} );
+  render_colonies( covered );
+  render_units( covered );
+}
+
 /****************************************************************
 ** Animations
 *****************************************************************/
 waitable<> animate_depixelation( UnitId            id,
                                  e_depixelate_anim dp_anim ) {
-  CHECK( !g_unit_animations.contains( id ) );
+  CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::depixelate& depixelate =
-      g_unit_animations[id].emplace<UnitAnimation::depixelate>();
+      SG().unit_animations[id]
+          .emplace<UnitAnimation::depixelate>();
   depixelate.pixels.assign( g_tile_rect.begin(),
                             g_tile_rect.end() );
   rng::shuffle( depixelate.pixels );
@@ -368,30 +389,34 @@ waitable<> animate_depixelation( UnitId            id,
     }
   }
   // End animation.
-  UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
-  g_unit_animations.erase( it );
+  UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
+  SG().unit_animations.erase( it );
 }
+
+// FIXME: hack alert; this is temporary until we figure out how
+// to do cancellable coroutines.
+bool g_blink_stop = false;
 
 // The reference that this coroutine takes is OK because it will
 // refer not to a temporary but to an lvalue in the callers
 // frame, and this coroutine will not outlive the caller (the
 // caller should co_await its result after setting stop to true).
-waitable<> animate_blink( UnitId id, bool const& stop ) {
+waitable<> animate_blink( UnitId id ) {
   using namespace std::literals::chrono_literals;
-  CHECK( !g_unit_animations.contains( id ) );
+  CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::blink& blink =
-      g_unit_animations[id].emplace<UnitAnimation::blink>();
+      SG().unit_animations[id].emplace<UnitAnimation::blink>();
   blink = UnitAnimation::blink{ .visible = false };
   // Start animation.
-  while( !stop ) {
+  while( !g_blink_stop ) {
     // Need to wait one frame at a time so that we can check for
     // cancellation. If we didn't do that, and someone cancelled
     // this coroutine, then there could be a race condition with
     // removing and re-adding the unit animation object in
-    // g_unit_animations.
+    // SG().unit_animations.
     for( int i = 0; i < 30; ++i ) {
       co_await wait_n_frames( 1 );
-      if( stop ) break;
+      if( g_blink_stop ) break;
     }
     // co_await wait_for_duration( 500ms );
     blink.visible = !blink.visible;
@@ -400,15 +425,15 @@ waitable<> animate_blink( UnitId id, bool const& stop ) {
   // are going to delete the animation object for this unit,
   // which leaves them visible by default.
   // End animation.
-  UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
-  g_unit_animations.erase( it );
+  UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
+  SG().unit_animations.erase( it );
 }
 
 waitable<> animate_slide( UnitId id, e_direction d ) {
-  CHECK( !g_unit_animations.contains( id ) );
+  CHECK( !SG().unit_animations.contains( id ) );
   Coord                 target = coord_for_unit_indirect( id );
   UnitAnimation::slide& mv =
-      g_unit_animations[id].emplace<UnitAnimation::slide>();
+      SG().unit_animations[id].emplace<UnitAnimation::slide>();
   mv = UnitAnimation::slide{
       // FIXME: check if target is in world.
       .target      = target.moved( d ),
@@ -433,8 +458,8 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
     mv.percent += mv.percent_vel.to_double();
   }
   // End animation.
-  UNWRAP_CHECK( it, base::find( g_unit_animations, id ) );
-  g_unit_animations.erase( it );
+  UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
+  SG().unit_animations.erase( it );
 }
 
 waitable<> landview_ensure_unit_visible( UnitId id ) {
@@ -445,7 +470,7 @@ waitable<> landview_ensure_unit_visible( UnitId id ) {
 void center_on_blinking_unit_if_any() {
   using u_i = LandViewState::unit_input;
   auto blinking_unit =
-      g_landview_state.get_if<u_i>().member( &u_i::unit_id );
+      SG().landview_state.get_if<u_i>().member( &u_i::unit_id );
   if( !blinking_unit ) {
     lg.warn( "There are no units currently asking for orders." );
     return;
@@ -582,9 +607,9 @@ waitable<ClickTileActions> click_on_world_tile(
 waitable<LandViewPlayerInput_t> next_player_input_object() {
   while( true ) {
     LandViewRawInput_t raw_input =
-        co_await g_unit_raw_input_promise.get_waitable();
+        co_await SG().unit_raw_input_promise.get_waitable();
     // Reset it so that the next one will be inserted.
-    g_unit_raw_input_promise = {};
+    SG().unit_raw_input_promise = {};
 
     switch( raw_input.to_enum() ) {
       using namespace LandViewRawInput;
@@ -596,7 +621,8 @@ waitable<LandViewPlayerInput_t> next_player_input_object() {
       case e::tile_click: {
         auto& o = raw_input.get<tile_click>();
         bool  allow_activate =
-            g_landview_state.holds<LandViewState::unit_input>();
+            SG().landview_state
+                .holds<LandViewState::unit_input>();
         ClickTileActions actions = co_await click_on_world_tile(
             o.coord, allow_activate );
         maybe<LandViewPlayerInput_t> input =
@@ -649,11 +675,11 @@ struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
   void advance_state() override {
-    if( !g_unit_raw_input_promise.has_value() &&
-        !g_raw_input_queue.empty() ) {
-      g_unit_raw_input_promise.set_value(
-          g_raw_input_queue.front() );
-      g_raw_input_queue.pop();
+    if( !SG().unit_raw_input_promise.has_value() &&
+        !SG().raw_input_queue.empty() ) {
+      SG().unit_raw_input_promise.set_value(
+          SG().raw_input_queue.front() );
+      SG().raw_input_queue.pop();
     }
     advance_viewport_state();
   }
@@ -736,37 +762,38 @@ struct LandViewPlane : public Plane {
             SG().viewport.smooth_zoom_target( 1.0 );
             break;
           case ::SDLK_w:
-            g_raw_input_queue.push( LandViewRawInput::orders{
+            SG().raw_input_queue.push( LandViewRawInput::orders{
                 .orders = orders::wait{} } );
             break;
           case ::SDLK_s:
-            g_raw_input_queue.push( LandViewRawInput::orders{
+            SG().raw_input_queue.push( LandViewRawInput::orders{
                 .orders = orders::sentry{} } );
             break;
           case ::SDLK_f:
-            g_raw_input_queue.push( LandViewRawInput::orders{
+            SG().raw_input_queue.push( LandViewRawInput::orders{
                 .orders = orders::fortify{} } );
             break;
           case ::SDLK_b:
-            g_raw_input_queue.push( LandViewRawInput::orders{
+            SG().raw_input_queue.push( LandViewRawInput::orders{
                 .orders = orders::build{} } );
             break;
           case ::SDLK_c: center_on_blinking_unit_if_any(); break;
           case ::SDLK_d:
-            g_raw_input_queue.push( LandViewRawInput::orders{
+            SG().raw_input_queue.push( LandViewRawInput::orders{
                 .orders = orders::disband{} } );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            g_raw_input_queue.push( LandViewRawInput::orders{
+            SG().raw_input_queue.push( LandViewRawInput::orders{
                 .orders = orders::forfeight{} } );
             break;
           default:
             handled = e_input_handled::no;
             if( key_event.direction ) {
-              g_raw_input_queue.push( LandViewRawInput::orders{
-                  .orders = orders::direction{
-                      *key_event.direction } } );
+              SG().raw_input_queue.push(
+                  LandViewRawInput::orders{
+                      .orders = orders::direction{
+                          *key_event.direction } } );
               handled = e_input_handled::yes;
             }
             break;
@@ -800,8 +827,9 @@ struct LandViewPlane : public Plane {
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
           lg.debug( "clicked on tile: {}.", *maybe_tile );
-          g_raw_input_queue.push( LandViewRawInput::tile_click{
-              .coord = *maybe_tile } );
+          SG().raw_input_queue.push(
+              LandViewRawInput::tile_click{ .coord =
+                                                *maybe_tile } );
           handled = e_input_handled::yes;
         }
         break;
@@ -840,46 +868,59 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 *****************************************************************/
 waitable<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id ) {
-  g_landview_state = LandViewState::unit_input{ .unit_id = id };
-  waitable<> blinker = make_waitable<>();
-  bool       stop    = false;
-
-  if_get( g_landview_state, LandViewState::unit_input, o ) {
-    // FIXME: The below line will cause issues, each time the
-    // player clears the orders of a unit it will pan back to the
-    // blinking unit.
-    co_await landview_ensure_unit_visible( o.unit_id );
-    blinker = animate_blink( o.unit_id, stop );
+  // When we start on a new unit clear the input queue so that
+  // commands that were accidentally buffered while controlling
+  // the previous unit don't affect this new one, which would al-
+  // most certainly not be desirable. Also, we only pan to the
+  // unit here because if we did that outside of this if state-
+  // ment then the viewport would pan to the blinking unit after
+  // the player e.g. clicks on another unit to activate it.
+  if( SG().last_unit_input != id ) {
+    SG().raw_input_queue        = {};
+    SG().unit_raw_input_promise = {};
+    co_await landview_ensure_unit_visible( id );
   }
+  SG().last_unit_input = id;
+
+  SG().landview_state =
+      LandViewState::unit_input{ .unit_id = id };
+  waitable<> blinker = make_waitable<>();
+  // FIXME: hack alert; this is temporary until we figure out how
+  // to do cancellable coroutines.
+  g_blink_stop = false;
+  blinker      = animate_blink( id );
 
   LandViewPlayerInput_t res =
       co_await next_player_input_object();
 
-  stop = true;
+  g_blink_stop = true;
   // Need to wait for this to avoid race conditions on the global
   // unit animation object.
   co_await blinker;
-  g_landview_state = LandViewState::none{};
+  // Must be last.
+  SG().landview_state = LandViewState::none{};
   co_return res;
 }
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction ) {
-  g_landview_state = LandViewState::unit_move{ .unit_id = id };
   co_await landview_ensure_unit_visible( id );
+  SG().landview_state =
+      LandViewState::unit_move{ .unit_id = id };
   co_await animate_slide( id, direction );
-  g_landview_state = LandViewState::none{};
+  // Must be last.
+  SG().landview_state = LandViewState::none{};
 }
 
 waitable<> landview_animate_attack( UnitId attacker,
                                     UnitId defender,
                                     bool   attacker_wins,
                                     e_depixelate_anim dp_anim ) {
-  g_landview_state = LandViewState::unit_attack{
+  co_await landview_ensure_unit_visible( attacker );
+  SG().landview_state = LandViewState::unit_attack{
       .attacker      = attacker,
       .defender      = defender,
       .attacker_wins = attacker_wins };
-  co_await landview_ensure_unit_visible( attacker );
   UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
   UNWRAP_CHECK( defender_coord,
                 coord_for_unit_multi_ownership( defender ) );
@@ -892,7 +933,8 @@ waitable<> landview_animate_attack( UnitId attacker,
                                    : e_sfx::attacker_lost );
   co_await animate_depixelation(
       attacker_wins ? defender : attacker, dp_anim );
-  g_landview_state = LandViewState::none{};
+  // Must be last.
+  SG().landview_state = LandViewState::none{};
 }
 
 /****************************************************************
@@ -902,7 +944,8 @@ namespace {
 
 LUA_FN( blinking_unit, maybe<UnitId> ) {
   using u_i = LandViewState::unit_input;
-  return g_landview_state.get_if<u_i>().member( &u_i::unit_id );
+  return SG().landview_state.get_if<u_i>().member(
+      &u_i::unit_id );
 }
 
 LUA_FN( center_on_blinking_unit, void ) {
