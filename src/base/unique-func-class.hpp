@@ -37,6 +37,9 @@ class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
   std::unique_ptr<func_base> func_;
 
 public:
+  // Can never be empty.
+  unique_func() = delete;
+
   template<typename Func>
   unique_func( Func&& func ) {
     static_assert( std::is_rvalue_reference_v<

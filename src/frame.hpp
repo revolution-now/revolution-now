@@ -13,8 +13,9 @@
 // Revolution Now
 #include "cache.hpp"
 #include "core-config.hpp"
+#include "frame-count.hpp"
 #include "moving-avg.hpp"
-#include "src/waitable.hpp"
+#include "waitable.hpp"
 
 // C++ standard library
 #include <chrono>
@@ -22,7 +23,8 @@
 
 namespace rn {
 
-using Frames = std::chrono::duration<int, std::ratio<1, 60>>;
+inline constexpr auto kFrame =
+    std::chrono::duration<int, std::ratio<1, 60>>{ 1 };
 
 // Will spin until the waitable is ready.
 void frame_loop( waitable<> const& what );
@@ -35,7 +37,8 @@ using FrameSubscriptionFunc = std::function<void( void )>;
 
 // Subscribe to receive a notification after n ticks, or every n
 // ticks if repeating == true.
-void subscribe_to_frame_tick( FrameSubscriptionFunc f, int n,
+void subscribe_to_frame_tick( FrameSubscriptionFunc f,
+                              FrameCount            n,
                               bool repeating = true );
 // Subscribe to receive a notification after n milliseconds, or
 // every n milliseconds if repeating == true.
@@ -44,10 +47,12 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc,
                               bool repeating = true );
 
 // The returned waitable becomes ready after `n` frames have
-// passed.
-waitable<> wait_n_frames( int n );
+// passed. Note: instead of co_await'ing this directly, you can
+// do: co_await 5_frames.
+waitable<> wait_n_frames( FrameCount n );
 // The returned waitable becomes ready after the given duration
-// has passed.
+// has passed. Note: instead of co_await'ing this directly, you
+// can do: co_await 2s.
 waitable<> wait_for_duration( std::chrono::milliseconds ms );
 
 using EventCountMap =

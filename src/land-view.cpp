@@ -43,6 +43,7 @@
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
+#include "base/scope-exit.hpp"
 
 // Rnl
 #include "rnl/land-view-impl.hpp"
@@ -367,7 +368,7 @@ waitable<> animate_depixelation( UnitId            id,
     // frame at 60 fps, that alone won't work for low frame rates
     // unless we then check how many frames have passed and
     // evolve the animation accordingly.
-    co_await wait_n_frames( 1 );
+    co_await 1_frames;
     int to_depixelate =
         std::min( config_rn.depixelate_pixels_per_frame,
                   int( depixelate.pixels.size() ) );
@@ -393,40 +394,26 @@ waitable<> animate_depixelation( UnitId            id,
   SG().unit_animations.erase( it );
 }
 
-// FIXME: hack alert; this is temporary until we figure out how
-// to do cancellable coroutines.
-bool g_blink_stop = false;
-
-// The reference that this coroutine takes is OK because it will
-// refer not to a temporary but to an lvalue in the callers
-// frame, and this coroutine will not outlive the caller (the
-// caller should co_await its result after setting stop to true).
 waitable<> animate_blink( UnitId id ) {
   using namespace std::literals::chrono_literals;
   CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::blink& blink =
       SG().unit_animations[id].emplace<UnitAnimation::blink>();
   blink = UnitAnimation::blink{ .visible = false };
-  // Start animation.
-  while( !g_blink_stop ) {
-    // Need to wait one frame at a time so that we can check for
-    // cancellation. If we didn't do that, and someone cancelled
-    // this coroutine, then there could be a race condition with
-    // removing and re-adding the unit animation object in
-    // SG().unit_animations.
-    for( int i = 0; i < 30; ++i ) {
-      co_await wait_n_frames( 1 );
-      if( g_blink_stop ) break;
-    }
-    // co_await wait_for_duration( 500ms );
-    blink.visible = !blink.visible;
-  }
   // The unit will always end up visible after we stop since we
   // are going to delete the animation object for this unit,
-  // which leaves them visible by default.
-  // End animation.
-  UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
-  SG().unit_animations.erase( it );
+  // which leaves them visible by default. Do this via RAII be-
+  // cause this coroutine will usually be interrupted.
+  SCOPE_EXIT( {
+    UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
+    SG().unit_animations.erase( it );
+  } );
+
+  // Start animation.
+  while( true ) {
+    co_await 500ms;
+    blink.visible = !blink.visible;
+  }
 }
 
 waitable<> animate_slide( UnitId id, e_direction d ) {
@@ -453,7 +440,7 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
     // frame at 60 fps, that alone won't work for low frame rates
     // unless we then check how many frames have passed and
     // evolve the animation accordingly.
-    co_await wait_n_frames( 1 );
+    co_await 1_frames;
     mv.percent_vel.advance( e_push_direction::none );
     mv.percent += mv.percent_vel.to_double();
   }
@@ -884,19 +871,12 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
 
   SG().landview_state =
       LandViewState::unit_input{ .unit_id = id };
-  waitable<> blinker = make_waitable<>();
-  // FIXME: hack alert; this is temporary until we figure out how
-  // to do cancellable coroutines.
-  g_blink_stop = false;
-  blinker      = animate_blink( id );
 
+  waitable<>            blinker = animate_blink( id );
   LandViewPlayerInput_t res =
       co_await next_player_input_object();
+  blinker.cancel();
 
-  g_blink_stop = true;
-  // Need to wait for this to avoid race conditions on the global
-  // unit animation object.
-  co_await blinker;
   // Must be last.
   SG().landview_state = LandViewState::none{};
   co_return res;

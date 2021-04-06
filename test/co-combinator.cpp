@@ -12,11 +12,13 @@
 
 // Under test.
 #include "src/co-combinator.hpp"
+#include "src/co-registry.hpp"
+#include "src/waitable-coro.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
 
-namespace rn {
+namespace rn::co {
 namespace {
 
 using namespace std;
@@ -31,22 +33,103 @@ TEST_CASE( "[co-combinator] when_any" ) {
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.set_value_emplace();
+    run_all_coroutines();
     REQUIRE( w1.ready() );
     REQUIRE( !w2.ready() );
   }
   SECTION( "second" ) {
     p2.set_value_emplace();
+    run_all_coroutines();
     REQUIRE( !w1.ready() );
     REQUIRE( w2.ready() );
   }
   SECTION( "both" ) {
     p1.set_value_emplace();
+    run_all_coroutines();
     p2.set_value_emplace();
+    run_all_coroutines();
     REQUIRE( w1.ready() );
     REQUIRE( w2.ready() );
   }
   REQUIRE( w.ready() );
 }
 
+TEST_CASE( "[co-combinator] when_any_with_cancel" ) {
+  waitable_promise<> p1, p2;
+  auto f1 = [p1]() -> waitable<> { co_await p1.get_waitable(); };
+  auto f2 = [p2]() -> waitable<> { co_await p2.get_waitable(); };
+  waitable<> w1 = f1();
+  waitable<> w2 = f2();
+  waitable<> w  = when_any_with_cancel( w1, w2 );
+  REQUIRE( !w.ready() );
+  SECTION( "first" ) {
+    p1.set_value_emplace();
+    run_all_coroutines();
+    REQUIRE( w1.ready() );
+    REQUIRE( !w2.ready() );
+  }
+  SECTION( "second" ) {
+    p2.set_value_emplace();
+    run_all_coroutines();
+    REQUIRE( !w1.ready() );
+    REQUIRE( w2.ready() );
+  }
+  SECTION( "both" ) {
+    p1.set_value_emplace();
+    run_all_coroutines();
+    p2.set_value_emplace();
+    run_all_coroutines();
+    REQUIRE( w1.ready() );
+    // Not ready because w2 has been cancelled because w1 was
+    // ready first.
+    REQUIRE( !w2.ready() );
+    run_all_coroutines();
+    REQUIRE( w1.ready() );
+    REQUIRE( !w2.ready() );
+  }
+  REQUIRE( w.ready() );
+}
+
+TEST_CASE( "[co-combinator] vector when_any_with_cancel" ) {
+  vector<waitable_promise<>> ps;
+  ps.resize( 10 );
+  vector<waitable<>> ws;
+  for( auto& p : ps )
+    ws.push_back(
+        [p]() -> waitable<> { co_await p.get_waitable(); }() );
+  waitable<> w = when_any_with_cancel( ws );
+  REQUIRE( !w.ready() );
+
+  for( int i = 0; i < 10; ++i ) //
+    REQUIRE( !ws[i].ready() );
+
+  ps[5].set_value_emplace();
+  run_all_coroutines();
+  REQUIRE( w.ready() );
+
+  // Make sure that only one is ready.
+  for( int i = 0; i < 10; ++i ) {
+    if( i == 5 )
+      REQUIRE( ws[i].ready() );
+    else
+      REQUIRE( !ws[i].ready() );
+  }
+
+  // Try to set the ones that were cancelled.
+  for( int i = 0; i < 10; ++i ) //
+    if( i != 5 )                //
+      ps[i].set_value_emplace();
+  run_all_coroutines();
+
+  // Still only one ready, since the others were cancelled before
+  // they were set.
+  for( int i = 0; i < 10; ++i ) {
+    if( i == 5 )
+      REQUIRE( ws[i].ready() );
+    else
+      REQUIRE( !ws[i].ready() );
+  }
+}
+
 } // namespace
-} // namespace rn
+} // namespace rn::co

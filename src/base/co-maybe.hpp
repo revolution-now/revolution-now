@@ -52,6 +52,14 @@ namespace detail {
 // Without this, a co_return would not be able to communicate the
 // result since the get_return_object is called at the start of
 // the coroutine.
+//
+// Note this also requires that compiler defer the implicit con-
+// version of the return object until the point of return. Some
+// versions of MSVC may not do this (although they are supposed
+// to in the future); if the implicit conversion is done eagerly
+// what is done here is probably undefined behavior in that the
+// maybe_holder would be immediately converted to a maybe and the
+// pointer held by the promise would point into a dead object.
 template<typename T, typename PromiseT>
 struct maybe_holder {
   maybe<T> o_;

@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "co-registry.hpp"
+#include "frame-count.hpp"
 #include "waitable.hpp"
 
 // base
@@ -21,71 +22,137 @@
 
 namespace rn {
 
-template<typename T>
-auto operator co_await( waitable<T> const& w ) {
-  struct awaitable {
-    waitable<T> w_;
-    bool        await_ready() noexcept { return w_.ready(); }
-    void await_suspend( coro::coroutine_handle<> h ) noexcept {
-      DCHECK( w_.shared_state() );
-      w_.shared_state()->add_callback(
-          [h = unique_coro( h )]( T const& ) mutable {
-            queue_coroutine_handle( std::move( h ) );
-          } );
-    }
-    T await_resume() noexcept { return w_.get(); }
-  };
-  return awaitable{ w };
-}
-
 namespace detail {
 
-template<typename T>
-struct promise_type_base {
-  promise_type_base() = default;
-
-  void set( T const& val ) { s_promise_.set_value( val ); }
-  void set( T&& val ) {
-    s_promise_.set_value( std::move( val ) );
+// The PromiseT is the type (inside the waitable) that will be
+// returned by the coroutine that is awaiting on this awaitable.
+// The type T is the type that this awaitable will yield.
+template<typename PromiseT, typename T = std::monostate>
+struct awaitable {
+  waitable<T> w_;
+  awaitable( waitable<T> w ) : w_( w ) {}
+  bool await_ready() noexcept { return w_.ready(); }
+  void await_suspend( coro::coroutine_handle<> h ) noexcept {
+    DCHECK( w_.shared_state() );
+    auto& coro_promise =
+        coro::coroutine_handle<PromiseT>::from_address(
+            h.address() )
+            .promise()
+            .waitable_promise_;
+    auto* ss = w_.shared_state().get();
+    coro_promise.shared_state()->set_cancel(
+        [ss] { ss->cancel(); } );
+    w_.shared_state()->add_callback(
+        [this, h = unique_coro( h )]( T const& ) mutable {
+          this->w_.shared_state()->set_cancel( [h = h.get()] {
+            destroy_queued_coroutine_handler( h );
+          } );
+          queue_coroutine_handle( std::move( h ) );
+        } );
   }
+  T await_resume() noexcept {
+    w_.shared_state()->set_cancel();
+    return w_.get();
+  }
+};
 
+waitable<> await_transform_impl( FrameCount frame_count );
+waitable<> await_transform_impl( std::chrono::milliseconds ms );
+
+// The point of this is that it's not a template, so it can hold
+// all the common stuff that does not depend on the type T para-
+// meter of the promise type.
+struct promise_type_base_base {
   auto initial_suspend() const { return base::suspend_never{}; }
   auto final_suspend() const noexcept {
     return base::suspend_never{};
   }
 
-  auto get_return_object() { return s_promise_.get_waitable(); }
-
   void unhandled_exception() { SHOULD_NOT_BE_HERE; }
-
-  rn::waitable_promise<T> s_promise_{};
 };
 
 template<typename T>
-struct promise_type : public promise_type_base<T> {
+struct promise_type_base : public promise_type_base_base {
+  using Base = promise_type_base_base;
+
+  using Base::Base;
+
+  void set( T const& val ) {
+    waitable_promise_.set_value( val );
+  }
+  void set( T&& val ) {
+    waitable_promise_.set_value( std::move( val ) );
+  }
+
+  auto get_return_object() {
+    return waitable_promise_.get_waitable();
+  }
+
+  rn::waitable_promise<T> waitable_promise_{};
+};
+
+template<typename T>
+struct promise_type final : public promise_type_base<T> {
   using Base = promise_type_base<T>;
 
-  using Base::s_promise_;
+  using Base::waitable_promise_;
 
   void return_value( T const& val ) {
-    s_promise_.set_value( val );
+    waitable_promise_.set_value( val );
+    waitable_promise_.shared_state()->set_cancel();
   }
   void return_value( T&& val ) {
-    s_promise_.set_value( std::move( val ) );
+    waitable_promise_.set_value( std::move( val ) );
+    waitable_promise_.shared_state()->set_cancel();
+  }
+
+  static auto await_transform( FrameCount frame_count ) {
+    return awaitable<promise_type, std::monostate>(
+        await_transform_impl( frame_count ) );
+  }
+
+  static auto await_transform( std::chrono::milliseconds ms ) {
+    return awaitable<promise_type, std::monostate>(
+        await_transform_impl( ms ) );
+  }
+
+  template<typename Waitable>
+  static auto await_transform( Waitable&& w ) {
+    return awaitable<promise_type, typename std::remove_cvref_t<
+                                       Waitable>::value_type>(
+        std::forward<Waitable>( w ) );
   }
 };
 
 // Specialization for waitable<> that allows us to just use bare
 // `co_return` statements instead of `co_return {}`.
 template<>
-struct promise_type<std::monostate>
+struct promise_type<std::monostate> final
   : public promise_type_base<std::monostate> {
   using Base = promise_type_base<std::monostate>;
 
-  using Base::s_promise_;
+  using Base::waitable_promise_;
 
   void return_void() {
-    s_promise_.set_value( std::monostate{} );
+    waitable_promise_.set_value( std::monostate{} );
+    waitable_promise_.shared_state()->set_cancel();
+  }
+
+  static auto await_transform( FrameCount frame_count ) {
+    return awaitable<promise_type, std::monostate>(
+        await_transform_impl( frame_count ) );
+  }
+
+  static auto await_transform( std::chrono::milliseconds ms ) {
+    return awaitable<promise_type, std::monostate>(
+        await_transform_impl( ms ) );
+  }
+
+  template<typename Waitable>
+  static auto await_transform( Waitable&& w ) {
+    return awaitable<promise_type, typename std::remove_cvref_t<
+                                       Waitable>::value_type>(
+        std::forward<Waitable>( w ) );
   }
 };
 

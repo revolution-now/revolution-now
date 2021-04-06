@@ -25,6 +25,13 @@ void queue_coroutine_handle( unique_coro h );
 // are queued in the process of running other coroutines.
 void run_all_coroutines();
 
+int number_of_queued_coroutines();
+
+// This is to be called when a coroutine that has already been
+// queued for running needs to be cancelled.
+void destroy_queued_coroutine_handler(
+    coro::coroutine_handle<> h );
+
 // Since the coroutines are held in RAII wrappers, this would
 // happen automatically on program termination, but this function
 // is used to control more precisely when it happens during shut-

@@ -77,6 +77,8 @@ public:
 
   operator bool() const noexcept { return bool( h_ ); }
 
+  coro::coroutine_handle<> get() const { return h_; }
+
 private:
   void destroy() noexcept;
 

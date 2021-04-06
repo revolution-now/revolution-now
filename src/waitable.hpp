@@ -15,6 +15,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "fmt-helper.hpp"
+#include "maybe.hpp"
 
 // base
 #include "base/unique-func.hpp"
@@ -24,10 +25,10 @@
 
 namespace rn {
 
-namespace internal {
+namespace detail {
 
 template<typename T>
-class sync_shared_state_base {
+class sync_shared_state {
   // This is a reference count that counts the number of promise
   // objects that are referring to this shared state object.
   // Promise objects are copyable, so in general this will be
@@ -54,25 +55,14 @@ class sync_shared_state_base {
   // will include contributions from the waitable's.
   int promise_ref_count_ = 1;
 
-public:
-  sync_shared_state_base()          = default;
-  virtual ~sync_shared_state_base() = default;
+  using CancelCallback = void();
+  maybe<base::unique_func<CancelCallback>> cancel_;
 
-  virtual bool has_value() const = 0;
-  virtual T    get() const       = 0;
+public:
+  sync_shared_state()  = default;
+  ~sync_shared_state() = default;
 
   using NotifyFunc = void( T const& );
-
-protected:
-  // Accumulates callbacks in a list, then when the value eventu-
-  // ally becomes ready, it will call them all in order. Any
-  // callbacks added after the value is ready will be called im-
-  // mediately.
-  virtual void add_copyable_callback(
-      std::function<NotifyFunc> callback ) = 0;
-
-  virtual void add_movable_callback(
-      base::unique_func<NotifyFunc> callback ) = 0;
 
 public:
   // Prefer the move-only unique function to resolve the ambi-
@@ -87,11 +77,6 @@ public:
       add_copyable_callback( std::forward<Func>( func ) );
   }
 
-  // Removes callbacks, so that when a value is set, nothing hap-
-  // pens. This probably has no effect if the value has already
-  // been set.
-  virtual void clear_callbacks() = 0;
-
   void inc_promise_count() {
     // Since the ref count starts out at 1, that means that once
     // it hits zero (and the callbacks have been cleared) we
@@ -104,9 +89,84 @@ public:
     CHECK( promise_ref_count_ > 0 );
     if( --promise_ref_count_ == 0 ) clear_callbacks();
   }
+
+  void cancel() {
+    // `this` could be non-existent after running the cancel
+    // function (in fact it is expected to be), so we should not
+    // do anything after that.
+    if( cancel_ )
+      ( *cancel_ )();
+    else
+      clear_callbacks();
+    // !! do not do anything here with `this`.
+  }
+
+  void set_cancel(
+      maybe<base::unique_func<CancelCallback>> func = nothing ) {
+    cancel_ = std::move( func );
+  }
+
+  bool has_value() const { return maybe_value.has_value(); }
+
+  T get() const {
+    CHECK( has_value() );
+    return *maybe_value;
+  }
+
+protected:
+  // Accumulates callbacks in a list, then when the value eventu-
+  // ally becomes ready, it will call them all in order. Any
+  // callbacks added after the value is ready will be called im-
+  // mediately.
+  void add_copyable_callback(
+      std::function<NotifyFunc> callback ) {
+    if( has_value() )
+      callback( *maybe_value );
+    else
+      callbacks_.push_back( std::move( callback ) );
+  }
+
+  void add_movable_callback(
+      base::unique_func<NotifyFunc> callback ) {
+    if( has_value() )
+      callback( *maybe_value );
+    else
+      ucallbacks_.push_back( std::move( callback ) );
+  }
+
+public:
+  // Removes callbacks, so that when a value is set, nothing hap-
+  // pens. This probably has no effect if the value has already
+  // been set.
+  void clear_callbacks() {
+    callbacks_.clear();
+    ucallbacks_.clear();
+  }
+
+  void do_callbacks() {
+    CHECK( has_value() );
+    for( auto const& callback : callbacks_ )
+      callback( *maybe_value );
+    for( auto& callback : ucallbacks_ ) callback( *maybe_value );
+    // The callbacks can/should only be called once (at least
+    // when the program is behaving correctly) and so now that
+    // we've called them, we can take the opportunity to delete
+    // them which helps to break memory cycles, since the call-
+    // backs can own other objects through their captures that
+    // can in turn reference this shared state.
+    clear_callbacks();
+  }
+
+  maybe<T> maybe_value;
+  // Currently we have two separate vectors for unique and
+  // non-unique function callbacks. This may cause callbacks to
+  // get invoked in a different order than they were inserted.
+  // Don't think this should a problem...
+  std::vector<std::function<NotifyFunc>>     callbacks_;
+  std::vector<base::unique_func<NotifyFunc>> ucallbacks_;
 };
 
-} // namespace internal
+} // namespace detail
 
 template<typename T>
 class waitable;
@@ -124,7 +184,9 @@ template<typename T = std::monostate>
 class [[nodiscard]] waitable {
   template<typename U>
   using SharedStatePtr =
-      std::shared_ptr<internal::sync_shared_state_base<U>>;
+      std::shared_ptr<detail::sync_shared_state<U>>;
+
+  void clear_callbacks() { shared_state_->clear_callbacks(); }
 
 public:
   using value_type = T;
@@ -149,8 +211,6 @@ public:
 
   operator bool() const { return ready(); }
 
-  void clear_callbacks() { shared_state_->clear_callbacks(); }
-
   // Gets the value (running any continuations) and returns the
   // value, leaving the waitable in the same state.
   T get() {
@@ -163,7 +223,12 @@ public:
   // We need this so that waitable<T> can access the shared
   // state of waitable<U>. Haven't figured out a way to make
   // them friends yet.
-  SharedStatePtr<T> shared_state() { return shared_state_; }
+  SharedStatePtr<T>& shared_state() { return shared_state_; }
+
+  void cancel() {
+    shared_state_->cancel();
+    shared_state_->set_cancel();
+  }
 
 private:
   SharedStatePtr<T> shared_state_;
@@ -174,71 +239,9 @@ private:
 *****************************************************************/
 template<typename T = std::monostate>
 class waitable_promise {
-  struct sync_shared_state
-    : public internal::sync_shared_state_base<T> {
-    using Base_t = internal::sync_shared_state_base<T>;
-    ~sync_shared_state() override = default;
-
-    sync_shared_state() = default;
-
-    bool has_value() const override {
-      return maybe_value.has_value();
-    }
-
-    T get() const override {
-      CHECK( has_value() );
-      return *maybe_value;
-    }
-
-    using typename Base_t::NotifyFunc;
-
-    void add_copyable_callback(
-        std::function<NotifyFunc> callback ) override {
-      if( has_value() )
-        callback( *maybe_value );
-      else
-        callbacks_.push_back( std::move( callback ) );
-    }
-
-    void add_movable_callback(
-        base::unique_func<NotifyFunc> callback ) override {
-      if( has_value() )
-        callback( *maybe_value );
-      else
-        ucallbacks_.push_back( std::move( callback ) );
-    }
-
-    void clear_callbacks() override {
-      callbacks_.clear();
-      ucallbacks_.clear();
-    }
-
-    void do_callbacks() {
-      CHECK( has_value() );
-      for( auto const& callback : callbacks_ )
-        callback( *maybe_value );
-      for( auto& callback : ucallbacks_ )
-        callback( *maybe_value );
-      // The callbacks can/should only be called once (at least
-      // when the program is behaving correctly) and so now that
-      // we've called them, we can take the opportunity to delete
-      // them which helps to break memory cycles, since the call-
-      // backs can own other objects through their captures that
-      // can in turn reference this shared state.
-      clear_callbacks();
-    }
-
-    maybe<T> maybe_value;
-    // Currently we have two separate vectors for unique and
-    // non-unique function callbacks. This may cause callbacks to
-    // get invoked in a different order than they were inserted.
-    // Don't think this should a problem...
-    std::vector<std::function<NotifyFunc>>     callbacks_;
-    std::vector<base::unique_func<NotifyFunc>> ucallbacks_;
-  };
-
 public:
-  waitable_promise() : shared_state_( new sync_shared_state ) {
+  waitable_promise()
+    : shared_state_( new detail::sync_shared_state<T> ) {
     // shared state ref count should initialize to 1.
   }
 
@@ -284,8 +287,13 @@ public:
 
   bool has_value() const { return shared_state_->has_value(); }
 
+  // FIXME: rename this to waitable().
   waitable<T> get_waitable() const {
     return waitable<T>( shared_state_ );
+  }
+
+  std::shared_ptr<detail::sync_shared_state<T>>& shared_state() {
+    return shared_state_;
   }
 
   /**************************************************************
@@ -335,11 +343,12 @@ private:
   // in lambdas, which this allows us to set the value on the
   // promise without making the lambda mutable, which tends to be
   // viral and is painful to deal with.
-  sync_shared_state* mutable_state() const {
-    return const_cast<sync_shared_state*>( shared_state_.get() );
+  detail::sync_shared_state<T>* mutable_state() const {
+    return const_cast<detail::sync_shared_state<T>*>(
+        shared_state_.get() );
   }
 
-  std::shared_ptr<sync_shared_state> shared_state_;
+  std::shared_ptr<detail::sync_shared_state<T>> shared_state_;
 };
 
 /****************************************************************
@@ -359,6 +368,11 @@ waitable<T> make_waitable( Args&&... args ) {
   waitable_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
   return s_promise.get_waitable();
+}
+
+template<typename T = std::monostate>
+waitable<T> empty_waitable() {
+  return waitable_promise<T>{}.get_waitable();
 }
 
 template<typename T>

@@ -471,6 +471,12 @@ inline constexpr bool operator>=( int           left,
 #define TYPED_INDEX( a ) \
   DERIVE_TYPED_NUM( int, a, TypedInt, idx )
 
+#define TYPED_INT( a, suffix )                                 \
+  DERIVE_TYPED_NUM( int, a, TypedInt, suffix )                 \
+  inline ::rn::a operator""_##suffix( unsigned long long n ) { \
+    return ::rn::a{ static_cast<int>( n ) };                   \
+  }
+
 // Scales are numbers that can only be multiplied by themselves
 // or by the corresponding coordinate/length type.
 #define TYPED_SCALE( t, a, s ) \

@@ -47,6 +47,26 @@ void run_all_coroutines() {
   }
 }
 
+void destroy_queued_coroutine_handler(
+    coro::coroutine_handle<> h ) {
+  lg.debug( "destroying queued coroutine." );
+  int const initial_size = g_coros_to_resume.size();
+  CHECK( initial_size >= 1 );
+  queue<unique_coro> coros_to_resume;
+  while( !g_coros_to_resume.empty() ) {
+    unique_coro& front = g_coros_to_resume.front();
+    if( front.get() != h )
+      coros_to_resume.push( std::move( front ) );
+    g_coros_to_resume.pop();
+  }
+  CHECK_EQ( initial_size, int( coros_to_resume.size() + 1 ) );
+  g_coros_to_resume = std::move( coros_to_resume );
+}
+
+int number_of_queued_coroutines() {
+  return int( g_coros_to_resume.size() );
+}
+
 void destroy_all_coroutines() {
   lg.debug( "destroying all queued coroutines: {}",
             g_coros_to_resume.size() );

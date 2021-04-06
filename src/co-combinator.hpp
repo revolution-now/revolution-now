@@ -15,12 +15,67 @@
 // Revolution Now
 #include "waitable.hpp"
 
-namespace rn {
+// base
+#include "base/unique-func.hpp"
+
+// C++ standard library
+#include <vector>
+
+namespace rn::co {
 
 // Returns a waitable that will be ready when at least one of the
-// arguments becomes ready. That means that it won't wait for
-// both of them; the one that is not yet ready will either need
-// to be awaited upon itself, or cancelled before reusing it.
+// waitables becomes ready. The other waitables may still be run-
+// ning. For the vector version: if the vector is empty, it will
+// be in a ready state.
 waitable<> when_any( waitable<> w1, waitable<> w2 );
+waitable<> when_any( std::vector<waitable<>> ws );
 
-} // namespace rn
+// Same as above, except the unfinished waitables (if any) will
+// be cancelled. For the vector version: if the vector is empty,
+// it will be in a ready state.
+waitable<> when_any_with_cancel( waitable<> w1, waitable<> w2 );
+waitable<> when_any_with_cancel( std::vector<waitable<>> ws );
+
+// The `get_repeatable` will be called repeatedly to get and run
+// a waitable. This will continue ad infinitum or until the
+// `until_this_finishes` finishes at which case an currently run-
+// ning waitable will be cancelled. The `until_this_finishes`
+// just runs continuously and is never restarted.
+waitable<> repeat_until_and_cancel(
+    base::unique_func<waitable<>() const> get_repeatable,
+    waitable<>                            until_this_finishes );
+
+/****************************************************************
+** Monadic functions.
+*****************************************************************/
+// fmap: apply function to value inside of waitable, returning
+// another waitable.
+template<typename Func, typename T>
+waitable<std::invoke_result_t<Func, T>> fmap( Func&&      func,
+                                              waitable<T> w ) {
+  co_return std::forward<Func>( func )( co_await w );
+}
+
+// bind: apply function to results of waitable, which returns a
+// new waitable.
+template<typename Func, typename T>
+waitable<typename std::invoke_result_t<Func, T>::value_type>
+bind( waitable<T> w, Func&& func ) {
+  co_return co_await std::forward<Func>( func )( co_await w );
+}
+
+// join: collapse nested waitables.
+template<typename T>
+waitable<T> join( waitable<waitable<T>> w ) {
+  co_return co_await co_await w;
+}
+
+// invoke: apply function to results of waitables.
+template<typename Func, typename T1, typename T2>
+waitable<std::invoke_result_t<Func, T1, T2>> invoke(
+    Func&& func, waitable<T1> w1, waitable<T2> w2 ) {
+  co_return std::forward<Func>( func )( co_await w1,
+                                        co_await w2 );
+}
+
+} // namespace rn::co

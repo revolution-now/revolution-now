@@ -182,14 +182,14 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
 namespace click_anim {
 
 // TODO: make an animation framework that can manage the states
-// of an animation along with durations in Frames.
+// of an animation along with durations in Frame.
 
 // For the MacOS single-blink-and-fade style.
-auto constexpr half_period      = Frames{ 6 };
-auto constexpr post_off_time    = Frames{ 0 };
+auto constexpr half_period      = kFrame * 6;
+auto constexpr post_off_time    = kFrame * 0;
 auto constexpr num_half_periods = int( 2 );
 bool constexpr start_on         = false;
-auto constexpr fade_time        = Frames{ 22 };
+auto constexpr fade_time        = kFrame * 22;
 
 // For example, the click could be like this:
 //

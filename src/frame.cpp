@@ -45,7 +45,7 @@ MovingAverage frame_rate( chrono::seconds( 3 ) );
 EventCountMap g_event_counts;
 
 struct FrameSubscriptionTick {
-  int                   interval{ 1 };
+  FrameCount            interval{ 1 };
   int                   last_message{ 0 };
   FrameSubscriptionFunc func;
 };
@@ -185,8 +185,8 @@ void frame_loop_body( InputReceivedFunc input_received ) {
 
 } // namespace
 
-void subscribe_to_frame_tick( FrameSubscriptionFunc func, int n,
-                              bool repeating ) {
+void subscribe_to_frame_tick( FrameSubscriptionFunc func,
+                              FrameCount n, bool repeating ) {
   ( repeating ? subscriptions : subscriptions_oneoff )()
       .push_back( FrameSubscriptionTick{
           /*interval=*/n, /*last_message=*/0, /*func=*/func } );
@@ -201,7 +201,7 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc     func,
           /*func=*/func } );
 }
 
-waitable<> wait_n_frames( int n ) {
+waitable<> wait_n_frames( FrameCount n ) {
   waitable_promise<> p;
   auto after_ticks = [p]() mutable { p.set_value_emplace(); };
   subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );

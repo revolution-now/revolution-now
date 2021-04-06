@@ -84,6 +84,7 @@
 // cpp files should use BASE_CHECK to avoid a collision with a
 // similar Catch2 symbol.
 #define CHECK( ... ) BASE_CHECK( __VA_ARGS__ )
+#define CHECK_EQ( ... ) BASE_CHECK_EQ( __VA_ARGS__ )
 
 #define BASE_CHECK( a, ... )                             \
   {                                                      \
@@ -91,6 +92,14 @@
       ::base::abort_with_msg( ::base::detail::check_msg( \
           #a, FMT_SAFE( "" __VA_ARGS__ ) ) );            \
     }                                                    \
+  }
+
+#define BASE_CHECK_EQ( x, y )                                \
+  {                                                          \
+    if( ( x ) != ( y ) ) {                                   \
+      ::base::abort_with_msg( ::base::detail::check_msg(     \
+          #x " != " #y, fmt::format( "{} != {}", x, y ) ) ); \
+    }                                                        \
   }
 
 // DCHECK is CHECK in debug builds, but compiles to nothing in

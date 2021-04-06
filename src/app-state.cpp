@@ -87,15 +87,8 @@ waitable<> play_game() {
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
-  waitable<> exit_game = exit_waiter();
-  auto       next_turn = make_waitable<>();
-  while( !exit_game ) {
-    // We must clear the callbacks before reusing this object as
-    // dictated by the when_any contract.
-    exit_game.clear_callbacks();
-    next_turn = do_next_turn();
-    co_await when_any( next_turn, exit_game );
-  }
+  co_await co::repeat_until_and_cancel( &do_next_turn,
+                                        exit_waiter() );
 }
 
 /****************************************************************
