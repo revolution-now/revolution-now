@@ -872,10 +872,14 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
   SG().landview_state =
       LandViewState::unit_input{ .unit_id = id };
 
-  waitable<>            blinker = animate_blink( id );
-  LandViewPlayerInput_t res =
-      co_await next_player_input_object();
-  blinker.cancel();
+  LandViewPlayerInput_t res;
+  {
+    // FIXME: run blinker under a combinator that will automati-
+    // cally cancel it without us having to use scopes here.
+    waitable<> blinker = animate_blink( id );
+    SCOPE_EXIT( blinker.cancel() );
+    res = co_await next_player_input_object();
+  }
 
   // Must be last.
   SG().landview_state = LandViewState::none{};

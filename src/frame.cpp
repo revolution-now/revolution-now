@@ -28,6 +28,7 @@
 
 // base
 #include "base/function-ref.hpp"
+#include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 #include "base/variant.hpp"
 
@@ -45,13 +46,15 @@ MovingAverage frame_rate( chrono::seconds( 3 ) );
 EventCountMap g_event_counts;
 
 struct FrameSubscriptionTick {
-  FrameCount            interval{ 1 };
-  int                   last_message{ 0 };
+  bool       done = false; // for one-time notifications
+  FrameCount interval{ 1 };
+  uint64_t   last_message{ 0 };
   FrameSubscriptionFunc func;
 };
 NOTHROW_MOVE( FrameSubscriptionTick );
 
 struct FrameSubscriptionTime {
+  bool done = false; // for one-time notifications
   chrono::milliseconds  interval;
   Time_t                last_message{};
   FrameSubscriptionFunc func;
@@ -73,30 +76,33 @@ vector<FrameSubscription>& subscriptions_oneoff() {
 }
 
 void notify_subscribers() {
-  for( auto subs_list :
-       { subscriptions, subscriptions_oneoff } ) {
-    for( auto& sub : subs_list() ) {
-      overload_visit(
-          sub,
-          []( FrameSubscriptionTick& tick_sub ) {
-            auto& [interval, last_message, func] = tick_sub;
-            auto total = total_frame_count();
-            if( long( total ) - last_message > interval ) {
-              last_message = total;
-              func();
-            }
-          },
-          []( FrameSubscriptionTime& time_sub ) {
-            auto& [interval, last_message, func] = time_sub;
-            auto now = Clock_t::now();
-            if( now - last_message > interval ) {
-              last_message = now;
-              func();
-            }
-          } );
-    }
-  }
-  subscriptions_oneoff().clear();
+  auto try_notify = []( FrameSubscription& sub ) {
+    overload_visit(
+        sub,
+        []( FrameSubscriptionTick& tick_sub ) {
+          auto& [done, interval, last_message, func] = tick_sub;
+          auto total = total_frame_count();
+          if( total - last_message >= interval ) {
+            last_message = total;
+            func();
+            done = true;
+          }
+        },
+        []( FrameSubscriptionTime& time_sub ) {
+          auto& [done, interval, last_message, func] = time_sub;
+          auto now = Clock_t::now();
+          if( now - last_message >= interval ) {
+            last_message = now;
+            func();
+            done = true;
+          }
+        } );
+  };
+  for( auto& sub : subscriptions() ) try_notify( sub );
+  for( auto& sub : subscriptions_oneoff() ) try_notify( sub );
+  erase_if( subscriptions_oneoff(), []( FrameSubscription& fs ) {
+    return std::visit<bool>( L( _.done ), fs );
+  } );
 }
 
 using InputReceivedFunc = function_ref<void()>;
@@ -183,22 +189,32 @@ void frame_loop_body( InputReceivedFunc input_received ) {
   ::SDL_RenderPresent( g_renderer );
 };
 
+void deinit_frame() {
+  subscriptions().clear();
+  subscriptions_oneoff().clear();
+}
+
 } // namespace
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc func,
                               FrameCount n, bool repeating ) {
   ( repeating ? subscriptions : subscriptions_oneoff )()
       .push_back( FrameSubscriptionTick{
-          /*interval=*/n, /*last_message=*/0, /*func=*/func } );
+          .done         = false,
+          .interval     = n,
+          .last_message = total_frame_count(),
+          .func         = func } );
 }
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc     func,
                               std::chrono::milliseconds n,
                               bool repeating ) {
   ( repeating ? subscriptions : subscriptions_oneoff )()
-      .push_back( FrameSubscriptionTime{
-          /*interval=*/n, /*last_message=*/Clock_t::now(),
-          /*func=*/func } );
+      .push_back(
+          FrameSubscriptionTime{ .done         = false,
+                                 .interval     = n,
+                                 .last_message = Clock_t::now(),
+                                 .func         = func } );
 }
 
 waitable<> wait_n_frames( FrameCount n ) {
@@ -222,6 +238,7 @@ double   avg_frame_rate() { return frame_rate.average(); }
 
 void frame_loop( waitable<> const& what ) {
   frame_loop_scheduler( what, frame_loop_body );
+  deinit_frame();
 }
 
 } // namespace rn
