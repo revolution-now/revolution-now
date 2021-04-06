@@ -221,14 +221,14 @@ waitable<> wait_n_frames( FrameCount n ) {
   waitable_promise<> p;
   auto after_ticks = [p]() mutable { p.set_value_emplace(); };
   subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );
-  return p.get_waitable();
+  return p.waitable();
 }
 
 waitable<> wait_for_duration( std::chrono::milliseconds ms ) {
   waitable_promise<> p;
   auto after_time = [p]() mutable { p.set_value_emplace(); };
   subscribe_to_frame_tick( after_time, ms, /*repeating=*/false );
-  return p.get_waitable();
+  return p.waitable();
 }
 
 EventCountMap& event_counts() { return g_event_counts; }

@@ -130,7 +130,7 @@ waitable<Enum> select_box_enum(
                          [s_promise]( Enum result ) mutable {
                            s_promise.set_value( result );
                          } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 template<typename Enum>
@@ -150,7 +150,7 @@ waitable<Enum> select_box_enum( std::string_view title ) {
                          [s_promise]( Enum result ) mutable {
                            s_promise.set_value( result );
                          } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 /****************************************************************

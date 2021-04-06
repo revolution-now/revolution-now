@@ -91,6 +91,19 @@ public:
   }
 
   void cancel() {
+    // At this point, the shared_state usually does not have a
+    // value yet, but it might. An example of the latter case
+    // would be when a value has been set on a promise at the end
+    // of a coroutine chain, and the coroutine handle has been
+    // queued to run, but before it does, the original caller of
+    // the coroutine chain decides to cancel it. When that hap-
+    // pens, the cancellation signal will propagate down the
+    // chain and eventually encounter a shared_state that has a
+    // value. In that case we need to call the cancel_ function
+    // as well because it will have been populated with a lambda
+    // function that will unqueue the coroutine handle from the
+    // registry.
+    //
     // `this` could be non-existent after running the cancel
     // function (in fact it is expected to be), so we should not
     // do anything after that.
@@ -105,6 +118,8 @@ public:
       maybe<base::unique_func<CancelCallback>> func = nothing ) {
     cancel_ = std::move( func );
   }
+
+  bool has_cancel() const { return cancel_.has_value(); }
 
   bool has_value() const { return maybe_value.has_value(); }
 
@@ -226,6 +241,8 @@ public:
   SharedStatePtr<T>& shared_state() { return shared_state_; }
 
   void cancel() {
+    // We must call cancel on the shared_state even if it has a
+    // value, for reasons explained in that function.
     shared_state_->cancel();
     shared_state_->set_cancel();
   }
@@ -287,9 +304,8 @@ public:
 
   bool has_value() const { return shared_state_->has_value(); }
 
-  // FIXME: rename this to waitable().
-  waitable<T> get_waitable() const {
-    return waitable<T>( shared_state_ );
+  waitable<T> waitable() const {
+    return ::rn::waitable<T>( shared_state_ );
   }
 
   std::shared_ptr<detail::sync_shared_state<T>>& shared_state() {
@@ -302,12 +318,14 @@ public:
   void set_value( T const& value ) const {
     CHECK( !has_value() );
     mutable_state()->maybe_value = value;
+    mutable_state()->set_cancel();
     mutable_state()->do_callbacks();
   }
 
   void set_value( T&& value ) const {
     CHECK( !has_value() );
     mutable_state()->maybe_value = std::move( value );
+    mutable_state()->set_cancel();
     mutable_state()->do_callbacks();
   }
 
@@ -316,6 +334,7 @@ public:
     CHECK( !has_value() );
     mutable_state()->maybe_value.emplace(
         std::forward<Args>( args )... );
+    mutable_state()->set_cancel();
     mutable_state()->do_callbacks();
   }
 
@@ -367,12 +386,12 @@ template<typename T = std::monostate, typename... Args>
 waitable<T> make_waitable( Args&&... args ) {
   waitable_promise<T> s_promise;
   s_promise.set_value_emplace( std::forward<Args>( args )... );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 template<typename T = std::monostate>
 waitable<T> empty_waitable() {
-  return waitable_promise<T>{}.get_waitable();
+  return waitable_promise<T>{}.waitable();
 }
 
 template<typename T>

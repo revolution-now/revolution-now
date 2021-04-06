@@ -118,7 +118,7 @@ struct PanelPlane : public Plane {
   waitable<> user_hits_eot_button() {
     next_turn_button().enable( /*enabled=*/true );
     w_promise = {};
-    return w_promise.get_waitable();
+    return w_promise.waitable();
   }
 
   unique_ptr<ui::InvisibleView> view;

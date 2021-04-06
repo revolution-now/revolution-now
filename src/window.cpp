@@ -554,7 +554,7 @@ waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
   ok_cancel( msg, [s_promise]( e_ok_cancel oc ) {
     s_promise.set_value( oc );
   } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 void ok_box( string_view msg, function<void()> on_closing ) {
@@ -646,7 +646,7 @@ waitable<maybe<int>> int_input_box( std::string_view title,
                     s_promise.set_value(
                         result.bind( L( base::stoi( _ ) ) ) );
                   } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 waitable<maybe<string>> str_input_box(
@@ -657,7 +657,7 @@ waitable<maybe<string>> str_input_box(
                   [s_promise]( maybe<string> result ) {
                     s_promise.set_value( result );
                   } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 /****************************************************************
@@ -704,7 +704,7 @@ waitable<std::string> select_box( std::string_view title,
               [s_promise]( string const& result ) {
                 s_promise.set_value( result );
               } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 void yes_no( std::string_view                 title,
@@ -722,7 +722,7 @@ waitable<> message_box( string_view msg ) {
   ok_box( msg, /*on_closing=*/[s_promise]() {
     s_promise.set_value( monostate{} );
   } );
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 waitable<vector<UnitSelection>> unit_selection_box(
@@ -778,7 +778,7 @@ waitable<vector<UnitSelection>> unit_selection_box(
       /*get_view_fun=*/get_view_fn //
   );
 
-  return s_promise.get_waitable();
+  return s_promise.waitable();
 }
 
 /****************************************************************

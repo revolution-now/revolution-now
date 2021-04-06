@@ -50,10 +50,7 @@ struct awaitable {
           queue_coroutine_handle( std::move( h ) );
         } );
   }
-  T await_resume() noexcept {
-    w_.shared_state()->set_cancel();
-    return w_.get();
-  }
+  T await_resume() noexcept { return w_.get(); }
 };
 
 waitable<> await_transform_impl( FrameCount frame_count );
@@ -77,15 +74,8 @@ struct promise_type_base : public promise_type_base_base {
 
   using Base::Base;
 
-  void set( T const& val ) {
-    waitable_promise_.set_value( val );
-  }
-  void set( T&& val ) {
-    waitable_promise_.set_value( std::move( val ) );
-  }
-
   auto get_return_object() {
-    return waitable_promise_.get_waitable();
+    return waitable_promise_.waitable();
   }
 
   rn::waitable_promise<T> waitable_promise_{};
@@ -99,11 +89,9 @@ struct promise_type final : public promise_type_base<T> {
 
   void return_value( T const& val ) {
     waitable_promise_.set_value( val );
-    waitable_promise_.shared_state()->set_cancel();
   }
   void return_value( T&& val ) {
     waitable_promise_.set_value( std::move( val ) );
-    waitable_promise_.shared_state()->set_cancel();
   }
 
   static auto await_transform( FrameCount frame_count ) {
@@ -135,7 +123,6 @@ struct promise_type<std::monostate> final
 
   void return_void() {
     waitable_promise_.set_value( std::monostate{} );
-    waitable_promise_.shared_state()->set_cancel();
   }
 
   static auto await_transform( FrameCount frame_count ) {

@@ -27,8 +27,8 @@ using Catch::Contains;
 
 TEST_CASE( "[co-combinator] when_any" ) {
   waitable_promise<> p1, p2;
-  waitable<>         w1 = p1.get_waitable();
-  waitable<>         w2 = p2.get_waitable();
+  waitable<>         w1 = p1.waitable();
+  waitable<>         w2 = p2.waitable();
   waitable<>         w  = when_any( w1, w2 );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
@@ -56,8 +56,8 @@ TEST_CASE( "[co-combinator] when_any" ) {
 
 TEST_CASE( "[co-combinator] when_any_with_cancel" ) {
   waitable_promise<> p1, p2;
-  auto f1 = [p1]() -> waitable<> { co_await p1.get_waitable(); };
-  auto f2 = [p2]() -> waitable<> { co_await p2.get_waitable(); };
+  auto f1 = [p1]() -> waitable<> { co_await p1.waitable(); };
+  auto f2 = [p2]() -> waitable<> { co_await p2.waitable(); };
   waitable<> w1 = f1();
   waitable<> w2 = f2();
   waitable<> w  = when_any_with_cancel( w1, w2 );
@@ -95,8 +95,15 @@ TEST_CASE( "[co-combinator] vector when_any_with_cancel" ) {
   ps.resize( 10 );
   vector<waitable<>> ws;
   for( auto& p : ps )
+    // Use an extra layer of coroutine here so that we have some-
+    // thing to cancel. If we don't do this, then we won't really
+    // be able to verify that anything cancelled (later in this
+    // test case) which we do by trying to set values on them
+    // after they are cancelled and verifying that it has no ef-
+    // fect. Without the extra layer of coroutine, setting the
+    // values on them would make them ready.
     ws.push_back(
-        [p]() -> waitable<> { co_await p.get_waitable(); }() );
+        [p]() -> waitable<> { co_await p.waitable(); }() );
   waitable<> w = when_any_with_cancel( ws );
   REQUIRE( !w.ready() );
 
@@ -104,6 +111,7 @@ TEST_CASE( "[co-combinator] vector when_any_with_cancel" ) {
     REQUIRE( !ws[i].ready() );
 
   ps[5].set_value_emplace();
+  REQUIRE( !w.ready() );
   run_all_coroutines();
   REQUIRE( w.ready() );
 

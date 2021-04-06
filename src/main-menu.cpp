@@ -110,7 +110,7 @@ Plane* main_menu_plane() { return &g_main_menu_plane; }
 *****************************************************************/
 waitable<e_main_menu_item> next_main_menu_item() {
   g_promise = waitable_promise<e_main_menu_item>{};
-  return g_promise.get_waitable();
+  return g_promise.waitable();
 }
 
 } // namespace rn

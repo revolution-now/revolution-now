@@ -624,7 +624,7 @@ waitable<> SmoothViewport::ensure_tile_visible_smooth(
       .y_target = YD{ double( ( coord.y * g_tile_height )._ ) },
       .tile_target = coord,
       .promise     = {} };
-  return smooth_center_->promise.get_waitable();
+  return smooth_center_->promise.waitable();
 }
 
 } // namespace rn

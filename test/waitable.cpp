@@ -51,7 +51,7 @@ TEST_CASE( "[waitable] promise api basic api" ) {
   waitable_promise<int> s_promise;
   REQUIRE( !s_promise.has_value() );
 
-  waitable<int> s_future = s_promise.get_waitable();
+  waitable<int> s_future = s_promise.waitable();
   REQUIRE( !s_future.ready() );
 
   s_promise.set_value( 3 );
@@ -65,7 +65,7 @@ TEST_CASE( "[waitable] formatting" ) {
   waitable_promise<int> s_promise;
   REQUIRE( fmt::format( "{}", s_promise ) == "<empty>" );
 
-  waitable<int> s_future = s_promise.get_waitable();
+  waitable<int> s_future = s_promise.waitable();
   REQUIRE( fmt::format( "{}", s_future ) == "<waiting>" );
 
   s_promise.set_value_if_not_set( 3 );
@@ -91,7 +91,7 @@ TEST_CASE( "[waitable] promise ref count" ) {
   waitable_promise<> p;
   auto               p2 = p;
   auto               p3 = p;
-  waitable<>         w  = p.get_waitable();
+  waitable<>         w  = p.waitable();
   w.shared_state()->add_callback( std::move( callback ) );
   CHECK( !callbacks_released );
   p = {};
@@ -111,7 +111,7 @@ TEST_CASE( "[waitable] set value clears callbacks" ) {
   waitable_promise<> p;
   auto               p2 = p;
   auto               p3 = p;
-  waitable<>         w  = p.get_waitable();
+  waitable<>         w  = p.waitable();
   w.shared_state()->add_callback( std::move( callback ) );
   CHECK( !callbacks_released );
   p.set_value_emplace();
@@ -134,9 +134,11 @@ queue<variant<w_coro_promise<int>, w_coro_promise<double>>>
 
 void deliver_promise() {
   struct Setter {
-    void operator()( w_coro_promise<int>& p ) { p.set( 1 ); }
+    void operator()( w_coro_promise<int>& p ) {
+      p.return_value( 1 );
+    }
     void operator()( w_coro_promise<double>& p ) {
-      p.set( 2.2 );
+      p.return_value( 2.2 );
     }
   };
   if( !g_promises.empty() ) {
@@ -238,19 +240,19 @@ waitable_promise<int>    p1;
 waitable<string> coro() {
   LogDestructionStr lds( "coro" );
   log_str( "coro" );
-  return p.get_waitable();
+  return p.waitable();
 }
 
 waitable<int> coro0() {
   LogDestructionStr lds( "coro0" );
   log_str( "coro0" );
-  return p0.get_waitable();
+  return p0.waitable();
 }
 
 waitable<int> coro1() {
   LogDestructionStr lds( "coro1" );
   log_str( "coro1" );
-  return p1.get_waitable();
+  return p1.waitable();
 }
 
 waitable<string> coro2() {

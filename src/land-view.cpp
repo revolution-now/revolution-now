@@ -594,7 +594,7 @@ waitable<ClickTileActions> click_on_world_tile(
 waitable<LandViewPlayerInput_t> next_player_input_object() {
   while( true ) {
     LandViewRawInput_t raw_input =
-        co_await SG().unit_raw_input_promise.get_waitable();
+        co_await SG().unit_raw_input_promise.waitable();
     // Reset it so that the next one will be inserted.
     SG().unit_raw_input_promise = {};
 
