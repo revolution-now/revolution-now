@@ -25,11 +25,11 @@ using namespace std;
 
 using Catch::Contains;
 
-TEST_CASE( "[co-combinator] when_any" ) {
+TEST_CASE( "[co-combinator] any" ) {
   waitable_promise<> p1, p2;
   waitable<>         w1 = p1.waitable();
   waitable<>         w2 = p2.waitable();
-  waitable<>         w  = when_any( w1, w2 );
+  waitable<>         w  = any( w1, w2 );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.set_value_emplace();
@@ -54,13 +54,13 @@ TEST_CASE( "[co-combinator] when_any" ) {
   REQUIRE( w.ready() );
 }
 
-TEST_CASE( "[co-combinator] when_any_with_cancel" ) {
+TEST_CASE( "[co-combinator] any_cancel" ) {
   waitable_promise<> p1, p2;
   auto f1 = [p1]() -> waitable<> { co_await p1.waitable(); };
   auto f2 = [p2]() -> waitable<> { co_await p2.waitable(); };
   waitable<> w1 = f1();
   waitable<> w2 = f2();
-  waitable<> w  = when_any_with_cancel( w1, w2 );
+  waitable<> w  = any_cancel( w1, w2 );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.set_value_emplace();
@@ -90,7 +90,7 @@ TEST_CASE( "[co-combinator] when_any_with_cancel" ) {
   REQUIRE( w.ready() );
 }
 
-TEST_CASE( "[co-combinator] vector when_any_with_cancel" ) {
+TEST_CASE( "[co-combinator] vector any_cancel" ) {
   vector<waitable_promise<>> ps;
   ps.resize( 10 );
   vector<waitable<>> ws;
@@ -104,7 +104,7 @@ TEST_CASE( "[co-combinator] vector when_any_with_cancel" ) {
     // values on them would make them ready.
     ws.push_back(
         [p]() -> waitable<> { co_await p.waitable(); }() );
-  waitable<> w = when_any_with_cancel( ws );
+  waitable<> w = any_cancel( ws );
   REQUIRE( !w.ready() );
 
   for( int i = 0; i < 10; ++i ) //

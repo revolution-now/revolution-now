@@ -25,16 +25,23 @@ namespace rn::co {
 
 // Returns a waitable that will be ready when at least one of the
 // waitables becomes ready. The other waitables may still be run-
-// ning. For the vector version: if the vector is empty, it will
-// be in a ready state.
-waitable<> when_any( waitable<> w1, waitable<> w2 );
-waitable<> when_any( std::vector<waitable<>> ws );
+// ning. If the vector is empty it will be in a ready state.
+waitable<> any( std::vector<waitable<>> ws );
+
+template<typename... Waitables>
+waitable<> any( Waitables&&... ws ) {
+  return any( { std::forward<Waitables>( ws )... } );
+}
 
 // Same as above, except the unfinished waitables (if any) will
 // be cancelled. For the vector version: if the vector is empty,
 // it will be in a ready state.
-waitable<> when_any_with_cancel( waitable<> w1, waitable<> w2 );
-waitable<> when_any_with_cancel( std::vector<waitable<>> ws );
+waitable<> any_cancel( std::vector<waitable<>> ws );
+
+template<typename... Waitables>
+waitable<> any_cancel( Waitables&&... ws ) {
+  return any_cancel( { std::forward<Waitables>( ws )... } );
+}
 
 // The `get_repeatable` will be called repeatedly to get and run
 // a waitable. This will continue ad infinitum or until the

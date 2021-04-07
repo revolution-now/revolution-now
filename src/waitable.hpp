@@ -104,14 +104,24 @@ public:
     // function that will unqueue the coroutine handle from the
     // registry.
     //
-    // `this` could be non-existent after running the cancel
-    // function (in fact it is expected to be), so we should not
-    // do anything after that.
-    if( cancel_ )
+    // If there is a cancel function then we should call it first
+    // so that our cancel signal gets propagated to the tip of
+    // the coroutine chain before starting to release things.
+    // This ensures that destructors in the coroutine chain get
+    // called in the reverse order of construction.
+    if( cancel_ ) {
       ( *cancel_ )();
-    else
-      clear_callbacks();
-    // !! do not do anything here with `this`.
+      // !! Must return: do not do anything here with `this`, as
+      // it may have been freed. We don't need to call
+      // clear_callbacks here since it will effectively be done
+      // automatically as a result of the cancellation function
+      // chain.
+      return;
+    }
+
+    // This is for those waitables that are not inside a corou-
+    // tine chain, or are at the very end of it.
+    clear_callbacks();
   }
 
   void set_cancel(

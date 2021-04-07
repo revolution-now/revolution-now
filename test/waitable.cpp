@@ -342,7 +342,6 @@ TEST_CASE( "[waitable] coro cancel" ) {
   }
 
   SECTION( "cancel coro0 no schedule" ) {
-    REQUIRE( !ws.ready() );
     REQUIRE( number_of_queued_coroutines() == 0 );
     REQUIRE( !ws.ready() );
     ws.cancel();

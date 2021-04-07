@@ -15,17 +15,11 @@
 #include "logging.hpp"
 #include "waitable-coro.hpp"
 
-// base
-#include "base/lambda.hpp"
-
-// C++ stanard library
-#include <numeric>
-
 using namespace std;
 
 namespace rn::co {
 
-waitable<> when_any( waitable<> w1, waitable<> w2 ) {
+waitable<> any( vector<waitable<>> ws ) {
   waitable_promise<> wp;
 
   auto unified_callback =
@@ -34,57 +28,44 @@ waitable<> when_any( waitable<> w1, waitable<> w2 ) {
         // set this value, so only allow the first one to do it.
         if( !wp.has_value() ) wp.set_value_emplace();
       };
-  w1.shared_state()->add_callback( unified_callback );
-  w2.shared_state()->add_callback( unified_callback );
+  for( auto& w : ws )
+    w.shared_state()->add_callback( unified_callback );
 
-  wp.shared_state()->set_cancel( [w1, w2]() mutable {
-    // At this point either one (or both) of w1 and w2 are still
-    // not ready. This is good, because if (and when) both of
-    // them become ready or cancelled (as we will do before we
-    // finish this function) then their callbacks will be
-    // cleared, and the `unified_callback` above will get de-
-    // stroyed, and thus the `wp` that it holds will get de-
-    // stroyed. Then, if no one else is holding onto the waitable
-    // that was produced from `wp`, that means that the shared
-    // state associated with `wp` will go out of scope, which is
-    // a problem because that shared state is what is holding
-    // this lambda function and its captures. So we must be
-    // careful that after both w1 and w2 are cancelled (or
-    // ready), we must not do anything else in this function that
-    // uses the captures (you can log though). So first we will
-    // just get w1 and w2 onto the local stack so that we can
-    // just call cancel on both of them without having to worry
-    // about the first statement causing the captures in this
-    // lambda to be destroyed (which generally will happen)
-    // causing the second statement to crash.
-    auto local_stack_w1 = w1;
-    auto local_stack_w2 = w2;
-    local_stack_w1.cancel();
-    local_stack_w2.cancel();
+  auto waitable = wp.waitable();
+
+  waitable.shared_state()->set_cancel( [ws]() mutable {
+    // At this point, it may be the case, if we are in the middle
+    // of cancelling a chain of coroutines, that the `waitable`
+    // has been destroyed. In that case, the only references left
+    // to `wp` will be held in the unified_callback, which are
+    // held in the callbacks of the ws. So when we cancel the
+    // last ws in this function (whichever one it is that is
+    // still not ready and not cancelled) then its callbacks will
+    // be cleared, the unified_callback will be destroyed, and
+    // the `wp` will be destroyed, causing the shared_state that
+    // holds this lambda function to be destroyed, along with the
+    // lambda capture `ws`. So for that reason, and since we
+    // don't really know which of the `ws` will trigger that (we
+    // don't know if any have already been cancelled), we must
+    // make a local copy on the stack, and then iterate over that
+    // one. After we are done cancelling them all, this lambda
+    // function may have been deleted, so we must not access the
+    // captures thereafter.
+    auto local_stack_ws = ws;
+    for( auto& w : local_stack_ws ) w.cancel();
     // !! this lambda function and the shared_state that holds it
     // may be gone at this point.
   } );
 
-  return wp.waitable();
+  return waitable;
 }
 
-waitable<> when_any( std::vector<waitable<>> ws ) {
-  return accumulate( ws.begin(), ws.end(), empty_waitable(),
-                     [] λ( when_any( _1, _2 ) ) );
-}
-
-waitable<> when_any_with_cancel( waitable<> w1, waitable<> w2 ) {
-  co_await when_any( w1, w2 );
+waitable<> any_cancel( vector<waitable<>> ws ) {
+  co_await any( ws );
   // Need to cancel these directly instead of calling cancel on
-  // the result of when_any because its cancel function will be
+  // the result of any because its cancel function will be
   // cleared once the value is set.
-  w1.cancel();
-  w2.cancel();
-}
-
-waitable<> when_any_with_cancel( std::vector<waitable<>> ws ) {
-  return accumulate( ws.begin(), ws.end(), empty_waitable(),
-                     [] λ( when_any_with_cancel( _1, _2 ) ) );
+  for( auto& w : ws ) w.cancel();
 }
 
 waitable<> repeat_until_and_cancel(
@@ -94,8 +75,7 @@ waitable<> repeat_until_and_cancel(
                        get_repeatable )]() -> waitable<> {
     while( true ) co_await get_repeatable();
   };
-  co_await when_any_with_cancel( repeater(),
-                                 until_this_finishes );
+  co_await any_cancel( repeater(), until_this_finishes );
 }
 
 } // namespace rn::co
