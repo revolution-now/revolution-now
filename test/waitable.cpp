@@ -77,9 +77,14 @@ TEST_CASE( "[waitable] formatting" ) {
 }
 
 struct LogDestruction {
-  LogDestruction( bool& b_ ) : b( b_ ) {}
-  ~LogDestruction() { b = true; }
-  bool& b;
+  LogDestruction( bool& b_ ) : b( &b_ ) {}
+  ~LogDestruction() {
+    if( b ) *b = true;
+  }
+  LogDestruction( LogDestruction const& ) = delete;
+  LogDestruction( LogDestruction&& rhs ) noexcept
+    : b( exchange( rhs.b, nullptr ) ) {}
+  bool* b;
 };
 
 // Test that when the number of promises that refer to a shared

@@ -80,6 +80,19 @@ struct UntilDo {
 
 inline constexpr auto until_do = UntilDo{};
 
+// Erasing the type from a waitable for when it is not desired.
+template<typename T>
+waitable<> erase( waitable<T> w ) {
+  (void)co_await w;
+}
+
+template<typename Func>
+auto erase( Func&& f ) {
+  return [f = std::move( f )]() -> waitable<> {
+    return erase( f() );
+  };
+}
+
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
 

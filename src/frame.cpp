@@ -147,6 +147,21 @@ void frame_loop_scheduler( waitable<> const& what,
 // Called once per frame.
 void frame_loop_body( InputReceivedFunc input_received ) {
   // ----------------------------------------------------------
+  // 1. Notify
+
+  // This invokes (synchronous/blocking) callbacks to any sub-
+  // scribers that want to be notified at regular tick or time
+  // intervals.
+  notify_subscribers();
+  run_all_coroutines();
+
+  // Keep the state of the moving averages up to date even when
+  // there are no ticks happening on them. Specifically, if there
+  // are no ticks happening, then this will slowly cause the av-
+  // erage to drop.
+  for( auto& p : g_event_counts ) p.second.update();
+
+  // ----------------------------------------------------------
   // 1. Get Input.
   input::pump_event_queue();
 
@@ -164,24 +179,13 @@ void frame_loop_body( InputReceivedFunc input_received ) {
     if( is_win_resize( event ) ) on_main_window_resized();
     (void)send_input_to_planes( event );
     q.pop();
+    run_all_coroutines();
   }
-
-  run_all_coroutines();
 
   // ----------------------------------------------------------
   // 2. Update State.
   advance_plane_state();
-
-  // This invokes (synchronous/blocking) callbacks to any sub-
-  // scribers that want to be notified at regular tick or time
-  // intervals.
-  notify_subscribers();
-
-  // Keep the state of the moving averages up to date even when
-  // there are no ticks happening on them. Specifically, if there
-  // are no ticks happening, then this will slowly cause the av-
-  // erage to drop.
-  for( auto& p : g_event_counts ) p.second.update();
+  run_all_coroutines();
 
   // ----------------------------------------------------------
   // 3. Draw.

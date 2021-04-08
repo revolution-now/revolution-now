@@ -364,12 +364,7 @@ waitable<> animate_depixelation( UnitId            id,
   }
   // Start animation.
   while( !depixelate.pixels.empty() ) {
-    // FIXME: consider using wait_for_duration here. However,
-    // given that the time we're waiting is on the order of a
-    // frame at 60 fps, that alone won't work for low frame rates
-    // unless we then check how many frames have passed and
-    // evolve the animation accordingly.
-    co_await 1_frames;
+    co_await 16ms; // 1/60th of a second rounded down.
     int to_depixelate =
         std::min( config_rn.depixelate_pixels_per_frame,
                   int( depixelate.pixels.size() ) );
@@ -436,12 +431,7 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
   };
   // Start animation.
   while( mv.percent <= 1.0 ) {
-    // FIXME: consider using wait_for_duration here. However,
-    // given that the time we're waiting is on the order of a
-    // frame at 60 fps, that alone won't work for low frame rates
-    // unless we then check how many frames have passed and
-    // evolve the animation accordingly.
-    co_await 1_frames;
+    co_await 16ms; // 1/60th of a second rounded down.
     mv.percent_vel.advance( e_push_direction::none );
     mv.percent += mv.percent_vel.to_double();
   }
@@ -885,7 +875,7 @@ waitable<> landview_end_of_turn() {
 
   SG().landview_state = LandViewState::none{};
 
-  while( true ) co_await next_player_input_object();
+  return co::repeat( co::erase( next_player_input_object ) );
 }
 
 waitable<> landview_animate_move( UnitId      id,

@@ -88,7 +88,8 @@ waitable<> play_game() {
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
 
-  return co::any( co::repeat( do_next_turn ), exit_waiter() );
+  return co::until_do( exit_waiter(),
+                       co::repeat( do_next_turn ) );
 }
 
 /****************************************************************

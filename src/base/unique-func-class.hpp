@@ -47,25 +47,26 @@ public:
     static_assert(
         std::is_rvalue_reference_v<decltype( std::forward<Func>(
             func ) )> ||
-        std::is_pointer_v<std::remove_cvref_t<Func>> );
+        std::is_pointer_v<
+            std::decay_t<std::remove_cvref_t<Func>>> );
     struct child : func_base {
-      Func func;
-      child( Func&& f ) noexcept : func( std::move( f ) ) {}
+      std::remove_cvref_t<Func> func;
+      child( std::remove_cvref_t<Func> f ) noexcept
+        : func( std::move( f ) ) {}
       R operator()( Args... args ) UNIQUE_FUNC_CONST
           noexcept( noexcept( func( args... ) ) ) override {
         return func( args... );
       }
     };
-    func_.reset( new child( std::move( func ) ) );
+    func_.reset( new child( std::forward<Func>( func ) ) );
   }
 
   template<typename Func>
-  unique_func( Func&& func )
-    : unique_func( std::forward<Func>( func ), 0 ) {}
+  unique_func( Func&& f )
+    : unique_func( std::forward<Func>( f ), 0 ) {}
 
-  using FuncPtr = R ( * )( Args... );
-  unique_func( FuncPtr func )
-    : unique_func( std::move( func ), 0 ) {}
+  unique_func( R ( *&f )( Args... ) ) : unique_func( f, 0 ) {}
+  unique_func( R ( *f )( Args... ) ) : unique_func( f, 0 ) {}
 
   unique_func( unique_func const& ) = delete;
   unique_func& operator=( unique_func const& ) = delete;
