@@ -90,7 +90,18 @@ public:
     if( --promise_ref_count_ == 0 ) clear_callbacks();
   }
 
+private:
+  bool is_inside_cancel = false;
+
+public:
   void cancel() {
+    // Prevent re-entering.
+    if( is_inside_cancel ) return;
+    // Don't use SCOPE_EXIT to reset this back to false because
+    // in some cases `this` will be freed by the time we return
+    // from this function.
+    is_inside_cancel = true;
+
     // At this point, the shared_state usually does not have a
     // value yet, but it might. An example of the latter case
     // would be when a value has been set on a promise at the end
@@ -104,11 +115,11 @@ public:
     // function that will unqueue the coroutine handle from the
     // registry.
     //
-    // If there is a cancel function then we should call it first
-    // so that our cancel signal gets propagated to the tip of
-    // the coroutine chain before starting to release things.
-    // This ensures that destructors in the coroutine chain get
-    // called in the reverse order of construction.
+    // If there is a cancel function then we should call it so
+    // that our cancel signal gets propagated to the tip of the
+    // coroutine chain before starting to release things. This
+    // ensures that destructors in the coroutine chain get called
+    // in the reverse order of construction.
     if( cancel_ ) {
       std::exchange( cancel_, nothing )->operator()();
       // `this` could be gone at this point, so must return.
@@ -118,6 +129,7 @@ public:
     // This is for those waitables that are not inside a corou-
     // tine chain, or are at the very end of it.
     clear_callbacks();
+    is_inside_cancel = false;
   }
 
   void set_cancel(
