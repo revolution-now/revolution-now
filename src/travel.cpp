@@ -226,15 +226,34 @@ maybe<TravelAnalysis> analyze_impl( UnitId   id,
     using bh_t = decltype( bh );
     switch( bh ) {
       case bh_t::always:
-        return TravelAnalysis{
-            /*id_=*/id,
-            /*orders_=*/orders,
-            /*units_to_prioritize_=*/{},
-            /*unit_would_move_=*/true,
-            /*move_src_=*/src_coord,
-            /*move_target_=*/dst_coord,
-            /*desc_=*/e_unit_travel_good::map_to_map,
-            /*target_unit=*/{} };
+        // `holder` will be a valid value if the unit
+        // is cargo of an- other unit; the holder's id
+        // in that case will be *holder.
+        if( auto holder = is_unit_onboard( unit.id() );
+            holder ) {
+          // We have a unit onboard a ship moving onto
+          // a land square with a friendly colony.
+          return TravelAnalysis{
+              /*id_=*/id,
+              /*orders_=*/orders,
+              /*units_to_prioritize_=*/{},
+              /*unit_would_move_=*/true,
+              /*move_src_=*/src_coord,
+              /*move_target_=*/dst_coord,
+              /*desc_=*/
+              e_unit_travel_good::offboard_ship,
+              /*target_unit=*/{} };
+        } else {
+          return TravelAnalysis{
+              /*id_=*/id,
+              /*orders_=*/orders,
+              /*units_to_prioritize_=*/{},
+              /*unit_would_move_=*/true,
+              /*move_src_=*/src_coord,
+              /*move_target_=*/dst_coord,
+              /*desc_=*/e_unit_travel_good::map_to_map,
+              /*target_unit=*/{} };
+        }
     }
   }
   // We are entering an empty water square.
