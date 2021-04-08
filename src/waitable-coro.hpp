@@ -39,12 +39,8 @@ struct awaitable {
             h.address() )
             .promise()
             .waitable_promise_;
-    // This lambda needs to hold a strong reference to the ss (as
-    // opposed to a raw pointer) otherwise it itself may get re-
-    // leased during the call to cancel, which has some undesir-
-    // able effects.
     coro_promise.shared_state()->set_cancel(
-        [ss = w_.shared_state()] { ss->cancel(); } );
+        [ss = w_.shared_state().get()] { ss->cancel(); } );
     w_.shared_state()->add_callback(
         [this, h = unique_coro( h )]( T const& ) mutable {
           this->w_.shared_state()->set_cancel( [h = h.get()] {

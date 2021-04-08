@@ -864,9 +864,9 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
   // ment then the viewport would pan to the blinking unit after
   // the player e.g. clicks on another unit to activate it.
   if( SG().last_unit_input != id ) {
+    co_await landview_ensure_unit_visible( id );
     SG().raw_input_queue        = {};
     SG().unit_raw_input_promise = {};
-    co_await landview_ensure_unit_visible( id );
   }
   SG().last_unit_input = id;
 

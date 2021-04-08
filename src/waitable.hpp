@@ -110,8 +110,9 @@ public:
     // This ensures that destructors in the coroutine chain get
     // called in the reverse order of construction.
     if( cancel_ ) {
-      ( *cancel_ )();
-      set_cancel();
+      std::exchange( cancel_, nothing )->operator()();
+      // `this` could be gone at this point, so must return.
+      return;
     }
 
     // This is for those waitables that are not inside a corou-

@@ -41,16 +41,7 @@ waitable<> any_detach( vector<waitable<>> ws ) {
     w.shared_state()->add_callback( unified_callback );
 
   waitable<> res = wp.waitable();
-  chain_cancellation( res, ws );
-  return res;
-}
-
-} // namespace
-
-void chain_cancellation( waitable<>&               w,
-                         vector<waitable<>> const& ws ) {
-  CHECK( !w.shared_state()->has_cancel() );
-  w.shared_state()->set_cancel( [ws]() {
+  res.shared_state()->set_cancel( [ws]() {
     // When we are in this lambda, it is possible that the only
     // references left to the shared_state that holds it is in-
     // side the `ws`. This can happen when both the promise and
@@ -76,49 +67,31 @@ void chain_cancellation( waitable<>&               w,
     // !! this lambda function and the shared_state that holds it
     // may be gone at this point.
   } );
+  return res;
 }
 
+} // namespace
+
 waitable<> any( vector<waitable<>> ws ) {
+  SCOPE_EXIT( for( auto& w : ws ) w.cancel() );
   co_await any_detach( ws );
-  // Need to cancel these directly instead of calling cancel on
-  // the result of any because its cancel function will be
-  // cleared once the value is set.
-  //
-  // Note that we are not doing these cancellations for the pur-
-  // pose of making the resulting waitable cancellable (the re-
-  // sult of `any` is already cancellable); we are doing it in-
-  // stead because this function (`any_cancel`) just happens to
-  // promise the caller that it will cancel all remaining waita-
-  // bles after the first one finishes.
-  for( auto& w : ws ) w.cancel();
 }
 
 waitable<> all( vector<waitable<>> ws ) {
-  waitable_promise<> wp;
-  // Need to pass ws and wp as parameters and not captures be-
-  // cause captures are not preserved in the coroutine frame and
-  // we are executing the lambda immediately, so any captures
-  // would go away too soon.
-  waitable<> run_all =
-      []( vector<waitable<>> ws,
-          waitable_promise<> wp ) -> waitable<> {
-    for( auto& w : ws ) co_await w;
-    wp.finish();
-  }( ws, wp );
-  waitable<> res = wp.waitable();
-  ws.push_back( run_all );
-  chain_cancellation( res, ws );
-  return res;
+  SCOPE_EXIT( for( auto& w : ws ) w.cancel() );
+  for( auto& w : ws ) co_await w;
+}
+
+waitable<> UntilDo::operator()( waitable<> what,
+                                waitable<> background ) const {
+  SCOPE_EXIT( background.cancel() );
+  // Can't do a `return` here because of the SCOPE_EXIT above.
+  co_await what;
 }
 
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine ) {
   while( true ) co_await coroutine();
-}
-
-waitable<> repeat(
-    base::unique_func<waitable<>() const> coroutine, int n ) {
-  while( n-- > 0 ) co_await coroutine();
 }
 
 } // namespace rn::co

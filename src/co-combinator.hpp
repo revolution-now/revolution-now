@@ -18,6 +18,7 @@
 #include "waitable.hpp"
 
 // base
+#include "base/scope-exit.hpp"
 #include "base/unique-func.hpp"
 
 // C++ standard library
@@ -29,15 +30,6 @@ namespace rn::co {
 // NOTE: All functions in this module must return waitables that
 // are properly cancellable.
 // **************************************************************
-
-// Given a waitable w that is composed in some way from some con-
-// stituent waitables ws, this function will add the cancella-
-// bility property which is required for it to work properly in
-// this framework where all waitables should support proper can-
-// cellability (meaning that when they are cancelled they should
-// propagate the cancellation up the coroutine chain).
-void chain_cancellation( waitable<>&                    w,
-                         std::vector<waitable<>> const& ws );
 
 // Returns a waitable that will be ready when (and as soon as)
 // the first waitable becomes ready. All of the others will be
@@ -62,42 +54,34 @@ waitable<> all( Waitables&&... ws ) {
 // While `w` is running, run `background`. Then wait until `w`
 // has finished, then cancel `background`.
 //
-// Implementation: The implementation of this is tricky; we can't
-// just do the following:
-//
-//   T res = co_await w;
-//   background.cancel();
-//
-// because then the resulting waitable would not be correctly
-// cancellable, because if we cancel during the first step, the
-// `background` would not get cancelled.
-template<typename T>
-waitable<T> until_do( waitable<T> what, waitable<> background ) {
-  waitable_promise<> wp;
-  maybe<T>           res;
-  // Need to pass w as a parameter and not a capture because cap-
-  // tures are not preserved in the coroutine frame and we are
-  // executing the lambda immediately, so any captures would go
-  // away too soon.
-  waitable<> run = []( waitable_promise<> wp, waitable<T> what,
-                       maybe<T>& dst ) -> waitable<> {
-    dst.emplace( co_await what );
-    wp.finish();
-  }( wp, what, res );
-  waitable<> w = wp.waitable();
-  chain_cancellation( w, { background, run } );
-  co_await w;
-  CHECK( res );
-  background.cancel();
-  if constexpr( !std::is_same_v<T, std::monostate> )
-    co_return *res;
-}
+// FIXME: we're putting this function in a struct to avoid a
+// weird clang compiler crash. At some point try moving this out
+// into a free function called until_do.
+struct UntilDo {
+  // Can't just do the following:
+  //
+  //   T res = co_await w;
+  //   background.cancel();
+  //
+  // because then the resulting waitable would not be correctly
+  // cancellable, because if we cancel during the first step, the
+  // `background` would not get cancelled.
+  template<typename T>
+  waitable<T> operator()( waitable<T> what,
+                          waitable<>  background ) const {
+    SCOPE_EXIT( background.cancel() );
+    // Can't do a `return` here because of the SCOPE_EXIT above.
+    co_return co_await what;
+  }
+
+  waitable<> operator()( waitable<> what,
+                         waitable<> background ) const;
+};
+
+inline constexpr auto until_do = UntilDo{};
 
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
-
-waitable<> repeat(
-    base::unique_func<waitable<>() const> coroutine, int n );
 
 /****************************************************************
 ** Monadic functions.
