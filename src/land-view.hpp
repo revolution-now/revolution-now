@@ -26,6 +26,8 @@ namespace rn {
 waitable<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id );
 
+waitable<> landview_end_of_turn();
+
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction );
 

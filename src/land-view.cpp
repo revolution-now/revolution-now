@@ -11,6 +11,7 @@
 #include "land-view.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "colony-view.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
@@ -871,19 +872,20 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
 
   SG().landview_state =
       LandViewState::unit_input{ .unit_id = id };
+  SCOPE_EXIT( SG().landview_state = LandViewState::none{} );
 
-  LandViewPlayerInput_t res;
-  {
-    // FIXME: run blinker under a combinator that will automati-
-    // cally cancel it without us having to use scopes here.
-    waitable<> blinker = animate_blink( id );
-    SCOPE_EXIT( blinker.cancel() );
-    res = co_await next_player_input_object();
-  }
+  co_return co_await co::until_do( next_player_input_object(),
+                                   animate_blink( id ) );
+}
 
-  // Must be last.
+waitable<> landview_end_of_turn() {
+  SG().raw_input_queue        = {};
+  SG().unit_raw_input_promise = {};
+  SG().last_unit_input        = nothing;
+
   SG().landview_state = LandViewState::none{};
-  co_return res;
+
+  while( true ) co_await next_player_input_object();
 }
 
 waitable<> landview_animate_move( UnitId      id,

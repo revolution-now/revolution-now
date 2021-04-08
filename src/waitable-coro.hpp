@@ -39,9 +39,12 @@ struct awaitable {
             h.address() )
             .promise()
             .waitable_promise_;
-    auto* ss = w_.shared_state().get();
+    // This lambda needs to hold a strong reference to the ss (as
+    // opposed to a raw pointer) otherwise it itself may get re-
+    // leased during the call to cancel, which has some undesir-
+    // able effects.
     coro_promise.shared_state()->set_cancel(
-        [ss] { ss->cancel(); } );
+        [ss = w_.shared_state()] { ss->cancel(); } );
     w_.shared_state()->add_callback(
         [this, h = unique_coro( h )]( T const& ) mutable {
           this->w_.shared_state()->set_cancel( [h = h.get()] {
@@ -50,7 +53,15 @@ struct awaitable {
           queue_coroutine_handle( std::move( h ) );
         } );
   }
-  T await_resume() noexcept { return w_.get(); }
+  T await_resume() noexcept {
+    // Need to remove the cancel function here since it is set to
+    // delete this coroutine handle that is now being resumed.
+    // This will cause a problem if the shared_state referred to
+    // by w_ is being held by someone else and then they cancel
+    // it (this can happen in combinator functions).
+    w_.shared_state()->set_cancel();
+    return w_.get();
+  }
 };
 
 waitable<> await_transform_impl( FrameCount frame_count );

@@ -40,10 +40,14 @@ public:
   // Can never be empty.
   unique_func() = delete;
 
+  // The int parameter is for avoiding constructor delegation cy-
+  // cles.
   template<typename Func>
-  unique_func( Func&& func ) {
-    static_assert( std::is_rvalue_reference_v<
-                   decltype( std::forward<Func>( func ) )> );
+  unique_func( Func&& func, int ) {
+    static_assert(
+        std::is_rvalue_reference_v<decltype( std::forward<Func>(
+            func ) )> ||
+        std::is_pointer_v<std::remove_cvref_t<Func>> );
     struct child : func_base {
       Func func;
       child( Func&& f ) noexcept : func( std::move( f ) ) {}
@@ -54,6 +58,14 @@ public:
     };
     func_.reset( new child( std::move( func ) ) );
   }
+
+  template<typename Func>
+  unique_func( Func&& func )
+    : unique_func( std::forward<Func>( func ), 0 ) {}
+
+  using FuncPtr = R ( * )( Args... );
+  unique_func( FuncPtr func )
+    : unique_func( std::move( func ), 0 ) {}
 
   unique_func( unique_func const& ) = delete;
   unique_func& operator=( unique_func const& ) = delete;

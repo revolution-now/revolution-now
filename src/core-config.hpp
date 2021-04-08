@@ -21,6 +21,12 @@
 #  define DEBUG_RELEASE( a, b ) ( a )
 #endif
 
+#ifdef NDEBUG // release build
+#  define WHEN_DEBUG( a )
+#else // debug build
+#  define WHEN_DEBUG( a ) ( a )
+#endif
+
 // We use ... to allow types with commas in them.
 #define NOTHROW_MOVE( ... )                                \
   static_assert(                                           \

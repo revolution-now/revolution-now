@@ -11,6 +11,7 @@
 #include "turn.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "colony-mgr.hpp"
 #include "cstate.hpp"
 #include "dispatch.hpp"
@@ -216,6 +217,11 @@ bool advance_unit( UnitId id ) {
   return true;
 }
 
+waitable<> do_end_of_turn() {
+  return co::until_do( wait_for_eot_button_click(),
+                       landview_end_of_turn() );
+}
+
 waitable<> do_next_player_input( UnitId              id,
                                  flat_deque<UnitId>* q ) {
   LandViewPlayerInput_t response;
@@ -373,7 +379,7 @@ waitable<> do_next_turn_impl() {
   }
 
   // Ending.
-  if( st.need_eot ) co_await user_hits_eot_button();
+  if( st.need_eot ) co_await do_end_of_turn();
 
   st.new_turn();
 }

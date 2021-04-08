@@ -20,7 +20,7 @@ namespace rn {
 struct Plane;
 Plane* panel_plane();
 
-waitable<> user_hits_eot_button();
+waitable<> wait_for_eot_button_click();
 
 /****************************************************************
 ** Testing

@@ -134,7 +134,7 @@ PanelPlane g_panel_plane;
 *****************************************************************/
 Plane* panel_plane() { return &g_panel_plane; }
 
-waitable<> user_hits_eot_button() {
+waitable<> wait_for_eot_button_click() {
   return g_panel_plane.user_hits_eot_button();
 }
 

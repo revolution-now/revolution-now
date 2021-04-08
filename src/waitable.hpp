@@ -111,12 +111,7 @@ public:
     // called in the reverse order of construction.
     if( cancel_ ) {
       ( *cancel_ )();
-      // !! Must return: do not do anything here with `this`, as
-      // it may have been freed. We don't need to call
-      // clear_callbacks here since it will effectively be done
-      // automatically as a result of the cancellation function
-      // chain.
-      return;
+      set_cancel();
     }
 
     // This is for those waitables that are not inside a corou-
@@ -254,7 +249,6 @@ public:
     // We must call cancel on the shared_state even if it has a
     // value, for reasons explained in that function.
     shared_state_->cancel();
-    shared_state_->set_cancel();
   }
 
 private:
@@ -329,6 +323,8 @@ public:
     CHECK( !has_value() );
     mutable_state()->maybe_value = value;
     mutable_state()->set_cancel();
+    // The do_callbacks may end up setting another cancellation
+    // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
   }
 
@@ -336,6 +332,8 @@ public:
     CHECK( !has_value() );
     mutable_state()->maybe_value = std::move( value );
     mutable_state()->set_cancel();
+    // The do_callbacks may end up setting another cancellation
+    // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
   }
 
@@ -345,7 +343,15 @@ public:
     mutable_state()->maybe_value.emplace(
         std::forward<Args>( args )... );
     mutable_state()->set_cancel();
+    // The do_callbacks may end up setting another cancellation
+    // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
+  }
+
+  // For convenience.
+  void finish() const
+      requires( std::is_same_v<T, std::monostate> ) {
+    set_value_emplace();
   }
 
   /**************************************************************
