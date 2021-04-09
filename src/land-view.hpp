@@ -23,6 +23,9 @@
 
 namespace rn {
 
+waitable<> landview_ensure_visible( Coord const& coord );
+waitable<> landview_ensure_visible( UnitId id );
+
 waitable<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id );
 

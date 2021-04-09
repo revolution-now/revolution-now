@@ -440,11 +440,6 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
   SG().unit_animations.erase( it );
 }
 
-waitable<> landview_ensure_unit_visible( UnitId id ) {
-  auto coords = coord_for_unit_indirect( id );
-  return SG().viewport.ensure_tile_visible_smooth( coords );
-}
-
 void center_on_blinking_unit_if_any() {
   using u_i = LandViewState::unit_input;
   auto blinking_unit =
@@ -453,7 +448,7 @@ void center_on_blinking_unit_if_any() {
     lg.warn( "There are no units currently asking for orders." );
     return;
   }
-  (void)landview_ensure_unit_visible( *blinking_unit );
+  (void)landview_ensure_visible( *blinking_unit );
 }
 
 /****************************************************************
@@ -741,7 +736,12 @@ struct LandViewPlane : public Plane {
         handled = e_input_handled::yes;
         switch( key_event.keycode ) {
           case ::SDLK_z:
-            SG().viewport.smooth_zoom_target( 1.0 );
+            if( SG().viewport.get_zoom() < 1.0 )
+              SG().viewport.smooth_zoom_target( 1.0 );
+            if( SG().viewport.get_zoom() < 1.5 )
+              SG().viewport.smooth_zoom_target( 2.0 );
+            else
+              SG().viewport.smooth_zoom_target( 1.0 );
             break;
           case ::SDLK_w:
             SG().raw_input_queue.push( LandViewRawInput::orders{
@@ -848,6 +848,15 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
+waitable<> landview_ensure_visible( Coord const& coord ) {
+  return SG().viewport.ensure_tile_visible_smooth( coord );
+}
+
+waitable<> landview_ensure_visible( UnitId id ) {
+  return landview_ensure_visible(
+      coord_for_unit_indirect( id ) );
+}
+
 waitable<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id ) {
   // When we start on a new unit clear the input queue so that
@@ -858,7 +867,7 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
   // ment then the viewport would pan to the blinking unit after
   // the player e.g. clicks on another unit to activate it.
   if( SG().last_unit_input != id ) {
-    co_await landview_ensure_unit_visible( id );
+    co_await landview_ensure_visible( id );
     SG().raw_input_queue        = {};
     SG().unit_raw_input_promise = {};
   }
@@ -885,7 +894,11 @@ waitable<> landview_end_of_turn() {
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction ) {
-  co_await landview_ensure_unit_visible( id );
+  // Ensure that both src and dst squares are visible.
+  Coord src = coord_for_unit_indirect( id );
+  Coord dst = src.moved( direction );
+  co_await landview_ensure_visible( src );
+  co_await landview_ensure_visible( dst );
   SG().landview_state =
       LandViewState::unit_move{ .unit_id = id };
   co_await animate_slide( id, direction );
@@ -897,7 +910,8 @@ waitable<> landview_animate_attack( UnitId attacker,
                                     UnitId defender,
                                     bool   attacker_wins,
                                     e_depixelate_anim dp_anim ) {
-  co_await landview_ensure_unit_visible( attacker );
+  co_await landview_ensure_visible( defender );
+  co_await landview_ensure_visible( attacker );
   SG().landview_state = LandViewState::unit_attack{
       .attacker      = attacker,
       .defender      = defender,
