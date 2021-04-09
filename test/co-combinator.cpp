@@ -172,29 +172,40 @@ TEST_CASE( "[co-combinator] until do" ) {
   auto ss1 = w1.shared_state();
   auto ss2 = w2.shared_state();
 
-  waitable<int> w = []( waitable<int> w1,
-                        waitable<>    w2 ) -> waitable<int> {
-    co_return co_await w1;
-  }( std::move( w1 ), std::move( w2 ) );
-
   SECTION( "first finishes first" ) {
-    run_all_coroutines();
-    REQUIRE( !ss1->has_value() );
-    REQUIRE( !ss2->has_value() );
-    REQUIRE( !w.ready() );
-    p1.set_value( 5 );
-    run_all_coroutines();
-    REQUIRE( ss1->has_value() );
-    REQUIRE( ss1->get() == 5 );
-    REQUIRE( !ss2->has_value() );
-    REQUIRE( w.ready() );
-    REQUIRE( w.get() == 5 );
+    {
+      waitable<int> w = []( waitable<int> w1,
+                            waitable<>    w2 ) -> waitable<int> {
+        co_return co_await w1;
+      }( std::move( w1 ), std::move( w2 ) );
+      run_all_coroutines();
+      REQUIRE( !ss1->has_value() );
+      REQUIRE( !ss2->has_value() );
+      REQUIRE( !w.ready() );
+      p1.set_value( 5 );
+      run_all_coroutines();
+      REQUIRE( ss1->has_value() );
+      REQUIRE( ss1->get() == 5 );
+      REQUIRE( !ss2->has_value() );
+      REQUIRE( w.ready() );
+      REQUIRE( w.get() == 5 );
+      // At this point, `w` should go out of scope which should
+      // free the (lambda) coroutine, which will free w1 and w2,
+      // which will send cancellation signals to their shared
+      // states, which should then prevent a p2.finish() from
+      // propagating to ss2 since we have one layer of (then can-
+      // celled) coroutine between p2 and ss2.
+    }
     // Verify cancellation.
     p2.finish();
     run_all_coroutines();
     REQUIRE( !ss2->has_value() );
   }
   SECTION( "background finishes first" ) {
+    waitable<int> w = []( waitable<int> w1,
+                          waitable<>    w2 ) -> waitable<int> {
+      co_return co_await w1;
+    }( std::move( w1 ), std::move( w2 ) );
     run_all_coroutines();
     REQUIRE( !ss1->has_value() );
     REQUIRE( !ss2->has_value() );
@@ -213,6 +224,10 @@ TEST_CASE( "[co-combinator] until do" ) {
     REQUIRE( w.get() == 5 );
   }
   SECTION( "both" ) {
+    waitable<int> w = []( waitable<int> w1,
+                          waitable<>    w2 ) -> waitable<int> {
+      co_return co_await w1;
+    }( std::move( w1 ), std::move( w2 ) );
     run_all_coroutines();
     REQUIRE( !ss1->has_value() );
     REQUIRE( !ss2->has_value() );

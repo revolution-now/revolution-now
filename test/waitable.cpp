@@ -36,7 +36,7 @@ using ::Catch::Equals;
 static_assert( is_same_v<waitable<>, waitable<monostate>> );
 
 TEST_CASE( "[waitable] future api basic" ) {
-  auto ss = make_shared<detail::sync_shared_state<int>>();
+  auto ss = make_shared<detail::waitable_shared_state<int>>();
 
   waitable<int> s_future( ss );
 
@@ -87,32 +87,11 @@ struct LogDestruction {
   bool* b;
 };
 
-// Test that the callbacks get released as soon as a promise is
-// fulfilled.
-TEST_CASE( "[waitable] set value clears callbacks" ) {
-  bool callbacks_released = false;
-  auto callback = [_ = LogDestruction( callbacks_released )](
-                      monostate const& ) {};
-  waitable_promise<> p;
-  auto               p2 = p;
-  auto               p3 = p;
-  waitable<>         w  = p.waitable();
-  w.shared_state()->add_callback( std::move( callback ) );
-  CHECK( !callbacks_released );
-  p.set_value_emplace();
-  CHECK( callbacks_released );
-  p2 = {};
-  CHECK( callbacks_released );
-  p3 = {};
-  CHECK( callbacks_released );
-}
-
 /****************************************************************
 ** Coroutines
 *****************************************************************/
 template<typename T>
-using w_coro_promise =
-    typename coro::coroutine_traits<waitable<T>>::promise_type;
+using w_coro_promise = waitable_promise<T>;
 
 queue<variant<w_coro_promise<int>, w_coro_promise<double>>>
     g_promises;
@@ -120,10 +99,10 @@ queue<variant<w_coro_promise<int>, w_coro_promise<double>>>
 void deliver_promise() {
   struct Setter {
     void operator()( w_coro_promise<int>& p ) {
-      p.return_value( 1 );
+      p.set_value( 1 );
     }
     void operator()( w_coro_promise<double>& p ) {
-      p.return_value( 2.2 );
+      p.set_value( 2.2 );
     }
   };
   if( !g_promises.empty() ) {
@@ -135,13 +114,13 @@ void deliver_promise() {
 waitable<int> waitable_int() {
   w_coro_promise<int> p;
   g_promises.emplace( p );
-  return p.get_return_object();
+  return p.waitable();
 }
 
 waitable<double> waitable_double() {
   w_coro_promise<double> p;
   g_promises.emplace( p );
-  return p.get_return_object();
+  return p.waitable();
 }
 
 waitable<int> waitable_sum() {

@@ -103,4 +103,9 @@ struct suspend_never {
   void await_suspend( coro::coroutine_handle<> ) noexcept {}
   void await_resume() noexcept {}
 };
+struct suspend_always {
+  bool await_ready() noexcept { return false; }
+  void await_suspend( coro::coroutine_handle<> ) noexcept {}
+  void await_resume() noexcept {}
+};
 } // namespace base

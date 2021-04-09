@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "co-handle.hpp"
 #include "error.hpp"
 #include "fmt-helper.hpp"
 #include "maybe.hpp"
@@ -28,15 +29,14 @@ namespace rn {
 namespace detail {
 
 template<typename T>
-class sync_shared_state {
-  int waitable_ref_count_ = 0;
-
-  using CancelCallback = void();
-  maybe<base::unique_func<CancelCallback>> cancel_;
-
+class waitable_shared_state {
 public:
-  sync_shared_state()  = default;
-  ~sync_shared_state() = default;
+  waitable_shared_state()  = default;
+  ~waitable_shared_state() = default;
+
+  waitable_shared_state( waitable_shared_state&& ) = delete;
+  waitable_shared_state& operator=( waitable_shared_state&& ) =
+      delete;
 
   using NotifyFunc = void( T const& );
 
@@ -63,55 +63,17 @@ public:
     if( --waitable_ref_count_ == 0 ) cancel();
   }
 
-private:
-  bool is_inside_cancel = false;
+  void set_coro( unique_coro coro ) {
+    CHECK( !coro_ );
+    coro_ = std::move( coro );
+  }
 
 public:
   void cancel() {
-    // Prevent re-entering.
-    if( is_inside_cancel ) return;
-    // Don't use SCOPE_EXIT to reset this back to false because
-    // in some cases `this` will be freed by the time we return
-    // from this function.
-    is_inside_cancel = true;
-
-    // At this point, the shared_state usually does not have a
-    // value yet, but it might. An example of the latter case
-    // would be when a value has been set on a promise at the end
-    // of a coroutine chain, and the coroutine handle has been
-    // queued to run, but before it does, the original caller of
-    // the coroutine chain decides to cancel it. When that hap-
-    // pens, the cancellation signal will propagate down the
-    // chain and eventually encounter a shared_state that has a
-    // value. In that case we need to call the cancel_ function
-    // as well because it will have been populated with a lambda
-    // function that will unqueue the coroutine handle from the
-    // registry.
-    //
-    // If there is a cancel function then we should call it so
-    // that our cancel signal gets propagated to the tip of the
-    // coroutine chain before starting to release things. This
-    // ensures that destructors in the coroutine chain get called
-    // in the reverse order of construction.
-    if( cancel_ ) {
-      std::exchange( cancel_, nothing )->operator()();
-      clear_callbacks();
-      // `this` could be gone at this point, so must return.
-      return;
-    }
-
-    // This is for those waitables that are not inside a corou-
-    // tine chain, or are at the very end of it.
-    clear_callbacks();
-    is_inside_cancel = false;
+    coro_.reset();
+    ucallbacks_.clear();
+    callbacks_.clear();
   }
-
-  void set_cancel(
-      maybe<base::unique_func<CancelCallback>> func = nothing ) {
-    cancel_ = std::move( func );
-  }
-
-  bool has_cancel() const { return cancel_.has_value(); }
 
   bool has_value() const { return maybe_value.has_value(); }
 
@@ -142,28 +104,14 @@ protected:
   }
 
 public:
-  // Removes callbacks, so that when a value is set, nothing hap-
-  // pens. This probably has no effect if the value has already
-  // been set.
-  void clear_callbacks() {
-    callbacks_.clear();
-    ucallbacks_.clear();
-  }
-
   void do_callbacks() {
     CHECK( has_value() );
     for( auto const& callback : callbacks_ )
       callback( *maybe_value );
     for( auto& callback : ucallbacks_ ) callback( *maybe_value );
-    // The callbacks can/should only be called once (at least
-    // when the program is behaving correctly) and so now that
-    // we've called them, we can take the opportunity to delete
-    // them which helps to break memory cycles, since the call-
-    // backs can own other objects through their captures that
-    // can in turn reference this shared state.
-    clear_callbacks();
   }
 
+  int      waitable_ref_count_ = 0;
   maybe<T> maybe_value;
   // Currently we have two separate vectors for unique and
   // non-unique function callbacks. This may cause callbacks to
@@ -171,6 +119,9 @@ public:
   // Don't think this should a problem...
   std::vector<std::function<NotifyFunc>>     callbacks_;
   std::vector<base::unique_func<NotifyFunc>> ucallbacks_;
+  // Will be populated if this shared state is created by a
+  // coroutine.
+  maybe<unique_coro> coro_;
 };
 
 } // namespace detail
@@ -191,9 +142,7 @@ template<typename T = std::monostate>
 class [[nodiscard]] waitable {
   template<typename U>
   using SharedStatePtr =
-      std::shared_ptr<detail::sync_shared_state<U>>;
-
-  void clear_callbacks() { shared_state_->clear_callbacks(); }
+      std::shared_ptr<detail::waitable_shared_state<U>>;
 
 public:
   using value_type = T;
@@ -286,7 +235,7 @@ template<typename T = std::monostate>
 class waitable_promise {
 public:
   waitable_promise()
-    : shared_state_( new detail::sync_shared_state<T> ) {
+    : shared_state_( new detail::waitable_shared_state<T> ) {
     // shared state ref count should initialize to 1.
   }
 
@@ -304,7 +253,8 @@ public:
     return ::rn::waitable<T>( shared_state_ );
   }
 
-  std::shared_ptr<detail::sync_shared_state<T>>& shared_state() {
+  std::shared_ptr<detail::waitable_shared_state<T>>&
+  shared_state() {
     return shared_state_;
   }
 
@@ -314,7 +264,7 @@ public:
   void set_value( T const& value ) const {
     CHECK( !has_value() );
     mutable_state()->maybe_value = value;
-    mutable_state()->set_cancel();
+    // mutable_state()->set_cancel();
     // The do_callbacks may end up setting another cancellation
     // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
@@ -323,7 +273,7 @@ public:
   void set_value( T&& value ) const {
     CHECK( !has_value() );
     mutable_state()->maybe_value = std::move( value );
-    mutable_state()->set_cancel();
+    // mutable_state()->set_cancel();
     // The do_callbacks may end up setting another cancellation
     // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
@@ -334,7 +284,7 @@ public:
     CHECK( !has_value() );
     mutable_state()->maybe_value.emplace(
         std::forward<Args>( args )... );
-    mutable_state()->set_cancel();
+    // mutable_state()->set_cancel();
     // The do_callbacks may end up setting another cancellation
     // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
@@ -370,12 +320,13 @@ private:
   // in lambdas, which this allows us to set the value on the
   // promise without making the lambda mutable, which tends to be
   // viral and is painful to deal with.
-  detail::sync_shared_state<T>* mutable_state() const {
-    return const_cast<detail::sync_shared_state<T>*>(
+  detail::waitable_shared_state<T>* mutable_state() const {
+    return const_cast<detail::waitable_shared_state<T>*>(
         shared_state_.get() );
   }
 
-  std::shared_ptr<detail::sync_shared_state<T>> shared_state_;
+  std::shared_ptr<detail::waitable_shared_state<T>>
+      shared_state_;
 };
 
 /****************************************************************

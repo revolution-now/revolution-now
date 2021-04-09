@@ -33,31 +33,10 @@ struct awaitable {
   awaitable( waitable<T> w ) : w_( w ) {}
   bool await_ready() noexcept { return w_.ready(); }
   void await_suspend( coro::coroutine_handle<> h ) noexcept {
-    DCHECK( w_.shared_state() );
-    auto& coro_promise =
-        coro::coroutine_handle<PromiseT>::from_address(
-            h.address() )
-            .promise()
-            .waitable_promise_;
-    coro_promise.shared_state()->set_cancel(
-        [ss = w_.shared_state()] { ss->cancel(); } );
     w_.shared_state()->add_callback(
-        [this, h = unique_coro( h )]( T const& ) mutable {
-          this->w_.shared_state()->set_cancel( [h = h.get()] {
-            destroy_queued_coroutine_handler( h );
-          } );
-          queue_coroutine_handle( std::move( h ) );
-        } );
+        [h]( T const& ) { queue_coroutine_handle( h ); } );
   }
-  T await_resume() noexcept {
-    // Need to remove the cancel function here since it is set to
-    // delete this coroutine handle that is now being resumed.
-    // This will cause a problem if the shared_state referred to
-    // by w_ is being held by someone else and then they cancel
-    // it (this can happen in combinator functions).
-    w_.shared_state()->set_cancel();
-    return w_.get();
-  }
+  T await_resume() noexcept { return w_.get(); }
 };
 
 waitable<> await_transform_impl( FrameCount frame_count );
@@ -69,7 +48,7 @@ waitable<> await_transform_impl( std::chrono::milliseconds ms );
 struct promise_type_base_base {
   auto initial_suspend() const { return base::suspend_never{}; }
   auto final_suspend() const noexcept {
-    return base::suspend_never{};
+    return base::suspend_always{};
   }
 
   void unhandled_exception() { SHOULD_NOT_BE_HERE; }
@@ -93,6 +72,19 @@ struct promise_type final : public promise_type_base<T> {
   using Base = promise_type_base<T>;
 
   using Base::waitable_promise_;
+
+  promise_type() {
+    auto h = coro::coroutine_handle<promise_type>::from_promise(
+        *this );
+    waitable_promise_.shared_state()->set_coro(
+        unique_coro( h ) );
+  }
+
+  ~promise_type() noexcept {
+    auto h = coro::coroutine_handle<promise_type>::from_promise(
+        *this );
+    remove_coroutine_if_queued( h );
+  }
 
   void return_value( T const& val ) {
     waitable_promise_.set_value( val );
@@ -127,6 +119,19 @@ struct promise_type<std::monostate> final
   using Base = promise_type_base<std::monostate>;
 
   using Base::waitable_promise_;
+
+  promise_type() {
+    auto h = coro::coroutine_handle<promise_type>::from_promise(
+        *this );
+    waitable_promise_.shared_state()->set_coro(
+        unique_coro( h ) );
+  }
+
+  ~promise_type() noexcept {
+    auto h = coro::coroutine_handle<promise_type>::from_promise(
+        *this );
+    remove_coroutine_if_queued( h );
+  }
 
   void return_void() {
     waitable_promise_.set_value( std::monostate{} );
