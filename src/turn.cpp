@@ -218,8 +218,8 @@ bool advance_unit( UnitId id ) {
 }
 
 waitable<> do_end_of_turn() {
-  return co::until_do( wait_for_eot_button_click(),
-                       landview_end_of_turn() );
+  waitable<> eot = landview_end_of_turn();
+  return wait_for_eot_button_click();
 }
 
 waitable<> do_next_player_input( UnitId              id,

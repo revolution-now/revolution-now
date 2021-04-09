@@ -36,18 +36,24 @@ TEST_CASE( "[co-combinator] any" ) {
   SECTION( "first" ) {
     p1.finish();
     run_all_coroutines();
+    w1.cancel();
+    w2.cancel();
     REQUIRE( w1.ready() );
     REQUIRE( !w2.ready() );
   }
   SECTION( "second" ) {
     p2.finish();
     run_all_coroutines();
+    w1.cancel();
+    w2.cancel();
     REQUIRE( !w1.ready() );
     REQUIRE( w2.ready() );
   }
   SECTION( "both" ) {
     p1.finish();
     run_all_coroutines();
+    w1.cancel();
+    w2.cancel();
     p2.finish();
     run_all_coroutines();
     REQUIRE( w1.ready() );
@@ -59,56 +65,6 @@ TEST_CASE( "[co-combinator] any" ) {
     REQUIRE( !w2.ready() );
   }
   REQUIRE( w.ready() );
-}
-
-TEST_CASE( "[co-combinator] vector any" ) {
-  vector<waitable_promise<>> ps;
-  ps.resize( 10 );
-  vector<waitable<>> ws;
-  for( auto& p : ps )
-    // Use an extra layer of coroutine here so that we have some-
-    // thing to cancel. If we don't do this, then we won't really
-    // be able to verify that anything cancelled (later in this
-    // test case) which we do by trying to set values on them
-    // after they are cancelled and verifying that it has no ef-
-    // fect. Without the extra layer of coroutine, setting the
-    // values on them would make them ready.
-    ws.push_back( []( waitable_promise<> p ) -> waitable<> {
-      co_await p.waitable();
-    }( p ) );
-  waitable<> w = any( ws );
-  REQUIRE( !w.ready() );
-
-  for( int i = 0; i < 10; ++i ) //
-    REQUIRE( !ws[i].ready() );
-
-  ps[5].finish();
-  REQUIRE( !w.ready() );
-  run_all_coroutines();
-  REQUIRE( w.ready() );
-
-  // Make sure that only one is ready.
-  for( int i = 0; i < 10; ++i ) {
-    if( i == 5 )
-      REQUIRE( ws[i].ready() );
-    else
-      REQUIRE( !ws[i].ready() );
-  }
-
-  // Try to set the ones that were cancelled.
-  for( int i = 0; i < 10; ++i ) //
-    if( i != 5 )                //
-      ps[i].finish();
-  run_all_coroutines();
-
-  // Still only one ready, since the others were cancelled before
-  // they were set.
-  for( int i = 0; i < 10; ++i ) {
-    if( i == 5 )
-      REQUIRE( ws[i].ready() );
-    else
-      REQUIRE( !ws[i].ready() );
-  }
 }
 
 TEST_CASE( "[co-combinator] all" ) {
@@ -127,30 +83,39 @@ TEST_CASE( "[co-combinator] all" ) {
   waitable<> w3 = []( waitable_promise<> p ) -> waitable<> {
     co_await p.waitable();
   }( p3 );
+  auto ss1 = w1.shared_state();
+  auto ss2 = w2.shared_state();
+  auto ss3 = w3.shared_state();
 
-  waitable<> w = all( w1, w2, w3 );
+  // This is an "all" function.
+  waitable<> w = []( waitable<> w1, waitable<> w2,
+                     waitable<> w3 ) -> waitable<> {
+    co_await w1;
+    co_await w2;
+    co_await w3;
+  }( std::move( w1 ), std::move( w2 ), std::move( w3 ) );
 
   SECTION( "run to completion" ) {
     run_all_coroutines();
-    REQUIRE( !w1.ready() );
-    REQUIRE( !w2.ready() );
-    REQUIRE( !w3.ready() );
+    REQUIRE( !ss1->has_value() );
+    REQUIRE( !ss2->has_value() );
+    REQUIRE( !ss3->has_value() );
     REQUIRE( !w.ready() );
     p1.finish();
     run_all_coroutines();
-    REQUIRE( w1.ready() );
+    REQUIRE( ss1->has_value() );
     REQUIRE( !w.ready() );
     p3.finish();
     run_all_coroutines();
-    REQUIRE( w3.ready() );
+    REQUIRE( ss3->has_value() );
     REQUIRE( !w.ready() );
     p2.finish();
     run_all_coroutines();
-    REQUIRE( w2.ready() );
+    REQUIRE( ss2->has_value() );
     REQUIRE( w.ready() );
-    REQUIRE( w1.ready() );
-    REQUIRE( w2.ready() );
-    REQUIRE( w3.ready() );
+    REQUIRE( ss1->has_value() );
+    REQUIRE( ss2->has_value() );
+    REQUIRE( ss3->has_value() );
   }
   SECTION( "cancellation scheduled" ) {
     run_all_coroutines();
@@ -167,9 +132,9 @@ TEST_CASE( "[co-combinator] all" ) {
     p3.finish();
     run_all_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( w1.ready() );
-    REQUIRE( !w2.ready() );
-    REQUIRE( !w3.ready() );
+    REQUIRE( ss1->has_value() );
+    REQUIRE( !ss2->has_value() );
+    REQUIRE( !ss3->has_value() );
   }
   SECTION( "cancellation" ) {
     run_all_coroutines();
@@ -185,13 +150,13 @@ TEST_CASE( "[co-combinator] all" ) {
     p3.finish();
     run_all_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( w1.ready() );
-    REQUIRE( w2.ready() );
-    REQUIRE( !w3.ready() );
+    REQUIRE( ss1->has_value() );
+    REQUIRE( ss2->has_value() );
+    REQUIRE( !ss3->has_value() );
   }
 }
 
-TEST_CASE( "[co-combinator] until_do" ) {
+TEST_CASE( "[co-combinator] until do" ) {
   waitable_promise<int> p1;
   waitable_promise<>    p2;
 
@@ -204,55 +169,60 @@ TEST_CASE( "[co-combinator] until_do" ) {
   waitable<> w2 = []( waitable_promise<> p ) -> waitable<> {
     co_await p.waitable();
   }( p2 );
+  auto ss1 = w1.shared_state();
+  auto ss2 = w2.shared_state();
 
-  waitable<int> w = until_do( w1, w2 );
+  waitable<int> w = []( waitable<int> w1,
+                        waitable<>    w2 ) -> waitable<int> {
+    co_return co_await w1;
+  }( std::move( w1 ), std::move( w2 ) );
 
   SECTION( "first finishes first" ) {
     run_all_coroutines();
-    REQUIRE( !w1.ready() );
-    REQUIRE( !w2.ready() );
+    REQUIRE( !ss1->has_value() );
+    REQUIRE( !ss2->has_value() );
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
     run_all_coroutines();
-    REQUIRE( w1.ready() );
-    REQUIRE( w1.get() == 5 );
-    REQUIRE( !w2.ready() );
+    REQUIRE( ss1->has_value() );
+    REQUIRE( ss1->get() == 5 );
+    REQUIRE( !ss2->has_value() );
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 5 );
     // Verify cancellation.
     p2.finish();
     run_all_coroutines();
-    REQUIRE( !w2.ready() );
+    REQUIRE( !ss2->has_value() );
   }
   SECTION( "background finishes first" ) {
     run_all_coroutines();
-    REQUIRE( !w1.ready() );
-    REQUIRE( !w2.ready() );
+    REQUIRE( !ss1->has_value() );
+    REQUIRE( !ss2->has_value() );
     REQUIRE( !w.ready() );
     p2.finish();
     run_all_coroutines();
-    REQUIRE( !w1.ready() );
-    REQUIRE( w2.ready() );
+    REQUIRE( !ss1->has_value() );
+    REQUIRE( ss2->has_value() );
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
     run_all_coroutines();
-    REQUIRE( w1.ready() );
-    REQUIRE( w1.get() == 5 );
-    REQUIRE( w2.ready() );
+    REQUIRE( ss1->has_value() );
+    REQUIRE( ss1->get() == 5 );
+    REQUIRE( ss2->has_value() );
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 5 );
   }
   SECTION( "both" ) {
     run_all_coroutines();
-    REQUIRE( !w1.ready() );
-    REQUIRE( !w2.ready() );
+    REQUIRE( !ss1->has_value() );
+    REQUIRE( !ss2->has_value() );
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
     p2.finish();
     run_all_coroutines();
-    REQUIRE( w1.ready() );
-    REQUIRE( w1.get() == 5 );
-    REQUIRE( w2.ready() );
+    REQUIRE( ss1->has_value() );
+    REQUIRE( ss1->get() == 5 );
+    REQUIRE( ss2->has_value() );
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 5 );
   }

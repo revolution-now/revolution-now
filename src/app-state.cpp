@@ -88,8 +88,9 @@ waitable<> play_game() {
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
 
-  return co::until_do( exit_waiter(),
-                       co::repeat( do_next_turn ) );
+  // Run the turn loop and then wait for user to exit.
+  waitable<> turns = co::repeat( do_next_turn );
+  co_await exit_waiter();
 }
 
 /****************************************************************

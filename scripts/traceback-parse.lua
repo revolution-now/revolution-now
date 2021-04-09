@@ -49,10 +49,11 @@ to_replace_in_line = {
 }
 
 to_replace_by_line = {
-  ['freed by thread.*'      ] = "Free'd Here:",
-  ['previously allocated.*' ] = 'Previously Allocated Here:',
-  ['double.free'            ] = 'Double Free:',
-  ['WRITE of size (%d+).*'  ] = 'Write of Size %1:',
+  ['freed by thread.*'            ] = "Free'd Here:",
+  ['previously allocated.*'       ] = 'Previously Allocated Here:',
+  ['double.free'                  ] = 'Double Free:',
+  ['WRITE of size (%d+).*'        ] = 'Write of Size %1:',
+  ['Indirect leak of (%d+) byte.*'] = 'Leak of %1 bytes:',
 }
 
 remove_lines_containing = {

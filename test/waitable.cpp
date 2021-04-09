@@ -87,26 +87,6 @@ struct LogDestruction {
   bool* b;
 };
 
-// Test that when the number of promises that refer to a shared
-// state go to zero that the callbacks get released.
-TEST_CASE( "[waitable] promise ref count" ) {
-  bool callbacks_released = false;
-  auto callback = [_ = LogDestruction( callbacks_released )](
-                      monostate const& ) {};
-  waitable_promise<> p;
-  auto               p2 = p;
-  auto               p3 = p;
-  waitable<>         w  = p.waitable();
-  w.shared_state()->add_callback( std::move( callback ) );
-  CHECK( !callbacks_released );
-  p = {};
-  CHECK( !callbacks_released );
-  p2 = {};
-  CHECK( !callbacks_released );
-  p3 = {};
-  CHECK( callbacks_released );
-}
-
 // Test that the callbacks get released as soon as a promise is
 // fulfilled.
 TEST_CASE( "[waitable] set value clears callbacks" ) {
@@ -505,6 +485,121 @@ TEST_CASE( "[waitable] coro cancel" ) {
     ws.cancel();
     REQUIRE( number_of_queued_coroutines() == 0 );
     REQUIRE( !ws.ready() );
+
+    vector<string> expected{
+        "run: coro3-1", //
+        "run: coro2-1", //
+        "run: coro0",   //
+        "~~~: coro0",   //
+        "~~~: coro2-1", //
+        "run: coro2-2", //
+        "run: coro1",   //
+        "~~~: coro1",   //
+        "run: coro2-3", //
+        "~~~: coro2-3", //
+        "~~~: coro2-2", //
+        "run: coro3-2", //
+        "run: coro",    //
+        "~~~: coro",    //
+        "~~~: coro3-2", //
+        "~~~: coro3-1", //
+    };
+    REQUIRE_THAT( string_log, Equals( expected ) );
+  }
+}
+
+TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
+  p  = {};
+  p0 = {};
+  p1 = {};
+  string_log.clear();
+
+  SECTION( "cancel coro with scheduled" ) {
+    {
+      waitable<string> ws = coro3();
+
+      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( !ws.ready() );
+      p0.set_value( 5 );
+      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( !ws.ready() );
+      run_all_coroutines();
+      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( !ws.ready() );
+      p1.set_value( 7 );
+      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( !ws.ready() );
+
+      vector<string> expected{
+          "run: coro3-1", //
+          "run: coro2-1", //
+          "run: coro0",   //
+          "~~~: coro0",   //
+          "~~~: coro2-1", //
+          "run: coro2-2", //
+          "run: coro1",   //
+          "~~~: coro1",   //
+      };
+      REQUIRE_THAT( string_log, Equals( expected ) );
+      // !! ws goes out of scope here and should get cancelled in
+      // the process.
+    }
+    REQUIRE( number_of_queued_coroutines() == 0 );
+
+    vector<string> expected{
+        "run: coro3-1", //
+        "run: coro2-1", //
+        "run: coro0",   //
+        "~~~: coro0",   //
+        "~~~: coro2-1", //
+        "run: coro2-2", //
+        "run: coro1",   //
+        "~~~: coro1",   //
+        "~~~: coro2-2", //
+        "~~~: coro3-1", //
+    };
+    REQUIRE_THAT( string_log, Equals( expected ) );
+  }
+  SECTION( "cancel coro no scheduled" ) {
+    {
+      waitable<string> ws = coro3();
+
+      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( !ws.ready() );
+      p0.set_value( 5 );
+      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( !ws.ready() );
+      run_all_coroutines();
+      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( !ws.ready() );
+      p1.set_value( 7 );
+      REQUIRE( number_of_queued_coroutines() == 1 );
+      REQUIRE( !ws.ready() );
+      run_all_coroutines();
+      REQUIRE( number_of_queued_coroutines() == 0 );
+      REQUIRE( !ws.ready() );
+
+      vector<string> expected{
+          "run: coro3-1", //
+          "run: coro2-1", //
+          "run: coro0",   //
+          "~~~: coro0",   //
+          "~~~: coro2-1", //
+          "run: coro2-2", //
+          "run: coro1",   //
+          "~~~: coro1",   //
+          "run: coro2-3", //
+          "~~~: coro2-3", //
+          "~~~: coro2-2", //
+          "run: coro3-2", //
+          "run: coro",    //
+          "~~~: coro",    //
+      };
+      REQUIRE_THAT( string_log, Equals( expected ) );
+      // !! ws goes out of scope here and should get cancelled in
+      // the process.
+    }
+    REQUIRE( number_of_queued_coroutines() == 0 );
 
     vector<string> expected{
         "run: coro3-1", //

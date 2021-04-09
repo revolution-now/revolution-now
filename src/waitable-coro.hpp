@@ -40,7 +40,7 @@ struct awaitable {
             .promise()
             .waitable_promise_;
     coro_promise.shared_state()->set_cancel(
-        [ss = w_.shared_state().get()] { ss->cancel(); } );
+        [ss = w_.shared_state()] { ss->cancel(); } );
     w_.shared_state()->add_callback(
         [this, h = unique_coro( h )]( T const& ) mutable {
           this->w_.shared_state()->set_cancel( [h = h.get()] {

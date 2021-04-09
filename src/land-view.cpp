@@ -611,6 +611,10 @@ waitable<LandViewPlayerInput_t> next_player_input_object() {
   }
 }
 
+waitable<> do_eot_next_player_input() {
+  co_await next_player_input_object();
+}
+
 /****************************************************************
 ** Land View Plane
 *****************************************************************/
@@ -864,8 +868,9 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
       LandViewState::unit_input{ .unit_id = id };
   SCOPE_EXIT( SG().landview_state = LandViewState::none{} );
 
-  co_return co_await co::until_do( next_player_input_object(),
-                                   animate_blink( id ) );
+  // Run the blinker while waiting for user input.
+  waitable<> blinker = animate_blink( id );
+  co_return co_await next_player_input_object();
 }
 
 waitable<> landview_end_of_turn() {
@@ -875,7 +880,7 @@ waitable<> landview_end_of_turn() {
 
   SG().landview_state = LandViewState::none{};
 
-  return co::repeat( co::erase( next_player_input_object ) );
+  return co::repeat( do_eot_next_player_input );
 }
 
 waitable<> landview_animate_move( UnitId      id,

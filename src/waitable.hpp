@@ -29,31 +29,7 @@ namespace detail {
 
 template<typename T>
 class sync_shared_state {
-  // This is a reference count that counts the number of promise
-  // objects that are referring to this shared state object.
-  // Promise objects are copyable, so in general this will be
-  // larger than one, although in most cases it will be 1 most of
-  // the time, because typically there is only one client respon-
-  // sible for fulfilling the promise, and and that client typi-
-  // cally ends up holding the only copy of that promise. How-
-  // ever, there are some cases where multiple clients could po-
-  // tentially fulfill a promise (though only one can do so), and
-  // so we make the promise copyable.
-  //
-  // However, when all promises that refer to a shared state
-  // perish then we need to release the callbacks 1) because they
-  // can no longer be called, and 2) we need to do so in order to
-  // break a reference cycle that would otherwise cause memory
-  // leaks:
-  //
-  //   shared_state -> callbacks --> unique_coro -->
-  //   coroutine --> temp. waitables --> shared_state
-  //
-  // and this reference count will tell us when we can do that.
-  // We can't use the reference count in the shared_ptr that is
-  // used to hold this shared state because its reference count
-  // will include contributions from the waitable's.
-  int promise_ref_count_ = 1;
+  int waitable_ref_count_ = 0;
 
   using CancelCallback = void();
   maybe<base::unique_func<CancelCallback>> cancel_;
@@ -77,17 +53,14 @@ public:
       add_copyable_callback( std::forward<Func>( func ) );
   }
 
-  void inc_promise_count() {
-    // Since the ref count starts out at 1, that means that once
-    // it hits zero (and the callbacks have been cleared) we
-    // should not be incrementing it anymore.
-    CHECK( promise_ref_count_ > 0 );
-    ++promise_ref_count_;
+  void inc_waitable_count() {
+    CHECK( waitable_ref_count_ >= 0 );
+    ++waitable_ref_count_;
   }
 
-  void dec_promise_count() {
-    CHECK( promise_ref_count_ > 0 );
-    if( --promise_ref_count_ == 0 ) clear_callbacks();
+  void dec_waitable_count() {
+    CHECK( waitable_ref_count_ > 0 );
+    if( --waitable_ref_count_ == 0 ) cancel();
   }
 
 private:
@@ -122,6 +95,7 @@ public:
     // in the reverse order of construction.
     if( cancel_ ) {
       std::exchange( cancel_, nothing )->operator()();
+      clear_callbacks();
       // `this` could be gone at this point, so must return.
       return;
     }
@@ -228,7 +202,44 @@ public:
 
   // This constructor should not be used by client code.
   explicit waitable( SharedStatePtr<T> shared_state )
-    : shared_state_{ shared_state } {}
+    : shared_state_{ shared_state } {
+    if( shared_state_ ) shared_state_->inc_waitable_count();
+  }
+
+  ~waitable() noexcept {
+    if( shared_state_ ) shared_state_->dec_waitable_count();
+  }
+
+  waitable( waitable const& rhs )
+    : shared_state_{ rhs.shared_state_ } {
+    if( shared_state_ ) shared_state_->inc_waitable_count();
+  }
+
+  waitable( waitable&& rhs ) noexcept
+    : shared_state_(
+          std::exchange( rhs.shared_state_, nullptr ) ) {
+    // waitable ref count should stay the same.
+  }
+
+  waitable& operator=( waitable const& rhs ) {
+    if( shared_state_ == rhs.shared_state_ ) return *this;
+    if( shared_state_ ) shared_state_->dec_waitable_count();
+    shared_state_ = rhs.shared_state_;
+    if( shared_state_ ) shared_state_->inc_waitable_count();
+    return *this;
+  }
+
+  waitable& operator=( waitable&& rhs ) noexcept {
+    if( shared_state_ == rhs.shared_state_ ) {
+      if( !shared_state_ ) return *this;
+      rhs.shared_state_ = nullptr;
+      shared_state_->dec_waitable_count();
+      return *this;
+    }
+    if( shared_state_ ) shared_state_->dec_waitable_count();
+    shared_state_ = std::exchange( rhs.shared_state_, nullptr );
+    return *this;
+  }
 
   bool operator==( waitable<T> const& rhs ) const {
     return shared_state_.get() == rhs.shared_state_.get();
@@ -277,38 +288,6 @@ public:
   waitable_promise()
     : shared_state_( new detail::sync_shared_state<T> ) {
     // shared state ref count should initialize to 1.
-  }
-
-  ~waitable_promise() noexcept {
-    // shared_state_ could be nullptr if we've been moved from.
-    if( shared_state_ ) shared_state_->dec_promise_count();
-  }
-
-  waitable_promise( waitable_promise const& rhs )
-    : shared_state_( rhs.shared_state_ ) {
-    CHECK( shared_state_ );
-    shared_state_->inc_promise_count();
-  }
-
-  waitable_promise& operator=( waitable_promise const& rhs ) {
-    if( *this == rhs ) return *this;
-    CHECK( shared_state_ )
-    CHECK( rhs.shared_state_ )
-    shared_state_->dec_promise_count();
-    shared_state_ = rhs.shared_state_;
-    shared_state_->inc_promise_count();
-    return *this;
-  }
-
-  // The promise ref count should take care of itself in this
-  // one.
-  waitable_promise( waitable_promise&& rhs ) = default;
-
-  waitable_promise& operator=( waitable_promise&& r ) noexcept {
-    if( *this == r ) return *this;
-    shared_state_->dec_promise_count();
-    shared_state_ = std::move( r.shared_state_ );
-    return *this;
   }
 
   bool operator==( waitable_promise<T> const& rhs ) const {
