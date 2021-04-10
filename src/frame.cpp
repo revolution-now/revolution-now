@@ -101,7 +101,7 @@ void notify_subscribers() {
   for( auto& sub : subscriptions() ) try_notify( sub );
   for( auto& sub : subscriptions_oneoff() ) try_notify( sub );
   erase_if( subscriptions_oneoff(), []( FrameSubscription& fs ) {
-    return std::visit<bool>( L( _.done ), fs );
+    return std::visit( L( _.done ), fs );
   } );
 }
 
@@ -210,9 +210,9 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc func,
           .func         = func } );
 }
 
-void subscribe_to_frame_tick( FrameSubscriptionFunc     func,
-                              std::chrono::milliseconds n,
-                              bool repeating ) {
+void subscribe_to_frame_tick( FrameSubscriptionFunc func,
+                              chrono::milliseconds  n,
+                              bool                  repeating ) {
   ( repeating ? subscriptions : subscriptions_oneoff )()
       .push_back(
           FrameSubscriptionTime{ .done         = false,
@@ -228,9 +228,14 @@ waitable<> wait_n_frames( FrameCount n ) {
   return p.waitable();
 }
 
-waitable<> wait_for_duration( std::chrono::milliseconds ms ) {
-  waitable_promise<> p;
-  auto after_time = [p]() mutable { p.set_value_emplace(); };
+waitable<chrono::milliseconds> wait_for_duration(
+    chrono::milliseconds ms ) {
+  waitable_promise<chrono::milliseconds> p;
+  auto                                   now = Clock_t::now();
+  auto after_time = [p, then = now]() mutable {
+    p.set_value( duration_cast<chrono::milliseconds>(
+        Clock_t::now() - then ) );
+  };
   subscribe_to_frame_tick( after_time, ms, /*repeating=*/false );
   return p.waitable();
 }

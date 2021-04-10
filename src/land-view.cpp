@@ -328,12 +328,28 @@ void render_land_view() {
 /****************************************************************
 ** Animations
 *****************************************************************/
+waitable<> animation_frame_throttler(
+    chrono::milliseconds frame_duration,
+    function_ref<bool()> f ) {
+  while( true ) {
+    chrono::milliseconds actual = co_await frame_duration;
+    int                  animation_frames =
+        std::max( actual / frame_duration, 1L );
+    for( int i = 0; i < animation_frames; ++i )
+      if( f() ) co_return;
+  }
+}
+
 waitable<> animate_depixelation( UnitId            id,
                                  e_depixelate_anim dp_anim ) {
   CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::depixelate& depixelate =
       SG().unit_animations[id]
           .emplace<UnitAnimation::depixelate>();
+  SCOPE_EXIT( {
+    UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
+    SG().unit_animations.erase( it );
+  } );
   depixelate.pixels.assign( g_tile_rect.begin(),
                             g_tile_rect.end() );
   rng::shuffle( depixelate.pixels );
@@ -362,9 +378,8 @@ waitable<> animate_depixelation( UnitId            id,
     }
     depixelate.demoted_pixels = tx.pixels();
   }
-  // Start animation.
-  while( !depixelate.pixels.empty() ) {
-    co_await 16ms; // 1/60th of a second rounded down.
+  // 1/60th of a second rounded down.
+  co_await animation_frame_throttler( 16ms, [&] {
     int to_depixelate =
         std::min( config_rn.depixelate_pixels_per_frame,
                   int( depixelate.pixels.size() ) );
@@ -384,10 +399,8 @@ waitable<> animate_depixelation( UnitId            id,
       depixelate.tx_depixelate_from.set_render_target();
       ::SDL_RenderDrawPoint( g_renderer, point.x._, point.y._ );
     }
-  }
-  // End animation.
-  UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
-  SG().unit_animations.erase( it );
+    return depixelate.pixels.empty();
+  } );
 }
 
 waitable<> animate_blink( UnitId id ) {
@@ -405,11 +418,10 @@ waitable<> animate_blink( UnitId id ) {
     SG().unit_animations.erase( it );
   } );
 
-  // Start animation.
-  while( true ) {
-    co_await 500ms;
+  co_await animation_frame_throttler( 500ms, [&] {
     blink.visible = !blink.visible;
-  }
+    return false;
+  } );
 }
 
 waitable<> animate_slide( UnitId id, e_direction d ) {
@@ -417,6 +429,10 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
   Coord                 target = coord_for_unit_indirect( id );
   UnitAnimation::slide& mv =
       SG().unit_animations[id].emplace<UnitAnimation::slide>();
+  SCOPE_EXIT( {
+    UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
+    SG().unit_animations.erase( it );
+  } );
   mv = UnitAnimation::slide{
       // FIXME: check if target is in world.
       .target      = target.moved( d ),
@@ -429,15 +445,12 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
           /*mag_drag_acceleration=*/.002 //
       }                                  //
   };
-  // Start animation.
-  while( mv.percent <= 1.0 ) {
-    co_await 16ms; // 1/60th of a second rounded down.
+  // 1/60th of a second rounded down.
+  co_await animation_frame_throttler( 16ms, [&] {
     mv.percent_vel.advance( e_push_direction::none );
     mv.percent += mv.percent_vel.to_double();
-  }
-  // End animation.
-  UNWRAP_CHECK( it, base::find( SG().unit_animations, id ) );
-  SG().unit_animations.erase( it );
+    return ( mv.percent > 1.0 );
+  } );
 }
 
 void center_on_blinking_unit_if_any() {

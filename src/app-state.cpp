@@ -35,7 +35,7 @@ namespace {
 /****************************************************************
 ** Global State
 *****************************************************************/
-waitable_promise<> g_game_exit_clicked;
+co::ticker g_game_exit;
 
 /****************************************************************
 ** Saving / Loading
@@ -67,22 +67,22 @@ MENU_ITEM_HANDLER(
 ** Exiting
 *****************************************************************/
 function<bool( void )> quit_handler = [] {
-  g_game_exit_clicked.set_value_emplace();
+  g_game_exit.tick();
   return false;
 };
 
 MENU_ITEM_HANDLER( exit, quit_handler, [] { return true; } );
 
 waitable<> exit_waiter() {
-  while( true ) {
-    g_game_exit_clicked = waitable_promise<>{};
-    co_await g_game_exit_clicked.waitable();
-    // Game => Exit has been selected.
-    // if( !dirty ) co_return;
-    auto res = co_await ui::ok_cancel(
-        "Really leave game without saving?" );
-    if( res == ui::e_ok_cancel::ok ) break;
-  }
+  return g_game_exit.wait();
+  // while( true ) {
+  //   co_await g_game_exit.wait();
+  //   // Game => Exit has been selected.
+  //   // if( !dirty ) co_return;
+  //   auto res = co_await ui::ok_cancel(
+  //       "Really leave game without saving?" );
+  //   if( res == ui::e_ok_cancel::ok ) break;
+  // }
 }
 
 /****************************************************************

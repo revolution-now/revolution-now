@@ -115,15 +115,6 @@ public:
 
 } // namespace detail
 
-template<typename T>
-class waitable;
-
-template<typename>
-inline constexpr bool is_waitable_v = false;
-
-template<typename T>
-inline constexpr bool is_waitable_v<waitable<T>> = true;
-
 /****************************************************************
 ** waitable
 *****************************************************************/
@@ -198,7 +189,7 @@ public:
 
   bool has_value() const { return shared_state_->has_value(); }
 
-  waitable<T> waitable() const {
+  ::rn::waitable<T> waitable() const {
     return ::rn::waitable<T>( shared_state_ );
   }
 

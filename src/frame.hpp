@@ -51,9 +51,12 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc,
 // do: co_await 5_frames.
 waitable<> wait_n_frames( FrameCount n );
 // The returned waitable becomes ready after the given duration
-// has passed. Note: instead of co_await'ing this directly, you
-// can do: co_await 2s.
-waitable<> wait_for_duration( std::chrono::milliseconds ms );
+// has passed, and it returns the actual duration that has
+// passed. This is useful if co_await'ing on small time intervals
+// and the frame rate is low. Note: instead of co_await'ing this
+// directly, you can do: co_await 2s.
+waitable<std::chrono::milliseconds> wait_for_duration(
+    std::chrono::milliseconds ms );
 
 using EventCountMap =
     std::unordered_map<std::string_view,

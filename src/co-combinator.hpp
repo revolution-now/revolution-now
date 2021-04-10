@@ -39,4 +39,18 @@ waitable<> any( waitable<>&& w1, waitable<>&& w2,
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
 
+// A ticker is meant to be a singlton object (per use-case) that
+// can be awaited on by multiple things. When it is ticked, all
+// the awaiters will be resumed, and it will be reset.
+struct ticker {
+  waitable_promise<> p;
+
+  void tick() {
+    p.set_value_emplace();
+    p = {};
+  }
+
+  waitable<> wait() const { co_await p.waitable(); }
+};
+
 } // namespace rn::co
