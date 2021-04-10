@@ -5,8 +5,8 @@ let s:stems = [
   \ 'frame',
   \ 'land-view',
   \ 'turn',
-  \ 'plane-ctrl',
-  \ 'menu',
+  \ 'fsm',
+  \ 'europort-view',
   \ 'waitable',
   \ 'waitable-coro',
   \ 'co-registry',
@@ -25,6 +25,7 @@ let s:quads = [
 \]
 
 " ========================= Functions ===========================
+
 function s:Open3( stem )
   echo '  - ' . a:stem
   if filereadable( 'src/rnl/' . a:stem . '.rnl' )
@@ -54,7 +55,16 @@ function s:Open3( stem )
   2wincmd h
 endfunction
 
-function s:Open4( upper_left, upper_right, lower_right, lower_left )
+function! OpenModule()
+  let curline = getline('.')
+  call inputsave()
+  let name = input('Enter name: ')
+  call inputrestore()
+  call s:Open3( name )
+endfunction
+nnoremap <C-p> :call OpenModule()<CR>
+
+function s:OpenQuad( upper_left, upper_right, lower_right, lower_left )
   exe 'silent tabnew ' . a:upper_left
   exe 'silent vsplit ' . a:upper_right
   exe 'silent split '  . a:lower_right
@@ -106,7 +116,7 @@ endfor
 
 echo 'opening docs...'
 " for q in s:quads
-"   call s:Open4( q[0], q[1], q[3], q[2] )
+"   call s:OpenQuad( q[0], q[1], q[3], q[2] )
 " endfor
 
 tabdo set cmdheight=1
