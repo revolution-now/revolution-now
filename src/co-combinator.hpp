@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "flat-queue.hpp"
 #include "waitable-coro.hpp"
 
 // base
@@ -42,15 +43,61 @@ waitable<> repeat(
 // A ticker is meant to be a singlton object (per use-case) that
 // can be awaited on by multiple things. When it is ticked, all
 // the awaiters will be resumed, and it will be reset.
+//
+// Example:
+//
+//   co::ticker my_ticker;
+//
+//   Consumer:
+//      co_await my_ticker.wait();
+//
+//   Producer:
+//     my_ticker.tick();
+//
 struct ticker {
-  waitable_promise<> p;
-
   void tick() {
     p.set_value_emplace();
     p = {};
   }
 
-  waitable<> wait() const { co_await p.waitable(); }
+  waitable<> wait() const { return p.waitable(); }
+
+private:
+  waitable_promise<> p;
+};
+
+// Not sure if this supports multiple waiters... probably best
+// just to stick to one.
+template<typename T>
+struct stream {
+  waitable<T> next() {
+    update();
+    T res = co_await p.waitable();
+    p     = {};
+    co_return res;
+  }
+
+  void send( T const& t ) { q.push( t ); }
+  void send( T&& t ) { q.push_emplace( std::move( t ) ); }
+
+  void update() {
+    if( !p.has_value() && !q.empty() ) {
+      p.set_value_emplace( std::move( *q.front() ) );
+      q.pop();
+    }
+  }
+
+  void reset() { *this = {}; }
+
+  stream()                = default;
+  stream( stream const& ) = delete;
+  stream& operator=( stream const& ) = delete;
+  stream( stream&& )                 = default;
+  stream& operator=( stream&& ) = default;
+
+private:
+  waitable_promise<T> p;
+  flat_queue<T>       q;
 };
 
 } // namespace rn::co

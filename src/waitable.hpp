@@ -133,12 +133,26 @@ public:
   explicit waitable( SharedStatePtr<T> shared_state )
     : shared_state_{ shared_state } {}
 
+  // We need to cancel in this destructor if we want the corou-
+  // tine to be freed as a result (if there is a coroutine asso-
+  // ciated with this waitable). This is because there would oth-
+  // erwise be a memory cycle: shared_state owns coroutine which
+  // owns promise which owns shared_state.
   ~waitable() noexcept { cancel(); }
 
   waitable( waitable const& ) = delete;
   waitable& operator=( waitable const& ) = delete;
   waitable( waitable&& )                 = default;
-  waitable& operator=( waitable&& ) = default;
+
+  waitable& operator=( waitable&& rhs ) noexcept {
+    if( shared_state_ == rhs.shared_state_ ) {
+      rhs.shared_state_ = nullptr;
+      return *this;
+    }
+    cancel();
+    shared_state_ = std::move( rhs.shared_state_ );
+    return *this;
+  }
 
   bool ready() const {
     return shared_state_ && shared_state_->has_value();
