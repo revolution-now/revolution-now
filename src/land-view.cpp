@@ -859,6 +859,7 @@ waitable<> landview_ensure_visible( UnitId id ) {
 
 waitable<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id ) {
+  SCOPE_EXIT( SG().landview_state = LandViewState::none{} );
   // When we start on a new unit clear the input queue so that
   // commands that were accidentally buffered while controlling
   // the previous unit don't affect this new one, which would al-
@@ -875,7 +876,6 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
 
   SG().landview_state =
       LandViewState::unit_input{ .unit_id = id };
-  SCOPE_EXIT( SG().landview_state = LandViewState::none{} );
 
   // Run the blinker while waiting for user input.
   waitable<> blinker = animate_blink( id );
@@ -894,6 +894,7 @@ waitable<> landview_end_of_turn() {
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction ) {
+  SCOPE_EXIT( SG().landview_state = LandViewState::none{} );
   // Ensure that both src and dst squares are visible.
   Coord src = coord_for_unit_indirect( id );
   Coord dst = src.moved( direction );
@@ -902,14 +903,13 @@ waitable<> landview_animate_move( UnitId      id,
   SG().landview_state =
       LandViewState::unit_move{ .unit_id = id };
   co_await animate_slide( id, direction );
-  // Must be last.
-  SG().landview_state = LandViewState::none{};
 }
 
 waitable<> landview_animate_attack( UnitId attacker,
                                     UnitId defender,
                                     bool   attacker_wins,
                                     e_depixelate_anim dp_anim ) {
+  SCOPE_EXIT( SG().landview_state = LandViewState::none{} );
   co_await landview_ensure_visible( defender );
   co_await landview_ensure_visible( attacker );
   SG().landview_state = LandViewState::unit_attack{
@@ -928,8 +928,6 @@ waitable<> landview_animate_attack( UnitId attacker,
                                    : e_sfx::attacker_lost );
   co_await animate_depixelation(
       attacker_wins ? defender : attacker, dp_anim );
-  // Must be last.
-  SG().landview_state = LandViewState::none{};
 }
 
 /****************************************************************

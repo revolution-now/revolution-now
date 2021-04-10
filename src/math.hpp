@@ -25,4 +25,8 @@ constexpr T modulus( T a, T b ) requires(
   return m;
 }
 
+// Here "up" means "toward +inf" and "down" means "toward -inf".
+int round_up_to_nearest_int_multiple( double d, int m );
+int round_down_to_nearest_int_multiple( double d, int m );
+
 } // namespace rn

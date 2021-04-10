@@ -37,21 +37,6 @@ maybe<string_view> env_var( char const* name ) {
   return res;
 }
 
-int round_up_to_nearest_int_multiple( double d, int m ) {
-  if( d < 0.0 )
-    return -round_down_to_nearest_int_multiple( -d, m );
-  int floor = int( d );
-  if( floor % m != 0 ) floor += m;
-  return floor / m;
-}
-
-int round_down_to_nearest_int_multiple( double d, int m ) {
-  if( d < 0.0 )
-    return -round_up_to_nearest_int_multiple( -d, m );
-  int floor = int( d );
-  return floor / m;
-}
-
 maybe<fs::path> user_home_folder() { return env_var( "HOME" ); }
 
 maybe<int> os_terminal_columns() {

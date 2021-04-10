@@ -40,7 +40,12 @@ waitable_promise<> g_game_exit_clicked;
 /****************************************************************
 ** Saving / Loading
 *****************************************************************/
-void main_menu_load() { CHECK_HAS_VALUE( load_game( 0 ) ); }
+waitable<> main_menu_load() {
+  CHECK_HAS_VALUE( load_game( 0 ) );
+  // Allow all the planes to update their state at least once be-
+  // fore we proceed.
+  co_await 1_frames;
+}
 
 waitable<> menu_save_handler() {
   if( auto res = save_game( 0 ); !res ) {
@@ -93,7 +98,7 @@ waitable<> play_game() {
 /****************************************************************
 ** New Game
 *****************************************************************/
-void main_menu_new_game() {
+waitable<> main_menu_new_game() {
   default_construct_savegame_state();
   // FIXME: temporary, since default constructing the save game
   // state resets the plane state.
@@ -101,6 +106,9 @@ void main_menu_new_game() {
   push_plane_config( e_plane_config::terrain );
   lua::reload();
   lua::run_startup_main();
+  // Allow all the planes to update their state at least once be-
+  // fore we proceed.
+  co_await 1_frames;
 }
 
 /****************************************************************
@@ -112,11 +120,11 @@ waitable<> main_menu() {
     push_plane_config( e_plane_config::main_menu );
     switch( co_await next_main_menu_item() ) {
       case e_main_menu_item::new_:
-        main_menu_new_game();
+        co_await main_menu_new_game();
         co_await play_game();
         break;
       case e_main_menu_item::load:
-        main_menu_load();
+        co_await main_menu_load();
         co_await play_game();
         break;
       case e_main_menu_item::quit: //

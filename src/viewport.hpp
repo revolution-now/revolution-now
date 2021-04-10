@@ -42,6 +42,7 @@ public:
   // Tiles touched by the viewport (tiles at the edge may only be
   // partially visible).
   Rect covered_tiles() const;
+  Rect fully_covered_tiles() const;
 
   // Will give us a rect of world pixels covered by the viewport.
   Rect covered_pixels() const;

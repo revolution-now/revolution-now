@@ -34,6 +34,7 @@ DECLARE_SAVEGAME_SERIALIZERS( Terrain );
 namespace {
 
 bool g_use_block_cache = false;
+bool g_show_grid       = false;
 
 /****************************************************************
 ** Save-Game State
@@ -145,6 +146,11 @@ void render_terrain_square( Texture& tx, Coord world_square,
   e_tile tile =
       s.crust == e_crust::land ? e_tile::land : e_tile::water;
   render_sprite( tx, tile, pixel_coord, 0, 0 );
+  if( g_show_grid )
+    render_rect(
+        tx, Color( 0, 0, 0, 30 ),
+        Rect::from( pixel_coord,
+                    g_tile_delta + Delta( 1_w, 1_h ) ) );
 }
 
 void render_terrain_nocache( Rect src_tiles, Texture& dest,
@@ -268,6 +274,11 @@ LUA_FN( toggle_block_cache, void ) {
   g_use_block_cache = !g_use_block_cache;
   lg.debug( "terrain block cache is {}.",
             g_use_block_cache ? "on" : "off" );
+}
+
+LUA_FN( toggle_grid, void ) {
+  g_show_grid = !g_show_grid;
+  lg.debug( "terrain grid is {}.", g_show_grid ? "on" : "off" );
 }
 
 } // namespace

@@ -14,8 +14,8 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "error.hpp"
+#include "math.hpp"
 #include "tiles.hpp"
-#include "util.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/rn.inl"
@@ -320,7 +320,7 @@ double SmoothViewport::width_tiles() const {
       start_x(), g_tile_width._ );
   int upper = round_up_to_nearest_int_multiple( end_x(),
                                                 g_tile_width._ );
-  return upper - lower;
+  return ( upper - lower ) / g_tile_width._;
 }
 
 // Number of tiles needed to be drawn in order to subsume the
@@ -330,7 +330,7 @@ double SmoothViewport::height_tiles() const {
       start_y(), g_tile_height._ );
   int upper = round_up_to_nearest_int_multiple(
       end_y(), g_tile_height._ );
-  return upper - lower;
+  return ( upper - lower ) / g_tile_height._;
 }
 
 // These are to avoid a direct dependency on the screen module
@@ -392,6 +392,25 @@ Rect SmoothViewport::covered_tiles() const {
       W{ static_cast<int>( lround( width_tiles() ) ) },
       H{ static_cast<int>( lround( height_tiles() ) ) } }
       .clamp( this->world_rect_tiles() );
+}
+
+// Tiles that are fully visible. The rect returned here will be
+// within the covered_tiles in general.
+Rect SmoothViewport::fully_covered_tiles() const {
+  // First round to the nearest pixel, then move the rectangle
+  // inward to the nearest tile boundary (if we are not already
+  // on one.
+  Coord upper_left(
+      X{ round_up_to_nearest_int_multiple( lround( start_x() ),
+                                           g_tile_width._ ) },
+      Y{ round_up_to_nearest_int_multiple( lround( start_y() ),
+                                           g_tile_height._ ) } );
+  Coord lower_right(
+      X{ round_down_to_nearest_int_multiple( lround( end_x() ),
+                                             g_tile_width._ ) },
+      Y{ round_down_to_nearest_int_multiple(
+          lround( end_y() ), g_tile_height._ ) } );
+  return Rect::from( upper_left, lower_right ) / g_tile_scale;
 }
 
 Rect SmoothViewport::covered_pixels() const {
@@ -552,35 +571,20 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
            coords.coordinate<C>() < end;
   };
 
-  bool visible_in_viewport = is_in( vp.covered_tiles() );
-  // Two edges_removed calls to make sure that we first get rid
-  // of any partial squares, then one more, so that if the tile
-  // is in the rect that remains, we know that its surroundings
-  // are fully visible.
-  bool visible_in_inner_viewport = is_in(
-      vp.covered_tiles().edges_removed().edges_removed() );
-  // Only one edges_removed call here just to remove the border.
-  bool in_inner_world =
-      is_in( vp.world_rect_tiles().edges_removed() );
+  // The use of fully_covered_tiles will ensure that we eliminate
+  // any partial tiles at the boundary, then remove another layer
+  // of edge.
+  bool visible_in_inner_viewport =
+      is_in( vp.fully_covered_tiles().edges_removed() );
+  bool on_world_border =
+      !is_in( vp.world_rect_tiles().edges_removed() );
 
-  // If the unit is not at all visible to the player then
-  // obviously we must return true.
-  if( !visible_in_viewport ) return false;
-
-  // The unit is visible somewhere on screen, but is it inside
-  // the trimmed viewport (i.e., are its surrounding visible on
-  // screen as well)? If so, then return true since that means
-  // the tile and surroundings are visible.
   if( visible_in_inner_viewport ) return true;
 
-  if( !in_inner_world ) {
-    // At this point the tile surroundings may not be fully vis-
-    // ible (as "visible" is defined here, meaning that it is in-
-    // side a trimmed viewport) but if we are on the world's edge
-    // then we can't do any better unless part of the tile itself
-    // is not visible, in which case we can at least reveal that.
-    // So there we return true if the tile is is not fully visi-
-    // ble, false otherwise.
+  if( on_world_border ) {
+    // We on are the world's border. The best we can do here is
+    // to make sure that the tile itself is fully visible; we
+    // can't do much about the surroundings.
     return is_tile_fully_visible<C>( vp, coords );
   }
 
