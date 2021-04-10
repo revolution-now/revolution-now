@@ -68,6 +68,8 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 namespace {
 
+co::stream<LandViewRawInput_t> g_raw_input_stream;
+
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
@@ -83,9 +85,7 @@ public:
   // Non-serialized fields.
   unordered_map<UnitId, UnitAnimation_t> unit_animations;
   LandViewState_t landview_state = LandViewState::none{};
-  waitable_promise<LandViewRawInput_t> unit_raw_input_promise;
-  queue<LandViewRawInput_t>            raw_input_queue;
-  maybe<UnitId>                        last_unit_input;
+  maybe<UnitId>   last_unit_input;
 
 private:
   SAVEGAME_FRIENDS( LandView );
@@ -105,10 +105,9 @@ private:
 
     // Initialize general global data.
     unit_animations.clear();
-    landview_state         = LandViewState::none{};
-    unit_raw_input_promise = {};
-    raw_input_queue        = {};
-    last_unit_input        = nothing;
+    landview_state  = LandViewState::none{};
+    last_unit_input = nothing;
+    g_raw_input_stream.reset();
 
     return valid;
   }
@@ -593,9 +592,7 @@ waitable<ClickTileActions> click_on_world_tile(
 waitable<LandViewPlayerInput_t> next_player_input_object() {
   while( true ) {
     LandViewRawInput_t raw_input =
-        co_await SG().unit_raw_input_promise.waitable();
-    // Reset it so that the next one will be inserted.
-    SG().unit_raw_input_promise = {};
+        co_await g_raw_input_stream.next();
 
     switch( raw_input.to_enum() ) {
       using namespace LandViewRawInput;
@@ -665,12 +662,7 @@ struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
   void advance_state() override {
-    if( !SG().unit_raw_input_promise.has_value() &&
-        !SG().raw_input_queue.empty() ) {
-      SG().unit_raw_input_promise.set_value(
-          SG().raw_input_queue.front() );
-      SG().raw_input_queue.pop();
-    }
+    g_raw_input_stream.update();
     advance_viewport_state();
   }
   void draw( Texture& tx ) const override {
@@ -757,38 +749,37 @@ struct LandViewPlane : public Plane {
               SG().viewport.smooth_zoom_target( 1.0 );
             break;
           case ::SDLK_w:
-            SG().raw_input_queue.push( LandViewRawInput::orders{
+            g_raw_input_stream.send( LandViewRawInput::orders{
                 .orders = orders::wait{} } );
             break;
           case ::SDLK_s:
-            SG().raw_input_queue.push( LandViewRawInput::orders{
+            g_raw_input_stream.send( LandViewRawInput::orders{
                 .orders = orders::sentry{} } );
             break;
           case ::SDLK_f:
-            SG().raw_input_queue.push( LandViewRawInput::orders{
+            g_raw_input_stream.send( LandViewRawInput::orders{
                 .orders = orders::fortify{} } );
             break;
           case ::SDLK_b:
-            SG().raw_input_queue.push( LandViewRawInput::orders{
+            g_raw_input_stream.send( LandViewRawInput::orders{
                 .orders = orders::build{} } );
             break;
           case ::SDLK_c: center_on_blinking_unit_if_any(); break;
           case ::SDLK_d:
-            SG().raw_input_queue.push( LandViewRawInput::orders{
+            g_raw_input_stream.send( LandViewRawInput::orders{
                 .orders = orders::disband{} } );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            SG().raw_input_queue.push( LandViewRawInput::orders{
+            g_raw_input_stream.send( LandViewRawInput::orders{
                 .orders = orders::forfeight{} } );
             break;
           default:
             handled = e_input_handled::no;
             if( key_event.direction ) {
-              SG().raw_input_queue.push(
-                  LandViewRawInput::orders{
-                      .orders = orders::direction{
-                          *key_event.direction } } );
+              g_raw_input_stream.send( LandViewRawInput::orders{
+                  .orders = orders::direction{
+                      *key_event.direction } } );
               handled = e_input_handled::yes;
             }
             break;
@@ -822,9 +813,8 @@ struct LandViewPlane : public Plane {
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
           lg.debug( "clicked on tile: {}.", *maybe_tile );
-          SG().raw_input_queue.push(
-              LandViewRawInput::tile_click{ .coord =
-                                                *maybe_tile } );
+          g_raw_input_stream.send( LandViewRawInput::tile_click{
+              .coord = *maybe_tile } );
           handled = e_input_handled::yes;
         }
         break;
@@ -882,8 +872,7 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
   // the player e.g. clicks on another unit to activate it.
   if( SG().last_unit_input != id ) {
     co_await landview_ensure_visible( id );
-    SG().raw_input_queue        = {};
-    SG().unit_raw_input_promise = {};
+    g_raw_input_stream.reset();
   }
   SG().last_unit_input = id;
 
@@ -896,9 +885,8 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
 }
 
 waitable<> landview_end_of_turn() {
-  SG().raw_input_queue        = {};
-  SG().unit_raw_input_promise = {};
-  SG().last_unit_input        = nothing;
+  g_raw_input_stream.reset();
+  SG().last_unit_input = nothing;
 
   SG().landview_state = LandViewState::none{};
 
