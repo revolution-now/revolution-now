@@ -134,7 +134,8 @@ template<typename Func, typename... Args>
 auto co_invoke( Func&& func, Args... args )
     -> waitable<decltype( std::forward<Func>( func )(
         std::declval<typename Args::value_type>()... ) )> {
-  co_return std::forward<Func>( func )( ( co_await args )... );
+  co_return std::forward<Func>( func )(
+      ( co_await std::move( args ) )... );
 }
 
 template<typename Func>
@@ -144,7 +145,7 @@ struct co_lift {
   co_lift( Func const& func ) : func_( func ) {}
   template<typename... Args>
   auto operator()( Args... args ) {
-    return co_invoke( func_, args... );
+    return co_invoke( func_, std::move( args )... );
   }
 };
 

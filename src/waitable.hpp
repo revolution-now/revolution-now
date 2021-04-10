@@ -53,16 +53,6 @@ public:
       add_copyable_callback( std::forward<Func>( func ) );
   }
 
-  void inc_waitable_count() {
-    CHECK( waitable_ref_count_ >= 0 );
-    ++waitable_ref_count_;
-  }
-
-  void dec_waitable_count() {
-    CHECK( waitable_ref_count_ > 0 );
-    if( --waitable_ref_count_ == 0 ) cancel();
-  }
-
   void set_coro( unique_coro coro ) {
     CHECK( !coro_ );
     coro_ = std::move( coro );
@@ -111,7 +101,6 @@ public:
     for( auto& callback : ucallbacks_ ) callback( *maybe_value );
   }
 
-  int      waitable_ref_count_ = 0;
   maybe<T> maybe_value;
   // Currently we have two separate vectors for unique and
   // non-unique function callbacks. This may cause callbacks to
@@ -151,52 +140,14 @@ public:
 
   // This constructor should not be used by client code.
   explicit waitable( SharedStatePtr<T> shared_state )
-    : shared_state_{ shared_state } {
-    if( shared_state_ ) shared_state_->inc_waitable_count();
-  }
+    : shared_state_{ shared_state } {}
 
-  ~waitable() noexcept {
-    if( shared_state_ ) shared_state_->dec_waitable_count();
-  }
+  ~waitable() noexcept { cancel(); }
 
-  waitable( waitable const& rhs )
-    : shared_state_{ rhs.shared_state_ } {
-    if( shared_state_ ) shared_state_->inc_waitable_count();
-  }
-
-  waitable( waitable&& rhs ) noexcept
-    : shared_state_(
-          std::exchange( rhs.shared_state_, nullptr ) ) {
-    // waitable ref count should stay the same.
-  }
-
-  waitable& operator=( waitable const& rhs ) {
-    if( shared_state_ == rhs.shared_state_ ) return *this;
-    if( shared_state_ ) shared_state_->dec_waitable_count();
-    shared_state_ = rhs.shared_state_;
-    if( shared_state_ ) shared_state_->inc_waitable_count();
-    return *this;
-  }
-
-  waitable& operator=( waitable&& rhs ) noexcept {
-    if( shared_state_ == rhs.shared_state_ ) {
-      if( !shared_state_ ) return *this;
-      rhs.shared_state_ = nullptr;
-      shared_state_->dec_waitable_count();
-      return *this;
-    }
-    if( shared_state_ ) shared_state_->dec_waitable_count();
-    shared_state_ = std::exchange( rhs.shared_state_, nullptr );
-    return *this;
-  }
-
-  bool operator==( waitable<T> const& rhs ) const {
-    return shared_state_.get() == rhs.shared_state_.get();
-  }
-
-  bool operator!=( waitable<T> const& rhs ) const {
-    return !( *this == rhs );
-  }
+  waitable( waitable const& ) = delete;
+  waitable& operator=( waitable const& ) = delete;
+  waitable( waitable&& )                 = default;
+  waitable& operator=( waitable&& ) = default;
 
   bool ready() const {
     return shared_state_ && shared_state_->has_value();
@@ -219,9 +170,7 @@ public:
   SharedStatePtr<T>& shared_state() { return shared_state_; }
 
   void cancel() {
-    // We must call cancel on the shared_state even if it has a
-    // value, for reasons explained in that function.
-    shared_state_->cancel();
+    if( shared_state_ ) shared_state_->cancel();
   }
 
 private:
@@ -264,18 +213,12 @@ public:
   void set_value( T const& value ) const {
     CHECK( !has_value() );
     mutable_state()->maybe_value = value;
-    // mutable_state()->set_cancel();
-    // The do_callbacks may end up setting another cancellation
-    // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
   }
 
   void set_value( T&& value ) const {
     CHECK( !has_value() );
     mutable_state()->maybe_value = std::move( value );
-    // mutable_state()->set_cancel();
-    // The do_callbacks may end up setting another cancellation
-    // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
   }
 
@@ -284,9 +227,6 @@ public:
     CHECK( !has_value() );
     mutable_state()->maybe_value.emplace(
         std::forward<Args>( args )... );
-    // mutable_state()->set_cancel();
-    // The do_callbacks may end up setting another cancellation
-    // function, e.g. to clear a queued coroutine handle.
     mutable_state()->do_callbacks();
   }
 

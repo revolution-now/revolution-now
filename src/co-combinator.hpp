@@ -25,18 +25,16 @@
 namespace rn::co {
 
 // Returns a waitable that will be ready when (and as soon as)
-// the first waitable becomes ready. The others may still be run-
-// ning. We don't accept temporaries to remind the user that this
-// function won't keep waitables alive.
-waitable<> any( std::vector<waitable<>>& ws );
+// the first waitable becomes ready. Since this function takes
+// ownership of all of the waitables, they will be gone when this
+// function becomes ready, and thus any that are not ready will
+// be cancelled. ning.
+waitable<> any( std::vector<waitable<>> ws );
 
-// Only take lvalue ref because this function won't keep tempo-
-// raries alive.
-template<typename... Waitables>
-waitable<> any( Waitables&... ws ) {
-  std::vector<waitable<>> v{ ws... };
-  return any( v );
-}
+waitable<> any( waitable<>&& w );
+waitable<> any( waitable<>&& w1, waitable<>&& w2 );
+waitable<> any( waitable<>&& w1, waitable<>&& w2,
+                waitable<>&& w3 );
 
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );

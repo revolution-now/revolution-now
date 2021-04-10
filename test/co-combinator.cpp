@@ -31,39 +31,22 @@ TEST_CASE( "[co-combinator] any" ) {
   auto f2 = [p2]() -> waitable<> { co_await p2.waitable(); };
   waitable<> w1 = f1();
   waitable<> w2 = f2();
-  waitable<> w  = any( w1, w2 );
+  waitable<> w  = any( f1(), f2() );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.finish();
-    run_all_coroutines();
-    w1.cancel();
-    w2.cancel();
-    REQUIRE( w1.ready() );
-    REQUIRE( !w2.ready() );
+    REQUIRE( !w.ready() );
   }
   SECTION( "second" ) {
     p2.finish();
-    run_all_coroutines();
-    w1.cancel();
-    w2.cancel();
-    REQUIRE( !w1.ready() );
-    REQUIRE( w2.ready() );
+    REQUIRE( !w.ready() );
   }
   SECTION( "both" ) {
     p1.finish();
-    run_all_coroutines();
-    w1.cancel();
-    w2.cancel();
     p2.finish();
-    run_all_coroutines();
-    REQUIRE( w1.ready() );
-    // Not ready because w2 has been cancelled because w1 was
-    // ready first.
-    REQUIRE( !w2.ready() );
-    run_all_coroutines();
-    REQUIRE( w1.ready() );
-    REQUIRE( !w2.ready() );
+    REQUIRE( !w.ready() );
   }
+  run_all_coroutines();
   REQUIRE( w.ready() );
 }
 
@@ -90,9 +73,9 @@ TEST_CASE( "[co-combinator] all" ) {
   // This is an "all" function.
   waitable<> w = []( waitable<> w1, waitable<> w2,
                      waitable<> w3 ) -> waitable<> {
-    co_await w1;
-    co_await w2;
-    co_await w3;
+    co_await std::move( w1 );
+    co_await std::move( w2 );
+    co_await std::move( w3 );
   }( std::move( w1 ), std::move( w2 ), std::move( w3 ) );
 
   SECTION( "run to completion" ) {
@@ -176,7 +159,7 @@ TEST_CASE( "[co-combinator] until do" ) {
     {
       waitable<int> w = []( waitable<int> w1,
                             waitable<>    w2 ) -> waitable<int> {
-        co_return co_await w1;
+        co_return co_await std::move( w1 );
       }( std::move( w1 ), std::move( w2 ) );
       run_all_coroutines();
       REQUIRE( !ss1->has_value() );
@@ -204,7 +187,7 @@ TEST_CASE( "[co-combinator] until do" ) {
   SECTION( "background finishes first" ) {
     waitable<int> w = []( waitable<int> w1,
                           waitable<>    w2 ) -> waitable<int> {
-      co_return co_await w1;
+      co_return co_await std::move( w1 );
     }( std::move( w1 ), std::move( w2 ) );
     run_all_coroutines();
     REQUIRE( !ss1->has_value() );
@@ -226,7 +209,7 @@ TEST_CASE( "[co-combinator] until do" ) {
   SECTION( "both" ) {
     waitable<int> w = []( waitable<int> w1,
                           waitable<>    w2 ) -> waitable<int> {
-      co_return co_await w1;
+      co_return co_await std::move( w1 );
     }( std::move( w1 ), std::move( w2 ) );
     run_all_coroutines();
     REQUIRE( !ss1->has_value() );

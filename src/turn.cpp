@@ -153,7 +153,8 @@ waitable<> do_unit_animation( UnitId              id,
   return overload_visit(
       intent,
       [&]( TravelAnalysis const& val ) {
-        if( !should_animate_move( val ) ) return def;
+        if( !should_animate_move( val ) )
+          return std::move( def );
         UNWRAP_CHECK(
             d, val.move_src.direction_to( val.move_target ) );
         return landview_animate_move( id, d );
@@ -175,7 +176,7 @@ waitable<> do_unit_animation( UnitId              id,
         return landview_animate_attack(
             attacker, defender, stats.attacker_wins, dp_anim );
       },
-      [&]( auto const& ) { return def; } );
+      [&]( auto const& ) { return std::move( def ); } );
 }
 
 // Returns true if the unit needs to ask the user for input.

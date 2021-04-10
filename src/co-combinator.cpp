@@ -18,14 +18,38 @@ using namespace std;
 
 namespace rn::co {
 
-waitable<> any( vector<waitable<>>& ws ) {
+waitable<> any( vector<waitable<>> ws ) {
   waitable_promise<> wp;
   auto unified_callback = [wp]( waitable<>::value_type const& ) {
     wp.set_value_emplace_if_not_set();
   };
   for( auto& w : ws )
     w.shared_state()->add_callback( unified_callback );
-  return wp.waitable();
+  // !! Need to co_await instead of just returning the waitable<>
+  // because we need to keep the ws alive (we own them now).
+  co_await wp.waitable();
+}
+
+waitable<> any( waitable<>&& w ) {
+  std::vector<waitable<>> v;
+  v.push_back( std::move( w ) );
+  return any( std::move( v ) );
+}
+
+waitable<> any( waitable<>&& w1, waitable<>&& w2 ) {
+  std::vector<waitable<>> v;
+  v.push_back( std::move( w1 ) );
+  v.push_back( std::move( w2 ) );
+  return any( std::move( v ) );
+}
+
+waitable<> any( waitable<>&& w1, waitable<>&& w2,
+                waitable<>&& w3 ) {
+  std::vector<waitable<>> v;
+  v.push_back( std::move( w1 ) );
+  v.push_back( std::move( w2 ) );
+  v.push_back( std::move( w3 ) );
+  return any( std::move( v ) );
 }
 
 waitable<> repeat(

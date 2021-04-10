@@ -2056,7 +2056,7 @@ struct EuropePlane : public Plane {
           result.value_or( 0 ) );
     }();
 
-    fsm_.push( EuroviewState::future{ s_future } );
+    fsm_.push( EuroviewState::future{ std::move( s_future ) } );
   }
 
   // ------------------------------------------------------------

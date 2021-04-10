@@ -30,7 +30,7 @@ namespace detail {
 template<typename PromiseT, typename T = std::monostate>
 struct awaitable {
   waitable<T> w_;
-  awaitable( waitable<T> w ) : w_( w ) {}
+  awaitable( waitable<T> w ) : w_( std::move( w ) ) {}
   bool await_ready() noexcept { return w_.ready(); }
   void await_suspend( coro::coroutine_handle<> h ) noexcept {
     w_.shared_state()->add_callback(
