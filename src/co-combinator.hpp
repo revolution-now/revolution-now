@@ -28,7 +28,7 @@ namespace rn::co {
 // the first waitable becomes ready. Since this function takes
 // ownership of all of the waitables, they will be gone when this
 // function becomes ready, and thus any that are not ready will
-// be cancelled. ning.
+// be cancelled.
 waitable<> any( std::vector<waitable<>> ws );
 
 waitable<> any( waitable<>&& w );

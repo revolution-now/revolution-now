@@ -219,10 +219,8 @@ bool advance_unit( UnitId id ) {
 }
 
 waitable<> do_end_of_turn() {
-  waitable<> eot = landview_end_of_turn();
-  // Need to co_await here instead of just returning because we
-  // need to keep the `eot` alive while we're waiting.
-  co_await wait_for_eot_button_click();
+  return co::any( landview_end_of_turn(), // never ends
+                  wait_for_eot_button_click() );
 }
 
 waitable<> do_next_player_input( UnitId              id,

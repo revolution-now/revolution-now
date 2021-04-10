@@ -738,7 +738,7 @@ struct LandViewPlane : public Plane {
           case ::SDLK_z:
             if( SG().viewport.get_zoom() < 1.0 )
               SG().viewport.smooth_zoom_target( 1.0 );
-            if( SG().viewport.get_zoom() < 1.5 )
+            else if( SG().viewport.get_zoom() < 1.5 )
               SG().viewport.smooth_zoom_target( 2.0 );
             else
               SG().viewport.smooth_zoom_target( 1.0 );
