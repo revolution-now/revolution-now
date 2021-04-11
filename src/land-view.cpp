@@ -824,21 +824,57 @@ struct LandViewPlane : public Plane {
     }
     return handled;
   }
+
+  struct Dragger {
+    struct info {
+      Coord prev;
+      Coord current;
+    };
+    // Here, `nothing` is used to indicate that it has ended.
+    co::stream<maybe<info>> stream;
+    // The waitable will be waiting on the stream, so it must
+    // come after so that it gets destroyed first.
+    waitable<> thread;
+  };
+  maybe<Dragger> dragger;
+
+  waitable<> dragging( input::e_mouse_button button,
+                       Coord                 origin ) {
+    // Dragging has started.
+    while( maybe<Dragger::info> dd =
+               co_await dragger->stream.next() ) {
+      // When the mouse drags up, we need to move the viewport
+      // center down.
+      SG().viewport.pan_by_screen_coords( dd->prev -
+                                          dd->current );
+    }
+    // Dragging has finished.
+  }
+
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
     if( button == input::e_mouse_button::r &&
-        SG().viewport.screen_coord_in_viewport( origin ) )
+        SG().viewport.screen_coord_in_viewport( origin ) ) {
+      SG().viewport.stop_auto_panning();
+      dragger = Dragger{ .stream = {},
+                         .thread = dragging( button, origin ) };
       return Plane::e_accept_drag::yes;
+    }
     return Plane::e_accept_drag::no;
   }
   void on_drag( input::mod_keys const& /*unused*/,
                 input::e_mouse_button /*unused*/,
                 Coord /*unused*/, Coord prev,
                 Coord current ) override {
-    SG().viewport.stop_auto_panning();
-    // When the mouse drags up, we need to move the viewport
-    // center down.
-    SG().viewport.pan_by_screen_coords( prev - current );
+    CHECK( dragger );
+    dragger->stream.send(
+        Dragger::info{ .prev = prev, .current = current } );
+  }
+  void on_drag_finished( input::mod_keys const& mod,
+                         input::e_mouse_button  button,
+                         Coord origin, Coord end ) override {
+    CHECK( dragger );
+    dragger->stream.send( nothing );
   }
 };
 

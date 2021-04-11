@@ -139,7 +139,7 @@ TEST_CASE( "[co-combinator] all" ) {
   }
 }
 
-TEST_CASE( "[co-combinator] until do" ) {
+TEST_CASE( "[co-combinator] with_cancel" ) {
   waitable_promise<int> p1;
   waitable_promise<>    p2;
 
@@ -155,22 +155,16 @@ TEST_CASE( "[co-combinator] until do" ) {
   auto ss1 = w1.shared_state();
   auto ss2 = w2.shared_state();
 
-  SECTION( "first finishes first" ) {
+  SECTION( "w1 finishes first" ) {
     {
-      waitable<int> w = []( waitable<int> w1,
-                            waitable<>    w2 ) -> waitable<int> {
-        co_return co_await std::move( w1 );
-      }( std::move( w1 ), std::move( w2 ) );
+      waitable<maybe<int>> w =
+          with_cancel( std::move( w1 ), std::move( w2 ) );
       run_all_coroutines();
-      REQUIRE( !ss1->has_value() );
-      REQUIRE( !ss2->has_value() );
       REQUIRE( !w.ready() );
       p1.set_value( 5 );
       run_all_coroutines();
-      REQUIRE( ss1->has_value() );
-      REQUIRE( ss1->get() == 5 );
-      REQUIRE( !ss2->has_value() );
       REQUIRE( w.ready() );
+      REQUIRE( w.get().has_value() );
       REQUIRE( w.get() == 5 );
       // At this point, `w` should go out of scope which should
       // free the (lambda) coroutine, which will free w1 and w2,
@@ -184,45 +178,38 @@ TEST_CASE( "[co-combinator] until do" ) {
     run_all_coroutines();
     REQUIRE( !ss2->has_value() );
   }
-  SECTION( "background finishes first" ) {
-    waitable<int> w = []( waitable<int> w1,
-                          waitable<>    w2 ) -> waitable<int> {
-      co_return co_await std::move( w1 );
-    }( std::move( w1 ), std::move( w2 ) );
+  SECTION( "w2 finishes first" ) {
+    waitable<maybe<int>> w =
+        with_cancel( std::move( w1 ), std::move( w2 ) );
     run_all_coroutines();
-    REQUIRE( !ss1->has_value() );
-    REQUIRE( !ss2->has_value() );
     REQUIRE( !w.ready() );
     p2.finish();
     run_all_coroutines();
-    REQUIRE( !ss1->has_value() );
-    REQUIRE( ss2->has_value() );
+    REQUIRE( w.ready() );
+    REQUIRE( !w.get().has_value() );
+  }
+  SECTION( "both (p1 first)" ) {
+    waitable<maybe<int>> w =
+        with_cancel( std::move( w1 ), std::move( w2 ) );
+    run_all_coroutines();
     REQUIRE( !w.ready() );
     p1.set_value( 5 );
+    p2.finish();
     run_all_coroutines();
-    REQUIRE( ss1->has_value() );
-    REQUIRE( ss1->get() == 5 );
-    REQUIRE( ss2->has_value() );
     REQUIRE( w.ready() );
+    REQUIRE( w.get().has_value() );
     REQUIRE( w.get() == 5 );
   }
-  SECTION( "both" ) {
-    waitable<int> w = []( waitable<int> w1,
-                          waitable<>    w2 ) -> waitable<int> {
-      co_return co_await std::move( w1 );
-    }( std::move( w1 ), std::move( w2 ) );
+  SECTION( "both (p2 first)" ) {
+    waitable<maybe<int>> w =
+        with_cancel( std::move( w1 ), std::move( w2 ) );
     run_all_coroutines();
-    REQUIRE( !ss1->has_value() );
-    REQUIRE( !ss2->has_value() );
     REQUIRE( !w.ready() );
-    p1.set_value( 5 );
     p2.finish();
+    p1.set_value( 5 );
     run_all_coroutines();
-    REQUIRE( ss1->has_value() );
-    REQUIRE( ss1->get() == 5 );
-    REQUIRE( ss2->has_value() );
     REQUIRE( w.ready() );
-    REQUIRE( w.get() == 5 );
+    REQUIRE( !w.get().has_value() );
   }
 }
 

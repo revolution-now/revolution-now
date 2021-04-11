@@ -15,6 +15,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "flat-queue.hpp"
+#include "maybe.hpp"
 #include "waitable-coro.hpp"
 
 // base
@@ -36,6 +37,34 @@ waitable<> any( waitable<>&& w );
 waitable<> any( waitable<>&& w1, waitable<>&& w2 );
 waitable<> any( waitable<>&& w1, waitable<>&& w2,
                 waitable<>&& w3 );
+
+// FIXME: clang seems to have trouble with function templates
+// that are coroutines, so we wrap it in a struct.
+struct WithCancel {
+  // Run the waitable w in parallel with canceller. If canceller
+  // becomes ready first then w is cancelled and `nothing` is re-
+  // turned. If w becomes ready first then canceller is cancelled
+  // and w's value is returned.
+  template<typename T>
+  waitable<maybe<T>> operator()( waitable<T> w,
+                                 waitable<>  canceller ) const {
+    waitable_promise<maybe<T>> wp;
+    // Need to do w first so that if both are ready already then
+    // w will take precedence and return its value.
+    w.shared_state()->add_callback( [wp]( T const& o ) {
+      wp.set_value_emplace_if_not_set( o );
+    } );
+    canceller.shared_state()->add_callback(
+        [wp]( std::monostate const& ) {
+          wp.set_value_emplace_if_not_set();
+        } );
+    // !! Need to co_await instead of just returning the waitable
+    // because we need to keep the waitables alive.
+    co_return co_await wp.waitable();
+  }
+};
+
+inline constexpr WithCancel with_cancel{};
 
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
