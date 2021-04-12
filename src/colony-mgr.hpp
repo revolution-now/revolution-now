@@ -18,6 +18,7 @@
 #include "expect.hpp"
 #include "id.hpp"
 #include "nation.hpp"
+#include "waitable.hpp"
 
 // Rnl
 #include "rnl/colony-mgr.hpp"
@@ -44,6 +45,6 @@ ColonyId found_colony_unsafe( UnitId           founder,
                               std::string_view name );
 
 // Evolve the colony by one turn.
-void evolve_colony_one_turn( ColonyId id );
+waitable<> evolve_colony_one_turn( ColonyId id );
 
 } // namespace rn

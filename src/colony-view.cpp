@@ -28,7 +28,15 @@ namespace {
 
 using e_input_handled = Plane::e_input_handled;
 
-void exit_colony_view() { pop_plane_config(); }
+/****************************************************************
+** Globals
+*****************************************************************/
+waitable_promise<> g_exit_colony;
+
+void exit_colony_view() {
+  g_exit_colony.set_value_emplace();
+  pop_plane_config();
+}
 
 void draw_colony_view( Texture& tx, ColonyId id ) {
   tx.fill( Color::parse_from_hex( "f1cf81" ).value() );
@@ -109,11 +117,13 @@ ColonyPlane g_colony_plane;
 
 Plane* colony_plane() { return &g_colony_plane; }
 
-void show_colony_view( ColonyId id ) {
+waitable<> show_colony_view( ColonyId id ) {
   CHECK( colony_exists( id ) );
   g_colony_plane.curr_colony_id = id;
   set_colview_colony( id );
   push_plane_config( e_plane_config::colony );
+  g_exit_colony = {};
+  return g_exit_colony.waitable();
 }
 
 /****************************************************************

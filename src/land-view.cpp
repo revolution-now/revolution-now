@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "colony-view.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
 #include "coord.hpp"
@@ -469,18 +468,26 @@ void center_on_blinking_unit_if_any() {
 // If this is default constructed then it should represent "no
 // actions need to be taken."
 struct ClickTileActions {
-  vector<UnitId> bring_to_front{};
-  vector<UnitId> add_to_back{};
+  maybe<ColonyId> colony_id;
+  vector<UnitId>  bring_to_front{};
+  vector<UnitId>  add_to_back{};
 };
 NOTHROW_MOVE( ClickTileActions );
 
 waitable<maybe<LandViewPlayerInput_t>> ProcessClickTileActions(
     ClickTileActions const& actions ) {
   maybe<LandViewPlayerInput_t> res;
+  // Do this first.
   if( actions.add_to_back.empty() &&
-      actions.bring_to_front.empty() )
+      actions.bring_to_front.empty() &&
+      !actions.colony_id.has_value() )
     co_return res;
   res.emplace();
+  if( actions.colony_id ) {
+    auto& colony = res->emplace<LandViewPlayerInput::colony>();
+    colony.id    = *actions.colony_id;
+    co_return res;
+  }
   auto& change_orders =
       res->emplace<LandViewPlayerInput::change_orders>();
   if( !actions.add_to_back.empty() )
@@ -560,10 +567,8 @@ ClickTileActions ClickTileActionsFromUnitSelections(
 waitable<ClickTileActions> click_on_world_tile(
     Coord coord, bool allow_activate ) {
   // First check for colonies.
-  if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
-    show_colony_view( *maybe_id );
-    co_return {};
-  }
+  if( auto maybe_id = colony_from_coord( coord ); maybe_id )
+    co_return ClickTileActions{ .colony_id = *maybe_id };
 
   // Now check for units.
   auto const& units = units_from_coord_recursive( coord );
@@ -663,6 +668,7 @@ struct LandViewPlane : public Plane {
   bool covers_screen() const override { return true; }
   void advance_state() override {
     g_raw_input_stream.update();
+    drag_stream.update();
     advance_viewport_state();
   }
   void draw( Texture& tx ) const override {
@@ -825,39 +831,38 @@ struct LandViewPlane : public Plane {
     return handled;
   }
 
-  struct Dragger {
-    struct info {
-      Coord prev;
-      Coord current;
-    };
-    // Here, `nothing` is used to indicate that it has ended.
-    co::stream<maybe<info>> stream;
-    // The waitable will be waiting on the stream, so it must
-    // come after so that it gets destroyed first.
-    waitable<> thread;
+  /**************************************************************
+  ** Dragging
+  ***************************************************************/
+  struct DragUpdate {
+    Coord prev;
+    Coord current;
   };
-  maybe<Dragger> dragger;
+  // Here, `nothing` is used to indicate that it has ended. NOTE:
+  // this needs to have update() called on it in the plane's
+  // advance_state method.
+  co::stream<maybe<DragUpdate>> drag_stream;
+  // The waitable will be waiting on the drag_stream, so it must
+  // come after so that it gets destroyed first.
+  maybe<waitable<>> drag_thread;
+  bool              drag_finished = true;
 
   waitable<> dragging( input::e_mouse_button button,
                        Coord                 origin ) {
-    // Dragging has started.
-    while( maybe<Dragger::info> dd =
-               co_await dragger->stream.next() ) {
-      // When the mouse drags up, we need to move the viewport
-      // center down.
-      SG().viewport.pan_by_screen_coords( dd->prev -
-                                          dd->current );
-    }
-    // Dragging has finished.
+    SCOPE_EXIT( drag_finished = true );
+    while( maybe<DragUpdate> d = co_await drag_stream.next() )
+      SG().viewport.pan_by_screen_coords( d->prev - d->current );
   }
 
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
+    if( !drag_finished ) return Plane::e_accept_drag::swallow;
     if( button == input::e_mouse_button::r &&
         SG().viewport.screen_coord_in_viewport( origin ) ) {
       SG().viewport.stop_auto_panning();
-      dragger = Dragger{ .stream = {},
-                         .thread = dragging( button, origin ) };
+      drag_stream.reset();
+      drag_finished = false;
+      drag_thread   = dragging( button, origin );
       return Plane::e_accept_drag::yes;
     }
     return Plane::e_accept_drag::no;
@@ -866,15 +871,15 @@ struct LandViewPlane : public Plane {
                 input::e_mouse_button /*unused*/,
                 Coord /*unused*/, Coord prev,
                 Coord current ) override {
-    CHECK( dragger );
-    dragger->stream.send(
-        Dragger::info{ .prev = prev, .current = current } );
+    drag_stream.send(
+        DragUpdate{ .prev = prev, .current = current } );
   }
   void on_drag_finished( input::mod_keys const& mod,
                          input::e_mouse_button  button,
                          Coord origin, Coord end ) override {
-    CHECK( dragger );
-    dragger->stream.send( nothing );
+    drag_stream.send( nothing );
+    // At this point we assume that the callback will finish on
+    // its own after doing any post-drag stuff it needs to do.
   }
 };
 

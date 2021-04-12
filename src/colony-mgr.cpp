@@ -11,15 +11,19 @@
 #include "colony-mgr.hpp"
 
 // Revolution Now
+#include "colony-view.hpp"
 #include "colony.hpp"
 #include "cstate.hpp"
 #include "enum.hpp"
 #include "fmt-helper.hpp"
+#include "land-view.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
 #include "rand.hpp"
 #include "terrain.hpp"
 #include "ustate.hpp"
+#include "waitable-coro.hpp"
+#include "window.hpp"
 
 // base-util
 #include "base-util/string.hpp"
@@ -181,7 +185,7 @@ ColonyId found_colony_unsafe( UnitId           founder,
   return col_id;
 }
 
-void evolve_colony_one_turn( ColonyId id ) {
+waitable<> evolve_colony_one_turn( ColonyId id ) {
   auto& colony = colony_from_id( id );
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
@@ -192,6 +196,13 @@ void evolve_colony_one_turn( ColonyId id ) {
     auto unit_id = create_unit( colony.nation(),
                                 e_unit_type::free_colonist );
     ustate_change_to_map( unit_id, colony.location() );
+    co_await landview_ensure_visible( colony.location() );
+    ui::e_ok_cancel answer = co_await ui::ok_cancel(
+        "The @[H]{}@[] colony has produced a new colonist.  "
+        "View colony?",
+        colony.name() );
+    if( answer == ui::e_ok_cancel::ok )
+      co_await show_colony_view( id );
   }
   check_colony_invariants_die( id );
 }

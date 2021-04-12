@@ -517,8 +517,8 @@ void ok_box_window_builder(
   } );
 }
 
-void ok_cancel( string_view                   msg,
-                function<void( e_ok_cancel )> on_result ) {
+void ok_cancel_impl( string_view                   msg,
+                     function<void( e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
       [on_result{ std::move( on_result ) }]( maybe<int> o ) {
         if( o.has_value() ) return on_result( e_ok_cancel::ok );
@@ -551,7 +551,7 @@ void ok_cancel( string_view                   msg,
 
 waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
   waitable_promise<e_ok_cancel> s_promise;
-  ok_cancel( msg, [s_promise]( e_ok_cancel oc ) {
+  ok_cancel_impl( msg, [s_promise]( e_ok_cancel oc ) {
     s_promise.set_value( oc );
   } );
   return s_promise.waitable();

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "colony-mgr.hpp"
+#include "colony-view.hpp"
 #include "cstate.hpp"
 #include "dispatch.hpp"
 #include "fb.hpp"
@@ -237,6 +238,10 @@ waitable<> do_next_player_input( UnitId              id,
   }
   switch( response.to_enum() ) {
     using namespace LandViewPlayerInput;
+    case e::colony: {
+      co_await show_colony_view( response.get<colony>().id );
+      break;
+    }
     case e::change_orders: {
       auto& val = response.get<change_orders>();
       // Move some units to the front of the queue.
@@ -320,7 +325,7 @@ waitable<> do_units_turn() {
   }
 }
 
-void do_colonies_turn() {
+waitable<> do_colonies_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -328,7 +333,7 @@ void do_colonies_turn() {
   while( !colonies.empty() ) {
     ColonyId colony_id = *colonies.front();
     colonies.pop();
-    /*co_await*/ evolve_colony_one_turn( colony_id );
+    co_await evolve_colony_one_turn( colony_id );
   }
 }
 
@@ -344,7 +349,7 @@ waitable<> do_nation_turn() {
 
   // Colonies.
   if( !st.did_colonies ) {
-    do_colonies_turn();
+    co_await do_colonies_turn();
     st.did_colonies = true;
   }
 

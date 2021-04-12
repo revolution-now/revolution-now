@@ -70,10 +70,15 @@ ValidatorFunc make_int_validator( maybe<int> min,
 /****************************************************************
 ** Windows
 *****************************************************************/
-void ok_cancel( std::string_view                   msg,
-                std::function<void( e_ok_cancel )> on_result );
-
 waitable<e_ok_cancel> ok_cancel( std::string_view msg );
+
+template<typename... Args>
+waitable<e_ok_cancel> ok_cancel( std::string_view question,
+                                 Args&&... args ) //
+    requires( sizeof...( Args ) > 0 ) {
+  return ok_cancel(
+      fmt::format( question, std::forward<Args>( args )... ) );
+}
 
 void text_input_box(
     std::string_view title, std::string_view msg,
@@ -160,6 +165,13 @@ void yes_no( std::string_view                 title,
              std::function<void( e_confirm )> on_result );
 
 waitable<e_confirm> yes_no( std::string_view title );
+
+template<typename... Args>
+waitable<e_confirm> yes_no( std::string_view question,
+                            Args&&... args ) {
+  return yes_no(
+      fmt::format( question, std::forward<Args>( args )... ) );
+}
 
 /****************************************************************
 ** Testing Only

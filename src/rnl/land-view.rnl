@@ -28,4 +28,6 @@ sumtype LandViewPlayerInput {
     # by the player (but not prioritized), this will allow it to
     # ask for orders this turn.
     std::vector<UnitId> add_to_back;
+  colony:
+    ColonyId id;
 };
