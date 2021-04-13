@@ -27,9 +27,8 @@ waitable<> animation_frame_throttler(
   microseconds accum{ 0 };
   while( true ) {
     accum += co_await pause;
-    int animation_frames = std::max( accum / pause, 1L );
-    accum -=
-        std::max( animation_frames * pause, microseconds{ 0 } );
+    int animation_frames = accum / pause;
+    accum                = accum - animation_frames * pause;
     for( int i = 0; i < animation_frames; ++i )
       if( func() ) co_return;
   }

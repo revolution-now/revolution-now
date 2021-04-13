@@ -1799,7 +1799,7 @@ struct DragPerform {
     auto quantity_wants_to_sell =
         src.quantity.value_or( commodity_ref.quantity );
     int       amount_to_sell = std::min( quantity_wants_to_sell,
-                                         commodity_ref.quantity );
+                                   commodity_ref.quantity );
     Commodity new_comm       = commodity_ref;
     new_comm.quantity -= amount_to_sell;
     rm_commodity_from_cargo( ship, src.slot._ );
@@ -1930,7 +1930,7 @@ waitable<> dragging_thread( Entities const*       entities,
   Coord  start   = state.where;
   Coord  end     = origin;
   double percent = 0.0;
-  co_await animation_frame_throttler( kFrameRounded, [&] {
+  co_await animation_frame_throttler( kAlmostStandardFrame, [&] {
     state.where =
         start + ( end - start ).multiply_and_round( percent );
     percent += 0.15;
