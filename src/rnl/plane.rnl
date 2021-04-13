@@ -15,7 +15,7 @@ enum e_plane {
   panel,     # the info panel on the right
   image,     # any of the fullscreen pics displayed
   colony,    # colony view
-  europe,    # the old world
+  old_world, # the old world
   main_menu, # main menu.
   console,   # the developer console
   menu,      # the menus at the top of screen

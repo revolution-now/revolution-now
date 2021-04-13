@@ -18,7 +18,7 @@ enum class e_plane_config {
   main_menu, //
   terrain,
   colony,
-  europe
+  old_world
 };
 
 // These do what you would think they do.

@@ -40,8 +40,8 @@ struct awaitable {
 };
 
 waitable<> await_transform_impl( FrameCount frame_count );
-waitable<std::chrono::milliseconds> await_transform_impl(
-    std::chrono::milliseconds ms );
+waitable<std::chrono::microseconds> await_transform_impl(
+    std::chrono::microseconds us );
 
 // The point of this is that it's not a template, so it can hold
 // all the common stuff that does not depend on the type T para-
@@ -99,9 +99,9 @@ struct promise_type final : public promise_type_base<T> {
         await_transform_impl( frame_count ) );
   }
 
-  static auto await_transform( std::chrono::milliseconds ms ) {
-    return awaitable<promise_type, std::chrono::milliseconds>(
-        await_transform_impl( ms ) );
+  static auto await_transform( std::chrono::microseconds us ) {
+    return awaitable<promise_type, std::chrono::microseconds>(
+        await_transform_impl( us ) );
   }
 
   template<typename Waitable>
@@ -143,9 +143,9 @@ struct promise_type<std::monostate> final
         await_transform_impl( frame_count ) );
   }
 
-  static auto await_transform( std::chrono::milliseconds ms ) {
-    return awaitable<promise_type, std::chrono::milliseconds>(
-        await_transform_impl( ms ) );
+  static auto await_transform( std::chrono::microseconds us ) {
+    return awaitable<promise_type, std::chrono::microseconds>(
+        await_transform_impl( us ) );
   }
 
   template<typename Waitable>

@@ -23,8 +23,11 @@
 
 namespace rn {
 
-inline constexpr auto kFrame =
+inline constexpr auto kFrameDuration =
     std::chrono::duration<int, std::ratio<1, 60>>{ 1 };
+inline constexpr auto kFrameRounded =
+    std::chrono::duration_cast<std::chrono::microseconds>(
+        kFrameDuration );
 
 // Will spin until the waitable is ready.
 void frame_loop( waitable<> const& what );
@@ -40,10 +43,10 @@ using FrameSubscriptionFunc = std::function<void( void )>;
 void subscribe_to_frame_tick( FrameSubscriptionFunc f,
                               FrameCount            n,
                               bool repeating = true );
-// Subscribe to receive a notification after n milliseconds, or
-// every n milliseconds if repeating == true.
+// Subscribe to receive a notification after n microseconds, or
+// every n microseconds if repeating == true.
 void subscribe_to_frame_tick( FrameSubscriptionFunc,
-                              std::chrono::milliseconds n,
+                              std::chrono::microseconds n,
                               bool repeating = true );
 
 // The returned waitable becomes ready after `n` frames have
@@ -55,8 +58,8 @@ waitable<> wait_n_frames( FrameCount n );
 // passed. This is useful if co_await'ing on small time intervals
 // and the frame rate is low. Note: instead of co_await'ing this
 // directly, you can do: co_await 2s.
-waitable<std::chrono::milliseconds> wait_for_duration(
-    std::chrono::milliseconds ms );
+waitable<std::chrono::microseconds> wait_for_duration(
+    std::chrono::microseconds us );
 
 using EventCountMap =
     std::unordered_map<std::string_view,

@@ -69,20 +69,30 @@ inline constexpr WithCancel with_cancel{};
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
 
+// A latch is meant to be a singlton object (per use-case) that
+// can be awaited on by multiple things. When it is set, all
+// awaiters will be resumed, and it will remain set until reset.
+struct latch {
+  void set() { p.set_value_emplace_if_not_set(); }
+  void reset() { p = {}; }
+
+  waitable<> waitable() const { return p.waitable(); }
+
+  using Awaitable =
+      detail::awaitable<detail::promise_type<std::monostate>>;
+
+  Awaitable operator co_await() const noexcept {
+    return Awaitable{ waitable() };
+  }
+
+  waitable_promise<> p;
+};
+
 // A ticker is meant to be a singlton object (per use-case) that
 // can be awaited on by multiple things. When it is ticked, all
-// the awaiters will be resumed, and it will be reset.
-//
-// Example:
-//
-//   co::ticker my_ticker;
-//
-//   Consumer:
-//      co_await my_ticker.wait();
-//
-//   Producer:
-//     my_ticker.tick();
-//
+// the awaiters will be resumed, and it will be reset, so anyone
+// who then starts newly awaiting on it will have to wait until
+// the next tick.
 struct ticker {
   void tick() {
     p.set_value_emplace();

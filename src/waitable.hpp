@@ -13,10 +13,10 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "co-handle.hpp"
 #include "error.hpp"
 #include "fmt-helper.hpp"
 #include "maybe.hpp"
+#include "unique-coro.hpp"
 
 // base
 #include "base/unique-func.hpp"
@@ -277,14 +277,6 @@ private:
 /****************************************************************
 ** Helpers
 *****************************************************************/
-template<typename Fsm>
-void advance_fsm_ui_state( Fsm* fsm, waitable<>* s_future ) {
-  if( s_future->ready() ) {
-    fsm->pop();
-    s_future->get();
-  }
-}
-
 // Returns a waitable immediately containing the given value.
 template<typename T = std::monostate, typename... Args>
 waitable<T> make_waitable( Args&&... args ) {

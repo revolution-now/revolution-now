@@ -15,7 +15,7 @@ enum e_init_routine {
   compositor,
   conductor,
   configs,
-  europort_view,
+  old_world_view,
   lua,
   images,
   menus,

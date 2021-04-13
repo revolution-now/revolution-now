@@ -135,10 +135,6 @@ namespace fb.OnOffState;
     switching_off : OnOffState.switching_off;
   }
 
-table OnOffFsm {
-  state_stack : [OnOffState_t];
-}
-
 table Monster {
   pos       : Vec3;
   mana      : short = 150;

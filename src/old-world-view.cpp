@@ -1,24 +1,26 @@
 /****************************************************************
-**europort-view.cpp
+**old-world-view.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-06-14.
 *
-* Description: Implements the Europe port view.
+* Description: Implements the Old World port view.
 *
 *****************************************************************/
-#include "europort-view.hpp"
+#include "old-world-view.hpp"
 
 // Revolution Now
+#include "anim.hpp"
 #include "cargo.hpp"
+#include "co-combinator.hpp"
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
 #include "europort.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
-#include "fsm.hpp"
+#include "frame.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
 #include "init.hpp"
@@ -39,14 +41,15 @@
 #include "window.hpp"
 
 // base
+#include "base/lambda.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 
 // Rnl
-#include "rnl/europort-view.hpp"
+#include "rnl/old-world-view.hpp"
 
 // Flatbuffers
-#include "fb/sg-europort-view_generated.h"
+#include "fb/sg-old-world-view_generated.h"
 
 using namespace std;
 
@@ -54,7 +57,7 @@ namespace rn {
 
 namespace rl = ::base::rl;
 
-DECLARE_SAVEGAME_SERIALIZERS( EuroportView );
+DECLARE_SAVEGAME_SERIALIZERS( OldWorldView );
 
 namespace {
 
@@ -67,11 +70,11 @@ constexpr int const k_default_market_quantity = 100;
 /****************************************************************
 ** Save-Game State
 *****************************************************************/
-struct SAVEGAME_STRUCT( EuroportView ) {
+struct SAVEGAME_STRUCT( OldWorldView ) {
   // Fields that are actually serialized.
 
   // clang-format off
-  SAVEGAME_MEMBERS( EuroportView,
+  SAVEGAME_MEMBERS( OldWorldView,
   ( maybe<UnitId>, selected_unit ));
   // clang-format on
 
@@ -79,7 +82,7 @@ public:
   // Fields that are derived from the serialized fields.
 
 private:
-  SAVEGAME_FRIENDS( EuroportView );
+  SAVEGAME_FRIENDS( OldWorldView );
   SAVEGAME_SYNC() {
     // Sync all fields that are derived from serialized fields
     // and then validate (check invariants).
@@ -89,7 +92,7 @@ private:
   // Called after all modules are deserialized.
   SAVEGAME_VALIDATE() { return valid; }
 };
-SAVEGAME_IMPL( EuroportView );
+SAVEGAME_IMPL( OldWorldView );
 
 /****************************************************************
 ** Draggable Object
@@ -196,7 +199,7 @@ auto range_of_rects(
 auto range_of_rects( RectGridProxyIteratorHelper&& ) = delete;
 
 /****************************************************************
-** Europe View Entities
+** Old World View Entities
 *****************************************************************/
 namespace entity {
 
@@ -1288,654 +1291,693 @@ void draw_entities( Texture& tx, Entities const& entities ) {
 /****************************************************************
 ** Drag & Drop
 *****************************************************************/
-class EuroViewDragAndDrop
-  : public DragAndDrop<EuroViewDragAndDrop, DraggableObject_t,
-                       DragSrc_t, DragDst_t, DragArc_t> {
-public:
-  EuroViewDragAndDrop(
-      Entities const* entities,
-      function<void( e_commodity, std::string const& )>
-          ask_for_quantity )
-    : entities_( entities ),
-      stored_arc_{},
-      ask_for_quantity_( std::move( ask_for_quantity ) ) {
-    CHECK( entities );
+struct OldWorldDragSrcInfo {
+  OldWorldDragSrc_t src;
+  Rect              rect;
+};
+
+maybe<OldWorldDragSrcInfo> drag_src_from_coord(
+    Coord const& coord, Entities const* entities ) {
+  using namespace entity;
+  maybe<OldWorldDragSrcInfo> res;
+  if( entities->units_on_dock.has_value() ) {
+    if( auto maybe_pair =
+            entities->units_on_dock->obj_under_cursor( coord );
+        maybe_pair ) {
+      auto const& [id, rect] = *maybe_pair;
+      res                    = OldWorldDragSrcInfo{
+          /*src=*/OldWorldDragSrc::dock{ /*id=*/id },
+          /*rect=*/rect };
+    }
   }
+  if( entities->active_cargo.has_value() ) {
+    auto const& active_cargo = *entities->active_cargo;
+    auto        in_port      = active_cargo.active_unit()
+                       .fmap( is_unit_in_port )
+                       .is_value_truish();
+    auto maybe_pair = base::just( coord ).bind(
+        LC( active_cargo.obj_under_cursor( _ ) ) );
+    if( in_port &&
+        maybe_pair.fmap( L( _.first ) )
+            .bind( L( draggable_in_cargo_slot( _ ) ) ) ) {
+      auto const& [slot, rect] = *maybe_pair;
 
-  DraggableObject_t draggable_from_src(
-      DragSrc_t const& drag_src ) const {
-    switch( drag_src.to_enum() ) {
-      case DragSrc::e::dock: {
-        auto& [id] = drag_src.get<DragSrc::dock>();
-        return DraggableObject::unit{ id };
-      }
-      case DragSrc::e::cargo: {
-        auto& val = drag_src.get<DragSrc::cargo>();
-        // Not all cargo slots must have an item in them, but in
-        // this case the slot should otherwise the DragSrc object
-        // should never have been created.
-        UNWRAP_CHECK( object,
-                      draggable_in_cargo_slot( val.slot ) );
-        return object;
-      }
-      case DragSrc::e::outbound: {
-        auto& [id] = drag_src.get<DragSrc::outbound>();
-        return DraggableObject::unit{ id };
-      }
-      case DragSrc::e::inbound: {
-        auto& [id] = drag_src.get<DragSrc::inbound>();
-        return DraggableObject::unit{ id };
-      }
-      case DragSrc::e::inport: {
-        auto& [id] = drag_src.get<DragSrc::inport>();
-        return DraggableObject::unit{ id };
-      }
-      case DragSrc::e::market: {
-        auto& val = drag_src.get<DragSrc::market>();
-        return DraggableObject::market_commodity{ val.type };
-      }
+      res = OldWorldDragSrcInfo{
+          /*src=*/OldWorldDragSrc::cargo{ /*slot=*/slot,
+                                          /*quantity=*/nothing },
+          /*rect=*/rect };
     }
-    UNREACHABLE_LOCATION;
   }
+  if( entities->ships_outbound.has_value() ) {
+    if( auto maybe_pair =
+            entities->ships_outbound->obj_under_cursor( coord );
+        maybe_pair ) {
+      auto const& [id, rect] = *maybe_pair;
 
-  constexpr static auto const draw_dragged_item =
-      L( draw_draggable_object( _ ) );
-
-  maybe<DragSrcInfo> drag_src( Coord const& coord ) const {
-    using namespace entity;
-    maybe<DragSrcInfo> res;
-    if( entities_->units_on_dock.has_value() ) {
-      if( auto maybe_pair =
-              entities_->units_on_dock->obj_under_cursor(
-                  coord );
-          maybe_pair ) {
-        auto const& [id, rect] = *maybe_pair;
-        res = DragSrcInfo{ /*src=*/DragSrc::dock{ /*id=*/id },
-                           /*rect=*/rect };
-      }
+      res = OldWorldDragSrcInfo{
+          /*src=*/OldWorldDragSrc::outbound{ /*id=*/id },
+          /*rect=*/rect };
     }
-    if( entities_->active_cargo.has_value() ) {
-      auto const& active_cargo = *entities_->active_cargo;
-      auto        in_port      = active_cargo.active_unit()
-                         .fmap( is_unit_in_port )
-                         .is_value_truish();
-      auto maybe_pair = base::just( coord ).bind(
-          LC( active_cargo.obj_under_cursor( _ ) ) );
-      if( in_port &&
-          maybe_pair.fmap( L( _.first ) )
-              .bind( L( draggable_in_cargo_slot( _ ) ) ) ) {
-        auto const& [slot, rect] = *maybe_pair;
+  }
+  if( entities->ships_inbound.has_value() ) {
+    if( auto maybe_pair =
+            entities->ships_inbound->obj_under_cursor( coord );
+        maybe_pair ) {
+      auto const& [id, rect] = *maybe_pair;
 
-        res = DragSrcInfo{
-            /*src=*/DragSrc::cargo{ /*slot=*/slot,
-                                    /*quantity=*/nothing },
-            /*rect=*/rect };
-      }
+      res = OldWorldDragSrcInfo{
+          /*src=*/OldWorldDragSrc::inbound{ /*id=*/id },
+          /*rect=*/rect };
     }
-    if( entities_->ships_outbound.has_value() ) {
-      if( auto maybe_pair =
-              entities_->ships_outbound->obj_under_cursor(
-                  coord );
-          maybe_pair ) {
-        auto const& [id, rect] = *maybe_pair;
+  }
+  if( entities->ships_in_port.has_value() ) {
+    if( auto maybe_pair =
+            entities->ships_in_port->obj_under_cursor( coord );
+        maybe_pair ) {
+      auto const& [id, rect] = *maybe_pair;
 
-        res =
-            DragSrcInfo{ /*src=*/DragSrc::outbound{ /*id=*/id },
-                         /*rect=*/rect };
-      }
+      res = OldWorldDragSrcInfo{
+          /*src=*/OldWorldDragSrc::inport{ /*id=*/id },
+          /*rect=*/rect };
     }
-    if( entities_->ships_inbound.has_value() ) {
-      if( auto maybe_pair =
-              entities_->ships_inbound->obj_under_cursor(
-                  coord );
-          maybe_pair ) {
-        auto const& [id, rect] = *maybe_pair;
+  }
+  if( entities->market_commodities.has_value() ) {
+    if( auto maybe_pair =
+            entities->market_commodities->obj_under_cursor(
+                coord );
+        maybe_pair ) {
+      auto const& [type, rect] = *maybe_pair;
 
-        res = DragSrcInfo{ /*src=*/DragSrc::inbound{ /*id=*/id },
-                           /*rect=*/rect };
-      }
-    }
-    if( entities_->ships_in_port.has_value() ) {
-      if( auto maybe_pair =
-              entities_->ships_in_port->obj_under_cursor(
-                  coord );
-          maybe_pair ) {
-        auto const& [id, rect] = *maybe_pair;
-
-        res = DragSrcInfo{ /*src=*/DragSrc::inport{ /*id=*/id },
-                           /*rect=*/rect };
-      }
-    }
-    if( entities_->market_commodities.has_value() ) {
-      if( auto maybe_pair =
-              entities_->market_commodities->obj_under_cursor(
-                  coord );
-          maybe_pair ) {
-        auto const& [type, rect] = *maybe_pair;
-
-        res = DragSrcInfo{
-            /*src=*/DragSrc::market{ /*type=*/type,
+      res = OldWorldDragSrcInfo{ /*src=*/OldWorldDragSrc::market{
+                                     /*type=*/type,
                                      /*quantity=*/nothing },
-            /*rect=*/rect };
-      }
+                                 /*rect=*/rect };
     }
-
-    return res;
   }
 
-  // Important: in this function we should not return early; we
-  // should check all the entities (in order) to allow later ones
-  // to override earlier ones.
-  maybe<DragDst_t> drag_dst( Coord const& coord ) const {
-    using namespace entity;
-    maybe<DragDst_t> res;
-    if( entities_->active_cargo.has_value() ) {
-      if( auto maybe_pair =
-              entities_->active_cargo->obj_under_cursor( coord );
-          maybe_pair ) {
-        auto const& slot = maybe_pair->first;
+  return res;
+}
 
-        res = DragDst::cargo{
-            /*slot=*/slot //
-        };
-      }
-    }
-    if( entities_->dock.has_value() ) {
-      if( coord.is_inside( entities_->dock->bounds() ) )
-        res = DragDst::dock{};
-    }
-    if( entities_->units_on_dock.has_value() ) {
-      if( coord.is_inside( entities_->units_on_dock->bounds() ) )
-        res = DragDst::dock{};
-    }
-    if( entities_->outbound_box.has_value() ) {
-      if( coord.is_inside( entities_->outbound_box->bounds() ) )
-        res = DragDst::outbound{};
-    }
-    if( entities_->inbound_box.has_value() ) {
-      if( coord.is_inside( entities_->inbound_box->bounds() ) )
-        res = DragDst::inbound{};
-    }
-    if( entities_->in_port_box.has_value() ) {
-      if( coord.is_inside( entities_->in_port_box->bounds() ) )
-        res = DragDst::inport{};
-    }
-    if( entities_->ships_in_port.has_value() ) {
-      if( auto maybe_pair =
-              entities_->ships_in_port->obj_under_cursor(
-                  coord );
-          maybe_pair ) {
-        auto const& ship = maybe_pair->first;
+// Important: in this function we should not return early; we
+// should check all the entities (in order) to allow later ones
+// to override earlier ones.
+maybe<OldWorldDragDst_t> drag_dst_from_coord(
+    Entities const* entities, Coord const& coord ) {
+  using namespace entity;
+  maybe<OldWorldDragDst_t> res;
+  if( entities->active_cargo.has_value() ) {
+    if( auto maybe_pair =
+            entities->active_cargo->obj_under_cursor( coord );
+        maybe_pair ) {
+      auto const& slot = maybe_pair->first;
 
-        res = DragDst::inport_ship{
-            /*id=*/ship, //
-        };
-      }
+      res = OldWorldDragDst::cargo{
+          /*slot=*/slot //
+      };
     }
-    if( entities_->market_commodities.has_value() ) {
-      if( coord.is_inside(
-              entities_->market_commodities->bounds() ) )
-        return DragDst::market{};
+  }
+  if( entities->dock.has_value() ) {
+    if( coord.is_inside( entities->dock->bounds() ) )
+      res = OldWorldDragDst::dock{};
+  }
+  if( entities->units_on_dock.has_value() ) {
+    if( coord.is_inside( entities->units_on_dock->bounds() ) )
+      res = OldWorldDragDst::dock{};
+  }
+  if( entities->outbound_box.has_value() ) {
+    if( coord.is_inside( entities->outbound_box->bounds() ) )
+      res = OldWorldDragDst::outbound{};
+  }
+  if( entities->inbound_box.has_value() ) {
+    if( coord.is_inside( entities->inbound_box->bounds() ) )
+      res = OldWorldDragDst::inbound{};
+  }
+  if( entities->in_port_box.has_value() ) {
+    if( coord.is_inside( entities->in_port_box->bounds() ) )
+      res = OldWorldDragDst::inport{};
+  }
+  if( entities->ships_in_port.has_value() ) {
+    if( auto maybe_pair =
+            entities->ships_in_port->obj_under_cursor( coord );
+        maybe_pair ) {
+      auto const& ship = maybe_pair->first;
+
+      res = OldWorldDragDst::inport_ship{
+          /*id=*/ship, //
+      };
     }
-    return res;
+  }
+  if( entities->market_commodities.has_value() ) {
+    if( coord.is_inside(
+            entities->market_commodities->bounds() ) )
+      return OldWorldDragDst::market{};
+  }
+  return res;
+}
+
+maybe<UnitId> active_cargo_ship( Entities const* entities ) {
+  return entities->active_cargo.bind(
+      &entity::ActiveCargo::active_unit );
+}
+
+DraggableObject_t draggable_from_src(
+    OldWorldDragSrc_t const& drag_src ) {
+  switch( drag_src.to_enum() ) {
+    case OldWorldDragSrc::e::dock: {
+      auto& [id] = drag_src.get<OldWorldDragSrc::dock>();
+      return DraggableObject::unit{ id };
+    }
+    case OldWorldDragSrc::e::cargo: {
+      auto& val = drag_src.get<OldWorldDragSrc::cargo>();
+      // Not all cargo slots must have an item in them, but in
+      // this case the slot should otherwise the OldWorldDragSrc
+      // object should never have been created.
+      UNWRAP_CHECK( object,
+                    draggable_in_cargo_slot( val.slot ) );
+      return object;
+    }
+    case OldWorldDragSrc::e::outbound: {
+      auto& [id] = drag_src.get<OldWorldDragSrc::outbound>();
+      return DraggableObject::unit{ id };
+    }
+    case OldWorldDragSrc::e::inbound: {
+      auto& [id] = drag_src.get<OldWorldDragSrc::inbound>();
+      return DraggableObject::unit{ id };
+    }
+    case OldWorldDragSrc::e::inport: {
+      auto& [id] = drag_src.get<OldWorldDragSrc::inport>();
+      return DraggableObject::unit{ id };
+    }
+    case OldWorldDragSrc::e::market: {
+      auto& val = drag_src.get<OldWorldDragSrc::market>();
+      return DraggableObject::market_commodity{ val.type };
+    }
+  }
+  UNREACHABLE_LOCATION;
+}
+
+#define DRAG_CONNECT_CASE( src_, dst_ )         \
+  operator()( OldWorldDragSrc::src_ const& src, \
+              OldWorldDragDst::dst_ const& dst )
+
+struct DragConnector {
+  static bool visit( Entities const*          entities,
+                     OldWorldDragSrc_t const& drag_src,
+                     OldWorldDragDst_t const& drag_dst ) {
+    DragConnector connector( entities );
+    return std::visit( connector, drag_src, drag_dst );
   }
 
-  maybe<UnitId> active_cargo_ship() const {
-    return entities_->active_cargo.bind(
-        &entity::ActiveCargo::active_unit );
+  Entities const* entities = nullptr;
+  DragConnector( Entities const* entities_ )
+    : entities( entities_ ) {}
+  bool DRAG_CONNECT_CASE( dock, cargo ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    if( !is_unit_in_port( ship ) ) return false;
+    return unit_from_id( ship ).cargo().fits_somewhere(
+        src.id, dst.slot._ );
+  }
+  bool DRAG_CONNECT_CASE( cargo, dock ) const {
+    return holds<DraggableObject::unit>(
+               draggable_from_src( src ) )
+        .has_value();
+  }
+  bool DRAG_CONNECT_CASE( cargo, cargo ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    if( !is_unit_in_port( ship ) ) return false;
+    if( src.slot == dst.slot ) return true;
+    UNWRAP_CHECK(
+        cargo_object,
+        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    return overload_visit(
+        cargo_object,
+        [&]( UnitId ) {
+          return unit_from_id( ship )
+              .cargo()
+              .fits_with_item_removed(
+                  /*cargo=*/cargo_object,   //
+                  /*remove_slot=*/src.slot, //
+                  /*insert_slot=*/dst.slot  //
+              );
+        },
+        [&]( Commodity const& c ) {
+          // If at least one quantity of the commodity can be
+          // moved then we will allow (at least a partial
+          // transfer) to proceed.
+          auto size_one     = c;
+          size_one.quantity = 1;
+          return unit_from_id( ship ).cargo().fits(
+              /*cargo=*/size_one,
+              /*slot=*/dst.slot );
+        } );
+  }
+  bool DRAG_CONNECT_CASE( outbound, inbound ) const {
+    return true;
+  }
+  bool DRAG_CONNECT_CASE( outbound, inport ) const {
+    UNWRAP_CHECK( info, unit_euro_port_view_info( src.id ) );
+    ASSIGN_CHECK_V( outbound, info,
+                    UnitEuroPortViewState::outbound );
+    // We'd like to do == 0.0 here, but this will avoid rounding
+    // errors.
+    return outbound.percent < 0.01;
+  }
+  bool DRAG_CONNECT_CASE( inbound, outbound ) const {
+    return true;
+  }
+  bool DRAG_CONNECT_CASE( inport, outbound ) const {
+    return true;
+  }
+  bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
+    return unit_from_id( dst.id ).cargo().fits_somewhere(
+        src.id );
+  }
+  bool DRAG_CONNECT_CASE( cargo, inport_ship ) const {
+    auto dst_ship = dst.id;
+    UNWRAP_CHECK(
+        cargo_object,
+        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    return overload_visit(
+        cargo_object,
+        [&]( UnitId id ) {
+          if( is_unit_onboard( id ) == dst_ship ) return false;
+          return unit_from_id( dst_ship )
+              .cargo()
+              .fits_somewhere( id );
+        },
+        [&]( Commodity const& c ) {
+          // If even 1 quantity can fit then we can proceed
+          // with (at least) a partial transfer.
+          auto size_one     = c;
+          size_one.quantity = 1;
+          return unit_from_id( dst_ship )
+              .cargo()
+              .fits_somewhere( size_one );
+        } );
+  }
+  bool DRAG_CONNECT_CASE( market, cargo ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    if( !is_unit_in_port( ship ) ) return false;
+    auto comm = Commodity{
+        /*type=*/src.type, //
+        // If the commodity can fit even with just one quan-
+        // tity then it is allowed, since we will just insert
+        // as much as possible if we can't insert 100.
+        /*quantity=*/1 //
+    };
+    return unit_from_id( ship ).cargo().fits_somewhere(
+        comm, dst.slot._ );
+  }
+  bool DRAG_CONNECT_CASE( market, inport_ship ) const {
+    auto comm = Commodity{
+        /*type=*/src.type, //
+        // If the commodity can fit even with just one quan-
+        // tity then it is allowed, since we will just insert
+        // as much as possible if we can't insert 100.
+        /*quantity=*/1 //
+    };
+    return unit_from_id( dst.id ).cargo().fits_somewhere(
+        comm, /*starting_slot=*/0 );
+  }
+  bool DRAG_CONNECT_CASE( cargo, market ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    if( !is_unit_in_port( ship ) ) return false;
+    return unit_from_id( ship )
+        .cargo()
+        .template slot_holds_cargo_type<Commodity>( src.slot._ )
+        .has_value();
+  }
+  bool operator()( auto const&, auto const& ) const {
+    return false;
+  }
+};
+
+#define DRAG_CONFIRM_CASE( src_, dst_ )   \
+  operator()( OldWorldDragSrc::src_& src, \
+              OldWorldDragDst::dst_& dst )
+
+struct DragUserInput {
+  Entities const* entities = nullptr;
+  DragUserInput( Entities const* entities_ )
+    : entities( entities_ ) {}
+
+  static waitable<bool> visit( Entities const*        entities,
+                               input::mod_keys const& mod,
+                               OldWorldDragSrc_t*     drag_src,
+                               OldWorldDragDst_t* drag_dst ) {
+    if( !mod.shf_down ) co_return true;
+    // Need to co_await here to keep parameters alive.
+    bool proceed = co_await std::visit(
+        DragUserInput( entities ), *drag_src, *drag_dst );
+    co_return proceed;
   }
 
-  bool can_perform_drag( DragArc_t const& drag_arc ) const {
-    switch( auto& v = drag_arc; drag_arc.to_enum() ) {
-      case DragArc::e::dock_to_cargo: {
-        auto& [src, dst] = v.get<DragArc::dock_to_cargo>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        if( !is_unit_in_port( ship ) ) return false;
-        return unit_from_id( ship ).cargo().fits_somewhere(
-            src.id, dst.slot._ );
-      }
-      case DragArc::e::cargo_to_dock: {
-        auto& val = v.get<DragArc::cargo_to_dock>();
-        return holds<DraggableObject::unit>(
-                   draggable_from_src( val.src ) )
-            .has_value();
-      }
-      case DragArc::e::cargo_to_cargo: {
-        auto& c_to_c     = v.get<DragArc::cargo_to_cargo>();
-        auto& [src, dst] = c_to_c;
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        if( !is_unit_in_port( ship ) ) return false;
-        if( src.slot == dst.slot ) return true;
-        UNWRAP_CHECK( cargo_object,
-                      draggable_to_cargo_object(
-                          draggable_from_src( src ) ) );
-        return overload_visit(
-            cargo_object,
-            [&]( UnitId ) {
-              return unit_from_id( ship )
-                  .cargo()
-                  .fits_with_item_removed(
-                      /*cargo=*/cargo_object,          //
-                      /*remove_slot=*/c_to_c.src.slot, //
-                      /*insert_slot=*/c_to_c.dst.slot  //
-                  );
-            },
-            [&]( Commodity const& c ) {
-              // If at least one quantity of the commodity can be
-              // moved then we will allow (at least a partial
-              // transfer) to proceed.
-              auto size_one     = c;
-              size_one.quantity = 1;
-              return unit_from_id( ship ).cargo().fits(
-                  /*cargo=*/size_one,
-                  /*slot=*/c_to_c.dst.slot );
-            } );
-      }
-      case DragArc::e::outbound_to_inbound: return true;
-      case DragArc::e::outbound_to_inport: {
-        auto& val = v.get<DragArc::outbound_to_inport>();
-        UNWRAP_CHECK( info,
-                      unit_euro_port_view_info( val.src.id ) );
-        ASSIGN_CHECK_V( outbound, info,
-                        UnitEuroPortViewState::outbound );
-        return outbound.percent == 0.0;
-      }
-      case DragArc::e::inbound_to_outbound: return true;
-      case DragArc::e::inport_to_outbound: return true;
-      case DragArc::e::dock_to_inport_ship: {
-        auto& [src, dst] = v.get<DragArc::dock_to_inport_ship>();
-        return unit_from_id( dst.id ).cargo().fits_somewhere(
-            src.id );
-      }
-      case DragArc::e::cargo_to_inport_ship: {
-        auto& [src, dst] =
-            v.get<DragArc::cargo_to_inport_ship>();
-        auto dst_ship = dst.id;
-        UNWRAP_CHECK( cargo_object,
-                      draggable_to_cargo_object(
-                          draggable_from_src( src ) ) );
-        return overload_visit(
-            cargo_object,
-            [&]( UnitId id ) {
-              if( is_unit_onboard( id ) == dst_ship )
-                return false;
-              return unit_from_id( dst_ship )
-                  .cargo()
-                  .fits_somewhere( id );
-            },
-            [&]( Commodity const& c ) {
-              // If even 1 quantity can fit then we can proceed
-              // with (at least) a partial transfer.
-              auto size_one     = c;
-              size_one.quantity = 1;
-              return unit_from_id( dst_ship )
-                  .cargo()
-                  .fits_somewhere( size_one );
-            } );
-      }
-      case DragArc::e::market_to_cargo: {
-        auto& [src, dst] = v.get<DragArc::market_to_cargo>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        if( !is_unit_in_port( ship ) ) return false;
-        auto comm = Commodity{
-            /*type=*/src.type, //
-            // If the commodity can fit even with just one quan-
-            // tity then it is allowed, since we will just insert
-            // as much as possible if we can't insert 100.
-            /*quantity=*/1 //
-        };
-        return unit_from_id( ship ).cargo().fits_somewhere(
-            comm, dst.slot._ );
-      }
-      case DragArc::e::market_to_inport_ship: {
-        auto& [src, dst] =
-            v.get<DragArc::market_to_inport_ship>();
-        auto comm = Commodity{
-            /*type=*/src.type, //
-            // If the commodity can fit even with just one quan-
-            // tity then it is allowed, since we will just insert
-            // as much as possible if we can't insert 100.
-            /*quantity=*/1 //
-        };
-        return unit_from_id( dst.id ).cargo().fits_somewhere(
-            comm, /*starting_slot=*/0 );
-      }
-      case DragArc::e::cargo_to_market: {
-        auto& val = v.get<DragArc::cargo_to_market>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        if( !is_unit_in_port( ship ) ) return false;
-        return unit_from_id( ship )
+  static waitable<maybe<int>> ask_for_quantity(
+      e_commodity type, string_view verb ) {
+    string text = fmt::format(
+        "What quantity of @[H]{}@[] would you like to {}? "
+        "(0-100):",
+        commodity_display_name( type ), verb );
+
+    return ui::int_input_box(
+        /*title=*/"Choose Quantity",
+        /*msg=*/text,
+        /*min=*/0,
+        /*max=*/100 );
+  }
+
+  waitable<bool> DRAG_CONFIRM_CASE( market, cargo ) const {
+    src.quantity = co_await ask_for_quantity( src.type, "buy" );
+    co_return src.quantity.has_value();
+  }
+  waitable<bool> DRAG_CONFIRM_CASE( market, inport_ship ) const {
+    src.quantity = co_await ask_for_quantity( src.type, "buy" );
+    co_return src.quantity.has_value();
+  }
+  waitable<bool> DRAG_CONFIRM_CASE( cargo, market ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    CHECK( is_unit_in_port( ship ) );
+    UNWRAP_CHECK( commodity_ref,
+                  unit_from_id( ship )
+                      .cargo()
+                      .template slot_holds_cargo_type<Commodity>(
+                          src.slot._ ) );
+    src.quantity =
+        co_await ask_for_quantity( commodity_ref.type, "sell" );
+    co_return src.quantity.has_value();
+  }
+  waitable<bool> DRAG_CONFIRM_CASE( cargo, inport_ship ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    CHECK( is_unit_in_port( ship ) );
+    auto maybe_commodity_ref =
+        unit_from_id( ship )
             .cargo()
             .template slot_holds_cargo_type<Commodity>(
-                val.src.slot._ )
-            .has_value();
-      }
-    }
-    UNREACHABLE_LOCATION;
+                src.slot._ );
+    if( !maybe_commodity_ref.has_value() )
+      // It's a unit.
+      co_return true;
+    src.quantity = co_await ask_for_quantity(
+        maybe_commodity_ref->type, "move" );
+    co_return src.quantity.has_value();
+  }
+  waitable<bool> operator()( auto const&, auto const& ) const {
+    co_return true;
+  }
+};
+
+#define DRAG_PERFORM_CASE( src_, dst_ )         \
+  operator()( OldWorldDragSrc::src_ const& src, \
+              OldWorldDragDst::dst_ const& dst )
+
+struct DragPerform {
+  Entities const* entities = nullptr;
+  DragPerform( Entities const* entities_ )
+    : entities( entities_ ) {}
+
+  static void visit( Entities const*          entities,
+                     OldWorldDragSrc_t const& src,
+                     OldWorldDragDst_t const& dst ) {
+    lg.debug( "performing drag: {} to {}", src, dst );
+    std::visit( DragPerform( entities ), src, dst );
   }
 
-  void finalize_drag( input::mod_keys const& mod,
-                      DragArc_t const&       drag_arc ) {
-    CHECK( !stored_arc_.has_value() );
-    if( !mod.shf_down ) {
-      accept_finalized_drag( drag_arc );
-      return;
-    }
-    // Shift is down.
-    switch( auto& v = drag_arc; v.to_enum() ) {
-      case DragArc::e::market_to_cargo: {
-        auto& val = v.get<DragArc::market_to_cargo>();
-        ask_for_quantity_( val.src.type, "buy" );
-        stored_arc_ = drag_arc;
-        break;
-      }
-      case DragArc::e::market_to_inport_ship: {
-        auto& val = v.get<DragArc::market_to_inport_ship>();
-        ask_for_quantity_( val.src.type, "buy" );
-        stored_arc_ = drag_arc;
-        break;
-      }
-      case DragArc::e::cargo_to_market: {
-        auto& val = v.get<DragArc::cargo_to_market>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        CHECK( is_unit_in_port( ship ) );
-        UNWRAP_CHECK(
-            commodity_ref,
-            unit_from_id( ship )
-                .cargo()
-                .template slot_holds_cargo_type<Commodity>(
-                    val.src.slot._ ) );
-        ask_for_quantity_( commodity_ref.type, "sell" );
-        stored_arc_ = drag_arc;
-        break;
-      }
-      case DragArc::e::cargo_to_inport_ship: {
-        auto& val = v.get<DragArc::cargo_to_inport_ship>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        CHECK( is_unit_in_port( ship ) );
-        auto maybe_commodity_ref =
-            unit_from_id( ship )
-                .cargo()
-                .template slot_holds_cargo_type<Commodity>(
-                    val.src.slot._ );
-        if( !maybe_commodity_ref.has_value() ) {
-          // It's a unit.
-          accept_finalized_drag( drag_arc );
-        } else {
-          ask_for_quantity_( maybe_commodity_ref->type, "move" );
-          stored_arc_ = drag_arc;
-        }
-        break;
-      }
-      default:
-        accept_finalized_drag( drag_arc ); //
-        break;
-    }
+  void DRAG_PERFORM_CASE( dock, cargo ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    // First try to respect the destination slot chosen by
+    // the player,
+    if( unit_from_id( ship ).cargo().fits( src.id, dst.slot._ ) )
+      ustate_change_to_cargo( ship, src.id, dst.slot._ );
+    else
+      ustate_change_to_cargo( ship, src.id );
   }
-
-  void receive_quantity( int quantity ) {
-    CHECK( stored_arc_.has_value() );
-    SCOPE_EXIT( stored_arc_ = nothing );
-    if( quantity == 0 ) {
-      // The drag has been cancelled.
-      accept_finalized_drag( nothing );
-      return;
-    }
-    auto set_it = [this, quantity]( auto& val ) {
-      auto new_val         = val;
-      new_val.src.quantity = quantity;
-      DragArc_t new_arc    = DragArc_t{ new_val };
-      accept_finalized_drag( new_arc );
+  void DRAG_PERFORM_CASE( cargo, dock ) const {
+    ASSIGN_CHECK_V( unit, draggable_from_src( src ),
+                    DraggableObject::unit );
+    unit_move_to_europort_dock( unit.id );
+  }
+  void DRAG_PERFORM_CASE( cargo, cargo ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    UNWRAP_CHECK(
+        cargo_object,
+        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    overload_visit(
+        cargo_object,
+        [&]( UnitId id ) {
+          // Will first "disown" unit which will remove it
+          // from the cargo.
+          ustate_change_to_cargo( ship, id, dst.slot._ );
+        },
+        [&]( Commodity const& ) {
+          move_commodity_as_much_as_possible(
+              ship, src.slot._, ship, dst.slot._,
+              /*max_quantity=*/nothing,
+              /*try_other_dst_slots=*/false );
+        } );
+  }
+  void DRAG_PERFORM_CASE( outbound, inbound ) const {
+    unit_sail_to_old_world( src.id );
+  }
+  void DRAG_PERFORM_CASE( outbound, inport ) const {
+    unit_sail_to_old_world( src.id );
+  }
+  void DRAG_PERFORM_CASE( inbound, outbound ) const {
+    unit_sail_to_new_world( src.id );
+  }
+  void DRAG_PERFORM_CASE( inport, outbound ) const {
+    unit_sail_to_new_world( src.id );
+  }
+  void DRAG_PERFORM_CASE( dock, inport_ship ) const {
+    ustate_change_to_cargo( dst.id, src.id );
+  }
+  void DRAG_PERFORM_CASE( cargo, inport_ship ) const {
+    UNWRAP_CHECK(
+        cargo_object,
+        draggable_to_cargo_object( draggable_from_src( src ) ) );
+    overload_visit(
+        cargo_object,
+        [&]( UnitId id ) {
+          CHECK( !src.quantity.has_value() );
+          // Will first "disown" unit which will remove it
+          // from the cargo.
+          ustate_change_to_cargo( dst.id, id );
+        },
+        [&]( Commodity const& ) {
+          UNWRAP_CHECK( src_ship,
+                        active_cargo_ship( entities ) );
+          move_commodity_as_much_as_possible(
+              src_ship, src.slot._,
+              /*dst_ship=*/dst.id,
+              /*dst_slot=*/0,
+              /*max_quantity=*/src.quantity,
+              /*try_other_dst_slots=*/true );
+        } );
+  }
+  void DRAG_PERFORM_CASE( market, cargo ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    auto comm = Commodity{
+        /*type=*/src.type, //
+        /*quantity=*/src.quantity.value_or(
+            k_default_market_quantity ) //
     };
-    switch( auto& v = *stored_arc_; v.to_enum() ) {
-      case DragArc::e::market_to_cargo: {
-        auto& val = v.get<DragArc::market_to_cargo>();
-        set_it( val );
-        break;
-      }
-      case DragArc::e::market_to_inport_ship: {
-        auto& val = v.get<DragArc::market_to_inport_ship>();
-        set_it( val );
-        break;
-      }
-      case DragArc::e::cargo_to_market: {
-        auto& val = v.get<DragArc::cargo_to_market>();
-        set_it( val );
-        break;
-      }
-      case DragArc::e::cargo_to_inport_ship: {
-        auto& val = v.get<DragArc::cargo_to_inport_ship>();
-        set_it( val );
-        break;
-      }
-      default:
-        FATAL( "need to receive quantity for drag arc type {}",
-               *stored_arc_ );
-        break;
-    }
+    comm.quantity = std::min(
+        comm.quantity,
+        unit_from_id( ship )
+            .cargo()
+            .max_commodity_quantity_that_fits( src.type ) );
+    // Cap it.
+    comm.quantity =
+        std::min( comm.quantity, k_default_market_quantity );
+    CHECK( comm.quantity > 0 );
+    add_commodity_to_cargo( comm, ship,
+                            /*slot=*/dst.slot._,
+                            /*try_other_slots=*/true );
   }
-
-  void perform_drag( DragArc_t const& drag_arc ) const {
-    if( !can_perform_drag( drag_arc ) ) {
-      lg.error(
-          "Drag was marked as correct, but can_perform_drag "
-          "returned false for arc: {}",
-          drag_arc );
-      DCHECK( false );
-      return;
-    }
-    lg.debug( "performing drag: {}", drag_arc );
-    // Beyond this point it is assumed that this drag is compat-
-    // ible with game rules.
-    switch( auto& v = drag_arc; v.to_enum() ) {
-      case DragArc::e::dock_to_cargo: {
-        auto& [src, dst] = v.get<DragArc::dock_to_cargo>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        // First try to respect the destination slot chosen by
-        // the player,
-        if( unit_from_id( ship ).cargo().fits( src.id,
-                                               dst.slot._ ) )
-          ustate_change_to_cargo( ship, src.id, dst.slot._ );
-        else
-          ustate_change_to_cargo( ship, src.id );
-        break;
-      }
-      case DragArc::e::cargo_to_dock: {
-        auto& val = v.get<DragArc::cargo_to_dock>();
-        ASSIGN_CHECK_V( unit, draggable_from_src( val.src ),
-                        DraggableObject::unit );
-        unit_move_to_europort_dock( unit.id );
-        break;
-      }
-      case DragArc::e::cargo_to_cargo: {
-        auto& c_to_c = v.get<DragArc::cargo_to_cargo>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        UNWRAP_CHECK( cargo_object,
-                      draggable_to_cargo_object(
-                          draggable_from_src( c_to_c.src ) ) );
-        overload_visit(
-            cargo_object,
-            [&]( UnitId id ) {
-              // Will first "disown" unit which will remove it
-              // from the cargo.
-              ustate_change_to_cargo( ship, id,
-                                      c_to_c.dst.slot._ );
-            },
-            [&]( Commodity const& ) {
-              move_commodity_as_much_as_possible(
-                  ship, c_to_c.src.slot._, ship,
-                  c_to_c.dst.slot._,
-                  /*max_quantity=*/nothing,
-                  /*try_other_dst_slots=*/false );
-            } );
-        break;
-      }
-      case DragArc::e::outbound_to_inbound: {
-        auto& val = v.get<DragArc::outbound_to_inbound>();
-        unit_sail_to_old_world( val.src.id );
-        break;
-      }
-      case DragArc::e::outbound_to_inport: {
-        auto& val = v.get<DragArc::outbound_to_inport>();
-        unit_sail_to_old_world( val.src.id );
-        break;
-      }
-      case DragArc::e::inbound_to_outbound: {
-        auto& val = v.get<DragArc::inbound_to_outbound>();
-        unit_sail_to_new_world( val.src.id );
-        break;
-      }
-      case DragArc::e::inport_to_outbound: {
-        auto& val = v.get<DragArc::inport_to_outbound>();
-        unit_sail_to_new_world( val.src.id );
-        break;
-      }
-      case DragArc::e::dock_to_inport_ship: {
-        auto& [src, dst] = v.get<DragArc::dock_to_inport_ship>();
-        ustate_change_to_cargo( dst.id, src.id );
-        break;
-      }
-      case DragArc::e::cargo_to_inport_ship: {
-        auto& c_to_i_s = v.get<DragArc::cargo_to_inport_ship>();
-        UNWRAP_CHECK( cargo_object,
-                      draggable_to_cargo_object(
-                          draggable_from_src( c_to_i_s.src ) ) );
-        overload_visit(
-            cargo_object,
-            [&]( UnitId id ) {
-              CHECK( !c_to_i_s.src.quantity.has_value() );
-              // Will first "disown" unit which will remove it
-              // from the cargo.
-              ustate_change_to_cargo( c_to_i_s.dst.id, id );
-            },
-            [&]( Commodity const& ) {
-              UNWRAP_CHECK( src_ship, active_cargo_ship() );
-              move_commodity_as_much_as_possible(
-                  src_ship, c_to_i_s.src.slot._,
-                  /*dst_ship=*/c_to_i_s.dst.id,
-                  /*dst_slot=*/0,
-                  /*max_quantity=*/c_to_i_s.src.quantity,
-                  /*try_other_dst_slots=*/true );
-            } );
-        break;
-      }
-      case DragArc::e::market_to_cargo: {
-        auto& [src, dst] = v.get<DragArc::market_to_cargo>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        auto comm = Commodity{
-            /*type=*/src.type, //
-            /*quantity=*/src.quantity.value_or(
-                k_default_market_quantity ) //
-        };
-        comm.quantity = std::min(
-            comm.quantity,
-            unit_from_id( ship )
-                .cargo()
-                .max_commodity_quantity_that_fits( src.type ) );
-        // Cap it.
-        comm.quantity =
-            std::min( comm.quantity, k_default_market_quantity );
-        CHECK( comm.quantity > 0 );
-        add_commodity_to_cargo( comm, ship,
-                                /*slot=*/dst.slot._,
-                                /*try_other_slots=*/true );
-        break;
-      }
-      case DragArc::e::market_to_inport_ship: {
-        auto& [src, dst] =
-            v.get<DragArc::market_to_inport_ship>();
-        auto comm = Commodity{
-            /*type=*/src.type, //
-            /*quantity=*/src.quantity.value_or(
-                k_default_market_quantity ) //
-        };
-        comm.quantity = std::min(
-            comm.quantity,
-            unit_from_id( dst.id )
-                .cargo()
-                .max_commodity_quantity_that_fits( src.type ) );
-        // Cap it.
-        comm.quantity =
-            std::min( comm.quantity, k_default_market_quantity );
-        CHECK( comm.quantity > 0 );
-        add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
-                                /*try_other_slots=*/true );
-        break;
-      }
-      case DragArc::e::cargo_to_market: {
-        auto& val = v.get<DragArc::cargo_to_market>();
-        UNWRAP_CHECK( ship, active_cargo_ship() );
-        UNWRAP_CHECK(
-            commodity_ref,
-            unit_from_id( ship )
-                .cargo()
-                .template slot_holds_cargo_type<Commodity>(
-                    val.src.slot._ ) );
-        auto quantity_wants_to_sell =
-            val.src.quantity.value_or( commodity_ref.quantity );
-        int amount_to_sell = std::min( quantity_wants_to_sell,
-                                       commodity_ref.quantity );
-        Commodity new_comm = commodity_ref;
-        new_comm.quantity -= amount_to_sell;
-        rm_commodity_from_cargo( ship, val.src.slot._ );
-        if( new_comm.quantity > 0 )
-          add_commodity_to_cargo( new_comm, ship,
-                                  /*slot=*/val.src.slot._,
-                                  /*try_other_slots=*/false );
-        break;
-      }
-    }
+  void DRAG_PERFORM_CASE( market, inport_ship ) const {
+    auto comm = Commodity{
+        /*type=*/src.type, //
+        /*quantity=*/src.quantity.value_or(
+            k_default_market_quantity ) //
+    };
+    comm.quantity = std::min(
+        comm.quantity,
+        unit_from_id( dst.id )
+            .cargo()
+            .max_commodity_quantity_that_fits( src.type ) );
+    // Cap it.
+    comm.quantity =
+        std::min( comm.quantity, k_default_market_quantity );
+    CHECK( comm.quantity > 0 );
+    add_commodity_to_cargo( comm, dst.id, /*slot=*/0,
+                            /*try_other_slots=*/true );
   }
-
-  // This class cannot change the entities, but note that the en-
-  // tities will be changed on each frame.
-  Entities const*  entities_;
-  maybe<DragArc_t> stored_arc_;
-  function<void( e_commodity, std::string const& )>
-      ask_for_quantity_;
-};
-NOTHROW_MOVE( EuroViewDragAndDrop );
-
-/****************************************************************
-** The Europe View State Machine
-*****************************************************************/
-// clang-format off
-fsm_transitions( Euroview,
-  ((normal, none ),  ->  ,normal),
-);
-// clang-format on
-
-fsm_class( Euroview ) {
-  fsm_init( EuroviewState::normal{} ); //
+  void DRAG_PERFORM_CASE( cargo, market ) const {
+    UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
+    UNWRAP_CHECK( commodity_ref,
+                  unit_from_id( ship )
+                      .cargo()
+                      .template slot_holds_cargo_type<Commodity>(
+                          src.slot._ ) );
+    auto quantity_wants_to_sell =
+        src.quantity.value_or( commodity_ref.quantity );
+    int       amount_to_sell = std::min( quantity_wants_to_sell,
+                                   commodity_ref.quantity );
+    Commodity new_comm       = commodity_ref;
+    new_comm.quantity -= amount_to_sell;
+    rm_commodity_from_cargo( ship, src.slot._ );
+    if( new_comm.quantity > 0 )
+      add_commodity_to_cargo( new_comm, ship,
+                              /*slot=*/src.slot._,
+                              /*try_other_slots=*/false );
+  }
+  void operator()( auto const&, auto const& ) const {}
 };
 
-FSM_DEFINE_FORMAT_RN_( Euroview );
+enum class e_drag_status_indicator { none, bad, good, ask };
+struct DragRenderingInfo {
+  e_drag_status_indicator indicator;
+  Texture                 tx;
+  Coord                   where;
+  Delta                   click_offset;
+};
 
-// Will be called repeatedly until no more events added to fsm.
-void advance_euroview_state( EuroviewFsm& fsm ) {
-  switch( auto& v = fsm.mutable_state(); v.to_enum() ) {
-    case EuroviewState::e::normal: //
+void drag_n_drop_draw( Texture&                 tx,
+                       DragRenderingInfo const& info ) {
+  copy_texture( info.tx, tx,
+                info.where - info.tx.size() / Scale{ 2 } -
+                    info.click_offset );
+  switch( info.indicator ) {
+    using e = e_drag_status_indicator;
+    case e::none: break;
+    case e::bad: {
+      auto const& status_tx = render_text( "X", Color::red() );
+      auto        indicator_pos =
+          info.where - status_tx.size() / Scale{ 1 };
+      copy_texture( status_tx, tx,
+                    indicator_pos - info.click_offset );
       break;
-    case EuroviewState::e::future: {
-      auto& [s_future] = v.get<EuroviewState::future>();
-      advance_fsm_ui_state( &fsm, &s_future );
+    }
+    case e::good: {
+      auto const& status_tx = render_text( "+", Color::green() );
+      auto        indicator_pos =
+          info.where - status_tx.size() / Scale{ 1 };
+      copy_texture( status_tx, tx,
+                    indicator_pos - info.click_offset );
+    }
+      // !! fallthrough
+    case e::ask: {
+      auto const& mod_tx  = render_text( "?", Color::green() );
+      auto        mod_pos = info.where;
+      mod_pos.y -= mod_tx.size().h;
+      copy_texture( mod_tx, tx, mod_pos - info.click_offset );
       break;
     }
   }
 }
 
+struct DragUpdate {
+  input::mod_keys mod;
+  Coord           current;
+};
+
+bool drag_n_drop_handle_input(
+    input::event_t const&          event,
+    co::stream<maybe<DragUpdate>>& drag_stream ) {
+  auto key_event = event.get_if<input::key_event_t>();
+  if( !key_event ) return false;
+  if( key_event->keycode != ::SDLK_LSHIFT &&
+      key_event->keycode != ::SDLK_RSHIFT )
+    return false;
+  // This input event is a shift key being pressed or released.
+  drag_stream.send(
+      DragUpdate{ .mod     = key_event->mod,
+                  .current = input::current_mouse_position() } );
+  return true;
+}
+
+waitable<> dragging_thread(
+    Entities const* entities, input::e_mouse_button button,
+    Coord origin, co::stream<maybe<DragUpdate>>& drag_stream,
+    maybe<DraggableObject_t>& obj_being_dragged,
+    maybe<DragRenderingInfo>& drag_rendering_info ) {
+  DragUpdate                 latest;
+  maybe<OldWorldDragSrcInfo> src_info =
+      drag_src_from_coord( origin, entities );
+  CHECK( src_info );
+  OldWorldDragSrc_t&       src = src_info->src;
+  maybe<OldWorldDragDst_t> dst;
+  input::mod_keys          mod{};
+  SCOPE_EXIT( obj_being_dragged = nothing );
+  obj_being_dragged = draggable_from_src( src );
+  CHECK( obj_being_dragged );
+
+  Texture tx = draw_draggable_object( *obj_being_dragged );
+  Delta   click_offset = origin - src_info->rect.center();
+
+  drag_rendering_info = DragRenderingInfo{
+      .indicator    = e_drag_status_indicator::none,
+      .tx           = std::move( tx ),
+      .where        = origin,
+      .click_offset = click_offset };
+  SCOPE_EXIT( drag_rendering_info = nothing );
+
+  while( maybe<DragUpdate> d = co_await drag_stream.next() ) {
+    mod                        = d->mod;
+    drag_rendering_info->where = d->current;
+    latest                     = *d;
+    dst = drag_dst_from_coord( entities, d->current );
+    if( !dst ) {
+      drag_rendering_info->indicator =
+          e_drag_status_indicator::none;
+      continue;
+    }
+    if( !DragConnector::visit( entities, src, *dst ) ) {
+      drag_rendering_info->indicator =
+          e_drag_status_indicator::bad;
+      continue;
+    }
+    if( mod.l_shf_down )
+      drag_rendering_info->indicator =
+          e_drag_status_indicator::ask;
+    else
+      drag_rendering_info->indicator =
+          e_drag_status_indicator::good;
+  }
+
+  if( dst && DragConnector::visit( entities, src, *dst ) &&
+      co_await DragUserInput::visit( entities, mod, &src,
+                                     &*dst ) ) {
+    DragPerform::visit( entities, src, *dst );
+    co_return;
+  }
+
+  // Rubber-band back to starting point.
+  drag_rendering_info->indicator = e_drag_status_indicator::none;
+  drag_rendering_info->click_offset = Delta::zero();
+
+  Coord  current = drag_rendering_info->where - click_offset;
+  Coord  target  = origin - click_offset;
+  Delta  delta   = target - current;
+  double percent = 0.0;
+  using namespace std::literals::chrono_literals;
+  co_await animation_frame_throttler( kFrameRounded, [&] {
+    Coord pos;
+    pos.x._ = current.x._ + int( delta.w._ * percent );
+    pos.y._ = current.y._ + int( delta.h._ * percent );
+    drag_rendering_info->where = pos;
+    percent += 0.15;
+    return percent > 1.0;
+  } );
+}
+
 /****************************************************************
-** The Europe Plane
+** The Old World Plane
 *****************************************************************/
-struct EuropePlane : public Plane {
-  EuropePlane() = default;
+struct OldWorldPlane : public Plane {
+  OldWorldPlane() = default;
   bool covers_screen() const override { return true; }
 
   void advance_state() override {
-    fsm_auto_advance( fsm_, "euroview",
-                      { advance_euroview_state } );
-    drag_n_drop_.advance_state();
-    g_dragging_object = drag_n_drop_.obj_being_dragged();
     // Should be last.
     create_entities( &entities_ );
   }
@@ -1944,11 +1986,13 @@ struct EuropePlane : public Plane {
     clear_texture_transparent( tx );
     draw_entities( tx, entities_ );
     // Should be last.
-    drag_n_drop_.handle_draw( tx );
+    if( drag_rendering_info )
+      drag_n_drop_draw( tx, *drag_rendering_info );
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    if( drag_n_drop_.handle_input( event ) )
+    if( drag_in_progress &&
+        drag_n_drop_handle_input( event, drag_stream ) )
       return e_input_handled::yes;
     switch( event.to_enum() ) {
       case input::e_input_event::unknown_event:
@@ -1957,7 +2001,7 @@ struct EuropePlane : public Plane {
         return e_input_handled::no;
       case input::e_input_event::win_event:
         // Note: we don't have to handle the window-resize event
-        // here because currently the europort-plane completely
+        // here because currently the old-world plane completely
         // re-composites and re-draws itself every frame ac-
         // cording to the current window size.
         //
@@ -2008,11 +2052,37 @@ struct EuropePlane : public Plane {
     UNREACHABLE_LOCATION;
   }
 
+  /**************************************************************
+  ** Dragging
+  ***************************************************************/
+  // Stream ends when we receive `nothing`.
+  co::stream<maybe<DragUpdate>> drag_stream;
+  // The waitable will be waiting on the drag_stream, so it must
+  // come after so that it gets destroyed first.
+  maybe<waitable<>>        drag_thread;
+  bool                     drag_in_progress = false;
+  maybe<DragRenderingInfo> drag_rendering_info;
+
+  waitable<> dragging( input::e_mouse_button button,
+                       Coord                 origin ) {
+    SCOPE_EXIT( drag_in_progress = false );
+    co_await dragging_thread( &entities_, button, origin,
+                              drag_stream, g_dragging_object,
+                              drag_rendering_info );
+  }
+
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    // Should be last.
-    if( button == input::e_mouse_button::l )
-      return drag_n_drop_.handle_can_drag( origin );
+    if( drag_in_progress ) return Plane::e_accept_drag::swallow;
+    if( button == input::e_mouse_button::l ) {
+      maybe<OldWorldDragSrcInfo> start =
+          drag_src_from_coord( origin, &entities_ );
+      if( !start ) return e_accept_drag::no;
+      drag_stream.reset();
+      drag_in_progress = true;
+      drag_thread      = dragging( button, origin );
+      return e_accept_drag::yes;
+    }
     return e_accept_drag::no;
   }
 
@@ -2020,85 +2090,53 @@ struct EuropePlane : public Plane {
                 input::e_mouse_button /*button*/,
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
-    CHECK( fsm_.holds<EuroviewState::normal>() );
-    if( drag_n_drop_.is_drag_in_progress() )
-      drag_n_drop_.handle_on_drag( mod, current );
+    drag_stream.send(
+        DragUpdate{ .mod = mod, .current = current } );
   }
 
   void on_drag_finished( input::mod_keys const& mod,
                          input::e_mouse_button /*button*/,
                          Coord origin, Coord end ) override {
-    CHECK( fsm_.holds<EuroviewState::normal>() );
-    if( drag_n_drop_.handle_on_drag_finished( mod, origin,
-                                              end ) )
-      return;
-  }
-
-  // ------------------------------------------------------------
-  // Callbacks
-  // ------------------------------------------------------------
-  void ask_for_quantity( e_commodity type, string const& verb ) {
-    CHECK( fsm_.holds<EuroviewState::normal>() );
-    auto text = fmt::format(
-        "What quantity of @[H]{}@[] would you like to "
-        "{}? (0-100):",
-        commodity_display_name( type ), verb );
-
-    waitable<> s_future =
-        [this, text = std::move( text )]() -> waitable<> {
-      maybe<int> result = co_await ui::int_input_box(
-          /*title=*/"Choose Quantity",
-          /*msg=*/text,
-          /*min=*/0,
-          /*max=*/100 );
-      lg.debug( "received quantity: {}", result );
-      this->drag_n_drop_.receive_quantity(
-          result.value_or( 0 ) );
-    }();
-
-    fsm_.push( EuroviewState::future{ std::move( s_future ) } );
+    drag_stream.send( nothing );
+    // At this point we assume that the callback will finish on
+    // its own after doing any post-drag stuff it needs to do.
   }
 
   // ------------------------------------------------------------
   // Members
   // ------------------------------------------------------------
-  Entities            entities_{};
-  EuroviewFsm         fsm_;
-  EuroViewDragAndDrop drag_n_drop_{
-      &entities_,                            //
-      [this] λ( ask_for_quantity( _1, _2 ) ) //
-  };
+  Entities entities_{};
 };
 
-EuropePlane g_europe_plane;
+OldWorldPlane g_old_world_plane;
 
 /****************************************************************
 ** Initialization / Cleanup
 *****************************************************************/
-void init_europort_view() {}
+void init_old_world_view() {}
 
-void cleanup_europort_view() {}
+void cleanup_old_world_view() {}
 
-REGISTER_INIT_ROUTINE( europort_view );
+REGISTER_INIT_ROUTINE( old_world_view );
 
 } // namespace
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-Plane* europe_plane() { return &g_europe_plane; }
+Plane* old_world_plane() { return &g_old_world_plane; }
 
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
 
 MENU_ITEM_HANDLER(
-    europort_view,
-    [] { push_plane_config( e_plane_config::europe ); },
-    [] { return !is_plane_enabled( e_plane::europe ); } )
+    old_world_view,
+    [] { push_plane_config( e_plane_config::old_world ); },
+    [] { return !is_plane_enabled( e_plane::old_world ); } )
 
 MENU_ITEM_HANDLER(
-    europort_close, [] { pop_plane_config(); },
-    [] { return is_plane_enabled( e_plane::europe ); } )
+    old_world_close, [] { pop_plane_config(); },
+    [] { return is_plane_enabled( e_plane::old_world ); } )
 
 } // namespace rn

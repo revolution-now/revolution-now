@@ -17,7 +17,7 @@ enum e_menu {
   view,
   orders,
   colony,
-  europort,
+  old_world,
   advisors,
   music,
   window,
@@ -57,7 +57,7 @@ enum e_menu_item {
   terrain_help,
   founding_father_help,
   toggle_console,
-  europort_view,
-  europort_close,
+  old_world_view,
+  old_world_close,
   colony_view_close
 };

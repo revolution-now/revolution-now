@@ -213,6 +213,30 @@ TEST_CASE( "[co-combinator] with_cancel" ) {
   }
 }
 
+TEST_CASE( "[co-combinator] latch" ) {
+  latch      l;
+  waitable<> w1 = l.waitable();
+  waitable<> w2 = l.waitable();
+  REQUIRE( !w1.ready() );
+  REQUIRE( !w2.ready() );
+  l.set();
+  REQUIRE( w1.ready() );
+  REQUIRE( w2.ready() );
+  l.reset();
+  REQUIRE( w1.ready() );
+  REQUIRE( w2.ready() );
+  w1 = l.waitable();
+  w2 = l.waitable();
+  REQUIRE( !w1.ready() );
+  REQUIRE( !w2.ready() );
+  l.set();
+  REQUIRE( w1.ready() );
+  REQUIRE( w2.ready() );
+  l.set();
+  REQUIRE( w1.ready() );
+  REQUIRE( w2.ready() );
+}
+
 TEST_CASE( "[co-combinator] ticker" ) {
   ticker t;
   t.tick();

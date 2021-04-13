@@ -1,5 +1,5 @@
 /****************************************************************
-**co-handle.cpp
+**unique-coro.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: RAII wrapper for coroutine_handle's.
 *
 *****************************************************************/
-#include "co-handle.hpp"
+#include "unique-coro.hpp"
 
 // C++ standard library
 #include <utility>
@@ -20,7 +20,7 @@ namespace rn {
 unique_coro::unique_coro( coro::coroutine_handle<> h )
   : h_( h ) {}
 
-unique_coro::~unique_coro() { destroy(); }
+unique_coro::~unique_coro() noexcept { destroy(); }
 
 unique_coro::unique_coro( unique_coro&& rhs ) noexcept
   : h_( exchange( rhs.h_, nullptr ) ) {}

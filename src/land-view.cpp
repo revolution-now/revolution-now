@@ -11,6 +11,7 @@
 #include "land-view.hpp"
 
 // Revolution Now
+#include "anim.hpp"
 #include "co-combinator.hpp"
 #include "compositor.hpp"
 #include "config-files.hpp"
@@ -326,18 +327,6 @@ void render_land_view() {
 /****************************************************************
 ** Animations
 *****************************************************************/
-waitable<> animation_frame_throttler(
-    chrono::milliseconds frame_duration,
-    function_ref<bool()> f ) {
-  while( true ) {
-    chrono::milliseconds actual = co_await frame_duration;
-    int                  animation_frames =
-        std::max( actual / frame_duration, 1L );
-    for( int i = 0; i < animation_frames; ++i )
-      if( f() ) co_return;
-  }
-}
-
 waitable<> animate_depixelation( UnitId            id,
                                  e_depixelate_anim dp_anim ) {
   CHECK( !SG().unit_animations.contains( id ) );

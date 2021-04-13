@@ -63,7 +63,7 @@ unordered_map<e_menu, Menu> g_menus{
     { e_menu::view, { "View", false, 'V' } },
     { e_menu::orders, { "Orders", false, 'O' } },
     { e_menu::colony, { "Colony", false, 'C' } },
-    { e_menu::europort, { "Europe", false, 'E' } },
+    { e_menu::old_world, { "Old World", false, 'E' } },
     { e_menu::advisors, { "Advisors", false, 'A' } },
     { e_menu::music, { "Music", false, 'M' } },
     { e_menu::window, { "Window", false, 'W' } },
@@ -130,10 +130,10 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
       {
           ITEM( colony_view_close, "Close" ) //
       } },
-    { e_menu::europort,
+    { e_menu::old_world,
       {
-          ITEM( europort_view, "View" ),  //
-          ITEM( europort_close, "Close" ) //
+          ITEM( old_world_view, "View" ),  //
+          ITEM( old_world_close, "Close" ) //
       } },
     { e_menu::advisors,
       {
@@ -185,11 +185,11 @@ namespace click_anim {
 // of an animation along with durations in Frame.
 
 // For the MacOS single-blink-and-fade style.
-auto constexpr half_period      = kFrame * 6;
-auto constexpr post_off_time    = kFrame * 0;
+auto constexpr half_period      = kFrameDuration * 6;
+auto constexpr post_off_time    = kFrameDuration * 0;
 auto constexpr num_half_periods = int( 2 );
 bool constexpr start_on         = false;
-auto constexpr fade_time        = kFrame * 22;
+auto constexpr fade_time        = kFrameDuration * 22;
 
 // For example, the click could be like this:
 //

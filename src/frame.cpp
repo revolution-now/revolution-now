@@ -55,7 +55,7 @@ NOTHROW_MOVE( FrameSubscriptionTick );
 
 struct FrameSubscriptionTime {
   bool done = false; // for one-time notifications
-  chrono::milliseconds  interval;
+  chrono::microseconds  interval;
   Time_t                last_message{};
   FrameSubscriptionFunc func;
 };
@@ -211,7 +211,7 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc func,
 }
 
 void subscribe_to_frame_tick( FrameSubscriptionFunc func,
-                              chrono::milliseconds  n,
+                              chrono::microseconds  n,
                               bool                  repeating ) {
   ( repeating ? subscriptions : subscriptions_oneoff )()
       .push_back(
@@ -228,15 +228,15 @@ waitable<> wait_n_frames( FrameCount n ) {
   return p.waitable();
 }
 
-waitable<chrono::milliseconds> wait_for_duration(
-    chrono::milliseconds ms ) {
-  waitable_promise<chrono::milliseconds> p;
+waitable<chrono::microseconds> wait_for_duration(
+    chrono::microseconds us ) {
+  waitable_promise<chrono::microseconds> p;
   auto                                   now = Clock_t::now();
   auto after_time = [p, then = now]() mutable {
-    p.set_value( duration_cast<chrono::milliseconds>(
+    p.set_value( duration_cast<chrono::microseconds>(
         Clock_t::now() - then ) );
   };
-  subscribe_to_frame_tick( after_time, ms, /*repeating=*/false );
+  subscribe_to_frame_tick( after_time, us, /*repeating=*/false );
   return p.waitable();
 }
 

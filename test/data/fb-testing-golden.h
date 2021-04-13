@@ -87,9 +87,6 @@ struct switching_offBuilder;
 struct OnOffState_t;
 struct OnOffState_tBuilder;
 
-struct OnOffFsm;
-struct OnOffFsmBuilder;
-
 struct Monster;
 struct MonsterBuilder;
 
@@ -164,8 +161,6 @@ inline const flatbuffers::TypeTable *switching_offTypeTable();
 }  // namespace OnOffState
 
 inline const flatbuffers::TypeTable *OnOffState_tTypeTable();
-
-inline const flatbuffers::TypeTable *OnOffFsmTypeTable();
 
 inline const flatbuffers::TypeTable *MonsterTypeTable();
 
@@ -2044,80 +2039,6 @@ struct OnOffState_t::Traits {
   static constexpr size_t fields_number = 4;
 };
 
-struct OnOffFsm FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
-  typedef OnOffFsmBuilder Builder;
-  struct Traits;
-  static const flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return OnOffFsmTypeTable();
-  }
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_STATE_STACK = 4
-  };
-  const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *state_stack() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>> *>(VT_STATE_STACK);
-  }
-  template<size_t Index>
-  auto get_field() const {
-         if constexpr (Index == 0) return state_stack();
-    else static_assert(Index != Index, "Invalid Field Index");
-  }
-  bool Verify(flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_STATE_STACK) &&
-           verifier.VerifyVector(state_stack()) &&
-           verifier.VerifyVectorOfTables(state_stack()) &&
-           verifier.EndTable();
-  }
-};
-
-struct OnOffFsmBuilder {
-  typedef OnOffFsm Table;
-  flatbuffers::FlatBufferBuilder &fbb_;
-  flatbuffers::uoffset_t start_;
-  void add_state_stack(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>>> state_stack) {
-    fbb_.AddOffset(OnOffFsm::VT_STATE_STACK, state_stack);
-  }
-  explicit OnOffFsmBuilder(flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  flatbuffers::Offset<OnOffFsm> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<OnOffFsm>(end);
-    return o;
-  }
-};
-
-inline flatbuffers::Offset<OnOffFsm> CreateOnOffFsm(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<fb::OnOffState_t>>> state_stack = 0) {
-  OnOffFsmBuilder builder_(_fbb);
-  builder_.add_state_stack(state_stack);
-  return builder_.Finish();
-}
-
-struct OnOffFsm::Traits {
-  using type = OnOffFsm;
-  static auto constexpr Create = CreateOnOffFsm;
-  static constexpr auto name = "OnOffFsm";
-  static constexpr auto fully_qualified_name = "fb.OnOffFsm";
-  static constexpr std::array<const char *, 1> field_names = {
-    "state_stack"
-  };
-  template<size_t Index>
-  using FieldType = decltype(std::declval<type>().get_field<Index>());
-  static constexpr size_t fields_number = 1;
-};
-
-inline flatbuffers::Offset<OnOffFsm> CreateOnOffFsmDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<fb::OnOffState_t>> *state_stack = nullptr) {
-  auto state_stack__ = state_stack ? _fbb.CreateVector<flatbuffers::Offset<fb::OnOffState_t>>(*state_stack) : 0;
-  return fb::CreateOnOffFsm(
-      _fbb,
-      state_stack__);
-}
-
 struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef MonsterBuilder Builder;
   struct Traits;
@@ -3277,22 +3198,6 @@ inline const flatbuffers::TypeTable *OnOffState_tTypeTable() {
   };
   static const flatbuffers::TypeTable tt = {
     flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const flatbuffers::TypeTable *OnOffFsmTypeTable() {
-  static const flatbuffers::TypeCode type_codes[] = {
-    { flatbuffers::ET_SEQUENCE, 1, 0 }
-  };
-  static const flatbuffers::TypeFunction type_refs[] = {
-    fb::OnOffState_tTypeTable
-  };
-  static const char * const names[] = {
-    "state_stack"
-  };
-  static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 1, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }

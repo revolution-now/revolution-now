@@ -35,7 +35,7 @@ namespace {
 /****************************************************************
 ** Global State
 *****************************************************************/
-co::ticker g_game_exit;
+co::latch g_game_exit;
 
 /****************************************************************
 ** Saving / Loading
@@ -67,14 +67,15 @@ MENU_ITEM_HANDLER(
 ** Exiting
 *****************************************************************/
 function<bool( void )> quit_handler = [] {
-  g_game_exit.tick();
+  g_game_exit.set();
   return false;
 };
 
 MENU_ITEM_HANDLER( exit, quit_handler, [] { return true; } );
 
 waitable<> exit_waiter() {
-  return g_game_exit.wait();
+  g_game_exit.reset();
+  return g_game_exit.waitable();
   // while( true ) {
   //   co_await g_game_exit.wait();
   //   // Game => Exit has been selected.

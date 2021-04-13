@@ -360,7 +360,7 @@ maybe<UnitId> is_unit_onboard( UnitId id ) {
 }
 
 /****************************************************************
-** EuroPort View Ownership
+** Old World View Ownership
 *****************************************************************/
 valid_or<generic_err> check_europort_state_invariants(
     UnitEuroPortViewState_t const& info ) {

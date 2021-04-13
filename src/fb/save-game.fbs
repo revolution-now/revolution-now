@@ -9,7 +9,7 @@
 //
 // **************************************************************
 include "sg-colony.fbs";
-include "sg-europort-view.fbs";
+include "sg-old-world-view.fbs";
 include "sg-id.fbs";
 include "sg-land-view.fbs";
 include "sg-plane.fbs";
@@ -26,7 +26,7 @@ table SaveGame {
   player_state    : SG_Player;
   turn_state      : SG_Turn;
   plane_state     : SG_Plane;
-  euroview_state  : SG_EuroportView;
+  old_world_state : SG_OldWorldView;
   colony_state    : SG_Colony;
   land_view_state : SG_LandView;
   terrain_state   : SG_Terrain;

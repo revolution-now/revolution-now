@@ -1,17 +1,17 @@
 // **************************************************************
-// europort-view.fbs
+// old-world-view.fbs
 //
 // Project: Revolution Now
 //
 // Created by dsicilia on 2019-10-26.
 //
-// Description: Serializable types for the europort-view module.
+// Description: Serializable types for the old-world-view module.
 //
 // **************************************************************
 include "vocab.fbs";
 
 namespace fb;
 
-table SG_EuroportView {
+table SG_OldWorldView {
   selected_unit : Opt_int;
 }

@@ -23,9 +23,9 @@ waitable<> await_transform_impl( FrameCount frame_count ) {
   return wait_n_frames( frame_count );
 }
 
-waitable<std::chrono::milliseconds> await_transform_impl(
-    std::chrono::milliseconds ms ) {
-  return wait_for_duration( ms );
+waitable<std::chrono::microseconds> await_transform_impl(
+    std::chrono::microseconds us ) {
+  return wait_for_duration( us );
 }
 
 } // namespace detail

@@ -14,7 +14,6 @@
 #include "app-state.hpp"
 #include "colony-view.hpp"
 #include "console.hpp"
-#include "europort-view.hpp"
 #include "frame.hpp"
 #include "gfx.hpp"
 #include "image.hpp"
@@ -23,6 +22,7 @@
 #include "logging.hpp"
 #include "main-menu.hpp"
 #include "menu.hpp"
+#include "old-world-view.hpp"
 #include "panel.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -210,7 +210,7 @@ void init_planes() {
   plane( e_plane::panel )     = panel_plane();
   plane( e_plane::image )     = image_plane();
   plane( e_plane::colony )    = colony_plane();
-  plane( e_plane::europe )    = europe_plane();
+  plane( e_plane::old_world ) = old_world_plane();
   plane( e_plane::window )    = window_plane();
   plane( e_plane::menu )      = menu_plane();
   plane( e_plane::console )   = console_plane();

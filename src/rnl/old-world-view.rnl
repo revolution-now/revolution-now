@@ -1,0 +1,58 @@
+# ===============================================================
+# old-world-view.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2020-11-13.
+#
+# Description: RNL definitions for the old-world-view module.
+#
+# ===============================================================
+include "cargo.hpp";
+include "commodity.hpp";
+include "id.hpp";
+
+namespace rn;
+
+sumtype DraggableObject {
+  unit:
+    UnitId id;
+  market_commodity:
+    e_commodity type;
+  cargo_commodity:
+    Commodity      comm;
+    CargoSlotIndex slot;
+
+  .features:
+    formattable,
+    equality;
+};
+
+sumtype OldWorldDragSrc {
+  dock:
+    UnitId id;
+  cargo:
+    CargoSlotIndex slot;
+    maybe<int> quantity;
+  outbound:
+    UnitId id;
+  inbound:
+    UnitId id;
+  inport:
+    UnitId id;
+  market:
+    e_commodity type;
+    maybe<int> quantity;
+};
+
+sumtype OldWorldDragDst {
+  cargo:
+    CargoSlotIndex slot;
+  dock:
+  outbound:
+  inbound:
+  inport:
+  inport_ship:
+    UnitId id;
+  market:
+};

@@ -1,5 +1,5 @@
 /****************************************************************
-**co-handle.hpp
+**unique-coro.hpp
 *
 * Project: Revolution Now
 *
@@ -36,7 +36,7 @@ namespace rn {
 class unique_coro {
 public:
   explicit unique_coro( coro::coroutine_handle<> h );
-  ~unique_coro();
+  ~unique_coro() noexcept;
 
   unique_coro( unique_coro const& ) = delete;
   unique_coro& operator=( unique_coro const& ) = delete;

@@ -135,11 +135,11 @@ void push_plane_config( e_plane_config conf ) {
           e_plane::window //
       } } );
       break;
-    case e_plane_config::europe:
+    case e_plane_config::old_world:
       SG().plane_list_stack.push_back( PlaneList{ {
-          e_plane::europe, //
-          e_plane::menu,   //
-          e_plane::window  //
+          e_plane::old_world, //
+          e_plane::menu,      //
+          e_plane::window     //
       } } );
       break;
   }

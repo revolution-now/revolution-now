@@ -1,11 +1,11 @@
 /****************************************************************
-**europort-view.hpp
+**old-world-view.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2019-06-14.
 *
-* Description: Implements the Europe port view.
+* Description: Implements the Old World port view.
 *
 *****************************************************************/
 #pragma once
@@ -15,6 +15,6 @@
 namespace rn {
 
 struct Plane;
-Plane* europe_plane();
+Plane* old_world_plane();
 
 } // namespace rn

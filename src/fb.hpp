@@ -812,8 +812,8 @@ valid_deserial_t deserialize( SrcT const* src, std::list<T>* dst,
   v.reserve( src->size() );
   HAS_VALUE_OR_RET( deserialize( src, &v, serial::ADL{} ) );
   // The list may have elements in it if it is the member of an
-  // object (such as fsm) that initializes it to always have at
-  // least one element.
+  // object that initializes it to always have at least one ele-
+  // ment.
   dst->clear();
   for( auto& e : v ) dst->push_back( std::move( e ) );
   return valid;
