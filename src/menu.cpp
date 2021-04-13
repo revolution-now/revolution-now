@@ -63,7 +63,7 @@ unordered_map<e_menu, Menu> g_menus{
     { e_menu::view, { "View", false, 'V' } },
     { e_menu::orders, { "Orders", false, 'O' } },
     { e_menu::colony, { "Colony", false, 'C' } },
-    { e_menu::old_world, { "Old World", false, 'E' } },
+    { e_menu::old_world, { "Old World", false, 'L' } },
     { e_menu::advisors, { "Advisors", false, 'A' } },
     { e_menu::music, { "Music", false, 'M' } },
     { e_menu::window, { "Window", false, 'W' } },
@@ -596,12 +596,12 @@ ItemTextures render_menu_element( string_view const text,
     inactive = clone_texture( render_text_markup(
         config_ui.menus.font, inactive_info, mk_text ) );
     active   = clone_texture( render_text_markup(
-        config_ui.menus.font, active_info, mk_text ) );
+          config_ui.menus.font, active_info, mk_text ) );
   } else {
     inactive = clone_texture( render_text(
         config_ui.menus.font, inactive_color, text ) );
     active   = clone_texture( render_text( config_ui.menus.font,
-                                         active_color, text ) );
+                                           active_color, text ) );
   }
   auto disabled = clone_texture( render_text(
       config_ui.menus.font, disabled_color, text ) );

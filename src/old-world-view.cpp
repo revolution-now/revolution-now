@@ -1799,7 +1799,7 @@ struct DragPerform {
     auto quantity_wants_to_sell =
         src.quantity.value_or( commodity_ref.quantity );
     int       amount_to_sell = std::min( quantity_wants_to_sell,
-                                   commodity_ref.quantity );
+                                         commodity_ref.quantity );
     Commodity new_comm       = commodity_ref;
     new_comm.quantity -= amount_to_sell;
     rm_commodity_from_cargo( ship, src.slot._ );
@@ -1925,18 +1925,14 @@ waitable<> dragging_thread( Entities const*       entities,
 
   // Rubber-band back to starting point.
   state.indicator           = drag::e_status_indicator::none;
-  state.click_offset        = Delta::zero();
   state.user_requests_input = false;
 
-  Coord  current = state.where - state.click_offset;
-  Coord  target  = origin - state.click_offset;
-  Delta  delta   = target - current;
+  Coord  start   = state.where;
+  Coord  end     = origin;
   double percent = 0.0;
   co_await animation_frame_throttler( kFrameRounded, [&] {
-    Coord pos;
-    pos.x._     = current.x._ + int( delta.w._ * percent );
-    pos.y._     = current.y._ + int( delta.h._ * percent );
-    state.where = pos;
+    state.where =
+        start + ( end - start ).multiply_and_round( percent );
     percent += 0.15;
     return percent > 1.0;
   } );
