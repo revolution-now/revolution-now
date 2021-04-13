@@ -311,5 +311,73 @@ TEST_CASE( "[co-combinator] stream" ) {
   REQUIRE( w.get() == 4 );
 }
 
+TEST_CASE( "[co-combinator] finite_stream" ) {
+  finite_stream<int> s;
+  waitable           w = s.next();
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  s.send( 5 );
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  s.update();
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == 5 );
+  w = s.next();
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  s.send( 7 );
+  s.send( 6 );
+  s.send( 5 );
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  s.update();
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == 7 );
+  w = s.next();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == 6 );
+  w = s.next();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == 5 );
+  w = s.next();
+  REQUIRE( !w.ready() );
+  s.send( 4 );
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  s.update();
+  REQUIRE( !w.ready() );
+  w.cancel();
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  w = s.next();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == 4 );
+
+  // End it.
+  w = s.next();
+  REQUIRE( !w.ready() );
+  s.finish();
+  s.send( 9 );
+  REQUIRE( !w.ready() );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+  s.update();
+  run_all_coroutines();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == nothing );
+  w = s.next();
+  REQUIRE( w.ready() );
+  REQUIRE( w.get() == nothing );
+}
+
 } // namespace
 } // namespace rn::co

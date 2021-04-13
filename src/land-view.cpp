@@ -366,7 +366,7 @@ waitable<> animate_depixelation( UnitId            id,
     depixelate.demoted_pixels = tx.pixels();
   }
   // 1/60th of a second rounded down.
-  co_await animation_frame_throttler( 16ms, [&] {
+  co_await animation_frame_throttler( kFrameRounded, [&] {
     int to_depixelate =
         std::min( config_rn.depixelate_pixels_per_frame,
                   int( depixelate.pixels.size() ) );
@@ -433,7 +433,7 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
       }                                  //
   };
   // 1/60th of a second rounded down.
-  co_await animation_frame_throttler( 16ms, [&] {
+  co_await animation_frame_throttler( kFrameRounded, [&] {
     mv.percent_vel.advance( e_push_direction::none );
     mv.percent += mv.percent_vel.to_double();
     return ( mv.percent > 1.0 );
@@ -830,7 +830,7 @@ struct LandViewPlane : public Plane {
   // Here, `nothing` is used to indicate that it has ended. NOTE:
   // this needs to have update() called on it in the plane's
   // advance_state method.
-  co::stream<maybe<DragUpdate>> drag_stream;
+  co::finite_stream<DragUpdate> drag_stream;
   // The waitable will be waiting on the drag_stream, so it must
   // come after so that it gets destroyed first.
   maybe<waitable<>> drag_thread;
@@ -866,7 +866,7 @@ struct LandViewPlane : public Plane {
   void on_drag_finished( input::mod_keys const& mod,
                          input::e_mouse_button  button,
                          Coord origin, Coord end ) override {
-    drag_stream.send( nothing );
+    drag_stream.finish();
     // At this point we assume that the callback will finish on
     // its own after doing any post-drag stuff it needs to do.
   }

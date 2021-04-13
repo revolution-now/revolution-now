@@ -95,14 +95,15 @@ private:
 SAVEGAME_IMPL( OldWorldView );
 
 /****************************************************************
+** Dragging
+*****************************************************************/
+maybe<drag::State<OldWorldDraggableObject_t>> g_drag_state;
+maybe<waitable<>>                             g_drag_thread;
+
+/****************************************************************
 ** Draggable Object
 *****************************************************************/
-static_assert( std::is_copy_constructible_v<DraggableObject_t> );
-
-// Global State.
-maybe<DraggableObject_t> g_dragging_object;
-
-maybe<DraggableObject_t> cargo_slot_to_draggable(
+maybe<OldWorldDraggableObject_t> cargo_slot_to_draggable(
     CargoSlotIndex slot_idx, CargoSlot_t const& slot ) {
   switch( slot.to_enum() ) {
     case CargoSlot::e::empty: {
@@ -115,11 +116,12 @@ maybe<DraggableObject_t> cargo_slot_to_draggable(
       auto& cargo = slot.get<CargoSlot::cargo>();
       return overload_visit(
           cargo.contents,
-          []( UnitId id ) -> DraggableObject_t {
-            return DraggableObject::unit{ /*id=*/id };
+          []( UnitId id ) -> OldWorldDraggableObject_t {
+            return OldWorldDraggableObject::unit{ /*id=*/id };
           },
-          [&]( Commodity const& c ) -> DraggableObject_t {
-            return DraggableObject::cargo_commodity{
+          [&](
+              Commodity const& c ) -> OldWorldDraggableObject_t {
+            return OldWorldDraggableObject::cargo_commodity{
                 /*comm=*/c,
                 /*slot=*/slot_idx };
           } );
@@ -128,22 +130,24 @@ maybe<DraggableObject_t> cargo_slot_to_draggable(
 }
 
 maybe<Cargo> draggable_to_cargo_object(
-    DraggableObject_t const& draggable ) {
+    OldWorldDraggableObject_t const& draggable ) {
   switch( draggable.to_enum() ) {
-    case DraggableObject::e::unit: {
-      auto& val = draggable.get<DraggableObject::unit>();
+    case OldWorldDraggableObject::e::unit: {
+      auto& val = draggable.get<OldWorldDraggableObject::unit>();
       return val.id;
     }
-    case DraggableObject::e::market_commodity: return nothing;
-    case DraggableObject::e::cargo_commodity: {
+    case OldWorldDraggableObject::e::market_commodity:
+      return nothing;
+    case OldWorldDraggableObject::e::cargo_commodity: {
       auto& val =
-          draggable.get<DraggableObject::cargo_commodity>();
+          draggable
+              .get<OldWorldDraggableObject::cargo_commodity>();
       return val.comm;
     }
   }
 }
 
-maybe<DraggableObject_t> draggable_in_cargo_slot(
+maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
     CargoSlotIndex slot ) {
   return SG()
       .selected_unit.fmap( unit_from_id )
@@ -151,32 +155,9 @@ maybe<DraggableObject_t> draggable_in_cargo_slot(
       .bind( LC( cargo_slot_to_draggable( slot, _ ) ) );
 }
 
-maybe<DraggableObject_t> draggable_in_cargo_slot( int slot ) {
+maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
+    int slot ) {
   return draggable_in_cargo_slot( CargoSlotIndex{ slot } );
-}
-
-Texture draw_draggable_object(
-    DraggableObject_t const& object ) {
-  switch( object.to_enum() ) {
-    case DraggableObject::e::unit: {
-      auto& [id] = object.get<DraggableObject::unit>();
-      auto tx    = create_texture_transparent(
-          lookup_sprite( unit_from_id( id ).desc().tile )
-              .size() );
-      render_unit( tx, id, Coord{}, /*with_icon=*/false );
-      return tx;
-    }
-    case DraggableObject::e::market_commodity: {
-      auto& [type] =
-          object.get<DraggableObject::market_commodity>();
-      return render_commodity_create( type );
-    }
-    case DraggableObject::e::cargo_commodity: {
-      auto& val = object.get<DraggableObject::cargo_commodity>();
-      return render_commodity_create( val.comm.type );
-    }
-  }
-  UNREACHABLE_LOCATION;
 }
 
 /****************************************************************
@@ -808,9 +789,10 @@ public:
     // render_rect( tx, Color::white(), bds.shifted_by( offset )
     // );
     for( auto const& unit_with_pos : units_ )
-      if( g_dragging_object !=
-          DraggableObject_t{
-              DraggableObject::unit{ unit_with_pos.id } } )
+      if( !g_drag_state || g_drag_state->object !=
+                               OldWorldDraggableObject_t{
+                                   OldWorldDraggableObject::unit{
+                                       unit_with_pos.id } } )
         render_unit( tx, unit_with_pos.id,
                      unit_with_pos.pixel_coord + offset,
                      /*with_icon=*/false );
@@ -1047,9 +1029,10 @@ public:
       for( auto const& [idx, cargo_slot, rect] :
            rl::zip( rl::ints(), cargo_slots,
                     range_of_rects( grid ) ) ) {
-        if( g_dragging_object.has_value() ) {
-          if_get( *g_dragging_object,
-                  DraggableObject::cargo_commodity, cc ) {
+        if( g_drag_state.has_value() ) {
+          if_get( g_drag_state->object,
+                  OldWorldDraggableObject::cargo_commodity,
+                  cc ) {
             if( cc.slot._ == idx ) continue;
           }
         }
@@ -1067,9 +1050,11 @@ public:
             overload_visit(
                 cargo.contents,
                 [&]( UnitId id ) {
-                  if( g_dragging_object !=
-                      DraggableObject_t{
-                          DraggableObject::unit{ id } } )
+                  if( !g_drag_state ||
+                      g_drag_state->object !=
+                          OldWorldDraggableObject_t{
+                              OldWorldDraggableObject::unit{
+                                  id } } )
                     render_unit( tx, id, dst_coord,
                                  /*with_icon=*/false );
                 },
@@ -1139,7 +1124,7 @@ public:
                   .as_if_origin_were( bounds().upper_left() );
           auto scale = ActiveCargoBox::box_scale;
 
-          using DraggableObject::cargo_commodity;
+          using OldWorldDraggableObject::cargo_commodity;
           if( draggable_in_cargo_slot( *maybe_slot )
                   .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
             box_origin += k_rendered_commodity_offset;
@@ -1440,40 +1425,35 @@ maybe<UnitId> active_cargo_ship( Entities const* entities ) {
       &entity::ActiveCargo::active_unit );
 }
 
-DraggableObject_t draggable_from_src(
+OldWorldDraggableObject_t draggable_from_src(
     OldWorldDragSrc_t const& drag_src ) {
-  switch( drag_src.to_enum() ) {
-    case OldWorldDragSrc::e::dock: {
-      auto& [id] = drag_src.get<OldWorldDragSrc::dock>();
-      return DraggableObject::unit{ id };
-    }
-    case OldWorldDragSrc::e::cargo: {
-      auto& val = drag_src.get<OldWorldDragSrc::cargo>();
-      // Not all cargo slots must have an item in them, but in
-      // this case the slot should otherwise the OldWorldDragSrc
-      // object should never have been created.
-      UNWRAP_CHECK( object,
-                    draggable_in_cargo_slot( val.slot ) );
-      return object;
-    }
-    case OldWorldDragSrc::e::outbound: {
-      auto& [id] = drag_src.get<OldWorldDragSrc::outbound>();
-      return DraggableObject::unit{ id };
-    }
-    case OldWorldDragSrc::e::inbound: {
-      auto& [id] = drag_src.get<OldWorldDragSrc::inbound>();
-      return DraggableObject::unit{ id };
-    }
-    case OldWorldDragSrc::e::inport: {
-      auto& [id] = drag_src.get<OldWorldDragSrc::inport>();
-      return DraggableObject::unit{ id };
-    }
-    case OldWorldDragSrc::e::market: {
-      auto& val = drag_src.get<OldWorldDragSrc::market>();
-      return DraggableObject::market_commodity{ val.type };
-    }
-  }
-  UNREACHABLE_LOCATION;
+  using namespace OldWorldDragSrc;
+  return overload_visit<OldWorldDraggableObject_t>(
+      drag_src,
+      [&]( dock const& o ) {
+        return OldWorldDraggableObject::unit{ o.id };
+      },
+      [&]( cargo const& o ) {
+        // Not all cargo slots must have an item in them, but in
+        // this case the slot should otherwise the
+        // OldWorldDragSrc object should never have been created.
+        UNWRAP_CHECK( object,
+                      draggable_in_cargo_slot( o.slot ) );
+        return object;
+      },
+      [&]( outbound const& o ) {
+        return OldWorldDraggableObject::unit{ o.id };
+      },
+      [&]( inbound const& o ) {
+        return OldWorldDraggableObject::unit{ o.id };
+      },
+      [&]( inport const& o ) {
+        return OldWorldDraggableObject::unit{ o.id };
+      },
+      [&]( market const& o ) {
+        return OldWorldDraggableObject::market_commodity{
+            o.type };
+      } );
 }
 
 #define DRAG_CONNECT_CASE( src_, dst_ )         \
@@ -1498,7 +1478,7 @@ struct DragConnector {
         src.id, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
-    return holds<DraggableObject::unit>(
+    return holds<OldWorldDraggableObject::unit>(
                draggable_from_src( src ) )
         .has_value();
   }
@@ -1621,11 +1601,9 @@ struct DragUserInput {
   DragUserInput( Entities const* entities_ )
     : entities( entities_ ) {}
 
-  static waitable<bool> visit( Entities const*        entities,
-                               input::mod_keys const& mod,
-                               OldWorldDragSrc_t*     drag_src,
+  static waitable<bool> visit( Entities const*    entities,
+                               OldWorldDragSrc_t* drag_src,
                                OldWorldDragDst_t* drag_dst ) {
-    if( !mod.shf_down ) co_return true;
     // Need to co_await here to keep parameters alive.
     bool proceed = co_await std::visit(
         DragUserInput( entities ), *drag_src, *drag_dst );
@@ -1713,7 +1691,7 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( src ),
-                    DraggableObject::unit );
+                    OldWorldDraggableObject::unit );
     unit_move_to_europort_dock( unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
@@ -1833,138 +1811,132 @@ struct DragPerform {
   void operator()( auto const&, auto const& ) const {}
 };
 
-enum class e_drag_status_indicator { none, bad, good, ask };
-struct DragRenderingInfo {
-  e_drag_status_indicator indicator;
-  Texture                 tx;
-  Coord                   where;
-  Delta                   click_offset;
-};
-
-void drag_n_drop_draw( Texture&                 tx,
-                       DragRenderingInfo const& info ) {
-  copy_texture( info.tx, tx,
-                info.where - info.tx.size() / Scale{ 2 } -
-                    info.click_offset );
-  switch( info.indicator ) {
-    using e = e_drag_status_indicator;
+void drag_n_drop_draw( Texture& tx ) {
+  if( !g_drag_state ) return;
+  auto& state      = *g_drag_state;
+  auto  origin_for = [&]( Delta const& tile_size ) {
+    return state.where - tile_size / Scale{ 2 } -
+           state.click_offset;
+  };
+  using namespace OldWorldDraggableObject;
+  // Render the dragged item.
+  overload_visit(
+      state.object,
+      [&]( unit const& o ) {
+        auto size =
+            lookup_sprite( unit_from_id( o.id ).desc().tile )
+                .size();
+        render_unit( tx, o.id, origin_for( size ),
+                     /*with_icon=*/false );
+      },
+      [&]( market_commodity const& o ) {
+        auto size = commodity_tile_size( o.type );
+        render_commodity( tx, o.type, origin_for( size ) );
+      },
+      [&]( cargo_commodity const& o ) {
+        auto size = commodity_tile_size( o.comm.type );
+        render_commodity( tx, o.comm.type, origin_for( size ) );
+      } );
+  // Render any indicators on top of it.
+  switch( state.indicator ) {
+    using e = drag::e_status_indicator;
     case e::none: break;
     case e::bad: {
       auto const& status_tx = render_text( "X", Color::red() );
-      auto        indicator_pos =
-          info.where - status_tx.size() / Scale{ 1 };
       copy_texture( status_tx, tx,
-                    indicator_pos - info.click_offset );
+                    origin_for( status_tx.size() ) );
       break;
     }
     case e::good: {
       auto const& status_tx = render_text( "+", Color::green() );
-      auto        indicator_pos =
-          info.where - status_tx.size() / Scale{ 1 };
       copy_texture( status_tx, tx,
-                    indicator_pos - info.click_offset );
-    }
-      // !! fallthrough
-    case e::ask: {
-      auto const& mod_tx  = render_text( "?", Color::green() );
-      auto        mod_pos = info.where;
-      mod_pos.y -= mod_tx.size().h;
-      copy_texture( mod_tx, tx, mod_pos - info.click_offset );
+                    origin_for( status_tx.size() ) );
+      if( state.user_requests_input ) {
+        auto const& mod_tx  = render_text( "?", Color::green() );
+        auto        mod_pos = state.where;
+        mod_pos.y -= mod_tx.size().h;
+        copy_texture( mod_tx, tx, mod_pos - state.click_offset );
+      }
       break;
     }
   }
 }
 
-struct DragUpdate {
-  input::mod_keys mod;
-  Coord           current;
-};
-
-bool drag_n_drop_handle_input(
+void drag_n_drop_handle_input(
     input::event_t const&          event,
-    co::stream<maybe<DragUpdate>>& drag_stream ) {
+    co::finite_stream<drag::Step>& drag_stream ) {
   auto key_event = event.get_if<input::key_event_t>();
-  if( !key_event ) return false;
+  if( !key_event ) return;
   if( key_event->keycode != ::SDLK_LSHIFT &&
       key_event->keycode != ::SDLK_RSHIFT )
-    return false;
+    return;
   // This input event is a shift key being pressed or released.
   drag_stream.send(
-      DragUpdate{ .mod     = key_event->mod,
+      drag::Step{ .mod     = key_event->mod,
                   .current = input::current_mouse_position() } );
-  return true;
 }
 
-waitable<> dragging_thread(
-    Entities const* entities, input::e_mouse_button button,
-    Coord origin, co::stream<maybe<DragUpdate>>& drag_stream,
-    maybe<DraggableObject_t>& obj_being_dragged,
-    maybe<DragRenderingInfo>& drag_rendering_info ) {
-  DragUpdate                 latest;
+waitable<> dragging_thread( Entities const*       entities,
+                            input::e_mouse_button button,
+                            Coord                 origin ) {
+  // Must check first if there is anything to drag. If this is
+  // not the start of a valid drag then we must return immedi-
+  // ately without co_awaiting on anything.
+  if( button != input::e_mouse_button::l ) co_return;
   maybe<OldWorldDragSrcInfo> src_info =
       drag_src_from_coord( origin, entities );
-  CHECK( src_info );
-  OldWorldDragSrc_t&       src = src_info->src;
-  maybe<OldWorldDragDst_t> dst;
-  input::mod_keys          mod{};
-  SCOPE_EXIT( obj_being_dragged = nothing );
-  obj_being_dragged = draggable_from_src( src );
-  CHECK( obj_being_dragged );
+  if( !src_info ) co_return;
+  OldWorldDragSrc_t& src = src_info->src;
 
-  Texture tx = draw_draggable_object( *obj_being_dragged );
-  Delta   click_offset = origin - src_info->rect.center();
-
-  drag_rendering_info = DragRenderingInfo{
-      .indicator    = e_drag_status_indicator::none,
-      .tx           = std::move( tx ),
+  // Now we have a valid drag that has initiated.
+  g_drag_state = drag::State<OldWorldDraggableObject_t>{
+      .object       = draggable_from_src( src ),
+      .indicator    = drag::e_status_indicator::none,
       .where        = origin,
-      .click_offset = click_offset };
-  SCOPE_EXIT( drag_rendering_info = nothing );
+      .click_offset = origin - src_info->rect.center() };
+  SCOPE_EXIT( g_drag_state = nothing );
+  auto& state = *g_drag_state;
 
-  while( maybe<DragUpdate> d = co_await drag_stream.next() ) {
-    mod                        = d->mod;
-    drag_rendering_info->where = d->current;
-    latest                     = *d;
-    dst = drag_dst_from_coord( entities, d->current );
+  drag::Step               latest;
+  maybe<OldWorldDragDst_t> dst;
+  while( maybe<drag::Step> d = co_await state.stream.next() ) {
+    latest      = *d;
+    state.where = d->current;
+    dst         = drag_dst_from_coord( entities, d->current );
     if( !dst ) {
-      drag_rendering_info->indicator =
-          e_drag_status_indicator::none;
+      state.indicator = drag::e_status_indicator::none;
       continue;
     }
     if( !DragConnector::visit( entities, src, *dst ) ) {
-      drag_rendering_info->indicator =
-          e_drag_status_indicator::bad;
+      state.indicator = drag::e_status_indicator::bad;
       continue;
     }
-    if( mod.l_shf_down )
-      drag_rendering_info->indicator =
-          e_drag_status_indicator::ask;
-    else
-      drag_rendering_info->indicator =
-          e_drag_status_indicator::good;
+    state.user_requests_input = d->mod.l_shf_down;
+    state.indicator           = drag::e_status_indicator::good;
   }
 
-  if( dst && DragConnector::visit( entities, src, *dst ) &&
-      co_await DragUserInput::visit( entities, mod, &src,
-                                     &*dst ) ) {
+  if( state.indicator == drag::e_status_indicator::good ) {
+    CHECK( dst );
+    if( state.user_requests_input )
+      co_await DragUserInput::visit( entities, &src, &*dst );
     DragPerform::visit( entities, src, *dst );
     co_return;
   }
 
   // Rubber-band back to starting point.
-  drag_rendering_info->indicator = e_drag_status_indicator::none;
-  drag_rendering_info->click_offset = Delta::zero();
+  state.indicator           = drag::e_status_indicator::none;
+  state.click_offset        = Delta::zero();
+  state.user_requests_input = false;
 
-  Coord  current = drag_rendering_info->where - click_offset;
-  Coord  target  = origin - click_offset;
+  Coord  current = state.where - state.click_offset;
+  Coord  target  = origin - state.click_offset;
   Delta  delta   = target - current;
   double percent = 0.0;
-  using namespace std::literals::chrono_literals;
   co_await animation_frame_throttler( kFrameRounded, [&] {
     Coord pos;
-    pos.x._ = current.x._ + int( delta.w._ * percent );
-    pos.y._ = current.y._ + int( delta.h._ * percent );
-    drag_rendering_info->where = pos;
+    pos.x._     = current.x._ + int( delta.w._ * percent );
+    pos.y._     = current.y._ + int( delta.h._ * percent );
+    state.where = pos;
     percent += 0.15;
     return percent > 1.0;
   } );
@@ -1978,6 +1950,7 @@ struct OldWorldPlane : public Plane {
   bool covers_screen() const override { return true; }
 
   void advance_state() override {
+    if( g_drag_state ) g_drag_state->stream.update();
     // Should be last.
     create_entities( &entities_ );
   }
@@ -1986,14 +1959,16 @@ struct OldWorldPlane : public Plane {
     clear_texture_transparent( tx );
     draw_entities( tx, entities_ );
     // Should be last.
-    if( drag_rendering_info )
-      drag_n_drop_draw( tx, *drag_rendering_info );
+    drag_n_drop_draw( tx );
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    if( drag_in_progress &&
-        drag_n_drop_handle_input( event, drag_stream ) )
+    // If there is a drag happening then the user's input should
+    // not be needed for anything other than the drag.
+    if( g_drag_state ) {
+      drag_n_drop_handle_input( event, g_drag_state->stream );
       return e_input_handled::yes;
+    }
     switch( event.to_enum() ) {
       case input::e_input_event::unknown_event:
         return e_input_handled::no;
@@ -2055,51 +2030,32 @@ struct OldWorldPlane : public Plane {
   /**************************************************************
   ** Dragging
   ***************************************************************/
-  // Stream ends when we receive `nothing`.
-  co::stream<maybe<DragUpdate>> drag_stream;
-  // The waitable will be waiting on the drag_stream, so it must
-  // come after so that it gets destroyed first.
-  maybe<waitable<>>        drag_thread;
-  bool                     drag_in_progress = false;
-  maybe<DragRenderingInfo> drag_rendering_info;
-
-  waitable<> dragging( input::e_mouse_button button,
-                       Coord                 origin ) {
-    SCOPE_EXIT( drag_in_progress = false );
-    co_await dragging_thread( &entities_, button, origin,
-                              drag_stream, g_dragging_object,
-                              drag_rendering_info );
-  }
-
   Plane::DragInfo can_drag( input::e_mouse_button button,
                             Coord origin ) override {
-    if( drag_in_progress ) return Plane::e_accept_drag::swallow;
-    if( button == input::e_mouse_button::l ) {
-      maybe<OldWorldDragSrcInfo> start =
-          drag_src_from_coord( origin, &entities_ );
-      if( !start ) return e_accept_drag::no;
-      drag_stream.reset();
-      drag_in_progress = true;
-      drag_thread      = dragging( button, origin );
-      return e_accept_drag::yes;
-    }
-    return e_accept_drag::no;
+    if( g_drag_state ) return Plane::e_accept_drag::swallow;
+    waitable<> w = dragging_thread( &entities_, button, origin );
+    if( w.ready() ) return e_accept_drag::no;
+    g_drag_thread = std::move( w );
+    return e_accept_drag::yes;
   }
 
   void on_drag( input::mod_keys const& mod,
                 input::e_mouse_button /*button*/,
                 Coord /*origin*/, Coord /*prev*/,
                 Coord current ) override {
-    drag_stream.send(
-        DragUpdate{ .mod = mod, .current = current } );
+    CHECK( g_drag_state );
+    g_drag_state->stream.send(
+        drag::Step{ .mod = mod, .current = current } );
   }
 
   void on_drag_finished( input::mod_keys const& mod,
                          input::e_mouse_button /*button*/,
                          Coord origin, Coord end ) override {
-    drag_stream.send( nothing );
+    CHECK( g_drag_state );
+    g_drag_state->stream.finish();
     // At this point we assume that the callback will finish on
-    // its own after doing any post-drag stuff it needs to do.
+    // its own after doing any post-drag stuff it needs to do. No
+    // new drags can start until then.
   }
 
   // ------------------------------------------------------------
@@ -2115,7 +2071,7 @@ OldWorldPlane g_old_world_plane;
 *****************************************************************/
 void init_old_world_view() {}
 
-void cleanup_old_world_view() {}
+void cleanup_old_world_view() { g_drag_thread = nothing; }
 
 REGISTER_INIT_ROUTINE( old_world_view );
 

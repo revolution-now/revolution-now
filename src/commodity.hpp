@@ -108,6 +108,8 @@ int move_commodity_as_much_as_possible(
 /****************************************************************
 ** Commodity Renderers
 *****************************************************************/
+Delta commodity_tile_size( e_commodity type );
+
 void render_commodity( Texture& tx, e_commodity type,
                        Coord pixel_coord );
 
@@ -124,9 +126,6 @@ void render_commodity_annotated( Texture& tx, e_commodity type,
 void render_commodity_annotated( Texture&         tx,
                                  Commodity const& comm,
                                  Coord            pixel_coord );
-
-// Only call this if you need to create a new small texture.
-Texture render_commodity_create( e_commodity type );
 
 } // namespace rn
 

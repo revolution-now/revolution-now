@@ -26,6 +26,7 @@
 
 // c++ standard library
 #include <cmath>
+#include <concepts>
 #include <iterator>
 #include <type_traits>
 
@@ -374,7 +375,7 @@ struct ND Rect {
     const_iterator& operator=( const_iterator const& ) = default;
     const_iterator& operator=( const_iterator&& ) = default;
 
-    auto const& operator*() const {
+    Coord const& operator*() const {
       DCHECK( rect );
       // TODO: can remove this check eventually.
       DCHECK( it.is_inside( *rect ) );
@@ -404,7 +405,7 @@ struct ND Rect {
       return it == rhs.it;
     }
 
-    Coord       it;
+    Coord       it{};
     Rect const* rect = nullptr;
   };
 
@@ -421,6 +422,8 @@ struct ND Rect {
   }
 };
 NOTHROW_MOVE( Rect );
+
+static_assert( std::input_iterator<Rect::const_iterator> );
 
 // This object will be returned as a proxy by the Rect class to
 // facilitate iterating over the inside of the rect in jumps of a
@@ -496,6 +499,9 @@ public:
 
   using iterator = const_iterator;
 };
+
+static_assert( std::input_iterator<
+               RectGridProxyIteratorHelper::const_iterator> );
 
 // Will take the delta and center it with respect to the rect and
 // return the coordinate of the upper-left corner of the centered

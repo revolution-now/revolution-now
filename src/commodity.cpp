@@ -111,6 +111,10 @@ valid_deserial_t Commodity::check_invariants_safe() const {
 /****************************************************************
 ** Public API
 *****************************************************************/
+Delta commodity_tile_size( e_commodity type ) {
+  return lookup_sprite( tile_for_commodity( type ) ).size();
+}
+
 maybe<e_commodity> commodity_from_index( int index ) {
   maybe<e_commodity> res;
   if( index >= 0 &&
@@ -263,13 +267,6 @@ void render_commodity_annotated( Texture&         tx,
   render_commodity_annotated(
       tx, comm.type, pixel_coord,
       CommodityLabel::quantity{ comm.quantity } );
-}
-
-Texture render_commodity_create( e_commodity type ) {
-  auto tx = create_texture_transparent(
-      lookup_sprite( tile_for_commodity( type ) ).size() );
-  render_commodity( tx, type, Coord{} );
-  return tx;
 }
 
 /****************************************************************

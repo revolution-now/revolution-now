@@ -139,4 +139,30 @@ private:
   flat_queue<T>       q;
 };
 
+template<typename T>
+struct finite_stream {
+  waitable<maybe<T>> next() {
+    if( ended ) co_return nothing;
+    maybe<T> res = co_await s.next();
+    if( !res ) {
+      ended = true;
+      s.reset();
+      co_return nothing;
+    }
+    co_return res;
+  }
+
+  void send( T const& t ) { s.send( t ); }
+  void send( T&& t ) { s.send( std::move( t ) ); }
+  void finish() { s.send( nothing ); }
+
+  void update() { s.update(); }
+
+  void reset() { *this = {}; }
+
+private:
+  bool             ended = false;
+  stream<maybe<T>> s;
+};
+
 } // namespace rn::co
