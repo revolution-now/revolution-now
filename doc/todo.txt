@@ -1,19 +1,4 @@
 =================================================================
-FSM
-=================================================================
-
-  - Convert existing FSMs to the new FSM framework. Known fsm's
-    in the game already:
-
-      - Drag & Drop framework.
-      - Music player state.
-      - Overall program state (loading, intro, game, etc.).
-      - Game state.
-      - UI state (e.g. menu state).
-      - Input state (such as low level drag state).
-      - Unit state (orders, etc.).
-
-=================================================================
 Bugs
 =================================================================
 
