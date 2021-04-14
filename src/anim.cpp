@@ -31,13 +31,4 @@ waitable<> AnimThrottler::operator()() {
   accum -= gap;
 }
 
-/****************************************************************
-** Public API
-*****************************************************************/
-waitable<> animation_frame_throttler(
-    chrono::microseconds pause, function_ref<bool()> func ) {
-  AnimThrottler throttle( pause );
-  do { co_await throttle(); } while( func() );
-}
-
 } // namespace rn

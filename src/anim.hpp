@@ -31,7 +31,9 @@ namespace rn {
 //     ...
 //   }
 //
-// The first frame will always run immediately.
+// The first frame will always run immediately. Also, the throt-
+// tling line should be placed at the top of the loop so that any
+// `continue` statements inside the loop don't have to have them.
 struct AnimThrottler {
   using microseconds = std::chrono::microseconds;
   microseconds const gap;
@@ -42,16 +44,5 @@ struct AnimThrottler {
 
   waitable<> operator()();
 };
-
-// Keep running func until it returns true. In between runs,
-// pause for `pause` duration; if, after the pause, more time has
-// actually passed (such as would happen if we have a frame rate
-// that is too low to permit waiting the small amount of time
-// that we'd like to) then the func will be run multiple times,
-// to cover the number of times corresponding to the actual
-// amount of time passed. In short, this function will allow run-
-// ning animations that appear the same regardless of frame rate.
-waitable<> animation_frame_throttler(
-    std::chrono::microseconds pause, function_ref<bool()> func );
 
 } // namespace rn

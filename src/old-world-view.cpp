@@ -1927,15 +1927,16 @@ waitable<> dragging_thread( Entities const*       entities,
   state.indicator           = drag::e_status_indicator::none;
   state.user_requests_input = false;
 
-  Coord  start   = state.where;
-  Coord  end     = origin;
-  double percent = 0.0;
-  co_await animation_frame_throttler( kAlmostStandardFrame, [&] {
+  Coord         start   = state.where;
+  Coord         end     = origin;
+  double        percent = 0.0;
+  AnimThrottler throttle( kAlmostStandardFrame );
+  while( percent <= 1.0 ) {
+    co_await throttle();
     state.where =
         start + ( end - start ).multiply_and_round( percent );
     percent += 0.15;
-    return percent > 1.0;
-  } );
+  }
 }
 
 /****************************************************************

@@ -365,8 +365,9 @@ waitable<> animate_depixelation( UnitId            id,
     }
     depixelate.demoted_pixels = tx.pixels();
   }
-  // 1/60th of a second rounded down.
-  co_await animation_frame_throttler( kAlmostStandardFrame, [&] {
+  AnimThrottler throttle( kAlmostStandardFrame );
+  while( !depixelate.pixels.empty() ) {
+    co_await throttle();
     int to_depixelate =
         std::min( config_rn.depixelate_pixels_per_frame,
                   int( depixelate.pixels.size() ) );
@@ -386,8 +387,7 @@ waitable<> animate_depixelation( UnitId            id,
       depixelate.tx_depixelate_from.set_render_target();
       ::SDL_RenderDrawPoint( g_renderer, point.x._, point.y._ );
     }
-    return depixelate.pixels.empty();
-  } );
+  }
 }
 
 waitable<> animate_blink( UnitId id ) {
@@ -405,10 +405,11 @@ waitable<> animate_blink( UnitId id ) {
     SG().unit_animations.erase( it );
   } );
 
-  co_await animation_frame_throttler( 500ms, [&] {
+  AnimThrottler throttle( 500ms );
+  while( true ) {
+    co_await throttle();
     blink.visible = !blink.visible;
-    return false;
-  } );
+  }
 }
 
 waitable<> animate_slide( UnitId id, e_direction d ) {
@@ -432,12 +433,12 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
           /*mag_drag_acceleration=*/.002 //
       }                                  //
   };
-  // 1/60th of a second rounded down.
-  co_await animation_frame_throttler( kAlmostStandardFrame, [&] {
+  AnimThrottler throttle( kAlmostStandardFrame );
+  while( mv.percent <= 1.0 ) {
+    co_await throttle();
     mv.percent_vel.advance( e_push_direction::none );
     mv.percent += mv.percent_vel.to_double();
-    return ( mv.percent > 1.0 );
-  } );
+  }
 }
 
 void center_on_blinking_unit_if_any() {
