@@ -23,6 +23,26 @@
 
 namespace rn {
 
+// Animation frame rate throttler.  Example usage:
+//
+//   AnimThrottler throttle( kAlmostStandardFrame );
+//   while( !terminate-condition ) {
+//     co_await throttle();
+//     ...
+//   }
+//
+// The first frame will always run immediately.
+struct AnimThrottler {
+  using microseconds = std::chrono::microseconds;
+  microseconds const gap;
+  microseconds       accum;
+
+  explicit AnimThrottler( microseconds gap_ )
+    : gap( gap_ ), accum( gap_ ) {}
+
+  waitable<> operator()();
+};
+
 // Keep running func until it returns true. In between runs,
 // pause for `pause` duration; if, after the pause, more time has
 // actually passed (such as would happen if we have a frame rate

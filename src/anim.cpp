@@ -19,19 +19,25 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
+** AnimThrottler
+*****************************************************************/
+waitable<> AnimThrottler::operator()() {
+  // Need >= so that the first frame runs immediately.
+  if( accum >= gap ) {
+    accum -= gap;
+    co_return;
+  }
+  accum += co_await( gap - accum );
+  accum -= gap;
+}
+
+/****************************************************************
 ** Public API
 *****************************************************************/
 waitable<> animation_frame_throttler(
     chrono::microseconds pause, function_ref<bool()> func ) {
-  using chrono::microseconds;
-  microseconds accum{ 0 };
-  while( true ) {
-    accum += co_await pause;
-    int animation_frames = accum / pause;
-    accum                = accum - animation_frames * pause;
-    for( int i = 0; i < animation_frames; ++i )
-      if( func() ) co_return;
-  }
+  AnimThrottler throttle( pause );
+  do { co_await throttle(); } while( func() );
 }
 
 } // namespace rn

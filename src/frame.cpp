@@ -222,6 +222,7 @@ void subscribe_to_frame_tick( FrameSubscriptionFunc func,
 }
 
 waitable<> wait_n_frames( FrameCount n ) {
+  if( n == 0_frames ) return make_waitable<>();
   waitable_promise<> p;
   auto after_ticks = [p]() mutable { p.set_value_emplace(); };
   subscribe_to_frame_tick( after_ticks, n, /*repeating=*/false );
@@ -230,6 +231,8 @@ waitable<> wait_n_frames( FrameCount n ) {
 
 waitable<chrono::microseconds> wait_for_duration(
     chrono::microseconds us ) {
+  if( us == chrono::microseconds{ 0 } )
+    return waitable<chrono::microseconds>( 0 );
   waitable_promise<chrono::microseconds> p;
   auto                                   now = Clock_t::now();
   auto after_time = [p, then = now]() mutable {
