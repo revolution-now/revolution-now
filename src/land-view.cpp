@@ -933,6 +933,7 @@ waitable<> landview_animate_move( UnitId      id,
   co_await landview_ensure_visible( dst );
   SG().landview_state =
       LandViewState::unit_move{ .unit_id = id };
+  play_sound_effect( e_sfx::move );
   co_await animate_slide( id, direction );
 }
 
