@@ -29,7 +29,7 @@ waitable<> landview_ensure_visible( UnitId id );
 waitable<LandViewPlayerInput_t> landview_get_next_input(
     UnitId id );
 
-waitable<> landview_end_of_turn();
+waitable<LandViewPlayerInput_t> landview_eot_get_next_input();
 
 waitable<> landview_animate_move( UnitId      id,
                                   e_direction direction );

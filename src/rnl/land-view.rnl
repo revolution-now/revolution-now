@@ -16,18 +16,18 @@ include "rnl/orders.hpp";
 namespace rn;
 
 sumtype LandViewPlayerInput {
+  colony:
+    # Player clicked on a colony.
+    ColonyId id;
   give_orders:
     orders_t orders;
-  change_orders:
-    # These will be added to the front of the queue.
-    std::vector<UnitId> add_to_front;
-    # Units that the player has asked to add to the orders queue
-    # but at the end. This is useful if a unit that is sentry'd
-    # has already been removed from the queue (without asking for
-    # orders) and later in the same turn had its orders cleared
-    # by the player (but not prioritized), this will allow it to
-    # ask for orders this turn.
-    std::vector<UnitId> add_to_back;
-  colony:
-    ColonyId id;
+  clear_orders:
+    UnitId unit;
+  prioritize:
+    # Prioritize these units and make them ask for orders now,
+    # assuming that they have not used their turn. This needs to
+    # be a vector so that if there are multiple, then they can
+    # all be prioritized before the first of them starts asking
+    # for orders.
+    std::vector<UnitId> units;
 };

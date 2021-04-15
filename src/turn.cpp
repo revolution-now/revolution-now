@@ -219,13 +219,35 @@ bool advance_unit( UnitId id ) {
   return true;
 }
 
-waitable<> do_end_of_turn() {
-  return co::any( landview_end_of_turn(), // never ends
+waitable<> process_eot_player_inputs() {
+  while( true ) {
+    LandViewPlayerInput_t response =
+        co_await landview_eot_get_next_input();
+    switch( response.to_enum() ) {
+      using namespace LandViewPlayerInput;
+      case e::colony: {
+        co_await show_colony_view( response.get<colony>().id );
+        break;
+      }
+      // We have some orders for the current unit.
+      case e::clear_orders: {
+        auto& val = response.get<clear_orders>();
+        // Move some units to the back of the queue.
+        unit_from_id( val.unit ).clear_orders();
+        break;
+      }
+      default: break;
+    }
+  }
+}
+
+waitable<> end_of_turn() {
+  return co::any( process_eot_player_inputs(), // never ends
                   wait_for_eot_button_click() );
 }
 
-waitable<> do_next_player_input( UnitId              id,
-                                 flat_deque<UnitId>* q ) {
+waitable<> next_player_input( UnitId              id,
+                              flat_deque<UnitId>* q ) {
   LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
     response = LandViewPlayerInput::give_orders{
@@ -242,20 +264,6 @@ waitable<> do_next_player_input( UnitId              id,
       co_await show_colony_view( response.get<colony>().id );
       break;
     }
-    case e::change_orders: {
-      auto& val = response.get<change_orders>();
-      // Move some units to the front of the queue.
-      for( auto id_to_add : val.add_to_front ) {
-        q->push_front( id_to_add );
-        unit_from_id( id_to_add ).unfinish_turn();
-      }
-      // Move some units to the back of the queue.
-      for( UnitId id_to_add : val.add_to_back ) {
-        q->push_back( id_to_add );
-        unit_from_id( id_to_add ).unfinish_turn();
-      }
-      break;
-    }
     // We have some orders for the current unit.
     case e::give_orders: {
       auto& orders = response.get<give_orders>().orders;
@@ -270,6 +278,7 @@ waitable<> do_next_player_input( UnitId              id,
       if( !co_await confirm_explain( &intent ) ) break;
 
       co_await do_unit_animation( id, intent );
+      // FIXME: need to open colony view after building a colony.
       affect_orders( intent );
 
       for( auto id : units_to_prioritize( intent ) ) {
@@ -278,10 +287,47 @@ waitable<> do_next_player_input( UnitId              id,
       }
       break;
     }
+    case e::clear_orders: {
+      auto& val = response.get<clear_orders>();
+      // Move some units to the back of the queue.
+      unit_from_id( val.unit ).clear_orders();
+      unit_from_id( val.unit ).unfinish_turn();
+      // In addition to clearing orders, we also need to add this
+      // unit onto the back of the queue in case e.g. a unit that
+      // is sentry'd has already been removed from the queue
+      // (without asking for orders) and later in the same turn
+      // had its orders cleared by the player (but not priori-
+      // tized), this will allow it to ask for orders this turn.
+      q->push_back( val.unit );
+      break;
+    }
+    case e::prioritize: {
+      auto& val = response.get<prioritize>();
+      // Move some units to the front of the queue.
+      auto prioritize = val.units;
+      erase_if( prioritize,
+                L( unit_from_id( _ ).mv_pts_exhausted() ) );
+      auto orig_size = val.units.size();
+      auto curr_size = prioritize.size();
+      CHECK( curr_size <= orig_size );
+      if( curr_size == 0 )
+        co_await ui::message_box(
+            "The selected unit(s) have already moved this "
+            "turn." );
+      else if( curr_size < orig_size )
+        co_await ui::message_box(
+            "Some of the selected units have already moved this "
+            "turn." );
+      for( UnitId id_to_add : prioritize ) {
+        q->push_front( id_to_add );
+        unit_from_id( id_to_add ).unfinish_turn();
+      }
+      break;
+    }
   }
 }
 
-waitable<> do_units_turn() {
+waitable<> units_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   auto& q  = st.units;
@@ -321,11 +367,11 @@ waitable<> do_units_turn() {
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await do_next_player_input( id, &q );
+    co_await next_player_input( id, &q );
   }
 }
 
-waitable<> do_colonies_turn() {
+waitable<> colonies_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   lg.info( "processing colonies for the {}.", st.nation );
@@ -337,7 +383,7 @@ waitable<> do_colonies_turn() {
   }
 }
 
-waitable<> do_nation_turn() {
+waitable<> nation_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
 
@@ -349,18 +395,18 @@ waitable<> do_nation_turn() {
 
   // Colonies.
   if( !st.did_colonies ) {
-    co_await do_colonies_turn();
+    co_await colonies_turn();
     st.did_colonies = true;
   }
 
   if( !st.did_units ) {
-    co_await do_units_turn();
+    co_await units_turn();
     st.did_units = true;
   }
   CHECK( st.units.empty() );
 }
 
-waitable<> do_next_turn_impl() {
+waitable<> next_turn_impl() {
   auto& st = SG().turn;
 
   // Starting.
@@ -373,19 +419,19 @@ waitable<> do_next_turn_impl() {
 
   // Body.
   if( st.nation.has_value() ) {
-    co_await do_nation_turn();
+    co_await nation_turn();
     st.nation.reset();
   }
 
   while( !st.remainder.empty() ) {
     st.nation = NationState( *st.remainder.front() );
     st.remainder.pop();
-    co_await do_nation_turn();
+    co_await nation_turn();
     st.nation.reset();
   }
 
   // Ending.
-  if( st.need_eot ) co_await do_end_of_turn();
+  if( st.need_eot ) co_await end_of_turn();
 
   st.new_turn();
 }
@@ -395,6 +441,6 @@ waitable<> do_next_turn_impl() {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-waitable<> do_next_turn() { return do_next_turn_impl(); }
+waitable<> next_turn() { return next_turn_impl(); }
 
 } // namespace rn

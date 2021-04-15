@@ -2,15 +2,16 @@
 let s:stems = [
   \ 'app-state',
   \ 'main-menu',
-  \ 'frame',
-  \ 'plane',
   \ 'land-view',
+  \ 'orders',
   \ 'turn',
-  \ 'dragdrop',
-  \ 'old-world-view',
+  \ 'dispatch',
+  \ 'analysis',
+  \ 'travel',
+  \ 'job',
+  \ 'combat',
   \ 'waitable',
   \ 'waitable-coro',
-  \ 'co-registry',
   \ 'co-combinator',
 \]
 

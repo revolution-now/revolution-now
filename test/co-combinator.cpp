@@ -213,6 +213,77 @@ TEST_CASE( "[co-combinator] with_cancel" ) {
   }
 }
 
+TEST_CASE( "[co-combinator] background" ) {
+  waitable_promise<int> p1;
+  waitable_promise<>    p2;
+
+  // Add an extra level of coroutine indirection here to make
+  // this test more juicy.
+  waitable<int> w1 =
+      []( waitable_promise<int> p ) -> waitable<int> {
+    co_return co_await p.waitable();
+  }( p1 );
+  waitable<> w2 = []( waitable_promise<> p ) -> waitable<> {
+    co_await p.waitable();
+  }( p2 );
+  auto ss1 = w1.shared_state();
+  auto ss2 = w2.shared_state();
+
+  SECTION( "w1 finishes first" ) {
+    {
+      waitable<int> w =
+          background( std::move( w1 ), std::move( w2 ) );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      p1.set_value( 5 );
+      run_all_coroutines();
+      REQUIRE( w.ready() );
+      REQUIRE( w.get() == 5 );
+      // At this point, `w` should go out of scope which should
+      // free the (lambda) coroutine, which will free w1 and w2,
+      // which will send cancellation signals to their shared
+      // states, which should then prevent a p2.finish() from
+      // propagating to ss2 since we have one layer of (then can-
+      // celled) coroutine between p2 and ss2.
+    }
+    // Verify cancellation.
+    p2.finish();
+    run_all_coroutines();
+    REQUIRE( !ss2->has_value() );
+  }
+  SECTION( "w2 finishes first, w1 does not finish" ) {
+    waitable<int> w =
+        background( std::move( w1 ), std::move( w2 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p2.finish();
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+  }
+  SECTION( "both (p1 first)" ) {
+    waitable<int> w =
+        background( std::move( w1 ), std::move( w2 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p1.set_value( 5 );
+    p2.finish();
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get() == 5 );
+  }
+  SECTION( "both (p2 first)" ) {
+    waitable<int> w =
+        background( std::move( w1 ), std::move( w2 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p2.finish();
+    p1.set_value( 5 );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get() == 5 );
+  }
+}
+
 TEST_CASE( "[co-combinator] latch" ) {
   latch      l;
   waitable<> w1 = l.waitable();

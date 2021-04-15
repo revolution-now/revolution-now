@@ -68,7 +68,8 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 namespace {
 
-co::stream<LandViewRawInput_t> g_raw_input_stream;
+co::stream<LandViewRawInput_t>    g_raw_input_stream;
+co::stream<LandViewPlayerInput_t> g_translated_input_stream;
 
 /****************************************************************
 ** Save-Game State
@@ -108,6 +109,7 @@ private:
     landview_state  = LandViewState::none{};
     last_unit_input = nothing;
     g_raw_input_stream.reset();
+    g_translated_input_stream.reset();
 
     return valid;
   }
@@ -455,84 +457,6 @@ void center_on_blinking_unit_if_any() {
 /****************************************************************
 ** Tile Clicking
 *****************************************************************/
-// If this is default constructed then it should represent "no
-// actions need to be taken."
-struct ClickTileActions {
-  maybe<ColonyId> colony_id;
-  vector<UnitId>  bring_to_front{};
-  vector<UnitId>  add_to_back{};
-};
-NOTHROW_MOVE( ClickTileActions );
-
-waitable<maybe<LandViewPlayerInput_t>> ProcessClickTileActions(
-    ClickTileActions const& actions ) {
-  maybe<LandViewPlayerInput_t> res;
-  // Do this first.
-  if( actions.add_to_back.empty() &&
-      actions.bring_to_front.empty() &&
-      !actions.colony_id.has_value() )
-    co_return res;
-  res.emplace();
-  if( actions.colony_id ) {
-    auto& colony = res->emplace<LandViewPlayerInput::colony>();
-    colony.id    = *actions.colony_id;
-    co_return res;
-  }
-  auto& change_orders =
-      res->emplace<LandViewPlayerInput::change_orders>();
-  if( !actions.add_to_back.empty() )
-    change_orders.add_to_back = actions.add_to_back;
-  if( !actions.bring_to_front.empty() ) {
-    // FIXME: maybe this logic should be moved into the turn mod-
-    // ule, at which point this will no longer be a coroutine,
-    // which it probably shouldn't be.
-    auto prioritize = actions.bring_to_front;
-    erase_if( prioritize,
-              L( unit_from_id( _ ).mv_pts_exhausted() ) );
-    auto orig_size = actions.bring_to_front.size();
-    auto curr_size = prioritize.size();
-    CHECK( curr_size <= orig_size );
-    if( curr_size == 0 ) {
-      co_await ui::message_box(
-          "The selected unit(s) have already moved this turn." );
-    } else {
-      if( curr_size < orig_size )
-        co_await ui::message_box(
-            "Some of the selected units have already moved this "
-            "turn." );
-      change_orders.add_to_front = prioritize;
-    }
-  }
-  co_return res;
-}
-
-ClickTileActions ClickTileActionsFromUnitSelections(
-    vector<ui::UnitSelection> const& selections,
-    bool                             allow_activate ) {
-  ClickTileActions result{};
-  for( auto const& selection : selections ) {
-    auto& sel_unit = unit_from_id( selection.id );
-    switch( selection.what ) {
-      case ui::e_unit_selection::clear_orders:
-        lg.debug( "clearing orders for {}.",
-                  debug_string( sel_unit ) );
-        sel_unit.clear_orders();
-        if( allow_activate )
-          result.add_to_back.push_back( selection.id );
-        break;
-      case ui::e_unit_selection::activate:
-        CHECK( allow_activate );
-        lg.debug( "activating {}.", debug_string( sel_unit ) );
-        // Activation implies also to clear orders if they're
-        // not already cleared.
-        sel_unit.clear_orders();
-        result.bring_to_front.push_back( selection.id );
-        break;
-    }
-  }
-  return result;
-}
-
 // If there is a single unit on the square with orders and
 // allow_activate is false then the unit's orders will be
 // cleared.
@@ -554,16 +478,29 @@ ClickTileActions ClickTileActionsFromUnitSelections(
 // them, with the results for each unit behaving in a similar way
 // to the single-unit case described above with respect to orders
 // and the allow_activate flag.
-waitable<ClickTileActions> click_on_world_tile(
-    Coord coord, bool allow_activate ) {
+waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
+    Coord coord ) {
+  vector<LandViewPlayerInput_t> res;
+  auto add = [&res]<typename T>( T t ) -> T& {
+    res.push_back( std::move( t ) );
+    return res.back().get<T>();
+  };
+
+  bool allow_activate =
+      SG().landview_state.holds<LandViewState::unit_input>();
+
   // First check for colonies.
-  if( auto maybe_id = colony_from_coord( coord ); maybe_id )
-    co_return ClickTileActions{ .colony_id = *maybe_id };
+  if( auto maybe_id = colony_from_coord( coord ); maybe_id ) {
+    auto& colony = add( LandViewPlayerInput::colony{} );
+    colony.id    = *maybe_id;
+    co_return res;
+  }
 
   // Now check for units.
   auto const& units = units_from_coord_recursive( coord );
-  if( units.size() == 0 ) co_return {};
+  if( units.size() == 0 ) co_return res;
 
+  // Decide which units are selected and for what actions.
   vector<ui::UnitSelection> selections;
   if( units.size() == 1 ) {
     auto              id = *units.begin();
@@ -577,42 +514,69 @@ waitable<ClickTileActions> click_on_world_tile(
         co_await ui::unit_selection_box( units, allow_activate );
   }
 
-  co_return ClickTileActionsFromUnitSelections( selections,
-                                                allow_activate );
+  vector<UnitId> prioritize;
+  for( auto const& selection : selections ) {
+    switch( selection.what ) {
+      case ui::e_unit_selection::clear_orders:
+        add( LandViewPlayerInput::clear_orders{} ).unit =
+            selection.id;
+        break;
+      case ui::e_unit_selection::activate:
+        CHECK( allow_activate );
+        // Activation implies also to clear orders if they're not
+        // already cleared. We send this here because, even if
+        // the prioritization is later denied (because the unit
+        // has already moved this turn) the clearing of the or-
+        // ders should still be upheld, because that can always
+        // be done, hence they are sent as separate orders.
+        add( LandViewPlayerInput::clear_orders{} ).unit =
+            selection.id;
+        prioritize.push_back( selection.id );
+        break;
+    }
+  }
+  // These need to all be added last so that they happen after
+  // the clear-orders commands, and they also need to be grouped
+  // into a vector so that the first prioritized unit doesn't
+  // start asking for orders before the rest are prioritized.
+  if( !prioritize.empty() )
+    add( LandViewPlayerInput::prioritize{} ).units =
+        std::move( prioritize );
+
+  co_return res;
 }
 
 /****************************************************************
 ** Input Processor
 *****************************************************************/
-waitable<LandViewPlayerInput_t> next_player_input_object() {
-  while( true ) {
-    LandViewRawInput_t raw_input =
-        co_await g_raw_input_stream.next();
+// Fetches one raw input and translates it.
+waitable<> raw_input_translator() {
+  LandViewRawInput_t raw_input =
+      co_await g_raw_input_stream.next();
 
-    switch( raw_input.to_enum() ) {
-      using namespace LandViewRawInput;
-      case e::orders: {
-        co_return LandViewPlayerInput::give_orders{
-            .orders = raw_input.get<LandViewRawInput::orders>()
-                          .orders };
-      }
-      case e::tile_click: {
-        auto& o = raw_input.get<tile_click>();
-        bool  allow_activate =
-            SG().landview_state
-                .holds<LandViewState::unit_input>();
-        ClickTileActions actions = co_await click_on_world_tile(
-            o.coord, allow_activate );
-        maybe<LandViewPlayerInput_t> input =
-            co_await ProcessClickTileActions( actions );
-        if( input ) co_return *input;
-      }
+  switch( raw_input.to_enum() ) {
+    using namespace LandViewRawInput;
+    case e::orders: {
+      g_translated_input_stream.send(
+          LandViewPlayerInput::give_orders{
+              .orders = raw_input.get<LandViewRawInput::orders>()
+                            .orders } );
+      break;
+    }
+    case e::tile_click: {
+      auto& o = raw_input.get<tile_click>();
+      vector<LandViewPlayerInput_t> inputs =
+          co_await click_on_world_tile( o.coord );
+      for( auto const& input : inputs )
+        g_translated_input_stream.send( input );
+      break;
     }
   }
 }
 
-waitable<> do_eot_next_player_input() {
-  co_await next_player_input_object();
+waitable<LandViewPlayerInput_t> next_player_input_object() {
+  return co::background( g_translated_input_stream.next(),
+                         co::repeat( raw_input_translator ) );
 }
 
 /****************************************************************
@@ -658,6 +622,7 @@ struct LandViewPlane : public Plane {
   bool covers_screen() const override { return true; }
   void advance_state() override {
     g_raw_input_stream.update();
+    g_translated_input_stream.update();
     drag_stream.update();
     advance_viewport_state();
   }
@@ -904,6 +869,7 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
   if( SG().last_unit_input != id ) {
     co_await landview_ensure_visible( id );
     g_raw_input_stream.reset();
+    g_translated_input_stream.reset();
   }
   SG().last_unit_input = id;
 
@@ -911,17 +877,18 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
       LandViewState::unit_input{ .unit_id = id };
 
   // Run the blinker while waiting for user input.
-  waitable<> blinker = animate_blink( id );
-  co_return co_await next_player_input_object();
+  co_return co_await co::background( next_player_input_object(),
+                                     animate_blink( id ) );
 }
 
-waitable<> landview_end_of_turn() {
+waitable<LandViewPlayerInput_t> landview_eot_get_next_input() {
   g_raw_input_stream.reset();
+  g_translated_input_stream.reset();
   SG().last_unit_input = nothing;
 
   SG().landview_state = LandViewState::none{};
 
-  return co::repeat( do_eot_next_player_input );
+  return next_player_input_object();
 }
 
 waitable<> landview_animate_move( UnitId      id,

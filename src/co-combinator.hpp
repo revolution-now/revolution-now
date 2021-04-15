@@ -66,6 +66,32 @@ struct WithCancel {
 
 inline constexpr WithCancel with_cancel{};
 
+// FIXME: clang seems to have trouble with function templates
+// that are coroutines, so we wrap it in a struct.
+struct WithBackground {
+  // Run the waitable w in parallel with the background task,
+  // until w becomes ready, at which point return w's value. It
+  // is inconsequential whether the background task finishes
+  // early or not. If background is still running when w fin-
+  // ishes, it will naturally be cancelled as it will go out of
+  // scope.
+  template<typename T>
+  waitable<T> operator()( waitable<T> w,
+                          waitable<>  background ) const {
+    waitable_promise<T> wp;
+    // Need to do w first so that if both are ready already then
+    // w will take precedence and return its value.
+    w.shared_state()->add_callback( [wp]( T const& o ) {
+      wp.set_value_emplace_if_not_set( o );
+    } );
+    // !! Need to co_await instead of just returning the waitable
+    // because we need to keep the waitables alive.
+    co_return co_await wp.waitable();
+  }
+};
+
+inline constexpr WithBackground background{};
+
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
 
