@@ -13,13 +13,14 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "coord.hpp"
 #include "fmt-helper.hpp"
 #include "id.hpp"
-#include "orders.hpp"
 #include "waitable.hpp"
 
 // Rnl
 #include "rnl/land-view.hpp"
+#include "rnl/orders.hpp"
 
 namespace rn {
 

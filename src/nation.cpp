@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "config-files.hpp"
+#include "cstate.hpp"
 #include "lua.hpp"
+#include "ustate.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/nation.inl"
@@ -52,6 +54,21 @@ string NationDesc::name_proper() const {
   CHECK( !res.empty() );
   res[0] = std::toupper( res[0] );
   return res;
+}
+
+maybe<e_nation> nation_from_coord( Coord coord ) {
+  if( auto maybe_colony_id = colony_from_coord( coord );
+      maybe_colony_id )
+    return colony_from_id( *maybe_colony_id ).nation();
+
+  auto const& units = units_from_coord( coord );
+  if( units.empty() ) return nothing;
+  e_nation first = unit_from_id( *units.begin() ).nation();
+  for( auto const& id : units ) {
+    (void)id; // for release builds.
+    DCHECK( first == unit_from_id( id ).nation() );
+  }
+  return first;
 }
 
 } // namespace rn

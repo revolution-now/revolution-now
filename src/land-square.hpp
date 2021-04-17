@@ -30,7 +30,7 @@ struct LandSquare {
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, LandSquare,
-  ( e_crust, crust ));
+  ( e_surface, surface ));
   // clang-format on
 };
 NOTHROW_MOVE( LandSquare );

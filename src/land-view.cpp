@@ -549,34 +549,40 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
 /****************************************************************
 ** Input Processor
 *****************************************************************/
-// Fetches one raw input and translates it.
+// Fetches one raw input and translates it, adding a new element
+// into the "translated" stream.
 waitable<> raw_input_translator() {
-  LandViewRawInput_t raw_input =
-      co_await g_raw_input_stream.next();
+  while( true ) {
+    LandViewRawInput_t raw_input =
+        co_await g_raw_input_stream.next();
 
-  switch( raw_input.to_enum() ) {
-    using namespace LandViewRawInput;
-    case e::orders: {
-      g_translated_input_stream.send(
-          LandViewPlayerInput::give_orders{
-              .orders = raw_input.get<LandViewRawInput::orders>()
-                            .orders } );
-      break;
-    }
-    case e::tile_click: {
-      auto& o = raw_input.get<tile_click>();
-      vector<LandViewPlayerInput_t> inputs =
-          co_await click_on_world_tile( o.coord );
-      for( auto const& input : inputs )
-        g_translated_input_stream.send( input );
-      break;
+    switch( raw_input.to_enum() ) {
+      using namespace LandViewRawInput;
+      case e::orders: {
+        g_translated_input_stream.send(
+            LandViewPlayerInput::give_orders{
+                .orders =
+                    raw_input.get<LandViewRawInput::orders>()
+                        .orders } );
+        co_return;
+      }
+      case e::tile_click: {
+        auto& o = raw_input.get<tile_click>();
+        vector<LandViewPlayerInput_t> inputs =
+            co_await click_on_world_tile( o.coord );
+        for( auto const& input : inputs )
+          g_translated_input_stream.send( input );
+        if( !inputs.empty() ) co_return;
+      }
     }
   }
 }
 
 waitable<LandViewPlayerInput_t> next_player_input_object() {
-  return co::background( g_translated_input_stream.next(),
-                         co::repeat( raw_input_translator ) );
+  if( !g_translated_input_stream.ready() )
+    co_await raw_input_translator();
+
+  co_return co_await g_translated_input_stream.next();
 }
 
 /****************************************************************
@@ -739,8 +745,8 @@ struct LandViewPlane : public Plane {
             handled = e_input_handled::no;
             if( key_event.direction ) {
               g_raw_input_stream.send( LandViewRawInput::orders{
-                  .orders = orders::direction{
-                      *key_event.direction } } );
+                  .orders =
+                      orders::move{ *key_event.direction } } );
               handled = e_input_handled::yes;
             }
             break;

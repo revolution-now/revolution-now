@@ -26,6 +26,9 @@
 
 namespace rn::co {
 
+/****************************************************************
+** any
+*****************************************************************/
 // Returns a waitable that will be ready when (and as soon as)
 // the first waitable becomes ready. Since this function takes
 // ownership of all of the waitables, they will be gone when this
@@ -38,6 +41,9 @@ waitable<> any( waitable<>&& w1, waitable<>&& w2 );
 waitable<> any( waitable<>&& w1, waitable<>&& w2,
                 waitable<>&& w3 );
 
+/****************************************************************
+** with_cancel
+*****************************************************************/
 // FIXME: clang seems to have trouble with function templates
 // that are coroutines, so we wrap it in a struct.
 struct WithCancel {
@@ -66,6 +72,9 @@ struct WithCancel {
 
 inline constexpr WithCancel with_cancel{};
 
+/****************************************************************
+** background
+*****************************************************************/
 // FIXME: clang seems to have trouble with function templates
 // that are coroutines, so we wrap it in a struct.
 struct WithBackground {
@@ -92,9 +101,15 @@ struct WithBackground {
 
 inline constexpr WithBackground background{};
 
+/****************************************************************
+** repeat
+*****************************************************************/
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine );
 
+/****************************************************************
+** latch
+*****************************************************************/
 // A latch is meant to be a singlton object (per use-case) that
 // can be awaited on by multiple things. When it is set, all
 // awaiters will be resumed, and it will remain set until reset.
@@ -114,6 +129,9 @@ struct latch {
   waitable_promise<> p;
 };
 
+/****************************************************************
+** ticker
+*****************************************************************/
 // A ticker is meant to be a singlton object (per use-case) that
 // can be awaited on by multiple things. When it is ticked, all
 // the awaiters will be resumed, and it will be reset, so anyone
@@ -131,6 +149,9 @@ private:
   waitable_promise<> p;
 };
 
+/****************************************************************
+** stream
+*****************************************************************/
 // Not sure if this supports multiple waiters... probably best
 // just to stick to one.
 template<typename T>
@@ -152,6 +173,11 @@ struct stream {
     }
   }
 
+  bool ready() {
+    update();
+    return p.has_value();
+  }
+
   void reset() { *this = {}; }
 
   stream()                = default;
@@ -165,6 +191,9 @@ private:
   flat_queue<T>       q;
 };
 
+/****************************************************************
+** finite_stream
+*****************************************************************/
 template<typename T>
 struct finite_stream {
   waitable<maybe<T>> next() {

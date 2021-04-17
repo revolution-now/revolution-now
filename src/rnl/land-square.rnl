@@ -10,7 +10,7 @@
 # ===============================================================
 namespace rn;
 
-enum e_crust {
+enum e_surface {
   water,
   land
 };

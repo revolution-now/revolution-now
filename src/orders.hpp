@@ -14,23 +14,65 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "coord.hpp"
-#include "fb.hpp"
-#include "fmt-helper.hpp"
 #include "id.hpp"
+#include "waitable.hpp"
 
 // Rnl
 #include "rnl/orders.hpp"
 
-// Flatbuffers
-#include "fb/orders_generated.h"
-
 // C++ standard library
-#include <variant>
+#include <memory>
 
 namespace rn {
 
 void push_unit_orders( UnitId id, orders_t const& orders );
 maybe<orders_t> pop_unit_orders( UnitId id );
+
+struct OrdersHandler {
+  OrdersHandler()          = default;
+  virtual ~OrdersHandler() = default;
+
+  OrdersHandler( OrdersHandler const& ) = delete;
+  OrdersHandler& operator=( OrdersHandler const& ) = delete;
+  OrdersHandler( OrdersHandler&& )                 = delete;
+  OrdersHandler& operator=( OrdersHandler&& ) = delete;
+
+  // This will do a few things:
+  //
+  //   1. it will perform more thorough checks to see that this
+  //      move can be carried out; if not, will return false and
+  //      typically show a message to the user.
+  //   2. it will ask the user for input and/or confirmation if
+  //      necessary, sometimes allowing the user to cancel the
+  //      move (in which case it returns false).
+  //   3. if the move can proceed, it will return true.
+  //
+  virtual waitable<bool> confirm() = 0;
+
+  // Animate the orders being carried out, if any. This should be
+  // run before `perform`.
+  virtual waitable<> animate() const {
+    return make_waitable<>();
+  }
+
+  // Perform the orders (i.e., make changes to game state).
+  virtual waitable<> perform() = 0;
+
+  // Perform any actions that should be done after affecting the
+  // orders. For example, after founding a colony, this will open
+  // the colony view.
+  virtual waitable<> post() const { return make_waitable<>(); }
+
+  // Any units that need to be prioritized (in the sense of
+  // asking for orders) after this order has been carried out. An
+  // example of this would be after units make landfall from a
+  // ship, it is natural for them to ask for orders right away.
+  virtual std::vector<UnitId> units_to_prioritize() const {
+    return {};
+  }
+};
+
+std::unique_ptr<OrdersHandler> orders_handler(
+    UnitId id, orders_t const& orders );
 
 } // namespace rn

@@ -27,12 +27,12 @@ namespace rn;
 # allowed. In that case, the orders are not allowed.
 sumtype orders {
   wait:
-  build:
   forfeight:
+  build:
   fortify:
   sentry:
   disband:
-  direction:
+  move:
     e_direction d;
 
   .features:

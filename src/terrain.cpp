@@ -112,8 +112,8 @@ REGISTER_INIT_ROUTINE( terrain );
 } // namespace
 
 void generate_terrain() {
-  LandSquare const L = LandSquare{ e_crust::land };
-  LandSquare const O = LandSquare{ e_crust::water };
+  LandSquare const L = LandSquare{ e_surface::land };
+  LandSquare const O = LandSquare{ e_surface::water };
 
   auto& world_map = SG().world_map;
   // FIXME
@@ -142,9 +142,9 @@ void generate_terrain() {
 
 void render_terrain_square( Texture& tx, Coord world_square,
                             Coord pixel_coord ) {
-  auto   s = square_at( world_square );
-  e_tile tile =
-      s.crust == e_crust::land ? e_tile::land : e_tile::water;
+  auto   s    = square_at( world_square );
+  e_tile tile = s.surface == e_surface::land ? e_tile::land
+                                             : e_tile::water;
   render_sprite( tx, tile, pixel_coord, 0, 0 );
   if( g_show_grid )
     render_rect(
@@ -229,9 +229,9 @@ LandSquare const& square_at( Coord coord ) {
 }
 
 bool terrain_is_land( Coord coord ) {
-  switch( square_at( coord ).crust ) {
-    case e_crust::land: return true;
-    case e_crust::water: return false;
+  switch( square_at( coord ).surface ) {
+    case e_surface::land: return true;
+    case e_surface::water: return false;
   }
 }
 
@@ -239,8 +239,8 @@ bool terrain_is_land( Coord coord ) {
 ** Testing
 *****************************************************************/
 void generate_unittest_terrain() {
-  LandSquare const L = LandSquare{ e_crust::land };
-  LandSquare const O = LandSquare{ e_crust::water };
+  LandSquare const L = LandSquare{ e_surface::land };
+  LandSquare const O = LandSquare{ e_surface::water };
 
   auto& world_map = SG().world_map;
   world_map       = Matrix<LandSquare>( 10_w, 10_h );
@@ -258,13 +258,13 @@ void generate_unittest_terrain() {
 *****************************************************************/
 namespace {
 
-LUA_FN( toggle_crust, void, Coord const& coord ) {
+LUA_FN( toggle_surface, void, Coord const& coord ) {
   CHECK( coord.is_inside( SG().world_map.rect() ),
          "coordinate {} is out of bounds.", coord );
-  SG().world_map[coord].crust =
-      SG().world_map[coord].crust == e_crust::land
-          ? e_crust::water
-          : e_crust::land;
+  SG().world_map[coord].surface =
+      SG().world_map[coord].surface == e_surface::land
+          ? e_surface::water
+          : e_surface::land;
   invalidate_caches();
 }
 

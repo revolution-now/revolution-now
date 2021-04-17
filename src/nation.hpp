@@ -14,14 +14,11 @@
 
 // Revolution Now
 #include "color.hpp"
-#include "fb.hpp"
-#include "fmt-helper.hpp"
+#include "coord.hpp"
+#include "maybe.hpp"
 
 // Rnl
 #include "rnl/nation.hpp"
-
-// Flatbuffers
-#include "fb/nation_generated.h"
 
 // C++ standard library
 #include <string>
@@ -41,12 +38,12 @@ NOTHROW_MOVE( NationDesc );
 
 NationDesc const& nation_obj( e_nation nation );
 
+maybe<e_nation> nation_from_coord( Coord coord );
+
 constexpr auto all_nations() {
-  constexpr std::array<e_nation,
-                       enum_traits<e_nation>::count>
+  constexpr std::array<e_nation, enum_traits<e_nation>::count>
       nations = [] {
-        std::array<e_nation, enum_traits<e_nation>::count>
-               res{};
+        std::array<e_nation, enum_traits<e_nation>::count> res{};
         size_t idx = 0;
         for( auto nation : enum_traits<e_nation>::values )
           res[idx++] = nation;

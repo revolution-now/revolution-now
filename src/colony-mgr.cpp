@@ -118,8 +118,6 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     std::string_view name ) {
   if( colony_from_name( name ).has_value() )
     return invalid( e_new_colony_name_err::already_exists );
-  if( name.size() <= 1 )
-    return invalid( e_new_colony_name_err::name_too_short );
   return valid;
 }
 

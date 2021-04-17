@@ -19,7 +19,7 @@
 
 FMT_TO_CATCH( ::rn::Delta );
 FMT_TO_CATCH( ::rn::Coord );
-FMT_TO_CATCH( ::rn::e_crust );
+FMT_TO_CATCH( ::rn::e_surface );
 
 namespace rn {
 namespace {
@@ -49,15 +49,23 @@ TEST_CASE( "[terrain] generate unit testing land" ) {
   REQUIRE_FALSE( square_exists( { 10_x, 0_y } ) );
   REQUIRE_FALSE( square_exists( { 10_x, 10_y } ) );
 
-  REQUIRE( square_at( { 0_x, 0_y } ).crust == e_crust::water );
-  REQUIRE( square_at( { 1_x, 1_y } ).crust == e_crust::water );
-  REQUIRE( square_at( { 8_x, 8_y } ).crust == e_crust::water );
-  REQUIRE( square_at( { 9_x, 9_y } ).crust == e_crust::water );
+  REQUIRE( square_at( { 0_x, 0_y } ).surface ==
+           e_surface::water );
+  REQUIRE( square_at( { 1_x, 1_y } ).surface ==
+           e_surface::water );
+  REQUIRE( square_at( { 8_x, 8_y } ).surface ==
+           e_surface::water );
+  REQUIRE( square_at( { 9_x, 9_y } ).surface ==
+           e_surface::water );
 
-  REQUIRE( square_at( { 1_x, 1_y } ).crust == e_crust::water );
-  REQUIRE( square_at( { 2_x, 2_y } ).crust == e_crust::land );
-  REQUIRE( square_at( { 7_x, 7_y } ).crust == e_crust::land );
-  REQUIRE( square_at( { 5_x, 6_y } ).crust == e_crust::land );
+  REQUIRE( square_at( { 1_x, 1_y } ).surface ==
+           e_surface::water );
+  REQUIRE( square_at( { 2_x, 2_y } ).surface ==
+           e_surface::land );
+  REQUIRE( square_at( { 7_x, 7_y } ).surface ==
+           e_surface::land );
+  REQUIRE( square_at( { 5_x, 6_y } ).surface ==
+           e_surface::land );
 
   REQUIRE_FALSE( terrain_is_land( { 0_x, 0_y } ) );
   REQUIRE_FALSE( terrain_is_land( { 1_x, 0_y } ) );

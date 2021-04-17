@@ -10,11 +10,11 @@
 // **************************************************************
 namespace fb;
 
-enum e_crust : byte {
+enum e_surface : byte {
   water,
   land
 }
 
 table LandSquare {
-  crust : e_crust;
+  surface : e_surface;
 }

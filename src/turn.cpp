@@ -15,13 +15,13 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "cstate.hpp"
-#include "dispatch.hpp"
 #include "fb.hpp"
 #include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
+#include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "sg-macros.hpp"
 #include "sound.hpp"
@@ -126,60 +126,8 @@ private:
 SAVEGAME_IMPL( Turn );
 
 /****************************************************************
-** Helpers
+** Top-level per-turn workflows.
 *****************************************************************/
-bool should_animate_move( TravelAnalysis const& analysis ) {
-  CHECK( holds<e_unit_travel_good>( analysis.desc ) );
-  auto type = get<e_unit_travel_good>( analysis.desc );
-  // TODO: in the case of board_ship we need to make sure that
-  // the ship being borded gets rendered on top because there may
-  // be a stack of ships in the square, otherwise it will be de-
-  // ceiving to the player. This is because when a land unit en-
-  // ters a water square it will just automatically pick a ship
-  // and board it.
-  switch( type ) {
-    case e_unit_travel_good::map_to_map: return true;
-    case e_unit_travel_good::board_ship: return true;
-    case e_unit_travel_good::offboard_ship: return true;
-    case e_unit_travel_good::land_fall: return false;
-  };
-  SHOULD_NOT_BE_HERE;
-}
-
-waitable<> do_unit_animation( UnitId              id,
-                              PlayerIntent const& intent ) {
-  // Default future object that is born ready.
-  auto def = make_waitable<>();
-  // Kick off animation if needed.
-  return overload_visit(
-      intent,
-      [&]( TravelAnalysis const& val ) {
-        if( !should_animate_move( val ) )
-          return std::move( def );
-        UNWRAP_CHECK(
-            d, val.move_src.direction_to( val.move_target ) );
-        return landview_animate_move( id, d );
-      },
-      [&]( CombatAnalysis const& val ) {
-        auto attacker = id;
-        UNWRAP_CHECK( defender, val.target_unit );
-        UNWRAP_CHECK( stats, val.fight_stats );
-        auto const& defender_unit = unit_from_id( defender );
-        auto const& attacker_unit = unit_from_id( attacker );
-        e_depixelate_anim dp_anim =
-            stats.attacker_wins
-                ? ( defender_unit.desc().demoted.has_value()
-                        ? e_depixelate_anim::demote
-                        : e_depixelate_anim::death )
-                : ( attacker_unit.desc().demoted.has_value()
-                        ? e_depixelate_anim::demote
-                        : e_depixelate_anim::death );
-        return landview_animate_attack(
-            attacker, defender, stats.attacker_wins, dp_anim );
-      },
-      [&]( auto const& ) { return std::move( def ); } );
-}
-
 // Returns true if the unit needs to ask the user for input.
 bool advance_unit( UnitId id ) {
   auto& unit = unit_from_id( id );
@@ -273,15 +221,24 @@ waitable<> next_player_input( UnitId              id,
         q->pop_front();
         break;
       }
+      if( orders.holds<orders::forfeight>() ) {
+        unit_from_id( id ).forfeight_mv_points();
+        break;
+      }
 
-      UNWRAP_CHECK( intent, player_intent( id, orders ) );
-      if( !co_await confirm_explain( &intent ) ) break;
+      unique_ptr<OrdersHandler> handler =
+          orders_handler( id, orders );
+      CHECK( handler );
 
-      co_await do_unit_animation( id, intent );
-      // FIXME: need to open colony view after building a colony.
-      affect_orders( intent );
+      if( !co_await handler->confirm() ) break;
+      co_await handler->animate();
+      co_await handler->perform();
+      co_await handler->post();
+      // !! The unit may no longer exist at this point, e.g. if
+      // they were disbanded or if they lost a battle to the na-
+      // tives.
 
-      for( auto id : units_to_prioritize( intent ) ) {
+      for( auto id : handler->units_to_prioritize() ) {
         q->push_front( id );
         unit_from_id( id ).unfinish_turn();
       }
@@ -345,7 +302,9 @@ waitable<> units_turn() {
     lg.debug( "q: {}", q.to_string( 3 ) );
     UnitId id = *q.front();
     // We need this check because units can be added into the
-    // queue in this loop by user input.
+    // queue in this loop by user input. Also, the very first
+    // check that we must do needs to be to check if the unit
+    // still exists, which it might not if e.g. it was disbanded.
     if( !unit_exists( id ) ||
         unit_from_id( id ).finished_turn() ) {
       q.pop_front();
@@ -368,6 +327,9 @@ waitable<> units_turn() {
     // get the order for the unit in question (unless the player
     // activates another unit).
     co_await next_player_input( id, &q );
+    // !! The unit may no longer exist at this point, e.g. if
+    // they were disbanded or if they lost a battle to the na-
+    // tives.
   }
 }
 

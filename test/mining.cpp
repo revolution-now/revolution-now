@@ -28,7 +28,7 @@ TEST_CASE( "[mining] temporary" ) {
   e_unit_type utype;
   e_commodity comm;
 
-  square = LandSquare{ .crust = e_crust::water };
+  square = LandSquare{ .surface = e_surface::water };
   utype  = e_unit_type::free_colonist;
   comm   = e_commodity::food;
   info   = production_for_landsquare( square, comm, utype );
@@ -36,7 +36,7 @@ TEST_CASE( "[mining] temporary" ) {
   REQUIRE( info.reason ==
            e_land_production_reason::void_of_commodity );
 
-  square = LandSquare{ .crust = e_crust::land };
+  square = LandSquare{ .surface = e_surface::land };
   utype  = e_unit_type::free_colonist;
   comm   = e_commodity::food;
   info   = production_for_landsquare( square, comm, utype );

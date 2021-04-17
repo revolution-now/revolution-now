@@ -18,6 +18,5 @@ enum e_found_colony_err {
 };
 
 enum e_new_colony_name_err {
-  already_exists,
-  name_too_short
+  already_exists
 };
