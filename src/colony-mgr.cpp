@@ -205,6 +205,15 @@ waitable<> evolve_colony_one_turn( ColonyId id ) {
   check_colony_invariants_die( id );
 }
 
+void change_colony_nation( ColonyId id, e_nation new_nation ) {
+  unordered_set<UnitId> units = units_at_or_in_colony( id );
+  for( UnitId unit_id : units )
+    unit_from_id( unit_id ).change_nation( new_nation );
+  auto& colony = colony_from_id( id );
+  CHECK( colony.nation() != new_nation );
+  colony.set_nation( new_nation );
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

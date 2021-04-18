@@ -110,8 +110,12 @@ bool is_unit_on_map_indirect( UnitId id );
 // This returns only those units who are workers within the
 // colony, and not units on the map at the location of the
 // colony.
-std::unordered_set<UnitId> const& units_from_colony(
+std::unordered_set<UnitId> const& worker_units_from_colony(
     ColonyId id );
+
+// This returns all units that are either working in the colony
+// or who are on the map on the colony square.
+std::unordered_set<UnitId> units_at_or_in_colony( ColonyId id );
 
 // If the unit is working in the colony then this will return it;
 // however it will not return a ColonyId if the unit simply occu-

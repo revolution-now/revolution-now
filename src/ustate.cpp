@@ -78,7 +78,7 @@ public:
 
   // For units that are held in a colony.
   unordered_map<ColonyId, unordered_set<UnitId>>
-      units_from_colony;
+      worker_units_from_colony;
 
 private:
   SAVEGAME_FRIENDS( Unit );
@@ -102,10 +102,10 @@ private:
       }
     }
 
-    // Populate units_from_colony.
+    // Populate worker_units_from_colony.
     for( auto const& [id, st] : states ) {
       if_get( st, UnitState::colony, val ) {
-        units_from_colony[val.id].insert( id );
+        worker_units_from_colony[val.id].insert( id );
       }
     }
 
@@ -332,9 +332,19 @@ bool is_unit_on_map_indirect( UnitId id ) {
 /****************************************************************
 ** Colony Ownership
 *****************************************************************/
-unordered_set<UnitId> const& units_from_colony( ColonyId id ) {
+unordered_set<UnitId> const& worker_units_from_colony(
+    ColonyId id ) {
   CHECK( colony_exists( id ) );
-  return SG().units_from_colony[id];
+  return SG().worker_units_from_colony[id];
+}
+
+unordered_set<UnitId> units_at_or_in_colony( ColonyId id ) {
+  CHECK( colony_exists( id ) );
+  unordered_set<UnitId> all = worker_units_from_colony( id );
+  Coord colony_loc          = colony_from_id( id ).location();
+  for( UnitId map_id : units_from_coord( colony_loc ) )
+    all.insert( map_id );
+  return all;
 }
 
 maybe<ColonyId> colony_for_unit_who_is_worker( UnitId id ) {
@@ -486,7 +496,7 @@ void ustate_change_to_colony( UnitId id, ColonyId col_id,
   CHECK( unit_from_id( id ).nation() ==
          colony_from_id( col_id ).nation() );
   internal::ustate_disown_unit( id );
-  SG().units_from_colony[col_id].insert( id );
+  SG().worker_units_from_colony[col_id].insert( id );
   SG().states[id] = UnitState::colony{ col_id };
   colony_from_id( col_id ).add_unit( id, job );
 }
@@ -533,11 +543,12 @@ void ustate_disown_unit( UnitId id ) {
       auto& val    = v.get<UnitState::colony>();
       auto  col_id = val.id;
       UNWRAP_CHECK(
-          set_it, base::find( SG().units_from_colony, col_id ) );
+          set_it,
+          base::find( SG().worker_units_from_colony, col_id ) );
       auto& units_set = set_it->second;
       units_set.erase( id );
       if( units_set.empty() )
-        SG().units_from_colony.erase( set_it );
+        SG().worker_units_from_colony.erase( set_it );
       colony_from_id( col_id ).remove_unit( id );
       break;
     }

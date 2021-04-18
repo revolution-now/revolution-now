@@ -12,6 +12,7 @@
 #include "orders-move.hpp"
 
 // Revolution Now
+#include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "cstate.hpp"
 #include "fight.hpp"
@@ -580,14 +581,7 @@ struct AttackHandler : public OrdersHandler {
         co_await ui::message_box( "Cannot attack from a ship." );
         co_return false;
       // Allowed moves
-      case e_attack_verdict::colony_undefended: {
-        auto q = fmt::format(
-            "This action may result in the capture of a colony, "
-            "which is not yet supported.  Therefore, this move "
-            "is cancelled." );
-        co_await ui::message_box( q );
-        co_return false;
-      }
+      case e_attack_verdict::colony_undefended:
       case e_attack_verdict::colony_defended:
       case e_attack_verdict::eu_land_unit:
       case e_attack_verdict::ship_on_ship: //
@@ -605,6 +599,15 @@ struct AttackHandler : public OrdersHandler {
   }
 
   waitable<> animate() const override {
+    if( verdict == e_attack_verdict::colony_undefended &&
+        fight_stats->attacker_wins ) {
+      UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
+      auto attacker_id = unit_id;
+      auto defender_id = *target_unit;
+      return landview_animate_colony_capture(
+          attacker_id, defender_id, colony_id );
+    }
+
     auto attacker = unit_id;
     UNWRAP_CHECK( defender, target_unit );
     UNWRAP_CHECK( stats, fight_stats );
@@ -850,11 +853,23 @@ waitable<> AttackHandler::perform() {
     case e_attack_verdict::attack_from_ship: //
       SHOULD_NOT_BE_HERE;
     case e_attack_verdict::colony_undefended: {
-      if( winner.id() == attacker.id() ) {
-        TODO( "Capture the colony." );
-        co_return;
-      }
-      // !! Fallthrough.
+      if( !fight_stats->attacker_wins )
+        // break since in this case the attacker lost, so nothing
+        // special happens; we just do what we normally do when
+        // an attacker loses a battle.
+        break;
+      UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
+      // 1. The colony changes ownership, as well as all of the
+      // units that are working in it and who are on the map at
+      // the colony location.
+      change_colony_nation( colony_id, attacker.nation() );
+      // 2. The attacker moves into the colony square.
+      move_unit_from_map_to_map( attacker.id(), attack_dst );
+      // 3. The attacker has all movement points consumed.
+      attacker.forfeight_mv_points();
+      // TODO: what if there are trade routes that involve this
+      // colony?
+      co_return;
     }
     case e_attack_verdict::colony_defended:
     case e_attack_verdict::eu_land_unit:
@@ -879,6 +894,12 @@ waitable<> AttackHandler::perform() {
           loser.forfeight_mv_points();
         loser.finish_turn();
         loser.clear_orders();
+      } else {
+        // If the loser is not the defender, then the loser is
+        // the attacker, which means the loser must be a military
+        // unit, but military units can't really be captured in
+        // this game, at least not with the default rules.
+        SHOULD_NOT_BE_HERE;
       }
       break;
     case e_unit_death::demote:

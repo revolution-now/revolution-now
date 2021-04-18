@@ -74,6 +74,10 @@ bool Colony::has_unit( UnitId id ) const {
   return units_.contains( id );
 }
 
+void Colony::set_nation( e_nation new_nation ) {
+  nation_ = new_nation;
+}
+
 } // namespace rn
 
 /****************************************************************

@@ -74,6 +74,7 @@ public:
   void add_unit( UnitId id, ColonyJob_t const& job );
   void remove_unit( UnitId id );
   void set_commodity_quantity( e_commodity comm, int q );
+  void set_nation( e_nation new_nation );
 
   std::unordered_map<e_commodity, int>& commodities() {
     return commodities_;

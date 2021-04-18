@@ -38,6 +38,11 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
 valid_or<e_found_colony_err> unit_can_found_colony(
     UnitId founder );
 
+// This will change the nation of the colony and all units that
+// are workers in the colony as well as units that are in the
+// same map square as the colony.
+void change_colony_nation( ColonyId id, e_nation new_nation );
+
 // Before collaing this, it should already have been the case
 // that `can_found_colony` was called to validate; so it should
 // work, and thus if it doesn't, it will check-fail.

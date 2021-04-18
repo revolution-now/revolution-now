@@ -987,6 +987,23 @@ waitable<> landview_animate_attack( UnitId attacker,
       attacker_wins ? defender : attacker, dp_anim );
 }
 
+// FIXME: Would be nice to make this animation a bit more sophis-
+// ticated, but we first need to fix the animation framework in
+// this module to be more flexible.
+waitable<> landview_animate_colony_capture(
+    UnitId attacker_id, UnitId defender_id,
+    ColonyId colony_id ) {
+  co_await landview_animate_attack( attacker_id, defender_id,
+                                    /*attacker_wins=*/true,
+                                    e_depixelate_anim::death );
+  UNWRAP_CHECK(
+      direction,
+      coord_for_unit( attacker_id )
+          ->direction_to(
+              colony_from_id( colony_id ).location() ) );
+  co_await landview_animate_move( attacker_id, direction );
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

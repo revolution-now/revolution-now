@@ -42,6 +42,10 @@ waitable<> landview_animate_attack( UnitId attacker,
                                     bool   attacker_wins,
                                     e_depixelate_anim dp_anim );
 
+waitable<> landview_animate_colony_capture( UnitId   attacker_id,
+                                            UnitId   defender_id,
+                                            ColonyId colony_id );
+
 // Clear any buffer input.
 void landview_reset_input_buffers();
 
