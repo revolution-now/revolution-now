@@ -1876,7 +1876,7 @@ void drag_n_drop_handle_input(
                   .current = input::current_mouse_position() } );
 }
 
-waitable<> dragging_thread( Entities const*       entities,
+waitable<> dragging_thread( Entities*             entities,
                             input::e_mouse_button button,
                             Coord                 origin ) {
   // Must check first if there is anything to drag. If this is
@@ -1920,6 +1920,12 @@ waitable<> dragging_thread( Entities const*       entities,
     if( state.user_requests_input )
       co_await DragUserInput::visit( entities, &src, &*dst );
     DragPerform::visit( entities, src, *dst );
+    // Now that we've potentially changed the ownership of some
+    // units, we need to recreate the entities otherwise we'll
+    // potentially have one frame where the dragged unit is back
+    // in its original position before moving to where it was
+    // dragged.
+    create_entities( entities );
     co_return;
   }
 
