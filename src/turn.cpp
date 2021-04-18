@@ -229,11 +229,18 @@ waitable<> next_player_input( UnitId              id,
       unique_ptr<OrdersHandler> handler =
           orders_handler( id, orders );
       CHECK( handler );
+      auto run_result = co_await handler->run();
 
-      if( !co_await handler->confirm() ) break;
-      co_await handler->animate();
-      co_await handler->perform();
-      co_await handler->post();
+      // If we suspended at some point during the above process
+      // (apart from animations), then that probably means that
+      // the user was presented with a prompt, in which case it
+      // seems like a good idea to clear the input buffers for an
+      // intuitive user experience.
+      if( run_result.suspended ) {
+        lg.debug( "clearing land-view input buffers." );
+        landview_reset_input_buffers();
+      }
+      if( !run_result.order_was_run ) break;
       // !! The unit may no longer exist at this point, e.g. if
       // they were disbanded or if they lost a battle to the na-
       // tives.
@@ -299,7 +306,7 @@ waitable<> units_turn() {
   }
 
   while( !q.empty() ) {
-    lg.debug( "q: {}", q.to_string( 3 ) );
+    lg.trace( "q: {}", q.to_string( 3 ) );
     UnitId id = *q.front();
     // We need this check because units can be added into the
     // queue in this loop by user input. Also, the very first
@@ -369,6 +376,7 @@ waitable<> nation_turn() {
 }
 
 waitable<> next_turn_impl() {
+  landview_start_new_turn();
   auto& st = SG().turn;
 
   // Starting.

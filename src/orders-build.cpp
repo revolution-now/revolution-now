@@ -81,6 +81,7 @@ struct BuildHandler : public OrdersHandler {
 
   waitable<> perform() override {
     colony_id = found_colony_unsafe( unit_id, *colony_name );
+    co_return;
   }
 
   waitable<> post() const override {

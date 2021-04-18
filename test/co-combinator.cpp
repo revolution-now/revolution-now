@@ -450,5 +450,37 @@ TEST_CASE( "[co-combinator] finite_stream" ) {
   REQUIRE( w.get() == nothing );
 }
 
+waitable<int> some_coroutine( waitable<int>&& w ) {
+  co_return co_await std::move( w );
+}
+
+TEST_CASE( "[co-combinator] detect_suspend" ) {
+  waitable_promise<int> p1, p2;
+  waitable<int>         w1 = p1.waitable();
+  waitable<int>         w2 = p2.waitable();
+  p1.set_value( 5 );
+
+  auto should_not_suspend =
+      detect_suspend( some_coroutine( std::move( w1 ) ) );
+  auto should_suspend =
+      detect_suspend( some_coroutine( std::move( w2 ) ) );
+  run_all_coroutines();
+
+  REQUIRE( should_not_suspend.ready() );
+  REQUIRE( !should_suspend.ready() );
+
+  ResultWithSuspend<int> const& rws1 = should_not_suspend.get();
+  REQUIRE( rws1.result == 5 );
+  REQUIRE( rws1.suspended == false );
+
+  p2.set_value( 7 );
+  run_all_coroutines();
+
+  REQUIRE( should_suspend.ready() );
+  ResultWithSuspend<int> const& rws2 = should_suspend.get();
+  REQUIRE( rws2.result == 7 );
+  REQUIRE( rws2.suspended == true );
+}
+
 } // namespace
 } // namespace rn::co

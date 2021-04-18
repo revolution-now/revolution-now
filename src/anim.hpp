@@ -31,16 +31,19 @@ namespace rn {
 //     ...
 //   }
 //
-// The first frame will always run immediately. Also, the throt-
-// tling line should be placed at the top of the loop so that any
-// `continue` statements inside the loop don't have to have them.
+// The first frame will always run immediately, unless
+// `initial_delay` is true. Also, the throttling line should be
+// placed at the top of the loop so that any `continue` state-
+// ments inside the loop don't have to have them.
 struct AnimThrottler {
   using microseconds = std::chrono::microseconds;
   microseconds const gap;
   microseconds       accum;
 
-  explicit AnimThrottler( microseconds gap_ )
-    : gap( gap_ ), accum( gap_ ) {}
+  explicit AnimThrottler( microseconds gap_,
+                          bool         initial_delay = false )
+    : gap( gap_ ),
+      accum( initial_delay ? microseconds{} : gap_ ) {}
 
   waitable<> operator()();
 };

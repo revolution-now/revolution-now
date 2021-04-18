@@ -42,6 +42,17 @@ waitable<> any( waitable<>&& w1, waitable<>&& w2,
                 waitable<>&& w3 );
 
 /****************************************************************
+** all
+*****************************************************************/
+// FIXME: add unit tests for this.
+waitable<> all( std::vector<waitable<>> ws );
+
+waitable<> all( waitable<>&& w );
+waitable<> all( waitable<>&& w1, waitable<>&& w2 );
+waitable<> all( waitable<>&& w1, waitable<>&& w2,
+                waitable<>&& w3 );
+
+/****************************************************************
 ** with_cancel
 *****************************************************************/
 // FIXME: clang seems to have trouble with function templates
@@ -219,5 +230,29 @@ private:
   bool             ended = false;
   stream<maybe<T>> s;
 };
+
+/****************************************************************
+** detect_suspend
+*****************************************************************/
+template<typename T>
+struct ResultWithSuspend {
+  T    result;
+  bool suspended;
+};
+
+struct DetectSuspend {
+  // Wrap a waitable in this in order to detect whether it sus-
+  // pends in the process of computing its result.
+  template<typename T>
+  waitable<ResultWithSuspend<T>> operator()(
+      waitable<T>&& w ) const {
+    ResultWithSuspend<T> res;
+    res.suspended = !w.ready();
+    res.result    = co_await std::move( w );
+    co_return res;
+  }
+};
+
+inline constexpr DetectSuspend detect_suspend{};
 
 } // namespace rn::co

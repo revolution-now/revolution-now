@@ -172,9 +172,8 @@ struct TravelHandler : public OrdersHandler {
 
     // Just some sanity checks.
     CHECK( move_src != move_dst );
-    CHECK( find( units_to_prioritize.begin(),
-                 units_to_prioritize.end(),
-                 unit_id ) == units_to_prioritize.end() );
+    CHECK( find( prioritize.begin(), prioritize.end(),
+                 unit_id ) == prioritize.end() );
     CHECK( move_src == coord_for_unit_indirect( unit_id ) );
     CHECK( move_src.is_adjacent_to( move_dst ) );
     CHECK( target_unit != unit_id );
@@ -200,6 +199,10 @@ struct TravelHandler : public OrdersHandler {
     co_return; //
   }
 
+  vector<UnitId> units_to_prioritize() const override {
+    return prioritize;
+  }
+
   waitable<e_travel_verdict> confirm_travel_impl();
   waitable<e_travel_verdict> analyze_unload();
 
@@ -207,7 +210,7 @@ struct TravelHandler : public OrdersHandler {
   UnitId      unit_id;
   e_direction direction;
 
-  vector<UnitId> units_to_prioritize = {};
+  vector<UnitId> prioritize = {};
 
   // If this move is allowed and executed, will the unit actually
   // move to the target square as a result? Normally the answer
@@ -250,7 +253,7 @@ TravelHandler::analyze_unload() {
     // We have at least one unit in the cargo that is able
     // to make landfall. So we will indicate that the unit
     // is al- lowed to make this move.
-    units_to_prioritize  = to_offload;
+    prioritize           = to_offload;
     ui::e_confirm answer = co_await ui::yes_no(
         "Would you like to make landfall?" );
     co_return( answer == ui::e_confirm::yes )
@@ -403,8 +406,7 @@ TravelHandler::confirm_travel_impl() {
           CHECK( ship_unit.desc().ship );
           if( auto const& cargo = ship_unit.cargo();
               cargo.fits_somewhere( id ) ) {
-            units_to_prioritize = { ship_id },
-            target_unit         = ship_id;
+            prioritize = { ship_id }, target_unit = ship_id;
             co_return e_travel_verdict::board_ship;
           }
         }
@@ -564,7 +566,7 @@ struct AttackHandler : public OrdersHandler {
         co_await ui::message_box( "Cannot attack from a ship." );
         co_return false;
       // Allowed moves
-      case e_attack_verdict::colony_defended: {
+      case e_attack_verdict::colony_undefended: {
         auto q = fmt::format(
             "This action may result in the capture of a colony, "
             "which is not yet supported.  Therefore, this move "
@@ -572,7 +574,7 @@ struct AttackHandler : public OrdersHandler {
         co_await ui::message_box( q );
         co_return false;
       }
-      case e_attack_verdict::colony_undefended:
+      case e_attack_verdict::colony_defended:
       case e_attack_verdict::eu_land_unit:
       case e_attack_verdict::ship_on_ship: //
         break;
@@ -643,9 +645,9 @@ struct AttackHandler : public OrdersHandler {
 
 waitable<AttackHandler::e_attack_verdict>
 AttackHandler::confirm_attack_impl() {
-  auto id        = unit_id;
-  auto src_coord = coord_for_unit_indirect( id );
-  auto dst_coord = src_coord.moved( direction );
+  auto id    = unit_id;
+  attack_src = coord_for_unit_indirect( id );
+  attack_dst = attack_src.moved( direction );
 
   auto& unit = unit_from_id( id );
   CHECK( !unit.mv_pts_exhausted() );
@@ -655,23 +657,23 @@ AttackHandler::confirm_attack_impl() {
 
   // Make sure there is a foreign entity in the square otherwise
   // there can be no combat.
-  auto dst_nation = nation_from_coord( dst_coord );
+  auto dst_nation = nation_from_coord( attack_dst );
   CHECK( dst_nation.has_value() &&
          *dst_nation != unit.nation() );
-  CHECK( dst_coord.is_inside( world_rect_tiles() ) );
+  CHECK( attack_dst.is_inside( world_rect_tiles() ) );
 
-  auto& square = square_at( dst_coord );
+  auto& square = square_at( attack_dst );
 
   auto surface      = square.surface;
   auto relationship = e_unit_relationship::foreign;
   auto category     = e_entity_category::unit;
-  if( colony_from_coord( dst_coord ).has_value() )
+  if( colony_from_coord( attack_dst ).has_value() )
     category = e_entity_category::colony;
 
-  auto const& units_at_dst_set = units_from_coord( dst_coord );
+  auto const& units_at_dst_set = units_from_coord( attack_dst );
   vector<UnitId> units_at_dst( units_at_dst_set.begin(),
                                units_at_dst_set.end() );
-  auto           colony_at_dst = colony_from_coord( dst_coord );
+  auto           colony_at_dst = colony_from_coord( attack_dst );
 
   // If we have a colony then we only want to get units that are
   // military units (and not ships), since we want the following
@@ -720,7 +722,7 @@ AttackHandler::confirm_attack_impl() {
   IF_BEHAVIOR( land, foreign, unit ) {
     using bh_t = unit_behavior::land::foreign::unit::e_vals;
     bh_t bh;
-    // Possible results: nothing, attack, bombard
+    // Possible results: nothing, attack, bombard, no_bombard
     if( unit.desc().ship )
       bh = bh_t::no_bombard;
     else

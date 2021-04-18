@@ -12,6 +12,7 @@
 #include "orders.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "orders-build.hpp"
 #include "orders-disband.hpp"
 #include "orders-fortify.hpp"
@@ -71,6 +72,37 @@ std::unique_ptr<OrdersHandler> orders_handler(
   CHECK( unit.orders_mean_input_required() );
 
   return visit( orders, LC( handle_orders( id, _ ) ) );
+}
+
+waitable<OrdersHandler::RunResult> OrdersHandler::run() {
+  RunResult res{ .order_was_run = false, .suspended = false };
+
+  // Run the given coroutine, await its result, and return it,
+  // but run it under a detect that can detect if it suspended in
+  // the process, and record that before returning the result.
+  auto record_suspend =
+      [&]<typename T>( waitable<T> w ) -> waitable<T> {
+    auto info = co_await co::detect_suspend( std::move( w ) );
+    res.suspended |= info.suspended;
+    if constexpr( !is_same_v<T, monostate> )
+      co_return std::move( info.result );
+  };
+
+  bool confirmed = co_await record_suspend( confirm() );
+  if( !confirmed ) co_return res;
+
+  res.order_was_run = true;
+
+  // Orders can be carried out. We don't care about the sus-
+  // pending here, because what we're really interested in is
+  // whether the user was prompted for something; animation al-
+  // ways suspends.
+  co_await animate();
+
+  co_await record_suspend( perform() );
+  co_await record_suspend( post() );
+
+  co_return res;
 }
 
 } // namespace rn

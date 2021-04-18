@@ -68,8 +68,24 @@ DECLARE_SAVEGAME_SERIALIZERS( LandView );
 
 namespace {
 
-co::stream<LandViewRawInput_t>    g_raw_input_stream;
-co::stream<LandViewPlayerInput_t> g_translated_input_stream;
+struct RawInput {
+  RawInput( LandViewRawInput_t input_ )
+    : input( std::move( input_ ) ), when( Clock_t::now() ) {}
+  LandViewRawInput_t input;
+  Time_t             when;
+};
+
+struct PlayerInput {
+  PlayerInput( LandViewPlayerInput_t input_, Time_t when_ )
+    : input( std::move( input_ ) ), when( when_ ) {}
+  LandViewPlayerInput_t input;
+  Time_t                when;
+};
+
+co::stream<RawInput>    g_raw_input_stream;
+co::stream<PlayerInput> g_translated_input_stream;
+
+bool g_needs_scroll_to_unit_on_input = true;
 
 /****************************************************************
 ** Save-Game State
@@ -110,6 +126,7 @@ private:
     last_unit_input = nothing;
     g_raw_input_stream.reset();
     g_translated_input_stream.reset();
+    g_needs_scroll_to_unit_on_input = true;
 
     return valid;
   }
@@ -407,7 +424,7 @@ waitable<> animate_blink( UnitId id ) {
     SG().unit_animations.erase( it );
   } );
 
-  AnimThrottler throttle( 500ms );
+  AnimThrottler throttle( 500ms, /*initial_delay=*/true );
   while( true ) {
     co_await throttle();
     blink.visible = !blink.visible;
@@ -550,28 +567,31 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
 ** Input Processor
 *****************************************************************/
 // Fetches one raw input and translates it, adding a new element
-// into the "translated" stream.
+// into the "translated" stream. For each translated event cre-
+// ated, preserve the time that the corresponding raw input event
+// was received.
 waitable<> raw_input_translator() {
   while( true ) {
-    LandViewRawInput_t raw_input =
-        co_await g_raw_input_stream.next();
+    RawInput raw_input = co_await g_raw_input_stream.next();
 
-    switch( raw_input.to_enum() ) {
+    switch( raw_input.input.to_enum() ) {
       using namespace LandViewRawInput;
       case e::orders: {
-        g_translated_input_stream.send(
+        g_translated_input_stream.send( PlayerInput(
             LandViewPlayerInput::give_orders{
-                .orders =
-                    raw_input.get<LandViewRawInput::orders>()
-                        .orders } );
+                .orders = raw_input.input
+                              .get<LandViewRawInput::orders>()
+                              .orders },
+            raw_input.when ) );
         co_return;
       }
       case e::tile_click: {
-        auto& o = raw_input.get<tile_click>();
+        auto& o = raw_input.input.get<tile_click>();
         vector<LandViewPlayerInput_t> inputs =
             co_await click_on_world_tile( o.coord );
         for( auto const& input : inputs )
-          g_translated_input_stream.send( input );
+          g_translated_input_stream.send(
+              PlayerInput( input, raw_input.when ) );
         if( !inputs.empty() ) co_return;
       }
     }
@@ -579,10 +599,14 @@ waitable<> raw_input_translator() {
 }
 
 waitable<LandViewPlayerInput_t> next_player_input_object() {
-  if( !g_translated_input_stream.ready() )
-    co_await raw_input_translator();
-
-  co_return co_await g_translated_input_stream.next();
+  while( true ) {
+    if( !g_translated_input_stream.ready() )
+      co_await raw_input_translator();
+    PlayerInput res = co_await g_translated_input_stream.next();
+    // Ignore any input events that are too old.
+    if( Clock_t::now() - res.when < chrono::seconds{ 2 } )
+      co_return std::move( res.input );
+  }
 }
 
 /****************************************************************
@@ -716,37 +740,44 @@ struct LandViewPlane : public Plane {
               SG().viewport.smooth_zoom_target( 1.0 );
             break;
           case ::SDLK_w:
-            g_raw_input_stream.send( LandViewRawInput::orders{
-                .orders = orders::wait{} } );
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::wait{} } ) );
             break;
           case ::SDLK_s:
-            g_raw_input_stream.send( LandViewRawInput::orders{
-                .orders = orders::sentry{} } );
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::sentry{} } ) );
             break;
           case ::SDLK_f:
-            g_raw_input_stream.send( LandViewRawInput::orders{
-                .orders = orders::fortify{} } );
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::fortify{} } ) );
             break;
           case ::SDLK_b:
-            g_raw_input_stream.send( LandViewRawInput::orders{
-                .orders = orders::build{} } );
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::build{} } ) );
             break;
           case ::SDLK_c: center_on_blinking_unit_if_any(); break;
           case ::SDLK_d:
-            g_raw_input_stream.send( LandViewRawInput::orders{
-                .orders = orders::disband{} } );
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::disband{} } ) );
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            g_raw_input_stream.send( LandViewRawInput::orders{
-                .orders = orders::forfeight{} } );
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::orders{
+                    .orders = orders::forfeight{} } ) );
             break;
           default:
             handled = e_input_handled::no;
             if( key_event.direction ) {
-              g_raw_input_stream.send( LandViewRawInput::orders{
-                  .orders =
-                      orders::move{ *key_event.direction } } );
+              g_raw_input_stream.send(
+                  RawInput( LandViewRawInput::orders{
+                      .orders = orders::move{
+                          *key_event.direction } } ) );
               handled = e_input_handled::yes;
             }
             break;
@@ -780,8 +811,9 @@ struct LandViewPlane : public Plane {
                 SG().viewport.screen_pixel_to_world_tile(
                     val.pos ) ) {
           lg.debug( "clicked on tile: {}.", *maybe_tile );
-          g_raw_input_stream.send( LandViewRawInput::tile_click{
-              .coord = *maybe_tile } );
+          g_raw_input_stream.send(
+              RawInput( LandViewRawInput::tile_click{
+                  .coord = *maybe_tile } ) );
           handled = e_input_handled::yes;
         }
         break;
@@ -853,6 +885,20 @@ Plane* land_view_plane() { return &g_land_view_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
+void landview_reset_input_buffers() {
+  g_raw_input_stream.reset();
+  g_translated_input_stream.reset();
+}
+
+void landview_start_new_turn() {
+  // An example of why this is needed is because when a unit is
+  // moving (say, it is the only active unit) and the screen
+  // scrolls away from it to show a colony update, then when that
+  // update message closes and the next turn starts and focuses
+  // again on the unit, it would not scroll back to that unit.
+  g_needs_scroll_to_unit_on_input = true;
+}
+
 waitable<> landview_ensure_visible( Coord const& coord ) {
   return SG().viewport.ensure_tile_visible_smooth( coord );
 }
@@ -872,11 +918,17 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
   // unit here because if we did that outside of this if state-
   // ment then the viewport would pan to the blinking unit after
   // the player e.g. clicks on another unit to activate it.
-  if( SG().last_unit_input != id ) {
+  if( SG().last_unit_input != id )
+    g_needs_scroll_to_unit_on_input = true;
+
+  // This might be true either because we started a new turn, or
+  // because of the above assignment.
+  if( g_needs_scroll_to_unit_on_input )
     co_await landview_ensure_visible( id );
-    g_raw_input_stream.reset();
-    g_translated_input_stream.reset();
-  }
+  g_needs_scroll_to_unit_on_input = false;
+
+  if( SG().last_unit_input != id )
+    landview_reset_input_buffers();
   SG().last_unit_input = id;
 
   SG().landview_state =
@@ -888,8 +940,7 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
 }
 
 waitable<LandViewPlayerInput_t> landview_eot_get_next_input() {
-  g_raw_input_stream.reset();
-  g_translated_input_stream.reset();
+  landview_reset_input_buffers();
   SG().last_unit_input = nothing;
 
   SG().landview_state = LandViewState::none{};

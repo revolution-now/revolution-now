@@ -42,6 +42,14 @@ waitable<> landview_animate_attack( UnitId attacker,
                                     bool   attacker_wins,
                                     e_depixelate_anim dp_anim );
 
+// Clear any buffer input.
+void landview_reset_input_buffers();
+
+// We don't have to do much specifically in the land view when we
+// start a new turn, but there are a couple of small things to do
+// for a polished user experience.
+void landview_start_new_turn();
+
 struct Plane;
 Plane* land_view_plane();
 

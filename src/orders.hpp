@@ -37,6 +37,21 @@ struct OrdersHandler {
   OrdersHandler( OrdersHandler&& )                 = delete;
   OrdersHandler& operator=( OrdersHandler&& ) = delete;
 
+  struct RunResult {
+    // Was the order carried out or not.
+    bool order_was_run = false;
+    // Regardless of the value of `order_run`, was there a corou-
+    // tine suspension during the process (other than during an
+    // animation)? This is basically used to infer whether the
+    // user was prompted for anything during the process, which
+    // is useful to know in order for the caller to have a pol-
+    // ished user interface.
+    bool suspended = false;
+  };
+
+  // Run though the entire sequence of
+  waitable<RunResult> run();
+
   // This will do a few things:
   //
   //   1. it will perform more thorough checks to see that this

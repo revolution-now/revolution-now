@@ -18,6 +18,9 @@ using namespace std;
 
 namespace rn::co {
 
+/****************************************************************
+** any
+*****************************************************************/
 waitable<> any( vector<waitable<>> ws ) {
   waitable_promise<> wp;
   auto unified_callback = [wp]( waitable<>::value_type const& ) {
@@ -52,6 +55,38 @@ waitable<> any( waitable<>&& w1, waitable<>&& w2,
   return any( std::move( v ) );
 }
 
+/****************************************************************
+** all
+*****************************************************************/
+waitable<> all( vector<waitable<>> ws ) {
+  for( auto& w : ws ) co_await std::move( w );
+}
+
+waitable<> all( waitable<>&& w ) {
+  std::vector<waitable<>> v;
+  v.push_back( std::move( w ) );
+  return all( std::move( v ) );
+}
+
+waitable<> all( waitable<>&& w1, waitable<>&& w2 ) {
+  std::vector<waitable<>> v;
+  v.push_back( std::move( w1 ) );
+  v.push_back( std::move( w2 ) );
+  return all( std::move( v ) );
+}
+
+waitable<> all( waitable<>&& w1, waitable<>&& w2,
+                waitable<>&& w3 ) {
+  std::vector<waitable<>> v;
+  v.push_back( std::move( w1 ) );
+  v.push_back( std::move( w2 ) );
+  v.push_back( std::move( w3 ) );
+  return all( std::move( v ) );
+}
+
+/****************************************************************
+** repeat
+*****************************************************************/
 waitable<> repeat(
     base::unique_func<waitable<>() const> coroutine ) {
   while( true ) co_await coroutine();
