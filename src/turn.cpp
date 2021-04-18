@@ -168,6 +168,7 @@ bool advance_unit( UnitId id ) {
 }
 
 waitable<> process_eot_player_inputs() {
+  landview_reset_input_buffers();
   while( true ) {
     LandViewPlayerInput_t response =
         co_await landview_eot_get_next_input();
@@ -216,6 +217,13 @@ waitable<> next_player_input( UnitId              id,
     case e::give_orders: {
       auto& orders = response.get<give_orders>().orders;
       if( orders.holds<orders::wait>() ) {
+        // FIXME: sometimes a unit can appear multiple times in
+        // the queue, and that normally isn't a problem, except
+        // for the `wait` command, where it can cause a unit to
+        // e.g. ask for orders multiple times in a row as the
+        // player presses wait. One solution is to deduplicate
+        // the queue, but that is very slow when there are a lot
+        // of units. Need to find a better solution.
         q->push_back( id );
         CHECK( q->front() == id );
         q->pop_front();

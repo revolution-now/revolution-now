@@ -14,6 +14,7 @@
 // Revolution Now
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
+#include "conductor.hpp"
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "land-view.hpp"
@@ -629,7 +630,20 @@ struct AttackHandler : public OrdersHandler {
   waitable<> perform() override;
 
   waitable<> post() const override {
-    co_return; //
+    if( verdict == e_attack_verdict::colony_undefended &&
+        fight_stats->attacker_wins ) {
+      conductor::play_request(
+          conductor::e_request::fife_drum_happy,
+          conductor::e_request_probability::always );
+      UNWRAP_CHECK( colony_id, colony_from_coord( attack_dst ) );
+      Colony const&     colony = colony_from_id( colony_id );
+      NationDesc const& attacker_nation =
+          nation_obj( unit_from_id( unit_id ).nation() );
+      co_await ui::message_box(
+          "The @[H]{}@[] have captured the colony of @[H]{}@[]!",
+          attacker_nation.name_proper(), colony.name() );
+      co_await show_colony_view( colony_id );
+    }
   }
 
   waitable<e_attack_verdict> confirm_attack_impl();

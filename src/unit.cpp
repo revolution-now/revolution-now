@@ -55,9 +55,6 @@ UnitDescriptor const& Unit::desc() const {
 
 // Mark unit as having moved.
 void Unit::forfeight_mv_points() {
-  // This function doesn't necessarily have to be responsible for
-  // checking this, but it may end up catching some problems.
-  CHECK( !mv_pts_exhausted() );
   mv_pts_ = 0;
   CHECK_HAS_VALUE( check_invariants_safe() );
 }

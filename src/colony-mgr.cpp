@@ -64,12 +64,20 @@ valid_or<generic_err> check_colony_invariants_safe(
   if( colony.units_jobs().size() == 0 )
     return GENERIC_ERROR( "Colony {} has no units.", colony );
 
-  // 5.  All colony's units owned by colony.
+  // 5.1  All colony's units owned by colony.
   for( auto const& p : colony.units_jobs() ) {
     auto unit_id = p.first;
     if( state_for_unit( unit_id ) != e_unit_state::colony )
       return GENERIC_ERROR(
           "{} in Colony {} is not owned by colony.",
+          debug_string( unit_id ), colony );
+  }
+
+  // 5.2  All units owned by colony are colony's units.
+  for( UnitId unit_id : worker_units_from_colony( id ) ) {
+    if( !colony.units_jobs().contains( unit_id ) )
+      return GENERIC_ERROR(
+          "unit {} owned by colony is not in colony {}.",
           debug_string( unit_id ), colony );
   }
 

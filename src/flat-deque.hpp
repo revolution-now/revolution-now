@@ -195,14 +195,14 @@ private:
   NOTHROW_MOVE( T );
 };
 
-// TODO: needs unit test.
+// FIXME: this is VERY slow, beware...
 template<typename T>
 void deduplicate_deque( flat_deque<T>* q ) {
   flat_deque<T>         new_q;
   std::unordered_set<T> s;
   s.reserve( q->size() );
   while( q->size() > 0 ) {
-    auto& item = *q->front();
+    auto item = std::move( *q->front() );
     q->pop_front();
     if( s.contains( item ) ) continue;
     s.insert( item );

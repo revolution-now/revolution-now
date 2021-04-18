@@ -404,6 +404,112 @@ TEST_CASE( "[flat-queue] reallocation size" ) {
   REQUIRE( q.size() == 0 );
 }
 
+TEST_CASE( "[flat-deque] deduplication" ) {
+  SECTION( "empty" ) {
+    flat_deque<int> q;
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    REQUIRE( q == expected );
+  }
+  SECTION( "single" ) {
+    flat_deque<int> q;
+    q.push_back( 4 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 4 );
+    REQUIRE( q == expected );
+  }
+  SECTION( "two" ) {
+    flat_deque<int> q;
+    q.push_back( 4 );
+    q.push_back( 7 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 4 );
+    expected.push_back( 7 );
+    REQUIRE( q == expected );
+  }
+  SECTION( "two same" ) {
+    flat_deque<int> q;
+    q.push_back( 4 );
+    q.push_back( 4 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 4 );
+    REQUIRE( q == expected );
+  }
+  SECTION( "three different" ) {
+    flat_deque<int> q;
+    q.push_back( 4 );
+    q.push_back( 7 );
+    q.push_back( 9 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 4 );
+    expected.push_back( 7 );
+    expected.push_back( 9 );
+    REQUIRE( q == expected );
+  }
+  SECTION( "three two different" ) {
+    flat_deque<int> q;
+    q.push_back( 4 );
+    q.push_back( 7 );
+    q.push_back( 4 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 4 );
+    expected.push_back( 7 );
+    REQUIRE( q == expected );
+  }
+  SECTION( "two repeating" ) {
+    flat_deque<int> q;
+    q.push_back( 4 );
+    q.push_back( 7 );
+    q.push_back( 4 );
+    q.push_back( 7 );
+    q.push_back( 4 );
+    q.push_back( 7 );
+    q.push_back( 4 );
+    q.push_back( 7 );
+    q.push_back( 4 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 4 );
+    expected.push_back( 7 );
+    REQUIRE( q == expected );
+  }
+  SECTION( "many different" ) {
+    flat_deque<int> q;
+    q.push_back( 1 );
+    q.push_back( 2 );
+    q.push_back( 6 );
+    q.push_back( 3 );
+    q.push_back( 2 );
+    q.push_back( 4 );
+    q.push_back( 3 );
+    q.push_back( 5 );
+    q.push_back( 4 );
+    q.push_back( 1 );
+    q.push_back( 2 );
+    q.push_back( 3 );
+    q.push_back( 2 );
+    q.push_back( 4 );
+    q.push_back( 3 );
+    q.push_back( 5 );
+    q.push_back( 4 );
+    q.push_back( 6 );
+    deduplicate_deque( &q );
+    flat_deque<int> expected;
+    expected.push_back( 1 );
+    expected.push_back( 2 );
+    expected.push_back( 6 );
+    expected.push_back( 3 );
+    expected.push_back( 4 );
+    expected.push_back( 5 );
+    REQUIRE( q == expected );
+  }
+}
+
 TEST_CASE( "[flat-queue] non-copyable, non-def-constructible" ) {
   struct A {
     A() = delete;

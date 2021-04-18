@@ -589,9 +589,13 @@ waitable<> raw_input_translator() {
         auto& o = raw_input.input.get<tile_click>();
         vector<LandViewPlayerInput_t> inputs =
             co_await click_on_world_tile( o.coord );
+        // Since we may have just popped open a box to ask the
+        // user to select units, just use the "now" time so that
+        // these events don't get disgarded. Also, mouse clicks
+        // are not likely to get buffered for too long anyway.
         for( auto const& input : inputs )
           g_translated_input_stream.send(
-              PlayerInput( input, raw_input.when ) );
+              PlayerInput( input, Clock_t::now() ) );
         if( !inputs.empty() ) co_return;
       }
     }
@@ -904,8 +908,11 @@ waitable<> landview_ensure_visible( Coord const& coord ) {
 }
 
 waitable<> landview_ensure_visible( UnitId id ) {
-  return landview_ensure_visible(
-      coord_for_unit_indirect( id ) );
+  // Need multi-ownership variant because sometimes the unit in
+  // question is a worker in a colony, as can happen if we are
+  // attacking an undefended colony.
+  UNWRAP_CHECK( coord, coord_for_unit_multi_ownership( id ) );
+  return landview_ensure_visible( coord );
 }
 
 waitable<LandViewPlayerInput_t> landview_get_next_input(
@@ -940,11 +947,8 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
 }
 
 waitable<LandViewPlayerInput_t> landview_eot_get_next_input() {
-  landview_reset_input_buffers();
   SG().last_unit_input = nothing;
-
-  SG().landview_state = LandViewState::none{};
-
+  SG().landview_state  = LandViewState::none{};
   return next_player_input_object();
 }
 
