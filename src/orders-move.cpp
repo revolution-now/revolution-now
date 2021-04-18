@@ -12,6 +12,7 @@
 #include "orders-move.hpp"
 
 // Revolution Now
+#include "colony-view.hpp"
 #include "cstate.hpp"
 #include "fight.hpp"
 #include "land-view.hpp"
@@ -140,6 +141,7 @@ struct TravelHandler : public OrdersHandler {
     map_to_map,
     board_ship,
     offboard_ship,
+    ship_into_port,
     land_fall,
   };
 
@@ -166,6 +168,7 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::map_to_map:
       case e_travel_verdict::board_ship:
       case e_travel_verdict::offboard_ship:
+      case e_travel_verdict::ship_into_port:
       case e_travel_verdict::land_fall: //
         break;
     }
@@ -355,9 +358,11 @@ TravelHandler::confirm_travel_impl() {
     bh_t bh = bh_t::always;
     switch( bh ) {
       case bh_t::always:
-        // `holder` will be a valid value if the unit
-        // is cargo of an- other unit; the holder's id
-        // in that case will be *holder.
+        if( unit.desc().ship )
+          co_return e_travel_verdict::ship_into_port;
+        // `holder` will be a valid value if the unit is cargo of
+        // another unit; the holder's id in that case will be
+        // *holder.
         if( auto holder = is_unit_onboard( unit.id() );
             holder ) {
           // We have a unit onboard a ship moving onto
@@ -492,6 +497,15 @@ waitable<> TravelHandler::perform() {
       unit.forfeight_mv_points();
       CHECK( unit.orders() == e_unit_orders::none );
       break;
+    case e_travel_verdict::ship_into_port: {
+      move_unit_from_map_to_map( id, move_dst );
+      // When a ship moves into port it forfeights its movement
+      // points.
+      unit.forfeight_mv_points();
+      CHECK( unit.orders() == e_unit_orders::none );
+      UNWRAP_CHECK( colony_id, colony_from_coord( move_dst ) );
+      co_await show_colony_view( colony_id );
+    }
     case e_travel_verdict::land_fall:
       // Just activate all the units on the ship that have not
       // completed their turns. Note that the ship's movement
