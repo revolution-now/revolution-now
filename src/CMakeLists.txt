@@ -39,6 +39,7 @@ target_link_libraries(
     lua::lua
     midifile
     rn-base
+    rn-cpp-lua
     rtmidi
     sol2::sol2
     spdlog::spdlog
