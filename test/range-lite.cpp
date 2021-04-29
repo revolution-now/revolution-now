@@ -16,6 +16,7 @@
 // base
 #include "base/conv.hpp"
 #include "base/lambda.hpp"
+#include "base/string.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -1127,18 +1128,33 @@ TEST_CASE( "[range-lite] distance" ) {
 }
 
 TEST_CASE( "[range-lite] group_on" ) {
-  std::string s = "123.212.323.498.hello.321";
+  SECTION( "IP" ) {
+    std::string s = "123.212.323.498.hello.321";
 
-  auto vec = rl::all( s )
-                 .group_on_L( _ == '.' )
-                 .remove_if_L( *_.begin() == '.' )
-                 .map_L( _.to_string() )
-                 .map( LIFT( base::stoi ) )
-                 .cat_maybes()
-                 .to_vector();
+    auto vec = rl::all( s )
+                   .group_on_L( _ == '.' )
+                   .remove_if_L( *_.begin() == '.' )
+                   .map_L( _.to_string() )
+                   .map( LIFT( base::stoi ) )
+                   .cat_maybes()
+                   .to_vector();
 
-  REQUIRE_THAT(
-      vec, Equals( vector<int>{ 123, 212, 323, 498, 321 } ) );
+    REQUIRE_THAT(
+        vec, Equals( vector<int>{ 123, 212, 323, 498, 321 } ) );
+  }
+  SECTION( "remove redundant spaces" ) {
+    std::string s = "  too    many spaces      here ";
+
+    auto s_normalized = rl::all( s )
+                            .group_on_L( _ == ' ' )
+                            .map_L( _.to_string() )
+                            .map( base::trim )
+                            .remove_if_L( _.empty() )
+                            .intersperse( " " )
+                            .accumulate();
+
+    REQUIRE( s_normalized == "too many spaces here" );
+  }
 }
 
 TEST_CASE( "[range-lite] group_by" ) {
