@@ -803,7 +803,7 @@ public:
   template<typename Op    = std::plus<>,
            typename InitT = value_type>
   auto accumulate( Op&& op = {}, InitT init = {} ) {
-    value_type res = init;
+    InitT res = init;
     for( auto const& e : *this )
       res = std::invoke( std::forward<Op>( op ), res, e );
     return res;
@@ -1590,6 +1590,18 @@ public:
           // reference.
           else
             return *std::forward<T>( arg );
+        } );
+  }
+
+  /**************************************************************
+  ** As Const
+  ***************************************************************/
+  auto as_const() && {
+    return std::move( *this ).map(
+        []<typename T>( T&& arg ) -> decltype( auto ) {
+          static_assert( std::is_reference_v<T> );
+          return static_cast<std::remove_cvref_t<T> const&>(
+              arg );
         } );
   }
 

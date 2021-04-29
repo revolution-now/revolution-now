@@ -501,17 +501,57 @@ TEST_CASE( "[range-lite] map2val" ) {
   }
 }
 
+TEST_CASE( "[range-lite] as_const" ) {
+  SECTION( "reference" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    auto m1 = rl::all( input ) //
+                  .keep_if( L( _ % 2 == 0 ) )
+                  .head();
+    static_assert( is_same_v<decltype( m1 ), maybe<int&>> );
+    REQUIRE( m1 == 2 );
+
+    // Now add an as_const.
+    auto m2 = rl::all( input )
+                  .keep_if( L( _ % 2 == 0 ) )
+                  .as_const()
+                  .head();
+    static_assert(
+        is_same_v<decltype( m2 ), maybe<int const&>> );
+    REQUIRE( m2 == 2 );
+  }
+  SECTION( "value" ) {
+    vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+    // We can't call as_const() after the map because it can only
+    // be called on references, but we can call it before and it
+    // should basically have no effect.
+    auto m = rl::all( input )
+                 .keep_if( L( _ % 2 == 0 ) )
+                 .as_const()
+                 .map_L( _ )
+                 .head();
+
+    static_assert( is_same_v<decltype( m ), maybe<int>> );
+
+    REQUIRE( m == 2 );
+  }
+}
+
 TEST_CASE( "[range-lite] zip" ) {
   SECTION( "zip: int, int" ) {
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-    auto view_odd = rl::all( input ).keep_if( L( _ % 2 == 1 ) );
+    auto view_odd =
+        rl::all( input ).keep_if( L( _ % 2 == 1 ) ).as_const();
 
     auto vec = rl::all( input )
                    .keep_if( L( _ % 2 == 0 ) )
                    .zip( view_odd )
                    .take_while( L( _.second < 8 ) )
                    .to_vector();
+    static_assert( is_same_v<decltype( vec ),
+                             vector<pair<int&, int const&>>> );
 
     REQUIRE( vec.size() == 4 );
     int n, m;
