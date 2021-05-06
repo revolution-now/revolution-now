@@ -74,14 +74,6 @@ public:
   // the view will not be sent to this function.
   ND virtual bool input( input::event_t const& e );
 
-  using ObjectSet = std::unordered_set<ui::Object*>;
-  // This method is not const because it needs to insert
-  // non-const pointers to child objects into the set, which in
-  // turn is needed because we may need to call non-const methods
-  // on those objects.
-  virtual void children_under_coord( Coord      where,
-                                     ObjectSet& objects ) = 0;
-
   // This one is only used for the "simple" method of autopadding
   // (as opposed to the "fancy" method). The jury is still out as
   // to which one is better. If the "simple" method proves best

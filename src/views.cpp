@@ -102,18 +102,6 @@ bool CompositeView::on_mouse_button(
   return dispatch_mouse_event( event );
 }
 
-void CompositeView::children_under_coord( Coord      where,
-                                          ObjectSet& objects ) {
-  for( auto p_view : *this ) {
-    if( where.is_inside( p_view.rect() ) ) {
-      objects.insert( p_view.view );
-      p_view.view->children_under_coord(
-          where.with_new_origin( p_view.rect().upper_left() ),
-          objects );
-    }
-  }
-}
-
 void CompositeView::on_mouse_leave( Coord from ) {
   for( auto p_view : *this )
     if( from.is_inside( p_view.rect() ) )

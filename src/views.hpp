@@ -96,10 +96,6 @@ public:
       input::mouse_button_event_t const& event ) override;
 
   // Implement ui::Object
-  void children_under_coord( Coord      where,
-                             ObjectSet& objects ) override;
-
-  // Implement ui::Object
   void on_mouse_leave( Coord from ) override;
   void on_mouse_enter( Coord to ) override;
 
@@ -249,9 +245,6 @@ public:
 
   void set_delta( Delta const& delta ) { delta_ = delta; }
 
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
-
 protected:
   Color color_;
   Delta delta_;
@@ -267,9 +260,6 @@ public:
   Delta delta() const override { return tx_.size(); }
 
   std::string const& msg() const { return msg_; }
-
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
 
   bool needs_padding() const override { return true; }
 
@@ -287,9 +277,6 @@ public:
   void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override { return tx_.size(); }
-
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
 
   bool needs_padding() const override { return true; }
 
@@ -311,9 +298,6 @@ public:
   void draw( Texture& tx, Coord coord ) const override final;
   // Implement Object
   Delta delta() const override final { return pressed_.size(); }
-
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
 
   bool needs_padding() const override { return true; }
 
@@ -353,9 +337,6 @@ public:
     return Delta{ 1_w, 1_h } * lookup_sprite( tile_ ).scale;
   }
 
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
-
 private:
   e_tile tile_;
 };
@@ -377,9 +358,6 @@ public:
   void draw( Texture& tx, Coord coord ) const override;
   // Implement Object
   Delta delta() const override { return background_.size(); }
-
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
 
   bool needs_padding() const override { return true; }
 
