@@ -11,14 +11,19 @@
 #include "colony-view.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "color.hpp"
 #include "colview-entities.hpp"
 #include "compositor.hpp"
 #include "cstate.hpp"
+#include "logging.hpp"
 #include "menu.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "text.hpp"
+
+// base
+#include "base/lambda.hpp"
 
 using namespace std;
 
@@ -31,13 +36,11 @@ using e_input_handled = Plane::e_input_handled;
 /****************************************************************
 ** Globals
 *****************************************************************/
-waitable_promise<> g_exit_colony;
+co::stream<input::event_t> g_input;
 
-void exit_colony_view() {
-  g_exit_colony.set_value_emplace();
-  pop_plane_config();
-}
-
+/****************************************************************
+** Drawing
+*****************************************************************/
 void draw_colony_view( Texture& tx, ColonyId id ) {
   tx.fill( Color::parse_from_hex( "f1cf81" ).value() );
 
@@ -61,19 +64,43 @@ void draw_colony_view( Texture& tx, ColonyId id ) {
   line( "nation: {}", colony.nation() );
   line( "location: {}", colony.location() );
 
-  colview_top_level()->draw( tx, Coord{} );
+  colview_top_level().view->draw( tx, Coord{} );
 }
 
-e_input_handled handle_key_event(
-    input::key_event_t const& key_event ) {
-  if( key_event.change != input::e_key_change::down )
-    return e_input_handled::no;
-  switch( key_event.keycode ) {
+/****************************************************************
+** Input Handling
+*****************************************************************/
+// Returns true if the user wants to exit the colony view.
+waitable<bool> handle_event( input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down )
+    co_return false;
+  switch( event.keycode ) {
     case ::SDLK_ESCAPE: //
-      exit_colony_view();
-      return e_input_handled::yes;
+      co_return true;
     default: //
-      return e_input_handled::no;
+      break;
+  }
+  co_return false;
+}
+
+// Returns true if the user wants to exit the colony view.
+waitable<bool> handle_event(
+    input::mouse_button_event_t const& event ) {
+  if( event.buttons != input::e_mouse_button_event::left_up )
+    co_return false;
+  Coord click_pos = event.pos;
+  co_await colview_top_level().col_view->perform_click(
+      click_pos );
+  co_return false;
+}
+
+waitable<bool> handle_event( auto const& ) { co_return false; }
+
+waitable<> run_colview() {
+  while( true ) {
+    input::event_t event = co_await g_input.next();
+    if( co_await std::visit( L( handle_event( _ ) ), event ) )
+      co_return;
   }
 }
 
@@ -83,24 +110,25 @@ e_input_handled handle_key_event(
 struct ColonyPlane : public Plane {
   ColonyPlane() = default;
   bool covers_screen() const override { return true; }
+  void advance_state() override { g_input.update(); }
   void draw( Texture& tx ) const override {
     draw_colony_view( tx, curr_colony_id );
   }
   e_input_handled input( input::event_t const& event ) override {
     switch( event.to_enum() ) {
-      case input::e_input_event::key_event: {
-        auto& val = event.get<input::key_event_t>();
-        return handle_key_event( val );
-      }
       case input::e_input_event::win_event: {
         auto& val = event.get<input::win_event_t>();
         if( val.type == input::e_win_event_type::resized )
+          // Force a re-composite.
           set_colview_colony( curr_colony_id );
         // Generally we should return no here because this is an
         // event that we want all planes to see.
         return e_input_handled::no;
       }
-      default: return e_input_handled::no;
+      default: {
+        g_input.send( event );
+        return e_input_handled::yes;
+      }
     }
   }
 
@@ -114,22 +142,25 @@ ColonyPlane g_colony_plane;
 /****************************************************************
 ** Public API
 *****************************************************************/
-
 Plane* colony_plane() { return &g_colony_plane; }
 
 waitable<> show_colony_view( ColonyId id ) {
   CHECK( colony_exists( id ) );
+  g_input.reset();
   g_colony_plane.curr_colony_id = id;
   set_colview_colony( id );
   push_plane_config( e_plane_config::colony );
-  g_exit_colony = {};
-  return g_exit_colony.waitable();
+  lg.info( "viewing colony {}.", colony_from_id( id ) );
+  co_await run_colview();
+  lg.info( "leaving colony view." );
+  pop_plane_config();
 }
 
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
 
+//
 //
 MENU_ITEM_HANDLER(
     colony_view_close, [] { pop_plane_config(); },

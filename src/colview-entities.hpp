@@ -17,13 +17,23 @@
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "id.hpp"
-#include "tx.hpp"
 #include "view.hpp"
+#include "waitable.hpp"
 
 // Rnl
 #include "rnl/colview-entities.hpp"
 
 namespace rn {
+
+// TODO: Keep this generic and move it into the ui namespace
+// eventually.
+struct AwaitableView {
+  virtual ~AwaitableView() = default;
+
+  virtual waitable<> perform_click( Coord pos ) {
+    return make_waitable<>();
+  }
+};
 
 struct ColViewObjectUnderCursor {
   ColViewDraggableObject_t obj;
@@ -31,21 +41,11 @@ struct ColViewObjectUnderCursor {
   Rect bounds;
 };
 
-class ColViewEntityView : public ui::View {
+class ColonySubView : public AwaitableView {
 public:
-  ColViewEntityView( ColonyId id ) : id_( id ) {}
-  virtual ~ColViewEntityView() = default;
+  ColonySubView() = default;
 
-  ColViewEntityView( ColViewEntityView const& ) = delete;
-  ColViewEntityView& operator=( ColViewEntityView const& ) =
-      delete;
-
-  // Implement ui::Object
-  void children_under_coord( Coord, ObjectSet& ) override {}
-
-  virtual e_colview_entity entity_id() const = 0;
-
-  ColonyId colony_id() const { return id_; }
+  // virtual e_colview_entity entity_id() const = 0;
 
   // Coordinate will be relative to the upper-left of the view.
   // Should only be called if the coord is within the bounds of
@@ -57,13 +57,20 @@ private:
   ColonyId id_;
 };
 
-// The pointer returned will be invalidated if set_colview_colony
-// is called with a new colony id.
-ColViewEntityView const* colview_entity(
-    e_colview_entity entity );
+struct ColViewEntityPtrs {
+  // These two pointers refer to the same object, just dynami-
+  // cally casted to different parents in the sense of
+  // multiple-inheritance.
+  ColonySubView* col_view;
+  ui::View*      view;
+};
 
-ui::View const* colview_top_level();
+// The pointer returned from these will be invalidated if
+// set_colview_colony is called with a new colony id.
+ColViewEntityPtrs colview_entity( e_colview_entity entity );
+ColViewEntityPtrs colview_top_level();
 
+// Must be called before any other method in this module.
 void set_colview_colony( ColonyId id );
 
 } // namespace rn
