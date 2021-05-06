@@ -46,7 +46,7 @@
 #include "base/scope-exit.hpp"
 
 // Rnl
-#include "rnl/old-world-view.hpp"
+#include "rnl/old-world-view-impl.hpp"
 
 // Flatbuffers
 #include "fb/sg-old-world-view_generated.h"
@@ -1808,7 +1808,9 @@ struct DragPerform {
                               /*slot=*/src.slot._,
                               /*try_other_slots=*/false );
   }
-  void operator()( auto const&, auto const& ) const {}
+  void operator()( auto const&, auto const& ) const {
+    SHOULD_NOT_BE_HERE;
+  }
 };
 
 void drag_n_drop_draw( Texture& tx ) {
