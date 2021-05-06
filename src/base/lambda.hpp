@@ -77,7 +77,7 @@ constexpr decltype( auto ) nth( Ts&&... ts ) {
 //   auto g = [=] λ( _ * 2 );
 //
 #define λ( ... )                                               \
-  <typename... T>( T && ... _args )->decltype( auto ) {        \
+  <typename... T>( T && ... _args ) {                          \
     [[maybe_unused]] auto&& _ =                                \
         ::base::detail::nth<0>( std::forward<T>( _args )... ); \
     [[maybe_unused]] auto&& _1 =                               \
