@@ -13,7 +13,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "fb.hpp"
-#include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "logging.hpp"
 #include "matrix.hpp"
@@ -972,7 +971,7 @@ struct MyFlatQueues {
   SERIALIZABLE_TABLE_MEMBERS( fb, MyFlatQueues,
   ( rn::flat_queue<int>,    q1 ),
   ( rn::flat_queue<string>, q2 ),
-  ( rn::flat_deque<int>,    dq ));
+  ( deque<int>,             dq ));
   // clang-format on
 };
 
@@ -988,7 +987,7 @@ TEST_CASE( "[flatbuffers] flat_queue" ) {
     q2.push( "one" );
     q2.push( "two" );
     q2.push( "three" );
-    flat_deque<int> dq;
+    deque<int> dq;
     dq.push_back( 1 );
     dq.push_back( 2 );
     dq.push_front( 3 );

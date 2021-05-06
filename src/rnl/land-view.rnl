@@ -21,8 +21,6 @@ sumtype LandViewPlayerInput {
     ColonyId id;
   give_orders:
     orders_t orders;
-  clear_orders:
-    UnitId unit;
   prioritize:
     # Prioritize these units and make them ask for orders now,
     # assuming that they have not used their turn. This needs to

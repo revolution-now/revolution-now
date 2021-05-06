@@ -31,6 +31,7 @@
 
 // C++ standard library
 #include <chrono>
+#include <deque>
 #include <string>
 #include <type_traits>
 #include <variant>
@@ -331,6 +332,23 @@ struct formatter<std::pair<T, U>> : formatter_base {
   auto format( std::pair<T, U> const& o, FormatContext& ctx ) {
     return formatter_base::format(
         fmt::format( "({},{})", o.first, o.second ), ctx );
+  }
+};
+
+// {fmt} formatter for formatting std::deque whose contained type
+// is formattable.
+// FIXME: this should be in its own header, along with <deque>.
+template<typename T>
+struct formatter<std::deque<T>> : formatter_base {
+  template<typename FormatContext>
+  auto format( std::deque<T> const& o, FormatContext& ctx ) {
+    std::string res = "[front:";
+    for( int i = 0; i < int( o.size() ); ++i ) {
+      res += fmt::format( "{}", o[i] );
+      if( i != int( o.size() - 1 ) ) res += ',';
+    }
+    res += ']';
+    return formatter_base::format( res, ctx );
   }
 };
 

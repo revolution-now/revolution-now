@@ -510,6 +510,20 @@ auto serialize( FBBuilder& builder, T const& m, serial::ADL ) {
   return serialize<Hint>( builder, v, serial::ADL{} );
 }
 
+// For std::deque.
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, std::deque<T> const& d,
+                serial::ADL ) {
+  std::vector<T> data;
+  data.reserve( size_t( d.size() ) );
+  auto m_copy = d;
+  while( !m_copy.empty() ) {
+    data.emplace_back( m_copy.front() );
+    m_copy.pop_front();
+  }
+  return serialize<Hint>( builder, data, serial::ADL{} );
+}
+
 /****************************************************************
 ** Serialization of Variants
 *****************************************************************/
@@ -902,6 +916,21 @@ valid_deserial_t deserialize( SrcT const* src, DstT* m,
                      std::addressof( m->operator[]( key ) ),
                      serial::ADL{} ) );
   }
+  return valid;
+}
+
+// For std::deque.
+template<typename SrcT, typename T>
+valid_deserial_t deserialize( SrcT const* src, std::deque<T>* d,
+                              serial::ADL ) {
+  if( src == nullptr ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty queue.
+    return valid;
+  }
+  std::vector<T> data;
+  HAS_VALUE_OR_RET( deserialize( src, &data, serial::ADL{} ) );
+  for( auto& e : data ) d->push_back( std::move( e ) );
   return valid;
 }
 

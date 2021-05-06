@@ -16,7 +16,6 @@
 #include "colony-view.hpp"
 #include "cstate.hpp"
 #include "fb.hpp"
-#include "flat-deque.hpp"
 #include "flat-queue.hpp"
 #include "frame.hpp"
 #include "land-view.hpp"
@@ -42,6 +41,7 @@
 
 // C++ standard library
 #include <algorithm>
+#include <deque>
 
 using namespace std;
 
@@ -63,11 +63,11 @@ struct NationState {
 
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, NationState,
-  ( e_nation,           nation       ),
-  ( bool,               started      ),
-  ( bool,               did_colonies ),
-  ( bool,               did_units    ),
-  ( flat_deque<UnitId>, units        ));
+  ( e_nation,      nation       ),
+  ( bool,          started      ),
+  ( bool,          did_colonies ),
+  ( bool,          did_units    ),
+  ( deque<UnitId>, units        ));
   // clang-format on
 };
 
@@ -126,6 +126,30 @@ private:
 SAVEGAME_IMPL( Turn );
 
 /****************************************************************
+** Helpers
+*****************************************************************/
+// If the element is present in the deque then it will be erased.
+// The function will return true if the value was found (and
+// erased). This will erase multiple instances of the element if
+// there are multiple in the queue. Note that this is order N.
+bool erase_from_deque_if_present( deque<UnitId>& q, UnitId id ) {
+  bool found = false;
+  while( true ) {
+    auto it = find( q.begin(), q.end(), id );
+    if( it == q.end() ) break;
+    found = true;
+    q.erase( it );
+  }
+  return found;
+}
+
+void prioritize_unit( deque<UnitId>& q, UnitId id ) {
+  erase_from_deque_if_present( q, id );
+  q.push_front( id );
+  unit_from_id( id ).unfinish_turn();
+}
+
+/****************************************************************
 ** Top-level per-turn workflows.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
@@ -178,13 +202,6 @@ waitable<> process_eot_player_inputs() {
         co_await show_colony_view( response.get<colony>().id );
         break;
       }
-      // We have some orders for the current unit.
-      case e::clear_orders: {
-        auto& val = response.get<clear_orders>();
-        // Move some units to the back of the queue.
-        unit_from_id( val.unit ).clear_orders();
-        break;
-      }
       default: break;
     }
   }
@@ -195,8 +212,7 @@ waitable<> end_of_turn() {
                   wait_for_eot_button_click() );
 }
 
-waitable<> next_player_input( UnitId              id,
-                              flat_deque<UnitId>* q ) {
+waitable<> next_player_input( UnitId id, deque<UnitId>* q ) {
   LandViewPlayerInput_t response;
   if( auto maybe_orders = pop_unit_orders( id ) ) {
     response = LandViewPlayerInput::give_orders{
@@ -217,14 +233,15 @@ waitable<> next_player_input( UnitId              id,
     case e::give_orders: {
       auto& orders = response.get<give_orders>().orders;
       if( orders.holds<orders::wait>() ) {
-        // FIXME: sometimes a unit can appear multiple times in
-        // the queue, and that normally isn't a problem, except
-        // for the `wait` command, where it can cause a unit to
-        // e.g. ask for orders multiple times in a row as the
-        // player presses wait. One solution is to deduplicate
-        // the queue, but that is very slow when there are a lot
-        // of units. Need to find a better solution.
-        q->push_back( id );
+        // Just remove it form the queue, and it'll get picked up
+        // in the next iteration. We don't want to push this unit
+        // onto the back of the queue since that will cause it to
+        // appear multiple times in the queue, which is actually
+        // OK, but not ideal from a UX perspective because it
+        // will cause the unit to ask for orders multiple times
+        // during a single cycle of "wait" commands, i.e., the
+        // user just pressing "wait" through all of the available
+        // units.
         CHECK( q->front() == id );
         q->pop_front();
         break;
@@ -253,24 +270,8 @@ waitable<> next_player_input( UnitId              id,
       // they were disbanded or if they lost a battle to the na-
       // tives.
 
-      for( auto id : handler->units_to_prioritize() ) {
-        q->push_front( id );
-        unit_from_id( id ).unfinish_turn();
-      }
-      break;
-    }
-    case e::clear_orders: {
-      auto& val = response.get<clear_orders>();
-      // Move some units to the back of the queue.
-      unit_from_id( val.unit ).clear_orders();
-      unit_from_id( val.unit ).unfinish_turn();
-      // In addition to clearing orders, we also need to add this
-      // unit onto the back of the queue in case e.g. a unit that
-      // is sentry'd has already been removed from the queue
-      // (without asking for orders) and later in the same turn
-      // had its orders cleared by the player (but not priori-
-      // tized), this will allow it to ask for orders this turn.
-      q->push_back( val.unit );
+      for( auto id : handler->units_to_prioritize() )
+        prioritize_unit( *q, id );
       break;
     }
     case e::prioritize: {
@@ -290,32 +291,17 @@ waitable<> next_player_input( UnitId              id,
         co_await ui::message_box(
             "Some of the selected units have already moved this "
             "turn." );
-      for( UnitId id_to_add : prioritize ) {
-        q->push_front( id_to_add );
-        unit_from_id( id_to_add ).unfinish_turn();
-      }
+      for( UnitId id_to_add : prioritize )
+        prioritize_unit( *q, id_to_add );
       break;
     }
   }
 }
 
-waitable<> units_turn() {
-  CHECK( SG().turn.nation );
-  auto& st = *SG().turn.nation;
-  auto& q  = st.units;
-
-  // Initialize.
-  if( q.empty() ) {
-    auto units = units_all( st.nation );
-    util::sort_by_key( units, []( auto id ) { return id._; } );
-    // Why do we need this?
-    erase_if( units, L( unit_from_id( _ ).finished_turn() ) );
-    for( UnitId id : units ) q.push_back( id );
-  }
-
+waitable<> units_turn_one_pass( deque<UnitId>& q ) {
   while( !q.empty() ) {
-    lg.trace( "q: {}", q.to_string( 3 ) );
-    UnitId id = *q.front();
+    // lg.trace( "q: {}", q );
+    UnitId id = q.front();
     // We need this check because units can be added into the
     // queue in this loop by user input. Also, the very first
     // check that we must do needs to be to check if the unit
@@ -345,6 +331,38 @@ waitable<> units_turn() {
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
+  }
+}
+
+waitable<> units_turn() {
+  CHECK( SG().turn.nation );
+  auto& st = *SG().turn.nation;
+  auto& q  = st.units;
+
+  // Here we will keep reloading all of the units (that still
+  // need to move) and making passes over them in order make sure
+  // that we systematically get to all units that need to move
+  // this turn, including the ones that were activated during the
+  // turn. For example, during the course of moving units, the
+  // user might activate a unit in the land view, or they might
+  // open a colony view and active units there, or a new unit
+  // might be created, etc. There are many ways that this can
+  // happen, and this will ensure that we get to all of those
+  // units in a systematic way without having to handle each sit-
+  // uation specially.
+  //
+  // That said, we also need this to work right when there are
+  // already some units in the queue on the first iteration, as
+  // would be the case just after deserialization.
+  while( true ) {
+    co_await units_turn_one_pass( q );
+    CHECK( q.empty() );
+    // Refill the queue.
+    auto units = units_all( st.nation );
+    util::sort_by_key( units, []( auto id ) { return id._; } );
+    erase_if( units, L( unit_from_id( _ ).finished_turn() ) );
+    if( units.empty() ) co_return;
+    for( UnitId id : units ) q.push_back( id );
   }
 }
 

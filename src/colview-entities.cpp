@@ -243,10 +243,8 @@ public:
         auto& unit = unit_from_id( unit_id );
         co_await ui::message_box( "Clicked on unit: {}",
                                   debug_string( unit ) );
-        // FIXME: we need to somehow get this back to the turn
-        // module so that it can be added to the back of the
-        // queue.
         unit.clear_orders();
+        unit.unfinish_turn();
       }
     }
   }

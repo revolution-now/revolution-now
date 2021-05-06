@@ -535,27 +535,26 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
   for( auto const& selection : selections ) {
     switch( selection.what ) {
       case ui::e_unit_selection::clear_orders:
-        add( LandViewPlayerInput::clear_orders{} ).unit =
-            selection.id;
+        unit_from_id( selection.id ).clear_orders();
+        unit_from_id( selection.id ).unfinish_turn();
         break;
       case ui::e_unit_selection::activate:
         CHECK( allow_activate );
         // Activation implies also to clear orders if they're not
-        // already cleared. We send this here because, even if
-        // the prioritization is later denied (because the unit
-        // has already moved this turn) the clearing of the or-
-        // ders should still be upheld, because that can always
-        // be done, hence they are sent as separate orders.
-        add( LandViewPlayerInput::clear_orders{} ).unit =
-            selection.id;
+        // already cleared. We do this here because, even if the
+        // prioritization is later denied (because the unit has
+        // already moved this turn) the clearing of the orders
+        // should still be upheld, because that can always be
+        // done, hence they are done separately.
+        unit_from_id( selection.id ).clear_orders();
+        unit_from_id( selection.id ).unfinish_turn();
         prioritize.push_back( selection.id );
         break;
     }
   }
-  // These need to all be added last so that they happen after
-  // the clear-orders commands, and they also need to be grouped
-  // into a vector so that the first prioritized unit doesn't
-  // start asking for orders before the rest are prioritized.
+  // These need to all be grouped into a vector so that the first
+  // prioritized unit doesn't start asking for orders before the
+  // rest are prioritized.
   if( !prioritize.empty() )
     add( LandViewPlayerInput::prioritize{} ).units =
         std::move( prioritize );
