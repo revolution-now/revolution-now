@@ -23,7 +23,7 @@ using namespace std;
 
 using Catch::Contains;
 
-TEST_CASE( "[string] strip" ) {
+TEST_CASE( "[string] trim" ) {
   REQUIRE( trim( "" ) == "" );
   REQUIRE( trim( " " ) == "" );
   REQUIRE( trim( "x" ) == "x" );
