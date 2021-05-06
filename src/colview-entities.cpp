@@ -210,7 +210,9 @@ public:
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
     for( auto [unit_id, unit_pos] : positioned_units_ )
-      render_unit( tx, unit_id, unit_pos, /*with_icon=*/true );
+      render_unit( tx, unit_id,
+                   unit_pos.as_if_origin_were( coord ),
+                   /*with_icon=*/true );
     // TODO: Draw cargo.
   }
 
@@ -433,7 +435,7 @@ struct CompositeColSubView : public ui::InvisibleView,
       ui::PositionedView pos_view = at( i );
       if( !pos.is_inside( pos_view.rect() ) ) continue;
       return ptrs_[i].col_view->perform_click(
-          pos.as_if_origin_were( pos_view.coord ) );
+          pos.with_new_origin( pos_view.coord ) );
     }
     return make_waitable<>();
   }
@@ -446,7 +448,7 @@ struct CompositeColSubView : public ui::InvisibleView,
       ui::PositionedViewConst pos_view = at( i );
       if( !coord.is_inside( pos_view.rect() ) ) continue;
       if( auto maybe_obj = ptrs_[i].col_view->obj_under_cursor(
-              coord.as_if_origin_were( pos_view.coord ) );
+              coord.with_new_origin( pos_view.coord ) );
           maybe_obj )
         return maybe_obj;
     }
@@ -592,11 +594,9 @@ ColViewEntityPtrs colview_top_level() {
 }
 
 void set_colview_colony( ColonyId id ) {
-  auto old_id   = g_composition.id;
   auto old_size = g_composition.screen_size;
   auto new_id   = id;
   auto new_size = main_window_logical_size();
-  if( new_id == old_id && new_size == old_size ) return;
   recomposite( new_id, new_size );
 }
 

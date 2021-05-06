@@ -98,9 +98,11 @@ waitable<bool> handle_event( auto const& ) { co_return false; }
 
 waitable<> run_colview() {
   while( true ) {
-    input::event_t event = co_await g_input.next();
-    if( co_await std::visit( L( handle_event( _ ) ), event ) )
-      co_return;
+    input::event_t event   = co_await g_input.next();
+    auto [exit, suspended] = co_await co::detect_suspend(
+        std::visit( L( handle_event( _ ) ), event ) );
+    if( suspended ) g_input.reset();
+    if( exit ) co_return;
   }
 }
 
