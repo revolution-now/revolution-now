@@ -13,6 +13,9 @@
 function grid() terrain.toggle_grid() end
 
 function soldier()
+  local blinker = assert( land_view.blinking_unit(),
+                          'There is currently no unit asking ' ..
+                              'for orders.' )
   ustate.change_to_soldier( land_view.blinking_unit() )
 end
 
