@@ -512,9 +512,9 @@ void recomposite( ColonyId id, Delta screen_size ) {
   auto invisible_view = std::make_unique<CompositeColSubView>(
       screen_rect.delta(), std::move( views ) );
   invisible_view->set_delta( screen_rect.delta() );
-  g_composition.top_level = std::move( invisible_view );
   g_composition.top_level_ptrs =
       MakeEntityPtrs( invisible_view.get() );
+  g_composition.top_level = std::move( invisible_view );
 
   for( auto e : enum_traits<e_colview_entity>::values ) {
     CHECK( g_composition.entities.contains( e ),
