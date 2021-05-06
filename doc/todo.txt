@@ -1,6 +1,6 @@
-=================================================================
-Bugs
-=================================================================
+# ===============================================================
+# Bugs
+# ===============================================================
 
 Low priority:
 
@@ -13,24 +13,9 @@ Low priority:
     restoring the window, we need to tell the window to update
     itself.
 
-=================================================================
-Language Changes
-=================================================================
-
-  - When gcc 10 is common, change L() macros to use a real lambda
-    which will then be supported (hopefully by default, but
-    possibly needing -fextended-identifiers).
-  - Rewrite move constructors/move assignment operators using
-    std::exchange.  See:
-      https://en.cppreference.com/w/cpp/utility/exchange
-
-  - Use custom optional implementation that supports references.
-    https://github.com/TartanLlama/optional looks good. This one
-    also supports monadic operations.
-
-=================================================================
-Build System
-=================================================================
+# ===============================================================
+# Build System
+# ===============================================================
 
   - Add support for precompiled headers.  CMake recently added
     this feature and it should be available in a version post
@@ -40,49 +25,36 @@ Build System
 
   - Add Windows support.
 
-=================================================================
-Infrastructure
-=================================================================
+# ===============================================================
+# Infrastructure
+# ===============================================================
 
   - Add a generic texture cache to the cache module that can
     cache textures. It will also support pruning and/or automatic
     regeneration.
-
-  - Allow ADT to compare the variant type with a subttype using
-    the == operator.
 
   - Add a cache to the cache module that invalidates when the
     scaling is changed. This may not be necessary since, as of
     now, it seems possible to write code that will work and ad-
     just to any scale.
 
-=================================================================
-UI
-=================================================================
+# ===============================================================
+# UI
+# ===============================================================
 
-  - Escape cancels Ok/Cancel windows.
   - Minimap
 
-=================================================================
-Rendering
-=================================================================
+# ===============================================================
+# Rendering
+# ===============================================================
 
   - Fix handling of multiple units on a square with rendering.
 
-  - Draw the popup window background consisting of a wood texture
-    and a cloth sign hanging from the top with the title (this
-    will be common to all windows), and then have a view that
-    does the word-wrapped/markup text in the middle.
+  - Animate water.
 
-  - Animate water by sliding the pixels within each water sprite
-    in a given direction (and wrapping around). This is essen-
-    tially rotating the pixels, but rotating about an axis that
-    is within the plane of the screen. Either this, or find an-
-    other way to animate it.
-
-=================================================================
-Basic Game Mechanics
-=================================================================
+# ===============================================================
+# Basic Game Mechanics
+# ===============================================================
 
   - Fix handling of multiple units on a square with combat.
   - Finish ship combat
@@ -118,15 +90,15 @@ Basic Game Mechanics
         x landfall
         - treasure boarding ship
 
-=================================================================
-Game Save / Replay
-=================================================================
+# ===============================================================
+# Game Replay
+# ===============================================================
 
-  - data structure to hold game state
+  - replay?
 
-=================================================================
-Old World View
-=================================================================
+# ===============================================================
+# Old World View
+# ===============================================================
 
   - Determine layout of europe background image
   - high seas
@@ -135,49 +107,29 @@ Old World View
   - unit immigration
   - purchasing units
 
-=================================================================
-Frame Control / Animations
-=================================================================
-
-  - Create an animation module that handles managing elapsed time
-    for animations and scrolling so that the feel of the inter-
-    face will not change with framerate.
-
-=================================================================
-Terrain
-=================================================================
+# ===============================================================
+# Terrain
+# ===============================================================
 
   - movement affected by terrain
   - pioneer plow
   - pioneer road
 
-=================================================================
-Colonies
-=================================================================
+# ===============================================================
+# Colonies
+# ===============================================================
 
   - Determine layout of europe background image
 
-=================================================================
-Game Narrative
-=================================================================
+# ===============================================================
+# Game Narrative
+# ===============================================================
 
   - game year/season
   - royal army
 
-=================================================================
-Graphics Engine
-=================================================================
+# ===============================================================
+# Graphics Engine
+# ===============================================================
 
-  - Looks like we are creating textures with
-    SDL_TEXTUREACCESS_TARGET; see if removing this from the
-    sprites speeds up copying.
-
-  - Remove color palette from config, generate a new palette data
-    structure with a uniform distribution of hues/sats/lums. Kind
-    of rediculous to have the palette in a ucl file.
-
-=================================================================
-Testing
-=================================================================
-
-  - Add a fuzz tester and fuzz test the markup parser
+  - Remove color palette from config, it's kind of rediculous.

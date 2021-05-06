@@ -2,11 +2,14 @@
 let s:stems = [
   \ 'app-state',
   \ 'main-menu',
-  \ 'land-view',
   \ 'turn',
-  \ 'orders-move',
-  \ 'waitable',
-  \ 'waitable-coro',
+  \ 'dragdrop',
+  \ 'land-view',
+  \ 'old-world-view',
+  \ 'colony-view',
+  \ 'colview-entities',
+  \ 'views',
+  \ 'ui',
   \ 'co-combinator',
 \]
 
@@ -25,8 +28,13 @@ let s:quads = [
 
 function s:Open3( stem )
   echo '  - ' . a:stem
+  let l:rnl_impl_opened = 0
   if filereadable( 'src/rnl/' . a:stem . '.rnl' )
     exe 'silent tabnew src/rnl/' . a:stem . '.rnl'
+    exe 'silent vsplit src/' . a:stem . '.hpp'
+  elseif filereadable( 'src/rnl/' . a:stem . '-impl.rnl' )
+    let l:rnl_impl_opened = 1
+    exe 'silent tabnew src/rnl/' . a:stem . '-impl.rnl'
     exe 'silent vsplit src/' . a:stem . '.hpp'
   else
     exe 'silent tabnew src/' . a:stem . '.hpp'
@@ -49,7 +57,13 @@ function s:Open3( stem )
   " Uncomment these to open Tagbar; slows things down.
   ":TagbarOpen
   "3wincmd h
-  2wincmd h
+  4wincmd h
+  if l:rnl_impl_opened == 0
+    if filereadable( 'src/rnl/' . a:stem . '-impl.rnl' )
+      exe 'silent split src/rnl/' . a:stem . '-impl.rnl'
+      wincmd k
+    endif
+  endif
 endfunction
 
 function! OpenModule()
