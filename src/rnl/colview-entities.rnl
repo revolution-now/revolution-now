@@ -30,6 +30,5 @@ sumtype ColViewDraggableObject {
     e_commodity type;
   cargo_commodity:
     UnitId id;
-    Commodity comm;
     CargoSlotIndex slot;
 };

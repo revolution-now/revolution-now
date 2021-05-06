@@ -883,6 +883,9 @@ waitable<> AttackHandler::perform() {
       attacker.forfeight_mv_points();
       // TODO: what if there are trade routes that involve this
       // colony?
+      lg.info( "the {} have captured the colony of {}.",
+               nation_obj( attacker.nation() ).name_proper(),
+               colony_from_id( colony_id ).name() );
       co_return;
     }
     case e_attack_verdict::colony_defended:
