@@ -196,7 +196,7 @@ waitable<> evolve_colony_one_turn( ColonyId id ) {
   lg.debug( "evolving colony: {}.", colony );
   auto& commodities = colony.commodities();
   commodities[e_commodity::food] +=
-      rng::between( 10, 20, rng::e_interval::closed );
+      rng::between( 3, 7, rng::e_interval::closed );
   if( commodities[e_commodity::food] >= 200 ) {
     commodities[e_commodity::food] -= 200;
     auto unit_id = create_unit( colony.nation(),
