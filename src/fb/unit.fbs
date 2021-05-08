@@ -44,5 +44,4 @@ table Unit {
   nation_        : e_nation;
   worth_         : Opt_int;
   mv_pts_        : MovementPoints;
-  finished_turn_ : bool;
 }

@@ -484,14 +484,6 @@ waitable<> TravelHandler::perform() {
       // a unit has boarded.
       auto& ship_unit = unit_from_id( *target_unit );
       ship_unit.clear_orders();
-      // The ship may have been marked as having finished its
-      // turn while still having movement points left if e.g. it
-      // used its turn to sentry while still having points left.
-      // In that case let's unfinish its turn so that it will be
-      // asked for orders again. There should be no harm in
-      // calling this even if the ship has in fact already used
-      // its movement points this turn.
-      ship_unit.unfinish_turn();
       break;
     }
     case e_travel_verdict::offboard_ship:
@@ -517,16 +509,6 @@ waitable<> TravelHandler::perform() {
         auto& cargo_unit = unit_from_id( cargo_id );
         if( !cargo_unit.mv_pts_exhausted() ) {
           cargo_unit.clear_orders();
-          // In case the unit has already been processed in the
-          // turn loop and was passed over due to sentry status
-          // onboard (and therefore marked as having finished its
-          // turn) while still having movement points left. Since
-          // the unit is now being re-prioritized to the begin-
-          // ning of the turn loop, we need to mark it's turn as
-          // unfinished again this turn so that it will take or-
-          // ders otherwise it will just be passed over again
-          // this turn.
-          cargo_unit.unfinish_turn();
           auto direction = old_coord.direction_to( move_dst );
           CHECK( direction.has_value() );
           orders_t orders = orders::move{ *direction };
@@ -907,9 +889,9 @@ waitable<> AttackHandler::perform() {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
             loser.id(), coord_for_unit_indirect( winner.id() ) );
-        if( !loser.mv_pts_exhausted() )
-          loser.forfeight_mv_points();
-        loser.finish_turn();
+        // This is so that the captured unit won't ask for orders
+        // in the same turn that it is captured.
+        loser.forfeight_mv_points();
         loser.clear_orders();
       } else {
         // If the loser is not the defender, then the loser is
@@ -936,9 +918,9 @@ waitable<> AttackHandler::perform() {
         loser.change_nation( winner.nation() );
         move_unit_from_map_to_map(
             loser.id(), coord_for_unit_indirect( winner.id() ) );
-        if( !loser.mv_pts_exhausted() )
-          loser.forfeight_mv_points();
-        loser.finish_turn();
+        // This is so that the captured unit won't ask for orders
+        // in the same turn that it is captured.
+        loser.forfeight_mv_points();
         loser.clear_orders();
       }
       break;

@@ -73,49 +73,47 @@ public:
   // when this unit is unable to hold cargo.
   maybe<std::vector<UnitId>> units_in_cargo() const;
 
-  // Has the unit been fully processed this turn. This concept is
-  // distinct from that of having used all movement points. For
-  // example, a unit that is sentry'd on a ship will be marked as
-  // having finished its turn when it comes up in the queue, but
-  // its movement points will not be exhausted. This is because
-  // the player might want to wake the unit up by making
-  // landfall, and it should not have to wait til the next turn
-  // to respond, since it technically hasn't yet moved this turn.
-  bool finished_turn() const { return finished_turn_; }
-  // If the unit has physically moved this turn. This concept is
-  // dinstict from whether the unit has been evolved this turn,
-  // since not all units need to physically move or take orders
-  // each turn (i.e., pioneer building).
+  // Movement Points
+  // ------------------------------------------------------------
+  //
+  // Movement points indicate whether a unit has physically moved
+  // this turn and cannot move any further, but are also used to
+  // indicate (e.g. for units that are not on the map or for
+  // units that are perofmring a job such as building a road)
+  // that the unit has already been evolved this turn. Using
+  // movement points to represent the latter is done for two rea-
+  // sons:
+  //
+  //   1. It is convenient because we don't need an additional
+  //      piece of state that would have to be then kept in sync
+  //      with other things.
+  //   2. It automatically allows us to enforce common-sense game
+  //      rules such as one which says that "if a unit expended
+  //      effort building a road in a given turn, then the player
+  //      should not be able to clear their orders and move them
+  //      in that same turn," as violations of such rules could
+  //      somehow allow cheating.
+  //
+  // So in other words, all units start their turn with movement
+  // points greater than zero, and all units finish their turn
+  // with movement points equal to zero.
   bool mv_pts_exhausted() const { return mv_pts_ == 0; }
+  // Gives up all movement points this turn. This neither can nor
+  // should ever be reversed. This can be called in many dif-
+  // ferent circumstances, namely whenever we want to end a
+  // unit's turn and/or ensure that they don't move any longer.
+  void forfeight_mv_points();
+  // Called to consume movement points as a result of a physical
+  // move on land. Anything else that consumes movement points
+  // would just consume all of them (by just calling
+  // forfeight_mv_points) to mark the unit as having finished
+  // their turn.
+  void consume_mv_points( MovementPoints points );
+
   // Returns true if the unit's orders are other than `none`.
   bool has_orders() const;
-  // Returns true if the unit's orders are such that the unit may
-  // physically move this turn, either by way of player input or
-  // automatically, assuming it has movement points.
-  bool orders_mean_move_needed() const;
-  // Returns true if the unit's orders are such that the unit re-
-  // quires player input this turn, assuming that it has some
-  // movement points.
-  bool orders_mean_input_required() const;
-  // Gives up all movement points this turn and marks unit as
-  // having moved. This can be called when the player directly
-  // issues the "pass" command, or if e.g. a unit waiting for or-
-  // ders is added to a colony, or if a unit waiting for orders
-  // boards a ship.
-  void forfeight_mv_points();
   // Marks unit as not having moved this turn.
   void new_turn();
-  // Marks unit as having finished processing this turn.
-  void finish_turn();
-  // One can call this to put units back into consideration for
-  // movement. There is no harm on calling this on a unit that
-  // has already fully moved (and has no movement points
-  // remaining) since it will then just be passed over again in
-  // the orders loop and its turn will again be marked as
-  // finished.
-  void unfinish_turn();
-  // Called to consume movement points as a result of a move.
-  void consume_mv_points( MovementPoints points );
   // Mark a unit as sentry.
   void sentry() { orders_ = e_unit_orders::sentry; }
   // Mark a unit as fortified (non-ships only).
@@ -139,9 +137,8 @@ private:
   ( e_unit_orders,    orders_        ),
   ( CargoHold,        cargo_         ),
   ( e_nation,         nation_        ),
-  ( maybe<int>,         worth_         ),
-  ( MovementPoints,   mv_pts_        ),
-  ( bool,             finished_turn_ ));
+  ( maybe<int>,       worth_         ),
+  ( MovementPoints,   mv_pts_        ));
   // clang-format on
 };
 NOTHROW_MOVE( Unit );

@@ -536,7 +536,6 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
     switch( selection.what ) {
       case ui::e_unit_selection::clear_orders:
         unit_from_id( selection.id ).clear_orders();
-        unit_from_id( selection.id ).unfinish_turn();
         break;
       case ui::e_unit_selection::activate:
         CHECK( allow_activate );
@@ -547,7 +546,6 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
         // should still be upheld, because that can always be
         // done, hence they are done separately.
         unit_from_id( selection.id ).clear_orders();
-        unit_from_id( selection.id ).unfinish_turn();
         prioritize.push_back( selection.id );
         break;
     }

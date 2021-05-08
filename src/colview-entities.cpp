@@ -244,7 +244,6 @@ public:
         co_await ui::message_box( "Clicked on unit: {}",
                                   debug_string( unit ) );
         unit.clear_orders();
-        unit.unfinish_turn();
       }
     }
   }

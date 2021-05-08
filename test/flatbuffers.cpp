@@ -654,7 +654,6 @@ TEST_CASE( "deserialize json" ) {
   REQUIRE( unit.nation() == rn::e_nation::english );
   REQUIRE( unit.worth() == nothing );
   REQUIRE( unit.movement_points() == rn::MovementPoints( 5 ) );
-  REQUIRE( unit.finished_turn() == false );
 
   auto& cargo = unit.cargo();
   REQUIRE( cargo.slots_total() == 4 );
@@ -730,9 +729,6 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( static_cast<int>( unit.nation_() ) ==
              static_cast<int>( ship_unit.nation() ) );
     REQUIRE( unit.worth_() == nullptr );
-    // REQUIRE( unit.mv_pts() == ship_unit.movement_points() );
-    REQUIRE( unit.finished_turn_() ==
-             ship_unit.finished_turn() );
 
     REQUIRE( unit.cargo_() != nullptr );
     auto cargo = unit.cargo_();
@@ -813,20 +809,14 @@ TEST_CASE( "[flatbuffers] serialize Unit" ) {
     REQUIRE( unit.nation() == orig.nation() );
     REQUIRE( unit.worth() == orig.worth() );
     REQUIRE( unit.movement_points() == orig.movement_points() );
-    REQUIRE( unit.finished_turn() == orig.finished_turn() );
 
     REQUIRE( unit.units_in_cargo().has_value() );
     REQUIRE( orig.units_in_cargo().has_value() );
 
     REQUIRE_THAT( *unit.units_in_cargo(),
                   Equals( *orig.units_in_cargo() ) );
-    REQUIRE( unit.finished_turn() == orig.finished_turn() );
     REQUIRE( unit.mv_pts_exhausted() ==
              orig.mv_pts_exhausted() );
-    REQUIRE( unit.orders_mean_move_needed() ==
-             orig.orders_mean_move_needed() );
-    REQUIRE( unit.orders_mean_input_required() ==
-             orig.orders_mean_input_required() );
 
     auto& cargo      = unit.cargo();
     auto& orig_cargo = orig.cargo();

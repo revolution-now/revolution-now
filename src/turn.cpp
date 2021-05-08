@@ -66,7 +66,7 @@ struct NationState {
   ( e_nation,      nation       ),
   ( bool,          started      ),
   ( bool,          did_colonies ),
-  ( bool,          did_units    ),
+  ( bool,          did_units    ), // FIXME: do we need this?
   ( deque<UnitId>, units        ));
   // clang-format on
 };
@@ -146,7 +146,29 @@ bool erase_from_deque_if_present( deque<UnitId>& q, UnitId id ) {
 void prioritize_unit( deque<UnitId>& q, UnitId id ) {
   erase_from_deque_if_present( q, id );
   q.push_front( id );
-  unit_from_id( id ).unfinish_turn();
+}
+
+// We use movement points for all units to track whether they've
+// been advanced this turn, even for those that are not on the
+// map. That is so that we don't have to introduce another piece
+// of state to track that.
+void finish_turn( UnitId id ) {
+  unit_from_id( id ).forfeight_mv_points();
+}
+
+[[nodiscard]] bool finished_turn( UnitId id ) {
+  return unit_from_id( id ).mv_pts_exhausted();
+}
+
+bool should_remove_unit_from_queue( UnitId id ) {
+  Unit& unit = unit_from_id( id );
+  switch( unit.orders() ) {
+    case e_unit_orders::fortified: return true;
+    case e_unit_orders::sentry: return true;
+    case e_unit_orders::none: break;
+  }
+  if( finished_turn( id ) ) return true;
+  return false;
 }
 
 /****************************************************************
@@ -154,7 +176,7 @@ void prioritize_unit( deque<UnitId>& q, UnitId id ) {
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
 bool advance_unit( UnitId id ) {
-  auto& unit = unit_from_id( id );
+  CHECK( !should_remove_unit_from_queue( id ) );
   // - if it is it in `goto` mode focus on it and advance it
   //
   // - if it is a ship on the high seas then advance it if it has
@@ -177,13 +199,7 @@ bool advance_unit( UnitId id ) {
 
   if( !is_unit_on_map_indirect( id ) ) {
     // TODO.
-    unit.finish_turn();
-    return false;
-  }
-
-  if( !unit.orders_mean_input_required() ||
-      unit.mv_pts_exhausted() ) {
-    unit.finish_turn();
+    finish_turn( id );
     return false;
   }
 
@@ -278,8 +294,7 @@ waitable<> next_player_input( UnitId id, deque<UnitId>* q ) {
       auto& val = response.get<prioritize>();
       // Move some units to the front of the queue.
       auto prioritize = val.units;
-      erase_if( prioritize,
-                L( unit_from_id( _ ).mv_pts_exhausted() ) );
+      erase_if( prioritize, finished_turn );
       auto orig_size = val.units.size();
       auto curr_size = prioritize.size();
       CHECK( curr_size <= orig_size );
@@ -307,7 +322,7 @@ waitable<> units_turn_one_pass( deque<UnitId>& q ) {
     // check that we must do needs to be to check if the unit
     // still exists, which it might not if e.g. it was disbanded.
     if( !unit_exists( id ) ||
-        unit_from_id( id ).finished_turn() ) {
+        should_remove_unit_from_queue( id ) ) {
       q.pop_front();
       continue;
     }
@@ -360,7 +375,7 @@ waitable<> units_turn() {
     // Refill the queue.
     auto units = units_all( st.nation );
     util::sort_by_key( units, []( auto id ) { return id._; } );
-    erase_if( units, L( unit_from_id( _ ).finished_turn() ) );
+    erase_if( units, should_remove_unit_from_queue );
     if( units.empty() ) co_return;
     for( UnitId id : units ) q.push_back( id );
   }

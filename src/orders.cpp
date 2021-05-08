@@ -65,12 +65,7 @@ maybe<orders_t> pop_unit_orders( UnitId id ) {
 
 std::unique_ptr<OrdersHandler> orders_handler(
     UnitId id, orders_t const& orders ) {
-  auto const& unit = unit_from_id( id );
-  // TODO: consolidate these checks
-  CHECK( unit.movement_points() > 0 );
-  CHECK( !unit.mv_pts_exhausted() );
-  CHECK( unit.orders_mean_input_required() );
-
+  CHECK( !unit_from_id( id ).mv_pts_exhausted() );
   return visit( orders, LC( handle_orders( id, _ ) ) );
 }
 

@@ -27,8 +27,7 @@ Unit::Unit( e_nation nation, e_unit_type type )
     cargo_( unit_desc( type ).cargo_slots ),
     nation_( nation ),
     worth_( nothing ),
-    mv_pts_( unit_desc( type ).movement_points ),
-    finished_turn_( false ) {}
+    mv_pts_( unit_desc( type ).movement_points ) {}
 
 valid_deserial_t Unit::check_invariants_safe() const {
   // Check that only treasure units can have a worth.
@@ -61,18 +60,9 @@ void Unit::forfeight_mv_points() {
 
 // Marks unit as not having moved this turn.
 void Unit::new_turn() {
-  mv_pts_        = desc().movement_points;
-  finished_turn_ = false;
+  mv_pts_ = desc().movement_points;
   CHECK_HAS_VALUE( check_invariants_safe() );
 }
-
-// Marks unit as having finished processing this turn.
-void Unit::finish_turn() {
-  finished_turn_ = true;
-  CHECK_HAS_VALUE( check_invariants_safe() );
-}
-
-void Unit::unfinish_turn() { finished_turn_ = false; }
 
 maybe<vector<UnitId>> Unit::units_in_cargo() const {
   if( desc().cargo_slots == 0 ) return nothing;
@@ -81,20 +71,6 @@ maybe<vector<UnitId>> Unit::units_in_cargo() const {
 
 bool Unit::has_orders() const {
   return orders_ != e_unit_orders::none;
-}
-
-// Returns true if the unit's orders are such that the unit may
-// physically move this turn, either by way of player input or
-// automatically, assuming it has movement points.
-bool Unit::orders_mean_move_needed() const {
-  return orders_ == e_unit_orders::none;
-}
-
-// Returns true if the unit's orders are such that the unit re-
-// quires player input this turn, assuming that it has some move-
-// ment points.
-bool Unit::orders_mean_input_required() const {
-  return orders_ == e_unit_orders::none;
 }
 
 // Called to consume movement points as a result of a move.
