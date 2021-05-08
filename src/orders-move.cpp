@@ -258,9 +258,14 @@ TravelHandler::analyze_unload() {
     // We have at least one unit in the cargo that is able
     // to make landfall. So we will indicate that the unit
     // is al- lowed to make this move.
-    prioritize           = to_offload;
-    ui::e_confirm answer = co_await ui::yes_no(
-        "Would you like to make landfall?" );
+    prioritize = to_offload;
+    string msg = "Would you like to make landfall?";
+    if( to_offload.size() <
+        unit.cargo().items_of_type<UnitId>().size() )
+      msg =
+          "Some units have already  moved this turn.  Would you "
+          "like the remaining units to make landfall anyway?";
+    ui::e_confirm answer = co_await ui::yes_no( msg );
     co_return( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
