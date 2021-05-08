@@ -499,6 +499,7 @@ waitable<> TravelHandler::perform() {
       CHECK( unit.orders() == e_unit_orders::none );
       UNWRAP_CHECK( colony_id, colony_from_coord( move_dst ) );
       co_await show_colony_view( colony_id );
+      break;
     }
     case e_travel_verdict::land_fall:
       // Just activate all the units on the ship that have not
