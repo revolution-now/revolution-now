@@ -579,6 +579,13 @@ LUA_FN( coord_for_unit, maybe<Coord>, UnitId id ) {
   return coord_for_unit( id );
 }
 
+LUA_FN( units_from_coord, sol::as_table_t<vector<int>>,
+        Coord c ) {
+  vector<int> res;
+  for( UnitId id : units_from_coord( c ) ) res.push_back( id._ );
+  return res;
+}
+
 } // namespace
 
 } // namespace rn
