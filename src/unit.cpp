@@ -13,6 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "lua.hpp"
+#include "ustate.hpp"
 
 using namespace std;
 
@@ -86,13 +87,10 @@ void Unit::fortify() {
 }
 
 void Unit::change_nation( e_nation nation ) {
-  // This may be allowed in the future, but for now it is not in-
-  // tended to happen, so check for it.
-  CHECK(
-      cargo_.items_of_type<UnitId>().size() == 0,
-      "attempt to change nation of a unit ({}) which contains "
-      "other units in its cargo.",
-      debug_string( *this ) );
+  // This could happen if we capture a colony containing a ship
+  // that itself has units in its cargo.
+  for( UnitId id : cargo_.items_of_type<UnitId>() )
+    unit_from_id( id ).change_nation( nation );
 
   nation_ = nation;
 }
