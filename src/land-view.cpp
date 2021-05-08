@@ -414,6 +414,16 @@ waitable<> animate_blink( UnitId id ) {
   CHECK( !SG().unit_animations.contains( id ) );
   UnitAnimation::blink& blink =
       SG().unit_animations[id].emplace<UnitAnimation::blink>();
+  // FIXME: this needs to be initially `true` for those units
+  // which are not visible by default, such as e.g. a ship in a
+  // colony that is asking for orders. The idea is that we want
+  // this to be the opposite of the unit's default visibility so
+  // that when the unit asks for orders, the player sees a visual
+  // signal immediately.
+  //
+  // FIXME: this causes the unit to remain invisible when the
+  // player continually tries to move a unit into a forbidden
+  // square.
   blink = UnitAnimation::blink{ .visible = false };
   // The unit will always end up visible after we stop since we
   // are going to delete the animation object for this unit,
