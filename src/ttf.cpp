@@ -155,8 +155,6 @@ REGISTER_INIT_ROUTINE( ttf );
 /****************************************************************
 ** Public API
 *****************************************************************/
-// All text rendering should ultimately go through this function
-// because it does the cache handling.
 Texture ttf_render_text_line_uncached( e_font font, Color fg,
                                        string_view line ) {
   auto* ttf_font    = loaded_fonts()[font].ttf_font;

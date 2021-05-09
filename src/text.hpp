@@ -63,12 +63,18 @@ Texture const& render_text( std::string_view text, Color color );
 // The struct gives the engine information on how to interpret
 // the markup language.
 struct TextMarkupInfo {
-  Color normal;
-  Color highlight;
+  Color normal    = Color::black();
+  Color highlight = Color::white();
+  // Shadowing means that for each pixel in the text, we will
+  // render a "shadow" pixel to the right of it and also below
+  // it, creating a partial outline or shadow.
+  Color shadowed_text_color   = Color::white();
+  Color shadowed_shadow_color = Color::black();
   // !! Update std::hash specialization when adding new fields!
 
   // Adds some member functions to make this struct a cache key.
-  MAKE_CACHE_KEY( TextMarkupInfo, normal, highlight );
+  MAKE_CACHE_KEY( TextMarkupInfo, normal, highlight,
+                  shadowed_text_color, shadowed_shadow_color );
 };
 NOTHROW_MOVE( TextMarkupInfo );
 
@@ -111,13 +117,8 @@ namespace std {
 
 template<>
 struct hash<::rn::TextMarkupInfo> {
-  auto operator()(
-      ::rn::TextMarkupInfo const& o ) const noexcept {
-    uint64_t i = o.normal.to_uint32();
-    i <<= 32;
-    i += o.highlight.to_uint32();
-    return hash<uint64_t>{}( i );
-  }
+  size_t operator()(
+      ::rn::TextMarkupInfo const& o ) const noexcept;
 };
 
 template<>

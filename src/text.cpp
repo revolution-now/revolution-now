@@ -139,6 +139,7 @@ Texture const& insert_into_text_cache( TextCacheKey&& key,
 *****************************************************************/
 struct MarkupStyle {
   bool highlight{ false };
+  bool shadow{ false };
 };
 NOTHROW_MOVE( MarkupStyle );
 
@@ -153,7 +154,8 @@ auto parse_markup( string_view sv ) -> maybe<MarkupStyle> {
   if( sv.size() != 1 ) return nothing; // parsing failed
   switch( sv[0] ) {
     case '@': return MarkupStyle{};
-    case 'H': return MarkupStyle{ /*highlight=*/true };
+    case 'H': return MarkupStyle{ .highlight = true };
+    case 'S': return MarkupStyle{ .shadow = true };
   }
   return nothing; // parsing failed.
 }
@@ -207,8 +209,26 @@ Texture render( e_font font, Color fg, string_view txt ) {
 
 Texture render_markup( e_font font, MarkedUpText const& mk,
                        TextMarkupInfo const& info ) {
-  auto fg = mk.style.highlight ? info.highlight : info.normal;
-  return ttf_render_text_line_uncached( font, fg, mk.text );
+  if( mk.style.highlight )
+    return ttf_render_text_line_uncached( font, info.highlight,
+                                          mk.text );
+  if( mk.style.shadow ) {
+    Texture main_text = ttf_render_text_line_uncached(
+        font, info.shadowed_text_color, mk.text );
+    Texture res =
+        Texture::create( main_text.size() + 1_w + 1_h );
+    clear_texture_transparent( res );
+    Texture shadow = ttf_render_text_line_uncached(
+        font, info.shadowed_shadow_color, mk.text );
+    shadow.copy_to( res, Coord( 0_x, 1_y ) );
+    shadow.copy_to( res, Coord( 1_x, 0_y ) );
+    main_text.copy_to( res, Coord{} );
+    return res;
+  }
+  // Here we assume now special style info, just do default ren-
+  // dering.
+  return ttf_render_text_line_uncached( font, info.normal,
+                                        mk.text );
 }
 
 Texture render_line( e_font font, Color fg, string_view txt ) {
@@ -480,7 +500,8 @@ void text_render_test() {
     function to distinguish menu items. @[H]@[H]
   )";
 
-  TextMarkupInfo info{ Color::white(), Color::red() };
+  TextMarkupInfo info{ .normal    = Color::white(),
+                       .highlight = Color::red() };
 
   auto const& tx1 =
       render_text_markup( font::standard(), info, msg );
@@ -498,3 +519,16 @@ void text_render_test() {
 }
 
 } // namespace rn
+
+namespace std {
+
+size_t hash<::rn::TextMarkupInfo>::operator()(
+    ::rn::TextMarkupInfo const& o ) const noexcept {
+  size_t h = hash<rn::Color>{}( o.normal );
+  base::hash_combine( h, o.highlight );
+  base::hash_combine( h, o.shadowed_text_color );
+  base::hash_combine( h, o.shadowed_shadow_color );
+  return h;
+}
+
+} // namespace std

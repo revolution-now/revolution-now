@@ -269,23 +269,13 @@ void render_colonies( Rect const& covered ) {
       Coord name_coord =
           tile_coord +
           config_land_view.colonies.colony_name_offset;
-      // FIXME: this is used to add a shadow under and to the
-      // right of the colony name as a partial outline to make it
-      // more visible; try to consolidate this into one step.
       copy_texture(
-          render_text(
+          render_text_markup(
               config_land_view.colonies.colony_name_font,
-              Color::black(), colony.name() ),
-          g_texture_viewport, name_coord + 1_h );
-      copy_texture(
-          render_text(
-              config_land_view.colonies.colony_name_font,
-              Color::black(), colony.name() ),
-          g_texture_viewport, name_coord + 1_w );
-      copy_texture(
-          render_text(
-              config_land_view.colonies.colony_name_font,
-              Color::white(), colony.name() ),
+              TextMarkupInfo{
+                  .shadowed_text_color   = Color::white(),
+                  .shadowed_shadow_color = Color::black() },
+              fmt::format( "@[S]{}@[]", colony.name() ) ),
           g_texture_viewport, name_coord );
     }
   }
