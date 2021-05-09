@@ -8,7 +8,7 @@ window {
 dialog_text {
   normal:      "#E4C890"
   highlighted: "#FFFFFF"
-  columns:     80
+  columns:     65
 }
 
 menus {

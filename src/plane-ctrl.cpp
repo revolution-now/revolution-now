@@ -98,7 +98,10 @@ void set_planes() {
 /****************************************************************
 ** Init / Cleanup
 *****************************************************************/
-void init_plane_config() {}
+void init_plane_config() {
+  clear_plane_stack();
+  push_plane_config( e_plane_config::black );
+}
 
 void cleanup_plane_config() {
   if( SG().plane_list_stack.size() > 5 )
@@ -140,6 +143,11 @@ void push_plane_config( e_plane_config conf ) {
           e_plane::old_world, //
           e_plane::menu,      //
           e_plane::window     //
+      } } );
+      break;
+    case e_plane_config::black:
+      SG().plane_list_stack.push_back( PlaneList{ {
+          e_plane::window //
       } } );
       break;
   }

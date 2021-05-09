@@ -33,6 +33,10 @@ Plane* window_plane();
 
 namespace rn::ui {
 
+// Pops up a box that displays a message to the user but takes no
+// user input apart from waiting for the <CR> or Space keys to be
+// pressed, which then closes the window. It takes markup text as
+// input and it will reflow the message.
 waitable<> message_box( std::string_view msg );
 
 template<typename... Args>

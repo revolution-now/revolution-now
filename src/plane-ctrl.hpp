@@ -18,7 +18,8 @@ enum class e_plane_config {
   main_menu, //
   terrain,
   colony,
-  old_world
+  old_world,
+  black
 };
 
 // These do what you would think they do.

@@ -28,6 +28,7 @@
 #include "ustate.hpp"
 #include "util.hpp"
 #include "views.hpp"
+#include "waitable-coro.hpp"
 
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
@@ -413,7 +414,7 @@ ValidatorFunc make_int_validator( maybe<int> min,
 /****************************************************************
 ** Windows
 *****************************************************************/
-void async_window_builder(
+Window* async_window_builder(
     std::string_view                          title,
     function_ref<unique_ptr<View>( Window* )> get_view_fn ) {
   auto* win  = g_window_plane.wm.add_window( string( title ) );
@@ -421,6 +422,7 @@ void async_window_builder(
   autopad( view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
   win->center_window();
+  return win;
 }
 
 using GetOkCancelSubjectViewFunc = unique_ptr<View>(
@@ -557,34 +559,6 @@ waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
   return s_promise.waitable();
 }
 
-void ok_box( string_view msg, function<void()> on_closing ) {
-  auto on_ok_closing = [on_closing{ std::move( on_closing ) }](
-                           int ) { on_closing(); };
-  TextMarkupInfo m_info{
-      /*normal=*/config_ui.dialog_text.normal,
-      /*highlight=*/config_ui.dialog_text.highlighted };
-  TextReflowInfo r_info{
-      /*max_cols=*/config_ui.dialog_text.columns };
-  auto view =
-      make_unique<TextView>( string( msg ), m_info, r_info );
-
-  // We can capture by reference here because the function will
-  // be called before this scope exits.
-  auto get_view_fn =
-      [&]( function<void( bool )> /*enable_ok_button*/ ) {
-        return std::move( view );
-      };
-
-  // Use <int> for lack of anything better.
-  ok_box_window_builder<int>(
-      /*title=*/"Question",
-      /*get_result=*/L0( 0 ),
-      /*validator=*/L( _ == 0 ), // always true.
-      /*on_result=*/std::move( on_ok_closing ),
-      /*get_view_fn=*/get_view_fn //
-  );
-}
-
 void text_input_box(
     string_view title, string_view msg, string_view initial_text,
     ValidatorFunc                   validator,
@@ -718,11 +692,13 @@ waitable<e_confirm> yes_no( std::string_view title ) {
 }
 
 waitable<> message_box( string_view msg ) {
-  waitable_promise<monostate> s_promise;
-  ok_box( msg, /*on_closing=*/[s_promise]() {
-    s_promise.set_value( monostate{} );
-  } );
-  return s_promise.waitable();
+  waitable_promise<> p;
+  Window*            win =
+      async_window_builder( /*title=*/"note", [=]( auto* win ) {
+        return PlainMessageBoxView::create( string( msg ), p );
+      } );
+  co_await p.waitable();
+  win->close_window();
 }
 
 waitable<vector<UnitSelection>> unit_selection_box(

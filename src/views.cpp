@@ -21,6 +21,7 @@
 
 // Revolution Now (config)
 #include "../config/ucl/palette.inl"
+#include "../config/ucl/ui.inl"
 
 // base
 #include "base/lambda.hpp"
@@ -173,7 +174,7 @@ void OneLineStringView::draw( Texture& tx, Coord coord ) const {
   copy_texture( this->tx_, tx, coord );
 }
 
-TextView::TextView( string const&         msg,
+TextView::TextView( string_view           msg,
                     TextMarkupInfo const& m_info,
                     TextReflowInfo const& r_info ) {
   tx_ = clone_texture( render_text_markup_reflow(
@@ -425,6 +426,41 @@ void LineEditorView::set( std::string_view new_string,
 /****************************************************************
 ** Derived Views
 *****************************************************************/
+unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
+    string_view msg, waitable_promise<> on_close ) {
+  TextMarkupInfo m_info{
+      /*normal=*/config_ui.dialog_text.normal,
+      /*highlight=*/config_ui.dialog_text.highlighted };
+  TextReflowInfo r_info{
+      /*max_cols=*/config_ui.dialog_text.columns };
+  unique_ptr<TextView> tview =
+      make_unique<TextView>( msg, m_info, r_info );
+  return make_unique<PlainMessageBoxView>(
+      std::move( tview ), std::move( on_close ) );
+}
+
+PlainMessageBoxView::PlainMessageBoxView(
+    unique_ptr<TextView> tview, waitable_promise<> on_close )
+  : CompositeSingleView( std::move( tview ), Coord{} ),
+    on_close_( std::move( on_close ) ) {}
+
+bool PlainMessageBoxView::on_key(
+    input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down ) return false;
+  // It's a key down.
+  switch( event.keycode ) {
+    case ::SDLK_RETURN:
+    case ::SDLK_KP_ENTER:
+    case ::SDLK_ESCAPE:
+    case ::SDLK_KP_5:
+    case ::SDLK_SPACE:
+      on_close_.set_value_emplace();
+      return true;
+    default: //
+      return false;
+  }
+}
+
 PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
                           bool l, bool r, bool u, bool d )
   : CompositeSingleView( std::move( view ),

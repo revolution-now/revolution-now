@@ -24,6 +24,7 @@
 #include "unit.hpp"
 #include "utype.hpp"
 #include "view.hpp"
+#include "waitable.hpp"
 
 // C++ standard library
 #include <memory>
@@ -270,7 +271,7 @@ protected:
 
 class TextView : public View {
 public:
-  TextView( std::string const& msg, TextMarkupInfo const& m_info,
+  TextView( std::string_view msg, TextMarkupInfo const& m_info,
             TextReflowInfo const& r_info );
 
   // Implement Object
@@ -404,6 +405,24 @@ private:
 /****************************************************************
 ** Derived Views
 *****************************************************************/
+class PlainMessageBoxView : public CompositeSingleView {
+public:
+  static std::unique_ptr<PlainMessageBoxView> create(
+      std::string_view msg, waitable_promise<> on_close );
+
+  // Implement CompositeView
+  void notify_children_updated() override {}
+
+  // Should call the static create method instead.
+  PlainMessageBoxView( std::unique_ptr<TextView> tview,
+                       waitable_promise<>        on_close );
+
+  bool on_key( input::key_event_t const& event ) override;
+
+private:
+  waitable_promise<> on_close_;
+};
+
 // Should not be used directly; will generally be inserted
 // automatically by the auto-pad mechanism.
 class PaddingView : public CompositeSingleView {
