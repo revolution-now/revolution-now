@@ -33,6 +33,7 @@
 #include "sg-macros.hpp"
 #include "sound.hpp"
 #include "terrain.hpp"
+#include "text.hpp"
 #include "tx.hpp"
 #include "ustate.hpp"
 #include "utype.hpp"
@@ -50,6 +51,7 @@
 #include "rnl/land-view-impl.hpp"
 
 // Revolution Now (config)
+#include "../config/ucl/land-view.inl"
 #include "../config/ucl/rn.inl"
 
 // Flatbuffers
@@ -253,14 +255,39 @@ void render_units_during_depixelate(
 
 void render_colonies( Rect const& covered ) {
   for( auto coord : covered ) {
-    Coord pixel_coord = to_pixel_coord( covered, coord );
+    Coord tile_coord = to_pixel_coord( covered, coord );
     // FIXME: since colony icons spill over the usual 32x32 tile
     // we need to render colonies that are beyond the `covered`
     // rect.
     if( auto col_id = colony_from_coord( coord );
-        col_id.has_value() )
+        col_id.has_value() ) {
+      Colony const& colony = colony_from_id( *col_id );
+      Coord         colony_sprite_upper_left =
+          tile_coord - Delta{ 6_w, 6_h };
       render_colony( g_texture_viewport, *col_id,
-                     pixel_coord - Delta{ 6_w, 6_h } );
+                     colony_sprite_upper_left );
+      Coord name_coord =
+          tile_coord +
+          config_land_view.colonies.colony_name_offset;
+      // FIXME: this is used to add a shadow under and to the
+      // right of the colony name as a partial outline to make it
+      // more visible; try to consolidate this into one step.
+      copy_texture(
+          render_text(
+              config_land_view.colonies.colony_name_font,
+              Color::black(), colony.name() ),
+          g_texture_viewport, name_coord + 1_h );
+      copy_texture(
+          render_text(
+              config_land_view.colonies.colony_name_font,
+              Color::black(), colony.name() ),
+          g_texture_viewport, name_coord + 1_w );
+      copy_texture(
+          render_text(
+              config_land_view.colonies.colony_name_font,
+              Color::white(), colony.name() ),
+          g_texture_viewport, name_coord );
+    }
   }
 }
 

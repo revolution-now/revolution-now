@@ -3,6 +3,7 @@
 #include "ucl/art.inl"
 #include "ucl/font.inl"
 #include "ucl/input.inl"
+#include "ucl/land-view.inl"
 #include "ucl/music.inl"
 #include "ucl/nation.inl"
 #include "ucl/palette.inl"
@@ -15,6 +16,7 @@
 #undef ART_INL
 #undef FONT_INL
 #undef INPUT_INL
+#undef LAND_VIEW_INL
 #undef MUSIC_INL
 #undef NATION_INL
 #undef PALETTE_INL

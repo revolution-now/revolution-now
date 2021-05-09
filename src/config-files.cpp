@@ -661,6 +661,7 @@ void init_configs() {
     // cout << "Loading file " << file << "\n";
     auto&  ucl_obj = ucl_configs[ucl_name];
     string errors;
+    replace( file.begin(), file.end(), '_', '-' );
     ucl_obj = ucl::Ucl::parse_from_file( file, errors );
     CHECK( ucl_obj, "failed to load {}: {}", file, errors );
   }
