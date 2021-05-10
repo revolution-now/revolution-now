@@ -116,10 +116,12 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
       } },
     { e_menu::view,
       {
-          ITEM( zoom_in, "Zoom In" ),          //
-          ITEM( zoom_out, "Zoom Out" ),        //
-          /***********/ DIVIDER, /***********/ //
-          ITEM( restore_zoom, "Zoom Default" ) //
+          ITEM( zoom_in, "Zoom In" ),                      //
+          ITEM( zoom_out, "Zoom Out" ),                    //
+          /***********/ DIVIDER, /***********/             //
+          ITEM( restore_zoom, "Zoom Default" ),            //
+          /***********/ DIVIDER, /***********/             //
+          ITEM( find_blinking_unit, "Find Blinking Unit" ) //
       } },
     { e_menu::orders,
       {
@@ -596,12 +598,12 @@ ItemTextures render_menu_element( string_view const text,
     inactive = clone_texture( render_text_markup(
         config_ui.menus.font, inactive_info, mk_text ) );
     active   = clone_texture( render_text_markup(
-          config_ui.menus.font, active_info, mk_text ) );
+        config_ui.menus.font, active_info, mk_text ) );
   } else {
     inactive = clone_texture( render_text(
         config_ui.menus.font, inactive_color, text ) );
     active   = clone_texture( render_text( config_ui.menus.font,
-                                           active_color, text ) );
+                                         active_color, text ) );
   }
   auto disabled = clone_texture( render_text(
       config_ui.menus.font, disabled_color, text ) );

@@ -59,5 +59,6 @@ enum e_menu_item {
   toggle_console,
   old_world_view,
   old_world_close,
-  colony_view_close
+  colony_view_close,
+  find_blinking_unit
 };

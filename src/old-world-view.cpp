@@ -68,6 +68,11 @@ constexpr Delta const k_rendered_commodity_offset{ 8_w, 3_h };
 constexpr int const k_default_market_quantity = 100;
 
 /****************************************************************
+** Globals
+*****************************************************************/
+waitable_promise<> g_exit_promise;
+
+/****************************************************************
 ** Save-Game State
 *****************************************************************/
 struct SAVEGAME_STRUCT( OldWorldView ) {
@@ -1948,6 +1953,16 @@ waitable<> dragging_thread( Entities*             entities,
 }
 
 /****************************************************************
+** Main Thread
+*****************************************************************/
+waitable<> run_old_world_view() {
+  // TODO: how does this thread interact with the dragging
+  // thread? It should probably somehow co_await on it when a
+  // drag happens.
+  co_await g_exit_promise.waitable();
+}
+
+/****************************************************************
 ** The Old World Plane
 *****************************************************************/
 struct OldWorldPlane : public Plane {
@@ -2004,7 +2019,7 @@ struct OldWorldPlane : public Plane {
         if( entities_.exit_label.has_value() ) {
           if( val.pos.is_inside(
                   entities_.exit_label->bounds() ) ) {
-            pop_plane_config();
+            g_exit_promise.set_value_emplace();
             return e_input_handled::yes;
           }
         }
@@ -2085,6 +2100,15 @@ REGISTER_INIT_ROUTINE( old_world_view );
 /****************************************************************
 ** Public API
 *****************************************************************/
+waitable<> show_old_world_view() {
+  g_exit_promise = {};
+  push_plane_config( e_plane_config::old_world );
+  lg.info( "entering old world view." );
+  co_await run_old_world_view();
+  lg.info( "leaving old world view." );
+  pop_plane_config();
+}
+
 Plane* old_world_plane() { return &g_old_world_plane; }
 
 /****************************************************************
@@ -2092,12 +2116,7 @@ Plane* old_world_plane() { return &g_old_world_plane; }
 *****************************************************************/
 
 MENU_ITEM_HANDLER(
-    old_world_view,
-    [] { push_plane_config( e_plane_config::old_world ); },
-    [] { return !is_plane_enabled( e_plane::old_world ); } )
-
-MENU_ITEM_HANDLER(
-    old_world_close, [] { pop_plane_config(); },
+    old_world_close, [] { g_exit_promise.set_value_emplace(); },
     [] { return is_plane_enabled( e_plane::old_world ); } )
 
 } // namespace rn

@@ -34,6 +34,10 @@ sumtype LandViewRawInput {
     orders_t orders;
   tile_click:
     Coord coord;
+  # Show the old world view.
+  old_world_view:
+  # Center on blinking unit, if any.
+  center:
 };
 
 # These are animation primitives. A unit "move" is a slide, and a

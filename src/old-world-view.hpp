@@ -12,7 +12,12 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "waitable.hpp"
+
 namespace rn {
+
+waitable<> show_old_world_view();
 
 struct Plane;
 Plane* old_world_plane();

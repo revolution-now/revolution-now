@@ -24,6 +24,7 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "matrix.hpp"
+#include "old-world-view.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
@@ -487,15 +488,15 @@ waitable<> animate_slide( UnitId id, e_direction d ) {
   }
 }
 
-void center_on_blinking_unit_if_any() {
+waitable<> center_on_blinking_unit_if_any() {
   using u_i = LandViewState::unit_input;
   auto blinking_unit =
       SG().landview_state.get_if<u_i>().member( &u_i::unit_id );
   if( !blinking_unit ) {
     lg.warn( "There are no units currently asking for orders." );
-    return;
+    return make_waitable<>();
   }
-  (void)landview_ensure_visible( *blinking_unit );
+  return landview_ensure_visible( *blinking_unit );
 }
 
 /****************************************************************
@@ -595,7 +596,7 @@ waitable<vector<LandViewPlayerInput_t>> click_on_world_tile(
 // ated, preserve the time that the corresponding raw input event
 // was received.
 waitable<> raw_input_translator() {
-  while( true ) {
+  while( !g_translated_input_stream.ready() ) {
     RawInput raw_input = co_await g_raw_input_stream.next();
 
     switch( raw_input.input.to_enum() ) {
@@ -607,7 +608,7 @@ waitable<> raw_input_translator() {
                               .get<LandViewRawInput::orders>()
                               .orders },
             raw_input.when ) );
-        co_return;
+        break;
       }
       case e::tile_click: {
         auto& o = raw_input.input.get<tile_click>();
@@ -620,8 +621,14 @@ waitable<> raw_input_translator() {
         for( auto const& input : inputs )
           g_translated_input_stream.send(
               PlayerInput( input, Clock_t::now() ) );
-        if( !inputs.empty() ) co_return;
+        break;
       }
+      case e::old_world_view:
+        co_await show_old_world_view();
+        break;
+      case e::center:
+        co_await center_on_blinking_unit_if_any();
+        break;
     }
   }
 }
@@ -729,6 +736,23 @@ struct LandViewPlane : public Plane {
       };
       return handler;
     }
+    if( item == e_menu_item::old_world_view ) {
+      static Plane::MenuClickHandler handler = [] {
+        g_raw_input_stream.send(
+            RawInput( LandViewRawInput::old_world_view{} ) );
+      };
+      return handler;
+    }
+    if( item == e_menu_item::find_blinking_unit ) {
+      if( !SG().landview_state
+               .holds<LandViewState::unit_input>() )
+        return nothing;
+      static Plane::MenuClickHandler handler = [] {
+        g_raw_input_stream.send(
+            RawInput( LandViewRawInput::center{} ) );
+      };
+      return handler;
+    }
     return nothing;
   }
   e_input_handled input( input::event_t const& event ) override {
@@ -787,7 +811,14 @@ struct LandViewPlane : public Plane {
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::build{} } ) );
             break;
-          case ::SDLK_c: center_on_blinking_unit_if_any(); break;
+          case ::SDLK_e:
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::old_world_view{} ) );
+            break;
+          case ::SDLK_c:
+            g_raw_input_stream.send(
+                RawInput( LandViewRawInput::center{} ) );
+            break;
           case ::SDLK_d:
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
@@ -1044,7 +1075,7 @@ LUA_FN( blinking_unit, maybe<UnitId> ) {
 }
 
 LUA_FN( center_on_blinking_unit, void ) {
-  center_on_blinking_unit_if_any();
+  (void)center_on_blinking_unit_if_any();
 }
 
 } // namespace
