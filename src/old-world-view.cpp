@@ -2102,6 +2102,14 @@ REGISTER_INIT_ROUTINE( old_world_view );
 *****************************************************************/
 waitable<> show_old_world_view() {
   g_exit_promise = {};
+  if( SG().selected_unit ) {
+    UnitId id = *SG().selected_unit;
+    // We could have a case where the unit that was last selected
+    // went to the new world and was then disbanded, or is just
+    // no longer in the old world.
+    if( !unit_exists( id ) || !unit_old_world_view_info( id ) )
+      SG().selected_unit = nothing;
+  }
   push_plane_config( e_plane_config::old_world );
   lg.info( "entering old world view." );
   co_await run_old_world_view();
