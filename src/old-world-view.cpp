@@ -17,7 +17,6 @@
 #include "commodity.hpp"
 #include "coord.hpp"
 #include "dragdrop.hpp"
-#include "europort.hpp"
 #include "fb.hpp"
 #include "fmt-helper.hpp"
 #include "frame.hpp"
@@ -27,6 +26,7 @@
 #include "input.hpp"
 #include "logging.hpp"
 #include "macros.hpp"
+#include "old-world.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "render.hpp"
@@ -859,7 +859,7 @@ public:
       vector<UnitWithPosition> units;
       Coord                    coord =
           maybe_dock->bounds().upper_right() - g_tile_delta;
-      for( auto id : europort_units_on_dock() ) {
+      for( auto id : old_world_units_on_dock() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < maybe_dock->bounds().left_edge() )
@@ -903,7 +903,7 @@ public:
       vector<UnitWithPosition> units;
       auto  in_port_bds = maybe_in_port_box->bounds();
       Coord coord = in_port_bds.lower_right() - g_tile_delta;
-      for( auto id : europort_units_in_port() ) {
+      for( auto id : old_world_units_in_port() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < in_port_bds.left_edge() )
@@ -947,7 +947,7 @@ public:
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_inbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : europort_units_inbound() ) {
+      for( auto id : old_world_units_inbound() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -990,7 +990,7 @@ public:
       vector<UnitWithPosition> units;
       auto  frame_bds = maybe_outbound_box->bounds();
       Coord coord     = frame_bds.lower_right() - g_tile_delta;
-      for( auto id : europort_units_outbound() ) {
+      for( auto id : old_world_units_outbound() ) {
         units.push_back( { id, coord } );
         coord -= g_tile_delta.w;
         if( coord.x < frame_bds.left_edge() )
@@ -1520,9 +1520,9 @@ struct DragConnector {
     return true;
   }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
-    UNWRAP_CHECK( info, unit_euro_port_view_info( src.id ) );
+    UNWRAP_CHECK( info, unit_old_world_view_info( src.id ) );
     ASSIGN_CHECK_V( outbound, info,
-                    UnitEuroPortViewState::outbound );
+                    UnitOldWorldViewState::outbound );
     // We'd like to do == 0.0 here, but this will avoid rounding
     // errors.
     return outbound.percent < 0.01;
@@ -1697,7 +1697,7 @@ struct DragPerform {
   void DRAG_PERFORM_CASE( cargo, dock ) const {
     ASSIGN_CHECK_V( unit, draggable_from_src( src ),
                     OldWorldDraggableObject::unit );
-    unit_move_to_europort_dock( unit.id );
+    unit_move_to_old_world_dock( unit.id );
   }
   void DRAG_PERFORM_CASE( cargo, cargo ) const {
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
@@ -2107,6 +2107,14 @@ waitable<> show_old_world_view() {
   co_await run_old_world_view();
   lg.info( "leaving old world view." );
   pop_plane_config();
+}
+
+void old_world_view_set_selected_unit( UnitId id ) {
+  // Ensure that the unit is either in port or on the high seas,
+  // otherwise it doesn't make sense for the unit to be selected
+  // on this screen.
+  CHECK( unit_old_world_view_info( id ) );
+  SG().selected_unit = id;
 }
 
 Plane* old_world_plane() { return &g_old_world_plane; }

@@ -116,11 +116,11 @@ private:
       }
     }
 
-    // Check europort states.
+    // Check old_world states.
     for( auto const& [id, st] : states ) {
-      if_get( st, UnitState::europort, val ) {
+      if_get( st, UnitState::old_world, val ) {
         HAS_VALUE_OR_RET(
-            check_europort_state_invariants( val.st ) );
+            check_old_world_state_invariants( val.st ) );
       }
     }
 
@@ -157,7 +157,7 @@ e_unit_state state_for_unit( UnitId id ) {
     }
     case UnitState::e::world: return e_unit_state::world;
     case UnitState::e::cargo: return e_unit_state::cargo;
-    case UnitState::e::europort: return e_unit_state::europort;
+    case UnitState::e::old_world: return e_unit_state::old_world;
     case UnitState::e::colony: return e_unit_state::colony;
   }
 }
@@ -292,7 +292,7 @@ maybe<Coord> coord_for_unit( UnitId id ) {
       return coord;
     }
     case UnitState::e::cargo:
-    case UnitState::e::europort:
+    case UnitState::e::old_world:
     case UnitState::e::colony: //
       return nothing;
   };
@@ -319,7 +319,7 @@ maybe<Coord> coord_for_unit_indirect_safe( UnitId id ) {
       auto& [holder] = v.get<UnitState::cargo>();
       return coord_for_unit_indirect_safe( holder );
     }
-    case UnitState::e::europort:
+    case UnitState::e::old_world:
     case UnitState::e::colony: //
       return nothing;
   };
@@ -372,39 +372,39 @@ maybe<UnitId> is_unit_onboard( UnitId id ) {
 /****************************************************************
 ** Old World View Ownership
 *****************************************************************/
-valid_or<generic_err> check_europort_state_invariants(
-    UnitEuroPortViewState_t const& info ) {
+valid_or<generic_err> check_old_world_state_invariants(
+    UnitOldWorldViewState_t const& info ) {
   switch( info.to_enum() ) {
-    case UnitEuroPortViewState::e::outbound: {
+    case UnitOldWorldViewState::e::outbound: {
       auto& [percent] =
-          info.get<UnitEuroPortViewState::outbound>();
+          info.get<UnitOldWorldViewState::outbound>();
       TRUE_OR_RETURN_GENERIC_ERR( percent >= 0.0 );
-      TRUE_OR_RETURN_GENERIC_ERR( percent < 1.0 );
+      TRUE_OR_RETURN_GENERIC_ERR( percent <= 1.0 );
       return valid;
     }
-    case UnitEuroPortViewState::e::inbound: {
+    case UnitOldWorldViewState::e::inbound: {
       auto& [percent] =
-          info.get<UnitEuroPortViewState::inbound>();
+          info.get<UnitOldWorldViewState::inbound>();
       TRUE_OR_RETURN_GENERIC_ERR( percent >= 0.0 );
-      TRUE_OR_RETURN_GENERIC_ERR( percent < 1.0 );
+      TRUE_OR_RETURN_GENERIC_ERR( percent <= 1.0 );
       return valid;
     }
-    case UnitEuroPortViewState::e::in_port: return valid;
+    case UnitOldWorldViewState::e::in_port: return valid;
   };
 }
 
-maybe<UnitEuroPortViewState_t&> unit_euro_port_view_info(
+maybe<UnitOldWorldViewState_t&> unit_old_world_view_info(
     UnitId id ) {
-  if_get( SG().states[id], UnitState::europort, val ) {
+  if_get( SG().states[id], UnitState::old_world, val ) {
     return val.st;
   }
   return nothing;
 }
 
-vector<UnitId> units_in_euro_port_view() {
+vector<UnitId> units_in_old_world_view() {
   vector<UnitId> res;
   for( auto const& [id, st] : SG().states ) {
-    if( holds<UnitState::europort>( st ) ) res.push_back( id );
+    if( holds<UnitState::old_world>( st ) ) res.push_back( id );
   }
   return res;
 }
@@ -483,12 +483,12 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held ) {
          cargo );
 }
 
-void ustate_change_to_euro_port_view(
-    UnitId id, UnitEuroPortViewState_t info ) {
-  CHECK_HAS_VALUE( check_europort_state_invariants( info ) );
-  if( !holds<UnitState::europort>( SG().states[id] ) )
+void ustate_change_to_old_world_view(
+    UnitId id, UnitOldWorldViewState_t info ) {
+  CHECK_HAS_VALUE( check_old_world_state_invariants( info ) );
+  if( !holds<UnitState::old_world>( SG().states[id] ) )
     internal::ustate_disown_unit( id );
-  SG().states[id] = UnitState::europort{ /*st=*/info };
+  SG().states[id] = UnitState::old_world{ /*st=*/info };
 }
 
 void ustate_change_to_colony( UnitId id, ColonyId col_id,
@@ -532,11 +532,7 @@ void ustate_disown_unit( UnitId id ) {
       SG().holder_from_held.erase( pair_it );
       break;
     }
-    case UnitState::e::europort: {
-      // Ensure the unit has no units in its cargo.
-      CHECK( unit_from_id( id )
-                 .cargo()
-                 .count_items_of_type<UnitId>() == 0 );
+    case UnitState::e::old_world: {
       break;
     }
     case UnitState::e::colony: {

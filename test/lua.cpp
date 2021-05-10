@@ -130,9 +130,9 @@ TEST_CASE( "[lua] has startup.run" ) {
 TEST_CASE( "[lua] C++ function binding" ) {
   lua::reload();
   auto script = R"(
-    local id1 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
-    local id2 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
-    local id3 = europort.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local id1 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local id2 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
+    local id3 = old_world.create_unit_in_port( e.nation.dutch, e.unit_type.soldier )
     return id3-id1
   )";
 

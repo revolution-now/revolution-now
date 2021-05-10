@@ -9,19 +9,19 @@
 | Description: Code to be run at startup.
 |
 --]] ------------------------------------------------------------
-local function create_some_units_in_europort( nation )
+local function create_some_units_in_old_world( nation )
   local units = {
     e.unit_type.free_colonist, e.unit_type.soldier,
     e.unit_type.merchantman, e.unit_type.privateer
   }
   for _, u in ipairs( units ) do
-    europort.create_unit_in_port( nation, u )
+    old_world.create_unit_in_port( nation, u )
   end
 
-  local id = europort.create_unit_in_port( nation, e.unit_type
-                                               .merchantman )
-  europort.unit_sail_to_new_world( id )
-  europort.advance_unit_on_high_seas( id )
+  local id = old_world.create_unit_in_port( nation, e.unit_type
+                                                .merchantman )
+  old_world.unit_sail_to_new_world( id )
+  old_world.advance_unit_on_high_seas( id )
 end
 
 local function create_some_units_on_land( nation1, nation2 )
@@ -86,7 +86,7 @@ local function main()
   nation1 = e.nation.dutch
   nation2 = e.nation.french
 
-  create_some_units_in_europort( nation1 )
+  create_some_units_in_old_world( nation1 )
   create_some_units_on_land( nation1, nation2 )
   create_some_colonies( nation1, nation2 )
 end

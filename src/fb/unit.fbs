@@ -14,7 +14,7 @@ include "nation.fbs";
 include "utype.fbs";
 include "vocab.fbs";
 
-namespace fb.UnitEuroPortViewState;
+namespace fb.UnitOldWorldViewState;
 
   table outbound { percent : double; }
   table inbound  { percent : double; }
@@ -22,10 +22,10 @@ namespace fb.UnitEuroPortViewState;
 
   namespace fb;
 
-  table UnitEuroPortViewState_t {
-    outbound : UnitEuroPortViewState.outbound;
-    inbound  : UnitEuroPortViewState.inbound;
-    in_port  : UnitEuroPortViewState.in_port;
+  table UnitOldWorldViewState_t {
+    outbound : UnitOldWorldViewState.outbound;
+    inbound  : UnitOldWorldViewState.inbound;
+    in_port  : UnitOldWorldViewState.in_port;
   }
 
 namespace fb;

@@ -25,8 +25,8 @@ sumtype UnitState {
     Coord coord;
   cargo:
     UnitId holder;
-  europort:
-    UnitEuroPortViewState_t st;
+  old_world:
+    UnitOldWorldViewState_t st;
   colony:
     ColonyId id;
 

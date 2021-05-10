@@ -13,20 +13,20 @@ include "unit.fbs";
 
 namespace fb.UnitState;
 
-  table free     {}
-  table world    { coord  : fb.Coord; }
-  table cargo    { holder : int; }
-  table europort { st : fb.UnitEuroPortViewState_t; }
-  table colony   { id : int; }
+  table free      {}
+  table world     { coord  : fb.Coord; }
+  table cargo     { holder : int; }
+  table old_world { st : fb.UnitOldWorldViewState_t; }
+  table colony    { id : int; }
 
   namespace fb;
 
   table UnitState_t {
-    free     : UnitState.free;
-    world    : UnitState.world;
-    cargo    : UnitState.cargo;
-    europort : UnitState.europort;
-    colony   : UnitState.colony;
+    free      : UnitState.free;
+    world     : UnitState.world;
+    cargo     : UnitState.cargo;
+    old_world : UnitState.old_world;
+    colony    : UnitState.colony;
   }
 
 namespace fb;

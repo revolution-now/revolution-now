@@ -93,8 +93,9 @@ BEHAVIOR( land, friendly, unit, always, never, unload );
 BEHAVIOR( land, friendly, colony, always );
 BEHAVIOR( water, foreign, unit, no_attack, attack, no_bombard,
           bombard );
-BEHAVIOR( water, neutral, empty, never, always );
-BEHAVIOR( water, friendly, unit, always, never, move_onto_ship );
+BEHAVIOR( water, neutral, empty, never, always, high_seas );
+BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
+          high_seas );
 /****************************************************************/
 
 // The macros below are for users of the above functions.
@@ -145,6 +146,7 @@ struct TravelHandler : public OrdersHandler {
     offboard_ship,
     ship_into_port,
     land_fall,
+    sail_high_seas,
   };
 
   waitable<bool> confirm() override {
@@ -171,7 +173,8 @@ struct TravelHandler : public OrdersHandler {
       case e_travel_verdict::board_ship:
       case e_travel_verdict::offboard_ship:
       case e_travel_verdict::ship_into_port:
-      case e_travel_verdict::land_fall: //
+      case e_travel_verdict::land_fall:      //
+      case e_travel_verdict::sail_high_seas: //
         break;
     }
 
@@ -272,6 +275,18 @@ TravelHandler::analyze_unload() {
   } else {
     co_return e_travel_verdict::land_forbidden;
   }
+}
+
+// FIXME: temporary
+bool is_high_seas( Coord c ) { return c == Coord{}; }
+
+waitable<TravelHandler::e_travel_verdict>
+confirm_sail_high_seas() {
+  ui::e_confirm confirmed = co_await ui::yes_no(
+      "Would you like to sail the high seas?" );
+  co_return confirmed == ui::e_confirm::yes
+      ? TravelHandler::e_travel_verdict::sail_high_seas
+      : TravelHandler::e_travel_verdict::map_to_map;
 }
 
 waitable<TravelHandler::e_travel_verdict>
@@ -383,25 +398,34 @@ TravelHandler::confirm_travel_impl() {
   // We are entering an empty water square.
   IF_BEHAVIOR( water, neutral, empty ) {
     using bh_t = unit_behavior::water::neutral::empty::e_vals;
-    // Possible results: never, always
+    // Possible results: never, always, high_seas.
     bh_t bh = unit.desc().ship ? bh_t::always : bh_t::never;
+    if( unit.desc().ship && is_high_seas( move_dst ) )
+      bh = bh_t::high_seas;
     switch( bh ) {
       case bh_t::never:
         co_return e_travel_verdict::water_forbidden;
       case bh_t::always: co_return e_travel_verdict::map_to_map;
+      case bh_t::high_seas:
+        co_return co_await confirm_sail_high_seas();
     }
   }
   // We are entering a water square containing a friendly unit.
   IF_BEHAVIOR( water, friendly, unit ) {
     using bh_t = unit_behavior::water::friendly::unit::e_vals;
     bh_t bh;
-    // Possible results: always, never, move_onto_ship
-    if( unit.desc().ship )
-      bh = bh_t::always;
-    else
+    // Possible results: always, never, move_onto_ship,
+    //                   high_seas.
+    if( unit.desc().ship ) {
+      if( is_high_seas( move_dst ) )
+        bh = bh_t::high_seas;
+      else
+        bh = bh_t::always;
+    } else {
       bh = unit.desc().cargo_slots_occupies.has_value()
                ? bh_t::move_onto_ship
                : bh_t::never;
+    }
     switch( bh ) {
       case bh_t::never:
         co_return e_travel_verdict::water_forbidden;
@@ -424,6 +448,8 @@ TravelHandler::confirm_travel_impl() {
         }
         co_return e_travel_verdict::board_ship_full;
       }
+      case bh_t::high_seas:
+        co_return co_await confirm_sail_high_seas();
     }
   }
 
@@ -522,11 +548,24 @@ waitable<> TravelHandler::perform() {
         }
       }
       break;
+    case e_travel_verdict::sail_high_seas: {
+      UnitOldWorldViewState_t state =
+          UnitOldWorldViewState::inbound{ .percent = 0.0 };
+      ustate_change_to_old_world_view( id, state );
+      // Don't process it again this turn.
+      unit.forfeight_mv_points();
+      break;
+    }
   }
 
-  // Now do a sanity check.
-  auto new_coord = coord_for_unit_indirect( id );
-  CHECK( unit_would_move == ( new_coord == move_dst ) );
+  // Now do a sanity check for units that are on the map. The
+  // vast majority of the time they are on the map. An example of
+  // a case where the unit is no longer on the map at this point
+  // would be a ship that was sent to sail the high seas.
+  if( is_unit_on_map_indirect( id ) ) {
+    auto new_coord = coord_for_unit_indirect( id );
+    CHECK( unit_would_move == ( new_coord == move_dst ) );
+  }
   co_return; //
 }
 

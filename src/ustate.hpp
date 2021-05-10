@@ -56,7 +56,7 @@ enum class e_unit_state {
   // This means that the unit will be visible when looking at the
   // Old World view, e.g., it is sailing the high seas or on/in
   // port.
-  europort,
+  old_world,
   // Unit is inside a colony; this means that it is actually
   // doing a job in a colony, not just that it is on the map
   // square coinciding with the colony location.
@@ -134,16 +134,16 @@ maybe<UnitId> is_unit_onboard( UnitId id );
 /****************************************************************
 ** Old World View Ownership
 *****************************************************************/
-valid_or<generic_err> check_europort_state_invariants(
-    UnitEuroPortViewState_t const& info );
+valid_or<generic_err> check_old_world_state_invariants(
+    UnitOldWorldViewState_t const& info );
 
-// If unit is owned by euro-port-view then this will return info.
-maybe<UnitEuroPortViewState_t&> unit_euro_port_view_info(
+// If unit is owned by old-world-view then this will return info.
+maybe<UnitOldWorldViewState_t&> unit_old_world_view_info(
     UnitId id );
 
-// Get a set of all units owned by the euro-port-view.
+// Get a set of all units owned by the old-world-view.
 // FIXME: needs to be nation-specific.
-std::vector<UnitId> units_in_euro_port_view();
+std::vector<UnitId> units_in_old_world_view();
 
 /****************************************************************
 ** Creation
@@ -177,8 +177,8 @@ void ustate_change_to_cargo( UnitId new_holder, UnitId held );
 void ustate_change_to_cargo( UnitId new_holder, UnitId held,
                              int slot );
 
-void ustate_change_to_euro_port_view(
-    UnitId id, UnitEuroPortViewState_t info );
+void ustate_change_to_old_world_view(
+    UnitId id, UnitOldWorldViewState_t info );
 
 void ustate_change_to_colony( UnitId id, ColonyId col_id,
                               ColonyJob_t const& job );

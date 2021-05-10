@@ -20,6 +20,8 @@
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
+#include "old-world-view.hpp"
+#include "old-world.hpp"
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "sg-macros.hpp"
@@ -175,14 +177,9 @@ bool should_remove_unit_from_queue( UnitId id ) {
 ** Top-level per-turn workflows.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-bool advance_unit( UnitId id ) {
+waitable<bool> advance_unit( UnitId id ) {
   CHECK( !should_remove_unit_from_queue( id ) );
   // - if it is it in `goto` mode focus on it and advance it
-  //
-  // - if it is a ship on the high seas then advance it if it has
-  //   arrived in the old world then jump to the old world screen
-  //   (maybe ask user whether they want to ignore), which has
-  //   its own game loop (see old-world loop).
   //
   // - if it is in the old world then ignore it, or possibly re-
   //   mind the user it is there.
@@ -197,14 +194,43 @@ bool advance_unit( UnitId id ) {
   // - if unit is waiting for orders then focus on it, make it
   //   blink, and wait for orders.
 
-  if( !is_unit_on_map_indirect( id ) ) {
-    // TODO.
+  if( is_unit_in_port( id ) ) {
     finish_turn( id );
-    return false;
+    co_return false; // do not ask for orders.
+  }
+
+  // If it is a ship on the high seas then advance it. If it has
+  // arrived in the old world then jump to the old world screen.
+  if( is_unit_inbound( id ) || is_unit_outbound( id ) ) {
+    e_high_seas_result res = advance_unit_on_high_seas( id );
+    switch( res ) {
+      case e_high_seas_result::still_traveling:
+        finish_turn( id );
+        co_return false; // do not ask for orders.
+      case e_high_seas_result::arrived_in_new_world:
+        co_return true; // needs to ask for orders.
+      case e_high_seas_result::arrived_in_old_world: {
+        finish_turn( id );
+        ui::e_confirm confirmed = co_await ui::yes_no(
+            "Your excellency, our {} has arrived in the old "
+            "world.  Go to port?",
+            unit_from_id( id ).desc().name );
+        if( confirmed == ui::e_confirm::yes ) {
+          old_world_view_set_selected_unit( id );
+          co_await show_old_world_view();
+        }
+        co_return false; // do not ask for orders.
+      }
+    }
+  }
+
+  if( !is_unit_on_map_indirect( id ) ) {
+    finish_turn( id );
+    co_return false;
   }
 
   // Unit needs to ask for orders.
-  return true;
+  co_return true;
 }
 
 waitable<> process_eot_player_inputs() {
@@ -327,7 +353,7 @@ waitable<> units_turn_one_pass( deque<UnitId>& q ) {
       continue;
     }
 
-    bool should_ask = advance_unit( id );
+    bool should_ask = co_await advance_unit( id );
     if( !should_ask ) {
       q.pop_front();
       continue;

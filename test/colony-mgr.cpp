@@ -103,8 +103,8 @@ TEST_CASE(
   init_game_world_for_test();
 
   auto id = create_colonist();
-  ustate_change_to_euro_port_view(
-      id, UnitEuroPortViewState::in_port{} );
+  ustate_change_to_old_world_view(
+      id, UnitOldWorldViewState::in_port{} );
   REQUIRE( unit_can_found_colony( id ) ==
            invalid( e_found_colony_err::colonist_not_on_map ) );
 }
