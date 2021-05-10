@@ -24,7 +24,6 @@
 #include "logging.hpp"
 #include "lua.hpp"
 #include "matrix.hpp"
-#include "old-world-view.hpp"
 #include "orders.hpp"
 #include "physics.hpp"
 #include "plane.hpp"
@@ -624,9 +623,11 @@ waitable<> raw_input_translator() {
         break;
       }
       case e::old_world_view:
-        co_await show_old_world_view();
+        g_translated_input_stream.send( PlayerInput(
+            LandViewPlayerInput::old_world{}, raw_input.when ) );
         break;
       case e::center:
+        // For this one, we just perform the action right here.
         co_await center_on_blinking_unit_if_any();
         break;
     }

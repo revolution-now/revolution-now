@@ -16,16 +16,19 @@ include "rnl/orders.hpp";
 namespace rn;
 
 sumtype LandViewPlayerInput {
+  # Player clicked on a colony.
   colony:
-    # Player clicked on a colony.
     ColonyId id;
+  # Player wants to view the old world view.
+  old_world:
+  # Player has given orders to a unit.
   give_orders:
     orders_t orders;
+  # Prioritize these units and make them ask for orders now, as-
+  # suming that they have not used their turn. This needs to be a
+  # vector so that if there are multiple, then they can all be
+  # prioritized before the first of them starts asking for or-
+  # ders.
   prioritize:
-    # Prioritize these units and make them ask for orders now,
-    # assuming that they have not used their turn. This needs to
-    # be a vector so that if there are multiple, then they can
-    # all be prioritized before the first of them starts asking
-    # for orders.
     std::vector<UnitId> units;
 };

@@ -18,6 +18,7 @@ table NationState {
   did_colonies : bool;
   did_units    : bool;
   units        : [int];
+  old_world    : bool;
 }
 
 table Maybe_NationState {
