@@ -1729,6 +1729,15 @@ struct DragPerform {
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
     unit_sail_to_new_world( src.id );
+    // This is not strictly necessary, but for a nice user expe-
+    // rience we will auto-select another unit that is in-port
+    // (if any) since that is likely what the user wants to work
+    // with, as opposed to keeping the selection on the unit that
+    // is now outbound. Or if there are no more units in port,
+    // just deselect.
+    SG().selected_unit           = nothing;
+    vector<UnitId> units_in_port = old_world_units_in_port();
+    SG().selected_unit = rl::all( units_in_port ).head();
   }
   void DRAG_PERFORM_CASE( dock, inport_ship ) const {
     ustate_change_to_cargo( dst.id, src.id );
