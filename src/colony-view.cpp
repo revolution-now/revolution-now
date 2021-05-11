@@ -112,7 +112,6 @@ waitable<> run_colview() {
 struct ColonyPlane : public Plane {
   ColonyPlane() = default;
   bool covers_screen() const override { return true; }
-  void advance_state() override { g_input.update(); }
   void draw( Texture& tx ) const override {
     draw_colony_view( tx, curr_colony_id );
   }

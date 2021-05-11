@@ -1979,7 +1979,6 @@ struct OldWorldPlane : public Plane {
   bool covers_screen() const override { return true; }
 
   void advance_state() override {
-    if( g_drag_state ) g_drag_state->stream.update();
     // Should be last.
     create_entities( &entities_ );
   }

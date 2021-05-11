@@ -163,33 +163,32 @@ private:
 /****************************************************************
 ** stream
 *****************************************************************/
-// Not sure if this supports multiple waiters... probably best
-// just to stick to one.
 template<typename T>
 struct stream {
   waitable<T> next() {
-    update();
     T res = co_await p.waitable();
     p     = {};
+    update();
     co_return res;
   }
 
-  void send( T const& t ) { q.push( t ); }
-  void send( T&& t ) { q.push_emplace( std::move( t ) ); }
-
-  void update() {
-    if( !p.has_value() && !q.empty() ) {
-      p.set_value_emplace( std::move( *q.front() ) );
-      q.pop();
-    }
-  }
-
-  bool ready() {
+  void send( T const& t ) {
+    q.push( t );
     update();
-    return p.has_value();
   }
 
-  void reset() { *this = {}; }
+  void send( T&& t ) {
+    q.push_emplace( std::move( t ) );
+    update();
+  }
+
+  bool ready() const { return p.has_value(); }
+
+  void reset() {
+    *this = {};
+    // Not necessary, but for consistency.
+    update();
+  }
 
   stream()                = default;
   stream( stream const& ) = delete;
@@ -198,6 +197,13 @@ struct stream {
   stream& operator=( stream&& ) = default;
 
 private:
+  void update() {
+    if( !p.has_value() && !q.empty() ) {
+      p.set_value_emplace( std::move( *q.front() ) );
+      q.pop();
+    }
+  }
+
   waitable_promise<T> p;
   flat_queue<T>       q;
 };
@@ -221,8 +227,6 @@ struct finite_stream {
   void send( T const& t ) { s.send( t ); }
   void send( T&& t ) { s.send( std::move( t ) ); }
   void finish() { s.send( nothing ); }
-
-  void update() { s.update(); }
 
   void reset() { *this = {}; }
 

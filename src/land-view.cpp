@@ -686,12 +686,7 @@ void advance_viewport_state() {
 struct LandViewPlane : public Plane {
   LandViewPlane() = default;
   bool covers_screen() const override { return true; }
-  void advance_state() override {
-    g_raw_input_stream.update();
-    g_translated_input_stream.update();
-    drag_stream.update();
-    advance_viewport_state();
-  }
+  void advance_state() override { advance_viewport_state(); }
   void draw( Texture& tx ) const override {
     render_land_view();
     clear_texture_black( tx );
