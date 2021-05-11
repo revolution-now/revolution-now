@@ -29,7 +29,6 @@
 // base
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"
-#include "base/scope-exit.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
@@ -111,11 +110,6 @@ using FrameLoopBodyFunc =
 
 void frame_loop_scheduler( waitable<> const& what,
                            FrameLoopBodyFunc body ) {
-  static bool guard = false;
-  CHECK( !guard, "cannot re-enter frame_loop function." );
-  guard = true;
-  SCOPE_EXIT( guard = false );
-
   using namespace chrono;
 
   auto normal_frame_length =

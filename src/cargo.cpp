@@ -21,7 +21,6 @@
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
-#include "base/scope-exit.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -352,11 +351,6 @@ ND bool CargoHold::fits_with_item_removed(
     Cargo const& cargo, CargoSlotIndex remove_slot,
     CargoSlotIndex insert_slot ) const {
   CargoHold new_hold = *this;
-  // Need to make sure we clear this out in case the line after
-  // throws an exception. This is only needed for convenience
-  // when unit testing, which catches exceptions (so it's nice to
-  // be exception safe).
-  SCOPE_EXIT( new_hold.clear() );
   new_hold.remove( remove_slot._ );
   return new_hold.fits( cargo, insert_slot );
 }
@@ -364,13 +358,7 @@ ND bool CargoHold::fits_with_item_removed(
 bool CargoHold::fits_somewhere( Cargo const& cargo,
                                 int starting_slot ) const {
   CargoHold new_hold = *this;
-  // Need to make sure we clear this out in case the line after
-  // throws an exception. This is only needed for convenience
-  // when unit testing, which catches exceptions (so it's nice to
-  // be exception safe).
-  SCOPE_EXIT( new_hold.clear() );
-  auto res = new_hold.try_add_somewhere( cargo, starting_slot );
-  return res;
+  return new_hold.try_add_somewhere( cargo, starting_slot );
 }
 
 bool CargoHold::try_add_somewhere( Cargo const& cargo,
