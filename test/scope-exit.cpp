@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2020-12-03.
 *
-* Description: Unit tests for the src/scope-exit.* module.
+* Description: Unit tests for the src/base/scope-exit.* module.
 *
 *****************************************************************/
 #include "testing.hpp"
@@ -21,7 +21,7 @@ namespace {
 
 using namespace std;
 
-TEST_CASE( "[scope-exit] some test" ) {
+TEST_CASE( "[scope-exit] SCOPE_EXIT" ) {
   SECTION( "one statement" ) {
     int x = 0;
     {
@@ -43,6 +43,23 @@ TEST_CASE( "[scope-exit] some test" ) {
     }
     REQUIRE( y == 6 );
   }
+}
+
+TEST_CASE( "[scope-exit] SCOPED_SET" ) {
+  int x = 5;
+  REQUIRE( x == 5 );
+  {
+    SCOPED_SET( x, 6 );
+    REQUIRE( x == 6 );
+    SCOPED_SET( x, 7 );
+    REQUIRE( x == 7 );
+    {
+      SCOPED_SET( x, 8 );
+      REQUIRE( x == 8 );
+    }
+    REQUIRE( x == 7 );
+  }
+  REQUIRE( x == 5 );
 }
 
 } // namespace

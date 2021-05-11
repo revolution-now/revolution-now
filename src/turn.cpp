@@ -181,8 +181,7 @@ bool should_remove_unit_from_queue( UnitId id ) {
 // save/restore the game properly when in the Old World view.
 waitable<> turn_show_old_world_view() {
   CHECK( SG().turn.nation );
-  SG().turn.nation->old_world = true;
-  SCOPE_EXIT( SG().turn.nation->old_world = false );
+  SCOPED_SET( SG().turn.nation->old_world, true );
   // Must co_await instead of returning so that the old_world
   // state variable can track when we are in this view.
   co_await show_old_world_view();

@@ -19,6 +19,58 @@
 
 namespace base {
 
+/****************************************************************
+** ScopedSet
+*****************************************************************/
+// Temporarily set a variable to a new value and then restore the
+// old value on scope exit.
+//
+// Example:
+//
+//   int n = 5;
+//   {
+//     SCOPED_SET( n, 4 );
+//     ...
+//   }
+//
+#define SCOPED_SET( var, new_val )                           \
+  base::ScopedSet STRING_JOIN( __scoped_setter_, __LINE__ )( \
+      var, new_val );
+
+// Temporarily set a variable to a new value and then restore the
+// old value on scope exit. May be easier to just use the macro
+// version (above).
+//
+// Example:
+//
+//   int n = 5;
+//   {
+//     ScopedSet setter( n, 4 );
+//     ...
+//   }
+//
+template<typename T>
+struct ScopedSet {
+  ScopedSet( ScopedSet const& ) = delete;
+  ScopedSet& operator=( ScopedSet const& ) = delete;
+  ScopedSet( ScopedSet&& )                 = delete;
+  ScopedSet& operator=( ScopedSet&& ) = delete;
+
+  template<typename U>
+  explicit ScopedSet( T& var, U&& new_val )
+    : var_( var ), old_val_( var ) {
+    var = std::forward<U>( new_val );
+  }
+
+  ~ScopedSet() noexcept { var_ = old_val_; }
+
+  T& var_;
+  T  old_val_;
+};
+
+/****************************************************************
+** SCOPE_EXIT
+*****************************************************************/
 // Run some code at scope exit.  Example usage:
 //
 // Small expression:
