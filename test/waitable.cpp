@@ -42,7 +42,7 @@ TEST_CASE( "[waitable] future api basic" ) {
 
   REQUIRE( !s_future.ready() );
 
-  ss->maybe_value = 3;
+  ss->set( 3 );
   REQUIRE( s_future.ready() );
   REQUIRE( s_future.get() == 3 );
 }

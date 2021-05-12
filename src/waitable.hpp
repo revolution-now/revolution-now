@@ -65,14 +65,24 @@ public:
     callbacks_.clear();
   }
 
-  bool has_value() const { return maybe_value.has_value(); }
+  bool has_value() const { return maybe_value_.has_value(); }
 
   T get() const {
     CHECK( has_value() );
-    return *maybe_value;
+    return *maybe_value_;
   }
 
-protected:
+  template<typename U>
+  void set( U&& val ) {
+    maybe_value_ = std::forward<U>( val );
+  }
+
+  template<typename... Args>
+  void set_emplace( Args&&... args ) {
+    maybe_value_.emplace( std::forward<Args>( args )... );
+  }
+
+private:
   // Accumulates callbacks in a list, then when the value eventu-
   // ally becomes ready, it will call them all in order. Any
   // callbacks added after the value is ready will be called im-
@@ -80,7 +90,7 @@ protected:
   void add_copyable_callback(
       std::function<NotifyFunc> callback ) {
     if( has_value() )
-      callback( *maybe_value );
+      callback( *maybe_value_ );
     else
       callbacks_.push_back( std::move( callback ) );
   }
@@ -88,7 +98,7 @@ protected:
   void add_movable_callback(
       base::unique_func<NotifyFunc> callback ) {
     if( has_value() )
-      callback( *maybe_value );
+      callback( *maybe_value_ );
     else
       ucallbacks_.push_back( std::move( callback ) );
   }
@@ -97,11 +107,13 @@ public:
   void do_callbacks() {
     CHECK( has_value() );
     for( auto const& callback : callbacks_ )
-      callback( *maybe_value );
-    for( auto& callback : ucallbacks_ ) callback( *maybe_value );
+      callback( *maybe_value_ );
+    for( auto& callback : ucallbacks_ )
+      callback( *maybe_value_ );
   }
 
-  maybe<T> maybe_value;
+private:
+  maybe<T> maybe_value_;
   // Currently we have two separate vectors for unique and
   // non-unique function callbacks. This may cause callbacks to
   // get invoked in a different order than they were inserted.
@@ -217,20 +229,20 @@ public:
   ***************************************************************/
   void set_value( T const& value ) const {
     CHECK( !has_value() );
-    mutable_state()->maybe_value = value;
+    mutable_state()->set( value );
     mutable_state()->do_callbacks();
   }
 
   void set_value( T&& value ) const {
     CHECK( !has_value() );
-    mutable_state()->maybe_value = std::move( value );
+    mutable_state()->set( std::move( value ) );
     mutable_state()->do_callbacks();
   }
 
   template<typename... Args>
   void set_value_emplace( Args&&... args ) const {
     CHECK( !has_value() );
-    mutable_state()->maybe_value.emplace(
+    mutable_state()->set_emplace(
         std::forward<Args>( args )... );
     mutable_state()->do_callbacks();
   }
