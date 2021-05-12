@@ -13,8 +13,8 @@ TRANSLATION( e_music_player,
 
 TRANSLATION( e_revolution_confirmation,
 
-  ( no,              "Not Yet..."                           ),
-  ( revolution,      "Give me REVOLUTION or give me death!" ))
+  ( no,              "Not Yet..."                        ),
+  ( revolution,      "Give me freedom or give me death!" ))
 
 TRANSLATION( e_commodity,
 
