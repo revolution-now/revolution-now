@@ -412,6 +412,9 @@ waitable<> process_player_input( UnitId id, deque<UnitId>* q ) {
         [&]( LandViewPlayerInput_t const& input ) -> waitable<> {
           return process_landview_player_input( id, q, input );
         } );
+    // We're waiting for a land view input, so if we got that
+    // then we are done here.
+    if( command.holds<LandViewPlayerInput_t>() ) co_return;
   }
 }
 
