@@ -988,8 +988,9 @@ waitable<LandViewPlayerInput_t> landview_get_next_input(
     landview_reset_input_buffers();
   SG().last_unit_input = id;
 
-  SCOPED_SET( SG().landview_state,
-              LandViewState::unit_input{ .unit_id = id } );
+  SCOPED_SET_AND_RESTORE(
+      SG().landview_state,
+      LandViewState::unit_input{ .unit_id = id } );
 
   // Run the blinker while waiting for user input.
   co_return co_await co::background( next_player_input_object(),
@@ -1009,8 +1010,9 @@ waitable<> landview_animate_move( UnitId      id,
   Coord dst = src.moved( direction );
   co_await landview_ensure_visible( src );
   co_await landview_ensure_visible( dst );
-  SCOPED_SET( SG().landview_state,
-              LandViewState::unit_move{ .unit_id = id } );
+  SCOPED_SET_AND_RESTORE(
+      SG().landview_state,
+      LandViewState::unit_move{ .unit_id = id } );
   play_sound_effect( e_sfx::move );
   co_await animate_slide( id, direction );
 }
@@ -1025,7 +1027,7 @@ waitable<> landview_animate_attack( UnitId attacker,
       .attacker      = attacker,
       .defender      = defender,
       .attacker_wins = attacker_wins };
-  SCOPED_SET( SG().landview_state, new_state );
+  SCOPED_SET_AND_RESTORE( SG().landview_state, new_state );
   UNWRAP_CHECK( attacker_coord, coord_for_unit( attacker ) );
   UNWRAP_CHECK( defender_coord,
                 coord_for_unit_multi_ownership( defender ) );

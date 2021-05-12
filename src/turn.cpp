@@ -84,8 +84,7 @@ struct NationState {
   ( bool,          started      ),
   ( bool,          did_colonies ),
   ( bool,          did_units    ), // FIXME: do we need this?
-  ( deque<UnitId>, units        ),
-  ( bool,          old_world    ));
+  ( deque<UnitId>, units        ));
   // clang-format on
 };
 
@@ -187,7 +186,7 @@ waitable<> handle_menu_item( e_menu_actions action ) {
 
 waitable<e_menu_actions> wait_for_menu_selection() {
   g_menu_actions.reset();
-  SCOPED_SET( g_menu_commands_accepted, true );
+  SCOPED_SET_AND_CHANGE( g_menu_commands_accepted, true, false );
   co_return co_await g_menu_actions.next();
 }
 
@@ -235,17 +234,6 @@ bool should_remove_unit_from_queue( UnitId id ) {
   }
   if( finished_turn( id ) ) return true;
   return false;
-}
-
-// This wrapper goes into the Old World view and tracks that we
-// are in it in a serializable variable. This allows the user to
-// save/restore the game properly when in the Old World view.
-waitable<> turn_show_old_world_view() {
-  CHECK( SG().turn.nation );
-  SCOPED_SET( SG().turn.nation->old_world, true );
-  // Must co_await instead of returning so that the old_world
-  // state variable can track when we are in this view.
-  co_await show_old_world_view();
 }
 
 /****************************************************************
@@ -315,7 +303,7 @@ waitable<> process_landview_player_input(
       break;
     }
     case e::old_world: {
-      co_await turn_show_old_world_view();
+      co_await show_old_world_view();
       break;
     }
     // We have some orders for the current unit.
@@ -462,10 +450,7 @@ waitable<bool> advance_unit( UnitId id ) {
             unit_from_id( id ).desc().name );
         if( confirmed == ui::e_confirm::yes ) {
           old_world_view_set_selected_unit( id );
-          // Make sure that we do everything else that we have to
-          // do before calling this just in case the user saves
-          // the game while in it.
-          co_await turn_show_old_world_view();
+          co_await show_old_world_view();
         }
         co_return false; // do not ask for orders.
       }
@@ -575,17 +560,6 @@ waitable<> nation_turn() {
   if( !st.started ) {
     print_bar( '-', fmt::format( "[ {} ]", st.nation ) );
     st.started = true;
-  }
-
-  // Check if the user was in the old world view during
-  // serialization.
-  if( st.old_world ) {
-    // FIXME: This is a bit hacky. Assume that the top plane list
-    // in the stack is the old-world one, and so we need to get
-    // rid of it otherwise it will linger once we exit the old
-    // world view.
-    pop_plane_config();
-    co_await turn_show_old_world_view();
   }
 
   // Colonies.

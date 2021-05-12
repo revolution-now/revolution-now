@@ -22,20 +22,37 @@ namespace base {
 /****************************************************************
 ** ScopedSet
 *****************************************************************/
-// Temporarily set a variable to a new value and then restore the
-// old value on scope exit.
+// Temporarily set a variable to a new value, then on scope exit
+// either restore it to the old value (SCOPED_SET_AND_RESTORE) or
+// restore it to the specified value (SCOPED_SET_AND_CHANGE).
 //
 // Example:
 //
 //   int n = 5;
 //   {
-//     SCOPED_SET( n, 4 );
+//     SCOPED_SET_AND_RESTORE( n, 4 );
 //     ...
+//     REQUIRE( n == 4 );
 //   }
+//   REQUIRE( n == 5 );
 //
-#define SCOPED_SET( var, new_val )                           \
+// Example:
+//
+//   int n = 5;
+//   {
+//     SCOPED_SET_AND_CHANGE( n, 4, 6 );
+//     ...
+//     REQUIRE( n == 4 );
+//   }
+//   REQUIRE( n == 6 );
+//
+#define SCOPED_SET_AND_RESTORE( var, new_val )               \
   base::ScopedSet STRING_JOIN( __scoped_setter_, __LINE__ )( \
       var, new_val );
+
+#define SCOPED_SET_AND_CHANGE( var, new_val, restore_val )   \
+  base::ScopedSet STRING_JOIN( __scoped_setter_, __LINE__ )( \
+      var, new_val, restore_val );
 
 // Temporarily set a variable to a new value and then restore the
 // old value on scope exit. May be easier to just use the macro
@@ -58,14 +75,20 @@ struct ScopedSet {
 
   template<typename U>
   explicit ScopedSet( T& var, U&& new_val )
-    : var_( var ), old_val_( var ) {
+    : var_( var ), restore_val_( var ) {
     var = std::forward<U>( new_val );
   }
 
-  ~ScopedSet() noexcept { var_ = old_val_; }
+  template<typename U>
+  explicit ScopedSet( T& var, U&& new_val, U&& restore_val )
+    : var_( var ), restore_val_( restore_val ) {
+    var = std::forward<U>( new_val );
+  }
+
+  ~ScopedSet() noexcept { var_ = restore_val_; }
 
   T& var_;
-  T  old_val_;
+  T  restore_val_;
 };
 
 /****************************************************************

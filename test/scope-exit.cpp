@@ -45,21 +45,38 @@ TEST_CASE( "[scope-exit] SCOPE_EXIT" ) {
   }
 }
 
-TEST_CASE( "[scope-exit] SCOPED_SET" ) {
+TEST_CASE( "[scope-exit] SCOPED_SET_AND_RESTORE" ) {
   int x = 5;
   REQUIRE( x == 5 );
   {
-    SCOPED_SET( x, 6 );
+    SCOPED_SET_AND_RESTORE( x, 6 );
     REQUIRE( x == 6 );
-    SCOPED_SET( x, 7 );
+    SCOPED_SET_AND_RESTORE( x, 7 );
     REQUIRE( x == 7 );
     {
-      SCOPED_SET( x, 8 );
+      SCOPED_SET_AND_RESTORE( x, 8 );
       REQUIRE( x == 8 );
     }
     REQUIRE( x == 7 );
   }
   REQUIRE( x == 5 );
+}
+
+TEST_CASE( "[scope-exit] SCOPED_SET_AND_CHANGE" ) {
+  int x = 5;
+  REQUIRE( x == 5 );
+  {
+    SCOPED_SET_AND_CHANGE( x, 6, 7 );
+    REQUIRE( x == 6 );
+    SCOPED_SET_AND_CHANGE( x, 7, 8 );
+    REQUIRE( x == 7 );
+    {
+      SCOPED_SET_AND_CHANGE( x, 8, 9 );
+      REQUIRE( x == 8 );
+    }
+    REQUIRE( x == 9 );
+  }
+  REQUIRE( x == 7 );
 }
 
 } // namespace
