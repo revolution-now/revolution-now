@@ -26,6 +26,9 @@
 
 namespace rn {
 
+template<typename T = std::monostate>
+class waitable_promise;
+
 namespace detail {
 
 template<typename T>
@@ -190,6 +193,31 @@ public:
     if( shared_state_ ) shared_state_->cancel();
   }
 
+  // This is used for chaining together waitables manually
+  // (meaning not through coroutines). It is mostly used in
+  // coroutine combinators, you probably should not be using this
+  // outside of those implementations.
+  template<typename U>
+  void link_to_promise( waitable_promise<U> wp ) {
+    shared_state()->add_callback(
+        [wp]( waitable::value_type const& o ) {
+          wp.set_value_emplace_if_not_set( o );
+        } );
+  }
+
+  // Same as above but when we want to ignore the return value of
+  // the waitable. This is useful in cases where e.g. we want to
+  // use a waitable that yields a monostate to chain with a
+  // promise that takes some non-trivial type, but one which is
+  // default constructible.
+  template<typename U>
+  void link_to_promise_ignore( waitable_promise<U> wp ) {
+    shared_state()->add_callback(
+        [wp]( waitable::value_type const& ) {
+          wp.set_value_emplace_if_not_set();
+        } );
+  }
+
 private:
   SharedStatePtr<T> shared_state_;
 };
@@ -197,7 +225,7 @@ private:
 /****************************************************************
 ** waitable_promise
 *****************************************************************/
-template<typename T = std::monostate>
+template<typename T>
 class waitable_promise {
 public:
   waitable_promise()

@@ -23,11 +23,7 @@ namespace rn::co {
 *****************************************************************/
 waitable<> any( vector<waitable<>> ws ) {
   waitable_promise<> wp;
-  auto unified_callback = [wp]( waitable<>::value_type const& ) {
-    wp.set_value_emplace_if_not_set();
-  };
-  for( auto& w : ws )
-    w.shared_state()->add_callback( unified_callback );
+  for( auto& w : ws ) w.link_to_promise( wp );
   // !! Need to co_await instead of just returning the waitable<>
   // because we need to keep the ws alive (we own them now).
   co_await wp.waitable();

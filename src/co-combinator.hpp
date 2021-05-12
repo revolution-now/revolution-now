@@ -64,11 +64,7 @@ struct First {
   waitable<base::variant<Ts...>> operator()(
       waitable<Ts>... ws ) const {
     waitable_promise<base::variant<Ts...>> wp;
-    ( ws.shared_state()->add_callback( [wp]( Ts const& o ) {
-      // First one wins.
-      wp.set_value_emplace_if_not_set( o );
-    } ),
-      ... );
+    ( ws.link_to_promise( wp ), ... );
     // !! Need to co_await instead of just returning the waitable
     // because we need to keep the waitables alive.
     co_return co_await wp.waitable();
@@ -93,13 +89,8 @@ struct WithCancel {
     waitable_promise<maybe<T>> wp;
     // Need to do w first so that if both are ready already then
     // w will take precedence and return its value.
-    w.shared_state()->add_callback( [wp]( T const& o ) {
-      wp.set_value_emplace_if_not_set( o );
-    } );
-    canceller.shared_state()->add_callback(
-        [wp]( std::monostate const& ) {
-          wp.set_value_emplace_if_not_set();
-        } );
+    w.link_to_promise( wp );
+    canceller.link_to_promise_ignore( wp );
     // !! Need to co_await instead of just returning the waitable
     // because we need to keep the waitables alive.
     co_return co_await wp.waitable();
@@ -126,9 +117,7 @@ struct WithBackground {
     waitable_promise<T> wp;
     // Need to do w first so that if both are ready already then
     // w will take precedence and return its value.
-    w.shared_state()->add_callback( [wp]( T const& o ) {
-      wp.set_value_emplace_if_not_set( o );
-    } );
+    w.link_to_promise( wp );
     // !! Need to co_await instead of just returning the waitable
     // because we need to keep the waitables alive.
     co_return co_await wp.waitable();
