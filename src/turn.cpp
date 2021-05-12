@@ -20,11 +20,13 @@
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
+#include "menu.hpp"
 #include "old-world-view.hpp"
 #include "old-world.hpp"
 #include "orders.hpp"
 #include "panel.hpp" // FIXME
 #include "plane-ctrl.hpp"
+#include "save-game.hpp"
 #include "sg-macros.hpp"
 #include "sound.hpp"
 #include "unit.hpp"
@@ -36,6 +38,9 @@
 // base
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
+
+// Rnl
+#include "rnl/turn-impl.hpp"
 
 // Flatbuffers
 #include "fb/sg-turn_generated.h"
@@ -56,7 +61,15 @@ DECLARE_SAVEGAME_SERIALIZERS( Turn );
 namespace {
 
 /****************************************************************
-** Coroutine turn state.
+** Global State
+*****************************************************************/
+enum class e_menu_actions { exit, save, revolution };
+
+bool                       g_menu_commands_accepted = false;
+co::stream<e_menu_actions> g_menu_actions;
+
+/****************************************************************
+** Save-Game State
 *****************************************************************/
 struct NationState {
   NationState() = default;
@@ -103,9 +116,6 @@ struct TurnState {
   // clang-format on
 };
 
-/****************************************************************
-** Save-Game State
-*****************************************************************/
 struct SAVEGAME_STRUCT( Turn ) {
   // Fields that are actually serialized.
 
@@ -129,6 +139,57 @@ private:
   SAVEGAME_VALIDATE() { return valid; }
 };
 SAVEGAME_IMPL( Turn );
+
+/****************************************************************
+** Menu Handlers
+*****************************************************************/
+waitable<> menu_save_handler() {
+  if( auto res = save_game( 0 ); !res ) {
+    co_await ui::message_box(
+        "There was a problem saving the game." );
+    lg.error( "failed to save game: {}", res.error() );
+  } else {
+    co_await ui::message_box(
+        fmt::format( "Successfully saved game to {}.", res ) );
+    lg.info( "saved game to {}.", res );
+  }
+}
+
+waitable<> menu_revolution_handler() {
+  e_revolution_confirmation answer =
+      co_await ui::select_box_enum<e_revolution_confirmation>(
+          "Declare Revolution?" );
+  co_await ui::message_box( "You selected: {}", answer );
+}
+
+waitable<> menu_quit_handler() { NOT_IMPLEMENTED; }
+
+#define TURN_MENU_ITEM_HANDLER( item )                     \
+  MENU_ITEM_HANDLER(                                       \
+      item,                                                \
+      [] { g_menu_actions.send( e_menu_actions::item ); }, \
+      [] { return g_menu_commands_accepted; } )
+
+TURN_MENU_ITEM_HANDLER( exit );
+TURN_MENU_ITEM_HANDLER( save );
+TURN_MENU_ITEM_HANDLER( revolution );
+
+waitable<> handle_menu_item( e_menu_actions action ) {
+  switch( action ) {
+    case e_menu_actions::exit: //
+      return menu_quit_handler();
+    case e_menu_actions::save: //
+      return menu_save_handler();
+    case e_menu_actions::revolution:
+      return menu_revolution_handler();
+  }
+}
+
+waitable<e_menu_actions> wait_for_menu_selection() {
+  g_menu_actions.reset();
+  SCOPED_SET( g_menu_commands_accepted, true );
+  co_return co_await g_menu_actions.next();
+}
 
 /****************************************************************
 ** Helpers
@@ -188,7 +249,174 @@ waitable<> turn_show_old_world_view() {
 }
 
 /****************************************************************
-** Top-level per-turn workflows.
+** Processing Player Input (End of Turn).
+*****************************************************************/
+namespace eot {
+
+waitable<> process_menu_player_input( e_menu_actions action ) {
+  // In the future we might need to put logic here that is spe-
+  // cific to the end-of-turn, but for now this is sufficient.
+  return handle_menu_item( action );
+}
+
+waitable<> process_landview_player_input(
+    LandViewPlayerInput_t const& input ) {
+  switch( input.to_enum() ) {
+    using namespace LandViewPlayerInput;
+    case e::colony: {
+      co_await show_colony_view( input.get<colony>().id );
+      break;
+    }
+    default: break;
+  }
+}
+
+waitable<> monitor_player_input() {
+  landview_reset_input_buffers();
+  while( true ) {
+    auto command =
+        co_await co::first( wait_for_menu_selection(),
+                            landview_eot_get_next_input() );
+    co_await overload_visit(
+        command,
+        []( e_menu_actions action ) -> waitable<> {
+          return process_menu_player_input( action );
+        },
+        []( LandViewPlayerInput_t const& input ) -> waitable<> {
+          return process_landview_player_input( input );
+        } );
+  }
+}
+
+} // namespace eot
+
+waitable<> end_of_turn() {
+  return co::any( eot::monitor_player_input(), // never ends
+                  wait_for_eot_button_click() );
+}
+
+/****************************************************************
+** Processing Player Input (During Turn).
+*****************************************************************/
+waitable<> process_menu_player_input( e_menu_actions action ) {
+  // In the future we might need to put logic here that is spe-
+  // cific to the mid-turn scenario, but for now this is suffi-
+  // cient.
+  return handle_menu_item( action );
+}
+
+waitable<> process_landview_player_input(
+    UnitId id, deque<UnitId>* q,
+    LandViewPlayerInput_t const& input ) {
+  switch( input.to_enum() ) {
+    using namespace LandViewPlayerInput;
+    case e::colony: {
+      co_await show_colony_view( input.get<colony>().id );
+      break;
+    }
+    case e::old_world: {
+      co_await turn_show_old_world_view();
+      break;
+    }
+    // We have some orders for the current unit.
+    case e::give_orders: {
+      auto& orders = input.get<give_orders>().orders;
+      if( orders.holds<orders::wait>() ) {
+        // Just remove it form the queue, and it'll get picked up
+        // in the next iteration. We don't want to push this unit
+        // onto the back of the queue since that will cause it to
+        // appear multiple times in the queue, which is actually
+        // OK, but not ideal from a UX perspective because it
+        // will cause the unit to ask for orders multiple times
+        // during a single cycle of "wait" commands, i.e., the
+        // user just pressing "wait" through all of the available
+        // units.
+        CHECK( q->front() == id );
+        q->pop_front();
+        break;
+      }
+      if( orders.holds<orders::forfeight>() ) {
+        unit_from_id( id ).forfeight_mv_points();
+        break;
+      }
+
+      unique_ptr<OrdersHandler> handler =
+          orders_handler( id, orders );
+      CHECK( handler );
+      auto run_result = co_await handler->run();
+
+      // If we suspended at some point during the above process
+      // (apart from animations), then that probably means that
+      // the user was presented with a prompt, in which case it
+      // seems like a good idea to clear the input buffers for an
+      // intuitive user experience.
+      if( run_result.suspended ) {
+        lg.debug( "clearing land-view input buffers." );
+        landview_reset_input_buffers();
+      }
+      if( !run_result.order_was_run ) break;
+      // !! The unit may no longer exist at this point, e.g. if
+      // they were disbanded or if they lost a battle to the na-
+      // tives.
+
+      for( auto id : handler->units_to_prioritize() )
+        prioritize_unit( *q, id );
+      break;
+    }
+    case e::prioritize: {
+      auto& val = input.get<prioritize>();
+      // Move some units to the front of the queue.
+      auto prioritize = val.units;
+      erase_if( prioritize, finished_turn );
+      auto orig_size = val.units.size();
+      auto curr_size = prioritize.size();
+      CHECK( curr_size <= orig_size );
+      if( curr_size == 0 )
+        co_await ui::message_box(
+            "The selected unit(s) have already moved this "
+            "turn." );
+      else if( curr_size < orig_size )
+        co_await ui::message_box(
+            "Some of the selected units have already moved this "
+            "turn." );
+      for( UnitId id_to_add : prioritize )
+        prioritize_unit( *q, id_to_add );
+      break;
+    }
+  }
+}
+
+waitable<LandViewPlayerInput_t> landview_player_input(
+    UnitId id ) {
+  LandViewPlayerInput_t response;
+  if( auto maybe_orders = pop_unit_orders( id ) ) {
+    response = LandViewPlayerInput::give_orders{
+        .orders = *maybe_orders };
+  } else {
+    lg.debug( "asking orders for: {}", debug_string( id ) );
+    SG().turn.need_eot = false;
+    response           = co_await landview_get_next_input( id );
+  }
+  co_return response;
+}
+
+waitable<> process_player_input( UnitId id, deque<UnitId>* q ) {
+  while( true ) {
+    auto command = co_await co::first(
+        wait_for_menu_selection(), landview_player_input( id ) );
+    co_await overload_visit(
+        command,
+        []( e_menu_actions action ) -> waitable<> {
+          return process_menu_player_input( action );
+        },
+        [&]( LandViewPlayerInput_t const& input ) -> waitable<> {
+          return process_landview_player_input( id, q, input );
+        } );
+  }
+}
+
+/****************************************************************
+** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
 waitable<bool> advance_unit( UnitId id ) {
@@ -250,116 +478,6 @@ waitable<bool> advance_unit( UnitId id ) {
   co_return true;
 }
 
-waitable<> process_eot_player_inputs() {
-  landview_reset_input_buffers();
-  while( true ) {
-    LandViewPlayerInput_t response =
-        co_await landview_eot_get_next_input();
-    switch( response.to_enum() ) {
-      using namespace LandViewPlayerInput;
-      case e::colony: {
-        co_await show_colony_view( response.get<colony>().id );
-        break;
-      }
-      default: break;
-    }
-  }
-}
-
-waitable<> end_of_turn() {
-  return co::any( process_eot_player_inputs(), // never ends
-                  wait_for_eot_button_click() );
-}
-
-waitable<> next_player_input( UnitId id, deque<UnitId>* q ) {
-  LandViewPlayerInput_t response;
-  if( auto maybe_orders = pop_unit_orders( id ) ) {
-    response = LandViewPlayerInput::give_orders{
-        .orders = *maybe_orders };
-  } else {
-    lg.debug( "asking orders for: {}", debug_string( id ) );
-    SG().turn.need_eot = false;
-
-    response = co_await landview_get_next_input( id );
-  }
-  switch( response.to_enum() ) {
-    using namespace LandViewPlayerInput;
-    case e::colony: {
-      co_await show_colony_view( response.get<colony>().id );
-      break;
-    }
-    case e::old_world: {
-      co_await turn_show_old_world_view();
-      break;
-    }
-    // We have some orders for the current unit.
-    case e::give_orders: {
-      auto& orders = response.get<give_orders>().orders;
-      if( orders.holds<orders::wait>() ) {
-        // Just remove it form the queue, and it'll get picked up
-        // in the next iteration. We don't want to push this unit
-        // onto the back of the queue since that will cause it to
-        // appear multiple times in the queue, which is actually
-        // OK, but not ideal from a UX perspective because it
-        // will cause the unit to ask for orders multiple times
-        // during a single cycle of "wait" commands, i.e., the
-        // user just pressing "wait" through all of the available
-        // units.
-        CHECK( q->front() == id );
-        q->pop_front();
-        break;
-      }
-      if( orders.holds<orders::forfeight>() ) {
-        unit_from_id( id ).forfeight_mv_points();
-        break;
-      }
-
-      unique_ptr<OrdersHandler> handler =
-          orders_handler( id, orders );
-      CHECK( handler );
-      auto run_result = co_await handler->run();
-
-      // If we suspended at some point during the above process
-      // (apart from animations), then that probably means that
-      // the user was presented with a prompt, in which case it
-      // seems like a good idea to clear the input buffers for an
-      // intuitive user experience.
-      if( run_result.suspended ) {
-        lg.debug( "clearing land-view input buffers." );
-        landview_reset_input_buffers();
-      }
-      if( !run_result.order_was_run ) break;
-      // !! The unit may no longer exist at this point, e.g. if
-      // they were disbanded or if they lost a battle to the na-
-      // tives.
-
-      for( auto id : handler->units_to_prioritize() )
-        prioritize_unit( *q, id );
-      break;
-    }
-    case e::prioritize: {
-      auto& val = response.get<prioritize>();
-      // Move some units to the front of the queue.
-      auto prioritize = val.units;
-      erase_if( prioritize, finished_turn );
-      auto orig_size = val.units.size();
-      auto curr_size = prioritize.size();
-      CHECK( curr_size <= orig_size );
-      if( curr_size == 0 )
-        co_await ui::message_box(
-            "The selected unit(s) have already moved this "
-            "turn." );
-      else if( curr_size < orig_size )
-        co_await ui::message_box(
-            "Some of the selected units have already moved this "
-            "turn." );
-      for( UnitId id_to_add : prioritize )
-        prioritize_unit( *q, id_to_add );
-      break;
-    }
-  }
-}
-
 waitable<> units_turn_one_pass( deque<UnitId>& q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
@@ -389,7 +507,7 @@ waitable<> units_turn_one_pass( deque<UnitId>& q ) {
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await next_player_input( id, &q );
+    co_await process_player_input( id, &q );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
@@ -428,6 +546,9 @@ waitable<> units_turn() {
   }
 }
 
+/****************************************************************
+** Per-Colony Turn Processor
+*****************************************************************/
 waitable<> colonies_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
@@ -440,6 +561,9 @@ waitable<> colonies_turn() {
   }
 }
 
+/****************************************************************
+** Per-Nation Turn Processor
+*****************************************************************/
 waitable<> nation_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
@@ -474,6 +598,9 @@ waitable<> nation_turn() {
   CHECK( st.units.empty() );
 }
 
+/****************************************************************
+** Turn Processor
+*****************************************************************/
 waitable<> next_turn_impl() {
   landview_start_new_turn();
   auto& st = SG().turn;

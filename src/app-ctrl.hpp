@@ -1,5 +1,5 @@
 /****************************************************************
-**app-state.hpp
+**app-ctrl.hpp
 *
 * Project: Revolution Now
 *

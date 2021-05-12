@@ -11,6 +11,11 @@ TRANSLATION( e_music_player,
   ( ogg,             "OGG Player"      ),
   ( silent,          "Silent"          ))
 
+TRANSLATION( e_revolution_confirmation,
+
+  ( no,              "Not Yet..."                           ),
+  ( revolution,      "Give me REVOLUTION or give me death!" ))
+
 TRANSLATION( e_commodity,
 
   ( food,            "food"            ),

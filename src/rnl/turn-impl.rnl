@@ -1,0 +1,16 @@
+# ===============================================================
+# turn-impl.rnl
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-05-11.
+#
+# Description: RNL definitions for the turn (impl) module.
+#
+# ===============================================================
+namespace rn;
+
+enum e_revolution_confirmation {
+  no,
+  revolution
+};

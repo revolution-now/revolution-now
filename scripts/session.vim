@@ -1,15 +1,16 @@
 " =========================== Config ============================
 let s:stems = [
-  \ 'app-state',
-  \ 'main-menu',
+  \ 'app-ctrl',
+  \ 'game',
   \ 'turn',
-  \ 'dragdrop',
   \ 'land-view',
+  \ 'dragdrop',
   \ 'old-world-view',
   \ 'colony-view',
   \ 'colview-entities',
-  \ 'views',
+  \ 'window',
   \ 'ui',
+  \ 'views',
   \ 'co-combinator',
 \]
 

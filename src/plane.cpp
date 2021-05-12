@@ -11,7 +11,6 @@
 #include "plane.hpp"
 
 // Revolution Now
-#include "app-state.hpp"
 #include "colony-view.hpp"
 #include "console.hpp"
 #include "frame.hpp"
@@ -574,7 +573,6 @@ MENU_ITEM_HANDLER_PLANE( military_advisor );
 MENU_ITEM_HANDLER_PLANE( old_world_view );
 MENU_ITEM_HANDLER_PLANE( restore_zoom );
 MENU_ITEM_HANDLER_PLANE( retire );
-MENU_ITEM_HANDLER_PLANE( revolution );
 MENU_ITEM_HANDLER_PLANE( sentry );
 MENU_ITEM_HANDLER_PLANE( terrain_help );
 MENU_ITEM_HANDLER_PLANE( units_help );
