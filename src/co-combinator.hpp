@@ -53,6 +53,31 @@ waitable<> all( waitable<>&& w1, waitable<>&& w2,
                 waitable<>&& w3 );
 
 /****************************************************************
+** first
+*****************************************************************/
+// FIXME: clang seems to have trouble with function templates
+// that are coroutines, so we wrap it in a struct.
+struct First {
+  // Run the waitables ws in parallel, then return the result of
+  // the first one that finishes.
+  template<typename... Ts>
+  waitable<base::variant<Ts...>> operator()(
+      waitable<Ts>... ws ) const {
+    waitable_promise<base::variant<Ts...>> wp;
+    ( ws.shared_state()->add_callback( [wp]( Ts const& o ) {
+      // First one wins.
+      wp.set_value_emplace_if_not_set( o );
+    } ),
+      ... );
+    // !! Need to co_await instead of just returning the waitable
+    // because we need to keep the waitables alive.
+    co_return co_await wp.waitable();
+  }
+};
+
+inline constexpr First first{};
+
+/****************************************************************
 ** with_cancel
 *****************************************************************/
 // FIXME: clang seems to have trouble with function templates

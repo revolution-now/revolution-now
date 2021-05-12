@@ -139,6 +139,74 @@ TEST_CASE( "[co-combinator] all" ) {
   }
 }
 
+TEST_CASE( "[co-combinator] first" ) {
+  waitable_promise<int>    p1;
+  waitable_promise<>       p2;
+  waitable_promise<string> p3;
+
+  waitable<int>    w1 = p1.waitable();
+  waitable<>       w2 = p2.waitable();
+  waitable<string> w3 = p3.waitable();
+
+  SECTION( "w1 finishes first" ) {
+    waitable<base::variant<int, monostate, string>> w = first(
+        std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p1.set_value( 5 );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get().index() == 0 );
+    REQUIRE( w.get().get_if<int>() == 5 );
+  }
+  SECTION( "w2 finishes first" ) {
+    waitable<base::variant<int, monostate, string>> w = first(
+        std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p2.set_value_emplace();
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get().index() == 1 );
+    REQUIRE( w.get().get_if<monostate>().has_value() );
+  }
+  SECTION( "w3 finishes first" ) {
+    waitable<base::variant<int, monostate, string>> w = first(
+        std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p3.set_value( "hello" );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get().index() == 2 );
+    REQUIRE( w.get().get_if<string>() == "hello" );
+  }
+  SECTION( "both p1 and p3 finish (p1 first)" ) {
+    waitable<base::variant<int, monostate, string>> w = first(
+        std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p1.set_value( 5 );
+    p3.set_value( "hello" );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get().index() == 0 );
+    REQUIRE( w.get().get_if<int>() == 5 );
+  }
+  SECTION( "both p1 and p3 finish (p3 first)" ) {
+    waitable<base::variant<int, monostate, string>> w = first(
+        std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    p3.set_value( "hello" );
+    p1.set_value( 5 );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get().index() == 2 );
+    REQUIRE( w.get().get_if<string>() == "hello" );
+  }
+}
+
 TEST_CASE( "[co-combinator] with_cancel" ) {
   waitable_promise<int> p1;
   waitable_promise<>    p2;
