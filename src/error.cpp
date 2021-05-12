@@ -47,7 +47,7 @@ void abort_with_backtrace_here( SourceLoc /*loc*/ ) {
   rn::print_SDL_error();
   rn::run_all_cleanup_routines();
   print_stack_trace(
-      here, ::rn::StackTraceOptions{ .skip_frames = 4 } );
+      here, ::rn::StackTraceOptions{ .skip_frames = 5 } );
   std::abort();
 }
 
