@@ -54,6 +54,7 @@ to_replace_by_line = {
   ['double.free'                  ] = 'Double Free:',
   ['WRITE of size (%d+).*'        ] = 'Write of Size %1:',
   ['Indirect leak of (%d+) byte.*'] = 'Leak of %1 bytes:',
+  ['.*SEGV on unknown.*'          ] = 'Segmentation Fault:',
 }
 
 remove_lines_containing = {
