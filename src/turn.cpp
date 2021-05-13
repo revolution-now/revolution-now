@@ -241,13 +241,13 @@ bool should_remove_unit_from_queue( UnitId id ) {
 *****************************************************************/
 namespace eot {
 
-waitable<> process_menu_player_input( e_menu_actions action ) {
+waitable<> process_player_input( e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
   return handle_menu_item( action );
 }
 
-waitable<> process_landview_player_input(
+waitable<> process_player_input(
     LandViewPlayerInput_t const& input ) {
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
@@ -262,17 +262,10 @@ waitable<> process_landview_player_input(
 waitable<> monitor_player_input() {
   landview_reset_input_buffers();
   while( true ) {
-    auto command =
+    co_await rn::visit(
         co_await co::first( wait_for_menu_selection(),
-                            landview_eot_get_next_input() );
-    co_await overload_visit(
-        command,
-        []( e_menu_actions action ) -> waitable<> {
-          return process_menu_player_input( action );
-        },
-        []( LandViewPlayerInput_t const& input ) -> waitable<> {
-          return process_landview_player_input( input );
-        } );
+                            landview_eot_get_next_input() ),
+        L( process_player_input( _ ) ) );
   }
 }
 
@@ -286,14 +279,14 @@ waitable<> end_of_turn() {
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-waitable<> process_menu_player_input( e_menu_actions action ) {
+waitable<> process_player_input( e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
   return handle_menu_item( action );
 }
 
-waitable<> process_landview_player_input(
+waitable<> process_player_input(
     UnitId id, deque<UnitId>* q,
     LandViewPlayerInput_t const& input ) {
   switch( input.to_enum() ) {
@@ -388,17 +381,17 @@ waitable<LandViewPlayerInput_t> landview_player_input(
   co_return response;
 }
 
-waitable<> process_player_input( UnitId id, deque<UnitId>* q ) {
+waitable<> query_unit_input( UnitId id, deque<UnitId>* q ) {
   while( true ) {
     auto command = co_await co::first(
         wait_for_menu_selection(), landview_player_input( id ) );
     co_await overload_visit(
         command,
         []( e_menu_actions action ) -> waitable<> {
-          return process_menu_player_input( action );
+          return process_player_input( action );
         },
         [&]( LandViewPlayerInput_t const& input ) -> waitable<> {
-          return process_landview_player_input( id, q, input );
+          return process_player_input( id, q, input );
         } );
     // We're waiting for a land view input, so if we got that
     // then we are done here.
@@ -495,7 +488,7 @@ waitable<> units_turn_one_pass( deque<UnitId>& q ) {
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await process_player_input( id, &q );
+    co_await query_unit_input( id, &q );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
