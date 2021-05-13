@@ -39,11 +39,14 @@ void queue_coroutine_handle( coro::coroutine_handle<> h ) {
 
 void run_all_coroutines() {
   while( !g_coros_to_resume.empty() ) {
-    // Should not need to pop before running; even if resuming
-    // the coroutine causes additional items to be queued (which
-    // it can) they will be queued at the back.
-    g_coros_to_resume.front().resume();
+    // Need to pop before running, since resuming this coroutine
+    // could potentially cause it to be destroyed (and its corou-
+    // tine handle removed from the queue) if it decides to abort
+    // (in the sense of co::abort).
+    coro::coroutine_handle<> h = g_coros_to_resume.front();
     g_coros_to_resume.pop();
+    h.resume();
+    // May have added some more coroutines into the queue.
   }
 }
 

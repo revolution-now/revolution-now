@@ -204,6 +204,9 @@ struct stream {
     update();
   }
 
+  // For testing; not sure if this would be useful otherwise.
+  void abort() { p.abort(); }
+
   stream()                = default;
   stream( stream const& ) = delete;
   stream& operator=( stream const& ) = delete;
@@ -243,6 +246,9 @@ struct finite_stream {
   void finish() { s.send( nothing ); }
 
   void reset() { *this = {}; }
+
+  // For testing; not sure if this would be useful otherwise.
+  void abort() { s.abort(); }
 
 private:
   bool             ended = false;

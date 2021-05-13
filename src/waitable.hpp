@@ -31,19 +31,51 @@ class waitable_promise;
 
 namespace detail {
 
+// This is to support coroutine aborting, which is when a corou-
+// tine call stack is cancelled or aborted from a leaf function,
+// and that aborting propagates back toward the root, potentially
+// stopping where it is caught.
+struct AbortingChainLink {
+  void link_to_previous( AbortingChainLink& prev );
+  void abort();
+
+  // These are initialized in the shared state.
+  AbortingChainLink* previous;
+  // This is needed to keep track of coroutines that are can-
+  // celled before they are awaited upon. This could happen if a
+  // coroutine aborts before suspending. To understand this, keep
+  // in mind that in this framework, coroutines start running ea-
+  // gerly, so such an early-aborting coroutine, if it is
+  // co_await'd on, needs to know that it aborted.
+  bool                      was_aborted;
+  base::unique_func<void()> abort_func;
+  // The number of upstream AbortingChainLink's that are linked
+  // to this one that have not yet been aborted. This ref
+  // counting mechanism is to avoid prematurely aborting a
+  // promise that is waiting on multiple waitables when just some
+  // of those waitables are stopped. We want to wait until all of
+  // the waitables are stopped before aborting the downstream
+  // promise.
+  int ref_count;
+};
+
 template<typename T>
 class waitable_shared_state {
 public:
   waitable_shared_state()  = default;
   ~waitable_shared_state() = default;
 
+  waitable_shared_state( waitable_shared_state const& ) = delete;
+  waitable_shared_state& operator                       =(
+      waitable_shared_state const& ) = delete;
+  // Note that this object is in general self-referential, there-
+  // fore it cannot be moved.
   waitable_shared_state( waitable_shared_state&& ) = delete;
   waitable_shared_state& operator=( waitable_shared_state&& ) =
       delete;
 
   using NotifyFunc = void( T const& );
 
-public:
   // Prefer the move-only unique function to resolve the ambi-
   // guity when a callable is copyable and movable.
   template<typename Func>
@@ -61,14 +93,48 @@ public:
     coro_ = std::move( coro );
   }
 
-public:
   void cancel() {
     coro_.reset();
     ucallbacks_.clear();
     callbacks_.clear();
+    // Reset the abort state so that it is like new. This helps
+    // to prevent issues generally when dealing with promise ob-
+    // jects that were at the end of a coroutine stack that was
+    // cancelled, and then they were resused.
+    aborter_ = default_aborter();
+  }
+
+  void abort() { aborter_.abort(); }
+
+  // So that we can access private members of this class when it
+  // is templated on types other than our T.
+  template<typename U>
+  friend class waitable_shared_state;
+
+  template<typename U>
+  void link_aborter( waitable_shared_state<U>& wss ) {
+    CHECK( !wss.aborted() );
+    aborter_.link_to_previous( wss.aborter_ );
+    // !! It is possible that the above line caused the destruc-
+    // tion of this object, as might be the case if this shared
+    // state has already been aborted, in which case the abort
+    // signal will be sent downstream to wss which might ulti-
+    // mately free a coroutine stack that owns this object. I
+    // have not verified this, but I think it is true at least.
+  }
+
+  void unlink_aborter() {
+    // It is possible that this shared state was never linked.
+    if( aborter_.previous == nullptr ) return;
+    // First release the ref count on the downstream link.
+    --aborter_.previous->ref_count;
+    // Then break our link to it.
+    aborter_.previous = nullptr;
   }
 
   bool has_value() const { return maybe_value_.has_value(); }
+
+  bool aborted() const { return aborter_.was_aborted; }
 
   T get() const {
     CHECK( has_value() );
@@ -77,12 +143,30 @@ public:
 
   template<typename U>
   void set( U&& val ) {
+    // Not sure if this check is strictly required (haven't
+    // tested it) but it seems sensible.
+    CHECK( !aborter_.was_aborted );
     maybe_value_ = std::forward<U>( val );
   }
 
   template<typename... Args>
   void set_emplace( Args&&... args ) {
+    // Not sure if this check is strictly required (haven't
+    // tested it) but it seems sensible.
+    CHECK( !aborter_.was_aborted );
     maybe_value_.emplace( std::forward<Args>( args )... );
+  }
+
+  void do_callbacks() {
+    CHECK( has_value() );
+    for( auto const& callback : callbacks_ )
+      callback( *maybe_value_ );
+    for( auto& callback : ucallbacks_ )
+      callback( *maybe_value_ );
+  }
+
+  int TESTING_ONLY_abort_ref_count() const {
+    return aborter_.ref_count;
   }
 
 private:
@@ -106,16 +190,14 @@ private:
       ucallbacks_.push_back( std::move( callback ) );
   }
 
-public:
-  void do_callbacks() {
-    CHECK( has_value() );
-    for( auto const& callback : callbacks_ )
-      callback( *maybe_value_ );
-    for( auto& callback : ucallbacks_ )
-      callback( *maybe_value_ );
+  AbortingChainLink default_aborter() {
+    return AbortingChainLink{
+        .previous    = nullptr,
+        .was_aborted = false,
+        .abort_func  = [this] { this->cancel(); },
+        .ref_count   = 0 };
   }
 
-private:
   maybe<T> maybe_value_;
   // Currently we have two separate vectors for unique and
   // non-unique function callbacks. This may cause callbacks to
@@ -126,6 +208,10 @@ private:
   // Will be populated if this shared state is created by a
   // coroutine.
   maybe<unique_coro> coro_;
+  // This serves the purposes of forming a linked list of shared
+  // states which is used to send abort signals downstream (from
+  // leaf to root) as well as some associated bookeeping.
+  AbortingChainLink aborter_ = default_aborter();
 };
 
 } // namespace detail
@@ -173,6 +259,8 @@ public:
     return shared_state_ && shared_state_->has_value();
   }
 
+  bool aborted() const { return shared_state_->aborted(); }
+
   operator bool() const { return ready(); }
 
   // Gets the value (running any continuations) and returns the
@@ -184,9 +272,6 @@ public:
     return shared_state_->get();
   }
 
-  // We need this so that waitable<T> can access the shared
-  // state of waitable<U>. Haven't figured out a way to make
-  // them friends yet.
   SharedStatePtr<T>& shared_state() { return shared_state_; }
 
   void cancel() {
@@ -197,12 +282,19 @@ public:
   // (meaning not through coroutines). It is mostly used in
   // coroutine combinators, you probably should not be using this
   // outside of those implementations.
+  //
+  // This chains from this waitable to wp (this --> wp) such that
+  // when this waitable is ready, it will notify the promise.
+  // Also, it links the aborters of the two shared states, al-
+  // lowing this waitable's shared state to send an abort signal
+  // (downstream) to the shared state of `wp`.
   template<typename U>
   void link_to_promise( waitable_promise<U> wp ) {
-    shared_state()->add_callback(
+    shared_state_->add_callback(
         [wp]( waitable::value_type const& o ) {
           wp.set_value_emplace_if_not_set( o );
         } );
+    shared_state_->link_aborter( *wp.shared_state() );
   }
 
   // Same as above but when we want to ignore the return value of
@@ -212,10 +304,11 @@ public:
   // default constructible.
   template<typename U>
   void link_to_promise_ignore( waitable_promise<U> wp ) {
-    shared_state()->add_callback(
+    shared_state_->add_callback(
         [wp]( waitable::value_type const& ) {
           wp.set_value_emplace_if_not_set();
         } );
+    shared_state_->link_aborter( *wp.shared_state() );
   }
 
 private:
@@ -251,6 +344,23 @@ public:
   shared_state() {
     return shared_state_;
   }
+
+  /**************************************************************
+  ** Aborting
+  ***************************************************************/
+  // Aborting is cancellation from leaf to root. The promise will
+  // propagate an aborting signal back through the chain of
+  // coroutines (or waitables) until it gets to the root, at
+  // which point it will run a callback which will typically
+  // cancel the entire stack using the usual cancellation proce-
+  // dure, although it might do other things. The "root" node
+  // does not necessarily have to be the most downstream node, it
+  // could just be the first node that "catches" the abort action
+  // (done via combinators).
+  //
+  // Note that the alternative way to abort is to co_await on the
+  // co::abort object.
+  void abort() { shared_state_->abort(); }
 
   /**************************************************************
   ** set_value

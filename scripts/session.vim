@@ -11,6 +11,8 @@ let s:stems = [
   \ 'window',
   \ 'ui',
   \ 'views',
+  \ 'waitable',
+  \ 'waitable-coro',
   \ 'co-combinator',
 \]
 

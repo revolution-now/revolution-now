@@ -15,6 +15,9 @@
 #include "src/co-registry.hpp"
 #include "src/waitable-coro.hpp"
 
+// base
+#include "base/scope-exit.hpp"
+
 // Must be last.
 #include "catch-common.hpp"
 
@@ -521,6 +524,146 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
   ResultWithSuspend<int> const& rws2 = should_suspend.get();
   REQUIRE( rws2.result == 7 );
   REQUIRE( rws2.suspended == true );
+}
+
+TEST_CASE( "[waitable] abort with any" ) {
+  waitable_promise<> p1;
+  waitable_promise<> p2;
+  waitable_promise<> p3;
+  waitable<>         w =
+      co::any( p1.waitable(), p2.waitable(), p3.waitable() );
+  REQUIRE( !w.ready() );
+  REQUIRE( !w.aborted() );
+
+  p2.abort();
+  REQUIRE( !w.ready() );
+  REQUIRE( !w.aborted() );
+
+  p3.abort();
+  REQUIRE( !w.ready() );
+  REQUIRE( !w.aborted() );
+
+  p1.abort();
+  REQUIRE( !w.ready() );
+  REQUIRE( w.aborted() );
+}
+
+waitable_promise<> get_int1_p;
+waitable_promise<> get_int2_p;
+stream<int>        int_stream;
+string             places;
+
+#define LOG_PLACES( a, A ) \
+  places += a;             \
+  SCOPE_EXIT( places += A );
+
+waitable<int> get_int_from_stream() {
+  LOG_PLACES( 'a', 'A' );
+  int n = co_await int_stream.next();
+  LOG_PLACES( 'b', 'B' );
+  co_return n;
+}
+
+waitable<int> get_int1() {
+  get_int1_p = {};
+  LOG_PLACES( 'c', 'C' );
+  co_await get_int1_p.waitable();
+  LOG_PLACES( 'd', 'D' );
+  co_await co::abort;
+  LOG_PLACES( 'e', 'E' );
+  co_return 5;
+}
+
+waitable<> get_int2() {
+  LOG_PLACES( 'f', 'F' );
+  co_await repeat( []() -> waitable<> {
+    get_int2_p = {};
+    LOG_PLACES( 'g', 'G' );
+    co_await get_int2_p.waitable();
+    LOG_PLACES( 'x', 'X' );
+  } );
+  LOG_PLACES( 'h', 'H' );
+}
+
+waitable<double> get_int3() {
+  LOG_PLACES( 'i', 'I' );
+  co_await get_int_from_stream();
+  LOG_PLACES( 'j', 'J' );
+  co_return 6.6;
+}
+
+waitable<int> get_int_from_some_combinators() {
+  LOG_PLACES( 'k', 'K' );
+  // Do these out of line so that we can control the precise or-
+  // der, so that the test is deterministic.
+  auto                            w1 = get_int1();
+  auto                            w2 = get_int2();
+  auto                            w3 = get_int3();
+  variant<int, monostate, double> v  = co_await first(
+      std::move( w1 ), std::move( w2 ), std::move( w3 ) );
+  LOG_PLACES( 'l', 'L' );
+  REQUIRE( v.index() == 2 );
+  REQUIRE( get<2>( v ) == 6.6 );
+  co_return 9;
+}
+
+TEST_CASE( "[waitable] abort with various combinators" ) {
+  places.clear();
+  get_int1_p      = {};
+  get_int2_p      = {};
+  int_stream      = {};
+  waitable<int> w = get_int_from_some_combinators();
+  REQUIRE( places == "kcfgia" );
+
+  SECTION( "sanity check - run to completion" ) {
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    int_stream.send( 3 );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( w.get() == 9 );
+    REQUIRE( places == "kcfgiabBAjJIGFClLK" );
+  }
+  SECTION( "sanity check - cancellation" ) {
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    w.cancel();
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( places == "kcfgiaAIGFCK" );
+  }
+  SECTION( "get_int1, get_int2, get_int3 all abort" ) {
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( !w.aborted() );
+    // First let get_int1 abort via co::abort.
+    get_int1_p.finish();
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( !w.aborted() );
+    REQUIRE( places == "kcfgiadDC" );
+    // Now let get_int2 abort manually.
+    get_int2_p.abort();
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( !w.aborted() );
+    REQUIRE( places == "kcfgiadDCGF" );
+    // Now let get_int3 abort manually.
+    int_stream.abort();
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( places == "kcfgiadDCGFAIK" );
+
+    // Now finally we have the root object aborted.
+    REQUIRE( w.aborted() );
+
+    // Now cancel w, just to make sure nothing goes wrong.
+    w.cancel();
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( !w.aborted() );
+    REQUIRE( places == "kcfgiadDCGFAIK" );
+  }
 }
 
 } // namespace
