@@ -14,7 +14,7 @@ TRANSLATION( e_music_player,
 TRANSLATION( e_revolution_confirmation,
 
   ( no,              "Not Yet..."                        ),
-  ( revolution,      "Give me freedom or give me death!" ))
+  ( revolution,      "Give me liberty or give me death!" ))
 
 TRANSLATION( e_commodity,
 
