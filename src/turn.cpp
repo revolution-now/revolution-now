@@ -20,6 +20,7 @@
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"
 #include "old-world.hpp"
@@ -241,6 +242,8 @@ bool should_remove_unit_from_queue( UnitId id ) {
 *****************************************************************/
 namespace eot {
 
+struct button_click_t {};
+
 waitable<> process_player_input( e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
@@ -259,22 +262,55 @@ waitable<> process_player_input(
   }
 }
 
-waitable<> monitor_player_input() {
-  landview_reset_input_buffers();
+waitable<> process_player_input( button_click_t ) {
+  lg.debug( "end of turn button clicked." );
+  co_return;
+}
+
+waitable<button_click_t> monitor_eot_button_click() {
+  co_await wait_for_eot_button_click();
+  co_return button_click_t{};
+}
+
+using EotInput = base::variant< //
+    e_menu_actions,             //
+    LandViewPlayerInput_t,      //
+    button_click_t              //
+    >;
+
+co::stream<EotInput> g_input_stream;
+
+waitable<> monitor_inputs() {
   while( true ) {
-    co_await rn::visit(
-        co_await co::first( wait_for_menu_selection(),
-                            landview_eot_get_next_input() ),
-        L( process_player_input( _ ) ) );
+    g_input_stream.send( co_await co::first(
+        wait_for_menu_selection(),     //
+        landview_eot_get_next_input(), //
+        monitor_eot_button_click()     //
+        ) );
+  }
+}
+
+waitable<> run() {
+  g_input_stream.reset();
+  landview_reset_input_buffers();
+  EotInput command;
+  while( true ) {
+    {
+      // Scoping this may not be strictly necessary, but it seems
+      // like the principled thing to do. For example, it will
+      // cause the menu monitoring to stop while a command is
+      // being executed, which will automatically disable those
+      // menu items during the process.
+      waitable<> monitor = monitor_inputs();
+      command            = co_await g_input_stream.next();
+    }
+    co_await rn::visit( command,
+                        L( process_player_input( _ ) ) );
+    if( command.holds<button_click_t>() ) co_return;
   }
 }
 
 } // namespace eot
-
-waitable<> end_of_turn() {
-  return co::any( eot::monitor_player_input(), // never ends
-                  wait_for_eot_button_click() );
-}
 
 /****************************************************************
 ** Processing Player Input (During Turn).
@@ -597,7 +633,7 @@ waitable<> next_turn_impl() {
   }
 
   // Ending.
-  if( st.need_eot ) co_await end_of_turn();
+  if( st.need_eot ) co_await eot::run();
 
   st.new_turn();
 }
@@ -608,5 +644,16 @@ waitable<> next_turn_impl() {
 ** Turn State Advancement
 *****************************************************************/
 waitable<> next_turn() { return next_turn_impl(); }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( end_turn, void ) {
+  return eot::g_input_stream.send( eot::button_click_t{} );
+}
+
+} // namespace
 
 } // namespace rn

@@ -138,7 +138,7 @@ void frame_loop_scheduler( waitable<> const& what,
       this_thread::sleep_for( frame_length - delta );
   }
 
-  if( what.aborted() ) lg.critical( "uncaught co::abort." );
+  if( what.aborted() ) lg.critical( "uncaught abort signal." );
 }
 
 // Called once per frame.

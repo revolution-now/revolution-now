@@ -55,7 +55,6 @@ struct PanelPlane : public Plane {
 
     auto button_view =
         make_unique<ui::ButtonView>( "Next Turn", [this] {
-          lg.debug( "on to next turn." );
           w_promise.set_value( {} );
           // Disable the button as soon as it is clicked.
           this->next_turn_button().enable( /*enabled=*/false );
