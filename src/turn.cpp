@@ -161,7 +161,7 @@ waitable<> menu_revolution_handler() {
   co_await ui::message_box( "You selected: {}", answer );
 }
 
-waitable<> menu_quit_handler() { NOT_IMPLEMENTED; }
+waitable<> menu_quit_handler() { co_await co::abort; }
 
 #define TURN_MENU_ITEM_HANDLER( item )                     \
   MENU_ITEM_HANDLER(                                       \
