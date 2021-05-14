@@ -111,6 +111,16 @@ struct WithBackground {
   // early or not. If background is still running when w fin-
   // ishes, it will naturally be cancelled as it will go out of
   // scope.
+  //
+  // The value of using this function is that:
+  //
+  //   1. It does a co_await, so that way the calling function
+  //      can just use a plain `return` if it wants to, without
+  //      then causing the background thread to go out of scope
+  //      and terminate prematurely.
+  //   2. It will force the background thread to terminate when w
+  //      terminates, without the caller having to manage that.
+  //
   template<typename T>
   waitable<T> operator()( waitable<T> w,
                           waitable<>  background ) const {
