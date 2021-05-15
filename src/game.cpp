@@ -29,7 +29,8 @@ waitable<> run_loaded_game() {
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
-  return co::erase( co::try_<game_quit_exception>( next_turn ) );
+  return co::erase( co::try_<game_quit_exception>(
+      []() -> waitable<> { return co::repeat( next_turn ); } ) );
 }
 
 } // namespace
