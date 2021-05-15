@@ -25,12 +25,26 @@ namespace rn {
 
 namespace {
 
+enum class e_game_module_tune_points {
+  start_game //
+};
+
+void play( e_game_module_tune_points tune ) {
+  switch( tune ) {
+    case e_game_module_tune_points::start_game:
+      conductor::play_request(
+          conductor::e_request::fife_drum_happy,
+          conductor::e_request_probability::always );
+      break;
+  }
+}
+
+waitable<> turn_loop() {
+  while( true ) co_await next_turn();
+}
+
 waitable<> run_loaded_game() {
-  conductor::play_request(
-      conductor::e_request::fife_drum_happy,
-      conductor::e_request_probability::always );
-  return co::erase( co::try_<game_quit_exception>(
-      []() -> waitable<> { return co::repeat( next_turn ); } ) );
+  return co::erase( co::try_<game_quit_exception>( turn_loop ) );
 }
 
 } // namespace
@@ -43,6 +57,7 @@ waitable<> run_existing_game() {
   // Allow all the planes to update their state at least once be-
   // fore we proceed.
   co_await 1_frames;
+  play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
 }
 
@@ -69,6 +84,7 @@ waitable<> run_new_game() {
   // 5. Display some messages to the player.
 
   // 6. Player takes control.
+  play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
 }
 
