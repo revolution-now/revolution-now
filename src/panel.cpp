@@ -18,6 +18,10 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
+#include "waitable-coro.hpp"
+
+// base
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
@@ -116,8 +120,9 @@ struct PanelPlane : public Plane {
 
   waitable<> user_hits_eot_button() {
     next_turn_button().enable( /*enabled=*/true );
+    SCOPE_EXIT( next_turn_button().enable( /*enabled=*/false ) );
     w_promise = {};
-    return w_promise.waitable();
+    co_await w_promise.waitable();
   }
 
   unique_ptr<ui::InvisibleView> view;
