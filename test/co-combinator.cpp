@@ -28,6 +28,7 @@ namespace {
 using namespace std;
 
 using Catch::Contains;
+using Catch::Equals;
 
 TEST_CASE( "[co-combinator] any" ) {
   waitable_promise<> p1, p2;
@@ -553,7 +554,9 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
     run_all_coroutines();
     REQUIRE( w.ready() );
     REQUIRE( w.get() == 9 );
-    REQUIRE( places == "kcfgiabBAjJIGFClLK" );
+    // Depends on order of parameter destruction.
+    REQUIRE_THAT( places, Equals( "kcfgiabBAjJIGFClLK" ) ||
+                              Equals( "kcfgiabBAjJICGFlLK" ) );
   }
   SECTION( "sanity check - cancellation" ) {
     run_all_coroutines();
@@ -561,7 +564,9 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
     w.cancel();
     run_all_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( places == "kcfgiaAIGFCK" );
+    // Depends on order of parameter destruction.
+    REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
+                              Equals( "kcfgiaCGFAIK" ) );
   }
   SECTION( "get_int1, get_int2, get_int3 all throw" ) {
     run_all_coroutines();
@@ -573,16 +578,9 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      // NOTE: the below could be dependent on the order in which
-      // the parameters in the co::first are destroyed. If they
-      // are destroyed in the opposite order then it should be:
-      //
-      //    REQUIRE( places == "kcfgiaAICGFK" );
-      //
-      // If a platform is encountered on which that happens,
-      // maybe just add an or (||) in the REQUIRE statements
-      // below.
-      REQUIRE( places == "kcfgiaAIGFCK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
+                                Equals( "kcfgiaAICGFK" ) );
       // Subsequent exceptions should have no effect as those
       // branches have already been cancelled. Let get_int1
       // throw.
@@ -590,12 +588,16 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiaAIGFCK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
+                                Equals( "kcfgiaAICGFK" ) );
       get_int2_p.set_exception( runtime_error( "test-failed" ) );
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiaAIGFCK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiaAIGFCK" ) ||
+                                Equals( "kcfgiaAICGFK" ) );
     }
     SECTION( "get_int2 first" ) {
       // Let get_int2 throw manually.
@@ -603,27 +605,35 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiaGFAICK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiaGFAICK" ) ||
+                                Equals( "kcfgiaGFCAIK" ) );
       // Subsequent exceptions should have no effect as those
       // branches have already been cancelled.
       get_int1_p.finish(); // causes exception.
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiaGFAICK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiaGFAICK" ) ||
+                                Equals( "kcfgiaGFCAIK" ) );
       // Let get_int3 throw.
       int_stream.set_exception();
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiaGFAICK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiaGFAICK" ) ||
+                                Equals( "kcfgiaGFCAIK" ) );
     }
     SECTION( "get_int1 first" ) {
       get_int1_p.finish(); // causes exception.
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiadDCAIGFK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiadDCAIGFK" ) ||
+                                Equals( "kcfgiadDCGFAIK" ) );
       // Subsequent exceptions should have no effect as those
       // branches have already been cancelled.
       // Let get_int3 throw.
@@ -631,13 +641,17 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiadDCAIGFK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiadDCAIGFK" ) ||
+                                Equals( "kcfgiadDCGFAIK" ) );
       // Let get_int2 throw manually.
       get_int2_p.set_exception( runtime_error( "test-failed" ) );
       run_all_coroutines();
       REQUIRE( !w.ready() );
       REQUIRE( w.has_exception() );
-      REQUIRE( places == "kcfgiadDCAIGFK" );
+      // Depends on order of parameter destruction.
+      REQUIRE_THAT( places, Equals( "kcfgiadDCAIGFK" ) ||
+                                Equals( "kcfgiadDCGFAIK" ) );
     }
 
     // Now cancel w, just to make sure nothing goes wrong.
