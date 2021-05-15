@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "conductor.hpp"
+#include "logging.hpp"
 #include "lua.hpp"
 #include "plane-ctrl.hpp"
 #include "save-game.hpp"
@@ -28,7 +29,14 @@ waitable<> run_loaded_game() {
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
-  return co::repeat( next_turn );
+  try {
+    // FIXME: if we just do a `return` here then we won't be able
+    // to catch exceptions thrown after a suspension. Instead of
+    // wrapping this in a try/catch block, create a combinator
+    // that does it somehow.
+    co_await co::repeat( next_turn );
+  } catch( game_quit_exception const& ) {}
+  lg.info( "game exited." );
 }
 
 } // namespace

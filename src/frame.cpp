@@ -138,10 +138,8 @@ void frame_loop_scheduler( waitable<> const& what,
       this_thread::sleep_for( frame_length - delta );
   }
 
-  if( what.has_exception() ) {
-    lg.critical( "uncaught exception in coroutine." );
-    rethrow_exception( what.exception() );
-  }
+  CHECK( !what.has_exception(),
+         "uncaught exception in coroutine." );
 }
 
 // Called once per frame.
