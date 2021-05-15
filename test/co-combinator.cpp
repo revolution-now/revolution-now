@@ -16,6 +16,7 @@
 #include "src/waitable-coro.hpp"
 
 // base
+#include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
 
 // Must be last.
@@ -644,6 +645,66 @@ TEST_CASE( "[waitable] exception with various combinators" ) {
     run_all_coroutines();
     REQUIRE( !w.ready() );
     REQUIRE( !w.has_exception() );
+  }
+}
+
+waitable_promise<int> wp;
+
+waitable<int> throwing_coro( bool should_throw,
+                             bool throw_eager ) {
+  if( should_throw && throw_eager )
+    throw runtime_error( "first" );
+  int n = co_await wp.waitable();
+  if( should_throw ) throw runtime_error( "second" );
+  co_return n;
+}
+
+TEST_CASE( "[waitable] try" ) {
+  wp = {};
+  string what;
+  auto   catcher = [&]( runtime_error const& e ) {
+    what = e.what();
+  };
+
+  SECTION( "eager throw" ) {
+    waitable<maybe<int>> w = co::try_<runtime_error>(
+        LC0( throwing_coro( true, true ) ), catcher );
+    REQUIRE( what == "" );
+    run_all_coroutines();
+    REQUIRE( what == "first" );
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( w.get() == nothing );
+  }
+  SECTION( "lazy throw" ) {
+    waitable<maybe<int>> w = co::try_<runtime_error>(
+        LC0( throwing_coro( true, false ) ), catcher );
+    REQUIRE( what == "" );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( what == "" );
+    wp.set_value( 9 );
+    run_all_coroutines();
+    REQUIRE( what == "second" );
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( w.get() == nothing );
+  }
+  SECTION( "no throw" ) {
+    waitable<maybe<int>> w = co::try_<runtime_error>(
+        L0( throwing_coro( false, false ) ), catcher );
+    REQUIRE( what == "" );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( what == "" );
+    wp.set_value( 9 );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( what == "" );
+    REQUIRE( w.get() == 9 );
   }
 }
 

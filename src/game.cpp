@@ -29,14 +29,7 @@ waitable<> run_loaded_game() {
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
-  try {
-    // FIXME: if we just do a `return` here then we won't be able
-    // to catch exceptions thrown after a suspension. Instead of
-    // wrapping this in a try/catch block, create a combinator
-    // that does it somehow.
-    co_await co::repeat( next_turn );
-  } catch( game_quit_exception const& ) {}
-  lg.info( "game exited." );
+  return co::erase( co::try_<game_quit_exception>( next_turn ) );
 }
 
 } // namespace
