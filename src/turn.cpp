@@ -244,6 +244,14 @@ namespace eot {
 
 struct button_click_t {};
 
+using UserInput = base::variant< //
+    e_menu_actions,              //
+    LandViewPlayerInput_t,       //
+    button_click_t               //
+    >;
+
+co::stream<UserInput> g_input_stream;
+
 waitable<> process_player_input( e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
@@ -267,20 +275,12 @@ waitable<> process_player_input( button_click_t ) {
   co_return;
 }
 
-waitable<button_click_t> monitor_eot_button_click() {
-  co_await wait_for_eot_button_click();
-  co_return button_click_t{};
-}
-
-using EotInput = base::variant< //
-    e_menu_actions,             //
-    LandViewPlayerInput_t,      //
-    button_click_t              //
-    >;
-
-co::stream<EotInput> g_input_stream;
-
 waitable<> monitor_inputs() {
+  auto monitor_eot_button_click =
+      []() -> waitable<button_click_t> {
+    co_await wait_for_eot_button_click();
+    co_return button_click_t{};
+  };
   while( true ) {
     g_input_stream.send( co_await co::first(
         wait_for_menu_selection(),     //
@@ -290,10 +290,10 @@ waitable<> monitor_inputs() {
   }
 }
 
-waitable<> run() {
+waitable<> process_inputs() {
   g_input_stream.reset();
   landview_reset_input_buffers();
-  EotInput command;
+  UserInput command;
   while( true ) {
     {
       // Scoping this may not be strictly necessary, but it seems
@@ -311,6 +311,8 @@ waitable<> run() {
 }
 
 } // namespace eot
+
+waitable<> end_of_turn() { return eot::process_inputs(); }
 
 /****************************************************************
 ** Processing Player Input (During Turn).
@@ -633,7 +635,7 @@ waitable<> next_turn_impl() {
   }
 
   // Ending.
-  if( st.need_eot ) co_await eot::run();
+  if( st.need_eot ) co_await end_of_turn();
 
   st.new_turn();
 }
