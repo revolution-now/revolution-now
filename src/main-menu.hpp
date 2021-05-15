@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "waitable.hpp"
 
 // Rnl
@@ -20,9 +21,7 @@
 
 namespace rn {
 
-// When this function returns a value, that value will be reset,
-// so another call immediately after will yield no result.
-waitable<e_main_menu_item> next_main_menu_item();
+co::stream<e_main_menu_item>& main_menu_input_stream();
 
 struct Plane;
 Plane* main_menu_plane();

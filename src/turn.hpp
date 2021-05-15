@@ -20,7 +20,8 @@
 
 namespace rn {
 
-struct game_quit_exception : std::exception {};
+struct game_quit_interrupt : std::exception {};
+struct game_load_interrupt : std::exception {};
 
 waitable<> next_turn();
 

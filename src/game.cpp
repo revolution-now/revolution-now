@@ -44,7 +44,7 @@ waitable<> turn_loop() {
 }
 
 waitable<> run_loaded_game() {
-  return co::erase( co::try_<game_quit_exception>( turn_loop ) );
+  return co::erase( co::try_<game_quit_interrupt>( turn_loop ) );
 }
 
 } // namespace

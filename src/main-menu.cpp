@@ -28,8 +28,8 @@ namespace rn {
 
 namespace {
 
-e_main_menu_item                   g_curr_item;
-waitable_promise<e_main_menu_item> g_promise;
+e_main_menu_item             g_curr_item;
+co::stream<e_main_menu_item> g_selection_stream;
 
 /****************************************************************
 ** Plane
@@ -85,7 +85,7 @@ struct MainMenuPlane : public Plane {
             break;
           case ::SDLK_RETURN:
           case ::SDLK_KP_ENTER:
-            g_promise.set_value_if_not_set( g_curr_item );
+            g_selection_stream.send( g_curr_item );
             handled = e_input_handled::yes;
             break;
           default: break;
@@ -108,9 +108,8 @@ Plane* main_menu_plane() { return &g_main_menu_plane; }
 /****************************************************************
 ** Public API
 *****************************************************************/
-waitable<e_main_menu_item> next_main_menu_item() {
-  g_promise = waitable_promise<e_main_menu_item>{};
-  return g_promise.waitable();
+co::stream<e_main_menu_item>& main_menu_input_stream() {
+  return g_selection_stream;
 }
 
 } // namespace rn

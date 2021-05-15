@@ -64,10 +64,32 @@ namespace {
 /****************************************************************
 ** Global State
 *****************************************************************/
-enum class e_menu_actions { exit, save, revolution };
+enum class e_menu_actions {
+  exit,
+  save,
+  load,
+  next_turn,
+  revolution
+};
 
 bool                       g_menu_commands_accepted = false;
+bool                       g_doing_eot              = false;
 co::stream<e_menu_actions> g_menu_actions;
+
+// Globals relevant to end of turn.
+namespace eot {
+
+struct button_click_t {};
+
+using UserInput = base::variant< //
+    e_menu_actions,              //
+    LandViewPlayerInput_t,       //
+    button_click_t               //
+    >;
+
+co::stream<UserInput> g_input_stream;
+
+} // namespace eot
 
 /****************************************************************
 ** Save-Game State
@@ -162,26 +184,49 @@ waitable<> menu_revolution_handler() {
   co_await ui::message_box( "You selected: {}", answer );
 }
 
-waitable<> menu_quit_handler() { throw game_quit_exception{}; }
+waitable<> menu_next_turn_handler() {
+  eot::g_input_stream.send( eot::button_click_t{} );
+  co_return;
+}
 
-#define TURN_MENU_ITEM_HANDLER( item )                     \
+waitable<bool> proceed_to_leave_game() { co_return true; }
+
+waitable<> menu_exit_handler() {
+  if( co_await proceed_to_leave_game() )
+    throw game_quit_interrupt{};
+}
+
+waitable<> menu_load_handler() {
+  if( co_await proceed_to_leave_game() )
+    throw game_load_interrupt{};
+}
+
+#define DEFAULT_TURN_MENU_ITEM_HANDLER( item )             \
   MENU_ITEM_HANDLER(                                       \
       item,                                                \
       [] { g_menu_actions.send( e_menu_actions::item ); }, \
       [] { return g_menu_commands_accepted; } )
 
-TURN_MENU_ITEM_HANDLER( exit );
-TURN_MENU_ITEM_HANDLER( save );
-TURN_MENU_ITEM_HANDLER( revolution );
+DEFAULT_TURN_MENU_ITEM_HANDLER( exit );
+DEFAULT_TURN_MENU_ITEM_HANDLER( save );
+DEFAULT_TURN_MENU_ITEM_HANDLER( load );
+DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
+
+MENU_ITEM_HANDLER(
+    next_turn,
+    [] { g_menu_actions.send( e_menu_actions::next_turn ); },
+    [] { return g_menu_commands_accepted && g_doing_eot; } )
+
+#define CASE_MENU_HANDLER( item ) \
+  case e_menu_actions::item: return menu_##item##_handler();
 
 waitable<> handle_menu_item( e_menu_actions action ) {
   switch( action ) {
-    case e_menu_actions::exit: //
-      return menu_quit_handler();
-    case e_menu_actions::save: //
-      return menu_save_handler();
-    case e_menu_actions::revolution:
-      return menu_revolution_handler();
+    CASE_MENU_HANDLER( exit );
+    CASE_MENU_HANDLER( save );
+    CASE_MENU_HANDLER( load );
+    CASE_MENU_HANDLER( next_turn );
+    CASE_MENU_HANDLER( revolution );
   }
 }
 
@@ -242,16 +287,6 @@ bool should_remove_unit_from_queue( UnitId id ) {
 *****************************************************************/
 namespace eot {
 
-struct button_click_t {};
-
-using UserInput = base::variant< //
-    e_menu_actions,              //
-    LandViewPlayerInput_t,       //
-    button_click_t               //
-    >;
-
-co::stream<UserInput> g_input_stream;
-
 waitable<> process_player_input( e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
@@ -291,6 +326,7 @@ waitable<> monitor_inputs() {
 }
 
 waitable<> process_inputs() {
+  SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
   g_input_stream.reset();
   landview_reset_input_buffers();
   UserInput command;

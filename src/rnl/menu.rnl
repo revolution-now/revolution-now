@@ -28,6 +28,7 @@ enum e_menu {
 enum e_menu_item {
   about,
   save,
+  load,
   revolution,
   retire,
   exit,
@@ -60,5 +61,6 @@ enum e_menu_item {
   old_world_view,
   old_world_close,
   colony_view_close,
-  find_blinking_unit
+  find_blinking_unit,
+  next_turn
 };

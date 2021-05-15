@@ -108,6 +108,9 @@ unordered_map<e_menu, vector<MenuItem_t>> g_menu_def{
           ITEM( about, "About this Game" ),    //
           /***********/ DIVIDER, /***********/ //
           ITEM( save, "Save Game" ),           //
+          ITEM( load, "Load Game" ),           //
+          /***********/ DIVIDER, /***********/ //
+          ITEM( next_turn, "Next Turn" ),      //
           /***********/ DIVIDER, /***********/ //
           ITEM( revolution, "REVOLUTION!" ),   //
           /***********/ DIVIDER, /***********/ //
