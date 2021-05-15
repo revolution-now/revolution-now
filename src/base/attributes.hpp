@@ -10,4 +10,8 @@
 *****************************************************************/
 #pragma once
 
-#define ATTR_LIFETIMEBOUND [[clang::lifetimebound]]
+#if defined( __clang__ )
+#  define ATTR_LIFETIMEBOUND [[clang::lifetimebound]]
+#else
+#  define ATTR_LIFETIMEBOUND
+#endif

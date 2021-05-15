@@ -97,12 +97,26 @@ valid_or<lua::LuaError> run_lua_cmd( string const& cmd ) {
         !run_result )
       result = run_result.error();
     if( !is_placeholder( cmd ) && result ) {
-      st["_5"] = st["_4"];
-      st["_4"] = st["_3"];
-      st["_3"] = st["_2"];
+      // The below is to workaround a gcc error with sol that I
+      // am not going to solve since sol is on its way out.
+      {
+        sol::lua_value v = st["_4"];
+        st["_5"]         = v;
+      }
+      {
+        sol::lua_value v = st["_3"];
+        st["_4"]         = v;
+      }
+      {
+        sol::lua_value v = st["_2"];
+        st["_3"]         = v;
+      }
       st["_2"] = val;
       // alias.
-      st["_1"] = st["_"];
+      {
+        sol::lua_value v = st["_"];
+        st["_1"]         = v;
+      }
     }
   } else {
     if( auto run_result = lua::run<void>( cmd_wrapper );

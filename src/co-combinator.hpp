@@ -191,7 +191,7 @@ struct latch {
   void set() { p.set_value_emplace_if_not_set(); }
   void reset() { p = {}; }
 
-  waitable<> waitable() const { return p.waitable(); }
+  auto waitable() const { return p.waitable(); }
 
   using Awaitable =
       detail::awaitable<detail::promise_type<std::monostate>>;

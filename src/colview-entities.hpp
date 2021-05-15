@@ -30,7 +30,7 @@ namespace rn {
 struct AwaitableView {
   virtual ~AwaitableView() = default;
 
-  virtual waitable<> perform_click( Coord pos ) {
+  virtual waitable<> perform_click( Coord ) {
     return make_waitable<>();
   }
 };

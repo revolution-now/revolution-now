@@ -143,7 +143,7 @@ struct ScopeExit {
       func_( std::forward<T>( func ) ),
       exceptions_in_flight_( std::uncaught_exceptions() ) {
     static_assert( std::is_rvalue_reference_v<
-                   decltype( std::forward<T>( func ) )> );
+                   decltype( std::forward<T>( func_ ) )> );
   }
 
   ~ScopeExit() noexcept( false ) {

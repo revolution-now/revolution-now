@@ -591,7 +591,6 @@ ColViewEntityPtrs colview_top_level() {
 }
 
 void set_colview_colony( ColonyId id ) {
-  auto old_size = g_composition.screen_size;
   auto new_id   = id;
   auto new_size = main_window_logical_size();
   recomposite( new_id, new_size );

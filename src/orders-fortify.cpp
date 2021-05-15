@@ -66,12 +66,12 @@ struct SentryHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::fortify const& fortify ) {
+    UnitId id, orders::fortify const& ) {
   return make_unique<FortifyHandler>( id );
 }
 
 std::unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::sentry const& sentry ) {
+    UnitId id, orders::sentry const& ) {
   return make_unique<SentryHandler>( id );
 }
 

@@ -66,7 +66,7 @@ waitable<> main_menu() {
     e_main_menu_item item = co_await selections.next();
     try {
       co_await main_menu_item_selected( item );
-    } catch( game_load_interrupt ) {
+    } catch( game_load_interrupt const& ) {
       selections.send( e_main_menu_item::load );
     }
   }
