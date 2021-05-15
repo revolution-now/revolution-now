@@ -452,26 +452,30 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
   REQUIRE( rws2.suspended == true );
 }
 
-TEST_CASE( "[waitable] abort with any" ) {
+TEST_CASE( "[waitable] exception with any" ) {
   waitable_promise<> p1;
   waitable_promise<> p2;
   waitable_promise<> p3;
   waitable<>         w =
       co::any( p1.waitable(), p2.waitable(), p3.waitable() );
   REQUIRE( !w.ready() );
-  REQUIRE( !w.aborted() );
+  REQUIRE( !w.has_exception() );
 
-  p2.abort();
+  p2.set_exception( runtime_error( "test-failed" ) );
+  run_all_coroutines();
   REQUIRE( !w.ready() );
-  REQUIRE( !w.aborted() );
+  REQUIRE( w.has_exception() );
 
-  p3.abort();
+  // Subsequent exceptions have no effect.
+  p3.set_exception( runtime_error( "test-failed" ) );
+  run_all_coroutines();
   REQUIRE( !w.ready() );
-  REQUIRE( !w.aborted() );
+  REQUIRE( w.has_exception() );
 
-  p1.abort();
+  p1.set_exception( runtime_error( "test-failed" ) );
+  run_all_coroutines();
   REQUIRE( !w.ready() );
-  REQUIRE( w.aborted() );
+  REQUIRE( w.has_exception() );
 }
 
 waitable_promise<> get_int1_p;
@@ -495,7 +499,7 @@ waitable<int> get_int1() {
   LOG_PLACES( 'c', 'C' );
   co_await get_int1_p.waitable();
   LOG_PLACES( 'd', 'D' );
-  co_await co::abort;
+  throw runtime_error( "test-failed" );
   LOG_PLACES( 'e', 'E' );
   co_return 5;
 }
@@ -533,7 +537,7 @@ waitable<int> get_int_from_some_combinators() {
   co_return 9;
 }
 
-TEST_CASE( "[waitable] abort with various combinators" ) {
+TEST_CASE( "[waitable] exception with various combinators" ) {
   places.clear();
   get_int1_p      = {};
   get_int2_p      = {};
@@ -558,37 +562,88 @@ TEST_CASE( "[waitable] abort with various combinators" ) {
     REQUIRE( !w.ready() );
     REQUIRE( places == "kcfgiaAIGFCK" );
   }
-  SECTION( "get_int1, get_int2, get_int3 all abort" ) {
+  SECTION( "get_int1, get_int2, get_int3 all throw" ) {
     run_all_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    // First let get_int1 abort via co::abort.
-    get_int1_p.finish();
-    run_all_coroutines();
-    REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( places == "kcfgiadDC" );
-    // Now let get_int2 abort manually.
-    get_int2_p.abort();
-    run_all_coroutines();
-    REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( places == "kcfgiadDCGF" );
-    // Now let get_int3 abort manually.
-    int_stream.abort();
-    run_all_coroutines();
-    REQUIRE( !w.ready() );
-    REQUIRE( places == "kcfgiadDCGFAIK" );
-
-    // Now finally we have the root object aborted.
-    REQUIRE( w.aborted() );
+    REQUIRE( !w.has_exception() );
+    SECTION( "get_int3 first" ) {
+      // First, have get_int3 throw exception manually.
+      int_stream.set_exception();
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      // NOTE: the below could be dependent on the order in which
+      // the parameters in the co::first are destroyed. If they
+      // are destroyed in the opposite order then it should be:
+      //
+      //    REQUIRE( places == "kcfgiaAICGFK" );
+      //
+      // If a platform is encountered on which that happens,
+      // maybe just add an or (||) in the REQUIRE statements
+      // below.
+      REQUIRE( places == "kcfgiaAIGFCK" );
+      // Subsequent exceptions should have no effect as those
+      // branches have already been cancelled. Let get_int1
+      // throw.
+      get_int1_p.finish();
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiaAIGFCK" );
+      get_int2_p.set_exception( runtime_error( "test-failed" ) );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiaAIGFCK" );
+    }
+    SECTION( "get_int2 first" ) {
+      // Let get_int2 throw manually.
+      get_int2_p.set_exception( runtime_error( "test-failed" ) );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiaGFAICK" );
+      // Subsequent exceptions should have no effect as those
+      // branches have already been cancelled.
+      get_int1_p.finish(); // causes exception.
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiaGFAICK" );
+      // Let get_int3 throw.
+      int_stream.set_exception();
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiaGFAICK" );
+    }
+    SECTION( "get_int1 first" ) {
+      get_int1_p.finish(); // causes exception.
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiadDCAIGFK" );
+      // Subsequent exceptions should have no effect as those
+      // branches have already been cancelled.
+      // Let get_int3 throw.
+      int_stream.set_exception();
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiadDCAIGFK" );
+      // Let get_int2 throw manually.
+      get_int2_p.set_exception( runtime_error( "test-failed" ) );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      REQUIRE( w.has_exception() );
+      REQUIRE( places == "kcfgiadDCAIGFK" );
+    }
 
     // Now cancel w, just to make sure nothing goes wrong.
     w.cancel();
     run_all_coroutines();
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( places == "kcfgiadDCGFAIK" );
+    REQUIRE( !w.has_exception() );
   }
 }
 

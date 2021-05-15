@@ -119,7 +119,7 @@ void frame_loop_scheduler( waitable<> const& what,
 
   static auto time_of_last_input = Clock_t::now();
 
-  while( !what.ready() && !what.aborted() ) {
+  while( !what.ready() && !what.has_exception() ) {
     // If we go more than the configured time without any user
     // input then slow down the frame rate to save battery.
     auto frame_length = ( Clock_t::now() - time_of_last_input >
@@ -138,7 +138,10 @@ void frame_loop_scheduler( waitable<> const& what,
       this_thread::sleep_for( frame_length - delta );
   }
 
-  if( what.aborted() ) lg.critical( "uncaught abort signal." );
+  if( what.has_exception() ) {
+    lg.critical( "uncaught exception in coroutine." );
+    rethrow_exception( what.exception() );
+  }
 }
 
 // Called once per frame.

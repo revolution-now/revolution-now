@@ -39,10 +39,6 @@ void queue_coroutine_handle( coro::coroutine_handle<> h ) {
 
 void run_all_coroutines() {
   while( !g_coros_to_resume.empty() ) {
-    // Need to pop before running, since resuming this coroutine
-    // could potentially cause it to be destroyed (and its corou-
-    // tine handle removed from the queue) if it decides to abort
-    // (in the sense of co::abort).
     coro::coroutine_handle<> h = g_coros_to_resume.front();
     g_coros_to_resume.pop();
     h.resume();

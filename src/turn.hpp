@@ -15,7 +15,12 @@
 // Revolution Now
 #include "waitable.hpp"
 
+// C++ standard library
+#include <exception>
+
 namespace rn {
+
+struct game_quit_exception : std::exception {};
 
 waitable<> next_turn();
 

@@ -189,7 +189,9 @@ struct stream {
   }
 
   // For testing; not sure if this would be useful otherwise.
-  void abort() { p.abort(); }
+  void set_exception() {
+    p.set_exception( std::runtime_error( "co::stream" ) );
+  }
 
   stream()                = default;
   stream( stream const& ) = delete;
@@ -232,7 +234,7 @@ struct finite_stream {
   void reset() { *this = {}; }
 
   // For testing; not sure if this would be useful otherwise.
-  void abort() { s.abort(); }
+  void set_exception() { s.set_exception(); }
 
 private:
   bool             ended = false;

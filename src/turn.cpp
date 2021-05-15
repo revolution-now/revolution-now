@@ -162,7 +162,7 @@ waitable<> menu_revolution_handler() {
   co_await ui::message_box( "You selected: {}", answer );
 }
 
-waitable<> menu_quit_handler() { co_await co::abort; }
+waitable<> menu_quit_handler() { throw game_quit_exception{}; }
 
 #define TURN_MENU_ITEM_HANDLER( item )                     \
   MENU_ITEM_HANDLER(                                       \

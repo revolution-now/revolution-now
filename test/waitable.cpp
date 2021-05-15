@@ -606,16 +606,16 @@ TEST_CASE( "[waitable] coro cancel by waitable out-of-scope" ) {
   }
 }
 
-TEST_CASE( "[waitable] simple abort" ) {
+TEST_CASE( "[waitable] simple exception" ) {
   waitable_promise<> p;
   waitable<>         w = p.waitable();
 
   REQUIRE( !w.ready() );
-  p.abort();
+  p.set_exception( runtime_error( "test" ) );
   REQUIRE( !w.ready() );
 }
 
-TEST_CASE( "[waitable] simple abort chained" ) {
+TEST_CASE( "[waitable] simple exception chained" ) {
   waitable_promise<> p1;
   waitable<>         w1 = p1.waitable();
   REQUIRE( !w1.ready() );
@@ -628,357 +628,297 @@ TEST_CASE( "[waitable] simple abort chained" ) {
   w2.link_to_promise( p3 );
   waitable<> w3 = p3.waitable();
 
-  SECTION( "not aborted" ) {
+  SECTION( "no exception" ) {
     REQUIRE( !w3.ready() );
-    REQUIRE( !w3.aborted() );
+    REQUIRE( !w3.has_exception() );
     p1.set_value_emplace();
     REQUIRE( w3.ready() );
-    REQUIRE( !w3.aborted() );
+    REQUIRE( !w3.has_exception() );
     REQUIRE( w2.ready() );
-    REQUIRE( !w2.aborted() );
+    REQUIRE( !w2.has_exception() );
     REQUIRE( w1.ready() );
-    REQUIRE( !w1.aborted() );
+    REQUIRE( !w1.has_exception() );
   }
-  SECTION( "aborted" ) {
+  SECTION( "with exception" ) {
     REQUIRE( !w3.ready() );
-    REQUIRE( !w3.aborted() );
-    p1.abort();
+    REQUIRE( !w3.has_exception() );
+    p1.set_exception( runtime_error( "test-failed" ) );
     REQUIRE( !w3.ready() );
-    REQUIRE( w3.aborted() );
+    REQUIRE( w3.has_exception() );
     REQUIRE( !w2.ready() );
-    REQUIRE( w2.aborted() );
+    REQUIRE( w2.has_exception() );
     REQUIRE( !w1.ready() );
-    REQUIRE( w1.aborted() );
+    REQUIRE( w1.has_exception() );
   }
-  SECTION( "aborted twice" ) {
+  SECTION( "exception twice" ) {
     REQUIRE( !w3.ready() );
-    REQUIRE( !w3.aborted() );
-    p1.abort();
-    p1.abort();
+    REQUIRE( !w3.has_exception() );
+    p1.set_exception( runtime_error( "test-failed" ) );
+    p1.set_exception( runtime_error( "test-failed" ) );
     REQUIRE( !w3.ready() );
-    REQUIRE( w3.aborted() );
+    REQUIRE( w3.has_exception() );
     REQUIRE( !w2.ready() );
-    REQUIRE( w2.aborted() );
+    REQUIRE( w2.has_exception() );
     REQUIRE( !w1.ready() );
-    REQUIRE( w1.aborted() );
+    REQUIRE( w1.has_exception() );
   }
 }
 
-waitable_promise<> abort_p0;
-waitable_promise<> abort_p1;
-waitable_promise<> abort_p2;
+waitable_promise<> exception_p0;
+waitable_promise<> exception_p1;
+waitable_promise<> exception_p2;
 string             places;
 
-waitable<> abort_coro_early() {
-  places += 'a';
-  SCOPE_EXIT( places += 'A' );
-  co_await co::abort;
-  places += 'b';
-  SCOPE_EXIT( places += 'B' );
-}
-
-TEST_CASE( "[waitable] abort coro early" ) {
-  places.clear();
-
-  waitable<> w = abort_coro_early();
-  REQUIRE( places == "aA" );
-  REQUIRE( !w.ready() );
-  REQUIRE( w.aborted() );
-}
-
-TEST_CASE( "[waitable] link with already aborted" ) {
-  places.clear();
-
-  waitable<> w = abort_coro_early();
-  REQUIRE( places == "aA" );
-  REQUIRE( !w.ready() );
-  REQUIRE( w.aborted() );
-
-  waitable_promise<> p1;
-  w.link_to_promise( p1 );
-  waitable<> w1 = p1.waitable();
-  REQUIRE( !w1.ready() );
-  REQUIRE( w1.aborted() );
-
-  waitable_promise<> p2;
-  w1.link_to_promise( p2 );
-  waitable<> w2 = p2.waitable();
-  REQUIRE( !w2.ready() );
-  REQUIRE( w2.aborted() );
-}
-
-waitable<> abort_coro_early_level_2() {
+waitable<> exception_coro_early_level_2() {
   places += 'c';
   SCOPE_EXIT( places += 'C' );
-  co_await co::abort;
+  throw runtime_error( "test" );
   places += 'd';
   SCOPE_EXIT( places += 'D' );
 }
 
-waitable<> abort_coro_early_level_1() {
+waitable<> exception_coro_early_level_1() {
   places += 'a';
   SCOPE_EXIT( places += 'A' );
-  waitable<> w = abort_coro_early_level_2();
-  REQUIRE( w.aborted() );
+  waitable<> w = exception_coro_early_level_2();
+  REQUIRE( w.has_exception() );
   co_await std::move( w );
   places += 'b';
   SCOPE_EXIT( places += 'B' );
 }
 
-TEST_CASE( "[waitable] abort coro early two_levels" ) {
+TEST_CASE( "[waitable] exception coro early two_levels" ) {
   places.clear();
 
-  waitable<> w = abort_coro_early_level_1();
+  waitable<> w = exception_coro_early_level_1();
   REQUIRE( places == "acCA" );
   REQUIRE( !w.ready() );
-  REQUIRE( w.aborted() );
+  REQUIRE( w.has_exception() );
 }
 
-waitable<> abort_coro_simple() {
+waitable<> exception_coro_simple() {
   places += 'a';
   SCOPE_EXIT( places += 'A' );
-  co_await abort_p0.waitable();
+  co_await exception_p0.waitable();
   places += 'b';
   SCOPE_EXIT( places += 'B' );
-  co_await co::abort;
+  throw runtime_error( "test" );
   places += 'c';
   SCOPE_EXIT( places += 'C' );
 }
 
-TEST_CASE( "[waitable] abort coro simple" ) {
+TEST_CASE( "[waitable] exception coro simple" ) {
   places.clear();
-  abort_p0 = {};
+  exception_p0 = {};
 
   SECTION( "forward cancellation" ) {
     // We don't really need to test this here because it's cov-
     // ered in other tests, but just do it anyway.
-    waitable<> w = abort_coro_simple();
+    waitable<> w = exception_coro_simple();
     REQUIRE( places == "a" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
     w.cancel();
     REQUIRE( places == "aA" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
   }
 
-  SECTION( "aborting (backward cancellation)" ) {
-    waitable<> w = abort_coro_simple();
+  SECTION( "exception (backward cancellation)" ) {
+    waitable<> w = exception_coro_simple();
     REQUIRE( places == "a" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "abBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( w.aborted() );
+    REQUIRE( w.has_exception() );
   }
 }
 
-waitable<> abort_0() {
-  abort_p0 = {};
+waitable<> exception_0() {
+  exception_p0 = {};
   places += 'l';
   SCOPE_EXIT( places += 'L' );
-  co_await abort_p0.waitable();
+  co_await exception_p0.waitable();
   places += 'm';
   SCOPE_EXIT( places += 'M' );
 }
 
-waitable<> abort_2() {
+waitable<> exception_2() {
   places += 'h';
   SCOPE_EXIT( places += 'H' );
-  co_await abort_p1.waitable();
+  co_await exception_p1.waitable();
   places += 'i';
   SCOPE_EXIT( places += 'I' );
-  co_await co::abort;
+  throw runtime_error( "test" );
   places += 'j';
   SCOPE_EXIT( places += 'J' );
-  co_await abort_p2.waitable();
+  co_await exception_p2.waitable();
   places += 'k';
   SCOPE_EXIT( places += 'K' );
 }
 
-waitable<> abort_1() {
+waitable<> exception_1() {
   places += 'e';
   SCOPE_EXIT( places += 'E' );
-  co_await abort_0();
+  co_await exception_0();
   places += 'f';
   SCOPE_EXIT( places += 'F' );
-  co_await abort_2();
+  co_await exception_2();
   places += 'g';
   SCOPE_EXIT( places += 'G' );
 }
 
-waitable<> abort_coro_complex() {
+waitable<> exception_coro_complex() {
   places += 'a';
   SCOPE_EXIT( places += 'A' );
-  co_await abort_0();
+  co_await exception_0();
   places += 'b';
   SCOPE_EXIT( places += 'B' );
-  co_await abort_1();
+  co_await exception_1();
   places += 'c';
   SCOPE_EXIT( places += 'C' );
-  co_await abort_0();
+  co_await exception_0();
   places += 'd';
   SCOPE_EXIT( places += 'D' );
 }
 
-TEST_CASE( "[waitable] abort coro complex" ) {
+TEST_CASE( "[waitable] exception coro complex" ) {
   places.clear();
-  abort_p0 = {};
-  abort_p1 = {};
-  abort_p2 = {};
+  exception_p0 = {};
+  exception_p1 = {};
+  exception_p2 = {};
 
-  SECTION( "cancelled, then aborted via promise" ) {
+  SECTION( "cancelled, then exception via promise" ) {
     // We don't really need to test this here because it's cov-
     // ered in other tests, but just do it anyway.
-    waitable<> w = abort_coro_complex();
+    waitable<> w = exception_coro_complex();
     REQUIRE( places == "al" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "almMLbel" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfh" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
     w.cancel();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    // Since it is already cancelled, aborting should not really
-    // do anything, but we just want to make sure that it doesn't
-    // crash and doesn't change anything.
-    abort_p0.abort();
+    // Since it is already cancelled, an exception should not re-
+    // ally do anything, but we just want to make sure that it
+    // doesn't crash and doesn't change anything.
+    exception_p0.set_exception( runtime_error( "test-failed" ) );
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    abort_p1.abort();
+    exception_p1.set_exception( runtime_error( "test-failed" ) );
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    abort_p2.abort();
+    exception_p2.set_exception( runtime_error( "test-failed" ) );
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
 
-    // Now abort them all again to make sure it is idempotent.
-    abort_p0.abort();
-    abort_p1.abort();
-    abort_p2.abort();
+    // Now give them all exceptions again to make sure it is
+    // idempotent.
+    exception_p0.set_exception( runtime_error( "test-failed" ) );
+    exception_p1.set_exception( runtime_error( "test-failed" ) );
+    exception_p2.set_exception( runtime_error( "test-failed" ) );
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
   }
 
-  SECTION( "aborted via co::abort, then cancelled" ) {
-    waitable<> w = abort_coro_complex();
+  SECTION( "exception, then cancelled" ) {
+    waitable<> w = exception_coro_complex();
     REQUIRE( places == "al" );
-    REQUIRE( !w.aborted() );
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "almMLbel" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfh" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    REQUIRE( !w.has_exception() );
 
-    // This stage will do the aborting.
-    abort_p1.set_value_emplace();
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    // This stage will set the exception.
+    exception_p1.set_value_emplace();
     run_all_coroutines();
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             0 );
-    REQUIRE( w.aborted() );
+    REQUIRE( w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhiIHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( w.aborted() );
+    REQUIRE( w.has_exception() );
 
     // Now cancel it, which should have no effect (though it does
     // reset some state), but just make sure it doesn't crash.
     w.cancel();
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             0 );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhiIHFEBA" );
     REQUIRE( !w.ready() );
   }
 
-  SECTION( "aborted via promise, then cancelled" ) {
-    waitable<> w = abort_coro_complex();
+  SECTION( "exception via promise, then cancelled" ) {
+    waitable<> w = exception_coro_complex();
     REQUIRE( places == "al" );
-    REQUIRE( !w.aborted() );
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "almMLbel" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    REQUIRE( !w.has_exception() );
 
-    abort_p0.set_value_emplace();
+    exception_p0.set_value_emplace();
     run_all_coroutines();
     REQUIRE( places == "almMLbelmMLfh" );
     REQUIRE( !w.ready() );
-    REQUIRE( !w.aborted() );
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             1 );
+    REQUIRE( !w.has_exception() );
 
-    abort_p1.abort();
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             0 );
-    REQUIRE( w.aborted() );
+    exception_p1.set_exception( runtime_error( "test-failed" ) );
+    run_all_coroutines();
+    REQUIRE( w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( w.aborted() );
+    REQUIRE( w.has_exception() );
 
     run_all_coroutines();
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             0 );
-    REQUIRE( w.aborted() );
+    REQUIRE( w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
-    REQUIRE( w.aborted() );
+    REQUIRE( w.has_exception() );
 
     // Now cancel it, which should have no effect (though it does
     // reset some state), but just make sure it doesn't crash.
     w.cancel();
-    REQUIRE( w.shared_state()->TESTING_ONLY_abort_ref_count() ==
-             0 );
-    REQUIRE( !w.aborted() );
+    REQUIRE( !w.has_exception() );
     REQUIRE( places == "almMLbelmMLfhHFEBA" );
     REQUIRE( !w.ready() );
   }
