@@ -10,7 +10,9 @@
 *****************************************************************/
 #pragma once
 
-// Revolution Now
+#include "config.hpp"
+
+// base
 #include "macros.hpp"
 #include "source-loc.hpp"
 

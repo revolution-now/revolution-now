@@ -10,6 +10,8 @@
 *****************************************************************/
 /* no #pragma once; must be included twice per TU. */
 
+#include "config.hpp"
+
 // C++ standard library
 #include <memory>
 #include <type_traits>

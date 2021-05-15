@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 #define BASE_IDENTITY( ... ) __VA_ARGS__
 
 // TODO: remove this guard once we no longer depend on

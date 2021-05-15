@@ -57,23 +57,8 @@ namespace coro = ::CORO_NS;
 ** Fix coroutine_handle::from_address not being noexcept.
 *****************************************************************/
 namespace base {
-// Inject this into std::experimental to make clang happy. Also,
-// override `coroutine_handle` so that we can make one of its
-// members `noexcept` that should be, otherwise clang gets
-// scared. FIXME: remove this when libc++ moves the coroutine li-
-// brary out of experimental.
 template<typename T = void>
-class coroutine_handle : public coro::coroutine_handle<T> {
-public:
-  // Override this function just to make it noexcept; the one in
-  // the gcc 10.2.0 libstdc++ is not, and this scares clang.
-  constexpr static coroutine_handle from_address(
-      void* __a ) noexcept {
-    coroutine_handle __self;
-    __self._M_fr_ptr = __a;
-    return __self;
-  }
-};
+class coroutine_handle : public coro::coroutine_handle<T> {};
 } // namespace base
 
 /****************************************************************

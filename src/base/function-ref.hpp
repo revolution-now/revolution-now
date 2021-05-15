@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 // Abseil
 #include "absl/functional/function_ref.h"
 

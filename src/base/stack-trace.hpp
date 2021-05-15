@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 // base
 #include "source-loc.hpp"
 

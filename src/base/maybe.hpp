@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 // base
 #include "meta.hpp"
 #include "source-loc.hpp"

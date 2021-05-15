@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 // base
 #include "attributes.hpp"
 #include "maybe.hpp"

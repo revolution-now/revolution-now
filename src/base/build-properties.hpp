@@ -10,7 +10,9 @@
 *****************************************************************/
 #pragma once
 
-// Base
+#include "config.hpp"
+
+// base
 #include "fs.hpp"
 
 namespace base {

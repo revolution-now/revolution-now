@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 // C++ standard library
 #include <memory>
 #include <type_traits>

@@ -423,7 +423,11 @@ struct ND Rect {
 };
 NOTHROW_MOVE( Rect );
 
+#if defined( _LIBCPP_VERSION ) // libc++
+// FIXME: re-enable this when libc++ gets std::input_iterator.
+#else // libstdc++
 static_assert( std::input_iterator<Rect::const_iterator> );
+#endif
 
 // This object will be returned as a proxy by the Rect class to
 // facilitate iterating over the inside of the rect in jumps of a
@@ -500,8 +504,12 @@ public:
   using iterator = const_iterator;
 };
 
+#if defined( _LIBCPP_VERSION ) // libc++
+// FIXME: re-enable this when libc++ gets std::input_iterator.
+#else // libstdc++
 static_assert( std::input_iterator<
                RectGridProxyIteratorHelper::const_iterator> );
+#endif
 
 // Will take the delta and center it with respect to the rect and
 // return the coordinate of the upper-left corner of the centered

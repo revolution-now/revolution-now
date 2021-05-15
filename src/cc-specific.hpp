@@ -14,6 +14,7 @@
 
 // C++ standard library
 #include <string>
+#include <typeinfo>
 
 namespace rn {
 

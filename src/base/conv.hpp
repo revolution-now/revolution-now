@@ -11,6 +11,8 @@
 *****************************************************************/
 #pragma once
 
+#include "config.hpp"
+
 // base
 #include "maybe.hpp"
 
