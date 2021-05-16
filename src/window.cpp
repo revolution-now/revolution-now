@@ -402,7 +402,7 @@ ValidatorFunc make_int_validator( maybe<int> min,
 *****************************************************************/
 // We need to have pointer stability on the returned window since
 // its address needs to go into callbacks.
-unique_ptr<Window> async_window_builder(
+[[nodiscard]] unique_ptr<Window> async_window_builder(
     std::string_view title, unique_ptr<View> view ) {
   auto win = make_unique<Window>( string( title ), Coord{} );
   autopad( view, /*use_fancy=*/false );
@@ -416,7 +416,7 @@ using GetOkCancelSubjectViewFunc = unique_ptr<View>(
 );
 
 template<typename ResultT>
-unique_ptr<Window> ok_cancel_window_builder(
+[[nodiscard]] unique_ptr<Window> ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
@@ -463,7 +463,7 @@ using GetOkBoxSubjectViewFunc = unique_ptr<View>(
 );
 
 template<typename ResultT>
-unique_ptr<Window> ok_box_window_builder(
+[[nodiscard]] unique_ptr<Window> ok_box_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
@@ -496,8 +496,8 @@ unique_ptr<Window> ok_box_window_builder(
   return async_window_builder( title, std::move( view ) );
 }
 
-void ok_cancel_impl( string_view                   msg,
-                     function<void( e_ok_cancel )> on_result ) {
+[[nodiscard]] unique_ptr<Window> ok_cancel_impl(
+    string_view msg, function<void( e_ok_cancel )> on_result ) {
   auto on_ok_cancel_result =
       [on_result{ std::move( on_result ) }]( maybe<int> o ) {
         if( o.has_value() ) return on_result( e_ok_cancel::ok );
@@ -519,7 +519,7 @@ void ok_cancel_impl( string_view                   msg,
       };
 
   // Use <int> for lack of anything better.
-  ok_cancel_window_builder<int>(
+  return ok_cancel_window_builder<int>(
       /*title=*/"Question",
       /*get_result=*/L0( 0 ),
       /*validator=*/L( _ == 0 ), // always true.
@@ -529,14 +529,13 @@ void ok_cancel_impl( string_view                   msg,
 }
 
 waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
-  waitable_promise<e_ok_cancel> s_promise;
-  ok_cancel_impl( msg, [s_promise]( e_ok_cancel oc ) {
-    s_promise.set_value( oc );
-  } );
-  return s_promise.waitable();
+  waitable_promise<e_ok_cancel> p;
+  unique_ptr<Window>            win = ok_cancel_impl(
+      msg, [p]( e_ok_cancel oc ) { p.set_value( oc ); } );
+  co_return co_await p.waitable();
 }
 
-void text_input_box(
+[[nodiscard]] unique_ptr<Window> text_input_box(
     string_view title, string_view msg, string_view initial_text,
     ValidatorFunc                   validator,
     function<void( maybe<string> )> on_result ) {
@@ -576,7 +575,7 @@ void text_input_box(
             VerticalArrayView::align::center );
       };
 
-  ok_cancel_window_builder<string>(
+  return ok_cancel_window_builder<string>(
       /*title=*/title,
       /*get_result=*/
       [p_le_view]() -> string { return p_le_view->text(); },
@@ -590,25 +589,24 @@ waitable<maybe<int>> int_input_box( std::string_view title,
                                     std::string_view msg,
                                     maybe<int>       min,
                                     maybe<int>       max ) {
-  waitable_promise<maybe<int>> s_promise;
-  text_input_box( title, msg, /*initial_text=*/"",
-                  make_int_validator( min, max ),
-                  [s_promise]( maybe<string> result ) {
-                    s_promise.set_value(
-                        result.bind( L( base::stoi( _ ) ) ) );
-                  } );
-  return s_promise.waitable();
+  waitable_promise<maybe<int>> p;
+  unique_ptr<Window>           win = text_input_box(
+      title, msg, /*initial_text=*/"",
+      make_int_validator( min, max ),
+      [p]( maybe<string> result ) {
+        p.set_value( result.bind( L( base::stoi( _ ) ) ) );
+      } );
+  co_return co_await p.waitable();
 }
 
 waitable<maybe<string>> str_input_box(
     string_view title, string_view msg,
     string_view initial_text ) {
-  waitable_promise<maybe<string>> s_promise;
-  text_input_box( title, msg, initial_text, L( _.size() > 0 ),
-                  [s_promise]( maybe<string> result ) {
-                    s_promise.set_value( result );
-                  } );
-  return s_promise.waitable();
+  waitable_promise<maybe<string>> p;
+  unique_ptr<Window>              win = text_input_box(
+      title, msg, initial_text, L( _.size() > 0 ),
+      [p]( maybe<string> result ) { p.set_value( result ); } );
+  co_return co_await p.waitable();
 }
 
 /****************************************************************
@@ -706,7 +704,7 @@ waitable<vector<UnitSelection>> unit_selection_box(
         return std::move( unit_activation_view );
       };
 
-  ok_cancel_window_builder<
+  unique_ptr<Window> win = ok_cancel_window_builder<
       unordered_map<UnitId, UnitActivationInfo>>(
       /*title=*/"Activate Units",
       /*get_result=*/
@@ -718,7 +716,7 @@ waitable<vector<UnitSelection>> unit_selection_box(
       /*get_view_fun=*/get_view_fn //
   );
 
-  return s_promise.waitable();
+  co_return co_await s_promise.waitable();
 }
 
 /****************************************************************
