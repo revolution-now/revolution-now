@@ -22,7 +22,6 @@ function( set_warning_options target )
            -Wextra
            -Wno-unused-local-typedef
            -Wno-unused-parameter
-           -Wno-unused-command-line-argument
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
