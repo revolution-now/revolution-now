@@ -535,6 +535,7 @@ waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
   co_return co_await p.waitable();
 }
 
+namespace {
 [[nodiscard]] unique_ptr<Window> text_input_box(
     string_view title, string_view msg, string_view initial_text,
     ValidatorFunc                   validator,
@@ -584,6 +585,7 @@ waitable<e_ok_cancel> ok_cancel( std::string_view msg ) {
       /*get_view_fun=*/get_view_fn //
   );
 }
+} // namespace
 
 waitable<maybe<int>> int_input_box( std::string_view title,
                                     std::string_view msg,

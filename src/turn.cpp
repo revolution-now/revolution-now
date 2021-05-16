@@ -326,7 +326,6 @@ waitable<> monitor_inputs() {
 }
 
 waitable<> process_inputs() {
-  SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
   g_input_stream.reset();
   landview_reset_input_buffers();
   UserInput command;
@@ -348,7 +347,10 @@ waitable<> process_inputs() {
 
 } // namespace eot
 
-waitable<> end_of_turn() { return eot::process_inputs(); }
+waitable<> end_of_turn() {
+  SCOPED_SET_AND_CHANGE( g_doing_eot, true, false );
+  return eot::process_inputs();
+}
 
 /****************************************************************
 ** Processing Player Input (During Turn).

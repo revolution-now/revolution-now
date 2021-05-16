@@ -84,11 +84,6 @@ waitable<e_ok_cancel> ok_cancel( std::string_view question,
       fmt::format( question, std::forward<Args>( args )... ) );
 }
 
-void text_input_box(
-    std::string_view title, std::string_view msg,
-    ValidatorFunc                             validator,
-    std::function<void( maybe<std::string> )> on_result );
-
 waitable<maybe<int>> int_input_box( std::string_view title,
                                     std::string_view msg,
                                     maybe<int> min = nothing,
