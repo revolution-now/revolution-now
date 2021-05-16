@@ -44,6 +44,7 @@
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
+#include "base/vocab.hpp"
 
 // Rnl
 #include "rnl/old-world-view-impl.hpp"
@@ -1613,9 +1614,9 @@ struct DragUserInput {
   DragUserInput( Entities const* entities_ )
     : entities( entities_ ) {}
 
-  static waitable<bool> visit( Entities const*    entities,
-                               OldWorldDragSrc_t* drag_src,
-                               OldWorldDragDst_t* drag_dst ) {
+  static waitable<base::NoDiscard<bool>> visit(
+      Entities const* entities, OldWorldDragSrc_t* drag_src,
+      OldWorldDragDst_t* drag_dst ) {
     // Need to co_await here to keep parameters alive.
     bool proceed = co_await std::visit(
         DragUserInput( entities ), *drag_src, *drag_dst );
@@ -1946,16 +1947,20 @@ waitable<> dragging_thread( Entities*             entities,
 
   if( state.indicator == drag::e_status_indicator::good ) {
     CHECK( dst );
+    bool proceed = true;
     if( state.user_requests_input )
-      co_await DragUserInput::visit( entities, &src, &*dst );
-    DragPerform::visit( entities, src, *dst );
-    // Now that we've potentially changed the ownership of some
-    // units, we need to recreate the entities otherwise we'll
-    // potentially have one frame where the dragged unit is back
-    // in its original position before moving to where it was
-    // dragged.
-    create_entities( entities );
-    co_return;
+      proceed =
+          co_await DragUserInput::visit( entities, &src, &*dst );
+    if( proceed ) {
+      DragPerform::visit( entities, src, *dst );
+      // Now that we've potentially changed the ownership of some
+      // units, we need to recreate the entities otherwise we'll
+      // potentially have one frame where the dragged unit is
+      // back in its original position before moving to where it
+      // was dragged.
+      create_entities( entities );
+      co_return;
+    }
   }
 
   // Rubber-band back to starting point.
