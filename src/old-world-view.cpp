@@ -1980,26 +1980,11 @@ waitable<> dragging_thread( Entities*             entities,
 }
 
 /****************************************************************
-** Main Thread
-*****************************************************************/
-waitable<> run_old_world_view() {
-  // TODO: how does this thread interact with the dragging
-  // thread? It should probably somehow co_await on it when a
-  // drag happens.
-  co_await g_exit_promise.waitable();
-}
-
-/****************************************************************
 ** The Old World Plane
 *****************************************************************/
 struct OldWorldPlane : public Plane {
   OldWorldPlane() = default;
   bool covers_screen() const override { return true; }
-
-  void advance_state() override {
-    // Should be last.
-    create_entities( &entities_ );
-  }
 
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
@@ -2021,11 +2006,7 @@ struct OldWorldPlane : public Plane {
       case input::e_input_event::quit_event:
         return e_input_handled::no;
       case input::e_input_event::win_event:
-        // Note: we don't have to handle the window-resize event
-        // here because currently the old-world plane completely
-        // re-composites and re-draws itself every frame ac-
-        // cording to the current window size.
-        //
+        create_entities( &entities_ );
         // Generally we should return no here because this is an
         // event that we want all planes to see.
         return e_input_handled::no;
@@ -2059,6 +2040,7 @@ struct OldWorldPlane : public Plane {
                 maybe_pair ) {
               SG().selected_unit = maybe_pair->first;
               handled            = e_input_handled::yes;
+              create_entities( &entities_ );
             }
           }
         };
@@ -2121,6 +2103,17 @@ void init_old_world_view() {}
 void cleanup_old_world_view() { g_drag_thread = nothing; }
 
 REGISTER_INIT_ROUTINE( old_world_view );
+
+/****************************************************************
+** Main Thread
+*****************************************************************/
+waitable<> run_old_world_view() {
+  create_entities( &g_old_world_plane.entities_ );
+  // TODO: how does this thread interact with the dragging
+  // thread? It should probably somehow co_await on it when a
+  // drag happens.
+  co_await g_exit_promise.waitable();
+}
 
 } // namespace
 
