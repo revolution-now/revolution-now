@@ -99,7 +99,7 @@ struct BuildHandler : public OrdersHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<OrdersHandler> handle_orders(
-    UnitId id, orders::build const& build ) {
+    UnitId id, orders::build const& /*build*/ ) {
   return make_unique<BuildHandler>( id );
 }
 

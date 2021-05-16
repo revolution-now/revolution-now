@@ -10,9 +10,6 @@ endif()
 # === compiler warnings ===========================================
 
 # Enable all warnings and treat warnings as errors.
-# TODO: remove -Wno-unused-local-typedef after these are fixed:
-#       https://bugs.llvm.org/show_bug.cgi?id=24883
-#       https://bugs.llvm.org/show_bug.cgi?id=33298
 function( set_warning_options target )
     target_compile_options(
         ${target} PRIVATE
@@ -20,8 +17,10 @@ function( set_warning_options target )
         $<$<CXX_COMPILER_ID:Clang>:
            -Wall
            -Wextra
+           # TODO: remove this after these issues are fixed:
+           #       https://bugs.llvm.org/show_bug.cgi?id=24883
+           #       https://bugs.llvm.org/show_bug.cgi?id=33298
            -Wno-unused-local-typedef
-           -Wno-unused-parameter
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:

@@ -693,8 +693,8 @@ waitable<e_confirm> yes_no( std::string_view title ) {
 
 waitable<> message_box( string_view msg ) {
   waitable_promise<> p;
-  Window*            win =
-      async_window_builder( /*title=*/"note", [=]( auto* win ) {
+  Window*            win = async_window_builder(
+      /*title=*/"note", [=]( auto* /*win*/ ) {
         return PlainMessageBoxView::create( string( msg ), p );
       } );
   co_await p.waitable();

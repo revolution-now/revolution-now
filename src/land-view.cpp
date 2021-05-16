@@ -922,9 +922,10 @@ struct LandViewPlane : public Plane {
     drag_stream.send(
         DragUpdate{ .prev = prev, .current = current } );
   }
-  void on_drag_finished( input::mod_keys const& mod,
-                         input::e_mouse_button  button,
-                         Coord origin, Coord end ) override {
+  void on_drag_finished( input::mod_keys const& /*mod*/,
+                         input::e_mouse_button /*button*/,
+                         Coord /*origin*/,
+                         Coord /*end*/ ) override {
     drag_stream.finish();
     // At this point we assume that the callback will finish on
     // its own after doing any post-drag stuff it needs to do.

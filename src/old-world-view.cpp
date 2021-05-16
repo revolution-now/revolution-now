@@ -1465,6 +1465,10 @@ OldWorldDraggableObject_t draggable_from_src(
   operator()( OldWorldDragSrc::src_ const& src, \
               OldWorldDragDst::dst_ const& dst )
 
+#define DRAG_CONNECT_CASE_( src_, dst_ )    \
+  operator()( OldWorldDragSrc::src_ const&, \
+              OldWorldDragDst::dst_ const& )
+
 struct DragConnector {
   static bool visit( Entities const*          entities,
                      OldWorldDragSrc_t const& drag_src,
@@ -1483,6 +1487,7 @@ struct DragConnector {
         src.id, dst.slot._ );
   }
   bool DRAG_CONNECT_CASE( cargo, dock ) const {
+    (void)dst;
     return holds<OldWorldDraggableObject::unit>(
                draggable_from_src( src ) )
         .has_value();
@@ -1516,10 +1521,11 @@ struct DragConnector {
               /*slot=*/dst.slot );
         } );
   }
-  bool DRAG_CONNECT_CASE( outbound, inbound ) const {
+  bool DRAG_CONNECT_CASE_( outbound, inbound ) const {
     return true;
   }
   bool DRAG_CONNECT_CASE( outbound, inport ) const {
+    (void)dst;
     UNWRAP_CHECK( info, unit_old_world_view_info( src.id ) );
     ASSIGN_CHECK_V( outbound, info,
                     UnitOldWorldViewState::outbound );
@@ -1527,10 +1533,10 @@ struct DragConnector {
     // errors.
     return outbound.percent < 0.01;
   }
-  bool DRAG_CONNECT_CASE( inbound, outbound ) const {
+  bool DRAG_CONNECT_CASE_( inbound, outbound ) const {
     return true;
   }
-  bool DRAG_CONNECT_CASE( inport, outbound ) const {
+  bool DRAG_CONNECT_CASE_( inport, outbound ) const {
     return true;
   }
   bool DRAG_CONNECT_CASE( dock, inport_ship ) const {
@@ -1585,6 +1591,7 @@ struct DragConnector {
         comm, /*starting_slot=*/0 );
   }
   bool DRAG_CONNECT_CASE( cargo, market ) const {
+    (void)dst;
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     if( !is_unit_in_port( ship ) ) return false;
     return unit_from_id( ship )
@@ -1695,6 +1702,7 @@ struct DragPerform {
       ustate_change_to_cargo( ship, src.id );
   }
   void DRAG_PERFORM_CASE( cargo, dock ) const {
+    (void)dst;
     ASSIGN_CHECK_V( unit, draggable_from_src( src ),
                     OldWorldDraggableObject::unit );
     unit_move_to_old_world_dock( unit.id );
@@ -1719,15 +1727,19 @@ struct DragPerform {
         } );
   }
   void DRAG_PERFORM_CASE( outbound, inbound ) const {
+    (void)dst;
     unit_sail_to_old_world( src.id );
   }
   void DRAG_PERFORM_CASE( outbound, inport ) const {
+    (void)dst;
     unit_sail_to_old_world( src.id );
   }
   void DRAG_PERFORM_CASE( inbound, outbound ) const {
+    (void)dst;
     unit_sail_to_new_world( src.id );
   }
   void DRAG_PERFORM_CASE( inport, outbound ) const {
+    (void)dst;
     unit_sail_to_new_world( src.id );
     // This is not strictly necessary, but for a nice user expe-
     // rience we will auto-select another unit that is in-port
@@ -1804,6 +1816,7 @@ struct DragPerform {
                             /*try_other_slots=*/true );
   }
   void DRAG_PERFORM_CASE( cargo, market ) const {
+    (void)dst;
     UNWRAP_CHECK( ship, active_cargo_ship( entities ) );
     UNWRAP_CHECK( commodity_ref,
                   unit_from_id( ship )
@@ -2076,9 +2089,10 @@ struct OldWorldPlane : public Plane {
         drag::Step{ .mod = mod, .current = current } );
   }
 
-  void on_drag_finished( input::mod_keys const& mod,
+  void on_drag_finished( input::mod_keys const& /*mod*/,
                          input::e_mouse_button /*button*/,
-                         Coord origin, Coord end ) override {
+                         Coord /*origin*/,
+                         Coord /*end*/ ) override {
     CHECK( g_drag_state );
     g_drag_state->stream.finish();
     // At this point we assume that the callback will finish on

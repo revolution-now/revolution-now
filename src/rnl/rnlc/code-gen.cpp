@@ -574,8 +574,9 @@ struct CodeGenerator {
       }
       line( "template<typename Int>" );
       line(
-          "static constexpr maybe<type> from_integral( Int val "
-          ") {" );
+          "static constexpr maybe<type> from_integral( Int {}) "
+          "{{",
+          e.values.empty() ? "" : "val " );
       {
         auto _ = indent();
         line( "maybe<type> res;" );
@@ -590,7 +591,8 @@ struct CodeGenerator {
       line( "}" );
       line(
           "static constexpr maybe<type> from_string( "
-          "std::string_view name ) {" );
+          "std::string_view {}) {{",
+          e.values.empty() ? "" : "name " );
       {
         auto _ = indent();
         line( "return" );

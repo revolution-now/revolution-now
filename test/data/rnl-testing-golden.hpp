@@ -1316,11 +1316,11 @@ namespace rn {
     static constexpr std::array<type, 0> values{
     };
     template<typename Int>
-    static constexpr maybe<type> from_integral( Int val ) {
+    static constexpr maybe<type> from_integral( Int ) {
       maybe<type> res;
       return res;
     }
-    static constexpr maybe<type> from_string( std::string_view name ) {
+    static constexpr maybe<type> from_string( std::string_view ) {
       return
         maybe<type>{};
     }
