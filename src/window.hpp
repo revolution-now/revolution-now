@@ -101,73 +101,45 @@ waitable<maybe<std::string>> str_input_box(
 /****************************************************************
 ** Generic Option-Select Window
 *****************************************************************/
-void select_box(
-    std::string_view title, std::vector<std::string> options,
-    std::function<void( std::string const& )> on_result );
-
 waitable<std::string> select_box(
     std::string_view title, std::vector<std::string> options );
 
+// FIXME: clang can't seem to handle function template corouti-
+// nes, without emitting warnings, so to work around that we make
+// this a niebloid.
 template<typename Enum>
-void select_box_enum( std::string_view            title,
-                      std::vector<Enum> const&    options,
-                      std::function<void( Enum )> on_result ) {
-  // map over member function?
-  std::vector<std::string> words;
-  for( auto option : options )
-    words.push_back(
-        std::string( enum_to_display_name( option ) ) );
-  select_box(
-      title, words,
-      [on_result = std::move( on_result ),
-       options]( std::string const& result ) {
-        for( auto const& option : options ) {
-          if( result == enum_to_display_name( option ) ) {
-            on_result( option );
-            return;
-          }
-        }
-        SHOULD_NOT_BE_HERE;
-      } );
-}
+struct SelectBoxEnum {
+  waitable<Enum> operator()(
+      std::string_view         title,
+      std::vector<Enum> const& options ) const {
+    // map over member function?
+    std::vector<std::string> words;
+    for( auto option : options )
+      words.push_back(
+          std::string( enum_to_display_name( option ) ) );
+    std::string str_result = co_await select_box( title, words );
+    for( auto const& option : options )
+      if( str_result == enum_to_display_name( option ) )
+        co_return option;
+    SHOULD_NOT_BE_HERE;
+  }
+
+  waitable<Enum> operator()( std::string_view title ) const {
+    static const std::vector<Enum> options = [] {
+      return std::vector<Enum>(
+          enum_traits<Enum>::values.begin(),
+          enum_traits<Enum>::values.end() );
+    }();
+    return (*this)( title, options );
+  }
+};
 
 template<typename Enum>
-waitable<Enum> select_box_enum(
-    std::string_view title, std::vector<Enum> const& options ) {
-  waitable_promise<Enum> s_promise;
-  select_box_enum<Enum>( title, options,
-                         [s_promise]( Enum result ) mutable {
-                           s_promise.set_value( result );
-                         } );
-  return s_promise.waitable();
-}
-
-template<typename Enum>
-void select_box_enum( std::string_view            title,
-                      std::function<void( Enum )> on_result ) {
-  static const std::vector<Enum> options = [] {
-    return std::vector<Enum>( enum_traits<Enum>::values.begin(),
-                              enum_traits<Enum>::values.end() );
-  }();
-  select_box_enum( title, options, std::move( on_result ) );
-}
-
-template<typename Enum>
-waitable<Enum> select_box_enum( std::string_view title ) {
-  waitable_promise<Enum> s_promise;
-  select_box_enum<Enum>( title,
-                         [s_promise]( Enum result ) mutable {
-                           s_promise.set_value( result );
-                         } );
-  return s_promise.waitable();
-}
+inline constexpr SelectBoxEnum<Enum> select_box_enum{};
 
 /****************************************************************
 ** Canned Option-Select Windows
 *****************************************************************/
-void yes_no( std::string_view                 title,
-             std::function<void( e_confirm )> on_result );
-
 waitable<e_confirm> yes_no( std::string_view title );
 
 template<typename... Args>

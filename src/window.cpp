@@ -58,9 +58,13 @@ namespace {
 /****************************************************************
 ** Window
 *****************************************************************/
-enum class e_window_state { running, closed };
 struct Window {
   Window( std::string title_, Coord position_ );
+  // Removes this window from the window manager.
+  ~Window() noexcept;
+
+  Window( Window&& ) = default;
+  Window& operator=( Window&& ) = default;
 
   void set_view( unique_ptr<View> view_ ) {
     view = std::move( view_ );
@@ -71,8 +75,6 @@ struct Window {
     // by the OS) in which this game lives.
     position = centered( delta(), main_window_logical_rect() );
   }
-
-  void close_window() { window_state = e_window_state::closed; }
 
   void  draw( Texture& tx ) const;
   Delta delta() const;
@@ -85,7 +87,6 @@ struct Window {
   // abs coord of upper-left corner of view.
   Coord view_pos() const;
 
-  e_window_state                     window_state;
   std::string                        title;
   std::unique_ptr<View>              view;
   std::unique_ptr<OneLineStringView> title_view;
@@ -108,33 +109,26 @@ public:
                            input::e_mouse_button button, Coord origin,
                            Coord prev, Coord current );
 
-  auto active_windows() {
-    return rl::all( windows_ )
-        .keep_if_L( _.window_state != e_window_state::closed );
+  vector<Window*>& active_windows() { return windows_; }
+
+  vector<Window*> const& active_windows() const {
+    return windows_;
   }
 
-  auto active_windows() const {
-    return rl::all( windows_ )
-        .keep_if_L( _.window_state != e_window_state::closed );
-  }
-
-  int num_windows() const { return active_windows().distance(); }
-
-  void remove_closed_windows();
+  int num_windows() const { return windows_.size(); }
 
 public:
-  Window* add_window( std::string title );
+  void add_window( Window* win ) { windows_.push_back( win ); }
 
   void remove_window( Window* p_win ) {
-    windows_.remove_if( LC( &_ == p_win ) );
+    erase_if( windows_, LC( _ == p_win ) );
   }
 
 private:
   // Gets the window with focus, throws if no windows.
   Window& focused();
 
-  // We need order and pointer stability here.
-  list<Window> windows_;
+  vector<Window*> windows_;
 };
 NOTHROW_MOVE( WindowManager );
 
@@ -151,7 +145,6 @@ namespace {
 struct WindowPlane : public Plane {
   WindowPlane() = default;
   bool covers_screen() const override { return false; }
-  void advance_state() override { wm.remove_closed_windows(); }
   void draw( Texture& tx ) const override {
     clear_texture_transparent( tx );
     wm.draw_layout( tx );
@@ -216,13 +209,17 @@ Delta const& window_padding() {
 ** WindowManager
 *****************************************************************/
 Window::Window( string title_, Coord position_ )
-  : window_state( e_window_state::running ),
-    title( move( title_ ) ),
+  : title( move( title_ ) ),
     view{},
     title_view(),
     position( position_ ) {
   title_view = make_unique<OneLineStringView>(
       title, config_palette.orange.sat1.lum11, /*shadow=*/true );
+  g_window_plane.wm.add_window( this );
+}
+
+Window::~Window() noexcept {
+  g_window_plane.wm.remove_window( this );
 }
 
 void Window::draw( Texture& tx ) const {
@@ -296,18 +293,7 @@ Coord Window::view_pos() const {
 }
 
 void WindowManager::draw_layout( Texture& tx ) const {
-  for( auto const& window : active_windows() ) window.draw( tx );
-}
-
-void WindowManager::remove_closed_windows() {
-  // Don't use active_windows() here... would defeat the points.
-  windows_.remove_if(
-      L( _.window_state == e_window_state::closed ) );
-}
-
-Window* WindowManager::add_window( string title_ ) {
-  windows_.emplace_back( move( title_ ), Coord{} );
-  return &windows_.back();
+  for( Window* window : active_windows() ) window->draw( tx );
 }
 
 Plane::e_input_handled WindowManager::input(
@@ -392,7 +378,7 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
 
 Window& WindowManager::focused() {
   CHECK( num_windows() > 0 );
-  return *active_windows().begin();
+  return **active_windows().begin();
 }
 
 /****************************************************************
@@ -414,11 +400,11 @@ ValidatorFunc make_int_validator( maybe<int> min,
 /****************************************************************
 ** Windows
 *****************************************************************/
-Window* async_window_builder(
-    std::string_view                          title,
-    function_ref<unique_ptr<View>( Window* )> get_view_fn ) {
-  auto* win  = g_window_plane.wm.add_window( string( title ) );
-  auto  view = get_view_fn( win );
+// We need to have pointer stability on the returned window since
+// its address needs to go into callbacks.
+unique_ptr<Window> async_window_builder(
+    std::string_view title, unique_ptr<View> view ) {
+  auto win = make_unique<Window>( string( title ), Coord{} );
   autopad( view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
   win->center_window();
@@ -430,51 +416,46 @@ using GetOkCancelSubjectViewFunc = unique_ptr<View>(
 );
 
 template<typename ResultT>
-void ok_cancel_window_builder(
+unique_ptr<Window> ok_cancel_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( maybe<ResultT> )>         on_result,
     function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
-  async_window_builder( title, [=]( auto* win ) {
-    auto ok_cancel_view = make_unique<OkCancelView>(
-        /*on_ok=*/
-        [win, on_result, validator{ std::move( validator ) },
-         get_result{ std::move( get_result ) }] {
-          lg.trace( "selected ok." );
-          decltype( auto ) proposed = get_result();
-          if( validator( proposed ) ) {
-            on_result( proposed );
-            win->close_window();
+  auto ok_cancel_view = make_unique<OkCancelView>(
+      /*on_ok=*/
+      [on_result, validator{ std::move( validator ) },
+       get_result{ std::move( get_result ) }] {
+        lg.trace( "selected ok." );
+        decltype( auto ) proposed = get_result();
+        if( validator( proposed ) ) {
+          on_result( proposed );
+        } else {
+          if constexpr( has_fmt<decltype( proposed )> ) {
+            lg.debug( "{} is invalid.", proposed );
           } else {
-            if constexpr( has_fmt<decltype( proposed )> ) {
-              lg.debug( "{} is invalid.", proposed );
-            } else {
-              lg.debug( "result is invalid." );
-            }
+            lg.debug( "result is invalid." );
           }
-        }, /*on_cancel=*/
-        [win, on_result] {
-          lg.trace( "selected cancel." );
-          on_result( nothing );
-          win->close_window();
-        } );
-    auto* p_ok_button      = ok_cancel_view->ok_button();
-    auto  enable_ok_button = [p_ok_button]( bool enable ) {
-      p_ok_button->enable( enable );
-    };
-    unique_ptr<View> subject_view = get_view_fn(
-        /*enable_ok_button=*/std::move( enable_ok_button ) //
-    );
-    CHECK( subject_view != nullptr );
-    vector<unique_ptr<View>> view_vec;
-    view_vec.emplace_back( std::move( subject_view ) );
-    view_vec.emplace_back( std::move( ok_cancel_view ) );
-    auto view = make_unique<VerticalArrayView>(
-        std::move( view_vec ),
-        VerticalArrayView::align::center );
-    return view;
-  } );
+        }
+      }, /*on_cancel=*/
+      [on_result] {
+        lg.trace( "selected cancel." );
+        on_result( nothing );
+      } );
+  auto* p_ok_button      = ok_cancel_view->ok_button();
+  auto  enable_ok_button = [p_ok_button]( bool enable ) {
+    p_ok_button->enable( enable );
+  };
+  unique_ptr<View> subject_view = get_view_fn(
+      /*enable_ok_button=*/std::move( enable_ok_button ) //
+  );
+  CHECK( subject_view != nullptr );
+  vector<unique_ptr<View>> view_vec;
+  view_vec.emplace_back( std::move( subject_view ) );
+  view_vec.emplace_back( std::move( ok_cancel_view ) );
+  auto view = make_unique<VerticalArrayView>(
+      std::move( view_vec ), VerticalArrayView::align::center );
+  return async_window_builder( title, std::move( view ) );
 }
 
 using GetOkBoxSubjectViewFunc = unique_ptr<View>(
@@ -482,41 +463,37 @@ using GetOkBoxSubjectViewFunc = unique_ptr<View>(
 );
 
 template<typename ResultT>
-void ok_box_window_builder(
+unique_ptr<Window> ok_box_window_builder(
     string_view title, function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
     function<void( ResultT )>             on_result,
     function_ref<GetOkBoxSubjectViewFunc> get_view_fn ) {
-  async_window_builder( title, [=]( auto* win ) {
-    auto ok_button_view = make_unique<OkButtonView>(
-        /*on_ok=*/
-        [win, on_result, validator{ std::move( validator ) },
-         get_result{ std::move( get_result ) }] {
-          lg.trace( "selected ok." );
-          auto const& proposed = get_result();
-          if( validator( proposed ) ) {
-            on_result( proposed );
-            win->close_window();
-          } else {
-            lg.debug( "{} is invalid.", proposed );
-          }
-        } );
-    auto* p_ok_button      = ok_button_view->ok_button();
-    auto  enable_ok_button = [p_ok_button]( bool enable ) {
-      p_ok_button->enable( enable );
-    };
-    auto subject_view = get_view_fn(
-        /*enable_ok_button=*/std::move( enable_ok_button ) //
-    );
-    vector<unique_ptr<View>> view_vec;
-    view_vec.emplace_back( std::move( subject_view ) );
-    view_vec.emplace_back( std::move( ok_button_view ) );
-    auto view = make_unique<VerticalArrayView>(
-        std::move( view_vec ),
-        VerticalArrayView::align::center );
-    return view;
-  } );
+  auto ok_button_view = make_unique<OkButtonView>(
+      /*on_ok=*/
+      [on_result, validator{ std::move( validator ) },
+       get_result{ std::move( get_result ) }] {
+        lg.trace( "selected ok." );
+        auto const& proposed = get_result();
+        if( validator( proposed ) ) {
+          on_result( proposed );
+        } else {
+          lg.debug( "{} is invalid.", proposed );
+        }
+      } );
+  auto* p_ok_button      = ok_button_view->ok_button();
+  auto  enable_ok_button = [p_ok_button]( bool enable ) {
+    p_ok_button->enable( enable );
+  };
+  auto subject_view = get_view_fn(
+      /*enable_ok_button=*/std::move( enable_ok_button ) //
+  );
+  vector<unique_ptr<View>> view_vec;
+  view_vec.emplace_back( std::move( subject_view ) );
+  view_vec.emplace_back( std::move( ok_button_view ) );
+  auto view = make_unique<VerticalArrayView>(
+      std::move( view_vec ), VerticalArrayView::align::center );
+  return async_window_builder( title, std::move( view ) );
 }
 
 void ok_cancel_impl( string_view                   msg,
@@ -637,9 +614,8 @@ waitable<maybe<string>> str_input_box(
 /****************************************************************
 ** High-level Methods
 *****************************************************************/
-void select_box(
-    string_view title, vector<string> options,
-    std::function<void( std::string const& )> on_result ) {
+waitable<string> select_box( string_view    title,
+                             vector<string> options ) {
   lg.info( "question: \"{}\"", title );
   auto view = make_unique<OptionSelectView>(
       options, /*initial_selection=*/0 );
@@ -647,10 +623,11 @@ void select_box(
 
   // p_selector->grow_to( win->inside_padding_rect().w );
 
-  auto on_result_prime = [on_result = std::move( on_result )](
-                             string const& result ) {
+  waitable_promise<string> p;
+
+  auto on_result_prime = [=]( string const& result ) {
     lg.info( "selected: {}", result );
-    on_result( result );
+    p.set_value( result );
   };
 
   // We can capture by reference here because the function will
@@ -660,31 +637,20 @@ void select_box(
         return std::move( view );
       };
 
-  ok_box_window_builder<string>(
+  unique_ptr<Window> win = ok_box_window_builder<string>(
       /*title=*/title,
       /*get_result=*/
       [p_selector] { return p_selector->get_selected(); },
-      /*validator=*/[]( auto const& ) { return true; }, // always
-                                                        // true.
+      /*validator=*/
+      []( auto const& ) { return true; }, // always
+                                          // true.
       /*on_result=*/std::move( on_result_prime ),
       /*get_view_fn=*/get_view_fn //
   );
-}
 
-waitable<std::string> select_box( std::string_view title,
-                                  vector<string>   options ) {
-  waitable_promise<string> s_promise;
-  select_box( title, options,
-              [s_promise]( string const& result ) {
-                s_promise.set_value( result );
-              } );
-  return s_promise.waitable();
-}
-
-void yes_no( std::string_view                 title,
-             std::function<void( e_confirm )> on_result ) {
-  return select_box_enum<e_confirm>( title,
-                                     std::move( on_result ) );
+  // Need to co_await instead of returning so that the window
+  // stays alive while we wait.
+  co_return co_await p.waitable();
 }
 
 waitable<e_confirm> yes_no( std::string_view title ) {
@@ -693,12 +659,10 @@ waitable<e_confirm> yes_no( std::string_view title ) {
 
 waitable<> message_box( string_view msg ) {
   waitable_promise<> p;
-  Window*            win = async_window_builder(
-      /*title=*/"note", [=]( auto* /*win*/ ) {
-        return PlainMessageBoxView::create( string( msg ), p );
-      } );
+  unique_ptr<Window> win = async_window_builder(
+      /*title=*/"note",
+      PlainMessageBoxView::create( string( msg ), p ) );
   co_await p.waitable();
-  win->close_window();
 }
 
 waitable<vector<UnitSelection>> unit_selection_box(
