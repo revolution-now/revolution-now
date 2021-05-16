@@ -23,7 +23,6 @@ function( set_warning_options target )
            -Wno-unused-local-typedef
            -Wno-unused-parameter
            -Wno-unused-command-line-argument
-           -fcoroutines-ts
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
