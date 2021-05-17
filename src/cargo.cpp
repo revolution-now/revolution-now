@@ -21,6 +21,7 @@
 // base
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
+#include "base/scope-exit.hpp"
 
 // Abseil
 #include "absl/strings/str_replace.h"
@@ -358,6 +359,10 @@ ND bool CargoHold::fits_with_item_removed(
 bool CargoHold::fits_somewhere( Cargo const& cargo,
                                 int starting_slot ) const {
   CargoHold new_hold = *this;
+  // Do this so that this tmp cargo hold does not get destroyed
+  // with stuff in it, which currently triggers a warning to be
+  // logged to the console and slows things down.
+  SCOPE_EXIT( new_hold.slots_.clear() );
   return new_hold.try_add_somewhere( cargo, starting_slot );
 }
 
