@@ -362,7 +362,8 @@ waitable<> end_of_turn() {
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-waitable<> process_player_input( e_menu_actions action ) {
+waitable<> process_player_input( UnitId,
+                                 e_menu_actions action ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
@@ -370,8 +371,10 @@ waitable<> process_player_input( e_menu_actions action ) {
 }
 
 waitable<> process_player_input(
-    UnitId id, deque<UnitId>* q,
-    LandViewPlayerInput_t const& input ) {
+    UnitId id, LandViewPlayerInput_t const& input ) {
+  CHECK( SG().turn.nation );
+  auto& st = *SG().turn.nation;
+  auto& q  = st.units;
   switch( input.to_enum() ) {
     using namespace LandViewPlayerInput;
     case e::colony: {
@@ -391,8 +394,8 @@ waitable<> process_player_input(
         // during a single cycle of "wait" commands, i.e., the
         // user just pressing "wait" through all of the available
         // units.
-        CHECK( q->front() == id );
-        q->pop_front();
+        CHECK( q.front() == id );
+        q.pop_front();
         break;
       }
       if( orders.holds<orders::forfeight>() ) {
@@ -420,7 +423,7 @@ waitable<> process_player_input(
       // tives.
 
       for( auto id : handler->units_to_prioritize() )
-        prioritize_unit( *q, id );
+        prioritize_unit( q, id );
       break;
     }
     case e::prioritize: {
@@ -440,7 +443,7 @@ waitable<> process_player_input(
             "Some of the selected units have already moved this "
             "turn." );
       for( UnitId id_to_add : prioritize )
-        prioritize_unit( *q, id_to_add );
+        prioritize_unit( q, id_to_add );
       break;
     }
   }
@@ -461,21 +464,16 @@ waitable<LandViewPlayerInput_t> landview_player_input(
 }
 
 waitable<> query_unit_input( UnitId id, deque<UnitId>* q ) {
-  while( true ) {
-    auto command = co_await co::first(
-        wait_for_menu_selection(), landview_player_input( id ) );
-    co_await overload_visit(
-        command,
-        []( e_menu_actions action ) -> waitable<> {
-          return process_player_input( action );
-        },
-        [&]( LandViewPlayerInput_t const& input ) -> waitable<> {
-          return process_player_input( id, q, input );
-        } );
-    // We're waiting for a land view input, so if we got that
-    // then we are done here.
-    if( command.holds<LandViewPlayerInput_t>() ) co_return;
-  }
+  auto command = co_await co::first(
+      wait_for_menu_selection(), landview_player_input( id ) );
+  co_await overload_visit(
+      command, [&]( auto const& action ) -> waitable<> {
+        return process_player_input( id, action );
+      } );
+  // A this point we should return because we want to in general
+  // allow for the possibility and any action executed above
+  // might affect the status of the unit asking for orders, and
+  // so returning will cause the unit to be re-examined.
 }
 
 /****************************************************************
