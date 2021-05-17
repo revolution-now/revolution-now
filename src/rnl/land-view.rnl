@@ -16,7 +16,16 @@ include "rnl/orders.hpp";
 namespace rn;
 
 sumtype LandViewPlayerInput {
-  # Player clicked on a colony.
+  # Player clicked on a colony. It is important that this be a
+  # command sent back to the caller of the land-view module (as
+  # opposed to the land-view input processor coroutine just
+  # showing the colony window itself) because it is possible that
+  # a user might change the orders of a unit in the colony view,
+  # e.g. they could fortify the unit that is currently asking for
+  # orders, then upon closing the colony view we'd be a bad state
+  # (a fortified unit asking for orders). But by this back to the
+  # turn processor, it can handle that issue and we don't have
+  # that problem.
   colony:
     ColonyId id;
   # Player wants to view the old world view.
