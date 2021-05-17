@@ -120,6 +120,8 @@ struct PanelPlane : public Plane {
 
   waitable<> user_hits_eot_button() {
     next_turn_button().enable( /*enabled=*/true );
+    // Use a scoped setter here so that the button gets disabled
+    // if this coroutine gets cancelled.
     SCOPE_EXIT( next_turn_button().enable( /*enabled=*/false ) );
     w_promise = {};
     co_await w_promise.waitable();
