@@ -69,7 +69,8 @@ enum class e_menu_actions {
   save,
   load,
   next_turn,
-  revolution
+  revolution,
+  old_world_view
 };
 
 bool                       g_menu_commands_accepted = false;
@@ -184,6 +185,10 @@ waitable<> menu_revolution_handler() {
   co_await ui::message_box( "You selected: {}", answer );
 }
 
+waitable<> menu_old_world_view_handler() {
+  co_await show_old_world_view();
+}
+
 waitable<> menu_next_turn_handler() {
   eot::g_input_stream.send( eot::button_click_t{} );
   co_return;
@@ -211,6 +216,7 @@ DEFAULT_TURN_MENU_ITEM_HANDLER( exit );
 DEFAULT_TURN_MENU_ITEM_HANDLER( save );
 DEFAULT_TURN_MENU_ITEM_HANDLER( load );
 DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
+DEFAULT_TURN_MENU_ITEM_HANDLER( old_world_view );
 
 MENU_ITEM_HANDLER(
     next_turn,
@@ -227,6 +233,7 @@ waitable<> handle_menu_item( e_menu_actions action ) {
     CASE_MENU_HANDLER( load );
     CASE_MENU_HANDLER( next_turn );
     CASE_MENU_HANDLER( revolution );
+    CASE_MENU_HANDLER( old_world_view );
   }
 }
 
@@ -301,10 +308,6 @@ waitable<> process_player_input(
       co_await show_colony_view( input.get<colony>().id );
       break;
     }
-    case e::old_world: {
-      co_await show_old_world_view();
-      break;
-    }
     default: break;
   }
 }
@@ -373,10 +376,6 @@ waitable<> process_player_input(
     using namespace LandViewPlayerInput;
     case e::colony: {
       co_await show_colony_view( input.get<colony>().id );
-      break;
-    }
-    case e::old_world: {
-      co_await show_old_world_view();
       break;
     }
     // We have some orders for the current unit.

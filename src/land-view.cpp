@@ -622,10 +622,6 @@ waitable<> raw_input_translator() {
               PlayerInput( input, Clock_t::now() ) );
         break;
       }
-      case e::old_world_view:
-        g_translated_input_stream.send( PlayerInput(
-            LandViewPlayerInput::old_world{}, raw_input.when ) );
-        break;
       case e::center:
         // For this one, we just perform the action right here.
         co_await center_on_blinking_unit_if_any();
@@ -732,13 +728,6 @@ struct LandViewPlane : public Plane {
       };
       return handler;
     }
-    if( item == e_menu_item::old_world_view ) {
-      static Plane::MenuClickHandler handler = [] {
-        g_raw_input_stream.send(
-            RawInput( LandViewRawInput::old_world_view{} ) );
-      };
-      return handler;
-    }
     if( item == e_menu_item::find_blinking_unit ) {
       if( !SG().landview_state
                .holds<LandViewState::unit_input>() )
@@ -806,10 +795,6 @@ struct LandViewPlane : public Plane {
             g_raw_input_stream.send(
                 RawInput( LandViewRawInput::orders{
                     .orders = orders::build{} } ) );
-            break;
-          case ::SDLK_e:
-            g_raw_input_stream.send(
-                RawInput( LandViewRawInput::old_world_view{} ) );
             break;
           case ::SDLK_c:
             g_raw_input_stream.send(

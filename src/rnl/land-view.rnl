@@ -28,8 +28,6 @@ sumtype LandViewPlayerInput {
   # that problem.
   colony:
     ColonyId id;
-  # Player wants to view the old world view.
-  old_world:
   # Player has given orders to a unit.
   give_orders:
     orders_t orders;

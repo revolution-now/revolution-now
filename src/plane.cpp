@@ -570,7 +570,6 @@ MENU_ITEM_HANDLER_PLANE( find_blinking_unit );
 MENU_ITEM_HANDLER_PLANE( fortify );
 MENU_ITEM_HANDLER_PLANE( founding_father_help );
 MENU_ITEM_HANDLER_PLANE( military_advisor );
-MENU_ITEM_HANDLER_PLANE( old_world_view );
 MENU_ITEM_HANDLER_PLANE( restore_zoom );
 MENU_ITEM_HANDLER_PLANE( retire );
 MENU_ITEM_HANDLER_PLANE( sentry );
