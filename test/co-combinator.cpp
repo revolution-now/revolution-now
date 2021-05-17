@@ -454,7 +454,7 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
   REQUIRE( rws2.suspended == true );
 }
 
-TEST_CASE( "[waitable] exception with any" ) {
+TEST_CASE( "[co-combinator] exception with any" ) {
   waitable_promise<> p1;
   waitable_promise<> p2;
   waitable_promise<> p3;
@@ -539,7 +539,8 @@ waitable<int> get_int_from_some_combinators() {
   co_return 9;
 }
 
-TEST_CASE( "[waitable] exception with various combinators" ) {
+TEST_CASE(
+    "[co-combinator] exception with various combinators" ) {
   places.clear();
   get_int1_p      = {};
   get_int2_p      = {};
@@ -673,7 +674,7 @@ waitable<int> throwing_coro( bool should_throw,
   co_return n;
 }
 
-TEST_CASE( "[waitable] try" ) {
+TEST_CASE( "[co-combinator] try" ) {
   wp = {};
   string what;
   auto   catcher = [&]( runtime_error const& e ) {
@@ -719,6 +720,115 @@ TEST_CASE( "[waitable] try" ) {
     REQUIRE( !w.has_exception() );
     REQUIRE( what == "" );
     REQUIRE( w.get() == 9 );
+  }
+}
+
+waitable<int> wait_on_stream( co::stream<int>& s ) {
+  int n = co_await s.next(); // #1
+  int m = co_await s.next(); // #2
+  int o = co_await s.next(); // #3
+  co_return n + m + o;
+}
+
+waitable<int> wait_on_finite_stream(
+    co::finite_stream<int>& s ) {
+  maybe<int> n = co_await s.next(); // #1
+  REQUIRE( n.has_value() );
+  maybe<int> m = co_await s.next(); // #2
+  REQUIRE( m.has_value() );
+  maybe<int> o = co_await s.next(); // #3
+  REQUIRE( o.has_value() );
+  co_return *n + *m + *o;
+}
+
+// Ensure that:
+//
+//   1. streams are cancellable, and
+//   2. streams can be used again after cancellation without
+//      losing any values in the stream.
+//
+TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
+  int const kFirst  = 1;
+  int const kSecond = 10;
+  int const kThird  = 100;
+  int const kFourth = 1000;
+
+  SECTION( "stream" ) {
+    co::stream<int> s;
+    {
+      waitable<int> w = wait_on_stream( s );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      s.send( kFirst );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      // Now send the remainder of the values, but instead of
+      // then running all coroutines, just let w get cancelled,
+      // so that we can later verify that those values are still
+      // available in the stream.
+      s.send( kSecond );
+      s.send( kThird );
+      REQUIRE( !w.ready() );
+    }
+    // w has now been cancelled.
+    waitable<int> w = wait_on_stream( s );
+    REQUIRE( !w.ready() );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    // At this point, we should be waiting at #3.
+    s.send( kFourth );
+    REQUIRE( !w.ready() );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( *w == kSecond + kThird + kFourth );
+  }
+  SECTION( "finite_stream" ) {
+    co::finite_stream<int> s;
+    {
+      waitable<int> w = wait_on_finite_stream( s );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      s.send( kFirst );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      // Now send the remainder of the values, but instead of
+      // then running all coroutines, just let w get cancelled,
+      // so that we can later verify that those values are still
+      // available in the stream.
+      s.send( kSecond );
+      s.send( kThird );
+      REQUIRE( !w.ready() );
+    }
+    // w has now been cancelled.
+    waitable<int> w = wait_on_finite_stream( s );
+    REQUIRE( !w.ready() );
+    run_all_coroutines();
+    REQUIRE( !w.ready() );
+    // At this point, we should be waiting at #3.
+    s.send( kFourth );
+    REQUIRE( !w.ready() );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( *w == kSecond + kThird + kFourth );
+
+    // Now let's end the finite stream while someone is waiting
+    // on it, then cancel it, and make sure it is still ended.
+    {
+      waitable<maybe<int>> w = s.next();
+      REQUIRE( !w.ready() );
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      s.finish();
+      REQUIRE( !w.ready() );
+      // w gets cancelled now.
+    }
+    waitable<maybe<int>> w2 = s.next();
+    REQUIRE( w2.ready() );
+    REQUIRE( *w2 == nothing );
+
+    waitable<maybe<int>> w3 = s.next();
+    REQUIRE( w3.ready() );
+    REQUIRE( *w3 == nothing );
   }
 }
 

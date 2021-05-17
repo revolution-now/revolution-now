@@ -621,11 +621,11 @@ TEST_CASE( "[waitable] simple exception chained" ) {
   REQUIRE( !w1.ready() );
 
   waitable_promise<> p2;
-  w1.link_to_promise( p2 );
+  disjunctive_link_to_promise( w1, p2 );
   waitable<> w2 = p2.waitable();
 
   waitable_promise<> p3;
-  w2.link_to_promise( p3 );
+  disjunctive_link_to_promise( w2, p3 );
   waitable<> w3 = p3.waitable();
 
   SECTION( "no exception" ) {

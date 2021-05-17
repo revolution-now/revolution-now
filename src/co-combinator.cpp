@@ -23,7 +23,7 @@ namespace rn::co {
 *****************************************************************/
 waitable<> any( vector<waitable<>> ws ) {
   waitable_promise<> wp;
-  for( auto& w : ws ) w.link_to_promise( wp );
+  for( auto& w : ws ) disjunctive_link_to_promise( w, wp );
   // !! Need to co_await instead of just returning the waitable<>
   // because we need to keep the ws alive (we own them now).
   co_await wp.waitable();

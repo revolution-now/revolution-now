@@ -98,7 +98,12 @@ public:
 
   bool has_exception() const { return bool( exception() ); }
 
-  T get() const {
+  T const& get() const noexcept {
+    CHECK( has_value() );
+    return *maybe_value_;
+  }
+
+  T& get() noexcept {
     CHECK( has_value() );
     return *maybe_value_;
   }
@@ -252,35 +257,18 @@ public:
 
   operator bool() const { return ready(); }
 
-  // Gets the value (running any continuations) and returns the
-  // value, leaving the waitable in the same state.
-  T get() {
-    CHECK( ready(),
-           "attempt to get value from waitable when not in "
-           "`ready` state." );
-    return shared_state_->get();
-  }
+  T& get() noexcept { return shared_state_->get(); }
+
+  T const& get() const noexcept { return shared_state_->get(); }
+
+  T& operator*() noexcept { return get(); }
+
+  T const& operator*() const noexcept { return get(); }
 
   SharedStatePtr<T>& shared_state() { return shared_state_; }
 
   void cancel() {
     if( shared_state_ ) shared_state_->cancel();
-  }
-
-  // This is used for chaining together waitables manually
-  // (meaning not through coroutines). It is mostly used in
-  // coroutine combinators, you probably should not be using this
-  // outside of those implementations.
-  template<typename U>
-  void link_to_promise( waitable_promise<U> wp ) {
-    shared_state_->add_callback(
-        [wp]( waitable::value_type const& o ) {
-          wp.set_value_emplace_if_not_set( o );
-        } );
-    shared_state_->set_exception_callback(
-        [wp]( std::exception_ptr eptr ) {
-          wp.set_exception( eptr );
-        } );
   }
 
 private:
@@ -417,6 +405,30 @@ waitable<T> empty_waitable() {
 template<typename T>
 waitable<T>::waitable( T const& ready_val ) {
   *this = make_waitable<T>( ready_val );
+}
+
+// This is a specialized function for use in chaining together
+// waitables manually (meaning not through coroutines) in a
+// many-to-one, logically disjunctive manner, i.e. for situations
+// in which a single waitable needs to wait on any of multiple
+// other waitables. In other words, we want to detect when the
+// first of them finishes. It is mostly used in coroutine combi-
+// nators, you probably should not be using this outside of those
+// implementations.
+template<typename T, typename U>
+void disjunctive_link_to_promise( waitable<T>&        w,
+                                  waitable_promise<U> wp ) {
+  w.shared_state()->add_callback(
+      [wp]( typename waitable<T>::value_type const& o ) {
+        // The "if-not-set" reflects the intended disjunctive na-
+        // ture of the use of this function: we are only taking
+        // the first result available and ignoring the rest.
+        wp.set_value_emplace_if_not_set( o );
+      } );
+  w.shared_state()->set_exception_callback(
+      [wp]( std::exception_ptr eptr ) {
+        wp.set_exception( eptr );
+      } );
 }
 
 } // namespace rn

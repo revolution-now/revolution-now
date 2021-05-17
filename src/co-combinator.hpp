@@ -62,7 +62,7 @@ struct First {
   waitable<base::variant<Ts...>> operator()(
       waitable<Ts>... ws ) const {
     waitable_promise<base::variant<Ts...>> wp;
-    ( ws.link_to_promise( wp ), ... );
+    ( disjunctive_link_to_promise( ws, wp ), ... );
     // !! Need to co_await instead of just returning the waitable
     // because we need to keep the waitables alive.
     co_return co_await wp.waitable();
@@ -97,7 +97,7 @@ struct WithBackground {
     waitable_promise<T> wp;
     // Need to do w first so that if both are ready already then
     // w will take precedence and return its value.
-    w.link_to_promise( wp );
+    disjunctive_link_to_promise( w, wp );
     // !! Need to co_await instead of just returning the waitable
     // because we need to keep the waitables alive.
     co_return co_await wp.waitable();
