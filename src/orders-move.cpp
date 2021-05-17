@@ -949,6 +949,8 @@ waitable<> AttackHandler::perform() {
     case e_unit_death::demote:
       CHECK( loser.desc().demoted.has_value() );
       loser.change_type( loser.desc().demoted.value() );
+      // TODO: if a unit loses, should it lose all of its move-
+      // ment points? Check the original game.
       break;
     case e_unit_death::maybe_demote:
       // This would be for units that only demote probabilisti-

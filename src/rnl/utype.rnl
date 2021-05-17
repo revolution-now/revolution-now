@@ -16,7 +16,8 @@ enum e_unit_type {
   merchantman,
   privateer,
   large_treasure,
-  small_treasure
+  small_treasure,
+  dragoon
 };
 
 enum e_unit_death {

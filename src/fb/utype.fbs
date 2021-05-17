@@ -17,6 +17,7 @@ enum e_unit_type : byte {
   privateer,
   large_treasure,
   small_treasure,
+  dragoon,
 }
 
 table Opt_e_unit_type {

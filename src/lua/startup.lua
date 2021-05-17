@@ -26,8 +26,8 @@ end
 
 local function create_some_units_on_land( nation1, nation2 )
   local coord = Coord{ y=6, x=2 }
-  local unit = ustate.create_unit_on_map( nation1, e.unit_type
-                                              .free_colonist,
+  local unit = ustate.create_unit_on_map( nation1,
+                                          e.unit_type.dragoon,
                                           coord )
   unit:fortify();
 

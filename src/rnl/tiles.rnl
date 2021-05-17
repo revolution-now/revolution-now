@@ -38,6 +38,7 @@ enum e_tile {
   privateer,
   merchantman,
   soldier,
+  dragoon,
   large_treasure,
   small_treasure,
 

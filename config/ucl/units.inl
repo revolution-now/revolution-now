@@ -27,6 +27,7 @@ CFG( units,
   UNIT_SCHEMA( privateer      )
   UNIT_SCHEMA( free_colonist  )
   UNIT_SCHEMA( soldier        )
+  UNIT_SCHEMA( dragoon        )
   UNIT_SCHEMA( large_treasure )
   UNIT_SCHEMA( small_treasure )
 )

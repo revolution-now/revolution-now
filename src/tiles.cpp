@@ -110,6 +110,7 @@ void init_sprites() {
        privateer,
        merchantman,
        soldier,
+       dragoon,
        large_treasure,
        small_treasure,
   ),

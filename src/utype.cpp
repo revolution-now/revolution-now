@@ -51,6 +51,7 @@ unordered_map<e_unit_type, UnitDescriptor> const& unit_desc() {
     LOAD_UNIT_DESC( privateer );
     LOAD_UNIT_DESC( free_colonist );
     LOAD_UNIT_DESC( soldier );
+    LOAD_UNIT_DESC( dragoon );
     LOAD_UNIT_DESC( large_treasure );
     LOAD_UNIT_DESC( small_treasure );
     for( auto const& p : desc_ ) p.second.check_invariants();
