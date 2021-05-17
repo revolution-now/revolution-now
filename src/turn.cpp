@@ -301,6 +301,10 @@ waitable<> process_player_input(
       co_await show_colony_view( input.get<colony>().id );
       break;
     }
+    case e::old_world: {
+      co_await show_old_world_view();
+      break;
+    }
     default: break;
   }
 }
