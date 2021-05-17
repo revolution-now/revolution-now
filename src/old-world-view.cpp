@@ -41,6 +41,7 @@
 #include "window.hpp"
 
 // base
+#include "base/attributes.hpp"
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
@@ -61,8 +62,6 @@ namespace rl = ::base::rl;
 DECLARE_SAVEGAME_SERIALIZERS( OldWorldView );
 
 namespace {
-
-constexpr Delta const k_rendered_commodity_offset{ 8_w, 3_h };
 
 // When we drag a commodity from the market this is the default
 // amount that we take.
@@ -174,8 +173,8 @@ maybe<OldWorldDraggableObject_t> draggable_in_cargo_slot(
 // rect_proxy that outlives the use of the returned range. And of
 // course the Rect referred to by the rect_proxy must outlive
 // everything.
-auto range_of_rects(
-    RectGridProxyIteratorHelper const& rect_proxy ) {
+auto range_of_rects( RectGridProxyIteratorHelper const&
+                         rect_proxy ATTR_LIFETIMEBOUND ) {
   return rl::all( rect_proxy )
       .map( [&rect_proxy]( Coord coord ) {
         return Rect::from(
@@ -238,7 +237,7 @@ public:
       render_commodity_annotated(
           tx, *comm_it++,
           rect.shifted_by( offset ).upper_left() +
-              k_rendered_commodity_offset,
+              kCommodityInCargoHoldRenderingOffset,
           label );
       label.buy += 120;
       label.sell += 120;
@@ -289,7 +288,7 @@ public:
             coord.with_new_origin( bounds().upper_left() )
                 .rounded_to_multiple_to_minus_inf( sprite_scale )
                 .as_if_origin_were( bounds().upper_left() ) +
-            k_rendered_commodity_offset;
+            kCommodityInCargoHoldRenderingOffset;
         auto box = Rect::from( box_origin,
                                Delta{ 1_w, 1_h } * Scale{ 16 } );
 
@@ -1067,7 +1066,8 @@ public:
                 [&]( Commodity const& c ) {
                   render_commodity_annotated(
                       tx, c,
-                      dst_coord + k_rendered_commodity_offset );
+                      dst_coord +
+                          kCommodityInCargoHoldRenderingOffset );
                 } );
             break;
           }
@@ -1133,7 +1133,7 @@ public:
           using OldWorldDraggableObject::cargo_commodity;
           if( draggable_in_cargo_slot( *maybe_slot )
                   .bind( L( holds<cargo_commodity>( _ ) ) ) ) {
-            box_origin += k_rendered_commodity_offset;
+            box_origin += kCommodityInCargoHoldRenderingOffset;
             scale = Scale{ 16 };
           }
           auto box = Rect::from( box_origin,

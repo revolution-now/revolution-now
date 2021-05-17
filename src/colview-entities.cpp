@@ -209,11 +209,70 @@ public:
   void draw( Texture& tx, Coord coord ) const override {
     render_rect( tx, Color::black(),
                  rect( coord ).with_inc_size() );
-    for( auto [unit_id, unit_pos] : positioned_units_ )
-      render_unit( tx, unit_id,
-                   unit_pos.as_if_origin_were( coord ),
-                   /*with_icon=*/true );
-    // TODO: Draw cargo.
+    for( auto [unit_id, unit_pos] : positioned_units_ ) {
+      Coord draw_pos = unit_pos.as_if_origin_were( coord );
+      render_unit( tx, unit_id, draw_pos, /*with_icon=*/true );
+      if( selected_ == unit_id )
+        render_rect( tx, Color::green(),
+                     Rect::from( draw_pos, g_tile_delta ) );
+    }
+    auto unit = selected_.fmap( unit_from_id );
+    int  open_slots =
+        unit.has_value() ? unit->desc().cargo_slots : 0;
+    auto           bds  = Rect::from( coord + 32_h + 16_h,
+                           Delta( 32_h, delta().w ) );
+    auto           grid = bds.to_grid_noalign( g_tile_scale );
+    CargoSlotIndex slot{ 0 };
+    for( auto upper_left : grid ) {
+      // if( g_drag_state.has_value() ) {
+      //   if_get( g_drag_state->object,
+      //           OldWorldDraggableObject::cargo_commodity,
+      //           cc ) {
+      //     if( cc.slot == slot ) continue;
+      //   }
+      // }
+      auto rect = Rect::from( upper_left, g_tile_delta );
+      if( open_slots > 0 ) {
+        // FIXME: need to deduplicate this logic with that in
+        // the Old World view.
+        render_fill_rect( tx, Color::wood().highlighted( 4 ),
+                          rect );
+        render_rect( tx, Color::wood(), rect );
+        switch( auto& v = unit->cargo()[slot]; v.to_enum() ) {
+          case CargoSlot::e::empty: {
+            break;
+          }
+          case CargoSlot::e::overflow: {
+            break;
+          }
+          case CargoSlot::e::cargo: {
+            auto& cargo = v.get<CargoSlot::cargo>();
+            overload_visit(
+                cargo.contents,
+                [&]( UnitId id ) {
+                  // if( !g_drag_state ||
+                  //     g_drag_state->object !=
+                  //         OldWorldDraggableObject_t{
+                  //             OldWorldDraggableObject::unit{
+                  //                 id } } )
+                  render_unit( tx, id, upper_left,
+                               /*with_icon=*/false );
+                },
+                [&]( Commodity const& c ) {
+                  render_commodity_annotated(
+                      tx, c,
+                      upper_left +
+                          kCommodityInCargoHoldRenderingOffset );
+                } );
+            break;
+          }
+        }
+      } else {
+        render_fill_rect( tx, Color::wood(), rect );
+      }
+      --open_slots;
+      ++slot;
+    }
   }
 
   static unique_ptr<CargoView> create( Delta size ) {
@@ -240,32 +299,72 @@ public:
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( pos.is_inside(
               Rect::from( unit_pos, g_tile_delta ) ) ) {
-        auto& unit = unit_from_id( unit_id );
-        co_await ui::message_box( "Clicked on unit: {}",
-                                  debug_string( unit ) );
-        unit.clear_orders();
+        co_await click_on_unit( unit_id );
       }
     }
   }
 
 private:
+  waitable<> click_on_unit( UnitId id ) {
+    auto& unit = unit_from_id( id );
+    if( selected_ != id ) {
+      selected_ = id;
+      // The first time we select a unit, just select it, but
+      // don't pop up the orders menu until the second click.
+      // This should make a more polished feel for the UI, and
+      // also allow viewing a ship's cargo without popping up the
+      // orders menu.
+      co_return;
+    }
+    vector<e_unit_orders> possible_orders;
+    if( unit.desc().ship )
+      possible_orders = { e_unit_orders::none,
+                          e_unit_orders::sentry };
+    else
+      possible_orders = { e_unit_orders::none,
+                          e_unit_orders::sentry,
+                          e_unit_orders::fortified };
+    e_unit_orders new_orders =
+        co_await ui::select_box_enum<e_unit_orders>(
+            "Change unit orders to:", possible_orders );
+    CHECK( new_orders != e_unit_orders::fortified ||
+           !unit.desc().ship );
+    switch( new_orders ) {
+      case e_unit_orders::none: unit.clear_orders(); break;
+      case e_unit_orders::sentry: unit.sentry(); break;
+      case e_unit_orders::fortified: unit.fortify(); break;
+    }
+  }
+
   struct PositionedUnit {
     UnitId id;
     Coord  pos; // relative to upper left of this CargoView.
   };
 
   vector<PositionedUnit> positioned_units_;
+  // FIXME: this gets reset whenever we recomposite. We need to
+  // either put this in a global place, or not recreate all of
+  // these view objects each time we recomposite (i.e., reuse
+  // them).
+  maybe<UnitId> selected_;
 
   void update_unit_layout() {
     auto const& colony   = colony_from_id( colony_id() );
     auto const& units    = units_from_coord( colony.location() );
     auto        unit_pos = Coord{} + 16_h;
     positioned_units_.clear();
+    maybe<UnitId> first_with_cargo;
     for( auto unit_id : units ) {
       positioned_units_.push_back(
           { .id = unit_id, .pos = unit_pos } );
       unit_pos += 32_w;
+      if( !first_with_cargo.has_value() &&
+          unit_from_id( unit_id ).desc().cargo_slots > 0 )
+        first_with_cargo = unit_id;
     }
+    if( selected_.has_value() && !units.contains( *selected_ ) )
+      selected_ = nothing;
+    if( !selected_.has_value() ) selected_ = first_with_cargo;
   }
 
   Delta size_;

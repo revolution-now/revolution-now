@@ -69,8 +69,8 @@ struct ND UnitDescriptor : public UnitDescriptorBase {
 
   // Cargo
   int cargo_slots{};
-  maybe<int>
-      cargo_slots_occupies{}; // slots occupied by this unit
+  // Slots occupied by this unit.
+  maybe<int> cargo_slots_occupies{};
 
   void check_invariants() const;
 };

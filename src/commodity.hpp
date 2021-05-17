@@ -30,6 +30,9 @@
 
 namespace rn {
 
+constexpr Delta const kCommodityInCargoHoldRenderingOffset{
+    8_w, 3_h };
+
 /****************************************************************
 ** Commodity List
 *****************************************************************/
