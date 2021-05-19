@@ -440,9 +440,12 @@ TravelHandler::confirm_travel_impl() {
         for( auto ship_id : ships ) {
           auto const& ship_unit = unit_from_id( ship_id );
           CHECK( ship_unit.desc().ship );
+          lg.debug( "checking ship cargo: {}",
+                    ship_unit.cargo().debug_string() );
           if( auto const& cargo = ship_unit.cargo();
               cargo.fits_somewhere( id ) ) {
-            prioritize = { ship_id }, target_unit = ship_id;
+            prioritize  = { ship_id };
+            target_unit = ship_id;
             co_return e_travel_verdict::board_ship;
           }
         }
@@ -925,9 +928,30 @@ waitable<> AttackHandler::perform() {
     case e_unit_death::destroy: //
       destroy_unit( loser.id() );
       break;
-    case e_unit_death::naval: //
+    case e_unit_death::naval: {
+      auto num_units_lost =
+          loser.cargo().items_of_type<UnitId>().size();
+      lg.info( "ship sunk: {} units onboard lost.",
+               num_units_lost );
+      string msg = fmt::format(
+          "{} @[H]{}@[] sunk by @[H]{}@[] {}",
+          loser.nation_desc().adjective, loser.desc().name,
+          winner.nation_desc().adjective, winner.desc().name );
+      if( num_units_lost == 1 )
+        msg += fmt::format(
+            ", @[H]1@[] unit onboard has been lost" );
+      else if( num_units_lost > 1 )
+        msg += fmt::format(
+            ", @[H]{}@[] units onboard have been lost",
+            num_units_lost );
+      msg += '.';
+      // Need to destroy unit first before displaying message
+      // otherwise the unit will reappear on the map while the
+      // message is open.
       destroy_unit( loser.id() );
+      co_await ui::message_box( msg );
       break;
+    }
     case e_unit_death::capture:
       // Capture only happens to defenders.
       if( loser.id() == defender.id() ) {

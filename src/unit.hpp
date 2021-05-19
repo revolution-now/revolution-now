@@ -51,8 +51,11 @@ public:
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
-  CargoHold&     cargo() { return cargo_; }
-  e_nation       nation() const { return nation_; }
+  CargoHold& cargo() { return cargo_; }
+  e_nation   nation() const { return nation_; }
+  NationDesc nation_desc() const {
+    return nation_obj( nation_ );
+  }
   maybe<int>     worth() const { return worth_; }
   MovementPoints movement_points() const { return mv_pts_; }
 
