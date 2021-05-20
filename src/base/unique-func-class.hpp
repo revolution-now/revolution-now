@@ -60,7 +60,8 @@ public:
         return func( args... );
       }
     };
-    func_.reset( new child( std::forward<Func>( func ) ) );
+    func_ =
+        std::make_unique<child>( std::forward<Func>( func ) );
   }
 
   template<typename Func>
