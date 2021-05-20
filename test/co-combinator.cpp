@@ -1066,20 +1066,84 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
   REQUIRE_THAT( found, Equals( expected ) );
 }
 
-TEST_CASE( "[co-combinator] interleave reset" ) {
-  co::stream<int> s1;
-  co::stream<int> s2;
+TEST_CASE( "[co-combinator] one shot stream adapter" ) {
+  waitable_promise<int> p;
+  auto shot = co::make_streamable( p.waitable() );
+  run_all_coroutines();
 
-  co::interleave il( s1, s2 );
-  s1.send( 5 );
-  s1.send( 8 );
-  s2.send( 6 );
-  s2.send( 7 );
+  waitable<int> w1 = shot.next();
+  run_all_coroutines();
+  REQUIRE( !w1.ready() );
+  p.set_value( 5 );
+  run_all_coroutines();
+  REQUIRE( w1.ready() );
+  REQUIRE( *w1 == 5 );
 
-  il.reset();
+  waitable<int> w2 = shot.next();
+  run_all_coroutines();
+  REQUIRE( !w2.ready() );
+}
 
-  REQUIRE( !s1.next().ready() );
-  REQUIRE( !s2.next().ready() );
+TEST_CASE(
+    "[co-combinator] interleave with waitables via stream "
+    "adapter" ) {
+  waitable_promise<int> p1;
+  waitable_promise<int> p2;
+
+  // Convert the waitbales into things that have a Streamable in-
+  // terface.
+  auto shot1 = co::make_streamable( p1.waitable() );
+  auto shot2 = co::make_streamable( p2.waitable() );
+
+  co::interleave il( shot1, shot2 );
+
+  SECTION( "send both first" ) {
+    {
+      waitable<base::variant<int, int>> w = il.next();
+      REQUIRE( !w.ready() );
+      p2.set_value( 5 );
+      p1.set_value( 6 );
+      run_all_coroutines();
+      REQUIRE( w.ready() );
+      REQUIRE( w->index() == 1 );
+      REQUIRE( get<1>( *w ) == 5 );
+    }
+    {
+      waitable<base::variant<int, int>> w = il.next();
+      run_all_coroutines();
+      REQUIRE( w.ready() );
+      REQUIRE( w->index() == 0 );
+      REQUIRE( get<0>( *w ) == 6 );
+    }
+  }
+  SECTION( "send one at a time" ) {
+    {
+      waitable<base::variant<int, int>> w = il.next();
+      REQUIRE( !w.ready() );
+      p2.set_value( 5 );
+      run_all_coroutines();
+      REQUIRE( w.ready() );
+      REQUIRE( w->index() == 1 );
+      REQUIRE( get<1>( *w ) == 5 );
+    }
+    {
+      waitable<base::variant<int, int>> w = il.next();
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+      p1.set_value( 6 );
+      run_all_coroutines();
+      REQUIRE( w.ready() );
+      REQUIRE( w->index() == 0 );
+      REQUIRE( get<0>( *w ) == 6 );
+    }
+    // Now we've exhausted the two waitables so we should not
+    // have anything further.
+    {
+      waitable<base::variant<int, int>> w = il.next();
+      run_all_coroutines();
+      REQUIRE( !w.ready() );
+    }
+  }
 }
 
 } // namespace

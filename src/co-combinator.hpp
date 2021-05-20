@@ -288,6 +288,8 @@ private:
 *****************************************************************/
 template<typename T>
 struct stream {
+  using value_type = T;
+
   waitable<T> next() {
     T res = co_await p.waitable();
     p     = {};
@@ -367,6 +369,55 @@ private:
 };
 
 /****************************************************************
+** Adapter: waitable to streamable
+*****************************************************************/
+// This is an adapter that takes a waitable and makes it into
+// something streamable (implementing the Streamble concept).
+// However, the resulting "stream" will only produce one object,
+// so the resulting object is a kind of latch but that cannot be
+// manually set.
+template<typename T>
+struct one_shot_stream_adapter {
+  using value_type = T;
+
+  one_shot_stream_adapter( waitable<T>&& w )
+    : w_( std::move( w ) ) {}
+
+  // Implement the Streamable concept interface.
+  waitable<T> next() {
+    if( retrieved_ )
+      // A waitable that will never be fulfilled.
+      return waitable_promise<T>().waitable();
+    retrieved_ = true;
+    return std::move( w_ );
+  }
+
+private:
+  waitable<T> w_;
+  bool        retrieved_ = false;
+};
+
+/****************************************************************
+** make_streamable
+*****************************************************************/
+// These funcctions will take non-streamable objects and adapt
+// them to have the streamable interface.
+
+template<typename T>
+auto make_streamable( waitable<T>&& w ) {
+  return one_shot_stream_adapter( std::move( w ) );
+}
+
+/****************************************************************
+** Stream
+*****************************************************************/
+template<typename T>
+concept Streamable = requires( T s ) {
+  typename T::value_type;
+  { s.next() } -> std::same_as<waitable<typename T::value_type>>;
+};
+
+/****************************************************************
 ** interleave
 *****************************************************************/
 // This takes a series of streams and it will interleave their
@@ -393,32 +444,23 @@ private:
 //
 // NOTE: duplicate types are supported.
 //
-template<typename... Ts>
+template<Streamable... Ss>
 struct interleave {
-  waitable<base::variant<Ts...>> next() {
-    return output_stream.next();
-  }
+  using value_type = base::variant<typename Ss::value_type...>;
 
-  void reset() {
-    mp::for_index_seq<sizeof...( Ts )>(
-        [this]<size_t Idx>(
-            std::integral_constant<size_t, Idx> ) {
-          std::get<Idx>( streams )->reset();
-        } );
-    output_stream.reset();
-  }
+  waitable<value_type> next() { return output_stream.next(); }
 
-  explicit interleave( stream<Ts>&... ss ) : streams{ &ss... } {
+  explicit interleave( Ss&... ss ) : streamables{ &ss... } {
     // Start N coroutines and store them in the vector.
     auto forwarder = [this]<size_t Index>(
                          std::integral_constant<size_t, Index> )
         -> waitable<> {
       while( true )
-        output_stream.send( base::variant<Ts...>(
+        output_stream.send( value_type(
             std::in_place_index_t<Index>{},
-            co_await std::get<Index>( streams )->next() ) );
+            co_await std::get<Index>( streamables )->next() ) );
     };
-    mp::for_index_seq<sizeof...( Ts )>(
+    mp::for_index_seq<sizeof...( Ss )>(
         [&, this]<size_t Idx>(
             std::integral_constant<size_t, Idx> ic ) {
           forwarders.push_back( forwarder( ic ) );
@@ -432,10 +474,10 @@ struct interleave {
   interleave& operator=( interleave&& ) = default;
 
 private:
-  // Input streams.
-  std::tuple<stream<Ts>*...> streams;
+  // Input streamables.
+  std::tuple<Ss*...> streamables;
   // This is a stream that supplies the output to the interleave.
-  stream<base::variant<Ts...>> output_stream;
+  stream<value_type> output_stream;
   // Holds ownership of a list of waitables that each own a
   // coroutine whose job it is to monitor a given stream and for-
   // ward its events into `output_stream`.
