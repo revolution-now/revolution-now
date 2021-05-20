@@ -224,7 +224,6 @@ waitable<> handle_menu_item( e_menu_actions action ) {
 }
 
 waitable<e_menu_actions> wait_for_menu_selection() {
-  g_menu_actions.reset();
   SCOPED_SET_AND_CHANGE( g_menu_commands_accepted, true, false );
   co_return co_await g_menu_actions.next();
 }
