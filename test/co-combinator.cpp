@@ -1146,6 +1146,24 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[co-combinator] repeater" ) {
+  waitable_promise<int> p;
+
+  co::repeater r( [&] {
+    p = {};
+    return p.waitable();
+  } );
+
+  for( int i = 0; i < 10; ++i ) {
+    waitable<int> w = r.next();
+    REQUIRE( !w.ready() );
+    p.set_value( i );
+    run_all_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( *w == i );
+  }
+}
+
 TEST_CASE( "[co-combinator] fmap" ) {
   waitable_promise<int> p;
 

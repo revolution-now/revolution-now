@@ -257,6 +257,29 @@ waitable<> loop(
     base::unique_func<waitable<>() const> coroutine );
 
 /****************************************************************
+** repeater
+*****************************************************************/
+// Given a function that produces a waitable, this object will
+// take ownership of the function, then repeatedly call the func-
+// tion to obtain a waitable.
+template<typename T>
+struct repeater {
+  using value_type = T;
+
+  repeater( base::unique_func<waitable<T>() const> producer )
+    : producer_( std::move( producer ) ) {}
+
+  // Implement the Streamable concept interface.
+  waitable<T> next() { return producer_(); }
+
+  base::unique_func<waitable<T>() const> producer_;
+};
+
+template<typename Func>
+repeater( Func&& )
+    -> repeater<typename std::invoke_result_t<Func>::value_type>;
+
+/****************************************************************
 ** latch
 *****************************************************************/
 // A latch is meant to be a singlton object (per use-case) that
