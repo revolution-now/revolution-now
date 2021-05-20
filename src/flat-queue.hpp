@@ -115,6 +115,8 @@ public:
   void pop() {
     DCHECK( front_ != int( queue_.size() ) );
     if( front_ == int( queue_.size() ) ) return;
+    // FIXME: can we just run a destructor on a vector element if
+    // it is of non-trivial type? I wouldn't think so...
     queue_[front_++].~T();
     if( front_ == reallocation_size_ ) {
       queue_.erase( queue_.begin(),

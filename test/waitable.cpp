@@ -615,55 +615,6 @@ TEST_CASE( "[waitable] simple exception" ) {
   REQUIRE( !w.ready() );
 }
 
-TEST_CASE( "[waitable] simple exception chained" ) {
-  waitable_promise<> p1;
-  waitable<>         w1 = p1.waitable();
-  REQUIRE( !w1.ready() );
-
-  waitable_promise<> p2;
-  disjunctive_link_to_promise( w1, p2 );
-  waitable<> w2 = p2.waitable();
-
-  waitable_promise<> p3;
-  disjunctive_link_to_promise( w2, p3 );
-  waitable<> w3 = p3.waitable();
-
-  SECTION( "no exception" ) {
-    REQUIRE( !w3.ready() );
-    REQUIRE( !w3.has_exception() );
-    p1.set_value_emplace();
-    REQUIRE( w3.ready() );
-    REQUIRE( !w3.has_exception() );
-    REQUIRE( w2.ready() );
-    REQUIRE( !w2.has_exception() );
-    REQUIRE( w1.ready() );
-    REQUIRE( !w1.has_exception() );
-  }
-  SECTION( "with exception" ) {
-    REQUIRE( !w3.ready() );
-    REQUIRE( !w3.has_exception() );
-    p1.set_exception( runtime_error( "test-failed" ) );
-    REQUIRE( !w3.ready() );
-    REQUIRE( w3.has_exception() );
-    REQUIRE( !w2.ready() );
-    REQUIRE( w2.has_exception() );
-    REQUIRE( !w1.ready() );
-    REQUIRE( w1.has_exception() );
-  }
-  SECTION( "exception twice" ) {
-    REQUIRE( !w3.ready() );
-    REQUIRE( !w3.has_exception() );
-    p1.set_exception( runtime_error( "test-failed" ) );
-    p1.set_exception( runtime_error( "test-failed" ) );
-    REQUIRE( !w3.ready() );
-    REQUIRE( w3.has_exception() );
-    REQUIRE( !w2.ready() );
-    REQUIRE( w2.has_exception() );
-    REQUIRE( !w1.ready() );
-    REQUIRE( w1.has_exception() );
-  }
-}
-
 waitable_promise<> exception_p0;
 waitable_promise<> exception_p1;
 waitable_promise<> exception_p2;

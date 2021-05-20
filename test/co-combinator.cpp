@@ -22,6 +22,11 @@
 // Must be last.
 #include "catch-common.hpp"
 
+// This allows Catch2 to print out any variant that has three al-
+// ternatives, each of which would be formattable with fmt::for-
+// mat.
+FMT_TO_CATCH_T( ( T1, T2, T3 ), ::base::variant );
+
 namespace rn::co {
 namespace {
 
@@ -161,7 +166,7 @@ TEST_CASE( "[co-combinator] first" ) {
     p1.set_value( 5 );
     run_all_coroutines();
     REQUIRE( w.ready() );
-    REQUIRE( w.get().index() == 0 );
+    REQUIRE( w->index() == 0 );
     REQUIRE( w.get().get_if<int>() == 5 );
   }
   SECTION( "w2 finishes first" ) {
@@ -172,7 +177,7 @@ TEST_CASE( "[co-combinator] first" ) {
     p2.set_value_emplace();
     run_all_coroutines();
     REQUIRE( w.ready() );
-    REQUIRE( w.get().index() == 1 );
+    REQUIRE( w->index() == 1 );
     REQUIRE( w.get().get_if<monostate>().has_value() );
   }
   SECTION( "w3 finishes first" ) {
@@ -183,7 +188,7 @@ TEST_CASE( "[co-combinator] first" ) {
     p3.set_value( "hello" );
     run_all_coroutines();
     REQUIRE( w.ready() );
-    REQUIRE( w.get().index() == 2 );
+    REQUIRE( w->index() == 2 );
     REQUIRE( w.get().get_if<string>() == "hello" );
   }
   SECTION( "both p1 and p3 finish (p1 first)" ) {
@@ -195,7 +200,7 @@ TEST_CASE( "[co-combinator] first" ) {
     p3.set_value( "hello" );
     run_all_coroutines();
     REQUIRE( w.ready() );
-    REQUIRE( w.get().index() == 0 );
+    REQUIRE( w->index() == 0 );
     REQUIRE( w.get().get_if<int>() == 5 );
   }
   SECTION( "both p1 and p3 finish (p3 first)" ) {
@@ -207,7 +212,7 @@ TEST_CASE( "[co-combinator] first" ) {
     p1.set_value( 5 );
     run_all_coroutines();
     REQUIRE( w.ready() );
-    REQUIRE( w.get().index() == 2 );
+    REQUIRE( w->index() == 2 );
     REQUIRE( w.get().get_if<string>() == "hello" );
   }
 }
@@ -452,6 +457,55 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
   ResultWithSuspend<int> const& rws2 = should_suspend.get();
   REQUIRE( rws2.result == 7 );
   REQUIRE( rws2.suspended == true );
+}
+
+TEST_CASE( "[waitable] simple exception chained" ) {
+  waitable_promise<> p1;
+  waitable<>         w1 = p1.waitable();
+  REQUIRE( !w1.ready() );
+
+  waitable_promise<> p2;
+  disjunctive_link_to_promise( w1, p2 );
+  waitable<> w2 = p2.waitable();
+
+  waitable_promise<> p3;
+  disjunctive_link_to_promise( w2, p3 );
+  waitable<> w3 = p3.waitable();
+
+  SECTION( "no exception" ) {
+    REQUIRE( !w3.ready() );
+    REQUIRE( !w3.has_exception() );
+    p1.set_value_emplace();
+    REQUIRE( w3.ready() );
+    REQUIRE( !w3.has_exception() );
+    REQUIRE( w2.ready() );
+    REQUIRE( !w2.has_exception() );
+    REQUIRE( w1.ready() );
+    REQUIRE( !w1.has_exception() );
+  }
+  SECTION( "with exception" ) {
+    REQUIRE( !w3.ready() );
+    REQUIRE( !w3.has_exception() );
+    p1.set_exception( runtime_error( "test-failed" ) );
+    REQUIRE( !w3.ready() );
+    REQUIRE( w3.has_exception() );
+    REQUIRE( !w2.ready() );
+    REQUIRE( w2.has_exception() );
+    REQUIRE( !w1.ready() );
+    REQUIRE( w1.has_exception() );
+  }
+  SECTION( "exception twice" ) {
+    REQUIRE( !w3.ready() );
+    REQUIRE( !w3.has_exception() );
+    p1.set_exception( runtime_error( "test-failed" ) );
+    p1.set_exception( runtime_error( "test-failed" ) );
+    REQUIRE( !w3.ready() );
+    REQUIRE( w3.has_exception() );
+    REQUIRE( !w2.ready() );
+    REQUIRE( w2.has_exception() );
+    REQUIRE( !w1.ready() );
+    REQUIRE( w1.has_exception() );
+  }
 }
 
 TEST_CASE( "[co-combinator] exception with any" ) {
@@ -830,6 +884,202 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
     REQUIRE( w3.ready() );
     REQUIRE( *w3 == nothing );
   }
+}
+
+TEST_CASE( "[co-combinator] interleave" ) {
+  co::stream<int> s1;
+  co::stream<int> s2;
+  co::stream<int> s3;
+
+  SECTION( "send all values first" ) {
+    co::interleave il( s1, s2, s3 );
+    vector<int>    found;
+
+    for( int i = 3; i < 6; ++i ) s1.send( i );
+    for( int i = 0; i < 3; ++i ) s2.send( i );
+    for( int i = 6; i < 9; ++i ) s3.send( i );
+
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    vector<int> expected{ 3, 4, 5, 0, 1, 2, 6, 7, 8 };
+    REQUIRE_THAT( found, Equals( expected ) );
+  }
+  SECTION( "send then query, per stream" ) {
+    co::interleave il( s1, s2, s3 );
+    vector<int>    found;
+
+    for( int i = 3; i < 6; ++i ) s1.send( i );
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      REQUIRE( w->index() == 0 );
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    for( int i = 0; i < 3; ++i ) s2.send( i );
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      REQUIRE( w->index() == 1 );
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    for( int i = 6; i < 9; ++i ) s3.send( i );
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      REQUIRE( w->index() == 2 );
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    vector<int> expected{ 3, 4, 5, 0, 1, 2, 6, 7, 8 };
+    REQUIRE_THAT( found, Equals( expected ) );
+  }
+  SECTION( "send then query, per stream" ) {
+    co::interleave il( s1, s2, s3 );
+    vector<int>    found;
+    size_t         idx = 0;
+
+    s1.send( 3 );
+    s2.send( 0 );
+    s3.send( 6 );
+    idx = 0;
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      REQUIRE( w->index() == idx++ );
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    s1.send( 4 );
+    s2.send( 1 );
+    s3.send( 7 );
+    idx = 0;
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      REQUIRE( w->index() == idx++ );
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    s1.send( 5 );
+    s2.send( 2 );
+    s3.send( 8 );
+    idx = 0;
+    while( true ) {
+      waitable<base::variant<int, int, int>> w = il.next();
+      run_all_coroutines();
+      if( !w.ready() ) break;
+      REQUIRE( w->index() == idx++ );
+      found.push_back( std::visit( L( _ ), *w ) );
+    }
+
+    vector<int> expected{ 3, 0, 6, 4, 1, 7, 5, 2, 8 };
+    REQUIRE_THAT( found, Equals( expected ) );
+  }
+  SECTION(
+      "reconstruct interleave object multiple times on same "
+      "streams" ) {
+    // This test works because we are only destroying the co::in-
+    // terleave objects when the output stream has been ex-
+    // hausted.
+    vector<int> found;
+    {
+      co::interleave il( s1, s2, s3 );
+
+      s1.send( 3 );
+      s2.send( 0 );
+      s3.send( 6 );
+      while( true ) {
+        waitable<base::variant<int, int, int>> w = il.next();
+        run_all_coroutines();
+        if( !w.ready() ) break;
+        found.push_back( std::visit( L( _ ), *w ) );
+      }
+    }
+
+    {
+      co::interleave il( s1, s2, s3 );
+      s1.send( 4 );
+      s2.send( 1 );
+      s3.send( 7 );
+      while( true ) {
+        waitable<base::variant<int, int, int>> w = il.next();
+        run_all_coroutines();
+        if( !w.ready() ) break;
+        found.push_back( std::visit( L( _ ), *w ) );
+      }
+    }
+
+    {
+      co::interleave il( s1, s2, s3 );
+      s1.send( 5 );
+      s2.send( 2 );
+      s3.send( 8 );
+      while( true ) {
+        waitable<base::variant<int, int, int>> w = il.next();
+        run_all_coroutines();
+        if( !w.ready() ) break;
+        found.push_back( std::visit( L( _ ), *w ) );
+      }
+    }
+
+    vector<int> expected{ 3, 0, 6, 4, 1, 7, 5, 2, 8 };
+    REQUIRE_THAT( found, Equals( expected ) );
+  }
+}
+
+TEST_CASE( "[co-combinator] interleave different types" ) {
+  co::stream<int>    s1;
+  co::stream<double> s2;
+  co::stream<string> s3;
+
+  co::interleave il( s1, s2, s3 );
+
+  vector<base::variant<int, double, string>> found;
+
+  for( int i = 3; i < 6; ++i ) s1.send( i );
+  for( double d = 0.0; d < 3.0; d += 1.0 ) s2.send( d );
+  for( string s = "x"; s.size() < 4; s += "x" ) s3.send( s );
+
+  while( true ) {
+    waitable<base::variant<int, double, string>> w = il.next();
+    run_all_coroutines();
+    if( !w.ready() ) break;
+    found.push_back( *w );
+  }
+
+  vector<base::variant<int, double, string>> expected{
+      { 3 },   { 4 },   { 5 },    { 0.0 },  { 1.0 },
+      { 2.0 }, { "x" }, { "xx" }, { "xxx" } };
+
+  REQUIRE_THAT( found, Equals( expected ) );
+}
+
+TEST_CASE( "[co-combinator] interleave reset" ) {
+  co::stream<int> s1;
+  co::stream<int> s2;
+
+  co::interleave il( s1, s2 );
+  s1.send( 5 );
+  s1.send( 8 );
+  s2.send( 6 );
+  s2.send( 7 );
+
+  il.reset();
+
+  REQUIRE( !s1.next().ready() );
+  REQUIRE( !s2.next().ready() );
 }
 
 } // namespace

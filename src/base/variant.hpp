@@ -123,6 +123,10 @@ struct is_base_variant : std::false_type {};
 template<typename... Args>
 struct is_base_variant<variant<Args...>> : std::true_type {};
 
+template<typename... Args>
+inline constexpr bool is_base_variant_v =
+    is_base_variant<Args...>::value;
+
 } // namespace base
 
 namespace std {

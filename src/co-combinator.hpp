@@ -14,17 +14,69 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "flat-queue.hpp"
 #include "maybe.hpp"
 #include "waitable-coro.hpp"
 
 // base
+#include "base/meta.hpp"
 #include "base/unique-func.hpp"
+#include "base/variant.hpp"
 
 // C++ standard library
+#include <queue>
 #include <vector>
 
 namespace rn::co {
+
+/****************************************************************
+** Disjunctive Links
+*****************************************************************/
+// This is a specialized function for use in chaining together
+// waitables manually (meaning not through coroutines) in a
+// many-to-one, logically disjunctive manner, i.e. for situations
+// in which a single waitable needs to wait on any of multiple
+// other waitables. In other words, we want to detect when the
+// first of them finishes. It is mostly used in coroutine combi-
+// nators, you probably should not be using this outside of those
+// implementations.
+template<typename T, typename U>
+void disjunctive_link_to_promise( waitable<T>&        w,
+                                  waitable_promise<U> wp ) {
+  w.shared_state()->add_callback(
+      [wp]( typename waitable<T>::value_type const& o ) {
+        // The "if-not-set" reflects the intended disjunctive na-
+        // ture of the use of this function: we are only taking
+        // the first result available and ignoring the rest.
+        wp.set_value_emplace_if_not_set( o );
+      } );
+  w.shared_state()->set_exception_callback(
+      [wp]( std::exception_ptr eptr ) {
+        wp.set_exception( eptr );
+      } );
+}
+
+// Same as above but works when the value type is a variant. Ac-
+// tually, this specialized one is only needed for variants that
+// have some duplicate types where the value has to be set on the
+// variant using a specified index, although it will work for
+// variants with non-duplicate types as well.
+template<int Index, typename T, typename U>
+void disjunctive_link_to_variant_promise(
+    waitable<T>& w, waitable_promise<U> wp ) {
+  static_assert( base::is_base_variant_v<U> );
+  w.shared_state()->add_callback(
+      [wp]( typename waitable<T>::value_type const& o ) {
+        // The "if-not-set" reflects the intended disjunctive na-
+        // ture of the use of this function: we are only taking
+        // the first result available and ignoring the rest.
+        wp.set_value_emplace_if_not_set(
+            std::in_place_index_t<Index>{}, o );
+      } );
+  w.shared_state()->set_exception_callback(
+      [wp]( std::exception_ptr eptr ) {
+        wp.set_exception( eptr );
+      } );
+}
 
 /****************************************************************
 ** any
@@ -57,15 +109,23 @@ waitable<> all( waitable<>&& w1, waitable<>&& w2,
 *****************************************************************/
 struct First {
   // Run the waitables ws in parallel, then return the result of
-  // the first one that finishes.
-  template<typename... Ts>
+  // the first one that finishes. NOTE: The values of any other
+  // waitables that become ready at the same time will be lost.
+  template<size_t... Idxs, typename... Ts>
   waitable<base::variant<Ts...>> operator()(
-      waitable<Ts>... ws ) const {
+      std::index_sequence<Idxs...>, waitable<Ts>... ws ) const {
     waitable_promise<base::variant<Ts...>> wp;
-    ( disjunctive_link_to_promise( ws, wp ), ... );
+    ( disjunctive_link_to_variant_promise<Idxs>( ws, wp ), ... );
     // !! Need to co_await instead of just returning the waitable
     // because we need to keep the waitables alive.
     co_return co_await wp.waitable();
+  }
+
+  template<typename... Ts>
+  waitable<base::variant<Ts...>> operator()(
+      waitable<Ts>... ws ) const {
+    return (*this)( std::make_index_sequence<sizeof...( Ts )>(),
+                    std::move( ws )... );
   }
 };
 
@@ -241,7 +301,7 @@ struct stream {
   }
 
   void send( T&& t ) {
-    q.push_emplace( std::move( t ) );
+    q.push( std::move( t ) );
     update();
   }
 
@@ -267,13 +327,13 @@ struct stream {
 private:
   void update() {
     if( !p.has_value() && !q.empty() ) {
-      p.set_value_emplace( std::move( *q.front() ) );
+      p.set_value_emplace( std::move( q.front() ) );
       q.pop();
     }
   }
 
   waitable_promise<T> p;
-  flat_queue<T>       q;
+  std::queue<T>       q;
 };
 
 /****************************************************************
@@ -304,6 +364,82 @@ struct finite_stream {
 private:
   bool             ended = false;
   stream<maybe<T>> s;
+};
+
+/****************************************************************
+** interleave
+*****************************************************************/
+// This takes a series of streams and it will interleave their
+// results (without dropping any values) int a single stream. The
+// order in which two results from different streams are inter-
+// leaved in the output stream is unspecified if those values be-
+// come ready simultaneously, though neither will get dropped.
+//
+// NOTE: this interleaver guarantees that no values from any
+// stream will be dropped, so long as the interleave object isn't
+// destroyed while any of the input streams have upcoming values.
+//
+// Example:
+//
+//   co::stream<int> s1;
+//   co::stream<double> s2;
+//   co::stream<string> s3;
+//
+//   co::interleave il( s1, s2, s3 );
+//
+//   ... send data into s1, s2, s3 ...
+//
+//   waitable<base::variant<int, double, string>> w = il.next();
+//
+// NOTE: duplicate types are supported.
+//
+template<typename... Ts>
+struct interleave {
+  waitable<base::variant<Ts...>> next() {
+    return output_stream.next();
+  }
+
+  void reset() {
+    mp::for_index_seq<sizeof...( Ts )>(
+        [this]<size_t Idx>(
+            std::integral_constant<size_t, Idx> ) {
+          std::get<Idx>( streams )->reset();
+        } );
+    output_stream.reset();
+  }
+
+  explicit interleave( stream<Ts>&... ss ) : streams{ &ss... } {
+    // Start N coroutines and store them in the vector.
+    auto forwarder = [this]<size_t Index>(
+                         std::integral_constant<size_t, Index> )
+        -> waitable<> {
+      while( true )
+        output_stream.send( base::variant<Ts...>(
+            std::in_place_index_t<Index>{},
+            co_await std::get<Index>( streams )->next() ) );
+    };
+    mp::for_index_seq<sizeof...( Ts )>(
+        [&, this]<size_t Idx>(
+            std::integral_constant<size_t, Idx> ic ) {
+          forwarders.push_back( forwarder( ic ) );
+        } );
+  }
+
+  interleave()                    = default;
+  interleave( interleave const& ) = delete;
+  interleave& operator=( interleave const& ) = delete;
+  interleave( interleave&& )                 = default;
+  interleave& operator=( interleave&& ) = default;
+
+private:
+  // Input streams.
+  std::tuple<stream<Ts>*...> streams;
+  // This is a stream that supplies the output to the interleave.
+  stream<base::variant<Ts...>> output_stream;
+  // Holds ownership of a list of waitables that each own a
+  // coroutine whose job it is to monitor a given stream and for-
+  // ward its events into `output_stream`.
+  std::vector<waitable<>> forwarders;
 };
 
 /****************************************************************
