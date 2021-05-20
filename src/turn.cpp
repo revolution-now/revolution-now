@@ -86,8 +86,6 @@ using UserInput = base::variant< //
     button_click_t               //
     >;
 
-co::stream<UserInput> g_input_stream;
-
 } // namespace eot
 
 /****************************************************************
@@ -302,38 +300,23 @@ waitable<> process_player_input( button_click_t ) {
   co_return;
 }
 
-waitable<> monitor_inputs() {
-  auto monitor_eot_button_click =
-      []() -> waitable<button_click_t> {
-    co_await wait_for_eot_button_click();
-    co_return button_click_t{};
-  };
-  while( true ) {
-    g_input_stream.send( co_await co::first(
-        wait_for_menu_selection(),     //
-        landview_eot_get_next_input(), //
-        monitor_eot_button_click()     //
-        ) );
-  }
-}
-
 waitable<> process_inputs() {
-  g_input_stream.reset();
   landview_reset_input_buffers();
   UserInput command;
-  while( true ) {
-    {
-      // Scoping this may not be strictly necessary, but it seems
-      // like the principled thing to do. For example, it will
-      // cause the menu monitoring to stop while a command is
-      // being executed, which will automatically disable those
-      // menu items during the process.
-      waitable<> monitor = monitor_inputs();
-      command            = co_await g_input_stream.next();
-    }
+  while( !command.holds<button_click_t>() ) {
+    // The reason that we want to use co::first here instead of
+    // interleaving the three streams is because as soon as one
+    // becomes ready (and we start processing it) we want all the
+    // others to be automatically be cancelled, which will have
+    // the effect of disabling further input on them (e.g., dis-
+    // abling menu items), which is what we want for a good user
+    // experience.
+    command = co_await co::first(
+        wait_for_menu_selection(), landview_eot_get_next_input(),
+        co::fmap( [] λ( button_click_t{} ),
+                  wait_for_eot_button_click() ) );
     co_await rn::visit( command,
                         L( process_player_input( _ ) ) );
-    if( command.holds<button_click_t>() ) co_return;
   }
 }
 
