@@ -305,6 +305,7 @@ template<typename T>
 struct stream {
   using value_type = T;
 
+  // Implement the Streamable concept interface.
   waitable<T> next() {
     T res = co_await p.waitable();
     p     = {};
@@ -358,7 +359,10 @@ private:
 *****************************************************************/
 template<typename T>
 struct finite_stream {
-  waitable<maybe<T>> next() {
+  using value_type = maybe<T>;
+
+  // Implement the Streamable concept interface.
+  waitable<value_type> next() {
     if( ended ) co_return nothing;
     maybe<T> res = co_await s.next();
     if( !res ) {
@@ -379,8 +383,8 @@ struct finite_stream {
   void set_exception() { s.set_exception(); }
 
 private:
-  bool             ended = false;
-  stream<maybe<T>> s;
+  bool               ended = false;
+  stream<value_type> s;
 };
 
 /****************************************************************
@@ -435,11 +439,13 @@ concept Streamable = requires( T s ) {
 /****************************************************************
 ** interleave
 *****************************************************************/
-// This takes a series of streams and it will interleave their
-// results (without dropping any values) int a single stream. The
-// order in which two results from different streams are inter-
-// leaved in the output stream is unspecified if those values be-
-// come ready simultaneously, though neither will get dropped.
+// This takes a series of streamable things (i.e., things that
+// conform to the Streamable concept) and it will interleave
+// their results (without dropping any values) int a single
+// stream. The order in which two results from different streams
+// are interleaved in the output stream is unspecified if those
+// values become ready simultaneously, though neither will get
+// dropped.
 //
 // NOTE: this interleaver guarantees that no values from any
 // stream will be dropped, so long as the interleave object isn't
@@ -447,6 +453,7 @@ concept Streamable = requires( T s ) {
 //
 // Example:
 //
+//   // These don't have to be all co::stream.
 //   co::stream<int> s1;
 //   co::stream<double> s2;
 //   co::stream<string> s3;
@@ -463,6 +470,7 @@ template<Streamable... Ss>
 struct interleave {
   using value_type = base::variant<typename Ss::value_type...>;
 
+  // Implement the Streamable concept interface.
   waitable<value_type> next() { return output_stream.next(); }
 
   explicit interleave( Ss&... ss ) : streamables{ &ss... } {
