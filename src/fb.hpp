@@ -37,6 +37,7 @@
 
 // C++ standard library
 #include <list>
+#include <queue>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
@@ -510,6 +511,20 @@ auto serialize( FBBuilder& builder, T const& m, serial::ADL ) {
   return serialize<Hint>( builder, v, serial::ADL{} );
 }
 
+// For std::queue.
+template<typename Hint, typename T>
+auto serialize( FBBuilder& builder, std::queue<T> const& q,
+                serial::ADL ) {
+  std::vector<T> data;
+  data.reserve( size_t( q.size() ) );
+  auto m_copy = q;
+  while( !m_copy.empty() ) {
+    data.emplace_back( m_copy.front() );
+    m_copy.pop();
+  }
+  return serialize<Hint>( builder, data, serial::ADL{} );
+}
+
 // For std::deque.
 template<typename Hint, typename T>
 auto serialize( FBBuilder& builder, std::deque<T> const& d,
@@ -916,6 +931,22 @@ valid_deserial_t deserialize( SrcT const* src, DstT* m,
                      std::addressof( m->operator[]( key ) ),
                      serial::ADL{} ) );
   }
+  return valid;
+}
+
+// For std::queue.
+template<typename SrcT, typename T>
+valid_deserial_t deserialize( SrcT const* src, std::queue<T>* q,
+                              serial::ADL ) {
+  if( src == nullptr ) {
+    // `dst` should be in its default-constructed state, which is
+    // an empty queue.
+    return valid;
+  }
+  std::vector<T> data;
+  HAS_VALUE_OR_RET( deserialize( src, &data, serial::ADL{} ) );
+  DCHECK( q->empty() );
+  for( auto& e : data ) q->emplace( std::move( e ) );
   return valid;
 }
 

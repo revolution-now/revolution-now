@@ -301,7 +301,7 @@ struct stream {
   }
 
   void send( T&& t ) {
-    q.push( std::move( t ) );
+    q.emplace( std::move( t ) );
     update();
   }
 

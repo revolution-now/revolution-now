@@ -171,9 +171,9 @@ void frame_loop_body( InputReceivedFunc input_received ) {
   };
 
   auto& q = input::event_queue();
-  while( q.size() > 0 ) {
+  while( !q.empty() ) {
     input_received();
-    UNWRAP_CHECK( event, q.front() );
+    input::event_t const& event = q.front();
     if( is_win_resize( event ) ) on_main_window_resized();
     (void)send_input_to_planes( event );
     q.pop();

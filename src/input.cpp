@@ -441,7 +441,7 @@ maybe<event_t> next_event() {
 }
 
 constexpr int       kMaxEventQueueSize = 10000;
-flat_queue<event_t> g_event_queue;
+std::queue<event_t> g_event_queue;
 
 } // namespace
 
@@ -451,7 +451,7 @@ void pump_event_queue() {
       g_event_queue.push( *event );
 }
 
-flat_queue<event_t>& event_queue() { return g_event_queue; }
+std::queue<event_t>& event_queue() { return g_event_queue; }
 
 /****************************************************************
 ** Utilities

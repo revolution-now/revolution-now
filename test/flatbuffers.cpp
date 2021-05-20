@@ -13,7 +13,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "fb.hpp"
-#include "flat-queue.hpp"
 #include "logging.hpp"
 #include "matrix.hpp"
 #include "serial.hpp"
@@ -35,6 +34,7 @@
 // C++ standard library
 #include <fstream>
 #include <map>
+#include <queue>
 
 // Must be last.
 #include "catch-common.hpp"
@@ -959,21 +959,21 @@ struct MyFlatQueues {
   }
   // clang-format off
   SERIALIZABLE_TABLE_MEMBERS( fb, MyFlatQueues,
-  ( rn::flat_queue<int>,    q1 ),
-  ( rn::flat_queue<string>, q2 ),
-  ( deque<int>,             dq ));
+  ( queue<int>,    q1 ),
+  ( queue<string>, q2 ),
+  ( deque<int>,    dq ));
   // clang-format on
 };
 
-TEST_CASE( "[flatbuffers] flat_queue" ) {
+TEST_CASE( "[flatbuffers] queue" ) {
   FBBuilder fbb;
 
   {
-    flat_queue<int> q1;
+    queue<int> q1;
     q1.push( 1 );
     q1.push( 2 );
     q1.push( 3 );
-    flat_queue<string> q2;
+    queue<string> q2;
     q2.push( "one" );
     q2.push( "two" );
     q2.push( "three" );

@@ -16,7 +16,6 @@
 #include "colony-view.hpp"
 #include "cstate.hpp"
 #include "fb.hpp"
-#include "flat-queue.hpp"
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
@@ -52,6 +51,7 @@
 // C++ standard library
 #include <algorithm>
 #include <deque>
+#include <queue>
 
 using namespace std;
 
@@ -119,12 +119,11 @@ struct TurnState {
     started   = false;
     need_eot  = true;
     nation    = nothing;
-    remainder = {
-        e_nation::english, //
-        e_nation::french,  //
-        e_nation::dutch,   //
-        e_nation::spanish  //
-    };
+    remainder = {};
+    remainder.push( e_nation::english );
+    remainder.push( e_nation::french );
+    remainder.push( e_nation::dutch );
+    remainder.push( e_nation::spanish );
   }
 
   bool operator==( TurnState const& ) const = default;
@@ -135,7 +134,7 @@ struct TurnState {
   ( bool,                 started   ),
   ( bool,                 need_eot  ),
   ( maybe<NationState>,   nation    ),
-  ( flat_queue<e_nation>, remainder ));
+  ( queue<e_nation>,      remainder ));
   // clang-format on
 };
 
@@ -611,9 +610,11 @@ waitable<> colonies_turn() {
   CHECK( SG().turn.nation );
   auto& st = *SG().turn.nation;
   lg.info( "processing colonies for the {}.", st.nation );
-  flat_queue<ColonyId> colonies = colonies_all( st.nation );
+  queue<ColonyId> colonies;
+  for( ColonyId colony_id : colonies_all( st.nation ) )
+    colonies.push( colony_id );
   while( !colonies.empty() ) {
-    ColonyId colony_id = *colonies.front();
+    ColonyId colony_id = colonies.front();
     colonies.pop();
     co_await evolve_colony_one_turn( colony_id );
   }
@@ -667,7 +668,7 @@ waitable<> next_turn_impl() {
   }
 
   while( !st.remainder.empty() ) {
-    st.nation = NationState( *st.remainder.front() );
+    st.nation = NationState( st.remainder.front() );
     st.remainder.pop();
     co_await nation_turn();
     st.nation.reset();

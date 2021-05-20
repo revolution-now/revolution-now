@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "coord.hpp"
-#include "flat-queue.hpp"
 #include "fmt-helper.hpp"
 #include "macros.hpp"
 #include "maybe.hpp"
@@ -26,6 +25,9 @@
 // SDL
 // TODO: get rid of this
 #include "SDL.h"
+
+// C++ standard library.
+#include <queue>
 
 namespace rn::input {
 
@@ -178,7 +180,7 @@ enum class e_input_event {
 void pump_event_queue();
 
 // Callers are responsible for popping used events.
-flat_queue<event_t>& event_queue();
+std::queue<event_t>& event_queue();
 
 /****************************************************************
 ** Utilities
