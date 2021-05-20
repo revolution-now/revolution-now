@@ -19,7 +19,6 @@
 #include "frame.hpp"
 #include "land-view.hpp"
 #include "logging.hpp"
-#include "lua.hpp"
 #include "menu.hpp"
 #include "old-world-view.hpp"
 #include "old-world.hpp"
@@ -68,7 +67,6 @@ enum class e_menu_actions {
   exit,
   save,
   load,
-  next_turn,
   revolution,
   old_world_view
 };
@@ -188,11 +186,6 @@ waitable<> menu_old_world_view_handler() {
   co_await show_old_world_view();
 }
 
-waitable<> menu_next_turn_handler() {
-  eot::g_input_stream.send( eot::button_click_t{} );
-  co_return;
-}
-
 waitable<bool> proceed_to_leave_game() { co_return true; }
 
 waitable<> menu_exit_handler() {
@@ -217,11 +210,6 @@ DEFAULT_TURN_MENU_ITEM_HANDLER( load );
 DEFAULT_TURN_MENU_ITEM_HANDLER( revolution );
 DEFAULT_TURN_MENU_ITEM_HANDLER( old_world_view );
 
-MENU_ITEM_HANDLER(
-    next_turn,
-    [] { g_menu_actions.send( e_menu_actions::next_turn ); },
-    [] { return g_menu_commands_accepted && g_doing_eot; } )
-
 #define CASE_MENU_HANDLER( item ) \
   case e_menu_actions::item: return menu_##item##_handler();
 
@@ -230,7 +218,6 @@ waitable<> handle_menu_item( e_menu_actions action ) {
     CASE_MENU_HANDLER( exit );
     CASE_MENU_HANDLER( save );
     CASE_MENU_HANDLER( load );
-    CASE_MENU_HANDLER( next_turn );
     CASE_MENU_HANDLER( revolution );
     CASE_MENU_HANDLER( old_world_view );
   }
@@ -686,16 +673,5 @@ waitable<> next_turn_impl() {
 ** Turn State Advancement
 *****************************************************************/
 waitable<> next_turn() { return next_turn_impl(); }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_FN( end_turn, void ) {
-  return eot::g_input_stream.send( eot::button_click_t{} );
-}
-
-} // namespace
 
 } // namespace rn

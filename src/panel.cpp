@@ -15,6 +15,8 @@
 #include "error.hpp"
 #include "gfx.hpp"
 #include "logging.hpp"
+#include "lua.hpp"
+#include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "views.hpp"
@@ -133,6 +135,16 @@ struct PanelPlane : public Plane {
 
 PanelPlane g_panel_plane;
 
+/****************************************************************
+** Menu Handlers
+*****************************************************************/
+MENU_ITEM_HANDLER(
+    next_turn,
+    [] {
+      g_panel_plane.w_promise.set_value_emplace_if_not_set();
+    },
+    [] { return g_panel_plane.next_turn_button().enabled(); } )
+
 } // namespace
 
 /****************************************************************
@@ -145,10 +157,10 @@ waitable<> wait_for_eot_button_click() {
 }
 
 /****************************************************************
-** Testing
+** Lua bindings
 *****************************************************************/
-void test_panel() {
-  //
+LUA_FN( end_turn, void ) {
+  g_panel_plane.w_promise.set_value_emplace_if_not_set();
 }
 
 } // namespace rn

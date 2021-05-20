@@ -22,9 +22,4 @@ Plane* panel_plane();
 
 waitable<> wait_for_eot_button_click();
 
-/****************************************************************
-** Testing
-*****************************************************************/
-void test_panel();
-
 } // namespace rn

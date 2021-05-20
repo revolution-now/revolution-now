@@ -558,6 +558,10 @@ void ButtonView::enable( bool enabled ) {
   }
 }
 
+bool ButtonView::enabled() const {
+  return state() != button_state::disabled;
+}
+
 void ButtonView::blink( bool enabled ) {
   if( enabled ) {
     set_type( e_type::blink );

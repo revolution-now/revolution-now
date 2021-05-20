@@ -458,6 +458,7 @@ public:
   void on_mouse_leave( Coord from ) override;
 
   void enable( bool enabled = true );
+  bool enabled() const;
 
   void blink( bool enabled = true );
 
