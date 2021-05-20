@@ -167,6 +167,21 @@ struct WithBackground {
 inline constexpr WithBackground background{};
 
 /****************************************************************
+** fmap
+*****************************************************************/
+struct Fmap {
+  // Needs to take Func by value because it needs to keep it
+  // around until the waitable w is ready.
+  template<typename Func, typename T>
+  auto operator()( Func f, waitable<T> w ) const
+      -> waitable<std::invoke_result_t<Func, T>> {
+    co_return f( co_await std::move( w ) );
+  }
+};
+
+inline constexpr Fmap fmap{};
+
+/****************************************************************
 ** try
 *****************************************************************/
 template<typename Exception>

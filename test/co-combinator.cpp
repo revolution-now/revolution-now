@@ -1146,5 +1146,18 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[co-combinator] fmap" ) {
+  waitable_promise<int> p;
+
+  waitable<string> w =
+      co::fmap( L( to_string( _ ) + '.' ), p.waitable() );
+
+  REQUIRE( !w.ready() );
+  p.set_value( 5 );
+  run_all_coroutines();
+  REQUIRE( w.ready() );
+  REQUIRE( *w == "5." );
+}
+
 } // namespace
 } // namespace rn::co
