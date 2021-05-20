@@ -115,9 +115,23 @@ public:
   void pop() {
     DCHECK( front_ != int( queue_.size() ) );
     if( front_ == int( queue_.size() ) ) return;
-    // FIXME: can we just run a destructor on a vector element if
-    // it is of non-trivial type? I wouldn't think so...
-    queue_[front_++].~T();
+    if constexpr( !std::is_trivially_destructible_v<T> ) {
+      // Ideally we'd like to run the destructor for this object
+      // when we pop, but it won't happen automatically by the
+      // vector until we hit the reallocation_size. So we could
+      // just run the destructor for the popped element here man-
+      // ually, but that could then cause undefined behavior if
+      // the vector tries to move that object as would happen if
+      // it then resizes. So as an approximation, if the object
+      // is not trivially destructible, we will just move it out
+      // and then let it go out of scope. That way things should
+      // be relatively efficient, the destructor should get
+      // called, and the object should be left in a state that
+      // won't cause problems if the vector tries to move it.
+      T to_dispose( std::move( queue_[front_] ) );
+      (void)to_dispose;
+    }
+    ++front_;
     if( front_ == reallocation_size_ ) {
       queue_.erase( queue_.begin(),
                     queue_.begin() + reallocation_size_ );
