@@ -562,7 +562,7 @@ waitable<int> get_int1() {
 
 waitable<> get_int2() {
   LOG_PLACES( 'f', 'F' );
-  co_await repeat( []() -> waitable<> {
+  co_await co::loop( []() -> waitable<> {
     get_int2_p = {};
     LOG_PLACES( 'g', 'G' );
     co_await get_int2_p.waitable();

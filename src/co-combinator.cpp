@@ -81,9 +81,9 @@ waitable<> all( waitable<>&& w1, waitable<>&& w2,
 }
 
 /****************************************************************
-** repeat
+** loop
 *****************************************************************/
-waitable<> repeat(
+waitable<> loop(
     base::unique_func<waitable<>() const> coroutine ) {
   while( true ) co_await coroutine();
 }

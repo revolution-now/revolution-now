@@ -251,9 +251,9 @@ struct Erase {
 inline constexpr Erase erase{};
 
 /****************************************************************
-** repeat
+** loop
 *****************************************************************/
-waitable<> repeat(
+waitable<> loop(
     base::unique_func<waitable<>() const> coroutine );
 
 /****************************************************************
