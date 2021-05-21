@@ -28,6 +28,7 @@ CFG( ui,
     FLD( rn::W,  spacing )
     FLD( rn::W,  body_min_width )
     FLD( e_font, font )
+    FLD( rn::H,  menu_bar_height )
   )
 )
 

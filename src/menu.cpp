@@ -596,12 +596,12 @@ ItemTextures render_menu_element( string_view const text,
     inactive = clone_texture( render_text_markup(
         config_ui.menus.font, inactive_info, mk_text ) );
     active   = clone_texture( render_text_markup(
-        config_ui.menus.font, active_info, mk_text ) );
+          config_ui.menus.font, active_info, mk_text ) );
   } else {
     inactive = clone_texture( render_text(
         config_ui.menus.font, inactive_color, text ) );
     active   = clone_texture( render_text( config_ui.menus.font,
-                                         active_color, text ) );
+                                           active_color, text ) );
   }
   auto disabled = clone_texture( render_text(
       config_ui.menus.font, disabled_color, text ) );
@@ -612,7 +612,8 @@ ItemTextures render_menu_element( string_view const text,
       ItemTextures{ std::move( inactive ), std::move( active ),
                     std::move( disabled ), width };
   // Sanity check
-  CHECK( res.width > 0 && res.width < menu_bar_rect().w );
+  CHECK( res.width > 0 &&
+         res.width < main_window_logical_size().w );
   return res;
 }
 
@@ -819,7 +820,7 @@ void render_menu_bar( Texture& tx ) {
       Txs operator()( MenuState::item_click const& ic ) const {
         // Just forward this to the MenuState::menu_open.
         CHECK( g_item_to_menu.contains( ic.item ) );
-        return (*this)( MenuState::menu_open{
+        return ( *this )( MenuState::menu_open{
             g_item_to_menu[ic.item], /*hover=*/{} } );
       }
       Txs operator()( MenuState::menu_open const& o ) const {
@@ -828,7 +829,7 @@ void render_menu_bar( Texture& tx ) {
               pair{ &textures.name.highlighted,
                     &textures.menu_background_highlight } };
         } else
-          return (*this)( MenuState::menus_closed{} );
+          return ( *this )( MenuState::menus_closed{} );
       }
     } matcher{ menu, textures };
     if( auto p = std::visit( matcher, g_menu_state );
@@ -870,11 +871,11 @@ maybe<MouseOver_t> click_target( Coord screen_coord ) {
     res_t operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
       CHECK( g_item_to_menu.contains( ic.item ) );
-      return (*this)( MenuState::menu_open{
+      return ( *this )( MenuState::menu_open{
           g_item_to_menu[ic.item], /*hover=*/{} } );
     }
     res_t operator()( MenuState::menu_open const& o ) const {
-      auto closed = (*this)( MenuState::menus_closed{} );
+      auto closed = ( *this )( MenuState::menus_closed{} );
       if( closed ) return res_t{ closed };
       if( !screen_coord.is_inside(
               menu_body_clickable_area( o.menu ) ) )
@@ -1376,8 +1377,8 @@ struct MenuPlane : public Plane {
             e_input_handled operator()(
                 MouseOver::border border ) {
               // Delegate to the divider handler for now.
-              return (
-                  *this)( MouseOver::divider{ border.menu } );
+              return ( *this )(
+                  MouseOver::divider{ border.menu } );
             }
           } matcher;
           return std::visit( matcher, *over_what );

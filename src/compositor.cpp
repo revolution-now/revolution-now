@@ -11,16 +11,19 @@
 #include "compositor.hpp"
 
 // Revolution Now
+#include "config-files.hpp"
 #include "error.hpp"
 #include "init.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 
+// Revolution Now (config)
+#include "../config/ucl/ui.inl"
+
 namespace rn::compositor {
 
 namespace {
 
-H g_menu_height{ 16 };
 W g_panel_width{ 6 * 32 };
 
 void init_compositor() {}
@@ -36,10 +39,11 @@ REGISTER_INIT_ROUTINE( compositor );
 *****************************************************************/
 maybe<Rect> section( e_section section ) {
   maybe<Rect> res;
-  auto      screen_rect = main_window_logical_rect();
-  auto      screen_size = screen_rect.delta();
-  auto      menu_height =
-      is_plane_enabled( e_plane::menu ) ? g_menu_height : 0_h;
+  auto        screen_rect = main_window_logical_rect();
+  auto        screen_size = screen_rect.delta();
+  auto        menu_height = is_plane_enabled( e_plane::menu )
+                                ? config_ui.menus.menu_bar_height
+                                : 0_h;
   switch( section ) {
     case e_section::menu_bar:
       if( is_plane_enabled( e_plane::menu ) )

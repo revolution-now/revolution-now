@@ -53,9 +53,6 @@ waitable<> run_loaded_game() {
 *****************************************************************/
 waitable<> run_existing_game() {
   CHECK_HAS_VALUE( load_game( 0 ) );
-  // Allow all the planes to update their state at least once be-
-  // fore we proceed.
-  co_await 1_frames;
   play( e_game_module_tune_points::start_game );
   co_await run_loaded_game();
 }
@@ -64,9 +61,6 @@ waitable<> run_new_game() {
   default_construct_savegame_state();
   lua::reload();
   lua::run_startup_main();
-  // Allow all the planes to update their state at least once be-
-  // fore we proceed.
-  co_await 1_frames;
 
   // 1. Take user through game setup/configuration.
 

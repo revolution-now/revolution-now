@@ -659,7 +659,7 @@ waitable<> next_turn_impl() {
 *****************************************************************/
 waitable<> next_turn() {
   ScopedPlanePush pusher( e_plane_config::land_view );
-  return next_turn_impl();
+  co_await next_turn_impl();
 }
 
 } // namespace rn

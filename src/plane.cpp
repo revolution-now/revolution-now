@@ -51,16 +51,7 @@ constexpr auto num_planes =
     static_cast<size_t>( enum_traits<e_plane>::count );
 
 // The `values` array should be a constexpr.
-vector<e_plane> g_plane_list{
-    enum_traits<e_plane>::values.begin(),
-    enum_traits<e_plane>::values.end() };
-// When a new list of planes is set, it will be set here instead
-// of modifying the primary one. This is to guarantee that no one
-// can mutate the primary list at the wrong time (i.e., while it
-// is being iterated over). Only at the start of each frame will
-// the contents of this vector (if present) be moved into the
-// primary one above.
-maybe<vector<e_plane>> g_plane_list_next;
+vector<e_plane> g_plane_list;
 
 /****************************************************************
 ** Plane Textures
@@ -315,23 +306,11 @@ maybe<Plane::MenuClickHandler> Plane::menu_click_handler(
 ** External API
 *****************************************************************/
 void set_plane_list( vector<e_plane> const& arr ) {
-  vector<e_plane>        res;
-  unordered_set<e_plane> set;
-  res.reserve( enum_traits<e_plane>::count );
-  for( auto plane : arr ) {
-    CHECK( plane != e_plane::omni );
-    CHECK( !set.contains( plane ),
-           "plane {} appears twice in list.", plane );
-    set.insert( plane );
-    res.push_back( plane );
-  }
-  res.push_back( e_plane::console );
-  res.push_back( e_plane::omni );
-  // Only assign to the global variable as a last step, that way
-  // if we encounter an error we still have a usable plane list.
+  g_plane_list = arr;
+  g_plane_list.push_back( e_plane::console );
+  g_plane_list.push_back( e_plane::omni );
   lg.debug( "setting next plane list: {}",
-            FmtJsonStyleList{ res } );
-  g_plane_list_next.emplace( std::move( res ) );
+            FmtJsonStyleList{ g_plane_list } );
 }
 
 bool is_plane_enabled( e_plane plane ) {
@@ -358,10 +337,6 @@ void draw_all_planes( Texture& tx ) {
 }
 
 void advance_plane_state() {
-  if( g_plane_list_next.has_value() ) {
-    g_plane_list      = std::move( *g_plane_list_next );
-    g_plane_list_next = nothing;
-  }
   for( auto [e, ptr] : relevant_planes() ) ptr->advance_state();
 }
 

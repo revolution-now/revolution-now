@@ -74,7 +74,10 @@ vector<e_plane> const& planes_from_config(
 }
 
 void update_planes() {
-  if( g_plane_config_stack.empty() ) set_plane_list( {} );
+  if( g_plane_config_stack.empty() ) {
+    set_plane_list( {} );
+    return;
+  }
   set_plane_list(
       planes_from_config( g_plane_config_stack.top() ) );
 }

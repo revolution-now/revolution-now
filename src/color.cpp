@@ -19,9 +19,6 @@
 #include "screen.hpp"
 #include "sdl-util.hpp"
 
-// Revolution Now (config)
-#include "../config/ucl/palette.inl"
-
 // base
 #include "base/lambda.hpp"
 #include "base/maybe-util.hpp"
