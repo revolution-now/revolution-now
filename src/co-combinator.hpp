@@ -23,6 +23,7 @@
 #include "base/variant.hpp"
 
 // C++ standard library
+#include <concepts>
 #include <queue>
 #include <vector>
 
@@ -153,7 +154,7 @@ struct WithBackground {
   //
   template<typename T>
   waitable<T> operator()( waitable<T> w,
-                          waitable<>  background ) const {
+                          waitable<> /*background*/ ) const {
     waitable_promise<T> wp;
     // Need to do w first so that if both are ready already then
     // w will take precedence and return its value.
@@ -497,15 +498,17 @@ struct interleave {
   waitable<value_type> next() { return output_stream.next(); }
 
   explicit interleave( Ss&... ss ) : streamables{ &ss... } {
-    // Start N coroutines and store them in the vector.
-    auto forwarder = [this]<size_t Index>(
+    auto* that      = this; // workaround for gcc ICE.
+    auto  forwarder = [that]<size_t Index>(
                          std::integral_constant<size_t, Index> )
         -> waitable<> {
       while( true )
-        output_stream.send( value_type(
+        that->output_stream.send( value_type(
             std::in_place_index_t<Index>{},
-            co_await std::get<Index>( streamables )->next() ) );
+            co_await std::get<Index>( that->streamables )
+                ->next() ) );
     };
+    // Start N coroutines and store them in the vector.
     mp::for_index_seq<sizeof...( Ss )>(
         [&, this]<size_t Idx>(
             std::integral_constant<size_t, Idx> ic ) {
@@ -516,8 +519,10 @@ struct interleave {
   interleave()                    = default;
   interleave( interleave const& ) = delete;
   interleave& operator=( interleave const& ) = delete;
-  interleave( interleave&& )                 = default;
-  interleave& operator=( interleave&& ) = default;
+  // Cannot be moved because this object contains a self refer-
+  // ence, due to the above lambda capture of `this`.
+  interleave( interleave&& ) = delete;
+  interleave& operator=( interleave&& ) = delete;
 
 private:
   // Input streamables.

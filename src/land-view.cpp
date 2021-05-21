@@ -880,8 +880,8 @@ struct LandViewPlane : public Plane {
   maybe<waitable<>> drag_thread;
   bool              drag_finished = true;
 
-  waitable<> dragging( input::e_mouse_button button,
-                       Coord                 origin ) {
+  waitable<> dragging( input::e_mouse_button /*button*/,
+                       Coord /*origin*/ ) {
     SCOPE_EXIT( drag_finished = true );
     while( maybe<DragUpdate> d = co_await drag_stream.next() )
       SG().viewport.pan_by_screen_coords( d->prev - d->current );
