@@ -434,7 +434,7 @@ waitable<LandViewPlayerInput_t> landview_player_input(
   co_return response;
 }
 
-waitable<> query_unit_input( UnitId id, deque<UnitId>* q ) {
+waitable<> query_unit_input( UnitId id ) {
   auto command = co_await co::first(
       wait_for_menu_selection(), landview_player_input( id ) );
   co_await overload_visit(
@@ -536,7 +536,7 @@ waitable<> units_turn_one_pass( deque<UnitId>& q ) {
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( id, &q );
+    co_await query_unit_input( id );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
