@@ -498,8 +498,8 @@ struct interleave {
   waitable<value_type> next() { return output_stream.next(); }
 
   explicit interleave( Ss&... ss ) : streamables{ &ss... } {
-    auto* that      = this; // workaround for gcc ICE.
-    auto  forwarder = [that]<size_t Index>(
+    auto that      = this; // workaround for gcc ICE.
+    auto forwarder = [that]<size_t Index>(
                          std::integral_constant<size_t, Index> )
         -> waitable<> {
       while( true )
