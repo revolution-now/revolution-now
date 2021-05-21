@@ -17,7 +17,6 @@
 #include "compositor.hpp"
 #include "cstate.hpp"
 #include "logging.hpp"
-#include "menu.hpp"
 #include "plane-ctrl.hpp"
 #include "plane.hpp"
 #include "text.hpp"
@@ -150,21 +149,10 @@ waitable<> show_colony_view( ColonyId id ) {
   g_input.reset();
   g_colony_plane.curr_colony_id = id;
   set_colview_colony( id );
-  push_plane_config( e_plane_config::colony );
+  ScopedPlanePush pusher( e_plane_config::colony );
   lg.info( "viewing colony {}.", colony_from_id( id ) );
   co_await run_colview();
   lg.info( "leaving colony view." );
-  pop_plane_config();
 }
-
-/****************************************************************
-** Menu Handlers
-*****************************************************************/
-
-//
-//
-MENU_ITEM_HANDLER(
-    colony_view_close, [] { pop_plane_config(); },
-    [] { return is_plane_enabled( e_plane::colony ); } )
 
 } // namespace rn

@@ -15,7 +15,6 @@
 #include "conductor.hpp"
 #include "logging.hpp"
 #include "lua.hpp"
-#include "plane-ctrl.hpp"
 #include "save-game.hpp"
 #include "turn.hpp"
 
@@ -63,10 +62,6 @@ waitable<> run_existing_game() {
 
 waitable<> run_new_game() {
   default_construct_savegame_state();
-  // FIXME: temporary, since default constructing the save game
-  // state resets the plane state.
-  push_plane_config( e_plane_config::main_menu );
-  push_plane_config( e_plane_config::terrain );
   lua::reload();
   lua::run_startup_main();
   // Allow all the planes to update their state at least once be-

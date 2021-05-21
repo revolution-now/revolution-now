@@ -325,6 +325,7 @@ void set_plane_list( vector<e_plane> const& arr ) {
     set.insert( plane );
     res.push_back( plane );
   }
+  res.push_back( e_plane::console );
   res.push_back( e_plane::omni );
   // Only assign to the global variable as a last step, that way
   // if we encounter an error we still have a usable plane list.

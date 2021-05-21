@@ -15,19 +15,16 @@
 namespace rn {
 
 enum class e_plane_config {
-  main_menu, //
-  terrain,
+  main_menu,
+  land_view,
   colony,
   old_world,
   black
 };
 
-// These do what you would think they do.
-void push_plane_config( e_plane_config conf );
-void pop_plane_config();
-
-// Just after calling this you are expected to push a plane con-
-// fig.
-void clear_plane_stack();
+struct ScopedPlanePush {
+  ScopedPlanePush( e_plane_config config );
+  ~ScopedPlanePush() noexcept;
+};
 
 } // namespace rn

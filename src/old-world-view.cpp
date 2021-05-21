@@ -2130,11 +2130,10 @@ waitable<> show_old_world_view() {
     if( !unit_exists( id ) || !unit_old_world_view_info( id ) )
       SG().selected_unit = nothing;
   }
-  push_plane_config( e_plane_config::old_world );
+  ScopedPlanePush pusher( e_plane_config::old_world );
   lg.info( "entering old world view." );
   co_await run_old_world_view();
   lg.info( "leaving old world view." );
-  pop_plane_config();
 }
 
 void old_world_view_set_selected_unit( UnitId id ) {

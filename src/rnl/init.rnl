@@ -23,7 +23,6 @@ enum e_init_routine {
   midiseq,
   oggplayer,
   planes,
-  plane_config,
   renderer,
   rng,
   screen,

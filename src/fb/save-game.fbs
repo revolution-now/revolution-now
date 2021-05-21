@@ -12,7 +12,6 @@ include "sg-colony.fbs";
 include "sg-old-world-view.fbs";
 include "sg-id.fbs";
 include "sg-land-view.fbs";
-include "sg-plane.fbs";
 include "sg-player.fbs";
 include "sg-terrain.fbs";
 include "sg-turn.fbs";
@@ -25,7 +24,6 @@ table SaveGame {
   unit_state      : SG_Unit;
   player_state    : SG_Player;
   turn_state      : SG_Turn;
-  plane_state     : SG_Plane;
   old_world_state : SG_OldWorldView;
   colony_state    : SG_Colony;
   land_view_state : SG_LandView;

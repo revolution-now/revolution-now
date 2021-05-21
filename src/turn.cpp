@@ -654,6 +654,9 @@ waitable<> next_turn_impl() {
 /****************************************************************
 ** Turn State Advancement
 *****************************************************************/
-waitable<> next_turn() { return next_turn_impl(); }
+waitable<> next_turn() {
+  ScopedPlanePush pusher( e_plane_config::land_view );
+  return next_turn_impl();
+}
 
 } // namespace rn

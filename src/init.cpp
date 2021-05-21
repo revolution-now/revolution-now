@@ -108,11 +108,6 @@ unordered_map<e_init_routine, vector<e_init_routine>>
               e_init_routine::sprites, //
               e_init_routine::renderer //
           } },
-        { e_init_routine::plane_config,
-          {
-              e_init_routine::configs, //
-              e_init_routine::planes   //
-          } },
         { e_init_routine::sound,
           {
               e_init_routine::configs, //

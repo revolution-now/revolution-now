@@ -55,14 +55,13 @@ waitable<> main_menu_item_selected( e_main_menu_item item ) {
 }
 
 waitable<> main_menu() {
+  ScopedPlanePush pusher( e_plane_config::main_menu );
   conductor::play_request(
       conductor::e_request::fife_drum_happy,
       conductor::e_request_probability::always );
   co::stream<e_main_menu_item>& selections =
       main_menu_input_stream();
   while( true ) {
-    clear_plane_stack();
-    push_plane_config( e_plane_config::main_menu );
     e_main_menu_item item = co_await selections.next();
     try {
       co_await main_menu_item_selected( item );
