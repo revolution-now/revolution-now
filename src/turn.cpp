@@ -302,8 +302,9 @@ waitable<> process_player_input( button_click_t ) {
 
 waitable<> process_inputs() {
   landview_reset_input_buffers();
-  UserInput command;
-  while( !command.holds<button_click_t>() ) {
+  while( true ) {
+    auto wait_for_button = co::fmap(
+        [] λ( button_click_t{} ), wait_for_eot_button_click() );
     // The reason that we want to use co::first here instead of
     // interleaving the three streams is because as soon as one
     // becomes ready (and we start processing it) we want all the
@@ -311,12 +312,14 @@ waitable<> process_inputs() {
     // the effect of disabling further input on them (e.g., dis-
     // abling menu items), which is what we want for a good user
     // experience.
-    command = co_await co::first(
-        wait_for_menu_selection(), landview_eot_get_next_input(),
-        co::fmap( [] λ( button_click_t{} ),
-                  wait_for_eot_button_click() ) );
+    UserInput command =
+        co_await co::first( wait_for_menu_selection(),     //
+                            landview_eot_get_next_input(), //
+                            move( wait_for_button )        //
+        );
     co_await rn::visit( command,
                         L( process_player_input( _ ) ) );
+    if( command.holds<button_click_t>() ) co_return;
   }
 }
 
