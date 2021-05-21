@@ -59,6 +59,13 @@ struct promise_type_base_base {
   auto final_suspend() const noexcept {
     return base::suspend_always{};
   }
+  // Ensure that this is not copyable. See
+  // https://devblogs.microsoft.com/oldnewthing/20210504-00/?p=105176
+  // for the arcane reason as to why.
+  promise_type_base_base() = default;
+  promise_type_base_base( promise_type_base_base const& ) =
+      delete;
+  void operator=( promise_type_base_base const& ) = delete;
 };
 
 template<typename T>
