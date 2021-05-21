@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "plane.hpp"
+#include "tx.hpp"
 
 // Rnl
 #include "rnl/image.hpp"
@@ -22,6 +22,7 @@ namespace rn {
 
 Texture const& image( e_image which );
 
+struct Plane;
 Plane* image_plane();
 void   image_plane_set( e_image image );
 

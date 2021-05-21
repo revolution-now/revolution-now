@@ -17,6 +17,7 @@
 #include "gfx.hpp"
 #include "init.hpp"
 #include "logging.hpp"
+#include "plane.hpp"
 #include "screen.hpp"
 
 // Revolution Now (config)
