@@ -498,10 +498,14 @@ struct interleave {
   waitable<value_type> next() { return output_stream.next(); }
 
   explicit interleave( Ss&... ss ) : streamables{ &ss... } {
-    auto that      = this; // workaround for gcc ICE.
-    auto forwarder = [that]<size_t Index>(
-                         std::integral_constant<size_t, Index> )
-        -> waitable<> {
+    // This lambda needs access to `this`, but we can't capture
+    // it because we need it to be captureless, because it goes
+    // out of scope at the end of this function, but we need it
+    // to outlive this function. So therefore we just pass in
+    // this as an argument.
+    auto forwarder = []<size_t Index>(
+                         std::integral_constant<size_t, Index>,
+                         auto* that ) -> waitable<> {
       while( true )
         that->output_stream.send( value_type(
             std::in_place_index_t<Index>{},
@@ -512,7 +516,7 @@ struct interleave {
     mp::for_index_seq<sizeof...( Ss )>(
         [&, this]<size_t Idx>(
             std::integral_constant<size_t, Idx> ic ) {
-          forwarders.push_back( forwarder( ic ) );
+          forwarders.push_back( forwarder( ic, this ) );
         } );
   }
 
