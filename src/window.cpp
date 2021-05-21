@@ -103,11 +103,11 @@ public:
 
   ND Plane::e_input_handled input( input::event_t const& event );
 
-  Plane::DragInfo can_drag( input::e_mouse_button button,
-                            Coord                 origin );
-  void            on_drag( input::mod_keys const& mod,
-                           input::e_mouse_button button, Coord origin,
-                           Coord prev, Coord current );
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord                 origin );
+  void                 on_drag( input::mod_keys const& mod,
+                                input::e_mouse_button button, Coord origin,
+                                Coord prev, Coord current );
 
   vector<Window*>& active_windows() { return windows_; }
 
@@ -156,8 +156,8 @@ struct WindowPlane : public Plane {
     // event go down to a lower plane.
     return wm.input( event );
   }
-  Plane::DragInfo can_drag( input::e_mouse_button button,
-                            Coord origin ) override {
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
     return wm.can_drag( button, origin );
   }
   void on_drag( input::mod_keys const& mod,
@@ -341,7 +341,7 @@ Plane::e_input_handled WindowManager::input(
   return Plane::e_input_handled::no;
 }
 
-Plane::DragInfo WindowManager::can_drag(
+Plane::e_accept_drag WindowManager::can_drag(
     input::e_mouse_button /*unused*/, Coord origin ) {
   if( num_windows() == 0 ) return Plane::e_accept_drag::no;
   // If we're in the title bar then we'll drag; if we not, but

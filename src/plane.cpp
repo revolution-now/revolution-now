@@ -150,24 +150,15 @@ Plane* omni_plane() { return &g_omni_plane; }
 /****************************************************************
 ** Dragging Metadata
 *****************************************************************/
+enum class e_drag_send_mode { normal, raw, motion };
+
 struct DragState {
-  explicit DragState() { reset(); }
-
-  // This is the plan that is currently receiving mouse dragging
-  // events (nothing if there is not dragging event happening).
-  maybe<e_plane> plane{};
-  bool           send_as_motion{ false };
-  maybe<Delta>   projection{};
-
-  void reset() {
-    plane          = nothing;
-    send_as_motion = false;
-    projection     = nothing;
-  }
+  e_plane          plane;
+  e_drag_send_mode mode = e_drag_send_mode::normal;
 };
 NOTHROW_MOVE( DragState );
 
-DragState g_drag_state;
+maybe<DragState> g_drag_state;
 
 /****************************************************************
 ** Plane Range Combinators
@@ -234,38 +225,6 @@ void cleanup_planes() {
 
 REGISTER_INIT_ROUTINE( planes );
 
-input::mouse_drag_event_t project_drag_event(
-    input::mouse_drag_event_t const& drag_event,
-    Delta const&                     along ) {
-  // Takes the vector defined by (end-start) and projects it
-  // along the `along` vector, returning a new `end`.
-  auto project = []( Coord const& start, Coord const& end,
-                     Delta const& along ) {
-    return start + ( end - start ).projected_along( along );
-  };
-
-  auto res = drag_event;
-  res.prev = project( /*start=*/drag_event.state.origin,
-                      /*end=*/drag_event.prev,
-                      /*along=*/along );
-  res.pos  = project( /*start=*/drag_event.state.origin,
-                     /*end=*/drag_event.pos,
-                     /*along=*/along );
-  return res;
-}
-
-bool input_catchall( input::event_t const& event ) {
-  bool handled = false;
-  switch( event.to_enum() ) {
-    case input::e_input_event::quit_event:
-      // throw exception_exit{};
-      break;
-    default: //
-      break;
-  }
-  return handled;
-}
-
 } // namespace
 
 /****************************************************************
@@ -282,7 +241,7 @@ Plane::e_input_handled Plane::input(
 
 void Plane::advance_state() {}
 
-Plane::DragInfo Plane::can_drag(
+Plane::e_accept_drag Plane::can_drag(
     input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
   return e_accept_drag::no;
 }
@@ -343,13 +302,29 @@ void advance_plane_state() {
 Plane::e_input_handled send_input_to_planes(
     input::event_t const& event ) {
   using namespace input;
-  if( auto* drag_event =
-          std::get_if<input::mouse_drag_event_t>( &event ) ) {
-    if( g_drag_state.plane ) {
-      auto& plane = Plane::get( *g_drag_state.plane );
-      // Drag should already be in progress.
-      CHECK( drag_event->state.phase != e_drag_phase::begin );
-      if( g_drag_state.send_as_motion ) {
+  auto* drag_event =
+      std::get_if<input::mouse_drag_event_t>( &event );
+  if( drag_event == nullptr ) {
+    // Normal event, so send it out using the usual protocol.
+    for( auto p : relevant_planes() ) {
+      switch( p.second->input( event ) ) {
+        case Plane::e_input_handled::yes:
+          return Plane::e_input_handled::yes;
+        case Plane::e_input_handled::no: //
+          break;
+      }
+    }
+    return Plane::e_input_handled::no;
+  }
+
+  // We have a drag event. Test if there is a plane registered to
+  // receive it already.
+  if( g_drag_state ) {
+    auto& plane = Plane::get( g_drag_state->plane );
+    // Drag should already be in progress.
+    CHECK( drag_event->state.phase != e_drag_phase::begin );
+    switch( g_drag_state->mode ) {
+      case e_drag_send_mode::motion: {
         // The plane wants to be sent this drag event as regular
         // mouse motion / click events, so we need to convert the
         // drag events to those events and send them.
@@ -365,8 +340,6 @@ Plane::e_input_handled send_input_to_planes(
         (void)plane.input( motion );
         // If the drag is finished then send out that event.
         if( drag_event->state.phase == e_drag_phase::end ) {
-          // lg.debug( "finished `{}` drag motion event",
-          //          *g_drag_state.plane );
           auto maybe_button =
               input::drag_event_to_mouse_button_event(
                   *drag_event );
@@ -374,133 +347,99 @@ Plane::e_input_handled send_input_to_planes(
           (void)plane.input( *maybe_button );
           g_drag_state.reset();
         }
-      } else {
-        // The plane wishes to be sent these drag events as drag
-        // events. There is already a drag in progress, so send
-        // this one to the same plane that accepted the initial
-        // drag event.
-        //
-        // First project the coordinates if it was requested.
-        input::mouse_drag_event_t prj_drag_event =
-            ( g_drag_state.projection.has_value() )
-                ? project_drag_event( *drag_event,
-                                      *g_drag_state.projection )
-                : *drag_event;
-        plane.on_drag( prj_drag_event.mod, prj_drag_event.button,
-                       prj_drag_event.state.origin,
-                       prj_drag_event.prev, //
-                       prj_drag_event.pos );
-        // Sanity check that we copied properly.
-        DCHECK( prj_drag_event.state.phase ==
-                drag_event->state.phase );
+        break;
+      }
+      case e_drag_send_mode::normal: {
+        // The plane wishes to be sent these drag events using
+        // the dedicated plane drag methods. There is already a
+        // drag in progress, so send this one to the same plane
+        // that accepted the initial drag event.
+        plane.on_drag( drag_event->mod, drag_event->button,
+                       drag_event->state.origin,
+                       drag_event->prev, drag_event->pos );
         // If the drag is finished then send out that event.
-        if( prj_drag_event.state.phase == e_drag_phase::end ) {
-          // lg.debug( "finished `{}` drag event",
-          //          *g_drag_state.plane );
+        if( drag_event->state.phase == e_drag_phase::end ) {
           plane.on_drag_finished(
-              prj_drag_event.mod, prj_drag_event.button,
-              prj_drag_event.state.origin, prj_drag_event.pos );
+              drag_event->mod, drag_event->button,
+              drag_event->state.origin, drag_event->pos );
           g_drag_state.reset();
         }
-      }
-      // Here it is assumed/required that the plane handle it
-      // because the plane has already accepted this drag.
-      return Plane::e_input_handled::yes;
-    }
-    // No drag plane registered to accept the event, so lets
-    // send out the event but only if it's a `begin` event.
-    if( drag_event->state.phase == e_drag_phase::begin ) {
-      for( auto [e, plane] : relevant_planes() ) {
-        // Note here we use the origin position of the mouse drag
-        // as opposed to the current mouse position because that
-        // is what is relevant for determining whether the plane
-        // can handle the drag event or not (at this point, even
-        // though we are in a `begin` event, the current mouse
-        // position may already have moved a bit from the orig-
-        // in).
-        auto drag_desc = plane->can_drag(
-            drag_event->button, drag_event->state.origin );
-        switch( drag_desc.accept ) {
-          // If the plane doesn't want to handle it then move
-          // on to ask the next one.
-          case Plane::e_accept_drag::no: continue;
-          case Plane::e_accept_drag::motion: {
-            // In this case the plane says that it wants to re-
-            // ceive the events, but just as normal mouse
-            // move/click events.
-            g_drag_state.reset();
-            g_drag_state.plane          = e;
-            g_drag_state.send_as_motion = true;
-            // lg.debug( "plane `{}` can drag as motion.", e );
-            auto motion =
-                input::drag_event_to_mouse_motion_event(
-                    *drag_event );
-            auto maybe_button =
-                input::drag_event_to_mouse_button_event(
-                    *drag_event );
-            // Drag events in the e_drag_phase::begin phase
-            // should not contain any button events because the
-            // initial mouse-down will always be sent as a normal
-            // click event.
-            CHECK( !maybe_button.has_value() );
-            (void)plane->input( motion );
-            // All events within a drag are assumed handled.
-            return Plane::e_input_handled::yes;
-          }
-          case Plane::e_accept_drag::swallow:
-            // In this case the plane says that it doesn't want
-            // to handle it AND it doesn't want anyone else to
-            // handle it.
-            // lg.debug( "plane `{}` swallowed drag.", e );
-            return Plane::e_input_handled::yes;
-          case Plane::e_accept_drag::yes:
-            // Wants to handle it.
-            g_drag_state.reset();
-            g_drag_state.plane          = e;
-            g_drag_state.send_as_motion = false;
-            g_drag_state.projection     = drag_desc.projection;
-            // lg.debug( "plane `{}` can drag", e );
-            // Now we must send it an on_drag because this mouse
-            // event that we're dealing with serves both to tell
-            // us about a new drag even but also may have a mouse
-            // delta in it that needs to be processed.
-            //
-            // First project the coordinates if it was requested.
-            input::mouse_drag_event_t prj_drag_event =
-                ( g_drag_state.projection.has_value() )
-                    ? project_drag_event(
-                          *drag_event, *g_drag_state.projection )
-                    : *drag_event;
-            // Sanity check that we copied properly.
-            DCHECK( prj_drag_event.state.phase ==
-                    drag_event->state.phase );
-            plane->on_drag( prj_drag_event.mod,
-                            prj_drag_event.button,
-                            prj_drag_event.state.origin,
-                            prj_drag_event.prev, //
-                            prj_drag_event.pos );
-            return Plane::e_input_handled::yes;
-        }
-      }
-    }
-    // If no one handled it then that's it.
-    return Plane::e_input_handled::no;
-  }
-
-  // Just a normal event, so send it out using the usual proto-
-  // col.
-  for( auto p : relevant_planes() ) {
-    switch( p.second->input( event ) ) {
-      case Plane::e_input_handled::yes:
-        return Plane::e_input_handled::yes;
-      case Plane::e_input_handled::no: //
         break;
+      }
+      case e_drag_send_mode::raw: {
+        (void)plane.input( event );
+        break;
+      }
     }
+    // Here it is assumed/required that the plane handle it be-
+    // cause the plane has already accepted this drag.
+    return Plane::e_input_handled::yes;
   }
 
-  if( input_catchall( event ) )
-    return Plane::e_input_handled::yes;
-
+  // No drag plane registered to accept the event, so lets send
+  // out the event but only if it's a `begin` event.
+  if( drag_event->state.phase == e_drag_phase::begin ) {
+    for( auto [e, plane] : relevant_planes() ) {
+      // Note here we use the origin position of the mouse drag
+      // as opposed to the current mouse position because that is
+      // what is relevant for determining whether the plane can
+      // handle the drag event or not (at this point, even though
+      // we are in a `begin` event, the current mouse position
+      // may already have moved a bit from the origin).
+      Plane::e_accept_drag accept = plane->can_drag(
+          drag_event->button, drag_event->state.origin );
+      switch( accept ) {
+        // If the plane doesn't want to handle it then move on to
+        // ask the next one.
+        case Plane::e_accept_drag::no: continue;
+        case Plane::e_accept_drag::motion: {
+          // In this case the plane says that it wants to receive
+          // the events, but just as normal mouse move/click
+          // events.
+          g_drag_state.reset();
+          g_drag_state.emplace();
+          g_drag_state->plane = e;
+          g_drag_state->mode  = e_drag_send_mode::motion;
+          auto motion = input::drag_event_to_mouse_motion_event(
+              *drag_event );
+          auto maybe_button =
+              input::drag_event_to_mouse_button_event(
+                  *drag_event );
+          // Drag events in the e_drag_phase::begin phase should
+          // not contain any button events because the initial
+          // mouse-down will always be sent as a normal click
+          // event.
+          CHECK( !maybe_button.has_value() );
+          (void)plane->input( motion );
+          // All events within a drag are assumed handled.
+          return Plane::e_input_handled::yes;
+        }
+        case Plane::e_accept_drag::swallow:
+          g_drag_state.reset();
+          // The plane says that it doesn't want to handle it AND
+          // it doesn't want anyone else to handle it.
+          return Plane::e_input_handled::yes;
+        case Plane::e_accept_drag::yes:
+          // Wants to handle it.
+          g_drag_state.reset();
+          g_drag_state.emplace();
+          g_drag_state->plane = e;
+          g_drag_state->mode  = e_drag_send_mode::normal;
+          // Now we must send it an on_drag because this mouse
+          // event that we're dealing with serves both to tell us
+          // about a new drag even but also may have a mouse
+          // delta in it that needs to be processed.
+          plane->on_drag( drag_event->mod, drag_event->button,
+                          drag_event->state.origin,
+                          drag_event->prev, drag_event->pos );
+          return Plane::e_input_handled::yes;
+        case Plane::e_accept_drag::yes_but_raw:
+          (void)plane->input( event );
+          return Plane::e_input_handled::yes;
+      }
+    }
+  }
+  // If no one handled it then that's it.
   return Plane::e_input_handled::no;
 }
 

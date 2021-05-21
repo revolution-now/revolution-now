@@ -1146,8 +1146,8 @@ struct MenuPlane : public Plane {
       }
     }
   }
-  Plane::DragInfo can_drag( input::e_mouse_button button,
-                            Coord origin ) override {
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
     if( !click_target( origin ).has_value() )
       return Plane::e_accept_drag::no;
     // Convert drags to mouse motion events.

@@ -887,8 +887,8 @@ struct LandViewPlane : public Plane {
       SG().viewport.pan_by_screen_coords( d->prev - d->current );
   }
 
-  Plane::DragInfo can_drag( input::e_mouse_button button,
-                            Coord origin ) override {
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
     if( !drag_finished ) return Plane::e_accept_drag::swallow;
     if( button == input::e_mouse_button::r &&
         SG().viewport.screen_coord_in_viewport( origin ) ) {

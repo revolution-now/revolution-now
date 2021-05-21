@@ -2049,8 +2049,8 @@ struct OldWorldPlane : public Plane {
   /**************************************************************
   ** Dragging
   ***************************************************************/
-  Plane::DragInfo can_drag( input::e_mouse_button button,
-                            Coord origin ) override {
+  Plane::e_accept_drag can_drag( input::e_mouse_button button,
+                                 Coord origin ) override {
     if( g_drag_state ) return Plane::e_accept_drag::swallow;
     waitable<> w = dragging_thread( &entities_, button, origin );
     if( w.ready() ) return e_accept_drag::no;
